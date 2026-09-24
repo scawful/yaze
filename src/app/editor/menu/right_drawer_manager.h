@@ -348,7 +348,7 @@ class RightDrawerManager {
   void DrawPanelHeader(PanelType type, const char* title, const char* icon);
   void DrawDrawerNavStrip(PanelType current_panel);
   void DrawHeaderActions(PanelType type);
-  void DrawHeaderContextBadge(PanelType type);
+  void DrawHeaderContextBadge(PanelType type, float available_width);
   void DrawAgentChatPanel();
   void DrawProposalsPanel();
   void DrawSettingsPanel();

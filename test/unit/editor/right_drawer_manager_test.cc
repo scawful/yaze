@@ -2,7 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_config.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
@@ -16,6 +18,10 @@ class RightDrawerManagerTestPeer {
   static void DrawHeader(RightDrawerManager& manager, const char* title) {
     const auto type = manager.GetActiveDrawer();
     manager.DrawPanelHeader(type, title, GetDrawerTypeIcon(type));
+  }
+
+  static void DrawNavStrip(RightDrawerManager& manager) {
+    manager.DrawDrawerNavStrip(manager.GetActiveDrawer());
   }
 };
 
@@ -45,6 +51,38 @@ class RightDrawerManagerTest : public ::testing::Test {
   }
 
   ImGuiContext* imgui_context_ = nullptr;
+
+  void DrawNavFrame(RightDrawerManager& manager) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f));
+    ImGui::SetNextWindowSize(ImVec2(320.0f, 200.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Drawer test", nullptr, ImGuiWindowFlags_NoDecoration);
+    RightDrawerManagerTestPeer::DrawNavStrip(manager);
+    // The strip positions the cursor for the drawer content drawn next.
+    ImGui::Dummy(ImVec2(0.0f, 0.0f));
+    ImGui::End();
+    ImGui::PopStyleVar();
+    ImGui::Render();
+  }
+
+  void ClickNavTab(RightDrawerManager& manager, size_t index) {
+    DrawNavFrame(manager);
+    const auto* window = ImGui::FindWindowByName("Drawer test");
+    ASSERT_NE(window, nullptr);
+    // Target the middle of the catalog cell, independently of the widget's
+    // width calculation. Send real press/release events through ImGui.
+    const float x =
+        window->Pos.x + window->Size.x * (static_cast<float>(index) + 0.5f) /
+                            static_cast<float>(GetDrawerCatalog().size());
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(x, window->Pos.y + 16.0f);
+    DrawNavFrame(manager);
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+    DrawNavFrame(manager);
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+    DrawNavFrame(manager);
+  }
 };
 
 TEST_F(RightDrawerManagerTest, CyclePanelNoopWhenNoPanelIsActive) {
@@ -142,27 +180,21 @@ TEST_F(RightDrawerManagerTest, ToggleActiveDrawerClosesIt) {
 // Nav strip behavioral tests: active-close / inactive-switch
 
 TEST_F(RightDrawerManagerTest, NavStripActiveTabLogicClosesDrawer) {
-  // Simulates the InvisibleButton handler in DrawDrawerNavStrip:
-  // clicking the active tab should close the drawer.
   RightDrawerManager manager;
   manager.OpenDrawer(RightDrawerManager::DrawerType::kHelp);
   ASSERT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kHelp);
 
-  // Mimic the nav strip click: is_active → CloseDrawer()
-  manager.CloseDrawer();
+  ClickNavTab(manager, 5);  // Help
   EXPECT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kNone);
 }
 
 TEST_F(RightDrawerManagerTest, NavStripInactiveTabLogicSwitchesDrawer) {
-  // Simulates the InvisibleButton handler in DrawDrawerNavStrip:
-  // clicking an inactive tab should open that drawer.
   RightDrawerManager manager;
   manager.OpenDrawer(RightDrawerManager::DrawerType::kSettings);
   ASSERT_EQ(manager.GetActiveDrawer(),
             RightDrawerManager::DrawerType::kSettings);
 
-  // Mimic click on Properties (inactive)
-  manager.OpenDrawer(RightDrawerManager::DrawerType::kProperties);
+  ClickNavTab(manager, 1);  // Properties
   EXPECT_EQ(manager.GetActiveDrawer(),
             RightDrawerManager::DrawerType::kProperties);
 }
@@ -199,6 +231,67 @@ TEST_F(RightDrawerManagerTest, RenderFrameWithAllDrawersDoesNotCrash) {
     EXPECT_NO_FATAL_FAILURE(manager.Draw());
     ImGui::Render();
   }
+}
+
+TEST_F(RightDrawerManagerTest, HeaderBadgesStayBeforeActionButtons) {
+  auto& themes = gui::ThemeManager::Get();
+  const gui::Theme previous_theme = themes.GetCurrentTheme();
+  gui::Theme test_theme = previous_theme;
+  // Identify badge geometry independently of the user's active theme. The
+  // default theme can give header backgrounds and badges the same color.
+  test_theme.primary = {0.91f, 0.07f, 0.59f, 1.0f};
+  test_theme.header_hovered = {0.13f, 0.79f, 0.29f, 1.0f};
+  themes.ApplyTheme(test_theme);
+  ToastManager toasts;
+  toasts.Show("Saved ROM copy");
+  RightDrawerManager manager;
+  manager.SetToastManager(&toasts);
+  manager.SetActiveEditor(EditorType::kOverworld);
+
+  for (const auto type : {RightDrawerManager::DrawerType::kNotifications,
+                          RightDrawerManager::DrawerType::kHelp}) {
+    manager.OpenDrawer(type);
+    for (float width : {280.0f, 320.0f, 480.0f}) {
+      for (float scale : {1.0f, 1.5f, 2.0f}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "type=" << static_cast<int>(type) << " width=" << width
+                     << " scale=" << scale);
+        ImGui::GetIO().FontGlobalScale = scale;
+        ImGui::NewFrame();
+        ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f));
+        ImGui::SetNextWindowSize(ImVec2(width, 200.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("Header test", nullptr, ImGuiWindowFlags_NoDecoration);
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const int first_vertex = draw_list->VtxBuffer.Size;
+        RightDrawerManagerTestPeer::DrawHeader(
+            manager, "A long drawer title that needs to be truncated");
+
+        const int action_count =
+            type == RightDrawerManager::DrawerType::kNotifications ? 4 : 3;
+        const float first_action_x = ImGui::GetWindowPos().x + width -
+                                     gui::UIConfig::kPanelPaddingLarge -
+                                     action_count * 24.0f -
+                                     (action_count - 1) * 4.0f;
+        const ImU32 badge_color = ImGui::GetColorU32(
+            type == RightDrawerManager::DrawerType::kNotifications
+                ? gui::GetPrimaryVec4()
+                : gui::GetSurfaceContainerHighestVec4());
+        for (int i = first_vertex; i < draw_list->VtxBuffer.Size; ++i) {
+          const auto& vertex = draw_list->VtxBuffer[i];
+          if (vertex.col == badge_color) {
+            EXPECT_LT(vertex.pos.x, first_action_x)
+                << "Badge overlaps a header action";
+          }
+        }
+        ImGui::Dummy(ImVec2(0.0f, 0.0f));
+        ImGui::End();
+        ImGui::PopStyleVar();
+        ImGui::Render();
+      }
+    }
+  }
+  themes.ApplyTheme(previous_theme);
 }
 
 // Chrome non-overlap: the nav strip width must not exceed the window width.
