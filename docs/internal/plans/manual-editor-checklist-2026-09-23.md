@@ -65,6 +65,11 @@ These checks remain deferred. Automated tests use synthetic in-memory ROM data.
   staircase targeting room 000 must appear in the connected-room graph.
   Staircase links/notices must be labeled estimated; no Clear stale action
   should be offered. Review actual slot use separately in-game.
+- [ ] Select one staircase and use **Find selected stair slot** in Destinations.
+  Lookup should open a vanilla-model slot without dirtying the room. Change its
+  destination/arrival layer, Undo/Redo and save/reopen a test copy. Overlapping
+  or overwritten triggers should explain the unresolved result without switching
+  routes. Custom collision should disable lookup.
 - [ ] Check supported spriteset choices and invalid/capacity errors. Rejected
   operations must preserve the room and history.
 

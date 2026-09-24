@@ -1370,6 +1370,121 @@ RoomCollisionMaps ComputeRoomCollisionMaps(
   return maps;
 }
 
+std::vector<StaircaseSlotResolution> ResolveVanillaStaircaseSlots(
+    const Rom& rom, const RoomCollisionInput& input,
+    const UnderworldRoomLoadState& state) {
+  struct Trigger {
+    int edge = 0;
+    int index = 0;
+    uint8_t edge_type = 0;
+  };
+  std::vector<StaircaseSlotResolution> results;
+  std::vector<Trigger> triggers;
+  for (size_t i = 0; i < input.objects.size(); ++i) {
+    const auto& object = input.objects[i];
+    if (!UsesRoomObjectStream(object))
+      continue;
+    int edge_row = object.y();
+    int index_row = object.y() + 1;
+    int last_row = object.y() + 3;
+    bool lower = object.GetLayerValue() == 1;
+    uint8_t edge_type = 0;
+    switch (object.id_) {
+      case 0x12D:
+        edge_type = 0x26;
+        break;
+      case 0x12E:
+      case 0x12F:
+        edge_type = 0x26;
+        edge_row += 3;
+        index_row += 1;
+        break;
+      case 0x138:
+      case 0x139:
+      case 0x13A:
+      case 0x13B:
+        edge_type = object.id_ < 0x13A ? 0x5E : 0x5F;
+        --edge_row;
+        --index_row;
+        --last_row;
+        break;
+      case 0xF9E:
+      case 0xF9F:
+        lower = false;  // Upper straight writers ignore the stream layer.
+        [[fallthrough]];
+      case 0xFA6:
+      case 0xFA7:
+        edge_type = 0x38;
+        break;
+      case 0xFA0:
+      case 0xFA1:
+        lower = false;
+        [[fallthrough]];
+      case 0xFA8:
+      case 0xFA9:
+        edge_type = 0x39;
+        edge_row += 3;
+        index_row += 1;
+        break;
+      default:
+        continue;
+    }
+    StaircaseSlotResolution result;
+    result.object_index = i;
+    if (object.GetLayerValue() > 2 || object.x() > 60 || edge_row < 0 ||
+        last_row >= 64 || index_row >= 64) {
+      result.status = StaircaseSlotStatus::kOutsideRoom;
+    }
+    const int layer = lower ? kCollisionMapTiles : 0;
+    triggers.push_back({layer + edge_row * 64 + object.x() + 1,
+                        layer + index_row * 64 + object.x() + 1, edge_type});
+    results.push_back(result);
+  }
+  // The position table shares storage with other lists after its four words.
+  // Do not infer editable destinations from overflow/wrapped indices.
+  if (results.size() > 4) {
+    for (auto& result : results)
+      result.status = StaircaseSlotStatus::kTooManyStairs;
+    return results;
+  }
+  if (results.empty())
+    return results;
+  const auto maps = ComputeRoomCollisionMaps(rom, input, state);
+  for (size_t i = 0; i < results.size(); ++i) {
+    auto& result = results[i];
+    if (result.status == StaircaseSlotStatus::kOutsideRoom)
+      continue;
+    const auto& t = triggers[i];
+    bool overlap = false;
+    for (size_t j = 0; j < results.size(); ++j) {
+      if (i == j || results[j].status == StaircaseSlotStatus::kOutsideRoom)
+        continue;
+      for (int a : {t.edge, t.edge + 1, t.index, t.index + 1}) {
+        const auto& other = triggers[j];
+        for (int b : {other.edge, other.edge + 1, other.index, other.index + 1})
+          overlap |= a == b;
+      }
+    }
+    if (overlap) {
+      result.status = StaircaseSlotStatus::kOverlappingStairs;
+      continue;
+    }
+    const uint8_t attribute = maps.attributes[t.index];
+    bool intact = (attribute & 0xF8) == 0x30;
+    for (int x = 0; x < 2; ++x) {
+      intact &= maps.sources[t.index + x] == CollisionSource::kStairs &&
+                maps.sources[t.edge + x] == CollisionSource::kStairs &&
+                maps.attributes[t.index + x] == attribute &&
+                maps.attributes[t.edge + x] == t.edge_type;
+    }
+    if (intact) {
+      result.status = StaircaseSlotStatus::kResolved;
+      result.slot = attribute & 3;  // $01C3CA: runtime $0462 & 3.
+    }
+  }
+  return results;
+}
+
 RoomCollisionInput MakeRoomCollisionInput(const Room& room,
                                           const RoomTilemaps& tilemaps) {
   RoomCollisionInput input;

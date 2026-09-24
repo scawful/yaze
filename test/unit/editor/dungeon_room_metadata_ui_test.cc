@@ -316,6 +316,53 @@ TEST_F(DungeonRoomMetadataUiTest, StairPlaneEditTargetsOnlySelectedHeaderSlot) {
   EXPECT_EQ(rooms_[0].CaptureMetadataSnapshot().pit_target_layer, 0);
 }
 
+TEST_F(DungeonRoomMetadataUiTest, SelectedStairLookupOpensSlotWithoutEditing) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  rooms_[0].SetRom(&rom);
+  rooms_[1].SetRom(&rom);
+  viewer_.RefreshRomBackedState(&rom, nullptr, &rooms_, room_id_);
+  ASSERT_TRUE(
+      rooms_[0].AddObject(zelda3::RoomObject(0x138, 10, 10, 0, 1)).ok());
+  ASSERT_TRUE(
+      rooms_[0].AddObject(zelda3::RoomObject(0x138, 20, 20, 0, 0)).ok());
+  rooms_[0].ClearSaveDirtyState();
+  viewer_.object_interaction().SetSelectedObjects({0});
+  show_destinations_ = true;
+  width_ = 260;
+  DrawFrame();
+  DrawFrame();
+  Click("FindStairSlot");
+  EXPECT_NE(logged_text_.find("Stair slot 2"), std::string::npos);
+  EXPECT_TRUE(edits_.empty());
+  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
+  Click("Plane");
+  DrawFrame();
+  Click("Plane/1");
+  ASSERT_EQ(edits_.size(), 1u);
+  EXPECT_EQ(edits_[0].request.index, 1);
+  EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kStaircasePlane);
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       StairLookupIsDisabledWithoutRomOrWithCustomCollision) {
+  show_destinations_ = true;
+  viewer_.object_interaction().SetSelectedObjects({0});
+  DrawFrame();
+  DrawFrame();
+  ASSERT_TRUE(Widget("FindStairSlot"));
+  EXPECT_FALSE(Widget("FindStairSlot")->enabled);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  rooms_[0].SetRom(&rom);
+  viewer_.RefreshRomBackedState(&rom, nullptr, &rooms_, room_id_);
+  rooms_[0].set_has_custom_collision(true);
+  viewer_.object_interaction().SetSelectedObjects({0});
+  DrawFrame();
+  EXPECT_FALSE(Widget("FindStairSlot")->enabled);
+  EXPECT_TRUE(edits_.empty());
+}
+
 TEST_F(DungeonRoomMetadataUiTest, TagPanelUsesCallbackAndShowsRejectedEdit) {
   show_tag_panel_ = true;
   reject_ = true;

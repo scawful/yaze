@@ -206,5 +206,112 @@ TEST_F(RoomCollisionTest, CrystalPegSwapFlips66And67) {
   EXPECT_EQ(swapped.sources[0], CollisionSource::kCrystalPeg);
 }
 
+TEST_F(RoomCollisionTest, StairSlotResolverUsesSerializedLayerOrder) {
+  auto input = EmptyRoom();
+  input.objects = {RoomObject(0x138, 10, 10, 0, 1),
+                   RoomObject(0x138, 20, 20, 0, 0)};
+  const auto slots = ResolveVanillaStaircaseSlots(rom_, input);
+  ASSERT_EQ(slots.size(), 2u);
+  EXPECT_EQ(slots[0].object_index, 0u);
+  EXPECT_EQ(slots[0].slot, 1);
+  EXPECT_EQ(slots[1].slot, 0);
+}
+
+TEST_F(RoomCollisionTest, StairSlotResolverAgreesWithEncodedStreamOrder) {
+  Room room;
+  ASSERT_TRUE(room.AddObject(RoomObject(0x138, 10, 10, 0, 1)).ok());
+  ASSERT_TRUE(room.AddObject(RoomObject(0x138, 20, 20, 0, 0)).ok());
+  const auto bytes = room.EncodeObjects();
+  ASSERT_GE(bytes.size(), 10u);
+  // Stable layer bucketing emits primary object, FFFF, then BG2 object.
+  EXPECT_EQ(bytes[3], 0xFF);
+  EXPECT_EQ(bytes[4], 0xFF);
+  auto input = EmptyRoom();
+  input.objects = {
+      RoomObject::DecodeObjectFromBytes(bytes[0], bytes[1], bytes[2], 0),
+      RoomObject::DecodeObjectFromBytes(bytes[5], bytes[6], bytes[7], 1)};
+  EXPECT_EQ(input.objects[0].x(), 20);
+  EXPECT_EQ(input.objects[1].x(), 10);
+  const auto slots = ResolveVanillaStaircaseSlots(rom_, input);
+  ASSERT_EQ(slots.size(), 2u);
+  EXPECT_EQ(slots[0].slot, 0);
+  EXPECT_EQ(slots[1].slot, 1);
+}
+
+TEST_F(RoomCollisionTest, StairSlotResolverDetectsCounterOverwrite) {
+  auto input = EmptyRoom();
+  input.objects = {RoomObject(0x139, 10, 10, 0), RoomObject(0x138, 20, 20, 0)};
+  const auto slots = ResolveVanillaStaircaseSlots(rom_, input);
+  ASSERT_EQ(slots.size(), 2u);
+  EXPECT_FALSE(slots[0].slot);
+  EXPECT_EQ(slots[0].status, StaircaseSlotStatus::kTriggerUnavailable);
+  EXPECT_EQ(slots[1].slot, 0);
+}
+
+TEST_F(RoomCollisionTest, StairSlotResolverHandlesEveryVanillaFamily) {
+  for (int id : {0x12D, 0x12E, 0x12F, 0x138, 0x139, 0x13A, 0x13B, 0xF9E, 0xF9F,
+                 0xFA0, 0xFA1, 0xFA6, 0xFA7, 0xFA8, 0xFA9}) {
+    for (int layer = 0; layer < 3; ++layer) {
+      SCOPED_TRACE(::testing::Message() << "id=" << id << " layer=" << layer);
+      auto input = EmptyRoom();
+      input.objects.emplace_back(id, 10, 10, 0, layer);
+      const auto slots = ResolveVanillaStaircaseSlots(rom_, input);
+      ASSERT_EQ(slots.size(), 1u);
+      EXPECT_EQ(slots[0].slot, 0);
+      EXPECT_EQ(slots[0].status, StaircaseSlotStatus::kResolved);
+    }
+  }
+}
+
+TEST_F(RoomCollisionTest, StairSlotResolverKeepsUpAndDownIndices) {
+  auto input = EmptyRoom();
+  input.objects = {RoomObject(0x138, 10, 10, 0), RoomObject(0x139, 20, 20, 0)};
+  const auto slots = ResolveVanillaStaircaseSlots(rom_, input);
+  ASSERT_EQ(slots.size(), 2u);
+  EXPECT_EQ(slots[0].slot, 0);
+  EXPECT_EQ(slots[1].slot, 1);
+}
+
+TEST_F(RoomCollisionTest,
+       StairSlotResolverRejectsOverlappingAndOverflowingStairs) {
+  auto input = EmptyRoom();
+  input.objects = {RoomObject(0x138, 10, 10, 0), RoomObject(0x138, 11, 10, 0)};
+  auto slots = ResolveVanillaStaircaseSlots(rom_, input);
+  ASSERT_EQ(slots.size(), 2u);
+  for (const auto& slot : slots) {
+    EXPECT_FALSE(slot.slot);
+    EXPECT_EQ(slot.status, StaircaseSlotStatus::kOverlappingStairs);
+  }
+  for (int i = 0; i < 3; ++i)
+    input.objects.emplace_back(0x138, 20 + i * 8, 20, 0);
+  slots = ResolveVanillaStaircaseSlots(rom_, input);
+  ASSERT_EQ(slots.size(), 5u);
+  for (const auto& slot : slots) {
+    EXPECT_FALSE(slot.slot);
+    EXPECT_EQ(slot.status, StaircaseSlotStatus::kTooManyStairs);
+  }
+}
+
+TEST_F(RoomCollisionTest, StairSlotResolverRejectsBoundsAndNonStairs) {
+  auto input = EmptyRoom();
+  input.objects = {RoomObject(0x138, 10, 0, 0), RoomObject(0x138, 62, 20, 0),
+                   RoomObject(0xFA0, 20, 62, 0), RoomObject(0x130, 10, 10, 0)};
+  const auto slots = ResolveVanillaStaircaseSlots(rom_, input);
+  ASSERT_EQ(slots.size(), 3u);
+  for (const auto& slot : slots) {
+    EXPECT_FALSE(slot.slot);
+    EXPECT_EQ(slot.status, StaircaseSlotStatus::kOutsideRoom);
+  }
+}
+
+TEST_F(RoomCollisionTest, StairSlotResolverRejectsTriggerOverwrittenByPot) {
+  auto input = EmptyRoom();
+  input.objects = {RoomObject(0x138, 10, 10, 0), RoomObject(0xFAF, 11, 10, 0)};
+  const auto slots = ResolveVanillaStaircaseSlots(rom_, input);
+  ASSERT_EQ(slots.size(), 1u);
+  EXPECT_FALSE(slots[0].slot);
+  EXPECT_EQ(slots[0].status, StaircaseSlotStatus::kTriggerUnavailable);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3

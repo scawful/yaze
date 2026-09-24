@@ -867,3 +867,12 @@ stale claims, `git diff --check`, and protocol checks if routing files changed.
   runtime evidence; packaged releases identify their source and platform results.
 - Public capability docs, the roadmap, and release checklist agree with the
   ledger. No estimated percentage substitutes for unresolved rows.
+
+### Selected-stair lookup follow-up (2026-09-23)
+
+Destinations now offers **Find selected stair slot**, backed by the shared vanilla
+collision replay and explicit unresolved states. Lookup selects a header slot
+without editing it; subsequent changes use the existing metadata undo path.
+This is a model preview, not custom-engine or runtime qualification. Estimated
+connected-graph links and automatic-clearing restrictions remain unchanged.
+See [resolver evidence and next steps](../agents/dungeon-staircase-resolver-2026-09-23.md).

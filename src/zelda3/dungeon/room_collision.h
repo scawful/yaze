@@ -121,6 +121,27 @@ RoomCollisionMaps ComputeRoomCollisionMaps(
     const Rom& rom, const RoomCollisionInput& input,
     const UnderworldRoomLoadState& state = {});
 
+enum class StaircaseSlotStatus {
+  kResolved,
+  kTriggerUnavailable,
+  kOverlappingStairs,
+  kOutsideRoom,
+  kTooManyStairs,
+};
+
+struct StaircaseSlotResolution {
+  size_t object_index = 0;
+  StaircaseSlotStatus status = StaircaseSlotStatus::kTriggerUnavailable;
+  std::optional<int> slot;
+};
+
+// Resolves room-stream stairs from the shared vanilla collision replay, not
+// vector order. Results are a model preview, not custom-engine/runtime proof.
+// Ambiguous triggers and more than four stairs never produce editable slots.
+std::vector<StaircaseSlotResolution> ResolveVanillaStaircaseSlots(
+    const Rom& rom, const RoomCollisionInput& input,
+    const UnderworldRoomLoadState& state = {});
+
 // Convenience for a loaded, rendered room: its objects, doors and header, and
 // the tilemaps yaze composed (ComposeYazeRoomTilemaps) unless `tilemaps` is
 // given.
