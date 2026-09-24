@@ -94,20 +94,7 @@ set(
   app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
   app/editor/hack/workflow/project_workflow_output_panel.cc
   app/editor/hack/workflow/workflow_activity_widgets.cc
-  app/editor/layout/layout_coordinator.cc
-  app/editor/layout/layout_designer/dock_tree.cc
-  app/editor/layout/layout_designer/dock_tree_hit_test.cc
-  app/editor/layout/layout_designer/dock_tree_json.cc
-  app/editor/layout/layout_designer/dock_tree_renderer.cc
-  app/editor/layout/layout_designer/drop_zone_suggester.cc
   app/editor/layout/layout_designer/layout_designer_panel.cc
-  app/editor/layout/layout_designer/panel_palette.cc
-  app/editor/layout/layout_designer/split_boundary_drag.cc
-  app/editor/layout/layout_designer/tree_undo_stack.cc
-  app/editor/layout/layout_manager.cc
-  app/editor/layout/layout_orchestrator.cc
-  app/editor/layout/layout_presets.cc
-  app/editor/layout/window_delegate.cc
   app/editor/menu/activity_bar.cc
   app/editor/menu/activity_bar_actions_registry.cc
   app/editor/menu/menu_builder.cc
@@ -197,28 +184,9 @@ set(
   app/editor/sprite/sprite_behavior_panel.cc
   app/editor/sprite/sprite_asset_panel.cc
   app/editor/sprite/sprite_catalog_panel.cc
-  app/editor/system/commands/command_manager.cc
-  app/editor/system/commands/command_palette.cc
-  app/editor/system/commands/command_palette_providers.cc
-  app/editor/system/commands/shortcut_configurator.cc
-  app/editor/system/commands/shortcut_manager.cc
   app/editor/system/session/background_command_task.cc
   app/editor/system/session/default_editor_factories.cc
-  app/editor/system/session/extension_manager.cc
   app/editor/system/session/hack_manifest_save_validation.cc
-  app/editor/system/session/project_manager.cc
-  app/editor/system/session/rom_file_manager.cc
-  app/editor/system/session/rom_lifecycle_manager.cc
-  app/editor/system/session/session_coordinator.cc
-  app/editor/system/session/user_settings.cc
-  app/editor/system/workspace/editor_activator.cc
-  app/editor/system/workspace/editor_registry.cc
-  app/editor/system/workspace/file_browser.cc
-  app/editor/system/workspace/panel_host.cc
-  app/editor/system/workspace/proposal_drawer.cc
-  app/editor/system/workspace/workspace_window_manager.cc
-  app/editor/system/workspace/workspace_window_manager_state.cc
-  app/editor/system/workspace/workspace_window_manager_support.cc
 
 )
 

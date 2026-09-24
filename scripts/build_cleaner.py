@@ -209,6 +209,20 @@ def discover_cmake_libraries() -> List[CMakeSourceBlock]:
     return blocks
 
 
+def _sources_in_set_blocks(cmake_path: Path, variables: Sequence[str]) -> Set[Path]:
+    """Source paths listed in the named set() blocks of a CMake file."""
+    if not cmake_path.exists():
+        return set()
+    text = cmake_path.read_text(encoding="utf-8")
+    sources: Set[Path] = set()
+    for variable in variables:
+        match = re.search(rf"set\(\s*{re.escape(variable)}\s+(.*?)\)", text, re.S)
+        if match:
+            sources.update(Path(entry) for entry in match.group(1).split()
+                           if entry.endswith((".cc", ".cpp", ".mm")))
+    return sources
+
+
 # Static configuration for all library source lists
 # The script now auto-maintains all libraries while preserving conditional sections
 STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
@@ -241,11 +255,21 @@ STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
         variable="YAZE_APP_EDITOR_SRC",
         cmake_path=SOURCE_ROOT / "app/editor/editor_library.cmake",
         directories=(DirectorySpec(SOURCE_ROOT / "app/editor"),),
+        # These are built into the yaze_editor_system_* libraries, which
+        # yaze_editor links. Listing them here too duplicates every symbol in
+        # the combined iOS archive.
+        exclude=_sources_in_set_blocks(
+            SOURCE_ROOT / "app/editor/editor_library.cmake",
+            ("YAZE_EDITOR_SYSTEM_PANELS_SRC", "YAZE_EDITOR_SYSTEM_SESSION_SRC",
+             "YAZE_EDITOR_SYSTEM_SHORTCUTS_SRC")),
     ),
     CMakeSourceBlock(
         variable="YAZE_APP_ZELDA3_SRC",
         cmake_path=SOURCE_ROOT / "zelda3/zelda3_library.cmake",
         directories=(DirectorySpec(SOURCE_ROOT / "zelda3"),),
+        # Built into yaze_gfx_debug (gfx_library.cmake): app/gfx/resource
+        # uses it, and yaze_zelda3 already links yaze_gfx.
+        exclude={Path("zelda3/dungeon/palette_debug.cc")},
     ),
     # NOTE: YAZE_NET_SRC is intentionally excluded from static auto-maintenance.
     # net_library.cmake uses indirect variable composition:
