@@ -156,6 +156,18 @@ class IWindowBackend {
    */
   virtual void ProcessNativeEvent(void* native_event) = 0;
 
+  /**
+   * @brief Block until an event is pending or the timeout passes.
+   *
+   * Used to idle the frame loop when nothing is happening. The event stays
+   * queued for PollEvent(). Backends without a wait primitive return at once.
+   * @return True if an event is pending.
+   */
+  virtual bool WaitForEvent(int timeout_ms) {
+    (void)timeout_ms;
+    return false;
+  }
+
   // =========================================================================
   // Window State
   // =========================================================================
