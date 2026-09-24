@@ -26,8 +26,8 @@ No push, installed-app replacement, worktree deletion or layout reset performed.
 
 ## Pending / deliberately excluded
 
-- Active Tile16 multiselect/destination-graphics preview and graphics-group
-  isolation follow-up belongs to overworld owner; await exact tested patch.
+- Tile16 multiselect/destination-graphics preview and graphics-group isolation
+  follow-up is now integrated at `699c86326` (13-file patch hash verified).
 - Broad historical editor-safety-containment and unrelated CLI/CI/maintenance
   branches are not automatically merged. Their remaining differences require
   separate behavior review; this is a bounded UI/correctness consolidation.
@@ -58,3 +58,13 @@ Exact app/CLI hashes and build/test evidence are kept in
 `build/presets/mac-ai/combined-editor-evidence/`.
 Live sprite and vanilla-overworld results belong to their owner builds; combined
 Origins/Oracle editing, save/reopen, native iPad and gameplay remain unqualified.
+
+## Final validation
+
+Canonical application source: `699c86326`. App, CLI, unit and quick-editor targets
+built successfully with four workers. Focused results (overlapping suites, do not
+sum as unique tests): 99 preview/tracking/history tests; 62 welcome/theme UI tests;
+17 drawer/SPC700/doctor tests. Earlier combined sprite/project/toolbar87 and
+OW/editor-save104 results remain separately recorded. Theme test contamination
+was fixed by naming its synthetic UTF-8 theme uniquely; shipped assets unchanged.
+Precommit checks passed. Main/owner worktrees, installed apps and ROMs preserved.
