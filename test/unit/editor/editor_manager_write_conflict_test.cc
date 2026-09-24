@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -21,6 +22,7 @@
 #include "core/rom_settings.h"
 #include "rom/rom_diff.h"
 #include "rom/snes.h"
+#include "rom/write_fence.h"
 #include "test_utils/dungeon_editor_v2_regular_entrance_test_peer.h"
 #include "testing.h"
 #include "zelda3/dungeon/custom_object.h"
@@ -451,6 +453,105 @@ TEST(EditorManagerWriteConflictTest,
   EXPECT_FALSE(room.header_dirty());
   EXPECT_EQ(ReadByteAt(rom_path, kProtectedPc), 0xA5);
   EXPECT_EQ(ReadByteAt(rom_path, kHeaderPc + 1), 0x2A);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     DiskReplacementFailurePreservesDungeonRetryAndSaveAsSource) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+  ScopedDirectoryCleanup cleanup{MakeTempFilePath("yaze_staging_rollback")};
+  ASSERT_TRUE(std::filesystem::create_directory(cleanup.path));
+  const auto source = cleanup.path / "source.sfc";
+  const auto blocked_target = cleanup.path / "blocked.sfc";
+  const auto legacy_temp = cleanup.path / "blocked.sfc.tmp";
+  ASSERT_TRUE(std::filesystem::create_directory(blocked_target));
+
+  constexpr int kHeaderTablePc = 0x10000;
+  constexpr int kHeaderPc = 0x12000;
+  std::vector<uint8_t> source_bytes(512 * 1024, 0x00);
+  WriteLongPointer(&source_bytes, zelda3::kRoomHeaderPointer,
+                   PcToSnes(kHeaderTablePc));
+  const auto header_snes = PcToSnes(kHeaderPc);
+  source_bytes[zelda3::kRoomHeaderPointerBank] = (header_snes >> 16) & 0xFF;
+  source_bytes[kHeaderTablePc] = header_snes & 0xFF;
+  source_bytes[kHeaderTablePc + 1] = (header_snes >> 8) & 0xFF;
+  {
+    std::ofstream out(source, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(source_bytes.data()),
+              source_bytes.size());
+    ASSERT_TRUE(out.good());
+  }
+  // The former predictable staging path aliases the source ROM. A failed
+  // Save As must not write the serialized header through this link.
+  std::filesystem::create_hard_link(source, legacy_temp);
+  const auto read_bytes = [](const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    return std::vector<uint8_t>(std::istreambuf_iterator<char>(input),
+                                std::istreambuf_iterator<char>());
+  };
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager->OpenRomOrProject(source.string()));
+  // This raw-ROM session uses user backup preferences. Reach disk replacement
+  // rather than rejecting the directory while trying to back it up.
+  manager->user_settings().prefs().backup_before_save = false;
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().dungeon.kSaveRoomHeaders = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "StagingRollbackTest";
+  project->filepath = (cleanup.path / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+  auto* dungeon = manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto& room = dungeon->rooms()[0];
+  room.SetLoaded(true);
+  room.SetPalette(0x2A);
+  auto* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  const auto before_save = rom->vector();
+  const auto before_filename = rom->filename();
+  const bool before_dirty = rom->dirty();
+  rom::WriteFence observed;
+  ASSERT_OK(observed.Allow(0, rom->size(), "Observe save serialization"));
+  rom::ScopedWriteFence observe(rom, &observed);
+
+  const auto blocked = manager->SaveRomAs(blocked_target.string());
+
+  EXPECT_FALSE(blocked.ok());
+  EXPECT_NE(blocked.message().find("Failed to move temp ROM into place"),
+            absl::string_view::npos)
+      << blocked;
+  EXPECT_TRUE(std::any_of(observed.written_ranges().begin(),
+                          observed.written_ranges().end(), [](const auto& r) {
+                            return r.first <= kHeaderPc + 1 &&
+                                   r.second > kHeaderPc + 1;
+                          }));
+  EXPECT_EQ(rom->vector(), before_save);
+  EXPECT_EQ(rom->filename(), before_filename);
+  EXPECT_EQ(rom->dirty(), before_dirty);
+  EXPECT_TRUE(room.header_dirty());
+  EXPECT_EQ(read_bytes(source), source_bytes);
+  EXPECT_EQ(read_bytes(legacy_temp), source_bytes);
+  EXPECT_TRUE(std::filesystem::is_directory(blocked_target));
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(cleanup.path),
+                          std::filesystem::directory_iterator()),
+            3);
+
+  const auto retry_target = cleanup.path / "retry.sfc";
+  ASSERT_OK(manager->SaveRomAs(retry_target.string()));
+  EXPECT_FALSE(room.header_dirty());
+  auto expected = source_bytes;
+  expected[kHeaderPc + 1] = 0x2A;
+  EXPECT_EQ(read_bytes(retry_target), expected);
+  EXPECT_EQ(read_bytes(source), source_bytes);
+  EXPECT_EQ(read_bytes(legacy_temp), source_bytes);
+  EXPECT_EQ(rom->filename(), retry_target.string());
 }
 
 TEST(EditorManagerWriteConflictTest,
