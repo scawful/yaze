@@ -2020,10 +2020,6 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Point to a blank editor set when no ROM is loaded
   // current_editor_set_ = &blank_editor_set_;
 
-  if (!filename.empty()) {
-    PRINT_IF_ERROR(OpenRomOrProject(filename));
-  }
-
   // Note: PopupManager is now initialized in constructor before
   // MenuOrchestrator This ensures all menu callbacks can safely call
   // popup_manager_.Show()
@@ -2076,6 +2072,13 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // TestManager will be updated when ROMs are loaded via SetCurrentRom calls
 
   InitializeShortcutSystem();
+
+  // Open a startup ROM last. The post-load surface reads Settings (Default
+  // Editor), which InitializeServices() loads; opening earlier used the
+  // built-in defaults and always showed the editor picker.
+  if (!filename.empty()) {
+    PRINT_IF_ERROR(OpenRomOrProject(filename));
+  }
 }
 
 void EditorManager::RegisterEmulatorPanels() {
