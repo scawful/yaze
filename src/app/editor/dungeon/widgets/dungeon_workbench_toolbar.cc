@@ -613,7 +613,8 @@ float ToolbarEstimatedWidth(const DungeonWorkbenchToolbarParams& p,
   }
 
   const float navigation_width =
-      4.0f * ImGui::GetFrameHeight() + 3.0f * ImGui::GetStyle().ItemSpacing.x;
+      4.0f * ImGui::GetFrameHeight() + 4.0f * ImGui::GetStyle().ItemSpacing.x +
+      ImGui::CalcTextSize("00000").x + ImGui::GetStyle().FramePadding.x * 2.0f;
   append_left(navigation_width, kToolbarClusterGap);
 
   if (visibility.recent_rooms) {

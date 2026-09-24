@@ -137,3 +137,31 @@ See [the consolidation record](../agents/cursor-overworld-consolidation-2026-09-
 and [the release ladder](release-ladder-0x-2026.md).
 Automated checks passed for the consolidated candidate; manual checks above
 remain unchecked and must not be reported as completed.
+
+## Origins daily-editing pass (2026-09-23)
+
+Ranked findings (source-confirmed unless stated otherwise):
+
+1. **Direct navigation disappears with the room browser.** Hide the left browser
+   and try opening room `005`: the persistent room strip previously offered only
+   four arrows. Added hexadecimal room entry with Enter submission and `000-127`
+   validation; toolbar reserves its width. Manual typing/focus acceptance pending.
+2. **Room-grid arrows can be mistaken for actual connections.** Hover an arrow:
+   the old direction/room tooltip did not explain its arithmetic neighbor lookup.
+   Tooltips now identify room-grid navigation and state it does not confirm a
+   door connection. No connection data changed.
+
+Actual UI limitation: exact candidate app path was selected through CUA, but two
+live Yaze processes share a bundle ID. Native Open/Go To input did not reliably
+route (Return reset the path, clipboard read timed out). Sprite owner paused
+input during this attempt; their session was preserved and control released.
+This is an automation limitation, not a reproduced Yaze picker bug. Welcome and
+native picker were inspected; the full Origins interaction/save/reopen sequence
+was NOT completed. No ROM edits occurred. Isolated fixture:
+`/Users/scawful/Documents/Oracle Editing/origins-ui-mcerx23i/origins-ui.sfc`.
+Do not mark selection, move/resize/layer, chest inspection, Undo/Redo or save/reopen
+manually accepted from this pass. No approved Origins/Goron layout was applied.
+
+Verification: built `yaze` and `yaze_test_unit`; discovered and ran
+`*DungeonWorkbenchToolbar*:*DungeonRoomNav*` (11 tests, all passed). These cover
+rendering/layout/style balance; they do not prove native keyboard interaction.
