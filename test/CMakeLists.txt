@@ -213,6 +213,8 @@ if(YAZE_BUILD_TESTS)
     unit/rom/rom_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
+    unit/emu/cpu_flags_test.cc
+    unit/emu/snes_io_reset_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/emu/input_backend_test.cc
     unit/emu/step_controller_test.cc
@@ -625,6 +627,8 @@ if(YAZE_BUILD_TESTS)
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
+    unit/emu/cpu_flags_test.cc
+    unit/emu/snes_io_reset_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
     unit/gfx/arena_retirement_test.cc
