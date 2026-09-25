@@ -12,6 +12,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
@@ -35,11 +36,15 @@
 #include "app/gui/imgui_memory_editor.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
+#include "core/gfx_sheet_policy_adapter.h"
+#include "core/project.h"
 #include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/file_util.h"
 #include "util/log.h"
+#include "util/macro.h"
+#include "zelda3/gfx_sheet_storage.h"
 
 namespace yaze {
 namespace editor {
@@ -241,124 +246,84 @@ absl::Status GraphicsEditor::Save() {
     LOG_INFO("GraphicsEditor", "No modified sheets to save");
     return absl::OkStatus();
   }
+  if (game_data() == nullptr) {
+    return absl::FailedPreconditionError("Game data not loaded");
+  }
 
   LOG_INFO("GraphicsEditor", "Saving %zu modified graphics sheets",
            state_.modified_sheets.size());
 
+  zelda3::GfxSheetWritePolicy policy;
+  if (const auto* project = this->project(); project != nullptr) {
+    ASSIGN_OR_RETURN(policy,
+                     core::BuildGfxSheetWritePolicy(project->hack_manifest));
+  }
+
+  // Refuse the whole batch before writing when any sheet cannot be saved, so
+  // a save never lands only part of the user's edits.
   auto& sheets = gfx::Arena::Get().gfx_sheets();
-  std::set<uint16_t> saved_sheets;
-  std::vector<uint16_t> skipped_sheets;
-
+  std::vector<std::string> refused;
   for (uint16_t sheet_id : state_.modified_sheets) {
-    if (sheet_id >= zelda3::kNumGfxSheets)
-      continue;
-
-    auto& sheet = sheets[sheet_id];
-    if (!sheet.is_active())
-      continue;
-
-    // Determine BPP and compression based on sheet range
-    int bpp = 3;  // Default 3BPP
-    bool compressed = true;
-
-    // Sheets 113-114, 218+ are 2BPP
-    if (sheet_id == 113 || sheet_id == 114 || sheet_id >= 218) {
-      bpp = 2;
+    if (sheet_id >= zelda3::kNumGfxSheets) {
+      refused.push_back(absl::StrFormat("0x%02X (out of range)", sheet_id));
+    } else if (policy.reserved_sheets.count(sheet_id) != 0) {
+      refused.push_back(
+          absl::StrFormat("0x%02X (reserved by the project)", sheet_id));
+    } else if (zelda3::GetGfxSheetStorageKind(sheet_id) ==
+               zelda3::GfxSheetStorageKind::kCompressed2bpp) {
+      refused.push_back(absl::StrFormat("0x%02X (2bpp, read-only)", sheet_id));
+    } else if (!sheets[sheet_id].is_active()) {
+      refused.push_back(absl::StrFormat("0x%02X (not loaded)", sheet_id));
     }
+  }
+  if (!refused.empty()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Graphics save refused for sheet(s) %s. Discard those edits to save "
+        "the rest.",
+        absl::StrJoin(refused, ", ")));
+  }
 
-    // Sheets 115-126 are uncompressed
-    if (sheet_id >= 115 && sheet_id <= 126) {
-      compressed = false;
+  const auto version_constants =
+      zelda3::kVersionConstantsMap.at(game_data()->version);
+  zelda3::GfxSheetPointerTables tables;
+  tables.bank = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr1,
+      version_constants.kOverworldGfxPtr1);
+  tables.high = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr2,
+      version_constants.kOverworldGfxPtr2);
+  tables.low = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr3,
+      version_constants.kOverworldGfxPtr3);
+
+  // Each WriteGfxSheet call restores its own bytes on failure; this snapshot
+  // also undoes sheets written earlier in the batch.
+  const std::vector<uint8_t> rom_snapshot = rom_->vector();
+  const bool rom_was_dirty = rom_->dirty();
+  std::set<uint16_t> saved_sheets;
+  for (uint16_t sheet_id : state_.modified_sheets) {
+    const auto snes_data =
+        gfx::IndexedToSnesSheet(sheets[sheet_id].vector(), /*bpp=*/3);
+    auto result =
+        zelda3::WriteGfxSheet(*rom_, sheet_id, snes_data, policy, tables);
+    if (!result.ok()) {
+      rom_->mutable_vector() = rom_snapshot;
+      rom_->set_dirty(rom_was_dirty);
+      return absl::Status(result.status().code(),
+                          absl::StrFormat("Graphics sheet 0x%02X not saved: %s",
+                                          sheet_id, result.status().message()));
     }
-
-    if (bpp == 2) {
-      const size_t expected_size =
-          gfx::kTilesheetWidth * gfx::kTilesheetHeight * 2;
-      const size_t actual_size = sheet.vector().size();
-      if (actual_size < expected_size) {
-        LOG_WARN("GraphicsEditor",
-                 "Skipping 2BPP sheet %02X save (expected %zu bytes, got %zu)",
-                 sheet_id, expected_size, actual_size);
-        skipped_sheets.push_back(sheet_id);
-        continue;
-      }
-    }
-
-    // Calculate ROM offset for this sheet
-    // Get version constants from game_data
-    auto version_constants =
-        zelda3::kVersionConstantsMap.at(game_data()->version);
-    const uint32_t gfx_ptr1 = core::RomSettings::Get().GetAddressOr(
-        core::RomAddressKey::kOverworldGfxPtr1,
-        version_constants.kOverworldGfxPtr1);
-    const uint32_t gfx_ptr2 = core::RomSettings::Get().GetAddressOr(
-        core::RomAddressKey::kOverworldGfxPtr2,
-        version_constants.kOverworldGfxPtr2);
-    const uint32_t gfx_ptr3 = core::RomSettings::Get().GetAddressOr(
-        core::RomAddressKey::kOverworldGfxPtr3,
-        version_constants.kOverworldGfxPtr3);
-    uint32_t offset =
-        zelda3::GetGraphicsAddress(rom_->data(), static_cast<uint8_t>(sheet_id),
-                                   gfx_ptr1, gfx_ptr2, gfx_ptr3, rom_->size());
-
-    // Convert 8BPP bitmap data to SNES planar format
-    auto snes_tile_data = gfx::IndexedToSnesSheet(sheet.vector(), bpp);
-
-    constexpr size_t kDecompressedSheetSize = 0x800;
-    std::vector<uint8_t> base_data;
-    if (compressed) {
-      auto decomp_result = gfx::lc_lz2::DecompressV2(
-          rom_->data(), offset, static_cast<int>(kDecompressedSheetSize), 1,
-          rom_->size());
-      if (!decomp_result.ok()) {
-        return decomp_result.status();
-      }
-      base_data = std::move(*decomp_result);
-    } else {
-      auto read_result = rom_->ReadByteVector(offset, kDecompressedSheetSize);
-      if (!read_result.ok()) {
-        return read_result.status();
-      }
-      base_data = std::move(*read_result);
-    }
-
-    if (base_data.size() < snes_tile_data.size()) {
-      base_data.resize(snes_tile_data.size(), 0);
-    }
-    std::copy(snes_tile_data.begin(), snes_tile_data.end(), base_data.begin());
-
-    std::vector<uint8_t> final_data;
-    if (compressed) {
-      // Compress using Hyrule Magic LC-LZ2
-      int compressed_size = 0;
-      auto compressed_data = gfx::HyruleMagicCompress(
-          base_data.data(), static_cast<int>(base_data.size()),
-          &compressed_size, 1);
-      final_data.assign(compressed_data.begin(),
-                        compressed_data.begin() + compressed_size);
-    } else {
-      final_data = std::move(base_data);
-    }
-
-    // Write data to ROM buffer
-    for (size_t i = 0; i < final_data.size(); i++) {
-      rom_->WriteByte(offset + i, final_data[i]);
-    }
-
-    LOG_INFO("GraphicsEditor",
-             "Saved sheet %02X (%zu bytes, %s) at offset %06X", sheet_id,
-             final_data.size(), compressed ? "compressed" : "raw", offset);
+    LOG_INFO("GraphicsEditor", "Saved sheet %02X (%zu bytes, %s) at 0x%06X",
+             sheet_id, result->new_stored_size,
+             result->placement == zelda3::GfxSheetPlacement::kRelocated
+                 ? "relocated"
+                 : "in place",
+             result->new_pc);
     saved_sheets.insert(sheet_id);
   }
 
   // Clear modified tracking after successful save
   state_.ClearModifiedSheets(saved_sheets);
-  if (!skipped_sheets.empty()) {
-    return absl::FailedPreconditionError(
-        absl::StrCat("Skipped ", skipped_sheets.size(),
-                     " 2BPP sheet(s); full data unavailable."));
-  }
-
   return absl::OkStatus();
 }
 

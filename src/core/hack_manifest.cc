@@ -684,6 +684,86 @@ ParseDungeonStreamLayouts(const Json& root) {
   return layouts;
 }
 
+absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
+    const Json& root, int manifest_version,
+    const std::unordered_map<DungeonStreamType, DungeonStreamLayout>&
+        dungeon_stream_layouts) {
+  constexpr const char* kSection = "graphics_sheet_regions";
+  // Matches zelda3::kGfxSheetCount; core cannot include zelda3 headers.
+  constexpr uint32_t kGraphicsSheetCount = 223;
+  GraphicsSheetLayout layout;
+  if (!root.contains(kSection)) {
+    return layout;
+  }
+  if (manifest_version < 3) {
+    return absl::InvalidArgumentError(
+        "graphics_sheet_regions requires manifest_version 3 or newer");
+  }
+
+  const Json& section = root[kSection];
+  if (!section.is_object() || section.empty()) {
+    return absl::InvalidArgumentError(
+        "graphics_sheet_regions must be a non-empty object");
+  }
+  for (const auto& item : section.items()) {
+    if (item.key() != "allocation_regions" && item.key() != "reserved_sheets" &&
+        item.key() != "description") {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "graphics_sheet_regions contains unknown key '%s'", item.key()));
+    }
+  }
+
+  if (section.contains("allocation_regions")) {
+    ASSIGN_OR_RETURN(
+        layout.allocation_regions,
+        ParseAddressRanges(section, "allocation_regions", kSection));
+
+    // Graphics relocation and dungeon stream allocation must never hand out
+    // the same bytes.
+    std::vector<NamedPcRange> ranges;
+    for (size_t index = 0; index < layout.allocation_regions.size(); ++index) {
+      const auto& range = layout.allocation_regions[index];
+      ranges.push_back(
+          {SnesToPc(range.start), SnesToPc(range.end),
+           absl::StrFormat("%s.allocation_regions[%zu]", kSection, index)});
+    }
+    for (const auto& [stream, stream_layout] : dungeon_stream_layouts) {
+      for (size_t index = 0; index < stream_layout.data_regions.size();
+           ++index) {
+        const auto& range = stream_layout.data_regions[index];
+        ranges.push_back(
+            {SnesToPc(range.start), SnesToPc(range.end),
+             absl::StrFormat("dungeon_stream_regions.%s."
+                             "data_regions[%zu]",
+                             DungeonStreamTypeToString(stream), index)});
+      }
+    }
+    RETURN_IF_ERROR(ValidateDisjointRanges(
+        std::move(ranges), "graphics allocation and dungeon stream ranges"));
+  }
+
+  if (section.contains("reserved_sheets")) {
+    const Json& reserved = section["reserved_sheets"];
+    if (!reserved.is_array()) {
+      return absl::InvalidArgumentError(
+          "graphics_sheet_regions.reserved_sheets must be an array");
+    }
+    size_t index = 0;
+    for (const Json& value : reserved) {
+      uint32_t sheet = 0;
+      ASSIGN_OR_RETURN(
+          sheet, ParseStrictHexValue(
+                     value,
+                     absl::StrFormat(
+                         "graphics_sheet_regions.reserved_sheets[%zu]", index),
+                     kGraphicsSheetCount - 1));
+      layout.reserved_sheets.push_back(static_cast<uint16_t>(sheet));
+      ++index;
+    }
+  }
+  return layout;
+}
+
 }  // namespace
 
 void HackManifest::Reset() {
@@ -703,6 +783,7 @@ void HackManifest::Reset() {
   message_layout_ = MessageLayout{};
   minecart_track_layout_ = MinecartTrackLayout{};
   dungeon_stream_layouts_.clear();
+  graphics_sheet_layout_ = GraphicsSheetLayout{};
   build_pipeline_ = BuildPipeline{};
   project_registry_ = ProjectRegistry{};
   oracle_progression_state_.reset();
@@ -743,6 +824,11 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
   std::unordered_map<DungeonStreamType, DungeonStreamLayout>
       dungeon_stream_layouts;
   ASSIGN_OR_RETURN(dungeon_stream_layouts, ParseDungeonStreamLayouts(root));
+
+  GraphicsSheetLayout graphics_sheet_layout;
+  ASSIGN_OR_RETURN(graphics_sheet_layout,
+                   ParseGraphicsSheetLayout(root, manifest_version_,
+                                            dungeon_stream_layouts));
 
   ParsedProtectedRegions protected_regions;
   ASSIGN_OR_RETURN(protected_regions,
@@ -1017,6 +1103,7 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
   protected_regions_ = std::move(protected_regions.regions);
   editor_managed_regions_ = std::move(editor_managed_regions);
   dungeon_stream_layouts_ = std::move(dungeon_stream_layouts);
+  graphics_sheet_layout_ = std::move(graphics_sheet_layout);
   loaded_ = true;
   return absl::OkStatus();
 }

@@ -23,14 +23,17 @@
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "rom/snes.h"
 #include "testing.h"
+#include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/gfx_sheet_storage.h"
 
 #include "imgui/imgui.h"
 
@@ -2114,7 +2117,7 @@ TEST(EditorManagerRomWritePolicyTest,
 }
 
 TEST(GraphicsSaveStoplossTest,
-     PendingSheetsBlockBothSaveScopeStatesBeforeSerialization) {
+     PendingSheetsBlockOrRollBackBeforeAnythingReachesDisk) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -2164,17 +2167,25 @@ TEST(GraphicsSaveStoplossTest,
   constexpr uint8_t kPendingRomByte = 0xA5;
   ASSERT_OK(rom->WriteByte(kPcOffset, kPendingRomByte));
 
+  // Disabled: blocked before any serializer runs. Enabled: the Graphics
+  // editor joins the coordinated save, sheet 0x20 is not loaded, so its save
+  // fails and the whole transaction rolls back. The Arena is process-global;
+  // clear the sheet so an earlier test cannot leave it loaded.
+  auto& arena_sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(0x20);
+  ScopedGraphicsSheetRestore restore_sheet(&arena_sheet);
+  arena_sheet = gfx::Bitmap();
+  ASSERT_FALSE(arena_sheet.is_active());
   for (const bool graphics_scope_enabled : {false, true}) {
     core::FeatureFlags::get().kSaveGraphicsSheet = graphics_scope_enabled;
     const auto status = manager->SaveRom();
 
     EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
-    EXPECT_NE(
-        std::string(status.message()).find("graphics sheet edits are pending"),
-        std::string::npos);
     EXPECT_NE(std::string(status.message())
-                  .find(graphics_scope_enabled ? "enabled" : "disabled"),
-              std::string::npos);
+                  .find(graphics_scope_enabled
+                            ? "Graphics save refused for sheet(s) 0x20"
+                            : "graphics sheet edits are pending"),
+              std::string::npos)
+        << status;
     EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), 0x00);
     ASSERT_TRUE(rom->ReadByte(kPcOffset).ok());
     EXPECT_EQ(*rom->ReadByte(kPcOffset), kPendingRomByte);
@@ -2187,6 +2198,74 @@ TEST(GraphicsSaveStoplossTest,
             dungeon_existed);
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld) != nullptr,
             overworld_existed);
+}
+
+TEST(GraphicsSaveStoplossTest, EnabledSaveWritesTheEditedSheetToDisk) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  constexpr uint16_t kSheetId = 0x20;
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX WRITEBACK";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  const auto rom_path = MakeTempFilePath("yaze_graphics_writeback.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+
+  // A smaller edit of the stored sheet, so it fits in place without a
+  // manifest-registered free region.
+  auto edited = fixture.sheets.at(kSheetId);
+  std::fill(edited.begin(), edited.begin() + 0x100, 0x00);
+  auto indexed = gfx::SnesTo8bppSheet(edited, /*bpp=*/3);
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+               gfx::kTilesheetDepth, indexed);
+  ASSERT_TRUE(sheet.is_active());
+  GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, kSheetId);
+
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(editor_set->HasPendingGraphicsChanges());
+
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  auto readback = zelda3::ReadGfxSheetData(reopened, kSheetId);
+  ASSERT_TRUE(readback.ok()) << readback.status();
+  EXPECT_EQ(*readback, edited);
+  for (uint16_t other = 0; other < zelda3::kGfxSheetCount; ++other) {
+    if (other == kSheetId) {
+      continue;
+    }
+    auto data = zelda3::ReadGfxSheetData(reopened, other);
+    ASSERT_TRUE(data.ok()) << other;
+    EXPECT_EQ(*data, fixture.sheets.at(other)) << "sheet " << other;
+  }
 }
 
 TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {

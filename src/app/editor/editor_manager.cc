@@ -4161,16 +4161,15 @@ absl::Status EditorManager::SaveRomInternal(
   } lifecycle_project_guard{&rom_lifecycle_, &current_project_};
 
   // GraphicsEditor tracks pixel edits in its model, not in the ROM buffer.
-  // The previous global graphics writer was a success-returning stub, and
-  // the editor-specific writer is not yet safe to join this coordinated save.
-  // Block before any serializer can mutate the ROM rather than report a save
-  // that silently omitted the pending sheets.
-  if (current_editor_set->HasPendingGraphicsChanges()) {
-    return absl::FailedPreconditionError(absl::StrFormat(
-        "Save blocked: graphics sheet edits are pending, but graphics ROM "
-        "persistence is not safely available (Save Graphics Sheets is %s). "
-        "Discard the graphics sheet edits before saving the ROM.",
-        core::FeatureFlags::get().kSaveGraphicsSheet ? "enabled" : "disabled"));
+  // With Save Graphics Sheets enabled it joins the editor saves below; with
+  // it disabled the edits cannot be written, so block before any serializer
+  // can mutate the ROM rather than report a save that omitted the sheets.
+  if (current_editor_set->HasPendingGraphicsChanges() &&
+      !core::FeatureFlags::get().kSaveGraphicsSheet) {
+    return absl::FailedPreconditionError(
+        "Save blocked: graphics sheet edits are pending, but Save Graphics "
+        "Sheets is disabled. Enable it, or discard the graphics sheet edits "
+        "before saving the ROM.");
   }
 
   // ScreenEditor keeps dungeon-map, Tile16, title-screen, and pause-map edits
@@ -4297,6 +4296,14 @@ absl::Status EditorManager::SaveRomInternal(
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
     RETURN_IF_ERROR(
         save_editor(current_editor_set->GetEditor(EditorType::kMessage)));
+  }
+
+  // Graphics sheets are written through zelda3::WriteGfxSheet (in place, or
+  // relocated into manifest-registered free space) before the write-conflict
+  // check below diffs the ROM against disk.
+  if (core::FeatureFlags::get().kSaveGraphicsSheet) {
+    RETURN_IF_ERROR(save_editor(
+        current_editor_set->GetExistingEditor(EditorType::kGraphics)));
   }
 
   // Oracle guardrails: refuse to write obviously corrupted ROM layouts.

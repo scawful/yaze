@@ -187,6 +187,20 @@ struct DungeonStreamLayout {
 };
 
 /**
+ * @brief Graphics-sheet storage rules declared by the hack
+ * (`graphics_sheet_regions`).
+ *
+ * allocation_regions is free space a sheet may move to when its edited
+ * stream no longer fits in place; bytes there that no sheet pointer
+ * references are free. reserved_sheets are sheet ids yaze must never write
+ * (for example sheets the hack keeps empty on purpose).
+ */
+struct GraphicsSheetLayout {
+  std::vector<SnesAddressRange> allocation_regions;
+  std::vector<uint16_t> reserved_sheets;
+};
+
+/**
  * @brief A conflict detected when yaze wants to write to an ASM-owned address.
  */
 struct WriteConflict {
@@ -429,6 +443,16 @@ class HackManifest {
     return !dungeon_stream_layouts_.empty();
   }
 
+  // ─── Graphics Sheet Layout ────────────────────────────────
+
+  /**
+   * @brief Graphics-sheet free space and reserved sheets. Empty when the
+   * optional `graphics_sheet_regions` section is absent.
+   */
+  [[nodiscard]] const GraphicsSheetLayout& graphics_sheet_layout() const {
+    return graphics_sheet_layout_;
+  }
+
   // ─── Protected Regions ──────────────────────────────────
 
   [[nodiscard]] const std::vector<ProtectedRegion>& protected_regions() const {
@@ -557,6 +581,9 @@ class HackManifest {
   // Explicit dungeon stream layouts, indexed by stream kind.
   std::unordered_map<DungeonStreamType, DungeonStreamLayout>
       dungeon_stream_layouts_;
+
+  // Optional graphics-sheet free space and reserved sheets.
+  GraphicsSheetLayout graphics_sheet_layout_{};
 
   // Build pipeline
   BuildPipeline build_pipeline_;

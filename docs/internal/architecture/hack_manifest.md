@@ -61,6 +61,28 @@ streams from declared allocation regions. It never treats a run of `00` or
 manifest load fail closed; an absent layout leaves legacy in-place saves and
 their capacity checks unchanged.
 
+### 7. Graphics Sheet Regions
+
+`graphics_sheet_regions` (optional, `manifest_version` 3+) tells the graphics
+sheet writer (`zelda3::WriteGfxSheet`) where an edited sheet may move and
+which sheets it must never write:
+
+```json
+"graphics_sheet_regions": {
+  "allocation_regions": [{"start":"0x1C8000", "end":"0x1D8000"}],
+  "reserved_sheets": ["0x7B", "0x7C"]
+}
+```
+
+A sheet whose re-encoded stream fits its old stream is written in place. A
+larger stream moves to the first free fit in `allocation_regions`, where free
+means "not referenced by any of the 223 sheet pointers". Without this section,
+growth is refused and the sheet stays unsaved. `allocation_regions` must not
+overlap any dungeon stream `data_regions`, and every graphics write still goes
+through `AnalyzePcWriteRanges()`: hook, owned-bank or expansion bytes refuse
+the write. `core::BuildGfxSheetWritePolicy()` turns this section into the
+writer's PC-offset policy.
+
 ## Integration Points
 
 ### ResourceLabelProvider
