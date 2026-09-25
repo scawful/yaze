@@ -172,6 +172,7 @@ if(YAZE_BUILD_TESTS)
     # Unit Tests
     unit/core/hex_test.cc
     unit/core/hack_manifest_test.cc
+    unit/core/gfx_sheet_policy_adapter_test.cc
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
     unit/core/oracle_menu_registry_test.cc
@@ -194,6 +195,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/command_registry_test.cc
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/overworld_doctor_tile16_test.cc
+    unit/cli/graphics_doctor_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_render_commands_test.cc
@@ -226,6 +228,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/asm_patch_test.cc
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
+    unit/gfx/hyrule_magic_compress_test.cc
     unit/gfx/snes_palette_test.cc
     unit/gfx/usdasm_palette_loading_test.cc
     unit/gfx/bpp_conversion_test.cc
@@ -362,6 +365,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/zelda3/overworld_sprite_io_test.cc
+    unit/zelda3/gfx_sheet_storage_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
     unit/zelda3/overworld_version_helper_test.cc
@@ -654,6 +658,7 @@ if(YAZE_BUILD_TESTS)
   # when running `ctest -L stable`. Use `ctest -L quick` for fast feedback.
   set(QUICK_UNIT_CORE_TEST_SOURCES
     unit/core/hack_manifest_test.cc
+    unit/core/gfx_sheet_policy_adapter_test.cc
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc

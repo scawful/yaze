@@ -1,262 +1,253 @@
 #include "cli/handlers/tools/graphics_doctor_commands.h"
 
+#include <algorithm>
 #include <iostream>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/gfx/util/compression.h"
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/game_data.h"
+#include "zelda3/gfx_sheet_storage.h"
 
 namespace yaze {
 namespace cli {
 
 namespace {
 
-constexpr uint32_t kNumGfxSheets = 223;
+constexpr uint32_t kNumGfxSheets = zelda3::kGfxSheetCount;
 constexpr uint32_t kNumMainBlocksets = 37;
 constexpr uint32_t kNumRoomBlocksets = 82;
-constexpr uint32_t kUncompressedSheetSize = 0x0800;  // 2048 bytes
+constexpr uint32_t kNumSpritesets = 144;
+// Spriteset value + 0x73 = graphics sheet id.
+constexpr uint32_t kSpriteSheetBase = 0x73;
 
-// Get graphics address for a sheet (adapted from zelda3::GetGraphicsAddress)
-uint32_t GetGfxAddress(const uint8_t* data, uint8_t sheet_id, size_t rom_size) {
-  uint32_t ptr_base = zelda3::kGfxGroupsPointer;
-
-  if (ptr_base + 0x200 + sheet_id >= rom_size) {
-    return 0;
-  }
-
-  uint8_t bank = data[ptr_base + sheet_id];
-  uint8_t high = data[ptr_base + 0x100 + sheet_id];
-  uint8_t low = data[ptr_base + 0x200 + sheet_id];
-
-  // Convert to SNES address then to PC address
-  uint32_t snes_addr = (bank << 16) | (high << 8) | low;
-
-  // LoROM conversion: bank * 0x8000 + (addr & 0x7FFF)
-  uint32_t pc_addr = ((bank & 0x7F) * 0x8000) + (snes_addr & 0x7FFF);
-
-  return pc_addr;
+void AddFinding(DiagnosticReport& report, const std::string& id,
+                DiagnosticSeverity severity, const std::string& message,
+                const std::string& location,
+                const std::string& suggested_action = "") {
+  DiagnosticFinding finding;
+  finding.id = id;
+  finding.severity = severity;
+  finding.message = message;
+  finding.location = location;
+  finding.suggested_action = suggested_action;
+  finding.fixable = false;
+  report.AddFinding(finding);
 }
 
-// Validate graphics pointer table
-void ValidateGraphicsPointerTable(Rom* rom, DiagnosticReport& report,
-                                  std::vector<uint32_t>& valid_addresses) {
-  const auto& data = rom->vector();
-  uint32_t ptr_base = zelda3::kGfxGroupsPointer;
+bool IsSelected(int target_sheet, uint32_t sheet) {
+  return target_sheet < 0 || static_cast<uint32_t>(target_sheet) == sheet;
+}
 
-  if (ptr_base + 0x300 >= rom->size()) {
-    DiagnosticFinding finding;
-    finding.id = "gfx_ptr_table_missing";
-    finding.severity = DiagnosticSeverity::kCritical;
-    finding.message = "Graphics pointer table beyond ROM bounds";
-    finding.location = absl::StrFormat("0x%06X", ptr_base);
-    finding.fixable = false;
-    report.AddFinding(finding);
-    return;
-  }
-
-  int invalid_count = 0;
-  for (uint32_t i = 0; i < kNumGfxSheets; ++i) {
-    uint32_t addr = GetGfxAddress(data.data(), i, rom->size());
-
-    if (addr == 0 || addr >= rom->size()) {
-      if (invalid_count < 10) {
-        DiagnosticFinding finding;
-        finding.id = "invalid_gfx_ptr";
-        finding.severity = DiagnosticSeverity::kError;
-        finding.message = absl::StrFormat(
-            "Sheet %d has invalid pointer 0x%06X (ROM size: 0x%zX)", i, addr,
-            rom->size());
-        finding.location = absl::StrFormat("Sheet %d", i);
-        finding.fixable = false;
-        report.AddFinding(finding);
+// Resolves every sheet through the pointer tables at PC 0x4F80 (bank),
+// 0x505F (high) and 0x513E (low), decodes compressed sheets exactly as the
+// game does, and checks the decoded size against the game's WRAM buffer.
+// Extents are collected for all sheets so overlap checks see the whole ROM.
+std::vector<std::optional<zelda3::GfxSheetExtent>> ScanSheets(
+    const Rom& rom, DiagnosticReport& report, int target_sheet, bool verbose,
+    int& successful, int& failed, int& oversized) {
+  std::vector<std::optional<zelda3::GfxSheetExtent>> extents(kNumGfxSheets);
+  int reported = 0;
+  for (uint32_t sheet = 0; sheet < kNumGfxSheets; ++sheet) {
+    auto extent = zelda3::ReadGfxSheetExtent(rom, static_cast<uint16_t>(sheet));
+    const bool selected = IsSelected(target_sheet, sheet);
+    if (!extent.ok()) {
+      if (selected) {
+        ++failed;
+        if (verbose || reported++ < 10) {
+          AddFinding(report, "sheet_unreadable", DiagnosticSeverity::kError,
+                     absl::StrFormat("Sheet 0x%02X cannot be read: %s", sheet,
+                                     extent.status().message()),
+                     absl::StrFormat("Sheet 0x%02X", sheet));
+        }
       }
-      invalid_count++;
-      valid_addresses.push_back(0);  // Mark as invalid
-    } else {
-      valid_addresses.push_back(addr);
-    }
-  }
-
-  if (invalid_count > 0) {
-    DiagnosticFinding finding;
-    finding.id = "gfx_ptr_summary";
-    finding.severity = DiagnosticSeverity::kInfo;
-    finding.message =
-        absl::StrFormat("Found %d sheets with invalid pointers", invalid_count);
-    finding.location = "Graphics Pointer Table";
-    finding.fixable = false;
-    report.AddFinding(finding);
-  }
-}
-
-// Test decompression for sheets
-void ValidateCompression(Rom* rom, const std::vector<uint32_t>& addresses,
-                         DiagnosticReport& report, bool verbose,
-                         int& successful_decomp, int& failed_decomp) {
-  const auto& data = rom->vector();
-
-  for (uint32_t i = 0; i < kNumGfxSheets; ++i) {
-    if (i >= addresses.size() || addresses[i] == 0) {
-      failed_decomp++;
       continue;
     }
+    extents[sheet] = *extent;
+    if (!selected) {
+      continue;
+    }
+    ++successful;
 
-    uint32_t addr = addresses[i];
+    const size_t expected =
+        extent->kind == zelda3::GfxSheetStorageKind::kCompressed2bpp
+            ? zelda3::kGfxSheet2bppBytes
+            : zelda3::kGfxSheet3bppBytes;
+    if (extent->decoded_size != expected) {
+      ++oversized;
+      AddFinding(
+          report, "sheet_decoded_size", DiagnosticSeverity::kError,
+          absl::StrFormat("Sheet 0x%02X (%s) decodes to 0x%zX bytes; the game "
+                          "expects 0x%zX",
+                          sheet, zelda3::GfxSheetStorageKindName(extent->kind),
+                          extent->decoded_size, expected),
+          absl::StrFormat("Sheet 0x%02X at 0x%06X", sheet, extent->pc),
+          "A longer stream overwrites the next sheet in WRAM; re-save the "
+          "sheet with the graphics editor");
+    }
+  }
+  return extents;
+}
 
-    // Try to decompress
-    auto result = gfx::lc_lz2::DecompressV2(
-        data.data(), addr, kUncompressedSheetSize, 1, rom->size());
-
-    if (!result.ok()) {
-      if (verbose || failed_decomp < 10) {
-        DiagnosticFinding finding;
-        finding.id = "decompression_failed";
-        finding.severity = DiagnosticSeverity::kError;
-        finding.message =
-            absl::StrFormat("Sheet %d decompression failed at 0x%06X: %s", i,
-                            addr, std::string(result.status().message()));
-        finding.location = absl::StrFormat("Sheet %d", i);
-        finding.fixable = false;
-        report.AddFinding(finding);
+// Two sheets with the same pointer and length share data (vanilla aliases
+// 0x71/0xDD and 0x72/0xDE). Any other overlap means one sheet's stream runs
+// into another's.
+void CheckSheetOverlaps(
+    const std::vector<std::optional<zelda3::GfxSheetExtent>>& extents,
+    DiagnosticReport& report, int target_sheet, int& aliased,
+    int& overlapping) {
+  for (uint32_t a = 0; a < extents.size(); ++a) {
+    if (!extents[a].has_value()) {
+      continue;
+    }
+    for (uint32_t b = a + 1; b < extents.size(); ++b) {
+      if (!extents[b].has_value() ||
+          !(IsSelected(target_sheet, a) || IsSelected(target_sheet, b))) {
+        continue;
       }
-      failed_decomp++;
-    } else {
-      // Check decompressed size
-      if (result->size() != kUncompressedSheetSize) {
-        if (verbose || failed_decomp < 10) {
-          DiagnosticFinding finding;
-          finding.id = "unexpected_sheet_size";
-          finding.severity = DiagnosticSeverity::kWarning;
-          finding.message = absl::StrFormat(
-              "Sheet %d decompressed to %zu bytes (expected %d)", i,
-              result->size(), kUncompressedSheetSize);
-          finding.location = absl::StrFormat("Sheet %d", i);
-          finding.fixable = false;
-          report.AddFinding(finding);
-        }
+      const auto& ea = *extents[a];
+      const auto& eb = *extents[b];
+      const uint64_t a_end = ea.pc + ea.stored_size;
+      const uint64_t b_end = eb.pc + eb.stored_size;
+      if (!(ea.pc < b_end && eb.pc < a_end)) {
+        continue;
       }
-      successful_decomp++;
+      if (ea.pc == eb.pc && ea.stored_size == eb.stored_size) {
+        ++aliased;
+        AddFinding(report, "sheet_alias", DiagnosticSeverity::kInfo,
+                   absl::StrFormat("Sheets 0x%02X and 0x%02X share the same "
+                                   "data at 0x%06X",
+                                   a, b, ea.pc),
+                   absl::StrFormat("0x%06X", ea.pc));
+      } else {
+        ++overlapping;
+        AddFinding(
+            report, "sheet_overlap", DiagnosticSeverity::kError,
+            absl::StrFormat("Sheet 0x%02X [0x%06X, 0x%06llX) overlaps sheet "
+                            "0x%02X [0x%06X, 0x%06llX)",
+                            a, ea.pc, static_cast<unsigned long long>(a_end), b,
+                            eb.pc, static_cast<unsigned long long>(b_end)),
+            absl::StrFormat("0x%06X", std::max(ea.pc, eb.pc)));
+      }
     }
   }
 }
 
-// Validate blockset references
-void ValidateBlocksets(Rom* rom, DiagnosticReport& report) {
-  const auto& data = rom->vector();
+// Main blocksets (word pointer at kGfxGroupsPointer, 37 x 8 sheet ids), room
+// blocksets (kEntranceGfxGroup, 82 x 4 sheet ids) and spritesets
+// (kSpriteBlocksetPointer, 144 x 4 values, sheet = value + 0x73) must name
+// sheets that exist in the 223-entry pointer tables.
+void ValidateGroupTables(const Rom& rom, DiagnosticReport& report,
+                         int& invalid_refs) {
+  const auto& data = rom.vector();
+  int reported = 0;
+  auto report_ref = [&](const std::string& group, uint32_t index, int slot,
+                        uint32_t pc, uint32_t value, uint32_t sheet) {
+    ++invalid_refs;
+    if (reported++ < 20) {
+      AddFinding(
+          report, "invalid_group_sheet_ref", DiagnosticSeverity::kWarning,
+          absl::StrFormat("%s %u slot %d value 0x%02X names sheet %u "
+                          "(the pointer tables hold %u)",
+                          group, index, slot, value, sheet, kNumGfxSheets),
+          absl::StrFormat("0x%06X", pc));
+    }
+  };
 
-  // Main blocksets pointer
-  // Main blocksets: 37 sets, 8 bytes each (8 sheet IDs)
-  uint32_t main_blockset_ptr = 0x5B57;  // kSpriteBlocksetPointer area
-
-  // For simplicity, we'll check that blockset IDs reference valid sheets
-  // The actual blockset table structure varies by ROM version
-
-  int invalid_refs = 0;
-
-  // Check a sample of known blockset-like structures
-  // Room blocksets at different locations - simplified check
-  uint32_t room_blockset_ptr = 0x50C0;  // Approximate location
-
-  if (room_blockset_ptr + (kNumRoomBlocksets * 4) < rom->size()) {
-    for (uint32_t i = 0; i < kNumRoomBlocksets; ++i) {
-      for (int slot = 0; slot < 4; ++slot) {
-        uint32_t addr = room_blockset_ptr + (i * 4) + slot;
-        if (addr >= rom->size())
+  if (static_cast<size_t>(zelda3::kGfxGroupsPointer) + 1 < data.size()) {
+    const uint32_t word = data[zelda3::kGfxGroupsPointer] |
+                          (data[zelda3::kGfxGroupsPointer + 1] << 8);
+    const uint32_t main_pc = SnesToPc(word);
+    for (uint32_t i = 0; i < kNumMainBlocksets; ++i) {
+      for (int slot = 0; slot < 8; ++slot) {
+        const uint32_t pc = main_pc + i * 8 + slot;
+        if (pc >= data.size()) {
           break;
-
-        uint8_t sheet_id = data[addr];
-        if (sheet_id != 0xFF && sheet_id >= kNumGfxSheets) {
-          if (invalid_refs < 20) {
-            DiagnosticFinding finding;
-            finding.id = "invalid_blockset_ref";
-            finding.severity = DiagnosticSeverity::kWarning;
-            finding.message = absl::StrFormat(
-                "Room blockset %d slot %d references invalid sheet %d", i, slot,
-                sheet_id);
-            finding.location = absl::StrFormat("Room blockset %d", i);
-            finding.fixable = false;
-            report.AddFinding(finding);
-          }
-          invalid_refs++;
         }
+        if (data[pc] >= kNumGfxSheets) {
+          report_ref("Main blockset", i, slot, pc, data[pc], data[pc]);
+        }
+      }
+    }
+  }
+
+  for (uint32_t i = 0; i < kNumRoomBlocksets; ++i) {
+    for (int slot = 0; slot < 4; ++slot) {
+      const uint32_t pc = zelda3::kEntranceGfxGroup + i * 4 + slot;
+      if (pc >= data.size()) {
+        break;
+      }
+      if (data[pc] >= kNumGfxSheets) {
+        report_ref("Room blockset", i, slot, pc, data[pc], data[pc]);
+      }
+    }
+  }
+
+  for (uint32_t i = 0; i < kNumSpritesets; ++i) {
+    for (int slot = 0; slot < 4; ++slot) {
+      const uint32_t pc = zelda3::kSpriteBlocksetPointer + i * 4 + slot;
+      if (pc >= data.size()) {
+        break;
+      }
+      const uint32_t sheet = data[pc] + kSpriteSheetBase;
+      if (sheet >= kNumGfxSheets) {
+        report_ref("Spriteset", i, slot, pc, data[pc], sheet);
       }
     }
   }
 
   if (invalid_refs > 0) {
-    DiagnosticFinding finding;
-    finding.id = "blockset_summary";
-    finding.severity = DiagnosticSeverity::kInfo;
-    finding.message = absl::StrFormat(
-        "Found %d invalid blockset sheet references", invalid_refs);
-    finding.location = "Blockset Tables";
-    finding.fixable = false;
-    report.AddFinding(finding);
+    AddFinding(report, "group_ref_summary", DiagnosticSeverity::kInfo,
+               absl::StrFormat("Found %d group slot(s) naming a sheet past "
+                               "the pointer tables",
+                               invalid_refs),
+               "Graphics group tables");
   }
 }
 
-// Check for empty/corrupted sheets
-void CheckSheetIntegrity(Rom* rom, const std::vector<uint32_t>& addresses,
-                         DiagnosticReport& report, bool verbose,
-                         int& empty_sheets, int& suspicious_sheets) {
-  const auto& data = rom->vector();
-
-  for (uint32_t i = 0; i < kNumGfxSheets; ++i) {
-    if (i >= addresses.size() || addresses[i] == 0) {
+// Empty sheets are normal (filler and reserved sheets); all-0xFF sheets
+// usually mean erased or uninitialized data.
+void CheckSheetContents(
+    const Rom& rom,
+    const std::vector<std::optional<zelda3::GfxSheetExtent>>& extents,
+    DiagnosticReport& report, int target_sheet, bool verbose, int& empty_sheets,
+    int& suspicious_sheets) {
+  for (uint32_t sheet = 0; sheet < extents.size(); ++sheet) {
+    if (!extents[sheet].has_value() || !IsSelected(target_sheet, sheet)) {
       continue;
     }
-
-    uint32_t addr = addresses[i];
-
-    // Try to decompress first
-    auto result = gfx::lc_lz2::DecompressV2(
-        data.data(), addr, kUncompressedSheetSize, 1, rom->size());
-
-    if (!result.ok())
+    auto data = zelda3::ReadGfxSheetData(rom, static_cast<uint16_t>(sheet));
+    if (!data.ok() || data->empty()) {
       continue;
-
-    const auto& sheet_data = *result;
-
-    // Check for all-zeros (empty)
-    bool all_zero = true;
-    bool all_ff = true;
-    for (uint8_t byte : sheet_data) {
-      if (byte != 0x00)
-        all_zero = false;
-      if (byte != 0xFF)
-        all_ff = false;
-      if (!all_zero && !all_ff)
-        break;
     }
-
+    const bool all_zero = std::all_of(data->begin(), data->end(),
+                                      [](uint8_t b) { return b == 0x00; });
+    const bool all_ff = std::all_of(data->begin(), data->end(),
+                                    [](uint8_t b) { return b == 0xFF; });
+    const std::string location =
+        absl::StrFormat("Sheet 0x%02X at 0x%06X", sheet, extents[sheet]->pc);
     if (all_zero) {
       if (verbose || empty_sheets < 10) {
-        DiagnosticFinding finding;
-        finding.id = "empty_sheet";
-        finding.severity = DiagnosticSeverity::kWarning;
-        finding.message = absl::StrFormat("Sheet %d is all zeros (empty)", i);
-        finding.location = absl::StrFormat("Sheet %d at 0x%06X", i, addr);
-        finding.fixable = false;
-        report.AddFinding(finding);
+        AddFinding(report, "empty_sheet", DiagnosticSeverity::kInfo,
+                   absl::StrFormat("Sheet 0x%02X is all zeros (empty)", sheet),
+                   location);
       }
-      empty_sheets++;
+      ++empty_sheets;
     } else if (all_ff) {
       if (verbose || suspicious_sheets < 10) {
-        DiagnosticFinding finding;
-        finding.id = "erased_sheet";
-        finding.severity = DiagnosticSeverity::kWarning;
-        finding.message =
-            absl::StrFormat("Sheet %d is all 0xFF (erased/uninitialized)", i);
-        finding.location = absl::StrFormat("Sheet %d at 0x%06X", i, addr);
-        finding.suggested_action = "Sheet may need to be restored";
-        finding.fixable = false;
-        report.AddFinding(finding);
+        AddFinding(
+            report, "erased_sheet", DiagnosticSeverity::kWarning,
+            absl::StrFormat("Sheet 0x%02X is all 0xFF (erased/uninitialized)",
+                            sheet),
+            location, "Sheet may need to be restored");
       }
-      suspicious_sheets++;
+      ++suspicious_sheets;
     }
   }
 }
@@ -267,7 +258,8 @@ absl::Status GraphicsDoctorCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
   bool verbose = parser.HasFlag("verbose");
-  bool scan_all = parser.HasFlag("all");
+  // Every sheet is always scanned; --all is kept for compatibility.
+  (void)parser.HasFlag("all");
 
   DiagnosticReport report;
 
@@ -287,48 +279,48 @@ absl::Status GraphicsDoctorCommandHandler::Execute(
     }
   }
 
-  // 1. Validate graphics pointer table
-  std::vector<uint32_t> valid_addresses;
-  ValidateGraphicsPointerTable(rom, report, valid_addresses);
-
-  // 2. Test decompression
+  // 1-2. Resolve pointers, decode every sheet, check decoded sizes
   int successful_decomp = 0;
   int failed_decomp = 0;
-
-  if (single_sheet) {
-    // Just test the one sheet
-    if (target_sheet < static_cast<int>(valid_addresses.size()) &&
-        valid_addresses[target_sheet] != 0) {
-      const auto& data = rom->vector();
-      auto result =
-          gfx::lc_lz2::DecompressV2(data.data(), valid_addresses[target_sheet],
-                                    kUncompressedSheetSize, 1, rom->size());
-      if (result.ok()) {
-        successful_decomp = 1;
-        formatter.AddField("decompressed_size",
-                           static_cast<int>(result->size()));
-      } else {
-        failed_decomp = 1;
-      }
-    }
-  } else if (scan_all || !single_sheet) {
-    ValidateCompression(rom, valid_addresses, report, verbose,
-                        successful_decomp, failed_decomp);
+  int oversized_sheets = 0;
+  const auto extents =
+      ScanSheets(*rom, report, target_sheet, verbose, successful_decomp,
+                 failed_decomp, oversized_sheets);
+  if (single_sheet && extents[target_sheet].has_value()) {
+    formatter.AddField("decoded_size",
+                       static_cast<int>(extents[target_sheet]->decoded_size));
+    formatter.AddField("stored_size",
+                       static_cast<int>(extents[target_sheet]->stored_size));
+    formatter.AddField("pc_offset",
+                       absl::StrFormat("0x%06X", extents[target_sheet]->pc));
   }
 
-  // 3. Validate blocksets
-  ValidateBlocksets(rom, report);
+  // 3. Overlapping or aliased sheet data
+  int aliased_sheets = 0;
+  int overlapping_sheets = 0;
+  CheckSheetOverlaps(extents, report, target_sheet, aliased_sheets,
+                     overlapping_sheets);
 
-  // 4. Check sheet integrity
+  // 4. Blockset and spriteset references
+  int invalid_group_refs = 0;
+  if (!single_sheet) {
+    ValidateGroupTables(*rom, report, invalid_group_refs);
+  }
+
+  // 5. Sheet contents
   int empty_sheets = 0;
   int suspicious_sheets = 0;
-  CheckSheetIntegrity(rom, valid_addresses, report, verbose, empty_sheets,
-                      suspicious_sheets);
+  CheckSheetContents(*rom, extents, report, target_sheet, verbose, empty_sheets,
+                     suspicious_sheets);
 
   // Output results
   formatter.AddField("total_sheets", static_cast<int>(kNumGfxSheets));
   formatter.AddField("successful_decompressions", successful_decomp);
   formatter.AddField("failed_decompressions", failed_decomp);
+  formatter.AddField("oversized_sheets", oversized_sheets);
+  formatter.AddField("overlapping_sheets", overlapping_sheets);
+  formatter.AddField("aliased_sheets", aliased_sheets);
+  formatter.AddField("invalid_group_refs", invalid_group_refs);
   formatter.AddField("empty_sheets", empty_sheets);
   formatter.AddField("suspicious_sheets", suspicious_sheets);
   formatter.AddField("total_findings", report.TotalFindings());

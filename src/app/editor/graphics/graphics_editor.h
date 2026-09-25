@@ -3,6 +3,8 @@
 
 #include <array>
 #include <memory>
+#include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -89,6 +91,22 @@ class GraphicsEditor : public Editor {
 
   bool HasPendingGraphicsChanges() const { return state_.HasUnsavedChanges(); }
 
+  // Coordinated ROM save: Save() clears the modified-sheet set, so a failed
+  // save elsewhere must put it back (the ROM bytes are restored separately).
+  absl::Status BeginSaveTransaction() override {
+    save_transaction_modified_sheets_ = state_.modified_sheets;
+    return absl::OkStatus();
+  }
+  void RollbackSaveTransaction() override {
+    if (save_transaction_modified_sheets_.has_value()) {
+      state_.modified_sheets = std::move(*save_transaction_modified_sheets_);
+      save_transaction_modified_sheets_.reset();
+    }
+  }
+  void CommitSaveTransaction() override {
+    save_transaction_modified_sheets_.reset();
+  }
+
   // Set the ROM pointer (propagates to panels that cache `Rom*`.)
   void set_rom(Rom* rom) {
     rom_ = rom;
@@ -144,6 +162,7 @@ class GraphicsEditor : public Editor {
 
   // --- Panel-Based Architecture ---
   GraphicsEditorState state_;
+  std::optional<std::set<uint16_t>> save_transaction_modified_sheets_;
   std::unique_ptr<SheetBrowserPanel> sheet_browser_panel_;
   std::unique_ptr<PixelEditorPanel> pixel_editor_panel_;
   std::unique_ptr<PaletteControlsPanel> palette_controls_panel_;

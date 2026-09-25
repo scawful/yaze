@@ -20,10 +20,32 @@ namespace gfx {
 std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
                                          int const oldsize, int* const size,
                                          int const flag) {
+  // A command header stores (length - 1) in at most 10 bits. Longer runs,
+  // matches, or literal blocks would spill into the command bits and decode
+  // as a different command.
+  constexpr int kMaxCommandLength = 1024;
+
   // Allocate buffer large enough for worst-case output
   std::vector<uint8_t> b2(std::max(0x1000, oldsize * 2));
 
   int i, j, k, l, m = 0, n, o = 0, bd = 0, p, q = 0, r;
+
+  // Emits the q pending literal bytes that end just before src[i].
+  auto flush_literals = [&]() {
+    q--;
+
+    if (q > 31) {
+      b2[bd++] = (unsigned char)(224 + (q >> 8));
+    }
+
+    b2[bd++] = (unsigned char)q;
+    q++;
+
+    memcpy(b2.data() + bd, src + i - q, q);
+
+    bd += q;
+    q = 0;
+  };
 
   for (i = 0; i < oldsize;) {
     l = src[i];  // grab a char from the buffer.
@@ -35,7 +57,9 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
 
     for (j = 0; j < i - 1; j++) {
       if (src[j] == l) {
-        m = oldsize - j;
+        // Compare only bytes that exist in the input. The match may overlap
+        // src[i..] because the SNES decoder copies forward one byte at a time.
+        m = std::min(oldsize - i, kMaxCommandLength);
 
         for (n = 0; n < m; n++)
           if (src[n + j] != src[n + i])
@@ -57,7 +81,7 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
     if (n > 1 + r)
       p = 1;
     else {
-      m = src[i + 1];
+      m = i + 1 < oldsize ? src[i + 1] : 0;
 
       for (n = i + 2; n < oldsize; n++) {
         if (src[n] != l)
@@ -65,7 +89,7 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
 
         n++;
 
-        if (src[n] != m)
+        if (n >= oldsize || src[n] != m)
           break;
       }
 
@@ -90,25 +114,17 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
     if (k > 3 + r && k > n + (p & 1))
       p = 4, n = k;
 
-    if (!p)
+    if (!p) {
       q++, i++;
-    else {
+      if (q == kMaxCommandLength) {
+        flush_literals();
+      }
+    } else {
       if (q) {
-        q--;
-
-        if (q > 31) {
-          b2[bd++] = (unsigned char)(224 + (q >> 8));
-        }
-
-        b2[bd++] = (unsigned char)q;
-        q++;
-
-        memcpy(b2.data() + bd, src + i - q, q);
-
-        bd += q;
-        q = 0;
+        flush_literals();
       }
 
+      n = std::min(n, kMaxCommandLength);
       i += n;
       n--;
 
@@ -145,18 +161,7 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
   }
 
   if (q) {
-    q--;
-
-    if (q > 31) {
-      b2[bd++] = (unsigned char)(224 + (q >> 8));
-    }
-
-    b2[bd++] = (unsigned char)q;
-    q++;
-
-    memcpy(b2.data() + bd, src + i - q, q);
-
-    bd += q;
+    flush_literals();
   }
 
   b2[bd++] = 255;
@@ -1623,6 +1628,101 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
   }
 
   return buffer;
+}
+
+absl::StatusOr<ExactDecodeResult> DecompressExact(const uint8_t* data,
+                                                  size_t data_size,
+                                                  size_t offset,
+                                                  size_t max_output,
+                                                  bool big_endian_copy) {
+  if (data == nullptr || offset >= data_size) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("LC-LZ2 stream offset 0x%06zX is outside %zu bytes",
+                        offset, data_size));
+  }
+
+  ExactDecodeResult result;
+  size_t pos = offset;
+  auto next_byte = [&]() -> absl::StatusOr<uint8_t> {
+    if (pos >= data_size) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "LC-LZ2 stream at 0x%06zX is truncated at 0x%06zX", offset, pos));
+    }
+    return data[pos++];
+  };
+
+  while (true) {
+    ASSIGN_OR_RETURN(const uint8_t header, next_byte());
+    if (header == kSnesByteMax) {
+      break;
+    }
+
+    int command = 0;
+    size_t length = 0;
+    if ((header & kExpandedMod) == kExpandedMod) {
+      ASSIGN_OR_RETURN(const uint8_t low, next_byte());
+      command = (header >> 2) & kCommandMod;
+      length = ((static_cast<size_t>(header & 0x03) << 8) | low) + 1;
+    } else {
+      command = header >> 5;
+      length = static_cast<size_t>(header & kNormalLengthMod) + 1;
+    }
+
+    if (result.data.size() + length > max_output) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("LC-LZ2 stream at 0x%06zX decodes past %zu bytes",
+                          offset, max_output));
+    }
+
+    switch (command) {
+      case kCommandDirectCopy:
+        for (size_t i = 0; i < length; ++i) {
+          ASSIGN_OR_RETURN(const uint8_t value, next_byte());
+          result.data.push_back(value);
+        }
+        break;
+      case kCommandByteFill: {
+        ASSIGN_OR_RETURN(const uint8_t value, next_byte());
+        result.data.insert(result.data.end(), length, value);
+        break;
+      }
+      case kCommandWordFill: {
+        ASSIGN_OR_RETURN(const uint8_t first, next_byte());
+        ASSIGN_OR_RETURN(const uint8_t second, next_byte());
+        for (size_t i = 0; i < length; ++i) {
+          result.data.push_back((i & 1) == 0 ? first : second);
+        }
+        break;
+      }
+      case kCommandIncreasingFill: {
+        ASSIGN_OR_RETURN(uint8_t value, next_byte());
+        for (size_t i = 0; i < length; ++i) {
+          result.data.push_back(value++);
+        }
+        break;
+      }
+      default: {
+        // Commands 4-7 all take the hardware's copy path (bit 7 set).
+        ASSIGN_OR_RETURN(const uint8_t first, next_byte());
+        ASSIGN_OR_RETURN(const uint8_t second, next_byte());
+        size_t source =
+            big_endian_copy ? (first << 8) | second : (second << 8) | first;
+        for (size_t i = 0; i < length; ++i) {
+          if (source >= result.data.size()) {
+            return absl::InvalidArgumentError(absl::StrFormat(
+                "LC-LZ2 stream at 0x%06zX copies from output offset 0x%04zX "
+                "before it is written",
+                offset, source));
+          }
+          result.data.push_back(result.data[source++]);
+        }
+        break;
+      }
+    }
+  }
+
+  result.compressed_size = pos - offset;
+  return result;
 }
 
 absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uint8_t* data,
