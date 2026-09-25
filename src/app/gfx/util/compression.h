@@ -253,9 +253,38 @@ void memfill(const uint8_t* data, std::vector<uint8_t>& buffer, int buffer_pos,
  *          return of an empty vector, which was a regression bug that broke
  *          all graphics loading (sheets appeared as solid purple/brown 0xFF).
  */
-absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
-                                                  int offset, int size = 0x800,
-                                                  int mode = 1, size_t rom_size = static_cast<size_t>(-1));
+absl::StatusOr<std::vector<uint8_t>> DecompressV2(
+    const uint8_t* data, int offset, int size = 0x800, int mode = 1,
+    size_t rom_size = static_cast<size_t>(-1));
+/**
+ * @brief One LC-LZ2 stream decoded the way the game decodes it.
+ */
+struct ExactDecodeResult {
+  std::vector<uint8_t> data;
+  // Compressed bytes read, including the 0xFF terminator.
+  size_t compressed_size = 0;
+};
+
+/**
+ * @brief Decodes one LC-LZ2 stream with the semantics of the ALTTP bank-00
+ * decompressor (`Decompress` at $00:E79E).
+ *
+ * Unlike DecompressV2, this reports how many compressed bytes the stream
+ * occupies, copies LZ references forward one byte at a time (overlapping
+ * references repeat bytes, as on hardware), and fails instead of guessing:
+ * truncated input, a reference to output that does not exist yet, or output
+ * longer than @p max_output are all errors. A LoROM stream that crosses a
+ * bank is contiguous in PC space, so no bank handling is needed here.
+ *
+ * @param big_endian_copy false for graphics sheets (the game reads the low
+ *        byte of an LZ source address first); true for overworld map data.
+ */
+absl::StatusOr<ExactDecodeResult> DecompressExact(const uint8_t* data,
+                                                  size_t data_size,
+                                                  size_t offset,
+                                                  size_t max_output,
+                                                  bool big_endian_copy);
+
 absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uint8_t* data,
                                                         int pos, int size);
 absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uint8_t* data,

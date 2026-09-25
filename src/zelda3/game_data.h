@@ -180,10 +180,9 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom);
 absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom);
 
 /**
- * @brief Saves all graphics sheets back to ROM.
- * @param rom The target ROM
- * @param sheets The graphics sheets to save
- * @return Status of the operation
+ * @brief Not implemented; always returns UnimplementedError.
+ *
+ * Write edited sheets with WriteGfxSheet (zelda3/gfx_sheet_storage.h).
  */
 absl::Status SaveAllGraphicsData(
     Rom& rom, const std::array<gfx::Bitmap, kNumGfxSheets>& sheets);
