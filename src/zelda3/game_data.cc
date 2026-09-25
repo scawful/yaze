@@ -179,7 +179,7 @@ absl::Status SaveGameData(Rom& rom, GameData& data) {
     RETURN_IF_ERROR(SaveGfxGroups(rom, data));
   }
 
-  // TODO: Implement SaveAllGraphicsData logic
+  // Graphics sheets are saved by GraphicsEditor::Save via WriteGfxSheet.
   return absl::OkStatus();
 }
 
@@ -635,10 +635,12 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
 absl::Status SaveAllGraphicsData(
     [[maybe_unused]] Rom& rom,
     [[maybe_unused]] const std::array<gfx::Bitmap, kNumGfxSheets>& sheets) {
-  // For now, return OK status - full implementation would write sheets back
-  // to ROM at their respective addresses with proper compression
-  LOG_INFO("SaveAllGraphicsData", "Graphics save not yet fully implemented");
-  return absl::OkStatus();
+  // Rewriting every sheet is never what an edit needs. Edited sheets are
+  // written one at a time by WriteGfxSheet (zelda3/gfx_sheet_storage.h),
+  // which GraphicsEditor::Save uses. Fail loudly instead of reporting a save.
+  return absl::UnimplementedError(
+      "SaveAllGraphicsData is not implemented; write edited sheets with "
+      "zelda3::WriteGfxSheet");
 }
 
 }  // namespace zelda3
