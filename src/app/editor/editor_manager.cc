@@ -4724,7 +4724,9 @@ absl::Status EditorManager::FinalizeNewProject(
   runtime_feature_flags_session_id_ = session->session_id();
   RestoreProjectContextForSession(session);
   if (version_manager_) {
-    (void)version_manager_->InitializeGit();
+    // Creating a project never creates a Git repository; the Initialize Git
+    // action in Project Management is the opt-in. Adopt one that exists.
+    version_manager_->AdoptExistingRepository();
     current_project_.git_repository = session->project_context->git_repository;
     BindProjectContextToSession(session, current_project_);
   }
@@ -5086,9 +5088,9 @@ absl::Status EditorManager::LoadProjectWithRom() {
   BindProjectContextToSession(session, current_project_);
   RestoreProjectContextForSession(session);
   if (version_manager_) {
-    // Preserve the existing best-effort Git initialization behavior, now
-    // against the stable session-owned project object.
-    (void)version_manager_->InitializeGit();
+    // Opening a project never creates a Git repository; the Initialize Git
+    // action in Project Management is the opt-in. Adopt one that exists.
+    version_manager_->AdoptExistingRepository();
     current_project_.git_repository = session->project_context->git_repository;
   }
 

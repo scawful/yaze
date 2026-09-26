@@ -817,6 +817,10 @@ TEST(EditorManagerWriteConflictTest,
   const auto git_b = MakeTempFilePath("yaze_owned_context_git_b");
   ASSERT_TRUE(std::filesystem::create_directories(git_a));
   ASSERT_TRUE(std::filesystem::create_directories(git_b));
+  // Opening a project does not run `git init`. Mark both folders as existing
+  // repositories so IsGitInitialized() below has a .git entry to find.
+  ASSERT_TRUE(std::filesystem::create_directories(git_a / ".git"));
+  ASSERT_TRUE(std::filesystem::create_directories(git_b / ".git"));
   const auto project_a =
       CreateProjectFile("yaze_owned_context_a", "Owned Project A", rom_a,
                         project::WorkspaceSettings{}, git_a);
