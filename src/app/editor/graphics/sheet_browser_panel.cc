@@ -385,6 +385,18 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
   HOVER_HINT(
       "The room picks the palette rows and, for room PNGs, the room's 8 "
       "background sheets.");
+  ImGui::SetNextItemWidth(320.0f);
+  ImGui::InputTextWithHint("File##PngPath", tr("empty: choose in a dialog"),
+                           &png_path_);
+  HOVER_HINT(
+      "PNG path for the export and import buttons. Leave it empty to choose "
+      "the file in a dialog.");
+  ImGui::SetNextItemWidth(90.0f);
+  ImGui::InputInt(tr("At block##png"), &png_first_block_);
+  png_first_block_ = std::clamp(png_first_block_, 0, 15);
+  HOVER_HINT(
+      "The 16x16 block (0-15, 8 per row) where an imported sheet PNG starts; "
+      "pick a free block from the usage list above.");
 
   const auto& sheets = gfx::Arena::Get().gfx_sheets();
   const std::vector<uint8_t> pixels = sheet_id < sheets.size()
@@ -392,6 +404,17 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
                                           : std::vector<uint8_t>{};
   util::FileDialogOptions png_filter;
   png_filter.filters.push_back({"PNG image", "png"});
+  // The typed path wins; otherwise ask with a dialog.
+  auto save_path = [this](const std::string& default_name) {
+    return png_path_.empty() ? util::FileDialogWrapper::ShowSaveFileDialog(
+                                   default_name, "png")
+                             : png_path_;
+  };
+  auto open_path = [this, &png_filter]() {
+    return png_path_.empty()
+               ? util::FileDialogWrapper::ShowOpenFileDialog(png_filter)
+               : png_path_;
+  };
 
   if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Export sheet PNG")) {
     auto palette = PngPalette();
@@ -401,8 +424,8 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
     if (!png.ok()) {
       SetPngStatus(std::string(png.status().message()), true);
     } else {
-      const std::string path = util::FileDialogWrapper::ShowSaveFileDialog(
-          absl::StrFormat("sheet_%02X", sheet_id), "png");
+      const std::string path =
+          save_path(absl::StrFormat("sheet_%02X", sheet_id));
       if (!path.empty()) {
         const absl::Status status = util::WriteBinaryFile(path, *png);
         SetPngStatus(
@@ -414,15 +437,14 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FILE_UPLOAD " Import into sheet")) {
     auto palette = PngPalette();
-    const std::string path =
-        palette.ok() ? util::FileDialogWrapper::ShowOpenFileDialog(png_filter)
-                     : std::string();
+    const std::string path = palette.ok() ? open_path() : std::string();
     if (!palette.ok()) {
       SetPngStatus(std::string(palette.status().message()), true);
     } else if (!path.empty()) {
       auto bytes = util::ReadBinaryFile(path);
       auto preview =
-          bytes.ok() ? PreviewSheetPngImport(sheet_id, pixels, *bytes, *palette)
+          bytes.ok() ? PreviewSheetPngImport(sheet_id, pixels, *bytes, *palette,
+                                             png_first_block_)
                      : absl::StatusOr<SheetPngImportPreview>(bytes.status());
       if (!preview.ok()) {
         png_pending_.clear();
@@ -446,8 +468,8 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
       if (!png.ok()) {
         SetPngStatus(std::string(png.status().message()), true);
       } else {
-        const std::string path = util::FileDialogWrapper::ShowSaveFileDialog(
-            absl::StrFormat("room_%03X_background", png_room_), "png");
+        const std::string path =
+            save_path(absl::StrFormat("room_%03X_background", png_room_));
         if (!path.empty()) {
           const absl::Status status = util::WriteBinaryFile(path, *png);
           SetPngStatus(
@@ -464,9 +486,7 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FILE_UPLOAD " Import room PNG")) {
     auto palette = PngPalette();
-    const std::string path =
-        palette.ok() ? util::FileDialogWrapper::ShowOpenFileDialog(png_filter)
-                     : std::string();
+    const std::string path = palette.ok() ? open_path() : std::string();
     if (!palette.ok()) {
       SetPngStatus(std::string(palette.status().message()), true);
     } else if (!path.empty() && rom_ != nullptr && game_data_ != nullptr) {

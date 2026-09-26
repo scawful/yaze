@@ -42,13 +42,15 @@ struct SheetPngImportPreview {
   std::vector<int> changed_tiles;       // 8x8 tiles 0-63
 };
 
-/// Places a PNG over a sheet from block 0 without changing anything. The PNG
-/// must be a multiple of 16 pixels on each side and fit in the sheet;
-/// indexed PNGs must use indices 0-7, RGB PNGs exactly the palette's colors.
-/// Offending pixels are listed in the error, never clamped.
+/// Places a PNG over a sheet from 16x16 block `first_block` (0-15, row-major
+/// over the 8x2 blocks) without changing anything. The PNG must be a
+/// multiple of 16 pixels on each side and fit from that block; indexed PNGs
+/// must use indices 0-7, RGB PNGs exactly the palette's colors. Offending
+/// pixels are listed in the error, never clamped.
 absl::StatusOr<SheetPngImportPreview> PreviewSheetPngImport(
     uint16_t sheet_id, const std::vector<uint8_t>& indexed_pixels,
-    const std::vector<uint8_t>& png_bytes, const zelda3::SheetPalette& palette);
+    const std::vector<uint8_t>& png_bytes, const zelda3::SheetPalette& palette,
+    int first_block = 0);
 
 /// Splits a 128x256 room background PNG (`z3ed gfx-room-export` layout) into
 /// the room's sheets, read from the ROM. Returns only sheets that change.

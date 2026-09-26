@@ -189,6 +189,8 @@ class SheetBrowserPanel : public WindowContent {
   int png_palette_mode_ = 0;  // 0 grayscale, 1 room background, 2 room sprite
   int png_room_ = 0;
   int png_palette_row_ = 2;
+  int png_first_block_ = 0;  // 16x16 block a sheet import starts at
+  std::string png_path_;     // typed PNG path; empty picks in a dialog
   std::vector<SheetPngImportPreview> png_pending_;
   std::string png_status_;
   bool png_status_is_error_ = false;
