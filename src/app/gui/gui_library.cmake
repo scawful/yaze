@@ -61,6 +61,7 @@ set(CANVAS_SRC
   app/gui/canvas/canvas_usage_tracker.cc
   app/gui/canvas/canvas_utils.cc
   app/gui/canvas/coordinate_mapper.cc
+  app/gui/canvas/item_context_menu.cc
 )
 
 # build_cleaner:auto-maintain
@@ -119,7 +120,7 @@ if(WIN32 OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
   target_include_directories(yaze_gui_core PUBLIC ${CMAKE_SOURCE_DIR}/ext/nativefiledialog-extended/src/include)
 endif()
 target_link_libraries(yaze_canvas PUBLIC yaze_gui_core yaze_gfx)
-target_link_libraries(yaze_gui_widgets PUBLIC yaze_gui_core yaze_gfx)
+target_link_libraries(yaze_gui_widgets PUBLIC yaze_gui_core yaze_canvas yaze_gfx)
 target_link_libraries(yaze_gui_automation PUBLIC yaze_gui_core)
 target_link_libraries(yaze_gui_app PUBLIC yaze_gui_core yaze_gui_widgets yaze_gui_automation)
 
