@@ -95,6 +95,12 @@ class PaletteEditor : public Editor {
   absl::Status Undo() override;
   absl::Status Redo() override;
   absl::Status Find() override { return absl::OkStatus(); }
+  // Palette history lives in gfx::PaletteManager, not Editor::undo_manager_.
+  bool CanUndo() const override;
+  bool CanRedo() const override;
+  bool CanCut() const override { return false; }
+  bool CanCopy() const override { return false; }
+  bool CanPaste() const override { return false; }
   absl::Status Save() override;
 
   void set_rom(Rom* rom) { rom_ = rom; }

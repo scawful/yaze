@@ -100,6 +100,8 @@ set(
   app/editor/menu/activity_bar_actions_registry.cc
   app/editor/menu/menu_builder.cc
   app/editor/menu/menu_orchestrator.cc
+  app/editor/menu/menu_shortcut_labels.cc
+  app/editor/menu/recent_files_menu_model.cc
   app/editor/menu/right_drawer_manager.cc
   app/editor/menu/status_bar.cc
   app/editor/menu/window_browser.cc

@@ -23,6 +23,7 @@ class WorkspaceWindowManager;
 class SessionCoordinator;
 class ToastManager;
 class PopupManager;
+class ShortcutManager;
 
 /**
  * @class MenuOrchestrator
@@ -55,6 +56,10 @@ class MenuOrchestrator {
   }
   void SetStatusBar(StatusBar* bar) { status_bar_ = bar; }
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
+  // Source of truth for menu shortcut labels (see GetShortcutForAction).
+  void SetShortcutManager(const ShortcutManager* manager) {
+    shortcut_manager_ = manager;
+  }
 
   // Non-copyable due to reference members
   MenuOrchestrator(const MenuOrchestrator&) = delete;
@@ -86,6 +91,10 @@ class MenuOrchestrator {
   void OnSaveProjectAs();
   void OnShowProjectManagement();
   void OnShowProjectFileEditor();
+  void OnOpenRecentFile(const std::string& path);
+  void OnClearRecentFiles();
+  void OnCloseRom();
+  void OnRevertRom();
 
   // Edit menu actions (delegate to current editor)
   void OnUndo();
@@ -103,6 +112,10 @@ class MenuOrchestrator {
   void OnShowPanelBrowser();
   void OnShowPanelFinder();
   void OnShowWelcomeScreen();
+  void OnZoomIn();
+  void OnZoomOut();
+  void OnZoomReset();
+  void OnToggleFullscreen();
 
 #ifdef YAZE_BUILD_AGENT_UI
   void OnShowAIAgent();
@@ -141,17 +154,14 @@ class MenuOrchestrator {
   void OnShowRomInfo();
   void OnCreateBackup();
   void OnValidateRom();
-  void OnRunDataIntegrityCheck();
-  void OnTestSaveLoad();
 
   // ZSCustomOverworld menu actions
   void OnCheckRomVersion();
-  void OnUpgradeRom();
+  void OnOpenOverworldForUpgrade();
   void OnToggleCustomLoading();
 
   // Asar Integration menu actions
   void OnToggleAsarPatch();
-  void OnLoadAsmFile();
 
   // BPS Patch menu actions
   void OnExportBpsPatch();
@@ -162,16 +172,6 @@ class MenuOrchestrator {
 
 #ifdef YAZE_ENABLE_TESTING
   void OnShowTestDashboard();
-  void OnRunAllTests();
-  void OnRunUnitTests();
-  void OnRunIntegrationTests();
-  void OnRunE2ETests();
-#endif
-
-#ifdef YAZE_WITH_GRPC
-  void OnStartCollaboration();
-  void OnJoinCollaboration();
-  void OnShowNetworkStatus();
 #endif
 
   // Help menu actions
@@ -203,6 +203,7 @@ class MenuOrchestrator {
   WorkspaceWindowManager* window_manager_ = nullptr;
   StatusBar* status_bar_ = nullptr;
   UserSettings* user_settings_ = nullptr;
+  const ShortcutManager* shortcut_manager_ = nullptr;
 
   // Menu state
   bool menu_needs_refresh_ = false;
@@ -226,9 +227,8 @@ class MenuOrchestrator {
   void AddAsarIntegrationMenuItems();
   void AddDevelopmentMenuItems();
   void AddTestingMenuItems();
-#ifdef YAZE_WITH_GRPC
-  void AddCollaborationMenuItems();
-#endif
+  void AddRecentFilesSubmenu();
+  void AddThemeSubmenu();
   // Submenus that live inside the top-level Windows menu.
   void AddSessionsSubmenu();
   void AddLayoutSubmenu();
@@ -243,15 +243,25 @@ class MenuOrchestrator {
   bool HasProjectFile() const;
   bool HasCurrentEditor() const;
   bool HasMultipleSessions() const;
+  // Edit-menu gates: true when a current editor exists and reports it can
+  // perform the action (Editor::CanUndo etc.).
+  bool CurrentEditorCanUndo() const;
+  bool CurrentEditorCanRedo() const;
+  bool CurrentEditorCanCut() const;
+  bool CurrentEditorCanCopy() const;
+  bool CurrentEditorCanPaste() const;
+  bool CurrentEditorCanFind() const;
 
   // Menu item text generation
   std::string GetRomFilename() const;
   std::string GetProjectName() const;
   std::string GetCurrentEditorName() const;
 
-  // Shortcut key management
+  // Menu shortcut labels. Returns the display string of the live binding
+  // registered in ShortcutManager under `action` ("Redo", "Save As", ...),
+  // or "" when the action is unbound, so a menu never shows a key that does
+  // not fire.
   std::string GetShortcutForAction(const std::string& action) const;
-  void RegisterGlobalShortcuts();
 };
 
 }  // namespace editor

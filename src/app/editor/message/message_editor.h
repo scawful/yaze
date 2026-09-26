@@ -81,7 +81,13 @@ class MessageEditor : public Editor {
   absl::Status Undo() override;
   absl::Status Redo() override;
   absl::Status Find() override;
+  // A pending text edit is committed to history by Undo(), so it counts.
+  bool CanUndo() const override {
+    return pending_undo_before_.has_value() || undo_manager_.CanUndo();
+  }
+  bool CanFind() const override { return true; }
   void Delete();
+  void DrawFindReplaceWindow();
   void SelectAll();
 
   void set_rom(Rom* rom) { rom_ = rom; }
@@ -173,6 +179,7 @@ class MessageEditor : public Editor {
 
   // Undo/Redo - delegates to UndoManager (inherited from Editor)
   std::optional<MessageSnapshot> pending_undo_before_;
+  bool show_find_replace_ = false;
   void PushUndoSnapshot();
   void FinalizePendingUndo();
   void ApplySnapshot(const MessageSnapshot& snapshot);

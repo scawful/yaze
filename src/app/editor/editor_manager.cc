@@ -730,6 +730,7 @@ void EditorManager::InitializeSubsystems() {
   menu_orchestrator_->SetWindowManager(&window_manager_);
   menu_orchestrator_->SetStatusBar(&status_bar_);
   menu_orchestrator_->SetUserSettings(&user_settings_);
+  menu_orchestrator_->SetShortcutManager(&shortcut_manager_);
 
   session_coordinator_->SetEditorManager(this);
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
@@ -6311,6 +6312,90 @@ void EditorManager::CloseCurrentSession() {
   UpdateCurrentRomHash();
 }
 
+void EditorManager::CloseRom() {
+  if (!CanCloseRom()) {
+    return;
+  }
+  const size_t session_id = GetCurrentSessionId();
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kCloseRom, session_id,
+           session_id})) {
+    return;
+  }
+  ExecutePendingUnsavedSessionAction(
+      {PendingUnsavedSessionAction::Type::kCloseRom, session_id, session_id});
+}
+
+bool EditorManager::CanCloseRom() const {
+  return session_coordinator_ != nullptr &&
+         session_coordinator_->GetActiveRomSession() != nullptr;
+}
+
+bool EditorManager::CanRevertRom() const {
+  if (!session_coordinator_) {
+    return false;
+  }
+  const auto* session = session_coordinator_->GetActiveRomSession();
+  return session != nullptr && session->rom.is_loaded() &&
+         !session->rom.filename().empty();
+}
+
+absl::Status EditorManager::RevertRomToSaved() {
+  if (!CanRevertRom()) {
+    return absl::FailedPreconditionError("No ROM with a backing file is open");
+  }
+  const size_t session_id = GetCurrentSessionId();
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kRevertRom, session_id,
+           session_id})) {
+    return absl::OkStatus();  // Confirmation popup is now showing.
+  }
+  RETURN_IF_ERROR(RevertRomToSavedInternal());
+  toast_manager_.Show("Reverted ROM to the saved file", ToastType::kSuccess);
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::RevertRomToSavedInternal() {
+  if (!CanRevertRom()) {
+    return absl::FailedPreconditionError("No ROM with a backing file is open");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  // Graphics sheet drafts are held by the Graphics editor and are not rebuilt
+  // by ReplaceActiveSessionRom. Refuse instead of leaving them stale.
+  if (session->editors.HasPendingGraphicsChanges()) {
+    return absl::FailedPreconditionError(
+        "The Graphics editor has unsaved sheet edits; save or undo them "
+        "before reverting");
+  }
+
+  const std::string backing_path = session->rom.filename();
+  // Load into scratch storage first so a read failure leaves the live
+  // session untouched. Resource labels are session work stored beside the
+  // ROM, not ROM bytes, so keep the in-memory labels (as
+  // DiscardPendingRomBackupRestore does).
+  const project::ResourceLabelManager resource_labels =
+      *session->rom.resource_label();
+  Rom backing_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&backing_rom, backing_path));
+  *backing_rom.resource_label() = resource_labels;
+  RETURN_IF_ERROR(
+      ReplaceActiveSessionRom(std::move(backing_rom), backing_path));
+
+  // ReplaceActiveSessionRom may re-resolve the session pointer's contents but
+  // not its identity; re-read it defensively.
+  session = session_coordinator_->GetActiveRomSession();
+  if (session != nullptr) {
+    session->backup_restore_pending = false;
+    session->rom.ClearDirty();
+    if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+      return absl::DataLossError(absl::StrFormat(
+          "ROM reloaded from disk, but the session still reports %s",
+          DescribePendingUnsavedWork(GetCurrentSessionIndex())));
+    }
+  }
+  return absl::OkStatus();
+}
+
 void EditorManager::RemoveSession(size_t index) {
   if (!session_coordinator_ ||
       !session_coordinator_->IsValidSessionIndex(index)) {
@@ -6419,6 +6504,15 @@ std::string EditorManager::GetPendingUnsavedSessionActionPrompt() const {
       return absl::StrFormat(
           "Session '%s' has %s. Closing it now will discard them.",
           session_name, work);
+    case PendingUnsavedSessionAction::Type::kCloseRom:
+      return absl::StrFormat(
+          "Session '%s' has %s. Closing the ROM now will discard them.",
+          session_name, work);
+    case PendingUnsavedSessionAction::Type::kRevertRom:
+      return absl::StrFormat(
+          "Session '%s' has %s. Reverting reloads the ROM from disk and "
+          "discards all unsaved ROM edits. This cannot be undone.",
+          session_name, work);
     case PendingUnsavedSessionAction::Type::kQuit:
       break;
   }
@@ -6441,6 +6535,12 @@ std::string EditorManager::GetPendingUnsavedSessionActionSaveLabel() const {
       return "Save Work & Switch";
     case PendingUnsavedSessionAction::Type::kCloseSession:
       return "Save Work & Close";
+    case PendingUnsavedSessionAction::Type::kCloseRom:
+      return "Save Work & Close ROM";
+    case PendingUnsavedSessionAction::Type::kRevertRom:
+      // Saving and then reloading from disk is a no-op; the popup hides the
+      // save button when this label is empty.
+      return "";
     case PendingUnsavedSessionAction::Type::kQuit:
       return ModifiedSessionCount() == 1 ? "Save Work & Quit"
                                          : "Save Modified Work & Quit";
@@ -6463,7 +6563,10 @@ std::string EditorManager::GetPendingUnsavedSessionActionContinueLabel() const {
     case PendingUnsavedSessionAction::Type::kSwitchSession:
       return "Switch Without Saving";
     case PendingUnsavedSessionAction::Type::kCloseSession:
+    case PendingUnsavedSessionAction::Type::kCloseRom:
       return "Close Without Saving";
+    case PendingUnsavedSessionAction::Type::kRevertRom:
+      return "Discard Edits & Revert";
     case PendingUnsavedSessionAction::Type::kQuit:
       return "Quit Without Saving";
   }
@@ -6593,11 +6696,17 @@ bool EditorManager::MaybeGuardPendingSessionAction(
     PendingUnsavedSessionAction action) {
   CaptureActiveProjectEditingState();
   const auto source_index = ResolveSessionIndexById(action.source_session_id);
-  const bool has_pending_work =
-      action.type == PendingUnsavedSessionAction::Type::kQuit
-          ? HasAnySessionPendingUnsavedWork()
-          : source_index.has_value() &&
-                SessionHasPendingUnsavedWork(*source_index);
+  bool has_pending_work = false;
+  if (action.type == PendingUnsavedSessionAction::Type::kQuit) {
+    has_pending_work = HasAnySessionPendingUnsavedWork();
+  } else if (action.type == PendingUnsavedSessionAction::Type::kRevertRom) {
+    // Revert only discards ROM-side work; project drafts survive it.
+    has_pending_work =
+        source_index.has_value() && SessionHasPendingRomWork(*source_index);
+  } else {
+    has_pending_work =
+        source_index.has_value() && SessionHasPendingUnsavedWork(*source_index);
+  }
   if (!has_pending_work) {
     return true;
   }
@@ -6658,6 +6767,37 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
         }
       }
       break;
+    case PendingUnsavedSessionAction::Type::kCloseRom:
+      if (session_coordinator_) {
+        const auto target_index =
+            ResolveSessionIndexById(action.target_session_id);
+        if (target_index.has_value()) {
+          session_coordinator_->CloseSessionAllowingEmpty(*target_index);
+          UpdateCurrentRomHash();
+        }
+      }
+      break;
+    case PendingUnsavedSessionAction::Type::kRevertRom: {
+      const auto target_index =
+          ResolveSessionIndexById(action.target_session_id);
+      if (!target_index.has_value()) {
+        break;
+      }
+      if (session_coordinator_ &&
+          *target_index != session_coordinator_->GetActiveSessionIndex()) {
+        session_coordinator_->SwitchToSession(*target_index);
+      }
+      auto status = RevertRomToSavedInternal();
+      if (status.ok()) {
+        toast_manager_.Show("Reverted ROM to the saved file",
+                            ToastType::kSuccess);
+      } else {
+        toast_manager_.Show(
+            absl::StrFormat("Revert failed: %s", status.message()),
+            ToastType::kError, 6.0f);
+      }
+      break;
+    }
     case PendingUnsavedSessionAction::Type::kQuit:
       quit_ = true;
       break;

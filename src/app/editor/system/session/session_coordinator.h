@@ -68,6 +68,10 @@ class SessionCoordinator {
   void RequestCloseCurrentSession();
   void CloseCurrentSession();
   void CloseSession(size_t index);
+  // Closes `index` even when it is the only session, leaving the app with no
+  // ROM session (the welcome surface takes over). Used by File > Close ROM.
+  // Unsaved-work confirmation is the caller's responsibility.
+  void CloseSessionAllowingEmpty(size_t index);
   void RemoveSession(size_t index);
   void SwitchToSession(size_t index);
   void UpdateSessions();
@@ -193,6 +197,7 @@ class SessionCoordinator {
  private:
   void ActivateCreatedSession(size_t index);
   void SwitchToSessionInternal(size_t index, bool transient);
+  void CloseSessionInternal(size_t index, bool allow_closing_last);
   void NotifySessionSwitched(size_t old_index, size_t new_index,
                              RomSession* session, bool transient);
   void NotifySessionCreated(size_t index, RomSession* session);
