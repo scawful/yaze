@@ -13,6 +13,18 @@ namespace yaze {
 namespace editor {
 
 class OverworldEditor;  // Forward declaration
+struct AgentUITheme;
+
+/**
+ * @brief Box color for an overworld entity marker.
+ *
+ * Each entity type reads its own theme token (entrance_color, hole_color,
+ * exit_color, item_color, sprite_color); holes are entrances with
+ * `is_hole` set. Types without a marker token return the sprite color.
+ */
+ImVec4 EntityMarkerColor(const AgentUITheme& theme,
+                         zelda3::GameEntity::EntityType type,
+                         bool is_hole = false);
 
 /**
  * @class OverworldEntityRenderer

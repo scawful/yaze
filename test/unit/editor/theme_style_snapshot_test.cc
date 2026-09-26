@@ -20,6 +20,7 @@
 #include "app/gui/core/ui_helpers.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
+#include "nlohmann/json.hpp"
 #include "unique_temp_path.h"
 
 namespace yaze::gui {
@@ -779,6 +780,152 @@ TEST_F(ThemeStyleSnapshotTest,
 
   std::error_code ec;
   std::filesystem::remove(temp_path, ec);
+}
+
+// Overworld entity marker tokens. They used to fall back to the status
+// colors (exit=error red, sprite=info blue, item=warning gold,
+// entrance=success green); they are their own fixed defaults now, per
+// docs/public/developer/architecture.md section 3.4.
+bool SameRgba(const Color& a, const Color& b) {
+  auto byte = [](float v) {
+    return static_cast<int>(v * 255.0f + 0.5f);
+  };
+  return byte(a.red) == byte(b.red) && byte(a.green) == byte(b.green) &&
+         byte(a.blue) == byte(b.blue) && byte(a.alpha) == byte(b.alpha);
+}
+
+void ExpectDefaultEntityMarkers(const Theme& theme, const std::string& name) {
+  const Color markers[] = {theme.entrance_color, theme.exit_color,
+                           theme.item_color, theme.sprite_color};
+  for (int i = 0; i < 4; ++i) {
+    for (int j = i + 1; j < 4; ++j) {
+      EXPECT_FALSE(SameRgba(markers[i], markers[j]))
+          << name << ": marker tokens " << i << " and " << j << " match";
+    }
+  }
+  EXPECT_TRUE(SameRgba(theme.entrance_color, EntityMarkerDefaults::Entrance()))
+      << name << " entrance_color";
+  EXPECT_TRUE(SameRgba(theme.hole_color, EntityMarkerDefaults::Hole()))
+      << name << " hole_color";
+  EXPECT_TRUE(SameRgba(theme.exit_color, EntityMarkerDefaults::Exit()))
+      << name << " exit_color";
+  EXPECT_TRUE(SameRgba(theme.item_color, EntityMarkerDefaults::Item()))
+      << name << " item_color";
+  EXPECT_TRUE(SameRgba(theme.sprite_color, EntityMarkerDefaults::Sprite()))
+      << name << " sprite_color";
+}
+
+TEST_F(ThemeStyleSnapshotTest, EntityMarkerDefaultsFollowTheDocumentedHues) {
+  // Yellow-gold entrances, cyan-white exits, red items, magenta sprites.
+  ExpectRgbNear(EntityMarkerDefaults::Entrance(), 255, 204, 0);
+  ExpectRgbNear(EntityMarkerDefaults::Hole(), 255, 150, 0);
+  ExpectRgbNear(EntityMarkerDefaults::Exit(), 150, 235, 255);
+  ExpectRgbNear(EntityMarkerDefaults::Item(), 235, 45, 45);
+  ExpectRgbNear(EntityMarkerDefaults::Sprite(), 235, 60, 235);
+}
+
+TEST_F(ThemeStyleSnapshotTest, ClassicYazeHasDedicatedEntityMarkerColors) {
+  ThemeManager::Get().ApplyClassicYazeTheme();
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  ExpectDefaultEntityMarkers(theme, "Classic YAZE");
+  // The regression: markers were the status colors.
+  EXPECT_FALSE(SameRgba(theme.exit_color, theme.error));
+  EXPECT_FALSE(SameRgba(theme.sprite_color, theme.info));
+  EXPECT_FALSE(SameRgba(theme.item_color, theme.warning));
+  EXPECT_FALSE(SameRgba(theme.entrance_color, theme.success));
+}
+
+TEST_F(ThemeStyleSnapshotTest, EveryThemeHasDedicatedEntityMarkerColors) {
+  auto& mgr = ThemeManager::Get();
+  for (const auto& name : ShippedFileThemeNames()) {
+    const Theme* theme = mgr.GetTheme(name);
+    ASSERT_NE(theme, nullptr) << name;
+    ExpectDefaultEntityMarkers(*theme, name);
+  }
+  const Color accent{120.0f / 255.0f, 90.0f / 255.0f, 200.0f / 255.0f, 1.0f};
+  ExpectDefaultEntityMarkers(mgr.GenerateThemeFromAccent(accent, true),
+                             "accent (dark)");
+  ExpectDefaultEntityMarkers(mgr.GenerateThemeFromAccent(accent, false),
+                             "accent (light)");
+}
+
+TEST_F(ThemeStyleSnapshotTest, EntityMarkerColorsRoundTripThroughThemeFile) {
+  namespace fs = std::filesystem;
+  auto& mgr = ThemeManager::Get();
+  const auto* base = mgr.GetTheme("YAZE Tre");
+  ASSERT_NE(base, nullptr);
+  Theme custom = *base;
+  custom.name = "Yaze Entity Marker Round Trip";
+  custom.entrance_color = Color{10 / 255.0f, 20 / 255.0f, 30 / 255.0f, 1.0f};
+  custom.hole_color = Color{40 / 255.0f, 50 / 255.0f, 60 / 255.0f, 1.0f};
+  custom.exit_color = Color{70 / 255.0f, 80 / 255.0f, 90 / 255.0f, 1.0f};
+  custom.item_color = Color{100 / 255.0f, 110 / 255.0f, 120 / 255.0f, 1.0f};
+  custom.sprite_color =
+      Color{130 / 255.0f, 140 / 255.0f, 150 / 255.0f, 200 / 255.0f};
+  custom.transport_color =
+      Color{160 / 255.0f, 170 / 255.0f, 180 / 255.0f, 1.0f};
+  custom.music_zone_color =
+      Color{190 / 255.0f, 200 / 255.0f, 210 / 255.0f, 1.0f};
+
+  const fs::path path =
+      ::yaze::test::UniqueTempPath("yaze_entity_marker_roundtrip", ".theme");
+  ASSERT_TRUE(mgr.SaveThemeToFile(custom, path.string()).ok());
+  const auto load_status = mgr.LoadThemeFromFile(path.string());
+  std::error_code ec;
+  fs::remove(path, ec);
+  ASSERT_TRUE(load_status.ok()) << load_status.message();
+
+  const Theme* loaded = mgr.GetTheme("Yaze Entity Marker Round Trip");
+  ASSERT_NE(loaded, nullptr);
+  ExpectRgbNear(loaded->entrance_color, 10, 20, 30);
+  ExpectRgbNear(loaded->hole_color, 40, 50, 60);
+  ExpectRgbNear(loaded->exit_color, 70, 80, 90);
+  ExpectRgbNear(loaded->item_color, 100, 110, 120);
+  ExpectRgbNear(loaded->sprite_color, 130, 140, 150, 200);
+  ExpectRgbNear(loaded->transport_color, 160, 170, 180);
+  ExpectRgbNear(loaded->music_zone_color, 190, 200, 210);
+}
+
+TEST_F(ThemeStyleSnapshotTest, MissingEntityMarkerKeysFallBackToDefaults) {
+  // A file that declares only exit_color keeps it; the other markers get
+  // the defaults, not the file's status colors.
+  const auto path = TempThemePath("entity_marker_partial");
+  {
+    std::ofstream out(path);
+    out << "name=Yaze Entity Marker Partial\n"
+        << "[colors]\n"
+        << "primary=120,90,200,255\n"
+        << "error=250,0,0,255\n"
+        << "info=0,0,250,255\n"
+        << "exit_color=1,2,3,255\n";
+  }
+  auto& mgr = ThemeManager::Get();
+  const auto status = mgr.LoadThemeFromFile(path.string());
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const Theme* parsed = mgr.GetTheme("Yaze Entity Marker Partial");
+  ASSERT_NE(parsed, nullptr);
+  ExpectRgbNear(parsed->exit_color, 1, 2, 3);
+  EXPECT_TRUE(
+      SameRgba(parsed->entrance_color, EntityMarkerDefaults::Entrance()));
+  EXPECT_TRUE(SameRgba(parsed->item_color, EntityMarkerDefaults::Item()));
+  EXPECT_TRUE(SameRgba(parsed->sprite_color, EntityMarkerDefaults::Sprite()));
+}
+
+TEST_F(ThemeStyleSnapshotTest, ThemeJsonExportIncludesEntityMarkerColors) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyClassicYazeTheme();
+  const auto json = nlohmann::json::parse(mgr.ExportCurrentThemeJson());
+  const auto& colors = json.at("colors");
+  EXPECT_EQ(colors.at("entrance_color"), "#FFCC00");
+  EXPECT_EQ(colors.at("hole_color"), "#FF9600");
+  EXPECT_EQ(colors.at("exit_color"), "#96EBFF");
+  EXPECT_EQ(colors.at("item_color"), "#EB2D2D");
+  EXPECT_EQ(colors.at("sprite_color"), "#EB3CEB");
+  EXPECT_TRUE(colors.contains("transport_color"));
+  EXPECT_TRUE(colors.contains("music_zone_color"));
 }
 
 }  // namespace

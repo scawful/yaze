@@ -349,6 +349,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/settings_panel_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
+    unit/editor/overworld_entity_marker_color_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
     unit/editor/shortcut_group_test.cc
@@ -756,6 +757,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/shortcut_arbitration_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
+    unit/editor/overworld_entity_marker_color_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
     unit/editor/welcome_screen_test.cc
