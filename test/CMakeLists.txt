@@ -206,6 +206,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/dungeon_spawn_report_commands_test.cc
+    unit/cli/dungeon_room_destination_high_byte_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
     unit/cli/dungeon_minecart_audit_test.cc

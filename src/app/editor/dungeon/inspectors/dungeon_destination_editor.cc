@@ -119,7 +119,9 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
   const bool editable =
       !viewer.header_read_only() && viewer.IsObjectInteractionEnabled();
   ImGui::BeginDisabled(!editable);
-  ImGui::TextUnformatted("Destination room (hex 00–FF)");
+  ImGui::TextUnformatted(room_id >= 0x100
+                             ? "Destination room (low byte; page 1xx)"
+                             : "Destination room (hex 00–FF)");
   ImGui::SetNextItemWidth(-1);
   int requested = destination;
   if (gui::InputScalarDeferred(
@@ -152,9 +154,13 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
     ImGui::EndCombo();
   }
   ImGui::EndDisabled();
+  // The header stores one byte; the game keeps this room's high byte ($A1),
+  // so from room 119 the byte 1D leads to 11D.
+  const int destination_room =
+      zelda3::ResolveHeaderDestinationRoom(room_id, destination);
   ImGui::TextWrapped(
-      "%03X · %s", destination,
-      dungeon_project_labels::GetRoomLabel(viewer.project(), destination)
+      "%03X · %s", destination_room,
+      dungeon_project_labels::GetRoomLabel(viewer.project(), destination_room)
           .c_str());
   ImGui::BeginDisabled(!viewer.CanNavigateRooms());
   const bool navigate = ImGui::Button("Open destination", ImVec2(-1, 0));
@@ -181,7 +187,7 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
   ImGui::PopID();
   // Navigation may change the current room/view. Do not access room state after it.
   if (navigate)
-    viewer.NavigateToRoom(destination);
+    viewer.NavigateToRoom(destination_room);
 }
 
 }  // namespace yaze::editor
