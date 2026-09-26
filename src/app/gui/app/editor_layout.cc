@@ -414,7 +414,7 @@ bool PanelWindow::Begin(bool* p_open) {
   // Modern panel styling
   panel_var_guard_.emplace(std::initializer_list<StyleVarGuard::Entry>{
       {ImGuiStyleVar_WindowRounding, 8.0f},
-      {ImGuiStyleVar_WindowPadding, ImVec2(10, 10)}});
+      {ImGuiStyleVar_WindowPadding, ImVec2(kWindowPadding, kWindowPadding)}});
   panel_color_guard_.emplace(std::initializer_list<StyleColorGuard::Entry>{
       {ImGuiCol_TitleBg, GetThemeColor(ImGuiCol_TitleBg)},
       {ImGuiCol_TitleBgActive, GetAccentColor()}});

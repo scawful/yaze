@@ -111,6 +111,10 @@ class Toolset {
  */
 class PanelWindow {
  public:
+  /// Window padding PanelWindow forces on every panel. Content with an exact
+  /// preferred width (e.g. tile grids) adds 2x this to size its dock.
+  static constexpr float kWindowPadding = 10.0f;
+
   enum class Position {
     Free,      // Floating window
     Right,     // Docked to right side

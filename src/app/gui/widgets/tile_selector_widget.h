@@ -55,7 +55,15 @@ class TileSelectorWidget {
   int GetSelectedTileID() const { return selected_tile_id_; }
   int GetMaxTileId() const { return total_tiles_ > 0 ? total_tiles_ - 1 : 0; }
   ImVec2 GetGridContentSize() const;
+  /// Grid width plus the current style's vertical scrollbar. This is the
+  /// width of the scrolling grid child, not of any surrounding panel.
   float GetPreferredViewportWidth() const;
+  /// Same as GetPreferredViewportWidth() for a config that has no widget yet
+  /// (panels report their preferred dock width before the widget exists).
+  static float PreferredViewportWidth(const Config& config,
+                                      float scrollbar_size);
+  /// Current style scrollbar size, or ImGui's default without a context.
+  static float CurrentScrollbarSize();
 
   RenderResult Render(gfx::Bitmap& atlas, bool atlas_ready);
 

@@ -331,10 +331,10 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     gui::TileSelectorWidget::Config selector_config;
     const auto& theme = AgentUI::GetTheme();
     selector_config.tile_size = 16;
-    selector_config.display_scale = 2.0f;
-    selector_config.tiles_per_row = 8;
+    selector_config.display_scale = kTile16SelectorScale;
+    selector_config.tiles_per_row = kTile16SelectorColumns;
     selector_config.total_tiles = zelda3::kNumTile16Individual;
-    selector_config.draw_offset = ImVec2(2.0f, 0.0f);
+    selector_config.draw_offset = ImVec2(kTile16SelectorDrawOffsetX, 0.0f);
     selector_config.highlight_color = theme.selection_primary;
 
     selector_config.enable_drag = true;
@@ -343,6 +343,9 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     editor_->blockset_selector_ = std::make_unique<gui::TileSelectorWidget>(
         "OwBlocksetSelector", selector_config);
     editor_->blockset_selector_->AttachCanvas(&editor_->blockset_canvas_);
+    // Only the selector's own items (Edit Tile16, Copy Tile ID) belong here;
+    // the canvas debug/scale items do not apply to a fixed tile grid.
+    editor_->blockset_canvas_.SetShowBuiltinContextMenu(false);
   }
 
   editor_->UpdateBlocksetSelectorState();
@@ -378,18 +381,24 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   editor_->blockset_canvas_.AddContextMenuItem(
       editor_->blockset_selector_->CopyTileIdMenuItem());
 
-  gui::BeginPadding(3);
-  ImGui::BeginGroup();
-  gui::BeginChildWithScrollbar(
-      "##Tile16SelectorScrollRegion",
-      ImVec2(editor_->blockset_selector_->GetPreferredViewportWidth(), 0.0f),
-      true);
-  gui::EndPadding();
-
-  // Tile ID search/jump bar
+  // Filter bar sits directly in the panel; only the grid scrolls. The grid
+  // child fills the panel width (the panel's preferred width is grid +
+  // scrollbar), has no padding or border, and never scrolls horizontally.
   if (editor_->blockset_selector_->DrawFilterBar()) {
     editor_->RequestTile16Selection(
         editor_->blockset_selector_->GetSelectedTileID());
+  }
+
+  // Padding is read at BeginChild; pop it right away so the grid's tooltip
+  // and context menu keep normal popup padding.
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  const bool grid_visible = ImGui::BeginChild(
+      "##Tile16Grid", ImVec2(0.0f, 0.0f), ImGuiChildFlags_None,
+      ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  ImGui::PopStyleVar();
+  if (!grid_visible) {
+    ImGui::EndChild();
+    return absl::OkStatus();
   }
 
   gfx::Bitmap& atlas = editor_->tile16_blockset_.atlas;
@@ -409,7 +418,6 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   }
 
   ImGui::EndChild();
-  ImGui::EndGroup();
   return absl::OkStatus();
 }
 

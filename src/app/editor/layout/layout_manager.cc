@@ -556,47 +556,88 @@ bool IsLeftDockPosition(DockPosition pos) {
          pos == DockPosition::LeftBottom;
 }
 
-float ResolvePreferredRegionWidth(
+struct RegionWidthPreference {
+  float width = 0.0f;
+  // True when the region's first docked panel reports an exact content width
+  // (HasExactPreferredWidth); the region then takes exactly that width.
+  bool exact = false;
+};
+
+RegionWidthPreference ResolvePreferredRegionWidth(
     WorkspaceWindowManager* window_manager,
     const std::vector<std::pair<std::string, DockPosition>>& docked_panels,
     bool (*matches_region)(DockPosition)) {
+  RegionWidthPreference preference;
   if (!window_manager) {
-    return 0.0f;
+    return preference;
   }
 
-  float preferred_width = 0.0f;
+  bool first_in_region = true;
   for (const auto& [panel_id, position] : docked_panels) {
     if (!matches_region(position)) {
       continue;
     }
-    if (WindowContent* panel = window_manager->GetWindowContent(panel_id)) {
-      preferred_width = std::max(preferred_width, panel->GetPreferredWidth());
+    WindowContent* panel = window_manager->GetWindowContent(panel_id);
+    if (!panel) {
+      continue;
     }
+    const float width = panel->GetPreferredWidth();
+    if (first_in_region) {
+      first_in_region = false;
+      // docked_panels lists default-visible panels first, so the first panel
+      // in a region is the one the user sees on top. A fixed-width grid there
+      // owns the region width; panels stacked below it adapt.
+      if (panel->HasExactPreferredWidth() && width > 0.0f) {
+        return {width, true};
+      }
+    }
+    preference.width = std::max(preference.width, width);
   }
-  return preferred_width;
+  return preference;
+}
+
+// Ratio for an exact-width region. Splits are relative to the node being
+// split (the dockspace minus any region split off before it), not the
+// viewport, so compute against that width.
+float ExactRegionRatio(float preferred_width, float available_width,
+                       float max_ratio) {
+  if (available_width <= 0.0f) {
+    return max_ratio;
+  }
+  return std::clamp(preferred_width / available_width, 0.05f, max_ratio);
 }
 
 void ApplyPreferredSplitWidths(
     DockSplitConfig* cfg, const DockSplitNeeds& needs, float viewport_width,
-    WorkspaceWindowManager* window_manager,
+    float dockspace_width, WorkspaceWindowManager* window_manager,
     const std::vector<std::pair<std::string, DockPosition>>& docked_panels) {
   if (!cfg || !window_manager || viewport_width <= 0.0f) {
     return;
   }
+  const float split_width =
+      dockspace_width > 0.0f ? dockspace_width : viewport_width;
 
   if (needs.left) {
-    const float preferred_left = ResolvePreferredRegionWidth(
+    const auto preferred_left = ResolvePreferredRegionWidth(
         window_manager, docked_panels, IsLeftDockPosition);
-    if (preferred_left > 0.0f) {
-      cfg->left = std::clamp(preferred_left / viewport_width, 0.14f, 0.36f);
+    if (preferred_left.exact) {
+      cfg->left = ExactRegionRatio(preferred_left.width, split_width, 0.36f);
+    } else if (preferred_left.width > 0.0f) {
+      cfg->left =
+          std::clamp(preferred_left.width / viewport_width, 0.14f, 0.36f);
     }
   }
 
   if (needs.right) {
-    const float preferred_right = ResolvePreferredRegionWidth(
+    const auto preferred_right = ResolvePreferredRegionWidth(
         window_manager, docked_panels, IsRightDockPosition);
-    if (preferred_right > 0.0f) {
-      cfg->right = std::clamp(preferred_right / viewport_width, 0.18f, 0.42f);
+    if (preferred_right.exact) {
+      const float remaining =
+          needs.left ? split_width * (1.0f - cfg->left) : split_width;
+      cfg->right = ExactRegionRatio(preferred_right.width, remaining, 0.42f);
+    } else if (preferred_right.width > 0.0f) {
+      cfg->right =
+          std::clamp(preferred_right.width / viewport_width, 0.18f, 0.42f);
     }
   }
 }
@@ -693,8 +734,12 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type,
   if (!is_compact) {
     needs = ComputeSplitNeeds(docked_panels);
     cfg = DockSplitConfig::ForEditor(type);
-    ApplyPreferredSplitWidths(&cfg, needs, viewport_width, window_manager_,
-                              docked_panels);
+    const ImGuiDockNode* dockspace_node =
+        ImGui::DockBuilderGetNode(dockspace_id);
+    const float dockspace_width =
+        dockspace_node ? dockspace_node->Size.x : 0.0f;
+    ApplyPreferredSplitWidths(&cfg, needs, viewport_width, dockspace_width,
+                              window_manager_, docked_panels);
   }
   // When compact, needs is all-false → BuildDockTree produces center-only.
   DockNodeIds ids = BuildDockTree(dockspace_id, needs, cfg);
