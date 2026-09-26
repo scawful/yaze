@@ -136,6 +136,29 @@ const std::vector<EditorShortcutDef> kOverworldShortcuts = {
     {"overworld.toggle_item_list",
      {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_I},
      "Toggle item list"},
+    // Plain digits 1-8 are tools/entity modes (interaction coordinator);
+    // Cmd/Ctrl+digits switch editors, so worlds use Alt+digits.
+    {"overworld.world_light", {ImGuiMod_Alt, ImGuiKey_1}, "Light World"},
+    {"overworld.world_dark", {ImGuiMod_Alt, ImGuiKey_2}, "Dark World"},
+    {"overworld.world_special", {ImGuiMod_Alt, ImGuiKey_3}, "Special World"},
+    {"overworld.map_left",
+     {ImGuiMod_Alt, ImGuiKey_LeftArrow},
+     "Map to the left"},
+    {"overworld.map_right",
+     {ImGuiMod_Alt, ImGuiKey_RightArrow},
+     "Map to the right"},
+    {"overworld.map_up", {ImGuiMod_Alt, ImGuiKey_UpArrow}, "Map above"},
+    {"overworld.map_down", {ImGuiMod_Alt, ImGuiKey_DownArrow}, "Map below"},
+    {"overworld.zoom_in", {ImGuiKey_Equal}, "Zoom in"},
+    {"overworld.zoom_in_keypad", {ImGuiKey_KeypadAdd}, "Zoom in (keypad)"},
+    {"overworld.zoom_out", {ImGuiKey_Minus}, "Zoom out"},
+    {"overworld.zoom_out_keypad",
+     {ImGuiKey_KeypadSubtract},
+     "Zoom out (keypad)"},
+    {"overworld.zoom_fit", {ImGuiKey_0}, "Zoom to fit world"},
+    {"overworld.center_map", {ImGuiKey_Home}, "Center on selected map"},
+    {"overworld.toggle_entities", {ImGuiKey_E}, "Show/hide entities"},
+    {"overworld.toggle_grid", {ImGuiKey_G}, "Show/hide grid"},
 };
 
 // Graphics tool keys (V B P E G L R I), zoom and Ctrl+G grid are handled by
@@ -543,6 +566,34 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               overworld_editor->ToggleTile16EditorWindow();
             } else if (id == "overworld.toggle_item_list") {
               overworld_editor->ToggleItemListWindow();
+            } else if (id == "overworld.world_light") {
+              overworld_editor->SwitchToWorld(0);
+            } else if (id == "overworld.world_dark") {
+              overworld_editor->SwitchToWorld(1);
+            } else if (id == "overworld.world_special") {
+              overworld_editor->SwitchToWorld(2);
+            } else if (id == "overworld.map_left") {
+              overworld_editor->SelectAdjacentMap(-1, 0);
+            } else if (id == "overworld.map_right") {
+              overworld_editor->SelectAdjacentMap(1, 0);
+            } else if (id == "overworld.map_up") {
+              overworld_editor->SelectAdjacentMap(0, -1);
+            } else if (id == "overworld.map_down") {
+              overworld_editor->SelectAdjacentMap(0, 1);
+            } else if (id == "overworld.zoom_in" ||
+                       id == "overworld.zoom_in_keypad") {
+              overworld_editor->ZoomIn();
+            } else if (id == "overworld.zoom_out" ||
+                       id == "overworld.zoom_out_keypad") {
+              overworld_editor->ZoomOut();
+            } else if (id == "overworld.zoom_fit") {
+              overworld_editor->ZoomToFit();
+            } else if (id == "overworld.center_map") {
+              overworld_editor->CenterOverworldView();
+            } else if (id == "overworld.toggle_entities") {
+              overworld_editor->ToggleEntityVisibility();
+            } else if (id == "overworld.toggle_grid") {
+              overworld_editor->ToggleGrid();
             }
           },
           EditorType::kOverworld);

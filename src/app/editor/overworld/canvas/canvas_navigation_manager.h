@@ -165,6 +165,10 @@ class CanvasNavigationManager {
 
   bool is_panning() const { return pan_active_; }
 
+  /// After keyboard map navigation: do not let the (unpinned) hover follow
+  /// replace the keyboard choice until the mouse actually moves.
+  void SuspendHoverFollowUntilMouseMoves();
+
   // ===========================================================================
   // Blockset Selector Synchronization
   // ===========================================================================
@@ -212,6 +216,8 @@ class CanvasNavigationManager {
   bool canvas_item_hovered_ = false;
   bool canvas_window_hovered_ = false;
   bool viewport_known_ = false;
+
+  std::optional<ImVec2> hover_follow_suspended_at_;
 
   // Scroll to apply at the next BeginCanvasViewport.
   std::optional<ImVec2> pending_scroll_;

@@ -348,6 +348,15 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ToggleItemListWindow();
   /// Tool change from the toolbar or keys 1/2: also leaves entity modes.
   void SetEditingMode(EditingMode mode);
+  /// Alt+Arrow: select the neighbouring screen in the world grid and center it.
+  void SelectAdjacentMap(int dx, int dy);
+  void SwitchToWorld(int world);
+  // View requests; applied when the canvas child begins (safe anywhere).
+  void ZoomIn();
+  void ZoomOut();
+  void ZoomToFit();
+  void ResetOverworldView();
+  void CenterOverworldView();
   /// Entity focus (entrances/exits/items/sprites); NONE = all entities.
   void SetEntityEditMode(EntityEditMode mode);
   void ToggleEntityVisibility() { show_entities_ = !show_entities_; }
@@ -438,7 +447,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Handles mouse interactions with entities in MOUSE mode.
 
   /// @brief Handle overworld keyboard shortcuts and edit-mode hotkeys
-  void HandleKeyboardShortcuts();
 
   /// @brief Clamp and synchronize stale map/world selection before panels draw.
   bool NormalizeCurrentSelectionState();
@@ -526,11 +534,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void OpenEntityContextMenu(zelda3::GameEntity* entity);
   void DrawEntityContextMenu();
   zelda3::GameEntity* ResolveEditingEntity();
-  void ZoomIn();
-  void ZoomOut();
-  void ZoomToFit();
-  void ResetOverworldView();
-  void CenterOverworldView();
 
   // ===========================================================================
   // Texture and Graphics Loading
@@ -544,8 +547,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// @brief Ensure a specific map has its texture created
   void EnsureMapTexture(int map_index);
   void PrimeWorldMaps(int world, bool process_texture_queue = false);
-  void SwitchToWorld(int world);
-
   // ===========================================================================
   // Canvas Navigation (delegated to CanvasNavigationManager)
   // ===========================================================================

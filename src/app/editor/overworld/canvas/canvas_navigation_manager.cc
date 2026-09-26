@@ -102,6 +102,15 @@ std::optional<int> CanvasNavigationManager::TrackMapAtCanvasPosition(
     ImVec2 scaled_position) {
   const auto hovered_map = MapFromCanvasPosition(ctx_, scaled_position);
   SetHoveredMap(ctx_, hovered_map.value_or(-1));
+  if (hover_follow_suspended_at_) {
+    const ImVec2 mouse =
+        ImGui::GetCurrentContext() ? ImGui::GetIO().MousePos : ImVec2(0, 0);
+    if (mouse.x == hover_follow_suspended_at_->x &&
+        mouse.y == hover_follow_suspended_at_->y) {
+      return hovered_map;
+    }
+    hover_follow_suspended_at_.reset();
+  }
   if (hovered_map && ctx_.current_map && ctx_.current_map_lock &&
       !*ctx_.current_map_lock && *ctx_.current_map != *hovered_map &&
       !(ctx_.is_dragging_entity && *ctx_.is_dragging_entity)) {
@@ -554,6 +563,11 @@ void CanvasNavigationManager::EndCanvasViewport(bool canvas_item_hovered) {
   canvas_item_hovered_ = canvas_item_hovered;
   canvas_window_hovered_ = ImGui::IsWindowHovered();
   viewport_known_ = viewport_size_.x > 0.0f && viewport_size_.y > 0.0f;
+}
+
+void CanvasNavigationManager::SuspendHoverFollowUntilMouseMoves() {
+  hover_follow_suspended_at_ =
+      ImGui::GetCurrentContext() ? ImGui::GetIO().MousePos : ImVec2(0, 0);
 }
 
 void CanvasNavigationManager::ZoomIn() {

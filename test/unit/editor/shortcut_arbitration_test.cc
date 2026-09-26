@@ -368,5 +368,51 @@ TEST_F(ShortcutArbitrationTest, OverworldCoordinatorUsesPlatformPrimaryMod) {
   EXPECT_EQ(duplicated, 1);
 }
 
+TEST_F(ShortcutArbitrationTest, OverworldDigitsIgnoreModifiedPresses) {
+  std::vector<EditingMode> modes;
+  std::vector<EntityEditMode> entity_modes;
+  OverworldCommandSink sink;
+  sink.on_set_editor_mode = [&](EditingMode mode) {
+    modes.push_back(mode);
+  };
+  sink.on_set_entity_mode = [&](EntityEditMode mode) {
+    entity_modes.push_back(mode);
+  };
+  OverworldInteractionCoordinator coordinator(std::move(sink));
+
+  auto press = [&](std::vector<ImGuiKey> keys) {
+    RunFrame(
+        [&](ImGuiIO& io) {
+          for (ImGuiKey key : keys) {
+            io.AddKeyEvent(key, true);
+          }
+        },
+        [&]() { coordinator.Update(); });
+    RunFrame(
+        [&](ImGuiIO& io) {
+          for (ImGuiKey key : keys) {
+            io.AddKeyEvent(key, false);
+          }
+        },
+        [&]() { coordinator.Update(); });
+  };
+
+  // Cmd/Ctrl+digit switches editors; Alt+digit switches worlds.
+  press({Primary(), ImGuiKey_1});
+  press({Primary(), ImGuiKey_3});
+  press({ImGuiMod_Alt, ImGuiKey_2});
+  press({ImGuiMod_Alt, ImGuiKey_5});
+  EXPECT_TRUE(modes.empty());
+  EXPECT_TRUE(entity_modes.empty());
+
+  // Plain digits act once per press (not every frame the key is held).
+  press({ImGuiKey_3});
+  press({ImGuiKey_2});
+  ASSERT_EQ(entity_modes.size(), 1u);
+  EXPECT_EQ(entity_modes[0], EntityEditMode::ENTRANCES);
+  ASSERT_EQ(modes.size(), 1u);
+  EXPECT_EQ(modes[0], EditingMode::DRAW_TILE);
+}
+
 }  // namespace
 }  // namespace yaze::editor

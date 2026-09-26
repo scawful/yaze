@@ -309,17 +309,10 @@ void OverworldEditor::Initialize() {
 void OverworldEditor::InitInteractionCoordinator() {
   OverworldCommandSink sink;
   sink.on_set_editor_mode = [this](EditingMode mode) {
-    current_mode = mode;
-    if (current_mode == EditingMode::MOUSE) {
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    } else {
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
-    }
+    SetEditingMode(mode);
   };
   sink.on_set_entity_mode = [this](EntityEditMode mode) {
-    entity_edit_mode_ = mode;
-    current_mode = EditingMode::MOUSE;
-    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+    SetEntityEditMode(mode);
   };
   sink.on_pick_tile_from_hover = [this]() {
     (void)PickTile16FromHoveredCanvas();
@@ -359,7 +352,15 @@ void OverworldEditor::InitInteractionCoordinator() {
     }
   };
   sink.can_edit_items = [this]() {
-    return entity_edit_mode_ == EntityEditMode::ITEMS;
+    // Items mode, or no entity focus with an item selected, in select mode.
+    if (current_mode != EditingMode::MOUSE) {
+      return false;
+    }
+    if (entity_edit_mode_ == EntityEditMode::ITEMS) {
+      return true;
+    }
+    return entity_edit_mode_ == EntityEditMode::NONE &&
+           GetSelectedItem() != nullptr;
   };
   sink.on_undo = [this]() {
     status_ = Undo();
@@ -808,12 +809,6 @@ void OverworldEditor::SwitchToWorld(int world) {
   PrimeWorldMaps(current_world_);
 }
 
-void OverworldEditor::HandleKeyboardShortcuts() {
-  if (interaction_coordinator_) {
-    interaction_coordinator_->Update();
-  }
-}
-
 bool OverworldEditor::SelectItemByIdentity(
     const zelda3::OverworldItem& item_identity) {
   auto* item = FindItemByIdentity(&overworld_, item_identity);
@@ -934,7 +929,7 @@ bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
   if (!selected_item) {
     if (dependencies_.toast_manager) {
       dependencies_.toast_manager->Show(
-          "Select an overworld item first (Item Mode: key 5)",
+          "Select an overworld item first (click one, or Items mode: 5)",
           ToastType::kInfo);
     }
     return false;
@@ -1680,6 +1675,28 @@ void OverworldEditor::ToggleItemListWindow() {
   dependencies_.window_manager->ToggleWindow(
       dependencies_.window_manager->GetActiveSessionId(),
       OverworldPanelIds::kItemList);
+}
+
+void OverworldEditor::SelectAdjacentMap(int dx, int dy) {
+  const int world = std::clamp(current_world_, 0, 2);
+  const int local = current_map_ - world * 0x40;
+  const int rows = world == 2 ? 4 : 8;  // Special world: four rows.
+  const int x = local % 8 + dx;
+  const int y = local / 8 + dy;
+  if (x < 0 || x >= 8 || y < 0 || y >= rows) {
+    return;
+  }
+  const int target = world * 0x40 + y * 8 + x;
+  if (target >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  SelectMapForEditing(target, /*respect_pin=*/false);
+  if (canvas_nav_) {
+    // Keep the keyboard choice until the mouse moves, then resume following
+    // the cursor (unless pinned).
+    canvas_nav_->SuspendHoverFollowUntilMouseMoves();
+    canvas_nav_->CenterOnMap(target);
+  }
 }
 
 void OverworldEditor::SetEditingMode(EditingMode mode) {
