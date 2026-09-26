@@ -108,7 +108,7 @@ void PalettesetEditorPanel::DrawPalettesetEditor() {
   Text("%s", paletteset_label.c_str());
 
   rom()->resource_label()->SelectableLabelWithNameEdit(
-      false, "paletteset", "0x" + std::to_string(selected_paletteset_),
+      false, "paletteset", std::to_string(selected_paletteset_),
       paletteset_label);
 
   Separator();
