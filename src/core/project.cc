@@ -16,6 +16,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/strip.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -169,6 +170,57 @@ std::string FormatHexUintList(const std::vector<uint16_t>& values) {
   return absl::StrJoin(values, ",", [](std::string* out, uint16_t value) {
     out->append(absl::StrFormat("0x%02X", value));
   });
+}
+
+// Before 2026-09-25 the gfx group editor keyed blockset, roomset and
+// spriteset labels as "0x" + decimal digits (spriteset 12 -> "0x12", which the
+// label resolver reads as hex 18). Canonical keys are decimal. On load:
+// existing decimal keys win; "0x" + only decimal digits is that old format and
+// is read as decimal; other hex keys ("0x0C") are read as hex.
+void MigrateGfxGroupLabelKeys(
+    std::unordered_map<std::string,
+                       std::unordered_map<std::string, std::string>>& labels) {
+  auto all_of = [](absl::string_view text, auto predicate) {
+    return !text.empty() && std::all_of(text.begin(), text.end(), predicate);
+  };
+  auto is_decimal = [](char c) {
+    return c >= '0' && c <= '9';
+  };
+  auto is_hex = [](char c) {
+    return std::isxdigit(static_cast<unsigned char>(c)) != 0;
+  };
+  for (const char* type : {"blockset", "roomset", "spriteset"}) {
+    auto found = labels.find(type);
+    if (found == labels.end()) {
+      continue;
+    }
+    std::unordered_map<std::string, std::string> migrated;
+    // Pass 0: canonical decimal keys. Pass 1: old "0x"+decimal. Pass 2: hex.
+    for (int pass = 0; pass < 3; ++pass) {
+      for (const auto& [key, value] : found->second) {
+        absl::string_view digits = key;
+        const bool prefixed = absl::ConsumePrefix(&digits, "0x") ||
+                              absl::ConsumePrefix(&digits, "0X");
+        std::string canonical;
+        if (pass == 0 && !prefixed && all_of(digits, is_decimal)) {
+          canonical = std::string(digits);
+        } else if (pass == 1 && prefixed && all_of(digits, is_decimal)) {
+          canonical =
+              std::to_string(std::stoul(std::string(digits), nullptr, 10));
+        } else if (pass == 2 && !all_of(digits, is_decimal)) {
+          // Real hex keys become decimal; anything else is kept as written.
+          canonical =
+              prefixed && all_of(digits, is_hex)
+                  ? std::to_string(std::stoul(std::string(digits), nullptr, 16))
+                  : key;
+        }
+        if (!canonical.empty()) {
+          migrated.emplace(canonical, value);
+        }
+      }
+    }
+    found->second = std::move(migrated);
+  }
 }
 
 // "0x55:0,1,2;0x54:3" -> {0x55: {0, 1, 2}, 0x54: {3}}
@@ -1361,6 +1413,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
     }
   }
 
+  MigrateGfxGroupLabelKeys(resource_labels);
+
   if (metadata.project_id.empty()) {
     metadata.project_id = GenerateProjectId();
   }
@@ -2424,6 +2478,7 @@ bool ResourceLabelManager::LoadLabels(const std::string& filename) {
   }
 
   file.close();
+  MigrateGfxGroupLabelKeys(labels_);
   labels_loaded_ = true;
   return true;
 }

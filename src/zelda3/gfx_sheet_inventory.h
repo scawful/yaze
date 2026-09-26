@@ -130,6 +130,26 @@ std::map<int, OverworldAreaGfxInfo> CollectOverworldAreaGfx(
 /// header pointer is out of range are left out.
 std::map<int, RoomGfxInfo> CollectRoomGfx(const Rom& rom);
 
+/// Where one spriteset or roomset is used.
+struct GfxGroupUsage {
+  // Spritesets: overworld areas per game state (0 beginning, 1 first part,
+  // 2 second part).
+  std::array<std::vector<int>, 3> ow_areas_by_state;
+  // Roomsets: overworld areas whose area graphics (room blockset) match.
+  std::vector<int> ow_areas;
+  // Spritesets: rooms whose header value + 0x40 matches.
+  // Roomsets: rooms whose header blockset matches.
+  std::vector<int> rooms;
+};
+
+GfxGroupUsage FindSpritesetUsage(
+    int spriteset, const std::map<int, OverworldAreaGfxInfo>& areas,
+    const std::map<int, RoomGfxInfo>& rooms);
+
+GfxGroupUsage FindRoomsetUsage(int roomset,
+                               const std::map<int, OverworldAreaGfxInfo>& areas,
+                               const std::map<int, RoomGfxInfo>& rooms);
+
 /// JSON with the same keys and value formats as Oracle's reference inventory
 /// (`sheets`, `spritesets`, `main_blocksets`, `room_blocksets`,
 /// `overworld_areas`, `rooms`), plus `flagged`, `reserved_blocks` and

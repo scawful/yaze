@@ -17,6 +17,7 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 // Project headers
+#include "app/editor/editor_manager.h"
 #include "app/editor/graphics/panels/graphics_editor_panels.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -37,6 +38,7 @@
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
 #include "core/gfx_sheet_policy_adapter.h"
+#include "core/graphics_sheet_labels.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
 #include "rom/rom.h"
@@ -65,6 +67,24 @@ void GraphicsEditor::Initialize() {
   sheet_browser_panel_->SetDataSources(
       rom_, game_data_,
       [this]() -> const project::YazeProject* { return project(); });
+  sheet_browser_panel_->SetLabelCallbacks(
+      [this](uint16_t sheet, const std::string& label) {
+        return EditProject([&](project::YazeProject& target) {
+          core::SetGraphicsSheetLabel(target, sheet, label);
+        });
+      },
+      [this](const std::string& csv_text) -> absl::StatusOr<int> {
+        int written = 0;
+        bool counted = false;
+        RETURN_IF_ERROR(EditProject([&](project::YazeProject& target) {
+          const int count = core::ImportSpritesetSheetLabels(target, csv_text);
+          if (!counted) {
+            written = count;
+            counted = true;
+          }
+        }));
+        return written;
+      });
   pixel_editor_panel_ =
       std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
   palette_controls_panel_ =
@@ -237,6 +257,29 @@ void GraphicsEditor::ContributeStatus(StatusBar* status_bar) {
         "Modified", absl::StrFormat("%zu", state_.modified_sheets.size()),
         std::move(modified_opts));
   }
+}
+
+absl::Status GraphicsEditor::EditProject(
+    const std::function<void(project::YazeProject&)>& edit) {
+  auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  project::YazeProject* snapshot = project();
+  if (editor_manager == nullptr || snapshot == nullptr ||
+      !editor_manager->IsCurrentProjectContextOwnedBySession(
+          dependencies_.session_id)) {
+    return absl::FailedPreconditionError(
+        "Sheet labels need the project that owns this ROM to be active");
+  }
+  project::YazeProject* active = editor_manager->GetCurrentProject();
+  if (active == nullptr || !active->project_opened()) {
+    return absl::FailedPreconditionError(
+        "Open a .yaze project to store sheet labels");
+  }
+  edit(*active);
+  if (snapshot != active) {
+    edit(*snapshot);
+  }
+  editor_manager->MarkCurrentProjectDirty();
+  return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::Save() {

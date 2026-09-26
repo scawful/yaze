@@ -4237,6 +4237,19 @@ absl::Status EditorManager::SaveRomInternal(
   // With Save Graphics Sheets enabled it joins the editor saves below; with
   // it disabled the edits cannot be written, so block before any serializer
   // can mutate the ROM rather than report a save that omitted the sheets.
+  // Gfx group tables (blocksets, spritesets, palettesets) are edited in
+  // GameData. Without Save Gfx Groups they cannot be written, so block before
+  // any serializer runs instead of saving a ROM that silently drops them.
+  auto* save_session = session_coordinator_->GetActiveRomSession();
+  const bool pending_gfx_groups =
+      save_session != nullptr && save_session->HasPendingGfxGroupChanges();
+  if (pending_gfx_groups && !core::FeatureFlags::get().kSaveGfxGroups) {
+    return absl::FailedPreconditionError(
+        "Save blocked: blockset/spriteset (gfx group) edits are pending, but "
+        "Save Gfx Groups is disabled. Enable it, or undo the gfx group edits "
+        "before saving the ROM.");
+  }
+
   if (current_editor_set->HasPendingGraphicsChanges() &&
       !core::FeatureFlags::get().kSaveGraphicsSheet) {
     return absl::FailedPreconditionError(
@@ -4377,6 +4390,13 @@ absl::Status EditorManager::SaveRomInternal(
   if (core::FeatureFlags::get().kSaveGraphicsSheet) {
     RETURN_IF_ERROR(save_editor(
         current_editor_set->GetExistingEditor(EditorType::kGraphics)));
+  }
+
+  // Gfx group tables are written byte-for-byte where they differ, then read
+  // back. The ROM transaction restores them if a later step fails.
+  if (pending_gfx_groups && core::FeatureFlags::get().kSaveGfxGroups) {
+    RETURN_IF_ERROR(
+        zelda3::SaveGfxGroups(*current_rom, save_session->game_data));
   }
 
   // Oracle guardrails: refuse to write obviously corrupted ROM layouts.
@@ -6184,6 +6204,7 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
 
   const size_t session_index = GetCurrentSessionIndex();
   if (session->editors.HasPendingGraphicsChanges() ||
+      session->HasPendingGfxGroupChanges() ||
       session->editors.HasPendingScreenChanges() ||
       HasPendingDungeonChangesForSession(session_index) ||
       gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
@@ -6648,6 +6669,7 @@ bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
   return session != nullptr &&
          ((session->rom.is_loaded() && session->rom.dirty()) ||
           session->editors.HasPendingGraphicsChanges() ||
+          session->HasPendingGfxGroupChanges() ||
           session->editors.HasPendingScreenChanges() ||
           HasPendingDungeonChangesForSession(session_index) ||
           gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data));
@@ -6740,6 +6762,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
       HasPendingDungeonChangesForSession(session_index);
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
+  const bool pending_gfx_group_changes =
+      session != nullptr && session->HasPendingGfxGroupChanges();
   const bool pending_screen_changes =
       session != nullptr && session->editors.HasPendingScreenChanges();
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
@@ -6766,6 +6790,9 @@ std::string EditorManager::DescribePendingUnsavedWork(
   }
   if (pending_graphics_changes) {
     work.emplace_back("unapplied graphics sheet edits");
+  }
+  if (pending_gfx_group_changes) {
+    work.emplace_back("unsaved blockset/spriteset (gfx group) edits");
   }
   if (pending_screen_changes) {
     work.emplace_back("unapplied Screen Editor edits");
@@ -6800,6 +6827,8 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
       HasPendingDungeonChangesForSession(session_index);
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
+  const bool pending_gfx_group_changes =
+      session != nullptr && session->HasPendingGfxGroupChanges();
   const bool pending_screen_changes =
       session != nullptr && session->editors.HasPendingScreenChanges();
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
@@ -6823,6 +6852,9 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
   }
   if (pending_graphics_changes) {
     tags.push_back("Gfx");
+  }
+  if (pending_gfx_group_changes) {
+    tags.push_back("GfxGroups");
   }
   if (pending_screen_changes) {
     tags.push_back("Screen");

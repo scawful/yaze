@@ -1285,7 +1285,8 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
     return true;
   }
 
-  if (session->editors.HasPendingGraphicsChanges()) {
+  if (session->editors.HasPendingGraphicsChanges() ||
+      session->HasPendingGfxGroupChanges()) {
     return true;
   }
 

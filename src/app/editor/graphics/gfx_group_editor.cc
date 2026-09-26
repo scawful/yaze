@@ -1,9 +1,12 @@
 #include "gfx_group_editor.h"
 #include "util/i18n/tr.h"
 
+#include <algorithm>
+
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "app/editor/graphics/gfx_group_editor_internal.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
@@ -16,6 +19,7 @@
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace editor {
@@ -127,8 +131,8 @@ absl::Status GfxGroupEditor::Update() {
       gui::InputHexByte("Selected Blockset", &Ws().selected_blockset,
                         static_cast<uint8_t>(0x24));
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          false, "blockset", "0x" + std::to_string(Ws().selected_blockset),
-          "Blockset " + std::to_string(Ws().selected_blockset));
+          false, "blockset", std::to_string(Ws().selected_blockset),
+          absl::StrFormat("Blockset 0x%02X", Ws().selected_blockset));
       DrawBlocksetViewer();
       EndTabItem();
     }
@@ -137,8 +141,9 @@ absl::Status GfxGroupEditor::Update() {
       gui::InputHexByte("Selected Roomset", &Ws().selected_roomset,
                         static_cast<uint8_t>(81));
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          false, "roomset", "0x" + std::to_string(Ws().selected_roomset),
-          "Roomset " + std::to_string(Ws().selected_roomset));
+          false, "roomset", std::to_string(Ws().selected_roomset),
+          absl::StrFormat("Roomset 0x%02X", Ws().selected_roomset));
+      DrawGroupUsage(/*spriteset=*/false, Ws().selected_roomset);
       DrawRoomsetViewer();
       EndTabItem();
     }
@@ -147,8 +152,9 @@ absl::Status GfxGroupEditor::Update() {
       gui::InputHexByte("Selected Spriteset", &Ws().selected_spriteset,
                         static_cast<uint8_t>(143));
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          false, "spriteset", "0x" + std::to_string(Ws().selected_spriteset),
-          "Spriteset " + std::to_string(Ws().selected_spriteset));
+          false, "spriteset", std::to_string(Ws().selected_spriteset),
+          absl::StrFormat("Spriteset 0x%02X", Ws().selected_spriteset));
+      DrawGroupUsage(/*spriteset=*/true, Ws().selected_spriteset);
       DrawSpritesetViewer();
       EndTabItem();
     }
@@ -157,6 +163,60 @@ absl::Status GfxGroupEditor::Update() {
   }
 
   return absl::OkStatus();
+}
+
+void GfxGroupEditor::DrawGroupUsage(bool spriteset, int id) {
+  if (!ImGui::TreeNodeEx(
+          spriteset ? "Used by##SpritesetUsage" : "Used by##RoomsetUsage",
+          ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  const bool refresh = ImGui::SmallButton(ICON_MD_REFRESH " Refresh");
+  HOVER_HINT("Re-read overworld areas and room headers from the ROM buffer");
+  if (rom_ != nullptr && rom_->is_loaded() &&
+      (refresh || usage_rom_ != rom_ || !usage_areas_.has_value())) {
+    usage_areas_ = zelda3::CollectOverworldAreaGfx(*rom_, game_data_);
+    usage_rooms_ = zelda3::CollectRoomGfx(*rom_);
+    usage_rom_ = rom_;
+  }
+  if (!usage_areas_.has_value() || !usage_rooms_.has_value()) {
+    ImGui::TextDisabled(tr("Load a ROM to see usage."));
+    ImGui::TreePop();
+    return;
+  }
+
+  auto hex_list = [](const std::vector<int>& ids) {
+    return ids.empty() ? std::string("-")
+                       : absl::StrJoin(ids, " ", [](std::string* out, int v) {
+                           out->append(absl::StrFormat("%02X", v));
+                         });
+  };
+  if (spriteset) {
+    const auto usage =
+        zelda3::FindSpritesetUsage(id, *usage_areas_, *usage_rooms_);
+    static constexpr const char* kStates[] = {
+        "OW areas, state 0 (start)", "OW areas, state 1", "OW areas, state 2"};
+    for (int state = 0; state < 3; ++state) {
+      ImGui::TextWrapped("%s (%zu): %s", kStates[state],
+                         usage.ow_areas_by_state[state].size(),
+                         hex_list(usage.ow_areas_by_state[state]).c_str());
+    }
+    ImGui::TextWrapped("Rooms, header 0x%02X (%zu): %s",
+                       std::max(0, id - zelda3::kDungeonSpritesetBase),
+                       usage.rooms.size(), hex_list(usage.rooms).c_str());
+    if (id < zelda3::kDungeonSpritesetBase) {
+      ImGui::TextDisabled(
+          tr("Dungeon rooms use spritesets 0x40-0x8F (header + 0x40)."));
+    }
+  } else {
+    const auto usage =
+        zelda3::FindRoomsetUsage(id, *usage_areas_, *usage_rooms_);
+    ImGui::TextWrapped("OW areas, area graphics (%zu): %s",
+                       usage.ow_areas.size(), hex_list(usage.ow_areas).c_str());
+    ImGui::TextWrapped("Rooms, blockset (%zu): %s", usage.rooms.size(),
+                       hex_list(usage.rooms).c_str());
+  }
+  ImGui::TreePop();
 }
 
 void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {

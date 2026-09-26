@@ -1,5 +1,7 @@
 #include "app/editor/session_types.h"
 
+#include "zelda3/game_data.h"
+
 #include <algorithm>
 
 #include "app/editor/code/assembly_editor.h"
@@ -242,6 +244,14 @@ EditorSet::CollectDungeonWriteRanges() const {
     return editor->CollectWriteRanges();
   }
   return {};
+}
+
+bool RomSession::HasPendingGfxGroupChanges() const {
+  if (!game_data_loaded || !rom.is_loaded()) {
+    return false;
+  }
+  auto diff = zelda3::DiffGfxGroups(rom, game_data);
+  return diff.ok() && diff->any();
 }
 
 bool EditorSet::HasPendingGraphicsChanges() const {

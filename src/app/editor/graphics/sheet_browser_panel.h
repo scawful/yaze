@@ -6,6 +6,7 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
@@ -82,6 +83,19 @@ class SheetBrowserPanel : public WindowContent {
     return inventory_;
   }
 
+  using LabelSetter =
+      std::function<absl::Status(uint16_t sheet, const std::string& label)>;
+  using LabelImporter =
+      std::function<absl::StatusOr<int>(const std::string& csv_text)>;
+
+  /**
+   * @brief Project-label writers. Unset callbacks disable label editing.
+   */
+  void SetLabelCallbacks(LabelSetter setter, LabelImporter importer) {
+    label_setter_ = std::move(setter);
+    label_importer_ = std::move(importer);
+  }
+
  private:
   /**
    * @brief Draw the search/filter bar
@@ -132,6 +146,15 @@ class SheetBrowserPanel : public WindowContent {
   std::string inventory_error_;
   const Rom* inventory_rom_ = nullptr;
   bool show_free_blocks_ = true;
+
+  // Project sheet labels.
+  std::string SheetLabel(uint16_t sheet) const;
+  void DrawSheetLabelEditor(uint16_t sheet_id);
+  LabelSetter label_setter_;
+  LabelImporter label_importer_;
+  int label_edit_sheet_ = -1;
+  std::string label_buffer_;
+  std::string label_status_;
 };
 
 }  // namespace editor

@@ -2268,6 +2268,70 @@ TEST(GraphicsSaveStoplossTest, EnabledSaveWritesTheEditedSheetToDisk) {
   }
 }
 
+TEST(GfxGroupSaveTest, SpritesetEditSavesAndReopensOrBlocksWhenDisabled) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX GROUP SAVE";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US tables
+  const auto rom_path = MakeTempFilePath("yaze_gfx_group_save.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_FALSE(session->HasPendingGfxGroupChanges());
+
+  // Spriteset 0x0C slot 2 -> sprite value 0x55 (sheet 0xC8).
+  constexpr int kSet = 0x0C;
+  constexpr uint32_t kSlotPc = 0x5B57 + kSet * 4;
+  session->game_data.spriteset_ids[kSet][2] = 0x55;
+  EXPECT_TRUE(session->HasPendingGfxGroupChanges());
+  EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(
+      manager->GetCurrentSessionIndex()));
+
+  core::FeatureFlags::get().kSaveGfxGroups = false;
+  auto blocked = manager->SaveRom();
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kFailedPrecondition) << blocked;
+  EXPECT_NE(std::string(blocked.message()).find("Save Gfx Groups is disabled"),
+            std::string::npos);
+  EXPECT_EQ(ReadByteAt(rom_path, kSlotPc + 2), 0x00);
+  EXPECT_TRUE(session->HasPendingGfxGroupChanges());
+
+  core::FeatureFlags::get().kSaveGfxGroups = true;
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(session->HasPendingGfxGroupChanges());
+
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  for (int slot = 0; slot < 4; ++slot) {
+    EXPECT_EQ(reopened.vector()[kSlotPc + slot],
+              session->game_data.spriteset_ids[kSet][slot])
+        << "slot " << slot;
+  }
+  EXPECT_EQ(reopened.vector()[kSlotPc + 2], 0x55);
+}
+
 TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {
   constexpr uint16_t kSheetId = 0x20;
   const std::vector<uint8_t> before_data = {0x01, 0x02, 0x03, 0x04};
