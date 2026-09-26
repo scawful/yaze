@@ -281,6 +281,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/background_command_task_test.cc
     unit/editor/content_registry_workflow_history_test.cc
     unit/editor/command_palette_workflow_test.cc
+    unit/editor/command_palette_search_test.cc
     unit/editor/workflow_activity_widgets_test.cc
     unit/editor/layout_manager_persistence_test.cc
     unit/editor/right_drawer_manager_test.cc
@@ -718,6 +719,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/background_command_task_test.cc
     unit/editor/content_registry_workflow_history_test.cc
     unit/editor/command_palette_workflow_test.cc
+    unit/editor/command_palette_search_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/dungeon_room_edit_test.cc
     unit/editor/dungeon_selection_edit_test.cc
