@@ -15,11 +15,13 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_source_sync.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
+#include "util/macro.h"
 #include "zelda3/resource_labels.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
@@ -386,11 +388,12 @@ absl::Status VerifyDiskSnapshotUnchanged(
   return absl::OkStatus();
 }
 
-absl::Status ValidateVanillaMutation(const project::YazeProject& yaze_project,
-                                     const editor::VanillaMessageSavePlan& plan,
-                                     std::string* policy_warning) {
+absl::Status ValidateVanillaMutation(
+    const project::YazeProject& yaze_project,
+    const std::vector<std::pair<uint32_t, uint32_t>>& changed_ranges,
+    std::string* policy_warning) {
   const auto conflicts =
-      yaze_project.hack_manifest.AnalyzePcWriteRanges(plan.write_ranges());
+      yaze_project.hack_manifest.AnalyzePcWriteRanges(changed_ranges);
   if (conflicts.empty()) {
     return absl::OkStatus();
   }
@@ -410,6 +413,241 @@ absl::Status ValidateVanillaMutation(const project::YazeProject& yaze_project,
         "Vanilla message write conflicts with hack manifest: %s", detail);
   }
   return absl::OkStatus();
+}
+
+// The two vanilla text regions in stream order: CreateMessagePointers
+// ($0E:D3EB) walks $1C:8000 and moves to $0E:DF40 at the first [BANK] byte.
+struct VanillaTextRegion {
+  const char* name;
+  uint32_t start;
+  uint32_t capacity_end;  // exclusive
+};
+constexpr VanillaTextRegion kVanillaTextRegions[] = {
+    {"primary", static_cast<uint32_t>(editor::kTextData),
+     static_cast<uint32_t>(editor::kTextDataEnd) + 1},
+    {"secondary", static_cast<uint32_t>(editor::kTextData2),
+     static_cast<uint32_t>(editor::kTextData2End) + 1},
+};
+
+struct EditedVanillaMessage {
+  int id = 0;
+  size_t previous_length = 0;  // bytes before the terminator
+  size_t encoded_length = 0;
+};
+
+struct VanillaEditPlan {
+  editor::VanillaMessageSavePlan plan;
+  editor::VanillaMessageSavePlan current;  // the ROM's stream as it is
+  std::vector<std::pair<uint32_t, uint32_t>> changed_ranges;
+  size_t expected_count = 0;
+  bool secondary_length_pinned = false;
+  std::vector<EditedVanillaMessage> edited;
+};
+
+// Places `edits` (message ID, encoded bytes) into the ROM's vanilla stream and
+// checks the result before anything is written:
+// - edited messages are re-encoded with the ROM's word dictionary;
+// - the stream must hold the manifest's vanilla_count messages;
+// - only bytes that change are checked against the manifest, so rewriting a
+//   protected byte with its current value is not a conflict;
+// - when the manifest declares a region-switch hook (messages.hook_address),
+//   the expanded messages are chained after the vanilla stream: Oracle of
+//   Secrets hooks the switch at $0E:D436, and its build turns the byte after
+//   the last vanilla message into a second [BANK]. The secondary region then
+//   keeps its length. A shorter stream would end the game's pointer walk
+//   before the expanded messages; a longer one would run into that byte.
+absl::StatusOr<VanillaEditPlan> PlanVanillaEdits(
+    const project::YazeProject& yaze_project, const Rom& rom,
+    const std::vector<std::pair<int, std::vector<uint8_t>>>& edits,
+    std::string* policy_warning) {
+  const auto& layout = yaze_project.hack_manifest.message_layout();
+  if (layout.vanilla_count <= 0) {
+    return absl::FailedPreconditionError(
+        "Hack manifest must declare a positive messages.vanilla_count "
+        "before applying vanilla messages");
+  }
+  if (rom.size() > static_cast<size_t>(std::numeric_limits<int>::max())) {
+    return absl::OutOfRangeError(
+        "ROM is too large for bounded vanilla-message parsing");
+  }
+  const size_t expected_count = static_cast<size_t>(layout.vanilla_count);
+  auto messages =
+      editor::ReadAllTextData(const_cast<uint8_t*>(rom.data()),
+                              editor::kTextData, static_cast<int>(rom.size()));
+  auto current_or =
+      editor::BuildVanillaMessageSavePlan(messages, expected_count);
+  if (!current_or.ok()) {
+    return current_or.status();
+  }
+
+  const auto dictionary =
+      editor::ReadDictionaryEntryBytes(rom.data(), rom.size());
+  if (dictionary.empty()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Word dictionary table at PC 0x%06X is outside the ROM or malformed; "
+        "no message bytes were written",
+        editor::kPointersDictionaries));
+  }
+  std::vector<EditedVanillaMessage> edited;
+  for (const auto& [id, bytes] : edits) {
+    if (id < 0 || id >= static_cast<int>(messages.size())) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Vanilla message ID 0x%03X is outside 0x000-0x%03X",
+                          id, static_cast<int>(messages.size()) - 1));
+    }
+    editor::MessageData& message = messages[id];
+    std::vector<uint8_t> encoded = bytes;
+    // ReadAllTextData attaches the region switch to the first message of the
+    // secondary region. It is stream layout, not text; keep it when the new
+    // text leaves it out.
+    if (!message.Data.empty() &&
+        message.Data.front() == editor::kBankSwitchCommand &&
+        (encoded.empty() || encoded.front() != editor::kBankSwitchCommand)) {
+      encoded.insert(encoded.begin(), editor::kBankSwitchCommand);
+    }
+    const size_t previous_length = message.Data.size();
+    message.Data = editor::CompressMessageWithDictionary(encoded, dictionary);
+    message.DataParsed = message.Data;
+    edited.push_back({id, previous_length, message.Data.size()});
+  }
+
+  auto plan_or = editor::BuildVanillaMessageSavePlan(messages, expected_count);
+  if (!plan_or.ok()) {
+    return plan_or.status();
+  }
+  VanillaEditPlan edit{std::move(plan_or.value()),
+                       std::move(current_or.value()),
+                       {},
+                       expected_count,
+                       layout.hook_address != 0,
+                       std::move(edited)};
+  edit.changed_ranges = edit.plan.ChangedRanges(rom.data(), rom.size());
+
+  const auto& new_writes = edit.plan.writes();
+  const auto& old_writes = edit.current.writes();
+  if (edit.secondary_length_pinned && new_writes.size() > 1 &&
+      old_writes.size() > 1 && new_writes[1].end() != old_writes[1].end()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Vanilla text region 2 (PC 0x%06X) must stay %zu bytes because the "
+        "manifest chains expanded messages from its end (the byte at PC "
+        "0x%06X becomes the switch into the expanded bank); this edit makes "
+        "it %zu bytes. Keep messages in region 2 the same total length. No "
+        "message bytes were written",
+        editor::kTextData2, old_writes[1].bytes().size() - 1,
+        old_writes[1].end() - 1, new_writes[1].bytes().size() - 1));
+  }
+
+  RETURN_IF_ERROR(ValidateVanillaMutation(yaze_project, edit.changed_ranges,
+                                          policy_warning));
+  return edit;
+}
+
+// Per-region usage of the planned stream (and of the ROM as it is), plus the
+// byte ranges a save would change.
+void AddVanillaPlanReport(resources::OutputFormatter& formatter,
+                          const VanillaEditPlan& edit) {
+  formatter.BeginArray("vanilla_regions");
+  const auto& new_writes = edit.plan.writes();
+  const auto& old_writes = edit.current.writes();
+  for (size_t index = 0; index < std::size(kVanillaTextRegions); ++index) {
+    const VanillaTextRegion& region = kVanillaTextRegions[index];
+    const uint64_t capacity = region.capacity_end - region.start;
+    const uint64_t used =
+        index < new_writes.size() ? new_writes[index].bytes().size() : 0;
+    const uint64_t current_used =
+        index < old_writes.size() ? old_writes[index].bytes().size() : 0;
+    formatter.BeginObject();
+    formatter.AddField("region", region.name);
+    formatter.AddHexField("start", region.start, 6);
+    formatter.AddHexField("capacity_end", region.capacity_end, 6);
+    formatter.AddField("capacity", capacity);
+    formatter.AddField("current_used", current_used);
+    formatter.AddField("used", used);
+    // A pinned region cannot grow, so it has no free bytes to offer.
+    const bool pinned = index == 1 && edit.secondary_length_pinned;
+    formatter.AddField(
+        "free", pinned || used > capacity ? uint64_t{0} : capacity - used);
+    if (pinned) {
+      formatter.AddField("length_pinned", true);
+    }
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  uint64_t changed_bytes = 0;
+  formatter.BeginArray("changed_ranges");
+  for (const auto& [start, end] : edit.changed_ranges) {
+    changed_bytes += end - start;
+    formatter.AddArrayItem(absl::StrFormat("0x%06X-0x%06X", start, end));
+  }
+  formatter.EndArray();
+  formatter.AddField("changed_bytes", changed_bytes);
+
+  formatter.BeginArray("encoded_messages");
+  for (const EditedVanillaMessage& message : edit.edited) {
+    formatter.BeginObject();
+    formatter.AddHexField("id", static_cast<uint64_t>(message.id), 3);
+    formatter.AddField("previous_length",
+                       static_cast<uint64_t>(message.previous_length));
+    formatter.AddField("encoded_length",
+                       static_cast<uint64_t>(message.encoded_length));
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+}
+
+// Dry run of a vanilla apply: with a ROM (--rom) and a project, builds the
+// plan and reports it without writing. Reports why it was skipped otherwise.
+void AddVanillaApplyPreflight(
+    const resources::ArgumentParser& parser, Rom* rom,
+    const std::vector<std::pair<int, std::vector<uint8_t>>>& edits,
+    resources::OutputFormatter& formatter) {
+  Rom owned_rom;
+  Rom* active_rom = rom;
+  if (active_rom == nullptr || !active_rom->is_loaded()) {
+    auto rom_path = parser.GetString("rom");
+    if (!rom_path.has_value() || rom_path->empty()) {
+      const std::string global_rom_path = absl::GetFlag(FLAGS_rom);
+      if (!global_rom_path.empty()) {
+        rom_path = global_rom_path;
+      }
+    }
+    if (!rom_path.has_value() || rom_path->empty()) {
+      formatter.AddField("apply_preflight", "skipped: no --rom");
+      return;
+    }
+    Rom::LoadOptions load_options;
+    load_options.load_resource_labels = false;
+    const absl::Status load_status =
+        owned_rom.LoadFromFile(*rom_path, load_options);
+    if (!load_status.ok()) {
+      formatter.AddField("apply_preflight",
+                         absl::StrCat("error: ", load_status.message()));
+      return;
+    }
+    active_rom = &owned_rom;
+  }
+  auto project_context_or = LoadProjectMutationContext(
+      parser, *active_rom, "Message bundle preflight");
+  if (!project_context_or.ok()) {
+    formatter.AddField(
+        "apply_preflight",
+        absl::StrCat("skipped: ", project_context_or.status().message()));
+    return;
+  }
+  std::string policy_warning;
+  auto edit_or = PlanVanillaEdits(project_context_or->project, *active_rom,
+                                  edits, &policy_warning);
+  if (!edit_or.ok()) {
+    formatter.AddField("apply_preflight",
+                       absl::StrCat("blocked: ", edit_or.status().message()));
+    return;
+  }
+  formatter.AddField("apply_preflight", "ok");
+  if (!policy_warning.empty()) {
+    formatter.AddField("write_policy_warning", policy_warning);
+  }
+  AddVanillaPlanReport(formatter, *edit_or);
 }
 
 absl::Status VerifySavedRom(
@@ -1081,6 +1319,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
     // first ROM write. This keeps a bad expanded ID from landing after a
     // successful vanilla mutation in a mixed bundle.
     std::vector<editor::MessageData> vanilla_messages;
+    std::vector<std::pair<int, std::vector<uint8_t>>> vanilla_edits;
     if (IncludeVanilla(range) && has_vanilla_entries) {
       if (active_rom->size() >
           static_cast<size_t>(std::numeric_limits<int>::max())) {
@@ -1119,11 +1358,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
           error_count++;
           continue;
         }
-        auto& message = vanilla_messages[parsed.entry.id];
-        message.RawString = parsed.entry.text;
-        message.ContentsParsed = parsed.entry.text;
-        message.Data = parsed.parse.bytes;
-        message.DataParsed = parsed.parse.bytes;
+        vanilla_edits.emplace_back(parsed.entry.id, parsed.parse.bytes);
       } else {
         if (!expanded_context.has_value()) {
           continue;
@@ -1147,35 +1382,17 @@ absl::Status MessageImportBundleCommandHandler::Execute(
     std::optional<size_t> expected_vanilla_count;
     std::string write_policy_warning;
     if (!has_errors && IncludeVanilla(range) && has_vanilla_entries) {
-      const int manifest_count =
-          project_context->project.hack_manifest.message_layout().vanilla_count;
-      if (manifest_count <= 0) {
-        const absl::Status status = absl::FailedPreconditionError(
-            "Hack manifest must declare a positive messages.vanilla_count "
-            "before applying vanilla messages");
+      auto edit_or = PlanVanillaEdits(project_context->project, *active_rom,
+                                      vanilla_edits, &write_policy_warning);
+      if (!edit_or.ok()) {
         formatter.AddField("status", "error");
-        formatter.AddField("error", std::string(status.message()));
+        formatter.AddField("error", std::string(edit_or.status().message()));
         formatter.EndObject();
-        return status;
+        return edit_or.status();
       }
-      expected_vanilla_count = static_cast<size_t>(manifest_count);
-      auto plan_or = editor::BuildVanillaMessageSavePlan(
-          vanilla_messages, expected_vanilla_count);
-      if (!plan_or.ok()) {
-        formatter.AddField("status", "error");
-        formatter.AddField("error", std::string(plan_or.status().message()));
-        formatter.EndObject();
-        return plan_or.status();
-      }
-      vanilla_plan.emplace(std::move(plan_or.value()));
-      const absl::Status policy_status = ValidateVanillaMutation(
-          project_context->project, *vanilla_plan, &write_policy_warning);
-      if (!policy_status.ok()) {
-        formatter.AddField("status", "error");
-        formatter.AddField("error", std::string(policy_status.message()));
-        formatter.EndObject();
-        return policy_status;
-      }
+      AddVanillaPlanReport(formatter, *edit_or);
+      expected_vanilla_count = edit_or->expected_count;
+      vanilla_plan.emplace(std::move(edit_or->plan));
     }
 
     if (expanded_context.has_value() &&
@@ -1258,6 +1475,15 @@ absl::Status MessageImportBundleCommandHandler::Execute(
       }
     }
   } else {
+    if (!has_errors && IncludeVanilla(range) && has_vanilla_entries) {
+      std::vector<std::pair<int, std::vector<uint8_t>>> vanilla_edits;
+      for (const auto& parsed : parsed_entries) {
+        if (parsed.entry.bank == editor::MessageBank::kVanilla) {
+          vanilla_edits.emplace_back(parsed.entry.id, parsed.parse.bytes);
+        }
+      }
+      AddVanillaApplyPreflight(parser, rom, vanilla_edits, formatter);
+    }
     formatter.AddField("status", has_errors ? "error" : "success");
   }
 
@@ -1276,6 +1502,82 @@ absl::Status MessageImportBundleCommandHandler::Execute(
 // New: Message Write Command
 // ===========================================================================
 
+namespace {
+
+// message-write --range vanilla: replaces one vanilla message through the
+// same checks as message-import-bundle --apply (clean disk snapshot, project
+// and manifest policy, dictionary encoding, backup, readback).
+absl::Status WriteVanillaMessage(Rom* rom,
+                                 const resources::ArgumentParser& parser,
+                                 resources::OutputFormatter& formatter, int id,
+                                 const std::string& text) {
+#ifdef __EMSCRIPTEN__
+  return absl::FailedPreconditionError(
+      "message-write --range vanilla is unavailable in WebAssembly because "
+      "the browser filesystem cannot provide durable backup and readback "
+      "guarantees");
+#endif
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded; provide --rom");
+  }
+  const editor::MessageParseResult parse =
+      editor::ParseMessageToDataWithDiagnostics(text);
+  if (!parse.ok()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Message text does not encode: ", absl::StrJoin(parse.errors, "; ")));
+  }
+
+  std::vector<uint8_t> disk_baseline;
+  RETURN_IF_ERROR(VerifyCleanDiskSnapshot(*rom, &disk_baseline));
+  ASSIGN_OR_RETURN(
+      ProjectMutationContext project_context,
+      LoadProjectMutationContext(parser, *rom, "Vanilla message write"));
+  std::vector<std::pair<int, std::vector<uint8_t>>> edits;
+  edits.emplace_back(id, parse.bytes);
+  std::string policy_warning;
+  ASSIGN_OR_RETURN(
+      VanillaEditPlan edit,
+      PlanVanillaEdits(project_context.project, *rom, edits, &policy_warning));
+
+  formatter.BeginObject("Message Write Result");
+  formatter.AddHexField("id", static_cast<uint64_t>(id), 3);
+  formatter.AddField("range", "vanilla");
+  formatter.AddField("text", text);
+  AddVanillaPlanReport(formatter, edit);
+  if (!policy_warning.empty()) {
+    formatter.AddField("write_policy_warning", policy_warning);
+  }
+  const auto line_warnings = editor::ValidateMessageLineWidths(text);
+  if (!line_warnings.empty()) {
+    formatter.BeginArray("line_width_warnings");
+    for (const auto& warning : line_warnings) {
+      formatter.AddArrayItem(warning);
+    }
+    formatter.EndArray();
+  }
+
+  ScopedRomTransaction transaction(*rom);
+  RETURN_IF_ERROR(editor::ApplyVanillaMessageSavePlan(rom, edit.plan));
+  if (rom->dirty()) {
+    RETURN_IF_ERROR(VerifyDiskSnapshotUnchanged(
+        project_context.canonical_rom_path, disk_baseline));
+    Rom::SaveSettings save_settings;
+    save_settings.save_new = false;
+    save_settings.require_backup = true;
+    save_settings.filename = project_context.canonical_rom_path.string();
+    RETURN_IF_ERROR(rom->SaveToFile(save_settings));
+  }
+  transaction.Commit();
+  RETURN_IF_ERROR(VerifySavedRom(*rom, project_context.canonical_rom_path,
+                                 edit.plan, edit.expected_count));
+  formatter.AddField("status", "success");
+  formatter.AddField("readback_verified", true);
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+}  // namespace
+
 absl::Status MessageWriteCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
@@ -1285,6 +1587,16 @@ absl::Status MessageWriteCommandHandler::Execute(
   int msg_id = id_or.value();
 
   auto text = parser.GetString("text").value();
+
+  const std::string range =
+      NormalizeRange(parser.GetString("range").value_or("expanded"));
+  if (range == "vanilla") {
+    return WriteVanillaMessage(rom, parser, formatter, msg_id, text);
+  }
+  if (range != "expanded") {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "message-write --range must be vanilla or expanded, got %s", range));
+  }
 
   // Validate line widths first
   auto warnings = editor::ValidateMessageLineWidths(text);

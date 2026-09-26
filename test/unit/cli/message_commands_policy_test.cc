@@ -1,11 +1,13 @@
 #include "cli/handlers/game/message_commands.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -768,6 +770,173 @@ TEST(MessageCommandsPolicyTest,
   ASSERT_TRUE(status.ok()) << status << "\n" << output;
   Rom reopened = LoadRom(rom_path);
   EXPECT_EQ(reopened.vector()[0x076E75], 0xA5);
+  EXPECT_EQ(FindBackupArtifacts(rom_path).size(), 1);
+}
+
+// Oracle of Secrets layout in miniature: message 0 "AA" in the primary
+// region, message 1 "[BANK]CC" continuing in the secondary region, then the
+// 0xFF that the hack's build turns into the switch to its expanded bank.
+// Dictionary entry 0 is "AB"; the others are empty.
+constexpr uint32_t kChainedSwitchPc = editor::kTextData2 + 3;
+
+std::vector<uint8_t> MakeChainedMessageRomData() {
+  std::vector<uint8_t> data(0x180000, 0xA5);
+  const uint8_t a = editor::FindMatchingCharacter('A');
+  const uint8_t b = editor::FindMatchingCharacter('B');
+  const uint8_t c = editor::FindMatchingCharacter('C');
+  const std::vector<uint8_t> primary = {a, a, editor::kMessageTerminator,
+                                        editor::kBankSwitchCommand};
+  const std::vector<uint8_t> secondary = {c, c, editor::kMessageTerminator,
+                                          0xFF};
+  std::copy(primary.begin(), primary.end(), data.begin() + editor::kTextData);
+  std::copy(secondary.begin(), secondary.end(),
+            data.begin() + editor::kTextData2);
+  for (int index = 0; index <= editor::kNumDictionaryEntries; ++index) {
+    const uint16_t pointer = index == 0 ? 0xC800 : 0xC802;  // $0E:C800
+    data[editor::kPointersDictionaries + index * 2] = pointer & 0xFF;
+    data[editor::kPointersDictionaries + index * 2 + 1] = pointer >> 8;
+  }
+  data[0x074800] = a;
+  data[0x074801] = b;
+  return data;
+}
+
+fs::path CreateChainedProject(const fs::path& root, const fs::path& rom_path) {
+  const fs::path project_path =
+      CreateProject(root, rom_path, "Oracle of Secrets", "block", false);
+  auto manifest =
+      nlohmann::json::parse(MakeManifest("Oracle of Secrets", false));
+  manifest["messages"]["vanilla_count"] = 2;
+  manifest["messages"]["hook_address"] = "0x0ED436";
+  manifest["protected_regions"] = {{"regions",
+                                    {{{"start", "0x0EDF43"},
+                                      {"end", "0x0EDF44"},
+                                      {"module", "Core/message.asm"}}}}};
+  WriteTextFile(root / "hack_manifest.json", manifest.dump(2));
+  return project_path;
+}
+
+TEST(MessageCommandsPolicyTest,
+     ChainedVanillaApplyChecksOnlyChangedBytesAndUsesDictionary) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeChainedMessageRomData());
+  const fs::path project_path = CreateChainedProject(temp.path(), rom_path);
+  const fs::path bundle_path = WriteBundle(
+      temp.path(), nlohmann::json::array(
+                       {{{"id", 0}, {"bank", "vanilla"}, {"text", "ABAB"}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--file=" + bundle_path.string(), "--apply",
+                   "--range=vanilla", "--rom=" + rom_path.string(),
+                   "--project=" + project_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  // The plan rewrites the protected switch byte with its current value; only
+  // the two changed bytes of message 0 are checked against the manifest.
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  const auto result = nlohmann::json::parse(output).at("Message Bundle Import");
+  EXPECT_EQ(result.at("changed_ranges"),
+            nlohmann::json::array({"0x0E0000-0x0E0002"}));
+  EXPECT_EQ(result.at("encoded_messages").at(0).at("encoded_length"), 2);
+  EXPECT_EQ(result.at("vanilla_regions").at(1).at("length_pinned"), true);
+  EXPECT_EQ(result.at("vanilla_regions").at(1).at("free"), 0);
+
+  Rom reopened = LoadRom(rom_path);
+  const auto& bytes = reopened.vector();
+  EXPECT_EQ(bytes[editor::kTextData], editor::DICTOFF);
+  EXPECT_EQ(bytes[editor::kTextData + 1], editor::DICTOFF);
+  EXPECT_EQ(bytes[editor::kTextData + 2], editor::kMessageTerminator);
+  EXPECT_EQ(bytes[editor::kTextData + 3], editor::kBankSwitchCommand);
+  EXPECT_EQ(bytes[kChainedSwitchPc], 0xFF);
+  EXPECT_EQ(FindBackupArtifacts(rom_path).size(), 1);
+}
+
+TEST(MessageCommandsPolicyTest,
+     ChainedVanillaApplyRefusesSecondRegionLengthChange) {
+  for (const std::string text : {"CCC", "C"}) {
+    SCOPED_TRACE(text);
+    ScopedTempDir temp;
+    const fs::path rom_path = temp.path() / "active.sfc";
+    WriteBinaryFile(rom_path, MakeChainedMessageRomData());
+    const auto disk_before = ReadBinaryFile(rom_path);
+    const fs::path project_path = CreateChainedProject(temp.path(), rom_path);
+    const fs::path bundle_path = WriteBundle(
+        temp.path(), nlohmann::json::array(
+                         {{{"id", 1}, {"bank", "vanilla"}, {"text", text}}}));
+
+    handlers::MessageImportBundleCommandHandler handler;
+    std::string output;
+    const auto status =
+        handler.Run({"--file=" + bundle_path.string(), "--apply",
+                     "--range=vanilla", "--rom=" + rom_path.string(),
+                     "--project=" + project_path.string(), "--format=json"},
+                    nullptr, &output);
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << output;
+    EXPECT_THAT(std::string(status.message()), HasSubstr("must stay 3 bytes"));
+    EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+    EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+  }
+}
+
+TEST(MessageCommandsPolicyTest, VanillaBundleDryRunReportsPlanWithoutWriting) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeChainedMessageRomData());
+  const auto disk_before = ReadBinaryFile(rom_path);
+  const fs::path project_path = CreateChainedProject(temp.path(), rom_path);
+
+  for (const auto& [id, text, expected] :
+       std::vector<std::tuple<int, std::string, std::string>>{
+           {0, "ABAB", "ok"}, {1, "CCC", "blocked: "}}) {
+    SCOPED_TRACE(text);
+    const fs::path bundle_path = WriteBundle(
+        temp.path(), nlohmann::json::array(
+                         {{{"id", id}, {"bank", "vanilla"}, {"text", text}}}));
+    handlers::MessageImportBundleCommandHandler handler;
+    std::string output;
+    const auto status =
+        handler.Run({"--file=" + bundle_path.string(), "--range=vanilla",
+                     "--rom=" + rom_path.string(),
+                     "--project=" + project_path.string(), "--format=json"},
+                    nullptr, &output);
+
+    ASSERT_TRUE(status.ok()) << status << "\n" << output;
+    const auto result =
+        nlohmann::json::parse(output).at("Message Bundle Import");
+    EXPECT_THAT(result.at("apply_preflight").get<std::string>(),
+                ::testing::StartsWith(expected));
+    if (expected == "ok") {
+      EXPECT_EQ(result.at("vanilla_regions").size(), 2);
+      EXPECT_EQ(result.at("vanilla_regions").at(0).at("used"), 4);
+    }
+  }
+  EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+}
+
+TEST(MessageCommandsPolicyTest, MessageWriteVanillaRangeWritesOracleProject) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeChainedMessageRomData());
+  const fs::path project_path = CreateChainedProject(temp.path(), rom_path);
+  Rom rom = LoadRom(rom_path);
+
+  handlers::MessageWriteCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--id=0", "--text=ABAB", "--range=vanilla",
+                   "--project=" + project_path.string(), "--format=json"},
+                  &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  const auto disk = ReadBinaryFile(rom_path);
+  EXPECT_EQ(disk[editor::kTextData], editor::DICTOFF);
+  EXPECT_EQ(disk[editor::kTextData + 1], editor::DICTOFF);
+  EXPECT_EQ(disk[kChainedSwitchPc], 0xFF);
   EXPECT_EQ(FindBackupArtifacts(rom_path).size(), 1);
 }
 
