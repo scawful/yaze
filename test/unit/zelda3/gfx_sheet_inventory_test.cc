@@ -142,6 +142,7 @@ TEST(GfxSheetInventoryTest, ParsesQuotedSpritesetLabelCells) {
 
 TEST(GfxSheetInventoryCommandTest, WritesReferenceShapedJson) {
   Rom rom = InventoryTestRom();
+  rom.mutable_data()[0x7FD9] = 0x01;  // US pointer tables, as the fixture uses
   cli::GfxSheetInventoryCommandHandler handler;
   const auto out_path = UniqueTempPath("gfx_inventory", ".json");
   std::string out;

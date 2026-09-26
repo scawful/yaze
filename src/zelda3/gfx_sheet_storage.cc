@@ -11,6 +11,11 @@
 #include "util/macro.h"
 
 namespace yaze::zelda3 {
+
+bool UsesJapaneseGfxSheetTables(const Rom& rom) {
+  constexpr size_t kRegionByte = 0x7FD9;
+  return rom.size() > kRegionByte && rom.data()[kRegionByte] == 0;
+}
 namespace {
 
 // Measuring an existing stream must not fail just because an older tool

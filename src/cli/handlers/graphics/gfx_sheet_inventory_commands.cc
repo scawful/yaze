@@ -18,6 +18,7 @@
 #include "util/macro.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/gfx_sheet_inventory.h"
+#include "zelda3/gfx_sheet_storage.h"
 
 namespace yaze {
 namespace cli {
@@ -58,6 +59,11 @@ absl::Status GfxSheetInventoryCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   if (rom == nullptr || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
+  }
+  if (zelda3::UsesJapaneseGfxSheetTables(*rom)) {
+    return absl::FailedPreconditionError(
+        "This ROM uses the Japanese graphics pointer tables (header byte "
+        "$7FD9 = 0); gfx-sheet-inventory supports US-table ROMs only");
   }
 
   zelda3::GfxSheetInventoryOptions options =
