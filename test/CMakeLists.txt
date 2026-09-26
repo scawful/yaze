@@ -344,6 +344,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
     unit/zelda3/overworld_version_helper_test.cc
+    unit/zelda3/zelda3_version_test.cc
     unit/zelda3/tile16_metadata_test.cc
     unit/zelda3/tile16_stamp_test.cc
     unit/zelda3/tile16_renderer_test.cc
