@@ -26,6 +26,7 @@
 #include "app/emu/internal_emulator_adapter.h"
 #include "app/emu/mesen/mesen_emulator_adapter.h"
 #include "app/service/canvas_automation_service.h"
+#include "app/service/imgui_test_harness_service.h"
 #include "app/service/unified_grpc_server.h"
 #include "app/testing/test_manager.h"
 #endif
@@ -165,6 +166,10 @@ void Application::Initialize(const AppConfig& config) {
           nullptr,  // Version manager not ready
           nullptr,  // Approval manager not ready
           canvas_automation_service_.get());
+
+      // GetGameState runs on gRPC threads; capture on the render thread.
+      grpc_server_->SetEmulatorScreenshotCapturer(
+          [] { return test::CaptureScreenshotOnRenderThread(); });
 
       if (status.ok()) {
         status = grpc_server_->StartAsync();  // Start in background thread

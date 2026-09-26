@@ -1,13 +1,16 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "util/grpc_win_compat.h"
 
 #include <grpcpp/grpcpp.h>
 
+#include "absl/status/statusor.h"
 #include "app/emu/debug/step_controller.h"
 #include "app/emu/debug/symbol_provider.h"
+#include "app/service/screenshot_utils.h"
 #include "protos/emulator_service.grpc.pb.h"
 
 #include "app/emu/i_emulator.h"
@@ -25,9 +28,19 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
  public:
   using RomGetter = std::function<Rom*()>;
   using RomLoader = std::function<bool(const std::string& path)>;
+  // Returns a PNG capture for GetGameState(include_screenshot). It must run
+  // the capture on the render thread; GetGameState is called on gRPC threads.
+  using ScreenshotCapturer =
+      std::function<absl::StatusOr<test::ScreenshotArtifact>()>;
+
   explicit EmulatorServiceImpl(emu::IEmulator* emulator,
                                RomGetter rom_getter = nullptr,
                                RomLoader rom_loader = nullptr);
+
+  // Without a capturer, GetGameState omits the screenshot.
+  void SetScreenshotCapturer(ScreenshotCapturer capturer) {
+    screenshot_capturer_ = std::move(capturer);
+  }
 
   // --- ROM Loading ---
   grpc::Status LoadRom(grpc::ServerContext* context,
@@ -122,6 +135,7 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
       emulator_;  // Non-owning pointer to the emulator interface interface
   RomGetter rom_getter_;
   RomLoader rom_loader_;
+  ScreenshotCapturer screenshot_capturer_;
   emu::debug::SymbolProvider symbol_provider_;  // Symbol table for debugging
 };
 
