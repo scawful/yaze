@@ -349,12 +349,18 @@ grpc::Status EmulatorServiceImpl::GetGameState(
       LOG_WARN("EmulatorService", "GetGameState screenshot skipped: %s",
                std::string(screenshot.status().message()).c_str());
     } else {
-      std::ifstream file(screenshot->file_path, std::ios::binary);
-      if (file.good()) {
-        std::string png_data((std::istreambuf_iterator<char>(file)),
-                             std::istreambuf_iterator<char>());
-        response->set_screenshot_png(png_data);
+      {
+        std::ifstream file(screenshot->file_path, std::ios::binary);
+        if (file.good()) {
+          std::string png_data((std::istreambuf_iterator<char>(file)),
+                               std::istreambuf_iterator<char>());
+          response->set_screenshot_png(png_data);
+        }
       }
+      // The capture is only a carrier for the reply; don't leave one file
+      // per call on disk.
+      std::error_code remove_error;
+      std::filesystem::remove(screenshot->file_path, remove_error);
     }
   }
 #endif

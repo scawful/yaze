@@ -26,6 +26,7 @@
 #include "imgui/imgui.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "app/testing/test_manager.h"
+#include "imgui_test_engine/imgui_te_engine.h"
 #endif
 #if defined(__APPLE__) && \
     (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
@@ -137,9 +138,18 @@ void Controller::OnInput() {
       busy = busy || !screenshot_requests_.empty();
     }
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-    busy = busy || test::TestManager::Get().IsTestRunning();
+    auto& tests = test::TestManager::Get();
+    busy = busy || tests.IsTestRunning();
+    // Harness RPCs queue engine tests that advance one frame at a time; a
+    // task stays in the queue until it finishes.
+    if (auto* engine = tests.GetUITestEngine()) {
+      busy = busy || !ImGuiTestEngine_IsTestQueueEmpty(engine);
+    }
 #endif
     if (!busy) {
+      // Write batched log lines before going quiet, so they are on disk if
+      // the app then crashes or is killed.
+      util::LogManager::instance().Flush();
       const auto quiet = std::chrono::steady_clock::now() - last_event_time_;
       if (window_hidden_) {
         window_backend_->WaitForEvent(250);
