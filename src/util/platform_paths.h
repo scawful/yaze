@@ -73,6 +73,8 @@ class PlatformPaths {
    *
    * - Windows: `My Documents\Yaze`
    * - macOS/Linux: `~/Documents/Yaze`
+   * - Tests/tools may override this with `YAZE_USER_DOCUMENTS_DIR`. The test
+   *   runner sets it so no test reads or writes the real settings.json.
    *
    * @return StatusOr with path to the Yaze documents directory.
    */

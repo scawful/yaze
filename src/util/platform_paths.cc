@@ -258,6 +258,17 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::GetImGuiIniPath() {
 
 absl::StatusOr<std::filesystem::path>
 PlatformPaths::GetUserDocumentsDirectory() {
+  if (const char* override_dir = std::getenv("YAZE_USER_DOCUMENTS_DIR")) {
+    if (*override_dir) {
+      std::filesystem::path docs_dir(override_dir);
+      auto status = EnsureDirectoryExists(docs_dir);
+      if (!status.ok()) {
+        return status;
+      }
+      return docs_dir;
+    }
+  }
+
 #if defined(YAZE_IOS) || defined(YAZE_APPLE_MOBILE)
   std::filesystem::path home = GetHomeDirectory();
   std::filesystem::path docs_dir = home / "Documents" / "Yaze";
