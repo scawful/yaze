@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -16,8 +17,10 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
+#include "zelda3/gfx_sheet_inventory.h"
 #include "zelda3/sprite/sprite_catalog.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
+#include "zelda3/sprite/sprite_sheet_slots.h"
 
 namespace yaze {
 namespace editor {
@@ -245,6 +248,26 @@ class SpriteEditor : public Editor {
   std::vector<uint8_t> sprite_gfx_buffer_;  // 8BPP combined sheets buffer
   gfx::PaletteGroup sprite_palettes_;       // Loaded sprite palettes
   bool gfx_buffer_loaded_ = false;
+
+  // ============================================================
+  // Spriteset-aware preview
+  // ============================================================
+  // Slots 0-3 take the static sprite sheets and slots 4-7 a spriteset's
+  // values + 0x73, as the game loads them (zelda3/sprite/sprite_sheet_slots).
+  void DrawSpritesetPicker();
+  void ApplySpritesetToSheets(int spriteset);
+  void DrawFrameTileWarnings();
+  int preview_spriteset_ = 0;
+  uint16_t preview_room_ = 0;
+  bool preview_use_room_palette_ = false;
+  std::optional<gfx::PaletteGroup> room_palette_cache_;
+  int room_palette_cache_room_ = -1;
+  std::optional<std::map<int, zelda3::OverworldAreaGfxInfo>> usage_areas_;
+  std::optional<std::map<int, zelda3::RoomGfxInfo>> usage_rooms_;
+  const Rom* usage_rom_ = nullptr;
+  std::string tile_check_key_;
+  std::vector<zelda3::SpriteTileIssue> tile_issues_;
+  size_t tile_check_count_ = 0;
 
   // ============================================================
   // Canvas

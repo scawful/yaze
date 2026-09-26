@@ -36,21 +36,33 @@ const SpriteOamLayout kOracleManhandlaPreview = {
     .required_sheets = {0, 0, 0, 0},
     .graphics_resource = "Bosses/manhandla.bin"};
 
+// usdasm bank_0D SpriteDraw_Stalfos .oam_groups frame 0 ($0D:C0F3): CHR $00
+// at (0,-10) and CHR $06 at (0,0), both 16x16. SpriteData_OAMProp[$A7] = $19
+// selects OBJ page 1 and palette 1, so the tiles are OAM 0x100/0x106: the
+// first spriteset slot. required_sheets stays empty; the preview draws from
+// the current spriteset slots (Sprite Editor > Spriteset preview).
+const SpriteOamLayout kStalfosLayout = {
+    .sprite_id = 0xA7,
+    .name = "Stalfos",
+    .tiles = {{0, 0, 0x106, 1, true, false, false},     // Body
+              {0, -10, 0x100, 1, true, false, false}},  // Head
+    .required_sheets = {0, 0, 0, 0}};
+
 // Static registry of all sprite layouts
 const std::unordered_map<uint8_t, const SpriteOamLayout*>& GetLayoutMap() {
   static const std::unordered_map<uint8_t, const SpriteOamLayout*> layouts = {
-      {0x01, &kVultureLayout},     {0x08, &kOctorokLayout},
-      {0x0B, &kChickenLayout},     {0x0E, &kGreenSoldierLayout},
-      {0x0F, &kBlueSoldierLayout}, {0x10, &kRedSoldierLayout},
-      {0x29, &kBlueGuardLayout},   {0x41, &kGreenPatrolLayout},
-      {0x44, &kArmosKnightLayout}, {0x4B, &kOctoballoonLayout},
-      {0x53, &kRedEyegoreLayout},  {0x54, &kGreenEyegoreLayout},
-      {0x64, &kMoblinLayout},      {0x81, &kHinoxLayout},
-      {0x88, &kUncleLayout},       {0xD8, &kHeartContainerLayout},
-      {0xDA, &kGreenRupeeLayout},  {0xDB, &kBlueRupeeLayout},
-      {0xDC, &kRedRupeeLayout},    {0xDE, &kSmallHeartLayout},
-      {0xDF, &kKeyLayout},         {0xE1, &kSmallMagicLayout},
-      {0xE2, &kLargeMagicLayout},
+      {0x01, &kVultureLayout},        {0x08, &kOctorokLayout},
+      {0x0B, &kChickenLayout},        {0x0E, &kGreenSoldierLayout},
+      {0x0F, &kBlueSoldierLayout},    {0x10, &kRedSoldierLayout},
+      {0x29, &kBlueGuardLayout},      {0x41, &kGreenPatrolLayout},
+      {0x44, &kArmosKnightLayout},    {0x4B, &kOctoballoonLayout},
+      {0x53, &kRedEyegoreLayout},     {0x54, &kGreenEyegoreLayout},
+      {0x64, &kMoblinLayout},         {0x81, &kHinoxLayout},
+      {0x88, &kUncleLayout},          {0xA7, &kStalfosLayout},
+      {0xD8, &kHeartContainerLayout}, {0xDA, &kGreenRupeeLayout},
+      {0xDB, &kBlueRupeeLayout},      {0xDC, &kRedRupeeLayout},
+      {0xDE, &kSmallHeartLayout},     {0xDF, &kKeyLayout},
+      {0xE1, &kSmallMagicLayout},     {0xE2, &kLargeMagicLayout},
   };
   return layouts;
 }

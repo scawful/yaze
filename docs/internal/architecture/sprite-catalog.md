@@ -128,6 +128,14 @@ projects store a `sprite_assets` array. A version-1 record contains exactly:
 `sprites_aux2`, `sprites_aux3`. `auto` is a heuristic, never proof of game palette
 selection. Explicit missing rows must produce an error, not fall back.
 
+`sheets` follows the game's OAM layout (`zelda3/sprite/sprite_sheet_slots.h`):
+slots 0-3 hold the static sprite sheets (0x73, 0x74 overworld / 0x7D dungeon,
+0x79, 0x7A) for tiles 0x000-0x0FF, and slots 4-7 hold a spriteset's four values +
+0x73 for tiles 0x100-0x1FF (OAM name-table bit set). Sprite Editor > Spriteset
+preview fills them from a spriteset or a room header (+0x40), can use the room's
+sprite CGRAM rows 8-15 as the palette, and lists frame tiles that are blank or
+come from reserved or unreadable sheets.
+
 The project-relative ZSM path identifies a saved asset; several independent assets
 may refer to one catalog variant. Neither a catalog key nor a binding registers a
 sprite. Saving ZSM updates the binding in project memory; normal project Save

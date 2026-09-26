@@ -18,12 +18,16 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "core/gfx_sheet_policy_adapter.h"
 #include "core/project.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -289,10 +293,178 @@ void SpriteEditor::DrawSpriteCanvas() {
   ImGui::EndChild();
 }
 
+void SpriteEditor::ApplySpritesetToSheets(int spriteset) {
+  if (game_data() == nullptr || spriteset < 0 ||
+      spriteset >= static_cast<int>(zelda3::kNumSpritesets)) {
+    return;
+  }
+  const auto slots =
+      zelda3::SpriteSheetSlots(game_data()->spriteset_ids[spriteset],
+                               zelda3::IsUnderworldSpriteset(spriteset));
+  if (current_custom_sprite())
+    BeginUndoTransaction();
+  std::copy(slots.begin(), slots.end(), current_sheets_);
+  gfx_buffer_loaded_ = false;
+  preview_needs_update_ = true;
+  if (current_custom_sprite()) {
+    auto& binding = custom_sprite_bindings_[current_custom_sprite_index_];
+    std::copy(slots.begin(), slots.end(), binding.sheets.begin());
+    MarkSpriteMutated();
+  }
+  CommitUndoTransaction();
+}
+
+void SpriteEditor::DrawSpritesetPicker() {
+  if (!ImGui::CollapsingHeader(tr("Spriteset preview"),
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  if (game_data() == nullptr || rom_ == nullptr || !rom_->is_loaded()) {
+    ImGui::TextDisabled(tr("Load a ROM to preview against spritesets."));
+    return;
+  }
+  if (usage_rom_ != rom_ || !usage_areas_.has_value()) {
+    usage_areas_ = zelda3::CollectOverworldAreaGfx(*rom_, game_data());
+    usage_rooms_ = zelda3::CollectRoomGfx(*rom_);
+    usage_rom_ = rom_;
+  }
+
+  uint8_t set = static_cast<uint8_t>(preview_spriteset_);
+  if (gui::InputHexByte("Spriteset", &set,
+                        static_cast<uint8_t>(zelda3::kNumSpritesets - 1))) {
+    preview_spriteset_ = std::min<int>(set, zelda3::kNumSpritesets - 1);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_DONE " Apply to sheets")) {
+    ApplySpritesetToSheets(preview_spriteset_);
+  }
+  HOVER_HINT(
+      "Slots 0-3 take the static sprite sheets, slots 4-7 this spriteset's "
+      "values + 0x73 (OAM tiles 0x100-0x1FF).");
+
+  const auto& values = game_data()->spriteset_ids[preview_spriteset_];
+  const auto slots = zelda3::SpriteSheetSlots(
+      values, zelda3::IsUnderworldSpriteset(preview_spriteset_));
+  ImGui::TextDisabled(
+      "Values %02X %02X %02X %02X -> sheets %02X %02X %02X %02X", values[0],
+      values[1], values[2], values[3], slots[4], slots[5], slots[6], slots[7]);
+
+  const auto usage = zelda3::FindSpritesetUsage(preview_spriteset_,
+                                                *usage_areas_, *usage_rooms_);
+  auto hex_list = [](const std::vector<int>& ids) {
+    if (ids.empty()) {
+      return std::string("-");
+    }
+    std::string out;
+    for (size_t i = 0; i < ids.size() && i < 24; ++i) {
+      out += absl::StrFormat("%s%02X", i == 0 ? "" : " ", ids[i]);
+    }
+    if (ids.size() > 24) {
+      out += absl::StrFormat(" (+%zu)", ids.size() - 24);
+    }
+    return out;
+  };
+  for (int state = 0; state < 3; ++state) {
+    ImGui::TextWrapped("OW areas, state %d: %s", state,
+                       hex_list(usage.ow_areas_by_state[state]).c_str());
+  }
+  ImGui::TextWrapped("Rooms: %s", hex_list(usage.rooms).c_str());
+
+  // Room context: its header picks the spriteset and the CGRAM palette.
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetHexInputWidth() * 1.5f);
+  ImGui::InputScalar("Room", ImGuiDataType_U16, &preview_room_, nullptr,
+                     nullptr, "%03X", ImGuiInputTextFlags_CharsHexadecimal);
+  preview_room_ =
+      std::min<uint16_t>(preview_room_, zelda3::kNumDungeonRooms - 1);
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_MEETING_ROOM " Use room")) {
+    if (auto room = usage_rooms_->find(preview_room_);
+        room != usage_rooms_->end()) {
+      preview_spriteset_ =
+          std::min<int>(room->second.spriteset + zelda3::kDungeonSpritesetBase,
+                        zelda3::kNumSpritesets - 1);
+      ApplySpritesetToSheets(preview_spriteset_);
+      preview_use_room_palette_ = true;
+      room_palette_cache_.reset();
+      gfx_buffer_loaded_ = false;
+    }
+  }
+  HOVER_HINT("Use the room's header spriteset (+0x40) and its sprite palette");
+  if (ImGui::Checkbox(tr("Room palette (CGRAM rows 8-15)"),
+                      &preview_use_room_palette_)) {
+    room_palette_cache_.reset();
+    gfx_buffer_loaded_ = false;
+    preview_needs_update_ = true;
+  }
+  HOVER_HINT(
+      "Off: palette rows from the sprite binding (Sprite Asset panel). On: "
+      "the rows the game loads for the room above.");
+
+  DrawFrameTileWarnings();
+  ImGui::Separator();
+}
+
+void SpriteEditor::DrawFrameTileWarnings() {
+  const auto* sprite = current_custom_sprite();
+  if (sprite == nullptr || current_frame_ < 0 ||
+      current_frame_ >= static_cast<int>(sprite->editor.Frames.size())) {
+    return;
+  }
+  const auto tiles =
+      internal::FrameTiles8x8(sprite->editor.Frames[current_frame_]);
+  std::array<uint8_t, 8> slots;
+  std::copy_n(current_sheets_, 8, slots.begin());
+  const auto options = core::BuildGfxSheetInventoryOptions(project());
+  std::string key =
+      absl::StrFormat("%d:%d:", current_custom_sprite_index_, current_frame_);
+  for (uint8_t sheet : slots) {
+    key += absl::StrFormat("%02X", sheet);
+  }
+  for (int tile : tiles) {
+    key += absl::StrFormat(",%X", tile);
+  }
+  for (uint16_t sheet : options.reserved_sheets) {
+    key += absl::StrFormat("r%X", sheet);
+  }
+  if (key != tile_check_key_) {
+    tile_check_key_ = key;
+    tile_issues_ =
+        zelda3::CheckSpriteTiles(*rom_, tiles, slots, options.reserved_sheets);
+    tile_check_count_ = tiles.size();
+  }
+
+  if (tile_issues_.empty()) {
+    ImGui::TextColored(gui::GetSuccessColor(),
+                       ICON_MD_CHECK " Frame %d: all %zu 8x8 tiles have art",
+                       current_frame_, tile_check_count_);
+    return;
+  }
+  ImGui::TextColored(gui::GetWarningColor(),
+                     ICON_MD_WARNING
+                     " Frame %d: %zu of %zu 8x8 tiles need "
+                     "attention",
+                     current_frame_, tile_issues_.size(), tile_check_count_);
+  for (size_t i = 0; i < tile_issues_.size() && i < 8; ++i) {
+    const auto& issue = tile_issues_[i];
+    const char* what =
+        issue.kind == zelda3::SpriteTileIssue::Kind::kBlank
+            ? "blank"
+            : (issue.kind == zelda3::SpriteTileIssue::Kind::kReservedSheet
+                   ? "reserved sheet"
+                   : "sheet unreadable");
+    ImGui::BulletText("tile 0x%03X, slot %d (sheet 0x%02X): %s", issue.tile,
+                      issue.slot, issue.sheet, what);
+  }
+  if (tile_issues_.size() > 8) {
+    ImGui::TextDisabled("... %zu more", tile_issues_.size() - 8);
+  }
+}
+
 void SpriteEditor::DrawCurrentSheets() {
   if (ImGui::BeginChild(gui::GetID("sheet_label"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0), true,
                         ImGuiWindowFlags_NoDecoration)) {
+    DrawSpritesetPicker();
     // Track previous sheet values for change detection
     bool sheets_changed = false;
     if (current_custom_sprite())
@@ -1215,31 +1387,11 @@ void SpriteEditor::LoadSpritePalettes(bool use_asset_binding) {
   if (!game_data())
     return;
   const auto& global = game_data()->palette_groups.global_sprites;
-  for (size_t i = 0; i < global.size() && i < 8; i++) {
-    sprite_palettes_.AddPalette(global.palette(i));
-  }
-
-  // If we don't have 8 palettes yet, fill with aux palettes
   const auto& aux1 = game_data()->palette_groups.sprites_aux1;
   const auto& aux2 = game_data()->palette_groups.sprites_aux2;
   const auto& aux3 = game_data()->palette_groups.sprites_aux3;
-
-  // Pad to 8 palettes total for proper OAM palette mapping
-  while (sprite_palettes_.size() < 8) {
-    if (sprite_palettes_.size() < 4 && aux1.size() > 0) {
-      sprite_palettes_.AddPalette(
-          aux1.palette(sprite_palettes_.size() % aux1.size()));
-    } else if (sprite_palettes_.size() < 6 && aux2.size() > 0) {
-      sprite_palettes_.AddPalette(
-          aux2.palette((sprite_palettes_.size() - 4) % aux2.size()));
-    } else if (aux3.size() > 0) {
-      sprite_palettes_.AddPalette(
-          aux3.palette((sprite_palettes_.size() - 6) % aux3.size()));
-    } else {
-      // Fallback: add empty palette
-      sprite_palettes_.AddPalette(gfx::SnesPalette());
-    }
-  }
+  sprite_palettes_ =
+      internal::DefaultSpritePreviewPalettes(global, aux1, aux2, aux3);
 
   palette_binding_status_ = absl::OkStatus();
   if (const auto* binding =
@@ -1251,6 +1403,17 @@ void SpriteEditor::LoadSpritePalettes(bool use_asset_binding) {
       sprite_palettes_ = std::move(*palettes);
     else
       sprite_palettes_.clear();
+  }
+  if (preview_use_room_palette_ && game_data() != nullptr) {
+    if (!room_palette_cache_.has_value() ||
+        room_palette_cache_room_ != preview_room_) {
+      const auto room = zelda3::LoadRoomHeaderFromRom(rom_, preview_room_);
+      room_palette_cache_ = internal::SpritePalettesFromCgram(
+          zelda3::BuildDungeonSpriteRenderPalette(room, game_data()));
+      room_palette_cache_room_ = preview_room_;
+    }
+    sprite_palettes_ = *room_palette_cache_;
+    palette_binding_status_ = absl::OkStatus();
   }
   sprite_drawer_.SetPalettes(&sprite_palettes_);
 }
