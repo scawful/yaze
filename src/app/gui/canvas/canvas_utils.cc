@@ -34,7 +34,8 @@ int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale,
   return tile_x + (tile_y * tiles_per_row);
 }
 
-bool LoadROMPaletteGroups(zelda3::GameData* game_data, CanvasPaletteManager& palette_manager) {
+bool LoadROMPaletteGroups(zelda3::GameData* game_data,
+                          CanvasPaletteManager& palette_manager) {
   if (!game_data || palette_manager.palettes_loaded) {
     return palette_manager.palettes_loaded;
   }
@@ -160,9 +161,14 @@ void DrawCanvasText(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
   ImVec2 text_pos(canvas_p0.x + scrolling.x + scaled_x,
                   canvas_p0.y + scrolling.y + scaled_y);
 
-  // Draw text with black shadow for better visibility
-  draw_list->AddText(ImVec2(text_pos.x + 1, text_pos.y + 1),
-                     IM_COL32(0, 0, 0, 255), text.c_str());
+  // White text with a 1px black outline. A single drop shadow left labels
+  // hard to read on light marker boxes (cyan-white exits, yellow entrances).
+  constexpr ImU32 kOutline = IM_COL32(0, 0, 0, 255);
+  for (const ImVec2 offset : {ImVec2(-1, 0), ImVec2(1, 0), ImVec2(0, -1),
+                              ImVec2(0, 1), ImVec2(1, 1)}) {
+    draw_list->AddText(ImVec2(text_pos.x + offset.x, text_pos.y + offset.y),
+                       kOutline, text.c_str());
+  }
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), text.c_str());
 }
 

@@ -16,20 +16,26 @@ namespace yaze {
 namespace editor {
 
 using namespace ImGui;
+using EntityType = zelda3::GameEntity::EntityType;
 
-// Entity colors - using unified theme colors
+ImVec4 EntityMarkerColor(const AgentUITheme& theme, EntityType type,
+                         bool is_hole) {
+  switch (type) {
+    case EntityType::kEntrance:
+      return is_hole ? theme.hole_color : theme.entrance_color;
+    case EntityType::kExit:
+      return theme.exit_color;
+    case EntityType::kItem:
+      return theme.item_color;
+    case EntityType::kSprite:
+    default:
+      return theme.sprite_color;
+  }
+}
+
 namespace {
-ImVec4 GetEntranceColor() {
-  return AgentUI::GetTheme().entrance_color;
-}
-ImVec4 GetExitColor() {
-  return AgentUI::GetTheme().exit_color;
-}
-ImVec4 GetItemColor() {
-  return AgentUI::GetTheme().item_color;
-}
-ImVec4 GetSpriteColor() {
-  return AgentUI::GetTheme().sprite_color;
+ImVec4 MarkerColor(EntityType type, bool is_hole = false) {
+  return EntityMarkerColor(AgentUI::GetTheme(), type, is_hole);
 }
 ImVec4 GetDiggableTileColor() {
   const auto& theme = AgentUI::GetTheme();
@@ -48,11 +54,8 @@ void OverworldEntityRenderer::DrawEntrances(const gui::CanvasRuntime& rt,
   for (auto& each : overworld_->entrances()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
         each.map_id_ >= (current_world * 0x40) && !each.deleted) {
-      ImVec4 entrance_color = GetEntranceColor();
-      if (each.is_hole_) {
-        entrance_color.w = 0.78f;
-      }
-      gui::DrawRect(rt, each.x_, each.y_, 16, 16, entrance_color);
+      gui::DrawRect(rt, each.x_, each.y_, 16, 16,
+                    MarkerColor(EntityType::kEntrance, each.is_hole_));
       if (IsMouseHoveringOverEntity(each, rt)) {
         hovered_entity_ = &each;
       }
@@ -71,7 +74,8 @@ void OverworldEntityRenderer::DrawExits(const gui::CanvasRuntime& rt,
   for (auto& each : *overworld_->mutable_exits()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
         each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
-      gui::DrawRect(rt, each.x_, each.y_, 16, 16, GetExitColor());
+      gui::DrawRect(rt, each.x_, each.y_, 16, 16,
+                    MarkerColor(EntityType::kExit));
       if (IsMouseHoveringOverEntity(each, rt)) {
         hovered_entity_ = &each;
       }
@@ -88,7 +92,8 @@ void OverworldEntityRenderer::DrawItems(const gui::CanvasRuntime& rt,
   for (auto& item : *overworld_->mutable_all_items()) {
     if (item.room_map_id_ < 0x40 + (current_world * 0x40) &&
         item.room_map_id_ >= (current_world * 0x40) && !item.deleted) {
-      gui::DrawRect(rt, item.x_, item.y_, 16, 16, GetItemColor());
+      gui::DrawRect(rt, item.x_, item.y_, 16, 16,
+                    MarkerColor(EntityType::kItem));
       if (IsMouseHoveringOverEntity(item, rt)) {
         hovered_entity_ = &item;
       }
@@ -111,7 +116,8 @@ void OverworldEntityRenderer::DrawSprites(const gui::CanvasRuntime& rt,
       int sprite_x = sprite.x_;
       int sprite_y = sprite.y_;
 
-      gui::DrawRect(rt, sprite_x, sprite_y, 16, 16, GetSpriteColor());
+      gui::DrawRect(rt, sprite_x, sprite_y, 16, 16,
+                    MarkerColor(EntityType::kSprite));
       if (IsMouseHoveringOverEntity(sprite, rt)) {
         hovered_entity_ = &sprite;
       }
@@ -144,13 +150,8 @@ void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
   for (auto& each : overworld_->entrances()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
         each.map_id_ >= (current_world * 0x40) && !each.deleted) {
-      // Use theme-aware color with proper transparency
-      ImVec4 entrance_color = GetEntranceColor();
-      if (each.is_hole_) {
-        // Holes are more opaque for visibility
-        entrance_color.w = 0.78f;  // 200/255 alpha
-      }
-      canvas_->DrawRect(each.x_, each.y_, 16, 16, entrance_color);
+      canvas_->DrawRect(each.x_, each.y_, 16, 16,
+                        MarkerColor(EntityType::kEntrance, each.is_hole_));
       if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling, scale)) {
         hovered_entity_ = &each;
       }
@@ -173,7 +174,8 @@ void OverworldEntityRenderer::DrawExits(ImVec2 canvas_p0, ImVec2 scrolling,
   for (auto& each : *overworld_->mutable_exits()) {
     if (each.map_id_ < 0x40 + (current_world * 0x40) &&
         each.map_id_ >= (current_world * 0x40) && !each.deleted_) {
-      canvas_->DrawRect(each.x_, each.y_, 16, 16, GetExitColor());
+      canvas_->DrawRect(each.x_, each.y_, 16, 16,
+                        MarkerColor(EntityType::kExit));
 
       if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling, scale)) {
         hovered_entity_ = &each;
@@ -194,7 +196,8 @@ void OverworldEntityRenderer::DrawItems(int current_world, int current_mode) {
     // Get the item's bitmap and real X and Y positions
     if (item.room_map_id_ < 0x40 + (current_world * 0x40) &&
         item.room_map_id_ >= (current_world * 0x40) && !item.deleted) {
-      canvas_->DrawRect(item.x_, item.y_, 16, 16, GetItemColor());
+      canvas_->DrawRect(item.x_, item.y_, 16, 16,
+                        MarkerColor(EntityType::kItem));
 
       if (IsMouseHoveringOverEntity(item, canvas_->zero_point(),
                                     canvas_->scrolling(), scale)) {
@@ -230,7 +233,8 @@ void OverworldEntityRenderer::DrawSprites(int current_world, int game_state,
       int original_x = sprite.x_;
       int original_y = sprite.y_;
 
-      canvas_->DrawRect(sprite_x, sprite_y, 16, 16, GetSpriteColor());
+      canvas_->DrawRect(sprite_x, sprite_y, 16, 16,
+                        MarkerColor(EntityType::kSprite));
       if (IsMouseHoveringOverEntity(sprite, canvas_->zero_point(),
                                     canvas_->scrolling(), scale)) {
         hovered_entity_ = &sprite;
