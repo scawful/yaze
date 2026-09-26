@@ -433,6 +433,7 @@ struct EditedVanillaMessage {
   int id = 0;
   size_t previous_length = 0;  // bytes before the terminator
   size_t encoded_length = 0;
+  bool unchanged = false;  // same text as the ROM; bytes kept as they are
 };
 
 struct VanillaEditPlan {
@@ -506,9 +507,18 @@ absl::StatusOr<VanillaEditPlan> PlanVanillaEdits(
       encoded.insert(encoded.begin(), editor::kBankSwitchCommand);
     }
     const size_t previous_length = message.Data.size();
+    // A message whose text did not change keeps its bytes. Re-encoding it
+    // would still shrink text stored without the dictionary (the editor's
+    // save and older imports), which trips the region-2 length pin when a
+    // whole exported bundle is imported back.
+    if (editor::ExpandMessageDictionary(encoded, dictionary) ==
+        editor::ExpandMessageDictionary(message.Data, dictionary)) {
+      edited.push_back({id, previous_length, previous_length, true});
+      continue;
+    }
     message.Data = editor::CompressMessageWithDictionary(encoded, dictionary);
     message.DataParsed = message.Data;
-    edited.push_back({id, previous_length, message.Data.size()});
+    edited.push_back({id, previous_length, message.Data.size(), false});
   }
 
   auto plan_or = editor::BuildVanillaMessageSavePlan(messages, expected_count);
@@ -591,6 +601,9 @@ void AddVanillaPlanReport(resources::OutputFormatter& formatter,
                        static_cast<uint64_t>(message.previous_length));
     formatter.AddField("encoded_length",
                        static_cast<uint64_t>(message.encoded_length));
+    if (message.unchanged) {
+      formatter.AddField("unchanged", true);
+    }
     formatter.EndObject();
   }
   formatter.EndArray();
@@ -1556,24 +1569,39 @@ absl::Status WriteVanillaMessage(Rom* rom,
     formatter.EndArray();
   }
 
+  // Close the result object on every exit, so a failure still prints valid
+  // JSON with its error (a DataLoss error names the backup to restore).
+  auto finish = [&formatter](absl::Status status) {
+    if (status.ok()) {
+      formatter.AddField("status", "success");
+      formatter.AddField("readback_verified", true);
+    } else {
+      formatter.AddField("status", "error");
+      formatter.AddField("error", std::string(status.message()));
+    }
+    formatter.EndObject();
+    return status;
+  };
+
   ScopedRomTransaction transaction(*rom);
-  RETURN_IF_ERROR(editor::ApplyVanillaMessageSavePlan(rom, edit.plan));
-  if (rom->dirty()) {
-    RETURN_IF_ERROR(VerifyDiskSnapshotUnchanged(
-        project_context.canonical_rom_path, disk_baseline));
-    Rom::SaveSettings save_settings;
-    save_settings.save_new = false;
-    save_settings.require_backup = true;
-    save_settings.filename = project_context.canonical_rom_path.string();
-    RETURN_IF_ERROR(rom->SaveToFile(save_settings));
+  absl::Status status = editor::ApplyVanillaMessageSavePlan(rom, edit.plan);
+  if (status.ok() && rom->dirty()) {
+    status = VerifyDiskSnapshotUnchanged(project_context.canonical_rom_path,
+                                         disk_baseline);
+    if (status.ok()) {
+      Rom::SaveSettings save_settings;
+      save_settings.save_new = false;
+      save_settings.require_backup = true;
+      save_settings.filename = project_context.canonical_rom_path.string();
+      status = rom->SaveToFile(save_settings);
+    }
+  }
+  if (!status.ok()) {
+    return finish(status);  // the transaction rolls the ROM back
   }
   transaction.Commit();
-  RETURN_IF_ERROR(VerifySavedRom(*rom, project_context.canonical_rom_path,
-                                 edit.plan, edit.expected_count));
-  formatter.AddField("status", "success");
-  formatter.AddField("readback_verified", true);
-  formatter.EndObject();
-  return absl::OkStatus();
+  return finish(VerifySavedRom(*rom, project_context.canonical_rom_path,
+                               edit.plan, edit.expected_count));
 }
 
 }  // namespace

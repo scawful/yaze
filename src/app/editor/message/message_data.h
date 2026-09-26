@@ -516,6 +516,13 @@ std::vector<uint8_t> CompressMessageWithDictionary(
     const std::vector<uint8_t>& data,
     const std::vector<std::vector<uint8_t>>& dictionary);
 
+// Replaces dictionary tokens (0x88-0xE8) in an encoded message with their
+// entry bytes, giving the characters the game draws. Command bytes and their
+// arguments are copied unchanged. Tokens past the dictionary are kept.
+std::vector<uint8_t> ExpandMessageDictionary(
+    const std::vector<uint8_t>& data,
+    const std::vector<std::vector<uint8_t>>& dictionary);
+
 // One exact, half-open ROM write in a vanilla-message save plan.
 class VanillaMessageWrite {
  public:

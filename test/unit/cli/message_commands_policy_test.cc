@@ -16,6 +16,7 @@
 #include <nlohmann/json.hpp>
 
 #include "app/editor/message/message_data.h"
+#include "framework/rom_save_fault.h"
 #include "rom/rom.h"
 #include "zelda3/resource_labels.h"
 
@@ -938,6 +939,69 @@ TEST(MessageCommandsPolicyTest, MessageWriteVanillaRangeWritesOracleProject) {
   EXPECT_EQ(disk[editor::kTextData + 1], editor::DICTOFF);
   EXPECT_EQ(disk[kChainedSwitchPc], 0xFF);
   EXPECT_EQ(FindBackupArtifacts(rom_path).size(), 1);
+}
+
+TEST(MessageCommandsPolicyTest,
+     ChainedReimportKeepsUnchangedRegion2MessageBytes) {
+  // Region 2 holds "AB" stored without the dictionary, as the editor saves
+  // it. Importing that same text back must not re-encode it to [D:00]; the
+  // shorter stream would trip the region-2 length pin.
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  auto data = MakeChainedMessageRomData();
+  data[editor::kTextData2] = editor::FindMatchingCharacter('A');
+  data[editor::kTextData2 + 1] = editor::FindMatchingCharacter('B');
+  WriteBinaryFile(rom_path, data);
+  const fs::path project_path = CreateChainedProject(temp.path(), rom_path);
+  const fs::path bundle_path = WriteBundle(
+      temp.path(), nlohmann::json::array(
+                       {{{"id", 0}, {"bank", "vanilla"}, {"text", "ABAB"}},
+                        {{"id", 1}, {"bank", "vanilla"}, {"text", "AB"}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--file=" + bundle_path.string(), "--apply",
+                   "--range=vanilla", "--rom=" + rom_path.string(),
+                   "--project=" + project_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  const auto result = nlohmann::json::parse(output).at("Message Bundle Import");
+  EXPECT_EQ(result.at("encoded_messages").at(1).at("unchanged"), true);
+  const auto disk = ReadBinaryFile(rom_path);
+  EXPECT_EQ(disk[editor::kTextData], editor::DICTOFF);  // message 0 changed
+  EXPECT_EQ(disk[editor::kTextData2], editor::FindMatchingCharacter('A'));
+  EXPECT_EQ(disk[editor::kTextData2 + 1], editor::FindMatchingCharacter('B'));
+  EXPECT_EQ(disk[kChainedSwitchPc], 0xFF);
+}
+
+TEST(MessageCommandsPolicyTest, MessageWriteVanillaSaveFailurePrintsErrorJson) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeChainedMessageRomData());
+  const auto disk_before = ReadBinaryFile(rom_path);
+  const fs::path project_path = CreateChainedProject(temp.path(), rom_path);
+  Rom rom = LoadRom(rom_path);
+  const auto memory_before = rom.vector();
+
+  handlers::MessageWriteCommandHandler handler;
+  std::string output;
+  absl::Status status;
+  {
+    test::ScopedRomStagingFailure staging_failure;
+    status =
+        handler.Run({"--id=0", "--text=ABAB", "--range=vanilla",
+                     "--project=" + project_path.string(), "--format=json"},
+                    &rom, &output);
+  }
+
+  EXPECT_FALSE(status.ok());
+  const auto result = nlohmann::json::parse(output).at("Message Write Result");
+  EXPECT_EQ(result.at("status"), "error");
+  EXPECT_FALSE(result.at("error").get<std::string>().empty());
+  EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+  EXPECT_EQ(rom.vector(), memory_before);  // the transaction rolled back
 }
 
 }  // namespace
