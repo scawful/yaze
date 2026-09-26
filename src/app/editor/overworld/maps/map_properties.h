@@ -111,6 +111,29 @@ class MapPropertiesSystem {
     shortcut_hint_ = std::move(provider);
   }
 
+  /// A View-menu toggle that mirrors a toolbar toggle.
+  struct ContextViewToggle {
+    std::function<bool()> is_on;
+    std::function<void()> toggle;
+  };
+  void SetContextViewToggles(ContextViewToggle grid, ContextViewToggle entities,
+                             ContextViewToggle overlay_preview) {
+    grid_toggle_ = std::move(grid);
+    entities_toggle_ = std::move(entities);
+    overlay_toggle_ = std::move(overlay_preview);
+  }
+
+  /// Current map id; hides "Select This Map" when its area is current.
+  void SetCurrentMapProvider(std::function<int()> provider) {
+    current_map_provider_ = std::move(provider);
+  }
+
+  /// Selects a map that may be off screen or in the other world, and brings
+  /// it into view (Related Maps). Falls back to the map selection callback.
+  void SetMapJumpCallback(std::function<void(int)> callback) {
+    map_jump_callback_ = std::move(callback);
+  }
+
   void SetPropertyEditCallback(PropertyEditCallback callback) {
     property_edit_callback_ = std::move(callback);
   }
@@ -134,12 +157,12 @@ class MapPropertiesSystem {
   void DrawOverlayPreviewOnMap(int current_map, int current_world,
                                bool show_overlay_preview);
 
-  // Context menu integration
+  // Context menu integration. Layout: header (map, tile), Tile, Map,
+  // Related Maps, clipboard, Insert, View; see
+  // docs/internal/gui/context-menus.md ("Overworld map canvas").
   void SetupCanvasContextMenu(gui::Canvas& canvas,
                               const OverworldContextTarget& target,
-                              bool& current_map_lock,
-                              bool& show_custom_bg_color_editor,
-                              bool& show_overlay_editor, int current_mode = 0,
+                              bool& current_map_lock, int current_mode = 0,
                               project::YazeProject* project = nullptr,
                               SharedClipboard* shared_clipboard = nullptr);
 
@@ -211,6 +234,11 @@ class MapPropertiesSystem {
 
   // Callback for explicit map selection/pinning from the context menu.
   std::function<void(int, bool)> map_selection_callback_;
+  std::function<void(int)> map_jump_callback_;
+  std::function<int()> current_map_provider_;
+  ContextViewToggle grid_toggle_;
+  ContextViewToggle entities_toggle_;
+  ContextViewToggle overlay_toggle_;
   PropertyEditCallback property_edit_callback_;
   PropertyEditBatchCallback property_edit_batch_callback_;
   ResourceLabelEditCallback resource_label_edit_callback_;

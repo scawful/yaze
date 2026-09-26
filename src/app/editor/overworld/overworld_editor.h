@@ -353,6 +353,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void SetEditingMode(EditingMode mode);
   /// Alt+Arrow: select the neighbouring screen in the world grid and center it.
   void SelectAdjacentMap(int dx, int dy);
+  /// Select @p map_id (switching world if needed) and center it; the context
+  /// menu's Related Maps entries.
+  void JumpToMap(int map_id);
   void SwitchToWorld(int world);
   // View requests; applied when the canvas child begins (safe anywhere).
   void ZoomIn();

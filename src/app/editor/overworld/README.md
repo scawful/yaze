@@ -93,11 +93,11 @@ parent area, world position, game state, and Tile16 ID. The
 the opening click; menu callbacks must capture it by value. Do not rebuild the
 menu from the hovered or selected map while a popup is open.
 
-Menu layout lives in `MapPropertiesSystem::SetupCanvasContextMenu`. Common
-selection and Tile16 actions stay at the top. Entity placement, map actions
-(Map Properties, background color, visual effects, related maps, metadata
-copy/paste, rename) and view controls have separate submenus. The main canvas
-supplies its own View menu, so shared built-in controls remain hidden.
+Menu layout lives in `MapPropertiesSystem::SetupCanvasContextMenu`; the
+current layout is documented in `docs/internal/gui/context-menus.md`
+("Overworld map canvas"): header (map, tile), Tile, Map (select, properties,
+pin, related maps), map-properties copy/paste, Insert, and a View submenu
+that mirrors the toolbar toggles.
 
 Where things live (each per-map value is shown and edited in one place):
 

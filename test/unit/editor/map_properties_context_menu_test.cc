@@ -122,8 +122,7 @@ class MapPropertiesContextMenuTest : public ::testing::Test {
   }
 
   void Build(int mode = 0) {
-    system_.SetupCanvasContextMenu(canvas_, target_, map_lock_, show_bg_color_,
-                                   show_overlay_, mode);
+    system_.SetupCanvasContextMenu(canvas_, target_, map_lock_, mode);
   }
 
   void Invoke(const std::string& label) {
@@ -141,8 +140,6 @@ class MapPropertiesContextMenuTest : public ::testing::Test {
   OverworldContextTarget target_;
   bool map_lock_ = false;
   bool show_properties_ = false;
-  bool show_bg_color_ = false;
-  bool show_overlay_ = false;
   int selected_map_ = 0x02;
   bool respected_pin_ = true;
   int selection_calls_ = 0;
@@ -150,12 +147,17 @@ class MapPropertiesContextMenuTest : public ::testing::Test {
 
 TEST_F(MapPropertiesContextMenuTest, LockItemMutatesReferencedMapLockState) {
   Build();
-  Invoke("Pin This Map");
+  auto* pin = FindMenuItem(canvas_, "Pin Map");
+  ASSERT_NE(pin, nullptr);
+  ASSERT_TRUE(pin->checked_condition);
+  EXPECT_FALSE(pin->checked_condition());
+  Invoke("Pin Map");
   EXPECT_TRUE(map_lock_);
+  EXPECT_TRUE(pin->checked_condition());
   EXPECT_EQ(selected_map_, 0x4B);
   EXPECT_FALSE(respected_pin_);
   Build();
-  Invoke("Unpin Map");
+  Invoke("Pin Map");
   EXPECT_FALSE(map_lock_);
   EXPECT_EQ(selection_calls_, 1);
 }
@@ -256,8 +258,8 @@ TEST_F(MapPropertiesContextMenuTest, UnavailableActionsAreDisabled) {
   system_.SetMapSelectionCallback({});
   Build();
   for (const auto* label :
-       {"Select This Map", "Pin This Map", "Map Properties", "Sample Tile16",
-        "Edit Tile16", "Insert Entity", "Reset View", "Zoom In", "Zoom Out"}) {
+       {"Select This Map", "Pin Map", "Map Properties", "Sample Tile16",
+        "Edit Tile16", "Insert", "Zoom In", "Zoom Out"}) {
     auto* item = FindMenuItem(canvas_, label);
     ASSERT_NE(item, nullptr) << label;
     EXPECT_FALSE(item->enabled_condition()) << label;
@@ -278,28 +280,96 @@ TEST_F(MapPropertiesContextMenuTest,
   }
 }
 
-TEST_F(MapPropertiesContextMenuTest,
-       NestedViewControlsReplaceDuplicatedRootControls) {
+TEST_F(MapPropertiesContextMenuTest, ViewSubmenuHoldsZoomAndToolbarToggles) {
   int reset_calls = 0;
   int zoom_in_calls = 0;
   int zoom_out_calls = 0;
   system_.SetContextNavigationCallbacks([&] { ++reset_calls; },
                                         [&] { ++zoom_in_calls; },
                                         [&] { ++zoom_out_calls; });
+  bool grid = true;
+  bool entities = false;
+  bool overlay = true;
+  using Toggle = MapPropertiesSystem::ContextViewToggle;
+  system_.SetContextViewToggles(
+      Toggle{[&] { return grid; }, [&] { grid = !grid; }},
+      Toggle{[&] { return entities; }, [&] { entities = !entities; }},
+      Toggle{[&] { return overlay; }, [&] { overlay = !overlay; }});
   Build();
   EXPECT_FALSE(canvas_.GetConfig().show_builtin_context_menu);
   auto* view = FindRootMenuItem(canvas_, "View");
   ASSERT_NE(view, nullptr);
-  for (const auto* label : {"Reset View", "Zoom In", "Zoom Out"}) {
+  for (const auto* label :
+       {"Zoom In", "Zoom Out", "Grid", "Entities", "Overlay Preview"}) {
     EXPECT_EQ(FindRootMenuItem(canvas_, label), nullptr) << label;
     EXPECT_NE(FindMenuItem(view->subitems, label), nullptr) << label;
-    Invoke(label);
   }
-  EXPECT_EQ(reset_calls, 1);
+  // Removed: they did nothing on this canvas or duplicated the panel.
+  for (const auto* label :
+       {"Reset View", "Show Hex Labels", "Grid Size", "Custom Background Color",
+        "Visual Effects", "Rename Map Label"}) {
+    EXPECT_EQ(FindMenuItem(canvas_, label), nullptr) << label;
+  }
+  Invoke("Zoom In");
+  Invoke("Zoom Out");
   EXPECT_EQ(zoom_in_calls, 1);
   EXPECT_EQ(zoom_out_calls, 1);
-  EXPECT_EQ(FindRootMenuItem(canvas_, "Map Properties"), nullptr);
-  EXPECT_NE(FindMenuItem(canvas_, "Map Properties"), nullptr);
+  EXPECT_EQ(reset_calls, 0);
+
+  auto* grid_item = FindMenuItem(view->subitems, "Grid");
+  ASSERT_TRUE(grid_item->checked_condition);
+  EXPECT_TRUE(grid_item->checked_condition());
+  Invoke("Grid");
+  EXPECT_FALSE(grid);
+  EXPECT_FALSE(grid_item->checked_condition());
+  Invoke("Entities");
+  EXPECT_TRUE(entities);
+  Invoke("Overlay Preview");
+  EXPECT_FALSE(overlay);
+}
+
+TEST_F(MapPropertiesContextMenuTest, TopLevelOrderAndCount) {
+  system_.SetTile16SampleCallback(
+      [](const OverworldContextTarget&) { return true; });
+  system_.SetTile16EditCallback([](const OverworldContextTarget&) {});
+  system_.SetEntityCallbacks(
+      [](const std::string&, const OverworldContextTarget&) {});
+  Build();
+  std::vector<std::string> labels;
+  for (auto& section : canvas_.editor_menu().sections) {
+    for (auto& item : section.items) {
+      labels.push_back(item.label);
+    }
+  }
+  // Header rows (map, tile) come first; no overworld here, so the map row
+  // is the bare ID and there are no Related Maps or clipboard rows.
+  const std::vector<std::string> expected{"0x4B",
+                                          "Tile16 0x123 | (2, 1)",
+                                          "Sample Tile16",
+                                          "Edit Tile16...",
+                                          "Select This Map",
+                                          "Map Properties...",
+                                          "Pin Map",
+                                          "Insert",
+                                          "View"};
+  EXPECT_EQ(labels, expected);
+  auto* map_properties = FindRootMenuItem(canvas_, "Map Properties");
+  ASSERT_NE(map_properties, nullptr);
+  EXPECT_EQ(map_properties->shortcut, "Double-click");
+}
+
+TEST_F(MapPropertiesContextMenuTest, SelectThisMapHiddenWhenAlreadyCurrent) {
+  int current = 0x4B;
+  system_.SetCurrentMapProvider([&] { return current; });
+  Build();
+  auto* select = FindMenuItem(canvas_, "Select This Map");
+  ASSERT_NE(select, nullptr);
+  EXPECT_FALSE(select->visible_condition());
+  current = 0x10;
+  EXPECT_TRUE(select->visible_condition());
+  Invoke("Select This Map");
+  EXPECT_EQ(selected_map_, 0x4B);
+  EXPECT_FALSE(respected_pin_);
 }
 
 TEST_F(MapPropertiesContextMenuTest,
