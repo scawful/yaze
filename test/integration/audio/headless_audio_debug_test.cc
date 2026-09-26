@@ -339,9 +339,13 @@ TEST_F(HeadlessAudioDebugTest, SampleBufferDoesNotOverflow) {
 
   uint32_t prev_offset = apu_->dsp().GetSampleOffset();
   int wrap_count = 0;
+  uint64_t cumulative_master_cycles = 0;
 
   for (int frame = 0; frame < kTestFrames; ++frame) {
-    apu_->RunCycles(357366);  // One NTSC frame
+    // APU expects cumulative master cycles; passing one frame's count every
+    // time advances nothing after the first frame.
+    cumulative_master_cycles += 357366;  // One NTSC frame
+    apu_->RunCycles(cumulative_master_cycles);
 
     uint32_t curr_offset = apu_->dsp().GetSampleOffset();
 
