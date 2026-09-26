@@ -101,6 +101,23 @@ struct CanvasNavigationCallbacks {
   std::function<void()> open_map_properties;
 };
 
+/// One frame of canvas mouse input, reduced to what map selection needs.
+struct MapClickInput {
+  EditingMode mode = EditingMode::MOUSE;
+  bool left_released = false;
+  bool left_dragged = false;  // Moved past the drag threshold while down.
+  bool right_clicked = false;
+  bool shift = false;
+  bool entity_hovered = false;
+};
+
+/// True when this input is an explicit "make the map under the cursor the
+/// current map" click: a Select-tool left click that did not pan (on
+/// release), or a paint-tool right click (which also samples the Tile16).
+/// Shift+right-click opens the map menu instead. Explicit clicks select even
+/// when the map is pinned; the pin then holds the clicked map.
+bool IsMapSelectClick(const MapClickInput& input);
+
 class CanvasNavigationManager {
  public:
   CanvasNavigationManager() = default;
@@ -125,9 +142,15 @@ class CanvasNavigationManager {
   // Map Interaction
   // ===========================================================================
 
-  /// @brief Handle tile-mode right-click (eyedropper), click selection,
-  /// and double-click to open properties. Middle-drag only pans.
+  /// @brief Click selection (see IsMapSelectClick) and double-click to open
+  /// properties. The paint-tool right-click sample itself happens in
+  /// TilePaintingManager. Middle-drag only pans.
   void HandleMapInteraction();
+
+  /// @brief Make the map under the cursor the current map, ignoring the pin
+  /// (the pin, if on, then holds this map). Large areas: any quadrant selects
+  /// its parent area's properties. Returns false when no map is under it.
+  bool SelectMapUnderCursor();
 
   // ===========================================================================
   // Pan and Zoom

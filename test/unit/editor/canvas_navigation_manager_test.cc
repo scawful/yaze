@@ -111,6 +111,23 @@ TEST_F(CanvasMapTrackingTest, PinPreservesSelectionButHoverStillTracks) {
   EXPECT_EQ(current_map_, 1);
 }
 
+TEST_F(CanvasMapTrackingTest, ExplicitClickSelectsHoveredMapThroughPin) {
+  current_map_lock_ = true;
+  manager_.TrackMapAtCanvasPosition(ImVec2(520, 8));
+  ASSERT_EQ(current_map_, 0);
+  ASSERT_EQ(hovered_map_, 1);
+  bool respected_pin = true;
+  callbacks_.select_map_for_editing = [&](int map, bool respect_pin) {
+    respected_pin = respect_pin;
+    current_map_ = map;
+  };
+  manager_.Initialize(ctx_, callbacks_);
+  EXPECT_TRUE(manager_.SelectMapUnderCursor());
+  EXPECT_EQ(current_map_, 1);
+  EXPECT_FALSE(respected_pin);
+  EXPECT_TRUE(current_map_lock_);  // The pin now holds the clicked map.
+}
+
 TEST_F(CanvasMapTrackingTest, EntityDragPreservesSelectionUntilRelease) {
   is_dragging_entity_ = true;
   manager_.TrackMapAtCanvasPosition(ImVec2(520, 8));
@@ -346,6 +363,45 @@ TEST_F(CanvasNavigationManagerTest, InitializeSetsContext) {
   EXPECT_FLOAT_EQ(other_canvas.global_scale(), 2.5f + kOverworldZoomStep);
   // Original canvas unchanged.
   EXPECT_FLOAT_EQ(canvas_.global_scale(), 1.0f);
+}
+
+// ---------------------------------------------------------------------------
+// IsMapSelectClick: which clicks make the map under the cursor current.
+// ---------------------------------------------------------------------------
+
+TEST(MapSelectClickTest, PaintToolsSelectOnPlainRightClick) {
+  for (EditingMode mode : {EditingMode::DRAW_TILE, EditingMode::FILL_TILE}) {
+    MapClickInput input;
+    input.mode = mode;
+    input.right_clicked = true;
+    EXPECT_TRUE(IsMapSelectClick(input));
+    input.entity_hovered = true;  // Entities do not intercept paint tools.
+    EXPECT_TRUE(IsMapSelectClick(input));
+    input.shift = true;  // Shift+right-click opens the map menu instead.
+    EXPECT_FALSE(IsMapSelectClick(input));
+
+    MapClickInput left;
+    left.mode = mode;
+    left.left_released = true;  // Left-click paints; it never selects.
+    EXPECT_FALSE(IsMapSelectClick(left));
+  }
+}
+
+TEST(MapSelectClickTest, SelectToolSelectsOnLeftReleaseWithoutPan) {
+  MapClickInput input;
+  input.mode = EditingMode::MOUSE;
+  input.left_released = true;
+  EXPECT_TRUE(IsMapSelectClick(input));
+  input.left_dragged = true;  // A drag pans the view; keep the selection.
+  EXPECT_FALSE(IsMapSelectClick(input));
+  input.left_dragged = false;
+  input.entity_hovered = true;  // Clicks on entities select the entity.
+  EXPECT_FALSE(IsMapSelectClick(input));
+
+  MapClickInput right;
+  right.mode = EditingMode::MOUSE;
+  right.right_clicked = true;  // Right-click opens the menu in Select mode.
+  EXPECT_FALSE(IsMapSelectClick(right));
 }
 
 }  // namespace
