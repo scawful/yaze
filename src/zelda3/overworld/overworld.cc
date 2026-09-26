@@ -1160,6 +1160,15 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
     hash *= 0x517cc1b727220a95ULL;  // FNV-like mixing
   }
 
+  // Include each slot's sheet store revision, so a tileset cached before an
+  // unsaved Graphics editor edit is not reused after it.
+  if (game_data_ != nullptr) {
+    for (int i = 0; i < 16; ++i) {
+      hash ^= game_data_->sheet_store.Revision(map->static_graphics(i));
+      hash *= 0x517cc1b727220a95ULL;
+    }
+  }
+
   // Include game_state_ to distinguish sprite sheet configurations
   // static_graphics_[12-15] are loaded using sprite_graphics_[game_state_]
   // which varies by game state (Beginning, Zelda Rescued, Master Sword, Agahnim)

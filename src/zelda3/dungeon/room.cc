@@ -1064,6 +1064,10 @@ void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
     SetRenderEntranceBlockset(*entrance_blockset);
   }
   EnsureObjectsLoaded();
+  // An unsaved graphics edit to a sheet this room shows.
+  if (SourceSheetsChanged()) {
+    MarkGraphicsDirty();
+  }
 
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
@@ -1098,6 +1102,7 @@ void Room::CopyRoomGraphicsToBuffer() {
     graphics_revision_ = NextRoomGraphicsRevision();
   };
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
+  source_sheet_revisions_.clear();
 
   // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
   // The engine expands 3BPP graphics to 4BPP in two modes:
@@ -1146,6 +1151,7 @@ void Room::CopyRoomGraphicsToBuffer() {
                 sheet_id * 4096, gfx_buffer_data->size());
       continue;
     }
+    RecordSourceSheet(sheet_id);
 
     // Copy 4096 bytes for the 8BPP sheet
     int dest_index_base = block * 4096;
@@ -1194,6 +1200,35 @@ const uint8_t* Room::GraphicsSheetSource(int sheet_id) const {
     return nullptr;
   }
   return graphics.data() + offset;
+}
+
+void Room::RecordSourceSheet(int sheet_id) {
+  if (game_data_ == nullptr || sheet_id < 0 ||
+      graphics_sheet_overrides_.count(static_cast<uint16_t>(sheet_id)) != 0) {
+    return;
+  }
+  const auto sheet = static_cast<uint16_t>(sheet_id);
+  const uint64_t revision = game_data_->sheet_store.Revision(sheet);
+  for (auto& [id, recorded] : source_sheet_revisions_) {
+    if (id == sheet) {
+      recorded = revision;
+      return;
+    }
+  }
+  source_sheet_revisions_.emplace_back(sheet, revision);
+}
+
+bool Room::SourceSheetsChanged() const {
+  if (game_data_ == nullptr) {
+    return false;
+  }
+  for (const auto& [sheet, recorded] : source_sheet_revisions_) {
+    if (graphics_sheet_overrides_.count(sheet) == 0 &&
+        game_data_->sheet_store.Revision(sheet) != recorded) {
+      return true;
+    }
+  }
+  return false;
 }
 
 gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
@@ -1825,6 +1860,7 @@ void Room::LoadAnimatedGraphics() {
   const auto copy_frame = [&](uint8_t sheet, size_t destination) {
     const uint8_t* source = GraphicsSheetSource(sheet);
     if (source != nullptr) {
+      RecordSourceSheet(sheet);
       std::copy_n(source + animated_frame_ * kFrameBytes, kFrameBytes,
                   current_gfx16_.data() + destination);
       copied_frame = true;

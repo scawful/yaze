@@ -1063,6 +1063,12 @@ class Room {
     return graphics_sheet_overrides_;
   }
 
+  /// True when a sheet this room copied from GameData's sheet store has a
+  /// newer store revision than the copy (an unsaved graphics edit).
+  /// PrepareForRender() rebuilds the room then. Override sheets are not
+  /// tracked; SetGraphicsSheetOverrides() dirties the room itself.
+  bool SourceSheetsChanged() const;
+
   // Helper to get version constants from game_data or default to US
   zelda3_version_pointers version_constants() const {
     return kVersionConstantsMap.at(game_data_ ? game_data_->version
@@ -1118,9 +1124,13 @@ class Room {
   // Returns the 4096-byte 8bpp source for a sheet: an override when one is
   // set, otherwise the GameData buffer. Null when neither covers the sheet.
   const uint8_t* GraphicsSheetSource(int sheet_id) const;
+  // Notes the store revision of a sheet copied from GameData (not overrides).
+  void RecordSourceSheet(int sheet_id);
 
   std::array<uint8_t, 0x10000> current_gfx16_;
   std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
+  // Sheet id and store revision of each store sheet in current_gfx16_.
+  std::vector<std::pair<uint16_t, uint64_t>> source_sheet_revisions_;
   uint64_t graphics_revision_ = 0;
   uint64_t composite_source_revision_ = 0;
   gfx::SnesPalette rendered_dungeon_palette_;
