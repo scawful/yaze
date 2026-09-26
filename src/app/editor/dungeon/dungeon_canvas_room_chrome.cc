@@ -21,6 +21,7 @@
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::editor {
 
@@ -302,7 +303,8 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   ImGui::SameLine();
 
   int ss = room.spriteset();
-  if (hex_input("##SS", ICON_MD_PEST_CONTROL, &ss, 143, "Spriteset")) {
+  if (hex_input("##SS", ICON_MD_PEST_CONTROL, &ss, zelda3::kMaxDungeonSpriteset,
+                "Spriteset")) {
     apply(RoomMetadataField::kSpriteset, ss);
   }
   if (ImGui::GetStateStorage()->GetBool(error_id)) {
