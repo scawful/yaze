@@ -50,6 +50,12 @@ absl::StatusOr<std::string> DumpCustomCollisionRoomsToJsonString(
 absl::StatusOr<std::vector<CustomCollisionRoomEntry>>
 LoadCustomCollisionRoomsFromJsonString(const std::string& json_content);
 
+// Every room with custom collision in `rom`, serialized as the canonical
+// custom_collision.json source (rooms ascending, nonzero tiles only). This is
+// the exact byte format Oracle of Secrets' validate_custom_collision_source.py
+// requires the tracked file to match.
+absl::StatusOr<std::string> DumpCustomCollisionSourceFromRom(Rom* rom);
+
 }  // namespace zelda3
 }  // namespace yaze
 
