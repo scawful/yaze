@@ -48,6 +48,10 @@ struct OverworldRenderRequest {
   uint32_t overlay_flags = OverworldOverlay::kNone;
   int phase = -1;      // sprite game state 0..2; -1 draws every phase
   float scale = 1.0f;  // Finite [0.25, 8.0]; 1.0 = 512px per screen.
+  // Composite the area's subscreen overlay (sky, fog, lava, canopy, ...) the
+  // way the game layers it: background overlays show through backdrop pixels,
+  // foreground overlays blend on top.
+  bool area_overlay = true;
 };
 
 // One overlay marker drawn on an overworld render, in area-local pixels.
@@ -66,7 +70,8 @@ struct OverworldRenderResult {
   int height = 0;
   int requested_screen = 0;
   int parent_screen = 0;
-  std::string area_size;  // small, large, wide, tall
+  std::string area_size;       // small, large, wide, tall
+  int subscreen_overlay = -1;  // overlay screen composited, -1 = none
   std::vector<int> screens;
   std::vector<OverworldRenderMarker> markers;
 };

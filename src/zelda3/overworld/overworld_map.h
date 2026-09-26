@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -56,6 +57,17 @@ constexpr int kOverlayCodeStart = 0x77657;  // Start of overlay code
 constexpr int OverworldCustomMainPaletteArray = 0x140160;
 // 1 byte, not 0 if enabled
 constexpr int OverworldCustomMainPaletteEnabled = 0x140141;
+
+// ZSCustomOverworld default GFX groups (8 sheets each for LW, DW, SW). The
+// game falls back to the world's sheet 7 entry when an area's animated GFX
+// value is 0x00 or 0xFF (ReadAnimatedTable).
+constexpr int OverworldCustomDefaultGFXGroups = 0x140980;
+
+// Number of bytes at the top of graphics slot 7 that come from the animated
+// tile sheet rather than the area's sheet 7 (the first two tile rows, 32
+// tiles, in the 8bpp 128px-wide layout). The game keeps the door frames in
+// the bottom half and streams the animated water/lava frames into the top.
+constexpr int kAnimatedSheetSlotBytes = 0x800;
 
 // v3 expanded constants
 constexpr int kOverworldMessagesExpanded = 0x1417F8;
@@ -144,6 +156,50 @@ typedef struct OverworldMapTiles {
 } OverworldMapTiles;
 
 /**
+ * @brief Per-area render settings the game reads with the area id ($8A).
+ *
+ * The game indexes the ZSCustomOverworld main palette, animated GFX, tile GFX
+ * group, and subscreen overlay tables with $8A, which is the parent screen of
+ * a large/wide/tall area. The child screens' own table entries are never
+ * read, so child maps render with their parent's values. The child's raw
+ * values stay untouched so saves round-trip byte-for-byte.
+ */
+struct AreaRenderProperties {
+  uint8_t main_palette = 0;
+  uint8_t animated_gfx = 0;
+  std::array<uint8_t, 8> custom_gfx_ids = {};
+  uint16_t subscreen_overlay = 0x00FF;
+};
+
+/// Overworld screen whose tilemap the game shows as BG1 for a subscreen
+/// overlay id (0x93 curtains, 0x95 sky, 0x96 pyramid, 0x97/0x9D fog, 0x9C
+/// lava, and hack-defined ids up to 0x9F), or -1 for none (0x00FF).
+inline int SubscreenOverlayScreen(uint16_t overlay_id) {
+  if (overlay_id >= kSpecialWorldMapIdStart && overlay_id < 0xA0) {
+    return overlay_id;
+  }
+  return -1;
+}
+
+/// True for overlays the game places behind the area (sky, pyramid, lava):
+/// they show only through backdrop (color 0) pixels. Other overlays (fog,
+/// curtains, canopy, rain) sit in front of the area.
+inline bool IsBackgroundSubscreenOverlay(uint16_t overlay_id) {
+  return overlay_id == 0x0095 || overlay_id == 0x0096 || overlay_id == 0x009C;
+}
+
+/// True when an overworld bitmap pixel shows the backdrop (area BG color).
+/// Overworld graphics are 3bpp; slots loaded with the +8 offset map pixel 0
+/// to color 8, which the map palette also sets to the backdrop color.
+inline bool IsOverworldBackdropPixel(uint8_t index) {
+  return (index & 0x07) == 0;
+}
+
+/// Sheet ids that fully determine a map's 64KB tileset (current_graphics):
+/// the 16 static sheets plus the animated sheet that fills the top of slot 7.
+using OverworldTilesetKey = std::array<uint8_t, 17>;
+
+/**
  * @brief Represents a single Overworld map screen.
  */
 class OverworldMap : public gfx::GfxContext {
@@ -170,10 +226,11 @@ class OverworldMap : public gfx::GfxContext {
    * @brief Build map with optional cached tileset for performance
    * @param cached_tileset Pre-computed tileset data (nullptr to build fresh)
    */
-  absl::Status BuildMapWithCache(int count, int game_state, int world,
-                                 std::vector<gfx::Tile16>& tiles16,
-                                 OverworldBlockset& world_blockset,
-                                 const std::vector<uint8_t>* cached_tileset);
+  absl::Status BuildMapWithCache(
+      int count, int game_state, int world, std::vector<gfx::Tile16>& tiles16,
+      OverworldBlockset& world_blockset,
+      const std::vector<uint8_t>* cached_tileset,
+      const std::vector<uint8_t>* cached_tile16_blockset = nullptr);
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();
@@ -182,6 +239,24 @@ class OverworldMap : public gfx::GfxContext {
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16, int count);
   absl::Status BuildBitmap(OverworldBlockset& world_blockset);
+
+  /**
+   * @brief Build this area's subscreen overlay layer (512x512, 8bpp).
+   *
+   * The game draws the overlay screen's tilemap as BG1 with the current
+   * area's graphics and palette, so the layer uses this map's tile16
+   * blockset and indexes this map's palette. Pixels the overlay leaves
+   * transparent are 0. For background overlays (sky, pyramid, lava) only
+   * pixels where this map shows the backdrop are kept, so the layer can be
+   * drawn on top of the map. Requires a built map.
+   */
+  absl::Status BuildSubscreenOverlayLayer(
+      const OverworldBlockset& overlay_world_blockset, int overlay_screen,
+      bool background, std::vector<uint8_t>* out) const;
+
+  /// Changes every time BuildBitmap() produces new pixels (unique across
+  /// maps), so views can tell when derived layers are stale.
+  uint64_t bitmap_serial() const { return bitmap_serial_; }
 
   /**
    * @brief Use a pre-computed tileset from cache instead of rebuilding
@@ -203,6 +278,7 @@ class OverworldMap : public gfx::GfxContext {
   auto is_initialized() const { return initialized_; }
   auto is_built() const { return built_; }
   auto parent() const { return parent_; }
+  int index() const { return index_; }
   auto mutable_mosaic() { return &mosaic_; }
   auto mutable_current_palette() { return &current_palette_; }
 
@@ -237,6 +313,26 @@ class OverworldMap : public gfx::GfxContext {
   void set_game_state(int state) { game_state_ = state; }
 
   auto custom_tileset(int index) const { return custom_gfx_ids_[index]; }
+
+  /// Render-time values: the area parent's settings for child screens (what
+  /// the game uses), this map's own values otherwise.
+  AreaRenderProperties area_render_properties() const;
+  void InheritAreaProperties(const OverworldMap& area_parent);
+  void ClearInheritedAreaProperties() { inherited_area_.reset(); }
+  bool has_inherited_area_properties() const {
+    return inherited_area_.has_value();
+  }
+  uint8_t render_main_palette() const {
+    return area_render_properties().main_palette;
+  }
+  uint16_t render_subscreen_overlay() const {
+    return area_render_properties().subscreen_overlay;
+  }
+
+  /// Sheet whose top half is shown in graphics slot 7 (animated water/lava
+  /// frame 0). Resolved by LoadAreaGraphics().
+  uint8_t animated_sheet() const { return animated_sheet_; }
+  OverworldTilesetKey tileset_key() const;
 
   // Overlay accessors (interactive overlays)
   auto overlay_id() const { return overlay_id_; }
@@ -334,6 +430,8 @@ class OverworldMap : public gfx::GfxContext {
   }
 
  private:
+  OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent);
+  void CopyAnimatedSheetIntoSlot7();
   void LoadAreaInfo();
   void LoadCustomOverworldData();
   void SetupCustomTileset(uint8_t asm_version);
@@ -381,8 +479,11 @@ class OverworldMap : public gfx::GfxContext {
   uint16_t subscreen_overlay_ = 0;  // Custom Overworld Subscreen Overlay ID
   uint16_t area_specific_bg_color_ =
       0;  // Custom Overworld Area-Specific Background Color
+  uint8_t animated_sheet_ = 0;  // Sheet for the top half of slot 7
+  uint64_t bitmap_serial_ = 0;
+  std::optional<AreaRenderProperties> inherited_area_;
 
-  std::array<uint8_t, 8> custom_gfx_ids_;
+  std::array<uint8_t, 8> custom_gfx_ids_ = {};
   std::array<uint8_t, 3> sprite_graphics_;
   std::array<uint8_t, 3> sprite_palette_;
   std::array<uint8_t, 4> area_music_;

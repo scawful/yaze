@@ -678,7 +678,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   bool show_custom_bg_color_editor_ = false;
   bool show_overlay_editor_ = false;
-  bool show_overlay_preview_ = false;
+  // Area subscreen overlays (sky, fog, lava, canopy, rain) are shown by
+  // default, like the game; the toolbar toggle hides them.
+  bool show_overlay_preview_ = true;
   bool show_entities_ = true;
 
   // ===========================================================================

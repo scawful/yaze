@@ -876,7 +876,7 @@ absl::Status Overworld::DecompressAllMapTilesParallel() {
 }
 
 absl::Status Overworld::LoadOverworldMaps() {
-  auto size = tiles16_.size();
+  [[maybe_unused]] auto size = tiles16_.size();  // native async path
 
   // Performance optimization: Only build essential maps initially
   // Essential maps are the first few maps of each world that are commonly
@@ -952,16 +952,8 @@ absl::Status Overworld::LoadOverworldMaps() {
       }
 
       // Reuse cached tilesets to reduce load time on WASM
-      overworld_maps_[i].LoadAreaGraphics();
-      uint64_t config_hash = ComputeGraphicsConfigHash(i);
-      const std::vector<uint8_t>* cached_tileset =
-          GetCachedTileset(config_hash);
-      RETURN_IF_ERROR(overworld_maps_[i].BuildMapWithCache(
-          size, game_state_, world_type, tiles16_, GetMapTiles(world_type),
-          cached_tileset));
-      if (!cached_tileset) {
-        CacheTileset(config_hash, overworld_maps_[i].current_graphics());
-      }
+      SyncAreaProperties(i);
+      RETURN_IF_ERROR(BuildMapWithTilesetCache(i, world_type));
       built_map_lru_.push_front(i);
     } else {
       overworld_maps_[i].SetNotBuilt();
@@ -992,6 +984,7 @@ absl::Status Overworld::LoadOverworldMaps() {
         world_type = 2;
       }
 
+      SyncAreaProperties(i);
       auto task_function = [this, i, size, world_type]() {
         return overworld_maps_[i].BuildMap(size, game_state_, world_type,
                                            tiles16_, GetMapTiles(world_type));
@@ -1055,14 +1048,12 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   while (static_cast<int>(built_map_lru_.size()) >= kMaxBuiltMaps) {
     int oldest_map = built_map_lru_.back();
     built_map_lru_.pop_back();
-    // Invalidate graphics cache for evicted map to prevent stale tileset refs
-    InvalidateMapCache(oldest_map);
-    // Destroy the oldest map to free memory
+    // Destroy the oldest map to free memory. Its shared tileset cache entry
+    // stays: entries are keyed by sheet ids, not by map.
     overworld_maps_[oldest_map].Destroy();
   }
 
   // Build the map on-demand
-  auto size = tiles16_.size();
   int world_type = 0;
   if (map_index >= kDarkWorldMapIdStart &&
       map_index < kSpecialWorldMapIdStart) {
@@ -1105,26 +1096,127 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
     }
   }
 
-  // Prepare graphics config to check cache (must call LoadAreaGraphics first)
-  overworld_maps_[map_index].LoadAreaGraphics();
-  uint64_t config_hash = ComputeGraphicsConfigHash(map_index);
+  // Child screens render with the area parent's settings (game reads $8A).
+  SyncAreaProperties(map_index);
 
-  // Try to use cached tileset for faster build
-  const std::vector<uint8_t>* cached_tileset = GetCachedTileset(config_hash);
-
-  auto status = overworld_maps_[map_index].BuildMapWithCache(
-      size, game_state_, world_type, tiles16_, GetMapTiles(world_type),
-      cached_tileset);
-
+  auto status = BuildMapWithTilesetCache(map_index, world_type);
   if (status.ok()) {
-    // Cache the tileset if we didn't use cached data
-    if (!cached_tileset) {
-      CacheTileset(config_hash, overworld_maps_[map_index].current_graphics());
-    }
     // Add to front of LRU cache
     built_map_lru_.push_front(map_index);
   }
   return status;
+}
+
+uint64_t Overworld::Tiles16Fingerprint() const {
+  uint64_t hash = 0xcbf29ce484222325ULL;
+  auto mix = [&hash](uint64_t value) {
+    hash ^= value;
+    hash *= 0x100000001b3ULL;
+  };
+  mix(tiles16_.size());
+  for (const auto& tile16 : tiles16_) {
+    for (const auto& info : tile16.tiles_info) {
+      mix(static_cast<uint64_t>(info.id_) | (uint64_t{info.palette_} << 16) |
+          (uint64_t{info.vertical_mirror_} << 24) |
+          (uint64_t{info.horizontal_mirror_} << 25) |
+          (uint64_t{info.over_} << 26));
+    }
+  }
+  return hash;
+}
+
+// Builds a map, reusing the 64KB tileset and 1MB tile16 blockset of any
+// earlier map that loaded the same 17 sheets. Only the palette, overlay data,
+// and the map's own bitmap are rebuilt on a cache hit.
+absl::Status Overworld::BuildMapWithTilesetCache(int map_index,
+                                                 int world_type) {
+  auto& map = overworld_maps_[map_index];
+  map.LoadAreaGraphics();
+  const OverworldTilesetKey key = map.tileset_key();
+  const uint64_t fingerprint = Tiles16Fingerprint();
+
+  const std::vector<uint8_t>* cached_gfx = nullptr;
+  const std::vector<uint8_t>* cached_blockset = nullptr;
+  auto it = tileset_cache_.find(key);
+  if (it != tileset_cache_.end()) {
+    cached_gfx = &it->second.current_gfx;
+    if (it->second.tiles16_fingerprint == fingerprint &&
+        !it->second.tile16_blockset.empty()) {
+      cached_blockset = &it->second.tile16_blockset;
+    }
+  }
+
+  RETURN_IF_ERROR(map.BuildMapWithCache(
+      static_cast<int>(tiles16_.size()), game_state_, world_type, tiles16_,
+      GetMapTiles(world_type), cached_gfx, cached_blockset));
+
+  if (it == tileset_cache_.end()) {
+    while (tileset_cache_.size() >= kMaxCachedTilesets) {
+      auto oldest = tileset_cache_.begin();
+      for (auto e = tileset_cache_.begin(); e != tileset_cache_.end(); ++e) {
+        if (e->second.last_use < oldest->second.last_use) {
+          oldest = e;
+        }
+      }
+      tileset_cache_.erase(oldest);
+    }
+    it = tileset_cache_.emplace(key, TilesetCacheEntry{}).first;
+    it->second.current_gfx = map.current_graphics();
+  }
+  if (cached_blockset == nullptr) {
+    it->second.tile16_blockset = map.current_tile16_blockset();
+    it->second.tiles16_fingerprint = fingerprint;
+  }
+  it->second.last_use = ++tileset_cache_clock_;
+  return absl::OkStatus();
+}
+
+void Overworld::InvalidateTilesetCacheForSheet(int sheet) {
+  for (auto it = tileset_cache_.begin(); it != tileset_cache_.end();) {
+    const auto& key = it->first;
+    if (std::find(key.begin(), key.end(), static_cast<uint8_t>(sheet)) !=
+        key.end()) {
+      it = tileset_cache_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+void Overworld::SyncAreaProperties(int map_index) {
+  if (map_index < 0 ||
+      static_cast<size_t>(map_index) >= overworld_maps_.size()) {
+    return;
+  }
+  auto& map = overworld_maps_[map_index];
+  const int parent = map.parent();
+  if (parent == map_index || parent < 0 ||
+      static_cast<size_t>(parent) >= overworld_maps_.size()) {
+    map.ClearInheritedAreaProperties();
+    return;
+  }
+  map.InheritAreaProperties(overworld_maps_[parent]);
+}
+
+absl::StatusOr<Overworld::SubscreenOverlayLayer>
+Overworld::BuildSubscreenOverlayLayer(int map_index) {
+  if (map_index < 0 || map_index >= kNumOverworldMaps) {
+    return absl::InvalidArgumentError("Invalid map index");
+  }
+  RETURN_IF_ERROR(EnsureMapBuilt(map_index));
+  const auto& map = overworld_maps_[map_index];
+  SubscreenOverlayLayer layer;
+  layer.overlay_id = map.render_subscreen_overlay();
+  const int screen = SubscreenOverlayScreen(layer.overlay_id);
+  if (screen < 0 || screen >= kNumOverworldMaps || screen == map_index) {
+    return layer;
+  }
+  layer.overlay_screen = screen;
+  layer.background = IsBackgroundSubscreenOverlay(layer.overlay_id);
+  RETURN_IF_ERROR(
+      map.BuildSubscreenOverlayLayer(GetMapTiles(WorldForOverworldMap(screen)),
+                                     screen, layer.background, &layer.pixels));
+  return layer;
 }
 
 void Overworld::LoadTileTypes() {
@@ -1134,121 +1226,16 @@ void Overworld::LoadTileTypes() {
   }
 }
 
-uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
-  // Compute a comprehensive hash that distinguishes tileset configurations
-  // across different worlds (LW/DW/SW) and map types
-  const auto* map = &overworld_maps_[map_index];
-  uint64_t hash = 0;
-
-  // CRITICAL: Include explicit world type to absolutely prevent cross-world sharing
-  // LW=0, DW=1, SW=2 - this is the strongest disambiguation
-  int world_type = 0;
-  if (map_index >= kDarkWorldMapIdStart &&
-      map_index < kSpecialWorldMapIdStart) {
-    world_type = 1;
-  } else if (map_index >= kSpecialWorldMapIdStart) {
-    world_type = 2;
-  }
-  hash ^= static_cast<uint64_t>(world_type) << 62;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // Hash the first 12 static graphics IDs (main blocksets)
-  // Note: static_graphics_[12-15] are sprite sheets loaded using game_state_
-  // which may be stale at hash time, so we handle them separately below
-  for (int i = 0; i < 12; ++i) {
-    hash ^= static_cast<uint64_t>(map->static_graphics(i)) << ((i % 8) * 8);
-    hash *= 0x517cc1b727220a95ULL;  // FNV-like mixing
-  }
-
-  // Include game_state_ to distinguish sprite sheet configurations
-  // static_graphics_[12-15] are loaded using sprite_graphics_[game_state_]
-  // which varies by game state (Beginning, Zelda Rescued, Master Sword, Agahnim)
-  hash ^= static_cast<uint64_t>(game_state_) << 60;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // Include ALL sprite_graphics values since SW maps (especially Zora's Domain)
-  // have different sprite graphics (0x0E) than LW/DW maps
-  for (int i = 0; i < 3; ++i) {
-    hash ^= static_cast<uint64_t>(map->sprite_graphics(i)) << (52 + i * 4);
-    hash *= 0x517cc1b727220a95ULL;
-  }
-
-  // Include area_graphics for complete config
-  hash ^= static_cast<uint64_t>(map->area_graphics()) << 48;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // Include main_gfx_id to distinguish between worlds
-  // LW=0x20, DW=0x21, SW=0x20/0x24 - prevents cache collisions between LW/SW
-  hash ^= static_cast<uint64_t>(map->main_gfx_id()) << 56;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // Include parent ID to prevent cache collisions between sibling maps
-  hash ^= static_cast<uint64_t>(map->parent()) << 40;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // CRITICAL: Include map index for Special World disambiguation
-  // SW maps have many unique hardcoded configurations based on index:
-  // 0x80 (Master Sword), 0x88/0x93 (Triforce), 0x94, 0x95, 0x96, 0x9C
-  // These must not share cached tilesets even if other properties match
-  hash ^= static_cast<uint64_t>(map_index) << 8;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // Include main_palette to distinguish world palettes (LW=0, DW=1, DM=2/3, etc.)
-  hash ^= static_cast<uint64_t>(map->main_palette()) << 24;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // Include animated_gfx to distinguish between Death Mountain (0x59) and normal (0x5B)
-  hash ^= static_cast<uint64_t>(map->animated_gfx()) << 16;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // Include area_palette for final disambiguation
-  hash ^= static_cast<uint64_t>(map->area_palette()) << 32;
-  hash *= 0x517cc1b727220a95ULL;
-
-  // Include subscreen overlay for visual consistency (fog, curtains, sky, lava)
-  // Different overlays can affect which tiles are visible/rendered
-  hash ^= static_cast<uint64_t>(map->subscreen_overlay());
-  hash *= 0x517cc1b727220a95ULL;
-
-  return hash;
-}
-
-const std::vector<uint8_t>* Overworld::GetCachedTileset(uint64_t config_hash) {
-  auto it = gfx_config_cache_.find(config_hash);
-  if (it != gfx_config_cache_.end()) {
-    it->second.reference_count++;
-    return &it->second.current_gfx;
-  }
-  return nullptr;
-}
-
-void Overworld::CacheTileset(uint64_t config_hash,
-                             const std::vector<uint8_t>& tileset) {
-  // Limit cache size by evicting least-used entries
-  while (gfx_config_cache_.size() >= kMaxCachedConfigs) {
-    // Find entry with lowest reference count
-    auto min_it = gfx_config_cache_.begin();
-    for (auto it = gfx_config_cache_.begin(); it != gfx_config_cache_.end();
-         ++it) {
-      if (it->second.reference_count < min_it->second.reference_count) {
-        min_it = it;
-      }
-    }
-    gfx_config_cache_.erase(min_it);
-  }
-
-  // Cache the tileset
-  gfx_config_cache_[config_hash] = {tileset, 1};
-}
-
 void Overworld::InvalidateMapCache(int map_index) {
   if (map_index < 0 || map_index >= kNumOverworldMaps) {
     return;
   }
 
-  // Compute the hash for this map's graphics configuration and remove it
-  uint64_t config_hash = ComputeGraphicsConfigHash(map_index);
-  gfx_config_cache_.erase(config_hash);
+  // Drop the shared tileset entry for this map's sheet set so the next build
+  // re-reads the graphics buffer.
+  if (static_cast<size_t>(map_index) < overworld_maps_.size()) {
+    tileset_cache_.erase(overworld_maps_[map_index].tileset_key());
+  }
 
   // Also mark the map as needing rebuild
   if (static_cast<size_t>(map_index) < overworld_maps_.size()) {

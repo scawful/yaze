@@ -282,6 +282,12 @@ void OverworldEditor::Initialize() {
   toolbar_->get_zoom = [this]() {
     return ow_map_canvas_.global_scale();
   };
+  toolbar_->on_toggle_overlay_preview = [this]() {
+    show_overlay_preview_ = !show_overlay_preview_;
+  };
+  toolbar_->is_overlay_preview_enabled = [this]() {
+    return show_overlay_preview_;
+  };
   toolbar_->on_upgrade_rom_version = [this](int) {
     ImGui::OpenPopup("UpgradeROMVersion");
   };
