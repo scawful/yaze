@@ -159,6 +159,14 @@ Theme BuildClassicYazeTheme() {
   classic_theme.editor_cursor = RGBA(255, 255, 255);
   classic_theme.editor_selection = RGBA(110, 145, 110, 100);
 
+  // Overworld entity markers: Classic's own values, set here so the Classic
+  // struct never depends on the smart-default pass for them.
+  classic_theme.entrance_color = EntityMarkerDefaults::Entrance();
+  classic_theme.hole_color = EntityMarkerDefaults::Hole();
+  classic_theme.exit_color = EntityMarkerDefaults::Exit();
+  classic_theme.item_color = EntityMarkerDefaults::Item();
+  classic_theme.sprite_color = EntityMarkerDefaults::Sprite();
+
   classic_theme.window_rounding = 0.0f;
   classic_theme.frame_rounding = 5.0f;
   classic_theme.scrollbar_rounding = 5.0f;
@@ -490,13 +498,13 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.drag_preview_outline = RGBA(153, 153, 255, 204);
 
   // Common entity colors
-  theme.entrance_color = RGBA(51, 255, 51, 200);     // Green
-  theme.hole_color = RGBA(255, 51, 255, 200);        // Magenta
-  theme.exit_color = RGBA(255, 51, 51, 200);         // Red
-  theme.item_color = RGBA(255, 214, 0, 200);         // Gold
-  theme.sprite_color = RGBA(51, 153, 255, 200);      // Blue
-  theme.transport_color = RGBA(153, 102, 255, 200);  // Purple
-  theme.music_zone_color = RGBA(255, 153, 51, 200);  // Orange
+  theme.entrance_color = EntityMarkerDefaults::Entrance();  // Yellow-gold
+  theme.hole_color = EntityMarkerDefaults::Hole();          // Amber
+  theme.exit_color = EntityMarkerDefaults::Exit();          // Cyan-white
+  theme.item_color = EntityMarkerDefaults::Item();          // Red
+  theme.sprite_color = EntityMarkerDefaults::Sprite();      // Magenta
+  theme.transport_color = RGBA(153, 102, 255, 200);         // Purple
+  theme.music_zone_color = RGBA(255, 153, 51, 200);         // Orange
 
   // Dungeon editor colors
   theme.dungeon.selection_primary = RGBA(255, 230, 51, 153);    // Yellow
@@ -1226,6 +1234,20 @@ absl::Status ThemeManager::ParseThemeFile(
         theme.docking_preview = color;
       else if (key == "docking_empty_bg")
         theme.docking_empty_bg = color;
+      else if (key == "entrance_color")
+        theme.entrance_color = color;
+      else if (key == "hole_color")
+        theme.hole_color = color;
+      else if (key == "exit_color")
+        theme.exit_color = color;
+      else if (key == "item_color")
+        theme.item_color = color;
+      else if (key == "sprite_color")
+        theme.sprite_color = color;
+      else if (key == "transport_color")
+        theme.transport_color = color;
+      else if (key == "music_zone_color")
+        theme.music_zone_color = color;
     } else if (current_section == "style") {
       // A malformed number must not throw: themes load from the ThemeManager
       // singleton's constructor, where an exception ends the process. Keep the
@@ -1584,26 +1606,30 @@ void ThemeManager::ApplySmartDefaults(
     theme.drag_preview_outline = with_alpha(theme.secondary, 0.8f);
   }
 
-  // Entity defaults
-  if (needs_semantic_default(theme.entrance_color)) {
-    theme.entrance_color = theme.success;
+  // Overworld entity marker defaults. These used to borrow the status colors
+  // (entrance=success, exit=error, item=warning, sprite=info), which painted
+  // exits red and sprites blue and tied marker colors to each theme's status
+  // palette. They are fixed per entity type now; a theme can still override
+  // any of them by declaring the key.
+  if (needs_semantic_default(theme.entrance_color, "entrance_color")) {
+    theme.entrance_color = EntityMarkerDefaults::Entrance();
   }
-  if (needs_semantic_default(theme.hole_color)) {
-    theme.hole_color = theme.secondary;
+  if (needs_semantic_default(theme.hole_color, "hole_color")) {
+    theme.hole_color = EntityMarkerDefaults::Hole();
   }
-  if (needs_semantic_default(theme.exit_color)) {
-    theme.exit_color = theme.error;
+  if (needs_semantic_default(theme.exit_color, "exit_color")) {
+    theme.exit_color = EntityMarkerDefaults::Exit();
   }
-  if (needs_semantic_default(theme.item_color)) {
-    theme.item_color = theme.warning;
+  if (needs_semantic_default(theme.item_color, "item_color")) {
+    theme.item_color = EntityMarkerDefaults::Item();
   }
-  if (needs_semantic_default(theme.sprite_color)) {
-    theme.sprite_color = theme.info;
+  if (needs_semantic_default(theme.sprite_color, "sprite_color")) {
+    theme.sprite_color = EntityMarkerDefaults::Sprite();
   }
-  if (needs_semantic_default(theme.transport_color)) {
+  if (needs_semantic_default(theme.transport_color, "transport_color")) {
     theme.transport_color = lighten(theme.secondary, 0.2f);
   }
-  if (needs_semantic_default(theme.music_zone_color)) {
+  if (needs_semantic_default(theme.music_zone_color, "music_zone_color")) {
     theme.music_zone_color = darken(theme.warning, 0.1f);
   }
 
@@ -2004,10 +2030,10 @@ std::string ThemeManager::SerializeTheme(const Theme& theme) const {
 
   // Helper function to convert color to RGB string
   auto colorToString = [](const Color& c) -> std::string {
-    int r = static_cast<int>(c.red * 255.0f);
-    int g = static_cast<int>(c.green * 255.0f);
-    int b = static_cast<int>(c.blue * 255.0f);
-    int a = static_cast<int>(c.alpha * 255.0f);
+    int r = static_cast<int>(c.red * 255.0f + 0.5f);
+    int g = static_cast<int>(c.green * 255.0f + 0.5f);
+    int b = static_cast<int>(c.blue * 255.0f + 0.5f);
+    int a = static_cast<int>(c.alpha * 255.0f + 0.5f);
     return std::to_string(r) + "," + std::to_string(g) + "," +
            std::to_string(b) + "," + std::to_string(a);
   };
@@ -2181,6 +2207,17 @@ std::string ThemeManager::SerializeTheme(const Theme& theme) const {
   ss << "editor_selection=" << colorToString(theme.editor_selection) << "\n";
   ss << "\n";
 
+  // Map entity marker colors
+  ss << "# Map entity marker colors\n";
+  ss << "entrance_color=" << colorToString(theme.entrance_color) << "\n";
+  ss << "hole_color=" << colorToString(theme.hole_color) << "\n";
+  ss << "exit_color=" << colorToString(theme.exit_color) << "\n";
+  ss << "item_color=" << colorToString(theme.item_color) << "\n";
+  ss << "sprite_color=" << colorToString(theme.sprite_color) << "\n";
+  ss << "transport_color=" << colorToString(theme.transport_color) << "\n";
+  ss << "music_zone_color=" << colorToString(theme.music_zone_color) << "\n";
+  ss << "\n";
+
   // Style settings
   ss << "[style]\n";
   ss << "window_rounding=" << theme.window_rounding << "\n";
@@ -2209,10 +2246,10 @@ std::string ThemeManager::ExportCurrentThemeJson() const {
 
   // Helper to convert Color to hex string (#RRGGBB or #RRGGBBAA)
   auto colorToHex = [](const Color& c) -> std::string {
-    int r = static_cast<int>(c.red * 255.0f);
-    int g = static_cast<int>(c.green * 255.0f);
-    int b = static_cast<int>(c.blue * 255.0f);
-    int a = static_cast<int>(c.alpha * 255.0f);
+    int r = static_cast<int>(c.red * 255.0f + 0.5f);
+    int g = static_cast<int>(c.green * 255.0f + 0.5f);
+    int b = static_cast<int>(c.blue * 255.0f + 0.5f);
+    int a = static_cast<int>(c.alpha * 255.0f + 0.5f);
     if (a == 255) {
       return absl::StrFormat("#%02X%02X%02X", r, g, b);
     }
@@ -2249,6 +2286,14 @@ std::string ThemeManager::ExportCurrentThemeJson() const {
                  {"editor_grid", colorToHex(t.editor_grid)},
                  {"editor_cursor", colorToHex(t.editor_cursor)},
                  {"editor_selection", colorToHex(t.editor_selection)},
+                 // Map entity marker colors
+                 {"entrance_color", colorToHex(t.entrance_color)},
+                 {"hole_color", colorToHex(t.hole_color)},
+                 {"exit_color", colorToHex(t.exit_color)},
+                 {"item_color", colorToHex(t.item_color)},
+                 {"sprite_color", colorToHex(t.sprite_color)},
+                 {"transport_color", colorToHex(t.transport_color)},
+                 {"music_zone_color", colorToHex(t.music_zone_color)},
                  // Enhanced semantic colors
                  {"code_background", colorToHex(t.code_background)},
                  {"text_highlight", colorToHex(t.text_highlight)},
@@ -3387,7 +3432,21 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
                     {"Editor Cursor", &edit_theme.editor_cursor,
                      "Cursor color in editors", false},
                     {"Editor Selection", &edit_theme.editor_selection,
-                     "Selection highlight in editors", true}};
+                     "Selection highlight in editors", true},
+                    {"Entrance Marker", &edit_theme.entrance_color,
+                     "Overworld entrance boxes", true},
+                    {"Hole Marker", &edit_theme.hole_color,
+                     "Overworld hole boxes", true},
+                    {"Exit Marker", &edit_theme.exit_color,
+                     "Overworld exit boxes", true},
+                    {"Item Marker", &edit_theme.item_color,
+                     "Overworld item boxes", true},
+                    {"Sprite Marker", &edit_theme.sprite_color,
+                     "Overworld sprite boxes", true},
+                    {"Transport Marker", &edit_theme.transport_color,
+                     "Transport and connection markers", true},
+                    {"Music Zone Marker", &edit_theme.music_zone_color,
+                     "Music zone markers", true}};
 
             for (auto& [label, color_ptr, description, use_alpha] :
                  editor_colors) {

@@ -31,6 +31,28 @@ enum class DensityPreset {
  * @struct Theme
  * @brief Comprehensive theme structure for YAZE
  */
+// Default overworld entity marker colors, used when a theme does not declare
+// its own. They follow docs/public/developer/architecture.md section 3.4
+// (entrances yellow-gold, exits cyan-white, items red, sprites magenta) and
+// are the same for every theme: the markers sit on the map's own pixels, not
+// on theme surfaces, so they need to read on light and dark map areas alike.
+// The boxes are opaque; labels get an outline (CanvasUtils::DrawCanvasText).
+struct EntityMarkerDefaults {
+  static Color Entrance() { return {1.0f, 0.8f, 0.0f, 1.0f}; }  // 255,204,0
+  static Color Hole() {
+    return {1.0f, 150.0f / 255.0f, 0.0f, 1.0f};  // 255,150,0 amber
+  }
+  static Color Exit() {
+    return {150.0f / 255.0f, 235.0f / 255.0f, 1.0f, 1.0f};  // 150,235,255
+  }
+  static Color Item() {
+    return {235.0f / 255.0f, 45.0f / 255.0f, 45.0f / 255.0f, 1.0f};
+  }
+  static Color Sprite() {
+    return {235.0f / 255.0f, 60.0f / 255.0f, 235.0f / 255.0f, 1.0f};
+  }
+};
+
 struct Theme {
   std::string name;
   std::string description;
@@ -159,7 +181,9 @@ struct Theme {
   Color drag_preview;          // Ghost preview when dragging
   Color drag_preview_outline;  // Outline for drag preview
 
-  // Common entity colors
+  // Map entity marker colors. Each is its own token, keyed in .theme files by
+  // the field name. The overworld marker defaults are fixed values (see
+  // EntityMarkerDefaults), not the status colors: an exit is not an error.
   Color entrance_color;
   Color hole_color;
   Color exit_color;
