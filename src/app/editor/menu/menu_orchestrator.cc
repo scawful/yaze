@@ -1052,7 +1052,7 @@ void MenuOrchestrator::AddSidebarSubmenu() {
         const bool pinned = prefs.sidebar_pinned.count(cat) > 0;
         const bool hidden = prefs.sidebar_hidden.count(cat) > 0;
         if (ImGui::BeginMenu(cat.c_str())) {
-          if (ImGui::MenuItem(pinned ? "Unpin from top" : "Pin to top", nullptr,
+          if (ImGui::MenuItem(pinned ? "Unpin from Top" : "Pin to Top", nullptr,
                               pinned)) {
             if (pinned) {
               prefs.sidebar_pinned.erase(cat);
@@ -1061,7 +1061,7 @@ void MenuOrchestrator::AddSidebarSubmenu() {
             }
             persist();
           }
-          if (ImGui::MenuItem(hidden ? "Show on sidebar" : "Hide from sidebar",
+          if (ImGui::MenuItem(hidden ? "Show on Sidebar" : "Hide from Sidebar",
                               nullptr, hidden)) {
             if (hidden) {
               prefs.sidebar_hidden.erase(cat);
