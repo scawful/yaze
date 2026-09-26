@@ -1598,12 +1598,13 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
           addr = (data[offset + 1] & kSnesByteMax) |
                  ((data[offset] & kSnesByteMax) << 8);
         }
-        if (addr > offset) {
-          return absl::InternalError(
-              absl::StrFormat("Decompress: Offset for command copy exceeds "
-                              "current position "
-                              "(Offset : %#04x | Pos : %#06x)\n",
-                              addr, offset));
+        // The source must already be written. (This used to compare it with
+        // the input offset, which only held for streams deep in a ROM.)
+        if (static_cast<unsigned int>(addr) >= buffer_pos) {
+          return absl::InternalError(absl::StrFormat(
+              "Decompress: copy source %#06x is not before the output "
+              "position %#06x (stream offset %#06x)",
+              addr, buffer_pos, offset));
         }
         if (static_cast<size_t>(addr) + length > buffer.size()) {
           return absl::OutOfRangeError(absl::StrFormat(

@@ -207,10 +207,16 @@ TEST_F(ShortcutConfiguratorTest, DefaultBindingsHaveNoUnintendedConflicts) {
   EXPECT_EQ(shortcuts.GetShortcut("Redo").keys,
             (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_Z}));
 
-  // No-op graphics tool keys are no longer registered.
-  EXPECT_EQ(shortcuts.FindShortcut("graphics.tool.pencil"), nullptr);
-  EXPECT_EQ(shortcuts.FindShortcut("graphics.zoom_in"), nullptr);
-  EXPECT_EQ(shortcuts.FindShortcut("graphics.toggle_grid"), nullptr);
+  // Graphics tool, zoom and grid keys are dispatched to the graphics editor
+  // and owned by it, so B, =, - and G never collide with the overworld.
+  for (const char* id :
+       {"graphics.tool.pencil", "graphics.tool.select", "graphics.zoom_in",
+        "graphics.zoom_out", "graphics.toggle_grid"}) {
+    const Shortcut* graphics = shortcuts.FindShortcut(id);
+    ASSERT_NE(graphics, nullptr) << id;
+    ASSERT_TRUE(graphics->editor_type.has_value()) << id;
+    EXPECT_EQ(*graphics->editor_type, EditorType::kGraphics) << id;
+  }
 
   // Editor tool keys are owned by their editor.
   const Shortcut* brush = shortcuts.FindShortcut("overworld.brush_toggle");

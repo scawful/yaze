@@ -1,6 +1,7 @@
 #include "app/editor/graphics/sheet_browser_panel.h"
 #include "util/i18n/tr.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -21,7 +22,9 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
+#include "util/indexed_png.h"
 #include "zelda3/game_data.h"
+#include "zelda3/gfx_sheet_png.h"
 
 namespace yaze {
 namespace editor {
@@ -46,7 +49,9 @@ absl::Status SheetBrowserPanel::Update() {
   ImGui::Separator();
   DrawBatchOperations();
   ImGui::Separator();
+  DrawPendingSave();
   DrawSelectedSheetInfo();
+  DrawPngTransfer(state_->current_sheet_id);
   DrawSheetGrid();
   return absl::OkStatus();
 }
@@ -257,6 +262,304 @@ void SheetBrowserPanel::DrawSelectedSheetInfo() {
   ImGui::Separator();
 }
 
+std::string SheetBrowserPanel::SheetUsageSummary(uint16_t sheet_id) const {
+  if (!inventory_.has_value() || sheet_id >= inventory_->sheets.size()) {
+    return {};
+  }
+  const auto& use = inventory_->sheets[sheet_id].usage;
+  std::vector<std::string> parts;
+  auto add = [&parts](size_t count, const char* what) {
+    if (count > 0) {
+      parts.push_back(absl::StrFormat("%zu %s", count, what));
+    }
+  };
+  add(use.main_blocksets.size(), "main blocksets");
+  add(use.room_blocksets.size(), "room blocksets");
+  add(use.spritesets.size(), "spritesets");
+  add(use.ow_areas_static.size() + use.ow_areas_sprite.size(), "OW areas");
+  add(use.rooms_sprite.size(), "rooms");
+  return parts.empty() ? std::string("no table uses it")
+                       : "used by " + absl::StrJoin(parts, ", ");
+}
+
+void SheetBrowserPanel::DrawPendingSave() {
+  if (!save_planner_ || state_->modified_sheets.empty()) {
+    return;
+  }
+  if (!ImGui::CollapsingHeader(
+          absl::StrFormat("Pending graphics save (%zu)###PendingSave",
+                          state_->modified_sheets.size())
+              .c_str(),
+          ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  if (ImGui::SmallButton(ICON_MD_FACT_CHECK " Check save plan")) {
+    auto plan = save_planner_();
+    save_plan_sheets_ = state_->modified_sheets;
+    if (plan.ok()) {
+      save_plan_ = std::move(*plan);
+      save_plan_error_.clear();
+    } else {
+      save_plan_.clear();
+      save_plan_error_ = std::string(plan.status().message());
+    }
+  }
+  HOVER_HINT(
+      "Writes every dirty sheet to a scratch copy of the ROM and decodes it "
+      "back. Saving the ROM does the same for real, and writes nothing if any "
+      "sheet fails.");
+  if (!save_plan_error_.empty()) {
+    ImGui::TextColored(gui::GetErrorColor(), "%s", save_plan_error_.c_str());
+    return;
+  }
+  if (save_plan_.empty()) {
+    ImGui::TextDisabled("%s", tr("Check the plan before saving the ROM."));
+    return;
+  }
+  if (save_plan_sheets_ != state_->modified_sheets) {
+    ImGui::TextColored(gui::GetWarningColor(), "%s",
+                       tr("Edits changed since the check; check again."));
+  }
+  for (const auto& entry : save_plan_) {
+    const ImVec4 color =
+        !entry.refusal.empty() ? gui::GetErrorColor()
+        : entry.placement == zelda3::GfxSheetPlacement::kRelocated
+            ? gui::GetWarningColor()
+            : gui::GetSuccessColor();
+    ImGui::TextColored(color, "%s",
+                       DescribeGraphicsSavePlanEntry(entry).c_str());
+    const std::string usage = SheetUsageSummary(entry.sheet_id);
+    if (!usage.empty()) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("%s", usage.c_str());
+    }
+  }
+}
+
+void SheetBrowserPanel::SetPngStatus(std::string message, bool is_error) {
+  png_status_ = std::move(message);
+  png_status_is_error_ = is_error;
+}
+
+absl::StatusOr<zelda3::SheetPalette> SheetBrowserPanel::PngPalette() {
+  if (png_palette_mode_ == 0) {
+    return zelda3::GrayscaleSheetPalette();
+  }
+  if (rom_ == nullptr || game_data_ == nullptr || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("Open a ROM to use room palettes");
+  }
+  return png_palette_mode_ == 1
+             ? zelda3::RoomBackgroundSheetPalette(*rom_, *game_data_, png_room_,
+                                                  png_palette_row_)
+             : zelda3::RoomSpriteSheetPalette(*rom_, *game_data_, png_room_,
+                                              png_palette_row_);
+}
+
+void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
+  if (!ImGui::CollapsingHeader(tr("PNG export and import###SheetPng"))) {
+    return;
+  }
+  // The Arena holds the last loaded ROM's sheets; only work on this one's.
+  const bool arena_is_ours = game_data_ != nullptr &&
+                             gfx::Arena::Get().gfx_sheets_owner() == game_data_;
+  if (!arena_is_ours) {
+    ImGui::TextColored(gui::GetWarningColor(), "%s",
+                       tr("The sheets in memory belong to another open ROM."));
+    return;
+  }
+
+  const char* modes[] = {tr("Grayscale"), tr("Room background row"),
+                         tr("Room sprite row")};
+  ImGui::SetNextItemWidth(180.0f);
+  ImGui::Combo(tr("Palette##png"), &png_palette_mode_, modes,
+               IM_ARRAYSIZE(modes));
+  ImGui::SetNextItemWidth(90.0f);
+  ImGui::InputInt(tr("Room##png"), &png_room_, 1, 16,
+                  ImGuiInputTextFlags_CharsHexadecimal);
+  png_room_ = std::clamp(png_room_, 0, 295);
+  if (png_palette_mode_ != 0) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(90.0f);
+    ImGui::SliderInt(tr("Row##png"), &png_palette_row_, 0, 7);
+  }
+  HOVER_HINT(
+      "The room picks the palette rows and, for room PNGs, the room's 8 "
+      "background sheets.");
+  ImGui::SetNextItemWidth(320.0f);
+  ImGui::InputTextWithHint("File##PngPath", tr("empty: choose in a dialog"),
+                           &png_path_);
+  HOVER_HINT(
+      "PNG path for the export and import buttons. Leave it empty to choose "
+      "the file in a dialog.");
+  ImGui::SetNextItemWidth(90.0f);
+  ImGui::InputInt(tr("At block##png"), &png_first_block_);
+  png_first_block_ = std::clamp(png_first_block_, 0, 15);
+  HOVER_HINT(
+      "The 16x16 block (0-15, 8 per row) where an imported sheet PNG starts; "
+      "pick a free block from the usage list above.");
+
+  const auto& sheets = gfx::Arena::Get().gfx_sheets();
+  const std::vector<uint8_t> pixels = sheet_id < sheets.size()
+                                          ? sheets[sheet_id].vector()
+                                          : std::vector<uint8_t>{};
+  util::FileDialogOptions png_filter;
+  png_filter.filters.push_back({"PNG image", "png"});
+  // The typed path wins; otherwise ask with a dialog.
+  auto save_path = [this](const std::string& default_name) {
+    return png_path_.empty() ? util::FileDialogWrapper::ShowSaveFileDialog(
+                                   default_name, "png")
+                             : png_path_;
+  };
+  auto open_path = [this, &png_filter]() {
+    return png_path_.empty()
+               ? util::FileDialogWrapper::ShowOpenFileDialog(png_filter)
+               : png_path_;
+  };
+
+  if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Export sheet PNG")) {
+    auto palette = PngPalette();
+    auto png = palette.ok()
+                   ? ExportSheetPixelsPng(sheet_id, pixels, *palette)
+                   : absl::StatusOr<std::vector<uint8_t>>(palette.status());
+    if (!png.ok()) {
+      SetPngStatus(std::string(png.status().message()), true);
+    } else {
+      const std::string path =
+          save_path(absl::StrFormat("sheet_%02X", sheet_id));
+      if (!path.empty()) {
+        const absl::Status status = util::WriteBinaryFile(path, *png);
+        SetPngStatus(
+            status.ok() ? "Exported " + path : std::string(status.message()),
+            !status.ok());
+      }
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FILE_UPLOAD " Import into sheet")) {
+    auto palette = PngPalette();
+    const std::string path = palette.ok() ? open_path() : std::string();
+    if (!palette.ok()) {
+      SetPngStatus(std::string(palette.status().message()), true);
+    } else if (!path.empty()) {
+      auto bytes = util::ReadBinaryFile(path);
+      auto preview =
+          bytes.ok() ? PreviewSheetPngImport(sheet_id, pixels, *bytes, *palette,
+                                             png_first_block_)
+                     : absl::StatusOr<SheetPngImportPreview>(bytes.status());
+      if (!preview.ok()) {
+        png_pending_.clear();
+        SetPngStatus(std::string(preview.status().message()), true);
+      } else {
+        png_pending_ = {*preview};
+        SetPngStatus("Preview of " + path, false);
+      }
+    }
+  }
+
+  if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Export room PNG")) {
+    auto palette = PngPalette();
+    if (!palette.ok()) {
+      SetPngStatus(std::string(palette.status().message()), true);
+    } else if (rom_ != nullptr && game_data_ != nullptr) {
+      const auto sets =
+          zelda3::ResolveAllRoomBackgroundSets(*rom_, *game_data_);
+      auto png =
+          zelda3::ExportRoomBackgroundPng(*rom_, sets[png_room_], *palette);
+      if (!png.ok()) {
+        SetPngStatus(std::string(png.status().message()), true);
+      } else {
+        const std::string path =
+            save_path(absl::StrFormat("room_%03X_background", png_room_));
+        if (!path.empty()) {
+          const absl::Status status = util::WriteBinaryFile(path, *png);
+          SetPngStatus(
+              status.ok() ? "Exported " + path + " (sheets as saved in the ROM)"
+                          : std::string(status.message()),
+              !status.ok());
+        }
+      }
+    }
+  }
+  HOVER_HINT(
+      "128x256: the room's 8 background sheets in slot order, read from the "
+      "ROM (save pixel edits first to include them).");
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FILE_UPLOAD " Import room PNG")) {
+    auto palette = PngPalette();
+    const std::string path = palette.ok() ? open_path() : std::string();
+    if (!palette.ok()) {
+      SetPngStatus(std::string(palette.status().message()), true);
+    } else if (!path.empty() && rom_ != nullptr && game_data_ != nullptr) {
+      const auto sets =
+          zelda3::ResolveAllRoomBackgroundSets(*rom_, *game_data_);
+      auto bytes = util::ReadBinaryFile(path);
+      auto previews =
+          bytes.ok()
+              ? PreviewRoomPngImport(*rom_, sets[png_room_], *bytes, *palette)
+              : absl::StatusOr<std::vector<SheetPngImportPreview>>(
+                    bytes.status());
+      png_pending_.clear();
+      if (!previews.ok()) {
+        SetPngStatus(std::string(previews.status().message()), true);
+      } else {
+        // The room preview starts from the ROM's sheets, so it would discard
+        // unsaved pixel edits to the same sheets.
+        std::vector<std::string> unsaved;
+        for (const auto& preview : *previews) {
+          if (state_->modified_sheets.count(preview.sheet_id) != 0) {
+            unsaved.push_back(absl::StrFormat("0x%02X", preview.sheet_id));
+          }
+        }
+        if (!unsaved.empty()) {
+          SetPngStatus(absl::StrFormat("Save or discard the pixel edits to "
+                                       "sheet(s) %s before a room import",
+                                       absl::StrJoin(unsaved, ", ")),
+                       true);
+        } else {
+          png_pending_ = *previews;
+          SetPngStatus("Preview of " + path, false);
+        }
+      }
+    }
+  }
+
+  if (!png_status_.empty()) {
+    ImGui::TextColored(
+        png_status_is_error_ ? gui::GetErrorColor() : gui::GetInfoColor(), "%s",
+        png_status_.c_str());
+  }
+  if (png_pending_.empty()) {
+    return;
+  }
+  bool any_change = false;
+  for (const auto& preview : png_pending_) {
+    ImGui::BulletText("%s", DescribeSheetPngImport(preview).c_str());
+    any_change = any_change || !preview.changed_tiles.empty();
+  }
+  ImGui::BeginDisabled(!any_change);
+  if (ImGui::Button(ICON_MD_CHECK " Apply import")) {
+    std::vector<std::string> errors;
+    for (const auto& preview : png_pending_) {
+      const absl::Status status =
+          ApplySheetPngImport(preview, *state_, undo_manager_);
+      if (!status.ok()) {
+        errors.push_back(std::string(status.message()));
+      }
+    }
+    SetPngStatus(errors.empty() ? std::string("Imported; save the ROM to write "
+                                              "the sheets")
+                                : absl::StrJoin(errors, "; "),
+                 !errors.empty());
+    png_pending_.clear();
+  }
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_CLOSE " Cancel")) {
+    png_pending_.clear();
+    SetPngStatus("Import cancelled", false);
+  }
+}
+
 void SheetBrowserPanel::DrawSearchBar() {
   ImGui::Text(tr("Search:"));
   ImGui::SameLine();
@@ -416,6 +719,14 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
     thumbnail_canvas_.AddTextAt(ImVec2(4, 2), label,
                                 is_modified ? IM_COL32(255, 200, 100, 255)
                                             : IM_COL32(150, 255, 150, 255));
+    if (is_modified) {
+      // Dirty dot: unsaved pixel edits in this sheet.
+      const ImVec2 dot =
+          ImVec2(thumbnail_canvas_.zero_point().x + thumb_width - 8,
+                 thumbnail_canvas_.zero_point().y + thumb_height - 8);
+      ImGui::GetWindowDrawList()->AddCircleFilled(
+          dot, 4.0f, ImGui::GetColorU32(gui::GetModifiedColor()));
+    }
 
     if (inventory_.has_value() &&
         sheet_id < static_cast<int>(inventory_->sheets.size())) {

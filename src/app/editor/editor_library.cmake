@@ -84,6 +84,10 @@ set(
   app/editor/graphics/polyhedral_editor_panel.cc
   app/editor/graphics/screen_editor.cc
   app/editor/graphics/sheet_browser_panel.cc
+  app/editor/graphics/sheet_png_transfer.cc
+  app/editor/graphics/pixel_clipboard.cc
+  app/editor/graphics/graphics_save_plan.cc
+  app/editor/graphics/graphics_sheet_sync.cc
   app/editor/graphics/usage_preview.cc
   app/editor/graphics/usage_preview_panel.cc
   app/editor/graphics/ui/browser/sheet_browser_view.cc

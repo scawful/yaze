@@ -1321,6 +1321,38 @@ absl::Status OverworldMap::LoadVanillaOverlayData() {
   return absl::OkStatus();
 }
 
+uint16_t OverworldMap::SourceSheetForRevision(int i) const {
+  // Entries 0-15 are the static slots; entry 16 is the animated sheet whose
+  // first frame CopyAnimatedSheetIntoSlot7() copies into slot 7.
+  return i < 16 ? static_graphics_[i] : animated_sheet_;
+}
+
+void OverworldMap::RecordSourceSheetRevisions() {
+  for (int i = 0; i < kNumSourceSheets; i++) {
+    const uint16_t sheet = SourceSheetForRevision(i);
+    source_sheet_revisions_[i] =
+        game_data_ != nullptr && sheet != 0 &&
+                graphics_sheet_overrides_.count(sheet) == 0
+            ? game_data_->sheet_store.Revision(sheet)
+            : 0;
+  }
+}
+
+bool OverworldMap::SourceSheetsChanged() const {
+  if (game_data_ == nullptr) {
+    return false;
+  }
+  for (int i = 0; i < kNumSourceSheets; i++) {
+    const uint16_t sheet = SourceSheetForRevision(i);
+    if (source_sheet_revisions_[i] != 0 && sheet != 0 &&
+        graphics_sheet_overrides_.count(sheet) == 0 &&
+        game_data_->sheet_store.Revision(sheet) != source_sheet_revisions_[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
                                          int size, const uint8_t* all_gfx) {
   if (const auto it = graphics_sheet_overrides_.find(
@@ -1381,6 +1413,11 @@ absl::Status OverworldMap::BuildTileset() {
   // same with its StaticGFX[16]); the bottom keeps the area's sheet 7.
   CopyAnimatedSheetIntoSlot7();
 
+  // Remember what each slot (and the animated sheet copied into slot 7) was
+  // built from, so an unsaved sheet edit can be detected
+  // (SourceSheetsChanged).
+  RecordSourceSheetRevisions();
+
   return absl::OkStatus();
 }
 
@@ -1388,8 +1425,18 @@ void OverworldMap::CopyAnimatedSheetIntoSlot7() {
   if (!game_data_ || animated_sheet_ == 0) {
     return;
   }
-  const size_t src = static_cast<size_t>(animated_sheet_) * 0x1000;
   const size_t dst = 7 * 0x1000;
+  // A preview override (SetGraphicsSheetOverrides) wins over the store.
+  if (const auto it = graphics_sheet_overrides_.find(animated_sheet_);
+      it != graphics_sheet_overrides_.end()) {
+    if (it->second.size() >= kAnimatedSheetSlotBytes &&
+        dst + kAnimatedSheetSlotBytes <= current_gfx_.size()) {
+      std::copy_n(it->second.begin(), kAnimatedSheetSlotBytes,
+                  current_gfx_.begin() + dst);
+    }
+    return;
+  }
+  const size_t src = static_cast<size_t>(animated_sheet_) * 0x1000;
   if (src + kAnimatedSheetSlotBytes > game_data_->graphics_buffer.size() ||
       dst + kAnimatedSheetSlotBytes > current_gfx_.size()) {
     return;

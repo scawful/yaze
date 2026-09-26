@@ -62,6 +62,9 @@ void PaletteControlsPanel::Initialize() {
   state_->palette_group_index = 0;
   state_->palette_index = 0;
   state_->sub_palette_index = 0;
+  state_->apply_palette_to_sheet = [this](uint16_t sheet_id) {
+    ApplyPaletteToSheet(sheet_id);
+  };
 }
 
 void PaletteControlsPanel::Draw(bool* p_open) {

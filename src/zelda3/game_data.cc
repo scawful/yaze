@@ -545,7 +545,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
       core::RomAddressKey::kOverworldGfxPtr3,
       version_constants.kOverworldGfxPtr3);
 
-  data.graphics_buffer.clear();
+  data.sheet_store.Clear();
 
 #ifdef __EMSCRIPTEN__
   auto loading_handle =
@@ -594,6 +594,8 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     }
   }
 
+  // The sheets were appended through the graphics_buffer alias.
+  data.sheet_store.MarkAllSheetsChanged();
   diag.Analyze();
   LOG_INFO("Graphics", "Graphics loading complete. Sheets processed: %d",
            kNumGfxSheets);

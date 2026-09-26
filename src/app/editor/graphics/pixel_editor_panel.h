@@ -1,14 +1,18 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_PIXEL_EDITOR_PANEL_H
 #define YAZE_APP_EDITOR_GRAPHICS_PIXEL_EDITOR_PANEL_H
 
+#include <optional>
+
 #include "absl/status/status.h"
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/pixel_clipboard.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
 #include "rom/rom.h"
+#include "zelda3/graphics_sheet_store.h"
 
 namespace yaze {
 namespace editor {
@@ -56,6 +60,12 @@ class PixelEditorPanel : public WindowContent {
    * @return Status of the render operation
    */
   absl::Status Update();
+
+  // System clipboard (PNG); Cut/Copy/Paste shortcuts route here through
+  // GraphicsEditor. Copy takes the selection, or the whole sheet.
+  void CopyToSystemClipboard();
+  void CutToSystemClipboard();
+  void PasteFromSystemClipboard();
 
  private:
   /**
@@ -164,15 +174,24 @@ class PixelEditorPanel : public WindowContent {
   void FlipSelectionVertical();
 
   /**
-   * @brief Save current state for undo (captures before-snapshot)
+   * @brief Starts a stroke on the current sheet. Pixel writes go to the
+   *        session's GraphicsSheetStore until EndStroke().
    */
-  void SaveUndoState();
+  void BeginStroke();
 
   /**
-   * @brief Finalize the current undo action by capturing the after-snapshot
-   *        and pushing a GraphicsPixelEditAction to the UndoManager.
+   * @brief Ends the stroke: the sheet's store revision changes once and one
+   *        GraphicsPixelEditAction (the changed pixels) is pushed for undo.
    */
-  void FinalizeUndoAction();
+  void EndStroke();
+
+  /// The stroke's edit on the current sheet (starting one if needed), or
+  /// null when the sheet cannot be edited: graphics are not loaded, or the
+  /// Arena shows another open ROM's sheets.
+  zelda3::GraphicsSheetStore::Edit* StrokeEdit();
+
+  /// After pixel writes: refresh the Arena copy and mark the sheet modified.
+  void ShowStrokeChanges(bool changed);
 
   /**
    * @brief Convert screen coordinates to pixel coordinates
@@ -213,17 +232,16 @@ class PixelEditorPanel : public WindowContent {
    */
   void DrawTileHighlight(const gfx::Bitmap& sheet);
 
+  friend class PixelEditorPanelTestPeer;
+
   GraphicsEditorState* state_;
   Rom* rom_;
   UndoManager* undo_manager_ = nullptr;
   gui::Canvas canvas_{"PixelEditorCanvas", ImVec2(128, 32),
                       gui::CanvasGridSize::k8x8};
 
-  // Pending before-snapshot for UndoManager integration.
-  // Captured at the start of an edit stroke and consumed when finalized.
-  bool has_pending_undo_ = false;
-  uint16_t pending_undo_sheet_id_ = 0;
-  std::vector<uint8_t> pending_undo_before_data_;
+  // The stroke in progress (mouse-down to mouse-up, or one paste or cut).
+  std::optional<zelda3::GraphicsSheetStore::Edit> stroke_;
 
   // Mouse tracking for tools
   bool is_drawing_ = false;
@@ -238,6 +256,30 @@ class PixelEditorPanel : public WindowContent {
   int cursor_x_ = 0;
   int cursor_y_ = 0;
   bool cursor_in_canvas_ = false;
+
+  // System clipboard (PNG). Copy takes the selection, or the whole sheet
+  // when nothing is selected. Paste maps the image onto the sheet's colors
+  // and floats it as the selection until committed (Enter, or a click
+  // outside it) or cancelled (Esc); a commit is one undo step.
+  void HandleFloatingPasteKeys();
+  void DrawClipboardControls();
+  void DrawFloatingPaste();
+  bool HandleFloatingPasteInput();  // true while the float takes the mouse
+  void CommitFloatingPaste();
+  void CancelFloatingPaste();
+  void ClampFloatingPaste();
+  SheetColors CurrentSheetColors() const;
+  std::string clipboard_status_;
+  bool clipboard_status_is_error_ = false;
+  bool paste_skip_color0_ = false;
+  bool dragging_paste_ = false;
+  int paste_drag_dx_ = 0;
+  int paste_drag_dy_ = 0;
+
+  // Canvas panning (Hand tool, or the middle mouse button with any tool).
+  bool HandlePanInput();
+  void DrawPaletteRowPicker();
+  void DrawPixelGrids(float canvas_width, float canvas_height);
 };
 
 }  // namespace editor

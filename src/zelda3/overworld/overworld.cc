@@ -1135,9 +1135,17 @@ absl::Status Overworld::BuildMapWithTilesetCache(int map_index,
   const OverworldTilesetKey key = map.tileset_key();
   const uint64_t fingerprint = Tiles16Fingerprint();
 
+  const TilesetRevisions revisions = SheetRevisionsForKey(key);
+
   const std::vector<uint8_t>* cached_gfx = nullptr;
   const std::vector<uint8_t>* cached_blockset = nullptr;
   auto it = tileset_cache_.find(key);
+  if (it != tileset_cache_.end() && it->second.sheet_revisions != revisions) {
+    // An unsaved Graphics editor edit changed one of the key's sheets since
+    // this entry was built; drop it so the map re-reads the store.
+    tileset_cache_.erase(it);
+    it = tileset_cache_.end();
+  }
   if (it != tileset_cache_.end()) {
     cached_gfx = &it->second.current_gfx;
     if (it->second.tiles16_fingerprint == fingerprint &&
@@ -1162,6 +1170,7 @@ absl::Status Overworld::BuildMapWithTilesetCache(int map_index,
     }
     it = tileset_cache_.emplace(key, TilesetCacheEntry{}).first;
     it->second.current_gfx = map.current_graphics();
+    it->second.sheet_revisions = revisions;
   }
   if (cached_blockset == nullptr) {
     it->second.tile16_blockset = map.current_tile16_blockset();
@@ -1169,6 +1178,20 @@ absl::Status Overworld::BuildMapWithTilesetCache(int map_index,
   }
   it->second.last_use = ++tileset_cache_clock_;
   return absl::OkStatus();
+}
+
+Overworld::TilesetRevisions Overworld::SheetRevisionsForKey(
+    const OverworldTilesetKey& key) const {
+  TilesetRevisions revisions{};
+  if (game_data_ == nullptr) {
+    return revisions;
+  }
+  for (size_t i = 0; i < key.size(); ++i) {
+    if (key[i] != 0) {
+      revisions[i] = game_data_->sheet_store.Revision(key[i]);
+    }
+  }
+  return revisions;
 }
 
 void Overworld::InvalidateTilesetCacheForSheet(int sheet) {

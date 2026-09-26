@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -212,6 +213,23 @@ TEST(DecompressV2Test, ReadsRepeatedTilesWrittenByHyruleMagicCompress) {
       sheet);
 }
 
+TEST(DecompressV2Test, CopySourceIsCheckedAgainstTheOutputNotTheStream) {
+  // 'A' x 32 by fill, then copy 32 bytes from output 0x10: the source is past
+  // the stream offset (4) but already written, so the stream is valid.
+  const std::vector<uint8_t> valid = {0x3F, 'A', 0x9F, 0x10, 0x00, 0xFF};
+  auto decoded =
+      gfx::lc_lz2::DecompressV2(valid.data(), 0, 0x600, 1, valid.size());
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
+  EXPECT_EQ(std::vector<uint8_t>(decoded->begin(), decoded->begin() + 64),
+            std::vector<uint8_t>(64, 'A'));
+
+  // A copy from output not yet written is refused, as DecompressExact does.
+  const std::vector<uint8_t> forward = {0x00, 'A', 0x81, 0x05, 0x00, 0xFF};
+  EXPECT_FALSE(
+      gfx::lc_lz2::DecompressV2(forward.data(), 0, 0x600, 1, forward.size())
+          .ok());
+}
+
 TEST(DecompressExactTest, RejectsBadStreams) {
   const std::vector<uint8_t> truncated = {0x03, 'A', 'B'};
   EXPECT_FALSE(
@@ -265,6 +283,23 @@ TEST(HyruleMagicCompressRomTest, EveryCompressedSheetRoundTrips) {
       auto original = zelda3::ReadGfxSheetData(rom, sheet);
       ASSERT_TRUE(original.ok()) << original.status();
       ExpectRoundTrip(*original);
+      // The editor's loader (DecompressV2) must agree with the game's
+      // decoder on the ROM's own stream and on the re-encoded one.
+      auto pc = zelda3::ReadGfxSheetPc(rom, sheet);
+      ASSERT_TRUE(pc.ok()) << pc.status();
+      auto loaded = gfx::lc_lz2::DecompressV2(rom.data(), static_cast<int>(*pc),
+                                              0x800, 1, rom.size());
+      ASSERT_TRUE(loaded.ok()) << loaded.status();
+      ASSERT_GE(loaded->size(), original->size());
+      EXPECT_TRUE(
+          std::equal(original->begin(), original->end(), loaded->begin()));
+      const auto encoded = Compress(*original, /*flag=*/0);
+      auto reloaded = gfx::lc_lz2::DecompressV2(encoded.data(), 0, 0x800, 1,
+                                                encoded.size());
+      ASSERT_TRUE(reloaded.ok()) << reloaded.status();
+      ASSERT_GE(reloaded->size(), original->size());
+      EXPECT_TRUE(
+          std::equal(original->begin(), original->end(), reloaded->begin()));
       ++compressed_sheets;
     }
     EXPECT_EQ(compressed_sheets, 211);

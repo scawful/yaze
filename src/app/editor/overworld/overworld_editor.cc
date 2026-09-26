@@ -575,6 +575,19 @@ absl::Status OverworldEditor::Load() {
   return absl::OkStatus();
 }
 
+void OverworldEditor::RefreshMapsForSheetEdits() {
+  for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+    auto* overworld_map = overworld_.mutable_overworld_map(map);
+    // A map already marked for refresh waits for its rebuild, which records
+    // the new sheet revisions; marking it again every frame would keep
+    // clearing the blockset cache.
+    if (overworld_map != nullptr && !maps_bmp_[map].modified() &&
+        overworld_map->SourceSheetsChanged()) {
+      ForceRefreshGraphics(map);
+    }
+  }
+}
+
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
 
@@ -593,6 +606,9 @@ absl::Status OverworldEditor::Update() {
 
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
+
+  // Show unsaved Graphics editor edits in the maps that use those sheets.
+  RefreshMapsForSheetEdits();
 
   // Early return if window_manager is not available
   // (panels won't be drawn without it, so no point continuing)
