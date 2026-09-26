@@ -108,25 +108,32 @@ class AudioTimingTest : public TestRomManager::BoundRomTest {
   // Get current DSP sample offset (for counting samples)
   uint32_t GetDspSampleOffset() const { return apu_->dsp().GetSampleOffset(); }
 
-  // Count samples generated over a number of frames
-  int CountSamplesOverFrames(int frame_count) {
-    uint32_t start_offset = GetDspSampleOffset();
-
-    for (int i = 0; i < frame_count; ++i) {
-      // APU expects cumulative master cycles, not per-frame delta
-      cumulative_master_cycles_ += audio_constants::kMasterCyclesPerFrame;
-      apu_->RunCycles(cumulative_master_cycles_);
-    }
-
-    uint32_t end_offset = GetDspSampleOffset();
-
-    // Handle wrap-around (DSP buffer is 2048 samples with 0x7ff mask)
+  // Samples written between two DSP sample offsets. The offset is a position
+  // in a 2048-sample ring (0x7ff mask), so this is only exact for spans under
+  // 2048 samples, such as one frame (~533).
+  static int SamplesBetween(uint32_t start_offset, uint32_t end_offset) {
     constexpr uint32_t kBufferSize = 2048;
-    if (end_offset >= start_offset) {
-      return end_offset - start_offset;
-    } else {
-      return (kBufferSize - start_offset) + end_offset;
+    return static_cast<int>((end_offset + kBufferSize - start_offset) %
+                            kBufferSize);
+  }
+
+  // Runs one NTSC frame and returns the samples it produced.
+  int RunFrameAndCountSamples() {
+    const uint32_t start_offset = GetDspSampleOffset();
+    // APU expects cumulative master cycles, not per-frame delta
+    cumulative_master_cycles_ += audio_constants::kMasterCyclesPerFrame;
+    apu_->RunCycles(cumulative_master_cycles_);
+    return SamplesBetween(start_offset, GetDspSampleOffset());
+  }
+
+  // Count samples generated over a number of frames. Sums per-frame counts:
+  // one offset delta across many frames only sees the total modulo 2048.
+  int CountSamplesOverFrames(int frame_count) {
+    int total_samples = 0;
+    for (int i = 0; i < frame_count; ++i) {
+      total_samples += RunFrameAndCountSamples();
     }
+    return total_samples;
   }
 
   // Track cumulative master cycles for APU calls
@@ -324,23 +331,15 @@ TEST_F(AudioTimingTest, NoCycleDriftOver60Seconds) {
 
   for (int sec = 0; sec < kTestSeconds; ++sec) {
     uint64_t apu_before = apu_->GetCycles();
-    int samples_before = GetDspSampleOffset();
 
-    // Run one second of frames
-    // APU expects cumulative master cycles, not per-frame delta
+    // Run one second of frames, counting samples per frame (the DSP sample
+    // offset wraps every 2048 samples).
     for (int frame = 0; frame < kFramesPerSecond; ++frame) {
-      cumulative_master_cycles_ += audio_constants::kMasterCyclesPerFrame;
-      apu_->RunCycles(cumulative_master_cycles_);
+      cumulative_samples += RunFrameAndCountSamples();
     }
 
     uint64_t apu_after = apu_->GetCycles();
-    int samples_after = GetDspSampleOffset();
-
     cumulative_apu_cycles += (apu_after - apu_before);
-    int sample_delta = (samples_after >= samples_before)
-                           ? (samples_after - samples_before)
-                           : (2048 - samples_before + samples_after);
-    cumulative_samples += sample_delta;
   }
 
   // After 60 seconds, we should have very close to expected values
