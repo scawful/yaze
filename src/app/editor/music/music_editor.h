@@ -10,20 +10,20 @@
 #include "absl/status/statusor.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/editor.h"
-#include "app/gui/app/editor_layout.h"
-#include "rom/rom.h"
-#include "app/emu/audio/audio_backend.h"
-#include "imgui/imgui.h"
 #include "app/editor/music/instrument_editor_view.h"
+#include "app/editor/music/music_player.h"
 #include "app/editor/music/piano_roll_view.h"
 #include "app/editor/music/sample_editor_view.h"
 #include "app/editor/music/song_browser_view.h"
 #include "app/editor/music/tracker_view.h"
+#include "app/emu/audio/audio_backend.h"
+#include "app/gui/app/editor_layout.h"
+#include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "zelda3/music/asm_exporter.h"
 #include "zelda3/music/asm_importer.h"
 #include "zelda3/music/music_bank.h"
 #include "zelda3/music/spc_serializer.h"
-#include "app/editor/music/music_player.h"
 
 namespace yaze {
 
@@ -33,8 +33,8 @@ class Emulator;
 namespace audio {
 class IAudioBackend;
 struct AudioConfig;
-}
-}
+}  // namespace audio
+}  // namespace emu
 
 namespace project {
 struct YazeProject;
@@ -105,6 +105,14 @@ class MusicEditor : public Editor {
   absl::Status Undo() override;
   absl::Status Redo() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  // A pending tracker edit is committed to history by Undo(), so it counts.
+  bool CanUndo() const override {
+    return pending_undo_before_.has_value() || undo_manager_.CanUndo();
+  }
+  // Copy/Paste are unimplemented (see MusicEditor::Copy/Paste).
+  bool CanCut() const override { return false; }
+  bool CanCopy() const override { return false; }
+  bool CanPaste() const override { return false; }
 
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
@@ -123,9 +131,8 @@ class MusicEditor : public Editor {
   void StopPlayback();
   void SpeedUp(float delta = 0.1f);
   void SlowDown(float delta = 0.1f);
-  
-  // API for sub-views
 
+  // API for sub-views
 
   // Song window management (like dungeon rooms)
   void OpenSong(int song_index);
@@ -150,7 +157,7 @@ class MusicEditor : public Editor {
   // Delegated to music_player_
 
   AssemblyEditor assembly_editor_;
-  
+
   // New Data Model
   zelda3::music::MusicBank music_bank_;
   editor::music::TrackerView tracker_view_;
@@ -158,7 +165,7 @@ class MusicEditor : public Editor {
   editor::music::InstrumentEditorView instrument_editor_view_;
   editor::music::SampleEditorView sample_editor_view_;
   editor::music::SongBrowserView song_browser_view_;
-  
+
   // Undo/Redo (delegates to undo_manager_ from Editor base class)
   void PushUndoState();
   void PushUndoState(int song_index);
@@ -169,7 +176,7 @@ class MusicEditor : public Editor {
   // Note: APU requires ROM memory, will be initialized when needed
 
   // UI State
-  int current_song_index_ = 0;      // Selected song in browser (UI selection)
+  int current_song_index_ = 0;  // Selected song in browser (UI selection)
   int current_pattern_index_ = 0;
   int current_channel_index_ = 0;
   int current_segment_index_ = 0;
@@ -179,8 +186,9 @@ class MusicEditor : public Editor {
 
   // Accessors for UI Views
   int current_channel() const { return current_channel_index_; }
-  void set_current_channel(int channel) { 
-    if (channel >= 0 && channel < 8) current_channel_index_ = channel; 
+  void set_current_channel(int channel) {
+    if (channel >= 0 && channel < 8)
+      current_channel_index_ = channel;
   }
 
   ImGuiTableFlags music_editor_flags_ =

@@ -144,6 +144,11 @@ class DungeonEditorV2 : public Editor {
   absl::Status Copy() override;
   absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  // Undo() first finalizes pending gestures into history, so any pending
+  // snapshot makes Undo available even while undo_manager_ is still empty.
+  bool CanUndo() const override {
+    return undo_manager_.CanUndo() || HasPendingUndoSnapshot();
+  }
   absl::Status Save() override;
   absl::Status BeginSaveTransaction() override;
   void RollbackSaveTransaction() override;
@@ -528,6 +533,21 @@ class DungeonEditorV2 : public Editor {
     WaterFillSnapshot before;
   };
   PendingWaterFillUndo pending_water_fill_undo_;
+
+  // True while any gesture snapshot is waiting for FinalizePendingUndoActions.
+  bool HasPendingUndoSnapshot() const {
+    if (pending_undo_.room_id >= 0 || pending_collision_undo_.room_id >= 0 ||
+        pending_water_fill_undo_.room_id >= 0 ||
+        pending_selection_undo_.plan.has_value()) {
+      return true;
+    }
+    for (const auto& pending : pending_entity_undo_) {
+      if (pending.room_id >= 0) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   // Pending room swap (deferred until after draw phase completes)
   struct PendingSwap {

@@ -318,6 +318,19 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void DuplicateCurrentSession();
   void CloseCurrentSession();
   void RemoveSession(size_t index);
+
+  // File > Close ROM. Closes the active ROM session even when it is the only
+  // one (the app returns to the welcome surface). Unsaved work goes through
+  // the kUnsavedSessionChanges confirmation first.
+  void CloseRom();
+  bool CanCloseRom() const;
+
+  // File > Revert to Saved. Reloads the active ROM from its backing file,
+  // discarding in-memory ROM edits after the kUnsavedSessionChanges
+  // confirmation. Returns an error only when the revert cannot start or the
+  // reload fails; returns OK while the confirmation is pending.
+  absl::Status RevertRomToSaved();
+  bool CanRevertRom() const;
   void SwitchToSession(size_t index);
   void RequestSwitchToSession(size_t index) override { SwitchToSession(index); }
   void RequestCloseSession(size_t index) override { RemoveSession(index); }
@@ -714,6 +727,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       kOpenProjectDialog,
       kSwitchSession,
       kCloseSession,
+      kCloseRom,
+      kRevertRom,
       kQuit,
     };
 
@@ -727,6 +742,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   bool MaybeGuardPendingSessionAction(PendingUnsavedSessionAction action);
   void ExecutePendingUnsavedSessionAction(
       const PendingUnsavedSessionAction& action);
+  absl::Status RevertRomToSavedInternal();
   bool SessionHasPendingUnsavedWork(size_t session_index) const;
   bool SessionHasPendingRomWork(size_t session_index) const;
   bool HasAnySessionPendingUnsavedWork() const;
