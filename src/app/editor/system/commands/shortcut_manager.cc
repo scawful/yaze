@@ -1,8 +1,10 @@
 #include "shortcut_manager.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstddef>
 #include <functional>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -53,16 +55,105 @@ int CountMods(int mods) {
 }
 
 int ScopePriority(Shortcut::Scope scope) {
-  // Higher wins.
+  // Higher wins: the more specific scope takes the chord.
   switch (scope) {
-    case Shortcut::Scope::kGlobal:
+    case Shortcut::Scope::kPanel:
       return 3;
     case Shortcut::Scope::kEditor:
       return 2;
-    case Shortcut::Scope::kPanel:
+    case Shortcut::Scope::kGlobal:
       return 1;
   }
   return 0;
+}
+
+// Chords that an ImGui text field consumes itself (clipboard, undo/redo,
+// select-all, word navigation/deletion). Shortcuts bound to them must yield
+// while io.WantTextInput is set, or the field and the editor both act.
+bool IsTextEditingChord(const ParsedChord& chord) {
+  if (chord.main_keys.size() != 1) {
+    return false;
+  }
+  const int primary = chord.required_mods & (ImGuiMod_Ctrl | ImGuiMod_Super);
+  if (primary == 0 || (chord.required_mods & ImGuiMod_Alt) != 0) {
+    return false;
+  }
+  switch (chord.main_keys.front()) {
+    case ImGuiKey_A:
+    case ImGuiKey_C:
+    case ImGuiKey_V:
+    case ImGuiKey_X:
+    case ImGuiKey_Y:
+    case ImGuiKey_Z:
+    case ImGuiKey_LeftArrow:
+    case ImGuiKey_RightArrow:
+    case ImGuiKey_Home:
+    case ImGuiKey_End:
+    case ImGuiKey_Backspace:
+    case ImGuiKey_Delete:
+      return true;
+    default:
+      return false;
+  }
+}
+
+struct NormalizedChord {
+  int mods = 0;
+  std::vector<int> main_keys;
+  bool operator==(const NormalizedChord& other) const {
+    return mods == other.mods && main_keys == other.main_keys;
+  }
+};
+
+NormalizedChord Normalize(const std::vector<ImGuiKey>& keys) {
+  ParsedChord parsed = DecomposeChord(keys);
+  NormalizedChord out;
+  out.mods = parsed.required_mods;
+  // ModsSatisfied() treats Ctrl and Super as the same requirement on macOS,
+  // so they collide there.
+  if (gui::IsMacPlatform() && (out.mods & (ImGuiMod_Ctrl | ImGuiMod_Super))) {
+    out.mods = (out.mods & ~ImGuiMod_Super) | ImGuiMod_Ctrl;
+  }
+  for (ImGuiKey key : parsed.main_keys) {
+    out.main_keys.push_back(static_cast<int>(key));
+  }
+  std::sort(out.main_keys.begin(), out.main_keys.end());
+  return out;
+}
+
+// Reverse lookup for key names produced by gui::GetKeyName ("0", "=", "[",
+// "Space", "PageDown", ...), case-insensitive, so PrintShortcut() output
+// parses back to the same keys.
+ImGuiKey LookupNamedKey(const std::string& lower) {
+  static const std::pair<const char*, ImGuiKey> kAliases[] = {
+      {"escape", ImGuiKey_Escape},
+      {"return", ImGuiKey_Enter},
+      {"del", ImGuiKey_Delete},
+      {"keypadadd", ImGuiKey_KeypadAdd},
+      {"keypadsubtract", ImGuiKey_KeypadSubtract},
+      {"equal", ImGuiKey_Equal},
+      {"minus", ImGuiKey_Minus},
+      {"comma", ImGuiKey_Comma},
+  };
+  for (const auto& [alias, key] : kAliases) {
+    if (lower == alias) {
+      return key;
+    }
+  }
+  for (int k = ImGuiKey_NamedKey_BEGIN; k < ImGuiKey_NamedKey_END; ++k) {
+    const ImGuiKey key = static_cast<ImGuiKey>(k);
+    std::string name = gui::GetKeyName(key);
+    if (name == "?") {
+      continue;
+    }
+    for (char& c : name) {
+      c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+    if (name == lower) {
+      return key;
+    }
+  }
+  return ImGuiKey_None;
 }
 
 bool ModsSatisfied(int pressed_mods, int required_mods) {
@@ -240,6 +331,13 @@ std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {
         continue;
       }
     }
+
+    // Digits, punctuation, lowercase letters and named keys (Space, Esc, ...)
+    const ImGuiKey named = LookupNamedKey(lower);
+    if (named != ImGuiKey_None) {
+      keys.push_back(named);
+      continue;
+    }
   }
 
   return keys;
@@ -256,6 +354,7 @@ void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
   struct Candidate {
     const Shortcut* shortcut = nullptr;
     int scope_priority = 0;
+    bool editor_owned = false;
     int key_count = 0;
     int mod_count = 0;
     std::string name;
@@ -264,6 +363,8 @@ void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
   auto better = [](const Candidate& a, const Candidate& b) -> bool {
     if (a.scope_priority != b.scope_priority)
       return a.scope_priority > b.scope_priority;
+    if (a.editor_owned != b.editor_owned)
+      return a.editor_owned;
     if (a.key_count != b.key_count)
       return a.key_count > b.key_count;
     if (a.mod_count != b.mod_count)
@@ -287,8 +388,10 @@ void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
       continue;
     }
 
-    // When typing in an InputText, don't steal plain keys (Space, letters, etc).
-    if (io.WantTextInput && chord.required_mods == 0) {
+    // When typing in an InputText, don't steal plain keys (Space, letters,
+    // etc) or the chords the text field implements itself (Cmd/Ctrl+Z/C/V...).
+    if (io.WantTextInput &&
+        (chord.required_mods == 0 || IsTextEditingChord(chord))) {
       continue;
     }
 
@@ -313,9 +416,16 @@ void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
       continue;
     }
 
+    // Only now evaluate applicability: the chord matched, so the predicate
+    // cost is paid for at most a handful of shortcuts per key press.
+    if (!shortcut_manager.IsShortcutApplicable(shortcut)) {
+      continue;
+    }
+
     Candidate cand;
     cand.shortcut = &shortcut;
     cand.scope_priority = ScopePriority(shortcut.scope);
+    cand.editor_owned = shortcut.editor_type.has_value();
     cand.key_count = static_cast<int>(chord.main_keys.size());
     cand.mod_count = CountMods(chord.required_mods);
     cand.name = name;
@@ -331,6 +441,13 @@ void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
   }
 }
 
+bool SameChord(const std::vector<ImGuiKey>& a, const std::vector<ImGuiKey>& b) {
+  if (a.empty() || b.empty()) {
+    return false;
+  }
+  return Normalize(a) == Normalize(b);
+}
+
 bool ShortcutManager::UpdateShortcutKeys(const std::string& name,
                                          const std::vector<ImGuiKey>& keys) {
   auto it = shortcuts_.find(name);
@@ -339,6 +456,89 @@ bool ShortcutManager::UpdateShortcutKeys(const std::string& name,
   }
   it->second.keys = keys;
   return true;
+}
+
+bool ShortcutManager::ResetShortcutKeys(const std::string& name) {
+  auto it = shortcuts_.find(name);
+  if (it == shortcuts_.end()) {
+    return false;
+  }
+  it->second.keys = it->second.default_keys;
+  return true;
+}
+
+bool ShortcutManager::SetShortcutEditor(const std::string& name,
+                                        std::optional<EditorType> editor_type) {
+  auto it = shortcuts_.find(name);
+  if (it == shortcuts_.end()) {
+    return false;
+  }
+  it->second.editor_type = editor_type;
+  return true;
+}
+
+bool ShortcutManager::SetShortcutEnabled(const std::string& name,
+                                         std::function<bool()> enabled) {
+  auto it = shortcuts_.find(name);
+  if (it == shortcuts_.end()) {
+    return false;
+  }
+  it->second.enabled = std::move(enabled);
+  return true;
+}
+
+bool ShortcutManager::IsShortcutApplicable(const Shortcut& shortcut) const {
+  if (shortcut.editor_type.has_value() && active_editor_provider_) {
+    const std::optional<EditorType> active = active_editor_provider_();
+    if (!active.has_value() || *active != *shortcut.editor_type) {
+      return false;
+    }
+  }
+  if (shortcut.enabled && !shortcut.enabled()) {
+    return false;
+  }
+  return true;
+}
+
+std::string ShortcutManager::GetDisplayString(const std::string& name) const {
+  auto it = shortcuts_.find(name);
+  if (it == shortcuts_.end() || it->second.keys.empty()) {
+    return "";
+  }
+  return PrintShortcut(it->second.keys);
+}
+
+std::vector<std::string> ShortcutManager::FindConflicts(
+    const std::string& name) const {
+  auto it = shortcuts_.find(name);
+  if (it == shortcuts_.end()) {
+    return {};
+  }
+  return FindConflicts(it->second.keys, it->second.editor_type, name);
+}
+
+std::vector<std::string> ShortcutManager::FindConflicts(
+    const std::vector<ImGuiKey>& keys, std::optional<EditorType> editor_type,
+    const std::string& exclude_name) const {
+  std::vector<std::string> conflicts;
+  if (keys.empty()) {
+    return conflicts;
+  }
+  for (const auto& [other_name, other] : shortcuts_) {
+    if (other_name == exclude_name || other.keys.empty()) {
+      continue;
+    }
+    // Shortcuts owned by two different editors are never live together.
+    if (editor_type.has_value() && other.editor_type.has_value() &&
+        *editor_type != *other.editor_type) {
+      continue;
+    }
+    if (SameChord(keys, other.keys)) {
+      conflicts.push_back(other_name);
+    }
+  }
+  std::sort(conflicts.begin(), conflicts.end());
+  return conflicts;
 }
 
 }  // namespace editor

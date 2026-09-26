@@ -340,6 +340,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       tile_painting_->ActivateFillTool();
   }
   void CycleTileSelection(int delta);
+  // Map/view toggles bound through ShortcutManager (F11, Cmd/Ctrl+L,
+  // Cmd/Ctrl+T, Cmd/Ctrl+Shift+I).
+  void ToggleMapLock();
+  void ToggleCanvasFullscreen();
+  void ToggleTile16EditorWindow();
+  void ToggleItemListWindow();
 
   /// Single entry point for changing the active Tile16 (painting + editor).
   /// Uses `Tile16Editor::RequestTileSwitch` when graphics are ready so staged

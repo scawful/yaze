@@ -287,12 +287,6 @@ void OverworldEditor::InitInteractionCoordinator() {
     current_mode = EditingMode::MOUSE;
     ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
   };
-  sink.on_toggle_brush = [this]() {
-    ToggleBrushTool();
-  };
-  sink.on_activate_fill = [this]() {
-    ActivateFillTool();
-  };
   sink.on_pick_tile_from_hover = [this]() {
     (void)PickTile16FromHoveredCanvas();
   };
@@ -330,32 +324,8 @@ void OverworldEditor::InitInteractionCoordinator() {
         break;
     }
   };
-  sink.on_toggle_item_list = [this]() {
-    if (!dependencies_.window_manager) {
-      return;
-    }
-    const size_t session_id =
-        dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->ToggleWindow(session_id,
-                                               OverworldPanelIds::kItemList);
-  };
   sink.can_edit_items = [this]() {
     return entity_edit_mode_ == EntityEditMode::ITEMS;
-  };
-  sink.on_toggle_lock = [this]() {
-    current_map_lock_ = !current_map_lock_;
-  };
-  sink.on_toggle_tile16_editor = [this]() {
-    if (!dependencies_.window_manager) {
-      return;
-    }
-    const size_t session_id =
-        dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->ToggleWindow(
-        session_id, OverworldPanelIds::kTile16Editor);
-  };
-  sink.on_toggle_fullscreen = [this]() {
-    overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
   };
   sink.on_undo = [this]() {
     status_ = Undo();
@@ -1648,6 +1618,32 @@ void OverworldEditor::CycleTileSelection(int delta) {
   const int next =
       std::clamp(current_tile16_ + delta, 0, zelda3::kNumTile16Individual - 1);
   RequestTile16Selection(next);
+}
+
+void OverworldEditor::ToggleMapLock() {
+  current_map_lock_ = !current_map_lock_;
+}
+
+void OverworldEditor::ToggleCanvasFullscreen() {
+  overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+}
+
+void OverworldEditor::ToggleTile16EditorWindow() {
+  if (!dependencies_.window_manager) {
+    return;
+  }
+  dependencies_.window_manager->ToggleWindow(
+      dependencies_.window_manager->GetActiveSessionId(),
+      OverworldPanelIds::kTile16Editor);
+}
+
+void OverworldEditor::ToggleItemListWindow() {
+  if (!dependencies_.window_manager) {
+    return;
+  }
+  dependencies_.window_manager->ToggleWindow(
+      dependencies_.window_manager->GetActiveSessionId(),
+      OverworldPanelIds::kItemList);
 }
 
 void OverworldEditor::ContributeStatus(StatusBar* status_bar) {

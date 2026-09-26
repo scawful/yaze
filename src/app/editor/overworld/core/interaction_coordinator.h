@@ -23,9 +23,10 @@ struct OverworldCommandSink {
   std::function<void(EditingMode)> on_set_editor_mode;
   std::function<void(EntityEditMode)> on_set_entity_mode;
 
-  // Tool Commands
-  std::function<void()> on_toggle_brush;
-  std::function<void()> on_activate_fill;
+  // Tool Commands. B/F (brush/fill), [ ] (tile cycle), F11, Cmd/Ctrl+L,
+  // Cmd/Ctrl+T and Cmd/Ctrl+Shift+I are editor-scoped ShortcutManager entries
+  // (see shortcut_configurator.cc) so they are arbitrated against global
+  // bindings instead of firing twice.
   std::function<void()> on_pick_tile_from_hover;  // 'I' shortcut
 
   // Entity Commands
@@ -34,12 +35,6 @@ struct OverworldCommandSink {
   std::function<void(zelda3::GameEntity*)> on_entity_context_menu;
   std::function<void(zelda3::GameEntity*)> on_entity_double_click;
   std::function<bool()> can_edit_items;
-
-  // Map Commands
-  std::function<void()> on_toggle_lock;
-  std::function<void()> on_toggle_tile16_editor;
-  std::function<void()> on_toggle_fullscreen;
-  std::function<void()> on_toggle_item_list;
 
   // Global/Editor Commands
   std::function<void()> on_undo;

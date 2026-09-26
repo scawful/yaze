@@ -344,6 +344,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/shortcut_manager_test.cc
     unit/editor/shortcut_group_test.cc
     unit/editor/shortcut_configurator_test.cc
+    unit/editor/shortcut_arbitration_test.cc
     unit/editor/window_sidebar_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_workbench_content_test.cc
@@ -734,6 +735,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
     unit/editor/settings_panel_test.cc
+    unit/editor/shortcut_arbitration_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
     unit/editor/editor_manager_test.cc

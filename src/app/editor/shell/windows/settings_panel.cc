@@ -1663,6 +1663,68 @@ bool SettingsPanel::MatchesShortcutFilter(const std::string& text) const {
   return absl::StrContains(haystack, needle);
 }
 
+namespace {
+
+// One editable binding row: text field (Enter applies), conflict warning, and
+// a reset button when the binding differs from its registered default.
+// `overrides` is the persisted map for this scope (global_shortcuts or
+// editor_shortcuts): absent = default, "" = explicitly unbound.
+void DrawShortcutBindingRow(
+    const Shortcut& sc, std::string& value, ShortcutManager* shortcut_manager,
+    UserSettings* user_settings,
+    std::unordered_map<std::string, std::string>& overrides) {
+  ImGui::PushID(sc.name.c_str());
+  ImGui::Text("%s", sc.name.c_str());
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(180);
+  if (ImGui::InputText("##binding", &value,
+                       ImGuiInputTextFlags_EnterReturnsTrue |
+                           ImGuiInputTextFlags_AutoSelectAll)) {
+    auto parsed = ParseShortcut(value);
+    if (!parsed.empty() || value.empty()) {
+      // Empty string unbinds the shortcut (persisted as "").
+      shortcut_manager->UpdateShortcutKeys(sc.name, parsed);
+      overrides[sc.name] = value;
+      value = PrintShortcut(parsed);
+      user_settings->Save();
+    }
+  }
+
+  const Shortcut* live = shortcut_manager->FindShortcut(sc.name);
+  if (live) {
+    const auto conflicts = shortcut_manager->FindConflicts(sc.name);
+    if (!conflicts.empty()) {
+      ImGui::SameLine();
+      ImGui::TextColored(gui::GetWarningColor(), ICON_MD_WARNING);
+      if (ImGui::IsItemHovered()) {
+        std::string tip = "Also bound to:";
+        for (const auto& other : conflicts) {
+          tip += "\n  " + other;
+        }
+        ImGui::SetTooltip("%s", tip.c_str());
+      }
+    }
+    if (live->keys != live->default_keys) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(tr("Reset"))) {
+        shortcut_manager->ResetShortcutKeys(sc.name);
+        overrides.erase(sc.name);
+        value = PrintShortcut(live->default_keys);
+        user_settings->Save();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Default: %s",
+                          live->default_keys.empty()
+                              ? "(none)"
+                              : PrintShortcut(live->default_keys).c_str());
+      }
+    }
+  }
+  ImGui::PopID();
+}
+
+}  // namespace
+
 void SettingsPanel::DrawGlobalShortcuts() {
   if (!shortcut_manager_ || !user_settings_) {
     ImGui::TextDisabled(tr("Not available"));
@@ -1675,49 +1737,28 @@ void SettingsPanel::DrawGlobalShortcuts() {
     ImGui::TextDisabled(tr("No global shortcuts registered."));
     return;
   }
+  std::sort(
+      shortcuts.begin(), shortcuts.end(),
+      [](const Shortcut& a, const Shortcut& b) { return a.name < b.name; });
 
   static std::unordered_map<std::string, std::string> editing;
 
   bool has_match = false;
   for (const auto& sc : shortcuts) {
-    std::string label = sc.name;
+    if (sc.keys.empty() && sc.default_keys.empty()) {
+      continue;  // Command-palette-only entry; nothing to bind here.
+    }
     std::string keys = PrintShortcut(sc.keys);
-    if (!MatchesShortcutFilter(label) && !MatchesShortcutFilter(keys)) {
+    if (!MatchesShortcutFilter(sc.name) && !MatchesShortcutFilter(keys)) {
       continue;
     }
     has_match = true;
     auto it = editing.find(sc.name);
     if (it == editing.end()) {
-      std::string current = PrintShortcut(sc.keys);
-      // Use user override if present
-      auto u = user_settings_->prefs().global_shortcuts.find(sc.name);
-      if (u != user_settings_->prefs().global_shortcuts.end()) {
-        current = u->second;
-      }
-      editing[sc.name] = current;
+      it = editing.emplace(sc.name, keys).first;
     }
-
-    ImGui::PushID(sc.name.c_str());
-    ImGui::Text("%s", sc.name.c_str());
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(180);
-    std::string& value = editing[sc.name];
-    if (ImGui::InputText("##global", &value,
-                         ImGuiInputTextFlags_EnterReturnsTrue |
-                             ImGuiInputTextFlags_AutoSelectAll)) {
-      auto parsed = ParseShortcut(value);
-      if (!parsed.empty() || value.empty()) {
-        // Empty string clears the shortcut
-        shortcut_manager_->UpdateShortcutKeys(sc.name, parsed);
-        if (value.empty()) {
-          user_settings_->prefs().global_shortcuts.erase(sc.name);
-        } else {
-          user_settings_->prefs().global_shortcuts[sc.name] = value;
-        }
-        user_settings_->Save();
-      }
-    }
-    ImGui::PopID();
+    DrawShortcutBindingRow(sc, it->second, shortcut_manager_, user_settings_,
+                           user_settings_->prefs().global_shortcuts);
   }
   if (!has_match) {
     ImGui::TextDisabled(tr("No shortcuts match the current filter."));
@@ -1736,13 +1777,19 @@ void SettingsPanel::DrawEditorShortcuts() {
   static std::unordered_map<std::string, std::string> editing;
 
   for (const auto& sc : shortcuts) {
+    if (sc.keys.empty() && sc.default_keys.empty()) {
+      continue;  // Command-palette-only entry; nothing to bind here.
+    }
     auto pos = sc.name.find(".");
     std::string group =
         pos != std::string::npos ? sc.name.substr(0, pos) : "general";
     grouped[group].push_back(sc);
   }
   bool has_match = false;
-  for (const auto& [group, list] : grouped) {
+  for (auto& [group, list] : grouped) {
+    std::sort(
+        list.begin(), list.end(),
+        [](const Shortcut& a, const Shortcut& b) { return a.name < b.name; });
     std::vector<Shortcut> filtered;
     filtered.reserve(list.size());
     for (const auto& sc : list) {
@@ -1757,34 +1804,13 @@ void SettingsPanel::DrawEditorShortcuts() {
     has_match = true;
     if (ImGui::TreeNode(group.c_str())) {
       for (const auto& sc : filtered) {
-        ImGui::PushID(sc.name.c_str());
-        ImGui::Text("%s", sc.name.c_str());
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(180);
-        std::string& value = editing[sc.name];
-        if (value.empty()) {
-          value = PrintShortcut(sc.keys);
-          // Apply user override if present
-          auto u = user_settings_->prefs().editor_shortcuts.find(sc.name);
-          if (u != user_settings_->prefs().editor_shortcuts.end()) {
-            value = u->second;
-          }
+        auto it = editing.find(sc.name);
+        if (it == editing.end()) {
+          it = editing.emplace(sc.name, PrintShortcut(sc.keys)).first;
         }
-        if (ImGui::InputText("##editor", &value,
-                             ImGuiInputTextFlags_EnterReturnsTrue |
-                                 ImGuiInputTextFlags_AutoSelectAll)) {
-          auto parsed = ParseShortcut(value);
-          if (!parsed.empty() || value.empty()) {
-            shortcut_manager_->UpdateShortcutKeys(sc.name, parsed);
-            if (value.empty()) {
-              user_settings_->prefs().editor_shortcuts.erase(sc.name);
-            } else {
-              user_settings_->prefs().editor_shortcuts[sc.name] = value;
-            }
-            user_settings_->Save();
-          }
-        }
-        ImGui::PopID();
+        DrawShortcutBindingRow(sc, it->second, shortcut_manager_,
+                               user_settings_,
+                               user_settings_->prefs().editor_shortcuts);
       }
       ImGui::TreePop();
     }
