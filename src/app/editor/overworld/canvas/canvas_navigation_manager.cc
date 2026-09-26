@@ -322,13 +322,11 @@ void CanvasNavigationManager::HandleMapInteraction() {
     return;
   }
 
-  // Paint-mode eyedropper: right-click samples tile16 under cursor.
-  if ((*ctx_.current_mode == EditingMode::DRAW_TILE ||
-       *ctx_.current_mode == EditingMode::FILL_TILE) &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    if (callbacks_.pick_tile16_from_hovered_canvas) {
-      (void)callbacks_.pick_tile16_from_hovered_canvas();
-    }
+  // Paint modes: right-click samples (and right-drag captures a brush) in
+  // TilePaintingManager::CheckForSelectRectangle. Sampling here as well made
+  // every right-click select the tile twice.
+  if (*ctx_.current_mode == EditingMode::DRAW_TILE ||
+      *ctx_.current_mode == EditingMode::FILL_TILE) {
     return;
   }
 
