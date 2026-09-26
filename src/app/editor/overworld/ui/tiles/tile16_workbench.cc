@@ -17,6 +17,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
@@ -851,10 +852,46 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
 
       ImGui::PopID();
 
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        session_.set_current_palette(static_cast<uint8_t>(i));
-        draw_status.Update(ApplyPaletteToAll(session_.current_palette()));
-      }
+      // Right-click menu. Applying to all quadrants rewrites the tile's
+      // per-quadrant palettes, so it confirms instead of firing on RMB.
+      gui::ItemContextMenu(nullptr, [&, i]() {
+        std::vector<gui::MenuItemSpec> items;
+        items.emplace_back("Use Palette", ICON_MD_BRUSH, [this, i]() {
+          if (session_.current_palette() == i) {
+            return;
+          }
+          session_.set_current_palette(i);
+          auto status = RefreshAllPalettes();
+          if (!status.ok()) {
+            util::logf("Failed to refresh palettes: %s",
+                       status.message().data());
+          }
+        });
+        items.push_back(gui::MenuItemSpec::Destructive(
+            "Apply to All Quadrants...", ICON_MD_FORMAT_COLOR_FILL,
+            [this, i, &draw_status]() {
+              session_.set_current_palette(static_cast<uint8_t>(i));
+              draw_status.Update(ApplyPaletteToAll(session_.current_palette()));
+            }));
+        items.back().tooltip = "Sets all four quadrants to this palette.";
+        items.back().separator_after = true;
+
+        const auto& ow_palette = session_.overworld_palette();
+        const int slot = GetActualPaletteSlot(i, 0);
+        std::string colors;
+        for (int c = slot;
+             c < slot + 16 && c < static_cast<int>(ow_palette.size()); ++c) {
+          colors += absl::StrFormat("%s$%04X", colors.empty() ? "" : ",",
+                                    ow_palette[c].snes());
+        }
+        auto copy_item =
+            gui::CopyToClipboardItem("Copy Palette Colors", colors);
+        copy_item.enabled_condition = [has = !colors.empty()]() {
+          return has;
+        };
+        items.push_back(std::move(copy_item));
+        return items;
+      });
 
       // Tooltip with palette info
       if (ImGui::IsItemHovered()) {
@@ -865,7 +902,7 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
         } else {
           ImGui::Text(tr("Brush Palette %d"), i);
           ImGui::TextDisabled(tr("Applied to new tile8 placements"));
-          ImGui::TextDisabled(tr("RMB: apply to all tile quadrants"));
+          ImGui::TextDisabled(tr("Right-click: palette actions"));
           ImGui::TextDisabled(tr("Quadrant metadata is shown in strip below"));
           ImGui::TextDisabled(
               tr("Hotkeys: Ctrl+1..8 palette, 1..4 quadrant focus"));
