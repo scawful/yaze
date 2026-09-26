@@ -41,7 +41,9 @@ class LogManagerTest : public ::testing::Test {
     LogManager::instance().configure(level, log_path_.string(), categories);
   }
 
+  // log() batches INFO lines, so flush before reading the file.
   std::string ReadLog() {
+    LogManager::instance().Flush();
     std::ifstream in(log_path_);
     if (!in)
       return {};
