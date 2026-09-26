@@ -20,6 +20,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
@@ -450,6 +451,34 @@ void MessageEditor::DrawMessageList() {
       const int expanded_count = static_cast<int>(expanded_messages_.size());
       const int total_rows = vanilla_count + expanded_count;
 
+      // Right-click menu on a message's ID button.
+      auto message_context_menu = [this](int display_id, int address) {
+        gui::ItemContextMenu(nullptr, [this, display_id, address]() {
+          std::vector<gui::MenuItemSpec> items;
+          auto open_item = gui::MenuItemSpec::Conditional(
+              "Open Message",
+              [this, display_id]() {
+                FinalizePendingUndo();
+                OpenMessageById(display_id);
+              },
+              // Same gate as the ID button: a parse error blocks switching.
+              [this]() { return current_parse_errors_.empty(); });
+          open_item.icon = ICON_MD_ARROW_FORWARD;
+          open_item.separator_after = true;
+          items.push_back(std::move(open_item));
+          items.push_back(gui::CopyToClipboardItem("Copy Message ID",
+                                                   util::HexWord(display_id)));
+          if (display_id >= 0 &&
+              display_id < static_cast<int>(parsed_messages_.size())) {
+            items.push_back(gui::CopyToClipboardItem(
+                "Copy Text", parsed_messages_[display_id]));
+          }
+          items.push_back(
+              gui::CopyToClipboardItem("Copy Address", util::HexLong(address)));
+          return items;
+        });
+      };
+
       // Use ImGuiListClipper for virtualized rendering
       ImGuiListClipper clipper;
       clipper.Begin(total_rows);
@@ -467,6 +496,7 @@ void MessageEditor::DrawMessageList() {
                 OpenMessageById(message.ID);
               }
             }
+            message_context_menu(message.ID, message.Address);
             PopID();
 
             TableNextColumn();
@@ -496,6 +526,7 @@ void MessageEditor::DrawMessageList() {
                 OpenMessageById(display_id);
               }
             }
+            message_context_menu(display_id, expanded_message.Address);
             PopID();
 
             TableNextColumn();
