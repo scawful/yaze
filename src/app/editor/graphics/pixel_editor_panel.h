@@ -4,6 +4,7 @@
 #include "absl/status/status.h"
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/pixel_clipboard.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
@@ -238,6 +239,27 @@ class PixelEditorPanel : public WindowContent {
   int cursor_x_ = 0;
   int cursor_y_ = 0;
   bool cursor_in_canvas_ = false;
+
+  // System clipboard (PNG). Copy takes the selection, or the whole sheet
+  // when nothing is selected. Paste maps the image onto the sheet's colors
+  // and floats it as the selection until committed (Enter, or a click
+  // outside it) or cancelled (Esc); a commit is one undo step.
+  void HandleClipboardShortcuts();
+  void DrawClipboardControls();
+  void DrawFloatingPaste();
+  bool HandleFloatingPasteInput();  // true while the float takes the mouse
+  void CopyToSystemClipboard();
+  void PasteFromSystemClipboard();
+  void CommitFloatingPaste();
+  void CancelFloatingPaste();
+  void ClampFloatingPaste();
+  SheetColors CurrentSheetColors() const;
+  std::string clipboard_status_;
+  bool clipboard_status_is_error_ = false;
+  bool paste_skip_color0_ = false;
+  bool dragging_paste_ = false;
+  int paste_drag_dx_ = 0;
+  int paste_drag_dy_ = 0;
 };
 
 }  // namespace editor

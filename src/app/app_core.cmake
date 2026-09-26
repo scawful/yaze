@@ -47,6 +47,7 @@ endif()
 # Platform-specific sources
 if (WIN32 OR MINGW OR (UNIX AND NOT APPLE AND NOT EMSCRIPTEN))
   list(APPEND YAZE_APP_CORE_SRC
+    app/platform/image_clipboard_stub.cc
     app/platform/font_loader.cc
     app/platform/asset_loader.cc
     # Stub implementation for WASM worker pool
@@ -56,6 +57,7 @@ endif()
 
 if (EMSCRIPTEN)
   list(APPEND YAZE_APP_CORE_SRC
+    app/platform/image_clipboard_stub.cc
     app/platform/font_loader.cc
     app/platform/asset_loader.cc
     app/platform/file_dialog_web.cc
@@ -103,6 +105,7 @@ if(APPLE)
 
     set(YAZE_APPLE_OBJCXX_SRC
       app/platform/file_dialog.mm
+      app/platform/image_clipboard.mm
       app/platform/font_loader.mm
       app/platform/ios/ios_host.mm
       app/platform/ios/ios_platform_state.mm

@@ -331,6 +331,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/gfx_group_workspace_state_test.cc
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/sheet_png_transfer_test.cc
+    unit/editor/pixel_clipboard_test.cc
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/emulator_runtime_policy_test.cc
@@ -773,6 +774,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/overworld_property_edit_test.cc
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/sheet_png_transfer_test.cc
+    unit/editor/pixel_clipboard_test.cc
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/sprite_editor_preview_test.cc
     unit/editor/sprite_authoring_test.cc
