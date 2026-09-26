@@ -1191,6 +1191,32 @@ absl::Status OverworldMap::LoadVanillaOverlayData() {
   return absl::OkStatus();
 }
 
+void OverworldMap::RecordSourceSheetRevisions() {
+  for (int i = 0; i < 16; i++) {
+    const uint16_t sheet = static_graphics_[i];
+    source_sheet_revisions_[i] =
+        game_data_ != nullptr && sheet != 0 &&
+                graphics_sheet_overrides_.count(sheet) == 0
+            ? game_data_->sheet_store.Revision(sheet)
+            : 0;
+  }
+}
+
+bool OverworldMap::SourceSheetsChanged() const {
+  if (game_data_ == nullptr) {
+    return false;
+  }
+  for (int i = 0; i < 16; i++) {
+    const uint16_t sheet = static_graphics_[i];
+    if (source_sheet_revisions_[i] != 0 && sheet != 0 &&
+        graphics_sheet_overrides_.count(sheet) == 0 &&
+        game_data_->sheet_store.Revision(sheet) != source_sheet_revisions_[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
                                          int size, const uint8_t* all_gfx) {
   if (const auto it = graphics_sheet_overrides_.find(
@@ -1246,6 +1272,10 @@ absl::Status OverworldMap::BuildTileset() {
                             game_data_->graphics_buffer.data());
     }
   }
+
+  // Remember what each slot was built from, so an unsaved sheet edit can be
+  // detected (SourceSheetsChanged).
+  RecordSourceSheetRevisions();
 
   // NOTE: Previously there was code here accessing static_graphics_[16], but
   // the array is only size 16 (indices 0-15). This was undefined behavior

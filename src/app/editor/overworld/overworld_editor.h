@@ -526,6 +526,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// @brief Create textures for deferred map bitmaps on demand
   void ProcessDeferredTextures();
 
+  /// @brief Mark maps for a graphics rebuild when a sheet they use changed in
+  /// the session's sheet store (an unsaved Graphics editor edit).
+  void RefreshMapsForSheetEdits();
+
   /// @brief Ensure a specific map has its texture created
   void EnsureMapTexture(int map_index);
   void PrimeWorldMaps(int world, bool process_texture_queue = false);
