@@ -175,6 +175,17 @@ std::string HexIds(const std::vector<int>& ids) {
   });
 }
 
+// These commands use the US graphics pointer tables; on a Japanese ROM they
+// would read and write the wrong sheets.
+absl::Status RequireUsGfxTables(const Rom& rom) {
+  if (zelda3::UsesJapaneseGfxSheetTables(rom)) {
+    return absl::FailedPreconditionError(
+        "This ROM uses the Japanese graphics pointer tables (header byte "
+        "$7FD9 = 0); the gfx commands support US-table ROMs only");
+  }
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status GfxExportCommandHandler::ValidateArgs(
@@ -185,6 +196,7 @@ absl::Status GfxExportCommandHandler::ValidateArgs(
 absl::Status GfxExportCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(const uint16_t sheet, ParseSheet(parser));
   ASSIGN_OR_RETURN(const int block, ParseIntArg(parser, "block", 0));
   ASSIGN_OR_RETURN(const int count, ParseIntArg(parser, "count", 16 - block));
@@ -223,6 +235,7 @@ absl::Status GfxImportCommandHandler::ValidateArgs(
 absl::Status GfxImportCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(const uint16_t sheet, ParseSheet(parser));
   ASSIGN_OR_RETURN(const int block, ParseIntArg(parser, "block", 0));
   ASSIGN_OR_RETURN(const auto palette, ResolvePalette(*rom, parser));
@@ -305,6 +318,7 @@ absl::Status GfxRoomExportCommandHandler::ValidateArgs(
 absl::Status GfxRoomExportCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
   const auto& set = context.set;
   ASSIGN_OR_RETURN(const auto png,
@@ -385,6 +399,7 @@ absl::Status GfxRoomImportCommandHandler::ValidateArgs(
 absl::Status GfxRoomImportCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
   const std::string png_path = *parser.GetString("png");
   ASSIGN_OR_RETURN(const auto png_bytes, util::ReadBinaryFile(png_path));

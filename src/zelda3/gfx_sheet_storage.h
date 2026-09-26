@@ -48,6 +48,11 @@ struct GfxSheetPointerTables {
   uint32_t low = 0x513E;
 };
 
+/// True when LoadGameData would read this ROM with the Japanese pointer
+/// tables (header byte $7FD9 == 0). The default GfxSheetPointerTables are the
+/// US ones, so callers that use them must refuse such a ROM.
+bool UsesJapaneseGfxSheetTables(const Rom& rom);
+
 /// Half-open PC range [begin, end).
 struct GfxSheetPcRange {
   uint32_t begin = 0;

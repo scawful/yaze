@@ -156,8 +156,26 @@ nlohmann::json RunCommand(cli::resources::CommandHandler& handler,
              : nlohmann::json::parse(out.substr(brace), nullptr, false);
 }
 
-TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
+TEST(GfxSheetPngCommandTest, RefusesJapaneseTableRoms) {
+  // The fixture leaves $7FD9 = 0, which LoadGameData reads as a Japanese ROM
+  // with other pointer tables; the gfx commands must not guess.
   const auto fixture = BuildGfxSheetTestRom();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  const auto png_path = UniqueTempPath("sheet_jp", ".png");
+  cli::GfxExportCommandHandler handler;
+  std::string out;
+  const absl::Status status = handler.Run(
+      {"--sheet=0x20", "--png=" + png_path.string(), "--format=json"}, &rom,
+      &out);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("Japanese"), std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(png_path));
+}
+
+TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
+  auto fixture = BuildGfxSheetTestRom();
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables, as the fixture uses
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
   const auto png_path = UniqueTempPath("sheet_edit", ".png");
