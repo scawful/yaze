@@ -155,7 +155,8 @@ TEST_F(MusicPlayerHeadlessTest, TicksPerSecondMatchesTempo) {
 
   // Initially ticks_per_second may be 0 if no song is playing
   // After playing a song, it should match the formula
-  LOG_INFO("MusicPlayerTest", "Initial ticks_per_second: %.2f (expected ~%.2f for tempo 150)",
+  LOG_INFO("MusicPlayerTest",
+           "Initial ticks_per_second: %.2f (expected ~%.2f for tempo 150)",
            state.ticks_per_second, kExpectedTps);
 
   // If a song is playing, verify the value
