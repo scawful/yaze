@@ -117,7 +117,7 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557`, metadata at `aeb0b1200`, paired chests at `478206247`, mixed selections at `eac49e2bd`, and the normal-door pair candidate extend the original audit. | Remaining authoring domains, connection families, complete room operations, and exact-candidate qualification keep DA-1 and DA-2 open. |
 | Clone/import authored room data | **Candidate** at `bb185d1ae`; DA-4 remains **Partial** | `yaze.room` v1; Clone/Copy Room JSON/Import JSON; seven selectable domains, Core defaults; count/policy preview, detached capacity/write-policy preflight, source/target stale checks, and one Undo/Redo. Objects retain chest rewards and special metadata; properties include pit target plane. | Numeric asset IDs only; target destinations preserved unless explicitly included. Project-file/asset compatibility, portable resources, application disk/runtime, and packaged acceptance remain. |
 | Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
-| Edit graphics and graphics groups | **Blocked** for coordinated pixel-sheet persistence; other workflows **Partial** | Pixel editing, undo, graphics-group tools, import surfaces, and polyhedral editing | Safe compression and allocation, write boundaries, import/export roundtrip, and coordinated save. Preserve the current graphics save block until these are proved. |
+| Edit graphics and graphics groups | **Candidate** for 3bpp pixel-sheet persistence (2bpp sheets are read-only); other workflows **Partial** | Pixel editing and undo through a per-session sheet store (`2d8e5acaa`); PNG export and import with a preview (`4a1a90a99`); LC-LZ2 write-back in place or relocated into the hack manifest's `graphics_sheet_regions`, with rollback; save preflight and read-back verification (`830915bbb`); graphics-group tools, import surfaces, and polyhedral editing. Source, Focused, and ROM evidence on vanilla and Oracle base ROM copies. | Runtime check of a saved sheet in game, live-window acceptance, and CI. Graphics saves stay off until `save_graphics_sheet` is enabled. |
 | Edit screens and maps | **Blocked** for coordinated save with pending Screen edits | Dungeon-map, title, pause-map, and Tile16 editing surfaces; partial inventory UI | Complete and qualify each writer; naming-screen implementation is empty. Credits/ending screen authoring was not found in the reviewed surface and needs a specific audit. |
 | Edit messages | **Partial** as a full application workflow | Parsing, preview, search, bundle/source workflows, transactional writer | GUI-to-disk save/reopen and runtime acceptance for named ROM profiles. |
 | Edit palettes | **Partial** as a coordinated workflow | Broad palette groups, preview, undo, JSON exchange, explicit ROM-buffer commit | Integrate with coordinated save or qualify and clearly retain the two-step procedure. JSON exchange is already implemented when enabled. |
@@ -176,8 +176,10 @@ Use the [readiness matrix](feature-coverage-report.md) to choose a bounded edit
 on a copied ROM. Dungeon, overworld maps/entrances/exits/items, and messages have
 save implementations; their whole-editor status is still Partial. Overworld
 sprite edits are not in the save path. Palette currently requires **Save to
-ROM**, then **File > Save ROM**. Pending Graphics and Screen edits block that
-coordinated save. Music song operations use a separate path and do not establish
+ROM**, then **File > Save ROM**. Pending Screen edits block that coordinated
+save; pending Graphics edits block it unless graphics sheet saves are enabled
+(the `save_graphics_sheet` feature flag, per project). Music song operations
+use a separate path and do not establish
 sample or instrument persistence.
 
 Hyrule Magic, ZScream, project source patches, and Mesen remain useful independent
