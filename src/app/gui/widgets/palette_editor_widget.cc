@@ -8,7 +8,9 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/color.h"
+#include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/theme_manager.h"
@@ -762,21 +764,29 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
     }
 
     if (ImGui::BeginPopupContextItem()) {
-      ImGui::Text(tr("Color %d (0x%04X)"), i, color.snes());
+      ImGui::TextDisabled(tr("Color %d (0x%04X)"), i, color.snes());
       ImGui::Separator();
-      if (ImGui::MenuItem(tr("Edit Color"))) {
+      std::vector<MenuItemSpec> items;
+      items.emplace_back(tr("Edit Color..."), ICON_MD_EDIT, [&, i]() {
         editing_color_index_ = i;
         selected_color_index_ = i;
         temp_color_ = display_color;
         editing_color_ = display_color;
-      }
-      if (ImGui::MenuItem(tr("Reset to Black"))) {
-        palette[i] = gfx::SnesColor(0);
-        if (on_palette_changed_) {
-          on_palette_changed_(
-              {current_palette_id_, DungeonRenderPaletteSource::kDungeonMain});
-        }
-      }
+      });
+      items.back().separator_after = true;
+      RenderMenuItems(items);
+      SnesColorCopyMenuItems(palette[i]);
+      ImGui::Separator();
+      RenderMenuItem(MenuItemSpec::Destructive(
+          tr("Reset to Black"), ICON_MD_FORMAT_COLOR_RESET,
+          [&, i]() {
+            palette[i] = gfx::SnesColor(0);
+            if (on_palette_changed_) {
+              on_palette_changed_({current_palette_id_,
+                                   DungeonRenderPaletteSource::kDungeonMain});
+            }
+          },
+          /*confirm=*/false));
       ImGui::EndPopup();
     }
 

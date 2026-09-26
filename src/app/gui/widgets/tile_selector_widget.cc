@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "absl/strings/str_format.h"
 #include "app/gui/core/drag_drop.h"
+#include "app/gui/core/icons.h"
 
 namespace yaze::gui {
 
@@ -204,6 +206,19 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
   canvas_->DrawOverlay();
 
   return result;
+}
+
+CanvasMenuItem TileSelectorWidget::CopyTileIdMenuItem() const {
+  CanvasMenuItem item("Copy Tile ID", ICON_MD_CONTENT_COPY, [this]() {
+    if (IsValidTileId(selected_tile_id_)) {
+      ImGui::SetClipboardText(
+          absl::StrFormat("0x%03X", selected_tile_id_).c_str());
+    }
+  });
+  item.enabled_condition = [this]() {
+    return IsValidTileId(selected_tile_id_);
+  };
+  return item;
 }
 
 TileSelectorWidget::RenderResult TileSelectorWidget::HandleInteraction(

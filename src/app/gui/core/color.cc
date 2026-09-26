@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -36,6 +37,44 @@ ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor& color) {
 gfx::SnesColor ConvertImVec4ToSnesColor(const ImVec4& color) {
   // SnesColor constructor expects 0-1 range and handles conversion internally
   return gfx::SnesColor(color);
+}
+
+std::string SnesColorToSnesString(const gfx::SnesColor& color) {
+  return absl::StrFormat("$%04X", color.snes());
+}
+
+std::string SnesColorToRgbString(const gfx::SnesColor& color) {
+  // rgb() is already in the 0-255 range.
+  const auto rgb = color.rgb();
+  return absl::StrFormat("(%d,%d,%d)", static_cast<int>(rgb.x),
+                         static_cast<int>(rgb.y), static_cast<int>(rgb.z));
+}
+
+std::string SnesColorToHexString(const gfx::SnesColor& color) {
+  const auto rgb = color.rgb();
+  return absl::StrFormat("#%02X%02X%02X", static_cast<int>(rgb.x),
+                         static_cast<int>(rgb.y), static_cast<int>(rgb.z));
+}
+
+void SnesColorCopyMenuItems(const gfx::SnesColor& color) {
+  const std::string snes = SnesColorToSnesString(color);
+  const std::string rgb = SnesColorToRgbString(color);
+  const std::string hex = SnesColorToHexString(color);
+  const std::string snes_label =
+      std::string(ICON_MD_CONTENT_COPY " ") + tr("Copy as SNES");
+  if (ImGui::MenuItem(snes_label.c_str(), snes.c_str())) {
+    ImGui::SetClipboardText(snes.c_str());
+  }
+  const std::string rgb_label =
+      std::string(ICON_MD_CONTENT_COPY " ") + tr("Copy as RGB");
+  if (ImGui::MenuItem(rgb_label.c_str(), rgb.c_str())) {
+    ImGui::SetClipboardText(rgb.c_str());
+  }
+  const std::string hex_label =
+      std::string(ICON_MD_CONTENT_COPY " ") + tr("Copy as Hex");
+  if (ImGui::MenuItem(hex_label.c_str(), hex.c_str())) {
+    ImGui::SetClipboardText(hex.c_str());
+  }
 }
 
 IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor& color,
@@ -159,22 +198,7 @@ IMGUI_API absl::Status InlinePaletteEditor(gfx::SnesPalette& palette,
 
     // Context menu
     if (ImGui::BeginPopupContextItem()) {
-      if (ImGui::MenuItem(tr("Copy as SNES"))) {
-        std::string clipboard = absl::StrFormat("$%04X", palette[n].snes());
-        ImGui::SetClipboardText(clipboard.c_str());
-      }
-      if (ImGui::MenuItem(tr("Copy as RGB"))) {
-        auto rgb = palette[n].rgb();
-        std::string clipboard =
-            absl::StrFormat("(%d,%d,%d)", (int)rgb.x, (int)rgb.y, (int)rgb.z);
-        ImGui::SetClipboardText(clipboard.c_str());
-      }
-      if (ImGui::MenuItem(tr("Copy as Hex"))) {
-        auto rgb = palette[n].rgb();
-        std::string clipboard = absl::StrFormat("#%02X%02X%02X", (int)rgb.x,
-                                                (int)rgb.y, (int)rgb.z);
-        ImGui::SetClipboardText(clipboard.c_str());
-      }
+      SnesColorCopyMenuItems(palette[n]);
       ImGui::EndPopup();
     }
 
@@ -400,34 +424,19 @@ absl::Status DisplayEditablePalette(gfx::SnesPalette& palette,
       selected_color = n;
     }
 
+    // OpenPopup must run at this window's ID stack level, not inside the
+    // context popup, or BeginPopup below never finds it.
+    bool open_edit_color = false;
     if (ImGui::BeginPopupContextItem()) {
-      if (ImGui::MenuItem(tr("Edit Color"))) {
-        // Open color picker for this color
-        ImGui::OpenPopup(("Edit Color##" + std::to_string(n)).c_str());
+      if (ImGui::MenuItem(tr("Edit Color..."))) {
+        open_edit_color = true;
       }
-
-      if (ImGui::MenuItem(tr("Copy as SNES Value"))) {
-        std::string clipboard = absl::StrFormat("$%04X", palette[n].snes());
-        ImGui::SetClipboardText(clipboard.c_str());
-      }
-
-      if (ImGui::MenuItem(tr("Copy as RGB"))) {
-        auto rgb = palette[n].rgb();
-        // rgb is already in 0-255 range, no need to multiply
-        std::string clipboard =
-            absl::StrFormat("(%d,%d,%d)", (int)rgb.x, (int)rgb.y, (int)rgb.z);
-        ImGui::SetClipboardText(clipboard.c_str());
-      }
-
-      if (ImGui::MenuItem(tr("Copy as Hex"))) {
-        auto rgb = palette[n].rgb();
-        // rgb is already in 0-255 range, no need to multiply
-        std::string clipboard = absl::StrFormat("#%02X%02X%02X", (int)rgb.x,
-                                                (int)rgb.y, (int)rgb.z);
-        ImGui::SetClipboardText(clipboard.c_str());
-      }
-
+      ImGui::Separator();
+      SnesColorCopyMenuItems(palette[n]);
       ImGui::EndPopup();
+    }
+    if (open_edit_color) {
+      ImGui::OpenPopup(("Edit Color##" + std::to_string(n)).c_str());
     }
 
     // Color picker popup

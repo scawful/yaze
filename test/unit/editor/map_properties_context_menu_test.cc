@@ -289,7 +289,7 @@ TEST_F(MapPropertiesContextMenuTest,
                                         [&] { ++zoom_out_calls; });
   Build();
   EXPECT_FALSE(canvas_.GetConfig().show_builtin_context_menu);
-  auto* view = FindRootMenuItem(canvas_, " View");
+  auto* view = FindRootMenuItem(canvas_, "View");
   ASSERT_NE(view, nullptr);
   for (const auto* label : {"Reset View", "Zoom In", "Zoom Out"}) {
     EXPECT_EQ(FindRootMenuItem(canvas_, label), nullptr) << label;

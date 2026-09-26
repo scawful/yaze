@@ -12,6 +12,7 @@
 #include "app/editor/events/core_events.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/resource/bitmap_texture_queue.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
@@ -222,33 +223,34 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
         }
 
         // Context menu
-        if (ImGui::BeginPopupContextItem()) {
-          if (ImGui::MenuItem(tr("Open in Workbench"))) {
-            current_room_id_ = room_id;
-            if (room_intent_callback_) {
-              room_intent_callback_(room_id,
-                                    RoomSelectionIntent::kFocusInWorkbench);
-            } else if (room_selected_callback_) {
-              room_selected_callback_(room_id);
-            }
-          }
-          if (ImGui::MenuItem(tr("Open as Panel"))) {
-            current_room_id_ = room_id;
-            if (room_intent_callback_) {
-              room_intent_callback_(room_id,
-                                    RoomSelectionIntent::kOpenStandalone);
-            } else if (room_selected_callback_) {
-              room_selected_callback_(room_id);
-            }
-          }
-          ImGui::Separator();
-          char id_buf[16];
-          snprintf(id_buf, sizeof(id_buf), "0x%03X", room_id);
-          if (ImGui::MenuItem(tr("Copy Room ID"))) {
-            ImGui::SetClipboardText(id_buf);
-          }
-          ImGui::EndPopup();
-        }
+        gui::ItemContextMenu(nullptr, [&, room_id]() {
+          std::vector<gui::MenuItemSpec> items;
+          items.emplace_back(tr("Open in Workbench"), ICON_MD_ARROW_FORWARD,
+                             [this, room_id]() {
+                               current_room_id_ = room_id;
+                               if (room_intent_callback_) {
+                                 room_intent_callback_(
+                                     room_id,
+                                     RoomSelectionIntent::kFocusInWorkbench);
+                               } else if (room_selected_callback_) {
+                                 room_selected_callback_(room_id);
+                               }
+                             });
+          items.emplace_back(
+              tr("Open as Panel"), ICON_MD_OPEN_IN_NEW, [this, room_id]() {
+                current_room_id_ = room_id;
+                if (room_intent_callback_) {
+                  room_intent_callback_(room_id,
+                                        RoomSelectionIntent::kOpenStandalone);
+                } else if (room_selected_callback_) {
+                  room_selected_callback_(room_id);
+                }
+              });
+          items.back().separator_after = true;
+          items.push_back(gui::CopyToClipboardItem(
+              tr("Copy Room ID"), absl::StrFormat("0x%03X", room_id)));
+          return items;
+        });
 
         // Tooltip with room name and thumbnail
         if (ImGui::IsItemHovered()) {

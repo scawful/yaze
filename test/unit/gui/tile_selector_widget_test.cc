@@ -423,5 +423,21 @@ TEST_F(TileSelectorWidgetTest, RangeFilterMinInRangeMaxOutClamps) {
   EXPECT_EQ(widget.filter_range_max(), 63);  // clamped to total_tiles - 1
 }
 
+// Copy Tile ID copies the selected (right-clicked) tile as 0x-prefixed hex.
+TEST_F(TileSelectorWidgetTest, CopyTileIdMenuItemCopiesSelectedTile) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+  widget.SetSelectedTile(0x1A);
+
+  const auto item = widget.CopyTileIdMenuItem();
+  EXPECT_EQ(item.label, "Copy Tile ID");
+  ASSERT_TRUE(item.enabled_condition);
+  EXPECT_TRUE(item.enabled_condition());
+  ASSERT_TRUE(item.callback);
+  item.callback();
+  ASSERT_THAT(ImGui::GetClipboardText(), NotNull());
+  EXPECT_STREQ(ImGui::GetClipboardText(), "0x01A");
+}
+
 }  // namespace test
 }  // namespace yaze

@@ -274,9 +274,10 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
         "Copy", ICON_MD_CONTENT_COPY,
         [&interaction]() { (void)interaction.HandleCopySelected(); }, "Ctrl+C");
     items.push_back(paste_item());
-    items.emplace_back(
+    items.push_back(gui::CanvasMenuItem::Destructive(
         "Delete", ICON_MD_DELETE,
-        [&interaction]() { (void)interaction.HandleDeleteSelected(); }, "Del");
+        [&interaction]() { (void)interaction.HandleDeleteSelected(); },
+        /*confirm=*/false, "Delete"));
 
     if (!selected.empty()) {
       items.emplace_back(
@@ -318,7 +319,7 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
     yaze_more.label = "More";
     yaze_more.icon = ICON_MD_MORE_HORIZ;
     yaze_more.subitems.emplace_back(
-        "Duplicate", ICON_MD_CONTENT_PASTE,
+        "Duplicate", ICON_MD_FILE_COPY,
         [&interaction]() { (void)interaction.HandleDuplicateSelected(); },
         "Ctrl+D");
     if (group_selection) {
@@ -343,9 +344,9 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
 
   if (!has_selection && !has_entity_selection) {
     items.push_back(paste_item());
-    items.push_back(disabled_item("Delete", ICON_MD_DELETE, "Del"));
-    gui::CanvasMenuItem delete_all_item(
-        "Delete All", ICON_MD_DELETE_FOREVER,
+    items.push_back(disabled_item("Delete", ICON_MD_DELETE, "Delete"));
+    auto delete_all_item = gui::CanvasMenuItem::Destructive(
+        "Delete All Objects...", ICON_MD_DELETE_FOREVER,
         [&interaction]() { interaction.HandleDeleteAllObjects(); });
     delete_all_item.enabled_condition = enabled_if(room_has_objects);
     items.push_back(std::move(delete_all_item));
@@ -388,9 +389,9 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildRoomContextMenu(int room_id) {
       },
       "Ctrl+R");
   if (rooms_ && !(*rooms_)[room_id].GetTileObjects().empty()) {
-    room_menu.subitems.emplace_back(
-        "Delete All Objects", ICON_MD_DELETE_FOREVER,
-        [this]() { object_interaction_.HandleDeleteAllObjects(); });
+    room_menu.subitems.push_back(gui::CanvasMenuItem::Destructive(
+        "Delete All Objects...", ICON_MD_DELETE_FOREVER,
+        [this]() { object_interaction_.HandleDeleteAllObjects(); }));
   }
   return room_menu;
 }

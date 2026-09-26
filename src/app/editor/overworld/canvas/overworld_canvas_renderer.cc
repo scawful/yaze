@@ -361,7 +361,8 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   };
 
   gui::CanvasMenuItem edit_tile_item;
-  edit_tile_item.label = ICON_MD_GRID_VIEW " Edit Tile16";
+  edit_tile_item.label = "Edit Tile16";
+  edit_tile_item.icon = ICON_MD_GRID_VIEW;
   edit_tile_item.shortcut = "Double-click";
   edit_tile_item.enabled_condition = [this]() {
     return editor_->blockset_selector_ &&
@@ -374,6 +375,8 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     open_tile16_editor(editor_->blockset_selector_->GetSelectedTileID());
   };
   editor_->blockset_canvas_.AddContextMenuItem(edit_tile_item);
+  editor_->blockset_canvas_.AddContextMenuItem(
+      editor_->blockset_selector_->CopyTileIdMenuItem());
 
   gui::BeginPadding(3);
   ImGui::BeginGroup();
