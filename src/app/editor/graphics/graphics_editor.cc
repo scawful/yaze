@@ -403,7 +403,7 @@ absl::Status GraphicsEditor::Save() {
   // decoder and with the editor's loader, before the ROM goes to disk (the
   // caller writes the file only when this returns OK).
   for (uint16_t sheet_id : prepared.sheet_ids) {
-    const absl::Status verified = VerifyWrittenSheetPixels(
+    const absl::Status verified = verify_written_sheet_(
         *rom_, sheet_id, sheets[sheet_id].vector(), prepared.tables);
     if (!verified.ok()) {
       restore();
@@ -449,7 +449,7 @@ GraphicsEditor::PlanGraphicsSave() {
       entry.old_stored_size = result->old_stored_size;
       entry.new_stored_size = result->new_stored_size;
       const absl::Status verified =
-          VerifyWrittenSheetPixels(scratch, sheet_id, pixels, prepared.tables);
+          verify_written_sheet_(scratch, sheet_id, pixels, prepared.tables);
       if (!verified.ok()) {
         entry.refusal = std::string(verified.message());
       }

@@ -55,6 +55,21 @@ class GraphicsEditorSaveStoplossTestPeer {
   static GraphicsEditorState& State(GraphicsEditor* editor) {
     return editor->state_;
   }
+  // Runs the real read-back check against pixels with one index changed, so
+  // every sheet the save writes fails verification.
+  static void ForceVerificationMismatch(GraphicsEditor* editor) {
+    editor->verify_written_sheet_ =
+        [](const Rom& rom, uint16_t sheet_id,
+           const std::vector<uint8_t>& expected,
+           const zelda3::GfxSheetPointerTables& tables) {
+          std::vector<uint8_t> wrong = expected;
+          wrong[0] = static_cast<uint8_t>((wrong[0] + 1) % 8);
+          return VerifyWrittenSheetPixels(rom, sheet_id, wrong, tables);
+        };
+  }
+  static void RestoreVerification(GraphicsEditor* editor) {
+    editor->verify_written_sheet_ = VerifyWrittenSheetPixels;
+  }
 };
 
 class ScreenEditorSaveStoplossTestPeer {
@@ -2590,6 +2605,102 @@ TEST(GraphicsSaveStoplossTest, RelocatedSheetIsPlannedSavedAndReopened) {
 
   ExpectRelocatedSheetSurvivesSave(manager.get(), kSheetId, rom_path, 0xE0000,
                                    0xF0000);
+}
+
+// A sheet that does not read back as edited stops the save: the ROM bytes
+// in memory (including the relocation target) and the file on disk stay as
+// they were, and the edit stays pending.
+TEST(GraphicsSaveStoplossTest,
+     VerificationMismatchRestoresTheRomAndWritesNothing) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  constexpr uint16_t kSheetId = 0x20;
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX VERIFY FAIL";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  const auto rom_path = MakeTempFilePath("yaze_graphics_verify_fail.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  constexpr char kManifest[] =
+      R"json({"manifest_version": 3, "graphics_sheet_regions":
+          {"allocation_regions": [{"start": "0x1C8000", "end": "0x1E8000"}]}})json";
+  ASSERT_OK(project->hack_manifest.LoadFromString(kManifest));
+  ASSERT_NE(graphics->project(), nullptr);
+  ASSERT_OK(graphics->project()->hack_manifest.LoadFromString(kManifest));
+
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+               gfx::kTilesheetDepth,
+               gfx::SnesTo8bppSheet(fixture.sheets.at(kSheetId), /*bpp=*/3));
+  const auto edited = WithNoisyBlock0(sheet.vector(), /*seed=*/0xBEEF);
+  sheet.set_data(edited);
+  GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, kSheetId);
+
+  Rom* const rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  const std::vector<uint8_t> memory_before = rom->vector();
+  const bool dirty_before = rom->dirty();
+
+  GraphicsEditorSaveStoplossTestPeer::ForceVerificationMismatch(graphics);
+  // The editor restores the bytes itself, not only EditorManager's rollback.
+  const absl::Status editor_failed = graphics->Save();
+  ASSERT_FALSE(editor_failed.ok());
+  EXPECT_NE(std::string(editor_failed.message()).find("nothing was written"),
+            std::string::npos)
+      << editor_failed;
+  EXPECT_EQ(rom->vector(), memory_before);
+  EXPECT_EQ(rom->dirty(), dirty_before);
+
+  const absl::Status failed = manager->SaveRom();
+  ASSERT_FALSE(failed.ok());
+  EXPECT_NE(std::string(failed.message()).find("nothing was written"),
+            std::string::npos)
+      << failed;
+  EXPECT_EQ(rom->vector(), memory_before);
+  EXPECT_EQ(rom->dirty(), dirty_before);
+  {
+    std::ifstream in(rom_path, std::ios::binary);
+    const std::vector<uint8_t> disk((std::istreambuf_iterator<char>(in)),
+                                    std::istreambuf_iterator<char>());
+    EXPECT_EQ(disk, fixture.bytes);
+  }
+  EXPECT_TRUE(editor_set->HasPendingGraphicsChanges());
+  EXPECT_EQ(sheet.vector(), edited);
+
+  // With the real check back, the same edit saves.
+  GraphicsEditorSaveStoplossTestPeer::RestoreVerification(graphics);
+  ASSERT_OK(manager->SaveRom());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  auto readback = zelda3::ReadGfxSheetData(reopened, kSheetId);
+  ASSERT_TRUE(readback.ok()) << readback.status();
+  EXPECT_EQ(gfx::SnesTo8bppSheet(*readback, /*bpp=*/3), edited);
 }
 
 // The same on a scratch copy of the Oracle project (skipped unless

@@ -189,6 +189,11 @@ class GraphicsEditor : public Editor {
   };
   // Checks shared by Save and PlanGraphicsSave.
   absl::StatusOr<PreparedGraphicsSave> PrepareGraphicsSave();
+  // Read-back check run on every written sheet. Tests replace it to force a
+  // mismatch and exercise the abort path.
+  std::function<absl::Status(const Rom&, uint16_t, const std::vector<uint8_t>&,
+                             const zelda3::GfxSheetPointerTables&)>
+      verify_written_sheet_ = VerifyWrittenSheetPixels;
 
   friend class GraphicsEditorSaveStoplossTestPeer;
 
