@@ -21,6 +21,15 @@
 
 namespace yaze::zelda3 {
 
+namespace {
+
+bool IsDeathMountainArea(int area) {
+  return area == 0x03 || area == 0x05 || area == 0x07 || area == 0x43 ||
+         area == 0x45 || area == 0x47;
+}
+
+}  // namespace
+
 OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
     : OverworldMap(index, rom, game_data, /*seed_area_parent=*/true) {}
 
@@ -105,6 +114,15 @@ void OverworldMap::InheritAreaProperties(const OverworldMap& area_parent) {
   props.custom_gfx_ids = area_parent.custom_gfx_ids_;
   props.subscreen_overlay = area_parent.subscreen_overlay_;
   inherited_area_ = props;
+}
+
+OverworldTilesetKey OverworldMap::tileset_key() const {
+  OverworldTilesetKey key{};
+  for (int i = 0; i < 16; ++i) {
+    key[i] = static_graphics_[i];
+  }
+  key[16] = animated_sheet_;
+  return key;
 }
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
@@ -779,18 +797,26 @@ void OverworldMap::LoadAreaGraphicsBlocksets() {
   }
 }
 
-// TODO: Change the conditions for death mountain gfx
-// JaredBrian: This is how ZS did it, but in 3.0.4 I changed it to just check
-// for 03, 05, 07, and the DW ones as that's how it would appear in-game if
-// you were to make area 03 not a large area anymore for example, so you might
-// want to do the same.
+// Resolves the animated tile sheet. Graphics slot 7 is a composite in game:
+// the bottom half (door frames) comes from the area's sheet 7 and the top half
+// holds frame 0 of the animated tiles (water/lava/clouds) decompressed from
+// the animated sheet. Vanilla picks $59 on Death Mountain ($8A & $BF in
+// 03/05/07) and $5B elsewhere; ZSCustomOverworld reads its AnimatedTable with
+// $8A and falls back to the world's default sheet 7 for 0x00/0xFF.
 void OverworldMap::LoadDeathMountainGFX() {
-  // Match ZScream 3.0.4 behavior: only specific DM parents use animated GFX
-  const bool is_light_dm =
-      (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07);
-  const bool is_dark_dm =
-      (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47);
-  static_graphics_[7] = (is_light_dm || is_dark_dm) ? 0x59 : 0x5B;
+  const auto version = OverworldVersionHelper::GetVersion(*rom_);
+  uint8_t sheet = area_render_properties().animated_gfx;
+  const bool custom_animated = version != OverworldVersion::kVanilla &&
+                               (*rom_)[OverworldCustomAnimatedGFXEnabled] != 0;
+  if (custom_animated) {
+    if (sheet == 0x00 || sheet == 0xFF) {
+      const int world_offset = (parent_ & 0xC0) >> 3;
+      sheet = (*rom_)[OverworldCustomDefaultGFXGroups + world_offset + 7];
+    }
+  } else if (sheet == 0x00 || sheet == 0xFF) {
+    sheet = IsDeathMountainArea(parent_) ? 0x59 : 0x5B;
+  }
+  animated_sheet_ = sheet;
 }
 
 void OverworldMap::LoadAreaGraphics() {
@@ -1286,13 +1312,25 @@ absl::Status OverworldMap::BuildTileset() {
     }
   }
 
-  // NOTE: Previously there was code here accessing static_graphics_[16], but
-  // the array is only size 16 (indices 0-15). This was undefined behavior
-  // that read random memory and sometimes corrupted the animated graphics
-  // slot (7), causing flaky water/cloud rendering. The animated graphics
-  // are already correctly set in static_graphics_[7] by LoadDeathMountainGFX().
+  // The top of slot 7 shows frame 0 of the animated tiles (ZScream does the
+  // same with its StaticGFX[16]); the bottom keeps the area's sheet 7.
+  CopyAnimatedSheetIntoSlot7();
 
   return absl::OkStatus();
+}
+
+void OverworldMap::CopyAnimatedSheetIntoSlot7() {
+  if (!game_data_ || animated_sheet_ == 0) {
+    return;
+  }
+  const size_t src = static_cast<size_t>(animated_sheet_) * 0x1000;
+  const size_t dst = 7 * 0x1000;
+  if (src + kAnimatedSheetSlotBytes > game_data_->graphics_buffer.size() ||
+      dst + kAnimatedSheetSlotBytes > current_gfx_.size()) {
+    return;
+  }
+  std::copy_n(game_data_->graphics_buffer.begin() + src,
+              kAnimatedSheetSlotBytes, current_gfx_.begin() + dst);
 }
 
 absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,

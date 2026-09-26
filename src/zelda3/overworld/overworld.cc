@@ -1200,8 +1200,8 @@ uint64_t Overworld::ComputeGraphicsConfigHash(int map_index) {
   hash ^= static_cast<uint64_t>(map->main_palette()) << 24;
   hash *= 0x517cc1b727220a95ULL;
 
-  // Include animated_gfx to distinguish between Death Mountain (0x59) and normal (0x5B)
-  hash ^= static_cast<uint64_t>(map->animated_gfx()) << 16;
+  // Include the resolved animated sheet (top half of slot 7)
+  hash ^= static_cast<uint64_t>(map->animated_sheet()) << 16;
   hash *= 0x517cc1b727220a95ULL;
 
   // Include area_palette for final disambiguation
