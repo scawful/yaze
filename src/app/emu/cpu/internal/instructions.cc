@@ -386,14 +386,14 @@ void Cpu::ORA(uint32_t low, uint32_t high) {
     CheckInt();
     uint8_t value = ReadByte(low);
     A = (A & 0xFF00) | ((A | value) & 0xFF);
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x80);
   } else {
     uint16_t value = ReadWord(low, high, true);
     A |= value;
-    SetZeroFlag(A == 0);
-    SetNegativeFlag(A & 0x8000);
   }
+  // 8-bit mode must test only the low byte. Testing all of A left Z clear
+  // when B (the high byte) was nonzero, so "LDA $F4 : ORA $F6 : BEQ" saw a
+  // button press that did not happen.
+  SetZN(A, GetAccumulatorSize());
 }
 
 }  // namespace emu

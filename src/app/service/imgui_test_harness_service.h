@@ -3,11 +3,13 @@
 
 #ifdef YAZE_WITH_GRPC
 
+#include <chrono>
 #include <memory>
 #include <string>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/service/screenshot_utils.h"
 #include "app/service/widget_discovery_service.h"
 #include "app/testing/test_recorder.h"
 
@@ -128,6 +130,21 @@ class ImGuiTestHarnessServiceImpl {
  */
 std::unique_ptr<::grpc::Service> CreateImGuiTestHarnessServiceGrpc(
     ImGuiTestHarnessServiceImpl* impl);
+
+/**
+ * @brief Captures a screenshot on the render thread and waits for the result
+ *
+ * For worker threads such as gRPC handlers. SDL renderers are not
+ * thread-safe: capturing off the render thread races the frame being drawn,
+ * and Metal aborts in endEncoding. The capture is queued through
+ * Controller::RequestScreenshot. Returns DeadlineExceeded if no frame renders
+ * within `timeout`; on the render thread itself it can only time out.
+ */
+absl::StatusOr<ScreenshotArtifact> CaptureScreenshotOnRenderThread(
+    const std::string& preferred_path = "",
+    const std::string& window_title = "",
+    ScreenshotFormat format = ScreenshotFormat::kAuto,
+    std::chrono::milliseconds timeout = std::chrono::seconds(5));
 
 // Singleton server managing the gRPC service
 // This class manages the lifecycle of the gRPC server

@@ -288,6 +288,13 @@ class MemoryImpl : public Memory {
  private:
   uint32_t GetMappedAddress(uint32_t address) const;
 
+  // Reads a linear cartridge ROM offset. Offsets mirror within rom_size_ (a
+  // power of two); offsets past the loaded bytes read as open bus.
+  uint8_t ReadRom(uint32_t offset) const {
+    offset &= rom_size_ - 1;
+    return offset < rom_.size() ? rom_[offset] : open_bus_;
+  }
+
   bool verbose_ = false;
 
   // DMA requests
@@ -296,9 +303,10 @@ class MemoryImpl : public Memory {
 
   bool pal_timing_ = false;
 
-  // Memory regions
-  uint32_t rom_size_;
-  uint32_t sram_size_;
+  // Memory regions. rom_size_ is the power-of-two mapping window; rom_ holds
+  // the loaded file bytes and may be shorter.
+  uint32_t rom_size_ = 0;
+  uint32_t sram_size_ = 0;
 
   // Frame timing
   uint16_t h_pos_ = 0;

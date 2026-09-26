@@ -213,7 +213,10 @@ void Snes::Reset(bool hard) {
   memset(port_auto_read_, 0, sizeof(port_auto_read_));
   auto_joy_read_ = false;
   auto_joy_timer_ = 0;
-  ppu_latch_ = false;
+  // WRIO ($4201) resets to $FF. Bit 7 high lets an SLHV ($2137) read latch
+  // the H/V counters. ALttP never writes WRIO and polls OPVCT after SLHV
+  // (IrisSpotlight_ConfigureTable), so a low bit 7 hung every iris wipe.
+  ppu_latch_ = true;
   multiply_a_ = 0xff;
   multiply_result_ = 0xFE01;
   divide_a_ = 0xffFF;
@@ -572,8 +575,9 @@ uint8_t Snes::ReadReg(uint16_t adr) {
       if (auto_joy_timer_ > 0) {
         static int zero_return_count = 0;
         if (zero_return_count++ < 50) {
-          LOG_WARN("SNES", "Reading $%04X while auto_joy_timer_=%d, returning 0!",
-                   adr, auto_joy_timer_);
+          LOG_WARN("SNES",
+                   "Reading $%04X while auto_joy_timer_=%d, returning 0!", adr,
+                   auto_joy_timer_);
         }
         return 0;
       }
