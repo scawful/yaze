@@ -209,6 +209,9 @@ struct YazeProject {
   std::string patches_folder;
   std::string labels_filename;
   std::string symbols_filename;
+  // Overworld cutscene camera/actor shots ([files] cutscene_shots). Empty:
+  // the Cutscene Camera window is read-only and offers Copy JSON.
+  std::string cutscene_shots;
   std::string
       custom_objects_folder;  // Folder containing custom object .bin files
   std::string

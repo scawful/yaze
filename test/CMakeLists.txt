@@ -369,6 +369,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/zelda3/overworld_sprite_io_test.cc
+    unit/zelda3/cutscene_shot_test.cc
     unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
