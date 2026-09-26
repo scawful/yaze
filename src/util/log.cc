@@ -136,6 +136,13 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
   }
 }
 
+void LogManager::Flush() {
+  std::lock_guard<std::mutex> lock(LogWriteMutex());
+  if (log_stream_.is_open()) {
+    log_stream_.flush();
+  }
+}
+
 bool LogManager::ShouldLog(LogLevel level, absl::string_view category) const {
   // 1. Filter by log level.
   if (level < min_level_.load(std::memory_order_relaxed)) {
