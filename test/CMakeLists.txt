@@ -441,6 +441,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
     unit/zelda3/dungeon/object_tile_editor_test.cc
     unit/zelda3/dungeon/room_graphics_palette_test.cc
+    unit/zelda3/dungeon/room_graphics_sheet_override_test.cc
     unit/zelda3/dungeon/room_header_palette_test.cc
     unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
     unit/zelda3/dungeon/object_draw_code_test.cc
@@ -817,6 +818,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_layer_semantics_test.cc
     unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
     unit/zelda3/dungeon/room_graphics_palette_test.cc
+    unit/zelda3/dungeon/room_graphics_sheet_override_test.cc
     unit/zelda3/dungeon/room_header_palette_test.cc
   )
   set(QUICK_INTEGRATION_TEST_SOURCES
