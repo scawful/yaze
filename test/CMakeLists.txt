@@ -282,6 +282,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
     unit/editor/sprite_editor_preview_test.cc
+    unit/editor/sprite_spriteset_preview_test.cc
     unit/editor/sprite_authoring_test.cc
     unit/editor/sprite_behavior_test.cc
     unit/editor/sprite_catalog_session_test.cc
@@ -371,6 +372,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
+    unit/zelda3/sprite_sheet_slots_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
     unit/zelda3/overworld_version_helper_test.cc
