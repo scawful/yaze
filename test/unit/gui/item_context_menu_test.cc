@@ -196,6 +196,49 @@ TEST_F(MenuRenderTest, HiddenAndDisabledItemsDoNotRun) {
   EXPECT_EQ(runs, 0);
 }
 
+// A popup begun inside gui::BeginNoPadding() used to inherit zero padding.
+// PopupStyleScope, pushed before Begin, restores the theme's spacing.
+TEST_F(MenuRenderTest, PopupStyleScopeRestoresPaddingInsideNoPaddingRegion) {
+  ImGuiStyle& style = ImGui::GetStyle();
+  style.WindowPadding = ImVec2(9.0f, 7.0f);
+  style.ItemSpacing = ImVec2(6.0f, 5.0f);
+  const ImVec2 theme_padding = style.WindowPadding;
+
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1, 1));
+    EXPECT_EQ(BaseStyleVarVec2(ImGuiStyleVar_WindowPadding).x, theme_padding.x);
+    if (frame == 0) {
+      ImGui::OpenPopup("scoped");
+    }
+    {
+      PopupStyleScope scope;
+      EXPECT_EQ(style.ItemSpacing.x, 6.0f);
+      if (ImGui::BeginPopup("scoped")) {
+        EXPECT_EQ(ImGui::GetCurrentWindow()->WindowPadding.x, theme_padding.x);
+        EXPECT_EQ(ImGui::GetCurrentWindow()->WindowPadding.y, theme_padding.y);
+        ImGui::TextUnformatted("x");
+        ImGui::EndPopup();
+      }
+    }
+    // The scope pops exactly what it pushed.
+    EXPECT_EQ(style.WindowPadding.x, 1.0f);
+    ImGui::PopStyleVar(3);
+    EXPECT_EQ(style.WindowPadding.x, theme_padding.x);
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+}
+
+TEST_F(MenuRenderTest, BaseStyleVarIsCurrentValueWithoutPushes) {
+  ImGui::GetStyle().FramePadding = ImVec2(4.0f, 3.0f);
+  const ImVec2 base = BaseStyleVarVec2(ImGuiStyleVar_FramePadding);
+  EXPECT_EQ(base.x, 4.0f);
+  EXPECT_EQ(base.y, 3.0f);
+}
+
 }  // namespace
 }  // namespace gui
 }  // namespace yaze

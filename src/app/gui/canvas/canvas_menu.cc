@@ -1,9 +1,52 @@
 #include "canvas_menu.h"
 
 #include "app/gui/core/ui_helpers.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace gui {
+
+namespace {
+
+constexpr ImGuiStyleVar kPopupSpacingVars[] = {
+    ImGuiStyleVar_WindowPadding,
+    ImGuiStyleVar_FramePadding,
+    ImGuiStyleVar_ItemSpacing,
+    ImGuiStyleVar_ItemInnerSpacing,
+};
+
+}  // namespace
+
+ImVec2 BaseStyleVarVec2(ImGuiStyleVar idx) {
+  ImGuiContext* g = ImGui::GetCurrentContext();
+  if (g == nullptr) {
+    return ImVec2(0, 0);
+  }
+  // The oldest backup of `idx` holds the value before any push of it.
+  for (const ImGuiStyleMod& mod : g->StyleVarStack) {
+    if (mod.VarIdx == idx) {
+      return ImVec2(mod.BackupFloat[0], mod.BackupFloat[1]);
+    }
+  }
+  const ImGuiStyleVarInfo* info = ImGui::GetStyleVarInfo(idx);
+  return *static_cast<const ImVec2*>(info->GetVarPtr(&g->Style));
+}
+
+PopupStyleScope::PopupStyleScope() {
+  if (ImGui::GetCurrentContext() == nullptr) {
+    return;
+  }
+  for (const ImGuiStyleVar idx : kPopupSpacingVars) {
+    ImGui::PushStyleVar(idx, BaseStyleVarVec2(idx));
+    ++pushed_;
+  }
+}
+
+PopupStyleScope::~PopupStyleScope() {
+  if (pushed_ > 0) {
+    ImGui::PopStyleVar(pushed_);
+  }
+}
 
 void MenuConfirmState::NoteRendered(ImGuiID id, int frame) {
   if (armed_id_ != id) {

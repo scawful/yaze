@@ -1,5 +1,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "canvas_context_menu.h"
+
+#include <optional>
 #include "util/i18n/tr.h"
 
 #include "app/gfx/debug/performance/performance_dashboard.h"
@@ -97,7 +99,12 @@ void CanvasContextMenu::Render(
     }
   };
 
-  // Contents of the Context Menu (Phase 4: Priority-based ordering)
+  // Contents of the Context Menu (Phase 4: Priority-based ordering).
+  // Canvases draw with zero padding; the popup must not inherit it.
+  std::optional<PopupStyleScope> popup_style;
+  if (ImGui::IsPopupOpen(context_id.c_str())) {
+    popup_style.emplace();
+  }
   if (ImGui::BeginPopup(context_id.c_str())) {
     // PRIORITY 0: Editor-specific items (from Canvas::editor_menu_)
     if (canvas && !canvas->editor_menu().sections.empty()) {

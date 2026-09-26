@@ -8,6 +8,9 @@ namespace gui {
 bool ItemContextMenu(const char* id,
                      const std::function<std::vector<MenuItemSpec>()>& build,
                      ImGuiPopupFlags flags) {
+  // Pushed before Begin: a row inside a zero-padding region (a canvas) would
+  // otherwise hand that padding to the popup window.
+  PopupStyleScope popup_style;
   if (!ImGui::BeginPopupContextItem(id, flags)) {
     return false;
   }
@@ -21,6 +24,9 @@ bool ItemContextMenu(const char* id,
 bool ItemContextMenu(const char* id,
                      const std::function<CanvasMenuDefinition()>& build,
                      ImGuiPopupFlags flags) {
+  // Pushed before Begin: a row inside a zero-padding region (a canvas) would
+  // otherwise hand that padding to the popup window.
+  PopupStyleScope popup_style;
   if (!ImGui::BeginPopupContextItem(id, flags)) {
     return false;
   }
