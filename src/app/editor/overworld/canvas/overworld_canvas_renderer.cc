@@ -136,12 +136,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->entity_renderer_->ResetHoveredEntity();
     }
 
-    // Draw overlay preview if enabled
-    if (editor_->show_overlay_preview_ && editor_->map_properties_system_) {
-      editor_->map_properties_system_->DrawOverlayPreviewOnMap(
-          editor_->current_map_, editor_->current_world_,
-          editor_->show_overlay_preview_);
-    }
+    // Area subscreen overlays are composited per map in DrawOverworldMaps()
+    // (toggle: show_overlay_preview_).
 
     // Always refresh hover preview: when the canvas is not hovered this clears
     // hovered_map_ so the status bar falls back to the selected map.
@@ -241,15 +237,112 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
 // Internal Canvas Drawing Helpers
 // =============================================================================
 
+// Draws one map the way the game layers it: the area backdrop color (palette
+// color 0, which the map bitmap keeps transparent), the map, then the area's
+// subscreen overlay layer. The layer is built in the map's own palette;
+// background overlays (sky, pyramid, lava) only cover backdrop pixels and are
+// drawn opaque, front overlays (fog, canopy, rain, curtains) at half alpha.
+void OverworldCanvasRenderer::DrawMapWithAreaLayers(int map_index, int map_x,
+                                                    int map_y, float scale) {
+  auto& canvas = editor_->ow_map_canvas_;
+  auto& bitmap = editor_->maps_bmp_[map_index];
+  const float size = kOverworldMapSize * scale;
+  const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x + map_x,
+                      canvas.zero_point().y + canvas.scrolling().y + map_y);
+
+  if (!bitmap.palette().empty()) {
+    const ImVec4 rgb = bitmap.palette()[0].rgb();
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        origin, ImVec2(origin.x + size, origin.y + size),
+        IM_COL32(static_cast<int>(rgb.x), static_cast<int>(rgb.y),
+                 static_cast<int>(rgb.z), 255));
+  }
+
+  canvas.DrawBitmap(bitmap, map_x, map_y, scale);
+
+  if (!editor_->show_overlay_preview_) {
+    return;
+  }
+  auto* layer = EnsureOverlayLayer(map_index);
+  if (layer && layer->bitmap.is_active() && layer->bitmap.texture()) {
+    canvas.DrawBitmap(layer->bitmap, map_x, map_y, scale,
+                      layer->background ? 255 : 128);
+  }
+}
+
+// Returns the cached overlay layer for a map. The layer is built once per
+// map (building the map if the build cache evicted it) and rebuilt when the
+// map's pixels change while it is built, so an evicted map keeps its last
+// layer instead of being rebuilt every frame.
+OverworldCanvasRenderer::OverlayLayer*
+OverworldCanvasRenderer::EnsureOverlayLayer(int map_index) {
+  const auto* map = editor_->overworld_.overworld_map(map_index);
+  if (!map) {
+    return nullptr;
+  }
+  const bool has_overlay =
+      zelda3::SubscreenOverlayScreen(map->render_subscreen_overlay()) >= 0;
+  auto it = overlay_layers_.find(map_index);
+  const bool missing =
+      it == overlay_layers_.end() || it->second.has_overlay != has_overlay;
+  const bool stale = !missing && map->is_built() &&
+                     it->second.bitmap_serial != map->bitmap_serial();
+  if (missing || stale) {
+    auto& entry = overlay_layers_[map_index];
+    entry.has_overlay = has_overlay;
+    entry.bitmap_serial = map->bitmap_serial();
+    if (has_overlay) {
+      auto layer = editor_->overworld_.BuildSubscreenOverlayLayer(map_index);
+      if (!layer.ok() || layer->overlay_screen < 0) {
+        entry.has_overlay = false;
+        return nullptr;
+      }
+      map = editor_->overworld_.overworld_map(map_index);
+      entry.bitmap_serial = map->bitmap_serial();
+      entry.background = layer->background;
+      if (!entry.bitmap.is_active()) {
+        entry.bitmap.Create(kOverworldMapSize, kOverworldMapSize, 0x80,
+                            layer->pixels);
+      } else {
+        entry.bitmap.set_data(layer->pixels);
+      }
+      entry.bitmap.SetPalette(map->current_palette());
+      gfx::Arena::Get().QueueTextureCommand(
+          entry.bitmap.texture() ? gfx::Arena::TextureCommandType::UPDATE
+                                 : gfx::Arena::TextureCommandType::CREATE,
+          &entry.bitmap);
+    }
+    it = overlay_layers_.find(map_index);
+  }
+  if (!it->second.has_overlay) {
+    return nullptr;
+  }
+  return &it->second;
+}
+
 void OverworldCanvasRenderer::DrawOverworldMaps() {
   // Get the current zoom scale for positioning and sizing
   float scale = editor_->ow_map_canvas_.global_scale();
   if (scale <= 0.0f)
     scale = 1.0f;
 
-  int xx = 0;
-  int yy = 0;
+  // Build only maps that intersect the visible canvas, and at most a few per
+  // frame: building all 64 maps of a world in the first frame stalled the UI.
+  // Off-screen maps are built when scrolled into view; visible ones that are
+  // over the budget show the loading placeholder for a frame or two.
+  constexpr int kMaxMapBuildsPerFrame = 4;
+  int builds_this_frame = 0;
+  const ImVec2 clip_min = ImGui::GetWindowDrawList()->GetClipRectMin();
+  const ImVec2 clip_max = ImGui::GetWindowDrawList()->GetClipRectMax();
+  const ImVec2 canvas_origin(editor_->ow_map_canvas_.zero_point().x +
+                                 editor_->ow_map_canvas_.scrolling().x,
+                             editor_->ow_map_canvas_.zero_point().y +
+                                 editor_->ow_map_canvas_.scrolling().y);
+  const float map_extent = kOverworldMapSize * scale;
+
   for (int i = 0; i < 0x40; i++) {
+    const int xx = i % 8;
+    const int yy = i / 8;
     int world_index = i + (editor_->current_world_ * 0x40);
 
     // Bounds checking to prevent crashes
@@ -262,9 +355,22 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
     int map_x = static_cast<int>(xx * kOverworldMapSize * scale);
     int map_y = static_cast<int>(yy * kOverworldMapSize * scale);
 
-    // Ensure visible maps are materialized on demand before drawing.
-    if (!editor_->maps_bmp_[world_index].is_active() ||
-        !editor_->maps_bmp_[world_index].texture()) {
+    const float left = canvas_origin.x + map_x;
+    const float top = canvas_origin.y + map_y;
+    if (left >= clip_max.x || top >= clip_max.y ||
+        left + map_extent <= clip_min.x || top + map_extent <= clip_min.y) {
+      continue;  // Not visible
+    }
+
+    // Ensure visible maps are materialized on demand before drawing. A map
+    // whose bitmap exists only waits for its queued texture (cheap).
+    auto& map_bitmap = editor_->maps_bmp_[world_index];
+    if (!map_bitmap.is_active()) {
+      if (builds_this_frame < kMaxMapBuildsPerFrame) {
+        editor_->EnsureMapTexture(world_index);
+        ++builds_this_frame;
+      }
+    } else if (!map_bitmap.texture()) {
       editor_->EnsureMapTexture(world_index);
     }
 
@@ -275,9 +381,7 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
                     editor_->maps_bmp_[world_index].is_active();
 
     if (can_draw) {
-      // Draw bitmap at scaled position with scale applied to size
-      editor_->ow_map_canvas_.DrawBitmap(editor_->maps_bmp_[world_index], map_x,
-                                         map_y, scale);
+      DrawMapWithAreaLayers(world_index, map_x, map_y, scale);
     } else {
       // Draw a placeholder for maps that haven't loaded yet
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -312,12 +416,6 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
                            12);
       draw_list->PathStroke(ImGui::GetColorU32(theme.status_active), 0,
                             2.5f * scale);
-    }
-
-    xx++;
-    if (xx >= 8) {
-      yy++;
-      xx = 0;
     }
   }
 }
