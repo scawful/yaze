@@ -31,7 +31,10 @@ class RomFileManager {
 
   // ROM file operations
   absl::Status LoadRom(Rom* rom, const std::string& filename);
-  absl::Status SaveRom(Rom* rom);
+  // A non-empty `collision_source` also keeps that custom_collision.json in
+  // step with the saved ROM (see SaveRomWithCollisionSource).
+  absl::Status SaveRom(Rom* rom,
+                       const std::filesystem::path& collision_source = {});
   absl::Status SaveRomAs(Rom* rom, const std::string& filename);
   absl::Status OpenRomOrProject(Rom* rom, const std::string& filename);
   absl::Status CreateBackup(Rom* rom);
@@ -50,8 +53,7 @@ class RomFileManager {
     uintmax_t size_bytes = 0;
   };
 
-  std::vector<BackupEntry> ListBackups(
-      const std::string& rom_filename) const;
+  std::vector<BackupEntry> ListBackups(const std::string& rom_filename) const;
   absl::Status PruneBackups(const std::string& rom_filename) const;
 
   // Utility helpers

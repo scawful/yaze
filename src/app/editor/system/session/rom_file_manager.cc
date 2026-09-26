@@ -9,6 +9,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/session/collision_source_pairing.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/log.h"
@@ -53,7 +54,8 @@ absl::Status RomFileManager::LoadRom(Rom* rom, const std::string& filename) {
   return LoadRomFromFile(rom, filename);
 }
 
-absl::Status RomFileManager::SaveRom(Rom* rom) {
+absl::Status RomFileManager::SaveRom(
+    Rom* rom, const std::filesystem::path& collision_source) {
   if (!IsRomLoaded(rom)) {
     return absl::FailedPreconditionError("No ROM loaded to save");
   }
@@ -74,7 +76,9 @@ absl::Status RomFileManager::SaveRom(Rom* rom) {
   settings.backup = false;
   settings.save_new = false;
 
-  auto status = rom->SaveToFile(settings);
+  auto status = collision_source.empty()
+                    ? rom->SaveToFile(settings)
+                    : SaveRomWithCollisionSource(rom, collision_source);
   if (!status.ok() && toast_manager_) {
     toast_manager_->Show(
         absl::StrFormat("Failed to save ROM: %s", status.message()),

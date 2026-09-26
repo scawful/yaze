@@ -218,6 +218,7 @@ set(
 
 set(
   YAZE_EDITOR_SYSTEM_SESSION_SRC
+  app/editor/system/session/collision_source_pairing.cc
   app/editor/system/session/extension_manager.cc
   app/editor/system/session/project_manager.cc
   app/editor/system/session/rom_file_manager.cc

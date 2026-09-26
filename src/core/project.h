@@ -212,6 +212,9 @@ struct YazeProject {
   // Overworld cutscene camera/actor shots ([files] cutscene_shots). Empty:
   // the Cutscene Camera window is read-only and offers Copy JSON.
   std::string cutscene_shots;
+  // Tracked custom collision source kept in step with the ROM on every save
+  // ([files] custom_collision_json). Empty: collision lives only in the ROM.
+  std::string custom_collision_json;
   std::string
       custom_objects_folder;  // Folder containing custom object .bin files
   std::string
