@@ -1,5 +1,6 @@
 #include "app/editor/overworld/core/interaction_coordinator.h"
 
+#include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -28,13 +29,13 @@ void OverworldInteractionCoordinator::Update(
     return;
   }
 
-  // Modifier states
-  const bool ctrl_held = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
-                         ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-  const bool shift_held = ImGui::IsKeyDown(ImGuiKey_LeftShift) ||
-                          ImGui::IsKeyDown(ImGuiKey_RightShift);
-  const bool alt_held =
-      ImGui::IsKeyDown(ImGuiKey_LeftAlt) || ImGui::IsKeyDown(ImGuiKey_RightAlt);
+  // Modifier states. Use the same primary-modifier rule as ShortcutManager:
+  // Cmd (Super) counts as Ctrl on macOS, and ImGui's macOS behaviors may
+  // already have swapped it into io.KeyCtrl.
+  const ImGuiIO& io = ImGui::GetIO();
+  const bool ctrl_held = io.KeyCtrl || (gui::IsMacPlatform() && io.KeySuper);
+  const bool shift_held = io.KeyShift;
+  const bool alt_held = io.KeyAlt;
 
   // 1. Tool shortcuts (1-2 for mode selection)
   if (ImGui::IsKeyPressed(ImGuiKey_1, false)) {
@@ -67,49 +68,20 @@ void OverworldInteractionCoordinator::Update(
       sink_.on_set_entity_mode(EntityEditMode::MUSIC);
   }
 
-  // 3. Brush/Fill/Pick shortcuts (avoid clobbering Ctrl/Alt based shortcuts).
+  // 3. Pick shortcut (avoid clobbering Ctrl/Alt based shortcuts). Brush (B),
+  // fill (F), tile cycling ([ ]), F11, Ctrl+L, Ctrl+T and Ctrl+Shift+I are
+  // dispatched once by ShortcutManager as overworld editor shortcuts.
   if (!ctrl_held && !alt_held) {
-    if (ImGui::IsKeyPressed(ImGuiKey_B, false)) {
-      if (sink_.on_toggle_brush)
-        sink_.on_toggle_brush();
-    }
-    if (ImGui::IsKeyPressed(ImGuiKey_F, false)) {
-      if (sink_.on_activate_fill)
-        sink_.on_activate_fill();
-    }
     if (ImGui::IsKeyPressed(ImGuiKey_I, false)) {
       if (sink_.on_pick_tile_from_hover)
         sink_.on_pick_tile_from_hover();
     }
   }
 
-  // 4. View / Map shortcuts
-  if (ImGui::IsKeyPressed(ImGuiKey_F11, false)) {
-    if (sink_.on_toggle_fullscreen)
-      sink_.on_toggle_fullscreen();
-  }
-
-  // Toggle map lock with Ctrl+L
-  if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_L, false)) {
-    if (sink_.on_toggle_lock)
-      sink_.on_toggle_lock();
-  }
-
-  // Toggle Tile16 editor with Ctrl+T
-  if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_T, false)) {
-    if (sink_.on_toggle_tile16_editor)
-      sink_.on_toggle_tile16_editor();
-  }
-
-  // Toggle Overworld Item List with Ctrl+Shift+I
-  if (ctrl_held && shift_held && ImGui::IsKeyPressed(ImGuiKey_I, false)) {
-    if (sink_.on_toggle_item_list)
-      sink_.on_toggle_item_list();
-  }
-
   // 5. Item workflow shortcuts (duplicate + nudge)
   if (sink_.can_edit_items && sink_.can_edit_items()) {
-    if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
+    // Ctrl+Shift+D is Duplicate Session; only plain Ctrl+D duplicates items.
+    if (ctrl_held && !shift_held && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
       if (sink_.on_duplicate_selected)
         sink_.on_duplicate_selected();
     } else if (!ctrl_held) {

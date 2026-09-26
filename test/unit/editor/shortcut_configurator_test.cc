@@ -3,11 +3,15 @@
 #include <deque>
 #include <memory>
 #include <optional>
+#include <set>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/system/shortcut_manager.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -131,11 +135,15 @@ class ShortcutConfiguratorTest : public ::testing::Test {
 TEST_F(ShortcutConfiguratorTest, RegistersWindowBrowserAndDrawerAliases) {
   ShortcutManager shortcuts = ConfigureShortcuts();
 
+  // Canonical "Window" names own the chords; legacy "Panel" names stay as
+  // keyless palette aliases so one chord maps to exactly one shortcut.
   const Shortcut* panel_browser = shortcuts.FindShortcut("Panel Browser");
   const Shortcut* window_browser = shortcuts.FindShortcut("Window Browser");
   ASSERT_NE(panel_browser, nullptr);
   ASSERT_NE(window_browser, nullptr);
-  EXPECT_EQ(window_browser->keys, panel_browser->keys);
+  EXPECT_FALSE(window_browser->keys.empty());
+  EXPECT_TRUE(panel_browser->keys.empty());
+  EXPECT_TRUE(static_cast<bool>(panel_browser->callback));
 
   const Shortcut* panel_browser_alt =
       shortcuts.FindShortcut("Panel Browser (Alt)");
@@ -143,12 +151,136 @@ TEST_F(ShortcutConfiguratorTest, RegistersWindowBrowserAndDrawerAliases) {
       shortcuts.FindShortcut("Window Browser (Alt)");
   ASSERT_NE(panel_browser_alt, nullptr);
   ASSERT_NE(window_browser_alt, nullptr);
-  EXPECT_EQ(window_browser_alt->keys, panel_browser_alt->keys);
+  EXPECT_FALSE(window_browser_alt->keys.empty());
+  EXPECT_TRUE(panel_browser_alt->keys.empty());
 
-  EXPECT_NE(shortcuts.FindShortcut("View: Previous Right Drawer"), nullptr);
-  EXPECT_NE(shortcuts.FindShortcut("View: Next Right Drawer"), nullptr);
+  // The drawer cycle chords used to be erased by a later keyless
+  // re-registration of the same names.
+  const Shortcut* prev_drawer =
+      shortcuts.FindShortcut("View: Previous Right Drawer");
+  const Shortcut* next_drawer =
+      shortcuts.FindShortcut("View: Next Right Drawer");
+  ASSERT_NE(prev_drawer, nullptr);
+  ASSERT_NE(next_drawer, nullptr);
+  EXPECT_EQ(prev_drawer->keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt,
+                                   ImGuiKey_LeftBracket}));
+  EXPECT_EQ(next_drawer->keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt,
+                                   ImGuiKey_RightBracket}));
+  EXPECT_NE(shortcuts.FindShortcut("View: Previous Right Panel"), nullptr);
   EXPECT_NE(shortcuts.FindShortcut("View: Toggle Project Drawer"), nullptr);
   EXPECT_NE(shortcuts.FindShortcut("View: Show Window Browser"), nullptr);
+}
+
+TEST_F(ShortcutConfiguratorTest, DefaultBindingsHaveNoUnintendedConflicts) {
+  ShortcutManager shortcuts;
+  ShortcutDependencies deps;
+  deps.editor_manager = editor_manager_.get();
+  deps.window_manager = editor_manager_->GetWindowManager();
+  ConfigureEditorShortcuts(deps, &shortcuts);
+  ConfigureMenuShortcuts(deps, &shortcuts);
+
+  // Overworld deliberately overrides these globals while it is active
+  // (editor-scoped beats global).
+  const std::set<std::pair<std::string, std::string>> intended = {
+      {"Maximize Window", "overworld.toggle_fullscreen"},
+      {"Test Dashboard", "overworld.toggle_tile16_editor"},
+  };
+
+  for (const auto& [name, shortcut] : shortcuts.GetShortcuts()) {
+    for (const auto& other : shortcuts.FindConflicts(name)) {
+      const auto pair = name < other ? std::make_pair(name, other)
+                                     : std::make_pair(other, name);
+      EXPECT_TRUE(intended.count(pair) > 0)
+          << name << " conflicts with " << other << " on "
+          << shortcuts.GetDisplayString(name);
+    }
+  }
+
+  // Ctrl/Cmd+0 resets the font scale; nothing else may claim it.
+  EXPECT_TRUE(shortcuts.FindConflicts("ui.font_scale_reset").empty());
+
+  // Ctrl+Y is a Redo alias (menus advertise it); Ctrl+Shift+Z stays primary.
+  EXPECT_EQ(shortcuts.GetShortcut("Redo (Alt)").keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiKey_Y}));
+  EXPECT_EQ(shortcuts.GetShortcut("Redo").keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_Z}));
+
+  // No-op graphics tool keys are no longer registered.
+  EXPECT_EQ(shortcuts.FindShortcut("graphics.tool.pencil"), nullptr);
+  EXPECT_EQ(shortcuts.FindShortcut("graphics.zoom_in"), nullptr);
+  EXPECT_EQ(shortcuts.FindShortcut("graphics.toggle_grid"), nullptr);
+
+  // Editor tool keys are owned by their editor.
+  const Shortcut* brush = shortcuts.FindShortcut("overworld.brush_toggle");
+  ASSERT_NE(brush, nullptr);
+  ASSERT_TRUE(brush->editor_type.has_value());
+  EXPECT_EQ(*brush->editor_type, EditorType::kOverworld);
+  const Shortcut* next_object =
+      shortcuts.FindShortcut("dungeon.object.next_object");
+  ASSERT_NE(next_object, nullptr);
+  ASSERT_TRUE(next_object->editor_type.has_value());
+  EXPECT_EQ(*next_object->editor_type, EditorType::kDungeon);
+}
+
+TEST_F(ShortcutConfiguratorTest, PanelHintDoesNotShadowGlobalChord) {
+  auto* window_manager = editor_manager_->GetWindowManager();
+  bool visible = false;
+  WindowDescriptor descriptor;
+  descriptor.card_id = "test.music_like";
+  descriptor.display_name = "Music Like";
+  descriptor.category = "Music";
+  descriptor.shortcut_hint = "Ctrl+Shift+P";  // Command Palette's chord
+  descriptor.visibility_flag = &visible;
+  window_manager->RegisterWindow(0, descriptor);
+
+  ShortcutManager shortcuts = ConfigureShortcuts();
+  ShortcutDependencies deps;
+  deps.editor_manager = editor_manager_.get();
+  deps.window_manager = window_manager;
+  ConfigurePanelShortcuts(deps, &shortcuts);
+
+  EXPECT_EQ(shortcuts.FindShortcut("view.toggle.test.music_like"), nullptr);
+
+  // Non-colliding hints register as panel-scoped, editor-owned toggles.
+  const Shortcut* demo = shortcuts.FindShortcut("view.toggle.test.demo");
+  ASSERT_NE(demo, nullptr);
+  EXPECT_EQ(demo->scope, Shortcut::Scope::kPanel);
+  ASSERT_TRUE(demo->editor_type.has_value());
+  EXPECT_EQ(*demo->editor_type, EditorType::kDungeon);
+}
+
+TEST_F(ShortcutConfiguratorTest, UserPanelBindingIsRegisteredEvenIfItCollides) {
+  auto* window_manager = editor_manager_->GetWindowManager();
+  bool visible = false;
+  WindowDescriptor descriptor;
+  descriptor.card_id = "test.music_like";
+  descriptor.display_name = "Music Like";
+  descriptor.category = "Music";
+  descriptor.shortcut_hint = "Ctrl+Shift+P";
+  descriptor.visibility_flag = &visible;
+  window_manager->RegisterWindow(0, descriptor);
+
+  UserSettings settings;
+  settings.prefs().panel_shortcuts["test.music_like"] = "Ctrl+Shift+P";
+  settings.prefs().global_shortcuts["Command Palette"] = "Ctrl+Alt+Shift+P";
+
+  ShortcutManager shortcuts;
+  ShortcutDependencies deps;
+  deps.editor_manager = editor_manager_.get();
+  deps.window_manager = window_manager;
+  deps.user_settings = &settings;
+  ConfigureEditorShortcuts(deps, &shortcuts);
+  ConfigurePanelShortcuts(deps, &shortcuts);
+
+  const Shortcut* toggle =
+      shortcuts.FindShortcut("view.toggle.test.music_like");
+  ASSERT_NE(toggle, nullptr);
+  EXPECT_EQ(toggle->scope, Shortcut::Scope::kPanel);
+  EXPECT_TRUE(
+      SameChord(shortcuts.GetShortcut("Command Palette").keys,
+                {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiMod_Shift, ImGuiKey_P}));
 }
 
 TEST_F(ShortcutConfiguratorTest, WorkbenchHasNoDefaultCloseSessionChord) {
