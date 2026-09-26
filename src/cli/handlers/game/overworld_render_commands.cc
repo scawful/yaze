@@ -55,6 +55,14 @@ absl::StatusOr<uint32_t> ParseOverworldOverlays(const std::string& s) {
   return flags;
 }
 
+absl::StatusOr<bool> ParseAreaOverlay(const std::string& value) {
+  if (value == "on" || value == "true" || value == "1")
+    return true;
+  if (value == "off" || value == "false" || value == "0")
+    return false;
+  return absl::InvalidArgumentError("--area-overlay must be on or off");
+}
+
 std::optional<std::string> OutputArg(const resources::ArgumentParser& parser) {
   if (auto out = parser.GetString("out"); out.has_value())
     return out;
@@ -75,6 +83,9 @@ absl::Status OverworldRenderCommandHandler::ValidateArgs(
   }
   if (const auto ov = parser.GetString("overlays"); ov.has_value()) {
     RETURN_IF_ERROR(ParseOverworldOverlays(*ov).status());
+  }
+  if (const auto ao = parser.GetString("area-overlay"); ao.has_value()) {
+    RETURN_IF_ERROR(ParseAreaOverlay(*ao).status());
   }
   if (const auto phase = parser.GetString("phase"); phase.has_value()) {
     int value = -1;
@@ -124,6 +135,9 @@ absl::Status OverworldRenderCommandHandler::ExecuteWithContext(
   if (auto sc = parser.GetString("scale"); sc.has_value()) {
     ASSIGN_OR_RETURN(req.scale, app::service::ParseRenderScale(*sc));
   }
+  if (auto ao = parser.GetString("area-overlay"); ao.has_value()) {
+    ASSIGN_OR_RETURN(req.area_overlay, ParseAreaOverlay(*ao));
+  }
 
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -159,6 +173,10 @@ absl::Status OverworldRenderCommandHandler::ExecuteWithContext(
   formatter.AddField("parent_screen",
                      absl::StrFormat("0x%02X", result.parent_screen));
   formatter.AddField("area_size", result.area_size);
+  formatter.AddField("subscreen_overlay",
+                     result.subscreen_overlay < 0
+                         ? std::string("none")
+                         : absl::StrFormat("0x%02X", result.subscreen_overlay));
   formatter.BeginArray("screens");
   for (int s : result.screens)
     formatter.AddArrayItem(absl::StrFormat("0x%02X", s));

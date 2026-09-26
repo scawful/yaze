@@ -300,9 +300,33 @@ absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
   result.parent_screen = parent;
   result.area_size = area_name;
 
+  auto palette_rgb = [](const gfx::SnesPalette& palette, uint8_t idx,
+                        uint8_t& r, uint8_t& g, uint8_t& b) {
+    r = g = b = 0;
+    if (idx < palette.size()) {
+      const auto rgb = palette[idx].rgb();
+      r = static_cast<uint8_t>(rgb.x);
+      g = static_cast<uint8_t>(rgb.y);
+      b = static_cast<uint8_t>(rgb.z);
+    }
+  };
+
   for (int dy = 0; dy < rows; ++dy) {
     for (int dx = 0; dx < cols; ++dx) {
       const int screen = parent + dx + dy * 8;
+      // Subscreen overlay layer (sky, fog, lava, canopy, rain): drawn with
+      // this screen's graphics and palette, like the game's BG1.
+      std::vector<uint8_t> overlay_pixels;
+      bool overlay_is_background = false;
+      if (req.area_overlay) {
+        ASSIGN_OR_RETURN(auto layer,
+                         overworld.BuildSubscreenOverlayLayer(screen));
+        if (layer.overlay_screen >= 0) {
+          overlay_pixels = std::move(layer.pixels);
+          overlay_is_background = layer.background;
+          result.subscreen_overlay = layer.overlay_screen;
+        }
+      }
       RETURN_IF_ERROR(overworld.EnsureMapBuilt(screen));
       const auto* map = overworld.overworld_map(screen);
       if (map == nullptr) {
@@ -319,11 +343,24 @@ absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
         for (int x = 0; x < kScreen; ++x) {
           const uint8_t idx = pixels[y * kScreen + x];
           uint8_t r = 0, g = 0, b = 0;
-          if (idx < palette.size()) {
-            const auto rgb = palette[idx].rgb();
-            r = static_cast<uint8_t>(rgb.x);
-            g = static_cast<uint8_t>(rgb.y);
-            b = static_cast<uint8_t>(rgb.z);
+          palette_rgb(palette, idx, r, g, b);
+          if (!overlay_pixels.empty()) {
+            const uint8_t oidx = overlay_pixels[y * kScreen + x];
+            if (oidx != 0) {
+              uint8_t orr = 0, og = 0, ob = 0;
+              palette_rgb(palette, oidx, orr, og, ob);
+              if (overlay_is_background) {
+                // The layer only covers backdrop pixels.
+                r = orr;
+                g = og;
+                b = ob;
+              } else {
+                // Front overlays (fog, rain, canopy) blend at half strength.
+                r = static_cast<uint8_t>((r + orr) / 2);
+                g = static_cast<uint8_t>((g + og) / 2);
+                b = static_cast<uint8_t>((b + ob) / 2);
+              }
+            }
           }
           const size_t base = (static_cast<size_t>(dy * kScreen + y) * width +
                                dx * kScreen + x) *

@@ -1130,6 +1130,27 @@ void Overworld::SyncAreaProperties(int map_index) {
   map.InheritAreaProperties(overworld_maps_[parent]);
 }
 
+absl::StatusOr<Overworld::SubscreenOverlayLayer>
+Overworld::BuildSubscreenOverlayLayer(int map_index) {
+  if (map_index < 0 || map_index >= kNumOverworldMaps) {
+    return absl::InvalidArgumentError("Invalid map index");
+  }
+  RETURN_IF_ERROR(EnsureMapBuilt(map_index));
+  const auto& map = overworld_maps_[map_index];
+  SubscreenOverlayLayer layer;
+  layer.overlay_id = map.render_subscreen_overlay();
+  const int screen = SubscreenOverlayScreen(layer.overlay_id);
+  if (screen < 0 || screen >= kNumOverworldMaps || screen == map_index) {
+    return layer;
+  }
+  layer.overlay_screen = screen;
+  layer.background = IsBackgroundSubscreenOverlay(layer.overlay_id);
+  RETURN_IF_ERROR(
+      map.BuildSubscreenOverlayLayer(GetMapTiles(WorldForOverworldMap(screen)),
+                                     screen, layer.background, &layer.pixels));
+  return layer;
+}
+
 void Overworld::LoadTileTypes() {
   for (int i = 0; i < kNumTileTypes; ++i) {
     all_tiles_types_[i] =

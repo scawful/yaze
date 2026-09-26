@@ -16,7 +16,8 @@ class OverworldTest : public ::testing::Test {
     // Skip tests on Linux CI - these require SDL/graphics system initialization
     // that is not available in headless CI environments
 #if defined(__linux__)
-    GTEST_SKIP() << "Overworld tests require graphics context (unavailable on Linux CI)";
+    GTEST_SKIP()
+        << "Overworld tests require graphics context (unavailable on Linux CI)";
 #endif
     // Create a mock ROM for testing
     rom_ = std::make_unique<Rom>();
@@ -108,7 +109,8 @@ TEST_F(OverworldTest, OverworldMapInitialization) {
   EXPECT_EQ(map.area_size(), AreaSizeEnum::SmallArea);
   EXPECT_EQ(map.main_palette(), 0);
   EXPECT_EQ(map.area_specific_bg_color(), 0);
-  EXPECT_EQ(map.subscreen_overlay(), 0);
+  // Vanilla screen 0x00 (Lost Woods) has the hardcoded fog 2 overlay.
+  EXPECT_EQ(map.subscreen_overlay(), 0x009D);
   EXPECT_EQ(map.animated_gfx(), 0);
 }
 
