@@ -48,12 +48,8 @@ void DungeonRoomCommandsProvider::Provide(CommandPalette* palette) {
 
 std::string LookupShortcutHint(const ShortcutManager* shortcut_manager,
                                const std::string& name) {
-  if (!shortcut_manager)
-    return {};
-  const Shortcut* shortcut = shortcut_manager->FindShortcut(name);
-  if (!shortcut || shortcut->keys.empty())
-    return {};
-  return PrintShortcut(shortcut->keys);
+  return shortcut_manager ? shortcut_manager->GetDisplayString(name)
+                          : std::string();
 }
 
 std::string PaletteNameForShortcut(const std::string& name) {

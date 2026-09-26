@@ -12,12 +12,7 @@ std::string ShortcutLabelForAction(const ShortcutManager* shortcut_manager,
   if (shortcut_manager == nullptr || action.empty()) {
     return "";
   }
-  const Shortcut* shortcut =
-      shortcut_manager->FindShortcut(std::string(action));
-  if (shortcut == nullptr || shortcut->keys.empty()) {
-    return "";
-  }
-  return PrintShortcut(shortcut->keys);
+  return shortcut_manager->GetDisplayString(std::string(action));
 }
 
 }  // namespace editor

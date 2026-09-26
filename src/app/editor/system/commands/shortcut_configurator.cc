@@ -285,8 +285,10 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   RegisterIfValid(
       shortcut_manager, "Close ROM", {ImGuiMod_Ctrl, ImGuiKey_W},
       [editor_manager]() {
+        // CloseRom() works with a single session and asks about unsaved
+        // edits; CloseCurrentSession() refuses to close the last session.
         if (editor_manager) {
-          editor_manager->CloseCurrentSession();
+          editor_manager->CloseRom();
         }
       },
       Shortcut::Scope::kGlobal);
