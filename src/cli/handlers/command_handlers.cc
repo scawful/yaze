@@ -235,6 +235,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<GfxSheetInventoryCommandHandler>());
   handlers.push_back(std::make_unique<GfxExportCommandHandler>());
   handlers.push_back(std::make_unique<GfxImportCommandHandler>());
+  handlers.push_back(std::make_unique<GfxRoomExportCommandHandler>());
+  handlers.push_back(std::make_unique<GfxRoomImportCommandHandler>());
   handlers.push_back(std::make_unique<RomCompareCommandHandler>());
 
   return handlers;

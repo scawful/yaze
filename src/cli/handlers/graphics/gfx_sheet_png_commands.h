@@ -67,6 +67,67 @@ class GfxImportCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+/**
+ * @brief Export a dungeon room's 8 background sheets as one 128x256 indexed
+ * PNG with the room's palette, plus an optional JSON sidecar listing each
+ * slot's sheet and which rooms share the main blockset, room blockset and
+ * each sheet.
+ */
+class GfxRoomExportCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "gfx-room-export"; }
+  std::string GetUsage() const override {
+    return "gfx-room-export --room <id> --png <file> [--row <0-7>] "
+           "[--palette ...] [--json <file>]";
+  }
+  std::string GetDefaultFormat() const override { return "json"; }
+  std::string GetOutputTitle() const override {
+    return "Room Background Export";
+  }
+  bool RequiresRom() const override { return true; }
+  Descriptor Describe() const override {
+    Descriptor desc;
+    desc.display_name = "gfx-room-export";
+    desc.summary =
+        "Export a dungeon room's background sheets to one PNG "
+        "with the room palette, and list the rooms that share "
+        "them.";
+    return desc;
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Import an edited room background PNG: only sheets whose pixels
+ * changed are written, each through the sheet writer.
+ */
+class GfxRoomImportCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "gfx-room-import"; }
+  std::string GetUsage() const override {
+    return "gfx-room-import --room <id> --png <file> [--row <0-7>] "
+           "[--palette ...] (--dry-run | --write --out <rom file>)";
+  }
+  std::string GetDefaultFormat() const override { return "json"; }
+  std::string GetOutputTitle() const override {
+    return "Room Background Import";
+  }
+  bool RequiresRom() const override { return true; }
+  Descriptor Describe() const override {
+    Descriptor desc;
+    desc.display_name = "gfx-room-import";
+    desc.summary =
+        "Import an edited room background PNG into the sheets it "
+        "changes.";
+    return desc;
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace cli
 }  // namespace yaze
 

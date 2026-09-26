@@ -16,6 +16,8 @@
 #include "unique_temp_path.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "util/indexed_png.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 #include "zelda3/gfx_sheet_storage.h"
 
 namespace yaze::test {
@@ -281,6 +283,142 @@ TEST(GfxSheetPngRomTest, OracleSheetsRoundTripThroughPng) {
         zelda3::WriteGfxSheet(copy, sheet, imported->snes_3bpp, {}).ok());
     EXPECT_EQ(copy.vector(), rom.vector());
   }
+}
+
+// ---------------------------------------------------------------------------
+// Room background sets
+// ---------------------------------------------------------------------------
+
+TEST(RoomBackgroundPngTest, StackedExportImportsBackUnchanged) {
+  const auto fixture = BuildGfxSheetTestRom();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  zelda3::RoomBackgroundSet set;
+  set.sheets = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x13, 113};  // 113 = 2bpp
+  auto png = zelda3::ExportRoomBackgroundPng(rom, set,
+                                             zelda3::GrayscaleSheetPalette());
+  ASSERT_TRUE(png.ok()) << png.status();
+  auto image = Decode(*png);
+  EXPECT_EQ(image.width, 128);
+  EXPECT_EQ(image.height, 256);
+  auto unchanged = zelda3::ImportRoomBackgroundPng(
+      rom, set, image, zelda3::GrayscaleSheetPalette());
+  ASSERT_TRUE(unchanged.ok()) << unchanged.status();
+  EXPECT_TRUE(unchanged->empty());
+
+  // Paint block 2 of slot 1 (sheet 0x11): only that sheet changes.
+  auto edited = image;
+  for (int y = 32; y < 48; ++y) {
+    for (int x = 32; x < 48; ++x) {
+      edited.indices[y * 128 + x] = 5;
+    }
+  }
+  auto one = zelda3::ImportRoomBackgroundPng(rom, set, edited,
+                                             zelda3::GrayscaleSheetPalette());
+  ASSERT_TRUE(one.ok()) << one.status();
+  ASSERT_EQ(one->size(), 1u);
+  EXPECT_EQ((*one)[0].sheet, 0x11);
+  EXPECT_EQ((*one)[0].slots, (std::vector<int>{1}));
+  EXPECT_EQ((*one)[0].result.changed_blocks, (std::vector<int>{2}));
+
+  // Sheet 0x13 is in slots 3 and 6: editing only one copy is refused.
+  auto conflict = image;
+  conflict.indices[(3 * 32) * 128] = 7;
+  EXPECT_FALSE(zelda3::ImportRoomBackgroundPng(rom, set, conflict,
+                                               zelda3::GrayscaleSheetPalette())
+                   .ok());
+  // Editing both copies the same way is one import listing both slots.
+  conflict.indices[(6 * 32) * 128] = 7;
+  auto both = zelda3::ImportRoomBackgroundPng(rom, set, conflict,
+                                              zelda3::GrayscaleSheetPalette());
+  ASSERT_TRUE(both.ok()) << both.status();
+  ASSERT_EQ(both->size(), 1u);
+  EXPECT_EQ((*both)[0].slots, (std::vector<int>{3, 6}));
+
+  // The 2bpp slot must stay as it was.
+  auto twobpp = image;
+  twobpp.indices[(7 * 32) * 128 + 5] = 3;
+  EXPECT_FALSE(zelda3::ImportRoomBackgroundPng(rom, set, twobpp,
+                                               zelda3::GrayscaleSheetPalette())
+                   .ok());
+  util::PngImage wrong_size = SolidBlock(1);
+  EXPECT_FALSE(zelda3::ImportRoomBackgroundPng(rom, set, wrong_size,
+                                               zelda3::GrayscaleSheetPalette())
+                   .ok());
+}
+
+// The cheap resolver must pick the sheets Room::LoadRoomGraphics picks.
+TEST(RoomBackgroundPngRomTest, ResolverMatchesRoomLoadRoomGraphics) {
+  const char* env = std::getenv("YAZE_TEST_ROM_OOS");
+  if (env == nullptr || !std::filesystem::exists(env)) {
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM";
+  }
+  std::ifstream file(env, std::ios::binary);
+  std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(file)),
+                             std::istreambuf_iterator<char>());
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  zelda3::GameData data;
+  zelda3::LoadOptions options;
+  options.load_graphics = false;
+  options.expand_rom = false;
+  ASSERT_TRUE(zelda3::LoadGameData(rom, data, options).ok());
+
+  const auto sets = zelda3::ResolveAllRoomBackgroundSets(rom, data);
+  ASSERT_EQ(sets.size(), 296u);
+  for (const auto& set : sets) {
+    auto room = zelda3::LoadRoomHeaderFromRom(&rom, set.room);
+    room.SetGameData(&data);
+    room.LoadRoomGraphics();
+    const auto blocks = room.blocks();
+    for (int i = 0; i < 8; ++i) {
+      ASSERT_EQ(set.sheets[i], blocks[i])
+          << "room " << set.room << " slot " << i;
+    }
+  }
+
+  // CLI: export room 0x88, flip one block of slot 3, dry-run the import.
+  const auto png_path = UniqueTempPath("room88", ".png");
+  cli::GfxRoomExportCommandHandler exporter;
+  const auto exported = RunCommand(
+      exporter, {"--room=0x88", "--png=" + png_path.string(), "--format=json"},
+      rom);
+  ASSERT_TRUE(exported.contains("slots")) << exported.dump(2);
+  auto image = Decode(*util::ReadBinaryFile(png_path.string()));
+  std::vector<std::array<uint8_t, 4>> palette(8, {0, 0, 0, 255});
+  ASSERT_TRUE(util::WriteBinaryFile(
+                  png_path.string(),
+                  *util::EncodeIndexedPng(128, 256, image.indices, palette))
+                  .ok());
+  cli::GfxRoomImportCommandHandler importer;
+  const auto unchanged =
+      RunCommand(importer,
+                 {"--room=0x88", "--png=" + png_path.string(), "--dry-run",
+                  "--format=json"},
+                 rom);
+  EXPECT_EQ(unchanged.value("rom_bytes_changed", -1), 0) << unchanged.dump(2);
+  EXPECT_TRUE(unchanged["sheets"].empty());
+
+  std::vector<uint8_t> flipped = image.indices;
+  for (int y = 0; y < 16; ++y) {
+    for (int x = 0; x < 16; ++x) {
+      flipped[(96 + y) * 128 + x] = image.indices[(96 + 15 - y) * 128 + x];
+    }
+  }
+  ASSERT_TRUE(
+      util::WriteBinaryFile(png_path.string(),
+                            *util::EncodeIndexedPng(128, 256, flipped, palette))
+          .ok());
+  const auto dry = RunCommand(importer,
+                              {"--room=0x88", "--png=" + png_path.string(),
+                               "--dry-run", "--format=json"},
+                              rom);
+  ASSERT_EQ(dry["sheets"].size(), 1u) << dry.dump(2);
+  EXPECT_EQ(dry["sheets"][0]["sheet"],
+            exported["slots"][3]["sheet"].get<std::string>());
+  EXPECT_EQ(dry["sheets"][0]["changed_blocks"], nlohmann::json::array({0}));
+  EXPECT_NE(dry.value("rooms_affected", "").find("088"), std::string::npos);
+  std::filesystem::remove(png_path);
 }
 
 }  // namespace

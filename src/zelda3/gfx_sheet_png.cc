@@ -1,6 +1,7 @@
 #include "zelda3/gfx_sheet_png.h"
 
 #include <algorithm>
+#include <map>
 #include <string>
 
 #include "absl/status/status.h"
@@ -10,6 +11,7 @@
 #include "util/macro.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
+#include "zelda3/gfx_sheet_inventory.h"
 #include "zelda3/gfx_sheet_storage.h"
 
 namespace yaze::zelda3 {
@@ -247,6 +249,146 @@ absl::StatusOr<SheetImportResult> ImportSheetBlocksPng(
     i = end;
   }
   return result;
+}
+
+RoomBackgroundSet ResolveRoomBackgroundSet(const GameData& data, int room,
+                                           uint8_t header_blockset) {
+  RoomBackgroundSet set;
+  set.room = room;
+  set.header_blockset = header_blockset;
+  const size_t mains = data.main_blockset_ids.size();
+  const uint8_t entrance_main =
+      room >= 0 && room < static_cast<int>(data.room_default_entrances.size())
+          ? data.room_default_entrances[room].main_blockset
+          : 0xFF;
+  if (entrance_main != 0xFF && entrance_main < mains) {
+    set.main_blockset = entrance_main;
+  } else if (header_blockset < mains) {
+    set.main_blockset = header_blockset;
+  }
+  for (int i = 0; i < 8; ++i) {
+    set.sheets[i] = data.main_blockset_ids[set.main_blockset][i];
+    if (i >= 3 && i <= 6 && header_blockset < data.room_blockset_ids.size()) {
+      const uint8_t room_sheet = data.room_blockset_ids[header_blockset][i - 3];
+      if (room_sheet != 0) {
+        set.sheets[i] = room_sheet;
+        set.from_room_blockset[i] = true;
+      }
+    }
+  }
+  return set;
+}
+
+std::vector<RoomBackgroundSet> ResolveAllRoomBackgroundSets(
+    const Rom& rom, const GameData& data) {
+  std::vector<RoomBackgroundSet> sets;
+  for (const auto& [room, info] : CollectRoomGfx(rom)) {
+    sets.push_back(ResolveRoomBackgroundSet(data, room, info.blockset));
+  }
+  return sets;
+}
+
+absl::StatusOr<std::vector<uint8_t>> ExportRoomBackgroundPng(
+    const Rom& rom, const RoomBackgroundSet& set, const SheetPalette& palette) {
+  constexpr int kHeight = kSheetHeight * 8;
+  std::vector<uint8_t> indices(static_cast<size_t>(kSheetWidth) * kHeight, 0);
+  for (int slot = 0; slot < 8; ++slot) {
+    const uint16_t sheet = set.sheets[slot];
+    if (sheet >= kGfxSheetCount ||
+        GetGfxSheetStorageKind(sheet) == GfxSheetStorageKind::kCompressed2bpp) {
+      continue;
+    }
+    ASSIGN_OR_RETURN(const auto data, ReadGfxSheetData(rom, sheet));
+    const auto pixels = gfx::SnesTo8bppSheet(data, 3);
+    for (int y = 0; y < kSheetHeight; ++y) {
+      for (int x = 0; x < kSheetWidth; ++x) {
+        indices[(slot * kSheetHeight + y) * kSheetWidth + x] =
+            pixels[y * kSheetWidth + x] & 0x07;
+      }
+    }
+  }
+  std::vector<std::array<uint8_t, 4>> png_palette;
+  for (int i = 0; i < 8; ++i) {
+    png_palette.push_back({palette[i][0], palette[i][1], palette[i][2],
+                           static_cast<uint8_t>(i == 0 ? 0 : 255)});
+  }
+  return util::EncodeIndexedPng(kSheetWidth, kHeight, indices, png_palette);
+}
+
+absl::StatusOr<std::vector<RoomSheetImport>> ImportRoomBackgroundPng(
+    const Rom& rom, const RoomBackgroundSet& set, const util::PngImage& png,
+    const SheetPalette& palette) {
+  if (png.width != kSheetWidth || png.height != kSheetHeight * 8) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "A room background PNG is 128x256 (8 stacked sheets); got %dx%d",
+        png.width, png.height));
+  }
+  std::vector<RoomSheetImport> imports;
+  std::map<uint16_t, std::pair<int, std::vector<uint8_t>>> seen;
+  for (int slot = 0; slot < 8; ++slot) {
+    const uint16_t sheet = set.sheets[slot];
+    // Crop this slot's 128x32 band.
+    util::PngImage band;
+    band.width = kSheetWidth;
+    band.height = kSheetHeight;
+    band.indexed = png.indexed;
+    band.palette = png.palette;
+    const size_t begin = static_cast<size_t>(slot) * kSheetHeight * kSheetWidth;
+    const size_t count = static_cast<size_t>(kSheetHeight) * kSheetWidth;
+    if (png.indexed) {
+      band.indices.assign(png.indices.begin() + begin,
+                          png.indices.begin() + begin + count);
+    } else {
+      band.rgba.assign(png.rgba.begin() + begin * 4,
+                       png.rgba.begin() + (begin + count) * 4);
+    }
+
+    const bool writable =
+        sheet < kGfxSheetCount &&
+        GetGfxSheetStorageKind(sheet) != GfxSheetStorageKind::kCompressed2bpp;
+    std::vector<uint8_t> current(kGfxSheet3bppBytes, 0);
+    if (writable) {
+      ASSIGN_OR_RETURN(current, ReadGfxSheetData(rom, sheet));
+    }
+    auto result = ImportSheetBlocksPng(current, band, 0, palette);
+    if (!result.ok()) {
+      return absl::Status(result.status().code(),
+                          absl::StrFormat("Slot %d (sheet 0x%02X): %s", slot,
+                                          sheet, result.status().message()));
+    }
+    if (!writable) {
+      if (!result->changed_blocks.empty()) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Slot %d shows 2bpp sheet 0x%02X, which cannot be edited here",
+            slot, sheet));
+      }
+      continue;
+    }
+    // Every slot showing the same sheet must end up with the same pixels,
+    // including slots left unedited.
+    auto first = seen.find(sheet);
+    if (first != seen.end()) {
+      if (first->second.second != result->snes_3bpp) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Sheet 0x%02X appears in slots %d and %d with different pixels",
+            sheet, first->second.first, slot));
+      }
+    } else {
+      seen.emplace(sheet, std::make_pair(slot, result->snes_3bpp));
+    }
+    if (result->changed_blocks.empty()) {
+      continue;
+    }
+    auto existing = std::find_if(
+        imports.begin(), imports.end(),
+        [sheet](const RoomSheetImport& other) { return other.sheet == sheet; });
+    if (existing != imports.end()) {
+      existing->slots.push_back(slot);
+      continue;
+    }
+    imports.push_back({sheet, {slot}, std::move(*result)});
+  }
+  return imports;
 }
 
 }  // namespace yaze::zelda3
