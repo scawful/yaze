@@ -220,6 +220,7 @@ if(YAZE_BUILD_TESTS)
     unit/emu/apu_dsp_test.cc
     unit/emu/apu_ipl_handshake_test.cc
     unit/emu/disassembler_test.cc
+    unit/emu/memory_rom_mapping_test.cc
     unit/diggable_tiles_test.cc
     unit/core/asm_patch_test.cc
     unit/gfx/snes_tile_test.cc
