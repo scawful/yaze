@@ -114,6 +114,9 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
   // Load room data from ROM (header, objects, pots, torches, blocks, pits).
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, req.room_id);
   room.SetGameData(game_data_);
+  if (!req.sheet_overrides.empty()) {
+    room.SetGraphicsSheetOverrides(req.sheet_overrides);
+  }
 
   // Load sprites (requires ROM, game_data not needed here).
   room.LoadSprites();
