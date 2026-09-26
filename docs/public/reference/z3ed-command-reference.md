@@ -278,6 +278,28 @@ Example:
 z3ed overworld-describe-map --map=0x40 --rom=zelda3.sfc
 ```
 
+### Graphics Sheet Commands
+- `gfx-sheet-inventory [--reserved <ids>] [--flagged <ids>] [--labels-csv <file>] [--out <file.json>]`
+  lists all 223 sheets with storage, empty 16x16 blocks, reserved/flagged
+  state, and the blocksets, spritesets, overworld areas and rooms that use
+  each sheet. Reserved and flagged sheets also come from the project's
+  `[graphics_sheets]` section (`--project-context`) and the hack manifest.
+- `graphics-doctor [--sheet <id>] [--verbose]` checks pointers, decoded sizes,
+  overlapping sheets and group-table references.
+
+Example:
+```bash
+z3ed gfx-sheet-inventory --rom=oos168x.sfc --reserved=0x7B,0x7C --out=inventory.json
+```
+
+Project rules (`.yaze` file):
+```ini
+[graphics_sheets]
+reserved_sheets=0x7B,0x7C
+flagged_sheets=0xD4,0xD6
+reserved_blocks=0x55:0,1;0xC7:15
+```
+
 ### GUI Automation (requires GUI gRPC server)
 - `gui-place-tile --tile <hex> --x <x> --y <y>`
 - `gui-click (--target <path> | --widget-key <key>) [--click-type <left|right|middle|double>]`

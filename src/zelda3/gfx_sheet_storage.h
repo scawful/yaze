@@ -1,9 +1,11 @@
 #ifndef YAZE_ZELDA3_GFX_SHEET_STORAGE_H
 #define YAZE_ZELDA3_GFX_SHEET_STORAGE_H
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -80,6 +82,18 @@ absl::StatusOr<std::vector<uint8_t>> ReadGfxSheetData(
     const Rom& rom, uint16_t sheet_id,
     const GfxSheetPointerTables& tables = {});
 
+/// 16x16 blocks per sheet: 8 columns x 2 rows over the 128x32 sheet.
+constexpr int kGfxSheetBlockCount = 16;
+
+/// The four 8x8 tile indices of 16x16 block `block` (row-major, 0-15): top
+/// left, top right, bottom left, bottom right. A sheet row holds 16 tiles.
+std::array<int, 4> GfxSheetBlockTiles(int block);
+
+/// True when all four 8x8 tiles of the block are zero in `data` (SNES planar
+/// sheet bytes, 8 * bpp bytes per tile). Blocks past the data are not empty.
+bool IsGfxSheetBlockEmpty(const std::vector<uint8_t>& data, int block,
+                          int bpp = 3);
+
 /// Rules a sheet write must follow.
 struct GfxSheetWritePolicy {
   // Free space a sheet may move to when its new stream no longer fits.
@@ -88,6 +102,8 @@ struct GfxSheetWritePolicy {
   std::vector<GfxSheetPcRange> allocation_regions;
   // Sheets that must never be written.
   std::set<uint16_t> reserved_sheets;
+  // 16x16 blocks (0-15) per sheet whose pixels must not change.
+  std::map<uint16_t, std::vector<uint16_t>> reserved_blocks;
   // Returns an error when [begin, end) must not be written (for example a
   // hack-manifest protected region). Unset means no extra check.
   std::function<absl::Status(uint32_t begin, uint32_t end)> check_write;

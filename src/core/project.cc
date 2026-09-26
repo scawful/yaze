@@ -171,6 +171,33 @@ std::string FormatHexUintList(const std::vector<uint16_t>& values) {
   });
 }
 
+// "0x55:0,1,2;0x54:3" -> {0x55: {0, 1, 2}, 0x54: {3}}
+std::map<uint16_t, std::vector<uint16_t>> ParseHexUintListMap(
+    const std::string& value) {
+  std::map<uint16_t, std::vector<uint16_t>> result;
+  for (absl::string_view entry : absl::StrSplit(value, ';')) {
+    const size_t colon = entry.find(':');
+    if (colon == absl::string_view::npos) {
+      continue;
+    }
+    const auto keys = ParseHexUintList(std::string(entry.substr(0, colon)));
+    if (keys.size() != 1) {
+      continue;
+    }
+    result[keys.front()] =
+        ParseHexUintList(std::string(entry.substr(colon + 1)));
+  }
+  return result;
+}
+
+std::string FormatHexUintListMap(
+    const std::map<uint16_t, std::vector<uint16_t>>& values) {
+  return absl::StrJoin(values, ";", [](std::string* out, const auto& entry) {
+    out->append(absl::StrFormat("0x%02X:", entry.first));
+    out->append(absl::StrJoin(entry.second, ","));
+  });
+}
+
 std::string FormatHexUint32(uint32_t value) {
   return absl::StrFormat("0x%06X", value);
 }
@@ -865,6 +892,16 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "minecart_sprite_ids=" << FormatHexUintList(minecart_sprite_ids)
        << "\n\n";
 
+  if (!graphics_sheets.empty()) {
+    file << "[graphics_sheets]\n";
+    file << "reserved_sheets="
+         << FormatHexUintList(graphics_sheets.reserved_sheets) << "\n";
+    file << "flagged_sheets="
+         << FormatHexUintList(graphics_sheets.flagged_sheets) << "\n";
+    file << "reserved_blocks="
+         << FormatHexUintListMap(graphics_sheets.reserved_blocks) << "\n\n";
+  }
+
   if (!rom_address_overrides.addresses.empty()) {
     file << "[rom_addresses]\n";
     for (const auto& [key, value] : rom_address_overrides.addresses) {
@@ -1202,6 +1239,13 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         dungeon_overlay.track_object_ids = ParseHexUintList(value);
       else if (key == "minecart_sprite_ids")
         dungeon_overlay.minecart_sprite_ids = ParseHexUintList(value);
+    } else if (current_section == "graphics_sheets") {
+      if (key == "reserved_sheets")
+        graphics_sheets.reserved_sheets = ParseHexUintList(value);
+      else if (key == "flagged_sheets")
+        graphics_sheets.flagged_sheets = ParseHexUintList(value);
+      else if (key == "reserved_blocks")
+        graphics_sheets.reserved_blocks = ParseHexUintListMap(value);
     } else if (current_section == "rom_addresses") {
       auto parsed = ParseHexUint32(value);
       if (parsed.has_value()) {

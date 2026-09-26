@@ -197,6 +197,12 @@ class OutputFormatter {
   void AddArrayItem(const std::string& item);
 
   /**
+   * @brief Add a field whose value is already-serialized JSON (numbers,
+   * nested arrays, null). Ignored in text mode.
+   */
+  void AddRawJsonField(const std::string& key, const std::string& json);
+
+  /**
    * @brief Get the formatted output
    */
   std::string GetOutput() const;

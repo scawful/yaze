@@ -110,6 +110,11 @@ class GraphicsEditor : public Editor {
   // Set the ROM pointer (propagates to panels that cache `Rom*`.)
   void set_rom(Rom* rom) {
     rom_ = rom;
+    if (sheet_browser_panel_) {
+      sheet_browser_panel_->SetDataSources(
+          rom, game_data_,
+          [this]() -> const project::YazeProject* { return project(); });
+    }
     if (pixel_editor_panel_) {
       pixel_editor_panel_->SetRom(rom);
     }
@@ -133,6 +138,11 @@ class GraphicsEditor : public Editor {
   // Set the game data pointer
   void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
+    if (sheet_browser_panel_) {
+      sheet_browser_panel_->SetDataSources(
+          rom_, game_data,
+          [this]() -> const project::YazeProject* { return project(); });
+    }
     if (palette_controls_panel_) {
       palette_controls_panel_->SetGameData(game_data);
     }

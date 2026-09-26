@@ -62,6 +62,9 @@ void GraphicsEditor::Initialize() {
 
   // Initialize panel components
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
+  sheet_browser_panel_->SetDataSources(
+      rom_, game_data_,
+      [this]() -> const project::YazeProject* { return project(); });
   pixel_editor_panel_ =
       std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
   palette_controls_panel_ =
@@ -255,8 +258,7 @@ absl::Status GraphicsEditor::Save() {
 
   zelda3::GfxSheetWritePolicy policy;
   if (const auto* project = this->project(); project != nullptr) {
-    ASSIGN_OR_RETURN(policy,
-                     core::BuildGfxSheetWritePolicy(project->hack_manifest));
+    ASSIGN_OR_RETURN(policy, core::BuildGfxSheetWritePolicy(*project));
   }
 
   // Refuse the whole batch before writing when any sheet cannot be saved, so

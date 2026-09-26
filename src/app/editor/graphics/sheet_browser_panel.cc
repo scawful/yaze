@@ -5,13 +5,18 @@
 #include <cstring>
 
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
+#include "core/gfx_sheet_policy_adapter.h"
+#include "core/project.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
@@ -24,20 +29,171 @@ void SheetBrowserPanel::Initialize() {
 
 void SheetBrowserPanel::Draw(bool* p_open) {
   // WindowContent interface - delegate to existing Update() logic
-  DrawSearchBar();
-  ImGui::Separator();
-  DrawBatchOperations();
-  ImGui::Separator();
-  DrawSheetGrid();
+  (void)Update();
 }
 
 absl::Status SheetBrowserPanel::Update() {
+  if (rom_ != inventory_rom_ ||
+      (!inventory_.has_value() && inventory_error_.empty())) {
+    RefreshInventory();
+  }
   DrawSearchBar();
   ImGui::Separator();
   DrawBatchOperations();
   ImGui::Separator();
+  DrawSelectedSheetInfo();
   DrawSheetGrid();
   return absl::OkStatus();
+}
+
+void SheetBrowserPanel::SetDataSources(
+    Rom* rom, zelda3::GameData* game_data,
+    std::function<const project::YazeProject*()> project_getter) {
+  rom_ = rom;
+  game_data_ = game_data;
+  project_getter_ = std::move(project_getter);
+}
+
+void SheetBrowserPanel::RefreshInventory() {
+  inventory_.reset();
+  inventory_error_.clear();
+  inventory_rom_ = rom_;
+  if (rom_ == nullptr || !rom_->is_loaded()) {
+    inventory_error_ = "No ROM loaded";
+    return;
+  }
+  const project::YazeProject* project =
+      project_getter_ ? project_getter_() : nullptr;
+  const auto options = core::BuildGfxSheetInventoryOptions(project);
+  const auto areas = zelda3::CollectOverworldAreaGfx(*rom_, game_data_);
+  const auto rooms = zelda3::CollectRoomGfx(*rom_);
+  auto inventory = zelda3::BuildGfxSheetInventory(*rom_, areas, rooms, options);
+  if (!inventory.ok()) {
+    inventory_error_ = std::string(inventory.status().message());
+    return;
+  }
+  inventory_ = std::move(*inventory);
+}
+
+namespace {
+
+std::string HexList(const std::vector<int>& values) {
+  if (values.empty()) {
+    return "-";
+  }
+  return absl::StrJoin(values, " ", [](std::string* out, int value) {
+    out->append(absl::StrFormat("%02X", value));
+  });
+}
+
+void DrawUsageRow(const char* label, const std::vector<int>& values) {
+  ImGui::TableNextRow();
+  ImGui::TableSetColumnIndex(0);
+  ImGui::TextUnformatted(label);
+  ImGui::TableSetColumnIndex(1);
+  ImGui::Text("%zu", values.size());
+  ImGui::TableSetColumnIndex(2);
+  ImGui::TextWrapped("%s", HexList(values).c_str());
+}
+
+}  // namespace
+
+void SheetBrowserPanel::DrawSelectedSheetInfo() {
+  const uint16_t sheet_id = state_->current_sheet_id;
+  if (!ImGui::CollapsingHeader(
+          absl::StrFormat("Sheet 0x%02X usage and free space###SheetUsage",
+                          sheet_id)
+              .c_str(),
+          ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  if (ImGui::SmallButton(ICON_MD_REFRESH " Refresh")) {
+    RefreshInventory();
+  }
+  HOVER_HINT(
+      "Re-read the ROM buffer (saved sheets, group tables, areas, "
+      "rooms). Unsaved pixel edits are not included.");
+  ImGui::SameLine();
+  ImGui::Checkbox(tr("Show free 16x16"), &show_free_blocks_);
+  HOVER_HINT("Outline empty, unreserved 16x16 blocks on the thumbnails");
+
+  if (!inventory_.has_value()) {
+    ImGui::TextColored(gui::GetWarningColor(), "%s",
+                       inventory_error_.empty() ? "Inventory not built"
+                                                : inventory_error_.c_str());
+    return;
+  }
+  if (sheet_id >= inventory_->sheets.size()) {
+    return;
+  }
+  const auto& entry = inventory_->sheets[sheet_id];
+
+  ImGui::Text("%s  PC 0x%06X", zelda3::GfxSheetInventoryKindName(entry.kind),
+              entry.pc);
+  if (entry.stored_bytes.has_value()) {
+    ImGui::SameLine();
+    ImGui::Text(tr("stored %zu bytes"), *entry.stored_bytes);
+  }
+  if (entry.sprite_value.has_value()) {
+    ImGui::SameLine();
+    ImGui::Text(tr("sprite value 0x%02X"), *entry.sprite_value);
+  }
+  if (!entry.error.empty()) {
+    ImGui::TextColored(gui::GetErrorColor(), "%s", entry.error.c_str());
+  }
+  if (entry.reserved) {
+    ImGui::TextColored(gui::GetErrorColor(),
+                       ICON_MD_BLOCK " Reserved: never written, not free");
+  }
+  if (entry.flagged) {
+    ImGui::TextColored(gui::GetWarningColor(),
+                       ICON_MD_FLAG " Flagged: ask the owner before use");
+  }
+  if (entry.engine_loaded) {
+    ImGui::TextColored(gui::GetInfoColor(),
+                       ICON_MD_MEMORY " Engine-loaded (raw or 2bpp)");
+  }
+  if (!entry.labels.empty()) {
+    ImGui::TextWrapped("%s", absl::StrJoin(entry.labels, "; ").c_str());
+  }
+
+  const auto free_blocks = entry.FreeBlocks();
+  if (entry.has_block_stats) {
+    ImGui::Text(tr("Free 16x16 blocks: %zu of 16  (empty 8x8 tiles: %d)"),
+                free_blocks.size(), entry.empty_8x8);
+    if (!free_blocks.empty()) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("[%s]", HexList(free_blocks).c_str());
+    }
+    if (!entry.reserved_blocks.empty()) {
+      ImGui::Text(tr("Reserved blocks: %s"),
+                  absl::StrJoin(entry.reserved_blocks, " ").c_str());
+    }
+  }
+
+  if (ImGui::BeginTable("##SheetUsedBy", 3,
+                        ImGuiTableFlags_SizingStretchProp |
+                            ImGuiTableFlags_RowBg |
+                            ImGuiTableFlags_BordersInnerH)) {
+    ImGui::TableSetupColumn(tr("Used by"), ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(tr("Ids (hex)"));
+    ImGui::TableHeadersRow();
+    const auto& use = entry.usage;
+    if (entry.sprite_value.has_value()) {
+      DrawUsageRow(tr("Spritesets"), use.spritesets);
+      DrawUsageRow(tr("OW areas (sprites)"), use.ow_areas_sprite);
+      DrawUsageRow(tr("Rooms (sprites)"), use.rooms_sprite);
+    }
+    DrawUsageRow(tr("Main blocksets"), use.main_blocksets);
+    DrawUsageRow(tr("Room blocksets"), use.room_blocksets);
+    DrawUsageRow(tr("OW areas (static)"), use.ow_areas_static);
+    ImGui::EndTable();
+  }
+  if (entry.unreferenced) {
+    ImGui::TextDisabled(tr("No table references this sheet."));
+  }
+  ImGui::Separator();
 }
 
 void SheetBrowserPanel::DrawSearchBar() {
@@ -199,6 +355,35 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
     thumbnail_canvas_.AddTextAt(ImVec2(4, 2), label,
                                 is_modified ? IM_COL32(255, 200, 100, 255)
                                             : IM_COL32(150, 255, 150, 255));
+
+    if (inventory_.has_value() &&
+        sheet_id < static_cast<int>(inventory_->sheets.size())) {
+      const auto& entry = inventory_->sheets[sheet_id];
+      const float block_w = preview_opts.dest_size.x / 8.0f;
+      const float block_h = preview_opts.dest_size.y / 2.0f;
+      if (show_free_blocks_) {
+        for (int block : entry.FreeBlocks()) {
+          thumbnail_canvas_.AddRectFilledAt(
+              ImVec2(preview_opts.dest_pos.x + (block % 8) * block_w,
+                     preview_opts.dest_pos.y + (block / 8) * block_h),
+              ImVec2(block_w, block_h),
+              entry.flagged ? IM_COL32(230, 180, 40, 70)
+                            : IM_COL32(60, 200, 90, 70));
+        }
+      }
+      const char* badge =
+          entry.reserved ? "RES" : (entry.flagged ? "ASK" : nullptr);
+      if (badge != nullptr) {
+        const ImVec2 badge_size = ImGui::CalcTextSize(badge);
+        const ImVec2 badge_pos(thumb_width - badge_size.x - 4, 2);
+        thumbnail_canvas_.AddRectFilledAt(
+            badge_pos, ImVec2(badge_size.x + 4, badge_size.y + 2),
+            entry.reserved ? IM_COL32(170, 30, 30, 220)
+                           : IM_COL32(170, 120, 20, 220));
+        thumbnail_canvas_.AddTextAt(ImVec2(badge_pos.x + 2, badge_pos.y), badge,
+                                    IM_COL32(255, 255, 255, 255));
+      }
+    }
     gui::EndCanvas(thumbnail_canvas_, rt, frame_opts);
   }
 
@@ -239,6 +424,21 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
     }
     if (is_modified) {
       ImGui::TextColored(gui::GetModifiedColor(), tr("Modified"));
+    }
+    if (inventory_.has_value() &&
+        sheet_id < static_cast<int>(inventory_->sheets.size())) {
+      const auto& entry = inventory_->sheets[sheet_id];
+      if (entry.reserved) {
+        ImGui::TextColored(gui::GetErrorColor(), tr("Reserved"));
+      } else if (entry.flagged) {
+        ImGui::TextColored(gui::GetWarningColor(), tr("Flagged"));
+      }
+      if (entry.has_block_stats) {
+        ImGui::Text(tr("Free 16x16 blocks: %zu"), entry.FreeBlocks().size());
+      }
+      if (!entry.labels.empty()) {
+        ImGui::TextUnformatted(absl::StrJoin(entry.labels, "; ").c_str());
+      }
     }
     ImGui::EndTooltip();
   }

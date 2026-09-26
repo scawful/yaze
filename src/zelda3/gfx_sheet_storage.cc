@@ -186,6 +186,28 @@ absl::Status VerifyCompressedSheet(const Rom& rom, uint16_t sheet_id,
 
 }  // namespace
 
+std::array<int, 4> GfxSheetBlockTiles(int block) {
+  const int top_left = (block / 8) * 32 + (block % 8) * 2;
+  return {top_left, top_left + 1, top_left + 16, top_left + 17};
+}
+
+bool IsGfxSheetBlockEmpty(const std::vector<uint8_t>& data, int block,
+                          int bpp) {
+  const size_t tile_bytes = static_cast<size_t>(8 * bpp);
+  for (int tile : GfxSheetBlockTiles(block)) {
+    const size_t begin = static_cast<size_t>(tile) * tile_bytes;
+    if (begin + tile_bytes > data.size()) {
+      return false;
+    }
+    for (size_t i = begin; i < begin + tile_bytes; ++i) {
+      if (data[i] != 0) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 GfxSheetStorageKind GetGfxSheetStorageKind(uint16_t sheet_id) {
   if (sheet_id >= 115 && sheet_id <= 126) {
     return GfxSheetStorageKind::kRaw3bpp;
@@ -307,6 +329,32 @@ absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
     return absl::InvalidArgumentError(absl::StrFormat(
         "Sheet 0x%02X data is %zu bytes; a 3bpp sheet is exactly 0x%zX",
         sheet_id, snes_3bpp.size(), kGfxSheet3bppBytes));
+  }
+
+  if (auto reserved = policy.reserved_blocks.find(sheet_id);
+      reserved != policy.reserved_blocks.end() && !reserved->second.empty()) {
+    auto current = ReadGfxSheetData(rom, sheet_id, tables);
+    if (!current.ok() || current->size() < kGfxSheet3bppBytes) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Sheet 0x%02X has reserved 16x16 blocks but its current data "
+          "cannot be read to protect them",
+          sheet_id));
+    }
+    constexpr size_t kTileBytes = 24;
+    for (uint16_t block : reserved->second) {
+      for (int tile : GfxSheetBlockTiles(block)) {
+        const size_t begin = static_cast<size_t>(tile) * kTileBytes;
+        if (begin + kTileBytes > kGfxSheet3bppBytes ||
+            !std::equal(snes_3bpp.begin() + begin,
+                        snes_3bpp.begin() + begin + kTileBytes,
+                        current->begin() + begin)) {
+          return absl::FailedPreconditionError(absl::StrFormat(
+              "Sheet 0x%02X 16x16 block %d is reserved by the project and "
+              "must keep its pixels",
+              sheet_id, block));
+        }
+      }
+    }
   }
 
   ASSIGN_OR_RETURN(const uint32_t old_pc,
