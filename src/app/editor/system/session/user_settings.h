@@ -229,6 +229,10 @@ class UserSettings {
     settings_file_path_ = std::move(path);
     legacy_settings_file_path_ = settings_file_path_ + ".legacy.ini";
   }
+  const std::string& settings_file_path() const { return settings_file_path_; }
+  const std::string& legacy_settings_file_path() const {
+    return legacy_settings_file_path_;
+  }
 
  private:
   Preferences prefs_;

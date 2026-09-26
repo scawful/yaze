@@ -10,6 +10,7 @@
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/platform/null_window_backend.h"
+#include "editor_test_support.h"
 #include "imgui/imgui.h"
 #include "zelda3/resource_labels.h"
 
@@ -58,12 +59,14 @@ class EditorManagerTest : public ::testing::Test {
 
 TEST_F(EditorManagerTest, Initialization) {
   // Verify basic initialization doesn't crash
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
   EXPECT_TRUE(true);  // Should reach here
 }
 
 TEST_F(EditorManagerTest, UpdateWithoutCrash) {
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
 
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2(1280, 720);
@@ -80,7 +83,8 @@ TEST_F(EditorManagerTest, UpdateWithoutCrash) {
 
 TEST_F(EditorManagerTest, PublicAPISurface) {
   // Just verifying the API exists and links
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
 
   // This function is now public, we can call it (though it requires ImGui context)
   // We can't easily test DrawMainMenuBar without a full ImGui setup,
@@ -180,7 +184,8 @@ TEST_F(EditorManagerTest,
 
 TEST_F(EditorManagerTest,
        PostRegistrationRestoreAppliesLazySecondSessionPanelVisibility) {
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
 
   constexpr size_t kSecondSessionId = 7;
   RomSession second_session(&editor_manager_->user_settings(),
@@ -216,7 +221,8 @@ TEST_F(EditorManagerTest,
 
 TEST_F(EditorManagerTest,
        RepeatedEnsureDoesNotReplayStaleVisibilityAfterPanelClose) {
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
   editor_manager_->CreateNewSession();
 
   auto& window_manager = editor_manager_->window_manager();

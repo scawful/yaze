@@ -13,6 +13,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/util/palette_manager.h"
+#include "editor_test_support.h"
 #include "testing.h"
 
 #include "imgui/imgui.h"
@@ -118,7 +119,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_build_project_script"));
@@ -158,7 +159,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_build_manifest_script"));
@@ -209,7 +210,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_run_project_output"));
@@ -255,7 +256,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_workflow_callbacks"));
@@ -440,7 +441,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_dirty_sessions"));
@@ -489,7 +490,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_draft_guard"));
@@ -549,7 +550,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_raw_project_rebind"));
@@ -584,7 +585,7 @@ TEST(EditorManagerProjectActionsTest, RawProjectSaveRejectsBackingFileChanges) {
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_raw_project_backing_guard"));
@@ -615,7 +616,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_draft_conflict"));
@@ -652,7 +653,7 @@ TEST(EditorManagerProjectActionsTest, AutosavePersistsProjectOnlyWork) {
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_only_autosave"));
@@ -681,7 +682,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_structured_save_raw_rebase"));
@@ -720,7 +721,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_structured_save_as_rebase"));
@@ -754,7 +755,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_creation_adoption"));
@@ -789,7 +790,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_guided_project_creation"));
@@ -822,7 +823,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_creation_raw_reuse"));
@@ -851,7 +852,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_creation_retry"));
@@ -906,7 +907,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_sequential_project_creation"));
@@ -942,7 +943,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_creation_asset_rollback"));
@@ -979,7 +980,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_first_asset_rollback"));
   const auto invalid_rom = temp_dir.path / "invalid-assets.sfc";
@@ -1005,7 +1006,7 @@ TEST(EditorManagerProjectActionsTest,
   gfx::PaletteManager::Get().ResetForTesting();
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_rom_reload"));
@@ -1043,7 +1044,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_rom_swap_owner"));
@@ -1070,7 +1071,7 @@ TEST(EditorManagerProjectActionsTest,
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_panel_dirty_reopen"));

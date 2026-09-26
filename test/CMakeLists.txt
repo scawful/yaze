@@ -268,6 +268,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/tree_undo_stack_test.cc
     unit/editor/layout/layout_designer_panel_replace_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
+    unit/editor/user_settings_test_isolation_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/message/message_expanded_write_test.cc
@@ -807,6 +808,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/tree_undo_stack_test.cc
     unit/editor/layout/layout_designer_panel_replace_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
+    unit/editor/user_settings_test_isolation_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/emulator_runtime_policy_test.cc
     unit/editor/overworld_map_status_test.cc
