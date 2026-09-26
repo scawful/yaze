@@ -231,6 +231,7 @@ set(
   YAZE_EDITOR_SYSTEM_SHORTCUTS_SRC
   app/editor/system/commands/command_manager.cc
   app/editor/system/commands/command_palette.cc
+  app/editor/system/commands/command_palette_goto.cc
   app/editor/system/commands/command_palette_providers.cc
   app/editor/system/commands/shortcut_manager.cc
   app/editor/system/commands/shortcut_configurator.cc

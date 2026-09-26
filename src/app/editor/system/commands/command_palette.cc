@@ -17,10 +17,167 @@
 #include "core/project.h"
 #include "util/json.h"
 #include "util/log.h"
+#include "zelda3/common.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+constexpr int kScoreExact = 1000;
+constexpr int kScorePrefix = 800;
+constexpr int kScoreWordStartSubstring = 600;
+constexpr int kScoreSubstring = 400;
+constexpr int kScoreSubsequenceMax = kScoreSubstring - 1;
+
+// Per-character weights for subsequence matches. The word-start bonus is
+// larger than the consecutive bonus so "ow" prefers "Show: OverWorld"-style
+// initials over two adjacent letters inside one word.
+constexpr int kCharBase = 2;
+constexpr int kCharWordStartBonus = 8;
+constexpr int kCharConsecutiveBonus = 4;
+
+// The shortcuts provider id; its entries lose representative ties so the
+// palette-native name is shown while the live keybinding is inherited.
+constexpr const char* kShortcutsProviderId = "shortcuts";
+
+std::string ToLower(std::string_view text) {
+  std::string out(text);
+  std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+  return out;
+}
+
+bool IsAlnum(char c) {
+  return std::isalnum(static_cast<unsigned char>(c)) != 0;
+}
+
+bool IsWordStartAt(const std::string& text, size_t index) {
+  return index == 0 || !IsAlnum(text[index - 1]);
+}
+
+std::vector<std::string> SplitWhitespace(const std::string& text) {
+  std::vector<std::string> tokens;
+  std::string current;
+  for (char c : text) {
+    if (std::isspace(static_cast<unsigned char>(c))) {
+      if (!current.empty()) {
+        tokens.push_back(current);
+        current.clear();
+      }
+    } else {
+      current.push_back(c);
+    }
+  }
+  if (!current.empty())
+    tokens.push_back(current);
+  return tokens;
+}
+
+// Best in-order alignment of `query` inside `text` (both lowercase).
+// Returns -1 when `query` is not a subsequence.
+int BestSubsequenceScore(const std::string& text, const std::string& query) {
+  const size_t n = text.size();
+  const size_t m = query.size();
+  if (m == 0 || m > n)
+    return -1;
+  constexpr int kNone = -1;
+  // prev[i]: best score with query[0..j-1] matched and query[j-1] at text[i].
+  std::vector<int> prev(n, kNone);
+  std::vector<int> cur(n, kNone);
+  for (size_t j = 0; j < m; ++j) {
+    int best_before = kNone;  // max of prev[k] for k < i - 1
+    for (size_t i = 0; i < n; ++i) {
+      cur[i] = kNone;
+      if (i >= 2 && prev[i - 2] > best_before)
+        best_before = prev[i - 2];
+      if (text[i] != query[j])
+        continue;
+      int char_score = kCharBase;
+      if (IsWordStartAt(text, i))
+        char_score += kCharWordStartBonus;
+      if (j == 0) {
+        cur[i] = char_score;
+        continue;
+      }
+      int best = kNone;
+      if (best_before != kNone)
+        best = best_before + char_score;
+      if (i >= 1 && prev[i - 1] != kNone) {
+        best = std::max(best, prev[i - 1] + char_score + kCharConsecutiveBonus);
+      }
+      cur[i] = best;
+    }
+    std::swap(prev, cur);
+  }
+  int result = kNone;
+  for (int v : prev)
+    result = std::max(result, v);
+  return result;
+}
+
+int ScoreSingle(const std::string& text, const std::string& query) {
+  if (query.empty() || text.empty())
+    return 0;
+  if (text == query)
+    return kScoreExact;
+  size_t pos = text.find(query);
+  if (pos == 0)
+    return kScorePrefix;
+  if (pos != std::string::npos) {
+    while (pos != std::string::npos) {
+      if (IsWordStartAt(text, pos))
+        return kScoreWordStartSubstring;
+      pos = text.find(query, pos + 1);
+    }
+    return kScoreSubstring;
+  }
+  const int subsequence = BestSubsequenceScore(text, query);
+  if (subsequence < 0)
+    return 0;
+  return std::min(kScoreSubsequenceMax, 1 + subsequence);
+}
+
+// True when `name` contains the word "Panel"/"Panels" (legacy alias names).
+bool HasPanelWord(std::string_view name) {
+  const std::string lower = ToLower(name);
+  for (size_t pos = lower.find("panel"); pos != std::string::npos;
+       pos = lower.find("panel", pos + 1)) {
+    const size_t end = pos + 5;
+    const bool starts = pos == 0 || !IsAlnum(lower[pos - 1]);
+    const bool ends = end == lower.size() || !IsAlnum(lower[end]) ||
+                      (lower[end] == 's' &&
+                       (end + 1 == lower.size() || !IsAlnum(lower[end + 1])));
+    if (starts && ends)
+      return true;
+  }
+  return false;
+}
+
+int FrecencyBoost(int usage_count, int64_t last_used_ms, int64_t now_ms) {
+  int boost = std::min(usage_count, 20) * 3;  // <= 60
+  if (last_used_ms > 0) {
+    const int64_t age_ms = now_ms - last_used_ms;
+    if (age_ms < 60LL * 1000) {
+      boost += 50;
+    } else if (age_ms < 60LL * 60 * 1000) {
+      boost += 30;
+    } else if (age_ms < 24LL * 60 * 60 * 1000) {
+      boost += 15;
+    }
+  }
+  return boost;  // <= 110, below the 200-point gap between match tiers
+}
+
+}  // namespace
+
+int64_t CommandPalette::NowMs() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
+}
 
 void CommandPalette::AddCommand(const std::string& name,
                                 const std::string& category,
@@ -32,12 +189,18 @@ void CommandPalette::AddCommand(const std::string& name,
   entry.category = category;
   entry.description = description;
   entry.shortcut = shortcut;
-  entry.callback = callback;
+  entry.callback = std::move(callback);
   entry.provider_id = current_provider_id_;
-  commands_[name] = entry;
+  ++generation_;
+  if (auto it = usage_.find(name); it != usage_.end()) {
+    entry.usage_count = it->second.count;
+    entry.last_used_ms = it->second.last_used_ms;
+  }
+  commands_[name] = std::move(entry);
 }
 
 void CommandPalette::Clear() {
+  ++generation_;
   commands_.clear();
   providers_.clear();
   current_provider_id_.clear();
@@ -109,6 +272,7 @@ void CommandPalette::RefreshProviders() {
 void CommandPalette::RemoveProviderCommands(const std::string& provider_id) {
   if (provider_id.empty())
     return;
+  ++generation_;
   for (auto it = commands_.begin(); it != commands_.end();) {
     if (it->second.provider_id == provider_id) {
       it = commands_.erase(it);
@@ -118,141 +282,276 @@ void CommandPalette::RemoveProviderCommands(const std::string& provider_id) {
   }
 }
 
-void CommandPalette::RecordUsage(const std::string& name) {
-  auto it = commands_.find(name);
-  if (it != commands_.end()) {
-    it->second.usage_count++;
-    it->second.last_used_ms =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch())
-            .count();
+bool CommandPalette::RecordUsage(const std::string& name) {
+  const std::string canonical = CanonicalCommandName(name);
+  if (canonical.empty())
+    return false;
+  const int64_t now = NowMs();
+  auto& stats = usage_[canonical];
+  // Fold in any stats recorded under another member of the dedupe group so
+  // the count keeps growing from the group's best value.
+  for (const auto& [other_name, entry] : commands_) {
+    if (other_name != canonical &&
+        NormalizeCommandName(other_name) == NormalizeCommandName(canonical)) {
+      stats.count = std::max(stats.count, entry.usage_count);
+    }
   }
+  stats.count++;
+  stats.last_used_ms = now;
+  ++generation_;
+  if (auto it = commands_.find(canonical); it != commands_.end()) {
+    it->second.usage_count = stats.count;
+    it->second.last_used_ms = stats.last_used_ms;
+  }
+  return true;
 }
 
 /*static*/ int CommandPalette::FuzzyScore(const std::string& text,
                                           const std::string& query) {
-  if (query.empty())
+  return ScoreText(text, query);
+}
+
+/*static*/ int CommandPalette::ScoreText(std::string_view text,
+                                         std::string_view query) {
+  const std::string query_lower = ToLower(query);
+  const std::string text_lower = ToLower(text);
+  const int whole = ScoreSingle(text_lower, query_lower);
+  if (whole > 0)
+    return whole;
+
+  // Multi-word queries ("open room", "pin dungeon") match when every token
+  // matches somewhere, regardless of order. Stays in the subsequence tier.
+  const auto tokens = SplitWhitespace(query_lower);
+  if (tokens.size() < 2)
     return 0;
+  int total = 0;
+  for (const auto& token : tokens) {
+    const int token_score = ScoreSingle(text_lower, token);
+    if (token_score <= 0)
+      return 0;
+    total += token_score;
+  }
+  const int average = total / static_cast<int>(tokens.size());
+  return std::clamp(average / 2, 1, kScoreSubsequenceMax);
+}
 
-  int score = 0;
-  size_t text_idx = 0;
-  size_t query_idx = 0;
+/*static*/ int CommandPalette::ScoreEntry(const CommandEntry& entry,
+                                          std::string_view query,
+                                          int64_t now_ms) {
+  int score = ScoreText(entry.name, query);
+  score = std::max(score, ScoreText(entry.category, query) / 2);
+  score = std::max(score, ScoreText(entry.description, query) / 4);
+  if (score <= 0)
+    return 0;
+  return score + FrecencyBoost(entry.usage_count, entry.last_used_ms, now_ms);
+}
 
-  std::string text_lower = text;
-  std::string query_lower = query;
-  std::transform(text_lower.begin(), text_lower.end(), text_lower.begin(),
-                 ::tolower);
-  std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(),
-                 ::tolower);
-
-  // Exact match bonus
-  if (text_lower == query_lower)
-    return 1000;
-
-  // Starts with bonus
-  if (text_lower.find(query_lower) == 0)
-    return 500;
-
-  // Contains bonus
-  if (text_lower.find(query_lower) != std::string::npos)
-    return 250;
-
-  // Fuzzy match - characters in order
-  while (text_idx < text_lower.length() && query_idx < query_lower.length()) {
-    if (text_lower[text_idx] == query_lower[query_idx]) {
-      score += 10;
-      query_idx++;
+/*static*/ std::string CommandPalette::NormalizeCommandName(
+    std::string_view name) {
+  std::string lower = ToLower(name);
+  // "(Alt)" marks alternate bindings of the same action.
+  for (size_t pos = lower.find("(alt)"); pos != std::string::npos;
+       pos = lower.find("(alt)")) {
+    lower.erase(pos, 5);
+  }
+  std::vector<std::string> words;
+  std::string current;
+  for (char c : lower) {
+    if (IsAlnum(c)) {
+      current.push_back(c);
+    } else if (!current.empty()) {
+      words.push_back(std::move(current));
+      current.clear();
     }
-    text_idx++;
+  }
+  if (!current.empty())
+    words.push_back(std::move(current));
+  std::string out;
+  for (auto& word : words) {
+    // Legacy "Panel" names are aliases of the "Window" names.
+    if (word == "panel")
+      word = "window";
+    else if (word == "panels")
+      word = "windows";
+    if (!out.empty())
+      out.push_back(' ');
+    out += word;
+  }
+  return out;
+}
+
+/*static*/ bool CommandPalette::IsInternalCommandId(std::string_view name) {
+  if (name.empty())
+    return true;
+  for (char c : name) {
+    if (std::isspace(static_cast<unsigned char>(c)))
+      return false;
+  }
+  return name.find('.') != std::string_view::npos ||
+         name.find('_') != std::string_view::npos ||
+         std::islower(static_cast<unsigned char>(name.front())) != 0;
+}
+
+std::vector<CommandEntry> CommandPalette::GetVisibleCommands() const {
+  std::vector<const CommandEntry*> sorted;
+  sorted.reserve(commands_.size());
+  for (const auto& [name, entry] : commands_) {
+    if (IsInternalCommandId(entry.name))
+      continue;
+    sorted.push_back(&entry);
+  }
+  std::sort(sorted.begin(), sorted.end(),
+            [](const CommandEntry* a, const CommandEntry* b) {
+              return a->name < b->name;
+            });
+
+  // Lower rank wins the representative slot: palette-native before
+  // ShortcutManager mirrors, then "Window" names before legacy "Panel"
+  // aliases (the Window names own the chords).
+  auto rank_of = [](const CommandEntry& entry) {
+    int rank = 0;
+    if (entry.provider_id == kShortcutsProviderId)
+      rank += 2;
+    if (HasPanelWord(entry.name))
+      rank += 1;
+    return rank;
+  };
+
+  struct Group {
+    const CommandEntry* rep = nullptr;
+    int rep_rank = 0;
+    std::string live_shortcut;  // from the shortcuts provider
+    int live_rank = 0;
+    std::string other_shortcut;  // first static hint
+    std::function<void()> fallback_callback;
+    int usage_count = 0;
+    int64_t last_used_ms = 0;
+  };
+  std::vector<std::string> order;
+  std::unordered_map<std::string, Group> groups;
+  for (const CommandEntry* entry : sorted) {
+    const std::string key = NormalizeCommandName(entry->name);
+    auto [it, inserted] = groups.try_emplace(key);
+    if (inserted)
+      order.push_back(key);
+    Group& group = it->second;
+    const bool is_shortcut = entry->provider_id == kShortcutsProviderId;
+    const int rank = rank_of(*entry);
+    if (!group.rep || rank < group.rep_rank) {
+      group.rep = entry;
+      group.rep_rank = rank;
+    }
+    if (!entry->shortcut.empty()) {
+      if (is_shortcut) {
+        if (group.live_shortcut.empty() || rank < group.live_rank) {
+          group.live_shortcut = entry->shortcut;
+          group.live_rank = rank;
+        }
+      } else if (group.other_shortcut.empty()) {
+        group.other_shortcut = entry->shortcut;
+      }
+    }
+    if (!group.fallback_callback && entry->callback)
+      group.fallback_callback = entry->callback;
+    group.usage_count = std::max(group.usage_count, entry->usage_count);
+    group.last_used_ms = std::max(group.last_used_ms, entry->last_used_ms);
   }
 
-  // Penalty if not all characters matched
-  if (query_idx != query_lower.length())
-    return 0;
+  std::vector<CommandEntry> result;
+  result.reserve(order.size());
+  for (const auto& key : order) {
+    const Group& group = groups[key];
+    CommandEntry entry = *group.rep;
+    if (!group.live_shortcut.empty()) {
+      entry.shortcut = group.live_shortcut;
+    } else if (entry.shortcut.empty()) {
+      entry.shortcut = group.other_shortcut;
+    }
+    if (!entry.callback)
+      entry.callback = group.fallback_callback;
+    entry.usage_count = group.usage_count;
+    entry.last_used_ms = group.last_used_ms;
+    result.push_back(std::move(entry));
+  }
+  return result;
+}
 
-  return score;
+std::string CommandPalette::CanonicalCommandName(
+    const std::string& name) const {
+  if (name.empty())
+    return {};
+  const std::string key = NormalizeCommandName(name);
+  for (const auto& entry : GetVisibleCommands()) {
+    if (NormalizeCommandName(entry.name) == key)
+      return entry.name;
+  }
+  return {};
+}
+
+std::vector<CommandMatch> CommandPalette::Search(const std::string& query,
+                                                 int64_t now_ms) const {
+  std::vector<CommandMatch> matches;
+  const bool empty_query = SplitWhitespace(query).empty();
+  for (auto& entry : GetVisibleCommands()) {
+    int score = 0;
+    if (empty_query) {
+      score = 1 + FrecencyBoost(entry.usage_count, entry.last_used_ms, now_ms);
+    } else {
+      score = ScoreEntry(entry, query, now_ms);
+    }
+    if (score > 0)
+      matches.push_back({std::move(entry), score});
+  }
+  // Stable tiebreak: GetVisibleCommands() is name-sorted, stable_sort keeps
+  // that order among equal scores.
+  std::stable_sort(matches.begin(), matches.end(),
+                   [](const CommandMatch& a, const CommandMatch& b) {
+                     return a.score > b.score;
+                   });
+  return matches;
+}
+
+std::vector<CommandMatch> CommandPalette::Search(
+    const std::string& query) const {
+  return Search(query, NowMs());
 }
 
 std::vector<CommandEntry> CommandPalette::SearchCommands(
     const std::string& query) {
-  std::vector<std::pair<int, CommandEntry>> scored;
-
-  for (const auto& [name, entry] : commands_) {
-    int score = FuzzyScore(entry.name, query);
-
-    // Also check category and description
-    score += FuzzyScore(entry.category, query) / 2;
-    score += FuzzyScore(entry.description, query) / 4;
-
-    // Frecency bonus (frequency + recency)
-    score += entry.usage_count * 2;
-
-    auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                      std::chrono::system_clock::now().time_since_epoch())
-                      .count();
-    int64_t age_ms = now_ms - entry.last_used_ms;
-    if (age_ms < 60000) {  // Used in last minute
-      score += 50;
-    } else if (age_ms < 3600000) {  // Last hour
-      score += 25;
-    }
-
-    if (score > 0) {
-      scored.push_back({score, entry});
-    }
-  }
-
-  // Sort by score descending
-  std::sort(scored.begin(), scored.end(),
-            [](const auto& a, const auto& b) { return a.first > b.first; });
-
   std::vector<CommandEntry> results;
-  for (const auto& [score, entry] : scored) {
-    results.push_back(entry);
+  for (auto& match : Search(query)) {
+    results.push_back(std::move(match.entry));
   }
-
   return results;
 }
 
 std::vector<CommandEntry> CommandPalette::GetRecentCommands(int limit) {
   std::vector<CommandEntry> recent;
-
-  for (const auto& [name, entry] : commands_) {
-    if (entry.usage_count > 0) {
-      recent.push_back(entry);
-    }
+  for (auto& entry : GetVisibleCommands()) {
+    if (entry.usage_count > 0)
+      recent.push_back(std::move(entry));
   }
-
-  std::sort(recent.begin(), recent.end(),
-            [](const CommandEntry& a, const CommandEntry& b) {
-              return a.last_used_ms > b.last_used_ms;
-            });
-
-  if (recent.size() > static_cast<size_t>(limit)) {
+  std::stable_sort(recent.begin(), recent.end(),
+                   [](const CommandEntry& a, const CommandEntry& b) {
+                     return a.last_used_ms > b.last_used_ms;
+                   });
+  if (recent.size() > static_cast<size_t>(limit))
     recent.resize(limit);
-  }
-
   return recent;
 }
 
 std::vector<CommandEntry> CommandPalette::GetFrequentCommands(int limit) {
   std::vector<CommandEntry> frequent;
-
-  for (const auto& [name, entry] : commands_) {
-    if (entry.usage_count > 0) {
-      frequent.push_back(entry);
-    }
+  for (auto& entry : GetVisibleCommands()) {
+    if (entry.usage_count > 0)
+      frequent.push_back(std::move(entry));
   }
-
-  std::sort(frequent.begin(), frequent.end(),
-            [](const CommandEntry& a, const CommandEntry& b) {
-              return a.usage_count > b.usage_count;
-            });
-
-  if (frequent.size() > static_cast<size_t>(limit)) {
+  std::stable_sort(frequent.begin(), frequent.end(),
+                   [](const CommandEntry& a, const CommandEntry& b) {
+                     return a.usage_count > b.usage_count;
+                   });
+  if (frequent.size() > static_cast<size_t>(limit))
     frequent.resize(limit);
-  }
-
   return frequent;
 }
 
@@ -262,11 +561,11 @@ void CommandPalette::SaveHistory(const std::string& filepath) {
     j["version"] = 1;
     j["commands"] = yaze::Json::object();
 
-    for (const auto& [name, entry] : commands_) {
-      if (entry.usage_count > 0) {
+    for (const auto& [name, stats] : usage_) {
+      if (stats.count > 0) {
         yaze::Json cmd;
-        cmd["usage_count"] = entry.usage_count;
-        cmd["last_used_ms"] = entry.last_used_ms;
+        cmd["usage_count"] = stats.count;
+        cmd["last_used_ms"] = stats.last_used_ms;
         j["commands"][name] = cmd;
       }
     }
@@ -274,8 +573,8 @@ void CommandPalette::SaveHistory(const std::string& filepath) {
     std::ofstream file(filepath);
     if (file.is_open()) {
       file << j.dump(2);
-      LOG_INFO("CommandPalette", "Saved command history to %s",
-               filepath.c_str());
+      LOG_DEBUG("CommandPalette", "Saved command history to %s",
+                filepath.c_str());
     }
   } catch (const std::exception& e) {
     LOG_ERROR("CommandPalette", "Failed to save command history: %s", e.what());
@@ -303,12 +602,18 @@ void CommandPalette::LoadHistory(const std::string& filepath) {
 
     int loaded = 0;
     for (auto& [name, cmd_json] : j["commands"].items()) {
-      auto it = commands_.find(name);
-      if (it != commands_.end()) {
-        it->second.usage_count = cmd_json.value("usage_count", 0);
-        it->second.last_used_ms = cmd_json.value("last_used_ms", int64_t{0});
-        loaded++;
+      UsageStats stats;
+      stats.count = cmd_json.value("usage_count", 0);
+      stats.last_used_ms = cmd_json.value("last_used_ms", int64_t{0});
+      if (stats.count <= 0)
+        continue;
+      usage_[name] = stats;
+      ++generation_;
+      if (auto it = commands_.find(name); it != commands_.end()) {
+        it->second.usage_count = stats.count;
+        it->second.last_used_ms = stats.last_used_ms;
       }
+      loaded++;
     }
 
     LOG_INFO("CommandPalette", "Loaded %d command history entries from %s",
@@ -564,6 +869,24 @@ void CommandPalette::RegisterRecentFilesCommands(
 
     AddCommand(name, CommandCategory::kFile, desc, "",
                [open_callback, filepath]() { open_callback(filepath); });
+  }
+}
+
+void CommandPalette::RegisterOverworldMapCommands(size_t session_id) {
+  for (int map_id = 0; map_id < zelda3::kNumOverworldMaps; ++map_id) {
+    const std::string label = zelda3::GetOverworldMapLabel(map_id);
+    const std::string map_name =
+        label.empty() ? absl::StrFormat("Map %02X", map_id) : label;
+    const std::string name =
+        absl::StrFormat("Overworld: Open Map [%02X] %s", map_id, map_name);
+    const std::string desc =
+        absl::StrFormat("Jump to overworld map %02X", map_id);
+    AddCommand(
+        name, CommandCategory::kNavigation, desc, "", [map_id, session_id]() {
+          if (auto* bus = ContentRegistry::Context::event_bus()) {
+            bus->Publish(JumpToMapRequestEvent::Create(map_id, session_id));
+          }
+        });
   }
 }
 

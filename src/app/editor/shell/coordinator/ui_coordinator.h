@@ -1,8 +1,11 @@
 #ifndef YAZE_APP_EDITOR_SHELL_COORDINATOR_UI_COORDINATOR_H_
 #define YAZE_APP_EDITOR_SHELL_COORDINATOR_UI_COORDINATOR_H_
 
+#include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
@@ -144,6 +147,11 @@ class UICoordinator {
    */
   void RefreshCommandPalette(size_t session_id);
   CommandPalette* command_palette() { return &command_palette_; }
+
+  /// Close the palette, run @p callback, count usage for @p name and persist
+  /// the history file. Every palette execution path goes through here.
+  void ExecutePaletteCommand(const std::string& name,
+                             std::function<void()> callback);
 
   // Menu bar visibility (for WASM/web app mode)
   bool IsMenuBarVisible() const { return show_menu_bar_; }
@@ -292,8 +300,17 @@ class UICoordinator {
   // Command Palette state
   CommandPalette command_palette_;
   bool command_palette_initialized_ = false;
+  bool command_history_loaded_ = false;
   char command_palette_query_[256] = {};
   int command_palette_selected_idx_ = 0;
+  bool command_palette_scroll_to_selected_ = false;
+  bool command_palette_refocus_input_ = false;
+  // Search() cache: recomputed only when the query or palette changes.
+  std::string command_palette_cached_query_;
+  uint64_t command_palette_cached_generation_ = ~uint64_t{0};
+  std::vector<CommandMatch> command_palette_cached_matches_;
+
+  void SaveCommandPaletteHistory();
 
   // Window Finder state (legacy modal; ShowPanelFinder now seeds the palette)
   char panel_finder_query_[256] = {};
