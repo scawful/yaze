@@ -71,6 +71,10 @@ struct CanvasMenuItem {
   // Optional keyboard shortcut display (e.g., "Ctrl+S")
   std::string shortcut;
 
+  // Optional hover tooltip. On an armed confirm-gated item it replaces the
+  // default "This cannot be undone." warning.
+  std::string tooltip;
+
   // Callback invoked when menu item is selected
   std::function<void()> callback;
 
@@ -99,6 +103,17 @@ struct CanvasMenuItem {
   // Whether to show a separator after this item
   bool separator_after = false;
 
+  // Destructive action (delete, forget, close-with-unsaved-changes). The label
+  // renders in gui::GetErrorColor() and overrides `color`.
+  bool destructive = false;
+
+  // Two-step confirmation ("click again to confirm"). The first click arms the
+  // item: the menu stays open and the label becomes "Confirm <label>?". The
+  // second click runs the callback and closes the menu. Closing the menu or
+  // clicking another confirm-gated item disarms it. Label such items with a
+  // trailing "..." (see docs/internal/gui/context-menus.md).
+  bool requires_confirmation = false;
+
   // Default constructor
   CanvasMenuItem() = default;
 
@@ -115,6 +130,19 @@ struct CanvasMenuItem {
   CanvasMenuItem(const std::string& lbl, const std::string& ico,
                  std::function<void()> cb, const std::string& sc)
       : label(lbl), icon(ico), callback(std::move(cb)), shortcut(sc) {}
+
+  // Helper to create a destructive item. With `confirm` true the callback only
+  // runs after the two-step confirmation described on requires_confirmation.
+  static CanvasMenuItem Destructive(const std::string& lbl,
+                                    const std::string& ico,
+                                    std::function<void()> cb,
+                                    bool confirm = true,
+                                    const std::string& sc = "") {
+    CanvasMenuItem item(lbl, ico, std::move(cb), sc);
+    item.destructive = true;
+    item.requires_confirmation = confirm;
+    return item;
+  }
 
   // Helper to create a disabled menu item
   static CanvasMenuItem Disabled(const std::string& lbl) {
@@ -220,6 +248,49 @@ struct CanvasMenuDefinition {
     sections.push_back(section);
   }
 };
+
+/**
+ * @brief Neutral alias for menu items used outside canvases (list rows,
+ * tabs, chips). Same type, same renderer.
+ */
+using MenuItemSpec = CanvasMenuItem;
+
+/**
+ * @brief Arming state for confirm-gated menu items (ImGui-free, testable).
+ *
+ * At most one item is armed at a time. An armed item stays armed only while
+ * it is rendered on consecutive frames; a gap (menu closed) disarms it.
+ */
+class MenuConfirmState {
+ public:
+  // Record that the item `id` was rendered on `frame`. Disarms a stale arm.
+  void NoteRendered(ImGuiID id, int frame);
+
+  // True when `id` is armed and was rendered on the previous or current frame.
+  bool IsArmed(ImGuiID id, int frame) const;
+
+  // Handle a click on `id`. Returns true when the action should run (second
+  // click on an armed item); otherwise arms `id` and returns false.
+  bool Click(ImGuiID id, int frame);
+
+  void Reset() {
+    armed_id_ = 0;
+    last_frame_ = -1;
+  }
+
+  ImGuiID armed_id() const { return armed_id_; }
+
+ private:
+  ImGuiID armed_id_ = 0;
+  int last_frame_ = -1;
+};
+
+// Process-wide confirm state shared by every RenderMenuItem call.
+MenuConfirmState& GetMenuConfirmState();
+
+// Label shown on an armed confirm-gated item: "Confirm <label>?" with any
+// trailing "..." or ellipsis removed.
+std::string ConfirmLabel(const std::string& label);
 
 // ==================== Free Function API ====================
 

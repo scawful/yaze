@@ -12,6 +12,7 @@
 #include <vector>
 #include "util/i18n/tr.h"
 
+#include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
@@ -19,6 +20,7 @@
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/resource/bitmap_texture_queue.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
@@ -241,50 +243,48 @@ class RoomMatrixContent : public WindowContent {
             }
           }
 
-          if (ImGui::BeginPopupContextItem()) {
+          gui::ItemContextMenu(nullptr, [&, room_id]() {
             const bool can_swap =
                 on_room_swap_ && current_room_id_ && *current_room_id_ >= 0 &&
                 *current_room_id_ < kTotalRooms && *current_room_id_ != room_id;
 
-            std::string open_label =
-                is_open ? "Focus Room" : "Open in Workbench";
-            if (ImGui::MenuItem(open_label.c_str())) {
-              if (on_room_intent_) {
-                on_room_intent_(room_id,
-                                RoomSelectionIntent::kFocusInWorkbench);
-              } else if (on_room_selected_) {
-                on_room_selected_(room_id);
-              }
-            }
+            std::vector<gui::MenuItemSpec> items;
+            items.emplace_back(is_open ? "Focus Room" : "Open in Workbench",
+                               ICON_MD_ARROW_FORWARD, [this, room_id]() {
+                                 if (on_room_intent_) {
+                                   on_room_intent_(
+                                       room_id,
+                                       RoomSelectionIntent::kFocusInWorkbench);
+                                 } else if (on_room_selected_) {
+                                   on_room_selected_(room_id);
+                                 }
+                               });
+            items.emplace_back(
+                tr("Open as Panel"), ICON_MD_OPEN_IN_NEW, [this, room_id]() {
+                  if (on_room_intent_) {
+                    on_room_intent_(room_id,
+                                    RoomSelectionIntent::kOpenStandalone);
+                  } else if (on_room_selected_) {
+                    on_room_selected_(room_id);
+                  }
+                });
+            items.back().separator_after = true;
 
-            if (ImGui::MenuItem(tr("Open as Panel"))) {
-              if (on_room_intent_) {
-                on_room_intent_(room_id, RoomSelectionIntent::kOpenStandalone);
-              } else if (on_room_selected_) {
-                on_room_selected_(room_id);
-              }
-            }
+            items.push_back(gui::CopyToClipboardItem(
+                tr("Copy Room ID"), absl::StrFormat("0x%03X", room_id)));
+            items.push_back(gui::CopyToClipboardItem(
+                tr("Copy Room Name"), zelda3::GetRoomLabel(room_id)));
+            items.back().separator_after = true;
 
-            if (ImGui::MenuItem(tr("Swap With Current Room"), nullptr, false,
-                                can_swap)) {
-              on_room_swap_(*current_room_id_, room_id);
-            }
-
-            ImGui::Separator();
-
-            char id_buf[16];
-            snprintf(id_buf, sizeof(id_buf), "0x%02X", room_id);
-            if (ImGui::MenuItem(tr("Copy Room ID"))) {
-              ImGui::SetClipboardText(id_buf);
-            }
-
-            const std::string& room_label = zelda3::GetRoomLabel(room_id);
-            if (ImGui::MenuItem(tr("Copy Room Name"))) {
-              ImGui::SetClipboardText(room_label.c_str());
-            }
-
-            ImGui::EndPopup();
-          }
+            items.push_back(gui::MenuItemSpec::Conditional(
+                tr("Swap With Current Room"),
+                [this, room_id]() {
+                  on_room_swap_(*current_room_id_, room_id);
+                },
+                [can_swap]() { return can_swap; }));
+            items.back().icon = ICON_MD_SWAP_HORIZ;
+            return items;
+          });
 
           // Tooltip with room info and thumbnail preview
           if (ImGui::IsItemHovered()) {

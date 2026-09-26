@@ -59,6 +59,12 @@ class TileSelectorWidget {
 
   RenderResult Render(gfx::Bitmap& atlas, bool atlas_ready);
 
+  /// "Copy Tile ID" item for the attached canvas's editor menu. Right-click
+  /// selects the tile under the cursor, so the item copies the selected tile
+  /// ID ("0x01A") at click time. Callers add it next to their own items,
+  /// after ClearContextMenuItems(), so nothing accumulates across frames.
+  CanvasMenuItem CopyTileIdMenuItem() const;
+
   /// Draw a compact filter/search bar above the tile grid. Returns true if
   /// the user jumped to a tile (selection + scroll triggered).
   bool DrawFilterBar();
