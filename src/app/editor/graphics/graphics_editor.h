@@ -82,9 +82,10 @@ class GraphicsEditor : public Editor {
   absl::Status Load() override;
   absl::Status Save() override;
   absl::Status Update() override;
-  absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  // Cut, Copy and Paste use the system clipboard as PNG (pixel editor).
+  absl::Status Cut() override;
+  absl::Status Copy() override;
+  absl::Status Paste() override;
   absl::Status Undo() override;
   absl::Status Redo() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
@@ -157,6 +158,11 @@ class GraphicsEditor : public Editor {
 
   // Editor shortcuts
   void NextSheet();
+  // Keyboard shortcut targets (shortcut_configurator.cc).
+  void SetPixelTool(PixelTool tool);
+  void ZoomIn();
+  void ZoomOut();
+  void ToggleGrid();
   void PrevSheet();
   void SelectSheet(uint16_t sheet_id);
   void HighlightTile(uint16_t sheet_id, uint16_t tile_index,

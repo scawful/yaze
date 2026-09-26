@@ -624,6 +624,14 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
     thumbnail_canvas_.AddTextAt(ImVec2(4, 2), label,
                                 is_modified ? IM_COL32(255, 200, 100, 255)
                                             : IM_COL32(150, 255, 150, 255));
+    if (is_modified) {
+      // Dirty dot: unsaved pixel edits in this sheet.
+      const ImVec2 dot =
+          ImVec2(thumbnail_canvas_.zero_point().x + thumb_width - 8,
+                 thumbnail_canvas_.zero_point().y + thumb_height - 8);
+      ImGui::GetWindowDrawList()->AddCircleFilled(
+          dot, 4.0f, ImGui::GetColorU32(gui::GetModifiedColor()));
+    }
 
     if (inventory_.has_value() &&
         sheet_id < static_cast<int>(inventory_->sheets.size())) {

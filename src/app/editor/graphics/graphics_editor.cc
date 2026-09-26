@@ -887,14 +887,54 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
 
 void GraphicsEditor::NextSheet() {
   if (state_.current_sheet_id + 1 < zelda3::kNumGfxSheets) {
-    state_.current_sheet_id++;
+    state_.SelectSheet(state_.current_sheet_id + 1);
   }
 }
 
 void GraphicsEditor::PrevSheet() {
   if (state_.current_sheet_id > 0) {
-    state_.current_sheet_id--;
+    state_.SelectSheet(state_.current_sheet_id - 1);
   }
+}
+
+void GraphicsEditor::SetPixelTool(PixelTool tool) {
+  state_.SetTool(tool);
+}
+
+void GraphicsEditor::ZoomIn() {
+  state_.ZoomIn();
+}
+
+void GraphicsEditor::ZoomOut() {
+  state_.ZoomOut();
+}
+
+void GraphicsEditor::ToggleGrid() {
+  state_.show_grid = !state_.show_grid;
+}
+
+absl::Status GraphicsEditor::Cut() {
+  if (!pixel_editor_panel_) {
+    return absl::FailedPreconditionError("Pixel editor is not open");
+  }
+  pixel_editor_panel_->CutToSystemClipboard();
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::Copy() {
+  if (!pixel_editor_panel_) {
+    return absl::FailedPreconditionError("Pixel editor is not open");
+  }
+  pixel_editor_panel_->CopyToSystemClipboard();
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::Paste() {
+  if (!pixel_editor_panel_) {
+    return absl::FailedPreconditionError("Pixel editor is not open");
+  }
+  pixel_editor_panel_->PasteFromSystemClipboard();
+  return absl::OkStatus();
 }
 
 void GraphicsEditor::SelectSheet(uint16_t sheet_id) {

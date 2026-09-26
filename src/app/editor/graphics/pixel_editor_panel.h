@@ -58,6 +58,12 @@ class PixelEditorPanel : public WindowContent {
    */
   absl::Status Update();
 
+  // System clipboard (PNG); Cut/Copy/Paste shortcuts route here through
+  // GraphicsEditor. Copy takes the selection, or the whole sheet.
+  void CopyToSystemClipboard();
+  void CutToSystemClipboard();
+  void PasteFromSystemClipboard();
+
  private:
   /**
    * @brief Draw the toolbar with tool selection
@@ -244,12 +250,10 @@ class PixelEditorPanel : public WindowContent {
   // when nothing is selected. Paste maps the image onto the sheet's colors
   // and floats it as the selection until committed (Enter, or a click
   // outside it) or cancelled (Esc); a commit is one undo step.
-  void HandleClipboardShortcuts();
+  void HandleFloatingPasteKeys();
   void DrawClipboardControls();
   void DrawFloatingPaste();
   bool HandleFloatingPasteInput();  // true while the float takes the mouse
-  void CopyToSystemClipboard();
-  void PasteFromSystemClipboard();
   void CommitFloatingPaste();
   void CancelFloatingPaste();
   void ClampFloatingPaste();
@@ -260,6 +264,11 @@ class PixelEditorPanel : public WindowContent {
   bool dragging_paste_ = false;
   int paste_drag_dx_ = 0;
   int paste_drag_dy_ = 0;
+
+  // Canvas panning (Hand tool, or the middle mouse button with any tool).
+  bool HandlePanInput();
+  void DrawPaletteRowPicker();
+  void DrawPixelGrids(float canvas_width, float canvas_height);
 };
 
 }  // namespace editor
