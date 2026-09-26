@@ -2,6 +2,8 @@
 #define YAZE_APP_EDITOR_GFX_GROUP_EDITOR_H
 
 #include <array>
+#include <map>
+#include <optional>
 #include <string>
 
 #include "absl/status/status.h"
@@ -11,6 +13,7 @@
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
+#include "zelda3/gfx_sheet_inventory.h"
 
 namespace yaze {
 namespace editor {
@@ -84,6 +87,13 @@ class GfxGroupEditor {
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
+
+  // "Used by" for the selected spriteset/roomset. Area and room data are read
+  // from the ROM buffer on first use and on Refresh.
+  void DrawGroupUsage(bool spriteset, int id);
+  std::optional<std::map<int, zelda3::OverworldAreaGfxInfo>> usage_areas_;
+  std::optional<std::map<int, zelda3::RoomGfxInfo>> usage_rooms_;
+  const Rom* usage_rom_ = nullptr;
   gfx::SnesPalette* current_palette_ = nullptr;
   std::string host_surface_hint_;
 };

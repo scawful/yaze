@@ -3,6 +3,8 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <sstream>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -13,9 +15,12 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "core/gfx_sheet_policy_adapter.h"
+#include "core/graphics_sheet_labels.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
+#include "util/file_util.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
@@ -98,6 +103,61 @@ void DrawUsageRow(const char* label, const std::vector<int>& values) {
 
 }  // namespace
 
+std::string SheetBrowserPanel::SheetLabel(uint16_t sheet) const {
+  const project::YazeProject* project =
+      project_getter_ ? project_getter_() : nullptr;
+  return project != nullptr ? core::GetGraphicsSheetLabel(*project, sheet)
+                            : std::string();
+}
+
+void SheetBrowserPanel::DrawSheetLabelEditor(uint16_t sheet_id) {
+  if (label_edit_sheet_ != sheet_id) {
+    label_edit_sheet_ = sheet_id;
+    label_buffer_ = SheetLabel(sheet_id);
+  }
+  const bool can_edit = static_cast<bool>(label_setter_);
+  ImGui::BeginDisabled(!can_edit);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth() * 2.0f);
+  const bool submitted = ImGui::InputTextWithHint(
+      "##SheetLabel", tr("Sheet label (stored in the project)"), &label_buffer_,
+      ImGuiInputTextFlags_EnterReturnsTrue);
+  if ((submitted || ImGui::IsItemDeactivatedAfterEdit()) && can_edit) {
+    const absl::Status status = label_setter_(sheet_id, label_buffer_);
+    label_status_ = status.ok() ? "Label set; save the project to keep it"
+                                : std::string(status.message());
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_UPLOAD_FILE " Import Spritesets CSV") &&
+      label_importer_) {
+    const std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
+    if (!path.empty()) {
+      std::ifstream file(path);
+      std::stringstream text;
+      text << file.rdbuf();
+      auto imported = label_importer_(text.str());
+      label_status_ = imported.ok()
+                          ? absl::StrFormat(
+                                "Imported %d sheet label(s); existing labels "
+                                "were kept",
+                                *imported)
+                          : std::string(imported.status().message());
+      label_edit_sheet_ = -1;  // reload the field
+    }
+  }
+  HOVER_HINT(
+      "Label sprite sheets from Oracle's \"Spritesets\" CSV: a cell like "
+      "\"0x46 Cannon Soldiers\" names sheet 0x46 + 0x73.");
+  ImGui::EndDisabled();
+  if (!can_edit) {
+    ImGui::TextDisabled(
+        tr("Open the project that owns this ROM to edit "
+           "sheet labels."));
+  }
+  if (!label_status_.empty()) {
+    ImGui::TextDisabled("%s", label_status_.c_str());
+  }
+}
+
 void SheetBrowserPanel::DrawSelectedSheetInfo() {
   const uint16_t sheet_id = state_->current_sheet_id;
   if (!ImGui::CollapsingHeader(
@@ -128,6 +188,7 @@ void SheetBrowserPanel::DrawSelectedSheetInfo() {
   }
   const auto& entry = inventory_->sheets[sheet_id];
 
+  DrawSheetLabelEditor(sheet_id);
   ImGui::Text("%s  PC 0x%06X", zelda3::GfxSheetInventoryKindName(entry.kind),
               entry.pc);
   if (entry.stored_bytes.has_value()) {
@@ -416,6 +477,10 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
     ImGui::Text(tr("Sheet: 0x%02X (%d)"), sheet_id, sheet_id);
+    if (const std::string label = SheetLabel(static_cast<uint16_t>(sheet_id));
+        !label.empty()) {
+      ImGui::TextUnformatted(label.c_str());
+    }
     if (bitmap.is_active()) {
       ImGui::Text(tr("Size: %dx%d"), bitmap.width(), bitmap.height());
       ImGui::Text(tr("Depth: %d bpp"), bitmap.depth());

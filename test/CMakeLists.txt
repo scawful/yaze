@@ -173,6 +173,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/hex_test.cc
     unit/core/hack_manifest_test.cc
     unit/core/gfx_sheet_policy_adapter_test.cc
+    unit/core/graphics_sheet_labels_test.cc
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
     unit/core/oracle_menu_registry_test.cc
@@ -367,6 +368,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/zelda3/overworld_sprite_io_test.cc
+    unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
     unit/zelda3/overworld_test.cc

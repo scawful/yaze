@@ -20,6 +20,7 @@ set(YAZE_CORE_LIB_SOURCES
   $<$<BOOL:${YAZE_ENABLE_Z3DK}>:${CMAKE_CURRENT_SOURCE_DIR}/z3dk_wrapper.cc>
   dungeon_stream_layout_adapter.cc
   gfx_sheet_policy_adapter.cc
+  graphics_sheet_labels.cc
   hack_manifest.cc
   oracle_menu_registry.cc
   oracle_progression.cc

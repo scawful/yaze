@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_GRAPHICS_EDITOR_H
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <set>
@@ -169,6 +170,12 @@ class GraphicsEditor : public Editor {
 
   // Editor-level shortcut handling
   void HandleEditorShortcuts();
+
+  // Applies `edit` to the active project (the copy that is saved) and to this
+  // session's project snapshot, then marks the project dirty. Fails when no
+  // project file backs this ROM session.
+  absl::Status EditProject(
+      const std::function<void(project::YazeProject&)>& edit);
 
   // --- Panel-Based Architecture ---
   GraphicsEditorState state_;

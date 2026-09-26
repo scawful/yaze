@@ -155,6 +155,25 @@ absl::Status LoadMetadata(const Rom& rom, GameData& data);
 absl::Status LoadPalettes(const Rom& rom, GameData& data);
 absl::Status LoadGfxGroups(Rom& rom, GameData& data);
 absl::Status LoadGraphics(Rom& rom, GameData& data);
+/// Which gfx group tables in `data` differ from the bytes in `rom`.
+struct GfxGroupDiff {
+  bool main_blocksets = false;
+  bool room_blocksets = false;
+  bool spritesets = false;
+  bool palettesets = false;
+  int changed_bytes = 0;
+
+  bool any() const { return changed_bytes > 0; }
+};
+
+/// Compares GameData's main blockset, room blockset, spriteset and
+/// paletteset tables with the ROM. Fails when the ROM version has no table
+/// addresses or a table lies outside the ROM.
+absl::StatusOr<GfxGroupDiff> DiffGfxGroups(const Rom& rom,
+                                           const GameData& data);
+
+/// Writes the gfx group bytes that differ from the ROM, then reads the
+/// tables back and fails with DataLoss if any byte still differs.
 absl::Status SaveGfxGroups(Rom& rom, const GameData& data);
 
 /**

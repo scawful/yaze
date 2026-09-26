@@ -325,6 +325,42 @@ std::map<int, RoomGfxInfo> CollectRoomGfx(const Rom& rom) {
   return rooms;
 }
 
+GfxGroupUsage FindSpritesetUsage(
+    int spriteset, const std::map<int, OverworldAreaGfxInfo>& areas,
+    const std::map<int, RoomGfxInfo>& rooms) {
+  GfxGroupUsage usage;
+  for (const auto& [area, info] : areas) {
+    for (int state = 0; state < 3; ++state) {
+      if (info.sprite_graphics[state] == spriteset) {
+        usage.ow_areas_by_state[state].push_back(area);
+      }
+    }
+  }
+  for (const auto& [room, info] : rooms) {
+    if (info.spriteset + kDungeonSpritesetBase == spriteset) {
+      usage.rooms.push_back(room);
+    }
+  }
+  return usage;
+}
+
+GfxGroupUsage FindRoomsetUsage(int roomset,
+                               const std::map<int, OverworldAreaGfxInfo>& areas,
+                               const std::map<int, RoomGfxInfo>& rooms) {
+  GfxGroupUsage usage;
+  for (const auto& [area, info] : areas) {
+    if (info.area_graphics == roomset) {
+      usage.ow_areas.push_back(area);
+    }
+  }
+  for (const auto& [room, info] : rooms) {
+    if (info.blockset == roomset) {
+      usage.rooms.push_back(room);
+    }
+  }
+  return usage;
+}
+
 const char* GfxSheetInventoryKindName(GfxSheetStorageKind kind) {
   switch (kind) {
     case GfxSheetStorageKind::kCompressed3bpp:
