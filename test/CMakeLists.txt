@@ -334,6 +334,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/graphics_editor_window_ids_test.cc
     unit/editor/gfx_group_workspace_state_test.cc
     unit/editor/gfx_group_editor_render_test.cc
+    unit/editor/sheet_png_transfer_test.cc
+    unit/editor/pixel_clipboard_test.cc
+    unit/editor/graphics_sheet_sync_test.cc
     unit/editor/graphics_usage_preview_test.cc
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
@@ -387,6 +390,8 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/gfx_sheet_inventory_test.cc
     unit/zelda3/gfx_sheet_png_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
+    unit/zelda3/graphics_sheet_store_test.cc
+    unit/zelda3/graphics_sheet_revision_refresh_test.cc
     unit/zelda3/sprite_sheet_slots_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
@@ -786,6 +791,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/overworld_map_metadata_test.cc
     unit/editor/overworld_property_edit_test.cc
     unit/editor/gfx_group_editor_render_test.cc
+    unit/editor/sheet_png_transfer_test.cc
+    unit/editor/pixel_clipboard_test.cc
+    unit/editor/graphics_sheet_sync_test.cc
     unit/editor/graphics_usage_preview_test.cc
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/sprite_editor_preview_test.cc

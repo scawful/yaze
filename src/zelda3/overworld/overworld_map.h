@@ -218,6 +218,11 @@ class OverworldMap : public gfx::GfxContext {
     graphics_sheet_overrides_ = std::move(overrides);
   }
 
+  /// True when a sheet BuildTileset() read from GameData's sheet store has a
+  /// newer store revision than that build (an unsaved graphics edit). Maps
+  /// never built from the store, and override sheets, report false.
+  bool SourceSheetsChanged() const;
+
   absl::Status BuildMap(int count, int game_state, int world,
                         std::vector<gfx::Tile16>& tiles16,
                         OverworldBlockset& world_blockset);
@@ -264,6 +269,9 @@ class OverworldMap : public gfx::GfxContext {
    */
   void UseCachedTileset(const std::vector<uint8_t>& cached_gfx) {
     current_gfx_ = cached_gfx;
+    // Overworld::BuildMapWithTilesetCache only hands out an entry whose
+    // recorded sheet revisions match the store, so these pixels are current.
+    RecordSourceSheetRevisions();
   }
 
   void DrawAnimatedTiles();
@@ -503,6 +511,12 @@ class OverworldMap : public gfx::GfxContext {
   OverworldMapTiles map_tiles_;
   gfx::SnesPalette current_palette_;
   std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
+  // Store revision of each static_graphics_ slot at the last BuildTileset();
+  // 0 for slots not read from the store.
+  static constexpr int kNumSourceSheets = 17;  // 16 slots + animated sheet
+  std::array<uint64_t, kNumSourceSheets> source_sheet_revisions_{};
+  uint16_t SourceSheetForRevision(int i) const;
+  void RecordSourceSheetRevisions();
 };
 
 }  // namespace zelda3

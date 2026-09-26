@@ -174,7 +174,8 @@ std::string FormatHexUintList(const std::vector<uint16_t>& values) {
 
 // Before 2026-09-25 the gfx group editor keyed blockset, roomset and
 // spriteset labels as "0x" + decimal digits (spriteset 12 -> "0x12", which the
-// label resolver reads as hex 18). Canonical keys are decimal. On load:
+// label resolver reads as hex 18); the paletteset editor did the same until
+// 2026-09-26. Canonical keys are decimal. On load:
 // existing decimal keys win; "0x" + only decimal digits is that old format and
 // is read as decimal; other hex keys ("0x0C") are read as hex.
 void MigrateGfxGroupLabelKeys(
@@ -189,7 +190,7 @@ void MigrateGfxGroupLabelKeys(
   auto is_hex = [](char c) {
     return std::isxdigit(static_cast<unsigned char>(c)) != 0;
   };
-  for (const char* type : {"blockset", "roomset", "spriteset"}) {
+  for (const char* type : {"blockset", "roomset", "spriteset", "paletteset"}) {
     auto found = labels.find(type);
     if (found == labels.end()) {
       continue;

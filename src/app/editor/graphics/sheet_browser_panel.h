@@ -3,11 +3,15 @@
 
 #include <functional>
 #include <optional>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/graphics_save_plan.h"
+#include "app/editor/graphics/sheet_png_transfer.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
@@ -24,6 +28,8 @@ struct YazeProject;
 }  // namespace project
 
 namespace editor {
+
+class UndoManager;
 
 /**
  * @brief WindowContent for browsing and selecting graphics sheets
@@ -96,6 +102,23 @@ class SheetBrowserPanel : public WindowContent {
     label_importer_ = std::move(importer);
   }
 
+  /**
+   * @brief Where PNG imports push their undo steps. Unset means no undo.
+   */
+  void SetUndoManager(UndoManager* undo_manager) {
+    undo_manager_ = undo_manager;
+  }
+
+  using SavePlanner =
+      std::function<absl::StatusOr<std::vector<GraphicsSavePlanEntry>>()>;
+  /**
+   * @brief Source of the "Pending graphics save" preflight list
+   * (GraphicsEditor::PlanGraphicsSave). Unset hides the list.
+   */
+  void SetSavePlanner(SavePlanner planner) {
+    save_planner_ = std::move(planner);
+  }
+
  private:
   /**
    * @brief Draw the search/filter bar
@@ -155,6 +178,31 @@ class SheetBrowserPanel : public WindowContent {
   int label_edit_sheet_ = -1;
   std::string label_buffer_;
   std::string label_status_;
+
+  // PNG export and import (sheet_png_transfer). Imports are previewed, then
+  // applied to the Arena as one undo step per sheet; saving the ROM writes
+  // them through GraphicsEditor::Save.
+  void DrawPngTransfer(uint16_t sheet_id);
+  absl::StatusOr<zelda3::SheetPalette> PngPalette();
+  void SetPngStatus(std::string message, bool is_error);
+  UndoManager* undo_manager_ = nullptr;
+  int png_palette_mode_ = 0;  // 0 grayscale, 1 room background, 2 room sprite
+  int png_room_ = 0;
+  int png_palette_row_ = 2;
+  int png_first_block_ = 0;  // 16x16 block a sheet import starts at
+  std::string png_path_;     // typed PNG path; empty picks in a dialog
+  std::vector<SheetPngImportPreview> png_pending_;
+  std::string png_status_;
+  bool png_status_is_error_ = false;
+
+  // Pending graphics save: the preflight for the dirty sheets, computed on
+  // request because it runs the writer on a copy of the ROM.
+  void DrawPendingSave();
+  std::string SheetUsageSummary(uint16_t sheet_id) const;
+  SavePlanner save_planner_;
+  std::vector<GraphicsSavePlanEntry> save_plan_;
+  std::string save_plan_error_;
+  std::set<uint16_t> save_plan_sheets_;  // the dirty set the plan describes
 };
 
 }  // namespace editor

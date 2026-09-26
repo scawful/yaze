@@ -1,6 +1,7 @@
 #include "app/editor/system/commands/shortcut_configurator.h"
 
 #include <algorithm>
+#include <map>
 #include <optional>
 #include <unordered_map>
 
@@ -161,12 +162,35 @@ const std::vector<EditorShortcutDef> kOverworldShortcuts = {
     {"overworld.toggle_grid", {ImGuiKey_G}, "Show/hide grid"},
 };
 
-// Graphics tool keys (V B P E G L R I), zoom and Ctrl+G grid are handled by
-// the graphics editor itself; registering them here only stole keys from
-// other editors without doing anything.
+// Graphics shortcuts are editor-scoped to EditorType::kGraphics, so the
+// single-letter tool keys and =/- zoom only fire while the graphics editor
+// is focused and never steal keys from the overworld or music editors.
 const std::vector<EditorShortcutDef> kGraphicsShortcuts = {
+    // Sheet navigation
     {"graphics.next_sheet", {ImGuiKey_PageDown}, "Next sheet"},
     {"graphics.prev_sheet", {ImGuiKey_PageUp}, "Previous sheet"},
+
+    // Tool selection shortcuts
+    {"graphics.tool.select", {ImGuiKey_M}, "Select tool"},
+    {"graphics.tool.hand", {ImGuiKey_H}, "Hand tool (pan)"},
+    {"graphics.tool.pencil", {ImGuiKey_B}, "Pencil tool"},
+    {"graphics.tool.brush", {ImGuiKey_P}, "Brush tool"},
+    {"graphics.tool.eraser", {ImGuiKey_E}, "Eraser tool"},
+    {"graphics.tool.fill", {ImGuiKey_G}, "Fill tool"},
+    {"graphics.tool.line", {ImGuiKey_L}, "Line tool"},
+    {"graphics.tool.rectangle", {ImGuiKey_R}, "Rectangle tool"},
+    {"graphics.tool.eyedropper", {ImGuiKey_I}, "Eyedropper tool"},
+
+    // Zoom controls
+    {"graphics.zoom_in", {ImGuiKey_Equal}, "Zoom in"},
+    {"graphics.zoom_in_keypad", {ImGuiKey_KeypadAdd}, "Zoom in (keypad)"},
+    {"graphics.zoom_out", {ImGuiKey_Minus}, "Zoom out"},
+    {"graphics.zoom_out_keypad",
+     {ImGuiKey_KeypadSubtract},
+     "Zoom out (keypad)"},
+
+    // View toggles
+    {"graphics.toggle_grid", {ImGuiMod_Ctrl, ImGuiKey_G}, "Toggle grid"},
 };
 
 }  // namespace
@@ -616,10 +640,31 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
             if (!graphics_editor)
               return;
 
+            static const std::map<std::string, PixelTool> kTools = {
+                {"graphics.tool.select", PixelTool::kSelect},
+                {"graphics.tool.hand", PixelTool::kHand},
+                {"graphics.tool.pencil", PixelTool::kPencil},
+                {"graphics.tool.brush", PixelTool::kBrush},
+                {"graphics.tool.eraser", PixelTool::kEraser},
+                {"graphics.tool.fill", PixelTool::kFill},
+                {"graphics.tool.line", PixelTool::kLine},
+                {"graphics.tool.rectangle", PixelTool::kRectangle},
+                {"graphics.tool.eyedropper", PixelTool::kEyedropper},
+            };
             if (id == "graphics.next_sheet") {
               graphics_editor->NextSheet();
             } else if (id == "graphics.prev_sheet") {
               graphics_editor->PrevSheet();
+            } else if (auto tool = kTools.find(id); tool != kTools.end()) {
+              graphics_editor->SetPixelTool(tool->second);
+            } else if (id == "graphics.zoom_in" ||
+                       id == "graphics.zoom_in_keypad") {
+              graphics_editor->ZoomIn();
+            } else if (id == "graphics.zoom_out" ||
+                       id == "graphics.zoom_out_keypad") {
+              graphics_editor->ZoomOut();
+            } else if (id == "graphics.toggle_grid") {
+              graphics_editor->ToggleGrid();
             }
           },
           EditorType::kGraphics);

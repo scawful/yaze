@@ -9,10 +9,13 @@
 #include <string>
 #include <vector>
 
+#include <map>
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/graphics_save_plan.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/link_sprite_panel.h"
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/paletteset_editor_panel.h"
@@ -83,9 +86,17 @@ class GraphicsEditor : public Editor {
   absl::Status Load() override;
   absl::Status Save() override;
   absl::Status Update() override;
-  absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  // Cut, Copy and Paste use the system clipboard as PNG (pixel editor).
+  /**
+   * @brief Graphics save preflight: every dirty sheet written to a scratch
+   * copy of the ROM (placement, addresses, sizes, verification), and the
+   * reason for any sheet the save would refuse. Does not touch the ROM.
+   */
+  absl::StatusOr<std::vector<GraphicsSavePlanEntry>> PlanGraphicsSave();
+
+  absl::Status Cut() override;
+  absl::Status Copy() override;
+  absl::Status Paste() override;
   absl::Status Undo() override;
   absl::Status Redo() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
@@ -143,6 +154,7 @@ class GraphicsEditor : public Editor {
   // Set the game data pointer
   void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
+    AttachSheetStore(state_, game_data);
     if (sheet_browser_panel_) {
       sheet_browser_panel_->SetDataSources(
           rom_, game_data,
@@ -164,6 +176,11 @@ class GraphicsEditor : public Editor {
 
   // Editor shortcuts
   void NextSheet();
+  // Keyboard shortcut targets (shortcut_configurator.cc).
+  void SetPixelTool(PixelTool tool);
+  void ZoomIn();
+  void ZoomOut();
+  void ToggleGrid();
   void PrevSheet();
   void SelectSheet(uint16_t sheet_id);
   void HighlightTile(uint16_t sheet_id, uint16_t tile_index,
@@ -173,10 +190,21 @@ class GraphicsEditor : public Editor {
   Rom* rom() const { return rom_; }
 
  private:
-  friend class GraphicsEditorSaveStoplossTestPeer;
+  struct PreparedGraphicsSave {
+    zelda3::GfxSheetWritePolicy policy;
+    zelda3::GfxSheetPointerTables tables;
+    std::vector<uint16_t> sheet_ids;           // sheets to write
+    std::map<uint16_t, std::string> refusals;  // sheet -> reason
+  };
+  // Checks shared by Save and PlanGraphicsSave.
+  absl::StatusOr<PreparedGraphicsSave> PrepareGraphicsSave();
+  // Read-back check run on every written sheet. Tests replace it to force a
+  // mismatch and exercise the abort path.
+  std::function<absl::Status(const Rom&, uint16_t, const std::vector<uint8_t>&,
+                             const zelda3::GfxSheetPointerTables&)>
+      verify_written_sheet_ = VerifyWrittenSheetPixels;
 
-  // Editor-level shortcut handling
-  void HandleEditorShortcuts();
+  friend class GraphicsEditorSaveStoplossTestPeer;
 
   // Applies `edit` to the active project (the copy that is saved) and to this
   // session's project snapshot, then marks the project dirty. Fails when no

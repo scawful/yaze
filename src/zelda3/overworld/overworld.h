@@ -858,7 +858,13 @@ class Overworld {
   std::deque<int> built_map_lru_;
 
   // Shared tileset cache (see ClearGraphicsConfigCache()).
+  // GraphicsSheetStore revision of each sheet in an OverworldTilesetKey.
+  using TilesetRevisions =
+      std::array<uint64_t, std::tuple_size_v<OverworldTilesetKey>>;
+  TilesetRevisions SheetRevisionsForKey(const OverworldTilesetKey& key) const;
+
   struct TilesetCacheEntry {
+    TilesetRevisions sheet_revisions{};    // store revisions when built
     std::vector<uint8_t> current_gfx;      // 64KB tileset
     std::vector<uint8_t> tile16_blockset;  // 1MB tile16 pixels (may be empty)
     uint64_t tiles16_fingerprint = 0;      // tile16 defs the blockset used

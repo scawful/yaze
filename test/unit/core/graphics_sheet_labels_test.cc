@@ -96,6 +96,23 @@ TEST(GraphicsSheetLabelsTest, MigratesOldGfxGroupLabelKeysInProjects) {
   EXPECT_EQ(project.resource_labels.at("room").at("0x12"), "Room hex key");
 }
 
+// The paletteset editor also wrote "0x" + decimal (paletteset 12 -> "0x12")
+// and now uses decimal keys like the gfx group editor.
+TEST(GraphicsSheetLabelsTest, MigratesOldPalettesetLabelKeys) {
+  const auto path = test::UniqueTempPath("paletteset_labels", ".yaze");
+  const auto project = LoadProject(
+      "[labels_paletteset]\n"
+      "0x12=Old twelve\n"
+      "0x3=Three\n"
+      "40=Forty\n",
+      path);
+  const auto& palettesets = project.resource_labels.at("paletteset");
+  EXPECT_EQ(palettesets.at("12"), "Old twelve");
+  EXPECT_EQ(palettesets.at("3"), "Three");
+  EXPECT_EQ(palettesets.at("40"), "Forty");
+  EXPECT_EQ(palettesets.size(), 3u);
+}
+
 TEST(GraphicsSheetLabelsTest, MigratesOldGfxGroupLabelKeysInRomLabelFiles) {
   const auto path = test::UniqueTempPath("rom_labels", ".labels");
   {
