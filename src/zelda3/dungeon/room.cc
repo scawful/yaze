@@ -1138,21 +1138,18 @@ void Room::CopyRoomGraphicsToBuffer() {
       continue;
     }
 
-    // Source offset in ROM graphics buffer (now 8BPP format)
-    // Each 8BPP sheet is 4096 bytes (128x32 pixels)
-    int src_sheet_offset = sheet_id * 4096;
-
-    // Validate source bounds
-    if (src_sheet_offset + 4096 > gfx_buffer_data->size()) {
+    // Each 8BPP sheet is 4096 bytes (128x32 pixels): a preview override, or
+    // the ROM graphics buffer.
+    const uint8_t* src = GraphicsSheetSource(sheet_id);
+    if (src == nullptr) {
       LOG_ERROR("Room", "Graphics offset out of bounds: %d (size: %zu)",
-                src_sheet_offset, gfx_buffer_data->size());
+                sheet_id * 4096, gfx_buffer_data->size());
       continue;
     }
 
     // Copy 4096 bytes for the 8BPP sheet
     int dest_index_base = block * 4096;
     if (dest_index_base + 4096 <= current_gfx16_.size()) {
-      const uint8_t* src = gfx_buffer_data->data() + src_sheet_offset;
       uint8_t* dst = current_gfx16_.data() + dest_index_base;
 
       // Only background blocks (0-7) participate in Left/Right palette
@@ -1175,6 +1172,28 @@ void Room::CopyRoomGraphicsToBuffer() {
 
   LOG_DEBUG("Room", "Room %d: Graphics blocks copied successfully", room_id_);
   LoadAnimatedGraphics();
+}
+
+const uint8_t* Room::GraphicsSheetSource(int sheet_id) const {
+  constexpr size_t kSheetBytes = 4096;
+  if (sheet_id < 0) {
+    return nullptr;
+  }
+  const auto it =
+      graphics_sheet_overrides_.find(static_cast<uint16_t>(sheet_id));
+  if (it != graphics_sheet_overrides_.end() &&
+      it->second.size() == kSheetBytes) {
+    return it->second.data();
+  }
+  if (game_data_ == nullptr) {
+    return nullptr;
+  }
+  const auto& graphics = game_data_->graphics_buffer;
+  const size_t offset = static_cast<size_t>(sheet_id) * kSheetBytes;
+  if (offset + kSheetBytes > graphics.size()) {
+    return nullptr;
+  }
+  return graphics.data() + offset;
 }
 
 gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
@@ -1791,14 +1810,12 @@ void Room::LoadAnimatedGraphics() {
   if (!rom_ || !rom_->is_loaded() || !game_data_) {
     return;
   }
-  constexpr size_t kSheetBytes = 4096;
   constexpr size_t kFrameBytes = 1024;
   // The runtime cycles three frames ($008703-$00870B); the current editor
   // preview uses frame zero.
   if (animated_frame_ < 0 || animated_frame_ >= 3) {
     return;
   }
-  const auto& graphics = game_data_->graphics_buffer;
   bool copied_frame = false;
   const absl::Cleanup publish_revision = [this, &copied_frame] {
     if (copied_frame) {
@@ -1806,9 +1823,9 @@ void Room::LoadAnimatedGraphics() {
     }
   };
   const auto copy_frame = [&](uint8_t sheet, size_t destination) {
-    const size_t source = sheet * kSheetBytes + animated_frame_ * kFrameBytes;
-    if (source + kFrameBytes <= graphics.size()) {
-      std::copy_n(graphics.data() + source, kFrameBytes,
+    const uint8_t* source = GraphicsSheetSource(sheet);
+    if (source != nullptr) {
+      std::copy_n(source + animated_frame_ * kFrameBytes, kFrameBytes,
                   current_gfx16_.data() + destination);
       copied_frame = true;
     }

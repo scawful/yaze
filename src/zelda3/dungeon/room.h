@@ -7,6 +7,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string_view>
@@ -1047,6 +1048,21 @@ class Room {
   auto game_data() { return game_data_; }
   void SetGameData(GameData* data) { game_data_ = data; }
 
+  /// Sheet pixels to use instead of GameData::graphics_buffer for the given
+  /// sheet ids (8bpp, 4096 bytes each, the graphics_buffer layout). Lets a
+  /// preview show unsaved graphics edits without writing the ROM or the
+  /// shared GameData. Entries of the wrong size are ignored. Marks graphics
+  /// dirty so the next RenderRoomGraphics() picks them up.
+  void SetGraphicsSheetOverrides(
+      std::map<uint16_t, std::vector<uint8_t>> overrides) {
+    graphics_sheet_overrides_ = std::move(overrides);
+    MarkGraphicsDirty();
+  }
+  const std::map<uint16_t, std::vector<uint8_t>>& graphics_sheet_overrides()
+      const {
+    return graphics_sheet_overrides_;
+  }
+
   // Helper to get version constants from game_data or default to US
   zelda3_version_pointers version_constants() const {
     return kVersionConstantsMap.at(game_data_ ? game_data_->version
@@ -1099,7 +1115,12 @@ class Room {
   Rom* rom_;
   GameData* game_data_ = nullptr;
 
+  // Returns the 4096-byte 8bpp source for a sheet: an override when one is
+  // set, otherwise the GameData buffer. Null when neither covers the sheet.
+  const uint8_t* GraphicsSheetSource(int sheet_id) const;
+
   std::array<uint8_t, 0x10000> current_gfx16_;
+  std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
   uint64_t graphics_revision_ = 0;
   uint64_t composite_source_revision_ = 0;
   gfx::SnesPalette rendered_dungeon_palette_;
