@@ -488,6 +488,37 @@ std::filesystem::path MakeTempFilePath(const std::string& basename) {
          (basename + "_" + std::to_string(nonce));
 }
 
+// Removes every redirected settings file when the test process exits.
+struct IsolatedSettingsFiles {
+  std::vector<std::filesystem::path> paths;
+  ~IsolatedSettingsFiles() {
+    for (const auto& path : paths) {
+      std::error_code ec;
+      std::filesystem::remove(path, ec);
+      std::filesystem::remove(path.string() + ".legacy.ini", ec);
+    }
+  }
+};
+
+IsolatedSettingsFiles& GetIsolatedSettingsFiles() {
+  static IsolatedSettingsFiles files;
+  return files;
+}
+
+// EditorManager::Initialize otherwise loads the developer's real
+// ~/Documents/Yaze/settings.json. A saved sidebar category such as
+// "Overworld" makes session activation materialize that editor (and a full
+// reload then loads it), so results depended on whoever last ran yaze. Every
+// case starts from default preferences instead.
+void InitializeWithIsolatedSettings(EditorManager& manager,
+                                    gfx::IRenderer* renderer) {
+  const auto settings_path =
+      MakeTempFilePath("yaze_rom_write_policy_settings.json");
+  GetIsolatedSettingsFiles().paths.push_back(settings_path);
+  manager.user_settings().SetSettingsFilePathForTesting(settings_path.string());
+  manager.Initialize(renderer, "");
+}
+
 uint8_t ReadByteAt(const std::filesystem::path& path, std::streamoff offset) {
   std::ifstream file(path, std::ios::binary);
   EXPECT_TRUE(file.is_open());
@@ -658,7 +689,7 @@ TEST(EditorManagerBackingFileIdentityTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempFilePath("yaze_lexical_identity.sfc");
@@ -687,7 +718,7 @@ TEST(EditorManagerBackingFileIdentityTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempFilePath("yaze_canonical_identity.sfc");
@@ -716,7 +747,7 @@ TEST(EditorManagerBackingFileIdentityTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempFilePath("yaze_project_identity.sfc");
@@ -747,7 +778,7 @@ TEST(EditorManagerBackingFileIdentityTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -799,7 +830,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path rom_path =
@@ -868,7 +899,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -959,7 +990,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1144,7 +1175,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_backup_restore_guards");
@@ -1225,7 +1256,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1279,7 +1310,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1351,7 +1382,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1419,7 +1450,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1489,7 +1520,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1545,7 +1576,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1592,7 +1623,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path rom_path =
@@ -1648,7 +1679,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path dev_rom_path =
@@ -1699,7 +1730,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path dev_rom_path =
@@ -1762,7 +1793,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_path = MakeTempFilePath("yaze_save_as_confirm_source.sfc");
@@ -1809,7 +1840,7 @@ TEST(EditorManagerRomWritePolicyTest, SaveRomAsCannotTargetProjectBuildOutput) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto dev_rom_path = MakeTempFilePath("yaze_save_as_policy_dev.sfc");
@@ -1859,7 +1890,7 @@ TEST(EditorManagerRomWritePolicyTest, SaveRomAsRefreshesLifecycleHashAndPath) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_path = MakeTempFilePath("yaze_save_as_hash_source.sfc");
@@ -1897,7 +1928,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_path = MakeTempFilePath("yaze_resume_failure_source.sfc");
@@ -1947,7 +1978,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_path = MakeTempFilePath("yaze_prompt_cancel_source.sfc");
@@ -1997,7 +2028,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_a = MakeTempFilePath("yaze_session_a.sfc");
@@ -2055,7 +2086,7 @@ TEST(GraphicsSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2089,7 +2120,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2126,7 +2157,7 @@ TEST(GraphicsSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempFilePath("yaze_pending_graphics_save.sfc");
@@ -2209,7 +2240,7 @@ TEST(GraphicsSaveStoplossTest, EnabledSaveWritesTheEditedSheetToDisk) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2283,7 +2314,7 @@ TEST(GraphicsSaveStoplossTest, SaveRefusesForeignSheetsAndColorsAboveSeven) {
 
     auto renderer = std::make_unique<gfx::NullRenderer>();
     auto manager = std::make_unique<EditorManager>();
-    manager->Initialize(renderer.get(), "");
+    InitializeWithIsolatedSettings(*manager, renderer.get());
     manager->SetAssetLoadMode(AssetLoadMode::kLazy);
     manager->user_settings().prefs().backup_before_save = false;
 
@@ -2353,7 +2384,7 @@ TEST(GfxGroupSaveTest, SpritesetEditSavesAndReopensOrBlocksWhenDisabled) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2455,7 +2486,7 @@ TEST(ScreenSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2510,7 +2541,7 @@ TEST(ScreenSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_screen_replace_save");
@@ -2595,7 +2626,7 @@ TEST(ScreenSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_screen_replace_rollback");
@@ -2660,7 +2691,7 @@ TEST(ScreenSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2933,7 +2964,7 @@ TEST(EditorManagerFileLifecycleTest, CloseRomClosesTheOnlyCleanSession) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_close_rom_clean");
@@ -2960,7 +2991,7 @@ TEST(EditorManagerFileLifecycleTest, CloseRomAsksBeforeDiscardingEdits) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_close_rom_dirty");
@@ -3003,7 +3034,7 @@ TEST(EditorManagerFileLifecycleTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_revert_rom_dirty");
@@ -3044,7 +3075,7 @@ TEST(EditorManagerFileLifecycleTest, RevertCleanRomPicksUpDiskChanges) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_revert_rom_clean");
