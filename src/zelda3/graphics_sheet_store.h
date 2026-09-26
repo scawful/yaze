@@ -62,6 +62,42 @@ class GraphicsSheetStore {
   /// Empties the buffer and bumps every revision.
   void Clear();
 
+  /// One stroke on one sheet. Set() changes the store's pixels at once, so
+  /// every reader sees them; the sheet's revision changes once, on Commit()
+  /// or when the Edit ends. An Edit points into its store: keep it no longer
+  /// than the stroke.
+  class Edit {
+   public:
+    /// ok() is false when `store` does not hold `sheet`.
+    Edit(GraphicsSheetStore& store, uint16_t sheet);
+    ~Edit();
+    Edit(const Edit&) = delete;
+    Edit& operator=(const Edit&) = delete;
+
+    bool ok() const { return store_ != nullptr; }
+    uint16_t sheet() const { return sheet_; }
+    static constexpr int width() { return static_cast<int>(kSheetWidth); }
+    static constexpr int height() { return static_cast<int>(kSheetHeight); }
+
+    /// The pixel at (x, y), or 0 outside the sheet.
+    uint8_t Get(int x, int y) const;
+    /// Writes one pixel; ignores coordinates outside the sheet. Returns true
+    /// when the pixel changed.
+    bool Set(int x, int y, uint8_t index);
+    /// The sheet as it was when the Edit began.
+    const std::vector<uint8_t>& before() const { return before_; }
+    /// The sheet now, including uncommitted pixels.
+    absl::Span<const uint8_t> pixels() const;
+    /// Bumps the revision once if any pixel changed since the last commit.
+    void Commit();
+
+   private:
+    GraphicsSheetStore* store_ = nullptr;
+    uint16_t sheet_ = 0;
+    std::vector<uint8_t> before_;
+    bool uncommitted_ = false;
+  };
+
  private:
   std::vector<uint8_t> pixels_;
   std::array<uint64_t, kSheetCount> revisions_{};

@@ -62,6 +62,9 @@ void GraphicsEditor::Initialize() {
     return;
   auto* window_manager = dependencies_.window_manager;
 
+  // Pixel edits go to this session's sheet store (graphics_sheet_sync.h).
+  AttachSheetStore(state_, game_data_ != nullptr ? game_data_ : game_data());
+
   // Initialize panel components
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
   sheet_browser_panel_->SetDataSources(
@@ -465,6 +468,9 @@ GraphicsEditor::PlanGraphicsSave() {
 absl::Status GraphicsEditor::Update() {
   // Panels are now drawn via WorkspaceWindowManager::DrawAllVisiblePanels()
   // This Update() only handles editor-level state and keyboard shortcuts
+
+  // Show store changes (undo, redo, imports) in the Arena's display copies.
+  SyncArenaFromStore(state_);
 
   // Handle editor-level keyboard shortcuts
   HandleEditorShortcuts();

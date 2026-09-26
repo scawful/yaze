@@ -75,5 +75,51 @@ void GraphicsSheetStore::Clear() {
   MarkAllSheetsChanged();
 }
 
+GraphicsSheetStore::Edit::Edit(GraphicsSheetStore& store, uint16_t sheet)
+    : sheet_(sheet) {
+  if (!store.HasSheet(sheet)) {
+    return;
+  }
+  store_ = &store;
+  const auto current = store.Sheet(sheet);
+  before_.assign(current.begin(), current.end());
+}
+
+GraphicsSheetStore::Edit::~Edit() {
+  Commit();
+}
+
+uint8_t GraphicsSheetStore::Edit::Get(int x, int y) const {
+  if (!ok() || x < 0 || y < 0 || x >= width() || y >= height()) {
+    return 0;
+  }
+  return store_->pixels_[sheet_ * kSheetBytes + y * kSheetWidth + x];
+}
+
+bool GraphicsSheetStore::Edit::Set(int x, int y, uint8_t index) {
+  if (!ok() || x < 0 || y < 0 || x >= width() || y >= height()) {
+    return false;
+  }
+  uint8_t& pixel = store_->pixels_[sheet_ * kSheetBytes + y * kSheetWidth + x];
+  if (pixel == index) {
+    return false;
+  }
+  pixel = index;
+  uncommitted_ = true;
+  return true;
+}
+
+absl::Span<const uint8_t> GraphicsSheetStore::Edit::pixels() const {
+  return ok() ? store_->Sheet(sheet_) : absl::Span<const uint8_t>();
+}
+
+void GraphicsSheetStore::Edit::Commit() {
+  if (!ok() || !uncommitted_) {
+    return;
+  }
+  store_->revisions_[sheet_] = NextRevision();
+  uncommitted_ = false;
+}
+
 }  // namespace zelda3
 }  // namespace yaze

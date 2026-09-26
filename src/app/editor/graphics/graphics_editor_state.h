@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_GRAPHICS_EDITOR_STATE_H
 #define YAZE_APP_EDITOR_GRAPHICS_GRAPHICS_EDITOR_STATE_H
 
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <set>
@@ -12,6 +13,10 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
+namespace zelda3 {
+struct GameData;
+}  // namespace zelda3
+
 namespace editor {
 
 /**
@@ -119,6 +124,13 @@ class GraphicsEditorState {
 
   // --- Modified Sheets Tracking ---
   std::set<uint16_t> modified_sheets;
+
+  // --- Sheet store (graphics_sheet_sync.h) ---
+  // The session whose GraphicsSheetStore holds the pixels; pixel writes go
+  // there, and the Arena's bitmaps are display copies.
+  zelda3::GameData* game_data = nullptr;
+  // Store revision each Arena sheet was last refreshed from.
+  std::array<uint64_t, 223> arena_revisions{};
 
   // --- Callbacks for cross-panel communication ---
   std::function<void(uint16_t)> on_sheet_selected;

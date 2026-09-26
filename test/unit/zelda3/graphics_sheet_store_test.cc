@@ -117,6 +117,38 @@ TEST(GraphicsSheetStoreTest, CopiesAndMovesKeepTheirOwnAlias) {
   EXPECT_EQ(move_assigned->graphics_buffer.size(), 2 * kSheetBytes);
 }
 
+TEST(GraphicsSheetStoreTest, EditChangesPixelsAtOnceAndTheRevisionOnce) {
+  auto data = WithSheets(2);
+  auto& store = data->sheet_store;
+  const uint64_t start = store.Revision(1);
+  {
+    GraphicsSheetStore::Edit edit(store, 1);
+    ASSERT_TRUE(edit.ok());
+    EXPECT_TRUE(edit.Set(3, 2, 6));
+    EXPECT_FALSE(edit.Set(3, 2, 6));    // same value
+    EXPECT_FALSE(edit.Set(128, 0, 6));  // outside
+    EXPECT_TRUE(edit.Set(0, 31, 4));
+    // Readers see the pixels before the stroke ends; the revision waits.
+    EXPECT_EQ(data->graphics_buffer[1 * kSheetBytes + 2 * 128 + 3], 6);
+    EXPECT_EQ(edit.Get(0, 31), 4);
+    EXPECT_EQ(store.Revision(1), start);
+    EXPECT_EQ(edit.before(), Filled(1));
+  }
+  const uint64_t after = store.Revision(1);
+  EXPECT_NE(after, start);
+
+  // A stroke that changes nothing keeps the revision.
+  {
+    GraphicsSheetStore::Edit edit(store, 1);
+    edit.Set(3, 2, 6);
+  }
+  EXPECT_EQ(store.Revision(1), after);
+
+  GraphicsSheetStore::Edit missing(store, 5);
+  EXPECT_FALSE(missing.ok());
+  EXPECT_FALSE(missing.Set(0, 0, 1));
+}
+
 // LoadGameData fills the store in the graphics_buffer layout: sheet i at
 // i * 4096, equal to the loaded bitmap, with a fresh revision.
 TEST(GraphicsSheetStoreRomTest, LoadGameDataFillsTheStore) {

@@ -20,6 +20,7 @@
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/graphics/sheet_png_transfer.h"
@@ -39,6 +40,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/gfx_sheet_png.h"
 #include "zelda3/gfx_sheet_storage.h"
+#include "zelda3/graphics_sheet_store.h"
 
 #include "imgui/imgui.h"
 
@@ -54,6 +56,27 @@ class GraphicsEditorSaveStoplossTestPeer {
   }
   static GraphicsEditorState& State(GraphicsEditor* editor) {
     return editor->state_;
+  }
+  // Lazy-mode tests put sheets in the Arena by hand; give the session's
+  // sheet store the same pixels, as a full load does. A store that is
+  // already loaded is left alone.
+  static void FillStoreFromArena(GraphicsEditor* editor) {
+    zelda3::GameData* data = editor->game_data();
+    ASSERT_NE(data, nullptr);
+    constexpr size_t kBytes = zelda3::GraphicsSheetStore::kSheetBytes;
+    if (data->graphics_buffer.size() < 223 * kBytes) {
+      data->graphics_buffer.assign(223 * kBytes, 0);
+      const auto& sheets = gfx::Arena::Get().gfx_sheets();
+      for (size_t i = 0; i < 223; ++i) {
+        if (sheets[i].is_active() && sheets[i].vector().size() == kBytes) {
+          std::copy(sheets[i].vector().begin(), sheets[i].vector().end(),
+                    data->graphics_buffer.begin() + i * kBytes);
+        }
+      }
+      data->sheet_store.MarkAllSheetsChanged();
+    }
+    gfx::Arena::Get().set_gfx_sheets_owner(data);
+    AttachSheetStore(editor->state_, data);
   }
   // Runs the real read-back check against pixels with one index changed, so
   // every sheet the save writes fails verification.
@@ -2400,6 +2423,7 @@ void ExpectPngPixelEditSurvivesSave(EditorManager* manager, uint16_t sheet_id,
   auto preview = PreviewSheetPngImport(sheet_id, before, *edited_png, palette);
   ASSERT_TRUE(preview.ok()) << preview.status();
   ASSERT_EQ(preview->changed_tiles.size(), 1u);
+  GraphicsEditorSaveStoplossTestPeer::FillStoreFromArena(graphics);
   ASSERT_TRUE(ApplySheetPngImport(
                   *preview, GraphicsEditorSaveStoplossTestPeer::State(graphics),
                   nullptr)
@@ -2796,17 +2820,28 @@ TEST(GfxGroupSaveTest, SpritesetEditSavesAndReopensOrBlocksWhenDisabled) {
 
 TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {
   constexpr uint16_t kSheetId = 0x20;
-  const std::vector<uint8_t> before_data = {0x01, 0x02, 0x03, 0x04};
-  const std::vector<uint8_t> after_data = {0x05, 0x06, 0x07, 0x08};
+  constexpr size_t kBytes = zelda3::GraphicsSheetStore::kSheetBytes;
+  std::vector<uint8_t> before_data(kBytes, 0x01);
+  std::vector<uint8_t> after_data = before_data;
+  after_data[3] = 0x05;
+  after_data[200] = 0x06;
 
-  GraphicsEditorState state;
+  auto data = std::make_unique<zelda3::GameData>();
+  data->graphics_buffer.assign(223 * kBytes, 0);
+  std::copy(after_data.begin(), after_data.end(),
+            data->graphics_buffer.begin() + kSheetId * kBytes);
+  data->sheet_store.MarkAllSheetsChanged();
   auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
   ScopedGraphicsSheetRestore restore_sheet(&sheet);
-  sheet.set_data(after_data);
+  sheet.Create(128, 32, 8, after_data);
+  const void* owner = gfx::Arena::Get().gfx_sheets_owner();
+  gfx::Arena::Get().set_gfx_sheets_owner(data.get());
+  GraphicsEditorState state;
+  AttachSheetStore(state, data.get());
 
   GraphicsPixelEditAction action(
-      kSheetId, before_data, after_data, "Edit pixels",
-      [&state](uint16_t sheet_id) { state.MarkSheetModified(sheet_id); });
+      &state, MakeSheetPixelDiff(kSheetId, before_data, after_data),
+      "Edit pixels");
 
   ASSERT_FALSE(state.HasUnsavedChanges());
   ASSERT_OK(action.Undo());
@@ -2819,6 +2854,7 @@ TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {
   EXPECT_EQ(sheet.vector(), after_data);
   EXPECT_TRUE(state.HasUnsavedChanges());
   EXPECT_TRUE(state.modified_sheets.contains(kSheetId));
+  gfx::Arena::Get().set_gfx_sheets_owner(owner);
 }
 
 TEST(ScreenSaveStoplossTest,

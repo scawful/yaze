@@ -21,10 +21,11 @@ class GraphicsEditorState;
  * @file sheet_png_transfer.h
  * @brief PNG export and import for the Graphics editor.
  *
- * These work on the Arena's sheets (128x32, one index 0-7 per pixel), so
- * unsaved pixel edits are included. An import only changes the Arena and
- * marks the sheet modified; the ROM is written by GraphicsEditor::Save,
- * which re-encodes the sheet in place or relocates it with rollback.
+ * These work on 128x32 sheets with one index 0-7 per pixel, including
+ * unsaved pixel edits. An import writes the session's GraphicsSheetStore
+ * (which refreshes the Arena copy) and marks the sheet modified; the ROM is
+ * written by GraphicsEditor::Save, which re-encodes the sheet in place or
+ * relocates it with rollback.
  */
 
 /// Indexed PNG of a 3bpp sheet, laid out like `z3ed gfx-export` (16x16
@@ -55,9 +56,9 @@ absl::StatusOr<std::vector<SheetPngImportPreview>> PreviewRoomPngImport(
     const Rom& rom, const zelda3::RoomBackgroundSet& set,
     const std::vector<uint8_t>& png_bytes, const zelda3::SheetPalette& palette);
 
-/// Writes a previewed import into the Arena, marks the sheet modified and
-/// pushes one undoable step. Refuses when the sheet in the Arena no longer
-/// has the size the preview was made for.
+/// Writes a previewed import through the session's sheet store, marks the
+/// sheet modified and pushes one undoable step. Refuses when this ROM's
+/// graphics are not loaded or another open ROM's sheets are on screen.
 absl::Status ApplySheetPngImport(const SheetPngImportPreview& preview,
                                  GraphicsEditorState& state,
                                  UndoManager* undo_manager);
