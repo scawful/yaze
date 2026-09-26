@@ -57,6 +57,17 @@ constexpr int OverworldCustomMainPaletteArray = 0x140160;
 // 1 byte, not 0 if enabled
 constexpr int OverworldCustomMainPaletteEnabled = 0x140141;
 
+// ZSCustomOverworld default GFX groups (8 sheets each for LW, DW, SW). The
+// game falls back to the world's sheet 7 entry when an area's animated GFX
+// value is 0x00 or 0xFF (ReadAnimatedTable).
+constexpr int OverworldCustomDefaultGFXGroups = 0x140980;
+
+// Number of bytes at the top of graphics slot 7 that come from the animated
+// tile sheet rather than the area's sheet 7 (the first two tile rows, 32
+// tiles, in the 8bpp 128px-wide layout). The game keeps the door frames in
+// the bottom half and streams the animated water/lava frames into the top.
+constexpr int kAnimatedSheetSlotBytes = 0x800;
+
 // v3 expanded constants
 constexpr int kOverworldMessagesExpanded = 0x1417F8;
 constexpr int kOverworldMapParentIdExpanded = 0x140998;
@@ -158,6 +169,10 @@ struct AreaRenderProperties {
   std::array<uint8_t, 8> custom_gfx_ids = {};
   uint16_t subscreen_overlay = 0x00FF;
 };
+
+/// Sheet ids that fully determine a map's 64KB tileset (current_graphics):
+/// the 16 static sheets plus the animated sheet that fills the top of slot 7.
+using OverworldTilesetKey = std::array<uint8_t, 17>;
 
 /**
  * @brief Represents a single Overworld map screen.
@@ -261,6 +276,11 @@ class OverworldMap : public gfx::GfxContext {
     return area_render_properties().subscreen_overlay;
   }
 
+  /// Sheet whose top half is shown in graphics slot 7 (animated water/lava
+  /// frame 0). Resolved by LoadAreaGraphics().
+  uint8_t animated_sheet() const { return animated_sheet_; }
+  OverworldTilesetKey tileset_key() const;
+
   // Overlay accessors (interactive overlays)
   auto overlay_id() const { return overlay_id_; }
   auto has_overlay() const { return has_overlay_; }
@@ -358,6 +378,7 @@ class OverworldMap : public gfx::GfxContext {
 
  private:
   OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent);
+  void CopyAnimatedSheetIntoSlot7();
   void LoadAreaInfo();
   void LoadCustomOverworldData();
   void SetupCustomTileset(uint8_t asm_version);
@@ -405,6 +426,7 @@ class OverworldMap : public gfx::GfxContext {
   uint16_t subscreen_overlay_ = 0;  // Custom Overworld Subscreen Overlay ID
   uint16_t area_specific_bg_color_ =
       0;  // Custom Overworld Area-Specific Background Color
+  uint8_t animated_sheet_ = 0;  // Sheet for the top half of slot 7
   std::optional<AreaRenderProperties> inherited_area_;
 
   std::array<uint8_t, 8> custom_gfx_ids_ = {};

@@ -53,6 +53,8 @@ std::vector<uint8_t> MakeV3Rom() {
   rom[OverworldCustomSubscreenOverlayArray + kParent * 2] = 0x9F;
   rom[OverworldCustomSubscreenOverlayArray + kParent * 2 + 1] = 0x00;
   rom[OverworldCustomTileGFXGroupArray + kParent * 8 + 7] = 0x59;
+  // Default DW sheet 7 (ReadAnimatedTable fallback for 0x00/0xFF).
+  rom[OverworldCustomDefaultGFXGroups + 8 + 7] = 0x59;
   return rom;
 }
 
@@ -83,6 +85,21 @@ TEST(OverworldAreaRenderTest, ChildScreensRenderWithParentAreaSettings) {
   EXPECT_EQ(parent.render_subscreen_overlay(), 0x009F);
 }
 
+TEST(OverworldAreaRenderTest, AllQuadrantsResolveTheSameGraphics) {
+  auto rom = LoadRom(MakeV3Rom());
+  OverworldMap parent(kParent, rom.get());
+  parent.LoadAreaGraphics();
+  EXPECT_EQ(parent.animated_sheet(), 0x5B);
+  EXPECT_EQ(parent.static_graphics(7), 0x59);
+  for (int child : kChildren) {
+    SCOPED_TRACE(child);
+    OverworldMap map(child, rom.get());
+    map.LoadAreaGraphics();
+    EXPECT_EQ(map.animated_sheet(), parent.animated_sheet());
+    EXPECT_EQ(map.tileset_key(), parent.tileset_key());
+  }
+}
+
 TEST(OverworldAreaRenderTest, OverworldSyncPropagatesUnsavedParentEdits) {
   auto rom = LoadRom(MakeV3Rom());
   Overworld overworld(rom.get());
@@ -105,6 +122,54 @@ TEST(OverworldAreaRenderTest, OverworldSyncPropagatesUnsavedParentEdits) {
   overworld.SyncAreaProperties(0x49);
   EXPECT_FALSE(maps[0x49].has_inherited_area_properties());
   EXPECT_EQ(maps[0x49].render_main_palette(), 0x01);
+}
+
+TEST(OverworldAreaRenderTest, AnimatedFallbackUsesWorldDefaultSheet7) {
+  auto bytes = MakeV3Rom();
+  bytes[OverworldCustomAnimatedGFXArray + kParent] = 0xFF;
+  auto rom = LoadRom(bytes);
+  OverworldMap map(0x49, rom.get());
+  map.LoadAreaGraphics();
+  EXPECT_EQ(map.animated_sheet(), 0x59);
+}
+
+TEST(OverworldAreaRenderTest, Slot7TopHalfComesFromAnimatedSheet) {
+  auto rom = LoadRom(MakeV3Rom());
+  GameData game_data;
+  game_data.graphics_buffer.assign(0x100 * 0x1000, 0x00);
+  std::fill_n(game_data.graphics_buffer.begin() + 0x5B * 0x1000, 0x1000, 0x0A);
+  std::fill_n(game_data.graphics_buffer.begin() + 0x59 * 0x1000, 0x1000, 0x05);
+
+  OverworldMap map(0x48, rom.get(), &game_data);
+  map.LoadAreaGraphics();
+  ASSERT_TRUE(map.BuildTileset().ok());
+  const auto& gfx = map.current_graphics();
+  constexpr int kSlot7 = 7 * 0x1000;
+  EXPECT_EQ(gfx[kSlot7], 0x0A);  // animated frame 0 (water)
+  EXPECT_EQ(gfx[kSlot7 + kAnimatedSheetSlotBytes - 1], 0x0A);
+  EXPECT_EQ(gfx[kSlot7 + kAnimatedSheetSlotBytes], 0x05);  // door frames
+  EXPECT_EQ(gfx[kSlot7 + 0xFFF], 0x05);
+}
+
+TEST(OverworldAreaRenderTest, VanillaAnimatedSheet) {
+  std::vector<uint8_t> bytes(0x200000, 0x00);
+  bytes[OverworldCustomASMHasBeenApplied] = 0xFF;
+  // Identity parents, all small, vanilla DW group sheet 7 = 0x59.
+  for (int i = 0; i < 64; ++i) {
+    bytes[kOverworldMapParentId + i] = static_cast<uint8_t>(i);
+  }
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    bytes[kOverworldScreenSize + i] = 0x01;  // legacy: 1 = small
+  }
+  auto rom = LoadRom(bytes);
+
+  OverworldMap dm(0x03, rom.get());
+  dm.LoadAreaGraphics();
+  EXPECT_EQ(dm.animated_sheet(), 0x59);
+
+  OverworldMap dw(0x50, rom.get());
+  dw.LoadAreaGraphics();
+  EXPECT_EQ(dw.animated_sheet(), 0x5B);
 }
 
 }  // namespace
