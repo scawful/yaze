@@ -152,6 +152,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   StatusBar* status_bar() { return &status_bar_; }
   ToastManager* toast_manager() { return &toast_manager_; }
   PopupManager* popup_manager() { return popup_manager_.get(); }
+  // Native (macOS) menu mirrors these bindings; see native_menu_bridge.h.
+  ShortcutManager* shortcut_manager() { return &shortcut_manager_; }
   WorkspaceWindowManager* GetWindowManager() { return &window_manager_; }
   WorkspaceWindowManager& window_manager() { return window_manager_; }
   const WorkspaceWindowManager& window_manager() const {
