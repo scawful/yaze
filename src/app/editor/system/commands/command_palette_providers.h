@@ -13,6 +13,27 @@ namespace editor {
 class WorkspaceWindowManager;
 class RecentProjectsModel;
 class UserSettings;
+class ShortcutManager;
+
+/**
+ * Display string for the live keybinding of shortcut @p name ("Ctrl+S"), or
+ * empty when unbound/unknown. Reads ShortcutManager::FindShortcut() +
+ * PrintShortcut() on every call, so rebinds show up on the next refresh.
+ *
+ * TODO(after claude/ui-shortcuts merges): replace the body with
+ * `std::string ShortcutManager::GetDisplayString(const std::string& name)
+ * const`, which formats Cmd+ on macOS / Ctrl+ elsewhere and has the same
+ * "" contract for unknown or unbound names. This is the only call site.
+ */
+std::string LookupShortcutHint(const ShortcutManager* shortcut_manager,
+                               const std::string& name);
+
+/**
+ * Palette-facing name for ShortcutManager entry @p name. Internal keybinding
+ * ids map to a friendly name when one exists ("switch.6" ->
+ * "Switch to Overworld Editor") and to empty (hidden) otherwise.
+ */
+std::string PaletteNameForShortcut(const std::string& name);
 
 /**
  * Thin, pull-based CommandProvider adapters over the existing Register*Commands
@@ -69,6 +90,32 @@ class DungeonRoomCommandsProvider : public CommandProvider {
 
  private:
   size_t session_id_;
+};
+
+/// ID: "overworld-maps". One command per map 0x00-0x9F (JumpToMapRequest).
+class OverworldMapCommandsProvider : public CommandProvider {
+ public:
+  explicit OverworldMapCommandsProvider(size_t session_id);
+  std::string ProviderId() const override { return "overworld-maps"; }
+  void Provide(CommandPalette* palette) override;
+
+ private:
+  size_t session_id_;
+};
+
+/// ID: "shortcuts". Mirrors ShortcutManager commands into the palette with
+/// their live keybinding. Internal ids are renamed or hidden (see
+/// PaletteNameForShortcut). Callbacks resolve through the manager at
+/// execution time so rebinding is honored. Palette-native entries with the
+/// same normalized name win the dedupe and inherit the keybinding.
+class ShortcutCommandsProvider : public CommandProvider {
+ public:
+  explicit ShortcutCommandsProvider(const ShortcutManager* shortcut_manager);
+  std::string ProviderId() const override { return "shortcuts"; }
+  void Provide(CommandPalette* palette) override;
+
+ private:
+  const ShortcutManager* shortcut_manager_;
 };
 
 /// ID: "drawers". Right-drawer toggles with "drawer: " prefix for discovery.
