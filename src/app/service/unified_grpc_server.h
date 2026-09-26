@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/net/rom_version_manager.h"
 #include "util/grpc_win_compat.h"
 
@@ -42,6 +43,7 @@ class EmulatorServiceImpl;
 namespace test {
 class TestManager;
 class ImGuiTestHarnessServiceImpl;
+struct ScreenshotArtifact;
 }  // namespace test
 
 /**
@@ -91,6 +93,10 @@ class YazeGRPCServer {
       net::RomVersionManager* version_mgr = nullptr,
       net::ProposalApprovalManager* approval_mgr = nullptr,
       CanvasAutomationServiceImpl* canvas_service = nullptr);
+
+  // Forwards to EmulatorServiceImpl::SetScreenshotCapturer (after Initialize).
+  void SetEmulatorScreenshotCapturer(
+      std::function<absl::StatusOr<test::ScreenshotArtifact>()> capturer);
 
   absl::Status Start();
   absl::Status StartAsync();

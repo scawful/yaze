@@ -198,6 +198,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/overworld_doctor_tile16_test.cc
     unit/cli/graphics_doctor_test.cc
+    unit/cli/rom_header_size_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_render_commands_test.cc
@@ -219,6 +220,8 @@ if(YAZE_BUILD_TESTS)
     unit/rom/fresh_rom_fixture_output_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
+    unit/emu/cpu_flags_test.cc
+    unit/emu/snes_io_reset_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/emu/input_backend_test.cc
     unit/emu/step_controller_test.cc
@@ -226,6 +229,7 @@ if(YAZE_BUILD_TESTS)
     unit/emu/apu_dsp_test.cc
     unit/emu/apu_ipl_handshake_test.cc
     unit/emu/disassembler_test.cc
+    unit/emu/memory_rom_mapping_test.cc
     unit/diggable_tiles_test.cc
     unit/core/asm_patch_test.cc
     unit/gfx/snes_tile_test.cc
@@ -504,7 +508,10 @@ if(YAZE_BUILD_TESTS)
   # gRPC headers. Registering it unconditionally breaks presets built without
   # them.
   if(YAZE_ENABLE_REMOTE_AUTOMATION AND YAZE_ENABLE_GRPC)
-    list(APPEND STABLE_UNIT_TEST_SOURCES unit/cli/rom_debug_agent_test.cc)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/cli/rom_debug_agent_test.cc
+      unit/emu/emulator_service_screenshot_test.cc
+    )
   endif()
 
   if(YAZE_ENABLE_AGENT_CLI)
@@ -682,6 +689,8 @@ if(YAZE_BUILD_TESTS)
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
+    unit/emu/cpu_flags_test.cc
+    unit/emu/snes_io_reset_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
     unit/gfx/arena_retirement_test.cc

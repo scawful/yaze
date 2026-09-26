@@ -89,6 +89,13 @@ absl::Status YazeGRPCServer::Initialize(
   return absl::OkStatus();
 }
 
+void YazeGRPCServer::SetEmulatorScreenshotCapturer(
+    std::function<absl::StatusOr<test::ScreenshotArtifact>()> capturer) {
+  if (emulator_service_) {
+    emulator_service_->SetScreenshotCapturer(std::move(capturer));
+  }
+}
+
 absl::Status YazeGRPCServer::Start() {
   auto status = BuildServer();
   if (!status.ok()) {

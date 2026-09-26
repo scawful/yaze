@@ -410,9 +410,15 @@ absl::Status RomDoctorCommandHandler::Execute(
   formatter.AddField("title", header.title);
   formatter.AddField("map_mode", GetMapModeName(header.map_mode));
   formatter.AddHexField("rom_type", header.rom_type, 2);
-  formatter.AddField("rom_size_header", 1 << (header.rom_size + 10));
-  formatter.AddField("sram_size",
-                     header.sram_size > 0 ? (1 << (header.sram_size + 10)) : 0);
+  // Header size codes mean 0x400 << code bytes. Codes past 0x0F (32 MB) are
+  // not SNES sizes and would overflow the shift, so report them as 0.
+  auto header_size_bytes = [](uint8_t code) {
+    return code <= 0x0F ? (0x400 << code) : 0;
+  };
+  formatter.AddField("rom_size_header", header_size_bytes(header.rom_size));
+  formatter.AddField("sram_size", header.sram_size > 0
+                                      ? header_size_bytes(header.sram_size)
+                                      : 0);
   formatter.AddField("country", GetCountryName(header.country));
   formatter.AddField("version", header.version);
   formatter.AddHexField("checksum_complement", header.checksum_complement, 4);
