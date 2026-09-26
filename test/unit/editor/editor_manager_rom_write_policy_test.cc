@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <random>
 #include <string>
 #include <thread>
 #include <utility>
@@ -2473,6 +2474,149 @@ TEST(GraphicsSaveStoplossTest, PngImportOnOracleProjectCopy) {
 
   // Sheet 0x92 (Stalfos): a compressed 3bpp sprite sheet.
   ExpectPngPixelEditSurvivesSave(manager.get(), 0x92, rom_path);
+}
+
+// Fills block 0 (16x16) of an indexed sheet with seeded noise in colors 0-7,
+// so the sheet no longer compresses into its old slot.
+std::vector<uint8_t> WithNoisyBlock0(std::vector<uint8_t> pixels,
+                                     uint32_t seed) {
+  std::mt19937 rng(seed);
+  for (int y = 0; y < 16; ++y) {
+    for (int x = 0; x < 16; ++x) {
+      pixels[y * 128 + x] = static_cast<uint8_t>(rng() % 8);
+    }
+  }
+  return pixels;
+}
+
+// Plan, save and reopen a sheet that has to move: the preflight names the
+// new address, the save relocates it there, and the reopened ROM decodes the
+// edited pixels from that address.
+void ExpectRelocatedSheetSurvivesSave(EditorManager* manager, uint16_t sheet_id,
+                                      const std::filesystem::path& rom_path,
+                                      uint32_t region_begin,
+                                      uint32_t region_end) {
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
+  ASSERT_TRUE(sheet.is_active());
+  const auto edited = WithNoisyBlock0(sheet.vector(), /*seed=*/0x5A5A);
+  sheet.set_data(edited);
+  GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, sheet_id);
+
+  std::ifstream before_in(rom_path, std::ios::binary);
+  const std::vector<uint8_t> disk_before(
+      (std::istreambuf_iterator<char>(before_in)),
+      std::istreambuf_iterator<char>());
+  auto plan = graphics->PlanGraphicsSave();
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->size(), 1u);
+  const GraphicsSavePlanEntry entry = plan->front();
+  ASSERT_TRUE(entry.refusal.empty()) << entry.refusal;
+  EXPECT_EQ(entry.placement, zelda3::GfxSheetPlacement::kRelocated);
+  EXPECT_GE(entry.new_pc, region_begin);
+  EXPECT_LT(entry.new_pc, region_end);
+  EXPECT_GT(entry.new_stored_size, 0u);
+  {
+    std::ifstream in(rom_path, std::ios::binary);
+    const std::vector<uint8_t> disk((std::istreambuf_iterator<char>(in)),
+                                    std::istreambuf_iterator<char>());
+    EXPECT_EQ(disk, disk_before) << "the plan must not write";
+  }
+
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(editor_set->HasPendingGraphicsChanges());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  auto pc = zelda3::ReadGfxSheetPc(reopened, sheet_id);
+  ASSERT_TRUE(pc.ok()) << pc.status();
+  EXPECT_EQ(*pc, entry.new_pc);
+  auto readback = zelda3::ReadGfxSheetData(reopened, sheet_id);
+  ASSERT_TRUE(readback.ok()) << readback.status();
+  EXPECT_EQ(gfx::SnesTo8bppSheet(*readback, /*bpp=*/3), edited);
+}
+
+TEST(GraphicsSaveStoplossTest, RelocatedSheetIsPlannedSavedAndReopened) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  constexpr uint16_t kSheetId = 0x20;
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX RELOCATE";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  const auto rom_path = MakeTempFilePath("yaze_graphics_relocate.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  auto* graphics = manager->GetCurrentEditorSet()->GetEditorAs<GraphicsEditor>(
+      EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  // Register the fixture's free space, PC 0xE0000-0xF0000, in the manager's
+  // project and in the session copy the save policy reads (SaveRom syncs
+  // them, so a project file load sets both).
+  constexpr char kManifest[] =
+      R"json({"manifest_version": 3, "graphics_sheet_regions":
+          {"allocation_regions": [{"start": "0x1C8000", "end": "0x1E8000"}]}})json";
+  ASSERT_OK(project->hack_manifest.LoadFromString(kManifest));
+  ASSERT_NE(graphics->project(), nullptr);
+  ASSERT_OK(graphics->project()->hack_manifest.LoadFromString(kManifest));
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+               gfx::kTilesheetDepth,
+               gfx::SnesTo8bppSheet(fixture.sheets.at(kSheetId), /*bpp=*/3));
+
+  ExpectRelocatedSheetSurvivesSave(manager.get(), kSheetId, rom_path, 0xE0000,
+                                   0xF0000);
+}
+
+// The same on a scratch copy of the Oracle project (skipped unless
+// YAZE_TEST_ORACLE_PROJECT_COPY names its .yaze file): sheet 0x92 grows and
+// moves into the manifest's bank $23 region (PC 0x118000-0x120000).
+TEST(GraphicsSaveStoplossTest, RelocatedSheetOnOracleProjectCopy) {
+  const char* project_env = std::getenv("YAZE_TEST_ORACLE_PROJECT_COPY");
+  if (project_env == nullptr || *project_env == '\0') {
+    GTEST_SKIP() << "YAZE_TEST_ORACLE_PROJECT_COPY is not set";
+  }
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kFull);
+  manager->user_settings().prefs().backup_before_save = false;
+  ASSERT_OK(manager->OpenRomOrProject(project_env));
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  const std::filesystem::path rom_path =
+      project->GetAbsolutePath(project->rom_filename);
+
+  ExpectRelocatedSheetSurvivesSave(manager.get(), 0x92, rom_path, 0x118000,
+                                   0x120000);
 }
 
 TEST(GfxGroupSaveTest, SpritesetEditSavesAndReopensOrBlocksWhenDisabled) {
