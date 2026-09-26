@@ -18,29 +18,30 @@ namespace editor {
  * @brief Pixel editing tool types for the graphics editor
  */
 enum class PixelTool {
-  kSelect,       // Rectangle selection
-  kLasso,        // Freeform selection
-  kPencil,       // Single pixel drawing
-  kBrush,        // Multi-pixel brush
-  kEraser,       // Set pixels to transparent (index 0)
-  kFill,         // Flood fill
-  kLine,         // Line drawing
-  kRectangle,    // Rectangle outline/fill
-  kEyedropper,   // Color picker from canvas
+  kSelect,      // Rectangle selection
+  kLasso,       // Freeform selection
+  kPencil,      // Single pixel drawing
+  kBrush,       // Multi-pixel brush
+  kEraser,      // Set pixels to transparent (index 0)
+  kFill,        // Flood fill
+  kLine,        // Line drawing
+  kRectangle,   // Rectangle outline/fill
+  kEyedropper,  // Color picker from canvas
+  kHand,        // Pan the canvas
 };
 
 /**
  * @brief Selection data for copy/paste operations
  */
 struct PixelSelection {
-  std::vector<uint8_t> pixel_data;   // Copied pixel indices
-  gfx::SnesPalette palette;          // Associated palette
-  int x = 0;                         // Selection origin X
-  int y = 0;                         // Selection origin Y
-  int width = 0;                     // Selection width
-  int height = 0;                    // Selection height
-  bool is_active = false;            // Whether selection exists
-  bool is_floating = false;          // Floating vs committed
+  std::vector<uint8_t> pixel_data;  // Copied pixel indices
+  gfx::SnesPalette palette;         // Associated palette
+  int x = 0;                        // Selection origin X
+  int y = 0;                        // Selection origin Y
+  int width = 0;                    // Selection width
+  int height = 0;                   // Selection height
+  bool is_active = false;           // Whether selection exists
+  bool is_floating = false;         // Floating vs committed
 
   void Clear() {
     pixel_data.clear();
@@ -69,7 +70,6 @@ struct TileHighlight {
   }
 };
 
-
 /**
  * @brief Shared state between GraphicsEditor panel components
  *
@@ -93,10 +93,11 @@ class GraphicsEditorState {
   bool fill_contiguous = true;      // Fill tool: contiguous only
 
   // --- View State ---
-  float zoom_level = 4.0f;          // 1x to 16x
-  bool show_grid = true;            // 8x8 tile grid
-  bool show_tile_boundaries = true; // 16x16 tile boundaries
-  ImVec2 pan_offset = {0, 0};       // Canvas pan offset
+  float zoom_level = 4.0f;           // 1x to 16x
+  bool show_grid = true;             // 8x8 tile grid
+  bool show_pixel_grid = false;      // 1-pixel grid (drawn at 6x and up)
+  bool show_tile_boundaries = true;  // 16x16 tile boundaries
+  ImVec2 pan_offset = {0, 0};        // Canvas pan offset
 
   // --- Overlay State (for enhanced UX) ---
   bool show_cursor_crosshair = true;    // Crosshair at cursor position
@@ -112,9 +113,9 @@ class GraphicsEditorState {
 
   // --- Selection State ---
   PixelSelection selection;
-  ImVec2 selection_start;           // Drag start point
-  bool is_selecting = false;        // Currently drawing selection
-  TileHighlight tile_highlight;     // Active tile focus hint
+  ImVec2 selection_start;        // Drag start point
+  bool is_selecting = false;     // Currently drawing selection
+  TileHighlight tile_highlight;  // Active tile focus hint
 
   // --- Modified Sheets Tracking ---
   std::set<uint16_t> modified_sheets;
@@ -124,6 +125,9 @@ class GraphicsEditorState {
   std::function<void()> on_palette_changed;
   std::function<void()> on_tool_changed;
   std::function<void(uint16_t)> on_sheet_modified;
+  // Applies the selected palette group, palette and row to a sheet. Set by
+  // the Palette Controls panel so other panels can re-apply a row.
+  std::function<void(uint16_t)> apply_palette_to_sheet;
 
   // --- Methods ---
 
@@ -199,9 +203,7 @@ class GraphicsEditorState {
   /**
    * @brief Set zoom level with clamping
    */
-  void SetZoom(float zoom) {
-    zoom_level = std::clamp(zoom, 1.0f, 16.0f);
-  }
+  void SetZoom(float zoom) { zoom_level = std::clamp(zoom, 1.0f, 16.0f); }
 
   void ZoomIn() { SetZoom(zoom_level + 1.0f); }
   void ZoomOut() { SetZoom(zoom_level - 1.0f); }
@@ -211,16 +213,28 @@ class GraphicsEditorState {
    */
   const char* GetToolName() const {
     switch (current_tool) {
-      case PixelTool::kSelect:     return "Select";
-      case PixelTool::kLasso:      return "Lasso";
-      case PixelTool::kPencil:     return "Pencil";
-      case PixelTool::kBrush:      return "Brush";
-      case PixelTool::kEraser:     return "Eraser";
-      case PixelTool::kFill:       return "Fill";
-      case PixelTool::kLine:       return "Line";
-      case PixelTool::kRectangle:  return "Rectangle";
-      case PixelTool::kEyedropper: return "Eyedropper";
-      default:                     return "Unknown";
+      case PixelTool::kSelect:
+        return "Select";
+      case PixelTool::kLasso:
+        return "Lasso";
+      case PixelTool::kPencil:
+        return "Pencil";
+      case PixelTool::kBrush:
+        return "Brush";
+      case PixelTool::kEraser:
+        return "Eraser";
+      case PixelTool::kFill:
+        return "Fill";
+      case PixelTool::kLine:
+        return "Line";
+      case PixelTool::kRectangle:
+        return "Rectangle";
+      case PixelTool::kEyedropper:
+        return "Eyedropper";
+      case PixelTool::kHand:
+        return "Hand";
+      default:
+        return "Unknown";
     }
   }
 };

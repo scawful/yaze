@@ -1,6 +1,7 @@
 #include "app/editor/system/commands/shortcut_configurator.h"
 
 #include <algorithm>
+#include <map>
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_format.h"
@@ -109,7 +110,8 @@ const std::vector<EditorShortcutDef> kGraphicsShortcuts = {
     {"graphics.prev_sheet", {ImGuiKey_PageUp}, "Previous sheet"},
 
     // Tool selection shortcuts
-    {"graphics.tool.select", {ImGuiKey_V}, "Select tool"},
+    {"graphics.tool.select", {ImGuiKey_M}, "Select tool"},
+    {"graphics.tool.hand", {ImGuiKey_H}, "Hand tool (pan)"},
     {"graphics.tool.pencil", {ImGuiKey_B}, "Pencil tool"},
     {"graphics.tool.brush", {ImGuiKey_P}, "Brush tool"},
     {"graphics.tool.eraser", {ImGuiKey_E}, "Eraser tool"},
@@ -540,10 +542,31 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
             if (!graphics_editor)
               return;
 
+            static const std::map<std::string, PixelTool> kTools = {
+                {"graphics.tool.select", PixelTool::kSelect},
+                {"graphics.tool.hand", PixelTool::kHand},
+                {"graphics.tool.pencil", PixelTool::kPencil},
+                {"graphics.tool.brush", PixelTool::kBrush},
+                {"graphics.tool.eraser", PixelTool::kEraser},
+                {"graphics.tool.fill", PixelTool::kFill},
+                {"graphics.tool.line", PixelTool::kLine},
+                {"graphics.tool.rectangle", PixelTool::kRectangle},
+                {"graphics.tool.eyedropper", PixelTool::kEyedropper},
+            };
             if (id == "graphics.next_sheet") {
               graphics_editor->NextSheet();
             } else if (id == "graphics.prev_sheet") {
               graphics_editor->PrevSheet();
+            } else if (auto tool = kTools.find(id); tool != kTools.end()) {
+              graphics_editor->SetPixelTool(tool->second);
+            } else if (id == "graphics.zoom_in" ||
+                       id == "graphics.zoom_in_keypad") {
+              graphics_editor->ZoomIn();
+            } else if (id == "graphics.zoom_out" ||
+                       id == "graphics.zoom_out_keypad") {
+              graphics_editor->ZoomOut();
+            } else if (id == "graphics.toggle_grid") {
+              graphics_editor->ToggleGrid();
             }
           },
           Shortcut::Scope::kEditor);

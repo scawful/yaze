@@ -31,7 +31,7 @@ void PixelEditorPanel::Draw(bool* p_open) {
 }
 
 absl::Status PixelEditorPanel::Update() {
-  HandleClipboardShortcuts();
+  HandleFloatingPasteKeys();
 
   // Top toolbar
   DrawToolbar();
@@ -90,13 +90,15 @@ void PixelEditorPanel::DrawToolbar() {
     ImGui::SameLine();
   };
 
-  tool_button(PixelTool::kSelect, ICON_MD_SELECT_ALL, "Select (V)");
+  tool_button(PixelTool::kSelect, ICON_MD_SELECT_ALL, "Select (M)");
+  tool_button(PixelTool::kHand, ICON_MD_PAN_TOOL,
+              "Hand: drag to pan (H; middle mouse pans with any tool)");
   tool_button(PixelTool::kPencil, ICON_MD_DRAW, "Pencil (B)");
-  tool_button(PixelTool::kBrush, ICON_MD_BRUSH, "Brush (B)");
+  tool_button(PixelTool::kBrush, ICON_MD_BRUSH, "Brush (P)");
   tool_button(PixelTool::kEraser, ICON_MD_AUTO_FIX_HIGH, "Eraser (E)");
   tool_button(PixelTool::kFill, ICON_MD_FORMAT_COLOR_FILL, "Fill (G)");
-  tool_button(PixelTool::kLine, ICON_MD_HORIZONTAL_RULE, "Line");
-  tool_button(PixelTool::kRectangle, ICON_MD_CROP_SQUARE, "Rectangle");
+  tool_button(PixelTool::kLine, ICON_MD_HORIZONTAL_RULE, "Line (L)");
+  tool_button(PixelTool::kRectangle, ICON_MD_CROP_SQUARE, "Rectangle (R)");
   tool_button(PixelTool::kEyedropper, ICON_MD_COLORIZE, "Eyedropper (I)");
 
   ImGui::SameLine();
@@ -121,7 +123,8 @@ void PixelEditorPanel::DrawToolbar() {
   ImGui::SameLine();
 
   ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanUndo());
-  if (gui::ToolbarIconButton(ICON_MD_UNDO, "Undo (Ctrl+Z)") && undo_manager_) {
+  if (gui::ToolbarIconButton(ICON_MD_UNDO, "Undo (Cmd/Ctrl+Z)") &&
+      undo_manager_) {
     undo_manager_->Undo().IgnoreError();
   }
   ImGui::EndDisabled();
@@ -129,7 +132,8 @@ void PixelEditorPanel::DrawToolbar() {
   ImGui::SameLine();
 
   ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanRedo());
-  if (gui::ToolbarIconButton(ICON_MD_REDO, "Redo (Ctrl+Y)") && undo_manager_) {
+  if (gui::ToolbarIconButton(ICON_MD_REDO, "Redo (Cmd/Ctrl+Shift+Z)") &&
+      undo_manager_) {
     undo_manager_->Redo().IgnoreError();
   }
   ImGui::EndDisabled();
@@ -158,8 +162,15 @@ void PixelEditorPanel::DrawViewControls() {
   ImGui::SameLine();
 
   // View overlay toggles
-  ImGui::Checkbox(ICON_MD_GRID_ON, &state_->show_grid);
-  HOVER_HINT("Toggle grid (Ctrl+G)");
+  ImGui::Checkbox(ICON_MD_GRID_4X4 "##pixelgrid", &state_->show_pixel_grid);
+  HOVER_HINT("Pixel grid (from 6x zoom)");
+  ImGui::SameLine();
+  ImGui::Checkbox(ICON_MD_GRID_ON " 8##grid8", &state_->show_grid);
+  HOVER_HINT("8x8 tile grid (Cmd/Ctrl+G)");
+  ImGui::SameLine();
+  ImGui::Checkbox(ICON_MD_GRID_VIEW " 16##grid16",
+                  &state_->show_tile_boundaries);
+  HOVER_HINT("16x16 block grid");
   ImGui::SameLine();
 
   ImGui::Checkbox(ICON_MD_ADD, &state_->show_cursor_crosshair);
@@ -175,6 +186,11 @@ void PixelEditorPanel::DrawViewControls() {
 }
 
 void PixelEditorPanel::DrawCanvas() {
+  // Show the sheet the browser has selected rather than an empty editor.
+  if (state_->open_sheets.empty() &&
+      gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id].is_active()) {
+    state_->open_sheets.insert(state_->current_sheet_id);
+  }
   if (state_->open_sheets.empty()) {
     ImGui::TextDisabled(
         tr("No sheet selected. Select a sheet from the browser."));
@@ -232,6 +248,7 @@ void PixelEditorPanel::DrawCanvas() {
         if (state_->show_grid) {
           canvas_.DrawGrid(8.0f * state_->zoom_level);
         }
+        DrawPixelGrids(canvas_width, canvas_height);
 
         // Draw transient tile highlight (e.g., from "Edit Graphics" jump)
         DrawTileHighlight(sheet);
@@ -461,6 +478,7 @@ void PixelEditorPanel::DrawTileHighlight(const gfx::Bitmap& sheet) {
 }
 
 void PixelEditorPanel::DrawColorPicker() {
+  DrawPaletteRowPicker();
   ImGui::Text(tr("Colors"));
 
   if (state_->open_sheets.empty()) {
@@ -571,12 +589,21 @@ void PixelEditorPanel::DrawStatusBar() {
     ImGui::Text(tr("Pos: %d, %d"), cursor_x_, cursor_y_);
     ImGui::SameLine();
 
-    // Tile coordinates
+    // Tile coordinates, the tile's index in the sheet, and the color there
     int tile_x = cursor_x_ / 8;
     int tile_y = cursor_y_ / 8;
-    ImGui::Text(tr("Tile: %d, %d"), tile_x, tile_y);
+    ImGui::Text(tr("Tile: %d, %d (#%d)"), tile_x, tile_y, tile_y * 16 + tile_x);
     ImGui::SameLine();
+    const auto& sheet =
+        gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
+    if (sheet.is_active() && cursor_x_ < sheet.width() &&
+        cursor_y_ < sheet.height()) {
+      ImGui::Text(tr("Color: %d"), sheet.GetPixel(cursor_x_, cursor_y_));
+      ImGui::SameLine();
+    }
   }
+  ImGui::Text(tr("Brush color: %d"), state_->current_color_index);
+  ImGui::SameLine();
 
   // Sheet info
   ImGui::Text(tr("Sheet: %02X"), state_->current_sheet_id);
@@ -620,7 +647,7 @@ void PixelEditorPanel::HandleCanvasInput() {
   cursor_x_ = std::clamp(cursor_x_, 0, sheet.width() - 1);
   cursor_y_ = std::clamp(cursor_y_, 0, sheet.height() - 1);
 
-  if (HandleFloatingPasteInput()) {
+  if (HandlePanInput() || HandleFloatingPasteInput()) {
     return;
   }
 
@@ -1049,6 +1076,72 @@ void PixelEditorPanel::FinalizeUndoAction() {
   pending_undo_before_data_.clear();
 }
 
+bool PixelEditorPanel::HandlePanInput() {
+  const bool hand = state_->current_tool == PixelTool::kHand;
+  const bool middle = ImGui::IsMouseDown(ImGuiMouseButton_Middle);
+  if (!middle && !(hand && ImGui::IsMouseDown(ImGuiMouseButton_Left))) {
+    return hand;  // the Hand tool never paints
+  }
+  // DrawCanvas runs inside the scrolling "##CanvasArea" child.
+  const ImVec2 delta = ImGui::GetIO().MouseDelta;
+  ImGui::SetScrollX(ImGui::GetScrollX() - delta.x);
+  ImGui::SetScrollY(ImGui::GetScrollY() - delta.y);
+  return true;
+}
+
+void PixelEditorPanel::DrawPixelGrids(float canvas_width, float canvas_height) {
+  auto* draw_list = canvas_.draw_list();
+  const ImVec2 origin = canvas_.zero_point();
+  const float zoom = state_->zoom_level;
+  auto lines = [&](float step, ImU32 color, float thickness) {
+    for (float x = step; x < canvas_width; x += step) {
+      draw_list->AddLine(ImVec2(origin.x + x, origin.y),
+                         ImVec2(origin.x + x, origin.y + canvas_height), color,
+                         thickness);
+    }
+    for (float y = step; y < canvas_height; y += step) {
+      draw_list->AddLine(ImVec2(origin.x, origin.y + y),
+                         ImVec2(origin.x + canvas_width, origin.y + y), color,
+                         thickness);
+    }
+  };
+  if (state_->show_pixel_grid && zoom >= 6.0f) {
+    lines(zoom, IM_COL32(255, 255, 255, 28), 1.0f);
+  }
+  if (state_->show_tile_boundaries) {
+    lines(16.0f * zoom, ImGui::GetColorU32(gui::GetInfoColor()), 1.5f);
+  }
+}
+
+void PixelEditorPanel::DrawPaletteRowPicker() {
+  ImGui::TextUnformatted(tr("Palette row"));
+  int row = static_cast<int>(state_->sub_palette_index);
+  const bool can_apply = static_cast<bool>(state_->apply_palette_to_sheet) &&
+                         !state_->open_sheets.empty();
+  ImGui::BeginDisabled(!can_apply);
+  if (ImGui::ArrowButton("##RowDown", ImGuiDir_Left) && row > 0) {
+    --row;
+  }
+  ImGui::SameLine();
+  ImGui::Text("%d", row);
+  ImGui::SameLine();
+  if (ImGui::ArrowButton("##RowUp", ImGuiDir_Right) && row < 7) {
+    ++row;
+  }
+  ImGui::EndDisabled();
+  HOVER_HINT(
+      "Row of the palette chosen in Palette Controls; applied to this "
+      "sheet at once");
+  if (row != static_cast<int>(state_->sub_palette_index) && can_apply) {
+    state_->sub_palette_index = static_cast<uint64_t>(row);
+    state_->apply_palette_to_sheet(state_->current_sheet_id);
+  }
+  ImGui::TextDisabled(tr("group %d, palette %d"),
+                      static_cast<int>(state_->palette_group_index),
+                      static_cast<int>(state_->palette_index));
+  ImGui::Separator();
+}
+
 SheetColors PixelEditorPanel::CurrentSheetColors() const {
   SheetColors colors{};
   const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
@@ -1066,18 +1159,13 @@ SheetColors PixelEditorPanel::CurrentSheetColors() const {
   return colors;
 }
 
-void PixelEditorPanel::HandleClipboardShortcuts() {
-  if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) ||
+// Cmd+C/X/V reach Copy/Cut/Paste through the editor shortcuts
+// (GraphicsEditor::Copy and friends); only the floating paste's own keys are
+// handled here.
+void PixelEditorPanel::HandleFloatingPasteKeys() {
+  if (!state_->selection.is_floating ||
+      !ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) ||
       ImGui::GetIO().WantTextInput) {
-    return;
-  }
-  // ImGuiMod_Ctrl is Cmd on macOS.
-  if (ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiKey_C)) {
-    CopyToSystemClipboard();
-  } else if (ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiKey_V)) {
-    PasteFromSystemClipboard();
-  }
-  if (!state_->selection.is_floating) {
     return;
   }
   if (ImGui::IsKeyPressed(ImGuiKey_Enter) ||
@@ -1181,6 +1269,36 @@ void PixelEditorPanel::CopyToSystemClipboard() {
                                     height, state_->current_sheet_id)
                   : std::string(status.message());
   clipboard_status_is_error_ = !status.ok();
+}
+
+void PixelEditorPanel::CutToSystemClipboard() {
+  const auto& selection = state_->selection;
+  if (!selection.is_active || selection.is_floating || selection.width <= 0 ||
+      selection.height <= 0) {
+    clipboard_status_ = "Select pixels to cut";
+    clipboard_status_is_error_ = true;
+    return;
+  }
+  CopyToSystemClipboard();
+  if (clipboard_status_is_error_) {
+    return;
+  }
+  auto& sheet =
+      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  SaveUndoState();
+  for (int y = selection.y; y < selection.y + selection.height; ++y) {
+    for (int x = selection.x; x < selection.x + selection.width; ++x) {
+      if (x >= 0 && y >= 0 && x < sheet.width() && y < sheet.height()) {
+        sheet.WriteToPixel(x, y, 0);
+      }
+    }
+  }
+  state_->MarkSheetModified(state_->current_sheet_id);
+  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  FinalizeUndoAction();
+  clipboard_status_ =
+      absl::StrFormat("Cut %dx%d from sheet %02X", selection.width,
+                      selection.height, state_->current_sheet_id);
 }
 
 void PixelEditorPanel::PasteFromSystemClipboard() {
