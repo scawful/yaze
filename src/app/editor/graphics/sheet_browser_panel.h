@@ -4,10 +4,12 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/sheet_png_transfer.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
@@ -24,6 +26,8 @@ struct YazeProject;
 }  // namespace project
 
 namespace editor {
+
+class UndoManager;
 
 /**
  * @brief WindowContent for browsing and selecting graphics sheets
@@ -96,6 +100,13 @@ class SheetBrowserPanel : public WindowContent {
     label_importer_ = std::move(importer);
   }
 
+  /**
+   * @brief Where PNG imports push their undo steps. Unset means no undo.
+   */
+  void SetUndoManager(UndoManager* undo_manager) {
+    undo_manager_ = undo_manager;
+  }
+
  private:
   /**
    * @brief Draw the search/filter bar
@@ -155,6 +166,20 @@ class SheetBrowserPanel : public WindowContent {
   int label_edit_sheet_ = -1;
   std::string label_buffer_;
   std::string label_status_;
+
+  // PNG export and import (sheet_png_transfer). Imports are previewed, then
+  // applied to the Arena as one undo step per sheet; saving the ROM writes
+  // them through GraphicsEditor::Save.
+  void DrawPngTransfer(uint16_t sheet_id);
+  absl::StatusOr<zelda3::SheetPalette> PngPalette();
+  void SetPngStatus(std::string message, bool is_error);
+  UndoManager* undo_manager_ = nullptr;
+  int png_palette_mode_ = 0;  // 0 grayscale, 1 room background, 2 room sprite
+  int png_room_ = 0;
+  int png_palette_row_ = 2;
+  std::vector<SheetPngImportPreview> png_pending_;
+  std::string png_status_;
+  bool png_status_is_error_ = false;
 };
 
 }  // namespace editor

@@ -67,6 +67,7 @@ void GraphicsEditor::Initialize() {
   sheet_browser_panel_->SetDataSources(
       rom_, game_data_,
       [this]() -> const project::YazeProject* { return project(); });
+  sheet_browser_panel_->SetUndoManager(&undo_manager_);
   sheet_browser_panel_->SetLabelCallbacks(
       [this](uint16_t sheet, const std::string& label) {
         return EditProject([&](project::YazeProject& target) {

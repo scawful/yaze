@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -20,6 +21,7 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/graphics/screen_editor.h"
+#include "app/editor/graphics/sheet_png_transfer.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
@@ -31,8 +33,10 @@
 #include "rom/snes.h"
 #include "testing.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
+#include "util/indexed_png.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/gfx_sheet_png.h"
 #include "zelda3/gfx_sheet_storage.h"
 
 #include "imgui/imgui.h"
@@ -46,6 +50,9 @@ class GraphicsEditorSaveStoplossTestPeer {
   static void MarkSheetModified(GraphicsEditor* editor, uint16_t sheet_id) {
     gfx::Arena::Get().set_gfx_sheets_owner(editor->game_data());
     editor->state_.MarkSheetModified(sheet_id);
+  }
+  static GraphicsEditorState& State(GraphicsEditor* editor) {
+    return editor->state_;
   }
 };
 
@@ -2345,6 +2352,127 @@ TEST(GraphicsSaveStoplossTest, SaveRefusesForeignSheetsAndColorsAboveSeven) {
                                     std::istreambuf_iterator<char>());
     EXPECT_EQ(disk, fixture.bytes);
   }
+}
+
+// The Sheet Browser's PNG path end to end: export the Arena sheet, edit one
+// pixel, preview and apply the import, then save through the graphics
+// write-back and read the sheet back from disk.
+void ExpectPngPixelEditSurvivesSave(EditorManager* manager, uint16_t sheet_id,
+                                    const std::filesystem::path& rom_path) {
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  const auto& sheet = gfx::Arena::Get().gfx_sheets()[sheet_id];
+  ASSERT_TRUE(sheet.is_active());
+  const std::vector<uint8_t> before = sheet.vector();
+
+  const auto palette = zelda3::GrayscaleSheetPalette();
+  auto png = ExportSheetPixelsPng(sheet_id, before, palette);
+  ASSERT_TRUE(png.ok()) << png.status();
+  auto image = util::DecodePng(*png);
+  ASSERT_TRUE(image.ok()) << image.status();
+  constexpr int kX = 37;
+  constexpr int kY = 11;
+  const uint8_t new_index = (before[kY * 128 + kX] + 1) % 8;
+  image->indices[kY * image->width + kX] = new_index;
+  auto edited_png = util::EncodeIndexedPng(image->width, image->height,
+                                           image->indices, image->palette);
+  ASSERT_TRUE(edited_png.ok());
+
+  auto preview = PreviewSheetPngImport(sheet_id, before, *edited_png, palette);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  ASSERT_EQ(preview->changed_tiles.size(), 1u);
+  ASSERT_TRUE(ApplySheetPngImport(
+                  *preview, GraphicsEditorSaveStoplossTestPeer::State(graphics),
+                  nullptr)
+                  .ok());
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(editor_set->HasPendingGraphicsChanges());
+
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  auto readback = zelda3::ReadGfxSheetData(reopened, sheet_id);
+  ASSERT_TRUE(readback.ok()) << readback.status();
+  auto expected = before;
+  expected[kY * 128 + kX] = new_index;
+  EXPECT_EQ(gfx::SnesTo8bppSheet(*readback, /*bpp=*/3), expected);
+}
+
+TEST(GraphicsSaveStoplossTest, PngImportSavesThroughTheGraphicsWriteBack) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  constexpr uint16_t kSheetId = 0x20;
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX PNG IMPORT";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  const auto rom_path = MakeTempFilePath("yaze_graphics_png_import.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  // Lazy mode does not load the sheets; put this ROM's sheet in the Arena
+  // and claim it, as a full load does.
+  auto* editor_set = manager->GetCurrentEditorSet();
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+               gfx::kTilesheetDepth,
+               gfx::SnesTo8bppSheet(fixture.sheets.at(kSheetId), /*bpp=*/3));
+  gfx::Arena::Get().set_gfx_sheets_owner(graphics->game_data());
+
+  ExpectPngPixelEditSurvivesSave(manager.get(), kSheetId, rom_path);
+}
+
+// Same flow on a scratch copy of an Oracle of Secrets project (never the
+// real one): YAZE_TEST_ORACLE_PROJECT_COPY names its .yaze file, whose ROM
+// and custom_collision.json are copies. Skipped when unset.
+TEST(GraphicsSaveStoplossTest, PngImportOnOracleProjectCopy) {
+  const char* project_env = std::getenv("YAZE_TEST_ORACLE_PROJECT_COPY");
+  if (project_env == nullptr || *project_env == '\0') {
+    GTEST_SKIP() << "YAZE_TEST_ORACLE_PROJECT_COPY is not set";
+  }
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kFull);
+  manager->user_settings().prefs().backup_before_save = false;
+  ASSERT_OK(manager->OpenRomOrProject(project_env));
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  const std::filesystem::path rom_path =
+      project->GetAbsolutePath(project->rom_filename);
+  ASSERT_TRUE(std::filesystem::exists(rom_path)) << rom_path;
+
+  // Sheet 0x92 (Stalfos): a compressed 3bpp sprite sheet.
+  ExpectPngPixelEditSurvivesSave(manager.get(), 0x92, rom_path);
 }
 
 TEST(GfxGroupSaveTest, SpritesetEditSavesAndReopensOrBlocksWhenDisabled) {
