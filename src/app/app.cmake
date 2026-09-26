@@ -39,7 +39,10 @@ if(EMSCRIPTEN)
 endif()
 
 if (YAZE_PLATFORM_MACOS)
-  list(APPEND YAZE_APP_EXECUTABLE_SRC app/platform/app_delegate.mm)
+  list(APPEND YAZE_APP_EXECUTABLE_SRC
+    app/platform/app_delegate.mm
+    app/platform/native_menu_bridge.cc
+  )
   add_executable(yaze MACOSX_BUNDLE ${YAZE_APP_EXECUTABLE_SRC} ${YAZE_RESOURCE_FILES})
 
   # Use a configured copy so the same source icon can also remain inside the

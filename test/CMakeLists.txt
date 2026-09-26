@@ -456,6 +456,8 @@ if(YAZE_BUILD_TESTS)
     platform/sdl3_audio_backend_test.cc
     platform/window_backend_test.cc
     platform/wasm_async_guard_test.cc
+    platform/native_menu_bridge_test.cc
+    ../src/app/platform/native_menu_bridge.cc
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     cli/service/resources/command_handler_test.cc
