@@ -102,12 +102,23 @@ struct OverworldSprite {
   int x;
   int y;
   std::optional<std::string> sprite_name;
+  // Game-state sprite list this entry came from (0 = beginning, 1 = first
+  // part, 2 = second part) and its index within that map's list.
+  int phase = 0;
+  int list_index = 0;
+  // Raw 16px tile coordinates within the parent area (list byte low 6 bits).
+  int local_x = 0;
+  int local_y = 0;
 };
+
+// Game-state (phase) names used by overworld sprite commands.
+const char* SpritePhaseName(int phase);
 
 struct SpriteQuery {
   std::optional<int> map_id;
   std::optional<int> world;
   std::optional<uint8_t> sprite_id;
+  std::optional<int> phase;
 };
 
 struct EntranceDetails {

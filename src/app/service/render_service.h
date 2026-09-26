@@ -30,6 +30,46 @@ constexpr uint32_t kGrid = 1 << 5;         // 8×8 tile grid
 constexpr uint32_t kAll = ~0u;
 }  // namespace RenderOverlay
 
+// Overworld overlay bitmask for OverworldRenderRequest::overlay_flags.
+namespace OverworldOverlay {
+constexpr uint32_t kNone = 0;
+constexpr uint32_t kSprites = 1 << 0;    // sprite list entries (id labels)
+constexpr uint32_t kEntrances = 1 << 1;  // entrance tiles (E + entrance id)
+constexpr uint32_t kExits = 1 << 2;      // exit player spawns (X + room id)
+constexpr uint32_t kHoles = 1 << 3;      // hole entrances (H + entrance id)
+constexpr uint32_t kItems = 1 << 4;      // hidden items (I + item id)
+constexpr uint32_t kGrid = 1 << 5;       // 16px grid + screen boundaries
+constexpr uint32_t kAll = ~0u;
+}  // namespace OverworldOverlay
+
+struct OverworldRenderRequest {
+  int screen_id = 0;  // any screen in the area; children resolve to parent
+  uint32_t overlay_flags = OverworldOverlay::kNone;
+  int phase = -1;      // sprite game state 0..2; -1 draws every phase
+  float scale = 1.0f;  // Finite [0.25, 8.0]; 1.0 = 512px per screen.
+};
+
+// One overlay marker drawn on an overworld render, in area-local pixels.
+struct OverworldRenderMarker {
+  std::string kind;     // sprite, entrance, exit, hole, item
+  int id = 0;           // sprite id, entrance id, exit room id, item id
+  int phase = -1;       // sprites only
+  int list_index = -1;  // sprites: index within the phase list
+  int x = 0;
+  int y = 0;
+};
+
+struct OverworldRenderResult {
+  std::vector<uint8_t> png_data;
+  int width = 0;
+  int height = 0;
+  int requested_screen = 0;
+  int parent_screen = 0;
+  std::string area_size;  // small, large, wide, tall
+  std::vector<int> screens;
+  std::vector<OverworldRenderMarker> markers;
+};
+
 struct RenderRequest {
   int room_id = 0;
   uint32_t overlay_flags = RenderOverlay::kNone;
@@ -72,6 +112,11 @@ class RenderService {
 
   // Render room_id to PNG with the requested overlays at the given scale.
   absl::StatusOr<RenderResult> RenderDungeonRoom(const RenderRequest& req);
+
+  // Render the whole overworld area containing screen_id (ZSCustomOverworld
+  // large/wide/tall aware) from current ROM data, with optional overlays.
+  absl::StatusOr<OverworldRenderResult> RenderOverworldArea(
+      const OverworldRenderRequest& req);
 
   // Return metadata for a room without rendering.
   absl::StatusOr<RoomMetadata> GetDungeonRoomMetadata(int room_id);
