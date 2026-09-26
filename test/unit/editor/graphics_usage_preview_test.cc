@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -9,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "app/gfx/resource/arena.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
@@ -151,6 +153,31 @@ TEST(GraphicsUsagePreviewTest, IndexedImageRgbaKeepsTransparency) {
   EXPECT_EQ(rgba[7], 255);
 }
 
+// The panel reads edits from the Arena sheets. A snapshot copies only
+// 128x32 8bpp sheets and refuses sheets owned by another ROM's GameData.
+TEST(GraphicsUsagePreviewTest, ArenaSnapshotCopiesSheetsForOwnerOnly) {
+  auto& arena = gfx::Arena::Get();
+  auto& sheets = arena.gfx_sheets();
+  const gfx::Bitmap saved_sheet = sheets[0x11];
+  const void* saved_owner = arena.gfx_sheets_owner();
+
+  zelda3::GameData owner;
+  zelda3::GameData other;
+  std::vector<uint8_t> pixels(kSheetBytes, 0);
+  pixels[42] = 6;
+  sheets[0x11] = gfx::Bitmap(128, 32, 8, pixels);
+  arena.set_gfx_sheets_owner(&owner);
+
+  const auto snapshot = SnapshotArenaSheets({0x11, 0x12}, &owner);
+  ASSERT_EQ(snapshot.count(0x11), 1u);
+  EXPECT_EQ(snapshot.at(0x11)[42], 6);
+  EXPECT_EQ(snapshot.count(0x12), sheets[0x12].width() == 128 ? 1u : 0u);
+  EXPECT_TRUE(SnapshotArenaSheets({0x11}, &other).empty());
+
+  sheets[0x11] = saved_sheet;
+  arena.set_gfx_sheets_owner(saved_owner);
+}
+
 // --- Oracle ROM copy (YAZE_TEST_ROM_OOS) ---------------------------------
 
 class GraphicsUsagePreviewRomTest : public ::testing::Test {
@@ -206,7 +233,17 @@ TEST_F(GraphicsUsagePreviewRomTest, D1RoomPreviewShowsOnePixelEdit) {
       break;
   }
   ASSERT_GE(sheet, 0) << "no object draws from a background sheet";
-  EXPECT_FALSE(preview.ObjectRectsUsingSheet(sheet).empty());
+  const auto rects = preview.ObjectRectsUsingSheet(sheet);
+  ASSERT_FALSE(rects.empty());
+  // Outlines are absolute room pixels, not offsets from each object.
+  for (const auto& r : rects) {
+    EXPECT_GE(r.x, 0);
+    EXPECT_LT(r.x, 512);
+    EXPECT_LT(r.y, 512);
+  }
+  EXPECT_TRUE(std::any_of(rects.begin(), rects.end(), [](const SDL_Rect& r) {
+    return r.x >= 64 || r.y >= 64;
+  }));
 
   auto edited = RomSheet(sheet);
   const int px = (tile_in_sheet % 16) * 8 + 3;
