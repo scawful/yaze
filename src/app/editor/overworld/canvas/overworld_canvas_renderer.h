@@ -66,6 +66,8 @@ class OverworldCanvasRenderer {
   /// @brief Render the 64 overworld map bitmaps to the canvas
   void DrawOverworldMaps();
   bool PrepareContextMenu(const ImVec2& screen_position);
+  /// In an entity mode only that entity type responds to hover/drag/menu.
+  void FilterHoveredEntityByMode();
 
   // =========================================================================
   // Data

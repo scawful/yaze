@@ -27,8 +27,9 @@ class MapPropertiesPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Overworld"; }
   float GetPreferredWidth() const override {
-    // Property rows with labels + controls are cramped below ~340px.
-    return 360.0f;
+    // Label column (118) + hex/combos; laid out to fit under the Tile16
+    // selector column, which sets the right dock width.
+    return 300.0f;
   }
   void Draw(bool* p_open) override;
 };

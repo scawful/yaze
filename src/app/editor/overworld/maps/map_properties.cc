@@ -922,28 +922,15 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       map_menu.subitems.push_back(std::move(rename_item));
     }
   }
+  // Map values are shown and edited once, in the Map Properties panel.
   canvas.AddContextMenuItem(map_menu);
-
-  if (has_metadata) {
-    gui::CanvasMenuItem info_menu;
-    info_menu.label = "Map Info";
-    info_menu.icon = ICON_MD_INFO;
-    for (const auto* label :
-         {&metadata.version_label, &metadata.area_size_label,
-          &metadata.parent_label, &metadata.area_gfx_label,
-          &metadata.area_palette_label, &metadata.sprite_gfx_label,
-          &metadata.sprite_palette_label, &metadata.music_label,
-          &metadata.message_label}) {
-      info_menu.subitems.push_back(gui::CanvasMenuItem::Disabled(*label));
-    }
-    canvas.AddContextMenuItem(info_menu);
-  }
 
   gui::CanvasMenuItem view_menu;
   view_menu.label = "View";
   view_menu.icon = ICON_MD_VISIBILITY;
   auto add_navigation_action = [&](const char* icon, const char* label,
-                                   const std::function<void()>& callback) {
+                                   const std::function<void()>& callback,
+                                   const char* shortcut_name) {
     view_menu.subitems.push_back(gui::CanvasMenuItem::Conditional(
         label,
         [callback]() {
@@ -952,10 +939,24 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
         },
         [callback]() { return bool(callback); }));
     view_menu.subitems.back().icon = icon;
+    if (shortcut_hint_ && shortcut_name) {
+      view_menu.subitems.back().shortcut = shortcut_hint_(shortcut_name);
+    }
   };
-  add_navigation_action(ICON_MD_RESTORE, "Reset View", reset_view_callback_);
-  add_navigation_action(ICON_MD_ZOOM_IN, "Zoom In", zoom_in_callback_);
-  add_navigation_action(ICON_MD_ZOOM_OUT, "Zoom Out", zoom_out_callback_);
+  add_navigation_action(ICON_MD_ZOOM_IN, "Zoom In", zoom_in_callback_,
+                        "overworld.zoom_in");
+  add_navigation_action(ICON_MD_ZOOM_OUT, "Zoom Out", zoom_out_callback_,
+                        "overworld.zoom_out");
+  if (zoom_fit_callback_) {
+    add_navigation_action(ICON_MD_FIT_SCREEN, "Zoom to Fit", zoom_fit_callback_,
+                          "overworld.zoom_fit");
+  }
+  if (center_map_callback_) {
+    add_navigation_action(ICON_MD_CENTER_FOCUS_STRONG, "Center on Map",
+                          center_map_callback_, "overworld.center_map");
+  }
+  add_navigation_action(ICON_MD_RESTORE, "Reset View", reset_view_callback_,
+                        nullptr);
   view_menu.subitems.back().separator_after = true;
 
   auto add_view_toggle = [&](const char* label,

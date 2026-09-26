@@ -229,36 +229,61 @@ void OverworldEditor::Initialize() {
   entity_renderer_ = std::make_unique<OverworldEntityRenderer>(
       &overworld_, &ow_map_canvas_, &sprite_previews_);
 
-  // Initialize Toolbar
+  sidebar_->SetRenameLabelCallback(
+      [this](const std::string& type, int id, const std::string& label) {
+        return this->RenameProjectResourceLabelWithUndo(type, id, label);
+      });
+
+  // Initialize Toolbar: navigation, tools and view only. Per-map data is
+  // edited in the Map Properties panel (sidebar_).
   toolbar_ = std::make_unique<OverworldToolbar>();
   toolbar_->on_world_changed = [this](int world) {
     SwitchToWorld(world);
   };
-  toolbar_->on_refresh_graphics = [this]() {
-    // Invalidate cached graphics for the current map area to force re-render
-    // with potentially new palette/graphics settings
-    InvalidateGraphicsCache(current_map_);
-    RefreshSiblingMapGraphics(current_map_, true);
+  toolbar_->on_set_mode = [this](EditingMode mode) {
+    SetEditingMode(mode);
   };
-  toolbar_->on_refresh_map = [this]() {
-    RefreshOverworldMap();
+  toolbar_->on_set_entity_mode = [this](EntityEditMode mode) {
+    SetEntityEditMode(mode);
   };
-
-  toolbar_->on_save_to_scratch = [this]() {
-    SaveCurrentSelectionToScratch();
+  toolbar_->on_open_map_properties = [this]() {
+    OpenMapPropertiesWindow();
   };
-  toolbar_->on_load_from_scratch = [this]() {
-    LoadScratchToSelection();
+  toolbar_->on_toggle_overlay_preview = [this]() {
+    show_overlay_preview_ = !show_overlay_preview_;
+  };
+  toolbar_->is_overlay_preview_enabled = [this]() {
+    return show_overlay_preview_;
+  };
+  toolbar_->on_toggle_grid = [this]() {
+    ToggleGrid();
+  };
+  toolbar_->is_grid_visible = [this]() {
+    return grid_visible();
+  };
+  toolbar_->on_toggle_entities = [this]() {
+    ToggleEntityVisibility();
+  };
+  toolbar_->are_entities_visible = [this]() {
+    return entities_visible();
+  };
+  toolbar_->on_zoom_in = [this]() {
+    ZoomIn();
+  };
+  toolbar_->on_zoom_out = [this]() {
+    ZoomOut();
+  };
+  toolbar_->on_zoom_fit = [this]() {
+    ZoomToFit();
+  };
+  toolbar_->on_center_map = [this]() {
+    CenterOverworldView();
+  };
+  toolbar_->get_zoom = [this]() {
+    return ow_map_canvas_.global_scale();
   };
   toolbar_->on_upgrade_rom_version = [this](int) {
     ImGui::OpenPopup("UpgradeROMVersion");
-  };
-  toolbar_->on_apply_property_edit = [this](const OverworldPropertyEdit& edit) {
-    return this->ApplyOverworldPropertyEdit(edit);
-  };
-  toolbar_->on_rename_resource_label = [this](const std::string& type, int id,
-                                              const std::string& label) {
-    return this->RenameProjectResourceLabelWithUndo(type, id, label);
   };
 
   // Initialize OverworldCanvasRenderer for canvas and panel drawing
@@ -267,7 +292,14 @@ void OverworldEditor::Initialize() {
       [this]() { OpenMapPropertiesWindow(); });
   map_properties_system_->SetContextNavigationCallbacks(
       [this]() { ResetOverworldView(); }, [this]() { ZoomIn(); },
-      [this]() { ZoomOut(); });
+      [this]() { ZoomOut(); }, [this]() { ZoomToFit(); },
+      [this]() { CenterOverworldView(); });
+  map_properties_system_->SetShortcutHintProvider(
+      [this](const char* name) -> std::string {
+        return dependencies_.shortcut_manager
+                   ? dependencies_.shortcut_manager->GetDisplayString(name)
+                   : std::string();
+      });
 
   InitCanvasNavigationManager();
   InitTilePaintingManager();
@@ -1648,6 +1680,33 @@ void OverworldEditor::ToggleItemListWindow() {
   dependencies_.window_manager->ToggleWindow(
       dependencies_.window_manager->GetActiveSessionId(),
       OverworldPanelIds::kItemList);
+}
+
+void OverworldEditor::SetEditingMode(EditingMode mode) {
+  current_mode = mode;
+  entity_edit_mode_ = EntityEditMode::NONE;
+  ow_map_canvas_.SetUsageMode(mode == EditingMode::MOUSE
+                                  ? gui::CanvasUsage::kEntityManipulation
+                                  : gui::CanvasUsage::kTilePainting);
+}
+
+void OverworldEditor::SetEntityEditMode(EntityEditMode mode) {
+  entity_edit_mode_ = mode;
+  if (mode != EntityEditMode::NONE) {
+    // Entity work happens with the select tool.
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  }
+}
+
+void OverworldEditor::ToggleGrid() {
+  auto config = ow_map_canvas_.GetConfig();
+  config.enable_grid = !config.enable_grid;
+  ow_map_canvas_.ApplyConfigSnapshot(config);
+}
+
+bool OverworldEditor::grid_visible() const {
+  return ow_map_canvas_.GetConfig().enable_grid;
 }
 
 void OverworldEditor::OpenMapPropertiesWindow() {

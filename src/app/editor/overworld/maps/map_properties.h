@@ -93,12 +93,22 @@ class MapPropertiesSystem {
     open_map_properties_callback_ = std::move(callback);
   }
 
-  void SetContextNavigationCallbacks(std::function<void()> reset_view,
-                                     std::function<void()> zoom_in,
-                                     std::function<void()> zoom_out) {
+  void SetContextNavigationCallbacks(
+      std::function<void()> reset_view, std::function<void()> zoom_in,
+      std::function<void()> zoom_out, std::function<void()> zoom_fit = nullptr,
+      std::function<void()> center_map = nullptr) {
     reset_view_callback_ = std::move(reset_view);
     zoom_in_callback_ = std::move(zoom_in);
     zoom_out_callback_ = std::move(zoom_out);
+    zoom_fit_callback_ = std::move(zoom_fit);
+    center_map_callback_ = std::move(center_map);
+  }
+
+  /// Maps a ShortcutManager name to its display string ("Cmd+L") so menu
+  /// items show the live binding.
+  void SetShortcutHintProvider(
+      std::function<std::string(const char*)> provider) {
+    shortcut_hint_ = std::move(provider);
   }
 
   void SetPropertyEditCallback(PropertyEditCallback callback) {
@@ -215,6 +225,9 @@ class MapPropertiesSystem {
   std::function<bool(const OverworldContextTarget&)> sample_tile16_callback_;
 
   std::function<void()> open_map_properties_callback_;
+  std::function<void()> zoom_fit_callback_;
+  std::function<void()> center_map_callback_;
+  std::function<std::string(const char*)> shortcut_hint_;
 
   std::function<void()> reset_view_callback_;
   std::function<void()> zoom_in_callback_;

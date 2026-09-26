@@ -346,6 +346,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ToggleCanvasFullscreen();
   void ToggleTile16EditorWindow();
   void ToggleItemListWindow();
+  /// Tool change from the toolbar or keys 1/2: also leaves entity modes.
+  void SetEditingMode(EditingMode mode);
+  /// Entity focus (entrances/exits/items/sprites); NONE = all entities.
+  void SetEntityEditMode(EntityEditMode mode);
+  void ToggleEntityVisibility() { show_entities_ = !show_entities_; }
+  bool entities_visible() const { return show_entities_; }
+  void ToggleGrid();
+  bool grid_visible() const;
   /// Open and focus the docked Map Properties window (double-click a map,
   /// context menu "Map > Map Properties").
   void OpenMapPropertiesWindow();
@@ -667,6 +675,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_custom_bg_color_editor_ = false;
   bool show_overlay_editor_ = false;
   bool show_overlay_preview_ = false;
+  bool show_entities_ = true;
 
   // ===========================================================================
   // UI Subsystem Components

@@ -61,40 +61,18 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     return;
   }
 
-  // Simplified map settings - compact row with popup panels for detailed
-  // editing
+  // Toolbar: world, map, tools, entity focus, view and panels. Per-map
+  // fields live in the Map Properties panel only.
   if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
-      editor_->overworld_.is_loaded() && editor_->map_properties_system_) {
-    const EditingMode old_mode = editor_->current_mode;
-    bool has_selection = editor_->ow_map_canvas_.select_rect_active() &&
-                         !editor_->ow_map_canvas_.selected_tiles().empty();
-
-    // Check if scratch space has data
-    bool scratch_has_data = editor_->scratch_space_.in_use;
-
-    // Pass WorkspaceWindowManager to toolbar for panel visibility management
+      editor_->overworld_.is_loaded() && editor_->toolbar_) {
+    editor_->toolbar_->shortcuts = editor_->dependencies_.shortcut_manager;
     editor_->toolbar_->Draw(
         editor_->current_world_, editor_->current_map_,
         editor_->current_map_lock_, editor_->current_mode,
         editor_->entity_edit_mode_, editor_->dependencies_.window_manager,
-        has_selection, scratch_has_data, editor_->rom_, &editor_->overworld_,
-        editor_->dependencies_.project, editor_->game_state_,
-        editor_->dependencies_.shared_clipboard);
+        editor_->rom_, &editor_->overworld_, editor_->dependencies_.project,
+        editor_->game_state_);
     editor_->NormalizeCurrentSelectionState();
-    if (editor_->sidebar_) {
-      editor_->sidebar_->DrawQuickProperties(editor_->current_map_,
-                                             editor_->game_state_);
-    }
-
-    // Toolbar toggles don't currently update canvas usage mode.
-    if (old_mode != editor_->current_mode) {
-      if (editor_->current_mode == EditingMode::MOUSE) {
-        editor_->ow_map_canvas_.SetUsageMode(
-            gui::CanvasUsage::kEntityManipulation);
-      } else {
-        editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
-      }
-    }
   }
 
   // ==========================================================================
@@ -143,13 +121,17 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     DrawOverworldMaps();
 
     // Draw all entities using the new CanvasRuntime-based methods
-    if (editor_->entity_renderer_) {
+    if (editor_->entity_renderer_ && editor_->show_entities_) {
       editor_->entity_renderer_->DrawExits(canvas_rt, editor_->current_world_);
       editor_->entity_renderer_->DrawEntrances(canvas_rt,
                                                editor_->current_world_);
       editor_->entity_renderer_->DrawItems(canvas_rt, editor_->current_world_);
       editor_->entity_renderer_->DrawSprites(canvas_rt, editor_->current_world_,
                                              editor_->game_state_);
+      FilterHoveredEntityByMode();
+    } else if (editor_->entity_renderer_) {
+      // Hidden entities can't be hovered, dragged or right-clicked.
+      editor_->entity_renderer_->ResetHoveredEntity();
     }
 
     // Draw overlay preview if enabled
@@ -568,41 +550,43 @@ void OverworldCanvasRenderer::DrawV3Settings() {
          "map."));
 }
 
-void OverworldCanvasRenderer::DrawMapProperties() {
-  // Area Configuration panel
-  static bool show_custom_bg_color_editor = false;
-  static bool show_overlay_editor = false;
+void OverworldCanvasRenderer::FilterHoveredEntityByMode() {
+  auto* entity = editor_->entity_renderer_->hovered_entity();
+  if (!entity) {
+    return;
+  }
+  using Type = zelda3::GameEntity::EntityType;
+  bool allowed = true;
+  switch (editor_->entity_edit_mode_) {
+    case EntityEditMode::ENTRANCES:
+      allowed = entity->entity_type_ == Type::kEntrance;
+      break;
+    case EntityEditMode::EXITS:
+      allowed = entity->entity_type_ == Type::kExit;
+      break;
+    case EntityEditMode::ITEMS:
+      allowed = entity->entity_type_ == Type::kItem;
+      break;
+    case EntityEditMode::SPRITES:
+      allowed = entity->entity_type_ == Type::kSprite;
+      break;
+    default:
+      break;  // NONE / TRANSPORTS / MUSIC: every entity stays interactive.
+  }
+  if (!allowed) {
+    editor_->entity_renderer_->ResetHoveredEntity();
+  }
+}
 
+void OverworldCanvasRenderer::DrawMapProperties() {
+  // The Background Color and Visual Effects buttons open the same floating
+  // editors the canvas context menu uses (drawn in OverworldEditor::Update).
   if (editor_->sidebar_) {
     editor_->sidebar_->Draw(editor_->current_world_, editor_->current_map_,
                             editor_->current_map_lock_, editor_->game_state_,
-                            show_custom_bg_color_editor, show_overlay_editor);
-  }
-
-  // Draw popups if triggered from sidebar
-  if (show_custom_bg_color_editor) {
-    ImGui::OpenPopup("CustomBGColorEditor");
-    show_custom_bg_color_editor = false;  // Reset after opening
-  }
-  if (show_overlay_editor) {
-    ImGui::OpenPopup("OverlayEditor");
-    show_overlay_editor = false;  // Reset after opening
-  }
-
-  if (ImGui::BeginPopup("CustomBGColorEditor")) {
-    if (editor_->map_properties_system_) {
-      editor_->map_properties_system_->DrawCustomBackgroundColorEditor(
-          editor_->current_map_, show_custom_bg_color_editor);
-    }
-    ImGui::EndPopup();
-  }
-
-  if (ImGui::BeginPopup("OverlayEditor")) {
-    if (editor_->map_properties_system_) {
-      editor_->map_properties_system_->DrawOverlayEditor(editor_->current_map_,
-                                                         show_overlay_editor);
-    }
-    ImGui::EndPopup();
+                            editor_->show_custom_bg_color_editor_,
+                            editor_->show_overlay_editor_,
+                            editor_->dependencies_.project);
   }
 }
 
