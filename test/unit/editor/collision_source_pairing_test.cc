@@ -11,6 +11,10 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/editor_manager.h"
+#include "app/gfx/backend/null_renderer.h"
+#include "core/features.h"
+#include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "unique_temp_path.h"
 #include "zelda3/dungeon/custom_collision.h"
@@ -210,6 +214,90 @@ TEST(CollisionSourcePairingOracleTest, SavedPairPassesOracleValidator) {
   EXPECT_NE(ReadFile(json_path), json_before);
   EXPECT_EQ(validate(), 0) << "saved ROM and JSON must still match";
 
+  std::error_code ec;
+  fs::remove_all(root, ec);
+}
+
+// The real save path on a copy of the Oracle project: EditorManager opens
+// the copied .yaze (with [files] custom_collision_json and its hack
+// manifest), a collision edit is saved with File > Save, and Oracle's
+// validator must accept the pair. Save As must leave the tracked JSON alone.
+//   YAZE_ORACLE_ROOT=~/src/hobby/oracle-of-secrets
+TEST(CollisionSourcePairingOracleTest,
+     EditorManagerSaveKeepsProjectPairInStep) {
+  const char* oracle_env = std::getenv("YAZE_ORACLE_ROOT");
+  if (oracle_env == nullptr) {
+    GTEST_SKIP() << "Set YAZE_ORACLE_ROOT to run against Oracle copies";
+  }
+  const fs::path oracle(oracle_env);
+  const fs::path root = ::yaze::test::UniqueTempPath("yaze_oracle_project", "");
+  for (const char* rel :
+       {"Oracle-of-Secrets.yaze", "Roms/oos168.sfc", "Roms/hack_manifest.json",
+        "Data/dungeons/custom_collision.json"}) {
+    fs::create_directories((root / rel).parent_path());
+    fs::copy_file(oracle / rel, root / rel);
+  }
+  const fs::path rom_path = root / "Roms" / "oos168.sfc";
+  const fs::path json_path =
+      root / "Data" / "dungeons" / "custom_collision.json";
+  const std::string validator =
+      (oracle / "Scripts" / "Generate" / "validate_custom_collision_source.py")
+          .string();
+  const auto validate = [&] {
+    return std::system(absl::StrFormat("python3 '%s' --root '%s' --rom '%s'",
+                                       validator, root.string(),
+                                       rom_path.string())
+                           .c_str());
+  };
+  ASSERT_EQ(validate(), 0);
+
+  const auto flags_before = core::FeatureFlags::get();
+  ImGuiContext* imgui = ImGui::CreateContext();
+  ImGui::SetCurrentContext(imgui);
+  ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+  unsigned char* pixels = nullptr;
+  int width = 0;
+  int height = 0;
+  ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  {
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    manager->Initialize(renderer.get(), "");
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+    const auto open =
+        manager->OpenRomOrProject((root / "Oracle-of-Secrets.yaze").string());
+    ASSERT_TRUE(open.ok()) << open;
+    ASSERT_NE(manager->GetCurrentProject(), nullptr);
+    EXPECT_EQ(manager->GetCurrentProject()->custom_collision_json,
+              "Data/dungeons/custom_collision.json");
+
+    Rom* rom = manager->GetCurrentRom();
+    ASSERT_NE(rom, nullptr);
+    const std::string json_before = ReadFile(json_path);
+    auto map = zelda3::LoadCustomCollisionMap(rom, 0x89);
+    ASSERT_TRUE(map.ok());
+    map->tiles[0] = map->tiles[0] == 0xB0 ? 0xB1 : 0xB0;
+    ASSERT_TRUE(zelda3::WriteTrackCollision(rom, 0x89, *map).ok());
+    rom->set_dirty(true);
+
+    const auto save = manager->SaveRom();
+    ASSERT_TRUE(save.ok()) << save;
+    EXPECT_NE(ReadFile(json_path), json_before) << "JSON was not updated";
+    EXPECT_EQ(validate(), 0) << "saved ROM and JSON must match";
+
+    // Save As writes only the new file; the tracked JSON stays as it is.
+    const std::string json_after_save = ReadFile(json_path);
+    map->tiles[0] = map->tiles[0] == 0xB0 ? 0xB1 : 0xB0;
+    ASSERT_TRUE(zelda3::WriteTrackCollision(rom, 0x89, *map).ok());
+    rom->set_dirty(true);
+    const auto save_as =
+        manager->SaveRomAs((root / "Roms" / "practice-copy.sfc").string());
+    ASSERT_TRUE(save_as.ok()) << save_as;
+    EXPECT_EQ(ReadFile(json_path), json_after_save);
+  }
+  ImGui::DestroyContext(imgui);
+  core::FeatureFlags::get() = flags_before;
   std::error_code ec;
   fs::remove_all(root, ec);
 }
