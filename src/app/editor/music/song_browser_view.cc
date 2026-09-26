@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "absl/strings/str_format.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
@@ -167,30 +168,33 @@ void SongBrowserView::Draw(MusicBank& bank) {
         }
 
         // Context menu for vanilla songs
-        if (ImGui::BeginPopupContextItem()) {
-          if (ImGui::MenuItem(ICON_MD_MUSIC_NOTE " Open Tracker")) {
+        gui::ItemContextMenu(nullptr, [&, i]() {
+          std::vector<gui::MenuItemSpec> items;
+          items.emplace_back("Open Tracker", ICON_MD_MUSIC_NOTE, [this, i]() {
             if (on_open_tracker_)
               on_open_tracker_(i);
-          }
-          if (ImGui::MenuItem(ICON_MD_PIANO " Open Piano Roll")) {
+          });
+          items.emplace_back("Open Piano Roll", ICON_MD_PIANO, [this, i]() {
             if (on_open_piano_roll_)
               on_open_piano_roll_(i);
-          }
-          ImGui::Separator();
-          if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Duplicate as Custom")) {
-            bank.DuplicateSong(i);
-            if (on_edit_)
-              on_edit_();
-            // Force cache rebuild on next frame (or immediately).
-            last_search_buffer_.clear();
-          }
-          ImGui::Separator();
-          if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Export to ASM...")) {
-            if (on_export_asm_)
-              on_export_asm_(i);
-          }
-          ImGui::EndPopup();
-        }
+          });
+          items.back().separator_after = true;
+          items.emplace_back("Duplicate as Custom", ICON_MD_FILE_COPY,
+                             [this, &bank, i]() {
+                               bank.DuplicateSong(i);
+                               if (on_edit_)
+                                 on_edit_();
+                               // Force cache rebuild on next frame.
+                               last_search_buffer_.clear();
+                             });
+          items.back().separator_after = true;
+          items.emplace_back("Export to ASM...", ICON_MD_FILE_DOWNLOAD,
+                             [this, i]() {
+                               if (on_export_asm_)
+                                 on_export_asm_(i);
+                             });
+          return items;
+        });
         ImGui::PopID();
       }
     }
@@ -240,53 +244,61 @@ void SongBrowserView::Draw(MusicBank& bank) {
           }
 
           // Context menu for custom songs (includes delete/rename)
-          if (ImGui::BeginPopupContextItem()) {
-            if (ImGui::MenuItem(ICON_MD_MUSIC_NOTE " Open Tracker")) {
+          gui::ItemContextMenu(nullptr, [&, i]() {
+            std::vector<gui::MenuItemSpec> items;
+            items.emplace_back("Open Tracker", ICON_MD_MUSIC_NOTE, [this, i]() {
               if (on_open_tracker_)
                 on_open_tracker_(i);
-            }
-            if (ImGui::MenuItem(ICON_MD_PIANO " Open Piano Roll")) {
+            });
+            items.emplace_back("Open Piano Roll", ICON_MD_PIANO, [this, i]() {
               if (on_open_piano_roll_)
                 on_open_piano_roll_(i);
-            }
-            ImGui::Separator();
-            if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Duplicate")) {
-              bank.DuplicateSong(i);
-              if (on_edit_)
-                on_edit_();
-              last_search_buffer_.clear();  // Force rebuild.
-            }
-            if (ImGui::MenuItem(ICON_MD_DRIVE_FILE_RENAME_OUTLINE " Rename")) {
-              rename_target_index_ = i;
-              rename_popup_open_ = true;
-              const auto* rename_song = bank.GetSong(i);
-              if (rename_song) {
-                std::strncpy(rename_buffer_, rename_song->name.c_str(),
-                             sizeof(rename_buffer_) - 1);
-                rename_buffer_[sizeof(rename_buffer_) - 1] = '\0';
-              }
-            }
-            ImGui::Separator();
-            if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Export to ASM...")) {
-              if (on_export_asm_)
-                on_export_asm_(i);
-            }
-            if (ImGui::MenuItem(ICON_MD_FILE_UPLOAD " Import from ASM...")) {
-              if (on_import_asm_)
-                on_import_asm_(i);
-            }
-            ImGui::Separator();
-            if (ImGui::MenuItem(ICON_MD_DELETE " Delete")) {
-              (void)bank.DeleteSong(i);
-              if (selected_song_index_ == i) {
-                selected_song_index_ = -1;
-              }
-              if (on_edit_)
-                on_edit_();
-              last_search_buffer_.clear();  // Force rebuild.
-            }
-            ImGui::EndPopup();
-          }
+            });
+            items.back().separator_after = true;
+            items.emplace_back("Duplicate", ICON_MD_FILE_COPY,
+                               [this, &bank, i]() {
+                                 bank.DuplicateSong(i);
+                                 if (on_edit_)
+                                   on_edit_();
+                                 last_search_buffer_.clear();  // Force rebuild.
+                               });
+            items.emplace_back(
+                "Rename...", ICON_MD_DRIVE_FILE_RENAME_OUTLINE,
+                [this, &bank, i]() {
+                  rename_target_index_ = i;
+                  rename_popup_open_ = true;
+                  const auto* rename_song = bank.GetSong(i);
+                  if (rename_song) {
+                    std::strncpy(rename_buffer_, rename_song->name.c_str(),
+                                 sizeof(rename_buffer_) - 1);
+                    rename_buffer_[sizeof(rename_buffer_) - 1] = '\0';
+                  }
+                });
+            items.back().separator_after = true;
+            items.emplace_back("Export to ASM...", ICON_MD_FILE_DOWNLOAD,
+                               [this, i]() {
+                                 if (on_export_asm_)
+                                   on_export_asm_(i);
+                               });
+            items.emplace_back("Import from ASM...", ICON_MD_FILE_UPLOAD,
+                               [this, i]() {
+                                 if (on_import_asm_)
+                                   on_import_asm_(i);
+                               });
+            items.back().separator_after = true;
+            // Deleting a custom song has no undo; require confirmation.
+            items.push_back(gui::MenuItemSpec::Destructive(
+                "Delete Song...", ICON_MD_DELETE, [this, &bank, i]() {
+                  (void)bank.DeleteSong(i);
+                  if (selected_song_index_ == i) {
+                    selected_song_index_ = -1;
+                  }
+                  if (on_edit_)
+                    on_edit_();
+                  last_search_buffer_.clear();  // Force rebuild.
+                }));
+            return items;
+          });
           ImGui::PopID();
         }
       }
