@@ -376,41 +376,77 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
 
 void MapPropertiesSystem::SetupCanvasContextMenu(
     gui::Canvas& canvas, const OverworldContextTarget& target,
-    bool& current_map_lock, bool& show_custom_bg_color_editor,
-    bool& show_overlay_editor, int current_mode, project::YazeProject* project,
+    bool& current_map_lock, int current_mode, project::YazeProject* project,
     SharedClipboard* shared_clipboard) {
   (void)current_mode;  // Explicit context actions are independent of tool mode.
-  const int current_map = target.map_id;
+  const int map_id = target.map_id;
   const bool valid_map = target.valid();
   canvas.ClearContextMenuItems();
   // This canvas supplies one complete View menu through editor navigation.
   canvas.SetShowBuiltinContextMenu(false);
 
   const bool has_metadata = overworld_ && overworld_->is_loaded() &&
-                            valid_map && overworld_->overworld_map(current_map);
-  const auto metadata =
-      has_metadata ? BuildOverworldMapMetadata(*overworld_, rom_, project,
-                                               current_map, target.game_state)
-                   : OverworldMapMetadata{};
-  std::string title = "Outside Overworld";
-  if (valid_map)
-    title = absl::StrFormat("Map 0x%02X", current_map);
-  if (has_metadata)
-    title = metadata.map_title;
-  auto title_item = gui::CanvasMenuItem::Disabled(title);
-  title_item.icon = ICON_MD_MAP;
-  canvas.AddContextMenuItem(title_item);
+                            valid_map && overworld_->overworld_map(map_id);
+  const auto describe = [&](int id) -> std::string {
+    if (!has_metadata) {
+      return absl::StrFormat("0x%02X", id);
+    }
+    const auto m = BuildOverworldMapMetadata(*overworld_, rom_, project, id,
+                                             target.game_state);
+    return m.map_name.empty()
+               ? absl::StrFormat("%s | %s", m.map_id_label, m.world_label)
+               : absl::StrFormat("%s | %s | %s", m.map_id_label, m.world_label,
+                                 m.map_name);
+  };
+  const auto hint = [this](const char* name) -> std::string {
+    return shortcut_hint_ && name ? shortcut_hint_(name) : std::string();
+  };
+  const auto add = [&canvas](gui::CanvasMenuItem item, const char* icon,
+                             bool separator_after = false) {
+    item.icon = icon;
+    item.separator_after = separator_after;
+    canvas.AddContextMenuItem(std::move(item));
+  };
+
+  // --- Header: where the click landed -------------------------------------
+  auto title = gui::CanvasMenuItem::Disabled(
+      valid_map ? describe(map_id) : std::string("Outside Overworld"));
+  add(std::move(title), ICON_MD_MAP, !(valid_map && target.tile16_id >= 0));
   if (valid_map && target.tile16_id >= 0) {
     const int tile_x =
         static_cast<int>(target.world_position.x / kTile16Size) % 32;
     const int tile_y =
         static_cast<int>(target.world_position.y / kTile16Size) % 32;
-    auto position = gui::CanvasMenuItem::Disabled(absl::StrFormat(
-        "Tile (%d, %d)  |  Tile16 0x%03X", tile_x, tile_y, target.tile16_id));
-    position.separator_after = true;
-    canvas.AddContextMenuItem(position);
+    add(gui::CanvasMenuItem::Disabled(absl::StrFormat(
+            "Tile16 0x%03X | (%d, %d)", target.tile16_id, tile_x, tile_y)),
+        ICON_MD_GRID_ON, true);
   }
 
+  // --- Tile ------------------------------------------------------------------
+  const bool has_tile = valid_map && target.tile16_id >= 0;
+  auto sample_item = gui::CanvasMenuItem::Conditional(
+      "Sample Tile16",
+      [this, target]() {
+        if (sample_tile16_callback_ && target.valid() && target.tile16_id >= 0)
+          (void)sample_tile16_callback_(target);
+      },
+      [this, has_tile]() { return bool(sample_tile16_callback_) && has_tile; });
+  // I samples the hovered tile; in Brush/Fill a plain right-click does too.
+  sample_item.shortcut = "I";
+  add(std::move(sample_item), ICON_MD_COLORIZE);
+  add(gui::CanvasMenuItem::Conditional(
+          "Edit Tile16...",
+          [this, target]() {
+            if (edit_tile16_callback_ && target.valid() &&
+                target.tile16_id >= 0)
+              edit_tile16_callback_(target);
+          },
+          [this, has_tile]() {
+            return bool(edit_tile16_callback_) && has_tile;
+          }),
+      ICON_MD_GRID_VIEW, true);
+
+  // --- Map -------------------------------------------------------------------
   auto select_item = gui::CanvasMenuItem::Conditional(
       "Select This Map",
       [this, target]() {
@@ -420,11 +456,40 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       [this, valid_map]() {
         return valid_map && bool(map_selection_callback_);
       });
-  select_item.icon = ICON_MD_CHECK;
-  canvas.AddContextMenuItem(select_item);
+  // Hidden while this map's area is already the current one.
+  select_item.visible_condition = [this, target]() {
+    if (!current_map_provider_) {
+      return true;
+    }
+    const int current = current_map_provider_();
+    if (current == target.map_id) {
+      return false;
+    }
+    const auto* current_map = overworld_ && IsValidMapId(current)
+                                  ? overworld_->overworld_map(current)
+                                  : nullptr;
+    return !(current_map && current_map->parent() == target.parent_map_id);
+  };
+  add(std::move(select_item), ICON_MD_CHECK);
 
-  auto lock_item = gui::CanvasMenuItem::Conditional(
-      current_map_lock ? "Unpin Map" : "Pin This Map",
+  auto properties_item = gui::CanvasMenuItem::Conditional(
+      "Map Properties...",
+      [this, target]() {
+        if (!map_selection_callback_ || !target.valid())
+          return;
+        map_selection_callback_(target.map_id, false);
+        if (open_map_properties_callback_)
+          open_map_properties_callback_();
+      },
+      [this, valid_map]() {
+        return valid_map && bool(map_selection_callback_) &&
+               bool(open_map_properties_callback_);
+      });
+  properties_item.shortcut = "Double-click";
+  add(std::move(properties_item), ICON_MD_TUNE);
+
+  auto pin_item = gui::CanvasMenuItem::Conditional(
+      "Pin Map",
       [this, target, &current_map_lock]() {
         if (!target.valid())
           return;
@@ -438,40 +503,102 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       [this, valid_map, &current_map_lock]() {
         return valid_map && (current_map_lock || bool(map_selection_callback_));
       });
-  lock_item.icon = current_map_lock ? ICON_MD_LOCK_OPEN : ICON_MD_PUSH_PIN;
-  lock_item.separator_after = true;
-  canvas.AddContextMenuItem(lock_item);
+  pin_item.checked_condition = [&current_map_lock]() {
+    return current_map_lock;
+  };
+  pin_item.shortcut = hint("overworld.toggle_lock");
+  pin_item.tooltip =
+      "Pinned: the current map and its properties stay put while the cursor "
+      "moves. Clicking a map still selects it.";
 
-  auto sample_item = gui::CanvasMenuItem::Conditional(
-      "Sample Tile16",
-      [this, target]() {
-        if (sample_tile16_callback_ && target.valid() && target.tile16_id >= 0)
-          (void)sample_tile16_callback_(target);
-      },
-      [this, target]() {
-        return bool(sample_tile16_callback_) && target.valid() &&
-               target.tile16_id >= 0;
-      });
-  sample_item.icon = ICON_MD_COLORIZE;
-  canvas.AddContextMenuItem(sample_item);
-  auto edit_item = gui::CanvasMenuItem::Conditional(
-      "Edit Tile16",
-      [this, target]() {
-        if (edit_tile16_callback_ && target.valid() && target.tile16_id >= 0)
-          edit_tile16_callback_(target);
-      },
-      [this, target]() {
-        return bool(edit_tile16_callback_) && target.valid() &&
-               target.tile16_id >= 0;
-      });
-  edit_item.icon = ICON_MD_GRID_VIEW;
-  edit_item.separator_after = true;
-  canvas.AddContextMenuItem(edit_item);
+  // Related maps: the other screens of this area and the other world's
+  // screen at the same position. Selecting one also centers it.
+  gui::CanvasMenuItem related_menu;
+  related_menu.label = "Related Maps";
+  if (has_metadata) {
+    const auto jump = [this](int id) {
+      if (map_jump_callback_) {
+        map_jump_callback_(id);
+      } else if (map_selection_callback_) {
+        map_selection_callback_(id, false);
+      }
+    };
+    const int world_start = target.world * 0x40;
+    const int world_end =
+        std::min(world_start + 0x40, zelda3::kNumOverworldMaps);
+    for (int id = world_start; id < world_end; ++id) {
+      const auto* member = overworld_->overworld_map(id);
+      if (id == map_id || !member || member->parent() != target.parent_map_id) {
+        continue;
+      }
+      const std::string role =
+          id == target.parent_map_id ? "Area parent: " : "Same area: ";
+      related_menu.subitems.emplace_back(role + describe(id),
+                                         [jump, id]() { jump(id); });
+    }
+    if (target.world < 2) {
+      const int counterpart = target.world == 0 ? map_id + 0x40 : map_id - 0x40;
+      if (IsValidMapId(counterpart) && overworld_->overworld_map(counterpart)) {
+        if (!related_menu.subitems.empty()) {
+          related_menu.subitems.back().separator_after = true;
+        }
+        related_menu.subitems.emplace_back(
+            std::string("Other world: ") + describe(counterpart),
+            [jump, counterpart]() { jump(counterpart); });
+      }
+    }
+  }
+  const bool has_related = !related_menu.subitems.empty();
+  add(std::move(pin_item), ICON_MD_PUSH_PIN, !has_related);
+  if (has_related) {
+    related_menu.enabled_condition = [this]() {
+      return bool(map_jump_callback_) || bool(map_selection_callback_);
+    };
+    add(std::move(related_menu), ICON_MD_ACCOUNT_TREE, true);
+  }
 
-  gui::CanvasMenuItem entity_menu;
-  entity_menu.label = "Insert Entity";
-  entity_menu.icon = ICON_MD_ADD_LOCATION;
-  entity_menu.enabled_condition = [this, valid_map]() {
+  // --- Clipboard: area properties (graphics, palettes, music, message) ------
+  if (has_metadata && shared_clipboard) {
+    add(gui::CanvasMenuItem(
+            "Copy Map Properties",
+            [this, target, shared_clipboard]() {
+              shared_clipboard->overworld_map_metadata =
+                  CaptureMapMetadataClipboard(*overworld_, target.map_id);
+              shared_clipboard->overworld_map_metadata.scope =
+                  OverworldMapMetadataClipboardScope::kAll;
+              shared_clipboard->has_overworld_map_metadata =
+                  shared_clipboard->overworld_map_metadata.valid;
+            }),
+        ICON_MD_CONTENT_COPY);
+    constexpr auto kScope = OverworldMapMetadataClipboardScope::kAll;
+    auto paste_item = gui::CanvasMenuItem::Conditional(
+        "Paste Map Properties",
+        [this, target, shared_clipboard]() {
+          const auto edits = BuildOverworldMetadataPasteEdits(
+              target.map_id, shared_clipboard->overworld_map_metadata, kScope);
+          (void)ApplyPropertyEdits(
+              edits,
+              absl::StrFormat(
+                  "Paste map properties from 0x%02X",
+                  shared_clipboard->overworld_map_metadata.source_map_id));
+        },
+        [shared_clipboard]() {
+          return shared_clipboard->has_overworld_map_metadata &&
+                 CanPasteOverworldMapMetadata(
+                     shared_clipboard->overworld_map_metadata, kScope);
+        });
+    if (shared_clipboard->has_overworld_map_metadata &&
+        shared_clipboard->overworld_map_metadata.valid) {
+      paste_item.tooltip = DescribeOverworldMapMetadataClipboard(
+          shared_clipboard->overworld_map_metadata);
+    }
+    add(std::move(paste_item), ICON_MD_CONTENT_PASTE, true);
+  }
+
+  // --- Insert: entities placed at the clicked tile --------------------------
+  gui::CanvasMenuItem insert_menu;
+  insert_menu.label = "Insert";
+  insert_menu.enabled_condition = [this, valid_map]() {
     return valid_map && bool(entity_insert_callback_);
   };
   struct EntityType {
@@ -479,6 +606,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     const char* label;
     const char* type;
   };
+  // Transports have no insert path yet (see docs/internal/gui/context-menus.md).
   const EntityType entity_types[] = {
       {ICON_MD_DOOR_FRONT, "Entrance", "entrance"},
       {ICON_MD_CYCLONE, "Hole", "hole"},
@@ -486,314 +614,61 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       {ICON_MD_GRASS, "Item", "item"},
       {ICON_MD_PEST_CONTROL_RODENT, "Sprite", "sprite"}};
   for (const auto& [icon, label, type] : entity_types) {
-    entity_menu.subitems.emplace_back(label, icon, [this, target, type]() {
+    insert_menu.subitems.emplace_back(label, icon, [this, target, type]() {
       if (entity_insert_callback_ && target.valid())
         entity_insert_callback_(type, target);
     });
   }
-  canvas.AddContextMenuItem(entity_menu);
+  add(std::move(insert_menu), ICON_MD_ADD_LOCATION);
 
-  gui::CanvasMenuItem map_menu;
-  map_menu.label = "Map";
-  map_menu.icon = ICON_MD_MAP;
-  map_menu.enabled_condition = [valid_map]() {
-    return valid_map;
-  };
-  auto add_panel_action = [&](const char* icon, const char* label,
-                              bool& show_panel) {
-    map_menu.subitems.push_back(gui::CanvasMenuItem::Conditional(
-        label,
-        [this, target, panel = &show_panel]() {
-          if (!map_selection_callback_ || !target.valid())
-            return;
-          map_selection_callback_(target.map_id, false);
-          *panel = true;
-        },
-        [this, valid_map]() {
-          return valid_map && bool(map_selection_callback_);
-        }));
-    map_menu.subitems.back().icon = icon;
-  };
-  // Selects the right-clicked map, then opens the docked properties window
-  // (the old flag here was never read, so this item did nothing).
-  map_menu.subitems.push_back(gui::CanvasMenuItem::Conditional(
-      "Map Properties",
-      [this, target]() {
-        if (!map_selection_callback_ || !target.valid())
-          return;
-        map_selection_callback_(target.map_id, false);
-        if (open_map_properties_callback_)
-          open_map_properties_callback_();
-      },
-      [this, valid_map]() {
-        return valid_map && bool(map_selection_callback_) &&
-               bool(open_map_properties_callback_);
-      }));
-  map_menu.subitems.back().icon = ICON_MD_TUNE;
-  map_menu.subitems.back().shortcut = "Double-click";
-  if (rom_ && zelda3::OverworldVersionHelper::SupportsAreaEnum(
-                  zelda3::OverworldVersionHelper::GetVersion(*rom_))) {
-    add_panel_action(ICON_MD_FORMAT_COLOR_FILL, "Custom Background Color",
-                     show_custom_bg_color_editor);
-    add_panel_action(ICON_MD_LAYERS, "Visual Effects", show_overlay_editor);
-  }
-
-  if (has_metadata) {
-    if (const auto* current_map_ptr = overworld_->overworld_map(current_map);
-        current_map_ptr) {
-      const int parent = IsValidMapId(target.parent_map_id)
-                             ? target.parent_map_id
-                             : current_map;
-      gui::CanvasMenuItem related_maps_menu;
-      related_maps_menu.label = "Related Maps";
-      related_maps_menu.icon = ICON_MD_ACCOUNT_TREE;
-      related_maps_menu.enabled_condition = [this]() {
-        return bool(map_selection_callback_);
-      };
-
-      if (parent != current_map) {
-        gui::CanvasMenuItem select_parent_item;
-        select_parent_item.label =
-            absl::StrFormat("Select Parent Map 0x%02X", parent);
-        select_parent_item.callback = [this, parent]() {
-          if (map_selection_callback_) {
-            map_selection_callback_(parent, false);
-          }
-        };
-        related_maps_menu.subitems.push_back(select_parent_item);
-      }
-
-      for (int map_id = 0; map_id < zelda3::kNumOverworldMaps; ++map_id) {
-        if (map_id == current_map ||
-            (map_id == parent && parent != current_map)) {
-          continue;
-        }
-        const auto* sibling = overworld_->overworld_map(map_id);
-        if (!sibling || sibling->parent() != parent) {
-          continue;
-        }
-
-        gui::CanvasMenuItem sibling_item;
-        sibling_item.label =
-            map_id == parent
-                ? absl::StrFormat("Select Parent Map 0x%02X", map_id)
-                : absl::StrFormat("Select Sibling Map 0x%02X", map_id);
-        sibling_item.callback = [this, map_id]() {
-          if (map_selection_callback_) {
-            map_selection_callback_(map_id, false);
-          }
-        };
-        related_maps_menu.subitems.push_back(sibling_item);
-      }
-
-      if (!related_maps_menu.subitems.empty()) {
-        map_menu.subitems.push_back(std::move(related_maps_menu));
-      }
-    }
-
-    if (shared_clipboard) {
-      gui::CanvasMenuItem metadata_actions_menu;
-      metadata_actions_menu.label = "Copy / Paste Metadata";
-      metadata_actions_menu.icon = ICON_MD_CONTENT_COPY;
-      if (shared_clipboard->has_overworld_map_metadata &&
-          shared_clipboard->overworld_map_metadata.valid) {
-        metadata_actions_menu.subitems.push_back(
-            gui::CanvasMenuItem::Disabled(DescribeOverworldMapMetadataClipboard(
-                shared_clipboard->overworld_map_metadata)));
-        metadata_actions_menu.subitems.back().icon = ICON_MD_CONTENT_PASTE;
-      }
-
-      auto add_metadata_actions = [&](OverworldMapMetadataClipboardScope scope,
-                                      const char* copy_icon,
-                                      const char* copy_label,
-                                      const char* paste_label) {
-        gui::CanvasMenuItem copy_item;
-        copy_item.label = copy_label;
-        copy_item.icon = copy_icon;
-        copy_item.callback = [this, target, shared_clipboard, scope]() {
-          shared_clipboard->overworld_map_metadata =
-              CaptureMapMetadataClipboard(*overworld_, target.map_id);
-          shared_clipboard->overworld_map_metadata.scope = scope;
-          shared_clipboard->has_overworld_map_metadata =
-              shared_clipboard->overworld_map_metadata.valid;
-        };
-        metadata_actions_menu.subitems.push_back(copy_item);
-
-        gui::CanvasMenuItem paste_item;
-        paste_item.label = paste_label;
-        paste_item.icon = ICON_MD_CONTENT_PASTE;
-        paste_item.enabled_condition = [shared_clipboard, scope]() {
-          return shared_clipboard->has_overworld_map_metadata &&
-                 CanPasteOverworldMapMetadata(
-                     shared_clipboard->overworld_map_metadata, scope);
-        };
-        paste_item.callback = [this, target, shared_clipboard, scope]() {
-          const auto edits = BuildOverworldMetadataPasteEdits(
-              target.map_id, shared_clipboard->overworld_map_metadata, scope);
-          (void)ApplyPropertyEdits(
-              edits,
-              absl::StrFormat(
-                  "Paste %s from 0x%02X",
-                  OverworldMapMetadataClipboardScopeName(scope),
-                  shared_clipboard->overworld_map_metadata.source_map_id));
-        };
-        paste_item.separator_after =
-            scope != OverworldMapMetadataClipboardScope::kMusicMessages;
-        metadata_actions_menu.subitems.push_back(paste_item);
-      };
-
-      add_metadata_actions(OverworldMapMetadataClipboardScope::kAll,
-                           ICON_MD_CONTENT_COPY, "Copy Map Metadata",
-                           "Paste Map Metadata");
-      add_metadata_actions(OverworldMapMetadataClipboardScope::kGraphics,
-                           ICON_MD_IMAGE, "Copy Graphics Metadata",
-                           "Paste Graphics Metadata");
-      add_metadata_actions(OverworldMapMetadataClipboardScope::kPalettes,
-                           ICON_MD_PALETTE, "Copy Palette Metadata",
-                           "Paste Palette Metadata");
-      add_metadata_actions(OverworldMapMetadataClipboardScope::kMusicMessages,
-                           ICON_MD_MUSIC_NOTE, "Copy Music/Message Metadata",
-                           "Paste Music/Message Metadata");
-
-      map_menu.subitems.push_back(std::move(metadata_actions_menu));
-    }
-
-    if (project) {
-      const std::string popup_id =
-          absl::StrFormat("RenameOverworldMapLabelContext%02X", current_map);
-      gui::CanvasMenuItem rename_item = gui::CanvasMenuItem::WithPopup(
-          "Rename Map Label...", popup_id,
-          [this, project, target, initial_label = metadata.map_name,
-           popup_id]() {
-            const int current_map = target.map_id;
-            static std::array<char, 128> label_buffer{};
-            static int active_map = -1;
-            static std::string error_message;
-            if (active_map != current_map) {
-              active_map = current_map;
-              error_message.clear();
-              std::strncpy(label_buffer.data(), initial_label.c_str(),
-                           label_buffer.size() - 1);
-              label_buffer[label_buffer.size() - 1] = '\0';
-            }
-
-            if (ImGui::BeginPopup(popup_id.c_str())) {
-              ImGui::Text(tr("%s Map Label"), ICON_MD_LABEL);
-              ImGui::TextDisabled(tr("Map 0x%02X"), current_map);
-              ImGui::SetNextItemWidth(260.0f);
-              ImGui::InputText("##OverworldContextMapLabel",
-                               label_buffer.data(), label_buffer.size());
-
-              if (ImGui::Button(ICON_MD_CHECK " Apply")) {
-                auto status =
-                    resource_label_edit_callback_
-                        ? resource_label_edit_callback_(
-                              "overworld_map", current_map, label_buffer.data())
-                        : RenameProjectResourceLabel(project, "overworld_map",
-                                                     current_map,
-                                                     label_buffer.data());
-                if (status.ok()) {
-                  active_map = -1;
-                  ImGui::CloseCurrentPopup();
-                } else {
-                  error_message = std::string(status.message());
-                }
-              }
-              ImGui::SameLine();
-              if (ImGui::Button(ICON_MD_CLEAR " Clear")) {
-                auto status =
-                    resource_label_edit_callback_
-                        ? resource_label_edit_callback_("overworld_map",
-                                                        current_map, "")
-                        : RenameProjectResourceLabel(project, "overworld_map",
-                                                     current_map, "");
-                if (status.ok()) {
-                  active_map = -1;
-                  ImGui::CloseCurrentPopup();
-                } else {
-                  error_message = std::string(status.message());
-                }
-              }
-              if (!error_message.empty()) {
-                ImGui::TextWrapped("%s", error_message.c_str());
-              }
-              ImGui::EndPopup();
-            }
-          });
-      rename_item.icon = ICON_MD_EDIT;
-      map_menu.subitems.push_back(std::move(rename_item));
-    }
-  }
-  // Map values are shown and edited once, in the Map Properties panel.
-  canvas.AddContextMenuItem(map_menu);
-
+  // --- View: mirrors the toolbar toggles and zoom buttons -------------------
   gui::CanvasMenuItem view_menu;
   view_menu.label = "View";
-  view_menu.icon = ICON_MD_VISIBILITY;
-  auto add_navigation_action = [&](const char* icon, const char* label,
+  const auto add_toggle = [&](const char* icon, const char* label,
+                              const ContextViewToggle& toggle,
+                              const char* shortcut_name) {
+    if (!toggle.toggle || !toggle.is_on) {
+      return;
+    }
+    gui::CanvasMenuItem item(label, icon, toggle.toggle);
+    item.checked_condition = toggle.is_on;
+    item.shortcut = hint(shortcut_name);
+    view_menu.subitems.push_back(std::move(item));
+  };
+  add_toggle(ICON_MD_GRID_4X4, "Grid", grid_toggle_, "overworld.toggle_grid");
+  add_toggle(ICON_MD_PLACE, "Entities", entities_toggle_,
+             "overworld.toggle_entities");
+  add_toggle(ICON_MD_LAYERS, "Overlay Preview", overlay_toggle_, nullptr);
+  if (!view_menu.subitems.empty()) {
+    view_menu.subitems.back().separator_after = true;
+  }
+  const auto add_view_action = [&](const char* icon, const char* label,
                                    const std::function<void()>& callback,
                                    const char* shortcut_name) {
-    view_menu.subitems.push_back(gui::CanvasMenuItem::Conditional(
+    auto item = gui::CanvasMenuItem::Conditional(
         label,
         [callback]() {
           if (callback)
             callback();
         },
-        [callback]() { return bool(callback); }));
-    view_menu.subitems.back().icon = icon;
-    if (shortcut_hint_ && shortcut_name) {
-      view_menu.subitems.back().shortcut = shortcut_hint_(shortcut_name);
-    }
-  };
-  add_navigation_action(ICON_MD_ZOOM_IN, "Zoom In", zoom_in_callback_,
-                        "overworld.zoom_in");
-  add_navigation_action(ICON_MD_ZOOM_OUT, "Zoom Out", zoom_out_callback_,
-                        "overworld.zoom_out");
-  if (zoom_fit_callback_) {
-    add_navigation_action(ICON_MD_FIT_SCREEN, "Zoom to Fit", zoom_fit_callback_,
-                          "overworld.zoom_fit");
-  }
-  if (center_map_callback_) {
-    add_navigation_action(ICON_MD_CENTER_FOCUS_STRONG, "Center on Map",
-                          center_map_callback_, "overworld.center_map");
-  }
-  add_navigation_action(ICON_MD_RESTORE, "Reset View", reset_view_callback_,
-                        nullptr);
-  view_menu.subitems.back().separator_after = true;
-
-  auto add_view_toggle = [&](const char* label,
-                             bool gui::CanvasConfig::* field) {
-    gui::CanvasMenuItem item(label, [&canvas, field]() {
-      auto config = canvas.GetConfig();
-      config.*field = !(config.*field);
-      canvas.ApplyConfigSnapshot(config);
-    });
-    item.checked_condition = [&canvas, field]() {
-      return canvas.GetConfig().*field;
-    };
+        [callback]() { return bool(callback); });
+    item.icon = icon;
+    item.shortcut = hint(shortcut_name);
     view_menu.subitems.push_back(std::move(item));
   };
-  add_view_toggle("Show Grid", &gui::CanvasConfig::enable_grid);
-  add_view_toggle("Show Hex Labels", &gui::CanvasConfig::enable_hex_labels);
-  add_view_toggle("Show Custom Labels",
-                  &gui::CanvasConfig::enable_custom_labels);
-  gui::CanvasMenuItem grid_menu;
-  grid_menu.label = "Grid Size";
-  grid_menu.icon = ICON_MD_GRID_ON;
-  for (const float step : {8.0f, 16.0f, 32.0f, 64.0f}) {
-    gui::CanvasMenuItem item(absl::StrFormat("%.0fx%.0f", step, step),
-                             [&canvas, step]() {
-                               auto config = canvas.GetConfig();
-                               config.grid_step = step;
-                               canvas.ApplyConfigSnapshot(config);
-                             });
-    item.checked_condition = [&canvas, step]() {
-      return canvas.GetGridStep() == step;
-    };
-    grid_menu.subitems.push_back(std::move(item));
+  add_view_action(ICON_MD_ZOOM_IN, "Zoom In", zoom_in_callback_,
+                  "overworld.zoom_in");
+  add_view_action(ICON_MD_ZOOM_OUT, "Zoom Out", zoom_out_callback_,
+                  "overworld.zoom_out");
+  if (zoom_fit_callback_) {
+    add_view_action(ICON_MD_FIT_SCREEN, "Zoom to Fit", zoom_fit_callback_,
+                    "overworld.zoom_fit");
   }
-  view_menu.subitems.push_back(std::move(grid_menu));
-  canvas.AddContextMenuItem(view_menu);
+  if (center_map_callback_) {
+    add_view_action(ICON_MD_CENTER_FOCUS_STRONG, "Center on Map",
+                    center_map_callback_, "overworld.center_map");
+  }
+  add(std::move(view_menu), ICON_MD_VISIBILITY);
 }
 
 absl::Status MapPropertiesSystem::ApplyPropertyEdit(

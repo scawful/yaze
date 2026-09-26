@@ -371,6 +371,48 @@ void E2ETest_OverworldMenuHasPopupPadding(ImGuiTestContext* ctx) {
   ctx->Yield(2);
 }
 
+// View > Grid in the map menu flips the same state as the toolbar toggle.
+void E2ETest_OverworldMenuViewGridToggles(ImGuiTestContext* ctx) {
+  Controller* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  if (!EnsureOverworldReady(ctx, controller)) {
+    return;
+  }
+  OverworldEditor* ow = GetOverworldEditor(controller);
+  IM_CHECK(ow != nullptr);
+  const bool grid_before = ow->grid_visible();
+
+  ImGuiWindow* popup = OpenOverworldMapMenu(ctx, controller);
+  IM_CHECK(popup != nullptr);
+  ctx->SetRef(popup->ID);
+  const std::string view_label = std::string(ICON_MD_VISIBILITY) + " View";
+  const ImGuiTestItemInfo view = ctx->ItemInfo(view_label.c_str());
+  IM_CHECK(view.ID != 0);
+  ctx->MouseMove(view_label.c_str());
+  ctx->Yield(3);
+
+  // The submenu is the newest popup. Enter it level with "View", then move
+  // down to "Grid" so the path never crosses a sibling submenu.
+  auto& stack = ctx->UiContext->OpenPopupStack;
+  IM_CHECK(stack.Size >= 2 && stack.back().Window != nullptr);
+  ImGuiWindow* submenu = stack.back().Window;
+  ctx->SetRef(submenu->ID);
+  const std::string grid_label = std::string(ICON_MD_GRID_4X4) + " Grid";
+  const ImGuiTestItemInfo grid = ctx->ItemInfo(grid_label.c_str());
+  IM_CHECK(grid.ID != 0);
+  ctx->MouseMoveToPos(
+      ImVec2(grid.RectFull.GetCenter().x, view.RectFull.GetCenter().y));
+  ctx->ItemClick(grid_label.c_str());
+  ctx->Yield(3);
+
+  IM_CHECK_NO_RET(ow->grid_visible() != grid_before);
+  IM_CHECK_EQ_NO_RET(ctx->UiContext->OpenPopupStack.Size, 0);
+  if (ow->grid_visible() != grid_before) {
+    ow->ToggleGrid();
+  }
+  ctx->PopupCloseAll();
+}
+
 namespace yaze {
 namespace test {
 namespace e2e {
@@ -396,6 +438,10 @@ void RegisterDeadClickRegressionTests(ImGuiTestEngine* engine,
 
   t = IM_REGISTER_TEST(engine, "OverworldRightClick", "MenuHasPopupPadding");
   t->TestFunc = E2ETest_OverworldMenuHasPopupPadding;
+  t->UserData = controller;
+
+  t = IM_REGISTER_TEST(engine, "OverworldRightClick", "MenuViewGridToggles");
+  t->TestFunc = E2ETest_OverworldMenuViewGridToggles;
   t->UserData = controller;
 }
 

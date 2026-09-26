@@ -300,6 +300,16 @@ void OverworldEditor::Initialize() {
       [this]() { ResetOverworldView(); }, [this]() { ZoomIn(); },
       [this]() { ZoomOut(); }, [this]() { ZoomToFit(); },
       [this]() { CenterOverworldView(); });
+  map_properties_system_->SetContextViewToggles(
+      {[this]() { return grid_visible(); }, [this]() { ToggleGrid(); }},
+      {[this]() { return entities_visible(); },
+       [this]() { ToggleEntityVisibility(); }},
+      {[this]() { return show_overlay_preview_; },
+       [this]() { show_overlay_preview_ = !show_overlay_preview_; }});
+  map_properties_system_->SetCurrentMapProvider(
+      [this]() { return current_map_; });
+  map_properties_system_->SetMapJumpCallback(
+      [this](int map_id) { JumpToMap(map_id); });
   map_properties_system_->SetShortcutHintProvider(
       [this](const char* name) -> std::string {
         return dependencies_.shortcut_manager
@@ -1718,6 +1728,22 @@ void OverworldEditor::SelectAdjacentMap(int dx, int dy) {
     // the cursor (unless pinned).
     canvas_nav_->SuspendHoverFollowUntilMouseMoves();
     canvas_nav_->CenterOnMap(target);
+  }
+}
+
+void OverworldEditor::JumpToMap(int map_id) {
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  const int world = std::clamp(map_id / 0x40, 0, 2);
+  if (world != current_world_) {
+    SwitchToWorld(world);
+  }
+  SelectMapForEditing(map_id, /*respect_pin=*/false);
+  if (canvas_nav_) {
+    // Same as keyboard navigation: keep the choice until the mouse moves.
+    canvas_nav_->SuspendHoverFollowUntilMouseMoves();
+    canvas_nav_->CenterOnMap(map_id);
   }
 }
 
