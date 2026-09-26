@@ -1193,16 +1193,21 @@ absl::Status OverworldMap::LoadVanillaOverlayData() {
 
 void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
                                          int size, const uint8_t* all_gfx) {
-  // Ensure we don't go out of bounds
-  int max_offset = static_graphics_offset * size + size;
-  if (!game_data_ || max_offset > game_data_->graphics_buffer.size()) {
+  if (const auto it = graphics_sheet_overrides_.find(
+          static_cast<uint16_t>(static_graphics_offset));
+      it != graphics_sheet_overrides_.end() &&
+      it->second.size() == static_cast<size_t>(size)) {
+    all_gfx = it->second.data();
+    static_graphics_offset = 0;
+  } else if (static_graphics_offset * size + size >
+             static_cast<int>(game_data_ ? game_data_->graphics_buffer.size()
+                                         : 0)) {
     // Fill with zeros if out of bounds
     for (int i = 0; i < size; i++) {
       current_gfx_[(index * size) + i] = 0x00;
     }
     return;
   }
-
   for (int i = 0; i < size; i++) {
     auto byte = all_gfx[i + (static_graphics_offset * size)];
     switch (index) {

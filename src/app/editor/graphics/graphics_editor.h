@@ -22,6 +22,7 @@
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/graphics/polyhedral_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
+#include "app/editor/graphics/usage_preview_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
@@ -145,6 +146,9 @@ class GraphicsEditor : public Editor {
     if (polyhedral_panel_) {
       polyhedral_panel_->SetRom(rom);
     }
+    if (usage_preview_panel_) {
+      usage_preview_panel_->SetRom(rom);
+    }
   }
 
   // Set the game data pointer
@@ -164,6 +168,9 @@ class GraphicsEditor : public Editor {
     }
     if (paletteset_panel_) {
       paletteset_panel_->SetGameData(game_data);
+    }
+    if (usage_preview_panel_) {
+      usage_preview_panel_->SetGameData(game_data);
     }
   }
 
@@ -218,6 +225,7 @@ class GraphicsEditor : public Editor {
   std::unique_ptr<GfxGroupEditor> gfx_group_panel_;
   std::unique_ptr<PalettesetEditorPanel> paletteset_panel_;
   std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
+  std::unique_ptr<UsagePreviewPanel> usage_preview_panel_;
 
   // --- Prototype Viewer (Super Donkey / Dev Format Imports) ---
   void DrawPrototypeViewer();

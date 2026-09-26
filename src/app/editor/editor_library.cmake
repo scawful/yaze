@@ -88,6 +88,8 @@ set(
   app/editor/graphics/pixel_clipboard.cc
   app/editor/graphics/graphics_save_plan.cc
   app/editor/graphics/graphics_sheet_sync.cc
+  app/editor/graphics/usage_preview.cc
+  app/editor/graphics/usage_preview_panel.cc
   app/editor/graphics/ui/browser/sheet_browser_view.cc
   app/editor/graphics/ui/editing/pixel_editor_view.cc
   app/editor/graphics/ui/palette/palette_controls_view.cc

@@ -647,38 +647,55 @@ absl::Status Overworld::AssembleMap32Tiles() {
   return absl::OkStatus();
 }
 
-absl::Status Overworld::AssembleMap16Tiles() {
+absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(const Rom& rom,
+                                                        bool* expanded) {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
 
   // Check if expanded tile16 data is actually present in ROM
   // The flag position should contain 0x0F for vanilla, something else for
   // expanded
-  const auto profile = DetectOverworldRomProfile(*rom());
-  uint8_t expanded_flag = ReadRomByteOr(*rom(), kMap16ExpandedFlagPos, 0x0F);
+  const auto profile = DetectOverworldRomProfile(rom);
+  uint8_t expanded_flag = ReadRomByteOr(rom, kMap16ExpandedFlagPos, 0x0F);
   util::logf("Expanded tile16 flag: %d", expanded_flag);
+  if (expanded != nullptr) {
+    *expanded = profile.has_expanded_tile16;
+  }
   if (profile.has_expanded_tile16) {
     // ROM has expanded tile16 data - use expanded addresses
     tpos = GetMap16TilesExpanded();
     num_tile16 = NumberOfMap16Ex;
-    expanded_tile16_ = true;
   }
   // Otherwise use vanilla addresses (already set above)
 
+  std::vector<gfx::Tile16> tiles16;
+  tiles16.reserve(num_tile16);
   for (int i = 0; i < num_tile16; i += 1) {
-    ASSIGN_OR_RETURN(auto t0_data, rom()->ReadWord(tpos));
+    ASSIGN_OR_RETURN(auto t0_data, rom.ReadWord(tpos));
     gfx::TileInfo t0 = gfx::GetTilesInfo(t0_data);
     tpos += 2;
-    ASSIGN_OR_RETURN(auto t1_data, rom()->ReadWord(tpos));
+    ASSIGN_OR_RETURN(auto t1_data, rom.ReadWord(tpos));
     gfx::TileInfo t1 = gfx::GetTilesInfo(t1_data);
     tpos += 2;
-    ASSIGN_OR_RETURN(auto t2_data, rom()->ReadWord(tpos));
+    ASSIGN_OR_RETURN(auto t2_data, rom.ReadWord(tpos));
     gfx::TileInfo t2 = gfx::GetTilesInfo(t2_data);
     tpos += 2;
-    ASSIGN_OR_RETURN(auto t3_data, rom()->ReadWord(tpos));
+    ASSIGN_OR_RETURN(auto t3_data, rom.ReadWord(tpos));
     gfx::TileInfo t3 = gfx::GetTilesInfo(t3_data);
     tpos += 2;
-    tiles16_.emplace_back(t0, t1, t2, t3);
+    tiles16.emplace_back(t0, t1, t2, t3);
+  }
+  return tiles16;
+}
+
+absl::Status Overworld::AssembleMap16Tiles() {
+  bool expanded = false;
+  ASSIGN_OR_RETURN(auto tiles16, ReadMap16Tiles(*rom(), &expanded));
+  if (expanded) {
+    expanded_tile16_ = true;
+  }
+  for (auto& tile16 : tiles16) {
+    tiles16_.push_back(tile16);
   }
   return absl::OkStatus();
 }

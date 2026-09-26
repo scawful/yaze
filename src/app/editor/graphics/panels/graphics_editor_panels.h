@@ -232,6 +232,34 @@ class GraphicsPalettesetPanel : public WindowContent {
   DrawCallback draw_callback_;
 };
 
+/**
+ * @brief Live preview of how the game uses the current sheet (room, sprite
+ * animation, tile16s), updated from unsaved pixel edits
+ */
+class GraphicsUsagePreviewPanel : public WindowContent {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit GraphicsUsagePreviewPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "graphics.usage_preview"; }
+  std::string GetDisplayName() const override { return "Usage Preview"; }
+  std::string GetIcon() const override { return ICON_MD_PREVIEW; }
+  std::string GetEditorCategory() const override { return "Graphics"; }
+  int GetPriority() const override { return 25; }
+  float GetPreferredWidth() const override { return 420.0f; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
 }  // namespace editor
 }  // namespace yaze
 
