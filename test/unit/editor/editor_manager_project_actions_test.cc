@@ -785,6 +785,88 @@ TEST(EditorManagerProjectActionsTest,
       reopened.rom_filename, rom_path.string()));
 }
 
+// Opening a project must not run `git init`. The project file carries
+// git_repository=. the way a copied Oracle of Secrets folder does, so that
+// value alone must not count as opting in.
+TEST(EditorManagerProjectActionsTest,
+     OpenProjectWithoutGitDoesNotCreateRepository) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_open_project_no_git"));
+  const auto rom_path = temp_dir.path / "game.sfc";
+  const auto project_path = temp_dir.path / "game.yaze";
+  WriteRomFile(rom_path, "NO GIT ROM");
+  {
+    std::ofstream out(project_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out << ProjectFileContents("No Git", rom_path)
+        << "\n[build]\ngit_repository=.\ntrack_changes=true\n";
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_FALSE(std::filesystem::exists(temp_dir.path / ".git"));
+
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+
+  EXPECT_FALSE(std::filesystem::exists(temp_dir.path / ".git"));
+  ASSERT_NE(manager->GetVersionManager(), nullptr);
+  EXPECT_FALSE(manager->GetVersionManager()->IsGitInitialized());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     CreateNewProjectDoesNotCreateGitRepository) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_create_project_no_git"));
+  const auto rom_path = temp_dir.path / "game.sfc";
+  const auto project_path = temp_dir.path / "created.yaze";
+  WriteRomFile(rom_path, "CREATE NO GIT ROM");
+
+  ASSERT_OK(manager->CreateNewProjectFromRom(
+      "Vanilla ROM Hack", rom_path.string(), "Created", project_path.string()));
+
+  ASSERT_TRUE(std::filesystem::exists(project_path));
+  EXPECT_FALSE(std::filesystem::exists(temp_dir.path / ".git"));
+  ASSERT_NE(manager->GetVersionManager(), nullptr);
+  EXPECT_FALSE(manager->GetVersionManager()->IsGitInitialized());
+}
+
+// A project folder that is already a repository keeps working: open records
+// it in git_repository, and the check resolves against the project directory
+// rather than the test's working directory.
+TEST(EditorManagerProjectActionsTest, OpenProjectAdoptsExistingGitRepository) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_open_project_existing_git"));
+  const auto rom_path = temp_dir.path / "game.sfc";
+  const auto project_path = temp_dir.path / "game.yaze";
+  // A .git entry is all the adopt check reads; no git process runs.
+  std::filesystem::create_directories(temp_dir.path / ".git");
+  WriteRomFile(rom_path, "EXISTING GIT ROM");
+  WriteProjectFile(project_path, "Existing Git", rom_path);
+
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+
+  EXPECT_EQ(manager->GetCurrentProject()->git_repository, ".");
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->project_context.has_value());
+  EXPECT_EQ(session->project_context->git_repository, ".");
+  ASSERT_NE(manager->GetVersionManager(), nullptr);
+  EXPECT_TRUE(manager->GetVersionManager()->IsGitInitialized());
+}
+
 TEST(EditorManagerProjectActionsTest,
      CreateNewProjectRoutesToGuidedDialogWithoutMutatingSession) {
   ScopedImGuiContext imgui;
