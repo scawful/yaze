@@ -4,15 +4,9 @@
 
 namespace yaze::editor {
 
-void OverworldEditor::HandleOverworldPan() {
-  if (canvas_nav_)
-    canvas_nav_->HandleOverworldPan();
-}
-
-void OverworldEditor::HandleOverworldZoom() {
-  if (canvas_nav_)
-    canvas_nav_->HandleOverworldZoom();
-}
+// View changes are requests: the navigation manager applies them when the
+// canvas child begins, so they are safe to call from shortcuts, the toolbar
+// or a context menu.
 
 void OverworldEditor::ZoomIn() {
   if (canvas_nav_)
@@ -24,9 +18,9 @@ void OverworldEditor::ZoomOut() {
     canvas_nav_->ZoomOut();
 }
 
-void OverworldEditor::ClampOverworldScroll() {
+void OverworldEditor::ZoomToFit() {
   if (canvas_nav_)
-    canvas_nav_->ClampOverworldScroll();
+    canvas_nav_->ZoomToFit();
 }
 
 void OverworldEditor::ResetOverworldView() {

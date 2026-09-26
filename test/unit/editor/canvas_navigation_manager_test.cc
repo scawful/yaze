@@ -239,26 +239,71 @@ TEST_F(CanvasNavigationManagerTest, MultipleZoomInStepsAccumulate) {
 }
 
 // ===========================================================================
-// NOTE: ResetOverworldView, CenterOverworldView, HandleOverworldPan,
-// and CheckForMousePan all call ImGui::SetScrollX/Y or IsMouseDragging
-// which require an active ImGui window context. Those are exercised in
-// integration tests with a live ImGui frame, not here.
+// Sticky wheel pan and zoom anchoring (pure math, no ImGui frame needed)
 // ===========================================================================
 
-// ===========================================================================
-// ClampOverworldScroll - documented no-op
-// ===========================================================================
-
-TEST_F(CanvasNavigationManagerTest, ClampScrollDoesNotCrash) {
-  manager_.ClampOverworldScroll();
+TEST(StickyWheelPanTest, MouseNotchMovesOneConsistentStep) {
+  StickyWheelPan pan;
+  // One notch down at zoom 1: 64px in 8px detents.
+  const ImVec2 first = pan.Consume(ImVec2(0, -1), 1 / 60.f, 64.f, 8.f);
+  const ImVec2 second = pan.Consume(ImVec2(0, -1), 1 / 60.f, 64.f, 8.f);
+  EXPECT_FLOAT_EQ(first.y, 64.f);
+  EXPECT_FLOAT_EQ(second.y, 64.f);
+  EXPECT_FLOAT_EQ(first.x, 0.f);
+  // Wheel up scrolls back toward the origin.
+  EXPECT_FLOAT_EQ(pan.Consume(ImVec2(0, 1), 1 / 60.f, 64.f, 8.f).y, -64.f);
 }
 
-// ===========================================================================
-// HandleOverworldZoom - documented no-op
-// ===========================================================================
+TEST(StickyWheelPanTest, TrackpadDeltasMoveInWholeDetents) {
+  StickyWheelPan pan;
+  float moved = 0.f;
+  // 0.05 units * 64px = 3.2px per frame: nothing moves until a full detent.
+  moved += pan.Consume(ImVec2(0, -0.05f), 1 / 60.f, 64.f, 8.f).y;
+  moved += pan.Consume(ImVec2(0, -0.05f), 1 / 60.f, 64.f, 8.f).y;
+  EXPECT_FLOAT_EQ(moved, 0.f);
+  moved += pan.Consume(ImVec2(0, -0.05f), 1 / 60.f, 64.f, 8.f).y;
+  EXPECT_FLOAT_EQ(moved, 8.f);
+  // Diagonal input moves both axes (ImGui's default picks only one).
+  const ImVec2 both = pan.Consume(ImVec2(-1, -1), 1 / 60.f, 64.f, 8.f);
+  EXPECT_GT(both.x, 0.f);
+  EXPECT_GT(both.y, 0.f);
+}
 
-TEST_F(CanvasNavigationManagerTest, HandleOverworldZoomDoesNotCrash) {
-  manager_.HandleOverworldZoom();
+TEST(StickyWheelPanTest, MomentumTailAndIdleResidualAreDropped) {
+  StickyWheelPan pan;
+  // Below the deadzone: ignored entirely.
+  EXPECT_FLOAT_EQ(pan.Consume(ImVec2(0, -0.01f), 1 / 60.f, 64.f, 8.f).y, 0.f);
+  // Leave a 6.4px residual, then stop long enough for it to be discarded.
+  EXPECT_FLOAT_EQ(pan.Consume(ImVec2(0, -0.1f), 1 / 60.f, 64.f, 8.f).y, 0.f);
+  for (int i = 0; i < 10; ++i) {
+    pan.Consume(ImVec2(0, 0), 1 / 60.f, 64.f, 8.f);
+  }
+  EXPECT_FLOAT_EQ(pan.residual.y, 0.f);
+  // A reversal starts from zero instead of paying back leftover travel.
+  pan.Consume(ImVec2(0, -0.1f), 1 / 60.f, 64.f, 8.f);
+  EXPECT_FLOAT_EQ(pan.Consume(ImVec2(0, 0.2f), 1 / 60.f, 64.f, 8.f).y, -8.f);
+}
+
+TEST(ScrollForZoomAtAnchorTest, KeepsPointUnderAnchorFixed) {
+  const ImVec2 scroll(100.f, 50.f);
+  const ImVec2 anchor(200.f, 150.f);
+  const ImVec2 zoomed = ScrollForZoomAtAnchor(scroll, anchor, 1.f, 2.f);
+  // Content point under the anchor: (scroll + anchor) / scale.
+  EXPECT_FLOAT_EQ((zoomed.x + anchor.x) / 2.f, (scroll.x + anchor.x) / 1.f);
+  EXPECT_FLOAT_EQ((zoomed.y + anchor.y) / 2.f, (scroll.y + anchor.y) / 1.f);
+  const ImVec2 same = ScrollForZoomAtAnchor(scroll, anchor, 1.f, 0.f);
+  EXPECT_FLOAT_EQ(same.x, scroll.x);
+}
+
+TEST_F(CanvasNavigationManagerTest, ResetAndFitRequestsDoNotNeedAFrame) {
+  canvas_.set_global_scale(2.5f);
+  manager_.ResetOverworldView();
+  EXPECT_FLOAT_EQ(canvas_.global_scale(), 1.0f);
+  // Without a recorded viewport, fit leaves the scale alone.
+  manager_.ZoomToFit();
+  EXPECT_FLOAT_EQ(canvas_.global_scale(), 1.0f);
+  manager_.CenterOverworldView();
+  manager_.CenterOnMap(-1);
 }
 
 // ===========================================================================

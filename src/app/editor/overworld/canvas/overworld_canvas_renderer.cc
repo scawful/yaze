@@ -113,14 +113,18 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   frame_opts.render_popups = true;
   frame_opts.use_child_window = false;  // CRITICAL: Canvas has own pan logic
 
-  // Wrap in child window for scrollbars
+  // Wrap in child window for scrollbars. The navigation manager owns all
+  // scrolling (wheel, drag pan, zoom anchoring), so ImGui's own wheel scroll
+  // is disabled on this child.
   gui::BeginNoPadding();
-  gui::BeginChildBothScrollbars(7);
-  if (reset_view_requested_) {
-    // This must run in the canvas child, not in the popup's window.
-    editor_->ResetOverworldView();
-    reset_view_requested_ = false;
+  if (editor_->canvas_nav_) {
+    editor_->canvas_nav_->BeginCanvasViewport();
   }
+  ImGui::BeginChild(ImGui::GetID(reinterpret_cast<void*>(intptr_t{7})),
+                    ImGui::GetContentRegionAvail(), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                        ImGuiWindowFlags_AlwaysHorizontalScrollbar |
+                        ImGuiWindowFlags_NoScrollWithMouse);
 
   // Keep canvas scroll at 0 - ImGui's child window handles all scrolling
   // The scrollbars scroll the child window which moves the entire canvas
@@ -130,9 +134,9 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   auto canvas_rt = gui::BeginCanvas(editor_->ow_map_canvas_, frame_opts);
   gui::EndNoPadding();
 
-  // Handle pan via ImGui scrolling (instead of canvas internal scroll)
-  editor_->HandleOverworldPan();
-  editor_->HandleOverworldZoom();
+  if (editor_->canvas_nav_) {
+    editor_->canvas_nav_->EndCanvasViewport(canvas_rt.hovered);
+  }
 
   if (editor_->overworld_.is_loaded()) {
     // Draw the 64 overworld map bitmaps

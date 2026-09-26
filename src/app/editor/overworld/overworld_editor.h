@@ -518,11 +518,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void OpenEntityContextMenu(zelda3::GameEntity* entity);
   void DrawEntityContextMenu();
   zelda3::GameEntity* ResolveEditingEntity();
-  void HandleOverworldPan();
-  void HandleOverworldZoom();
   void ZoomIn();
   void ZoomOut();
-  void ClampOverworldScroll();
+  void ZoomToFit();
   void ResetOverworldView();
   void CenterOverworldView();
 
