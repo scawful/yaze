@@ -797,6 +797,10 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   if (!cutscene_shots.empty()) {
     file << "cutscene_shots=" << GetRelativePath(cutscene_shots) << "\n";
   }
+  if (!custom_collision_json.empty()) {
+    file << "custom_collision_json=" << GetRelativePath(custom_collision_json)
+         << "\n";
+  }
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
   file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder)
        << "\n";
@@ -1173,6 +1177,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         symbols_filename = value;
       else if (key == "cutscene_shots")
         cutscene_shots = value;
+      else if (key == "custom_collision_json")
+        custom_collision_json = value;
       else if (key == "output_folder")
         output_folder = value;
       else if (key == "custom_objects_folder")

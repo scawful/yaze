@@ -72,9 +72,10 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
     return absl::OutOfRangeError("Collision data pointer out of range");
   }
   if (static_cast<size_t>(pc_ptr) >= collision_safe_end) {
-    return absl::FailedPreconditionError(absl::StrFormat(
-        "Collision data for room 0x%02X overlaps WaterFill reserved region (pc=0x%06X)",
-        room_id, pc_ptr));
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Collision data for room 0x%02X overlaps WaterFill "
+                        "reserved region (pc=0x%06X)",
+                        room_id, pc_ptr));
   }
 
   size_t cursor = static_cast<size_t>(pc_ptr);
@@ -134,9 +135,10 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
   }
 
   if (has_water_fill_reserved_region && !found_end_marker) {
-    return absl::FailedPreconditionError(absl::StrFormat(
-        "Collision data for room 0x%02X is unterminated before WaterFill reserved region",
-        room_id));
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Collision data for room 0x%02X is unterminated before "
+                        "WaterFill reserved region",
+                        room_id));
   }
 
   return result;
@@ -151,11 +153,11 @@ absl::StatusOr<std::string> DumpCustomCollisionRoomsToJsonString(
   using json = nlohmann::json;
 
   std::vector<CustomCollisionRoomEntry> sorted = rooms;
-  std::sort(sorted.begin(), sorted.end(),
-            [](const CustomCollisionRoomEntry& a,
-               const CustomCollisionRoomEntry& b) {
-              return a.room_id < b.room_id;
-            });
+  std::sort(
+      sorted.begin(), sorted.end(),
+      [](const CustomCollisionRoomEntry& a, const CustomCollisionRoomEntry& b) {
+        return a.room_id < b.room_id;
+      });
 
   json root;
   root["version"] = 1;
@@ -216,15 +218,14 @@ LoadCustomCollisionRoomsFromJsonString(const std::string& json_content) {
   try {
     root = json::parse(json_content);
   } catch (const json::parse_error& e) {
-    return absl::InvalidArgumentError(
-        std::string("JSON parse error: ") + e.what());
+    return absl::InvalidArgumentError(std::string("JSON parse error: ") +
+                                      e.what());
   }
 
   const int version = root.value("version", 1);
   if (version != 1) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Unsupported custom collision JSON version: %d",
-                        version));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Unsupported custom collision JSON version: %d", version));
   }
   if (!root.contains("rooms") || !root["rooms"].is_array()) {
     return absl::InvalidArgumentError("Missing or invalid 'rooms' array");
@@ -249,8 +250,7 @@ LoadCustomCollisionRoomsFromJsonString(const std::string& json_content) {
         if (idx == s.size()) {
           return parsed;
         }
-      } catch (...) {
-      }
+      } catch (...) {}
     }
     return std::nullopt;
   };
@@ -264,10 +264,9 @@ LoadCustomCollisionRoomsFromJsonString(const std::string& json_content) {
       continue;
     }
 
-    const json& room_v =
-        item.contains("room_id") ? item["room_id"]
-        : item.contains("room")  ? item["room"]
-                                 : json();
+    const json& room_v = item.contains("room_id") ? item["room_id"]
+                         : item.contains("room")  ? item["room"]
+                                                  : json();
     const auto room_id_opt = parse_int(room_v);
     if (!room_id_opt.has_value() || *room_id_opt < 0 ||
         *room_id_opt >= kNumberOfRooms) {
@@ -276,16 +275,14 @@ LoadCustomCollisionRoomsFromJsonString(const std::string& json_content) {
     }
     const int room_id = *room_id_opt;
     if (seen_rooms.contains(room_id)) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat("Duplicate room_id in custom collision JSON: 0x%02X",
-                          room_id));
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Duplicate room_id in custom collision JSON: 0x%02X", room_id));
     }
     seen_rooms[room_id] = true;
 
-    const json& tiles_v =
-        item.contains("tiles")   ? item["tiles"]
-        : item.contains("entries") ? item["entries"]
-                                   : json::array();
+    const json& tiles_v = item.contains("tiles")     ? item["tiles"]
+                          : item.contains("entries") ? item["entries"]
+                                                     : json::array();
     if (!tiles_v.is_array()) {
       return absl::InvalidArgumentError(
           absl::StrFormat("Invalid tiles array for room 0x%02X", room_id));
@@ -307,14 +304,12 @@ LoadCustomCollisionRoomsFromJsonString(const std::string& json_content) {
         off = *off_opt;
         val = *val_opt;
       } else if (entry.is_object()) {
-        const json& off_v =
-            entry.contains("offset") ? entry["offset"]
-            : entry.contains("off")  ? entry["off"]
-                                     : json();
-        const json& val_v =
-            entry.contains("value") ? entry["value"]
-            : entry.contains("val") ? entry["val"]
-                                    : json();
+        const json& off_v = entry.contains("offset") ? entry["offset"]
+                            : entry.contains("off")  ? entry["off"]
+                                                     : json();
+        const json& val_v = entry.contains("value") ? entry["value"]
+                            : entry.contains("val") ? entry["val"]
+                                                    : json();
         const auto off_opt = parse_int(off_v);
         const auto val_opt = parse_int(val_v);
         if (!off_opt.has_value() || !val_opt.has_value()) {
@@ -359,13 +354,38 @@ LoadCustomCollisionRoomsFromJsonString(const std::string& json_content) {
     out.push_back(std::move(r));
   }
 
-  std::sort(out.begin(), out.end(),
-            [](const CustomCollisionRoomEntry& a,
-               const CustomCollisionRoomEntry& b) {
-              return a.room_id < b.room_id;
-            });
+  std::sort(
+      out.begin(), out.end(),
+      [](const CustomCollisionRoomEntry& a, const CustomCollisionRoomEntry& b) {
+        return a.room_id < b.room_id;
+      });
   return out;
 #endif
+}
+
+absl::StatusOr<std::string> DumpCustomCollisionSourceFromRom(Rom* rom) {
+  std::vector<CustomCollisionRoomEntry> rooms;
+  for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
+    auto map = LoadCustomCollisionMap(rom, room_id);
+    if (!map.ok()) {
+      return map.status();
+    }
+    if (!map->has_data) {
+      continue;
+    }
+    CustomCollisionRoomEntry entry;
+    entry.room_id = room_id;
+    for (size_t offset = 0; offset < map->tiles.size(); ++offset) {
+      if (map->tiles[offset] != 0) {
+        entry.tiles.push_back(CustomCollisionTileEntry{
+            static_cast<uint16_t>(offset), map->tiles[offset]});
+      }
+    }
+    if (!entry.tiles.empty()) {
+      rooms.push_back(std::move(entry));
+    }
+  }
+  return DumpCustomCollisionRoomsToJsonString(rooms);
 }
 
 }  // namespace zelda3
