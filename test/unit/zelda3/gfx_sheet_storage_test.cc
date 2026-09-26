@@ -226,6 +226,29 @@ TEST(GfxSheetStorageTest, RefusalsLeaveTheRomUntouched) {
   }
 }
 
+TEST(GfxSheetStorageTest, ReservedBlocksMustKeepTheirPixels) {
+  const auto fixture = BuildGfxSheetTestRom();
+  Rom rom = LoadTestRom(fixture.bytes);
+  GfxSheetWritePolicy policy = PolicyWithFreeSpace();
+  policy.reserved_blocks[0x20] = {3};
+
+  // Changing a pixel outside block 3 is allowed.
+  auto edited = fixture.sheets.at(0x20);
+  const int free_tile = zelda3::GfxSheetBlockTiles(0)[0];
+  edited[free_tile * 24] ^= 0xFF;
+  ASSERT_TRUE(zelda3::WriteGfxSheet(rom, 0x20, edited, policy).ok());
+
+  // Changing one byte of block 3's bottom-right tile is refused.
+  const int reserved_tile = zelda3::GfxSheetBlockTiles(3)[3];
+  edited[reserved_tile * 24 + 5] ^= 0x01;
+  const auto before = rom.vector();
+  auto refused = zelda3::WriteGfxSheet(rom, 0x20, edited, policy);
+  EXPECT_EQ(refused.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(refused.status().message()).find("block 3"),
+            std::string::npos);
+  EXPECT_EQ(rom.vector(), before);
+}
+
 TEST(GfxSheetStorageTest, RawSheetWritesExactlyItsOwnBytes) {
   const auto fixture = BuildGfxSheetTestRom();
   Rom rom = LoadTestRom(fixture.bytes);

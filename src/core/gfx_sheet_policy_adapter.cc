@@ -7,6 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "rom/snes.h"
+#include "util/macro.h"
 
 namespace yaze::core {
 
@@ -56,6 +57,39 @@ absl::StatusOr<zelda3::GfxSheetWritePolicy> BuildGfxSheetWritePolicy(
         end, absl::StrJoin(parts, ", ")));
   };
   return policy;
+}
+
+absl::StatusOr<zelda3::GfxSheetWritePolicy> BuildGfxSheetWritePolicy(
+    const project::YazeProject& project) {
+  ASSIGN_OR_RETURN(zelda3::GfxSheetWritePolicy policy,
+                   BuildGfxSheetWritePolicy(project.hack_manifest));
+  const auto& settings = project.graphics_sheets;
+  policy.reserved_sheets.insert(settings.reserved_sheets.begin(),
+                                settings.reserved_sheets.end());
+  for (const auto& [sheet, blocks] : settings.reserved_blocks) {
+    auto& merged = policy.reserved_blocks[sheet];
+    merged.insert(merged.end(), blocks.begin(), blocks.end());
+  }
+  return policy;
+}
+
+zelda3::GfxSheetInventoryOptions BuildGfxSheetInventoryOptions(
+    const project::YazeProject* project) {
+  zelda3::GfxSheetInventoryOptions options;
+  if (project == nullptr) {
+    return options;
+  }
+  const auto& settings = project->graphics_sheets;
+  options.reserved_sheets.insert(settings.reserved_sheets.begin(),
+                                 settings.reserved_sheets.end());
+  options.flagged_sheets.insert(settings.flagged_sheets.begin(),
+                                settings.flagged_sheets.end());
+  options.reserved_blocks = settings.reserved_blocks;
+  const auto& manifest_reserved =
+      project->hack_manifest.graphics_sheet_layout().reserved_sheets;
+  options.reserved_sheets.insert(manifest_reserved.begin(),
+                                 manifest_reserved.end());
+  return options;
 }
 
 }  // namespace yaze::core

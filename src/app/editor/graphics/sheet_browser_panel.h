@@ -1,14 +1,27 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_SHEET_BROWSER_PANEL_H
 #define YAZE_APP_EDITOR_GRAPHICS_SHEET_BROWSER_PANEL_H
 
+#include <functional>
+#include <optional>
+#include <string>
+
 #include "absl/status/status.h"
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
+#include "zelda3/gfx_sheet_inventory.h"
 
 namespace yaze {
+class Rom;
+namespace zelda3 {
+class GameData;
+}  // namespace zelda3
+namespace project {
+struct YazeProject;
+}  // namespace project
+
 namespace editor {
 
 /**
@@ -51,6 +64,24 @@ class SheetBrowserPanel : public WindowContent {
    */
   absl::Status Update();
 
+  /**
+   * @brief Where free-block and "used by" data come from. The project
+   * getter may return null (no project open).
+   */
+  void SetDataSources(
+      Rom* rom, zelda3::GameData* game_data,
+      std::function<const project::YazeProject*()> project_getter);
+
+  /**
+   * @brief Rebuild the sheet inventory from the ROM buffer. Runs lazily on
+   * the first draw and when the ROM changes.
+   */
+  void RefreshInventory();
+
+  const std::optional<zelda3::GfxSheetInventory>& inventory() const {
+    return inventory_;
+  }
+
  private:
   /**
    * @brief Draw the search/filter bar
@@ -74,6 +105,12 @@ class SheetBrowserPanel : public WindowContent {
    */
   void DrawBatchOperations();
 
+  /**
+   * @brief Storage, reserved state, free 16x16 blocks and "used by" for the
+   * current sheet.
+   */
+  void DrawSelectedSheetInfo();
+
   GraphicsEditorState* state_;
   gui::Canvas thumbnail_canvas_;
 
@@ -86,6 +123,15 @@ class SheetBrowserPanel : public WindowContent {
   // Grid layout
   float thumbnail_scale_ = 2.0f;
   int columns_ = 2;
+
+  // Inventory (free blocks, reserved, used by), built from the ROM buffer.
+  Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
+  std::function<const project::YazeProject*()> project_getter_;
+  std::optional<zelda3::GfxSheetInventory> inventory_;
+  std::string inventory_error_;
+  const Rom* inventory_rom_ = nullptr;
+  bool show_free_blocks_ = true;
 };
 
 }  // namespace editor

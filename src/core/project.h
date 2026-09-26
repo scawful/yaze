@@ -102,6 +102,26 @@ struct DungeonOverlaySettings {
   std::vector<uint16_t> minecart_sprite_ids;
 };
 
+/**
+ * @brief Project rules for graphics sheets (`[graphics_sheets]`).
+ *
+ * reserved_sheets are never written and never offered as free space (merged
+ * with the hack manifest's graphics_sheet_regions.reserved_sheets).
+ * flagged_sheets look free but need the owner's approval before art goes in.
+ * reserved_blocks maps a sheet to 16x16 block indices (0-15, row-major over
+ * the 8x2 block grid) that must keep their current pixels.
+ */
+struct GraphicsSheetSettings {
+  std::vector<uint16_t> reserved_sheets;
+  std::vector<uint16_t> flagged_sheets;
+  std::map<uint16_t, std::vector<uint16_t>> reserved_blocks;
+
+  bool empty() const {
+    return reserved_sheets.empty() && flagged_sheets.empty() &&
+           reserved_blocks.empty();
+  }
+};
+
 enum class RomRole { kBase, kDev, kPatched, kRelease };
 enum class RomWritePolicy { kAllow, kWarn, kBlock };
 
@@ -205,6 +225,7 @@ struct YazeProject {
   core::FeatureFlags::Flags feature_flags;
   WorkspaceSettings workspace_settings;
   DungeonOverlaySettings dungeon_overlay;
+  GraphicsSheetSettings graphics_sheets;
   core::RomAddressOverrides rom_address_overrides;
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       resource_labels;

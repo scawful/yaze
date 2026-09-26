@@ -2,9 +2,17 @@
 
 #include <gtest/gtest.h>
 
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <map>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "core/hack_manifest.h"
+#include "core/project.h"
+#include "unique_temp_path.h"
 
 namespace yaze::core {
 namespace {
@@ -94,6 +102,53 @@ TEST(GfxSheetPolicyAdapterTest, UnloadedManifestAllowsOnlyInPlaceWrites) {
   EXPECT_TRUE(policy->allocation_regions.empty());
   EXPECT_TRUE(policy->reserved_sheets.empty());
   EXPECT_FALSE(policy->check_write);
+}
+
+TEST(GfxSheetPolicyAdapterTest, ProjectGraphicsSheetsRoundTripAndMerge) {
+  const auto path = test::UniqueTempPath("graphics_sheets", ".yaze");
+  project::YazeProject project;
+  ASSERT_TRUE(project
+                  .LoadFromString("[project]\nname=Sheets\n\n"
+                                  "[graphics_sheets]\n"
+                                  "reserved_sheets=0x7B,0x7C\n"
+                                  "flagged_sheets=0xD4,0xD6\n"
+                                  "reserved_blocks=0x55:0,1;0xC7:15\n",
+                                  path.string())
+                  .ok());
+  EXPECT_EQ(project.graphics_sheets.reserved_sheets,
+            (std::vector<uint16_t>{0x7B, 0x7C}));
+  EXPECT_EQ(project.graphics_sheets.flagged_sheets,
+            (std::vector<uint16_t>{0xD4, 0xD6}));
+  EXPECT_EQ(project.graphics_sheets.reserved_blocks,
+            (std::map<uint16_t, std::vector<uint16_t>>{{0x55, {0, 1}},
+                                                       {0xC7, {15}}}));
+
+  project.filepath = path.string();
+  ASSERT_TRUE(project.Save().ok());
+  std::ifstream file(path);
+  const std::string saved((std::istreambuf_iterator<char>(file)),
+                          std::istreambuf_iterator<char>());
+  file.close();
+  EXPECT_NE(saved.find("[graphics_sheets]"), std::string::npos) << saved;
+  project::YazeProject reopened;
+  ASSERT_TRUE(reopened.LoadFromString(saved, path.string()).ok());
+  EXPECT_EQ(reopened.graphics_sheets.reserved_sheets,
+            project.graphics_sheets.reserved_sheets);
+  EXPECT_EQ(reopened.graphics_sheets.flagged_sheets,
+            project.graphics_sheets.flagged_sheets);
+  EXPECT_EQ(reopened.graphics_sheets.reserved_blocks,
+            project.graphics_sheets.reserved_blocks);
+  std::filesystem::remove(path);
+
+  // Project rules merge with the manifest rules.
+  ASSERT_TRUE(project.hack_manifest.LoadFromString(kManifest).ok());
+  auto policy = BuildGfxSheetWritePolicy(project);
+  ASSERT_TRUE(policy.ok());
+  EXPECT_EQ(policy->reserved_sheets, (std::set<uint16_t>{0x7B, 0x7C}));
+  EXPECT_EQ(policy->reserved_blocks.at(0x55), (std::vector<uint16_t>{0, 1}));
+  const auto options = BuildGfxSheetInventoryOptions(&project);
+  EXPECT_EQ(options.flagged_sheets, (std::set<uint16_t>{0xD4, 0xD6}));
+  EXPECT_EQ(options.reserved_sheets, (std::set<uint16_t>{0x7B, 0x7C}));
 }
 
 }  // namespace

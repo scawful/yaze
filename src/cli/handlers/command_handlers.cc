@@ -18,6 +18,7 @@
 #include "cli/handlers/game/oracle_smoke_check_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_graph_commands.h"
+#include "cli/handlers/graphics/gfx_sheet_inventory_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
@@ -230,6 +231,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageDoctorCommandHandler>());
   handlers.push_back(std::make_unique<SpriteDoctorCommandHandler>());
   handlers.push_back(std::make_unique<GraphicsDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<GfxSheetInventoryCommandHandler>());
   handlers.push_back(std::make_unique<RomCompareCommandHandler>());
 
   return handlers;

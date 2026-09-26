@@ -61,6 +61,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/tools/dungeon_doctor_commands.cc
   cli/handlers/tools/dungeon_object_validate_commands.cc
   cli/handlers/tools/graphics_doctor_commands.cc
+  cli/handlers/graphics/gfx_sheet_inventory_commands.cc
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/hex_inspector_commands.cc
   cli/handlers/tools/message_doctor_commands.cc

@@ -561,6 +561,15 @@ void OutputFormatter::AddArrayItem(const std::string& item) {
   }
 }
 
+void OutputFormatter::AddRawJsonField(const std::string& key,
+                                      const std::string& json) {
+  if (!IsJson()) {
+    return;
+  }
+  AddJsonFieldPrefix(key);
+  buffer_ += json;
+}
+
 std::string OutputFormatter::GetOutput() const {
   return buffer_;
 }
