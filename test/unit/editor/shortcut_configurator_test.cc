@@ -17,6 +17,7 @@
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
+#include "editor_test_support.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -74,7 +75,8 @@ class ShortcutConfiguratorTest : public ::testing::Test {
 
     renderer_ = std::make_unique<gfx::NullRenderer>();
     editor_manager_ = std::make_unique<EditorManager>();
-    editor_manager_->Initialize(renderer_.get(), "");
+    ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                                 renderer_.get());
 
     auto* window_manager = editor_manager_->GetWindowManager();
     window_manager->RegisterSession(0);

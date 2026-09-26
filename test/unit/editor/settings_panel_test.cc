@@ -15,6 +15,7 @@
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
 #include "core/project.h"
+#include "editor_test_support.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 
@@ -214,7 +215,7 @@ TEST(SettingsPanelTest, LateCustomObjectEnableOpensManagerOwnedMinecartPanel) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
 

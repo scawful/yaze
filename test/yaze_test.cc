@@ -8,15 +8,18 @@
 #include <SDL.h>
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <random>
 #include <string>
 #include <vector>
 
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "app/controller.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/platform/window.h"
@@ -30,6 +33,7 @@
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_ui.h"
+#include "settings_isolation.h"
 
 #ifdef _WIN32
 #include <process.h>
@@ -111,10 +115,10 @@ void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
   }
 #endif
 
-  if (std::getenv("YAZE_APP_DATA_DIR") != nullptr) {
-    return;
-  }
-
+  // Every test process gets its own settings root so no test reads or writes
+  // the developer's real ~/Documents/Yaze/settings.json or ~/.yaze. ctest runs
+  // one process per case with -j, so the name carries the pid, a steady-clock
+  // stamp and a random_device value (pids are reused; rand() is unseeded).
   std::error_code ec;
   auto temp_dir = std::filesystem::temp_directory_path(ec);
   if (ec) {
@@ -124,12 +128,75 @@ void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
     }
   }
 
+  const auto stamp =
+      std::chrono::steady_clock::now().time_since_epoch().count();
   g_test_app_data_dir =
-      temp_dir / ("yaze-test-appdata-" + std::to_string(CurrentProcessId()));
+      temp_dir /
+      ("yaze-test-appdata-" + std::to_string(CurrentProcessId()) + "-" +
+       std::to_string(stamp) + "-" + std::to_string(std::random_device{}()));
   std::filesystem::create_directories(g_test_app_data_dir, ec);
-  SDL_setenv("YAZE_APP_DATA_DIR", g_test_app_data_dir.string().c_str(), 1);
   std::atexit(RemoveIsolatedAppDataDir);
+
+  if (std::getenv("YAZE_APP_DATA_DIR") == nullptr) {
+    const auto app_data = g_test_app_data_dir / "appdata";
+    std::filesystem::create_directories(app_data, ec);
+    SDL_setenv("YAZE_APP_DATA_DIR", app_data.string().c_str(), 1);
+  }
+  if (std::getenv("YAZE_USER_DOCUMENTS_DIR") == nullptr) {
+    const auto documents = g_test_app_data_dir / "documents";
+    std::filesystem::create_directories(documents, ec);
+    SDL_setenv("YAZE_USER_DOCUMENTS_DIR", documents.string().c_str(), 1);
+  }
 }
+
+// Fails the whole run before any test starts if UserSettings would resolve to
+// the developer's real settings.json (for example, if the platform path
+// override stopped being honored). A fatal failure in a global environment's
+// SetUp makes gtest skip every test and exit non-zero, including in ctest's
+// one-process-per-case mode, which runs this same main.
+class RealSettingsGuardEnvironment : public ::testing::Environment {
+ public:
+  void SetUp() override {
+    const editor::UserSettings settings;
+    const std::filesystem::path settings_path = settings.settings_file_path();
+    if (IsRealUserSettingsPath(settings_path)) {
+      std::cerr << "FATAL: tests resolved the real user settings file "
+                << settings_path << "; refusing to run." << std::endl;
+      GTEST_FAIL() << "UserSettings resolved the real settings file "
+                   << settings_path
+                   << "; YAZE_USER_DOCUMENTS_DIR isolation is not active.";
+    }
+    const char* docs_override = std::getenv("YAZE_USER_DOCUMENTS_DIR");
+    if (docs_override == nullptr || *docs_override == '\0' ||
+        !IsPathUnder(settings_path, docs_override)) {
+      std::cerr << "FATAL: settings path " << settings_path
+                << " is outside YAZE_USER_DOCUMENTS_DIR." << std::endl;
+      GTEST_FAIL() << "UserSettings resolved " << settings_path
+                   << " outside YAZE_USER_DOCUMENTS_DIR.";
+    }
+  }
+};
+
+// Resets the shared isolated settings files after every case so a run of
+// many cases in one process does not leak preferences between cases.
+class IsolatedSettingsResetter : public ::testing::EmptyTestEventListener {
+ public:
+  void OnTestEnd(const ::testing::TestInfo&) override {
+    std::error_code ec;
+    if (const char* docs = std::getenv("YAZE_USER_DOCUMENTS_DIR");
+        docs && *docs && IsPathUnder(docs, g_test_app_data_dir)) {
+      const std::filesystem::path settings =
+          std::filesystem::path(docs) / "settings.json";
+      std::filesystem::remove(settings, ec);
+      std::filesystem::remove(settings.string() + ".bak", ec);
+    }
+    if (const char* app_data = std::getenv("YAZE_APP_DATA_DIR");
+        app_data && *app_data && IsPathUnder(app_data, g_test_app_data_dir)) {
+      std::filesystem::remove(
+          std::filesystem::path(app_data) / "yaze_settings.ini", ec);
+    }
+  }
+};
 
 }  // namespace
 
@@ -409,6 +476,9 @@ int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
   auto& listeners = ::testing::UnitTest::GetInstance()->listeners();
   listeners.Append(new yaze::test::ArenaQueueCleaner());
+  listeners.Append(new yaze::test::IsolatedSettingsResetter());
+  ::testing::AddGlobalTestEnvironment(
+      new yaze::test::RealSettingsGuardEnvironment());
 
   if (config.enable_ui_tests) {
 #ifdef YAZE_GUI_TEST_TARGET

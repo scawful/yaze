@@ -20,6 +20,7 @@
 #include "app/startup_flags.h"
 #include "core/features.h"
 #include "core/rom_settings.h"
+#include "editor_test_support.h"
 #include "rom/rom_diff.h"
 #include "rom/snes.h"
 #include "rom/write_fence.h"
@@ -249,7 +250,7 @@ TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   // Create a minimal ROM file that satisfies RomFileManager's size checks.
@@ -376,7 +377,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   constexpr int kHeaderTablePc = 0x10000;
@@ -492,7 +493,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_OK(manager->OpenRomOrProject(source.string()));
   // This raw-ROM session uses user backup preferences. Reach disk replacement
@@ -561,7 +562,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   constexpr int kHeaderTablePc = 0x10000;
@@ -642,7 +643,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path rom_path =
@@ -749,7 +750,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -811,7 +812,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -907,7 +908,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -979,7 +980,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto project_rom =
@@ -1034,7 +1035,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -1119,7 +1120,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -1184,7 +1185,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -1217,7 +1218,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a = CreateMinimalRomFile("yaze_guard_a.sfc", "GUARD ROM A");
@@ -1249,7 +1250,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -1292,7 +1293,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path =
@@ -1383,7 +1384,7 @@ TEST(EditorManagerWriteConflictTest, FirstCreatedSessionBindsEditorContext) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
 
@@ -1413,7 +1414,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path =
@@ -1450,7 +1451,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -1475,7 +1476,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -1550,7 +1551,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -1625,7 +1626,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -1685,7 +1686,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -1741,7 +1742,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a =
@@ -1795,7 +1796,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -1853,7 +1854,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a = CreateMinimalRomFile("yaze_palette_panels_a.sfc",
@@ -1904,7 +1905,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = CreateMinimalRomFile(
@@ -1938,7 +1939,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a = CreateMinimalRomFile("yaze_palette_close_first_a.sfc",
@@ -2004,7 +2005,7 @@ TEST(EditorManagerWriteConflictTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_a = CreateMinimalRomFile(

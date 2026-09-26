@@ -14,6 +14,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
+#include "editor_test_support.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "unique_temp_path.h"
@@ -262,7 +263,7 @@ TEST(CollisionSourcePairingOracleTest,
   {
     auto renderer = std::make_unique<gfx::NullRenderer>();
     auto manager = std::make_unique<EditorManager>();
-    manager->Initialize(renderer.get(), "");
+    ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
     manager->SetAssetLoadMode(AssetLoadMode::kLazy);
     manager->user_settings().prefs().backup_before_save = false;
     const auto open =
