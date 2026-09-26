@@ -34,8 +34,8 @@ absl::Status InitializeMockRom(Rom& rom) {
   // ROM type (0x7FD6): $00 = ROM only
   mock_data[kHeaderOffset + 0x16] = 0x00;
 
-  // ROM size (0x7FD7): $09 = 1MB (2^9 KB = 512 KB = 1MB with header)
-  mock_data[kHeaderOffset + 0x17] = 0x09;
+  // ROM size (0x7FD7): $0A = 1MB (0x400 << 0x0A), matching kMockRomSize
+  mock_data[kHeaderOffset + 0x17] = 0x0A;
 
   // SRAM size (0x7FD8): $03 = 8KB (Zelda3 standard)
   mock_data[kHeaderOffset + 0x18] = 0x03;

@@ -229,7 +229,8 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report, bool deep) {
         finding.id = "low_entropy_bank";
         finding.severity = DiagnosticSeverity::kWarning;
         finding.message = absl::StrFormat(
-            "Very low entropy (%.2f) detected in Bank %02X. Region might be erased or uninitialized.",
+            "Very low entropy (%.2f) detected in Bank %02X. Region might be "
+            "erased or uninitialized.",
             entropy, bank);
         finding.location = absl::StrFormat("Bank %02X", bank);
         finding.suggested_action = "Verify if this bank should contain data.";
@@ -239,23 +240,27 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report, bool deep) {
     }
 
     // Check for pointer chain integrity in overworld maps
-    uint32_t high_table =
-        report.features.has_expanded_pointer_tables ? kExpandedPtrTableHigh : kPtrTableHighBase;
-    uint32_t low_table =
-        report.features.has_expanded_pointer_tables ? kExpandedPtrTableLow : kPtrTableLowBase;
-    int map_count =
-        report.features.has_expanded_pointer_tables ? kExpandedMapCount : kVanillaMapCount;
+    uint32_t high_table = report.features.has_expanded_pointer_tables
+                              ? kExpandedPtrTableHigh
+                              : kPtrTableHighBase;
+    uint32_t low_table = report.features.has_expanded_pointer_tables
+                             ? kExpandedPtrTableLow
+                             : kPtrTableLowBase;
+    int map_count = report.features.has_expanded_pointer_tables
+                        ? kExpandedMapCount
+                        : kVanillaMapCount;
 
     if (high_table + map_count < size && low_table + map_count < size) {
       for (int i = 0; i < map_count; ++i) {
         uint8_t high = data[high_table + i];
-        uint16_t low = data[low_table + i] | (data[low_table + i + map_count] << 8);
+        uint16_t low =
+            data[low_table + i] | (data[low_table + i + map_count] << 8);
         uint32_t target = (high << 16) | low;
 
         // LoROM address translation (simplified check)
         uint32_t pc_addr = 0;
         if ((target & 0x7FFF) >= 0 && target < 0xFF0000) {
-            pc_addr = ((target & 0x7F0000) >> 1) | (target & 0x7FFF);
+          pc_addr = ((target & 0x7F0000) >> 1) | (target & 0x7FFF);
         }
 
         if (pc_addr >= size && target != 0) {
@@ -424,9 +429,15 @@ absl::Status RomDoctorCommandHandler::Execute(
   formatter.AddField("title", header.title);
   formatter.AddField("map_mode", GetMapModeName(header.map_mode));
   formatter.AddHexField("rom_type", header.rom_type, 2);
-  formatter.AddField("rom_size_header", 1 << (header.rom_size + 10));
-  formatter.AddField("sram_size",
-                     header.sram_size > 0 ? (1 << (header.sram_size + 10)) : 0);
+  // Header size codes mean 0x400 << code bytes. Codes past 0x0F (32 MB) are
+  // not SNES sizes and would overflow the shift, so report them as 0.
+  auto header_size_bytes = [](uint8_t code) {
+    return code <= 0x0F ? (0x400 << code) : 0;
+  };
+  formatter.AddField("rom_size_header", header_size_bytes(header.rom_size));
+  formatter.AddField("sram_size", header.sram_size > 0
+                                      ? header_size_bytes(header.sram_size)
+                                      : 0);
   formatter.AddField("country", GetCountryName(header.country));
   formatter.AddField("version", header.version);
   formatter.AddHexField("checksum_complement", header.checksum_complement, 4);
