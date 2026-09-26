@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/registry/panel_registration.h"
 #include "app/gui/core/ui_helpers.h"
@@ -21,7 +22,7 @@ REGISTER_PANEL(CutsceneCameraPanel);
 namespace {
 
 constexpr float kMarkerRadius = 5.0f;
-constexpr const char* kSizeLabels[] = {"Vanilla layout", "512 x 512",
+constexpr const char* kSizeLabels[] = {"From ROM / vanilla", "512 x 512",
                                        "1024 x 1024", "1024 x 512 (wide)",
                                        "512 x 1024 (tall)"};
 
@@ -171,8 +172,20 @@ void CutsceneCameraPanel::Save() {
   status_is_error_ = false;
 }
 
+OverworldEditor* CutsceneCameraPanel::OverworldSource() const {
+  return dynamic_cast<OverworldEditor*>(
+      ContentRegistry::Context::editor_window_context("Overworld"));
+}
+
 zelda3::AreaExtent CutsceneCameraPanel::ExtentFor(
     const zelda3::CutsceneShot& shot) const {
+  if (size_override_ == 0) {
+    if (auto* source = OverworldSource()) {
+      if (const auto* map = source->overworld().overworld_map(shot.area)) {
+        return zelda3::AreaExtentFromParent(map->parent(), map->area_size());
+      }
+    }
+  }
   const int area = shot.area & 0x3F;
   const int grid_x = (area % 8) * 512;
   const int grid_y = (area / 8) * 512;
@@ -392,6 +405,28 @@ void CutsceneCameraPanel::DrawCanvas(zelda3::CutsceneShot& shot) {
                   ToU32(gui::GetDisabledColor(), 0.5f));
   }
 
+  // The area's own screens, when the Overworld editor can provide them.
+  bool drew_map = false;
+  if (auto* source = OverworldSource()) {
+    const int world_base = shot.area & 0x40;
+    const int parent_screen =
+        (extent.origin_y / 512) * 8 + extent.origin_x / 512;
+    for (int dy = 0; dy < extent.height / 512; ++dy) {
+      for (int dx = 0; dx < extent.width / 512; ++dx) {
+        const auto* bitmap =
+            source->AreaScreenBitmap(world_base + parent_screen + dx + dy * 8);
+        if (bitmap == nullptr) {
+          continue;
+        }
+        const ImVec2 p0(origin.x + dx * 512 * scale,
+                        origin.y + dy * 512 * scale);
+        draw->AddImage((ImTextureID)(intptr_t)bitmap->texture(), p0,
+                       ImVec2(p0.x + 512 * scale, p0.y + 512 * scale));
+        drew_map = true;
+      }
+    }
+  }
+
   const auto camera = zelda3::ClampCamera(extent, shot.camera_x, shot.camera_y);
   const auto view = zelda3::ViewportOnMap(extent, camera.x, camera.y, scale);
   const ImVec2 view_min(origin.x + view.x, origin.y + view.y);
@@ -502,9 +537,10 @@ void CutsceneCameraPanel::DrawCanvas(zelda3::CutsceneShot& shot) {
         "Drag the viewport or a marker; arrow keys nudge "
         "(Shift: 8 px).");
   }
-  ImGui::TextDisabled(
-      "Schematic view: the area map and sprite graphics need the overworld "
-      "editor hook.");
+  if (!drew_map) {
+    ImGui::TextDisabled(
+        "Outline only: open the Overworld editor to draw the area's screens.");
+  }
 }
 
 }  // namespace yaze::editor
