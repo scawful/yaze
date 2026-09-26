@@ -1,10 +1,13 @@
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "util/i18n/tr.h"
 
+#include <vector>
+
 #include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/entity/entity.h"
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/popup_id.h"
 #include "imgui/imgui.h"
 
@@ -126,9 +129,13 @@ void OverworldEntityWorkbench::DrawPopups() {
   auto* editor = ctx.editor;
   auto* editing_entity = editing_entity_;
 
+  zelda3::GameEntity* entity_to_edit = nullptr;
   if (ImGui::BeginPopup(kContextMenuPopupId)) {
-    DrawEntityContextMenu();
+    entity_to_edit = DrawEntityContextMenu();
     ImGui::EndPopup();
+  }
+  if (entity_to_edit) {
+    OpenEditorFor(entity_to_edit);
   }
 
   if (ImGui::BeginPopupModal("Entity Insert Error", nullptr,
@@ -215,35 +222,36 @@ void OverworldEntityWorkbench::ProcessPendingInsertion(
   }
 }
 
-void OverworldEntityWorkbench::DrawEntityContextMenu() {
+zelda3::GameEntity* OverworldEntityWorkbench::DrawEntityContextMenu() {
   const auto ctx = CurrentOverworldWindowContext();
   if (!ctx)
-    return;
+    return nullptr;
 
   auto* editor = ctx.editor;
   auto* active_entity = editor->current_entity();
   if (!active_entity)
-    return;
+    return nullptr;
 
-  if (ImGui::Selectable(ICON_MD_EDIT " Edit Properties")) {
-    OpenEditorFor(active_entity);
-    ImGui::CloseCurrentPopup();
-  }
+  zelda3::GameEntity* entity_to_edit = nullptr;
+  std::vector<gui::MenuItemSpec> items;
+  items.emplace_back(
+      "Edit Properties...", ICON_MD_EDIT,
+      [&entity_to_edit, active_entity]() { entity_to_edit = active_entity; });
 
   if (active_entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
     auto* exit = static_cast<zelda3::OverworldExit*>(active_entity);
-    if (ImGui::Selectable(ICON_MD_LINK " Jump to Room")) {
+    items.emplace_back("Jump to Room", ICON_MD_LINK, [editor, exit]() {
       editor->RequestJumpToRoom(exit->room_id_);
-      ImGui::CloseCurrentPopup();
-    }
+    });
   } else if (active_entity->entity_type_ ==
              zelda3::GameEntity::EntityType::kEntrance) {
     auto* entrance = static_cast<zelda3::OverworldEntrance*>(active_entity);
-    if (ImGui::Selectable(ICON_MD_LINK " Jump to Entrance")) {
+    items.emplace_back("Jump to Entrance", ICON_MD_LINK, [editor, entrance]() {
       editor->RequestJumpToEntrance(entrance->entrance_id_);
-      ImGui::CloseCurrentPopup();
-    }
+    });
   }
+  gui::RenderMenuItems(items);
+  return entity_to_edit;
 }
 
 REGISTER_PANEL(OverworldEntityWorkbench);
