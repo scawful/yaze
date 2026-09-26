@@ -22,6 +22,10 @@
 namespace yaze::zelda3 {
 
 OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
+    : OverworldMap(index, rom, game_data, /*seed_area_parent=*/true) {}
+
+OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
+                           bool seed_area_parent)
     : index_(index), parent_(index), rom_(rom), game_data_(game_data) {
   // Load parent ID from ROM data for all versions
   // This is critical for proper large map sibling coordination
@@ -65,7 +69,42 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
     // Pure vanilla ROM but flag enabled - set up hardcoded vanilla defaults
     LoadCustomOverworldData();
   }
-  // For pure vanilla ROMs, LoadAreaInfo already handles everything
+
+  // Child screens of a multi-screen area render with the parent's area
+  // settings (the game reads the tables with $8A = parent). Seed them from
+  // the parent's ROM entries; Overworld re-syncs from the live parent map
+  // before builds so unsaved parent edits reach the children.
+  if (seed_area_parent && parent_ != index_ && parent_ >= 0 &&
+      parent_ < kNumOverworldMaps) {
+    OverworldMap area_parent(parent_, rom_, game_data_,
+                             /*seed_area_parent=*/false);
+    InheritAreaProperties(area_parent);
+  }
+}
+
+AreaRenderProperties OverworldMap::area_render_properties() const {
+  if (inherited_area_.has_value()) {
+    return *inherited_area_;
+  }
+  AreaRenderProperties props;
+  props.main_palette = main_palette_;
+  props.animated_gfx = animated_gfx_;
+  props.custom_gfx_ids = custom_gfx_ids_;
+  props.subscreen_overlay = subscreen_overlay_;
+  return props;
+}
+
+void OverworldMap::InheritAreaProperties(const OverworldMap& area_parent) {
+  if (&area_parent == this || area_parent.index_ == index_) {
+    inherited_area_.reset();
+    return;
+  }
+  AreaRenderProperties props;
+  props.main_palette = area_parent.main_palette_;
+  props.animated_gfx = area_parent.animated_gfx_;
+  props.custom_gfx_ids = area_parent.custom_gfx_ids_;
+  props.subscreen_overlay = area_parent.subscreen_overlay_;
+  inherited_area_ = props;
 }
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
@@ -765,8 +804,9 @@ void OverworldMap::LoadAreaGraphics() {
   if (OverworldVersionHelper::SupportsCustomTileGFX(
           OverworldVersionHelper::GetVersion(*rom_)) &&
       (*rom_)[OverworldCustomTileGFXGroupEnabled] != 0x00) {
+    const auto area_props = area_render_properties();
     for (int i = 0; i < 8; i++) {
-      uint8_t custom_sheet = custom_gfx_ids_[i];
+      uint8_t custom_sheet = area_props.custom_gfx_ids[i];
       if (custom_sheet == 0x00 || custom_sheet == 0xFF) {
         continue;  // 0/FF = don't load/override this slot
       }
@@ -999,12 +1039,15 @@ absl::Status OverworldMap::LoadPalette() {
     }
   }
 
-  // Use main palette from the overworld map data (matches ZScream logic)
+  // Use main palette from the overworld map data (matches ZScream logic).
+  // Child screens use the area parent's entry, like the game ($8A).
   if (version == OverworldVersion::kVanilla) {
     // Vanilla ROMs never write main_palette_ elsewhere; ensure world defaults
     main_palette_ = ComputeWorldBasedMainPalette();
+    pal0 = main_palette_;
+  } else {
+    pal0 = area_render_properties().main_palette;
   }
-  pal0 = main_palette_;
 
   auto& ow_main_pal_group = game_data_->palette_groups.overworld_main;
   ASSIGN_OR_RETURN(gfx::SnesPalette main,
@@ -1061,8 +1104,9 @@ absl::Status OverworldMap::LoadOverlay() {
     return LoadVanillaOverlayData();
   }
 
-  // Custom overworld ROM - use overlay from custom data
-  overlay_id_ = subscreen_overlay_;
+  // Custom overworld ROM - use the area's subscreen overlay (parent's entry
+  // for child screens, like the game)
+  overlay_id_ = area_render_properties().subscreen_overlay;
   has_overlay_ = (overlay_id_ != 0x00FF);
   overlay_data_.clear();
   return absl::OkStatus();

@@ -434,6 +434,16 @@ class Overworld {
    */
   absl::Status EnsureMapBuilt(int map_index);
 
+  /**
+   * @brief Copy the area parent's render settings (main palette, animated
+   * GFX, tile GFX groups, subscreen overlay) onto a child screen.
+   *
+   * The game reads these tables with the area id ($8A), which is the parent
+   * of a large/wide/tall area, so child screens must render with the
+   * parent's values. Call before rebuilding a map's graphics or palette.
+   */
+  void SyncAreaProperties(int map_index);
+
   /// @brief Compute hash of graphics configuration for cache lookup
   uint64_t ComputeGraphicsConfigHash(int map_index);
 

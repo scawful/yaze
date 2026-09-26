@@ -935,6 +935,7 @@ absl::Status Overworld::LoadOverworldMaps() {
       }
 
       // Reuse cached tilesets to reduce load time on WASM
+      SyncAreaProperties(i);
       overworld_maps_[i].LoadAreaGraphics();
       uint64_t config_hash = ComputeGraphicsConfigHash(i);
       const std::vector<uint8_t>* cached_tileset =
@@ -975,6 +976,7 @@ absl::Status Overworld::LoadOverworldMaps() {
         world_type = 2;
       }
 
+      SyncAreaProperties(i);
       auto task_function = [this, i, size, world_type]() {
         return overworld_maps_[i].BuildMap(size, game_state_, world_type,
                                            tiles16_, GetMapTiles(world_type));
@@ -1088,6 +1090,9 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
     }
   }
 
+  // Child screens render with the area parent's settings (game reads $8A).
+  SyncAreaProperties(map_index);
+
   // Prepare graphics config to check cache (must call LoadAreaGraphics first)
   overworld_maps_[map_index].LoadAreaGraphics();
   uint64_t config_hash = ComputeGraphicsConfigHash(map_index);
@@ -1108,6 +1113,21 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
     built_map_lru_.push_front(map_index);
   }
   return status;
+}
+
+void Overworld::SyncAreaProperties(int map_index) {
+  if (map_index < 0 ||
+      static_cast<size_t>(map_index) >= overworld_maps_.size()) {
+    return;
+  }
+  auto& map = overworld_maps_[map_index];
+  const int parent = map.parent();
+  if (parent == map_index || parent < 0 ||
+      static_cast<size_t>(parent) >= overworld_maps_.size()) {
+    map.ClearInheritedAreaProperties();
+    return;
+  }
+  map.InheritAreaProperties(overworld_maps_[parent]);
 }
 
 void Overworld::LoadTileTypes() {
