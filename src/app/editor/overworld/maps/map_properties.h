@@ -124,15 +124,6 @@ class MapPropertiesSystem {
   }
 
   // Main interface methods
-  void DrawCanvasToolbar(int& current_world, int& current_map,
-                         bool& current_map_lock,
-                         bool& show_map_properties_panel,
-                         bool& show_custom_bg_color_editor,
-                         bool& show_overlay_editor, bool& show_overlay_preview,
-                         int& game_state, EditingMode& current_mode,
-                         EntityEditMode& entity_edit_mode);
-
-  void DrawMapPropertiesPanel(int current_map, bool& show_map_properties_panel);
 
   void DrawCustomBackgroundColorEditor(int current_map,
                                        bool& show_custom_bg_color_editor);
@@ -174,28 +165,13 @@ class MapPropertiesSystem {
 
  private:
   // Property category drawers
-  void DrawGraphicsPopup(int current_map, int game_state);
-  void DrawPalettesPopup(int current_map, int game_state,
-                         bool& show_custom_bg_color_editor);
-  void DrawPropertiesPopup(int current_map, bool& show_map_properties_panel,
-                           bool& show_overlay_preview, int& game_state);
 
   // Overlay and mosaic functionality
-  void DrawMosaicControls(int current_map);
-  void DrawOverlayControls(int current_map, bool& show_overlay_preview);
   std::string GetOverlayDescription(uint16_t overlay_id);
 
   // Integrated toolset popup functions
-  void DrawToolsPopup(int& current_mode);
-  void DrawViewPopup();
-  void DrawQuickAccessPopup();
 
   // Tab content drawers
-  void DrawBasicPropertiesTab(int current_map);
-  void DrawSpritePropertiesTab(int current_map);
-  void DrawCustomFeaturesTab(int current_map);
-  void DrawTileGraphicsTab(int current_map);
-  void DrawMusicTab(int current_map);
 
   int CurrentGameState() const;
   int CurrentGameState(int fallback) const;
