@@ -574,9 +574,8 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
 
 void MapPropertiesSystem::SetupCanvasContextMenu(
     gui::Canvas& canvas, const OverworldContextTarget& target,
-    bool& current_map_lock, bool& show_map_properties_panel,
-    bool& show_custom_bg_color_editor, bool& show_overlay_editor,
-    int current_mode, project::YazeProject* project,
+    bool& current_map_lock, bool& show_custom_bg_color_editor,
+    bool& show_overlay_editor, int current_mode, project::YazeProject* project,
     SharedClipboard* shared_clipboard) {
   (void)current_mode;  // Explicit context actions are independent of tool mode.
   const int current_map = target.map_id;
@@ -713,8 +712,23 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
         }));
     map_menu.subitems.back().icon = icon;
   };
-  add_panel_action(ICON_MD_TUNE, "Area Configuration",
-                   show_map_properties_panel);
+  // Selects the right-clicked map, then opens the docked properties window
+  // (the old flag here was never read, so this item did nothing).
+  map_menu.subitems.push_back(gui::CanvasMenuItem::Conditional(
+      "Map Properties",
+      [this, target]() {
+        if (!map_selection_callback_ || !target.valid())
+          return;
+        map_selection_callback_(target.map_id, false);
+        if (open_map_properties_callback_)
+          open_map_properties_callback_();
+      },
+      [this, valid_map]() {
+        return valid_map && bool(map_selection_callback_) &&
+               bool(open_map_properties_callback_);
+      }));
+  map_menu.subitems.back().icon = ICON_MD_TUNE;
+  map_menu.subitems.back().shortcut = "Double-click";
   if (rom_ && zelda3::OverworldVersionHelper::SupportsAreaEnum(
                   zelda3::OverworldVersionHelper::GetVersion(*rom_))) {
     add_panel_action(ICON_MD_FORMAT_COLOR_FILL, "Custom Background Color",

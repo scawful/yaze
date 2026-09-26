@@ -58,7 +58,6 @@ struct CanvasNavigationContext {
   EditingMode* current_mode = nullptr;
   bool* current_map_lock = nullptr;
   bool* is_dragging_entity = nullptr;
-  bool* show_map_properties_panel = nullptr;
 
   // Graphics
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr;
@@ -77,6 +76,8 @@ struct CanvasNavigationCallbacks {
   std::function<bool()> pick_tile16_from_hovered_canvas;
   /// Returns true if an entity is currently hovered (for pan suppression).
   std::function<bool()> is_entity_hovered;
+  /// Opens (and focuses) the Map Properties window. Double-click target.
+  std::function<void()> open_map_properties;
 };
 
 class CanvasNavigationManager {

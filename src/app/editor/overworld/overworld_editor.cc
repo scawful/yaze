@@ -263,6 +263,8 @@ void OverworldEditor::Initialize() {
 
   // Initialize OverworldCanvasRenderer for canvas and panel drawing
   canvas_renderer_ = std::make_unique<OverworldCanvasRenderer>(this);
+  map_properties_system_->SetOpenMapPropertiesCallback(
+      [this]() { OpenMapPropertiesWindow(); });
   map_properties_system_->SetContextNavigationCallbacks(
       [this]() { canvas_renderer_->RequestResetView(); },
       [this]() { ZoomIn(); }, [this]() { ZoomOut(); });
@@ -385,7 +387,6 @@ void OverworldEditor::InitCanvasNavigationManager() {
   ctx.current_mode = &current_mode;
   ctx.current_map_lock = &current_map_lock_;
   ctx.is_dragging_entity = &is_dragging_entity_;
-  ctx.show_map_properties_panel = &show_map_properties_panel_;
   ctx.maps_bmp = &maps_bmp_;
   ctx.tile16_blockset = &tile16_blockset_;
   ctx.blockset_selector = &blockset_selector_;
@@ -408,6 +409,9 @@ void OverworldEditor::InitCanvasNavigationManager() {
   };
   callbacks.is_entity_hovered = [this]() -> bool {
     return entity_renderer_ && entity_renderer_->hovered_entity() != nullptr;
+  };
+  callbacks.open_map_properties = [this]() {
+    OpenMapPropertiesWindow();
   };
 
   canvas_nav_ = std::make_unique<CanvasNavigationManager>();
@@ -1644,6 +1648,22 @@ void OverworldEditor::ToggleItemListWindow() {
   dependencies_.window_manager->ToggleWindow(
       dependencies_.window_manager->GetActiveSessionId(),
       OverworldPanelIds::kItemList);
+}
+
+void OverworldEditor::OpenMapPropertiesWindow() {
+  auto* window_manager = dependencies_.window_manager;
+  if (!window_manager) {
+    return;
+  }
+  const size_t session_id = window_manager->GetActiveSessionId();
+  window_manager->OpenWindow(session_id, OverworldPanelIds::kMapProperties);
+  window_manager->MarkWindowRecentlyUsed(OverworldPanelIds::kMapProperties);
+  // Bring a docked-but-hidden tab to front. No-op until the window exists.
+  const std::string window_name = window_manager->GetWorkspaceWindowName(
+      session_id, OverworldPanelIds::kMapProperties);
+  if (!window_name.empty()) {
+    ImGui::SetWindowFocus(window_name.c_str());
+  }
 }
 
 void OverworldEditor::ContributeStatus(StatusBar* status_bar) {

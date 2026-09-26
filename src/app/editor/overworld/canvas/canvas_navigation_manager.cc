@@ -311,13 +311,6 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     (*ctx_.maps_bmp)[*ctx_.current_map].set_modified(false);
   }
 
-  if (*ctx_.current_mode == EditingMode::MOUSE &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    if (callbacks_.refresh_tile16_blockset) {
-      RETURN_IF_ERROR(callbacks_.refresh_tile16_blockset());
-    }
-  }
-
   return absl::OkStatus();
 }
 
@@ -326,8 +319,7 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
 // =============================================================================
 
 void CanvasNavigationManager::HandleMapInteraction() {
-  if (!ctx_.ow_map_canvas || !ctx_.current_mode ||
-      !ctx_.show_map_properties_panel || !ctx_.current_map_lock ||
+  if (!ctx_.ow_map_canvas || !ctx_.current_mode || !ctx_.current_map_lock ||
       !ctx_.current_map) {
     return;
   }
@@ -369,8 +361,9 @@ void CanvasNavigationManager::HandleMapInteraction() {
     SelectMapForEditing(ctx_, callbacks_, *hovered_map, true);
   }
 
-  if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-    *ctx_.show_map_properties_panel = true;
+  if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
+      callbacks_.open_map_properties) {
+    callbacks_.open_map_properties();
   }
 
   // Middle-drag is exclusively navigation. Pinning lives in the toolbar,

@@ -118,11 +118,11 @@ class MapPropertiesContextMenuTest : public ::testing::Test {
       respected_pin_ = respect_pin;
       ++selection_calls_;
     });
+    system_.SetOpenMapPropertiesCallback([this]() { show_properties_ = true; });
   }
 
   void Build(int mode = 0) {
-    system_.SetupCanvasContextMenu(canvas_, target_, map_lock_,
-                                   show_properties_, show_bg_color_,
+    system_.SetupCanvasContextMenu(canvas_, target_, map_lock_, show_bg_color_,
                                    show_overlay_, mode);
   }
 
@@ -161,7 +161,7 @@ TEST_F(MapPropertiesContextMenuTest, LockItemMutatesReferencedMapLockState) {
 }
 
 TEST_F(MapPropertiesContextMenuTest,
-       AreaConfigurationSelectsCapturedMapBeforeOpeningPanel) {
+       MapPropertiesSelectsCapturedMapBeforeOpeningPanel) {
   bool selected_before_open = false;
   system_.SetMapSelectionCallback([&](int map_id, bool respect_pin) {
     selected_before_open = !show_properties_;
@@ -169,7 +169,7 @@ TEST_F(MapPropertiesContextMenuTest,
     EXPECT_FALSE(respect_pin);
   });
   Build();
-  auto* item = FindMenuItem(canvas_, "Area Configuration");
+  auto* item = FindMenuItem(canvas_, "Map Properties");
   ASSERT_NE(item, nullptr);
   auto callback = item->callback;
   ASSERT_TRUE(callback);
@@ -256,9 +256,8 @@ TEST_F(MapPropertiesContextMenuTest, UnavailableActionsAreDisabled) {
   system_.SetMapSelectionCallback({});
   Build();
   for (const auto* label :
-       {"Select This Map", "Pin This Map", "Area Configuration",
-        "Sample Tile16", "Edit Tile16", "Insert Entity", "Reset View",
-        "Zoom In", "Zoom Out"}) {
+       {"Select This Map", "Pin This Map", "Map Properties", "Sample Tile16",
+        "Edit Tile16", "Insert Entity", "Reset View", "Zoom In", "Zoom Out"}) {
     auto* item = FindMenuItem(canvas_, label);
     ASSERT_NE(item, nullptr) << label;
     EXPECT_FALSE(item->enabled_condition()) << label;
@@ -299,8 +298,8 @@ TEST_F(MapPropertiesContextMenuTest,
   EXPECT_EQ(reset_calls, 1);
   EXPECT_EQ(zoom_in_calls, 1);
   EXPECT_EQ(zoom_out_calls, 1);
-  EXPECT_EQ(FindRootMenuItem(canvas_, "Area Configuration"), nullptr);
-  EXPECT_NE(FindMenuItem(canvas_, "Area Configuration"), nullptr);
+  EXPECT_EQ(FindRootMenuItem(canvas_, "Map Properties"), nullptr);
+  EXPECT_NE(FindMenuItem(canvas_, "Map Properties"), nullptr);
 }
 
 TEST_F(MapPropertiesContextMenuTest,

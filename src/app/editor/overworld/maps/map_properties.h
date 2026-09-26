@@ -88,6 +88,11 @@ class MapPropertiesSystem {
     map_selection_callback_ = std::move(callback);
   }
 
+  /// Opens (and focuses) the Map Properties window for the selected map.
+  void SetOpenMapPropertiesCallback(std::function<void()> callback) {
+    open_map_properties_callback_ = std::move(callback);
+  }
+
   void SetContextNavigationCallbacks(std::function<void()> reset_view,
                                      std::function<void()> zoom_in,
                                      std::function<void()> zoom_out) {
@@ -132,7 +137,6 @@ class MapPropertiesSystem {
   void SetupCanvasContextMenu(gui::Canvas& canvas,
                               const OverworldContextTarget& target,
                               bool& current_map_lock,
-                              bool& show_map_properties_panel,
                               bool& show_custom_bg_color_editor,
                               bool& show_overlay_editor, int current_mode = 0,
                               project::YazeProject* project = nullptr,
@@ -209,6 +213,8 @@ class MapPropertiesSystem {
   // Callback for tile16 editing from context menu
   std::function<void(const OverworldContextTarget&)> edit_tile16_callback_;
   std::function<bool(const OverworldContextTarget&)> sample_tile16_callback_;
+
+  std::function<void()> open_map_properties_callback_;
 
   std::function<void()> reset_view_callback_;
   std::function<void()> zoom_in_callback_;
