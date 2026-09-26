@@ -245,14 +245,29 @@ TEST_F(TileSelectorWidgetTest, GridContentSizeMatchesConfigGeometry) {
   EXPECT_FLOAT_EQ(content_size.y, 256.0f);
 }
 
-TEST_F(TileSelectorWidgetTest, PreferredViewportWidthMatchesGridPlusChrome) {
+TEST_F(TileSelectorWidgetTest, PreferredViewportWidthIsGridPlusStyleScrollbar) {
   gui::TileSelectorWidget widget("test_widget", config_);
   widget.SetTileCount(64);
 
-  // 8 columns * 32px + 4px offset + 18px scrollbar chrome = 278.
+  // 8 columns * 32px + 2 * 2px offset = 260, plus the live style scrollbar.
+  ImGui::GetStyle().ScrollbarSize = 14.0f;
+  EXPECT_FLOAT_EQ(widget.GetPreferredViewportWidth(), 274.0f);
+
+  // Follows the style (theme density / UI scale), not a hard-coded gutter.
+  ImGui::GetStyle().ScrollbarSize = 18.0f;
   EXPECT_FLOAT_EQ(widget.GetPreferredViewportWidth(), 278.0f);
   EXPECT_FLOAT_EQ(widget.GetPreferredViewportWidth(),
-                  widget.GetGridContentSize().x + 18.0f);
+                  widget.GetGridContentSize().x +
+                      gui::TileSelectorWidget::CurrentScrollbarSize());
+}
+
+TEST_F(TileSelectorWidgetTest, StaticPreferredWidthMatchesInstanceWidth) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  EXPECT_FLOAT_EQ(gui::TileSelectorWidget::PreferredViewportWidth(
+                      config_, gui::TileSelectorWidget::CurrentScrollbarSize()),
+                  widget.GetPreferredViewportWidth());
+  EXPECT_FLOAT_EQ(
+      gui::TileSelectorWidget::PreferredViewportWidth(config_, 10.0f), 270.0f);
 }
 
 // Test render without atlas (should not crash)

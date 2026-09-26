@@ -59,6 +59,12 @@ inline constexpr float kCompactFramePadding = 2.f;
 // Map Size Constants (shared across overworld subsystems)
 inline constexpr unsigned int kOverworldMapSize = 0x200;
 
+// Tile16 selector geometry. Shared by the selector widget config and the
+// selector panel's preferred dock width so the two cannot drift apart.
+inline constexpr int kTile16SelectorColumns = 8;
+inline constexpr float kTile16SelectorScale = 2.0f;
+inline constexpr float kTile16SelectorDrawOffsetX = 2.0f;
+
 // Zoom/pan constants - centralized for consistency across all zoom controls
 inline constexpr float kOverworldMinZoom = 0.1f;
 inline constexpr float kOverworldMaxZoom = 5.0f;

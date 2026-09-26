@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -104,6 +105,59 @@ class LayoutManagerDockTreeTest : public ::testing::Test {
   WorkspaceWindowManager window_manager_;
   LayoutManager layout_manager_;
 };
+
+class WidthPanel final : public WindowContent {
+ public:
+  WidthPanel(std::string id, float width, bool exact)
+      : id_(std::move(id)), width_(width), exact_(exact) {}
+  std::string GetId() const override { return id_; }
+  std::string GetDisplayName() const override { return id_; }
+  std::string GetIcon() const override { return "ICON_MD_ACCOUNT_TREE"; }
+  std::string GetEditorCategory() const override { return "Overworld"; }
+  float GetPreferredWidth() const override { return width_; }
+  bool HasExactPreferredWidth() const override { return exact_; }
+  void Draw(bool*) override {}
+
+ private:
+  std::string id_;
+  float width_;
+  bool exact_;
+};
+
+// Width of the right region of the overworld default layout.
+float OverworldRightRegionWidth(WorkspaceWindowManager& window_manager,
+                                LayoutManager& layout_manager,
+                                float selector_width, bool selector_exact) {
+  window_manager.RegisterWindowContent(std::make_unique<WidthPanel>(
+      LayoutPresets::Panels::kOverworldCanvas, 0.0f, false));
+  window_manager.RegisterWindowContent(std::make_unique<WidthPanel>(
+      LayoutPresets::Panels::kOverworldTile16Selector, selector_width,
+      selector_exact));
+  window_manager.RegisterWindowContent(std::make_unique<WidthPanel>(
+      LayoutPresets::Panels::kOverworldMapProperties, 360.0f, false));
+  layout_manager.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  ImGuiDockNode* root = ImGui::DockBuilderGetNode(kDockspaceId);
+  if (!root || !root->IsSplitNode() || root->SplitAxis != ImGuiAxis_X ||
+      !root->ChildNodes[1]) {
+    return -1.0f;
+  }
+  return root->ChildNodes[1]->Size.x;
+}
+
+TEST_F(LayoutManagerDockTreeTest, ExactWidthPanelFirstInRegionSetsRegionWidth) {
+  // The Tile16 selector leads the right region; Map Properties (360) stacks
+  // below it and must not widen the column past the grid.
+  const float width =
+      OverworldRightRegionWidth(window_manager_, layout_manager_, 294.0f, true);
+  EXPECT_NEAR(width, 294.0f, 3.0f);
+}
+
+TEST_F(LayoutManagerDockTreeTest, NonExactRegionKeepsWidestPanelWidth) {
+  // Without the exact hint the widest panel (360) still wins, unchanged.
+  const float width = OverworldRightRegionWidth(window_manager_,
+                                                layout_manager_, 294.0f, false);
+  EXPECT_NEAR(width, 360.0f, 3.0f);
+}
 
 TEST_F(LayoutManagerDockTreeTest, ApplyWithoutWindowManagerFails) {
   LayoutManager bare;

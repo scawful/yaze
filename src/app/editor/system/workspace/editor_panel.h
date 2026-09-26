@@ -283,6 +283,16 @@ class WindowContent {
   virtual float GetPreferredWidth() const { return 0.0f; }
 
   /**
+   * @brief Whether GetPreferredWidth() is an exact content width
+   *
+   * Fixed-width content (tile grids) returns true. When such a panel is the
+   * first docked panel of a side region, LayoutManager sizes the region to
+   * its width instead of the widest panel stacked in that region, and skips
+   * the viewport-ratio floor that would otherwise leave dead space.
+   */
+  virtual bool HasExactPreferredWidth() const { return false; }
+
+  /**
    * @brief Get preferred height for this panel (optional)
    * @return Preferred height in pixels, or 0 to use the default height.
    *
