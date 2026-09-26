@@ -383,6 +383,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/gfx_sheet_inventory_test.cc
     unit/zelda3/gfx_sheet_png_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
+    unit/zelda3/graphics_sheet_store_test.cc
     unit/zelda3/sprite_sheet_slots_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc

@@ -15,6 +15,7 @@
 #include "zelda.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_default_entrance.h"
+#include "zelda3/graphics_sheet_store.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -68,7 +69,9 @@ static const std::map<zelda3_version, zelda3_version_pointers>
         {zelda3_version::RANDO, {}},
 };
 
-struct GameData {
+// Sheet pixels live in `sheet_store` (inherited, with the legacy
+// `graphics_buffer` alias); see graphics_sheet_store.h.
+struct GameData : GraphicsSheetStoreHolder {
   // Constructors
   GameData() = default;
   explicit GameData(Rom* rom) : rom_(rom) {}
@@ -81,8 +84,7 @@ struct GameData {
   zelda3_version version = zelda3_version::US;
   std::string title;
 
-  // Graphics Resources
-  std::vector<uint8_t> graphics_buffer;  // Legacy contiguous buffer
+  // Graphics Resources (`graphics_buffer` and `sheet_store` are inherited)
   std::array<std::vector<uint8_t>, kNumGfxSheets>
       raw_gfx_sheets;                                  // 8BPP indexed
   std::array<gfx::Bitmap, kNumGfxSheets> gfx_bitmaps;  // Renderable bitmaps
@@ -114,7 +116,7 @@ struct GameData {
 
   void Clear() {
     room_default_entrances.clear();
-    graphics_buffer.clear();
+    sheet_store.Clear();
     for (auto& sheet : raw_gfx_sheets)
       sheet.clear();
     // gfx_bitmaps don't need explicit clearing if reloaded
