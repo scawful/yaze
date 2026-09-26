@@ -9,10 +9,12 @@
 #include <string>
 #include <vector>
 
+#include <map>
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/graphics_save_plan.h"
 #include "app/editor/graphics/link_sprite_panel.h"
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/paletteset_editor_panel.h"
@@ -83,6 +85,13 @@ class GraphicsEditor : public Editor {
   absl::Status Save() override;
   absl::Status Update() override;
   // Cut, Copy and Paste use the system clipboard as PNG (pixel editor).
+  /**
+   * @brief Graphics save preflight: every dirty sheet written to a scratch
+   * copy of the ROM (placement, addresses, sizes, verification), and the
+   * reason for any sheet the save would refuse. Does not touch the ROM.
+   */
+  absl::StatusOr<std::vector<GraphicsSavePlanEntry>> PlanGraphicsSave();
+
   absl::Status Cut() override;
   absl::Status Copy() override;
   absl::Status Paste() override;
@@ -172,6 +181,15 @@ class GraphicsEditor : public Editor {
   Rom* rom() const { return rom_; }
 
  private:
+  struct PreparedGraphicsSave {
+    zelda3::GfxSheetWritePolicy policy;
+    zelda3::GfxSheetPointerTables tables;
+    std::vector<uint16_t> sheet_ids;           // sheets to write
+    std::map<uint16_t, std::string> refusals;  // sheet -> reason
+  };
+  // Checks shared by Save and PlanGraphicsSave.
+  absl::StatusOr<PreparedGraphicsSave> PrepareGraphicsSave();
+
   friend class GraphicsEditorSaveStoplossTestPeer;
 
   // Editor-level shortcut handling

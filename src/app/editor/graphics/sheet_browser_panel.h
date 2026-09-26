@@ -3,12 +3,14 @@
 
 #include <functional>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/graphics_save_plan.h"
 #include "app/editor/graphics/sheet_png_transfer.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
@@ -107,6 +109,16 @@ class SheetBrowserPanel : public WindowContent {
     undo_manager_ = undo_manager;
   }
 
+  using SavePlanner =
+      std::function<absl::StatusOr<std::vector<GraphicsSavePlanEntry>>()>;
+  /**
+   * @brief Source of the "Pending graphics save" preflight list
+   * (GraphicsEditor::PlanGraphicsSave). Unset hides the list.
+   */
+  void SetSavePlanner(SavePlanner planner) {
+    save_planner_ = std::move(planner);
+  }
+
  private:
   /**
    * @brief Draw the search/filter bar
@@ -180,6 +192,15 @@ class SheetBrowserPanel : public WindowContent {
   std::vector<SheetPngImportPreview> png_pending_;
   std::string png_status_;
   bool png_status_is_error_ = false;
+
+  // Pending graphics save: the preflight for the dirty sheets, computed on
+  // request because it runs the writer on a copy of the ROM.
+  void DrawPendingSave();
+  std::string SheetUsageSummary(uint16_t sheet_id) const;
+  SavePlanner save_planner_;
+  std::vector<GraphicsSavePlanEntry> save_plan_;
+  std::string save_plan_error_;
+  std::set<uint16_t> save_plan_sheets_;  // the dirty set the plan describes
 };
 
 }  // namespace editor

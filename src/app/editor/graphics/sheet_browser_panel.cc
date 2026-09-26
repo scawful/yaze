@@ -49,6 +49,7 @@ absl::Status SheetBrowserPanel::Update() {
   ImGui::Separator();
   DrawBatchOperations();
   ImGui::Separator();
+  DrawPendingSave();
   DrawSelectedSheetInfo();
   DrawPngTransfer(state_->current_sheet_id);
   DrawSheetGrid();
@@ -259,6 +260,80 @@ void SheetBrowserPanel::DrawSelectedSheetInfo() {
     ImGui::TextDisabled(tr("No table references this sheet."));
   }
   ImGui::Separator();
+}
+
+std::string SheetBrowserPanel::SheetUsageSummary(uint16_t sheet_id) const {
+  if (!inventory_.has_value() || sheet_id >= inventory_->sheets.size()) {
+    return {};
+  }
+  const auto& use = inventory_->sheets[sheet_id].usage;
+  std::vector<std::string> parts;
+  auto add = [&parts](size_t count, const char* what) {
+    if (count > 0) {
+      parts.push_back(absl::StrFormat("%zu %s", count, what));
+    }
+  };
+  add(use.main_blocksets.size(), "main blocksets");
+  add(use.room_blocksets.size(), "room blocksets");
+  add(use.spritesets.size(), "spritesets");
+  add(use.ow_areas_static.size() + use.ow_areas_sprite.size(), "OW areas");
+  add(use.rooms_sprite.size(), "rooms");
+  return parts.empty() ? std::string("no table uses it")
+                       : "used by " + absl::StrJoin(parts, ", ");
+}
+
+void SheetBrowserPanel::DrawPendingSave() {
+  if (!save_planner_ || state_->modified_sheets.empty()) {
+    return;
+  }
+  if (!ImGui::CollapsingHeader(
+          absl::StrFormat("Pending graphics save (%zu)###PendingSave",
+                          state_->modified_sheets.size())
+              .c_str(),
+          ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  if (ImGui::SmallButton(ICON_MD_FACT_CHECK " Check save plan")) {
+    auto plan = save_planner_();
+    save_plan_sheets_ = state_->modified_sheets;
+    if (plan.ok()) {
+      save_plan_ = std::move(*plan);
+      save_plan_error_.clear();
+    } else {
+      save_plan_.clear();
+      save_plan_error_ = std::string(plan.status().message());
+    }
+  }
+  HOVER_HINT(
+      "Writes every dirty sheet to a scratch copy of the ROM and decodes it "
+      "back. Saving the ROM does the same for real, and writes nothing if any "
+      "sheet fails.");
+  if (!save_plan_error_.empty()) {
+    ImGui::TextColored(gui::GetErrorColor(), "%s", save_plan_error_.c_str());
+    return;
+  }
+  if (save_plan_.empty()) {
+    ImGui::TextDisabled("%s", tr("Check the plan before saving the ROM."));
+    return;
+  }
+  if (save_plan_sheets_ != state_->modified_sheets) {
+    ImGui::TextColored(gui::GetWarningColor(), "%s",
+                       tr("Edits changed since the check; check again."));
+  }
+  for (const auto& entry : save_plan_) {
+    const ImVec4 color =
+        !entry.refusal.empty() ? gui::GetErrorColor()
+        : entry.placement == zelda3::GfxSheetPlacement::kRelocated
+            ? gui::GetWarningColor()
+            : gui::GetSuccessColor();
+    ImGui::TextColored(color, "%s",
+                       DescribeGraphicsSavePlanEntry(entry).c_str());
+    const std::string usage = SheetUsageSummary(entry.sheet_id);
+    if (!usage.empty()) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("%s", usage.c_str());
+    }
+  }
 }
 
 void SheetBrowserPanel::SetPngStatus(std::string message, bool is_error) {
