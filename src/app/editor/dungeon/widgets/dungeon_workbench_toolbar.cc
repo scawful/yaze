@@ -9,11 +9,13 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
 #include "app/editor/dungeon/widgets/dungeon_room_nav_widget.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
@@ -508,8 +510,13 @@ void DrawRecentRoomsContents(const DungeonWorkbenchToolbarParams& p,
                         room_dirty ? "\nPending room changes" : "");
     }
 
-    if (ImGui::BeginPopupContextItem("##RecentRoomActions")) {
-      if (ImGui::MenuItem(ICON_MD_COMPARE_ARROWS " Compare")) {
+    gui::ItemContextMenu("##RecentRoomActions", [&, room_id]() {
+      std::vector<gui::MenuItemSpec> items;
+      if (p.on_open_room_panel) {
+        items.emplace_back("Open as Panel", ICON_MD_OPEN_IN_NEW,
+                           [&p, room_id]() { p.on_open_room_panel(room_id); });
+      }
+      items.emplace_back("Compare", ICON_MD_COMPARE_ARROWS, [&p, room_id]() {
         if (p.layout) {
           p.layout->show_connected_canvas_view = false;
         }
@@ -519,19 +526,18 @@ void DrawRecentRoomsContents(const DungeonWorkbenchToolbarParams& p,
         if (p.compare_room_id) {
           *p.compare_room_id = room_id;
         }
-      }
-      if (p.on_open_room_panel &&
-          ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open as Panel")) {
-        p.on_open_room_panel(room_id);
-      }
+      });
+      items.back().separator_after = true;
+      items.push_back(gui::CopyToClipboardItem(
+          "Copy Room ID", absl::StrFormat("0x%03X", room_id)));
       if (p.forget_recent_room) {
-        ImGui::Separator();
-        if (ImGui::MenuItem(ICON_MD_CLOSE " Remove from Recent")) {
-          to_forget.push_back(room_id);
-        }
+        items.back().separator_after = true;
+        items.emplace_back(
+            "Remove from Recent", ICON_MD_CLOSE,
+            [&to_forget, room_id]() { to_forget.push_back(room_id); });
       }
-      ImGui::EndPopup();
-    }
+      return items;
+    });
     ImGui::PopID();
   }
 
