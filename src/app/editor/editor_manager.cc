@@ -4461,10 +4461,24 @@ absl::Status EditorManager::SaveRomInternal(
 
   // Delegate the final atomic disk write to RomFileManager. Save As is part of
   // this same transaction and writes only the requested target path.
+  // A project's tracked custom_collision.json follows only the project's own
+  // ROM file, never Save As targets or practice copies opened under it.
+  std::filesystem::path collision_source;
+  if (!save_as_filename.has_value() && save_project->project_opened() &&
+      !save_project->custom_collision_json.empty() &&
+      !save_project->rom_filename.empty()) {
+    std::error_code same_ec;
+    if (std::filesystem::equivalent(
+            save_project->GetAbsolutePath(save_project->rom_filename),
+            current_rom->filename(), same_ec)) {
+      collision_source =
+          save_project->GetAbsolutePath(save_project->custom_collision_json);
+    }
+  }
   auto save_status =
       save_as_filename.has_value()
           ? rom_file_manager_.SaveRomAs(current_rom, *save_as_filename)
-          : rom_file_manager_.SaveRom(current_rom);
+          : rom_file_manager_.SaveRom(current_rom, collision_source);
   if (save_status.ok()) {
     editor_transactions.Commit();
     rom_transaction.Commit();
