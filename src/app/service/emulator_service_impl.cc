@@ -11,6 +11,7 @@
 #include "app/emu/proto_converter.h"
 #include "app/service/screenshot_utils.h"
 #include "rom/rom.h"
+#include "util/log.h"
 
 namespace yaze::net {
 
@@ -336,8 +337,18 @@ grpc::Status EmulatorServiceImpl::GetGameState(
 
 #ifdef YAZE_WITH_GRPC
   if (request->include_screenshot()) {
-    auto screenshot = yaze::test::CaptureHarnessScreenshot();
-    if (screenshot.ok()) {
+    // Never capture here: the emulator updates its texture on the render
+    // thread every frame, and reading the SDL/Metal renderer from this gRPC
+    // thread aborts in endEncoding. The capturer marshals onto that thread.
+    absl::StatusOr<test::ScreenshotArtifact> screenshot =
+        screenshot_capturer_
+            ? screenshot_capturer_()
+            : absl::FailedPreconditionError(
+                  "No render-thread screenshot capturer is configured");
+    if (!screenshot.ok()) {
+      LOG_WARN("EmulatorService", "GetGameState screenshot skipped: %s",
+               std::string(screenshot.status().message()).c_str());
+    } else {
       std::ifstream file(screenshot->file_path, std::ios::binary);
       if (file.good()) {
         std::string png_data((std::istreambuf_iterator<char>(file)),

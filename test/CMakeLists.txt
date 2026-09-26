@@ -450,7 +450,10 @@ if(YAZE_BUILD_TESTS)
   # gRPC headers. Registering it unconditionally breaks presets built without
   # them.
   if(YAZE_ENABLE_REMOTE_AUTOMATION AND YAZE_ENABLE_GRPC)
-    list(APPEND STABLE_UNIT_TEST_SOURCES unit/cli/rom_debug_agent_test.cc)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/cli/rom_debug_agent_test.cc
+      unit/emu/emulator_service_screenshot_test.cc
+    )
   endif()
 
   if(YAZE_ENABLE_AGENT_CLI)
