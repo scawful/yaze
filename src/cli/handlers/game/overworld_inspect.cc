@@ -1,6 +1,7 @@
 #include "cli/handlers/game/overworld_inspect.h"
 
 #include <algorithm>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -16,6 +17,7 @@
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace cli {
@@ -383,15 +385,32 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
   return matches;
 }
 
+const char* SpritePhaseName(int phase) {
+  switch (phase) {
+    case 0:
+      return "beginning";
+    case 1:
+      return "first_part";
+    case 2:
+      return "second_part";
+  }
+  return "unknown";
+}
+
 absl::StatusOr<std::vector<OverworldSprite>> CollectOverworldSprites(
     const zelda3::Overworld& overworld, const SpriteQuery& query) {
   std::vector<OverworldSprite> results;
 
   // Iterate through all 3 game states (beginning, zelda, agahnim)
   for (int game_state = 0; game_state < 3; ++game_state) {
-    const auto& sprites = overworld.sprites(game_state);
+    if (query.phase.has_value() && *query.phase != game_state) {
+      continue;
+    }
+    const auto sprites = overworld.sprites(game_state);
+    std::map<int, int> next_index_by_map;
 
     for (const auto& sprite : sprites) {
+      const int list_index = next_index_by_map[sprite.map_id()]++;
       // Apply filters
       if (query.sprite_id.has_value() && sprite.id() != *query.sprite_id) {
         continue;
@@ -417,8 +436,11 @@ absl::StatusOr<std::vector<OverworldSprite>> CollectOverworldSprites(
       entry.world = world;
       entry.x = sprite.x();
       entry.y = sprite.y();
-      // Sprite names would come from a label system if available
-      // entry.sprite_name = GetSpriteName(sprite.id());
+      entry.phase = game_state;
+      entry.list_index = list_index;
+      entry.local_x = (sprite.x() - (map_id % 8) * 512) / 16;
+      entry.local_y = (sprite.y() - ((map_id % 64) / 8) * 512) / 16;
+      entry.sprite_name = zelda3::ResolveSpriteName(sprite.id());
 
       results.push_back(entry);
     }

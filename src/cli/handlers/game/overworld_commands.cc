@@ -1,5 +1,8 @@
 #include "cli/handlers/game/overworld_commands.h"
 
+#include <optional>
+
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/util/hex_util.h"
@@ -384,6 +387,17 @@ absl::Status OverworldListSpritesCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   auto screen_id_str = parser.GetString("screen").value_or("all");
 
+  overworld::SpriteQuery query;
+  std::string phase_filter = "all";
+  if (auto phase_str = parser.GetString("phase"); phase_str.has_value()) {
+    int phase = -1;
+    if (!absl::SimpleAtoi(*phase_str, &phase) || phase < 0 || phase > 2) {
+      return absl::InvalidArgumentError("--phase must be 0, 1, or 2");
+    }
+    query.phase = phase;
+    phase_filter = *phase_str;
+  }
+
   // Load the Overworld from ROM
   zelda3::Overworld overworld(rom);
   auto ow_status = overworld.Load(rom);
@@ -391,38 +405,56 @@ absl::Status OverworldListSpritesCommandHandler::Execute(
     return ow_status;
   }
 
-  // Build the query
-  overworld::SpriteQuery query;
+  // Sprites are stored on the parent area; a child screen resolves to it.
+  std::optional<int> requested_screen;
   if (screen_id_str != "all") {
     int map_id;
     if (!ParseHexString(screen_id_str, &map_id)) {
       return absl::InvalidArgumentError(
           "Invalid screen ID format. Must be hex.");
     }
-    query.map_id = map_id;
+    const auto* map = overworld.overworld_map(map_id);
+    if (map == nullptr) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Screen 0x%02X is out of range", map_id));
+    }
+    requested_screen = map_id;
+    query.map_id = map->parent();
   }
 
-  // Call the helper function to collect sprites
   auto sprites_or = overworld::CollectOverworldSprites(overworld, query);
   if (!sprites_or.ok()) {
     return sprites_or.status();
   }
   const auto& sprites = sprites_or.value();
 
-  // Format the output
   formatter.BeginObject("Overworld Sprites");
   formatter.AddField("screen_filter", screen_id_str);
+  if (requested_screen.has_value()) {
+    formatter.AddField("parent_area", absl::StrFormat("0x%02X", *query.map_id));
+  }
+  formatter.AddField("phase_filter", phase_filter);
+  formatter.AddField(
+      "phase_legend",
+      "0=beginning, 1=first_part, 2=second_part (vanilla: game state "
+      "<2 / 2 / >=3; Oracle ZSOW: GameState 0-1 / GameState 2 day / night or "
+      "GameState 3)");
   formatter.AddField("total_sprites", static_cast<int>(sprites.size()));
 
   formatter.BeginArray("sprites");
   for (const auto& sprite : sprites) {
     formatter.BeginObject();
+    formatter.AddField("phase", sprite.phase);
+    formatter.AddField("phase_name", overworld::SpritePhaseName(sprite.phase));
+    formatter.AddField("list_index", sprite.list_index);
     formatter.AddField("sprite_id",
                        absl::StrFormat("0x%02X", sprite.sprite_id));
     formatter.AddField("map_id", absl::StrFormat("0x%02X", sprite.map_id));
     formatter.AddField("world", overworld::WorldName(sprite.world));
     formatter.AddField("position",
                        absl::StrFormat("(%d,%d)", sprite.x, sprite.y));
+    formatter.AddField(
+        "tile", absl::StrFormat("(%d,%d)", sprite.local_x, sprite.local_y));
 
     if (sprite.sprite_name.has_value()) {
       formatter.AddField("name", sprite.sprite_name.value());

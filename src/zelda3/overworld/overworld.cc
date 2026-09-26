@@ -1288,47 +1288,26 @@ void Overworld::InvalidateSiblingMapCaches(int map_index) {
 }
 
 absl::Status Overworld::LoadSprites() {
-  // Determine sprite table locations based on actual ASM version in ROM
+  // Table locations and per-state map counts come from the ROM's ASM version:
+  // vanilla has 64/144/144 entries; ZSCustomOverworld v3 expands every game
+  // state to 160 entries (state 0 then covers the Dark World too).
+  const auto layout = GetOverworldSpriteLayout(*rom_);
 
 #ifdef __EMSCRIPTEN__
   // WASM: Sequential loading to avoid Web Worker explosion
-  if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
+  for (int state = 0; state < 3; ++state) {
     RETURN_IF_ERROR(
-        LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0));
-    RETURN_IF_ERROR(LoadSpritesFromMap(overworldSpritesZeldaExpanded, 144, 1));
-    RETURN_IF_ERROR(
-        LoadSpritesFromMap(overworldSpritesAgahnimExpanded, 144, 2));
-  } else {
-    RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0));
-    RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1));
-    RETURN_IF_ERROR(LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2));
+        LoadSpritesFromMap(layout.tables[state], layout.counts[state], state));
   }
 #else
   // Native: Parallel loading for performance
   std::vector<std::future<absl::Status>> futures;
-
-  if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
-    // v3: Use expanded sprite tables
-    futures.emplace_back(std::async(std::launch::async, [this]() {
-      return LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0);
-    }));
-    futures.emplace_back(std::async(std::launch::async, [this]() {
-      return LoadSpritesFromMap(overworldSpritesZeldaExpanded, 144, 1);
-    }));
-    futures.emplace_back(std::async(std::launch::async, [this]() {
-      return LoadSpritesFromMap(overworldSpritesAgahnimExpanded, 144, 2);
-    }));
-  } else {
-    // Vanilla/v2: Use original sprite tables
-    futures.emplace_back(std::async(std::launch::async, [this]() {
-      return LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0);
-    }));
-    futures.emplace_back(std::async(std::launch::async, [this]() {
-      return LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1);
-    }));
-    futures.emplace_back(std::async(std::launch::async, [this]() {
-      return LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2);
-    }));
+  for (int state = 0; state < 3; ++state) {
+    futures.emplace_back(
+        std::async(std::launch::async, [this, layout, state]() {
+          return LoadSpritesFromMap(layout.tables[state], layout.counts[state],
+                                    state);
+        }));
   }
 
   for (auto& future : futures) {

@@ -262,10 +262,11 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
   REGISTER_BUILTIN_AGENT_TOOL("overworld-list-warps", "overworld", "List warps",
                               "overworld-list-warps --map=<id>", {}, true,
                               false, OverworldListWarpsCommandHandler)
-  REGISTER_BUILTIN_AGENT_TOOL("overworld-list-sprites", "overworld",
-                              "List sprites",
-                              "overworld-list-sprites --map=<id>", {}, true,
-                              false, OverworldListSpritesCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-list-sprites", "overworld", "List sprites",
+      "overworld-list-sprites --screen=<id> "
+      "[--phase=0|1|2]",
+      {}, true, false, OverworldListSpritesCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("overworld-get-entrance", "overworld",
                               "Get entrance info",
                               "overworld-get-entrance --id=<id>", {}, true,
