@@ -16,6 +16,7 @@
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "util/image_clipboard.h"
 
 namespace yaze {
 namespace editor {
@@ -30,10 +31,13 @@ void PixelEditorPanel::Draw(bool* p_open) {
 }
 
 absl::Status PixelEditorPanel::Update() {
+  HandleClipboardShortcuts();
+
   // Top toolbar
   DrawToolbar();
   ImGui::SameLine();
   DrawViewControls();
+  DrawClipboardControls();
 
   ImGui::Separator();
 
@@ -246,6 +250,8 @@ void PixelEditorPanel::DrawCanvas() {
           canvas_.draw_list()->AddRect(sel_min, sel_max, IM_COL32(0, 0, 0, 128),
                                        0.0f, 0, 1.0f);
         }
+
+        DrawFloatingPaste();
 
         // Draw tool preview (line/rectangle)
         if (show_tool_preview_ && is_drawing_) {
@@ -613,6 +619,10 @@ void PixelEditorPanel::HandleCanvasInput() {
   // Clamp to sheet bounds
   cursor_x_ = std::clamp(cursor_x_, 0, sheet.width() - 1);
   cursor_y_ = std::clamp(cursor_y_, 0, sheet.height() - 1);
+
+  if (HandleFloatingPasteInput()) {
+    return;
+  }
 
   // Mouse button handling
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -1037,6 +1047,277 @@ void PixelEditorPanel::FinalizeUndoAction() {
 
   has_pending_undo_ = false;
   pending_undo_before_data_.clear();
+}
+
+SheetColors PixelEditorPanel::CurrentSheetColors() const {
+  SheetColors colors{};
+  const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
+  const auto& palette = sheet.palette();
+  for (size_t i = 0; i < colors.size(); ++i) {
+    if (i < palette.size()) {
+      const ImVec4 rgb = palette[i].rgb();  // 0-255 components
+      colors[i] = {static_cast<uint8_t>(rgb.x), static_cast<uint8_t>(rgb.y),
+                   static_cast<uint8_t>(rgb.z)};
+    } else {
+      const auto gray = static_cast<uint8_t>(i * 255 / 7);
+      colors[i] = {gray, gray, gray};
+    }
+  }
+  return colors;
+}
+
+void PixelEditorPanel::HandleClipboardShortcuts() {
+  if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) ||
+      ImGui::GetIO().WantTextInput) {
+    return;
+  }
+  // ImGuiMod_Ctrl is Cmd on macOS.
+  if (ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiKey_C)) {
+    CopyToSystemClipboard();
+  } else if (ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiKey_V)) {
+    PasteFromSystemClipboard();
+  }
+  if (!state_->selection.is_floating) {
+    return;
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_Enter) ||
+      ImGui::IsKeyPressed(ImGuiKey_KeypadEnter)) {
+    CommitFloatingPaste();
+    return;
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    CancelFloatingPaste();
+    return;
+  }
+  const int step = ImGui::GetIO().KeyShift ? 8 : 1;
+  auto& selection = state_->selection;
+  if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow))
+    selection.x -= step;
+  if (ImGui::IsKeyPressed(ImGuiKey_RightArrow))
+    selection.x += step;
+  if (ImGui::IsKeyPressed(ImGuiKey_UpArrow))
+    selection.y -= step;
+  if (ImGui::IsKeyPressed(ImGuiKey_DownArrow))
+    selection.y += step;
+  ClampFloatingPaste();
+}
+
+void PixelEditorPanel::DrawClipboardControls() {
+  const bool image_clipboard = util::ImageClipboardSupported();
+  ImGui::BeginDisabled(!image_clipboard);
+  if (gui::ToolbarIconButton(ICON_MD_CONTENT_COPY,
+                             "Copy selection, or the whole sheet, as a PNG "
+                             "(Cmd+C)")) {
+    CopyToSystemClipboard();
+  }
+  ImGui::SameLine();
+  if (gui::ToolbarIconButton(ICON_MD_CONTENT_PASTE,
+                             "Paste a PNG from the clipboard as a floating "
+                             "selection (Cmd+V)")) {
+    PasteFromSystemClipboard();
+  }
+  ImGui::EndDisabled();
+  if (!image_clipboard) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", tr("(image clipboard: macOS only)"));
+  }
+  if (state_->selection.is_floating) {
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CHECK " Commit")) {
+      CommitFloatingPaste();
+    }
+    HOVER_HINT("Write the floating paste into the sheet (Enter)");
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CLOSE " Cancel")) {
+      CancelFloatingPaste();
+    }
+    HOVER_HINT("Drop the floating paste (Esc)");
+    ImGui::SameLine();
+    ImGui::Checkbox(tr("Skip color 0"), &paste_skip_color0_);
+    HOVER_HINT("Leave pixels under color 0 of the paste unchanged");
+  }
+  if (!clipboard_status_.empty()) {
+    ImGui::TextColored(
+        clipboard_status_is_error_ ? gui::GetErrorColor() : gui::GetInfoColor(),
+        "%s", clipboard_status_.c_str());
+  }
+}
+
+void PixelEditorPanel::CopyToSystemClipboard() {
+  const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
+  if (!sheet.is_active()) {
+    clipboard_status_ = "No sheet to copy";
+    clipboard_status_is_error_ = true;
+    return;
+  }
+  const auto& selection = state_->selection;
+  int x0 = 0;
+  int y0 = 0;
+  int width = sheet.width();
+  int height = sheet.height();
+  if (selection.is_active && !selection.is_floating && selection.width > 0 &&
+      selection.height > 0) {
+    x0 = selection.x;
+    y0 = selection.y;
+    width = selection.width;
+    height = selection.height;
+  }
+  // Read the current pixels; the selection's copy may predate later edits.
+  std::vector<uint8_t> pixels(static_cast<size_t>(width) * height, 0);
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      const int sx = x0 + x;
+      const int sy = y0 + y;
+      if (sx >= 0 && sx < sheet.width() && sy >= 0 && sy < sheet.height()) {
+        pixels[y * width + x] = sheet.GetPixel(sx, sy);
+      }
+    }
+  }
+  auto png = EncodeClipboardPng(pixels, width, height, CurrentSheetColors());
+  const absl::Status status =
+      png.ok() ? util::SetClipboardPng(*png) : png.status();
+  clipboard_status_ =
+      status.ok() ? absl::StrFormat("Copied %dx%d from sheet %02X", width,
+                                    height, state_->current_sheet_id)
+                  : std::string(status.message());
+  clipboard_status_is_error_ = !status.ok();
+}
+
+void PixelEditorPanel::PasteFromSystemClipboard() {
+  const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
+  if (!sheet.is_active()) {
+    clipboard_status_ = "Open a sheet before pasting";
+    clipboard_status_is_error_ = true;
+    return;
+  }
+  auto png = util::GetClipboardPng();
+  auto paste = png.ok() ? MapClipboardPng(*png, CurrentSheetColors(),
+                                          sheet.width(), sheet.height())
+                        : absl::StatusOr<ClipboardPaste>(png.status());
+  if (!paste.ok()) {
+    clipboard_status_ = std::string(paste.status().message());
+    clipboard_status_is_error_ = true;
+    return;
+  }
+  auto& selection = state_->selection;
+  // Float over the current selection's corner, or the sheet's top left.
+  const int x = selection.is_active ? selection.x : 0;
+  const int y = selection.is_active ? selection.y : 0;
+  selection.pixel_data = paste->indices;
+  selection.width = paste->width;
+  selection.height = paste->height;
+  selection.x = x;
+  selection.y = y;
+  selection.is_active = true;
+  selection.is_floating = true;
+  ClampFloatingPaste();
+  clipboard_status_ =
+      "Paste " + DescribeClipboardPaste(*paste) +
+      (paste->above_depth > 0 ? " (colors above 7 were mapped by color)" : "") +
+      ". Drag or use arrows, Enter to commit, Esc to cancel.";
+  clipboard_status_is_error_ = false;
+}
+
+void PixelEditorPanel::ClampFloatingPaste() {
+  const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
+  auto& selection = state_->selection;
+  selection.x =
+      std::clamp(selection.x, 0, std::max(0, sheet.width() - selection.width));
+  selection.y = std::clamp(selection.y, 0,
+                           std::max(0, sheet.height() - selection.height));
+}
+
+void PixelEditorPanel::CommitFloatingPaste() {
+  auto& selection = state_->selection;
+  if (!selection.is_floating) {
+    return;
+  }
+  auto& sheet =
+      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  SaveUndoState();
+  for (int dy = 0; dy < selection.height; ++dy) {
+    for (int dx = 0; dx < selection.width; ++dx) {
+      const uint8_t pixel = selection.pixel_data[dy * selection.width + dx];
+      const int x = selection.x + dx;
+      const int y = selection.y + dy;
+      if ((paste_skip_color0_ && pixel == 0) || x < 0 || y < 0 ||
+          x >= sheet.width() || y >= sheet.height()) {
+        continue;
+      }
+      sheet.WriteToPixel(x, y, pixel);
+    }
+  }
+  state_->MarkSheetModified(state_->current_sheet_id);
+  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  FinalizeUndoAction();
+  selection.is_floating = false;
+  dragging_paste_ = false;
+  clipboard_status_ =
+      absl::StrFormat("Pasted %dx%d at %d,%d", selection.width,
+                      selection.height, selection.x, selection.y);
+  clipboard_status_is_error_ = false;
+}
+
+void PixelEditorPanel::CancelFloatingPaste() {
+  state_->selection.Clear();
+  dragging_paste_ = false;
+  clipboard_status_ = "Paste cancelled";
+  clipboard_status_is_error_ = false;
+}
+
+bool PixelEditorPanel::HandleFloatingPasteInput() {
+  auto& selection = state_->selection;
+  if (!selection.is_floating) {
+    return false;
+  }
+  const bool inside =
+      cursor_x_ >= selection.x && cursor_x_ < selection.x + selection.width &&
+      cursor_y_ >= selection.y && cursor_y_ < selection.y + selection.height;
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    if (inside) {
+      dragging_paste_ = true;
+      paste_drag_dx_ = cursor_x_ - selection.x;
+      paste_drag_dy_ = cursor_y_ - selection.y;
+    } else {
+      CommitFloatingPaste();
+    }
+    return true;
+  }
+  if (dragging_paste_ && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    selection.x = cursor_x_ - paste_drag_dx_;
+    selection.y = cursor_y_ - paste_drag_dy_;
+    ClampFloatingPaste();
+  }
+  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+    dragging_paste_ = false;
+  }
+  return true;
+}
+
+void PixelEditorPanel::DrawFloatingPaste() {
+  const auto& selection = state_->selection;
+  if (!selection.is_floating) {
+    return;
+  }
+  const SheetColors colors = CurrentSheetColors();
+  auto* draw_list = canvas_.draw_list();
+  for (int dy = 0; dy < selection.height; ++dy) {
+    for (int dx = 0; dx < selection.width; ++dx) {
+      const uint8_t pixel = selection.pixel_data[dy * selection.width + dx];
+      if (paste_skip_color0_ && pixel == 0) {
+        continue;
+      }
+      const auto& rgb = colors[pixel & 7];
+      const ImVec2 p0 = PixelToScreen(selection.x + dx, selection.y + dy);
+      const ImVec2 p1 =
+          PixelToScreen(selection.x + dx + 1, selection.y + dy + 1);
+      draw_list->AddRectFilled(p0, p1, IM_COL32(rgb[0], rgb[1], rgb[2], 230));
+    }
+  }
+  draw_list->AddRect(PixelToScreen(selection.x, selection.y),
+                     PixelToScreen(selection.x + selection.width,
+                                   selection.y + selection.height),
+                     ImGui::GetColorU32(gui::GetInfoColor()), 0.0f, 0, 2.0f);
 }
 
 ImVec2 PixelEditorPanel::ScreenToPixel(ImVec2 screen_pos) {
