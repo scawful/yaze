@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -143,6 +144,22 @@ typedef struct OverworldMapTiles {
 } OverworldMapTiles;
 
 /**
+ * @brief Per-area render settings the game reads with the area id ($8A).
+ *
+ * The game indexes the ZSCustomOverworld main palette, animated GFX, tile GFX
+ * group, and subscreen overlay tables with $8A, which is the parent screen of
+ * a large/wide/tall area. The child screens' own table entries are never
+ * read, so child maps render with their parent's values. The child's raw
+ * values stay untouched so saves round-trip byte-for-byte.
+ */
+struct AreaRenderProperties {
+  uint8_t main_palette = 0;
+  uint8_t animated_gfx = 0;
+  std::array<uint8_t, 8> custom_gfx_ids = {};
+  uint16_t subscreen_overlay = 0x00FF;
+};
+
+/**
  * @brief Represents a single Overworld map screen.
  */
 class OverworldMap : public gfx::GfxContext {
@@ -193,6 +210,7 @@ class OverworldMap : public gfx::GfxContext {
   auto is_initialized() const { return initialized_; }
   auto is_built() const { return built_; }
   auto parent() const { return parent_; }
+  int index() const { return index_; }
   auto mutable_mosaic() { return &mosaic_; }
   auto mutable_current_palette() { return &current_palette_; }
 
@@ -227,6 +245,21 @@ class OverworldMap : public gfx::GfxContext {
   void set_game_state(int state) { game_state_ = state; }
 
   auto custom_tileset(int index) const { return custom_gfx_ids_[index]; }
+
+  /// Render-time values: the area parent's settings for child screens (what
+  /// the game uses), this map's own values otherwise.
+  AreaRenderProperties area_render_properties() const;
+  void InheritAreaProperties(const OverworldMap& area_parent);
+  void ClearInheritedAreaProperties() { inherited_area_.reset(); }
+  bool has_inherited_area_properties() const {
+    return inherited_area_.has_value();
+  }
+  uint8_t render_main_palette() const {
+    return area_render_properties().main_palette;
+  }
+  uint16_t render_subscreen_overlay() const {
+    return area_render_properties().subscreen_overlay;
+  }
 
   // Overlay accessors (interactive overlays)
   auto overlay_id() const { return overlay_id_; }
@@ -324,6 +357,7 @@ class OverworldMap : public gfx::GfxContext {
   }
 
  private:
+  OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent);
   void LoadAreaInfo();
   void LoadCustomOverworldData();
   void SetupCustomTileset(uint8_t asm_version);
@@ -371,8 +405,9 @@ class OverworldMap : public gfx::GfxContext {
   uint16_t subscreen_overlay_ = 0;  // Custom Overworld Subscreen Overlay ID
   uint16_t area_specific_bg_color_ =
       0;  // Custom Overworld Area-Specific Background Color
+  std::optional<AreaRenderProperties> inherited_area_;
 
-  std::array<uint8_t, 8> custom_gfx_ids_;
+  std::array<uint8_t, 8> custom_gfx_ids_ = {};
   std::array<uint8_t, 3> sprite_graphics_;
   std::array<uint8_t, 3> sprite_palette_;
   std::array<uint8_t, 4> area_music_;
