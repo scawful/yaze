@@ -49,6 +49,8 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/overworld_commands.cc
   cli/handlers/game/overworld_graph_commands.cc
   cli/handlers/game/overworld_inspect.cc
+  cli/handlers/game/overworld_render_commands.cc
+  cli/handlers/game/overworld_sprite_edit_commands.cc
 
   cli/handlers/net/net_commands.cc
 

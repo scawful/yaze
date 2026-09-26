@@ -202,6 +202,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_render_commands_test.cc
+    unit/cli/overworld_agent_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/dungeon_spawn_report_commands_test.cc

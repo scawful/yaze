@@ -116,8 +116,8 @@ class OverworldListSpritesCommandHandler : public resources::CommandHandler {
     return "List all sprites in overworld maps";
   }
   std::string GetUsage() const {
-    return "overworld-list-sprites [--screen <screen_id>] [--format "
-           "<json|text>]";
+    return "overworld-list-sprites [--screen <screen_id>] [--phase <0|1|2>] "
+           "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
