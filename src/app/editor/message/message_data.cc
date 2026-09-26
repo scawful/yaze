@@ -378,6 +378,29 @@ std::vector<std::vector<uint8_t>> ReadDictionaryEntryBytes(const uint8_t* rom,
   return entries;
 }
 
+std::vector<uint8_t> ExpandMessageDictionary(
+    const std::vector<uint8_t>& data,
+    const std::vector<std::vector<uint8_t>>& dictionary) {
+  std::vector<uint8_t> out;
+  out.reserve(data.size() * 2);
+  for (size_t index = 0; index < data.size(); ++index) {
+    const uint8_t value = data[index];
+    const size_t entry = value >= DICTOFF ? static_cast<size_t>(value - DICTOFF)
+                                          : dictionary.size();
+    if (entry < dictionary.size()) {
+      out.insert(out.end(), dictionary[entry].begin(), dictionary[entry].end());
+      continue;
+    }
+    out.push_back(value);
+    const auto command = FindMatchingCommand(value);
+    if (command.has_value() && command->HasArgument &&
+        index + 1 < data.size()) {
+      out.push_back(data[++index]);
+    }
+  }
+  return out;
+}
+
 std::vector<uint8_t> CompressMessageWithDictionary(
     const std::vector<uint8_t>& data,
     const std::vector<std::vector<uint8_t>>& dictionary) {

@@ -714,6 +714,7 @@ TEST(MessageDictionaryTest, CompressedMessageDecodesToSameCharacters) {
     }
   }
   EXPECT_EQ(decoded, data);
+  EXPECT_EQ(ExpandMessageDictionary(compressed, dictionary), data);
 }
 
 }  // namespace yaze::editor
