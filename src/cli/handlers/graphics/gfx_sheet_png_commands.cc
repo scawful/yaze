@@ -14,11 +14,13 @@
 #include "absl/strings/strip.h"
 #include "core/gfx_sheet_policy_adapter.h"
 #include "core/project.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "rom/rom_diff.h"
 #include "util/indexed_png.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
+#include "zelda3/gfx_sheet_inventory.h"
 #include "zelda3/gfx_sheet_png.h"
 #include "zelda3/gfx_sheet_storage.h"
 
@@ -123,6 +125,53 @@ std::string RangeText(const std::vector<std::pair<int, int>>& ranges) {
   return absl::StrJoin(ranges, " ", [](std::string* out, const auto& range) {
     out->append(
         absl::StrFormat("0x%03X-0x%03X", range.first, range.second - 1));
+  });
+}
+
+struct RoomContext {
+  zelda3::GameData data;
+  zelda3::RoomBackgroundSet set;
+  int row = 2;
+  zelda3::SheetPalette palette;
+};
+
+absl::StatusOr<RoomContext> LoadRoomContext(
+    Rom& rom, const resources::ArgumentParser& parser) {
+  auto room_text = parser.GetString("room");
+  if (!room_text.has_value()) {
+    return absl::InvalidArgumentError("--room is required");
+  }
+  ASSIGN_OR_RETURN(const int room, ParseNumber(*room_text, "--room"));
+  if (room < 0 || room >= zelda3::kNumDungeonRooms) {
+    return absl::InvalidArgumentError("--room must be 0x000-0x127");
+  }
+  RoomContext context;
+  ASSIGN_OR_RETURN(context.row, ParseIntArg(parser, "row", 2));
+  zelda3::LoadOptions options;
+  options.load_graphics = false;
+  options.expand_rom = false;
+  RETURN_IF_ERROR(zelda3::LoadGameData(rom, context.data, options));
+  const auto rooms = zelda3::CollectRoomGfx(rom);
+  const auto header = rooms.find(room);
+  if (header == rooms.end()) {
+    return absl::DataLossError(
+        absl::StrFormat("Room 0x%03X header is unreadable", room));
+  }
+  context.set = zelda3::ResolveRoomBackgroundSet(context.data, room,
+                                                 header->second.blockset);
+  if (parser.GetString("palette").has_value()) {
+    ASSIGN_OR_RETURN(context.palette, ResolvePalette(rom, parser));
+  } else {
+    ASSIGN_OR_RETURN(context.palette,
+                     zelda3::RoomBackgroundSheetPalette(rom, context.data, room,
+                                                        context.row));
+  }
+  return context;
+}
+
+std::string HexIds(const std::vector<int>& ids) {
+  return absl::StrJoin(ids, " ", [](std::string* out, int id) {
+    out->append(absl::StrFormat("%03X", id));
   });
 }
 
@@ -234,6 +283,175 @@ absl::Status GfxImportCommandHandler::Execute(
   if (parser.HasFlag("dry-run")) {
     formatter.AddField("mode", "dry-run");
     return absl::OkStatus();
+  }
+  const std::string out = *parser.GetString("out");
+  std::error_code ec;
+  if (!rom->filename().empty() &&
+      std::filesystem::equivalent(out, rom->filename(), ec)) {
+    return absl::InvalidArgumentError(
+        "--out is the input ROM; write to a new file");
+  }
+  RETURN_IF_ERROR(util::WriteBinaryFile(out, simulated.vector()));
+  formatter.AddField("mode", "write");
+  formatter.AddField("out", out);
+  return absl::OkStatus();
+}
+
+absl::Status GfxRoomExportCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"room", "png"});
+}
+
+absl::Status GfxRoomExportCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
+  const auto& set = context.set;
+  ASSIGN_OR_RETURN(const auto png,
+                   zelda3::ExportRoomBackgroundPng(*rom, set, context.palette));
+  const std::string png_path = *parser.GetString("png");
+  RETURN_IF_ERROR(util::WriteBinaryFile(png_path, png));
+
+  // Who else sees these sheets: an edit changes every one of these rooms.
+  const auto all_sets =
+      zelda3::ResolveAllRoomBackgroundSets(*rom, context.data);
+  std::vector<int> same_main, same_room_blockset;
+  for (const auto& other : all_sets) {
+    if (other.main_blockset == set.main_blockset) {
+      same_main.push_back(other.room);
+    }
+    if (other.header_blockset == set.header_blockset) {
+      same_room_blockset.push_back(other.room);
+    }
+  }
+  nlohmann::json slots = nlohmann::json::array();
+  for (int slot = 0; slot < 8; ++slot) {
+    std::vector<int> rooms;
+    for (const auto& other : all_sets) {
+      if (std::find(other.sheets.begin(), other.sheets.end(),
+                    set.sheets[slot]) != other.sheets.end()) {
+        rooms.push_back(other.room);
+      }
+    }
+    slots.push_back({{"slot", slot},
+                     {"sheet", absl::StrFormat("0x%02X", set.sheets[slot])},
+                     {"source", set.from_room_blockset[slot] ? "room_blockset"
+                                                             : "main_blockset"},
+                     {"png_y", slot * 32},
+                     {"rooms_using_sheet", rooms}});
+  }
+  const std::string rom_path = rom->filename();
+  const std::string import_command = absl::StrFormat(
+      "z3ed gfx-room-import --rom %s --room 0x%03X --png %s --row %d --dry-run",
+      rom_path, set.room, png_path, context.row);
+  nlohmann::json sidecar = {
+      {"room", absl::StrFormat("0x%03X", set.room)},
+      {"main_blockset", set.main_blockset},
+      {"room_blockset", set.header_blockset},
+      {"palette_row", context.row},
+      {"palette", PaletteText(context.palette)},
+      {"png", png_path},
+      {"slots", slots},
+      {"rooms_with_same_main_blockset", same_main},
+      {"rooms_with_same_room_blockset", same_room_blockset},
+      {"reimport", import_command},
+  };
+  if (auto json_path = parser.GetString("json"); json_path.has_value()) {
+    const std::string text = sidecar.dump(1) + "\n";
+    RETURN_IF_ERROR(util::WriteBinaryFile(
+        *json_path, std::vector<uint8_t>(text.begin(), text.end())));
+  }
+  for (const auto& [key, value] : sidecar.items()) {
+    formatter.AddRawJsonField(key, value.dump());
+  }
+  return absl::OkStatus();
+}
+
+absl::Status GfxRoomImportCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  RETURN_IF_ERROR(parser.RequireArgs({"room", "png"}));
+  const bool dry_run = parser.HasFlag("dry-run");
+  const bool write = parser.HasFlag("write");
+  if (dry_run == write) {
+    return absl::InvalidArgumentError("Pass exactly one of --dry-run, --write");
+  }
+  if (write && !parser.GetString("out").has_value()) {
+    return absl::InvalidArgumentError(
+        "--write needs --out <rom file>; the input ROM is never overwritten");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status GfxRoomImportCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
+  const std::string png_path = *parser.GetString("png");
+  ASSIGN_OR_RETURN(const auto png_bytes, util::ReadBinaryFile(png_path));
+  ASSIGN_OR_RETURN(const auto png, util::DecodePng(png_bytes));
+  ASSIGN_OR_RETURN(
+      const auto imports,
+      zelda3::ImportRoomBackgroundPng(*rom, context.set, png, context.palette));
+
+  zelda3::GfxSheetWritePolicy policy;
+  if (project_ != nullptr) {
+    ASSIGN_OR_RETURN(policy, core::BuildGfxSheetWritePolicy(*project_));
+  }
+  Rom simulated = *rom;
+  const auto all_sets =
+      zelda3::ResolveAllRoomBackgroundSets(*rom, context.data);
+  nlohmann::json sheets = nlohmann::json::array();
+  std::string refusal;
+  std::vector<int> affected_rooms;
+  for (const auto& import : imports) {
+    auto written = zelda3::WriteGfxSheet(simulated, import.sheet,
+                                         import.result.snes_3bpp, policy);
+    nlohmann::json entry = {
+        {"sheet", absl::StrFormat("0x%02X", import.sheet)},
+        {"slots", import.slots},
+        {"changed_blocks", import.result.changed_blocks},
+        {"changed_tiles", import.result.changed_tiles.size()},
+    };
+    if (written.ok()) {
+      entry["placement"] =
+          written->placement == zelda3::GfxSheetPlacement::kRelocated
+              ? "relocated"
+              : "in place";
+      entry["stored_bytes"] = absl::StrFormat(
+          "%zu -> %zu", written->old_stored_size, written->new_stored_size);
+    } else {
+      entry["write_status"] = std::string(written.status().message());
+      if (refusal.empty()) {
+        refusal = entry["write_status"];
+      }
+    }
+    for (const auto& other : all_sets) {
+      if (std::find(other.sheets.begin(), other.sheets.end(), import.sheet) !=
+          other.sheets.end()) {
+        affected_rooms.push_back(other.room);
+      }
+    }
+    sheets.push_back(std::move(entry));
+  }
+  std::sort(affected_rooms.begin(), affected_rooms.end());
+  affected_rooms.erase(
+      std::unique(affected_rooms.begin(), affected_rooms.end()),
+      affected_rooms.end());
+
+  formatter.AddField("room", absl::StrFormat("0x%03X", context.set.room));
+  formatter.AddRawJsonField("sheets", sheets.dump());
+  formatter.AddField("rooms_affected", HexIds(affected_rooms));
+  formatter.AddField("write_status", refusal.empty() ? "ok" : refusal);
+  const auto rom_diff =
+      rom::ComputeDiffRanges(rom->vector(), simulated.vector());
+  formatter.AddField("rom_bytes_changed",
+                     static_cast<int>(rom_diff.total_bytes_changed));
+  if (parser.HasFlag("dry-run")) {
+    formatter.AddField("mode", "dry-run");
+    return absl::OkStatus();
+  }
+  if (!refusal.empty()) {
+    return absl::FailedPreconditionError(refusal);
   }
   const std::string out = *parser.GetString("out");
   std::error_code ec;
