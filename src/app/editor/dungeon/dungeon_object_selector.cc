@@ -924,6 +924,7 @@ void DungeonObjectSelector::RetirePreviewCache() {
     }
   }
   preview_cache_.clear();
+  failed_preview_keys_.clear();
 }
 
 void DungeonObjectSelector::SynchronizePreviewCacheRoomContext(
@@ -1002,6 +1003,12 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
     *out = it->second.get();
     return (*out)->bitmap().texture() != nullptr;
   }
+  // Objects whose layout cannot be captured or rendered stay failed until the
+  // cache is invalidated; without this every visible card rebuilt an
+  // ObjectDrawer and two 512x512 buffers each frame.
+  if (failed_preview_keys_.count(cache_key) != 0) {
+    return false;
+  }
 
   // Create new preview using ObjectTileEditor
   const uint8_t* gfx_data = room->get_gfx_buffer().data();
@@ -1010,6 +1017,7 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
   auto layout_or = editor.CaptureObjectLayout(
       object.id_, *room, current_palette_group_, preview_size);
   if (!layout_or.ok()) {
+    failed_preview_keys_.insert(cache_key);
     return false;
   }
   const auto& layout = layout_or.value();
@@ -1025,6 +1033,7 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
       layout, preview->bitmap(), gfx_data, current_palette_group_);
   if (!render_status.ok()) {
     gfx::Arena::Get().RetireBitmap(preview->bitmap());
+    failed_preview_keys_.insert(cache_key);
     return false;
   }
 
@@ -1032,6 +1041,7 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
   // Texture creation and SDL sync
   if (!bitmap.surface()) {
     gfx::Arena::Get().RetireBitmap(bitmap);
+    failed_preview_keys_.insert(cache_key);
     return false;
   }
   SDL_LockSurface(bitmap.surface());

@@ -293,6 +293,11 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // True when an editor (not the dashboard picker) is in front of the user.
   bool HasOpenEditor() const;
 
+  // True while something needs a new frame without user input: the emulator
+  // or music playback, queued texture uploads, or queued deferred actions.
+  // Controller idles otherwise.
+  bool WantsContinuousFrames() const;
+
   // Panel-based editor registry
   static bool IsPanelBasedEditor(EditorType type);
   bool IsSidebarVisible() const {

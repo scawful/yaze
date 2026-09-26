@@ -20,7 +20,8 @@ namespace platform {
 // Forward declaration for unique_ptr custom deleter
 struct SDL3WindowDeleter {
   void operator()(SDL_Window* p) const {
-    if (p) SDL_DestroyWindow(p);
+    if (p)
+      SDL_DestroyWindow(p);
   }
 };
 
@@ -48,6 +49,7 @@ class SDL3WindowBackend : public IWindowBackend {
 
   bool PollEvent(WindowEvent& out_event) override;
   void ProcessNativeEvent(void* native_event) override;
+  bool WaitForEvent(int timeout_ms) override;
 
   WindowStatus GetStatus() const override;
   bool IsActive() const override { return active_; }
