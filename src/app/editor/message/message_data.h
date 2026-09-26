@@ -500,6 +500,22 @@ std::vector<std::string> ParseMessageData(
 constexpr int kTextData2 = 0x75F40;
 constexpr int kTextData2End = 0x773FF;
 
+// Raw bytes of each word-dictionary entry, indexed by [D:xx] id, read from the
+// WordDictionary pointer table ($0E:C703). Entry i runs from pointer i to
+// pointer i + 1, as RenderText_LookupWord reads it. Returns an empty vector if
+// the table or an entry lies outside `rom_size`.
+std::vector<std::vector<uint8_t>> ReadDictionaryEntryBytes(const uint8_t* rom,
+                                                           size_t rom_size);
+
+// Re-encodes the plain character runs of an encoded message with the fewest
+// bytes the word dictionary allows (tokens 0x88-0xE8). Character bytes are
+// those below 0x67. Command bytes, their argument bytes, and existing
+// dictionary tokens are copied unchanged, so the game's decoder
+// (RenderText_ParseMessage) draws the same characters.
+std::vector<uint8_t> CompressMessageWithDictionary(
+    const std::vector<uint8_t>& data,
+    const std::vector<std::vector<uint8_t>>& dictionary);
+
 // One exact, half-open ROM write in a vanilla-message save plan.
 class VanillaMessageWrite {
  public:
@@ -533,6 +549,12 @@ class VanillaMessageSavePlan {
   size_t bank_switch_count() const { return bank_switch_count_; }
 
   std::vector<std::pair<uint32_t, uint32_t>> write_ranges() const;
+
+  // Half-open ranges where the plan's bytes differ from `rom`. Bytes the plan
+  // rewrites with their current value are left out, so policy checks see only
+  // the bytes a save actually changes. Bytes past `rom_size` count as changed.
+  std::vector<std::pair<uint32_t, uint32_t>> ChangedRanges(
+      const uint8_t* rom, size_t rom_size) const;
 
   bool operator==(const VanillaMessageSavePlan&) const = default;
 
