@@ -82,6 +82,12 @@ class TilePaintingManager {
   /// @brief Toggle FILL_TILE mode on/off.
   void ActivateFillTool();
 
+  /// Last brush preview piece built for @p map_id: the brush drawn with that
+  /// map's own tile16 graphics and palette (tests and diagnostics).
+  const gfx::Bitmap& map_brush_preview(int map_id) const {
+    return map_brush_previews_.at(map_id);
+  }
+
  private:
   struct TilePosition {
     int x;
@@ -93,7 +99,13 @@ class TilePaintingManager {
   bool IsValidTile(TilePosition position) const;
   std::vector<std::vector<uint16_t>>& WorldTiles() const;
   void CaptureSelection();
-  void DrawBrushPreview(TilePosition anchor);
+  // Draws `brush` at `anchor` with each destination map's own graphics and
+  // palette. `mark_selection` also moves the canvas selection rectangle.
+  void DrawBrushPreview(const TileBrush& brush, TilePosition anchor,
+                        bool mark_selection, int alpha);
+  // Pixels of `tile_id` as `map_id` draws it (its own tile16 blockset);
+  // falls back to the shared blockset when that map has none built.
+  std::vector<uint8_t> Tile16PixelsForMap(int map_id, int tile_id) const;
   void PaintPattern(const TileBrush& brush, TilePosition anchor, int width,
                     int height, bool finalize = true);
   bool PaintTile(TilePosition position, int tile_id, ChangedMaps& changed_maps);

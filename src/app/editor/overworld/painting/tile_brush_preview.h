@@ -57,6 +57,26 @@ inline MapBrushPreview BuildMapBrushPreview(const TileBrush& brush,
   return result;
 }
 
+// The 16x16 pixels (palette indices) of `tile_id` in a tile16 blockset atlas
+// `atlas_width` pixels wide; empty when the tile lies outside the atlas.
+inline std::vector<uint8_t> Tile16PixelsFromBlockset(
+    std::span<const uint8_t> atlas, int tile_id, int atlas_width = 128) {
+  if (tile_id < 0 || atlas_width < 16 || atlas_width % 16 != 0)
+    return {};
+  const int columns = atlas_width / 16;
+  const size_t source =
+      static_cast<size_t>(tile_id / columns * 16) * atlas_width +
+      (tile_id % columns * 16);
+  if (source + 15 * static_cast<size_t>(atlas_width) + 16 > atlas.size())
+    return {};
+  std::vector<uint8_t> pixels(16 * 16);
+  for (int row = 0; row < 16; ++row) {
+    std::copy_n(atlas.begin() + source + row * atlas_width, 16,
+                pixels.begin() + row * 16);
+  }
+  return pixels;
+}
+
 }  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PAINTING_TILE_BRUSH_PREVIEW_H_

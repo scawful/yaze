@@ -7,6 +7,8 @@
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/painting/tile_brush_preview.h"
+#include "app/editor/overworld/painting/tile_painting_manager.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/canvas/canvas_menu.h"
 #include "app/gui/core/icons.h"
@@ -413,6 +415,101 @@ void E2ETest_OverworldMenuViewGridToggles(ImGuiTestContext* ctx) {
   ctx->PopupCloseAll();
 }
 
+// Brush preview and paint use the graphics of the map under the cursor.
+// Pinned to map A with a Tile16 selected, hovering area B (other sheets)
+// must preview that Tile16 with B's own blockset and palette, and a click
+// must write B's pixels into B's bitmap.
+void E2ETest_BrushPreviewUsesHoveredMapGraphics(ImGuiTestContext* ctx) {
+  Controller* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  if (!EnsureOverworldReady(ctx, controller)) {
+    return;
+  }
+  OverworldEditor* ow = GetOverworldEditor(controller);
+  IM_CHECK(ow != nullptr && ow->tile_painting() != nullptr);
+  auto& overworld = ow->overworld();
+  const std::string title = WindowTitle(controller, "overworld.canvas");
+  ctx->WindowFocus(title.c_str());
+
+  // Area A = 0x00; area B = the first other-area LW map whose blockset draws
+  // some Tile16 differently.
+  const int map_a = 0x00;
+  IM_CHECK(overworld.EnsureMapBuilt(map_a).ok());
+  const auto* a = overworld.overworld_map(map_a);
+  int map_b = -1;
+  int tile = -1;
+  for (int candidate = 0x01; candidate < 0x40 && map_b < 0; ++candidate) {
+    const auto* b = overworld.overworld_map(candidate);
+    if (!b || b->parent() == a->parent() ||
+        !overworld.EnsureMapBuilt(candidate).ok()) {
+      continue;
+    }
+    for (int id = 0; id < 0x800; ++id) {
+      const auto pa = yaze::editor::Tile16PixelsFromBlockset(
+          a->current_tile16_blockset(), id);
+      const auto pb = yaze::editor::Tile16PixelsFromBlockset(
+          b->current_tile16_blockset(), id);
+      if (!pa.empty() && !pb.empty() && pa != pb) {
+        map_b = candidate;
+        tile = id;
+        break;
+      }
+    }
+  }
+  IM_CHECK(map_b >= 0);
+  ctx->LogInfo("A=0x%02X B=0x%02X tile16=0x%03X", map_a, map_b, tile);
+
+  ow->SetEditingMode(EditingMode::DRAW_TILE);
+  if (!ow->map_pinned()) {
+    ow->ToggleMapLock();
+  }
+  IM_CHECK(ShowMapInViewport(ctx, ow, map_b));
+  ow->SelectMapForEditing(map_a, false);
+  ow->set_current_tile16(tile);
+  ctx->Yield(2);
+
+  ImGuiWindow* window = ctx->GetWindowByRef(title.c_str());
+  IM_CHECK(window != nullptr);
+  const ImVec2 world_px = MapTileWorldPos(map_b, 12, 12);
+  const ImVec2 screen = CanvasScreenPos(ow, world_px);
+  IM_CHECK(window->InnerRect.Contains(screen));
+  ctx->MouseMoveToPos(screen);
+  ctx->Yield(3);
+  IM_CHECK_EQ(ow->current_map_id(), map_a);  // Pinned: A stays current.
+
+  const auto* b = overworld.overworld_map(map_b);
+  const auto expected_b = yaze::editor::Tile16PixelsFromBlockset(
+      b->current_tile16_blockset(), tile);
+  const auto current_a = yaze::editor::Tile16PixelsFromBlockset(
+      a->current_tile16_blockset(), tile);
+  const auto& preview = ow->tile_painting()->map_brush_preview(map_b);
+  IM_CHECK_EQ(preview.width(), 16);
+  IM_CHECK_EQ(preview.height(), 16);
+  IM_CHECK_NO_RET(preview.vector() == expected_b);
+  IM_CHECK_NO_RET(preview.vector() != current_a);
+  IM_CHECK_NO_RET(preview.palette() == b->current_palette());
+
+  // Paint: B's bitmap gets B's pixels for that Tile16.
+  ctx->MouseClick(ImGuiMouseButton_Left);
+  ctx->Yield(3);
+  const auto& bitmap = ow->map_bitmap(map_b);
+  bool matches = bitmap.is_active();
+  const int px = 12 * 16;
+  const int py = 12 * 16;
+  for (int y = 0; matches && y < 16; ++y) {
+    for (int x = 0; x < 16; ++x) {
+      if (bitmap.vector()[(py + y) * 512 + px + x] != expected_b[y * 16 + x]) {
+        matches = false;
+        break;
+      }
+    }
+  }
+  IM_CHECK_NO_RET(matches);
+
+  ow->ToggleMapLock();
+  ow->SetEditingMode(EditingMode::MOUSE);
+}
+
 namespace yaze {
 namespace test {
 namespace e2e {
@@ -438,6 +535,11 @@ void RegisterDeadClickRegressionTests(ImGuiTestEngine* engine,
 
   t = IM_REGISTER_TEST(engine, "OverworldRightClick", "MenuHasPopupPadding");
   t->TestFunc = E2ETest_OverworldMenuHasPopupPadding;
+  t->UserData = controller;
+
+  t = IM_REGISTER_TEST(engine, "OverworldRightClick",
+                       "BrushPreviewUsesHoveredMapGraphics");
+  t->TestFunc = E2ETest_BrushPreviewUsesHoveredMapGraphics;
   t->UserData = controller;
 
   t = IM_REGISTER_TEST(engine, "OverworldRightClick", "MenuViewGridToggles");

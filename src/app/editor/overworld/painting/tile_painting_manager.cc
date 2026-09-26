@@ -109,11 +109,23 @@ void TilePaintingManager::CheckForOverworldEdits() {
                       ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
       PaintPattern(*selected, anchor, selected->width, selected->height, false);
     }
-  } else if (single.valid() &&
-             canvas.DrawTilemapPainter(*deps_.tile16_blockset,
-                                       *deps_.current_tile16) &&
-             can_paint) {
-    PaintPattern(single, anchor, 1, 1, false);
+  } else if (single.valid()) {
+    // The hovered tile shows the selected Tile16 as the map under the cursor
+    // draws it (its own graphics and palette), not as the current map does.
+    auto* points = canvas.mutable_points();
+    points->clear();
+    if (canvas.IsMouseHovering() && IsValidTile(anchor)) {
+      const float scale =
+          canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
+      const float size = kTile16Size * scale;
+      points->push_back(ImVec2(anchor.x * size, anchor.y * size));
+      points->push_back(ImVec2((anchor.x + 1) * size, (anchor.y + 1) * size));
+      DrawBrushPreview(single, anchor, /*mark_selection=*/false, 255);
+    }
+    if (can_paint && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+                      ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
+      PaintPattern(single, anchor, 1, 1, false);
+    }
   }
 }
 
@@ -184,11 +196,30 @@ bool TilePaintingManager::PaintTile(TilePosition position, int tile_id,
   old_id = tile_id;
   changed_maps[map] = true;
   (*deps_.maps_bmp)[map].set_modified(true);
-  if (deps_.tile16_blockset->atlas.is_active()) {
-    RenderMapTile(map, position,
-                  gfx::GetTilemapData(*deps_.tile16_blockset, tile_id));
+  // Draw with the destination map's graphics: a stroke can cross into an
+  // area whose sheets differ from the current map's blockset.
+  const auto pixels = Tile16PixelsForMap(map, tile_id);
+  if (!pixels.empty()) {
+    RenderMapTile(map, position, pixels);
   }
   return true;
+}
+
+std::vector<uint8_t> TilePaintingManager::Tile16PixelsForMap(
+    int map_id, int tile_id) const {
+  const auto* map =
+      deps_.overworld ? deps_.overworld->overworld_map(map_id) : nullptr;
+  if (map && map->is_built() && !map->current_tile16_blockset().empty()) {
+    auto pixels =
+        Tile16PixelsFromBlockset(map->current_tile16_blockset(), tile_id);
+    if (!pixels.empty()) {
+      return pixels;
+    }
+  }
+  if (deps_.tile16_blockset && deps_.tile16_blockset->atlas.is_active()) {
+    return gfx::GetTilemapData(*deps_.tile16_blockset, tile_id);
+  }
+  return {};
 }
 
 void TilePaintingManager::RenderMapTile(int map_id, TilePosition position,
@@ -306,17 +337,21 @@ void TilePaintingManager::CheckForSelectRectangle() {
     deps_.selected_tile16_ids->clear();
   }
   if (selection_brush() && canvas.IsMouseHovering()) {
-    DrawBrushPreview(HoveredTile());
+    DrawBrushPreview(brush_, HoveredTile(), /*mark_selection=*/true, 180);
   }
 }
 
-void TilePaintingManager::DrawBrushPreview(TilePosition anchor) {
+void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
+                                           TilePosition anchor,
+                                           bool mark_selection, int alpha) {
   auto& canvas = *deps_.ow_map_canvas;
-  auto* points = canvas.mutable_selected_points();
-  points->clear();
-  points->push_back(ImVec2(anchor.x * kTile16Size, anchor.y * kTile16Size));
-  points->push_back(ImVec2((anchor.x + brush_.width - 1) * kTile16Size,
-                           (anchor.y + brush_.height - 1) * kTile16Size));
+  if (mark_selection) {
+    auto* points = canvas.mutable_selected_points();
+    points->clear();
+    points->push_back(ImVec2(anchor.x * kTile16Size, anchor.y * kTile16Size));
+    points->push_back(ImVec2((anchor.x + brush.width - 1) * kTile16Size,
+                             (anchor.y + brush.height - 1) * kTile16Size));
+  }
 
   // Build each destination piece once. The selected/pinned map's atlas is
   // only a fallback for synthetic or unavailable map data.
@@ -325,8 +360,8 @@ void TilePaintingManager::DrawBrushPreview(TilePosition anchor) {
   const int world = *deps_.current_world;
   const int first_x = std::max(0, anchor.x) / kTilesPerMap;
   const int first_y = std::max(0, anchor.y) / kTilesPerMap;
-  const int last_x = std::min(255, anchor.x + brush_.width - 1) / kTilesPerMap;
-  const int last_y = std::min(255, anchor.y + brush_.height - 1) / kTilesPerMap;
+  const int last_x = std::min(255, anchor.x + brush.width - 1) / kTilesPerMap;
+  const int last_y = std::min(255, anchor.y + brush.height - 1) / kTilesPerMap;
   for (int my = first_y; my <= last_y; ++my) {
     for (int mx = first_x; mx <= last_x; ++mx) {
       if (!IsValidMapGridPosition(world, mx, my))
@@ -341,7 +376,7 @@ void TilePaintingManager::DrawBrushPreview(TilePosition anchor) {
       if (source.empty())
         continue;
       auto& piece = pieces[map_id];
-      piece = BuildMapBrushPreview(brush_, anchor.x, anchor.y, mx, my, source);
+      piece = BuildMapBrushPreview(brush, anchor.x, anchor.y, mx, my, source);
       if (piece.pixels.empty())
         continue;
       auto& preview = map_brush_previews_[map_id];
@@ -371,9 +406,9 @@ void TilePaintingManager::DrawBrushPreview(TilePosition anchor) {
       ImVec2(canvas.zero_point().x + canvas.canvas_size().x * scale,
              canvas.zero_point().y + canvas.canvas_size().y * scale),
       true);
-  for (int y = 0; y < brush_.height; ++y) {
-    for (int x = 0; x < brush_.width; ++x) {
-      const int id = brush_.at(x, y);
+  for (int y = 0; y < brush.height; ++y) {
+    for (int x = 0; x < brush.width; ++x) {
+      const int id = brush.at(x, y);
       const TilePosition position{anchor.x + x, anchor.y + y};
       if (!IsValidTile(position))
         continue;
@@ -401,7 +436,7 @@ void TilePaintingManager::DrawBrushPreview(TilePosition anchor) {
                        uv0.y + 16.0f / atlas.height());
       draw->AddImage((ImTextureID)(intptr_t)atlas.texture(), start,
                      ImVec2(start.x + size, start.y + size), uv0, uv1,
-                     IM_COL32(255, 255, 255, 180));
+                     IM_COL32(255, 255, 255, alpha));
     }
   }
   draw->PopClipRect();

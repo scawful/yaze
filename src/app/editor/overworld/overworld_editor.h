@@ -232,6 +232,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
   int current_tile16_id() const { return current_tile16_; }
+  const TilePaintingManager* tile_painting() const {
+    return tile_painting_.get();
+  }
+  const gfx::Bitmap& map_bitmap(int map_id) const {
+    return maps_bmp_.at(map_id);
+  }
   bool map_pinned() const { return current_map_lock_; }
   int current_map_id() const { return current_map_; }
   int current_world_id() const { return current_world_; }
