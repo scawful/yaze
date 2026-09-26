@@ -231,6 +231,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void SelectMapForEditing(int map_id, bool respect_pin = true);
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
+  int current_tile16_id() const { return current_tile16_; }
+  bool map_pinned() const { return current_map_lock_; }
   int current_map_id() const { return current_map_; }
   int current_world_id() const { return current_world_; }
   int hovered_map_id() const { return hovered_map_; }

@@ -114,7 +114,8 @@ bindings via `GetDisplayString`.
 Gestures (Select tool unless noted): left-drag empty map or middle-drag pans;
 drag an entity to move it (item moves are undoable); double-click a map opens
 Map Properties; right-click opens the map menu. Brush/Fill: right-click
-samples the tile16, right-drag captures a multi-tile brush, `[`/`]` cycle the
+samples the tile16 and makes that map current, right-drag captures a
+multi-tile brush, `[`/`]` cycle the
 tile16, Shift+right-click opens the map menu. Keys: `1` select, `2`/`B`
 brush, `F` fill, `3`-`6` entity focus (plain keys only; Cmd/Ctrl+digits
 switch editors), Alt+1/2/3 world, Alt+arrows adjacent map, `=`/`-` zoom, `0`
@@ -132,6 +133,11 @@ the cursor and only starts from a press on the canvas. All tunables are in
 
 Unpinned map selection follows the cursor in Mouse, Brush, and Fill modes.
 Pin through the toolbar, Ctrl+L, or the context menu to hold the property target.
+Explicit clicks select the map under the cursor even when pinned, and the pin
+then holds that map: a Select-tool left click that did not pan (on release)
+and a Brush/Fill right click. Both go through
+`CanvasNavigationManager::SelectMapUnderCursor` (policy: `IsMapSelectClick`);
+large areas resolve to the parent area's properties.
 Middle-drag only pans; it does not pin or open properties. Entity dragging holds
 the selected map until release. Hover tracking and right-click targeting share
 the same scaled coordinate validation.

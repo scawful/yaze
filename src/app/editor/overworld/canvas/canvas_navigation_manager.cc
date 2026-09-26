@@ -313,6 +313,37 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
 // Map Interaction
 // =============================================================================
 
+bool IsMapSelectClick(const MapClickInput& input) {
+  switch (input.mode) {
+    case EditingMode::DRAW_TILE:
+    case EditingMode::FILL_TILE:
+      return input.right_clicked && !input.shift;
+    case EditingMode::MOUSE:
+      return input.left_released && !input.left_dragged &&
+             !input.entity_hovered;
+  }
+  return false;
+}
+
+bool CanvasNavigationManager::SelectMapUnderCursor() {
+  if (!ctx_.ow_map_canvas || !ctx_.current_map) {
+    return false;
+  }
+  std::optional<int> map;
+  if (ctx_.hovered_map && *ctx_.hovered_map >= 0) {
+    map = *ctx_.hovered_map;
+  } else {
+    map = MapFromCanvasPosition(ctx_, ctx_.ow_map_canvas->hover_mouse_pos());
+  }
+  if (!map) {
+    return false;
+  }
+  if (*ctx_.current_map != *map) {
+    SelectMapForEditing(ctx_, callbacks_, *map, /*respect_pin=*/false);
+  }
+  return true;
+}
+
 void CanvasNavigationManager::HandleMapInteraction() {
   if (!ctx_.ow_map_canvas || !ctx_.current_mode || !ctx_.current_map_lock ||
       !ctx_.current_map) {
@@ -322,39 +353,27 @@ void CanvasNavigationManager::HandleMapInteraction() {
     return;
   }
 
-  // Paint modes: right-click samples (and right-drag captures a brush) in
-  // TilePaintingManager::CheckForSelectRectangle. Sampling here as well made
-  // every right-click select the tile twice.
-  if (*ctx_.current_mode == EditingMode::DRAW_TILE ||
-      *ctx_.current_mode == EditingMode::FILL_TILE) {
-    return;
+  const ImGuiIO& io = ImGui::GetIO();
+  const float threshold = io.MouseDragThreshold;
+  MapClickInput input;
+  input.mode = *ctx_.current_mode;
+  input.left_released = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+  input.left_dragged = io.MouseDragMaxDistanceSqr[ImGuiMouseButton_Left] >=
+                       threshold * threshold;
+  input.right_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+  input.shift = io.KeyShift;
+  input.entity_hovered =
+      callbacks_.is_entity_hovered && callbacks_.is_entity_hovered();
+
+  // Paint modes: the right-click Tile16 sample (and right-drag brush capture)
+  // stays in TilePaintingManager::CheckForSelectRectangle, which runs after
+  // this; sampling here too made every right-click select the tile twice.
+  if (IsMapSelectClick(input)) {
+    (void)SelectMapUnderCursor();
   }
 
-  if (*ctx_.current_mode != EditingMode::MOUSE) {
-    return;
-  }
-  if (callbacks_.is_entity_hovered && callbacks_.is_entity_hovered()) {
-    return;
-  }
-
-  auto map_from_cursor = [&]() -> std::optional<int> {
-    if (ctx_.hovered_map && *ctx_.hovered_map >= 0) {
-      return *ctx_.hovered_map;
-    }
-    return TrackMapAtCanvasPosition(ctx_.ow_map_canvas->hover_mouse_pos());
-  };
-
-  const auto hovered_map = map_from_cursor();
-  if (!hovered_map.has_value()) {
-    return;
-  }
-
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-      *ctx_.current_map != *hovered_map) {
-    SelectMapForEditing(ctx_, callbacks_, *hovered_map, true);
-  }
-
-  if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
+  if (*ctx_.current_mode == EditingMode::MOUSE && !input.entity_hovered &&
+      ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
       callbacks_.open_map_properties) {
     callbacks_.open_map_properties();
   }
