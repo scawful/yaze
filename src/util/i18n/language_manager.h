@@ -22,7 +22,10 @@ class LanguageManager {
   static LanguageManager& Get();
 
   // Locale codes that have a catalog on disk, always including "en". Sorted.
+  // Scanned once and cached: the Language menu asks for it every frame.
   std::vector<std::string> GetAvailableLocales() const;
+  // Drops the cached list so the next call scans the catalog folder again.
+  void RefreshAvailableLocales() { available_locales_.clear(); }
 
   const std::string& GetCurrentLocale() const { return current_locale_; }
 
@@ -57,6 +60,7 @@ class LanguageManager {
   std::map<std::string, std::unordered_map<std::string, std::string>> catalogs_;
   std::string current_locale_ = "en";
   LanguageChangedCallback on_changed_;
+  mutable std::vector<std::string> available_locales_;  // empty = not scanned
 };
 
 }  // namespace i18n

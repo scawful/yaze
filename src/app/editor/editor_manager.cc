@@ -2305,6 +2305,11 @@ void EditorManager::SetupComponentCallbacks() {
   }
 }
 
+bool EditorManager::WantsContinuousFrames() const {
+  return emulator_.running() || gfx::Arena::Get().HasPendingTextures() ||
+         pending_editor_deferred_actions_.load(std::memory_order_relaxed) > 0;
+}
+
 bool EditorManager::HasOpenEditor() const {
   return current_editor_ != nullptr &&
          window_manager_.GetActiveCategory() !=
