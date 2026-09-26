@@ -24,7 +24,8 @@ class CpuFlagsTest : public ::testing::Test {
     cpu_.callbacks().write_byte = [this](uint32_t adr, uint8_t value) {
       bus_[adr & 0xFFFFFF] = value;
     };
-    cpu_.callbacks().idle = [](bool) {};
+    cpu_.callbacks().idle = [](bool) {
+    };
     bus_[0xFFFC] = 0x00;  // reset vector -> $00:8000
     bus_[0xFFFD] = 0x80;
     cpu_.Reset(true);
@@ -35,12 +36,15 @@ class CpuFlagsTest : public ::testing::Test {
   void Load(const std::vector<uint8_t>& code) {
     const std::vector<uint8_t> prologue = {0x18, 0xFB};
     size_t at = 0x8000;
-    for (uint8_t b : prologue) bus_[at++] = b;
-    for (uint8_t b : code) bus_[at++] = b;
+    for (uint8_t b : prologue)
+      bus_[at++] = b;
+    for (uint8_t b : code)
+      bus_[at++] = b;
   }
 
   void Step(int count) {
-    for (int i = 0; i < count; ++i) cpu_.RunOpcode();
+    for (int i = 0; i < count; ++i)
+      cpu_.RunOpcode();
   }
 
   MemoryImpl memory_;

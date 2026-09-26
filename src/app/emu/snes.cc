@@ -575,8 +575,9 @@ uint8_t Snes::ReadReg(uint16_t adr) {
       if (auto_joy_timer_ > 0) {
         static int zero_return_count = 0;
         if (zero_return_count++ < 50) {
-          LOG_WARN("SNES", "Reading $%04X while auto_joy_timer_=%d, returning 0!",
-                   adr, auto_joy_timer_);
+          LOG_WARN("SNES",
+                   "Reading $%04X while auto_joy_timer_=%d, returning 0!", adr,
+                   auto_joy_timer_);
         }
         return 0;
       }
