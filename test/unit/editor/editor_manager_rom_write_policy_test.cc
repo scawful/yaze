@@ -30,6 +30,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
+#include "editor_test_support.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "rom/snes.h"
@@ -534,36 +535,7 @@ std::filesystem::path MakeTempFilePath(const std::string& basename) {
          (basename + "_" + std::to_string(nonce));
 }
 
-// Removes every redirected settings file when the test process exits.
-struct IsolatedSettingsFiles {
-  std::vector<std::filesystem::path> paths;
-  ~IsolatedSettingsFiles() {
-    for (const auto& path : paths) {
-      std::error_code ec;
-      std::filesystem::remove(path, ec);
-      std::filesystem::remove(path.string() + ".legacy.ini", ec);
-    }
-  }
-};
-
-IsolatedSettingsFiles& GetIsolatedSettingsFiles() {
-  static IsolatedSettingsFiles files;
-  return files;
-}
-
-// EditorManager::Initialize otherwise loads the developer's real
-// ~/Documents/Yaze/settings.json. A saved sidebar category such as
-// "Overworld" makes session activation materialize that editor (and a full
-// reload then loads it), so results depended on whoever last ran yaze. Every
-// case starts from default preferences instead.
-void InitializeWithIsolatedSettings(EditorManager& manager,
-                                    gfx::IRenderer* renderer) {
-  const auto settings_path =
-      MakeTempFilePath("yaze_rom_write_policy_settings.json");
-  GetIsolatedSettingsFiles().paths.push_back(settings_path);
-  manager.user_settings().SetSettingsFilePathForTesting(settings_path.string());
-  manager.Initialize(renderer, "");
-}
+using ::yaze::test::InitializeWithIsolatedSettings;
 
 uint8_t ReadByteAt(const std::filesystem::path& path, std::streamoff offset) {
   std::ifstream file(path, std::ios::binary);
