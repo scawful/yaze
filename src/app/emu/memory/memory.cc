@@ -123,7 +123,7 @@ void MemoryImpl::cart_write(uint8_t bank, uint16_t adr, uint8_t val) {
 }
 
 uint8_t MemoryImpl::cart_readLorom(uint8_t bank, uint16_t adr) {
-  // SRAM access: banks 70-7e and f0-ff, addresses 0000-7fff
+  // SRAM access: banks 70-7d and f0-ff, addresses 0000-7fff
   if (((bank >= 0x70 && bank < 0x7e) || bank >= 0xf0) && adr < 0x8000 &&
       sram_size_ > 0) {
     return ram_[(((bank & 0xf) << 15) | adr) & (sram_size_ - 1)];
@@ -140,9 +140,10 @@ uint8_t MemoryImpl::cart_readLorom(uint8_t bank, uint16_t adr) {
 }
 
 void MemoryImpl::cart_writeLorom(uint8_t bank, uint16_t adr, uint8_t val) {
-  if (((bank >= 0x70 && bank < 0x7e) || bank > 0xf0) && adr < 0x8000 &&
+  // Must match the SRAM window in cart_readLorom.
+  if (((bank >= 0x70 && bank < 0x7e) || bank >= 0xf0) && adr < 0x8000 &&
       sram_size_ > 0) {
-    // banks 70-7e and f0-ff, adr 0000-7fff
+    // banks 70-7d and f0-ff, adr 0000-7fff
     ram_[(((bank & 0xf) << 15) | adr) & (sram_size_ - 1)] = val;
   }
 }
