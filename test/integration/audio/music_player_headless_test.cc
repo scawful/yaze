@@ -72,8 +72,13 @@ TEST_F(MusicPlayerHeadlessTest, InitializesWithRom) {
   // Player should be created
   EXPECT_NE(player_, nullptr);
 
-  // Initially not ready until a song is played
-  EXPECT_FALSE(player_->IsAudioReady());
+  // Ready as soon as a ROM is set: the audio backend starts lazily on first
+  // play (EnsureAudioReady), and the music editor enables its play controls
+  // from IsAudioReady().
+  EXPECT_TRUE(player_->IsAudioReady());
+
+  editor::music::MusicPlayer player_without_rom(nullptr);
+  EXPECT_FALSE(player_without_rom.IsAudioReady());
 }
 
 TEST_F(MusicPlayerHeadlessTest, InitialStateIsStopped) {
