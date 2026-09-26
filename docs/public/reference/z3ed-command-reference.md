@@ -268,15 +268,67 @@ object stream. Without the flag, the legacy output and count are unchanged.
 - `overworld-describe-map --map <hex>`
 - `overworld-find-tile --tile <hex>`
 - `overworld-list-warps --map <hex>`
-- `overworld-list-sprites --map <hex>`
+- `overworld-list-sprites [--screen <hex>] [--phase <0|1|2>]`
 - `overworld-list-items --map <hex>`
 - `overworld-get-entrance --entrance <hex>`
 - `overworld-tile-stats --map <hex>`
+- `overworld-render --screen <hex> --out <file.png> [--overlays <list>] [--phase <0|1|2>] [--scale <float>]`
+- `overworld-add-sprite --screen <hex> --phase <0|1|2> --id <hex> --x <tile> --y <tile> [--replace-index <n>] [--write]`
+- `overworld-move-sprite --screen <hex> --phase <0|1|2> --index <n> --x <tile> --y <tile> [--expect-id <hex>] [--write]`
+- `overworld-remove-sprite --screen <hex> --phase <0|1|2> --index <n> [--expect-id <hex>] [--write]`
 
 Example:
 ```bash
 z3ed overworld-describe-map --map=0x40 --rom=zelda3.sfc
 ```
+
+#### Sprite phases
+The game keeps one overworld sprite list per game state ("phase"):
+`0` = beginning, `1` = first part, `2` = second part. Vanilla picks them by
+`$7EF3C5` (< 2, 2, >= 3) and only has phase-0 lists for the Light World.
+ZSCustomOverworld v3 gives every phase 160 entries. Oracle of Secrets
+(`LoadOverworldSprites_Interupt` + `Oracle_CheckIfNight`) uses phase 0 for
+GameState 0-1, phase 1 for GameState 2 in daytime, and phase 2 at night
+(GameState >= 2) or at GameState 3.
+
+`overworld-list-sprites` still lists every phase by default; each entry now
+carries `phase`, `phase_name`, `list_index`, and `tile` (16px units within the
+parent area). `--phase` filters. `--screen` of a child resolves to its parent.
+
+#### `overworld-render`
+Renders the whole area containing `--screen` from current ROM data. A child of
+a large, wide, or tall area resolves to its parent. `--out` (alias `--output`)
+must not alias the ROM. Overlays: `sprites`, `entrances`, `exits`, `holes`,
+`items`, `grid`, `all` (`all` excludes `grid`). Labels: sprite ids in hex
+(`<phase>:<id>` when every phase is drawn; phase 0 green, 1 red, 2 blue),
+`E<entrance>`, `X<exit room>`, `H<hole entrance>`, `I<item>`. JSON output lists
+every marker with area-local pixel coordinates.
+
+```bash
+z3ed overworld-render --rom=copy.sfc --screen=0x41 --out=/tmp/ow40.png \
+  --overlays=all --phase=1
+```
+
+#### Overworld sprite edits
+`overworld-add-sprite`, `overworld-move-sprite`, and `overworld-remove-sprite`
+edit exactly one phase list of one parent area. They are dry-run by default and
+print the list before/after, exact duplicate entries, the pointer slot, and
+every PC/SNES byte range to be written. The planner changes as few bytes as
+possible:
+
+- `in-place`: the list is not shared and does not grow.
+- `grow-in-place`: the bytes after the list are unreferenced by any pointer.
+- `relocate`: the list is copied to an unreferenced run and only this slot's
+  pointer changes (other slots sharing the old list keep it).
+- refused (`RESOURCE_EXHAUSTED`): no unreferenced run fits; nothing is written.
+
+The region ends at the room sprite pointer table (`$09:C298` operand), which
+ZScream may move below `$09:D62E`. `--replace-index` swaps an entry for the new
+sprite in one edit. `--write` applies through the fenced sprite writer, saves
+with a required backup, reopens the file, and fails with `DATA_LOSS` if the list
+does not read back or any byte outside the plan changed. `--write` refuses a ROM
+inside an Oracle of Secrets checkout (`Roms/` next to `Oracle_main.asm`) unless
+`--allow-project-rom` is given.
 
 ### Graphics Sheet Commands
 - `gfx-sheet-inventory [--reserved <ids>] [--flagged <ids>] [--labels-csv <file>] [--out <file.json>]`

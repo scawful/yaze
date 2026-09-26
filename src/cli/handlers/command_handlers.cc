@@ -18,6 +18,8 @@
 #include "cli/handlers/game/oracle_smoke_check_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_graph_commands.h"
+#include "cli/handlers/game/overworld_render_commands.h"
+#include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_inventory_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
@@ -175,6 +177,12 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<OverworldGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<OverworldTileStatsCommandHandler>());
   handlers.push_back(std::make_unique<OverworldExportGraphCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldRenderCommandHandler>());
+
+  // Overworld editing (dry-run by default; --write commits)
+  handlers.push_back(std::make_unique<OverworldAddSpriteCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldMoveSpriteCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldRemoveSpriteCommandHandler>());
 
   // GUI automation tools
   handlers.push_back(std::make_unique<GuiPlaceTileCommandHandler>());

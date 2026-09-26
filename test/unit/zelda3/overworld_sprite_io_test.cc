@@ -1,6 +1,8 @@
 #include "zelda3/overworld/overworld_sprite_io.h"
 #include <algorithm>
+#include <filesystem>
 #include <memory>
+#include <string>
 #include "app/editor/overworld/entity/entity.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "core/features.h"
@@ -254,6 +256,95 @@ TEST_P(OverworldSpriteIoTest, CapacityBoundaryFitsThenRejectsOneMoreRecord) {
   edits[0][0]->insert(edits[0][0]->begin(), 3, 1);
   EXPECT_EQ(PlanOverworldSpriteSave(rom_, edits).status().code(),
             absl::StatusCode::kResourceExhausted);
+}
+TEST_P(OverworldSpriteIoTest, RegionEndsAtRelocatedRoomSpriteTable) {
+  EXPECT_EQ(GetOverworldSpriteRegionEnd(rom_), kOverworldSpriteDataEnd);
+  const int table_pc = kOverworldSpriteDataEnd - 0x37C;  // Oracle: $09:D2B2
+  ASSERT_TRUE(
+      rom_.WriteWord(kRoomSpritePointerTableOperand, table_pc - 0x40000).ok());
+  EXPECT_EQ(GetOverworldSpriteRegionEnd(rom_), table_pc);
+  // The repacking planner and fence both stop at the room sprite table.
+  const auto before = rom_.vector();
+  OverworldSpriteSavePlan plan{{layout_.data_start, {1}}, {table_pc, {0}}};
+  EXPECT_EQ(ApplyOverworldSpriteSave(rom_, plan).code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(rom_.vector(), before);
+  OverworldSpriteEdits edits;
+  edits[0][0] =
+      OverworldSpriteBytes(((table_pc - layout_.data_start) / 3 + 1) * 3, 1);
+  edits[0][0]->push_back(0xFF);
+  EXPECT_EQ(PlanOverworldSpriteSave(rom_, edits).status().code(),
+            absl::StatusCode::kResourceExhausted);
+}
+TEST_P(OverworldSpriteIoTest, ListEditRelocatesSharedListAndKeepsOthers) {
+  // Every slot shares the empty list at data_start.
+  const OverworldSpriteBytes added{0x0D, 0x0E, 0x0A, 0xFF};
+  auto plan = PlanOverworldSpriteListEdit(rom_, 1, 0, added);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->strategy, OverworldSpriteEditStrategy::kRelocate);
+  EXPECT_FALSE(plan->sharers.empty());
+  ASSERT_EQ(plan->writes.size(), 2u);
+  EXPECT_EQ(plan->writes[1].address, layout_.tables[1]);
+  const auto before = rom_.vector();
+  ASSERT_TRUE(ApplyOverworldSpriteSave(rom_, plan->writes).ok());
+  EXPECT_EQ(Read(1, 0), added);
+  EXPECT_EQ(Read(0, 0), OverworldSpriteBytes{0xFF});
+  EXPECT_EQ(Read(2, 0), OverworldSpriteBytes{0xFF});
+  EXPECT_EQ(Read(1, 1), OverworldSpriteBytes{0xFF});
+  int changed = 0;
+  for (int i = 0; i < rom_.size(); ++i)
+    changed += before[i] != rom_.vector()[i];
+  EXPECT_LE(changed, 6);
+}
+TEST_P(OverworldSpriteIoTest, ListEditGrowsShrinksInPlaceAndRoundTripsFile) {
+  // Give state 1 map 0 its own list right after the shared empty list.
+  const int own = layout_.data_start + 1;
+  ASSERT_TRUE(rom_.WriteVector(own, {1, 2, 3, 0xFF}).ok());
+  ASSERT_TRUE(rom_.WriteWord(layout_.tables[1], own - 0x40000).ok());
+  // Grow: the 0xA5 bytes after the list are unreferenced.
+  const OverworldSpriteBytes grown{1, 2, 3, 4, 5, 0x0A, 0xFF};
+  auto grow = PlanOverworldSpriteListEdit(rom_, 1, 0, grown);
+  ASSERT_TRUE(grow.ok()) << grow.status();
+  EXPECT_EQ(grow->strategy, OverworldSpriteEditStrategy::kGrowInPlace);
+  ASSERT_EQ(grow->writes.size(), 1u);
+  EXPECT_EQ(grow->writes[0].address, own);
+  ASSERT_TRUE(ApplyOverworldSpriteSave(rom_, grow->writes).ok());
+
+  const auto path =
+      std::filesystem::temp_directory_path() /
+      ("ow_sprite_edit_" +
+       std::to_string(::testing::UnitTest::GetInstance()->random_seed()) + "_" +
+       std::to_string(GetParam()) + ".sfc");
+  ASSERT_TRUE(rom_.SaveToFile({.filename = path.string()}).ok());
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+  EXPECT_EQ(*ReadOverworldSpriteList(reopened, layout_.tables[1]), grown);
+
+  // Shrink back in place: only the list start changes.
+  auto shrink =
+      PlanOverworldSpriteListEdit(reopened, 1, 0, OverworldSpriteBytes{0xFF});
+  ASSERT_TRUE(shrink.ok()) << shrink.status();
+  EXPECT_EQ(shrink->strategy, OverworldSpriteEditStrategy::kInPlace);
+  ASSERT_TRUE(ApplyOverworldSpriteSave(reopened, shrink->writes).ok());
+  EXPECT_EQ(*ReadOverworldSpriteList(reopened, layout_.tables[1]),
+            OverworldSpriteBytes{0xFF});
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+}
+TEST_P(OverworldSpriteIoTest, ListEditRefusesWhenNoUnreferencedRunFits) {
+  // Region of four bytes: shared empty list plus three spare bytes.
+  ASSERT_TRUE(rom_.WriteWord(kRoomSpritePointerTableOperand,
+                             layout_.data_start + 4 - 0x40000)
+                  .ok());
+  const auto before = rom_.vector();
+  auto plan = PlanOverworldSpriteListEdit(rom_, 0, 0, {1, 2, 3, 0xFF});
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_.vector(), before);
+  // A no-op edit is always allowed and plans no writes.
+  auto noop = PlanOverworldSpriteListEdit(rom_, 0, 0, {0xFF});
+  ASSERT_TRUE(noop.ok());
+  EXPECT_EQ(noop->strategy, OverworldSpriteEditStrategy::kNoChange);
+  EXPECT_TRUE(noop->writes.empty());
 }
 TEST(OverworldSpritePlacementTest, FreeMovementStillUsesRepresentableGrid) {
   ImGuiContext* previous = ImGui::GetCurrentContext();

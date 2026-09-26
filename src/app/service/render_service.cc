@@ -12,8 +12,12 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/platform/sdl_compat.h"
 #include "app/service/headless_overlay_renderer.h"
+#include "util/macro.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
+#include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 #include <SDL.h>
 #ifdef YAZE_CLI_HAS_PNG
@@ -70,6 +74,70 @@ TileColor CollisionColor(uint8_t tile) {
   if (tile >= 0xD0 && tile <= 0xD3)
     return {210, 0, 255, 170};  // switch corner — magenta
   return {140, 140, 140, 120};  // other non-zero — grey
+}
+
+// 3x5 glyphs for overlay labels; each row is 3 bits, MSB = left column.
+const uint8_t* GlyphFor(char c) {
+  static const uint8_t kDigits[16][5] = {
+      {7, 5, 5, 5, 7}, {2, 6, 2, 2, 7}, {7, 1, 7, 4, 7}, {7, 1, 7, 1, 7},
+      {5, 5, 7, 1, 1}, {7, 4, 7, 1, 7}, {7, 4, 7, 5, 7}, {7, 1, 1, 2, 2},
+      {7, 5, 7, 5, 7}, {7, 5, 7, 1, 7}, {2, 5, 7, 5, 5}, {6, 5, 6, 5, 6},
+      {3, 4, 4, 4, 3}, {6, 5, 5, 5, 6}, {7, 4, 6, 4, 7}, {7, 4, 6, 4, 4}};
+  static const uint8_t kX[5] = {5, 5, 2, 5, 5};
+  static const uint8_t kH[5] = {5, 5, 7, 5, 5};
+  static const uint8_t kI[5] = {7, 2, 2, 2, 7};
+  static const uint8_t kColon[5] = {0, 2, 0, 2, 0};
+  if (c >= '0' && c <= '9')
+    return kDigits[c - '0'];
+  if (c >= 'A' && c <= 'F')
+    return kDigits[10 + (c - 'A')];
+  if (c == 'X')
+    return kX;
+  if (c == 'H')
+    return kH;
+  if (c == 'I')
+    return kI;
+  if (c == ':')
+    return kColon;
+  return nullptr;
+}
+
+// Draw a label with a dark backing box; font pixels are 2x2 area pixels.
+void DrawLabel(HeadlessOverlayRenderer& draw, float x, float y,
+               const std::string& text, uint8_t r, uint8_t g, uint8_t b) {
+  constexpr float kPx = 2.0f;
+  const float w = static_cast<float>(text.size()) * 4 * kPx + kPx;
+  const float h = 7 * kPx;
+  draw.DrawFilledRect(x, y, w, h, 0, 0, 0, 200);
+  for (size_t i = 0; i < text.size(); ++i) {
+    const uint8_t* glyph = GlyphFor(text[i]);
+    if (!glyph)
+      continue;
+    const float gx = x + kPx + static_cast<float>(i) * 4 * kPx;
+    for (int row = 0; row < 5; ++row) {
+      for (int col = 0; col < 3; ++col) {
+        if (glyph[row] & (4 >> col)) {
+          draw.DrawFilledRect(gx + col * kPx, y + kPx + row * kPx, kPx, kPx, r,
+                              g, b, 255);
+        }
+      }
+    }
+  }
+}
+
+struct PhaseColor {
+  uint8_t r, g, b;
+};
+
+PhaseColor SpritePhaseColor(int phase) {
+  switch (phase) {
+    case 0:
+      return {80, 255, 120};  // beginning: green
+    case 1:
+      return {255, 80, 80};  // first part: red
+    default:
+      return {90, 170, 255};  // second part: blue
+  }
 }
 
 }  // namespace
@@ -155,6 +223,247 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
 
   RenderResult result;
   result.png_data = std::move(png_or).value();
+  result.width = out_w;
+  result.height = out_h;
+  return result;
+}
+
+absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
+    const OverworldRenderRequest& req) {
+  if (const auto status = ValidateRenderScale(req.scale); !status.ok()) {
+    return status;
+  }
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (!game_data_) {
+    return absl::FailedPreconditionError("GameData not available");
+  }
+  if (req.screen_id < 0 || req.screen_id >= zelda3::kNumOverworldMaps) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid overworld screen 0x%02X", req.screen_id));
+  }
+  if (req.phase < -1 || req.phase > 2) {
+    return absl::InvalidArgumentError("Sprite phase must be 0, 1, or 2");
+  }
+
+#ifndef YAZE_CLI_HAS_PNG
+  return absl::UnimplementedError("PNG encoding unavailable (libpng missing)");
+#endif
+
+  std::lock_guard<std::mutex> lock(mu_);
+
+  zelda3::Overworld overworld(rom_, game_data_);
+  RETURN_IF_ERROR(overworld.Load(rom_));
+
+  const auto* requested = overworld.overworld_map(req.screen_id);
+  if (requested == nullptr) {
+    return absl::InternalError("Overworld map missing after load");
+  }
+  const int parent = requested->parent();
+  const auto* parent_map = overworld.overworld_map(parent);
+  if (parent_map == nullptr) {
+    return absl::InternalError("Overworld parent map missing after load");
+  }
+
+  int cols = 1;
+  int rows = 1;
+  std::string area_name = "small";
+  switch (parent_map->area_size()) {
+    case zelda3::AreaSizeEnum::LargeArea:
+      cols = rows = 2;
+      area_name = "large";
+      break;
+    case zelda3::AreaSizeEnum::WideArea:
+      cols = 2;
+      area_name = "wide";
+      break;
+    case zelda3::AreaSizeEnum::TallArea:
+      rows = 2;
+      area_name = "tall";
+      break;
+    case zelda3::AreaSizeEnum::SmallArea:
+      break;
+  }
+  if (area_name == "small" && parent_map->is_large_map()) {
+    cols = rows = 2;
+    area_name = "large";
+  }
+
+  constexpr int kScreen = 512;
+  const int width = cols * kScreen;
+  const int height = rows * kScreen;
+  std::vector<uint8_t> native(static_cast<size_t>(width) * height * 4, 0);
+
+  OverworldRenderResult result;
+  result.requested_screen = req.screen_id;
+  result.parent_screen = parent;
+  result.area_size = area_name;
+
+  for (int dy = 0; dy < rows; ++dy) {
+    for (int dx = 0; dx < cols; ++dx) {
+      const int screen = parent + dx + dy * 8;
+      RETURN_IF_ERROR(overworld.EnsureMapBuilt(screen));
+      const auto* map = overworld.overworld_map(screen);
+      if (map == nullptr) {
+        return absl::InternalError("Overworld child map missing");
+      }
+      const auto& pixels = map->bitmap_data();
+      const auto& palette = map->current_palette();
+      if (pixels.size() < static_cast<size_t>(kScreen) * kScreen) {
+        return absl::InternalError(
+            absl::StrFormat("Map 0x%02X has no bitmap after build", screen));
+      }
+      result.screens.push_back(screen);
+      for (int y = 0; y < kScreen; ++y) {
+        for (int x = 0; x < kScreen; ++x) {
+          const uint8_t idx = pixels[y * kScreen + x];
+          uint8_t r = 0, g = 0, b = 0;
+          if (idx < palette.size()) {
+            const auto rgb = palette[idx].rgb();
+            r = static_cast<uint8_t>(rgb.x);
+            g = static_cast<uint8_t>(rgb.y);
+            b = static_cast<uint8_t>(rgb.z);
+          }
+          const size_t base = (static_cast<size_t>(dy * kScreen + y) * width +
+                               dx * kScreen + x) *
+                              4;
+          native[base + 0] = r;
+          native[base + 1] = g;
+          native[base + 2] = b;
+          native[base + 3] = 255;
+        }
+      }
+    }
+  }
+
+  const int out_w = static_cast<int>(width * req.scale);
+  const int out_h = static_cast<int>(height * req.scale);
+  std::vector<uint8_t> rgba(static_cast<size_t>(out_w) * out_h * 4, 255);
+  for (int oy = 0; oy < out_h; ++oy) {
+    const int sy = oy * height / out_h;
+    for (int ox = 0; ox < out_w; ++ox) {
+      const int sx = ox * width / out_w;
+      std::copy_n(native.begin() + (static_cast<size_t>(sy) * width + sx) * 4,
+                  4, rgba.begin() + (static_cast<size_t>(oy) * out_w + ox) * 4);
+    }
+  }
+
+  HeadlessOverlayRenderer draw(rgba, out_w, out_h, req.scale);
+  const uint32_t flags = req.overlay_flags;
+  const int origin_x = (parent % 8) * kScreen;
+  const int origin_y = ((parent % 64) / 8) * kScreen;
+  auto owned = [&](int map_id) {
+    const auto* map = overworld.overworld_map(map_id);
+    return map != nullptr && map->parent() == parent;
+  };
+  auto in_area = [&](int lx, int ly) {
+    return lx >= 0 && ly >= 0 && lx < width && ly < height;
+  };
+
+  if (flags & OverworldOverlay::kGrid) {
+    for (int x = 0; x <= width; x += 16) {
+      const bool edge = x % kScreen == 0;
+      draw.DrawLine(static_cast<float>(x), 0, static_cast<float>(x),
+                    static_cast<float>(height - 1), 255, 255, 255,
+                    edge ? 180 : 40);
+    }
+    for (int y = 0; y <= height; y += 16) {
+      const bool edge = y % kScreen == 0;
+      draw.DrawLine(0, static_cast<float>(y), static_cast<float>(width - 1),
+                    static_cast<float>(y), 255, 255, 255, edge ? 180 : 40);
+    }
+  }
+
+  auto mark = [&](const std::string& kind, int id, int lx, int ly,
+                  const std::string& label, uint8_t r, uint8_t g, uint8_t b,
+                  int phase = -1, int list_index = -1) {
+    draw.DrawFilledRect(static_cast<float>(lx), static_cast<float>(ly), 16, 16,
+                        r, g, b, 90);
+    draw.DrawRect(static_cast<float>(lx), static_cast<float>(ly), 16, 16, r, g,
+                  b, 255);
+    DrawLabel(draw, static_cast<float>(lx), static_cast<float>(ly + 17), label,
+              r, g, b);
+    result.markers.push_back({kind, id, phase, list_index, lx, ly});
+  };
+
+  if (flags & OverworldOverlay::kItems) {
+    for (const auto& item : overworld.all_items()) {
+      if (item.deleted || !owned(item.room_map_id_))
+        continue;
+      const int lx = item.x_ - origin_x;
+      const int ly = item.y_ - origin_y;
+      if (!in_area(lx, ly))
+        continue;
+      mark("item", item.id_, lx, ly, absl::StrFormat("I%02X", item.id_), 255,
+           230, 60);
+    }
+  }
+  if (flags & OverworldOverlay::kEntrances) {
+    for (const auto& entrance : overworld.entrances()) {
+      if (entrance.deleted || !owned(entrance.map_id_))
+        continue;
+      const int lx = entrance.x_ - origin_x;
+      const int ly = entrance.y_ - origin_y;
+      if (!in_area(lx, ly))
+        continue;
+      mark("entrance", entrance.entrance_id_, lx, ly,
+           absl::StrFormat("E%02X", entrance.entrance_id_), 255, 255, 255);
+    }
+  }
+  if (flags & OverworldOverlay::kHoles) {
+    for (const auto& hole : overworld.holes()) {
+      if (hole.deleted || !owned(hole.map_id_))
+        continue;
+      const int lx = hole.x_ - origin_x;
+      const int ly = hole.y_ - origin_y;
+      if (!in_area(lx, ly))
+        continue;
+      mark("hole", hole.entrance_id_, lx, ly,
+           absl::StrFormat("H%02X", hole.entrance_id_), 255, 150, 40);
+    }
+  }
+  if (flags & OverworldOverlay::kExits) {
+    for (const auto& exit : *overworld.exits()) {
+      if (exit.deleted_ || !owned(exit.map_id_))
+        continue;
+      const int lx = exit.x_ - origin_x;
+      const int ly = exit.y_ - origin_y;
+      if (!in_area(lx, ly))
+        continue;
+      mark("exit", exit.room_id_, lx, ly,
+           absl::StrFormat("X%02X", exit.room_id_), 200, 120, 255);
+    }
+  }
+  if (flags & OverworldOverlay::kSprites) {
+    for (int phase = 0; phase < 3; ++phase) {
+      if (req.phase >= 0 && req.phase != phase)
+        continue;
+      const auto color = SpritePhaseColor(phase);
+      int list_index = 0;
+      for (const auto& sprite : overworld.sprites(phase)) {
+        if (sprite.map_id() != parent)
+          continue;
+        const int index = list_index++;
+        if (sprite.deleted())
+          continue;
+        // Offset phases slightly so identical entries in two lists stay
+        // visible when every phase is drawn.
+        const int nudge = req.phase < 0 ? phase * 2 : 0;
+        const int lx = sprite.x() - origin_x + nudge;
+        const int ly = sprite.y() - origin_y + nudge;
+        if (!in_area(lx, ly))
+          continue;
+        const std::string label =
+            req.phase < 0 ? absl::StrFormat("%d:%02X", phase, sprite.id())
+                          : absl::StrFormat("%02X", sprite.id());
+        mark("sprite", sprite.id(), lx, ly, label, color.r, color.g, color.b,
+             phase, index);
+      }
+    }
+  }
+
+  ASSIGN_OR_RETURN(result.png_data, EncodePng(rgba, out_w, out_h));
   result.width = out_w;
   result.height = out_h;
   return result;
