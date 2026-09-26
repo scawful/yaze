@@ -1,8 +1,10 @@
 #include "app/application.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <utility>
@@ -186,8 +188,17 @@ void Application::Initialize(const AppConfig& config) {
           canvas_automation_service_.get());
 
       // GetGameState runs on gRPC threads; capture on the render thread.
-      grpc_server_->SetEmulatorScreenshotCapturer(
-          [] { return test::CaptureScreenshotOnRenderThread(); });
+      // Write a PNG to a unique temp path; GetGameState reads it into the
+      // reply and deletes it.
+      grpc_server_->SetEmulatorScreenshotCapturer([] {
+        static std::atomic<int> next_capture{0};
+        const auto path = std::filesystem::temp_directory_path() /
+                          absl::StrFormat("yaze_gamestate_%d_%d.png",
+                                          static_cast<int>(getpid()),
+                                          next_capture.fetch_add(1));
+        return test::CaptureScreenshotOnRenderThread(
+            path.string(), /*window_title=*/"", test::ScreenshotFormat::kPng);
+      });
 
       if (status.ok()) {
         status = grpc_server_->StartAsync();  // Start in background thread
