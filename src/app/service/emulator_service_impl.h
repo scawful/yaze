@@ -17,7 +17,7 @@ class Rom;
 namespace emu {
 // Emulator forward decl no longer needed here if we include i_emulator.h
 }
-}
+}  // namespace yaze
 
 namespace yaze::net {
 
@@ -33,20 +33,20 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
   grpc::Status LoadRom(grpc::ServerContext* context,
                        const agent::LoadRomRequest* request,
                        agent::LoadRomResponse* response) override;
-  grpc::Status GetLoadedRomPath(grpc::ServerContext* context,
-                                const agent::Empty* request,
-                                agent::LoadedRomPathResponse* response) override;
+  grpc::Status GetLoadedRomPath(
+      grpc::ServerContext* context, const agent::Empty* request,
+      agent::LoadedRomPathResponse* response) override;
 
   // --- Core Lifecycle & Control ---
-  grpc::Status ControlEmulator(grpc::ServerContext* context, 
+  grpc::Status ControlEmulator(grpc::ServerContext* context,
                                const agent::ControlRequest* request,
                                agent::CommandResponse* response) override;
-  
-  grpc::Status StepEmulator(grpc::ServerContext* context, 
+
+  grpc::Status StepEmulator(grpc::ServerContext* context,
                             const agent::StepControlRequest* request,
                             agent::StepResponse* response) override;
-  
-  grpc::Status RunToBreakpoint(grpc::ServerContext* context, 
+
+  grpc::Status RunToBreakpoint(grpc::ServerContext* context,
                                const agent::Empty* request,
                                agent::BreakpointHitResponse* response) override;
 
@@ -71,13 +71,15 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
                            agent::CommandResponse* response) override;
 
   // --- Debugging Management ---
-  grpc::Status BreakpointControl(grpc::ServerContext* context,
-                                 const agent::BreakpointControlRequest* request,
-                                 agent::BreakpointControlResponse* response) override;
-  
-  grpc::Status WatchpointControl(grpc::ServerContext* context,
-                                 const agent::WatchpointControlRequest* request,
-                                 agent::WatchpointControlResponse* response) override;
+  grpc::Status BreakpointControl(
+      grpc::ServerContext* context,
+      const agent::BreakpointControlRequest* request,
+      agent::BreakpointControlResponse* response) override;
+
+  grpc::Status WatchpointControl(
+      grpc::ServerContext* context,
+      const agent::WatchpointControlRequest* request,
+      agent::WatchpointControlResponse* response) override;
 
   // --- Analysis & Symbols ---
   grpc::Status GetDisassembly(grpc::ServerContext* context,
@@ -116,7 +118,8 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
                           agent::ListStatesResponse* response) override;
 
  private:
-  emu::IEmulator* emulator_;  // Non-owning pointer to the emulator interface interface
+  emu::IEmulator*
+      emulator_;  // Non-owning pointer to the emulator interface interface
   RomGetter rom_getter_;
   RomLoader rom_loader_;
   emu::debug::SymbolProvider symbol_provider_;  // Symbol table for debugging
