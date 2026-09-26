@@ -245,6 +245,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
     unit/gui/canvas_context_menu_role_test.cc
+    unit/gui/item_context_menu_test.cc
     unit/gui/canvas_coordinate_sync_test.cc
     unit/gui/canvas_zoom_anchor_test.cc
     unit/gui/window_clamp_test.cc
@@ -696,6 +697,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/sheet_role_palette_table_test.cc
     unit/gfx/arena_retirement_test.cc
     unit/gui/canvas_context_menu_role_test.cc
+    unit/gui/item_context_menu_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc
     unit/zelda3/sprite_catalog_test.cc

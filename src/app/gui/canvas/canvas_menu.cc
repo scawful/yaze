@@ -1,7 +1,53 @@
 #include "canvas_menu.h"
 
+#include "app/gui/core/ui_helpers.h"
+
 namespace yaze {
 namespace gui {
+
+void MenuConfirmState::NoteRendered(ImGuiID id, int frame) {
+  if (armed_id_ != id) {
+    return;
+  }
+  if (frame > last_frame_ + 1) {
+    // The item was not drawn on the previous frame: its menu was closed.
+    Reset();
+    return;
+  }
+  last_frame_ = frame;
+}
+
+bool MenuConfirmState::IsArmed(ImGuiID id, int frame) const {
+  return id != 0 && armed_id_ == id && frame <= last_frame_ + 1;
+}
+
+bool MenuConfirmState::Click(ImGuiID id, int frame) {
+  if (IsArmed(id, frame)) {
+    Reset();
+    return true;
+  }
+  armed_id_ = id;
+  last_frame_ = frame;
+  return false;
+}
+
+MenuConfirmState& GetMenuConfirmState() {
+  static MenuConfirmState state;
+  return state;
+}
+
+std::string ConfirmLabel(const std::string& label) {
+  std::string base = label;
+  static const std::string kUtf8Ellipsis = "\xE2\x80\xA6";
+  if (base.size() >= 3 && base.compare(base.size() - 3, 3, "...") == 0) {
+    base.resize(base.size() - 3);
+  } else if (base.size() >= kUtf8Ellipsis.size() &&
+             base.compare(base.size() - kUtf8Ellipsis.size(),
+                          kUtf8Ellipsis.size(), kUtf8Ellipsis) == 0) {
+    base.resize(base.size() - kUtf8Ellipsis.size());
+  }
+  return "Confirm " + base + "?";
+}
 
 void RenderMenuItem(
     const CanvasMenuItem& item,
@@ -29,32 +75,59 @@ void RenderMenuItem(
 
   // Render menu item based on type
   if (item.subitems.empty()) {
-    // Simple menu item
-    bool selected = false;
-    if (item.color.x != 1.0f || item.color.y != 1.0f || item.color.z != 1.0f ||
-        item.color.w != 1.0f) {
-      // Render with custom color
-      ImGui::PushStyleColor(ImGuiCol_Text, item.color);
-      selected =
-          item.checked_condition
-              ? ImGui::MenuItem(
-                    display_label.c_str(),
-                    item.shortcut.empty() ? nullptr : item.shortcut.c_str(),
-                    checked)
-              : ImGui::MenuItem(
-                    display_label.c_str(),
-                    item.shortcut.empty() ? nullptr : item.shortcut.c_str());
+    const bool has_custom_color = item.color.x != 1.0f ||
+                                  item.color.y != 1.0f ||
+                                  item.color.z != 1.0f || item.color.w != 1.0f;
+    const bool push_color = item.destructive || has_custom_color;
+
+    // Confirm-gated items keep a stable ImGui ID while their label changes.
+    bool armed = false;
+    ImGuiID confirm_id = 0;
+    const int frame = ImGui::GetFrameCount();
+    if (item.requires_confirmation) {
+      confirm_id = ImGui::GetID(item.label.c_str());
+      auto& confirm = GetMenuConfirmState();
+      confirm.NoteRendered(confirm_id, frame);
+      armed = confirm.IsArmed(confirm_id, frame);
+      std::string text = armed ? ConfirmLabel(item.label) : item.label;
+      if (!item.icon.empty()) {
+        text = item.icon + " " + text;
+      }
+      display_label = text + "###" + item.label;
+    }
+
+    const char* shortcut =
+        armed ? "click again"
+              : (item.shortcut.empty() ? nullptr : item.shortcut.c_str());
+
+    if (push_color) {
+      ImGui::PushStyleColor(ImGuiCol_Text,
+                            item.destructive ? GetErrorColor() : item.color);
+    }
+    // The arming click must not close the popup; the confirming click does.
+    if (item.requires_confirmation) {
+      ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, armed);
+    }
+    bool selected =
+        item.checked_condition
+            ? ImGui::MenuItem(display_label.c_str(), shortcut, checked)
+            : ImGui::MenuItem(display_label.c_str(), shortcut);
+    if (item.requires_confirmation) {
+      ImGui::PopItemFlag();
+    }
+    if (push_color) {
       ImGui::PopStyleColor();
-    } else {
-      selected =
-          item.checked_condition
-              ? ImGui::MenuItem(
-                    display_label.c_str(),
-                    item.shortcut.empty() ? nullptr : item.shortcut.c_str(),
-                    checked)
-              : ImGui::MenuItem(
-                    display_label.c_str(),
-                    item.shortcut.empty() ? nullptr : item.shortcut.c_str());
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      if (armed && item.tooltip.empty()) {
+        ImGui::SetTooltip("This cannot be undone.");
+      } else if (!item.tooltip.empty()) {
+        ImGui::SetTooltip("%s", item.tooltip.c_str());
+      }
+    }
+
+    if (selected && item.requires_confirmation) {
+      selected = GetMenuConfirmState().Click(confirm_id, frame);
     }
 
     if (selected) {
