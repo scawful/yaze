@@ -326,9 +326,23 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
   if (scale <= 0.0f)
     scale = 1.0f;
 
-  int xx = 0;
-  int yy = 0;
+  // Build only maps that intersect the visible canvas, and at most a few per
+  // frame: building all 64 maps of a world in the first frame stalled the UI.
+  // Off-screen maps are built when scrolled into view; visible ones that are
+  // over the budget show the loading placeholder for a frame or two.
+  constexpr int kMaxMapBuildsPerFrame = 4;
+  int builds_this_frame = 0;
+  const ImVec2 clip_min = ImGui::GetWindowDrawList()->GetClipRectMin();
+  const ImVec2 clip_max = ImGui::GetWindowDrawList()->GetClipRectMax();
+  const ImVec2 canvas_origin(editor_->ow_map_canvas_.zero_point().x +
+                                 editor_->ow_map_canvas_.scrolling().x,
+                             editor_->ow_map_canvas_.zero_point().y +
+                                 editor_->ow_map_canvas_.scrolling().y);
+  const float map_extent = kOverworldMapSize * scale;
+
   for (int i = 0; i < 0x40; i++) {
+    const int xx = i % 8;
+    const int yy = i / 8;
     int world_index = i + (editor_->current_world_ * 0x40);
 
     // Bounds checking to prevent crashes
@@ -341,9 +355,22 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
     int map_x = static_cast<int>(xx * kOverworldMapSize * scale);
     int map_y = static_cast<int>(yy * kOverworldMapSize * scale);
 
-    // Ensure visible maps are materialized on demand before drawing.
-    if (!editor_->maps_bmp_[world_index].is_active() ||
-        !editor_->maps_bmp_[world_index].texture()) {
+    const float left = canvas_origin.x + map_x;
+    const float top = canvas_origin.y + map_y;
+    if (left >= clip_max.x || top >= clip_max.y ||
+        left + map_extent <= clip_min.x || top + map_extent <= clip_min.y) {
+      continue;  // Not visible
+    }
+
+    // Ensure visible maps are materialized on demand before drawing. A map
+    // whose bitmap exists only waits for its queued texture (cheap).
+    auto& map_bitmap = editor_->maps_bmp_[world_index];
+    if (!map_bitmap.is_active()) {
+      if (builds_this_frame < kMaxMapBuildsPerFrame) {
+        editor_->EnsureMapTexture(world_index);
+        ++builds_this_frame;
+      }
+    } else if (!map_bitmap.texture()) {
       editor_->EnsureMapTexture(world_index);
     }
 
@@ -389,12 +416,6 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
                            12);
       draw_list->PathStroke(ImGui::GetColorU32(theme.status_active), 0,
                             2.5f * scale);
-    }
-
-    xx++;
-    if (xx >= 8) {
-      yy++;
-      xx = 0;
     }
   }
 }

@@ -187,7 +187,8 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 absl::Status OverworldMap::BuildMapWithCache(
     int count, int game_state, int world, std::vector<gfx::Tile16>& tiles16,
     OverworldBlockset& world_blockset,
-    const std::vector<uint8_t>* cached_tileset) {
+    const std::vector<uint8_t>* cached_tileset,
+    const std::vector<uint8_t>* cached_tile16_blockset) {
   game_state_ = game_state;
   world_ = world;
   auto version = OverworldVersionHelper::GetVersion(*rom_);
@@ -232,7 +233,15 @@ absl::Status OverworldMap::BuildMapWithCache(
     RETURN_IF_ERROR(BuildTileset())
   }
 
-  RETURN_IF_ERROR(BuildTiles16Gfx(tiles16, count))
+  // The tile16 blockset only depends on the tileset and the tile16
+  // definitions, so a shared copy can be reused (see Overworld's tileset
+  // cache).
+  if (cached_tileset && !cached_tileset->empty() && cached_tile16_blockset &&
+      !cached_tile16_blockset->empty()) {
+    current_blockset_ = *cached_tile16_blockset;
+  } else {
+    RETURN_IF_ERROR(BuildTiles16Gfx(tiles16, count))
+  }
   RETURN_IF_ERROR(LoadPalette());
   RETURN_IF_ERROR(LoadOverlay());
   RETURN_IF_ERROR(BuildBitmap(world_blockset))
@@ -1386,45 +1395,51 @@ void OverworldMap::CopyAnimatedSheetIntoSlot7() {
 
 absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
                                            int count) {
+  constexpr size_t kBlocksetBytes = 0x100000;
+  constexpr size_t kTilesetBytes = 0x10000;
   if (current_blockset_.size() == 0)
-    current_blockset_.resize(0x100000, 0x00);
+    current_blockset_.resize(kBlocksetBytes, 0x00);
+  if (current_gfx_.size() < kTilesetBytes)
+    current_gfx_.resize(kTilesetBytes, 0x00);
+
+  // Each row of 8 tile16s takes 0x800 bytes of the 128px-wide blockset.
+  const int capacity = static_cast<int>(current_blockset_.size() / 0x800) * 8;
+  count = std::min({count, static_cast<int>(tiles16.size()), capacity});
 
   const int offsets[] = {0x00, 0x08, 0x400, 0x408};
-  auto yy = 0;
-  auto xx = 0;
+  const uint8_t* gfx = current_gfx_.data();
+  const size_t gfx_size = current_gfx_.size();
+  uint8_t* blockset = current_blockset_.data();
 
-  for (auto i = 0; i < count; i++) {
-    for (auto tile = 0; tile < 0x04; tile++) {
-      gfx::TileInfo info = tiles16[i].tiles_info[tile];
-      int offset = offsets[tile];
-      for (auto y = 0; y < 0x08; ++y) {
-        for (auto x = 0; x < 0x08; ++x) {
-          int mx = x;
-          int my = y;
-
-          if (info.horizontal_mirror_ != 0) {
-            mx = 0x07 - x;
+  for (int i = 0; i < count; i++) {
+    const size_t tile_base =
+        static_cast<size_t>(i / 8) * 0x800 + static_cast<size_t>(i % 8) * 0x10;
+    for (int tile = 0; tile < 4; tile++) {
+      const gfx::TileInfo& info = tiles16[i].tiles_info[tile];
+      const size_t src_base = static_cast<size_t>(info.id_ / 0x10) * 0x400 +
+                              static_cast<size_t>(info.id_ % 0x10) * 0x08;
+      uint8_t* dst_tile = blockset + tile_base + offsets[tile];
+      if (src_base + 7 * 0x80 + 8 > gfx_size) {
+        for (int y = 0; y < 8; ++y) {
+          std::fill_n(dst_tile + y * 0x80, 8, 0x00);
+        }
+        continue;
+      }
+      const uint8_t palette = static_cast<uint8_t>(info.palette_ * 0x10);
+      for (int y = 0; y < 8; ++y) {
+        const int my = info.vertical_mirror_ != 0 ? 7 - y : y;
+        const uint8_t* src = gfx + src_base + y * 0x80;
+        uint8_t* dst = dst_tile + my * 0x80;
+        if (info.horizontal_mirror_ != 0) {
+          for (int x = 0; x < 8; ++x) {
+            dst[7 - x] = static_cast<uint8_t>((src[x] & 0x0F) + palette);
           }
-
-          if (info.vertical_mirror_ != 0) {
-            my = 0x07 - y;
+        } else {
+          for (int x = 0; x < 8; ++x) {
+            dst[x] = static_cast<uint8_t>((src[x] & 0x0F) + palette);
           }
-
-          int xpos = ((info.id_ % 0x10) * 0x08);
-          int ypos = (((info.id_ / 0x10)) * 0x400);
-          int source = ypos + xpos + (x + (y * 0x80));
-
-          auto destination = xx + yy + offset + (mx + (my * 0x80));
-          current_blockset_[destination] =
-              (current_gfx_[source] & 0x0F) + (info.palette_ * 0x10);
         }
       }
-    }
-
-    xx += 0x10;
-    if (xx >= 0x80) {
-      yy += 0x800;
-      xx = 0;
     }
   }
 
@@ -1432,13 +1447,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
 }
 
 absl::Status OverworldMap::BuildBitmap(OverworldBlockset& world_blockset) {
-  if (bitmap_data_.size() != 0) {
-    bitmap_data_.clear();
-  }
-  bitmap_data_.reserve(0x40000);
-  for (int i = 0; i < 0x40000; i++) {
-    bitmap_data_.push_back(0x00);
-  }
+  bitmap_data_.assign(0x40000, 0x00);
 
   // BuildBitmap is used by both full map builds and editor refresh paths.
   // Refresh paths can run after LRU eviction reset runtime fields, so derive
@@ -1489,7 +1498,6 @@ absl::Status OverworldMap::BuildSubscreenOverlayLayer(
 
   out->assign(static_cast<size_t>(kSize) * kSize, 0);
   std::vector<uint8_t> tile_pixels(static_cast<size_t>(kSize) * kSize, 0);
-  auto& blockset = const_cast<std::vector<uint8_t>&>(current_blockset_);
   for (int y = 0; y < 0x20; ++y) {
     for (int x = 0; x < 0x20; ++x) {
       const int xt = x + super_x * 0x20;
@@ -1500,7 +1508,7 @@ absl::Status OverworldMap::BuildSubscreenOverlayLayer(
             "Overlay blockset is too small for the overlay screen");
       }
       gfx::CopyTile8bpp16(x * 0x10, y * 0x10, overlay_world_blockset[xt][yt],
-                          tile_pixels, blockset);
+                          tile_pixels, current_blockset_);
     }
   }
   for (size_t i = 0; i < tile_pixels.size(); ++i) {

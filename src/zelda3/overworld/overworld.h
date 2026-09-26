@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <map>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -459,19 +460,25 @@ class Overworld {
   absl::StatusOr<SubscreenOverlayLayer> BuildSubscreenOverlayLayer(
       int map_index);
 
-  /// @brief Compute hash of graphics configuration for cache lookup
-  uint64_t ComputeGraphicsConfigHash(int map_index);
+  // ---------------------------------------------------------------------------
+  // Shared tileset cache
+  //
+  // Maps whose 17 sheet ids match (OverworldMap::tileset_key(): 16 static
+  // sheets + animated sheet) share the same 64KB tileset and, for the same
+  // tile16 definitions, the same 1MB tile16 blockset. The cache keeps both so
+  // a map build only redoes the palette and its own 512x512 bitmap.
+  // ---------------------------------------------------------------------------
 
-  /// @brief Try to get cached tileset data for a graphics configuration
-  /// @return nullptr if not cached, pointer to cached data if available
-  const std::vector<uint8_t>* GetCachedTileset(uint64_t config_hash);
+  /// @brief Drop every cached tileset/blockset. Call after graphics buffer or
+  /// tile16 edits that are not tied to one sheet.
+  void ClearGraphicsConfigCache() { tileset_cache_.clear(); }
 
-  /// @brief Cache tileset data for future reuse
-  void CacheTileset(uint64_t config_hash, const std::vector<uint8_t>& tileset);
+  /// @brief Drop cached tilesets that load @p sheet (graphics sheet edits).
+  /// Built maps keep their pixels; mark them dirty/rebuild separately.
+  void InvalidateTilesetCacheForSheet(int sheet);
 
-  /// @brief Clear entire graphics config cache
-  /// Call when palette or graphics settings change globally
-  void ClearGraphicsConfigCache() { gfx_config_cache_.clear(); }
+  /// @brief Number of cached tileset entries (for tests and diagnostics).
+  size_t tileset_cache_size() const { return tileset_cache_.size(); }
 
   /// @brief Invalidate cached tileset for a specific map
   /// @param map_index The map whose cache entry should be invalidated
@@ -844,22 +851,23 @@ class Overworld {
   static constexpr int kMaxBuiltMaps = 8;
   std::deque<int> built_map_lru_;
 
-  // Graphics config cache for blockset reuse
-  // Key: Hash of static_graphics array, Value: Precomputed current_gfx data
-  // This avoids rebuilding the same tileset for maps with identical graphics
-  struct GraphicsConfigCache {
-    std::vector<uint8_t> current_gfx;  // 64KB tileset
-    int reference_count = 0;
+  // Shared tileset cache (see ClearGraphicsConfigCache()).
+  struct TilesetCacheEntry {
+    std::vector<uint8_t> current_gfx;      // 64KB tileset
+    std::vector<uint8_t> tile16_blockset;  // 1MB tile16 pixels (may be empty)
+    uint64_t tiles16_fingerprint = 0;      // tile16 defs the blockset used
+    uint64_t last_use = 0;
   };
-  std::unordered_map<uint64_t, GraphicsConfigCache> gfx_config_cache_;
+  std::map<OverworldTilesetKey, TilesetCacheEntry> tileset_cache_;
+  uint64_t tileset_cache_clock_ = 0;
 #ifdef __EMSCRIPTEN__
-  // WASM: Increased cache for Special World maps (8 × 64KB = 512KB)
-  // Special World alone needs 6+ unique graphics configs
-  static constexpr int kMaxCachedConfigs = 8;
+  static constexpr size_t kMaxCachedTilesets = 8;  // ~8.5MB
 #else
-  // Native: Larger cache for better performance (12 × 64KB = 768KB)
-  static constexpr int kMaxCachedConfigs = 12;
+  static constexpr size_t kMaxCachedTilesets = 24;  // ~26MB
 #endif
+
+  uint64_t Tiles16Fingerprint() const;
+  absl::Status BuildMapWithTilesetCache(int map_index, int world_type);
 
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
