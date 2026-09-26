@@ -56,10 +56,19 @@ using gfx::PaletteCategory;
 namespace {
 
 // Constants for sheet display
-constexpr int kSheetDisplayWidth = 256;  // 2x scale from 128px sheets
 constexpr int kSheetDisplayHeight = 64;  // 2x scale from 32px sheets
 constexpr float kDefaultScale = 2.0f;
 constexpr int kTileSize = 16;  // 8px tiles at 2x scale
+
+// Width of a table column of "Slot N" hex inputs. The column is fixed and
+// the sheet previews take the rest, so the inputs stay usable when the
+// panel is narrower than the previews (a stretch column shrank to nothing).
+float SlotInputsColumnWidth() {
+  const ImGuiStyle& style = ImGui::GetStyle();
+  return ImGui::CalcTextSize("Slot 00").x +
+         gui::LayoutHelpers::GetSliderWidth() + 2 * ImGui::GetFrameHeight() +
+         4 * style.ItemInnerSpacing.x + 2 * style.CellPadding.x;
+}
 
 // Draw a single sheet with proper scaling and unique ID
 void DrawScaledSheet(gui::Canvas& canvas, gfx::Bitmap& sheet, int unique_id,
@@ -232,12 +241,11 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                  ImVec2(0, 0))) {
     if (!sheet_only) {
-      TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                       GetContentRegionAvail().x);
+      TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthFixed,
+                       SlotInputsColumnWidth());
     }
 
-    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
-                     kSheetDisplayWidth + 16);
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthStretch);
     TableHeadersRow();
     TableNextRow();
 
@@ -288,10 +296,9 @@ void GfxGroupEditor::DrawRoomsetViewer() {
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                  ImVec2(0, 0))) {
     TableSetupColumn("List", ImGuiTableColumnFlags_WidthFixed, 120);
-    TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                     GetContentRegionAvail().x);
-    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
-                     kSheetDisplayWidth + 16);
+    TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthFixed,
+                     SlotInputsColumnWidth());
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthStretch);
     TableHeadersRow();
     TableNextRow();
 
@@ -357,11 +364,10 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
                  ImVec2(0, 0))) {
     if (!sheet_only) {
-      TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthStretch,
-                       GetContentRegionAvail().x);
+      TableSetupColumn("Inputs", ImGuiTableColumnFlags_WidthFixed,
+                       SlotInputsColumnWidth());
     }
-    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthFixed,
-                     kSheetDisplayWidth + 16);
+    TableSetupColumn("Sheets", ImGuiTableColumnFlags_WidthStretch);
     TableHeadersRow();
     TableNextRow();
 
