@@ -463,12 +463,27 @@ class CanvasContextMenuOpenTest : public ::testing::Test {
     ImGui::Begin("ContextCaptureHost", nullptr,
                  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    if (no_padding_) {
+      // What the overworld canvas does around BeginCanvas.
+      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    }
     canvas_->DrawBackground(ImVec2(256, 256));
     ImGui::LogToBuffer();
     canvas_->DrawContextMenu();
     rendered_text_ = context_->LogBuffer.c_str();
     ImGui::LogFinish();
+    if (no_padding_) {
+      ImGui::PopStyleVar(2);
+    }
     popup_open_ = ImGui::IsPopupOpen("CaptureCanvasContext");
+    popup_padding_ = ImVec2(-1, -1);
+    for (ImGuiWindow* window : context_->Windows) {
+      if (window->Active && (window->Flags & ImGuiWindowFlags_Popup) &&
+          std::string(window->Name).find("##Popup_") == 0) {
+        popup_padding_ = window->WindowPadding;
+      }
+    }
     ImGui::End();
     ImGui::Render();
   }
@@ -490,6 +505,8 @@ class CanvasContextMenuOpenTest : public ::testing::Test {
   int open_calls_ = 0;
   bool allow_open_ = true;
   bool popup_open_ = false;
+  bool no_padding_ = false;
+  ImVec2 popup_padding_{-1, -1};
   ImVec2 captured_position_{};
   std::vector<int> rendered_targets_;
   std::string rendered_text_;
@@ -548,6 +565,20 @@ TEST_F(CanvasContextMenuOpenTest,
   EXPECT_FLOAT_EQ(captured_position_.y, next_position.y);
   ASSERT_FALSE(rendered_targets_.empty());
   EXPECT_EQ(rendered_targets_.back(), 0x13);
+}
+
+// The overworld canvas draws inside zero WindowPadding/FramePadding; its
+// context menu must still get the theme's popup padding.
+TEST_F(CanvasContextMenuOpenTest, MenuKeepsThemePaddingInsideNoPaddingCanvas) {
+  const ImVec2 theme_padding = ImGui::GetStyle().WindowPadding;
+  ASSERT_GT(theme_padding.x, 0.0f);
+  no_padding_ = true;
+  const ImVec2 position = At(64, 64);
+  Open(position);
+  Frame(position);
+  ASSERT_TRUE(popup_open_);
+  EXPECT_FLOAT_EQ(popup_padding_.x, theme_padding.x);
+  EXPECT_FLOAT_EQ(popup_padding_.y, theme_padding.y);
 }
 
 TEST_F(CanvasContextMenuOpenTest, CaptureCallbackCanVetoOpening) {

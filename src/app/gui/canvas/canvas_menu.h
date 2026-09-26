@@ -292,6 +292,31 @@ MenuConfirmState& GetMenuConfirmState();
 // trailing "..." or ellipsis removed.
 std::string ConfirmLabel(const std::string& label);
 
+/**
+ * @brief Gives one popup the app's normal spacing.
+ *
+ * Canvases draw inside gui::BeginNoPadding() (WindowPadding and FramePadding
+ * 0), and a popup begun there inherits that: ImGui copies WindowPadding into
+ * the popup window at Begin time. Construct this BEFORE ImGui::BeginPopup*
+ * and keep it alive until after EndPopup. It pushes, for each spacing var,
+ * the value in effect before the first PushStyleVar still on the stack (the
+ * theme's value), so it is a no-op outside a zero-padding region.
+ */
+class PopupStyleScope {
+ public:
+  PopupStyleScope();
+  ~PopupStyleScope();
+  PopupStyleScope(const PopupStyleScope&) = delete;
+  PopupStyleScope& operator=(const PopupStyleScope&) = delete;
+
+ private:
+  int pushed_ = 0;
+};
+
+// Value of a two-float style var before the first PushStyleVar of it that is
+// still on the style stack; the current value when nothing pushed it.
+ImVec2 BaseStyleVarVec2(ImGuiStyleVar idx);
+
 // ==================== Free Function API ====================
 
 /**

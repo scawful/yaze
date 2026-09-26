@@ -8,6 +8,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "app/gui/canvas/canvas_menu.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui_internal.h"
 #include "imgui_test_engine/imgui_te_context.h"
@@ -144,6 +145,43 @@ bool ShowMapInViewport(ImGuiTestContext* ctx, OverworldEditor* ow, int map_id) {
   ow->CenterOverworldView();
   ctx->Yield(6);
   return ow->current_map_id() == map_id;
+}
+
+// Right-clicks the overworld canvas with the Select tool until the map menu
+// opens (a hovered entity vetoes it by design). Returns its popup window.
+ImGuiWindow* OpenOverworldMapMenu(ImGuiTestContext* ctx,
+                                  Controller* controller) {
+  OverworldEditor* ow = GetOverworldEditor(controller);
+  if (ow == nullptr) {
+    return nullptr;
+  }
+  ow->SetEditingMode(EditingMode::MOUSE);
+  ctx->Yield(3);
+  const std::string title = WindowTitle(controller, "overworld.canvas");
+  ImGuiWindow* window = ctx->GetWindowByRef(title.c_str());
+  if (window == nullptr) {
+    return nullptr;
+  }
+  ctx->WindowFocus(title.c_str());
+  ctx->Yield(2);
+  const ImRect r = window->InnerRect;
+  const ImVec2 points[] = {
+      ImVec2(r.Min.x + r.GetWidth() * 0.30f, r.Min.y + r.GetHeight() * 0.70f),
+      ImVec2(r.Min.x + r.GetWidth() * 0.55f, r.Min.y + r.GetHeight() * 0.55f),
+      ImVec2(r.Min.x + r.GetWidth() * 0.20f, r.Min.y + r.GetHeight() * 0.35f),
+      ImVec2(r.Min.x + r.GetWidth() * 0.75f, r.Min.y + r.GetHeight() * 0.80f),
+  };
+  for (const ImVec2& p : points) {
+    ctx->MouseMoveToPos(p);
+    ctx->Yield(2);
+    ctx->MouseClick(ImGuiMouseButton_Right);
+    ctx->Yield(3);
+    auto& stack = ctx->UiContext->OpenPopupStack;
+    if (stack.Size > 0 && stack.back().Window != nullptr) {
+      return stack.back().Window;
+    }
+  }
+  return nullptr;
 }
 
 }  // namespace
@@ -310,6 +348,29 @@ void E2ETest_BrushRightClickSelectsMapAndSamples(ImGuiTestContext* ctx) {
   ow->SetEditingMode(EditingMode::MOUSE);
 }
 
+// The canvas draws with zero WindowPadding/FramePadding; its map menu must
+// still get the theme's popup padding (it used to inherit zero).
+void E2ETest_OverworldMenuHasPopupPadding(ImGuiTestContext* ctx) {
+  Controller* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  if (!EnsureOverworldReady(ctx, controller)) {
+    return;
+  }
+  ImGuiWindow* popup = OpenOverworldMapMenu(ctx, controller);
+  IM_CHECK(popup != nullptr);
+  const ImVec2 theme = yaze::gui::BaseStyleVarVec2(ImGuiStyleVar_WindowPadding);
+  ctx->LogInfo("menu WindowPadding=(%.1f, %.1f) theme=(%.1f, %.1f)",
+               popup->WindowPadding.x, popup->WindowPadding.y, theme.x,
+               theme.y);
+  IM_CHECK_GT_NO_RET(popup->WindowPadding.x, 0.0f);
+  IM_CHECK_GT_NO_RET(popup->WindowPadding.y, 0.0f);
+  IM_CHECK_EQ_NO_RET(popup->WindowPadding.x, theme.x);
+  // Content starts inside the padding, not flush with the window edge.
+  IM_CHECK_GT_NO_RET(popup->ContentRegionRect.Min.x, popup->Pos.x);
+  ctx->PopupCloseAll();
+  ctx->Yield(2);
+}
+
 namespace yaze {
 namespace test {
 namespace e2e {
@@ -331,6 +392,10 @@ void RegisterDeadClickRegressionTests(ImGuiTestEngine* engine,
   t = IM_REGISTER_TEST(engine, "OverworldRightClick",
                        "BrushRightClickSelectsMapAndSamples");
   t->TestFunc = E2ETest_BrushRightClickSelectsMapAndSamples;
+  t->UserData = controller;
+
+  t = IM_REGISTER_TEST(engine, "OverworldRightClick", "MenuHasPopupPadding");
+  t->TestFunc = E2ETest_OverworldMenuHasPopupPadding;
   t->UserData = controller;
 }
 
