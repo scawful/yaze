@@ -1,5 +1,6 @@
 set(
   YAZE_APP_EDITOR_SRC
+  app/editor/cutscene/cutscene_camera_panel.cc
   app/editor/agent/agent_chat_history_codec.cc
   app/editor/code/assembly_editor.cc
   app/editor/code/diagnostics_panel.cc
