@@ -362,6 +362,21 @@ absl::StatusOr<GfxSheetWriteResult> WriteGfxSheet(
   GfxSheetWriteResult result;
   result.sheet_id = sheet_id;
   result.old_pc = old_pc;
+
+  // Unchanged pixels leave the ROM alone. Re-encoding would produce a
+  // different (valid) stream and churn every byte of the sheet.
+  if (auto extent = ReadGfxSheetExtent(rom, sheet_id, tables); extent.ok()) {
+    auto current = ReadGfxSheetData(rom, sheet_id, tables);
+    if (current.ok() && current->size() >= kGfxSheet3bppBytes &&
+        extent->decoded_size == kGfxSheet3bppBytes &&
+        std::equal(snes_3bpp.begin(), snes_3bpp.end(), current->begin())) {
+      result.new_pc = old_pc;
+      result.old_stored_size = extent->stored_size;
+      result.new_stored_size = extent->stored_size;
+      return result;
+    }
+  }
+
   RomWriteJournal journal(rom);
 
   if (kind == GfxSheetStorageKind::kRaw3bpp) {

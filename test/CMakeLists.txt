@@ -187,6 +187,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/source_artifact_publisher_test.cc
     unit/util/lru_cache_test.cc
     unit/util/bps_test.cc
+    unit/util/indexed_png_test.cc
     unit/util/i18n_test.cc
     unit/util/hex_test.cc
     unit/util/log_test.cc
@@ -371,6 +372,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/overworld_sprite_io_test.cc
     unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
+    unit/zelda3/gfx_sheet_png_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
     unit/zelda3/sprite_sheet_slots_test.cc
     unit/zelda3/overworld_test.cc
