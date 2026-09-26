@@ -270,15 +270,23 @@ void TilePaintingManager::CheckForSelectRectangle() {
   auto& canvas = *deps_.ow_map_canvas;
   const bool was_active = canvas.select_rect_active();
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    selection_gesture_owned_ =
-        canvas.IsMouseHovering() && ImGui::IsItemActive();
+    // Shift+right-click opens the map context menu instead of sampling.
+    selection_gesture_owned_ = canvas.IsMouseHovering() &&
+                               ImGui::IsItemActive() &&
+                               !ImGui::GetIO().KeyShift;
   }
   const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
   canvas.DrawSelectRect(*deps_.current_map, kTile16Size, scale);
   if (canvas.selected_tile_pos().x != -1) {
     const auto source = HoveredTile();
     if (selection_gesture_owned_ && IsValidTile(source)) {
-      *deps_.current_tile16 = WorldTiles()[source.x][source.y];
+      // Same path as the I key: keeps staged Tile16 edits guarded.
+      const int tile_id = WorldTiles()[source.x][source.y];
+      if (callbacks_.request_tile16_selection) {
+        callbacks_.request_tile16_selection(tile_id);
+      } else {
+        *deps_.current_tile16 = tile_id;
+      }
       callbacks_.scroll_blockset_to_current_tile();
     }
     canvas.set_selected_tile_pos(ImVec2(-1, -1));

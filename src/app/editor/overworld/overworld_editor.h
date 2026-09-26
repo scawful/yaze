@@ -19,6 +19,7 @@
 #include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/maps/map_refresh_coordinator.h"
 #include "app/editor/overworld/maps/map_texture_coordinator.h"
+#include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/painting/tile_painting_manager.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui/debug/debug_window_card.h"
@@ -666,6 +667,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   bool overworld_canvas_fullscreen_ = false;
   bool is_dragging_entity_ = false;
+  /// Item state before an in-progress canvas drag (drag undo).
+  std::optional<OverworldItemsSnapshot> drag_item_snapshot_;
   bool dragged_entity_free_movement_ = false;
   bool current_map_lock_ = false;
 

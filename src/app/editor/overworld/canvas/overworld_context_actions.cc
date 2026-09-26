@@ -11,9 +11,13 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
     const ImVec2& screen_position) {
   auto& canvas = editor_->ow_map_canvas_;
   canvas.ClearContextMenuItems();
+  // Select tool: plain right-click. Paint tools: right-click samples, so
+  // only Shift+right-click opens the menu.
+  const bool menu_gesture =
+      editor_->current_mode == EditingMode::MOUSE || ImGui::GetIO().KeyShift;
   if (!editor_->rom_ || !editor_->rom_->is_loaded() ||
       !editor_->overworld_.is_loaded() || !editor_->map_properties_system_ ||
-      editor_->current_mode != EditingMode::MOUSE ||
+      !menu_gesture ||
       (editor_->entity_renderer_ &&
        editor_->entity_renderer_->hovered_entity() != nullptr)) {
     return false;

@@ -94,18 +94,41 @@ the opening click; menu callbacks must capture it by value. Do not rebuild the
 menu from the hovered or selected map while a popup is open.
 
 Menu layout lives in `MapPropertiesSystem::SetupCanvasContextMenu`. Common
-selection and Tile16 actions stay at the top. Entity placement, map editing,
-read-only map information, and view controls have separate submenus. The main
-canvas supplies its own View menu, so shared built-in controls remain hidden.
-Reset View is deferred to the canvas child window; resetting scroll while
-inside an ImGui popup would affect the popup instead.
+selection and Tile16 actions stay at the top. Entity placement, map actions
+(Map Properties, background color, visual effects, related maps, metadata
+copy/paste, rename) and view controls have separate submenus. The main canvas
+supplies its own View menu, so shared built-in controls remain hidden.
 
-The canvas keeps game state, area graphics/palette, sprite graphics/palette,
-and message ID in a quick-properties row above the map. The row wraps with
-the available panel width. Map Properties retains the full configuration,
-including music, custom graphics, and visual effects. Both surfaces use the
-same property callbacks and selected game state. Parent-area properties are
-shown when the selected screen belongs to a multi-screen area.
+Where things live (each per-map value is shown and edited in one place):
+
+| Surface | Contents |
+|---------|----------|
+| Toolbar (`ui/navigation/overworld_toolbar.cc`) | World LW/DW/SW, map id (click: Map Properties) + pin, tool (Select/Brush/Fill), entity focus (Entrances/Exits/Items/Sprites), view (grid, entities, overlay preview, zoom, fit, center), windows menu, Map Properties toggle |
+| Map Properties panel (`ui/navigation/overworld_sidebar.cc`) | Game state, area size, message, area/sprite/animated graphics, custom tile sheets, area/main/sprite palettes, background color, music, visual effects, mosaic; right-click a value to rename its project label |
+| Canvas context menu | Quick per-map actions only |
+
+The view group folds into a "More" menu when the canvas is narrow (with
+hysteresis so it does not flicker). Tooltips show live ShortcutManager
+bindings via `GetDisplayString`.
+
+Gestures (Select tool unless noted): left-drag empty map or middle-drag pans;
+drag an entity to move it (item moves are undoable); double-click a map opens
+Map Properties; right-click opens the map menu. Brush/Fill: right-click
+samples the tile16, right-drag captures a multi-tile brush, `[`/`]` cycle the
+tile16, Shift+right-click opens the map menu. Keys: `1` select, `2`/`B`
+brush, `F` fill, `3`-`6` entity focus (plain keys only; Cmd/Ctrl+digits
+switch editors), Alt+1/2/3 world, Alt+arrows adjacent map, `=`/`-` zoom, `0`
+fit, Home center, `G` grid, `E` entities, arrows nudge the selected item.
+
+Scrolling: `CanvasNavigationManager::BeginCanvasViewport` owns all canvas
+scrolling and applies it with `SetNextWindowScroll` before the child begins
+(no one-frame lag); the child sets `ImGuiWindowFlags_NoScrollWithMouse`.
+Wheel/trackpad pan moves in whole detents of `kOverworldPanSnapMapPx` scaled
+by zoom, drops sub-detent residue after `kOverworldWheelIdleResetSec`, and
+ignores deltas under `kOverworldWheelDeadzone` (momentum tails).
+Cmd/Ctrl+wheel zooms about the cursor. Drag pan pins the grabbed point under
+the cursor and only starts from a press on the canvas. All tunables are in
+`ui/ui_constants.h`.
 
 Unpinned map selection follows the cursor in Mouse, Brush, and Fill modes.
 Pin through the toolbar, Ctrl+L, or the context menu to hold the property target.

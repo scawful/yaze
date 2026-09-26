@@ -79,8 +79,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // PHASE 3: Modern BeginCanvas/EndCanvas Pattern
   // ==========================================================================
   // Menu actions are captured by PrepareContextMenu only when it opens.
-  // Keep rendering an open menu even after entity hover changes.
-  const bool show_context_menu = editor_->current_mode == EditingMode::MOUSE;
+  // Keep rendering an open menu even after entity hover changes. Paint modes
+  // keep right-click for sampling; Shift+right-click opens the menu there
+  // (PrepareContextMenu vetoes a plain right-click).
+  const bool show_context_menu = true;
 
   // Configure canvas frame options
   gui::CanvasFrameOptions frame_opts;
@@ -163,10 +165,13 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
           ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         editor_->dragged_entity_ = hovered_entity;
         editor_->is_dragging_entity_ = true;
+        editor_->drag_item_snapshot_.reset();
         if (hovered_entity->entity_type_ ==
             zelda3::GameEntity::EntityType::kItem) {
           editor_->SelectItemByIdentity(
               *static_cast<zelda3::OverworldItem*>(hovered_entity));
+          // Items have snapshot undo; capture before the drag moves it.
+          editor_->drag_item_snapshot_ = editor_->CaptureItemUndoSnapshot();
         }
         if (editor_->dragged_entity_->entity_type_ ==
             zelda3::GameEntity::EntityType::kExit) {
@@ -197,8 +202,17 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
           // Pass overworld context for proper area size detection
           editor_->dragged_entity_->UpdateMapProperties(
               editor_->dragged_entity_->map_id_, &editor_->overworld_);
+          if (editor_->drag_item_snapshot_) {
+            // No-op if the item ended where it started.
+            editor_->PushItemUndoAction(
+                std::move(*editor_->drag_item_snapshot_),
+                "Move overworld item");
+          }
+          // TODO(overworld): entrances, exits and sprites have no undo action
+          // yet; their drags only mark the ROM dirty.
           editor_->rom_->set_dirty(true);
         }
+        editor_->drag_item_snapshot_.reset();
         editor_->is_dragging_entity_ = false;
         editor_->dragged_entity_ = nullptr;
         editor_->dragged_entity_free_movement_ = false;
