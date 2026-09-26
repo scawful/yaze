@@ -7,7 +7,11 @@
 #include <TargetConditionals.h>
 #endif
 
+#include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/core/content_registry.h"
@@ -24,6 +28,7 @@
 #include "app/platform/timing.h"
 #include "app/service/screenshot_utils.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "app/testing/test_manager.h"
 #include "imgui_test_engine/imgui_te_engine.h"
@@ -34,6 +39,176 @@
 #endif
 
 namespace yaze {
+
+namespace {
+
+// ---------------------------------------------------------------------------
+// Input diagnostics (off unless YAZE_DEBUG_INPUT_LOG is set).
+//
+// YAZE_DEBUG_INPUT_LOG=<path> appends one line per SDL mouse/key/window event
+// and one line per frame in which ImGui's mouse state changed: buttons down,
+// clicked/released, hovered window and ID, active ID, key mods and the open
+// popup stack. Used to find where a click is lost between SDL and ImGui.
+//
+// YAZE_DEBUG_INPUT_SCRIPT=<path> replays "<ms> <action> <x> <y>" lines
+// (action: move, ldown, lup, rdown, rup) through SDL_PushEvent, relative to
+// the first frame, so a hidden instance can be clicked through the real SDL
+// queue, event filter and ImGui SDL backend.
+// ---------------------------------------------------------------------------
+struct InputDebug {
+  FILE* log = nullptr;
+  struct Step {
+    int at_ms;
+    std::string action;
+    float x;
+    float y;
+  };
+  std::vector<Step> script;
+  size_t next_step = 0;
+  std::chrono::steady_clock::time_point start;
+  bool started = false;
+  std::string last_frame_line;
+};
+
+InputDebug& GetInputDebug() {
+  static InputDebug* debug = [] {
+    auto* d = new InputDebug();
+    if (const char* path = std::getenv("YAZE_DEBUG_INPUT_LOG");
+        path != nullptr && path[0] != '\0') {
+      d->log = std::fopen(path, "a");
+    }
+    if (const char* path = std::getenv("YAZE_DEBUG_INPUT_SCRIPT");
+        path != nullptr && path[0] != '\0') {
+      if (FILE* f = std::fopen(path, "r")) {
+        char action[32];
+        int at = 0;
+        float x = 0, y = 0;
+        while (std::fscanf(f, "%d %31s %f %f", &at, action, &x, &y) == 4) {
+          d->script.push_back({at, action, x, y});
+        }
+        std::fclose(f);
+      }
+    }
+    return d;
+  }();
+  return *debug;
+}
+
+double InputDebugMs() {
+  auto& d = GetInputDebug();
+  return std::chrono::duration<double, std::milli>(
+             std::chrono::steady_clock::now() - d.start)
+      .count();
+}
+
+#ifndef YAZE_USE_SDL3
+void InputDebugLogSdlEvent(const SDL_Event& e) {
+  auto& d = GetInputDebug();
+  if (d.log == nullptr) {
+    return;
+  }
+  switch (e.type) {
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP:
+      std::fprintf(d.log, "%9.1f sdl %s btn=%d x=%d y=%d win=%u clicks=%d\n",
+                   InputDebugMs(),
+                   e.type == SDL_MOUSEBUTTONDOWN ? "mousedown" : "mouseup",
+                   e.button.button, e.button.x, e.button.y, e.button.windowID,
+                   e.button.clicks);
+      break;
+    case SDL_KEYDOWN:
+    case SDL_KEYUP:
+      std::fprintf(d.log, "%9.1f sdl %s sym=0x%x mod=0x%x\n", InputDebugMs(),
+                   e.type == SDL_KEYDOWN ? "keydown" : "keyup",
+                   e.key.keysym.sym, e.key.keysym.mod);
+      break;
+    case SDL_WINDOWEVENT:
+      std::fprintf(d.log, "%9.1f sdl window event=%d\n", InputDebugMs(),
+                   e.window.event);
+      break;
+    default:
+      break;
+  }
+}
+
+void InputDebugRunScript() {
+  auto& d = GetInputDebug();
+  if (d.next_step >= d.script.size()) {
+    return;
+  }
+  const ImGuiViewport* vp = ImGui::GetMainViewport();
+  const Uint32 window_id =
+      static_cast<Uint32>(reinterpret_cast<intptr_t>(vp->PlatformHandle));
+  while (d.next_step < d.script.size() &&
+         d.script[d.next_step].at_ms <= InputDebugMs()) {
+    const auto& step = d.script[d.next_step++];
+    SDL_Event ev{};
+    const int x = static_cast<int>(step.x);
+    const int y = static_cast<int>(step.y);
+    if (step.action == "move") {
+      ev.type = SDL_MOUSEMOTION;
+      ev.motion.windowID = window_id;
+      ev.motion.x = x;
+      ev.motion.y = y;
+    } else {
+      const bool down = step.action == "ldown" || step.action == "rdown";
+      ev.type = down ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+      ev.button.windowID = window_id;
+      ev.button.button =
+          step.action[0] == 'r' ? SDL_BUTTON_RIGHT : SDL_BUTTON_LEFT;
+      ev.button.state = down ? SDL_PRESSED : SDL_RELEASED;
+      ev.button.clicks = 1;
+      ev.button.x = x;
+      ev.button.y = y;
+    }
+    SDL_PushEvent(&ev);
+    if (d.log != nullptr) {
+      std::fprintf(d.log, "%9.1f script %s %d %d\n", InputDebugMs(),
+                   step.action.c_str(), x, y);
+    }
+  }
+}
+#endif  // YAZE_USE_SDL3
+
+void InputDebugLogFrame() {
+  auto& d = GetInputDebug();
+  if (d.log == nullptr) {
+    return;
+  }
+  const ImGuiContext& g = *ImGui::GetCurrentContext();
+  const ImGuiIO& io = g.IO;
+  std::string popups;
+  for (const ImGuiPopupData& p : g.OpenPopupStack) {
+    char id[48];
+    std::snprintf(id, sizeof(id), "(pending id=%08X parent=%08X f=%d)",
+                  p.PopupId, p.OpenParentId, p.OpenFrameCount);
+    popups += p.Window ? p.Window->Name : id;
+    popups += "|";
+  }
+  char line[1024];
+  std::snprintf(
+      line, sizeof(line),
+      "down=%d%d%d clk=%d%d rel=%d%d pos=%.0f,%.0f hovwin=%s hovid=%08X "
+      "active=%08X(%s) nav=%s text=%d mods=0x%x focus=%d popups=[%s]",
+      io.MouseDown[0], io.MouseDown[1], io.MouseDown[2], io.MouseClicked[0],
+      io.MouseClicked[1], io.MouseReleased[0], io.MouseReleased[1],
+      io.MousePos.x, io.MousePos.y,
+      g.HoveredWindow ? g.HoveredWindow->Name : "-", g.HoveredIdPreviousFrame,
+      g.ActiveId, g.ActiveIdWindow ? g.ActiveIdWindow->Name : "-",
+      g.NavWindow ? g.NavWindow->Name : "-", io.WantTextInput ? 1 : 0,
+      static_cast<unsigned>(io.KeyMods), io.AppFocusLost ? 0 : 1,
+      popups.c_str());
+  const bool edge = io.MouseClicked[0] || io.MouseClicked[1] ||
+                    io.MouseReleased[0] || io.MouseReleased[1];
+  if (edge || d.last_frame_line != line) {
+    std::fprintf(d.log, "%9.1f frame=%d %s\n", InputDebugMs(), g.FrameCount,
+                 line);
+    std::fflush(d.log);
+    d.last_frame_line = line;
+  }
+}
+
+}  // namespace
 
 absl::Status Controller::OnEntry(std::string filename) {
   // Create window backend using factory (auto-selects SDL2 or SDL3)
@@ -159,8 +334,26 @@ void Controller::OnInput() {
     }
   }
 
+  {
+    auto& debug = GetInputDebug();
+    if (!debug.started) {
+      debug.started = true;
+      debug.start = std::chrono::steady_clock::now();
+    }
+#ifndef YAZE_USE_SDL3
+    if (!debug.script.empty() && ImGui::GetCurrentContext() != nullptr) {
+      InputDebugRunScript();
+    }
+#endif
+  }
+
   platform::WindowEvent event;
   while (window_backend_->PollEvent(event)) {
+#ifndef YAZE_USE_SDL3
+    if (event.has_native_event) {
+      InputDebugLogSdlEvent(event.native_event);
+    }
+#endif
     last_event_time_ = std::chrono::steady_clock::now();
     switch (event.type) {
       case platform::WindowEventType::Quit:
@@ -216,6 +409,7 @@ absl::Status Controller::OnLoad() {
   // Start new ImGui frame via backend (handles SDL2/SDL3 automatically)
   window_backend_->NewImGuiFrame();
   ImGui::NewFrame();
+  InputDebugLogFrame();
 
   // Advance any in-progress theme color transitions
   gui::ThemeManager::Get().UpdateTransition();

@@ -931,6 +931,7 @@ if(YAZE_BUILD_TESTS)
     gui_test_utils.cc
     e2e/framework_smoke_test.cc
     e2e/controller_window_close_test.cc
+    e2e/dead_click_regression_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
     e2e/dungeon_e2e_tests.cc
@@ -954,6 +955,17 @@ if(YAZE_BUILD_TESTS)
   endif()
 
   yaze_add_test_suite(yaze_test_gui "gui;experimental" ON ${GUI_TEST_SOURCES})
+  # REGISTER_PANEL objects (overworld canvas, map properties, ...) live in
+  # TUs nothing references; without whole-archive the GUI suite runs editors
+  # with no panels. Same as the yaze app target (src/app/app.cmake).
+  if(APPLE)
+    target_link_options(yaze_test_gui PRIVATE
+      "-Wl,-force_load,$<TARGET_LINKER_FILE:yaze_editor>")
+  elseif(UNIX)
+    target_link_options(yaze_test_gui PRIVATE
+      "-Wl,--whole-archive" "$<TARGET_LINKER_FILE:yaze_editor>"
+      "-Wl,--no-whole-archive")
+  endif()
 
   # Add a single test entry to run the entire GUI suite headlessly
   add_test(
@@ -962,6 +974,20 @@ if(YAZE_BUILD_TESTS)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
   set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")
+
+  # Mouse-release regressions (menu item, overworld right-click popup, panel
+  # close X) driven through ImGuiTestEngine against the full Controller UI.
+  # Needs a display (xvfb on Linux); overworld cases need a test ROM
+  # (YAZE_TEST_ROM_VANILLA) and are skipped without one.
+  add_test(
+      NAME gui_dead_click_smoke
+      COMMAND $<TARGET_FILE:yaze_test_gui> --ui --fast DeadClickSmoke
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(gui_dead_click_smoke PROPERTIES
+    LABELS "gui_smoke;gui"
+    TIMEOUT 300
+  )
 
   if(YAZE_ENABLE_AI_RUNTIME)
     set(EXPERIMENTAL_TEST_SOURCES

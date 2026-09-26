@@ -23,7 +23,9 @@
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/platform/window.h"
+#include "app/testing/test_manager.h"
 #include "e2e/canvas_selection_test.h"
+#include "e2e/dead_click_regression_test.h"
 #include "e2e/dungeon_e2e_tests.h"
 #include "e2e/editor_smoke_tests.h"
 #include "e2e/framework_smoke_test.h"
@@ -501,12 +503,22 @@ int main(int argc, char* argv[]) {
     SDL_Renderer* sdl_renderer =
         static_cast<SDL_Renderer*>(controller.renderer()->GetBackendRenderer());
 
-    // Setup test engine
-    ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();
+    // Setup test engine. The app's TestManager engine is compiled out of
+    // this target (YAZE_GUI_TEST_TARGET); if a build ever starts it, reuse
+    // it, since only one engine can hook an ImGui context.
+    ImGuiTestEngine* engine = yaze::test::TestManager::Get().GetUITestEngine();
+    const bool owns_engine = engine == nullptr;
+    if (owns_engine) {
+      engine = ImGuiTestEngine_CreateContext();
+    }
     ImGuiTestEngineIO& test_io = ImGuiTestEngine_GetIO(engine);
     test_io.ConfigRunSpeed = config.test_speed;  // Use configured speed
     test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;
     test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
+    test_io.ConfigLogToTTY = true;  // Per-test pass/fail and IM_CHECK lines
+    if (owns_engine) {
+      ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
+    }
 
     // Log test speed mode
     const char* speed_name = "Fast";
@@ -536,8 +548,15 @@ int main(int argc, char* argv[]) {
     // Register editor smoke tests for key editors and emulator panels
     yaze::test::e2e::RegisterEditorSmokeTests(engine, &controller);
 
+    // Mouse-release regressions: menu item, canvas context popup, close X
+    yaze::test::e2e::RegisterDeadClickRegressionTests(engine, &controller);
+
     // Queue all registered tests to run automatically
-    ImGuiTestEngine_QueueTests(engine, ImGuiTestGroup_Tests, nullptr, 0);
+    // A positional pattern ("DeadClickSmoke", "E2ETest/,-Dungeon") narrows
+    // the queue using the test engine's comma-separated filter syntax.
+    ImGuiTestEngine_QueueTests(
+        engine, ImGuiTestGroup_Tests,
+        config.test_pattern.empty() ? nullptr : config.test_pattern.c_str(), 0);
 
     // Main loop - runs the full yaze UI with test engine overlay
     while (controller.IsActive()) {
@@ -560,8 +579,11 @@ int main(int argc, char* argv[]) {
       // Render everything
       controller.DoRender();
 
-      // Run test engine post-swap processing
-      ImGuiTestEngine_PostSwap(engine);
+      // Run test engine post-swap processing (TestManager's engine is
+      // already post-swapped inside DoRender()).
+      if (owns_engine) {
+        ImGuiTestEngine_PostSwap(engine);
+      }
 
       // Check if all tests have completed (auto-exit when done)
       if (ImGuiTestEngine_IsTestQueueEmpty(engine)) {
@@ -579,8 +601,15 @@ int main(int argc, char* argv[]) {
               << summary.CountTested << " passed" << std::endl;
 
     // Cleanup
-    ImGuiTestEngine_DestroyContext(engine);
+    // Stop while the ImGui context is alive; destroy after OnExit() has torn
+    // the context down (ImGuiTestEngine_DestroyContext asserts otherwise).
+    if (owns_engine) {
+      ImGuiTestEngine_Stop(engine);
+    }
     controller.OnExit();
+    if (owns_engine) {
+      ImGuiTestEngine_DestroyContext(engine);
+    }
 
     return result;
 #else
