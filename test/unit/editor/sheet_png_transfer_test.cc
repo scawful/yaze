@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -103,6 +104,39 @@ TEST(SheetPngTransferTest, OnePixelEditChangesOneTile) {
   expected[5 * 128 + 20] = new_index;
   EXPECT_EQ(preview->indexed_pixels, expected);
   EXPECT_EQ(DescribeSheetPngImport(*preview), "Sheet 0x20: block 1 (1 tile)");
+}
+
+// A 16x16 PNG lands on the chosen block (5: x 80-95, y 0-15) and nowhere
+// else; one that would run past block 15 is refused.
+TEST(SheetPngTransferTest, ImportStartsAtTheChosenBlock) {
+  const auto pixels = PatternSheet();
+  const auto palette = zelda3::GrayscaleSheetPalette();
+  std::vector<std::array<uint8_t, 4>> gray;
+  for (const auto& color : palette) {
+    gray.push_back({color[0], color[1], color[2], 255});
+  }
+  auto block =
+      util::EncodeIndexedPng(16, 16, std::vector<uint8_t>(256, 7), gray);
+  ASSERT_TRUE(block.ok());
+
+  auto preview = PreviewSheetPngImport(kSheet, pixels, *block, palette,
+                                       /*first_block=*/5);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_EQ(preview->changed_blocks, std::vector<int>{5});
+  auto expected = pixels;
+  for (int y = 0; y < 16; ++y) {
+    for (int x = 80; x < 96; ++x) {
+      expected[y * 128 + x] = 7;
+    }
+  }
+  EXPECT_EQ(preview->indexed_pixels, expected);
+
+  auto wide =
+      util::EncodeIndexedPng(32, 16, std::vector<uint8_t>(512, 7), gray);
+  ASSERT_TRUE(wide.ok());
+  EXPECT_FALSE(PreviewSheetPngImport(kSheet, pixels, *wide, palette,
+                                     /*first_block=*/15)
+                   .ok());
 }
 
 TEST(SheetPngTransferTest, ApplyWritesTheArenaMarksDirtyAndUndoes) {

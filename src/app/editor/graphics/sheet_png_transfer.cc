@@ -76,14 +76,14 @@ absl::StatusOr<std::vector<uint8_t>> ExportSheetPixelsPng(
 
 absl::StatusOr<SheetPngImportPreview> PreviewSheetPngImport(
     uint16_t sheet_id, const std::vector<uint8_t>& indexed_pixels,
-    const std::vector<uint8_t>& png_bytes,
-    const zelda3::SheetPalette& palette) {
+    const std::vector<uint8_t>& png_bytes, const zelda3::SheetPalette& palette,
+    int first_block) {
   RETURN_IF_ERROR(CheckSheetPixels(sheet_id, indexed_pixels));
   ASSIGN_OR_RETURN(const util::PngImage png, util::DecodePng(png_bytes));
   const auto snes = gfx::IndexedToSnesSheet(indexed_pixels, /*bpp=*/3);
   ASSIGN_OR_RETURN(
       const zelda3::SheetImportResult result,
-      zelda3::ImportSheetBlocksPng(snes, png, /*first_block=*/0, palette));
+      zelda3::ImportSheetBlocksPng(snes, png, first_block, palette));
   return MakePreview(sheet_id, result);
 }
 
