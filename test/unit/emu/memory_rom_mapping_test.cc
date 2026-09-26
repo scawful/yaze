@@ -120,6 +120,62 @@ TEST(MemoryRomMappingTest, SnesReadSeesExpandedBanks) {
   EXPECT_EQ(snes->Read(0x408000), 0x33);
 }
 
+TEST(MemoryRomMappingTest, LoRomSramWritesReachBanks70AndF0) {
+  auto rom = MakeLoRom(0x100000, 0x0A);  // 8 KB SRAM
+
+  MemoryImpl mem;
+  mem.Initialize(rom);
+
+  mem.cart_write(0x70, 0x0000, 0x12);
+  EXPECT_EQ(mem.cart_read(0x70, 0x0000), 0x12);
+  EXPECT_EQ(mem.cart_read(0xF0, 0x0000), 0x12);
+
+  // $F0 is the first bank of the upper SRAM window; writes there were dropped.
+  mem.cart_write(0xF0, 0x0001, 0x34);
+  EXPECT_EQ(mem.cart_read(0xF0, 0x0001), 0x34);
+  EXPECT_EQ(mem.cart_read(0x70, 0x0001), 0x34);
+}
+
+TEST(MemoryRomMappingTest, LoRomSramStaysInLowHalvesOf4MbImage) {
+  auto rom = MakeLoRom(0x400000, 0x0C);  // 8 KB SRAM
+  rom[0x378000] = 0x6F;  // $6F:0000 (last ROM bank below the SRAM window)
+  rom[0x380000] = 0x70;  // $70:8000
+  rom[0x3EFFFF] = 0x7D;  // $7D:FFFF
+  rom[0x3F8000] = 0xFF;  // $FF:8000
+
+  MemoryImpl mem;
+  mem.Initialize(rom);
+
+  mem.cart_write(0x70, 0x0000, 0x5C);
+  // Writes to the ROM halves must not land anywhere.
+  mem.cart_write(0x70, 0x8000, 0xEE);
+  mem.cart_write(0xFF, 0x8000, 0xEE);
+
+  // SRAM: $70-$7D and $F0-$FF, 0000-7FFF (8 KB mirrors across the window).
+  EXPECT_EQ(mem.cart_read(0x70, 0x0000), 0x5C);
+  EXPECT_EQ(mem.cart_read(0x7D, 0x0000), 0x5C);
+  EXPECT_EQ(mem.cart_read(0xF0, 0x0000), 0x5C);
+  EXPECT_EQ(mem.cart_read(0xFF, 0x0000), 0x5C);
+
+  // ROM: 8000-FFFF in the same banks, and the whole of bank $6F.
+  EXPECT_EQ(mem.cart_read(0x6F, 0x0000), 0x6F);
+  EXPECT_EQ(mem.cart_read(0x70, 0x8000), 0x70);
+  EXPECT_EQ(mem.cart_read(0x7D, 0xFFFF), 0x7D);
+  EXPECT_EQ(mem.cart_read(0xF0, 0x8000), 0x70);
+  EXPECT_EQ(mem.cart_read(0xFF, 0x8000), 0xFF);
+}
+
+TEST(MemoryRomMappingTest, SnesWriteToBankF0ReachesSram) {
+  auto rom = MakeLoRom(0x100000, 0x0A);
+
+  auto snes = std::make_unique<Snes>();
+  snes->Init(rom);
+
+  snes->Write(0xF00002, 0x56);
+  EXPECT_EQ(snes->Read(0x700002), 0x56);
+  EXPECT_EQ(snes->Read(0xF00002), 0x56);
+}
+
 }  // namespace
 }  // namespace emu
 }  // namespace yaze
