@@ -1,6 +1,7 @@
 #ifndef YAZE_CORE_VERSION_MANAGER_H_
 #define YAZE_CORE_VERSION_MANAGER_H_
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -31,24 +32,33 @@ class VersionManager {
   explicit VersionManager(project::YazeProject* project);
 
   // Core Actions
+  // Creates a repository in the project directory (runs `git init`). Only
+  // call from an explicit user action; opening a project must not create one.
   absl::Status InitializeGit();
+  // Records the project directory as the repository when it already contains
+  // a .git entry. Never runs git. Returns IsGitInitialized().
+  bool AdoptExistingRepository();
   absl::StatusOr<SnapshotResult> CreateSnapshot(const std::string& message);
-  
+
   // Queries
   bool IsGitInitialized() const;
   std::string GetCurrentHash() const;
   std::vector<std::string> GetHistory(int limit = 10) const;
 
  private:
+  // Directory that git_repository names, resolved against the project file's
+  // directory when relative (empty means the project directory).
+  std::filesystem::path RepositoryRoot() const;
+
   // Git Helpers
   absl::Status GitInit();
   absl::Status GitAddAll();
   absl::Status GitCommit(const std::string& message);
   std::string GitRevParseHead() const;
-  
+
   // ROM Helpers
   absl::Status BackupRomArtifact(const std::string& timestamp_str);
-  
+
   // System Helpers
   absl::Status RunCommand(const std::string& cmd);
   absl::StatusOr<std::string> RunCommandOutput(const std::string& cmd) const;
