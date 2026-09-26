@@ -45,6 +45,7 @@ set(
   zelda3/gfx_sheet_inventory.cc
   zelda3/gfx_sheet_png.cc
   zelda3/gfx_sheet_storage.cc
+  zelda3/graphics_sheet_store.cc
   zelda3/music/asm_exporter.cc
   zelda3/music/asm_importer.cc
   zelda3/music/music_bank.cc
