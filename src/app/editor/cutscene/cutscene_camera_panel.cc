@@ -173,8 +173,14 @@ void CutsceneCameraPanel::Save() {
 }
 
 OverworldEditor* CutsceneCameraPanel::OverworldSource() const {
-  return dynamic_cast<OverworldEditor*>(
+  auto* editor = dynamic_cast<OverworldEditor*>(
       ContentRegistry::Context::editor_window_context("Overworld"));
+  // The editor exists before its overworld loads, and a failed load leaves
+  // the map list empty; only a loaded overworld can answer area queries.
+  if (editor == nullptr || !editor->overworld().is_loaded()) {
+    return nullptr;
+  }
+  return editor;
 }
 
 zelda3::AreaExtent CutsceneCameraPanel::ExtentFor(
