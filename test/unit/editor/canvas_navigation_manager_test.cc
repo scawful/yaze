@@ -32,7 +32,6 @@ class CanvasNavigationManagerTest : public ::testing::Test {
     current_mode_ = EditingMode::MOUSE;
     current_map_lock_ = false;
     is_dragging_entity_ = false;
-    show_map_properties_panel_ = false;
     current_map_ = 0;
     current_world_ = 0;
     current_parent_ = 0;
@@ -41,7 +40,6 @@ class CanvasNavigationManagerTest : public ::testing::Test {
     ctx_.current_mode = &current_mode_;
     ctx_.current_map_lock = &current_map_lock_;
     ctx_.is_dragging_entity = &is_dragging_entity_;
-    ctx_.show_map_properties_panel = &show_map_properties_panel_;
     ctx_.current_map = &current_map_;
     ctx_.current_world = &current_world_;
     ctx_.current_parent = &current_parent_;
@@ -60,7 +58,6 @@ class CanvasNavigationManagerTest : public ::testing::Test {
   EditingMode current_mode_;
   bool current_map_lock_;
   bool is_dragging_entity_;
-  bool show_map_properties_panel_;
   int current_map_;
   int current_world_;
   int current_parent_;

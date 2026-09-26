@@ -346,6 +346,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ToggleCanvasFullscreen();
   void ToggleTile16EditorWindow();
   void ToggleItemListWindow();
+  /// Open and focus the docked Map Properties window (double-click a map,
+  /// context menu "Map > Map Properties").
+  void OpenMapPropertiesWindow();
 
   /// Single entry point for changing the active Tile16 (painting + editor).
   /// Uses `Tile16Editor::RequestTileSwitch` when graphics are ready so staged
@@ -665,7 +668,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   bool show_custom_bg_color_editor_ = false;
   bool show_overlay_editor_ = false;
-  bool show_map_properties_panel_ = false;
   bool show_overlay_preview_ = false;
 
   // ===========================================================================
