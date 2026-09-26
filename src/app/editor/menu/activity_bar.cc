@@ -17,6 +17,7 @@
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
@@ -167,35 +168,38 @@ void ActivityBar::DrawCategoryContextMenu(const std::string& category) {
   const bool is_pinned = prefs.sidebar_pinned.count(category) > 0;
   const bool is_hidden = prefs.sidebar_hidden.count(category) > 0;
 
-  const char* pin_label = is_pinned ? "Unpin from top" : "Pin to top";
-  if (ImGui::MenuItem(pin_label)) {
-    if (is_pinned) {
-      prefs.sidebar_pinned.erase(category);
-    } else {
-      prefs.sidebar_pinned.insert(category);
-    }
-    PersistSettings(user_settings_);
-  }
-
-  const char* hide_label = is_hidden ? "Show on sidebar" : "Hide from sidebar";
-  if (ImGui::MenuItem(hide_label)) {
-    if (is_hidden) {
-      prefs.sidebar_hidden.erase(category);
-    } else {
-      prefs.sidebar_hidden.insert(category);
-    }
-    PersistSettings(user_settings_);
-  }
-
-  ImGui::Separator();
-  if (ImGui::MenuItem(tr("Reset Sidebar Order"))) {
-    prefs.sidebar_order.clear();
-    PersistSettings(user_settings_);
-  }
-  if (ImGui::MenuItem(tr("Show All Categories"))) {
-    prefs.sidebar_hidden.clear();
-    PersistSettings(user_settings_);
-  }
+  std::vector<gui::MenuItemSpec> items;
+  items.emplace_back(is_pinned ? "Unpin from Top" : "Pin to Top",
+                     ICON_MD_PUSH_PIN, [&prefs, &category, is_pinned, this]() {
+                       if (is_pinned) {
+                         prefs.sidebar_pinned.erase(category);
+                       } else {
+                         prefs.sidebar_pinned.insert(category);
+                       }
+                       PersistSettings(user_settings_);
+                     });
+  items.emplace_back(is_hidden ? "Show on Sidebar" : "Hide from Sidebar",
+                     is_hidden ? ICON_MD_VISIBILITY : ICON_MD_VISIBILITY_OFF,
+                     [&prefs, &category, is_hidden, this]() {
+                       if (is_hidden) {
+                         prefs.sidebar_hidden.erase(category);
+                       } else {
+                         prefs.sidebar_hidden.insert(category);
+                       }
+                       PersistSettings(user_settings_);
+                     });
+  items.back().separator_after = true;
+  items.emplace_back(tr("Reset Sidebar Order"), ICON_MD_RESTORE,
+                     [&prefs, this]() {
+                       prefs.sidebar_order.clear();
+                       PersistSettings(user_settings_);
+                     });
+  items.emplace_back(tr("Show All Categories"), ICON_MD_VISIBILITY,
+                     [&prefs, this]() {
+                       prefs.sidebar_hidden.clear();
+                       PersistSettings(user_settings_);
+                     });
+  gui::RenderMenuItems(items);
 
   ImGui::EndPopup();
 }
