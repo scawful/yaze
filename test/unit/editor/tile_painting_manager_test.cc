@@ -59,6 +59,27 @@ TEST(TileBrushPreviewTest, ClipsNegativeAnchorAndReadsAtlasRows) {
   EXPECT_TRUE(BuildMapBrushPreview(brush, -1, -1, 1, 0, atlas).pixels.empty());
 }
 
+TEST(TileBrushPreviewTest, Tile16PixelsReadOneTileFromEachAreaBlockset) {
+  // Two areas' blocksets (128 px wide = 8 tiles per row) that draw Tile16 9
+  // differently: the pixels must come from the blockset that is passed.
+  std::vector<uint8_t> area_a(128 * 32, 0x01);
+  std::vector<uint8_t> area_b(128 * 32, 0x02);
+  for (int row = 0; row < 16; ++row) {
+    area_b[(16 + row) * 128 + 16 + row] = 0x0F;  // Tile 9 diagonal.
+  }
+  const auto a = Tile16PixelsFromBlockset(area_a, 9);
+  const auto b = Tile16PixelsFromBlockset(area_b, 9);
+  ASSERT_EQ(a.size(), 256u);
+  ASSERT_EQ(b.size(), 256u);
+  EXPECT_NE(a, b);
+  EXPECT_EQ(b[0], 0x0F);
+  EXPECT_EQ(b[1], 0x02);
+  EXPECT_EQ(b[17], 0x0F);
+  EXPECT_TRUE(Tile16PixelsFromBlockset(area_a, 16).empty());  // Past the end.
+  EXPECT_TRUE(Tile16PixelsFromBlockset(area_a, -1).empty());
+  EXPECT_TRUE(Tile16PixelsFromBlockset(area_a, 0, 100).empty());
+}
+
 TEST(TileBrushPreviewTest, InvalidSourceAndBrushAreBounded) {
   EXPECT_TRUE(BuildMapBrushPreview({}, 0, 0, 0, 0, {}).pixels.empty());
   const TileBrush brush{1, 1, {0xFFFF}};
@@ -725,11 +746,10 @@ TEST_F(TilePaintingManagerGestureTest,
 
 TEST_F(TilePaintingManagerGestureTest,
        PasteUsesHoveredSeamInsteadOfStaleMapAndDrawnPosition) {
-  // Leave the legacy single-tile destination at (64,64), then move to a
-  // different world position without another left press.
+  // Paint a single tile at (64,64), then move to a different world position
+  // without another left press. (Single-tile painting no longer goes through
+  // Canvas::DrawTilemapPainter, so there is no drawn position to go stale.)
   ClickWorld(72, 72);
-  ASSERT_FLOAT_EQ(canvas_.drawn_tile_position().x, 64);
-  ASSERT_FLOAT_EQ(canvas_.drawn_tile_position().y, 64);
   ASSERT_EQ(overworld_->mutable_map_tiles()->light_world[4][4], 2);
   undo_points_.clear();
   finalize_count_ = 0;

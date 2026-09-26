@@ -133,6 +133,10 @@ the cursor and only starts from a press on the canvas. All tunables are in
 
 Unpinned map selection follows the cursor in Mouse, Brush, and Fill modes.
 Pin through the toolbar, Ctrl+L, or the context menu to hold the property target.
+Brush/Fill previews and painted pixels use the destination map's own tile16
+blockset and palette (`TilePaintingManager::DrawBrushPreview`,
+`Tile16PixelsForMap`), so a pinned map or a stroke that crosses into another
+area never shows or writes the current map's graphics there.
 Explicit clicks select the map under the cursor even when pinned, and the pin
 then holds that map: a Select-tool left click that did not pan (on release)
 and a Brush/Fill right click. Both go through
