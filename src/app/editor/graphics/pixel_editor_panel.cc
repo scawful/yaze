@@ -7,6 +7,7 @@
 #include <queue>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
@@ -658,8 +659,8 @@ void PixelEditorPanel::HandleCanvasInput() {
         ImVec2(static_cast<float>(cursor_x_), static_cast<float>(cursor_y_));
     last_mouse_pixel_ = tool_start_pixel_;
 
-    // Save undo state before starting to draw
-    SaveUndoState();
+    // Pixel writes until mouse-up form one stroke (one undo step).
+    BeginStroke();
 
     // Handle tools that need start position
     switch (state_->current_tool) {
@@ -735,72 +736,64 @@ void PixelEditorPanel::HandleCanvasInput() {
         break;
     }
 
-    // Finalize undo action after the edit stroke completes
-    FinalizeUndoAction();
+    // One store revision and one undo step for the whole stroke
+    EndStroke();
 
     show_tool_preview_ = false;
   }
 }
 
 void PixelEditorPanel::ApplyPencil(int x, int y) {
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
-
-  if (x >= 0 && x < sheet.width() && y >= 0 && y < sheet.height()) {
-    sheet.WriteToPixel(x, y, state_->current_color_index);
-    state_->MarkSheetModified(state_->current_sheet_id);
-    gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    return;
   }
+  ShowStrokeChanges(edit->Set(x, y, state_->current_color_index));
 }
 
 void PixelEditorPanel::ApplyBrush(int x, int y) {
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    return;
+  }
   int size = state_->brush_size;
   int half = size / 2;
-
+  bool changed = false;
   for (int dy = -half; dy < size - half; dy++) {
     for (int dx = -half; dx < size - half; dx++) {
-      int px = x + dx;
-      int py = y + dy;
-      if (px >= 0 && px < sheet.width() && py >= 0 && py < sheet.height()) {
-        sheet.WriteToPixel(px, py, state_->current_color_index);
-      }
+      changed |= edit->Set(x + dx, y + dy, state_->current_color_index);
     }
   }
-
-  state_->MarkSheetModified(state_->current_sheet_id);
-  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  ShowStrokeChanges(changed);
 }
 
 void PixelEditorPanel::ApplyEraser(int x, int y) {
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    return;
+  }
   int size = state_->brush_size;
   int half = size / 2;
-
+  bool changed = false;
   for (int dy = -half; dy < size - half; dy++) {
     for (int dx = -half; dx < size - half; dx++) {
-      int px = x + dx;
-      int py = y + dy;
-      if (px >= 0 && px < sheet.width() && py >= 0 && py < sheet.height()) {
-        sheet.WriteToPixel(px, py, 0);  // Index 0 = transparent
-      }
+      changed |= edit->Set(x + dx, y + dy, 0);  // Index 0 = transparent
     }
   }
-
-  state_->MarkSheetModified(state_->current_sheet_id);
-  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  ShowStrokeChanges(changed);
 }
 
 void PixelEditorPanel::ApplyFill(int x, int y) {
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
-
-  if (x < 0 || x >= sheet.width() || y < 0 || y >= sheet.height())
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    return;
+  }
+  const int width = edit->width();
+  const int height = edit->height();
+  if (x < 0 || x >= width || y < 0 || y >= height)
     return;
 
-  uint8_t target_color = sheet.GetPixel(x, y);
+  uint8_t target_color = edit->Get(x, y);
   uint8_t fill_color = state_->current_color_index;
 
   if (target_color == fill_color)
@@ -808,16 +801,16 @@ void PixelEditorPanel::ApplyFill(int x, int y) {
 
   // BFS flood fill
   std::queue<std::pair<int, int>> queue;
-  std::vector<bool> visited(sheet.width() * sheet.height(), false);
+  std::vector<bool> visited(width * height, false);
 
   queue.push({x, y});
-  visited[y * sheet.width() + x] = true;
+  visited[y * width + x] = true;
 
   while (!queue.empty()) {
     auto [cx, cy] = queue.front();
     queue.pop();
 
-    sheet.WriteToPixel(cx, cy, fill_color);
+    edit->Set(cx, cy, fill_color);
 
     // Check 4-connected neighbors
     const int dx[] = {0, 0, -1, 1};
@@ -827,9 +820,9 @@ void PixelEditorPanel::ApplyFill(int x, int y) {
       int nx = cx + dx[i];
       int ny = cy + dy[i];
 
-      if (nx >= 0 && nx < sheet.width() && ny >= 0 && ny < sheet.height()) {
-        int idx = ny * sheet.width() + nx;
-        if (!visited[idx] && sheet.GetPixel(nx, ny) == target_color) {
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+        int idx = ny * width + nx;
+        if (!visited[idx] && edit->Get(nx, ny) == target_color) {
           visited[idx] = true;
           queue.push({nx, ny});
         }
@@ -837,8 +830,7 @@ void PixelEditorPanel::ApplyFill(int x, int y) {
     }
   }
 
-  state_->MarkSheetModified(state_->current_sheet_id);
-  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  ShowStrokeChanges(true);
 }
 
 void PixelEditorPanel::ApplyEyedropper(int x, int y) {
@@ -859,8 +851,10 @@ void PixelEditorPanel::ApplyEyedropper(int x, int y) {
 }
 
 void PixelEditorPanel::DrawLine(int x1, int y1, int x2, int y2) {
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    return;
+  }
 
   // Bresenham's line algorithm
   int dx = std::abs(x2 - x1);
@@ -868,11 +862,10 @@ void PixelEditorPanel::DrawLine(int x1, int y1, int x2, int y2) {
   int sx = x1 < x2 ? 1 : -1;
   int sy = y1 < y2 ? 1 : -1;
   int err = dx - dy;
+  bool changed = false;
 
   while (true) {
-    if (x1 >= 0 && x1 < sheet.width() && y1 >= 0 && y1 < sheet.height()) {
-      sheet.WriteToPixel(x1, y1, state_->current_color_index);
-    }
+    changed |= edit->Set(x1, y1, state_->current_color_index);
 
     if (x1 == x2 && y1 == y2)
       break;
@@ -888,51 +881,43 @@ void PixelEditorPanel::DrawLine(int x1, int y1, int x2, int y2) {
     }
   }
 
-  state_->MarkSheetModified(state_->current_sheet_id);
-  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  ShowStrokeChanges(changed);
 }
 
 void PixelEditorPanel::DrawRectangle(int x1, int y1, int x2, int y2,
                                      bool filled) {
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    return;
+  }
 
   int min_x = std::min(x1, x2);
   int max_x = std::max(x1, x2);
   int min_y = std::min(y1, y2);
   int max_y = std::max(y1, y2);
+  const uint8_t color = state_->current_color_index;
+  bool changed = false;
 
   if (filled) {
     for (int y = min_y; y <= max_y; y++) {
       for (int x = min_x; x <= max_x; x++) {
-        if (x >= 0 && x < sheet.width() && y >= 0 && y < sheet.height()) {
-          sheet.WriteToPixel(x, y, state_->current_color_index);
-        }
+        changed |= edit->Set(x, y, color);
       }
     }
   } else {
     // Top and bottom edges
     for (int x = min_x; x <= max_x; x++) {
-      if (x >= 0 && x < sheet.width()) {
-        if (min_y >= 0 && min_y < sheet.height())
-          sheet.WriteToPixel(x, min_y, state_->current_color_index);
-        if (max_y >= 0 && max_y < sheet.height())
-          sheet.WriteToPixel(x, max_y, state_->current_color_index);
-      }
+      changed |= edit->Set(x, min_y, color);
+      changed |= edit->Set(x, max_y, color);
     }
     // Left and right edges
     for (int y = min_y; y <= max_y; y++) {
-      if (y >= 0 && y < sheet.height()) {
-        if (min_x >= 0 && min_x < sheet.width())
-          sheet.WriteToPixel(min_x, y, state_->current_color_index);
-        if (max_x >= 0 && max_x < sheet.width())
-          sheet.WriteToPixel(max_x, y, state_->current_color_index);
-      }
+      changed |= edit->Set(min_x, y, color);
+      changed |= edit->Set(max_x, y, color);
     }
   }
 
-  state_->MarkSheetModified(state_->current_sheet_id);
-  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
+  ShowStrokeChanges(changed);
 }
 
 void PixelEditorPanel::BeginSelection(int x, int y) {
@@ -987,27 +972,21 @@ void PixelEditorPanel::PasteSelection(int x, int y) {
   if (state_->selection.pixel_data.empty())
     return;
 
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
-
-  SaveUndoState();
-
+  BeginStroke();
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    return;
+  }
+  bool changed = false;
   for (int dy = 0; dy < state_->selection.height; dy++) {
     for (int dx = 0; dx < state_->selection.width; dx++) {
-      int dest_x = x + dx;
-      int dest_y = y + dy;
-      if (dest_x >= 0 && dest_x < sheet.width() && dest_y >= 0 &&
-          dest_y < sheet.height()) {
-        uint8_t pixel =
-            state_->selection.pixel_data[dy * state_->selection.width + dx];
-        sheet.WriteToPixel(dest_x, dest_y, pixel);
-      }
+      uint8_t pixel =
+          state_->selection.pixel_data[dy * state_->selection.width + dx];
+      changed |= edit->Set(x + dx, y + dy, pixel);
     }
   }
-
-  state_->MarkSheetModified(state_->current_sheet_id);
-  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
-  FinalizeUndoAction();
+  ShowStrokeChanges(changed);
+  EndStroke();
 }
 
 void PixelEditorPanel::FlipSelectionHorizontal() {
@@ -1042,38 +1021,51 @@ void PixelEditorPanel::FlipSelectionVertical() {
   state_->selection.pixel_data = std::move(flipped);
 }
 
-void PixelEditorPanel::SaveUndoState() {
-  if (!undo_manager_)
+void PixelEditorPanel::BeginStroke() {
+  EndStroke();  // a stroke left open ends here
+  auto* store = ActiveSheetStore(*state_);
+  if (store == nullptr) {
     return;
-  auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
-  pending_undo_sheet_id_ = state_->current_sheet_id;
-  pending_undo_before_data_ = sheet.vector();
-  has_pending_undo_ = true;
+  }
+  stroke_.emplace(*store, state_->current_sheet_id);
+  if (!stroke_->ok()) {
+    stroke_.reset();
+  }
 }
 
-void PixelEditorPanel::FinalizeUndoAction() {
-  if (!undo_manager_ || !has_pending_undo_) {
-    has_pending_undo_ = false;
+zelda3::GraphicsSheetStore::Edit* PixelEditorPanel::StrokeEdit() {
+  if (!stroke_ || stroke_->sheet() != state_->current_sheet_id) {
+    BeginStroke();
+  }
+  return stroke_ ? &*stroke_ : nullptr;
+}
+
+void PixelEditorPanel::ShowStrokeChanges(bool changed) {
+  if (!stroke_ || !changed) {
     return;
   }
+  RefreshArenaSheet(*state_, stroke_->sheet());
+  state_->MarkSheetModified(stroke_->sheet());
+}
 
-  auto& sheet = gfx::Arena::Get().gfx_sheets()[pending_undo_sheet_id_];
-  auto after_data = sheet.vector();
-
-  // Only push if the data actually changed
-  if (after_data != pending_undo_before_data_) {
-    auto description =
-        absl::StrFormat("Edit pixels on sheet %02X", pending_undo_sheet_id_);
-    undo_manager_->Push(std::make_unique<GraphicsPixelEditAction>(
-        pending_undo_sheet_id_, std::move(pending_undo_before_data_),
-        std::move(after_data), std::move(description),
-        [state = state_](uint16_t sheet_id) {
-          state->MarkSheetModified(sheet_id);
-        }));
+void PixelEditorPanel::EndStroke() {
+  if (!stroke_) {
+    return;
   }
-
-  has_pending_undo_ = false;
-  pending_undo_before_data_.clear();
+  const uint16_t sheet = stroke_->sheet();
+  SheetPixelDiff diff =
+      MakeSheetPixelDiff(sheet, stroke_->before(), stroke_->pixels());
+  stroke_.reset();  // commits: one revision for the whole stroke
+  RefreshArenaSheet(*state_, sheet);
+  if (diff.empty()) {
+    return;
+  }
+  state_->MarkSheetModified(sheet);
+  if (undo_manager_ != nullptr) {
+    undo_manager_->Push(std::make_unique<GraphicsPixelEditAction>(
+        state_, std::move(diff),
+        absl::StrFormat("Edit pixels on sheet %02X", sheet)));
+  }
 }
 
 bool PixelEditorPanel::HandlePanInput() {
@@ -1283,19 +1275,21 @@ void PixelEditorPanel::CutToSystemClipboard() {
   if (clipboard_status_is_error_) {
     return;
   }
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
-  SaveUndoState();
+  BeginStroke();
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    clipboard_status_ = "Copied, but this sheet cannot be edited here";
+    clipboard_status_is_error_ = true;
+    return;
+  }
+  bool changed = false;
   for (int y = selection.y; y < selection.y + selection.height; ++y) {
     for (int x = selection.x; x < selection.x + selection.width; ++x) {
-      if (x >= 0 && y >= 0 && x < sheet.width() && y < sheet.height()) {
-        sheet.WriteToPixel(x, y, 0);
-      }
+      changed |= edit->Set(x, y, 0);
     }
   }
-  state_->MarkSheetModified(state_->current_sheet_id);
-  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
-  FinalizeUndoAction();
+  ShowStrokeChanges(changed);
+  EndStroke();
   clipboard_status_ =
       absl::StrFormat("Cut %dx%d from sheet %02X", selection.width,
                       selection.height, state_->current_sheet_id);
@@ -1350,24 +1344,25 @@ void PixelEditorPanel::CommitFloatingPaste() {
   if (!selection.is_floating) {
     return;
   }
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
-  SaveUndoState();
+  BeginStroke();
+  auto* edit = StrokeEdit();
+  if (edit == nullptr) {
+    clipboard_status_ = "This sheet cannot be edited here";
+    clipboard_status_is_error_ = true;
+    return;
+  }
+  bool changed = false;
   for (int dy = 0; dy < selection.height; ++dy) {
     for (int dx = 0; dx < selection.width; ++dx) {
       const uint8_t pixel = selection.pixel_data[dy * selection.width + dx];
-      const int x = selection.x + dx;
-      const int y = selection.y + dy;
-      if ((paste_skip_color0_ && pixel == 0) || x < 0 || y < 0 ||
-          x >= sheet.width() || y >= sheet.height()) {
+      if (paste_skip_color0_ && pixel == 0) {
         continue;
       }
-      sheet.WriteToPixel(x, y, pixel);
+      changed |= edit->Set(selection.x + dx, selection.y + dy, pixel);
     }
   }
-  state_->MarkSheetModified(state_->current_sheet_id);
-  gfx::Arena::Get().NotifySheetModified(state_->current_sheet_id);
-  FinalizeUndoAction();
+  ShowStrokeChanges(changed);
+  EndStroke();
   selection.is_floating = false;
   dragging_paste_ = false;
   clipboard_status_ =

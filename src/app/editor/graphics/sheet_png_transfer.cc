@@ -7,14 +7,15 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/registry/undo_manager.h"
-#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
 #include "util/indexed_png.h"
 #include "util/macro.h"
 #include "zelda3/gfx_sheet_storage.h"
+#include "zelda3/graphics_sheet_store.h"
 
 namespace yaze::editor {
 
@@ -104,31 +105,24 @@ absl::StatusOr<std::vector<SheetPngImportPreview>> PreviewRoomPngImport(
 absl::Status ApplySheetPngImport(const SheetPngImportPreview& preview,
                                  GraphicsEditorState& state,
                                  UndoManager* undo_manager) {
-  auto* sheets = gfx::Arena::Get().mutable_gfx_sheets();
-  if (preview.sheet_id >= sheets->size()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Sheet 0x%02X is out of range", preview.sheet_id));
-  }
-  gfx::Bitmap& sheet = sheets->at(preview.sheet_id);
-  if (!sheet.is_active() || sheet.vector().size() != kSheetPixels ||
+  const auto* store = ActiveSheetStore(state);
+  if (store == nullptr || !store->HasSheet(preview.sheet_id) ||
       preview.indexed_pixels.size() != kSheetPixels) {
     return absl::FailedPreconditionError(absl::StrFormat(
-        "Sheet 0x%02X is not loaded as a 128x32 sheet; import it again",
+        "Sheet 0x%02X is not in this ROM's loaded graphics; import it again",
         preview.sheet_id));
   }
-  if (sheet.vector() == preview.indexed_pixels) {
+  SheetPixelDiff diff = MakeSheetPixelDiff(
+      preview.sheet_id, store->Sheet(preview.sheet_id), preview.indexed_pixels);
+  if (diff.empty()) {
     return absl::OkStatus();
   }
-
-  std::vector<uint8_t> before = sheet.vector();
-  sheet.set_data(preview.indexed_pixels);
-  gfx::Arena::Get().NotifySheetModified(preview.sheet_id);
-  state.MarkSheetModified(preview.sheet_id);
+  RETURN_IF_ERROR(
+      CommitSheetPixels(state, preview.sheet_id, preview.indexed_pixels));
   if (undo_manager != nullptr) {
     undo_manager->Push(std::make_unique<GraphicsPixelEditAction>(
-        preview.sheet_id, std::move(before), preview.indexed_pixels,
-        absl::StrFormat("Import PNG into sheet 0x%02X", preview.sheet_id),
-        [&state](uint16_t sheet_id) { state.MarkSheetModified(sheet_id); }));
+        &state, std::move(diff),
+        absl::StrFormat("Import PNG into sheet 0x%02X", preview.sheet_id)));
   }
   return absl::OkStatus();
 }

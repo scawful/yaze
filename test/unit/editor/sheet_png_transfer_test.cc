@@ -2,15 +2,19 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/registry/undo_manager.h"
 #include "app/gfx/resource/arena.h"
 #include "util/indexed_png.h"
+#include "zelda3/game_data.h"
 #include "zelda3/gfx_sheet_png.h"
 
 namespace yaze::editor {
@@ -43,17 +47,30 @@ std::vector<uint8_t> WithPixel(const std::vector<uint8_t>& png_bytes, int x,
   return out.ok() ? *out : std::vector<uint8_t>{};
 }
 
-// Puts a sheet into the shared Arena and restores the original afterwards.
+// A loaded session: its sheet store holds `pixels` as kSheet, and the
+// shared Arena shows that sheet for it. Restores the Arena afterwards.
 struct ScopedArenaSheet {
   explicit ScopedArenaSheet(const std::vector<uint8_t>& pixels)
-      : sheet(&gfx::Arena::Get().mutable_gfx_sheets()->at(kSheet)),
-        original(std::move(*sheet)) {
+      : data(std::make_unique<zelda3::GameData>()),
+        sheet(&gfx::Arena::Get().mutable_gfx_sheets()->at(kSheet)),
+        original(std::move(*sheet)),
+        original_owner(gfx::Arena::Get().gfx_sheets_owner()) {
+    data->graphics_buffer.assign(223 * 4096, 0);
+    std::copy(pixels.begin(), pixels.end(),
+              data->graphics_buffer.begin() + kSheet * 4096);
+    data->sheet_store.MarkAllSheetsChanged();
     sheet->Create(128, 32, 8, pixels);
+    gfx::Arena::Get().set_gfx_sheets_owner(data.get());
   }
-  ~ScopedArenaSheet() { *sheet = std::move(original); }
+  ~ScopedArenaSheet() {
+    *sheet = std::move(original);
+    gfx::Arena::Get().set_gfx_sheets_owner(original_owner);
+  }
 
+  std::unique_ptr<zelda3::GameData> data;
   gfx::Bitmap* sheet;
   gfx::Bitmap original;
+  const void* original_owner;
 };
 
 TEST(SheetPngTransferTest, ExportThenImportChangesNothing) {
@@ -100,6 +117,7 @@ TEST(SheetPngTransferTest, ApplyWritesTheArenaMarksDirtyAndUndoes) {
   ASSERT_TRUE(preview.ok()) << preview.status();
 
   GraphicsEditorState state;
+  AttachSheetStore(state, arena_sheet.data.get());
   UndoManager undo;
   ASSERT_TRUE(ApplySheetPngImport(*preview, state, &undo).ok());
   EXPECT_EQ(arena_sheet.sheet->vector()[0], new_index);
@@ -108,8 +126,10 @@ TEST(SheetPngTransferTest, ApplyWritesTheArenaMarksDirtyAndUndoes) {
 
   ASSERT_TRUE(undo.Undo().ok());
   EXPECT_EQ(arena_sheet.sheet->vector(), pixels);
+  EXPECT_EQ(arena_sheet.data->graphics_buffer[kSheet * 4096], pixels[0]);
   ASSERT_TRUE(undo.Redo().ok());
   EXPECT_EQ(arena_sheet.sheet->vector()[0], new_index);
+  EXPECT_EQ(arena_sheet.data->graphics_buffer[kSheet * 4096], new_index);
 }
 
 TEST(SheetPngTransferTest, RefusesTwoBppSheetsAndColorsAboveSeven) {

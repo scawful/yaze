@@ -87,6 +87,7 @@ set(
   app/editor/graphics/sheet_png_transfer.cc
   app/editor/graphics/pixel_clipboard.cc
   app/editor/graphics/graphics_save_plan.cc
+  app/editor/graphics/graphics_sheet_sync.cc
   app/editor/graphics/ui/browser/sheet_browser_view.cc
   app/editor/graphics/ui/editing/pixel_editor_view.cc
   app/editor/graphics/ui/palette/palette_controls_view.cc

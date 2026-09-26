@@ -15,6 +15,7 @@
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/graphics/graphics_save_plan.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/link_sprite_panel.h"
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/paletteset_editor_panel.h"
@@ -149,6 +150,7 @@ class GraphicsEditor : public Editor {
   // Set the game data pointer
   void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
+    AttachSheetStore(state_, game_data);
     if (sheet_browser_panel_) {
       sheet_browser_panel_->SetDataSources(
           rom_, game_data,
