@@ -51,7 +51,7 @@ constexpr uint64_t kMasterCyclesPerFrame = 357366;  // 21477272 / 60.0988
 constexpr int kSamplesPerFrame = 533;  // 32040 / 60.0988
 
 // APU/Master clock ratio numerator and denominator (from apu.cc)
-constexpr uint64_t kApuCyclesNumerator = 32040 * 32;      // 1,025,280
+constexpr uint64_t kApuCyclesNumerator = 32040 * 32;         // 1,025,280
 constexpr uint64_t kApuCyclesDenominator = 1364 * 262 * 60;  // 21,437,280
 
 // Tolerance percentages for timing tests
@@ -106,9 +106,7 @@ class AudioTimingTest : public TestRomManager::BoundRomTest {
   }
 
   // Get current DSP sample offset (for counting samples)
-  uint32_t GetDspSampleOffset() const {
-    return apu_->dsp().GetSampleOffset();
-  }
+  uint32_t GetDspSampleOffset() const { return apu_->dsp().GetSampleOffset(); }
 
   // Count samples generated over a number of frames
   int CountSamplesOverFrames(int frame_count) {
@@ -172,8 +170,8 @@ TEST_F(AudioTimingTest, DspSampleRateMatchesNative) {
 
   // Expected: ~32,040 samples
   constexpr int kExpectedSamples = audio_constants::kNativeSampleRate;
-  const double ratio =
-      static_cast<double>(total_samples) / static_cast<double>(kExpectedSamples);
+  const double ratio = static_cast<double>(total_samples) /
+                       static_cast<double>(kExpectedSamples);
 
   LOG_INFO("AudioTiming",
            "DSP samples in %d frames: %d (expected: %d, ratio: %.4f)",
@@ -195,8 +193,8 @@ TEST_F(AudioTimingTest, FrameProducesCorrectSampleCount) {
                     ? (end_offset - start_offset)
                     : (2048 - start_offset + end_offset);
 
-  LOG_INFO("AudioTiming", "Samples per frame: %d (expected: %d +/- %d)", samples,
-           audio_constants::kSamplesPerFrame,
+  LOG_INFO("AudioTiming", "Samples per frame: %d (expected: %d +/- %d)",
+           samples, audio_constants::kSamplesPerFrame,
            audio_constants::kSamplesPerFrameTolerance);
 
   EXPECT_NEAR(samples, audio_constants::kSamplesPerFrame,
@@ -351,12 +349,14 @@ TEST_F(AudioTimingTest, NoCycleDriftOver60Seconds) {
   constexpr int kExpectedSamples =
       audio_constants::kNativeSampleRate * kTestSeconds;
 
-  double apu_ratio = static_cast<double>(cumulative_apu_cycles) / kExpectedApuCycles;
-  double sample_ratio = static_cast<double>(cumulative_samples) / kExpectedSamples;
+  double apu_ratio =
+      static_cast<double>(cumulative_apu_cycles) / kExpectedApuCycles;
+  double sample_ratio =
+      static_cast<double>(cumulative_samples) / kExpectedSamples;
 
   LOG_INFO("AudioTiming",
-           "60-second drift test: APU ratio=%.6f, Sample ratio=%.6f",
-           apu_ratio, sample_ratio);
+           "60-second drift test: APU ratio=%.6f, Sample ratio=%.6f", apu_ratio,
+           sample_ratio);
 
   // Very tight tolerance for extended test - no drift should accumulate
   EXPECT_NEAR(apu_ratio, 1.0, 0.001)
