@@ -79,6 +79,9 @@ class AssemblyEditor : public Editor {
   absl::Status Undo() override;
   absl::Status Redo() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  // Undo history lives in the active TextEditor widget.
+  bool CanUndo() const override;
+  bool CanRedo() const override;
 
   absl::Status Update() override;
 

@@ -231,10 +231,19 @@ void SessionCoordinator::CloseCurrentSession() {
 }
 
 void SessionCoordinator::CloseSession(size_t index) {
+  CloseSessionInternal(index, /*allow_closing_last=*/false);
+}
+
+void SessionCoordinator::CloseSessionAllowingEmpty(size_t index) {
+  CloseSessionInternal(index, /*allow_closing_last=*/true);
+}
+
+void SessionCoordinator::CloseSessionInternal(size_t index,
+                                              bool allow_closing_last) {
   if (!IsValidSessionIndex(index))
     return;
 
-  if (session_count_ <= kMinSessions) {
+  if (!allow_closing_last && session_count_ <= kMinSessions) {
     // Don't allow closing the last session
     if (toast_manager_) {
       toast_manager_->Show("Cannot close the last session",
@@ -278,6 +287,12 @@ void SessionCoordinator::CloseSession(size_t index) {
     NotifySessionSwitched(index, active_session_index_,
                           sessions_[active_session_index_].get(),
                           /*transient=*/false);
+  } else if (sessions_.empty()) {
+    // The last session is gone: unbind every session-owned context (ROM,
+    // palettes, current editor, drawers) through the normal switch path with
+    // a null session.
+    active_session_index_ = 0;
+    NotifySessionSwitched(index, 0, nullptr, /*transient=*/false);
   }
 
   LOG_INFO("SessionCoordinator", "Closed session %zu (total: %zu)", index,

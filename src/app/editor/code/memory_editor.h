@@ -5,9 +5,9 @@
 #include "app/editor/editor.h"
 #include "app/gui/core/input.h"
 #include "app/gui/imgui_memory_editor.h"
+#include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
-#include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/macro.h"
 
@@ -39,6 +39,12 @@ class MemoryEditor : public Editor {
   absl::Status Copy() override { return absl::OkStatus(); }
   absl::Status Paste() override { return absl::OkStatus(); }
   absl::Status Find() override { return absl::OkStatus(); }
+  // Edit-menu actions are no-ops for this editor.
+  bool CanUndo() const override { return false; }
+  bool CanRedo() const override { return false; }
+  bool CanCut() const override { return false; }
+  bool CanCopy() const override { return false; }
+  bool CanPaste() const override { return false; }
 
   // Set the ROM pointer
   void SetRom(Rom* rom) { rom_ = rom; }
