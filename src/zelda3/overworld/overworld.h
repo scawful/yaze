@@ -387,6 +387,12 @@ inline int LegacyScreenSizeTableIndexForMap(int map_index) {
  * @see OverworldEditor for the UI layer
  * @see overworld_version_helper.h for version detection
  */
+
+/// The 4096 tile16 definitions (vanilla table at kMap16Tiles, or the
+/// expanded table when the ROM has one). `expanded` reports which was read.
+absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(
+    const Rom& rom, bool* expanded = nullptr);
+
 class Overworld {
  public:
   Overworld(Rom* rom, GameData* game_data = nullptr)

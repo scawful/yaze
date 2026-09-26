@@ -2,6 +2,7 @@
 #define YAZE_APP_SERVICE_RENDER_SERVICE_H_
 
 #include <cstdint>
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -74,6 +75,9 @@ struct RenderRequest {
   int room_id = 0;
   uint32_t overlay_flags = RenderOverlay::kNone;
   float scale = 1.0f;  // Finite [0.25, 8.0]; 1.0 = 512×512 native.
+  // Unsaved sheet pixels (8bpp, 4096 bytes per sheet) to render instead of
+  // GameData::graphics_buffer. See Room::SetGraphicsSheetOverrides().
+  std::map<uint16_t, std::vector<uint8_t>> sheet_overrides;
 };
 
 // Shared strict parser for CLI/API scale input. Rejects malformed, non-finite,

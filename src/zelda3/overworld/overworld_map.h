@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -151,6 +152,15 @@ class OverworldMap : public gfx::GfxContext {
   OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
 
   void SetGameData(GameData* game_data) { game_data_ = game_data; }
+
+  /// Sheet pixels to use instead of GameData::graphics_buffer when
+  /// BuildTileset() runs (8bpp, 4096 bytes per sheet). Lets a preview show
+  /// unsaved graphics edits without writing the ROM or the shared GameData.
+  /// Entries of the wrong size are ignored.
+  void SetGraphicsSheetOverrides(
+      std::map<uint16_t, std::vector<uint8_t>> overrides) {
+    graphics_sheet_overrides_ = std::move(overrides);
+  }
 
   absl::Status BuildMap(int count, int game_state, int world,
                         std::vector<gfx::Tile16>& tiles16,
@@ -391,6 +401,7 @@ class OverworldMap : public gfx::GfxContext {
 
   OverworldMapTiles map_tiles_;
   gfx::SnesPalette current_palette_;
+  std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
 };
 
 }  // namespace zelda3
