@@ -1535,6 +1535,15 @@ void OverworldEditor::ProcessDeferredTextures() {
     map_texture_->ProcessDeferredTextures();
 }
 
+const gfx::Bitmap* OverworldEditor::AreaScreenBitmap(int map_id) {
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    return nullptr;
+  }
+  EnsureMapTexture(map_id);
+  const gfx::Bitmap& bitmap = maps_bmp_[map_id];
+  return bitmap.is_active() && bitmap.texture() ? &bitmap : nullptr;
+}
+
 void OverworldEditor::EnsureMapTexture(int map_index) {
   if (map_texture_)
     map_texture_->EnsureMapTexture(map_index);

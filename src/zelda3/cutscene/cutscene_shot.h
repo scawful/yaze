@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::zelda3 {
 
@@ -93,6 +94,12 @@ ClampedCamera ClampCamera(const AreaExtent& area, int x, int y);
 // (0x40-0x7F) share the Light World layout. Special areas (0x80+) are
 // rejected. ROM hacks with custom area sizes supply their own AreaExtent.
 absl::StatusOr<AreaExtent> VanillaAreaExtent(int area);
+
+// The camera area of an overworld area from the ROM's own layout: `parent`
+// is the area's top-left screen and `size` its ZSCustomOverworld size
+// (small 512x512, large 1024x1024, wide 1024x512, tall 512x1024). Light and
+// Dark World areas share one grid of 512-pixel screens.
+AreaExtent AreaExtentFromParent(int parent, AreaSizeEnum size);
 
 // --- Map placement ---------------------------------------------------------
 

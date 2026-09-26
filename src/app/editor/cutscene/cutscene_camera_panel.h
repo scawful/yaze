@@ -16,8 +16,9 @@ namespace yaze::editor {
 // saved to the project's [files] cutscene_shots JSON; without that key the
 // window is read-only and offers Copy JSON. It never writes the ROM.
 //
-// The area is drawn as a schematic outline for now. Drawing the real area map
-// and sprite graphics needs a hook into the overworld editor.
+// When the Overworld editor is open, area sizes come from the ROM
+// (ZSCustomOverworld small/large/wide/tall) and the area's screens are drawn
+// behind the viewport; otherwise the vanilla layout and an outline are used.
 class CutsceneCameraPanel : public WindowContent {
  public:
   std::string GetId() const override { return "overworld.cutscene_camera"; }
@@ -38,6 +39,8 @@ class CutsceneCameraPanel : public WindowContent {
   void DrawShotFields(zelda3::CutsceneShot& shot);
   void DrawCanvas(zelda3::CutsceneShot& shot);
   zelda3::AreaExtent ExtentFor(const zelda3::CutsceneShot& shot) const;
+  // The open Overworld editor, for the ROM's area sizes and screen images.
+  class OverworldEditor* OverworldSource() const;
 
   zelda3::CutsceneShotSet shots_;
   std::optional<std::string> loaded_bytes_;  // file contents at last load
@@ -47,7 +50,8 @@ class CutsceneCameraPanel : public WindowContent {
   bool loaded_once_ = false;
   bool dirty_ = false;
   int selected_ = -1;
-  int size_override_ = 0;  // 0 vanilla, 1 512x512, 2 1024x1024, 3 wide, 4 tall
+  int size_override_ =
+      0;  // 0 ROM/vanilla, 1 512x512, 2 1024x1024, 3 wide, 4 tall
   enum class Drag { kNone, kViewport, kLink, kActor };
   Drag drag_ = Drag::kNone;
   int drag_actor_ = -1;

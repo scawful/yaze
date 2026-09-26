@@ -182,6 +182,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Access the underlying Overworld data
   zelda3::Overworld& overworld() { return overworld_; }
+  // One 512x512 overworld screen for tools that draw areas outside this
+  // editor (the Cutscene Camera). Builds its texture on first use; nullptr
+  // for an invalid ID or a screen that is not built yet.
+  const gfx::Bitmap* AreaScreenBitmap(int map_id);
 
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;

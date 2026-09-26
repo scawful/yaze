@@ -279,6 +279,20 @@ absl::StatusOr<AreaExtent> VanillaAreaExtent(int area) {
   return extent;
 }
 
+AreaExtent AreaExtentFromParent(int parent, AreaSizeEnum size) {
+  const int screen = parent & 0x3F;
+  AreaExtent extent;
+  extent.origin_x = (screen % 8) * 512;
+  extent.origin_y = (screen / 8) * 512;
+  extent.width =
+      size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::WideArea ? 1024
+                                                                        : 512;
+  extent.height =
+      size == AreaSizeEnum::LargeArea || size == AreaSizeEnum::TallArea ? 1024
+                                                                        : 512;
+  return extent;
+}
+
 MapRect ViewportOnMap(const AreaExtent& area, int camera_x, int camera_y,
                       float scale) {
   return MapRect{
