@@ -62,6 +62,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/tools/dungeon_object_validate_commands.cc
   cli/handlers/tools/graphics_doctor_commands.cc
   cli/handlers/graphics/gfx_sheet_inventory_commands.cc
+  cli/handlers/graphics/gfx_sheet_png_commands.cc
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/hex_inspector_commands.cc
   cli/handlers/tools/message_doctor_commands.cc
@@ -99,10 +100,8 @@ if(YAZE_ENABLE_GRPC)
   )
 endif()
 
-# miniz (public domain, single-file zip library for bundle pack/unpack)
-set(MINIZ_SOURCES ${CMAKE_SOURCE_DIR}/ext/miniz/miniz.c)
-
-add_library(yaze_cli_core STATIC ${YAZE_CLI_CORE_SOURCES} ${MINIZ_SOURCES})
+# miniz comes from yaze_miniz (util.cmake) through yaze_util.
+add_library(yaze_cli_core STATIC ${YAZE_CLI_CORE_SOURCES})
 
 set_target_properties(yaze_cli_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
