@@ -163,6 +163,17 @@ void UsagePreviewPanel::Draw() {
         spritesets_for_sheet_.push_back(ss);
       }
     }
+    // Dungeon spritesets that a room uses come first: they have a room
+    // sprite palette to preview with.
+    std::stable_partition(
+        spritesets_for_sheet_.begin(), spritesets_for_sheet_.end(),
+        [this](int ss) {
+          return std::any_of(
+              room_gfx_.begin(), room_gfx_.end(), [ss](const auto& room) {
+                return room.second.spriteset + zelda3::kDungeonSpritesetBase ==
+                       ss;
+              });
+        });
     spriteset_choice_ = 0;
     configured_spriteset_ = -1;
     areas_for_sheet_.clear();
@@ -327,9 +338,12 @@ void UsagePreviewPanel::DrawSpriteContext(bool render_now, float delta) {
   }
 
   ImGui::SetNextItemWidth(120.0f);
-  if (ImGui::InputInt(tr("Vanilla sprite"), &vanilla_sprite_id_, 1, 16,
-                      ImGuiInputTextFlags_CharsHexadecimal)) {
-    vanilla_sprite_id_ = std::clamp(vanilla_sprite_id_, 0, 0xFF);
+  uint8_t sprite_id = static_cast<uint8_t>(vanilla_sprite_id_);
+  constexpr uint8_t kStep = 1;
+  if (ImGui::InputScalar(tr("Vanilla sprite"), ImGuiDataType_U8, &sprite_id,
+                         &kStep, nullptr, "%02X",
+                         ImGuiInputTextFlags_CharsHexadecimal)) {
+    vanilla_sprite_id_ = sprite_id;
     zsm_.reset();
     zsm_loaded_path_.clear();
     sprite_preview_.SetVanillaSprite(static_cast<uint8_t>(vanilla_sprite_id_));
@@ -399,9 +413,11 @@ void UsagePreviewPanel::DrawSpriteContext(bool render_now, float delta) {
       render_now = true;
     }
   } else {
+    ImGui::PushTextWrapPos(0.0f);
     ImGui::TextDisabled(
         "%s", tr("Vanilla sprites have one catalog pose; load a .zsm to "
                  "play its animations."));
+    ImGui::PopTextWrapPos();
   }
 
   if (render_now || !sprite_bitmap_.is_active()) {

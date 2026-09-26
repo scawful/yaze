@@ -9,7 +9,7 @@
 #include "app/editor/sprite/sprite_editor_internal.h"
 #include "app/gfx/resource/arena.h"
 #include "app/platform/sdl_compat.h"
-#include "zelda3/dungeon/geometry/object_geometry.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/sprite/sprite.h"
@@ -209,13 +209,10 @@ std::vector<SDL_Rect> RoomUsagePreview::ObjectRectsUsingSheet(
     if (!uses_sheet) {
       continue;
     }
-    auto bounds = zelda3::ObjectGeometry::Get().MeasureByObjectId(object);
-    if (bounds.ok() && bounds->width_tiles > 0) {
-      rects.push_back({bounds->min_x_pixels(), bounds->min_y_pixels(),
-                       bounds->width_pixels(), bounds->height_pixels()});
-    } else {
-      rects.push_back({object.x() * 8, object.y() * 8, 16, 16});
-    }
+    // Same absolute pixel footprint the dungeon editor selects.
+    const auto [x, y, w, h] =
+        zelda3::DimensionService::Get().GetSelectionBoundsPixels(object);
+    rects.push_back({x, y, w, h});
   }
   return rects;
 }
