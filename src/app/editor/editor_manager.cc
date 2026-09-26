@@ -3067,6 +3067,7 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
 
   RETURN_IF_ERROR(zelda3::LoadGameData(session->rom, session->game_data));
   *gfx::Arena::Get().mutable_gfx_sheets() = session->game_data.gfx_bitmaps;
+  gfx::Arena::Get().set_gfx_sheets_owner(&session->game_data);
 
   auto* game_data = &session->game_data;
   auto* editor_set = &session->editors;
@@ -3980,6 +3981,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   // Copy loaded graphics to Arena for global access
   *gfx::Arena::Get().mutable_gfx_sheets() =
       current_session->game_data.gfx_bitmaps;
+  gfx::Arena::Get().set_gfx_sheets_owner(&current_session->game_data);
 
   // Propagate GameData to editors that already exist; future editors inherit it
   // on first construction via EditorSet.

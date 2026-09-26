@@ -179,6 +179,39 @@ TEST(DecompressExactTest, OverlappingCopyRepeatsBytesLikeHardware) {
   EXPECT_EQ(decoded->data, std::vector<uint8_t>(6, 'A'));
 }
 
+TEST(DecompressV2Test, OverlappingCopyRepeatsBytesLikeHardware) {
+  // Literal 'A', then copy 5 bytes from output offset 0 (graphics mode).
+  const std::vector<uint8_t> stream = {0x00, 'A', 0x84, 0x00, 0x00, 0xFF};
+  auto decoded =
+      gfx::lc_lz2::DecompressV2(stream.data(), 0, 0x600, 1, stream.size());
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
+  ASSERT_GE(decoded->size(), 6u);
+  EXPECT_EQ(std::vector<uint8_t>(decoded->begin(), decoded->begin() + 6),
+            std::vector<uint8_t>(6, 'A'));
+}
+
+TEST(DecompressV2Test, ReadsRepeatedTilesWrittenByHyruleMagicCompress) {
+  // Three identical non-blank tiles in a row: the compressor emits a copy
+  // that overlaps its own output. The editor's loader must read it back.
+  std::vector<uint8_t> sheet(0x600, 0);
+  for (int tile = 0; tile < 3; ++tile) {
+    for (int i = 0; i < 24; ++i) {
+      sheet[tile * 24 + i] = static_cast<uint8_t>(0x11 * (i % 7) + 3);
+    }
+  }
+  const auto stream = Compress(sheet, /*flag=*/0);
+  auto exact = DecompressExact(stream.data(), stream.size(), 0, 0x600, false);
+  ASSERT_TRUE(exact.ok()) << exact.status();
+  EXPECT_EQ(exact->data, sheet);
+  auto decoded =
+      gfx::lc_lz2::DecompressV2(stream.data(), 0, 0x600, 1, stream.size());
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
+  ASSERT_GE(decoded->size(), sheet.size());
+  EXPECT_EQ(
+      std::vector<uint8_t>(decoded->begin(), decoded->begin() + sheet.size()),
+      sheet);
+}
+
 TEST(DecompressExactTest, RejectsBadStreams) {
   const std::vector<uint8_t> truncated = {0x03, 'A', 'B'};
   EXPECT_FALSE(

@@ -41,7 +41,10 @@ namespace yaze::editor {
 
 class GraphicsEditorSaveStoplossTestPeer {
  public:
+  // Tests place a session's sheet in the shared Arena by hand, so claim the
+  // Arena for that session the way a real ROM load does.
   static void MarkSheetModified(GraphicsEditor* editor, uint16_t sheet_id) {
+    gfx::Arena::Get().set_gfx_sheets_owner(editor->game_data());
     editor->state_.MarkSheetModified(sheet_id);
   }
 };
@@ -2265,6 +2268,82 @@ TEST(GraphicsSaveStoplossTest, EnabledSaveWritesTheEditedSheetToDisk) {
     auto data = zelda3::ReadGfxSheetData(reopened, other);
     ASSERT_TRUE(data.ok()) << other;
     EXPECT_EQ(*data, fixture.sheets.at(other)) << "sheet " << other;
+  }
+}
+
+// Found in review: the Arena is shared by every open ROM, and the pixel
+// editor can hold indices up to 15 while a 3bpp sheet stores 0-7. Both must
+// refuse the save and leave the ROM on disk unchanged.
+TEST(GraphicsSaveStoplossTest, SaveRefusesForeignSheetsAndColorsAboveSeven) {
+  for (const bool foreign_owner : {true, false}) {
+    SCOPED_TRACE(foreign_owner ? "sheets owned by another ROM"
+                               : "color index 9");
+    FeatureFlagsGuard guard;
+    ScopedImGuiContext imgui;
+
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    manager->Initialize(renderer.get(), "");
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+
+    constexpr uint16_t kSheetId = 0x20;
+    auto fixture = test::BuildGfxSheetTestRom();
+    const std::string title = "GFX REFUSAL";
+    std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+    fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+    const auto rom_path = MakeTempFilePath("yaze_graphics_refusal.sfc");
+    ScopedFileCleanup cleanup{rom_path};
+    {
+      std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+      out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+                static_cast<std::streamsize>(fixture.bytes.size()));
+      ASSERT_TRUE(out.good());
+    }
+
+    ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+    DisableRomWritesForTest();
+    core::FeatureFlags::get().kSaveGraphicsSheet = true;
+    auto* project = manager->GetCurrentProject();
+    ASSERT_NE(project, nullptr);
+    project->workspace_settings.backup_on_save = false;
+    project->rom_metadata.expected_hash.clear();
+
+    auto* editor_set = manager->GetCurrentEditorSet();
+    ASSERT_NE(editor_set, nullptr);
+    auto* graphics =
+        editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+    ASSERT_NE(graphics, nullptr);
+
+    auto edited = fixture.sheets.at(kSheetId);
+    std::fill(edited.begin(), edited.begin() + 0x100, 0x00);
+    auto indexed = gfx::SnesTo8bppSheet(edited, /*bpp=*/3);
+    if (!foreign_owner) {
+      indexed[0] = 9;
+    }
+    auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+    ScopedGraphicsSheetRestore restore_sheet(&sheet);
+    sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                 gfx::kTilesheetDepth, indexed);
+    GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, kSheetId);
+
+    const void* owner = gfx::Arena::Get().gfx_sheets_owner();
+    ASSERT_NE(owner, nullptr);
+    int other_rom_game_data = 0;
+    if (foreign_owner) {
+      gfx::Arena::Get().set_gfx_sheets_owner(&other_rom_game_data);
+    }
+    const absl::Status status = manager->SaveRom();
+    gfx::Arena::Get().set_gfx_sheets_owner(owner);
+
+    EXPECT_FALSE(status.ok());
+    EXPECT_THAT(std::string(status.message()),
+                ::testing::HasSubstr(foreign_owner ? "another open ROM"
+                                                   : "above index 7"));
+    std::ifstream in(rom_path, std::ios::binary);
+    const std::vector<uint8_t> disk((std::istreambuf_iterator<char>(in)),
+                                    std::istreambuf_iterator<char>());
+    EXPECT_EQ(disk, fixture.bytes);
   }
 }
 
