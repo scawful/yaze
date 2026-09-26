@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <unordered_map>
@@ -26,6 +27,53 @@ namespace {
 bool IsDeathMountainArea(int area) {
   return area == 0x03 || area == 0x05 || area == 0x07 || area == 0x43 ||
          area == 0x45 || area == 0x47;
+}
+
+// Vanilla subscreen overlay per screen (fog, sky, lava, pyramid, curtains).
+// Matches the vanilla ZSCustomOverworld OverlayTable and ZScream defaults.
+uint16_t VanillaSubscreenOverlay(int index) {
+  switch (index) {
+    case 0x00:
+    case 0x01:
+    case 0x08:
+    case 0x09:
+    case 0x40:
+    case 0x41:
+    case 0x48:
+    case 0x49:
+      return 0x009D;  // Fog 2: Lost Woods / Skull Woods
+    case 0x03:
+    case 0x04:
+    case 0x0B:
+    case 0x0C:
+    case 0x05:
+    case 0x06:
+    case 0x0D:
+    case 0x0E:
+    case 0x07:
+      return 0x0095;  // Sky background: LW Death Mountain
+    case 0x43:
+    case 0x44:
+    case 0x4B:
+    case 0x4C:
+    case 0x45:
+    case 0x46:
+    case 0x4D:
+    case 0x4E:
+    case 0x47:
+      return 0x009C;  // Lava background: DW Death Mountain
+    case 0x5B:
+    case 0x5C:
+    case 0x63:
+    case 0x64:
+      return 0x0096;  // Pyramid background
+    case 0x80:
+      return 0x0097;  // Fog 1: Master Sword area
+    case 0x88:
+      return 0x0093;  // Triforce room curtains
+    default:
+      return 0x00FF;
+  }
 }
 
 }  // namespace
@@ -77,6 +125,9 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
   } else if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
     // Pure vanilla ROM but flag enabled - set up hardcoded vanilla defaults
     LoadCustomOverworldData();
+  } else {
+    // Pure vanilla ROM: the subscreen overlays are hardcoded in the game.
+    subscreen_overlay_ = VanillaSubscreenOverlay(index_);
   }
 
   // Child screens of a multi-screen area render with the parent's area
@@ -1414,6 +1465,53 @@ absl::Status OverworldMap::BuildBitmap(OverworldBlockset& world_blockset) {
       gfx::CopyTile8bpp16((x * 0x10), (y * 0x10), world_blockset[xt][yt],
                           bitmap_data_, current_blockset_);
     }
+  }
+  static std::atomic<uint64_t> next_bitmap_serial{1};
+  bitmap_serial_ = next_bitmap_serial.fetch_add(1);
+  return absl::OkStatus();
+}
+
+absl::Status OverworldMap::BuildSubscreenOverlayLayer(
+    const OverworldBlockset& overlay_world_blockset, int overlay_screen,
+    bool background, std::vector<uint8_t>* out) const {
+  if (out == nullptr) {
+    return absl::InvalidArgumentError("Overlay layer output is null");
+  }
+  constexpr int kSize = 0x200;
+  if (bitmap_data_.size() < static_cast<size_t>(kSize) * kSize ||
+      current_blockset_.empty()) {
+    return absl::FailedPreconditionError(
+        "Map must be built before its overlay layer");
+  }
+  const int local = overlay_screen & 0x3F;
+  const int super_x = local % 8;
+  const int super_y = local / 8;
+
+  out->assign(static_cast<size_t>(kSize) * kSize, 0);
+  std::vector<uint8_t> tile_pixels(static_cast<size_t>(kSize) * kSize, 0);
+  auto& blockset = const_cast<std::vector<uint8_t>&>(current_blockset_);
+  for (int y = 0; y < 0x20; ++y) {
+    for (int x = 0; x < 0x20; ++x) {
+      const int xt = x + super_x * 0x20;
+      const int yt = y + super_y * 0x20;
+      if (xt >= static_cast<int>(overlay_world_blockset.size()) ||
+          yt >= static_cast<int>(overlay_world_blockset[xt].size())) {
+        return absl::InvalidArgumentError(
+            "Overlay blockset is too small for the overlay screen");
+      }
+      gfx::CopyTile8bpp16(x * 0x10, y * 0x10, overlay_world_blockset[xt][yt],
+                          tile_pixels, blockset);
+    }
+  }
+  for (size_t i = 0; i < tile_pixels.size(); ++i) {
+    const uint8_t overlay = tile_pixels[i];
+    if (IsOverworldBackdropPixel(overlay)) {
+      continue;
+    }
+    if (background && !IsOverworldBackdropPixel(bitmap_data_[i])) {
+      continue;
+    }
+    (*out)[i] = overlay;
   }
   return absl::OkStatus();
 }

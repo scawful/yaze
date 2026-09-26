@@ -444,6 +444,21 @@ class Overworld {
    */
   void SyncAreaProperties(int map_index);
 
+  /// Subscreen overlay layer for one screen, in that screen's palette.
+  struct SubscreenOverlayLayer {
+    uint16_t overlay_id = 0x00FF;
+    int overlay_screen = -1;      // -1: the area has no subscreen overlay
+    bool background = false;      // drawn over backdrop pixels only
+    std::vector<uint8_t> pixels;  // 512x512, 0 = transparent
+  };
+
+  /**
+   * @brief Build the subscreen overlay layer for a screen (builds the screen
+   * if needed). The overlay comes from the area parent's overlay id.
+   */
+  absl::StatusOr<SubscreenOverlayLayer> BuildSubscreenOverlayLayer(
+      int map_index);
+
   /// @brief Compute hash of graphics configuration for cache lookup
   uint64_t ComputeGraphicsConfigHash(int map_index);
 

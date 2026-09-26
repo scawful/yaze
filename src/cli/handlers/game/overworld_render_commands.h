@@ -14,7 +14,11 @@ namespace handlers {
 // Usage:
 //   overworld-render --screen=<hex> --out=<path.png>
 //       [--overlays=sprites,entrances,exits,holes,items,grid,all]
-//       [--phase=0|1|2] [--scale=<float>]
+//       [--phase=0|1|2] [--scale=<float>] [--area-overlay=on|off]
+//
+// The area's subscreen overlay (sky, fog, lava, canopy, rain, ...) is
+// composited by default the way the game layers it; --area-overlay=off
+// renders the bare area.
 class OverworldRenderCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "overworld-render"; }
@@ -24,7 +28,7 @@ class OverworldRenderCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "overworld-render --screen=<hex> --out=<path.png> "
            "[--overlays=sprites,entrances,exits,holes,items,grid,all] "
-           "[--phase=0|1|2] [--scale=<float>]";
+           "[--phase=0|1|2] [--scale=<float>] [--area-overlay=on|off]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;

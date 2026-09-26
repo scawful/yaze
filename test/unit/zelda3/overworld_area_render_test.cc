@@ -151,7 +151,7 @@ TEST(OverworldAreaRenderTest, Slot7TopHalfComesFromAnimatedSheet) {
   EXPECT_EQ(gfx[kSlot7 + 0xFFF], 0x05);
 }
 
-TEST(OverworldAreaRenderTest, VanillaAnimatedSheet) {
+TEST(OverworldAreaRenderTest, VanillaAnimatedSheetAndOverlays) {
   std::vector<uint8_t> bytes(0x200000, 0x00);
   bytes[OverworldCustomASMHasBeenApplied] = 0xFF;
   // Identity parents, all small, vanilla DW group sheet 7 = 0x59.
@@ -166,10 +166,27 @@ TEST(OverworldAreaRenderTest, VanillaAnimatedSheet) {
   OverworldMap dm(0x03, rom.get());
   dm.LoadAreaGraphics();
   EXPECT_EQ(dm.animated_sheet(), 0x59);
+  EXPECT_EQ(dm.render_subscreen_overlay(), 0x0095);
 
   OverworldMap dw(0x50, rom.get());
   dw.LoadAreaGraphics();
   EXPECT_EQ(dw.animated_sheet(), 0x5B);
+  EXPECT_EQ(dw.render_subscreen_overlay(), 0x00FF);
+
+  OverworldMap lost_woods(0x00, rom.get());
+  EXPECT_EQ(lost_woods.render_subscreen_overlay(), 0x009D);
+}
+
+TEST(OverworldAreaRenderTest, SubscreenOverlayClassification) {
+  EXPECT_EQ(SubscreenOverlayScreen(0x0095), 0x95);
+  EXPECT_EQ(SubscreenOverlayScreen(0x009F), 0x9F);
+  EXPECT_EQ(SubscreenOverlayScreen(0x00FF), -1);
+  EXPECT_EQ(SubscreenOverlayScreen(0x0000), -1);
+  EXPECT_TRUE(IsBackgroundSubscreenOverlay(0x0095));
+  EXPECT_TRUE(IsBackgroundSubscreenOverlay(0x0096));
+  EXPECT_TRUE(IsBackgroundSubscreenOverlay(0x009C));
+  EXPECT_FALSE(IsBackgroundSubscreenOverlay(0x009D));
+  EXPECT_FALSE(IsBackgroundSubscreenOverlay(0x009F));
 }
 
 }  // namespace

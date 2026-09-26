@@ -170,6 +170,30 @@ struct AreaRenderProperties {
   uint16_t subscreen_overlay = 0x00FF;
 };
 
+/// Overworld screen whose tilemap the game shows as BG1 for a subscreen
+/// overlay id (0x93 curtains, 0x95 sky, 0x96 pyramid, 0x97/0x9D fog, 0x9C
+/// lava, and hack-defined ids up to 0x9F), or -1 for none (0x00FF).
+inline int SubscreenOverlayScreen(uint16_t overlay_id) {
+  if (overlay_id >= kSpecialWorldMapIdStart && overlay_id < 0xA0) {
+    return overlay_id;
+  }
+  return -1;
+}
+
+/// True for overlays the game places behind the area (sky, pyramid, lava):
+/// they show only through backdrop (color 0) pixels. Other overlays (fog,
+/// curtains, canopy, rain) sit in front of the area.
+inline bool IsBackgroundSubscreenOverlay(uint16_t overlay_id) {
+  return overlay_id == 0x0095 || overlay_id == 0x0096 || overlay_id == 0x009C;
+}
+
+/// True when an overworld bitmap pixel shows the backdrop (area BG color).
+/// Overworld graphics are 3bpp; slots loaded with the +8 offset map pixel 0
+/// to color 8, which the map palette also sets to the backdrop color.
+inline bool IsOverworldBackdropPixel(uint8_t index) {
+  return (index & 0x07) == 0;
+}
+
 /// Sheet ids that fully determine a map's 64KB tileset (current_graphics):
 /// the 16 static sheets plus the animated sheet that fills the top of slot 7.
 using OverworldTilesetKey = std::array<uint8_t, 17>;
@@ -204,6 +228,24 @@ class OverworldMap : public gfx::GfxContext {
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16, int count);
   absl::Status BuildBitmap(OverworldBlockset& world_blockset);
+
+  /**
+   * @brief Build this area's subscreen overlay layer (512x512, 8bpp).
+   *
+   * The game draws the overlay screen's tilemap as BG1 with the current
+   * area's graphics and palette, so the layer uses this map's tile16
+   * blockset and indexes this map's palette. Pixels the overlay leaves
+   * transparent are 0. For background overlays (sky, pyramid, lava) only
+   * pixels where this map shows the backdrop are kept, so the layer can be
+   * drawn on top of the map. Requires a built map.
+   */
+  absl::Status BuildSubscreenOverlayLayer(
+      const OverworldBlockset& overlay_world_blockset, int overlay_screen,
+      bool background, std::vector<uint8_t>* out) const;
+
+  /// Changes every time BuildBitmap() produces new pixels (unique across
+  /// maps), so views can tell when derived layers are stale.
+  uint64_t bitmap_serial() const { return bitmap_serial_; }
 
   /**
    * @brief Use a pre-computed tileset from cache instead of rebuilding
@@ -427,6 +469,7 @@ class OverworldMap : public gfx::GfxContext {
   uint16_t area_specific_bg_color_ =
       0;  // Custom Overworld Area-Specific Background Color
   uint8_t animated_sheet_ = 0;  // Sheet for the top half of slot 7
+  uint64_t bitmap_serial_ = 0;
   std::optional<AreaRenderProperties> inherited_area_;
 
   std::array<uint8_t, 8> custom_gfx_ids_ = {};
