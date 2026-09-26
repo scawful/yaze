@@ -216,10 +216,11 @@ class OverworldMap : public gfx::GfxContext {
    * @brief Build map with optional cached tileset for performance
    * @param cached_tileset Pre-computed tileset data (nullptr to build fresh)
    */
-  absl::Status BuildMapWithCache(int count, int game_state, int world,
-                                 std::vector<gfx::Tile16>& tiles16,
-                                 OverworldBlockset& world_blockset,
-                                 const std::vector<uint8_t>* cached_tileset);
+  absl::Status BuildMapWithCache(
+      int count, int game_state, int world, std::vector<gfx::Tile16>& tiles16,
+      OverworldBlockset& world_blockset,
+      const std::vector<uint8_t>* cached_tileset,
+      const std::vector<uint8_t>* cached_tile16_blockset = nullptr);
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();

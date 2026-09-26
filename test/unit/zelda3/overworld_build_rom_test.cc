@@ -180,5 +180,49 @@ TEST(OverworldRomBuildTest, SubscreenOverlayLayersFollowGameLayering) {
   }
 }
 
+// Maps built through the shared tileset cache (EnsureMapBuilt) must match a
+// from-scratch build pixel for pixel, and the cache must actually share.
+TEST(OverworldRomBuildTest, CachedBuildsMatchUncachedBuilds) {
+  const auto paths = OverworldRomPaths();
+  if (paths.empty()) {
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS or YAZE_TEST_ROM_VANILLA";
+  }
+  for (const auto& path : paths) {
+    SCOPED_TRACE(path);
+    Rom rom;
+    ASSERT_TRUE(LoadOverworldTestRom(path, rom));
+    GameData game_data;
+    ASSERT_TRUE(LoadGameData(rom, game_data).ok());
+    Overworld overworld(&rom, &game_data);
+    ASSERT_TRUE(overworld.Load(&rom).ok());
+    auto& tiles16 = *overworld.mutable_tiles16();
+    for (int i = 0; i < kNumOverworldMaps; ++i) {
+      SCOPED_TRACE(i);
+      ASSERT_TRUE(overworld.EnsureMapBuilt(i).ok());
+      auto* map = overworld.mutable_overworld_map(i);
+      const std::vector<uint8_t> cached_pixels = map->bitmap_data();
+      const std::vector<uint8_t> cached_blockset =
+          map->current_tile16_blockset();
+      ASSERT_TRUE(map->BuildTileset().ok());
+      ASSERT_TRUE(
+          map->BuildTiles16Gfx(tiles16, static_cast<int>(tiles16.size())).ok());
+      ASSERT_TRUE(map->BuildBitmap(overworld.GetMapTiles(WorldOf(i))).ok());
+      ASSERT_EQ(cached_blockset, map->current_tile16_blockset());
+      ASSERT_EQ(cached_pixels, map->bitmap_data());
+    }
+    const size_t entries = overworld.tileset_cache_size();
+    EXPECT_GT(entries, 0u);
+    std::printf("[overworld-build-timing] %s: %zu shared tileset entries\n",
+                path.c_str(), entries);
+
+    // Sheet invalidation drops only entries that load the sheet.
+    const auto key = overworld.overworld_map(0)->tileset_key();
+    overworld.InvalidateTilesetCacheForSheet(key[0]);
+    EXPECT_LT(overworld.tileset_cache_size(), entries);
+    overworld.ClearGraphicsConfigCache();
+    EXPECT_EQ(overworld.tileset_cache_size(), 0u);
+  }
+}
+
 }  // namespace
 }  // namespace yaze::zelda3

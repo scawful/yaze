@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <stdexcept>
 #include <vector>
 
@@ -115,8 +116,8 @@ std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
   return output;
 }
 
-std::vector<uint8_t> ConvertBpp(std::span<const uint8_t> tiles, uint32_t from_bpp,
-                                uint32_t to_bpp) {
+std::vector<uint8_t> ConvertBpp(std::span<const uint8_t> tiles,
+                                uint32_t from_bpp, uint32_t to_bpp) {
   unsigned int nb_tile = tiles.size() / (from_bpp * 8);
   std::vector<uint8_t> converted(nb_tile * to_bpp * 8);
 
@@ -167,7 +168,7 @@ std::vector<uint8_t> SnesTo8bppSheet(std::span<const uint8_t> sheet, int bpp,
     }
   }
 
-  std::vector<uint8_t> sheet_buffer_out(buffer_size); // Zero initialized
+  std::vector<uint8_t> sheet_buffer_out(buffer_size);  // Zero initialized
 
   for (int i = 0; i < num_tiles; i++) {  // for each tiles, 16 per line
     for (int y = 0; y < 8; y++) {        // for each line
@@ -421,15 +422,23 @@ TileInfo GetTilesInfo(uint16_t tile) {
 }
 
 void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
-                    std::vector<uint8_t>& blockset) {
-  int src_pos =
-      ((tile - ((tile / 0x08) * 0x08)) * 0x10) + ((tile / 0x08) * 2048);
-  int dest_pos = (x + (y * 0x200));
+                    const std::vector<uint8_t>& blockset) {
+  if (tile < 0 || x < 0 || y < 0) {
+    return;
+  }
+  const size_t src_pos =
+      static_cast<size_t>((tile % 0x08) * 0x10) + (tile / 0x08) * 2048;
+  const size_t dest_pos = static_cast<size_t>(x) + y * 0x200;
+  // Copy 16 rows of 16 bytes; skip tiles outside either buffer instead of
+  // reading or writing out of bounds.
+  if (src_pos + 15 * 0x80 + 0x10 > blockset.size() ||
+      dest_pos + 15 * 0x200 + 0x10 > bitmap.size()) {
+    return;
+  }
+  const uint8_t* src = blockset.data() + src_pos;
+  uint8_t* dst = bitmap.data() + dest_pos;
   for (int yy = 0; yy < 0x10; yy++) {
-    for (int xx = 0; xx < 0x10; xx++) {
-      bitmap[dest_pos + xx + (yy * 0x200)] =
-          blockset[src_pos + xx + (yy * 0x80)];
-    }
+    std::memcpy(dst + yy * 0x200, src + yy * 0x80, 0x10);
   }
 }
 
@@ -456,11 +465,12 @@ std::vector<uint8_t> LoadSNES4bppGFXToIndexedColorMatrix(
     dest_x = main_index & 0x0F;
     dest_y = main_index >> 4;
     dest_index = ((dest_y << 7) + dest_x) << 3;
-    if (static_cast<size_t>(dest_index + 903) >= dest.size()) {  // Fixed: dest.size() check might fail if dest is empty
-       // dest might need to be pre-allocated or resized
-       if (dest.size() < static_cast<size_t>(dest_index + 904)) {
-           dest.resize(dest_index + 904);
-       }
+    if (static_cast<size_t>(dest_index + 903) >=
+        dest.size()) {  // Fixed: dest.size() check might fail if dest is empty
+      // dest might need to be pre-allocated or resized
+      if (dest.size() < static_cast<size_t>(dest_index + 904)) {
+        dest.resize(dest_index + 904);
+      }
     }
     for (int i = 0; i < 16; i += 2) {
       mul = 1;
