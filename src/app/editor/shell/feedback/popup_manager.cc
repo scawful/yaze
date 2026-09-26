@@ -1603,14 +1603,17 @@ void PopupManager::DrawUnsavedSessionChangesPopup() {
               editor_manager_->GetPendingUnsavedSessionActionPrompt().c_str());
   Spacing();
 
+  // An empty save label means saving first is meaningless for this action
+  // (for example Revert to Saved), so only Continue and Cancel are offered.
   const std::string save_label =
       editor_manager_->GetPendingUnsavedSessionActionSaveLabel();
-  if (Button(save_label.c_str(), ::yaze::gui::kDefaultModalSize)) {
-    editor_manager_->ConfirmPendingUnsavedSessionActionSaveAndContinue();
-    return;
+  if (!save_label.empty()) {
+    if (Button(save_label.c_str(), ::yaze::gui::kDefaultModalSize)) {
+      editor_manager_->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+      return;
+    }
+    SameLine();
   }
-
-  SameLine();
   const std::string continue_label =
       editor_manager_->GetPendingUnsavedSessionActionContinueLabel();
   if (Button(continue_label.c_str(), ::yaze::gui::kDefaultModalSize)) {

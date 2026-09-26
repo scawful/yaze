@@ -320,6 +320,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/cutscene_camera_panel_test.cc
     unit/editor/collision_source_pairing_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
+    unit/editor/menu_orchestrator_helpers_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/oracle_hack_workflow_backend_test.cc
     unit/editor/editor_set_test.cc
@@ -750,6 +751,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/cutscene_camera_panel_test.cc
     unit/editor/collision_source_pairing_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
+    unit/editor/menu_orchestrator_helpers_test.cc
     unit/editor/editor_manager_write_conflict_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc

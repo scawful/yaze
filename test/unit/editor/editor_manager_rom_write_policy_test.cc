@@ -2925,5 +2925,147 @@ TEST(ScreenSaveStoplossTest,
   }
 }
 
+// --- File > Close ROM / Revert to Saved -----------------------------------
+
+TEST(EditorManagerFileLifecycleTest, CloseRomClosesTheOnlyCleanSession) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_close_rom_clean");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "close.sfc";
+  WriteTestRom(rom_path, "CLOSE ROM");
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_TRUE(manager->CanCloseRom());
+
+  manager->CloseRom();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 0u);
+  EXPECT_EQ(manager->GetCurrentRom(), nullptr);
+  EXPECT_FALSE(manager->CanCloseRom());
+  EXPECT_FALSE(manager->CanRevertRom());
+}
+
+TEST(EditorManagerFileLifecycleTest, CloseRomAsksBeforeDiscardingEdits) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_close_rom_dirty");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "close_dirty.sfc";
+  WriteTestRom(rom_path, "CLOSE DIRTY");
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x1234, 0xA5));
+  ASSERT_TRUE(rom->dirty());
+
+  manager->CloseRom();
+
+  // The confirmation is pending; nothing is closed yet.
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetPendingUnsavedSessionActionContinueLabel(),
+            "Close Without Saving");
+  EXPECT_EQ(manager->GetPendingUnsavedSessionActionSaveLabel(),
+            "Save Work & Close ROM");
+
+  manager->CancelPendingUnsavedSessionAction();
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+
+  manager->CloseRom();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_EQ(manager->GetActiveSessionCount(), 0u);
+  EXPECT_EQ(manager->GetCurrentRom(), nullptr);
+  // Discarding never touches the file on disk.
+  EXPECT_EQ(ReadByteAt(rom_path, 0x1234), 0x00);
+}
+
+TEST(EditorManagerFileLifecycleTest,
+     RevertRomToSavedDiscardsEditsAfterConfirm) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_revert_rom_dirty");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "revert.sfc";
+  WriteTestRom(rom_path, "REVERT DIRTY");
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  ASSERT_TRUE(manager->CanRevertRom());
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x1234, 0xA5));
+
+  ASSERT_OK(manager->RevertRomToSaved());
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  // Saving then reloading would be a no-op, so no save button is offered.
+  EXPECT_EQ(manager->GetPendingUnsavedSessionActionSaveLabel(), "");
+  EXPECT_EQ(manager->GetPendingUnsavedSessionActionContinueLabel(),
+            "Discard Edits & Revert");
+  // Still the edited bytes while the prompt is up.
+  ASSERT_TRUE(manager->GetCurrentRom()->ReadByte(0x1234).ok());
+  EXPECT_EQ(*manager->GetCurrentRom()->ReadByte(0x1234), 0xA5);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  Rom* reverted = manager->GetCurrentRom();
+  ASSERT_NE(reverted, nullptr);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_TRUE(reverted->ReadByte(0x1234).ok());
+  EXPECT_EQ(*reverted->ReadByte(0x1234), 0x00);
+  EXPECT_FALSE(reverted->dirty());
+  EXPECT_EQ(ReadByteAt(rom_path, 0x1234), 0x00);
+}
+
+TEST(EditorManagerFileLifecycleTest, RevertCleanRomPicksUpDiskChanges) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_revert_rom_clean");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "revert_clean.sfc";
+  WriteTestRom(rom_path, "REVERT CLEAN");
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+
+  // Another tool (assembler, emulator) rewrote the file on disk.
+  WriteByteAt(rom_path, 0x2000, 0x5A);
+
+  // No unsaved work: revert runs immediately without a prompt.
+  ASSERT_OK(manager->RevertRomToSaved());
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  Rom* reverted = manager->GetCurrentRom();
+  ASSERT_NE(reverted, nullptr);
+  ASSERT_TRUE(reverted->ReadByte(0x2000).ok());
+  EXPECT_EQ(*reverted->ReadByte(0x2000), 0x5A);
+  EXPECT_FALSE(reverted->dirty());
+}
+
 }  // namespace
 }  // namespace yaze::editor

@@ -351,7 +351,12 @@ absl::Status MessageEditor::Load() {
 absl::Status MessageEditor::Update() {
   // Panel drawing is handled centrally by WorkspaceWindowManager::DrawAllVisiblePanels()
   // via the WindowContent implementations registered in Initialize().
-  // No local drawing needed here.
+  // The Find & Replace window is the one editor-owned floating window: Find()
+  // (Edit > Find) only requests it, and it is drawn here every frame so it
+  // persists until the user closes it.
+  if (show_find_replace_) {
+    DrawFindReplaceWindow();
+  }
   return absl::OkStatus();
 }
 
@@ -1661,7 +1666,14 @@ void MessageEditor::SelectAll() {
 }
 
 absl::Status MessageEditor::Find() {
-  if (ImGui::Begin("Find & Replace", nullptr,
+  // Called from menu/shortcut callbacks, which run outside this editor's
+  // draw pass. Drawing the window here would show it for a single frame.
+  show_find_replace_ = true;
+  return absl::OkStatus();
+}
+
+void MessageEditor::DrawFindReplaceWindow() {
+  if (ImGui::Begin("Find & Replace", &show_find_replace_,
                    ImGuiWindowFlags_AlwaysAutoResize)) {
     static char find_text[256] = "";
     static char replace_text[256] = "";
@@ -1717,8 +1729,6 @@ absl::Status MessageEditor::Find() {
     }
   }
   ImGui::End();
-
-  return absl::OkStatus();
 }
 
 int MessageEditor::ReplaceCurrentMatch() {

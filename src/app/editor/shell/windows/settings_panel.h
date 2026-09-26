@@ -59,6 +59,12 @@ class SettingsPanel : public Editor {
   absl::Status Copy() override { return absl::OkStatus(); }
   absl::Status Paste() override { return absl::OkStatus(); }
   absl::Status Find() override { return absl::OkStatus(); }
+  // Edit-menu actions are no-ops for the settings editor.
+  bool CanUndo() const override { return false; }
+  bool CanRedo() const override { return false; }
+  bool CanCut() const override { return false; }
+  bool CanCopy() const override { return false; }
+  bool CanPaste() const override { return false; }
 
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
   void SetWindowManager(WorkspaceWindowManager* registry) {

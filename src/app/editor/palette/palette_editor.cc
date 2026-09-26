@@ -695,6 +695,16 @@ absl::Status PaletteEditor::Save() {
   return absl::OkStatus();
 }
 
+bool PaletteEditor::CanUndo() const {
+  const auto& manager = gfx::PaletteManager::Get();
+  return game_data() && manager.IsManaging(game_data()) && manager.CanUndo();
+}
+
+bool PaletteEditor::CanRedo() const {
+  const auto& manager = gfx::PaletteManager::Get();
+  return game_data() && manager.IsManaging(game_data()) && manager.CanRedo();
+}
+
 absl::Status PaletteEditor::Undo() {
   if (!game_data() || !gfx::PaletteManager::Get().IsManaging(game_data())) {
     return absl::FailedPreconditionError(
