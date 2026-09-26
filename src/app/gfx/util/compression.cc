@@ -1605,8 +1605,18 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
                               "(Offset : %#04x | Pos : %#06x)\n",
                               addr, offset));
         }
-        // Buffer resize already done above, no need to check again
-        memcpy(buffer.data() + buffer_pos, buffer.data() + addr, length);
+        if (static_cast<size_t>(addr) + length > buffer.size()) {
+          return absl::OutOfRangeError(absl::StrFormat(
+              "DecompressV2: copy source %#06x+%d is outside the output", addr,
+              length));
+        }
+        // Copy one byte at a time, as the game's decompressor does: a source
+        // run that reaches the bytes this command writes repeats them. memcpy
+        // of an overlapping range does not, so streams from
+        // HyruleMagicCompress (which emits such copies) decoded wrong.
+        for (int i = 0; i < length; ++i) {
+          buffer[buffer_pos + i] = buffer[addr + i];
+        }
         buffer_pos += length;
         offset += 2;
       } break;

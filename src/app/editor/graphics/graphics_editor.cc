@@ -295,6 +295,14 @@ absl::Status GraphicsEditor::Save() {
   if (game_data() == nullptr) {
     return absl::FailedPreconditionError("Game data not loaded");
   }
+  // The edited sheets live in the shared Arena, which holds the last loaded
+  // ROM's sheets. Never write another open ROM's pixels into this one.
+  if (gfx::Arena::Get().gfx_sheets_owner() != game_data()) {
+    return absl::FailedPreconditionError(
+        "Graphics sheets in memory belong to another open ROM. Switch back to "
+        "the ROM they were edited in, or reopen this ROM, before saving "
+        "graphics");
+  }
 
   LOG_INFO("GraphicsEditor", "Saving %zu modified graphics sheets",
            state_.modified_sheets.size());
@@ -319,6 +327,12 @@ absl::Status GraphicsEditor::Save() {
       refused.push_back(absl::StrFormat("0x%02X (2bpp, read-only)", sheet_id));
     } else if (!sheets[sheet_id].is_active()) {
       refused.push_back(absl::StrFormat("0x%02X (not loaded)", sheet_id));
+    } else if (std::any_of(sheets[sheet_id].vector().begin(),
+                           sheets[sheet_id].vector().end(),
+                           [](uint8_t index) { return index > 7; })) {
+      // 3bpp sheets store colors 0-7; packing masks higher indices silently.
+      refused.push_back(
+          absl::StrFormat("0x%02X (uses colors above index 7)", sheet_id));
     }
   }
   if (!refused.empty()) {
