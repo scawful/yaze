@@ -35,7 +35,6 @@ class OverworldCanvasRenderer {
   /// @brief Draw the main overworld canvas with toolbar, maps, and entities.
   /// This is the primary entry point called from the OverworldCanvasPanel.
   void DrawOverworldCanvas();
-  void RequestResetView() { reset_view_requested_ = true; }
 
   // =========================================================================
   // Panel Drawing Methods
@@ -73,7 +72,6 @@ class OverworldCanvasRenderer {
   // =========================================================================
 
   OverworldEditor* editor_;  ///< Non-owning pointer to the parent editor
-  bool reset_view_requested_ = false;
 };
 
 }  // namespace editor

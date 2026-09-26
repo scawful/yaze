@@ -22,6 +22,27 @@ namespace yaze::editor {
 // Forward declarations
 class OverworldEntityRenderer;
 
+/// Turns wheel/trackpad deltas into pan steps that land on whole detents.
+///
+/// Pure state machine (no ImGui calls) so the feel is unit-testable. Input
+/// below the deadzone is ignored, direction reversals drop the residual, and
+/// the residual is discarded once input stops for kOverworldWheelIdleResetSec.
+struct StickyWheelPan {
+  ImVec2 residual{0.0f, 0.0f};
+  float idle_seconds = 0.0f;
+
+  /// @param wheel  io.MouseWheelH / io.MouseWheel (positive = left / up).
+  /// @param step_px  pixels per wheel unit (a multiple of snap_px).
+  /// @param snap_px  detent size in screen pixels.
+  /// @return scroll delta in screen pixels, always a multiple of snap_px.
+  ImVec2 Consume(ImVec2 wheel, float dt, float step_px, float snap_px);
+};
+
+/// Scroll that keeps the content point under @p anchor (viewport-local px)
+/// fixed while the scale changes from @p old_scale to @p new_scale.
+ImVec2 ScrollForZoomAtAnchor(ImVec2 scroll, ImVec2 anchor, float old_scale,
+                             float new_scale);
+
 // =============================================================================
 // CanvasNavigationManager
 // =============================================================================
@@ -111,22 +132,27 @@ class CanvasNavigationManager {
   // ===========================================================================
   // Pan and Zoom
   // ===========================================================================
+  //
+  // All scrolling of the canvas child goes through this manager:
+  //   BeginCanvasViewport()  immediately before BeginChild: applies zoom,
+  //                          drag pan and wheel input via SetNextWindowScroll
+  //                          so the frame draws with its final scroll.
+  //   EndCanvasViewport()    inside the child after BeginCanvas: records the
+  //                          viewport rect, scroll and hover for next frame.
+  // The child is created with ImGuiWindowFlags_NoScrollWithMouse so ImGui's
+  // own fractional wheel scroll never runs on the canvas.
 
-  /// @brief Pan the overworld canvas via middle-click or left-click drag
-  /// (in MOUSE mode when not hovering an entity).
-  void HandleOverworldPan();
+  void BeginCanvasViewport();
+  void EndCanvasViewport(bool canvas_item_hovered);
 
-  /// @brief No-op stub preserved for API compatibility.
-  void HandleOverworldZoom();
-
-  /// @brief Increase canvas zoom by one step.
+  /// @brief Increase canvas zoom by one step, keeping the view center fixed.
   void ZoomIn();
 
-  /// @brief Decrease canvas zoom by one step.
+  /// @brief Decrease canvas zoom by one step, keeping the view center fixed.
   void ZoomOut();
 
-  /// @brief No-op stub -- ImGui handles scroll clamping automatically.
-  void ClampOverworldScroll();
+  /// @brief Scale so the whole current world fits the viewport.
+  void ZoomToFit();
 
   /// @brief Reset scroll to top-left and scale to 1.0.
   void ResetOverworldView();
@@ -134,8 +160,10 @@ class CanvasNavigationManager {
   /// @brief Center the viewport on the current map.
   void CenterOverworldView();
 
-  /// @brief Legacy wrapper -- delegates to HandleOverworldPan().
-  void CheckForMousePan();
+  /// @brief Center the viewport on @p map_id (same world grid).
+  void CenterOnMap(int map_id);
+
+  bool is_panning() const { return pan_active_; }
 
   // ===========================================================================
   // Blockset Selector Synchronization
@@ -170,6 +198,34 @@ class CanvasNavigationManager {
   // Background pre-loading state
   std::vector<int> preload_queue_;
   static constexpr float kPreloadStartDelay = 0.3f;
+
+  // Zoom by `steps` of kOverworldZoomStep about a viewport-local anchor.
+  void ZoomBySteps(int steps, ImVec2 anchor);
+  void SetScaleAboutAnchor(float new_scale, ImVec2 anchor);
+  ImVec2 ClampScroll(ImVec2 scroll) const;
+  ImVec2 ContentSize() const;
+
+  // Viewport state recorded by EndCanvasViewport (previous frame).
+  ImVec2 viewport_min_{0.0f, 0.0f};
+  ImVec2 viewport_size_{0.0f, 0.0f};
+  ImVec2 last_scroll_{0.0f, 0.0f};
+  bool canvas_item_hovered_ = false;
+  bool canvas_window_hovered_ = false;
+  bool viewport_known_ = false;
+
+  // Scroll to apply at the next BeginCanvasViewport.
+  std::optional<ImVec2> pending_scroll_;
+
+  // Wheel state
+  StickyWheelPan wheel_pan_;
+  float zoom_residual_ = 0.0f;
+  float zoom_idle_seconds_ = 0.0f;
+
+  // Drag pan: content stays pinned to the point grabbed at mouse-down.
+  int pan_button_ = -1;
+  bool pan_active_ = false;
+  ImVec2 pan_anchor_mouse_{0.0f, 0.0f};
+  ImVec2 pan_anchor_scroll_{0.0f, 0.0f};
 };
 
 }  // namespace yaze::editor

@@ -70,6 +70,20 @@ inline constexpr float kOverworldMinZoom = 0.1f;
 inline constexpr float kOverworldMaxZoom = 5.0f;
 inline constexpr float kOverworldZoomStep = 0.25f;
 
+// Canvas navigation feel. Every scroll/pan tunable lives here.
+//
+// Wheel and trackpad pan move in whole "detents" of kOverworldPanSnapMapPx
+// map pixels (8 = one tile8, scaled by zoom) instead of ImGui's default
+// fractional 80px-vertical / 32px-horizontal steps. Sub-detent input is kept
+// only while the wheel keeps moving, so trackpad momentum tails stop instead
+// of creeping the view.
+inline constexpr float kOverworldWheelPanPx = 64.0f;  // per wheel notch
+inline constexpr float kOverworldPanSnapMapPx = 8.0f;
+inline constexpr float kOverworldWheelDeadzone = 0.05f;  // wheel units/frame
+inline constexpr float kOverworldWheelIdleResetSec = 0.08f;
+// Cmd/Ctrl+wheel: wheel units per kOverworldZoomStep, anchored at the cursor.
+inline constexpr float kOverworldWheelZoomUnitsPerStep = 1.0f;
+
 enum class EditingMode { MOUSE = 0, DRAW_TILE = 1, FILL_TILE = 2 };
 
 enum class EntityEditMode {

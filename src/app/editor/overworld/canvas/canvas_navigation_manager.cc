@@ -1,13 +1,18 @@
+// imgui_internal.h (InnerRect) requires the math operators.
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "app/editor/overworld/canvas/canvas_navigation_manager.h"
 
 #include <algorithm>
+#include <cmath>
 #include <optional>
 
 #include "absl/status/status.h"
 #include "app/editor/overworld/canvas/overworld_context_target.h"
 #include "app/editor/overworld/overworld_map_status.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -20,25 +25,6 @@ namespace yaze::editor {
 // =============================================================================
 
 namespace {
-
-// Calculate the total canvas content size based on world layout
-ImVec2 CalculateOverworldContentSize(float scale) {
-  // 8x8 grid of 512x512 maps = 4096x4096 total
-  constexpr float kWorldSize = 512.0f * 8.0f;  // 4096
-  return ImVec2(kWorldSize * scale, kWorldSize * scale);
-}
-
-// Clamp scroll position to valid bounds
-ImVec2 ClampScrollPosition(ImVec2 scroll, ImVec2 content_size,
-                           ImVec2 visible_size) {
-  float max_scroll_x = std::max(0.0f, content_size.x - visible_size.x);
-  float max_scroll_y = std::max(0.0f, content_size.y - visible_size.y);
-
-  float clamped_x = std::clamp(scroll.x, -max_scroll_x, 0.0f);
-  float clamped_y = std::clamp(scroll.y, -max_scroll_y, 0.0f);
-
-  return ImVec2(clamped_x, clamped_y);
-}
 
 std::optional<int> MapFromCanvasPosition(const CanvasNavigationContext& ctx,
                                          ImVec2 scaled_position) {
@@ -374,112 +360,255 @@ void CanvasNavigationManager::HandleMapInteraction() {
 // Pan and Zoom
 // =============================================================================
 
-void CanvasNavigationManager::HandleOverworldPan() {
-  // Determine if panning should occur:
-  // 1. Middle-click drag always pans (all modes)
-  // 2. Left-click drag pans in mouse mode when not hovering over an entity
-  bool should_pan = false;
+ImVec2 StickyWheelPan::Consume(ImVec2 wheel, float dt, float step_px,
+                               float snap_px) {
+  if (std::fabs(wheel.x) < kOverworldWheelDeadzone)
+    wheel.x = 0.0f;
+  if (std::fabs(wheel.y) < kOverworldWheelDeadzone)
+    wheel.y = 0.0f;
+  if (wheel.x == 0.0f && wheel.y == 0.0f) {
+    idle_seconds += dt;
+    if (idle_seconds >= kOverworldWheelIdleResetSec) {
+      residual = ImVec2(0.0f, 0.0f);
+    }
+    return ImVec2(0.0f, 0.0f);
+  }
+  idle_seconds = 0.0f;
 
-  if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
-    should_pan = true;
-  } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) &&
-             *ctx_.current_mode == EditingMode::MOUSE) {
-    // In mouse mode, left-click pans unless hovering over an entity
-    bool over_entity =
-        callbacks_.is_entity_hovered && callbacks_.is_entity_hovered();
-    // Also don't pan if we're currently dragging an entity
-    if (!over_entity && !*ctx_.is_dragging_entity) {
-      should_pan = true;
+  const float snap = std::max(snap_px, 1.0f);
+  auto axis = [&](float input, float& rest) -> float {
+    if (input == 0.0f)
+      return 0.0f;
+    // Wheel up/left (positive) scrolls toward the origin.
+    const float delta = -input * step_px;
+    if ((delta > 0.0f) != (rest > 0.0f) && rest != 0.0f) {
+      rest = 0.0f;  // Reversal: respond immediately, no leftover travel.
+    }
+    rest += delta;
+    const float out = std::trunc(rest / snap) * snap;
+    rest -= out;
+    return out;
+  };
+  return ImVec2(axis(wheel.x, residual.x), axis(wheel.y, residual.y));
+}
+
+ImVec2 ScrollForZoomAtAnchor(ImVec2 scroll, ImVec2 anchor, float old_scale,
+                             float new_scale) {
+  if (old_scale <= 0.0f || new_scale <= 0.0f) {
+    return scroll;
+  }
+  const float ratio = new_scale / old_scale;
+  return ImVec2((scroll.x + anchor.x) * ratio - anchor.x,
+                (scroll.y + anchor.y) * ratio - anchor.y);
+}
+
+ImVec2 CanvasNavigationManager::ContentSize() const {
+  const float scale =
+      ctx_.ow_map_canvas ? ctx_.ow_map_canvas->global_scale() : 1.0f;
+  constexpr float kWorldSize = kOverworldMapSize * 8.0f;  // 4096
+  return ImVec2(kWorldSize * scale, kWorldSize * scale);
+}
+
+ImVec2 CanvasNavigationManager::ClampScroll(ImVec2 scroll) const {
+  const ImVec2 content = ContentSize();
+  const float max_x = std::max(0.0f, content.x - viewport_size_.x);
+  const float max_y = std::max(0.0f, content.y - viewport_size_.y);
+  // Whole pixels: fractional scroll makes pixel art shimmer while moving.
+  return ImVec2(std::round(std::clamp(scroll.x, 0.0f, max_x)),
+                std::round(std::clamp(scroll.y, 0.0f, max_y)));
+}
+
+void CanvasNavigationManager::SetScaleAboutAnchor(float new_scale,
+                                                  ImVec2 anchor) {
+  if (!ctx_.ow_map_canvas)
+    return;
+  const float old_scale = ctx_.ow_map_canvas->global_scale();
+  new_scale = std::clamp(new_scale, kOverworldMinZoom, kOverworldMaxZoom);
+  if (new_scale == old_scale)
+    return;
+  const ImVec2 base = pending_scroll_.value_or(last_scroll_);
+  ctx_.ow_map_canvas->set_global_scale(new_scale);
+  pending_scroll_ = ScrollForZoomAtAnchor(base, anchor, old_scale, new_scale);
+}
+
+void CanvasNavigationManager::ZoomBySteps(int steps, ImVec2 anchor) {
+  if (!ctx_.ow_map_canvas || steps == 0)
+    return;
+  SetScaleAboutAnchor(
+      ctx_.ow_map_canvas->global_scale() + steps * kOverworldZoomStep, anchor);
+}
+
+void CanvasNavigationManager::BeginCanvasViewport() {
+  if (!ctx_.ow_map_canvas) {
+    return;
+  }
+  const ImGuiIO& io = ImGui::GetIO();
+  std::optional<ImVec2> target = pending_scroll_;
+  pending_scroll_.reset();
+
+  // ---- Drag pan -------------------------------------------------------------
+  // Only a press that lands on the canvas starts a pan; drags that begin on
+  // scrollbars, other panels or popups never move the map.
+  const bool over_entity =
+      callbacks_.is_entity_hovered && callbacks_.is_entity_hovered();
+  const bool dragging_entity =
+      ctx_.is_dragging_entity && *ctx_.is_dragging_entity;
+  if (pan_button_ < 0 && canvas_item_hovered_) {
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle)) {
+      pan_button_ = ImGuiMouseButton_Middle;
+      pan_active_ = true;  // Middle only pans: follow the cursor at once.
+    } else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+               ctx_.current_mode && *ctx_.current_mode == EditingMode::MOUSE &&
+               !over_entity && !dragging_entity) {
+      pan_button_ = ImGuiMouseButton_Left;
+      pan_active_ = false;  // Becomes a pan once past the drag threshold.
+    }
+    if (pan_button_ >= 0) {
+      pan_anchor_mouse_ = io.MousePos;
+      pan_anchor_scroll_ = last_scroll_;
+    }
+  }
+  if (pan_button_ >= 0) {
+    if (!ImGui::IsMouseDown(pan_button_)) {
+      pan_button_ = -1;
+      pan_active_ = false;
+    } else {
+      if (!pan_active_ && ImGui::IsMouseDragging(pan_button_)) {
+        pan_active_ = !dragging_entity;
+      }
+      if (pan_active_) {
+        // Content stays pinned under the grab point: no drift, no inertia.
+        target = ImVec2(
+            pan_anchor_scroll_.x - (io.MousePos.x - pan_anchor_mouse_.x),
+            pan_anchor_scroll_.y - (io.MousePos.y - pan_anchor_mouse_.y));
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+      }
     }
   }
 
-  if (!should_pan) {
-    return;
+  // ---- Wheel: pan in detents, Cmd/Ctrl+wheel zooms at the cursor -------------
+  const bool zoom_modifier =
+      io.KeyCtrl || (gui::IsMacPlatform() && io.KeySuper);
+  if (canvas_window_hovered_ && !pan_active_) {
+    ImVec2 wheel(io.MouseWheelH, io.MouseWheel);
+    if (!gui::IsMacPlatform() && io.KeyShift && wheel.x == 0.0f) {
+      wheel = ImVec2(wheel.y, 0.0f);  // Shift+wheel scrolls horizontally.
+    }
+    if (zoom_modifier) {
+      if (wheel.y != 0.0f) {
+        zoom_idle_seconds_ = 0.0f;
+        zoom_residual_ += wheel.y;
+        const int steps = static_cast<int>(
+            std::trunc(zoom_residual_ / kOverworldWheelZoomUnitsPerStep));
+        if (steps != 0) {
+          zoom_residual_ -= steps * kOverworldWheelZoomUnitsPerStep;
+          if (target) {
+            pending_scroll_ = target;
+          }
+          const ImVec2 anchor(io.MousePos.x - viewport_min_.x,
+                              io.MousePos.y - viewport_min_.y);
+          ZoomBySteps(steps, anchor);
+          target = pending_scroll_;
+          pending_scroll_.reset();
+        }
+      }
+    } else {
+      const float scale = ctx_.ow_map_canvas->global_scale();
+      const float snap = std::max(1.0f, kOverworldPanSnapMapPx * scale);
+      const float step =
+          std::max(snap, std::round(kOverworldWheelPanPx / snap) * snap);
+      const ImVec2 delta = wheel_pan_.Consume(wheel, io.DeltaTime, step, snap);
+      if (delta.x != 0.0f || delta.y != 0.0f) {
+        const ImVec2 base = target.value_or(last_scroll_);
+        target = ImVec2(base.x + delta.x, base.y + delta.y);
+      }
+    }
+  }
+  if (!zoom_modifier || io.MouseWheel == 0.0f) {
+    zoom_idle_seconds_ += io.DeltaTime;
+    if (zoom_idle_seconds_ >= kOverworldWheelIdleResetSec) {
+      zoom_residual_ = 0.0f;
+    }
   }
 
-  // Pan by adjusting ImGui's scroll position (scrollbars handle actual scroll)
-  ImVec2 delta = ImGui::GetIO().MouseDelta;
-  float new_scroll_x = ImGui::GetScrollX() - delta.x;
-  float new_scroll_y = ImGui::GetScrollY() - delta.y;
-
-  // Get scroll limits from ImGui
-  float max_scroll_x = ImGui::GetScrollMaxX();
-  float max_scroll_y = ImGui::GetScrollMaxY();
-
-  // Clamp to valid scroll range
-  new_scroll_x = std::clamp(new_scroll_x, 0.0f, max_scroll_x);
-  new_scroll_y = std::clamp(new_scroll_y, 0.0f, max_scroll_y);
-
-  ImGui::SetScrollX(new_scroll_x);
-  ImGui::SetScrollY(new_scroll_y);
+  // Explicit content size keeps ImGui's clamp correct on the frame the scale
+  // changes (the canvas item that would define it is submitted later).
+  ImGui::SetNextWindowContentSize(ContentSize());
+  if (target) {
+    const ImVec2 clamped = viewport_known_ ? ClampScroll(*target)
+                                           : ImVec2(std::max(0.0f, target->x),
+                                                    std::max(0.0f, target->y));
+    ImGui::SetNextWindowScroll(clamped);
+    last_scroll_ = clamped;
+  }
 }
 
-void CanvasNavigationManager::HandleOverworldZoom() {
-  // Scroll wheel is reserved for canvas navigation/panning
-  // Use toolbar buttons or context menu for zoom control
+void CanvasNavigationManager::EndCanvasViewport(bool canvas_item_hovered) {
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+  if (!window) {
+    return;
+  }
+  viewport_min_ = window->InnerRect.Min;
+  viewport_size_ = window->InnerRect.GetSize();
+  last_scroll_ = window->Scroll;
+  canvas_item_hovered_ = canvas_item_hovered;
+  canvas_window_hovered_ = ImGui::IsWindowHovered();
+  viewport_known_ = viewport_size_.x > 0.0f && viewport_size_.y > 0.0f;
 }
 
 void CanvasNavigationManager::ZoomIn() {
-  float new_scale =
-      std::min(kOverworldMaxZoom,
-               ctx_.ow_map_canvas->global_scale() + kOverworldZoomStep);
-  ctx_.ow_map_canvas->set_global_scale(new_scale);
-  // Scroll will be clamped automatically by ImGui on next frame
+  ZoomBySteps(1, ImVec2(viewport_size_.x * 0.5f, viewport_size_.y * 0.5f));
 }
 
 void CanvasNavigationManager::ZoomOut() {
-  float new_scale =
-      std::max(kOverworldMinZoom,
-               ctx_.ow_map_canvas->global_scale() - kOverworldZoomStep);
-  ctx_.ow_map_canvas->set_global_scale(new_scale);
-  // Scroll will be clamped automatically by ImGui on next frame
+  ZoomBySteps(-1, ImVec2(viewport_size_.x * 0.5f, viewport_size_.y * 0.5f));
 }
 
-void CanvasNavigationManager::ClampOverworldScroll() {
-  // ImGui handles scroll clamping automatically via GetScrollMaxX/Y
-  // This function is now a no-op but kept for API compatibility
+void CanvasNavigationManager::ZoomToFit() {
+  if (!ctx_.ow_map_canvas || !viewport_known_) {
+    return;
+  }
+  constexpr float kWorldSize = kOverworldMapSize * 8.0f;
+  // The special world only allocates four rows of screens.
+  const bool special_world = ctx_.current_world && *ctx_.current_world == 2;
+  const float world_height = special_world ? kWorldSize * 0.5f : kWorldSize;
+  const float scale =
+      std::min(viewport_size_.x / kWorldSize, viewport_size_.y / world_height);
+  ctx_.ow_map_canvas->set_global_scale(
+      std::clamp(scale, kOverworldMinZoom, kOverworldMaxZoom));
+  pending_scroll_ = ImVec2(0.0f, 0.0f);
 }
 
 void CanvasNavigationManager::ResetOverworldView() {
-  // Reset ImGui scroll to top-left
-  ImGui::SetScrollX(0);
-  ImGui::SetScrollY(0);
-  ctx_.ow_map_canvas->set_global_scale(1.0f);
+  if (ctx_.ow_map_canvas) {
+    ctx_.ow_map_canvas->set_global_scale(1.0f);
+  }
+  pending_scroll_ = ImVec2(0.0f, 0.0f);
 }
 
 void CanvasNavigationManager::CenterOverworldView() {
-  // Center the view on the current map
+  if (ctx_.current_map) {
+    CenterOnMap(*ctx_.current_map);
+  }
+}
+
+void CanvasNavigationManager::CenterOnMap(int map_id) {
+  if (!ctx_.ow_map_canvas || map_id < 0 ||
+      map_id >= zelda3::kNumOverworldMaps) {
+    return;
+  }
   float scale = ctx_.ow_map_canvas->global_scale();
   if (scale <= 0.0f)
     scale = 1.0f;
-
-  // Calculate map position within the world
-  int map_in_world = *ctx_.current_map % 0x40;
-  int map_x = (map_in_world % 8) * kOverworldMapSize;
-  int map_y = (map_in_world / 8) * kOverworldMapSize;
-
-  // Get viewport size
-  ImVec2 viewport_px = ImGui::GetContentRegionAvail();
-
-  // Calculate scroll to center the current map (in ImGui's positive scroll
-  // space)
-  float center_x = (map_x + kOverworldMapSize / 2.0f) * scale;
-  float center_y = (map_y + kOverworldMapSize / 2.0f) * scale;
-
-  float scroll_x = center_x - viewport_px.x / 2.0f;
-  float scroll_y = center_y - viewport_px.y / 2.0f;
-
-  // Clamp to valid scroll range
-  scroll_x = std::clamp(scroll_x, 0.0f, ImGui::GetScrollMaxX());
-  scroll_y = std::clamp(scroll_y, 0.0f, ImGui::GetScrollMaxY());
-
-  ImGui::SetScrollX(scroll_x);
-  ImGui::SetScrollY(scroll_y);
-}
-
-void CanvasNavigationManager::CheckForMousePan() {
-  // Legacy wrapper - now calls HandleOverworldPan
-  HandleOverworldPan();
+  const int map_in_world = map_id % 0x40;
+  const float center_x =
+      ((map_in_world % 8) * kOverworldMapSize + kOverworldMapSize / 2.0f) *
+      scale;
+  const float center_y =
+      ((map_in_world / 8) * kOverworldMapSize + kOverworldMapSize / 2.0f) *
+      scale;
+  pending_scroll_ = ImVec2(center_x - viewport_size_.x * 0.5f,
+                           center_y - viewport_size_.y * 0.5f);
 }
 
 // =============================================================================

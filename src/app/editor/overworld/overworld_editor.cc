@@ -266,8 +266,8 @@ void OverworldEditor::Initialize() {
   map_properties_system_->SetOpenMapPropertiesCallback(
       [this]() { OpenMapPropertiesWindow(); });
   map_properties_system_->SetContextNavigationCallbacks(
-      [this]() { canvas_renderer_->RequestResetView(); },
-      [this]() { ZoomIn(); }, [this]() { ZoomOut(); });
+      [this]() { ResetOverworldView(); }, [this]() { ZoomIn(); },
+      [this]() { ZoomOut(); });
 
   InitCanvasNavigationManager();
   InitTilePaintingManager();
