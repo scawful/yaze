@@ -383,6 +383,45 @@ void ApplyTerminalHarnessExecution(const HarnessTestExecution& execution,
 
 }  // namespace internal
 
+absl::StatusOr<ScreenshotArtifact> CaptureScreenshotOnRenderThread(
+    const std::string& preferred_path, const std::string& window_title,
+    ScreenshotFormat format, std::chrono::milliseconds timeout) {
+  auto* controller = Application::Instance().GetController();
+  if (!controller) {
+    return absl::FailedPreconditionError(
+        "Application controller not available");
+  }
+
+  // Shared with the callback so a capture that lands after the timeout still
+  // has somewhere to write.
+  struct State {
+    std::atomic<bool> done{false};
+    absl::StatusOr<ScreenshotArtifact> result =
+        absl::UnknownError("Not captured");
+  };
+  auto state = std::make_shared<State>();
+
+  controller->RequestScreenshot(
+      {.preferred_path = preferred_path,
+       .window_title = window_title,
+       .format = format,
+       .reveal_to_user = false,
+       .callback = [state](absl::StatusOr<ScreenshotArtifact> result) {
+         state->result = std::move(result);
+         state->done.store(true);
+       }});
+
+  const auto deadline = std::chrono::steady_clock::now() + timeout;
+  while (!state->done.load()) {
+    if (std::chrono::steady_clock::now() > deadline) {
+      return absl::DeadlineExceededError(
+          "Timed out waiting for screenshot capture on main thread");
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  return state->result;
+}
+
 namespace {
 
 absl::StatusOr<ParsedCondition> ParseConditionString(absl::string_view value) {
@@ -1872,48 +1911,19 @@ absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
   if (!format_or.ok()) {
     return format_or.status();
   }
-  auto* controller = Application::Instance().GetController();
-  if (!controller) {
-    return absl::FailedPreconditionError(
-        "Application controller not available");
+  auto result = CaptureScreenshotOnRenderThread(
+      requested_path, request ? request->window_title() : std::string(),
+      *format_or);
+  if (absl::IsDeadlineExceeded(result.status())) {
+    return result.status();
   }
-
-  // We must execute capture on the main thread to avoid Metal/OpenGL context errors.
-  // Use Controller's request queue.
-  struct State {
-    std::atomic<bool> done{false};
-    absl::StatusOr<ScreenshotArtifact> result =
-        absl::UnknownError("Not captured");
-  };
-  auto state = std::make_shared<State>();
-
-  controller->RequestScreenshot(
-      {.preferred_path = requested_path,
-       .window_title = request ? request->window_title() : std::string(),
-       .format = *format_or,
-       .reveal_to_user = false,
-       .callback = [state](absl::StatusOr<ScreenshotArtifact> result) {
-         state->result = std::move(result);
-         state->done.store(true);
-       }});
-
-  // Wait for main thread to process (timeout after 5s)
-  auto start = std::chrono::steady_clock::now();
-  while (!state->done.load()) {
-    if (std::chrono::steady_clock::now() - start > std::chrono::seconds(5)) {
-      return absl::DeadlineExceededError(
-          "Timed out waiting for screenshot capture on main thread");
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
-
-  if (!state->result.ok()) {
+  if (!result.ok()) {
     response->set_success(false);
-    response->set_message(std::string(state->result.status().message()));
-    return state->result.status();
+    response->set_message(std::string(result.status().message()));
+    return result.status();
   }
 
-  const ScreenshotArtifact& artifact = *state->result;
+  const ScreenshotArtifact& artifact = *result;
   response->set_success(true);
   response->set_message(absl::StrFormat("Screenshot saved to %s (%dx%d)",
                                         artifact.file_path, artifact.width,
