@@ -229,9 +229,10 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
   }
 
   for (int slot = 0; slot < 4; ++slot) {
-    const int stair_room = static_cast<int>(room.staircase_room(slot));
-    // Room 000 is a valid destination. The runtime reads the header byte
-    // directly; zero is not a sentinel for a consumed slot.
+    // Room 000 is a valid destination. The runtime writes the header byte to
+    // $A0 and keeps $A1, so $119 slot $1D leads to $11D; zero is not a
+    // sentinel for a consumed slot.
+    const int stair_room = room.staircase_destination_room(slot);
     const bool header_valid =
         stair_room >= 0 && stair_room < zelda3::kNumberOfRooms;
     if (slot_consumed[slot]) {
@@ -253,7 +254,7 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
         issue.object_id = slot_object_id[slot];
         result.staircase_issues.push_back(issue);
       }
-    } else if (header_valid && stair_room != 0) {
+    } else if (header_valid && room.staircase_room(slot) != 0) {
       DungeonStaircaseIssue issue;
       issue.from_room_id = room_id;
       issue.kind = DungeonStaircaseIssueKind::UnusedHeader;
@@ -263,8 +264,8 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
     }
   }
 
-  const int holewarp_room = static_cast<int>(room.holewarp());
-  if (holewarp_room > 0 && holewarp_room < zelda3::kNumberOfRooms) {
+  const int holewarp_room = room.holewarp_destination_room();
+  if (room.holewarp() != 0 && holewarp_room < zelda3::kNumberOfRooms) {
     DungeonConnectedRoomLink link;
     link.from_room_id = room_id;
     link.to_room_id = holewarp_room;

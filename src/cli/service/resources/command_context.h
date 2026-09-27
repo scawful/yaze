@@ -203,6 +203,12 @@ class OutputFormatter {
   void AddRawJsonField(const std::string& key, const std::string& json);
 
   /**
+   * @brief Append preformatted text (for example an aligned table). Ignored
+   * in JSON mode.
+   */
+  void AddRawText(const std::string& text);
+
+  /**
    * @brief Get the formatted output
    */
   std::string GetOutput() const;
