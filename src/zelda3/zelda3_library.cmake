@@ -71,6 +71,8 @@ set(
   zelda3/resource_labels.cc
   zelda3/screen/dungeon_map.cc
   zelda3/screen/inventory.cc
+  zelda3/screen/menu_tilemap.cc
+  zelda3/screen/menu_tilemap_sources.cc
   zelda3/screen/overworld_map_screen.cc
   zelda3/screen/title_screen.cc
   zelda3/sprite/sprite.cc

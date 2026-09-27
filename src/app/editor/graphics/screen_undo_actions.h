@@ -21,8 +21,9 @@ namespace editor {
  * @brief Which screen type the snapshot belongs to.
  */
 enum class ScreenEditType {
-  kDungeonMap,  // Dungeon map room/gfx layout
-  kTile16Edit,  // Tile16 composition modification
+  kDungeonMap,   // Dungeon map room/gfx layout
+  kTile16Edit,   // Tile16 composition modification
+  kMenuTilemap,  // 2bpp menu tilemap (Menu Tilemap panel) edit
 };
 
 /**
@@ -50,15 +51,29 @@ struct Tile16CompSnapshot {
 };
 
 /**
+ * @brief Snapshot of a Menu Tilemap document's raw bytes for undo/redo.
+ *
+ * Stores the whole buffer rather than a per-cell diff: menu tilemaps are
+ * at most 2048 bytes, so a full copy per stroke is cheap and keeps the
+ * restore path trivial (one memcpy-equivalent, no cell-range bookkeeping).
+ */
+struct MenuTilemapSnapshot {
+  std::string path;
+  std::vector<uint8_t> bytes;
+};
+
+/**
  * @brief Unified screen editor snapshot.
  *
- * Stores enough data to restore either a dungeon map edit or a tile16
- * composition edit. Only the fields relevant to `edit_type` are populated.
+ * Stores enough data to restore a dungeon map edit, a tile16 composition
+ * edit, or a menu tilemap edit. Only the fields relevant to `edit_type`
+ * are populated.
  */
 struct ScreenSnapshot {
   ScreenEditType edit_type = ScreenEditType::kDungeonMap;
   DungeonMapSnapshot dungeon_map;
   Tile16CompSnapshot tile16_comp;
+  MenuTilemapSnapshot menu_tilemap;
 };
 
 /**
@@ -109,6 +124,8 @@ class ScreenEditAction : public UndoAction {
       size += floor.size();
     for (const auto& floor : after_.dungeon_map.map_data.floor_gfx)
       size += floor.size();
+    size += before_.menu_tilemap.bytes.size();
+    size += after_.menu_tilemap.bytes.size();
     return size;
   }
 

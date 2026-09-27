@@ -88,6 +88,7 @@ set(
   app/editor/graphics/pixel_editor_panel.cc
   app/editor/graphics/polyhedral_editor_panel.cc
   app/editor/graphics/screen_editor.cc
+  app/editor/graphics/screen_menu_tilemap_editor.cc
   app/editor/graphics/sheet_browser_panel.cc
   app/editor/graphics/sheet_png_transfer.cc
   app/editor/graphics/pixel_clipboard.cc
