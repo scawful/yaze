@@ -934,6 +934,7 @@ if(YAZE_BUILD_TESTS)
     e2e/framework_smoke_test.cc
     e2e/controller_window_close_test.cc
     e2e/dead_click_regression_test.cc
+    e2e/settings_drawer_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
     e2e/dungeon_e2e_tests.cc
@@ -987,6 +988,18 @@ if(YAZE_BUILD_TESTS)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
   set_tests_properties(gui_dead_click_smoke PROPERTIES
+    LABELS "gui_smoke;gui"
+    TIMEOUT 300
+  )
+
+  # Every Settings entry point (File menu, drawers button, Ctrl/Cmd+, and the
+  # command palette) must open the right Settings drawer with its content.
+  add_test(
+      NAME gui_settings_drawer_smoke
+      COMMAND $<TARGET_FILE:yaze_test_gui> --ui --fast SettingsDrawerSmoke
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(gui_settings_drawer_smoke PROPERTIES
     LABELS "gui_smoke;gui"
     TIMEOUT 300
   )

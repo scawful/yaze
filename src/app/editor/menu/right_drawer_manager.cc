@@ -1765,6 +1765,9 @@ void RightDrawerManager::DrawProposalsPanel() {
 }
 
 void RightDrawerManager::DrawSettingsPanel() {
+  if (!settings_panel_ && settings_panel_provider_) {
+    settings_panel_ = settings_panel_provider_();
+  }
   if (settings_panel_) {
     // Draw settings inline (no card windows)
     settings_panel_->Draw();
