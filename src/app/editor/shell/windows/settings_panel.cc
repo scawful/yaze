@@ -22,6 +22,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_config.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/font_picker.h"
 #include "app/gui/widgets/property_inspector.h"
@@ -186,7 +187,71 @@ bool AddUniquePath(std::vector<std::string>* paths, const std::string& path) {
   return true;
 }
 
+constexpr std::array<SettingsPanel::CategoryDescriptor, 10>
+    kSettingsCategories = {{
+        {"appearance", "Appearance", ICON_MD_PALETTE,
+         SettingsPanel::Scope::kApplication,
+         "theme font scale density motion colors"},
+        {"behavior", "Editor Behavior", ICON_MD_TUNE,
+         SettingsPanel::Scope::kApplication,
+         "autosave backup tips editor defaults"},
+        {"performance", "Performance", ICON_MD_SPEED,
+         SettingsPanel::Scope::kApplication,
+         "vsync fps cache undo performance"},
+        {"files", "Files & Sync", ICON_MD_STORAGE,
+         SettingsPanel::Scope::kApplication,
+         "folders roots filesystem icloud sync"},
+        {"ai", "AI Agent", ICON_MD_SMART_TOY,
+         SettingsPanel::Scope::kApplication,
+         "agent provider model host ollama gemini openai"},
+        {"shortcuts", "Keyboard Shortcuts", ICON_MD_KEYBOARD,
+         SettingsPanel::Scope::kApplication, "keys bindings commands panels"},
+        {"layout", "Workspace Layout", ICON_MD_DASHBOARD_CUSTOMIZE,
+         SettingsPanel::Scope::kWorkspace,
+         "layout dock windows named workspace"},
+        {"project", "Project Configuration", ICON_MD_FOLDER,
+         SettingsPanel::Scope::kProject,
+         "project rom identity paths build manifest"},
+        {"features", "Feature Flags", ICON_MD_FLAG,
+         SettingsPanel::Scope::kProject,
+         "experimental system overworld dungeon resources save flags"},
+        {"patches", "ASM Patches", ICON_MD_EXTENSION,
+         SettingsPanel::Scope::kProject, "asar asm patches parameters"},
+    }};
+
+const char* ScopeLabel(SettingsPanel::Scope scope) {
+  switch (scope) {
+    case SettingsPanel::Scope::kApplication:
+      return "Application";
+    case SettingsPanel::Scope::kWorkspace:
+      return "Workspace";
+    case SettingsPanel::Scope::kProject:
+      return "Project";
+  }
+  return "Application";
+}
+
 }  // namespace
+
+std::vector<SettingsPanel::CategoryDescriptor> SettingsPanel::FilterCategories(
+    Scope scope, const std::string& query) {
+  const std::string needle = absl::AsciiStrToLower(query);
+  std::vector<CategoryDescriptor> result;
+  for (const CategoryDescriptor& category : kSettingsCategories) {
+    if (category.scope != scope) {
+      continue;
+    }
+    if (!needle.empty()) {
+      const std::string haystack = absl::AsciiStrToLower(absl::StrFormat(
+          "%s %s %s", category.id, category.label, category.keywords));
+      if (haystack.find(needle) == std::string::npos) {
+        continue;
+      }
+    }
+    result.push_back(category);
+  }
+  return result;
+}
 
 SettingsPanel::DungeonOverlaySummary SettingsPanel::BuildDungeonOverlaySummary(
     const project::DungeonOverlaySettings& overlay) {
@@ -228,78 +293,161 @@ void SettingsPanel::Draw() {
     return;
   }
 
-  // Use collapsing headers for sections
-  // Default open the General Settings
-  if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " General Settings",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Indent();
-    DrawGeneralSettings();
-    ImGui::Unindent();
+  DrawScopeTabs();
+  ImGui::SetNextItemWidth(-1.0f);
+  ImGui::InputTextWithHint("##SettingsSearch",
+                           ICON_MD_SEARCH " Search settings",
+                           settings_search_.data(), settings_search_.size());
+
+  const auto categories =
+      FilterCategories(active_scope_, settings_search_.data());
+  EnsureActiveCategory(categories);
+  if (categories.empty()) {
     ImGui::Spacing();
+    ImGui::TextDisabled(tr("No %s settings match \"%s\"."),
+                        ScopeLabel(active_scope_), settings_search_.data());
+    return;
   }
 
-  // Add Project Settings section
-  if (ImGui::CollapsingHeader(ICON_MD_FOLDER " Project Configuration")) {
-    ImGui::Indent();
-    DrawProjectSettings();
-    ImGui::Unindent();
-    ImGui::Spacing();
+  ImGui::Spacing();
+  const bool wide_layout =
+      ImGui::GetContentRegionAvail().x >= gui::ScaledSize(520.0f, 0.0f).x;
+  if (wide_layout && ImGui::BeginTable("##SettingsLayout", 2,
+                                       ImGuiTableFlags_Resizable |
+                                           ImGuiTableFlags_BordersInnerV |
+                                           ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Categories", ImGuiTableColumnFlags_WidthFixed,
+                            std::clamp(ImGui::GetContentRegionAvail().x * 0.30f,
+                                       gui::ScaledSize(150.0f, 0.0f).x,
+                                       gui::ScaledSize(220.0f, 0.0f).x));
+    ImGui::TableSetupColumn("Settings", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    DrawCategoryNavigation(categories, false);
+    ImGui::TableNextColumn();
+    DrawCategoryContent(active_category_);
+    ImGui::EndTable();
+    return;
   }
 
-  if (ImGui::CollapsingHeader(ICON_MD_STORAGE " Files & Sync")) {
-    ImGui::Indent();
-    DrawFilesystemSettings();
-    ImGui::Unindent();
-    ImGui::Spacing();
+  DrawCategoryNavigation(categories, true);
+  ImGui::Separator();
+  DrawCategoryContent(active_category_);
+}
+
+void SettingsPanel::DrawScopeTabs() {
+  if (!ImGui::BeginTabBar("##SettingsScopes")) {
+    return;
+  }
+  for (const Scope scope :
+       {Scope::kApplication, Scope::kWorkspace, Scope::kProject}) {
+    const bool selected = active_scope_ == scope;
+    if (ImGui::BeginTabItem(ScopeLabel(scope))) {
+      if (!selected) {
+        active_scope_ = scope;
+        active_category_.clear();
+        settings_search_.fill('\0');
+      }
+      ImGui::EndTabItem();
+    }
+  }
+  ImGui::EndTabBar();
+}
+
+void SettingsPanel::EnsureActiveCategory(
+    const std::vector<CategoryDescriptor>& categories) {
+  if (categories.empty()) {
+    active_category_.clear();
+    return;
+  }
+  const auto active = std::find_if(categories.begin(), categories.end(),
+                                   [this](const CategoryDescriptor& category) {
+                                     return active_category_ == category.id;
+                                   });
+  if (active == categories.end()) {
+    active_category_ = categories.front().id;
+  }
+}
+
+void SettingsPanel::DrawCategoryNavigation(
+    const std::vector<CategoryDescriptor>& categories, bool compact) {
+  if (compact) {
+    const CategoryDescriptor* active = nullptr;
+    for (const CategoryDescriptor& category : categories) {
+      if (active_category_ == category.id) {
+        active = &category;
+        break;
+      }
+    }
+    const std::string preview =
+        active ? absl::StrFormat("%s %s", active->icon, active->label)
+               : std::string("Select category");
+    ImGui::SetNextItemWidth(-1.0f);
+    if (ImGui::BeginCombo("##SettingsCategory", preview.c_str())) {
+      for (const CategoryDescriptor& category : categories) {
+        const bool selected = active_category_ == category.id;
+        const std::string label =
+            absl::StrFormat("%s %s", category.icon, category.label);
+        if (ImGui::Selectable(label.c_str(), selected)) {
+          active_category_ = category.id;
+        }
+        if (selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+    return;
   }
 
-  if (ImGui::CollapsingHeader(ICON_MD_PALETTE " Appearance")) {
-    ImGui::Indent();
+  const bool nav_open =
+      ImGui::BeginChild("##SettingsCategories", ImVec2(0.0f, 0.0f), false);
+  if (nav_open) {
+    for (const CategoryDescriptor& category : categories) {
+      const bool selected = active_category_ == category.id;
+      const std::string label =
+          absl::StrFormat("%s %s", category.icon, category.label);
+      if (ImGui::Selectable(label.c_str(), selected)) {
+        active_category_ = category.id;
+      }
+    }
+  }
+  ImGui::EndChild();
+}
+
+void SettingsPanel::DrawCategoryContent(const std::string& category_id) {
+  const auto descriptor =
+      std::find_if(kSettingsCategories.begin(), kSettingsCategories.end(),
+                   [&category_id](const CategoryDescriptor& category) {
+                     return category_id == category.id;
+                   });
+  if (descriptor == kSettingsCategories.end()) {
+    return;
+  }
+
+  const std::string heading =
+      absl::StrFormat("%s %s", descriptor->icon, descriptor->label);
+  ImGui::SeparatorText(heading.c_str());
+  if (category_id == "appearance") {
     DrawAppearanceSettings();
-    ImGui::Unindent();
-    ImGui::Spacing();
-  }
-
-  if (ImGui::CollapsingHeader(ICON_MD_DASHBOARD_CUSTOMIZE
-                              " Workspace Layout")) {
-    ImGui::Indent();
-    DrawWorkspaceSettings();
-    ImGui::Unindent();
-    ImGui::Spacing();
-  }
-
-  if (ImGui::CollapsingHeader(ICON_MD_TUNE " Editor Behavior")) {
-    ImGui::Indent();
+  } else if (category_id == "behavior") {
     DrawEditorBehavior();
-    ImGui::Unindent();
-    ImGui::Spacing();
-  }
-
-  if (ImGui::CollapsingHeader(ICON_MD_SPEED " Performance")) {
-    ImGui::Indent();
+  } else if (category_id == "performance") {
     DrawPerformanceSettings();
-    ImGui::Unindent();
-    ImGui::Spacing();
-  }
-
-  if (ImGui::CollapsingHeader(ICON_MD_SMART_TOY " AI Agent")) {
-    ImGui::Indent();
+  } else if (category_id == "files") {
+    DrawFilesystemSettings();
+  } else if (category_id == "ai") {
     DrawAIAgentSettings();
-    ImGui::Unindent();
-    ImGui::Spacing();
-  }
-
-  if (ImGui::CollapsingHeader(ICON_MD_KEYBOARD " Keyboard Shortcuts")) {
-    ImGui::Indent();
+  } else if (category_id == "shortcuts") {
     DrawKeyboardShortcuts();
-    ImGui::Unindent();
-    ImGui::Spacing();
-  }
-
-  if (ImGui::CollapsingHeader(ICON_MD_EXTENSION " ASM Patches")) {
-    ImGui::Indent();
+  } else if (category_id == "layout") {
+    DrawWorkspaceSettings();
+  } else if (category_id == "project") {
+    DrawProjectSettings();
+  } else if (category_id == "features") {
+    DrawGeneralSettings();
+  } else if (category_id == "patches") {
     DrawPatchSettings();
-    ImGui::Unindent();
   }
 }
 
@@ -628,7 +776,10 @@ void SettingsPanel::DrawFilesystemSettings() {
     ImGui::TextDisabled(tr("No project roots configured."));
   }
 
-  if (ImGui::BeginChild("ProjectRootsList", ImVec2(0, 140), true)) {
+  const float roots_height = std::clamp(
+      ImGui::GetContentRegionAvail().y * 0.28f, gui::ScaledSize(0.0f, 100.0f).y,
+      gui::ScaledSize(0.0f, 220.0f).y);
+  if (ImGui::BeginChild("ProjectRootsList", ImVec2(0, roots_height), true)) {
     for (size_t i = 0; i < roots.size(); ++i) {
       const bool is_default = roots[i] == prefs.default_project_root;
       std::string label =
@@ -1325,7 +1476,10 @@ void SettingsPanel::DrawAIAgentSettings() {
     }
   }
 
-  ImGui::BeginChild("##ai_host_list", ImVec2(0, 150), true);
+  const float hosts_height = std::clamp(
+      ImGui::GetContentRegionAvail().y * 0.32f, gui::ScaledSize(0.0f, 120.0f).y,
+      gui::ScaledSize(0.0f, 240.0f).y);
+  ImGui::BeginChild("##ai_host_list", ImVec2(0, hosts_height), true);
   for (size_t i = 0; i < hosts.size(); ++i) {
     const bool is_selected = static_cast<int>(i) == selected_host_index;
     std::string label = hosts[i].label;
@@ -1513,7 +1667,11 @@ void SettingsPanel::DrawAIAgentSettings() {
     ImGui::TextDisabled(tr("No model paths configured."));
   }
 
-  if (ImGui::BeginChild("ModelPathsList", ImVec2(0, 120), true)) {
+  const float model_paths_height = std::clamp(
+      ImGui::GetContentRegionAvail().y * 0.24f, gui::ScaledSize(0.0f, 96.0f).y,
+      gui::ScaledSize(0.0f, 180.0f).y);
+  if (ImGui::BeginChild("ModelPathsList", ImVec2(0, model_paths_height),
+                        true)) {
     for (size_t i = 0; i < model_paths.size(); ++i) {
       std::string label =
           util::PlatformPaths::NormalizePathForDisplay(model_paths[i]);
@@ -1686,7 +1844,9 @@ void DrawShortcutBindingRow(
   ImGui::PushID(sc.name.c_str());
   ImGui::Text("%s", sc.name.c_str());
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(180);
+  ImGui::SetNextItemWidth(std::clamp(ImGui::GetContentRegionAvail().x * 0.45f,
+                                     gui::ScaledSize(160.0f, 0.0f).x,
+                                     gui::ScaledSize(300.0f, 0.0f).x));
   if (ImGui::InputText("##binding", &value,
                        ImGuiInputTextFlags_EnterReturnsTrue |
                            ImGuiInputTextFlags_AutoSelectAll)) {
@@ -1879,7 +2039,10 @@ void SettingsPanel::DrawPanelShortcuts() {
         }
 
         if (is_editing_shortcut_ && editing_card_id_ == card.card_id) {
-          ImGui::SetNextItemWidth(120);
+          ImGui::SetNextItemWidth(
+              std::clamp(ImGui::GetContentRegionAvail().x * 0.40f,
+                         gui::ScaledSize(100.0f, 0.0f).x,
+                         gui::ScaledSize(220.0f, 0.0f).x));
           ImGui::SetKeyboardFocusHere();
           if (ImGui::InputText("##Edit", shortcut_edit_buffer_,
                                sizeof(shortcut_edit_buffer_),
@@ -2134,7 +2297,9 @@ void SettingsPanel::DrawParameterWidget(core::PatchParameter* param) {
       const char* format = param->use_decimal ? "%d" : "$%X";
 
       ImGui::Text("%s", param->display_name.c_str());
-      ImGui::SetNextItemWidth(100);
+      ImGui::SetNextItemWidth(std::clamp(
+          ImGui::GetContentRegionAvail().x * 0.50f,
+          gui::ScaledSize(120.0f, 0.0f).x, gui::ScaledSize(260.0f, 0.0f).x));
       if (ImGui::InputInt("##Value", &value, 1, 16)) {
         param->value = std::clamp(value, param->min_value, param->max_value);
       }
@@ -2187,7 +2352,7 @@ void SettingsPanel::DrawParameterWidget(core::PatchParameter* param) {
     case core::PatchParameterType::kItem: {
       ImGui::Text("%s", param->display_name.c_str());
       // TODO: Implement item dropdown using game item names
-      ImGui::SetNextItemWidth(150);
+      ImGui::SetNextItemWidth(-1.0f);
       if (ImGui::InputInt(tr("Item ID"), &param->value)) {
         param->value = std::clamp(param->value, 0, 255);
       }

@@ -59,11 +59,10 @@ void CheckSettingsDrawerShown(ImGuiTestContext* ctx,
 
   IM_CHECK_NO_RET(drawers->settings_panel() != nullptr);
 
-  // The first SettingsPanel section header is drawn inside the drawer (it is
-  // skipped when the panel has no UserSettings).
-  ImGuiTestItemInfo header =
-      ctx->ItemInfo("//##RightPanel/**/" ICON_MD_SETTINGS " General Settings",
-                    ImGuiTestOpFlags_NoError);
+  // The scoped Settings IA search is drawn only by the real SettingsPanel
+  // (the unavailable placeholder has no searchable category model).
+  ImGuiTestItemInfo header = ctx->ItemInfo("//##RightPanel/**/##SettingsSearch",
+                                           ImGuiTestOpFlags_NoError);
   IM_CHECK_NO_RET(header.ID != 0);
 }
 

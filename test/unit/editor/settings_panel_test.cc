@@ -1,5 +1,6 @@
 #include "app/editor/shell/windows/settings_panel.h"
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <filesystem>
@@ -119,6 +120,69 @@ TEST(SettingsPanelTest, OverlaySummaryClassifiesStandardAndCustomValues) {
   EXPECT_EQ(summary[0].first, "0xC0, 0xC1");
   EXPECT_FALSE(summary[0].second);
   EXPECT_TRUE(summary[1].second);
+}
+
+TEST(SettingsPanelTest, CategoriesAreSeparatedByScope) {
+  const auto application =
+      SettingsPanel::FilterCategories(SettingsPanel::Scope::kApplication, "");
+  const auto workspace =
+      SettingsPanel::FilterCategories(SettingsPanel::Scope::kWorkspace, "");
+  const auto project =
+      SettingsPanel::FilterCategories(SettingsPanel::Scope::kProject, "");
+
+  ASSERT_EQ(application.size(), 6U);
+  ASSERT_EQ(workspace.size(), 1U);
+  ASSERT_EQ(project.size(), 3U);
+  EXPECT_EQ(workspace.front().id, std::string("layout"));
+  EXPECT_TRUE(
+      std::any_of(project.begin(), project.end(),
+                  [](const SettingsPanel::CategoryDescriptor& category) {
+                    return std::string(category.id) == "features";
+                  }));
+  EXPECT_TRUE(
+      std::any_of(project.begin(), project.end(),
+                  [](const SettingsPanel::CategoryDescriptor& category) {
+                    return std::string(category.id) == "patches";
+                  }));
+}
+
+TEST(SettingsPanelTest, CategorySearchMatchesKeywordsWithinScope) {
+  const auto experimental = SettingsPanel::FilterCategories(
+      SettingsPanel::Scope::kProject, "experimental");
+  ASSERT_EQ(experimental.size(), 1U);
+  EXPECT_EQ(experimental.front().id, std::string("features"));
+
+  const auto model = SettingsPanel::FilterCategories(
+      SettingsPanel::Scope::kApplication, "ollama");
+  ASSERT_EQ(model.size(), 1U);
+  EXPECT_EQ(model.front().id, std::string("ai"));
+
+  EXPECT_TRUE(SettingsPanel::FilterCategories(SettingsPanel::Scope::kWorkspace,
+                                              "experimental")
+                  .empty());
+}
+
+TEST(SettingsPanelTest, ScopedLayoutRendersAtNarrowAndWideWidths) {
+  ScopedImGuiContext imgui;
+  UserSettings settings;
+  SettingsPanel panel;
+  panel.SetUserSettings(&settings);
+
+  for (float scale : {1.0f, 1.5f}) {
+    for (float width : {360.0f, 800.0f}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "width=" << width << " scale=" << scale);
+      ImGui::GetIO().FontGlobalScale = scale;
+      ImGui::GetIO().DisplaySize = ImVec2(width, 720.0f);
+      ImGui::NewFrame();
+      ImGui::SetNextWindowSize(ImVec2(width, 700.0f));
+      ImGui::Begin("SettingsLayoutTest");
+      EXPECT_NO_FATAL_FAILURE(panel.Draw());
+      ImGui::End();
+      ImGui::EndFrame();
+      ImGui::Render();
+    }
+  }
 }
 
 TEST(SettingsPanelTest, MinecartNavigationUsesCallbackWithoutEditingProject) {
