@@ -1,4 +1,4 @@
-#include "app/editor/graphics/usage_preview_panel.h"
+#include "app/editor/graphics/ui/usage/usage_preview_view.h"
 
 #include <algorithm>
 #include <set>
@@ -36,21 +36,21 @@ void QueueTexture(gfx::Bitmap& bitmap) {
 
 }  // namespace
 
-void UsagePreviewPanel::SetRom(Rom* rom) {
+void UsagePreviewView::SetRom(Rom* rom) {
   if (rom != rom_) {
     rom_ = rom;
     InvalidateTables();
   }
 }
 
-void UsagePreviewPanel::SetGameData(zelda3::GameData* game_data) {
+void UsagePreviewView::SetGameData(zelda3::GameData* game_data) {
   if (game_data != game_data_) {
     game_data_ = game_data;
     InvalidateTables();
   }
 }
 
-void UsagePreviewPanel::InvalidateTables() {
+void UsagePreviewView::InvalidateTables() {
   tables_ready_ = false;
   room_blocks_.clear();
   room_gfx_.clear();
@@ -61,7 +61,7 @@ void UsagePreviewPanel::InvalidateTables() {
   dirty_ = true;
 }
 
-void UsagePreviewPanel::EnsureTables() {
+void UsagePreviewView::EnsureTables() {
   if (tables_ready_ || rom_ == nullptr || !rom_->is_loaded() ||
       game_data_ == nullptr) {
     return;
@@ -72,7 +72,7 @@ void UsagePreviewPanel::EnsureTables() {
   tables_ready_ = true;
 }
 
-uint64_t UsagePreviewPanel::HashWatchedSheets() const {
+uint64_t UsagePreviewView::HashWatchedSheets() const {
   uint64_t hash = kFnvOffset;
   std::set<uint16_t> ids = state_->modified_sheets;
   ids.insert(state_->current_sheet_id);
@@ -84,13 +84,13 @@ uint64_t UsagePreviewPanel::HashWatchedSheets() const {
   return hash;
 }
 
-usage_preview::SheetPixels UsagePreviewPanel::Snapshot() const {
+usage_preview::SheetPixels UsagePreviewView::Snapshot() const {
   std::set<uint16_t> ids = state_->modified_sheets;
   ids.insert(state_->current_sheet_id);
   return usage_preview::SnapshotArenaSheets(ids, game_data_);
 }
 
-int UsagePreviewPanel::SelectedTileIndex() const {
+int UsagePreviewView::SelectedTileIndex() const {
   const auto& selection = state_->selection;
   if (follow_selection_ && selection.is_active) {
     const int tile = (selection.y / 8) * 16 + selection.x / 8;
@@ -99,8 +99,8 @@ int UsagePreviewPanel::SelectedTileIndex() const {
   return tile_index_;
 }
 
-void UsagePreviewPanel::ShowImage(gfx::Bitmap& bitmap,
-                                  const usage_preview::IndexedImage& image) {
+void UsagePreviewView::ShowImage(gfx::Bitmap& bitmap,
+                                 const usage_preview::IndexedImage& image) {
   if (image.empty()) {
     return;
   }
@@ -118,9 +118,9 @@ void UsagePreviewPanel::ShowImage(gfx::Bitmap& bitmap,
   QueueTexture(bitmap);
 }
 
-void UsagePreviewPanel::DrawBitmapFit(gfx::Bitmap& bitmap,
-                                      const std::vector<SDL_Rect>& rects,
-                                      float max_scale) {
+void UsagePreviewView::DrawBitmapFit(gfx::Bitmap& bitmap,
+                                     const std::vector<SDL_Rect>& rects,
+                                     float max_scale) {
   if (!bitmap.is_active() || bitmap.width() <= 0 || !bitmap.texture()) {
     ImGui::TextDisabled("%s", tr("Rendering..."));
     return;
@@ -141,7 +141,7 @@ void UsagePreviewPanel::DrawBitmapFit(gfx::Bitmap& bitmap,
   }
 }
 
-void UsagePreviewPanel::Draw() {
+void UsagePreviewView::Draw() {
   if (rom_ == nullptr || !rom_->is_loaded() || game_data_ == nullptr) {
     ImGui::TextDisabled("%s", tr("Load a ROM to preview sheet usage."));
     return;
@@ -243,7 +243,7 @@ void UsagePreviewPanel::Draw() {
   }
 }
 
-void UsagePreviewPanel::DrawRoomContext(bool render_now) {
+void UsagePreviewView::DrawRoomContext(bool render_now) {
   if (rooms_for_sheet_.empty()) {
     ImGui::TextDisabled("%s", tr("No dungeon room loads this sheet."));
     return;
@@ -291,7 +291,7 @@ void UsagePreviewPanel::DrawRoomContext(bool render_now) {
                 2.0f);
 }
 
-void UsagePreviewPanel::DrawSpriteContext(bool render_now, float delta) {
+void UsagePreviewView::DrawSpriteContext(bool render_now, float delta) {
   if (spritesets_for_sheet_.empty()) {
     ImGui::TextDisabled("%s",
                         tr("No spriteset loads this sheet in slots 4-7."));
@@ -430,7 +430,7 @@ void UsagePreviewPanel::DrawSpriteContext(bool render_now, float delta) {
   DrawBitmapFit(sprite_bitmap_, {}, 4.0f);
 }
 
-void UsagePreviewPanel::DrawTile16Context(bool render_now) {
+void UsagePreviewView::DrawTile16Context(bool render_now) {
   const uint16_t sheet = state_->current_sheet_id;
   if (!areas_.has_value()) {
     ImGui::TextDisabled(
