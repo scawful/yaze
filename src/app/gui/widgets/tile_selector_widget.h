@@ -51,6 +51,10 @@ class TileSelectorWidget {
 
   void AttachCanvas(Canvas* canvas);
   void SetTileCount(int total_tiles);
+  void SetDisplayScale(float display_scale);
+  float display_scale() const { return config_.display_scale; }
+  void SetTilesPerRow(int tiles_per_row);
+  int tiles_per_row() const { return config_.tiles_per_row; }
   void SetSelectedTile(int tile_id);
   int GetSelectedTileID() const { return selected_tile_id_; }
   int GetMaxTileId() const { return total_tiles_ > 0 ? total_tiles_ - 1 : 0; }

@@ -33,6 +33,7 @@
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/ui_config.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "rom/rom.h"
@@ -40,6 +41,25 @@
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
+
+namespace {
+
+void DrawSheetScaleControl(const char* id, gui::AdaptiveSheetScaleMode* mode) {
+  if (mode == nullptr) {
+    return;
+  }
+  constexpr const char* kLabels[] = {"Fit", "1x", "2x", "4x"};
+  int selected = static_cast<int>(*mode);
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled("%s", tr("Scale"));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(gui::ScaledSize(80.0f, 0.0f).x);
+  if (ImGui::Combo(id, &selected, kLabels, IM_ARRAYSIZE(kLabels))) {
+    *mode = static_cast<gui::AdaptiveSheetScaleMode>(selected);
+  }
+}
+
+}  // namespace
 
 OverworldCanvasRenderer::OverworldCanvasRenderer(OverworldEditor* editor)
     : editor_(editor) {
@@ -479,6 +499,20 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   editor_->blockset_canvas_.AddContextMenuItem(
       editor_->blockset_selector_->CopyTileIdMenuItem());
 
+  const float selector_available_width = ImGui::GetContentRegionAvail().x;
+  DrawSheetScaleControl("##Tile16Scale", &tile16_scale_mode_);
+  const int tile_rows =
+      (zelda3::kNumTile16Individual + kTile16SelectorColumns - 1) /
+      kTile16SelectorColumns;
+  const gui::AdaptiveSheetLayout selector_layout =
+      gui::ResolveAdaptiveSheetLayout(
+          selector_available_width, 16 * kTile16SelectorColumns, 16 * tile_rows,
+          tile16_scale_mode_, 0.35f, 4.0f,
+          gui::TileSelectorWidget::CurrentScrollbarSize());
+  editor_->blockset_selector_->SetDisplayScale(selector_layout.display_scale);
+  ImGui::SameLine();
+  ImGui::TextDisabled("%.2fx", selector_layout.display_scale);
+
   // Filter bar sits directly in the panel; only the grid scrolls. The grid
   // child fills the panel width (the panel's preferred width is grid +
   // scrollbar), has no padding or border, and never scrolls horizontally.
@@ -578,11 +612,20 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
     }
   }
 
+  const float available_width = ImGui::GetContentRegionAvail().x;
+  DrawSheetScaleControl("##AreaGraphicsScale", &area_graphics_scale_mode_);
+  const gui::AdaptiveSheetLayout sheet_layout = gui::ResolveAdaptiveSheetLayout(
+      available_width, 0x80, kOverworldMapSize, area_graphics_scale_mode_,
+      0.35f, 4.0f, ImGui::GetStyle().ScrollbarSize);
+  ImGui::SameLine();
+  ImGui::TextDisabled("%.2fx", sheet_layout.display_scale);
+
   // Configure canvas frame options for area graphics
   gui::CanvasFrameOptions frame_opts;
-  frame_opts.canvas_size = kCurrentGfxCanvasSize;
+  frame_opts.canvas_size = ImVec2(sheet_layout.displayed_width + 4.0f,
+                                  sheet_layout.displayed_height + 4.0f);
   frame_opts.draw_grid = true;
-  frame_opts.grid_step = 32.0f;  // Tile selector grid
+  frame_opts.grid_step = 16.0f * sheet_layout.display_scale;
   frame_opts.draw_context_menu = true;
   frame_opts.draw_overlay = true;
   frame_opts.render_popups = true;
@@ -598,9 +641,11 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
   if (editor_->current_graphics_set_.contains(editor_->current_map_) &&
       editor_->current_graphics_set_[editor_->current_map_]->is_active()) {
     editor_->current_gfx_canvas_.DrawBitmap(
-        *editor_->current_graphics_set_[editor_->current_map_], 2, 2, 2.0f);
+        *editor_->current_graphics_set_[editor_->current_map_], 2, 2,
+        sheet_layout.display_scale);
   }
-  editor_->current_gfx_canvas_.DrawTileSelector(32.0f);
+  editor_->current_gfx_canvas_.DrawTileSelector(16.0f *
+                                                sheet_layout.display_scale);
 
   gui::EndCanvas(editor_->current_gfx_canvas_, canvas_rt, frame_opts);
   ImGui::EndChild();

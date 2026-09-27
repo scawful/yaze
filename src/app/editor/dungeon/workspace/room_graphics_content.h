@@ -13,6 +13,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/layout/adaptive_sheet_layout.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 
@@ -26,7 +27,7 @@ class DungeonEditorV2;
  * @brief WindowContent for displaying room graphics blocks
  *
  * This panel shows the graphics blocks used by the current room,
- * displaying a 2x8 grid of 128x32 graphics blocks.
+ * displaying an adaptive grid of 128x32 graphics blocks.
  *
  * @see WindowContent - Base interface
  */
@@ -101,6 +102,8 @@ class RoomGraphicsContent : public WindowContent {
   uint64_t preview_graphics_revision_ = 0;
   bool preview_cache_valid_ = false;
   bool show_source_trace_ = false;
+  gui::AdaptiveSheetScaleMode sheet_scale_mode_ =
+      gui::AdaptiveSheetScaleMode::kFit;
 
   // Palette tracking for proper sheet coloring
   gfx::PaletteGroup current_palette_group_;
