@@ -16,7 +16,7 @@
 
 namespace yaze::zelda3 {
 
-class GameData;
+struct GameData;
 
 /**
  * @file gfx_sheet_inventory.h
