@@ -665,11 +665,13 @@ void EditorManager::ResetCurrentEditorLayout() {
 
 #ifdef YAZE_BUILD_AGENT_UI
 void EditorManager::ShowAIAgent() {
-  if (!user_settings_.prefs().show_experimental_editors) {
+  if (EditorRegistry::ShouldWarnAboutExperimentalEditor(
+          EditorType::kAgent,
+          user_settings_.prefs().show_experimental_editors)) {
     toast_manager_.Show(
-        "AI Agent is experimental — enable Experimental Editors in Settings",
+        "AI Agent is experimental. It remains available; enable experimental "
+        "features in Settings to acknowledge this warning.",
         ToastType::kWarning);
-    return;
   }
   // Apply saved agent settings from the current project when opening the Agent
   // UI to respect the user's preferred provider/model.
@@ -2737,11 +2739,6 @@ std::string EditorManager::GetPreferredStartupCategory(
     return preferred;
   }
 
-  const EditorType type = EditorRegistry::GetEditorTypeFromCategory(preferred);
-  if (EditorRegistry::IsExperimentalEditor(type) &&
-      !user_settings_.prefs().show_experimental_editors) {
-    return PreferStartupCategory("", available_categories);
-  }
   return preferred;
 }
 
@@ -4357,16 +4354,32 @@ absl::Status EditorManager::SaveRomInternal(
   }
 
   // --- Backup policy setup ---
+  const auto experiment_policy =
+      current_editor_ != nullptr
+          ? EditorRegistry::GetExperimentPolicy(current_editor_->type())
+          : EditorExperimentPolicy{};
+  const bool force_experimental_backup =
+      !user_settings_.prefs().show_experimental_editors &&
+      experiment_policy.experimental &&
+      experiment_policy.disabled_save_posture ==
+          ExperimentalSavePosture::kDefensiveBackup;
+  if (force_experimental_backup) {
+    toast_manager_.Show(
+        "Experimental editor save: backup forced before writing the ROM",
+        ToastType::kWarning);
+  }
   if (save_project->project_opened()) {
     rom_lifecycle_.ApplyDefaultBackupPolicy(
-        save_project->workspace_settings.backup_on_save,
+        save_project->workspace_settings.backup_on_save ||
+            force_experimental_backup,
         save_project->GetAbsolutePath(save_project->rom_backup_folder),
         save_project->workspace_settings.backup_retention_count,
         save_project->workspace_settings.backup_keep_daily,
         save_project->workspace_settings.backup_keep_daily_days);
   } else {
     rom_lifecycle_.ApplyDefaultBackupPolicy(
-        user_settings_.prefs().backup_before_save, "", 20, true, 14);
+        user_settings_.prefs().backup_before_save || force_experimental_backup,
+        "", 20, true, 14);
   }
 
   // Reject an already-invalid Oracle layout before any editor serializer can
@@ -7116,23 +7129,24 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 
 void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
                                    bool from_dialog) {
-  if (EditorRegistry::IsExperimentalEditor(editor_type) &&
-      !user_settings_.prefs().show_experimental_editors) {
-    toast_manager_.Show(
-        absl::StrFormat(
-            "%s is experimental — enable Experimental Editors in Settings",
-            kEditorNames[static_cast<int>(editor_type)]),
-        ToastType::kWarning);
-    return;
-  }
-
-  // Special case: Agent editor requires EditorManager-specific handling
 #ifdef YAZE_BUILD_AGENT_UI
+  // Agent has its own activation path, including the shared experimental
+  // warning. Handle it first so one user action cannot emit the warning twice.
   if (editor_type == EditorType::kAgent) {
     ShowAIAgent();
     return;
   }
 #endif
+
+  if (EditorRegistry::ShouldWarnAboutExperimentalEditor(
+          editor_type, user_settings_.prefs().show_experimental_editors)) {
+    toast_manager_.Show(
+        absl::StrFormat(
+            "%s is experimental. It remains available; enable experimental "
+            "features in Settings to acknowledge this warning.",
+            kEditorNames[static_cast<int>(editor_type)]),
+        ToastType::kWarning);
+  }
 
   // Fresh launch has no ROM session, so GetCurrentEditorSet() is null and
   // EditorActivator::SwitchToEditor would silently no-op (BUG-020) — that was
@@ -7320,12 +7334,6 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
             return absl::FailedPreconditionError(
                 "Minecart Tracks requires its project session to be active.");
           }
-          if (!core::FeatureFlags::get().kEnableCustomObjects) {
-            return absl::FailedPreconditionError(
-                "Enable Custom Dungeon Objects before opening Minecart "
-                "Tracks.");
-          }
-
           RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kDungeon));
           auto* dungeon = GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
               EditorType::kDungeon);

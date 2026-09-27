@@ -43,7 +43,8 @@ TEST(CommandPaletteWorkflowTest, RegistersEnabledWorkflowPanelsAndActions) {
   window_manager.RegisterSession(0);
   window_manager.SetActiveSession(0);
   window_manager.RegisterWindowContent(
-      std::make_unique<MockWorkflowPanel>("test.workflow_panel", true));
+      std::make_unique<MockWorkflowPanel>("test.workflow_panel", true),
+      WindowPresentationPolicy::EmbeddedTool());
   window_manager.RegisterWindowContent(std::make_unique<MockWorkflowPanel>(
       "test.workflow_panel_disabled", false));
 
@@ -81,6 +82,10 @@ TEST(CommandPaletteWorkflowTest, RegistersEnabledWorkflowPanelsAndActions) {
   EXPECT_TRUE(has_command("Planning: Open Story Graph"));
   EXPECT_TRUE(has_command("Build & Run: Build Project"));
   EXPECT_FALSE(has_command("Build & Run: Disabled Workflow"));
+  ASSERT_NE(window_manager.GetWindowDescriptor(0, "test.workflow_panel"),
+            nullptr);
+  EXPECT_FALSE(window_manager.GetWindowDescriptor(0, "test.workflow_panel")
+                   ->IsListedInWindowBrowser());
 
   auto panel_it = std::find_if(
       commands.begin(), commands.end(), [](const CommandEntry& entry) {

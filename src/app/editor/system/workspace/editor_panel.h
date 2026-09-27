@@ -6,6 +6,7 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 namespace yaze {
 namespace editor {
@@ -51,6 +52,68 @@ enum class WindowContextScope : uint8_t {
  * Global panels share a single descriptor across all sessions.
  */
 enum class WindowScope { kSession, kGlobal };
+
+/**
+ * @enum WindowPresentationRole
+ * @brief Product role for a registered workspace surface.
+ *
+ * Registration describes ownership and lifetime. Presentation policy describes
+ * how users discover the same content. Keeping those concerns separate lets an
+ * embedded tool remain available to context actions and the command palette
+ * without automatically adding another row to every window browser.
+ */
+enum class WindowPresentationRole : uint8_t {
+  kCoreWorkspace,
+  kEmbeddedTool,
+  kOptionalPopOut,
+  kDiagnostic,
+};
+
+enum class WindowDefaultHost : uint8_t {
+  kWorkspace,
+  kEmbedded,
+};
+
+struct WindowPresentationPolicy {
+  WindowPresentationRole role = WindowPresentationRole::kOptionalPopOut;
+  WindowDefaultHost default_host = WindowDefaultHost::kWorkspace;
+  bool list_in_window_browser = true;
+  bool allow_popout = true;
+  std::string required_capability;
+  std::function<bool()> capability_condition;
+
+  bool IsAdmitted() const {
+    return !capability_condition || capability_condition();
+  }
+
+  static WindowPresentationPolicy CoreWorkspace() {
+    return {.role = WindowPresentationRole::kCoreWorkspace};
+  }
+
+  static WindowPresentationPolicy EmbeddedTool(
+      std::string capability = std::string()) {
+    return {
+        .role = WindowPresentationRole::kEmbeddedTool,
+        .default_host = WindowDefaultHost::kEmbedded,
+        .list_in_window_browser = false,
+        .allow_popout = true,
+        .required_capability = std::move(capability),
+    };
+  }
+
+  static WindowPresentationPolicy OptionalPopOut() {
+    return {.role = WindowPresentationRole::kOptionalPopOut};
+  }
+
+  static WindowPresentationPolicy Diagnostic() {
+    return {
+        .role = WindowPresentationRole::kDiagnostic,
+        .default_host = WindowDefaultHost::kEmbedded,
+        .list_in_window_browser = false,
+        .allow_popout = true,
+    };
+  }
+};
 
 /**
  * @class WindowContent
@@ -223,6 +286,16 @@ class WindowContent {
    * Default is session-scoped.
    */
   virtual WindowScope GetScope() const { return WindowScope::kSession; }
+
+  /**
+   * @brief How this content is hosted and advertised by workspace chrome.
+   *
+   * Optional pop-out preserves historical behavior for existing panels. New
+   * embedded and diagnostic tools should override this explicitly.
+   */
+  virtual WindowPresentationPolicy GetPresentationPolicy() const {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
 
   /**
    * @brief Check if this panel is currently enabled

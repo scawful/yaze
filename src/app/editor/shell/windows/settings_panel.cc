@@ -310,6 +310,26 @@ void SettingsPanel::DrawGeneralSettings() {
   ImGui::TextDisabled(tr("Feature Flags configuration"));
   ImGui::Spacing();
 
+  bool experiments_enabled = user_settings_->prefs().show_experimental_editors;
+  if (ImGui::Checkbox(tr("Acknowledge Experimental Editors"),
+                      &experiments_enabled)) {
+    user_settings_->prefs().show_experimental_editors = experiments_enabled;
+    user_settings_->Save();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        tr("Acknowledges Screen, Music, and Agent editor maturity. Turning "
+           "this off keeps the editors visible but warns and may force a "
+           "backup. Feature-specific write guards remain authoritative."));
+  }
+  if (!experiments_enabled) {
+    ImGui::TextDisabled(
+        "%s",
+        tr("Experimental editors remain available with warnings and defensive "
+           "save safeguards."));
+  }
+  ImGui::Separator();
+
   if (ImGui::TreeNode(ICON_MD_FLAG " System Flags")) {
     flags.DrawSystemFlags();
     ImGui::TreePop();
@@ -902,16 +922,6 @@ void SettingsPanel::DrawAppearanceSettings() {
     ImGui::SetTooltip(tr(
         "When off (default), hiding emulator panels pauses the SNES tick and "
         "audio. Music playback still drives its own frames."));
-  }
-
-  bool show_experimental = user_settings_->prefs().show_experimental_editors;
-  if (ImGui::Checkbox(tr("Show Experimental Editors"), &show_experimental)) {
-    user_settings_->prefs().show_experimental_editors = show_experimental;
-    user_settings_->Save();
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        tr("Enable Screen, Music, and Agent editors marked in development."));
   }
 }
 

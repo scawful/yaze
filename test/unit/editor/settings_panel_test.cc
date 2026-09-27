@@ -188,7 +188,8 @@ TEST(SettingsPanelTest, DisplayDensityKeepsClassicYazePaintedByColorsYaze) {
   themes.ApplyTheme(saved);
 }
 
-TEST(SettingsPanelTest, LateCustomObjectEnableOpensManagerOwnedMinecartPanel) {
+TEST(SettingsPanelTest,
+     MinecartManifestProjectOpensPanelWhenExperimentFlagIsOff) {
   FeatureFlagsGuard flags_guard;
   ScopedImGuiContext imgui;
   ScopedManagerProject fixture;
@@ -210,6 +211,15 @@ TEST(SettingsPanelTest, LateCustomObjectEnableOpensManagerOwnedMinecartPanel) {
   project.name = "Settings Minecart";
   project.filepath = fixture.project_path().string();
   project.rom_filename = fixture.rom_path().string();
+  const std::filesystem::path manifest_path =
+      fixture.root() / "hack_manifest.json";
+  std::ofstream manifest_file(manifest_path,
+                              std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(manifest_file.is_open());
+  manifest_file
+      << R"({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":"Data/minecart_tracks.asm"}}})";
+  manifest_file.close();
+  project.hack_manifest_file = manifest_path.string();
   project.feature_flags.kEnableCustomObjects = false;
   ASSERT_TRUE(project.Save().ok());
 
@@ -236,7 +246,9 @@ TEST(SettingsPanelTest, LateCustomObjectEnableOpensManagerOwnedMinecartPanel) {
                 session_id, DungeonEditorV2::kMinecartTrackEditorId),
             nullptr);
 
-  core::FeatureFlags::get().kEnableCustomObjects = true;
+  // Project capability admits the tool. The flag controls runtime/write
+  // behavior and warning posture, not whether the editor can be opened.
+  core::FeatureFlags::get().kEnableCustomObjects = false;
   SettingsPanel* settings = session->editors.GetSettingsPanel();
   ASSERT_NE(settings, nullptr);
   const absl::Status open_status =

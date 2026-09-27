@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <utility>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/events/core_events.h"
@@ -29,7 +30,8 @@ namespace editor {
 
 namespace {
 
-WindowDescriptor BuildDescriptorFromPanel(const WindowContent& panel) {
+WindowDescriptor BuildDescriptorFromPanel(
+    const WindowContent& panel, const WindowPresentationPolicy& presentation) {
   WindowDescriptor descriptor;
   auto* panel_ptr = const_cast<WindowContent*>(&panel);
   descriptor.card_id = panel.GetId();
@@ -45,6 +47,7 @@ WindowDescriptor BuildDescriptorFromPanel(const WindowContent& panel) {
   descriptor.scope = panel.GetScope();
   descriptor.window_lifecycle = panel.GetWindowLifecycle();
   descriptor.context_scope = panel.GetContextScope();
+  descriptor.presentation = presentation;
   descriptor.enabled_condition = [panel_ptr]() {
     return panel_ptr->IsEnabled();
   };
@@ -602,6 +605,15 @@ void WorkspaceWindowManager::RegisterRegistryWindowContentsForSession(
 
 void WorkspaceWindowManager::RegisterWindowContent(
     std::unique_ptr<WindowContent> panel) {
+  const WindowPresentationPolicy presentation =
+      panel ? panel->GetPresentationPolicy()
+            : WindowPresentationPolicy::OptionalPopOut();
+  RegisterWindowContent(std::move(panel), presentation);
+}
+
+void WorkspaceWindowManager::RegisterWindowContent(
+    std::unique_ptr<WindowContent> panel,
+    WindowPresentationPolicy presentation) {
   if (!panel) {
     LOG_ERROR("WorkspaceWindowManager",
               "Attempted to register null WindowContent");
@@ -616,7 +628,7 @@ void WorkspaceWindowManager::RegisterWindowContent(
   const std::string panel_id = ResolveBaseWindowId(panel->GetId());
 
   // Auto-register WindowDescriptor for sidebar/menu visibility
-  WindowDescriptor descriptor = BuildDescriptorFromPanel(*panel);
+  WindowDescriptor descriptor = BuildDescriptorFromPanel(*panel, presentation);
 
   // Check if panel should be visible by default
   bool visible_by_default = panel->IsVisibleByDefault();
@@ -1078,6 +1090,11 @@ void WorkspaceWindowManager::OnEditorSwitch(const std::string& from_category,
 
 bool WorkspaceWindowManager::OpenWindowFloating(
     size_t session_id, const std::string& base_window_id) {
+  const auto* descriptor = GetWindowDescriptorImpl(session_id, base_window_id);
+  if (descriptor == nullptr || !descriptor->IsAdmitted() ||
+      !descriptor->presentation.allow_popout) {
+    return false;
+  }
   if (!OpenWindowImpl(session_id, base_window_id)) {
     return false;
   }
@@ -1096,6 +1113,9 @@ bool WorkspaceWindowManager::OpenWindowImpl(size_t session_id,
 
   auto* descriptor = FindDescriptorByPrefixedId(prefixed_id);
   if (descriptor) {
+    if (!descriptor->IsAdmitted()) {
+      return false;
+    }
     const bool was_visible =
         (descriptor->visibility_flag && *descriptor->visibility_flag);
     if (descriptor->visibility_flag) {
@@ -1226,6 +1246,9 @@ void WorkspaceWindowManager::ShowAllWindowsInSession(size_t session_id) {
   if (const auto* session_windows = FindSessionWindowIds(session_id)) {
     for (const auto& prefixed_card_id : *session_windows) {
       if (auto* descriptor = FindDescriptorByPrefixedId(prefixed_card_id)) {
+        if (!descriptor->IsListedInWindowBrowser()) {
+          continue;
+        }
         if (descriptor->visibility_flag) {
           *descriptor->visibility_flag = true;
         }
@@ -1259,6 +1282,9 @@ void WorkspaceWindowManager::ShowAllWindowsInCategory(
     for (const auto& prefixed_card_id : *session_windows) {
       if (auto* descriptor = FindDescriptorByPrefixedId(prefixed_card_id)) {
         if (descriptor->category != category) {
+          continue;
+        }
+        if (!descriptor->IsListedInWindowBrowser()) {
           continue;
         }
         if (descriptor->visibility_flag) {

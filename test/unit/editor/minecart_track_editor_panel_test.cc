@@ -737,19 +737,19 @@ TEST(MinecartTrackEditorPanelTest,
 }
 
 TEST(MinecartTrackEditorPanelTest,
-     LateCustomObjectEnableRegistersMinecartPanelInOwningSession) {
+     ProjectCapabilityRegistersMinecartPanelWithFlagDisabled) {
   FeatureFlagsGuard flags_guard;
   core::FeatureFlags::get().kEnableCustomObjects = false;
+  ScopedTestProject fixture;
 
   WorkspaceWindowManager window_manager;
   constexpr size_t kSessionId = 7;
   window_manager.RegisterSession(kSessionId);
   window_manager.SetActiveSession(kSessionId);
 
-  project::YazeProject project;
   DungeonEditorV2 editor;
   EditorDependencies dependencies;
-  dependencies.project = &project;
+  dependencies.project = fixture.project();
   dependencies.session_id = kSessionId;
   dependencies.window_manager = &window_manager;
   editor.SetDependencies(dependencies);
@@ -757,14 +757,16 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_EQ(window_manager.GetWindowContent(
                 kSessionId, DungeonEditorV2::kMinecartTrackEditorId),
             nullptr);
-  EXPECT_FALSE(editor.EnsureMinecartTrackEditorPanel().ok());
-
-  core::FeatureFlags::get().kEnableCustomObjects = true;
   ASSERT_TRUE(editor.EnsureMinecartTrackEditorPanel().ok());
   auto* registered = window_manager.GetWindowContent(
       kSessionId, DungeonEditorV2::kMinecartTrackEditorId);
   ASSERT_NE(registered, nullptr);
   EXPECT_NE(dynamic_cast<MinecartTrackEditorPanel*>(registered), nullptr);
+  const auto* descriptor = window_manager.GetWindowDescriptor(
+      kSessionId, DungeonEditorV2::kMinecartTrackEditorId);
+  ASSERT_NE(descriptor, nullptr);
+  EXPECT_FALSE(descriptor->IsListedInWindowBrowser());
+  EXPECT_EQ(descriptor->presentation.required_capability, "minecart_tracks");
   EXPECT_TRUE(window_manager.OpenWindow(
       kSessionId, DungeonEditorV2::kMinecartTrackEditorId));
 
@@ -777,7 +779,8 @@ TEST(MinecartTrackEditorPanelTest,
 TEST(MinecartTrackEditorPanelTest,
      LateMinecartRegistrationRejectsInactiveOwningSession) {
   FeatureFlagsGuard flags_guard;
-  core::FeatureFlags::get().kEnableCustomObjects = true;
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  ScopedTestProject fixture;
 
   WorkspaceWindowManager window_manager;
   constexpr size_t kOwningSessionId = 7;
@@ -788,6 +791,7 @@ TEST(MinecartTrackEditorPanelTest,
 
   DungeonEditorV2 editor;
   EditorDependencies dependencies;
+  dependencies.project = fixture.project();
   dependencies.session_id = kOwningSessionId;
   dependencies.window_manager = &window_manager;
   editor.SetDependencies(dependencies);

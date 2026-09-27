@@ -86,6 +86,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
         if (!window) {
           continue;
         }
+        if (!window->IsListedInWindowBrowser()) {
+          continue;
+        }
         if (category != "All" && window->category != category) {
           continue;
         }
@@ -103,6 +106,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
         const auto* window =
             window_manager_.GetWindowDescriptor(session_id, window_id);
         if (!window) {
+          continue;
+        }
+        if (!window->IsListedInWindowBrowser()) {
           continue;
         }
         if (category != "All" && window->category != category) {
@@ -246,6 +252,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
               session_id, category_filter_);
           windows.reserve(category_windows.size());
           for (const auto& window : category_windows) {
+            if (!window.IsListedInWindowBrowser()) {
+              continue;
+            }
             windows.push_back(window.card_id);
           }
         }
@@ -254,6 +263,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           const auto* window =
               window_manager_.GetWindowDescriptor(session_id, window_id);
           if (!window) {
+            continue;
+          }
+          if (!window->IsListedInWindowBrowser()) {
             continue;
           }
 

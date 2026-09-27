@@ -76,9 +76,8 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
         };
       } else {
         preset.default_visible_panels = {
-            Panels::kDungeonRoomSelector,   Panels::kDungeonRoomMatrix,
-            Panels::kDungeonObjectSelector, Panels::kDungeonPaletteEditor,
-            Panels::kDungeonRoomGraphics,
+            Panels::kDungeonRoomSelector,
+            Panels::kDungeonRoomMatrix,
         };
         preset.panel_positions = {
             {Panels::kDungeonRoomMatrix, DockPosition::Center},

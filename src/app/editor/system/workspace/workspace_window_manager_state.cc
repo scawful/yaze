@@ -29,6 +29,7 @@ WindowDescriptor BuildDescriptorFromPanel(const WindowContent& panel) {
   descriptor.scope = panel.GetScope();
   descriptor.window_lifecycle = panel.GetWindowLifecycle();
   descriptor.context_scope = panel.GetContextScope();
+  descriptor.presentation = panel.GetPresentationPolicy();
   descriptor.enabled_condition = [panel_ptr]() {
     return panel_ptr->IsEnabled();
   };

@@ -498,6 +498,9 @@ void MenuOrchestrator::AddPanelsMenuItems() {
 
     if (ImGui::BeginMenu(label.c_str())) {
       auto cards = window_manager_->GetWindowsInCategory(session_id, category);
+      std::erase_if(cards, [](const WindowDescriptor& descriptor) {
+        return !descriptor.IsListedInWindowBrowser();
+      });
 
       if (cards.empty()) {
         ImGui::TextDisabled("No windows in this category");
