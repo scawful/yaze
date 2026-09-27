@@ -625,9 +625,13 @@ RoomCensus BuildRoomCensus(const RoomCensusInput& input) {
   };
 
   // Header stair slots that a stair object uses; used for the reciprocity
-  // check below.
+  // check below. A header byte can resolve past the last room (a page-1 byte
+  // >= 0x28 gives 0x128-0x1FF), so check the range before indexing `facts`.
   auto stair_targets = [&](int room) {
     std::vector<int> targets;
+    if (room < 0 || room >= kRooms) {
+      return targets;
+    }
     for (int slot = 0; slot < 4; ++slot) {
       if (facts[room].stair_slot_used[slot]) {
         targets.push_back(
