@@ -4,6 +4,7 @@
 
 #include "gtest/gtest.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 
@@ -185,6 +186,26 @@ TEST(OverworldMap32StorageTest, CapacityTracksDetectedRomProfile) {
   EXPECT_EQ(Map32DefinitionCapacityForProfile(profile),
             kMap32DefinitionCapacityExpanded);
   EXPECT_EQ(kMap32DefinitionCapacityExpanded, 17728);
+}
+
+TEST(OverworldMap32StorageTest, ExpandedSaveKeepsOperandsThatAlreadyMatch) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  Overworld overworld(&rom);
+  PopulateUniqueTile32Maps(overworld.mutable_map_tiles(), 64);
+  ASSERT_TRUE(overworld.CreateTile32Tilemap().ok());
+
+  // ZScream/Oracle write the FastROM mirror ($84:8000) of the target; the
+  // save must not rewrite it as the equivalent $04:8000.
+  const uint32_t top_right = GetMap32TileTRExpanded();
+  const uint32_t fast_rom = PcToSnes(top_right) | 0x800000;
+  ASSERT_TRUE(rom.WriteLong(0x0176EC, fast_rom).ok());
+
+  ASSERT_TRUE(overworld.SaveMap32Expanded().ok());
+  EXPECT_EQ(*rom.ReadLong(0x0176EC), fast_rom);
+  // An operand that points elsewhere is still relocated.
+  EXPECT_EQ(*rom.ReadLong(0x0176F3), PcToSnes(top_right + 1));
+  EXPECT_EQ(*rom.ReadLong(0x01779A), PcToSnes(GetMap32TileBRExpanded() + 5));
 }
 
 TEST(OverworldMap32StorageTest, ExpandedOverflowFailsBeforeAnyRomWrite) {
