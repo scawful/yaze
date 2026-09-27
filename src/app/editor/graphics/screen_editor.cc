@@ -83,6 +83,16 @@ void ScreenEditor::Initialize() {
        .priority = 50,
        .enabled_condition = [this]() { return rom()->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
+  window_manager->RegisterPanel(
+      {.card_id = "screen.menu_tilemap",
+       .display_name = "Menu Tilemap (2bpp)",
+       .window_title = " Menu Tilemap (2bpp)",
+       .icon = ICON_MD_GRID_ON,
+       .category = "Screen",
+       .shortcut_hint = "Alt+6",
+       .priority = 60,
+       .enabled_condition = [this]() { return rom()->is_loaded(); },
+       .disabled_tooltip = "Load a ROM first"});
 
   // Register WindowContent implementations
   window_manager->RegisterWindowContent(std::make_unique<DungeonMapsPanel>(
@@ -96,6 +106,8 @@ void ScreenEditor::Initialize() {
       [this]() { DrawTitleScreenEditor(); }));
   window_manager->RegisterWindowContent(std::make_unique<NamingScreenPanel>(
       [this]() { DrawNamingScreenEditor(); }));
+  window_manager->RegisterWindowContent(std::make_unique<MenuTilemapPanel>(
+      [this]() { DrawMenuTilemapEditor(); }));
 
   // Show title screen by default
   window_manager->OpenWindow("screen.title_screen");
@@ -1216,6 +1228,10 @@ void ScreenEditor::DrawTitleScreenBlocksetSelector() {
 }
 
 void ScreenEditor::DrawNamingScreenEditor() {}
+
+void ScreenEditor::DrawMenuTilemapEditor() {
+  menu_tilemap_ui_.Draw(rom(), game_data(), project(), &undo_manager_);
+}
 
 void ScreenEditor::DrawOverworldMapEditor() {
   if (!rom_backed_state_valid_) {
