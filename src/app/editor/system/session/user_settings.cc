@@ -348,6 +348,16 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
           to_int(val, prefs->panel_layout_defaults_revision);
     } else if (key == "sidebar_active_category") {
       prefs->sidebar_active_category = val;
+    } else if (key.rfind("sidebar_context_collapsed.", 0) == 0) {
+      const std::string category =
+          key.substr(std::string("sidebar_context_collapsed.").size());
+      if (!category.empty()) {
+        if (val == "1") {
+          prefs->sidebar_context_collapsed.insert(category);
+        } else {
+          prefs->sidebar_context_collapsed.erase(category);
+        }
+      }
     } else if (key == "dungeon_inspector_side") {
       prefs->dungeon_inspector_side =
           (val == "left") ? std::string("left") : std::string("right");
@@ -487,6 +497,9 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "panel_layout_defaults_revision="
      << prefs.panel_layout_defaults_revision << "\n";
   ss << "sidebar_active_category=" << prefs.sidebar_active_category << "\n";
+  for (const std::string& category : prefs.sidebar_context_collapsed) {
+    ss << "sidebar_context_collapsed." << category << "=1\n";
+  }
   ss << "dungeon_inspector_side=" << prefs.dungeon_inspector_side << "\n";
 
   // Status Bar
@@ -1001,6 +1014,15 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         }
       }
     }
+    if (sidebar.contains("context_collapsed") &&
+        sidebar["context_collapsed"].is_array()) {
+      prefs->sidebar_context_collapsed.clear();
+      for (const auto& item : sidebar["context_collapsed"]) {
+        if (item.is_string()) {
+          prefs->sidebar_context_collapsed.insert(item.get<std::string>());
+        }
+      }
+    }
   }
 
   if (root.contains("status_bar")) {
@@ -1214,6 +1236,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"order", prefs.sidebar_order},
       {"hidden", set_to_sorted_vec(prefs.sidebar_hidden)},
       {"pinned", set_to_sorted_vec(prefs.sidebar_pinned)},
+      {"context_collapsed", set_to_sorted_vec(prefs.sidebar_context_collapsed)},
   };
 
   root["status_bar"] = {

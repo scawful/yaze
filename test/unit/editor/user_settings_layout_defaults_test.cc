@@ -591,6 +591,30 @@ TEST(UserSettingsLayoutDefaultsTest,
   std::error_code ec;
   std::filesystem::remove(path, ec);
 }
+
+TEST(UserSettingsLayoutDefaultsTest,
+     SidebarContextCollapseStateRoundTripsByCategory) {
+  std::string path = MakeTempSettingsPath("sidebar_context");
+
+  {
+    UserSettings settings;
+    settings.SetSettingsFilePathForTesting(path);
+    settings.prefs().sidebar_context_collapsed = {"Dungeon", "Overworld"};
+    ASSERT_TRUE(settings.Save().ok());
+  }
+
+  {
+    UserSettings settings;
+    settings.SetSettingsFilePathForTesting(path);
+    ASSERT_TRUE(settings.Load().ok());
+    EXPECT_TRUE(settings.prefs().sidebar_context_collapsed.contains("Dungeon"));
+    EXPECT_TRUE(
+        settings.prefs().sidebar_context_collapsed.contains("Overworld"));
+  }
+
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+}
 #endif  // YAZE_WITH_JSON
 
 TEST(UserSettingsLayoutDefaultsTest,

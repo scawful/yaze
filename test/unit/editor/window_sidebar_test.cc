@@ -16,6 +16,11 @@ class WindowSidebarTestPeer {
     std::snprintf(sidebar.sidebar_search_, sizeof(sidebar.sidebar_search_),
                   "%s", search);
   }
+
+  static void DispatchContextAction(WindowSidebar& sidebar, size_t session_id,
+                                    const EditorContextAction& action) {
+    sidebar.DispatchContextAction(session_id, action);
+  }
 };
 
 namespace {
@@ -29,6 +34,23 @@ TEST(WindowSidebarTest, MatchesSearchByNameIdAndShortcut) {
       "ctrl+i", "Item List", "overworld.item_list", "Ctrl+I"));
   EXPECT_FALSE(WindowSidebar::MatchesWindowSearch(
       "graphics", "Item List", "overworld.item_list", "Ctrl+I"));
+}
+
+TEST(WindowSidebarTest, ContextSnapshotDetectsRenderableSemanticData) {
+  EditorContextSnapshot empty;
+  EXPECT_FALSE(WindowSidebar::HasRenderableContext(empty));
+
+  EditorContextSnapshot context;
+  context.title = "Room 0x098";
+  EXPECT_FALSE(WindowSidebar::HasRenderableContext(context));
+  context.subtitle = "Workbench";
+  EXPECT_TRUE(WindowSidebar::HasRenderableContext(context));
+  context = {};
+  context.diagnostics.push_back(
+      {.id = "warning",
+       .severity = EditorContextDiagnosticSeverity::kWarning,
+       .message = "Camera is off-grid"});
+  EXPECT_TRUE(WindowSidebar::HasRenderableContext(context));
 }
 
 TEST(WindowSidebarTest, DetectsDungeonWindowModeTargets) {
@@ -193,6 +215,47 @@ TEST_F(WindowSidebarFrameTest, WorkbenchSearchIncludesStandaloneRoomTools) {
   const std::string text = DrawFrame(sidebar);
   EXPECT_NE(text.find("Room Graphics Tool"), std::string::npos);
   EXPECT_NE(text.find("Room Tags Tool"), std::string::npos);
+}
+
+TEST_F(WindowSidebarFrameTest, RendersSharedEditorContextBelowWindowList) {
+  EditorContextSnapshot snapshot;
+  snapshot.category = "Dungeon";
+  snapshot.title = "Room 0x098";
+  snapshot.subtitle = "Workbench";
+  snapshot.metadata.push_back(
+      {.id = "palette", .label = "Palette", .value = "0x12"});
+  snapshot.counts.push_back(
+      {.id = "sprites", .label = "Sprites", .value = "4"});
+  snapshot.diagnostics.push_back(
+      {.id = "camera",
+       .severity = EditorContextDiagnosticSeverity::kWarning,
+       .message = "Entrance camera is off-grid"});
+  snapshot.actions.push_back(
+      {.id = "matrix", .label = "Room Matrix", .target = "dungeon.matrix"});
+
+  WindowSidebar sidebar(manager_, {}, {}, {},
+                        [snapshot](const std::string&) { return snapshot; });
+  const std::string text = DrawFrame(sidebar);
+  EXPECT_NE(text.find("Editor Context"), std::string::npos);
+  EXPECT_NE(text.find("Room 0x098"), std::string::npos);
+  EXPECT_NE(text.find("Palette"), std::string::npos);
+  EXPECT_NE(text.find("Sprites"), std::string::npos);
+  EXPECT_NE(text.find("Entrance camera is off-grid"), std::string::npos);
+  EXPECT_NE(text.find("Room Matrix"), std::string::npos);
+}
+
+TEST_F(WindowSidebarFrameTest, ContextWindowActionUsesStableTarget) {
+  RegisterWindow("dungeon.room_matrix", "Room Matrix");
+  WindowSidebar sidebar(manager_);
+  const EditorContextAction action{
+      .id = "matrix",
+      .label = "Room Matrix",
+      .target = "dungeon.room_matrix",
+  };
+
+  EXPECT_FALSE(manager_.IsWindowOpen(0, "dungeon.room_matrix"));
+  WindowSidebarTestPeer::DispatchContextAction(sidebar, 0, action);
+  EXPECT_TRUE(manager_.IsWindowOpen(0, "dungeon.room_matrix"));
 }
 
 }  // namespace
