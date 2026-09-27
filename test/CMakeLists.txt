@@ -436,6 +436,8 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/dungeon_editor_system_test.cc
     unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
+    unit/zelda3/dungeon/room_census_test.cc
+    unit/zelda3/dungeon/room_census_oracle_rom_test.cc
     unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
     unit/zelda3/dungeon/dimension_cross_validation_test.cc
@@ -624,6 +626,9 @@ if(YAZE_BUILD_TESTS)
   endif()
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  target_compile_definitions(yaze_test_unit PRIVATE
+    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
+  )
   add_test(
     NAME TestRunnerDiscoveryContract
     COMMAND ${CMAKE_COMMAND}
