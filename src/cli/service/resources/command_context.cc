@@ -413,11 +413,12 @@ absl::StatusOr<OutputFormatter> OutputFormatter::FromString(
   std::string lower = absl::AsciiStrToLower(format);
   if (lower == "json") {
     return OutputFormatter(Format::kJson);
-  } else if (lower == "text") {
+  } else if (lower == "text" || lower == "table") {
+    // "table" is text output; commands that support it print aligned rows.
     return OutputFormatter(Format::kText);
   } else {
     return absl::InvalidArgumentError(absl::StrFormat(
-        "Unknown format: %s (expected 'json' or 'text')", format));
+        "Unknown format: %s (expected 'json', 'text' or 'table')", format));
   }
 }
 
@@ -568,6 +569,12 @@ void OutputFormatter::AddRawJsonField(const std::string& key,
   }
   AddJsonFieldPrefix(key);
   buffer_ += json;
+}
+
+void OutputFormatter::AddRawText(const std::string& text) {
+  if (IsText()) {
+    buffer_ += text;
+  }
 }
 
 std::string OutputFormatter::GetOutput() const {
