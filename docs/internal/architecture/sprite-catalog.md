@@ -325,7 +325,7 @@ requires no gameplay sprite ID. See migration plan section 9 for the joint decis
 |---|---|
 | Pure model, validation, resolver, bounded source reader | `src/zelda3/sprite/sprite_catalog.{h,cc}` |
 | Project path serialization | `src/core/project.{h,cc}` |
-| Session lifecycle and read-only browser | `src/app/editor/sprite/sprite_catalog_panel.cc`, `sprite_editor.{h,cc}` |
+| Session lifecycle and read-only browser | `src/app/editor/sprite/sprite_editor_catalog.cc`, `sprite_editor.{h,cc}` |
 | Window registration and layout | `src/app/editor/sprite/ui/sprite_editor_views.h`, `src/app/editor/layout/layout_presets.{h,cc}` |
 | Catalog/source tests | `test/unit/zelda3/sprite_catalog_test.cc` |
 | Project/session/UI tests | `test/unit/editor/sprite_catalog_session_test.cc` |

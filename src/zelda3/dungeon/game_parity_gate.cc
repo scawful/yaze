@@ -102,7 +102,9 @@ absl::StatusOr<CaptureSet> LoadVerifiedCaptureSet(
                                     ", baseline expects ", expected.rom_sha1));
   }
   if (rom_sha1 != expected.rom_sha1) {
-    problems.push_back(absl::StrCat("ROM under test is ", rom_sha1,
+    // std::string, not the std::string_view: older system abseil (Ubuntu
+    // 22.04) has its own absl::string_view and AlphaNum cannot take std's.
+    problems.push_back(absl::StrCat("ROM under test is ", std::string(rom_sha1),
                                     ", baseline expects ", expected.rom_sha1));
   }
   const std::string entrance = ManifestString(manifest, "entrance");

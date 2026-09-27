@@ -52,7 +52,7 @@ Note: the project's `[rom] expected_hash` (`58c9fadc…`) does not match
 - **Area sizes:**
   - `VanillaAreaExtent`: from `OverworldTransitionPositionX/Y`.
   - `AreaExtentFromParent`: from ZSCustomOverworld sizes.
-- **Window** (`src/app/editor/cutscene/cutscene_camera_panel.*`, "Cutscene
+- **Window** (`src/app/editor/cutscene/ui/window/cutscene_camera_panel.*`, "Cutscene
   Camera", Overworld category):
   - a draggable, clamped 256×224 viewport with the `$E2/$E8` readout;
   - Link and actor markers;

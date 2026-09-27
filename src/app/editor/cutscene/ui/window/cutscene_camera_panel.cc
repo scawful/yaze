@@ -1,4 +1,4 @@
-#include "app/editor/cutscene/cutscene_camera_panel.h"
+#include "app/editor/cutscene/ui/window/cutscene_camera_panel.h"
 
 #include <algorithm>
 #include <cmath>
@@ -8,6 +8,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/panels/overworld_panel_access.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/registry/panel_registration.h"
 #include "app/gui/core/ui_helpers.h"
@@ -173,8 +174,7 @@ void CutsceneCameraPanel::Save() {
 }
 
 OverworldEditor* CutsceneCameraPanel::OverworldSource() const {
-  auto* editor = dynamic_cast<OverworldEditor*>(
-      ContentRegistry::Context::editor_window_context("Overworld"));
+  auto* editor = CurrentOverworldEditor();
   // The editor exists before its overworld loads, and a failed load leaves
   // the map list empty; only a loaded overworld can answer area queries.
   if (editor == nullptr || !editor->overworld().is_loaded()) {
