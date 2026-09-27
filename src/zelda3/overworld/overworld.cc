@@ -2750,30 +2750,28 @@ absl::Status Overworld::SaveMap32Expanded() {
   const int bottomRight = GetMap32TileBRExpanded();
   const int topRight = GetMap32TileTRExpanded();
 
-  // Updates the pointers too for the tile32
-  // Top Right
-  RETURN_IF_ERROR(rom()->WriteLong(0x0176EC, PcToSnes(topRight)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x0176F3, PcToSnes(topRight + 1)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x0176FA, PcToSnes(topRight + 2)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x017701, PcToSnes(topRight + 3)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x017708, PcToSnes(topRight + 4)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x01771A, PcToSnes(topRight + 5)));
-
-  // BottomLeft
-  RETURN_IF_ERROR(rom()->WriteLong(0x01772C, PcToSnes(bottomLeft)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x017733, PcToSnes(bottomLeft + 1)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x01773A, PcToSnes(bottomLeft + 2)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x017741, PcToSnes(bottomLeft + 3)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x017748, PcToSnes(bottomLeft + 4)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x01775A, PcToSnes(bottomLeft + 5)));
-
-  // BottomRight
-  RETURN_IF_ERROR(rom()->WriteLong(0x01776C, PcToSnes(bottomRight)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x017773, PcToSnes(bottomRight + 1)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x01777A, PcToSnes(bottomRight + 2)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x017781, PcToSnes(bottomRight + 3)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x017788, PcToSnes(bottomRight + 4)));
-  RETURN_IF_ERROR(rom()->WriteLong(0x01779A, PcToSnes(bottomRight + 5)));
+  // Point the bank $02 tile32 loaders at the expanded quadrants. An operand
+  // that already addresses its target is left alone: ZScream and Oracle of
+  // Secrets write the FastROM mirror ($84:8000), and rewriting it as the
+  // equivalent $04:8000 would change ASM-owned code bytes for no effect.
+  const auto relocate = [this](int operand_pc, int target_pc) -> absl::Status {
+    ASSIGN_OR_RETURN(const uint32_t current, rom()->ReadLong(operand_pc));
+    if (SnesToPc(current) == static_cast<uint32_t>(target_pc)) {
+      return absl::OkStatus();
+    }
+    return rom()->WriteLong(operand_pc, PcToSnes(target_pc));
+  };
+  constexpr int kTopRightOperands[] = {0x0176EC, 0x0176F3, 0x0176FA,
+                                       0x017701, 0x017708, 0x01771A};
+  constexpr int kBottomLeftOperands[] = {0x01772C, 0x017733, 0x01773A,
+                                         0x017741, 0x017748, 0x01775A};
+  constexpr int kBottomRightOperands[] = {0x01776C, 0x017773, 0x01777A,
+                                          0x017781, 0x017788, 0x01779A};
+  for (int i = 0; i < 6; ++i) {
+    RETURN_IF_ERROR(relocate(kTopRightOperands[i], topRight + i));
+    RETURN_IF_ERROR(relocate(kBottomLeftOperands[i], bottomLeft + i));
+    RETURN_IF_ERROR(relocate(kBottomRightOperands[i], bottomRight + i));
+  }
 
   int unique_tile_index = 0;
   const int encoded_bytes = static_cast<int>(tiles32_unique_.size() /
