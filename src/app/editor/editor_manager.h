@@ -596,6 +596,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
   StartupVisibility welcome_mode_override_ = StartupVisibility::kAuto;
+  // False while the previous frame drew the editor surface. Drawers left open
+  // by an editor close when the Welcome screen replaces that surface; drawers
+  // opened on the Welcome screen (File > Settings, the drawers button,
+  // Ctrl/Cmd+,, --editor=Settings) stay open. Starts true: at launch there is
+  // no editor surface to leave.
+  bool welcome_was_shown_ = true;
   StartupVisibility dashboard_mode_override_ = StartupVisibility::kAuto;
   StartupVisibility sidebar_mode_override_ = StartupVisibility::kAuto;
   AssetLoadMode asset_load_mode_ = AssetLoadMode::kFull;

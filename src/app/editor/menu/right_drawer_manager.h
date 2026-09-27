@@ -5,6 +5,7 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "absl/types/span.h"
 #include "app/editor/editor.h"
@@ -88,6 +89,12 @@ class RightDrawerManager {
   void SetAgentChat(AgentChat* chat) { agent_chat_ = chat; }
   void SetProposalDrawer(ProposalDrawer* drawer) { proposal_drawer_ = drawer; }
   void SetSettingsPanel(SettingsPanel* panel) { settings_panel_ = panel; }
+  // Supplies a SettingsPanel when the drawer opens with none bound, which
+  // happens on the Welcome screen before any session exists. EditorManager
+  // creates an empty session, like SwitchToEditor(EditorType::kSettings).
+  void SetSettingsPanelProvider(std::function<SettingsPanel*()> provider) {
+    settings_panel_provider_ = std::move(provider);
+  }
   void SetShortcutManager(ShortcutManager* manager) {
     shortcut_manager_ = manager;
   }
@@ -404,6 +411,7 @@ class RightDrawerManager {
   AgentChat* agent_chat_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
   SettingsPanel* settings_panel_ = nullptr;
+  std::function<SettingsPanel*()> settings_panel_provider_;
   ShortcutManager* shortcut_manager_ = nullptr;
   SelectionPropertiesPanel* properties_panel_ = nullptr;
   ProjectManagementPanel* project_panel_ = nullptr;

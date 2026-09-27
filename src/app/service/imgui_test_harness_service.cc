@@ -882,6 +882,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
         ImGuiKeyChord chord = 0;
         if (widget_label == "Save ROM") {
           chord = ImGuiMod_Shortcut | ImGuiKey_S;
+        } else if (widget_label == "Settings") {
+          chord = ImGuiMod_Shortcut | ImGuiKey_Comma;
         } else if (widget_label == "Quit") {
           // A successful quit destroys the harness before a simulated key
           // press can finish and report its result. Invoke the same guarded

@@ -782,6 +782,16 @@ void EditorManager::InitializeSubsystems() {
   right_drawer_manager_->SetProposalDrawer(&proposal_drawer_);
   right_drawer_manager_->SetPropertiesPanel(&selection_properties_panel_);
   right_drawer_manager_->SetShortcutManager(&shortcut_manager_);
+  right_drawer_manager_->SetSettingsPanelProvider([this]() -> SettingsPanel* {
+    // The drawers button and the palette toggle open the Settings drawer
+    // directly; on the Welcome screen there is no session yet. Create an
+    // empty one, as SwitchToEditor does for ROM-less editors (BUG-020).
+    if (session_coordinator_ && GetCurrentEditorSet() == nullptr) {
+      session_coordinator_->CreateNewSession();
+    }
+    auto* editor_set = GetCurrentEditorSet();
+    return editor_set ? editor_set->GetSettingsPanel() : nullptr;
+  });
   selection_properties_panel_.SetAgentCallbacks(
       [this](const std::string& prompt) {
 #if defined(YAZE_BUILD_AGENT_UI)
@@ -3392,10 +3402,22 @@ void EditorManager::DrawInterface() {
   // Handle Welcome screen early-exit for rendering
   if (ui_coordinator_ && ui_coordinator_->ShouldShowWelcome()) {
     if (right_drawer_manager_) {
-      right_drawer_manager_->CloseDrawer();
+      // Close drawers left over from an editor only when the Welcome screen
+      // replaces the editor surface. Closing them every frame made every
+      // drawer opened from the Welcome screen (File > Settings, Ctrl/Cmd+,,
+      // the drawers button) close again before it was drawn. The Welcome
+      // screen already lays itself out around the drawer width
+      // (GetRightLayoutOffset).
+      if (!welcome_was_shown_) {
+        right_drawer_manager_->CloseDrawer();
+      }
+      right_drawer_manager_->SetRom(GetCurrentRom());
+      right_drawer_manager_->Draw();
     }
+    welcome_was_shown_ = true;
     return;
   }
+  welcome_was_shown_ = false;
 
   DrawSecondaryWindows();
   UpdateSystemUIs();
