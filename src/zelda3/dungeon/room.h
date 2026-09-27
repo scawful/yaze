@@ -25,6 +25,7 @@
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room_header_destination.h"
 #include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
@@ -978,8 +979,18 @@ class Room {
   uint8_t staircase_plane(int index) const {
     return (index >= 0 && index < 4) ? staircase_plane_[index] : 0;
   }
+  // Raw header byte. Use staircase_destination_room() for the room id.
   uint8_t staircase_room(int index) const {
     return (index >= 0 && index < 4) ? staircase_rooms_[index] : 0;
+  }
+  // Destination room id of stair slot `index`, including this room's high
+  // byte (see room_header_destination.h).
+  int staircase_destination_room(int index) const {
+    return ResolveHeaderDestinationRoom(room_id_, staircase_room(index));
+  }
+  // Destination room id of this room's pits and warp tiles.
+  int holewarp_destination_room() const {
+    return ResolveHeaderDestinationRoom(room_id_, holewarp_);
   }
 
   int id() const { return room_id_; }
@@ -996,6 +1007,7 @@ class Room {
   // "Dungeon Main" section for the lookup algorithm.
   int ResolveDungeonPaletteId() const;
   uint8_t layout_id() const { return layout_id_; }
+  // Raw header byte. Use holewarp_destination_room() for the room id.
   uint8_t holewarp() const { return holewarp_; }
   uint16_t message_id() const { return message_id_; }
 

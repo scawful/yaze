@@ -510,7 +510,8 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
       if (resolution.slot && layout_status.ok()) {
         formatter.AddField("vanilla_slot", *resolution.slot);
         formatter.AddHexField("vanilla_destination_room",
-                              room.staircase_room(*resolution.slot), 3);
+                              room.staircase_destination_room(*resolution.slot),
+                              3);
         formatter.AddField("vanilla_arrival_plane",
                            room.staircase_plane(*resolution.slot));
       }
@@ -523,7 +524,8 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
           !room.has_custom_collision()) {
         formatter.AddField("slot", *resolution.slot);
         formatter.AddHexField("destination_room",
-                              room.staircase_room(*resolution.slot), 3);
+                              room.staircase_destination_room(*resolution.slot),
+                              3);
         formatter.AddField("arrival_plane",
                            room.staircase_plane(*resolution.slot));
       }
@@ -1099,6 +1101,19 @@ absl::Status DungeonRoomHeaderCommandHandler::Execute(
     formatter.AddField("stair2_room", rom->data()[room_header_pc + 11]);
     formatter.AddField("stair3_room", rom->data()[room_header_pc + 12]);
     formatter.AddField("stair4_room", rom->data()[room_header_pc + 13]);
+    // The fields above are raw header bytes. The game keeps the current
+    // room's high byte ($A1), so report the room each byte leads to.
+    formatter.AddHexField("holewarp_destination_room",
+                          zelda3::ResolveHeaderDestinationRoom(
+                              room_id, rom->data()[room_header_pc + 9]),
+                          3);
+    for (int slot = 0; slot < 4; ++slot) {
+      formatter.AddHexField(
+          absl::StrFormat("stair%d_destination_room", slot + 1),
+          zelda3::ResolveHeaderDestinationRoom(
+              room_id, rom->data()[room_header_pc + 10 + slot]),
+          3);
+    }
     formatter.EndObject();
   } else {
     formatter.AddField("error", "Room header address out of range");

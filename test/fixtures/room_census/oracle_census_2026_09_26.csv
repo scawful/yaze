@@ -1,0 +1,297 @@
+room_hex,cluster,category,used
+0x00,Final boss room,cutscene/special (vanilla-unchanged),Y
+0x01,vanilla Hyrule Castle leftover,vanilla leftover,N
+0x02,unassigned (vanilla Sanctuary-switch slot),empty/placeholder,N
+0x03,entrance 0x82,interior (house/shop/cave),Y
+0x04,Master Sword Cave / Final Boss Route,cutscene/special (vanilla-unchanged),Y
+0x05,Shrine of Origins,dungeon room,Y
+0x06,D4 Zora Temple,dungeon room,Y
+0x07,S3 Shrine of Courage,dungeon room,Y
+0x08,Healing Fairy Cave (Exit) / entrance 0x7F,interior (house/shop/cave) (vanilla-unchanged),Y
+0x09,D1 Mushroom Grotto,dungeon room,Y
+0x0A,D1 Mushroom Grotto,dungeon room,Y
+0x0B,D1 Mushroom Grotto,dungeon room,Y
+0x0C,D8 Fortress of Secrets,dungeon room,Y
+0x0D,D8 Fortress of Secrets,dungeon room,Y
+0x0E,D2 Tail Palace,dungeon room,Y
+0x0F,Maple's Dream Hut,cutscene/special,?
+0x10,vanilla Ganon evacuation leftover,vanilla leftover,N
+0x11,Hall of Secrets,cutscene/special,Y
+0x12,Hall of Secrets,cutscene/special,Y
+0x13,Master Sword Cave / Final Boss Route,cutscene/special,Y
+0x14,Master Sword Cave / Final Boss Route,cutscene/special,Y
+0x15,Master Sword Cave / Final Boss Route,cutscene/special,Y
+0x16,D4 Zora Temple,dungeon room,Y
+0x17,S3 Shrine of Courage,dungeon room,Y
+0x18,D4 Zora Temple,dungeon room,Y
+0x19,D1 Mushroom Grotto,dungeon room,Y
+0x1A,D1 Mushroom Grotto,dungeon room,Y
+0x1B,D1 Mushroom Grotto,dungeon room,Y
+0x1C,D8 Fortress of Secrets,dungeon room,Y
+0x1D,D8 Fortress of Secrets,dungeon room,Y
+0x1E,D2 Tail Palace,dungeon room,Y
+0x1F,D2 Tail Palace grid (unassigned),empty/placeholder,N
+0x20,unassigned (vanilla Agahnim slot),empty/placeholder,N
+0x21,Hall of Secrets,cutscene/special,Y
+0x22,Hall of Secrets,cutscene/special,Y
+0x23,Master Sword Cave / Final Boss Route,cutscene/special,Y
+0x24,Master Sword Cave / Final Boss Route,cutscene/special,Y
+0x25,D4 Zora Temple,dungeon room,Y
+0x26,D4 Zora Temple,dungeon room,Y
+0x27,D4 Zora Temple,dungeon room,Y
+0x28,D4 Zora Temple,dungeon room,Y
+0x29,D3 Kalyxo Castle,dungeon room,Y
+0x2A,D1 Mushroom Grotto,dungeon room,Y
+0x2B,D1 Mushroom Grotto,dungeon room,Y
+0x2C,Deluxe Fairy Fountain Pond / Deluxe Fairy Fountain Start / Deluxe Fairy Fountain East,interior (house/shop/cave),Y
+0x2D,D8 Fortress of Secrets,dungeon room,Y
+0x2E,D2 Tail Palace,dungeon room,Y
+0x2F,entrance 0x39,interior (house/shop/cave),Y
+0x30,vanilla Agahnim Tower leftover (edited),vanilla leftover,?
+0x31,Dream 3 placeholder,empty/placeholder (reserved by ASM warp),Y
+0x32,S3 Shrine of Courage,dungeon room,Y
+0x33,S3 Shrine of Courage,dungeon room,Y
+0x34,D4 Zora Temple,dungeon room,Y
+0x35,D4 Zora Temple,dungeon room,Y
+0x36,D4 Zora Temple,dungeon room,Y
+0x37,D4 Zora Temple,dungeon room,Y
+0x38,D4 Zora Temple,dungeon room,Y
+0x39,D3 Kalyxo Castle,dungeon room,Y
+0x3A,D1 Mushroom Grotto,dungeon room,Y
+0x3B,D1 Mushroom Grotto,dungeon room,Y
+0x3C,Deluxe Fairy Fountain Pond / Deluxe Fairy Fountain Start / Deluxe Fairy Fountain East,interior (house/shop/cave) (vanilla-unchanged),Y
+0x3D,D8 Fortress of Secrets,dungeon room,Y
+0x3E,D2 Tail Palace,dungeon room,Y
+0x3F,D2 Tail Palace,dungeon room,Y
+0x40,Hall of Secrets,cutscene/special,Y
+0x41,Hall of Secrets,cutscene/special,Y
+0x42,Hall of Secrets,cutscene/special,Y
+0x43,S3 Shrine of Courage,dungeon room,Y
+0x44,D4 Zora Temple,dungeon room,Y
+0x45,D4 Zora Temple,dungeon room,Y
+0x46,D4 Zora Temple,dungeon room,Y
+0x47,D3 Kalyxo Castle,dungeon room,Y
+0x48,D3 Kalyxo Castle,dungeon room,Y
+0x49,D3 Kalyxo Castle,dungeon room,Y
+0x4A,D1 Mushroom Grotto,dungeon room,Y
+0x4B,D1 Mushroom Grotto,dungeon room,Y
+0x4C,D8 Fortress of Secrets,dungeon room (unreached),?
+0x4D,D8 Fortress of Secrets,dungeon room,Y
+0x4E,D2 Tail Palace,dungeon room,Y
+0x4F,D2 Tail Palace,dungeon room,Y
+0x50,Hyrule Castle dream set (Dream 1),cutscene/special (vanilla-unchanged),Y
+0x51,Hyrule Castle dream set (Dream 1),cutscene/special,Y
+0x52,Hyrule Castle dream set (Dream 1),cutscene/special,Y
+0x53,S3 Shrine of Courage,dungeon room,Y
+0x54,D3 Kalyxo Castle,dungeon room,Y
+0x55,D3 Kalyxo Castle,dungeon room,Y
+0x56,D3 Kalyxo Castle,dungeon room,Y
+0x57,D3 Kalyxo Castle,dungeon room,Y
+0x58,D3 Kalyxo Castle,dungeon room,Y
+0x59,D3 Kalyxo Castle,dungeon room,Y
+0x5A,D1 Mushroom Grotto,dungeon room,Y
+0x5B,D1 Mushroom Grotto,dungeon room,Y
+0x5C,D8 Fortress of Secrets,dungeon room,Y
+0x5D,D8 Fortress of Secrets,dungeon room,Y
+0x5E,D2 Tail Palace,dungeon room,Y
+0x5F,D2 Tail Palace,dungeon room,Y
+0x60,Hyrule Castle dream set (Dream 1),cutscene/special (vanilla-unchanged),Y
+0x61,Hyrule Castle dream set (Dream 1),cutscene/special (vanilla-unchanged),Y
+0x62,Hyrule Castle dream set (Dream 1),cutscene/special (vanilla-unchanged),Y
+0x63,S3 Shrine of Courage,dungeon room,Y
+0x64,D3 Kalyxo Castle,dungeon room,Y
+0x65,D3 Kalyxo Castle,empty/placeholder (reachable shell: doors only),Y
+0x66,D3 Kalyxo Castle,dungeon room,Y
+0x67,D3 Kalyxo Castle,dungeon room,Y
+0x68,D3 Kalyxo Castle,dungeon room,Y
+0x69,D6 Goron Mines,dungeon room,Y
+0x6A,D1 Mushroom Grotto,dungeon room,Y
+0x6B,D8 Fortress of Secrets,dungeon room,Y
+0x6C,D8 Fortress of Secrets,dungeon room,Y
+0x6D,D8 Fortress of Secrets,dungeon room,Y
+0x6E,D2 Tail Palace,dungeon room,Y
+0x6F,D2 Tail Palace,dungeon room,Y
+0x70,D3 Kalyxo Castle,dungeon room,Y
+0x71,D3 Kalyxo Castle,dungeon room,Y
+0x72,D3 Kalyxo Castle,dungeon room,Y
+0x73,S2 Shrine of Power,dungeon room,Y
+0x74,S2 Shrine of Power,dungeon room,Y
+0x75,S2 Shrine of Power,dungeon room,Y
+0x76,S2 Shrine of Power,dungeon room,Y
+0x77,D6 Goron Mines,dungeon room,Y
+0x78,D6 Goron Mines,dungeon room,Y
+0x79,D6 Goron Mines,dungeon room,Y
+0x7A,S1 Shrine of Wisdom,dungeon room,Y
+0x7B,D8 Fortress of Secrets,dungeon room,Y
+0x7C,D8 Fortress of Secrets,dungeon room,Y
+0x7D,D8 Fortress of Secrets,dungeon room,Y
+0x7E,D2 Tail Palace,dungeon room,Y
+0x7F,D2 Tail Palace,dungeon room,Y
+0x80,D3 Kalyxo Castle,dungeon room,Y
+0x81,D3 Kalyxo Castle,dungeon room,Y
+0x82,D3 Kalyxo Castle,dungeon room,Y
+0x83,S2 Shrine of Power,dungeon room,Y
+0x84,S2 Shrine of Power,dungeon room,Y
+0x85,S2 Shrine of Power,dungeon room,Y
+0x86,S2 Shrine of Power,dungeon room,Y
+0x87,D6 Goron Mines,dungeon room,Y
+0x88,D6 Goron Mines,dungeon room,Y
+0x89,D6 Goron Mines,dungeon room,Y
+0x8A,S1 Shrine of Wisdom,dungeon room,Y
+0x8B,D8 Fortress of Secrets,dungeon room,Y
+0x8C,D8 Fortress of Secrets,dungeon room,Y
+0x8D,D8 Fortress of Secrets,dungeon room,Y
+0x8E,D2 Tail Palace,dungeon room,Y
+0x8F,D2 Tail Palace,dungeon room,Y
+0x90,Orphan mini-dungeon 0x90-0x92,dungeon room (unreached),?
+0x91,Orphan mini-dungeon 0x90-0x92,dungeon room (unreached),?
+0x92,Orphan mini-dungeon 0x90-0x92,dungeon room (unreached),?
+0x93,unassigned,empty/placeholder,N
+0x94,vanilla empty clone,empty/placeholder,N
+0x95,D8 FoS header (unassigned),empty/placeholder,N
+0x96,D8 FoS header (unassigned),empty/placeholder,N
+0x97,D6 Goron Mines,dungeon room,Y
+0x98,D6 Goron Mines,dungeon room,Y
+0x99,D6 Goron Mines,dungeon room,Y
+0x9A,S1 Shrine of Wisdom,dungeon room,Y
+0x9B,D8 Fortress of Secrets,dungeon room,Y
+0x9C,D8 Fortress of Secrets,dungeon room,Y
+0x9D,D8 Fortress of Secrets,dungeon room,Y
+0x9E,D5 Glacia Estate,dungeon room,Y
+0x9F,D5 Glacia Estate,dungeon room,Y
+0xA0,Orphan pair 0xA0/0xB0 (D7 grid),empty/placeholder,N
+0xA1,D7 Dragon Ship,dungeon room,Y
+0xA2,D7 Dragon Ship,dungeon room,Y
+0xA3,D7 Dragon Ship,dungeon room,Y
+0xA4,D7 Dragon Ship,dungeon room,Y
+0xA5,D7 Dragon Ship,dungeon room,Y
+0xA6,D8 FoS header (unassigned),empty/placeholder,N
+0xA7,vanilla Hera fairy leftover,vanilla leftover,N
+0xA8,D6 Goron Mines,dungeon room,Y
+0xA9,D6 Goron Mines,dungeon room,Y
+0xAA,S1 Shrine of Wisdom,dungeon room,Y
+0xAB,unassigned,empty/placeholder,N
+0xAC,D5 Glacia Estate,dungeon room,Y
+0xAD,D5 Glacia Estate,dungeon room,Y
+0xAE,D5 Glacia Estate,dungeon room,Y
+0xAF,D5 Glacia Estate,dungeon room,Y
+0xB0,Orphan pair 0xA0/0xB0 (D7 grid),empty/placeholder,N
+0xB1,D7 Dragon Ship,dungeon room,Y
+0xB2,D7 Dragon Ship,dungeon room,Y
+0xB3,D7 Dragon Ship,dungeon room,Y
+0xB4,D7 Dragon Ship,dungeon room,Y
+0xB5,D7 Dragon Ship,dungeon room,Y
+0xB6,D7 Dragon Ship,dungeon room,Y
+0xB7,D7 Dragon Ship,dungeon room,Y
+0xB8,D6 Goron Mines,dungeon room,Y
+0xB9,D6 Goron Mines,dungeon room,Y
+0xBA,S1 Shrine of Wisdom,dungeon room,Y
+0xBB,D5 Glacia Estate,dungeon room,Y
+0xBC,D5 Glacia Estate,dungeon room,Y
+0xBD,D5 Glacia Estate,dungeon room,Y
+0xBE,D5 Glacia Estate,dungeon room,Y
+0xBF,D5 Glacia Estate,dungeon room,Y
+0xC0,D7 Dragon Ship,empty/placeholder (reachable shell: doors only),Y
+0xC1,D7 Dragon Ship,dungeon room,Y
+0xC2,D7 Dragon Ship,dungeon room,Y
+0xC3,D7 Dragon Ship,dungeon room,Y
+0xC4,D7 Dragon Ship,dungeon room,Y
+0xC5,D7 Dragon Ship,dungeon room,Y
+0xC6,D7 Dragon Ship,dungeon room,Y
+0xC7,D7 Dragon Ship,dungeon room,Y
+0xC8,D6 Goron Mines,dungeon room,Y
+0xC9,S1 Shrine of Wisdom,dungeon room,Y
+0xCA,S1 Shrine of Wisdom,dungeon room,Y
+0xCB,D5 Glacia Estate,dungeon room,Y
+0xCC,D5 Glacia Estate,dungeon room,Y
+0xCD,D5 Glacia Estate,dungeon room,Y
+0xCE,D5 Glacia Estate,dungeon room,Y
+0xCF,D5 Glacia Estate,dungeon room,Y
+0xD0,Lava Cave Start / Lava Cave End,interior (house/shop/cave),Y
+0xD1,Lava Cave Start / Lava Cave End,interior (house/shop/cave),Y
+0xD2,Lava Cave Start / Lava Cave End,empty/placeholder (reachable shell: doors only),Y
+0xD3,Snow Mountain East Peak To West Peak / Snow Mountain West Peak To East Peak,interior (house/shop/cave),Y
+0xD4,Snow Mountain East Peak To West Peak / Snow Mountain West Peak To East Peak,interior (house/shop/cave),Y
+0xD5,D7 Dragon Ship,dungeon room,Y
+0xD6,D7 Dragon Ship,dungeon room,Y
+0xD7,D6 Goron Mines,dungeon room,Y
+0xD8,D6 Goron Mines,dungeon room,Y
+0xD9,D6 Goron Mines,dungeon room,Y
+0xDA,D6 Goron Mines,dungeon room,Y
+0xDB,D5 Glacia Estate,dungeon room,Y
+0xDC,D5 Glacia Estate,dungeon room,Y
+0xDD,D5 Glacia Estate,dungeon room,Y
+0xDE,D2 Tail Palace,dungeon room,Y
+0xDF,Snow Mountain Cave Start / Snow Mountain Cave Portal / Snow Mountain Cave End,interior (house/shop/cave),Y
+0xE0,Mountain to Witch Shop Cave Start / Mountain to Witch Shop Cave End,interior (house/shop/cave),Y
+0xE1,Toadstool Woods Log Cave,interior (house/shop/cave),Y
+0xE2,Toadstool Woods Log Cave,interior (house/shop/cave),Y
+0xE3,1/2 Magic Cave,interior (house/shop/cave) (vanilla-unchanged),Y
+0xE4,Snow Mountain East Peak To West Peak / Snow Mountain West Peak To East Peak,interior (house/shop/cave),Y
+0xE5,Snow Mountain East Peak To West Peak / Snow Mountain West Peak To East Peak,interior (house/shop/cave) (vanilla-unchanged),Y
+0xE6,Tail Palace Cave Route Start / Tail Palace Cave Route End,interior (house/shop/cave),Y
+0xE7,Tail Palace Cave Route Start / Tail Palace Cave Route End,interior (house/shop/cave) (vanilla-unchanged),Y
+0xE8,Deluxe Fairy Fountain Pond / Deluxe Fairy Fountain Start / Deluxe Fairy Fountain East,interior (house/shop/cave),Y
+0xE9,vanilla empty clone,empty/placeholder,N
+0xEA,Kalyxo Field Cave River / Kalyxo Field Cave End,interior (house/shop/cave),Y
+0xEB,Snow Mountain Cave East Peak / Snow Mountain Cave to the East Peak,interior (house/shop/cave),Y
+0xEC,Snow Mountain Cave Start / Snow Mountain Cave Portal / Snow Mountain Cave End,interior (house/shop/cave),Y
+0xED,Beach Cave Route / Beach Cave End,interior (house/shop/cave),Y
+0xEE,Snow Mountain Cave Start / Snow Mountain Cave Portal / Snow Mountain Cave End,interior (house/shop/cave),Y
+0xEF,Snow Mountain Cave Start / Snow Mountain Cave Portal / Snow Mountain Cave End,interior (house/shop/cave),Y
+0xF0,Mountain to Witch Shop Cave Start / Mountain to Witch Shop Cave End,interior (house/shop/cave),Y
+0xF1,Mountain to Witch Shop Cave Start / Mountain to Witch Shop Cave End,interior (house/shop/cave),Y
+0xF2,Mushroom House / Old Woman House / Village Tavern,interior (house/shop/cave),Y
+0xF3,Mushroom House / Old Woman House / Village Tavern,interior (house/shop/cave),Y
+0xF4,entrance 0x0F / entrance 0x10,interior (house/shop/cave) (vanilla-unchanged),Y
+0xF5,entrance 0x0F / entrance 0x10,interior (house/shop/cave) (vanilla-unchanged),Y
+0xF6,entrance 0x1D,interior (house/shop/cave),Y
+0xF7,vanilla empty clone,empty/placeholder,N
+0xF8,Deluxe Fairy Fountain Pond / Deluxe Fairy Fountain Start / Deluxe Fairy Fountain East,interior (house/shop/cave),Y
+0xF9,Kalyxo Field Cave Start,interior (house/shop/cave) (vanilla-unchanged),Y
+0xFA,Kalyxo Field Cave River / Kalyxo Field Cave End,interior (house/shop/cave),Y
+0xFB,Snow Mountain Cave East Peak / Snow Mountain Cave to the East Peak,interior (house/shop/cave),Y
+0xFC,Snow Mountain Cave East Peak / Snow Mountain Cave to the East Peak,interior (house/shop/cave),Y
+0xFD,Beach Cave Route / Beach Cave End,interior (house/shop/cave),Y
+0xFE,Beach Cave Intro / entrance 0x80,interior (house/shop/cave),Y
+0xFF,Snow Mountain Cave Start / Snow Mountain Cave Portal / Snow Mountain Cave End,interior (house/shop/cave),Y
+0x100,entrance 0x3C,interior (house/shop/cave) (vanilla-unchanged),Y
+0x101,Ranch Shed / Ocarina Girls House,interior (house/shop/cave),Y
+0x102,Sick Boys House / entrance 0x7C,interior (house/shop/cave),Y
+0x103,Mushroom House / Old Woman House / Village Tavern,interior (house/shop/cave),Y
+0x104,Link's House,interior (house/shop/cave),Y
+0x105,Zora Princess House,interior (house/shop/cave),Y
+0x106,vanilla chest-game house leftover,vanilla leftover,N
+0x107,Village Library / entrance 0x4A,interior (house/shop/cave),Y
+0x108,Chicken House,interior (house/shop/cave),Y
+0x109,Witch Shop,interior (house/shop/cave) (vanilla-unchanged),Y
+0x10A,entrance 0x4D,interior (house/shop/cave) (vanilla-unchanged),Y
+0x10B,D4 Zora Temple,dungeon room,Y
+0x10C,Cave of Secrets,interior (house/shop/cave) (vanilla-unchanged),Y
+0x10D,Mines Shed,interior (house/shop/cave),Y
+0x10E,entrance 0x69 / entrance 0x6A,interior (house/shop/cave),Y
+0x10F,West Hotel,interior (house/shop/cave),Y
+0x110,entrance 0x57,interior (house/shop/cave),Y
+0x111,Archery Minigame,interior (house/shop/cave) (vanilla-unchanged),Y
+0x112,entrance 0x58 / entrance 0x5A,interior (house/shop/cave),Y
+0x113,Hidden Grave,interior (house/shop/cave) (vanilla-unchanged),Y
+0x114,Graveyard Waterfall / entrance 0x62,interior (house/shop/cave),Y
+0x115,entrance 0x5E,interior (house/shop/cave) (vanilla-unchanged),Y
+0x116,entrance 0x63,interior (house/shop/cave) (vanilla-unchanged),Y
+0x117,entrance 0x41,interior (house/shop/cave) (vanilla-unchanged),Y
+0x118,Chest Minigame,interior (house/shop/cave) (vanilla-unchanged),Y
+0x119,Village Mayors House,interior (house/shop/cave),Y
+0x11A,Bonzai House,interior (house/shop/cave),Y
+0x11B,Rock Heart Piece Cave,interior (house/shop/cave) (vanilla-unchanged),Y
+0x11C,entrance 0x53 / entrance 0x54,interior (house/shop/cave) (vanilla-unchanged),Y
+0x11D,"C-House (secret, stair to D1 0x19)",interior (house/shop/cave),?
+0x11E,entrance 0x3D / entrance 0x55,interior (house/shop/cave),Y
+0x11F,Village Shop / Happy Mask Salesman Shop,interior (house/shop/cave),Y
+0x120,entrance 0x56 / entrance 0x84,interior (house/shop/cave),Y
+0x121,Smiths House,interior (house/shop/cave),Y
+0x122,entrance 0x65 / entrance 0x66,interior (house/shop/cave) (vanilla-unchanged),Y
+0x123,entrance 0x6C,interior (house/shop/cave) (vanilla-unchanged),Y
+0x124,entrance 0x6D / entrance 0x6E,interior (house/shop/cave),Y
+0x125,entrance 0x6F,interior (house/shop/cave) (vanilla-unchanged),Y
+0x126,entrance 0x71,interior (house/shop/cave),Y
+0x127,vanilla cave leftover,vanilla leftover,N
