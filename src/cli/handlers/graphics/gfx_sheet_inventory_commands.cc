@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -15,6 +16,7 @@
 #include "core/project.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#include "util/hex.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/gfx_sheet_inventory.h"
@@ -32,16 +34,14 @@ absl::StatusOr<std::set<uint16_t>> ParseSheetList(const std::string& value,
     if (part.empty()) {
       continue;
     }
-    absl::string_view digits = part;
-    int base = 10;
-    if (absl::ConsumePrefix(&digits, "0x") ||
-        absl::ConsumePrefix(&digits, "0X") ||
-        absl::ConsumePrefix(&digits, "$")) {
-      base = 16;
-    }
+    // util::ParseHexString instead of absl::SimpleHexAtoi: Ubuntu 22.04's
+    // system Abseil (20210324) predates SimpleHexAtoi.
+    const bool hex = absl::StartsWith(part, "0x") ||
+                     absl::StartsWith(part, "0X") ||
+                     absl::StartsWith(part, "$");
     uint32_t sheet = 0;
-    const bool ok = base == 16 ? absl::SimpleHexAtoi(digits, &sheet)
-                               : absl::SimpleAtoi(digits, &sheet);
+    const bool ok = hex ? yaze::util::ParseHexString(part, &sheet)
+                        : absl::SimpleAtoi(part, &sheet);
     if (!ok || sheet >= zelda3::kGfxSheetCount) {
       return absl::InvalidArgumentError(
           absl::StrFormat("--%s: '%s' is not a sheet id (0-%zu)", flag,

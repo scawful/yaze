@@ -273,6 +273,50 @@ TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
   std::filesystem::remove_all(project_dir);
 }
 
+// Sheet ids and rgb: palettes parse with yaze::util::ParseHexString (Ubuntu
+// 22.04's Abseil has no SimpleHexAtoi). Colors must be exactly six hex digits.
+TEST(GfxSheetPngCommandTest, ParsesHexSheetIdsAndRgbPalettes) {
+  auto fixture = BuildGfxSheetTestRom();
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  const auto png_path = UniqueTempPath("sheet_rgb", ".png");
+  const std::string colors =
+      "#000000,#FF0000,#00FF00,#0000FF,#FFFF00,#00FFFF,#FF00FF,#FFFFFF";
+
+  cli::GfxExportCommandHandler exporter;
+  for (const std::string sheet : {"0x40", "$40", "64"}) {
+    SCOPED_TRACE(sheet);
+    const auto report =
+        RunCommand(exporter,
+                   {"--sheet=" + sheet, "--png=" + png_path.string(),
+                    "--palette=rgb:" + colors, "--format=json"},
+                   rom);
+    EXPECT_EQ(report["sheet"], "0x40");
+    EXPECT_EQ(report["palette"], colors);
+  }
+
+  for (const std::string bad : {"#0x1234", "#12345G", "#12345", "#-12345"}) {
+    SCOPED_TRACE(bad);
+    absl::Status status;
+    RunCommand(exporter,
+               {"--sheet=0x40", "--png=" + png_path.string(),
+                "--palette=rgb:" + bad + colors.substr(7), "--format=json"},
+               rom, &status);
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  }
+  for (const std::string bad : {"0x", "$", "0x4G", "0x0x40"}) {
+    SCOPED_TRACE(bad);
+    absl::Status status;
+    RunCommand(
+        exporter,
+        {"--sheet=" + bad, "--png=" + png_path.string(), "--format=json"}, rom,
+        &status);
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  }
+  std::filesystem::remove(png_path);
+}
+
 // Oracle ROM: export -> import identity for three real sheets (Stalfos,
 // Farore, and a background sheet).
 TEST(GfxSheetPngRomTest, OracleSheetsRoundTripThroughPng) {
