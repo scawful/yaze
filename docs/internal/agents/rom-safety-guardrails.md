@@ -119,6 +119,14 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   region ends at the room sprite pointer table named by `$09:C298`; Oracle of
   Secrets moved it to `$09:D2B2`, below the vanilla `$09:D62E` bound. `--write`
   refuses ROMs inside an Oracle checkout without `--allow-project-rom`.
+- `overworld-set-tile` is dry-run by default. Both modes run the editor's map
+  save path (tile32 rebuild, vanilla or expanded tile32 writer, compressed
+  screens) on the in-memory ROM inside `ScopedRomTransaction`, fail closed if
+  any changed byte falls outside `Overworld::GetProjectedWriteRanges()`, and
+  reload the image to require that every world's tile16 grid differs only at
+  the requested tile. `--write` then saves with `require_backup` and checks the
+  file equals the verified image; it refuses ROMs inside an Oracle checkout
+  unless `--allow-project-rom`.
 - Other CLI writers that still set only `backup=true` remain best-effort and
   must be audited before opting into the strict transaction path.
 

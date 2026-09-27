@@ -1,11 +1,17 @@
 #include "cli/handlers/game/overworld_commands.h"
 
+#include <filesystem>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/overworld_inspect.h"
+#include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "cli/util/hex_util.h"
+#include "rom/rom.h"
+#include "rom/transaction.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -27,27 +33,197 @@ absl::Status ValidateMapId(int map_id) {
   return absl::OkStatus();
 }
 
-absl::Status SetOverworldContextForMap(int map_id,
-                                       zelda3::Overworld* overworld) {
-  RETURN_IF_ERROR(ValidateMapId(map_id));
-  int world = 0;
-  if (map_id < 0x40) {
-    world = 0;
-  } else if (map_id < 0x80) {
-    world = 1;
-  } else {
-    world = 2;
+// IDs (map, screen, tile) are hex like every other overworld command;
+// coordinates are decimal with an optional 0x prefix (ArgumentParser::GetInt),
+// matching the dungeon and overworld-sprite editing commands.
+absl::StatusOr<int> ParseMapIdArg(const resources::ArgumentParser& parser,
+                                  const std::string& name) {
+  const auto value = parser.GetString(name);
+  int map_id = 0;
+  if (!value.has_value() || !ParseHexString(*value, &map_id)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("--%s must be a hex map id (e.g. 0x40 or 40)", name));
   }
-  overworld->set_current_world(world);
-  overworld->set_current_map(map_id);
+  RETURN_IF_ERROR(ValidateMapId(map_id));
+  return map_id;
+}
+
+absl::StatusOr<int> ParseTileIdArg(const resources::ArgumentParser& parser) {
+  const auto value = parser.GetString("tile");
+  int tile_id = 0;
+  if (!value.has_value() || !ParseHexString(*value, &tile_id)) {
+    return absl::InvalidArgumentError(
+        "--tile must be a hex tile16 id (e.g. 0x0255)");
+  }
+  if (tile_id < 0 || tile_id > 0xFFFF) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Tile ID out of range: 0x%X", tile_id));
+  }
+  return tile_id;
+}
+
+absl::StatusOr<int> ParseCoordinateArg(const resources::ArgumentParser& parser,
+                                       const std::string& name) {
+  auto value = parser.GetInt(name);
+  if (!value.ok()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "--%s must be a decimal tile coordinate (or 0x-prefixed hex): %s", name,
+        value.status().message()));
+  }
+  return *value;
+}
+
+void AddTileLocationFields(resources::OutputFormatter& formatter,
+                           const overworld::AreaTileLocation& location) {
+  formatter.AddHexField("map_id", location.map_id, 2);
+  formatter.AddField("world", overworld::WorldName(location.world));
+  formatter.AddHexField("parent_area", location.parent_map, 2);
+  formatter.AddField("area_tiles", absl::StrFormat("%dx%d", location.area_width,
+                                                   location.area_height));
+  formatter.AddField("x", location.area_x);
+  formatter.AddField("y", location.area_y);
+  formatter.AddHexField("screen", location.screen_id, 2);
+  formatter.AddField("screen_x", location.screen_x);
+  formatter.AddField("screen_y", location.screen_y);
+  formatter.AddField("world_x", location.world_x);
+  formatter.AddField("world_y", location.world_y);
+}
+
+// Mirrors OverworldEditor::Save's map path: rebuild the tile32 table from the
+// edited tile16 grid, then write tile32 definitions (vanilla or expanded
+// layout) and the compressed screens. Tile16 definitions are untouched.
+absl::Status SaveOverworldTileGrid(Rom& rom, zelda3::Overworld& overworld) {
+  const auto profile = zelda3::DetectOverworldRomProfile(rom);
+  RETURN_IF_ERROR(overworld.CreateTile32Tilemap());
+  if (profile.has_expanded_tile32) {
+    RETURN_IF_ERROR(overworld.SaveMap32Expanded());
+  } else {
+    RETURN_IF_ERROR(overworld.SaveMap32Tiles());
+  }
+  return overworld.SaveOverworldMaps();
+}
+
+// Reload the saved bytes and require every world's tile16 grid to match the
+// edited grid exactly.
+absl::Status VerifyTileGridRoundTrip(const Rom& rom,
+                                     const zelda3::Overworld& expected) {
+  Rom reloaded;
+  Rom::LoadOptions options;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(reloaded.LoadFromData(rom.vector(), options));
+  zelda3::Overworld actual(&reloaded);
+  RETURN_IF_ERROR(actual.Load(&reloaded));
+  const auto want = expected.map_tiles();
+  const auto got = actual.map_tiles();
+  const zelda3::OverworldBlockset* want_worlds[] = {
+      &want.light_world, &want.dark_world, &want.special_world};
+  const zelda3::OverworldBlockset* got_worlds[] = {
+      &got.light_world, &got.dark_world, &got.special_world};
+  for (int world = 0; world < 3; ++world) {
+    const auto& w = *want_worlds[world];
+    const auto& g = *got_worlds[world];
+    if (w.size() != g.size()) {
+      return absl::DataLossError("Reloaded tile grid has a different size");
+    }
+    for (size_t x = 0; x < w.size(); ++x) {
+      if (w[x] == g[x]) {
+        continue;
+      }
+      for (size_t y = 0; y < w[x].size() && y < g[x].size(); ++y) {
+        if (w[x][y] != g[x][y]) {
+          return absl::DataLossError(absl::StrFormat(
+              "Saved overworld does not read back: %s World tile (%d,%d) is "
+              "0x%04X, expected 0x%04X",
+              overworld::WorldName(world), static_cast<int>(x),
+              static_cast<int>(y), g[x][y], w[x][y]));
+        }
+      }
+      return absl::DataLossError("Reloaded tile grid column size differs");
+    }
+  }
   return absl::OkStatus();
 }
 
-absl::Status ValidateTileCoordinates(int x, int y) {
-  if (x < 0 || x >= 64 || y < 0 || y >= 64) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Tile coordinates out of range: (%d,%d)", x, y));
+// Dry-run and --write run the same save path on the in-memory ROM and verify
+// that a fresh load reads back the edited grid; only --write commits it.
+absl::Status ApplyTileEdit(Rom& rom, zelda3::Overworld& overworld,
+                           const overworld::AreaTileLocation& location,
+                           uint16_t tile_id, bool do_write, bool mock_rom,
+                           resources::OutputFormatter& formatter) {
+  ASSIGN_OR_RETURN(const uint16_t before,
+                   overworld::ReadAreaTile(overworld, location));
+  if (before == tile_id) {
+    formatter.AddField("write_status", "not-needed");
+    return absl::OkStatus();
   }
+
+  const std::vector<uint8_t> before_rom = rom.vector();
+  ScopedRomTransaction transaction(rom);
+  RETURN_IF_ERROR(overworld::WriteAreaTile(overworld, location, tile_id));
+  RETURN_IF_ERROR(SaveOverworldTileGrid(rom, overworld));
+  RETURN_IF_ERROR(VerifyTileGridRoundTrip(rom, overworld));
+
+  // Every changed byte must fall inside the regions an overworld map save is
+  // documented to own (tile32 quadrants, tile16 table, compressed map banks
+  // and their pointer tables); anything else fails closed.
+  const auto save_ranges = overworld.GetProjectedWriteRanges();
+  const auto& after_rom = rom.vector();
+  int changed_bytes = 0;
+  int changed_ranges = 0;
+  int outside_bytes = 0;
+  size_t first_outside = 0;
+  bool in_range = false;
+  for (size_t i = 0; i < after_rom.size(); ++i) {
+    const bool differs =
+        i >= before_rom.size() || after_rom[i] != before_rom[i];
+    changed_bytes += differs ? 1 : 0;
+    changed_ranges += (differs && !in_range) ? 1 : 0;
+    in_range = differs;
+    if (!differs) {
+      continue;
+    }
+    bool owned = false;
+    for (const auto& [start, end] : save_ranges) {
+      owned |= i >= start && i < end;
+    }
+    if (!owned && outside_bytes++ == 0) {
+      first_outside = i;
+    }
+  }
+  formatter.AddField("changed_bytes", changed_bytes);
+  formatter.AddField("changed_ranges", changed_ranges);
+  formatter.AddField("bytes_outside_save_ranges", outside_bytes);
+  if (outside_bytes > 0) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Overworld save changed %d byte(s) outside its documented ranges, "
+        "first at PC $%06X; nothing was written",
+        outside_bytes, first_outside));
+  }
+  formatter.AddField("verified_grid", true);
+
+  if (!do_write) {
+    formatter.AddField("write_status", "dry-run");
+    return absl::OkStatus();  // the transaction restores the ROM
+  }
+  if (mock_rom) {
+    formatter.AddField("save_status", "mock-rom-skipped");
+    return absl::OkStatus();
+  }
+
+  Rom::SaveSettings save_settings;
+  save_settings.require_backup = true;
+  RETURN_IF_ERROR(rom.SaveToFile(save_settings));
+  transaction.Commit();
+  formatter.AddField("save_status", "saved");
+
+  // The file on disk must be exactly the verified image.
+  Rom reopened;
+  RETURN_IF_ERROR(reopened.LoadFromFile(rom.filename()));
+  if (reopened.vector() != rom.vector()) {
+    return absl::DataLossError(
+        "Saved ROM file differs from the verified image");
+  }
+  formatter.AddField("verified_reload", true);
   return absl::OkStatus();
 }
 
@@ -56,26 +232,19 @@ absl::Status ValidateTileCoordinates(int x, int y) {
 absl::Status OverworldGetTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  int map_id = 0;
-  int x = 0;
-  int y = 0;
-  if (!ParseHexString(parser.GetString("map").value(), &map_id) ||
-      !ParseHexString(parser.GetString("x").value(), &x) ||
-      !ParseHexString(parser.GetString("y").value(), &y)) {
-    return absl::InvalidArgumentError("Invalid numeric argument for map/x/y.");
-  }
-  RETURN_IF_ERROR(ValidateMapId(map_id));
-  RETURN_IF_ERROR(ValidateTileCoordinates(x, y));
+  ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+  ASSIGN_OR_RETURN(const int x, ParseCoordinateArg(parser, "x"));
+  ASSIGN_OR_RETURN(const int y, ParseCoordinateArg(parser, "y"));
 
   zelda3::Overworld overworld(rom);
   RETURN_IF_ERROR(overworld.Load(rom));
-  RETURN_IF_ERROR(SetOverworldContextForMap(map_id, &overworld));
+  ASSIGN_OR_RETURN(const auto location,
+                   overworld::ResolveAreaTileForMap(overworld, map_id, x, y));
+  ASSIGN_OR_RETURN(const uint16_t tile,
+                   overworld::ReadAreaTile(overworld, location));
 
-  const uint16_t tile = overworld.GetTile(x, y);
   formatter.BeginObject("Overworld Tile");
-  formatter.AddHexField("map_id", map_id, 2);
-  formatter.AddField("x", x);
-  formatter.AddField("y", y);
+  AddTileLocationFields(formatter, location);
   formatter.AddHexField("tile_id", tile, 4);
   formatter.EndObject();
   return absl::OkStatus();
@@ -84,62 +253,84 @@ absl::Status OverworldGetTileCommandHandler::Execute(
 absl::Status OverworldSetTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  int map_id = 0;
-  int x = 0;
-  int y = 0;
-  int tile_value = 0;
-  if (!ParseHexString(parser.GetString("map").value(), &map_id) ||
-      !ParseHexString(parser.GetString("x").value(), &x) ||
-      !ParseHexString(parser.GetString("y").value(), &y) ||
-      !ParseHexString(parser.GetString("tile").value(), &tile_value)) {
-    return absl::InvalidArgumentError(
-        "Invalid numeric argument for map/x/y/tile.");
+  resources::CommandInvocationContext invocation_context;
+  if (rom != nullptr && !rom->filename().empty()) {
+    invocation_context.source_rom_path = std::filesystem::path(rom->filename());
+    invocation_context.active_rom_path = std::filesystem::path(rom->filename());
   }
-  RETURN_IF_ERROR(ValidateMapId(map_id));
-  RETURN_IF_ERROR(ValidateTileCoordinates(x, y));
-  if (tile_value < 0 || tile_value > 0xFFFF) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Tile ID out of range: 0x%X", tile_value));
+  return ExecuteWithContext(rom, parser, formatter, invocation_context);
+}
+
+absl::Status OverworldSetTileCommandHandler::ExecuteWithContext(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter,
+    const resources::CommandInvocationContext& invocation_context) {
+  ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+  ASSIGN_OR_RETURN(const int x, ParseCoordinateArg(parser, "x"));
+  ASSIGN_OR_RETURN(const int y, ParseCoordinateArg(parser, "y"));
+  ASSIGN_OR_RETURN(const int tile_value, ParseTileIdArg(parser));
+  const bool do_write = parser.HasFlag("write");
+  const bool mock_rom = parser.HasFlag("mock-rom");
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  // Same guard as the overworld sprite editors: never write a ROM that lives
+  // in an Oracle of Secrets checkout unless the caller opts in explicitly.
+  const auto active_path = invocation_context.active_rom_path.value_or(
+      std::filesystem::path(rom->filename()));
+  if (do_write && !mock_rom && !parser.HasFlag("allow-project-rom") &&
+      IsOracleProjectRomPath(active_path)) {
+    return absl::PermissionDeniedError(absl::StrFormat(
+        "Refusing --write to %s: it is inside an Oracle of Secrets checkout "
+        "(Oracle_main.asm next to its Roms/ folder). Copy the ROM (with "
+        "Data/dungeons/custom_collision.json) and write the copy, or pass "
+        "--allow-project-rom deliberately.",
+        active_path.string()));
   }
 
   zelda3::Overworld overworld(rom);
   RETURN_IF_ERROR(overworld.Load(rom));
-  RETURN_IF_ERROR(SetOverworldContextForMap(map_id, &overworld));
-
-  const uint16_t before = overworld.GetTile(x, y);
-  overworld.SetTile(x, y, static_cast<uint16_t>(tile_value));
-  const uint16_t after = overworld.GetTile(x, y);
-
-  RETURN_IF_ERROR(overworld.SaveMap16Tiles());
-  RETURN_IF_ERROR(overworld.SaveMap32Tiles());
-  RETURN_IF_ERROR(overworld.SaveOverworldMaps());
+  ASSIGN_OR_RETURN(const auto location,
+                   overworld::ResolveAreaTileForMap(overworld, map_id, x, y));
+  const int tile16_count = static_cast<int>(overworld.tiles16().size());
+  if (tile_value >= tile16_count) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Tile ID 0x%04X is past the last tile16 definition (0x%04X)",
+        tile_value, tile16_count - 1));
+  }
+  ASSIGN_OR_RETURN(const uint16_t before,
+                   overworld::ReadAreaTile(overworld, location));
 
   formatter.BeginObject("Overworld Tile Write");
-  formatter.AddHexField("map_id", map_id, 2);
-  formatter.AddField("x", x);
-  formatter.AddField("y", y);
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  AddTileLocationFields(formatter, location);
   formatter.AddHexField("tile_before", before, 4);
-  formatter.AddHexField("tile_after", after, 4);
-  if (parser.HasFlag("mock-rom")) {
-    formatter.AddField("save_status", "mock-rom-skipped");
-  } else {
-    Rom::SaveSettings save_settings;
-    save_settings.backup = true;
-    RETURN_IF_ERROR(rom->SaveToFile(save_settings));
-    formatter.AddField("save_status", "saved");
+  formatter.AddHexField("tile_after", tile_value, 4);
+  const absl::Status status = ApplyTileEdit(*rom, overworld, location,
+                                            static_cast<uint16_t>(tile_value),
+                                            do_write, mock_rom, formatter);
+  if (!status.ok()) {
+    formatter.AddField("error", std::string(status.message()));
   }
   formatter.EndObject();
-  return absl::OkStatus();
+  return status;
 }
 
 absl::Status OverworldFindTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  auto tile_id_str = parser.GetString("tile").value();
+  ASSIGN_OR_RETURN(const int tile_id, ParseTileIdArg(parser));
 
-  int tile_id;
-  if (!ParseHexString(tile_id_str, &tile_id)) {
-    return absl::InvalidArgumentError("Invalid tile ID format. Must be hex.");
+  overworld::TileSearchOptions options;
+  if (parser.GetString("map").has_value()) {
+    ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+    options.map_id = map_id;
+  }
+  if (auto world = parser.GetString("world"); world.has_value()) {
+    ASSIGN_OR_RETURN(const int world_id,
+                     overworld::ParseWorldSpecifier(*world));
+    options.world = world_id;
   }
 
   // Load the Overworld from ROM
@@ -150,7 +341,8 @@ absl::Status OverworldFindTileCommandHandler::Execute(
   }
 
   // Call the helper function to find tile matches
-  auto matches_or = overworld::FindTileMatches(overworld, tile_id);
+  auto matches_or = overworld::FindTileMatches(
+      overworld, static_cast<uint16_t>(tile_id), options);
   if (!matches_or.ok()) {
     return matches_or.status();
   }
@@ -158,14 +350,26 @@ absl::Status OverworldFindTileCommandHandler::Execute(
 
   // Format the output
   formatter.BeginObject("Overworld Tile Search");
-  formatter.AddField("tile_id", absl::StrFormat("0x%03X", tile_id));
+  formatter.AddField("tile_id", absl::StrFormat("0x%04X", tile_id));
   formatter.AddField("matches_found", static_cast<int>(matches.size()));
+  formatter.AddField("coordinates",
+                     "x/y are area-relative (overworld-get-tile/set-tile "
+                     "input); local_x/local_y are within map_id; "
+                     "global_x/global_y index the world grid");
 
   formatter.BeginArray("matches");
   for (const auto& match : matches) {
     formatter.BeginObject();
     formatter.AddField("map_id", absl::StrFormat("0x%02X", match.map_id));
     formatter.AddField("world", overworld::WorldName(match.world));
+    if (auto area = overworld::LocateScreenTile(overworld, match.map_id,
+                                                match.local_x, match.local_y);
+        area.ok()) {
+      formatter.AddField("parent_area",
+                         absl::StrFormat("0x%02X", area->parent_map));
+      formatter.AddField("x", area->area_x);
+      formatter.AddField("y", area->area_y);
+    }
     formatter.AddField("local_x", match.local_x);
     formatter.AddField("local_y", match.local_y);
     formatter.AddField("global_x", match.global_x);
@@ -181,12 +385,7 @@ absl::Status OverworldFindTileCommandHandler::Execute(
 absl::Status OverworldDescribeMapCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  auto screen_id_str = parser.GetString("screen").value();
-
-  int screen_id;
-  if (!ParseHexString(screen_id_str, &screen_id)) {
-    return absl::InvalidArgumentError("Invalid screen ID format. Must be hex.");
-  }
+  ASSIGN_OR_RETURN(const int screen_id, ParseMapIdArg(parser, "screen"));
 
   // Load the Overworld from ROM
   zelda3::Overworld overworld(rom);
@@ -217,6 +416,13 @@ absl::Status OverworldDescribeMapCommandHandler::Execute(
   formatter.AddField("is_large", summary.is_large_map);
   formatter.AddField("parent", absl::StrFormat("0x%02X", summary.parent_map));
   formatter.AddField("quadrant", summary.large_quadrant);
+  // Coordinate bounds for overworld-get-tile/set-tile on this area.
+  if (const auto* parent = overworld.overworld_map(summary.parent_map);
+      parent != nullptr) {
+    const auto [columns, rows] = overworld::AreaScreenSpan(*parent);
+    formatter.AddField("area_tiles",
+                       absl::StrFormat("%dx%d", columns * 32, rows * 32));
+  }
   formatter.EndObject();
 
   formatter.AddField("message_id",

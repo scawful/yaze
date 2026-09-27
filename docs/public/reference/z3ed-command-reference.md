@@ -265,9 +265,11 @@ because they come from separate global tables rather than the encoded room
 object stream. Without the flag, the legacy output and count are unchanged.
 
 ### Overworld Commands
-- `overworld-describe-map --map <hex>`
-- `overworld-find-tile --tile <hex>`
-- `overworld-list-warps --map <hex>`
+- `overworld-describe-map --screen <hex>`
+- `overworld-get-tile --map <hex> --x <area_tile_x> --y <area_tile_y>`
+- `overworld-set-tile --map <hex> --x <area_tile_x> --y <area_tile_y> --tile <hex> [--write] [--allow-project-rom]`
+- `overworld-find-tile --tile <hex> [--map <hex>] [--world <light|dark|special>]`
+- `overworld-list-warps [--screen <hex>]`
 - `overworld-list-sprites [--screen <hex>] [--phase <0|1|2>]`
 - `overworld-list-items --map <hex>`
 - `overworld-get-entrance --entrance <hex>`
@@ -279,7 +281,33 @@ object stream. Without the flag, the legacy output and count are unchanged.
 
 Example:
 ```bash
-z3ed overworld-describe-map --map=0x40 --rom=zelda3.sfc
+z3ed overworld-describe-map --screen=0x40 --rom=zelda3.sfc
+```
+
+#### Overworld tile coordinates
+IDs (`--map`, `--screen`, `--tile`) are hex. `--x`/`--y` are decimal tile16
+coordinates (a `0x` prefix selects hex) relative to the top-left of the
+screen's parent area: 0-31 on a small area and 0-63 on each doubled axis of a
+large, wide, or tall area (`overworld-describe-map` reports `area_tiles`).
+A child screen of a large area resolves to its parent, so `--map 0x41 --x 40`
+and `--map 0x40 --x 40` name the same tile. Output reports the resolved
+`parent_area`, the `screen` holding the tile with `screen_x`/`screen_y`
+(0-31), and `world_x`/`world_y` (editor canvas tile). `overworld-find-tile`
+matches carry the same `x`/`y`, so they can be passed straight back.
+
+`overworld-set-tile` is dry-run by default. Both modes rebuild the tile32 table
+and compressed screens exactly as the editor's overworld save does (tile16
+definitions are untouched), fail closed if a changed byte falls outside the
+overworld save regions (`bytes_outside_save_ranges`), reload the result, and
+fail with `DATA_LOSS` unless every world's tile grid reads back with only the
+requested change. The output reports `changed_bytes`/`changed_ranges`; the
+tile32 table is rebuilt, so one tile can move ~100 KB on an expanded ROM. `--write` then saves with a
+required backup and checks the file matches the verified image. It refuses a
+ROM inside an Oracle of Secrets checkout unless `--allow-project-rom`.
+
+```bash
+z3ed overworld-get-tile --map=0x40 --x=40 --y=10 --rom=copy.sfc
+z3ed overworld-set-tile --map=0x40 --x=40 --y=10 --tile=0x0255 --rom=copy.sfc
 ```
 
 #### Sprite phases
