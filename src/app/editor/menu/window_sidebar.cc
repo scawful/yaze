@@ -377,16 +377,17 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     }
     return visible ? gui::GetOnSurfaceVec4() : gui::GetTextSecondaryVec4();
   };
-  const float pin_button_side =
-      std::max(20.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
-  const ImVec2 pin_button_size(pin_button_side, pin_button_side);
+  const ImVec2 pin_button_size = gui::ScaledSize(30.0f, 30.0f);
   auto draw_pin_toggle_button = [&](const std::string& widget_id,
                                     bool pinned) -> bool {
     ImGui::PushID(widget_id.c_str());
-    const ImVec4 pin_col = pinned ? gui::ConvertColorToImVec4(theme.primary)
-                                  : gui::GetTextSecondaryVec4();
+    ImVec4 pin_col = pinned ? gui::ConvertColorToImVec4(theme.primary)
+                            : gui::GetTextSecondaryVec4();
+    if (!pinned) {
+      pin_col.w *= 0.72f;
+    }
     const bool clicked = gui::TransparentIconButton(
-        pinned ? ICON_MD_PUSH_PIN : ICON_MD_PIN, pin_button_size,
+        ICON_MD_PUSH_PIN, pin_button_size,
         pinned ? "Unpin window" : "Pin window", pinned, pin_col,
         "window_sidebar", widget_id.c_str());
     ImGui::PopID();
@@ -420,21 +421,17 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
           const bool visible =
               window->visibility_flag ? *window->visibility_flag : false;
 
-          if (draw_pin_toggle_button("pin_" + window->card_id, true)) {
-            window_manager_.SetWindowPinned(session_id, window->card_id, false);
-          }
-
-          ImGui::SameLine(0.0f, compact_spacing);
-
           std::string label = absl::StrFormat("%s  %s", window->icon.c_str(),
                                               window->display_name.c_str());
+          const float selectable_width =
+              std::max(1.0f, ImGui::GetContentRegionAvail().x -
+                                 pin_button_size.x - compact_spacing);
           ImGui::PushID(
               (std::string("pinned_select_") + window->card_id).c_str());
           {
             gui::StyleColorGuard text_color(ImGuiCol_Text,
                                             window_text_color(visible));
-            ImVec2 item_size(ImGui::GetContentRegionAvail().x,
-                             pin_button_size.y);
+            ImVec2 item_size(selectable_width, pin_button_size.y);
             if (ImGui::Selectable(label.c_str(), visible,
                                   ImGuiSelectableFlags_None, item_size)) {
               const bool switched_mode =
@@ -458,6 +455,10 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
             }
           }
           ImGui::PopID();
+          ImGui::SameLine(0.0f, compact_spacing);
+          if (draw_pin_toggle_button("pin_" + window->card_id, true)) {
+            window_manager_.SetWindowPinned(session_id, window->card_id, false);
+          }
         }
         ImGui::Spacing();
         ImGui::Separator();
@@ -526,18 +527,17 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     const bool visible =
         window.visibility_flag ? *window.visibility_flag : false;
 
-    if (draw_pin_toggle_button("pin_" + window.card_id, is_pinned)) {
-      window_manager_.SetWindowPinned(session_id, window.card_id, !is_pinned);
-    }
-    ImGui::SameLine(0.0f, compact_spacing);
-
     std::string label = absl::StrFormat("%s  %s", window.icon.c_str(),
                                         window.display_name.c_str());
+    const float selectable_width =
+        std::max(1.0f, ImGui::GetContentRegionAvail().x - pin_button_size.x -
+                           compact_spacing);
+    bool window_row_hovered = false;
     ImGui::PushID((std::string("window_select_") + window.card_id).c_str());
     {
       gui::StyleColorGuard text_color(ImGuiCol_Text,
                                       window_text_color(visible));
-      ImVec2 item_size(ImGui::GetContentRegionAvail().x, pin_button_size.y);
+      ImVec2 item_size(selectable_width, pin_button_size.y);
       if (ImGui::Selectable(label.c_str(), visible, ImGuiSelectableFlags_None,
                             item_size)) {
         const bool switched_mode =
@@ -560,10 +560,15 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
           }
         }
       }
+      window_row_hovered = ImGui::IsItemHovered();
     }
     ImGui::PopID();
+    ImGui::SameLine(0.0f, compact_spacing);
+    if (draw_pin_toggle_button("pin_" + window.card_id, is_pinned)) {
+      window_manager_.SetWindowPinned(session_id, window.card_id, !is_pinned);
+    }
 
-    if (ImGui::IsItemHovered() && !window.shortcut_hint.empty()) {
+    if (window_row_hovered && !window.shortcut_hint.empty()) {
       ImGui::SetTooltip("%s", window.shortcut_hint.c_str());
     }
   };

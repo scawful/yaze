@@ -36,18 +36,24 @@ class StatusBar;
  */
 class LayoutCoordinator {
  public:
+  struct WorkspaceChromeBudget {
+    float left_offset = 0.0f;
+    float right_offset = 0.0f;
+    bool side_panels_overlay = false;
+  };
+
   /**
    * @struct Dependencies
    * @brief All dependencies required by LayoutCoordinator
    */
-    struct Dependencies {
-      LayoutManager* layout_manager = nullptr;
-      WorkspaceWindowManager* window_manager = nullptr;
-      UICoordinator* ui_coordinator = nullptr;
-      ToastManager* toast_manager = nullptr;
-      StatusBar* status_bar = nullptr;
-      RightDrawerManager* right_drawer_manager = nullptr;
-    };
+  struct Dependencies {
+    LayoutManager* layout_manager = nullptr;
+    WorkspaceWindowManager* window_manager = nullptr;
+    UICoordinator* ui_coordinator = nullptr;
+    ToastManager* toast_manager = nullptr;
+    StatusBar* status_bar = nullptr;
+    RightDrawerManager* right_drawer_manager = nullptr;
+  };
 
   LayoutCoordinator() = default;
   ~LayoutCoordinator() = default;
@@ -68,11 +74,17 @@ class LayoutCoordinator {
    */
   float GetLeftLayoutOffset() const;
 
-   /**
+  /**
     * @brief Get the right margin needed for drawers
     * @return Float representing pixel offset
     */
   float GetRightLayoutOffset() const;
+
+  static WorkspaceChromeBudget ResolveWorkspaceChromeBudget(
+      float viewport_width, float activity_bar_width,
+      float left_side_panel_width, float right_sidebar_width,
+      float right_sidebar_budget_width = -1.0f,
+      float min_canvas_width = 640.0f);
 
   /**
    * @brief Get the bottom margin needed for status bar
@@ -164,6 +176,8 @@ class LayoutCoordinator {
   bool IsInitialized() const { return layout_manager_ != nullptr; }
 
  private:
+  WorkspaceChromeBudget GetWorkspaceChromeBudget() const;
+
   // Dependencies (injected)
   LayoutManager* layout_manager_ = nullptr;
   WorkspaceWindowManager* window_manager_ = nullptr;

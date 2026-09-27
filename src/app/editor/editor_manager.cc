@@ -10,6 +10,7 @@
 
 // C++ standard library headers
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdlib>
 #include <exception>
@@ -21,6 +22,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -252,6 +254,24 @@ void AppendWorkflowHistoryEntry(const std::string& kind,
 bool ProjectUsesCustomObjects(const project::YazeProject& project) {
   return !project.custom_objects_folder.empty() ||
          !project.custom_object_files.empty();
+}
+
+void MergeRightDrawerWidthPreferences(
+    std::unordered_map<std::string, float>* preferences,
+    const std::unordered_map<std::string, float>& drawer_widths) {
+  if (preferences == nullptr) {
+    return;
+  }
+  constexpr std::array<const char*, 9> kDrawerWidthKeys = {
+      "right_sidebar.shared", "agent_chat", "proposals", "settings",    "help",
+      "notifications",        "properties", "project",   "tool_output",
+  };
+  for (const char* key : kDrawerWidthKeys) {
+    preferences->erase(key);
+  }
+  for (const auto& [key, width] : drawer_widths) {
+    preferences->insert_or_assign(key, width);
+  }
 }
 
 zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
@@ -2260,19 +2280,30 @@ void EditorManager::InitializeServices() {
   if (right_drawer_manager_) {
     if (pending_layout_defaults_reset_) {
       right_drawer_manager_->ResetDrawerWidths();
-      user_settings_.prefs().right_panel_widths =
-          right_drawer_manager_->SerializeDrawerWidths();
+      MergeRightDrawerWidthPreferences(
+          &user_settings_.prefs().right_panel_widths,
+          right_drawer_manager_->SerializeDrawerWidths());
     } else {
       right_drawer_manager_->RestoreDrawerWidths(
           user_settings_.prefs().right_panel_widths);
+      auto normalized_widths = user_settings_.prefs().right_panel_widths;
+      MergeRightDrawerWidthPreferences(
+          &normalized_widths, right_drawer_manager_->SerializeDrawerWidths());
+      if (user_settings_.prefs().right_panel_widths != normalized_widths) {
+        user_settings_.prefs().right_panel_widths =
+            std::move(normalized_widths);
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      }
     }
     right_drawer_manager_->SetDrawerWidthChangedCallback(
         [this](RightDrawerManager::DrawerType, float) {
           if (!right_drawer_manager_) {
             return;
           }
-          user_settings_.prefs().right_panel_widths =
-              right_drawer_manager_->SerializeDrawerWidths();
+          MergeRightDrawerWidthPreferences(
+              &user_settings_.prefs().right_panel_widths,
+              right_drawer_manager_->SerializeDrawerWidths());
           settings_dirty_ = true;
           settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
         });
@@ -3583,7 +3614,7 @@ void EditorManager::DrawInterface() {
     if (active != RightDrawerManager::DrawerType::kNone) {
       StatusBarSegmentOptions drawer_opts;
       drawer_opts.tooltip =
-          "Right drawer open — Esc closes, View > Drawers switches";
+          "Right sidebar open — Esc closes, View > Right Sidebar toggles";
       status_bar_.SetCustomSegment("Drawer", GetDrawerTypeName(active),
                                    std::move(drawer_opts));
     }

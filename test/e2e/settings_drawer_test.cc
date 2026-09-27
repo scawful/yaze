@@ -121,25 +121,27 @@ void E2ETest_SettingsDrawerFromFileMenu(ImGuiTestContext* ctx) {
   CloseDrawers(ctx, drawers);
 }
 
-void E2ETest_SettingsDrawerFromDrawersButton(ImGuiTestContext* ctx) {
+void E2ETest_SettingsDrawerFromSidebarToggle(ImGuiTestContext* ctx) {
   Controller* controller = GetController(ctx);
   IM_CHECK(controller != nullptr);
   RightDrawerManager* drawers = GetDrawers(controller);
   IM_CHECK(drawers != nullptr);
   CloseDrawers(ctx, drawers);
 
+  // Seed a non-Settings last tab so this covers both the single toggle and
+  // persistent tab navigation.
+  drawers->OpenDrawer(DrawerType::kProject);
+  drawers->CloseDrawer();
+  ctx->Yield(30);
+
   ctx->SetRef("DockSpaceWindow");
-  ctx->ItemClick("**/" ICON_MD_VERTICAL_SPLIT "##DrawersOverflow");
+  ctx->ItemClick("**/" ICON_MD_VIEW_SIDEBAR "##RightSidebarToggle");
   ctx->Yield(3);
-  ImGuiWindow* popup = FindWindowWithPrefix(ctx, "##Popup_");
-  if (popup == nullptr && ctx->UiContext->OpenPopupStack.Size > 0) {
-    popup = ctx->UiContext->OpenPopupStack.back().Window;
-  }
-  IM_CHECK(popup != nullptr);
-  ctx->SetRef(popup->ID);
-  ctx->ItemClick(ICON_MD_SETTINGS " Settings");
+  IM_CHECK_EQ_NO_RET(drawers->GetActiveDrawer(), DrawerType::kProject);
+  ctx->SetRef("//##RightPanel");
+  ctx->ItemClick("**/##drawer_nav_6_Settings");
   ctx->SetRef("DockSpaceWindow");
-  CheckSettingsDrawerShown(ctx, drawers, "Drawers button");
+  CheckSettingsDrawerShown(ctx, drawers, "Right sidebar toggle");
   CloseDrawers(ctx, drawers);
 }
 
@@ -244,7 +246,7 @@ void RegisterSettingsDrawerTests(ImGuiTestEngine* engine,
   };
   static const Entry kEntries[] = {
       {"FileMenu", E2ETest_SettingsDrawerFromFileMenu},
-      {"DrawersButton", E2ETest_SettingsDrawerFromDrawersButton},
+      {"SidebarToggle", E2ETest_SettingsDrawerFromSidebarToggle},
       {"KeyChord", E2ETest_SettingsDrawerFromKeyChord},
       {"PaletteSwitch", E2ETest_SettingsDrawerFromPaletteSwitch},
       {"PaletteToggle", E2ETest_SettingsDrawerFromPaletteToggle},

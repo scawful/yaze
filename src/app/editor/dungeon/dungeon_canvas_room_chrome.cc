@@ -17,6 +17,7 @@
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_config.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
@@ -224,9 +225,9 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   ImGui::SameLine();
 
   if (pin_callback_) {
-    if (gui::ThemedIconButton(is_pinned_ ? ICON_MD_PUSH_PIN : ICON_MD_PIN,
+    if (gui::ThemedIconButton(ICON_MD_PUSH_PIN,
                               is_pinned_ ? "Unpin Room" : "Pin Room",
-                              ImVec2(0, 0), is_pinned_)) {
+                              gui::ScaledSize(30.0f, 30.0f), is_pinned_)) {
       pin_callback_(!is_pinned_);
     }
     ImGui::SameLine();

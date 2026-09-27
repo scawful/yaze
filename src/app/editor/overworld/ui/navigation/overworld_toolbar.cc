@@ -211,8 +211,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           : WithHint("Pin map\nKeep properties on this map while navigating",
                      "overworld.toggle_lock");
   if (gui::ToolbarIconButton(
-          current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN, pin_tip.c_str(),
-          current_map_lock)) {
+          current_map_lock ? ICON_MD_PUSH_PIN : ICON_MD_GPS_FIXED,
+          pin_tip.c_str(), current_map_lock)) {
     current_map_lock = !current_map_lock;
   }
 
