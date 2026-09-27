@@ -27,7 +27,10 @@ int GetOverworldSpriteRegionEnd(const Rom& rom) {
   const int pointer = data[kRoomSpritePointerTableOperand] |
                       (data[kRoomSpritePointerTableOperand + 1] << 8);
   const int table_pc = 0x40000 + pointer;
-  if (pointer >= 0x8000 && table_pc > layout.data_start &&
+  // A table at data_start leaves no overworld sprite region: return that
+  // empty end so every read and write fails closed, instead of falling back
+  // to kOverworldSpriteDataEnd and letting sprite writes overwrite the table.
+  if (pointer >= 0x8000 && table_pc >= layout.data_start &&
       table_pc < kOverworldSpriteDataEnd) {
     return table_pc;
   }
