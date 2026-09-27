@@ -276,6 +276,27 @@ TEST_P(OverworldSpriteIoTest, RegionEndsAtRelocatedRoomSpriteTable) {
   EXPECT_EQ(PlanOverworldSpriteSave(rom_, edits).status().code(),
             absl::StatusCode::kResourceExhausted);
 }
+// A room sprite table moved exactly to data_start leaves no overworld sprite
+// region. The region must end there (empty) so reads, plans, and writes all
+// fail closed; treating it as "not relocated" would let sprite writes
+// overwrite the table.
+TEST_P(OverworldSpriteIoTest, RoomSpriteTableAtDataStartLeavesNoRegion) {
+  ASSERT_TRUE(rom_.WriteWord(kRoomSpritePointerTableOperand,
+                             layout_.data_start - 0x40000)
+                  .ok());
+  rom_.set_dirty(false);
+  EXPECT_EQ(GetOverworldSpriteRegionEnd(rom_), layout_.data_start);
+  const auto before = rom_.vector();
+  EXPECT_FALSE(ReadOverworldSpriteList(rom_, layout_.tables[0]).ok());
+  OverworldSpriteEdits edits;
+  edits[0][0] = OverworldSpriteBytes{1, 2, 3, 0xFF};
+  EXPECT_FALSE(PlanOverworldSpriteSave(rom_, edits).ok());
+  EXPECT_FALSE(PlanOverworldSpriteListEdit(rom_, 0, 0, {1, 2, 3, 0xFF}).ok());
+  OverworldSpriteSavePlan plan{{layout_.data_start, {1, 2, 3, 0xFF}}};
+  EXPECT_FALSE(ApplyOverworldSpriteSave(rom_, plan).ok());
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_FALSE(rom_.dirty());
+}
 TEST_P(OverworldSpriteIoTest, ListEditRelocatesSharedListAndKeepsOthers) {
   // Every slot shares the empty list at data_start.
   const OverworldSpriteBytes added{0x0D, 0x0E, 0x0A, 0xFF};
