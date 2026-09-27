@@ -17,8 +17,9 @@
 //              performs it, and the SDL event filter drops the key so the
 //              chord never also reaches ImGui (ShortcutManager matches
 //              modifiers loosely, e.g. Ctrl+Cmd+F would otherwise fire Find).
-//   * kNone:   the item has no usable chord (unrepresentable key or an exact
-//              ShortcutManager conflict with a different action).
+//   * kNone:   the item has no usable chord (its shortcut is unbound or its
+//              key unrepresentable, or an exact ShortcutManager conflict with
+//              a different action).
 
 #include <cstdint>
 #include <functional>
@@ -112,12 +113,6 @@ struct ActionSpec {
   // ImGui itself handles `default_chord` (text-field Cmd+X/C/V/A), so the
   // chord stays with ImGui even without a ShortcutManager entry.
   bool imgui_owns_default_chord;
-  // If a ShortcutManager binding already uses `default_chord` exactly, it
-  // does the same thing as this item (e.g. Cmd+, = Settings editor), so the
-  // item shows the chord as ImGui-owned instead of dropping it. Items without
-  // this flag lose the chord on a conflict (Cmd+H is the agent sidebar, not
-  // Hide yaze).
-  bool binding_on_default_chord_is_same_action = false;
 };
 
 const std::vector<ActionSpec>& ActionSpecs();
