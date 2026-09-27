@@ -3,6 +3,8 @@
 
 #include <algorithm>
 
+#include "app/gui/layout/adaptive_sheet_layout.h"
+
 namespace yaze {
 namespace editor {
 
@@ -50,21 +52,12 @@ inline float ComputeTile8SourceDisplayScale(float available_width_px,
     return min_scale;
   }
 
-  // Leave room for child-window padding and the vertical scrollbar. The Tile8
-  // sheet should normally fit horizontally; height is handled by scrolling.
-  constexpr float kHorizontalChromeAllowance = 24.0f;
-  const float usable_width =
-      std::max(1.0f, available_width_px - kHorizontalChromeAllowance);
-  const float fit_scale =
-      usable_width / static_cast<float>(source_bitmap_width_px);
-  if (fit_scale < min_scale) {
-    // Fit wins over nominal readability. The Tile8 source is still vertically
-    // scrollable, but it should not force a horizontal clip/scroll at default
-    // or narrow dock widths.
-    constexpr float kAbsoluteMinimumReadableScale = 0.35f;
-    return std::clamp(fit_scale, kAbsoluteMinimumReadableScale, max_scale);
-  }
-  return std::clamp(fit_scale, min_scale, max_scale);
+  constexpr float kAbsoluteMinimumReadableScale = 0.35f;
+  return gui::ResolveAdaptiveSheetLayout(
+             available_width_px, source_bitmap_width_px, 1,
+             gui::AdaptiveSheetScaleMode::kFit,
+             std::min(min_scale, kAbsoluteMinimumReadableScale), max_scale)
+      .display_scale;
 }
 
 inline float ComputeTile8SourcePanelHeight(float available_height_px,

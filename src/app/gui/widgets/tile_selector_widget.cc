@@ -89,6 +89,18 @@ void TileSelectorWidget::SetTileCount(int total_tiles) {
   }
 }
 
+void TileSelectorWidget::SetDisplayScale(float display_scale) {
+  if (display_scale > 0.0f) {
+    config_.display_scale = display_scale;
+  }
+}
+
+void TileSelectorWidget::SetTilesPerRow(int tiles_per_row) {
+  if (tiles_per_row > 0) {
+    config_.tiles_per_row = tiles_per_row;
+  }
+}
+
 void TileSelectorWidget::SetSelectedTile(int tile_id) {
   if (IsValidTileId(tile_id)) {
     selected_tile_id_ = tile_id;

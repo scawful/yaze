@@ -9,11 +9,29 @@
 #include "app/editor/dungeon/ui/window/dungeon_panel_access.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_config.h"
 #include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+void DrawRoomGraphicsScaleControl(gui::AdaptiveSheetScaleMode* mode) {
+  constexpr const char* kLabels[] = {"Fit", "1x", "2x", "4x"};
+  int selected = static_cast<int>(*mode);
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled("%s", tr("Scale"));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(gui::ScaledSize(80.0f, 0.0f).x);
+  if (ImGui::Combo("##RoomGraphicsScale", &selected, kLabels,
+                   IM_ARRAYSIZE(kLabels))) {
+    *mode = static_cast<gui::AdaptiveSheetScaleMode>(selected);
+  }
+}
+
+}  // namespace
 
 RoomGraphicsContent::~RoomGraphicsContent() {
   for (auto& preview : sheet_previews_) {
@@ -147,26 +165,29 @@ void RoomGraphicsContent::Draw(bool* p_open) {
   }
   auto blocks = room.blocks();
 
-  constexpr float kBlockWidth = 128.0f;
-  constexpr float kBlockHeight = 32.0f;
-  constexpr int kBlocksPerRow = 2;
+  constexpr int kBlockWidth = 128;
+  constexpr int kBlockHeight = 32;
+  constexpr int kPreferredBlocksPerRow = 2;
   constexpr float kPadding = 4.0f;
 
   const int block_count = static_cast<int>(blocks.size());
-  const int row_count =
-      std::max(1, (block_count + kBlocksPerRow - 1) / kBlocksPerRow);
-  const ImVec2 canvas_size(
-      std::max(ImGui::GetContentRegionAvail().x,
-               kPadding + (kBlockWidth + kPadding) *
-                              static_cast<float>(kBlocksPerRow)),
-      kPadding + (kBlockHeight + kPadding) * static_cast<float>(row_count));
-
   ImGui::Text(tr("Room %03X Graphics Blocks"), active_room_id);
   ImGui::TextDisabled(tr("Blockset %02X | Spriteset %02X"), room.blockset(),
                       room.spriteset());
-  ImGui::SameLine();
   ImGui::Checkbox(tr("Source Trace"), &show_source_trace_);
+  ImGui::SameLine();
+  DrawRoomGraphicsScaleControl(&sheet_scale_mode_);
   ImGui::Separator();
+  const float available_width = ImGui::GetContentRegionAvail().x;
+
+  const gui::AdaptiveSheetGridLayout sheet_layout =
+      gui::ResolveAdaptiveSheetGridLayout(
+          available_width, kBlockWidth, kBlockHeight, block_count,
+          kPreferredBlocksPerRow, sheet_scale_mode_, 0.35f, 4.0f, kPadding,
+          kPadding * 2.0f);
+  const ImVec2 canvas_size(
+      std::max(available_width, sheet_layout.content_width + kPadding * 2.0f),
+      sheet_layout.content_height + kPadding * 2.0f);
 
   gui::CanvasFrameOptions frame_opts;
   frame_opts.canvas_size = canvas_size;
@@ -177,22 +198,23 @@ void RoomGraphicsContent::Draw(bool* p_open) {
 
   auto rt = gui::BeginCanvas(room_gfx_canvas_, frame_opts);
 
-  const float grid_width =
-      kPadding + (kBlockWidth + kPadding) * static_cast<float>(kBlocksPerRow);
+  const float grid_width = sheet_layout.content_width + kPadding * 2.0f;
   const float x_offset = std::max(0.0f, (canvas_size.x - grid_width) * 0.5f);
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   for (int i = 0; i < block_count; ++i) {
     const uint8_t block_id = blocks[static_cast<size_t>(i)];
-    const int row = i / kBlocksPerRow;
-    const int col = i % kBlocksPerRow;
-    const ImVec2 local_pos(x_offset + kPadding + col * (kBlockWidth + kPadding),
-                           kPadding + row * (kBlockHeight + kPadding));
+    const int row = i / sheet_layout.columns;
+    const int col = i % sheet_layout.columns;
+    const ImVec2 local_pos(
+        x_offset + kPadding + col * (sheet_layout.item_width + kPadding),
+        kPadding + row * (sheet_layout.item_height + kPadding));
 
     if (i < static_cast<int>(sheet_previews_.size()) &&
         sheet_previews_[static_cast<size_t>(i)].texture() != 0) {
       gui::BitmapPreviewOptions preview_opts;
       preview_opts.dest_pos = local_pos;
-      preview_opts.dest_size = ImVec2(kBlockWidth, kBlockHeight);
+      preview_opts.dest_size =
+          ImVec2(sheet_layout.item_width, sheet_layout.item_height);
       preview_opts.draw_context_menu = false;
       preview_opts.draw_grid = false;
       preview_opts.draw_overlay = false;
@@ -204,8 +226,8 @@ void RoomGraphicsContent::Draw(bool* p_open) {
       const ImVec2 zero = room_gfx_canvas_.zero_point();
       const float scale = room_gfx_canvas_.global_scale();
       const ImVec2 screen_pos(zero.x + local_pos.x, zero.y + local_pos.y);
-      const ImVec2 screen_end(screen_pos.x + kBlockWidth * scale,
-                              screen_pos.y + kBlockHeight * scale);
+      const ImVec2 screen_end(screen_pos.x + sheet_layout.item_width * scale,
+                              screen_pos.y + sheet_layout.item_height * scale);
       draw_list->AddRect(screen_pos, screen_end,
                          ImGui::GetColorU32(gui::GetOutlineVec4()));
       draw_list->AddText(ImVec2(screen_pos.x + 6.0f, screen_pos.y + 6.0f),

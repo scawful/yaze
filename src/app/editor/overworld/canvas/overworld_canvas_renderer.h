@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gui/layout/adaptive_sheet_layout.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -90,6 +91,10 @@ class OverworldCanvasRenderer {
   // =========================================================================
 
   OverworldEditor* editor_;  ///< Non-owning pointer to the parent editor
+  gui::AdaptiveSheetScaleMode tile16_scale_mode_ =
+      gui::AdaptiveSheetScaleMode::kFit;
+  gui::AdaptiveSheetScaleMode area_graphics_scale_mode_ =
+      gui::AdaptiveSheetScaleMode::kFit;
 };
 
 }  // namespace editor
