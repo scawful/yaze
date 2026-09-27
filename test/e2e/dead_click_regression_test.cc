@@ -350,6 +350,107 @@ void E2ETest_BrushRightClickSelectsMapAndSamples(ImGuiTestContext* ctx) {
   ow->SetEditingMode(EditingMode::MOUSE);
 }
 
+// Select tool, pinned: a left click on another map selects it on release.
+// A left press that only dismisses the map menu must not: the menu blocks the
+// canvas on the press frame, so the canvas does not own that press, and its
+// release over the canvas leaves the current map alone.
+void E2ETest_MenuDismissPressDoesNotSelectMap(ImGuiTestContext* ctx) {
+  Controller* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  if (!EnsureOverworldReady(ctx, controller)) {
+    return;
+  }
+  OverworldEditor* ow = GetOverworldEditor(controller);
+  IM_CHECK(ow != nullptr);
+  if (!ow->map_pinned()) {
+    ow->ToggleMapLock();
+  }
+  ow->SetEditingMode(EditingMode::MOUSE);
+  const std::string title = WindowTitle(controller, "overworld.canvas");
+  IM_CHECK(!title.empty());
+  ctx->WindowFocus(title.c_str());
+
+  const int start_map = 0x00;
+  const int target_map = MapInOtherArea(ow, start_map);
+  IM_CHECK(target_map >= 0);
+  IM_CHECK(ShowMapInViewport(ctx, ow, target_map));
+  ImGuiWindow* window = ctx->GetWindowByRef(title.c_str());
+  IM_CHECK(window != nullptr);
+  const int target_parent = ow->overworld().overworld_map(target_map)->parent();
+  auto target_selected = [&]() {
+    const int current = ow->current_map_id();
+    return current == target_map ||
+           ow->overworld().overworld_map(current)->parent() == target_parent;
+  };
+  auto reset_to_start = [&]() {
+    ctx->MouseMoveToPos(ImVec2(5, 5));
+    ow->SelectMapForEditing(start_map, false);
+    ctx->Yield(2);
+  };
+
+  // A point on the target map where a plain left click selects it (a hovered
+  // entity would take the click instead).
+  ImVec2 click_pos;
+  bool found = false;
+  for (int t = 4; t < 24 && !found; t += 4) {
+    reset_to_start();
+    const ImVec2 p = CanvasScreenPos(ow, MapTileWorldPos(target_map, t, t));
+    if (!window->InnerRect.Contains(p)) {
+      continue;
+    }
+    ctx->MouseMoveToPos(p);
+    ctx->Yield(2);
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->Yield(3);
+    if (target_selected()) {
+      click_pos = p;
+      found = true;
+    }
+  }
+  IM_CHECK(found);
+
+  // Open the map menu below-right of that point so the menu cannot cover it.
+  reset_to_start();
+  IM_CHECK_EQ(ow->current_map_id(), start_map);
+  ImGuiWindow* popup = nullptr;
+  for (const ImVec2 offset :
+       {ImVec2(48, 48), ImVec2(96, 40), ImVec2(40, 96), ImVec2(120, 120)}) {
+    const ImVec2 q = click_pos + offset;
+    if (!window->InnerRect.Contains(q)) {
+      continue;
+    }
+    ctx->MouseMoveToPos(q);
+    ctx->Yield(2);
+    ctx->MouseClick(ImGuiMouseButton_Right);
+    ctx->Yield(3);
+    auto& stack = ctx->UiContext->OpenPopupStack;
+    if (stack.Size > 0 && stack.back().Window != nullptr) {
+      popup = stack.back().Window;
+      break;
+    }
+  }
+  IM_CHECK(popup != nullptr);
+  IM_CHECK(!popup->Rect().Contains(click_pos));
+  IM_CHECK_EQ(ow->current_map_id(), start_map);
+
+  // Dismiss the menu with a left press at that point, then release there.
+  ctx->MouseMoveToPos(click_pos);
+  ctx->MouseDown(ImGuiMouseButton_Left);
+  ctx->Yield(2);
+  ctx->MouseUp(ImGuiMouseButton_Left);
+  ctx->Yield(3);
+  IM_CHECK_EQ_NO_RET(ctx->UiContext->OpenPopupStack.Size, 0);
+  IM_CHECK_EQ_NO_RET(ow->current_map_id(), start_map);
+
+  // The next click there is the canvas's own press and selects again.
+  ctx->MouseClick(ImGuiMouseButton_Left);
+  ctx->Yield(3);
+  IM_CHECK_NO_RET(target_selected());
+
+  ctx->PopupCloseAll();
+  ow->ToggleMapLock();
+}
+
 // The canvas draws with zero WindowPadding/FramePadding; its map menu must
 // still get the theme's popup padding (it used to inherit zero).
 void E2ETest_OverworldMenuHasPopupPadding(ImGuiTestContext* ctx) {
@@ -531,6 +632,11 @@ void RegisterDeadClickRegressionTests(ImGuiTestEngine* engine,
   t = IM_REGISTER_TEST(engine, "OverworldRightClick",
                        "BrushRightClickSelectsMapAndSamples");
   t->TestFunc = E2ETest_BrushRightClickSelectsMapAndSamples;
+  t->UserData = controller;
+
+  t = IM_REGISTER_TEST(engine, "OverworldRightClick",
+                       "MenuDismissPressDoesNotSelectMap");
+  t->TestFunc = E2ETest_MenuDismissPressDoesNotSelectMap;
   t->UserData = controller;
 
   t = IM_REGISTER_TEST(engine, "OverworldRightClick", "MenuHasPopupPadding");

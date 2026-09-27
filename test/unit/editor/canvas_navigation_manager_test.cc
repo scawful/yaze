@@ -391,6 +391,7 @@ TEST(MapSelectClickTest, SelectToolSelectsOnLeftReleaseWithoutPan) {
   MapClickInput input;
   input.mode = EditingMode::MOUSE;
   input.left_released = true;
+  input.left_press_owned = true;
   EXPECT_TRUE(IsMapSelectClick(input));
   input.left_dragged = true;  // A drag pans the view; keep the selection.
   EXPECT_FALSE(IsMapSelectClick(input));
@@ -402,6 +403,25 @@ TEST(MapSelectClickTest, SelectToolSelectsOnLeftReleaseWithoutPan) {
   right.mode = EditingMode::MOUSE;
   right.right_clicked = true;  // Right-click opens the menu in Select mode.
   EXPECT_FALSE(IsMapSelectClick(right));
+}
+
+// A release selects only when its press also landed on the canvas, on the
+// same map: not after a press that dismissed a popup or menu, or that began on
+// another window or map, even without passing the drag threshold.
+TEST(MapSelectClickTest, SelectToolReleaseNeedsCanvasOwnedPress) {
+  MapClickInput input;
+  input.mode = EditingMode::MOUSE;
+  input.left_released = true;
+  input.left_press_owned = false;
+  EXPECT_FALSE(IsMapSelectClick(input));
+  input.left_press_owned = true;
+  EXPECT_TRUE(IsMapSelectClick(input));
+
+  // Paint tools select on the right press itself; press ownership is moot.
+  MapClickInput paint;
+  paint.mode = EditingMode::DRAW_TILE;
+  paint.right_clicked = true;
+  EXPECT_TRUE(IsMapSelectClick(paint));
 }
 
 }  // namespace
