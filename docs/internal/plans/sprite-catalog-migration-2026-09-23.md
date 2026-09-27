@@ -536,7 +536,7 @@ or emulator hot-edit backend. Existing source and ROM authority is unchanged.
 
 The approved continuation adds project-owned asset bindings and Maple's explicit
 draw adapter. `core/sprite_asset.h` and `sprite_asset_json.h` define and validate
-version-1 records. `sprite_asset_panel.cc` handles opening saved assets, binding
+version-1 records. `sprite_editor_assets.cc` handles opening saved assets, binding
 controls, source checks, and guarded data export. ZSM bytes remain compatible with
 ZSpriteMaker; metadata belongs to the project descriptor.
 

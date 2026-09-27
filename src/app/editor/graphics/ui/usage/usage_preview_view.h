@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_GRAPHICS_USAGE_PREVIEW_PANEL_H
-#define YAZE_APP_EDITOR_GRAPHICS_USAGE_PREVIEW_PANEL_H
+#ifndef YAZE_APP_EDITOR_GRAPHICS_UI_USAGE_USAGE_PREVIEW_VIEW_H
+#define YAZE_APP_EDITOR_GRAPHICS_UI_USAGE_USAGE_PREVIEW_VIEW_H
 
 #include <array>
 #include <cstdint>
@@ -27,9 +27,9 @@ namespace yaze::editor {
  * Re-renders at most 10 times a second while pixels change, and once more
  * when the stroke ends.
  */
-class UsagePreviewPanel {
+class UsagePreviewView {
  public:
-  explicit UsagePreviewPanel(GraphicsEditorState* state) : state_(state) {}
+  explicit UsagePreviewView(GraphicsEditorState* state) : state_(state) {}
 
   void SetRom(Rom* rom);
   void SetGameData(zelda3::GameData* game_data);
@@ -108,4 +108,4 @@ class UsagePreviewPanel {
 
 }  // namespace yaze::editor
 
-#endif  // YAZE_APP_EDITOR_GRAPHICS_USAGE_PREVIEW_PANEL_H
+#endif  // YAZE_APP_EDITOR_GRAPHICS_UI_USAGE_USAGE_PREVIEW_VIEW_H

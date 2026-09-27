@@ -110,9 +110,9 @@ void GraphicsEditor::Initialize() {
 
   polyhedral_panel_ = std::make_unique<PolyhedralEditorPanel>(rom_);
   polyhedral_panel_->SetRom(rom_);
-  usage_preview_panel_ = std::make_unique<UsagePreviewPanel>(&state_);
-  usage_preview_panel_->SetRom(rom_);
-  usage_preview_panel_->SetGameData(game_data_);
+  usage_preview_view_ = std::make_unique<UsagePreviewView>(&state_);
+  usage_preview_view_->SetRom(rom_);
+  usage_preview_view_->SetGameData(game_data_);
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
@@ -143,13 +143,13 @@ void GraphicsEditor::Initialize() {
 
   window_manager->RegisterWindowContent(
       std::make_unique<GraphicsUsagePreviewPanel>([this]() {
-        if (usage_preview_panel_) {
+        if (usage_preview_view_) {
           const auto* current_project = project();
-          usage_preview_panel_->SetHackName(
+          usage_preview_view_->SetHackName(
               current_project != nullptr
                   ? std::string(current_project->hack_manifest.hack_name())
                   : std::string());
-          usage_preview_panel_->Draw();
+          usage_preview_view_->Draw();
         }
       }));
 

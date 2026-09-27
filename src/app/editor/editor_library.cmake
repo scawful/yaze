@@ -1,6 +1,6 @@
 set(
   YAZE_APP_EDITOR_SRC
-  app/editor/cutscene/cutscene_camera_panel.cc
+  app/editor/cutscene/ui/window/cutscene_camera_panel.cc
   app/editor/agent/agent_chat_history_codec.cc
   app/editor/code/assembly_editor.cc
   app/editor/code/diagnostics_panel.cc
@@ -90,7 +90,7 @@ set(
   app/editor/graphics/graphics_save_plan.cc
   app/editor/graphics/graphics_sheet_sync.cc
   app/editor/graphics/usage_preview.cc
-  app/editor/graphics/usage_preview_panel.cc
+  app/editor/graphics/ui/usage/usage_preview_view.cc
   app/editor/graphics/ui/browser/sheet_browser_view.cc
   app/editor/graphics/ui/editing/pixel_editor_view.cc
   app/editor/graphics/ui/palette/palette_controls_view.cc
@@ -191,9 +191,9 @@ set(
   app/editor/shell/windows/settings_panel.cc
   app/editor/sprite/sprite_drawer.cc
   app/editor/sprite/sprite_editor.cc
-  app/editor/sprite/sprite_behavior_panel.cc
-  app/editor/sprite/sprite_asset_panel.cc
-  app/editor/sprite/sprite_catalog_panel.cc
+  app/editor/sprite/sprite_editor_behavior.cc
+  app/editor/sprite/sprite_editor_assets.cc
+  app/editor/sprite/sprite_editor_catalog.cc
   app/editor/system/session/background_command_task.cc
   app/editor/system/session/default_editor_factories.cc
   app/editor/system/session/hack_manifest_save_validation.cc

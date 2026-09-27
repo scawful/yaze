@@ -11,7 +11,7 @@ struct YazeProject;
 }  // namespace project
 
 namespace zelda3 {
-class GameData;
+struct GameData;
 }  // namespace zelda3
 
 namespace editor {
