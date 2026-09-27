@@ -157,13 +157,17 @@ absl::StatusOr<ProposalShape> ParseShape(const json& value,
 }  // namespace
 
 absl::StatusOr<uint32_t> ParseProposalColor(std::string_view text) {
+  // absl::StrFormat gets std::string, not std::string_view: Ubuntu 22.04's
+  // Abseil (20210324, absl::string_view != std::string_view) cannot format a
+  // std::string_view argument.
+  const std::string shown(text);
   if (text.size() != 7 && text.size() != 9) {
     return absl::InvalidArgumentError(
-        absl::StrFormat("color \"%s\" must be #RRGGBB or #RRGGBBAA", text));
+        absl::StrFormat("color \"%s\" must be #RRGGBB or #RRGGBBAA", shown));
   }
   if (text[0] != '#') {
     return absl::InvalidArgumentError(
-        absl::StrFormat("color \"%s\" must start with #", text));
+        absl::StrFormat("color \"%s\" must start with #", shown));
   }
   uint32_t value = 0;
   for (size_t i = 1; i < text.size(); ++i) {
@@ -177,7 +181,7 @@ absl::StatusOr<uint32_t> ParseProposalColor(std::string_view text) {
       digit = c - 'A' + 10;
     if (digit < 0) {
       return absl::InvalidArgumentError(
-          absl::StrFormat("color \"%s\" has a non-hex digit", text));
+          absl::StrFormat("color \"%s\" has a non-hex digit", shown));
     }
     value = (value << 4) | static_cast<uint32_t>(digit);
   }
@@ -198,8 +202,9 @@ absl::StatusOr<DungeonProposalOverlay> ParseDungeonProposalOverlay(
     return Invalid("root", "must be an object");
   }
   if (OptionalString(root, "format") != kProposalOverlayFormat) {
-    return Invalid("root", absl::StrFormat("\"format\" must be \"%s\"",
-                                           kProposalOverlayFormat));
+    return Invalid("root",
+                   absl::StrFormat("\"format\" must be \"%s\"",
+                                   std::string(kProposalOverlayFormat)));
   }
   auto version = root.find("version");
   if (version == root.end() || !version->is_number_integer() ||
