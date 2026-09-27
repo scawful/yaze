@@ -41,14 +41,18 @@ void PersistSettings(UserSettings* settings) {
 }
 }  // namespace
 
-ActivityBar::ActivityBar(WorkspaceWindowManager& window_manager,
-                         std::function<bool()> is_dungeon_workbench_mode,
-                         std::function<void(bool)> set_dungeon_workflow_mode)
+ActivityBar::ActivityBar(
+    WorkspaceWindowManager& window_manager,
+    std::function<bool()> is_dungeon_workbench_mode,
+    std::function<void(bool)> set_dungeon_workflow_mode,
+    std::function<EditorContextSnapshot(const std::string&)> context_provider)
     : window_manager_(window_manager),
       window_browser_(window_manager),
-      window_sidebar_(window_manager, std::move(is_dungeon_workbench_mode),
-                      std::move(set_dungeon_workflow_mode),
-                      [this]() { return GetBottomReservedHeight(); }),
+      window_sidebar_(
+          window_manager, std::move(is_dungeon_workbench_mode),
+          std::move(set_dungeon_workflow_mode),
+          [this]() { return GetBottomReservedHeight(); },
+          std::move(context_provider)),
       actions_registry_(std::make_unique<MoreActionsRegistry>()) {}
 
 ActivityBar::~ActivityBar() = default;

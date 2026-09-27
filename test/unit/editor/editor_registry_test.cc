@@ -55,6 +55,14 @@ TEST_F(UnitTest_EditorRegistry, ActiveStateReflectsEditor) {
   EXPECT_FALSE(registry_.IsEditorActive(EditorType::kDungeon));
 }
 
+TEST_F(UnitTest_EditorRegistry, DefaultContextSnapshotUsesEditorIdentity) {
+  FakeEditor dungeon(EditorType::kDungeon);
+  const EditorContextSnapshot snapshot = dungeon.BuildContextSnapshot();
+  EXPECT_EQ(snapshot.category, "Dungeon");
+  EXPECT_EQ(snapshot.title, "Dungeon");
+  EXPECT_EQ(snapshot.semantic_owner, "Dungeon");
+}
+
 TEST_F(UnitTest_EditorRegistry, InvalidTypesThrow) {
   FakeEditor unknown(EditorType::kUnknown);
 

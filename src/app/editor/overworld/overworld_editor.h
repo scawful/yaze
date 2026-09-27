@@ -180,6 +180,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Save() override;
   absl::Status Clear() override;
   void ContributeStatus(StatusBar* status_bar) override;
+  EditorContextSnapshot BuildContextSnapshot() const override;
 
   /// @brief Access the underlying Overworld data
   zelda3::Overworld& overworld() { return overworld_; }

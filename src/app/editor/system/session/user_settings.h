@@ -147,6 +147,7 @@ class UserSettings {
     std::vector<std::string> sidebar_order;
     std::unordered_set<std::string> sidebar_hidden;
     std::unordered_set<std::string> sidebar_pinned;
+    std::unordered_set<std::string> sidebar_context_collapsed;
 
     // Status Bar
     bool show_status_bar =

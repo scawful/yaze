@@ -201,6 +201,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                                 : nullptr;
   }
   auto GetCurrentEditor() const -> Editor* override { return current_editor_; }
+  EditorContextSnapshot GetEditorContextSnapshot(const std::string& category);
   std::string GetCurrentRomHash() const {
     return rom_lifecycle_.current_rom_hash();
   }

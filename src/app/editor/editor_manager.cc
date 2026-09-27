@@ -995,6 +995,9 @@ void EditorManager::InitializeSubsystems() {
             dungeon_editor->QueueWorkbenchWorkflowMode(enabled);
           }
         }
+      },
+      [this](const std::string& category) {
+        return GetEditorContextSnapshot(category);
       });
 
   // Wire per-user sidebar prefs so right-click / drag mutate persisted state.
@@ -3063,6 +3066,53 @@ Editor* EditorManager::ResolveEditorForCategory(const std::string& category) {
     default:
       return GetEditorByType(type, editor_set);
   }
+}
+
+EditorContextSnapshot EditorManager::GetEditorContextSnapshot(
+    const std::string& category) {
+  EditorContextSnapshot snapshot;
+  snapshot.category = category;
+  Editor* editor = ResolveEditorForCategory(category);
+  if (editor == nullptr) {
+    return snapshot;
+  }
+
+  snapshot = editor->BuildContextSnapshot();
+  if (snapshot.category.empty()) {
+    snapshot.category = category;
+  }
+  if (snapshot.semantic_owner.empty()) {
+    snapshot.semantic_owner = snapshot.category;
+  }
+
+  const EditorExperimentPolicy policy =
+      EditorRegistry::GetExperimentPolicy(editor->type());
+  snapshot.experiment.experimental = policy.experimental;
+  snapshot.experiment.acknowledged =
+      !policy.experimental || user_settings_.prefs().show_experimental_editors;
+  switch (policy.disabled_save_posture) {
+    case ExperimentalSavePosture::kDefensiveBackup:
+      snapshot.experiment.save_posture = "Defensive backup";
+      break;
+    case ExperimentalSavePosture::kReadOnly:
+      snapshot.experiment.save_posture = "Guarded / read-only";
+      break;
+    case ExperimentalSavePosture::kNormal:
+    default:
+      snapshot.experiment.save_posture = "Normal";
+      break;
+  }
+  if (EditorRegistry::ShouldWarnAboutExperimentalEditor(
+          editor->type(), user_settings_.prefs().show_experimental_editors)) {
+    snapshot.diagnostics.push_back({
+        .id = "experimental_editor",
+        .severity = EditorContextDiagnosticSeverity::kWarning,
+        .message = absl::StrFormat("%s is experimental; save posture: %s",
+                                   snapshot.category,
+                                   snapshot.experiment.save_posture),
+    });
+  }
+  return snapshot;
 }
 
 void EditorManager::SyncEditorContextForCategory(const std::string& category) {

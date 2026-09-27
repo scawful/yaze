@@ -1844,4 +1844,99 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
   status_bar->SetEditorMode(mode_label);
 }
 
+EditorContextSnapshot OverworldEditor::BuildContextSnapshot() const {
+  EditorContextSnapshot snapshot;
+  snapshot.category = "Overworld";
+  snapshot.semantic_owner = absl::StrFormat("overworld.map.%03X", current_map_);
+
+  if (!overworld_.is_loaded() || current_map_ < 0) {
+    snapshot.title = "Overworld";
+    snapshot.subtitle = "Load a ROM to inspect map context";
+    return snapshot;
+  }
+
+  const OverworldMapMetadata map = BuildOverworldMapMetadata(
+      overworld_, rom_, dependencies_.project, current_map_, game_state_);
+  snapshot.title = map.map_title;
+  snapshot.subtitle =
+      absl::StrFormat("%s · %s", map.world_label, map.area_size_label);
+  snapshot.metadata = {
+      {.id = "map", .label = "Map", .value = map.map_id_label},
+      {.id = "parent", .label = "Parent", .value = map.parent_label},
+      {.id = "tile16",
+       .label = "Tile16",
+       .value = absl::StrFormat("0x%03X", current_tile16_)},
+      {.id = "graphics", .label = "Graphics", .value = map.area_gfx_label},
+      {.id = "palette", .label = "Palette", .value = map.area_palette_label},
+  };
+
+  const int owner_map = current_parent_;
+  const auto belongs_to_area = [owner_map](const auto& entity) {
+    return static_cast<int>(entity.map_id_) == owner_map;
+  };
+  const auto sprites = overworld_.sprites(game_state_);
+  const auto items = overworld_.all_items();
+  const auto* exits = overworld_.exits();
+  snapshot.counts = {
+      {.id = "sprites",
+       .label = "Sprites",
+       .value = std::to_string(std::count_if(
+           sprites.begin(), sprites.end(),
+           [owner_map](const zelda3::Sprite& sprite) {
+             return static_cast<int>(sprite.map_id()) == owner_map;
+           }))},
+      {.id = "items",
+       .label = "Items",
+       .value = std::to_string(
+           std::count_if(items.begin(), items.end(), belongs_to_area))},
+      {.id = "entrances",
+       .label = "Entrances",
+       .value = std::to_string(std::count_if(overworld_.entrances().begin(),
+                                             overworld_.entrances().end(),
+                                             belongs_to_area))},
+      {.id = "exits",
+       .label = "Exits",
+       .value = exits ? std::to_string(std::count_if(
+                            exits->begin(), exits->end(), belongs_to_area))
+                      : "0"},
+  };
+
+  snapshot.has_pending_changes = rom_ != nullptr && rom_->dirty();
+  snapshot.pending_label =
+      snapshot.has_pending_changes ? "ROM buffer has pending changes" : "";
+  if (current_map_lock_) {
+    snapshot.diagnostics.push_back({
+        .id = "map_pinned",
+        .severity = EditorContextDiagnosticSeverity::kInfo,
+        .message = "Map context is pinned; cursor hover will not replace it.",
+    });
+  }
+  if (!selected_tile16_ids_.empty()) {
+    snapshot.diagnostics.push_back({
+        .id = "tile_selection",
+        .severity = EditorContextDiagnosticSeverity::kInfo,
+        .message = absl::StrFormat("%zu Tile16 cells selected",
+                                   selected_tile16_ids_.size()),
+    });
+  }
+
+  snapshot.capabilities = {
+      "overworld.properties",
+      "overworld.entities",
+      "overworld.tile16",
+  };
+  snapshot.actions = {
+      {.id = "open_properties",
+       .label = "Map Properties",
+       .target = "overworld.properties"},
+      {.id = "open_entities",
+       .label = "Entity Workbench",
+       .target = "overworld.entity_workbench"},
+      {.id = "open_tile16",
+       .label = "Tile16 Selector",
+       .target = "overworld.tile16_selector"},
+  };
+  return snapshot;
+}
+
 }  // namespace yaze::editor

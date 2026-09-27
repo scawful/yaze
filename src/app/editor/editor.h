@@ -10,6 +10,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_manager.h"
+#include "app/editor/editor_context_snapshot.h"
 #include "app/editor/overworld/maps/overworld_property_edit.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
@@ -324,6 +325,17 @@ class Editor {
   // Default no-op; override to surface cursor/selection/zoom/mode/custom
   // segments via StatusBar's Set* setters.
   virtual void ContributeStatus(StatusBar* /*status_bar*/) {}
+
+  virtual EditorContextSnapshot BuildContextSnapshot() const {
+    EditorContextSnapshot snapshot;
+    const size_t index = EditorTypeIndex(type_);
+    if (index < kEditorNames.size()) {
+      snapshot.category = kEditorNames[index];
+      snapshot.title = snapshot.category;
+      snapshot.semantic_owner = snapshot.category;
+    }
+    return snapshot;
+  }
 
   EditorType type() const { return type_; }
 

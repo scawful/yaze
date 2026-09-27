@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "core/features.h"
 #include "gtest/gtest.h"
 
@@ -99,6 +100,18 @@ TEST(DungeonLayoutDefaultsTest,
                              LayoutPresets::Panels::kDungeonPaletteEditor));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
                              LayoutPresets::Panels::kDungeonRoomGraphics));
+}
+
+TEST(DungeonLayoutDefaultsTest, ContextSnapshotExposesStableDungeonActions) {
+  DungeonEditorV2 editor;
+  const EditorContextSnapshot snapshot = editor.BuildContextSnapshot();
+  EXPECT_EQ(snapshot.category, "Dungeon");
+  EXPECT_NE(snapshot.title.find("Room 0x000"), std::string::npos);
+  EXPECT_FALSE(snapshot.diagnostics.empty());
+  EXPECT_TRUE(std::any_of(snapshot.actions.begin(), snapshot.actions.end(),
+                          [](const EditorContextAction& action) {
+                            return action.target == "dungeon.room_matrix";
+                          }));
 }
 
 }  // namespace

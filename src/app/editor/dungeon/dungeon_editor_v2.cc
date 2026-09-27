@@ -24,6 +24,7 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
 #include "app/editor/dungeon/inspectors/object_editor_content.h"
@@ -1518,6 +1519,104 @@ void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
                                 ? workflow_mode_names::kWorkbench
                                 : workflow_mode_names::kStandalone,
                             std::move(mode_opts));
+}
+
+EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
+  EditorContextSnapshot snapshot;
+  snapshot.category = "Dungeon";
+  snapshot.semantic_owner =
+      absl::StrFormat("dungeon.room.%03X", current_room_id_);
+  snapshot.title =
+      absl::StrFormat("Room 0x%03X · %s", current_room_id_,
+                      dungeon_project_labels::GetRoomLabel(
+                          dependencies_.project, current_room_id_));
+  snapshot.subtitle = IsWorkbenchWorkflowEnabled()
+                          ? workflow_mode_names::kWorkbench
+                          : workflow_mode_names::kStandalone;
+
+  const zelda3::Room* room = IsValidRoomId(current_room_id_)
+                                 ? rooms_.GetIfMaterialized(current_room_id_)
+                                 : nullptr;
+  if (room == nullptr) {
+    snapshot.diagnostics.push_back({
+        .id = "room_not_loaded",
+        .severity = EditorContextDiagnosticSeverity::kInfo,
+        .message = "Room data has not been materialized yet.",
+    });
+  } else {
+    const uint8_t entrance_blockset = room->render_entrance_blockset();
+    snapshot.metadata = {
+        {.id = "entrance",
+         .label = "Entrance",
+         .value = absl::StrFormat("0x%02X", current_entrance_id_)},
+        {.id = "blockset",
+         .label = "Blockset",
+         .value = entrance_blockset == 0xFF
+                      ? absl::StrFormat("room 0x%02X", room->blockset())
+                      : absl::StrFormat("main 0x%02X / room 0x%02X",
+                                        entrance_blockset, room->blockset())},
+        {.id = "spriteset",
+         .label = "Spriteset",
+         .value = absl::StrFormat("0x%02X", room->spriteset())},
+        {.id = "palette",
+         .label = "Palette",
+         .value = absl::StrFormat("0x%02X", room->palette())},
+    };
+    snapshot.counts = {
+        {.id = "objects",
+         .label = "Objects",
+         .value = std::to_string(room->GetTileObjectCount())},
+        {.id = "sprites",
+         .label = "Sprites",
+         .value = std::to_string(room->GetSprites().size())},
+        {.id = "doors",
+         .label = "Doors",
+         .value = std::to_string(room->GetDoors().size())},
+        {.id = "stairs",
+         .label = "Stairs",
+         .value = std::to_string(room->GetStairs().size())},
+        {.id = "chests",
+         .label = "Chests",
+         .value = std::to_string(room->GetChests().size())},
+        {.id = "pot_items",
+         .label = "Pot items",
+         .value = std::to_string(room->GetPotItems().size())},
+    };
+    snapshot.has_pending_changes = room->HasUnsavedChanges();
+    snapshot.pending_label =
+        snapshot.has_pending_changes ? "Room has unapplied changes" : "";
+  }
+
+  snapshot.capabilities = {
+      "dungeon.room_matrix",
+      "dungeon.entrances",
+      "dungeon.room_graphics",
+  };
+  if (dependencies_.project != nullptr &&
+      dependencies_.project->hack_manifest.loaded() &&
+      dependencies_.project->hack_manifest.minecart_track_layout()
+          .source.has_value()) {
+    snapshot.capabilities.push_back("minecart_tracks");
+  }
+  snapshot.actions = {
+      {.id = "open_matrix",
+       .label = "Room Matrix",
+       .target = "dungeon.room_matrix"},
+      {.id = "open_entrance",
+       .label = "Entrance Properties",
+       .target = "dungeon.entrance_properties"},
+      {.id = "open_graphics",
+       .label = "Room Graphics",
+       .target = "dungeon.room_graphics"},
+  };
+  if (snapshot.HasCapability("minecart_tracks")) {
+    snapshot.actions.push_back({
+        .id = "open_minecart",
+        .label = "Minecart Tracks",
+        .target = kMinecartTrackEditorId,
+    });
+  }
+  return snapshot;
 }
 
 int DungeonEditorV2::LoadedRoomCount() const {

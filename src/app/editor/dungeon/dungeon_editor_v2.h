@@ -154,6 +154,7 @@ class DungeonEditorV2 : public Editor {
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
   void ContributeStatus(StatusBar* status_bar) override;
+  EditorContextSnapshot BuildContextSnapshot() const override;
   absl::Status SaveRoom(int room_id);
   // Discrete room property edits share the dungeon undo history in both views.
   absl::StatusOr<DungeonConnectionPlan> PreviewDoorConnection(
