@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "cli/handlers/game/dialogue_commands.h"
+#include "cli/handlers/game/dungeon_census_commands.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_edit_commands.h"
@@ -143,6 +144,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonRoomHeaderCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomGraphCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonRoomCensusCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
