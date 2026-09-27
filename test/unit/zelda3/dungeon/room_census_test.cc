@@ -250,6 +250,24 @@ TEST_F(RoomCensusTest, PauseMapEvidenceOnlyWithoutProject) {
   EXPECT_TRUE(HasReason(census.rooms[0x44], "project ownership takes"));
 }
 
+// Review finding: the stair reciprocity check indexed facts[target] before
+// checking the range. A page-1 stair byte 0x28 resolves to 0x128, one past
+// the last room (ASan reports the read); 0xFF resolves to 0x1FF.
+TEST_F(RoomCensusTest, OutOfRangeStairDestinationIsIgnored) {
+  AddEntrance(input_, 0x61, 0x110, kRoomCensusInteriorDungeonId);
+  input_.rooms[0x110].stair_bytes = {0x28, 0xFF, 0x00, 0x00};
+  input_.rooms[0x110].stair_slot_used = {true, true, false, false};
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x110].reached);
+  ASSERT_EQ(static_cast<int>(census.rooms.size()), kRoomCensusRoomCount);
+  // No room gains a reference from the out-of-range stairs.
+  for (const auto& entry : census.rooms) {
+    for (const auto& ref : entry.references) {
+      EXPECT_NE(ref.from_room, 0x110) << entry.room_id << ": " << ref.detail;
+    }
+  }
+}
+
 TEST_F(RoomCensusTest, FreeBlocksMergeNearbyRoomsOnOnePage) {
   for (int room : {0x93, 0x94, 0x95, 0x96, 0xA0, 0xA6, 0xB0, 0xE9, 0xF7, 0x1F,
                    0xF5, 0x105}) {
