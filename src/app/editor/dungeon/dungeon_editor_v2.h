@@ -44,6 +44,7 @@ namespace yaze {
 namespace editor {
 
 class CustomCollisionPanel;
+class DungeonEntrancesPanel;
 class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
@@ -58,6 +59,7 @@ class ObjectTileEditorPanel;
 class OverlayManagerPanel;
 class PaletteEditorContent;
 class RoomTagEditorPanel;
+class RoomMatrixContent;
 class WaterFillPanel;
 
 /**
@@ -426,6 +428,8 @@ class DungeonEditorV2 : public Editor {
 
   // Workbench panel pointer (owned by WorkspaceWindowManager, stored for notifications).
   class DungeonWorkbenchContent* workbench_panel_ = nullptr;
+  RoomMatrixContent* room_matrix_panel_ = nullptr;
+  DungeonEntrancesPanel* entrance_navigator_panel_ = nullptr;
 
   // Palette management
   gfx::SnesPalette current_palette_;

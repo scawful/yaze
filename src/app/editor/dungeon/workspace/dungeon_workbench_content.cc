@@ -21,6 +21,7 @@
 #include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
+#include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
@@ -31,6 +32,7 @@
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
+#include "app/editor/dungeon/workspace/room_matrix_content.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -354,6 +356,11 @@ void DungeonWorkbenchContent::FocusSelectionInspector() {
   compact_inspector_detail_requested_ = true;
 }
 
+void DungeonWorkbenchContent::FocusRoomMatrix() {
+  layout_state_.show_left_sidebar = true;
+  sidebar_mode_ = SidebarMode::Matrix;
+}
+
 void DungeonWorkbenchContent::FocusEntranceBrowser() {
   layout_state_.show_left_sidebar = true;
   sidebar_mode_ = SidebarMode::Entrances;
@@ -586,6 +593,16 @@ const char* DungeonWorkbenchContent::GetActiveToolIdForTesting() const {
   return GetWorkbenchToolId(active_tool_);
 }
 
+const char* DungeonWorkbenchContent::GetSidebarModeIdForTesting() const {
+  switch (sidebar_mode_) {
+    case SidebarMode::Matrix:
+      return "matrix";
+    case SidebarMode::Entrances:
+      return "entrances";
+  }
+  return "unknown";
+}
+
 void DungeonWorkbenchContent::DrawSidebarPane(float width, float height,
                                               float button_size, bool compact) {
   const bool sidebar_open = ImGui::BeginChild("##DungeonWorkbenchSidebar",
@@ -612,8 +629,8 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
       collapse_w + (can_open_overview ? (spacing + menu_w) : 0.0f);
 
   workbench::DrawPaneHeader(
-      "##DungeonWorkbenchSidebarHeader", ICON_MD_VIEW_SIDEBAR, "Browse",
-      "Browse", nullptr, compact, action_cluster_w, [&]() {
+      "##DungeonWorkbenchSidebarHeader", ICON_MD_ACCOUNT_TREE, "Navigator",
+      "Navigator", nullptr, compact, action_cluster_w, [&]() {
         if (can_open_overview) {
           if (workbench::DrawHeaderIconAction("SidebarQuickActions",
                                               ICON_MD_MORE_HORIZ, button_size,
@@ -656,23 +673,28 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
 
 void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
                                                   float segment_height) {
-  // Compact icon-only segmented selector. Each button is square (size = height)
-  // so the cluster takes ~70px instead of stretching to ~170px with labels.
-  // Tooltips carry the full label.
-  (void)stacked;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  const ImVec2 button_size(segment_height, segment_height);
+  const float available_width = ImGui::GetContentRegionAvail().x;
+  const bool show_labels = !stacked && available_width >= 180.0f;
+  const ImVec2 button_size(
+      show_labels ? (available_width - spacing) * 0.5f : segment_height,
+      segment_height);
+  const char* matrix_label = show_labels ? ICON_MD_GRID_VIEW " Matrix"
+                                         : ICON_MD_GRID_VIEW "##NavMatrix";
+  const char* entrance_label = show_labels ? ICON_MD_DOOR_FRONT " Entrances"
+                                           : ICON_MD_DOOR_FRONT
+                                   "##NavEntrances";
 
-  if (gui::ToggleButton(ICON_MD_VIEW_LIST "##NavRooms",
-                        sidebar_mode_ == SidebarMode::Rooms, button_size)) {
-    sidebar_mode_ = SidebarMode::Rooms;
+  if (gui::ToggleButton(matrix_label, sidebar_mode_ == SidebarMode::Matrix,
+                        button_size)) {
+    sidebar_mode_ = SidebarMode::Matrix;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr("Rooms"));
+    ImGui::SetTooltip(tr("Visual room matrix"));
   }
   ImGui::SameLine(0.0f, spacing);
-  if (gui::ToggleButton(ICON_MD_DOOR_FRONT "##NavEntrances",
-                        sidebar_mode_ == SidebarMode::Entrances, button_size)) {
+  if (gui::ToggleButton(entrance_label, sidebar_mode_ == SidebarMode::Entrances,
+                        button_size)) {
     sidebar_mode_ = SidebarMode::Entrances;
   }
   if (ImGui::IsItemHovered()) {
@@ -681,18 +703,46 @@ void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
 }
 
 void DungeonWorkbenchContent::DrawSidebarContent() {
-  if (!room_selector_) {
-    ImGui::TextDisabled(tr("Room navigation unavailable"));
+  ImGui::PushID("WorkbenchSidebarMode");
+  const char* standalone_id = sidebar_mode_ == SidebarMode::Matrix
+                                  ? "dungeon.room_matrix"
+                                  : "dungeon.entrance_properties";
+  const bool standalone_open =
+      is_standalone_tool_open_ && is_standalone_tool_open_(standalone_id);
+  if (standalone_open) {
+    ImGui::TextWrapped("%s",
+                       tr("This Navigator view is open in its own window."));
+    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Focus Window",
+                      ImVec2(-1.0f, 0.0f)) &&
+        open_and_focus_standalone_tool_) {
+      open_and_focus_standalone_tool_(standalone_id);
+    }
+    ImGui::PopID();
     return;
   }
 
-  ImGui::PushID("WorkbenchSidebarMode");
+  if (open_and_focus_standalone_tool_ &&
+      ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Pop Out")) {
+    open_and_focus_standalone_tool_(standalone_id);
+    ImGui::PopID();
+    return;
+  }
+  ImGui::Separator();
+
   switch (sidebar_mode_) {
-    case SidebarMode::Rooms:
-      room_selector_->DrawRoomBrowser();
+    case SidebarMode::Matrix:
+      if (room_matrix_content_) {
+        room_matrix_content_->Draw(nullptr);
+      } else {
+        ImGui::TextDisabled(tr("Room Matrix unavailable"));
+      }
       break;
     case SidebarMode::Entrances:
-      room_selector_->DrawEntranceBrowser();
+      if (entrance_navigator_content_) {
+        entrance_navigator_content_->Draw(nullptr);
+      } else {
+        ImGui::TextDisabled(tr("Entrance Navigator unavailable"));
+      }
       break;
   }
   ImGui::PopID();

@@ -91,9 +91,11 @@ TEST(DungeonLayoutDefaultsTest,
 
   ASSERT_EQ(preset.default_visible_panels.size(), 2U);
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
-                            LayoutPresets::Panels::kDungeonRoomSelector));
-  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonRoomMatrix));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonEntrances));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonRoomSelector));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
                              LayoutPresets::Panels::kDungeonObjectSelector));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,

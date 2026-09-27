@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_entrance_edit_policy.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
@@ -47,8 +48,8 @@ class DungeonEntrancesPanel : public WindowContent {
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.entrance_properties"; }
-  std::string GetDisplayName() const override { return "Entrance Properties"; }
-  std::string GetIcon() const override { return ICON_MD_TUNE; }
+  std::string GetDisplayName() const override { return "Entrances"; }
+  std::string GetIcon() const override { return ICON_MD_DOOR_FRONT; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 26; }
   std::string GetWorkflowGroup() const override { return "Core"; }
@@ -58,6 +59,7 @@ class DungeonEntrancesPanel : public WindowContent {
   // ==========================================================================
 
   void Draw(bool* p_open) override {
+    (void)p_open;
     if (!entrances_ || !spawn_points_ || !current_entrance_id_)
       return;
     if (*current_entrance_id_ < 0 ||
@@ -65,18 +67,49 @@ class DungeonEntrancesPanel : public WindowContent {
       *current_entrance_id_ = 0;
     }
 
+    const bool split_layout = ImGui::GetContentRegionAvail().x >= 620.0f;
+    if (split_layout &&
+        ImGui::BeginTable("##EntranceNavigator", 2,
+                          ImGuiTableFlags_Resizable |
+                              ImGuiTableFlags_BordersInnerV |
+                              ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("Entrances", ImGuiTableColumnFlags_WidthFixed,
+                              300.0f);
+      ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      DrawEntranceList();
+      ImGui::TableNextColumn();
+      DrawSelectedProperties();
+      ImGui::EndTable();
+      return;
+    }
+
+    if (ImGui::BeginTabBar("##EntranceNavigatorTabs")) {
+      if (ImGui::BeginTabItem(ICON_MD_DOOR_FRONT " Entrances")) {
+        DrawEntranceList();
+        ImGui::EndTabItem();
+      }
+      if (ImGui::BeginTabItem(ICON_MD_TUNE " Properties")) {
+        DrawSelectedProperties();
+        ImGui::EndTabItem();
+      }
+      ImGui::EndTabBar();
+    }
+  }
+
+ private:
+  void DrawSelectedProperties() {
     if (*current_entrance_id_ < zelda3::kNumDungeonSpawnPoints) {
       DrawSpawnPointProperties(*current_entrance_id_);
     } else {
       DrawRegularEntranceProperties(*current_entrance_id_);
     }
+  }
 
-    ImGui::Separator();
-
-    // Entrance list
-    // Array layout (from LoadRoomEntrances):
-    //   indices 0-6 (0x00-0x06): Spawn points (7 entries)
-    //   indices 7-139 (0x07-0x8B): Regular entrances (133 entries)
+  void DrawEntranceList() {
+    entrance_filter_.Draw(ICON_MD_SEARCH " Filter",
+                          ImGui::GetContentRegionAvail().x);
     constexpr int kNumSpawnPoints = zelda3::kNumDungeonSpawnPoints;
     constexpr int kNumEntrances = zelda3::kNumRegularDungeonEntrances;
     constexpr int kTotalEntries = zelda3::kNumDungeonEntranceSlots;
@@ -86,34 +119,25 @@ class DungeonEntrancesPanel : public WindowContent {
       for (int i = 0; i < kTotalEntries; i++) {
         std::string entrance_name;
         if (i < kNumSpawnPoints) {
-          // Spawn points at indices 0-6
-          char buf[32];
-          snprintf(buf, sizeof(buf), "Spawn Point %d", i);
-          entrance_name = buf;
+          entrance_name = absl::StrFormat("Spawn Point %d", i);
         } else {
-          // Regular entrances at indices 7-139, mapped to kEntranceNames[0-132]
-          int entrance_id = i - kNumSpawnPoints;
-          if (entrance_id < kNumEntrances) {
-            // Use unified ResourceLabelProvider for entrance names
-            entrance_name = zelda3::GetEntranceLabel(entrance_id);
-          } else {
-            char buf[32];
-            snprintf(buf, sizeof(buf), "Unknown %d", i);
-            entrance_name = buf;
-          }
+          const int entrance_id = i - kNumSpawnPoints;
+          entrance_name = entrance_id < kNumEntrances
+                              ? zelda3::GetEntranceLabel(entrance_id)
+                              : absl::StrFormat("Unknown %d", i);
         }
 
         const int room_id = i < kNumSpawnPoints ? (*spawn_points_)[i].room_id
                                                 : (*entrances_)[i].room_;
-        // Use unified ResourceLabelProvider for room names
-        std::string room_name = zelda3::GetRoomLabel(room_id);
+        const std::string room_name = zelda3::GetRoomLabel(room_id);
+        const std::string label = absl::StrFormat(
+            "[%02X] %s -> %s (%03X)", i, entrance_name, room_name, room_id);
+        if (!entrance_filter_.PassFilter(label.c_str())) {
+          continue;
+        }
 
-        char label[256];
-        snprintf(label, sizeof(label), "[%02X] %s -> %s (%03X)", i,
-                 entrance_name.c_str(), room_name.c_str(), room_id);
-
-        bool is_selected = (*current_entrance_id_ == i);
-        if (ImGui::Selectable(label, is_selected)) {
+        const bool is_selected = (*current_entrance_id_ == i);
+        if (ImGui::Selectable(label.c_str(), is_selected)) {
           *current_entrance_id_ = i;
           if (on_entrance_selected_) {
             on_entrance_selected_(i);
@@ -124,7 +148,6 @@ class DungeonEntrancesPanel : public WindowContent {
     ImGui::EndChild();
   }
 
- private:
   void DrawSpawnPointProperties(int slot_index) {
     auto& spawn = (*spawn_points_)[slot_index];
     const bool properties_editable =
@@ -282,6 +305,7 @@ class DungeonEntrancesPanel : public WindowContent {
       spawn_points_ = nullptr;
   int* current_entrance_id_ = nullptr;
   std::function<void(int)> on_entrance_selected_;
+  ImGuiTextFilter entrance_filter_;
 };
 
 }  // namespace editor

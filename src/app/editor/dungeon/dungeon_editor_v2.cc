@@ -31,7 +31,6 @@
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
-#include "app/editor/dungeon/ui/window/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/ui/window/item_editor_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
@@ -280,7 +279,7 @@ bool IsTransientDungeonRoomWindowId(const std::string& card_id) {
 bool IsWorkbenchNavigationWindowId(const std::string& card_id) {
   constexpr std::array<const char*, 3> kWorkbenchNavigationPanelIds = {
       DungeonEditorV2::kRoomSelectorId,
-      DungeonEditorV2::kEntranceListId,
+      "dungeon.entrance_properties",
       DungeonEditorV2::kRoomMatrixId,
   };
 
@@ -657,6 +656,8 @@ void DungeonEditorV2::Initialize() {
   window_manager->RegisterPanelAlias("dungeon.object_tools", kObjectSelectorId);
   window_manager->RegisterPanelAlias("dungeon.entrances",
                                      "dungeon.entrance_properties");
+  window_manager->RegisterPanelAlias(kEntranceListId,
+                                     "dungeon.entrance_properties");
 
   // Register panels with WorkspaceWindowManager (no boolean flags - visibility is
   // managed entirely by WorkspaceWindowManager::ShowPanel/HidePanel/IsPanelVisible)
@@ -683,7 +684,10 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_LIST,
        .category = "Dungeon",
        .workflow_group = "Core",
-       .presentation = WindowPresentationPolicy::OptionalPopOut(),
+       .presentation = {.role = WindowPresentationRole::kOptionalPopOut,
+                        .default_host = WindowDefaultHost::kWorkspace,
+                        .list_in_window_browser = false,
+                        .allow_popout = true},
        .shortcut_hint = "Ctrl+Shift+R",
        .visibility_flag = nullptr,
        .priority = 20,
@@ -691,9 +695,9 @@ void DungeonEditorV2::Initialize() {
        .disabled_tooltip = "Load a ROM to browse dungeon rooms"});
 
   window_manager->RegisterPanel(
-      {.card_id = kEntranceListId,
-       .display_name = "Entrance List",
-       .window_title = " Entrance List",
+      {.card_id = "dungeon.entrance_properties",
+       .display_name = "Entrances",
+       .window_title = " Entrances",
        .icon = ICON_MD_DOOR_FRONT,
        .category = "Dungeon",
        .workflow_group = "Core",
@@ -702,21 +706,7 @@ void DungeonEditorV2::Initialize() {
        .visibility_flag = nullptr,
        .priority = 25,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to browse dungeon entrances"});
-
-  window_manager->RegisterPanel(
-      {.card_id = "dungeon.entrance_properties",
-       .display_name = "Entrance Properties",
-       .window_title = " Entrance Properties",
-       .icon = ICON_MD_TUNE,
-       .category = "Dungeon",
-       .workflow_group = "Core",
-       .presentation = WindowPresentationPolicy::OptionalPopOut(),
-       .shortcut_hint = "",
-       .visibility_flag = nullptr,
-       .priority = 26,
-       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to edit entrance properties"});
+       .disabled_tooltip = "Load a ROM to browse and edit dungeon entrances"});
 
   window_manager->RegisterPanel(
       {.card_id = kRoomMatrixId,
@@ -805,11 +795,6 @@ void DungeonEditorV2::Initialize() {
   window_manager->RegisterWindowContent(std::make_unique<RoomBrowserContent>(
       &room_selector_, [this](int room_id) { OnRoomSelected(room_id); }));
 
-  window_manager->RegisterWindowContent(
-      std::make_unique<DungeonEntranceListPanel>(
-          &room_selector_,
-          [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
-
   {
     auto matrix_panel = std::make_unique<RoomMatrixContent>(
         &current_room_id_, &active_rooms_,
@@ -827,6 +812,7 @@ void DungeonEditorV2::Initialize() {
           return dependencies_.project ? &dependencies_.project->hack_manifest
                                        : nullptr;
         });
+    room_matrix_panel_ = matrix_panel.get();
     window_manager->RegisterWindowContent(std::move(matrix_panel));
   }
 
@@ -905,9 +891,17 @@ void DungeonEditorV2::Initialize() {
     window_manager->RegisterWindowContent(std::move(workbench));
   }
 
-  window_manager->RegisterWindowContent(std::make_unique<DungeonEntrancesPanel>(
-      &entrances_, &spawn_points_, &current_entrance_id_,
-      [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
+  {
+    auto entrances_panel = std::make_unique<DungeonEntrancesPanel>(
+        &entrances_, &spawn_points_, &current_entrance_id_,
+        [this](int entrance_id) { OnEntranceSelected(entrance_id); });
+    entrance_navigator_panel_ = entrances_panel.get();
+    window_manager->RegisterWindowContent(std::move(entrances_panel));
+  }
+  if (workbench_panel_) {
+    workbench_panel_->SetNavigationPanels(room_matrix_panel_,
+                                          entrance_navigator_panel_);
+  }
 
   // Note: RoomGraphicsContent and PaletteEditorContent are registered
   // in Load() after their dependencies (renderer_, palette_editor_) are initialized
@@ -1603,7 +1597,7 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
        .label = "Room Matrix",
        .target = "dungeon.room_matrix"},
       {.id = "open_entrance",
-       .label = "Entrance Properties",
+       .label = "Entrances",
        .target = "dungeon.entrance_properties"},
       {.id = "open_graphics",
        .label = "Room Graphics",
@@ -1729,8 +1723,8 @@ void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
     }
   } else {
     window_manager->CloseWindow(session_id, "dungeon.workbench");
-    window_manager->OpenWindow(session_id, kRoomSelectorId);
     window_manager->OpenWindow(session_id, kRoomMatrixId);
+    window_manager->OpenWindow(session_id, "dungeon.entrance_properties");
     if (current_room_id_ >= 0) {
       ShowRoomPanel(current_room_id_);
     }
@@ -2623,12 +2617,16 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
     OpenWindow("dungeon.item_editor");
   });
   viewer->SetShowRoomListCallback([this]() {
-    OpenWindow(IsWorkbenchWorkflowEnabled() ? "dungeon.workbench"
-                                            : DungeonEditorV2::kRoomSelectorId);
+    if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
+      workbench_panel_->FocusRoomMatrix();
+      OpenWindow("dungeon.workbench");
+      return;
+    }
+    OpenWindow(DungeonEditorV2::kRoomSelectorId);
   });
   viewer->SetShowRoomMatrixCallback([this]() {
     if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
-      workbench_panel_->ShowConnectedGraph();
+      workbench_panel_->FocusRoomMatrix();
       OpenWindow("dungeon.workbench");
       return;
     }
@@ -2640,7 +2638,7 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
       OpenWindow("dungeon.workbench");
       return;
     }
-    OpenWindow(kEntranceListId);
+    OpenWindow("dungeon.entrance_properties");
   });
   viewer->SetShowRoomGraphicsCallback([this]() {
     if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {

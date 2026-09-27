@@ -213,6 +213,19 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_FALSE(ResolveCompactInspectorDetailRequest(false, true));
 }
 
+TEST(DungeonWorkbenchContentLayoutTest,
+     NavigatorDefaultsToMatrixAndCanSwitchToEntrances) {
+  int current_room_id = 0;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+
+  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "matrix");
+  content.FocusEntranceBrowser();
+  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "entrances");
+  content.FocusRoomMatrix();
+  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "matrix");
+}
+
 TEST(DungeonWorkbenchContentObjectSizeTest,
      SizeControlsEnableOnlyWhenSelectionContainsEditableObject) {
   const std::vector<zelda3::RoomObject> objects = {

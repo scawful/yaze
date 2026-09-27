@@ -27,7 +27,9 @@ namespace yaze::editor {
 
 class DungeonCanvasViewer;
 class DungeonMapPanel;
+class DungeonEntrancesPanel;
 class DungeonRoomSelector;
+class RoomMatrixContent;
 class CustomCollisionPanel;
 class MinecartTrackEditorPanel;
 class RoomTagEditorPanel;
@@ -123,6 +125,11 @@ class DungeonWorkbenchContent : public WindowContent {
                                WindowContent* item_editor,
                                WindowContent* room_graphics,
                                WindowContent* palette_editor);
+  void SetNavigationPanels(RoomMatrixContent* room_matrix,
+                           DungeonEntrancesPanel* entrances) {
+    room_matrix_content_ = room_matrix;
+    entrance_navigator_content_ = entrances;
+  }
   void SetStandaloneToolCallbacks(
       std::function<bool(const std::string&)> is_window_open,
       std::function<bool(const std::string&)> open_and_focus_window) {
@@ -138,6 +145,7 @@ class DungeonWorkbenchContent : public WindowContent {
   }
   void FocusRoomInspector();
   void FocusSelectionInspector();
+  void FocusRoomMatrix();
   void FocusEntranceBrowser();
   void ShowConnectedGraph();
   void RequestDungeonMapPopup();
@@ -183,6 +191,7 @@ class DungeonWorkbenchContent : public WindowContent {
   bool IsToolInspectorActiveForTesting() const;
   const char* GetInspectorModeIdForTesting() const;
   const char* GetActiveToolIdForTesting() const;
+  const char* GetSidebarModeIdForTesting() const;
   void DrawPitDamageControlsForTesting(int room_id) {
     DrawPitDamageControls(room_id);
   }
@@ -301,8 +310,8 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
   Rom* rom_ = nullptr;
 
-  enum class SidebarMode : uint8_t { Rooms, Entrances };
-  SidebarMode sidebar_mode_ = SidebarMode::Rooms;
+  enum class SidebarMode : uint8_t { Matrix, Entrances };
+  SidebarMode sidebar_mode_ = SidebarMode::Matrix;
   enum class InspectorMode : uint8_t { Room, Selection, Tools };
   InspectorMode inspector_mode_ = InspectorMode::Room;
   InspectorMode inspector_mode_before_tools_ = InspectorMode::Room;
@@ -353,6 +362,8 @@ class DungeonWorkbenchContent : public WindowContent {
   WindowContent* item_editor_content_ = nullptr;
   WindowContent* room_graphics_content_ = nullptr;
   WindowContent* palette_editor_content_ = nullptr;
+  RoomMatrixContent* room_matrix_content_ = nullptr;
+  DungeonEntrancesPanel* entrance_navigator_content_ = nullptr;
 };
 
 }  // namespace yaze::editor
