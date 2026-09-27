@@ -242,7 +242,10 @@ bool WindowSidebar::MatchesWindowSearch(const std::string& query,
 
 bool WindowSidebar::IsDungeonWindowModeTarget(const std::string& window_id) {
   return window_id == "dungeon.room_selector" ||
-         window_id == "dungeon.room_matrix" || IsDungeonRoomWindow(window_id);
+         window_id == "dungeon.room_matrix" ||
+         window_id == "dungeon.entrance_list" ||
+         window_id == "dungeon.entrance_properties" ||
+         IsDungeonRoomWindow(window_id);
 }
 
 std::string WindowSidebar::SidebarSectionFor(

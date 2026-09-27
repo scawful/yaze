@@ -132,9 +132,9 @@ TEST(SidebarSortTest, DungeonWindowModeTargetsCoverRoomPrefixedWindows) {
   EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.water_fill"));
   EXPECT_FALSE(
       WindowSidebar::IsDungeonWindowModeTarget("dungeon.minecart_tracks"));
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       WindowSidebar::IsDungeonWindowModeTarget("dungeon.entrance_list"));
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       WindowSidebar::IsDungeonWindowModeTarget("dungeon.entrance_properties"));
   EXPECT_FALSE(
       WindowSidebar::IsDungeonWindowModeTarget("dungeon.object_tile_editor"));

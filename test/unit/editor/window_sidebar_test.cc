@@ -57,6 +57,8 @@ TEST(WindowSidebarTest, DetectsDungeonWindowModeTargets) {
   EXPECT_TRUE(
       WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_selector"));
   EXPECT_TRUE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_matrix"));
+  EXPECT_TRUE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.entrance_properties"));
   EXPECT_TRUE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_298"));
   EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.workbench"));
   EXPECT_FALSE(
@@ -93,6 +95,8 @@ TEST(WindowSidebarTest, OmitsWindowModeTargetsInWorkbench) {
       WindowSidebar::ShouldOmitWindowInSidebar("dungeon.room_selector", true));
   EXPECT_TRUE(
       WindowSidebar::ShouldOmitWindowInSidebar("dungeon.room_matrix", true));
+  EXPECT_TRUE(WindowSidebar::ShouldOmitWindowInSidebar(
+      "dungeon.entrance_properties", true));
   EXPECT_TRUE(
       WindowSidebar::ShouldOmitWindowInSidebar("dungeon.room_298", true));
   EXPECT_FALSE(

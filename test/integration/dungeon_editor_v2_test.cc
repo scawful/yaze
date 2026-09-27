@@ -133,6 +133,10 @@ TEST_F(DungeonEditorV2IntegrationTest,
 
   dungeon_editor_v2_->Initialize();
   const size_t session_id = window_manager_->GetActiveSessionId();
+  const auto* legacy_room_list = window_manager_->GetWindowDescriptor(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId);
+  ASSERT_NE(legacy_room_list, nullptr);
+  EXPECT_FALSE(legacy_room_list->IsListedInWindowBrowser());
 
   ASSERT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
   EXPECT_FALSE(window_manager_->IsWindowOpen(
@@ -151,10 +155,12 @@ TEST_F(DungeonEditorV2IntegrationTest,
   ASSERT_TRUE(status.ok());
 
   EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
+  EXPECT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomSelectorId));
   EXPECT_TRUE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
+  EXPECT_TRUE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
@@ -167,17 +173,19 @@ TEST_F(DungeonEditorV2IntegrationTest,
 
   dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
   ASSERT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  ASSERT_TRUE(window_manager_->IsWindowOpen(
+  ASSERT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomSelectorId));
   ASSERT_TRUE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
+  ASSERT_TRUE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 
   dungeon_editor_v2_->QueueWorkbenchWorkflowMode(true, /*show_toast=*/false);
 
   // Mode does not flip until the next update tick.
   EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
-      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_TRUE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 
   auto status = dungeon_editor_v2_->Update();
   ASSERT_TRUE(status.ok());
@@ -187,6 +195,8 @@ TEST_F(DungeonEditorV2IntegrationTest,
       session_id, editor::DungeonEditorV2::kRoomSelectorId));
   EXPECT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
+  EXPECT_FALSE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
@@ -338,8 +348,8 @@ TEST_F(DungeonEditorV2IntegrationTest,
   auto status = dungeon_editor_v2_->Update();
   ASSERT_TRUE(status.ok());
   EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
-      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_TRUE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 
   dungeon_editor_v2_->ToggleWorkbenchWorkflowMode(/*show_toast=*/false);
   EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
@@ -347,8 +357,8 @@ TEST_F(DungeonEditorV2IntegrationTest,
   status = dungeon_editor_v2_->Update();
   ASSERT_TRUE(status.ok());
   EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  EXPECT_FALSE(window_manager_->IsWindowOpen(
-      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_FALSE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
