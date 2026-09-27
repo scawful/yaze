@@ -74,6 +74,7 @@ set(
   app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.cc
   app/editor/dungeon/workspace/dungeon_workbench_layout.cc
   app/editor/dungeon/workspace/room_graphics_content.cc
+  app/editor/dungeon/workspace/room_matrix_census.cc
   app/editor/editor_manager.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc

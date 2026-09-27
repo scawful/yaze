@@ -940,6 +940,7 @@ if(YAZE_BUILD_TESTS)
     e2e/framework_smoke_test.cc
     e2e/controller_window_close_test.cc
     e2e/dead_click_regression_test.cc
+    e2e/room_matrix_census_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
     e2e/dungeon_e2e_tests.cc
