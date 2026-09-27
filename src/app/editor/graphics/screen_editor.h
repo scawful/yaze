@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/panels/screen_editor_panels.h"
+#include "app/editor/graphics/screen_menu_tilemap_editor.h"
 #include "app/editor/graphics/screen_undo_actions.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -88,6 +89,7 @@ class ScreenEditor : public Editor {
 
   void DrawInventoryMenuEditor();
   void DrawInventoryItemIcons();
+  void DrawMenuTilemapEditor();
   void DrawToolset();
   void DrawDungeonMapToolset();
   void DrawInventoryToolset();
@@ -177,6 +179,7 @@ class ScreenEditor : public Editor {
   std::unique_ptr<zelda3::Inventory> inventory_ =
       std::make_unique<zelda3::Inventory>();
   bool inventory_loaded_ = false;
+  MenuTilemapEditorUI menu_tilemap_ui_;
   zelda3::TitleScreen title_screen_;
   zelda3::OverworldMapScreen ow_map_screen_;
 
