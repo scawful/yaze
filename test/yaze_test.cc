@@ -29,6 +29,7 @@
 #include "e2e/dungeon_e2e_tests.h"
 #include "e2e/editor_smoke_tests.h"
 #include "e2e/framework_smoke_test.h"
+#include "e2e/room_matrix_census_test.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -550,6 +551,9 @@ int main(int argc, char* argv[]) {
 
     // Mouse-release regressions: menu item, canvas context popup, close X
     yaze::test::e2e::RegisterDeadClickRegressionTests(engine, &controller);
+
+    // Room Matrix census overlay: toggle click + hover a free room
+    yaze::test::e2e::RegisterRoomMatrixCensusTests(engine, &controller);
 
     // Queue all registered tests to run automatically
     // A positional pattern ("DeadClickSmoke", "E2ETest/,-Dungeon") narrows

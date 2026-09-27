@@ -795,6 +795,11 @@ void DungeonEditorV2::Initialize() {
         [this](int room_id, RoomSelectionIntent intent) {
           OnRoomSelected(room_id, intent);
         });
+    matrix_panel->SetCensusManifestProvider(
+        [this]() -> const core::HackManifest* {
+          return dependencies_.project ? &dependencies_.project->hack_manifest
+                                       : nullptr;
+        });
     window_manager->RegisterWindowContent(std::move(matrix_panel));
   }
 
