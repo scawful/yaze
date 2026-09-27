@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/str_format.h"
+#include "app/editor/editor.h"
 #include "app/editor/system/commands/shortcut_manager.h"
 #include "imgui/imgui.h"
 
@@ -23,6 +25,13 @@ KeyChord Chord(char key, bool command, bool shift = false, bool option = false,
   chord.option = option;
   chord.control = control;
   return chord;
+}
+
+// The name shortcut_configurator.cc registers the Settings editor switch
+// under (default Ctrl/Cmd+,), computed the same way.
+std::string SettingsShortcutName() {
+  return absl::StrFormat("switch.%d",
+                         static_cast<int>(editor::EditorType::kSettings));
 }
 
 class FakeHost : public NativeMenuHost {
@@ -220,7 +229,7 @@ TEST_F(NativeMenuBridgeTest, RootMenuGateDeclinesImGuiChords) {
 // showing ⌘, and a click still opens Settings through the host.
 TEST_F(NativeMenuBridgeTest, CommandCommaHasOneOwnerWhenShortcutBindsIt) {
   int settings_calls = 0;
-  shortcuts_.RegisterShortcut("switch.settings",
+  shortcuts_.RegisterShortcut(SettingsShortcutName(),
                               {ImGuiMod_Ctrl, ImGuiKey_Comma},
                               [&settings_calls]() { ++settings_calls; });
 
@@ -245,6 +254,73 @@ TEST_F(NativeMenuBridgeTest, CommandCommaHasOneOwnerWhenShortcutBindsIt) {
   ASSERT_EQ(host.host_actions.size(), 1u);
   EXPECT_EQ(host.host_actions[0], MenuAction::kSettings);
   EXPECT_EQ(settings_calls, 1);
+}
+
+// The Settings item follows the live Settings binding, not a hard-coded ⌘,:
+// rebound, it shows the new chord (ImGui-owned) and ⌘, stops being a
+// Settings chord; unbound, it shows none and nothing performs ⌘, natively.
+TEST_F(NativeMenuBridgeTest, SettingsChordFollowsRebindAndUnbind) {
+  int settings_calls = 0;
+  shortcuts_.RegisterShortcut(SettingsShortcutName(),
+                              {ImGuiMod_Ctrl, ImGuiKey_Comma},
+                              [&settings_calls]() { ++settings_calls; });
+
+  // Rebind Settings to Cmd+P.
+  ASSERT_TRUE(shortcuts_.UpdateShortcutKeys(SettingsShortcutName(),
+                                            {ImGuiMod_Ctrl, ImGuiKey_P}));
+  ResolvedItem settings = ResolveItem(&shortcuts_, MenuAction::kSettings);
+  EXPECT_EQ(settings.owner, ChordOwner::kImGui);
+  EXPECT_EQ(settings.chord, Chord('p', true));
+  EXPECT_FALSE(IsNativeOwnedChord(&shortcuts_, Chord(',', true)));
+  EXPECT_FALSE(IsNativeOwnedChord(&shortcuts_, Chord('p', true)));
+  EXPECT_FALSE(ShouldMenuPerformKeyEquivalent(&shortcuts_, Chord('p', true)));
+  RunFrame([](ImGuiIO& io) {
+    io.AddKeyEvent(ImGuiMod_Ctrl, true);
+    io.AddKeyEvent(ImGuiKey_P, true);
+  });
+  RunFrame([](ImGuiIO& io) {
+    io.AddKeyEvent(ImGuiKey_P, false);
+    io.AddKeyEvent(ImGuiMod_Ctrl, false);
+  });
+  EXPECT_EQ(settings_calls, 1);
+
+  // Another action takes Cmd+,: the Settings item must not claim it.
+  int other_calls = 0;
+  shortcuts_.RegisterShortcut("Other Action", {ImGuiMod_Ctrl, ImGuiKey_Comma},
+                              [&other_calls]() { ++other_calls; });
+  settings = ResolveItem(&shortcuts_, MenuAction::kSettings);
+  EXPECT_EQ(settings.chord, Chord('p', true));
+  EXPECT_FALSE(IsNativeOwnedChord(&shortcuts_, Chord(',', true)));
+  EXPECT_FALSE(ShouldMenuPerformKeyEquivalent(&shortcuts_, Chord(',', true)));
+
+  // Unbind Settings: no chord on the item, and ⌘, is not native-owned.
+  editor::ShortcutManager unbound;
+  unbound.RegisterShortcut(SettingsShortcutName(),
+                           {ImGuiMod_Ctrl, ImGuiKey_Comma},
+                           [&settings_calls]() { ++settings_calls; });
+  ASSERT_TRUE(unbound.UpdateShortcutKeys(SettingsShortcutName(), {}));
+  settings = ResolveItem(&unbound, MenuAction::kSettings);
+  EXPECT_EQ(settings.owner, ChordOwner::kNone);
+  EXPECT_FALSE(settings.chord.valid());
+  EXPECT_FALSE(IsNativeOwnedChord(&unbound, Chord(',', true)));
+
+  // A click still opens Settings through the host in every case.
+  FakeHost host(&unbound);
+  EXPECT_TRUE(PerformAction(host, MenuAction::kSettings));
+  ASSERT_EQ(host.host_actions.size(), 1u);
+  EXPECT_EQ(host.host_actions[0], MenuAction::kSettings);
+}
+
+// Without a registered Settings shortcut, a foreign exact binding on ⌘, is
+// never shown on the Settings item (it would run the other action).
+TEST_F(NativeMenuBridgeTest, SettingsDropsCommandCommaBoundToAnotherAction) {
+  shortcuts_.RegisterShortcut("Other Action", {ImGuiMod_Ctrl, ImGuiKey_Comma},
+                              []() {});
+  const ResolvedItem settings = ResolveItem(&shortcuts_, MenuAction::kSettings);
+  EXPECT_EQ(settings.owner, ChordOwner::kNone);
+  EXPECT_FALSE(settings.chord.valid());
+  EXPECT_FALSE(IsNativeOwnedChord(&shortcuts_, Chord(',', true)));
+  EXPECT_FALSE(ShouldMenuPerformKeyEquivalent(&shortcuts_, Chord(',', true)));
 }
 
 TEST_F(NativeMenuBridgeTest, MissingShortcutFallsBackToHostAction) {
