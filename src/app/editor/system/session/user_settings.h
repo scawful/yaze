@@ -156,7 +156,9 @@ class UserSettings {
     // Default off — switching editors pauses the SNES.
     bool emulator_keep_running_in_background = false;
 
-    // Experimental editors (Screen/Music/Agent) stay gated until enabled.
+    // Legacy persisted name. This acknowledges experimental warnings and lets
+    // supported writers use their normal posture; it never hides an editor or
+    // bypasses a feature-specific write guard.
     bool show_experimental_editors = false;
 
     // Dungeon workbench layout: which side of the workbench window the
@@ -206,7 +208,7 @@ class UserSettings {
   // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 24;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 25;
   // Revisions through 21 changed whole-workspace arrangements. Later revisions
   // are targeted preference migrations and must preserve the live ImGui layout.
   static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 21;

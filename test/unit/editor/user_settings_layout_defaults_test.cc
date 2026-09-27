@@ -504,12 +504,46 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.sidebar_panel_expanded = true;
   prefs.sidebar_active_category = "Graphics";
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(24));
 
   EXPECT_EQ(prefs.panel_layout_defaults_revision, 24);
   EXPECT_TRUE(prefs.sidebar_visible);
   EXPECT_FALSE(prefs.sidebar_panel_expanded);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentyFiveClosesDemotedDungeonUtilitiesOnly) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 24;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"] = false;
+  constexpr std::array<const char*, 7> kDemotedUtilities = {
+      "dungeon.custom_collision",   "dungeon.water_fill",
+      "dungeon.room_tags",          "dungeon.object_coverage",
+      "dungeon.object_tile_editor", "dungeon.overlay_manager",
+      "dungeon.minecart_tracks",
+  };
+  for (const char* panel_id : kDemotedUtilities) {
+    prefs.panel_visibility_state["Dungeon"][panel_id] = true;
+  }
+  prefs.pinned_panels["dungeon.minecart_tracks"] = true;
+  prefs.saved_layouts["custom"]["dungeon.object_coverage"] = true;
+  prefs.named_layouts["custom"] =
+      R"({"schema_version":2,"name":"custom","root":{"id":1,"type":"leaf","active_tab_index":0,"panels":[{"panel_id":"dungeon.object_coverage"}]}})";
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 25);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  for (const char* panel_id : kDemotedUtilities) {
+    EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"][panel_id]) << panel_id;
+  }
+  EXPECT_TRUE(prefs.pinned_panels["dungeon.minecart_tracks"]);
+  EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.object_coverage"]);
+  EXPECT_NE(prefs.named_layouts["custom"].find("dungeon.object_coverage"),
+            std::string::npos);
 }
 
 // Default ctor seeds "right". Setter normalizes unrecognized values back to

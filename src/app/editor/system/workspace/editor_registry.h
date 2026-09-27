@@ -12,6 +12,18 @@
 namespace yaze {
 namespace editor {
 
+enum class ExperimentalSavePosture {
+  kNormal,
+  kDefensiveBackup,
+  kReadOnly,
+};
+
+struct EditorExperimentPolicy {
+  bool experimental = false;
+  ExperimentalSavePosture disabled_save_posture =
+      ExperimentalSavePosture::kNormal;
+};
+
 /**
  * @class EditorRegistry
  * @brief Manages editor types, categories, and lifecycle
@@ -35,11 +47,11 @@ class EditorRegistry {
    * is loaded (e.g. Graphics prototype lab, Assembly folder editing).
    */
   static bool UpdateAllowedWithoutLoadedRom(EditorType type);
-  /**
-   * Editors still marked experimental / in-development. Gated behind
-   * Preferences::show_experimental_editors unless already active.
-   */
+  /** Editors still marked experimental/in-development. Never a visibility gate. */
   static bool IsExperimentalEditor(EditorType type);
+  static EditorExperimentPolicy GetExperimentPolicy(EditorType type);
+  static bool ShouldWarnAboutExperimentalEditor(EditorType type,
+                                                bool experiments_enabled);
   static std::string GetEditorName(EditorType type);
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);

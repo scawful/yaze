@@ -89,6 +89,13 @@ constexpr std::array<const char*, 10> kDungeonWorkbenchDuplicatePanels = {
     "dungeon.entrance_list",   "dungeon.entrance_properties",
 };
 
+constexpr std::array<const char*, 7> kDungeonDemotedUtilityPanels = {
+    "dungeon.custom_collision",   "dungeon.water_fill",
+    "dungeon.room_tags",          "dungeon.object_coverage",
+    "dungeon.object_tile_editor", "dungeon.overlay_manager",
+    "dungeon.minecart_tracks",
+};
+
 void ApplyDungeonWorkbenchVisibilityDefaults(
     std::unordered_map<std::string, bool>* panel_state) {
   if (!panel_state) {
@@ -96,6 +103,17 @@ void ApplyDungeonWorkbenchVisibilityDefaults(
   }
   (*panel_state)["dungeon.workbench"] = true;
   for (const char* panel_id : kDungeonWorkbenchDuplicatePanels) {
+    (*panel_state)[panel_id] = false;
+  }
+}
+
+void ApplyDungeonPanelAdmissionDefaults(
+    std::unordered_map<std::string, bool>* panel_state) {
+  ApplyDungeonWorkbenchVisibilityDefaults(panel_state);
+  if (!panel_state) {
+    return;
+  }
+  for (const char* panel_id : kDungeonDemotedUtilityPanels) {
     (*panel_state)[panel_id] = false;
   }
 }
@@ -1695,6 +1713,18 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
   if (prefs_.panel_layout_defaults_revision < 24 && target_revision >= 24) {
     prefs_.sidebar_panel_expanded = false;
     prefs_.panel_layout_defaults_revision = 24;
+    applied = true;
+  }
+
+  // Revision 25: utility and diagnostic dungeon surfaces are hosted by the
+  // Workbench first. Close only persisted live visibility; explicit pins and
+  // user-authored named layouts remain untouched.
+  if (prefs_.panel_layout_defaults_revision < 25 && target_revision >= 25) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      ApplyDungeonPanelAdmissionDefaults(&dungeon_it->second);
+    }
+    prefs_.panel_layout_defaults_revision = 25;
     applied = true;
   }
 

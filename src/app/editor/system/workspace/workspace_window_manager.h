@@ -65,6 +65,11 @@ struct WindowDescriptor {
   // Optional context binding (default: none).
   WindowContextScope context_scope = WindowContextScope::kNone;
 
+  // Product admission/hosting policy. This does not affect registration or
+  // command-palette reachability.
+  WindowPresentationPolicy presentation =
+      WindowPresentationPolicy::OptionalPopOut();
+
   WindowScope scope = WindowScope::kSession;
   enum class ShortcutScope {
     kGlobal,  // Available regardless of active editor
@@ -108,6 +113,11 @@ struct WindowDescriptor {
       return label + "##" + card_id;
     }
     return label;
+  }
+
+  bool IsAdmitted() const { return presentation.IsAdmitted(); }
+  bool IsListedInWindowBrowser() const {
+    return presentation.list_in_window_browser && IsAdmitted();
   }
 };
 
@@ -258,6 +268,8 @@ class WorkspaceWindowManager {
    * 3. Window content will be drawn by DrawAllVisiblePanels()
    */
   void RegisterWindowContent(std::unique_ptr<WindowContent> window);
+  void RegisterWindowContent(std::unique_ptr<WindowContent> window,
+                             WindowPresentationPolicy presentation);
 
   /**
    * @brief Unregister and destroy a WindowContent instance

@@ -18,6 +18,7 @@ WindowDescriptor WindowHost::ToDescriptor(const WindowDefinition& definition) {
   descriptor.scope = definition.scope;
   descriptor.window_lifecycle = definition.window_lifecycle;
   descriptor.context_scope = definition.context_scope;
+  descriptor.presentation = definition.presentation;
   descriptor.on_show = definition.on_show;
   descriptor.on_hide = definition.on_hide;
   descriptor.visibility_flag = definition.visibility_flag;

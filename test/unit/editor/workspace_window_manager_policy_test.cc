@@ -130,6 +130,66 @@ TEST(WorkspaceWindowManagerPolicyTest,
   EXPECT_EQ(panel->close_count, 1);
 }
 
+TEST(WorkspaceWindowManagerPolicyTest,
+     PresentationPolicySeparatesRegistrationFromWindowCatalog) {
+  WorkspaceWindowManager wm;
+  wm.RegisterSession(0);
+  wm.SetActiveSession(0);
+
+  wm.RegisterWindowContent(
+      std::make_unique<MockEditorPanelWithHooks>("test.core", "Test"),
+      WindowPresentationPolicy::CoreWorkspace());
+  wm.RegisterWindowContent(
+      std::make_unique<MockEditorPanelWithHooks>("test.embedded", "Test"),
+      WindowPresentationPolicy::EmbeddedTool("test_capability"));
+
+  const auto* core = wm.GetWindowDescriptor(0, "test.core");
+  const auto* embedded = wm.GetWindowDescriptor(0, "test.embedded");
+  ASSERT_NE(core, nullptr);
+  ASSERT_NE(embedded, nullptr);
+  EXPECT_EQ(core->presentation.role, WindowPresentationRole::kCoreWorkspace);
+  EXPECT_TRUE(core->IsListedInWindowBrowser());
+  EXPECT_EQ(embedded->presentation.role, WindowPresentationRole::kEmbeddedTool);
+  EXPECT_EQ(embedded->presentation.default_host, WindowDefaultHost::kEmbedded);
+  EXPECT_EQ(embedded->presentation.required_capability, "test_capability");
+  EXPECT_FALSE(embedded->IsListedInWindowBrowser());
+
+  wm.ShowAllWindowsInCategory(0, "Test");
+  EXPECT_TRUE(wm.IsWindowOpen(0, "test.core"));
+  EXPECT_FALSE(wm.IsWindowOpen(0, "test.embedded"));
+
+  // Registration and programmatic/context reachability remain intact.
+  EXPECT_TRUE(wm.OpenWindow(0, "test.embedded"));
+  EXPECT_TRUE(wm.IsWindowOpen(0, "test.embedded"));
+}
+
+TEST(WorkspaceWindowManagerPolicyTest,
+     PopoutAndCapabilityPolicyFailClosedWithoutUnregisteringContent) {
+  WorkspaceWindowManager wm;
+  wm.RegisterSession(0);
+  wm.SetActiveSession(0);
+
+  auto embedded = WindowPresentationPolicy::EmbeddedTool();
+  embedded.allow_popout = false;
+  wm.RegisterWindowContent(
+      std::make_unique<MockEditorPanelWithHooks>("test.no_popout", "Test"),
+      embedded);
+  EXPECT_FALSE(wm.OpenWindowFloating(0, "test.no_popout"));
+  EXPECT_FALSE(wm.IsWindowOpen(0, "test.no_popout"));
+  EXPECT_TRUE(wm.OpenWindow(0, "test.no_popout"));
+
+  auto unavailable = WindowPresentationPolicy::EmbeddedTool("missing");
+  unavailable.capability_condition = []() {
+    return false;
+  };
+  wm.RegisterWindowContent(
+      std::make_unique<MockEditorPanelWithHooks>("test.unavailable", "Test"),
+      unavailable);
+  EXPECT_NE(wm.GetWindowContent(0, "test.unavailable"), nullptr);
+  EXPECT_FALSE(wm.OpenWindow(0, "test.unavailable"));
+  EXPECT_FALSE(wm.OpenWindowFloating(0, "test.unavailable"));
+}
+
 TEST(WorkspaceWindowManagerPolicyTest, AliasResolutionSupportsLegacyPanelIds) {
   WorkspaceWindowManager pm;
   pm.RegisterSession(0);

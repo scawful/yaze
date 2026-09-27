@@ -340,14 +340,11 @@ void ActivityBar::DrawActivityBarStrip(
 
       const EditorType editor_type =
           EditorRegistry::GetEditorTypeFromCategory(cat);
-      const bool experimental =
-          EditorRegistry::IsExperimentalEditor(editor_type);
-      const bool allow_experimental =
+      const bool experiments_enabled =
           user_settings_ && user_settings_->prefs().show_experimental_editors;
-      const bool blocked_experimental = experimental && !allow_experimental;
-      if (blocked_experimental) {
-        category_enabled = false;
-      }
+      const bool experimental_warning =
+          EditorRegistry::ShouldWarnAboutExperimentalEditor(
+              editor_type, experiments_enabled);
 
       // Get category-specific theme colors for expressive appearance
       auto cat_theme = WorkspaceWindowManager::GetCategoryTheme(cat);
@@ -479,13 +476,13 @@ void ActivityBar::DrawActivityBarStrip(
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         ImGui::BeginTooltip();
         ImGui::Text("%s %s", icon.c_str(), cat.c_str());
-        if (blocked_experimental) {
-          gui::ColoredText(
-              "In development — enable Experimental Editors in Settings",
-              gui::ConvertColorToImVec4(theme.warning));
-        } else if (!category_enabled) {
+        if (!category_enabled) {
           gui::ColoredText("Open ROM required",
                            gui::ConvertColorToImVec4(theme.warning));
+        } else if (experimental_warning) {
+          gui::ColoredText(
+              "Experimental — available with defensive save safeguards",
+              gui::ConvertColorToImVec4(theme.warning));
         } else if (has_active_editor) {
           gui::ColoredText(
               is_selected ? "Active editor" : "Editor open (click to focus)",

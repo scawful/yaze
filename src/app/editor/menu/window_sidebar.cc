@@ -208,13 +208,18 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     const auto category_windows =
         window_manager_.GetWindowsInCategory(session_id, category);
     int visible_windows = 0;
+    int listed_windows = 0;
     for (const auto& category_window : category_windows) {
+      if (!category_window.IsListedInWindowBrowser()) {
+        continue;
+      }
+      ++listed_windows;
       if (category_window.visibility_flag && *category_window.visibility_flag) {
         ++visible_windows;
       }
     }
     ImGui::TextDisabled(tr("%d of %zu visible"), visible_windows,
-                        category_windows.size());
+                        static_cast<size_t>(listed_windows));
     ImGui::Separator();
     if (ImGui::MenuItem(ICON_MD_APPS " Window Browser")) {
       window_manager_.TriggerShowWindowBrowser();
@@ -394,7 +399,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     for (const auto& window_id : pinned_windows) {
       const auto* window =
           window_manager_.GetWindowDescriptor(session_id, window_id);
-      if (window && window->category == category) {
+      if (window && window->category == category && window->IsAdmitted()) {
         has_pinned_in_category = true;
         break;
       }
@@ -407,7 +412,8 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
         for (const auto& window_id : pinned_windows) {
           const auto* window =
               window_manager_.GetWindowDescriptor(session_id, window_id);
-          if (!window || window->category != category) {
+          if (!window || window->category != category ||
+              !window->IsAdmitted()) {
             continue;
           }
 
@@ -467,6 +473,9 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   // other). Pinned rows that already appear in the Pinned header are skipped.
   std::map<std::string, std::vector<WindowDescriptor>> sections;
   for (const auto& window : windows) {
+    if (!window.IsListedInWindowBrowser()) {
+      continue;
+    }
     if (ShouldOmitWindowInSidebar(window.card_id, dungeon_workbench_mode)) {
       continue;
     }

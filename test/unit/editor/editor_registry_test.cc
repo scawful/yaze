@@ -60,7 +60,8 @@ TEST_F(UnitTest_EditorRegistry, InvalidTypesThrow) {
 
   EXPECT_THROW(registry_.RegisterEditor(EditorType::kUnknown, &unknown),
                std::invalid_argument);
-  EXPECT_THROW(registry_.GetEditor(EditorType::kUnknown), std::invalid_argument);
+  EXPECT_THROW(registry_.GetEditor(EditorType::kUnknown),
+               std::invalid_argument);
   EXPECT_THROW(registry_.IsEditorActive(EditorType::kUnknown),
                std::invalid_argument);
 }
@@ -93,6 +94,32 @@ TEST_F(UnitTest_EditorRegistry, NullFactoryThrows) {
   EditorRegistry::EditorFactory factory;
   EXPECT_THROW(registry_.RegisterFactory(EditorType::kOverworld, factory),
                std::invalid_argument);
+}
+
+TEST_F(UnitTest_EditorRegistry,
+       ExperimentalEditorsWarnWithoutBecomingVisibilityGates) {
+  const auto stable = EditorRegistry::GetExperimentPolicy(EditorType::kDungeon);
+  EXPECT_FALSE(stable.experimental);
+  EXPECT_FALSE(EditorRegistry::ShouldWarnAboutExperimentalEditor(
+      EditorType::kDungeon, false));
+
+  const auto screen = EditorRegistry::GetExperimentPolicy(EditorType::kScreen);
+  EXPECT_TRUE(screen.experimental);
+  EXPECT_EQ(screen.disabled_save_posture, ExperimentalSavePosture::kReadOnly);
+
+  const auto music = EditorRegistry::GetExperimentPolicy(EditorType::kMusic);
+  EXPECT_TRUE(music.experimental);
+  EXPECT_EQ(music.disabled_save_posture,
+            ExperimentalSavePosture::kDefensiveBackup);
+
+  const auto agent = EditorRegistry::GetExperimentPolicy(EditorType::kAgent);
+  EXPECT_TRUE(agent.experimental);
+  EXPECT_EQ(agent.disabled_save_posture, ExperimentalSavePosture::kNormal);
+
+  EXPECT_TRUE(EditorRegistry::ShouldWarnAboutExperimentalEditor(
+      EditorType::kMusic, false));
+  EXPECT_FALSE(EditorRegistry::ShouldWarnAboutExperimentalEditor(
+      EditorType::kMusic, true));
 }
 
 }  // namespace
