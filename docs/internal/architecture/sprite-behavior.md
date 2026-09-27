@@ -99,7 +99,7 @@ loader hook, overworld side table, contact policy, probe ownership, or search st
 - Reviewed source fence, validation, transitions, generation:
   `src/app/editor/sprite/sprite_behavior.h`.
 - Public editor operations and Behavior tab:
-  `src/app/editor/sprite/sprite_behavior_panel.cc`, `sprite_editor.{h,cc}`.
+  `src/app/editor/sprite/sprite_editor_behavior.cc`, `sprite_editor.{h,cc}`.
 - Tests: `test/unit/editor/sprite_behavior_test.cc` plus existing sprite suites.
 - [User guide](../../public/usage/sprite-behavior.md).
 

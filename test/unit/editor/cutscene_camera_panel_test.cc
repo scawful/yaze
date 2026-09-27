@@ -1,4 +1,4 @@
-#include "app/editor/cutscene/cutscene_camera_panel.h"
+#include "app/editor/cutscene/ui/window/cutscene_camera_panel.h"
 
 #include <gtest/gtest.h>
 
