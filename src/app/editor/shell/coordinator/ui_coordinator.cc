@@ -328,11 +328,11 @@ float UICoordinator::GetMenuBarIconButtonWidth() {
 }
 
 void UICoordinator::DrawMenuBarExtras() {
-  // Right-aligned status cluster: dirty indicator, session, bell, drawers overflow.
-  // Drawers overflow is positioned using SCREEN coordinates (from viewport) so it
-  // stays fixed even when the dockspace resizes due to panel open/close.
+  // Right-aligned status cluster: dirty indicator, session, bell, sidebar.
+  // The sidebar toggle uses screen coordinates so it stays fixed when the
+  // dockspace resizes due to sidebar open/close.
   //
-  // Layout: [●][📄▾][🔔] [drawers][⬆]
+  // Layout: [●][📄▾][🔔] [sidebar][⬆]
   //         ^^^ shifts with dockspace ^^^  ^^^ fixed screen position ^^^
 
   auto* current_rom = editor_manager_->GetCurrentRom();
@@ -355,7 +355,7 @@ void UICoordinator::DrawMenuBarExtras() {
       editor_manager_->right_drawer_manager() != nullptr;
   float panel_buttons_width = 0.0f;
   if (has_panel_toggles) {
-    panel_buttons_width = RightDrawerManager::GetDrawerToggleClusterWidth();
+    panel_buttons_width = RightDrawerManager::GetSidebarToggleWidth();
   }
 
   // Reserve only the real button footprint so compact icon toggles do not
@@ -375,7 +375,7 @@ void UICoordinator::DrawMenuBarExtras() {
   }
 
   // Available space for status cluster (dirty, session, bell) ends where the
-  // drawers overflow region begins.
+  // right-sidebar toggle begins.
   const float window_width = ImGui::GetWindowWidth();
   const float window_screen_x = ImGui::GetWindowPos().x;
   const float menu_items_end = ImGui::GetCursorPosX() + 16.0f;
@@ -449,12 +449,12 @@ void UICoordinator::DrawMenuBarExtras() {
                        has_multiple_sessions);
 
   // =========================================================================
-  // DRAW DRAWERS OVERFLOW (fixed screen position)
+  // DRAW RIGHT-SIDEBAR TOGGLE (fixed screen position)
   // =========================================================================
   if (has_panel_toggles) {
     float menu_bar_y = ImGui::GetCursorScreenPos().y;
     ImGui::SetCursorScreenPos(ImVec2(panel_screen_x, menu_bar_y));
-    editor_manager_->right_drawer_manager()->DrawDrawerToggleButtons();
+    editor_manager_->right_drawer_manager()->DrawSidebarToggleButton();
   }
 
 #ifdef __EMSCRIPTEN__

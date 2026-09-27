@@ -428,15 +428,10 @@ void MenuOrchestrator::AddDrawersMenuItems() {
     return;
   }
 
-  menu_builder_.BeginSubMenu("Drawers", ICON_MD_VERTICAL_SPLIT);
-  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
-    const auto type = entry.type;
-    menu_builder_.Item(
-        entry.name, entry.icon,
-        [drawers, type]() { drawers->ToggleDrawer(type); }, nullptr, nullptr,
-        [drawers, type]() { return drawers->IsDrawerActive(type); });
-  }
-  menu_builder_.EndMenu();
+  menu_builder_.Item(
+      "Right Sidebar", ICON_MD_VIEW_SIDEBAR,
+      [drawers]() { drawers->ToggleLastDrawer(); }, nullptr, nullptr,
+      [drawers]() { return drawers->IsDrawerExpanded(); });
 }
 
 // Layout presets remain under Windows > Layout (AddLayoutSubmenu).
@@ -707,7 +702,7 @@ void MenuOrchestrator::AddAsarIntegrationMenuItems() {
 }
 
 void MenuOrchestrator::AddDevelopmentMenuItems() {
-  // Development Tools — Agent drawers live under View > Drawers.
+  // Development Tools — right-sidebar content is toggled under View.
   menu_builder_.BeginSubMenu("Development", ICON_MD_DEVELOPER_MODE)
       .Item(
           "Memory Editor", ICON_MD_MEMORY, [this]() { OnShowMemoryEditor(); },

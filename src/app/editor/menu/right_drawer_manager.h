@@ -148,6 +148,15 @@ class RightDrawerManager {
   }
 
   /**
+   * @brief Toggle the right sidebar using its last selected persistent tab.
+   *
+   * Closing the sidebar preserves the selected tab. The first open defaults to
+   * Project.
+   */
+  void ToggleLastDrawer();
+  DrawerType GetLastActiveDrawer() const { return last_active_panel_; }
+
+  /**
    * @brief Close the currently active drawer
    */
   void CloseDrawer();
@@ -215,10 +224,10 @@ class RightDrawerManager {
   // Dimensions
   // ============================================================================
 
-  /**
-   * @brief Get the width of the drawer when expanded
-   */
+  /** Current animated width used by layout and rendering. */
   float GetDrawerWidth() const;
+  /** Full responsive width used to make stable overlay decisions. */
+  float GetExpandedDrawerWidth() const;
   [[deprecated("Use GetDrawerWidth() instead.")]]
   float GetPanelWidth() const {
     return GetDrawerWidth();
@@ -278,9 +287,7 @@ class RightDrawerManager {
     return GetPanelSizeLimits(type);
   }
 
-  /**
-   * @brief Persist/restore per-drawer widths for user settings.
-   */
+  /** Persist one shared width and migrate legacy per-drawer width maps. */
   std::unordered_map<std::string, float> SerializeDrawerWidths() const;
   void RestoreDrawerWidths(
       const std::unordered_map<std::string, float>& widths);
@@ -316,26 +323,23 @@ class RightDrawerManager {
    */
   void Draw();
 
-  /**
-   * @brief Draw the single Drawers overflow control for the status cluster.
-   *
-   * One icon opens a popup listing every switchable drawer (checked when
-   * active). Returns true if the overflow button was clicked or a drawer was
-   * toggled from the popup.
-   */
-  bool DrawDrawerToggleButtons();
-  [[deprecated("Use DrawDrawerToggleButtons() instead.")]]
+  /** Draw one right-sidebar toggle that restores the last selected tab. */
+  bool DrawSidebarToggleButton();
+  [[deprecated("Use DrawSidebarToggleButton() instead.")]]
+  bool DrawDrawerToggleButtons() {
+    return DrawSidebarToggleButton();
+  }
+  [[deprecated("Use DrawSidebarToggleButton() instead.")]]
   bool DrawPanelToggleButtons() {
-    return DrawDrawerToggleButtons();
+    return DrawSidebarToggleButton();
   }
 
-  /**
-   * @brief Menu-bar width reserved for the Drawers overflow control.
-   *
-   * Keep in sync with DrawDrawerToggleButtons() SmallButton metrics so
-   * UICoordinator::DrawMenuBarExtras does not hardcode icon counts.
-   */
-  static float GetDrawerToggleClusterWidth();
+  /** Menu-bar width reserved for the right-sidebar toggle. */
+  static float GetSidebarToggleWidth();
+  [[deprecated("Use GetSidebarToggleWidth() instead.")]]
+  static float GetDrawerToggleClusterWidth() {
+    return GetSidebarToggleWidth();
+  }
 
   // ============================================================================
   // Panel-specific accessors
@@ -388,24 +392,20 @@ class RightDrawerManager {
                        const std::string& fallback);
   float GetConfiguredPanelWidth(PanelType type) const;
   float GetClampedPanelWidth(PanelType type, float viewport_width) const;
+  PanelSizeLimits GetSharedPanelSizeLimits() const;
   void NotifyPanelWidthChanged(PanelType type, float width);
   static std::string PanelTypeKey(PanelType type);
 
-  // Active panel
+  // Active and last-selected persistent tab.
   PanelType active_panel_ = PanelType::kNone;
+  PanelType last_active_panel_ = PanelType::kProject;
 
   // Active editor for context-aware help
   EditorType active_editor_type_ = EditorType::kUnknown;
 
-  // Panel widths (customizable per panel type) - consistent sizing
-  float agent_chat_width_ = gui::UIConfig::kPanelWidthAgentChat;
-  float proposals_width_ = gui::UIConfig::kPanelWidthProposals;
-  float settings_width_ = gui::UIConfig::kPanelWidthSettings;
-  float help_width_ = gui::UIConfig::kPanelWidthHelp;
-  float notifications_width_ = gui::UIConfig::kPanelWidthNotifications;
-  float properties_width_ = gui::UIConfig::kPanelWidthProperties;
-  float project_width_ = gui::UIConfig::kPanelWidthProject;
-  float tool_output_width_ = 460.0f;
+  // Every drawer uses the same user-resizable width so switching tabs does not
+  // move the workspace edge.
+  float shared_width_ = 480.0f;
 
   // Component references (not owned)
   AgentChat* agent_chat_ = nullptr;

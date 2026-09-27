@@ -122,7 +122,7 @@ void OverworldSidebar::DrawHeader(int current_world, int current_map,
   ImGui::TextWrapped(ICON_MD_MAP " %s", metadata.map_title.c_str());
 
   if (gui::ToolbarIconButton(
-          current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
+          current_map_lock ? ICON_MD_PUSH_PIN : ICON_MD_GPS_FIXED,
           current_map_lock ? "Pinned: properties stay on this map.\n"
                              "Click to follow the cursor again."
                            : "Following the cursor.\n"
@@ -131,6 +131,9 @@ void OverworldSidebar::DrawHeader(int current_world, int current_map,
     current_map_lock = !current_map_lock;
   }
   ImGui::SameLine(0, 2);
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled("%s", current_map_lock ? "Pinned" : "Follow");
+  ImGui::SameLine(0, 6);
   ImGui::BeginDisabled(project_ == nullptr);
   if (gui::ToolbarIconButton(ICON_MD_EDIT,
                              project_ ? "Rename this map in the project"
