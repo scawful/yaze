@@ -67,6 +67,32 @@ class InventoryMenuPanel : public EditorPanel {
 };
 
 /**
+ * @brief EditorPanel for the Menu Tilemap (2bpp) Editor
+ */
+class MenuTilemapPanel : public EditorPanel {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit MenuTilemapPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "screen.menu_tilemap"; }
+  std::string GetDisplayName() const override { return "Menu Tilemap (2bpp)"; }
+  std::string GetIcon() const override { return ICON_MD_GRID_ON; }
+  std::string GetEditorCategory() const override { return "Screen"; }
+  int GetPriority() const override { return 60; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
  * @brief EditorPanel for Overworld Map Screen Editor
  */
 class OverworldMapScreenPanel : public EditorPanel {

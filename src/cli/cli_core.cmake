@@ -65,6 +65,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/tools/graphics_doctor_commands.cc
   cli/handlers/graphics/gfx_sheet_inventory_commands.cc
   cli/handlers/graphics/gfx_sheet_png_commands.cc
+  cli/handlers/graphics/gfx_tilemap_render_command.cc
   cli/handlers/tools/gui_commands.cc
   cli/handlers/tools/hex_inspector_commands.cc
   cli/handlers/tools/message_doctor_commands.cc
