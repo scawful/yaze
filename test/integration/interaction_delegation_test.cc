@@ -10,6 +10,7 @@
 #include <array>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_object_interaction.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/object_editor_content.h"
@@ -213,8 +214,13 @@ TEST_F(InteractionDelegationTest,
 
   ASSERT_TRUE(interaction_.NudgeSelected(1, 1));
 
-  EXPECT_EQ(objects[0].x_, original_object_x + 1);
-  EXPECT_EQ(objects[0].y_, original_object_y + 1);
+  // A mixed selection moves rigidly by one physical step. With a sprite in
+  // the selection that step is one 16px sprite cell, which is two 8px object
+  // tiles (InteractionCoordinator::SelectionMoveStepPixels).
+  constexpr int kObjectTilesPerSpriteStep =
+      dungeon_coords::kSpriteTileSize / dungeon_coords::kTileSize;
+  EXPECT_EQ(objects[0].x_, original_object_x + kObjectTilesPerSpriteStep);
+  EXPECT_EQ(objects[0].y_, original_object_y + kObjectTilesPerSpriteStep);
   EXPECT_EQ(CurrentRoom().GetSprites()[0].x(), 6);
   EXPECT_EQ(CurrentRoom().GetSprites()[0].y(), 6);
 }
