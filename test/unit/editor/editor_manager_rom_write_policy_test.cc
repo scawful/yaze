@@ -2549,10 +2549,15 @@ void ExpectRelocatedSheetSurvivesSave(EditorManager* manager, uint16_t sheet_id,
   sheet.set_data(edited);
   GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, sheet_id);
 
-  std::ifstream before_in(rom_path, std::ios::binary);
-  const std::vector<uint8_t> disk_before(
-      (std::istreambuf_iterator<char>(before_in)),
-      std::istreambuf_iterator<char>());
+  // Close the read handle before manager->SaveRom() replaces rom_path below:
+  // on Windows an open handle without FILE_SHARE_DELETE blocks the atomic
+  // move of the saved ROM into place.
+  std::vector<uint8_t> disk_before;
+  {
+    std::ifstream before_in(rom_path, std::ios::binary);
+    disk_before.assign((std::istreambuf_iterator<char>(before_in)),
+                       std::istreambuf_iterator<char>());
+  }
   auto plan = graphics->PlanGraphicsSave();
   ASSERT_TRUE(plan.ok()) << plan.status();
   ASSERT_EQ(plan->size(), 1u);
