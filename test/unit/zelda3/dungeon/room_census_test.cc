@@ -231,7 +231,10 @@ TEST_F(RoomCensusTest, ProjectOwnersWinAndUnreachedListedRoomsStayInUse) {
   EXPECT_TRUE(HasReason(census.rooms[0x4C], "listed in project dungeon FOS"));
 }
 
-TEST_F(RoomCensusTest, PauseMapEvidenceOnlyWithoutProject) {
+// Review finding: the census reached different rooms with and without a
+// project. Pause-map evidence now counts either way; the project only names
+// owners.
+TEST_F(RoomCensusTest, PauseMapEvidenceDoesNotDependOnProject) {
   for (auto& room : input_.rooms) {
     room.vanilla_similarity = 1.0f;
   }
@@ -245,9 +248,101 @@ TEST_F(RoomCensusTest, PauseMapEvidenceOnlyWithoutProject) {
 
   input_.project_owners.push_back({"D1", "Mushroom Grotto", {0x10}});
   census = BuildRoomCensus(input_);
-  EXPECT_FALSE(census.rooms[0x44].reached);
-  EXPECT_EQ(census.rooms[0x44].status, RoomCensusStatus::kReclaimable);
-  EXPECT_TRUE(HasReason(census.rooms[0x44], "project ownership takes"));
+  EXPECT_TRUE(census.rooms[0x44].reached);
+  EXPECT_EQ(census.rooms[0x44].status, RoomCensusStatus::kInUse);
+  EXPECT_TRUE(
+      HasReason(census.rooms[0x44], "on the pause map of dungeon ID 0x04"));
+  EXPECT_EQ(census.owners[census.rooms[0x44].owner_index].name,
+            "Dungeon ID 0x04 (not in project)");
+}
+
+TEST_F(RoomCensusTest, TeleportDoorUsesStairSlot) {
+  // Type 0x46 on the east wall loads stair slot 4 ($7EC004).
+  RoomLinkFacts::Door door{kEast, 30, /*outer=*/true};
+  door.role = RoomDoorRole::kTeleport;
+  input_.rooms[0x10].doors.push_back(door);
+  input_.rooms[0x10].stair_bytes[3] = 0x93;
+  input_.rooms[0x93].vanilla_similarity = 1.0f;
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x93].reached);
+  EXPECT_TRUE(HasReason(census.rooms[0x93],
+                        "teleport door from 0x10 (east wall, stair slot 4)"));
+  // Not the grid neighbor.
+  EXPECT_FALSE(census.rooms[0x11].reached);
+}
+
+// Review finding: the room right of column 15 is not the next row's
+// column 0.
+TEST_F(RoomCensusTest, NeighborDoorsDoNotWrapRows) {
+  // 0x2F (column 15) east door, 0x30 (next row, column 0) west door: the
+  // old graph NeighborRoomId paired them.
+  AddEntrance(input_, 0x05, 0x2F, 0x04);
+  AddDoor(input_, 0x2F, kEast, 30);
+  AddDoor(input_, 0x30, kWest, 30);
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x2F].reached);
+  EXPECT_FALSE(census.rooms[0x30].reached);
+  EXPECT_EQ(DungeonNeighborRoom(0x0F, kEast), -1);
+  EXPECT_EQ(DungeonNeighborRoom(0x1F, kEast), -1);
+  EXPECT_EQ(DungeonNeighborRoom(0x10, kWest), -1);
+  EXPECT_EQ(DungeonNeighborRoom(0xF5, kSouth), -1);   // page 0 bottom row
+  EXPECT_EQ(DungeonNeighborRoom(0x105, kNorth), -1);  // page 1 top row
+  EXPECT_EQ(DungeonNeighborRoom(0x127, kEast), -1);   // 0x128 is not a room
+  EXPECT_EQ(DungeonNeighborRoom(0x0E, kEast), 0x0F);
+  EXPECT_EQ(DungeonNeighborRoom(0x15, kNorth), 0x05);
+}
+
+// Review finding: room_census.cc indexed facts[target] before checking the
+// range. A page-1 stair byte 0x28 resolves to 0x128, one past the last room
+// (the closest out-of-bounds read, which ASan reports); 0xFF resolves to
+// 0x1FF.
+TEST_F(RoomCensusTest, OutOfRangeHeaderDestinationsAreIgnored) {
+  AddEntrance(input_, 0x61, 0x110, kRoomCensusInteriorDungeonId);
+  input_.rooms[0x110].stair_bytes = {0x28, 0xFF, 0x28, 0x28};
+  input_.rooms[0x110].stair_slot_used = {true, true, false, false};
+  input_.warp_tag_ids.insert(0x3A);
+  input_.rooms[0x110].tag1 = 0x3A;  // slots 3-4 as warp tag quadrants
+  RoomLinkFacts::Door door{kEast, 30, /*outer=*/true};
+  door.role = RoomDoorRole::kTeleport;
+  input_.rooms[0x110].doors.push_back(door);
+  input_.rooms[0x110].has_pits = true;
+  input_.rooms[0x110].holewarp_byte = 0x30;  // 0x130
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x110].reached);
+  EXPECT_EQ(static_cast<int>(census.rooms.size()), kRoomCensusRoomCount);
+
+  const RoomLinkFactsLookup lookup = [&](int room) -> const RoomLinkFacts* {
+    return IsDungeonRoomId(room) ? &input_.rooms[room] : nullptr;
+  };
+  const auto links = CollectRoomLinks(0x110, lookup, input_.warp_tag_ids);
+  int out_of_range = 0;
+  for (const auto& link : links) {
+    if (link.raw_to >= kRoomCensusRoomCount) {
+      EXPECT_EQ(link.to, -1) << link.detail;
+      ++out_of_range;
+    }
+  }
+  EXPECT_EQ(out_of_range, 6);  // 2 stairs, 2 warp tag slots, teleport, holes
+  EXPECT_EQ(CheckedHeaderDestinationRoom(0x110, 0x28), -1);
+  EXPECT_EQ(CheckedHeaderDestinationRoom(0x110, 0x27), 0x127);
+}
+
+// Review finding: the census used byte 0 as room $x00 only when something
+// uses it, the graph commands never did. Now both use CollectRoomLinks.
+TEST_F(RoomCensusTest, HeaderByteZeroIsRoomZeroOnlyWhenUsed) {
+  const RoomLinkFactsLookup lookup = [&](int room) -> const RoomLinkFacts* {
+    return IsDungeonRoomId(room) ? &input_.rooms[room] : nullptr;
+  };
+  input_.rooms[0x104].stair_slot_used[1] = true;  // byte 0 -> 0x100
+  input_.rooms[0x104].has_warp_tiles = true;      // holewarp byte 0 -> 0x100
+  auto links = CollectRoomLinks(0x104, lookup);
+  ASSERT_EQ(links.size(), 2u);
+  for (const auto& link : links) {
+    EXPECT_EQ(link.to, 0x100);
+    EXPECT_TRUE(link.strong);
+  }
+  // Unused zero bytes are no reference at all.
+  EXPECT_TRUE(CollectRoomLinks(0x105, lookup).empty());
 }
 
 // Review finding: the stair reciprocity check indexed facts[target] before
