@@ -12,6 +12,7 @@
 #include "core/source_artifact_publisher.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "unique_temp_path.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -75,20 +76,23 @@ absl::StatusOr<OracleRuntimeReplay> ReplayOracleCustomObject(
   }
 }
 
+// Restores the process-global CustomObjectManager when the fixture is
+// destroyed, including when SetUp or the test body stops on a fatal assertion.
+struct ScopedCustomObjectManagerState {
+  CustomObjectManager::State previous =
+      CustomObjectManager::Get().SnapshotState();
+  ~ScopedCustomObjectManagerState() {
+    CustomObjectManager::Get().RestoreState(previous);
+  }
+};
+
 class CustomObjectManagerTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    previous_state_ = CustomObjectManager::Get().SnapshotState();
-    // Use a unique temp directory per test invocation to avoid parallel ctest
-    // teardown races across independently spawned gtest processes.
-    const auto nonce =
-        std::chrono::steady_clock::now().time_since_epoch().count();
-    temp_dir_ = std::filesystem::temp_directory_path() /
-                ("yaze_custom_obj_test_" +
-                 std::to_string(static_cast<long long>(nonce)));
-
-    std::error_code cleanup_error;
-    std::filesystem::remove_all(temp_dir_, cleanup_error);
+    // ctest -j runs every case in its own process. UniqueTempPath adds the
+    // test name and a counter to the clock stamp, so no two processes share
+    // (and remove_all) a root.
+    temp_dir_ = ::yaze::test::UniqueTempPath("yaze_custom_obj_test");
     ASSERT_TRUE(std::filesystem::create_directories(temp_dir_ /
                                                     "Sprites/Objects/Data"));
 
@@ -98,7 +102,6 @@ class CustomObjectManagerTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    CustomObjectManager::Get().RestoreState(previous_state_);
     std::error_code cleanup_error;
     std::filesystem::remove_all(temp_dir_, cleanup_error);
   }
@@ -116,8 +119,8 @@ class CustomObjectManagerTest : public ::testing::Test {
             std::istreambuf_iterator<char>()};
   }
 
+  ScopedCustomObjectManagerState restore_manager_state_;
   std::filesystem::path temp_dir_;
-  CustomObjectManager::State previous_state_;
 };
 
 TEST_F(CustomObjectManagerTest, LoadSimpleObject) {

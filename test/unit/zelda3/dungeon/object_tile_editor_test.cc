@@ -14,6 +14,7 @@
 #include "core/features.h"
 #include "rom/rom.h"
 #include "rom/write_fence.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -1546,7 +1547,8 @@ TEST(ObjectTileEditorTest, CaptureVanillaWallCornersIgnoresConfiguredTrackMap) {
       CustomObjectManager::Get().SnapshotState();
   core::FeatureFlags::get().kEnableCustomObjects = true;
 
-  std::string temp_base = "/tmp/yaze_test_wall_corner_capture";
+  const std::string temp_base =
+      ::yaze::test::UniqueTempPath("yaze_test_wall_corner_capture").string();
   std::filesystem::create_directories(temp_base);
   struct Cleanup {
     bool old_custom_objects_flag;
@@ -1604,7 +1606,9 @@ TEST(ObjectTileEditorTest,
       CustomObjectManager::Get().SnapshotState();
   core::FeatureFlags::get().kEnableCustomObjects = true;
 
-  std::string temp_base = "/tmp/yaze_test_wall_corner_capture_no_map";
+  const std::string temp_base =
+      ::yaze::test::UniqueTempPath("yaze_test_wall_corner_capture_no_map")
+          .string();
   std::filesystem::create_directories(temp_base);
   struct Cleanup {
     bool old_custom_objects_flag;

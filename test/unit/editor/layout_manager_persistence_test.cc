@@ -9,6 +9,7 @@
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "unique_temp_path.h"
 #include "util/json.h"
 #include "util/platform_paths.h"
 
@@ -60,7 +61,13 @@ class LayoutManagerPersistenceTest : public ::testing::Test {
 
     layout_manager_.SetWindowManager(&window_manager_);
 
-    project_key_ = "layout-manager-window-schema-test";
+    // One key per case: ctest -j runs every case in its own process, and a
+    // shared key let one case's SetUp/TearDown remove the file another case
+    // was reading (all processes share the app-data directory).
+    project_key_ =
+        ::yaze::test::UniqueTempPath("layout-manager-window-schema-test")
+            .filename()
+            .string();
     layout_path_ = ResolveProjectLayoutPath(project_key_);
     std::error_code ec;
     std::filesystem::remove(layout_path_, ec);
