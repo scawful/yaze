@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_entrance_camera.h"
 #include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_edit.h"
@@ -486,6 +487,19 @@ class DungeonCanvasViewer {
   uint8_t current_entrance_blockset() const {
     return current_entrance_blockset_;
   }
+  void SetEntranceCameraOverlay(int entrance_slot,
+                                const DungeonEntranceCameraState& state) {
+    camera_overlay_entrance_slot_ = entrance_slot;
+    entrance_camera_overlay_ = state;
+  }
+  void ClearEntranceCameraOverlay() {
+    camera_overlay_entrance_slot_ = -1;
+    entrance_camera_overlay_.reset();
+  }
+  const std::optional<DungeonEntranceCameraState>& entrance_camera_overlay()
+      const {
+    return entrance_camera_overlay_;
+  }
   void SetRoomNavigationCallback(std::function<void(int)> callback) {
     room_navigation_callback_ = std::move(callback);
   }
@@ -845,6 +859,11 @@ class DungeonCanvasViewer {
     return ImGui::GetCurrentContext() != nullptr &&
            HasRoomCanvasShortcutFocusForFrame(ImGui::GetFrameCount());
   }
+  bool OwnsRoomNavigationShortcutFocus() const {
+    return ImGui::GetCurrentContext() != nullptr &&
+           object_interaction_enabled_ && room_canvas_shortcut_focus_ &&
+           room_canvas_last_draw_frame_ >= ImGui::GetFrameCount() - 1;
+  }
 
   // Entity visibility controls
   void SetSpritesVisible(bool visible) {
@@ -1040,6 +1059,8 @@ class DungeonCanvasViewer {
   std::vector<int> recently_visited_rooms_;
   int current_entrance_id_ = -1;
   uint8_t current_entrance_blockset_ = 0xFF;
+  int camera_overlay_entrance_slot_ = -1;
+  std::optional<DungeonEntranceCameraState> entrance_camera_overlay_;
   // Used by overworld editor for double-click entrance → open dungeon room
   ImVector<int> active_rooms_;
   int current_active_room_tab_ = 0;

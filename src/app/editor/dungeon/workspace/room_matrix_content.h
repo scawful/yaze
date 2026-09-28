@@ -89,6 +89,12 @@ class RoomMatrixContent : public WindowContent {
     census_.SetManifestProvider(std::move(provider));
   }
   RoomMatrixCensusOverlay& census_overlay() { return census_; }
+  bool OwnsNavigationShortcutFocus() const {
+    if (!navigation_shortcut_focus_ || ImGui::GetCurrentContext() == nullptr) {
+      return false;
+    }
+    return navigation_shortcut_last_draw_frame_ >= ImGui::GetFrameCount() - 1;
+  }
 
   // ==========================================================================
   // WindowContent Drawing
@@ -97,6 +103,9 @@ class RoomMatrixContent : public WindowContent {
   void Draw(bool* p_open) override {
     if (!current_room_id_ || !active_rooms_)
       return;
+    navigation_shortcut_last_draw_frame_ = ImGui::GetFrameCount();
+    navigation_shortcut_focus_ =
+        ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
     const auto& theme = AgentUI::GetTheme();
 
@@ -697,6 +706,8 @@ class RoomMatrixContent : public WindowContent {
   RoomCompositeOutput tooltip_composite_output_;
   RoomCompositeOutput color_sample_composite_output_;
   RoomMatrixCensusOverlay census_;
+  bool navigation_shortcut_focus_ = false;
+  int navigation_shortcut_last_draw_frame_ = -1;
   char search_filter_[64] = "";
 };
 

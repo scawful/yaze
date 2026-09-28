@@ -49,6 +49,12 @@ class DungeonEditorV2ShortcutTestPeer {
   static void ExpireStaleDelete(DungeonEditorV2& editor) {
     editor.ExpireStaleRoomCanvasDeleteShortcut();
   }
+
+  static void SetRoomNavigationState(DungeonEditorV2& editor, int current_room,
+                                     std::deque<int> recent_rooms) {
+    editor.current_room_id_ = current_room;
+    editor.recent_rooms_ = std::move(recent_rooms);
+  }
 };
 
 namespace {
@@ -230,6 +236,20 @@ TEST_F(ShortcutConfiguratorTest, DefaultBindingsHaveNoUnintendedConflicts) {
   ASSERT_NE(next_object, nullptr);
   ASSERT_TRUE(next_object->editor_type.has_value());
   EXPECT_EQ(*next_object->editor_type, EditorType::kDungeon);
+
+  const Shortcut* room_right =
+      shortcuts.FindShortcut("dungeon.room.navigate_right");
+  ASSERT_NE(room_right, nullptr);
+  EXPECT_EQ(room_right->keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiKey_RightArrow}));
+  ASSERT_TRUE(room_right->editor_type.has_value());
+  EXPECT_EQ(*room_right->editor_type, EditorType::kDungeon);
+  EXPECT_TRUE(static_cast<bool>(room_right->enabled));
+  EXPECT_TRUE(shortcuts.FindConflicts("Session Switcher").empty());
+  EXPECT_EQ(shortcuts.GetShortcut("dungeon.room.next").keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiKey_PageDown}));
+  EXPECT_EQ(shortcuts.GetShortcut("dungeon.open_room_list").keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_L}));
 }
 
 TEST_F(ShortcutConfiguratorTest, PanelHintDoesNotShadowGlobalChord) {
@@ -539,6 +559,43 @@ TEST_F(ShortcutConfiguratorTest,
   EXPECT_FALSE(
       DungeonEditorV2ShortcutTestPeer::HasQueuedDelete(dungeon_editor));
   ImGui::Render();
+}
+
+TEST_F(ShortcutConfiguratorTest, DungeonRoomNavigationRespectsGridEdges) {
+  DungeonWorkbenchFlagGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  DungeonEditorV2 editor;
+  DungeonEditorV2ShortcutTestPeer::SetRoomNavigationState(editor, 0x000,
+                                                          {0x000});
+
+  EXPECT_FALSE(
+      editor.NavigateToAdjacentRoom(DungeonRoomNavigationDirection::kUp));
+  EXPECT_FALSE(
+      editor.NavigateToAdjacentRoom(DungeonRoomNavigationDirection::kLeft));
+  EXPECT_TRUE(
+      editor.NavigateToAdjacentRoom(DungeonRoomNavigationDirection::kRight));
+  EXPECT_EQ(*editor.mutable_current_room_id(), 0x001);
+  EXPECT_TRUE(
+      editor.NavigateToAdjacentRoom(DungeonRoomNavigationDirection::kDown));
+  EXPECT_EQ(*editor.mutable_current_room_id(), 0x011);
+
+  DungeonEditorV2ShortcutTestPeer::SetRoomNavigationState(editor, 0x127,
+                                                          {0x127});
+  EXPECT_FALSE(
+      editor.NavigateToAdjacentRoom(DungeonRoomNavigationDirection::kDown));
+  EXPECT_FALSE(
+      editor.NavigateToAdjacentRoom(DungeonRoomNavigationDirection::kRight));
+}
+
+TEST_F(ShortcutConfiguratorTest, DungeonRoomCycleUsesDedicatedCommands) {
+  DungeonWorkbenchFlagGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  DungeonEditorV2 editor;
+  DungeonEditorV2ShortcutTestPeer::SetRoomNavigationState(
+      editor, 0x010, {0x010, 0x011, 0x012});
+
+  EXPECT_TRUE(editor.CycleRoomSelection(1));
+  EXPECT_EQ(*editor.mutable_current_room_id(), 0x011);
 }
 
 }  // namespace

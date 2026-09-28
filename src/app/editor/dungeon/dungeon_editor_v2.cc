@@ -50,6 +50,7 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -91,6 +92,9 @@ bool ProjectAdvertisesMinecartTracks(const project::YazeProject* project) {
 
 void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
   Editor::SetDependencies(deps);
+  // Dependency rebinding is the project-reload boundary even when the project
+  // object is reused in place with a newly loaded manifest.
+  InvalidateDungeonRenderContextCensus();
   if (minecart_track_editor_panel_) {
     const absl::Status status =
         minecart_track_editor_panel_->RebindProjectContext(deps.project);
@@ -451,6 +455,7 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   }
   entrances_ = std::move(refreshed_entrances);
   spawn_points_ = std::move(refreshed_spawn_points);
+  InvalidateDungeonRenderContextCensus();
   ReloadWaterFillZones();
 
   room_selector_.set_rooms(&rooms_);
@@ -651,6 +656,18 @@ void DungeonEditorV2::Initialize() {
   if (!dependencies_.window_manager)
     return;
   auto* window_manager = dependencies_.window_manager;
+  const auto shortcut_hint =
+      [this](const char* id,
+             std::vector<ImGuiKey> default_keys) -> std::string {
+    if (dependencies_.shortcut_manager != nullptr) {
+      const std::string live =
+          dependencies_.shortcut_manager->GetDisplayString(id);
+      if (!live.empty()) {
+        return live;
+      }
+    }
+    return PrintShortcut(default_keys);
+  };
 
   // Legacy panel IDs persisted in older layouts/settings.
   window_manager->RegisterPanelAlias("dungeon.object_tools", kObjectSelectorId);
@@ -688,7 +705,9 @@ void DungeonEditorV2::Initialize() {
                         .default_host = WindowDefaultHost::kWorkspace,
                         .list_in_window_browser = false,
                         .allow_popout = true},
-       .shortcut_hint = "Ctrl+Shift+R",
+       .shortcut_hint = shortcut_hint(
+           "dungeon.open_room_list", {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_L}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 20,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -702,7 +721,10 @@ void DungeonEditorV2::Initialize() {
        .category = "Dungeon",
        .workflow_group = "Core",
        .presentation = WindowPresentationPolicy::OptionalPopOut(),
-       .shortcut_hint = "Ctrl+Shift+E",
+       .shortcut_hint =
+           shortcut_hint("dungeon.open_entrances",
+                         {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_E}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 25,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -716,7 +738,9 @@ void DungeonEditorV2::Initialize() {
        .category = "Dungeon",
        .workflow_group = "Core",
        .presentation = WindowPresentationPolicy::OptionalPopOut(),
-       .shortcut_hint = "Ctrl+Shift+M",
+       .shortcut_hint = shortcut_hint(
+           "dungeon.open_matrix", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_M}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 30,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -730,7 +754,10 @@ void DungeonEditorV2::Initialize() {
        .category = "Dungeon",
        .workflow_group = "Editors",
        .presentation = WindowPresentationPolicy::EmbeddedTool(),
-       .shortcut_hint = "Ctrl+Shift+G",
+       .shortcut_hint =
+           shortcut_hint("dungeon.open_room_graphics",
+                         {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_G}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 50,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -773,7 +800,10 @@ void DungeonEditorV2::Initialize() {
        .workflow_group = "Editors",
        .presentation = WindowPresentationPolicy::EmbeddedTool(),
        // Avoid conflicting with the global Command Palette (Ctrl/Cmd+Shift+P).
-       .shortcut_hint = "Ctrl+Shift+Alt+P",
+       .shortcut_hint = shortcut_hint(
+           "dungeon.open_palette",
+           {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiMod_Alt, ImGuiKey_P}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 70,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -895,6 +925,10 @@ void DungeonEditorV2::Initialize() {
     auto entrances_panel = std::make_unique<DungeonEntrancesPanel>(
         &entrances_, &spawn_points_, &current_entrance_id_,
         [this](int entrance_id) { OnEntranceSelected(entrance_id); });
+    entrances_panel->SetCameraTools(
+        [this](int slot_index) { return GetEntranceCameraState(slot_index); },
+        [this](int slot_index) { return RepairEntranceCamera(slot_index); },
+        [this]() { RefreshEntranceCameraOverlays(); });
     entrance_navigator_panel_ = entrances_panel.get();
     window_manager->RegisterWindowContent(std::move(entrances_panel));
   }
@@ -921,6 +955,7 @@ absl::Status DungeonEditorV2::Load() {
 
   RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
   RETURN_IF_ERROR(room_loader_.LoadDungeonSpawnPoints(spawn_points_));
+  InvalidateDungeonRenderContextCensus();
 
   if (!game_data()) {
     return absl::FailedPreconditionError("GameData not available");
@@ -1377,86 +1412,12 @@ absl::Status DungeonEditorV2::Update() {
     return absl::OkStatus();
   }
 
+  // Poll the async ownership census and propagate a newly resolved entrance
+  // context before any room or graphics surface draws this frame.
+  ApplyEntranceRenderContext(current_room_id_);
+
   if (!IsWorkbenchWorkflowEnabled() || active_rooms_.Size > 0) {
     DrawRoomPanels();
-  }
-
-  // Keyboard Shortcuts (only if not typing in a text field)
-  if (!ImGui::GetIO().WantTextInput) {
-    // Room Cycling (Ctrl+Tab)
-    if (ImGui::IsKeyPressed(ImGuiKey_Tab) && ImGui::GetIO().KeyCtrl) {
-      if (IsWorkbenchWorkflowEnabled()) {
-        if (recent_rooms_.size() > 1) {
-          int current_idx = -1;
-          for (int i = 0; i < static_cast<int>(recent_rooms_.size()); ++i) {
-            if (recent_rooms_[i] == current_room_id_) {
-              current_idx = i;
-              break;
-            }
-          }
-          if (current_idx != -1) {
-            int next_idx;
-            if (ImGui::GetIO().KeyShift) {
-              next_idx =
-                  (current_idx + 1) % static_cast<int>(recent_rooms_.size());
-            } else {
-              next_idx =
-                  (current_idx - 1 + static_cast<int>(recent_rooms_.size())) %
-                  static_cast<int>(recent_rooms_.size());
-            }
-            OnRoomSelected(recent_rooms_[next_idx]);
-          }
-        }
-      } else if (active_rooms_.size() > 1) {
-        int current_idx = -1;
-        for (int i = 0; i < active_rooms_.size(); ++i) {
-          if (active_rooms_[i] == current_room_id_) {
-            current_idx = i;
-            break;
-          }
-        }
-
-        if (current_idx != -1) {
-          int next_idx;
-          if (ImGui::GetIO().KeyShift) {
-            next_idx =
-                (current_idx - 1 + active_rooms_.size()) % active_rooms_.size();
-          } else {
-            next_idx = (current_idx + 1) % active_rooms_.size();
-          }
-          OnRoomSelected(active_rooms_[next_idx]);
-        }
-      }
-    }
-
-    // Adjacent Room Navigation (Ctrl+Arrows)
-    if (ImGui::GetIO().KeyCtrl) {
-      int next_room = -1;
-      const int kCols = 16;
-
-      if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
-        if (current_room_id_ >= kCols)
-          next_room = current_room_id_ - kCols;
-      } else if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
-        if (IsValidRoomId(current_room_id_ + kCols))
-          next_room = current_room_id_ + kCols;
-      } else if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
-        if (current_room_id_ % kCols > 0)
-          next_room = current_room_id_ - 1;
-      } else if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
-        if (current_room_id_ % kCols < kCols - 1 &&
-            IsValidRoomId(current_room_id_ + 1))
-          next_room = current_room_id_ + 1;
-      }
-
-      if (next_room != -1) {
-        if (IsWorkbenchWorkflowEnabled()) {
-          OnRoomSelected(next_room, /*request_focus=*/false);
-        } else {
-          SwapRoomInPanel(current_room_id_, next_room);
-        }
-      }
-    }
   }
 
   // Process any pending room swaps after all drawing is complete
@@ -1464,6 +1425,112 @@ absl::Status DungeonEditorV2::Update() {
   ProcessPendingSwap();
 
   return absl::OkStatus();
+}
+
+bool DungeonEditorV2::CanHandleDungeonNavigationShortcut() const {
+  if (ImGui::GetCurrentContext() == nullptr) {
+    return false;
+  }
+  bool canvas_owns_focus = false;
+  room_viewers_.ForEach(
+      [&canvas_owns_focus](int,
+                           const std::unique_ptr<DungeonCanvasViewer>& viewer) {
+        canvas_owns_focus =
+            canvas_owns_focus ||
+            (viewer != nullptr && viewer->OwnsRoomNavigationShortcutFocus());
+      });
+  canvas_owns_focus =
+      canvas_owns_focus ||
+      (workbench_viewer_ != nullptr &&
+       workbench_viewer_->OwnsRoomNavigationShortcutFocus()) ||
+      (workbench_compare_viewer_ != nullptr &&
+       workbench_compare_viewer_->OwnsRoomNavigationShortcutFocus());
+  const bool navigator_owns_focus =
+      (room_matrix_panel_ != nullptr &&
+       room_matrix_panel_->OwnsNavigationShortcutFocus()) ||
+      (entrance_navigator_panel_ != nullptr &&
+       entrance_navigator_panel_->OwnsNavigationShortcutFocus());
+  return canvas_owns_focus || navigator_owns_focus;
+}
+
+bool DungeonEditorV2::NavigateToAdjacentRoom(
+    DungeonRoomNavigationDirection direction) {
+  constexpr int kColumns = 16;
+  int next_room = -1;
+  switch (direction) {
+    case DungeonRoomNavigationDirection::kUp:
+      if (current_room_id_ >= kColumns) {
+        next_room = current_room_id_ - kColumns;
+      }
+      break;
+    case DungeonRoomNavigationDirection::kDown:
+      if (IsValidRoomId(current_room_id_ + kColumns)) {
+        next_room = current_room_id_ + kColumns;
+      }
+      break;
+    case DungeonRoomNavigationDirection::kLeft:
+      if (current_room_id_ % kColumns > 0) {
+        next_room = current_room_id_ - 1;
+      }
+      break;
+    case DungeonRoomNavigationDirection::kRight:
+      if (current_room_id_ % kColumns < kColumns - 1 &&
+          IsValidRoomId(current_room_id_ + 1)) {
+        next_room = current_room_id_ + 1;
+      }
+      break;
+  }
+  if (next_room < 0) {
+    return false;
+  }
+  if (IsWorkbenchWorkflowEnabled()) {
+    OnRoomSelected(next_room, /*request_focus=*/false);
+  } else {
+    SwapRoomInPanel(current_room_id_, next_room);
+  }
+  return true;
+}
+
+bool DungeonEditorV2::CycleRoomSelection(int direction) {
+  if (direction == 0) {
+    return false;
+  }
+  if (IsWorkbenchWorkflowEnabled()) {
+    if (recent_rooms_.size() <= 1) {
+      return false;
+    }
+    const auto current =
+        std::find(recent_rooms_.begin(), recent_rooms_.end(), current_room_id_);
+    if (current == recent_rooms_.end()) {
+      return false;
+    }
+    const int current_index =
+        static_cast<int>(std::distance(recent_rooms_.begin(), current));
+    const int count = static_cast<int>(recent_rooms_.size());
+    const int next_index =
+        (current_index + (direction > 0 ? 1 : -1) + count) % count;
+    OnRoomSelected(recent_rooms_[next_index]);
+    return true;
+  }
+
+  if (active_rooms_.size() <= 1) {
+    return false;
+  }
+  int current_index = -1;
+  for (int index = 0; index < active_rooms_.size(); ++index) {
+    if (active_rooms_[index] == current_room_id_) {
+      current_index = index;
+      break;
+    }
+  }
+  if (current_index < 0) {
+    return false;
+  }
+  const int count = active_rooms_.size();
+  const int next_index =
+      (current_index + (direction > 0 ? 1 : -1) + count) % count;
+  OnRoomSelected(active_rooms_[next_index]);
+  return true;
 }
 
 void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
@@ -1538,11 +1605,25 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
         .message = "Room data has not been materialized yet.",
     });
   } else {
-    const uint8_t entrance_blockset = room->render_entrance_blockset();
+    const DungeonRenderContext render_context =
+        ResolveDungeonRenderContextForRoom(current_room_id_);
+    const uint8_t entrance_blockset = render_context.uses_entrance()
+                                          ? render_context.entrance_blockset
+                                          : 0xFF;
     snapshot.metadata = {
-        {.id = "entrance",
-         .label = "Entrance",
-         .value = absl::StrFormat("0x%02X", current_entrance_id_)},
+        {.id = "graphics_entrance",
+         .label = "Graphics entrance",
+         .value = render_context.uses_entrance()
+                      ? absl::StrFormat("0x%02X", render_context.entrance_slot)
+                      : "None"},
+        {.id = "graphics_source",
+         .label = "Graphics source",
+         .value = DungeonRenderContextSourceName(render_context.source)},
+        {.id = "dungeon_owner",
+         .label = "Dungeon owner",
+         .value = render_context.owner_name.empty()
+                      ? "Unresolved"
+                      : render_context.owner_name},
         {.id = "blockset",
          .label = "Blockset",
          .value = entrance_blockset == 0xFF
@@ -1579,6 +1660,51 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
     snapshot.has_pending_changes = room->HasUnsavedChanges();
     snapshot.pending_label =
         snapshot.has_pending_changes ? "Room has unapplied changes" : "";
+    if (render_context.source == DungeonRenderContextSource::kAmbiguous) {
+      snapshot.diagnostics.push_back({
+          .id = "ambiguous_dungeon_graphics_owner",
+          .severity = EditorContextDiagnosticSeverity::kWarning,
+          .message =
+              "Owner entrances disagree on main GFX; using the room header.",
+          .action_id = "open_entrance",
+      });
+    } else if (!dungeon_render_context_census_error_.empty()) {
+      snapshot.diagnostics.push_back({
+          .id = "dungeon_owner_unavailable",
+          .severity = EditorContextDiagnosticSeverity::kInfo,
+          .message = absl::StrFormat("Dungeon ownership is unavailable: %s",
+                                     dungeon_render_context_census_error_),
+      });
+    }
+    if (const auto camera = GetEntranceCameraState(current_entrance_id_);
+        camera.has_value()) {
+      const auto validation = ValidateDungeonEntranceCamera(*camera);
+      snapshot.metadata.push_back({
+          .id = "entrance_camera",
+          .label = "Entrance camera",
+          .value = !validation.geometry_valid() ? "Unsafe geometry"
+                   : validation.matches_derived()
+                       ? "Matches player position"
+                       : absl::StrFormat("%zu derived difference(s)",
+                                         validation.differences.size()),
+      });
+      if (!validation.geometry_valid()) {
+        snapshot.diagnostics.push_back({
+            .id = "entrance_camera_invalid",
+            .severity = EditorContextDiagnosticSeverity::kError,
+            .message = validation.errors.front(),
+            .action_id = "open_entrance",
+        });
+      } else if (!validation.matches_derived()) {
+        snapshot.diagnostics.push_back({
+            .id = "entrance_camera_custom",
+            .severity = EditorContextDiagnosticSeverity::kWarning,
+            .message =
+                "Entrance camera is safe but differs from derived values.",
+            .action_id = "open_entrance",
+        });
+      }
+    }
   }
 
   snapshot.capabilities = {
@@ -2171,6 +2297,7 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
   }
   current_entrance_id_ = entrance_id;
   room_selector_.set_current_entrance_id(entrance_id);
+  RefreshEntranceCameraOverlays();
 
   const int room_id = ResolveEntranceRoomId(entrance_id);
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
@@ -2192,26 +2319,9 @@ int DungeonEditorV2::ResolveEntranceRoomId(int entrance_id) const {
 
 uint8_t DungeonEditorV2::ResolveSelectedEntranceBlocksetForRoom(
     int room_id) const {
-  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
-    return 0xFF;
-  }
-  if (current_entrance_id_ < 0 ||
-      current_entrance_id_ >= static_cast<int>(entrances_.size())) {
-    return 0xFF;
-  }
-  if (current_entrance_id_ < zelda3::kNumDungeonSpawnPoints) {
-    const auto& spawn = spawn_points_[current_entrance_id_];
-    if (spawn.spawn_id() != current_entrance_id_ || spawn.room_id != room_id) {
-      return 0xFF;
-    }
-    return spawn.main_gfx;
-  }
-
-  const auto& entrance = entrances_[current_entrance_id_];
-  if (entrance.room_ != room_id) {
-    return 0xFF;
-  }
-  return entrance.blockset_;
+  const DungeonRenderContext context =
+      ResolveDungeonRenderContextForRoom(room_id);
+  return context.uses_entrance() ? context.entrance_blockset : 0xFF;
 }
 
 void DungeonEditorV2::ApplyEntranceRenderContext(int room_id) {
@@ -2231,12 +2341,19 @@ void DungeonEditorV2::ConfigureViewerRenderContext(DungeonCanvasViewer* viewer,
   if (viewer == nullptr) {
     return;
   }
-  const uint8_t entrance_blockset =
-      ResolveSelectedEntranceBlocksetForRoom(room_id);
-  if (entrance_blockset == 0xFF) {
+  const DungeonRenderContext context =
+      ResolveDungeonRenderContextForRoom(room_id);
+  if (!context.uses_entrance()) {
     viewer->ClearEntranceRenderContext();
   } else {
-    viewer->SetEntranceRenderContext(current_entrance_id_, entrance_blockset);
+    viewer->SetEntranceRenderContext(context.entrance_slot,
+                                     context.entrance_blockset);
+  }
+  const auto camera = GetEntranceCameraState(current_entrance_id_);
+  if (camera.has_value() && camera->room_id == room_id) {
+    viewer->SetEntranceCameraOverlay(current_entrance_id_, *camera);
+  } else {
+    viewer->ClearEntranceCameraOverlay();
   }
 }
 
