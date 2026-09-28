@@ -484,17 +484,21 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
         absl::StrFormat("Patch failed: %s", absl::StrJoin(last_errors_, "; ")));
   }
 
-  // Read patched ROM back into memory
-  std::ifstream patched_rom(temp_rom, std::ios::binary);
-  if (!patched_rom) {
-    last_errors_.push_back("Failed to read patched ROM from Asar CLI");
-    fs::remove(temp_rom, ec);
-    fs::remove(temp_symbols, ec);
-    return absl::InternalError(last_errors_.back());
+  // Read patched ROM back into memory. Close the handle before removing the
+  // temp ROM below: on Windows an open handle without FILE_SHARE_DELETE makes
+  // the remove fail, leaving a full ROM copy in the temp folder per patch.
+  std::vector<uint8_t> new_data;
+  {
+    std::ifstream patched_rom(temp_rom, std::ios::binary);
+    if (!patched_rom) {
+      last_errors_.push_back("Failed to read patched ROM from Asar CLI");
+      fs::remove(temp_rom, ec);
+      fs::remove(temp_symbols, ec);
+      return absl::InternalError(last_errors_.back());
+    }
+    new_data.assign(std::istreambuf_iterator<char>(patched_rom),
+                    std::istreambuf_iterator<char>());
   }
-
-  std::vector<uint8_t> new_data((std::istreambuf_iterator<char>(patched_rom)),
-                                std::istreambuf_iterator<char>());
   rom_data.swap(new_data);
   fs::remove(temp_rom, ec);
 
