@@ -152,8 +152,13 @@ TEST_F(OracleSmokeCheckIntegrationTest, ReportFileContainsAllCheckKeys) {
           .ok());
 
   ASSERT_TRUE(std::filesystem::exists(report_path));
-  std::ifstream report_file(report_path);
-  const json report = json::parse(report_file, nullptr, false);
+  // Close the read handle before the remove below: on Windows an open handle
+  // without FILE_SHARE_DELETE makes std::filesystem::remove throw.
+  json report;
+  {
+    std::ifstream report_file(report_path);
+    report = json::parse(report_file, nullptr, false);
+  }
   ASSERT_FALSE(report.is_discarded());
 
   EXPECT_TRUE(report.contains("ok"));
