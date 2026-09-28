@@ -6,7 +6,18 @@
 #include "absl/status/status.h"
 #include "cli/service/resources/command_handler.h"
 
+namespace yaze::core {
+class HackManifest;
+}  // namespace yaze::core
+
 namespace yaze::cli::handlers {
+
+// Loads the hack manifest and dungeon registry named by --project (the code
+// folder with Docs/Dev/Planning/dungeons.json and Roms/hack_manifest.json, or
+// a .yaze project file). dungeon-room-census and the dungeon graph commands
+// share it, so they read the same warp tags.
+absl::Status LoadRoomCensusProject(const std::string& project_arg,
+                                   core::HackManifest* manifest);
 
 /**
  * @brief Room census: owner, FREE / RECLAIMABLE / IN USE status and reasons

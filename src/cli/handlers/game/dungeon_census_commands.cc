@@ -136,6 +136,15 @@ std::string FormatTable(const zelda3::RoomCensus& census,
 
 }  // namespace
 
+absl::Status LoadRoomCensusProject(const std::string& project_arg,
+                                   core::HackManifest* manifest) {
+  auto code_folder = ResolveCodeFolder(project_arg);
+  if (!code_folder.ok()) {
+    return code_folder.status();
+  }
+  return LoadProjectData(*code_folder, manifest);
+}
+
 absl::Status DungeonRoomCensusCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
   if (auto status = parser.GetString("status"); status.has_value()) {
@@ -176,11 +185,8 @@ absl::Status DungeonRoomCensusCommandHandler::Execute(
   zelda3::RoomCensusOptions options;
   core::HackManifest manifest;
   if (auto project_arg = parser.GetString("project"); project_arg.has_value()) {
-    auto code_folder = ResolveCodeFolder(*project_arg);
-    if (!code_folder.ok()) {
-      return code_folder.status();
-    }
-    if (auto status = LoadProjectData(*code_folder, &manifest); !status.ok()) {
+    if (auto status = LoadRoomCensusProject(*project_arg, &manifest);
+        !status.ok()) {
       return status;
     }
     options.project = &manifest.project_registry();

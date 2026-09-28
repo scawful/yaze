@@ -39,6 +39,7 @@ set(
   zelda3/dungeon/room_collision.cc
   zelda3/dungeon/room_layer_manager.cc
   zelda3/dungeon/room_layout.cc
+  zelda3/dungeon/room_links.cc
   zelda3/dungeon/room_object.cc
   zelda3/dungeon/track_collision_generator.cc
   zelda3/dungeon/water_fill_zone.cc

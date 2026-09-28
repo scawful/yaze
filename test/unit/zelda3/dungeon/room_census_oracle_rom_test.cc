@@ -89,11 +89,26 @@ TEST(RoomCensusOracleRomTest, MatchesOracleNotesWithExplainedDifferences) {
   EXPECT_TRUE(census.expanded_entrance_tables);
   EXPECT_TRUE(census.has_vanilla_baseline);
 
-  // Reclaimable: exactly the notes' six.
+  // Reclaimable: the notes' six minus two that the game still reaches.
+  // - 0x01: vanilla teleport doors (type 0x46) in the Hyrule Castle dream
+  //   rooms 0x50 (east wall, stair slot 4) and 0x52 (west wall, stair slot
+  //   3) lead to it; both header slots hold 0x01, as in vanilla. The notes
+  //   only saw its one-sided grid doors.
+  // - 0x30: drawn on the pause map of dungeon ID 0x08, whose other rooms
+  //   are reached. Pause-map evidence no longer depends on the project.
   EXPECT_EQ(RoomsWith(census, RoomCensusStatus::kReclaimable),
-            (std::set<int>{0x01, 0x10, 0x30, 0xA7, 0x106, 0x127}));
+            (std::set<int>{0x10, 0xA7, 0x106, 0x127}));
+  bool teleport_from_50 = false;
+  for (const auto& ref : census.rooms[0x01].references) {
+    teleport_from_50 |= ref.kind == RoomReferenceKind::kTeleportDoor &&
+                        ref.from_room == 0x50 && ref.strong;
+  }
+  EXPECT_TRUE(teleport_from_50) << Describe(census, 0x01);
+  EXPECT_TRUE(census.rooms[0x01].reached);
+  EXPECT_EQ(census.rooms[0x30].status, RoomCensusStatus::kInUse);
   EXPECT_THAT(census.rooms[0x30].reasons,
-              ::testing::Contains(::testing::HasSubstr("partly edited")));
+              ::testing::Contains(
+                  ::testing::HasSubstr("on the pause map of dungeon ID 0x08")));
 
   // Free: the notes' 13 plus 0x31.
   // 0x31 (Dream 3 placeholder, 0 objects) is referenced only by
@@ -109,7 +124,7 @@ TEST(RoomCensusOracleRomTest, MatchesOracleNotesWithExplainedDifferences) {
     EXPECT_TRUE(census.rooms[room].empty) << Describe(census, room);
   }
   EXPECT_EQ(census.free_count, 14);
-  EXPECT_EQ(census.reclaimable_count, 6);
+  EXPECT_EQ(census.reclaimable_count, 4);
 
   // Largest free block, as seen in the rendered census PNG.
   ASSERT_FALSE(census.free_clusters.empty());
@@ -156,7 +171,8 @@ TEST(RoomCensusOracleRomTest, CensusAgentUnusedRoomsAreFreeOrReclaimable) {
   const RoomCensus census = BuildRoomCensus(*input_or);
 
   // Every room the census agent marked "N" (not used) is free or
-  // reclaimable here. Its "Y" rooms are in use, except 0x11A (see above).
+  // reclaimable here, except 0x01 (teleport doors from 0x50/0x52, see
+  // above). Its "Y" rooms are in use, except 0x11A (see above).
   std::ifstream csv(FixtureDir() / "oracle_census_2026_09_26.csv");
   std::string line;
   std::getline(csv, line);  // header
@@ -166,7 +182,7 @@ TEST(RoomCensusOracleRomTest, CensusAgentUnusedRoomsAreFreeOrReclaimable) {
     const std::string used = line.substr(line.rfind(',') + 1);
     const int room = std::stoi(room_hex, nullptr, 16);
     const auto status = census.rooms[room].status;
-    if (used == "N") {
+    if (used == "N" && room != 0x01) {
       EXPECT_NE(status, RoomCensusStatus::kInUse) << Describe(census, room);
     } else if (used == "Y" && room != 0x11A && room != 0x31) {
       EXPECT_EQ(status, RoomCensusStatus::kInUse) << Describe(census, room);
