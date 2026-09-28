@@ -256,6 +256,63 @@ TEST_F(RoomCensusTest, PauseMapEvidenceDoesNotDependOnProject) {
             "Dungeon ID 0x04 (not in project)");
 }
 
+// Review finding: rooms reached only through runtime holes were
+// reclaimable. Every fall runs DetermineConsequencesOfFalling ($07:94AA):
+// RoomsWithPitDamage rooms take a heart, all others use the holewarp.
+TEST_F(RoomCensusTest, TagDrivenHolesUseTheHolewarp) {
+  input_.rooms[0x10].tag1 = 0x21;  // Holes_0
+  input_.rooms[0x10].has_hole_tag = true;
+  input_.rooms[0x10].holewarp_byte = 0x20;
+  input_.rooms[0x20].vanilla_similarity = 1.0f;
+  auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x20].reached);
+  EXPECT_EQ(census.rooms[0x20].status, RoomCensusStatus::kInUse);
+  EXPECT_TRUE(
+      HasReason(census.rooms[0x20], "tag-driven holes (tag 0x21) in 0x10"));
+
+  input_.rooms[0x10].in_pit_damage_table = true;
+  census = BuildRoomCensus(input_);
+  EXPECT_FALSE(census.rooms[0x20].reached);
+  EXPECT_EQ(census.rooms[0x20].status, RoomCensusStatus::kReclaimable);
+  EXPECT_TRUE(HasReason(census.rooms[0x20], "RoomsWithPitDamage"));
+}
+
+TEST_F(RoomCensusTest, WarpTagIsNotAHoleTag) {
+  // Oracle redefines tag 0x3A (vanilla Holes_8) as WarpTag.
+  input_.rooms[0x10].tag1 = 0x3A;
+  input_.rooms[0x10].has_hole_tag = true;
+  input_.rooms[0x10].holewarp_byte = 0x20;
+  input_.rooms[0x20].object_count = 0;
+  auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x20].reached);  // Vanilla meaning: holes.
+
+  input_.warp_tag_ids.insert(0x3A);
+  census = BuildRoomCensus(input_);
+  EXPECT_FALSE(census.rooms[0x20].reached);
+  EXPECT_EQ(census.rooms[0x20].status, RoomCensusStatus::kFree);
+}
+
+TEST_F(RoomCensusTest, FallingFloorSpritesUseTheHolewarp) {
+  // Vanilla 0x00: Ganon's phase 3 drops the floor into 0x10.
+  input_.rooms[0x10].hole_sprite = "Ganon's falling floor (sprite 0xD6)";
+  input_.rooms[0x10].holewarp_byte = 0x20;
+  input_.rooms[0x20].vanilla_similarity = 1.0f;
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x20].reached);
+  EXPECT_TRUE(HasReason(census.rooms[0x20], "Ganon's falling floor"));
+}
+
+TEST_F(RoomCensusTest, BrazierPitsAreNamed) {
+  input_.rooms[0x10].has_pits = true;
+  input_.rooms[0x10].pits_only_in_braziers = true;
+  input_.rooms[0x10].holewarp_byte = 0x20;
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x20].reached);
+  EXPECT_TRUE(HasReason(census.rooms[0x20],
+                        "large-brazier pits (entered by falling from the "
+                        "room above) in 0x10"));
+}
+
 TEST_F(RoomCensusTest, TeleportDoorUsesStairSlot) {
   // Type 0x46 on the east wall loads stair slot 4 ($7EC004).
   RoomLinkFacts::Door door{kEast, 30, /*outer=*/true};

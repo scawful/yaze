@@ -9,8 +9,9 @@
 //   entrances, overworld holes and spawn points gets to it over strong room
 //   links (room_links.h, shared with the z3ed graph commands): mutual doors,
 //   teleport doors, stair objects (resolved to their header slot), project
-//   warp tags, warp tiles, and the holewarp of a room with pits that is not
-//   listed in RoomsWithPitDamage. Doorless walk-off edges are not modeled; instead a
+//   warp tags, warp tiles, and the holewarp of a room with pits, pit tiles,
+//   tag-driven holes or falling-floor sprites that is not listed in
+//   RoomsWithPitDamage. Doorless walk-off edges are not modeled; instead a
 //   non-empty room drawn on the pause map of a dungeon that is itself reached
 //   counts as reached. Reachability does not depend on project ownership:
 //   the project only names owners and keeps its listed rooms in use.
