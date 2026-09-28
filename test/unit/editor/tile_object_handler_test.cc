@@ -25,6 +25,7 @@
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
+#include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
@@ -780,13 +781,13 @@ TEST_F(TileObjectHandlerTest,
     ASSERT_TRUE(coordinator.HandleMouseWheel(1.0f));
     ImGui::GetIO().KeyShift = true;
     ASSERT_TRUE(coordinator.HandleMouseWheel(1.0f));
-    ASSERT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+    ASSERT_EQ(tile_handler.GetPreviewObject().size_, 0x0E);
 
     gfx::PaletteGroup palette(direct_placement ? "second" : "first");
     interaction.SetCurrentPaletteGroup(palette);
-    EXPECT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+    EXPECT_EQ(tile_handler.GetPreviewObject().size_, 0x0E);
     interaction.SetCurrentPaletteGroup(palette, /*force_refresh=*/true);
-    EXPECT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+    EXPECT_EQ(tile_handler.GetPreviewObject().size_, 0x0E);
     EXPECT_EQ(mutation_count_, 0);
     EXPECT_FALSE(rooms_[0].object_stream_dirty());
 
@@ -794,12 +795,12 @@ TEST_F(TileObjectHandlerTest,
     if (direct_placement) {
       interaction.PlaceObjectAtPosition(10, 10);
       ASSERT_TRUE(callback_size.has_value());
-      EXPECT_EQ(*callback_size, 0x0A);
+      EXPECT_EQ(*callback_size, 0x0E);
     } else {
       ASSERT_TRUE(tile_handler.HandleClick(80, 80));
     }
     ASSERT_EQ(rooms_[0].GetTileObjects().size(), previous_count + 1);
-    EXPECT_EQ(rooms_[0].GetTileObjects().back().size_, 0x0A);
+    EXPECT_EQ(rooms_[0].GetTileObjects().back().size_, 0x0E);
     EXPECT_EQ(mutation_count_, 1);
     interaction.CancelPlacement();
   }
@@ -931,10 +932,34 @@ TEST_F(TileObjectHandlerTest, PackedFloorMouseWheelUsesShiftForWidth) {
   selection_.SelectObject(0);
 
   EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
-  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x06);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0A);
   ImGui::GetIO().KeyShift = true;
   EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
-  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0A);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0E);
+}
+
+TEST_F(TileObjectHandlerTest, UniformWheelStopsBothAxesAtEitherLimit) {
+  ScopedCustomObjectSelectionState custom_state(false);
+  EXPECT_EQ(zelda3::DefaultRoomObjectSizeForPlacement(0xD1), 0x05);
+  EXPECT_EQ(zelda3::DefaultRoomObjectSizeForPlacement(0x01), 2);
+  AddTestObjects({CreateTestObject(5, 5, 0x06, 0xD1)});
+  selection_.SelectObject(0);
+
+  ASSERT_TRUE(handler_.HandleMouseWheel(1.0f));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0B);
+  EXPECT_FALSE(handler_.HandleMouseWheel(1.0f));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0B);
+  ASSERT_TRUE(handler_.HandleMouseWheel(-1.0f));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x06);
+
+  handler_.SetPreviewObject(CreateTestObject(0, 0, 0x06, 0xD1));
+  handler_.BeginPlacement();
+  ASSERT_TRUE(handler_.HandleMouseWheel(-1.0f));
+  EXPECT_EQ(handler_.GetPreviewObject().size_, 0x01);
+  EXPECT_FALSE(handler_.HandleMouseWheel(-1.0f));
+  EXPECT_EQ(handler_.GetPreviewObject().size_, 0x01);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x06);
+  EXPECT_EQ(mutation_count_, 2);
 }
 
 TEST_F(TileObjectHandlerTest,
@@ -981,12 +1006,12 @@ TEST_F(TileObjectHandlerTest,
   selection_.SelectObject(2, ObjectSelection::SelectionMode::Add);
   EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
   for (const auto& object : rooms_[0].GetTileObjects()) {
-    EXPECT_EQ(object.size_, 6);
+    EXPECT_EQ(object.size_, 10);
   }
   ImGui::GetIO().KeyShift = true;
   EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
   for (const auto& object : rooms_[0].GetTileObjects()) {
-    EXPECT_EQ(object.size_, 10);
+    EXPECT_EQ(object.size_, 14);
   }
 
   rooms_[0].ClearSaveDirtyState();
@@ -1005,7 +1030,7 @@ TEST_F(TileObjectHandlerTest,
     handler_.CancelPlacement();
   }
   for (const auto& object : rooms_[0].GetTileObjects()) {
-    EXPECT_EQ(object.size_, 10);
+    EXPECT_EQ(object.size_, 14);
   }
   EXPECT_EQ(mutation_count_, 0);
   EXPECT_EQ(invalidate_count_, 0);
@@ -1082,6 +1107,153 @@ TEST_F(TileObjectHandlerTest, PlacementWheelResizesPreviewWithoutRoomMutation) {
   ASSERT_TRUE(handler_.HandleClick(80, 80));
   ASSERT_EQ(rooms_[0].GetTileObjects().size(), 2);
   EXPECT_EQ(rooms_[0].GetTileObjects()[1].size_, 0x09);
+}
+
+TEST_F(TileObjectHandlerTest,
+       PlacementWheelChangesWallAndTrimSpanBeforePlacement) {
+  struct TestCase {
+    int16_t id;
+    bool vertical;
+    int step_pixels;
+  };
+  // Walls and trim have one length axis determined by their object ID.
+  constexpr std::array<TestCase, 4> kCases{{
+      {0x01, false, 16},  // North wall
+      {0x34, false, 8},   // Horizontal carpet trim
+      {0x61, true, 16},   // West wall
+      {0x71, true, 8},    // Vertical carpet trim
+  }};
+  AddTestObjects({CreateTestObject(5, 5, 7, 0x01)});
+  selection_.SelectObject(0);
+
+  for (const auto& test_case : kCases) {
+    for (bool shift : {false, true}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object_id=" << test_case.id << ", shift=" << shift);
+      // Each preceding stamp selects its result; preview edits must preserve
+      // whichever object was selected before this independent placement.
+      selection_.SelectObject(0);
+      ImGui::GetIO().KeyShift = shift;
+      handler_.SetPreviewObject(CreateTestObject(0, 0, 2, test_case.id));
+      handler_.BeginPlacement();
+      rooms_[0].ClearSaveDirtyState();
+      mutation_count_ = 0;
+      invalidate_count_ = 0;
+      const auto original = TileObjectHandler::CalculateGhostPreviewGeometry(
+          handler_.GetPreviewObject());
+
+      ASSERT_TRUE(handler_.HandleMouseWheel(1.0f));
+      EXPECT_EQ(handler_.GetPreviewObject().size_, 3);
+      const auto grown = TileObjectHandler::CalculateGhostPreviewGeometry(
+          handler_.GetPreviewObject());
+      EXPECT_EQ(grown.width_pixels,
+                original.width_pixels +
+                    (test_case.vertical ? 0 : test_case.step_pixels));
+      EXPECT_EQ(grown.height_pixels,
+                original.height_pixels +
+                    (test_case.vertical ? test_case.step_pixels : 0));
+
+      ASSERT_TRUE(handler_.HandleMouseWheel(-1.0f));
+      EXPECT_EQ(handler_.GetPreviewObject().size_, 2);
+      const auto shrunk = TileObjectHandler::CalculateGhostPreviewGeometry(
+          handler_.GetPreviewObject());
+      EXPECT_EQ(shrunk.width_pixels, original.width_pixels);
+      EXPECT_EQ(shrunk.height_pixels, original.height_pixels);
+      ASSERT_TRUE(handler_.HandleMouseWheel(1.0f));
+
+      // Preview sizing must not edit the selected object or capture undo.
+      EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 7);
+      EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{0}));
+      EXPECT_EQ(mutation_count_, 0);
+      EXPECT_EQ(invalidate_count_, 0);
+      EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+      const size_t count_before = rooms_[0].GetTileObjects().size();
+      ASSERT_TRUE(handler_.HandleClick(80, 80));
+      ASSERT_EQ(rooms_[0].GetTileObjects().size(), count_before + 1);
+      EXPECT_EQ(selection_.GetSelectedIndices(),
+                (std::vector<size_t>{count_before}));
+      const auto& placed = rooms_[0].GetTileObjects().back();
+      EXPECT_EQ(placed.id_, test_case.id);
+      EXPECT_EQ(placed.size_, 3);
+      const auto placed_geometry =
+          TileObjectHandler::CalculateGhostPreviewGeometry(placed);
+      EXPECT_EQ(placed_geometry.width_pixels, grown.width_pixels);
+      EXPECT_EQ(placed_geometry.height_pixels, grown.height_pixels);
+      EXPECT_EQ(mutation_count_, 1);
+      EXPECT_EQ(invalidate_count_, 1);
+      handler_.CancelPlacement();
+    }
+  }
+}
+
+TEST_F(TileObjectHandlerTest,
+       PlacementCanvasRoutesMacShiftHorizontalWheelToPreviewWidth) {
+  AddTestObjects({CreateTestObject(5, 5, 7, 0x01)});
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  interaction.SetSelectedObjects({0});
+  interaction.SetPreviewObject(CreateTestObject(0, 0, 0x05, 0xD1), true);
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigMacOSXBehaviors = true;
+  const auto draw_canvas = [&]() {
+    ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700.0f, 650.0f), ImGuiCond_Always);
+    ImGui::Begin(
+        "PlacementWheelHost", nullptr,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse);
+    canvas_->DrawBackground(ImVec2(512, 512));
+  };
+  // Establish the hovered window before sending wheel input.
+  io.AddMousePosEvent(100.0f, 100.0f);
+  ImGui::NewFrame();
+  draw_canvas();
+  ImGui::End();
+  ImGui::Render();
+
+  struct WheelEvent {
+    bool shift;
+    float horizontal;
+    float vertical;
+    uint8_t expected_size;
+  };
+  constexpr std::array<WheelEvent, 5> kEvents{{
+      {false, 0.0f, 1.0f, 0x0A},  // Plain wheel grows both packed axes.
+      {true, 1.0f, 0.0f, 0x0E},   // macOS delivers Shift+wheel horizontally.
+      {true, -1.0f, 0.0f, 0x0A},  // Reverse wheel shrinks the same axis.
+      {false, 1.0f, 0.0f, 0x0A},  // Plain horizontal scrolling is not resize.
+      {true, 1.0f, 1.0f, 0x0E},   // Two axes still produce one resize.
+  }};
+  for (const auto& event : kEvents) {
+    SCOPED_TRACE(::testing::Message() << "shift=" << event.shift
+                                      << ", horizontal=" << event.horizontal
+                                      << ", vertical=" << event.vertical);
+    io.AddKeyEvent(ImGuiMod_Shift, event.shift);
+    io.AddMouseWheelEvent(event.horizontal, event.vertical);
+    ImGui::NewFrame();
+    draw_canvas();
+    EXPECT_TRUE(canvas_->IsMouseHovering());
+    interaction.HandleCanvasMouseInput();
+    EXPECT_EQ(interaction.entity_coordinator()
+                  .tile_handler()
+                  .GetPreviewObject()
+                  .size_,
+              event.expected_size);
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 7);
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), (std::vector<size_t>{0}));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  interaction.CancelPlacement();
 }
 
 TEST_F(TileObjectHandlerTest,
@@ -1834,6 +2006,158 @@ TEST_F(TileObjectHandlerTest, PlacementModeLifecycle) {
   EXPECT_FALSE(handler_.IsPlacementActive());
 }
 
+TEST_F(TileObjectHandlerTest, RepeatPlacementSelectsEachStampAndKeepsPreview) {
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  int placed_count = 0;
+  int selection_count = 0;
+  interaction.SetObjectPlacedCallback([&](const zelda3::RoomObject& object) {
+    ++placed_count;
+    EXPECT_EQ(object.x_, 10);
+    EXPECT_EQ(object.y_, 12);
+    EXPECT_EQ(object.size_, 7);
+  });
+  interaction.SetSelectionChangeCallback([&]() { ++selection_count; });
+  interaction.SetPreviewObject(CreateTestObject(0, 0, 7), true);
+  EXPECT_EQ(interaction.GetPlacementPolicy(),
+            DungeonObjectInteraction::PlacementPolicy::kRepeat);
+
+  for (int stamp = 0; stamp < 2; ++stamp) {
+    if (stamp == 0) {
+      ASSERT_TRUE(interaction.entity_coordinator().HandleClick(80, 96));
+    } else {
+      interaction.PlaceObjectAtPosition(10, 12);
+    }
+    EXPECT_EQ(interaction.GetSelectedObjectIndices(),
+              std::vector<size_t>({static_cast<size_t>(stamp)}));
+    EXPECT_TRUE(interaction.IsObjectLoaded());
+    ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
+    EXPECT_EQ(interaction.GetPlacementPreview()->size_, 7);
+    EXPECT_EQ(mutation_count_, stamp + 1);
+    EXPECT_EQ(invalidate_count_, stamp + 1);
+    // The legacy direct placement callback remains separate from canvas
+    // invalidation, avoiding a second room render for ordinary stamping.
+    EXPECT_EQ(placed_count, stamp);
+    EXPECT_EQ(selection_count, stamp + 1);
+  }
+}
+
+TEST_F(TileObjectHandlerTest, PlaceOnceSynchronizesBothPlacementPaths) {
+  for (bool direct_placement : {false, true}) {
+    SCOPED_TRACE(direct_placement);
+    DungeonObjectInteraction interaction(canvas_.get());
+    interaction.SetContext(ctx_);
+    interaction.SetPlacementPolicy(
+        DungeonObjectInteraction::PlacementPolicy::kOnce);
+    interaction.SetPreviewObject(CreateTestObject(0, 0, 3), true);
+    const size_t placed_index = rooms_[0].GetTileObjects().size();
+    if (direct_placement) {
+      interaction.PlaceObjectAtPosition(10, 10);
+    } else {
+      ASSERT_TRUE(interaction.entity_coordinator().HandleClick(80, 80));
+    }
+    EXPECT_EQ(rooms_[0].GetTileObjects().size(), placed_index + 1);
+    EXPECT_EQ(interaction.GetSelectedObjectIndices(),
+              std::vector<size_t>({placed_index}));
+    EXPECT_FALSE(interaction.entity_coordinator().IsPlacementActive());
+    EXPECT_FALSE(interaction.IsObjectLoaded());
+    EXPECT_EQ(interaction.GetPlacementPreview(), nullptr);
+    EXPECT_EQ(interaction.mode_manager().GetMode(), InteractionMode::Select);
+    interaction.PlaceObjectAtPosition(20, 20);
+    EXPECT_EQ(rooms_[0].GetTileObjects().size(), placed_index + 1);
+  }
+}
+
+TEST_F(TileObjectHandlerTest, BlockedPlaceOncePreservesPreviewAndSelection) {
+  AddTestObjects(std::vector<zelda3::RoomObject>(zelda3::kMaxTileObjects,
+                                                 CreateTestObject(0, 0)));
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetSelectedObjects({0});
+  interaction.SetPlacementPolicy(
+      DungeonObjectInteraction::PlacementPolicy::kOnce);
+  interaction.SetPreviewObject(CreateTestObject(0, 0, 9), true);
+  int placed_count = 0;
+  interaction.SetObjectPlacedCallback(
+      [&](const zelda3::RoomObject&) { ++placed_count; });
+  rooms_[0].ClearSaveDirtyState();
+
+  ASSERT_TRUE(interaction.entity_coordinator().HandleClick(80, 80));
+  interaction.PlaceObjectAtPosition(10, 10);
+
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), zelda3::kMaxTileObjects);
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>({0}));
+  EXPECT_TRUE(interaction.IsObjectLoaded());
+  ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
+  EXPECT_EQ(interaction.GetPlacementPreview()->size_, 9);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_EQ(placed_count, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest, PlacementPreviewEditsKeepRoomUntouched) {
+  AddTestObjects({CreateTestObject(1, 1, 2)});
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetPreviewObject(CreateTestObject(0, 0, 2), true);
+  rooms_[0].ClearSaveDirtyState();
+
+  EXPECT_TRUE(interaction.SetPlacementPreviewSize(255));
+  EXPECT_EQ(interaction.GetPlacementPreview()->size_, 15);
+  EXPECT_TRUE(interaction.SetPlacementPreviewLayer(2));
+  EXPECT_EQ(interaction.GetPlacementPreview()->GetLayerValue(), 2);
+  EXPECT_FALSE(interaction.SetPlacementPreviewLayer(3));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 2);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].GetLayerValue(), 0);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+  auto torch = CreateTestObject(0, 0, 0, 0x150);
+  torch.set_options(zelda3::ObjectOption::Torch);
+  interaction.SetPreviewObject(torch, true);
+  EXPECT_FALSE(interaction.SetPlacementPreviewSize(3));
+  EXPECT_FALSE(interaction.SetPlacementPreviewLayer(2));
+  EXPECT_TRUE(interaction.SetPlacementPreviewLayer(1));
+  interaction.CancelPlacement();
+  EXPECT_FALSE(interaction.SetPlacementPreviewLayer(0));
+  EXPECT_FALSE(interaction.SetPlacementPreviewSize(0));
+}
+
+TEST_F(TileObjectHandlerTest, PlacementPreviewRejectsUnknownCustomVariant) {
+  ScopedCustomObjectSelectionState custom_state;
+  handler_.SetPreviewObject(CreateTestObject(0, 0, 2, 0x32));
+  handler_.BeginPlacement();
+  EXPECT_FALSE(handler_.SetPreviewSize(255));
+  EXPECT_EQ(handler_.GetPreviewObject().size_, 2);
+  EXPECT_EQ(mutation_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, PlaceAnotherPreservesSelectedObjectGeometry) {
+  AddTestObjects({CreateLayeredTestObject(
+      12, 18, zelda3::RoomObject::LayerType::BG2, 0x0A, 0xD1)});
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  EXPECT_FALSE(interaction.BeginPlacementFromSelection());
+  interaction.SetSelectedObjects({0});
+  ASSERT_TRUE(interaction.BeginPlacementFromSelection());
+  ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
+  EXPECT_EQ(interaction.GetPlacementPreview()->id_, 0xD1);
+  EXPECT_EQ(interaction.GetPlacementPreview()->size_, 0x0A);
+  EXPECT_EQ(interaction.GetPlacementPreview()->GetLayerValue(), 1);
+  EXPECT_EQ(mutation_count_, 0);
+  ASSERT_TRUE(interaction.SetPlacementPreviewSize(3));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0A);
+  interaction.PlaceObjectAtPosition(20, 22);
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 2);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].size_, 3);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].GetLayerValue(), 1);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].x_, 20);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].y_, 22);
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>({1}));
+}
+
 TEST_F(TileObjectHandlerTest, SetPreviewObject) {
   auto preview = CreateTestObject(0, 0, 0x05, 0x42);
 
@@ -2141,6 +2465,399 @@ TEST_F(TileObjectHandlerTest, DragMovesObject) {
   EXPECT_EQ(objects[0].y_, 12);
 
   handler_.HandleRelease();
+}
+
+TEST_F(TileObjectHandlerTest, ChestPlacementCreatesContentsBeforeInvalidation) {
+  ctx_.on_invalidate_cache = [this]() {
+    ++invalidate_count_;
+    ASSERT_EQ(rooms_[0].GetChests().size(), 1u);
+    EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x34);
+    EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+    EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{0}));
+  };
+  ASSERT_TRUE(
+      handler_.PlaceObjectAt(0, CreateTestObject(0, 0, 0, 0xF99), 4, 6));
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_TRUE(rooms_[0].chests_dirty());
+  EXPECT_EQ(
+      rooms_[0].GetTileObjects()[0].options() & zelda3::ObjectOption::Chest,
+      zelda3::ObjectOption::Chest);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest, ChestPlacementRejectsSeventhWithoutDirtying) {
+  for (int i = 0; i < 6; ++i) {
+    AddTestObjects({CreateTestObject(i * 4, 0, 0, 0xF99)});
+    rooms_[0].GetChests().push_back({static_cast<uint8_t>(i), false});
+  }
+  rooms_[0].ClearSaveDirtyState();
+  selection_.SelectObject(2);
+  handler_.SetPlacementPolicy(TileObjectHandler::PlacementPolicy::kOnce);
+  handler_.BeginPlacement();
+  EXPECT_FALSE(
+      handler_.PlaceObjectAt(0, CreateTestObject(0, 0, 0, 0xF99), 32, 0));
+  EXPECT_FALSE(handler_.mutation_status().ok());
+  EXPECT_TRUE(handler_.IsPlacementActive());
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 6u);
+  EXPECT_EQ(rooms_[0].GetChests().size(), 6u);
+  EXPECT_FALSE(rooms_[0].chests_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{2}));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, ChestDuplicatePreservesRewardAndBigType) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xFB1)});
+  rooms_[0].GetChests() = {{0xFE, true}};
+  EXPECT_EQ(handler_.DuplicateObjects(0, {0}, 2, 3), (std::vector<size_t>{1}));
+  ASSERT_EQ(rooms_[0].GetChests().size(), 2u);
+  EXPECT_EQ(rooms_[0].GetChests()[1].id, 0xFE);
+  EXPECT_TRUE(rooms_[0].GetChests()[1].size);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].x_, 6);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].y_, 7);
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestDeleteDeduplicatesIndicesAndPreservesOtherReward) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99),
+                  CreateTestObject(8, 4, 0, 0xF99),
+                  CreateTestObject(12, 4, 0, 0xFB1)});
+  rooms_[0].GetChests() = {{0x01, false}, {0x02, false}, {0x03, true}};
+  ASSERT_TRUE(handler_.DeleteObjects(0, {0, 0, 2}));
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].x_, 8);
+  ASSERT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x02);
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest, ChestDeleteAllClearsBothCollections) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99), CreateTestObject(8, 4)});
+  rooms_[0].GetChests() = {{0x19, false}};
+  rooms_[0].ClearSaveDirtyState();
+  ASSERT_TRUE(handler_.DeleteAllObjects(0));
+  EXPECT_TRUE(rooms_[0].GetTileObjects().empty());
+  EXPECT_TRUE(rooms_[0].GetChests().empty());
+  EXPECT_TRUE(rooms_[0].chests_dirty());
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestIdConversionPreservesRewardAndSynchronizesType) {
+  AddTestObjects({CreateTestObject(4, 4)});
+  handler_.UpdateObjectsId(0, {0}, 0xF99);
+  ASSERT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x34);
+  rooms_[0].GetChests()[0].id = 0xAD;
+  handler_.UpdateObjectsId(0, {0}, 0xFB1);
+  ASSERT_TRUE(handler_.mutation_status().ok());
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0xAD);
+  EXPECT_TRUE(rooms_[0].GetChests()[0].size);
+  handler_.UpdateObjectsId(0, {0}, 0x01);
+  EXPECT_TRUE(rooms_[0].GetChests().empty());
+  EXPECT_EQ(mutation_count_, 3);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestOrderingUsesIdentityForVisuallyEqualObjects) {
+  using Reorder = void (TileObjectHandler::*)(int, const std::vector<size_t>&);
+  const Reorder reorder[] = {
+      &TileObjectHandler::SendToFront, &TileObjectHandler::MoveForward,
+      &TileObjectHandler::SendToBack, &TileObjectHandler::MoveBackward};
+  for (size_t operation = 0; operation < 4; ++operation) {
+    SCOPED_TRACE(operation);
+    rooms_[0].SetTileObjects(
+        {CreateTestObject(4, 4, 0, 0xF99), CreateTestObject(4, 4, 0, 0xF99)});
+    rooms_[0].GetChests() = {{0x01, false}, {0x02, false}};
+    const size_t selected = operation < 2 ? 0 : 1;
+    (handler_.*reorder[operation])(0, {selected});
+    ASSERT_TRUE(handler_.mutation_status().ok());
+    EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x02);
+    EXPECT_EQ(rooms_[0].GetChests()[1].id, 0x01);
+    EXPECT_EQ(selection_.GetSelectedIndices(),
+              (std::vector<size_t>{1 - selected}));
+  }
+  EXPECT_EQ(mutation_count_, 4);
+}
+
+TEST_F(TileObjectHandlerTest, ChestLayerChangeKeepsRewardWithMovedObject) {
+  AddTestObjects(
+      {CreateTestObject(4, 4, 0, 0xF99), CreateTestObject(8, 4, 0, 0xFB1)});
+  rooms_[0].GetChests() = {{0x01, false}, {0x02, true}};
+  ASSERT_TRUE(handler_.UpdateObjectsLayer(0, {0}, 1));
+  ASSERT_EQ(rooms_[0].GetChests().size(), 2u);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xFB1);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x02);
+  EXPECT_TRUE(rooms_[0].GetChests()[0].size);
+  EXPECT_EQ(rooms_[0].GetChests()[1].id, 0x01);
+  EXPECT_FALSE(rooms_[0].GetChests()[1].size);
+  EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{1}));
+}
+
+TEST_F(TileObjectHandlerTest, ChestClipboardKeepsRewardAfterSourceChanges) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xFB1)});
+  rooms_[0].GetChests() = {{0xFE, true}};
+  handler_.CopyObjectsToClipboard(0, {0});
+  rooms_[0].GetChests()[0].id = 0x11;
+  ctx_.current_room_id = 1;
+  EXPECT_EQ(handler_.PasteFromClipboard(1, 2, 3), (std::vector<size_t>{0}));
+  ASSERT_EQ(rooms_[1].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[1].GetChests()[0].id, 0xFE);
+  EXPECT_TRUE(rooms_[1].GetChests()[0].size);
+  EXPECT_EQ(rooms_[1].GetTileObjects()[0].x_, 6);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x11);
+}
+
+TEST_F(TileObjectHandlerTest, ChestClipboardRejectsMissingSourceContents) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  handler_.CopyObjectsToClipboard(0, {0});
+  EXPECT_TRUE(handler_.HasClipboardData());
+  ctx_.current_room_id = 1;
+  EXPECT_TRUE(handler_.PasteFromClipboard(1, 2, 3).empty());
+  EXPECT_FALSE(handler_.mutation_status().ok());
+  EXPECT_TRUE(rooms_[1].GetTileObjects().empty());
+  EXPECT_TRUE(rooms_[1].GetChests().empty());
+  EXPECT_EQ(mutation_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestPreflightRejectionPreservesStateAndSelection) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0xAD, false}};
+  rooms_[0].ClearSaveDirtyState();
+  selection_.SelectObject(0);
+  int preflight_count = 0;
+  handler_.SetObjectMutationPreflight(
+      [&](int room_id, const auto& objects, const auto& chests) {
+        ++preflight_count;
+        EXPECT_EQ(room_id, 0);
+        EXPECT_TRUE(objects.empty());
+        EXPECT_TRUE(chests.empty());
+        EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+        EXPECT_EQ(rooms_[0].GetChests().size(), 1u);
+        EXPECT_EQ(mutation_count_, 0);
+        return absl::FailedPreconditionError("Protected chest table");
+      });
+  EXPECT_FALSE(handler_.DeleteObjects(0, {0}));
+  EXPECT_EQ(handler_.mutation_status().message(), "Protected chest table");
+  EXPECT_EQ(preflight_count, 1);
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_FALSE(rooms_[0].chests_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{0}));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestInvalidMappingRejectsDeleteWithoutNotification) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].ClearSaveDirtyState();
+  EXPECT_FALSE(handler_.DeleteObjects(0, {0}));
+  EXPECT_FALSE(handler_.mutation_status().ok());
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, DuplicateOnlyReadsOriginalDeduplicatedIndices) {
+  AddTestObjects({CreateTestObject(4, 4)});
+  EXPECT_EQ(handler_.DuplicateObjects(0, {0, 0, 1}, 1, 1),
+            (std::vector<size_t>{1}));
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 2u);
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest, ChestMoveDoesNotDirtyContents) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}};
+  rooms_[0].ClearSaveDirtyState();
+  handler_.MoveObjects(0, {0}, 2, 3);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].x_, 6);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].y_, 7);
+  EXPECT_FALSE(rooms_[0].chests_dirty());
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x34);
+}
+
+TEST_F(TileObjectHandlerTest, ChestUnchangedOrderCreatesNoMutation) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}};
+  rooms_[0].ClearSaveDirtyState();
+  handler_.SendToFront(0, {0});
+  EXPECT_TRUE(handler_.mutation_status().ok());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].chests_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest,
+       RejectedChestDeletionPreservesInteractionSelection) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  interaction.SetSelectedObjects({0});
+  interaction.HandleDeleteSelected();
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), (std::vector<size_t>{0}));
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_FALSE(interaction.selection_edit_status().ok());
+}
+
+TEST_F(TileObjectHandlerTest, ChestStructuralPathsAllPreflightBeforeMutation) {
+  const std::vector<std::function<void()>> operations = {
+      [&] {
+        handler_.PlaceObjectAt(0, CreateTestObject(0, 0, 0, 0xF99), 12, 4);
+      },
+      [&] { handler_.DuplicateObjects(0, {0}, 1, 1); },
+      [&] { handler_.DeleteObjects(0, {0}); },
+      [&] { handler_.DeleteAllObjects(0); },
+      [&] { handler_.UpdateObjectsId(0, {0}, 0xFB1); },
+      [&] { handler_.UpdateObjectsLayer(0, {0}, 1); },
+      [&] { handler_.SendToFront(0, {0}); },
+      [&] { handler_.SendToBack(0, {1}); },
+      [&] { handler_.MoveForward(0, {0}); },
+      [&] { handler_.MoveBackward(0, {1}); },
+      [&] { handler_.PasteFromClipboard(0, 1, 1); }};
+  int preflights = 0;
+  int error_messages = 0;
+  handler_.SetObjectMutationPreflight([&](int, const auto&, const auto&) {
+    ++preflights;
+    return absl::PermissionDeniedError("Chest table is protected");
+  });
+  handler_.SetMutationErrorCallback([&](const absl::Status& status) {
+    EXPECT_TRUE(absl::IsPermissionDenied(status));
+    ++error_messages;
+  });
+  for (size_t operation = 0; operation < operations.size(); ++operation) {
+    SCOPED_TRACE(operation);
+    rooms_[0].SetTileObjects(
+        {CreateTestObject(4, 4, 0, 0xF99), CreateTestObject(8, 4, 0, 0xF99)});
+    rooms_[0].GetChests() = {{0x01, false}, {0x02, false}};
+    rooms_[0].ClearSaveDirtyState();
+    handler_.CopyObjectsToClipboard(0, {0});
+    selection_.ClearSelection();
+    selection_.SelectObject(0);
+    operations[operation]();
+    EXPECT_FALSE(handler_.mutation_status().ok());
+    EXPECT_EQ(rooms_[0].GetTileObjects().size(), 2u);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xF99);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].x_, 4);
+    EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x01);
+    EXPECT_EQ(rooms_[0].GetChests()[1].id, 0x02);
+    EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{0}));
+    EXPECT_FALSE(rooms_[0].chests_dirty());
+    EXPECT_FALSE(rooms_[0].object_stream_dirty());
+    EXPECT_EQ(mutation_count_, 0);
+    EXPECT_EQ(invalidate_count_, 0);
+  }
+  EXPECT_EQ(preflights, operations.size());
+  EXPECT_EQ(error_messages, operations.size());
+}
+
+TEST_F(TileObjectHandlerTest, ChestMutationRejectsMismatchedInteractionRoom) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}};
+  ctx_.current_room_id = 1;
+  EXPECT_FALSE(handler_.DeleteObjects(0, {0}));
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_TRUE(absl::IsFailedPrecondition(handler_.mutation_status()));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, ChestCopyRejectsUnrelatedAmbiguousSourceRecord) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}, {0x35, false}};
+  handler_.CopyObjectsToClipboard(0, {0});
+  ctx_.current_room_id = 1;
+  EXPECT_TRUE(handler_.PasteFromClipboard(1, 1, 1).empty());
+  EXPECT_TRUE(absl::IsFailedPrecondition(handler_.mutation_status()));
+  EXPECT_TRUE(rooms_[1].GetTileObjects().empty());
+  EXPECT_EQ(mutation_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, RejectedChestPasteDoesNotPasteSelectedSprite) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}};
+  rooms_[0].GetSprites().emplace_back(0x09, 4, 4, 0, 0);
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  interaction.SetSelectedObjects({0});
+  interaction.entity_coordinator().SetSelectedEntities(
+      {{EntityType::Sprite, 0}});
+  interaction.HandleCopySelected();
+  interaction.entity_coordinator().tile_handler().SetObjectMutationPreflight(
+      [](int, const auto&, const auto&) {
+        return absl::PermissionDeniedError("Chest table is protected");
+      });
+  ImGui::GetIO().MousePos = ImVec2(-100, -100);
+  interaction.HandlePasteObjects();
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetSprites().size(), 1u);
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), (std::vector<size_t>{0}));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, ChestIdChangeSynchronizesDerivedChestOption) {
+  AddTestObjects({CreateTestObject(4, 4)});
+  handler_.UpdateObjectsId(0, {0}, 0xF99);
+  EXPECT_EQ(
+      rooms_[0].GetTileObjects()[0].options() & zelda3::ObjectOption::Chest,
+      zelda3::ObjectOption::Chest);
+  handler_.UpdateObjectsId(0, {0}, 0x01);
+  EXPECT_EQ(
+      rooms_[0].GetTileObjects()[0].options() & zelda3::ObjectOption::Chest,
+      zelda3::ObjectOption::Nothing);
+  EXPECT_TRUE(rooms_[0].GetChests().empty());
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestIdChangeRejectsWholeBatchContainingSpecialTable) {
+  for (auto option :
+       {zelda3::ObjectOption::Torch, zelda3::ObjectOption::Block}) {
+    SCOPED_TRACE(static_cast<int>(option));
+    auto special = CreateTestObject(
+        8, 4, 0, option == zelda3::ObjectOption::Torch ? 0x150 : 0xE00);
+    special.set_options(option);
+    rooms_[0].SetTileObjects({CreateTestObject(4, 4), special});
+    rooms_[0].ClearSaveDirtyState();
+    handler_.UpdateObjectsId(0, {0, 1}, 0xF99);
+    EXPECT_TRUE(absl::IsFailedPrecondition(handler_.mutation_status()));
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0x01);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[1].id_, special.id_);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[1].options(), option);
+    EXPECT_TRUE(rooms_[0].GetChests().empty());
+    EXPECT_FALSE(rooms_[0].object_stream_dirty());
+    EXPECT_EQ(mutation_count_, 0);
+    EXPECT_EQ(invalidate_count_, 0);
+  }
+}
+
+TEST_F(TileObjectHandlerTest, ChestIdChangeRejectsPushableBlockSentinel) {
+  auto chest = CreateTestObject(4, 4, 0, 0xF99);
+  chest.set_options(zelda3::ObjectOption::Chest);
+  AddTestObjects({chest});
+  rooms_[0].GetChests() = {{0x34, false}};
+  rooms_[0].ClearSaveDirtyState();
+  handler_.UpdateObjectsId(0, {0}, 0xE00);
+  EXPECT_TRUE(absl::IsFailedPrecondition(handler_.mutation_status()));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xF99);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].options(),
+            zelda3::ObjectOption::Chest);
+  ASSERT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x34);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
 }
 
 }  // namespace

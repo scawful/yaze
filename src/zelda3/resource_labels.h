@@ -236,6 +236,11 @@ inline std::string GetItemLabel(int id) {
   return GetResourceLabels().GetLabel(ResourceType::kItem, id);
 }
 
+// Chest/item-receipt IDs. Project item labels override the vanilla reference;
+// a vanilla fallback does not establish the meaning of a patched receipt handler.
+std::string GetItemReceiptLabel(uint8_t id);
+const char* GetItemReceiptLabelSource(uint8_t id);
+
 /**
  * @brief Convenience function to get an entrance label
  */

@@ -32,6 +32,8 @@ struct WindowDefinition {
   WindowScope scope = WindowScope::kSession;
   WindowLifecycle window_lifecycle = WindowLifecycle::EditorBound;
   WindowContextScope context_scope = WindowContextScope::kNone;
+  WindowPresentationPolicy presentation =
+      WindowPresentationPolicy::OptionalPopOut();
   std::vector<std::string> legacy_ids;
   std::function<void()> on_show;
   std::function<void()> on_hide;

@@ -339,13 +339,13 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
           ImGui::Separator();
         }
         if (ImGui::MenuItem(tr("Delete Sprite"))) {
-          object_interaction_.entity_coordinator().DeleteSelectedEntity();
+          (void)object_interaction_.HandleDeleteSelected();
         }
       } else if (sel.type == EntityType::Item) {
         ImGui::TextDisabled(tr("Pot Item"));
         ImGui::Separator();
         if (ImGui::MenuItem(tr("Delete Item"))) {
-          object_interaction_.entity_coordinator().DeleteSelectedEntity();
+          (void)object_interaction_.HandleDeleteSelected();
         }
       }
     } else if (object_interaction_.GetSelectionCount() > 0) {
@@ -364,10 +364,10 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
         ImGui::Separator();
       }
       if (ImGui::MenuItem(tr("Delete"))) {
-        object_interaction_.HandleDeleteSelected();
+        (void)object_interaction_.HandleDeleteSelected();
       }
       if (ImGui::MenuItem(tr("Copy"))) {
-        object_interaction_.HandleCopySelected();
+        (void)object_interaction_.HandleCopySelected();
       }
       ImGui::Separator();
       if (ImGui::MenuItem(tr("Send to Front"))) {

@@ -89,14 +89,21 @@ absl::Status YazeGRPCServer::Initialize(
   return absl::OkStatus();
 }
 
+void YazeGRPCServer::SetEmulatorScreenshotCapturer(
+    std::function<absl::StatusOr<test::ScreenshotArtifact>()> capturer) {
+  if (emulator_service_) {
+    emulator_service_->SetScreenshotCapturer(std::move(capturer));
+  }
+}
+
 absl::Status YazeGRPCServer::Start() {
   auto status = BuildServer();
   if (!status.ok()) {
     return status;
   }
 
-  std::cout << "✓ YAZE gRPC automation server listening on 0.0.0.0:"
-            << config_.port << "\n";
+  std::cout << "✓ YAZE gRPC automation server listening on "
+            << config_.bind_address << ":" << config_.port << "\n";
 
   if (test_harness_service_) {
     std::cout << "  ✓ ImGuiTestHarness available\n";
@@ -168,11 +175,11 @@ absl::Status YazeGRPCServer::BuildServer() {
     return absl::FailedPreconditionError("Server already running");
   }
 
-  std::string server_address = absl::StrFormat("0.0.0.0:%d", config_.port);
+  std::string server_address =
+      absl::StrFormat("%s:%d", config_.bind_address, config_.port);
 
   grpc::ServerBuilder builder;
 
-  // Listen on all interfaces
   int selected_port = 0;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials(),
                            &selected_port);

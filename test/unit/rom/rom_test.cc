@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -18,7 +19,9 @@
 #include "testing.h"
 
 #if !defined(_WIN32)
+#include <sys/resource.h>
 #include <unistd.h>
+#include <csignal>
 #endif
 
 namespace yaze {
@@ -404,6 +407,186 @@ TEST_F(RomTest, BestEffortBackupProtectsExistingSaveAsTarget) {
   ASSERT_EQ(backups.size(), 1);
   EXPECT_EQ(ReadFileBytes(backups.front()), target_before);
   EXPECT_EQ(CountFilesWithPrefix(temp.path(), "source.sfc_backup_"), 0);
+}
+
+TEST_F(RomTest, SavePreservesLegacyTempSymlinkAndReopensDestination) {
+  ScopedTempDirectory temp;
+  const auto target = temp.path() / "target.sfc";
+  const auto legacy_temp = temp.path() / "target.sfc.tmp";
+  WriteFileBytes(target, {0xAA, 0xBB, 0xCC});
+  std::error_code ec;
+  std::filesystem::create_symlink(target, legacy_temp, ec);
+  if (ec) {
+    GTEST_SKIP() << "Symlinks unavailable: " << ec.message();
+  }
+  ASSERT_OK(rom_.LoadFromData(kMockRomData));
+  ASSERT_OK(rom_.WriteByte(0, 0xEE));
+  Rom::SaveSettings settings;
+  settings.backup = false;
+  settings.filename = target.string();
+
+  ASSERT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_FALSE(std::filesystem::is_symlink(target));
+  EXPECT_TRUE(std::filesystem::is_symlink(legacy_temp));
+  EXPECT_EQ(std::filesystem::read_symlink(legacy_temp), target);
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(temp.path()),
+                          std::filesystem::directory_iterator()),
+            2);
+}
+
+TEST_F(RomTest, SavePreservesLegacyTempHardlinkOriginalBytes) {
+  ScopedTempDirectory temp;
+  const auto target = temp.path() / "target.sfc";
+  const auto legacy_temp = temp.path() / "target.sfc.tmp";
+  const std::vector<uint8_t> original = {0xAA, 0xBB, 0xCC};
+  WriteFileBytes(target, original);
+  std::filesystem::create_hard_link(target, legacy_temp);
+  ASSERT_OK(rom_.LoadFromData(kMockRomData));
+  Rom::SaveSettings settings;
+  settings.backup = false;
+  settings.filename = target.string();
+
+  ASSERT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  EXPECT_EQ(ReadFileBytes(legacy_temp), original);
+  EXPECT_FALSE(std::filesystem::equivalent(target, legacy_temp));
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(temp.path()),
+                          std::filesystem::directory_iterator()),
+            2);
+}
+
+TEST_F(RomTest, SaveAsPreservesSourceAndUnrelatedLegacyTempFile) {
+  ScopedTempDirectory temp;
+  const auto source = temp.path() / "source.sfc";
+  const auto target = temp.path() / "target.sfc";
+  const auto legacy_temp = temp.path() / "target.sfc.tmp";
+  const std::vector<uint8_t> source_bytes = {0xAA, 0xBB};
+  const std::vector<uint8_t> unrelated_bytes = {0xCC, 0xDD, 0xEE};
+  WriteFileBytes(source, source_bytes);
+  WriteFileBytes(legacy_temp, unrelated_bytes);
+  ASSERT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(source.string());
+  Rom::SaveSettings settings;
+  settings.backup = false;
+  settings.filename = target.string();
+
+  ASSERT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  EXPECT_EQ(ReadFileBytes(source), source_bytes);
+  EXPECT_EQ(ReadFileBytes(legacy_temp), unrelated_bytes);
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(temp.path()),
+                          std::filesystem::directory_iterator()),
+            3);
+}
+
+TEST_F(RomTest, FailedSavePreservesUnrelatedTempAliasAndRollsBackMemory) {
+  ScopedTempDirectory temp;
+  const auto target = temp.path() / "target.sfc";
+  const auto victim = temp.path() / "unrelated.sfc";
+  const auto legacy_temp = temp.path() / "target.sfc.tmp";
+  ASSERT_TRUE(std::filesystem::create_directory(target));
+  const std::vector<uint8_t> unrelated_bytes = {0xAA, 0xBB, 0xCC};
+  WriteFileBytes(victim, unrelated_bytes);
+  // A hardlink reproduces the same unsafe truncation on platforms where
+  // creating symlinks requires extra privileges.
+  std::filesystem::create_hard_link(victim, legacy_temp);
+  ASSERT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename("original.sfc");
+  rom_.set_dirty(false);
+  {
+    ScopedRomTransaction transaction(rom_);
+    ASSERT_OK(rom_.WriteByte(0, 0xEE));
+    Rom::SaveSettings settings;
+    settings.backup = false;
+    settings.filename = target.string();
+    const auto status = rom_.SaveToFile(settings);
+    EXPECT_FALSE(status.ok());
+    EXPECT_THAT(std::string(status.message()),
+                ::testing::HasSubstr("Failed to move temp ROM into place"));
+  }
+  EXPECT_EQ(rom_.vector(), kMockRomData);
+  EXPECT_EQ(rom_.filename(), "original.sfc");
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_TRUE(std::filesystem::is_directory(target));
+  EXPECT_EQ(ReadFileBytes(victim), unrelated_bytes);
+  EXPECT_TRUE(std::filesystem::exists(legacy_temp));
+  EXPECT_EQ(ReadFileBytes(legacy_temp), unrelated_bytes);
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(temp.path()),
+                          std::filesystem::directory_iterator()),
+            3);
+}
+
+TEST_F(RomTest, StagingCreateFailurePreservesDestinationAndDirtyState) {
+  ScopedTempDirectory temp;
+  const auto parent_file = temp.path() / "not-a-directory";
+  const std::vector<uint8_t> original = {0xAA, 0xBB};
+  WriteFileBytes(parent_file, original);
+  ASSERT_OK(rom_.LoadFromData(kMockRomData));
+  ASSERT_OK(rom_.WriteByte(0, 0xEE));
+  const auto before = rom_.vector();
+  Rom::SaveSettings settings;
+  settings.backup = false;
+  settings.filename = (parent_file / "target.sfc").string();
+
+  EXPECT_FALSE(rom_.SaveToFile(settings).ok());
+
+  EXPECT_EQ(ReadFileBytes(parent_file), original);
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_TRUE(rom_.dirty());
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(temp.path()),
+                          std::filesystem::directory_iterator()),
+            1);
+}
+
+TEST_F(RomTest,
+       PartialStagingWriteRetainsRequiredBackupAndOriginalDestination) {
+#if !defined(_WIN32) && GTEST_HAS_DEATH_TEST
+  ScopedTempDirectory temp;
+  const auto target = temp.path() / "target.sfc";
+  const std::vector<uint8_t> original = {0xAA, 0xBB, 0xCC};
+  WriteFileBytes(target, original);
+  // Limit only the child process: the small required backup succeeds, but the
+  // ROM write stops after eight bytes. No test-global fault hook is needed.
+  EXPECT_EXIT(
+      {
+        std::signal(SIGXFSZ, SIG_IGN);
+        rlimit limit;
+        limit.rlim_cur = 8;
+        limit.rlim_max = 8;
+        if (setrlimit(RLIMIT_FSIZE, &limit) != 0) {
+          std::_Exit(2);
+        }
+        Rom child;
+        if (!child.LoadFromData(kMockRomData).ok()) {
+          std::_Exit(3);
+        }
+        Rom::SaveSettings settings;
+        settings.require_backup = true;
+        settings.filename = target.string();
+        const auto status = child.SaveToFile(settings);
+        std::_Exit(!status.ok() &&
+                           std::string(status.message())
+                                   .find("Error while writing ROM file") !=
+                               std::string::npos
+                       ? 0
+                       : 4);
+      },
+      ::testing::ExitedWithCode(0), "");
+  EXPECT_EQ(ReadFileBytes(target), original);
+  const auto backups = FindFilesWithPrefix(temp.path(), "target.sfc_backup_");
+  ASSERT_EQ(backups.size(), 1);
+  EXPECT_EQ(ReadFileBytes(backups.front()), original);
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(temp.path()),
+                          std::filesystem::directory_iterator()),
+            2);
+#else
+  GTEST_SKIP() << "Partial-write fault uses POSIX child-process file limits";
+#endif
 }
 
 TEST_F(RomTest, BestEffortBackupSkipsMissingSaveAsTarget) {

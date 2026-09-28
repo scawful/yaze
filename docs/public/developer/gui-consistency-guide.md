@@ -1061,7 +1061,7 @@ Use this checklist when converting an editor to the card-based architecture:
 - [ ] Document keyboard shortcuts in header comment
 - [ ] Update `architecture.md` editor status if applicable
 - [ ] Add example to this guide if pattern is novel
-- [ ] Update CLAUDE.md if editor behavior changed significantly
+- [ ] Update AGENTS.md if editor behavior changed significantly
 
 ## 14. Code Examples
 

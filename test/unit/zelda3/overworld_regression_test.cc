@@ -174,17 +174,19 @@ TEST_F(OverworldRegressionTest, DeathMountainPaletteUsesExactParents) {
   // Treat ROM as vanilla so parent_ stays equal to index
   (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
 
+  // The Death Mountain rule picks the animated sheet shown in the top half
+  // of slot 7; the bottom half keeps the world's sheet 7.
   OverworldMap dm_map_lw(0x03, rom_.get());
   dm_map_lw.LoadAreaGraphics();
-  EXPECT_EQ(dm_map_lw.static_graphics(7), 0x59);
+  EXPECT_EQ(dm_map_lw.animated_sheet(), 0x59);
 
   OverworldMap dm_map_dw(0x45, rom_.get());
   dm_map_dw.LoadAreaGraphics();
-  EXPECT_EQ(dm_map_dw.static_graphics(7), 0x59);
+  EXPECT_EQ(dm_map_dw.animated_sheet(), 0x59);
 
   OverworldMap non_dm_map(0x04, rom_.get());
   non_dm_map.LoadAreaGraphics();
-  EXPECT_EQ(non_dm_map.static_graphics(7), 0x5B);
+  EXPECT_EQ(non_dm_map.animated_sheet(), 0x5B);
 }
 
 // =============================================================================

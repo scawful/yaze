@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <unordered_map>
@@ -21,7 +22,67 @@
 
 namespace yaze::zelda3 {
 
+namespace {
+
+bool IsDeathMountainArea(int area) {
+  return area == 0x03 || area == 0x05 || area == 0x07 || area == 0x43 ||
+         area == 0x45 || area == 0x47;
+}
+
+// Vanilla subscreen overlay per screen (fog, sky, lava, pyramid, curtains).
+// Matches the vanilla ZSCustomOverworld OverlayTable and ZScream defaults.
+uint16_t VanillaSubscreenOverlay(int index) {
+  switch (index) {
+    case 0x00:
+    case 0x01:
+    case 0x08:
+    case 0x09:
+    case 0x40:
+    case 0x41:
+    case 0x48:
+    case 0x49:
+      return 0x009D;  // Fog 2: Lost Woods / Skull Woods
+    case 0x03:
+    case 0x04:
+    case 0x0B:
+    case 0x0C:
+    case 0x05:
+    case 0x06:
+    case 0x0D:
+    case 0x0E:
+    case 0x07:
+      return 0x0095;  // Sky background: LW Death Mountain
+    case 0x43:
+    case 0x44:
+    case 0x4B:
+    case 0x4C:
+    case 0x45:
+    case 0x46:
+    case 0x4D:
+    case 0x4E:
+    case 0x47:
+      return 0x009C;  // Lava background: DW Death Mountain
+    case 0x5B:
+    case 0x5C:
+    case 0x63:
+    case 0x64:
+      return 0x0096;  // Pyramid background
+    case 0x80:
+      return 0x0097;  // Fog 1: Master Sword area
+    case 0x88:
+      return 0x0093;  // Triforce room curtains
+    default:
+      return 0x00FF;
+  }
+}
+
+}  // namespace
+
 OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
+    : OverworldMap(index, rom, game_data, /*seed_area_parent=*/true) {}
+
+OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
+                           bool seed_area_parent)
     : index_(index), parent_(index), rom_(rom), game_data_(game_data) {
   // Load parent ID from ROM data for all versions
   // This is critical for proper large map sibling coordination
@@ -64,8 +125,55 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
   } else if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
     // Pure vanilla ROM but flag enabled - set up hardcoded vanilla defaults
     LoadCustomOverworldData();
+  } else {
+    // Pure vanilla ROM: the subscreen overlays are hardcoded in the game.
+    subscreen_overlay_ = VanillaSubscreenOverlay(index_);
   }
-  // For pure vanilla ROMs, LoadAreaInfo already handles everything
+
+  // Child screens of a multi-screen area render with the parent's area
+  // settings (the game reads the tables with $8A = parent). Seed them from
+  // the parent's ROM entries; Overworld re-syncs from the live parent map
+  // before builds so unsaved parent edits reach the children.
+  if (seed_area_parent && parent_ != index_ && parent_ >= 0 &&
+      parent_ < kNumOverworldMaps) {
+    OverworldMap area_parent(parent_, rom_, game_data_,
+                             /*seed_area_parent=*/false);
+    InheritAreaProperties(area_parent);
+  }
+}
+
+AreaRenderProperties OverworldMap::area_render_properties() const {
+  if (inherited_area_.has_value()) {
+    return *inherited_area_;
+  }
+  AreaRenderProperties props;
+  props.main_palette = main_palette_;
+  props.animated_gfx = animated_gfx_;
+  props.custom_gfx_ids = custom_gfx_ids_;
+  props.subscreen_overlay = subscreen_overlay_;
+  return props;
+}
+
+void OverworldMap::InheritAreaProperties(const OverworldMap& area_parent) {
+  if (&area_parent == this || area_parent.index_ == index_) {
+    inherited_area_.reset();
+    return;
+  }
+  AreaRenderProperties props;
+  props.main_palette = area_parent.main_palette_;
+  props.animated_gfx = area_parent.animated_gfx_;
+  props.custom_gfx_ids = area_parent.custom_gfx_ids_;
+  props.subscreen_overlay = area_parent.subscreen_overlay_;
+  inherited_area_ = props;
+}
+
+OverworldTilesetKey OverworldMap::tileset_key() const {
+  OverworldTilesetKey key{};
+  for (int i = 0; i < 16; ++i) {
+    key[i] = static_graphics_[i];
+  }
+  key[16] = animated_sheet_;
+  return key;
 }
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
@@ -79,7 +187,8 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 absl::Status OverworldMap::BuildMapWithCache(
     int count, int game_state, int world, std::vector<gfx::Tile16>& tiles16,
     OverworldBlockset& world_blockset,
-    const std::vector<uint8_t>* cached_tileset) {
+    const std::vector<uint8_t>* cached_tileset,
+    const std::vector<uint8_t>* cached_tile16_blockset) {
   game_state_ = game_state;
   world_ = world;
   auto version = OverworldVersionHelper::GetVersion(*rom_);
@@ -124,7 +233,15 @@ absl::Status OverworldMap::BuildMapWithCache(
     RETURN_IF_ERROR(BuildTileset())
   }
 
-  RETURN_IF_ERROR(BuildTiles16Gfx(tiles16, count))
+  // The tile16 blockset only depends on the tileset and the tile16
+  // definitions, so a shared copy can be reused (see Overworld's tileset
+  // cache).
+  if (cached_tileset && !cached_tileset->empty() && cached_tile16_blockset &&
+      !cached_tile16_blockset->empty()) {
+    current_blockset_ = *cached_tile16_blockset;
+  } else {
+    RETURN_IF_ERROR(BuildTiles16Gfx(tiles16, count))
+  }
   RETURN_IF_ERROR(LoadPalette());
   RETURN_IF_ERROR(LoadOverlay());
   RETURN_IF_ERROR(BuildBitmap(world_blockset))
@@ -740,18 +857,26 @@ void OverworldMap::LoadAreaGraphicsBlocksets() {
   }
 }
 
-// TODO: Change the conditions for death mountain gfx
-// JaredBrian: This is how ZS did it, but in 3.0.4 I changed it to just check
-// for 03, 05, 07, and the DW ones as that's how it would appear in-game if
-// you were to make area 03 not a large area anymore for example, so you might
-// want to do the same.
+// Resolves the animated tile sheet. Graphics slot 7 is a composite in game:
+// the bottom half (door frames) comes from the area's sheet 7 and the top half
+// holds frame 0 of the animated tiles (water/lava/clouds) decompressed from
+// the animated sheet. Vanilla picks $59 on Death Mountain ($8A & $BF in
+// 03/05/07) and $5B elsewhere; ZSCustomOverworld reads its AnimatedTable with
+// $8A and falls back to the world's default sheet 7 for 0x00/0xFF.
 void OverworldMap::LoadDeathMountainGFX() {
-  // Match ZScream 3.0.4 behavior: only specific DM parents use animated GFX
-  const bool is_light_dm =
-      (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07);
-  const bool is_dark_dm =
-      (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47);
-  static_graphics_[7] = (is_light_dm || is_dark_dm) ? 0x59 : 0x5B;
+  const auto version = OverworldVersionHelper::GetVersion(*rom_);
+  uint8_t sheet = area_render_properties().animated_gfx;
+  const bool custom_animated = version != OverworldVersion::kVanilla &&
+                               (*rom_)[OverworldCustomAnimatedGFXEnabled] != 0;
+  if (custom_animated) {
+    if (sheet == 0x00 || sheet == 0xFF) {
+      const int world_offset = (parent_ & 0xC0) >> 3;
+      sheet = (*rom_)[OverworldCustomDefaultGFXGroups + world_offset + 7];
+    }
+  } else if (sheet == 0x00 || sheet == 0xFF) {
+    sheet = IsDeathMountainArea(parent_) ? 0x59 : 0x5B;
+  }
+  animated_sheet_ = sheet;
 }
 
 void OverworldMap::LoadAreaGraphics() {
@@ -765,8 +890,9 @@ void OverworldMap::LoadAreaGraphics() {
   if (OverworldVersionHelper::SupportsCustomTileGFX(
           OverworldVersionHelper::GetVersion(*rom_)) &&
       (*rom_)[OverworldCustomTileGFXGroupEnabled] != 0x00) {
+    const auto area_props = area_render_properties();
     for (int i = 0; i < 8; i++) {
-      uint8_t custom_sheet = custom_gfx_ids_[i];
+      uint8_t custom_sheet = area_props.custom_gfx_ids[i];
       if (custom_sheet == 0x00 || custom_sheet == 0xFF) {
         continue;  // 0/FF = don't load/override this slot
       }
@@ -999,12 +1125,15 @@ absl::Status OverworldMap::LoadPalette() {
     }
   }
 
-  // Use main palette from the overworld map data (matches ZScream logic)
+  // Use main palette from the overworld map data (matches ZScream logic).
+  // Child screens use the area parent's entry, like the game ($8A).
   if (version == OverworldVersion::kVanilla) {
     // Vanilla ROMs never write main_palette_ elsewhere; ensure world defaults
     main_palette_ = ComputeWorldBasedMainPalette();
+    pal0 = main_palette_;
+  } else {
+    pal0 = area_render_properties().main_palette;
   }
-  pal0 = main_palette_;
 
   auto& ow_main_pal_group = game_data_->palette_groups.overworld_main;
   ASSIGN_OR_RETURN(gfx::SnesPalette main,
@@ -1061,8 +1190,9 @@ absl::Status OverworldMap::LoadOverlay() {
     return LoadVanillaOverlayData();
   }
 
-  // Custom overworld ROM - use overlay from custom data
-  overlay_id_ = subscreen_overlay_;
+  // Custom overworld ROM - use the area's subscreen overlay (parent's entry
+  // for child screens, like the game)
+  overlay_id_ = area_render_properties().subscreen_overlay;
   has_overlay_ = (overlay_id_ != 0x00FF);
   overlay_data_.clear();
   return absl::OkStatus();
@@ -1191,18 +1321,55 @@ absl::Status OverworldMap::LoadVanillaOverlayData() {
   return absl::OkStatus();
 }
 
+uint16_t OverworldMap::SourceSheetForRevision(int i) const {
+  // Entries 0-15 are the static slots; entry 16 is the animated sheet whose
+  // first frame CopyAnimatedSheetIntoSlot7() copies into slot 7.
+  return i < 16 ? static_graphics_[i] : animated_sheet_;
+}
+
+void OverworldMap::RecordSourceSheetRevisions() {
+  for (int i = 0; i < kNumSourceSheets; i++) {
+    const uint16_t sheet = SourceSheetForRevision(i);
+    source_sheet_revisions_[i] =
+        game_data_ != nullptr && sheet != 0 &&
+                graphics_sheet_overrides_.count(sheet) == 0
+            ? game_data_->sheet_store.Revision(sheet)
+            : 0;
+  }
+}
+
+bool OverworldMap::SourceSheetsChanged() const {
+  if (game_data_ == nullptr) {
+    return false;
+  }
+  for (int i = 0; i < kNumSourceSheets; i++) {
+    const uint16_t sheet = SourceSheetForRevision(i);
+    if (source_sheet_revisions_[i] != 0 && sheet != 0 &&
+        graphics_sheet_overrides_.count(sheet) == 0 &&
+        game_data_->sheet_store.Revision(sheet) != source_sheet_revisions_[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
                                          int size, const uint8_t* all_gfx) {
-  // Ensure we don't go out of bounds
-  int max_offset = static_graphics_offset * size + size;
-  if (!game_data_ || max_offset > game_data_->graphics_buffer.size()) {
+  if (const auto it = graphics_sheet_overrides_.find(
+          static_cast<uint16_t>(static_graphics_offset));
+      it != graphics_sheet_overrides_.end() &&
+      it->second.size() == static_cast<size_t>(size)) {
+    all_gfx = it->second.data();
+    static_graphics_offset = 0;
+  } else if (static_graphics_offset * size + size >
+             static_cast<int>(game_data_ ? game_data_->graphics_buffer.size()
+                                         : 0)) {
     // Fill with zeros if out of bounds
     for (int i = 0; i < size; i++) {
       current_gfx_[(index * size) + i] = 0x00;
     }
     return;
   }
-
   for (int i = 0; i < size; i++) {
     auto byte = all_gfx[i + (static_graphics_offset * size)];
     switch (index) {
@@ -1242,56 +1409,89 @@ absl::Status OverworldMap::BuildTileset() {
     }
   }
 
-  // NOTE: Previously there was code here accessing static_graphics_[16], but
-  // the array is only size 16 (indices 0-15). This was undefined behavior
-  // that read random memory and sometimes corrupted the animated graphics
-  // slot (7), causing flaky water/cloud rendering. The animated graphics
-  // are already correctly set in static_graphics_[7] by LoadDeathMountainGFX().
+  // The top of slot 7 shows frame 0 of the animated tiles (ZScream does the
+  // same with its StaticGFX[16]); the bottom keeps the area's sheet 7.
+  CopyAnimatedSheetIntoSlot7();
+
+  // Remember what each slot (and the animated sheet copied into slot 7) was
+  // built from, so an unsaved sheet edit can be detected
+  // (SourceSheetsChanged).
+  RecordSourceSheetRevisions();
 
   return absl::OkStatus();
 }
 
+void OverworldMap::CopyAnimatedSheetIntoSlot7() {
+  if (!game_data_ || animated_sheet_ == 0) {
+    return;
+  }
+  const size_t dst = 7 * 0x1000;
+  // A preview override (SetGraphicsSheetOverrides) wins over the store.
+  if (const auto it = graphics_sheet_overrides_.find(animated_sheet_);
+      it != graphics_sheet_overrides_.end()) {
+    if (it->second.size() >= kAnimatedSheetSlotBytes &&
+        dst + kAnimatedSheetSlotBytes <= current_gfx_.size()) {
+      std::copy_n(it->second.begin(), kAnimatedSheetSlotBytes,
+                  current_gfx_.begin() + dst);
+    }
+    return;
+  }
+  const size_t src = static_cast<size_t>(animated_sheet_) * 0x1000;
+  if (src + kAnimatedSheetSlotBytes > game_data_->graphics_buffer.size() ||
+      dst + kAnimatedSheetSlotBytes > current_gfx_.size()) {
+    return;
+  }
+  std::copy_n(game_data_->graphics_buffer.begin() + src,
+              kAnimatedSheetSlotBytes, current_gfx_.begin() + dst);
+}
+
 absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
                                            int count) {
+  constexpr size_t kBlocksetBytes = 0x100000;
+  constexpr size_t kTilesetBytes = 0x10000;
   if (current_blockset_.size() == 0)
-    current_blockset_.resize(0x100000, 0x00);
+    current_blockset_.resize(kBlocksetBytes, 0x00);
+  if (current_gfx_.size() < kTilesetBytes)
+    current_gfx_.resize(kTilesetBytes, 0x00);
+
+  // Each row of 8 tile16s takes 0x800 bytes of the 128px-wide blockset.
+  const int capacity = static_cast<int>(current_blockset_.size() / 0x800) * 8;
+  count = std::min({count, static_cast<int>(tiles16.size()), capacity});
 
   const int offsets[] = {0x00, 0x08, 0x400, 0x408};
-  auto yy = 0;
-  auto xx = 0;
+  const uint8_t* gfx = current_gfx_.data();
+  const size_t gfx_size = current_gfx_.size();
+  uint8_t* blockset = current_blockset_.data();
 
-  for (auto i = 0; i < count; i++) {
-    for (auto tile = 0; tile < 0x04; tile++) {
-      gfx::TileInfo info = tiles16[i].tiles_info[tile];
-      int offset = offsets[tile];
-      for (auto y = 0; y < 0x08; ++y) {
-        for (auto x = 0; x < 0x08; ++x) {
-          int mx = x;
-          int my = y;
-
-          if (info.horizontal_mirror_ != 0) {
-            mx = 0x07 - x;
+  for (int i = 0; i < count; i++) {
+    const size_t tile_base =
+        static_cast<size_t>(i / 8) * 0x800 + static_cast<size_t>(i % 8) * 0x10;
+    for (int tile = 0; tile < 4; tile++) {
+      const gfx::TileInfo& info = tiles16[i].tiles_info[tile];
+      const size_t src_base = static_cast<size_t>(info.id_ / 0x10) * 0x400 +
+                              static_cast<size_t>(info.id_ % 0x10) * 0x08;
+      uint8_t* dst_tile = blockset + tile_base + offsets[tile];
+      if (src_base + 7 * 0x80 + 8 > gfx_size) {
+        for (int y = 0; y < 8; ++y) {
+          std::fill_n(dst_tile + y * 0x80, 8, 0x00);
+        }
+        continue;
+      }
+      const uint8_t palette = static_cast<uint8_t>(info.palette_ * 0x10);
+      for (int y = 0; y < 8; ++y) {
+        const int my = info.vertical_mirror_ != 0 ? 7 - y : y;
+        const uint8_t* src = gfx + src_base + y * 0x80;
+        uint8_t* dst = dst_tile + my * 0x80;
+        if (info.horizontal_mirror_ != 0) {
+          for (int x = 0; x < 8; ++x) {
+            dst[7 - x] = static_cast<uint8_t>((src[x] & 0x0F) + palette);
           }
-
-          if (info.vertical_mirror_ != 0) {
-            my = 0x07 - y;
+        } else {
+          for (int x = 0; x < 8; ++x) {
+            dst[x] = static_cast<uint8_t>((src[x] & 0x0F) + palette);
           }
-
-          int xpos = ((info.id_ % 0x10) * 0x08);
-          int ypos = (((info.id_ / 0x10)) * 0x400);
-          int source = ypos + xpos + (x + (y * 0x80));
-
-          auto destination = xx + yy + offset + (mx + (my * 0x80));
-          current_blockset_[destination] =
-              (current_gfx_[source] & 0x0F) + (info.palette_ * 0x10);
         }
       }
-    }
-
-    xx += 0x10;
-    if (xx >= 0x80) {
-      yy += 0x800;
-      xx = 0;
     }
   }
 
@@ -1299,13 +1499,7 @@ absl::Status OverworldMap::BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16,
 }
 
 absl::Status OverworldMap::BuildBitmap(OverworldBlockset& world_blockset) {
-  if (bitmap_data_.size() != 0) {
-    bitmap_data_.clear();
-  }
-  bitmap_data_.reserve(0x40000);
-  for (int i = 0; i < 0x40000; i++) {
-    bitmap_data_.push_back(0x00);
-  }
+  bitmap_data_.assign(0x40000, 0x00);
 
   // BuildBitmap is used by both full map builds and editor refresh paths.
   // Refresh paths can run after LRU eviction reset runtime fields, so derive
@@ -1332,6 +1526,52 @@ absl::Status OverworldMap::BuildBitmap(OverworldBlockset& world_blockset) {
       gfx::CopyTile8bpp16((x * 0x10), (y * 0x10), world_blockset[xt][yt],
                           bitmap_data_, current_blockset_);
     }
+  }
+  static std::atomic<uint64_t> next_bitmap_serial{1};
+  bitmap_serial_ = next_bitmap_serial.fetch_add(1);
+  return absl::OkStatus();
+}
+
+absl::Status OverworldMap::BuildSubscreenOverlayLayer(
+    const OverworldBlockset& overlay_world_blockset, int overlay_screen,
+    bool background, std::vector<uint8_t>* out) const {
+  if (out == nullptr) {
+    return absl::InvalidArgumentError("Overlay layer output is null");
+  }
+  constexpr int kSize = 0x200;
+  if (bitmap_data_.size() < static_cast<size_t>(kSize) * kSize ||
+      current_blockset_.empty()) {
+    return absl::FailedPreconditionError(
+        "Map must be built before its overlay layer");
+  }
+  const int local = overlay_screen & 0x3F;
+  const int super_x = local % 8;
+  const int super_y = local / 8;
+
+  out->assign(static_cast<size_t>(kSize) * kSize, 0);
+  std::vector<uint8_t> tile_pixels(static_cast<size_t>(kSize) * kSize, 0);
+  for (int y = 0; y < 0x20; ++y) {
+    for (int x = 0; x < 0x20; ++x) {
+      const int xt = x + super_x * 0x20;
+      const int yt = y + super_y * 0x20;
+      if (xt >= static_cast<int>(overlay_world_blockset.size()) ||
+          yt >= static_cast<int>(overlay_world_blockset[xt].size())) {
+        return absl::InvalidArgumentError(
+            "Overlay blockset is too small for the overlay screen");
+      }
+      gfx::CopyTile8bpp16(x * 0x10, y * 0x10, overlay_world_blockset[xt][yt],
+                          tile_pixels, current_blockset_);
+    }
+  }
+  for (size_t i = 0; i < tile_pixels.size(); ++i) {
+    const uint8_t overlay = tile_pixels[i];
+    if (IsOverworldBackdropPixel(overlay)) {
+      continue;
+    }
+    if (background && !IsOverworldBackdropPixel(bitmap_data_[i])) {
+      continue;
+    }
+    (*out)[i] = overlay;
   }
   return absl::OkStatus();
 }

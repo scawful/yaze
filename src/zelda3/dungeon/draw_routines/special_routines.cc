@@ -20,6 +20,38 @@ namespace {
 
 constexpr int kThievesTownEastAtticRoomId = 0x65;
 
+// RoomDraw_BombableFloor opens only in the room named by `CMP.w #$0065` at
+// $01:B3E3. ROM hacks patch that operand (Oracle of Secrets: 0xAD), so read
+// it; fall back to vanilla when the instruction is not there.
+int BombableFloorRoomId(const Rom* rom) {
+  constexpr int kCmpPc = 0xB3E3;  // $01:B3E3
+  if (rom != nullptr) {
+    const auto opcode = rom->ReadByte(kCmpPc);
+    const auto operand = rom->ReadWord(kCmpPc + 1);
+    if (opcode.ok() && *opcode == 0xC9 && operand.ok()) {
+      return *operand;
+    }
+  }
+  return kThievesTownEastAtticRoomId;
+}
+
+// RoomDraw_BigLightBeamOnFloor reads `LDA.l $7EF0CA` at $01:A7D3: the save
+// word of the room whose floor was bombed ($7EF000 + 2 * room).
+int LightBeamFloorRoomId(const Rom* rom) {
+  constexpr int kLdaPc = 0xA7D3;  // $01:A7D3
+  if (rom != nullptr) {
+    const auto opcode = rom->ReadByte(kLdaPc);
+    const auto address = rom->ReadWord(kLdaPc + 1);
+    const auto bank = rom->ReadByte(kLdaPc + 3);
+    if (opcode.ok() && *opcode == 0xAF && address.ok() && bank.ok() &&
+        *bank == 0x7E && *address >= 0xF000 && *address < 0xF250 &&
+        (*address & 1) == 0) {
+      return (*address - 0xF000) / 2;
+    }
+  }
+  return kThievesTownEastAtticRoomId;
+}
+
 const gfx::TileInfo& TileAtWrapped(std::span<const gfx::TileInfo> tiles,
                                    size_t index) {
   return tiles[index % tiles.size()];
@@ -118,6 +150,50 @@ void DrawWaterHopStairsB(const DrawContext& ctx) {
   DrawWaterHopStairsA(ctx);
 }
 
+// Reads 8 RoomDrawObjectData words at `object_data_offset` (usdasm objXXXX).
+std::array<gfx::TileInfo, 16> LoadRoomDrawObjectTiles(const DrawContext& ctx,
+                                                      int object_data_offset,
+                                                      int count) {
+  std::array<gfx::TileInfo, 16> tiles{};
+  for (int i = 0; i < count && i < 16; ++i) {
+    const auto word = ctx.rom->ReadWord(kRoomObjectTileAddress +
+                                        object_data_offset + (i * 2));
+    tiles[i] = gfx::WordToTileInfo(word.ok() ? *word : 0);
+  }
+  return tiles;
+}
+
+// RoomTag_OperateWaterFlooring over WaterOverlayData ($04:F1CD): each 3-byte
+// entry is a type-1 object header (x, y, size); every 4x4 block is two 4x2
+// obj0110 stamps written to $7E4000 (yaze BG2).
+void DrawDamWaterFlooring(const DrawContext& ctx, gfx::BackgroundBuffer& bg2) {
+  constexpr int kWaterOverlayData = 0x271CD;
+  constexpr int kFloorTiles = 0x0110;
+  const auto tiles = LoadRoomDrawObjectTiles(ctx, kFloorTiles, 8);
+  for (int entry = kWaterOverlayData;; entry += 3) {
+    const auto b0 = ctx.rom->ReadByte(entry);
+    const auto b1 = ctx.rom->ReadByte(entry + 1);
+    if (!b0.ok() || !b1.ok() || (*b0 == 0xFF && *b1 == 0xFF)) {
+      return;
+    }
+    const int x = *b0 >> 2;
+    const int y = *b1 >> 2;
+    const int blocks_x = (*b0 & 0x03) + 1;
+    const int blocks_y = (*b1 & 0x03) + 1;
+    for (int by = 0; by < blocks_y; ++by) {
+      for (int bx = 0; bx < blocks_x; ++bx) {
+        for (int row = 0; row < 4; ++row) {
+          for (int col = 0; col < 4; ++col) {
+            DrawRoutineUtils::WriteTile8(bg2, x + (bx * 4) + col,
+                                         y + (by * 4) + row,
+                                         tiles[((row & 1) * 4) + col]);
+          }
+        }
+      }
+    }
+  }
+}
+
 void DrawDamFloodGate(const DrawContext& ctx) {
   // ASM: RoomDraw_DamFloodGate ($019BF8) stamps a 10x4 column-major tile block
   // from the closed tile span by default, and swaps to the alternate water-open
@@ -132,6 +208,9 @@ void DrawDamFloodGate(const DrawContext& ctx) {
 
   DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 10, 4, ctx.tiles,
                   start_index);
+  if (use_open_tiles && ctx.rom != nullptr && ctx.secondary_bg != nullptr) {
+    DrawDamWaterFlooring(ctx, *ctx.secondary_bg);
+  }
 }
 
 void WritePlatformTile(const DrawContext& ctx, int dx, int dy, size_t index) {
@@ -643,12 +722,12 @@ void DrawLightBeamOnFloor(const DrawContext& ctx) {
 
 void DrawBigLightBeamOnFloor(const DrawContext& ctx) {
   // ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3) reads the persisted
-  // bombed-floor flag for fixed room 0x065 ($7EF0CA & $0100), then falls
-  // through to RoomDraw_FloorLight when it is active. Do not use ctx.room_id.
-  // Null state is reserved for object/geometry previews, which keep the beam
-  // visible and measurable.
+  // bombed-floor flag of a fixed room (vanilla 0x065: $7EF0CA & $0100), then
+  // falls through to RoomDraw_FloorLight when it is active. Do not use
+  // ctx.room_id. Null state is reserved for object/geometry previews, which
+  // keep the beam visible and measurable.
   if (ctx.state != nullptr &&
-      !ctx.state->IsFloorBombable(kThievesTownEastAtticRoomId)) {
+      !ctx.state->IsFloorBombable(LightBeamFloorRoomId(ctx.rom))) {
     return;
   }
   DrawFloorLightGrid(ctx);
@@ -696,13 +775,15 @@ void DrawArcheryGameTargetDoor(const DrawContext& ctx) {
 
 void DrawGanonTriforceFloorDecor(const DrawContext& ctx) {
   // ASM: RoomDraw_GanonTriforceFloorDecor ($01A7F0)
-  // Top block uses 0..15 at +2 X, then two bottom 4x4 blocks use 16..31.
+  // The top 4x4 (words 0..15) is at the anchor. The two bottom 4x4 blocks
+  // (words 16..31, PHX/PLX) are at $08+$01FC and $08+$0204: four rows down,
+  // two columns left and two columns right.
   if (ctx.tiles.empty())
     return;
 
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/2, /*y_offset=*/0, /*start_index=*/0);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/4, /*start_index=*/16);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/4, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/-2, /*y_offset=*/4, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/2, /*y_offset=*/4, /*start_index=*/16);
 }
 
 void DrawSingle2x2(const DrawContext& ctx) {
@@ -992,68 +1073,38 @@ void DrawSpike2x2In4x4SuperSquare(const DrawContext& ctx) {
 }
 
 void DrawTableRock4x4_1to16(const DrawContext& ctx) {
-  // ASM: Object 0xDD - Table rock pattern
-  int size_x = ((ctx.object.size_ >> 2) & 0x03);
-  int size_y = (ctx.object.size_ & 0x03);
-
-  if (ctx.tiles.size() < 16)
+  // USDASM RoomDraw_TableRock4x4_1to16 ($01:93DC), object 0xDD. The payload
+  // is four row-major rows of [left, middle A, middle B, right]. Each drawn
+  // row is left, (A, B) repeated size_x+1 times, right. Rows: payload row 0
+  // once, payload row 1 2*size_y+1 times, then rows 2 and 3 once each (the
+  // final JSR falls through .draw_rock_segment_with_advance a second time).
+  const int size_x = (ctx.object.size_ >> 2) & 0x03;
+  const int size_y = ctx.object.size_ & 0x03;
+  if (ctx.tiles.size() < 16) {
     return;
+  }
 
-  int right_x = ctx.object.x_ + (3 + (size_x * 2));
-  int bottom_y = ctx.object.y_ + (3 + (size_y * 2));
-
-  // Interior
-  for (int xx = 0; xx < size_x + 1; ++xx) {
-    for (int yy = 0; yy < size_y + 1; ++yy) {
-      int base_x = ctx.object.x_ + (xx * 2);
-      int base_y = ctx.object.y_ + (yy * 2);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 1,
-                                   ctx.tiles[5]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, base_y + 1,
-                                   ctx.tiles[6]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 2,
-                                   ctx.tiles[9]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, base_y + 2,
-                                   ctx.tiles[10]);
+  auto draw_row = [&](int y, int payload_row) {
+    const int first = payload_row * 4;
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y,
+                                 ctx.tiles[first]);
+    for (int pair = 0; pair <= size_x; ++pair) {
+      const int x = ctx.object.x_ + 1 + pair * 2;
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, y, ctx.tiles[first + 1]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, y,
+                                   ctx.tiles[first + 2]);
     }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3 + size_x * 2,
+                                 y, ctx.tiles[first + 3]);
+  };
+
+  int y = ctx.object.y_;
+  draw_row(y++, 0);
+  for (int row = 0; row < 2 * size_y + 1; ++row) {
+    draw_row(y++, 1);
   }
-
-  // Left/right borders
-  for (int yy = 0; yy < size_y + 1; ++yy) {
-    int base_y = ctx.object.y_ + (yy * 2);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y + 1,
-                                 ctx.tiles[4]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y + 2,
-                                 ctx.tiles[8]);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 1,
-                                 ctx.tiles[7]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 2,
-                                 ctx.tiles[11]);
-  }
-
-  // Top/bottom borders
-  for (int xx = 0; xx < size_x + 1; ++xx) {
-    int base_x = ctx.object.x_ + (xx * 2);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, ctx.object.y_,
-                                 ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, ctx.object.y_,
-                                 ctx.tiles[2]);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, bottom_y,
-                                 ctx.tiles[13]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, bottom_y,
-                                 ctx.tiles[14]);
-  }
-
-  // Corners
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
-                               ctx.tiles[0]);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, bottom_y,
-                               ctx.tiles[12]);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, ctx.object.y_,
-                               ctx.tiles[3]);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, bottom_y, ctx.tiles[15]);
+  draw_row(y++, 2);
+  draw_row(y, 3);
 }
 
 void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
@@ -1084,6 +1135,47 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
             DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
                                          tile);
           }
+        }
+      }
+    }
+    return;
+  }
+
+  if (ctx.object.id_ == 0xD8 && ctx.state != nullptr && ctx.rom != nullptr &&
+      ctx.secondary_bg != nullptr &&
+      ctx.state->IsDamFloodgateOpen(ctx.room_id)) {
+    // RoomDraw_WaterOverlayA8x8_1to16 with the room's 's' bit set skips
+    // RoomDraw_NoWater and writes one 4x4 of obj1438 (row-major) to $7E2000
+    // (yaze BG1) at (x + 2*(size_x+1), y + 2*(size_y+1)).
+    constexpr int kWaterOnTiles = 0x1438;
+    const auto tiles = LoadRoomDrawObjectTiles(ctx, kWaterOnTiles, 16);
+    const int base_x = ctx.object.x_ + (2 * (size_x + 1));
+    const int base_y = ctx.object.y_ + (2 * (size_y + 1));
+    for (int row = 0; row < 4; ++row) {
+      for (int col = 0; col < 4; ++col) {
+        DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, base_x + col,
+                                     base_y + row, tiles[(row * 4) + col]);
+      }
+    }
+    return;
+  }
+
+  if (ctx.object.id_ == 0xDA) {
+    // RoomDraw_WaterOverlayB8x8_1to16: WaterOverlayObjectCount gives
+    // 2*size_y+3 two-row chunks (3, 5, 7 or 9), so the overlay is 4*size_y+6
+    // rows tall, not 4*(size_y+2). Both the drained and filled branches reach
+    // the same drawing loop. Confirmed against game tilemaps of rooms 0x035
+    // and 0x037.
+    const int chunks = 2 * size_y + 3;
+    for (int chunk = 0; chunk < chunks; ++chunk) {
+      for (int xx = 0; xx < count_x; ++xx) {
+        const int base_x = ctx.object.x_ + (xx * 4);
+        const int base_y = ctx.object.y_ + (chunk * 2);
+        for (int x = 0; x < 4; ++x) {
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y,
+                                       ctx.tiles[x]);
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
+                                       ctx.tiles[4 + x]);
         }
       }
     }
@@ -1275,12 +1367,11 @@ void DrawBombableFloor(const DrawContext& ctx) {
     return;
   }
 
-  // Vanilla persists this state for room 0x65, while ROM hacks can relocate
-  // the floor (Oracle of Secrets uses 0xAD). Keep preview selection keyed to
-  // the current room instead of hardcoding a vanilla room ID.
-  const bool is_open = ctx.state != nullptr &&
-                       ctx.state->IsFloorBombable(ctx.room_id) &&
-                       ctx.tiles.size() >= 32;
+  // Only the room named by the routine's CMP operand opens (vanilla 0x065);
+  // every other room draws the intact floor even with its flag set.
+  const bool is_open =
+      ctx.state != nullptr && ctx.room_id == BombableFloorRoomId(ctx.rom) &&
+      ctx.state->IsFloorBombable(ctx.room_id) && ctx.tiles.size() >= 32;
   const size_t state_offset = is_open ? 16 : 0;
 
   for (int block_y = 0; block_y < 2; ++block_y) {
@@ -1373,8 +1464,13 @@ void DrawEmptyWaterFace(const DrawContext& ctx) {
   //
   // IMPORTANT: this uses dedicated water-face state, not door state. Tying
   // this branch to IsDoorOpen created cross-feature rendering regressions.
-  const bool water_active =
-      (ctx.state != nullptr) && ctx.state->IsWaterFaceActive(ctx.room_id);
+  // RoomDraw_EmptyWaterFace only switches to the spitting face for tag2
+  // 0x1B (room word bit $0100) or 0x19 ('s' bit); any other room keeps the
+  // empty face. Previews without a room (room_tag2 < 0) follow the state.
+  const bool tag_allows_water =
+      ctx.room_tag2 < 0 || ctx.room_tag2 == 0x1B || ctx.room_tag2 == 0x19;
+  const bool water_active = tag_allows_water && (ctx.state != nullptr) &&
+                            ctx.state->IsWaterFaceActive(ctx.room_id);
 
   const int row_count = water_active ? 5 : 3;
   const int tile_offset = water_active ? 12 : 0;  // 0x162C - 0x1614 = 24 bytes

@@ -204,6 +204,12 @@ class Arena {
    */
   auto mutable_gfx_sheets() { return &gfx_sheets_; }
 
+  // The GameData whose sheets gfx_sheets() holds. Sessions share one Arena
+  // and only a ROM load refills it, so after a session switch the sheets can
+  // belong to another open ROM. Set wherever the sheets are loaded.
+  void set_gfx_sheets_owner(const void* owner) { gfx_sheets_owner_ = owner; }
+  const void* gfx_sheets_owner() const { return gfx_sheets_owner_; }
+
   /**
    * @brief Notify Arena that a graphics sheet has been modified
    * @param sheet_index Index of the modified sheet (0-222)
@@ -365,6 +371,7 @@ class Arena {
   std::array<uint16_t, kTotalTiles> layer2_buffer_;
 
   std::array<gfx::Bitmap, 223> gfx_sheets_;
+  const void* gfx_sheets_owner_ = nullptr;
 
   std::unordered_map<TextureHandle,
                      std::unique_ptr<SDL_Texture, util::SDL_Texture_Deleter>>

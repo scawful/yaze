@@ -11,33 +11,71 @@
 #include "app/emu/proto_converter.h"
 #include "app/service/screenshot_utils.h"
 #include "rom/rom.h"
+#include "util/log.h"
 
 namespace yaze::net {
 
 namespace {
 grpc::Status ToGrpcStatus(const absl::Status& status) {
-  if (status.ok()) return grpc::Status::OK;
+  if (status.ok())
+    return grpc::Status::OK;
 
   grpc::StatusCode code = grpc::StatusCode::UNKNOWN;
   switch (status.code()) {
-    case absl::StatusCode::kOk: code = grpc::StatusCode::OK; break;
-    case absl::StatusCode::kCancelled: code = grpc::StatusCode::CANCELLED; break;
-    case absl::StatusCode::kUnknown: code = grpc::StatusCode::UNKNOWN; break;
-    case absl::StatusCode::kInvalidArgument: code = grpc::StatusCode::INVALID_ARGUMENT; break;
-    case absl::StatusCode::kDeadlineExceeded: code = grpc::StatusCode::DEADLINE_EXCEEDED; break;
-    case absl::StatusCode::kNotFound: code = grpc::StatusCode::NOT_FOUND; break;
-    case absl::StatusCode::kAlreadyExists: code = grpc::StatusCode::ALREADY_EXISTS; break;
-    case absl::StatusCode::kPermissionDenied: code = grpc::StatusCode::PERMISSION_DENIED; break;
-    case absl::StatusCode::kUnauthenticated: code = grpc::StatusCode::UNAUTHENTICATED; break;
-    case absl::StatusCode::kResourceExhausted: code = grpc::StatusCode::RESOURCE_EXHAUSTED; break;
-    case absl::StatusCode::kFailedPrecondition: code = grpc::StatusCode::FAILED_PRECONDITION; break;
-    case absl::StatusCode::kAborted: code = grpc::StatusCode::ABORTED; break;
-    case absl::StatusCode::kOutOfRange: code = grpc::StatusCode::OUT_OF_RANGE; break;
-    case absl::StatusCode::kUnimplemented: code = grpc::StatusCode::UNIMPLEMENTED; break;
-    case absl::StatusCode::kInternal: code = grpc::StatusCode::INTERNAL; break;
-    case absl::StatusCode::kUnavailable: code = grpc::StatusCode::UNAVAILABLE; break;
-    case absl::StatusCode::kDataLoss: code = grpc::StatusCode::DATA_LOSS; break;
-    default: code = grpc::StatusCode::UNKNOWN; break;
+    case absl::StatusCode::kOk:
+      code = grpc::StatusCode::OK;
+      break;
+    case absl::StatusCode::kCancelled:
+      code = grpc::StatusCode::CANCELLED;
+      break;
+    case absl::StatusCode::kUnknown:
+      code = grpc::StatusCode::UNKNOWN;
+      break;
+    case absl::StatusCode::kInvalidArgument:
+      code = grpc::StatusCode::INVALID_ARGUMENT;
+      break;
+    case absl::StatusCode::kDeadlineExceeded:
+      code = grpc::StatusCode::DEADLINE_EXCEEDED;
+      break;
+    case absl::StatusCode::kNotFound:
+      code = grpc::StatusCode::NOT_FOUND;
+      break;
+    case absl::StatusCode::kAlreadyExists:
+      code = grpc::StatusCode::ALREADY_EXISTS;
+      break;
+    case absl::StatusCode::kPermissionDenied:
+      code = grpc::StatusCode::PERMISSION_DENIED;
+      break;
+    case absl::StatusCode::kUnauthenticated:
+      code = grpc::StatusCode::UNAUTHENTICATED;
+      break;
+    case absl::StatusCode::kResourceExhausted:
+      code = grpc::StatusCode::RESOURCE_EXHAUSTED;
+      break;
+    case absl::StatusCode::kFailedPrecondition:
+      code = grpc::StatusCode::FAILED_PRECONDITION;
+      break;
+    case absl::StatusCode::kAborted:
+      code = grpc::StatusCode::ABORTED;
+      break;
+    case absl::StatusCode::kOutOfRange:
+      code = grpc::StatusCode::OUT_OF_RANGE;
+      break;
+    case absl::StatusCode::kUnimplemented:
+      code = grpc::StatusCode::UNIMPLEMENTED;
+      break;
+    case absl::StatusCode::kInternal:
+      code = grpc::StatusCode::INTERNAL;
+      break;
+    case absl::StatusCode::kUnavailable:
+      code = grpc::StatusCode::UNAVAILABLE;
+      break;
+    case absl::StatusCode::kDataLoss:
+      code = grpc::StatusCode::DATA_LOSS;
+      break;
+    default:
+      code = grpc::StatusCode::UNKNOWN;
+      break;
   }
   return grpc::Status(code, std::string(status.message()));
 }
@@ -54,25 +92,25 @@ grpc::Status EmulatorServiceImpl::LoadRom(grpc::ServerContext* context,
                                           const agent::LoadRomRequest* request,
                                           agent::LoadRomResponse* response) {
   if (!emulator_) {
-     response->set_success(false);
-     response->set_message("Emulator middleware not initialized");
-     return grpc::Status::OK;
+    response->set_success(false);
+    response->set_message("Emulator middleware not initialized");
+    return grpc::Status::OK;
   }
   auto status = emulator_->LoadRom(request->filepath());
   if (status.ok()) {
-      response->set_success(true);
-      response->set_message("ROM loaded successfully");
-      if (rom_getter_) {
-          Rom* rom = rom_getter_();
-          if (rom && rom->is_loaded()) {
-              response->set_rom_title(rom->title());
-              response->set_rom_size(rom->size());
-          }
+    response->set_success(true);
+    response->set_message("ROM loaded successfully");
+    if (rom_getter_) {
+      Rom* rom = rom_getter_();
+      if (rom && rom->is_loaded()) {
+        response->set_rom_title(rom->title());
+        response->set_rom_size(rom->size());
       }
+    }
   } else {
-      response->set_success(false);
-      response->set_message("Failed to load ROM: " +
-                            std::string(status.message()));
+    response->set_success(false);
+    response->set_message("Failed to load ROM: " +
+                          std::string(status.message()));
   }
   return grpc::Status::OK;
 }
@@ -81,13 +119,13 @@ grpc::Status EmulatorServiceImpl::GetLoadedRomPath(
     grpc::ServerContext* context, const agent::Empty* request,
     agent::LoadedRomPathResponse* response) {
   if (emulator_) {
-      std::string path = emulator_->GetLoadedRomPath();
-      if (!path.empty()) {
-          response->set_has_rom(true);
-          response->set_filepath(path);
-          response->set_title(std::filesystem::path(path).stem().string());
-          return grpc::Status::OK;
-      }
+    std::string path = emulator_->GetLoadedRomPath();
+    if (!path.empty()) {
+      response->set_has_rom(true);
+      response->set_filepath(path);
+      response->set_title(std::filesystem::path(path).stem().string());
+      return grpc::Status::OK;
+    }
   }
 
   response->set_has_rom(false);
@@ -114,7 +152,7 @@ grpc::Status EmulatorServiceImpl::ControlEmulator(
     emulator_->Reset();
     response->set_message("Emulator reset.");
   } else if (action == "init" || action == "initialize") {
-     response->set_message("Emulator connection active.");
+    response->set_message("Emulator connection active.");
   } else {
     return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
                         "Unknown action: " + action);
@@ -148,11 +186,13 @@ grpc::Status EmulatorServiceImpl::StepEmulator(
                         "Unknown step mode: " + mode);
   }
 
-  if (!status.ok()) return ToGrpcStatus(status);
+  if (!status.ok())
+    return ToGrpcStatus(status);
 
   emu::CpuStateSnapshot cpu_snap;
   auto cpu_status = emulator_->GetCpuState(&cpu_snap);
-  if (!cpu_status.ok()) return ToGrpcStatus(cpu_status);
+  if (!cpu_status.ok())
+    return ToGrpcStatus(cpu_status);
   emu::ToProtoCpuState(cpu_snap, response->mutable_cpu_state());
   response->set_success(true);
   return grpc::Status::OK;
@@ -167,7 +207,8 @@ grpc::Status EmulatorServiceImpl::RunToBreakpoint(
 
   emu::BreakpointHitResult result;
   auto status = emulator_->RunToBreakpoint(&result);
-  if (!status.ok()) return ToGrpcStatus(status);
+  if (!status.ok())
+    return ToGrpcStatus(status);
   emu::ToProtoBreakpointHitResponse(result, response);
   return grpc::Status::OK;
 }
@@ -184,8 +225,8 @@ grpc::Status EmulatorServiceImpl::PressButtons(
   std::vector<emu::InputButton> pressed_buttons;
   pressed_buttons.reserve(request->buttons_size());
   for (int i = 0; i < request->buttons_size(); i++) {
-    auto btn = emu::FromProtoButton(
-        static_cast<agent::Button>(request->buttons(i)));
+    auto btn =
+        emu::FromProtoButton(static_cast<agent::Button>(request->buttons(i)));
     if (btn == emu::InputButton::kUnspecified) {
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
                           absl::StrFormat("Invalid button at index %d: %d", i,
@@ -204,7 +245,8 @@ grpc::Status EmulatorServiceImpl::PressButtons(
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   for (auto it = pressed_buttons.rbegin(); it != pressed_buttons.rend(); ++it) {
     auto release_status = emulator_->ReleaseButton(*it);
-    if (!release_status.ok()) return ToGrpcStatus(release_status);
+    if (!release_status.ok())
+      return ToGrpcStatus(release_status);
   }
   response->set_success(true);
   return grpc::Status::OK;
@@ -218,15 +260,16 @@ grpc::Status EmulatorServiceImpl::ReleaseButtons(
                         "Emulator not initialized.");
 
   for (int i = 0; i < request->buttons_size(); i++) {
-    auto btn = emu::FromProtoButton(
-        static_cast<agent::Button>(request->buttons(i)));
+    auto btn =
+        emu::FromProtoButton(static_cast<agent::Button>(request->buttons(i)));
     if (btn == emu::InputButton::kUnspecified) {
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
                           absl::StrFormat("Invalid button at index %d: %d", i,
                                           request->buttons(i)));
     }
     auto status = emulator_->ReleaseButton(btn);
-    if (!status.ok()) return ToGrpcStatus(status);
+    if (!status.ok())
+      return ToGrpcStatus(status);
   }
   response->set_success(true);
   return grpc::Status::OK;
@@ -242,8 +285,8 @@ grpc::Status EmulatorServiceImpl::HoldButtons(
   std::vector<emu::InputButton> held_buttons;
   held_buttons.reserve(request->buttons_size());
   for (int i = 0; i < request->buttons_size(); i++) {
-    auto btn = emu::FromProtoButton(
-        static_cast<agent::Button>(request->buttons(i)));
+    auto btn =
+        emu::FromProtoButton(static_cast<agent::Button>(request->buttons(i)));
     if (btn == emu::InputButton::kUnspecified) {
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
                           absl::StrFormat("Invalid button at index %d: %d", i,
@@ -262,7 +305,8 @@ grpc::Status EmulatorServiceImpl::HoldButtons(
       std::chrono::milliseconds(request->duration_ms()));
   for (auto it = held_buttons.rbegin(); it != held_buttons.rend(); ++it) {
     auto release_status = emulator_->ReleaseButton(*it);
-    if (!release_status.ok()) return ToGrpcStatus(release_status);
+    if (!release_status.ok())
+      return ToGrpcStatus(release_status);
   }
   response->set_success(true);
   return grpc::Status::OK;
@@ -277,7 +321,8 @@ grpc::Status EmulatorServiceImpl::GetGameState(
 
   emu::GameSnapshot snapshot;
   auto status = emulator_->GetGameState(&snapshot);
-  if (!status.ok()) return ToGrpcStatus(status);
+  if (!status.ok())
+    return ToGrpcStatus(status);
   emu::ToProtoGameState(snapshot, response);
 
   // Fill memory reads if requested
@@ -286,20 +331,36 @@ grpc::Status EmulatorServiceImpl::GetGameState(
     mem_resp->set_address(mem_req.address());
     auto data_or = emulator_->ReadBlock(mem_req.address(), mem_req.size());
     if (data_or.ok()) {
-        mem_resp->set_data(data_or->data(), data_or->size());
+      mem_resp->set_data(data_or->data(), data_or->size());
     }
   }
 
 #ifdef YAZE_WITH_GRPC
   if (request->include_screenshot()) {
-    auto screenshot = yaze::test::CaptureHarnessScreenshot();
-    if (screenshot.ok()) {
-      std::ifstream file(screenshot->file_path, std::ios::binary);
-      if (file.good()) {
-        std::string png_data((std::istreambuf_iterator<char>(file)),
-                             std::istreambuf_iterator<char>());
-        response->set_screenshot_png(png_data);
+    // Never capture here: the emulator updates its texture on the render
+    // thread every frame, and reading the SDL/Metal renderer from this gRPC
+    // thread aborts in endEncoding. The capturer marshals onto that thread.
+    absl::StatusOr<test::ScreenshotArtifact> screenshot =
+        screenshot_capturer_
+            ? screenshot_capturer_()
+            : absl::FailedPreconditionError(
+                  "No render-thread screenshot capturer is configured");
+    if (!screenshot.ok()) {
+      LOG_WARN("EmulatorService", "GetGameState screenshot skipped: %s",
+               std::string(screenshot.status().message()).c_str());
+    } else {
+      {
+        std::ifstream file(screenshot->file_path, std::ios::binary);
+        if (file.good()) {
+          std::string png_data((std::istreambuf_iterator<char>(file)),
+                               std::istreambuf_iterator<char>());
+          response->set_screenshot_png(png_data);
+        }
       }
+      // The capture is only a carrier for the reply; don't leave one file
+      // per call on disk.
+      std::error_code remove_error;
+      std::filesystem::remove(screenshot->file_path, remove_error);
     }
   }
 #endif
@@ -315,7 +376,8 @@ grpc::Status EmulatorServiceImpl::ReadMemory(
 
   response->set_address(request->address());
   auto data_or = emulator_->ReadBlock(request->address(), request->size());
-  if (!data_or.ok()) return ToGrpcStatus(data_or.status());
+  if (!data_or.ok())
+    return ToGrpcStatus(data_or.status());
 
   response->set_data(data_or->data(), data_or->size());
   return grpc::Status::OK;
@@ -330,7 +392,8 @@ grpc::Status EmulatorServiceImpl::WriteMemory(
 
   std::vector<uint8_t> data(request->data().begin(), request->data().end());
   auto status = emulator_->WriteBlock(request->address(), data);
-  if (!status.ok()) return ToGrpcStatus(status);
+  if (!status.ok())
+    return ToGrpcStatus(status);
 
   response->set_success(true);
   return grpc::Status::OK;
@@ -349,26 +412,28 @@ grpc::Status EmulatorServiceImpl::BreakpointControl(
   std::string action = request->action();
   if (action == "add") {
     auto id_or = emulator_->AddBreakpoint(
-        request->address(),
-        emu::FromProtoBreakpointType(request->type()),
-        emu::FromProtoCpuType(request->cpu()),
-        request->condition(), request->description());
-    if (!id_or.ok()) return ToGrpcStatus(id_or.status());
+        request->address(), emu::FromProtoBreakpointType(request->type()),
+        emu::FromProtoCpuType(request->cpu()), request->condition(),
+        request->description());
+    if (!id_or.ok())
+      return ToGrpcStatus(id_or.status());
     response->set_breakpoint_id(*id_or);
     response->set_message("Breakpoint added.");
   } else if (action == "remove") {
     auto status = emulator_->RemoveBreakpoint(request->id());
-    if (!status.ok()) return ToGrpcStatus(status);
+    if (!status.ok())
+      return ToGrpcStatus(status);
     response->set_message("Breakpoint removed.");
   } else if (action == "toggle") {
     auto status =
         emulator_->ToggleBreakpoint(request->id(), request->enabled());
-    if (!status.ok()) return ToGrpcStatus(status);
+    if (!status.ok())
+      return ToGrpcStatus(status);
     response->set_message("Breakpoint toggled.");
   } else if (action == "list") {
     auto list = emulator_->ListBreakpoints();
     for (const auto& bp_snap : list) {
-        emu::ToProtoBreakpointInfo(bp_snap, response->add_breakpoints());
+      emu::ToProtoBreakpointInfo(bp_snap, response->add_breakpoints());
     }
   } else {
     return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
@@ -401,19 +466,21 @@ grpc::Status EmulatorServiceImpl::GetDisassembly(
   uint32_t addr = request->start_address();
   int fetch_size = request->count() * 4;
   auto data_or = emulator_->ReadBlock(addr, fetch_size);
-  if (!data_or.ok()) return ToGrpcStatus(data_or.status());
+  if (!data_or.ok())
+    return ToGrpcStatus(data_or.status());
 
   const auto& data = *data_or;
   auto mem_reader = [&](uint32_t read_addr) -> uint8_t {
-      if (read_addr >= addr && read_addr < addr + data.size()) {
-          return data[read_addr - addr];
-      }
-      return 0;
+    if (read_addr >= addr && read_addr < addr + data.size()) {
+      return data[read_addr - addr];
+    }
+    return 0;
   };
 
   emu::CpuStateSnapshot cpu_snap;
   auto cpu_status = emulator_->GetCpuState(&cpu_snap);
-  if (!cpu_status.ok()) return ToGrpcStatus(cpu_status);
+  if (!cpu_status.ok())
+    return ToGrpcStatus(cpu_status);
   bool m_flag = (cpu_snap.status & 0x20) != 0;
   bool x_flag = (cpu_snap.status & 0x10) != 0;
 
@@ -424,7 +491,8 @@ grpc::Status EmulatorServiceImpl::GetDisassembly(
     line->set_mnemonic(inst.mnemonic);
     line->set_operand_str(inst.operand_str);
     addr += inst.size;
-    if (addr >= request->start_address() + fetch_size) break;
+    if (addr >= request->start_address() + fetch_size)
+      break;
   }
   return grpc::Status::OK;
 }
@@ -484,16 +552,17 @@ grpc::Status EmulatorServiceImpl::GetDebugStatus(
 
   emu::CpuStateSnapshot cpu_snap;
   auto cpu_status = emulator_->GetCpuState(&cpu_snap);
-  if (!cpu_status.ok()) return ToGrpcStatus(cpu_status);
+  if (!cpu_status.ok())
+    return ToGrpcStatus(cpu_status);
   emu::ToProtoCpuState(cpu_snap, response->mutable_cpu_state());
 
   response->set_active_breakpoints(emulator_->ListBreakpoints().size());
   return grpc::Status::OK;
 }
 
-grpc::Status EmulatorServiceImpl::TestRun(
-    grpc::ServerContext* context, const agent::TestRunRequest* request,
-    agent::TestRunResponse* response) {
+grpc::Status EmulatorServiceImpl::TestRun(grpc::ServerContext* context,
+                                          const agent::TestRunRequest* request,
+                                          agent::TestRunResponse* response) {
   return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                       "TestRun requires refactoring for IEmulator");
 }
@@ -503,22 +572,22 @@ grpc::Status EmulatorServiceImpl::TestRun(
 grpc::Status EmulatorServiceImpl::SaveState(
     grpc::ServerContext* context, const agent::SaveStateRequest* request,
     agent::SaveStateResponse* response) {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                        "SaveState not yet ported to IEmulator");
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                      "SaveState not yet ported to IEmulator");
 }
 
 grpc::Status EmulatorServiceImpl::LoadState(
     grpc::ServerContext* context, const agent::LoadStateRequest* request,
     agent::LoadStateResponse* response) {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                        "LoadState not yet ported to IEmulator");
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                      "LoadState not yet ported to IEmulator");
 }
 
 grpc::Status EmulatorServiceImpl::ListStates(
     grpc::ServerContext* context, const agent::ListStatesRequest* request,
     agent::ListStatesResponse* response) {
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                        "ListStates not yet ported to IEmulator");
+  return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                      "ListStates not yet ported to IEmulator");
 }
 
 }  // namespace yaze::net

@@ -10,6 +10,26 @@
 namespace yaze {
 namespace editor {
 
+class SpriteCatalogPanel : public WindowContent {
+ public:
+  explicit SpriteCatalogPanel(std::function<void()> draw)
+      : draw_(std::move(draw)) {}
+  std::string GetId() const override { return "sprite.catalog"; }
+  std::string GetDisplayName() const override { return "Sprite Catalog"; }
+  std::string GetIcon() const override { return ICON_MD_SMART_TOY; }
+  std::string GetEditorCategory() const override { return "Sprite"; }
+  int GetPriority() const override { return 15; }
+  bool IsVisibleByDefault() const override { return false; }
+  float GetPreferredWidth() const override { return 900.0f; }
+  void Draw(bool*) override {
+    if (draw_)
+      draw_();
+  }
+
+ private:
+  std::function<void()> draw_;
+};
+
 // =============================================================================
 // WindowContent wrappers for SpriteEditor panels
 // =============================================================================

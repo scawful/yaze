@@ -265,17 +265,119 @@ because they come from separate global tables rather than the encoded room
 object stream. Without the flag, the legacy output and count are unchanged.
 
 ### Overworld Commands
-- `overworld-describe-map --map <hex>`
-- `overworld-find-tile --tile <hex>`
-- `overworld-list-warps --map <hex>`
-- `overworld-list-sprites --map <hex>`
+- `overworld-describe-map --screen <hex>`
+- `overworld-get-tile --map <hex> --x <area_tile_x> --y <area_tile_y>`
+- `overworld-set-tile --map <hex> --x <area_tile_x> --y <area_tile_y> --tile <hex> [--write] [--allow-project-rom]`
+- `overworld-find-tile --tile <hex> [--map <hex>] [--world <light|dark|special>]`
+- `overworld-list-warps [--screen <hex>]`
+- `overworld-list-sprites [--screen <hex>] [--phase <0|1|2>]`
 - `overworld-list-items --map <hex>`
 - `overworld-get-entrance --entrance <hex>`
 - `overworld-tile-stats --map <hex>`
+- `overworld-render --screen <hex> --out <file.png> [--overlays <list>] [--phase <0|1|2>] [--scale <float>]`
+- `overworld-add-sprite --screen <hex> --phase <0|1|2> --id <hex> --x <tile> --y <tile> [--replace-index <n>] [--write]`
+- `overworld-move-sprite --screen <hex> --phase <0|1|2> --index <n> --x <tile> --y <tile> [--expect-id <hex>] [--write]`
+- `overworld-remove-sprite --screen <hex> --phase <0|1|2> --index <n> [--expect-id <hex>] [--write]`
 
 Example:
 ```bash
-z3ed overworld-describe-map --map=0x40 --rom=zelda3.sfc
+z3ed overworld-describe-map --screen=0x40 --rom=zelda3.sfc
+```
+
+#### Overworld tile coordinates
+IDs (`--map`, `--screen`, `--tile`) are hex. `--x`/`--y` are decimal tile16
+coordinates (a `0x` prefix selects hex) relative to the top-left of the
+screen's parent area: 0-31 on a small area and 0-63 on each doubled axis of a
+large, wide, or tall area (`overworld-describe-map` reports `area_tiles`).
+A child screen of a large area resolves to its parent, so `--map 0x41 --x 40`
+and `--map 0x40 --x 40` name the same tile. Output reports the resolved
+`parent_area`, the `screen` holding the tile with `screen_x`/`screen_y`
+(0-31), and `world_x`/`world_y` (editor canvas tile). `overworld-find-tile`
+matches carry the same `x`/`y`, so they can be passed straight back.
+
+`overworld-set-tile` is dry-run by default. Both modes rebuild the tile32 table
+and compressed screens exactly as the editor's overworld save does (tile16
+definitions are untouched), fail closed if a changed byte falls outside the
+overworld save regions (`bytes_outside_save_ranges`), reload the result, and
+fail with `DATA_LOSS` unless every world's tile grid reads back with only the
+requested change. The output reports `changed_bytes`/`changed_ranges`; the
+tile32 table is rebuilt, so one tile can move ~100 KB on an expanded ROM. `--write` then saves with a
+required backup and checks the file matches the verified image. It refuses a
+ROM inside an Oracle of Secrets checkout unless `--allow-project-rom`.
+
+```bash
+z3ed overworld-get-tile --map=0x40 --x=40 --y=10 --rom=copy.sfc
+z3ed overworld-set-tile --map=0x40 --x=40 --y=10 --tile=0x0255 --rom=copy.sfc
+```
+
+#### Sprite phases
+The game keeps one overworld sprite list per game state ("phase"):
+`0` = beginning, `1` = first part, `2` = second part. Vanilla picks them by
+`$7EF3C5` (< 2, 2, >= 3) and only has phase-0 lists for the Light World.
+ZSCustomOverworld v3 gives every phase 160 entries. Oracle of Secrets
+(`LoadOverworldSprites_Interupt` + `Oracle_CheckIfNight`) uses phase 0 for
+GameState 0-1, phase 1 for GameState 2 in daytime, and phase 2 at night
+(GameState >= 2) or at GameState 3.
+
+`overworld-list-sprites` still lists every phase by default; each entry now
+carries `phase`, `phase_name`, `list_index`, and `tile` (16px units within the
+parent area). `--phase` filters. `--screen` of a child resolves to its parent.
+
+#### `overworld-render`
+Renders the whole area containing `--screen` from current ROM data. A child of
+a large, wide, or tall area resolves to its parent. `--out` (alias `--output`)
+must not alias the ROM. Overlays: `sprites`, `entrances`, `exits`, `holes`,
+`items`, `grid`, `all` (`all` excludes `grid`). Labels: sprite ids in hex
+(`<phase>:<id>` when every phase is drawn; phase 0 green, 1 red, 2 blue),
+`E<entrance>`, `X<exit room>`, `H<hole entrance>`, `I<item>`. JSON output lists
+every marker with area-local pixel coordinates.
+
+```bash
+z3ed overworld-render --rom=copy.sfc --screen=0x41 --out=/tmp/ow40.png \
+  --overlays=all --phase=1
+```
+
+#### Overworld sprite edits
+`overworld-add-sprite`, `overworld-move-sprite`, and `overworld-remove-sprite`
+edit exactly one phase list of one parent area. They are dry-run by default and
+print the list before/after, exact duplicate entries, the pointer slot, and
+every PC/SNES byte range to be written. The planner changes as few bytes as
+possible:
+
+- `in-place`: the list is not shared and does not grow.
+- `grow-in-place`: the bytes after the list are unreferenced by any pointer.
+- `relocate`: the list is copied to an unreferenced run and only this slot's
+  pointer changes (other slots sharing the old list keep it).
+- refused (`RESOURCE_EXHAUSTED`): no unreferenced run fits; nothing is written.
+
+The region ends at the room sprite pointer table (`$09:C298` operand), which
+ZScream may move below `$09:D62E`. `--replace-index` swaps an entry for the new
+sprite in one edit. `--write` applies through the fenced sprite writer, saves
+with a required backup, reopens the file, and fails with `DATA_LOSS` if the list
+does not read back or any byte outside the plan changed. `--write` refuses a ROM
+inside an Oracle of Secrets checkout (`Roms/` next to `Oracle_main.asm`) unless
+`--allow-project-rom` is given.
+
+### Graphics Sheet Commands
+- `gfx-sheet-inventory [--reserved <ids>] [--flagged <ids>] [--labels-csv <file>] [--out <file.json>]`
+  lists all 223 sheets with storage, empty 16x16 blocks, reserved/flagged
+  state, and the blocksets, spritesets, overworld areas and rooms that use
+  each sheet. Reserved and flagged sheets also come from the project's
+  `[graphics_sheets]` section (`--project-context`) and the hack manifest.
+- `graphics-doctor [--sheet <id>] [--verbose]` checks pointers, decoded sizes,
+  overlapping sheets and group-table references.
+
+Example:
+```bash
+z3ed gfx-sheet-inventory --rom=oos168x.sfc --reserved=0x7B,0x7C --out=inventory.json
+```
+
+Project rules (`.yaze` file):
+```ini
+[graphics_sheets]
+reserved_sheets=0x7B,0x7C
+flagged_sheets=0xD4,0xD6
+reserved_blocks=0x55:0,1;0xC7:15
 ```
 
 ### GUI Automation (requires GUI gRPC server)

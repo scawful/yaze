@@ -17,6 +17,7 @@
 #include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/zelda3_labels.h"
 
 namespace yaze {
@@ -133,7 +134,6 @@ class ChestEditorPanel : public WindowContent {
       return;
     }
 
-    const auto& item_names = zelda3::Zelda3Labels::GetItemNames();
     float list_height =
         std::min(200.0f, ImGui::GetContentRegionAvail().y * 0.5f);
     ImGui::BeginChild("##ChestList", ImVec2(0, list_height), true);
@@ -150,10 +150,7 @@ class ChestEditorPanel : public WindowContent {
       const char* size_label = chest.size ? "Big" : "Small";
 
       // Get item name
-      std::string item_name =
-          (chest.id < item_names.size())
-              ? item_names[chest.id]
-              : absl::StrFormat("Unknown (0x%02X)", chest.id);
+      std::string item_name = zelda3::GetItemReceiptLabel(chest.id);
 
       // Selectable list item
       std::string label = absl::StrFormat("%s [%zu] %s: %s", size_icon, i + 1,
@@ -191,7 +188,7 @@ class ChestEditorPanel : public WindowContent {
     }
 
     auto& chest = chests[selected_chest_index_];
-    const auto& item_names = zelda3::Zelda3Labels::GetItemNames();
+    const auto& item_names = zelda3::Zelda3Labels::GetItemReceiptNames();
 
     ImGui::Text(ICON_MD_EDIT " Editing Chest #%d", selected_chest_index_ + 1);
 
@@ -219,11 +216,8 @@ class ChestEditorPanel : public WindowContent {
     ImGui::Text(tr("Item:"));
     ImGui::SameLine();
 
-    std::string current_item =
-        (chest.id < item_names.size())
-            ? absl::StrFormat("[%02X] %s", chest.id,
-                              item_names[chest.id].c_str())
-            : absl::StrFormat("[%02X] Unknown", chest.id);
+    std::string current_item = absl::StrFormat(
+        "[%02X] %s", chest.id, zelda3::GetItemReceiptLabel(chest.id));
 
     ImGui::SetNextItemWidth(-1);
     if (ImGui::BeginCombo("##ItemSelect", current_item.c_str())) {
@@ -236,7 +230,8 @@ class ChestEditorPanel : public WindowContent {
       for (size_t i = 0; i < item_names.size(); ++i) {
         // Apply search filter
         if (search_buf[0] != '\0') {
-          std::string name_lower = item_names[i];
+          std::string name_lower =
+              zelda3::GetItemReceiptLabel(static_cast<uint8_t>(i));
           std::string filter_lower = search_buf;
           for (auto& c : name_lower) {
             c = static_cast<char>(tolower(static_cast<unsigned char>(c)));
@@ -250,7 +245,8 @@ class ChestEditorPanel : public WindowContent {
         }
 
         std::string item_label = absl::StrFormat(
-            "[%02X] %s", static_cast<int>(i), item_names[i].c_str());
+            "[%02X] %s", static_cast<int>(i),
+            zelda3::GetItemReceiptLabel(static_cast<uint8_t>(i)).c_str());
         bool is_selected = (chest.id == static_cast<uint8_t>(i));
 
         if (ImGui::Selectable(item_label.c_str(), is_selected)) {

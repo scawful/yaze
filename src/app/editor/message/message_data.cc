@@ -351,6 +351,120 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom) {
   return AllDictionaries;
 }
 
+std::vector<std::vector<uint8_t>> ReadDictionaryEntryBytes(const uint8_t* rom,
+                                                           size_t rom_size) {
+  // Pointers are offsets in bank $0E; the table holds one more pointer than
+  // entries, which ends the last entry.
+  const size_t table_end =
+      kPointersDictionaries + (kNumDictionaryEntries + 1) * 2;
+  if (rom == nullptr || table_end > rom_size) {
+    return {};
+  }
+  auto entry_pc = [&](int index) -> uint32_t {
+    const size_t at = kPointersDictionaries + index * 2;
+    const uint16_t pointer = rom[at] | (rom[at + 1] << 8);
+    return SnesToPc(0x0E0000 | pointer);
+  };
+  std::vector<std::vector<uint8_t>> entries;
+  entries.reserve(kNumDictionaryEntries);
+  for (int index = 0; index < kNumDictionaryEntries; ++index) {
+    const uint32_t start = entry_pc(index);
+    const uint32_t end = entry_pc(index + 1);
+    if (end < start || end > rom_size) {
+      return {};
+    }
+    entries.emplace_back(rom + start, rom + end);
+  }
+  return entries;
+}
+
+std::vector<uint8_t> ExpandMessageDictionary(
+    const std::vector<uint8_t>& data,
+    const std::vector<std::vector<uint8_t>>& dictionary) {
+  std::vector<uint8_t> out;
+  out.reserve(data.size() * 2);
+  for (size_t index = 0; index < data.size(); ++index) {
+    const uint8_t value = data[index];
+    const size_t entry = value >= DICTOFF ? static_cast<size_t>(value - DICTOFF)
+                                          : dictionary.size();
+    if (entry < dictionary.size()) {
+      out.insert(out.end(), dictionary[entry].begin(), dictionary[entry].end());
+      continue;
+    }
+    out.push_back(value);
+    const auto command = FindMatchingCommand(value);
+    if (command.has_value() && command->HasArgument &&
+        index + 1 < data.size()) {
+      out.push_back(data[++index]);
+    }
+  }
+  return out;
+}
+
+std::vector<uint8_t> CompressMessageWithDictionary(
+    const std::vector<uint8_t>& data,
+    const std::vector<std::vector<uint8_t>>& dictionary) {
+  constexpr uint8_t kFirstCommandByte = 0x67;
+  std::vector<uint8_t> out;
+  out.reserve(data.size());
+
+  // Fewest bytes for one character run: cost[i] covers run[i..], and
+  // choice[i] is the dictionary entry used at i (-1 keeps the character).
+  auto compress_run = [&](size_t begin, size_t end) {
+    const size_t length = end - begin;
+    std::vector<size_t> cost(length + 1, 0);
+    std::vector<int> choice(length + 1, -1);
+    for (size_t i = length; i-- > 0;) {
+      cost[i] = cost[i + 1] + 1;
+      for (size_t entry = 0; entry < dictionary.size(); ++entry) {
+        const std::vector<uint8_t>& word = dictionary[entry];
+        if (word.size() < 2 || word.size() > length - i ||
+            !std::equal(
+                word.begin(), word.end(),
+                data.begin() + static_cast<std::ptrdiff_t>(begin + i))) {
+          continue;
+        }
+        if (cost[i + word.size()] + 1 < cost[i]) {
+          cost[i] = cost[i + word.size()] + 1;
+          choice[i] = static_cast<int>(entry);
+        }
+      }
+    }
+    for (size_t i = 0; i < length;) {
+      if (choice[i] < 0) {
+        out.push_back(data[begin + i]);
+        ++i;
+      } else {
+        out.push_back(static_cast<uint8_t>(DICTOFF + choice[i]));
+        i += dictionary[choice[i]].size();
+      }
+    }
+  };
+
+  size_t index = 0;
+  while (index < data.size()) {
+    if (data[index] < kFirstCommandByte) {
+      size_t run_end = index;
+      while (run_end < data.size() && data[run_end] < kFirstCommandByte) {
+        ++run_end;
+      }
+      compress_run(index, run_end);
+      index = run_end;
+      continue;
+    }
+    out.push_back(data[index]);
+    const auto command = FindMatchingCommand(data[index]);
+    if (command.has_value() && command->HasArgument &&
+        index + 1 < data.size()) {
+      out.push_back(data[index + 1]);
+      index += 2;
+      continue;
+    }
+    ++index;
+  }
+  return out;
+}
+
 std::string ReplaceAllDictionaryWords(
     std::string str, const std::vector<DictionaryEntry>& dictionary) {
   std::string temp = std::move(str);
@@ -1262,6 +1376,34 @@ VanillaMessageSavePlan::write_ranges() const {
   ranges.reserve(writes_.size());
   for (const VanillaMessageWrite& write : writes_) {
     ranges.emplace_back(write.start(), write.end());
+  }
+  return ranges;
+}
+
+std::vector<std::pair<uint32_t, uint32_t>>
+VanillaMessageSavePlan::ChangedRanges(const uint8_t* rom,
+                                      size_t rom_size) const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  for (const VanillaMessageWrite& write : writes_) {
+    const std::vector<uint8_t>& bytes = write.bytes();
+    auto differs = [&](size_t offset) {
+      const size_t pc = write.start() + offset;
+      return rom == nullptr || pc >= rom_size || rom[pc] != bytes[offset];
+    };
+    size_t offset = 0;
+    while (offset < bytes.size()) {
+      if (!differs(offset)) {
+        ++offset;
+        continue;
+      }
+      size_t end = offset + 1;
+      while (end < bytes.size() && differs(end)) {
+        ++end;
+      }
+      ranges.emplace_back(write.start() + static_cast<uint32_t>(offset),
+                          write.start() + static_cast<uint32_t>(end));
+      offset = end;
+    }
   }
   return ranges;
 }

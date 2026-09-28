@@ -1,6 +1,8 @@
 #include "rom.h"
 
 #include <algorithm>
+#include <atomic>
+#include <cerrno>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -14,6 +16,7 @@
 #include <system_error>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -31,13 +34,11 @@
 #include "app/platform/wasm/wasm_collaboration.h"
 #endif
 
-#if !defined(__EMSCRIPTEN__)
 #if defined(_WIN32)
 #include <windows.h>
 #else
 #include <fcntl.h>
 #include <unistd.h>
-#endif
 #endif
 
 namespace yaze {
@@ -166,6 +167,139 @@ absl::Status CreateRequiredBackup(
   return absl::OkStatus();
 }
 
+// Match the exclusive staging contract used by CLI artifact publication.
+// Keep the name independent of the destination basename so long ROM filenames
+// still fit the filesystem's component limit. Exclusive creation, rather than
+// the nonce alone, establishes ownership; never reopen this path to write it.
+std::atomic<bool> g_fail_rom_staging_for_testing{false};
+
+absl::StatusOr<std::filesystem::path> WriteExclusiveRomTemp(
+    const std::filesystem::path& target_path,
+    const std::vector<uint8_t>& bytes) {
+  if (g_fail_rom_staging_for_testing.load(std::memory_order_relaxed)) {
+    return absl::InternalError(
+        "Could not create temp ROM file: staging failure injected for testing");
+  }
+  static std::atomic<uint64_t> sequence{0};
+  for (int attempt = 0; attempt < 100; ++attempt) {
+    const auto tick = static_cast<uint64_t>(
+        std::chrono::steady_clock::now().time_since_epoch().count());
+    const auto id = sequence.fetch_add(1, std::memory_order_relaxed);
+    const auto temp_path =
+        target_path.parent_path() /
+        absl::StrFormat(".yaze-rom-%016x-%016x.tmp", tick, id);
+#if defined(_WIN32)
+    HANDLE file =
+        CreateFileW(temp_path.wstring().c_str(), GENERIC_WRITE, 0, nullptr,
+                    CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (file == INVALID_HANDLE_VALUE) {
+      const DWORD error = GetLastError();
+      if (error == ERROR_FILE_EXISTS || error == ERROR_ALREADY_EXISTS) {
+        continue;
+      }
+      return absl::InternalError(absl::StrCat(
+          "Could not create temp ROM file: ", temp_path.string(), ": ",
+          std::error_code(static_cast<int>(error), std::system_category())
+              .message()));
+    }
+#else
+    int file = open(temp_path.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0666);
+    if (file < 0) {
+      const int error = errno;
+      if (error == EEXIST) {
+        continue;
+      }
+      return absl::InternalError(absl::StrCat(
+          "Could not create temp ROM file: ", temp_path.string(), ": ",
+          std::error_code(error, std::generic_category()).message()));
+    }
+#endif
+    // Only installed after successful exclusive creation. On failure we may
+    // remove our staging file, never a pre-existing destination or .tmp file.
+    absl::Cleanup cleanup = [&] {
+#if defined(_WIN32)
+      if (file != INVALID_HANDLE_VALUE) {
+        (void)CloseHandle(file);
+      }
+#else
+      if (file >= 0) {
+        (void)close(file);
+      }
+#endif
+      std::error_code ec;
+      std::filesystem::remove(temp_path, ec);
+    };
+
+    size_t offset = 0;
+    while (offset < bytes.size()) {
+      const size_t chunk = std::min<size_t>(bytes.size() - offset, 1024 * 1024);
+#if defined(_WIN32)
+      DWORD written = 0;
+      const bool ok = WriteFile(file, bytes.data() + offset,
+                                static_cast<DWORD>(chunk), &written, nullptr);
+      const int error =
+          ok ? ERROR_WRITE_FAULT : static_cast<int>(GetLastError());
+      if (!ok || written == 0) {
+        return absl::InternalError(absl::StrCat(
+            "Error while writing ROM file: ", temp_path.string(), ": ",
+            std::error_code(error, std::system_category()).message()));
+      }
+#else
+      const ssize_t written = write(file, bytes.data() + offset, chunk);
+      if (written < 0 && errno == EINTR) {
+        continue;
+      }
+      if (written <= 0) {
+        const int error = written < 0 ? errno : EIO;
+        return absl::InternalError(absl::StrCat(
+            "Error while writing ROM file: ", temp_path.string(), ": ",
+            std::error_code(error, std::generic_category()).message()));
+      }
+#endif
+      offset += static_cast<size_t>(written);
+    }
+
+#if defined(_WIN32)
+    if (!FlushFileBuffers(file)) {
+      const int error = static_cast<int>(GetLastError());
+      return absl::InternalError(absl::StrCat(
+          "Could not flush temp ROM file: ", temp_path.string(), ": ",
+          std::error_code(error, std::system_category()).message()));
+    }
+    const bool closed = CloseHandle(file);
+    const int close_error = closed ? 0 : static_cast<int>(GetLastError());
+    file = INVALID_HANDLE_VALUE;
+    const auto close_category = &std::system_category();
+#else
+#if !defined(__EMSCRIPTEN__)
+    int flush_result;
+    do {
+      flush_result = fsync(file);
+    } while (flush_result != 0 && errno == EINTR);
+    if (flush_result != 0) {
+      const int error = errno;
+      return absl::InternalError(absl::StrCat(
+          "Could not flush temp ROM file: ", temp_path.string(), ": ",
+          std::error_code(error, std::generic_category()).message()));
+    }
+#endif
+    const int close_result = close(file);
+    const int close_error = close_result == 0 ? 0 : errno;
+    file = -1;
+    const auto close_category = &std::generic_category();
+#endif
+    if (close_error != 0) {
+      return absl::InternalError(absl::StrCat(
+          "Could not close temp ROM file: ", temp_path.string(), ": ",
+          std::error_code(close_error, *close_category).message()));
+    }
+    std::move(cleanup).Cancel();
+    return temp_path;
+  }
+  return absl::ResourceExhaustedError(
+      "Could not allocate a unique temp ROM file");
+}
+
 #ifdef __EMSCRIPTEN__
 inline void MaybeBroadcastChange(uint32_t offset,
                                  const std::vector<uint8_t>& old_bytes,
@@ -223,6 +357,10 @@ void BestEffortFsyncParentDir(const std::filesystem::path& file_path) {
 #endif  // !defined(__EMSCRIPTEN__)
 
 }  // namespace
+
+void Rom::SetStagingFailureForTesting(bool fail) {
+  g_fail_rom_staging_for_testing.store(fail, std::memory_order_relaxed);
+}
 
 Rom::Rom(const Rom& other)
     : size_(other.size_),
@@ -471,34 +609,11 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     }
   }
 
-  // Save stability: write to a temp file in the same directory and rename into
-  // place. If we crash mid-write, the original ROM stays intact.
+  // Write only through an exclusively created staging handle, then replace
+  // the destination. A pre-existing .tmp file/link must never be truncated.
   const std::filesystem::path target_path(filename);
-  std::filesystem::path temp_path = target_path;
-  temp_path += ".tmp";
-
-  std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
-  if (!file) {
-    return absl::InternalError(absl::StrCat(
-        "Could not open temp ROM file for writing: ", temp_path.string()));
-  }
-
-  file.write(reinterpret_cast<const char*>(rom_data_.data()), rom_data_.size());
-  file.flush();
-  if (!file) {
-    file.close();
-    std::error_code rm_ec;
-    std::filesystem::remove(temp_path, rm_ec);
-    return absl::InternalError(
-        absl::StrCat("Error while writing ROM file: ", temp_path.string()));
-  }
-
-  file.close();
-
-#if !defined(__EMSCRIPTEN__)
-  // Best-effort fsync so temp file contents are durable before rename.
-  BestEffortFsyncFile(temp_path);
-#endif
+  ASSIGN_OR_RETURN(const std::filesystem::path temp_path,
+                   WriteExclusiveRomTemp(target_path, rom_data_));
 
   std::error_code rename_ec;
   std::filesystem::rename(temp_path, target_path, rename_ec);

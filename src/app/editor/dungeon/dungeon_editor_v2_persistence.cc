@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cstdio>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -23,7 +24,6 @@
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
-#include "app/editor/dungeon/ui/window/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/ui/window/item_editor_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
@@ -83,6 +83,26 @@ constexpr char kMinecartDraftSaveBlockMessage[] =
     "publishes ASM source; use Publish Tracks in the Minecart Track Editor "
     "or discard the drafts first.";
 
+absl::Status ValidateChestObjectSaveCoupling(const DungeonRoomStore& rooms,
+                                             int only_room = -1) {
+  const auto& flags = core::FeatureFlags::get().dungeon;
+  absl::Status status;
+  rooms.ForEachMaterialized([&](int id, const zelda3::Room& room) {
+    if (!status.ok() || !room.chests_dirty() || !room.object_stream_dirty())
+      return;
+    const bool writes_objects = flags.kSaveObjects && room.IsLoaded() &&
+                                (only_room < 0 || only_room == id);
+    if (writes_objects == flags.kSaveChests)
+      return;
+    status = absl::FailedPreconditionError(absl::StrFormat(
+        "Room 0x%03X has pending chest object and reward edits. Enable both "
+        "Room Objects and Chests, then apply that room or save all rooms "
+        "together before applying another room.",
+        id));
+  });
+  return status;
+}
+
 absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -98,14 +118,19 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
     return absl::OkStatus();
   }
 
-  std::vector<zelda3::WaterFillZoneEntry> zones;
-  zones.reserve(8);
+  // Preserve saved zones even when no viewer has materialized their room.
+  ASSIGN_OR_RETURN(auto saved_zones, zelda3::LoadWaterFillTable(rom));
+  std::map<int, zelda3::WaterFillZoneEntry> merged;
+  for (auto& zone : saved_zones)
+    merged[zone.room_id] = std::move(zone);
   for (int room_id = 0; room_id < static_cast<int>(rooms.size()); ++room_id) {
     auto* room = rooms.GetIfMaterialized(room_id);
     if (room == nullptr) {
       continue;
     }
     if (!room->has_water_fill_zone()) {
+      if (room->water_fill_dirty())
+        merged.erase(room_id);
       continue;
     }
 
@@ -130,8 +155,12 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
         z.fill_offsets.push_back(static_cast<uint16_t>(i));
       }
     }
-    zones.push_back(std::move(z));
+    merged[room_id] = std::move(z);
   }
+
+  std::vector<zelda3::WaterFillZoneEntry> zones;
+  for (auto& [id, zone] : merged)
+    zones.push_back(std::move(zone));
 
   if (zones.size() > 8) {
     return absl::InvalidArgumentError(absl::StrFormat(
@@ -425,6 +454,9 @@ absl::Status DungeonEditorV2::BeginSaveTransaction() {
         "Dungeon save transaction is already active");
   }
 
+  // A save is a history boundary: a later drag increment must not restore
+  // dirty flags captured before the bytes we are about to publish.
+  FinalizePendingUndoActions();
   SaveTransactionSnapshot snapshot;
   auto& palette_manager = gfx::PaletteManager::Get();
   if (core::FeatureFlags::get().dungeon.kSavePalettes &&
@@ -541,7 +573,9 @@ absl::Status DungeonEditorV2::Save() {
         "using Save or Apply Room");
   }
 
+  FinalizePendingUndoActions();
   const auto& flags = core::FeatureFlags::get().dungeon;
+  RETURN_IF_ERROR(ValidateChestObjectSaveCoupling(rooms_));
   std::optional<zelda3::ChestSavePlan> chest_save_plan;
 
   if (flags.kSaveCollision) {
@@ -924,6 +958,12 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 }
 
 absl::Status DungeonEditorV2::SaveRoom(int room_id) {
+  return SaveRoomImpl(room_id, false);
+}
+
+// The room-only path is used exclusively by a detached scratch editor during
+// transfer preflight. It cannot save project-global palettes, pits or entrances.
+absl::Status DungeonEditorV2::SaveRoomImpl(int room_id, bool room_data_only) {
   if (minecart_track_editor_panel_ != nullptr &&
       minecart_track_editor_panel_->HasUnpublishedChanges()) {
     return absl::FailedPreconditionError(kMinecartDraftSaveBlockMessage);
@@ -934,12 +974,13 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
         "Apply or explicitly discard Object Tile Editor changes before "
         "using Save or Apply Room");
   }
-  return RunWithSaveTransaction([this, room_id]() -> absl::Status {
+  auto operation = [this, room_id, room_data_only]() -> absl::Status {
     if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
       return absl::InvalidArgumentError("Invalid room ID");
     }
 
     const auto& flags = core::FeatureFlags::get().dungeon;
+    RETURN_IF_ERROR(ValidateChestObjectSaveCoupling(rooms_, room_id));
     std::optional<zelda3::ChestSavePlan> chest_save_plan;
     if (flags.kSaveCollision) {
       RETURN_IF_ERROR(ValidateCustomCollisionManifestConflicts(
@@ -953,7 +994,7 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           absl::StrFormat("water fill zones for room 0x%03X", room_id),
           dependencies_.toast_manager));
     }
-    if (flags.kSaveEntrances) {
+    if (!room_data_only && flags.kSaveEntrances) {
       RETURN_IF_ERROR(ValidateDungeonEntranceSavePreflight(
           dependencies_.project, rom_, entrances_, spawn_points_,
           absl::StrFormat(
@@ -980,7 +1021,8 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           dependencies_.toast_manager));
     }
     auto& palette_manager = gfx::PaletteManager::Get();
-    if (flags.kSavePalettes && palette_manager.HasUnsavedChanges(game_data_)) {
+    if (!room_data_only && flags.kSavePalettes &&
+        palette_manager.HasUnsavedChanges(game_data_)) {
       if (!palette_manager.IsManaging(game_data_)) {
         return absl::FailedPreconditionError(
             "Cannot save dungeon palettes from a different ROM session");
@@ -1005,7 +1047,7 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           rom_, static_cast<int>(rooms_.size()),
           [this](int id) { return rooms_.GetIfMaterialized(id); }));
     }
-    if (flags.kSavePits) {
+    if (!room_data_only && flags.kSavePits) {
       RETURN_IF_ERROR(zelda3::SaveAllPits(
           rom_, game_data_ ? &game_data_->pit_damage_table : nullptr));
     }
@@ -1031,13 +1073,16 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
       RETURN_IF_ERROR(
           SaveAllPotItemsForProject(dependencies_.project, rom_, rooms_));
     }
-    if (flags.kSaveEntrances) {
+    if (!room_data_only && flags.kSaveEntrances) {
       RETURN_IF_ERROR(zelda3::SaveAllDungeonEntrances(rom_, entrances_));
       RETURN_IF_ERROR(zelda3::SaveAllDungeonSpawnPoints(rom_, spawn_points_));
     }
 
     return absl::OkStatus();
-  });
+  };
+  // Scratch state is discarded after either outcome; no live palette/history
+  // transaction should be started by a preview.
+  return room_data_only ? operation() : RunWithSaveTransaction(operation);
 }
 
 absl::Status DungeonEditorV2::SaveRoomData(int room_id) {

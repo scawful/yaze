@@ -1,6 +1,9 @@
 #include "app/editor/system/commands/shortcut_configurator.h"
 
 #include <algorithm>
+#include <map>
+#include <optional>
+#include <unordered_map>
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_format.h"
@@ -24,10 +27,12 @@
 #include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/editor/system/workspace/editor_registry.h"
 #include "app/editor/system/workspace/proposal_drawer.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 
 namespace yaze::editor {
 
@@ -66,6 +71,29 @@ void RegisterIfValid(ShortcutManager* shortcut_manager, const std::string& name,
   shortcut_manager->RegisterShortcut(name, key, std::move(callback), scope);
 }
 
+void RegisterEditorIfValid(ShortcutManager* shortcut_manager,
+                           const std::string& name,
+                           const std::vector<ImGuiKey>& keys,
+                           std::function<void()> callback,
+                           EditorType editor_type) {
+  if (!shortcut_manager || !callback) {
+    return;
+  }
+  shortcut_manager->RegisterEditorShortcut(name, keys, std::move(callback),
+                                           editor_type);
+}
+
+// Register a keyless palette alias for a legacy command name. The keyed entry
+// lives under the canonical name so one chord maps to one shortcut.
+void RegisterAlias(ShortcutManager* shortcut_manager, const std::string& alias,
+                   const std::string& canonical) {
+  const Shortcut* target = shortcut_manager->FindShortcut(canonical);
+  if (!target || !target->callback) {
+    return;
+  }
+  shortcut_manager->RegisterCommand(alias, target->callback, target->scope);
+}
+
 struct EditorShortcutDef {
   std::string id;
   std::vector<ImGuiKey> keys;
@@ -86,13 +114,46 @@ const std::vector<EditorShortcutDef> kMusicEditorShortcuts = {
 };
 
 const std::vector<EditorShortcutDef> kDungeonEditorShortcuts = {
+    {"dungeon.room.navigate_up",
+     {ImGuiMod_Ctrl, ImGuiKey_UpArrow},
+     "Adjacent room above"},
+    {"dungeon.room.navigate_down",
+     {ImGuiMod_Ctrl, ImGuiKey_DownArrow},
+     "Adjacent room below"},
+    {"dungeon.room.navigate_left",
+     {ImGuiMod_Ctrl, ImGuiKey_LeftArrow},
+     "Adjacent room to the left"},
+    {"dungeon.room.navigate_right",
+     {ImGuiMod_Ctrl, ImGuiKey_RightArrow},
+     "Adjacent room to the right"},
+    {"dungeon.room.previous",
+     {ImGuiMod_Ctrl, ImGuiKey_PageUp},
+     "Previous open/recent room"},
+    {"dungeon.room.next",
+     {ImGuiMod_Ctrl, ImGuiKey_PageDown},
+     "Next open/recent room"},
+    {"dungeon.open_room_list",
+     {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_L},
+     "Open Room List"},
+    {"dungeon.open_entrances",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_E},
+     "Open Entrances"},
+    {"dungeon.open_matrix",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_M},
+     "Open Room Matrix"},
+    {"dungeon.open_room_graphics",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_G},
+     "Open Room Graphics"},
+    {"dungeon.open_palette",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiMod_Alt, ImGuiKey_P},
+     "Open Palette Editor"},
     {"dungeon.object.select_tool", {ImGuiKey_S}, "Select tool"},
     {"dungeon.object.place_tool", {ImGuiKey_P}, "Place tool"},
     {"dungeon.object.delete_tool", {ImGuiKey_D}, "Delete tool"},
     {"dungeon.object.next_object", {ImGuiKey_RightBracket}, "Next object"},
     {"dungeon.object.prev_object", {ImGuiKey_LeftBracket}, "Previous object"},
-    {"dungeon.object.copy", {ImGuiMod_Ctrl, ImGuiKey_C}, "Copy selection"},
-    {"dungeon.object.paste", {ImGuiMod_Ctrl, ImGuiKey_V}, "Paste selection"},
+    // Ctrl+C / Ctrl+V go through the generic Copy/Paste editor shortcuts,
+    // which route to DungeonEditorV2::Copy()/Paste().
     {"dungeon.object.delete", {ImGuiKey_Delete}, "Delete selection"},
 };
 
@@ -101,15 +162,50 @@ const std::vector<EditorShortcutDef> kOverworldShortcuts = {
     {"overworld.fill", {ImGuiKey_F}, "Fill tool"},
     {"overworld.next_tile", {ImGuiKey_RightBracket}, "Next tile"},
     {"overworld.prev_tile", {ImGuiKey_LeftBracket}, "Previous tile"},
+    {"overworld.toggle_fullscreen", {ImGuiKey_F11}, "Toggle canvas fullscreen"},
+    {"overworld.toggle_lock", {ImGuiMod_Ctrl, ImGuiKey_L}, "Toggle map lock"},
+    {"overworld.toggle_tile16_editor",
+     {ImGuiMod_Ctrl, ImGuiKey_T},
+     "Toggle Tile16 editor"},
+    {"overworld.toggle_item_list",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_I},
+     "Toggle item list"},
+    // Plain digits 1-8 are tools/entity modes (interaction coordinator);
+    // Cmd/Ctrl+digits switch editors, so worlds use Alt+digits.
+    {"overworld.world_light", {ImGuiMod_Alt, ImGuiKey_1}, "Light World"},
+    {"overworld.world_dark", {ImGuiMod_Alt, ImGuiKey_2}, "Dark World"},
+    {"overworld.world_special", {ImGuiMod_Alt, ImGuiKey_3}, "Special World"},
+    {"overworld.map_left",
+     {ImGuiMod_Alt, ImGuiKey_LeftArrow},
+     "Map to the left"},
+    {"overworld.map_right",
+     {ImGuiMod_Alt, ImGuiKey_RightArrow},
+     "Map to the right"},
+    {"overworld.map_up", {ImGuiMod_Alt, ImGuiKey_UpArrow}, "Map above"},
+    {"overworld.map_down", {ImGuiMod_Alt, ImGuiKey_DownArrow}, "Map below"},
+    {"overworld.zoom_in", {ImGuiKey_Equal}, "Zoom in"},
+    {"overworld.zoom_in_keypad", {ImGuiKey_KeypadAdd}, "Zoom in (keypad)"},
+    {"overworld.zoom_out", {ImGuiKey_Minus}, "Zoom out"},
+    {"overworld.zoom_out_keypad",
+     {ImGuiKey_KeypadSubtract},
+     "Zoom out (keypad)"},
+    {"overworld.zoom_fit", {ImGuiKey_0}, "Zoom to fit world"},
+    {"overworld.center_map", {ImGuiKey_Home}, "Center on selected map"},
+    {"overworld.toggle_entities", {ImGuiKey_E}, "Show/hide entities"},
+    {"overworld.toggle_grid", {ImGuiKey_G}, "Show/hide grid"},
 };
 
+// Graphics shortcuts are editor-scoped to EditorType::kGraphics, so the
+// single-letter tool keys and =/- zoom only fire while the graphics editor
+// is focused and never steal keys from the overworld or music editors.
 const std::vector<EditorShortcutDef> kGraphicsShortcuts = {
     // Sheet navigation
     {"graphics.next_sheet", {ImGuiKey_PageDown}, "Next sheet"},
     {"graphics.prev_sheet", {ImGuiKey_PageUp}, "Previous sheet"},
 
     // Tool selection shortcuts
-    {"graphics.tool.select", {ImGuiKey_V}, "Select tool"},
+    {"graphics.tool.select", {ImGuiKey_M}, "Select tool"},
+    {"graphics.tool.hand", {ImGuiKey_H}, "Hand tool (pan)"},
     {"graphics.tool.pencil", {ImGuiKey_B}, "Pencil tool"},
     {"graphics.tool.brush", {ImGuiKey_P}, "Brush tool"},
     {"graphics.tool.eraser", {ImGuiKey_E}, "Eraser tool"},
@@ -142,6 +238,17 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   auto* ui_coordinator = deps.ui_coordinator;
   auto* popup_manager = deps.popup_manager;
   auto* window_manager = deps.window_manager;
+
+  if (editor_manager) {
+    shortcut_manager->SetActiveEditorProvider(
+        [editor_manager]() -> std::optional<EditorType> {
+          auto* current_editor = editor_manager->GetCurrentEditor();
+          if (!current_editor) {
+            return std::nullopt;
+          }
+          return current_editor->type();
+        });
+  }
 
   // Toggle activity bar (48px icon strip) visibility
   RegisterIfValid(
@@ -235,8 +342,10 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   RegisterIfValid(
       shortcut_manager, "Close ROM", {ImGuiMod_Ctrl, ImGuiKey_W},
       [editor_manager]() {
+        // CloseRom() works with a single session and asks about unsaved
+        // edits; CloseCurrentSession() refuses to close the last session.
         if (editor_manager) {
-          editor_manager->CloseCurrentSession();
+          editor_manager->CloseRom();
         }
       },
       Shortcut::Scope::kGlobal);
@@ -261,6 +370,16 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
 
   RegisterIfValid(
       shortcut_manager, "Redo", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_Z},
+      [editor_manager]() {
+        if (editor_manager && editor_manager->GetCurrentEditor()) {
+          editor_manager->GetCurrentEditor()->Redo();
+        }
+      },
+      Shortcut::Scope::kEditor);
+
+  // Menus advertise Ctrl+Y; keep Ctrl+Shift+Z as the primary binding.
+  RegisterIfValid(
+      shortcut_manager, "Redo (Alt)", {ImGuiMod_Ctrl, ImGuiKey_Y},
       [editor_manager]() {
         if (editor_manager && editor_manager->GetCurrentEditor()) {
           editor_manager->GetCurrentEditor()->Redo();
@@ -381,7 +500,9 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   register_editor_shortcut(EditorType::kPalette, ImGuiKey_7);
   register_editor_shortcut(EditorType::kScreen, ImGuiKey_8);
   register_editor_shortcut(EditorType::kAssembly, ImGuiKey_9);
-  register_editor_shortcut(EditorType::kSettings, ImGuiKey_0);
+  // Ctrl/Cmd+0 is "reset font scale"; Settings uses the platform-standard
+  // Ctrl/Cmd+, instead.
+  register_editor_shortcut(EditorType::kSettings, ImGuiKey_Comma);
 
   // ============================================================================
   // Editor Switch Commands (command palette with friendly names)
@@ -409,16 +530,11 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   // Editor-scoped Music shortcuts (toggle playback, speed controls)
   if (editor_manager) {
     for (const auto& def : kMusicEditorShortcuts) {
-      RegisterIfValid(
+      RegisterEditorIfValid(
           shortcut_manager, def.id, def.keys,
           [editor_manager, id = def.id]() {
             if (!editor_manager)
               return;
-            auto* current_editor = editor_manager->GetCurrentEditor();
-            if (!current_editor ||
-                current_editor->type() != EditorType::kMusic) {
-              return;
-            }
             auto* editor_set = editor_manager->GetCurrentEditorSet();
             auto* music_editor =
                 editor_set ? editor_set->GetMusicEditor() : nullptr;
@@ -437,70 +553,96 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               music_editor->SlowDown();
             }
           },
-          Shortcut::Scope::kEditor);
+          EditorType::kMusic);
     }
   }
 
   // Editor-scoped Dungeon shortcuts (object tools)
   if (editor_manager) {
     for (const auto& def : kDungeonEditorShortcuts) {
-      RegisterIfValid(
+      RegisterEditorIfValid(
           shortcut_manager, def.id, def.keys,
           [editor_manager, id = def.id]() {
             if (!editor_manager)
               return;
-            auto* current_editor = editor_manager->GetCurrentEditor();
-            if (!current_editor ||
-                current_editor->type() != EditorType::kDungeon) {
-              return;
-            }
             auto* editor_set = editor_manager->GetCurrentEditorSet();
             auto* dungeon_editor =
                 editor_set ? editor_set->GetDungeonEditor() : nullptr;
             if (!dungeon_editor)
               return;
-            auto* obj_selector = dungeon_editor->object_editor_panel();
-            auto* obj_editor = dungeon_editor->object_editor_content();
-            if (!obj_selector || !obj_editor)
-              return;
 
-            if (id == "dungeon.object.select_tool") {
-              // Unified mode: cancel placement to switch to selection
-              obj_selector->CancelPlacement();
-            } else if (id == "dungeon.object.place_tool") {
-              // Unified mode: handled by object selector click
-              // No-op (mode is controlled by selecting an object)
-            } else if (id == "dungeon.object.delete_tool") {
-              dungeon_editor->QueueRoomCanvasDeleteShortcut();
-            } else if (id == "dungeon.object.next_object") {
-              obj_editor->CycleObjectSelection(1);
-            } else if (id == "dungeon.object.prev_object") {
-              obj_editor->CycleObjectSelection(-1);
-            } else if (id == "dungeon.object.copy") {
-              obj_editor->CopySelectedObjects();
-            } else if (id == "dungeon.object.paste") {
-              obj_editor->PasteObjects();
-            } else if (id == "dungeon.object.delete") {
-              dungeon_editor->QueueRoomCanvasDeleteShortcut();
+            if (id == "dungeon.room.navigate_up") {
+              dungeon_editor->NavigateToAdjacentRoom(
+                  DungeonRoomNavigationDirection::kUp);
+            } else if (id == "dungeon.room.navigate_down") {
+              dungeon_editor->NavigateToAdjacentRoom(
+                  DungeonRoomNavigationDirection::kDown);
+            } else if (id == "dungeon.room.navigate_left") {
+              dungeon_editor->NavigateToAdjacentRoom(
+                  DungeonRoomNavigationDirection::kLeft);
+            } else if (id == "dungeon.room.navigate_right") {
+              dungeon_editor->NavigateToAdjacentRoom(
+                  DungeonRoomNavigationDirection::kRight);
+            } else if (id == "dungeon.room.previous") {
+              dungeon_editor->CycleRoomSelection(-1);
+            } else if (id == "dungeon.room.next") {
+              dungeon_editor->CycleRoomSelection(1);
+            } else if (id == "dungeon.open_room_list") {
+              dungeon_editor->OpenWindow(DungeonEditorV2::kRoomSelectorId);
+            } else if (id == "dungeon.open_entrances") {
+              dungeon_editor->OpenWindow("dungeon.entrance_properties");
+            } else if (id == "dungeon.open_matrix") {
+              dungeon_editor->OpenWindow(DungeonEditorV2::kRoomMatrixId);
+            } else if (id == "dungeon.open_room_graphics") {
+              dungeon_editor->OpenWindow(DungeonEditorV2::kRoomGraphicsId);
+            } else if (id == "dungeon.open_palette") {
+              dungeon_editor->OpenWindow(DungeonEditorV2::kPaletteEditorId);
+            } else {
+              auto* obj_selector = dungeon_editor->object_editor_panel();
+              auto* obj_editor = dungeon_editor->object_editor_content();
+              if (!obj_selector || !obj_editor)
+                return;
+              if (id == "dungeon.object.select_tool") {
+                // Unified mode: cancel placement to switch to selection
+                obj_selector->CancelPlacement();
+              } else if (id == "dungeon.object.place_tool") {
+                // Unified mode: handled by object selector click
+                // No-op (mode is controlled by selecting an object)
+              } else if (id == "dungeon.object.delete_tool") {
+                dungeon_editor->QueueRoomCanvasDeleteShortcut();
+              } else if (id == "dungeon.object.next_object") {
+                obj_editor->CycleObjectSelection(1);
+              } else if (id == "dungeon.object.prev_object") {
+                obj_editor->CycleObjectSelection(-1);
+              } else if (id == "dungeon.object.delete") {
+                dungeon_editor->QueueRoomCanvasDeleteShortcut();
+              }
             }
           },
-          Shortcut::Scope::kEditor);
+          EditorType::kDungeon);
+      if (def.id.starts_with("dungeon.room.")) {
+        shortcut_manager->SetShortcutEnabled(def.id, [editor_manager]() {
+          if (!editor_manager) {
+            return false;
+          }
+          auto* editor_set = editor_manager->GetCurrentEditorSet();
+          auto* dungeon_editor =
+              editor_set ? editor_set->GetDungeonEditor() : nullptr;
+          return dungeon_editor != nullptr &&
+                 dungeon_editor->CanHandleDungeonNavigationShortcut();
+        });
+      }
     }
   }
 
   // Editor-scoped Overworld shortcuts (basic tools)
   if (editor_manager) {
     for (const auto& def : kOverworldShortcuts) {
-      RegisterIfValid(
+      RegisterEditorIfValid(
           shortcut_manager, def.id, def.keys,
           [editor_manager, id = def.id]() {
             if (!editor_manager)
               return;
-            auto* current_editor = editor_manager->GetCurrentEditor();
-            if (!current_editor ||
-                current_editor->type() != EditorType::kOverworld) {
-              return;
-            }
             auto* editor_set = editor_manager->GetCurrentEditorSet();
             auto* overworld_editor =
                 editor_set ? editor_set->GetOverworldEditor() : nullptr;
@@ -515,38 +657,90 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               overworld_editor->CycleTileSelection(1);
             } else if (id == "overworld.prev_tile") {
               overworld_editor->CycleTileSelection(-1);
+            } else if (id == "overworld.toggle_fullscreen") {
+              overworld_editor->ToggleCanvasFullscreen();
+            } else if (id == "overworld.toggle_lock") {
+              overworld_editor->ToggleMapLock();
+            } else if (id == "overworld.toggle_tile16_editor") {
+              overworld_editor->ToggleTile16EditorWindow();
+            } else if (id == "overworld.toggle_item_list") {
+              overworld_editor->ToggleItemListWindow();
+            } else if (id == "overworld.world_light") {
+              overworld_editor->SwitchToWorld(0);
+            } else if (id == "overworld.world_dark") {
+              overworld_editor->SwitchToWorld(1);
+            } else if (id == "overworld.world_special") {
+              overworld_editor->SwitchToWorld(2);
+            } else if (id == "overworld.map_left") {
+              overworld_editor->SelectAdjacentMap(-1, 0);
+            } else if (id == "overworld.map_right") {
+              overworld_editor->SelectAdjacentMap(1, 0);
+            } else if (id == "overworld.map_up") {
+              overworld_editor->SelectAdjacentMap(0, -1);
+            } else if (id == "overworld.map_down") {
+              overworld_editor->SelectAdjacentMap(0, 1);
+            } else if (id == "overworld.zoom_in" ||
+                       id == "overworld.zoom_in_keypad") {
+              overworld_editor->ZoomIn();
+            } else if (id == "overworld.zoom_out" ||
+                       id == "overworld.zoom_out_keypad") {
+              overworld_editor->ZoomOut();
+            } else if (id == "overworld.zoom_fit") {
+              overworld_editor->ZoomToFit();
+            } else if (id == "overworld.center_map") {
+              overworld_editor->CenterOverworldView();
+            } else if (id == "overworld.toggle_entities") {
+              overworld_editor->ToggleEntityVisibility();
+            } else if (id == "overworld.toggle_grid") {
+              overworld_editor->ToggleGrid();
             }
           },
-          Shortcut::Scope::kEditor);
+          EditorType::kOverworld);
     }
   }
 
   // Editor-scoped Graphics shortcuts (sheet navigation)
   if (editor_manager) {
     for (const auto& def : kGraphicsShortcuts) {
-      RegisterIfValid(
+      RegisterEditorIfValid(
           shortcut_manager, def.id, def.keys,
           [editor_manager, id = def.id]() {
             if (!editor_manager)
               return;
-            auto* current_editor = editor_manager->GetCurrentEditor();
-            if (!current_editor ||
-                current_editor->type() != EditorType::kGraphics) {
-              return;
-            }
             auto* editor_set = editor_manager->GetCurrentEditorSet();
             auto* graphics_editor =
                 editor_set ? editor_set->GetGraphicsEditor() : nullptr;
             if (!graphics_editor)
               return;
 
+            static const std::map<std::string, PixelTool> kTools = {
+                {"graphics.tool.select", PixelTool::kSelect},
+                {"graphics.tool.hand", PixelTool::kHand},
+                {"graphics.tool.pencil", PixelTool::kPencil},
+                {"graphics.tool.brush", PixelTool::kBrush},
+                {"graphics.tool.eraser", PixelTool::kEraser},
+                {"graphics.tool.fill", PixelTool::kFill},
+                {"graphics.tool.line", PixelTool::kLine},
+                {"graphics.tool.rectangle", PixelTool::kRectangle},
+                {"graphics.tool.eyedropper", PixelTool::kEyedropper},
+            };
             if (id == "graphics.next_sheet") {
               graphics_editor->NextSheet();
             } else if (id == "graphics.prev_sheet") {
               graphics_editor->PrevSheet();
+            } else if (auto tool = kTools.find(id); tool != kTools.end()) {
+              graphics_editor->SetPixelTool(tool->second);
+            } else if (id == "graphics.zoom_in" ||
+                       id == "graphics.zoom_in_keypad") {
+              graphics_editor->ZoomIn();
+            } else if (id == "graphics.zoom_out" ||
+                       id == "graphics.zoom_out_keypad") {
+              graphics_editor->ZoomOut();
+            } else if (id == "graphics.toggle_grid") {
+              graphics_editor->ToggleGrid();
             }
           },
-          Shortcut::Scope::kEditor);
+          EditorType::kGraphics);
     }
   }
 
@@ -560,26 +754,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       Shortcut::Scope::kGlobal);
 
   RegisterIfValid(
-      shortcut_manager, "Panel Browser",
-      {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_B},
-      [ui_coordinator]() {
-        if (ui_coordinator) {
-          ui_coordinator->ShowWindowBrowser();
-        }
-      },
-      Shortcut::Scope::kGlobal);
-  RegisterIfValid(
       shortcut_manager, "Window Browser",
       {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_B},
-      [ui_coordinator]() {
-        if (ui_coordinator) {
-          ui_coordinator->ShowWindowBrowser();
-        }
-      },
-      Shortcut::Scope::kGlobal);
-  RegisterIfValid(
-      shortcut_manager, "Panel Browser (Alt)",
-      {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_P},
       [ui_coordinator]() {
         if (ui_coordinator) {
           ui_coordinator->ShowWindowBrowser();
@@ -595,19 +771,10 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
         }
       },
       Shortcut::Scope::kGlobal);
+  RegisterAlias(shortcut_manager, "Panel Browser", "Window Browser");
+  RegisterAlias(shortcut_manager, "Panel Browser (Alt)",
+                "Window Browser (Alt)");
 
-  RegisterIfValid(
-      shortcut_manager, "View: Previous Right Panel",
-      {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_LeftBracket},
-      [editor_manager]() {
-        if (!editor_manager) {
-          return;
-        }
-        if (auto* right_panel = editor_manager->right_drawer_manager()) {
-          right_panel->CycleToPreviousDrawer();
-        }
-      },
-      Shortcut::Scope::kGlobal);
   RegisterIfValid(
       shortcut_manager, "View: Previous Right Drawer",
       {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_LeftBracket},
@@ -622,18 +789,6 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       Shortcut::Scope::kGlobal);
 
   RegisterIfValid(
-      shortcut_manager, "View: Next Right Panel",
-      {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_RightBracket},
-      [editor_manager]() {
-        if (!editor_manager) {
-          return;
-        }
-        if (auto* right_panel = editor_manager->right_drawer_manager()) {
-          right_panel->CycleToNextDrawer();
-        }
-      },
-      Shortcut::Scope::kGlobal);
-  RegisterIfValid(
       shortcut_manager, "View: Next Right Drawer",
       {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_RightBracket},
       [editor_manager]() {
@@ -645,18 +800,14 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
         }
       },
       Shortcut::Scope::kGlobal);
+  RegisterAlias(shortcut_manager, "View: Previous Right Panel",
+                "View: Previous Right Drawer");
+  RegisterAlias(shortcut_manager, "View: Next Right Panel",
+                "View: Next Right Drawer");
 
   if (window_manager) {
     // Note: Using Ctrl+Alt for panel shortcuts to avoid conflicts with Save As
     // (Ctrl+Shift+S)
-    RegisterIfValid(
-        shortcut_manager, "Show Dungeon Panels",
-        {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
-        [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(
-              window_manager->GetActiveSessionId(), "Dungeon");
-        },
-        Shortcut::Scope::kEditor);
     RegisterIfValid(
         shortcut_manager, "Show Dungeon Windows",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
@@ -665,14 +816,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               window_manager->GetActiveSessionId(), "Dungeon");
         },
         Shortcut::Scope::kEditor);
-    RegisterIfValid(
-        shortcut_manager, "Show Graphics Panels",
-        {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_G},
-        [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(
-              window_manager->GetActiveSessionId(), "Graphics");
-        },
-        Shortcut::Scope::kEditor);
+    RegisterAlias(shortcut_manager, "Show Dungeon Panels",
+                  "Show Dungeon Windows");
     RegisterIfValid(
         shortcut_manager, "Show Graphics Windows",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_G},
@@ -681,14 +826,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               window_manager->GetActiveSessionId(), "Graphics");
         },
         Shortcut::Scope::kEditor);
-    RegisterIfValid(
-        shortcut_manager, "Show Screen Panels",
-        {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
-        [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(
-              window_manager->GetActiveSessionId(), "Screen");
-        },
-        Shortcut::Scope::kEditor);
+    RegisterAlias(shortcut_manager, "Show Graphics Panels",
+                  "Show Graphics Windows");
     RegisterIfValid(
         shortcut_manager, "Show Screen Windows",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
@@ -697,6 +836,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               window_manager->GetActiveSessionId(), "Screen");
         },
         Shortcut::Scope::kEditor);
+    RegisterAlias(shortcut_manager, "Show Screen Panels",
+                  "Show Screen Windows");
   }
 
 #ifdef YAZE_BUILD_AGENT_UI
@@ -857,22 +998,9 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               right_drawer_manager->ToggleDrawer(drawer_type);
             });
       }
-      shortcut_manager->RegisterCommand(
-          "View: Previous Right Panel", [right_drawer_manager]() {
-            right_drawer_manager->CycleToPreviousDrawer();
-          });
-      shortcut_manager->RegisterCommand(
-          "View: Previous Right Drawer", [right_drawer_manager]() {
-            right_drawer_manager->CycleToPreviousDrawer();
-          });
-      shortcut_manager->RegisterCommand(
-          "View: Next Right Panel", [right_drawer_manager]() {
-            right_drawer_manager->CycleToNextDrawer();
-          });
-      shortcut_manager->RegisterCommand(
-          "View: Next Right Drawer", [right_drawer_manager]() {
-            right_drawer_manager->CycleToNextDrawer();
-          });
+      // The Previous/Next Right Drawer cycle commands are registered above
+      // with their Ctrl+Alt+[ / ] chords; re-registering them here as
+      // keyless commands used to erase those chords.
     }
   }
 
@@ -1054,6 +1182,9 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                     }
                   });
 
+  // F11 and Ctrl+T (Test Dashboard) are global; the overworld editor's
+  // editor-scoped F11 (canvas fullscreen) and Ctrl+T (Tile16 editor) win
+  // while it is active.
   RegisterIfValid(shortcut_manager, "Maximize Window", ImGuiKey_F11,
                   [workspace_manager]() {
                     if (workspace_manager) {
@@ -1071,14 +1202,53 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
 #endif
 }
 
+void ApplyUserShortcutOverrides(const UserSettings& user_settings,
+                                ShortcutManager* shortcut_manager) {
+  if (!shortcut_manager) {
+    return;
+  }
+  auto apply = [&](const std::unordered_map<std::string, std::string>& map) {
+    for (const auto& [name, binding] : map) {
+      if (!shortcut_manager->FindShortcut(name)) {
+        continue;  // Stale entry for a shortcut that no longer exists.
+      }
+      if (binding.empty()) {
+        // Explicitly unbound by the user.
+        shortcut_manager->UpdateShortcutKeys(name, {});
+        continue;
+      }
+      auto keys = ParseShortcut(binding);
+      if (keys.empty()) {
+        LOG_WARN("Shortcuts", "Ignoring unparseable binding '%s' for '%s'",
+                 binding.c_str(), name.c_str());
+        continue;
+      }
+      shortcut_manager->UpdateShortcutKeys(name, keys);
+    }
+  };
+  apply(user_settings.prefs().global_shortcuts);
+  apply(user_settings.prefs().editor_shortcuts);
+}
+
 void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
                              ShortcutManager* shortcut_manager) {
-  if (!shortcut_manager || !deps.window_manager) {
+  if (!shortcut_manager) {
     return;
   }
 
   auto* window_manager = deps.window_manager;
   auto* user_settings = deps.user_settings;
+
+  // Global/editor rebinds from Settings are applied before panel bindings so
+  // the panel collision check below sees the user's effective chords.
+  if (user_settings) {
+    ApplyUserShortcutOverrides(*user_settings, shortcut_manager);
+  }
+
+  if (!window_manager) {
+    return;
+  }
+
   size_t session_id = deps.session_coordinator
                           ? deps.session_coordinator->GetActiveSessionId()
                           : 0;
@@ -1087,16 +1257,31 @@ void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
   auto categories = window_manager->GetAllCategories();
 
   for (const auto& category : categories) {
+    // Panels belong to the editor that owns their category; their toggles only
+    // compete for a chord while that editor is active.
+    std::optional<EditorType> owner;
+    const EditorType category_type =
+        EditorRegistry::GetEditorTypeFromCategory(category);
+    if (EditorRegistry::GetEditorCategory(category_type) == category) {
+      owner = category_type;
+    }
+
     auto panels = window_manager->GetWindowsInCategory(session_id, category);
 
     for (const auto& panel : panels) {
+      if (panel.shortcut_scope != WindowDescriptor::ShortcutScope::kPanel) {
+        continue;
+      }
+
       std::string shortcut_string;
+      bool user_defined = false;
 
       // Check for user-defined shortcut first
       if (user_settings) {
         auto it = user_settings->prefs().panel_shortcuts.find(panel.card_id);
         if (it != user_settings->prefs().panel_shortcuts.end()) {
           shortcut_string = it->second;
+          user_defined = !shortcut_string.empty();
         }
       }
 
@@ -1105,23 +1290,40 @@ void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
         shortcut_string = panel.shortcut_hint;
       }
 
-      // If we have a shortcut, parse and register it
-      if (!shortcut_string.empty()) {
-        auto keys = ParseShortcut(shortcut_string);
-        if (!keys.empty()) {
-          std::string panel_id_copy = panel.card_id;
-          // Toggle panel visibility shortcut
-          if (panel.shortcut_scope == WindowDescriptor::ShortcutScope::kPanel) {
-            std::string toggle_id = "view.toggle." + panel.card_id;
-            RegisterIfValid(shortcut_manager, toggle_id, keys,
-                            [window_manager, panel_id_copy]() {
-                              window_manager->ToggleWindow(
-                                  window_manager->GetActiveSessionId(),
-                                  panel_id_copy);
-                            });
-          }
+      if (shortcut_string.empty()) {
+        continue;
+      }
+      auto keys = ParseShortcut(shortcut_string);
+      if (keys.empty()) {
+        continue;
+      }
+
+      const std::string toggle_id = "view.toggle." + panel.card_id;
+      // A default hint must not shadow an existing binding (Command Palette,
+      // Save As, Window Browser, an editor's own keys, ...). The hint stays
+      // visible in the UI; the user can bind it explicitly in Settings.
+      if (!user_defined) {
+        const auto conflicts =
+            shortcut_manager->FindConflicts(keys, owner, toggle_id);
+        if (!conflicts.empty()) {
+          LOG_DEBUG("Shortcuts",
+                    "Skipping default panel shortcut %s for '%s' (used by "
+                    "'%s')",
+                    shortcut_string.c_str(), panel.card_id.c_str(),
+                    conflicts.front().c_str());
+          continue;
         }
       }
+
+      std::string panel_id_copy = panel.card_id;
+      RegisterIfValid(
+          shortcut_manager, toggle_id, keys,
+          [window_manager, panel_id_copy]() {
+            window_manager->ToggleWindow(window_manager->GetActiveSessionId(),
+                                         panel_id_copy);
+          },
+          Shortcut::Scope::kPanel);
+      shortcut_manager->SetShortcutEditor(toggle_id, owner);
     }
   }
 }

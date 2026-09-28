@@ -12,10 +12,12 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 // Project headers
+#include "app/editor/editor_manager.h"
 #include "app/editor/graphics/panels/graphics_editor_panels.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -35,11 +37,16 @@
 #include "app/gui/imgui_memory_editor.h"
 #include "app/gui/widgets/asset_browser.h"
 #include "app/platform/window.h"
+#include "core/gfx_sheet_policy_adapter.h"
+#include "core/graphics_sheet_labels.h"
+#include "core/project.h"
 #include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/file_util.h"
 #include "util/log.h"
+#include "util/macro.h"
+#include "zelda3/gfx_sheet_storage.h"
 
 namespace yaze {
 namespace editor {
@@ -55,8 +62,34 @@ void GraphicsEditor::Initialize() {
     return;
   auto* window_manager = dependencies_.window_manager;
 
+  // Pixel edits go to this session's sheet store (graphics_sheet_sync.h).
+  AttachSheetStore(state_, game_data_ != nullptr ? game_data_ : game_data());
+
   // Initialize panel components
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
+  sheet_browser_panel_->SetDataSources(
+      rom_, game_data_,
+      [this]() -> const project::YazeProject* { return project(); });
+  sheet_browser_panel_->SetUndoManager(&undo_manager_);
+  sheet_browser_panel_->SetSavePlanner([this]() { return PlanGraphicsSave(); });
+  sheet_browser_panel_->SetLabelCallbacks(
+      [this](uint16_t sheet, const std::string& label) {
+        return EditProject([&](project::YazeProject& target) {
+          core::SetGraphicsSheetLabel(target, sheet, label);
+        });
+      },
+      [this](const std::string& csv_text) -> absl::StatusOr<int> {
+        int written = 0;
+        bool counted = false;
+        RETURN_IF_ERROR(EditProject([&](project::YazeProject& target) {
+          const int count = core::ImportSpritesetSheetLabels(target, csv_text);
+          if (!counted) {
+            written = count;
+            counted = true;
+          }
+        }));
+        return written;
+      });
   pixel_editor_panel_ =
       std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
   palette_controls_panel_ =
@@ -77,6 +110,9 @@ void GraphicsEditor::Initialize() {
 
   polyhedral_panel_ = std::make_unique<PolyhedralEditorPanel>(rom_);
   polyhedral_panel_->SetRom(rom_);
+  usage_preview_view_ = std::make_unique<UsagePreviewView>(&state_);
+  usage_preview_view_->SetRom(rom_);
+  usage_preview_view_->SetGameData(game_data_);
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
@@ -102,6 +138,18 @@ void GraphicsEditor::Initialize() {
       std::make_unique<GraphicsPaletteControlsPanel>([this]() {
         if (palette_controls_panel_) {
           status_ = palette_controls_panel_->Update();
+        }
+      }));
+
+  window_manager->RegisterWindowContent(
+      std::make_unique<GraphicsUsagePreviewPanel>([this]() {
+        if (usage_preview_view_) {
+          const auto* current_project = project();
+          usage_preview_view_->SetHackName(
+              current_project != nullptr
+                  ? std::string(current_project->hack_manifest.hack_name())
+                  : std::string());
+          usage_preview_view_->Draw();
         }
       }));
 
@@ -231,6 +279,86 @@ void GraphicsEditor::ContributeStatus(StatusBar* status_bar) {
   }
 }
 
+absl::Status GraphicsEditor::EditProject(
+    const std::function<void(project::YazeProject&)>& edit) {
+  auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  project::YazeProject* snapshot = project();
+  if (editor_manager == nullptr || snapshot == nullptr ||
+      !editor_manager->IsCurrentProjectContextOwnedBySession(
+          dependencies_.session_id)) {
+    return absl::FailedPreconditionError(
+        "Sheet labels need the project that owns this ROM to be active");
+  }
+  project::YazeProject* active = editor_manager->GetCurrentProject();
+  if (active == nullptr || !active->project_opened()) {
+    return absl::FailedPreconditionError(
+        "Open a .yaze project to store sheet labels");
+  }
+  edit(*active);
+  if (snapshot != active) {
+    edit(*snapshot);
+  }
+  editor_manager->MarkCurrentProjectDirty();
+  return absl::OkStatus();
+}
+
+absl::StatusOr<GraphicsEditor::PreparedGraphicsSave>
+GraphicsEditor::PrepareGraphicsSave() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (game_data() == nullptr) {
+    return absl::FailedPreconditionError("Game data not loaded");
+  }
+  // The edited sheets live in the shared Arena, which holds the last loaded
+  // ROM's sheets. Never write another open ROM's pixels into this one.
+  if (gfx::Arena::Get().gfx_sheets_owner() != game_data()) {
+    return absl::FailedPreconditionError(
+        "Graphics sheets in memory belong to another open ROM. Switch back to "
+        "the ROM they were edited in, or reopen this ROM, before saving "
+        "graphics");
+  }
+
+  PreparedGraphicsSave prepared;
+  if (const auto* project = this->project(); project != nullptr) {
+    ASSIGN_OR_RETURN(prepared.policy, core::BuildGfxSheetWritePolicy(*project));
+  }
+
+  auto& sheets = gfx::Arena::Get().gfx_sheets();
+  for (uint16_t sheet_id : state_.modified_sheets) {
+    if (sheet_id >= zelda3::kNumGfxSheets) {
+      prepared.refusals[sheet_id] = "out of range";
+    } else if (prepared.policy.reserved_sheets.count(sheet_id) != 0) {
+      prepared.refusals[sheet_id] = "reserved by the project";
+    } else if (zelda3::GetGfxSheetStorageKind(sheet_id) ==
+               zelda3::GfxSheetStorageKind::kCompressed2bpp) {
+      prepared.refusals[sheet_id] = "2bpp, read-only";
+    } else if (!sheets[sheet_id].is_active()) {
+      prepared.refusals[sheet_id] = "not loaded";
+    } else if (std::any_of(sheets[sheet_id].vector().begin(),
+                           sheets[sheet_id].vector().end(),
+                           [](uint8_t index) { return index > 7; })) {
+      // 3bpp sheets store colors 0-7; packing masks higher indices silently.
+      prepared.refusals[sheet_id] = "uses colors above index 7";
+    } else {
+      prepared.sheet_ids.push_back(sheet_id);
+    }
+  }
+
+  const auto version_constants =
+      zelda3::kVersionConstantsMap.at(game_data()->version);
+  prepared.tables.bank = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr1,
+      version_constants.kOverworldGfxPtr1);
+  prepared.tables.high = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr2,
+      version_constants.kOverworldGfxPtr2);
+  prepared.tables.low = core::RomSettings::Get().GetAddressOr(
+      core::RomAddressKey::kOverworldGfxPtr3,
+      version_constants.kOverworldGfxPtr3);
+  return prepared;
+}
+
 absl::Status GraphicsEditor::Save() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -241,133 +369,126 @@ absl::Status GraphicsEditor::Save() {
     LOG_INFO("GraphicsEditor", "No modified sheets to save");
     return absl::OkStatus();
   }
+  ASSIGN_OR_RETURN(PreparedGraphicsSave prepared, PrepareGraphicsSave());
+
+  // Refuse the whole batch before writing when any sheet cannot be saved, so
+  // a save never lands only part of the user's edits.
+  if (!prepared.refusals.empty()) {
+    std::vector<std::string> refused;
+    for (const auto& [sheet_id, reason] : prepared.refusals) {
+      refused.push_back(absl::StrFormat("0x%02X (%s)", sheet_id, reason));
+    }
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Graphics save refused for sheet(s) %s. Discard those edits to save "
+        "the rest.",
+        absl::StrJoin(refused, ", ")));
+  }
 
   LOG_INFO("GraphicsEditor", "Saving %zu modified graphics sheets",
-           state_.modified_sheets.size());
-
+           prepared.sheet_ids.size());
   auto& sheets = gfx::Arena::Get().gfx_sheets();
+
+  // Each WriteGfxSheet call restores its own bytes on failure; this snapshot
+  // also undoes sheets written earlier in the batch.
+  const std::vector<uint8_t> rom_snapshot = rom_->vector();
+  const bool rom_was_dirty = rom_->dirty();
+  auto restore = [&]() {
+    rom_->mutable_vector() = rom_snapshot;
+    rom_->set_dirty(rom_was_dirty);
+  };
   std::set<uint16_t> saved_sheets;
-  std::vector<uint16_t> skipped_sheets;
-
-  for (uint16_t sheet_id : state_.modified_sheets) {
-    if (sheet_id >= zelda3::kNumGfxSheets)
-      continue;
-
-    auto& sheet = sheets[sheet_id];
-    if (!sheet.is_active())
-      continue;
-
-    // Determine BPP and compression based on sheet range
-    int bpp = 3;  // Default 3BPP
-    bool compressed = true;
-
-    // Sheets 113-114, 218+ are 2BPP
-    if (sheet_id == 113 || sheet_id == 114 || sheet_id >= 218) {
-      bpp = 2;
+  for (uint16_t sheet_id : prepared.sheet_ids) {
+    const auto snes_data =
+        gfx::IndexedToSnesSheet(sheets[sheet_id].vector(), /*bpp=*/3);
+    auto result = zelda3::WriteGfxSheet(*rom_, sheet_id, snes_data,
+                                        prepared.policy, prepared.tables);
+    if (!result.ok()) {
+      restore();
+      return absl::Status(result.status().code(),
+                          absl::StrFormat("Graphics sheet 0x%02X not saved: %s",
+                                          sheet_id, result.status().message()));
     }
-
-    // Sheets 115-126 are uncompressed
-    if (sheet_id >= 115 && sheet_id <= 126) {
-      compressed = false;
-    }
-
-    if (bpp == 2) {
-      const size_t expected_size =
-          gfx::kTilesheetWidth * gfx::kTilesheetHeight * 2;
-      const size_t actual_size = sheet.vector().size();
-      if (actual_size < expected_size) {
-        LOG_WARN("GraphicsEditor",
-                 "Skipping 2BPP sheet %02X save (expected %zu bytes, got %zu)",
-                 sheet_id, expected_size, actual_size);
-        skipped_sheets.push_back(sheet_id);
-        continue;
-      }
-    }
-
-    // Calculate ROM offset for this sheet
-    // Get version constants from game_data
-    auto version_constants =
-        zelda3::kVersionConstantsMap.at(game_data()->version);
-    const uint32_t gfx_ptr1 = core::RomSettings::Get().GetAddressOr(
-        core::RomAddressKey::kOverworldGfxPtr1,
-        version_constants.kOverworldGfxPtr1);
-    const uint32_t gfx_ptr2 = core::RomSettings::Get().GetAddressOr(
-        core::RomAddressKey::kOverworldGfxPtr2,
-        version_constants.kOverworldGfxPtr2);
-    const uint32_t gfx_ptr3 = core::RomSettings::Get().GetAddressOr(
-        core::RomAddressKey::kOverworldGfxPtr3,
-        version_constants.kOverworldGfxPtr3);
-    uint32_t offset =
-        zelda3::GetGraphicsAddress(rom_->data(), static_cast<uint8_t>(sheet_id),
-                                   gfx_ptr1, gfx_ptr2, gfx_ptr3, rom_->size());
-
-    // Convert 8BPP bitmap data to SNES planar format
-    auto snes_tile_data = gfx::IndexedToSnesSheet(sheet.vector(), bpp);
-
-    constexpr size_t kDecompressedSheetSize = 0x800;
-    std::vector<uint8_t> base_data;
-    if (compressed) {
-      auto decomp_result = gfx::lc_lz2::DecompressV2(
-          rom_->data(), offset, static_cast<int>(kDecompressedSheetSize), 1,
-          rom_->size());
-      if (!decomp_result.ok()) {
-        return decomp_result.status();
-      }
-      base_data = std::move(*decomp_result);
-    } else {
-      auto read_result = rom_->ReadByteVector(offset, kDecompressedSheetSize);
-      if (!read_result.ok()) {
-        return read_result.status();
-      }
-      base_data = std::move(*read_result);
-    }
-
-    if (base_data.size() < snes_tile_data.size()) {
-      base_data.resize(snes_tile_data.size(), 0);
-    }
-    std::copy(snes_tile_data.begin(), snes_tile_data.end(), base_data.begin());
-
-    std::vector<uint8_t> final_data;
-    if (compressed) {
-      // Compress using Hyrule Magic LC-LZ2
-      int compressed_size = 0;
-      auto compressed_data = gfx::HyruleMagicCompress(
-          base_data.data(), static_cast<int>(base_data.size()),
-          &compressed_size, 1);
-      final_data.assign(compressed_data.begin(),
-                        compressed_data.begin() + compressed_size);
-    } else {
-      final_data = std::move(base_data);
-    }
-
-    // Write data to ROM buffer
-    for (size_t i = 0; i < final_data.size(); i++) {
-      rom_->WriteByte(offset + i, final_data[i]);
-    }
-
-    LOG_INFO("GraphicsEditor",
-             "Saved sheet %02X (%zu bytes, %s) at offset %06X", sheet_id,
-             final_data.size(), compressed ? "compressed" : "raw", offset);
+    LOG_INFO("GraphicsEditor", "Saved sheet %02X (%zu bytes, %s) at 0x%06X",
+             sheet_id, result->new_stored_size,
+             result->placement == zelda3::GfxSheetPlacement::kRelocated
+                 ? "relocated"
+                 : "in place",
+             result->new_pc);
     saved_sheets.insert(sheet_id);
+  }
+
+  // Every written sheet must decode to the edited pixels, with the game's
+  // decoder and with the editor's loader, before the ROM goes to disk (the
+  // caller writes the file only when this returns OK).
+  for (uint16_t sheet_id : prepared.sheet_ids) {
+    const absl::Status verified = verify_written_sheet_(
+        *rom_, sheet_id, sheets[sheet_id].vector(), prepared.tables);
+    if (!verified.ok()) {
+      restore();
+      return absl::Status(
+          verified.code(),
+          absl::StrFormat("Graphics save stopped; nothing was written: %s",
+                          verified.message()));
+    }
   }
 
   // Clear modified tracking after successful save
   state_.ClearModifiedSheets(saved_sheets);
-  if (!skipped_sheets.empty()) {
-    return absl::FailedPreconditionError(
-        absl::StrCat("Skipped ", skipped_sheets.size(),
-                     " 2BPP sheet(s); full data unavailable."));
-  }
-
   return absl::OkStatus();
+}
+
+absl::StatusOr<std::vector<GraphicsSavePlanEntry>>
+GraphicsEditor::PlanGraphicsSave() {
+  ASSIGN_OR_RETURN(PreparedGraphicsSave prepared, PrepareGraphicsSave());
+  std::vector<GraphicsSavePlanEntry> entries;
+  for (const auto& [sheet_id, reason] : prepared.refusals) {
+    GraphicsSavePlanEntry entry;
+    entry.sheet_id = sheet_id;
+    entry.refusal = reason;
+    entries.push_back(std::move(entry));
+  }
+  // Run the real writer on a scratch copy; the ROM itself is untouched.
+  Rom scratch;
+  RETURN_IF_ERROR(scratch.LoadFromData(rom_->vector()));
+  auto& sheets = gfx::Arena::Get().gfx_sheets();
+  for (uint16_t sheet_id : prepared.sheet_ids) {
+    GraphicsSavePlanEntry entry;
+    entry.sheet_id = sheet_id;
+    const auto& pixels = sheets[sheet_id].vector();
+    auto result = zelda3::WriteGfxSheet(
+        scratch, sheet_id, gfx::IndexedToSnesSheet(pixels, /*bpp=*/3),
+        prepared.policy, prepared.tables);
+    if (!result.ok()) {
+      entry.refusal = std::string(result.status().message());
+    } else {
+      entry.placement = result->placement;
+      entry.old_pc = result->old_pc;
+      entry.new_pc = result->new_pc;
+      entry.old_stored_size = result->old_stored_size;
+      entry.new_stored_size = result->new_stored_size;
+      const absl::Status verified =
+          verify_written_sheet_(scratch, sheet_id, pixels, prepared.tables);
+      if (!verified.ok()) {
+        entry.refusal = std::string(verified.message());
+      }
+    }
+    entries.push_back(std::move(entry));
+  }
+  std::sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) {
+    return a.sheet_id < b.sheet_id;
+  });
+  return entries;
 }
 
 absl::Status GraphicsEditor::Update() {
   // Panels are now drawn via WorkspaceWindowManager::DrawAllVisiblePanels()
   // This Update() only handles editor-level state and keyboard shortcuts
 
-  // Handle editor-level keyboard shortcuts
-  HandleEditorShortcuts();
+  // Show store changes (undo, redo, imports) in the Arena's display copies.
+  SyncArenaFromStore(state_);
+
+  // Keyboard shortcuts (tools, zoom, grid, sheet navigation) are registered
+  // in shortcut_configurator.cc, scoped to EditorType::kGraphics.
 
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
@@ -379,59 +500,6 @@ absl::Status GraphicsEditor::Undo() {
 
 absl::Status GraphicsEditor::Redo() {
   return undo_manager_.Redo();
-}
-
-void GraphicsEditor::HandleEditorShortcuts() {
-  // Skip if ImGui wants keyboard input
-  if (ImGui::GetIO().WantTextInput) {
-    return;
-  }
-
-  // Tool shortcuts (only when graphics editor is active)
-  if (ImGui::IsKeyPressed(ImGuiKey_V, false)) {
-    state_.SetTool(PixelTool::kSelect);
-  }
-  if (ImGui::IsKeyPressed(ImGuiKey_B, false)) {
-    state_.SetTool(PixelTool::kPencil);
-  }
-  if (ImGui::IsKeyPressed(ImGuiKey_E, false)) {
-    state_.SetTool(PixelTool::kEraser);
-  }
-  if (ImGui::IsKeyPressed(ImGuiKey_G, false) && !ImGui::GetIO().KeyCtrl) {
-    state_.SetTool(PixelTool::kFill);
-  }
-  if (ImGui::IsKeyPressed(ImGuiKey_I, false)) {
-    state_.SetTool(PixelTool::kEyedropper);
-  }
-  if (ImGui::IsKeyPressed(ImGuiKey_L, false) && !ImGui::GetIO().KeyCtrl) {
-    state_.SetTool(PixelTool::kLine);
-  }
-  if (ImGui::IsKeyPressed(ImGuiKey_R, false) && !ImGui::GetIO().KeyCtrl) {
-    state_.SetTool(PixelTool::kRectangle);
-  }
-
-  // Zoom shortcuts
-  if (ImGui::IsKeyPressed(ImGuiKey_Equal, false) ||
-      ImGui::IsKeyPressed(ImGuiKey_KeypadAdd, false)) {
-    state_.ZoomIn();
-  }
-  if (ImGui::IsKeyPressed(ImGuiKey_Minus, false) ||
-      ImGui::IsKeyPressed(ImGuiKey_KeypadSubtract, false)) {
-    state_.ZoomOut();
-  }
-
-  // Grid toggle (Ctrl+G)
-  if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_G, false)) {
-    state_.show_grid = !state_.show_grid;
-  }
-
-  // Sheet navigation
-  if (ImGui::IsKeyPressed(ImGuiKey_PageDown, false)) {
-    NextSheet();
-  }
-  if (ImGui::IsKeyPressed(ImGuiKey_PageUp, false)) {
-    PrevSheet();
-  }
 }
 
 void GraphicsEditor::DrawPrototypeViewer() {
@@ -862,14 +930,54 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
 
 void GraphicsEditor::NextSheet() {
   if (state_.current_sheet_id + 1 < zelda3::kNumGfxSheets) {
-    state_.current_sheet_id++;
+    state_.SelectSheet(state_.current_sheet_id + 1);
   }
 }
 
 void GraphicsEditor::PrevSheet() {
   if (state_.current_sheet_id > 0) {
-    state_.current_sheet_id--;
+    state_.SelectSheet(state_.current_sheet_id - 1);
   }
+}
+
+void GraphicsEditor::SetPixelTool(PixelTool tool) {
+  state_.SetTool(tool);
+}
+
+void GraphicsEditor::ZoomIn() {
+  state_.ZoomIn();
+}
+
+void GraphicsEditor::ZoomOut() {
+  state_.ZoomOut();
+}
+
+void GraphicsEditor::ToggleGrid() {
+  state_.show_grid = !state_.show_grid;
+}
+
+absl::Status GraphicsEditor::Cut() {
+  if (!pixel_editor_panel_) {
+    return absl::FailedPreconditionError("Pixel editor is not open");
+  }
+  pixel_editor_panel_->CutToSystemClipboard();
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::Copy() {
+  if (!pixel_editor_panel_) {
+    return absl::FailedPreconditionError("Pixel editor is not open");
+  }
+  pixel_editor_panel_->CopyToSystemClipboard();
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::Paste() {
+  if (!pixel_editor_panel_) {
+    return absl::FailedPreconditionError("Pixel editor is not open");
+  }
+  pixel_editor_panel_->PasteFromSystemClipboard();
+  return absl::OkStatus();
 }
 
 void GraphicsEditor::SelectSheet(uint16_t sheet_id) {

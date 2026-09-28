@@ -1,5 +1,6 @@
 #include "app/editor/layout/layout_coordinator.h"
 
+#include <algorithm>
 #include <filesystem>
 
 #include "absl/strings/str_format.h"
@@ -29,40 +30,73 @@ void LayoutCoordinator::Initialize(const Dependencies& deps) {
 // Layout Offset Calculations
 // ==========================================================================
 
-float LayoutCoordinator::GetLeftLayoutOffset() const {
-  // Global UI toggle override
-  if (!ui_coordinator_ || !ui_coordinator_->IsPanelSidebarVisible()) {
-    return 0.0f;
+LayoutCoordinator::WorkspaceChromeBudget
+LayoutCoordinator::ResolveWorkspaceChromeBudget(
+    float viewport_width, float activity_bar_width, float left_side_panel_width,
+    float right_sidebar_width, float right_sidebar_budget_width,
+    float min_canvas_width) {
+  const float activity = std::max(0.0f, activity_bar_width);
+  const float left_panel = std::max(0.0f, left_side_panel_width);
+  const float right_panel = std::max(0.0f, right_sidebar_width);
+  const float right_budget = right_sidebar_budget_width >= 0.0f
+                                 ? right_sidebar_budget_width
+                                 : right_panel;
+  const float desired_left = activity + left_panel;
+
+  if (viewport_width > 0.0f && viewport_width - desired_left - right_budget <
+                                   std::max(0.0f, min_canvas_width)) {
+    return {
+        .left_offset = activity,
+        .right_offset = 0.0f,
+        .side_panels_overlay = left_panel > 0.0f || right_panel > 0.0f,
+    };
   }
 
-  // Check startup surface state - Activity Bar hidden on cold start
-  if (!ui_coordinator_->ShouldShowActivityBar()) {
-    return 0.0f;
+  return {
+      .left_offset = desired_left,
+      .right_offset = right_panel,
+      .side_panels_overlay = false,
+  };
+}
+
+LayoutCoordinator::WorkspaceChromeBudget
+LayoutCoordinator::GetWorkspaceChromeBudget() const {
+  float viewport_width = 0.0f;
+  if (ImGui::GetCurrentContext()) {
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    viewport_width = viewport ? viewport->WorkSize.x : 0.0f;
   }
 
-  // Check Activity Bar visibility
-  if (!window_manager_ || !window_manager_->IsSidebarVisible()) {
-    return 0.0f;
-  }
-
-  // Base width = Activity Bar
-  float width = WorkspaceWindowManager::GetSidebarWidth();  // 48px
-
-  // Add Side Panel width if expanded
-  if (window_manager_->IsSidebarExpanded()) {
-    float viewport_width = 0.0f;
-    if (ImGui::GetCurrentContext()) {
-      const ImGuiViewport* viewport = ImGui::GetMainViewport();
-      viewport_width = viewport ? viewport->WorkSize.x : 0.0f;
+  float activity_width = 0.0f;
+  float left_panel_width = 0.0f;
+  const bool show_left_chrome =
+      ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible() &&
+      ui_coordinator_->ShouldShowActivityBar() && window_manager_ &&
+      window_manager_->IsSidebarVisible();
+  if (show_left_chrome) {
+    activity_width = WorkspaceWindowManager::GetSidebarWidth();
+    if (window_manager_->IsSidebarExpanded()) {
+      left_panel_width =
+          window_manager_->GetActiveSidePanelWidth(viewport_width);
     }
-    width += window_manager_->GetActiveSidePanelWidth(viewport_width);
   }
 
-  return width;
+  const float right_sidebar_width =
+      right_drawer_manager_ ? right_drawer_manager_->GetDrawerWidth() : 0.0f;
+  const float right_sidebar_budget_width =
+      right_drawer_manager_ ? right_drawer_manager_->GetExpandedDrawerWidth()
+                            : 0.0f;
+  return ResolveWorkspaceChromeBudget(viewport_width, activity_width,
+                                      left_panel_width, right_sidebar_width,
+                                      right_sidebar_budget_width);
+}
+
+float LayoutCoordinator::GetLeftLayoutOffset() const {
+  return GetWorkspaceChromeBudget().left_offset;
 }
 
 float LayoutCoordinator::GetRightLayoutOffset() const {
-  return right_drawer_manager_ ? right_drawer_manager_->GetDrawerWidth() : 0.0f;
+  return GetWorkspaceChromeBudget().right_offset;
 }
 
 float LayoutCoordinator::GetBottomLayoutOffset() const {

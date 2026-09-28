@@ -5,6 +5,7 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/layout/adaptive_sheet_layout.h"
 #include "imgui/imgui.h"
 #include "testing.h"
 
@@ -74,6 +75,55 @@ TEST_F(TileSelectorWidgetTest, Construction) {
 TEST_F(TileSelectorWidgetTest, ConstructionWithConfig) {
   gui::TileSelectorWidget widget("test_widget", config_);
   EXPECT_EQ(widget.GetSelectedTileID(), 0);
+}
+
+TEST_F(TileSelectorWidgetTest, AdaptiveSheetFitAndOverridesAreDeterministic) {
+  const auto fit = gui::ResolveAdaptiveSheetLayout(
+      344.0f, 128, 512, gui::AdaptiveSheetScaleMode::kFit);
+  EXPECT_FLOAT_EQ(fit.display_scale, 2.5f);
+  EXPECT_FLOAT_EQ(fit.displayed_width, 320.0f);
+
+  EXPECT_FLOAT_EQ(gui::ResolveAdaptiveSheetLayout(
+                      344.0f, 128, 512, gui::AdaptiveSheetScaleMode::k1x)
+                      .display_scale,
+                  1.0f);
+  EXPECT_FLOAT_EQ(gui::ResolveAdaptiveSheetLayout(
+                      344.0f, 128, 512, gui::AdaptiveSheetScaleMode::k4x)
+                      .display_scale,
+                  4.0f);
+}
+
+TEST_F(TileSelectorWidgetTest, AdaptiveSheetGridPacksFixedScaleToWidth) {
+  const auto layout = gui::ResolveAdaptiveSheetGridLayout(
+      440.0f, 128, 32, 16, 2, gui::AdaptiveSheetScaleMode::k1x, 0.35f, 4.0f,
+      4.0f, 8.0f);
+  EXPECT_EQ(layout.columns, 3);
+  EXPECT_EQ(layout.rows, 6);
+  EXPECT_FLOAT_EQ(layout.display_scale, 1.0f);
+  EXPECT_FLOAT_EQ(layout.item_width, 128.0f);
+}
+
+TEST_F(TileSelectorWidgetTest, AdaptiveSheetGridFitUsesPreferredColumns) {
+  const auto layout = gui::ResolveAdaptiveSheetGridLayout(
+      440.0f, 128, 32, 16, 2, gui::AdaptiveSheetScaleMode::kFit, 0.35f, 4.0f,
+      4.0f, 8.0f);
+  EXPECT_EQ(layout.columns, 2);
+  EXPECT_EQ(layout.rows, 8);
+  EXPECT_FLOAT_EQ(layout.display_scale, 428.0f / 256.0f);
+  EXPECT_LE(layout.content_width, 432.0f);
+}
+
+TEST_F(TileSelectorWidgetTest,
+       RuntimeLayoutChangesPreserveSelectionAndUpdateGeometry) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetSelectedTile(25);
+  widget.SetDisplayScale(3.0f);
+  widget.SetTilesPerRow(4);
+
+  EXPECT_EQ(widget.GetSelectedTileID(), 25);
+  EXPECT_FLOAT_EQ(widget.display_scale(), 3.0f);
+  EXPECT_EQ(widget.tiles_per_row(), 4);
+  EXPECT_EQ(widget.TileOrigin(25), ImVec2(50.0f, 288.0f));
 }
 
 // Test canvas attachment
@@ -245,14 +295,29 @@ TEST_F(TileSelectorWidgetTest, GridContentSizeMatchesConfigGeometry) {
   EXPECT_FLOAT_EQ(content_size.y, 256.0f);
 }
 
-TEST_F(TileSelectorWidgetTest, PreferredViewportWidthMatchesGridPlusChrome) {
+TEST_F(TileSelectorWidgetTest, PreferredViewportWidthIsGridPlusStyleScrollbar) {
   gui::TileSelectorWidget widget("test_widget", config_);
   widget.SetTileCount(64);
 
-  // 8 columns * 32px + 4px offset + 18px scrollbar chrome = 278.
+  // 8 columns * 32px + 2 * 2px offset = 260, plus the live style scrollbar.
+  ImGui::GetStyle().ScrollbarSize = 14.0f;
+  EXPECT_FLOAT_EQ(widget.GetPreferredViewportWidth(), 274.0f);
+
+  // Follows the style (theme density / UI scale), not a hard-coded gutter.
+  ImGui::GetStyle().ScrollbarSize = 18.0f;
   EXPECT_FLOAT_EQ(widget.GetPreferredViewportWidth(), 278.0f);
   EXPECT_FLOAT_EQ(widget.GetPreferredViewportWidth(),
-                  widget.GetGridContentSize().x + 18.0f);
+                  widget.GetGridContentSize().x +
+                      gui::TileSelectorWidget::CurrentScrollbarSize());
+}
+
+TEST_F(TileSelectorWidgetTest, StaticPreferredWidthMatchesInstanceWidth) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  EXPECT_FLOAT_EQ(gui::TileSelectorWidget::PreferredViewportWidth(
+                      config_, gui::TileSelectorWidget::CurrentScrollbarSize()),
+                  widget.GetPreferredViewportWidth());
+  EXPECT_FLOAT_EQ(
+      gui::TileSelectorWidget::PreferredViewportWidth(config_, 10.0f), 270.0f);
 }
 
 // Test render without atlas (should not crash)
@@ -421,6 +486,22 @@ TEST_F(TileSelectorWidgetTest, RangeFilterMinInRangeMaxOutClamps) {
   EXPECT_TRUE(widget.has_active_range_filter());
   EXPECT_EQ(widget.filter_range_min(), 10);
   EXPECT_EQ(widget.filter_range_max(), 63);  // clamped to total_tiles - 1
+}
+
+// Copy Tile ID copies the selected (right-clicked) tile as 0x-prefixed hex.
+TEST_F(TileSelectorWidgetTest, CopyTileIdMenuItemCopiesSelectedTile) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+  widget.SetSelectedTile(0x1A);
+
+  const auto item = widget.CopyTileIdMenuItem();
+  EXPECT_EQ(item.label, "Copy Tile ID");
+  ASSERT_TRUE(item.enabled_condition);
+  EXPECT_TRUE(item.enabled_condition());
+  ASSERT_TRUE(item.callback);
+  item.callback();
+  ASSERT_THAT(ImGui::GetClipboardText(), NotNull());
+  EXPECT_STREQ(ImGui::GetClipboardText(), "0x01A");
 }
 
 }  // namespace test

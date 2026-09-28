@@ -154,6 +154,10 @@ class DungeonEditorPaletteRefreshTestPeer {
     return editor->GetViewerForRoom(room_id);
   }
 
+  static DungeonCanvasViewer* GetWorkbenchViewer(DungeonEditorV2* editor) {
+    return editor->GetWorkbenchViewer();
+  }
+
   static void SetCurrentRoomId(DungeonEditorV2* editor, int room_id) {
     editor->current_room_id_ = room_id;
   }
@@ -1377,8 +1381,95 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   room.MarkCompositeDirty();
 
   RoomCompositeOutput canonical_output;
+  // BGACT 1 puts the lower tilemap on the sub screen with CGADSUB $20
+  // (backdrop only), and the moving-water effect only scrolls
+  // (Underworld_HandleLayerEffect), so the game does not blend an opaque
+  // upper pixel: it shows 33, not the half-add 36 yaze used to approximate.
   EXPECT_EQ(PrepareCanonicalRoomComposite(room, canonical_output).data()[0],
-            36);
+            33);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       WorkbenchPlacementChangesCompositePixelsAndUploadsExistingTexture) {
+  ScopedWorkbenchFlag workflow_mode(/*enabled=*/true);
+  ScopedImGuiTestContext imgui;
+  imgui.NextFrame();
+
+  // Give the wall its own palette row while the floor retains row zero. The
+  // real parser and renderer must produce a visible difference after the click.
+  constexpr int kObjectId = 0x01;
+  constexpr int kTileDataOffset = 0x2000;
+  ASSERT_TRUE(rom_.WriteWord(zelda3::kRoomObjectSubtype1 + kObjectId * 2,
+                             kTileDataOffset)
+                  .ok());
+  for (int tile = 0; tile < 64; ++tile) {
+    ASSERT_TRUE(rom_.WriteWord(zelda3::kRoomObjectTileAddress +
+                                   kTileDataOffset + tile * 2,
+                               0x0800)
+                    .ok());
+  }
+  game_data_.graphics_buffer.assign(zelda3::kNumGfxSheets * 4096, 1);
+
+  auto& room = editor_->rooms()[0];
+  room.SetLoaded(true);
+  room.SetTileObjects({});
+  room.SetLayerMerging(zelda3::LayerMerge01);
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentRoomId(editor_.get(), 0);
+  auto* viewer =
+      DungeonEditorPaletteRefreshTestPeer::GetWorkbenchViewer(editor_.get());
+  ASSERT_NE(viewer, nullptr);
+  viewer->RefreshRomBackedState(&rom_, &game_data_, &editor_->rooms(), 0);
+  viewer->SetPreviewObject(zelda3::RoomObject(kObjectId, 0, 0, 2, 0));
+  // This check concerns the room image; the separately queued ghost texture
+  // must not stand in for the room's upload.
+  gfx::Arena::Get().ClearTextureQueue();
+
+  auto* composite = PrepareComposite(*viewer, 0);
+  ASSERT_NE(composite, nullptr);
+  const std::vector<uint8_t> before(composite->data(),
+                                    composite->data() + composite->size());
+  ::testing::NiceMock<yaze::test::MockRenderer> renderer;
+  int texture_storage = 0;
+  const auto texture = static_cast<gfx::TextureHandle>(&texture_storage);
+  EXPECT_CALL(renderer, CreateTexture).WillOnce(::testing::Return(texture));
+  EXPECT_CALL(renderer, UpdateTexture(texture, ::testing::Ref(*composite)))
+      .Times(1);
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  ASSERT_EQ(composite->texture(), texture);
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  constexpr int kTileX = 10;
+  constexpr int kTileY = 12;
+  ASSERT_TRUE(viewer->object_interaction().entity_coordinator().HandleClick(
+      kTileX * 8, kTileY * 8));
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  EXPECT_EQ(room.GetTileObjects().front().id_, kObjectId);
+  EXPECT_EQ(room.GetTileObjects().front().x_, kTileX);
+  EXPECT_EQ(room.GetTileObjects().front().y_, kTileY);
+
+  // Use the next frame's ordinary composite preparation; do not repair the
+  // placement path by manually marking dirtiness or rendering room graphics.
+  ASSERT_EQ(PrepareComposite(*viewer, 0), composite);
+  const std::vector<uint8_t> after(composite->data(),
+                                   composite->data() + composite->size());
+  EXPECT_NE(after, before);
+  constexpr size_t kPlacedPixel = kTileY * 8 * 512 + kTileX * 8;
+  EXPECT_NE(after[kPlacedPixel], before[kPlacedPixel]);
+  EXPECT_EQ(after[kPlacedPixel], 41);  // palette row 2 + right-half pixel 9
+  EXPECT_EQ(composite->texture(), texture);
+  EXPECT_TRUE(gfx::Arena::Get().HasPendingTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, composite));
+  EXPECT_CALL(renderer, CreateTexture).Times(0);
+  EXPECT_CALL(renderer, UpdateTexture(texture, ::testing::Ref(*composite)))
+      .WillOnce([&](gfx::TextureHandle, const gfx::Bitmap& uploaded) {
+        EXPECT_EQ(uploaded.data()[kPlacedPixel], after[kPlacedPixel]);
+      });
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  EXPECT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  // Release presentation-owned textures while the test renderer still exists.
+  editor_.reset();
+  gfx::Arena::Get().DrainRetiredBitmaps(&renderer);
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,

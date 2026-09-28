@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "purpose": "Read-only source-review snapshot; not a complete dependency graph or migration manifest",
+  "review_date": "2026-09-23",
+  "repositories": {
+    "yaze": {
+      "head": "06343577b21a0a0fb46d4e5189bedbbd3c1b67ce",
+      "working_tree": "dirty; selected files hashed from working tree",
+      "sources": [
+        {
+          "path": "src/app/editor/sprite/sprite_editor.cc",
+          "sha256": "d36dc3c40c02c1ea66d60abecd213e70fd1676c5b7887ef55ef2ef030ded741b"
+        },
+        {
+          "path": "src/app/editor/sprite/zsprite.h",
+          "sha256": "27373c327988b47f1bbc82c5e4ae99b745418d139dd827c433331b9433efd3e6"
+        },
+        {
+          "path": "src/zelda3/sprite/sprite_builder.cc",
+          "sha256": "70286dca67f445f22b738eb0f4df57a35bcef74372187a33b1902b6af8b6d306"
+        },
+        {
+          "path": "src/zelda3/sprite/sprite.h",
+          "sha256": "45ab0dbdfd0005ca4d6273076963fb41bf8272b472505062f501179dfeab3425"
+        },
+        {
+          "path": "src/zelda3/sprite/sprite_oam_tables.h",
+          "sha256": "9c90e1b3b50312ad75c766504f18203e407f875f4d0b18c8db15a640ed1948f8"
+        },
+        {
+          "path": "src/zelda3/dungeon/room.cc",
+          "sha256": "512952431abea9db26d95b70aa89bff78dbd391d41eb4b53c798dccc35de7631"
+        },
+        {
+          "path": "src/zelda3/overworld/overworld.cc",
+          "sha256": "a6cca89df1f343ba10b36fe1774fee9198f0399736a97e4bd764ef8701d3bdbf"
+        }
+      ]
+    },
+    "oracle": {
+      "head": "adb9b69a70507c0bba9e2ca9ccfd5e911619b9c8",
+      "working_tree": "dirty; selected files hashed from working tree",
+      "sources": [
+        {
+          "path": "Sprites/registry.csv",
+          "sha256": "207f8dcd165906e7e4e579e9fe4eb2f2c89fcf48335ff888054d794a16b1797f"
+        },
+        {
+          "path": "Sprites/sprite_registry_ids.asm",
+          "sha256": "48bddb805b519d18150d4e046700c7eb198fe050188a61697fde72f3df0e85f2"
+        },
+        {
+          "path": "Sprites/all_sprites.asm",
+          "sha256": "4ebff84a739f2914e1a8ba3d7dbb66d827dba352a93639bfc337414692f6ed5a"
+        },
+        {
+          "path": "Core/sprite_macros.asm",
+          "sha256": "e065338def054fd0141e80ed85d8aa2cd4b29604c9d2deb1ab2f2753289346d3"
+        },
+        {
+          "path": "Core/sprite_new_table.asm",
+          "sha256": "23b260e06db79f22e2ea9d941ba69baab62ffa0f42cc5165a2de2fc87a3bcb6d"
+        },
+        {
+          "path": "Sprites/NPCs/mermaid.asm",
+          "sha256": "8376bab6a33f61125525e332755150eaf955b76e5a40860ca46e402e598b8e37"
+        },
+        {
+          "path": "Sprites/NPCs/maple.asm",
+          "sha256": "4101be116096bfa8df3dd3fa1d3e2821d80e6704275ad0ecc3a5d056ae1f0aca"
+        },
+        {
+          "path": "Sprites/NPCs/bean_vendor.asm",
+          "sha256": "d180334666879633f34454bb52387b372cdf0dbfcd638836e99c3f21b9ee3e47"
+        },
+        {
+          "path": "Sprites/NPCs/village_elder.asm",
+          "sha256": "f1d99960e5844a8e3b8c32fcb6fcfbacb1e2bd42c038a9f06b9974b26670e9e1"
+        },
+        {
+          "path": "Sprites/NPCs/eon_owl.asm",
+          "sha256": "2e9b0cd838865241a53ff28453cb4ab2e98f532838284ab8c7bc6e0a14b056e0"
+        },
+        {
+          "path": "Sprites/NPCs/deku_scrub.asm",
+          "sha256": "c6c3b55cebabf9cd3aba696059463edc02fe1871ebb60415146ab8d871eb188c"
+        },
+        {
+          "path": "Sprites/NPCs/korok.asm",
+          "sha256": "57d43d22192e638e068c756a055365763566b36a13aaa1537aec7b7906032454"
+        },
+        {
+          "path": "Sprites/NPCs/zora.asm",
+          "sha256": "c8c00febfd5e7915a0b658f093ef6caf23a0131fb93c08af6f8e9d8a87c49059"
+        },
+        {
+          "path": "Sprites/NPCs/zora_princess.asm",
+          "sha256": "ac5ef903109b7ebef8ee7271c3d5ac844d7554b53a303f68da9f32436ff53cf7"
+        },
+        {
+          "path": "Sprites/Enemies/keese.asm",
+          "sha256": "25652aa84f48612bcf8368fa4e4428cf75b17ab639b53bdb581347733db4bb46"
+        },
+        {
+          "path": "Sprites/Bosses/vampire_bat.asm",
+          "sha256": "b941153621a4e53866185140fab8d3b6d97456a700db50ed35fb60a75ec4dd32"
+        },
+        {
+          "path": "Sprites/Bosses/dark_link.asm",
+          "sha256": "71439e27b036eb5713eff8d89aca0c9867441b184497592879d2648fb2e33798"
+        },
+        {
+          "path": "Sprites/Objects/minecart.asm",
+          "sha256": "826a69ce3fa55738b25507bba919109d65e15ce7bfb1d6563c57c22b8c4569b9"
+        },
+        {
+          "path": "Sprites/Objects/mineswitch.asm",
+          "sha256": "9be58e96866855564599561e8a14ac543017bf939f17dae0e8a91ca66e933b4b"
+        },
+        {
+          "path": "Sprites/Objects/switch_track.asm",
+          "sha256": "b49d6b836d7c336b91f3b9f00999301d0685af83a3ead1f9fd0ebcc310a36bcf"
+        },
+        {
+          "path": "Sprites/Enemies/poltergeist.asm",
+          "sha256": "f1920c85eaa13cd4bed8989ce7bf337f6257274f37f25d3719367aa6d25dfe27"
+        },
+        {
+          "path": "Util/ZScreamNew/spritesmove.asm",
+          "sha256": "935efcbdccab9da0f5d87e94cd8f4ca98ecb8c8be1863dc5602db53846d10172"
+        },
+        {
+          "path": "Scripts/Validate/validate_sprite_registry.py",
+          "sha256": "62c95a9a1dad49d8cbb5bcd4ca280d1bcab4351f806434f3f636e13add2ee305"
+        },
+        {
+          "path": "Scripts/Generate/generate_sprite_registry.py",
+          "sha256": "2e047da710274dda08996f829251acc8c78aba635f33e9da1da3fac694ff5143"
+        }
+      ]
+    }
+  },
+  "inventory": {
+    "registry_rows": 43,
+    "unique_ids": 39,
+    "duplicate_id_groups": {
+      "$07": [
+        "Sprite_BeanVendor",
+        "Sprite_VillageElder"
+      ],
+      "$0A": [
+        "Sprite_EonOwl",
+        "Sprite_KaeporaGaebora"
+      ],
+      "$F0": [
+        "Sprite_Mermaid",
+        "Sprite_Maple",
+        "Sprite_Librarian"
+      ]
+    },
+    "direct_sprite_include_directives": 67,
+    "direct_includes_not_in_registry_paths": [
+      "Sprites/NPCs/hyrule_dream.asm",
+      "Sprites/Bosses/octoboss.asm",
+      "Sprites/NPCs/maple.asm",
+      "Sprites/Enemies/eon_scrub.asm",
+      "Sprites/Enemies/custom_guard.asm",
+      "Sprites/Enemies/keese.asm",
+      "Sprites/NPCs/bottle_vendor.asm",
+      "Sprites/Enemies/leever.asm",
+      "Sprites/Objects/pedestal.asm",
+      "Sprites/NPCs/impa.asm",
+      "Sprites/NPCs/bug_net_kid.asm",
+      "Sprites/Bosses/king_dodongo.asm",
+      "Sprites/Bosses/arrghus.asm",
+      "Sprites/NPCs/fortune_teller.asm",
+      "Sprites/NPCs/ranch_girl.asm",
+      "Sprites/Bosses/lanmola.asm",
+      "Sprites/Bosses/lanmola_expanded.asm",
+      "Sprites/NPCs/followers.asm",
+      "Sprites/Enemies/octorok.asm",
+      "Sprites/NPCs/piratian.asm",
+      "Sprites/Objects/collectible.asm",
+      "Sprites/NPCs/tingle.asm",
+      "Sprites/NPCs/goron.asm"
+    ],
+    "inventory_limit": "Lexical direct includes only; assembly conditions and transitive dependency resolution not evaluated"
+  },
+  "checks": [
+    {
+      "check": "generated_id_file_freshness",
+      "command": "python3 Scripts/Generate/generate_sprite_registry.py --emit-ids --csv Sprites/registry.csv --out <temporary-file>",
+      "exit_code": 0,
+      "byte_equal": true,
+      "output": "Wrote sprite IDs to <temporary-file>",
+      "stderr": ""
+    },
+    {
+      "check": "registry_validator",
+      "command": "python3 Scripts/Validate/validate_sprite_registry.py --strict --no-ids",
+      "exit_code": 0,
+      "output": "sprite registry OK",
+      "stderr": ""
+    }
+  ],
+  "not_performed": [
+    "assembler build",
+    "ROM diff",
+    "placement census",
+    "emulator validation",
+    "runtime migration"
+  ],
+  "coordination": "External events.jsonl write denied by filesystem permissions"
+}

@@ -10,6 +10,7 @@
 
 // C++ standard library headers
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdlib>
 #include <exception>
@@ -21,6 +22,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -252,6 +254,24 @@ void AppendWorkflowHistoryEntry(const std::string& kind,
 bool ProjectUsesCustomObjects(const project::YazeProject& project) {
   return !project.custom_objects_folder.empty() ||
          !project.custom_object_files.empty();
+}
+
+void MergeRightDrawerWidthPreferences(
+    std::unordered_map<std::string, float>* preferences,
+    const std::unordered_map<std::string, float>& drawer_widths) {
+  if (preferences == nullptr) {
+    return;
+  }
+  constexpr std::array<const char*, 9> kDrawerWidthKeys = {
+      "right_sidebar.shared", "agent_chat", "proposals", "settings",    "help",
+      "notifications",        "properties", "project",   "tool_output",
+  };
+  for (const char* key : kDrawerWidthKeys) {
+    preferences->erase(key);
+  }
+  for (const auto& [key, width] : drawer_widths) {
+    preferences->insert_or_assign(key, width);
+  }
 }
 
 zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
@@ -665,11 +685,13 @@ void EditorManager::ResetCurrentEditorLayout() {
 
 #ifdef YAZE_BUILD_AGENT_UI
 void EditorManager::ShowAIAgent() {
-  if (!user_settings_.prefs().show_experimental_editors) {
+  if (EditorRegistry::ShouldWarnAboutExperimentalEditor(
+          EditorType::kAgent,
+          user_settings_.prefs().show_experimental_editors)) {
     toast_manager_.Show(
-        "AI Agent is experimental — enable Experimental Editors in Settings",
+        "AI Agent is experimental. It remains available; enable experimental "
+        "features in Settings to acknowledge this warning.",
         ToastType::kWarning);
-    return;
   }
   // Apply saved agent settings from the current project when opening the Agent
   // UI to respect the user's preferred provider/model.
@@ -730,6 +752,7 @@ void EditorManager::InitializeSubsystems() {
   menu_orchestrator_->SetWindowManager(&window_manager_);
   menu_orchestrator_->SetStatusBar(&status_bar_);
   menu_orchestrator_->SetUserSettings(&user_settings_);
+  menu_orchestrator_->SetShortcutManager(&shortcut_manager_);
 
   session_coordinator_->SetEditorManager(this);
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
@@ -781,6 +804,16 @@ void EditorManager::InitializeSubsystems() {
   right_drawer_manager_->SetProposalDrawer(&proposal_drawer_);
   right_drawer_manager_->SetPropertiesPanel(&selection_properties_panel_);
   right_drawer_manager_->SetShortcutManager(&shortcut_manager_);
+  right_drawer_manager_->SetSettingsPanelProvider([this]() -> SettingsPanel* {
+    // The drawers button and the palette toggle open the Settings drawer
+    // directly; on the Welcome screen there is no session yet. Create an
+    // empty one, as SwitchToEditor does for ROM-less editors (BUG-020).
+    if (session_coordinator_ && GetCurrentEditorSet() == nullptr) {
+      session_coordinator_->CreateNewSession();
+    }
+    auto* editor_set = GetCurrentEditorSet();
+    return editor_set ? editor_set->GetSettingsPanel() : nullptr;
+  });
   selection_properties_panel_.SetAgentCallbacks(
       [this](const std::string& prompt) {
 #if defined(YAZE_BUILD_AGENT_UI)
@@ -962,6 +995,9 @@ void EditorManager::InitializeSubsystems() {
             dungeon_editor->QueueWorkbenchWorkflowMode(enabled);
           }
         }
+      },
+      [this](const std::string& category) {
+        return GetEditorContextSnapshot(category);
       });
 
   // Wire per-user sidebar prefs so right-click / drag mutate persisted state.
@@ -2020,10 +2056,6 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Point to a blank editor set when no ROM is loaded
   // current_editor_set_ = &blank_editor_set_;
 
-  if (!filename.empty()) {
-    PRINT_IF_ERROR(OpenRomOrProject(filename));
-  }
-
   // Note: PopupManager is now initialized in constructor before
   // MenuOrchestrator This ensures all menu callbacks can safely call
   // popup_manager_.Show()
@@ -2076,6 +2108,25 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // TestManager will be updated when ROMs are loaded via SetCurrentRom calls
 
   InitializeShortcutSystem();
+
+  // Open a startup ROM last. The post-load surface reads Settings (Default
+  // Editor), which InitializeServices() loads; opening earlier used the
+  // built-in defaults and always showed the editor picker.
+  if (!filename.empty()) {
+    // The post-load surface must see --startup_dashboard/--welcome (saved by
+    // SetStartupLoadHints) and Settings > Test mode now; Application applies
+    // them only after this returns.
+    if (user_settings_.prefs().test_mode) {
+      if (welcome_mode_override_ == StartupVisibility::kAuto) {
+        welcome_mode_override_ = StartupVisibility::kHide;
+      }
+      if (dashboard_mode_override_ == StartupVisibility::kAuto) {
+        dashboard_mode_override_ = StartupVisibility::kHide;
+      }
+    }
+    ApplyStartupVisibilityOverrides();
+    PRINT_IF_ERROR(OpenRomOrProject(filename));
+  }
 }
 
 void EditorManager::RegisterEmulatorPanels() {
@@ -2232,19 +2283,30 @@ void EditorManager::InitializeServices() {
   if (right_drawer_manager_) {
     if (pending_layout_defaults_reset_) {
       right_drawer_manager_->ResetDrawerWidths();
-      user_settings_.prefs().right_panel_widths =
-          right_drawer_manager_->SerializeDrawerWidths();
+      MergeRightDrawerWidthPreferences(
+          &user_settings_.prefs().right_panel_widths,
+          right_drawer_manager_->SerializeDrawerWidths());
     } else {
       right_drawer_manager_->RestoreDrawerWidths(
           user_settings_.prefs().right_panel_widths);
+      auto normalized_widths = user_settings_.prefs().right_panel_widths;
+      MergeRightDrawerWidthPreferences(
+          &normalized_widths, right_drawer_manager_->SerializeDrawerWidths());
+      if (user_settings_.prefs().right_panel_widths != normalized_widths) {
+        user_settings_.prefs().right_panel_widths =
+            std::move(normalized_widths);
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      }
     }
     right_drawer_manager_->SetDrawerWidthChangedCallback(
         [this](RightDrawerManager::DrawerType, float) {
           if (!right_drawer_manager_) {
             return;
           }
-          user_settings_.prefs().right_panel_widths =
-              right_drawer_manager_->SerializeDrawerWidths();
+          MergeRightDrawerWidthPreferences(
+              &user_settings_.prefs().right_panel_widths,
+              right_drawer_manager_->SerializeDrawerWidths());
           settings_dirty_ = true;
           settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
         });
@@ -2290,6 +2352,70 @@ void EditorManager::SetupComponentCallbacks() {
   }
 }
 
+bool EditorManager::WantsContinuousFrames() const {
+  return emulator_.running() || gfx::Arena::Get().HasPendingTextures() ||
+         pending_editor_deferred_actions_.load(std::memory_order_relaxed) > 0;
+}
+
+bool EditorManager::HasOpenEditor() const {
+  return current_editor_ != nullptr &&
+         window_manager_.GetActiveCategory() !=
+             WorkspaceWindowManager::kDashboardCategory;
+}
+
+void EditorManager::ShowPostLoadSurface() {
+  if (ui_coordinator_) {
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+  }
+
+  // 1. Never cover an editor the user already has open. Re-enter the same
+  //    editor type so it binds to the newly loaded session.
+  std::optional<EditorType> target;
+  if (HasOpenEditor()) {
+    target = current_editor_->type();
+  }
+
+  // 2. Settings > Editor Behavior > Default Editor.
+  if (!target.has_value()) {
+    switch (user_settings_.prefs().default_editor) {
+      case 1:
+        target = EditorType::kOverworld;
+        break;
+      case 2:
+        target = EditorType::kDungeon;
+        break;
+      case 3:
+        target = EditorType::kGraphics;
+        break;
+      default:
+        break;
+    }
+  }
+
+  // 3. The editor picker, unless it is suppressed (--startup_dashboard=hide
+  //    or Settings > Test mode). Suppressed with no other choice: open the
+  //    most recently used editor, else Dungeon.
+  if (!target.has_value()) {
+    if (!ui_coordinator_ || ui_coordinator_->ShouldShowDashboard()) {
+      if (ui_coordinator_) {
+        ui_coordinator_->SetEditorSelectionVisible(true);
+      }
+      // Suppress panel drawing until the user picks an editor.
+      window_manager_.SetActiveCategory(
+          WorkspaceWindowManager::kDashboardCategory, /*notify=*/false);
+      return;
+    }
+    target =
+        (dashboard_panel_ ? dashboard_panel_->MostRecentEditor() : std::nullopt)
+            .value_or(EditorType::kDungeon);
+  }
+
+  if (ui_coordinator_) {
+    ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
+  }
+  SwitchToEditor(*target, /*force_visible=*/true);
+}
+
 void EditorManager::SetupDialogCallbacks() {
   // Initialize ROM load options dialog callbacks
   rom_load_options_dialog_.SetConfirmCallback(
@@ -2325,11 +2451,10 @@ void EditorManager::SetupDialogCallbacks() {
           }
         }
 
-        // Close dialog and show editor selection
+        // Close dialog, then pick the post-load surface again: the options
+        // may have created a project, but an open editor still wins.
         show_rom_load_options_ = false;
-        if (ui_coordinator_) {
-          ui_coordinator_->SetEditorSelectionVisible(true);
-        }
+        ShowPostLoadSurface();
 
         LOG_INFO("EditorManager", "ROM load options applied: preset=%s",
                  options.selected_preset.c_str());
@@ -2648,11 +2773,6 @@ std::string EditorManager::GetPreferredStartupCategory(
     return preferred;
   }
 
-  const EditorType type = EditorRegistry::GetEditorTypeFromCategory(preferred);
-  if (EditorRegistry::IsExperimentalEditor(type) &&
-      !user_settings_.prefs().show_experimental_editors) {
-    return PreferStartupCategory("", available_categories);
-  }
   return preferred;
 }
 
@@ -2948,6 +3068,53 @@ Editor* EditorManager::ResolveEditorForCategory(const std::string& category) {
   }
 }
 
+EditorContextSnapshot EditorManager::GetEditorContextSnapshot(
+    const std::string& category) {
+  EditorContextSnapshot snapshot;
+  snapshot.category = category;
+  Editor* editor = ResolveEditorForCategory(category);
+  if (editor == nullptr) {
+    return snapshot;
+  }
+
+  snapshot = editor->BuildContextSnapshot();
+  if (snapshot.category.empty()) {
+    snapshot.category = category;
+  }
+  if (snapshot.semantic_owner.empty()) {
+    snapshot.semantic_owner = snapshot.category;
+  }
+
+  const EditorExperimentPolicy policy =
+      EditorRegistry::GetExperimentPolicy(editor->type());
+  snapshot.experiment.experimental = policy.experimental;
+  snapshot.experiment.acknowledged =
+      !policy.experimental || user_settings_.prefs().show_experimental_editors;
+  switch (policy.disabled_save_posture) {
+    case ExperimentalSavePosture::kDefensiveBackup:
+      snapshot.experiment.save_posture = "Defensive backup";
+      break;
+    case ExperimentalSavePosture::kReadOnly:
+      snapshot.experiment.save_posture = "Guarded / read-only";
+      break;
+    case ExperimentalSavePosture::kNormal:
+    default:
+      snapshot.experiment.save_posture = "Normal";
+      break;
+  }
+  if (EditorRegistry::ShouldWarnAboutExperimentalEditor(
+          editor->type(), user_settings_.prefs().show_experimental_editors)) {
+    snapshot.diagnostics.push_back({
+        .id = "experimental_editor",
+        .severity = EditorContextDiagnosticSeverity::kWarning,
+        .message = absl::StrFormat("%s is experimental; save posture: %s",
+                                   snapshot.category,
+                                   snapshot.experiment.save_posture),
+    });
+  }
+  return snapshot;
+}
+
 void EditorManager::SyncEditorContextForCategory(const std::string& category) {
   if (Editor* resolved = ResolveEditorForCategory(category)) {
     SetCurrentEditor(resolved);
@@ -2989,6 +3156,7 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
 
   RETURN_IF_ERROR(zelda3::LoadGameData(session->rom, session->game_data));
   *gfx::Arena::Get().mutable_gfx_sheets() = session->game_data.gfx_bitmaps;
+  gfx::Arena::Get().set_gfx_sheets_owner(&session->game_data);
 
   auto* game_data = &session->game_data;
   auto* editor_set = &session->editors;
@@ -3312,10 +3480,22 @@ void EditorManager::DrawInterface() {
   // Handle Welcome screen early-exit for rendering
   if (ui_coordinator_ && ui_coordinator_->ShouldShowWelcome()) {
     if (right_drawer_manager_) {
-      right_drawer_manager_->CloseDrawer();
+      // Close drawers left over from an editor only when the Welcome screen
+      // replaces the editor surface. Closing them every frame made every
+      // drawer opened from the Welcome screen (File > Settings, Ctrl/Cmd+,,
+      // the drawers button) close again before it was drawn. The Welcome
+      // screen already lays itself out around the drawer width
+      // (GetRightLayoutOffset).
+      if (!welcome_was_shown_) {
+        right_drawer_manager_->CloseDrawer();
+      }
+      right_drawer_manager_->SetRom(GetCurrentRom());
+      right_drawer_manager_->Draw();
     }
+    welcome_was_shown_ = true;
     return;
   }
+  welcome_was_shown_ = false;
 
   DrawSecondaryWindows();
   UpdateSystemUIs();
@@ -3484,7 +3664,7 @@ void EditorManager::DrawInterface() {
     if (active != RightDrawerManager::DrawerType::kNone) {
       StatusBarSegmentOptions drawer_opts;
       drawer_opts.tooltip =
-          "Right drawer open — Esc closes, View > Drawers switches";
+          "Right sidebar open — Esc closes, View > Right Sidebar toggles";
       status_bar_.SetCustomSegment("Drawer", GetDrawerTypeName(active),
                                    std::move(drawer_opts));
     }
@@ -3902,6 +4082,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   // Copy loaded graphics to Arena for global access
   *gfx::Arena::Get().mutable_gfx_sheets() =
       current_session->game_data.gfx_bitmaps;
+  gfx::Arena::Get().set_gfx_sheets_owner(&current_session->game_data);
 
   // Propagate GameData to editors that already exist; future editors inherit it
   // on first construction via EditorSet.
@@ -4161,16 +4342,28 @@ absl::Status EditorManager::SaveRomInternal(
   } lifecycle_project_guard{&rom_lifecycle_, &current_project_};
 
   // GraphicsEditor tracks pixel edits in its model, not in the ROM buffer.
-  // The previous global graphics writer was a success-returning stub, and
-  // the editor-specific writer is not yet safe to join this coordinated save.
-  // Block before any serializer can mutate the ROM rather than report a save
-  // that silently omitted the pending sheets.
-  if (current_editor_set->HasPendingGraphicsChanges()) {
-    return absl::FailedPreconditionError(absl::StrFormat(
-        "Save blocked: graphics sheet edits are pending, but graphics ROM "
-        "persistence is not safely available (Save Graphics Sheets is %s). "
-        "Discard the graphics sheet edits before saving the ROM.",
-        core::FeatureFlags::get().kSaveGraphicsSheet ? "enabled" : "disabled"));
+  // With Save Graphics Sheets enabled it joins the editor saves below; with
+  // it disabled the edits cannot be written, so block before any serializer
+  // can mutate the ROM rather than report a save that omitted the sheets.
+  // Gfx group tables (blocksets, spritesets, palettesets) are edited in
+  // GameData. Without Save Gfx Groups they cannot be written, so block before
+  // any serializer runs instead of saving a ROM that silently drops them.
+  auto* save_session = session_coordinator_->GetActiveRomSession();
+  const bool pending_gfx_groups =
+      save_session != nullptr && save_session->HasPendingGfxGroupChanges();
+  if (pending_gfx_groups && !core::FeatureFlags::get().kSaveGfxGroups) {
+    return absl::FailedPreconditionError(
+        "Save blocked: blockset/spriteset (gfx group) edits are pending, but "
+        "Save Gfx Groups is disabled. Enable it, or undo the gfx group edits "
+        "before saving the ROM.");
+  }
+
+  if (current_editor_set->HasPendingGraphicsChanges() &&
+      !core::FeatureFlags::get().kSaveGraphicsSheet) {
+    return absl::FailedPreconditionError(
+        "Save blocked: graphics sheet edits are pending, but Save Graphics "
+        "Sheets is disabled. Enable it, or discard the graphics sheet edits "
+        "before saving the ROM.");
   }
 
   // ScreenEditor keeps dungeon-map, Tile16, title-screen, and pause-map edits
@@ -4242,16 +4435,32 @@ absl::Status EditorManager::SaveRomInternal(
   }
 
   // --- Backup policy setup ---
+  const auto experiment_policy =
+      current_editor_ != nullptr
+          ? EditorRegistry::GetExperimentPolicy(current_editor_->type())
+          : EditorExperimentPolicy{};
+  const bool force_experimental_backup =
+      !user_settings_.prefs().show_experimental_editors &&
+      experiment_policy.experimental &&
+      experiment_policy.disabled_save_posture ==
+          ExperimentalSavePosture::kDefensiveBackup;
+  if (force_experimental_backup) {
+    toast_manager_.Show(
+        "Experimental editor save: backup forced before writing the ROM",
+        ToastType::kWarning);
+  }
   if (save_project->project_opened()) {
     rom_lifecycle_.ApplyDefaultBackupPolicy(
-        save_project->workspace_settings.backup_on_save,
+        save_project->workspace_settings.backup_on_save ||
+            force_experimental_backup,
         save_project->GetAbsolutePath(save_project->rom_backup_folder),
         save_project->workspace_settings.backup_retention_count,
         save_project->workspace_settings.backup_keep_daily,
         save_project->workspace_settings.backup_keep_daily_days);
   } else {
     rom_lifecycle_.ApplyDefaultBackupPolicy(
-        user_settings_.prefs().backup_before_save, "", 20, true, 14);
+        user_settings_.prefs().backup_before_save || force_experimental_backup,
+        "", 20, true, 14);
   }
 
   // Reject an already-invalid Oracle layout before any editor serializer can
@@ -4297,6 +4506,21 @@ absl::Status EditorManager::SaveRomInternal(
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
     RETURN_IF_ERROR(
         save_editor(current_editor_set->GetEditor(EditorType::kMessage)));
+  }
+
+  // Graphics sheets are written through zelda3::WriteGfxSheet (in place, or
+  // relocated into manifest-registered free space) before the write-conflict
+  // check below diffs the ROM against disk.
+  if (core::FeatureFlags::get().kSaveGraphicsSheet) {
+    RETURN_IF_ERROR(save_editor(
+        current_editor_set->GetExistingEditor(EditorType::kGraphics)));
+  }
+
+  // Gfx group tables are written byte-for-byte where they differ, then read
+  // back. The ROM transaction restores them if a later step fails.
+  if (pending_gfx_groups && core::FeatureFlags::get().kSaveGfxGroups) {
+    RETURN_IF_ERROR(
+        zelda3::SaveGfxGroups(*current_rom, save_session->game_data));
   }
 
   // Oracle guardrails: refuse to write obviously corrupted ROM layouts.
@@ -4361,10 +4585,24 @@ absl::Status EditorManager::SaveRomInternal(
 
   // Delegate the final atomic disk write to RomFileManager. Save As is part of
   // this same transaction and writes only the requested target path.
+  // A project's tracked custom_collision.json follows only the project's own
+  // ROM file, never Save As targets or practice copies opened under it.
+  std::filesystem::path collision_source;
+  if (!save_as_filename.has_value() && save_project->project_opened() &&
+      !save_project->custom_collision_json.empty() &&
+      !save_project->rom_filename.empty()) {
+    std::error_code same_ec;
+    if (std::filesystem::equivalent(
+            save_project->GetAbsolutePath(save_project->rom_filename),
+            current_rom->filename(), same_ec)) {
+      collision_source =
+          save_project->GetAbsolutePath(save_project->custom_collision_json);
+    }
+  }
   auto save_status =
       save_as_filename.has_value()
           ? rom_file_manager_.SaveRomAs(current_rom, *save_as_filename)
-          : rom_file_manager_.SaveRom(current_rom);
+          : rom_file_manager_.SaveRom(current_rom, collision_source);
   if (save_status.ok()) {
     editor_transactions.Commit();
     rom_transaction.Commit();
@@ -4569,15 +4807,7 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
       return asset_status;
     }
 
-    // Hide welcome screen and show editor selection when ROM is loaded
-    ui_coordinator_->SetWelcomeScreenVisible(false);
-    // dashboard_panel_->ClearRecentEditors();
-    ui_coordinator_->SetEditorSelectionVisible(true);
-
-    // Set Dashboard category to suppress panel drawing until user selects an editor
-    window_manager_.SetActiveCategory(
-        WorkspaceWindowManager::kDashboardCategory,
-        /*notify=*/false);
+    ShowPostLoadSurface();
   }
   return absl::OkStatus();
 }
@@ -4724,7 +4954,9 @@ absl::Status EditorManager::FinalizeNewProject(
   runtime_feature_flags_session_id_ = session->session_id();
   RestoreProjectContextForSession(session);
   if (version_manager_) {
-    (void)version_manager_->InitializeGit();
+    // Creating a project never creates a Git repository; the Initialize Git
+    // action in Project Management is the opt-in. Adopt one that exists.
+    version_manager_->AdoptExistingRepository();
     current_project_.git_repository = session->project_context->git_repository;
     BindProjectContextToSession(session, current_project_);
   }
@@ -5086,9 +5318,9 @@ absl::Status EditorManager::LoadProjectWithRom() {
   BindProjectContextToSession(session, current_project_);
   RestoreProjectContextForSession(session);
   if (version_manager_) {
-    // Preserve the existing best-effort Git initialization behavior, now
-    // against the stable session-owned project object.
-    (void)version_manager_->InitializeGit();
+    // Opening a project never creates a Git repository; the Initialize Git
+    // action in Project Management is the opt-in. Adopt one that exists.
+    version_manager_->AdoptExistingRepository();
     current_project_.git_repository = session->project_context->git_repository;
   }
 
@@ -5164,15 +5396,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
     pending_project_rom_selection_.reset();
   }
 
-  // Hide welcome screen and show editor selection when project ROM is loaded
-  if (ui_coordinator_) {
-    ui_coordinator_->SetWelcomeScreenVisible(false);
-    ui_coordinator_->SetEditorSelectionVisible(true);
-  }
-
-  // Set Dashboard category to suppress panel drawing until user selects an editor
-  window_manager_.SetActiveCategory(WorkspaceWindowManager::kDashboardCategory,
-                                    /*notify=*/false);
+  ShowPostLoadSurface();
 
   // Apply workspace settings
   user_settings_.prefs().font_global_scale =
@@ -6120,6 +6344,7 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
 
   const size_t session_index = GetCurrentSessionIndex();
   if (session->editors.HasPendingGraphicsChanges() ||
+      session->HasPendingGfxGroupChanges() ||
       session->editors.HasPendingScreenChanges() ||
       HasPendingDungeonChangesForSession(session_index) ||
       gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
@@ -6203,6 +6428,90 @@ void EditorManager::CloseCurrentSession() {
 
   session_coordinator_->CloseCurrentSession();
   UpdateCurrentRomHash();
+}
+
+void EditorManager::CloseRom() {
+  if (!CanCloseRom()) {
+    return;
+  }
+  const size_t session_id = GetCurrentSessionId();
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kCloseRom, session_id,
+           session_id})) {
+    return;
+  }
+  ExecutePendingUnsavedSessionAction(
+      {PendingUnsavedSessionAction::Type::kCloseRom, session_id, session_id});
+}
+
+bool EditorManager::CanCloseRom() const {
+  return session_coordinator_ != nullptr &&
+         session_coordinator_->GetActiveRomSession() != nullptr;
+}
+
+bool EditorManager::CanRevertRom() const {
+  if (!session_coordinator_) {
+    return false;
+  }
+  const auto* session = session_coordinator_->GetActiveRomSession();
+  return session != nullptr && session->rom.is_loaded() &&
+         !session->rom.filename().empty();
+}
+
+absl::Status EditorManager::RevertRomToSaved() {
+  if (!CanRevertRom()) {
+    return absl::FailedPreconditionError("No ROM with a backing file is open");
+  }
+  const size_t session_id = GetCurrentSessionId();
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kRevertRom, session_id,
+           session_id})) {
+    return absl::OkStatus();  // Confirmation popup is now showing.
+  }
+  RETURN_IF_ERROR(RevertRomToSavedInternal());
+  toast_manager_.Show("Reverted ROM to the saved file", ToastType::kSuccess);
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::RevertRomToSavedInternal() {
+  if (!CanRevertRom()) {
+    return absl::FailedPreconditionError("No ROM with a backing file is open");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  // Graphics sheet drafts are held by the Graphics editor and are not rebuilt
+  // by ReplaceActiveSessionRom. Refuse instead of leaving them stale.
+  if (session->editors.HasPendingGraphicsChanges()) {
+    return absl::FailedPreconditionError(
+        "The Graphics editor has unsaved sheet edits; save or undo them "
+        "before reverting");
+  }
+
+  const std::string backing_path = session->rom.filename();
+  // Load into scratch storage first so a read failure leaves the live
+  // session untouched. Resource labels are session work stored beside the
+  // ROM, not ROM bytes, so keep the in-memory labels (as
+  // DiscardPendingRomBackupRestore does).
+  const project::ResourceLabelManager resource_labels =
+      *session->rom.resource_label();
+  Rom backing_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&backing_rom, backing_path));
+  *backing_rom.resource_label() = resource_labels;
+  RETURN_IF_ERROR(
+      ReplaceActiveSessionRom(std::move(backing_rom), backing_path));
+
+  // ReplaceActiveSessionRom may re-resolve the session pointer's contents but
+  // not its identity; re-read it defensively.
+  session = session_coordinator_->GetActiveRomSession();
+  if (session != nullptr) {
+    session->backup_restore_pending = false;
+    session->rom.ClearDirty();
+    if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+      return absl::DataLossError(absl::StrFormat(
+          "ROM reloaded from disk, but the session still reports %s",
+          DescribePendingUnsavedWork(GetCurrentSessionIndex())));
+    }
+  }
+  return absl::OkStatus();
 }
 
 void EditorManager::RemoveSession(size_t index) {
@@ -6313,6 +6622,15 @@ std::string EditorManager::GetPendingUnsavedSessionActionPrompt() const {
       return absl::StrFormat(
           "Session '%s' has %s. Closing it now will discard them.",
           session_name, work);
+    case PendingUnsavedSessionAction::Type::kCloseRom:
+      return absl::StrFormat(
+          "Session '%s' has %s. Closing the ROM now will discard them.",
+          session_name, work);
+    case PendingUnsavedSessionAction::Type::kRevertRom:
+      return absl::StrFormat(
+          "Session '%s' has %s. Reverting reloads the ROM from disk and "
+          "discards all unsaved ROM edits. This cannot be undone.",
+          session_name, work);
     case PendingUnsavedSessionAction::Type::kQuit:
       break;
   }
@@ -6335,6 +6653,12 @@ std::string EditorManager::GetPendingUnsavedSessionActionSaveLabel() const {
       return "Save Work & Switch";
     case PendingUnsavedSessionAction::Type::kCloseSession:
       return "Save Work & Close";
+    case PendingUnsavedSessionAction::Type::kCloseRom:
+      return "Save Work & Close ROM";
+    case PendingUnsavedSessionAction::Type::kRevertRom:
+      // Saving and then reloading from disk is a no-op; the popup hides the
+      // save button when this label is empty.
+      return "";
     case PendingUnsavedSessionAction::Type::kQuit:
       return ModifiedSessionCount() == 1 ? "Save Work & Quit"
                                          : "Save Modified Work & Quit";
@@ -6357,7 +6681,10 @@ std::string EditorManager::GetPendingUnsavedSessionActionContinueLabel() const {
     case PendingUnsavedSessionAction::Type::kSwitchSession:
       return "Switch Without Saving";
     case PendingUnsavedSessionAction::Type::kCloseSession:
+    case PendingUnsavedSessionAction::Type::kCloseRom:
       return "Close Without Saving";
+    case PendingUnsavedSessionAction::Type::kRevertRom:
+      return "Discard Edits & Revert";
     case PendingUnsavedSessionAction::Type::kQuit:
       return "Quit Without Saving";
   }
@@ -6487,11 +6814,17 @@ bool EditorManager::MaybeGuardPendingSessionAction(
     PendingUnsavedSessionAction action) {
   CaptureActiveProjectEditingState();
   const auto source_index = ResolveSessionIndexById(action.source_session_id);
-  const bool has_pending_work =
-      action.type == PendingUnsavedSessionAction::Type::kQuit
-          ? HasAnySessionPendingUnsavedWork()
-          : source_index.has_value() &&
-                SessionHasPendingUnsavedWork(*source_index);
+  bool has_pending_work = false;
+  if (action.type == PendingUnsavedSessionAction::Type::kQuit) {
+    has_pending_work = HasAnySessionPendingUnsavedWork();
+  } else if (action.type == PendingUnsavedSessionAction::Type::kRevertRom) {
+    // Revert only discards ROM-side work; project drafts survive it.
+    has_pending_work =
+        source_index.has_value() && SessionHasPendingRomWork(*source_index);
+  } else {
+    has_pending_work =
+        source_index.has_value() && SessionHasPendingUnsavedWork(*source_index);
+  }
   if (!has_pending_work) {
     return true;
   }
@@ -6552,6 +6885,37 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
         }
       }
       break;
+    case PendingUnsavedSessionAction::Type::kCloseRom:
+      if (session_coordinator_) {
+        const auto target_index =
+            ResolveSessionIndexById(action.target_session_id);
+        if (target_index.has_value()) {
+          session_coordinator_->CloseSessionAllowingEmpty(*target_index);
+          UpdateCurrentRomHash();
+        }
+      }
+      break;
+    case PendingUnsavedSessionAction::Type::kRevertRom: {
+      const auto target_index =
+          ResolveSessionIndexById(action.target_session_id);
+      if (!target_index.has_value()) {
+        break;
+      }
+      if (session_coordinator_ &&
+          *target_index != session_coordinator_->GetActiveSessionIndex()) {
+        session_coordinator_->SwitchToSession(*target_index);
+      }
+      auto status = RevertRomToSavedInternal();
+      if (status.ok()) {
+        toast_manager_.Show("Reverted ROM to the saved file",
+                            ToastType::kSuccess);
+      } else {
+        toast_manager_.Show(
+            absl::StrFormat("Revert failed: %s", status.message()),
+            ToastType::kError, 6.0f);
+      }
+      break;
+    }
     case PendingUnsavedSessionAction::Type::kQuit:
       quit_ = true;
       break;
@@ -6584,6 +6948,7 @@ bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
   return session != nullptr &&
          ((session->rom.is_loaded() && session->rom.dirty()) ||
           session->editors.HasPendingGraphicsChanges() ||
+          session->HasPendingGfxGroupChanges() ||
           session->editors.HasPendingScreenChanges() ||
           HasPendingDungeonChangesForSession(session_index) ||
           gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data));
@@ -6676,6 +7041,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
       HasPendingDungeonChangesForSession(session_index);
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
+  const bool pending_gfx_group_changes =
+      session != nullptr && session->HasPendingGfxGroupChanges();
   const bool pending_screen_changes =
       session != nullptr && session->editors.HasPendingScreenChanges();
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
@@ -6702,6 +7069,9 @@ std::string EditorManager::DescribePendingUnsavedWork(
   }
   if (pending_graphics_changes) {
     work.emplace_back("unapplied graphics sheet edits");
+  }
+  if (pending_gfx_group_changes) {
+    work.emplace_back("unsaved blockset/spriteset (gfx group) edits");
   }
   if (pending_screen_changes) {
     work.emplace_back("unapplied Screen Editor edits");
@@ -6736,6 +7106,8 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
       HasPendingDungeonChangesForSession(session_index);
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
+  const bool pending_gfx_group_changes =
+      session != nullptr && session->HasPendingGfxGroupChanges();
   const bool pending_screen_changes =
       session != nullptr && session->editors.HasPendingScreenChanges();
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
@@ -6759,6 +7131,9 @@ std::string EditorManager::CompactPendingUnsavedWorkLabel(
   }
   if (pending_graphics_changes) {
     tags.push_back("Gfx");
+  }
+  if (pending_gfx_group_changes) {
+    tags.push_back("GfxGroups");
   }
   if (pending_screen_changes) {
     tags.push_back("Screen");
@@ -6835,23 +7210,24 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 
 void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
                                    bool from_dialog) {
-  if (EditorRegistry::IsExperimentalEditor(editor_type) &&
-      !user_settings_.prefs().show_experimental_editors) {
-    toast_manager_.Show(
-        absl::StrFormat(
-            "%s is experimental — enable Experimental Editors in Settings",
-            kEditorNames[static_cast<int>(editor_type)]),
-        ToastType::kWarning);
-    return;
-  }
-
-  // Special case: Agent editor requires EditorManager-specific handling
 #ifdef YAZE_BUILD_AGENT_UI
+  // Agent has its own activation path, including the shared experimental
+  // warning. Handle it first so one user action cannot emit the warning twice.
   if (editor_type == EditorType::kAgent) {
     ShowAIAgent();
     return;
   }
 #endif
+
+  if (EditorRegistry::ShouldWarnAboutExperimentalEditor(
+          editor_type, user_settings_.prefs().show_experimental_editors)) {
+    toast_manager_.Show(
+        absl::StrFormat(
+            "%s is experimental. It remains available; enable experimental "
+            "features in Settings to acknowledge this warning.",
+            kEditorNames[static_cast<int>(editor_type)]),
+        ToastType::kWarning);
+  }
 
   // Fresh launch has no ROM session, so GetCurrentEditorSet() is null and
   // EditorActivator::SwitchToEditor would silently no-op (BUG-020) — that was
@@ -7039,12 +7415,6 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
             return absl::FailedPreconditionError(
                 "Minecart Tracks requires its project session to be active.");
           }
-          if (!core::FeatureFlags::get().kEnableCustomObjects) {
-            return absl::FailedPreconditionError(
-                "Enable Custom Dungeon Objects before opening Minecart "
-                "Tracks.");
-          }
-
           RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kDungeon));
           auto* dungeon = GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
               EditorType::kDungeon);

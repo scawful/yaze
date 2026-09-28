@@ -17,6 +17,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "framework/rom_save_fault.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/custom_collision.h"
@@ -270,8 +271,7 @@ TEST(DungeonTrackCollisionCommandsTest,
   WriteRomFile(rom, cleanup.rom_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
@@ -284,7 +284,7 @@ TEST(DungeonTrackCollisionCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
   EXPECT_EQ(rom.vector(), before);
@@ -305,8 +305,7 @@ TEST(DungeonTrackCollisionCommandsTest,
   WriteRomFile(rom, cleanup.rom_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
@@ -319,7 +318,7 @@ TEST(DungeonTrackCollisionCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
   EXPECT_EQ(rom.vector(), before);
   EXPECT_FALSE(rom.dirty());

@@ -746,5 +746,104 @@ TEST_F(RoomLayerManagerTest,
       << "Changing layer visibility must invalidate cached composites";
 }
 
+// In rooms whose layer settings put hardware BG1 on neither screen (BGACT 0),
+// the game never shows the lower tilemap, which yaze keeps in its BG2
+// buffers. The composite hides those layers unless ShowHiddenLayers is on.
+TEST_F(RoomLayerManagerTest, GameHiddenLowerTilemapIsOffUnlessShown) {
+  RoomLayerManager manager;
+  manager.ApplyGameLayerRegisters(DeriveRoomLayerRegisters(0, false, 0, 0, {}));
+  EXPECT_TRUE(manager.GameHidesLowerTilemap());
+  EXPECT_TRUE(manager.IsHiddenByGame(LayerType::BG2_Layout));
+  EXPECT_TRUE(manager.IsHiddenByGame(LayerType::BG2_Objects));
+  EXPECT_FALSE(manager.IsHiddenByGame(LayerType::BG1_Layout));
+
+  manager.SetShowHiddenLayers(true);
+  EXPECT_FALSE(manager.IsHiddenByGame(LayerType::BG2_Layout));
+
+  RoomLayerManager shown;
+  shown.ApplyGameLayerRegisters(DeriveRoomLayerRegisters(1, false, 0, 0, {}));
+  EXPECT_FALSE(shown.GameHidesLowerTilemap());
+  EXPECT_FALSE(shown.IsHiddenByGame(LayerType::BG2_Layout));
+}
+
+TEST_F(RoomLayerManagerTest, HiddenLayerToggleInvalidatesCachedComposite) {
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  PrepareColorMathRoom(room);
+  room.bg2_buffer().bitmap().mutable_data()[0] = 33;
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(0, false, 0, 0, {}));
+
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 0);
+  ASSERT_FALSE(room.IsCompositeDirty());
+  const auto revision = room.composite_source_revision();
+
+  manager_.SetShowHiddenLayers(true);
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 33);
+  manager_.SetShowHiddenLayers(false);
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 0);
+  EXPECT_EQ(room.composite_source_revision(), revision);
+}
+
+TEST_F(RoomLayerManagerTest, GameRegistersInvalidateCachedComposite) {
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  PrepareColorMathRoom(room);
+  room.bg1_buffer().bitmap().mutable_data()[0] = 33;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 34;
+  room.bg2_buffer().bitmap().mutable_data()[1] = 34;
+
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(0, false, 0, 0, {}));
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[1], 0);
+  const auto revision = room.composite_source_revision();
+
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(1, false, 0, 0, {}));
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 33);
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[1], 34);
+
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(3, false, 0, 0, {}));
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 34);
+  EXPECT_EQ(room.composite_source_revision(), revision);
+}
+
+TEST_F(RoomLayerManagerTest, ResetClearsGameRegistersAndHiddenLayerOverride) {
+  const RoomLayerManager fresh;
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(0, false, 0, 0, {}));
+  manager_.SetShowHiddenLayers(true);
+  manager_.Reset();
+  EXPECT_FALSE(manager_.GameHidesLowerTilemap());
+  EXPECT_FALSE(manager_.ShowHiddenLayers());
+  EXPECT_FALSE(manager_.UpperTilemapCoversLower(1));
+  EXPECT_EQ(manager_.CompositeStateSignature(),
+            fresh.CompositeStateSignature());
+}
+
+// Sub-screen-only lower tilemaps never cover opaque upper pixels; when both
+// tilemaps share the main screen (BGACT 3) the lower one wins priority ties.
+TEST_F(RoomLayerManagerTest, GameStackingFollowsLayerRegisters) {
+  RoomLayerManager unapplied;
+  EXPECT_TRUE(unapplied.UpperTilemapCoversLower(/*layer2_mode=*/6));
+  EXPECT_FALSE(unapplied.UpperTilemapCoversLower(/*layer2_mode=*/1));
+  EXPECT_FALSE(unapplied.LowerTilemapWinsTies());
+
+  RoomLayerManager parallax;  // BGACT 1: sub screen, no blend
+  parallax.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(1, false, 0, 0, {}));
+  EXPECT_TRUE(parallax.UpperTilemapCoversLower(1));
+  EXPECT_FALSE(parallax.LowerTilemapWinsTies());
+
+  RoomLayerManager translucent;  // BGACT 4: upper blends
+  translucent.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(4, false, 0, 0, {}));
+  EXPECT_FALSE(translucent.UpperTilemapCoversLower(4));
+
+  RoomLayerManager on_top;  // BGACT 3: both on the main screen
+  on_top.ApplyGameLayerRegisters(DeriveRoomLayerRegisters(3, false, 0, 0, {}));
+  EXPECT_FALSE(on_top.UpperTilemapCoversLower(3));
+  EXPECT_TRUE(on_top.LowerTilemapWinsTies());
+}
+
 }  // namespace zelda3
 }  // namespace yaze

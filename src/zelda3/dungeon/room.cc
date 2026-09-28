@@ -851,6 +851,66 @@ Room::~Room() = default;
 Room::Room(Room&&) = default;
 Room& Room::operator=(Room&&) = default;
 
+Room::MetadataSnapshot Room::CaptureMetadataSnapshot() const {
+  return {.palette = palette_,
+          .blockset = blockset_,
+          .spriteset = spriteset_,
+          .layout = layout_id_,
+          .floor1 = floor1_graphics_,
+          .floor2 = floor2_graphics_,
+          .message = message_id_,
+          .bg2 = bg2_,
+          .layer2_mode = layer2_mode_,
+          .layer_merging = layer_merging_,
+          .is_dark = is_dark_,
+          .is_light = is_light_,
+          .collision = collision_,
+          .effect = effect_,
+          .tag1 = tag1_,
+          .tag2 = tag2_,
+          .holewarp = holewarp_,
+          .pit_target_layer = pits_.target_layer,
+          .staircase_rooms = {staircase_rooms_[0], staircase_rooms_[1],
+                              staircase_rooms_[2], staircase_rooms_[3]},
+          .staircase_planes = {staircase_plane_[0], staircase_plane_[1],
+                               staircase_plane_[2], staircase_plane_[3]}};
+}
+
+void Room::RestoreMetadataSnapshot(const MetadataSnapshot& snapshot) {
+  SetPalette(snapshot.palette);
+  SetBlockset(snapshot.blockset);
+  SetSpriteset(snapshot.spriteset);
+  SetLayoutId(snapshot.layout);
+  set_floor1(snapshot.floor1);
+  set_floor2(snapshot.floor2);
+  SetMessageId(snapshot.message);
+
+  // SetBg2 intentionally normalizes the authoring choice. Undo restores the
+  // original state instead, including the BG2 mode hidden by the dark flag.
+  if (bg2_ != snapshot.bg2 || layer2_mode_ != snapshot.layer2_mode ||
+      layer_merging_ != snapshot.layer_merging ||
+      is_dark_ != snapshot.is_dark || is_light_ != snapshot.is_light) {
+    bg2_ = snapshot.bg2;
+    layer2_mode_ = snapshot.layer2_mode;
+    layer_merging_ = snapshot.layer_merging;
+    is_dark_ = snapshot.is_dark;
+    is_light_ = snapshot.is_light;
+    MarkHeaderDirty();
+    MarkGraphicsDirty();
+  }
+
+  SetCollision(snapshot.collision);
+  SetEffect(snapshot.effect);
+  SetTag1(snapshot.tag1);
+  SetTag2(snapshot.tag2);
+  SetHolewarp(snapshot.holewarp);
+  SetPitsTargetLayer(snapshot.pit_target_layer);
+  for (int index = 0; index < 4; ++index) {
+    SetStaircaseRoom(index, snapshot.staircase_rooms[index]);
+    SetStaircasePlane(index, snapshot.staircase_planes[index]);
+  }
+}
+
 int Room::ResolveDungeonPaletteId() const {
   if (!game_data_ || !rom_)
     return 0;
@@ -873,6 +933,16 @@ int Room::ResolveDungeonPaletteId() const {
   return id;
 }
 
+RoomLayerRegisters Room::GameLayerRegisters(uint16_t room_flags) const {
+  // The merge type is what the editor edits; for dark rooms it is the
+  // placeholder 8 and layer2_mode_ keeps the header's BGACT.
+  const bool dark = layer_merging_.ID == 8;
+  const uint8_t bgact = dark ? layer2_mode_ : layer_merging_.ID;
+  return DeriveRoomLayerRegisters(bgact, dark, static_cast<int>(effect_),
+                                  static_cast<int>(tag2_), tile_objects_,
+                                  room_flags);
+}
+
 void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   if (!game_data_) {
     LOG_DEBUG("Room", "GameData not set for room %d", room_id_);
@@ -884,9 +954,21 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   const uint8_t requested_main_blockset =
       entrance_blockset.value_or(render_entrance_blockset_);
   uint8_t main_blockset = 0;
+  // The game takes the main blockset ($0AA1) from the entrance the dungeon
+  // was entered through, never from the room header. Without an explicit
+  // entrance, use the room's dungeon default (room_default_entrance.h); the
+  // header byte ($0AA2, the room's secondary set) is the last resort.
+  const uint8_t dungeon_main_blockset =
+      room_id_ >= 0 && room_id_ < static_cast<int>(
+                                      game_data_->room_default_entrances.size())
+          ? game_data_->room_default_entrances[room_id_].main_blockset
+          : 0xFF;
   if (requested_main_blockset != 0xFF &&
       requested_main_blockset < game_data_->main_blockset_ids.size()) {
     main_blockset = requested_main_blockset;
+  } else if (dungeon_main_blockset != 0xFF &&
+             dungeon_main_blockset < game_data_->main_blockset_ids.size()) {
+    main_blockset = dungeon_main_blockset;
   } else if (blockset_ < game_data_->main_blockset_ids.size()) {
     main_blockset = blockset_;
   } else {
@@ -982,6 +1064,10 @@ void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
     SetRenderEntranceBlockset(*entrance_blockset);
   }
   EnsureObjectsLoaded();
+  // An unsaved graphics edit to a sheet this room shows.
+  if (SourceSheetsChanged()) {
+    MarkGraphicsDirty();
+  }
 
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
@@ -1016,6 +1102,7 @@ void Room::CopyRoomGraphicsToBuffer() {
     graphics_revision_ = NextRoomGraphicsRevision();
   };
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
+  source_sheet_revisions_.clear();
 
   // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
   // The engine expands 3BPP graphics to 4BPP in two modes:
@@ -1056,21 +1143,19 @@ void Room::CopyRoomGraphicsToBuffer() {
       continue;
     }
 
-    // Source offset in ROM graphics buffer (now 8BPP format)
-    // Each 8BPP sheet is 4096 bytes (128x32 pixels)
-    int src_sheet_offset = sheet_id * 4096;
-
-    // Validate source bounds
-    if (src_sheet_offset + 4096 > gfx_buffer_data->size()) {
+    // Each 8BPP sheet is 4096 bytes (128x32 pixels): a preview override, or
+    // the ROM graphics buffer.
+    const uint8_t* src = GraphicsSheetSource(sheet_id);
+    if (src == nullptr) {
       LOG_ERROR("Room", "Graphics offset out of bounds: %d (size: %zu)",
-                src_sheet_offset, gfx_buffer_data->size());
+                sheet_id * 4096, gfx_buffer_data->size());
       continue;
     }
+    RecordSourceSheet(sheet_id);
 
     // Copy 4096 bytes for the 8BPP sheet
     int dest_index_base = block * 4096;
     if (dest_index_base + 4096 <= current_gfx16_.size()) {
-      const uint8_t* src = gfx_buffer_data->data() + src_sheet_offset;
       uint8_t* dst = current_gfx16_.data() + dest_index_base;
 
       // Only background blocks (0-7) participate in Left/Right palette
@@ -1093,6 +1178,57 @@ void Room::CopyRoomGraphicsToBuffer() {
 
   LOG_DEBUG("Room", "Room %d: Graphics blocks copied successfully", room_id_);
   LoadAnimatedGraphics();
+}
+
+const uint8_t* Room::GraphicsSheetSource(int sheet_id) const {
+  constexpr size_t kSheetBytes = 4096;
+  if (sheet_id < 0) {
+    return nullptr;
+  }
+  const auto it =
+      graphics_sheet_overrides_.find(static_cast<uint16_t>(sheet_id));
+  if (it != graphics_sheet_overrides_.end() &&
+      it->second.size() == kSheetBytes) {
+    return it->second.data();
+  }
+  if (game_data_ == nullptr) {
+    return nullptr;
+  }
+  const auto& graphics = game_data_->graphics_buffer;
+  const size_t offset = static_cast<size_t>(sheet_id) * kSheetBytes;
+  if (offset + kSheetBytes > graphics.size()) {
+    return nullptr;
+  }
+  return graphics.data() + offset;
+}
+
+void Room::RecordSourceSheet(int sheet_id) {
+  if (game_data_ == nullptr || sheet_id < 0 ||
+      graphics_sheet_overrides_.count(static_cast<uint16_t>(sheet_id)) != 0) {
+    return;
+  }
+  const auto sheet = static_cast<uint16_t>(sheet_id);
+  const uint64_t revision = game_data_->sheet_store.Revision(sheet);
+  for (auto& [id, recorded] : source_sheet_revisions_) {
+    if (id == sheet) {
+      recorded = revision;
+      return;
+    }
+  }
+  source_sheet_revisions_.emplace_back(sheet, revision);
+}
+
+bool Room::SourceSheetsChanged() const {
+  if (game_data_ == nullptr) {
+    return false;
+  }
+  for (const auto& [sheet, recorded] : source_sheet_revisions_) {
+    if (graphics_sheet_overrides_.count(sheet) == 0 &&
+        game_data_->sheet_store.Revision(sheet) != recorded) {
+      return true;
+    }
+  }
+  return false;
 }
 
 gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
@@ -1500,6 +1636,7 @@ void Room::RenderObjectsToBackground() {
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
   drawer.SetRoomFloorGraphics(floor1_graphics_, floor2_graphics_);
+  drawer.SetRoomTag2(static_cast<int>(tag2_));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   // NOTE: Routines marked draws_to_both_bgs explicitly write both tilemaps.
   // Object-specific stair routing is handled inside the registered routines.
@@ -1617,6 +1754,10 @@ void Room::RenderObjectsToBackground() {
     drawer.DrawDoor(door_def, i, object_bg1_buffer_, object_bg2_buffer_,
                     dungeon_state_.get(), &bg1_buffer_, &bg2_buffer_);
   }
+  // RoomTag_OperateChestHoles applies its overlay after the room is drawn.
+  drawer.DrawChestHoleOverlay(static_cast<int>(tag1_), static_cast<int>(tag2_),
+                              dungeon_state_.get(), object_bg1_buffer_);
+
   // Mark object buffer as modified so texture gets updated
   if (!doors_.empty()) {
     object_bg1_buffer_.bitmap().set_modified(true);
@@ -1704,14 +1845,12 @@ void Room::LoadAnimatedGraphics() {
   if (!rom_ || !rom_->is_loaded() || !game_data_) {
     return;
   }
-  constexpr size_t kSheetBytes = 4096;
   constexpr size_t kFrameBytes = 1024;
   // The runtime cycles three frames ($008703-$00870B); the current editor
   // preview uses frame zero.
   if (animated_frame_ < 0 || animated_frame_ >= 3) {
     return;
   }
-  const auto& graphics = game_data_->graphics_buffer;
   bool copied_frame = false;
   const absl::Cleanup publish_revision = [this, &copied_frame] {
     if (copied_frame) {
@@ -1719,9 +1858,10 @@ void Room::LoadAnimatedGraphics() {
     }
   };
   const auto copy_frame = [&](uint8_t sheet, size_t destination) {
-    const size_t source = sheet * kSheetBytes + animated_frame_ * kFrameBytes;
-    if (source + kFrameBytes <= graphics.size()) {
-      std::copy_n(graphics.data() + source, kFrameBytes,
+    const uint8_t* source = GraphicsSheetSource(sheet);
+    if (source != nullptr) {
+      RecordSourceSheet(sheet);
+      std::copy_n(source + animated_frame_ * kFrameBytes, kFrameBytes,
                   current_gfx16_.data() + destination);
       copied_frame = true;
     }
@@ -1754,7 +1894,7 @@ void Room::LoadAnimatedGraphics() {
 
 void Room::LoadObjects() {
   LOG_DEBUG("[LoadObjects]", "Starting LoadObjects for room %d", room_id_);
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Enhanced object loading with comprehensive validation
   int object_pointer = (rom_data[kRoomObjectPointer + 2] << 16) +
@@ -1800,7 +1940,11 @@ void Room::LoadObjects() {
         static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);
   }
 
-  LoadChests();
+  // Reloading object graphics must not discard unsaved contents edits. Parsing
+  // annotates chest objects but never consumes these persistent records.
+  if (!chests_dirty()) {
+    LoadChests();
+  }
 
   // Parse objects with enhanced error handling
   ParseObjectsFromLocation(objects_location + 2);
@@ -1819,7 +1963,7 @@ void Room::LoadObjects() {
 }
 
 void Room::ParseObjectsFromLocation(int objects_location) {
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Clear existing objects before parsing to prevent accumulation on reload
   tile_objects_.clear();
@@ -2611,18 +2755,9 @@ void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
   }
 
   // Handle chest objects
-  if (oid == 0xF99) {
-    if (chests_in_room_.size() > 0) {
-      tile_objects_.back().set_options(ObjectOption::Chest |
-                                       tile_objects_.back().options());
-      chests_in_room_.erase(chests_in_room_.begin());
-    }
-  } else if (oid == 0xFB1) {
-    if (chests_in_room_.size() > 0) {
-      tile_objects_.back().set_options(ObjectOption::Chest |
-                                       tile_objects_.back().options());
-      chests_in_room_.erase(chests_in_room_.begin());
-    }
+  if (IsStatefulChestObjectId(oid)) {
+    tile_objects_.back().set_options(ObjectOption::Chest |
+                                     tile_objects_.back().options());
   }
 }
 
@@ -3199,6 +3334,47 @@ absl::Status PreflightBlocksLoaderDestinations(
   return absl::OkStatus();
 }
 
+// Loader pages describe a 0x200-byte WRAM buffer, not 0x200 bytes of owned
+// ROM storage. USDASM bank_04 places the vanilla block table at $04F1DE
+// (PC 0x271DE) and the torch table at $04F36A (PC 0x2736A): only 99 four-byte
+// block records fit. The fourth 128-byte loader read deliberately includes
+// unused torch bytes; writes must stop before those bytes. Repointed block
+// pages retain the full WRAM capacity only when their actual payload spans
+// avoid the fixed torch allocation ($04F36A..$04F48A) and its length operand.
+absl::Status PreflightBlocksPayloadDestinations(
+    const std::array<int, 4>& destination_pcs, int byte_length) {
+  if (byte_length < 0 || byte_length > 4 * kBlocksRegionSize ||
+      byte_length % 4 != 0) {
+    return absl::FailedPreconditionError(
+        "Pushable-block length must contain whole four-byte records within "
+        "the 0x200-byte WRAM buffer");
+  }
+  for (size_t page = 0; page < destination_pcs.size(); ++page) {
+    const int offset = static_cast<int>(page) * kBlocksRegionSize;
+    const int length = std::min(kBlocksRegionSize, byte_length - offset);
+    if (length <= 0)
+      break;
+    const int begin = destination_pcs[page];
+    const int end = begin + length;
+    if (HalfOpenRangesOverlap(begin, end, kTorchData,
+                              kTorchData + kTorchesMaxSize)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Pushable-block ROM capacity exceeded: loader page %d payload "
+          "[0x%05X, 0x%05X) overlaps torch data [0x%05X, 0x%05X). "
+          "Repoint the block data to independent ROM storage before growing "
+          "this table.",
+          page + 1, begin, end, kTorchData, kTorchData + kTorchesMaxSize));
+    }
+    if (HalfOpenRangesOverlap(begin, end, kTorchesLengthPointer,
+                              kTorchesLengthPointer + 2)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Blocks loader page %d payload overlaps torch length metadata",
+          page + 1));
+    }
+  }
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status SaveAllBlocks(Rom* rom) {
@@ -3214,6 +3390,8 @@ absl::Status SaveAllBlocks(Rom* rom) {
   std::array<int, 4> destination_pcs{};
   RETURN_IF_ERROR(
       PreflightBlocksLoaderDestinations(rom_data, &destination_pcs));
+  RETURN_IF_ERROR(
+      PreflightBlocksPayloadDestinations(destination_pcs, blocks_count));
   if (blocks_count <= 0) {
     return absl::OkStatus();
   }
@@ -3254,7 +3432,9 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   // blocks for any room the user hasn't materialized yet.
   const int original_count_word =
       (rom_data[kBlocksLength + 1] << 8) | rom_data[kBlocksLength];
-  const int original_byte_len = std::max(0, original_count_word);
+  const int original_byte_len = original_count_word;
+  RETURN_IF_ERROR(
+      PreflightBlocksPayloadDestinations(destination_pcs, original_byte_len));
   std::vector<uint8_t> original_buffer(original_byte_len, 0);
   for (int r = 0; r < 4; ++r) {
     const int pc = destination_pcs[r];
@@ -3280,7 +3460,6 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     const RoomObject* source_object;
   };
   std::unordered_set<uint16_t> owned_room_ids;
-  std::unordered_set<int> claimed_load_orders;
   std::unordered_map<int, EncodedBlock> slot_replacements;
   std::vector<EncodedBlock> appended;
   for (int rid = 0; rid < room_count; ++rid) {
@@ -3297,6 +3476,10 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
       continue;  // Header-only — preserve its slots verbatim from ROM.
     }
     owned_room_ids.insert(static_cast<uint16_t>(rid));
+    // Historical slots are only identities within their original room. Undo
+    // may restore a slot now occupied by another room after table compaction.
+    // Still reject two blocks in this room claiming the same historical slot.
+    std::unordered_set<int> claimed_load_orders;
     for (const auto& obj : room->GetTileObjects()) {
       if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
         continue;
@@ -3398,14 +3581,13 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
         "entry.");
   }
 
-  // Capacity check against the vanilla 128-entry cap.
+  // The runtime buffer has 128 slots; the ROM layout may have fewer.
   const int kMaxEntries = (4 * kBlocksRegionSize) / 4;
   if (static_cast<int>(output.size() / 4) > kMaxEntries) {
     return absl::FailedPreconditionError(absl::StrCat(
         "Pushable-block table overflow: ", output.size() / 4,
-        " entries exceeds the vanilla cap of ", kMaxEntries,
-        " (expand layout requires repointing all 4 LDA.l operand slots; "
-        "out of scope for this encoder)."));
+        " entries exceeds the runtime WRAM cap of ", kMaxEntries,
+        " (a larger table requires runtime buffer and loader changes)."));
   }
 
   // Build the write plan from the four destinations preflighted above. Doing
@@ -3413,6 +3595,8 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   // this public API in a transaction cannot discover a bad later page only
   // after an earlier page has already been written.
   const int total_bytes = static_cast<int>(output.size());
+  RETURN_IF_ERROR(
+      PreflightBlocksPayloadDestinations(destination_pcs, total_bytes));
   struct BlockWriteDestination {
     int pc;
     int output_offset;

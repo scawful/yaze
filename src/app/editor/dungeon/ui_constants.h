@@ -2,7 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_UI_CONSTANTS_H
 
 // Shared layout constants for the dungeon editor UI. Mirrors
-// src/app/editor/overworld/ui_constants.h: each editor family keeps its layout
+// src/app/editor/overworld/ui/ui_constants.h: each editor family keeps its layout
 // tuning in one header so panels, widgets, and tests reference a single source
 // of truth instead of redefining literals in .cc files.
 //

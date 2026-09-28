@@ -59,5 +59,14 @@ TEST(OverworldEditorStateTest, NormalizeMapSelectionRealignsWorldToValidMap) {
   EXPECT_EQ(current_map, 0x81);
 }
 
+TEST(OverworldEditorStateTest, UnloadedContextSnapshotIsStillInformative) {
+  OverworldEditor editor(nullptr);
+  const EditorContextSnapshot snapshot = editor.BuildContextSnapshot();
+  EXPECT_EQ(snapshot.category, "Overworld");
+  EXPECT_EQ(snapshot.title, "Overworld");
+  EXPECT_NE(snapshot.subtitle.find("Load a ROM"), std::string::npos);
+  EXPECT_TRUE(snapshot.actions.empty());
+}
+
 }  // namespace
 }  // namespace yaze::editor

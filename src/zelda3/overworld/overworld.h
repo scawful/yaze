@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <map>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -22,6 +23,7 @@
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_sprite_io.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -386,6 +388,12 @@ inline int LegacyScreenSizeTableIndexForMap(int map_index) {
  * @see OverworldEditor for the UI layer
  * @see overworld_version_helper.h for version detection
  */
+
+/// The 4096 tile16 definitions (vanilla table at kMap16Tiles, or the
+/// expanded table when the ROM has one). `expanded` reports which was read.
+absl::StatusOr<std::vector<gfx::Tile16>> ReadMap16Tiles(
+    const Rom& rom, bool* expanded = nullptr);
+
 class Overworld {
  public:
   Overworld(Rom* rom, GameData* game_data = nullptr)
@@ -414,6 +422,8 @@ class Overworld {
 
   /// @brief Load sprite data for all game states
   absl::Status LoadSprites();
+  absl::StatusOr<OverworldSpriteSavePlan> PrepareSpriteSave() const;
+  absl::Status SaveSprites();
 
   /// @brief Load sprites from a specific map range
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
@@ -431,19 +441,50 @@ class Overworld {
    */
   absl::Status EnsureMapBuilt(int map_index);
 
-  /// @brief Compute hash of graphics configuration for cache lookup
-  uint64_t ComputeGraphicsConfigHash(int map_index);
+  /**
+   * @brief Copy the area parent's render settings (main palette, animated
+   * GFX, tile GFX groups, subscreen overlay) onto a child screen.
+   *
+   * The game reads these tables with the area id ($8A), which is the parent
+   * of a large/wide/tall area, so child screens must render with the
+   * parent's values. Call before rebuilding a map's graphics or palette.
+   */
+  void SyncAreaProperties(int map_index);
 
-  /// @brief Try to get cached tileset data for a graphics configuration
-  /// @return nullptr if not cached, pointer to cached data if available
-  const std::vector<uint8_t>* GetCachedTileset(uint64_t config_hash);
+  /// Subscreen overlay layer for one screen, in that screen's palette.
+  struct SubscreenOverlayLayer {
+    uint16_t overlay_id = 0x00FF;
+    int overlay_screen = -1;      // -1: the area has no subscreen overlay
+    bool background = false;      // drawn over backdrop pixels only
+    std::vector<uint8_t> pixels;  // 512x512, 0 = transparent
+  };
 
-  /// @brief Cache tileset data for future reuse
-  void CacheTileset(uint64_t config_hash, const std::vector<uint8_t>& tileset);
+  /**
+   * @brief Build the subscreen overlay layer for a screen (builds the screen
+   * if needed). The overlay comes from the area parent's overlay id.
+   */
+  absl::StatusOr<SubscreenOverlayLayer> BuildSubscreenOverlayLayer(
+      int map_index);
 
-  /// @brief Clear entire graphics config cache
-  /// Call when palette or graphics settings change globally
-  void ClearGraphicsConfigCache() { gfx_config_cache_.clear(); }
+  // ---------------------------------------------------------------------------
+  // Shared tileset cache
+  //
+  // Maps whose 17 sheet ids match (OverworldMap::tileset_key(): 16 static
+  // sheets + animated sheet) share the same 64KB tileset and, for the same
+  // tile16 definitions, the same 1MB tile16 blockset. The cache keeps both so
+  // a map build only redoes the palette and its own 512x512 bitmap.
+  // ---------------------------------------------------------------------------
+
+  /// @brief Drop every cached tileset/blockset. Call after graphics buffer or
+  /// tile16 edits that are not tied to one sheet.
+  void ClearGraphicsConfigCache() { tileset_cache_.clear(); }
+
+  /// @brief Drop cached tilesets that load @p sheet (graphics sheet edits).
+  /// Built maps keep their pixels; mark them dirty/rebuild separately.
+  void InvalidateTilesetCacheForSheet(int sheet);
+
+  /// @brief Number of cached tileset entries (for tests and diagnostics).
+  size_t tileset_cache_size() const { return tileset_cache_.size(); }
 
   /// @brief Invalidate cached tileset for a specific map
   /// @param map_index The map whose cache entry should be invalidated
@@ -627,6 +668,7 @@ class Overworld {
     for (auto& sprites : all_sprites_) {
       sprites.clear();
     }
+    sprite_maps_loaded_ = {};
     tiles16_.clear();
     tiles32_.clear();
     tiles32_unique_.clear();
@@ -815,22 +857,29 @@ class Overworld {
   static constexpr int kMaxBuiltMaps = 8;
   std::deque<int> built_map_lru_;
 
-  // Graphics config cache for blockset reuse
-  // Key: Hash of static_graphics array, Value: Precomputed current_gfx data
-  // This avoids rebuilding the same tileset for maps with identical graphics
-  struct GraphicsConfigCache {
-    std::vector<uint8_t> current_gfx;  // 64KB tileset
-    int reference_count = 0;
+  // Shared tileset cache (see ClearGraphicsConfigCache()).
+  // GraphicsSheetStore revision of each sheet in an OverworldTilesetKey.
+  using TilesetRevisions =
+      std::array<uint64_t, std::tuple_size_v<OverworldTilesetKey>>;
+  TilesetRevisions SheetRevisionsForKey(const OverworldTilesetKey& key) const;
+
+  struct TilesetCacheEntry {
+    TilesetRevisions sheet_revisions{};    // store revisions when built
+    std::vector<uint8_t> current_gfx;      // 64KB tileset
+    std::vector<uint8_t> tile16_blockset;  // 1MB tile16 pixels (may be empty)
+    uint64_t tiles16_fingerprint = 0;      // tile16 defs the blockset used
+    uint64_t last_use = 0;
   };
-  std::unordered_map<uint64_t, GraphicsConfigCache> gfx_config_cache_;
+  std::map<OverworldTilesetKey, TilesetCacheEntry> tileset_cache_;
+  uint64_t tileset_cache_clock_ = 0;
 #ifdef __EMSCRIPTEN__
-  // WASM: Increased cache for Special World maps (8 × 64KB = 512KB)
-  // Special World alone needs 6+ unique graphics configs
-  static constexpr int kMaxCachedConfigs = 8;
+  static constexpr size_t kMaxCachedTilesets = 8;  // ~8.5MB
 #else
-  // Native: Larger cache for better performance (12 × 64KB = 768KB)
-  static constexpr int kMaxCachedConfigs = 12;
+  static constexpr size_t kMaxCachedTilesets = 24;  // ~26MB
 #endif
+
+  uint64_t Tiles16Fingerprint() const;
+  absl::Status BuildMapWithTilesetCache(int map_index, int world_type);
 
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
@@ -848,6 +897,7 @@ class Overworld {
   std::array<uint8_t, kNumOverworldMaps> map_parent_ = {0};
   std::array<uint8_t, kNumTileTypes> all_tiles_types_ = {0};
   std::array<std::vector<Sprite>, 3> all_sprites_;
+  std::array<std::array<bool, 160>, 3> sprite_maps_loaded_{};
   DiggableTiles diggable_tiles_;
   std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p1;
   std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p2;

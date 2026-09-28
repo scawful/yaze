@@ -12,9 +12,12 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/menu_builder.h"
+#include "app/editor/menu/menu_shortcut_labels.h"
+#include "app/editor/menu/recent_files_menu_model.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
@@ -22,17 +25,18 @@
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/platform/sdl_compat.h"
 #include "core/features.h"
+#include "core/project.h"
 #include "rom/rom.h"
 #include "util/bps.h"
 #include "util/file_util.h"
 #include "util/i18n/language_manager.h"
 #include "zelda3/overworld/overworld_map.h"
 
-// Platform-aware shortcut macros for menu display
-#define SHORTCUT_CTRL(key) gui::FormatCtrlShortcut(ImGuiKey_##key).c_str()
-#define SHORTCUT_CTRL_SHIFT(key) \
-  gui::FormatCtrlShiftShortcut(ImGuiKey_##key).c_str()
+// Menu shortcut labels come from ShortcutManager's live bindings through
+// MenuOrchestrator::GetShortcutForAction; never hard-code key hints here.
 
 namespace yaze {
 namespace editor {
@@ -40,6 +44,64 @@ namespace editor {
 namespace {
 
 constexpr const char* kLayoutDesignerWindowId = "layout.designer";
+
+// ImGui::MenuItem draws nothing for a null shortcut; avoid passing "".
+const char* ShortcutOrNull(const std::string& label) {
+  return label.empty() ? nullptr : label.c_str();
+}
+
+// OS-window fullscreen. The ImGui SDL backends store the SDL window ID in the
+// main viewport's PlatformHandle.
+#if !defined(__EMSCRIPTEN__) && !(defined(__APPLE__) && TARGET_OS_IOS == 1)
+constexpr bool kSupportsWindowFullscreen = true;
+
+SDL_Window* GetMainSdlWindow() {
+  if (ImGui::GetCurrentContext() == nullptr) {
+    return nullptr;
+  }
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  if (viewport == nullptr || viewport->PlatformHandle == nullptr) {
+    return nullptr;
+  }
+  const auto window_id =
+      static_cast<Uint32>(reinterpret_cast<intptr_t>(viewport->PlatformHandle));
+  return SDL_GetWindowFromID(window_id);
+}
+
+bool IsMainWindowFullscreen() {
+  SDL_Window* window = GetMainSdlWindow();
+  if (window == nullptr) {
+    return false;
+  }
+#ifdef YAZE_USE_SDL3
+  return (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN) != 0;
+#else
+  return (SDL_GetWindowFlags(window) &
+          (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) != 0;
+#endif
+}
+
+bool SetMainWindowFullscreen(bool fullscreen) {
+  SDL_Window* window = GetMainSdlWindow();
+  if (window == nullptr) {
+    return false;
+  }
+#ifdef YAZE_USE_SDL3
+  return SDL_SetWindowFullscreen(window, fullscreen);
+#else
+  return SDL_SetWindowFullscreen(
+             window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) == 0;
+#endif
+}
+#else
+constexpr bool kSupportsWindowFullscreen = false;
+bool IsMainWindowFullscreen() {
+  return false;
+}
+bool SetMainWindowFullscreen(bool) {
+  return false;
+}
+#endif
 
 }  // namespace
 
@@ -117,20 +179,34 @@ void MenuOrchestrator::BuildFileMenu() {
 
 void MenuOrchestrator::AddFileMenuItems() {
   // ROM Operations
+  menu_builder_.Item(
+      "Open ROM / Project...", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); },
+      GetShortcutForAction("Open").c_str());
+  AddRecentFilesSubmenu();
   menu_builder_
       .Item(
-          "Open ROM / Project...", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); },
-          SHORTCUT_CTRL(O))
-      .Item(
-          "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); }, SHORTCUT_CTRL(S),
+          "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); },
+          GetShortcutForAction("Save").c_str(),
           [this]() { return CanSaveRom(); })
       .Item(
-          "Save As...", ICON_MD_SAVE_AS, [this]() { OnSaveRomAs(); }, nullptr,
+          "Save As...", ICON_MD_SAVE_AS, [this]() { OnSaveRomAs(); },
+          GetShortcutForAction("Save As").c_str(),
           [this]() { return CanSaveRom(); })
       .Item(
           "Save Scope...", ICON_MD_TUNE,
           [this]() { popup_manager_.Show(PopupID::kSaveScope); }, nullptr,
           [this]() { return CanSaveRom(); })
+      .Item(
+          "Revert to Saved", ICON_MD_RESTORE, [this]() { OnRevertRom(); },
+          nullptr,
+          [this]() {
+            return editor_manager_ && editor_manager_->CanRevertRom();
+          })
+      .Item(
+          "Close ROM", ICON_MD_CLOSE, [this]() { OnCloseRom(); }, nullptr,
+          [this]() {
+            return editor_manager_ && editor_manager_->CanCloseRom();
+          })
       .Separator();
 
   // Project Operations
@@ -156,13 +232,47 @@ void MenuOrchestrator::AddFileMenuItems() {
           [this]() { return HasProjectFile(); })
       .Separator();
 
-  // Settings and Quit (ROM analysis / backup / BPS live under Tools)
+  // Settings and Quit (ROM analysis / backup / BPS live under Tools).
+  // Settings stays here on every platform. On macOS the native app menu
+  // (app_delegate.mm) also exposes Settings/Preferences; this entry is kept
+  // so the ImGui menu bar remains complete when the native menu is absent.
   menu_builder_
-      .Item("Settings", ICON_MD_SETTINGS, [this]() { OnShowSettings(); })
+      .Item(
+          "Settings", ICON_MD_SETTINGS, [this]() { OnShowSettings(); },
+          // Editor-switch shortcuts are registered as "switch.<EditorType>"
+          // (Settings moves to Ctrl/Cmd+, on claude/ui-shortcuts).
+          GetShortcutForAction(
+              absl::StrFormat("switch.%d",
+                              static_cast<int>(EditorType::kSettings)))
+              .c_str())
       .Separator()
       .Item(
           "Quit", ICON_MD_EXIT_TO_APP, [this]() { OnQuit(); },
-          SHORTCUT_CTRL(Q));
+          GetShortcutForAction("Quit").c_str());
+}
+
+void MenuOrchestrator::AddRecentFilesSubmenu() {
+  auto& recent = project::RecentFilesManager::GetInstance();
+  const auto entries = BuildRecentFileMenuEntries(recent.GetRecentFiles());
+
+  menu_builder_.BeginSubMenu("Open Recent", ICON_MD_HISTORY);
+  if (entries.empty()) {
+    menu_builder_.DisabledItem("No recent files");
+  } else {
+    for (const auto& entry : entries) {
+      const std::string path = entry.path;
+      const std::string label =
+          entry.exists ? entry.label : entry.label + " (missing)";
+      const bool exists = entry.exists;
+      menu_builder_.Item(
+          label.c_str(), nullptr, [this, path]() { OnOpenRecentFile(path); },
+          nullptr, [exists]() { return exists; });
+    }
+  }
+  menu_builder_.Separator().Item(
+      "Clear Recent", ICON_MD_DELETE_SWEEP, [this]() { OnClearRecentFiles(); },
+      nullptr, [has_entries = !entries.empty()]() { return has_entries; });
+  menu_builder_.EndMenu();
 }
 
 void MenuOrchestrator::BuildEditMenu() {
@@ -175,30 +285,36 @@ void MenuOrchestrator::AddEditMenuItems() {
   // Undo/Redo operations - delegate to current editor
   menu_builder_
       .Item(
-          "Undo", ICON_MD_UNDO, [this]() { OnUndo(); }, SHORTCUT_CTRL(Z),
-          [this]() { return HasCurrentEditor(); })
+          "Undo", ICON_MD_UNDO, [this]() { OnUndo(); },
+          GetShortcutForAction("Undo").c_str(),
+          [this]() { return CurrentEditorCanUndo(); })
       .Item(
-          "Redo", ICON_MD_REDO, [this]() { OnRedo(); }, SHORTCUT_CTRL(Y),
-          [this]() { return HasCurrentEditor(); })
+          "Redo", ICON_MD_REDO, [this]() { OnRedo(); },
+          GetShortcutForAction("Redo").c_str(),
+          [this]() { return CurrentEditorCanRedo(); })
       .Separator();
 
   // Clipboard operations - delegate to current editor
   menu_builder_
       .Item(
-          "Cut", ICON_MD_CONTENT_CUT, [this]() { OnCut(); }, SHORTCUT_CTRL(X),
-          [this]() { return HasCurrentEditor(); })
+          "Cut", ICON_MD_CONTENT_CUT, [this]() { OnCut(); },
+          GetShortcutForAction("Cut").c_str(),
+          [this]() { return CurrentEditorCanCut(); })
       .Item(
           "Copy", ICON_MD_CONTENT_COPY, [this]() { OnCopy(); },
-          SHORTCUT_CTRL(C), [this]() { return HasCurrentEditor(); })
+          GetShortcutForAction("Copy").c_str(),
+          [this]() { return CurrentEditorCanCopy(); })
       .Item(
           "Paste", ICON_MD_CONTENT_PASTE, [this]() { OnPaste(); },
-          SHORTCUT_CTRL(V), [this]() { return HasCurrentEditor(); })
+          GetShortcutForAction("Paste").c_str(),
+          [this]() { return CurrentEditorCanPaste(); })
       .Separator();
 
   // Search operations (Find in Files moved to Tools > Global Search)
   menu_builder_.Item(
-      "Find", ICON_MD_SEARCH, [this]() { OnFind(); }, SHORTCUT_CTRL(F),
-      [this]() { return HasCurrentEditor(); });
+      "Find", ICON_MD_SEARCH, [this]() { OnFind(); },
+      GetShortcutForAction("Find").c_str(),
+      [this]() { return CurrentEditorCanFind(); });
 }
 
 void MenuOrchestrator::BuildViewMenu() {
@@ -218,8 +334,34 @@ void MenuOrchestrator::AddViewMenuItems() {
   // Editor selection (Switch Editor)
   menu_builder_.Item(
       "Switch Editor...", ICON_MD_SWAP_HORIZ,
-      [this]() { OnShowEditorSelection(); }, SHORTCUT_CTRL(E),
+      [this]() { OnShowEditorSelection(); },
+      GetShortcutForAction("Editor Selection").c_str(),
       [this]() { return HasActiveRom(); });
+}
+
+void MenuOrchestrator::AddThemeSubmenu() {
+  auto& themes = gui::ThemeManager::Get();
+  menu_builder_.BeginSubMenu("Theme", ICON_MD_PALETTE);
+  const auto names = themes.GetAvailableThemes();
+  if (names.empty()) {
+    menu_builder_.DisabledItem("No themes available");
+  }
+  for (const std::string& name : names) {
+    menu_builder_.Item(
+        name.c_str(), nullptr,
+        [name]() {
+          auto& manager = gui::ThemeManager::Get();
+          if (manager.IsPreviewActive()) {
+            manager.EndPreview();
+          }
+          manager.ApplyTheme(name);
+        },
+        nullptr, nullptr,
+        [name]() {
+          return gui::ThemeManager::Get().GetCurrentThemeName() == name;
+        });
+  }
+  menu_builder_.EndMenu();
 }
 
 void MenuOrchestrator::AddAppearanceMenuItems() {
@@ -231,7 +373,7 @@ void MenuOrchestrator::AddAppearanceMenuItems() {
             if (window_manager_)
               window_manager_->ToggleSidebarVisibility();
           },
-          SHORTCUT_CTRL(B), nullptr,
+          GetShortcutForAction("view.toggle_activity_bar").c_str(), nullptr,
           [this]() {
             return window_manager_ && window_manager_->IsSidebarVisible();
           })
@@ -252,6 +394,26 @@ void MenuOrchestrator::AddAppearanceMenuItems() {
           [this]() {
             return user_settings_ && user_settings_->prefs().show_status_bar;
           })
+      .Separator();
+
+  AddThemeSubmenu();
+  menu_builder_
+      .Item(
+          "Zoom In", ICON_MD_ZOOM_IN, [this]() { OnZoomIn(); },
+          GetShortcutForAction("ui.font_scale_increase").c_str(),
+          [this]() { return editor_manager_ != nullptr; })
+      .Item(
+          "Zoom Out", ICON_MD_ZOOM_OUT, [this]() { OnZoomOut(); },
+          GetShortcutForAction("ui.font_scale_decrease").c_str(),
+          [this]() { return editor_manager_ != nullptr; })
+      .Item(
+          "Reset Zoom", ICON_MD_ZOOM_OUT_MAP, [this]() { OnZoomReset(); },
+          GetShortcutForAction("ui.font_scale_reset").c_str(),
+          [this]() { return editor_manager_ != nullptr; })
+      .Item(
+          "Fullscreen", ICON_MD_FULLSCREEN, [this]() { OnToggleFullscreen(); },
+          nullptr, []() { return kSupportsWindowFullscreen; },
+          []() { return IsMainWindowFullscreen(); })
       .Separator()
       .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
             [this]() { OnShowDisplaySettings(); })
@@ -266,15 +428,10 @@ void MenuOrchestrator::AddDrawersMenuItems() {
     return;
   }
 
-  menu_builder_.BeginSubMenu("Drawers", ICON_MD_VERTICAL_SPLIT);
-  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
-    const auto type = entry.type;
-    menu_builder_.Item(
-        entry.name, entry.icon,
-        [drawers, type]() { drawers->ToggleDrawer(type); }, nullptr, nullptr,
-        [drawers, type]() { return drawers->IsDrawerActive(type); });
-  }
-  menu_builder_.EndMenu();
+  menu_builder_.Item(
+      "Right Sidebar", ICON_MD_VIEW_SIDEBAR,
+      [drawers]() { drawers->ToggleLastDrawer(); }, nullptr, nullptr,
+      [drawers]() { return drawers->IsDrawerExpanded(); });
 }
 
 // Layout presets remain under Windows > Layout (AddLayoutSubmenu).
@@ -297,7 +454,7 @@ void MenuOrchestrator::AddPanelsMenuItems() {
   // Window Browser action at top
   if (ImGui::MenuItem(
           absl::StrFormat("%s Window Browser", ICON_MD_APPS).c_str(),
-          SHORTCUT_CTRL_SHIFT(B))) {
+          ShortcutOrNull(GetShortcutForAction("Window Browser")))) {
     OnShowPanelBrowser();
   }
   if (ImGui::MenuItem(
@@ -336,6 +493,9 @@ void MenuOrchestrator::AddPanelsMenuItems() {
 
     if (ImGui::BeginMenu(label.c_str())) {
       auto cards = window_manager_->GetWindowsInCategory(session_id, category);
+      std::erase_if(cards, [](const WindowDescriptor& descriptor) {
+        return !descriptor.IsListedInWindowBrowser();
+      });
 
       if (cards.empty()) {
         ImGui::TextDisabled("No windows in this category");
@@ -402,12 +562,7 @@ void MenuOrchestrator::AddToolsMenuItems() {
       .Item("ImGui Demo", ICON_MD_HELP, [this]() { OnShowImGuiDemo(); })
       .Item("ImGui Metrics", ICON_MD_ANALYTICS,
             [this]() { OnShowImGuiMetrics(); })
-      .EndMenu()
-      .Separator();
-
-#ifdef YAZE_WITH_GRPC
-  AddCollaborationMenuItems();
-#endif
+      .EndMenu();
 }
 
 void MenuOrchestrator::AddSearchMenuItems() {
@@ -415,13 +570,14 @@ void MenuOrchestrator::AddSearchMenuItems() {
   menu_builder_
       .Item(
           "Global Search", ICON_MD_SEARCH, [this]() { OnShowGlobalSearch(); },
-          SHORTCUT_CTRL_SHIFT(F))
+          GetShortcutForAction("Global Search").c_str())
       .Item(
           "Command Palette", ICON_MD_SEARCH,
-          [this]() { OnShowCommandPalette(); }, SHORTCUT_CTRL_SHIFT(P))
+          [this]() { OnShowCommandPalette(); },
+          GetShortcutForAction("Command Palette").c_str())
       .Item(
           "Find Window…", ICON_MD_DASHBOARD, [this]() { OnShowPanelFinder(); },
-          SHORTCUT_CTRL(P))
+          GetShortcutForAction("Window Finder").c_str())
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); });
 }
@@ -510,13 +666,6 @@ void MenuOrchestrator::AddRomAnalysisMenuItems() {
       .Item(
           "Validate ROM", ICON_MD_CHECK_CIRCLE, [this]() { OnValidateRom(); },
           nullptr, [this]() { return HasActiveRom(); })
-      .Item(
-          "Data Integrity Check", ICON_MD_ANALYTICS,
-          [this]() { OnRunDataIntegrityCheck(); }, nullptr,
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Test Save/Load", ICON_MD_SAVE_ALT, [this]() { OnTestSaveLoad(); },
-          nullptr, [this]() { return HasActiveRom(); })
       .Separator()
       .Item(
           "Export BPS Patch...", ICON_MD_DIFFERENCE,
@@ -533,7 +682,8 @@ void MenuOrchestrator::AddRomAnalysisMenuItems() {
           "Check ROM Version", ICON_MD_INFO, [this]() { OnCheckRomVersion(); },
           nullptr, [this]() { return HasActiveRom(); })
       .Item(
-          "Upgrade ROM", ICON_MD_UPGRADE, [this]() { OnUpgradeRom(); }, nullptr,
+          "Upgrade ROM (Overworld Editor)...", ICON_MD_UPGRADE,
+          [this]() { OnOpenOverworldForUpgrade(); }, nullptr,
           [this]() { return HasActiveRom(); })
       .Item("Toggle Custom Loading", ICON_MD_SETTINGS,
             [this]() { OnToggleCustomLoading(); })
@@ -548,12 +698,11 @@ void MenuOrchestrator::AddAsarIntegrationMenuItems() {
       .Item(
           "Toggle ASM Patch", ICON_MD_CODE, [this]() { OnToggleAsarPatch(); },
           nullptr, [this]() { return HasActiveRom(); })
-      .Item("Load ASM File", ICON_MD_FOLDER_OPEN, [this]() { OnLoadAsmFile(); })
       .EndMenu();
 }
 
 void MenuOrchestrator::AddDevelopmentMenuItems() {
-  // Development Tools — Agent drawers live under View > Drawers.
+  // Development Tools — right-sidebar content is toggled under View.
   menu_builder_.BeginSubMenu("Development", ICON_MD_DEVELOPER_MODE)
       .Item(
           "Memory Editor", ICON_MD_MEMORY, [this]() { OnShowMemoryEditor(); },
@@ -572,14 +721,12 @@ void MenuOrchestrator::AddTestingMenuItems() {
   menu_builder_.BeginSubMenu("Testing", ICON_MD_SCIENCE);
 #ifdef YAZE_ENABLE_TESTING
   menu_builder_
+      // Test suites run from the dashboard; the former "Run All/Unit/
+      // Integration/E2E" items only showed toasts and were removed.
       .Item(
           "Test Dashboard", ICON_MD_DASHBOARD,
-          [this]() { OnShowTestDashboard(); }, SHORTCUT_CTRL(T))
-      .Item("Run All Tests", ICON_MD_PLAY_ARROW, [this]() { OnRunAllTests(); })
-      .Item("Run Unit Tests", ICON_MD_CHECK_BOX, [this]() { OnRunUnitTests(); })
-      .Item("Run Integration Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
-            [this]() { OnRunIntegrationTests(); })
-      .Item("Run E2E Tests", ICON_MD_VISIBILITY, [this]() { OnRunE2ETests(); });
+          [this]() { OnShowTestDashboard(); },
+          GetShortcutForAction("Test Dashboard").c_str());
 #else
   menu_builder_.DisabledItem(
       "Testing support disabled (YAZE_ENABLE_TESTING=OFF)", ICON_MD_INFO);
@@ -587,27 +734,13 @@ void MenuOrchestrator::AddTestingMenuItems() {
   menu_builder_.EndMenu();
 }
 
-#ifdef YAZE_WITH_GRPC
-void MenuOrchestrator::AddCollaborationMenuItems() {
-  // Collaboration (GRPC builds only)
-  menu_builder_.BeginSubMenu("Collaborate", ICON_MD_PEOPLE)
-      .Item("Start Collaboration Session", ICON_MD_PLAY_CIRCLE,
-            [this]() { OnStartCollaboration(); })
-      .Item("Join Collaboration Session", ICON_MD_GROUP_ADD,
-            [this]() { OnJoinCollaboration(); })
-      .Item("Network Status", ICON_MD_CLOUD,
-            [this]() { OnShowNetworkStatus(); })
-      .EndMenu();
-}
-#endif
-
 // Sessions submenu (folded from the former top-level "Window" menu).
 // Drawn inline inside the "Windows" CustomMenu callback using raw ImGui
 // calls so the entries land in the same menu scope.
 void MenuOrchestrator::AddSessionsSubmenu() {
   if (ImGui::BeginMenu(absl::StrFormat("%s Sessions", ICON_MD_TAB).c_str())) {
     if (ImGui::MenuItem(absl::StrFormat("%s New Session", ICON_MD_ADD).c_str(),
-                        SHORTCUT_CTRL_SHIFT(N))) {
+                        ShortcutOrNull(GetShortcutForAction("New Session")))) {
       OnCreateNewSession();
     }
     if (ImGui::MenuItem(
@@ -618,14 +751,16 @@ void MenuOrchestrator::AddSessionsSubmenu() {
     }
     if (ImGui::MenuItem(
             absl::StrFormat("%s Close Session", ICON_MD_CLOSE).c_str(),
-            SHORTCUT_CTRL_SHIFT(W), false, HasMultipleSessions())) {
+            ShortcutOrNull(GetShortcutForAction("Close Session")), false,
+            HasMultipleSessions())) {
       OnCloseCurrentSession();
     }
     ImGui::Separator();
     if (ImGui::MenuItem(
             absl::StrFormat("%s Session Switcher", ICON_MD_SWITCH_ACCOUNT)
                 .c_str(),
-            SHORTCUT_CTRL(Tab), false, HasMultipleSessions())) {
+            ShortcutOrNull(GetShortcutForAction("Session Switcher")), false,
+            HasMultipleSessions())) {
       OnShowSessionSwitcher();
     }
     if (ImGui::MenuItem(
@@ -660,16 +795,17 @@ void MenuOrchestrator::AddLayoutSubmenu() {
     ImGui::Separator();
 
     if (ImGui::MenuItem(absl::StrFormat("%s Save Layout", ICON_MD_SAVE).c_str(),
-                        SHORTCUT_CTRL_SHIFT(S))) {
+                        ShortcutOrNull(GetShortcutForAction("Save Layout")))) {
       OnSaveWorkspaceLayout();
     }
     if (ImGui::MenuItem(
             absl::StrFormat("%s Load Layout", ICON_MD_FOLDER_OPEN).c_str(),
-            SHORTCUT_CTRL_SHIFT(O))) {
+            ShortcutOrNull(GetShortcutForAction("Load Layout")))) {
       OnLoadWorkspaceLayout();
     }
     if (ImGui::MenuItem(
-            absl::StrFormat("%s Reset Layout", ICON_MD_RESET_TV).c_str())) {
+            absl::StrFormat("%s Reset Layout", ICON_MD_RESET_TV).c_str(),
+            ShortcutOrNull(GetShortcutForAction("Reset Layout")))) {
       OnResetWorkspaceLayout();
     }
     if (ImGui::MenuItem(
@@ -914,7 +1050,7 @@ void MenuOrchestrator::AddSidebarSubmenu() {
         const bool pinned = prefs.sidebar_pinned.count(cat) > 0;
         const bool hidden = prefs.sidebar_hidden.count(cat) > 0;
         if (ImGui::BeginMenu(cat.c_str())) {
-          if (ImGui::MenuItem(pinned ? "Unpin from top" : "Pin to top", nullptr,
+          if (ImGui::MenuItem(pinned ? "Unpin from Top" : "Pin to Top", nullptr,
                               pinned)) {
             if (pinned) {
               prefs.sidebar_pinned.erase(cat);
@@ -923,7 +1059,7 @@ void MenuOrchestrator::AddSidebarSubmenu() {
             }
             persist();
           }
-          if (ImGui::MenuItem(hidden ? "Show on sidebar" : "Hide from sidebar",
+          if (ImGui::MenuItem(hidden ? "Show on Sidebar" : "Hide from Sidebar",
                               nullptr, hidden)) {
             if (hidden) {
               prefs.sidebar_hidden.erase(cat);
@@ -961,7 +1097,7 @@ void MenuOrchestrator::AddHelpMenuItems() {
               window_manager_->TriggerShowShortcuts();
             }
           },
-          SHORTCUT_CTRL_SHIFT(Slash))
+          GetShortcutForAction("Keyboard Shortcuts").c_str())
       .Item("Build Instructions", ICON_MD_BUILD,
             [this]() { OnShowBuildInstructions(); })
       .Item("CLI Usage", ICON_MD_TERMINAL, [this]() { OnShowCLIUsage(); })
@@ -975,7 +1111,9 @@ void MenuOrchestrator::AddHelpMenuItems() {
       .Item("Contributing", ICON_MD_VOLUNTEER_ACTIVISM,
             [this]() { OnShowContributing(); })
       .Separator()
-      .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+      .Item(
+          "About", ICON_MD_INFO, [this]() { OnShowAbout(); },
+          GetShortcutForAction("Show About").c_str());
 
   menu_builder_.Separator();
   menu_builder_.BeginSubMenu("Language", ICON_MD_LANGUAGE);
@@ -1097,6 +1235,42 @@ void MenuOrchestrator::OnShowProjectFileEditor() {
   }
 }
 
+void MenuOrchestrator::OnOpenRecentFile(const std::string& path) {
+  if (!editor_manager_) {
+    return;
+  }
+  // OpenRomOrProject routes through the unsaved-work confirmation itself.
+  auto status = editor_manager_->OpenRomOrProject(path);
+  if (!status.ok()) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to open %s: %s", path, status.message()),
+        ToastType::kError);
+  }
+}
+
+void MenuOrchestrator::OnClearRecentFiles() {
+  auto& recent = project::RecentFilesManager::GetInstance();
+  recent.Clear();
+  recent.Save();
+}
+
+void MenuOrchestrator::OnCloseRom() {
+  if (editor_manager_) {
+    editor_manager_->CloseRom();
+  }
+}
+
+void MenuOrchestrator::OnRevertRom() {
+  if (!editor_manager_) {
+    return;
+  }
+  auto status = editor_manager_->RevertRomToSaved();
+  if (!status.ok()) {
+    toast_manager_.Show(absl::StrFormat("Revert failed: %s", status.message()),
+                        ToastType::kError, 6.0f);
+  }
+}
+
 // Edit menu actions - delegate to current editor
 void MenuOrchestrator::OnUndo() {
   if (editor_manager_) {
@@ -1141,58 +1315,95 @@ void MenuOrchestrator::OnRedo() {
 }
 
 void MenuOrchestrator::OnCut() {
-  if (editor_manager_) {
-    auto* current_editor = editor_manager_->GetCurrentEditor();
-    if (current_editor) {
-      auto status = current_editor->Cut();
-      if (!status.ok()) {
-        toast_manager_.Show(absl::StrFormat("Cut failed: %s", status.message()),
-                            ToastType::kError);
-      }
-    }
+  if (!editor_manager_) {
+    return;
   }
+  auto* current_editor = editor_manager_->GetCurrentEditor();
+  if (!current_editor) {
+    return;
+  }
+  auto status = current_editor->Cut();
+  if (status.ok()) {
+    return;
+  }
+  if (absl::IsUnimplemented(status)) {
+    // Editors that have not implemented Cut should override CanCut();
+    // until then report it plainly instead of as a failure.
+    toast_manager_.Show("Cut is not available in this editor", ToastType::kInfo,
+                        2.0f);
+    return;
+  }
+  toast_manager_.Show(absl::StrFormat("Cut failed: %s", status.message()),
+                      ToastType::kError);
 }
 
 void MenuOrchestrator::OnCopy() {
-  if (editor_manager_) {
-    auto* current_editor = editor_manager_->GetCurrentEditor();
-    if (current_editor) {
-      auto status = current_editor->Copy();
-      if (!status.ok()) {
-        toast_manager_.Show(
-            absl::StrFormat("Copy failed: %s", status.message()),
-            ToastType::kError);
-      }
-    }
+  if (!editor_manager_) {
+    return;
   }
+  auto* current_editor = editor_manager_->GetCurrentEditor();
+  if (!current_editor) {
+    return;
+  }
+  auto status = current_editor->Copy();
+  if (status.ok()) {
+    return;
+  }
+  if (absl::IsUnimplemented(status)) {
+    // Editors that have not implemented Copy should override CanCopy();
+    // until then report it plainly instead of as a failure.
+    toast_manager_.Show("Copy is not available in this editor",
+                        ToastType::kInfo, 2.0f);
+    return;
+  }
+  toast_manager_.Show(absl::StrFormat("Copy failed: %s", status.message()),
+                      ToastType::kError);
 }
 
 void MenuOrchestrator::OnPaste() {
-  if (editor_manager_) {
-    auto* current_editor = editor_manager_->GetCurrentEditor();
-    if (current_editor) {
-      auto status = current_editor->Paste();
-      if (!status.ok()) {
-        toast_manager_.Show(
-            absl::StrFormat("Paste failed: %s", status.message()),
-            ToastType::kError);
-      }
-    }
+  if (!editor_manager_) {
+    return;
   }
+  auto* current_editor = editor_manager_->GetCurrentEditor();
+  if (!current_editor) {
+    return;
+  }
+  auto status = current_editor->Paste();
+  if (status.ok()) {
+    return;
+  }
+  if (absl::IsUnimplemented(status)) {
+    // Editors that have not implemented Paste should override CanPaste();
+    // until then report it plainly instead of as a failure.
+    toast_manager_.Show("Paste is not available in this editor",
+                        ToastType::kInfo, 2.0f);
+    return;
+  }
+  toast_manager_.Show(absl::StrFormat("Paste failed: %s", status.message()),
+                      ToastType::kError);
 }
 
 void MenuOrchestrator::OnFind() {
-  if (editor_manager_) {
-    auto* current_editor = editor_manager_->GetCurrentEditor();
-    if (current_editor) {
-      auto status = current_editor->Find();
-      if (!status.ok()) {
-        toast_manager_.Show(
-            absl::StrFormat("Find failed: %s", status.message()),
-            ToastType::kError);
-      }
-    }
+  if (!editor_manager_) {
+    return;
   }
+  auto* current_editor = editor_manager_->GetCurrentEditor();
+  if (!current_editor) {
+    return;
+  }
+  auto status = current_editor->Find();
+  if (status.ok()) {
+    return;
+  }
+  if (absl::IsUnimplemented(status)) {
+    // Editors that have not implemented Find should override CanFind();
+    // until then report it plainly instead of as a failure.
+    toast_manager_.Show("Find is not available in this editor",
+                        ToastType::kInfo, 2.0f);
+    return;
+  }
+  toast_manager_.Show(absl::StrFormat("Find failed: %s", status.message()),
+                      ToastType::kError);
 }
 
 // Editor-specific menu actions
@@ -1214,6 +1425,67 @@ void MenuOrchestrator::OnShowEditorSelection() {
 
 void MenuOrchestrator::OnShowDisplaySettings() {
   popup_manager_.Show(PopupID::kDisplaySettings);
+}
+
+namespace {
+// Runs the callback registered for `action` so menu items and keyboard
+// shortcuts share one implementation (e.g. the ui.font_scale_* actions).
+bool RunShortcutAction(const ShortcutManager* manager,
+                       const std::string& action) {
+  if (manager == nullptr) {
+    return false;
+  }
+  const Shortcut* shortcut = manager->FindShortcut(action);
+  if (shortcut == nullptr || !shortcut->callback) {
+    return false;
+  }
+  shortcut->callback();
+  return true;
+}
+
+// Fallback used only when the shortcut action is not registered.
+constexpr float kMenuFontScaleStep = 0.05f;
+constexpr float kMenuFontScaleMin = 0.5f;
+constexpr float kMenuFontScaleMax = 2.0f;
+}  // namespace
+
+void MenuOrchestrator::OnZoomIn() {
+  if (RunShortcutAction(shortcut_manager_, "ui.font_scale_increase") ||
+      !editor_manager_) {
+    return;
+  }
+  const float scale =
+      editor_manager_->user_settings().prefs().font_global_scale +
+      kMenuFontScaleStep;
+  editor_manager_->SetFontGlobalScale(
+      std::clamp(scale, kMenuFontScaleMin, kMenuFontScaleMax));
+}
+
+void MenuOrchestrator::OnZoomOut() {
+  if (RunShortcutAction(shortcut_manager_, "ui.font_scale_decrease") ||
+      !editor_manager_) {
+    return;
+  }
+  const float scale =
+      editor_manager_->user_settings().prefs().font_global_scale -
+      kMenuFontScaleStep;
+  editor_manager_->SetFontGlobalScale(
+      std::clamp(scale, kMenuFontScaleMin, kMenuFontScaleMax));
+}
+
+void MenuOrchestrator::OnZoomReset() {
+  if (RunShortcutAction(shortcut_manager_, "ui.font_scale_reset") ||
+      !editor_manager_) {
+    return;
+  }
+  editor_manager_->SetFontGlobalScale(1.0f);
+}
+
+void MenuOrchestrator::OnToggleFullscreen() {
+  if (!SetMainWindowFullscreen(!IsMainWindowFullscreen())) {
+    toast_manager_.Show("Fullscreen is not available for this window",
+                        ToastType::kWarning);
+  }
 }
 
 void MenuOrchestrator::OnShowHexEditor() {
@@ -1452,47 +1724,6 @@ void MenuOrchestrator::OnShowTestDashboard() {
   }
 }
 
-void MenuOrchestrator::OnRunAllTests() {
-  toast_manager_.Show("Running all tests...", ToastType::kInfo);
-  // TODO: Implement test runner integration
-}
-
-void MenuOrchestrator::OnRunUnitTests() {
-  toast_manager_.Show("Running unit tests...", ToastType::kInfo);
-  // TODO: Implement unit test runner
-}
-
-void MenuOrchestrator::OnRunIntegrationTests() {
-  toast_manager_.Show("Running integration tests...", ToastType::kInfo);
-  // TODO: Implement integration test runner
-}
-
-void MenuOrchestrator::OnRunE2ETests() {
-  toast_manager_.Show(
-      "E2E runner is not wired in-app yet. Use scripts/agents/run-tests.sh or "
-      "z3ed test-run.",
-      ToastType::kWarning);
-}
-#endif
-
-#ifdef YAZE_WITH_GRPC
-void MenuOrchestrator::OnStartCollaboration() {
-  toast_manager_.Show(
-      "Collaboration session start is not wired yet. Run yaze-server and use "
-      "the web client for live sync.",
-      ToastType::kWarning);
-}
-
-void MenuOrchestrator::OnJoinCollaboration() {
-  toast_manager_.Show(
-      "Join collaboration is not wired yet. Use the web client + yaze-server.",
-      ToastType::kWarning);
-}
-
-void MenuOrchestrator::OnShowNetworkStatus() {
-  toast_manager_.Show("Network status panel is not implemented yet.",
-                      ToastType::kWarning);
-}
 #endif
 
 // Help menu actions
@@ -1607,6 +1838,42 @@ bool MenuOrchestrator::HasMultipleSessions() const {
   return session_coordinator_.HasMultipleSessions();
 }
 
+bool MenuOrchestrator::CurrentEditorCanUndo() const {
+  const Editor* editor =
+      editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr;
+  return editor != nullptr && editor->CanUndo();
+}
+
+bool MenuOrchestrator::CurrentEditorCanRedo() const {
+  const Editor* editor =
+      editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr;
+  return editor != nullptr && editor->CanRedo();
+}
+
+bool MenuOrchestrator::CurrentEditorCanCut() const {
+  const Editor* editor =
+      editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr;
+  return editor != nullptr && editor->CanCut();
+}
+
+bool MenuOrchestrator::CurrentEditorCanCopy() const {
+  const Editor* editor =
+      editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr;
+  return editor != nullptr && editor->CanCopy();
+}
+
+bool MenuOrchestrator::CurrentEditorCanPaste() const {
+  const Editor* editor =
+      editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr;
+  return editor != nullptr && editor->CanPaste();
+}
+
+bool MenuOrchestrator::CurrentEditorCanFind() const {
+  const Editor* editor =
+      editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr;
+  return editor != nullptr && editor->CanFind();
+}
+
 // Menu item text generation
 std::string MenuOrchestrator::GetRomFilename() const {
   auto* rom = editor_manager_ ? editor_manager_->GetCurrentRom() : nullptr;
@@ -1622,54 +1889,15 @@ std::string MenuOrchestrator::GetCurrentEditorName() const {
   return "Unknown Editor";
 }
 
-// Shortcut key management
+// Shortcut labels: read from the live ShortcutManager bindings.
 std::string MenuOrchestrator::GetShortcutForAction(
     const std::string& action) const {
-  // TODO: Implement shortcut mapping
-  return "";
-}
-
-void MenuOrchestrator::RegisterGlobalShortcuts() {
-  // TODO: Register global keyboard shortcuts
+  return ShortcutLabelForAction(shortcut_manager_, action);
 }
 
 // ============================================================================
 // Debug Menu Actions
 // ============================================================================
-
-void MenuOrchestrator::OnRunDataIntegrityCheck() {
-#ifdef YAZE_ENABLE_TESTING
-  if (!editor_manager_)
-    return;
-  auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded())
-    return;
-
-  toast_manager_.Show("Running ROM integrity tests...", ToastType::kInfo);
-  // This would integrate with the test system in master
-  // For now, just show a placeholder
-  toast_manager_.Show("Data integrity check completed", ToastType::kSuccess,
-                      3.0f);
-#else
-  toast_manager_.Show("Testing not enabled in this build", ToastType::kWarning);
-#endif
-}
-
-void MenuOrchestrator::OnTestSaveLoad() {
-#ifdef YAZE_ENABLE_TESTING
-  if (!editor_manager_)
-    return;
-  auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded())
-    return;
-
-  toast_manager_.Show("Running ROM save/load tests...", ToastType::kInfo);
-  // This would integrate with the test system in master
-  toast_manager_.Show("Save/load test completed", ToastType::kSuccess, 3.0f);
-#else
-  toast_manager_.Show("Testing not enabled in this build", ToastType::kWarning);
-#endif
-}
 
 void MenuOrchestrator::OnCheckRomVersion() {
   if (!editor_manager_)
@@ -1689,15 +1917,16 @@ void MenuOrchestrator::OnCheckRomVersion() {
       ToastType::kInfo, 5.0f);
 }
 
-void MenuOrchestrator::OnUpgradeRom() {
-  if (!editor_manager_)
+void MenuOrchestrator::OnOpenOverworldForUpgrade() {
+  // The ZSCustomOverworld upgrade itself lives in the Overworld editor
+  // toolbar ("Upgrade"); route there instead of pretending to upgrade here.
+  if (!editor_manager_ || !HasActiveRom())
     return;
-  auto* rom = editor_manager_->GetCurrentRom();
-  if (!rom || !rom->is_loaded())
-    return;
-
-  toast_manager_.Show("Use Overworld Editor to upgrade ROM version",
-                      ToastType::kInfo, 4.0f);
+  editor_manager_->SwitchToEditor(EditorType::kOverworld);
+  toast_manager_.Show(
+      "Use the Upgrade button in the Overworld toolbar to apply "
+      "ZSCustomOverworld",
+      ToastType::kInfo, 4.0f);
 }
 
 void MenuOrchestrator::OnToggleCustomLoading() {
@@ -1727,11 +1956,6 @@ void MenuOrchestrator::OnToggleAsarPatch() {
           "ZSCustomOverworld ASM Application: %s",
           flags.overworld.kApplyZSCustomOverworldASM ? "Enabled" : "Disabled"),
       ToastType::kInfo);
-}
-
-void MenuOrchestrator::OnLoadAsmFile() {
-  toast_manager_.Show("ASM file loading not yet implemented",
-                      ToastType::kWarning);
 }
 
 void MenuOrchestrator::OnShowAssemblyEditor() {

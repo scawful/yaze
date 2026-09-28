@@ -1,4 +1,0 @@
-#ifndef YAZE_APP_EDITOR_SYSTEM_COMMAND_PALETTE_WIDGET_H_
-#include "app/editor/system/commands/command_palette_widget.h"
-#define YAZE_APP_EDITOR_SYSTEM_COMMAND_PALETTE_WIDGET_H_
-#endif  // YAZE_APP_EDITOR_SYSTEM_COMMAND_PALETTE_WIDGET_H_

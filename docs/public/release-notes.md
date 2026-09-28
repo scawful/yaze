@@ -2,7 +2,7 @@
 
 ## v0.8.0
 
-**Type:** Dungeon Editor Milestone — Rendering Parity + Workbench UX + Save Safety
+**Type:** Dungeon Authoring Milestone — Editing + Undo + Rendering + Save Safety
 **Status:** In development
 **Date:** pending
 **Release SHA:** pending
@@ -12,6 +12,36 @@ USDASM routines, the Workbench keeps the room canvas stable, guarded dungeon,
 message, and palette writes check more before touching the ROM, and release
 packages gained per-platform layout and install checks. Many of those checks
 refuse work that 0.7.2 accepted, so read **Upgrading from 0.7.2** first.
+
+### Completion baseline (2026-09-22)
+
+The [editor capability completion plan](../internal/plans/editor-capability-parity-plan.md)
+defines the remaining 0.8.0 authoring work: shared dungeon undo, editable entity
+inspectors, complete room reuse, visual connections, and ROM/runtime/release
+acceptance. Full Hyrule Magic / ZScream workflow coverage extends beyond 0.8.0
+into overworld, graphics, screens, and audio milestones.
+
+The source audit uses mainline `d609e6254` and local placement candidate
+`7ba7d76ce`. The candidate adds live preview properties, once/repeat placement,
+selection of inserted objects, Place another, physical size controls, and
+uniform wheel resizing for area objects. Its app build and 43 focused tests
+passed, but it was unpublished and had not replaced the installed app at review.
+This is **Candidate** evidence, not a claim that these changes are shipped or
+that ROM save/reopen and in-game acceptance passed. Current implementation
+status and save boundaries are in the
+[coverage report](reference/feature-coverage-report.md).
+
+Subsequent candidate `a730d6557`, following plan commit `5fc5af950`, implements
+door, sprite, and pot-item undo/redo plus shared Workbench/standalone properties.
+It refreshes baked entity graphics, rejects reserved sprite encodings, preserves
+paste selection through redo, and blocks inspector edits when the connected
+view's room differs from the interaction context. App and unit-test builds
+succeeded; 150 selected tests across 21 suites passed with no skips, including
+22 entity lifecycle and five shared inspector UI cases. Only formatting
+whitespace changed afterward, verified through whitespace-normalized staged
+content. This remains **Candidate**: ROM save/reopen, runtime, CI, installation,
+and release qualification are pending. DA-1 and DA-2 remain open for their
+remaining domains and acceptance requirements.
 
 ### ⚠️ Upgrading from 0.7.2
 Read this before upgrading a project or a script. Each item was checked against
@@ -130,6 +160,18 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   when a stateful chest comes after a big-key lock in the object stream or when
   a room uses more chest/lock event slots than the engine supports, replacing
   the old chest-count error.
+- Added an **Object Coverage** window to the Dungeon editor. It lists every
+  object the renderer supports and the rooms that place it. **Next object to
+  check** opens a room with the next unchecked object selected. Each object
+  can be marked **Matches game**, **Broken**, **Fixed, recheck**, or
+  **Preview limit**, with a note. Results are saved per project, or per ROM
+  when no project is open. Open it from the Workbench inspector (**Tools >
+  Review**) or right-click a selected object (**Selection > Check in Object
+  Coverage**). **Automatic check against the game** compares each room's
+  tilemaps with ones captured from Mesen2-OOS by
+  `scripts/agents/capture-game-room-tilemaps.py` and reports, per object,
+  whether every placement matches the game's tiles, flips, palette rows, and
+  priority.
 - Object Selector cards show a draw-routine badge: a direction or category
   glyph, or `C`/`K`/`B`/`P` for chests, big key locks, bombable floors, and
   prison cells, with the routine family and base pattern size in the tooltip.
@@ -259,10 +301,11 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   only on success.
 
 ### 📚 Documentation
-- Replaced stale parity percentages and Stable/Beta/WIP labels with one
-  canonical desktop editor readiness matrix (Tester ready, Conditional, View
-  only, Experimental) and a tester guide that distinguishes component test,
-  direct ROM readback, app-path test, GUI smoke, and manual acceptance evidence.
+- Replaced stale parity percentages and broad editor labels with a workflow
+  ledger: Implemented, Partial, Missing, Blocked, and Candidate. Source,
+  Focused, ROM, Runtime, and Release evidence are recorded independently.
+  The capability plan defines the reference-editor baseline, implementation
+  dependencies, existing tools to reuse, and acceptance requirements.
 - Generated the ALTTP quick reference from pinned usdasm and jpdasm sources and
   added a SNES hardware reference whose register addresses are checked against
   usdasm. `scripts/agents/alttp_reference.py check` fails when a generated
@@ -281,6 +324,22 @@ against the final release head, which is **pending**.
   and a full-suite run against the release head are **pending**.
 
 ### Known Limits
+- Dungeon authoring remains Partial. Candidate `a730d6557` covers
+  door/sprite/pot-item undo and shared properties, but header/chest transactions,
+  atomic mixed-domain operations, clipboard capacity handling, and ROM/runtime
+  acceptance remain. Connected-view inspector edits are blocked if their room
+  context is not synchronized. Existing room templates are not a complete-room
+  interchange format.
+- Overworld sprite edits are not serialized by the current save path. Map,
+  entrance, exit, item, and property save support does not establish sprite
+  persistence.
+- Pending Graphics sheet edits and all pending Screen edits block coordinated
+  Save ROM. Direct title/pause-map ROM writers remain disabled. Naming-screen
+  UI is empty and inventory controls are partial; credits/ending screen
+  coverage requires a targeted audit.
+- Music has song serialization, but coordinated save, instrument/sample
+  writers, real sample import, and event clipboard are incomplete. The current
+  WAV-import implementation creates placeholder data.
 - Full emulator 1:1 parity is not claimed. Static water, ice, bar, remaining
   small-corner objects, and more door families still need independent
   witnesses. Vanilla `0xD8` and `0xDA` remain structural-only because they

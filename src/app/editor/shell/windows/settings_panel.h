@@ -5,6 +5,7 @@
 #include <functional>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
@@ -39,6 +40,20 @@ class SettingsPanelTestPeer;
  */
 class SettingsPanel : public Editor {
  public:
+  enum class Scope {
+    kApplication,
+    kWorkspace,
+    kProject,
+  };
+
+  struct CategoryDescriptor {
+    const char* id;
+    const char* label;
+    const char* icon;
+    Scope scope;
+    const char* keywords;
+  };
+
   using OpenMinecartTracksCallback = std::function<absl::Status()>;
 
   SettingsPanel() { type_ = EditorType::kSettings; }
@@ -59,6 +74,12 @@ class SettingsPanel : public Editor {
   absl::Status Copy() override { return absl::OkStatus(); }
   absl::Status Paste() override { return absl::OkStatus(); }
   absl::Status Find() override { return absl::OkStatus(); }
+  // Edit-menu actions are no-ops for the settings editor.
+  bool CanUndo() const override { return false; }
+  bool CanRedo() const override { return false; }
+  bool CanCut() const override { return false; }
+  bool CanCopy() const override { return false; }
+  bool CanPaste() const override { return false; }
 
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
   void SetWindowManager(WorkspaceWindowManager* registry) {
@@ -77,7 +98,16 @@ class SettingsPanel : public Editor {
   // Main draw entry point
   void Draw();
 
+  static std::vector<CategoryDescriptor> FilterCategories(
+      Scope scope, const std::string& query);
+
  private:
+  void DrawScopeTabs();
+  void DrawCategoryNavigation(const std::vector<CategoryDescriptor>& categories,
+                              bool compact);
+  void DrawCategoryContent(const std::string& category_id);
+  void EnsureActiveCategory(const std::vector<CategoryDescriptor>& categories);
+
   friend class SettingsPanelTestPeer;
 
   using DungeonOverlaySummary = std::array<std::pair<std::string, bool>, 5>;
@@ -144,6 +174,10 @@ class SettingsPanel : public Editor {
 
   OpenMinecartTracksCallback open_minecart_tracks_callback_;
   std::string project_status_message_;
+
+  Scope active_scope_ = Scope::kApplication;
+  std::string active_category_ = "appearance";
+  std::array<char, 128> settings_search_{};
 };
 
 }  // namespace editor

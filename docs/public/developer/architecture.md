@@ -179,7 +179,7 @@ To ensure a consistent and polished look and feel, all new UI components must ad
 
 ### 3.4. Entity Visibility for Visual Testing
 
--   **Standard**: All overworld entity markers (entrances, exits, items, sprites) should be rendered with a high-contrast color and an alpha of `0.85f` to ensure they are clearly visible against any background.
+-   **Standard**: All overworld entity markers (entrances, exits, items, sprites) are drawn as opaque high-contrast boxes with outlined white labels so they stay visible against any background. Each type has its own theme token (`entrance_color`, `hole_color`, `exit_color`, `item_color`, `sprite_color`); a theme that does not declare one gets `gui::EntityMarkerDefaults`.
     - **Entrances**: Bright yellow-gold
     - **Exits**: Cyan-white
     - **Items**: Bright red

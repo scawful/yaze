@@ -68,15 +68,16 @@ void ItemInteractionHandler::HandleRelease() {
   const int pixel_y = std::clamp(static_cast<int>(drag_current_pos_.y), 0,
                                  dungeon_coords::kRoomPixelHeight - 1);
 
-  // PotItem position encoding:
-  // high byte * 16 = Y, low byte * 4 = X
-  const int encoded_x = pixel_x / 4;
-  const int encoded_y = pixel_y / 16;
-  const uint16_t next_position =
-      static_cast<uint16_t>((encoded_y << 8) | encoded_x);
-
   auto& pot_items = room->GetPotItems();
   if (*selected_item_index_ < pot_items.size()) {
+    const auto encoded = zelda3::EncodePotItemPosition(
+        pixel_x / 8 * 8, pixel_y / 8 * 8,
+        pot_items[*selected_item_index_].position);
+    if (!encoded) {
+      is_dragging_ = false;
+      return;
+    }
+    const uint16_t next_position = *encoded;
     if (pot_items[*selected_item_index_].position == next_position) {
       is_dragging_ = false;
       return;
@@ -238,8 +239,8 @@ void ItemInteractionHandler::DeleteSelected() {
   pot_items.erase(pot_items.begin() +
                   static_cast<ptrdiff_t>(*selected_item_index_));
   room->MarkPotItemsDirty();
-  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ClearSelection();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ctx_->NotifyEntityChanged();
 }
 
@@ -256,8 +257,8 @@ void ItemInteractionHandler::DeleteAll() {
   ctx_->NotifyMutation(MutationDomain::kItems);
   room->GetPotItems().clear();
   room->MarkPotItemsDirty();
-  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ClearSelection();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ctx_->NotifyEntityChanged();
 }
 
@@ -283,10 +284,11 @@ bool ItemInteractionHandler::NudgeSelected(int delta_pixel_x,
       std::clamp(pot_item.GetPixelX() + delta_pixel_x, 0, kRoomPixelMax);
   const int next_pixel_y =
       std::clamp(pot_item.GetPixelY() + delta_pixel_y, 0, kRoomPixelMax);
-  const int encoded_x = std::clamp(next_pixel_x / 4, 0, 255);
-  const int encoded_y = std::clamp(next_pixel_y / 16, 0, 255);
-  const uint16_t next_position =
-      static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+  const auto encoded = zelda3::EncodePotItemPosition(
+      next_pixel_x / 8 * 8, next_pixel_y / 8 * 8, pot_item.position);
+  if (!encoded)
+    return false;
+  const uint16_t next_position = *encoded;
   if (next_position == pot_item.position) {
     return false;
   }
@@ -303,19 +305,49 @@ bool ItemInteractionHandler::MutateItemType(size_t index, uint8_t new_type) {
   if (!HasValidContext()) {
     return false;
   }
-
   auto* room = GetCurrentRoom();
-  if (!room) {
+  if (!room || index >= room->GetPotItems().size()) {
     return false;
   }
-
-  auto& pot_items = room->GetPotItems();
-  if (index >= pot_items.size() || pot_items[index].item == new_type) {
+  auto& item = room->GetPotItems()[index];
+  if (item.item == new_type || item.position == 0xFFFF) {
     return false;
   }
-
+  // The ROM position is a tilemap byte offset with layer/control bits, not
+  // two independent pixel-coordinate bytes. A type-only edit must preserve it
+  // exactly, including fields outside the current position editor's subset.
   ctx_->NotifyMutation(MutationDomain::kItems);
-  pot_items[index].item = new_type;
+  item.item = new_type;
+  room->MarkPotItemsDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
+  ctx_->NotifyEntityChanged();
+  return true;
+}
+
+bool ItemInteractionHandler::UpdateItem(size_t index, uint8_t type, int pixel_x,
+                                        int pixel_y) {
+  if (!HasValidContext()) {
+    return false;
+  }
+  auto* room = GetCurrentRoom();
+  if (!room || index >= room->GetPotItems().size()) {
+    return false;
+  }
+  auto& item = room->GetPotItems()[index];
+  if (pixel_x == item.GetPixelX() && pixel_y == item.GetPixelY()) {
+    return MutateItemType(index, type);
+  }
+  const auto encoded =
+      zelda3::EncodePotItemPosition(pixel_x, pixel_y, item.position);
+  if (!encoded)
+    return false;
+  const uint16_t position = *encoded;
+  if (item.item == type && item.position == position) {
+    return false;
+  }
+  ctx_->NotifyMutation(MutationDomain::kItems);
+  item.item = type;
+  item.position = position;
   room->MarkPotItemsDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ctx_->NotifyEntityChanged();
@@ -330,23 +362,14 @@ void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
   if (!room)
     return;
 
-  int pixel_x = canvas_x;
-  int pixel_y = canvas_y;
-
-  // PotItem position encoding:
-  // high byte * 16 = Y, low byte * 4 = X
-  int encoded_x = pixel_x / 4;
-  int encoded_y = pixel_y / 16;
-
-  // Clamp to valid range
-  encoded_x = std::clamp(encoded_x, 0, 255);
-  encoded_y = std::clamp(encoded_y, 0, 255);
-
+  const auto encoded =
+      zelda3::EncodePotItemPosition(std::clamp(canvas_x, 0, 511) / 8 * 8,
+                                    std::clamp(canvas_y, 0, 511) / 8 * 8);
+  if (!encoded)
+    return;
   ctx_->NotifyMutation(MutationDomain::kItems);
-
-  // Create the pot item
   zelda3::PotItem new_item;
-  new_item.position = static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+  new_item.position = *encoded;
   new_item.item = preview_item_id_;
 
   // Add item to room

@@ -52,6 +52,39 @@ class GfxGroupEditorRenderTest : public ::testing::Test {
   void TearDown() override { gfx::Arena::Get().ClearTextureQueue(); }
 };
 
+TEST_F(GfxGroupEditorRenderTest, PreviewPalettesDoNotModifySharedSource) {
+  auto source = MakeSheetBitmap();
+  const gfx::SnesPalette source_palette(std::vector<uint16_t>{0, 0x001F});
+  const gfx::SnesPalette first_palette(std::vector<uint16_t>{0, 0x03E0});
+  const gfx::SnesPalette second_palette(std::vector<uint16_t>{0, 0x7C00});
+  source.SetPalette(source_palette);
+  const auto purpose = source.metadata().purpose;
+  gfx::Bitmap first, second;
+  internal::SyncSheetPreview(source, first_palette, first);
+  internal::SyncSheetPreview(source, second_palette, second);
+  EXPECT_EQ(source.palette(), source_palette);
+  EXPECT_EQ(source.metadata().purpose, purpose);
+  EXPECT_EQ(first.palette(), first_palette);
+  EXPECT_EQ(second.palette(), second_palette);
+  EXPECT_EQ(first.vector(), source.vector());
+  source.Fill(7);
+  internal::SyncSheetPreview(source, first_palette, first);
+  EXPECT_EQ(first.vector(), source.vector());
+  EXPECT_EQ(second.vector().front(), 0);
+}
+
+TEST_F(GfxGroupEditorRenderTest, UnchangedPreviewDoesNotQueueTextureUpdate) {
+  auto source = MakeSheetBitmap();
+  gfx::Bitmap preview;
+  internal::SyncSheetPreview(source, source.palette(), preview);
+  gfx::Arena::Get().ClearTextureQueue();
+  int texture_tag = 0;
+  preview.set_texture(&texture_tag);
+  internal::SyncSheetPreview(source, source.palette(), preview);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 0u);
+  preview.set_texture(nullptr);
+}
+
 TEST_F(GfxGroupEditorRenderTest, EmptyBitmapIsNoOp) {
   gfx::Bitmap empty;  // No surface, no texture.
 

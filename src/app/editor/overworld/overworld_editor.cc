@@ -1,5 +1,7 @@
 // Related header
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/overworld_map_status.h"
+#include "rom/transaction.h"
 #include "util/i18n/tr.h"
 
 #ifndef IM_PI
@@ -31,26 +33,25 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/core/undo_manager.h"
-#include "app/editor/overworld/canvas_navigation_manager.h"
-#include "app/editor/overworld/debug_window_card.h"
-#include "app/editor/overworld/entity.h"
-#include "app/editor/overworld/entity_operations.h"
-#include "app/editor/overworld/map_properties.h"
-#include "app/editor/overworld/map_texture_coordinator.h"
-#include "app/editor/overworld/overworld_entity_renderer.h"
-#include "app/editor/overworld/overworld_map_metadata.h"
-#include "app/editor/overworld/overworld_map_status.h"
-#include "app/editor/overworld/overworld_sidebar.h"
-#include "app/editor/overworld/overworld_toolbar.h"
+#include "app/editor/overworld/canvas/canvas_navigation_manager.h"
+#include "app/editor/overworld/entity/entity.h"
+#include "app/editor/overworld/entity/entity_operations.h"
+#include "app/editor/overworld/entity/overworld_entity_renderer.h"
+#include "app/editor/overworld/maps/map_properties.h"
+#include "app/editor/overworld/maps/map_texture_coordinator.h"
+#include "app/editor/overworld/maps/overworld_map_metadata.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
+#include "app/editor/overworld/ui/debug/debug_window_card.h"
+#include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 // Note: All overworld panels now self-register via REGISTER_PANEL macro:
 // AreaGraphicsPanel, DebugWindowPanel, GfxGroupsPanel, MapPropertiesPanel,
 // OverworldCanvasPanel, ScratchSpacePanel, Tile16EditorPanel, Tile16SelectorPanel,
 // Tile8SelectorPanel, UsageStatisticsPanel, V3SettingsPanel, OverworldItemListPanel
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/editor/overworld/ui_constants.h"
-#include "app/editor/overworld/usage_statistics_card.h"
+#include "app/editor/overworld/ui/debug/usage_statistics_card.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -228,40 +229,93 @@ void OverworldEditor::Initialize() {
   entity_renderer_ = std::make_unique<OverworldEntityRenderer>(
       &overworld_, &ow_map_canvas_, &sprite_previews_);
 
-  // Initialize Toolbar
+  sidebar_->SetRenameLabelCallback(
+      [this](const std::string& type, int id, const std::string& label) {
+        return this->RenameProjectResourceLabelWithUndo(type, id, label);
+      });
+
+  // Initialize Toolbar: navigation, tools and view only. Per-map data is
+  // edited in the Map Properties panel (sidebar_).
   toolbar_ = std::make_unique<OverworldToolbar>();
   toolbar_->on_world_changed = [this](int world) {
     SwitchToWorld(world);
   };
-  toolbar_->on_refresh_graphics = [this]() {
-    // Invalidate cached graphics for the current map area to force re-render
-    // with potentially new palette/graphics settings
-    InvalidateGraphicsCache(current_map_);
-    RefreshSiblingMapGraphics(current_map_, true);
+  toolbar_->on_set_mode = [this](EditingMode mode) {
+    SetEditingMode(mode);
   };
-  toolbar_->on_refresh_map = [this]() {
-    RefreshOverworldMap();
+  toolbar_->on_set_entity_mode = [this](EntityEditMode mode) {
+    SetEntityEditMode(mode);
   };
-
-  toolbar_->on_save_to_scratch = [this]() {
-    SaveCurrentSelectionToScratch();
+  toolbar_->on_open_map_properties = [this]() {
+    OpenMapPropertiesWindow();
   };
-  toolbar_->on_load_from_scratch = [this]() {
-    LoadScratchToSelection();
+  toolbar_->on_toggle_overlay_preview = [this]() {
+    show_overlay_preview_ = !show_overlay_preview_;
+  };
+  toolbar_->is_overlay_preview_enabled = [this]() {
+    return show_overlay_preview_;
+  };
+  toolbar_->on_toggle_grid = [this]() {
+    ToggleGrid();
+  };
+  toolbar_->is_grid_visible = [this]() {
+    return grid_visible();
+  };
+  toolbar_->on_toggle_entities = [this]() {
+    ToggleEntityVisibility();
+  };
+  toolbar_->are_entities_visible = [this]() {
+    return entities_visible();
+  };
+  toolbar_->on_zoom_in = [this]() {
+    ZoomIn();
+  };
+  toolbar_->on_zoom_out = [this]() {
+    ZoomOut();
+  };
+  toolbar_->on_zoom_fit = [this]() {
+    ZoomToFit();
+  };
+  toolbar_->on_center_map = [this]() {
+    CenterOverworldView();
+  };
+  toolbar_->get_zoom = [this]() {
+    return ow_map_canvas_.global_scale();
+  };
+  toolbar_->on_toggle_overlay_preview = [this]() {
+    show_overlay_preview_ = !show_overlay_preview_;
+  };
+  toolbar_->is_overlay_preview_enabled = [this]() {
+    return show_overlay_preview_;
   };
   toolbar_->on_upgrade_rom_version = [this](int) {
     ImGui::OpenPopup("UpgradeROMVersion");
   };
-  toolbar_->on_apply_property_edit = [this](const OverworldPropertyEdit& edit) {
-    return this->ApplyOverworldPropertyEdit(edit);
-  };
-  toolbar_->on_rename_resource_label = [this](const std::string& type, int id,
-                                              const std::string& label) {
-    return this->RenameProjectResourceLabelWithUndo(type, id, label);
-  };
 
   // Initialize OverworldCanvasRenderer for canvas and panel drawing
   canvas_renderer_ = std::make_unique<OverworldCanvasRenderer>(this);
+  map_properties_system_->SetOpenMapPropertiesCallback(
+      [this]() { OpenMapPropertiesWindow(); });
+  map_properties_system_->SetContextNavigationCallbacks(
+      [this]() { ResetOverworldView(); }, [this]() { ZoomIn(); },
+      [this]() { ZoomOut(); }, [this]() { ZoomToFit(); },
+      [this]() { CenterOverworldView(); });
+  map_properties_system_->SetContextViewToggles(
+      {[this]() { return grid_visible(); }, [this]() { ToggleGrid(); }},
+      {[this]() { return entities_visible(); },
+       [this]() { ToggleEntityVisibility(); }},
+      {[this]() { return show_overlay_preview_; },
+       [this]() { show_overlay_preview_ = !show_overlay_preview_; }});
+  map_properties_system_->SetCurrentMapProvider(
+      [this]() { return current_map_; });
+  map_properties_system_->SetMapJumpCallback(
+      [this](int map_id) { JumpToMap(map_id); });
+  map_properties_system_->SetShortcutHintProvider(
+      [this](const char* name) -> std::string {
+        return dependencies_.shortcut_manager
+                   ? dependencies_.shortcut_manager->GetDisplayString(name)
+                   : std::string();
+      });
 
   InitCanvasNavigationManager();
   InitTilePaintingManager();
@@ -271,23 +325,10 @@ void OverworldEditor::Initialize() {
 void OverworldEditor::InitInteractionCoordinator() {
   OverworldCommandSink sink;
   sink.on_set_editor_mode = [this](EditingMode mode) {
-    current_mode = mode;
-    if (current_mode == EditingMode::MOUSE) {
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-    } else {
-      ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
-    }
+    SetEditingMode(mode);
   };
   sink.on_set_entity_mode = [this](EntityEditMode mode) {
-    entity_edit_mode_ = mode;
-    current_mode = EditingMode::MOUSE;
-    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
-  };
-  sink.on_toggle_brush = [this]() {
-    ToggleBrushTool();
-  };
-  sink.on_activate_fill = [this]() {
-    ActivateFillTool();
+    SetEntityEditMode(mode);
   };
   sink.on_pick_tile_from_hover = [this]() {
     (void)PickTile16FromHoveredCanvas();
@@ -326,32 +367,16 @@ void OverworldEditor::InitInteractionCoordinator() {
         break;
     }
   };
-  sink.on_toggle_item_list = [this]() {
-    if (!dependencies_.window_manager) {
-      return;
-    }
-    const size_t session_id =
-        dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->ToggleWindow(session_id,
-                                               OverworldPanelIds::kItemList);
-  };
   sink.can_edit_items = [this]() {
-    return entity_edit_mode_ == EntityEditMode::ITEMS;
-  };
-  sink.on_toggle_lock = [this]() {
-    current_map_lock_ = !current_map_lock_;
-  };
-  sink.on_toggle_tile16_editor = [this]() {
-    if (!dependencies_.window_manager) {
-      return;
+    // Items mode, or no entity focus with an item selected, in select mode.
+    if (current_mode != EditingMode::MOUSE) {
+      return false;
     }
-    const size_t session_id =
-        dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->ToggleWindow(
-        session_id, OverworldPanelIds::kTile16Editor);
-  };
-  sink.on_toggle_fullscreen = [this]() {
-    overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+    if (entity_edit_mode_ == EntityEditMode::ITEMS) {
+      return true;
+    }
+    return entity_edit_mode_ == EntityEditMode::NONE &&
+           GetSelectedItem() != nullptr;
   };
   sink.on_undo = [this]() {
     status_ = Undo();
@@ -373,9 +398,7 @@ void OverworldEditor::InitTilePaintingManager() {
   deps.selected_tile16_ids = &selected_tile16_ids_;
   deps.current_map = &current_map_;
   deps.current_world = &current_world_;
-  deps.current_parent = &current_parent_;
   deps.current_mode = &current_mode;
-  deps.game_state = &game_state_;
   deps.rom = rom_;
   deps.tile16_editor = &tile16_editor_;
 
@@ -386,9 +409,6 @@ void OverworldEditor::InitTilePaintingManager() {
   };
   callbacks.finalize_paint_operation = [this]() {
     this->FinalizePaintOperation();
-  };
-  callbacks.refresh_overworld_map = [this]() {
-    this->RefreshOverworldMap();
   };
   callbacks.refresh_overworld_map_on_demand = [this](int map_index) {
     this->RefreshOverworldMapOnDemand(map_index);
@@ -416,7 +436,6 @@ void OverworldEditor::InitCanvasNavigationManager() {
   ctx.current_mode = &current_mode;
   ctx.current_map_lock = &current_map_lock_;
   ctx.is_dragging_entity = &is_dragging_entity_;
-  ctx.show_map_properties_panel = &show_map_properties_panel_;
   ctx.maps_bmp = &maps_bmp_;
   ctx.tile16_blockset = &tile16_blockset_;
   ctx.blockset_selector = &blockset_selector_;
@@ -439,6 +458,9 @@ void OverworldEditor::InitCanvasNavigationManager() {
   };
   callbacks.is_entity_hovered = [this]() -> bool {
     return entity_renderer_ && entity_renderer_->hovered_entity() != nullptr;
+  };
+  callbacks.open_map_properties = [this]() {
+    OpenMapPropertiesWindow();
   };
 
   canvas_nav_ = std::make_unique<CanvasNavigationManager>();
@@ -465,6 +487,8 @@ void OverworldEditor::NotifyEntityModified(zelda3::GameEntity*) {
 }
 
 absl::Status OverworldEditor::Load() {
+  pending_entity_insertion_.reset();
+  ow_map_canvas_.ClearContextMenuItems();
   gfx::ScopedTimer timer("OverworldEditor::Load");
 
   LOG_DEBUG("OverworldEditor", "Loading overworld.");
@@ -482,6 +506,8 @@ absl::Status OverworldEditor::Load() {
   undo_manager_.Clear();
 
   RETURN_IF_ERROR(LoadGraphics());
+  tile16_editor_.BindDocument(overworld_.mutable_tiles16(), &undo_manager_,
+                              [this]() { FinalizePaintOperation(); });
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
@@ -492,40 +518,32 @@ absl::Status OverworldEditor::Load() {
   tile16_editor_.set_on_current_tile_changed(
       [this](int id) { current_tile16_ = id; });
 
-  // Set up callback for when tile16 changes are committed
-  tile16_editor_.set_on_changes_committed(
-      [this](const std::vector<Tile16Commit>& commits) -> absl::Status {
-        auto* tiles16 = overworld_.mutable_tiles16();
-        for (const auto& commit : commits) {
-          if (commit.tile_id >= 0 &&
-              commit.tile_id < static_cast<int>(tiles16->size())) {
-            (*tiles16)[commit.tile_id] = commit.tile_data;
-          }
+  tile16_editor_.set_on_document_changed(
+      [this](const std::vector<Tile16Commit>&) {
+        if (map_refresh_) {
+          map_refresh_->InvalidateTile16Definitions();
+          RefreshOverworldMap();
+          status_ = RefreshTile16Blockset();
         }
-
-        // Regenerate the overworld editor's tile16 blockset
-        RETURN_IF_ERROR(RefreshTile16Blockset());
-
-        // Force refresh of the current overworld map to show changes
-        RefreshOverworldMap();
-
-        LOG_DEBUG("OverworldEditor",
-                  "Overworld editor refreshed after Tile16 changes");
-        return absl::OkStatus();
       });
 
   // Set up entity insertion callback for MapPropertiesSystem
   if (map_properties_system_) {
     map_properties_system_->SetEntityCallbacks(
-        [this](const std::string& entity_type) {
-          HandleEntityInsertion(entity_type);
+        [this](const std::string& entity_type,
+               const OverworldContextTarget& target) {
+          HandleEntityInsertion(entity_type, target);
         });
 
     // Set up tile16 edit callback for context menu in MOUSE mode
     map_properties_system_->SetTile16SampleCallback(
-        [this]() { return PickTile16FromHoveredCanvas(); });
+        [this](const OverworldContextTarget& target) {
+          return SampleContextTile16(target);
+        });
     map_properties_system_->SetTile16EditCallback(
-        [this]() { HandleTile16Edit(); });
+        [this](const OverworldContextTarget& target) {
+          HandleTile16Edit(target);
+        });
   }
 
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
@@ -567,6 +585,19 @@ absl::Status OverworldEditor::Load() {
   return absl::OkStatus();
 }
 
+void OverworldEditor::RefreshMapsForSheetEdits() {
+  for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+    auto* overworld_map = overworld_.mutable_overworld_map(map);
+    // A map already marked for refresh waits for its rebuild, which records
+    // the new sheet revisions; marking it again every frame would keep
+    // clearing the blockset cache.
+    if (overworld_map != nullptr && !maps_bmp_[map].modified() &&
+        overworld_map->SourceSheetsChanged()) {
+      ForceRefreshGraphics(map);
+    }
+  }
+}
+
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
 
@@ -586,11 +617,8 @@ absl::Status OverworldEditor::Update() {
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
 
-  // Update blockset atlas with any pending tile16 changes for live preview
-  // Tile cache now uses copy semantics so this is safe to enable
-  if (tile16_editor_.has_pending_changes() && map_blockset_loaded_) {
-    UpdateBlocksetWithPendingTileChanges();
-  }
+  // Show unsaved Graphics editor edits in the maps that use those sheets.
+  RefreshMapsForSheetEdits();
 
   // Early return if window_manager is not available
   // (panels won't be drawn without it, so no point continuing)
@@ -646,8 +674,7 @@ absl::Status OverworldEditor::Update() {
   // It uses UpdateAsPanel() which provides a context menu instead of MenuBar
 
   if (auto* workbench = GetWorkbench()) {
-    workbench->ProcessPendingInsertion(entity_mutation_service_.get(),
-                                       current_map_, game_state_);
+    workbench->ProcessPendingInsertion(entity_mutation_service_.get());
     workbench->DrawPopups();
   }
 
@@ -752,7 +779,15 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
     return;
   }
 
-  FinalizePaintOperation();
+  // Cursor tracking may cross screens during one paint stroke. Preserve its
+  // undo batch within the same world; explicit selection still finalizes it.
+  const bool tracking_paint = respect_pin &&
+                              (current_mode == EditingMode::DRAW_TILE ||
+                               current_mode == EditingMode::FILL_TILE) &&
+                              map_id / 0x40 == current_world_;
+  if (!tracking_paint) {
+    FinalizePaintOperation();
+  }
   current_map_ = map_id;
   current_world_ = std::clamp(map_id / 0x40, 0, 2);
   current_parent_ = map->parent();
@@ -804,12 +839,6 @@ void OverworldEditor::SwitchToWorld(int world) {
   RefreshOverworldMapOnDemand(current_map_);
   PRINT_IF_ERROR(RefreshTile16Blockset());
   PrimeWorldMaps(current_world_);
-}
-
-void OverworldEditor::HandleKeyboardShortcuts() {
-  if (interaction_coordinator_) {
-    interaction_coordinator_->Update();
-  }
 }
 
 bool OverworldEditor::SelectItemByIdentity(
@@ -932,7 +961,7 @@ bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
   if (!selected_item) {
     if (dependencies_.toast_manager) {
       dependencies_.toast_manager->Show(
-          "Select an overworld item first (Item Mode: key 5)",
+          "Select an overworld item first (click one, or Items mode: 5)",
           ToastType::kInfo);
     }
     return false;
@@ -1084,37 +1113,14 @@ absl::Status OverworldEditor::Copy() {
   if (!dependencies_.shared_clipboard) {
     return absl::FailedPreconditionError("Clipboard unavailable");
   }
-  // If a rectangle selection exists, copy its tile16 IDs into shared clipboard
-  if (ow_map_canvas_.select_rect_active() &&
-      !ow_map_canvas_.selected_points().empty()) {
-    std::vector<int> ids;
-    // selected_points are now stored in world coordinates
-    const auto start = ow_map_canvas_.selected_points()[0];
-    const auto end = ow_map_canvas_.selected_points()[1];
-    const int start_x =
-        static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
-    const int end_x =
-        static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
-    const int start_y =
-        static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
-    const int end_y =
-        static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
-    const int width = end_x - start_x + 1;
-    const int height = end_y - start_y + 1;
-    ids.reserve(width * height);
-    overworld_.set_current_world(current_world_);
-    overworld_.set_current_map(current_map_);
-    for (int y = start_y; y <= end_y; ++y) {
-      for (int x = start_x; x <= end_x; ++x) {
-        ids.push_back(overworld_.GetTile(x, y));
-      }
+  if (tile_painting_) {
+    if (const auto* brush = tile_painting_->selection_brush()) {
+      dependencies_.shared_clipboard->overworld_tile16_ids = brush->tile_ids;
+      dependencies_.shared_clipboard->overworld_width = brush->width;
+      dependencies_.shared_clipboard->overworld_height = brush->height;
+      dependencies_.shared_clipboard->has_overworld_tile16 = true;
+      return absl::OkStatus();
     }
-
-    dependencies_.shared_clipboard->overworld_tile16_ids = std::move(ids);
-    dependencies_.shared_clipboard->overworld_width = width;
-    dependencies_.shared_clipboard->overworld_height = height;
-    dependencies_.shared_clipboard->has_overworld_tile16 = true;
-    return absl::OkStatus();
   }
   // Single tile copy fallback
   if (current_tile16_ >= 0) {
@@ -1134,73 +1140,13 @@ absl::Status OverworldEditor::Paste() {
   if (!dependencies_.shared_clipboard->has_overworld_tile16) {
     return absl::FailedPreconditionError("Clipboard empty");
   }
-  if (ow_map_canvas_.points().empty() &&
-      ow_map_canvas_.selected_tile_pos().x == -1) {
-    return absl::FailedPreconditionError("No paste target");
+  if (!tile_painting_) {
+    return absl::FailedPreconditionError("Tile painting is unavailable");
   }
-
-  // Determine paste anchor position (use current mouse drawn tile position)
-  // Unscale coordinates to get world position
-  const ImVec2 scaled_anchor = ow_map_canvas_.drawn_tile_position();
-  float scale = ow_map_canvas_.global_scale();
-  if (scale <= 0.0f)
-    scale = 1.0f;
-  const ImVec2 anchor =
-      ImVec2(scaled_anchor.x / scale, scaled_anchor.y / scale);
-
-  // Compute anchor in tile16 grid within the current map
-  const int tile16_x =
-      (static_cast<int>(anchor.x) % kOverworldMapSize) / kTile16Size;
-  const int tile16_y =
-      (static_cast<int>(anchor.y) % kOverworldMapSize) / kTile16Size;
-
-  auto& selected_world =
-      (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world
-      : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
-                              : overworld_.mutable_map_tiles()->special_world;
-
-  const int world_offset = current_world_ * 0x40;
-  const int local_map = current_map_ - world_offset;
-  const int superY = local_map / 8;
-  const int superX = local_map % 8;
-
-  const int width = dependencies_.shared_clipboard->overworld_width;
-  const int height = dependencies_.shared_clipboard->overworld_height;
-  const auto& ids = dependencies_.shared_clipboard->overworld_tile16_ids;
-
-  // Guard
-  if (width * height != static_cast<int>(ids.size())) {
-    return absl::InternalError("Clipboard dimensions mismatch");
-  }
-
-  bool any_changed = false;
-  for (int dy = 0; dy < height; ++dy) {
-    for (int dx = 0; dx < width; ++dx) {
-      const int id = ids[dy * width + dx];
-      const int gx = tile16_x + dx;
-      const int gy = tile16_y + dy;
-
-      const int global_x = superX * 32 + gx;
-      const int global_y = superY * 32 + gy;
-      if (global_x < 0 || global_x >= 256 || global_y < 0 || global_y >= 256)
-        continue;
-      const int old_tile_id = selected_world[global_x][global_y];
-      if (old_tile_id == id) {
-        continue;
-      }
-      CreateUndoPoint(current_map_, current_world_, global_x, global_y,
-                      old_tile_id);
-      selected_world[global_x][global_y] = id;
-      any_changed = true;
-    }
-  }
-
-  if (any_changed) {
-    FinalizePaintOperation();
-    rom_->set_dirty(true);
-    RefreshOverworldMap();
-  }
-  return absl::OkStatus();
+  const auto& clipboard = *dependencies_.shared_clipboard;
+  return tile_painting_->PasteBrush({clipboard.overworld_width,
+                                     clipboard.overworld_height,
+                                     clipboard.overworld_tile16_ids});
 }
 
 absl::Status OverworldEditor::CheckForCurrentMap() {
@@ -1224,6 +1170,21 @@ absl::Status OverworldEditor::UpdateGfxGroupEditor() {
 // DrawMapProperties - now in OverworldCanvasRenderer
 
 absl::Status OverworldEditor::Save() {
+  // Validate sprite capacity before any editor serializer changes ROM bytes.
+  ASSIGN_OR_RETURN(auto sprite_plan, overworld_.PrepareSpriteSave());
+  if (!sprite_plan.empty() && dependencies_.project &&
+      dependencies_.project->hack_manifest.loaded()) {
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    for (const auto& write : sprite_plan) {
+      ranges.emplace_back(write.address, write.address + write.bytes.size());
+    }
+    RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+        dependencies_.project->hack_manifest,
+        dependencies_.project->rom_metadata.write_policy, ranges,
+        "overworld sprites", "OverworldEditor", dependencies_.toast_manager));
+  }
+
+  ScopedRomTransaction save_transaction(*rom_);
   // HACK MANIFEST VALIDATION
   const bool saving_maps =
       core::FeatureFlags::get().overworld.kSaveOverworldMaps;
@@ -1270,6 +1231,8 @@ absl::Status OverworldEditor::Save() {
     RETURN_IF_ERROR(overworld_.SaveMusic());
     RETURN_IF_ERROR(overworld_.SaveCustomOverworldData());
   }
+  RETURN_IF_ERROR(zelda3::ApplyOverworldSpriteSave(*rom_, sprite_plan));
+  save_transaction.Commit();
   return absl::OkStatus();
 }
 
@@ -1292,12 +1255,10 @@ void OverworldEditor::CreateUndoPoint(int map_id, int world, int x, int y,
                                       int old_tile_id) {
   auto now = std::chrono::steady_clock::now();
 
-  // Check if we should batch with current operation (same map, same world,
-  // within timeout)
+  // A stroke can cross screen boundaries. Keep one batch within the same world
+  // until release; the undo action refreshes every screen touched by its tiles.
   if (current_paint_operation_.has_value() &&
-      current_paint_operation_->map_id == map_id &&
-      current_paint_operation_->world == world &&
-      (now - last_paint_time_) < kPaintBatchTimeout) {
+      current_paint_operation_->world == world) {
     // Add to existing operation
     current_paint_operation_->tile_changes.emplace_back(std::make_pair(x, y),
                                                         old_tile_id);
@@ -1312,8 +1273,6 @@ void OverworldEditor::CreateUndoPoint(int map_id, int world, int x, int y,
                            .tile_changes = {{{x, y}, old_tile_id}},
                            .timestamp = now};
   }
-
-  last_paint_time_ = now;
 }
 
 void OverworldEditor::FinalizePaintOperation() {
@@ -1333,7 +1292,12 @@ void OverworldEditor::FinalizePaintOperation() {
   }
   auto action = std::make_unique<OverworldTilePaintAction>(
       current_paint_operation_->map_id, current_paint_operation_->world,
-      std::move(changes), &overworld_, [this]() { RefreshOverworldMap(); });
+      std::move(changes), &overworld_, std::function<void()>{},
+      [this](int map_id) {
+        maps_bmp_[map_id].set_modified(true);
+        RefreshOverworldMapOnDemand(map_id);
+      },
+      /*allow_merge=*/false);
   undo_manager_.Push(std::move(action));
 
   current_paint_operation_.reset();
@@ -1492,6 +1456,7 @@ absl::Status OverworldEditor::Undo() {
 }
 
 absl::Status OverworldEditor::Redo() {
+  FinalizePaintOperation();
   return undo_manager_.Redo();
 }
 
@@ -1603,6 +1568,15 @@ void OverworldEditor::ProcessDeferredTextures() {
     map_texture_->ProcessDeferredTextures();
 }
 
+const gfx::Bitmap* OverworldEditor::AreaScreenBitmap(int map_id) {
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    return nullptr;
+  }
+  EnsureMapTexture(map_id);
+  const gfx::Bitmap& bitmap = maps_bmp_[map_id];
+  return bitmap.is_active() && bitmap.texture() ? &bitmap : nullptr;
+}
+
 void OverworldEditor::EnsureMapTexture(int map_index) {
   if (map_texture_)
     map_texture_->EnsureMapTexture(map_index);
@@ -1678,17 +1652,6 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
     return;
   }
 
-  const int from_tile = tile16_editor_.current_tile16();
-  const bool had_staged_on_current = tile16_editor_.is_tile_modified(from_tile);
-  if (had_staged_on_current && dependencies_.window_manager) {
-    const size_t session_id =
-        dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->OpenWindow(session_id,
-                                             OverworldPanelIds::kTile16Editor);
-    dependencies_.window_manager->MarkWindowRecentlyUsed(
-        OverworldPanelIds::kTile16Editor);
-  }
-
   tile16_editor_.RequestTileSwitch(tile_id);
   current_tile16_ = tile16_editor_.current_tile16();
 }
@@ -1720,6 +1683,113 @@ void OverworldEditor::CycleTileSelection(int delta) {
   RequestTile16Selection(next);
 }
 
+void OverworldEditor::ToggleMapLock() {
+  current_map_lock_ = !current_map_lock_;
+}
+
+void OverworldEditor::ToggleCanvasFullscreen() {
+  overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+}
+
+void OverworldEditor::ToggleTile16EditorWindow() {
+  if (!dependencies_.window_manager) {
+    return;
+  }
+  dependencies_.window_manager->ToggleWindow(
+      dependencies_.window_manager->GetActiveSessionId(),
+      OverworldPanelIds::kTile16Editor);
+}
+
+void OverworldEditor::ToggleItemListWindow() {
+  if (!dependencies_.window_manager) {
+    return;
+  }
+  dependencies_.window_manager->ToggleWindow(
+      dependencies_.window_manager->GetActiveSessionId(),
+      OverworldPanelIds::kItemList);
+}
+
+void OverworldEditor::SelectAdjacentMap(int dx, int dy) {
+  const int world = std::clamp(current_world_, 0, 2);
+  const int local = current_map_ - world * 0x40;
+  const int rows = world == 2 ? 4 : 8;  // Special world: four rows.
+  const int x = local % 8 + dx;
+  const int y = local / 8 + dy;
+  if (x < 0 || x >= 8 || y < 0 || y >= rows) {
+    return;
+  }
+  const int target = world * 0x40 + y * 8 + x;
+  if (target >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  SelectMapForEditing(target, /*respect_pin=*/false);
+  if (canvas_nav_) {
+    // Keep the keyboard choice until the mouse moves, then resume following
+    // the cursor (unless pinned).
+    canvas_nav_->SuspendHoverFollowUntilMouseMoves();
+    canvas_nav_->CenterOnMap(target);
+  }
+}
+
+void OverworldEditor::JumpToMap(int map_id) {
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  const int world = std::clamp(map_id / 0x40, 0, 2);
+  if (world != current_world_) {
+    SwitchToWorld(world);
+  }
+  SelectMapForEditing(map_id, /*respect_pin=*/false);
+  if (canvas_nav_) {
+    // Same as keyboard navigation: keep the choice until the mouse moves.
+    canvas_nav_->SuspendHoverFollowUntilMouseMoves();
+    canvas_nav_->CenterOnMap(map_id);
+  }
+}
+
+void OverworldEditor::SetEditingMode(EditingMode mode) {
+  current_mode = mode;
+  entity_edit_mode_ = EntityEditMode::NONE;
+  ow_map_canvas_.SetUsageMode(mode == EditingMode::MOUSE
+                                  ? gui::CanvasUsage::kEntityManipulation
+                                  : gui::CanvasUsage::kTilePainting);
+}
+
+void OverworldEditor::SetEntityEditMode(EntityEditMode mode) {
+  entity_edit_mode_ = mode;
+  if (mode != EntityEditMode::NONE) {
+    // Entity work happens with the select tool.
+    current_mode = EditingMode::MOUSE;
+    ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kEntityManipulation);
+  }
+}
+
+void OverworldEditor::ToggleGrid() {
+  auto config = ow_map_canvas_.GetConfig();
+  config.enable_grid = !config.enable_grid;
+  ow_map_canvas_.ApplyConfigSnapshot(config);
+}
+
+bool OverworldEditor::grid_visible() const {
+  return ow_map_canvas_.GetConfig().enable_grid;
+}
+
+void OverworldEditor::OpenMapPropertiesWindow() {
+  auto* window_manager = dependencies_.window_manager;
+  if (!window_manager) {
+    return;
+  }
+  const size_t session_id = window_manager->GetActiveSessionId();
+  window_manager->OpenWindow(session_id, OverworldPanelIds::kMapProperties);
+  window_manager->MarkWindowRecentlyUsed(OverworldPanelIds::kMapProperties);
+  // Bring a docked-but-hidden tab to front. No-op until the window exists.
+  const std::string window_name = window_manager->GetWorkspaceWindowName(
+      session_id, OverworldPanelIds::kMapProperties);
+  if (!window_name.empty()) {
+    ImGui::SetWindowFocus(window_name.c_str());
+  }
+}
+
 void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
   if (!status_bar)
     return;
@@ -1731,7 +1801,7 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
   status_bar->SetCustomSegment("Tile16",
                                absl::StrFormat("0x%03X", current_tile16_));
 
-  const char* mode_label = "Draw";
+  const char* mode_label;
   switch (entity_edit_mode_) {
     case EntityEditMode::ENTRANCES:
       mode_label = "Entrances";
@@ -1762,10 +1832,111 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
         case EditingMode::FILL_TILE:
           mode_label = "Fill";
           break;
+        default:
+          mode_label = "Draw";
+          break;
       }
+      break;
+    default:
+      mode_label = "Draw";
       break;
   }
   status_bar->SetEditorMode(mode_label);
+}
+
+EditorContextSnapshot OverworldEditor::BuildContextSnapshot() const {
+  EditorContextSnapshot snapshot;
+  snapshot.category = "Overworld";
+  snapshot.semantic_owner = absl::StrFormat("overworld.map.%03X", current_map_);
+
+  if (!overworld_.is_loaded() || current_map_ < 0) {
+    snapshot.title = "Overworld";
+    snapshot.subtitle = "Load a ROM to inspect map context";
+    return snapshot;
+  }
+
+  const OverworldMapMetadata map = BuildOverworldMapMetadata(
+      overworld_, rom_, dependencies_.project, current_map_, game_state_);
+  snapshot.title = map.map_title;
+  snapshot.subtitle =
+      absl::StrFormat("%s · %s", map.world_label, map.area_size_label);
+  snapshot.metadata = {
+      {.id = "map", .label = "Map", .value = map.map_id_label},
+      {.id = "parent", .label = "Parent", .value = map.parent_label},
+      {.id = "tile16",
+       .label = "Tile16",
+       .value = absl::StrFormat("0x%03X", current_tile16_)},
+      {.id = "graphics", .label = "Graphics", .value = map.area_gfx_label},
+      {.id = "palette", .label = "Palette", .value = map.area_palette_label},
+  };
+
+  const int owner_map = current_parent_;
+  const auto belongs_to_area = [owner_map](const auto& entity) {
+    return static_cast<int>(entity.map_id_) == owner_map;
+  };
+  const auto sprites = overworld_.sprites(game_state_);
+  const auto items = overworld_.all_items();
+  const auto* exits = overworld_.exits();
+  snapshot.counts = {
+      {.id = "sprites",
+       .label = "Sprites",
+       .value = std::to_string(std::count_if(
+           sprites.begin(), sprites.end(),
+           [owner_map](const zelda3::Sprite& sprite) {
+             return static_cast<int>(sprite.map_id()) == owner_map;
+           }))},
+      {.id = "items",
+       .label = "Items",
+       .value = std::to_string(
+           std::count_if(items.begin(), items.end(), belongs_to_area))},
+      {.id = "entrances",
+       .label = "Entrances",
+       .value = std::to_string(std::count_if(overworld_.entrances().begin(),
+                                             overworld_.entrances().end(),
+                                             belongs_to_area))},
+      {.id = "exits",
+       .label = "Exits",
+       .value = exits ? std::to_string(std::count_if(
+                            exits->begin(), exits->end(), belongs_to_area))
+                      : "0"},
+  };
+
+  snapshot.has_pending_changes = rom_ != nullptr && rom_->dirty();
+  snapshot.pending_label =
+      snapshot.has_pending_changes ? "ROM buffer has pending changes" : "";
+  if (current_map_lock_) {
+    snapshot.diagnostics.push_back({
+        .id = "map_pinned",
+        .severity = EditorContextDiagnosticSeverity::kInfo,
+        .message = "Map context is pinned; cursor hover will not replace it.",
+    });
+  }
+  if (!selected_tile16_ids_.empty()) {
+    snapshot.diagnostics.push_back({
+        .id = "tile_selection",
+        .severity = EditorContextDiagnosticSeverity::kInfo,
+        .message = absl::StrFormat("%zu Tile16 cells selected",
+                                   selected_tile16_ids_.size()),
+    });
+  }
+
+  snapshot.capabilities = {
+      "overworld.properties",
+      "overworld.entities",
+      "overworld.tile16",
+  };
+  snapshot.actions = {
+      {.id = "open_properties",
+       .label = "Map Properties",
+       .target = "overworld.properties"},
+      {.id = "open_entities",
+       .label = "Entity Workbench",
+       .target = "overworld.entity_workbench"},
+      {.id = "open_tile16",
+       .label = "Tile16 Selector",
+       .target = "overworld.tile16_selector"},
+  };
+  return snapshot;
 }
 
 }  // namespace yaze::editor

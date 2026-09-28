@@ -1,446 +1,263 @@
-# Overworld Editor
+# Overworld editor: where to make a change
 
-The Overworld Editor is the primary tool for editing the Legend of Zelda: A Link to the Past overworld maps. It provides visual editing capabilities for tiles, entities, and map properties across the Light World, Dark World, and Special World areas.
+Start with the table below. `OverworldEditor` owns editor lifecycle, shared state,
+service wiring, save dispatch, and undo integration. `Tile16Editor` owns the
+Tile16 definition window and canvases. Its session publishes edits directly to
+the open overworld document. Both remain at this directory's
+root so callers and parallel refactors have stable entry points.
 
-## Architecture Overview
+## Directory responsibilities
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           OverworldEditor                                    │
-│  (Main orchestrator - coordinates all subsystems)                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
-│  │  Tile16Editor   │  │ MapProperties   │  │    Entity System            │ │
-│  │                 │  │    System       │  │                             │ │
-│  │ • Tile editing  │  │ • Toolbar UI    │  │ • entity.cc (rendering)     │ │
-│  │ • Pending       │  │ • Context menus │  │ • entity_operations.cc      │ │
-│  │   changes       │  │ • Property      │  │ • overworld_entity_         │ │
-│  │ • Palette coord │  │   panels        │  │   interaction.cc            │ │
-│  └────────┬────────┘  └────────┬────────┘  │ • overworld_entity_         │ │
-│           │                    │           │   renderer.cc               │ │
-│           │                    │           └─────────────┬───────────────┘ │
-│           │                    │                         │                 │
-├───────────┴────────────────────┴─────────────────────────┴─────────────────┤
-│                           Data Layer (zelda3/overworld/)                    │
-│                                                                             │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
-│  │   Overworld     │  │  OverworldMap   │  │        Entities             │ │
-│  │                 │  │                 │  │                             │ │
-│  │ • 160 maps      │  │ • Single map    │  │ • OverworldEntrance         │ │
-│  │ • Tile assembly │  │ • Palette/GFX   │  │ • OverworldExit             │ │
-│  │ • Save/Load     │  │ • Bitmap gen    │  │ • OverworldItem             │ │
-│  │ • Sprites       │  │ • Overlay data  │  │ • Sprite                    │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Location | Owns | Start here |
+| --- | --- | --- |
+| Root | Editor lifecycle and integration | [overworld_editor.h](overworld_editor.h), [overworld_editor.cc](overworld_editor.cc) |
+| Root | Tile16 window wiring and canvases | [tile16_editor.h](tile16_editor.h), [tile16_editor.cc](tile16_editor.cc) |
+| `canvas/` | Hit testing, pan/zoom, map selection, canvas rendering | [canvas_navigation_manager.cc](canvas/canvas_navigation_manager.cc), [overworld_canvas_renderer.cc](canvas/overworld_canvas_renderer.cc) |
+| `painting/` | Captured rectangular brushes, painting, fill, and clipboard placement | [tile_brush.h](painting/tile_brush.h), [tile_painting_manager.cc](painting/tile_painting_manager.cc) |
+| `maps/` | Property edits, metadata, refresh, and texture coordination | [map_properties.cc](maps/map_properties.cc), [map_refresh_coordinator.cc](maps/map_refresh_coordinator.cc), [map_texture_coordinator.cc](maps/map_texture_coordinator.cc) |
+| `entity/` | Entity rendering, editing targets, and mutation services | [entity_workbench.cc](entity/entity_workbench.cc), [entity_mutation_service.cc](entity/entity_mutation_service.cc), [entity_operations.cc](entity/entity_operations.cc) |
+| `tile16/` | Document edits, metadata transactions, palette/graphics coordination, history | [tile16_edit_session.h](tile16/tile16_edit_session.h), [tile16_edit_history.cc](tile16/tile16_edit_history.cc) |
+| `ui/navigation/` | Toolbar and sidebar layout | [overworld_toolbar.cc](ui/navigation/overworld_toolbar.cc), [overworld_sidebar.cc](ui/navigation/overworld_sidebar.cc) |
+| `ui/tiles/` | Tile selector/window content and scratch workspace | [tile16_selector_view.cc](ui/tiles/tile16_selector_view.cc), [tile16_editor_view.cc](ui/tiles/tile16_editor_view.cc), [scratch_space.cc](ui/tiles/scratch_space.cc) |
+| `ui/canvas/` | Canvas window content registration | [overworld_canvas_view.cc](ui/canvas/overworld_canvas_view.cc) |
+| `ui/debug/` | Debug and usage-statistics content | [debug_window_card.cc](ui/debug/debug_window_card.cc), [usage_statistics_card.cc](ui/debug/usage_statistics_card.cc) |
+| `ui/` and `ui/shared/` | Shared editor modes and window context | [ui_constants.h](ui/ui_constants.h), [overworld_window_context.h](ui/shared/overworld_window_context.h) |
+| `core/` | Dispatch from keyboard/toolbar actions to editor callbacks | [interaction_coordinator.cc](core/interaction_coordinator.cc) |
+| `panels/` | Existing compatibility wrappers and remaining window content | [overworld_panel_access.h](panels/overworld_panel_access.h) |
 
-## Directory Structure
+[automation.cc](automation.cc) stays beside the editor because it connects
+multiple features. [overworld_undo_actions.h](overworld_undo_actions.h) also stays
+there: it currently contains tile painting, entity, map-property, and project-label
+history actions. Moving it into one feature would imply an ownership split that
+has not happened.
 
-### Editor Layer (`src/app/editor/overworld/`)
+The `panels/` compatibility directory remains supported. Do not combine a source
+move with a migration of window IDs, content registration, or shell contracts.
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `overworld_editor.h/cc` | ~3,750 | Main editor class, coordinates all subsystems |
-| `tile16_editor.h/cc` | ~3,400 | Tile16 editing with pending changes workflow |
-| `map_properties.h/cc` | ~1,900 | Toolbar, context menus, property panels |
-| `entity.h/cc` | ~820 | Entity popup rendering and editing |
-| `entity_operations.h/cc` | ~370 | Entity insertion helper functions |
-| `overworld_entity_interaction.h/cc` | ~200 | Entity drag/drop and click handling |
-| `overworld_entity_renderer.h/cc` | ~200 | Entity drawing delegation |
-| `overworld_sidebar.h/cc` | ~420 | Sidebar property tabs |
-| `overworld_toolbar.h/cc` | ~210 | Mode toggle toolbar |
-| `scratch_space.cc` | ~420 | Tile layout scratch space |
-| `automation.cc` | ~230 | Canvas automation API |
-| `ui_constants.h` | ~75 | Shared UI constants and enums |
-| `usage_statistics_card.h/cc` | ~130 | Tile usage tracking |
-| `debug_window_card.h/cc` | ~100 | Debug information display |
+## Trace a workflow
 
-### Panels Subdirectory (`panels/`)
+### Paint tiles on a map
 
-Thin wrappers implementing `EditorPanel` interface that delegate to main editor methods:
+1. Window content in `ui/canvas/` calls the editor. `canvas/` determines the
+   hovered physical map and provides the canvas interaction state.
+2. [TilePaintingManager](painting/tile_painting_manager.h) captures a rectangular
+   selection into a `TileBrush`: width, height, and Tile16 IDs in row-major order.
+   Painting and preview use that captured snapshot. Moving the hover or editing
+   the source map must not recapture the selection.
+3. The model in `src/zelda3/overworld/` owns tile IDs. Bitmap updates and the
+   `maps/` coordinators make those changes visible.
+4. `OverworldEditor::CreateUndoPoint` and `FinalizePaintOperation` record history.
+   `OverworldEditor::Save` dispatches the model's ROM serializers.
 
-| Panel | Purpose |
-|-------|---------|
-| `overworld_canvas_panel` | Main map canvas display |
-| `tile16_selector_panel` | Tile palette for painting |
-| `tile8_selector_panel` | Individual tile8 selector |
-| `area_graphics_panel` | Current area graphics display |
-| `map_properties_panel` | Map property editing |
-| `scratch_space_panel` | Tile layout workspace |
-| `gfx_groups_panel` | Graphics group editor |
-| `usage_statistics_panel` | Tile usage analytics |
-| `v3_settings_panel` | ZScustom v3 feature settings |
-| `debug_window_panel` | Debug information |
+Keep the hovered physical map distinct from its parent area. A multi-area room
+can share graphics while each child map has its own tile positions. Treat Light,
+Dark, and Special World coordinates explicitly when clipping a stamp or fill.
 
-### Data Layer (`src/zelda3/overworld/`)
+The painting implementation resolves each destination cell in world coordinates
+and clips it against that world's bounds. A rectangular stamp may cross physical
+screen boundaries. Undo records the cells that changed across those screens;
+each stamp, fill, or paste finalizes its edit. Release also finalizes pending
+single-tile painting outside the canvas. History retains its existing timed
+merge window for consecutive paint actions.
 
-| File | Purpose |
-|------|---------|
-| `overworld.h/cc` | Core data management for 160+ maps |
-| `overworld_map.h/cc` | Individual map data and bitmap generation |
-| `overworld_entrance.h/cc` | Entrance entity data structures |
-| `overworld_exit.h/cc` | Exit entity data structures |
-| `overworld_item.h/cc` | Overworld item data |
-| `overworld_version_helper.h` | ROM version detection for ZScustom features |
-| `diggable_tiles.h/cc` | Diggable tile management |
+Copy and saving to scratch read the captured brush snapshot. Scratch preserves
+its existing 32-by-32 size limit. Clipboard paste uses the hovered canvas cell as
+its anchor and the same painting path as a stamp. The fill operation repeats the
+captured rectangle across the hovered screen. These contracts need focused tests
+and visual acceptance; their presence in this guide is not a completed runtime
+qualification claim.
 
----
+### Edit a Tile16 definition
 
-## Key Workflows
+[Tile16Editor](tile16_editor.h) edits the four Tile8 entries, palette, flips, and
+priority of a definition. Its pending model and bitmap previews are distinct
+from the overworld's committed definitions. Trace `CommitAllChanges`,
+`DiscardAllChanges`, and the callbacks installed in `OverworldEditor::Load`
+together when changing that workflow.
 
-### 1. Tile16 Editing Workflow
+Do not assume updating a definition updates every cached map or atlas. Check the
+model, the active map's derived graphics, the selector atlas, and texture refresh
+separately. A commit/discard cache fix needs both transitions covered.
 
-The tile16 editing system uses a **pending changes** pattern to prevent accidental ROM modifications:
+Palette metadata stores a direct row (`0-7`). Recolor source pixels with
+`(selected_row * 16) + (pixel & 0x0F)`. Read the current implementation and
+[Tile16 data flow](../../../../docs/internal/architecture/tile16-data-flow.md)
+before changing palette or graphics ownership.
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Select    │────▶│    Edit     │────▶│   Preview   │────▶│   Commit    │
-│   Tile16    │     │  Tile8s     │     │  (Pending)  │     │  or Discard │
-└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
-```
+### Edit map properties or entities
 
-**Key Files:**
-- `tile16_editor.cc` - Main editing logic
-- `overworld_editor.cc` - Integration with overworld
+The canvas menu is prepared once when it opens. Its
+[context target](canvas/overworld_context_target.h) captures the physical map,
+parent area, world position, game state, and Tile16 ID. The
+[context actions](canvas/overworld_context_actions.cc) resolve that value from
+the opening click; menu callbacks must capture it by value. Do not rebuild the
+menu from the hovered or selected map while a popup is open.
 
-**Pending Changes System:**
-```cpp
-// Changes are tracked per-tile in maps:
-std::map<int, gfx::Tile16> pending_tile16_changes_;
-std::map<int, gfx::Bitmap> pending_tile16_bitmaps_;
+Menu layout lives in `MapPropertiesSystem::SetupCanvasContextMenu`; the
+current layout is documented in `docs/internal/gui/context-menus.md`
+("Overworld map canvas"): header (map, tile), Tile, Map (select, properties,
+pin, related maps), map-properties copy/paste, Insert, and a View submenu
+that mirrors the toolbar toggles.
 
-// Check for unsaved changes:
-bool has_pending_changes() const;
-int pending_changes_count() const;
-bool is_tile_modified(int tile_id) const;
+Where things live (each per-map value is shown and edited in one place):
 
-// Commit or discard:
-absl::Status CommitAllChanges();
-void DiscardAllChanges();
-```
-
-**Palette Coordination (Critical for Color Fixes):**
-
-The overworld uses a 256-color palette organized as 16 rows of 16 colors.
-Tile16 metadata stores the selected palette button as a direct row value
-(`0-7`), matching ZScream and the runtime `OverworldMap::BuildTiles16Gfx`
-path. The source graphics provide only the low nibble, so Tile8 source and
-held-preview recoloring must map every source pixel to
-`(selected_row * 16) + (pixel & 0x0F)` without adding a graphics-sheet base
-row.
-
-Key palette methods in `tile16_editor.cc`:
-```cpp
-// Get actual CGRAM row for a palette button; sheet_index is diagnostic only
-int GetActualPaletteSlot(int palette_button, int sheet_index) const;
-
-// Get the direct palette slot for the current Tile16 brush
-int GetActualPaletteSlotForCurrentTile16() const;
-
-// Determine which 0x1000-byte graphics chunk contains a tile8
-int GetSheetIndexForTile8(int tile8_id) const;
-```
-
-### 2. ZScustom Overworld Features
-
-ZScustom is an ASM patch system that extends overworld capabilities. Version detection is centralized in `overworld_version_helper.h`:
-
-```cpp
-enum class OverworldVersion {
-  kVanilla = 0,     // No patches applied (0xFF in ROM)
-  kZSCustomV1 = 1,  // Basic expanded pointers
-  kZSCustomV2 = 2,  // + BG colors, main palettes
-  kZSCustomV3 = 3   // + Area enum, wide/tall areas, all features
-};
-```
-
-**Feature Detection:**
-```cpp
-// In overworld_version_helper.h:
-static OverworldVersion GetVersion(const Rom& rom);
-static bool SupportsAreaEnum(OverworldVersion version);      // v3+ only
-static bool SupportsCustomBGColors(OverworldVersion version); // v2+
-static bool SupportsCustomTileGFX(OverworldVersion version);  // v3+
-static bool SupportsAnimatedGFX(OverworldVersion version);    // v3+
-static bool SupportsSubscreenOverlay(OverworldVersion version); // v3+
-```
-
-**Version-Specific Features:**
-
-| Version | Features |
+| Surface | Contents |
 |---------|----------|
-| Vanilla | Standard 64 Light World + 64 Dark World + 32 Special World maps |
-| v1 | Expanded pointers, map data overflow space |
-| v2 | + Custom BG colors per area, Main palette selection |
-| v3 | + Area size enum (Wide 2x1, Tall 1x2), Mosaic, Animated GFX, Subscreen overlays, Tile GFX groups |
+| Toolbar (`ui/navigation/overworld_toolbar.cc`) | World LW/DW/SW, map id (click: Map Properties) + pin, tool (Select/Brush/Fill), entity focus (Entrances/Exits/Items/Sprites), view (grid, entities, overlay preview, zoom, fit, center), windows menu, Map Properties toggle |
+| Map Properties panel (`ui/navigation/overworld_sidebar.cc`) | Game state, area size, message, area/sprite/animated graphics, custom tile sheets, area/main/sprite palettes, background color, music, visual effects, mosaic; right-click a value to rename its project label |
+| Canvas context menu | Quick per-map actions only |
 
-### 4. Large Map / Multi-Area System
+The view group folds into a "More" menu when the canvas is narrow (with
+hysteresis so it does not flicker). Tooltips show live ShortcutManager
+bindings via `GetDisplayString`.
 
-The overworld uses a parent-child system to manage multi-area maps (Large 2x2, Wide 2x1, Tall 1x2).
+Gestures (Select tool unless noted): left-drag empty map or middle-drag pans;
+drag an entity to move it (item moves are undoable); double-click a map opens
+Map Properties; right-click opens the map menu. Brush/Fill: right-click
+samples the tile16 and makes that map current, right-drag captures a
+multi-tile brush, `[`/`]` cycle the
+tile16, Shift+right-click opens the map menu. Keys: `1` select, `2`/`B`
+brush, `F` fill, `3`-`6` entity focus (plain keys only; Cmd/Ctrl+digits
+switch editors), Alt+1/2/3 world, Alt+arrows adjacent map, `=`/`-` zoom, `0`
+fit, Home center, `G` grid, `E` entities, arrows nudge the selected item.
 
-**Version-Specific Parent ID Loading:**
+Scrolling: `CanvasNavigationManager::BeginCanvasViewport` owns all canvas
+scrolling and applies it with `SetNextWindowScroll` before the child begins
+(no one-frame lag); the child sets `ImGuiWindowFlags_NoScrollWithMouse`.
+Wheel/trackpad pan moves in whole detents of `kOverworldPanSnapMapPx` scaled
+by zoom, drops sub-detent residue after `kOverworldWheelIdleResetSec`, and
+ignores deltas under `kOverworldWheelDeadzone` (momentum tails).
+Cmd/Ctrl+wheel zooms about the cursor. Drag pan pins the grabbed point under
+the cursor and only starts from a press on the canvas. All tunables are in
+`ui/ui_constants.h`.
 
-| Version | Parent ID Source | Area Size Source |
-|---------|------------------|------------------|
-| Vanilla | `kOverworldMapParentId` (0x125EC) | `kOverworldScreenSize + (index & 0x3F)` |
-| v1 | `kOverworldMapParentId` (0x125EC) | `kOverworldScreenSize + (index & 0x3F)` |
-| v2 | `kOverworldMapParentId` (0x125EC) | `kOverworldScreenSize + (index & 0x3F)` |
-| v3+ | `kOverworldMapParentIdExpanded` (0x140998) | `kOverworldScreenSize + index` |
+Unpinned map selection follows the cursor in Mouse, Brush, and Fill modes.
+Pin through the toolbar, Ctrl+L, or the context menu to hold the property target.
+Brush/Fill previews and painted pixels use the destination map's own tile16
+blockset and palette (`TilePaintingManager::DrawBrushPreview`,
+`Tile16PixelsForMap`), so a pinned map or a stroke that crosses into another
+area never shows or writes the current map's graphics there.
+Explicit clicks select the map under the cursor even when pinned, and the pin
+then holds that map: a Select-tool left click that did not pan (on release;
+its press must also have landed on the canvas, on the same map, so a press
+that dismissed a menu does not select) and a Brush/Fill right click. Both go
+through
+`CanvasNavigationManager::SelectMapUnderCursor` (policy: `IsMapSelectClick`);
+large areas resolve to the parent area's properties.
+Middle-drag only pans; it does not pin or open properties. Entity dragging holds
+the selected map until release. Hover tracking and right-click targeting share
+the same scaled coordinate validation.
 
-**Area Size Enum (v3+ only):**
-```cpp
-enum class AreaSizeEnum {
-  SmallArea = 0,  // 1x1 (512x512 pixels)
-  LargeArea = 1,  // 2x2 (1024x1024 pixels)
-  WideArea = 2,   // 2x1 (1024x512 pixels) - v3 only
-  TallArea = 3,   // 1x2 (512x1024 pixels) - v3 only
-};
-```
+Use `maps/overworld_property_edit.h` for a property change and
+`maps/overworld_map_metadata.h` for metadata resolution. Property UI must route
+through the editor's edit callbacks so undo and required refresh remain coupled.
 
-**Sibling Map Calculation:**
+For entities, begin with `entity/entity_workbench.cc` and
+`entity/entity_mutation_service.cc`. Keep stable entity identity separate from
+vector position when changing selection, deletion, or history. ROM storage
+formats belong under `src/zelda3/overworld/`, not in ImGui drawing code.
 
-For a parent at index `P`:
-- **Large (2x2):** Siblings are P, P+1, P+8, P+9
-- **Wide (2x1):** Siblings are P, P+1
-- **Tall (1x2):** Siblings are P, P+8
+Deferred insertion consumes an
+[entity insertion request](entity/entity_insertion_request.h) containing both
+the entity type and captured destination. The Entity Workbench must not replace
+that destination with the next frame's selected map or game state. Item and
+sprite game coordinates are relative to the parent area's origin, including
+child-screen offsets; modulo 512 discards those offsets.
 
-**Parent ID Loading (Version-Specific):**
+## Overworld sprite persistence
 
-The vanilla parent table at `0x125EC` (`kOverworldMapParentId`) only contains 64 entries for Light World maps. Different worlds require different handling:
+`src/zelda3/overworld/overworld_sprite_io.*` owns pointer/list encoding. Both
+`Overworld::Save` and `OverworldEditor::Save` prepare the sprite plan before
+mutating ROM data. The editor checks actual sprite write ranges against the
+project hack manifest. Publication is fenced and rolls back on failure.
 
-| Version | Light World (0x00-0x3F) | Dark World (0x40-0x7F) | Special World (0x80-0x9F) |
-|---------|-------------------------|------------------------|---------------------------|
-| v3+ | Expanded table (0x140998) with 160 entries | Same expanded table | Same expanded table |
-| Vanilla/v1/v2 | Direct lookup from 64-entry table | Mirror LW parent + 0x40 offset | Hardcoded (Zora's Domain = 0x81, others = self) |
+Only successfully loaded parent-map lists are replaced. Other lists are read
+from the ROM and preserved, including expanded entries outside current loader
+coverage. Exact ordered streams share storage; duplicate sprites and coordinate
+flag bits are retained. Unchanged lists produce no save plan. Sprite movement
+uses world coordinates relative to the owning parent, on a 16-pixel grid.
+This does not implement cross-area sprite reassignment or expand loader coverage.
 
-**Example:** DW map 0x43's parent = LW map 0x03's parent (0x03) + 0x40 = 0x43
+Do not add a second serializer in UI code, silently truncate positions, advance
+an original-load baseline after save, or allocate past the reserved region.
+Unsupported pointer relocation fails closed and needs an explicit layout extension.
 
-**Graphics Cache Hash:**
+## Make a bounded contribution
 
-The tileset cache uses a comprehensive hash that includes:
-- `static_graphics[0-11]` - Main blockset sheet IDs (excluding sprite sheets 12-15)
-- `game_state` - Game state (Beginning=0, Zelda=1, Master Sword=2, Agahnim=3) - affects sprite sheets
-- `sprite_graphics[game_state]` - Sprite graphics config for current game state
-- `area_graphics` - Area-specific graphics group ID
-- `main_gfx_id` - World-specific graphics group (LW=0x20, DW=0x21, SW=0x20/0x24)
-- `parent` - Parent map ID for sibling coordination
-- `map_index` - **Critical for SW**: Unique hardcoded configs per map (0x80 Master Sword, 0x88/0x93 Triforce, 0x95 DM clone, etc.)
-- `main_palette` - World palette (LW=0, DW=1, Death Mountain=2/3, Triforce=4)
-- `animated_gfx` - Death Mountain (0x59) vs normal water/clouds (0x5B)
-- `area_palette` - Area-specific palette configuration
-- `subscreen_overlay` - Visual effects (fog, curtains, sky, lava)
+| Task | Scope | Acceptance check |
+| --- | --- | --- |
+| Improve a toolbar group or sidebar label | `ui/navigation/` | Existing shortcuts, IDs, focus, and disabled behavior remain correct; inspect narrow and wide windows. |
+| Improve tile selector feedback | `ui/tiles/` plus an existing helper if needed | Hover, selection, and document edits remain distinct; compare preview and actual paint. |
+| Extract one property validation rule | `maps/overworld_property_edit.*` | Add a focused valid/invalid test; preserve callbacks, undo, and unrelated metadata. |
+| Simplify one Tile16 interaction rule | `tile16/` helper and its caller | Verify immediate publication, compound Undo/Redo, and document Save; keep layout changes separate. |
+| Extract one entity operation | `entity/` | Prove identity and history across insert/delete; keep ROM encoding unchanged. |
 
-**Important:** `static_graphics[12-15]` (sprite sheets) are loaded using `sprite_graphics_[game_state_]`, which may be stale at hash computation time. The hash includes `game_state` and `sprite_graphics` directly to avoid collisions.
+For a file move, change only location, includes, CMake registration, and affected
+documentation. Preserve function bodies. For behavior changes, state the trigger
+and expected outcome first, then add a regression that observes that outcome.
+Do not combine broad formatting, renaming, and feature work in one patch.
 
-**Refresh Coordination:**
+## Tile16 document contract
 
-When any map in a multi-area group is modified, all siblings must be refreshed to maintain visual consistency. Key methods:
-- `RefreshMultiAreaMapsSafely()` - Coordinates refresh from parent perspective
-- `InvalidateSiblingMapCaches()` - Clears graphics cache for all siblings
-- `RefreshSiblingMapGraphics()` - Forces immediate refresh of sibling bitmaps
+Cursor's session/workbench split is integrated in this repair branch. Change
+layout in [tile16_workbench.cc](ui/tiles/tile16_workbench.cc), edit rules in
+[tile16_edit_session.cc](tile16/tile16_edit_session.cc), and transaction/history
+rules in [tile16_edit_history.cc](tile16/tile16_edit_history.cc).
 
-**World Boundary Protection:**
+1. `Overworld::tiles16()` is the authoritative definition data for a bound
+   session. `BindDocument` gives the session the owning editor's `UndoManager`.
+   The owner clears history when replacing/loading the document.
+2. Every definition mutation enters `RunEdit`. It publishes metadata immediately,
+   marks the document dirty, and records one complete before/after batch. A
+   four-definition stamp must undo all four definitions. No-op/invalid edits
+   must not clear Redo. Use `ReplaceCurrentTile` for property UI; do not mutate
+   the pointer returned by `GetCurrentTile16Data` from new UI code.
+3. `on_document_changed` invalidates shared map/atlas caches after edit, Undo,
+   and Redo. The selected map is rebuilt immediately; other maps use the existing
+   deferred refresh budget. History stores metadata, not graphics tied to the
+   source map's palette. Do not restore stale cached pixels on map changes.
+4. Definition edits, map paint strokes, Fill, and Paste share chronological
+   history. Finish an open paint stroke before another mutation. Single and
+   rectangular brush drags end at mouse release; Fill/Paste are discrete actions.
+   Production paint actions disable time-based merging across separate strokes.
+5. The application shortcut manager owns shared Undo/Redo and Save. The Tile16
+   panel must not dispatch the same history shortcut again. Standalone sessions
+   retain their own history for tests/tools. Normal Tile16 UI has no staging
+   queue, commit/discard controls, or tile-switch confirmation.
+6. `OverworldEditor::Save` serializes definitions through `SaveMap16Tiles` or
+   `SaveMap16Expanded`. Edits/Undo/Redo do not write ROM bytes. Legacy standalone
+   serialization adapters remain for older tooling/tests; bound sessions reject
+   those write/revert paths. Their legacy `pending` accessors describe local edit
+   caches, not an additional user confirmation step.
 
-Sibling calculations in `FetchLargeMaps()` verify that siblings stay within the same world (LW: 0-63, DW: 64-127, SW: 128-159) to prevent cross-world corruption.
 
-**Upgrade Workflow (in `overworld_editor.cc`):**
-```cpp
-// Apply ZScustom ASM patch
-absl::Status ApplyZSCustomOverworldASM(int target_version);
+## Validation and handoff
 
-// Update ROM markers after patching
-absl::Status UpdateROMVersionMarkers(int target_version);
-```
+1. Check `git status --short`, then inspect the touched feature and its tests.
+   Register moved/new `.cc` files in
+   [editor_library.cmake](../editor_library.cmake). Use canonical include paths
+   such as `app/editor/overworld/maps/map_refresh_coordinator.h`.
+2. Format changed C++ ranges with the repository `.clang-format`. For diagnostics,
+   use the existing build's `compile_commands.json` and run `clang-tidy` on the
+   touched translation unit. Review fixes individually; do not apply a repository
+   wide `-fix` pass while debugging behavior.
+3. Build once with the chosen preset. On macOS, the repository default is
+   `cmake --preset mac-ai && cmake --build --preset mac-ai --parallel 4`.
+   Other platforms should select their supported preset with
+   `cmake --list-presets`; do not copy another machine's absolute build paths.
+4. List tests before filtering, then run the affected suites. Useful source
+   entry points are `test/unit/editor/tile_painting_manager_test.cc`,
+   `canvas_navigation_manager_test.cc`, `map_refresh_coordinator_test.cc`,
+   `overworld_map_metadata_test.cc`, `overworld_property_edit_test.cc`,
+   `tile16_editor_action_state_test.cc`, and `tile8_source_interaction_test.cc`.
+   Tile16 integration coverage lives in
+   `test/integration/editor/tile16_editor_test.cc`.
+5. Hand off the exact commit/worktree, owned files, reproducer, command/filter,
+   observed test count, and one remaining acceptance step. Distinguish source
+   checks, synthetic tests, ROM round trips, and hands-on UI acceptance. Passing
+   one does not establish the others.
 
-### 3. Save System
-
-Saving is controlled by feature flags in `core::FeatureFlags`. Each component saves independently:
-
-```cpp
-// In overworld_editor.cc:
-absl::Status OverworldEditor::Save() {
-  if (core::FeatureFlags::get().overworld.kSaveOverworldMaps) {
-    RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
-    RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
-    RETURN_IF_ERROR(overworld_.SaveMap16Tiles());
-    RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
-  }
-  if (core::FeatureFlags::get().overworld.kSaveOverworldEntrances) {
-    RETURN_IF_ERROR(overworld_.SaveEntrances());
-  }
-  if (core::FeatureFlags::get().overworld.kSaveOverworldExits) {
-    RETURN_IF_ERROR(overworld_.SaveExits());
-  }
-  if (core::FeatureFlags::get().overworld.kSaveOverworldItems) {
-    RETURN_IF_ERROR(overworld_.SaveItems());
-  }
-  if (core::FeatureFlags::get().overworld.kSaveOverworldProperties) {
-    RETURN_IF_ERROR(overworld_.SaveMapProperties());
-    RETURN_IF_ERROR(overworld_.SaveMusic());
-  }
-  return absl::OkStatus();
-}
-```
-
-**Save Order Dependencies:**
-
-1. **Tile32 Tilemap** must be created before saving map tiles
-2. **Map32 Tiles** must be saved before Map16 tiles
-3. **Map16 Tiles** are the individual 16x16 tile definitions
-4. **Overworld Maps** reference the tile definitions
-5. **Entrances/Exits/Items** are independent and can save in any order
-6. **Properties/Music** save area-specific metadata
-
-**Feature Flags (in `core/features.h`):**
-```cpp
-struct OverworldFlags {
-  bool kSaveOverworldMaps = true;
-  bool kSaveOverworldEntrances = true;
-  bool kSaveOverworldExits = true;
-  bool kSaveOverworldItems = true;
-  bool kSaveOverworldProperties = true;
-  bool kDrawOverworldSprites = true;
-  bool kLoadCustomOverworld = true;
-  bool kApplyZSCustomOverworldASM = false;
-  bool kEnableSpecialWorldExpansion = false;
-};
-```
-
----
-
-## Testing Guidance
-
-### Testing Tile16 Editing
-
-1. **Palette Colors Wrong:**
-   - Check `GetActualPaletteSlot()` maps palette buttons directly to CGRAM rows
-     (`button * 16`)
-   - Verify `ApplyPaletteToCurrentTile16Bitmap()` is called after palette changes
-   - Ensure `set_palette()` callback from overworld editor is working
-   - Ensure `RefreshTile16Blockset()` replaces the Tile8 source bitmap data with
-     the current map's `current_graphics()` before `set_palette()` reloads and
-     remaps Tile8s
-   - Ensure map refresh paths do not overwrite the Tile8 source bitmap with the
-     raw area palette after `Tile16Editor::set_palette()` remaps it to the
-     selected brush row
-
-2. **Changes Not Appearing:**
-   - Check `has_pending_changes()` returns true after editing
-   - Verify `CommitAllChanges()` is called before expecting ROM changes
-   - Check `on_changes_committed_` callback is properly set
-
-3. **Tile Not Updating on Map:**
-   - Verify `RefreshTile16Blockset()` is called after commit
-   - Check `RefreshOverworldMap()` is triggered
-
-### Testing ZScustom Features
-
-1. **Version Detection:**
-   ```cpp
-   auto version = OverworldVersionHelper::GetVersion(*rom_);
-   LOG_DEBUG("Version: %s", OverworldVersionHelper::GetVersionName(version));
-   ```
-
-2. **Feature Gating:**
-   - Test with vanilla ROM (should gracefully degrade)
-   - Test with v2 ROM (BG colors should work, area enum should not)
-   - Test with v3 ROM (all features should work)
-
-3. **Upgrade Path:**
-   - Start with vanilla ROM
-   - Apply v2 patch, verify BG color support
-   - Apply v3 patch, verify area enum support
-
-### Testing Full Overworld Save
-
-1. **Incremental Testing:**
-   - Disable all save flags except one
-   - Make changes to that component
-   - Save and verify in emulator
-
-2. **Component Order:**
-   - Test maps save (tile data)
-   - Test entrances save (warp destinations)
-   - Test exits save (underworld return points)
-   - Test items save (secret items)
-   - Test properties save (graphics, palettes, music)
-
-3. **Round-Trip Testing:**
-   - Load ROM → Make changes → Save → Reload → Verify changes persist
-
----
-
-## Editing Modes
-
-Defined in `ui_constants.h`:
-
-```cpp
-enum class EditingMode {
-  MOUSE = 0,     // Entity selection and interaction
-  DRAW_TILE = 1  // Tile painting mode
-};
-
-enum class EntityEditMode {
-  NONE = 0,
-  ENTRANCES = 1,
-  EXITS = 2,
-  ITEMS = 3,
-  SPRITES = 4,
-  TRANSPORTS = 5,
-  MUSIC = 6
-};
-```
-
----
-
-## Undo/Redo System
-
-The overworld editor has its own undo/redo stack for tile painting operations:
-
-```cpp
-struct OverworldUndoPoint {
-  int map_id = 0;
-  int world = 0;  // 0=Light, 1=Dark, 2=Special
-  std::vector<std::pair<std::pair<int, int>, int>> tile_changes;
-  std::chrono::steady_clock::time_point timestamp;
-};
-
-// Key methods:
-void CreateUndoPoint(int map_id, int world, int x, int y, int old_tile_id);
-void FinalizePaintOperation();
-void ApplyUndoPoint(const OverworldUndoPoint& point);
-```
-
-Paint operations within 500ms are batched together to avoid creating too many undo points for drag operations.
-
----
-
-## Performance Considerations
-
-1. **Deferred Texture Creation:**
-   - Map textures are created on-demand, not during initial load
-   - `ProcessDeferredTextures()` handles background texture creation
-
-2. **LRU Map Cache:**
-   - Only ~20 maps are kept fully built in memory
-   - Evicted maps are rebuilt when needed via `EnsureMapBuilt()`
-
-3. **Graphics Config Caching:**
-   - Maps with identical graphics configurations share tileset data
-   - `ComputeGraphicsConfigHash()` identifies identical configs
-   - Cache invalidation for sibling maps:
-     - `InvalidateSiblingMapCaches()` clears cache for all maps in a multi-area group
-     - Called when graphics properties change on any map
-     - Ensures stale tilesets aren't reused after palette/graphics changes
-
-4. **Hover Debouncing:**
-   - Map building during rapid hover is delayed by 150ms
-   - Prevents unnecessary rebuilds while panning
-
----
-
-## Related Documentation
-
-- [Composite Layer System](../../../docs/internal/agents/composite-layer-system.md) - Graphics layer architecture
-- [ZScream Wiki](https://github.com/Zarby89/ZScreamDungeon/wiki) - Reference for ZScream compatibility
+For visual acceptance, use a disposable ROM copy. Check paint/preview agreement,
+fill boundaries, rectangular stamp dimensions, map/world transitions, release
+outside the canvas, and undo/redo. Definition editing additionally needs edit → switch map/palette → Undo/Redo
+checked against both map and selector pixels, plus Save and independent reopen.

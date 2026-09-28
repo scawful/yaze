@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -25,6 +26,7 @@
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/command_palette_providers.h"
+#include "app/editor/system/commands/command_palette_goto.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
@@ -326,11 +328,11 @@ float UICoordinator::GetMenuBarIconButtonWidth() {
 }
 
 void UICoordinator::DrawMenuBarExtras() {
-  // Right-aligned status cluster: dirty indicator, session, bell, drawers overflow.
-  // Drawers overflow is positioned using SCREEN coordinates (from viewport) so it
-  // stays fixed even when the dockspace resizes due to panel open/close.
+  // Right-aligned status cluster: dirty indicator, session, bell, sidebar.
+  // The sidebar toggle uses screen coordinates so it stays fixed when the
+  // dockspace resizes due to sidebar open/close.
   //
-  // Layout: [●][📄▾][🔔] [drawers][⬆]
+  // Layout: [●][📄▾][🔔] [sidebar][⬆]
   //         ^^^ shifts with dockspace ^^^  ^^^ fixed screen position ^^^
 
   auto* current_rom = editor_manager_->GetCurrentRom();
@@ -353,7 +355,7 @@ void UICoordinator::DrawMenuBarExtras() {
       editor_manager_->right_drawer_manager() != nullptr;
   float panel_buttons_width = 0.0f;
   if (has_panel_toggles) {
-    panel_buttons_width = RightDrawerManager::GetDrawerToggleClusterWidth();
+    panel_buttons_width = RightDrawerManager::GetSidebarToggleWidth();
   }
 
   // Reserve only the real button footprint so compact icon toggles do not
@@ -373,7 +375,7 @@ void UICoordinator::DrawMenuBarExtras() {
   }
 
   // Available space for status cluster (dirty, session, bell) ends where the
-  // drawers overflow region begins.
+  // right-sidebar toggle begins.
   const float window_width = ImGui::GetWindowWidth();
   const float window_screen_x = ImGui::GetWindowPos().x;
   const float menu_items_end = ImGui::GetCursorPosX() + 16.0f;
@@ -447,12 +449,12 @@ void UICoordinator::DrawMenuBarExtras() {
                        has_multiple_sessions);
 
   // =========================================================================
-  // DRAW DRAWERS OVERFLOW (fixed screen position)
+  // DRAW RIGHT-SIDEBAR TOGGLE (fixed screen position)
   // =========================================================================
   if (has_panel_toggles) {
     float menu_bar_y = ImGui::GetCursorScreenPos().y;
     ImGui::SetCursorScreenPos(ImVec2(panel_screen_x, menu_bar_y));
-    editor_manager_->right_drawer_manager()->DrawDrawerToggleButtons();
+    editor_manager_->right_drawer_manager()->DrawSidebarToggleButton();
   }
 
 #ifdef __EMSCRIPTEN__
@@ -959,6 +961,27 @@ void UICoordinator::SetWindowSize(const std::string& window_name, float width,
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_FirstUseEver);
 }
 
+void UICoordinator::SaveCommandPaletteHistory() {
+  auto config_dir = util::PlatformPaths::GetConfigDirectory();
+  if (config_dir.ok()) {
+    std::filesystem::path history_file = *config_dir / "command_history.json";
+    command_palette_.SaveHistory(history_file.string());
+  }
+}
+
+void UICoordinator::ExecutePaletteCommand(const std::string& name,
+                                          std::function<void()> callback) {
+  if (!callback)
+    return;
+  // Close first: the callback may reopen the palette (e.g. Window Finder
+  // seeds "window: ") or refresh providers, which must not be undone here.
+  show_command_palette_ = false;
+  callback();
+  if (command_palette_.RecordUsage(name)) {
+    SaveCommandPaletteHistory();
+  }
+}
+
 void UICoordinator::DrawCommandPalette() {
   if (!show_command_palette_)
     return;
@@ -976,137 +999,165 @@ void UICoordinator::DrawCommandPalette() {
   SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
   bool show_palette = true;
+  bool close_requested = false;
+  // Deferred so the callback runs after End() (it may open other windows).
+  std::string pending_name;
+  std::function<void()> pending_callback;
+
   if (Begin(absl::StrFormat("%s Command Palette", ICON_MD_SEARCH).c_str(),
             &show_palette, ImGuiWindowFlags_NoCollapse)) {
-    // Search input with focus management
-    SetNextItemWidth(-100);
-    if (IsWindowAppearing()) {
-      SetKeyboardFocusHere();
+    const bool appearing = IsWindowAppearing();
+    if (appearing) {
       command_palette_selected_idx_ = 0;
+      command_palette_scroll_to_selected_ = true;
     }
 
+    // Search input owns keyboard focus; list navigation is driven by the
+    // keys below, not by ImGui nav focus.
+    SetNextItemWidth(-100);
+    if (appearing || command_palette_refocus_input_) {
+      SetKeyboardFocusHere();
+      command_palette_refocus_input_ = false;
+    }
     bool input_changed = InputTextWithHint(
         "##cmd_query",
-        absl::StrFormat(
-            "%s Search…  try drawer:  window:  layout:  (or shortcut names)",
-            ICON_MD_SEARCH)
+        absl::StrFormat("%s Search…  try room 4A  map 1B  msg #12  drawer:  "
+                        "window:  layout:",
+                        ICON_MD_SEARCH)
             .c_str(),
-        command_palette_query_, IM_ARRAYSIZE(command_palette_query_));
+        command_palette_query_, IM_ARRAYSIZE(command_palette_query_),
+        // CallbackHistory makes the input claim Up/Down so ImGui nav does not
+        // steal focus; the no-op callback leaves the text alone and the keys
+        // are read below for list navigation.
+        ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_CallbackHistory,
+        [](ImGuiInputTextCallbackData*) { return 0; });
 
     SameLine();
     if (Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
       command_palette_query_[0] = '\0';
       input_changed = true;
+    }
+    if (input_changed) {
       command_palette_selected_idx_ = 0;
+      command_palette_scroll_to_selected_ = true;
     }
 
     Separator();
 
-    // Unified command list structure
-    struct ScoredCommand {
-      int score;
-      std::string name;
-      std::string category;
-      std::string shortcut;
-      std::function<void()> callback;
+    // One ranked list: an optional go-to row first, then scored commands.
+    const std::string query(command_palette_query_);
+    std::optional<CommandEntry> goto_row;
+    if (auto go_to = ParseGotoQuery(query)) {
+      goto_row =
+          BuildGotoEntry(*go_to, session_coordinator_.GetActiveSessionId());
+    }
+    if (query != command_palette_cached_query_ ||
+        command_palette_.generation() != command_palette_cached_generation_) {
+      command_palette_cached_matches_ = command_palette_.Search(query);
+      command_palette_cached_query_ = query;
+      command_palette_cached_generation_ = command_palette_.generation();
+    }
+    const int goto_offset = goto_row ? 1 : 0;
+    auto row_at = [&](int i) -> const CommandEntry& {
+      if (goto_row && i == 0)
+        return *goto_row;
+      return command_palette_cached_matches_[i - goto_offset].entry;
     };
-    std::vector<ScoredCommand> scored_commands;
 
-    std::string query_lower = command_palette_query_;
-    std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(),
-                   ::tolower);
-
-    auto score_text = [&query_lower](const std::string& text) -> int {
-      std::string text_lower = text;
-      std::transform(text_lower.begin(), text_lower.end(), text_lower.begin(),
-                     ::tolower);
-
-      if (query_lower.empty())
-        return 1;
-      if (text_lower.find(query_lower) == 0)
-        return 1000;
-      if (text_lower.find(query_lower) != std::string::npos)
-        return 500;
-
-      // Fuzzy match
-      size_t text_idx = 0, query_idx = 0;
-      int score = 0;
-      while (text_idx < text_lower.length() &&
-             query_idx < query_lower.length()) {
-        if (text_lower[text_idx] == query_lower[query_idx]) {
-          score += 10;
-          query_idx++;
+    // Keyboard navigation (mirrors the Window Finder).
+    const int row_count =
+        goto_offset + static_cast<int>(command_palette_cached_matches_.size());
+    const bool palette_focused =
+        IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+    if (palette_focused && row_count > 0) {
+      constexpr int kPageStep = 10;
+      int idx = command_palette_selected_idx_;
+      if (IsKeyPressed(ImGuiKey_DownArrow))
+        idx++;
+      if (IsKeyPressed(ImGuiKey_UpArrow))
+        idx--;
+      if (IsKeyPressed(ImGuiKey_PageDown))
+        idx += kPageStep;
+      if (IsKeyPressed(ImGuiKey_PageUp))
+        idx -= kPageStep;
+      if (IsKeyPressed(ImGuiKey_Home, false))
+        idx = 0;
+      if (IsKeyPressed(ImGuiKey_End, false))
+        idx = row_count - 1;
+      idx = std::clamp(idx, 0, row_count - 1);
+      if (idx != command_palette_selected_idx_) {
+        command_palette_selected_idx_ = idx;
+        command_palette_scroll_to_selected_ = true;
+      }
+    }
+    command_palette_selected_idx_ =
+        row_count > 0
+            ? std::clamp(command_palette_selected_idx_, 0, row_count - 1)
+            : 0;
+    if (palette_focused && (IsKeyPressed(ImGuiKey_Enter, false) ||
+                            IsKeyPressed(ImGuiKey_KeypadEnter, false))) {
+      if (row_count > 0) {
+        const CommandEntry& selected = row_at(command_palette_selected_idx_);
+        if (selected.enabled && selected.callback) {
+          pending_name = selected.name;
+          pending_callback = selected.callback;
+        } else {
+          if (!selected.note.empty())
+            toast_manager_.Show(selected.note, ToastType::kWarning);
+          // Enter deactivated the input; keep typing possible.
+          command_palette_refocus_input_ = true;
         }
-        text_idx++;
-      }
-      return (query_idx == query_lower.length()) ? score : 0;
-    };
-
-    // Add shortcuts from ShortcutManager
-    for (const auto& [name, shortcut] : shortcut_manager_.GetShortcuts()) {
-      int score = score_text(name);
-      if (score > 0) {
-        std::string shortcut_text =
-            shortcut.keys.empty()
-                ? ""
-                : absl::StrFormat("(%s)", PrintShortcut(shortcut.keys).c_str());
-        scored_commands.push_back(
-            {score, name, "Shortcuts", shortcut_text, shortcut.callback});
       }
     }
-
-    // Add commands from CommandPalette
-    for (const auto& entry : command_palette_.GetAllCommands()) {
-      int score = score_text(entry.name);
-      // Also search category and description
-      score += score_text(entry.category) / 2;
-      score += score_text(entry.description) / 4;
-
-      if (score > 0) {
-        scored_commands.push_back({score, entry.name, entry.category,
-                                   entry.shortcut, entry.callback});
-      }
+    if (palette_focused && IsKeyPressed(ImGuiKey_Escape, false)) {
+      close_requested = true;
     }
-
-    // Sort by score descending
-    std::sort(scored_commands.begin(), scored_commands.end(),
-              [](const auto& a, const auto& b) { return a.score > b.score; });
 
     // Display results with categories
     if (gui::BeginThemedTabBar("CommandCategories")) {
       if (BeginTabItem(
               absl::StrFormat("%s All Commands", ICON_MD_LIST).c_str())) {
         if (gui::LayoutHelpers::BeginTableWithTheming(
-                "CommandPaletteTable", 4,
+                "CommandPaletteTable", 3,
                 ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
                     ImGuiTableFlags_SizingStretchProp,
                 ImVec2(0, -30))) {
+          TableSetupScrollFreeze(0, 1);
           TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch,
-                           0.45f);
+                           0.55f);
           TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch,
                            0.2f);
           TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch,
-                           0.2f);
-          TableSetupColumn("Score", ImGuiTableColumnFlags_WidthStretch, 0.15f);
+                           0.25f);
           TableHeadersRow();
 
-          for (size_t i = 0; i < scored_commands.size(); ++i) {
-            const auto& cmd = scored_commands[i];
+          for (int i = 0; i < row_count; ++i) {
+            const CommandEntry& cmd = row_at(i);
 
             TableNextRow();
             TableNextColumn();
 
-            PushID(static_cast<int>(i));
-            bool is_selected =
-                (static_cast<int>(i) == command_palette_selected_idx_);
-            if (Selectable(cmd.name.c_str(), is_selected,
-                           ImGuiSelectableFlags_SpanAllColumns)) {
+            PushID(i);
+            const bool is_selected = (i == command_palette_selected_idx_);
+            const ImGuiSelectableFlags flags =
+                ImGuiSelectableFlags_SpanAllColumns |
+                (cmd.enabled ? ImGuiSelectableFlags_None
+                             : ImGuiSelectableFlags_Disabled);
+            if (Selectable(cmd.name.c_str(), is_selected, flags)) {
               command_palette_selected_idx_ = i;
-              if (cmd.callback) {
-                cmd.callback();
-                show_command_palette_ = false;
-                // Record usage for frecency
-                command_palette_.RecordUsage(cmd.name);
+              if (cmd.enabled && cmd.callback) {
+                pending_name = cmd.name;
+                pending_callback = cmd.callback;
+              }
+            }
+            if (is_selected && command_palette_scroll_to_selected_) {
+              SetScrollHereY();
+              command_palette_scroll_to_selected_ = false;
+            }
+            if (!cmd.note.empty() || !cmd.description.empty()) {
+              if (IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                SetTooltip("%s", cmd.note.empty() ? cmd.description.c_str()
+                                                  : cmd.note.c_str());
               }
             }
             PopID();
@@ -1116,12 +1167,13 @@ void UICoordinator::DrawCommandPalette() {
                              gui::ConvertColorToImVec4(theme.text_secondary));
 
             TableNextColumn();
-            gui::ColoredText(cmd.shortcut.c_str(),
-                             gui::ConvertColorToImVec4(theme.text_secondary));
-
-            TableNextColumn();
-            gui::ColoredTextF(gui::ConvertColorToImVec4(theme.text_disabled),
-                              "%d", cmd.score);
+            if (!cmd.enabled && !cmd.note.empty()) {
+              gui::ColoredText(cmd.note.c_str(),
+                               gui::ConvertColorToImVec4(theme.text_disabled));
+            } else {
+              gui::ColoredText(cmd.shortcut.c_str(),
+                               gui::ConvertColorToImVec4(theme.text_secondary));
+            }
           }
 
           gui::LayoutHelpers::EndTableWithTheming();
@@ -1135,12 +1187,9 @@ void UICoordinator::DrawCommandPalette() {
           Text(tr("No recent commands yet."));
         } else {
           for (const auto& entry : recent) {
-            if (Selectable(entry.name.c_str())) {
-              if (entry.callback) {
-                entry.callback();
-                show_command_palette_ = false;
-                command_palette_.RecordUsage(entry.name);
-              }
+            if (Selectable(entry.name.c_str()) && entry.callback) {
+              pending_name = entry.name;
+              pending_callback = entry.callback;
             }
           }
         }
@@ -1155,12 +1204,10 @@ void UICoordinator::DrawCommandPalette() {
           for (const auto& entry : frequent) {
             if (Selectable(absl::StrFormat("%s (%d uses)", entry.name,
                                            entry.usage_count)
-                               .c_str())) {
-              if (entry.callback) {
-                entry.callback();
-                show_command_palette_ = false;
-                command_palette_.RecordUsage(entry.name);
-              }
+                               .c_str()) &&
+                entry.callback) {
+              pending_name = entry.name;
+              pending_callback = entry.callback;
             }
           }
         }
@@ -1172,23 +1219,20 @@ void UICoordinator::DrawCommandPalette() {
 
     // Status bar with tips
     Separator();
-    Text(tr("%s %zu commands | Prefixes: drawer: window: layout:"),
-         ICON_MD_INFO, scored_commands.size());
+    Text(tr("%s %d commands | Go to: room/map/msg <hex|#dec> | drawer: "
+            "window: layout:"),
+         ICON_MD_INFO, row_count);
     SameLine();
-    gui::ColoredText("| ↑↓=Navigate | Enter=Execute | Esc=Close",
+    gui::ColoredText("| ↑↓ PgUp/PgDn Home/End | Enter=Run | Esc=Close",
                      gui::ConvertColorToImVec4(theme.text_disabled));
   }
   End();
 
-  // Update visibility state - save history when closing
-  if (!show_palette) {
+  if (!show_palette || close_requested) {
     show_command_palette_ = false;
-    // Save command usage history on close
-    auto config_dir = util::PlatformPaths::GetConfigDirectory();
-    if (config_dir.ok()) {
-      std::filesystem::path history_file = *config_dir / "command_history.json";
-      command_palette_.SaveHistory(history_file.string());
-    }
+  }
+  if (pending_callback) {
+    ExecutePaletteCommand(pending_name, std::move(pending_callback));
   }
 }
 
@@ -1567,9 +1611,17 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
             }
           }));
 
-  // Dungeon navigation helpers (room jump by id/label).
+  // Dungeon / overworld navigation helpers (jump by id/label). Typed go-to
+  // queries ("room 4A", "map #27", "msg 1C") are parsed in DrawCommandPalette.
   command_palette_.RegisterProvider(
       std::make_unique<DungeonRoomCommandsProvider>(session_id));
+  command_palette_.RegisterProvider(
+      std::make_unique<OverworldMapCommandsProvider>(session_id));
+
+  // ShortcutManager commands with live keybindings. Registered through the
+  // palette so search, dedupe and usage history treat them like any entry.
+  command_palette_.RegisterProvider(
+      std::make_unique<ShortcutCommandsProvider>(&shortcut_manager_));
 
   // Welcome-screen-scoped commands: per-entry pin/remove, undo, template
   // creation, and visibility toggles. Recent-entry iteration pulls from the
@@ -1640,11 +1692,15 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
         std::move(welcome_callbacks)));
   }
 
-  // Load command usage history
-  auto config_dir = util::PlatformPaths::GetConfigDirectory();
-  if (config_dir.ok()) {
-    std::filesystem::path history_file = *config_dir / "command_history.json";
-    command_palette_.LoadHistory(history_file.string());
+  // Usage history lives in the palette across Clear()/refresh; read the
+  // file once. Every execution saves it (ExecutePaletteCommand).
+  if (!command_history_loaded_) {
+    auto config_dir = util::PlatformPaths::GetConfigDirectory();
+    if (config_dir.ok()) {
+      std::filesystem::path history_file = *config_dir / "command_history.json";
+      command_palette_.LoadHistory(history_file.string());
+    }
+    command_history_loaded_ = true;
   }
 
   command_palette_initialized_ = true;
@@ -1940,6 +1996,13 @@ void UICoordinator::DrawGlobalSearch() {
 // ============================================================================
 
 void UICoordinator::SetStartupSurface(StartupSurface surface) {
+  // Automatic moves to the dashboard (after a ROM or project load, or when
+  // the welcome screen closes) obey the same rule as
+  // SetEditorSelectionVisible(true): no picker when it is suppressed or an
+  // editor is already open. Ctrl+E uses ShowEditorSelection() instead.
+  if (surface == StartupSurface::kDashboard && !ShouldShowDashboard()) {
+    surface = StartupSurface::kEditor;
+  }
   StartupSurface old_surface = current_startup_surface_;
   current_startup_surface_ = surface;
 
@@ -1991,7 +2054,15 @@ bool UICoordinator::ShouldShowDashboard() const {
   // consulted. The surface test is dropped on purpose: by the time a ROM
   // finishes loading the surface has already advanced past kDashboard, so
   // keying on it would suppress the very chooser the flag exists to govern.
-  return dashboard_behavior_override_ != StartupVisibility::kHide;
+  if (dashboard_behavior_override_ == StartupVisibility::kHide) {
+    return false;
+  }
+  if (dashboard_behavior_override_ == StartupVisibility::kShow) {
+    return true;
+  }
+  // Auto: the picker is for choosing a first editor. Do not cover one that
+  // is already open (for example, File > Open while the Dungeon editor is up).
+  return !(editor_manager_ && editor_manager_->HasOpenEditor());
 }
 
 bool UICoordinator::ShouldShowActivityBar() const {

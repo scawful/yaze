@@ -14,6 +14,8 @@
 #include "rom/rom_diagnostics.h"
 #include "zelda.h"
 #include "zelda3/dungeon/pit_damage_table.h"
+#include "zelda3/dungeon/room_default_entrance.h"
+#include "zelda3/graphics_sheet_store.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -67,7 +69,9 @@ static const std::map<zelda3_version, zelda3_version_pointers>
         {zelda3_version::RANDO, {}},
 };
 
-struct GameData {
+// Sheet pixels live in `sheet_store` (inherited, with the legacy
+// `graphics_buffer` alias); see graphics_sheet_store.h.
+struct GameData : GraphicsSheetStoreHolder {
   // Constructors
   GameData() = default;
   explicit GameData(Rom* rom) : rom_(rom) {}
@@ -80,8 +84,7 @@ struct GameData {
   zelda3_version version = zelda3_version::US;
   std::string title;
 
-  // Graphics Resources
-  std::vector<uint8_t> graphics_buffer;  // Legacy contiguous buffer
+  // Graphics Resources (`graphics_buffer` and `sheet_store` are inherited)
   std::array<std::vector<uint8_t>, kNumGfxSheets>
       raw_gfx_sheets;                                  // 8BPP indexed
   std::array<gfx::Bitmap, kNumGfxSheets> gfx_bitmaps;  // Renderable bitmaps
@@ -107,8 +110,13 @@ struct GameData {
   // Global RoomsWithPitDamage membership table (bank $07).
   PitDamageTable pit_damage_table;
 
+  // Per-room default entrance and the main graphics set it selects; see
+  // room_default_entrance.h. Empty until LoadGameData runs.
+  std::vector<RoomDefaultEntrance> room_default_entrances;
+
   void Clear() {
-    graphics_buffer.clear();
+    room_default_entrances.clear();
+    sheet_store.Clear();
     for (auto& sheet : raw_gfx_sheets)
       sheet.clear();
     // gfx_bitmaps don't need explicit clearing if reloaded
@@ -149,6 +157,25 @@ absl::Status LoadMetadata(const Rom& rom, GameData& data);
 absl::Status LoadPalettes(const Rom& rom, GameData& data);
 absl::Status LoadGfxGroups(Rom& rom, GameData& data);
 absl::Status LoadGraphics(Rom& rom, GameData& data);
+/// Which gfx group tables in `data` differ from the bytes in `rom`.
+struct GfxGroupDiff {
+  bool main_blocksets = false;
+  bool room_blocksets = false;
+  bool spritesets = false;
+  bool palettesets = false;
+  int changed_bytes = 0;
+
+  bool any() const { return changed_bytes > 0; }
+};
+
+/// Compares GameData's main blockset, room blockset, spriteset and
+/// paletteset tables with the ROM. Fails when the ROM version has no table
+/// addresses or a table lies outside the ROM.
+absl::StatusOr<GfxGroupDiff> DiffGfxGroups(const Rom& rom,
+                                           const GameData& data);
+
+/// Writes the gfx group bytes that differ from the ROM, then reads the
+/// tables back and fails with DataLoss if any byte still differs.
 absl::Status SaveGfxGroups(Rom& rom, const GameData& data);
 
 /**
@@ -174,10 +201,9 @@ absl::StatusOr<std::vector<uint8_t>> Load2BppGraphics(const Rom& rom);
 absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom);
 
 /**
- * @brief Saves all graphics sheets back to ROM.
- * @param rom The target ROM
- * @param sheets The graphics sheets to save
- * @return Status of the operation
+ * @brief Not implemented; always returns UnimplementedError.
+ *
+ * Write edited sheets with WriteGfxSheet (zelda3/gfx_sheet_storage.h).
  */
 absl::Status SaveAllGraphicsData(
     Rom& rom, const std::array<gfx::Bitmap, kNumGfxSheets>& sheets);

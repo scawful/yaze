@@ -494,21 +494,24 @@ void DrawRightwardsDecor4x3spaced4_1to16(const DrawContext& ctx) {
 }
 
 void DrawRightwardsDoubled2x2spaced2_1to16(const DrawContext& ctx) {
-  // Pattern: Doubled 2x2 with spacing (object 0x3C)
-  // 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order
-  int size = ctx.object.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16, so count = size + 1
-  int count = size + 1;
-
-  for (int s = 0; s < count; s++) {
-    if (ctx.tiles.size() >= 8) {
-      // Draw doubled 2x2 pattern in COLUMN-MAJOR order (matching assembly)
-      for (int x = 0; x < 4; ++x) {
+  // USDASM RoomDraw_RightwardsDoubled2x2spaced2_1to16 ($01:93B7), object
+  // 0x3C. Each repeat draws a column-major 2x2 from words 0..3 at (x+4s, y)
+  // and a second 2x2 from words 4..7 six rows lower: RoomDraw_Downwards2x2
+  // returns Y+$100, then ADC #$0200 moves to +$300 (6 rows); $08 += 8 steps
+  // four tile columns.
+  if (ctx.tiles.size() < 8) {
+    return;
+  }
+  const int count = (ctx.object.size_ & 0x0F) + 1;  // GetSize_1to16
+  for (int s = 0; s < count; ++s) {
+    const int base_x = ctx.object.x_ + s * 4;
+    for (int block = 0; block < 2; ++block) {
+      const int base_y = ctx.object.y_ + block * 6;
+      const int first = block * 4;
+      for (int x = 0; x < 2; ++x) {
         for (int y = 0; y < 2; ++y) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg,
-                                       ctx.object.x_ + (s * 6) + x,
-                                       ctx.object.y_ + y, ctx.tiles[x * 2 + y]);
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
+                                       ctx.tiles[first + x * 2 + y]);
         }
       }
     }
@@ -613,38 +616,29 @@ void DrawRightwardsDecor4x2spaced8_1to16(const DrawContext& ctx) {
 }
 
 void DrawRightwardsCannonHole4x3_1to16(const DrawContext& ctx) {
-  // USDASM behavior:
-  // - Repeat left 2-column 3-row segment count times
-  // - Then append right 2-column edge once
-  // Tile layout is COLUMN-MAJOR:
-  // col0: [0..2], col1: [3..5], col2: [6..8], col3: [9..11]
-  const int size = ctx.object.size_ & 0x0F;
-  const int count = size + 1;  // GetSize_1to16
-
-  if (ctx.tiles.size() < 12) {
+  // USDASM RoomDraw_RightwardsCannonHole4x3_1to16 ($01:9CC6), objects
+  // 0x51/0x52/0x5B/0x5C. size+1 two-column segments of 1x3 columns
+  // (column-major): the first from words 0..5, the middle ones from words
+  // 6..11 (PHX/PLX keeps X on word 6), and a closing segment from words 12..17
+  // (ADC #$000C). Width is 2*size+4.
+  if (ctx.tiles.size() < 18) {
     return;
   }
-
-  auto draw_column = [&](int x, int y, const gfx::TileInfo& t0,
-                         const gfx::TileInfo& t1, const gfx::TileInfo& t2) {
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, y, t0);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, y + 1, t1);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, y + 2, t2);
+  const int count = (ctx.object.size_ & 0x0F) + 1;  // GetSize_1to16
+  auto draw_segment = [&](int segment, int first) {
+    for (int x = 0; x < 2; ++x) {
+      for (int y = 0; y < 3; ++y) {
+        DrawRoutineUtils::WriteTile8(
+            ctx.target_bg, ctx.object.x_ + segment * 2 + x, ctx.object.y_ + y,
+            ctx.tiles[first + x * 3 + y]);
+      }
+    }
   };
-
-  for (int s = 0; s < count; ++s) {
-    const int base_x = ctx.object.x_ + (s * 2);
-    draw_column(base_x + 0, ctx.object.y_, ctx.tiles[0], ctx.tiles[1],
-                ctx.tiles[2]);
-    draw_column(base_x + 1, ctx.object.y_, ctx.tiles[3], ctx.tiles[4],
-                ctx.tiles[5]);
+  draw_segment(0, 0);
+  for (int s = 1; s < count; ++s) {
+    draw_segment(s, 6);
   }
-
-  const int right_base_x = ctx.object.x_ + (count * 2);
-  draw_column(right_base_x + 0, ctx.object.y_, ctx.tiles[6], ctx.tiles[7],
-              ctx.tiles[8]);
-  draw_column(right_base_x + 1, ctx.object.y_, ctx.tiles[9], ctx.tiles[10],
-              ctx.tiles[11]);
+  draw_segment(count, 12);
 }
 
 void DrawRightwardsLine1x1_1to16plus1(const DrawContext& ctx) {
@@ -683,21 +677,27 @@ void DrawRightwardsBar4x3_1to16(const DrawContext& ctx) {
 }
 
 void DrawRightwardsShelf4x4_1to16(const DrawContext& ctx) {
-  const int size = ctx.object.size_ & 0x0F;
-  const int count = size + 1;
+  // USDASM RoomDraw_RightwardsShelf4x4_1to16 ($01:94DF), objects 0x4D-0x4F:
+  // Nx4(1) draws the opening column from words 0..3; each repeat draws the
+  // two middle columns from words 4..11 and rewinds X by $10; then
+  // RoomDraw_RightwardShelfEnd draws the closing column from words 12..15.
+  // Width is 2*(size+1)+2 columns, 4 rows, column-major.
   if (ctx.tiles.size() < 16) {
     return;
   }
-
-  for (int s = 0; s < count; ++s) {
-    const int base_x = ctx.object.x_ + (s * 4);
-    for (int x = 0; x < 4; ++x) {
-      for (int y = 0; y < 4; ++y) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x,
-                                     ctx.object.y_ + y, ctx.tiles[x * 4 + y]);
-      }
+  const int count = (ctx.object.size_ & 0x0F) + 1;  // GetSize_1to16
+  auto draw_column = [&](int x, int first) {
+    for (int y = 0; y < 4; ++y) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + y,
+                                   ctx.tiles[first + y]);
     }
+  };
+  draw_column(ctx.object.x_, 0);
+  for (int s = 0; s < count; ++s) {
+    draw_column(ctx.object.x_ + 1 + s * 2, 4);
+    draw_column(ctx.object.x_ + 2 + s * 2, 8);
   }
+  draw_column(ctx.object.x_ + 1 + count * 2, 12);
 }
 
 void DrawRightwardsBigRail1x3_1to16plus5(const DrawContext& ctx) {

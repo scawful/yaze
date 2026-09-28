@@ -19,16 +19,20 @@ class UserSettings;
 
 class ActivityBar {
  public:
-  explicit ActivityBar(
-      WorkspaceWindowManager& window_manager,
-      std::function<bool()> is_dungeon_workbench_mode = {},
-      std::function<void(bool)> set_dungeon_workflow_mode = {});
+  explicit ActivityBar(WorkspaceWindowManager& window_manager,
+                       std::function<bool()> is_dungeon_workbench_mode = {},
+                       std::function<void(bool)> set_dungeon_workflow_mode = {},
+                       std::function<EditorContextSnapshot(const std::string&)>
+                           context_provider = {});
   ~ActivityBar();
 
   // Optional: when set, the rail reads per-user pin/hide/order prefs and
   // mutates them in response to right-click menus and drag-drop. Safe to leave
   // null — the rail falls back to the incoming `all_categories` order.
-  void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
+  void SetUserSettings(UserSettings* settings) {
+    user_settings_ = settings;
+    window_sidebar_.SetUserSettings(settings);
+  }
 
   // Extensible registry powering the "More Actions" popup at the bottom of
   // the rail. Populated by EditorManager at construction time; callers may

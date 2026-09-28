@@ -46,13 +46,27 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
                             ShortcutManager* shortcut_manager);
 
 /**
- * @brief Register configurable panel shortcuts from user settings
+ * @brief Apply persisted global/editor rebinds (UserSettings global_shortcuts
+ * and editor_shortcuts) to already-registered shortcuts.
+ *
+ * An empty stored binding unbinds the shortcut; unknown names and
+ * unparseable bindings are ignored.
+ */
+void ApplyUserShortcutOverrides(const UserSettings& user_settings,
+                                ShortcutManager* shortcut_manager);
+
+/**
+ * @brief Final configuration pass: apply user rebinds, then register panel
+ * toggle shortcuts.
+ *
+ * Calls ApplyUserShortcutOverrides() when deps.user_settings is set, then
+ * registers "view.toggle.<card_id>" shortcuts (Scope::kPanel, owned by the
+ * panel category's editor).
  * @param deps Shortcut dependencies
  * @param shortcut_manager The shortcut manager to register with
  *
- * This function reads panel shortcuts from UserSettings and registers them
- * with the shortcut manager. It falls back to WindowDescriptor.shortcut_hint if
- * no custom shortcut is defined for a panel.
+ * User panel bindings win; otherwise WindowDescriptor.shortcut_hint is used,
+ * but only when it does not collide with an existing binding.
  */
 void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
                              ShortcutManager* shortcut_manager);

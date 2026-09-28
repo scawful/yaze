@@ -109,6 +109,24 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   room's current data only when its complete encoded span is uniquely owned
   and the replacement fits. Aliases, interior overlaps, and larger
   replacements remain copy-on-write appends.
+- `overworld-add-sprite`, `overworld-move-sprite`, and
+  `overworld-remove-sprite` are dry-run by default and plan a minimal-diff
+  edit of one phase list (in place, grow into unreferenced bytes, or
+  copy-on-write relocation of that one pointer slot). The plan is simulated
+  against every pointer slot before any write. `--write` applies through the
+  fenced `ApplyOverworldSpriteSave`, saves with `require_backup`, reopens the
+  file, and rejects any changed byte outside the plan. The overworld sprite
+  region ends at the room sprite pointer table named by `$09:C298`; Oracle of
+  Secrets moved it to `$09:D2B2`, below the vanilla `$09:D62E` bound. `--write`
+  refuses ROMs inside an Oracle checkout without `--allow-project-rom`.
+- `overworld-set-tile` is dry-run by default. Both modes run the editor's map
+  save path (tile32 rebuild, vanilla or expanded tile32 writer, compressed
+  screens) on the in-memory ROM inside `ScopedRomTransaction`, fail closed if
+  any changed byte falls outside `Overworld::GetProjectedWriteRanges()`, and
+  reload the image to require that every world's tile16 grid differs only at
+  the requested tile. `--write` then saves with `require_backup` and checks the
+  file equals the verified image; it refuses ROMs inside an Oracle checkout
+  unless `--allow-project-rom`.
 - Other CLI writers that still set only `backup=true` remain best-effort and
   must be audited before opting into the strict transaction path.
 

@@ -20,12 +20,37 @@ namespace fs = std::filesystem;
 VersionManager::VersionManager(project::YazeProject* project)
     : project_(project) {}
 
+fs::path VersionManager::RepositoryRoot() const {
+  const fs::path project_dir = fs::path(project_->filepath).parent_path();
+  const fs::path repo(project_->git_repository);
+  if (repo.empty())
+    return project_dir;
+  if (repo.is_relative() && !project_dir.empty())
+    return project_dir / repo;
+  return repo;
+}
+
 bool VersionManager::IsGitInitialized() const {
   if (!project_ || project_->git_repository.empty())
     return false;
 
-  fs::path git_dir = fs::path(project_->git_repository) / ".git";
-  return fs::exists(git_dir);
+  // Resolve against the project directory, not the process working directory;
+  // RunCommand() runs git from the project directory.
+  std::error_code ec;
+  return fs::exists(RepositoryRoot() / ".git", ec);
+}
+
+bool VersionManager::AdoptExistingRepository() {
+  if (!project_)
+    return false;
+
+  if (project_->git_repository.empty()) {
+    std::error_code ec;
+    if (fs::exists(RepositoryRoot() / ".git", ec)) {
+      project_->git_repository = ".";
+    }
+  }
+  return IsGitInitialized();
 }
 
 absl::Status VersionManager::InitializeGit() {

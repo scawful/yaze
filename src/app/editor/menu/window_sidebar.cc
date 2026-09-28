@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
@@ -59,11 +60,171 @@ WindowSidebar::WindowSidebar(
     WorkspaceWindowManager& window_manager,
     std::function<bool()> is_dungeon_workbench_mode,
     std::function<void(bool)> set_dungeon_workflow_mode,
-    std::function<float()> get_bottom_reserved_height)
+    std::function<float()> get_bottom_reserved_height,
+    std::function<EditorContextSnapshot(const std::string&)> context_provider)
     : window_manager_(window_manager),
       is_dungeon_workbench_mode_(std::move(is_dungeon_workbench_mode)),
       set_dungeon_workflow_mode_(std::move(set_dungeon_workflow_mode)),
-      get_bottom_reserved_height_(std::move(get_bottom_reserved_height)) {}
+      get_bottom_reserved_height_(std::move(get_bottom_reserved_height)),
+      context_provider_(std::move(context_provider)) {}
+
+bool WindowSidebar::HasRenderableContext(
+    const EditorContextSnapshot& snapshot) {
+  return !snapshot.subtitle.empty() || !snapshot.metadata.empty() ||
+         !snapshot.counts.empty() || !snapshot.diagnostics.empty() ||
+         !snapshot.actions.empty() || snapshot.has_pending_changes ||
+         snapshot.experiment.experimental;
+}
+
+void WindowSidebar::DispatchContextAction(size_t session_id,
+                                          const EditorContextAction& action) {
+  if (!action.enabled || action.target.empty()) {
+    return;
+  }
+  if (action.kind != EditorContextActionKind::kOpenWindow) {
+    return;
+  }
+  if (!window_manager_.OpenWindow(session_id, action.target)) {
+    return;
+  }
+  window_manager_.MarkWindowRecentlyUsed(action.target);
+  if (const auto* descriptor =
+          window_manager_.GetWindowDescriptor(session_id, action.target)) {
+    window_manager_.TriggerWindowClicked(descriptor->category);
+    const std::string window_name =
+        window_manager_.GetWorkspaceWindowName(*descriptor);
+    if (!window_name.empty()) {
+      ImGui::SetWindowFocus(window_name.c_str());
+    }
+  }
+}
+
+void WindowSidebar::DrawEditorContext(size_t session_id,
+                                      const std::string& category,
+                                      const EditorContextSnapshot& snapshot) {
+  if (!HasRenderableContext(snapshot)) {
+    return;
+  }
+
+  const bool was_collapsed =
+      user_settings_ &&
+      user_settings_->prefs().sidebar_context_collapsed.contains(category);
+  if (user_settings_) {
+    ImGui::SetNextItemOpen(!was_collapsed, ImGuiCond_Always);
+  }
+  const std::string header = absl::StrFormat(
+      "%s Editor Context##editor_context_%s", ICON_MD_INFO, category.c_str());
+  const bool expanded = ImGui::CollapsingHeader(
+      header.c_str(), user_settings_ ? ImGuiTreeNodeFlags_None
+                                     : ImGuiTreeNodeFlags_DefaultOpen);
+  if (ImGui::IsItemToggledOpen() && user_settings_) {
+    if (expanded) {
+      user_settings_->prefs().sidebar_context_collapsed.erase(category);
+    } else {
+      user_settings_->prefs().sidebar_context_collapsed.insert(category);
+    }
+    (void)user_settings_->Save();
+  }
+  if (!expanded) {
+    return;
+  }
+
+  const bool body_open =
+      ImGui::BeginChild("##EditorContextBody", ImVec2(0.0f, 0.0f), false);
+  if (body_open) {
+    if (!snapshot.title.empty()) {
+      ImGui::TextWrapped("%s", snapshot.title.c_str());
+    }
+    if (!snapshot.subtitle.empty()) {
+      ImGui::TextDisabled("%s", snapshot.subtitle.c_str());
+    }
+    if (snapshot.experiment.experimental) {
+      const std::string experiment_label = absl::StrFormat(
+          "Experimental · %s", snapshot.experiment.save_posture);
+      gui::ColoredText(experiment_label.c_str(),
+                       snapshot.experiment.acknowledged
+                           ? gui::GetTextSecondaryVec4()
+                           : gui::GetWarningVec4());
+    }
+    if (snapshot.has_pending_changes) {
+      gui::ColoredText(snapshot.pending_label.empty()
+                           ? ICON_MD_EDIT " Pending changes"
+                           : snapshot.pending_label.c_str(),
+                       gui::GetWarningVec4());
+    }
+
+    const auto draw_values = [](const char* table_id,
+                                const std::vector<EditorContextValue>& values) {
+      if (values.empty()) {
+        return;
+      }
+      if (ImGui::BeginTable(
+              table_id, 2,
+              ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_PadOuterX)) {
+        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+        for (const EditorContextValue& value : values) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::TextDisabled("%s", value.label.c_str());
+          ImGui::TableNextColumn();
+          ImGui::TextWrapped("%s", value.value.c_str());
+        }
+        ImGui::EndTable();
+      }
+    };
+
+    if (!snapshot.metadata.empty()) {
+      ImGui::SeparatorText(tr("Metadata"));
+      draw_values("##ContextMetadata", snapshot.metadata);
+    }
+    if (!snapshot.counts.empty()) {
+      ImGui::SeparatorText(tr("Contents"));
+      draw_values("##ContextCounts", snapshot.counts);
+    }
+
+    if (!snapshot.diagnostics.empty()) {
+      ImGui::SeparatorText(tr("Attention"));
+      ImGui::PushTextWrapPos(0.0f);
+      for (const EditorContextDiagnostic& diagnostic : snapshot.diagnostics) {
+        switch (diagnostic.severity) {
+          case EditorContextDiagnosticSeverity::kError:
+            gui::ColoredTextF(gui::GetErrorVec4(), "%s %s", ICON_MD_ERROR,
+                              diagnostic.message.c_str());
+            break;
+          case EditorContextDiagnosticSeverity::kWarning:
+            gui::ColoredTextF(gui::GetWarningVec4(), "%s %s", ICON_MD_WARNING,
+                              diagnostic.message.c_str());
+            break;
+          case EditorContextDiagnosticSeverity::kInfo:
+          default:
+            gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s %s",
+                              ICON_MD_INFO, diagnostic.message.c_str());
+            break;
+        }
+      }
+      ImGui::PopTextWrapPos();
+    }
+
+    if (!snapshot.actions.empty()) {
+      ImGui::SeparatorText(tr("Quick Actions"));
+      for (const EditorContextAction& action : snapshot.actions) {
+        ImGui::PushID(action.id.c_str());
+        ImGui::BeginDisabled(!action.enabled);
+        if (ImGui::Button(action.label.c_str(), ImVec2(-1.0f, 0.0f))) {
+          DispatchContextAction(session_id, action);
+        }
+        if (!action.enabled && !action.disabled_reason.empty() &&
+            ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+          ImGui::SetTooltip("%s", action.disabled_reason.c_str());
+        }
+        ImGui::EndDisabled();
+        ImGui::PopID();
+      }
+    }
+  }
+  ImGui::EndChild();
+}
 
 bool WindowSidebar::MatchesWindowSearch(const std::string& query,
                                         const std::string& display_name,
@@ -81,7 +242,10 @@ bool WindowSidebar::MatchesWindowSearch(const std::string& query,
 
 bool WindowSidebar::IsDungeonWindowModeTarget(const std::string& window_id) {
   return window_id == "dungeon.room_selector" ||
-         window_id == "dungeon.room_matrix" || IsDungeonRoomWindow(window_id);
+         window_id == "dungeon.room_matrix" ||
+         window_id == "dungeon.entrance_list" ||
+         window_id == "dungeon.entrance_properties" ||
+         IsDungeonRoomWindow(window_id);
 }
 
 std::string WindowSidebar::SidebarSectionFor(
@@ -208,13 +372,18 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     const auto category_windows =
         window_manager_.GetWindowsInCategory(session_id, category);
     int visible_windows = 0;
+    int listed_windows = 0;
     for (const auto& category_window : category_windows) {
+      if (!category_window.IsListedInWindowBrowser()) {
+        continue;
+      }
+      ++listed_windows;
       if (category_window.visibility_flag && *category_window.visibility_flag) {
         ++visible_windows;
       }
     }
     ImGui::TextDisabled(tr("%d of %zu visible"), visible_windows,
-                        category_windows.size());
+                        static_cast<size_t>(listed_windows));
     ImGui::Separator();
     if (ImGui::MenuItem(ICON_MD_APPS " Window Browser")) {
       window_manager_.TriggerShowWindowBrowser();
@@ -372,16 +541,17 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     }
     return visible ? gui::GetOnSurfaceVec4() : gui::GetTextSecondaryVec4();
   };
-  const float pin_button_side =
-      std::max(20.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
-  const ImVec2 pin_button_size(pin_button_side, pin_button_side);
+  const ImVec2 pin_button_size = gui::ScaledSize(30.0f, 30.0f);
   auto draw_pin_toggle_button = [&](const std::string& widget_id,
                                     bool pinned) -> bool {
     ImGui::PushID(widget_id.c_str());
-    const ImVec4 pin_col = pinned ? gui::ConvertColorToImVec4(theme.primary)
-                                  : gui::GetTextSecondaryVec4();
+    ImVec4 pin_col = pinned ? gui::ConvertColorToImVec4(theme.primary)
+                            : gui::GetTextSecondaryVec4();
+    if (!pinned) {
+      pin_col.w *= 0.72f;
+    }
     const bool clicked = gui::TransparentIconButton(
-        pinned ? ICON_MD_PUSH_PIN : ICON_MD_PIN, pin_button_size,
+        ICON_MD_PUSH_PIN, pin_button_size,
         pinned ? "Unpin window" : "Pin window", pinned, pin_col,
         "window_sidebar", widget_id.c_str());
     ImGui::PopID();
@@ -394,7 +564,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     for (const auto& window_id : pinned_windows) {
       const auto* window =
           window_manager_.GetWindowDescriptor(session_id, window_id);
-      if (window && window->category == category) {
+      if (window && window->category == category && window->IsAdmitted()) {
         has_pinned_in_category = true;
         break;
       }
@@ -407,28 +577,25 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
         for (const auto& window_id : pinned_windows) {
           const auto* window =
               window_manager_.GetWindowDescriptor(session_id, window_id);
-          if (!window || window->category != category) {
+          if (!window || window->category != category ||
+              !window->IsAdmitted()) {
             continue;
           }
 
           const bool visible =
               window->visibility_flag ? *window->visibility_flag : false;
 
-          if (draw_pin_toggle_button("pin_" + window->card_id, true)) {
-            window_manager_.SetWindowPinned(session_id, window->card_id, false);
-          }
-
-          ImGui::SameLine(0.0f, compact_spacing);
-
           std::string label = absl::StrFormat("%s  %s", window->icon.c_str(),
                                               window->display_name.c_str());
+          const float selectable_width =
+              std::max(1.0f, ImGui::GetContentRegionAvail().x -
+                                 pin_button_size.x - compact_spacing);
           ImGui::PushID(
               (std::string("pinned_select_") + window->card_id).c_str());
           {
             gui::StyleColorGuard text_color(ImGuiCol_Text,
                                             window_text_color(visible));
-            ImVec2 item_size(ImGui::GetContentRegionAvail().x,
-                             pin_button_size.y);
+            ImVec2 item_size(selectable_width, pin_button_size.y);
             if (ImGui::Selectable(label.c_str(), visible,
                                   ImGuiSelectableFlags_None, item_size)) {
               const bool switched_mode =
@@ -452,6 +619,10 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
             }
           }
           ImGui::PopID();
+          ImGui::SameLine(0.0f, compact_spacing);
+          if (draw_pin_toggle_button("pin_" + window->card_id, true)) {
+            window_manager_.SetWindowPinned(session_id, window->card_id, false);
+          }
         }
         ImGui::Spacing();
         ImGui::Separator();
@@ -467,6 +638,9 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   // other). Pinned rows that already appear in the Pinned header are skipped.
   std::map<std::string, std::vector<WindowDescriptor>> sections;
   for (const auto& window : windows) {
+    if (!window.IsListedInWindowBrowser()) {
+      continue;
+    }
     if (ShouldOmitWindowInSidebar(window.card_id, dungeon_workbench_mode)) {
       continue;
     }
@@ -517,18 +691,17 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     const bool visible =
         window.visibility_flag ? *window.visibility_flag : false;
 
-    if (draw_pin_toggle_button("pin_" + window.card_id, is_pinned)) {
-      window_manager_.SetWindowPinned(session_id, window.card_id, !is_pinned);
-    }
-    ImGui::SameLine(0.0f, compact_spacing);
-
     std::string label = absl::StrFormat("%s  %s", window.icon.c_str(),
                                         window.display_name.c_str());
+    const float selectable_width =
+        std::max(1.0f, ImGui::GetContentRegionAvail().x - pin_button_size.x -
+                           compact_spacing);
+    bool window_row_hovered = false;
     ImGui::PushID((std::string("window_select_") + window.card_id).c_str());
     {
       gui::StyleColorGuard text_color(ImGuiCol_Text,
                                       window_text_color(visible));
-      ImVec2 item_size(ImGui::GetContentRegionAvail().x, pin_button_size.y);
+      ImVec2 item_size(selectable_width, pin_button_size.y);
       if (ImGui::Selectable(label.c_str(), visible, ImGuiSelectableFlags_None,
                             item_size)) {
         const bool switched_mode =
@@ -551,16 +724,42 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
           }
         }
       }
+      window_row_hovered = ImGui::IsItemHovered();
     }
     ImGui::PopID();
+    ImGui::SameLine(0.0f, compact_spacing);
+    if (draw_pin_toggle_button("pin_" + window.card_id, is_pinned)) {
+      window_manager_.SetWindowPinned(session_id, window.card_id, !is_pinned);
+    }
 
-    if (ImGui::IsItemHovered() && !window.shortcut_hint.empty()) {
+    if (window_row_hovered && !window.shortcut_hint.empty()) {
       ImGui::SetTooltip("%s", window.shortcut_hint.c_str());
     }
   };
 
-  const bool window_content_open = gui::LayoutHelpers::BeginContentChild(
-      "##WindowContent", ImVec2(0.0f, gui::UIConfig::kContentMinHeightList));
+  const EditorContextSnapshot context_snapshot =
+      context_provider_ ? context_provider_(category) : EditorContextSnapshot{};
+  const bool has_context = HasRenderableContext(context_snapshot);
+  const bool context_expanded =
+      has_context &&
+      (!user_settings_ ||
+       !user_settings_->prefs().sidebar_context_collapsed.contains(category));
+  const float available_content_height = ImGui::GetContentRegionAvail().y;
+  const float context_header_height =
+      has_context ? ImGui::GetFrameHeight() + ImGui::GetStyle().ItemSpacing.y
+                  : 0.0f;
+  const float context_body_height =
+      context_expanded
+          ? std::clamp(available_content_height * 0.38f, 160.0f, 280.0f)
+          : 0.0f;
+  const float reserved_context_height =
+      context_header_height + context_body_height;
+  const float window_list_height =
+      std::max(gui::UIConfig::kContentMinHeightList,
+               available_content_height - reserved_context_height);
+
+  const bool window_content_open = ImGui::BeginChild(
+      "##WindowContent", ImVec2(0.0f, window_list_height), false);
   if (window_content_open) {
     for (const std::string& section_name : section_order) {
       auto it = sections.find(section_name);
@@ -591,10 +790,14 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
       }
     }
   }
-  gui::LayoutHelpers::EndContentChild();
+  ImGui::EndChild();
 
   if (disable_windows) {
     ImGui::EndDisabled();
+  }
+
+  if (has_context) {
+    DrawEditorContext(session_id, category, context_snapshot);
   }
 
   const float handle_width = 6.0f;

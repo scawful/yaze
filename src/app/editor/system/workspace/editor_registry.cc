@@ -73,14 +73,34 @@ bool EditorRegistry::UpdateAllowedWithoutLoadedRom(EditorType type) {
 }
 
 bool EditorRegistry::IsExperimentalEditor(EditorType type) {
+  return GetExperimentPolicy(type).experimental;
+}
+
+EditorExperimentPolicy EditorRegistry::GetExperimentPolicy(EditorType type) {
   switch (type) {
     case EditorType::kScreen:
+      return {
+          .experimental = true,
+          .disabled_save_posture = ExperimentalSavePosture::kReadOnly,
+      };
     case EditorType::kMusic:
+      return {
+          .experimental = true,
+          .disabled_save_posture = ExperimentalSavePosture::kDefensiveBackup,
+      };
     case EditorType::kAgent:
-      return true;
+      return {
+          .experimental = true,
+          .disabled_save_posture = ExperimentalSavePosture::kNormal,
+      };
     default:
-      return false;
+      return {};
   }
+}
+
+bool EditorRegistry::ShouldWarnAboutExperimentalEditor(
+    EditorType type, bool experiments_enabled) {
+  return !experiments_enabled && GetExperimentPolicy(type).experimental;
 }
 
 std::string EditorRegistry::GetEditorName(EditorType type) {

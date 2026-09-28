@@ -29,6 +29,7 @@ WindowDescriptor BuildDescriptorFromPanel(const WindowContent& panel) {
   descriptor.scope = panel.GetScope();
   descriptor.window_lifecycle = panel.GetWindowLifecycle();
   descriptor.context_scope = panel.GetContextScope();
+  descriptor.presentation = panel.GetPresentationPolicy();
   descriptor.enabled_condition = [panel_ptr]() {
     return panel_ptr->IsEnabled();
   };
@@ -284,6 +285,8 @@ void WorkspaceWindowManager::RestoreVisibilityState(
       if (!descriptor->visibility_flag) {
         continue;
       }
+      if (!visible)
+        pending_float_window_ids_.erase(mapping_it->second);
       *descriptor->visibility_flag = visible;
       if (publish_events) {
         PublishWindowVisibilityChanged(session_id, mapping_it->second,
@@ -551,6 +554,7 @@ void WorkspaceWindowManager::UnregisterSessionPanels(size_t session_id) {
       RememberPinnedStateForRemovedWindow(session_id, base_card_id,
                                           prefixed_card_id);
     }
+    pending_float_window_ids_.erase(prefixed_card_id);
     cards_.erase(prefixed_card_id);
     centralized_visibility_.erase(prefixed_card_id);
     pinned_panels_.erase(prefixed_card_id);

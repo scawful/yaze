@@ -1,6 +1,7 @@
 #include "cli/handlers/game/overworld_inspect.h"
 
 #include <algorithm>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -16,6 +17,7 @@
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace cli {
@@ -295,6 +297,148 @@ absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
   return entries;
 }
 
+std::pair<int, int> AreaScreenSpan(const zelda3::OverworldMap& parent_map) {
+  switch (parent_map.area_size()) {
+    case zelda3::AreaSizeEnum::LargeArea:
+      return {2, 2};
+    case zelda3::AreaSizeEnum::WideArea:
+      return {2, 1};
+    case zelda3::AreaSizeEnum::TallArea:
+      return {1, 2};
+    default:
+      // Pre-v3 ROMs only record large vs small.
+      return parent_map.is_large_map() ? std::pair<int, int>{2, 2}
+                                       : std::pair<int, int>{1, 1};
+  }
+}
+
+absl::StatusOr<AreaTileLocation> ResolveAreaTileLocation(
+    int map_id, int parent_map, int area_columns, int area_rows, int x, int y) {
+  RETURN_IF_ERROR(ValidateMapId(map_id));
+  RETURN_IF_ERROR(ValidateMapId(parent_map));
+  if (area_columns < 1 || area_columns > 2 || area_rows < 1 || area_rows > 2) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Area span must be 1 or 2 screens per axis, got %dx%d",
+                        area_columns, area_rows));
+  }
+  ASSIGN_OR_RETURN(const int world, InferWorldFromMapId(map_id));
+  ASSIGN_OR_RETURN(const int parent_world, InferWorldFromMapId(parent_map));
+  if (world != parent_world) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Map 0x%02X is in the %s World but its parent 0x%02X is in the %s "
+        "World",
+        map_id, WorldName(world), parent_map, WorldName(parent_world)));
+  }
+
+  const int parent_local = parent_map - WorldOffset(world);
+  const int parent_column = parent_local % 8;
+  const int parent_row = parent_local / 8;
+  const int map_local = map_id - WorldOffset(world);
+  const int map_column = map_local % 8;
+  const int map_row = map_local / 8;
+  if (map_column < parent_column ||
+      map_column >= parent_column + area_columns || map_row < parent_row ||
+      map_row >= parent_row + area_rows) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Map 0x%02X is outside the %dx%d-screen area of its parent 0x%02X",
+        map_id, area_columns, area_rows, parent_map));
+  }
+  if (parent_column + area_columns > 8) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Area 0x%02X (%d screens wide) crosses the world's east edge",
+        parent_map, area_columns));
+  }
+
+  const int width = area_columns * 32;
+  const int height = area_rows * 32;
+  if (x < 0 || y < 0 || x >= width || y >= height) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Tile (%d,%d) is outside area 0x%02X: x must be 0-%d and y 0-%d "
+        "(tile16 units relative to the area's top-left; decimal, or hex with "
+        "a 0x prefix)",
+        x, y, parent_map, width - 1, height - 1));
+  }
+
+  AreaTileLocation location;
+  location.map_id = map_id;
+  location.parent_map = parent_map;
+  location.world = world;
+  location.area_width = width;
+  location.area_height = height;
+  location.area_x = x;
+  location.area_y = y;
+  location.screen_id = parent_map + (x / 32) + (y / 32) * 8;
+  location.screen_x = x % 32;
+  location.screen_y = y % 32;
+  location.world_x = parent_column * 32 + x;
+  location.world_y = parent_row * 32 + y;
+  RETURN_IF_ERROR(ValidateMapId(location.screen_id));
+  return location;
+}
+
+absl::StatusOr<AreaTileLocation> ResolveAreaTileForMap(
+    const zelda3::Overworld& overworld, int map_id, int x, int y) {
+  RETURN_IF_ERROR(ValidateMapId(map_id));
+  const auto* map = overworld.overworld_map(map_id);
+  if (map == nullptr) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Overworld map 0x%02X is not loaded", map_id));
+  }
+  const int parent = map->parent();
+  RETURN_IF_ERROR(ValidateMapId(parent));
+  const auto* parent_map = overworld.overworld_map(parent);
+  if (parent_map == nullptr) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Overworld map 0x%02X is not loaded", parent));
+  }
+  const auto [columns, rows] = AreaScreenSpan(*parent_map);
+  return ResolveAreaTileLocation(map_id, parent, columns, rows, x, y);
+}
+
+absl::StatusOr<AreaTileLocation> LocateScreenTile(
+    const zelda3::Overworld& overworld, int screen_id, int screen_x,
+    int screen_y) {
+  RETURN_IF_ERROR(ValidateMapId(screen_id));
+  if (screen_x < 0 || screen_x >= 32 || screen_y < 0 || screen_y >= 32) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Screen tile (%d,%d) is outside 0-31", screen_x, screen_y));
+  }
+  const auto* map = overworld.overworld_map(screen_id);
+  if (map == nullptr) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Overworld map 0x%02X is not loaded", screen_id));
+  }
+  const int parent = map->parent();
+  RETURN_IF_ERROR(ValidateMapId(parent));
+  ASSIGN_OR_RETURN(const int world, InferWorldFromMapId(screen_id));
+  const int screen_local = screen_id - WorldOffset(world);
+  const int parent_local = parent - WorldOffset(world);
+  const int x = (screen_local % 8 - parent_local % 8) * 32 + screen_x;
+  const int y = (screen_local / 8 - parent_local / 8) * 32 + screen_y;
+  return ResolveAreaTileForMap(overworld, screen_id, x, y);
+}
+
+absl::StatusOr<uint16_t> ReadAreaTile(zelda3::Overworld& overworld,
+                                      const AreaTileLocation& location) {
+  const auto& tiles = overworld.GetMapTiles(location.world);
+  if (location.world_x < 0 ||
+      location.world_x >= static_cast<int>(tiles.size()) ||
+      location.world_y < 0 ||
+      location.world_y >= static_cast<int>(tiles[location.world_x].size())) {
+    return absl::FailedPreconditionError(
+        "Overworld tile data is not loaded for this world");
+  }
+  return tiles[location.world_x][location.world_y];
+}
+
+absl::Status WriteAreaTile(zelda3::Overworld& overworld,
+                           const AreaTileLocation& location, uint16_t tile_id) {
+  RETURN_IF_ERROR(ReadAreaTile(overworld, location).status());
+  overworld.GetMapTiles(location.world)[location.world_x][location.world_y] =
+      tile_id;
+  return absl::OkStatus();
+}
+
 absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
     zelda3::Overworld& overworld, uint16_t tile_id,
     const TileSearchOptions& options) {
@@ -383,15 +527,32 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
   return matches;
 }
 
+const char* SpritePhaseName(int phase) {
+  switch (phase) {
+    case 0:
+      return "beginning";
+    case 1:
+      return "first_part";
+    case 2:
+      return "second_part";
+  }
+  return "unknown";
+}
+
 absl::StatusOr<std::vector<OverworldSprite>> CollectOverworldSprites(
     const zelda3::Overworld& overworld, const SpriteQuery& query) {
   std::vector<OverworldSprite> results;
 
   // Iterate through all 3 game states (beginning, zelda, agahnim)
   for (int game_state = 0; game_state < 3; ++game_state) {
-    const auto& sprites = overworld.sprites(game_state);
+    if (query.phase.has_value() && *query.phase != game_state) {
+      continue;
+    }
+    const auto sprites = overworld.sprites(game_state);
+    std::map<int, int> next_index_by_map;
 
     for (const auto& sprite : sprites) {
+      const int list_index = next_index_by_map[sprite.map_id()]++;
       // Apply filters
       if (query.sprite_id.has_value() && sprite.id() != *query.sprite_id) {
         continue;
@@ -417,8 +578,11 @@ absl::StatusOr<std::vector<OverworldSprite>> CollectOverworldSprites(
       entry.world = world;
       entry.x = sprite.x();
       entry.y = sprite.y();
-      // Sprite names would come from a label system if available
-      // entry.sprite_name = GetSpriteName(sprite.id());
+      entry.phase = game_state;
+      entry.list_index = list_index;
+      entry.local_x = (sprite.x() - (map_id % 8) * 512) / 16;
+      entry.local_y = (sprite.y() - ((map_id % 64) / 8) * 512) / 16;
+      entry.sprite_name = zelda3::ResolveSpriteName(sprite.id());
 
       results.push_back(entry);
     }

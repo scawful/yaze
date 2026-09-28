@@ -59,6 +59,9 @@ class Rom {
       const LoadOptions& options = LoadOptions::Defaults());
 
   absl::Status SaveToFile(const SaveSettings& settings);
+  // Test seam: while set, SaveToFile fails when creating its staging file,
+  // after any backup is written and before the destination is replaced.
+  static void SetStagingFailureForTesting(bool fail);
 
   void Expand(int size) {
     const bool size_changed = rom_data_.size() != static_cast<size_t>(size);

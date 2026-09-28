@@ -2,14 +2,18 @@
 #define YAZE_APP_EDITOR_GFX_GROUP_EDITOR_H
 
 #include <array>
+#include <map>
+#include <optional>
 #include <string>
 
 #include "absl/status/status.h"
 #include "app/editor/graphics/gfx_group_workspace_state.h"
+#include "app/gfx/types/sheet_role.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
+#include "zelda3/gfx_sheet_inventory.h"
 
 namespace yaze {
 namespace editor {
@@ -61,6 +65,8 @@ class GfxGroupEditor {
 
  private:
   void UpdateCurrentPalette();
+  gfx::Bitmap* PrepareSheetPreview(int sheet_id, gfx::SheetRole role,
+                                   gfx::Bitmap& preview);
 
   GfxGroupWorkspaceState& Ws() { return workspace_ ? *workspace_ : fallback_; }
   const GfxGroupWorkspaceState& Ws() const {
@@ -75,8 +81,19 @@ class GfxGroupEditor {
   std::array<gui::Canvas, 4> roomset_canvases_;
   std::array<gui::Canvas, 4> spriteset_canvases_;
 
+  std::array<gfx::Bitmap, 8> blockset_previews_;
+  std::array<gfx::Bitmap, 4> roomset_previews_;
+  std::array<gfx::Bitmap, 4> spriteset_previews_;
+
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
+
+  // "Used by" for the selected spriteset/roomset. Area and room data are read
+  // from the ROM buffer on first use and on Refresh.
+  void DrawGroupUsage(bool spriteset, int id);
+  std::optional<std::map<int, zelda3::OverworldAreaGfxInfo>> usage_areas_;
+  std::optional<std::map<int, zelda3::RoomGfxInfo>> usage_rooms_;
+  const Rom* usage_rom_ = nullptr;
   gfx::SnesPalette* current_palette_ = nullptr;
   std::string host_surface_hint_;
 };

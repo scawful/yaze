@@ -52,6 +52,10 @@ class UserSettings {
     std::string last_rom_path;
     std::string last_project_path;
     bool show_welcome_on_startup = true;
+    // Test mode: launch without the welcome screen or editor picker and start
+    // the local test server (gRPC builds), so an agent that can only
+    // double-click the app gets a quiet, scriptable start. Next launch.
+    bool test_mode = false;
     bool restore_last_session = true;
     bool prefer_hmagic_sprite_names = true;
 
@@ -143,6 +147,7 @@ class UserSettings {
     std::vector<std::string> sidebar_order;
     std::unordered_set<std::string> sidebar_hidden;
     std::unordered_set<std::string> sidebar_pinned;
+    std::unordered_set<std::string> sidebar_context_collapsed;
 
     // Status Bar
     bool show_status_bar =
@@ -152,7 +157,9 @@ class UserSettings {
     // Default off — switching editors pauses the SNES.
     bool emulator_keep_running_in_background = false;
 
-    // Experimental editors (Screen/Music/Agent) stay gated until enabled.
+    // Legacy persisted name. This acknowledges experimental warnings and lets
+    // supported writers use their normal posture; it never hides an editor or
+    // bypasses a feature-specific write guard.
     bool show_experimental_editors = false;
 
     // Dungeon workbench layout: which side of the workbench window the
@@ -202,7 +209,7 @@ class UserSettings {
   // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 24;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 25;
   // Revisions through 21 changed whole-workspace arrangements. Later revisions
   // are targeted preference migrations and must preserve the live ImGui layout.
   static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 21;
@@ -224,6 +231,10 @@ class UserSettings {
   void SetSettingsFilePathForTesting(std::string path) {
     settings_file_path_ = std::move(path);
     legacy_settings_file_path_ = settings_file_path_ + ".legacy.ini";
+  }
+  const std::string& settings_file_path() const { return settings_file_path_; }
+  const std::string& legacy_settings_file_path() const {
+    return legacy_settings_file_path_;
   }
 
  private:

@@ -62,6 +62,8 @@ class ObjectSelectorContent : public WindowContent {
   // ==========================================================================
 
   void Draw(bool* p_open) override;
+  // The Workbench supplies the active placement inspector above this browser.
+  void DrawInWorkbench();
   void OnOpen() override {}
   void OnClose() override {}
 
@@ -125,8 +127,9 @@ class ObjectSelectorContent : public WindowContent {
   DungeonCanvasViewer* ResolveCanvasViewer();
 
   // Drawing methods
-  void DrawObjectSelector();
-  void DrawInteractionSummary();
+  void DrawObjectSelector(float minimum_grid_height = 1.0f);
+  void DrawContent(bool show_placement_summary);
+  void DrawInteractionSummary(bool show_placement_summary);
 
   // ==========================================================================
   // Member Variables

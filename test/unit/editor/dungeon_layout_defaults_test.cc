@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "core/features.h"
 #include "gtest/gtest.h"
 
 namespace yaze::editor {
@@ -77,6 +79,41 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchIsSoleDefaultSurface) {
       preset.panel_positions.find(LayoutPresets::Panels::kDungeonPaletteEditor);
   ASSERT_NE(palette_pos, preset.panel_positions.end());
   EXPECT_EQ(palette_pos->second, DockPosition::RightBottom);
+}
+
+TEST(DungeonLayoutDefaultsTest,
+     StandaloneWorkflowDefaultsToNavigationWithoutToolClutter) {
+  auto& use_workbench = core::FeatureFlags::get().dungeon.kUseWorkbench;
+  const bool previous = use_workbench;
+  use_workbench = false;
+  const auto preset = LayoutPresets::GetDefaultPreset(EditorType::kDungeon);
+  use_workbench = previous;
+
+  ASSERT_EQ(preset.default_visible_panels.size(), 2U);
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonRoomMatrix));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonEntrances));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonRoomSelector));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonObjectSelector));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonPaletteEditor));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonRoomGraphics));
+}
+
+TEST(DungeonLayoutDefaultsTest, ContextSnapshotExposesStableDungeonActions) {
+  DungeonEditorV2 editor;
+  const EditorContextSnapshot snapshot = editor.BuildContextSnapshot();
+  EXPECT_EQ(snapshot.category, "Dungeon");
+  EXPECT_NE(snapshot.title.find("Room 0x000"), std::string::npos);
+  EXPECT_FALSE(snapshot.diagnostics.empty());
+  EXPECT_TRUE(std::any_of(snapshot.actions.begin(), snapshot.actions.end(),
+                          [](const EditorContextAction& action) {
+                            return action.target == "dungeon.room_matrix";
+                          }));
 }
 
 }  // namespace

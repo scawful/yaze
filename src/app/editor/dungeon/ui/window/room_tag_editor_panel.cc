@@ -13,6 +13,7 @@
 #include "imgui/imgui.h"
 
 // Project headers
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
@@ -178,6 +179,7 @@ void RoomTagEditorPanel::DrawQuickAssign() {
     return;
   }
 
+  gui::AutoWidgetScope automation_scope("Dungeon/RoomTags");
   auto& room = (*rooms_)[current_room_id_];
 
   ImGui::Text(ICON_MD_GRID_ON " Current Room: 0x%03X", current_room_id_);
@@ -204,7 +206,7 @@ void RoomTagEditorPanel::DrawQuickAssign() {
 
   // Tag1 combo
   int tag1_val = static_cast<int>(room.tag1());
-  int tag1_idx = std::clamp(tag1_val, 0, num_tags - 1);
+  int tag1_idx = tag1_val;
   auto tag1_display = get_tag_display_name(tag1_idx);
 
   ImGui::TextDisabled(ICON_MD_LABEL);
@@ -212,23 +214,31 @@ void RoomTagEditorPanel::DrawQuickAssign() {
   ImGui::Text(tr("Tag 1:"));
   ImGui::SameLine();
   ImGui::SetNextItemWidth(-1);
-  if (ImGui::BeginCombo("##QuickTag1", tag1_display.c_str())) {
+  const bool tag1_open = ImGui::BeginCombo("##QuickTag1", tag1_display.c_str());
+  gui::AutoRegisterLastItem("combo", "Tag1", "Room tag 1");
+  if (tag1_open) {
     for (int i = 0; i < num_tags; i++) {
       auto item_label = get_tag_display_name(i);
       if (ImGui::Selectable(item_label.c_str(), tag1_idx == i)) {
-        room.SetTag1(static_cast<zelda3::TagKey>(i));
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
-        }
-        cache_dirty_ = true;
+        const auto status =
+            on_metadata_edit_
+                ? on_metadata_edit_(
+                      current_room_id_,
+                      {.field = RoomMetadataField::kTag1, .value = i})
+                : absl::FailedPreconditionError(
+                      "Room metadata editing is unavailable.");
+        edit_error_ =
+            status.ok() ? std::string() : std::string(status.message());
+        cache_dirty_ |= status.ok();
       }
+      gui::AutoRegisterLastItem("selectable", absl::StrFormat("Tag1/%d", i));
     }
     ImGui::EndCombo();
   }
 
   // Tag2 combo
   int tag2_val = static_cast<int>(room.tag2());
-  int tag2_idx = std::clamp(tag2_val, 0, num_tags - 1);
+  int tag2_idx = tag2_val;
   auto tag2_display = get_tag_display_name(tag2_idx);
 
   ImGui::TextDisabled(ICON_MD_LABEL_OUTLINE);
@@ -236,18 +246,29 @@ void RoomTagEditorPanel::DrawQuickAssign() {
   ImGui::Text(tr("Tag 2:"));
   ImGui::SameLine();
   ImGui::SetNextItemWidth(-1);
-  if (ImGui::BeginCombo("##QuickTag2", tag2_display.c_str())) {
+  const bool tag2_open = ImGui::BeginCombo("##QuickTag2", tag2_display.c_str());
+  gui::AutoRegisterLastItem("combo", "Tag2", "Room tag 2");
+  if (tag2_open) {
     for (int i = 0; i < num_tags; i++) {
       auto item_label = get_tag_display_name(i);
       if (ImGui::Selectable(item_label.c_str(), tag2_idx == i)) {
-        room.SetTag2(static_cast<zelda3::TagKey>(i));
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
-        }
-        cache_dirty_ = true;
+        const auto status =
+            on_metadata_edit_
+                ? on_metadata_edit_(
+                      current_room_id_,
+                      {.field = RoomMetadataField::kTag2, .value = i})
+                : absl::FailedPreconditionError(
+                      "Room metadata editing is unavailable.");
+        edit_error_ =
+            status.ok() ? std::string() : std::string(status.message());
+        cache_dirty_ |= status.ok();
       }
+      gui::AutoRegisterLastItem("selectable", absl::StrFormat("Tag2/%d", i));
     }
     ImGui::EndCombo();
+  }
+  if (!edit_error_.empty()) {
+    ImGui::TextWrapped("Edit not applied: %s", edit_error_.c_str());
   }
 }
 

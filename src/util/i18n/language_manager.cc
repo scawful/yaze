@@ -219,6 +219,9 @@ LanguageManager::LanguageManager() {
 }
 
 std::vector<std::string> LanguageManager::GetAvailableLocales() const {
+  if (!available_locales_.empty()) {
+    return available_locales_;
+  }
   std::vector<std::string> locales;
   locales.push_back(kDefaultLocale);
   const std::filesystem::path dir = ResolveI18nDir();
@@ -241,6 +244,7 @@ std::vector<std::string> LanguageManager::GetAvailableLocales() const {
     }
   }
   std::sort(locales.begin(), locales.end());
+  available_locales_ = locales;
   return locales;
 }
 

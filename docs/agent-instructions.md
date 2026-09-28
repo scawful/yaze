@@ -1,14 +1,14 @@
 <!-- agent-pointer: managed -->
 # Agent Instructions
 
-Active instruction files in this project are intentionally short for better model compliance:
-- AGENTS.md
-- CLAUDE.md
-- GEMINI.md
+Active instruction files (kept short for model compliance):
+- AGENTS.md (canonical router; Claude/Codex/Cursor read this)
+- GEMINI.md (Gemini-specific overlay)
 
-Detailed guidance is stored here:
+Detailed guidance:
 - ../.context/knowledge/agent-reference.md
 
 Policy:
-- Keep active instruction files <= 30 lines.
+- Keep active instruction files lean; prefer links over duplication.
 - Store long workflows/checklists in the agent reference file.
+- Project status/roadmap live under `docs/internal/` (not repo root).

@@ -5,10 +5,13 @@
 #include <deque>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
+#include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_workbench_state.h"
 #include "app/editor/system/editor_panel.h"
 
@@ -24,7 +27,9 @@ namespace yaze::editor {
 
 class DungeonCanvasViewer;
 class DungeonMapPanel;
+class DungeonEntrancesPanel;
 class DungeonRoomSelector;
+class RoomMatrixContent;
 class CustomCollisionPanel;
 class MinecartTrackEditorPanel;
 class RoomTagEditorPanel;
@@ -111,12 +116,20 @@ class DungeonWorkbenchContent : public WindowContent {
                              CustomCollisionPanel* custom_collision,
                              WaterFillPanel* water_fill,
                              MinecartTrackEditorPanel* minecart_tracks);
+  void SetObjectCoverageContent(WindowContent* object_coverage) {
+    object_coverage_content_ = object_coverage;
+  }
   void SetEmbeddedEditorPanels(WindowContent* object_selector,
                                WindowContent* door_editor,
                                WindowContent* sprite_editor,
                                WindowContent* item_editor,
                                WindowContent* room_graphics,
                                WindowContent* palette_editor);
+  void SetNavigationPanels(RoomMatrixContent* room_matrix,
+                           DungeonEntrancesPanel* entrances) {
+    room_matrix_content_ = room_matrix;
+    entrance_navigator_content_ = entrances;
+  }
   void SetStandaloneToolCallbacks(
       std::function<bool(const std::string&)> is_window_open,
       std::function<bool(const std::string&)> open_and_focus_window) {
@@ -132,9 +145,18 @@ class DungeonWorkbenchContent : public WindowContent {
   }
   void FocusRoomInspector();
   void FocusSelectionInspector();
+  void FocusRoomMatrix();
   void FocusEntranceBrowser();
   void ShowConnectedGraph();
   void RequestDungeonMapPopup();
+  // Opens the read-only Proposal Preview window (room renders + overlay).
+  void RequestProposalPreview();
+  // Loads an overlay file; returns false and records the error on failure.
+  bool LoadProposalOverlay(const std::string& path);
+  const std::optional<DungeonProposalOverlay>& proposal_overlay() const {
+    return proposal_overlay_;
+  }
+  const std::string& proposal_error() const { return proposal_error_; }
   void OpenObjectSelectorTool();
   void OpenDoorTool();
   void OpenSpriteTool();
@@ -145,6 +167,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void OpenCustomCollisionTool();
   void OpenWaterFillTool();
   void OpenMinecartTool();
+  void OpenObjectCoverageTool();
   bool PopOutActiveTool();
 
   // Mirror toggle: when true, the inspector renders on the LEFT and the
@@ -168,6 +191,7 @@ class DungeonWorkbenchContent : public WindowContent {
   bool IsToolInspectorActiveForTesting() const;
   const char* GetInspectorModeIdForTesting() const;
   const char* GetActiveToolIdForTesting() const;
+  const char* GetSidebarModeIdForTesting() const;
   void DrawPitDamageControlsForTesting(int room_id) {
     DrawPitDamageControls(room_id);
   }
@@ -202,12 +226,14 @@ class DungeonWorkbenchContent : public WindowContent {
   void Draw(bool* p_open) override;
 
  private:
+  friend class DungeonWorkbenchContentTestPeer;
   enum class WorkbenchTool : uint8_t {
     None,
     RoomTags,
     CustomCollision,
     WaterFill,
     MinecartTracks,
+    ObjectCoverage,
     ObjectSelector,
     DoorEditor,
     SpriteEditor,
@@ -233,6 +259,8 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawInspectorShelf(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
+  bool DrawObjectPlacementInspector(DungeonCanvasViewer& viewer);
+  void DrawSelectedObjectActions(DungeonCanvasViewer& viewer, size_t index);
   void DrawInspectorToolPanel(DungeonCanvasViewer& viewer);
   void DrawInspectorToolPicker();
   void DrawWorkbenchTool(DungeonCanvasViewer& viewer, WorkbenchTool tool);
@@ -248,6 +276,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawPitDamageControls(int room_id);
   void DrawLayerCompositingControls(DungeonCanvasViewer& viewer, int room_id);
   void DrawDungeonMapPopup(DungeonCanvasViewer& viewer);
+  void DrawProposalPreviewWindow(DungeonCanvasViewer& viewer);
   DungeonMapPanel* GetEmbeddedDungeonMap(DungeonCanvasViewer& viewer);
   void SetAllSaveFlags(bool value);
 
@@ -281,12 +310,13 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
   Rom* rom_ = nullptr;
 
-  enum class SidebarMode : uint8_t { Rooms, Entrances };
-  SidebarMode sidebar_mode_ = SidebarMode::Rooms;
+  enum class SidebarMode : uint8_t { Matrix, Entrances };
+  SidebarMode sidebar_mode_ = SidebarMode::Matrix;
   enum class InspectorMode : uint8_t { Room, Selection, Tools };
   InspectorMode inspector_mode_ = InspectorMode::Room;
   InspectorMode inspector_mode_before_tools_ = InspectorMode::Room;
   bool inspector_selection_was_active_ = false;
+  bool inspector_placement_was_active_ = false;
   bool compact_inspector_detail_requested_ = false;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
 
@@ -306,6 +336,15 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<int()> undo_depth_;
 
   bool open_dungeon_map_popup_ = false;
+
+  // Proposal Preview window state (read-only review of layout proposals).
+  bool show_proposal_preview_ = false;
+  char proposal_path_[1024] = {};
+  std::optional<DungeonProposalOverlay> proposal_overlay_;
+  std::string proposal_error_;
+  std::vector<char> proposal_layer_visible_;
+  bool proposal_show_overlay_ = true;
+  float proposal_scale_ = 1.0f;
   uint16_t pit_damage_replacement_room_id_ = 0;
   uint16_t pit_damage_victim_room_id_ = 0;
   std::string pit_damage_status_message_;
@@ -316,12 +355,15 @@ class DungeonWorkbenchContent : public WindowContent {
   CustomCollisionPanel* custom_collision_panel_ = nullptr;
   WaterFillPanel* water_fill_panel_ = nullptr;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
+  WindowContent* object_coverage_content_ = nullptr;
   WindowContent* object_selector_content_ = nullptr;
   WindowContent* door_editor_content_ = nullptr;
   WindowContent* sprite_editor_content_ = nullptr;
   WindowContent* item_editor_content_ = nullptr;
   WindowContent* room_graphics_content_ = nullptr;
   WindowContent* palette_editor_content_ = nullptr;
+  RoomMatrixContent* room_matrix_content_ = nullptr;
+  DungeonEntrancesPanel* entrance_navigator_content_ = nullptr;
 };
 
 }  // namespace yaze::editor

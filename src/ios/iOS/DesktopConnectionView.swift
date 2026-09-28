@@ -7,7 +7,10 @@ struct DesktopConnectionView: View {
 
   @State private var manualHost = ""
   @State private var manualPort = "8080"
-  @State private var selectedTab = 0
+  private var validPort: UInt16? {
+    guard let port = UInt16(manualPort), port > 0 else { return nil }
+    return port
+  }
 
   var body: some View {
     NavigationStack {
@@ -40,7 +43,7 @@ struct DesktopConnectionView: View {
         Image(systemName: apiClient.isConnected ? "checkmark.circle.fill" : "circle")
           .foregroundStyle(apiClient.isConnected ? .green : .secondary)
         VStack(alignment: .leading, spacing: 2) {
-          Text(apiClient.isConnected ? "Connected" : "Disconnected")
+          Text(apiClient.isConnecting ? "Connecting…" : (apiClient.isConnected ? "Connected" : "Disconnected"))
             .font(.headline)
           if let host = apiClient.connectedHost {
             Text(host.baseURL)
@@ -49,8 +52,8 @@ struct DesktopConnectionView: View {
           }
         }
         Spacer()
-        if apiClient.isConnected {
-          Button("Disconnect") {
+        if apiClient.isConnected || apiClient.isConnecting {
+          Button(apiClient.isConnecting ? "Cancel" : "Disconnect") {
             apiClient.disconnect()
           }
           .buttonStyle(.bordered)
@@ -140,10 +143,11 @@ struct DesktopConnectionView: View {
         .keyboardType(.numberPad)
 
       Button("Connect") {
-        let port = UInt16(manualPort) ?? 8080
-        apiClient.connectManual(host: manualHost, port: port)
+        guard let port = validPort else { return }
+        apiClient.connectManual(host: manualHost.trimmingCharacters(in: .whitespacesAndNewlines), port: port)
       }
-      .disabled(manualHost.trimmingCharacters(in: .whitespaces).isEmpty)
+      .disabled(apiClient.isConnecting || validPort == nil ||
+                manualHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     } header: {
       Text("Manual Connection")
     } footer: {

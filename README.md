@@ -34,28 +34,38 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 ## Project Status
 
 v0.8.0 is the current development line; v0.7.2 is the latest tagged release.
-See [`CHANGELOG.md`](CHANGELOG.md) for details.
+See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for details.
 
-**v0.8.0 focus:** a bounded tester preview with honest editor save boundaries,
-cross-platform release artifacts, Dungeon visual parity, and a calmer editor UI.
+**v0.8.0 focus:** complete dungeon authoring: consistent entity editing and undo,
+room reuse and connections, rendering qualification, and verified save/reopen.
+Full Hyrule Magic / ZScream workflow coverage continues through later overworld,
+graphics, screens, and audio milestones. Follow the
+[editor capability completion plan](docs/internal/plans/editor-capability-parity-plan.md).
 
-| Component | Tester status | Notes |
+| Component | Implementation status | Notes |
 |-----------|---------------|-------|
-| Dungeon Editor | Tester ready | Bounded room edits save through File > Save ROM; known visual exceptions remain. |
-| Overworld Editor | Tester ready | Bounded map/entity edits save through File > Save ROM. |
-| Message Editor | Tester ready | Valid text edits use the coordinated save path. |
-| Palette Editor | Conditional | Use Palette **Save to ROM**, then File > Save ROM; JSON import/export is implemented when enabled. |
-| Assembly Editor | Conditional | Source-file save and Asar ROM application are separate workflows. |
-| Sprite Editor | Conditional | Custom `.zsm` editing only; use Dungeon for room sprite placement. |
-| Settings | Conditional | Non-ROM settings persistence; verify changes after restart. |
-| Graphics Editor | View only | Pending graphics edits deliberately block Save ROM until the serializer is safe. |
-| Screen Editor | View only | Pending screen edits deliberately block coordinated Save ROM. |
-| Music Editor | View only | Playback/inspection; coordinated ROM save and instrument/sample writers are incomplete. |
-| Hex / Memory | View only | Advanced raw tooling without a complete dirty/undo/save contract. |
-| Emulator | Experimental | Runtime testing; save-state UI remains incomplete. |
+| Dungeon Editor | Partial; authoring slices Candidate | Placement controls plus door/sprite/pot-item undo and shared properties are implemented in candidates. Headers, chests, compound operations, room reuse, and acceptance remain. |
+| Overworld Editor | Partial | Maps, entrances, exits, items, and enabled properties have save paths. Sprite edits are not serialized. |
+| Message Editor | Partial | Valid text uses coordinated save; full application/runtime acceptance remains. |
+| Palette Editor | Partial | Use Palette **Save to ROM**, then File > Save ROM; JSON exchange is implemented when enabled. |
+| Assembly Editor | Partial | Source-file save and Asar ROM application are separate workflows. |
+| Sprite Editor | Partial | Custom `.zsm` editing; use Dungeon for room sprite placement. |
+| Settings | Implemented | Configuration-file persistence; verify changes after restart. |
+| Graphics Editor | Blocked sheet save | Pending sheet edits block Save ROM. Graphics groups and polyhedral tools already exist. |
+| Screen Editor | Blocked coordinated save | All pending Screen domains block Save ROM; direct title/pause ROM writes are also disabled. |
+| Music Editor | Partial | Song editing/serialization exists separately; instrument/sample writers and real sample import are missing. |
+| Hex / Memory | Partial | Expert raw tooling without a complete dirty/undo/save contract. |
+| Emulator | Partial | Runtime testing; save-state UI remains incomplete. |
 
 See [`docs/public/reference/feature-coverage-report.md`](docs/public/reference/feature-coverage-report.md)
-for cross-app status, persistence notes, and test coverage.
+for status definitions, source anchors, and separate Source / Focused / ROM /
+Runtime / Release evidence. Building on the September 22 placement candidate
+`7ba7d76ce`, entity candidate `a730d6557` adds door/sprite/pot-item undo and shared
+Workbench/standalone properties. Its app and unit-test builds succeeded, with
+150 selected tests passing and no skips. ROM save/reopen, runtime, CI, and
+installation qualification remain pending. See the
+[capability assessment](docs/public/reference/capability-assessment.md) for the
+pinned comparison baseline.
 
 ## Quick Start
 

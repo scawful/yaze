@@ -625,4 +625,96 @@ TEST(MessageEditorSavePlanTest,
   EXPECT_TRUE(MessageEditorSaveTestPeer::ExpandedDirty(editor));
 }
 
+TEST(VanillaMessageSavePlanTest, ChangedRangesSkipBytesAlreadyInRom) {
+  MessageData message;
+  message.Data = {0x00, 0x01, kBankSwitchCommand, 0x02};
+  auto plan_or = BuildVanillaMessageSavePlan({message});
+  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+
+  std::vector<uint8_t> rom(0x100000, 0x00);
+  // Primary: 00 01 80 (00 is already there). Secondary: 02 7F FF.
+  rom[kTextData + 1] = 0x01;
+  rom[kTextData2] = 0x02;
+  rom[kTextData2 + 1] = 0x55;  // differs from the planned terminator
+  rom[kTextData2 + 2] = 0xFF;
+
+  EXPECT_EQ(
+      plan_or->ChangedRanges(rom.data(), rom.size()),
+      (std::vector<std::pair<uint32_t, uint32_t>>{
+          {kTextData + 2, kTextData + 3}, {kTextData2 + 1, kTextData2 + 2}}));
+  // Bytes past the ROM count as changed.
+  EXPECT_EQ(plan_or->ChangedRanges(rom.data(), kTextData2 + 1).back(),
+            (std::pair<uint32_t, uint32_t>{kTextData2 + 1, kTextData2 + 3}));
+}
+
+TEST(MessageDictionaryTest, ReadDictionaryEntryBytesFollowsPointerTable) {
+  std::vector<uint8_t> rom(0x100000, 0x00);
+  // Entry i starts at $0E:C800 + 2i and is 2 bytes long; the extra pointer
+  // after the last entry ends it.
+  for (int index = 0; index <= kNumDictionaryEntries; ++index) {
+    const uint16_t pointer = 0xC800 + index * 2;
+    rom[kPointersDictionaries + index * 2] = pointer & 0xFF;
+    rom[kPointersDictionaries + index * 2 + 1] = pointer >> 8;
+  }
+  rom[0x74800] = 0x11;
+  rom[0x74801] = 0x12;
+  rom[0x74802] = 0x21;
+
+  const auto entries = ReadDictionaryEntryBytes(rom.data(), rom.size());
+  ASSERT_EQ(entries.size(), static_cast<size_t>(kNumDictionaryEntries));
+  EXPECT_EQ(entries[0], (std::vector<uint8_t>{0x11, 0x12}));
+  EXPECT_EQ(entries[1].front(), 0x21);
+  EXPECT_TRUE(
+      ReadDictionaryEntryBytes(rom.data(), kPointersDictionaries + 4).empty());
+}
+
+TEST(MessageDictionaryTest, CompressionUsesFewestBytes) {
+  // Longest-first matching takes "abc" and leaves "d", "e" (3 bytes); the
+  // shortest encoding is "ab" + "cde" (2 bytes).
+  const std::vector<std::vector<uint8_t>> dictionary = {
+      {0x00, 0x01, 0x02},  // abc
+      {0x02, 0x03, 0x04},  // cde
+      {0x00, 0x01},        // ab
+  };
+  EXPECT_EQ(
+      CompressMessageWithDictionary({0x00, 0x01, 0x02, 0x03, 0x04}, dictionary),
+      (std::vector<uint8_t>{DICTOFF + 2, DICTOFF + 1}));
+}
+
+TEST(MessageDictionaryTest, CompressionLeavesCommandsAndTokensAlone) {
+  const std::vector<std::vector<uint8_t>> dictionary = {{0x00, 0x01}};
+  // [W:00] takes 0x00 as its argument, so only the later "ab" is a word.
+  // An existing token and a command without an argument stay as they are.
+  const std::vector<uint8_t> data = {0x6B, 0x00,        0x01, 0x00,
+                                     0x01, DICTOFF + 5, 0x74, 0x00};
+  EXPECT_EQ(CompressMessageWithDictionary(data, dictionary),
+            (std::vector<uint8_t>{0x6B, 0x00, 0x01, DICTOFF + 0, DICTOFF + 5,
+                                  0x74, 0x00}));
+}
+
+TEST(MessageDictionaryTest, CompressedMessageDecodesToSameCharacters) {
+  const std::vector<std::vector<uint8_t>> dictionary = {
+      {0x1D, 0x21, 0x1E, 0x59}, {0x21, 0x1E}, {0x59, 0x59}};
+  const std::vector<uint8_t> data = {0x1D, 0x21, 0x1E, 0x59, 0x59, 0x59,
+                                     0x75, 0x21, 0x1E, 0x7A, 0x59, 0x59};
+  const auto compressed = CompressMessageWithDictionary(data, dictionary);
+  ASSERT_LT(compressed.size(), data.size());
+
+  std::vector<uint8_t> decoded;
+  for (size_t index = 0; index < compressed.size(); ++index) {
+    const uint8_t value = compressed[index];
+    if (value >= DICTOFF) {
+      const auto& word = dictionary[value - DICTOFF];
+      decoded.insert(decoded.end(), word.begin(), word.end());
+      continue;
+    }
+    decoded.push_back(value);
+    if (value == 0x7A) {  // [S:xx] argument
+      decoded.push_back(compressed[++index]);
+    }
+  }
+  EXPECT_EQ(decoded, data);
+  EXPECT_EQ(ExpandMessageDictionary(compressed, dictionary), data);
+}
+
 }  // namespace yaze::editor

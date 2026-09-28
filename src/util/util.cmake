@@ -24,9 +24,16 @@ set(YAZE_UTIL_SRC
   util/file_util.cc
   util/rom_hash.cc
   util/hyrule_magic.cc  # Byte order utilities (moved from zelda3)
+  util/indexed_png.cc   # Indexed PNG encode/decode (miniz)
   util/i18n/translator.cc       # Runtime string translation (tr)
   util/i18n/language_manager.cc # Locale catalogs + active-language state
 )
+
+# miniz (public domain deflate/inflate + zip). One static target so the PNG
+# codec (util) and bundle pack/unpack (cli) share a single copy.
+add_library(yaze_miniz STATIC ${CMAKE_SOURCE_DIR}/ext/miniz/miniz.c)
+set_target_properties(yaze_miniz PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(yaze_miniz PUBLIC ${CMAKE_SOURCE_DIR}/ext/miniz)
 
 add_library(yaze_util STATIC ${YAZE_UTIL_SRC})
 
@@ -52,6 +59,7 @@ target_compile_definitions(yaze_util PRIVATE
 
 target_link_libraries(yaze_util PUBLIC
   yaze_common
+  yaze_miniz
 )
 
 # Add Abseil dependencies

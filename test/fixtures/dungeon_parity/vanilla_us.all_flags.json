@@ -1,0 +1,945 @@
+{
+  "capture": {
+    "entrance": "auto",
+    "required_rooms": [
+      "0x000",
+      "0x001",
+      "0x002",
+      "0x003",
+      "0x004",
+      "0x005",
+      "0x006",
+      "0x007",
+      "0x008",
+      "0x009",
+      "0x00A",
+      "0x00B",
+      "0x00C",
+      "0x00E",
+      "0x00F",
+      "0x010",
+      "0x011",
+      "0x012",
+      "0x013",
+      "0x014",
+      "0x015",
+      "0x016",
+      "0x017",
+      "0x018",
+      "0x019",
+      "0x01A",
+      "0x01B",
+      "0x01C",
+      "0x01D",
+      "0x01E",
+      "0x01F",
+      "0x020",
+      "0x021",
+      "0x022",
+      "0x023",
+      "0x024",
+      "0x025",
+      "0x026",
+      "0x027",
+      "0x028",
+      "0x029",
+      "0x02A",
+      "0x02B",
+      "0x02C",
+      "0x02D",
+      "0x02E",
+      "0x02F",
+      "0x030",
+      "0x031",
+      "0x032",
+      "0x033",
+      "0x034",
+      "0x035",
+      "0x036",
+      "0x037",
+      "0x038",
+      "0x039",
+      "0x03A",
+      "0x03B",
+      "0x03C",
+      "0x03D",
+      "0x03E",
+      "0x03F",
+      "0x040",
+      "0x041",
+      "0x042",
+      "0x043",
+      "0x044",
+      "0x045",
+      "0x046",
+      "0x047",
+      "0x048",
+      "0x049",
+      "0x04A",
+      "0x04B",
+      "0x04C",
+      "0x04D",
+      "0x04E",
+      "0x04F",
+      "0x050",
+      "0x051",
+      "0x052",
+      "0x053",
+      "0x054",
+      "0x055",
+      "0x056",
+      "0x057",
+      "0x058",
+      "0x059",
+      "0x05A",
+      "0x05B",
+      "0x05C",
+      "0x05D",
+      "0x05E",
+      "0x05F",
+      "0x060",
+      "0x061",
+      "0x062",
+      "0x063",
+      "0x064",
+      "0x065",
+      "0x066",
+      "0x067",
+      "0x068",
+      "0x069",
+      "0x06A",
+      "0x06B",
+      "0x06C",
+      "0x06D",
+      "0x06E",
+      "0x06F",
+      "0x070",
+      "0x071",
+      "0x072",
+      "0x073",
+      "0x074",
+      "0x075",
+      "0x076",
+      "0x077",
+      "0x078",
+      "0x079",
+      "0x07A",
+      "0x07B",
+      "0x07C",
+      "0x07D",
+      "0x07E",
+      "0x07F",
+      "0x080",
+      "0x081",
+      "0x082",
+      "0x083",
+      "0x084",
+      "0x085",
+      "0x086",
+      "0x087",
+      "0x088",
+      "0x089",
+      "0x08A",
+      "0x08B",
+      "0x08C",
+      "0x08D",
+      "0x08E",
+      "0x08F",
+      "0x090",
+      "0x091",
+      "0x092",
+      "0x093",
+      "0x094",
+      "0x095",
+      "0x096",
+      "0x097",
+      "0x098",
+      "0x099",
+      "0x09A",
+      "0x09B",
+      "0x09C",
+      "0x09D",
+      "0x09E",
+      "0x09F",
+      "0x0A0",
+      "0x0A1",
+      "0x0A2",
+      "0x0A3",
+      "0x0A4",
+      "0x0A5",
+      "0x0A6",
+      "0x0A7",
+      "0x0A8",
+      "0x0A9",
+      "0x0AA",
+      "0x0AB",
+      "0x0AC",
+      "0x0AD",
+      "0x0AE",
+      "0x0AF",
+      "0x0B0",
+      "0x0B1",
+      "0x0B2",
+      "0x0B3",
+      "0x0B4",
+      "0x0B5",
+      "0x0B6",
+      "0x0B7",
+      "0x0B8",
+      "0x0B9",
+      "0x0BA",
+      "0x0BB",
+      "0x0BC",
+      "0x0BD",
+      "0x0BE",
+      "0x0BF",
+      "0x0C0",
+      "0x0C1",
+      "0x0C2",
+      "0x0C3",
+      "0x0C4",
+      "0x0C5",
+      "0x0C6",
+      "0x0C7",
+      "0x0C8",
+      "0x0C9",
+      "0x0CA",
+      "0x0CB",
+      "0x0CC",
+      "0x0CD",
+      "0x0CE",
+      "0x0CF",
+      "0x0D0",
+      "0x0D1",
+      "0x0D2",
+      "0x0D3",
+      "0x0D4",
+      "0x0D5",
+      "0x0D6",
+      "0x0D7",
+      "0x0D8",
+      "0x0D9",
+      "0x0DA",
+      "0x0DB",
+      "0x0DC",
+      "0x0DD",
+      "0x0DE",
+      "0x0DF",
+      "0x0E0",
+      "0x0E1",
+      "0x0E2",
+      "0x0E3",
+      "0x0E4",
+      "0x0E5",
+      "0x0E6",
+      "0x0E7",
+      "0x0E8",
+      "0x0E9",
+      "0x0EA",
+      "0x0EB",
+      "0x0EC",
+      "0x0ED",
+      "0x0EE",
+      "0x0EF",
+      "0x0F0",
+      "0x0F1",
+      "0x0F2",
+      "0x0F3",
+      "0x0F4",
+      "0x0F5",
+      "0x0F6",
+      "0x0F7",
+      "0x0F8",
+      "0x0F9",
+      "0x0FA",
+      "0x0FB",
+      "0x0FC",
+      "0x0FD",
+      "0x0FE",
+      "0x0FF",
+      "0x100",
+      "0x101",
+      "0x102",
+      "0x103",
+      "0x104",
+      "0x105",
+      "0x106",
+      "0x107",
+      "0x108",
+      "0x109",
+      "0x10A",
+      "0x10B",
+      "0x10C",
+      "0x10D",
+      "0x10E",
+      "0x10F",
+      "0x111",
+      "0x113",
+      "0x114",
+      "0x115",
+      "0x116",
+      "0x117",
+      "0x118",
+      "0x119",
+      "0x11A",
+      "0x11B",
+      "0x11C",
+      "0x11D",
+      "0x11E",
+      "0x120",
+      "0x121",
+      "0x122",
+      "0x123",
+      "0x124",
+      "0x125",
+      "0x126",
+      "0x127"
+    ],
+    "rom_sha1": "93fb2bd3e19c96c50f124f1dd02144bca7f0af78",
+    "room_flags": "0xFF,0xFF"
+  },
+  "groups": [
+    {
+      "room": "0x000",
+      "reason": "triforce-door-opened-after-load",
+      "evidence": "RoomTag_GanonDoor ($01:C767) starts RoomDraw_OpenTriforceDoor ($01:F5DA, called from $02:9916) once no qualifying sprite remains; it animates the door open over several frames with STA.l $7E21D8,X, the 8x4 block at row 3, column 44 (upper tilemap) where every one of these tiles lies. The capture was taken after that animation. Why it fires with every room flag set, and not in the default capture, is inferred (no enemy left alive), not traced.",
+      "reviewed": true,
+      "tiles": [
+        {
+          "digest": "1482b01b0e94",
+          "layer": 1,
+          "x": 45,
+          "y": 3
+        },
+        {
+          "digest": "dd5a362ee2d7",
+          "layer": 1,
+          "x": 46,
+          "y": 3
+        },
+        {
+          "digest": "085065db18cb",
+          "layer": 1,
+          "x": 47,
+          "y": 3
+        },
+        {
+          "digest": "4731e3f3491c",
+          "layer": 1,
+          "x": 48,
+          "y": 3
+        },
+        {
+          "digest": "6b7705a8f3b3",
+          "layer": 1,
+          "x": 49,
+          "y": 3
+        },
+        {
+          "digest": "30758c1df1a4",
+          "layer": 1,
+          "x": 50,
+          "y": 3
+        },
+        {
+          "digest": "35d9516b6967",
+          "layer": 1,
+          "x": 45,
+          "y": 4
+        },
+        {
+          "digest": "b842cd9a68f8",
+          "layer": 1,
+          "x": 46,
+          "y": 4
+        },
+        {
+          "digest": "735dd91154c3",
+          "layer": 1,
+          "x": 47,
+          "y": 4
+        },
+        {
+          "digest": "dfd413a6c1b3",
+          "layer": 1,
+          "x": 48,
+          "y": 4
+        },
+        {
+          "digest": "8f54109fe6de",
+          "layer": 1,
+          "x": 49,
+          "y": 4
+        },
+        {
+          "digest": "242b76f1aac2",
+          "layer": 1,
+          "x": 50,
+          "y": 4
+        },
+        {
+          "digest": "ac0eb21ff5f4",
+          "layer": 1,
+          "x": 44,
+          "y": 5
+        },
+        {
+          "digest": "b7a5a0b31954",
+          "layer": 1,
+          "x": 45,
+          "y": 5
+        },
+        {
+          "digest": "5e07b02902b5",
+          "layer": 1,
+          "x": 46,
+          "y": 5
+        },
+        {
+          "digest": "b7a5a0b31954",
+          "layer": 1,
+          "x": 47,
+          "y": 5
+        },
+        {
+          "digest": "5e07b02902b5",
+          "layer": 1,
+          "x": 48,
+          "y": 5
+        },
+        {
+          "digest": "b7a5a0b31954",
+          "layer": 1,
+          "x": 49,
+          "y": 5
+        },
+        {
+          "digest": "5e07b02902b5",
+          "layer": 1,
+          "x": 50,
+          "y": 5
+        },
+        {
+          "digest": "3fdf3db0e9bb",
+          "layer": 1,
+          "x": 51,
+          "y": 5
+        },
+        {
+          "digest": "dedbf3810942",
+          "layer": 1,
+          "x": 44,
+          "y": 6
+        },
+        {
+          "digest": "46ddb6a22f4f",
+          "layer": 1,
+          "x": 45,
+          "y": 6
+        },
+        {
+          "digest": "70a1b4e2e3a8",
+          "layer": 1,
+          "x": 46,
+          "y": 6
+        },
+        {
+          "digest": "46ddb6a22f4f",
+          "layer": 1,
+          "x": 47,
+          "y": 6
+        },
+        {
+          "digest": "70a1b4e2e3a8",
+          "layer": 1,
+          "x": 48,
+          "y": 6
+        },
+        {
+          "digest": "46ddb6a22f4f",
+          "layer": 1,
+          "x": 49,
+          "y": 6
+        },
+        {
+          "digest": "70a1b4e2e3a8",
+          "layer": 1,
+          "x": 50,
+          "y": 6
+        },
+        {
+          "digest": "a1669e35dd22",
+          "layer": 1,
+          "x": 51,
+          "y": 6
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. These tiles differ in exactly the same way (same position and digest) in the default capture, where the game's WRAM shows $0468=0000 and open-door bits in $068C beyond the load-time mask, and CollisionMatchesCapture finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x01C",
+      "tiles": [
+        {
+          "digest": "31d02224b731",
+          "layer": 1,
+          "x": 27,
+          "y": 47
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 1,
+          "x": 28,
+          "y": 47
+        },
+        {
+          "digest": "9f2313d692c9",
+          "layer": 1,
+          "x": 29,
+          "y": 47
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 1,
+          "x": 27,
+          "y": 48
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 1,
+          "x": 28,
+          "y": 48
+        },
+        {
+          "digest": "62cc5525ef86",
+          "layer": 1,
+          "x": 29,
+          "y": 48
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 1,
+          "x": 27,
+          "y": 49
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 1,
+          "x": 28,
+          "y": 49
+        },
+        {
+          "digest": "906e9212baa7",
+          "layer": 1,
+          "x": 29,
+          "y": 49
+        },
+        {
+          "digest": "50091421618e",
+          "layer": 1,
+          "x": 27,
+          "y": 50
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 1,
+          "x": 28,
+          "y": 50
+        },
+        {
+          "digest": "a0d5be752c6f",
+          "layer": 1,
+          "x": 29,
+          "y": 50
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. These tiles differ in exactly the same way (same position and digest) in the default capture, where the game's WRAM shows $0468=0000 and open-door bits in $068C beyond the load-time mask, and CollisionMatchesCapture finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x05D",
+      "tiles": [
+        {
+          "digest": "31d02224b731",
+          "layer": 1,
+          "x": 27,
+          "y": 15
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 1,
+          "x": 28,
+          "y": 15
+        },
+        {
+          "digest": "9f2313d692c9",
+          "layer": 1,
+          "x": 29,
+          "y": 15
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 1,
+          "x": 27,
+          "y": 16
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 1,
+          "x": 28,
+          "y": 16
+        },
+        {
+          "digest": "62cc5525ef86",
+          "layer": 1,
+          "x": 29,
+          "y": 16
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 1,
+          "x": 27,
+          "y": 17
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 1,
+          "x": 28,
+          "y": 17
+        },
+        {
+          "digest": "906e9212baa7",
+          "layer": 1,
+          "x": 29,
+          "y": 17
+        },
+        {
+          "digest": "50091421618e",
+          "layer": 1,
+          "x": 27,
+          "y": 18
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 1,
+          "x": 28,
+          "y": 18
+        },
+        {
+          "digest": "a0d5be752c6f",
+          "layer": 1,
+          "x": 29,
+          "y": 18
+        },
+        {
+          "digest": "e15526ef1de5",
+          "layer": 1,
+          "x": 14,
+          "y": 27
+        },
+        {
+          "digest": "9e2f097d926b",
+          "layer": 1,
+          "x": 15,
+          "y": 27
+        },
+        {
+          "digest": "bc5bdcffd49d",
+          "layer": 1,
+          "x": 16,
+          "y": 27
+        },
+        {
+          "digest": "5791bef64c1f",
+          "layer": 1,
+          "x": 17,
+          "y": 27
+        },
+        {
+          "digest": "8e121e89258e",
+          "layer": 1,
+          "x": 14,
+          "y": 28
+        },
+        {
+          "digest": "c91a0027af20",
+          "layer": 1,
+          "x": 15,
+          "y": 28
+        },
+        {
+          "digest": "db147aafc5c3",
+          "layer": 1,
+          "x": 16,
+          "y": 28
+        },
+        {
+          "digest": "34f5ba8f6a93",
+          "layer": 1,
+          "x": 17,
+          "y": 28
+        },
+        {
+          "digest": "f6f73d97028d",
+          "layer": 1,
+          "x": 14,
+          "y": 29
+        },
+        {
+          "digest": "40e3019afb90",
+          "layer": 1,
+          "x": 15,
+          "y": 29
+        },
+        {
+          "digest": "95e7fa9f87f9",
+          "layer": 1,
+          "x": 16,
+          "y": 29
+        },
+        {
+          "digest": "2e2e11ca48a9",
+          "layer": 1,
+          "x": 17,
+          "y": 29
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. These tiles differ in exactly the same way (same position and digest) in the default capture, where the game's WRAM shows $0468=0000 and open-door bits in $068C beyond the load-time mask, and CollisionMatchesCapture finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x06B",
+      "tiles": [
+        {
+          "digest": "e15526ef1de5",
+          "layer": 1,
+          "x": 14,
+          "y": 27
+        },
+        {
+          "digest": "9e2f097d926b",
+          "layer": 1,
+          "x": 15,
+          "y": 27
+        },
+        {
+          "digest": "bc5bdcffd49d",
+          "layer": 1,
+          "x": 16,
+          "y": 27
+        },
+        {
+          "digest": "5791bef64c1f",
+          "layer": 1,
+          "x": 17,
+          "y": 27
+        },
+        {
+          "digest": "8e121e89258e",
+          "layer": 1,
+          "x": 14,
+          "y": 28
+        },
+        {
+          "digest": "c91a0027af20",
+          "layer": 1,
+          "x": 15,
+          "y": 28
+        },
+        {
+          "digest": "db147aafc5c3",
+          "layer": 1,
+          "x": 16,
+          "y": 28
+        },
+        {
+          "digest": "34f5ba8f6a93",
+          "layer": 1,
+          "x": 17,
+          "y": 28
+        },
+        {
+          "digest": "f6f73d97028d",
+          "layer": 1,
+          "x": 14,
+          "y": 29
+        },
+        {
+          "digest": "40e3019afb90",
+          "layer": 1,
+          "x": 15,
+          "y": 29
+        },
+        {
+          "digest": "95e7fa9f87f9",
+          "layer": 1,
+          "x": 16,
+          "y": 29
+        },
+        {
+          "digest": "2e2e11ca48a9",
+          "layer": 1,
+          "x": 17,
+          "y": 29
+        },
+        {
+          "digest": "31d02224b731",
+          "layer": 1,
+          "x": 27,
+          "y": 47
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 1,
+          "x": 28,
+          "y": 47
+        },
+        {
+          "digest": "9f2313d692c9",
+          "layer": 1,
+          "x": 29,
+          "y": 47
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 1,
+          "x": 27,
+          "y": 48
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 1,
+          "x": 28,
+          "y": 48
+        },
+        {
+          "digest": "62cc5525ef86",
+          "layer": 1,
+          "x": 29,
+          "y": 48
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 1,
+          "x": 27,
+          "y": 49
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 1,
+          "x": 28,
+          "y": 49
+        },
+        {
+          "digest": "906e9212baa7",
+          "layer": 1,
+          "x": 29,
+          "y": 49
+        },
+        {
+          "digest": "50091421618e",
+          "layer": 1,
+          "x": 27,
+          "y": 50
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 1,
+          "x": 28,
+          "y": 50
+        },
+        {
+          "digest": "a0d5be752c6f",
+          "layer": 1,
+          "x": 29,
+          "y": 50
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. These tiles differ in exactly the same way (same position and digest) in the default capture, where the game's WRAM shows $0468=0000 and open-door bits in $068C beyond the load-time mask, and CollisionMatchesCapture finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x071",
+      "tiles": [
+        {
+          "digest": "1aac7b0a4adf",
+          "layer": 2,
+          "x": 24,
+          "y": 47
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 2,
+          "x": 25,
+          "y": 47
+        },
+        {
+          "digest": "ae087912f3e1",
+          "layer": 2,
+          "x": 26,
+          "y": 47
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 2,
+          "x": 24,
+          "y": 48
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 2,
+          "x": 25,
+          "y": 48
+        },
+        {
+          "digest": "aae71177b0c8",
+          "layer": 2,
+          "x": 26,
+          "y": 48
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 2,
+          "x": 24,
+          "y": 49
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 2,
+          "x": 25,
+          "y": 49
+        },
+        {
+          "digest": "220d4c6f4235",
+          "layer": 2,
+          "x": 26,
+          "y": 49
+        },
+        {
+          "digest": "951c20253450",
+          "layer": 2,
+          "x": 24,
+          "y": 50
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 2,
+          "x": 25,
+          "y": 50
+        },
+        {
+          "digest": "2470ea8c58ae",
+          "layer": 2,
+          "x": 26,
+          "y": 50
+        }
+      ]
+    }
+  ],
+  "state": "all-flags",
+  "version": 1
+}

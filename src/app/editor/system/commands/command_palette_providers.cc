@@ -1,9 +1,15 @@
 #include "app/editor/system/commands/command_palette_providers.h"
 
+#include <map>
 #include <utility>
 
+#include "absl/strings/match.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/editor.h"
+#include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/editor/system/workspace/editor_registry.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 
 namespace yaze {
@@ -38,6 +44,76 @@ DungeonRoomCommandsProvider::DungeonRoomCommandsProvider(size_t session_id)
 
 void DungeonRoomCommandsProvider::Provide(CommandPalette* palette) {
   palette->RegisterDungeonRoomCommands(session_id_);
+}
+
+std::string LookupShortcutHint(const ShortcutManager* shortcut_manager,
+                               const std::string& name) {
+  return shortcut_manager ? shortcut_manager->GetDisplayString(name)
+                          : std::string();
+}
+
+std::string PaletteNameForShortcut(const std::string& name) {
+  if (!CommandPalette::IsInternalCommandId(name))
+    return name;
+  // "switch.<EditorType>" -> "Switch to <Editor Name>" so it merges with the
+  // palette's "Switch to: <Category> Editor" entry and lends it Ctrl+<n>.
+  if (absl::StartsWith(name, "switch.")) {
+    int type_value = 0;
+    if (absl::SimpleAtoi(name.substr(7), &type_value) && type_value > 0 &&
+        type_value < static_cast<int>(kEditorTypeCount)) {
+      return "Switch to " +
+             EditorRegistry::GetEditorName(static_cast<EditorType>(type_value));
+    }
+  }
+  return {};
+}
+
+OverworldMapCommandsProvider::OverworldMapCommandsProvider(size_t session_id)
+    : session_id_(session_id) {}
+
+void OverworldMapCommandsProvider::Provide(CommandPalette* palette) {
+  palette->RegisterOverworldMapCommands(session_id_);
+}
+
+ShortcutCommandsProvider::ShortcutCommandsProvider(
+    const ShortcutManager* shortcut_manager)
+    : shortcut_manager_(shortcut_manager) {}
+
+void ShortcutCommandsProvider::Provide(CommandPalette* palette) {
+  if (!palette || !shortcut_manager_)
+    return;
+  // Several ids can map to one palette name ("switch.6" and the keyless
+  // "Switch to Overworld Editor" command). Keep the bound one so the hint is
+  // not lost to unordered_map iteration order.
+  struct Pick {
+    std::string source;
+    std::string hint;
+  };
+  std::map<std::string, Pick> picks;
+  for (const auto& [name, shortcut] : shortcut_manager_->GetShortcuts()) {
+    if (!shortcut.callback)
+      continue;  // Bindings without an action would be no-op rows.
+    const std::string palette_name = PaletteNameForShortcut(name);
+    if (palette_name.empty())
+      continue;
+    Pick pick{name, LookupShortcutHint(shortcut_manager_, name)};
+    auto it = picks.find(palette_name);
+    if (it == picks.end()) {
+      picks.emplace(palette_name, std::move(pick));
+    } else if (it->second.hint.empty() && !pick.hint.empty()) {
+      it->second = std::move(pick);
+    }
+  }
+  const ShortcutManager* manager = shortcut_manager_;
+  for (const auto& [palette_name, pick] : picks) {
+    palette->AddCommand(palette_name, "Shortcuts",
+                        InferShortcutGroup(pick.source), pick.hint,
+                        [manager, source = pick.source]() {
+                          const Shortcut* live = manager->FindShortcut(source);
+                          if (live && live->callback)
+                            live->callback();
+                        });
+  }
 }
 
 DrawerCommandsProvider::DrawerCommandsProvider(

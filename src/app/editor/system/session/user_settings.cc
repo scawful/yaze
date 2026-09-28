@@ -89,6 +89,13 @@ constexpr std::array<const char*, 10> kDungeonWorkbenchDuplicatePanels = {
     "dungeon.entrance_list",   "dungeon.entrance_properties",
 };
 
+constexpr std::array<const char*, 7> kDungeonDemotedUtilityPanels = {
+    "dungeon.custom_collision",   "dungeon.water_fill",
+    "dungeon.room_tags",          "dungeon.object_coverage",
+    "dungeon.object_tile_editor", "dungeon.overlay_manager",
+    "dungeon.minecart_tracks",
+};
+
 void ApplyDungeonWorkbenchVisibilityDefaults(
     std::unordered_map<std::string, bool>* panel_state) {
   if (!panel_state) {
@@ -96,6 +103,17 @@ void ApplyDungeonWorkbenchVisibilityDefaults(
   }
   (*panel_state)["dungeon.workbench"] = true;
   for (const char* panel_id : kDungeonWorkbenchDuplicatePanels) {
+    (*panel_state)[panel_id] = false;
+  }
+}
+
+void ApplyDungeonPanelAdmissionDefaults(
+    std::unordered_map<std::string, bool>* panel_state) {
+  ApplyDungeonWorkbenchVisibilityDefaults(panel_state);
+  if (!panel_state) {
+    return;
+  }
+  for (const char* panel_id : kDungeonDemotedUtilityPanels) {
     (*panel_state)[panel_id] = false;
   }
 }
@@ -219,6 +237,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->last_project_path = val;
     } else if (key == "show_welcome_on_startup") {
       prefs->show_welcome_on_startup = (val == "1");
+    } else if (key == "test_mode") {
+      prefs->test_mode = (val == "1");
     } else if (key == "restore_last_session") {
       prefs->restore_last_session = (val == "1");
     } else if (key == "prefer_hmagic_sprite_names") {
@@ -328,6 +348,16 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
           to_int(val, prefs->panel_layout_defaults_revision);
     } else if (key == "sidebar_active_category") {
       prefs->sidebar_active_category = val;
+    } else if (key.rfind("sidebar_context_collapsed.", 0) == 0) {
+      const std::string category =
+          key.substr(std::string("sidebar_context_collapsed.").size());
+      if (!category.empty()) {
+        if (val == "1") {
+          prefs->sidebar_context_collapsed.insert(category);
+        } else {
+          prefs->sidebar_context_collapsed.erase(category);
+        }
+      }
     } else if (key == "dungeon_inspector_side") {
       prefs->dungeon_inspector_side =
           (val == "left") ? std::string("left") : std::string("right");
@@ -403,6 +433,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "last_project_path=" << prefs.last_project_path << "\n";
   ss << "show_welcome_on_startup=" << (prefs.show_welcome_on_startup ? 1 : 0)
      << "\n";
+  ss << "test_mode=" << (prefs.test_mode ? 1 : 0) << "\n";
   ss << "restore_last_session=" << (prefs.restore_last_session ? 1 : 0) << "\n";
   ss << "prefer_hmagic_sprite_names="
      << (prefs.prefer_hmagic_sprite_names ? 1 : 0) << "\n";
@@ -466,6 +497,9 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "panel_layout_defaults_revision="
      << prefs.panel_layout_defaults_revision << "\n";
   ss << "sidebar_active_category=" << prefs.sidebar_active_category << "\n";
+  for (const std::string& category : prefs.sidebar_context_collapsed) {
+    ss << "sidebar_context_collapsed." << category << "=1\n";
+  }
   ss << "dungeon_inspector_side=" << prefs.dungeon_inspector_side << "\n";
 
   // Status Bar
@@ -786,6 +820,7 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         g.value("last_project_path", prefs->last_project_path);
     prefs->show_welcome_on_startup =
         g.value("show_welcome_on_startup", prefs->show_welcome_on_startup);
+    prefs->test_mode = g.value("test_mode", prefs->test_mode);
     prefs->restore_last_session =
         g.value("restore_last_session", prefs->restore_last_session);
     prefs->prefer_hmagic_sprite_names = g.value(
@@ -979,6 +1014,15 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         }
       }
     }
+    if (sidebar.contains("context_collapsed") &&
+        sidebar["context_collapsed"].is_array()) {
+      prefs->sidebar_context_collapsed.clear();
+      for (const auto& item : sidebar["context_collapsed"]) {
+        if (item.is_string()) {
+          prefs->sidebar_context_collapsed.insert(item.get<std::string>());
+        }
+      }
+    }
   }
 
   if (root.contains("status_bar")) {
@@ -1079,6 +1123,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"last_rom_path", prefs.last_rom_path},
       {"last_project_path", prefs.last_project_path},
       {"show_welcome_on_startup", prefs.show_welcome_on_startup},
+      {"test_mode", prefs.test_mode},
       {"restore_last_session", prefs.restore_last_session},
       {"prefer_hmagic_sprite_names", prefs.prefer_hmagic_sprite_names},
       {"welcome_triforce_alpha", prefs.welcome_triforce_alpha},
@@ -1191,6 +1236,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"order", prefs.sidebar_order},
       {"hidden", set_to_sorted_vec(prefs.sidebar_hidden)},
       {"pinned", set_to_sorted_vec(prefs.sidebar_pinned)},
+      {"context_collapsed", set_to_sorted_vec(prefs.sidebar_context_collapsed)},
   };
 
   root["status_bar"] = {
@@ -1690,6 +1736,18 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
   if (prefs_.panel_layout_defaults_revision < 24 && target_revision >= 24) {
     prefs_.sidebar_panel_expanded = false;
     prefs_.panel_layout_defaults_revision = 24;
+    applied = true;
+  }
+
+  // Revision 25: utility and diagnostic dungeon surfaces are hosted by the
+  // Workbench first. Close only persisted live visibility; explicit pins and
+  // user-authored named layouts remain untouched.
+  if (prefs_.panel_layout_defaults_revision < 25 && target_revision >= 25) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      ApplyDungeonPanelAdmissionDefaults(&dungeon_it->second);
+    }
+    prefs_.panel_layout_defaults_revision = 25;
     applied = true;
   }
 

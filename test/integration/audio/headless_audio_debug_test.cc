@@ -77,7 +77,8 @@ struct AudioTimingMetrics {
         << " (expected: " << kExpectedApuMasterRatio << ")\n";
     oss << "\n";
     oss << "Samples/frame: avg=" << samples_per_frame_avg
-        << ", min=" << samples_per_frame_min << ", max=" << samples_per_frame_max
+        << ", min=" << samples_per_frame_min
+        << ", max=" << samples_per_frame_max
         << " (expected: " << kExpectedSamplesPerFrame << ")\n";
     oss << "Max drift: " << (max_drift_percent * 100.0) << "%\n";
     return oss.str();
@@ -166,13 +167,15 @@ class HeadlessAudioDebugTest : public TestRomManager::BoundRomTest {
 
       // Track max drift from expected
       double apu_drift =
-          std::abs(sec_apu_rate - AudioTimingMetrics::kExpectedApuCyclesPerSecond) /
+          std::abs(sec_apu_rate -
+                   AudioTimingMetrics::kExpectedApuCyclesPerSecond) /
           AudioTimingMetrics::kExpectedApuCyclesPerSecond;
       double sample_drift =
-          std::abs(sec_sample_rate - AudioTimingMetrics::kExpectedSamplesPerSecond) /
+          std::abs(sec_sample_rate -
+                   AudioTimingMetrics::kExpectedSamplesPerSecond) /
           AudioTimingMetrics::kExpectedSamplesPerSecond;
-      metrics.max_drift_percent =
-          std::max(metrics.max_drift_percent, std::max(apu_drift, sample_drift));
+      metrics.max_drift_percent = std::max(metrics.max_drift_percent,
+                                           std::max(apu_drift, sample_drift));
     }
 
     uint64_t end_apu = apu_->GetCycles();
@@ -180,8 +183,8 @@ class HeadlessAudioDebugTest : public TestRomManager::BoundRomTest {
 
     metrics.total_apu_cycles = end_apu - start_apu;
     metrics.total_dsp_samples = (end_samples >= start_samples)
-                                     ? (end_samples - start_samples)
-                                     : (2048 - start_samples + end_samples);
+                                    ? (end_samples - start_samples)
+                                    : (2048 - start_samples + end_samples);
 
     // For long tests, we need to track cumulative samples differently
     // since the ring buffer wraps. Use per-second totals instead.
@@ -190,7 +193,8 @@ class HeadlessAudioDebugTest : public TestRomManager::BoundRomTest {
       for (double rate : metrics.per_second_sample_rates) {
         total_samples_from_rates += rate;
       }
-      metrics.total_dsp_samples = static_cast<uint64_t>(total_samples_from_rates);
+      metrics.total_dsp_samples =
+          static_cast<uint64_t>(total_samples_from_rates);
     }
 
     // Calculate rates
@@ -199,7 +203,8 @@ class HeadlessAudioDebugTest : public TestRomManager::BoundRomTest {
     metrics.dsp_samples_per_second =
         static_cast<double>(metrics.total_dsp_samples) / duration_seconds;
     metrics.apu_to_master_ratio =
-        static_cast<double>(metrics.total_apu_cycles) / metrics.total_master_cycles;
+        static_cast<double>(metrics.total_apu_cycles) /
+        metrics.total_master_cycles;
 
     // Calculate per-frame average
     int total_frames = duration_seconds * kFramesPerSecond;
@@ -259,15 +264,15 @@ TEST_F(HeadlessAudioDebugTest, FullTimingDiagnostic) {
   LOG_INFO("AudioDebug", "\n%s", metrics.ToString().c_str());
 
   // Verify APU cycle rate
-  double apu_ratio =
-      metrics.apu_cycles_per_second / AudioTimingMetrics::kExpectedApuCyclesPerSecond;
+  double apu_ratio = metrics.apu_cycles_per_second /
+                     AudioTimingMetrics::kExpectedApuCyclesPerSecond;
   EXPECT_NEAR(apu_ratio, 1.0, 0.01)
       << "APU cycle rate should be within 1% of expected. "
       << "Got " << metrics.apu_cycles_per_second << " cycles/sec";
 
   // Verify DSP sample rate
-  double sample_ratio =
-      metrics.dsp_samples_per_second / AudioTimingMetrics::kExpectedSamplesPerSecond;
+  double sample_ratio = metrics.dsp_samples_per_second /
+                        AudioTimingMetrics::kExpectedSamplesPerSecond;
   EXPECT_NEAR(sample_ratio, 1.0, 0.01)
       << "DSP sample rate should be within 1% of expected. "
       << "Got " << metrics.dsp_samples_per_second << " samples/sec";
@@ -278,8 +283,7 @@ TEST_F(HeadlessAudioDebugTest, FullTimingDiagnostic) {
       << "Samples per frame should be ~533";
 
   // Verify no significant drift
-  EXPECT_LT(metrics.max_drift_percent, 0.02)
-      << "Max drift should be < 2%";
+  EXPECT_LT(metrics.max_drift_percent, 0.02) << "Max drift should be < 2%";
 }
 
 TEST_F(HeadlessAudioDebugTest, CycleRateDriftOverTime) {
@@ -317,15 +321,14 @@ TEST_F(HeadlessAudioDebugTest, CycleRateDriftOverTime) {
              "Drift analysis: first_half=%.0f, second_half=%.0f, drift=%.4f%%",
              first_half_avg, second_half_avg, drift * 100);
 
-    EXPECT_LT(drift, 0.001)
-        << "APU cycle rate should not drift over time. "
-        << "First half avg: " << first_half_avg
-        << ", Second half avg: " << second_half_avg;
+    EXPECT_LT(drift, 0.001) << "APU cycle rate should not drift over time. "
+                            << "First half avg: " << first_half_avg
+                            << ", Second half avg: " << second_half_avg;
   }
 
   // Overall timing should still be accurate
-  double overall_ratio =
-      metrics.apu_cycles_per_second / AudioTimingMetrics::kExpectedApuCyclesPerSecond;
+  double overall_ratio = metrics.apu_cycles_per_second /
+                         AudioTimingMetrics::kExpectedApuCyclesPerSecond;
   EXPECT_NEAR(overall_ratio, 1.0, 0.005)
       << "After 60 seconds, timing should be within 0.5% of expected";
 }
@@ -336,9 +339,13 @@ TEST_F(HeadlessAudioDebugTest, SampleBufferDoesNotOverflow) {
 
   uint32_t prev_offset = apu_->dsp().GetSampleOffset();
   int wrap_count = 0;
+  uint64_t cumulative_master_cycles = 0;
 
   for (int frame = 0; frame < kTestFrames; ++frame) {
-    apu_->RunCycles(357366);  // One NTSC frame
+    // APU expects cumulative master cycles; passing one frame's count every
+    // time advances nothing after the first frame.
+    cumulative_master_cycles += 357366;  // One NTSC frame
+    apu_->RunCycles(cumulative_master_cycles);
 
     uint32_t curr_offset = apu_->dsp().GetSampleOffset();
 
@@ -374,8 +381,8 @@ TEST_F(HeadlessAudioDebugTest, NotPlayingAt15xSpeed) {
   AudioTimingMetrics metrics = CollectMetrics(kTestDurationSeconds);
 
   // At 1.5x speed, we'd see ~48060 samples/sec instead of ~32040
-  double speed_ratio =
-      metrics.dsp_samples_per_second / AudioTimingMetrics::kExpectedSamplesPerSecond;
+  double speed_ratio = metrics.dsp_samples_per_second /
+                       AudioTimingMetrics::kExpectedSamplesPerSecond;
 
   LOG_INFO("AudioDebug", "Speed ratio: %.4fx (1.0x expected)", speed_ratio);
 

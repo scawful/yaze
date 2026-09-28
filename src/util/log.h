@@ -60,6 +60,12 @@ class LogManager {
            absl::string_view message);
 
   /**
+   * @brief Writes buffered file output now. log() flushes warnings and
+   * errors at once but batches other lines for up to a second.
+   */
+  void Flush();
+
+  /**
    * @brief Fast inline check if logging is enabled for the given level.
    */
   bool ShouldLog(LogLevel level) const {

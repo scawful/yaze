@@ -3,6 +3,7 @@
 
 #include "app/platform/sdl_compat.h"
 
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -102,6 +103,14 @@ class Controller {
   friend int ::main(int argc, char** argv);
 
   bool active_ = false;
+  // Idle pacing (see Controller::OnInput): time of the last window event,
+  // whether the window is hidden, and the end of the previous frame.
+  std::chrono::steady_clock::time_point last_event_time_ =
+      std::chrono::steady_clock::now();
+  bool window_hidden_ = false;
+  // Written by DoRender() const.
+  mutable std::chrono::steady_clock::time_point last_frame_end_ =
+      std::chrono::steady_clock::now();
   std::unique_ptr<platform::IWindowBackend> window_backend_;
   editor::EditorManager editor_manager_;
   std::unique_ptr<gfx::IRenderer> renderer_;

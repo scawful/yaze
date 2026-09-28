@@ -12,6 +12,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
@@ -1186,65 +1187,74 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     const ImVec2 cursor_pos = ImGui::GetItemRectMin();
     const ImVec2 item_max = ImGui::GetItemRectMax();
 
-    if (ImGui::BeginPopupContextItem("ProjectPanelMenu")) {
+    gui::ItemContextMenu("ProjectPanelMenu", [&]() {
+      std::vector<gui::MenuItemSpec> items;
       if (project.is_missing) {
-        // Missing file: offer relink + forget instead of open. Destructive "Open"
-        // is hidden because it would just fail.
-        if (ImGui::MenuItem(ICON_MD_SEARCH " Locate...")) {
+        // Missing file: offer relink + forget instead of open. "Open" is
+        // hidden because it would just fail.
+        gui::MenuItemSpec locate("Locate...", ICON_MD_SEARCH, [&]() {
           const std::string new_path =
               util::FileDialogWrapper::ShowOpenFileDialog();
           if (!new_path.empty() && new_path != project.filepath) {
             recent_projects_model_.RelinkRecent(project.filepath, new_path);
           }
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(tr(
-              "Point at the new location for this file. Pin/rename/notes are "
-              "preserved."));
-        }
+        });
+        locate.tooltip =
+            tr("Point at the new location for this file. Pin/rename/notes are "
+               "preserved.");
+        items.push_back(std::move(locate));
       } else if (can_open) {
-        if (ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open")) {
+        items.emplace_back("Open", ICON_MD_OPEN_IN_NEW, [&]() {
           if (open_project_callback_) {
             open_project_callback_(project.filepath);
           }
-        }
+        });
       } else {
-        ImGui::BeginDisabled();
-        ImGui::MenuItem(ICON_MD_WARNING " Re-open required");
-        ImGui::EndDisabled();
+        items.push_back(gui::MenuItemSpec::Disabled("Re-open required"));
+        items.back().icon = ICON_MD_WARNING;
       }
-      ImGui::Separator();
-      if (ImGui::MenuItem(project.pinned ? ICON_MD_PUSH_PIN " Unpin"
-                                         : ICON_MD_PUSH_PIN " Pin")) {
-        recent_projects_model_.SetPinned(project.filepath, !project.pinned);
-      }
-      if (ImGui::MenuItem(ICON_MD_EDIT " Rename...")) {
+      items.back().separator_after = true;
+
+      items.push_back(gui::CopyToClipboardItem("Copy Path", project.filepath));
+      items.emplace_back("Rename...", ICON_MD_DRIVE_FILE_RENAME_OUTLINE, [&]() {
         pending_annotation_kind_ = RecentAnnotationKind::Rename;
         pending_annotation_path_ = project.filepath;
-        // Seed the buffer with the current display name (empty override falls
-        // back to the filename so the user can start from what they see).
+        // Seed the buffer with the current display name (empty override
+        // falls back to the filename so the user can start from what they
+        // see).
         std::snprintf(rename_buffer_, sizeof(rename_buffer_), "%s",
                       project.display_name_override.empty()
                           ? project.name.c_str()
                           : project.display_name_override.c_str());
-      }
-      if (ImGui::MenuItem(ICON_MD_NOTE " Edit Notes...")) {
+      });
+      items.emplace_back("Edit Notes...", ICON_MD_NOTE, [&]() {
         pending_annotation_kind_ = RecentAnnotationKind::EditNotes;
         pending_annotation_path_ = project.filepath;
         std::snprintf(notes_buffer_, sizeof(notes_buffer_), "%s",
                       project.notes.c_str());
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Copy Path")) {
-        ImGui::SetClipboardText(project.filepath.c_str());
-      }
-      if (ImGui::MenuItem(project.is_missing ? ICON_MD_DELETE_SWEEP " Forget"
-                                             : ICON_MD_DELETE_SWEEP
-                              " Remove from Recents")) {
+      });
+      items.back().separator_after = true;
+
+      items.emplace_back(
+          project.pinned ? "Unpin" : "Pin", ICON_MD_PUSH_PIN, [&]() {
+            recent_projects_model_.SetPinned(project.filepath, !project.pinned);
+          });
+      items.back().separator_after = true;
+
+      // Forgetting a missing entry drops its pin/rename/notes with no way to
+      // restore them, so it confirms. The file itself is never touched.
+      auto remove_recent = [&]() {
         recent_projects_model_.RemoveRecent(project.filepath);
+      };
+      if (project.is_missing) {
+        items.push_back(gui::MenuItemSpec::Destructive(
+            "Forget...", ICON_MD_DELETE_SWEEP, remove_recent));
+      } else {
+        items.emplace_back("Remove from Recents", ICON_MD_DELETE_SWEEP,
+                           remove_recent);
       }
-      ImGui::EndPopup();
-    }
+      return items;
+    });
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     // Card surface, at the same rounding as the border that follows it.

@@ -18,7 +18,10 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
+#include "core/project.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#include "zelda3/gfx_sheet_storage.h"
 
 namespace yaze {
 namespace cli {
@@ -177,31 +180,10 @@ absl::StatusOr<std::vector<uint8_t>> VisualAnalysisBase::ExtractTileAtPosition(
 }
 
 bool VisualAnalysisBase::IsRegionEmpty(const std::vector<uint8_t>& data) const {
-  if (data.empty()) {
-    return true;
-  }
-
-  // Check if all bytes are 0x00 (fully transparent/black)
-  bool all_zero = std::all_of(data.begin(), data.end(),
-                              [](uint8_t b) { return b == 0x00; });
-  if (all_zero) {
-    return true;
-  }
-
-  // Check if all bytes are 0xFF (common empty pattern)
-  bool all_ff = std::all_of(data.begin(), data.end(),
-                            [](uint8_t b) { return b == 0xFF; });
-  if (all_ff) {
-    return true;
-  }
-
-  // Check if mostly empty (>95% zeroes)
-  int zero_count = std::count(data.begin(), data.end(), 0x00);
-  if (static_cast<double>(zero_count) / data.size() > 0.95) {
-    return true;
-  }
-
-  return false;
+  // A region is free only when every pixel is palette index 0. Missing data
+  // is not evidence of free space, and 0xFF or "mostly zero" pixels are art.
+  return !data.empty() && std::all_of(data.begin(), data.end(),
+                                      [](uint8_t b) { return b == 0x00; });
 }
 
 int VisualAnalysisBase::GetTileCountForSheet(int sheet_index) const {
@@ -479,8 +461,25 @@ absl::Status SpritesheetAnalysisTool::Execute(
       all_regions.begin(), all_regions.end(),
       [](const auto& a, const auto& b) { return a.tile_count > b.tile_count; });
 
-  // Output results
-  std::cout << FormatRegionsAsJson(all_regions);
+  // Output results through the formatter so callers capture them.
+  if (formatter.IsJson()) {
+    const auto document =
+        nlohmann::json::parse(FormatRegionsAsJson(all_regions));
+    for (const auto& [key, value] : document.items()) {
+      formatter.AddRawJsonField(key, value.dump());
+    }
+  } else {
+    int total_tiles = 0;
+    for (const auto& region : all_regions) {
+      total_tiles += region.tile_count;
+      formatter.AddField(
+          absl::StrFormat("sheet 0x%02X", region.sheet_index),
+          absl::StrFormat("x=%d y=%d %dx%d (%d tiles)", region.x, region.y,
+                          region.width, region.height, region.tile_count));
+    }
+    formatter.AddField("total_regions", static_cast<int>(all_regions.size()));
+    formatter.AddField("total_free_tiles", total_tiles);
+  }
 
   return absl::OkStatus();
 }
@@ -488,44 +487,70 @@ absl::Status SpritesheetAnalysisTool::Execute(
 std::vector<UnusedRegion> SpritesheetAnalysisTool::FindUnusedRegions(
     Rom* rom, int sheet_index, int tile_size) const {
   std::vector<UnusedRegion> regions;
-
-  int tiles_x = kSheetWidth / tile_size;
-  int tiles_y = kSheetHeight / tile_size;
-  int pixels_per_tile = tile_size * tile_size;
-
-  for (int ty = 0; ty < tiles_y; ++ty) {
-    for (int tx = 0; tx < tiles_x; ++tx) {
-      // Extract tile region
-      std::vector<uint8_t> tile_data;
-      tile_data.reserve(pixels_per_tile);
-
-      for (int py = 0; py < tile_size; ++py) {
-        for (int px = 0; px < tile_size; ++px) {
-          auto pixel_or = ExtractTileAtPosition(rom, sheet_index,
-                                                tx * tile_size, ty * tile_size);
-          if (pixel_or.ok() && !pixel_or.value().empty()) {
-            // Get the specific pixel
-            int local_idx = py * tile_size + px;
-            if (local_idx < static_cast<int>(pixel_or.value().size())) {
-              tile_data.push_back(pixel_or.value()[local_idx]);
-            }
-          }
-        }
-      }
-
-      if (IsRegionEmpty(tile_data)) {
-        UnusedRegion region;
-        region.sheet_index = sheet_index;
-        region.x = tx * tile_size;
-        region.y = ty * tile_size;
-        region.width = tile_size;
-        region.height = tile_size;
-        region.tile_count = (tile_size == 8) ? 1 : 4;
-        regions.push_back(region);
-      }
+  if (rom == nullptr || !rom->is_loaded() || sheet_index < 0 ||
+      sheet_index >= kMaxSheets) {
+    return regions;
+  }
+  // Raw sheets (115-126) and 2bpp sheets are loaded by engine code, and
+  // reserved sheets must stay as they are: none of them is free space.
+  const auto sheet = static_cast<uint16_t>(sheet_index);
+  if (zelda3::GetGfxSheetStorageKind(sheet) !=
+      zelda3::GfxSheetStorageKind::kCompressed3bpp) {
+    return regions;
+  }
+  std::vector<uint16_t> reserved_blocks;
+  if (project_ != nullptr) {
+    const auto& settings = project_->graphics_sheets;
+    const auto& manifest_reserved =
+        project_->hack_manifest.graphics_sheet_layout().reserved_sheets;
+    auto contains = [sheet](const std::vector<uint16_t>& ids) {
+      return std::find(ids.begin(), ids.end(), sheet) != ids.end();
+    };
+    if (contains(settings.reserved_sheets) || contains(manifest_reserved)) {
+      return regions;
+    }
+    if (auto it = settings.reserved_blocks.find(sheet);
+        it != settings.reserved_blocks.end()) {
+      reserved_blocks = it->second;
     }
   }
 
+  // Read the sheet from the ROM, so the result does not depend on whether
+  // the GUI has loaded graphics.
+  auto data = zelda3::ReadGfxSheetData(*rom, sheet);
+  if (!data.ok() || data->size() < zelda3::kGfxSheet3bppBytes) {
+    return regions;
+  }
+  constexpr size_t kTileBytes = 24;  // one 3bpp 8x8 tile
+  auto tile_empty = [&data](int tile) {
+    const auto begin = data->begin() + tile * kTileBytes;
+    return std::all_of(begin, begin + kTileBytes,
+                       [](uint8_t b) { return b == 0; });
+  };
+  auto block_reserved = [&reserved_blocks](int block) {
+    return std::find(reserved_blocks.begin(), reserved_blocks.end(), block) !=
+           reserved_blocks.end();
+  };
+
+  if (tile_size == 16) {
+    for (int block = 0; block < zelda3::kGfxSheetBlockCount; ++block) {
+      if (block_reserved(block) ||
+          !zelda3::IsGfxSheetBlockEmpty(*data, block, 3)) {
+        continue;
+      }
+      regions.push_back(
+          {sheet_index, (block % 8) * 16, (block / 8) * 16, 16, 16, 4});
+    }
+    return regions;
+  }
+
+  for (int tile = 0; tile < GetTileCountForSheet(sheet_index); ++tile) {
+    const int block = (tile / 32) * 8 + (tile % 16) / 2;
+    if (block_reserved(block) || !tile_empty(tile)) {
+      continue;
+    }
+    regions.push_back({sheet_index, (tile % 16) * 8, (tile / 16) * 8, 8, 8, 1});
+  }
   return regions;
 }
 

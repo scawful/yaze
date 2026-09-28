@@ -49,6 +49,7 @@ struct AppConfig {
   bool enable_api = false;
   int api_port = 8080;
   bool enable_test_harness = false;
+  std::string test_harness_bind_address = "0.0.0.0";
   int test_harness_port =
       50052;  // Unified gRPC server port (GUI automation + Emulator service)
   std::string backend = "internal";  // Emulator backend: "internal" or "mesen"
@@ -101,6 +102,7 @@ class Application {
   std::chrono::steady_clock::time_point last_frame_time_;
   float delta_time_ = 0.0f;
   bool first_frame_ = true;
+  bool in_tick_ = false;  // Guards Tick() against nested run loops
 
 #ifndef __EMSCRIPTEN__
   // For non-WASM builds, we need a local queue for ROMs requested before

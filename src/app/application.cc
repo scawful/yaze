@@ -1,11 +1,14 @@
 #include "app/application.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <utility>
+#include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
 #include "activity_file.h"
 #include "controller.h"
@@ -26,6 +29,7 @@
 #include "app/emu/internal_emulator_adapter.h"
 #include "app/emu/mesen/mesen_emulator_adapter.h"
 #include "app/service/canvas_automation_service.h"
+#include "app/service/imgui_test_harness_service.h"
 #include "app/service/unified_grpc_server.h"
 #include "app/testing/test_manager.h"
 #endif
@@ -97,6 +101,22 @@ void Application::Initialize(const AppConfig& config) {
 #endif
 
     if (controller_->editor_manager()) {
+      // Settings > Test mode stands in for the startup flags, because a GUI
+      // agent that launches the app by double-click cannot pass any.
+      // Explicit flags still win.
+      if (controller_->editor_manager()->user_settings().prefs().test_mode) {
+        LOG_INFO("App", "Test mode: hiding welcome and editor picker");
+        if (config_.welcome_mode == StartupVisibility::kAuto) {
+          config_.welcome_mode = StartupVisibility::kHide;
+        }
+        if (config_.dashboard_mode == StartupVisibility::kAuto) {
+          config_.dashboard_mode = StartupVisibility::kHide;
+        }
+        config_.enable_test_harness = true;
+        // Test mode is for local agents only; do not expose ROM writes to
+        // the network.
+        config_.test_harness_bind_address = "127.0.0.1";
+      }
       controller_->editor_manager()->ApplyStartupVisibility(config_);
     }
 
@@ -112,6 +132,7 @@ void Application::Initialize(const AppConfig& config) {
       canvas_automation_service_ =
           std::make_unique<CanvasAutomationServiceImpl>();
       grpc_server_ = std::make_unique<YazeGRPCServer>();
+      grpc_server_->SetBindAddress(config_.test_harness_bind_address);
 
       auto rom_getter = [this]() {
         return controller_->GetCurrentRom();
@@ -166,6 +187,19 @@ void Application::Initialize(const AppConfig& config) {
           nullptr,  // Approval manager not ready
           canvas_automation_service_.get());
 
+      // GetGameState runs on gRPC threads; capture on the render thread.
+      // Write a PNG to a unique temp path; GetGameState reads it into the
+      // reply and deletes it.
+      grpc_server_->SetEmulatorScreenshotCapturer([] {
+        static std::atomic<int> next_capture{0};
+        const auto path = std::filesystem::temp_directory_path() /
+                          absl::StrFormat("yaze_gamestate_%d_%d.png",
+                                          static_cast<int>(getpid()),
+                                          next_capture.fetch_add(1));
+        return test::CaptureScreenshotOnRenderThread(
+            path.string(), /*window_title=*/"", test::ScreenshotFormat::kPng);
+      });
+
       if (status.ok()) {
         status = grpc_server_->StartAsync();  // Start in background thread
         if (!status.ok()) {
@@ -210,6 +244,15 @@ void Application::Initialize(const AppConfig& config) {
 void Application::Tick() {
   if (!controller_)
     return;
+  // A blocking native dialog (the iOS document picker) runs a nested run loop
+  // from inside a frame, and the display link then calls Tick() again.
+  // Starting an ImGui frame inside another one aborts in NewFrame().
+  if (in_tick_)
+    return;
+  in_tick_ = true;
+  absl::Cleanup end_tick = [this] {
+    in_tick_ = false;
+  };
 
   // Calculate delta time
   auto now = std::chrono::steady_clock::now();
