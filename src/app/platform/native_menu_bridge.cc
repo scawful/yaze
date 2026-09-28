@@ -1,7 +1,10 @@
 #include "app/platform/native_menu_bridge.h"
 
+#include <string>
 #include <utility>
 
+#include "absl/strings/str_format.h"
+#include "app/editor/editor.h"
 #include "app/editor/system/commands/shortcut_manager.h"
 
 namespace yaze {
@@ -97,15 +100,22 @@ bool ExactShortcutConflict(const editor::ShortcutManager* shortcuts,
 }  // namespace
 
 const std::vector<ActionSpec>& ActionSpecs() {
+  // The Settings editor switch, registered by shortcut_configurator.cc as
+  // "switch.<EditorType>" (default Ctrl/Cmd+,). Declared before kSpecs so the
+  // name outlives every spec that points at it.
+  static const std::string kSettingsShortcut = absl::StrFormat(
+      "switch.%d", static_cast<int>(editor::EditorType::kSettings));
   // clang-format off
   static const std::vector<ActionSpec> kSpecs = {
     // App menu
     {MenuAction::kAbout, "About yaze", "Show About", kNoChord,
      Dispatch::kShortcut, Dispatch::kHost, false},
-    // ShortcutManager may bind Cmd+, to the Settings editor (claude/ui-shortcuts);
-    // then ImGui owns the chord and this item only displays it.
-    {MenuAction::kSettings, "Settings\xE2\x80\xA6", nullptr, Cmd(','),
-     Dispatch::kHost, Dispatch::kHost, false, true},
+    // Settings follows the live "switch.<kSettings>" binding: rebound, the
+    // item shows the new chord (ImGui-owned); unbound, it shows none. Cmd+,
+    // is only native-owned when that shortcut is not registered at all and
+    // nothing else binds Cmd+,. A click always runs the host action.
+    {MenuAction::kSettings, "Settings\xE2\x80\xA6", kSettingsShortcut.c_str(),
+     Cmd(','), Dispatch::kHost, Dispatch::kHost, false},
     {MenuAction::kHide, "Hide yaze", nullptr, Cmd('h'),
      Dispatch::kCocoa, Dispatch::kCocoa, false},
     {MenuAction::kHideOthers, "Hide Others", nullptr, CmdOpt('h'),
@@ -234,12 +244,10 @@ ResolvedItem ResolveItem(const editor::ShortcutManager* shortcuts,
     result.owner = ChordOwner::kNone;
   } else if (spec->imgui_owns_default_chord) {
     result.owner = ChordOwner::kImGui;
-  } else if (ExactShortcutConflict(shortcuts, result.chord) &&
-             spec->binding_on_default_chord_is_same_action) {
-    // ShortcutManager runs the same action on this chord: display only.
-    result.owner = ChordOwner::kImGui;
   } else if (ExactShortcutConflict(shortcuts, result.chord)) {
-    // e.g. Cmd+H is the agent sidebar: Hide yaze keeps its item, loses ⌘H.
+    // Another action owns this chord. e.g. Cmd+H is the agent sidebar: Hide
+    // yaze keeps its item, loses ⌘H. An action whose own shortcut exists
+    // resolved above from its live binding, so any binding here is foreign.
     result.chord = KeyChord{};
     result.owner = ChordOwner::kNone;
   } else {
