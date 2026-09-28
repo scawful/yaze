@@ -18,6 +18,7 @@
 #include "absl/status/statusor.h"
 #include "cli/service/ai/common.h"
 #include "mocks/mock_rom.h"
+#include "unique_temp_path.h"
 
 namespace yaze {
 namespace cli {
@@ -33,8 +34,12 @@ class ToolDispatcherTest : public ::testing::Test {
   void SetUp() override {
     // Filesystem tools are intentionally sandboxed to the project tree. CTest
     // runs from the build directory, so keep fixtures inside that sandbox.
-    test_dir_ =
-        std::filesystem::current_path() / "test_temp" / "yaze_dispatcher_test";
+    // ctest -j runs every case in its own process. With one shared directory,
+    // one case's TearDown deleted the files another case was using, and the
+    // second remove_all threw "No such file or directory". Borrow
+    // UniqueTempPath's per-case name, but keep the directory in the build tree.
+    test_dir_ = std::filesystem::current_path() / "test_temp" /
+                yaze::test::UniqueTempPath("yaze_dispatcher_test").filename();
     std::filesystem::create_directories(test_dir_);
 
     // Create a test file
@@ -50,8 +55,10 @@ class ToolDispatcherTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    // Clean up test directory
-    std::filesystem::remove_all(test_dir_);
+    // Clean up test directory. The error_code overload keeps a cleanup
+    // problem from turning a passing case into a failure.
+    std::error_code cleanup_error;
+    std::filesystem::remove_all(test_dir_, cleanup_error);
   }
 
   ToolCall CreateToolCall(const std::string& name,
