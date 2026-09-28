@@ -3,6 +3,12 @@
 #
 # Usage: scripts/remote/mm-test.sh <branch|commit> [options]
 #   --filter <gtest filter>  run yaze_test_unit directly with --gtest_filter
+#   --gtest-args <args>      extra raw flags appended to a direct yaze_test_unit
+#                            run, e.g. '--gtest_shuffle --gtest_random_seed=1
+#                            --gtest_repeat=5'; implies --filter '*' if --filter
+#                            is not also given, so the whole binary runs as one
+#                            process (needed to reproduce test-order-dependent
+#                            failures, which per-fixture ctest shards do not hit)
 #   --full                   run ctest label "stable" (unit + integration, as CI does)
 #   --target <cmake target>  build this target instead (repeatable); without
 #                            --filter/--full this is a build-only run
@@ -21,17 +27,18 @@
 # See scripts/remote/README.md.
 set -euo pipefail
 
-usage() { sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-3}"; }
+usage() { sed -n '2,27p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-3}"; }
 die() { echo "mm-test: $*" >&2; exit 3; }
 
 host="${MM_HOST:-mm}"
 remote_root="${MM_REMOTE_ROOT:-src/yaze-remote}"
 preset="ci-windows"
-ref="" filter="" full=0 clean=0 ccache=1 jobs="" out_dir="" targets=()
+ref="" filter="" gtest_args="" full=0 clean=0 ccache=1 jobs="" out_dir="" targets=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help) usage 0 ;;
     --filter) filter="${2:?--filter needs a value}"; shift 2 ;;
+    --gtest-args) gtest_args="${2:?--gtest-args needs a value}"; shift 2 ;;
     --full) full=1; shift ;;
     --target) targets+=("${2:?--target needs a value}"); shift 2 ;;
     --jobs) jobs="${2:?--jobs needs a value}"; shift 2 ;;
@@ -45,6 +52,8 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -n "$ref" ]] || usage 3
 [[ "$filter" =~ ^[A-Za-z0-9_*?:./-]*$ ]] || die "filter may only use [A-Za-z0-9_*?:./-]"
+gtest_args_re='^[A-Za-z0-9_=,.:/ -]*$'
+[[ "$gtest_args" =~ $gtest_args_re ]] || die "gtest-args may only use [A-Za-z0-9_=,.:/ -]"
 [[ "$jobs" =~ ^[0-9]*$ ]] || die "--jobs must be a number"
 
 repo_root="$(git rev-parse --show-toplevel)" || die "run inside a yaze checkout"
@@ -55,7 +64,7 @@ else name="rev-${sha:0:12}"; fi
 slug="$(printf '%s' "$name" | tr -c 'A-Za-z0-9._-' '-' | cut -c1-48)"
 
 mode=unit
-if [[ -n "$filter" ]]; then mode=filter
+if [[ -n "$filter" || -n "$gtest_args" ]]; then mode=filter
 elif [[ $full -eq 1 ]]; then mode=stable
 elif [[ ${#targets[@]} -gt 0 ]]; then mode=build; fi
 case "$mode" in
@@ -102,6 +111,7 @@ preset=$preset
 config=RelWithDebInfo
 targets=${targets[*]}
 filter=$filter
+gtest_args=$gtest_args
 jobs=$jobs
 clean=$clean
 ccache=$ccache

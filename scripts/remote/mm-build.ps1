@@ -46,7 +46,8 @@ foreach ($line in Get-Content (Join-Path $JobDir 'job.txt')) {
 $checks = @{
   sha = '^[0-9a-f]{40}$'; slug = '^[A-Za-z0-9._-]{1,48}$'; mode = '^(unit|stable|filter|build)$'
   preset = '^[A-Za-z0-9_-]+$'; config = '^[A-Za-z]+$'; targets = '^[A-Za-z0-9_.+ -]+$'
-  filter = '^[A-Za-z0-9_*?:./-]*$'; jobs = '^[0-9]*$'; clean = '^[01]$'; ccache = '^[01]?$'
+  filter = '^[A-Za-z0-9_*?:./-]*$'; gtest_args = '^[A-Za-z0-9_=,.:/ -]*$'
+  jobs = '^[0-9]*$'; clean = '^[01]$'; ccache = '^[01]?$'
   bundle = '^[A-Za-z0-9._-]*$'; bundle_ref = '^(refs/[A-Za-z0-9._/-]+)?$'
   origin = '^(https://[A-Za-z0-9._/-]+)?$'; max_worktrees = '^[0-9]+$'; lock_wait_min = '^[0-9]+$'
 }
@@ -238,8 +239,16 @@ if ($job.mode -eq 'unit' -or $job.mode -eq 'stable') {
   $exe = Get-ChildItem -Path (Join-Path $BuildDir 'bin') -Recurse -Filter 'yaze_test_unit.exe' |
     Select-Object -First 1
   if (-not $exe) { Fail 2 'yaze_test_unit.exe not found under the build dir' }
+  # An empty --gtest_filter value matches nothing (gtest's default is "*", not
+  # ""), so only pass it when --filter was actually given; a bare --gtest-args
+  # run (e.g. --gtest_shuffle) then exercises the whole binary as one process,
+  # which is what reproduces test-order-dependent failures.
+  $testArgs = @()
+  if ($job.filter) { $testArgs += "--gtest_filter=$($job.filter)" }
+  if ($job.gtest_args) { $testArgs += ($job.gtest_args -split '\s+' | Where-Object { $_ }) }
+  $testArgs += "--gtest_output=xml:$junit"
   Push-Location $BuildDir
-  $testRc = Run $testLog $exe.FullName @("--gtest_filter=$($job.filter)", "--gtest_output=xml:$junit")
+  $testRc = Run $testLog $exe.FullName $testArgs
   Pop-Location
 }
 $times.test_s = [math]::Round($sw.Elapsed.TotalSeconds, 1)

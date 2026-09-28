@@ -11,6 +11,8 @@ installs with choco) and `/Z7` debug info (see Caches).
 ```bash
 scripts/remote/mm-test.sh <branch|commit>                        # ctest label "unit"
 scripts/remote/mm-test.sh <branch> --filter 'DungeonRoom*'       # yaze_test_unit --gtest_filter
+scripts/remote/mm-test.sh <branch> \
+  --gtest-args '--gtest_shuffle --gtest_random_seed=1'           # whole binary, one process, shuffled
 scripts/remote/mm-test.sh <branch> --full                        # ctest label "stable" (unit + integration)
 scripts/remote/mm-test.sh <branch> --target z3ed                 # build only
 scripts/remote/mm-test.sh <branch> --clean --no-ccache           # cold rebuild (timings)
@@ -100,4 +102,11 @@ The yaze clone is created on first use from the Mac checkout's `origin` URL
 - Windows only exercises the Windows build. macOS app, iOS and Mesen work
   still need the Mac.
 - `--filter` accepts `[A-Za-z0-9_*?:./-]` only (it crosses `cmd.exe`).
+- `--gtest-args` accepts `[A-Za-z0-9_=,.:/ -]` only, is split on whitespace and
+  appended verbatim to a direct `yaze_test_unit` invocation. It implies filter
+  mode; without `--filter` too, no `--gtest_filter` is passed, so gtest's own
+  default (`*`) runs every test in the binary as a single process — needed to
+  reproduce a failure that only shows up when other tests share the process
+  (e.g. `--gtest_shuffle --gtest_random_seed=N`), since ctest's per-fixture
+  shards never do that.
 - Worktree slugs come from the branch name; `rev-<sha>` for a bare commit.
