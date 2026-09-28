@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <deque>
 #include <functional>
+#include <future>
 #include <memory>
 #include <optional>
 #include <string>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -22,6 +24,8 @@
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
 #include "app/gui/widgets/palette_editor_widget.h"
 #include "dungeon_canvas_viewer.h"
+#include "dungeon_entrance_camera.h"
+#include "dungeon_render_context.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
 #include "dungeon_room_store.h"
@@ -35,6 +39,7 @@
 #include "workspace/room_graphics_content.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -48,6 +53,7 @@ class DungeonEntrancesPanel;
 class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
+class DungeonEditorV2EntranceCameraTestPeer;
 class DungeonEditorV2RegularEntranceTestPeer;
 class DungeonEditorV2ReloadTestPeer;
 class DungeonEditorV2ShortcutTestPeer;
@@ -61,6 +67,13 @@ class PaletteEditorContent;
 class RoomTagEditorPanel;
 class RoomMatrixContent;
 class WaterFillPanel;
+
+enum class DungeonRoomNavigationDirection {
+  kUp,
+  kDown,
+  kLeft,
+  kRight,
+};
 
 /**
  * @brief DungeonEditorV2 - Simplified dungeon editor using component delegation
@@ -205,6 +218,7 @@ class DungeonEditorV2 : public Editor {
       room_viewers_.Clear();
       workbench_viewer_.reset();
       workbench_compare_viewer_.reset();
+      InvalidateDungeonRenderContextCensus();
     }
   }
   // Reloads same-address ROM state in place so rooms, viewers, and workspace
@@ -219,6 +233,9 @@ class DungeonEditorV2 : public Editor {
   // Agent/Automation controls
   void SelectObject(int obj_id);
   void SetAgentMode(bool enabled);
+  bool CanHandleDungeonNavigationShortcut() const;
+  bool NavigateToAdjacentRoom(DungeonRoomNavigationDirection direction);
+  bool CycleRoomSelection(int direction);
 
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
@@ -302,6 +319,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonRoomTransferTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
+  friend class DungeonEditorV2EntranceCameraTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
   friend class DungeonEditorV2ShortcutTestPeer;
@@ -358,9 +376,20 @@ class DungeonEditorV2 : public Editor {
                                  int palette_index);
   void RegisterPaletteListener();
   void InvalidateDungeonPaletteUsers(gui::DungeonPaletteChange change);
+  DungeonRenderContext ResolveDungeonRenderContextForRoom(int room_id) const;
   uint8_t ResolveSelectedEntranceBlocksetForRoom(int room_id) const;
+  std::vector<DungeonRenderEntranceCandidate>
+  BuildDungeonRenderEntranceCandidates() const;
+  const zelda3::RoomCensus* GetDungeonRenderContextCensus() const;
+  void InvalidateDungeonRenderContextCensus();
   void ApplyEntranceRenderContext(int room_id);
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
+  std::optional<DungeonEntranceCameraState> GetEntranceCameraState(
+      int slot_index) const;
+  absl::Status RepairEntranceCamera(int slot_index);
+  absl::Status RestoreEntranceCameraState(
+      int slot_index, const DungeonEntranceCameraState& state);
+  void RefreshEntranceCameraOverlays();
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
   void ConfigureMinecartProjectCallbacks();
   void SynchronizeCustomObjectAssets();
@@ -401,6 +430,13 @@ class DungeonEditorV2 : public Editor {
   std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> entrances_;
   std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>
       spawn_points_;
+  mutable std::optional<zelda3::RoomCensus> dungeon_render_context_census_;
+  mutable std::future<absl::StatusOr<zelda3::RoomCensus>>
+      dungeon_render_context_census_pending_;
+  mutable bool dungeon_render_context_census_attempted_ = false;
+  mutable uint64_t dungeon_render_context_census_generation_ = 0;
+  mutable uint64_t dungeon_render_context_pending_generation_ = 0;
+  mutable std::string dungeon_render_context_census_error_;
 
   struct SaveTransactionSnapshot {
     std::vector<std::pair<int, zelda3::Room::SaveDirtySnapshot>> room_states;

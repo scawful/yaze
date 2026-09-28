@@ -17,14 +17,17 @@ set(
   app/editor/dungeon/dungeon_canvas_room_frame.cc
   app/editor/dungeon/dungeon_canvas_room_render.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
+  app/editor/dungeon/dungeon_entrance_camera.cc
   app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/object_coverage_model.cc
+  app/editor/dungeon/dungeon_editor_v2_entrance_camera.cc
   app/editor/dungeon/dungeon_editor_v2_persistence.cc
   app/editor/dungeon/dungeon_editor_v2_undo.cc
   app/editor/dungeon/dungeon_editor_v2_room_edits.cc
   app/editor/dungeon/dungeon_editor_v2_chest_edits.cc
   app/editor/dungeon/dungeon_editor_v2_selection_edits.cc
   app/editor/dungeon/dungeon_editor_v2_connection_edits.cc
+  app/editor/dungeon/dungeon_editor_v2_render_context.cc
   app/editor/dungeon/dungeon_editor_v2_room_transfer.cc
   app/editor/dungeon/dungeon_room_edit.cc
   app/editor/dungeon/dungeon_selection_edit.cc
@@ -36,6 +39,7 @@ set(
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
+  app/editor/dungeon/dungeon_render_context.cc
   app/editor/dungeon/dungeon_rendering_helpers.cc
   app/editor/dungeon/dungeon_room_composite.cc
   app/editor/dungeon/dungeon_room_loader.cc

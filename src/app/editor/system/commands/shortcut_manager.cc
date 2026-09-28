@@ -87,6 +87,8 @@ bool IsTextEditingChord(const ParsedChord& chord) {
     case ImGuiKey_Z:
     case ImGuiKey_LeftArrow:
     case ImGuiKey_RightArrow:
+    case ImGuiKey_UpArrow:
+    case ImGuiKey_DownArrow:
     case ImGuiKey_Home:
     case ImGuiKey_End:
     case ImGuiKey_Backspace:
@@ -587,23 +589,28 @@ void ShortcutManager::RegisterWindowNavigationShortcuts(
     std::function<void()> focus_up, std::function<void()> focus_down,
     std::function<void()> close_window, std::function<void()> split_horizontal,
     std::function<void()> split_vertical) {
-  // Ctrl+Arrow keys for window navigation
+  // Ctrl/Cmd+Alt+Arrow keys for global pane navigation. Ctrl/Cmd+Arrow is
+  // reserved for editor-local spatial navigation (for example dungeon rooms).
   if (focus_left) {
-    RegisterShortcut("focus_left", {ImGuiMod_Ctrl, ImGuiKey_LeftArrow},
+    RegisterShortcut("focus_left",
+                     {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_LeftArrow},
                      focus_left);
   }
 
   if (focus_right) {
-    RegisterShortcut("focus_right", {ImGuiMod_Ctrl, ImGuiKey_RightArrow},
+    RegisterShortcut("focus_right",
+                     {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_RightArrow},
                      focus_right);
   }
 
   if (focus_up) {
-    RegisterShortcut("focus_up", {ImGuiMod_Ctrl, ImGuiKey_UpArrow}, focus_up);
+    RegisterShortcut("focus_up",
+                     {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_UpArrow}, focus_up);
   }
 
   if (focus_down) {
-    RegisterShortcut("focus_down", {ImGuiMod_Ctrl, ImGuiKey_DownArrow},
+    RegisterShortcut("focus_down",
+                     {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_DownArrow},
                      focus_down);
   }
 

@@ -114,6 +114,39 @@ const std::vector<EditorShortcutDef> kMusicEditorShortcuts = {
 };
 
 const std::vector<EditorShortcutDef> kDungeonEditorShortcuts = {
+    {"dungeon.room.navigate_up",
+     {ImGuiMod_Ctrl, ImGuiKey_UpArrow},
+     "Adjacent room above"},
+    {"dungeon.room.navigate_down",
+     {ImGuiMod_Ctrl, ImGuiKey_DownArrow},
+     "Adjacent room below"},
+    {"dungeon.room.navigate_left",
+     {ImGuiMod_Ctrl, ImGuiKey_LeftArrow},
+     "Adjacent room to the left"},
+    {"dungeon.room.navigate_right",
+     {ImGuiMod_Ctrl, ImGuiKey_RightArrow},
+     "Adjacent room to the right"},
+    {"dungeon.room.previous",
+     {ImGuiMod_Ctrl, ImGuiKey_PageUp},
+     "Previous open/recent room"},
+    {"dungeon.room.next",
+     {ImGuiMod_Ctrl, ImGuiKey_PageDown},
+     "Next open/recent room"},
+    {"dungeon.open_room_list",
+     {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_L},
+     "Open Room List"},
+    {"dungeon.open_entrances",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_E},
+     "Open Entrances"},
+    {"dungeon.open_matrix",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_M},
+     "Open Room Matrix"},
+    {"dungeon.open_room_graphics",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_G},
+     "Open Room Graphics"},
+    {"dungeon.open_palette",
+     {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiMod_Alt, ImGuiKey_P},
+     "Open Palette Editor"},
     {"dungeon.object.select_tool", {ImGuiKey_S}, "Select tool"},
     {"dungeon.object.place_tool", {ImGuiKey_P}, "Place tool"},
     {"dungeon.object.delete_tool", {ImGuiKey_D}, "Delete tool"},
@@ -537,28 +570,68 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                 editor_set ? editor_set->GetDungeonEditor() : nullptr;
             if (!dungeon_editor)
               return;
-            auto* obj_selector = dungeon_editor->object_editor_panel();
-            auto* obj_editor = dungeon_editor->object_editor_content();
-            if (!obj_selector || !obj_editor)
-              return;
 
-            if (id == "dungeon.object.select_tool") {
-              // Unified mode: cancel placement to switch to selection
-              obj_selector->CancelPlacement();
-            } else if (id == "dungeon.object.place_tool") {
-              // Unified mode: handled by object selector click
-              // No-op (mode is controlled by selecting an object)
-            } else if (id == "dungeon.object.delete_tool") {
-              dungeon_editor->QueueRoomCanvasDeleteShortcut();
-            } else if (id == "dungeon.object.next_object") {
-              obj_editor->CycleObjectSelection(1);
-            } else if (id == "dungeon.object.prev_object") {
-              obj_editor->CycleObjectSelection(-1);
-            } else if (id == "dungeon.object.delete") {
-              dungeon_editor->QueueRoomCanvasDeleteShortcut();
+            if (id == "dungeon.room.navigate_up") {
+              dungeon_editor->NavigateToAdjacentRoom(
+                  DungeonRoomNavigationDirection::kUp);
+            } else if (id == "dungeon.room.navigate_down") {
+              dungeon_editor->NavigateToAdjacentRoom(
+                  DungeonRoomNavigationDirection::kDown);
+            } else if (id == "dungeon.room.navigate_left") {
+              dungeon_editor->NavigateToAdjacentRoom(
+                  DungeonRoomNavigationDirection::kLeft);
+            } else if (id == "dungeon.room.navigate_right") {
+              dungeon_editor->NavigateToAdjacentRoom(
+                  DungeonRoomNavigationDirection::kRight);
+            } else if (id == "dungeon.room.previous") {
+              dungeon_editor->CycleRoomSelection(-1);
+            } else if (id == "dungeon.room.next") {
+              dungeon_editor->CycleRoomSelection(1);
+            } else if (id == "dungeon.open_room_list") {
+              dungeon_editor->OpenWindow(DungeonEditorV2::kRoomSelectorId);
+            } else if (id == "dungeon.open_entrances") {
+              dungeon_editor->OpenWindow("dungeon.entrance_properties");
+            } else if (id == "dungeon.open_matrix") {
+              dungeon_editor->OpenWindow(DungeonEditorV2::kRoomMatrixId);
+            } else if (id == "dungeon.open_room_graphics") {
+              dungeon_editor->OpenWindow(DungeonEditorV2::kRoomGraphicsId);
+            } else if (id == "dungeon.open_palette") {
+              dungeon_editor->OpenWindow(DungeonEditorV2::kPaletteEditorId);
+            } else {
+              auto* obj_selector = dungeon_editor->object_editor_panel();
+              auto* obj_editor = dungeon_editor->object_editor_content();
+              if (!obj_selector || !obj_editor)
+                return;
+              if (id == "dungeon.object.select_tool") {
+                // Unified mode: cancel placement to switch to selection
+                obj_selector->CancelPlacement();
+              } else if (id == "dungeon.object.place_tool") {
+                // Unified mode: handled by object selector click
+                // No-op (mode is controlled by selecting an object)
+              } else if (id == "dungeon.object.delete_tool") {
+                dungeon_editor->QueueRoomCanvasDeleteShortcut();
+              } else if (id == "dungeon.object.next_object") {
+                obj_editor->CycleObjectSelection(1);
+              } else if (id == "dungeon.object.prev_object") {
+                obj_editor->CycleObjectSelection(-1);
+              } else if (id == "dungeon.object.delete") {
+                dungeon_editor->QueueRoomCanvasDeleteShortcut();
+              }
             }
           },
           EditorType::kDungeon);
+      if (def.id.starts_with("dungeon.room.")) {
+        shortcut_manager->SetShortcutEnabled(def.id, [editor_manager]() {
+          if (!editor_manager) {
+            return false;
+          }
+          auto* editor_set = editor_manager->GetCurrentEditorSet();
+          auto* dungeon_editor =
+              editor_set ? editor_set->GetDungeonEditor() : nullptr;
+          return dungeon_editor != nullptr &&
+                 dungeon_editor->CanHandleDungeonNavigationShortcut();
+        });
+      }
     }
   }
 
