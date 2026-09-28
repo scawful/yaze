@@ -326,17 +326,22 @@ TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
   ASSERT_FALSE(direct_conflicts.empty());
   EXPECT_EQ(direct_conflicts[0].address, snes_addr);
 
-  // Mirror EditorManager's preferred disk-vs-memory diff path.
-  std::ifstream disk_file(rom->filename(), std::ios::binary);
-  ASSERT_TRUE(disk_file.is_open());
-  disk_file.seekg(0, std::ios::end);
-  const std::streampos disk_end = disk_file.tellg();
-  ASSERT_GE(disk_end, 0);
-  std::vector<uint8_t> disk_data(static_cast<size_t>(disk_end));
-  disk_file.seekg(0, std::ios::beg);
-  disk_file.read(reinterpret_cast<char*>(disk_data.data()),
-                 static_cast<std::streamsize>(disk_data.size()));
-  ASSERT_TRUE(disk_file.good());
+  // Mirror EditorManager's preferred disk-vs-memory diff path. Close the read
+  // handle before manager->SaveRom() below: on Windows an open handle without
+  // FILE_SHARE_DELETE blocks the atomic move of the saved ROM into place.
+  std::vector<uint8_t> disk_data;
+  {
+    std::ifstream disk_file(rom->filename(), std::ios::binary);
+    ASSERT_TRUE(disk_file.is_open());
+    disk_file.seekg(0, std::ios::end);
+    const std::streampos disk_end = disk_file.tellg();
+    ASSERT_GE(disk_end, 0);
+    disk_data.resize(static_cast<size_t>(disk_end));
+    disk_file.seekg(0, std::ios::beg);
+    disk_file.read(reinterpret_cast<char*>(disk_data.data()),
+                   static_cast<std::streamsize>(disk_data.size()));
+    ASSERT_TRUE(disk_file.good());
+  }
 
   // Sanity check: on-disk byte is still the original value before SaveRom().
   EXPECT_EQ(disk_data[kPcOffset], original);
