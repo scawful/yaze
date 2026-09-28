@@ -756,24 +756,58 @@ void MenuTilemapEditorUI::DrawMainCanvas() {
 
 void MenuTilemapEditorUI::DrawTilePicker() {
   ImGui::TextUnformatted(tr("Tile Picker"));
-  picker_canvas_.DrawBackground();
-  picker_canvas_.DrawContextMenu();
-  if (picker_bitmap_.is_active()) {
-    picker_canvas_.DrawBitmap(picker_bitmap_, 0, 0, 1.0f, 255);
+  if (chr_sheet_.empty() || picker_width_ <= 0 || picker_height_ <= 0) {
+    ImGui::TextDisabled("%s", tr("No CHR source loaded."));
+    return;
   }
-  if (picker_canvas_.DrawTileSelector(8.0f)) {
-    if (!picker_canvas_.points().empty()) {
-      ImVec2 p = picker_canvas_.points().front();
-      int tx = static_cast<int>(p.x) / 8;
-      int ty = static_cast<int>(p.y) / 8;
-      int tiles_per_row = picker_width_ / 8;
-      if (tiles_per_row > 0) {
-        selected_tile_id_ = tx + ty * tiles_per_row;
-      }
+
+  // Adaptive sheet layout (Fit/1x/2x/4x): the CHR sheet can be a few
+  // hundred pixels tall (7 sheets * 64px from Load2BppGraphics), so this
+  // matches the room-graphics / overworld tile16-selector convention
+  // rather than always showing it at native size.
+  const int tiles_per_row = picker_width_ / 8;
+  const int total_tiles = tiles_per_row * (picker_height_ / 8);
+  tile_picker_widget_.AttachCanvas(&picker_canvas_);
+  tile_picker_widget_.SetTilesPerRow(tiles_per_row);
+  tile_picker_widget_.SetTileCount(total_tiles);
+  if (tile_picker_widget_.GetSelectedTileID() != selected_tile_id_) {
+    tile_picker_widget_.SetSelectedTile(selected_tile_id_);
+  }
+
+  const float available_width = ImGui::GetContentRegionAvail().x;
+  {
+    constexpr const char* kLabels[] = {"Fit", "1x", "2x", "4x"};
+    int mode_idx = static_cast<int>(picker_scale_mode_);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextDisabled("%s", tr("Scale"));
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(80.0f);
+    if (ImGui::Combo("##MenuTilemapPickerScale", &mode_idx, kLabels,
+                     IM_ARRAYSIZE(kLabels))) {
+      picker_scale_mode_ = static_cast<gui::AdaptiveSheetScaleMode>(mode_idx);
     }
   }
-  picker_canvas_.DrawGrid(8.0f);
-  picker_canvas_.DrawOverlay();
+  const gui::AdaptiveSheetLayout layout = gui::ResolveAdaptiveSheetLayout(
+      available_width, picker_width_, picker_height_, picker_scale_mode_, 0.5f,
+      4.0f, gui::TileSelectorWidget::CurrentScrollbarSize());
+  tile_picker_widget_.SetDisplayScale(layout.display_scale);
+  ImGui::SameLine();
+  ImGui::TextDisabled("%.2fx", layout.display_scale);
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  const bool grid_visible = ImGui::BeginChild(
+      "##MenuTilemapPickerGrid", ImVec2(0.0f, 220.0f), ImGuiChildFlags_None,
+      ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  ImGui::PopStyleVar();
+  if (grid_visible) {
+    auto result =
+        tile_picker_widget_.Render(picker_bitmap_, picker_bitmap_.is_active());
+    if ((result.tile_clicked || result.selection_changed) &&
+        result.selected_tile >= 0) {
+      selected_tile_id_ = result.selected_tile;
+    }
+  }
+  ImGui::EndChild();
 
   ImGui::Text("%s %d", tr("Tile:"), selected_tile_id_);
   ImGui::SetNextItemWidth(140);
