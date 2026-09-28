@@ -56,6 +56,12 @@ class ScreenEditor : public Editor {
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
+  // Cheap contribution: just the currently-open menu tilemap file name and
+  // dirty state, appended to the base Screen category snapshot. Skips
+  // entirely (falls through to Editor::BuildContextSnapshot()) when no
+  // tilemap is loaded, so this never does I/O or ROM work.
+  EditorContextSnapshot BuildContextSnapshot() const override;
+
   bool HasPendingDungeonMapChanges() const {
     return pending_dungeon_map_changes_;
   }

@@ -83,16 +83,12 @@ void ScreenEditor::Initialize() {
        .priority = 50,
        .enabled_condition = [this]() { return rom()->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
-  window_manager->RegisterPanel(
-      {.card_id = "screen.menu_tilemap",
-       .display_name = "Menu Tilemap (2bpp)",
-       .window_title = " Menu Tilemap (2bpp)",
-       .icon = ICON_MD_GRID_ON,
-       .category = "Screen",
-       .shortcut_hint = "Alt+6",
-       .priority = 60,
-       .enabled_condition = [this]() { return rom()->is_loaded(); },
-       .disabled_tooltip = "Load a ROM first"});
+  // "screen.menu_tilemap" is registered below via RegisterWindowContent()
+  // only (no RegisterPanel() literal): as an EmbeddedTool (see
+  // MenuTilemapPanel::GetPresentationPolicy()), its full WindowDescriptor
+  // -- including presentation/workflow/shortcut/size metadata -- is
+  // derived from the panel's own virtual overrides (the post-#262
+  // admission-policy pattern), not hand-duplicated here.
 
   // Register WindowContent implementations
   window_manager->RegisterWindowContent(std::make_unique<DungeonMapsPanel>(
@@ -107,7 +103,8 @@ void ScreenEditor::Initialize() {
   window_manager->RegisterWindowContent(std::make_unique<NamingScreenPanel>(
       [this]() { DrawNamingScreenEditor(); }));
   window_manager->RegisterWindowContent(std::make_unique<MenuTilemapPanel>(
-      [this]() { DrawMenuTilemapEditor(); }));
+      [this]() { DrawMenuTilemapEditor(); },
+      [this]() { return rom() && rom()->is_loaded(); }));
 
   // Show title screen by default
   window_manager->OpenWindow("screen.title_screen");
@@ -1231,6 +1228,21 @@ void ScreenEditor::DrawNamingScreenEditor() {}
 
 void ScreenEditor::DrawMenuTilemapEditor() {
   menu_tilemap_ui_.Draw(rom(), game_data(), project(), &undo_manager_);
+}
+
+EditorContextSnapshot ScreenEditor::BuildContextSnapshot() const {
+  EditorContextSnapshot snapshot = Editor::BuildContextSnapshot();
+  if (menu_tilemap_ui_.loaded()) {
+    snapshot.metadata.push_back(
+        {.id = "menu_tilemap_file",
+         .label = "Menu tilemap",
+         .value = util::GetFileName(menu_tilemap_ui_.current_path())});
+    if (menu_tilemap_ui_.dirty()) {
+      snapshot.has_pending_changes = true;
+      snapshot.pending_label = "Menu tilemap has unsaved edits";
+    }
+  }
+  return snapshot;
 }
 
 void ScreenEditor::DrawOverworldMapEditor() {

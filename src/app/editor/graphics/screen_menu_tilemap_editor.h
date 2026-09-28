@@ -9,6 +9,8 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/layout/adaptive_sheet_layout.h"
+#include "app/gui/widgets/tile_selector_widget.h"
 #include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -44,6 +46,8 @@ class MenuTilemapEditorUI {
             project::YazeProject* project, UndoManager* undo_manager);
 
   bool dirty() const { return doc_.dirty(); }
+  bool loaded() const { return loaded_; }
+  const std::string& current_path() const { return doc_.path(); }
 
   ~MenuTilemapEditorUI();
 
@@ -129,6 +133,12 @@ class MenuTilemapEditorUI {
                       gui::CanvasGridSize::k8x8, 2.0f};
   gui::Canvas picker_canvas_{"##MenuTilemapPicker", ImVec2(128, 448),
                              gui::CanvasGridSize::k8x8, 1.0f};
+  // Adaptive sheet layout (Fit/1x/2x/4x, matching the room-graphics /
+  // overworld-canvas convention introduced in #262) for the tile picker's
+  // CHR sheet, which can be a few hundred pixels tall (7 sheets * 64px).
+  gui::TileSelectorWidget tile_picker_widget_{"##MenuTilemapPickerWidget"};
+  gui::AdaptiveSheetScaleMode picker_scale_mode_ =
+      gui::AdaptiveSheetScaleMode::k1x;
   float zoom_ = 2.0f;
   bool show_grid_ = true;
   bool show_priority_tint_ = false;
