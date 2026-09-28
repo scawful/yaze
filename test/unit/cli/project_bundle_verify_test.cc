@@ -20,6 +20,7 @@
 
 #include "absl/status/status.h"
 #include "nlohmann/json.hpp"
+#include "unique_temp_path.h"
 #include "util/rom_hash.h"
 
 namespace yaze::cli {
@@ -32,10 +33,7 @@ using json = nlohmann::json;
 struct ScopedTempDir {
   fs::path path;
   ScopedTempDir() {
-    path = fs::temp_directory_path() /
-           ("yaze_pbv_test_" +
-            std::to_string(std::hash<std::string>{}(
-                std::to_string(reinterpret_cast<uintptr_t>(this)))));
+    path = ::yaze::test::UniqueTempPath("yaze_pbv_test");
     fs::create_directories(path);
   }
   ~ScopedTempDir() {

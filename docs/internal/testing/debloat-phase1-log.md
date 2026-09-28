@@ -23,6 +23,67 @@ dead code, §2(f) flaky tests, §3 the protected set, §5 Phase 1.
 3. For a deleted file, `git checkout <commit>^ -- <file>` and add its path back
    to the right list in `test/CMakeLists.txt`.
 
+## Result
+
+The series sits on `claude/test-sharding` (`adf50e498`), which registers
+`stable` as fixture-grouped shards, so the number of ctest entries no longer
+tracks the number of tests. Case counts below come from running
+`yaze_test_unit` as one process. Windows uses the `ci-windows` preset that CI
+uses for `stable` (no `YAZE_ENABLE_AGENT_CLI`, so the 76 deleted cases in
+`test/unit/tools/*` and `api_handlers_test.cc` do not exist there). The
+per-case rows were measured before the sharding rebase.
+
+| Sharded base, Windows `ci-windows` | `adf50e498` | this series |
+|---|---:|---:|
+| `ctest -L stable` entries | 13 | 13 |
+| `ctest -L stable` time at `-j29` | 11.7 s | 11.8 s |
+| `yaze_test_unit` cases / fixtures (one process) | 4,780 / 503 | 4,747 / 503 |
+| failures in the sharded run | 5 known Windows-only cases + `z3ed_self_test` Not Run | same |
+
+In the one-process run both sides also fail
+`DungeonCollisionJsonCommandsTest.WaterFillImportFailsWhenRequiredD4RoomHasNoCollisionData`
+(an order dependence that the shards do not hit); it is not from this series.
+
+| Per-case registration | Before | After |
+|---|---:|---:|
+| Windows `ci-windows`, `ctest -L stable` entries (`403fa148f`) | 5,157 | 5,096 |
+| Windows: passed / failed / skipped | 4,801 / 5 / 352 | 4,748 / 5 / 344 (final tree; 3 of 4 runs) |
+| Windows: ctest time at `-j29` | 51.7 s | 49.8-53.3 s |
+| mac-ai `ctest -C Debug -L '^stable$' --show-only` (`356ca86b6`) | 5,509 | 5,372 |
+| mac-ai `yaze_test_unit` / `yaze_test_integration` cases | 5,128 / 376 | 5,019 / 348 |
+| mac-ai `ctest -L '^stable$' -j 4` wall, loaded machine | 1,508 s, 3 failures (`ToolDispatcherTest`, §4) | not rerun (full runs moved to the Windows box) |
+
+The 5 Windows failures on both sides are the known Windows-only ones on
+master (`FreshRomFixtureOutputTest`, `SpriteCatalogSessionTest.ProjectPathsRoundTrip*`,
+`CutsceneCameraPanelTest.SavesToTheProjectShotsFile`,
+`GraphicsSaveStoplossTest.RelocatedSheet*`, `SpriteCatalogTest.RejectsUnsafeBindingPaths`).
+Before its fix, the newly registered write-conflict suite added a sixth
+(§2). In 1 of the 4 final runs,
+`EditorManagerProjectActionsTest.AutosavePersistsProjectOnlyWork` also failed
+with "Failed to replace project file ... Access is denied." Its temp paths are
+already unique and the test holds no handle, so it is a separate intermittent
+Windows file-replace problem, not a temp-path race and not caused by this
+series; it is left for its own fix. The 8 fewer skips are the deleted ROM-gated cases.
+
+The counts move by −165 on mac-ai (167 deleted, 2 of them `#else`
+placeholders that mac-ai does not compile) and +28 for the registered suite;
+on Windows by −89 and +28. The plan predicted 5,465 → about 5,320 from a
+smaller base (PR #260 before the census and overworld CLI merges).
+
+Flaky-fix check (§4), mac-ai Debug on the final tree over `403fa148f`,
+per-case ctest registration, `taskpolicy -b nice -n 10`:
+
+- `ctest -R 'ToolDispatcherTest|CustomObjectManagerTest|LayoutManagerPersistenceTest' -j 4 --repeat until-fail:20`:
+  51 cases (26 + 20 + 5) x 20 = 1,020 runs, 0 failures, 256 s. On
+  `356ca86b6` a single `-j 4` stable pass failed 3 `ToolDispatcherTest` cases.
+- `ctest -R 'ObjectTileEditorTest\.Capture|DungeonObjectValidateTest\.All|RomTest\.SaveTruncatesExistingFile|ProjectBundle|EditorManagerWriteConflictTest' -j 4 --repeat until-fail:10`:
+  110 cases x 10 = 1,100 runs, 0 failures, 533 s.
+- Windows, 4 stable runs of the final tree at `-j29`: every fixed suite passed
+  in all 4 (`CustomObjectManagerTest` 20, `LayoutManagerPersistenceTest` 5,
+  the capture/trace/save cases, 73 `ProjectBundle*`, 28 write-conflict cases).
+  `ToolDispatcherTest` is not built there (no `YAZE_ENABLE_AGENT_CLI` in the
+  Windows presets).
+
 ## 1. Orphan and dead test sources (plan §1.4, §2(d)): 17 files, 3,592 lines
 
 None of these files was in any list in `test/CMakeLists.txt`, so no preset
@@ -325,3 +386,30 @@ the one the test name or comment already described.
 | `BuildToolTest.ListAvailablePresetsNotEmpty`, `IsBuildDirectoryReadyInitiallyFalse` | A4 | Read `CMakePresets.json` and probe a missing directory; not member defaults. |
 | `SnesColorConversionTest.RGBConstructor`, `SNESConstructor`, `SnesColorTest.ConstructFromSnesValue`, `ConstructFromSnesBlack` | A4 | Colour conversion (codec-adjacent); the plan merges these in Phase 2 instead. |
 | `AsarWrapperTest.DoubleInitialization`, `AsmPatchTest.DefaultNameFromFilename`, `AIConfigUtilsTest.NormalizeOpenAiBaseUrlDefaultsWhenEmpty`, `EmptyStateTest.DrawEmptyStateNoopsWhenEmpty`, `ResizeHandlesTest.DefaultColorComesFromTheme`, `ResourceLabelsTest.ResolvesVanillaLabelsByDefault`, `OverworldAreaRenderTest.AnimatedFallbackUsesWorldDefaultSheet7`, `RoomCollisionTest.AttributeTableCombinesDefaultAndCustomTypes`, `SheetRolePaletteTableTest.UnclassifiedBindingIsEmpty`, `EmulatorRuntimePolicyTest.PreferStartupCategoryNeverDefaultsToEmulator`, `OracleValidationViewModelTest.BuildCliCommandReconstructsCorrectly`, `MenuShortcutLabelsTest.UnknownUnboundOrMissingManagerIsEmpty`, `CollisionSourcePairingTest.MissingJsonIsCreated`, `TileObjectHandlerTest.PasteEmptyClipboardReturnsEmpty`, `DockTreeJsonTest.MissingRootUsesDefaultEmptyLeaf`, `ExpandedBankTest.ReadExpandedTextDataEmpty`, `DungeonEditorIntegrationTest.DungeonEditorInitialization`, `WindowBackendFactoryTest.CreateGlfwFallsBackToDefault` | A4 | Each calls a function with logic (parsing, lookup, fallback, idempotence, save, codec edge case) rather than reading a freshly constructed member. The heuristic matched a word like "Default" or "Empty" in the name. |
+
+## 4. Flaky tests fixed (plan §2(f))
+
+With per-case registration (the default before the fixture-sharded
+registration of `claude/test-sharding`, and still `YAZE_TEST_PER_CASE=ON`)
+every case is its own process and ctest runs several at once, so a temp path
+that nothing makes unique is shared by concurrent processes. Shards keep a
+fixture's cases in one process, but other shards, parallel CI jobs and other
+worktrees on the same machine still share `/tmp` and the app-data directory.
+Every fix below routes the path through `yaze::test::UniqueTempPath` (`test/unique_temp_path.h`:
+test name, steady-clock stamp and a counter). No test was skipped or marked
+flaky.
+
+| Test | Root cause | Fix |
+|---|---|---|
+| `ToolDispatcherTest.*` (`test/integration/agent/tool_dispatcher_test.cc`) | All cases used `current_path()/test_temp/yaze_dispatcher_test`. The baseline run failed 3 of them (`ToolPreferencesDisableDungeon`, `InvalidToolCallReturnsError`, `MessageToolResolves`) with `filesystem error: in remove_all: No such file or directory` thrown in `TearDown()`, because another case had already removed the shared directory. | Per-case directory name from `UniqueTempPath(...).filename()`, still under `current_path()/test_temp` because the filesystem tools only allow paths inside the project tree; `TearDown` uses the `error_code` overload of `remove_all`. |
+| `CustomObjectManagerTest.*` (`test/unit/zelda3/custom_object_test.cc`) | The root was a bare steady-clock nonce, and `SetUp` ran `remove_all` on it before `ASSERT_TRUE(create_directories(...))`. The process-global `CustomObjectManager` was restored only in `TearDown`. The earlier logs show no failure of this suite; the plan lists it as flaky, so this fix is preventive. | `UniqueTempPath` root; no pre-emptive `remove_all`; a `ScopedCustomObjectManagerState` member snapshots the manager when the fixture is built and restores it when the fixture is destroyed, even after a fatal assertion. |
+| `LayoutManagerPersistenceTest.*` (`test/unit/editor/layout_manager_persistence_test.cc`) | Every case used the project key `layout-manager-window-schema-test`, so all cases read and wrote one `layouts/projects/<key>.json` in the app-data directory, and each `SetUp`/`TearDown` removed it. Another agent saw `PrefersWindowsKeyWhenBothSchemasExist` fail on the Windows box, where all processes of a run share one `YAZE_APP_DATA_DIR`. | Per-case key from `UniqueTempPath(...).filename()`. |
+| `ObjectTileEditorTest.CaptureVanillaWallCornersIgnoresConfiguredTrackMap`, `CaptureWallCornerWithCustomAssetFolderStaysRomBacked` (`test/unit/zelda3/dungeon/object_tile_editor_test.cc`) | Fixed `/tmp/yaze_test_wall_corner_capture[_no_map]` roots, removed with `remove_all` at the end; two worktrees running the suite at once delete each other's files. | `UniqueTempPath` roots. |
+| `DungeonObjectValidateTest.AllSizesUsesOnlyFixedSubtypeLegalSizes`, `AllStatesTracksExpectedEmptyBranches` (`test/unit/cli/dungeon_object_validate_test.cc`) | Fixed trace file names in the system temp directory. | `UniqueTempPath(stem, ".json")`. |
+| `RomTest.SaveTruncatesExistingFile` (`test/unit/rom/rom_test.cc`) | Wrote `test_temp_rom.sfc` in the working directory and never removed it. | The file's own `ScopedTempDirectory`, which removes it. The assertions are unchanged (protected file). |
+| `ProjectBundlePackTest.*`, `ProjectBundleUnpackTest.*`, `ProjectBundleArchiveTest.*`, `ProjectBundleVerifyTest.*` (`test/unit/cli/project_bundle_{archive,verify}_test.cc`) | `ScopedTempDir` named the root with a hash of its own `this` pointer, which two processes can share. | `UniqueTempPath` root. |
+
+Not changed here: `SettingsPanelTest.DisplayDensityKeepsClassicYazePaintedByColorsYaze`
+(owned by the `claude/test-sharding` work), and the `rom_dependent` suite's
+shared `/tmp/yaze_test_states` (the generation test writes states that the
+preview test reads on purpose, and that binary is not built).
