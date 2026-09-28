@@ -17,9 +17,15 @@
 //   (west, $02:B711 LDA $7EC003) instead of the grid neighbor.
 // - Key-stair doors (0x20-0x26) lock a stair object; the stair object is the
 //   link, not the door.
-// - Holes: a room's holewarp is live when it has pit objects or pit tiles in
-//   custom collision and is not listed in RoomsWithPitDamage, or warp tiles
-//   ($07:D146) in any room.
+// - Holes: every fall runs DetermineConsequencesOfFalling, which costs a
+//   heart in rooms listed in RoomsWithPitDamage ($07:94AA) and otherwise
+//   loads the header holewarp ($07:94BA). A room's holewarp is live when it
+//   has pit objects, pit tiles, tag-driven holes (RoomTag_TriggerHoles),
+//   falling-floor overlords (0x0A-0x0F) or Ganon (0xD6, whose phase 3 spawns
+//   overlords 0x0C-0x0F). Warp tiles ($07:D146) use the holewarp in any room.
+//   Pit tiles include the bowls of large braziers (0x11C), entered by landing
+//   from the room above: vanilla 0x31 drops into 0x77, whose braziers drop
+//   into the Hera fairy room 0xA7 (Module07_07_0F_FallingFadeIn, $02:8EC3).
 
 #include <array>
 #include <cstdint>
@@ -76,9 +82,20 @@ struct RoomLinkFacts {
   uint8_t blockset = 0;
   uint8_t tag1 = 0;
   uint8_t tag2 = 0;
-  bool has_pits = false;        // Pit objects or custom-collision pit tiles.
-  bool has_warp_tiles = false;  // Warp tile objects or custom-collision tiles.
-  bool has_hole_tag = false;    // Tag-driven holes only (weak).
+  // Pit objects (room stream or layout), pit tiles in the drawn tilemaps or
+  // custom collision.
+  bool has_pits = false;
+  // The only pit tiles are the bowls of large braziers (object 0x11C), which
+  // Link enters only by landing there from the room above.
+  bool pits_only_in_braziers = false;
+  // Warp tile objects (including 0xFCF, drawn disabled and enabled at run
+  // time), warp tiles in the drawn tilemaps or custom collision.
+  bool has_warp_tiles = false;
+  // Tag 1 or tag 2 is a vanilla "Holes" tag. CollectRoomLinks ignores a
+  // hole tag that the project redefines as a warp tag.
+  bool has_hole_tag = false;
+  // Falling-floor overlord or Ganon; empty when none. Names the sprite.
+  std::string hole_sprite;
   bool in_pit_damage_table = false;
   uint8_t holewarp_byte = 0;
   std::array<uint8_t, 4> stair_bytes{};
@@ -146,17 +163,19 @@ std::optional<DungeonEntranceTarget> ReadDungeonEntranceTarget(const Rom& rom,
 
 // True for objects whose tiles are pits (vanilla object IDs).
 bool IsPitObjectId(int object_id);
-// Warp tile 0xFCA.
+// Warp tile 0xFCA and its disabled form 0xFCF.
 bool IsWarpTileObjectId(int object_id);
-// Vanilla "Holes" room tags.
+// Vanilla "Holes" room tags (RoomTag_TriggerHoles and the chest holes).
 bool IsHoleRoomTag(uint8_t tag);
-// Pit (0x20) and warp (0x4B) tile attributes.
+// Pit (0x20, 0xB0-0xBD) and warp (0x4B) tile attributes, per the
+// underworld TileBehavior table at $07:D7D8.
 bool IsPitTileAttribute(uint8_t attribute);
 bool IsWarpTileAttribute(uint8_t attribute);
 
 // Reads the link facts of `room`, which must be loaded with its objects and
-// sprites (LoadRoomFromRom + LoadSprites). `pit_table` may be null (no room
-// counts as a pit-damage room).
+// sprites (LoadRoomFromRom + LoadSprites). Draws the room's layout and
+// objects without graphics to find pit and warp tiles. `pit_table` may be
+// null (no room counts as a pit-damage room).
 RoomLinkFacts CollectRoomLinkFacts(Rom* rom, const Room& room,
                                    const PitDamageTable* pit_table);
 

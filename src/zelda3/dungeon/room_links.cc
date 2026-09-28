@@ -5,8 +5,12 @@
 #include <utility>
 
 #include "absl/strings/str_format.h"
+#include "app/gfx/render/background_buffer.h"
+#include "app/gfx/types/snes_palette.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
+#include "zelda3/dungeon/game_tilemap_comparison.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_collision.h"
@@ -25,6 +29,8 @@ namespace {
 constexpr int kEntranceLoaderHookPc = 0x1599F;
 constexpr int kExpandedEntranceRoomPc = 0x078000;
 constexpr int kExpandedEntranceDungeonPc = 0x079800;
+// Sprite 0xD6: Ganon_Phase3_DropTiles ($1D:9055) spawns overlords 0x0C-0x0F.
+constexpr uint8_t kGanonSprite = 0xD6;
 constexpr int kDirectionWest = 2;
 constexpr int kDirectionEast = 3;
 
@@ -74,6 +80,122 @@ const char* DirectionName(int direction) {
 
 std::string RoomHex(int room_id) {
   return absl::StrFormat("0x%02X", room_id);
+}
+
+// Hole-making overlords (usdasm bank_09 Overlord_ExecuteSingle table).
+const char* HoleOverlordName(int id) {
+  switch (id) {
+    case 0x0A:
+      return "falling square (overlord 0x0A)";
+    case 0x0B:
+      return "falling bridge (overlord 0x0B)";
+    case 0x0C:
+    case 0x0D:
+    case 0x0E:
+    case 0x0F:
+      return "falling tiles (overlord 0x0C-0x0F)";
+  }
+  return nullptr;
+}
+
+// The hole tag that makes the holewarp live, or -1. Tags the project
+// redefines as warp tags do not make holes.
+int LiveHoleTag(const RoomLinkFacts& facts,
+                const std::set<uint8_t>& warp_tag_ids) {
+  if (!facts.has_hole_tag) {
+    return -1;
+  }
+  for (uint8_t tag : {facts.tag1, facts.tag2}) {
+    if (IsHoleRoomTag(tag) && !warp_tag_ids.contains(tag)) {
+      return tag;
+    }
+  }
+  // Facts built by hand (tests) may set has_hole_tag without the tag bytes.
+  return (IsHoleRoomTag(facts.tag1) || IsHoleRoomTag(facts.tag2)) ? -1 : 0;
+}
+
+// Large brazier: its bowl tiles (0x115/0x125) have the pit attribute inside a
+// solid rim, so Link falls in only by landing there from the room above
+// (vanilla 0x31 -> 0x77 -> Hera fairy room 0xA7).
+constexpr int kLargeBrazierObject = 0x11C;
+
+struct DrawnTiles {
+  bool pit = false;
+  bool pit_outside_braziers = false;
+  bool warp = false;
+};
+
+// Draws the layout and room objects without graphics, the way
+// ComputeObjectTileOwners does, and looks up each drawn tile in the
+// blockset's TILEATTR ($7EFE00). Later draws replace earlier ones, as in the
+// game's tilemaps. Undrawn tiles are ignored.
+DrawnTiles ScanDrawnTiles(Rom* rom, const Room& room,
+                          const std::vector<RoomObject>& layout_objects) {
+  DrawnTiles result;
+  std::vector<int> bg1(kRoomTilemapWords, -1);
+  std::vector<int> bg2(kRoomTilemapWords, -1);
+  std::vector<int> bg1_owner(kRoomTilemapWords, -1);
+  std::vector<int> bg2_owner(kRoomTilemapWords, -1);
+  ObjectDrawer drawer(rom, room.id(), nullptr);
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+  gfx::BackgroundBuffer buffer1(512, 512);
+  gfx::BackgroundBuffer buffer2(512, 512);
+  gfx::PaletteGroup palette_group;
+  auto draw = [&](RoomObject object, RoomObject::LayerType layer) {
+    object.SetRom(rom);
+    object.layer_ = layer;
+    trace.clear();
+    if (!drawer.DrawObject(object, buffer1, buffer2, palette_group).ok()) {
+      return;
+    }
+    for (const auto& tile : trace) {
+      if (tile.x_tile < 0 || tile.y_tile < 0 ||
+          tile.x_tile >= kRoomTilemapSize || tile.y_tile >= kRoomTilemapSize) {
+        continue;
+      }
+      const size_t position =
+          static_cast<size_t>(tile.y_tile) * kRoomTilemapSize + tile.x_tile;
+      const bool lower = tile.layer == RoomObject::BG2;
+      (lower ? bg2 : bg1)[position] = tile.tile_id & 0x3FF;
+      (lower ? bg2_owner : bg1_owner)[position] = object.id_;
+    }
+  };
+  // The layout draws first, into the upper tilemap (RoomLayout::Draw).
+  for (const auto& object : layout_objects) {
+    draw(object, RoomObject::LayerType::BG1);
+  }
+  const auto& objects = room.GetTileObjects();
+  for (int list = 0; list < 3; ++list) {
+    for (const auto& object : objects) {
+      if (!IsEncodedStreamObject(object)) {
+        continue;
+      }
+      const int list_index = std::min<int>(object.GetLayerValue(), 2);
+      if (list_index != list) {
+        continue;
+      }
+      draw(object,
+           MapRoomObjectListIndexToDrawLayer(static_cast<uint8_t>(list)));
+    }
+  }
+  const auto table = LoadUnderworldTileAttributeTable(*rom, room.blockset());
+  for (int layer = 0; layer < 2; ++layer) {
+    const auto& words = layer == 0 ? bg1 : bg2;
+    const auto& owners = layer == 0 ? bg1_owner : bg2_owner;
+    for (size_t position = 0; position < words.size(); ++position) {
+      const int tile = words[position];
+      if (tile < 0 || tile >= static_cast<int>(kTileAttributeTableSize)) {
+        continue;
+      }
+      if (IsPitTileAttribute(table[tile])) {
+        result.pit = true;
+        result.pit_outside_braziers |= owners[position] != kLargeBrazierObject;
+      }
+      result.warp |= IsWarpTileAttribute(table[tile]);
+    }
+  }
+  return result;
 }
 
 }  // namespace
@@ -197,8 +319,11 @@ bool IsPitObjectId(int id) {
          id == 0xFE6;
 }
 
+// 0xFCA warp tile, 0xFCF warp tile drawn disabled. Vanilla puts 0xFCF in the
+// rooms above the fairy rooms that Module07_07_0F_FallingFadeIn ($02:8EBB)
+// special-cases: 0xA9 -> 0x89 (Eastern) and 0xBE -> 0x4F (Ice Palace).
 bool IsWarpTileObjectId(int id) {
-  return id == 0xFCA;
+  return id == 0xFCA || id == 0xFCF;
 }
 
 bool IsHoleRoomTag(uint8_t tag) {
@@ -220,9 +345,9 @@ bool IsHoleRoomTag(uint8_t tag) {
   }
 }
 
-// TileBehavior_Pit (0x20) and TileBehavior_Warp (0x4B) in custom collision.
+// TileBehavior_Pit: 0x20 and 0xB0-0xBD (pits under Somaria tracks).
 bool IsPitTileAttribute(uint8_t attribute) {
-  return attribute == 0x20;
+  return attribute == 0x20 || (attribute >= 0xB0 && attribute <= 0xBD);
 }
 
 bool IsWarpTileAttribute(uint8_t attribute) {
@@ -251,6 +376,10 @@ RoomLinkFacts CollectRoomLinkFacts(Rom* rom, const Room& room,
   const auto& layout_objects = layout_ok ? layout.GetObjects() : no_objects;
 
   bool has_stairs = false;
+  for (const auto& object : layout_objects) {
+    facts.has_pits |= IsPitObjectId(object.id_);
+    facts.has_warp_tiles |= IsWarpTileObjectId(object.id_);
+  }
   for (const auto& object : room.GetTileObjects()) {
     if (!IsEncodedStreamObject(object)) {
       continue;
@@ -265,6 +394,27 @@ RoomLinkFacts CollectRoomLinkFacts(Rom* rom, const Room& room,
       facts.has_warp_tiles |= IsWarpTileAttribute(tile);
     }
   }
+  if (rom != nullptr && rom->is_loaded()) {
+    const DrawnTiles drawn = ScanDrawnTiles(rom, room, layout_objects);
+    if (drawn.pit && !facts.has_pits) {
+      facts.pits_only_in_braziers = !drawn.pit_outside_braziers;
+    }
+    facts.has_pits |= drawn.pit;
+    facts.has_warp_tiles |= drawn.warp;
+  }
+
+  for (const auto& sprite : room.GetSprites()) {
+    if (sprite.IsOverlord()) {
+      if (const char* name = HoleOverlordName(sprite.id())) {
+        facts.hole_sprite = name;
+        break;
+      }
+    } else if (sprite.id() == kGanonSprite) {
+      facts.hole_sprite = "Ganon's falling floor (sprite 0xD6)";
+      break;
+    }
+  }
+
   // Stair objects -> header slots, same replay as
   // `dungeon-describe-room --include-staircase-resolution`.
   if (has_stairs && rom != nullptr) {
@@ -461,24 +611,35 @@ std::vector<RoomLink> CollectRoomLinks(int room_id,
   RoomLink hole = make(RoomReferenceKind::kHolewarp,
                        ResolveHeaderDestinationRoom(room_id, f.holewarp_byte));
   hole.owner_ok = same_blockset(hole.to);
+  const int hole_tag = LiveHoleTag(f, warp_tag_ids);
+  std::string hole_source;
+  if (f.has_pits) {
+    hole_source = f.pits_only_in_braziers
+                      ? "large-brazier pits (entered by falling from the "
+                        "room above)"
+                      : "pits";
+  } else if (hole_tag > 0) {
+    hole_source = absl::StrFormat("tag-driven holes (tag 0x%02X)", hole_tag);
+  } else if (hole_tag == 0) {
+    hole_source = "tag-driven holes";
+  } else if (!f.hole_sprite.empty()) {
+    hole_source = f.hole_sprite;
+  }
   if (f.has_warp_tiles) {
     hole.strong = true;
     hole.detail = absl::StrFormat("warp tiles in %s", RoomHex(room_id));
-  } else if (f.has_pits && !f.in_pit_damage_table) {
+  } else if (!hole_source.empty() && !f.in_pit_damage_table) {
     hole.strong = true;
-    hole.detail = absl::StrFormat("pits in %s", RoomHex(room_id));
-  } else if (f.has_pits) {
+    hole.detail = absl::StrFormat("%s in %s", hole_source, RoomHex(room_id));
+  } else if (!hole_source.empty()) {
     hole.detail = absl::StrFormat(
-        "holewarp of %s (its pits only cost a heart: RoomsWithPitDamage)",
-        RoomHex(room_id));
-  } else if (f.has_hole_tag) {
-    hole.detail = absl::StrFormat("holewarp of %s (tag-driven holes only)",
-                                  RoomHex(room_id));
+        "holewarp of %s (its %s only cost a heart: RoomsWithPitDamage)",
+        RoomHex(room_id), hole_source);
   } else if (f.holewarp_byte != 0) {
     hole.kind = RoomReferenceKind::kHeaderOnly;
-    hole.detail =
-        absl::StrFormat("header holewarp of %s (no pits or warp tiles there)",
-                        RoomHex(room_id));
+    hole.detail = absl::StrFormat(
+        "header holewarp of %s (no pits, holes or warp tiles there)",
+        RoomHex(room_id));
   } else {
     return links;  // Byte 0 with no user: not a reference.
   }

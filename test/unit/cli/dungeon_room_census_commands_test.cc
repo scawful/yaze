@@ -130,7 +130,7 @@ TEST(DungeonRoomCensusOracleCommandTest, ProjectFolderMatchesOracleNotes) {
   EXPECT_EQ(json.at("owners_source"), "project");
   EXPECT_EQ(json.at("reclaimable_rooms"),
             nlohmann::json({"0x10", "0xA7", "0x106", "0x127"}));
-  EXPECT_EQ(json.at("counts").at("free"), 14);
+  EXPECT_EQ(json.at("counts").at("free"), 13);
   EXPECT_EQ(json.at("largest_free_block"),
             "Row 9: 0x93-0x96 + 0xA0/0xA6/0xB0, 7 rooms");
 }
