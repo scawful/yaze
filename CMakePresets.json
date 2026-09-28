@@ -416,6 +416,7 @@
       "displayName": "AI Tests (macOS)",
       "name": "mac-ai",
       "configurePreset": "mac-ai",
+      "configuration": "Debug",
       "filter": {
         "include": {
           "label": "^stable$"
@@ -428,12 +429,13 @@
       "execution": {
         "jobs": 4
       },
-      "description": "Run stable tests against the mac-ai build"
+      "description": "Run the stable tests CI runs (label ^stable$, Debug) against the mac-ai build"
     },
     {
       "displayName": "Unit Tests (macOS)",
       "name": "mac-ai-unit",
       "configurePreset": "mac-ai",
+      "configuration": "Debug",
       "filter": {
         "include": {
           "label": "^unit$"
@@ -452,6 +454,7 @@
       "displayName": "Unit Tests (macOS + z3dk)",
       "name": "mac-ai-z3dk-unit",
       "configurePreset": "mac-ai-z3dk",
+      "configuration": "Debug",
       "filter": {
         "include": {
           "label": "^unit$"
@@ -470,6 +473,7 @@
       "displayName": "Integration Tests (macOS)",
       "name": "mac-ai-integration",
       "configurePreset": "mac-ai",
+      "configuration": "Debug",
       "filter": {
         "include": {
           "label": "^integration$"
