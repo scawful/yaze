@@ -62,6 +62,14 @@ class ScreenEditor : public Editor {
   // tilemap is loaded, so this never does I/O or ROM work.
   EditorContextSnapshot BuildContextSnapshot() const override;
 
+  // Test-only hook (see MenuTilemapEditorUI::LoadFileForTesting): loads a
+  // tilemap file directly, bypassing the native "Open..." file dialog that
+  // ImGuiTestEngine can't drive.
+  absl::Status LoadMenuTilemapForTesting(const std::string& path) {
+    return menu_tilemap_ui_.LoadFileForTesting(path);
+  }
+  bool IsMenuTilemapDirtyForTesting() const { return menu_tilemap_ui_.dirty(); }
+
   bool HasPendingDungeonMapChanges() const {
     return pending_dungeon_map_changes_;
   }

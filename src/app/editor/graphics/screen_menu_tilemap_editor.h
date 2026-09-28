@@ -49,6 +49,13 @@ class MenuTilemapEditorUI {
   bool loaded() const { return loaded_; }
   const std::string& current_path() const { return doc_.path(); }
 
+  // Test-only hook: loads a file the same way "Open..." does, without a
+  // native file dialog (ImGuiTestEngine can't drive OS dialogs). Mirrors
+  // Controller::LoadRomForTesting's naming convention.
+  absl::Status LoadFileForTesting(const std::string& path) {
+    return LoadFile(path);
+  }
+
   ~MenuTilemapEditorUI();
 
  private:
