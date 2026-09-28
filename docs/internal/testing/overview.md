@@ -52,6 +52,7 @@ These tests are always available and ALWAYS run in PR/Push CI (blocking merges):
 
 **Run with:**
 ```bash
+ctest --preset mac-ai                         # macOS: same selection as CI
 ctest --test-dir build -L stable              # All stable tests
 ctest --test-dir build -L "stable|gui"        # Stable + GUI
 ctest --test-dir build -L headless_gui        # GUI in headless mode (CI)
@@ -227,7 +228,90 @@ Executes tests with:
 
 ### Local Test Runs
 
-#### Stable Tests (Recommended for Development)
+#### Before Every Push (Same Selection as CI)
+
+```bash
+cmake --preset mac-ai
+cmake --build --preset mac-ai    # at least yaze_test_unit, yaze_test_integration, z3ed
+ctest --preset mac-ai            # label ^stable$, configuration Debug, -j4
+```
+
+`ctest --preset mac-ai` selects what CI's `ctest --build-config <cfg> -L '^stable$'`
+selects: the unit and integration shards plus the script and `z3ed_self_test`
+entries. `mac-ai-unit` (`^unit$`) and `mac-ai-integration` are subsets. A green
+`mac-ai-unit` run does not cover `stable;integration` or `stable;cli` tests
+(`1485ea7c3` broke CI that way).
+
+#### Sharded Registration
+
+`yaze_test_unit` and `yaze_test_integration` are registered as a few shard
+entries, not one ctest entry per gtest case:
+
+| CTest entries | Binary | Labels | Command |
+|---|---|---|---|
+| `yaze_test_unit_shard_0` … `yaze_test_unit_shard_9` | `yaze_test_unit` | `stable;unit` | `yaze_test_unit --shard=<i>/10` |
+| `yaze_test_integration_shard_0` | `yaze_test_integration` | `stable;integration` | `yaze_test_integration --shard=0/1` |
+
+Each shard runs one slice of the binary in one process. `--shard=K/N`
+(`test/yaze_test.cc`) hands out whole fixtures: a fixture goes to shard
+`FNV-1a(fixture name) % N`, and every case of it (all instantiations of a
+parameterized or typed fixture) runs in that one process, in declaration order.
+Hashing the name keeps a fixture in the same shard, with the same shard-mates,
+when unrelated tests are added; a failure that depends on an earlier case in
+the same process does not move between shards from one commit to the next.
+This differs from GoogleTest's `GTEST_TOTAL_SHARDS`, which deals out
+single cases and so runs sibling cases in concurrent shards at nearly the same
+moment. Siblings that share a fixed file path would race each other there (seen
+with `LayoutManagerPersistenceTest` on the Windows build box). Starting a test
+process costs about 0.3 s and most cases do under 1 ms of work, so one entry per
+case spent about 92% of the wall time on process startup. Shard counts live at
+the top of `test/CMakeLists.txt` (`YAZE_TEST_SHARDS_<suite>`); keep each unit
+shard at about 10-20 s of Debug work. Each shard has `TIMEOUT 600`. The GUI,
+quick, ROM, experimental, and benchmark suites keep one entry per case.
+
+A failing shard still names each failing case. gtest prints
+`[  FAILED  ] Suite.Case` after the case and again in its summary, and the test
+runner then prints a command that re-runs only the failures:
+
+```text
+Re-run only the failed cases:
+  /…/build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='Suite.Case'
+```
+
+#### Run One Test
+
+```bash
+# One case, or a pattern (gtest filter syntax, not a regex)
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='SettingsPanelTest.*'
+
+# Reproduce one ctest shard exactly (same cases, same order)
+build/presets/mac-ai/bin/Debug/yaze_test_unit --shard=3/10
+
+# List a shard's cases, or narrow a shard further with a filter
+build/presets/mac-ai/bin/Debug/yaze_test_unit --shard=3/10 --gtest_list_tests
+
+# One ctest entry per gtest case again (ctest -R 'Suite\.Case', isolation checks)
+cmake --preset mac-ai -DYAZE_TEST_PER_CASE=ON    # back: -DYAZE_TEST_PER_CASE=OFF
+```
+
+`ctest -R` matches ctest entry names. In the default mode those are shard
+names, so `ctest -R SettingsPanelTest` selects nothing; use `--gtest_filter` on
+the binary, or `./scripts/test_fast.sh --unit-regex '^SettingsPanelTest\.'`.
+
+#### Order-Dependence Check
+
+Cases in one shard share process-wide state (singletons such as
+`gui::ThemeManager::Get()`, feature flags, ImGui contexts). A case must pass
+after any other case. Check with a shuffled one-process run:
+
+```bash
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_shuffle --gtest_random_seed=7
+```
+
+A case that fails only in a shuffled or sharded run depends on state an earlier
+case left behind; reset that state in its fixture.
+
+#### Stable Tests (Label Filters)
 
 ```bash
 # Fast iteration
@@ -292,9 +376,9 @@ Both approaches work, but differ in flexibility:
 ```bash
 # CTest approach (recommended - uses CMake labels)
 ctest --test-dir build -L stable
-ctest --test-dir build -R "Dungeon"
+ctest --test-dir build -R "yaze_test_unit_shard"   # -R matches entry names (shards)
 
-# Gtest approach (direct binary execution)
+# Gtest approach (direct binary execution; selects individual cases)
 ./build/bin/yaze_test_unit --gtest_filter="*Asar*"
 ./build/bin/yaze_test_integration --gtest_filter="*Dungeon*"
 ./build/bin/yaze_test_gui --show-gui
@@ -410,8 +494,11 @@ endif()
 **Key function:** `yaze_add_test_suite(name label is_gui_test sources...)`
 - Creates executable
 - Links test dependencies
-- Discovers tests with gtest_discover_tests()
-- Assigns ctest label
+- Registers ctest entries: `<suite>_shard_<i>` for suites with a
+  `YAZE_TEST_SHARDS_<suite>` count (stable unit and integration), otherwise one
+  entry per gtest case via gtest_discover_tests(); `YAZE_TEST_PER_CASE=ON` uses
+  per-case discovery everywhere
+- Assigns ctest labels
 
 ## Maintenance & Troubleshooting
 
@@ -425,6 +512,11 @@ If tests intermittently fail:
 4. Check for environment-dependent behavior
 
 **Fix strategies:**
+- Run the binary with `--gtest_shuffle --gtest_random_seed=<n>` to expose
+  state that leaks between cases in one process (see Order-Dependence Check)
+- Configure with `-DYAZE_TEST_PER_CASE=ON` to run each case in its own process
+- Build temp paths from something process- and case-specific (pid, counter,
+  test name); concurrent shard processes share the temp directory
 - Use `ctest -j1` to disable parallelization
 - Add explicit synchronization points
 - Use test fixtures for setup/teardown
