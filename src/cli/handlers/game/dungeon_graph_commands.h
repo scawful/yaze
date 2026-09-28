@@ -13,9 +13,11 @@ namespace handlers {
 /**
  * @brief Command handler for generating a room connectivity graph
  *
- * Builds a graph representation of dungeon room connections via
- * staircases and hole warps. Useful for analyzing dungeon structure
- * and verifying connectivity.
+ * Lists each room's header links (stair slots, warp tags, holewarp, teleport
+ * doors) from zelda3::CollectRoomLinks, the links the room census uses.
+ * Each edge says whether the game can take it (`strong`); header bytes that
+ * nothing uses are weak. Destinations past 0x127 go to `out_of_range`.
+ * --dungeon keeps rooms the census assigns to that dungeon ID.
  */
 class DungeonGraphCommandHandler : public resources::CommandHandler {
  public:
@@ -25,7 +27,7 @@ class DungeonGraphCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "dungeon-graph --rom <path> [--room <room_id>] [--dungeon <id>] "
-           "[--format <json|text>]";
+           "[--project <code folder|.yaze>] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(
@@ -67,9 +69,10 @@ class EntranceInfoCommandHandler : public resources::CommandHandler {
 /**
  * @brief Command handler for auto-discovering dungeon rooms
  *
- * Starting from an entrance ID, performs BFS through staircase and holewarp
- * connections to discover reachable rooms. Returns the room list and
- * connection graph.
+ * Starting from an entrance (read from the table the game reads, ZScream's
+ * bank $0F copy when present), performs BFS over the header links the game
+ * can take (stairs, warp tags, live holes, teleport doors). Weak links are
+ * listed but not followed.
  */
 class DungeonDiscoverCommandHandler : public resources::CommandHandler {
  public:
@@ -79,7 +82,8 @@ class DungeonDiscoverCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const override {
     return "dungeon-discover --rom <path> --entrance <entrance_id> "
-           "[--depth <max_depth>] [--format <json|text>]";
+           "[--depth <max_depth>] [--project <code folder|.yaze>] "
+           "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -93,13 +97,17 @@ class DungeonDiscoverCommandHandler : public resources::CommandHandler {
 /**
  * @brief Full room connectivity graph including door edges
  *
- * Starting from an entrance, performs BFS through both door connections
- * (inferred from grid adjacency by direction) and staircase/holewarp edges.
- * Door edges include tile coordinates so the Python navigator can teleport
- * Link to a door tile and press the direction to trigger the transition.
+ * Starting from an entrance, performs BFS over the room links the census
+ * uses: mutual grid-neighbor doors (no wrap across rows or pages), teleport
+ * doors (type 0x46: stair slot 4 east, 3 west), and stair/holewarp links the
+ * game can take. Door edges include tile coordinates so the Python navigator
+ * can teleport Link to a door tile and press the direction to trigger the
+ * transition.
  *
  * Exit-type doors (FancyDungeonExit, CaveExit, etc.) are included in the
  * output but NOT followed during BFS (marked is_exit=true, to="exit").
+ * Key-stair doors are listed with to="stairs"; their stair object is the
+ * link.
  *
  * Usage:
  *   dungeon-room-graph --entrance=0x27 [--depth=50] [--same-blockset]
@@ -115,7 +123,7 @@ class DungeonRoomGraphCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const override {
     return "dungeon-room-graph --entrance <id> [--depth <max>] "
-           "[--same-blockset]";
+           "[--same-blockset] [--project <code folder|.yaze>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
