@@ -123,6 +123,7 @@ void MenuTilemapEditorUI::Draw(Rom* rom, zelda3::GameData* game_data,
                                project::YazeProject* project,
                                UndoManager* undo_manager) {
   const auto& theme = AgentUI::GetTheme();
+  undo_manager_ = undo_manager;
 
   DrawFileBar(rom, project);
   ImGui::Separator();
@@ -186,8 +187,6 @@ void MenuTilemapEditorUI::Draw(Rom* rom, zelda3::GameData* game_data,
       ImGui::IsKeyPressed(ImGuiKey_S, false)) {
     SaveCurrent();
   }
-
-  (void)undo_manager;  // used by stroke commit paths below
 }
 
 void MenuTilemapEditorUI::DrawFileBar(Rom* rom, project::YazeProject* project) {
@@ -634,7 +633,7 @@ void MenuTilemapEditorUI::DrawToolbar() {
     if (ImGui::Button(tr("Paste")) && has_clipboard_) {
       BeginStroke("Paste");
       doc_.PasteRect(selection_.row, selection_.col, clipboard_);
-      CommitStroke(nullptr);
+      CommitStroke();
       RebuildRenderTextures();
     }
     ImGui::SameLine();
@@ -644,14 +643,14 @@ void MenuTilemapEditorUI::DrawToolbar() {
                          static_cast<uint8_t>(selected_palette_), v_flip_,
                          h_flip_, priority_);
       doc_.FillRect(selection_, info);
-      CommitStroke(nullptr);
+      CommitStroke();
       RebuildRenderTextures();
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Erase"))) {
       BeginStroke("Erase selection");
       doc_.EraseRect(selection_, erase_word_);
-      CommitStroke(nullptr);
+      CommitStroke();
       RebuildRenderTextures();
     }
     ImGui::SameLine();
@@ -713,21 +712,23 @@ void MenuTilemapEditorUI::DrawMainCanvas() {
   }
 
   if (tool_ == Tool::kPaint) {
-    if (canvas_.DrawTileSelector(8.0f)) {
-      if (!canvas_.points().empty()) {
-        ImVec2 p = canvas_.points().front();
-        int col = static_cast<int>(p.x) / 8;
-        int row = static_cast<int>(p.y) / 8;
-        if (doc_.InBounds(row, col)) {
-          if (!stroke_active_)
-            BeginStroke("Paint tile");
-          PaintCellAt(row, col);
-          RebuildRenderTextures();
-        }
-      }
+    // Canvas::DrawTileSelector() only reports a *double*-click via its
+    // return value (see canvas_runtime_draw.cc) -- it still updates hover
+    // bookkeeping on a single click, which we don't need since has_hover_/
+    // hover_row_/hover_col_ (above) already give us the same thing. Paint
+    // directly off those: single click paints one cell, holding the button
+    // down paints continuously (click-drag), matching a normal tile
+    // editor rather than requiring a double-click per cell.
+    canvas_.DrawTileSelector(8.0f);
+    if (has_hover_ && ImGui::IsMouseDown(ImGuiMouseButton_Left) &&
+        doc_.InBounds(hover_row_, hover_col_)) {
+      if (!stroke_active_)
+        BeginStroke("Paint tile");
+      PaintCellAt(hover_row_, hover_col_);
+      RebuildRenderTextures();
     }
     if (stroke_active_ && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-      CommitStroke(nullptr);
+      CommitStroke();
     }
   } else if (tool_ == Tool::kSelect) {
     if (has_hover_ && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -921,9 +922,9 @@ void MenuTilemapEditorUI::BeginStroke(const std::string& description) {
   stroke_description_ = description;
 }
 
-void MenuTilemapEditorUI::CommitStroke(UndoManager* undo_manager) {
+void MenuTilemapEditorUI::CommitStroke() {
   stroke_active_ = false;
-  if (undo_manager == nullptr)
+  if (undo_manager_ == nullptr)
     return;
   ScreenSnapshot before;
   before.edit_type = ScreenEditType::kMenuTilemap;
@@ -938,7 +939,7 @@ void MenuTilemapEditorUI::CommitStroke(UndoManager* undo_manager) {
   if (before.menu_tilemap.bytes == after.menu_tilemap.bytes)
     return;
 
-  undo_manager->Push(std::make_unique<ScreenEditAction>(
+  undo_manager_->Push(std::make_unique<ScreenEditAction>(
       before, after,
       [this](const ScreenSnapshot& snap) {
         RestoreSnapshot(snap.menu_tilemap.bytes);
