@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "absl/strings/str_format.h"
 #include "app/emu/debug/symbol_provider.h"
 #include "rom/rom.h"
@@ -12,6 +14,15 @@
 #include "zelda3/game_data.h"
 #include "zelda3/screen/menu_tilemap.h"
 #include "zelda3/screen/menu_tilemap_sources.h"
+
+// `--rom=<path>` is z3ed's global ROM flag (src/cli/flags.cc); cli_main.cc's
+// top-level arg loop consumes it into this flag and strips it from the
+// per-command argv before ArgumentParser ever sees it (so
+// parser.GetString("rom") always comes back empty), even for a command like
+// this one where RequiresRom() is false because the ROM is only needed for
+// some sources. Redeclaring it here (the same pattern cli_main.cc itself
+// uses) reads the same global value other z3ed commands' --rom= uses.
+ABSL_DECLARE_FLAG(std::string, rom);
 
 namespace yaze {
 namespace cli {
@@ -31,15 +42,14 @@ std::vector<std::array<uint8_t, 4>> ToRgbaPalette(
   return out;
 }
 
-absl::StatusOr<Rom> LoadRomArg(const resources::ArgumentParser& parser,
-                               const char* why) {
-  auto rom_path = parser.GetString("rom");
-  if (!rom_path.has_value()) {
+absl::StatusOr<Rom> LoadRomArg(const char* why) {
+  std::string rom_path = absl::GetFlag(FLAGS_rom);
+  if (rom_path.empty()) {
     return absl::InvalidArgumentError(
         absl::StrFormat("--rom is required (%s)", why));
   }
   Rom rom;
-  RETURN_IF_ERROR(rom.LoadFromFile(*rom_path));
+  RETURN_IF_ERROR(rom.LoadFromFile(rom_path));
   return rom;
 }
 
@@ -92,8 +102,7 @@ absl::Status GfxTilemapRenderCommandHandler::Execute(
     ASSIGN_OR_RETURN(chr_sheet, zelda3::ResolveMenuChrFromFile(
                                     *parser.GetString("chr-file")));
   } else {
-    ASSIGN_OR_RETURN(Rom chr_rom,
-                     LoadRomArg(parser, "--chr-source rom needs a ROM"));
+    ASSIGN_OR_RETURN(Rom chr_rom, LoadRomArg("--chr-source rom needs a ROM"));
     ASSIGN_OR_RETURN(chr_sheet, zelda3::ResolveMenuChrFromRom(chr_rom));
   }
 
@@ -112,7 +121,7 @@ absl::Status GfxTilemapRenderCommandHandler::Execute(
                                  static_cast<size_t>(offset)));
   } else if (palette_source == "hud") {
     ASSIGN_OR_RETURN(Rom pal_rom,
-                     LoadRomArg(parser, "--palette-source hud needs a ROM"));
+                     LoadRomArg("--palette-source hud needs a ROM"));
     zelda3::GameData game_data;
     zelda3::LoadOptions options;
     options.load_graphics = false;
@@ -125,7 +134,7 @@ absl::Status GfxTilemapRenderCommandHandler::Execute(
     palette_label =
         parser.GetString("palette-label").value_or(kDefaultPaletteLabel);
     ASSIGN_OR_RETURN(Rom pal_rom,
-                     LoadRomArg(parser, "--palette-source symbol needs a ROM"));
+                     LoadRomArg("--palette-source symbol needs a ROM"));
     emu::debug::SymbolProvider symbols;
     RETURN_IF_ERROR(symbols.LoadSymbolFile(*parser.GetString("symbols"),
                                            emu::debug::SymbolFormat::kAuto));

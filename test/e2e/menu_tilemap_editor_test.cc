@@ -119,17 +119,18 @@ void E2ETest_MenuTilemapEditor_PaintUndoSave(ImGuiTestContext* ctx) {
   IM_CHECK(wm != nullptr);
   IM_CHECK(wm->OpenWindow(controller->editor_manager()->GetCurrentSessionId(),
                           "screen.menu_tilemap"));
-  ctx->Yield(5);
+  ctx->Yield(30);
 
   const std::string window_title =
       WindowTitle(controller, "screen.menu_tilemap");
   IM_CHECK(!window_title.empty());
   ctx->WindowFocus(window_title.c_str());
   ctx->SetRef(window_title.c_str());
+  ctx->Yield(10);
 
   // Real click on the canvas at tile (0,0): with the default zoom (2.0x)
   // that's a small offset from the canvas item's top-left corner.
-  ImGuiTestItemInfo canvas_item = ctx->ItemInfo("##MenuTilemapCanvas");
+  ImGuiTestItemInfo canvas_item = ctx->ItemInfo("**/##MenuTilemapCanvas");
   IM_CHECK(canvas_item.ID != 0);
   const ImVec2 click_pos = canvas_item.RectFull.Min + ImVec2(4.0f, 4.0f);
   ctx->MouseMoveToPos(click_pos);
