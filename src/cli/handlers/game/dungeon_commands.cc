@@ -24,7 +24,9 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_collision.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
@@ -463,12 +465,84 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   }
   formatter.EndArray();
 
+  if (parser.HasFlag("include-staircase-resolution")) {
+    zelda3::RoomLayout layout(rom);
+    const auto layout_status = layout.LoadLayout(room.layout_id());
+    auto input = zelda3::MakeRoomCollisionInput(room);
+    const auto& prefix = layout.GetObjects();
+    input.objects.insert(input.objects.begin(), prefix.begin(), prefix.end());
+    const auto resolutions = zelda3::ResolveVanillaStaircaseSlots(*rom, input);
+    formatter.BeginObject("staircase_resolution");
+    formatter.AddField("model", "vanilla_collision_preview");
+    formatter.AddField("runtime_qualified", false);
+    formatter.AddField("layout_loaded", layout_status.ok());
+    formatter.AddField("custom_collision", room.has_custom_collision());
+    formatter.BeginArray("objects");
+    for (const auto& resolution : resolutions) {
+      if (resolution.object_index < prefix.size())
+        continue;
+      const auto index = resolution.object_index - prefix.size();
+      const auto& object = tile_objects[index];
+      formatter.BeginObject();
+      formatter.AddField("object_index", static_cast<int>(index));
+      formatter.AddHexField("object_id", object.id_, 3);
+      formatter.AddField("x", object.x());
+      formatter.AddField("y", object.y());
+      formatter.AddField("stream_index", object.GetLayerValue());
+      const char* status = "trigger_unavailable";
+      switch (resolution.status) {
+        case zelda3::StaircaseSlotStatus::kResolved:
+          status = "resolved";
+          break;
+        case zelda3::StaircaseSlotStatus::kTriggerUnavailable:
+          break;
+        case zelda3::StaircaseSlotStatus::kOverlappingStairs:
+          status = "overlapping_stairs";
+          break;
+        case zelda3::StaircaseSlotStatus::kOutsideRoom:
+          status = "outside_room";
+          break;
+        case zelda3::StaircaseSlotStatus::kTooManyStairs:
+          status = "too_many_stairs";
+          break;
+      }
+      formatter.AddField("vanilla_status", status);
+      if (resolution.slot && layout_status.ok()) {
+        formatter.AddField("vanilla_slot", *resolution.slot);
+        formatter.AddHexField("vanilla_destination_room",
+                              room.staircase_destination_room(*resolution.slot),
+                              3);
+        formatter.AddField("vanilla_arrival_plane",
+                           room.staircase_plane(*resolution.slot));
+      }
+      if (!layout_status.ok())
+        status = "layout_unavailable";
+      if (room.has_custom_collision())
+        status = "custom_collision";
+      formatter.AddField("status", status);
+      if (resolution.slot && layout_status.ok() &&
+          !room.has_custom_collision()) {
+        formatter.AddField("slot", *resolution.slot);
+        formatter.AddHexField("destination_room",
+                              room.staircase_destination_room(*resolution.slot),
+                              3);
+        formatter.AddField("arrival_plane",
+                           room.staircase_plane(*resolution.slot));
+      }
+      formatter.EndObject();
+    }
+    formatter.EndArray();
+    formatter.EndObject();
+  }
+
   // Export Chests
   formatter.BeginArray("chests");
   for (const auto& chest : room.GetChests()) {
     formatter.BeginObject();
     formatter.AddHexField("item_id", chest.id, 2);
-    formatter.AddField("item_name", zelda3::GetItemLabel(chest.id));
+    formatter.AddField("item_name", zelda3::GetItemReceiptLabel(chest.id));
+    formatter.AddField("item_name_source",
+                       zelda3::GetItemReceiptLabelSource(chest.id));
     formatter.AddField("is_big_chest", chest.size);
     formatter.EndObject();
   }
@@ -528,13 +602,13 @@ absl::Status DungeonListChestsCommandHandler::Execute(
       formatter.BeginObject();
       formatter.AddField("index", chest_index++);
       formatter.AddHexField("item_id", chest.id, 2);
-      formatter.AddField("item_name", zelda3::GetItemLabel(chest.id));
+      formatter.AddField("item_name", zelda3::GetItemReceiptLabel(chest.id));
+      formatter.AddField("item_name_source",
+                         zelda3::GetItemReceiptLabelSource(chest.id));
       formatter.AddField("is_big_chest", chest.size);
       formatter.EndObject();
 
-      if (chest.id != 0) {
-        item_counts[chest.id]++;
-      }
+      item_counts[chest.id]++;
     }
     formatter.EndArray();
     formatter.EndObject();
@@ -554,7 +628,9 @@ absl::Status DungeonListChestsCommandHandler::Execute(
     }
     formatter.BeginObject();
     formatter.AddHexField("item_id", item_id, 2);
-    formatter.AddField("item_name", zelda3::GetItemLabel(item_id));
+    formatter.AddField("item_name", zelda3::GetItemReceiptLabel(item_id));
+    formatter.AddField("item_name_source",
+                       zelda3::GetItemReceiptLabelSource(item_id));
     formatter.AddField("count", count);
     formatter.EndObject();
   }
@@ -1025,6 +1101,19 @@ absl::Status DungeonRoomHeaderCommandHandler::Execute(
     formatter.AddField("stair2_room", rom->data()[room_header_pc + 11]);
     formatter.AddField("stair3_room", rom->data()[room_header_pc + 12]);
     formatter.AddField("stair4_room", rom->data()[room_header_pc + 13]);
+    // The fields above are raw header bytes. The game keeps the current
+    // room's high byte ($A1), so report the room each byte leads to.
+    formatter.AddHexField("holewarp_destination_room",
+                          zelda3::ResolveHeaderDestinationRoom(
+                              room_id, rom->data()[room_header_pc + 9]),
+                          3);
+    for (int slot = 0; slot < 4; ++slot) {
+      formatter.AddHexField(
+          absl::StrFormat("stair%d_destination_room", slot + 1),
+          zelda3::ResolveHeaderDestinationRoom(
+              room_id, rom->data()[room_header_pc + 10 + slot]),
+          3);
+    }
     formatter.EndObject();
   } else {
     formatter.AddField("error", "Room header address out of range");

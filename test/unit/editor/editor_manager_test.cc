@@ -6,10 +6,12 @@
 #include <string>
 
 #include "app/editor/editor_manager.h"
+#include "app/editor/layout/layout_coordinator.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/platform/null_window_backend.h"
+#include "editor_test_support.h"
 #include "imgui/imgui.h"
 #include "zelda3/resource_labels.h"
 
@@ -58,12 +60,14 @@ class EditorManagerTest : public ::testing::Test {
 
 TEST_F(EditorManagerTest, Initialization) {
   // Verify basic initialization doesn't crash
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
   EXPECT_TRUE(true);  // Should reach here
 }
 
 TEST_F(EditorManagerTest, UpdateWithoutCrash) {
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
 
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2(1280, 720);
@@ -80,12 +84,40 @@ TEST_F(EditorManagerTest, UpdateWithoutCrash) {
 
 TEST_F(EditorManagerTest, PublicAPISurface) {
   // Just verifying the API exists and links
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
 
   // This function is now public, we can call it (though it requires ImGui context)
   // We can't easily test DrawMainMenuBar without a full ImGui setup,
   // but we can verify it compiles.
   // editor_manager_->DrawMainMenuBar();
+}
+
+TEST(LayoutCoordinatorChromeBudgetTest,
+     SidePanelsOverlayBeforeTheyCrushWorkspaceCanvas) {
+  const auto wide = LayoutCoordinator::ResolveWorkspaceChromeBudget(
+      1600.0f, 48.0f, 300.0f, 480.0f);
+  EXPECT_FLOAT_EQ(wide.left_offset, 348.0f);
+  EXPECT_FLOAT_EQ(wide.right_offset, 480.0f);
+  EXPECT_FALSE(wide.side_panels_overlay);
+
+  const auto constrained = LayoutCoordinator::ResolveWorkspaceChromeBudget(
+      1200.0f, 48.0f, 300.0f, 480.0f);
+  EXPECT_FLOAT_EQ(constrained.left_offset, 48.0f);
+  EXPECT_FLOAT_EQ(constrained.right_offset, 0.0f);
+  EXPECT_TRUE(constrained.side_panels_overlay);
+
+  const auto opening = LayoutCoordinator::ResolveWorkspaceChromeBudget(
+      1200.0f, 48.0f, 300.0f, 100.0f, 480.0f);
+  EXPECT_FLOAT_EQ(opening.left_offset, 48.0f);
+  EXPECT_FLOAT_EQ(opening.right_offset, 0.0f);
+  EXPECT_TRUE(opening.side_panels_overlay);
+
+  const auto left_only = LayoutCoordinator::ResolveWorkspaceChromeBudget(
+      1000.0f, 48.0f, 300.0f, 0.0f);
+  EXPECT_FLOAT_EQ(left_only.left_offset, 348.0f);
+  EXPECT_FLOAT_EQ(left_only.right_offset, 0.0f);
+  EXPECT_FALSE(left_only.side_panels_overlay);
 }
 
 TEST_F(EditorManagerTest,
@@ -163,7 +195,8 @@ TEST_F(EditorManagerTest,
   EXPECT_TRUE(prefs.saved_layouts.at("custom").at("dungeon.object_selector"));
   EXPECT_NE(prefs.named_layouts.at("favorite").find("dungeon.object_selector"),
             std::string::npos);
-  EXPECT_FLOAT_EQ(prefs.right_panel_widths.at("agent_chat"), 777.0f);
+  EXPECT_EQ(prefs.right_panel_widths.count("agent_chat"), 0U);
+  EXPECT_FLOAT_EQ(prefs.right_panel_widths.at("right_sidebar.shared"), 777.0f);
   EXPECT_FLOAT_EQ(prefs.right_panel_widths.at("dungeon.workbench"), 444.0f);
 
   EXPECT_FALSE(editor_manager_->window_manager().IsSidebarExpanded());
@@ -180,7 +213,8 @@ TEST_F(EditorManagerTest,
 
 TEST_F(EditorManagerTest,
        PostRegistrationRestoreAppliesLazySecondSessionPanelVisibility) {
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
 
   constexpr size_t kSecondSessionId = 7;
   RomSession second_session(&editor_manager_->user_settings(),
@@ -216,7 +250,8 @@ TEST_F(EditorManagerTest,
 
 TEST_F(EditorManagerTest,
        RepeatedEnsureDoesNotReplayStaleVisibilityAfterPanelClose) {
-  editor_manager_->Initialize(renderer_.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
   editor_manager_->CreateNewSession();
 
   auto& window_manager = editor_manager_->window_manager();

@@ -42,6 +42,22 @@ TEST_F(SpriteEditorPreviewTest, FirstCallCreatesActiveBitmapAndQueuesCreate) {
          "scratchpads without consulting caller convention.";
 }
 
+TEST_F(SpriteEditorPreviewTest, CompositeStartsBlankAndPublishesChangedPixels) {
+  gfx::Bitmap bmp;
+  std::vector<uint8_t> graphics(kVanillaWidth * kVanillaHeight, 7);
+  internal::EnsureSpritePreviewBitmapReady(bmp, kVanillaWidth, kVanillaHeight,
+                                           kSpriteDepth, graphics);
+  ASSERT_TRUE(bmp.is_active());
+  EXPECT_EQ(bmp.data()[0], 0);
+  EXPECT_EQ(static_cast<uint8_t*>(bmp.surface()->pixels)[0], 0);
+  bmp.mutable_data()[0] = 3;
+  internal::PublishSpritePreviewPixels(bmp);
+  EXPECT_EQ(static_cast<uint8_t*>(bmp.surface()->pixels)[0], 3);
+  bmp.mutable_data()[0] = 0;
+  internal::PublishSpritePreviewPixels(bmp);
+  EXPECT_EQ(static_cast<uint8_t*>(bmp.surface()->pixels)[0], 0);
+}
+
 TEST_F(SpriteEditorPreviewTest, RepeatedCallIsNoOpForActiveBitmap) {
   gfx::Bitmap bmp;
   std::vector<uint8_t> buffer(kVanillaWidth * kVanillaHeight, 0);

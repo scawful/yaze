@@ -19,6 +19,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 | **Fix build issues** | [Build Troubleshooting](build/troubleshooting.md) |
 | **Use the CLI** | [z3ed CLI Guide](usage/z3ed-cli.md) |
 | **Beta test yaze** | [Beta Testing Guide](usage/beta-testing.md) |
+| **Check editor readiness** | [Feature Coverage Report](reference/feature-coverage-report.md) |
 
 ---
 
@@ -51,7 +52,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 - [Palette System](developer/palette-system-overview.md) - Color handling
 
 ### Reference
-- [Capability Assessment](reference/capability-assessment.md) - Feature parity vs Hyrule Magic / ZScream
+- [Capability Assessment](reference/capability-assessment.md) - Workflow baseline against Hyrule Magic / ZScream
 - [Feature & Test Coverage Report](reference/feature-coverage-report.md) - Feature status and test coverage map
 - [ROM Reference](reference/rom-reference.md) - ROM data structures
 - [Message Bundle Format](reference/message-bundle-format.md) - JSON import/export schema
@@ -60,4 +61,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 
 ---
 
-**Internal Documentation:** Development plans, agent workflows, and architecture deep-dives are in [docs/internal/](../internal/README.md).
+**Internal Documentation:** Development plans, agent workflows, and architecture
+deep-dives are in [docs/internal/](../internal/README.md). Contributors should
+start with the [editor capability parity plan](../internal/plans/editor-capability-parity-plan.md)
+for package scope, current evidence, and implementation instructions.

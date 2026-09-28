@@ -145,7 +145,6 @@ absl::StatusOr<MapValidationResult> ValidateMapPointers(
 struct Tile16ValidationResult {
   bool uses_expanded = false;
   int suspicious_count = 0;
-  std::vector<uint32_t> problem_addresses;
 };
 
 Tile16ValidationResult ValidateTile16Region(const Rom* rom) {
@@ -157,28 +156,6 @@ Tile16ValidationResult ValidateTile16Region(const Rom* rom) {
 
   if (!result.uses_expanded) {
     return result;
-  }
-
-  // Check known problem addresses
-  for (uint32_t addr : kProblemAddresses) {
-    if (addr >= kMap16TilesExpanded && addr < kMap16TilesExpandedEnd) {
-      uint8_t sample[16] = {0};
-      for (int i = 0; i < 16 && addr + i < rom->size(); ++i) {
-        sample[i] = rom->data()[addr + i];
-      }
-
-      bool looks_valid = true;
-      for (int i = 0; i < 16; i += 2) {
-        uint16_t val = sample[i] | (sample[i + 1] << 8);
-        if ((val & 0x1F00) != 0 && (val & 0xE000) == 0) {
-          looks_valid = false;
-        }
-      }
-
-      if (!looks_valid) {
-        result.problem_addresses.push_back(addr);
-      }
-    }
   }
 
   // Count suspicious tiles in expansion region
@@ -274,20 +251,8 @@ absl::Status OverworldValidateCommandHandler::Execute(
     formatter.AddField("tile16_uses_expanded", tile16_result.uses_expanded);
 
     if (tile16_result.uses_expanded) {
-      formatter.AddField(
-          "tile16_problem_addresses",
-          static_cast<int>(tile16_result.problem_addresses.size()));
       formatter.AddField("tile16_suspicious_count",
                          tile16_result.suspicious_count);
-
-      if (!is_json && !tile16_result.problem_addresses.empty()) {
-        std::cout << "\n=== Tile16 Problems ===\n";
-        for (uint32_t addr : tile16_result.problem_addresses) {
-          int tile_idx = (addr - kMap16TilesExpanded) / 8;
-          std::cout << absl::StrFormat("  0x%06X (tile16 #%d): SUSPICIOUS\n",
-                                       addr, tile_idx);
-        }
-      }
     }
   }
 

@@ -206,7 +206,7 @@ class MessageWriteCommandHandler : public resources::CommandHandler {
   std::string GetName() const override { return "message-write"; }
   std::string GetUsage() const override {
     return "message-write --id <id> --text <text> --project <path>"
-           " [--format <json|text>]";
+           " [--range <expanded|vanilla>] [--format <json|text>]";
   }
   bool RequiresRom() const override { return true; }
 

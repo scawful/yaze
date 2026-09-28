@@ -12,7 +12,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_entrance_camera.h"
+#include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
+#include "app/editor/dungeon/dungeon_room_edit.h"
+#include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
+#include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
+#include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -31,6 +37,10 @@
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
+
+// Room-based plans must follow canvas.h's ImGui math-operator configuration.
+#include "app/editor/dungeon/dungeon_connection_edit.h"
+#include "app/editor/dungeon/dungeon_room_transfer.h"
 
 namespace yaze {
 namespace editor {
@@ -222,6 +232,10 @@ class DungeonCanvasViewer {
     object_interaction_.SetDoorPairNavigationCallback(
         [this](int target_room, std::optional<size_t> target_door_index,
                int target_tile_x, int target_tile_y) {
+          if (target_door_index &&
+              NavigateToDoorConnectionTarget(target_room, *target_door_index)) {
+            return;
+          }
           NavigateToRoom(target_room);
           bool focused_target_door = false;
           if (target_door_index.has_value() && rooms_ != nullptr) {
@@ -270,9 +284,98 @@ class DungeonCanvasViewer {
 
   void DrawDungeonCanvas(int room_id);
   std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
+  // Read-only proposal preview: overlay.rooms rendered left to right with the
+  // visible layers drawn on top. Never edits room data.
+  void DrawProposalPreview(const DungeonProposalOverlay& overlay,
+                           const std::vector<char>& layer_visible,
+                           bool show_overlay, float scale);
+  ImVec2 GetProposalPreviewContentSize(const DungeonProposalOverlay& overlay,
+                                       float scale) const;
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
   void TriggerChangePing();
+  using MetadataEditCallback =
+      std::function<absl::Status(int, const RoomMetadataEdit&)>;
+  using MetadataBatchEditCallback =
+      std::function<absl::Status(const std::vector<RoomMetadataRequest>&)>;
+  using ChestEditCallback =
+      std::function<absl::Status(int, size_t, uint8_t, bool)>;
+  using ChestDeleteCallback = std::function<absl::Status(int, size_t)>;
+  using DoorConnectionPreviewCallback =
+      std::function<absl::StatusOr<DungeonConnectionPlan>(
+          const DungeonConnectionRequest&)>;
+  using DoorConnectionApplyCallback =
+      std::function<absl::Status(const DungeonConnectionPlan&)>;
+  void SetMetadataEditCallback(MetadataEditCallback callback) {
+    metadata_edit_callback_ = std::move(callback);
+  }
+  void SetMetadataBatchEditCallback(MetadataBatchEditCallback callback) {
+    metadata_batch_edit_callback_ = std::move(callback);
+  }
+  void SetChestEditCallback(ChestEditCallback callback) {
+    chest_edit_callback_ = std::move(callback);
+  }
+  void SetChestDeleteCallback(ChestDeleteCallback callback) {
+    chest_delete_callback_ = std::move(callback);
+  }
+  void SetDoorConnectionCallbacks(DoorConnectionPreviewCallback preview,
+                                  DoorConnectionApplyCallback apply) {
+    door_connection_preview_callback_ = std::move(preview);
+    door_connection_apply_callback_ = std::move(apply);
+  }
+  absl::StatusOr<DungeonConnectionPlan> PreviewDoorConnection(
+      const DungeonConnectionRequest& request);
+  absl::Status ApplyDoorConnection(const DungeonConnectionPlan& plan);
+  void SetDoorConnectionNavigationCallback(
+      std::function<void(int, size_t)> callback) {
+    door_connection_navigation_callback_ = std::move(callback);
+  }
+  bool CanNavigateDoorConnectionTarget() const {
+    return static_cast<bool>(door_connection_navigation_callback_);
+  }
+  bool NavigateToDoorConnectionTarget(int room_id, size_t door_index) {
+    if (!door_connection_navigation_callback_) {
+      return false;
+    }
+    door_connection_navigation_callback_(room_id, door_index);
+    return true;
+  }
+  DungeonConnectionEditorState& connection_editor_state() {
+    return connection_editor_state_;
+  }
+  using RoomDocumentExportCallback =
+      std::function<absl::StatusOr<std::string>(int)>;
+  using RoomTransferPreviewCallback =
+      std::function<absl::StatusOr<DungeonRoomTransferPlan>(
+          int, int, const std::string&, const DungeonRoomTransferOptions&)>;
+  using RoomTransferApplyCallback =
+      std::function<absl::Status(const DungeonRoomTransferPlan&)>;
+  void SetRoomTransferCallbacks(RoomDocumentExportCallback export_document,
+                                RoomTransferPreviewCallback preview,
+                                RoomTransferApplyCallback apply) {
+    room_document_export_callback_ = std::move(export_document);
+    room_transfer_preview_callback_ = std::move(preview);
+    room_transfer_apply_callback_ = std::move(apply);
+  }
+  absl::StatusOr<std::string> ExportRoomDocument(int room_id);
+  absl::StatusOr<DungeonRoomTransferPlan> PreviewRoomTransfer(
+      int source_room_id, const std::string& json,
+      const DungeonRoomTransferOptions& options);
+  absl::Status ApplyRoomTransfer(const DungeonRoomTransferPlan& plan);
+  DungeonRoomTransferEditorState& room_transfer_state() {
+    return room_transfer_state_;
+  }
+  absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
+  absl::Status EditRoomMetadataBatch(
+      const std::vector<RoomMetadataRequest>& requests);
+  absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
+                         bool big_chest);
+  absl::Status DeleteChest(int room_id, size_t index);
+  DungeonChestEditorState& chest_editor_state() { return chest_editor_state_; }
+  void InvalidateConnectedRoomGraph() {
+    connected_graph_cache_start_room_id_ = -1;
+    connected_graph_cache_ = ConnectedRoomGraphData{};
+  }
   void TriggerCanvasPingRect(int pixel_x, int pixel_y, int pixel_w,
                              int pixel_h);
   void TriggerObjectChangePing(
@@ -383,6 +486,19 @@ class DungeonCanvasViewer {
   int current_entrance_id() const { return current_entrance_id_; }
   uint8_t current_entrance_blockset() const {
     return current_entrance_blockset_;
+  }
+  void SetEntranceCameraOverlay(int entrance_slot,
+                                const DungeonEntranceCameraState& state) {
+    camera_overlay_entrance_slot_ = entrance_slot;
+    entrance_camera_overlay_ = state;
+  }
+  void ClearEntranceCameraOverlay() {
+    camera_overlay_entrance_slot_ = -1;
+    entrance_camera_overlay_.reset();
+  }
+  const std::optional<DungeonEntranceCameraState>& entrance_camera_overlay()
+      const {
+    return entrance_camera_overlay_;
   }
   void SetRoomNavigationCallback(std::function<void(int)> callback) {
     room_navigation_callback_ = std::move(callback);
@@ -543,6 +659,11 @@ class DungeonCanvasViewer {
   void SetEditObjectTilesCallback(
       std::function<void(int, const zelda3::RoomObject&)> callback) {
     edit_object_tiles_callback_ = std::move(callback);
+  }
+  // Opens Object Coverage on the selected object's ID.
+  void SetCheckObjectCoverageCallback(
+      std::function<void(int, const zelda3::RoomObject&)> callback) {
+    check_object_coverage_callback_ = std::move(callback);
   }
   void SetMinecartTrackPanel(MinecartTrackEditorPanel* panel) {
     minecart_track_panel_ = panel;
@@ -731,10 +852,17 @@ class DungeonCanvasViewer {
   }
 
   // Object manipulation
-  void DeleteSelectedObjects() { object_interaction_.HandleDeleteSelected(); }
+  void DeleteSelectedObjects() {
+    (void)object_interaction_.HandleDeleteSelected();
+  }
   bool CanHandleRoomCanvasShortcut() const {
     return ImGui::GetCurrentContext() != nullptr &&
            HasRoomCanvasShortcutFocusForFrame(ImGui::GetFrameCount());
+  }
+  bool OwnsRoomNavigationShortcutFocus() const {
+    return ImGui::GetCurrentContext() != nullptr &&
+           object_interaction_enabled_ && room_canvas_shortcut_focus_ &&
+           room_canvas_last_draw_frame_ >= ImGui::GetFrameCount() - 1;
   }
 
   // Entity visibility controls
@@ -781,6 +909,8 @@ class DungeonCanvasViewer {
 
  private:
   friend class DungeonCanvasViewerTestPeer;
+  friend class DungeonRoomTransferEditorTestPeer;
+  friend class DungeonRoomEditsTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
   friend class
       DungeonEditorPaletteRefreshTest_CachedRoomRefreshesThroughViewerCompositePreparation_Test;
@@ -929,6 +1059,8 @@ class DungeonCanvasViewer {
   std::vector<int> recently_visited_rooms_;
   int current_entrance_id_ = -1;
   uint8_t current_entrance_blockset_ = 0xFF;
+  int camera_overlay_entrance_slot_ = -1;
+  std::optional<DungeonEntranceCameraState> entrance_camera_overlay_;
   // Used by overworld editor for double-click entrance → open dungeon room
   ImVector<int> active_rooms_;
   int current_active_room_tab_ = 0;
@@ -1018,6 +1150,19 @@ class DungeonCanvasViewer {
   bool show_custom_collision_overlay_ = false;
   bool show_water_fill_overlay_ = false;
   bool show_room_details_ = false;
+  MetadataEditCallback metadata_edit_callback_;
+  MetadataBatchEditCallback metadata_batch_edit_callback_;
+  ChestEditCallback chest_edit_callback_;
+  ChestDeleteCallback chest_delete_callback_;
+  DungeonChestEditorState chest_editor_state_;
+  DoorConnectionPreviewCallback door_connection_preview_callback_;
+  DoorConnectionApplyCallback door_connection_apply_callback_;
+  std::function<void(int, size_t)> door_connection_navigation_callback_;
+  DungeonConnectionEditorState connection_editor_state_;
+  RoomDocumentExportCallback room_document_export_callback_;
+  RoomTransferPreviewCallback room_transfer_preview_callback_;
+  RoomTransferApplyCallback room_transfer_apply_callback_;
+  DungeonRoomTransferEditorState room_transfer_state_;
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;
   bool header_visible_ = true;
@@ -1107,6 +1252,8 @@ class DungeonCanvasViewer {
   double change_ping_start_time_ = -1.0;
   std::function<void(int, const zelda3::RoomObject&)>
       edit_object_tiles_callback_;
+  std::function<void(int, const zelda3::RoomObject&)>
+      check_object_coverage_callback_;
 };
 
 }  // namespace editor

@@ -1,11 +1,45 @@
 #include "util/log.h"
 
 #include <chrono>
+#include <cstdint>
+#include <ctime>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
+#include <string>
 
 #include "absl/strings/str_format.h"
 #include "core/features.h"
+
+namespace {
+
+// Serializes writes: background loaders log from other threads.
+std::mutex& LogWriteMutex() {
+  static std::mutex mutex;
+  return mutex;
+}
+
+// Keep the log file bounded: at open, a file over 10 MB becomes <file>.1
+// (older copies shift to .2 and .3). The yaze.log on a daily-use machine had
+// grown to 100 MB across builds.
+void RotateLogFileIfLarge(const std::string& path) {
+  constexpr std::uintmax_t kMaxBytes = 10u * 1024u * 1024u;
+  constexpr int kKeep = 3;
+  std::error_code ec;
+  const auto size = std::filesystem::file_size(path, ec);
+  if (ec || size <= kMaxBytes) {
+    return;
+  }
+  std::filesystem::remove(path + "." + std::to_string(kKeep), ec);
+  for (int i = kKeep - 1; i >= 1; --i) {
+    std::filesystem::rename(path + "." + std::to_string(i),
+                            path + "." + std::to_string(i + 1), ec);
+  }
+  std::filesystem::rename(path, path + ".1", ec);
+}
+
+}  // namespace
 
 namespace yaze {
 namespace util {
@@ -89,7 +123,8 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
     if (log_stream_.is_open()) {
       log_stream_.close();
     }
-    // Open in append mode to preserve history.
+    // Open in append mode to preserve history, after rotating a large file.
+    RotateLogFileIfLarge(file_path);
     log_stream_.open(file_path, std::ios::out | std::ios::app);
     log_file_path_ = file_path;
   } else if (file_path.empty() && log_stream_.is_open()) {
@@ -98,6 +133,13 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
     // a lock on Windows, where an open file cannot be deleted.
     log_stream_.close();
     log_file_path_.clear();
+  }
+}
+
+void LogManager::Flush() {
+  std::lock_guard<std::mutex> lock(LogWriteMutex());
+  if (log_stream_.is_open()) {
+    log_stream_.flush();
   }
 }
 
@@ -138,7 +180,12 @@ void LogManager::log(LogLevel level, absl::string_view category,
   // [HH:MM:SS.ms] [LEVEL] [category] message
   auto now = std::chrono::system_clock::now();
   auto now_tt = std::chrono::system_clock::to_time_t(now);
-  auto now_tm = *std::localtime(&now_tt);
+  std::tm now_tm{};
+#ifdef _WIN32
+  localtime_s(&now_tm, &now_tt);
+#else
+  localtime_r(&now_tt, &now_tm);
+#endif
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                 now.time_since_epoch()) %
             1000;
@@ -147,15 +194,26 @@ void LogManager::log(LogLevel level, absl::string_view category,
       "[%02d:%02d:%02d.%03d] [%-5s] [%s] %s\n", now_tm.tm_hour, now_tm.tm_min,
       now_tm.tm_sec, ms.count(), LogLevelToString(level), category, message);
 
-  // 4. Write to the configured sink (file and/or stderr).
-  if (log_stream_.is_open()) {
-    log_stream_ << final_message;
-    log_stream_.flush();  // Ensure immediate write for debugging.
-  }
+  // 4. Write to the configured sink (file and/or stderr). Flush warnings and
+  // errors at once; batch other lines and flush at most once a second, so
+  // chatty INFO logging does not cost a disk write per line.
+  {
+    std::lock_guard<std::mutex> lock(LogWriteMutex());
+    if (log_stream_.is_open()) {
+      log_stream_ << final_message;
+      static auto last_flush = std::chrono::steady_clock::now();
+      const auto steady_now = std::chrono::steady_clock::now();
+      if (level >= LogLevel::WARNING ||
+          steady_now - last_flush >= std::chrono::seconds(1)) {
+        log_stream_.flush();
+        last_flush = steady_now;
+      }
+    }
 
-  // Also write to stderr if no file is open OR if console logging is enabled
-  if (!log_stream_.is_open() || core::FeatureFlags::get().kLogToConsole) {
-    std::cerr << final_message;
+    // Also write to stderr if no file is open OR if console logging is enabled
+    if (!log_stream_.is_open() || core::FeatureFlags::get().kLogToConsole) {
+      std::cerr << final_message;
+    }
   }
 
   // 5. Abort on FATAL error.

@@ -14,6 +14,24 @@ struct RemoteRoomViewerView: View {
   @State private var showMetadata = false
   @State private var searchText = ""
   @State private var showRoomBrowser = false
+  @State private var refreshID = 0
+  @State private var fitToView = true
+
+  private struct Request: Hashable {
+    let room: Int
+    let scale: Float
+    let overlays: [String]
+    let host: String?
+    let connected: Bool
+    let refresh: Int
+  }
+
+  private var request: Request {
+    Request(room: selectedRoomId, scale: scale,
+            overlays: activeOverlays.map(\.rawValue).sorted(),
+            host: apiClient.connectedHost?.baseURL, connected: apiClient.isConnected,
+            refresh: refreshID)
+  }
 
   private var allRooms: [RoomSummary] {
     let rooms = RoomCatalog.allRooms
@@ -31,7 +49,10 @@ struct RemoteRoomViewerView: View {
       roomSelectorBar
 
       // Main content
-      if isLoading {
+      if !apiClient.isConnected {
+        ContentUnavailableView("Desktop disconnected", systemImage: "desktopcomputer",
+          description: Text("Return to Desktop Connection to reconnect and review rooms."))
+      } else if isLoading {
         Spacer()
         ProgressView("Rendering room...")
         Spacer()
@@ -39,8 +60,14 @@ struct RemoteRoomViewerView: View {
         roomImageView(image)
       } else if !errorMessage.isEmpty {
         Spacer()
-        Label(errorMessage, systemImage: "exclamationmark.triangle")
-          .foregroundStyle(.orange)
+        ContentUnavailableView {
+          Label("Room could not be loaded", systemImage: "exclamationmark.triangle")
+        } description: {
+          Text(errorMessage)
+        } actions: {
+          Button("Try again") { refreshID += 1 }
+            .buttonStyle(.borderedProminent)
+        }
         Spacer()
       } else {
         Spacer()
@@ -56,11 +83,18 @@ struct RemoteRoomViewerView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
+        Button { refreshID += 1 } label: { Image(systemName: "arrow.clockwise") }
+          .accessibilityLabel("Refresh room from desktop")
+          .disabled(!apiClient.isConnected)
+      }
+      ToolbarItem(placement: .topBarTrailing) {
         Button {
           showMetadata.toggle()
         } label: {
           Image(systemName: "info.circle")
         }
+        .accessibilityLabel("Room details")
+        .disabled(metadata == nil || isLoading)
       }
       ToolbarItem(placement: .topBarTrailing) {
         Button {
@@ -68,6 +102,7 @@ struct RemoteRoomViewerView: View {
         } label: {
           Image(systemName: "list.bullet")
         }
+        .accessibilityLabel("Browse rooms")
       }
     }
     .sheet(isPresented: $showMetadata) {
@@ -76,67 +111,76 @@ struct RemoteRoomViewerView: View {
     .sheet(isPresented: $showRoomBrowser) {
       roomBrowserSheet
     }
-    .onChange(of: selectedRoomId) { _, _ in
-      loadRoom()
-    }
-    .onChange(of: activeOverlays) { _, _ in
-      loadRoom()
-    }
-    .onChange(of: scale) { _, _ in
-      loadRoom()
+    .onChange(of: scale) { _, _ in fitToView = false }
+    .task(id: request) {
+      await loadRoom(request)
     }
   }
 
   // MARK: - Subviews
 
   private var roomSelectorBar: some View {
-    HStack(spacing: 12) {
-      Button {
-        if selectedRoomId > 0 { selectedRoomId -= 1 }
-      } label: {
-        Image(systemName: "chevron.left")
-      }
-      .disabled(selectedRoomId <= 0)
-
-      Text(String(format: "Room 0x%03X", selectedRoomId))
-        .font(.headline.monospacedDigit())
-        .frame(minWidth: 120)
-
-      Button {
-        if selectedRoomId < RoomCatalog.totalRooms - 1 { selectedRoomId += 1 }
-      } label: {
-        Image(systemName: "chevron.right")
-      }
-      .disabled(selectedRoomId >= RoomCatalog.totalRooms - 1)
-
-      Spacer()
-
-      HStack(spacing: 4) {
-        Text("Scale:")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-        Picker("Scale", selection: $scale) {
-          Text("1x").tag(Float(1.0))
-          Text("2x").tag(Float(2.0))
-          Text("3x").tag(Float(3.0))
-          Text("4x").tag(Float(4.0))
-        }
-        .pickerStyle(.segmented)
-        .frame(width: 180)
-      }
+    ViewThatFits(in: .horizontal) {
+      HStack { roomNavigation; Spacer(); scalePicker }
+      VStack(spacing: 8) { roomNavigation; scalePicker }
     }
     .padding(.horizontal)
     .padding(.vertical, 8)
     .background(.bar)
   }
 
+  private var roomNavigation: some View {
+    HStack(spacing: 12) {
+      Button { selectedRoomId -= 1 } label: {
+        Image(systemName: "chevron.left").frame(minWidth: 44, minHeight: 44)
+      }
+      .disabled(selectedRoomId <= 0)
+      .accessibilityLabel("Previous room")
+      Button { showRoomBrowser = true } label: {
+        Text(String(format: "Room 0x%03X", selectedRoomId))
+          .font(.headline.monospacedDigit())
+          .frame(minHeight: 44)
+      }
+      .accessibilityHint("Opens the room browser")
+      Button { selectedRoomId += 1 } label: {
+        Image(systemName: "chevron.right").frame(minWidth: 44, minHeight: 44)
+      }
+      .disabled(selectedRoomId >= RoomCatalog.totalRooms - 1)
+      .accessibilityLabel("Next room")
+    }
+  }
+
+  private var scalePicker: some View {
+    HStack {
+      Button("Fit") { fitToView = true }
+        .frame(minWidth: 44, minHeight: 44)
+        .accessibilityLabel("Fit whole room")
+        .accessibilityAddTraits(fitToView ? .isSelected : [])
+      Picker("Render scale", selection: $scale) {
+        ForEach(1...4, id: \.self) { value in
+          Text("\(value)×").tag(Float(value))
+        }
+      }
+      .pickerStyle(.segmented)
+      .frame(minWidth: 180, idealWidth: 220, maxWidth: 260)
+      .accessibilityLabel("Render scale")
+    }
+  }
+
   private func roomImageView(_ image: UIImage) -> some View {
-    ScrollView([.horizontal, .vertical]) {
-      Image(uiImage: image)
-        .interpolation(.none)
-        .resizable()
-        .aspectRatio(contentMode: .fit)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    GeometryReader { geometry in
+      let ratio = image.size.width / max(image.size.height, 1)
+      let width = fitToView
+        ? min(geometry.size.width, geometry.size.height * ratio)
+        : image.size.width
+      ScrollView([.horizontal, .vertical]) {
+        Image(uiImage: image)
+          .interpolation(.none)
+          .resizable()
+          .frame(width: width, height: width / ratio)
+          .frame(minWidth: geometry.size.width, minHeight: geometry.size.height)
+          .accessibilityLabel(String(format: "Dungeon room %03X preview", selectedRoomId))
+      }
     }
   }
 
@@ -155,12 +199,14 @@ struct RemoteRoomViewerView: View {
             Label(overlay.label, systemImage: overlay.systemImage)
               .font(.caption)
               .padding(.horizontal, 10)
-              .padding(.vertical, 6)
+              .frame(minHeight: 44)
               .background(isActive ? Color.accentColor.opacity(0.2) : Color.clear)
               .clipShape(Capsule())
               .overlay(Capsule().stroke(isActive ? Color.accentColor : Color.secondary.opacity(0.3)))
           }
           .buttonStyle(.plain)
+          .accessibilityValue(isActive ? "On" : "Off")
+          .accessibilityAddTraits(isActive ? .isSelected : [])
         }
       }
       .padding(.horizontal)
@@ -197,10 +243,13 @@ struct RemoteRoomViewerView: View {
             .foregroundStyle(.secondary)
         }
       }
-      .navigationTitle("Room Metadata")
+      .navigationTitle("Room Details")
       .navigationBarTitleDisplayMode(.inline)
+      .toolbar { ToolbarItem(placement: .confirmationAction) {
+        Button("Done") { showMetadata = false }
+      } }
     }
-    .presentationDetents([.medium])
+    .presentationDetents([.medium, .large])
   }
 
   private func metadataRow(_ label: String, _ value: String) -> some View {
@@ -216,9 +265,6 @@ struct RemoteRoomViewerView: View {
   private var roomBrowserSheet: some View {
     NavigationStack {
       List {
-        TextField("Search rooms...", text: $searchText)
-          .textFieldStyle(.roundedBorder)
-
         ForEach(allRooms) { room in
           Button {
             selectedRoomId = room.id
@@ -237,6 +283,13 @@ struct RemoteRoomViewerView: View {
           .buttonStyle(.plain)
         }
       }
+      .searchable(text: $searchText, prompt: "Room ID (hex or decimal)")
+      .overlay {
+        if allRooms.isEmpty { ContentUnavailableView.search(text: searchText) }
+      }
+      .toolbar { ToolbarItem(placement: .confirmationAction) {
+        Button("Done") { showRoomBrowser = false }
+      } }
       .navigationTitle("Room Browser")
       .navigationBarTitleDisplayMode(.inline)
     }
@@ -245,36 +298,32 @@ struct RemoteRoomViewerView: View {
 
   // MARK: - Data loading
 
-  private func loadRoom() {
-    guard apiClient.isConnected else { return }
-    isLoading = true
+  @MainActor
+  private func loadRoom(_ requested: Request) async {
+    guard !Task.isCancelled, requested == request else { return }
+    roomImage = nil
+    metadata = nil
     errorMessage = ""
+    isLoading = requested.connected
+    guard requested.connected else { return }
 
-    let overlayList = activeOverlays.map(\.rawValue)
-
-    Task {
-      do {
-        async let imageData = apiClient.fetchRoomImage(
-          roomId: selectedRoomId,
-          overlays: overlayList,
-          scale: scale
-        )
-        async let metaResponse = apiClient.fetchRoomMetadata(roomId: selectedRoomId)
-
-        let data = try await imageData
-        let meta = try await metaResponse
-
-        await MainActor.run {
-          roomImage = UIImage(data: data)
-          metadata = meta
-          isLoading = false
-        }
-      } catch {
-        await MainActor.run {
-          errorMessage = error.localizedDescription
-          isLoading = false
-        }
+    do {
+      async let imageData = apiClient.fetchRoomImage(
+        roomId: requested.room, overlays: requested.overlays, scale: requested.scale)
+      async let metaResponse = apiClient.fetchRoomMetadata(roomId: requested.room)
+      let (data, meta) = try await (imageData, metaResponse)
+      try Task.checkCancellation()
+      guard requested == request else { return }
+      guard let image = UIImage(data: data), meta.roomId == requested.room else {
+        throw URLError(.cannotDecodeContentData)
       }
+      roomImage = image
+      metadata = meta
+      isLoading = false
+    } catch {
+      guard !Task.isCancelled, requested == request else { return }
+      errorMessage = error.localizedDescription
+      isLoading = false
     }
   }
 }

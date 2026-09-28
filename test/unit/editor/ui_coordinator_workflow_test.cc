@@ -1,5 +1,6 @@
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "editor_test_support.h"
 
 #include <gtest/gtest.h>
 
@@ -67,7 +68,7 @@ TEST(UICoordinatorWorkflowTest, RegistersProjectBuildAndRunCommands) {
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path rom_path =
@@ -79,15 +80,19 @@ TEST(UICoordinatorWorkflowTest, RegistersProjectBuildAndRunCommands) {
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "WorkflowProject";
-  project->filepath = (rom_path.parent_path() / "workflow_project.yaze").string();
+  project->filepath =
+      (rom_path.parent_path() / "workflow_project.yaze").string();
 
   ASSERT_NE(manager->ui_coordinator(), nullptr);
-  manager->ui_coordinator()->InitializeCommandPalette(manager->GetCurrentSessionId());
+  manager->ui_coordinator()->InitializeCommandPalette(
+      manager->GetCurrentSessionId());
 
-  const auto commands = manager->ui_coordinator()->command_palette()->GetAllCommands();
+  const auto commands =
+      manager->ui_coordinator()->command_palette()->GetAllCommands();
   const auto has_command = [&](const std::string& name) {
-    return std::any_of(commands.begin(), commands.end(),
-                       [&](const CommandEntry& entry) { return entry.name == name; });
+    return std::any_of(
+        commands.begin(), commands.end(),
+        [&](const CommandEntry& entry) { return entry.name == name; });
   };
 
   EXPECT_TRUE(has_command("Build & Run: Build Project"));

@@ -56,7 +56,7 @@ TEST_F(EmptyStateTest, PresetsHaveSharedCopy) {
   EXPECT_STREQ(loading.detail, "tiles");
 }
 
-TEST_F(EmptyStateTest, DrawEmptyStateDoesNotInvokeActionWithoutActivation) {
+TEST_F(EmptyStateTest, DrawWithoutActivationDoesNotInvokeCallback) {
   ImGui::NewFrame();
   ImGui::Begin("##EmptyStateHarness");
 
@@ -74,6 +74,54 @@ TEST_F(EmptyStateTest, DrawEmptyStateDoesNotInvokeActionWithoutActivation) {
   EXPECT_FALSE(DrawEmptyState(opts));
   EXPECT_FALSE(fired);
 
+  ImGui::End();
+  ImGui::EndFrame();
+  ImGui::Render();
+}
+
+TEST_F(EmptyStateTest, ActivationInvokesCallbackOnce) {
+  int calls = 0;
+  EmptyStateOptions options;
+  options.title = "Nothing selected";
+  options.action_label = "Select item";
+  options.on_action = [&] {
+    ++calls;
+  };
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowSize(ImVec2(500, 400));
+    ImGui::Begin("##EmptyStateActionHarness");
+    EXPECT_EQ(DrawEmptyState(options), frame == 1);
+    if (frame == 0)
+      ImGui::ActivateItemByID(ImGui::GetID("Select item"));
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  EXPECT_EQ(calls, 1);
+}
+
+TEST_F(EmptyStateTest, NarrowPanelWrapsTextAndClampsActionWidth) {
+  ImGui::NewFrame();
+  ImGui::SetNextWindowSize(ImVec2(220, 500));
+  ImGui::Begin("##NarrowEmptyState");
+  EmptyStateOptions options;
+  options.title = "A long title that must wrap inside this narrow panel";
+  options.detail =
+      "Select a tile to view its properties and edit the document.";
+  options.action_label = "A long action label that must stay inside the panel";
+  EXPECT_FALSE(DrawEmptyState(options));
+  const auto* window = ImGui::GetCurrentWindow();
+  EXPECT_LE(window->DC.CursorMaxPos.x, window->WorkRect.Max.x + 1.0f);
+  ImGui::End();
+  ImGui::EndFrame();
+  ImGui::Render();
+}
+
+TEST_F(EmptyStateTest, DrawEmptyStateNoopsWhenEmpty) {
+  ImGui::NewFrame();
+  ImGui::Begin("##EmptyStateHarnessEmpty");
+  EXPECT_FALSE(DrawEmptyState(EmptyStateOptions{}));
   ImGui::End();
   ImGui::EndFrame();
   ImGui::Render();
@@ -117,15 +165,6 @@ TEST_F(EmptyStateTest, ActionActivationReturnsTrueAndInvokesCallbackOnce) {
   ImGui::ActivateItemByID(action_id);
   EXPECT_TRUE(draw_frame());
   EXPECT_EQ(calls, 1);
-}
-
-TEST_F(EmptyStateTest, DrawEmptyStateNoopsWhenEmpty) {
-  ImGui::NewFrame();
-  ImGui::Begin("##EmptyStateHarnessEmpty");
-  EXPECT_FALSE(DrawEmptyState(EmptyStateOptions{}));
-  ImGui::End();
-  ImGui::EndFrame();
-  ImGui::Render();
 }
 
 }  // namespace

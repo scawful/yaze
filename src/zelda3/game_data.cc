@@ -149,6 +149,8 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
 
   RETURN_IF_ERROR(PitDamageTable::LoadFromRom(&rom, &data.pit_damage_table));
 
+  data.room_default_entrances = ComputeRoomDefaultEntrances(rom);
+
   return absl::OkStatus();
 }
 
@@ -177,7 +179,7 @@ absl::Status SaveGameData(Rom& rom, GameData& data) {
     RETURN_IF_ERROR(SaveGfxGroups(rom, data));
   }
 
-  // TODO: Implement SaveAllGraphicsData logic
+  // Graphics sheets are saved by GraphicsEditor::Save via WriteGfxSheet.
   return absl::OkStatus();
 }
 
@@ -263,46 +265,117 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
   return absl::OkStatus();
 }
 
+namespace {
+
+struct GfxGroupTableAddresses {
+  uint32_t main = 0;
+  uint32_t room = 0;
+  uint32_t sprite = 0;
+  uint32_t palette = 0;
+};
+
+absl::StatusOr<GfxGroupTableAddresses> ResolveGfxGroupTables(
+    const Rom& rom, const GameData& data) {
+  const auto version = kVersionConstantsMap.find(data.version);
+  if (version == kVersionConstantsMap.end() ||
+      version->second.kSpriteBlocksetPointer == 0) {
+    return absl::FailedPreconditionError(
+        "Gfx group tables are unknown for this ROM version");
+  }
+  if (kGfxGroupsPointer + 1 >= rom.size()) {
+    return absl::OutOfRangeError("Main blockset pointer is past the ROM end");
+  }
+  GfxGroupTableAddresses tables;
+  tables.main = SnesToPc(rom.data()[kGfxGroupsPointer] |
+                         (rom.data()[kGfxGroupsPointer + 1] << 8));
+  tables.room = kEntranceGfxGroup;
+  tables.sprite = version->second.kSpriteBlocksetPointer;
+  tables.palette = version->second.kDungeonPalettesGroups;
+  const std::pair<uint32_t, size_t> extents[] = {
+      {tables.main, kNumMainBlocksets * 8},
+      {tables.room, kNumRoomBlocksets * 4},
+      {tables.sprite, kNumSpritesets * 4},
+      {tables.palette, kNumPalettesets * 4}};
+  for (const auto& [pc, size] : extents) {
+    if (static_cast<size_t>(pc) + size > rom.size()) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Gfx group table at 0x%06X is past the ROM end", pc));
+    }
+  }
+  return tables;
+}
+
+// Calls visit(pc, wanted, flag) for every byte of the four tables.
+template <typename Visit>
+void ForEachGfxGroupByte(const GfxGroupTableAddresses& tables,
+                         const GameData& data, Visit visit) {
+  for (uint32_t i = 0; i < kNumMainBlocksets; ++i) {
+    for (int j = 0; j < 8; ++j) {
+      visit(tables.main + i * 8 + j, data.main_blockset_ids[i][j], 0);
+    }
+  }
+  for (uint32_t i = 0; i < kNumRoomBlocksets; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      visit(tables.room + i * 4 + j, data.room_blockset_ids[i][j], 1);
+    }
+  }
+  for (uint32_t i = 0; i < kNumSpritesets; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      visit(tables.sprite + i * 4 + j, data.spriteset_ids[i][j], 2);
+    }
+  }
+  for (uint32_t i = 0; i < kNumPalettesets; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      visit(tables.palette + i * 4 + j, data.paletteset_ids[i][j], 3);
+    }
+  }
+}
+
+}  // namespace
+
+absl::StatusOr<GfxGroupDiff> DiffGfxGroups(const Rom& rom,
+                                           const GameData& data) {
+  ASSIGN_OR_RETURN(const auto tables, ResolveGfxGroupTables(rom, data));
+  GfxGroupDiff diff;
+  ForEachGfxGroupByte(tables, data,
+                      [&](uint32_t pc, uint8_t wanted, int table) {
+                        if (rom.data()[pc] == wanted) {
+                          return;
+                        }
+                        ++diff.changed_bytes;
+                        switch (table) {
+                          case 0:
+                            diff.main_blocksets = true;
+                            break;
+                          case 1:
+                            diff.room_blocksets = true;
+                            break;
+                          case 2:
+                            diff.spritesets = true;
+                            break;
+                          default:
+                            diff.palettesets = true;
+                            break;
+                        }
+                      });
+  return diff;
+}
+
 absl::Status SaveGfxGroups(Rom& rom, const GameData& data) {
-  auto version_constants = kVersionConstantsMap.at(data.version);
-
-  ASSIGN_OR_RETURN(auto main_ptr, rom.ReadWord(kGfxGroupsPointer));
-  main_ptr = SnesToPc(main_ptr);
-
-  // Save Main Blocksets
-  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
-    for (int j = 0; j < 8; j++) {
-      RETURN_IF_ERROR(
-          rom.WriteByte(main_ptr + (i * 8) + j, data.main_blockset_ids[i][j]));
+  ASSIGN_OR_RETURN(const auto tables, ResolveGfxGroupTables(rom, data));
+  absl::Status status;
+  ForEachGfxGroupByte(tables, data, [&](uint32_t pc, uint8_t wanted, int) {
+    if (status.ok() && rom.data()[pc] != wanted) {
+      status = rom.WriteByte(static_cast<int>(pc), wanted);
     }
-  }
+  });
+  RETURN_IF_ERROR(status);
 
-  // Save Room Blocksets
-  for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
-    for (int j = 0; j < 4; j++) {
-      RETURN_IF_ERROR(rom.WriteByte(kEntranceGfxGroup + (i * 4) + j,
-                                    data.room_blockset_ids[i][j]));
-    }
+  ASSIGN_OR_RETURN(const auto readback, DiffGfxGroups(rom, data));
+  if (readback.any()) {
+    return absl::DataLossError(absl::StrFormat(
+        "Gfx group read-back differs in %d byte(s)", readback.changed_bytes));
   }
-
-  // Save Sprite Blocksets
-  for (uint32_t i = 0; i < kNumSpritesets; i++) {
-    for (int j = 0; j < 4; j++) {
-      RETURN_IF_ERROR(
-          rom.WriteByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j,
-                        data.spriteset_ids[i][j]));
-    }
-  }
-
-  // Save Palette Sets
-  for (uint32_t i = 0; i < kNumPalettesets; i++) {
-    for (int j = 0; j < 4; j++) {
-      RETURN_IF_ERROR(
-          rom.WriteByte(version_constants.kDungeonPalettesGroups + (i * 4) + j,
-                        data.paletteset_ids[i][j]));
-    }
-  }
-
   return absl::OkStatus();
 }
 
@@ -472,7 +545,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
       core::RomAddressKey::kOverworldGfxPtr3,
       version_constants.kOverworldGfxPtr3);
 
-  data.graphics_buffer.clear();
+  data.sheet_store.Clear();
 
 #ifdef __EMSCRIPTEN__
   auto loading_handle =
@@ -521,6 +594,8 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     }
   }
 
+  // The sheets were appended through the graphics_buffer alias.
+  data.sheet_store.MarkAllSheetsChanged();
   diag.Analyze();
   LOG_INFO("Graphics", "Graphics loading complete. Sheets processed: %d",
            kNumGfxSheets);
@@ -633,10 +708,12 @@ absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom) {
 absl::Status SaveAllGraphicsData(
     [[maybe_unused]] Rom& rom,
     [[maybe_unused]] const std::array<gfx::Bitmap, kNumGfxSheets>& sheets) {
-  // For now, return OK status - full implementation would write sheets back
-  // to ROM at their respective addresses with proper compression
-  LOG_INFO("SaveAllGraphicsData", "Graphics save not yet fully implemented");
-  return absl::OkStatus();
+  // Rewriting every sheet is never what an edit needs. Edited sheets are
+  // written one at a time by WriteGfxSheet (zelda3/gfx_sheet_storage.h),
+  // which GraphicsEditor::Save uses. Fail loudly instead of reporting a save.
+  return absl::UnimplementedError(
+      "SaveAllGraphicsData is not implemented; write edited sheets with "
+      "zelda3::WriteGfxSheet");
 }
 
 }  // namespace zelda3

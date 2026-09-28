@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "app/editor/sprite/sprite_authoring.h"
+
 namespace yaze {
 namespace editor {
 
@@ -9,7 +11,8 @@ SpriteDrawer::SpriteDrawer(const uint8_t* sprite_gfx_buffer)
     : sprite_gfx_(sprite_gfx_buffer) {}
 
 void SpriteDrawer::ClearBitmap(gfx::Bitmap& bitmap) {
-  if (!bitmap.is_active()) return;
+  if (!bitmap.is_active())
+    return;
 
   auto& data = bitmap.mutable_data();
   std::fill(data.begin(), data.end(), 0);
@@ -18,13 +21,14 @@ void SpriteDrawer::ClearBitmap(gfx::Bitmap& bitmap) {
 void SpriteDrawer::DrawOamTile(gfx::Bitmap& bitmap,
                                const zsprite::OamTile& tile, int origin_x,
                                int origin_y) {
-  if (!sprite_gfx_) return;
-  if (!bitmap.is_active()) return;
+  if (!sprite_gfx_)
+    return;
+  if (!bitmap.is_active())
+    return;
 
-  // OAM tile positions are signed 8-bit values relative to sprite origin
-  // In ZSM, x and y are uint8_t but represent signed positions
-  int8_t signed_x = static_cast<int8_t>(tile.x);
-  int8_t signed_y = static_cast<int8_t>(tile.y);
+  // ZSM stores canvas coordinates; its exporter subtracts (128, 112).
+  int signed_x = sprite_authoring::OffsetX(tile);
+  int signed_y = sprite_authoring::OffsetY(tile);
 
   int dest_x = origin_x + signed_x;
   int dest_y = origin_y + signed_y;
@@ -50,9 +54,12 @@ void SpriteDrawer::DrawFrame(gfx::Bitmap& bitmap, const zsprite::Frame& frame,
 }
 
 uint8_t SpriteDrawer::GetTilePixel(uint16_t tile_id, int px, int py) const {
-  if (!sprite_gfx_) return 0;
-  if (tile_id > kMaxTileId) return 0;
-  if (px < 0 || px >= kTileSize || py < 0 || py >= kTileSize) return 0;
+  if (!sprite_gfx_)
+    return 0;
+  if (tile_id > kMaxTileId)
+    return 0;
+  if (px < 0 || px >= kTileSize || py < 0 || py >= kTileSize)
+    return 0;
 
   // Calculate position in 8BPP linear buffer
   // Layout: 16 tiles per row, each tile 8x8 pixels
@@ -66,7 +73,8 @@ uint8_t SpriteDrawer::GetTilePixel(uint16_t tile_id, int px, int py) const {
   int src_index = base_y + (py * kRowStride) + base_x + px;
 
   // Bounds check against typical buffer size (0x10000)
-  if (src_index >= 0x10000) return 0;
+  if (src_index >= 0x10000)
+    return 0;
 
   return sprite_gfx_[src_index];
 }
@@ -74,8 +82,10 @@ uint8_t SpriteDrawer::GetTilePixel(uint16_t tile_id, int px, int py) const {
 void SpriteDrawer::DrawTile8x8(gfx::Bitmap& bitmap, uint16_t tile_id, int x,
                                int y, bool flip_x, bool flip_y,
                                uint8_t palette) {
-  if (!sprite_gfx_) return;
-  if (tile_id > kMaxTileId) return;
+  if (!sprite_gfx_)
+    return;
+  if (tile_id > kMaxTileId)
+    return;
 
   // Sprite palettes use 16 colors each (including transparent)
   // Palette index 0-7 map to colors 0-127 in the combined palette
@@ -128,10 +138,10 @@ void SpriteDrawer::DrawTile16x16(gfx::Bitmap& bitmap, uint16_t tile_id, int x,
   //   [base + 17] [base + 16]
   //   [base + 1]  [base + 0]
 
-  uint16_t tl = tile_id;          // Top-left
-  uint16_t tr = tile_id + 1;      // Top-right
-  uint16_t bl = tile_id + 16;     // Bottom-left
-  uint16_t br = tile_id + 17;     // Bottom-right
+  uint16_t tl = tile_id;       // Top-left
+  uint16_t tr = tile_id + 1;   // Top-right
+  uint16_t bl = tile_id + 16;  // Bottom-left
+  uint16_t br = tile_id + 17;  // Bottom-right
 
   // Swap tiles based on mirroring
   if (flip_x) {

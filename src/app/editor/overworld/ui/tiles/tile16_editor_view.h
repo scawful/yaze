@@ -26,12 +26,11 @@ class Tile16EditorView : public WindowContent {
   std::string GetDisplayName() const override { return "Tile16 Editor"; }
   std::string GetIcon() const override { return ICON_MD_EDIT; }
   std::string GetEditorCategory() const override { return "Overworld"; }
-  int GetPriority() const override { return 15; }
-  std::string GetWorkflowGroup() const override {
-    return "Editors";
-  }  // After selector (10)
+  int GetPriority() const override { return 15; }  // After selector (10)
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   float GetPreferredWidth() const override { return 1180.0f; }
   float GetPreferredHeight() const override { return 760.0f; }
+  bool PrefersFloating() const override { return true; }
 
   void Draw(bool* p_open) override;
 };

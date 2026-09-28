@@ -414,9 +414,25 @@ uint8_t CanonicalRoomObjectSize(int object_id, uint8_t requested_size) {
   return requested_size;
 }
 
+uint8_t ResizeRoomObjectUniformlyByDelta(int object_id, uint8_t size,
+                                         int delta) {
+  if (RoomObjectSizeAxisStep(object_id) == 0) {
+    return ResizeRoomObjectByDelta(object_id, size, delta);
+  }
+  const int width = (size >> 2) & 0x03;
+  const int height = size & 0x03;
+  const int shared_delta =
+      std::clamp(delta, -std::min(width, height), 3 - std::max(width, height));
+  if (shared_delta == 0) {
+    return size;
+  }
+  return static_cast<uint8_t>(((width + shared_delta) << 2) |
+                              (height + shared_delta));
+}
+
 uint8_t DefaultRoomObjectSizeForPlacement(int object_id) {
   if (IsRoomObjectSizeEditable(object_id)) {
-    return 2;
+    return RoomObjectSizeAxisStep(object_id) != 0 ? 0x05 : 2;
   }
   return CanonicalRoomObjectSize(object_id, 0);
 }

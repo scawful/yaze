@@ -64,7 +64,7 @@ TEST_F(DungeonEditorV2IntegrationTest, LoadSequence) {
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
-       LateCustomObjectEnableRegistersMinecartPanelWithoutDungeonReload) {
+       LateCustomObjectEnableDoesNotInventMinecartProjectCapability) {
   DungeonFeatureFlagsGuard guard;
   core::FeatureFlags::get().kEnableCustomObjects = false;
   auto& draw_registry = zelda3::DrawRoutineRegistry::Get();
@@ -80,24 +80,19 @@ TEST_F(DungeonEditorV2IntegrationTest,
             nullptr);
 
   core::FeatureFlags::get().kEnableCustomObjects = true;
-  ASSERT_TRUE(dungeon_editor_v2_->EnsureMinecartTrackEditorPanel().ok());
+  const absl::Status registration =
+      dungeon_editor_v2_->EnsureMinecartTrackEditorPanel();
+  EXPECT_EQ(registration.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(registration.message()).find("hack_manifest"),
+            std::string::npos);
+  EXPECT_EQ(window_manager_->GetWindowContent(
+                session_id, editor::DungeonEditorV2::kMinecartTrackEditorId),
+            nullptr);
 
-  auto* minecart_panel = window_manager_->GetWindowContent(
-      session_id, editor::DungeonEditorV2::kMinecartTrackEditorId);
-  ASSERT_NE(minecart_panel, nullptr);
-
-  auto* workbench = dynamic_cast<editor::DungeonWorkbenchContent*>(
-      window_manager_->GetWindowContent(session_id, "dungeon.workbench"));
-  ASSERT_NE(workbench, nullptr);
-  workbench->OpenMinecartTool();
-  EXPECT_TRUE(workbench->IsToolInspectorActiveForTesting());
-  EXPECT_STREQ(workbench->GetActiveToolIdForTesting(), "minecart");
-  EXPECT_TRUE(workbench->PopOutActiveTool())
-      << "Late registration must refresh the Workbench minecart panel pointer";
-
+  // The feature flag still changes runtime custom-object behavior; it simply
+  // cannot manufacture a project-specific authoring surface without the
+  // corresponding manifest capability.
   ASSERT_TRUE(dungeon_editor_v2_->Update().ok());
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
-      session_id, editor::DungeonEditorV2::kMinecartTrackEditorId));
   EXPECT_EQ(draw_registry.GetRoutineIdForObject(0x31),
             zelda3::DrawRoutineIds::kCustomObject);
 
@@ -133,6 +128,10 @@ TEST_F(DungeonEditorV2IntegrationTest,
 
   dungeon_editor_v2_->Initialize();
   const size_t session_id = window_manager_->GetActiveSessionId();
+  const auto* legacy_room_list = window_manager_->GetWindowDescriptor(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId);
+  ASSERT_NE(legacy_room_list, nullptr);
+  EXPECT_FALSE(legacy_room_list->IsListedInWindowBrowser());
 
   ASSERT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
   EXPECT_FALSE(window_manager_->IsWindowOpen(
@@ -151,10 +150,12 @@ TEST_F(DungeonEditorV2IntegrationTest,
   ASSERT_TRUE(status.ok());
 
   EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
+  EXPECT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomSelectorId));
   EXPECT_TRUE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
+  EXPECT_TRUE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
@@ -167,17 +168,19 @@ TEST_F(DungeonEditorV2IntegrationTest,
 
   dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
   ASSERT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  ASSERT_TRUE(window_manager_->IsWindowOpen(
+  ASSERT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomSelectorId));
   ASSERT_TRUE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
+  ASSERT_TRUE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 
   dungeon_editor_v2_->QueueWorkbenchWorkflowMode(true, /*show_toast=*/false);
 
   // Mode does not flip until the next update tick.
   EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
-      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_TRUE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 
   auto status = dungeon_editor_v2_->Update();
   ASSERT_TRUE(status.ok());
@@ -187,6 +190,8 @@ TEST_F(DungeonEditorV2IntegrationTest,
       session_id, editor::DungeonEditorV2::kRoomSelectorId));
   EXPECT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
+  EXPECT_FALSE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
@@ -338,8 +343,8 @@ TEST_F(DungeonEditorV2IntegrationTest,
   auto status = dungeon_editor_v2_->Update();
   ASSERT_TRUE(status.ok());
   EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
-      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_TRUE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 
   dungeon_editor_v2_->ToggleWorkbenchWorkflowMode(/*show_toast=*/false);
   EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
@@ -347,8 +352,8 @@ TEST_F(DungeonEditorV2IntegrationTest,
   status = dungeon_editor_v2_->Update();
   ASSERT_TRUE(status.ok());
   EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  EXPECT_FALSE(window_manager_->IsWindowOpen(
-      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_FALSE(
+      window_manager_->IsWindowOpen(session_id, "dungeon.entrance_properties"));
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
@@ -509,16 +514,24 @@ TEST_F(DungeonEditorV2IntegrationTest, ComponentsInitializedAfterLoad) {
 // Unimplemented Methods Tests
 // ============================================================================
 
-TEST_F(DungeonEditorV2IntegrationTest, EditingCommandsFallback) {
+TEST_F(DungeonEditorV2IntegrationTest,
+       EditingCommandsRequireActiveCanvasContext) {
+  dungeon_editor_v2_->Initialize();
+  ASSERT_TRUE(dungeon_editor_v2_->Load().ok());
+  dungeon_editor_v2_->add_room(0);
+
   // Undo/Redo should report precondition when history is empty
   EXPECT_EQ(dungeon_editor_v2_->Undo().code(),
             absl::StatusCode::kFailedPrecondition);
   EXPECT_EQ(dungeon_editor_v2_->Redo().code(),
             absl::StatusCode::kFailedPrecondition);
 
-  // Cut/Copy/Paste should be callable even without a selection
-  EXPECT_EQ(dungeon_editor_v2_->Cut().code(), absl::StatusCode::kOk);
-  EXPECT_EQ(dungeon_editor_v2_->Copy().code(), absl::StatusCode::kOk);
+  // Cut/Copy reject a command until a canvas draw has bound its room context.
+  EXPECT_EQ(dungeon_editor_v2_->Cut().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(dungeon_editor_v2_->Copy().code(),
+            absl::StatusCode::kFailedPrecondition);
+  // Empty paste remains a no-op.
   EXPECT_EQ(dungeon_editor_v2_->Paste().code(), absl::StatusCode::kOk);
 
   // Find remains unimplemented

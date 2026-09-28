@@ -2,7 +2,10 @@
 
 #include <gtest/gtest.h>
 
+#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_config.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
@@ -16,6 +19,15 @@ class RightDrawerManagerTestPeer {
   static void DrawHeader(RightDrawerManager& manager, const char* title) {
     const auto type = manager.GetActiveDrawer();
     manager.DrawPanelHeader(type, title, GetDrawerTypeIcon(type));
+  }
+
+  static void DrawNavStrip(RightDrawerManager& manager) {
+    manager.DrawDrawerNavStrip(manager.GetActiveDrawer());
+  }
+
+  static float ConfiguredWidth(RightDrawerManager& manager,
+                               RightDrawerManager::DrawerType type) {
+    return manager.GetConfiguredPanelWidth(type);
   }
 };
 
@@ -45,6 +57,38 @@ class RightDrawerManagerTest : public ::testing::Test {
   }
 
   ImGuiContext* imgui_context_ = nullptr;
+
+  void DrawNavFrame(RightDrawerManager& manager) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f));
+    ImGui::SetNextWindowSize(ImVec2(320.0f, 200.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Drawer test", nullptr, ImGuiWindowFlags_NoDecoration);
+    RightDrawerManagerTestPeer::DrawNavStrip(manager);
+    // The strip positions the cursor for the drawer content drawn next.
+    ImGui::Dummy(ImVec2(0.0f, 0.0f));
+    ImGui::End();
+    ImGui::PopStyleVar();
+    ImGui::Render();
+  }
+
+  void ClickNavTab(RightDrawerManager& manager, size_t index) {
+    DrawNavFrame(manager);
+    const auto* window = ImGui::FindWindowByName("Drawer test");
+    ASSERT_NE(window, nullptr);
+    // Target the middle of the catalog cell, independently of the widget's
+    // width calculation. Send real press/release events through ImGui.
+    const float x =
+        window->Pos.x + window->Size.x * (static_cast<float>(index) + 0.5f) /
+                            static_cast<float>(GetDrawerCatalog().size());
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(x, window->Pos.y + 16.0f);
+    DrawNavFrame(manager);
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+    DrawNavFrame(manager);
+    io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+    DrawNavFrame(manager);
+  }
 };
 
 TEST_F(RightDrawerManagerTest, CyclePanelNoopWhenNoPanelIsActive) {
@@ -139,30 +183,96 @@ TEST_F(RightDrawerManagerTest, ToggleActiveDrawerClosesIt) {
   EXPECT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kNone);
 }
 
-// Nav strip behavioral tests: active-close / inactive-switch
+TEST_F(RightDrawerManagerTest, SingleToggleRestoresLastSelectedTab) {
+  RightDrawerManager manager;
+  EXPECT_EQ(manager.GetLastActiveDrawer(),
+            RightDrawerManager::DrawerType::kProject);
 
-TEST_F(RightDrawerManagerTest, NavStripActiveTabLogicClosesDrawer) {
-  // Simulates the InvisibleButton handler in DrawDrawerNavStrip:
-  // clicking the active tab should close the drawer.
+  manager.ToggleLastDrawer();
+  EXPECT_EQ(manager.GetActiveDrawer(),
+            RightDrawerManager::DrawerType::kProject);
+  manager.OpenDrawer(RightDrawerManager::DrawerType::kHelp);
+  manager.ToggleLastDrawer();
+  EXPECT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kNone);
+  EXPECT_EQ(manager.GetLastActiveDrawer(),
+            RightDrawerManager::DrawerType::kHelp);
+
+  manager.ToggleLastDrawer();
+  EXPECT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kHelp);
+}
+
+TEST_F(RightDrawerManagerTest, AllDrawerTabsShareOnePersistedWidth) {
+  RightDrawerManager manager;
+  manager.SetDrawerWidth(RightDrawerManager::DrawerType::kProject, 512.0f);
+
+  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+    EXPECT_FLOAT_EQ(
+        RightDrawerManagerTestPeer::ConfiguredWidth(manager, entry.type),
+        512.0f);
+  }
+
+  const auto serialized = manager.SerializeDrawerWidths();
+  ASSERT_EQ(serialized.size(), 1U);
+  EXPECT_FLOAT_EQ(serialized.at("right_sidebar.shared"), 512.0f);
+}
+
+TEST_F(RightDrawerManagerTest, SharedWidthUsesStrictestDrawerMinimum) {
+  RightDrawerManager manager;
+  manager.SetDrawerWidth(RightDrawerManager::DrawerType::kSettings, 200.0f);
+
+  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+    EXPECT_FLOAT_EQ(
+        RightDrawerManagerTestPeer::ConfiguredWidth(manager, entry.type),
+        360.0f);
+  }
+}
+
+TEST_F(RightDrawerManagerTest, LegacyDrawerWidthsMigrateToWidestValue) {
+  RightDrawerManager manager;
+  manager.RestoreDrawerWidths({{"project", 360.0f},
+                               {"properties", 520.0f},
+                               {"settings", 390.0f},
+                               {"dungeon.workbench", 700.0f}});
+
+  EXPECT_FLOAT_EQ(RightDrawerManagerTestPeer::ConfiguredWidth(
+                      manager, RightDrawerManager::DrawerType::kProject),
+                  520.0f);
+  EXPECT_FLOAT_EQ(RightDrawerManagerTestPeer::ConfiguredWidth(
+                      manager, RightDrawerManager::DrawerType::kSettings),
+                  520.0f);
+  EXPECT_FLOAT_EQ(manager.SerializeDrawerWidths().at("right_sidebar.shared"),
+                  520.0f);
+}
+
+TEST_F(RightDrawerManagerTest, ResetSharedWidthUsesWidestDrawerDefault) {
+  RightDrawerManager manager;
+  manager.SetActiveEditor(EditorType::kDungeon);
+  manager.SetDrawerWidth(RightDrawerManager::DrawerType::kProject, 700.0f);
+  manager.ResetDrawerWidths();
+
+  EXPECT_FLOAT_EQ(RightDrawerManagerTestPeer::ConfiguredWidth(
+                      manager, RightDrawerManager::DrawerType::kSettings),
+                  480.0f);
+}
+
+// Nav strip behavioral tests: active-stable / inactive-switch
+
+TEST_F(RightDrawerManagerTest, NavStripActiveTabKeepsDrawerOpen) {
   RightDrawerManager manager;
   manager.OpenDrawer(RightDrawerManager::DrawerType::kHelp);
   ASSERT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kHelp);
 
-  // Mimic the nav strip click: is_active → CloseDrawer()
-  manager.CloseDrawer();
-  EXPECT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kNone);
+  ClickNavTab(manager, 5);  // Help
+  EXPECT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kHelp);
 }
 
 TEST_F(RightDrawerManagerTest, NavStripInactiveTabLogicSwitchesDrawer) {
-  // Simulates the InvisibleButton handler in DrawDrawerNavStrip:
-  // clicking an inactive tab should open that drawer.
   RightDrawerManager manager;
   manager.OpenDrawer(RightDrawerManager::DrawerType::kSettings);
   ASSERT_EQ(manager.GetActiveDrawer(),
             RightDrawerManager::DrawerType::kSettings);
 
-  // Mimic click on Properties (inactive)
-  manager.OpenDrawer(RightDrawerManager::DrawerType::kProperties);
+  ClickNavTab(manager, 1);  // Properties
   EXPECT_EQ(manager.GetActiveDrawer(),
             RightDrawerManager::DrawerType::kProperties);
 }
@@ -201,28 +311,90 @@ TEST_F(RightDrawerManagerTest, RenderFrameWithAllDrawersDoesNotCrash) {
   }
 }
 
-// Chrome non-overlap: the nav strip width must not exceed the window width.
+TEST_F(RightDrawerManagerTest, HeaderBadgesStayBeforeActionButtons) {
+  auto& themes = gui::ThemeManager::Get();
+  const gui::Theme previous_theme = themes.GetCurrentTheme();
+  gui::Theme test_theme = previous_theme;
+  // Identify badge geometry independently of the user's active theme. The
+  // default theme can give header backgrounds and badges the same color.
+  test_theme.primary = {0.91f, 0.07f, 0.59f, 1.0f};
+  test_theme.header_hovered = {0.13f, 0.79f, 0.29f, 1.0f};
+  themes.ApplyTheme(test_theme);
+  ToastManager toasts;
+  toasts.Show("Saved ROM copy");
+  RightDrawerManager manager;
+  manager.SetToastManager(&toasts);
+  manager.SetActiveEditor(EditorType::kOverworld);
 
-TEST_F(RightDrawerManagerTest,
-       NavStripTabWidthFitsWithinWindowForAllCatalogSizes) {
-  // Verify the tab-width formula does not produce negative or oversized values
-  // for any reasonable window width (from very narrow to very wide).
+  for (const auto type : {RightDrawerManager::DrawerType::kNotifications,
+                          RightDrawerManager::DrawerType::kHelp}) {
+    manager.OpenDrawer(type);
+    for (float width : {280.0f, 320.0f, 480.0f}) {
+      for (float scale : {1.0f, 1.5f, 2.0f}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "type=" << static_cast<int>(type) << " width=" << width
+                     << " scale=" << scale);
+        ImGui::GetIO().FontGlobalScale = scale;
+        ImGui::NewFrame();
+        ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f));
+        ImGui::SetNextWindowSize(ImVec2(width, 200.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("Header test", nullptr, ImGuiWindowFlags_NoDecoration);
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const int first_vertex = draw_list->VtxBuffer.Size;
+        RightDrawerManagerTestPeer::DrawHeader(
+            manager, "A long drawer title that needs to be truncated");
+
+        const int action_count =
+            type == RightDrawerManager::DrawerType::kNotifications ? 3 : 2;
+        const float action_size = gui::ScaledSize(24.0f, 0.0f).x;
+        const float action_gap = gui::ScaledSize(4.0f, 0.0f).x;
+        const float header_padding =
+            gui::ScaledSize(gui::UIConfig::kPanelPaddingLarge, 0.0f).x;
+        const float first_action_x =
+            ImGui::GetWindowPos().x + width - header_padding -
+            action_count * action_size - (action_count - 1) * action_gap;
+        const ImU32 badge_color = ImGui::GetColorU32(
+            type == RightDrawerManager::DrawerType::kNotifications
+                ? gui::GetPrimaryVec4()
+                : gui::GetSurfaceContainerHighestVec4());
+        for (int i = first_vertex; i < draw_list->VtxBuffer.Size; ++i) {
+          const auto& vertex = draw_list->VtxBuffer[i];
+          if (vertex.col == badge_color) {
+            EXPECT_LT(vertex.pos.x, first_action_x)
+                << "Badge overlaps a header action";
+          }
+        }
+        ImGui::Dummy(ImVec2(0.0f, 0.0f));
+        ImGui::End();
+        ImGui::PopStyleVar();
+        ImGui::Render();
+      }
+    }
+  }
+  themes.ApplyTheme(previous_theme);
+}
+
+TEST_F(RightDrawerManagerTest, CompactNavTabsFitEverySupportedDrawerWidth) {
   const auto catalog = GetDrawerCatalog();
   const size_t count = catalog.size();
   ASSERT_GT(count, 0u);
 
-  const float padding = 6.0f;
-  const float gap = 3.0f;
+  const float tab_height =
+      std::max(24.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
+  const float padding =
+      std::clamp(gui::LayoutHelpers::GetStandardSpacing(), 4.0f, 8.0f);
+  const float gap = std::max(2.0f, padding * 0.5f);
 
-  for (const float window_w : {120.0f, 280.0f, 480.0f, 1024.0f, 1920.0f}) {
+  for (const float window_w : {280.0f, 320.0f, 480.0f, 1024.0f, 1920.0f}) {
     const float avail_w = window_w - padding * 2.0f;
     const float tab_w =
-        std::max(24.0f, std::floor((avail_w - (count - 1) * gap) / count));
+        std::max(tab_height, std::floor((avail_w - (count - 1) * gap) / count));
     const float total_w = padding * 2.0f + tab_w * count + gap * (count - 1);
 
-    EXPECT_GE(tab_w, 24.0f) << "tab too narrow at window_w=" << window_w;
-    // Even if tabs overflow the window on very narrow widths, tab_w >= 24px.
-    (void)total_w;
+    EXPECT_GE(tab_w, tab_height) << "tab too narrow at window_w=" << window_w;
+    EXPECT_LE(total_w, window_w + 0.5f)
+        << "compact tabs overflow at window_w=" << window_w;
   }
 }
 

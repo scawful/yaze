@@ -17,7 +17,7 @@ Several critical bugs were fixed to make the entity system functional. Understan
 
 ### 2.1. Entity Interaction and Hover Detection
 
-**File**: `src/app/editor/overworld/overworld_entity_renderer.cc`
+**File**: `src/app/editor/overworld/entity/overworld_entity_renderer.cc`
 
 -   **Problem**: Exit entities were not responding to mouse interactions because the hover state was being improperly reset.
 -   **Fix**: The hover state (`hovered_entity_`) is now reset only once at the beginning of the entity rendering cycle, specifically in `DrawExits()`, which is the first rendering function called. Subsequent functions (`DrawEntrances()`, `DrawItems()`, etc.) can set the hover state without it being cleared, preserving the correct hover priority (last-drawn entity wins).
@@ -32,7 +32,7 @@ hovered_entity_ = nullptr; // Reset hover state at the start of the cycle.
 
 ### 2.2. Entity Property Popup Save/Cancel Logic
 
-**File**: `src/app/editor/overworld/entity.cc`
+**File**: `src/app/editor/overworld/entity/entity.cc`
 
 -   **Problem**: The "Done" and "Cancel" buttons in entity property popups had inverted logic, causing changes to be saved on "Cancel" and discarded on "Done".
 -   **Fix**: The `set_done` flag, which controls the popup's return value, is now correctly managed. The "Done" and "Delete" buttons set `set_done = true` to signal a save action, while the "Cancel" button does not, correctly discarding changes.

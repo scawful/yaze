@@ -11,10 +11,14 @@ class OverworldGetTileCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "overworld-get-tile"; }
   std::string GetDescription() const {
-    return "Read an overworld tile at map/tile coordinates";
+    return "Read the tile16 id at an overworld area position. --map is a hex "
+           "screen id; x/y are decimal (or 0x-hex) tile16 coordinates "
+           "relative to the top-left of the screen's parent area: 0-31 for a "
+           "small area, 0-63 on each doubled axis of a large/wide/tall area";
   }
   std::string GetUsage() const {
-    return "overworld-get-tile --map <map_id> --x <x> --y <y>";
+    return "overworld-get-tile --map <hex> --x <area_tile_x> --y <area_tile_y> "
+           "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -29,10 +33,16 @@ class OverworldSetTileCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "overworld-set-tile"; }
   std::string GetDescription() const {
-    return "Write an overworld tile at map/tile coordinates";
+    return "Write one tile16 id at an overworld area position (dry-run by "
+           "default). Coordinates match overworld-get-tile. --write rebuilds "
+           "tile32/map data, verifies a fresh reload, saves with a required "
+           "backup, and refuses ROMs inside an Oracle checkout unless "
+           "--allow-project-rom";
   }
   std::string GetUsage() const {
-    return "overworld-set-tile --map <map_id> --x <x> --y <y> --tile <tile_id>";
+    return "overworld-set-tile --map <hex> --x <area_tile_x> --y <area_tile_y> "
+           "--tile <hex> [--write] [--allow-project-rom] [--format "
+           "<json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -41,6 +51,10 @@ class OverworldSetTileCommandHandler : public resources::CommandHandler {
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
+  absl::Status ExecuteWithContext(
+      Rom* rom, const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter,
+      const resources::CommandInvocationContext& invocation_context) override;
 };
 
 /**
@@ -53,7 +67,8 @@ class OverworldFindTileCommandHandler : public resources::CommandHandler {
     return "Find tiles by ID in overworld maps";
   }
   std::string GetUsage() const {
-    return "overworld-find-tile --tile <tile_id> [--format <json|text>]";
+    return "overworld-find-tile --tile <hex> [--map <hex>] "
+           "[--world <light|dark|special>] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -74,7 +89,7 @@ class OverworldDescribeMapCommandHandler : public resources::CommandHandler {
     return "Get detailed description of an overworld map";
   }
   std::string GetUsage() const {
-    return "overworld-describe-map --screen <screen_id> [--format <json|text>]";
+    return "overworld-describe-map --screen <hex> [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -116,8 +131,8 @@ class OverworldListSpritesCommandHandler : public resources::CommandHandler {
     return "List all sprites in overworld maps";
   }
   std::string GetUsage() const {
-    return "overworld-list-sprites [--screen <screen_id>] [--format "
-           "<json|text>]";
+    return "overworld-list-sprites [--screen <screen_id>] [--phase <0|1|2>] "
+           "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

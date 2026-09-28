@@ -72,8 +72,13 @@ TEST_F(MusicPlayerHeadlessTest, InitializesWithRom) {
   // Player should be created
   EXPECT_NE(player_, nullptr);
 
-  // Initially not ready until a song is played
-  EXPECT_FALSE(player_->IsAudioReady());
+  // Ready as soon as a ROM is set: the audio backend starts lazily on first
+  // play (EnsureAudioReady), and the music editor enables its play controls
+  // from IsAudioReady().
+  EXPECT_TRUE(player_->IsAudioReady());
+
+  editor::music::MusicPlayer player_without_rom(nullptr);
+  EXPECT_FALSE(player_without_rom.IsAudioReady());
 }
 
 TEST_F(MusicPlayerHeadlessTest, InitialStateIsStopped) {
@@ -155,7 +160,8 @@ TEST_F(MusicPlayerHeadlessTest, TicksPerSecondMatchesTempo) {
 
   // Initially ticks_per_second may be 0 if no song is playing
   // After playing a song, it should match the formula
-  LOG_INFO("MusicPlayerTest", "Initial ticks_per_second: %.2f (expected ~%.2f for tempo 150)",
+  LOG_INFO("MusicPlayerTest",
+           "Initial ticks_per_second: %.2f (expected ~%.2f for tempo 150)",
            state.ticks_per_second, kExpectedTps);
 
   // If a song is playing, verify the value

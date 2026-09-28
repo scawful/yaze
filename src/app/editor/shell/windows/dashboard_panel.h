@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SHELL_WINDOWS_DASHBOARD_PANEL_H_
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -27,6 +28,12 @@ class DashboardPanel {
   bool* visibility_flag() { return &show_; }
 
   void MarkRecentlyUsed(EditorType type);
+  std::optional<EditorType> MostRecentEditor() const {
+    if (recent_editors_.empty()) {
+      return std::nullopt;
+    }
+    return recent_editors_.front();
+  }
   // Parses the recent-editors file body. Pure and static so the validation
   // rules are testable without touching the user's real config directory,
   // which LoadFileFromConfigDir/SaveFile resolve through PlatformPaths.

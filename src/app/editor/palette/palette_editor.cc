@@ -2,6 +2,7 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <functional>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
@@ -14,6 +15,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/app/editor_layout.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/popup_id.h"
@@ -134,6 +136,33 @@ static inline float color_saturate(float f) {
 #define F32_TO_INT8_SAT(_VAL)            \
   ((int)(color_saturate(_VAL) * 255.0f + \
          0.5f))  // Saturated, always output 0..255
+
+// Right-click menu for a custom palette swatch. Returns true when the color
+// was removed; the caller must stop using `index` for this frame.
+bool DrawCustomColorContextMenu(
+    std::vector<gfx::SnesColor>& colors, int index,
+    const std::function<void(const gfx::SnesColor&)>& on_edited) {
+  if (!BeginPopupContextItem()) {
+    return false;
+  }
+  // Edit color directly in the popup
+  if (gui::SnesColorEdit4("Edit Color", &colors[index], kColorPopupFlags)) {
+    on_edited(colors[index]);
+  }
+  Separator();
+  gui::SnesColorCopyMenuItems(colors[index]);
+  Separator();
+  bool removed = false;
+  gui::RenderMenuItem(gui::MenuItemSpec::Destructive(
+      "Remove from Custom Palette", ICON_MD_DELETE,
+      [&removed]() { removed = true; },
+      /*confirm=*/false));
+  EndPopup();
+  if (removed) {
+    colors.erase(colors.begin() + index);
+  }
+  return removed;
+}
 }  // namespace
 
 /**
@@ -666,6 +695,16 @@ absl::Status PaletteEditor::Save() {
   return absl::OkStatus();
 }
 
+bool PaletteEditor::CanUndo() const {
+  const auto& manager = gfx::PaletteManager::Get();
+  return game_data() && manager.IsManaging(game_data()) && manager.CanUndo();
+}
+
+bool PaletteEditor::CanRedo() const {
+  const auto& manager = gfx::PaletteManager::Get();
+  return game_data() && manager.IsManaging(game_data()) && manager.CanRedo();
+}
+
 absl::Status PaletteEditor::Undo() {
   if (!game_data() || !gfx::PaletteManager::Get().IsManaging(game_data())) {
     return absl::FailedPreconditionError(
@@ -787,18 +826,11 @@ void PaletteEditor::DrawCustomPalette() {
                              .c_str());
       }
 
-      if (BeginPopupContextItem()) {
-        // Edit color directly in the popup
-        SnesColor original_color = custom_palette_[i];
-        if (gui::SnesColorEdit4("Edit Color", &custom_palette_[i],
-                                kColorPopupFlags)) {
-          // Color was changed, add to recently used
-          AddRecentlyUsedColor(custom_palette_[i]);
-        }
-
-        if (Button(tr("Delete"), ImVec2(-1, 0))) {
-          custom_palette_.erase(custom_palette_.begin() + i);
-        }
+      if (DrawCustomColorContextMenu(
+              custom_palette_, i,
+              [this](const SnesColor& c) { AddRecentlyUsedColor(c); })) {
+        PopID();
+        break;
       }
 
       if (AcceptImGuiColorDrop(&custom_palette_[i], swatch_min, swatch_max)) {
@@ -965,37 +997,18 @@ absl::Status PaletteEditor::HandleColorPopup(gfx::SnesPalette& palette, int i,
 
   Separator();
 
-  if (Button(tr("Copy as.."), ImVec2(-1, 0)))
-    OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                               gui::PopupNames::kCopyPopup)
-                  .c_str());
-  if (BeginPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                  gui::PopupNames::kCopyPopup)
-                     .c_str())) {
+  if (ImGui::BeginMenu(ICON_MD_CONTENT_COPY " Copy as")) {
+    gui::SnesColorCopyMenuItems(palette[n]);
     CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff)", col[0],
                        col[1], col[2]);
-    if (Selectable(buf))
+    if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Copy as Float", buf)) {
       SetClipboardText(buf);
-
-    CustomFormatString(buf, IM_ARRAYSIZE(buf), "(%d,%d,%d)", cr, cg, cb);
-    if (Selectable(buf))
-      SetClipboardText(buf);
-
-    CustomFormatString(buf, IM_ARRAYSIZE(buf), "#%02X%02X%02X", cr, cg, cb);
-    if (Selectable(buf))
-      SetClipboardText(buf);
-
-    // SNES Format
-    CustomFormatString(buf, IM_ARRAYSIZE(buf), "$%04X",
-                       ConvertRgbToSnes(ImVec4(col[0], col[1], col[2], 1.0f)));
-    if (Selectable(buf))
-      SetClipboardText(buf);
-
-    EndPopup();
+    }
+    ImGui::EndMenu();
   }
 
   // Add a button to add this color to custom palette
-  if (Button(tr("Add to Custom Palette"), ImVec2(-1, 0))) {
+  if (ImGui::MenuItem(ICON_MD_ADD " Add to Custom Palette")) {
     custom_palette_.push_back(palette[n]);
   }
 
@@ -1304,20 +1317,11 @@ void PaletteEditor::DrawCustomPalettePanel() {
                              .c_str());
       }
 
-      if (BeginPopupContextItem()) {
-        // Edit color directly in the popup
-        SnesColor original_color = custom_palette_[i];
-        if (gui::SnesColorEdit4("Edit Color", &custom_palette_[i],
-                                kColorPopupFlags)) {
-          // Color was changed, add to recently used
-          AddRecentlyUsedColor(custom_palette_[i]);
-        }
-
-        if (ImGui::Button(tr("Delete"), ImVec2(-1, 0))) {
-          custom_palette_.erase(custom_palette_.begin() + i);
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
+      if (DrawCustomColorContextMenu(
+              custom_palette_, i,
+              [this](const SnesColor& c) { AddRecentlyUsedColor(c); })) {
+        PopID();
+        break;
       }
 
       if (AcceptImGuiColorDrop(&custom_palette_[i], swatch_min, swatch_max)) {

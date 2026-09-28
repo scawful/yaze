@@ -6,6 +6,7 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 namespace yaze {
 namespace editor {
@@ -51,6 +52,68 @@ enum class WindowContextScope : uint8_t {
  * Global panels share a single descriptor across all sessions.
  */
 enum class WindowScope { kSession, kGlobal };
+
+/**
+ * @enum WindowPresentationRole
+ * @brief Product role for a registered workspace surface.
+ *
+ * Registration describes ownership and lifetime. Presentation policy describes
+ * how users discover the same content. Keeping those concerns separate lets an
+ * embedded tool remain available to context actions and the command palette
+ * without automatically adding another row to every window browser.
+ */
+enum class WindowPresentationRole : uint8_t {
+  kCoreWorkspace,
+  kEmbeddedTool,
+  kOptionalPopOut,
+  kDiagnostic,
+};
+
+enum class WindowDefaultHost : uint8_t {
+  kWorkspace,
+  kEmbedded,
+};
+
+struct WindowPresentationPolicy {
+  WindowPresentationRole role = WindowPresentationRole::kOptionalPopOut;
+  WindowDefaultHost default_host = WindowDefaultHost::kWorkspace;
+  bool list_in_window_browser = true;
+  bool allow_popout = true;
+  std::string required_capability;
+  std::function<bool()> capability_condition;
+
+  bool IsAdmitted() const {
+    return !capability_condition || capability_condition();
+  }
+
+  static WindowPresentationPolicy CoreWorkspace() {
+    return {.role = WindowPresentationRole::kCoreWorkspace};
+  }
+
+  static WindowPresentationPolicy EmbeddedTool(
+      std::string capability = std::string()) {
+    return {
+        .role = WindowPresentationRole::kEmbeddedTool,
+        .default_host = WindowDefaultHost::kEmbedded,
+        .list_in_window_browser = false,
+        .allow_popout = true,
+        .required_capability = std::move(capability),
+    };
+  }
+
+  static WindowPresentationPolicy OptionalPopOut() {
+    return {.role = WindowPresentationRole::kOptionalPopOut};
+  }
+
+  static WindowPresentationPolicy Diagnostic() {
+    return {
+        .role = WindowPresentationRole::kDiagnostic,
+        .default_host = WindowDefaultHost::kEmbedded,
+        .list_in_window_browser = false,
+        .allow_popout = true,
+    };
+  }
+};
 
 /**
  * @class WindowContent
@@ -225,6 +288,16 @@ class WindowContent {
   virtual WindowScope GetScope() const { return WindowScope::kSession; }
 
   /**
+   * @brief How this content is hosted and advertised by workspace chrome.
+   *
+   * Optional pop-out preserves historical behavior for existing panels. New
+   * embedded and diagnostic tools should override this explicitly.
+   */
+  virtual WindowPresentationPolicy GetPresentationPolicy() const {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
+
+  /**
    * @brief Check if this panel is currently enabled
    * @return true if panel can be shown, false if disabled
    *
@@ -283,6 +356,16 @@ class WindowContent {
   virtual float GetPreferredWidth() const { return 0.0f; }
 
   /**
+   * @brief Whether GetPreferredWidth() is an exact content width
+   *
+   * Fixed-width content (tile grids) returns true. When such a panel is the
+   * first docked panel of a side region, LayoutManager sizes the region to
+   * its width instead of the widest panel stacked in that region, and skips
+   * the viewport-ratio floor that would otherwise leave dead space.
+   */
+  virtual bool HasExactPreferredWidth() const { return false; }
+
+  /**
    * @brief Get preferred height for this panel (optional)
    * @return Preferred height in pixels, or 0 to use the default height.
    *
@@ -290,6 +373,9 @@ class WindowContent {
    * must be large enough to keep their primary controls visible.
    */
   virtual float GetPreferredHeight() const { return 0.0f; }
+
+  /** Prefer floating placement on first use; explicit opens may undock once. */
+  virtual bool PrefersFloating() const { return false; }
 
   /**
    * @brief Whether the dock node hosting this panel should auto-hide its tab bar

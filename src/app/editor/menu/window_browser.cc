@@ -86,6 +86,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
         if (!window) {
           continue;
         }
+        if (!window->IsListedInWindowBrowser()) {
+          continue;
+        }
         if (category != "All" && window->category != category) {
           continue;
         }
@@ -103,6 +106,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
         const auto* window =
             window_manager_.GetWindowDescriptor(session_id, window_id);
         if (!window) {
+          continue;
+        }
+        if (!window->IsListedInWindowBrowser()) {
           continue;
         }
         if (category != "All" && window->category != category) {
@@ -231,7 +237,8 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
                                 ImGuiTableFlags_Resizable)) {
         ImGui::TableSetupColumn("Visible", ImGuiTableColumnFlags_WidthFixed,
                                 60);
-        ImGui::TableSetupColumn("Pin", ImGuiTableColumnFlags_WidthFixed, 36);
+        ImGui::TableSetupColumn("Pin", ImGuiTableColumnFlags_WidthFixed,
+                                gui::ScaledSize(36.0f, 0.0f).x);
         ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthFixed,
                                 130);
@@ -246,6 +253,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
               session_id, category_filter_);
           windows.reserve(category_windows.size());
           for (const auto& window : category_windows) {
+            if (!window.IsListedInWindowBrowser()) {
+              continue;
+            }
             windows.push_back(window.card_id);
           }
         }
@@ -254,6 +264,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           const auto* window =
               window_manager_.GetWindowDescriptor(session_id, window_id);
           if (!window) {
+            continue;
+          }
+          if (!window->IsListedInWindowBrowser()) {
             continue;
           }
 
@@ -276,15 +289,16 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           ImGui::TableNextColumn();
           const bool is_pinned =
               window_manager_.IsWindowPinned(window->card_id);
-          const ImVec4 pin_color =
-              is_pinned ? gui::GetPrimaryVec4() : gui::GetTextDisabledVec4();
-          const float pin_side =
-              std::max(20.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
+          ImVec4 pin_color =
+              is_pinned ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4();
+          if (!is_pinned) {
+            pin_color.w *= 0.72f;
+          }
+          const ImVec2 pin_size = gui::ScaledSize(30.0f, 30.0f);
           ImGui::PushID(
               absl::StrFormat("browser_pin_%s", window->card_id).c_str());
           if (gui::TransparentIconButton(
-                  is_pinned ? ICON_MD_PUSH_PIN : ICON_MD_PIN,
-                  ImVec2(pin_side, pin_side),
+                  ICON_MD_PUSH_PIN, pin_size,
                   is_pinned ? "Unpin window" : "Pin window", is_pinned,
                   pin_color, "window_browser", window->card_id.c_str())) {
             window_manager_.SetWindowPinned(session_id, window->card_id,

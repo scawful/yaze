@@ -26,6 +26,9 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - 'VERSION'
+      - 'docs/CHANGELOG.md'
+      - 'docs/public/reference/changelog.md'
+      - 'docs/public/release-notes.md'
       - '.github/workflows/**'
       - 'scripts/dev/release-version-check.sh'
       - 'scripts/release/**'
@@ -41,6 +44,9 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - 'VERSION'
+      - 'docs/CHANGELOG.md'
+      - 'docs/public/reference/changelog.md'
+      - 'docs/public/release-notes.md'
       - '.github/workflows/**'
       - 'scripts/dev/release-version-check.sh'
       - 'scripts/release/**'
@@ -243,6 +249,14 @@ jobs:
             exit 1
           fi
           "$test_bin" -nogui --gtest_filter="*Smoke*"
+
+          # ImGuiTestEngine mouse-release regressions (menu item click, panel
+          # close X; overworld right-click skips without a test ROM). These
+          # drive the real Controller UI, so they need a display.
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y xvfb
+          fi
+          xvfb-run -a "$test_bin" --ui --fast DeadClickSmoke
 
       - name: Run HTTP API tests
         if: github.event.inputs.enable_http_api_tests == 'true'

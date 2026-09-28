@@ -1,5 +1,6 @@
 #include "app/editor/overworld/core/interaction_coordinator.h"
 
+#include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -24,95 +25,72 @@ void OverworldInteractionCoordinator::Update(
   }
 
   // Skip processing if any ImGui item is active (e.g., text input)
-  if (ImGui::IsAnyItemActive()) {
+  if (ImGui::IsAnyItemActive() || ImGui::GetIO().WantTextInput) {
     return;
   }
 
-  // Modifier states
-  const bool ctrl_held = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
-                         ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-  const bool shift_held = ImGui::IsKeyDown(ImGuiKey_LeftShift) ||
-                          ImGui::IsKeyDown(ImGuiKey_RightShift);
-  const bool alt_held =
-      ImGui::IsKeyDown(ImGuiKey_LeftAlt) || ImGui::IsKeyDown(ImGuiKey_RightAlt);
+  // Modifier states. Use the same primary-modifier rule as ShortcutManager:
+  // Cmd (Super) counts as Ctrl on macOS, and ImGui's macOS behaviors may
+  // already have swapped it into io.KeyCtrl.
+  const ImGuiIO& io = ImGui::GetIO();
+  const bool ctrl_held = io.KeyCtrl || (gui::IsMacPlatform() && io.KeySuper);
+  const bool shift_held = io.KeyShift;
+  const bool alt_held = io.KeyAlt;
 
-  // 1. Tool shortcuts (1-2 for mode selection)
-  if (ImGui::IsKeyPressed(ImGuiKey_1, false)) {
-    if (sink_.on_set_editor_mode)
-      sink_.on_set_editor_mode(EditingMode::MOUSE);
-  } else if (ImGui::IsKeyPressed(ImGuiKey_2, false)) {
-    if (sink_.on_set_editor_mode)
-      sink_.on_set_editor_mode(EditingMode::DRAW_TILE);
+  // Digits are plain keys only: Cmd/Ctrl+1..9 switch editors and Alt+1..3
+  // switch worlds (both through ShortcutManager).
+  const bool plain_key = !ctrl_held && !alt_held && !io.KeySuper;
+
+  // 1. Tool shortcuts. 1 = select, 2 = brush; both leave any entity mode.
+  if (plain_key) {
+    if (ImGui::IsKeyPressed(ImGuiKey_1, false)) {
+      if (sink_.on_set_editor_mode)
+        sink_.on_set_editor_mode(EditingMode::MOUSE);
+    } else if (ImGui::IsKeyPressed(ImGuiKey_2, false)) {
+      if (sink_.on_set_editor_mode)
+        sink_.on_set_editor_mode(EditingMode::DRAW_TILE);
+    }
   }
 
-  // 2. Entity editing modes (3-8)
-  // These use IsKeyDown in the original to allow rapid mode switching/status update
-  if (ImGui::IsKeyDown(ImGuiKey_3)) {
-    if (sink_.on_set_entity_mode)
-      sink_.on_set_entity_mode(EntityEditMode::ENTRANCES);
-  } else if (ImGui::IsKeyDown(ImGuiKey_4)) {
-    if (sink_.on_set_entity_mode)
-      sink_.on_set_entity_mode(EntityEditMode::EXITS);
-  } else if (ImGui::IsKeyDown(ImGuiKey_5)) {
-    if (sink_.on_set_entity_mode)
-      sink_.on_set_entity_mode(EntityEditMode::ITEMS);
-  } else if (ImGui::IsKeyDown(ImGuiKey_6)) {
-    if (sink_.on_set_entity_mode)
-      sink_.on_set_entity_mode(EntityEditMode::SPRITES);
-  } else if (ImGui::IsKeyDown(ImGuiKey_7)) {
-    if (sink_.on_set_entity_mode)
-      sink_.on_set_entity_mode(EntityEditMode::TRANSPORTS);
-  } else if (ImGui::IsKeyDown(ImGuiKey_8)) {
-    if (sink_.on_set_entity_mode)
-      sink_.on_set_entity_mode(EntityEditMode::MUSIC);
+  // 2. Entity modes (3-8): only that entity type responds to the mouse.
+  static constexpr struct {
+    ImGuiKey key;
+    EntityEditMode mode;
+  } kEntityKeys[] = {
+      {ImGuiKey_3, EntityEditMode::ENTRANCES},
+      {ImGuiKey_4, EntityEditMode::EXITS},
+      {ImGuiKey_5, EntityEditMode::ITEMS},
+      {ImGuiKey_6, EntityEditMode::SPRITES},
+      {ImGuiKey_7, EntityEditMode::TRANSPORTS},
+      {ImGuiKey_8, EntityEditMode::MUSIC},
+  };
+  if (plain_key && sink_.on_set_entity_mode) {
+    for (const auto& entry : kEntityKeys) {
+      if (ImGui::IsKeyPressed(entry.key, false)) {
+        sink_.on_set_entity_mode(entry.mode);
+        break;
+      }
+    }
   }
 
-  // 3. Brush/Fill/Pick shortcuts (avoid clobbering Ctrl/Alt based shortcuts).
+  // 3. Pick shortcut (avoid clobbering Ctrl/Alt based shortcuts). Brush (B),
+  // fill (F), tile cycling ([ ]), F11, Ctrl+L, Ctrl+T and Ctrl+Shift+I are
+  // dispatched once by ShortcutManager as overworld editor shortcuts.
   if (!ctrl_held && !alt_held) {
-    if (ImGui::IsKeyPressed(ImGuiKey_B, false)) {
-      if (sink_.on_toggle_brush)
-        sink_.on_toggle_brush();
-    }
-    if (ImGui::IsKeyPressed(ImGuiKey_F, false)) {
-      if (sink_.on_activate_fill)
-        sink_.on_activate_fill();
-    }
     if (ImGui::IsKeyPressed(ImGuiKey_I, false)) {
       if (sink_.on_pick_tile_from_hover)
         sink_.on_pick_tile_from_hover();
     }
   }
 
-  // 4. View / Map shortcuts
-  if (ImGui::IsKeyPressed(ImGuiKey_F11, false)) {
-    if (sink_.on_toggle_fullscreen)
-      sink_.on_toggle_fullscreen();
-  }
-
-  // Toggle map lock with Ctrl+L
-  if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_L, false)) {
-    if (sink_.on_toggle_lock)
-      sink_.on_toggle_lock();
-  }
-
-  // Toggle Tile16 editor with Ctrl+T
-  if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_T, false)) {
-    if (sink_.on_toggle_tile16_editor)
-      sink_.on_toggle_tile16_editor();
-  }
-
-  // Toggle Overworld Item List with Ctrl+Shift+I
-  if (ctrl_held && shift_held && ImGui::IsKeyPressed(ImGuiKey_I, false)) {
-    if (sink_.on_toggle_item_list)
-      sink_.on_toggle_item_list();
-  }
-
-  // 5. Item workflow shortcuts (duplicate + nudge)
+  // 5. Item workflow shortcuts (duplicate + nudge). Available whenever an
+  // item is selected with the select tool, not only in Items mode.
   if (sink_.can_edit_items && sink_.can_edit_items()) {
-    if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
+    // Ctrl+Shift+D is Duplicate Session; only plain Ctrl+D duplicates items.
+    if (ctrl_held && !shift_held && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
       if (sink_.on_duplicate_selected)
         sink_.on_duplicate_selected();
-    } else if (!ctrl_held) {
+    } else if (!ctrl_held && !alt_held) {  // Alt+arrows: adjacent map
       int dx = 0, dy = 0;
       if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false)) {
         dx = -1;
@@ -130,22 +108,7 @@ void OverworldInteractionCoordinator::Update(
     }
   }
 
-  // 6. Undo/Redo (supports Ctrl+Z, Ctrl+Shift+Z, and Ctrl+Y)
-  if (ctrl_held) {
-    if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-      if (shift_held) {
-        if (sink_.on_redo)
-          sink_.on_redo();
-      } else {
-        if (sink_.on_undo)
-          sink_.on_undo();
-      }
-    }
-    if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
-      if (sink_.on_redo)
-        sink_.on_redo();
-    }
-  }
+  // Undo/Redo is dispatched once by the application shortcut manager.
 }
 
 }  // namespace editor

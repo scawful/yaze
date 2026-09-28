@@ -1,4 +1,5 @@
 #include "core/project.h"
+#include "core/sprite_asset_json.h"
 
 #include <algorithm>
 #include <atomic>
@@ -15,6 +16,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/strip.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -167,6 +169,85 @@ std::optional<uint32_t> ParseHexUint32(const std::string& value) {
 std::string FormatHexUintList(const std::vector<uint16_t>& values) {
   return absl::StrJoin(values, ",", [](std::string* out, uint16_t value) {
     out->append(absl::StrFormat("0x%02X", value));
+  });
+}
+
+// Before 2026-09-25 the gfx group editor keyed blockset, roomset and
+// spriteset labels as "0x" + decimal digits (spriteset 12 -> "0x12", which the
+// label resolver reads as hex 18); the paletteset editor did the same until
+// 2026-09-26. Canonical keys are decimal. On load:
+// existing decimal keys win; "0x" + only decimal digits is that old format and
+// is read as decimal; other hex keys ("0x0C") are read as hex.
+void MigrateGfxGroupLabelKeys(
+    std::unordered_map<std::string,
+                       std::unordered_map<std::string, std::string>>& labels) {
+  auto all_of = [](absl::string_view text, auto predicate) {
+    return !text.empty() && std::all_of(text.begin(), text.end(), predicate);
+  };
+  auto is_decimal = [](char c) {
+    return c >= '0' && c <= '9';
+  };
+  auto is_hex = [](char c) {
+    return std::isxdigit(static_cast<unsigned char>(c)) != 0;
+  };
+  for (const char* type : {"blockset", "roomset", "spriteset", "paletteset"}) {
+    auto found = labels.find(type);
+    if (found == labels.end()) {
+      continue;
+    }
+    std::unordered_map<std::string, std::string> migrated;
+    // Pass 0: canonical decimal keys. Pass 1: old "0x"+decimal. Pass 2: hex.
+    for (int pass = 0; pass < 3; ++pass) {
+      for (const auto& [key, value] : found->second) {
+        absl::string_view digits = key;
+        const bool prefixed = absl::ConsumePrefix(&digits, "0x") ||
+                              absl::ConsumePrefix(&digits, "0X");
+        std::string canonical;
+        if (pass == 0 && !prefixed && all_of(digits, is_decimal)) {
+          canonical = std::string(digits);
+        } else if (pass == 1 && prefixed && all_of(digits, is_decimal)) {
+          canonical =
+              std::to_string(std::stoul(std::string(digits), nullptr, 10));
+        } else if (pass == 2 && !all_of(digits, is_decimal)) {
+          // Real hex keys become decimal; anything else is kept as written.
+          canonical =
+              prefixed && all_of(digits, is_hex)
+                  ? std::to_string(std::stoul(std::string(digits), nullptr, 16))
+                  : key;
+        }
+        if (!canonical.empty()) {
+          migrated.emplace(canonical, value);
+        }
+      }
+    }
+    found->second = std::move(migrated);
+  }
+}
+
+// "0x55:0,1,2;0x54:3" -> {0x55: {0, 1, 2}, 0x54: {3}}
+std::map<uint16_t, std::vector<uint16_t>> ParseHexUintListMap(
+    const std::string& value) {
+  std::map<uint16_t, std::vector<uint16_t>> result;
+  for (absl::string_view entry : absl::StrSplit(value, ';')) {
+    const size_t colon = entry.find(':');
+    if (colon == absl::string_view::npos) {
+      continue;
+    }
+    const auto keys = ParseHexUintList(std::string(entry.substr(0, colon)));
+    if (keys.size() != 1) {
+      continue;
+    }
+    result[keys.front()] =
+        ParseHexUintList(std::string(entry.substr(colon + 1)));
+  }
+  return result;
+}
+
+std::string FormatHexUintListMap(
+    const std::map<uint16_t, std::vector<uint16_t>>& values) {
+  return absl::StrJoin(values, ";", [](std::string* out, const auto& entry) {
+    out->append(absl::StrFormat("0x%02X:", entry.first));
+    out->append(absl::StrJoin(entry.second, ","));
   });
 }
 
@@ -714,11 +795,30 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "patches_folder=" << GetRelativePath(patches_folder) << "\n";
   file << "labels_filename=" << GetRelativePath(labels_filename) << "\n";
   file << "symbols_filename=" << GetRelativePath(symbols_filename) << "\n";
+  if (!cutscene_shots.empty()) {
+    file << "cutscene_shots=" << GetRelativePath(cutscene_shots) << "\n";
+  }
+  if (!custom_collision_json.empty()) {
+    file << "custom_collision_json=" << GetRelativePath(custom_collision_json)
+         << "\n";
+  }
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
   file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder)
        << "\n";
   file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
+  file << "sprite_catalog_file="
+       << GetRelativePath(GetAbsolutePath(sprite_catalog_file)) << "\n";
+  file << "sprite_source_root="
+       << GetRelativePath(GetAbsolutePath(sprite_source_root)) << "\n";
   file << "additional_roms=" << absl::StrJoin(additional_roms, ",") << "\n\n";
+
+  file << "[sprite_assets]\n";
+  for (size_t i = 0; i < sprite_assets.size(); ++i) {
+    auto asset = sprite_assets[i];
+    asset.zsm_path = GetRelativePath(GetAbsolutePath(asset.zsm_path));
+    file << "asset_" << i << "=" << SpriteAssetToJson(asset).dump() << "\n";
+  }
+  file << "\n";
 
   // ROM metadata section
   file << "[rom]\n";
@@ -851,6 +951,16 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "track_object_ids=" << FormatHexUintList(track_object_ids) << "\n";
   file << "minecart_sprite_ids=" << FormatHexUintList(minecart_sprite_ids)
        << "\n\n";
+
+  if (!graphics_sheets.empty()) {
+    file << "[graphics_sheets]\n";
+    file << "reserved_sheets="
+         << FormatHexUintList(graphics_sheets.reserved_sheets) << "\n";
+    file << "flagged_sheets="
+         << FormatHexUintList(graphics_sheets.flagged_sheets) << "\n";
+    file << "reserved_blocks="
+         << FormatHexUintListMap(graphics_sheets.reserved_blocks) << "\n\n";
+  }
 
   if (!rom_address_overrides.addresses.empty()) {
     file << "[rom_addresses]\n";
@@ -1001,6 +1111,9 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         "Project file contains unsupported lone carriage returns");
   }
 
+  sprite_catalog_file.clear();
+  sprite_source_root.clear();
+  sprite_assets.clear();
   std::istringstream stream(content);
   std::string line;
   std::string current_section;
@@ -1063,14 +1176,33 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         labels_filename = value;
       else if (key == "symbols_filename")
         symbols_filename = value;
+      else if (key == "cutscene_shots")
+        cutscene_shots = value;
+      else if (key == "custom_collision_json")
+        custom_collision_json = value;
       else if (key == "output_folder")
         output_folder = value;
       else if (key == "custom_objects_folder")
         custom_objects_folder = value;
       else if (key == "hack_manifest_file")
         hack_manifest_file = value;
+      else if (key == "sprite_catalog_file")
+        sprite_catalog_file = value;
+      else if (key == "sprite_source_root")
+        sprite_source_root = value;
       else if (key == "additional_roms")
         additional_roms = ParseStringList(value);
+    } else if (current_section == "sprite_assets") {
+      if (key.rfind("asset_", 0) != 0 || value.size() > 65536 ||
+          sprite_assets.size() >= 4096)
+        return absl::InvalidArgumentError("Invalid sprite_assets section");
+      auto asset = ParseSpriteAssetBinding(value);
+      if (!asset.ok())
+        return asset.status();
+      for (const auto& prior : sprite_assets)
+        if (prior.zsm_path == asset->zsm_path)
+          return absl::InvalidArgumentError("Duplicate sprite asset path");
+      sprite_assets.push_back(std::move(*asset));
     } else if (current_section == "rom") {
       if (key == "role")
         rom_metadata.role = ParseRomRole(value);
@@ -1171,6 +1303,13 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         dungeon_overlay.track_object_ids = ParseHexUintList(value);
       else if (key == "minecart_sprite_ids")
         dungeon_overlay.minecart_sprite_ids = ParseHexUintList(value);
+    } else if (current_section == "graphics_sheets") {
+      if (key == "reserved_sheets")
+        graphics_sheets.reserved_sheets = ParseHexUintList(value);
+      else if (key == "flagged_sheets")
+        graphics_sheets.flagged_sheets = ParseHexUintList(value);
+      else if (key == "reserved_blocks")
+        graphics_sheets.reserved_blocks = ParseHexUintListMap(value);
     } else if (current_section == "rom_addresses") {
       auto parsed = ParseHexUint32(value);
       if (parsed.has_value()) {
@@ -1285,6 +1424,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         music_persistence.last_saved_at = value;
     }
   }
+
+  MigrateGfxGroupLabelKeys(resource_labels);
 
   if (metadata.project_id.empty()) {
     metadata.project_id = GenerateProjectId();
@@ -1589,6 +1730,10 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&symbols_filename);
   normalize(&custom_objects_folder);
   normalize(&hack_manifest_file);
+  normalize(&sprite_catalog_file);
+  normalize(&sprite_source_root);
+  for (auto& asset : sprite_assets)
+    normalize(&asset.zsm_path);
   normalize(&output_folder);
 
   for (auto& rom_path : additional_roms) {
@@ -1941,6 +2086,9 @@ void YazeProject::TryLoadHackManifest() {
 }
 
 void YazeProject::InitializeDefaults() {
+  sprite_catalog_file.clear();
+  sprite_source_root.clear();
+  sprite_assets.clear();
   if (metadata.project_id.empty()) {
     metadata.project_id = GenerateProjectId();
   }
@@ -2342,6 +2490,7 @@ bool ResourceLabelManager::LoadLabels(const std::string& filename) {
   }
 
   file.close();
+  MigrateGfxGroupLabelKeys(labels_);
   labels_loaded_ = true;
   return true;
 }
@@ -2403,10 +2552,10 @@ void ResourceLabelManager::EditLabel(const std::string& type,
 void ResourceLabelManager::SelectableLabelWithNameEdit(
     bool selected, const std::string& type, const std::string& key,
     const std::string& defaultValue) {
-  // Basic implementation
+  const auto custom_label = GetLabel(type, key);
+  const auto& label = custom_label.empty() ? defaultValue : custom_label;
   if (ImGui::Selectable(
-          absl::StrFormat("%s: %s", key.c_str(), GetLabel(type, key).c_str())
-              .c_str(),
+          absl::StrFormat("%s: %s", key.c_str(), label.c_str()).c_str(),
           selected)) {
     // Handle selection
   }
@@ -2591,6 +2740,10 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
     json j;
     file >> j;
 
+    sprite_catalog_file.clear();
+    sprite_source_root.clear();
+    sprite_assets.clear();
+
     // Parse project metadata
     if (j.contains("yaze_project")) {
       auto& proj = j["yaze_project"];
@@ -2627,6 +2780,24 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         symbols_filename = proj["symbols_filename"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
         hack_manifest_file = proj["hack_manifest_file"].get<std::string>();
+      if (proj.contains("sprite_catalog_file"))
+        sprite_catalog_file = proj["sprite_catalog_file"].get<std::string>();
+      if (proj.contains("sprite_source_root"))
+        sprite_source_root = proj["sprite_source_root"].get<std::string>();
+      if (proj.contains("sprite_assets")) {
+        if (!proj["sprite_assets"].is_array() ||
+            proj["sprite_assets"].size() > 4096)
+          return absl::InvalidArgumentError("Invalid sprite_assets array");
+        for (const auto& value : proj["sprite_assets"]) {
+          auto asset = SpriteAssetFromJson(value);
+          if (!asset.ok())
+            return asset.status();
+          for (const auto& prior : sprite_assets)
+            if (prior.zsm_path == asset->zsm_path)
+              return absl::InvalidArgumentError("Duplicate sprite asset path");
+          sprite_assets.push_back(std::move(*asset));
+        }
+      }
 
       if (proj.contains("rom") && proj["rom"].is_object()) {
         auto& rom = proj["rom"];
@@ -2892,6 +3063,15 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["labels_filename"] = labels_filename;
   proj["symbols_filename"] = symbols_filename;
   proj["hack_manifest_file"] = hack_manifest_file;
+  proj["sprite_catalog_file"] =
+      GetRelativePath(GetAbsolutePath(sprite_catalog_file));
+  proj["sprite_source_root"] =
+      GetRelativePath(GetAbsolutePath(sprite_source_root));
+  proj["sprite_assets"] = nlohmann::json::array();
+  for (auto asset : sprite_assets) {
+    asset.zsm_path = GetRelativePath(GetAbsolutePath(asset.zsm_path));
+    proj["sprite_assets"].push_back(SpriteAssetToJson(asset));
+  }
   proj["output_folder"] = output_folder;
 
   proj["rom"]["role"] = RomRoleToString(rom_metadata.role);

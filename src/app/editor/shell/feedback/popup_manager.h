@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_POPUP_MANAGER_H
 #define YAZE_APP_EDITOR_POPUP_MANAGER_H
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -50,6 +51,7 @@ struct PopupParams {
   bool is_visible = false;
   bool allow_resize = false;
   std::function<void()> draw_function;
+  uint64_t shown_order = 0;  // Set by Show(); the newest visible popup is drawn
 };
 
 /**
@@ -122,6 +124,11 @@ class PopupManager {
   // Show a specific popup
   void Show(const char* name);
 
+  // Registers or replaces a popup. Initialize() registers the built-in ones.
+  void RegisterPopup(const std::string& name, PopupType type,
+                     std::function<void()> draw_function,
+                     bool allow_resize = false);
+
   // Hide a specific popup
   void Hide(const char* name);
 
@@ -193,6 +200,7 @@ class PopupManager {
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;
+  uint64_t next_shown_order_ = 1;
   absl::Status status_;
   bool show_status_ = false;
   absl::Status prev_status_;

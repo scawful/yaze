@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "absl/strings/str_format.h"
 #include "app/gui/core/drag_drop.h"
+#include "app/gui/core/icons.h"
 
 namespace yaze::gui {
 
@@ -87,6 +89,18 @@ void TileSelectorWidget::SetTileCount(int total_tiles) {
   }
 }
 
+void TileSelectorWidget::SetDisplayScale(float display_scale) {
+  if (display_scale > 0.0f) {
+    config_.display_scale = display_scale;
+  }
+}
+
+void TileSelectorWidget::SetTilesPerRow(int tiles_per_row) {
+  if (tiles_per_row > 0) {
+    config_.tiles_per_row = tiles_per_row;
+  }
+}
+
 void TileSelectorWidget::SetSelectedTile(int tile_id) {
   if (IsValidTileId(tile_id)) {
     selected_tile_id_ = tile_id;
@@ -94,23 +108,41 @@ void TileSelectorWidget::SetSelectedTile(int tile_id) {
   }
 }
 
+namespace {
+
+float GridWidthFor(const TileSelectorWidget::Config& config) {
+  const int tile_display_size =
+      static_cast<int>(config.tile_size * config.display_scale);
+  return config.tiles_per_row * tile_display_size + config.draw_offset.x * 2;
+}
+
+}  // namespace
+
 ImVec2 TileSelectorWidget::GetGridContentSize() const {
   const int tile_display_size =
       static_cast<int>(config_.tile_size * config_.display_scale);
   const int num_rows =
       (total_tiles_ + config_.tiles_per_row - 1) / config_.tiles_per_row;
-  return ImVec2(
-      config_.tiles_per_row * tile_display_size + config_.draw_offset.x * 2,
-      num_rows * tile_display_size + config_.draw_offset.y * 2);
+  return ImVec2(GridWidthFor(config_),
+                num_rows * tile_display_size + config_.draw_offset.y * 2);
+}
+
+float TileSelectorWidget::CurrentScrollbarSize() {
+  // ImGuiStyle's default; used when no context exists (layout unit tests).
+  constexpr float kImGuiDefaultScrollbarSize = 14.0f;
+  return ImGui::GetCurrentContext() ? ImGui::GetStyle().ScrollbarSize
+                                    : kImGuiDefaultScrollbarSize;
+}
+
+float TileSelectorWidget::PreferredViewportWidth(const Config& config,
+                                                 float scrollbar_size) {
+  // Filter-bar controls wrap compactly when the available width is tight
+  // (see DrawFilterBar); they must not inflate the preferred width.
+  return GridWidthFor(config) + scrollbar_size;
 }
 
 float TileSelectorWidget::GetPreferredViewportWidth() const {
-  const float grid_width = GetGridContentSize().x;
-  // Prefer honest grid + scrollbar chrome so docks can auto-size. Filter-bar
-  // controls wrap compactly when the available width is tight (see
-  // DrawFilterBar); they must not inflate the preferred dock width.
-  constexpr float kScrollbarChrome = 18.0f;
-  return grid_width + kScrollbarChrome;
+  return PreferredViewportWidth(config_, CurrentScrollbarSize());
 }
 
 TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
@@ -204,6 +236,19 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
   canvas_->DrawOverlay();
 
   return result;
+}
+
+CanvasMenuItem TileSelectorWidget::CopyTileIdMenuItem() const {
+  CanvasMenuItem item("Copy Tile ID", ICON_MD_CONTENT_COPY, [this]() {
+    if (IsValidTileId(selected_tile_id_)) {
+      ImGui::SetClipboardText(
+          absl::StrFormat("0x%03X", selected_tile_id_).c_str());
+    }
+  });
+  item.enabled_condition = [this]() {
+    return IsValidTileId(selected_tile_id_);
+  };
+  return item;
 }
 
 TileSelectorWidget::RenderResult TileSelectorWidget::HandleInteraction(
@@ -375,9 +420,9 @@ bool TileSelectorWidget::DrawFilterBar() {
   ImGui::SameLine();
   ImGui::TextDisabled(tr("/ 0x%03X"), max_tile_id);
 
-  if (compact_layout) {
-    ImGui::NewLine();
-  } else {
+  // Compact: the next item starts its own line (NewLine here would add an
+  // empty row, since the previous item did not end with SameLine).
+  if (!compact_layout) {
     if (last_jump_result_ == JumpToTileResult::kInvalidFormat) {
       ImGui::SameLine(0, 8.0f);
       ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), tr("Invalid hex ID"));
@@ -392,6 +437,7 @@ bool TileSelectorWidget::DrawFilterBar() {
   if (!compact_layout) {
     ImGui::SameLine(0, 12.0f);
   }
+  ImGui::AlignTextToFramePadding();
   ImGui::TextUnformatted(tr("Range:"));
   ImGui::SameLine();
 
@@ -424,10 +470,7 @@ bool TileSelectorWidget::DrawFilterBar() {
   if (!compact_layout) {
     ImGui::SameLine();
     ImGui::TextDisabled(tr("(hex, d:dec)"));
-  } else {
-    ImGui::NewLine();
-    ImGui::TextDisabled(tr("hex or d:dec"));
-  }
+  }  // Compact: the input tooltips carry the format hint.
 
   if (range_changed) {
     int parsed_min = 0;

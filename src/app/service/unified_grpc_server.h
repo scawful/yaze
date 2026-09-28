@@ -5,9 +5,11 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/net/rom_version_manager.h"
 #include "util/grpc_win_compat.h"
 
@@ -41,6 +43,7 @@ class EmulatorServiceImpl;
 namespace test {
 class TestManager;
 class ImGuiTestHarnessServiceImpl;
+struct ScreenshotArtifact;
 }  // namespace test
 
 /**
@@ -59,7 +62,14 @@ class YazeGRPCServer {
     bool enable_emulator_service = true;
     bool enable_canvas_automation = true;
     bool require_approval_for_rom_writes = true;
+    // "0.0.0.0" listens on every interface (the historical default, used by
+    // the iPad remote). Settings > Test mode binds "127.0.0.1" instead.
+    std::string bind_address = "0.0.0.0";
   };
+
+  void SetBindAddress(const std::string& address) {
+    config_.bind_address = address;
+  }
 
   YazeGRPCServer();
   ~YazeGRPCServer();
@@ -83,6 +93,10 @@ class YazeGRPCServer {
       net::RomVersionManager* version_mgr = nullptr,
       net::ProposalApprovalManager* approval_mgr = nullptr,
       CanvasAutomationServiceImpl* canvas_service = nullptr);
+
+  // Forwards to EmulatorServiceImpl::SetScreenshotCapturer (after Initialize).
+  void SetEmulatorScreenshotCapturer(
+      std::function<absl::StatusOr<test::ScreenshotArtifact>()> capturer);
 
   absl::Status Start();
   absl::Status StartAsync();

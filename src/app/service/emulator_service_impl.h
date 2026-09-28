@@ -1,13 +1,16 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "util/grpc_win_compat.h"
 
 #include <grpcpp/grpcpp.h>
 
+#include "absl/status/statusor.h"
 #include "app/emu/debug/step_controller.h"
 #include "app/emu/debug/symbol_provider.h"
+#include "app/service/screenshot_utils.h"
 #include "protos/emulator_service.grpc.pb.h"
 
 #include "app/emu/i_emulator.h"
@@ -17,7 +20,7 @@ class Rom;
 namespace emu {
 // Emulator forward decl no longer needed here if we include i_emulator.h
 }
-}
+}  // namespace yaze
 
 namespace yaze::net {
 
@@ -25,28 +28,38 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
  public:
   using RomGetter = std::function<Rom*()>;
   using RomLoader = std::function<bool(const std::string& path)>;
+  // Returns a PNG capture for GetGameState(include_screenshot). It must run
+  // the capture on the render thread; GetGameState is called on gRPC threads.
+  using ScreenshotCapturer =
+      std::function<absl::StatusOr<test::ScreenshotArtifact>()>;
+
   explicit EmulatorServiceImpl(emu::IEmulator* emulator,
                                RomGetter rom_getter = nullptr,
                                RomLoader rom_loader = nullptr);
+
+  // Without a capturer, GetGameState omits the screenshot.
+  void SetScreenshotCapturer(ScreenshotCapturer capturer) {
+    screenshot_capturer_ = std::move(capturer);
+  }
 
   // --- ROM Loading ---
   grpc::Status LoadRom(grpc::ServerContext* context,
                        const agent::LoadRomRequest* request,
                        agent::LoadRomResponse* response) override;
-  grpc::Status GetLoadedRomPath(grpc::ServerContext* context,
-                                const agent::Empty* request,
-                                agent::LoadedRomPathResponse* response) override;
+  grpc::Status GetLoadedRomPath(
+      grpc::ServerContext* context, const agent::Empty* request,
+      agent::LoadedRomPathResponse* response) override;
 
   // --- Core Lifecycle & Control ---
-  grpc::Status ControlEmulator(grpc::ServerContext* context, 
+  grpc::Status ControlEmulator(grpc::ServerContext* context,
                                const agent::ControlRequest* request,
                                agent::CommandResponse* response) override;
-  
-  grpc::Status StepEmulator(grpc::ServerContext* context, 
+
+  grpc::Status StepEmulator(grpc::ServerContext* context,
                             const agent::StepControlRequest* request,
                             agent::StepResponse* response) override;
-  
-  grpc::Status RunToBreakpoint(grpc::ServerContext* context, 
+
+  grpc::Status RunToBreakpoint(grpc::ServerContext* context,
                                const agent::Empty* request,
                                agent::BreakpointHitResponse* response) override;
 
@@ -71,13 +84,15 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
                            agent::CommandResponse* response) override;
 
   // --- Debugging Management ---
-  grpc::Status BreakpointControl(grpc::ServerContext* context,
-                                 const agent::BreakpointControlRequest* request,
-                                 agent::BreakpointControlResponse* response) override;
-  
-  grpc::Status WatchpointControl(grpc::ServerContext* context,
-                                 const agent::WatchpointControlRequest* request,
-                                 agent::WatchpointControlResponse* response) override;
+  grpc::Status BreakpointControl(
+      grpc::ServerContext* context,
+      const agent::BreakpointControlRequest* request,
+      agent::BreakpointControlResponse* response) override;
+
+  grpc::Status WatchpointControl(
+      grpc::ServerContext* context,
+      const agent::WatchpointControlRequest* request,
+      agent::WatchpointControlResponse* response) override;
 
   // --- Analysis & Symbols ---
   grpc::Status GetDisassembly(grpc::ServerContext* context,
@@ -116,9 +131,11 @@ class EmulatorServiceImpl final : public agent::EmulatorService::Service {
                           agent::ListStatesResponse* response) override;
 
  private:
-  emu::IEmulator* emulator_;  // Non-owning pointer to the emulator interface interface
+  emu::IEmulator*
+      emulator_;  // Non-owning pointer to the emulator interface interface
   RomGetter rom_getter_;
   RomLoader rom_loader_;
+  ScreenshotCapturer screenshot_capturer_;
   emu::debug::SymbolProvider symbol_provider_;  // Symbol table for debugging
 };
 

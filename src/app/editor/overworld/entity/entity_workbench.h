@@ -52,12 +52,13 @@ class OverworldEntityWorkbench : public WindowContent {
   void DrawPopups();
 
   // Pending Insertion State
-  void SetPendingInsertion(const std::string& type, ImVec2 pos);
-  void ProcessPendingInsertion(EntityMutationService* mutation_service,
-                               int current_map, int game_state);
+  void ProcessPendingInsertion(EntityMutationService* mutation_service);
 
   // Context Menu Content
-  void DrawEntityContextMenu();
+  // Renders the entity right-click menu. Returns the entity whose property
+  // editor should open; the caller opens it after EndPopup so the editor
+  // popup ID resolves at the same ID-stack level as its BeginPopupModal.
+  zelda3::GameEntity* DrawEntityContextMenu();
 
  private:
   static constexpr const char* kContextMenuPopupId =

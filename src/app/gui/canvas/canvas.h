@@ -198,6 +198,15 @@ class Canvas {
 
   void AddContextMenuItem(const gui::CanvasMenuItem& item);
   void ClearContextMenuItems();
+  // Called once before opening/rendering a new context menu. Editors can build
+  // actions from the click location; false rejects an invalid target.
+  void SetContextMenuOpenCallback(std::function<bool(const ImVec2&)> callback) {
+    context_menu_open_callback_ = std::move(callback);
+  }
+  bool PrepareContextMenu(const ImVec2& screen_position) {
+    return !context_menu_open_callback_ ||
+           context_menu_open_callback_(screen_position);
+  }
   std::optional<ImVec2> context_menu_open_screen_position() const {
     return context_menu_ ? context_menu_->context_open_screen_position()
                          : std::nullopt;
@@ -516,6 +525,7 @@ class Canvas {
   // Phase 4: Context menu system (declarative menu definition)
   CanvasMenuDefinition editor_menu_;
   bool context_menu_enabled_ = true;
+  std::function<bool(const ImVec2&)> context_menu_open_callback_;
 
   // Phase 4: Persistent popup state for context menu actions (unified registry)
   PopupRegistry popup_registry_;

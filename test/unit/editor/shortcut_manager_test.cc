@@ -171,5 +171,47 @@ TEST_F(ShortcutManagerTest, PlainShortcutDoesNotMatchModifiedChord) {
   EXPECT_EQ(plain_delete_tool_called, 0);
 }
 
+TEST_F(ShortcutManagerTest, TextInputOwnsAllPrimaryArrowChords) {
+  ShortcutManager shortcuts;
+  int navigation_called = 0;
+  shortcuts.RegisterShortcut(
+      "Dungeon Up", {ImGuiMod_Ctrl, ImGuiKey_UpArrow},
+      [&]() { ++navigation_called; }, Shortcut::Scope::kEditor);
+
+  RunFrame(nullptr, [&]() { ExecuteShortcuts(shortcuts); });
+  RunFrame(
+      [](ImGuiIO& io) {
+        const ImGuiKey primary =
+            io.ConfigMacOSXBehaviors ? ImGuiMod_Super : ImGuiMod_Ctrl;
+        io.AddKeyEvent(primary, true);
+        io.AddKeyEvent(ImGuiKey_UpArrow, true);
+      },
+      [&]() {
+        ImGui::GetIO().WantTextInput = true;
+        ExecuteShortcuts(shortcuts);
+      });
+
+  EXPECT_EQ(navigation_called, 0);
+}
+
+TEST_F(ShortcutManagerTest, PaneFocusUsesPrimaryAltArrowChords) {
+  ShortcutManager shortcuts;
+  shortcuts.RegisterWindowNavigationShortcuts(
+      []() {}, []() {}, []() {}, []() {}, nullptr, nullptr, nullptr);
+
+  EXPECT_EQ(
+      shortcuts.GetShortcut("focus_left").keys,
+      (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_LeftArrow}));
+  EXPECT_EQ(shortcuts.GetShortcut("focus_right").keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt,
+                                   ImGuiKey_RightArrow}));
+  EXPECT_EQ(
+      shortcuts.GetShortcut("focus_up").keys,
+      (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_UpArrow}));
+  EXPECT_EQ(
+      shortcuts.GetShortcut("focus_down").keys,
+      (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_DownArrow}));
+}
+
 }  // namespace
 }  // namespace yaze::editor

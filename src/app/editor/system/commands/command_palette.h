@@ -1,9 +1,11 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_COMMAND_PALETTE_H_
 #define YAZE_APP_EDITOR_SYSTEM_COMMAND_PALETTE_H_
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -59,6 +61,16 @@ struct CommandEntry {
   /// Provider attribution. Empty means the entry was added directly (not
   /// through a registered CommandProvider) and cannot be selectively refreshed.
   std::string provider_id;
+  /// Disabled entries are listed (e.g. a go-to kind with no jump path) but
+  /// never executed. `note` explains why.
+  bool enabled = true;
+  std::string note;
+};
+
+/// A search hit: the (deduplicated) entry plus the score it matched with.
+struct CommandMatch {
+  CommandEntry entry;
+  int score = 0;
 };
 
 class CommandPalette {
@@ -67,19 +79,33 @@ class CommandPalette {
                   const std::string& description, const std::string& shortcut,
                   std::function<void()> callback);
 
-  void RecordUsage(const std::string& name);
+  /// Record one execution of @p name. Only names the palette knows (after
+  /// dedupe, see CanonicalCommandName) are counted; returns false otherwise.
+  /// Usage survives Clear()/provider refreshes.
+  bool RecordUsage(const std::string& name);
 
+  /// Ranked, deduplicated search. An empty query lists every visible command
+  /// (recently used first, then by name). Recency/frequency only boosts
+  /// entries that already match the query.
   std::vector<CommandEntry> SearchCommands(const std::string& query);
+  std::vector<CommandMatch> Search(const std::string& query,
+                                   int64_t now_ms) const;
+  std::vector<CommandMatch> Search(const std::string& query) const;
 
   std::vector<CommandEntry> GetRecentCommands(int limit = 10);
 
   std::vector<CommandEntry> GetFrequentCommands(int limit = 10);
 
   /**
-   * @brief Get all registered commands
+   * @brief Get all registered commands (raw, not deduplicated)
    * @return Vector of all command entries
    */
   std::vector<CommandEntry> GetAllCommands() const;
+
+  /// Commands after hiding duplicates (see NormalizeCommandName). Each group
+  /// is represented by one entry that inherits the first non-empty shortcut
+  /// and the group's best usage stats. Sorted by name.
+  std::vector<CommandEntry> GetVisibleCommands() const;
 
   /**
    * @brief Get command count
@@ -88,6 +114,7 @@ class CommandPalette {
 
   /**
    * @brief Clear all commands (and forget every registered provider).
+   * Usage history is kept so refreshing providers does not reset frecency.
    */
   void Clear();
 
@@ -152,6 +179,14 @@ class CommandPalette {
    */
   void RegisterRecentFilesCommands(
       std::function<void(const std::string&)> open_callback);
+
+  /**
+   * @brief Register overworld map navigation commands (0x00-0x9F).
+   *
+   * Commands publish JumpToMapRequestEvent; names carry the resource label
+   * when one exists.
+   */
+  void RegisterOverworldMapCommands(size_t session_id);
 
   /**
    * @brief Register dungeon room navigation commands.
@@ -224,10 +259,52 @@ class CommandPalette {
    */
   void LoadHistory(const std::string& filepath);
 
+  /// Legacy name for ScoreText (kept for the Window Finder).
   static int FuzzyScore(const std::string& text, const std::string& query);
 
+  /// Unified scorer, case-insensitive. 0 = no match. Tiers (high to low):
+  /// exact > prefix > substring at a word start > substring elsewhere >
+  /// in-order subsequence. Subsequence matches earn a word-start bonus that
+  /// outweighs the consecutive-character bonus, and always stay below every
+  /// substring tier. Queries with spaces also match when every token matches.
+  static int ScoreText(std::string_view text, std::string_view query);
+
+  /// Score one entry: name first, then category/description at reduced
+  /// weight, then a frecency boost that is only applied when the text
+  /// matched. Returns 0 when nothing matched.
+  static int ScoreEntry(const CommandEntry& entry, std::string_view query,
+                        int64_t now_ms);
+
+  /// Lowercase, strip punctuation and "(Alt)" suffixes, collapse spaces, and
+  /// treat the word "panel(s)" as "window(s)". "Switch to: Overworld Editor"
+  /// and "Switch to Overworld Editor" share a key, as do "Panel Browser" and
+  /// "Window Browser", so only one of each is listed (Window names win).
+  static std::string NormalizeCommandName(std::string_view name);
+
+  /// True for dotted/underscored ids such as "switch.3" or
+  /// "graphics.tool.pencil" that are keybinding ids, not user-facing names.
+  static bool IsInternalCommandId(std::string_view name);
+
+  /// Name of the entry that represents @p name after dedupe, or empty when
+  /// the palette has no such command.
+  std::string CanonicalCommandName(const std::string& name) const;
+
+  static int64_t NowMs();
+
+  /// Bumped on every mutation (commands, providers, usage). Lets callers
+  /// cache Search() results per query across frames.
+  uint64_t generation() const { return generation_; }
+
  private:
+  uint64_t generation_ = 0;
+  struct UsageStats {
+    int count = 0;
+    int64_t last_used_ms = 0;
+  };
+
   std::unordered_map<std::string, CommandEntry> commands_;
+  /// Usage keyed by command name; survives Clear() and provider refreshes.
+  std::unordered_map<std::string, UsageStats> usage_;
   std::vector<std::unique_ptr<CommandProvider>> providers_;
   /// Set while a provider's Provide() call is on the stack; stamped into every
   /// CommandEntry added during that call. Empty outside Provide().

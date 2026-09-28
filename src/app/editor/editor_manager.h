@@ -152,6 +152,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   StatusBar* status_bar() { return &status_bar_; }
   ToastManager* toast_manager() { return &toast_manager_; }
   PopupManager* popup_manager() { return popup_manager_.get(); }
+  // Native (macOS) menu mirrors these bindings; see native_menu_bridge.h.
+  ShortcutManager* shortcut_manager() { return &shortcut_manager_; }
   WorkspaceWindowManager* GetWindowManager() { return &window_manager_; }
   WorkspaceWindowManager& window_manager() { return window_manager_; }
   const WorkspaceWindowManager& window_manager() const {
@@ -199,6 +201,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                                 : nullptr;
   }
   auto GetCurrentEditor() const -> Editor* override { return current_editor_; }
+  EditorContextSnapshot GetEditorContextSnapshot(const std::string& category);
   std::string GetCurrentRomHash() const {
     return rom_lifecycle_.current_rom_hash();
   }
@@ -290,6 +293,14 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                       bool from_dialog = false) override;
   void DismissEditorSelection() override;
 
+  // True when an editor (not the dashboard picker) is in front of the user.
+  bool HasOpenEditor() const;
+
+  // True while something needs a new frame without user input: the emulator
+  // or music playback, queued texture uploads, or queued deferred actions.
+  // Controller idles otherwise.
+  bool WantsContinuousFrames() const;
+
   // Panel-based editor registry
   static bool IsPanelBasedEditor(EditorType type);
   bool IsSidebarVisible() const {
@@ -310,6 +321,19 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void DuplicateCurrentSession();
   void CloseCurrentSession();
   void RemoveSession(size_t index);
+
+  // File > Close ROM. Closes the active ROM session even when it is the only
+  // one (the app returns to the welcome surface). Unsaved work goes through
+  // the kUnsavedSessionChanges confirmation first.
+  void CloseRom();
+  bool CanCloseRom() const;
+
+  // File > Revert to Saved. Reloads the active ROM from its backing file,
+  // discarding in-memory ROM edits after the kUnsavedSessionChanges
+  // confirmation. Returns an error only when the revert cannot start or the
+  // reload fails; returns OK while the confirmation is pending.
+  absl::Status RevertRomToSaved();
+  bool CanRevertRom() const;
   void SwitchToSession(size_t index);
   void RequestSwitchToSession(size_t index) override { SwitchToSession(index); }
   void RequestCloseSession(size_t index) override { RemoveSession(index); }
@@ -524,6 +548,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void RegisterEmulatorPanels();
   void InitializeServices();
   void SetupComponentCallbacks();
+  // After a ROM or project loads: stay in the open editor, open the Settings
+  // default editor, or show the editor picker, in that order.
+  void ShowPostLoadSurface();
   void SetupDialogCallbacks();
   void SetupSidebarCallbacks();
   void InitializeShortcutSystem();
@@ -570,6 +597,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
   StartupVisibility welcome_mode_override_ = StartupVisibility::kAuto;
+  // False while the previous frame drew the editor surface. Drawers left open
+  // by an editor close when the Welcome screen replaces that surface; drawers
+  // opened on the Welcome screen (File > Settings, the drawers button,
+  // Ctrl/Cmd+,, --editor=Settings) stay open. Starts true: at launch there is
+  // no editor surface to leave.
+  bool welcome_was_shown_ = true;
   StartupVisibility dashboard_mode_override_ = StartupVisibility::kAuto;
   StartupVisibility sidebar_mode_override_ = StartupVisibility::kAuto;
   AssetLoadMode asset_load_mode_ = AssetLoadMode::kFull;
@@ -703,6 +736,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       kOpenProjectDialog,
       kSwitchSession,
       kCloseSession,
+      kCloseRom,
+      kRevertRom,
       kQuit,
     };
 
@@ -716,6 +751,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   bool MaybeGuardPendingSessionAction(PendingUnsavedSessionAction action);
   void ExecutePendingUnsavedSessionAction(
       const PendingUnsavedSessionAction& action);
+  absl::Status RevertRomToSavedInternal();
   bool SessionHasPendingUnsavedWork(size_t session_index) const;
   bool SessionHasPendingRomWork(size_t session_index) const;
   bool HasAnySessionPendingUnsavedWork() const;

@@ -1,5 +1,12 @@
 # Changelog
 
+For current capability and save boundaries, use the
+[coverage report](feature-coverage-report.md) and
+[capability completion plan](../../internal/plans/editor-capability-parity-plan.md).
+They take precedence over broad parity or completion claims in historical
+entries below. Historical entries record changes at their original scope;
+they do not establish current end-to-end or release qualification.
+
 ## 0.8.0 (in development)
 
 Release date, final merge SHA, and packaged-candidate evidence are pending.
@@ -535,7 +542,16 @@ or project will notice it.
 - The Selection inspector shows Width and Height tile dropdowns for packed floor
   objects and a Variant dropdown for custom objects. The mouse wheel now also
   resizes the placement ghost, not only selected objects. For packed floor
-  objects, Shift+wheel changes width and the wheel alone changes height.
+  objects, the wheel grows or shrinks both dimensions together; Shift+wheel
+  changes width. New floor regions start square. Width and Height dropdowns
+  remain available for rectangular regions.
+- The Workbench object browser now includes a placement inspector with live
+  dimensions, storage layer, and **Keep placing copies**. Turn this off to place
+  once and immediately edit the inserted object. **Done placing** or Escape
+  ends stamping and opens the selected object's properties. **Place another**
+  starts a new preview with the selected object's size and layer. Wall and trim
+  sizes are shown as lengths in tiles and pixels; fixed objects and custom
+  variants retain their own controls.
 - Programmatic scroll-to-tile on the dungeon canvas moves the background,
   overlays, and input together in the same frame.
 

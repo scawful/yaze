@@ -110,6 +110,13 @@ AnchorPos ChooseAnchor(const DrawRoutineInfo& routine,
     return anchor;
   }
 
+  // Ganon's triforce floor draws its bottom-left 4x4 two columns left of the
+  // anchor (RoomDraw_GanonTriforceFloorDecor, ADC #$01FC).
+  if (routine.id == DrawRoutineIds::kGanonTriforceFloorDecor) {
+    anchor.x = 2;
+    return anchor;
+  }
+
   // Default: top-left of canvas.
   return anchor;
 }

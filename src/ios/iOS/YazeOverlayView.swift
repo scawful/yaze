@@ -130,7 +130,7 @@ struct YazeOverlayView: View {
         .padding(.horizontal, 16)
 
         if isDungeonEditor && showDungeonSidebar {
-          dungeonRoomSidebar(topPadding: topPadding)
+          dungeonRoomSidebar(topPadding: topPadding, availableHeight: proxy.size.height)
             .transition(.move(edge: .leading).combined(with: .opacity))
         }
 
@@ -483,7 +483,7 @@ struct YazeOverlayView: View {
     .accessibilityLabel("Open main menu")
   }
 
-  private func dungeonRoomSidebar(topPadding: CGFloat) -> some View {
+  private func dungeonRoomSidebar(topPadding: CGFloat, availableHeight: CGFloat) -> some View {
     VStack(alignment: .leading, spacing: 10) {
       HStack {
         Label("Dungeon Rooms", systemImage: "building.columns")
@@ -492,13 +492,26 @@ struct YazeOverlayView: View {
         Text("\(filteredDungeonRooms.count)")
           .font(.caption.monospacedDigit())
           .foregroundStyle(.secondary)
+        Button {
+          withAnimation(.easeInOut(duration: 0.2)) { showDungeonSidebar = false }
+        } label: {
+          Image(systemName: "xmark").frame(minWidth: 44, minHeight: 44)
+        }
+        .accessibilityLabel("Close room sidebar")
       }
 
       TextField("Filter rooms (ID or name)", text: $dungeonRoomFilter)
         .textFieldStyle(.roundedBorder)
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled()
 
       ScrollView {
         LazyVStack(spacing: 6) {
+          if filteredDungeonRooms.isEmpty {
+            Text(dungeonRooms.isEmpty ? "Open a dungeon room to review it here." : "No matching rooms.")
+              .foregroundStyle(.secondary)
+              .frame(maxWidth: .infinity, minHeight: 44)
+          }
           ForEach(filteredDungeonRooms) { room in
             let isSelected = room.roomID == selectedDungeonRoomID || room.isCurrent
             Button {
@@ -510,7 +523,7 @@ struct YazeOverlayView: View {
                   .foregroundStyle(.secondary)
                 Text(room.name)
                   .font(.subheadline)
-                  .lineLimit(1)
+                  .lineLimit(2)
                 Spacer()
                 if isSelected {
                   Image(systemName: "checkmark.circle.fill")
@@ -519,18 +532,20 @@ struct YazeOverlayView: View {
               }
               .padding(.vertical, 6)
               .padding(.horizontal, 8)
-              .frame(maxWidth: .infinity, alignment: .leading)
+              .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
               .background(
                 RoundedRectangle(cornerRadius: 8)
                   .fill(isSelected ? Color.accentColor.opacity(0.18) : Color.clear)
               )
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(String(format: "Room %03X, %@", room.roomID, room.name))
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
           }
         }
         .frame(maxWidth: .infinity)
       }
-      .frame(maxHeight: 260)
+      .frame(maxHeight: max(80, min(360, availableHeight - topPadding - 240)))
 
       HStack(spacing: 8) {
         Button {

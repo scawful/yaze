@@ -94,6 +94,12 @@ class AgentEditor : public Editor {
   absl::Status Find() override {
     return absl::UnimplementedError("Not applicable");
   }
+  // Edit-menu actions do not apply to the agent editor.
+  bool CanUndo() const override { return false; }
+  bool CanRedo() const override { return false; }
+  bool CanCut() const override { return false; }
+  bool CanCopy() const override { return false; }
+  bool CanPaste() const override { return false; }
 
   // Initialization with dependencies
   void InitializeWithDependencies(ToastManager* toast_manager,

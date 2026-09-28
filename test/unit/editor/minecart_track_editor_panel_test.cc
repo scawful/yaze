@@ -17,6 +17,7 @@
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
 #include "core/project.h"
+#include "editor_test_support.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -736,19 +737,19 @@ TEST(MinecartTrackEditorPanelTest,
 }
 
 TEST(MinecartTrackEditorPanelTest,
-     LateCustomObjectEnableRegistersMinecartPanelInOwningSession) {
+     ProjectCapabilityRegistersMinecartPanelWithFlagDisabled) {
   FeatureFlagsGuard flags_guard;
   core::FeatureFlags::get().kEnableCustomObjects = false;
+  ScopedTestProject fixture;
 
   WorkspaceWindowManager window_manager;
   constexpr size_t kSessionId = 7;
   window_manager.RegisterSession(kSessionId);
   window_manager.SetActiveSession(kSessionId);
 
-  project::YazeProject project;
   DungeonEditorV2 editor;
   EditorDependencies dependencies;
-  dependencies.project = &project;
+  dependencies.project = fixture.project();
   dependencies.session_id = kSessionId;
   dependencies.window_manager = &window_manager;
   editor.SetDependencies(dependencies);
@@ -756,14 +757,16 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_EQ(window_manager.GetWindowContent(
                 kSessionId, DungeonEditorV2::kMinecartTrackEditorId),
             nullptr);
-  EXPECT_FALSE(editor.EnsureMinecartTrackEditorPanel().ok());
-
-  core::FeatureFlags::get().kEnableCustomObjects = true;
   ASSERT_TRUE(editor.EnsureMinecartTrackEditorPanel().ok());
   auto* registered = window_manager.GetWindowContent(
       kSessionId, DungeonEditorV2::kMinecartTrackEditorId);
   ASSERT_NE(registered, nullptr);
   EXPECT_NE(dynamic_cast<MinecartTrackEditorPanel*>(registered), nullptr);
+  const auto* descriptor = window_manager.GetWindowDescriptor(
+      kSessionId, DungeonEditorV2::kMinecartTrackEditorId);
+  ASSERT_NE(descriptor, nullptr);
+  EXPECT_FALSE(descriptor->IsListedInWindowBrowser());
+  EXPECT_EQ(descriptor->presentation.required_capability, "minecart_tracks");
   EXPECT_TRUE(window_manager.OpenWindow(
       kSessionId, DungeonEditorV2::kMinecartTrackEditorId));
 
@@ -776,7 +779,8 @@ TEST(MinecartTrackEditorPanelTest,
 TEST(MinecartTrackEditorPanelTest,
      LateMinecartRegistrationRejectsInactiveOwningSession) {
   FeatureFlagsGuard flags_guard;
-  core::FeatureFlags::get().kEnableCustomObjects = true;
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  ScopedTestProject fixture;
 
   WorkspaceWindowManager window_manager;
   constexpr size_t kOwningSessionId = 7;
@@ -787,6 +791,7 @@ TEST(MinecartTrackEditorPanelTest,
 
   DungeonEditorV2 editor;
   EditorDependencies dependencies;
+  dependencies.project = fixture.project();
   dependencies.session_id = kOwningSessionId;
   dependencies.window_manager = &window_manager;
   editor.SetDependencies(dependencies);
@@ -929,7 +934,7 @@ TEST(MinecartTrackEditorPanelTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
 
@@ -982,7 +987,7 @@ TEST(MinecartTrackEditorPanelTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
   auto* session =
@@ -1065,7 +1070,7 @@ TEST(MinecartTrackEditorPanelTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(
       manager->OpenRomOrProject(fixture_a.project_path().string()).ok());
@@ -1157,7 +1162,7 @@ TEST(MinecartTrackEditorPanelTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
   auto* session =
@@ -1192,7 +1197,7 @@ TEST(MinecartTrackEditorPanelTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
   auto* session =
@@ -1238,7 +1243,7 @@ TEST(MinecartTrackEditorPanelTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(
       manager->OpenRomOrProject(fixture_a.project_path().string()).ok());

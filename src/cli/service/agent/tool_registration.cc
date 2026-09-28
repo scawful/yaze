@@ -243,33 +243,43 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
        {"write"}});
 
   // Overworld commands
-  REGISTER_BUILTIN_AGENT_TOOL("overworld-get-tile", "overworld",
-                              "Get tile by map/x/y",
-                              "overworld-get-tile --map=<id> --x=<x> --y=<y>",
-                              {}, true, false, OverworldGetTileCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
-      "overworld-set-tile", "overworld", "Set tile by map/x/y",
-      "overworld-set-tile --map=<id> --x=<x> --y=<y> --tile=<tile>", {}, true,
-      true, OverworldSetTileCommandHandler)
-  REGISTER_BUILTIN_AGENT_TOOL("overworld-find-tile", "overworld",
-                              "Find tile locations",
-                              "overworld-find-tile --tile=<id>", {}, true,
-                              false, OverworldFindTileCommandHandler)
+      "overworld-get-tile", "overworld",
+      "Get the tile16 id at an overworld area position. map is a hex screen "
+      "id; x/y are decimal tile16 coordinates relative to the parent area's "
+      "top-left (0-31 small, 0-63 on doubled axes of large/wide/tall areas)",
+      "overworld-get-tile --map=<hex> --x=<area_tile_x> --y=<area_tile_y>", {},
+      true, false, OverworldGetTileCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-set-tile", "overworld",
+      "Set one tile16 id at an overworld area position (coordinates as "
+      "overworld-get-tile). Dry-run unless write is set",
+      "overworld-set-tile --map=<hex> --x=<area_tile_x> --y=<area_tile_y> "
+      "--tile=<hex> [--write]",
+      {}, true, true, OverworldSetTileCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-find-tile", "overworld",
+      "Find every position of a tile16 id; x/y in each match feed "
+      "overworld-get-tile",
+      "overworld-find-tile --tile=<hex> [--map=<hex>] "
+      "[--world=<light|dark|special>]",
+      {}, true, false, OverworldFindTileCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("overworld-describe-map", "overworld",
                               "Describe a map",
-                              "overworld-describe-map --map=<id>", {}, true,
+                              "overworld-describe-map --screen=<hex>", {}, true,
                               false, OverworldDescribeMapCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("overworld-list-warps", "overworld", "List warps",
-                              "overworld-list-warps --map=<id>", {}, true,
+                              "overworld-list-warps [--screen=<hex>]", {}, true,
                               false, OverworldListWarpsCommandHandler)
-  REGISTER_BUILTIN_AGENT_TOOL("overworld-list-sprites", "overworld",
-                              "List sprites",
-                              "overworld-list-sprites --map=<id>", {}, true,
-                              false, OverworldListSpritesCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-list-sprites", "overworld", "List sprites",
+      "overworld-list-sprites --screen=<id> "
+      "[--phase=0|1|2]",
+      {}, true, false, OverworldListSpritesCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("overworld-get-entrance", "overworld",
                               "Get entrance info",
-                              "overworld-get-entrance --id=<id>", {}, true,
-                              false, OverworldGetEntranceCommandHandler)
+                              "overworld-get-entrance --entrance=<hex>", {},
+                              true, false, OverworldGetEntranceCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("overworld-tile-stats", "overworld",
                               "Get tile statistics", "overworld-tile-stats", {},
                               true, false, OverworldTileStatsCommandHandler)

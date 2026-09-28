@@ -11,6 +11,15 @@ Binary file format using .NET BinaryWriter/BinaryReader conventions:
 - Integers: Little-endian 32-bit
 - Booleans: Single byte (0x00 = false, 0x01 = true)
 
+## Coordinate convention
+
+Tile X/Y bytes are unsigned canvas coordinates. ZSpriteMaker's `GetASM()` subtracts
+128 from X and 112 from Y to emit signed word offsets. Yaze uses this same
+conversion in previews and offset controls; interpreting stored bytes directly as
+signed 8-bit offsets is incorrect. The byte format can represent X offsets
+-128..127 and Y offsets -112..143; the original UI used narrower canvas bounds.
+See [sprite authoring](../usage/sprite-authoring.md) for editing and export limits.
+
 ## File Structure
 
 ```

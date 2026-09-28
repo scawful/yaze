@@ -201,9 +201,10 @@ For detailed guidelines, see the **Best Practices** sections in individual archi
 
 ## Related Documents
 
-- **[../../CLAUDE.md](../../CLAUDE.md)** - Project overview and development guidelines
+- **[../../AGENTS.md](../../AGENTS.md)** - Agent protocol and development guidelines
 - **[../../README.md](../../README.md)** - Project introduction
 - **[../release-checklist.md](../release-checklist.md)** - Release process documentation
+- **[../roadmap.md](../roadmap.md)** / **[../status.md](../status.md)** - Roadmap and status
 
 ## Architecture Evolution
 

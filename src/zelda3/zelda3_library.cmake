@@ -1,6 +1,8 @@
 set(
   YAZE_APP_ZELDA3_SRC
   zelda3/common.cc
+  zelda3/cutscene/cutscene_shot.cc
+  zelda3/dungeon/chest_edit.cc
   zelda3/dungeon/custom_collision.cc
   zelda3/dungeon/custom_object.cc
   zelda3/dungeon/dimension_service.cc
@@ -20,14 +22,21 @@ set(
   zelda3/dungeon/dungeon_validator.cc
   zelda3/dungeon/geometry/object_geometry.cc
   zelda3/dungeon/object_dimensions.cc
+  zelda3/dungeon/game_tilemap_comparison.cc
+  zelda3/dungeon/room_default_entrance.cc
+  zelda3/dungeon/object_draw_code.cc
+  zelda3/dungeon/game_parity_gate.cc
+  zelda3/dungeon/room_layer_registers.cc
   zelda3/dungeon/object_drawer.cc
   zelda3/dungeon/object_parser.cc
   zelda3/dungeon/object_templates.cc
   zelda3/dungeon/object_tile_editor.cc
   zelda3/dungeon/oracle_rom_safety_preflight.cc
-  zelda3/dungeon/palette_debug.cc
   zelda3/dungeon/pit_damage_table.cc
+  zelda3/dungeon/room_census.cc
+  zelda3/dungeon/room_census_vanilla_fingerprints.cc
   zelda3/dungeon/room.cc
+  zelda3/dungeon/room_collision.cc
   zelda3/dungeon/room_layer_manager.cc
   zelda3/dungeon/room_layout.cc
   zelda3/dungeon/room_object.cc
@@ -35,6 +44,10 @@ set(
   zelda3/dungeon/water_fill_zone.cc
   zelda3/formats/offsets.cc
   zelda3/game_data.cc
+  zelda3/gfx_sheet_inventory.cc
+  zelda3/gfx_sheet_png.cc
+  zelda3/gfx_sheet_storage.cc
+  zelda3/graphics_sheet_store.cc
   zelda3/music/asm_exporter.cc
   zelda3/music/asm_importer.cc
   zelda3/music/music_bank.cc
@@ -43,6 +56,7 @@ set(
   zelda3/music/tracker.cc
   zelda3/overworld/diggable_tiles.cc
   zelda3/overworld/diggable_tiles_patch.cc
+  zelda3/overworld/overworld_sprite_io.cc
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_entrance.cc
   zelda3/overworld/overworld_exit.cc
@@ -60,9 +74,12 @@ set(
   zelda3/screen/overworld_map_screen.cc
   zelda3/screen/title_screen.cc
   zelda3/sprite/sprite.cc
+  zelda3/sprite/sprite_sheet_slots.cc
   zelda3/sprite/sprite_builder.cc
+  zelda3/sprite/sprite_catalog.cc
   zelda3/sprite/sprite_oam_tables.cc
   zelda3/zelda3_labels.cc
+  zelda3/zelda3_version.cc
   # Draw routine modules (Phase 2 modularization)
 )
 

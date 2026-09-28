@@ -298,14 +298,20 @@ inline SDL_Renderer* CreateRenderer(SDL_Window* window) {
 /**
  * @brief Set vertical sync for the renderer.
  *
- * SDL2: VSync is set at renderer creation time via flags
+ * SDL2: SDL_RenderSetVSync(renderer, interval) (SDL 2.0.18+)
  * SDL3: SDL_SetRenderVSync(renderer, interval)
+ *
+ * Without vsync the SDL2 loop on Linux/Windows ran uncapped apart from a
+ * 1 ms delay, which kept a core busy even when nothing changed.
  */
 inline void SetRenderVSync(SDL_Renderer* renderer, int interval) {
 #ifdef YAZE_USE_SDL3
   SDL_SetRenderVSync(renderer, interval);
+#elif SDL_VERSION_ATLEAST(2, 0, 18)
+  if (renderer != nullptr) {
+    SDL_RenderSetVSync(renderer, interval);
+  }
 #else
-  // SDL2 sets vsync at creation time, this is a no-op
   (void)renderer;
   (void)interval;
 #endif

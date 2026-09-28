@@ -8,23 +8,25 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
-#include "app/editor/overworld/canvas_navigation_manager.h"
+#include "app/editor/overworld/canvas/canvas_navigation_manager.h"
+#include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
 #include "app/editor/overworld/core/interaction_coordinator.h"
-#include "app/editor/overworld/debug_window_card.h"
 #include "app/editor/overworld/entity/entity_editing_target.h"
+#include "app/editor/overworld/entity/entity_insertion_request.h"
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "app/editor/overworld/entity/entity_workbench.h"
-#include "app/editor/overworld/map_properties.h"
-#include "app/editor/overworld/map_refresh_coordinator.h"
-#include "app/editor/overworld/map_texture_coordinator.h"
-#include "app/editor/overworld/overworld_canvas_renderer.h"
-#include "app/editor/overworld/overworld_entity_renderer.h"
-#include "app/editor/overworld/overworld_sidebar.h"
-#include "app/editor/overworld/overworld_toolbar.h"
+#include "app/editor/overworld/entity/overworld_entity_renderer.h"
+#include "app/editor/overworld/maps/map_properties.h"
+#include "app/editor/overworld/maps/map_refresh_coordinator.h"
+#include "app/editor/overworld/maps/map_texture_coordinator.h"
+#include "app/editor/overworld/overworld_undo_actions.h"
+#include "app/editor/overworld/painting/tile_painting_manager.h"
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/editor/overworld/tile_painting_manager.h"
-#include "app/editor/overworld/ui_constants.h"
-#include "app/editor/overworld/usage_statistics_card.h"
+#include "app/editor/overworld/ui/debug/debug_window_card.h"
+#include "app/editor/overworld/ui/debug/usage_statistics_card.h"
+#include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -178,9 +180,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Save() override;
   absl::Status Clear() override;
   void ContributeStatus(StatusBar* status_bar) override;
+  EditorContextSnapshot BuildContextSnapshot() const override;
 
   /// @brief Access the underlying Overworld data
   zelda3::Overworld& overworld() { return overworld_; }
+  // One 512x512 overworld screen for tools that draw areas outside this
+  // editor (the Cutscene Camera). Builds its texture on first use; nullptr
+  // for an invalid ID or a screen that is not built yet.
+  const gfx::Bitmap* AreaScreenBitmap(int map_id);
 
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
@@ -225,6 +232,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void SelectMapForEditing(int map_id, bool respect_pin = true);
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
+  int current_tile16_id() const { return current_tile16_; }
+  const TilePaintingManager* tile_painting() const {
+    return tile_painting_.get();
+  }
+  const gfx::Bitmap& map_bitmap(int map_id) const {
+    return maps_bmp_.at(map_id);
+  }
+  bool map_pinned() const { return current_map_lock_; }
   int current_map_id() const { return current_map_; }
   int current_world_id() const { return current_world_; }
   int hovered_map_id() const { return hovered_map_; }
@@ -270,8 +285,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   zelda3::OverworldItem& edit_item() { return edit_item_; }
   zelda3::Sprite& edit_sprite() { return edit_sprite_; }
 
-  std::string& pending_insert_type() { return pending_insert_type_; }
-  ImVec2& pending_insert_pos() { return pending_insert_pos_; }
+  std::optional<OverworldEntityInsertionRequest> TakePendingEntityInsertion() {
+    auto request = std::move(pending_entity_insertion_);
+    pending_entity_insertion_.reset();
+    return request;
+  }
   std::string& insert_error() { return insert_error_; }
 
   gui::Canvas& ow_map_canvas() { return ow_map_canvas_; }
@@ -286,16 +304,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Handle entity insertion from context menu
   /// @param entity_type Type: "entrance", "hole", "exit", "item", "sprite"
-  void HandleEntityInsertion(const std::string& entity_type);
-
-  /// @brief Process any pending entity insertion request
-  /// Called from Update() - needed because ImGui::OpenPopup() doesn't work
-  /// correctly when called from within another popup's callback.
-  void ProcessPendingEntityInsertion();
+  void HandleEntityInsertion(const std::string& entity_type,
+                             const OverworldContextTarget& target);
 
   /// @brief Handle tile16 editing from context menu (MOUSE mode)
-  /// Gets the tile16 under the cursor and opens the Tile16Editor focused on it.
-  void HandleTile16Edit();
+  /// Opens the Tile16 captured at menu-open through the pending-edit guard.
+  void HandleTile16Edit(const OverworldContextTarget& target);
+  bool SampleContextTile16(const OverworldContextTarget& target);
 
   /// @brief Select an overworld item using value identity matching.
   bool SelectItemByIdentity(const zelda3::OverworldItem& item_identity);
@@ -335,6 +350,35 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       tile_painting_->ActivateFillTool();
   }
   void CycleTileSelection(int delta);
+  // Map/view toggles bound through ShortcutManager (F11, Cmd/Ctrl+L,
+  // Cmd/Ctrl+T, Cmd/Ctrl+Shift+I).
+  void ToggleMapLock();
+  void ToggleCanvasFullscreen();
+  void ToggleTile16EditorWindow();
+  void ToggleItemListWindow();
+  /// Tool change from the toolbar or keys 1/2: also leaves entity modes.
+  void SetEditingMode(EditingMode mode);
+  /// Alt+Arrow: select the neighbouring screen in the world grid and center it.
+  void SelectAdjacentMap(int dx, int dy);
+  /// Select @p map_id (switching world if needed) and center it; the context
+  /// menu's Related Maps entries.
+  void JumpToMap(int map_id);
+  void SwitchToWorld(int world);
+  // View requests; applied when the canvas child begins (safe anywhere).
+  void ZoomIn();
+  void ZoomOut();
+  void ZoomToFit();
+  void ResetOverworldView();
+  void CenterOverworldView();
+  /// Entity focus (entrances/exits/items/sprites); NONE = all entities.
+  void SetEntityEditMode(EntityEditMode mode);
+  void ToggleEntityVisibility() { show_entities_ = !show_entities_; }
+  bool entities_visible() const { return show_entities_; }
+  void ToggleGrid();
+  bool grid_visible() const;
+  /// Open and focus the docked Map Properties window (double-click a map,
+  /// context menu "Map > Map Properties").
+  void OpenMapPropertiesWindow();
 
   /// Single entry point for changing the active Tile16 (painting + editor).
   /// Uses `Tile16Editor::RequestTileSwitch` when graphics are ready so staged
@@ -416,7 +460,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Handles mouse interactions with entities in MOUSE mode.
 
   /// @brief Handle overworld keyboard shortcuts and edit-mode hotkeys
-  void HandleKeyboardShortcuts();
 
   /// @brief Clamp and synchronize stale map/world selection before panels draw.
   bool NormalizeCurrentSelectionState();
@@ -504,13 +547,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void OpenEntityContextMenu(zelda3::GameEntity* entity);
   void DrawEntityContextMenu();
   zelda3::GameEntity* ResolveEditingEntity();
-  void HandleOverworldPan();
-  void HandleOverworldZoom();
-  void ZoomIn();
-  void ZoomOut();
-  void ClampOverworldScroll();
-  void ResetOverworldView();
-  void CenterOverworldView();
 
   // ===========================================================================
   // Texture and Graphics Loading
@@ -521,11 +557,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// @brief Create textures for deferred map bitmaps on demand
   void ProcessDeferredTextures();
 
+  /// @brief Mark maps for a graphics rebuild when a sheet they use changed in
+  /// the session's sheet store (an unsaved Graphics editor edit).
+  void RefreshMapsForSheetEdits();
+
   /// @brief Ensure a specific map has its texture created
   void EnsureMapTexture(int map_index);
   void PrimeWorldMaps(int world, bool process_texture_queue = false);
-  void SwitchToWorld(int world);
-
   // ===========================================================================
   // Canvas Navigation (delegated to CanvasNavigationManager)
   // ===========================================================================
@@ -618,7 +656,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int current_world_ = 0;   // 0=Light, 1=Dark, 2=Special
   int current_map_ = 0;     // Current map index (0-159)
   int current_parent_ = 0;  // Parent map for multi-area
-  int hovered_map_ = -1;    // Last map under the cursor, preview only
+  int hovered_map_ = -1;    // Physical screen under the cursor, or -1
   int current_blockset_ = 0;
   int game_state_ = 1;      // 0=Beginning, 1=Pendants, 2=Crystals
   int current_tile16_ = 0;  // Selected tile16 for painting
@@ -645,6 +683,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   bool overworld_canvas_fullscreen_ = false;
   bool is_dragging_entity_ = false;
+  /// Item state before an in-progress canvas drag (drag undo).
+  std::optional<OverworldItemsSnapshot> drag_item_snapshot_;
   bool dragged_entity_free_movement_ = false;
   bool current_map_lock_ = false;
 
@@ -654,8 +694,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   bool show_custom_bg_color_editor_ = false;
   bool show_overlay_editor_ = false;
-  bool show_map_properties_panel_ = false;
-  bool show_overlay_preview_ = false;
+  // Area subscreen overlays (sky, fog, lava, canopy, rain) are shown by
+  // default, like the game; the toolbar toggle hides them.
+  bool show_overlay_preview_ = true;
+  bool show_entities_ = true;
 
   // ===========================================================================
   // UI Subsystem Components
@@ -745,8 +787,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   zelda3::Sprite edit_sprite_;
 
   // Deferred entity insertion (needed for popup flow from context menu)
-  std::string pending_insert_type_;
-  ImVec2 pending_insert_pos_ = ImVec2(0.0f, 0.0f);
+  std::optional<OverworldEntityInsertionRequest> pending_entity_insertion_;
   std::string insert_error_;
 
   // ===========================================================================
@@ -780,8 +821,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
 
   std::optional<OverworldUndoPoint> current_paint_operation_;
-  std::chrono::steady_clock::time_point last_paint_time_;
-  static constexpr auto kPaintBatchTimeout = std::chrono::milliseconds(500);
 
   // ===========================================================================
   // Event Listeners

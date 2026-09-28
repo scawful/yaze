@@ -178,6 +178,11 @@ struct RomSession {
   // the session has not yet been bound to a project context and must not save.
   std::optional<project::YazeProject> project_context;
   bool project_dirty = false;
+
+  // True when the gfx group tables (blocksets, spritesets, palettesets) in
+  // game_data differ from the ROM buffer. Derived from the data, so every
+  // edit path counts without extra dirty flags.
+  bool HasPendingGfxGroupChanges() const;
   // A restored backup is staged for inspection and must never be committed by
   // the periodic autosave path. Explicit Save ROM / Save As clears this flag.
   bool backup_restore_pending = false;

@@ -1,32 +1,21 @@
 #ifndef YAZE_APP_EDITOR_TILE16EDITOR_H
 #define YAZE_APP_EDITOR_TILE16EDITOR_H
 
-#include <algorithm>
-#include <array>
-#include <chrono>
-#include <functional>
-#include <map>
-#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/core/undo_manager.h"
-#include "app/editor/overworld/tile16_undo_actions.h"
+#include "app/editor/overworld/tile16/tile16_edit_session.h"
+#include "app/editor/overworld/tile16/tile16_edit_types.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
-#include "app/gfx/types/snes_palette.h"
-#include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
-#include "util/log.h"
 #include "util/notify.h"
-#include "zelda3/overworld/tile16_renderer.h"
-#include "zelda3/overworld/tile16_usage_index.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -35,134 +24,24 @@ struct GameData;
 
 namespace editor {
 
-// ============================================================================
-// Tile16 Editor Constants
-// ============================================================================
-
-constexpr int kTile16Size = 16;                 // 16x16 pixel tile
-constexpr int kTile8Size = 8;                   // 8x8 pixel sub-tile
-constexpr int kTilesheetEditorWidth = 0x100;    // 256 pixels wide
-constexpr int kTilesheetEditorHeight = 0x4000;  // 16384 pixels tall
-constexpr int kTile16CanvasSize = 0x20;         // 32 pixels
-constexpr int kTile8CanvasHeight = 0x175;       // 373 pixels
-constexpr int kNumScratchSlots = 4;             // 4 scratch space slots
-constexpr int kNumPalettes = 8;                 // 8 palette buttons (0-7)
-constexpr int kTile8PixelCount = 64;            // 8x8 = 64 pixels
-constexpr int kTile16PixelCount = 256;          // 16x16 = 256 pixels
-
-enum class Tile16EditMode {
-  kPaint = 0,
-  kPick = 1,
-  kUsageProbe = 2,
-};
-
-struct Tile16ClipboardData {
-  gfx::Tile16 tile_data;
-  gfx::Bitmap bitmap;
-  bool has_data = false;
-};
-
-struct Tile16ScratchData {
-  gfx::Tile16 tile_data;
-  gfx::Bitmap bitmap;
-  bool has_data = false;
-};
-
-struct Tile16Commit {
-  int tile_id = -1;
-  gfx::Tile16 tile_data;
-};
-
-// ============================================================================
-// Tile16 Editor
-// ============================================================================
-//
-// ARCHITECTURE OVERVIEW:
-// ----------------------
-// The Tile16Editor provides a popup window for editing individual 16x16 tiles
-// used in the overworld tileset. Each Tile16 is composed of four 8x8 sub-tiles
-// (Tile8) arranged in a 2x2 grid.
-//
-// EDITING WORKFLOW:
-// -----------------
-// 1. Select a Tile16 from the blockset canvas (left panel)
-// 2. Edit by clicking on the tile8 source canvas to select sub-tiles
-// 3. Place selected tile8s into the four quadrants of the Tile16
-// 4. Changes are held as "pending" until explicitly committed or discarded
-// 5. Commit saves to ROM; Discard reverts to original
-//
-// PENDING CHANGES SYSTEM:
-// -----------------------
-// To prevent accidental ROM modifications, all edits are staged:
-//   - pending_tile16_changes_: Maps tile ID -> modified Tile16 data
-//   - pending_tile16_bitmaps_: Maps tile ID -> preview bitmap
-//   - has_pending_changes(): Returns true if any tiles are modified
-//   - CommitAllChanges(): Writes all pending changes to ROM
-//   - DiscardAllChanges(): Reverts all pending changes
-//
-// PALETTE COORDINATION:
-// ---------------------
-// The overworld uses a 256-color palette organized as 16 rows of 16 colors.
-// Tile16 metadata stores a 3-bit palette row (0-7), matching ZScream and the
-// SNES tilemap word. Graphics sheet pixels contribute the low nibble, including
-// whether the source uses the left or right half of the selected row.
-//
-// Key palette methods:
-//   - GetActualPaletteSlot(): Convert palette button 0-7 to row * 16
-//   - GetActualPaletteSlotForCurrentTile16(): Get current brush row slot
-//   - ApplyPaletteToCurrentTile16Bitmap(): Apply correct colors to preview
-//
-// INTEGRATION WITH OVERWORLD:
-// ---------------------------
-// The Tile16Editor communicates with OverworldEditor via:
-//   - set_palette(): Called when overworld area changes (updates colors)
-//   - on_changes_committed_: Callback invoked after CommitAllChanges()
-//   - The callback triggers RefreshTile16Blockset() and RefreshOverworldMap()
-//
-// See README.md in this directory for complete documentation.
-// ============================================================================
-
 /**
- * @brief Popup window to edit Tile16 data
- *
- * Provides visual editing of 16x16 tiles composed of four 8x8 sub-tiles.
- * Uses a pending changes system to prevent accidental ROM modifications.
- *
- * @see README.md for architecture overview and workflow documentation
+ * @brief ImGui façade for Tile16 editing; domain state lives in Tile16EditSession.
  */
 class Tile16Editor : public gfx::GfxContext {
  public:
   Tile16Editor(Rom* rom, gfx::Tilemap* tile16_blockset)
-      : rom_(rom), tile16_blockset_(tile16_blockset) {}
+      : session_(rom, tile16_blockset) {}
+
   absl::Status Initialize(gfx::Bitmap& tile16_blockset_bmp,
                           gfx::Bitmap& current_gfx_bmp,
                           std::array<uint8_t, 0x200>& all_tiles_types);
 
   absl::Status Update();
-
-  /**
-   * @brief Update the editor content without MenuBar (for WindowContent usage)
-   *
-   * This is the panel-friendly version that doesn't require ImGuiWindowFlags_MenuBar.
-   * Menu items are available through the context menu instead.
-   */
   absl::Status UpdateAsPanel();
-
-  /**
-   * @brief Draw context menu with editor actions
-   *
-   * Contains the same actions as the MenuBar but in context menu form.
-   * Call this when right-clicking or from a menu button.
-   */
   void DrawContextMenu();
-
   void DrawTile16Editor();
   absl::Status UpdateBlockset();
-
-  // Scratch space for tile16 layouts
   void DrawScratchSpace();
-  absl::Status SaveLayoutToScratch(int slot);
-  absl::Status LoadLayoutFromScratch(int slot);
 
   absl::Status DrawToCurrentTile16(ImVec2 pos,
                                    const gfx::Bitmap* source_tile = nullptr);
@@ -172,455 +51,228 @@ class Tile16Editor : public gfx::GfxContext {
       const ImVec2& display_position);
 
   absl::Status UpdateTile16Edit();
-
-  absl::Status LoadTile8();
-
-  absl::Status SetCurrentTile(int id);
-
-  // Request a tile switch - shows confirmation dialog if current tile has pending changes
-  void RequestTileSwitch(int target_tile_id);
-
-  // New methods for clipboard and scratch space
-  absl::Status CopyTile16ToClipboard(int tile_id);
-  absl::Status PasteTile16FromClipboard();
-  absl::Status SaveTile16ToScratchSpace(int slot);
-  absl::Status LoadTile16FromScratchSpace(int slot);
-  absl::Status ClearScratchSpace(int slot);
-
-  // Advanced editing features
-  absl::Status FlipTile16Horizontal();
-  absl::Status FlipTile16Vertical();
-  absl::Status RotateTile16();
-  absl::Status FillTile16WithTile8(int tile8_id);
-  absl::Status ClearTile16();
-
-  // Palette management
-  absl::Status CyclePalette(bool forward = true);
-  absl::Status ApplyPaletteToAll(uint8_t palette_id);
-  absl::Status ApplyPaletteToQuadrant(int quadrant, uint8_t palette_id);
-  absl::Status PreviewPaletteChange(uint8_t palette_id);
-
-  // History and undo system
-  absl::Status Undo();
-  absl::Status Redo();
-  void SaveUndoState();
-
-  // Live preview system
-  void EnableLivePreview(bool enable) { live_preview_enabled_ = enable; }
-  absl::Status UpdateLivePreview();
-
-  // Validation and integrity checks
-  absl::Status ValidateTile16Data();
-  bool IsTile16Valid(int tile_id) const;
-
-  // ===========================================================================
-  // Integration with Overworld System
-  // ===========================================================================
-  // These methods handle the connection between tile editing and ROM data.
-  // The workflow is: Edit -> Pending -> Commit -> ROM
-
-  /// @brief Write current tile16 data directly to ROM (bypasses pending system)
-  absl::Status SaveTile16ToROM();
-
-  /// @brief Update the overworld tilemap to reflect tile changes
-  absl::Status UpdateOverworldTilemap();
-
-  /// @brief Commit pending changes to the blockset atlas
-  absl::Status CommitChangesToBlockset();
-
-  /// @brief Single-tile commit: ROM + blockset + parent refresh callback.
-  /// Prefer `CommitAllChanges()` from the main UI; kept for integration tests.
-  absl::Status CommitChangesToOverworld();
-
-  /// @brief Discard current tile's changes (single tile)
-  absl::Status DiscardChanges();
-
-  // ===========================================================================
-  // Pending Changes System
-  // ===========================================================================
-  // All tile edits are staged in memory before being written to ROM.
-  // This prevents accidental modifications and allows preview before commit.
-  //
-  // Usage:
-  //   1. Edit tiles normally (changes go to pending_tile16_changes_)
-  //   2. Check has_pending_changes() to show save/discard UI
-  //   3. User clicks Save -> CommitAllChanges()
-  //   4. User clicks Discard -> DiscardAllChanges()
-  //
-  // The on_changes_committed_ callback notifies OverworldEditor to refresh.
-
-  /// @brief Check if any tiles have uncommitted changes
-  bool has_pending_changes() const { return !pending_tile16_changes_.empty(); }
-
-  /// @brief Get count of tiles with pending changes
-  int pending_changes_count() const {
-    return static_cast<int>(pending_tile16_changes_.size());
+  absl::Status LoadTile8() { return session_.LoadTile8(); }
+  absl::Status SetCurrentTile(int id) { return session_.SetCurrentTile(id); }
+  void RequestTileSwitch(int target_tile_id) {
+    session_.RequestTileSwitch(target_tile_id);
   }
 
-  /// @brief Check if a specific tile has pending changes
+  absl::Status CopyTile16ToClipboard(int tile_id) {
+    return session_.CopyTile16ToClipboard(tile_id);
+  }
+  absl::Status PasteTile16FromClipboard() {
+    return session_.PasteTile16FromClipboard();
+  }
+  absl::Status SaveTile16ToScratchSpace(int slot) {
+    return session_.SaveTile16ToScratchSpace(slot);
+  }
+  absl::Status LoadTile16FromScratchSpace(int slot) {
+    return session_.LoadTile16FromScratchSpace(slot);
+  }
+  absl::Status ClearScratchSpace(int slot) {
+    return session_.ClearScratchSpace(slot);
+  }
+
+  absl::Status FlipTile16Horizontal() {
+    return session_.FlipTile16Horizontal();
+  }
+  absl::Status FlipTile16Vertical() { return session_.FlipTile16Vertical(); }
+  absl::Status RotateTile16() { return session_.RotateTile16(); }
+  absl::Status FillTile16WithTile8(int tile8_id) {
+    return session_.FillTile16WithTile8(tile8_id);
+  }
+  absl::Status ClearTile16() { return session_.ClearTile16(); }
+
+  absl::Status CyclePalette(bool forward = true) {
+    return session_.CyclePalette(forward);
+  }
+  absl::Status ApplyPaletteToAll(uint8_t palette_id) {
+    return session_.ApplyPaletteToAll(palette_id);
+  }
+  absl::Status ApplyPaletteToQuadrant(int quadrant, uint8_t palette_id) {
+    return session_.ApplyPaletteToQuadrant(quadrant, palette_id);
+  }
+  absl::Status PreviewPaletteChange(uint8_t palette_id) {
+    return session_.PreviewPaletteChange(palette_id);
+  }
+
+  void BindDocument(std::vector<gfx::Tile16>* definitions, UndoManager* history,
+                    std::function<void()> before_edit = {}) {
+    session_.BindDocument(definitions, history, std::move(before_edit));
+  }
+  absl::Status ReplaceCurrentTile(const gfx::Tile16& data) {
+    return session_.ReplaceCurrentTile(data);
+  }
+  absl::Status Undo() { return session_.Undo(); }
+  absl::Status Redo() { return session_.Redo(); }
+
+  void EnableLivePreview(bool enable) { session_.EnableLivePreview(enable); }
+  absl::Status UpdateLivePreview() { return session_.UpdateLivePreview(); }
+
+  absl::Status ValidateTile16Data() { return session_.ValidateTile16Data(); }
+  bool IsTile16Valid(int tile_id) const {
+    return session_.IsTile16Valid(tile_id);
+  }
+
+  absl::Status SaveTile16ToROM() { return session_.SaveTile16ToROM(); }
+  absl::Status UpdateOverworldTilemap() {
+    return session_.UpdateOverworldTilemap();
+  }
+  absl::Status CommitChangesToBlockset() {
+    return session_.CommitChangesToBlockset();
+  }
+  absl::Status CommitChangesToOverworld() {
+    return session_.CommitChangesToOverworld();
+  }
+  absl::Status DiscardChanges() { return session_.DiscardChanges(); }
+
+  bool has_pending_changes() const { return session_.has_pending_changes(); }
+  int pending_changes_count() const { return session_.pending_changes_count(); }
   bool is_tile_modified(int tile_id) const {
-    return pending_tile16_changes_.find(tile_id) !=
-           pending_tile16_changes_.end();
+    return session_.is_tile_modified(tile_id);
   }
-
-  /// @brief Get preview bitmap for a pending tile (nullptr if not modified)
   const gfx::Bitmap* GetPendingTileBitmap(int tile_id) const {
-    auto it = pending_tile16_bitmaps_.find(tile_id);
-    return it != pending_tile16_bitmaps_.end() ? &it->second : nullptr;
+    return session_.GetPendingTileBitmap(tile_id);
   }
 
-  /// @brief Write all pending changes to ROM and notify parent
-  absl::Status CommitAllChanges();
+  absl::Status CommitAllChanges() { return session_.CommitAllChanges(); }
+  void DiscardAllChanges() { session_.DiscardAllChanges(); }
+  void DiscardCurrentTileChanges() { session_.DiscardCurrentTileChanges(); }
+  void MarkCurrentTileModified() { session_.MarkCurrentTileModified(); }
 
-  /// @brief Discard all pending changes (revert to ROM state)
-  void DiscardAllChanges();
-
-  /// @brief Discard only the current tile's pending changes
-  void DiscardCurrentTileChanges();
-
-  /// @brief Mark the current tile as having pending changes
-  void MarkCurrentTileModified();
-
-  // ===========================================================================
-  // Palette Coordination System
-  // ===========================================================================
-  // The overworld uses a 256-color palette organized as 16 rows of 16 colors.
-  // Tile16 palette buttons map directly to CGRAM rows 0-7. Source graphics
-  // keep their low nibble, so pixels from either half of a row still render
-  // against the same palette row the Tile16 metadata will save.
-  //
-  // Palette Structure (256 colors = 16 rows × 16 colors):
-  //   Row 0:     Transparent/system colors
-  //   Row 1:     HUD colors (0x10-0x1F)
-  //   Rows 2-6:  MAIN/BG palettes
-  //   Row 7:     ANIMATED palette
-  //   Rows 8-15: Sprite/auxiliary palette halves
-  //
-  // The palette button (0-7) selects the saved Tile16 palette row directly.
-
-  /// @brief Update palette for a specific tile8
-  absl::Status UpdateTile8Palette(int tile8_id);
-
-  /// @brief Refresh all tile8 palettes after a palette change
-  absl::Status RefreshAllPalettes();
-
-  /// @brief Draw palette settings UI
+  absl::Status UpdateTile8Palette(int tile8_id) {
+    return session_.UpdateTile8Palette(tile8_id);
+  }
+  absl::Status RefreshAllPalettes() { return session_.RefreshAllPalettes(); }
   void DrawPaletteSettings();
 
-  /// @brief Calculate actual palette slot from button
-  /// @param palette_button User-selected palette (0-7)
-  /// @param sheet_index Graphics sheet the tile8 belongs to (diagnostic only)
-  /// @return Final palette slot index in 256-color palette
-  ///
-  /// This mirrors the Tile16 metadata render path:
-  ///   (pixel & 0x0F) + (palette_button * 0x10).
-  int GetActualPaletteSlot(int palette_button, int sheet_index) const;
-
-  /// @brief Determine which graphics sheet contains a tile8
-  /// @param tile8_id Tile8 ID from the graphics buffer
-  /// @return Graphics chunk index (0-15) based on tile position
-  int GetSheetIndexForTile8(int tile8_id) const;
-
-  /// @brief Get the palette slot for the current tile being edited
-  /// @return Palette slot based on current_palette_
-  int GetActualPaletteSlotForCurrentTile16() const;
-
-  /// @brief Create a remapped palette for viewing with user-selected palette
-  /// @param source Full 256-color palette
-  /// @param target_row User-selected Tile16 palette row (0-7)
-  /// @return Remapped 256-color palette where all pixels map to target row
+  int GetActualPaletteSlot(int palette_button, int sheet_index) const {
+    return session_.GetActualPaletteSlot(palette_button, sheet_index);
+  }
+  int GetSheetIndexForTile8(int tile8_id) const {
+    return session_.GetSheetIndexForTile8(tile8_id);
+  }
+  int GetActualPaletteSlotForCurrentTile16() const {
+    return session_.GetActualPaletteSlotForCurrentTile16();
+  }
   gfx::SnesPalette CreateRemappedPaletteForViewing(
-      const gfx::SnesPalette& source, int target_row) const;
+      const gfx::SnesPalette& source, int target_row) const {
+    return session_.CreateRemappedPaletteForViewing(source, target_row);
+  }
+  int GetEncodedPaletteRow(uint8_t pixel_value) const {
+    return session_.GetEncodedPaletteRow(pixel_value);
+  }
 
-  /// @brief Get the encoded palette row for a pixel value
-  /// @param pixel_value Raw pixel value from the graphics buffer
-  /// @return Palette row (0-15) that this pixel would use
-  int GetEncodedPaletteRow(uint8_t pixel_value) const;
-
-  // ROM data access and modification
-  absl::Status UpdateROMTile16Data();
-  absl::Status RefreshTile16Blockset();
-  gfx::Tile16* GetCurrentTile16Data();
-  absl::Status RegenerateTile16BitmapFromROM();
-  absl::Status UpdateBlocksetBitmap();
+  absl::Status UpdateROMTile16Data() { return session_.UpdateROMTile16Data(); }
+  absl::Status RefreshTile16Blockset() {
+    return session_.RefreshTile16Blockset();
+  }
+  gfx::Tile16* GetCurrentTile16Data() {
+    return session_.GetCurrentTile16Data();
+  }
+  absl::Status RegenerateTile16BitmapFromROM() {
+    return session_.RegenerateTile16BitmapFromROM();
+  }
+  absl::Status UpdateBlocksetBitmap() {
+    return session_.UpdateBlocksetBitmap();
+  }
   absl::Status PickTile8FromTile16(const ImVec2& position);
 
-  // Manual tile8 input controls
   void DrawManualTile8Inputs();
 
-  void SetRom(Rom* rom) { rom_ = rom; }
-  Rom* rom() const { return rom_; }
-  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
-  zelda3::GameData* game_data() const { return game_data_; }
+  void SetRom(Rom* rom) { session_.SetRom(rom); }
+  Rom* rom() const { return session_.rom(); }
+  void SetGameData(zelda3::GameData* game_data) {
+    session_.SetGameData(game_data);
+  }
+  zelda3::GameData* game_data() const { return session_.game_data(); }
 
-  // Set the palette from overworld to ensure color consistency
   void set_palette(const gfx::SnesPalette& palette) {
-    palette_ = palette;
-
-    // Store the complete 256-color overworld palette
-    if (palette.size() >= 256) {
-      overworld_palette_ = palette;
-      util::logf(
-          "Tile16 editor received complete overworld palette with %zu colors",
-          palette.size());
-    } else {
-      util::logf("Warning: Received incomplete palette with %zu colors",
-                 palette.size());
-      overworld_palette_ = palette;
-    }
-
-    // CRITICAL FIX: Load tile8 graphics now that we have the proper palette
-    if (rom_ && current_gfx_bmp_ && current_gfx_bmp_->is_active()) {
-      auto status = LoadTile8();
-      if (!status.ok()) {
-        util::logf("Failed to load tile8 graphics with new palette: %s",
-                   status.message().data());
-      } else {
-        util::logf(
-            "Successfully loaded tile8 graphics with complete overworld "
-            "palette");
-      }
-    }
-
-    util::logf("Tile16 editor palette coordination complete");
+    session_.set_palette(palette);
   }
 
-  // Callback for when changes are committed to notify parent editor
+  void set_on_document_changed(
+      std::function<void(const std::vector<Tile16Commit>&)> callback) {
+    session_.set_on_document_changed(std::move(callback));
+  }
   void set_on_changes_committed(
       std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
-    on_changes_committed_ = callback;
+    session_.set_on_changes_committed(std::move(callback));
   }
-
-  /// Optional: invoked after every successful `SetCurrentTile` (keeps overworld
-  /// paint selection aligned with the Tile16 editor, including dialog paths).
   void set_on_current_tile_changed(std::function<void(int)> callback) {
-    on_current_tile_changed_ = std::move(callback);
+    session_.set_on_current_tile_changed(std::move(callback));
   }
 
-  // Accessors for testing and external use
-  int current_palette() const { return current_palette_; }
+  int current_palette() const { return session_.current_palette(); }
   void set_current_palette(int palette) {
-    current_palette_ = static_cast<uint8_t>(std::clamp(palette, 0, 7));
+    session_.set_current_palette(palette);
   }
   const gfx::Bitmap& Tile8PreviewBitmapForTesting() const {
-    return tile8_preview_bmp_;
+    return session_.Tile8PreviewBitmap();
   }
-  int current_tile16() const { return current_tile16_; }
+  int current_tile16() const { return session_.current_tile16(); }
   int selected_tile16_for_testing() const {
     return blockset_selector_.GetSelectedTileID();
   }
-  int current_tile8() const { return current_tile8_; }
-  int active_quadrant() const { return active_quadrant_; }
+  int current_tile8() const { return session_.current_tile8(); }
+  int active_quadrant() const { return session_.active_quadrant(); }
   void set_active_quadrant(int quadrant) {
-    active_quadrant_ = std::clamp(quadrant, 0, 3);
+    session_.set_active_quadrant(quadrant);
   }
-  Tile16EditMode edit_mode() const { return edit_mode_; }
-  void set_edit_mode(Tile16EditMode mode) { edit_mode_ = mode; }
+  Tile16EditMode edit_mode() const { return session_.edit_mode(); }
+  void set_edit_mode(Tile16EditMode mode) { session_.set_edit_mode(mode); }
 
-  // Diagnostic function to analyze tile8 source data format
-  void AnalyzeTile8SourceData() const;
+  void AnalyzeTile8SourceData() const { session_.AnalyzeTile8SourceData(); }
+
+  absl::Status SaveLayoutToScratch(int slot) {
+    return session_.SaveLayoutToScratch(slot);
+  }
+  absl::Status LoadLayoutFromScratch(int slot);
 
  private:
-  Rom* rom_ = nullptr;
-  zelda3::GameData* game_data_ = nullptr;
-  bool map_blockset_loaded_ = false;
-  bool x_flip = false;
-  bool y_flip = false;
-  bool priority_tile = false;
+  void DrawTile8UsageOverlay();
+  void HandleKeyboardShortcuts();
+  absl::Status DrawTile16NavigationHeader(int total_tiles);
+  absl::Status DrawTile16EditorWorkbenchColumn(bool show_debug_info,
+                                               bool show_advanced_controls);
 
-  gfx::SnesPalette CreateRemappedPaletteForTile8(const gfx::SnesPalette& source,
-                                                 int target_row,
-                                                 int tile8_id) const;
+  absl::Status DrawCompactActionStatusRow(bool* show_debug_info,
+                                          bool* show_advanced_controls);
+  absl::Status DrawBrushAndTilePaletteControls(bool show_debug_info);
+  absl::Status DrawTile8SourcePanel(float preferred_height = 0.0f);
+  absl::Status HandleTile8SourceSelection(bool right_clicked,
+                                          float display_scale);
+  absl::Status DrawPrimaryActionControls();
 
-  int tile_size;
-  int current_tile16_ = 0;
-  int current_tile8_ = 0;
-  uint8_t current_palette_ = 0;
-  int active_quadrant_ = 0;
-  Tile16EditMode edit_mode_ = Tile16EditMode::kPaint;
+  Tile16EditSession session_;
+  gfx::Bitmap stamp_preview_bitmap_;
 
-  // Clipboard for Tile16 graphics and metadata
-  Tile16ClipboardData clipboard_tile16_;
-
-  // Scratch space for Tile16 graphics and metadata (4 slots)
-  std::array<Tile16ScratchData, 4> scratch_space_;
-
-  // Layout scratch space for tile16 arrangements (4 slots of 8x8 grids)
-  struct LayoutScratch {
-    std::array<std::array<int, 8>, 8> tile_layout;  // 8x8 grid of tile16 IDs
-    bool in_use = false;
-    std::string name = "Empty";
-  };
-  std::array<LayoutScratch, 4> layout_scratch_;
-
-  // Undo/Redo system (unified UndoManager framework)
-  UndoManager undo_manager_;
-  std::optional<Tile16Snapshot> pending_undo_before_;
-
-  /// @brief Finalize any pending undo snapshot by capturing current state
-  /// as "after" and pushing a Tile16EditAction to undo_manager_.
-  void FinalizePendingUndo();
-
-  /// @brief Restore editor state from a Tile16Snapshot (used by undo actions).
-  void RestoreFromSnapshot(const Tile16Snapshot& snapshot);
-
-  // Live preview system
-  bool live_preview_enabled_ = true;
-  gfx::Bitmap preview_tile16_;
-  bool preview_dirty_ = false;
-  gfx::Bitmap
-      tile8_preview_bmp_;  // Persistent preview to keep arena commands valid
-
-  // Selection system
   std::vector<int> selected_tiles_;
   int selection_start_tile_ = -1;
   bool multi_select_mode_ = false;
 
-  // Advanced editing state
-  bool auto_tile_mode_ = false;
-  bool grid_snap_enabled_ = true;
-  bool show_tile_info_ = true;
-  bool show_palette_preview_ = true;
-  bool show_tile_grid_ = true;
-  bool show_tile_collision_ids_ = false;
-  int tile8_stamp_size_ = 1;  // ZScream parity: 1x, 2x, 4x tile8 stamping.
-  bool highlight_tile8_usage_ = false;
-  float tile8_source_display_scale_ = 4.0f;
-
-  zelda3::Tile8UsageIndex tile8_usage_cache_;
-  bool tile8_usage_cache_dirty_ = true;
-
-  // Palette management settings
-  bool show_palette_settings_ = false;
-  int current_palette_group_ = 0;  // 0=overworld_main, 1=aux1, 2=aux2, etc.
-  uint8_t palette_normalization_mask_ =
-      0xFF;  // Default 8-bit mask (preserve full palette index)
-  bool auto_normalize_pixels_ =
-      false;  // Disabled by default to preserve palette offsets
-
-  // Performance tracking
-  std::chrono::steady_clock::time_point last_edit_time_;
-  bool batch_mode_ = false;
-
-  // Pending changes system for batch preview/commit workflow
-  std::map<int, gfx::Tile16> pending_tile16_changes_;
-  std::map<int, gfx::Bitmap> pending_tile16_bitmaps_;
-  bool show_unsaved_changes_dialog_ = false;
-  int pending_tile_switch_target_ = -1;  // Target tile for pending switch
-  bool has_rom_write_history_ = false;
-  int last_rom_write_count_ = 0;
-  std::chrono::steady_clock::time_point last_rom_write_time_{};
-
-  // Navigation controls for expanded tile support
-  int jump_to_tile_id_ = 0;                 // Input field for jump to tile ID
-  bool scroll_to_current_ = false;          // Flag to scroll to current tile
-  int current_page_ = 0;                    // Current page (64 tiles per page)
-  static constexpr int kTilesPerPage = 64;  // 8x8 tiles per page
-  static constexpr int kTilesPerRow = 8;    // Tiles per row in grid
-
   util::NotifyValue<uint32_t> notify_tile16;
   util::NotifyValue<uint8_t> notify_palette;
 
-  std::array<uint8_t, 0x200> all_tiles_types_;
-
-  // Tile16 blockset for selecting the tile to edit
   gui::Canvas blockset_canvas_{
       "blocksetCanvas", ImVec2(kTilesheetEditorWidth, kTilesheetEditorHeight),
       gui::CanvasGridSize::k32x32};
   gui::TileSelectorWidget blockset_selector_{
       "Tile16BlocksetSelector",
       gui::TileSelectorWidget::Config{.show_hover_tooltip = true}};
-  gfx::Bitmap* tile16_blockset_bmp_ = nullptr;
 
-  // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles
-  // (16x16 total)
-  gui::Canvas tile16_edit_canvas_{
-      "Tile16EditCanvas",
-      ImVec2(64, 64),  // Fixed 64x64 display size (16x16 pixels at 4x scale)
-      gui::CanvasGridSize::k8x8, 8.0F};  // 8x8 grid with 4x scale for clarity
-  gfx::Bitmap current_tile16_bmp_;
-
-  // Tile8 canvas to get the tile to drawing in the tile16_edit_canvas_
+  gui::Canvas tile16_edit_canvas_{"Tile16EditCanvas", ImVec2(64, 64),
+                                  gui::CanvasGridSize::k8x8, 8.0F};
   gui::Canvas tile8_source_canvas_{
       "Tile8SourceCanvas",
       ImVec2(gfx::kTilesheetWidth * 8, gfx::kTilesheetHeight * 0x10 * 8),
       gui::CanvasGridSize::k32x32};
-  gfx::Bitmap* current_gfx_bmp_ = nullptr;
 
   gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders,
                               ImVec2(0, 0)};
 
-  gfx::Tilemap* tile16_blockset_ = nullptr;
-  std::vector<zelda3::Tile8PixelData> current_gfx_individual_;
-
   PaletteEditor palette_editor_;
-  gfx::SnesPalette palette_;
-  gfx::SnesPalette overworld_palette_;  // Complete 256-color overworld palette
-
   absl::Status status_;
-
-  // Callback to notify parent editor when changes are committed
-  std::function<absl::Status(const std::vector<Tile16Commit>&)>
-      on_changes_committed_;
-  std::function<void(int)> on_current_tile_changed_;
-
-  // Instance variable to store current tile16 data for proper persistence
-  gfx::Tile16 current_tile16_data_;
-
-  // Apply the active palette (overworld area if available) to the current
-  // tile16 bitmap using sheet-aware offsets.
-  void ApplyPaletteToCurrentTile16Bitmap();
-
-  // Resolve the best available 256-color palette source for tile previews.
-  const gfx::SnesPalette* ResolveDisplayPalette() const;
-
-  // Detect whether bitmap pixels already encode non-zero palette rows.
-  bool BitmapHasEncodedPaletteRows(const gfx::Bitmap& bitmap) const;
-
-  // Build a 16x16 bitmap for a tile from TileInfo metadata using the shared
-  // palette/index transform path.
-  absl::Status BuildTile16BitmapFromData(const gfx::Tile16& tile_data,
-                                         gfx::Bitmap* output_bitmap) const;
-
-  // Copy a 16x16 tile bitmap into the blockset preview and atlas at tile_id.
-  void CopyTileBitmapToBlockset(int tile_id, const gfx::Bitmap& tile_bitmap);
-
-  // Rebuild and render reverse-usage highlight overlays (ZScream parity).
-  absl::Status RebuildTile8UsageCache();
-  void DrawTile8UsageOverlay();
-
-  // Handle keyboard shortcuts (shared between Update and UpdateAsPanel)
-  void HandleKeyboardShortcuts();
-
-  bool HasCurrentGfxBitmap() const {
-    return current_gfx_bmp_ != nullptr && current_gfx_bmp_->is_active();
-  }
-
-  bool HasTile16BlocksetBitmap() const {
-    return tile16_blockset_bmp_ != nullptr && tile16_blockset_bmp_->is_active();
-  }
-
-  // Copy current tile16 bitmap pixels into the blockset atlas at the given
-  // tile position. Consolidates the repeated 16x16 copy loops.
-  void CopyTile16ToAtlas(int tile_id);
-
-  // Draw the compact action/status row for staged Tile16 edits.
-  absl::Status DrawCompactActionStatusRow(bool has_pending,
-                                          bool current_tile_pending,
-                                          int pending_count,
-                                          bool* show_debug_info,
-                                          bool* show_advanced_controls);
-
-  // Draw brush palette controls and tile palette metadata controls.
-  absl::Status DrawBrushAndTilePaletteControls(bool show_debug_info);
-
-  // Draw the Tile8 source column and handle source selection interaction.
-  absl::Status DrawTile8SourcePanel(float preferred_height = 0.0f);
-  absl::Status HandleTile8SourceSelection(bool right_clicked,
-                                          float display_scale);
-
-  // Draw primary local edit controls in the right action column.
-  absl::Status DrawPrimaryActionControls();
 };
 
 }  // namespace editor

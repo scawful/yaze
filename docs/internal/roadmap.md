@@ -6,18 +6,21 @@ Owner: [`backend-infra-engineer` with editor owners](agents/personas.md)
 
 Created: 2026-09-14
 
-Last reviewed: 2026-09-14
+Last reviewed: 2026-09-23
 
-Next review: 2026-09-28
+Next review: 2026-10-06
 
-Universe task: `task_20260913T233703Z_21853` ([coordination system](agents/universe-coordination-spec.md))
+Universe task: `task_20260923T000806Z_4560` ([coordination system](agents/universe-coordination-spec.md))
 
 Intent: ship v0.8.0 as a dependable Dungeon Editor milestone, with audited
 vanilla object rendering and a validated Oracle editing workflow. Continue
 bounded preview builds while completing the release requirements below.
 
-The canonical editor status is the
-[feature coverage report](../public/reference/feature-coverage-report.md).
+The [editor capability parity plan](plans/editor-capability-parity-plan.md)
+owns the target baseline, work-package IDs, dependencies, and implementation
+instructions. The [feature coverage report](../public/reference/feature-coverage-report.md)
+records current editor readiness. Hyrule Magic / ZScream parity means completed
+user workflows, not matching panel counts or an estimated percentage.
 Completed release history belongs in the root
 [`CHANGELOG.md`](../../CHANGELOG.md), the
 [release notes](../public/release-notes.md), and the
@@ -26,11 +29,62 @@ Completed release history belongs in the root
 preserved as a frozen snapshot for details that were formerly tracked here.
 
 The [dungeon completion backlog](plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
-owns object coverage, agent assignments, and execution order. The
+retains detailed object evidence and qualification packets under `DA-5`. The
 [0.x release ladder](plans/release-ladder-0x-2026.md) owns later milestones.
 The [z3dk v0.8.0 integration proposal](plans/z3dk-integration-0.8.0.md) remains
 overdue for a scope refresh; it must not displace dungeon completion. See the
 [plan directory guide](plans/README.md) for navigation.
+
+## Reviewed baseline and immediate sequence
+
+Current dungeon source is `339cc9cdf` on
+`codex/editor-parity-dungeon-authoring`: room clone/import plus qualification
+repairs and lossless interchange for the reported oversized Oracle rooms.
+The app/unit targets build and 1,000 focused tests pass. Claude separately
+reported disposable-ROM save/reopen qualification of the preceding source
+`bb185d1ae` / documentation `30e5c4681`; this is not a new runtime result for
+the current source. See the
+[current handoff](agents/dungeon-workbench-placement-handoff-2026-09-22.md#current-oracle-interchange-repair-candidate-2026-09-23)
+for exact limits and the remaining Oracle export/runtime checks.
+
+The urgent overworld regression lane is independent of new dungeon features.
+Local source `bfcdad775` on `codex/overworld-paint-regression-fixes` repairs
+paint-cache overwrite and canvas gesture ownership, with 46 passing focused
+tests and demonstrated before-fix failures. Cursor's Tile16 domain/workbench
+extraction remains separate. Combined integration, immutable brush/coordinate
+rules, stable map targets, and Tile16 commit/discard/undo still need work;
+do not call the overworld stabilized from this first repair.
+
+### Historical starting point
+
+The 2026-09-22 review used mainline `d609e6254` and the local Workbench
+candidate `7ba7d76ce`. The candidate adds placement/selection controls and has
+43 focused passing tests, but is unpublished and is not the installed app.
+Do not transfer those results to later commits. Current PR heads and their
+separate evidence are recorded in the canonical plan; an open PR is not a
+merged or qualified release.
+
+The next local increment, `a730d6557`, implements door/sprite/pot-item undo
+and shared entity properties in both room views. App/unit builds and 150
+focused tests passed; it remains a Candidate without new ROM/runtime or
+release qualification. DA-1 now proceeds to metadata/chests and compound edits;
+DA-2 retains the remaining contextual-control work. See the canonical plan for
+the exact commands and boundaries.
+
+The dungeon dependency order remains:
+
+1. `DA-1`: shared room-edit undo for every supported mutable room domain.
+2. `DA-2`: one contextual entity inspector using that mutation path.
+3. `DA-3`: visual room connections that preserve actual game routing rules.
+4. `DA-4`: complete room cloning and reusable selections with atomic apply.
+5. `DA-5`: application-path persistence, independent rendering evidence, and
+   exact-candidate package acceptance. Qualification can proceed alongside
+   implementation, but only the final combined candidate closes the release.
+
+Use the canonical plan for per-package prerequisites and acceptance. Preserve
+existing pits/blocks models, room navigation, templates, placement, and object
+undo. Extend these systems instead of replacing them or recording them as
+missing.
 
 ## Release rule
 
@@ -45,8 +99,9 @@ are not implied by this release.
 
 ## P0: v0.8.0 dungeon completion
 
-All five outcomes are release requirements. Early previews must name their
-remaining gaps rather than weakening these exit criteria.
+All five outcomes below are release requirements. `DA-1` through `DA-4`
+deliver complete dungeon authoring; `DA-5` qualifies those workflows and the
+rendering baseline. Early previews must name their remaining gaps.
 
 ### 1. Release foundation
 
@@ -71,18 +126,22 @@ acceptance matrix.
 - Make Hex / Memory read-only for ordinary testers until dirty state, undo, and
   readback exist.
 - Remove or disable vanilla Sprite controls that imply unsupported editing.
-- Present Music as playback/viewing until coordinated saving and incomplete
-  writers are resolved.
+- Describe Music precisely: playback and song-saving code exist; complete
+  instrument/sample persistence and a qualified coordinated save workflow
+  remain open. Do not imply that all audio authoring is ready.
 
 Exit: application labels, getting-started material, beta instructions, and the
 feature matrix tell the same story.
 
-### 3. Application-path persistence proof
+### 3. Complete authoring and application-path persistence proof
 
 - Build one reusable harness for:
   **edit -> File > Save ROM -> close -> reopen disk file -> verify**.
-- Complete Dungeon first, including undo/redo, object size and stream, sprites,
-  doors, and changed room metadata. Cover the supported block/pit limits and
+- Complete `DA-1` through `DA-4`: shared undo, contextual entity editing,
+  visual connections, and complete room/prefab reuse. Include sprites, doors,
+  items/chests, metadata, and dependent room data in their mutation contracts.
+- Qualify these paths under `DA-5`, including undo/redo and object size/stream.
+  Cover the supported block/pit limits and
   reject overflow without partial saves. Reuse the harness for Overworld,
   Message, and Palette without turning this into a multi-editor rewrite.
 - Make ROM-backed GUI coverage visibly skip or fail when its ROM fixture is
@@ -135,29 +194,28 @@ and focused layout/theme tests pass.
 Follow the release ladder after the dungeon milestone. These are not reasons
 to delay focused dungeon fixes or expand v0.8.0 into an all-editor release:
 
-1. **Palette:** either join coordinated save transactionally or formalize the
-   two-step model with full UI-to-disk readback.
-2. **Graphics:** implement a safe per-sheet serializer and promote only after
-   write/reopen/readback tests; keep current fail-closed behavior until then.
-3. **Screen:** enable one independently verified data domain at a time instead
-   of one all-or-nothing writer.
-4. **Dungeon extensions:** expand independent room/state coverage beyond the
-   release baseline and support new object/runtime contracts. Remove obsolete
-   code alongside verified fixes, not as an unbounded separate rewrite.
-5. **Custom-object authoring:** consider a broader catalog/designer beyond the
-   supported Oracle assets only after the existing override, ice, and minecart
-   workflows satisfy v0.8.0. Preserve source-patch compatibility.
-6. **Overworld and Message:** add dedicated user guides and broader
-   application-path coverage.
-7. **UI system:** continue spacing, hierarchy, responsive panel, keyboard, and
-   accessibility passes using shared theme/layout primitives rather than
-   editor-local styling.
-8. **Release:** add platform signing/notarization and architecture coverage only
-   when the produced artifacts can be verified on the claimed targets.
+1. **Overworld (`OW-1`, `OW-2`):** serialize sprites for all three game states
+   and unify entity undo. Persistent scratchpad and paint/paste undo already
+   exist; extend and qualify them instead of scheduling reimplementation.
+2. **Graphics (`GF-1`):** safe compressed-sheet writes, allocation, and an
+   import/export workflow. Keep current save rejection until it is safe.
+3. **Screens (`SC-1`, `SC-2`):** persist supported screen/map domains through
+   coordinated save, then complete secondary-screen workflows.
+4. **Audio (`AU-1`, `AU-2`):** sample/instrument persistence and import, then
+   event clipboard. Existing playback and song-saving code are starting points.
+5. **Reference compatibility (`CO-1`):** verify named Hyrule Magic / ZScream
+   layouts, expansion rules, and supported interchange formats. This is
+   independent of UI feature parity; no automatic repair or arbitrary-hack
+   support follows from detecting a ROM name.
+
+Palette JSON import/export already exists when JSON support is enabled.
+Retain its two-step save contract until transactional integration is proven.
+Dedicated editor guides, shared UI accessibility/layout improvements, and
+platform signing follow the package they support. See the canonical plan for
+implementation details rather than maintaining a second feature backlog.
 
 ## P2: advanced and experimental surfaces
 
-- Complete Music instrument/sample persistence and coordinated song saving.
 - Define the standalone Sprite editor's supported vanilla and `.zsm` workflows.
 - Add a real Hex / Memory transaction, undo, dirty state, search, and readback.
 - Complete Emulator save-state and conditional-breakpoint workflows.
@@ -165,8 +223,6 @@ to delay focused dungeon fixes or expand v0.8.0 into an all-editor release:
   workflow.
 - Expand WASM storage/download regression coverage; keep it labeled preview
   until it matches a clearly stated native subset.
-- Consider ZScream/Hyrule Magic migration helpers after core save paths are
-  proven; compatibility import must not outrank data safety.
 
 ## Ownership map
 

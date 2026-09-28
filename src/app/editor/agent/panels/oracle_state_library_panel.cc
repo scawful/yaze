@@ -16,6 +16,7 @@
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/emu/mesen/mesen_client_registry.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "nlohmann/json.hpp"
@@ -394,28 +395,37 @@ void OracleStateLibraryPanel::DrawStateList() {
     }
 
     // Context menu
-    if (ImGui::BeginPopupContextItem()) {
-      if (ImGui::MenuItem(ICON_MD_PLAY_ARROW " Load in Mesen2")) {
-        auto status = LoadState(entry.id);
+    gui::ItemContextMenu(nullptr, [&]() {
+      const std::string id = entry.id;
+      std::vector<gui::MenuItemSpec> items;
+      items.emplace_back("Load in Mesen2", ICON_MD_PLAY_ARROW, [this, id]() {
+        auto status = LoadState(id);
         if (!status.ok()) {
           status_message_ = std::string(status.message());
           status_is_error_ = true;
         }
-      }
+      });
+      items.back().separator_after = true;
+      items.push_back(gui::CopyToClipboardItem("Copy State ID", id));
       if (entry.status == "draft") {
-        if (ImGui::MenuItem(ICON_MD_CHECK " Verify as Canon")) {
-          verify_target_id_ = entry.id;
+        items.emplace_back("Verify as Canon...", ICON_MD_CHECK, [this, id]() {
+          verify_target_id_ = id;
           show_verify_dialog_ = true;
-        }
+        });
       }
       if (entry.status != "deprecated") {
-        if (ImGui::MenuItem(ICON_MD_DELETE " Deprecate")) {
-          deprecate_target_id_ = entry.id;
-          show_deprecate_dialog_ = true;
-        }
+        items.back().separator_after = true;
+        // Opens the deprecate dialog, which does its own confirmation.
+        items.push_back(gui::MenuItemSpec::Destructive(
+            "Deprecate...", ICON_MD_DELETE,
+            [this, id]() {
+              deprecate_target_id_ = id;
+              show_deprecate_dialog_ = true;
+            },
+            /*confirm=*/false));
       }
-      ImGui::EndPopup();
-    }
+      return items;
+    });
 
     // Tooltip with tags
     if (ImGui::IsItemHovered() && !entry.tags.empty()) {

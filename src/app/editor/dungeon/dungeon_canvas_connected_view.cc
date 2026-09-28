@@ -201,27 +201,11 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
     result.links.push_back(link);
   }
 
-  // Walk placed header-backed staircase objects in placement order. The Nth
-  // such object consumes header slot N (room.staircase_room(N)). Mismatches
-  // are surfaced as diagnostic entries instead of being silently skipped:
-  //
-  //   - Slot consumed + valid header  → real Staircase link.
-  //   - Slot consumed + zero/invalid header → MissingDestination diagnostic
-  //     (placed object would be a dead-end stair at runtime).
-  //   - >4 placed objects → ExtraPlacedObject diagnostic per surplus object.
-  //   - Header non-zero but no consuming object → UnusedHeader diagnostic.
-  //
-  // ASSUMPTION (load-bearing for diagnostics): the placement-order → header-
-  // slot-index mapping mirrors how the runtime walks Room_LoadDungeonState.
-  // ZScream's `Dungeon_LoadStaircaseRooms` and the usdasm dungeon-load path
-  // both consume `Object_Tile_Staircase*` writers in placement order and
-  // index `staircase_rooms[]` with an internal counter. If any custom
-  // sub-routine ever indexes the slot table by a parameter byte instead of
-  // placement order, this mapping will misreport which placed object
-  // collides with which header destination. Verify against the ROM with
-  // `staircase_room_position_select.asm` (usdasm bank-01) when adding
-  // ROM-backed parity tests; the synthetic AddObject fixtures here do not
-  // exercise the real load path.
+  // Provisional navigation only: placement order is not a verified runtime
+  // slot mapping. Vanilla writers use family-specific counters ($0438,
+  // $047E/$0482, $04A2/$04A4, $043A, $0480/$0484, $04A6/$04A8) into $06B0.
+  // Collision generation assigns indices later; $0462 & 3 selects the header.
+  // Do not use these estimates to mutate or clear room metadata.
   std::array<bool, 4> slot_consumed{false, false, false, false};
   std::array<int16_t, 4> slot_object_id{
       static_cast<int16_t>(-1), static_cast<int16_t>(-1),
@@ -245,9 +229,12 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
   }
 
   for (int slot = 0; slot < 4; ++slot) {
-    const int stair_room = static_cast<int>(room.staircase_room(slot));
+    // Room 000 is a valid destination. The runtime writes the header byte to
+    // $A0 and keeps $A1, so $119 slot $1D leads to $11D; zero is not a
+    // sentinel for a consumed slot.
+    const int stair_room = room.staircase_destination_room(slot);
     const bool header_valid =
-        stair_room > 0 && stair_room < zelda3::kNumberOfRooms;
+        stair_room >= 0 && stair_room < zelda3::kNumberOfRooms;
     if (slot_consumed[slot]) {
       if (header_valid) {
         DungeonConnectedRoomLink link;
@@ -267,7 +254,7 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
         issue.object_id = slot_object_id[slot];
         result.staircase_issues.push_back(issue);
       }
-    } else if (header_valid) {
+    } else if (header_valid && room.staircase_room(slot) != 0) {
       DungeonStaircaseIssue issue;
       issue.from_room_id = room_id;
       issue.kind = DungeonStaircaseIssueKind::UnusedHeader;
@@ -277,8 +264,8 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
     }
   }
 
-  const int holewarp_room = static_cast<int>(room.holewarp());
-  if (holewarp_room > 0 && holewarp_room < zelda3::kNumberOfRooms) {
+  const int holewarp_room = room.holewarp_destination_room();
+  if (room.holewarp() != 0 && holewarp_room < zelda3::kNumberOfRooms) {
     DungeonConnectedRoomLink link;
     link.from_room_id = room_id;
     link.to_room_id = holewarp_room;
@@ -332,11 +319,12 @@ std::string FormatDungeonConnectedLinkDescription(
               : std::string("(unknown)");
       const int slot_index = link.slot_index >= 0 ? link.slot_index : -1;
       if (slot_index < 0) {
-        return absl::StrFormat("Staircase obj %s -> [%03X]", object_str,
+        return absl::StrFormat("Estimated staircase obj %s -> [%03X]",
+                               object_str,
                                static_cast<unsigned>(link.to_room_id));
       }
-      return absl::StrFormat("Staircase slot %d obj %s -> [%03X]", slot_index,
-                             object_str,
+      return absl::StrFormat("Estimated staircase slot %d obj %s -> [%03X]",
+                             slot_index, object_str,
                              static_cast<unsigned>(link.to_room_id));
     }
     case DungeonConnectedLinkType::Holewarp:
@@ -352,7 +340,8 @@ std::string FormatDungeonStaircaseIssueDescription(
   switch (issue.kind) {
     case DungeonStaircaseIssueKind::UnusedHeader:
       return absl::StrFormat(
-          "Stale staircase slot %d -> [%03X] (no placed interroom-stair "
+          "Possibly unused staircase slot %d -> [%03X] (no placed "
+          "interroom-stair "
           "object consumes this slot)",
           issue.slot_index, static_cast<unsigned>(issue.header_room_id));
     case DungeonStaircaseIssueKind::MissingDestination: {
@@ -361,13 +350,11 @@ std::string FormatDungeonStaircaseIssueDescription(
               ? absl::StrFormat("0x%03X",
                                 static_cast<unsigned>(issue.object_id))
               : std::string("(unknown)");
-      const std::string header_str =
-          (issue.header_room_id == 0)
-              ? std::string("0 (unset)")
-              : absl::StrFormat("0x%03X (out of range)",
-                                static_cast<unsigned>(issue.header_room_id));
+      const std::string header_str = absl::StrFormat(
+          "0x%03X (out of range)", static_cast<unsigned>(issue.header_room_id));
       return absl::StrFormat(
-          "Missing staircase destination at slot %d (placed object %s, "
+          "Estimated missing staircase destination at slot %d (placed object "
+          "%s, "
           "header value %s)",
           issue.slot_index, object_str, header_str);
     }
@@ -378,8 +365,8 @@ std::string FormatDungeonStaircaseIssueDescription(
                                 static_cast<unsigned>(issue.object_id))
               : std::string("(unknown)");
       return absl::StrFormat(
-          "Extra staircase object %s beyond the 4 header slots (runtime "
-          "cannot reach this stair)",
+          "Additional staircase object %s beyond the estimated 4 slots "
+          "(runtime mapping unverified)",
           object_str);
     }
   }
@@ -619,46 +606,15 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
 
 int DungeonCanvasViewer::ApplyConnectedStaircaseIssueAutoFixes(
     int center_room_id) {
-  if (center_room_id < 0 || center_room_id >= zelda3::kNumberOfRooms) {
-    connected_action_status_message_ = "No current room for connected fixes.";
-    connected_action_status_is_error_ = true;
-    return 0;
-  }
-
-  if (connected_graph_cache_start_room_id_ != center_room_id) {
-    connected_graph_cache_ = BuildConnectedRoomGraph(center_room_id);
-    connected_graph_cache_start_room_id_ = center_room_id;
-  }
-
-  int fixed_count = 0;
-  for (const auto& issue : connected_graph_cache_.staircase_issues) {
-    if (issue.kind != DungeonStaircaseIssueKind::UnusedHeader ||
-        issue.slot_index < 0 || issue.slot_index >= 4 ||
-        issue.header_room_id <= 0) {
-      continue;
-    }
-    zelda3::Room* room = EnsureRoomLoadedForConnectedView(issue.from_room_id);
-    if (!room || room->staircase_room(issue.slot_index) !=
-                     static_cast<uint8_t>(issue.header_room_id)) {
-      continue;
-    }
-    room->SetStaircaseRoom(issue.slot_index, 0);
-    ++fixed_count;
-  }
-
-  if (fixed_count > 0) {
-    connected_action_status_message_ =
-        absl::StrFormat("Cleared %d stale staircase header slot%s.",
-                        fixed_count, fixed_count == 1 ? "" : "s");
-    connected_action_status_is_error_ = false;
-    connected_graph_cache_start_room_id_ = -1;
-    connected_graph_cache_ = ConnectedRoomGraphData{};
-  } else {
-    connected_action_status_message_ =
-        "No stale staircase header slots can be auto-cleared.";
-    connected_action_status_is_error_ = false;
-  }
-  return fixed_count;
+  // Retain a non-mutating guard for legacy callers until the runtime mapping
+  // is implemented. Neither cached diagnostics nor a fresh estimate proves
+  // that a destination is unused.
+  (void)center_room_id;
+  connected_action_status_message_ =
+      "Automatic staircase repair is unavailable: slot mapping is unverified. "
+      "Review destinations in the room inspector.";
+  connected_action_status_is_error_ = true;
+  return 0;
 }
 
 }  // namespace yaze::editor

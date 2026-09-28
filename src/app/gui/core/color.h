@@ -59,11 +59,16 @@ struct Color {
 
   static Color FromHSL(float h, float s, float l, float a = 1.0f) {
     auto hue_to_rgb = [](float p, float q, float t) {
-      if (t < 0.0f) t += 1.0f;
-      if (t > 1.0f) t -= 1.0f;
-      if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
-      if (t < 1.0f / 2.0f) return q;
-      if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+      if (t < 0.0f)
+        t += 1.0f;
+      if (t > 1.0f)
+        t -= 1.0f;
+      if (t < 1.0f / 6.0f)
+        return p + (q - p) * 6.0f * t;
+      if (t < 1.0f / 2.0f)
+        return q;
+      if (t < 2.0f / 3.0f)
+        return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
       return p;
     };
 
@@ -122,7 +127,8 @@ struct Color {
   Color ShiftHue(float degrees) const {
     HSL hsl = ToHSL();
     float new_hue = fmodf(hsl.h + degrees, 360.0f);
-    if (new_hue < 0.0f) new_hue += 360.0f;
+    if (new_hue < 0.0f)
+      new_hue += 360.0f;
     return FromHSL(new_hue, hsl.s, hsl.l, alpha);
   }
 
@@ -148,6 +154,15 @@ ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor& color);
 
 // A utility function to convert an ImVec4 to an SnesColor object
 gfx::SnesColor ConvertImVec4ToSnesColor(const ImVec4& color);
+
+// Clipboard formats for a SNES color, shared by every "Copy as" menu.
+std::string SnesColorToSnesString(const gfx::SnesColor& color);  // "$7FFF"
+std::string SnesColorToRgbString(const gfx::SnesColor& color);   // "(r,g,b)"
+std::string SnesColorToHexString(const gfx::SnesColor& color);   // "#RRGGBB"
+
+// Renders "Copy as SNES / RGB / Hex" menu items, each showing the value it
+// copies in the shortcut column. Call inside an open popup or menu.
+void SnesColorCopyMenuItems(const gfx::SnesColor& color);
 
 // The wrapper function for ImGui::ColorButton that takes a SnesColor reference
 IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor& color,

@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <random>
 #include <string>
 #include <thread>
 #include <utility>
@@ -18,19 +20,28 @@
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/graphics/screen_editor.h"
+#include "app/editor/graphics/sheet_png_transfer.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
+#include "editor_test_support.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "rom/snes.h"
 #include "testing.h"
+#include "unit/zelda3/gfx_sheet_test_rom.h"
+#include "util/indexed_png.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/gfx_sheet_png.h"
+#include "zelda3/gfx_sheet_storage.h"
+#include "zelda3/graphics_sheet_store.h"
 
 #include "imgui/imgui.h"
 
@@ -38,8 +49,50 @@ namespace yaze::editor {
 
 class GraphicsEditorSaveStoplossTestPeer {
  public:
+  // Tests place a session's sheet in the shared Arena by hand, so claim the
+  // Arena for that session the way a real ROM load does.
   static void MarkSheetModified(GraphicsEditor* editor, uint16_t sheet_id) {
+    gfx::Arena::Get().set_gfx_sheets_owner(editor->game_data());
     editor->state_.MarkSheetModified(sheet_id);
+  }
+  static GraphicsEditorState& State(GraphicsEditor* editor) {
+    return editor->state_;
+  }
+  // Lazy-mode tests put sheets in the Arena by hand; give the session's
+  // sheet store the same pixels, as a full load does. A store that is
+  // already loaded is left alone.
+  static void FillStoreFromArena(GraphicsEditor* editor) {
+    zelda3::GameData* data = editor->game_data();
+    ASSERT_NE(data, nullptr);
+    constexpr size_t kBytes = zelda3::GraphicsSheetStore::kSheetBytes;
+    if (data->graphics_buffer.size() < 223 * kBytes) {
+      data->graphics_buffer.assign(223 * kBytes, 0);
+      const auto& sheets = gfx::Arena::Get().gfx_sheets();
+      for (size_t i = 0; i < 223; ++i) {
+        if (sheets[i].is_active() && sheets[i].vector().size() == kBytes) {
+          std::copy(sheets[i].vector().begin(), sheets[i].vector().end(),
+                    data->graphics_buffer.begin() + i * kBytes);
+        }
+      }
+      data->sheet_store.MarkAllSheetsChanged();
+    }
+    gfx::Arena::Get().set_gfx_sheets_owner(data);
+    AttachSheetStore(editor->state_, data);
+  }
+  // Runs the real read-back check against pixels with one index changed, so
+  // every sheet the save writes fails verification.
+  static void ForceVerificationMismatch(GraphicsEditor* editor) {
+    editor->verify_written_sheet_ =
+        [](const Rom& rom, uint16_t sheet_id,
+           const std::vector<uint8_t>& expected,
+           const zelda3::GfxSheetPointerTables& tables) {
+          std::vector<uint8_t> wrong = expected;
+          wrong[0] = static_cast<uint8_t>((wrong[0] + 1) % 8);
+          return VerifyWrittenSheetPixels(rom, sheet_id, wrong, tables);
+        };
+  }
+  static void RestoreVerification(GraphicsEditor* editor) {
+    editor->verify_written_sheet_ = VerifyWrittenSheetPixels;
   }
 };
 
@@ -482,6 +535,8 @@ std::filesystem::path MakeTempFilePath(const std::string& basename) {
          (basename + "_" + std::to_string(nonce));
 }
 
+using ::yaze::test::InitializeWithIsolatedSettings;
+
 uint8_t ReadByteAt(const std::filesystem::path& path, std::streamoff offset) {
   std::ifstream file(path, std::ios::binary);
   EXPECT_TRUE(file.is_open());
@@ -652,7 +707,7 @@ TEST(EditorManagerBackingFileIdentityTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempFilePath("yaze_lexical_identity.sfc");
@@ -681,7 +736,7 @@ TEST(EditorManagerBackingFileIdentityTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempFilePath("yaze_canonical_identity.sfc");
@@ -710,7 +765,7 @@ TEST(EditorManagerBackingFileIdentityTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempFilePath("yaze_project_identity.sfc");
@@ -741,7 +796,7 @@ TEST(EditorManagerBackingFileIdentityTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -793,7 +848,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path rom_path =
@@ -862,7 +917,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -953,7 +1008,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1138,7 +1193,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_backup_restore_guards");
@@ -1219,7 +1274,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1273,7 +1328,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1345,7 +1400,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1413,7 +1468,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1483,7 +1538,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1539,7 +1594,7 @@ TEST(EditorManagerBackupRestoreTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = true;
 
@@ -1586,7 +1641,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path rom_path =
@@ -1642,7 +1697,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path dev_rom_path =
@@ -1693,7 +1748,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const std::filesystem::path dev_rom_path =
@@ -1756,7 +1811,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_path = MakeTempFilePath("yaze_save_as_confirm_source.sfc");
@@ -1803,7 +1858,7 @@ TEST(EditorManagerRomWritePolicyTest, SaveRomAsCannotTargetProjectBuildOutput) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto dev_rom_path = MakeTempFilePath("yaze_save_as_policy_dev.sfc");
@@ -1853,7 +1908,7 @@ TEST(EditorManagerRomWritePolicyTest, SaveRomAsRefreshesLifecycleHashAndPath) {
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_path = MakeTempFilePath("yaze_save_as_hash_source.sfc");
@@ -1891,7 +1946,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_path = MakeTempFilePath("yaze_resume_failure_source.sfc");
@@ -1941,7 +1996,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_path = MakeTempFilePath("yaze_prompt_cancel_source.sfc");
@@ -1991,7 +2046,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto source_a = MakeTempFilePath("yaze_session_a.sfc");
@@ -2049,7 +2104,7 @@ TEST(GraphicsSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2083,7 +2138,7 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2114,13 +2169,13 @@ TEST(EditorManagerRomWritePolicyTest,
 }
 
 TEST(GraphicsSaveStoplossTest,
-     PendingSheetsBlockBothSaveScopeStatesBeforeSerialization) {
+     PendingSheetsBlockOrRollBackBeforeAnythingReachesDisk) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempFilePath("yaze_pending_graphics_save.sfc");
@@ -2164,17 +2219,25 @@ TEST(GraphicsSaveStoplossTest,
   constexpr uint8_t kPendingRomByte = 0xA5;
   ASSERT_OK(rom->WriteByte(kPcOffset, kPendingRomByte));
 
+  // Disabled: blocked before any serializer runs. Enabled: the Graphics
+  // editor joins the coordinated save, sheet 0x20 is not loaded, so its save
+  // fails and the whole transaction rolls back. The Arena is process-global;
+  // clear the sheet so an earlier test cannot leave it loaded.
+  auto& arena_sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(0x20);
+  ScopedGraphicsSheetRestore restore_sheet(&arena_sheet);
+  arena_sheet = gfx::Bitmap();
+  ASSERT_FALSE(arena_sheet.is_active());
   for (const bool graphics_scope_enabled : {false, true}) {
     core::FeatureFlags::get().kSaveGraphicsSheet = graphics_scope_enabled;
     const auto status = manager->SaveRom();
 
     EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
-    EXPECT_NE(
-        std::string(status.message()).find("graphics sheet edits are pending"),
-        std::string::npos);
     EXPECT_NE(std::string(status.message())
-                  .find(graphics_scope_enabled ? "enabled" : "disabled"),
-              std::string::npos);
+                  .find(graphics_scope_enabled
+                            ? "Graphics save refused for sheet(s) 0x20"
+                            : "graphics sheet edits are pending"),
+              std::string::npos)
+        << status;
     EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), 0x00);
     ASSERT_TRUE(rom->ReadByte(kPcOffset).ok());
     EXPECT_EQ(*rom->ReadByte(kPcOffset), kPendingRomByte);
@@ -2189,19 +2252,599 @@ TEST(GraphicsSaveStoplossTest,
             overworld_existed);
 }
 
-TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {
-  constexpr uint16_t kSheetId = 0x20;
-  const std::vector<uint8_t> before_data = {0x01, 0x02, 0x03, 0x04};
-  const std::vector<uint8_t> after_data = {0x05, 0x06, 0x07, 0x08};
+TEST(GraphicsSaveStoplossTest, EnabledSaveWritesTheEditedSheetToDisk) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
 
-  GraphicsEditorState state;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  constexpr uint16_t kSheetId = 0x20;
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX WRITEBACK";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  const auto rom_path = MakeTempFilePath("yaze_graphics_writeback.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+
+  // A smaller edit of the stored sheet, so it fits in place without a
+  // manifest-registered free region.
+  auto edited = fixture.sheets.at(kSheetId);
+  std::fill(edited.begin(), edited.begin() + 0x100, 0x00);
+  auto indexed = gfx::SnesTo8bppSheet(edited, /*bpp=*/3);
   auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
   ScopedGraphicsSheetRestore restore_sheet(&sheet);
-  sheet.set_data(after_data);
+  sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+               gfx::kTilesheetDepth, indexed);
+  ASSERT_TRUE(sheet.is_active());
+  GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, kSheetId);
+
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(editor_set->HasPendingGraphicsChanges());
+
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  auto readback = zelda3::ReadGfxSheetData(reopened, kSheetId);
+  ASSERT_TRUE(readback.ok()) << readback.status();
+  EXPECT_EQ(*readback, edited);
+  for (uint16_t other = 0; other < zelda3::kGfxSheetCount; ++other) {
+    if (other == kSheetId) {
+      continue;
+    }
+    auto data = zelda3::ReadGfxSheetData(reopened, other);
+    ASSERT_TRUE(data.ok()) << other;
+    EXPECT_EQ(*data, fixture.sheets.at(other)) << "sheet " << other;
+  }
+}
+
+// Found in review: the Arena is shared by every open ROM, and the pixel
+// editor can hold indices up to 15 while a 3bpp sheet stores 0-7. Both must
+// refuse the save and leave the ROM on disk unchanged.
+TEST(GraphicsSaveStoplossTest, SaveRefusesForeignSheetsAndColorsAboveSeven) {
+  for (const bool foreign_owner : {true, false}) {
+    SCOPED_TRACE(foreign_owner ? "sheets owned by another ROM"
+                               : "color index 9");
+    FeatureFlagsGuard guard;
+    ScopedImGuiContext imgui;
+
+    auto renderer = std::make_unique<gfx::NullRenderer>();
+    auto manager = std::make_unique<EditorManager>();
+    InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+
+    constexpr uint16_t kSheetId = 0x20;
+    auto fixture = test::BuildGfxSheetTestRom();
+    const std::string title = "GFX REFUSAL";
+    std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+    fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+    const auto rom_path = MakeTempFilePath("yaze_graphics_refusal.sfc");
+    ScopedFileCleanup cleanup{rom_path};
+    {
+      std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+      out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+                static_cast<std::streamsize>(fixture.bytes.size()));
+      ASSERT_TRUE(out.good());
+    }
+
+    ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+    DisableRomWritesForTest();
+    core::FeatureFlags::get().kSaveGraphicsSheet = true;
+    auto* project = manager->GetCurrentProject();
+    ASSERT_NE(project, nullptr);
+    project->workspace_settings.backup_on_save = false;
+    project->rom_metadata.expected_hash.clear();
+
+    auto* editor_set = manager->GetCurrentEditorSet();
+    ASSERT_NE(editor_set, nullptr);
+    auto* graphics =
+        editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+    ASSERT_NE(graphics, nullptr);
+
+    auto edited = fixture.sheets.at(kSheetId);
+    std::fill(edited.begin(), edited.begin() + 0x100, 0x00);
+    auto indexed = gfx::SnesTo8bppSheet(edited, /*bpp=*/3);
+    if (!foreign_owner) {
+      indexed[0] = 9;
+    }
+    auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+    ScopedGraphicsSheetRestore restore_sheet(&sheet);
+    sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+                 gfx::kTilesheetDepth, indexed);
+    GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, kSheetId);
+
+    const void* owner = gfx::Arena::Get().gfx_sheets_owner();
+    ASSERT_NE(owner, nullptr);
+    int other_rom_game_data = 0;
+    if (foreign_owner) {
+      gfx::Arena::Get().set_gfx_sheets_owner(&other_rom_game_data);
+    }
+    const absl::Status status = manager->SaveRom();
+    gfx::Arena::Get().set_gfx_sheets_owner(owner);
+
+    EXPECT_FALSE(status.ok());
+    EXPECT_THAT(std::string(status.message()),
+                ::testing::HasSubstr(foreign_owner ? "another open ROM"
+                                                   : "above index 7"));
+    std::ifstream in(rom_path, std::ios::binary);
+    const std::vector<uint8_t> disk((std::istreambuf_iterator<char>(in)),
+                                    std::istreambuf_iterator<char>());
+    EXPECT_EQ(disk, fixture.bytes);
+  }
+}
+
+// The Sheet Browser's PNG path end to end: export the Arena sheet, edit one
+// pixel, preview and apply the import, then save through the graphics
+// write-back and read the sheet back from disk.
+void ExpectPngPixelEditSurvivesSave(EditorManager* manager, uint16_t sheet_id,
+                                    const std::filesystem::path& rom_path) {
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  const auto& sheet = gfx::Arena::Get().gfx_sheets()[sheet_id];
+  ASSERT_TRUE(sheet.is_active());
+  const std::vector<uint8_t> before = sheet.vector();
+
+  const auto palette = zelda3::GrayscaleSheetPalette();
+  auto png = ExportSheetPixelsPng(sheet_id, before, palette);
+  ASSERT_TRUE(png.ok()) << png.status();
+  auto image = util::DecodePng(*png);
+  ASSERT_TRUE(image.ok()) << image.status();
+  constexpr int kX = 37;
+  constexpr int kY = 11;
+  const uint8_t new_index = (before[kY * 128 + kX] + 1) % 8;
+  image->indices[kY * image->width + kX] = new_index;
+  auto edited_png = util::EncodeIndexedPng(image->width, image->height,
+                                           image->indices, image->palette);
+  ASSERT_TRUE(edited_png.ok());
+
+  auto preview = PreviewSheetPngImport(sheet_id, before, *edited_png, palette);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  ASSERT_EQ(preview->changed_tiles.size(), 1u);
+  GraphicsEditorSaveStoplossTestPeer::FillStoreFromArena(graphics);
+  ASSERT_TRUE(ApplySheetPngImport(
+                  *preview, GraphicsEditorSaveStoplossTestPeer::State(graphics),
+                  nullptr)
+                  .ok());
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(editor_set->HasPendingGraphicsChanges());
+
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  auto readback = zelda3::ReadGfxSheetData(reopened, sheet_id);
+  ASSERT_TRUE(readback.ok()) << readback.status();
+  auto expected = before;
+  expected[kY * 128 + kX] = new_index;
+  EXPECT_EQ(gfx::SnesTo8bppSheet(*readback, /*bpp=*/3), expected);
+}
+
+TEST(GraphicsSaveStoplossTest, PngImportSavesThroughTheGraphicsWriteBack) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  constexpr uint16_t kSheetId = 0x20;
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX PNG IMPORT";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  const auto rom_path = MakeTempFilePath("yaze_graphics_png_import.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  // Lazy mode does not load the sheets; put this ROM's sheet in the Arena
+  // and claim it, as a full load does.
+  auto* editor_set = manager->GetCurrentEditorSet();
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+               gfx::kTilesheetDepth,
+               gfx::SnesTo8bppSheet(fixture.sheets.at(kSheetId), /*bpp=*/3));
+  gfx::Arena::Get().set_gfx_sheets_owner(graphics->game_data());
+
+  ExpectPngPixelEditSurvivesSave(manager.get(), kSheetId, rom_path);
+}
+
+// Same flow on a scratch copy of an Oracle of Secrets project (never the
+// real one): YAZE_TEST_ORACLE_PROJECT_COPY names its .yaze file, whose ROM
+// and custom_collision.json are copies. Skipped when unset.
+TEST(GraphicsSaveStoplossTest, PngImportOnOracleProjectCopy) {
+  const char* project_env = std::getenv("YAZE_TEST_ORACLE_PROJECT_COPY");
+  if (project_env == nullptr || *project_env == '\0') {
+    GTEST_SKIP() << "YAZE_TEST_ORACLE_PROJECT_COPY is not set";
+  }
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kFull);
+  manager->user_settings().prefs().backup_before_save = false;
+  ASSERT_OK(manager->OpenRomOrProject(project_env));
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  const std::filesystem::path rom_path =
+      project->GetAbsolutePath(project->rom_filename);
+  ASSERT_TRUE(std::filesystem::exists(rom_path)) << rom_path;
+
+  // Sheet 0x92 (Stalfos): a compressed 3bpp sprite sheet.
+  ExpectPngPixelEditSurvivesSave(manager.get(), 0x92, rom_path);
+}
+
+// Fills block 0 (16x16) of an indexed sheet with seeded noise in colors 0-7,
+// so the sheet no longer compresses into its old slot.
+std::vector<uint8_t> WithNoisyBlock0(std::vector<uint8_t> pixels,
+                                     uint32_t seed) {
+  std::mt19937 rng(seed);
+  for (int y = 0; y < 16; ++y) {
+    for (int x = 0; x < 16; ++x) {
+      pixels[y * 128 + x] = static_cast<uint8_t>(rng() % 8);
+    }
+  }
+  return pixels;
+}
+
+// Plan, save and reopen a sheet that has to move: the preflight names the
+// new address, the save relocates it there, and the reopened ROM decodes the
+// edited pixels from that address.
+void ExpectRelocatedSheetSurvivesSave(EditorManager* manager, uint16_t sheet_id,
+                                      const std::filesystem::path& rom_path,
+                                      uint32_t region_begin,
+                                      uint32_t region_end) {
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
+  ASSERT_TRUE(sheet.is_active());
+  const auto edited = WithNoisyBlock0(sheet.vector(), /*seed=*/0x5A5A);
+  sheet.set_data(edited);
+  GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, sheet_id);
+
+  std::ifstream before_in(rom_path, std::ios::binary);
+  const std::vector<uint8_t> disk_before(
+      (std::istreambuf_iterator<char>(before_in)),
+      std::istreambuf_iterator<char>());
+  auto plan = graphics->PlanGraphicsSave();
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->size(), 1u);
+  const GraphicsSavePlanEntry entry = plan->front();
+  ASSERT_TRUE(entry.refusal.empty()) << entry.refusal;
+  EXPECT_EQ(entry.placement, zelda3::GfxSheetPlacement::kRelocated);
+  EXPECT_GE(entry.new_pc, region_begin);
+  EXPECT_LT(entry.new_pc, region_end);
+  EXPECT_GT(entry.new_stored_size, 0u);
+  {
+    std::ifstream in(rom_path, std::ios::binary);
+    const std::vector<uint8_t> disk((std::istreambuf_iterator<char>(in)),
+                                    std::istreambuf_iterator<char>());
+    EXPECT_EQ(disk, disk_before) << "the plan must not write";
+  }
+
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(editor_set->HasPendingGraphicsChanges());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  auto pc = zelda3::ReadGfxSheetPc(reopened, sheet_id);
+  ASSERT_TRUE(pc.ok()) << pc.status();
+  EXPECT_EQ(*pc, entry.new_pc);
+  auto readback = zelda3::ReadGfxSheetData(reopened, sheet_id);
+  ASSERT_TRUE(readback.ok()) << readback.status();
+  EXPECT_EQ(gfx::SnesTo8bppSheet(*readback, /*bpp=*/3), edited);
+}
+
+TEST(GraphicsSaveStoplossTest, RelocatedSheetIsPlannedSavedAndReopened) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  constexpr uint16_t kSheetId = 0x20;
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX RELOCATE";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  const auto rom_path = MakeTempFilePath("yaze_graphics_relocate.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  auto* graphics = manager->GetCurrentEditorSet()->GetEditorAs<GraphicsEditor>(
+      EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  // Register the fixture's free space, PC 0xE0000-0xF0000, in the manager's
+  // project and in the session copy the save policy reads (SaveRom syncs
+  // them, so a project file load sets both).
+  constexpr char kManifest[] =
+      R"json({"manifest_version": 3, "graphics_sheet_regions":
+          {"allocation_regions": [{"start": "0x1C8000", "end": "0x1E8000"}]}})json";
+  ASSERT_OK(project->hack_manifest.LoadFromString(kManifest));
+  ASSERT_NE(graphics->project(), nullptr);
+  ASSERT_OK(graphics->project()->hack_manifest.LoadFromString(kManifest));
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+               gfx::kTilesheetDepth,
+               gfx::SnesTo8bppSheet(fixture.sheets.at(kSheetId), /*bpp=*/3));
+
+  ExpectRelocatedSheetSurvivesSave(manager.get(), kSheetId, rom_path, 0xE0000,
+                                   0xF0000);
+}
+
+// A sheet that does not read back as edited stops the save: the ROM bytes
+// in memory (including the relocation target) and the file on disk stay as
+// they were, and the edit stays pending.
+TEST(GraphicsSaveStoplossTest,
+     VerificationMismatchRestoresTheRomAndWritesNothing) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  constexpr uint16_t kSheetId = 0x20;
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX VERIFY FAIL";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US pointer tables
+  const auto rom_path = MakeTempFilePath("yaze_graphics_verify_fail.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  constexpr char kManifest[] =
+      R"json({"manifest_version": 3, "graphics_sheet_regions":
+          {"allocation_regions": [{"start": "0x1C8000", "end": "0x1E8000"}]}})json";
+  ASSERT_OK(project->hack_manifest.LoadFromString(kManifest));
+  ASSERT_NE(graphics->project(), nullptr);
+  ASSERT_OK(graphics->project()->hack_manifest.LoadFromString(kManifest));
+
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
+               gfx::kTilesheetDepth,
+               gfx::SnesTo8bppSheet(fixture.sheets.at(kSheetId), /*bpp=*/3));
+  const auto edited = WithNoisyBlock0(sheet.vector(), /*seed=*/0xBEEF);
+  sheet.set_data(edited);
+  GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, kSheetId);
+
+  Rom* const rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  const std::vector<uint8_t> memory_before = rom->vector();
+  const bool dirty_before = rom->dirty();
+
+  GraphicsEditorSaveStoplossTestPeer::ForceVerificationMismatch(graphics);
+  // The editor restores the bytes itself, not only EditorManager's rollback.
+  const absl::Status editor_failed = graphics->Save();
+  ASSERT_FALSE(editor_failed.ok());
+  EXPECT_NE(std::string(editor_failed.message()).find("nothing was written"),
+            std::string::npos)
+      << editor_failed;
+  EXPECT_EQ(rom->vector(), memory_before);
+  EXPECT_EQ(rom->dirty(), dirty_before);
+
+  const absl::Status failed = manager->SaveRom();
+  ASSERT_FALSE(failed.ok());
+  EXPECT_NE(std::string(failed.message()).find("nothing was written"),
+            std::string::npos)
+      << failed;
+  EXPECT_EQ(rom->vector(), memory_before);
+  EXPECT_EQ(rom->dirty(), dirty_before);
+  {
+    std::ifstream in(rom_path, std::ios::binary);
+    const std::vector<uint8_t> disk((std::istreambuf_iterator<char>(in)),
+                                    std::istreambuf_iterator<char>());
+    EXPECT_EQ(disk, fixture.bytes);
+  }
+  EXPECT_TRUE(editor_set->HasPendingGraphicsChanges());
+  EXPECT_EQ(sheet.vector(), edited);
+
+  // With the real check back, the same edit saves.
+  GraphicsEditorSaveStoplossTestPeer::RestoreVerification(graphics);
+  ASSERT_OK(manager->SaveRom());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  auto readback = zelda3::ReadGfxSheetData(reopened, kSheetId);
+  ASSERT_TRUE(readback.ok()) << readback.status();
+  EXPECT_EQ(gfx::SnesTo8bppSheet(*readback, /*bpp=*/3), edited);
+}
+
+// The same on a scratch copy of the Oracle project (skipped unless
+// YAZE_TEST_ORACLE_PROJECT_COPY names its .yaze file): sheet 0x92 grows and
+// moves into the manifest's bank $23 region (PC 0x118000-0x120000).
+TEST(GraphicsSaveStoplossTest, RelocatedSheetOnOracleProjectCopy) {
+  const char* project_env = std::getenv("YAZE_TEST_ORACLE_PROJECT_COPY");
+  if (project_env == nullptr || *project_env == '\0') {
+    GTEST_SKIP() << "YAZE_TEST_ORACLE_PROJECT_COPY is not set";
+  }
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kFull);
+  manager->user_settings().prefs().backup_before_save = false;
+  ASSERT_OK(manager->OpenRomOrProject(project_env));
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  const std::filesystem::path rom_path =
+      project->GetAbsolutePath(project->rom_filename);
+
+  ExpectRelocatedSheetSurvivesSave(manager.get(), 0x92, rom_path, 0x118000,
+                                   0x120000);
+}
+
+TEST(GfxGroupSaveTest, SpritesetEditSavesAndReopensOrBlocksWhenDisabled) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  auto fixture = test::BuildGfxSheetTestRom();
+  const std::string title = "GFX GROUP SAVE";
+  std::copy(title.begin(), title.end(), fixture.bytes.begin() + 0x7FC0);
+  fixture.bytes[0x7FD9] = 0x01;  // US tables
+  const auto rom_path = MakeTempFilePath("yaze_gfx_group_save.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(fixture.bytes.data()),
+              static_cast<std::streamsize>(fixture.bytes.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_FALSE(session->HasPendingGfxGroupChanges());
+
+  // Spriteset 0x0C slot 2 -> sprite value 0x55 (sheet 0xC8).
+  constexpr int kSet = 0x0C;
+  constexpr uint32_t kSlotPc = 0x5B57 + kSet * 4;
+  session->game_data.spriteset_ids[kSet][2] = 0x55;
+  EXPECT_TRUE(session->HasPendingGfxGroupChanges());
+  EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(
+      manager->GetCurrentSessionIndex()));
+
+  core::FeatureFlags::get().kSaveGfxGroups = false;
+  auto blocked = manager->SaveRom();
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kFailedPrecondition) << blocked;
+  EXPECT_NE(std::string(blocked.message()).find("Save Gfx Groups is disabled"),
+            std::string::npos);
+  EXPECT_EQ(ReadByteAt(rom_path, kSlotPc + 2), 0x00);
+  EXPECT_TRUE(session->HasPendingGfxGroupChanges());
+
+  core::FeatureFlags::get().kSaveGfxGroups = true;
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(session->HasPendingGfxGroupChanges());
+
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(rom_path.string()));
+  for (int slot = 0; slot < 4; ++slot) {
+    EXPECT_EQ(reopened.vector()[kSlotPc + slot],
+              session->game_data.spriteset_ids[kSet][slot])
+        << "slot " << slot;
+  }
+  EXPECT_EQ(reopened.vector()[kSlotPc + 2], 0x55);
+}
+
+TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {
+  constexpr uint16_t kSheetId = 0x20;
+  constexpr size_t kBytes = zelda3::GraphicsSheetStore::kSheetBytes;
+  std::vector<uint8_t> before_data(kBytes, 0x01);
+  std::vector<uint8_t> after_data = before_data;
+  after_data[3] = 0x05;
+  after_data[200] = 0x06;
+
+  auto data = std::make_unique<zelda3::GameData>();
+  data->graphics_buffer.assign(223 * kBytes, 0);
+  std::copy(after_data.begin(), after_data.end(),
+            data->graphics_buffer.begin() + kSheetId * kBytes);
+  data->sheet_store.MarkAllSheetsChanged();
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.Create(128, 32, 8, after_data);
+  const void* owner = gfx::Arena::Get().gfx_sheets_owner();
+  gfx::Arena::Get().set_gfx_sheets_owner(data.get());
+  GraphicsEditorState state;
+  AttachSheetStore(state, data.get());
 
   GraphicsPixelEditAction action(
-      kSheetId, before_data, after_data, "Edit pixels",
-      [&state](uint16_t sheet_id) { state.MarkSheetModified(sheet_id); });
+      &state, MakeSheetPixelDiff(kSheetId, before_data, after_data),
+      "Edit pixels");
 
   ASSERT_FALSE(state.HasUnsavedChanges());
   ASSERT_OK(action.Undo());
@@ -2214,6 +2857,7 @@ TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {
   EXPECT_EQ(sheet.vector(), after_data);
   EXPECT_TRUE(state.HasUnsavedChanges());
   EXPECT_TRUE(state.modified_sheets.contains(kSheetId));
+  gfx::Arena::Get().set_gfx_sheets_owner(owner);
 }
 
 TEST(ScreenSaveStoplossTest,
@@ -2233,7 +2877,7 @@ TEST(ScreenSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2288,7 +2932,7 @@ TEST(ScreenSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_screen_replace_save");
@@ -2373,7 +3017,7 @@ TEST(ScreenSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto temp_dir = MakeTempFilePath("yaze_screen_replace_rollback");
@@ -2438,7 +3082,7 @@ TEST(ScreenSaveStoplossTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   manager->user_settings().prefs().backup_before_save = false;
 
@@ -2701,6 +3345,148 @@ TEST(ScreenSaveStoplossTest,
     EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DarkWorldPaletteSize(editor),
               128u);
   }
+}
+
+// --- File > Close ROM / Revert to Saved -----------------------------------
+
+TEST(EditorManagerFileLifecycleTest, CloseRomClosesTheOnlyCleanSession) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_close_rom_clean");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "close.sfc";
+  WriteTestRom(rom_path, "CLOSE ROM");
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_TRUE(manager->CanCloseRom());
+
+  manager->CloseRom();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 0u);
+  EXPECT_EQ(manager->GetCurrentRom(), nullptr);
+  EXPECT_FALSE(manager->CanCloseRom());
+  EXPECT_FALSE(manager->CanRevertRom());
+}
+
+TEST(EditorManagerFileLifecycleTest, CloseRomAsksBeforeDiscardingEdits) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_close_rom_dirty");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "close_dirty.sfc";
+  WriteTestRom(rom_path, "CLOSE DIRTY");
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x1234, 0xA5));
+  ASSERT_TRUE(rom->dirty());
+
+  manager->CloseRom();
+
+  // The confirmation is pending; nothing is closed yet.
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetPendingUnsavedSessionActionContinueLabel(),
+            "Close Without Saving");
+  EXPECT_EQ(manager->GetPendingUnsavedSessionActionSaveLabel(),
+            "Save Work & Close ROM");
+
+  manager->CancelPendingUnsavedSessionAction();
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+
+  manager->CloseRom();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_EQ(manager->GetActiveSessionCount(), 0u);
+  EXPECT_EQ(manager->GetCurrentRom(), nullptr);
+  // Discarding never touches the file on disk.
+  EXPECT_EQ(ReadByteAt(rom_path, 0x1234), 0x00);
+}
+
+TEST(EditorManagerFileLifecycleTest,
+     RevertRomToSavedDiscardsEditsAfterConfirm) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_revert_rom_dirty");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "revert.sfc";
+  WriteTestRom(rom_path, "REVERT DIRTY");
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  ASSERT_TRUE(manager->CanRevertRom());
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x1234, 0xA5));
+
+  ASSERT_OK(manager->RevertRomToSaved());
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  // Saving then reloading would be a no-op, so no save button is offered.
+  EXPECT_EQ(manager->GetPendingUnsavedSessionActionSaveLabel(), "");
+  EXPECT_EQ(manager->GetPendingUnsavedSessionActionContinueLabel(),
+            "Discard Edits & Revert");
+  // Still the edited bytes while the prompt is up.
+  ASSERT_TRUE(manager->GetCurrentRom()->ReadByte(0x1234).ok());
+  EXPECT_EQ(*manager->GetCurrentRom()->ReadByte(0x1234), 0xA5);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  Rom* reverted = manager->GetCurrentRom();
+  ASSERT_NE(reverted, nullptr);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_TRUE(reverted->ReadByte(0x1234).ok());
+  EXPECT_EQ(*reverted->ReadByte(0x1234), 0x00);
+  EXPECT_FALSE(reverted->dirty());
+  EXPECT_EQ(ReadByteAt(rom_path, 0x1234), 0x00);
+}
+
+TEST(EditorManagerFileLifecycleTest, RevertCleanRomPicksUpDiskChanges) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_revert_rom_clean");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "revert_clean.sfc";
+  WriteTestRom(rom_path, "REVERT CLEAN");
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+
+  // Another tool (assembler, emulator) rewrote the file on disk.
+  WriteByteAt(rom_path, 0x2000, 0x5A);
+
+  // No unsaved work: revert runs immediately without a prompt.
+  ASSERT_OK(manager->RevertRomToSaved());
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  Rom* reverted = manager->GetCurrentRom();
+  ASSERT_NE(reverted, nullptr);
+  ASSERT_TRUE(reverted->ReadByte(0x2000).ok());
+  EXPECT_EQ(*reverted->ReadByte(0x2000), 0x5A);
+  EXPECT_FALSE(reverted->dirty());
 }
 
 }  // namespace

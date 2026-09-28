@@ -21,6 +21,7 @@
 #include "app/editor/session_types.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -230,10 +231,19 @@ void SessionCoordinator::CloseCurrentSession() {
 }
 
 void SessionCoordinator::CloseSession(size_t index) {
+  CloseSessionInternal(index, /*allow_closing_last=*/false);
+}
+
+void SessionCoordinator::CloseSessionAllowingEmpty(size_t index) {
+  CloseSessionInternal(index, /*allow_closing_last=*/true);
+}
+
+void SessionCoordinator::CloseSessionInternal(size_t index,
+                                              bool allow_closing_last) {
   if (!IsValidSessionIndex(index))
     return;
 
-  if (session_count_ <= kMinSessions) {
+  if (!allow_closing_last && session_count_ <= kMinSessions) {
     // Don't allow closing the last session
     if (toast_manager_) {
       toast_manager_->Show("Cannot close the last session",
@@ -277,6 +287,12 @@ void SessionCoordinator::CloseSession(size_t index) {
     NotifySessionSwitched(index, active_session_index_,
                           sessions_[active_session_index_].get(),
                           /*transient=*/false);
+  } else if (sessions_.empty()) {
+    // The last session is gone: unbind every session-owned context (ROM,
+    // palettes, current editor, drawers) through the normal switch path with
+    // a null session.
+    active_session_index_ = 0;
+    NotifySessionSwitched(index, 0, nullptr, /*transient=*/false);
   }
 
   LOG_INFO("SessionCoordinator", "Closed session %zu (total: %zu)", index,
@@ -436,11 +452,7 @@ void SessionCoordinator::DrawSessionSwitcher() {
     }
 
     // Right-click context menu
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      ImGui::OpenPopup("SessionContextMenu");
-    }
-
-    if (ImGui::BeginPopup("SessionContextMenu")) {
+    if (ImGui::BeginPopupContextItem("SessionContextMenu")) {
       DrawSessionContextMenu(i);
       ImGui::EndPopup();
     }
@@ -638,11 +650,7 @@ void SessionCoordinator::DrawSessionTabs() {
       }
 
       // Right-click context menu
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        ImGui::OpenPopup(absl::StrFormat("SessionTabContext_%zu", i).c_str());
-      }
-
-      if (ImGui::BeginPopup(
+      if (ImGui::BeginPopupContextItem(
               absl::StrFormat("SessionTabContext_%zu", i).c_str())) {
         DrawSessionContextMenu(i);
         ImGui::EndPopup();
@@ -1187,39 +1195,45 @@ void SessionCoordinator::DrawSessionTab(size_t index, bool is_active) {
 }
 
 void SessionCoordinator::DrawSessionContextMenu(size_t index) {
-  if (ImGui::MenuItem(
-          absl::StrFormat("%s Switch to Session", ICON_MD_TAB).c_str())) {
+  std::vector<gui::MenuItemSpec> items;
+  items.emplace_back("Switch to Session", ICON_MD_TAB, [this, index]() {
     if (editor_manager_) {
       editor_manager_->RequestSwitchToSession(index);
     } else {
       SwitchToSession(index);
     }
+  });
+  items.back().separator_after = true;
+
+  items.emplace_back(
+      "Rename...", ICON_MD_DRIVE_FILE_RENAME_OUTLINE, [this, index]() {
+        session_to_rename_ = index;
+        strncpy(session_rename_buffer_, GetSessionDisplayName(index).c_str(),
+                sizeof(session_rename_buffer_) - 1);
+        session_rename_buffer_[sizeof(session_rename_buffer_) - 1] = '\0';
+        show_session_rename_dialog_ = true;
+      });
+
+  if (HasMultipleSessions()) {
+    items.back().separator_after = true;
+    // Closing drops the session's in-memory ROM. Confirm only when that
+    // would discard unsaved changes.
+    const bool modified = IsSessionModified(index);
+    gui::MenuItemSpec close_item(
+        modified ? "Close Session..." : "Close Session", ICON_MD_CLOSE,
+        [this, index]() {
+          if (editor_manager_) {
+            editor_manager_->RequestCloseSession(index);
+          } else {
+            CloseSession(index);
+          }
+        });
+    close_item.destructive = modified;
+    close_item.requires_confirmation = modified;
+    items.push_back(std::move(close_item));
   }
 
-  if (ImGui::MenuItem(absl::StrFormat("%s Rename", ICON_MD_EDIT).c_str())) {
-    session_to_rename_ = index;
-    strncpy(session_rename_buffer_, GetSessionDisplayName(index).c_str(),
-            sizeof(session_rename_buffer_) - 1);
-    session_rename_buffer_[sizeof(session_rename_buffer_) - 1] = '\0';
-    show_session_rename_dialog_ = true;
-  }
-
-  if (ImGui::MenuItem(
-          absl::StrFormat("%s Duplicate", ICON_MD_CONTENT_COPY).c_str())) {
-    // TODO: Implement session duplication
-  }
-
-  ImGui::Separator();
-
-  if (HasMultipleSessions() &&
-      ImGui::MenuItem(
-          absl::StrFormat("%s Close Session", ICON_MD_CLOSE).c_str())) {
-    if (editor_manager_) {
-      editor_manager_->RequestCloseSession(index);
-    } else {
-      CloseSession(index);
-    }
-  }
+  gui::RenderMenuItems(items);
 }
 
 void SessionCoordinator::DrawSessionBadge(size_t index) {
@@ -1285,7 +1299,8 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
     return true;
   }
 
-  if (session->editors.HasPendingGraphicsChanges()) {
+  if (session->editors.HasPendingGraphicsChanges() ||
+      session->HasPendingGfxGroupChanges()) {
     return true;
   }
 

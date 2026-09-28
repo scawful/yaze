@@ -1,5 +1,7 @@
 #include "app/gui/widgets/empty_state.h"
 
+#include <algorithm>
+
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -38,8 +40,10 @@ bool DrawEmptyState(const EmptyStateOptions& options) {
     ImGui::Spacing();
     const ImVec2 title_size = ImGui::CalcTextSize(options.title);
     CenterNextItem(title_size.x);
-    ColoredText(options.title,
-                ResolveSemanticColor(SemanticColor::OnSurfaceVariant));
+    ImGui::PushStyleColor(
+        ImGuiCol_Text, ResolveSemanticColor(SemanticColor::OnSurfaceVariant));
+    ImGui::TextWrapped("%s", options.title);
+    ImGui::PopStyleColor();
   }
 
   if (options.detail && options.detail[0] != '\0') {
@@ -60,7 +64,8 @@ bool DrawEmptyState(const EmptyStateOptions& options) {
     ImGui::Dummy(ImVec2(0.0f, mid_pad));
     const ImVec2 label_size = ImGui::CalcTextSize(options.action_label);
     const float button_width =
-        label_size.x + ImGui::GetStyle().FramePadding.x * 4.0f;
+        std::min(label_size.x + ImGui::GetStyle().FramePadding.x * 4.0f,
+                 std::max(1.0f, ImGui::GetContentRegionAvail().x));
     CenterNextItem(button_width);
     if (PrimaryButton(options.action_label, ImVec2(button_width, 0.0f))) {
       clicked = true;

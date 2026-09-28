@@ -51,13 +51,31 @@ class TileSelectorWidget {
 
   void AttachCanvas(Canvas* canvas);
   void SetTileCount(int total_tiles);
+  void SetDisplayScale(float display_scale);
+  float display_scale() const { return config_.display_scale; }
+  void SetTilesPerRow(int tiles_per_row);
+  int tiles_per_row() const { return config_.tiles_per_row; }
   void SetSelectedTile(int tile_id);
   int GetSelectedTileID() const { return selected_tile_id_; }
   int GetMaxTileId() const { return total_tiles_ > 0 ? total_tiles_ - 1 : 0; }
   ImVec2 GetGridContentSize() const;
+  /// Grid width plus the current style's vertical scrollbar. This is the
+  /// width of the scrolling grid child, not of any surrounding panel.
   float GetPreferredViewportWidth() const;
+  /// Same as GetPreferredViewportWidth() for a config that has no widget yet
+  /// (panels report their preferred dock width before the widget exists).
+  static float PreferredViewportWidth(const Config& config,
+                                      float scrollbar_size);
+  /// Current style scrollbar size, or ImGui's default without a context.
+  static float CurrentScrollbarSize();
 
   RenderResult Render(gfx::Bitmap& atlas, bool atlas_ready);
+
+  /// "Copy Tile ID" item for the attached canvas's editor menu. Right-click
+  /// selects the tile under the cursor, so the item copies the selected tile
+  /// ID ("0x01A") at click time. Callers add it next to their own items,
+  /// after ClearContextMenuItems(), so nothing accumulates across frames.
+  CanvasMenuItem CopyTileIdMenuItem() const;
 
   /// Draw a compact filter/search bar above the tile grid. Returns true if
   /// the user jumped to a tile (selection + scroll triggered).

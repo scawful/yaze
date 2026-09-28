@@ -165,6 +165,136 @@ status=$?
 [[ "$missing_output" == *"clang-format not found"* ]] ||
   fail "lint.sh did not explain the missing tool: '${missing_output}'"
 
+# Required tidy coverage is tested in a tiny isolated project. This must not
+# depend on whether the real checkout has a root compile database symlink.
+SCOPED_ROOT="${WORK_DIR}/scoped project"
+SCOPED_BUILD="${SCOPED_ROOT}/build with spaces"
+mkdir -p "${SCOPED_ROOT}/scripts/lib" "${SCOPED_ROOT}/src" "$SCOPED_BUILD"
+cp "$LINT" "${SCOPED_ROOT}/scripts/lint.sh"
+cp "${REPO_ROOT}/scripts/lib/clang_tools.sh" "${SCOPED_ROOT}/scripts/lib/clang_tools.sh"
+cp "${REPO_ROOT}/.clang-format-version" "${SCOPED_ROOT}/.clang-format-version"
+printf 'int example;\n' > "${SCOPED_ROOT}/src/selected file.cc"
+printf 'int other;\n' > "${SCOPED_ROOT}/src/other.cc"
+printf 'extern int example;\n' > "${SCOPED_ROOT}/src/selected file.h"
+
+write_database() {
+  python3 - "$SCOPED_BUILD" "$SCOPED_ROOT" "$@" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+build, root, *files = sys.argv[1:]
+entries = [{"directory": root, "file": name,
+            "arguments": ["clang++", "-c", name]} for name in files]
+(Path(build) / "compile_commands.json").write_text(json.dumps(entries))
+PY
+}
+
+CLEAN_TIDY="$(make_stub clang-tidy-clean 0)"
+WARNING_TIDY="$(make_stub clang-tidy-warning 0 'warning: advisory finding [readability-example]')"
+FAILED_TIDY="$(make_stub clang-tidy-failed 1 'error: incompatible PCH [clang-diagnostic-error]')"
+SCOPED_LINT="${SCOPED_ROOT}/scripts/lint.sh"
+
+run_scoped_lint() {
+  YAZE_CLANG_FORMAT="$CLEAN_FORMAT" YAZE_CLANG_TIDY="$CLEAN_TIDY" \
+    bash "$SCOPED_LINT" check --build-dir "$SCOPED_BUILD" "$@"
+}
+
+write_database 'src/selected file.cc' 'src/other.cc'
+rm -f "${WORK_DIR}/clang-format-clean.args" "${WORK_DIR}/clang-tidy-clean.args"
+status=0
+scoped_output="$(run_scoped_lint --require-tidy 'src/selected file.cc' 2>&1)" || status=$?
+[[ "$status" -eq 0 ]] || fail "required tidy on covered TU returned ${status}: ${scoped_output}"
+grep -qx 'src/selected file.cc' "${WORK_DIR}/clang-format-clean.args" ||
+  fail "format split the selected filename containing spaces"
+grep -qx 'src/selected file.cc' "${WORK_DIR}/clang-tidy-clean.args" ||
+  fail "tidy split the selected filename containing spaces"
+grep -qx "$SCOPED_BUILD" "${WORK_DIR}/clang-tidy-clean.args" ||
+  fail "tidy did not receive the exact build directory"
+if grep -q 'other.cc\|warnings-as-errors\|--fix' "${WORK_DIR}/clang-tidy-clean.args"; then
+  fail "required mode widened source scope, promoted warnings, or enabled fixes"
+fi
+
+status=0
+YAZE_CLANG_FORMAT="$CLEAN_FORMAT" YAZE_CLANG_TIDY="$WARNING_TIDY" \
+  bash "$SCOPED_LINT" check --build-dir "$SCOPED_BUILD" --require-tidy \
+  'src/selected file.cc' >/dev/null 2>&1 || status=$?
+[[ "$status" -eq 0 ]] || fail "required mode made advisory warnings fail"
+
+run_scoped_lint --require-tidy --warnings-as-errors 'clang-analyzer-*' \
+  'src/selected file.cc' >/dev/null 2>&1 || fail "warnings-as-errors option failed"
+grep -qx -- '--warnings-as-errors=clang-analyzer-\*' "${WORK_DIR}/clang-tidy-clean.args" ||
+  fail "warnings-as-errors glob was not forwarded literally"
+
+status=0
+promotion_output="$(YAZE_CLANG_FORMAT="$CLEAN_FORMAT" YAZE_CLANG_TIDY="" \
+  bash "$SCOPED_LINT" check --warnings-as-errors '*' 'src/selected file.cc' 2>&1)" || status=$?
+[[ "$status" -eq 2 && "$promotion_output" == *"requires --require-tidy"* ]] ||
+  fail "warning promotion without required analysis did not fail with usage guidance"
+
+status=0
+YAZE_CLANG_FORMAT="$CLEAN_FORMAT" YAZE_CLANG_TIDY="$FAILED_TIDY" \
+  bash "$SCOPED_LINT" check --build-dir "$SCOPED_BUILD" --require-tidy \
+  'src/selected file.cc' >/dev/null 2>&1 || status=$?
+[[ "$status" -eq 1 ]] || fail "tidy parse failure returned ${status}, expected 1"
+
+status=0
+YAZE_CLANG_FORMAT="$CLEAN_FORMAT" YAZE_CLANG_TIDY="" \
+  bash "$SCOPED_LINT" check --build-dir "$SCOPED_BUILD" --require-tidy \
+  'src/selected file.cc' >/dev/null 2>&1 || status=$?
+[[ "$status" -eq 3 ]] || fail "required mode without tidy returned ${status}, expected 3"
+
+status=0
+run_scoped_lint --require-tidy >/dev/null 2>&1 || status=$?
+[[ "$status" -eq 2 ]] || fail "required mode without explicit scope returned ${status}, expected 2"
+
+status=0
+header_output="$(run_scoped_lint --require-tidy 'src/selected file.h' 2>&1)" || status=$?
+[[ "$status" -eq 2 && "$header_output" == *"owning .cc files"* ]] ||
+  fail "required header input did not require an owning TU"
+
+write_database 'src/other.cc'
+rm -f "${WORK_DIR}/clang-tidy-clean.args"
+status=0
+uncovered_output="$(run_scoped_lint --require-tidy 'src/selected file.cc' 2>&1)" || status=$?
+[[ "$status" -eq 3 && "$uncovered_output" == *"no exact compile command"* ]] ||
+  fail "uncovered TU did not fail required mode"
+[[ ! -e "${WORK_DIR}/clang-tidy-clean.args" ]] ||
+  fail "tidy ran despite missing compile entry"
+
+# A borrowed worktree DB with the same relative filename does not cover ours.
+write_database "${WORK_DIR}/other worktree/src/selected file.cc"
+status=0
+run_scoped_lint --require-tidy 'src/selected file.cc' >/dev/null 2>&1 || status=$?
+[[ "$status" -eq 3 ]] || fail "foreign worktree compile command was accepted"
+
+printf 'not json\n' > "${SCOPED_BUILD}/compile_commands.json"
+status=0
+run_scoped_lint --require-tidy 'src/selected file.cc' >/dev/null 2>&1 || status=$?
+[[ "$status" -eq 3 ]] || fail "invalid compile database returned ${status}, expected 3"
+
+printf '[null]\n' > "${SCOPED_BUILD}/compile_commands.json"
+status=0
+malformed_output="$(run_scoped_lint --require-tidy 'src/selected file.cc' 2>&1)" || status=$?
+[[ "$status" -eq 3 && "$malformed_output" == *"unusable compile database"* && "$malformed_output" != *"Traceback"* ]] ||
+  fail "nonobject compile entry did not produce a clean prerequisite failure"
+
+rm -f "${SCOPED_BUILD}/compile_commands.json"
+status=0
+run_scoped_lint --require-tidy 'src/selected file.cc' >/dev/null 2>&1 || status=$?
+[[ "$status" -eq 3 ]] || fail "missing explicit compile database returned ${status}, expected 3"
+
+status=0
+YAZE_CLANG_FORMAT="$CLEAN_FORMAT" YAZE_CLANG_TIDY="$CLEAN_TIDY" \
+  bash "$SCOPED_LINT" check --require-tidy 'src/selected file.cc' >/dev/null 2>&1 || status=$?
+[[ "$status" -eq 3 ]] || fail "missing default compile database returned ${status}, expected 3"
+
+advisory_output="$(YAZE_CLANG_FORMAT="$CLEAN_FORMAT" YAZE_CLANG_TIDY="$CLEAN_TIDY" \
+  bash "$SCOPED_LINT" check 'src/selected file.cc' 2>&1)" ||
+  fail "legacy formatting-only mode failed"
+[[ "$advisory_output" == *"no static-analysis coverage"* ]] ||
+  fail "skipped tidy did not clearly report the coverage limitation"
+
 if [[ "$failures" -ne 0 ]]; then
   echo "${failures} quality tooling contract check(s) failed" >&2
   exit 1

@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -95,6 +96,50 @@ struct TileSearchOptions {
   std::optional<int> world;
 };
 
+// Where one tile16 of an overworld area lives. Tile commands take x/y
+// relative to the top-left of the area's parent screen: 0-31 per axis for a
+// small area, 0-63 on each doubled axis of a large, wide, or tall area. The
+// world blockset (Overworld::GetMapTiles) is indexed [world_x][world_y] where
+// each screen owns a 32x32 block at ((local % 8) * 32, (local / 8) * 32);
+// world_x/world_y are also the editor canvas tile coordinates.
+struct AreaTileLocation {
+  int map_id = 0;        // screen the caller named
+  int parent_map = 0;    // screen at the area's top-left
+  int world = 0;         // 0 light, 1 dark, 2 special
+  int area_width = 32;   // tile16 columns in the area
+  int area_height = 32;  // tile16 rows in the area
+  int area_x = 0;        // caller coordinates, relative to parent_map
+  int area_y = 0;
+  int screen_id = 0;  // screen that contains the tile
+  int screen_x = 0;   // 0-31 within screen_id
+  int screen_y = 0;
+  int world_x = 0;  // index into the world blockset
+  int world_y = 0;
+};
+
+// Screens spanned by an area: {columns, rows}, each 1 or 2.
+std::pair<int, int> AreaScreenSpan(const zelda3::OverworldMap& parent_map);
+
+// Pure address math, independent of ROM loading. Fails when the parent is in
+// another world, the named screen is outside the parent's span, or x/y fall
+// outside the area.
+absl::StatusOr<AreaTileLocation> ResolveAreaTileLocation(
+    int map_id, int parent_map, int area_columns, int area_rows, int x, int y);
+
+// Resolves the parent and span of map_id from a loaded overworld.
+absl::StatusOr<AreaTileLocation> ResolveAreaTileForMap(
+    const zelda3::Overworld& overworld, int map_id, int x, int y);
+
+// Converts a screen-local tile (0-31) to its area-relative location.
+absl::StatusOr<AreaTileLocation> LocateScreenTile(
+    const zelda3::Overworld& overworld, int screen_id, int screen_x,
+    int screen_y);
+
+absl::StatusOr<uint16_t> ReadAreaTile(zelda3::Overworld& overworld,
+                                      const AreaTileLocation& location);
+absl::Status WriteAreaTile(zelda3::Overworld& overworld,
+                           const AreaTileLocation& location, uint16_t tile_id);
+
 struct OverworldSprite {
   uint8_t sprite_id;
   int map_id;
@@ -102,12 +147,23 @@ struct OverworldSprite {
   int x;
   int y;
   std::optional<std::string> sprite_name;
+  // Game-state sprite list this entry came from (0 = beginning, 1 = first
+  // part, 2 = second part) and its index within that map's list.
+  int phase = 0;
+  int list_index = 0;
+  // Raw 16px tile coordinates within the parent area (list byte low 6 bits).
+  int local_x = 0;
+  int local_y = 0;
 };
+
+// Game-state (phase) names used by overworld sprite commands.
+const char* SpritePhaseName(int phase);
 
 struct SpriteQuery {
   std::optional<int> map_id;
   std::optional<int> world;
   std::optional<uint8_t> sprite_id;
+  std::optional<int> phase;
 };
 
 struct EntranceDetails {

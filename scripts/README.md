@@ -86,16 +86,73 @@ multi-iPad deployment.
 | `pre-commit.sh` | canonical | Pre-commit validation (installed by `install-git-hooks.sh`) |
 | `pre-push.sh` | canonical | Pre-push validation, fast by default with change-aware UI regression coverage |
 | `lint.sh` | canonical | clang-format and clang-tidy with the project configuration |
-| `quality_check.sh` | compatibility | Wraps `lint.sh` with extra reporting; referenced from architecture docs |
+| `quality_check.sh` | compatibility | Separate whole-tree clang-format/cppcheck report; advisory by default |
 | `pre-push-test.sh` / `.ps1` | compatibility | Broader pre-push sweep including symbol checks; see [pre-push-checklist.md](../docs/internal/testing/pre-push-checklist.md) |
 | `ci/check-no-compiler-launcher.sh` | canonical | Fail if a configured CMake build routes compiles through ccache or sccache; guards CodeQL, whose extractor misses cache hits |
 | `find-unsafe-array-access.sh` | deprecated | One-off static scan from the 2025 WASM bounds-checking audit, which is closed |
 
-Formatting entry points share `.clang-format-version`, discover tools through
-`scripts/lib/clang_tools.sh`, and pass `--style=file`. Use
+Formatting entry points share `.clang-format-version` and pass `--style=file`.
+Shell formatting helpers discover tools through `scripts/lib/clang_tools.sh`. Use
 `scripts/quality_check.sh` for advisory whole-tree reporting or
-`scripts/quality_check.sh --gate` for a failing quality gate. Refresh the
-compile database with `scripts/dev/update_compile_commands.sh <preset>`.
+`scripts/quality_check.sh --gate` for a failing quality gate.
+
+For a bounded editor change, select the compile database and actual translation
+units explicitly. Required mode fails if tidy cannot run, an exact file entry is
+absent, or analysis fails; advisory mode can skip tidy and reports that limitation.
+Warnings remain advisory unless a check family is explicitly promoted.
+`--warnings-as-errors` requires `--require-tidy` so a requested gate cannot skip
+analysis:
+
+```sh
+scripts/lint.sh check --build-dir build/analysis/mac-ai --require-tidy \
+  --warnings-as-errors 'clang-analyzer-*' \
+  src/app/editor/dungeon/ui/window/sprite_editor_panel.cc
+```
+
+`--require-tidy` accepts translation units, not headers; format a touched header
+with `clang-format --dry-run --Werror --style=file path/to/header.h` and analyze
+its owning `.cc`. Use the pinned formatter major. Quote file paths with spaces.
+`fix` applies changes, so keep its scope explicit and review each result.
+
+If tidy cannot consume the app build's Apple Clang PCH or the database includes
+unbuilt configurations, configure a separate single-config analysis directory:
+
+```sh
+cmake --preset mac-ai -B build/analysis/mac-ai -G Ninja \
+  -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DYAZE_ENABLE_CLANG_TIDY=OFF \
+  -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)"
+```
+
+This provides compiler flags; it is not an app build or a test run. Generate any
+required build headers before running tidy, and fail on missing-header errors.
+The manual lint command runs tidy independently of `YAZE_ENABLE_CLANG_TIDY`.
+On other platforms select the matching preset/toolchain; do not reuse this Mac
+database. For clangd navigation, `scripts/dev/update_compile_commands.sh <preset>`
+updates the root database symlink. Explicit `--build-dir` leaves it unchanged.
+
+Known September 22 limitation: LLVM 22.1.8 crashes in
+`abseil-unchecked-statusor-access` while analyzing the selector's existing
+`object_layer_semantics.h` dependency. Required lint correctly fails; the full
+configured tidy suite is not qualified for these files. For a separately named
+analyzer-only investigation, call tidy directly with explicit checks:
+
+```sh
+clang-tidy -p build/analysis/mac-ai --checks='-*,clang-analyzer-*' \
+  --warnings-as-errors='clang-analyzer-*' --quiet \
+  src/app/editor/dungeon/ui/window/sprite_editor_panel.cc \
+  src/app/editor/dungeon/inspectors/dungeon_entity_inspector.cc
+```
+
+This run parsed both translation units and reported two existing
+`clang-analyzer-optin.performance.Padding` findings in `DungeonCanvasViewer` and
+`LayerMergeType`, exiting 1 under the requested warning gate. It is evidence of
+completed scoped analysis with findings, not a clean result or a replacement for
+the crashed Abseil check. Do not change object layout merely to clear those
+findings during a UI extraction. Keep `.clang-tidy` unchanged until a separate
+toolchain/check-policy change is reviewed.
+
+Tooling regression checks: `bash scripts/tests/quality_tooling_test.sh`.
+These use stubs to check script behavior; they do not establish C++ analysis.
 
 ## Symbol conflict detection
 

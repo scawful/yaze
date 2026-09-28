@@ -20,6 +20,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_palette.h"
 #include "cli/service/command_registry.h"
+#include "framework/rom_save_fault.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -29,6 +30,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
+#include "zelda3/resource_labels.h"
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -1076,6 +1078,129 @@ TEST(DungeonEditCommandsTest, PlaceObjectRejectsRoomIdOutOfRange) {
 }
 
 TEST(DungeonEditCommandsTest,
+     DescribeChestUsesReceiptNamesAndReportsProvenance) {
+  for (const auto& [id, name] : std::vector<std::pair<uint8_t, std::string>>{
+           {0x00, "Fighter Sword"},
+           {0x1B, "Power Glove"},
+           {0x24, "Small Key"},
+           {0x25, "Compass"},
+           {0x32, "Big Key"},
+           {0x3A, "Tossed Bow"},
+           {0xFF, "Unknown item FF"}}) {
+    SCOPED_TRACE(static_cast<int>(id));
+    Rom rom;
+    InitializeStatefulChestObjectRom(&rom);
+    rom.mutable_data()[kChestTableDataPc + 2] = id;
+    rom.set_dirty(false);
+    const auto before = rom.vector();
+    handlers::DungeonDescribeRoomCommandHandler handler;
+    std::string output;
+    ASSERT_TRUE(
+        handler.Run({"--room=0x00", "--format=json"}, &rom, &output).ok());
+    const auto result = nlohmann::json::parse(output);
+    ASSERT_EQ(result.at("chests").size(), 1u);
+    EXPECT_EQ(result.at("chests")[0].at("item_name"), name);
+    EXPECT_EQ(result.at("chests")[0].at("item_name_source"),
+              id == 0xFF ? "unknown" : "vanilla_receipt");
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonEditCommandsTest, StaircaseReportIsOptInAndReadOnly) {
+  Rom rom;
+  InitializeStatefulChestObjectRom(&rom);
+  auto room = zelda3::LoadRoomHeaderFromRom(&rom, 0);
+  const int layout_pc = SnesToPc(zelda3::kRoomLayoutPointers[room.layout_id()]);
+  rom.mutable_data()[layout_pc] = 0xFF;
+  rom.mutable_data()[layout_pc + 1] = 0xFF;
+  // Replace the first object with a spiral stair; preserve stream delimiters.
+  const auto encoded =
+      zelda3::RoomObject(0x138, 10, 10, 0).EncodeObjectToBytes();
+  rom.mutable_data()[kObjectDataPc + 2] = encoded.b1;
+  rom.mutable_data()[kObjectDataPc + 3] = encoded.b2;
+  rom.mutable_data()[kObjectDataPc + 4] = encoded.b3;
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(handler
+                  .Run({"--room=0x00", "--include-staircase-resolution",
+                        "--format=json"},
+                       &rom, &output)
+                  .ok());
+  const auto report = nlohmann::json::parse(output).at("staircase_resolution");
+  EXPECT_EQ(report.at("model"), "vanilla_collision_preview");
+  EXPECT_FALSE(report.at("runtime_qualified").get<bool>());
+  ASSERT_EQ(report.at("objects").size(), 1u);
+  EXPECT_EQ(report.at("objects")[0].at("vanilla_slot"), 0);
+  EXPECT_EQ(report.at("objects")[0].at("status"), "resolved");
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest, ChestReadbackHonorsExplicitProjectReceiptLabel) {
+  zelda3::ResourceLabelProvider::ProjectLabels labels;
+  labels["item"]["0x3A"] = "Wolf Mask";
+  struct ResetLabels {
+    ~ResetLabels() { zelda3::GetResourceLabels().SetProjectLabels(nullptr); }
+  } reset;
+  zelda3::GetResourceLabels().SetProjectLabels(&labels);
+  Rom rom;
+  InitializeStatefulChestObjectRom(&rom);
+  rom.mutable_data()[kChestTableDataPc + 2] = 0x3A;
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output).ok());
+  const auto result = nlohmann::json::parse(output);
+  EXPECT_EQ(result.at("chests")[0].at("item_id"), "0x3A");
+  EXPECT_EQ(result.at("chests")[0].at("item_name"), "Wolf Mask");
+  EXPECT_EQ(result.at("chests")[0].at("item_name_source"), "project");
+}
+
+TEST(DungeonEditCommandsTest, ChestSummaryCountsReceiptZeroAsReward) {
+  Rom rom;
+  InitializeStatefulChestObjectRom(&rom);
+  rom.mutable_data()[zelda3::kChestsLengthPointer] = 6;
+  for (int i = 0; i < 6; ++i)
+    rom.mutable_data()[kChestTableDataPc + i] = 0;
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+  handlers::DungeonListChestsCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output).ok());
+  const auto result = nlohmann::json::parse(output).at("Dungeon Chests");
+  EXPECT_EQ(result.at("summary").at("unique_items"), 1);
+  const auto& duplicates = result.at("summary").at("duplicate_items");
+  ASSERT_EQ(duplicates.size(), 1u);
+  EXPECT_EQ(duplicates[0].at("item_name"), "Fighter Sword");
+  EXPECT_EQ(duplicates[0].at("count"), 2);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest, PotReadbackKeepsOddRowBitOutOfXCoordinate) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  rom.mutable_data()[kPotDataPc] = 0xCE;
+  rom.mutable_data()[kPotDataPc + 1] = 0x04;
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+  handlers::DungeonListPotItemsCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output).ok());
+  const auto result = nlohmann::json::parse(output).at("Dungeon Pot Items");
+  EXPECT_EQ(result.at("items")[0].at("position"), "0x04CE");
+  EXPECT_EQ(result.at("items")[0].at("tile_x"), 39);
+  EXPECT_EQ(result.at("items")[0].at("tile_y"), 9);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
      DescribeRoomWithoutObjectsFlagPreservesLegacyShapeAndCount) {
   Rom rom;
   InitializeDescribeRoomObjectsRom(&rom);
@@ -1089,6 +1214,7 @@ TEST(DungeonEditCommandsTest,
   ASSERT_TRUE(status.ok()) << status;
   const auto result = nlohmann::json::parse(output);
   EXPECT_FALSE(result.contains("objects"));
+  EXPECT_FALSE(result.contains("staircase_resolution"));
   // The legacy count includes the synthesized lightable-torch table object.
   EXPECT_EQ(result.at("properties").at("object_count"), 4);
   ASSERT_EQ(result.at("doors").size(), 1u);
@@ -1549,8 +1675,7 @@ TEST(DungeonEditCommandsTest,
   WriteRomFile(rom, cleanup.rom_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
@@ -1566,7 +1691,7 @@ TEST(DungeonEditCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"status\": \"error\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
   EXPECT_EQ(rom.vector(), before);
@@ -1635,8 +1760,7 @@ TEST(DungeonEditCommandsTest,
   WriteRomFile(rom, cleanup.rom_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
@@ -1966,8 +2090,7 @@ TEST(DungeonEditCommandsTest,
   WriteObjectCowManifest(manifest_cleanup.file_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
@@ -1985,7 +2108,7 @@ TEST(DungeonEditCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
@@ -2469,8 +2592,7 @@ TEST(DungeonEditCommandsTest, SetPotItemDiskSaveFailureRollsBackCallerRom) {
   WritePotItemManifest(manifest_cleanup.file_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
   const bool dirty_before = rom.dirty();
@@ -2487,7 +2609,7 @@ TEST(DungeonEditCommandsTest, SetPotItemDiskSaveFailureRollsBackCallerRom) {
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"readback_status\": \"pre_save_verified\""));
   EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
@@ -2843,8 +2965,7 @@ TEST(DungeonEditCommandsTest, SetDoorTypeDiskSaveFailureRollsBackCallerRom) {
   WriteObjectCowManifest(manifest_cleanup.file_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
   const bool dirty_before = rom.dirty();
@@ -2860,7 +2981,7 @@ TEST(DungeonEditCommandsTest, SetDoorTypeDiskSaveFailureRollsBackCallerRom) {
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"readback_status\": \"pre_save_verified\""));
   EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
@@ -3315,8 +3436,7 @@ TEST(DungeonEditCommandsTest,
   WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
   const bool dirty_before = rom.dirty();
@@ -3330,7 +3450,7 @@ TEST(DungeonEditCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"whole_rom_diff_status\": \"verified\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
   EXPECT_EQ(rom.vector(), before);

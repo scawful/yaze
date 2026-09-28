@@ -2,7 +2,7 @@
 
 Status: ACTIVE  
 Owner: `ai-infra-architect`  
-Last Reviewed: 2026-02-24
+Last Reviewed: 2026-09-23
 
 This file maps task classes to focused skills and tool stacks.  
 Rule: load only the smallest skill/tool set needed for the current task.
@@ -20,8 +20,15 @@ Use session-available skill lists as source of truth. Common mappings:
 | `docs_process` | `agentic-context` (if `.context` coordination is required) |
 
 Notes:
+- Editor completion and parity tasks load
+  [the capability plan](../plans/editor-capability-parity-plan.md) before
+  selecting a work package. Current source overrides dated skill examples;
+  repository presets keep the default build parallelism at four workers.
 - If a skill is unavailable in the active session, continue with direct CLI workflows.
 - Do not preload unrelated skills “just in case”.
+- For SpriteEditor, sprite catalog, subtype, or custom sprite migration work, read
+  [Sprite catalog and custom sprite standards](../architecture/sprite-catalog.md)
+  before edits. It separates current catalog support from future ASM/placement work.
 
 ## Tool Routing
 

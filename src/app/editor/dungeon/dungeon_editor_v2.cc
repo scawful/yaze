@@ -24,16 +24,17 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
 #include "app/editor/dungeon/inspectors/object_editor_content.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
-#include "app/editor/dungeon/ui/window/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/ui/window/item_editor_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/editor/dungeon/ui/window/object_coverage_panel.h"
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
@@ -49,6 +50,7 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -79,8 +81,20 @@
 
 namespace yaze::editor {
 
+namespace {
+
+bool ProjectAdvertisesMinecartTracks(const project::YazeProject* project) {
+  return project != nullptr && project->hack_manifest.loaded() &&
+         project->hack_manifest.minecart_track_layout().source.has_value();
+}
+
+}  // namespace
+
 void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
   Editor::SetDependencies(deps);
+  // Dependency rebinding is the project-reload boundary even when the project
+  // object is reused in place with a newly loaded manifest.
+  InvalidateDungeonRenderContextCensus();
   if (minecart_track_editor_panel_) {
     const absl::Status status =
         minecart_track_editor_panel_->RebindProjectContext(deps.project);
@@ -159,9 +173,16 @@ absl::Status DungeonEditorV2::EnsureMinecartTrackEditorPanel() {
   if (minecart_track_editor_panel_ != nullptr) {
     return absl::OkStatus();
   }
-  if (!core::FeatureFlags::get().kEnableCustomObjects) {
+  if (!ProjectAdvertisesMinecartTracks(dependencies_.project)) {
     return absl::FailedPreconditionError(
-        "Enable Custom Dungeon Objects before opening Minecart Tracks");
+        "Minecart Tracks requires hack_manifest.minecart_tracks.source");
+  }
+  if (!core::FeatureFlags::get().kEnableCustomObjects &&
+      dependencies_.toast_manager != nullptr) {
+    dependencies_.toast_manager->Show(
+        "Custom Objects is disabled. Minecart Tracks remains available, but "
+        "custom-object ROM writes stay protected until the flag is enabled.",
+        ToastType::kWarning);
   }
   if (dependencies_.window_manager != nullptr &&
       dependencies_.window_manager->GetActiveSessionId() !=
@@ -181,7 +202,8 @@ absl::Status DungeonEditorV2::EnsureMinecartTrackEditorPanel() {
   ConfigureMinecartProjectCallbacks();
   if (dependencies_.window_manager != nullptr) {
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(minecart_panel));
+        std::move(minecart_panel),
+        WindowPresentationPolicy::EmbeddedTool("minecart_tracks"));
   } else {
     owned_minecart_track_editor_panel_ = std::move(minecart_panel);
   }
@@ -203,6 +225,7 @@ absl::Status DungeonEditorV2::EnsureMinecartTrackEditorPanel() {
     workbench_panel_->SetEmbeddedToolPanels(
         room_tag_editor_panel_, custom_collision_panel_, water_fill_panel_,
         minecart_track_editor_panel_);
+    workbench_panel_->SetObjectCoverageContent(object_coverage_panel_);
   }
 
   return absl::OkStatus();
@@ -260,7 +283,7 @@ bool IsTransientDungeonRoomWindowId(const std::string& card_id) {
 bool IsWorkbenchNavigationWindowId(const std::string& card_id) {
   constexpr std::array<const char*, 3> kWorkbenchNavigationPanelIds = {
       DungeonEditorV2::kRoomSelectorId,
-      DungeonEditorV2::kEntranceListId,
+      "dungeon.entrance_properties",
       DungeonEditorV2::kRoomMatrixId,
   };
 
@@ -414,6 +437,8 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   has_pending_undo_ = false;
   pending_collision_undo_ = {};
   pending_water_fill_undo_ = {};
+  pending_entity_undo_ = {};
+  pending_selection_undo_ = {};
   pending_swap_ = {};
   pending_workflow_mode_ = {};
   pending_standalone_tool_window_ = {};
@@ -430,6 +455,7 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   }
   entrances_ = std::move(refreshed_entrances);
   spawn_points_ = std::move(refreshed_spawn_points);
+  InvalidateDungeonRenderContextCensus();
   ReloadWaterFillZones();
 
   room_selector_.set_rooms(&rooms_);
@@ -508,6 +534,10 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   }
   if (room_tag_editor_panel_) {
     room_tag_editor_panel_->SetRooms(&rooms_);
+  }
+  if (object_coverage_panel_) {
+    object_coverage_panel_->SetProject(dependencies_.project);
+    object_coverage_panel_->SetRooms(&rooms_);
   }
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->SetRooms(&rooms_);
@@ -626,10 +656,24 @@ void DungeonEditorV2::Initialize() {
   if (!dependencies_.window_manager)
     return;
   auto* window_manager = dependencies_.window_manager;
+  const auto shortcut_hint =
+      [this](const char* id,
+             std::vector<ImGuiKey> default_keys) -> std::string {
+    if (dependencies_.shortcut_manager != nullptr) {
+      const std::string live =
+          dependencies_.shortcut_manager->GetDisplayString(id);
+      if (!live.empty()) {
+        return live;
+      }
+    }
+    return PrintShortcut(default_keys);
+  };
 
   // Legacy panel IDs persisted in older layouts/settings.
   window_manager->RegisterPanelAlias("dungeon.object_tools", kObjectSelectorId);
   window_manager->RegisterPanelAlias("dungeon.entrances",
+                                     "dungeon.entrance_properties");
+  window_manager->RegisterPanelAlias(kEntranceListId,
                                      "dungeon.entrance_properties");
 
   // Register panels with WorkspaceWindowManager (no boolean flags - visibility is
@@ -643,6 +687,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_WORKSPACES,
        .category = "Dungeon",
        .workflow_group = "Core",
+       .presentation = WindowPresentationPolicy::CoreWorkspace(),
        .shortcut_hint = "",
        .visibility_flag = nullptr,
        .priority = 5,
@@ -656,37 +701,34 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_LIST,
        .category = "Dungeon",
        .workflow_group = "Core",
-       .shortcut_hint = "Ctrl+Shift+R",
+       .presentation = {.role = WindowPresentationRole::kOptionalPopOut,
+                        .default_host = WindowDefaultHost::kWorkspace,
+                        .list_in_window_browser = false,
+                        .allow_popout = true},
+       .shortcut_hint = shortcut_hint(
+           "dungeon.open_room_list", {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_L}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 20,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to browse dungeon rooms"});
 
   window_manager->RegisterPanel(
-      {.card_id = kEntranceListId,
-       .display_name = "Entrance List",
-       .window_title = " Entrance List",
+      {.card_id = "dungeon.entrance_properties",
+       .display_name = "Entrances",
+       .window_title = " Entrances",
        .icon = ICON_MD_DOOR_FRONT,
        .category = "Dungeon",
        .workflow_group = "Core",
-       .shortcut_hint = "Ctrl+Shift+E",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
+       .shortcut_hint =
+           shortcut_hint("dungeon.open_entrances",
+                         {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_E}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 25,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to browse dungeon entrances"});
-
-  window_manager->RegisterPanel(
-      {.card_id = "dungeon.entrance_properties",
-       .display_name = "Entrance Properties",
-       .window_title = " Entrance Properties",
-       .icon = ICON_MD_TUNE,
-       .category = "Dungeon",
-       .workflow_group = "Core",
-       .shortcut_hint = "",
-       .visibility_flag = nullptr,
-       .priority = 26,
-       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to edit entrance properties"});
+       .disabled_tooltip = "Load a ROM to browse and edit dungeon entrances"});
 
   window_manager->RegisterPanel(
       {.card_id = kRoomMatrixId,
@@ -695,7 +737,10 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_GRID_VIEW,
        .category = "Dungeon",
        .workflow_group = "Core",
-       .shortcut_hint = "Ctrl+Shift+M",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
+       .shortcut_hint = shortcut_hint(
+           "dungeon.open_matrix", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_M}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 30,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -708,7 +753,11 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_IMAGE,
        .category = "Dungeon",
        .workflow_group = "Editors",
-       .shortcut_hint = "Ctrl+Shift+G",
+       .presentation = WindowPresentationPolicy::EmbeddedTool(),
+       .shortcut_hint =
+           shortcut_hint("dungeon.open_room_graphics",
+                         {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_G}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 50,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -721,6 +770,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_CATEGORY,
        .category = "Dungeon",
        .workflow_group = "Editors",
+       .presentation = WindowPresentationPolicy::EmbeddedTool(),
        .shortcut_hint = "",
        .visibility_flag = nullptr,
        .priority = 60,
@@ -734,6 +784,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_DOOR_FRONT,
        .category = "Dungeon",
        .workflow_group = "Editors",
+       .presentation = WindowPresentationPolicy::EmbeddedTool(),
        .shortcut_hint = "",
        .visibility_flag = nullptr,
        .priority = 69,
@@ -747,8 +798,12 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_PALETTE,
        .category = "Dungeon",
        .workflow_group = "Editors",
+       .presentation = WindowPresentationPolicy::EmbeddedTool(),
        // Avoid conflicting with the global Command Palette (Ctrl/Cmd+Shift+P).
-       .shortcut_hint = "Ctrl+Shift+Alt+P",
+       .shortcut_hint = shortcut_hint(
+           "dungeon.open_palette",
+           {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiMod_Alt, ImGuiKey_P}),
+       .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
        .visibility_flag = nullptr,
        .priority = 70,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -770,11 +825,6 @@ void DungeonEditorV2::Initialize() {
   window_manager->RegisterWindowContent(std::make_unique<RoomBrowserContent>(
       &room_selector_, [this](int room_id) { OnRoomSelected(room_id); }));
 
-  window_manager->RegisterWindowContent(
-      std::make_unique<DungeonEntranceListPanel>(
-          &room_selector_,
-          [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
-
   {
     auto matrix_panel = std::make_unique<RoomMatrixContent>(
         &current_room_id_, &active_rooms_,
@@ -787,6 +837,12 @@ void DungeonEditorV2::Initialize() {
         [this](int room_id, RoomSelectionIntent intent) {
           OnRoomSelected(room_id, intent);
         });
+    matrix_panel->SetCensusManifestProvider(
+        [this]() -> const core::HackManifest* {
+          return dependencies_.project ? &dependencies_.project->hack_manifest
+                                       : nullptr;
+        });
+    room_matrix_panel_ = matrix_panel.get();
     window_manager->RegisterWindowContent(std::move(matrix_panel));
   }
 
@@ -865,9 +921,21 @@ void DungeonEditorV2::Initialize() {
     window_manager->RegisterWindowContent(std::move(workbench));
   }
 
-  window_manager->RegisterWindowContent(std::make_unique<DungeonEntrancesPanel>(
-      &entrances_, &spawn_points_, &current_entrance_id_,
-      [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
+  {
+    auto entrances_panel = std::make_unique<DungeonEntrancesPanel>(
+        &entrances_, &spawn_points_, &current_entrance_id_,
+        [this](int entrance_id) { OnEntranceSelected(entrance_id); });
+    entrances_panel->SetCameraTools(
+        [this](int slot_index) { return GetEntranceCameraState(slot_index); },
+        [this](int slot_index) { return RepairEntranceCamera(slot_index); },
+        [this]() { RefreshEntranceCameraOverlays(); });
+    entrance_navigator_panel_ = entrances_panel.get();
+    window_manager->RegisterWindowContent(std::move(entrances_panel));
+  }
+  if (workbench_panel_) {
+    workbench_panel_->SetNavigationPanels(room_matrix_panel_,
+                                          entrance_navigator_panel_);
+  }
 
   // Note: RoomGraphicsContent and PaletteEditorContent are registered
   // in Load() after their dependencies (renderer_, palette_editor_) are initialized
@@ -887,6 +955,7 @@ absl::Status DungeonEditorV2::Load() {
 
   RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
   RETURN_IF_ERROR(room_loader_.LoadDungeonSpawnPoints(spawn_points_));
+  InvalidateDungeonRenderContextCensus();
 
   if (!game_data()) {
     return absl::FailedPreconditionError("GameData not available");
@@ -926,12 +995,12 @@ absl::Status DungeonEditorV2::Load() {
         &current_room_id_, &rooms_, renderer_);
     room_graphics_panel_ = graphics_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(graphics_panel));
+        std::move(graphics_panel), WindowPresentationPolicy::EmbeddedTool());
     auto palette_panel =
         std::make_unique<PaletteEditorContent>(&palette_editor_);
     palette_editor_panel_ = palette_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(palette_panel));
+        std::move(palette_panel), WindowPresentationPolicy::EmbeddedTool());
   }
 
   dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
@@ -979,6 +1048,8 @@ absl::Status DungeonEditorV2::Load() {
     }
     OnRoomSelected(neighbor_room_id, true);
     if (auto* viewer = GetViewerForRoom(neighbor_room_id)) {
+      // Bind before selecting; see NavigateToPlacedObject.
+      viewer->object_interaction().SetCurrentRoom(&rooms_, neighbor_room_id);
       viewer->object_interaction()
           .entity_coordinator()
           .door_handler()
@@ -1015,14 +1086,22 @@ absl::Status DungeonEditorV2::Load() {
   room_tag_panel->SetProject(dependencies_.project);
   room_tag_panel->SetRooms(&rooms_);
   room_tag_panel->SetCurrentRoomId(current_room_id_);
+  room_tag_panel->SetMetadataEditCallback(
+      [this](int room_id, const RoomMetadataEdit& edit) {
+        return EditRoomMetadata(room_id, edit);
+      });
   room_tag_editor_panel_ = room_tag_panel.get();
+
+  auto object_coverage_panel = CreateObjectCoveragePanel();
+  object_coverage_panel_ = object_coverage_panel.get();
 
   // Register the ObjectSelectorContent directly (it inherits from WindowContent)
   // Panel manager takes ownership
   if (dependencies_.window_manager) {
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(object_selector));
-    dependencies_.window_manager->RegisterWindowContent(std::move(door_editor));
+        std::move(object_selector), WindowPresentationPolicy::EmbeddedTool());
+    dependencies_.window_manager->RegisterWindowContent(
+        std::move(door_editor), WindowPresentationPolicy::EmbeddedTool());
 
     // Register sprite and item editor panels with canvas viewer = nullptr
     // They will get the viewer reference in OnRoomSelected when a room is selected
@@ -1032,21 +1111,26 @@ absl::Status DungeonEditorV2::Load() {
         open_workbench_selection_inspector);
     sprite_editor_panel_ = sprite_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(sprite_panel));
+        std::move(sprite_panel), WindowPresentationPolicy::EmbeddedTool());
 
     auto item_panel =
         std::make_unique<ItemEditorPanel>(&current_room_id_, &rooms_, nullptr);
     item_panel->SetOpenSelectionInspectorCallback(
         open_workbench_selection_inspector);
     item_editor_panel_ = item_panel.get();
-    dependencies_.window_manager->RegisterWindowContent(std::move(item_panel));
+    dependencies_.window_manager->RegisterWindowContent(
+        std::move(item_panel), WindowPresentationPolicy::EmbeddedTool());
 
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(custom_collision_panel));
+        std::move(custom_collision_panel),
+        WindowPresentationPolicy::EmbeddedTool());
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(water_fill_panel));
+        std::move(water_fill_panel), WindowPresentationPolicy::EmbeddedTool());
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(room_tag_panel));
+        std::move(room_tag_panel), WindowPresentationPolicy::EmbeddedTool());
+    dependencies_.window_manager->RegisterWindowContent(
+        std::move(object_coverage_panel),
+        WindowPresentationPolicy::Diagnostic());
     // Object Tile Editor Panel
     {
       auto tile_editor_panel =
@@ -1072,7 +1156,8 @@ absl::Status DungeonEditorV2::Load() {
 
       object_tile_editor_panel_ = tile_editor_panel.get();
       dependencies_.window_manager->RegisterWindowContent(
-          std::move(tile_editor_panel));
+          std::move(tile_editor_panel),
+          WindowPresentationPolicy::EmbeddedTool());
     }
 
     // Wire fixed-slot custom-object management actions to their workspace
@@ -1101,7 +1186,7 @@ absl::Status DungeonEditorV2::Load() {
       auto overlay_panel = std::make_unique<OverlayManagerPanel>();
       overlay_manager_panel_ = overlay_panel.get();
       dependencies_.window_manager->RegisterWindowContent(
-          std::move(overlay_panel));
+          std::move(overlay_panel), WindowPresentationPolicy::EmbeddedTool());
     }
 
   } else {
@@ -1110,9 +1195,10 @@ absl::Status DungeonEditorV2::Load() {
     owned_custom_collision_panel_ = std::move(custom_collision_panel);
     owned_water_fill_panel_ = std::move(water_fill_panel);
     owned_room_tag_editor_panel_ = std::move(room_tag_panel);
+    owned_object_coverage_panel_ = std::move(object_coverage_panel);
   }
 
-  if (core::FeatureFlags::get().kEnableCustomObjects) {
+  if (ProjectAdvertisesMinecartTracks(dependencies_.project)) {
     RETURN_IF_ERROR(EnsureMinecartTrackEditorPanel());
   }
 
@@ -1129,6 +1215,7 @@ absl::Status DungeonEditorV2::Load() {
     workbench_panel_->SetEmbeddedToolPanels(
         room_tag_editor_panel_, custom_collision_panel_, water_fill_panel_,
         minecart_track_editor_panel_);
+    workbench_panel_->SetObjectCoverageContent(object_coverage_panel_);
     workbench_panel_->SetEmbeddedEditorPanels(
         object_selector_panel_, door_editor_panel_, sprite_editor_panel_,
         item_editor_panel_, room_graphics_panel_, palette_editor_panel_);
@@ -1325,86 +1412,12 @@ absl::Status DungeonEditorV2::Update() {
     return absl::OkStatus();
   }
 
+  // Poll the async ownership census and propagate a newly resolved entrance
+  // context before any room or graphics surface draws this frame.
+  ApplyEntranceRenderContext(current_room_id_);
+
   if (!IsWorkbenchWorkflowEnabled() || active_rooms_.Size > 0) {
     DrawRoomPanels();
-  }
-
-  // Keyboard Shortcuts (only if not typing in a text field)
-  if (!ImGui::GetIO().WantTextInput) {
-    // Room Cycling (Ctrl+Tab)
-    if (ImGui::IsKeyPressed(ImGuiKey_Tab) && ImGui::GetIO().KeyCtrl) {
-      if (IsWorkbenchWorkflowEnabled()) {
-        if (recent_rooms_.size() > 1) {
-          int current_idx = -1;
-          for (int i = 0; i < static_cast<int>(recent_rooms_.size()); ++i) {
-            if (recent_rooms_[i] == current_room_id_) {
-              current_idx = i;
-              break;
-            }
-          }
-          if (current_idx != -1) {
-            int next_idx;
-            if (ImGui::GetIO().KeyShift) {
-              next_idx =
-                  (current_idx + 1) % static_cast<int>(recent_rooms_.size());
-            } else {
-              next_idx =
-                  (current_idx - 1 + static_cast<int>(recent_rooms_.size())) %
-                  static_cast<int>(recent_rooms_.size());
-            }
-            OnRoomSelected(recent_rooms_[next_idx]);
-          }
-        }
-      } else if (active_rooms_.size() > 1) {
-        int current_idx = -1;
-        for (int i = 0; i < active_rooms_.size(); ++i) {
-          if (active_rooms_[i] == current_room_id_) {
-            current_idx = i;
-            break;
-          }
-        }
-
-        if (current_idx != -1) {
-          int next_idx;
-          if (ImGui::GetIO().KeyShift) {
-            next_idx =
-                (current_idx - 1 + active_rooms_.size()) % active_rooms_.size();
-          } else {
-            next_idx = (current_idx + 1) % active_rooms_.size();
-          }
-          OnRoomSelected(active_rooms_[next_idx]);
-        }
-      }
-    }
-
-    // Adjacent Room Navigation (Ctrl+Arrows)
-    if (ImGui::GetIO().KeyCtrl) {
-      int next_room = -1;
-      const int kCols = 16;
-
-      if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
-        if (current_room_id_ >= kCols)
-          next_room = current_room_id_ - kCols;
-      } else if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
-        if (IsValidRoomId(current_room_id_ + kCols))
-          next_room = current_room_id_ + kCols;
-      } else if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
-        if (current_room_id_ % kCols > 0)
-          next_room = current_room_id_ - 1;
-      } else if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
-        if (current_room_id_ % kCols < kCols - 1 &&
-            IsValidRoomId(current_room_id_ + 1))
-          next_room = current_room_id_ + 1;
-      }
-
-      if (next_room != -1) {
-        if (IsWorkbenchWorkflowEnabled()) {
-          OnRoomSelected(next_room, /*request_focus=*/false);
-        } else {
-          SwapRoomInPanel(current_room_id_, next_room);
-        }
-      }
-    }
   }
 
   // Process any pending room swaps after all drawing is complete
@@ -1412,6 +1425,112 @@ absl::Status DungeonEditorV2::Update() {
   ProcessPendingSwap();
 
   return absl::OkStatus();
+}
+
+bool DungeonEditorV2::CanHandleDungeonNavigationShortcut() const {
+  if (ImGui::GetCurrentContext() == nullptr) {
+    return false;
+  }
+  bool canvas_owns_focus = false;
+  room_viewers_.ForEach(
+      [&canvas_owns_focus](int,
+                           const std::unique_ptr<DungeonCanvasViewer>& viewer) {
+        canvas_owns_focus =
+            canvas_owns_focus ||
+            (viewer != nullptr && viewer->OwnsRoomNavigationShortcutFocus());
+      });
+  canvas_owns_focus =
+      canvas_owns_focus ||
+      (workbench_viewer_ != nullptr &&
+       workbench_viewer_->OwnsRoomNavigationShortcutFocus()) ||
+      (workbench_compare_viewer_ != nullptr &&
+       workbench_compare_viewer_->OwnsRoomNavigationShortcutFocus());
+  const bool navigator_owns_focus =
+      (room_matrix_panel_ != nullptr &&
+       room_matrix_panel_->OwnsNavigationShortcutFocus()) ||
+      (entrance_navigator_panel_ != nullptr &&
+       entrance_navigator_panel_->OwnsNavigationShortcutFocus());
+  return canvas_owns_focus || navigator_owns_focus;
+}
+
+bool DungeonEditorV2::NavigateToAdjacentRoom(
+    DungeonRoomNavigationDirection direction) {
+  constexpr int kColumns = 16;
+  int next_room = -1;
+  switch (direction) {
+    case DungeonRoomNavigationDirection::kUp:
+      if (current_room_id_ >= kColumns) {
+        next_room = current_room_id_ - kColumns;
+      }
+      break;
+    case DungeonRoomNavigationDirection::kDown:
+      if (IsValidRoomId(current_room_id_ + kColumns)) {
+        next_room = current_room_id_ + kColumns;
+      }
+      break;
+    case DungeonRoomNavigationDirection::kLeft:
+      if (current_room_id_ % kColumns > 0) {
+        next_room = current_room_id_ - 1;
+      }
+      break;
+    case DungeonRoomNavigationDirection::kRight:
+      if (current_room_id_ % kColumns < kColumns - 1 &&
+          IsValidRoomId(current_room_id_ + 1)) {
+        next_room = current_room_id_ + 1;
+      }
+      break;
+  }
+  if (next_room < 0) {
+    return false;
+  }
+  if (IsWorkbenchWorkflowEnabled()) {
+    OnRoomSelected(next_room, /*request_focus=*/false);
+  } else {
+    SwapRoomInPanel(current_room_id_, next_room);
+  }
+  return true;
+}
+
+bool DungeonEditorV2::CycleRoomSelection(int direction) {
+  if (direction == 0) {
+    return false;
+  }
+  if (IsWorkbenchWorkflowEnabled()) {
+    if (recent_rooms_.size() <= 1) {
+      return false;
+    }
+    const auto current =
+        std::find(recent_rooms_.begin(), recent_rooms_.end(), current_room_id_);
+    if (current == recent_rooms_.end()) {
+      return false;
+    }
+    const int current_index =
+        static_cast<int>(std::distance(recent_rooms_.begin(), current));
+    const int count = static_cast<int>(recent_rooms_.size());
+    const int next_index =
+        (current_index + (direction > 0 ? 1 : -1) + count) % count;
+    OnRoomSelected(recent_rooms_[next_index]);
+    return true;
+  }
+
+  if (active_rooms_.size() <= 1) {
+    return false;
+  }
+  int current_index = -1;
+  for (int index = 0; index < active_rooms_.size(); ++index) {
+    if (active_rooms_[index] == current_room_id_) {
+      current_index = index;
+      break;
+    }
+  }
+  if (current_index < 0) {
+    return false;
+  }
+  const int count = active_rooms_.size();
+  const int next_index =
+      (current_index + (direction > 0 ? 1 : -1) + count) % count;
+  OnRoomSelected(active_rooms_[next_index]);
+  return true;
 }
 
 void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
@@ -1461,6 +1580,163 @@ void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
                                 ? workflow_mode_names::kWorkbench
                                 : workflow_mode_names::kStandalone,
                             std::move(mode_opts));
+}
+
+EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
+  EditorContextSnapshot snapshot;
+  snapshot.category = "Dungeon";
+  snapshot.semantic_owner =
+      absl::StrFormat("dungeon.room.%03X", current_room_id_);
+  snapshot.title =
+      absl::StrFormat("Room 0x%03X · %s", current_room_id_,
+                      dungeon_project_labels::GetRoomLabel(
+                          dependencies_.project, current_room_id_));
+  snapshot.subtitle = IsWorkbenchWorkflowEnabled()
+                          ? workflow_mode_names::kWorkbench
+                          : workflow_mode_names::kStandalone;
+
+  const zelda3::Room* room = IsValidRoomId(current_room_id_)
+                                 ? rooms_.GetIfMaterialized(current_room_id_)
+                                 : nullptr;
+  if (room == nullptr) {
+    snapshot.diagnostics.push_back({
+        .id = "room_not_loaded",
+        .severity = EditorContextDiagnosticSeverity::kInfo,
+        .message = "Room data has not been materialized yet.",
+    });
+  } else {
+    const DungeonRenderContext render_context =
+        ResolveDungeonRenderContextForRoom(current_room_id_);
+    const uint8_t entrance_blockset = render_context.uses_entrance()
+                                          ? render_context.entrance_blockset
+                                          : 0xFF;
+    snapshot.metadata = {
+        {.id = "graphics_entrance",
+         .label = "Graphics entrance",
+         .value = render_context.uses_entrance()
+                      ? absl::StrFormat("0x%02X", render_context.entrance_slot)
+                      : "None"},
+        {.id = "graphics_source",
+         .label = "Graphics source",
+         .value = DungeonRenderContextSourceName(render_context.source)},
+        {.id = "dungeon_owner",
+         .label = "Dungeon owner",
+         .value = render_context.owner_name.empty()
+                      ? "Unresolved"
+                      : render_context.owner_name},
+        {.id = "blockset",
+         .label = "Blockset",
+         .value = entrance_blockset == 0xFF
+                      ? absl::StrFormat("room 0x%02X", room->blockset())
+                      : absl::StrFormat("main 0x%02X / room 0x%02X",
+                                        entrance_blockset, room->blockset())},
+        {.id = "spriteset",
+         .label = "Spriteset",
+         .value = absl::StrFormat("0x%02X", room->spriteset())},
+        {.id = "palette",
+         .label = "Palette",
+         .value = absl::StrFormat("0x%02X", room->palette())},
+    };
+    snapshot.counts = {
+        {.id = "objects",
+         .label = "Objects",
+         .value = std::to_string(room->GetTileObjectCount())},
+        {.id = "sprites",
+         .label = "Sprites",
+         .value = std::to_string(room->GetSprites().size())},
+        {.id = "doors",
+         .label = "Doors",
+         .value = std::to_string(room->GetDoors().size())},
+        {.id = "stairs",
+         .label = "Stairs",
+         .value = std::to_string(room->GetStairs().size())},
+        {.id = "chests",
+         .label = "Chests",
+         .value = std::to_string(room->GetChests().size())},
+        {.id = "pot_items",
+         .label = "Pot items",
+         .value = std::to_string(room->GetPotItems().size())},
+    };
+    snapshot.has_pending_changes = room->HasUnsavedChanges();
+    snapshot.pending_label =
+        snapshot.has_pending_changes ? "Room has unapplied changes" : "";
+    if (render_context.source == DungeonRenderContextSource::kAmbiguous) {
+      snapshot.diagnostics.push_back({
+          .id = "ambiguous_dungeon_graphics_owner",
+          .severity = EditorContextDiagnosticSeverity::kWarning,
+          .message =
+              "Owner entrances disagree on main GFX; using the room header.",
+          .action_id = "open_entrance",
+      });
+    } else if (!dungeon_render_context_census_error_.empty()) {
+      snapshot.diagnostics.push_back({
+          .id = "dungeon_owner_unavailable",
+          .severity = EditorContextDiagnosticSeverity::kInfo,
+          .message = absl::StrFormat("Dungeon ownership is unavailable: %s",
+                                     dungeon_render_context_census_error_),
+      });
+    }
+    if (const auto camera = GetEntranceCameraState(current_entrance_id_);
+        camera.has_value()) {
+      const auto validation = ValidateDungeonEntranceCamera(*camera);
+      snapshot.metadata.push_back({
+          .id = "entrance_camera",
+          .label = "Entrance camera",
+          .value = !validation.geometry_valid() ? "Unsafe geometry"
+                   : validation.matches_derived()
+                       ? "Matches player position"
+                       : absl::StrFormat("%zu derived difference(s)",
+                                         validation.differences.size()),
+      });
+      if (!validation.geometry_valid()) {
+        snapshot.diagnostics.push_back({
+            .id = "entrance_camera_invalid",
+            .severity = EditorContextDiagnosticSeverity::kError,
+            .message = validation.errors.front(),
+            .action_id = "open_entrance",
+        });
+      } else if (!validation.matches_derived()) {
+        snapshot.diagnostics.push_back({
+            .id = "entrance_camera_custom",
+            .severity = EditorContextDiagnosticSeverity::kWarning,
+            .message =
+                "Entrance camera is safe but differs from derived values.",
+            .action_id = "open_entrance",
+        });
+      }
+    }
+  }
+
+  snapshot.capabilities = {
+      "dungeon.room_matrix",
+      "dungeon.entrances",
+      "dungeon.room_graphics",
+  };
+  if (dependencies_.project != nullptr &&
+      dependencies_.project->hack_manifest.loaded() &&
+      dependencies_.project->hack_manifest.minecart_track_layout()
+          .source.has_value()) {
+    snapshot.capabilities.push_back("minecart_tracks");
+  }
+  snapshot.actions = {
+      {.id = "open_matrix",
+       .label = "Room Matrix",
+       .target = "dungeon.room_matrix"},
+      {.id = "open_entrance",
+       .label = "Entrances",
+       .target = "dungeon.entrance_properties"},
+      {.id = "open_graphics",
+       .label = "Room Graphics",
+       .target = "dungeon.room_graphics"},
+  };
+  if (snapshot.HasCapability("minecart_tracks")) {
+    snapshot.actions.push_back({
+        .id = "open_minecart",
+        .label = "Minecart Tracks",
+        .target = kMinecartTrackEditorId,
+    });
+  }
+  return snapshot;
 }
 
 int DungeonEditorV2::LoadedRoomCount() const {
@@ -1573,8 +1849,8 @@ void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
     }
   } else {
     window_manager->CloseWindow(session_id, "dungeon.workbench");
-    window_manager->OpenWindow(session_id, kRoomSelectorId);
     window_manager->OpenWindow(session_id, kRoomMatrixId);
+    window_manager->OpenWindow(session_id, "dungeon.entrance_properties");
     if (current_room_id_ >= 0) {
       ShowRoomPanel(current_room_id_);
     }
@@ -2021,6 +2297,7 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
   }
   current_entrance_id_ = entrance_id;
   room_selector_.set_current_entrance_id(entrance_id);
+  RefreshEntranceCameraOverlays();
 
   const int room_id = ResolveEntranceRoomId(entrance_id);
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
@@ -2042,26 +2319,9 @@ int DungeonEditorV2::ResolveEntranceRoomId(int entrance_id) const {
 
 uint8_t DungeonEditorV2::ResolveSelectedEntranceBlocksetForRoom(
     int room_id) const {
-  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
-    return 0xFF;
-  }
-  if (current_entrance_id_ < 0 ||
-      current_entrance_id_ >= static_cast<int>(entrances_.size())) {
-    return 0xFF;
-  }
-  if (current_entrance_id_ < zelda3::kNumDungeonSpawnPoints) {
-    const auto& spawn = spawn_points_[current_entrance_id_];
-    if (spawn.spawn_id() != current_entrance_id_ || spawn.room_id != room_id) {
-      return 0xFF;
-    }
-    return spawn.main_gfx;
-  }
-
-  const auto& entrance = entrances_[current_entrance_id_];
-  if (entrance.room_ != room_id) {
-    return 0xFF;
-  }
-  return entrance.blockset_;
+  const DungeonRenderContext context =
+      ResolveDungeonRenderContextForRoom(room_id);
+  return context.uses_entrance() ? context.entrance_blockset : 0xFF;
 }
 
 void DungeonEditorV2::ApplyEntranceRenderContext(int room_id) {
@@ -2081,12 +2341,19 @@ void DungeonEditorV2::ConfigureViewerRenderContext(DungeonCanvasViewer* viewer,
   if (viewer == nullptr) {
     return;
   }
-  const uint8_t entrance_blockset =
-      ResolveSelectedEntranceBlocksetForRoom(room_id);
-  if (entrance_blockset == 0xFF) {
+  const DungeonRenderContext context =
+      ResolveDungeonRenderContextForRoom(room_id);
+  if (!context.uses_entrance()) {
     viewer->ClearEntranceRenderContext();
   } else {
-    viewer->SetEntranceRenderContext(current_entrance_id_, entrance_blockset);
+    viewer->SetEntranceRenderContext(context.entrance_slot,
+                                     context.entrance_blockset);
+  }
+  const auto camera = GetEntranceCameraState(current_entrance_id_);
+  if (camera.has_value() && camera->room_id == room_id) {
+    viewer->SetEntranceCameraOverlay(current_entrance_id_, *camera);
+  } else {
+    viewer->ClearEntranceCameraOverlay();
   }
 }
 
@@ -2467,12 +2734,16 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
     OpenWindow("dungeon.item_editor");
   });
   viewer->SetShowRoomListCallback([this]() {
-    OpenWindow(IsWorkbenchWorkflowEnabled() ? "dungeon.workbench"
-                                            : DungeonEditorV2::kRoomSelectorId);
+    if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
+      workbench_panel_->FocusRoomMatrix();
+      OpenWindow("dungeon.workbench");
+      return;
+    }
+    OpenWindow(DungeonEditorV2::kRoomSelectorId);
   });
   viewer->SetShowRoomMatrixCallback([this]() {
     if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
-      workbench_panel_->ShowConnectedGraph();
+      workbench_panel_->FocusRoomMatrix();
       OpenWindow("dungeon.workbench");
       return;
     }
@@ -2484,7 +2755,7 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
       OpenWindow("dungeon.workbench");
       return;
     }
-    OpenWindow(kEntranceListId);
+    OpenWindow("dungeon.entrance_properties");
   });
   viewer->SetShowRoomGraphicsCallback([this]() {
     if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
@@ -2494,6 +2765,10 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
     }
     OpenWindow(kRoomGraphicsId);
   });
+  viewer->SetCheckObjectCoverageCallback(
+      [this](int room_id, const zelda3::RoomObject& object) {
+        FocusObjectCoverage(room_id, object);
+      });
   viewer->SetShowDoorEditorCallback([this]() {
     if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
       workbench_panel_->OpenDoorTool();
@@ -2602,62 +2877,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     ConfigureViewerRenderContext(viewer_ptr, room_id);
     ApplyEntranceRenderContext(room_id);
 
-    // These hooks must remain correct even when a room panel swaps rooms while
-    // keeping the same viewer instance (to preserve canvas pan/zoom + UI
-    // state). Use the viewer's best-effort current room context instead of
-    // capturing room_id at creation time.
-    viewer->object_interaction().SetMutationCallback([this, viewer_ptr]() {
-      const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
-      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        const auto domain =
-            viewer_ptr->object_interaction().last_mutation_domain();
-        if (domain == MutationDomain::kTileObjects) {
-          BeginUndoSnapshot(rid);
-        } else if (domain == MutationDomain::kCustomCollision) {
-          BeginCollisionUndoSnapshot(rid);
-        } else if (domain == MutationDomain::kWaterFill) {
-          BeginWaterFillUndoSnapshot(rid);
-        }
-      }
-    });
-
-    viewer->object_interaction().SetCacheInvalidationCallback([this,
-                                                               viewer_ptr]() {
-      const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
-      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        const auto domain =
-            viewer_ptr->object_interaction().last_invalidation_domain();
-        if (domain == MutationDomain::kTileObjects) {
-          rooms_[rid].MarkObjectsDirty();
-          rooms_[rid].RenderRoomGraphics();
-          // Drag edits invalidate incrementally; finalize once the drag ends
-          // (TileObjectHandler emits an extra invalidation on release).
-          const auto mode =
-              viewer_ptr->object_interaction().mode_manager().GetMode();
-          if (mode != InteractionMode::DraggingObjects) {
-            FinalizeUndoAction(rid);
-          }
-        } else if (domain == MutationDomain::kCustomCollision) {
-          const auto mode =
-              viewer_ptr->object_interaction().mode_manager().GetMode();
-          const auto& st =
-              viewer_ptr->object_interaction().mode_manager().GetModeState();
-          if (mode == InteractionMode::PaintCollision && st.is_painting) {
-            return;
-          }
-          FinalizeCollisionUndoAction(rid);
-        } else if (domain == MutationDomain::kWaterFill) {
-          const auto mode =
-              viewer_ptr->object_interaction().mode_manager().GetMode();
-          const auto& st =
-              viewer_ptr->object_interaction().mode_manager().GetModeState();
-          if (mode == InteractionMode::PaintWaterFill && st.is_painting) {
-            return;
-          }
-          FinalizeWaterFillUndoAction(rid);
-        }
-      }
-    });
+    ConfigureViewerUndoHooks(viewer_ptr);
 
     viewer->object_interaction().SetObjectPlacedCallback(
         [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });
@@ -2736,55 +2956,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->SetCurrentPaletteId(current_palette_id_);
     viewer->SetGameData(game_data_);
 
-    // Workbench uses a single viewer; these hooks use the viewer's current room
-    // context (set at DrawDungeonCanvas start) so room switching stays correct.
-    viewer->object_interaction().SetMutationCallback([this, viewer]() {
-      const int rid = viewer ? viewer->current_room_id() : -1;
-      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        const auto domain = viewer->object_interaction().last_mutation_domain();
-        if (domain == MutationDomain::kTileObjects) {
-          BeginUndoSnapshot(rid);
-        } else if (domain == MutationDomain::kCustomCollision) {
-          BeginCollisionUndoSnapshot(rid);
-        } else if (domain == MutationDomain::kWaterFill) {
-          BeginWaterFillUndoSnapshot(rid);
-        }
-      }
-    });
-    viewer->object_interaction().SetCacheInvalidationCallback([this, viewer]() {
-      const int rid = viewer ? viewer->current_room_id() : -1;
-      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        const auto domain =
-            viewer->object_interaction().last_invalidation_domain();
-        if (domain == MutationDomain::kTileObjects) {
-          rooms_[rid].MarkObjectsDirty();
-          rooms_[rid].RenderRoomGraphics();
-          const auto mode =
-              viewer->object_interaction().mode_manager().GetMode();
-          if (mode != InteractionMode::DraggingObjects) {
-            FinalizeUndoAction(rid);
-          }
-        } else if (domain == MutationDomain::kCustomCollision) {
-          const auto mode =
-              viewer->object_interaction().mode_manager().GetMode();
-          const auto& st =
-              viewer->object_interaction().mode_manager().GetModeState();
-          if (mode == InteractionMode::PaintCollision && st.is_painting) {
-            return;
-          }
-          FinalizeCollisionUndoAction(rid);
-        } else if (domain == MutationDomain::kWaterFill) {
-          const auto mode =
-              viewer->object_interaction().mode_manager().GetMode();
-          const auto& st =
-              viewer->object_interaction().mode_manager().GetModeState();
-          if (mode == InteractionMode::PaintWaterFill && st.is_painting) {
-            return;
-          }
-          FinalizeWaterFillUndoAction(rid);
-        }
-      }
-    });
+    ConfigureViewerUndoHooks(viewer);
 
     viewer->object_interaction().SetObjectPlacedCallback(
         [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });

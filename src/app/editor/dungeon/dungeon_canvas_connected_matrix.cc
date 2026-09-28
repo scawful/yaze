@@ -190,16 +190,6 @@ int CountConnectedRoomsOnFloor(
   return count;
 }
 
-int CountAutoFixableStaircaseIssues(
-    const std::vector<DungeonStaircaseIssue>& issues) {
-  return static_cast<int>(std::count_if(
-      issues.begin(), issues.end(), [](const DungeonStaircaseIssue& issue) {
-        return issue.kind == DungeonStaircaseIssueKind::UnusedHeader &&
-               issue.slot_index >= 0 && issue.slot_index < 4 &&
-               issue.header_room_id > 0;
-      }));
-}
-
 void DrawConnectedLegendItem(const char* label, ImU32 color,
                              DungeonConnectedLinkType type) {
   constexpr float kSwatchWidth = 12.0f;
@@ -765,14 +755,14 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
     ImGui::SameLine(0.0f, 6.0f);
     ImGui::TextColored(gui::ConvertColorToImVec4(
                            gui::ThemeManager::Get().GetCurrentTheme().warning),
-                       tr("%zu issue%s"), issue_count,
+                       tr("%zu possible issue%s"), issue_count,
                        issue_count == 1 ? "" : "s");
     if (ImGui::IsItemHovered()) {
       std::string tooltip(
-          "Staircase configuration anomalies in this connected component:\n"
-          "  Stale headers (no consuming object), missing destinations\n"
-          "  (placed object but header is 0/invalid), and extras (objects\n"
-          "  beyond the 4 header slots). Hover a room to localise.");
+          "Provisional staircase diagnostics based on placement order.\n"
+          "These do not establish runtime slot use. Room 000 is valid.\n"
+          "Review header destinations manually; automatic clearing is "
+          "disabled.");
       for (const auto& issue : connected_graph_cache_.staircase_issues) {
         absl::StrAppend(
             &tooltip,
@@ -782,22 +772,16 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
       ImGui::SetTooltip("%s", tooltip.c_str());
     }
   }
-  const int auto_fixable_count =
-      connected_graph_cache_start_room_id_ == center_room_id
-          ? CountAutoFixableStaircaseIssues(
-                connected_graph_cache_.staircase_issues)
-          : 0;
-  if (auto_fixable_count > 0) {
-    ImGui::SameLine(0.0f, 6.0f);
-    if (ImGui::SmallButton(ICON_MD_CLEAR " Clear stale##ConnectedFixStale")) {
-      ApplyConnectedStaircaseIssueAutoFixes(center_room_id);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(tr(
-          "Clear stale non-zero staircase header slots that no placed "
-          "interroom-stair object consumes. This marks room headers dirty but "
-          "does not guess missing destinations or delete extra objects."));
-    }
+  ImGui::SameLine(0.0f, 6.0f);
+  ImGui::TextDisabled("%s", tr("Stair mapping unverified"));
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "%s",
+        tr("Staircase links and unused-slot notices are placement-order "
+           "estimates. "
+           "The game uses staircase-family counters and collision indices. "
+           "Automatic clearing is disabled; review Destinations in the room "
+           "inspector."));
   }
   const size_t out_of_scope_count =
       connected_graph_cache_start_room_id_ == center_room_id

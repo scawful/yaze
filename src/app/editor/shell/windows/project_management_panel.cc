@@ -173,17 +173,24 @@ void ProjectManagementPanel::DrawProjectOverview() {
   // Project file path (read-only, click to copy)
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Path:"));
   ImGui::SameLine();
-  if (ImGui::Selectable(project_->filepath.c_str(), false,
+  const bool has_project_path = !project_->filepath.empty();
+  ImGui::BeginDisabled(!has_project_path);
+  const std::string project_path_label =
+      has_project_path ? project_->filepath + "##project_path"
+                       : std::string("(no project file)##project_path");
+  if (ImGui::Selectable(project_path_label.c_str(), false,
                         ImGuiSelectableFlags_None,
-                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0)) &&
+      has_project_path) {
     ImGui::SetClipboardText(project_->filepath.c_str());
     if (toast_manager_) {
       toast_manager_->Show("Path copied to clipboard", ToastType::kInfo);
     }
   }
-  if (ImGui::IsItemHovered()) {
+  if (has_project_path && ImGui::IsItemHovered()) {
     ImGui::SetTooltip(tr("Click to copy path"));
   }
+  ImGui::EndDisabled();
 
   ImGui::Spacing();
 

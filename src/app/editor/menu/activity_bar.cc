@@ -17,6 +17,7 @@
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
@@ -40,14 +41,18 @@ void PersistSettings(UserSettings* settings) {
 }
 }  // namespace
 
-ActivityBar::ActivityBar(WorkspaceWindowManager& window_manager,
-                         std::function<bool()> is_dungeon_workbench_mode,
-                         std::function<void(bool)> set_dungeon_workflow_mode)
+ActivityBar::ActivityBar(
+    WorkspaceWindowManager& window_manager,
+    std::function<bool()> is_dungeon_workbench_mode,
+    std::function<void(bool)> set_dungeon_workflow_mode,
+    std::function<EditorContextSnapshot(const std::string&)> context_provider)
     : window_manager_(window_manager),
       window_browser_(window_manager),
-      window_sidebar_(window_manager, std::move(is_dungeon_workbench_mode),
-                      std::move(set_dungeon_workflow_mode),
-                      [this]() { return GetBottomReservedHeight(); }),
+      window_sidebar_(
+          window_manager, std::move(is_dungeon_workbench_mode),
+          std::move(set_dungeon_workflow_mode),
+          [this]() { return GetBottomReservedHeight(); },
+          std::move(context_provider)),
       actions_registry_(std::make_unique<MoreActionsRegistry>()) {}
 
 ActivityBar::~ActivityBar() = default;
@@ -167,35 +172,38 @@ void ActivityBar::DrawCategoryContextMenu(const std::string& category) {
   const bool is_pinned = prefs.sidebar_pinned.count(category) > 0;
   const bool is_hidden = prefs.sidebar_hidden.count(category) > 0;
 
-  const char* pin_label = is_pinned ? "Unpin from top" : "Pin to top";
-  if (ImGui::MenuItem(pin_label)) {
-    if (is_pinned) {
-      prefs.sidebar_pinned.erase(category);
-    } else {
-      prefs.sidebar_pinned.insert(category);
-    }
-    PersistSettings(user_settings_);
-  }
-
-  const char* hide_label = is_hidden ? "Show on sidebar" : "Hide from sidebar";
-  if (ImGui::MenuItem(hide_label)) {
-    if (is_hidden) {
-      prefs.sidebar_hidden.erase(category);
-    } else {
-      prefs.sidebar_hidden.insert(category);
-    }
-    PersistSettings(user_settings_);
-  }
-
-  ImGui::Separator();
-  if (ImGui::MenuItem(tr("Reset Sidebar Order"))) {
-    prefs.sidebar_order.clear();
-    PersistSettings(user_settings_);
-  }
-  if (ImGui::MenuItem(tr("Show All Categories"))) {
-    prefs.sidebar_hidden.clear();
-    PersistSettings(user_settings_);
-  }
+  std::vector<gui::MenuItemSpec> items;
+  items.emplace_back(is_pinned ? "Unpin from Top" : "Pin to Top",
+                     ICON_MD_PUSH_PIN, [&prefs, &category, is_pinned, this]() {
+                       if (is_pinned) {
+                         prefs.sidebar_pinned.erase(category);
+                       } else {
+                         prefs.sidebar_pinned.insert(category);
+                       }
+                       PersistSettings(user_settings_);
+                     });
+  items.emplace_back(is_hidden ? "Show on Sidebar" : "Hide from Sidebar",
+                     is_hidden ? ICON_MD_VISIBILITY : ICON_MD_VISIBILITY_OFF,
+                     [&prefs, &category, is_hidden, this]() {
+                       if (is_hidden) {
+                         prefs.sidebar_hidden.erase(category);
+                       } else {
+                         prefs.sidebar_hidden.insert(category);
+                       }
+                       PersistSettings(user_settings_);
+                     });
+  items.back().separator_after = true;
+  items.emplace_back(tr("Reset Sidebar Order"), ICON_MD_RESTORE,
+                     [&prefs, this]() {
+                       prefs.sidebar_order.clear();
+                       PersistSettings(user_settings_);
+                     });
+  items.emplace_back(tr("Show All Categories"), ICON_MD_VISIBILITY,
+                     [&prefs, this]() {
+                       prefs.sidebar_hidden.clear();
+                       PersistSettings(user_settings_);
+                     });
+  gui::RenderMenuItems(items);
 
   ImGui::EndPopup();
 }
@@ -336,14 +344,11 @@ void ActivityBar::DrawActivityBarStrip(
 
       const EditorType editor_type =
           EditorRegistry::GetEditorTypeFromCategory(cat);
-      const bool experimental =
-          EditorRegistry::IsExperimentalEditor(editor_type);
-      const bool allow_experimental =
+      const bool experiments_enabled =
           user_settings_ && user_settings_->prefs().show_experimental_editors;
-      const bool blocked_experimental = experimental && !allow_experimental;
-      if (blocked_experimental) {
-        category_enabled = false;
-      }
+      const bool experimental_warning =
+          EditorRegistry::ShouldWarnAboutExperimentalEditor(
+              editor_type, experiments_enabled);
 
       // Get category-specific theme colors for expressive appearance
       auto cat_theme = WorkspaceWindowManager::GetCategoryTheme(cat);
@@ -475,13 +480,13 @@ void ActivityBar::DrawActivityBarStrip(
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         ImGui::BeginTooltip();
         ImGui::Text("%s %s", icon.c_str(), cat.c_str());
-        if (blocked_experimental) {
-          gui::ColoredText(
-              "In development — enable Experimental Editors in Settings",
-              gui::ConvertColorToImVec4(theme.warning));
-        } else if (!category_enabled) {
+        if (!category_enabled) {
           gui::ColoredText("Open ROM required",
                            gui::ConvertColorToImVec4(theme.warning));
+        } else if (experimental_warning) {
+          gui::ColoredText(
+              "Experimental — available with defensive save safeguards",
+              gui::ConvertColorToImVec4(theme.warning));
         } else if (has_active_editor) {
           gui::ColoredText(
               is_selected ? "Active editor" : "Editor open (click to focus)",

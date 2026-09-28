@@ -3,10 +3,12 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/sprite/sprite_authoring.h"
 #include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/sprite_editor_internal.h"
 #include "app/editor/sprite/sprite_undo_actions.h"
@@ -16,11 +18,16 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "core/gfx_sheet_policy_adapter.h"
+#include "core/project.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -77,15 +84,19 @@ void SpriteEditor::Initialize() {
   window_manager->RegisterWindowContent(
       std::make_unique<CustomSpriteEditorPanel>(
           [this]() { DrawCustomSprites(); }));
+  window_manager->RegisterWindowContent(
+      std::make_unique<SpriteCatalogPanel>([this]() { DrawSpriteCatalog(); }));
 }
 
 absl::Status SpriteEditor::Load() {
   gfx::ScopedTimer timer("SpriteEditor::Load");
+  (void)ReloadSpriteCatalog();
+  asset_load_status_ = ReloadProjectSpriteAssets();
   return absl::OkStatus();
 }
 
 absl::Status SpriteEditor::Update() {
-  if (rom()->is_loaded() && !sheets_loaded_) {
+  if (rom() && rom()->is_loaded() && !sheets_loaded_) {
     sheets_loaded_ = true;
   }
 
@@ -150,7 +161,7 @@ absl::Status SpriteEditor::Save() {
       SaveZsmFile(zsm_path);
     }
   }
-  return absl::OkStatus();
+  return status_;
 }
 
 void SpriteEditor::DrawToolset() {
@@ -219,8 +230,6 @@ void SpriteEditor::DrawVanillaSpriteEditor() {
 }
 
 void SpriteEditor::DrawSpriteCanvas() {
-  static bool flip_x = false;
-  static bool flip_y = false;
   if (ImGui::BeginChild(gui::GetID("##SpriteCanvas"),
                         ImGui::GetContentRegionAvail(), true)) {
     sprite_canvas_.DrawBackground();
@@ -231,7 +240,9 @@ void SpriteEditor::DrawSpriteCanvas() {
       const auto* layout = zelda3::SpriteOamRegistry::GetLayout(
           static_cast<uint8_t>(current_sprite_id_));
       if (layout) {
-        // Load required sheets for this sprite
+        // Vanilla preview must not replace the custom editor's sheet selection.
+        std::array<uint8_t, 8> custom_sheets;
+        std::copy_n(current_sheets_, 8, custom_sheets.begin());
         LoadSheetsForSprite(layout->required_sheets);
         RenderVanillaSprite(*layout);
 
@@ -244,64 +255,220 @@ void SpriteEditor::DrawSpriteCanvas() {
         ImGui::SetCursorPos(ImVec2(10, 10));
         Text(tr("Sprite: %s (0x%02X)"), layout->name, layout->sprite_id);
         Text(tr("Tiles: %zu"), layout->tiles.size());
+        if (ImGui::Button(tr("Edit preview copy"))) {
+          CreateNewZSprite();
+          auto& copy = custom_sprites_.back();
+          copy.sprName = std::string(layout->name) + " (preview copy)";
+          copy.editor.Frames[0] = sprite_authoring::CopyVanillaLayout(*layout);
+          std::copy_n(current_sheets_, 8, custom_sheets.begin());
+          custom_sprite_bindings_.back().sheets = custom_sheets;
+          if (dependencies_.window_manager) {
+            auto visible = dependencies_.window_manager->GetVisibleWindowIds(
+                dependencies_.session_id);
+            visible.push_back("sprite.custom_editor");
+            dependencies_.window_manager->SetVisibleWindows(
+                dependencies_.session_id, visible);
+          }
+        }
+        ImGui::TextDisabled(
+            "Static layout copy; save as ZSM in Custom Sprites.");
+        if (!std::equal(custom_sheets.begin(), custom_sheets.end(),
+                        current_sheets_)) {
+          std::copy(custom_sheets.begin(), custom_sheets.end(),
+                    current_sheets_);
+          gfx_buffer_loaded_ = false;
+          preview_needs_update_ = true;
+        }
+        gfx_buffer_loaded_ = false;
+        preview_needs_update_ = true;
       }
     }
 
     sprite_canvas_.DrawGrid();
     sprite_canvas_.DrawOverlay();
 
-    if (ImGui::BeginTable("##OAMTable", 7, ImGuiTableFlags_Resizable,
-                          ImVec2(0, 0))) {
-      TableSetupColumn("X", ImGuiTableColumnFlags_WidthStretch);
-      TableSetupColumn("Y", ImGuiTableColumnFlags_WidthStretch);
-      TableSetupColumn("Tile", ImGuiTableColumnFlags_WidthStretch);
-      TableSetupColumn("Palette", ImGuiTableColumnFlags_WidthStretch);
-      TableSetupColumn("Priority", ImGuiTableColumnFlags_WidthStretch);
-      TableSetupColumn("Flip X", ImGuiTableColumnFlags_WidthStretch);
-      TableSetupColumn("Flip Y", ImGuiTableColumnFlags_WidthStretch);
-      TableHeadersRow();
-      TableNextRow();
-
-      TableNextColumn();
-      gui::InputHexWord("", &oam_config_.x);
-
-      TableNextColumn();
-      gui::InputHexWord("", &oam_config_.y);
-
-      TableNextColumn();
-      gui::InputHexByte("", &oam_config_.tile);
-
-      TableNextColumn();
-      gui::InputHexByte("", &oam_config_.palette);
-
-      TableNextColumn();
-      gui::InputHexByte("", &oam_config_.priority);
-
-      TableNextColumn();
-      if (ImGui::Checkbox("##XFlip", &flip_x)) {
-        oam_config_.flip_x = flip_x;
-      }
-
-      TableNextColumn();
-      if (ImGui::Checkbox("##YFlip", &flip_y)) {
-        oam_config_.flip_y = flip_y;
-      }
-
-      ImGui::EndTable();
-    }
-
-    DrawAnimationFrames();
+    ImGui::TextDisabled(
+        "Use Edit preview copy to author frames and animations.");
   }
   ImGui::EndChild();
+}
+
+void SpriteEditor::ApplySpritesetToSheets(int spriteset) {
+  if (game_data() == nullptr || spriteset < 0 ||
+      spriteset >= static_cast<int>(zelda3::kNumSpritesets)) {
+    return;
+  }
+  const auto slots =
+      zelda3::SpriteSheetSlots(game_data()->spriteset_ids[spriteset],
+                               zelda3::IsUnderworldSpriteset(spriteset));
+  if (current_custom_sprite())
+    BeginUndoTransaction();
+  std::copy(slots.begin(), slots.end(), current_sheets_);
+  gfx_buffer_loaded_ = false;
+  preview_needs_update_ = true;
+  if (current_custom_sprite()) {
+    auto& binding = custom_sprite_bindings_[current_custom_sprite_index_];
+    std::copy(slots.begin(), slots.end(), binding.sheets.begin());
+    MarkSpriteMutated();
+  }
+  CommitUndoTransaction();
+}
+
+void SpriteEditor::DrawSpritesetPicker() {
+  if (!ImGui::CollapsingHeader(tr("Spriteset preview"),
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  if (game_data() == nullptr || rom_ == nullptr || !rom_->is_loaded()) {
+    ImGui::TextDisabled(tr("Load a ROM to preview against spritesets."));
+    return;
+  }
+  if (usage_rom_ != rom_ || !usage_areas_.has_value()) {
+    usage_areas_ = zelda3::CollectOverworldAreaGfx(*rom_, game_data());
+    usage_rooms_ = zelda3::CollectRoomGfx(*rom_);
+    usage_rom_ = rom_;
+  }
+
+  uint8_t set = static_cast<uint8_t>(preview_spriteset_);
+  if (gui::InputHexByte("Spriteset", &set,
+                        static_cast<uint8_t>(zelda3::kNumSpritesets - 1))) {
+    preview_spriteset_ = std::min<int>(set, zelda3::kNumSpritesets - 1);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_DONE " Apply to sheets")) {
+    ApplySpritesetToSheets(preview_spriteset_);
+  }
+  HOVER_HINT(
+      "Slots 0-3 take the static sprite sheets, slots 4-7 this spriteset's "
+      "values + 0x73 (OAM tiles 0x100-0x1FF).");
+
+  const auto& values = game_data()->spriteset_ids[preview_spriteset_];
+  const auto slots = zelda3::SpriteSheetSlots(
+      values, zelda3::IsUnderworldSpriteset(preview_spriteset_));
+  ImGui::TextDisabled(
+      "Values %02X %02X %02X %02X -> sheets %02X %02X %02X %02X", values[0],
+      values[1], values[2], values[3], slots[4], slots[5], slots[6], slots[7]);
+
+  const auto usage = zelda3::FindSpritesetUsage(preview_spriteset_,
+                                                *usage_areas_, *usage_rooms_);
+  auto hex_list = [](const std::vector<int>& ids) {
+    if (ids.empty()) {
+      return std::string("-");
+    }
+    std::string out;
+    for (size_t i = 0; i < ids.size() && i < 24; ++i) {
+      out += absl::StrFormat("%s%02X", i == 0 ? "" : " ", ids[i]);
+    }
+    if (ids.size() > 24) {
+      out += absl::StrFormat(" (+%zu)", ids.size() - 24);
+    }
+    return out;
+  };
+  for (int state = 0; state < 3; ++state) {
+    ImGui::TextWrapped("OW areas, state %d: %s", state,
+                       hex_list(usage.ow_areas_by_state[state]).c_str());
+  }
+  ImGui::TextWrapped("Rooms: %s", hex_list(usage.rooms).c_str());
+
+  // Room context: its header picks the spriteset and the CGRAM palette.
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetHexInputWidth() * 1.5f);
+  ImGui::InputScalar("Room", ImGuiDataType_U16, &preview_room_, nullptr,
+                     nullptr, "%03X", ImGuiInputTextFlags_CharsHexadecimal);
+  preview_room_ =
+      std::min<uint16_t>(preview_room_, zelda3::kNumDungeonRooms - 1);
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_MEETING_ROOM " Use room")) {
+    if (auto room = usage_rooms_->find(preview_room_);
+        room != usage_rooms_->end()) {
+      preview_spriteset_ =
+          std::min<int>(room->second.spriteset + zelda3::kDungeonSpritesetBase,
+                        zelda3::kNumSpritesets - 1);
+      ApplySpritesetToSheets(preview_spriteset_);
+      preview_use_room_palette_ = true;
+      room_palette_cache_.reset();
+      gfx_buffer_loaded_ = false;
+    }
+  }
+  HOVER_HINT("Use the room's header spriteset (+0x40) and its sprite palette");
+  if (ImGui::Checkbox(tr("Room palette (CGRAM rows 8-15)"),
+                      &preview_use_room_palette_)) {
+    room_palette_cache_.reset();
+    gfx_buffer_loaded_ = false;
+    preview_needs_update_ = true;
+  }
+  HOVER_HINT(
+      "Off: palette rows from the sprite binding (Sprite Asset panel). On: "
+      "the rows the game loads for the room above.");
+
+  DrawFrameTileWarnings();
+  ImGui::Separator();
+}
+
+void SpriteEditor::DrawFrameTileWarnings() {
+  const auto* sprite = current_custom_sprite();
+  if (sprite == nullptr || current_frame_ < 0 ||
+      current_frame_ >= static_cast<int>(sprite->editor.Frames.size())) {
+    return;
+  }
+  const auto tiles =
+      internal::FrameTiles8x8(sprite->editor.Frames[current_frame_]);
+  std::array<uint8_t, 8> slots;
+  std::copy_n(current_sheets_, 8, slots.begin());
+  const auto options = core::BuildGfxSheetInventoryOptions(project());
+  std::string key =
+      absl::StrFormat("%d:%d:", current_custom_sprite_index_, current_frame_);
+  for (uint8_t sheet : slots) {
+    key += absl::StrFormat("%02X", sheet);
+  }
+  for (int tile : tiles) {
+    key += absl::StrFormat(",%X", tile);
+  }
+  for (uint16_t sheet : options.reserved_sheets) {
+    key += absl::StrFormat("r%X", sheet);
+  }
+  if (key != tile_check_key_) {
+    tile_check_key_ = key;
+    tile_issues_ =
+        zelda3::CheckSpriteTiles(*rom_, tiles, slots, options.reserved_sheets);
+    tile_check_count_ = tiles.size();
+  }
+
+  if (tile_issues_.empty()) {
+    ImGui::TextColored(gui::GetSuccessColor(),
+                       ICON_MD_CHECK " Frame %d: all %zu 8x8 tiles have art",
+                       current_frame_, tile_check_count_);
+    return;
+  }
+  ImGui::TextColored(gui::GetWarningColor(),
+                     ICON_MD_WARNING
+                     " Frame %d: %zu of %zu 8x8 tiles need "
+                     "attention",
+                     current_frame_, tile_issues_.size(), tile_check_count_);
+  for (size_t i = 0; i < tile_issues_.size() && i < 8; ++i) {
+    const auto& issue = tile_issues_[i];
+    const char* what =
+        issue.kind == zelda3::SpriteTileIssue::Kind::kBlank
+            ? "blank"
+            : (issue.kind == zelda3::SpriteTileIssue::Kind::kReservedSheet
+                   ? "reserved sheet"
+                   : "sheet unreadable");
+    ImGui::BulletText("tile 0x%03X, slot %d (sheet 0x%02X): %s", issue.tile,
+                      issue.slot, issue.sheet, what);
+  }
+  if (tile_issues_.size() > 8) {
+    ImGui::TextDisabled("... %zu more", tile_issues_.size() - 8);
+  }
 }
 
 void SpriteEditor::DrawCurrentSheets() {
   if (ImGui::BeginChild(gui::GetID("sheet_label"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0), true,
                         ImGuiWindowFlags_NoDecoration)) {
+    DrawSpritesetPicker();
     // Track previous sheet values for change detection
-    static uint8_t prev_sheets[8] = {0};
     bool sheets_changed = false;
+    if (current_custom_sprite())
+      BeginUndoTransaction();
 
     for (int i = 0; i < 8; i++) {
       std::string sheet_label = absl::StrFormat("Sheet %d", i);
@@ -313,20 +480,28 @@ void SpriteEditor::DrawCurrentSheets() {
     }
 
     // Reload graphics buffer if sheets changed
-    if (sheets_changed || std::memcmp(prev_sheets, current_sheets_, 8) != 0) {
-      std::memcpy(prev_sheets, current_sheets_, 8);
+    if (sheets_changed) {
       gfx_buffer_loaded_ = false;
       preview_needs_update_ = true;
+      if (current_custom_sprite()) {
+        auto& binding = custom_sprite_bindings_[current_custom_sprite_index_];
+        std::copy_n(current_sheets_, 8, binding.sheets.begin());
+        MarkSpriteMutated();
+      }
     }
+    CommitUndoTransaction();
 
     graphics_sheet_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
     graphics_sheet_canvas_.DrawBackground();
     graphics_sheet_canvas_.DrawContextMenu();
     graphics_sheet_canvas_.DrawTileSelector(32);
     for (int i = 0; i < 8; i++) {
-      graphics_sheet_canvas_.DrawBitmap(
-          gfx::Arena::Get().gfx_sheets().at(current_sheets_[i]), 1,
-          (i * 0x40) + 1, 2);
+      if (current_sheets_[i] >= gfx::Arena::Get().gfx_sheets().size())
+        continue;
+      auto& sheet = gfx::Arena::Get().gfx_sheets().at(current_sheets_[i]);
+      if (sheet.is_active() && !sheet.texture())
+        sheet.CreateTexture();
+      graphics_sheet_canvas_.DrawBitmap(sheet, 1, (i * 0x40) + 1, 2);
     }
     graphics_sheet_canvas_.DrawGrid();
     graphics_sheet_canvas_.DrawOverlay();
@@ -358,15 +533,6 @@ void SpriteEditor::DrawSpritesList() {
   ImGui::EndChild();
 }
 
-void SpriteEditor::DrawAnimationFrames() {
-  if (ImGui::Button(tr("Add Frame"))) {
-    // Add a new frame
-  }
-  if (ImGui::Button(tr("Remove Frame"))) {
-    // Remove the current frame
-  }
-}
-
 // ============================================================
 // Custom ZSM Sprite Editor
 // ============================================================
@@ -383,7 +549,10 @@ void SpriteEditor::DrawCustomSprites() {
     TableNextRow();
     TableNextColumn();
 
-    DrawCustomSpritesMetadata();
+    // Keep the canvas visible while scrolling the longer authoring controls.
+    if (ImGui::BeginChild("##SpriteMetadata", ImVec2(0, 0)))
+      DrawCustomSpritesMetadata();
+    ImGui::EndChild();
 
     TableNextColumn();
     DrawZSpriteOnCanvas();
@@ -396,14 +565,8 @@ void SpriteEditor::DrawCustomSprites() {
 }
 
 void SpriteEditor::DrawCustomSpritesMetadata() {
-  // Capture undo snapshot before any widgets can mutate sprite data.
-  // CommitUndoTransaction() in Update() will push the action only if
-  // a mutation actually occurred (zsm_dirty_ was set).
-  if (current_custom_sprite_index_ >= 0 &&
-      current_custom_sprite_index_ < static_cast<int>(custom_sprites_.size())) {
-    BeginUndoTransaction();
-  }
-
+  if (!asset_load_status_.ok())
+    ImGui::TextWrapped("%s", asset_load_status_.ToString().c_str());
   // File operations toolbar
   if (ImGui::Button(ICON_MD_ADD " New")) {
     CreateNewZSprite();
@@ -412,7 +575,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open")) {
     std::string file_path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!file_path.empty()) {
-      LoadZsmFile(file_path);
+      status_ = OpenSpriteAsset(file_path);
     }
   }
   ImGui::SameLine();
@@ -440,6 +603,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
       std::string label = custom_sprites_[i].sprName.empty()
                               ? "Unnamed Sprite"
                               : custom_sprites_[i].sprName;
+      ImGui::PushID(static_cast<int>(i));
       if (Selectable(label.c_str(), current_custom_sprite_index_ == (int)i)) {
         current_custom_sprite_index_ = static_cast<int>(i);
         current_frame_ = custom_sprites_[i].editor.Frames.empty() ? -1 : 0;
@@ -450,7 +614,10 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
         animation_playing_ = false;
         frame_timer_ = 0.0f;
         preview_needs_update_ = true;
+        ApplyCurrentSpriteBinding();
+        (void)CheckCurrentSpriteSource();
       }
+      ImGui::PopID();
     }
   }
   ImGui::EndChild();
@@ -460,6 +627,8 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   // Show properties for selected sprite
   if (current_custom_sprite_index_ >= 0 &&
       current_custom_sprite_index_ < (int)custom_sprites_.size()) {
+    BeginUndoTransaction();
+    DrawSpriteAssetBindings();
     if (gui::BeginThemedTabBar("SpriteDataTabs")) {
       if (ImGui::BeginTabItem(tr("Properties"))) {
         DrawSpritePropertiesPanel();
@@ -467,6 +636,10 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
       }
       if (ImGui::BeginTabItem(tr("Animations"))) {
         DrawAnimationPanel();
+        ImGui::EndTabItem();
+      }
+      if (ImGui::BeginTabItem(tr("Behavior"))) {
+        DrawSpriteBehaviorPanel();
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(tr("Routines"))) {
@@ -478,6 +651,53 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   } else {
     Text(tr("No sprite selected"));
   }
+  CommitUndoTransaction();
+}
+
+absl::Status SpriteEditor::Copy() {
+  if (current_custom_sprite_index_ < 0 ||
+      current_custom_sprite_index_ >= static_cast<int>(custom_sprites_.size()))
+    return absl::FailedPreconditionError(
+        "Select a custom sprite frame to copy");
+  const auto& frames =
+      custom_sprites_[current_custom_sprite_index_].editor.Frames;
+  if (current_frame_ < 0 || current_frame_ >= static_cast<int>(frames.size()))
+    return absl::FailedPreconditionError("Select a frame to copy");
+  frame_clipboard_ = frames[current_frame_];
+  return absl::OkStatus();
+}
+
+absl::Status SpriteEditor::Cut() {
+  RETURN_IF_ERROR(Copy());
+  auto& sprite = custom_sprites_[current_custom_sprite_index_];
+  if (sprite.editor.Frames.size() <= 1)
+    return absl::FailedPreconditionError(
+        "Cannot cut the last frame; copied it instead");
+  BeginUndoTransaction();
+  sprite_authoring::DeleteFrame(sprite, current_frame_);
+  current_frame_ = std::min(current_frame_,
+                            static_cast<int>(sprite.editor.Frames.size()) - 1);
+  selected_tile_index_ = -1;
+  MarkSpriteMutated();
+  CommitUndoTransaction();
+  return absl::OkStatus();
+}
+
+absl::Status SpriteEditor::Paste() {
+  if (!frame_clipboard_ || current_custom_sprite_index_ < 0 ||
+      current_custom_sprite_index_ >= static_cast<int>(custom_sprites_.size()))
+    return absl::FailedPreconditionError(
+        "Copy a frame and select a destination sprite");
+  auto& sprite = custom_sprites_[current_custom_sprite_index_];
+  if (sprite.editor.Frames.size() >= sprite_authoring::kMaxFrames)
+    return absl::OutOfRangeError("ZSM animations address at most 256 frames");
+  BeginUndoTransaction();
+  sprite.editor.Frames.push_back(*frame_clipboard_);
+  current_frame_ = static_cast<int>(sprite.editor.Frames.size()) - 1;
+  selected_tile_index_ = -1;
+  MarkSpriteMutated();
+  CommitUndoTransaction();
+  return absl::OkStatus();
 }
 
 void SpriteEditor::CreateNewZSprite() {
@@ -493,6 +713,10 @@ void SpriteEditor::CreateNewZSprite() {
 
   custom_sprites_.push_back(std::move(new_sprite));
   custom_sprite_paths_.push_back(std::string());
+  project::SpriteAssetBinding binding;
+  std::copy_n(current_sheets_, 8, binding.sheets.begin());
+  custom_sprite_bindings_.push_back(std::move(binding));
+  source_checked_ = false;
   current_custom_sprite_index_ = static_cast<int>(custom_sprites_.size()) - 1;
   current_frame_ = 0;
   current_animation_index_ = 0;
@@ -510,6 +734,18 @@ void SpriteEditor::LoadZsmFile(const std::string& path) {
   if (status_.ok()) {
     custom_sprites_.push_back(std::move(sprite));
     custom_sprite_paths_.push_back(path);
+    project::SpriteAssetBinding binding;
+    binding.zsm_path = path;
+    std::copy_n(current_sheets_, 8, binding.sheets.begin());
+    if (project()) {
+      for (const auto& saved : project()->sprite_assets) {
+        if (project()->GetAbsolutePath(saved.zsm_path) == path) {
+          binding = saved;
+          break;
+        }
+      }
+    }
+    custom_sprite_bindings_.push_back(std::move(binding));
     current_custom_sprite_index_ = static_cast<int>(custom_sprites_.size()) - 1;
     current_frame_ = custom_sprites_.back().editor.Frames.empty() ? -1 : 0;
     current_animation_index_ =
@@ -520,6 +756,8 @@ void SpriteEditor::LoadZsmFile(const std::string& path) {
     frame_timer_ = 0.0f;
     zsm_dirty_ = false;
     preview_needs_update_ = true;
+    ApplyCurrentSpriteBinding();
+    (void)CheckCurrentSpriteSource();
   }
 }
 
@@ -529,6 +767,19 @@ void SpriteEditor::SaveZsmFile(const std::string& path) {
     status_ = custom_sprites_[current_custom_sprite_index_].Save(path);
     if (status_.ok()) {
       SetCurrentZsmPath(path);
+      auto& binding = custom_sprite_bindings_[current_custom_sprite_index_];
+      binding.zsm_path = path;
+      if (project()) {
+        auto& assets = project()->sprite_assets;
+        auto found =
+            std::find_if(assets.begin(), assets.end(), [&](const auto& asset) {
+              return project()->GetAbsolutePath(asset.zsm_path) == path;
+            });
+        if (found == assets.end())
+          assets.push_back(binding);
+        else
+          *found = binding;
+      }
       zsm_dirty_ = false;
     }
   }
@@ -695,6 +946,17 @@ void SpriteEditor::DrawBooleanProperties() {
 void SpriteEditor::DrawAnimationPanel() {
   auto& sprite = custom_sprites_[current_custom_sprite_index_];
 
+  if (ImGui::Button(tr("Copy draw tables (ASM)"))) {
+    auto tables = ExportCurrentSpriteDraw();
+    draw_export_status_ = tables.status();
+    if (tables.ok())
+      ImGui::SetClipboardText(tables->c_str());
+  }
+  HOVER_HINT(
+      "Copy a draw-table candidate. Does not register or patch a sprite.");
+  if (!draw_export_status_.ok())
+    ImGui::TextWrapped("%s", draw_export_status_.ToString().c_str());
+
   // Playback controls
   if (animation_playing_) {
     if (ImGui::Button(ICON_MD_STOP " Stop")) {
@@ -730,7 +992,7 @@ void SpriteEditor::DrawAnimationPanel() {
   Text(tr("Animations"));
   if (ImGui::Button(ICON_MD_ADD " Add Animation")) {
     int frame_count = static_cast<int>(sprite.editor.Frames.size());
-    sprite.animations.emplace_back(0, frame_count > 0 ? frame_count - 1 : 0, 1,
+    sprite.animations.emplace_back(0, std::clamp(frame_count - 1, 0, 255), 1,
                                    "New Animation");
     MarkSpriteMutated();
   }
@@ -740,11 +1002,14 @@ void SpriteEditor::DrawAnimationPanel() {
     for (size_t i = 0; i < sprite.animations.size(); i++) {
       auto& anim = sprite.animations[i];
       std::string label = anim.frame_name.empty() ? "Unnamed" : anim.frame_name;
+      ImGui::PushID(static_cast<int>(i));
       if (Selectable(label.c_str(), current_animation_index_ == (int)i)) {
         current_animation_index_ = static_cast<int>(i);
         current_frame_ = anim.frame_start;
+        frame_timer_ = 0;
         preview_needs_update_ = true;
       }
+      ImGui::PopID();
     }
   }
   ImGui::EndChild();
@@ -768,28 +1033,47 @@ void SpriteEditor::DrawAnimationPanel() {
     int end = anim.frame_end;
     int speed = anim.frame_speed;
 
-    if (ImGui::SliderInt(tr("Start Frame"), &start, 0,
-                         std::max(0, (int)sprite.editor.Frames.size() - 1))) {
+    if (ImGui::SliderInt(
+            tr("Start Frame"), &start, 0,
+            std::clamp((int)sprite.editor.Frames.size() - 1, 0, 255))) {
       anim.frame_start = static_cast<uint8_t>(start);
+      anim.frame_end = std::max(anim.frame_start, anim.frame_end);
+      end = anim.frame_end;
       MarkSpriteMutated();
     }
-    if (ImGui::SliderInt(tr("End Frame"), &end, 0,
-                         std::max(0, (int)sprite.editor.Frames.size() - 1))) {
+    if (ImGui::SliderInt(
+            tr("End Frame"), &end, 0,
+            std::clamp((int)sprite.editor.Frames.size() - 1, 0, 255))) {
       anim.frame_end = static_cast<uint8_t>(end);
+      anim.frame_start = std::min(anim.frame_start, anim.frame_end);
       MarkSpriteMutated();
     }
-    if (ImGui::SliderInt(tr("Speed"), &speed, 1, 16)) {
+    if (ImGui::SliderInt(tr("Ticks per frame (60 Hz)"), &speed, 1, 255)) {
       anim.frame_speed = static_cast<uint8_t>(speed);
       MarkSpriteMutated();
     }
 
+    auto& actions =
+        custom_sprite_bindings_[current_custom_sprite_index_].behavior.actions;
+    bool used_by_action =
+        std::any_of(actions.begin(), actions.end(), [&](const auto& action) {
+          return action.animation == current_animation_index_;
+        });
+    ImGui::BeginDisabled(used_by_action);
     if (ImGui::Button(tr("Delete Animation")) && sprite.animations.size() > 1) {
+      for (auto& action : actions)
+        if (action.animation > current_animation_index_)
+          --action.animation;
       sprite.animations.erase(sprite.animations.begin() +
                               current_animation_index_);
       current_animation_index_ =
           std::min(current_animation_index_, (int)sprite.animations.size() - 1);
       MarkSpriteMutated();
     }
+    ImGui::EndDisabled();
+    if (used_by_action)
+      ImGui::TextDisabled(
+          "Assign another animation to referencing actions before deleting.");
     HOVER_HINT("Delete the selected animation");
   }
 
@@ -802,20 +1086,32 @@ void SpriteEditor::DrawFrameEditor() {
 
   Text(tr("Frames"));
   if (ImGui::Button(ICON_MD_ADD " Add Frame")) {
-    sprite.editor.Frames.emplace_back();
-    MarkSpriteMutated();
+    if (sprite_authoring::AppendFrame(sprite)) {
+      current_frame_ = static_cast<int>(sprite.editor.Frames.size()) - 1;
+      selected_tile_index_ = -1;
+      MarkSpriteMutated();
+    }
   }
   HOVER_HINT("Add a new animation frame");
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_DELETE " Delete Frame") &&
       sprite.editor.Frames.size() > 1 && current_frame_ >= 0) {
-    sprite.editor.Frames.erase(sprite.editor.Frames.begin() + current_frame_);
-    current_frame_ =
-        std::min(current_frame_, (int)sprite.editor.Frames.size() - 1);
-    MarkSpriteMutated();
-    preview_needs_update_ = true;
+    if (sprite_authoring::DeleteFrame(sprite, current_frame_)) {
+      current_frame_ =
+          std::min(current_frame_, (int)sprite.editor.Frames.size() - 1);
+      selected_tile_index_ = -1;
+      frame_timer_ = 0;
+      MarkSpriteMutated();
+    }
   }
-  HOVER_HINT("Delete the current frame");
+  HOVER_HINT("Delete the current frame and repair animation ranges");
+  if (ImGui::Button(tr("Duplicate Frame")) && current_frame_ >= 0 &&
+      sprite_authoring::AppendFrame(sprite, current_frame_)) {
+    current_frame_ = static_cast<int>(sprite.editor.Frames.size()) - 1;
+    selected_tile_index_ = -1;
+    MarkSpriteMutated();
+  }
+  ImGui::TextDisabled("Up to 256 frames; duplicate appends a frame.");
 
   // Frame selector
   if (ImGui::BeginChild("FrameList", ImVec2(0, 80), true,
@@ -844,6 +1140,9 @@ void SpriteEditor::DrawFrameEditor() {
 
     if (ImGui::Button(ICON_MD_ADD " Add Tile")) {
       frame.Tiles.emplace_back();
+      frame.Tiles.back().x = sprite_authoring::kOriginX;
+      frame.Tiles.back().y = sprite_authoring::kOriginY;
+      selected_tile_index_ = static_cast<int>(frame.Tiles.size()) - 1;
       MarkSpriteMutated();
       preview_needs_update_ = true;
     }
@@ -872,14 +1171,17 @@ void SpriteEditor::DrawFrameEditor() {
         preview_needs_update_ = true;
       }
 
-      int x = tile.x, y = tile.y;
-      if (ImGui::InputInt(tr("X"), &x)) {
-        tile.x = static_cast<uint8_t>(std::clamp(x, 0, 251));
+      int x = sprite_authoring::OffsetX(tile),
+          y = sprite_authoring::OffsetY(tile);
+      if (ImGui::InputInt(tr("X offset"), &x)) {
+        tile.x = static_cast<uint8_t>(std::clamp(x, -128, 127) +
+                                      sprite_authoring::kOriginX);
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
-      if (ImGui::InputInt(tr("Y"), &y)) {
-        tile.y = static_cast<uint8_t>(std::clamp(y, 0, 219));
+      if (ImGui::InputInt(tr("Y offset"), &y)) {
+        tile.y = static_cast<uint8_t>(std::clamp(y, -112, 143) +
+                                      sprite_authoring::kOriginY);
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
@@ -891,6 +1193,13 @@ void SpriteEditor::DrawFrameEditor() {
         preview_needs_update_ = true;
       }
 
+      int priority = tile.priority;
+      if (ImGui::SliderInt(tr("BG priority"), &priority, 0, 3)) {
+        tile.priority = static_cast<uint8_t>(priority);
+        MarkSpriteMutated();
+      }
+      ImGui::TextDisabled(
+          "BG priority is stored; preview has no background layers.");
       if (ImGui::Checkbox(tr("16x16"), &tile.size)) {
         MarkSpriteMutated();
         preview_needs_update_ = true;
@@ -906,6 +1215,12 @@ void SpriteEditor::DrawFrameEditor() {
         preview_needs_update_ = true;
       }
 
+      if (ImGui::Button(tr("Duplicate Tile"))) {
+        const auto copy = tile;
+        frame.Tiles.push_back(copy);
+        selected_tile_index_ = static_cast<int>(frame.Tiles.size()) - 1;
+        MarkSpriteMutated();
+      }
       if (ImGui::Button(tr("Delete Tile"))) {
         frame.Tiles.erase(frame.Tiles.begin() + selected_tile_index_);
         selected_tile_index_ = -1;
@@ -931,15 +1246,8 @@ void SpriteEditor::UpdateAnimationPlayback(float delta_time) {
 
   auto& anim = sprite.animations[current_animation_index_];
 
-  frame_timer_ += delta_time;
-  float frame_duration = anim.frame_speed / 60.0f;
-
-  if (frame_timer_ >= frame_duration) {
-    frame_timer_ = 0;
-    current_frame_++;
-    if (current_frame_ > anim.frame_end) {
-      current_frame_ = anim.frame_start;
-    }
+  if (sprite_authoring::Advance(anim, sprite.editor.Frames.size(), delta_time,
+                                current_frame_, frame_timer_)) {
     preview_needs_update_ = true;
   }
 }
@@ -1013,7 +1321,8 @@ void SpriteEditor::LoadSpriteGraphicsBuffer() {
   // Layout: 16 tiles per row, 8 rows per sheet, 8 sheets total = 64 tile rows
   // Buffer size: 0x10000 bytes (65536)
 
-  sprite_gfx_buffer_.resize(0x10000, 0);
+  sprite_gfx_buffer_.assign(0x10000, 0);
+  graphics_binding_status_ = absl::OkStatus();
 
   // Each sheet is 128x32 pixels (128 bytes per row, 32 rows) = 4096 bytes
   // We combine 8 sheets vertically: 128x256 pixels total
@@ -1024,11 +1333,15 @@ void SpriteEditor::LoadSpriteGraphicsBuffer() {
   for (int sheet_idx = 0; sheet_idx < 8; sheet_idx++) {
     uint8_t sheet_id = current_sheets_[sheet_idx];
     if (sheet_id >= gfx::Arena::Get().gfx_sheets().size()) {
+      graphics_binding_status_ = absl::OutOfRangeError(
+          "Sprite graphics sheet unavailable in loaded ROM");
       continue;
     }
 
     auto& sheet = gfx::Arena::Get().gfx_sheets().at(sheet_id);
     if (!sheet.is_active() || sheet.size() == 0) {
+      graphics_binding_status_ = absl::FailedPreconditionError(
+          "Sprite graphics sheet has not been loaded");
       continue;
     }
 
@@ -1053,7 +1366,7 @@ void SpriteEditor::LoadSpriteGraphicsBuffer() {
   gfx_buffer_loaded_ = true;
 }
 
-void SpriteEditor::LoadSpritePalettes() {
+void SpriteEditor::LoadSpritePalettes(bool use_asset_binding) {
   // Load sprite palettes from ROM palette groups
   // ALTTP sprites use a combination of palette groups:
   // - Rows 0-1: Global sprite palettes (shared by all sprites)
@@ -1074,32 +1387,34 @@ void SpriteEditor::LoadSpritePalettes() {
   if (!game_data())
     return;
   const auto& global = game_data()->palette_groups.global_sprites;
-  for (size_t i = 0; i < global.size() && i < 8; i++) {
-    sprite_palettes_.AddPalette(global.palette(i));
-  }
-
-  // If we don't have 8 palettes yet, fill with aux palettes
   const auto& aux1 = game_data()->palette_groups.sprites_aux1;
   const auto& aux2 = game_data()->palette_groups.sprites_aux2;
   const auto& aux3 = game_data()->palette_groups.sprites_aux3;
+  sprite_palettes_ =
+      internal::DefaultSpritePreviewPalettes(global, aux1, aux2, aux3);
 
-  // Pad to 8 palettes total for proper OAM palette mapping
-  while (sprite_palettes_.size() < 8) {
-    if (sprite_palettes_.size() < 4 && aux1.size() > 0) {
-      sprite_palettes_.AddPalette(
-          aux1.palette(sprite_palettes_.size() % aux1.size()));
-    } else if (sprite_palettes_.size() < 6 && aux2.size() > 0) {
-      sprite_palettes_.AddPalette(
-          aux2.palette((sprite_palettes_.size() - 4) % aux2.size()));
-    } else if (aux3.size() > 0) {
-      sprite_palettes_.AddPalette(
-          aux3.palette((sprite_palettes_.size() - 6) % aux3.size()));
-    } else {
-      // Fallback: add empty palette
-      sprite_palettes_.AddPalette(gfx::SnesPalette());
-    }
+  palette_binding_status_ = absl::OkStatus();
+  if (const auto* binding =
+          use_asset_binding ? current_sprite_binding() : nullptr) {
+    auto palettes = sprite_authoring::BindPaletteRows(
+        *binding, sprite_palettes_, global, aux1, aux2, aux3);
+    palette_binding_status_ = palettes.status();
+    if (palettes.ok())
+      sprite_palettes_ = std::move(*palettes);
+    else
+      sprite_palettes_.clear();
   }
-
+  if (preview_use_room_palette_ && game_data() != nullptr) {
+    if (!room_palette_cache_.has_value() ||
+        room_palette_cache_room_ != preview_room_) {
+      const auto room = zelda3::LoadRoomHeaderFromRom(rom_, preview_room_);
+      room_palette_cache_ = internal::SpritePalettesFromCgram(
+          zelda3::BuildDungeonSpriteRenderPalette(room, game_data()));
+      room_palette_cache_room_ = preview_room_;
+    }
+    sprite_palettes_ = *room_palette_cache_;
+    palette_binding_status_ = absl::OkStatus();
+  }
   sprite_drawer_.SetPalettes(&sprite_palettes_);
 }
 
@@ -1123,7 +1438,7 @@ void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
   // Ensure graphics buffer is loaded
   if (!gfx_buffer_loaded_ && sheets_loaded_) {
     LoadSpriteGraphicsBuffer();
-    LoadSpritePalettes();
+    LoadSpritePalettes(false);
   }
 
   // Initialize vanilla preview bitmap if needed. The helper also queues a
@@ -1143,21 +1458,9 @@ void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
   int origin_x = 64;
   int origin_y = 64;
 
-  // Convert SpriteOamLayout tiles to zsprite::OamTile and draw
-  for (const auto& entry : layout.tiles) {
-    zsprite::OamTile tile;
-    tile.x = static_cast<uint8_t>(entry.x_offset + 128);  // Convert to unsigned
-    tile.y = static_cast<uint8_t>(entry.y_offset + 128);
-    tile.id = entry.tile_id;
-    tile.palette = entry.palette;
-    tile.size = entry.size_16x16;
-    tile.mirror_x = entry.flip_x;
-    tile.mirror_y = entry.flip_y;
-    tile.priority = 0;
-
-    sprite_drawer_.DrawOamTile(vanilla_preview_bitmap_, tile, origin_x,
-                               origin_y);
-  }
+  sprite_drawer_.DrawFrame(vanilla_preview_bitmap_,
+                           sprite_authoring::CopyVanillaLayout(layout),
+                           origin_x, origin_y);
 
   // Build combined 128-color palette (8 sub-palettes × 16 colors)
   // and apply to bitmap for proper color rendering
@@ -1181,7 +1484,7 @@ void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
   // Surface pixels and palette were just mutated above; queue an UPDATE so
   // the GPU texture reflects the new state on the next frame. Without this,
   // the texture stays frozen at first-CREATE state forever.
-  vanilla_preview_bitmap_.UpdateTexture();
+  internal::PublishSpritePreviewPixels(vanilla_preview_bitmap_);
 
   vanilla_preview_needs_update_ = false;
 }
@@ -1225,8 +1528,9 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
     // Clear and render to preview bitmap
     sprite_drawer_.ClearBitmap(sprite_preview_bitmap_);
 
-    // Origin is center of canvas (128, 128 for 256x256 bitmap)
-    sprite_drawer_.DrawFrame(sprite_preview_bitmap_, frame, 128, 128);
+    // Origin is center of canvas (128, 128 for 256x256 bitmap).
+    if (palette_binding_status_.ok() && graphics_binding_status_.ok())
+      sprite_drawer_.DrawFrame(sprite_preview_bitmap_, frame, 128, 128);
 
     // Build combined 128-color palette and apply to bitmap
     if (sprite_palettes_.size() > 0) {
@@ -1248,7 +1552,7 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
 
     // Surface pixels and palette were just mutated above; queue an UPDATE so
     // the GPU texture reflects the new frame on the next paint.
-    sprite_preview_bitmap_.UpdateTexture();
+    internal::PublishSpritePreviewPixels(sprite_preview_bitmap_);
 
     // Mark as updated
     preview_needs_update_ = false;
@@ -1266,8 +1570,8 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
       int tile_size = tile.size ? 16 : 8;
 
       // Convert signed tile position to canvas position
-      int8_t signed_x = static_cast<int8_t>(tile.x);
-      int8_t signed_y = static_cast<int8_t>(tile.y);
+      int signed_x = sprite_authoring::OffsetX(tile);
+      int signed_y = sprite_authoring::OffsetY(tile);
 
       int canvas_x = 128 + signed_x;
       int canvas_y = 128 + signed_y;
@@ -1277,7 +1581,9 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
                          ? ImVec4(0.0f, 1.0f, 0.0f, 0.8f)  // Green for selected
                          : ImVec4(1.0f, 1.0f, 0.0f, 0.3f);  // Yellow for others
 
-      sprite_canvas_.DrawRect(canvas_x, canvas_y, tile_size, tile_size, color);
+      // Match the 2x bitmap scale used above.
+      sprite_canvas_.DrawRect(canvas_x * 2, canvas_y * 2, tile_size * 2,
+                              tile_size * 2, color);
     }
   }
 }
@@ -1301,10 +1607,21 @@ void SpriteEditor::DrawZSpriteOnCanvas() {
     if (current_custom_sprite_index_ >= 0) {
       auto& sprite = custom_sprites_[current_custom_sprite_index_];
       ImGui::SetCursorPos(ImVec2(10, 10));
-      Text(tr("Frame: %d | Tiles: %d"), current_frame_,
-           current_frame_ < (int)sprite.editor.Frames.size()
-               ? (int)sprite.editor.Frames[current_frame_].Tiles.size()
-               : 0);
+      char label[256];
+      std::snprintf(label, sizeof(label), tr("Frame: %d | Tiles: %d"),
+                    current_frame_,
+                    current_frame_ >= 0 &&
+                            current_frame_ < (int)sprite.editor.Frames.size()
+                        ? (int)sprite.editor.Frames[current_frame_].Tiles.size()
+                        : 0);
+      const ImVec2 position = ImGui::GetCursorScreenPos();
+      const ImVec2 size = ImGui::CalcTextSize(label);
+      // Preview colors come from the ROM; keep status legible on any palette.
+      ImGui::GetWindowDrawList()->AddRectFilled(
+          ImVec2(position.x - 3, position.y - 2),
+          ImVec2(position.x + size.x + 3, position.y + size.y + 2),
+          IM_COL32(24, 24, 24, 255), 3.0f);
+      ImGui::TextColored(ImVec4(1, 1, 1, 1), "%s", label);
     }
   }
   ImGui::EndChild();
@@ -1322,6 +1639,7 @@ SpriteSnapshot SpriteEditor::CaptureCurrentSpriteSnapshot() const {
   if (current_custom_sprite_index_ >= 0 &&
       current_custom_sprite_index_ < static_cast<int>(custom_sprites_.size())) {
     snapshot.sprite_data = custom_sprites_[current_custom_sprite_index_];
+    snapshot.binding = custom_sprite_bindings_[current_custom_sprite_index_];
   }
   return snapshot;
 }
@@ -1335,6 +1653,8 @@ void SpriteEditor::RestoreFromSnapshot(const SpriteSnapshot& snapshot) {
   current_frame_ = snapshot.current_frame;
   current_animation_index_ = snapshot.current_animation_index;
   custom_sprites_[snapshot.sprite_index] = snapshot.sprite_data;
+  custom_sprite_bindings_[snapshot.sprite_index] = snapshot.binding;
+  ApplyCurrentSpriteBinding();
   preview_needs_update_ = true;
   zsm_dirty_ = true;
 }
@@ -1372,6 +1692,8 @@ void SpriteEditor::CommitUndoTransaction() {
 }
 
 void SpriteEditor::MarkSpriteMutated() {
+  behavior_candidate_.clear();
+  preview_needs_update_ = true;
   zsm_dirty_ = true;
   sprite_mutated_this_frame_ = true;
 }

@@ -2,91 +2,55 @@
 #define YAZE_APP_EDITOR_GRAPHICS_UNDO_ACTIONS_H_
 
 #include <cstddef>
-#include <cstdint>
-#include <functional>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "absl/status/status.h"
-#include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
-#include "app/gfx/resource/arena.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
 
 namespace yaze {
 namespace editor {
 
+class GraphicsEditorState;
+
 /**
  * @class GraphicsPixelEditAction
- * @brief Undoable action for pixel edits on a graphics sheet.
+ * @brief Undoable pixel edit on one graphics sheet.
  *
- * Captures a full snapshot of the sheet pixel data before and after the
- * edit stroke so that Undo restores the before-state and Redo restores
- * the after-state.
+ * Holds only the pixels the edit changed. Undo and Redo write them through
+ * the session's GraphicsSheetStore (graphics_sheet_sync.h), which refreshes
+ * the Arena copy and marks the sheet modified.
  */
 class GraphicsPixelEditAction : public UndoAction {
  public:
-  using MarkDirtyFn = std::function<void(uint16_t)>;
-
-  GraphicsPixelEditAction(uint16_t sheet_id, std::vector<uint8_t> before_data,
-                          std::vector<uint8_t> after_data,
-                          std::string description, MarkDirtyFn mark_dirty)
-      : sheet_id_(sheet_id),
-        before_data_(std::move(before_data)),
-        after_data_(std::move(after_data)),
-        description_(std::move(description)),
-        mark_dirty_(std::move(mark_dirty)) {}
+  GraphicsPixelEditAction(GraphicsEditorState* state, SheetPixelDiff diff,
+                          std::string description)
+      : state_(state),
+        diff_(std::move(diff)),
+        description_(std::move(description)) {}
 
   absl::Status Undo() override {
-    auto* sheets = gfx::Arena::Get().mutable_gfx_sheets();
-    if (sheet_id_ >= sheets->size()) {
-      return absl::OutOfRangeError(
-          absl::StrFormat("Sheet %02X out of range", sheet_id_));
-    }
-    auto& sheet = sheets->at(sheet_id_);
-    sheet.set_data(before_data_);
-    gfx::Arena::Get().NotifySheetModified(sheet_id_);
-    MarkDirty();
-    return absl::OkStatus();
+    return ApplySheetPixelDiff(*state_, diff_, /*redo=*/false);
   }
-
   absl::Status Redo() override {
-    auto* sheets = gfx::Arena::Get().mutable_gfx_sheets();
-    if (sheet_id_ >= sheets->size()) {
-      return absl::OutOfRangeError(
-          absl::StrFormat("Sheet %02X out of range", sheet_id_));
-    }
-    auto& sheet = sheets->at(sheet_id_);
-    sheet.set_data(after_data_);
-    gfx::Arena::Get().NotifySheetModified(sheet_id_);
-    MarkDirty();
-    return absl::OkStatus();
+    return ApplySheetPixelDiff(*state_, diff_, /*redo=*/true);
   }
 
   std::string Description() const override { return description_; }
-
-  size_t MemoryUsage() const override {
-    return before_data_.size() + after_data_.size();
-  }
+  size_t MemoryUsage() const override { return diff_.MemoryUsage(); }
 
   bool CanMergeWith(const UndoAction& /*prev*/) const override {
-    // Pixel edit strokes are already batched per mouse-down/mouse-up,
-    // so merging is not needed.
+    // One action per stroke already.
     return false;
   }
 
- private:
-  void MarkDirty() {
-    if (mark_dirty_) {
-      mark_dirty_(sheet_id_);
-    }
-  }
+  const SheetPixelDiff& diff() const { return diff_; }
 
-  uint16_t sheet_id_;
-  std::vector<uint8_t> before_data_;
-  std::vector<uint8_t> after_data_;
+ private:
+  GraphicsEditorState* state_;
+  SheetPixelDiff diff_;
   std::string description_;
-  MarkDirtyFn mark_dirty_;
 };
 
 }  // namespace editor

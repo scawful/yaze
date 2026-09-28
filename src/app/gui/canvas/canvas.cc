@@ -717,7 +717,7 @@ void Canvas::DrawContextMenu() {
 
   // Use enhanced context menu if available
   if (context_menu_) {
-    CanvasConfig snapshot;
+    CanvasConfig snapshot = config_;
     snapshot.canvas_size = canvas_sz_;
     snapshot.content_size = config_.content_size;
     snapshot.global_scale = global_scale_;

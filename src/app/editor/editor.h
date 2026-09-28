@@ -10,7 +10,8 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_manager.h"
-#include "app/editor/overworld/overworld_property_edit.h"
+#include "app/editor/editor_context_snapshot.h"
+#include "app/editor/overworld/maps/overworld_property_edit.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
 
@@ -302,11 +303,39 @@ class Editor {
 
   virtual absl::Status Clear() { return absl::OkStatus(); }
 
+  // Edit-menu availability. The menu bar uses these to enable or disable
+  // Undo/Redo/Cut/Copy/Paste/Find for the active editor, so an action that
+  // cannot run is greyed out instead of producing a failure toast.
+  //
+  // Undo/Redo default to the base UndoManager state; editors that keep undo
+  // history elsewhere (text widgets, PaletteManager, pending gestures) must
+  // override. Clipboard defaults to true so editors with real clipboard
+  // support keep working without an override; editors whose clipboard calls
+  // are no-ops should return false. Find defaults to false because almost no
+  // editor implements it.
+  virtual bool CanUndo() const { return undo_manager_.CanUndo(); }
+  virtual bool CanRedo() const { return undo_manager_.CanRedo(); }
+  virtual bool CanCut() const { return true; }
+  virtual bool CanCopy() const { return true; }
+  virtual bool CanPaste() const { return true; }
+  virtual bool CanFind() const { return false; }
+
   // Push editor-specific context into the shared status bar.
   // Called each frame on the currently active editor by EditorManager.
   // Default no-op; override to surface cursor/selection/zoom/mode/custom
   // segments via StatusBar's Set* setters.
   virtual void ContributeStatus(StatusBar* /*status_bar*/) {}
+
+  virtual EditorContextSnapshot BuildContextSnapshot() const {
+    EditorContextSnapshot snapshot;
+    const size_t index = EditorTypeIndex(type_);
+    if (index < kEditorNames.size()) {
+      snapshot.category = kEditorNames[index];
+      snapshot.title = snapshot.category;
+      snapshot.semantic_owner = snapshot.category;
+    }
+    return snapshot;
+  }
 
   EditorType type() const { return type_; }
 

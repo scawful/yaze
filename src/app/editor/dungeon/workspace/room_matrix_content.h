@@ -12,13 +12,16 @@
 #include <vector>
 #include "util/i18n/tr.h"
 
+#include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/workspace/room_matrix_census.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/resource/bitmap_texture_queue.h"
+#include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
@@ -39,6 +42,8 @@ namespace editor {
  * - Responsive cell sizing based on panel width
  * - Palette-based coloring when room data is available
  * - Theme-aware selection highlighting
+ * - "Census" overlay (RoomMatrixCensusOverlay): owner colors, free /
+ *   reclaimable outlines, legend and filter chips, largest free block
  *
  * @see WindowContent - Base interface
  */
@@ -78,6 +83,19 @@ class RoomMatrixContent : public WindowContent {
     on_room_intent_ = std::move(callback);
   }
 
+  // Project dungeon ownership and warp tags for the census overlay.
+  void SetCensusManifestProvider(
+      RoomMatrixCensusOverlay::ManifestProvider provider) {
+    census_.SetManifestProvider(std::move(provider));
+  }
+  RoomMatrixCensusOverlay& census_overlay() { return census_; }
+  bool OwnsNavigationShortcutFocus() const {
+    if (!navigation_shortcut_focus_ || ImGui::GetCurrentContext() == nullptr) {
+      return false;
+    }
+    return navigation_shortcut_last_draw_frame_ >= ImGui::GetFrameCount() - 1;
+  }
+
   // ==========================================================================
   // WindowContent Drawing
   // ==========================================================================
@@ -85,6 +103,9 @@ class RoomMatrixContent : public WindowContent {
   void Draw(bool* p_open) override {
     if (!current_room_id_ || !active_rooms_)
       return;
+    navigation_shortcut_last_draw_frame_ = ImGui::GetFrameCount();
+    navigation_shortcut_focus_ =
+        ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
     const auto& theme = AgentUI::GetTheme();
 
@@ -117,7 +138,14 @@ class RoomMatrixContent : public WindowContent {
     }
     ImGui::PopID();
 
-    DrawMatrixLegend(theme);
+    Rom* census_rom = rooms_ ? rooms_->rom() : nullptr;
+    census_.Update(census_rom);
+    census_.DrawControls(census_rom);
+    const bool census_on = census_.census() != nullptr;
+
+    // With the census on, its legend carries the section header and the
+    // selection swatches follow on the same wrapping lines.
+    DrawMatrixLegend(theme, /*with_header=*/!census_on);
     ImGui::Spacing();
 
     const ImVec2 avail = ImGui::GetContentRegionAvail();
@@ -147,7 +175,9 @@ class RoomMatrixContent : public WindowContent {
       for (int col = 0; col < kRoomsPerRow; col++) {
         int room_id = room_index;
         bool is_valid_room = (room_id < kTotalRooms);
-        const bool matches_filter = MatchesSearchFilter(room_id);
+        const bool matches_filter =
+            MatchesSearchFilter(room_id) &&
+            (!census_on || census_.MatchesChips(room_id));
 
         ImVec2 cell_min =
             ImVec2(canvas_pos.x + col * (cell_size + kCellSpacing),
@@ -157,7 +187,8 @@ class RoomMatrixContent : public WindowContent {
 
         if (is_valid_room) {
           // Get color based on room palette if available, else use algorithmic
-          ImU32 bg_color = GetRoomColor(room_id, theme);
+          ImU32 bg_color = census_on ? census_.FillColor(room_id)
+                                     : GetRoomColor(room_id, theme);
           if (!matches_filter) {
             bg_color = BlendRoomColor(
                 bg_color, ImGui::ColorConvertFloat4ToU32(theme.panel_bg_darker),
@@ -206,6 +237,11 @@ class RoomMatrixContent : public WindowContent {
             draw_list->AddRect(cell_min, cell_max, border_color, 0.0f, 0, 1.0f);
           }
 
+          if (census_on) {
+            DrawCensusCellMarks(draw_list, room_id, cell_min, cell_max,
+                                matches_filter, theme);
+          }
+
           // Draw room ID (only if cell is large enough)
           if (cell_size >= 18.0f) {
             char label[8];
@@ -241,50 +277,48 @@ class RoomMatrixContent : public WindowContent {
             }
           }
 
-          if (ImGui::BeginPopupContextItem()) {
+          gui::ItemContextMenu(nullptr, [&, room_id]() {
             const bool can_swap =
                 on_room_swap_ && current_room_id_ && *current_room_id_ >= 0 &&
                 *current_room_id_ < kTotalRooms && *current_room_id_ != room_id;
 
-            std::string open_label =
-                is_open ? "Focus Room" : "Open in Workbench";
-            if (ImGui::MenuItem(open_label.c_str())) {
-              if (on_room_intent_) {
-                on_room_intent_(room_id,
-                                RoomSelectionIntent::kFocusInWorkbench);
-              } else if (on_room_selected_) {
-                on_room_selected_(room_id);
-              }
-            }
+            std::vector<gui::MenuItemSpec> items;
+            items.emplace_back(is_open ? "Focus Room" : "Open in Workbench",
+                               ICON_MD_ARROW_FORWARD, [this, room_id]() {
+                                 if (on_room_intent_) {
+                                   on_room_intent_(
+                                       room_id,
+                                       RoomSelectionIntent::kFocusInWorkbench);
+                                 } else if (on_room_selected_) {
+                                   on_room_selected_(room_id);
+                                 }
+                               });
+            items.emplace_back(
+                tr("Open as Panel"), ICON_MD_OPEN_IN_NEW, [this, room_id]() {
+                  if (on_room_intent_) {
+                    on_room_intent_(room_id,
+                                    RoomSelectionIntent::kOpenStandalone);
+                  } else if (on_room_selected_) {
+                    on_room_selected_(room_id);
+                  }
+                });
+            items.back().separator_after = true;
 
-            if (ImGui::MenuItem(tr("Open as Panel"))) {
-              if (on_room_intent_) {
-                on_room_intent_(room_id, RoomSelectionIntent::kOpenStandalone);
-              } else if (on_room_selected_) {
-                on_room_selected_(room_id);
-              }
-            }
+            items.push_back(gui::CopyToClipboardItem(
+                tr("Copy Room ID"), absl::StrFormat("0x%03X", room_id)));
+            items.push_back(gui::CopyToClipboardItem(
+                tr("Copy Room Name"), zelda3::GetRoomLabel(room_id)));
+            items.back().separator_after = true;
 
-            if (ImGui::MenuItem(tr("Swap With Current Room"), nullptr, false,
-                                can_swap)) {
-              on_room_swap_(*current_room_id_, room_id);
-            }
-
-            ImGui::Separator();
-
-            char id_buf[16];
-            snprintf(id_buf, sizeof(id_buf), "0x%02X", room_id);
-            if (ImGui::MenuItem(tr("Copy Room ID"))) {
-              ImGui::SetClipboardText(id_buf);
-            }
-
-            const std::string& room_label = zelda3::GetRoomLabel(room_id);
-            if (ImGui::MenuItem(tr("Copy Room Name"))) {
-              ImGui::SetClipboardText(room_label.c_str());
-            }
-
-            ImGui::EndPopup();
-          }
+            items.push_back(gui::MenuItemSpec::Conditional(
+                tr("Swap With Current Room"),
+                [this, room_id]() {
+                  on_room_swap_(*current_room_id_, room_id);
+                },
+                [can_swap]() { return can_swap; }));
+            items.back().icon = ICON_MD_SWAP_HORIZ;
+            return items;
+          });
 
           // Tooltip with room info and thumbnail preview
           if (ImGui::IsItemHovered()) {
@@ -292,6 +326,11 @@ class RoomMatrixContent : public WindowContent {
             // Use unified ResourceLabelProvider for room names
             ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
             ImGui::TextDisabled(tr("Room 0x%02X"), room_id);
+            if (census_on) {
+              ImGui::Separator();
+              census_.DrawTooltip(room_id);
+              ImGui::Separator();
+            }
 
             if (is_current) {
               ImGui::TextColored(theme.dungeon_selection_primary,
@@ -350,6 +389,7 @@ class RoomMatrixContent : public WindowContent {
   void SetRooms(DungeonRoomStore* rooms) {
     if (rooms_ != rooms) {
       rooms_ = rooms;
+      census_.Invalidate();
       room_color_cache_.clear();
       tooltip_composite_output_.Retire();
       color_sample_composite_output_.Retire();
@@ -380,29 +420,81 @@ class RoomMatrixContent : public WindowContent {
     }
   }
 
-  void DrawMatrixLegend(const AgentUITheme& theme) const {
-    ImGui::SeparatorText(tr("Legend"));
+  void DrawMatrixLegend(const AgentUITheme& theme, bool with_header) const {
+    if (with_header) {
+      ImGui::SeparatorText(tr("Legend"));
+    }
     DrawLegendSwatch(theme.dungeon_selection_primary,
-                     ICON_MD_MY_LOCATION " Current");
-    ImGui::SameLine();
-    DrawLegendSwatch(theme.dungeon_grid_cell_selected, ICON_MD_TAB " Open");
-    ImGui::SameLine();
-    DrawLegendSwatch(theme.dungeon_grid_cell_border,
-                     ICON_MD_GRID_VIEW " Other");
+                     ICON_MD_MY_LOCATION " Current", /*first=*/with_header);
+    DrawLegendSwatch(theme.dungeon_grid_cell_selected, ICON_MD_TAB " Open",
+                     false);
+    DrawLegendSwatch(theme.dungeon_grid_cell_border, ICON_MD_GRID_VIEW " Other",
+                     false);
   }
 
-  void DrawLegendSwatch(const ImVec4& color, const char* label) const {
+  // Swatch + label; wraps to the next line instead of running past the
+  // panel's right edge.
+  void DrawLegendSwatch(const ImVec4& color, const char* label,
+                        bool first) const {
+    const float size = ImGui::GetFrameHeight() - 6.0f;
+    const float width = size + 6.0f + ImGui::CalcTextSize(label).x;
+    if (!first) {
+      const float right =
+          ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+      if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + width <=
+          right) {
+        ImGui::SameLine();
+      }
+    }
+    ImGui::BeginGroup();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     const ImVec2 pos = ImGui::GetCursorScreenPos();
-    const float size = ImGui::GetFrameHeight() - 6.0f;
     const ImVec2 min = ImVec2(pos.x, pos.y + 3.0f);
     const ImVec2 max = ImVec2(pos.x + size, pos.y + size + 3.0f);
     draw_list->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(color),
                              3.0f);
     draw_list->AddRect(min, max, ImGui::GetColorU32(ImGuiCol_Border), 3.0f);
-    ImGui::Dummy(ImVec2(size + 6.0f, size + 6.0f));
+    ImGui::Dummy(ImVec2(size, size + 6.0f));
     ImGui::SameLine(0.0f, 6.0f);
     ImGui::TextUnformatted(label);
+    ImGui::EndGroup();
+  }
+
+  // Census marks: free/reclaimable outline, largest-free-block halo, orphan
+  // corner.
+  void DrawCensusCellMarks(ImDrawList* draw_list, int room_id,
+                           const ImVec2& cell_min, const ImVec2& cell_max,
+                           bool matches_filter,
+                           const AgentUITheme& theme) const {
+    const ImU32 dim_target =
+        ImGui::ColorConvertFloat4ToU32(theme.panel_bg_darker);
+    if (census_.InLargestFreeBlock(room_id)) {
+      draw_list->AddRect(
+          ImVec2(cell_min.x - 1.5f, cell_min.y - 1.5f),
+          ImVec2(cell_max.x + 1.5f, cell_max.y + 1.5f),
+          RoomMatrixCensusOverlay::BlockHaloColor(matches_filter ? 0.5f : 0.2f),
+          0.0f, 0, 2.0f);
+    }
+    if (auto outline = census_.StatusOutline(room_id); outline.has_value()) {
+      ImU32 color = *outline;
+      if (!matches_filter) {
+        color = BlendRoomColor(color, dim_target, 0.55f);
+      }
+      draw_list->AddRect(ImVec2(cell_min.x + 1.0f, cell_min.y + 1.0f),
+                         ImVec2(cell_max.x - 1.0f, cell_max.y - 1.0f), color,
+                         0.0f, 0, 2.0f);
+    }
+    if (census_.IsOrphan(room_id)) {
+      const float corner = std::max(4.0f, (cell_max.x - cell_min.x) * 0.3f);
+      ImU32 color = RoomMatrixCensusOverlay::OrphanMarkColor();
+      if (!matches_filter) {
+        color = BlendRoomColor(color, dim_target, 0.55f);
+      }
+      draw_list->AddTriangleFilled(ImVec2(cell_max.x - corner, cell_min.y),
+                                   ImVec2(cell_max.x, cell_min.y),
+                                   ImVec2(cell_max.x, cell_min.y + corner),
+                                   color);
+    }
   }
 
   bool MatchesSearchFilter(int room_id) const {
@@ -613,6 +705,9 @@ class RoomMatrixContent : public WindowContent {
   std::unordered_map<int, CachedRoomColor> room_color_cache_;
   RoomCompositeOutput tooltip_composite_output_;
   RoomCompositeOutput color_sample_composite_output_;
+  RoomMatrixCensusOverlay census_;
+  bool navigation_shortcut_focus_ = false;
+  int navigation_shortcut_last_draw_frame_ = -1;
   char search_filter_[64] = "";
 };
 

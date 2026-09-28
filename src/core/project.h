@@ -15,6 +15,7 @@
 #include "core/features.h"
 #include "core/hack_manifest.h"
 #include "core/rom_settings.h"
+#include "core/sprite_asset.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
@@ -99,6 +100,26 @@ struct DungeonOverlaySettings {
   // Object/Sprite IDs used for minecart tooling and validation.
   std::vector<uint16_t> track_object_ids;
   std::vector<uint16_t> minecart_sprite_ids;
+};
+
+/**
+ * @brief Project rules for graphics sheets (`[graphics_sheets]`).
+ *
+ * reserved_sheets are never written and never offered as free space (merged
+ * with the hack manifest's graphics_sheet_regions.reserved_sheets).
+ * flagged_sheets look free but need the owner's approval before art goes in.
+ * reserved_blocks maps a sheet to 16x16 block indices (0-15, row-major over
+ * the 8x2 block grid) that must keep their current pixels.
+ */
+struct GraphicsSheetSettings {
+  std::vector<uint16_t> reserved_sheets;
+  std::vector<uint16_t> flagged_sheets;
+  std::map<uint16_t, std::vector<uint16_t>> reserved_blocks;
+
+  bool empty() const {
+    return reserved_sheets.empty() && flagged_sheets.empty() &&
+           reserved_blocks.empty();
+  }
 };
 
 enum class RomRole { kBase, kDev, kPatched, kRelease };
@@ -188,10 +209,20 @@ struct YazeProject {
   std::string patches_folder;
   std::string labels_filename;
   std::string symbols_filename;
+  // Overworld cutscene camera/actor shots ([files] cutscene_shots). Empty:
+  // the Cutscene Camera window is read-only and offers Copy JSON.
+  std::string cutscene_shots;
+  // Tracked custom collision source kept in step with the ROM on every save
+  // ([files] custom_collision_json). Empty: collision lives only in the ROM.
+  std::string custom_collision_json;
   std::string
       custom_objects_folder;  // Folder containing custom object .bin files
   std::string
       hack_manifest_file;  // Path to hack_manifest.json (ASM integration)
+  // Opt-in, read-only sprite catalog. Both paths resolve relative to the project.
+  std::string sprite_catalog_file;
+  std::string sprite_source_root;
+  std::vector<SpriteAssetBinding> sprite_assets;
 
   // Optional custom object file mapping (object_id -> filenames per subtype).
   std::unordered_map<int, std::vector<std::string>> custom_object_files;
@@ -200,6 +231,7 @@ struct YazeProject {
   core::FeatureFlags::Flags feature_flags;
   WorkspaceSettings workspace_settings;
   DungeonOverlaySettings dungeon_overlay;
+  GraphicsSheetSettings graphics_sheets;
   core::RomAddressOverrides rom_address_overrides;
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       resource_labels;

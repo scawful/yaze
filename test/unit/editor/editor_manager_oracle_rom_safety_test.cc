@@ -10,6 +10,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
+#include "editor_test_support.h"
 #include "rom/snes.h"
 #include "testing.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -111,7 +112,7 @@ TEST(EditorManagerOracleRomSafetyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   // Create a ROM large enough to contain the expanded collision bank tail where
@@ -194,7 +195,7 @@ TEST(EditorManagerOracleRomSafetyTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
-  manager->Initialize(renderer.get(), "");
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   const auto rom_path = MakeTempPath("yaze_missing_manifest_save.sfc");

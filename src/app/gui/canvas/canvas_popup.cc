@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "app/gui/canvas/canvas_menu.h"
+
 namespace yaze {
 namespace gui {
 
@@ -56,8 +58,12 @@ void PopupRegistry::RenderAll() {
   auto it = popups_.begin();
   while (it != popups_.end()) {
     if (it->is_open && it->render_callback) {
-      // Call the render callback which should handle BeginPopup/EndPopup
-      it->render_callback();
+      // Call the render callback which should handle BeginPopup/EndPopup.
+      // Canvases render these inside their zero-padding region.
+      {
+        PopupStyleScope popup_style;
+        it->render_callback();
+      }
 
       // Check if popup was closed by user (clicking outside, pressing Escape,
       // etc.)

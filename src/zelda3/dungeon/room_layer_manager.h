@@ -89,6 +89,11 @@ class RoomLayerManager {
     }
     object_translucency_.clear();
     bg2_on_top_ = false;
+    game_hides_lower_tilemap_ = false;
+    game_registers_applied_ = false;
+    lower_tilemap_on_main_ = false;
+    upper_tilemap_blended_ = false;
+    show_hidden_layers_ = false;
     layers_merged_ = false;
     current_merge_type_id_ = 0;
     use_priority_compositing_ =
@@ -103,6 +108,39 @@ class RoomLayerManager {
   }
   bool IsPriorityCompositingEnabled() const {
     return use_priority_compositing_;
+  }
+
+  // The game's own layer settings for the room (room_layer_registers.h).
+  // When the game shows neither tilemap bit 0 on main nor sub screen, the
+  // lower tilemap (yaze's BG2 buffers) is not on screen in game, and the
+  // composite hides it unless ShowHiddenLayers is on.
+  void ApplyGameLayerRegisters(const RoomLayerRegisters& registers) {
+    game_registers_applied_ = true;
+    game_hides_lower_tilemap_ = !registers.LowerTilemapShown();
+    lower_tilemap_on_main_ = registers.TilemapsShareMainScreen();
+    upper_tilemap_blended_ = registers.UpperTilemapBlended();
+  }
+  // Opaque upper-tilemap pixels always cover the lower tilemap: it is only on
+  // the sub screen and the upper tilemap does not blend with it.
+  bool UpperTilemapCoversLower(int layer2_mode) const {
+    if (!game_registers_applied_) {
+      return layer2_mode == 0x06;
+    }
+    return !lower_tilemap_on_main_ && !upper_tilemap_blended_;
+  }
+  // Both tilemaps are on the main screen; the lower one (hardware BG1) wins
+  // ties at equal tile priority.
+  bool LowerTilemapWinsTies() const {
+    return game_registers_applied_ && lower_tilemap_on_main_;
+  }
+  bool GameHidesLowerTilemap() const { return game_hides_lower_tilemap_; }
+  // Editing aid: draw layers the game hides.
+  void SetShowHiddenLayers(bool show) { show_hidden_layers_ = show; }
+  bool ShowHiddenLayers() const { return show_hidden_layers_; }
+  // True when `layer` is hidden only because the game hides it.
+  bool IsHiddenByGame(LayerType layer) const {
+    return game_hides_lower_tilemap_ && !show_hidden_layers_ &&
+           (layer == LayerType::BG2_Layout || layer == LayerType::BG2_Objects);
   }
 
   // Layer visibility
@@ -329,6 +367,11 @@ class RoomLayerManager {
     }
 
     mix(bg2_on_top_ ? 1u : 0u);
+    mix(game_hides_lower_tilemap_ ? 1u : 0u);
+    mix(game_registers_applied_ ? 1u : 0u);
+    mix(lower_tilemap_on_main_ ? 1u : 0u);
+    mix(upper_tilemap_blended_ ? 1u : 0u);
+    mix(show_hidden_layers_ ? 1u : 0u);
     mix(layers_merged_ ? 1u : 0u);
     mix(current_merge_type_id_);
     mix(use_priority_compositing_ ? 1u : 0u);
@@ -564,6 +607,11 @@ class RoomLayerManager {
   // NOTE: Does NOT affect draw order - BG1 is always above BG2 per SNES Mode 1.
   // This controls whether BG2 participates in sub-screen color math effects.
   bool bg2_on_top_ = false;
+  bool game_hides_lower_tilemap_ = false;
+  bool game_registers_applied_ = false;
+  bool lower_tilemap_on_main_ = false;
+  bool upper_tilemap_blended_ = false;
+  bool show_hidden_layers_ = false;
 
   // Merge state tracking
   bool layers_merged_ = false;

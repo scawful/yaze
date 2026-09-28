@@ -2,10 +2,12 @@
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 
 #include <yaze.h>
+#include "zelda3/dungeon/pot_item_position.h"
 
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string_view>
@@ -23,6 +25,8 @@
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room_header_destination.h"
+#include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
@@ -106,7 +110,9 @@ const static LayerMergeType kLayerMergeTypeList[] = {
     LayerMerge00, LayerMerge01, LayerMerge02, LayerMerge03, LayerMerge04,
     LayerMerge05, LayerMerge06, LayerMerge07, LayerMerge08};
 
-enum CollisionKey {
+// Fixed byte storage keeps unnamed ROM values representable for lossless
+// load/save and undo. Authoring controls validate their supported subset.
+enum CollisionKey : uint8_t {
   One_Collision,
   Both,
   Both_With_Scroll,
@@ -114,7 +120,7 @@ enum CollisionKey {
   Moving_Water_Collision,
 };
 
-enum EffectKey {
+enum EffectKey : uint8_t {
   Effect_Nothing,
   One,
   Moving_Floor,
@@ -131,17 +137,16 @@ struct PotItem {
   uint16_t position = 0;  // Raw position word from ROM
   uint8_t item = 0;       // Item type (0 = nothing)
 
-  // Decode pixel coordinates from position word
-  // Format: high byte * 16 = Y, low byte * 4 = X
-  int GetPixelX() const { return (position & 0xFF) * 4; }
-  int GetPixelY() const { return ((position >> 8) & 0xFF) * 16; }
+  // Coordinates occupy bits 1..12; layer/control bits do not affect pixels.
+  int GetPixelX() const { return PotItemPixelX(position); }
+  int GetPixelY() const { return PotItemPixelY(position); }
 
   // Get tile coordinates (8-pixel tiles)
   int GetTileX() const { return GetPixelX() / 8; }
   int GetTileY() const { return GetPixelY() / 8; }
 };
 
-enum TagKey {
+enum TagKey : uint8_t {
   Nothing,
   NW_Kill_Enemy_to_Open,
   NE_Kill_Enemy_to_Open,
@@ -219,6 +224,36 @@ struct WaterFillZoneMap {
 
 class Room {
  public:
+  // Authoring state only: restoring metadata never replaces entity collections,
+  // room load state, ROM bytes, or dirty flags for unrelated save domains.
+  struct MetadataSnapshot {
+    uint8_t palette = 0;
+    uint8_t blockset = 0;
+    uint8_t spriteset = 0;
+    uint8_t layout = 0;
+    uint8_t floor1 = 0;
+    uint8_t floor2 = 0;
+    uint16_t message = 0;
+    background2 bg2{};
+    uint8_t layer2_mode = 0;
+    LayerMergeType layer_merging = LayerMerge00;
+    bool is_dark = false;
+    bool is_light = false;
+    CollisionKey collision = One_Collision;
+    EffectKey effect = Effect_Nothing;
+    TagKey tag1 = Nothing;
+    TagKey tag2 = Nothing;
+    uint8_t holewarp = 0;
+    uint8_t pit_target_layer = 0;
+    std::array<uint8_t, 4> staircase_rooms{};
+    std::array<uint8_t, 4> staircase_planes{};
+
+    bool operator==(const MetadataSnapshot&) const = default;
+  };
+
+  MetadataSnapshot CaptureMetadataSnapshot() const;
+  void RestoreMetadataSnapshot(const MetadataSnapshot& snapshot);
+
   struct SaveDirtySnapshot {
     struct BlockLoadOrder {
       size_t tile_object_index;
@@ -938,11 +973,24 @@ class Room {
   CollisionKey collision() const { return collision_; }
   const LayerMergeType& layer_merging() const { return layer_merging_; }
   uint8_t layer2_mode() const { return layer2_mode_; }
+  // The PPU layer settings the game uses for this room on entry, given the
+  // room's persistent flags (0: as first entered). See room_layer_registers.h.
+  RoomLayerRegisters GameLayerRegisters(uint16_t room_flags = 0) const;
   uint8_t staircase_plane(int index) const {
     return (index >= 0 && index < 4) ? staircase_plane_[index] : 0;
   }
+  // Raw header byte. Use staircase_destination_room() for the room id.
   uint8_t staircase_room(int index) const {
     return (index >= 0 && index < 4) ? staircase_rooms_[index] : 0;
+  }
+  // Destination room id of stair slot `index`, including this room's high
+  // byte (see room_header_destination.h).
+  int staircase_destination_room(int index) const {
+    return ResolveHeaderDestinationRoom(room_id_, staircase_room(index));
+  }
+  // Destination room id of this room's pits and warp tiles.
+  int holewarp_destination_room() const {
+    return ResolveHeaderDestinationRoom(room_id_, holewarp_);
   }
 
   int id() const { return room_id_; }
@@ -959,6 +1007,7 @@ class Room {
   // "Dungeon Main" section for the lookup algorithm.
   int ResolveDungeonPaletteId() const;
   uint8_t layout_id() const { return layout_id_; }
+  // Raw header byte. Use holewarp_destination_room() for the room id.
   uint8_t holewarp() const { return holewarp_; }
   uint16_t message_id() const { return message_id_; }
 
@@ -1010,6 +1059,27 @@ class Room {
   void SetRom(Rom* rom) { rom_ = rom; }
   auto game_data() { return game_data_; }
   void SetGameData(GameData* data) { game_data_ = data; }
+
+  /// Sheet pixels to use instead of GameData::graphics_buffer for the given
+  /// sheet ids (8bpp, 4096 bytes each, the graphics_buffer layout). Lets a
+  /// preview show unsaved graphics edits without writing the ROM or the
+  /// shared GameData. Entries of the wrong size are ignored. Marks graphics
+  /// dirty so the next RenderRoomGraphics() picks them up.
+  void SetGraphicsSheetOverrides(
+      std::map<uint16_t, std::vector<uint8_t>> overrides) {
+    graphics_sheet_overrides_ = std::move(overrides);
+    MarkGraphicsDirty();
+  }
+  const std::map<uint16_t, std::vector<uint8_t>>& graphics_sheet_overrides()
+      const {
+    return graphics_sheet_overrides_;
+  }
+
+  /// True when a sheet this room copied from GameData's sheet store has a
+  /// newer store revision than the copy (an unsaved graphics edit).
+  /// PrepareForRender() rebuilds the room then. Override sheets are not
+  /// tracked; SetGraphicsSheetOverrides() dirties the room itself.
+  bool SourceSheetsChanged() const;
 
   // Helper to get version constants from game_data or default to US
   zelda3_version_pointers version_constants() const {
@@ -1063,7 +1133,16 @@ class Room {
   Rom* rom_;
   GameData* game_data_ = nullptr;
 
+  // Returns the 4096-byte 8bpp source for a sheet: an override when one is
+  // set, otherwise the GameData buffer. Null when neither covers the sheet.
+  const uint8_t* GraphicsSheetSource(int sheet_id) const;
+  // Notes the store revision of a sheet copied from GameData (not overrides).
+  void RecordSourceSheet(int sheet_id);
+
   std::array<uint8_t, 0x10000> current_gfx16_;
+  std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
+  // Sheet id and store revision of each store sheet in current_gfx16_.
+  std::vector<std::pair<uint16_t, uint64_t>> source_sheet_revisions_;
   uint64_t graphics_revision_ = 0;
   uint64_t composite_source_revision_ = 0;
   gfx::SnesPalette rendered_dungeon_palette_;
@@ -1133,8 +1212,8 @@ class Room {
   int room_id_ = 0;
   int animated_frame_ = 0;
 
-  uint8_t staircase_plane_[4];
-  uint8_t staircase_rooms_[4];
+  uint8_t staircase_plane_[4]{};
+  uint8_t staircase_rooms_[4]{};
 
   // Room header properties (formerly public)
   uint8_t blockset_ = 0;

@@ -6,8 +6,8 @@
 #
 # Checks:
 #   - VERSION exists and matches x.y.z
-#   - If VERSION changed, CHANGELOG.md must also change
-#   - If VERSION changed, CHANGELOG.md must include a section heading for that version
+#   - If VERSION changed, docs/CHANGELOG.md must also change
+#   - If VERSION changed, docs/CHANGELOG.md must include a section heading for that version
 
 set -euo pipefail
 
@@ -67,20 +67,20 @@ CHANGELOG_CHANGED=false
 DOC_CHANGELOG_CHANGED=false
 
 has_changed "VERSION" && VERSION_CHANGED=true
-has_changed "CHANGELOG.md" && CHANGELOG_CHANGED=true
+has_changed "docs/CHANGELOG.md" && CHANGELOG_CHANGED=true
 has_changed "docs/public/reference/changelog.md" && DOC_CHANGELOG_CHANGED=true
 
 if [[ "$VERSION_CHANGED" == true ]]; then
   print_info "VERSION changed -> enforcing changelog rules"
 
   if [[ "$CHANGELOG_CHANGED" != true ]]; then
-    print_err "VERSION changed but CHANGELOG.md was not updated"
+    print_err "VERSION changed but docs/CHANGELOG.md was not updated"
     exit 1
   fi
 
   VERSION_HEADING_REGEX="^##[[:space:]]+${VERSION_VALUE//./\\.}([[:space:]]|\$)"
-  if ! rg -n "$VERSION_HEADING_REGEX" CHANGELOG.md >/dev/null 2>&1; then
-    print_err "CHANGELOG.md is missing a section heading for VERSION ${VERSION_VALUE}"
+  if ! rg -n "$VERSION_HEADING_REGEX" docs/CHANGELOG.md >/dev/null 2>&1; then
+    print_err "docs/CHANGELOG.md is missing a section heading for VERSION ${VERSION_VALUE}"
     print_info "Expected heading example: ## ${VERSION_VALUE} (Month YYYY)"
     exit 1
   fi

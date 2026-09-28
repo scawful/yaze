@@ -424,6 +424,63 @@ void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
       }
     }
   }
+
+  if (entrance_camera_overlay_.has_value() &&
+      entrance_camera_overlay_->room_id == room_id) {
+    const auto& camera = *entrance_camera_overlay_;
+    const int room_base_x = (room_id & 0x0F) * 0x200;
+    const int room_base_y = (room_id >> 4) * 0x200;
+    const float camera_x =
+        static_cast<float>(static_cast<int>(camera.camera_x) - room_base_x);
+    const float camera_y =
+        static_cast<float>(static_cast<int>(camera.camera_y) - room_base_y);
+    const float player_x =
+        static_cast<float>(static_cast<int>(camera.player_x) - room_base_x);
+    const float player_y =
+        static_cast<float>(static_cast<int>(camera.player_y) - room_base_y);
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    const auto& theme = AgentUI::GetTheme();
+    const auto validation = ValidateDungeonEntranceCamera(camera);
+    const ImVec4 diagnostic_color =
+        !validation.geometry_valid()    ? theme.status_error
+        : !validation.matches_derived() ? theme.status_warning
+                                        : theme.selection_primary;
+    const ImU32 camera_fill = ImGui::GetColorU32(ImVec4(
+        diagnostic_color.x, diagnostic_color.y, diagnostic_color.z, 0.10f));
+    const ImU32 camera_border = ImGui::GetColorU32(ImVec4(
+        diagnostic_color.x, diagnostic_color.y, diagnostic_color.z, 0.90f));
+    const ImU32 marker_color = ImGui::GetColorU32(theme.status_warning);
+    const ImVec2 room_max(room_origin.x + 512.0f * scale,
+                          room_origin.y + 512.0f * scale);
+    const ImVec2 camera_min(room_origin.x + camera_x * scale,
+                            room_origin.y + camera_y * scale);
+    const ImVec2 camera_max(camera_min.x + 256.0f * scale,
+                            camera_min.y + 224.0f * scale);
+    const ImVec2 player(room_origin.x + player_x * scale,
+                        room_origin.y + player_y * scale);
+    draw_list->PushClipRect(room_origin, room_max, true);
+    draw_list->AddRectFilled(camera_min, camera_max, camera_fill);
+    draw_list->AddRect(camera_min, camera_max, camera_border, 0.0f, 0,
+                       std::max(1.0f, 2.0f * scale));
+    const float marker_radius = std::max(4.0f, 6.0f * scale);
+    draw_list->AddCircleFilled(player, marker_radius, marker_color);
+    draw_list->AddCircle(player, marker_radius + 2.0f,
+                         ImGui::GetColorU32(ImVec4(0, 0, 0, 0.8f)), 0, 2.0f);
+    const std::string label = absl::StrFormat(
+        "Entrance %02X camera · Q%02X%s", camera_overlay_entrance_slot_,
+        camera.quadrant, validation.matches_derived() ? "" : " · check");
+    draw_list->AddText(ImVec2(camera_min.x + 4.0f, camera_min.y + 3.0f),
+                       camera_border, label.c_str());
+    const std::string boundaries = absl::StrFormat(
+        "N %02X/%02X  E %02X/%02X  S %02X/%02X  W %02X/%02X",
+        camera.boundaries[0], camera.boundaries[1], camera.boundaries[6],
+        camera.boundaries[7], camera.boundaries[2], camera.boundaries[3],
+        camera.boundaries[4], camera.boundaries[5]);
+    draw_list->AddText(ImVec2(camera_min.x + 4.0f,
+                              camera_max.y - ImGui::GetTextLineHeight() - 3.0f),
+                       camera_border, boundaries.c_str());
+    draw_list->PopClipRect();
+  }
 }
 
 void DungeonCanvasViewer::DrawCoordinateOverlayHud(int room_id) {

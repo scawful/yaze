@@ -9,6 +9,7 @@
 #include <ctime>
 #include <filesystem>
 #include <optional>
+#include <vector>
 
 #include "absl/strings/str_format.h"
 #include "absl/types/span.h"
@@ -373,7 +374,7 @@ void DrawWorkflowPreviewEntry(
 
 }  // namespace
 
-// Shared drawer catalog (header switcher, menu-bar overflow, View > Drawers).
+// Shared drawer catalog (persistent tabs, shortcuts, and command palette).
 const std::array<DrawerCatalogEntry, 7> kDrawerCatalog = {{
     {RightDrawerManager::PanelType::kProject, "Project", ICON_MD_FOLDER_SPECIAL,
      "View: Toggle Project Panel"},
@@ -527,6 +528,15 @@ void RightDrawerManager::ToggleDrawer(PanelType type) {
   }
 }
 
+void RightDrawerManager::ToggleLastDrawer() {
+  if (active_panel_ != PanelType::kNone) {
+    CloseDrawer();
+    return;
+  }
+  OpenDrawer(last_active_panel_ == PanelType::kNone ? PanelType::kProject
+                                                    : last_active_panel_);
+}
+
 void RightDrawerManager::SetToolOutput(std::string title, std::string query,
                                        std::string content,
                                        ToolOutputActions actions) {
@@ -541,11 +551,19 @@ bool RightDrawerManager::IsDrawerExpanded() const {
 }
 
 void RightDrawerManager::OpenDrawer(PanelType type) {
+  if (type == PanelType::kNone) {
+    CloseDrawer();
+    return;
+  }
+
   // If we were closing, cancel the close animation
   closing_ = false;
   closing_panel_ = PanelType::kNone;
 
   active_panel_ = type;
+  if (FindRightPanelIndex(type) >= 0) {
+    last_active_panel_ = type;
+  }
   animating_ = true;
   animation_target_ = 1.0f;
 
@@ -604,6 +622,10 @@ void RightDrawerManager::OnHostVisibilityChanged(bool visible) {
 }
 
 float RightDrawerManager::GetDrawerWidth() const {
+  return GetExpandedDrawerWidth() * panel_animation_;
+}
+
+float RightDrawerManager::GetExpandedDrawerWidth() const {
   // Determine which panel to measure: active panel, or the one being closed
   PanelType effective_panel = active_panel_;
   if (effective_panel == PanelType::kNone && closing_) {
@@ -615,19 +637,15 @@ float RightDrawerManager::GetDrawerWidth() const {
 
   ImGuiContext* context = ImGui::GetCurrentContext();
   if (!context) {
-    return GetConfiguredPanelWidth(effective_panel) * panel_animation_;
+    return GetConfiguredPanelWidth(effective_panel);
   }
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   if (!viewport) {
-    return GetConfiguredPanelWidth(effective_panel) * panel_animation_;
+    return GetConfiguredPanelWidth(effective_panel);
   }
 
-  const float vp_width = viewport->WorkSize.x;
-  const float width = GetClampedPanelWidth(effective_panel, vp_width);
-
-  // Scale by animation progress for smooth docking space adjustment
-  return width * panel_animation_;
+  return GetClampedPanelWidth(effective_panel, viewport->WorkSize.x);
 }
 
 void RightDrawerManager::SetDrawerWidth(PanelType type, float width) {
@@ -641,7 +659,7 @@ void RightDrawerManager::SetDrawerWidth(PanelType type, float width) {
   if (viewport_width <= 0.0f && ImGui::GetCurrentContext()) {
     viewport_width = ImGui::GetIO().DisplaySize.x;
   }
-  const auto limits = GetPanelSizeLimits(type);
+  const auto limits = GetSharedPanelSizeLimits();
   float clamped = std::max(limits.min_width, width);
   if (viewport_width > 0.0f) {
     const float ratio = viewport_width < 768.0f
@@ -651,74 +669,26 @@ void RightDrawerManager::SetDrawerWidth(PanelType type, float width) {
     clamped = std::clamp(clamped, limits.min_width, max_width);
   }
 
-  float* target = nullptr;
-  switch (type) {
-    case PanelType::kAgentChat:
-      target = &agent_chat_width_;
-      break;
-    case PanelType::kProposals:
-      target = &proposals_width_;
-      break;
-    case PanelType::kSettings:
-      target = &settings_width_;
-      break;
-    case PanelType::kHelp:
-      target = &help_width_;
-      break;
-    case PanelType::kNotifications:
-      target = &notifications_width_;
-      break;
-    case PanelType::kProperties:
-      target = &properties_width_;
-      break;
-    case PanelType::kProject:
-      target = &project_width_;
-      break;
-    case PanelType::kToolOutput:
-      target = &tool_output_width_;
-      break;
-    default:
-      break;
-  }
-  if (!target) {
+  if (std::abs(shared_width_ - clamped) < 0.5f) {
     return;
   }
-  if (std::abs(*target - clamped) < 0.5f) {
-    return;
-  }
-  *target = clamped;
+  shared_width_ = clamped;
 #if !defined(NDEBUG)
   LOG_INFO("RightDrawerManager",
            "SetDrawerWidth type=%d requested=%.1f clamped=%.1f",
            static_cast<int>(type), width, clamped);
 #endif
-  NotifyPanelWidthChanged(type, *target);
+  NotifyPanelWidthChanged(type, shared_width_);
 }
 
 void RightDrawerManager::ResetDrawerWidths() {
-  SetDrawerWidth(
-      PanelType::kAgentChat,
-      GetDefaultDrawerWidth(PanelType::kAgentChat, active_editor_type_));
-  SetDrawerWidth(
-      PanelType::kProposals,
-      GetDefaultDrawerWidth(PanelType::kProposals, active_editor_type_));
-  SetDrawerWidth(
-      PanelType::kSettings,
-      GetDefaultDrawerWidth(PanelType::kSettings, active_editor_type_));
-  SetDrawerWidth(PanelType::kHelp,
-                 GetDefaultDrawerWidth(PanelType::kHelp, active_editor_type_));
-  SetDrawerWidth(
-      PanelType::kNotifications,
-      GetDefaultDrawerWidth(PanelType::kNotifications, active_editor_type_));
-  SetDrawerWidth(
-      PanelType::kProperties,
-      GetDefaultDrawerWidth(PanelType::kProperties, active_editor_type_));
-  SetDrawerWidth(
-      PanelType::kProject,
-      GetDefaultDrawerWidth(PanelType::kProject, active_editor_type_));
-  SetDrawerWidth(
-      PanelType::kToolOutput,
-      GetDefaultDrawerWidth(PanelType::kToolOutput, active_editor_type_));
+  float default_width =
+      GetDefaultDrawerWidth(PanelType::kToolOutput, active_editor_type_);
+  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+    default_width = std::max(
+        default_width, GetDefaultDrawerWidth(entry.type, active_editor_type_));
+  }
+  SetDrawerWidth(PanelType::kProject, default_width);
 }
 
 float RightDrawerManager::GetDefaultDrawerWidth(PanelType type,
@@ -810,28 +780,27 @@ RightDrawerManager::PanelSizeLimits RightDrawerManager::GetPanelSizeLimits(
   return defaults;
 }
 
-float RightDrawerManager::GetConfiguredPanelWidth(PanelType type) const {
-  switch (type) {
-    case PanelType::kAgentChat:
-      return agent_chat_width_;
-    case PanelType::kProposals:
-      return proposals_width_;
-    case PanelType::kSettings:
-      return settings_width_;
-    case PanelType::kHelp:
-      return help_width_;
-    case PanelType::kNotifications:
-      return notifications_width_;
-    case PanelType::kProperties:
-      return properties_width_;
-    case PanelType::kProject:
-      return project_width_;
-    case PanelType::kToolOutput:
-      return tool_output_width_;
-    case PanelType::kNone:
-    default:
-      return 0.0f;
+RightDrawerManager::PanelSizeLimits
+RightDrawerManager::GetSharedPanelSizeLimits() const {
+  PanelSizeLimits shared{
+      .min_width = gui::UIConfig::kPanelMinWidthAbsolute,
+      .max_width_ratio = 0.95f,
+  };
+  const auto fold = [this, &shared](PanelType type) {
+    const PanelSizeLimits limits = GetPanelSizeLimits(type);
+    shared.min_width = std::max(shared.min_width, limits.min_width);
+    shared.max_width_ratio =
+        std::min(shared.max_width_ratio, limits.max_width_ratio);
+  };
+  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+    fold(entry.type);
   }
+  fold(PanelType::kToolOutput);
+  return shared;
+}
+
+float RightDrawerManager::GetConfiguredPanelWidth(PanelType type) const {
+  return type == PanelType::kNone ? 0.0f : shared_width_;
 }
 
 float RightDrawerManager::GetClampedPanelWidth(PanelType type,
@@ -840,7 +809,7 @@ float RightDrawerManager::GetClampedPanelWidth(PanelType type,
   if (width <= 0.0f) {
     return width;
   }
-  const auto limits = GetPanelSizeLimits(type);
+  const auto limits = GetSharedPanelSizeLimits();
   const float ratio = viewport_width < 768.0f
                           ? std::max(0.88f, limits.max_width_ratio)
                           : limits.max_width_ratio;
@@ -856,16 +825,7 @@ void RightDrawerManager::NotifyPanelWidthChanged(PanelType type, float width) {
 
 std::unordered_map<std::string, float>
 RightDrawerManager::SerializeDrawerWidths() const {
-  return {
-      {PanelTypeKey(PanelType::kAgentChat), agent_chat_width_},
-      {PanelTypeKey(PanelType::kProposals), proposals_width_},
-      {PanelTypeKey(PanelType::kSettings), settings_width_},
-      {PanelTypeKey(PanelType::kHelp), help_width_},
-      {PanelTypeKey(PanelType::kNotifications), notifications_width_},
-      {PanelTypeKey(PanelType::kProperties), properties_width_},
-      {PanelTypeKey(PanelType::kProject), project_width_},
-      {PanelTypeKey(PanelType::kToolOutput), tool_output_width_},
-  };
+  return {{"right_sidebar.shared", shared_width_}};
 }
 
 void RightDrawerManager::RestoreDrawerWidths(
@@ -874,20 +834,32 @@ void RightDrawerManager::RestoreDrawerWidths(
   LOG_INFO("RightDrawerManager",
            "RestoreDrawerWidths: %zu entries from settings", widths.size());
 #endif
-  auto apply = [&](PanelType type) {
-    auto it = widths.find(PanelTypeKey(type));
-    if (it != widths.end()) {
-      SetDrawerWidth(type, it->second);
+  if (const auto shared = widths.find("right_sidebar.shared");
+      shared != widths.end()) {
+    SetDrawerWidth(PanelType::kProject, shared->second);
+    return;
+  }
+
+  // One-way migration from #260's per-drawer map. Start at the widest
+  // context-aware default, then retain any wider user value.
+  float migrated =
+      GetDefaultDrawerWidth(PanelType::kToolOutput, active_editor_type_);
+  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+    migrated = std::max(migrated,
+                        GetDefaultDrawerWidth(entry.type, active_editor_type_));
+  }
+  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+    if (const auto saved = widths.find(PanelTypeKey(entry.type));
+        saved != widths.end()) {
+      migrated = std::max(migrated, saved->second);
     }
-  };
-  apply(PanelType::kAgentChat);
-  apply(PanelType::kProposals);
-  apply(PanelType::kSettings);
-  apply(PanelType::kHelp);
-  apply(PanelType::kNotifications);
-  apply(PanelType::kProperties);
-  apply(PanelType::kProject);
-  apply(PanelType::kToolOutput);
+  }
+  if (const auto tool_output =
+          widths.find(PanelTypeKey(PanelType::kToolOutput));
+      tool_output != widths.end()) {
+    migrated = std::max(migrated, tool_output->second);
+  }
+  SetDrawerWidth(PanelType::kProject, migrated);
 }
 
 void RightDrawerManager::Draw() {
@@ -1057,8 +1029,7 @@ void RightDrawerManager::Draw() {
       }
       if (handle_hovered &&
           ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        SetDrawerWidth(active_panel_, GetDefaultDrawerWidth(
-                                          active_panel_, active_editor_type_));
+        ResetDrawerWidths();
       }
       if (handle_active) {
         const float new_width = GetConfiguredPanelWidth(active_panel_) -
@@ -1078,11 +1049,13 @@ void RightDrawerManager::Draw() {
   }
 }
 
-void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
+void RightDrawerManager::DrawHeaderContextBadge(PanelType type,
+                                                float available_width) {
   switch (type) {
     case PanelType::kAgentChat: {
 #ifdef YAZE_BUILD_AGENT_UI
-      if (agent_chat_) {
+      if (agent_chat_ &&
+          ImGui::CalcTextSize(ICON_MD_CIRCLE).x <= available_width) {
         gui::ColoredText(ICON_MD_CIRCLE, gui::GetSuccessVec4());
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s", tr("Agent Ready"));
@@ -1099,6 +1072,9 @@ void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
           const ImVec2 badge_size = ImGui::CalcTextSize(badge.c_str());
           const float pad_x = 5.0f;
           const float badge_w = badge_size.x + pad_x * 2.0f;
+          if (badge_w > available_width) {
+            break;
+          }
           const float badge_h = ImGui::GetTextLineHeight() + 2.0f;
           const ImVec2 p = ImGui::GetCursorScreenPos();
           ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -1116,7 +1092,8 @@ void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
       break;
     }
     case PanelType::kProperties: {
-      if (properties_locked_) {
+      if (properties_locked_ &&
+          ImGui::CalcTextSize(ICON_MD_LOCK).x <= available_width) {
         gui::ColoredText(ICON_MD_LOCK, gui::GetWarningVec4());
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s", tr("Selection Locked"));
@@ -1155,6 +1132,9 @@ void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
         const ImVec4 tag_bg = gui::GetSurfaceContainerHighestVec4();
         const ImVec2 text_sz = ImGui::CalcTextSize(editor_name);
         const float pad = 5.0f;
+        if (text_sz.x + pad * 2.0f > available_width) {
+          break;
+        }
         const ImVec2 p = ImGui::GetCursorScreenPos();
         ImDrawList* dl = ImGui::GetWindowDrawList();
         dl->AddRectFilled(
@@ -1177,8 +1157,10 @@ void RightDrawerManager::DrawHeaderActions(PanelType type [[maybe_unused]]) {
 
 void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
                                          const char* icon) {
-  const float header_height = gui::UIConfig::kPanelHeaderHeight;
-  const float padding = gui::UIConfig::kPanelPaddingLarge;
+  const float header_height =
+      gui::ScaledSize(0.0f, gui::UIConfig::kPanelHeaderHeight).y;
+  const float padding =
+      gui::ScaledSize(gui::UIConfig::kPanelPaddingLarge, 0.0f).x;
 
   // Header background - slightly elevated surface
   ImVec2 header_min = ImGui::GetCursorScreenPos();
@@ -1194,7 +1176,7 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
                      ImGui::GetColorU32(gui::GetOutlineVec4()), 1.0f);
 
   // Icon chip with semi-transparent primary background
-  const float icon_chip_size = 24.0f;
+  const float icon_chip_size = gui::ScaledSize(24.0f, 0.0f).x;
   const float chip_y = header_min.y + (header_height - icon_chip_size) * 0.5f;
   ImVec2 chip_min(header_min.x + padding, chip_y);
   ImVec2 chip_max(chip_min.x + icon_chip_size, chip_min.y + icon_chip_size);
@@ -1208,11 +1190,10 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
                      ImGui::GetColorU32(gui::GetPrimaryVec4()), icon);
 
   // Reserve fixed chrome width so title truncation stays stable as badges /
-  // panel actions appear. Layout (right → left): close, switcher, up to three
-  // panel-specific buttons.
-  const ImVec2 chrome_btn_size(24.0f, 24.0f);
-  const float chrome_gap = 4.0f;
-  int chrome_button_count = 2;  // close + switcher
+  // panel actions appear. Layout (right → left): close, then panel actions.
+  const ImVec2 chrome_btn_size = gui::ScaledSize(24.0f, 24.0f);
+  const float chrome_gap = gui::ScaledSize(4.0f, 0.0f).x;
+  int chrome_button_count = 1;  // close
   if (type == PanelType::kProperties) {
     chrome_button_count += 1;
   } else if (type == PanelType::kAgentChat) {
@@ -1261,10 +1242,12 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
     ImGui::SetTooltip("%s", title);
   }
 
-  // Contextual badge next to title when space remains.
-  if (ImGui::GetCursorPosX() + 20.0f < title_max_x) {
+  // Dummy() advances to the next line and resets cursor X. Measure from the
+  // title's right edge instead, then require the complete badge to fit.
+  const float badge_x = title_x + drawn_title_w + 6.0f;
+  if (badge_x < title_max_x) {
     ImGui::SameLine(0.0f, 6.0f);
-    DrawHeaderContextBadge(type);
+    DrawHeaderContextBadge(type, title_max_x - badge_x);
   }
 
   // Right-aligned chrome buttons (right → left)
@@ -1279,36 +1262,9 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
     CloseDrawer();
   }
 
-  // 2. Switcher popup button
-  current_x -= (chrome_btn_size.x + 4.0f);
-  ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
-  if (gui::TransparentIconButton(
-          ICON_MD_SWAP_HORIZ, chrome_btn_size, "Switch Sidebar Drawer", false,
-          gui::GetTextSecondaryVec4(), "right_sidebar", "switch_panel_menu")) {
-    ImGui::OpenPopup("##RightPanelSwitcher");
-  }
-  if (ImGui::BeginPopup("##RightPanelSwitcher")) {
-    for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
-      std::string label = absl::StrFormat("%s  %s", entry.icon, entry.name);
-      std::string shortcut;
-      if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
-        shortcut = GetShortcutLabel(entry.shortcut_action, "");
-        if (shortcut == "Unassigned") {
-          shortcut.clear();
-        }
-      }
-      if (ImGui::MenuItem(label.c_str(),
-                          shortcut.empty() ? nullptr : shortcut.c_str(),
-                          type == entry.type)) {
-        OpenDrawer(entry.type);
-      }
-    }
-    ImGui::EndPopup();
-  }
-
-  // 3. Panel-specific quick actions (right of switcher)
+  // Panel-specific quick actions
   if (type == PanelType::kProperties) {
-    current_x -= (chrome_btn_size.x + 4.0f);
+    current_x -= (chrome_btn_size.x + chrome_gap);
     ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
     if (gui::TransparentIconButton(
             properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
@@ -1321,14 +1277,14 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
   } else if (type == PanelType::kAgentChat) {
 #ifdef YAZE_BUILD_AGENT_UI
     if (agent_chat_) {
-      current_x -= (chrome_btn_size.x + 4.0f);
+      current_x -= (chrome_btn_size.x + chrome_gap);
       ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
       if (gui::TransparentIconButton(
               ICON_MD_DELETE_SWEEP, chrome_btn_size, "Clear Chat History",
               false, ImVec4(0, 0, 0, 0), "right_sidebar", "agent_clear_chat")) {
         agent_chat_->ClearHistory();
       }
-      current_x -= (chrome_btn_size.x + 4.0f);
+      current_x -= (chrome_btn_size.x + chrome_gap);
       ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
       if (gui::TransparentIconButton(
               ICON_MD_SAVE_ALT, chrome_btn_size, "Save Chat History", false,
@@ -1336,7 +1292,7 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
         agent_chat_->SaveHistory(ResolveAgentChatHistoryPath());
       }
       if (proposal_drawer_) {
-        current_x -= (chrome_btn_size.x + 4.0f);
+        current_x -= (chrome_btn_size.x + chrome_gap);
         ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
         if (gui::TransparentIconButton(
                 ICON_MD_DESCRIPTION, chrome_btn_size, "Open Proposals", false,
@@ -1348,14 +1304,14 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
 #endif
   } else if (type == PanelType::kNotifications) {
     if (toast_manager_) {
-      current_x -= (chrome_btn_size.x + 4.0f);
+      current_x -= (chrome_btn_size.x + chrome_gap);
       ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
       if (gui::TransparentIconButton(
               ICON_MD_DELETE_SWEEP, chrome_btn_size, "Clear All Notifications",
               false, ImVec4(0, 0, 0, 0), "right_sidebar", "notif_clear_all")) {
         toast_manager_->ClearHistory();
       }
-      current_x -= (chrome_btn_size.x + 4.0f);
+      current_x -= (chrome_btn_size.x + chrome_gap);
       ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
       if (gui::TransparentIconButton(ICON_MD_DONE_ALL, chrome_btn_size,
                                      "Mark All Read", false, ImVec4(0, 0, 0, 0),
@@ -1365,7 +1321,7 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
     }
   } else if (type == PanelType::kToolOutput) {
     if (!tool_output_content_.empty()) {
-      current_x -= (chrome_btn_size.x + 4.0f);
+      current_x -= (chrome_btn_size.x + chrome_gap);
       ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
       if (gui::TransparentIconButton(ICON_MD_CONTENT_COPY, chrome_btn_size,
                                      "Copy Output", false, ImVec4(0, 0, 0, 0),
@@ -1374,7 +1330,7 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
       }
     }
   } else if (type == PanelType::kHelp) {
-    current_x -= (chrome_btn_size.x + 4.0f);
+    current_x -= (chrome_btn_size.x + chrome_gap);
     ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
     if (gui::TransparentIconButton(
             ICON_MD_OPEN_IN_NEW, chrome_btn_size, "Open Online Documentation",
@@ -1387,9 +1343,13 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
 }
 
 void RightDrawerManager::DrawDrawerNavStrip(PanelType current_panel) {
-  const float nav_height = 32.0f;
-  const float padding = 6.0f;
-  const float gap = 3.0f;
+  const float standard_height =
+      std::max(24.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
+  const float padding =
+      std::clamp(gui::LayoutHelpers::GetStandardSpacing(), 4.0f, 8.0f);
+  const float gap = std::max(2.0f, padding * 0.5f);
+  const float tab_h = standard_height;
+  const float nav_height = tab_h + padding * 2.0f;
 
   const ImVec2 nav_min = ImGui::GetCursorScreenPos();
   const ImVec2 nav_max =
@@ -1409,15 +1369,29 @@ void RightDrawerManager::DrawDrawerNavStrip(PanelType current_panel) {
   }
 
   const float avail_w = ImGui::GetWindowWidth() - padding * 2.0f;
-  const float tab_w =
-      std::max(24.0f, std::floor((avail_w - (count - 1) * gap) / count));
-  const float tab_h = 24.0f;
   const float tab_y = nav_min.y + (nav_height - tab_h) * 0.5f;
+  std::vector<float> labeled_widths;
+  labeled_widths.reserve(count);
+  float labeled_total = gap * static_cast<float>(count - 1);
+  for (const DrawerCatalogEntry& entry : catalog) {
+    const std::string label = absl::StrFormat("%s %s", entry.icon, entry.name);
+    const float width =
+        std::max(tab_h, ImGui::CalcTextSize(label.c_str()).x + padding * 2.0f);
+    labeled_widths.push_back(width);
+    labeled_total += width;
+  }
+  const bool show_labels = labeled_total <= avail_w;
+  const float extra_per_tab =
+      show_labels ? std::max(0.0f, (avail_w - labeled_total) / count) : 0.0f;
+  const float compact_tab_w =
+      std::max(tab_h, std::floor((avail_w - (count - 1) * gap) / count));
+  float tab_x = nav_min.x + padding;
 
   for (size_t i = 0; i < count; ++i) {
     const DrawerCatalogEntry& entry = catalog[i];
     const bool is_active = (current_panel == entry.type);
-    const float tab_x = nav_min.x + padding + i * (tab_w + gap);
+    const float tab_w =
+        show_labels ? labeled_widths[i] + extra_per_tab : compact_tab_w;
 
     const ImVec2 tab_rect_min(tab_x, tab_y);
     const ImVec2 tab_rect_max(tab_x + tab_w, tab_y + tab_h);
@@ -1426,9 +1400,7 @@ void RightDrawerManager::DrawDrawerNavStrip(PanelType current_panel) {
     const std::string tab_id = absl::StrFormat("##drawer_nav_%zu_%s", i,
                                                entry.name ? entry.name : "x");
     if (ImGui::InvisibleButton(tab_id.c_str(), ImVec2(tab_w, tab_h))) {
-      if (is_active) {
-        CloseDrawer();
-      } else {
+      if (!is_active) {
         OpenDrawer(entry.type);
       }
     }
@@ -1447,13 +1419,17 @@ void RightDrawerManager::DrawDrawerNavStrip(PanelType current_panel) {
           ImGui::GetColorU32(gui::GetSurfaceContainerHighVec4()), 4.0f);
     }
 
-    const ImVec2 icon_sz = ImGui::CalcTextSize(entry.icon);
-    const ImVec2 icon_pos(tab_rect_min.x + (tab_w - icon_sz.x) * 0.5f,
-                          tab_rect_min.y + (tab_h - icon_sz.y) * 0.5f);
+    const std::string tab_label =
+        show_labels ? absl::StrFormat("%s %s", entry.icon, entry.name)
+                    : std::string(entry.icon);
+    const ImVec2 label_size = ImGui::CalcTextSize(tab_label.c_str());
+    const ImVec2 label_pos(tab_rect_min.x + (tab_w - label_size.x) * 0.5f,
+                           tab_rect_min.y + (tab_h - label_size.y) * 0.5f);
     const ImVec4 icon_col = is_active ? gui::GetPrimaryVec4()
                                       : (hovered ? gui::GetTextPrimaryVec4()
                                                  : gui::GetTextSecondaryVec4());
-    draw_list->AddText(icon_pos, ImGui::GetColorU32(icon_col), entry.icon);
+    draw_list->AddText(label_pos, ImGui::GetColorU32(icon_col),
+                       tab_label.c_str());
 
     // Unread badge dot on Notifications tab
     if (entry.type == PanelType::kNotifications && toast_manager_ &&
@@ -1473,10 +1449,14 @@ void RightDrawerManager::DrawDrawerNavStrip(PanelType current_panel) {
       }
       ImGui::SetTooltip("%s", tip.c_str());
     }
+    tab_x += tab_w + gap;
   }
 
   // Advance cursor past the nav strip + small gap
-  ImGui::SetCursorPosY(gui::UIConfig::kPanelHeaderHeight + nav_height + 4.0f);
+  const float header_height =
+      gui::ScaledSize(0.0f, gui::UIConfig::kPanelHeaderHeight).y;
+  ImGui::SetCursorPosY(header_height + nav_height +
+                       gui::ScaledSize(0.0f, 4.0f).y);
 }
 
 // =============================================================================
@@ -1754,6 +1734,9 @@ void RightDrawerManager::DrawProposalsPanel() {
 }
 
 void RightDrawerManager::DrawSettingsPanel() {
+  if (!settings_panel_ && settings_panel_provider_) {
+    settings_panel_ = settings_panel_provider_();
+  }
   if (settings_panel_) {
     // Draw settings inline (no card windows)
     settings_panel_->Draw();
@@ -2399,54 +2382,35 @@ void RightDrawerManager::DrawToolOutputPanel() {
   }
 }
 
-bool RightDrawerManager::DrawDrawerToggleButtons() {
-  bool interacted = false;
-
-  // Single overflow control — same SmallButton metrics as session/bell.
-  const bool any_drawer_open = active_panel_ != PanelType::kNone;
+bool RightDrawerManager::DrawSidebarToggleButton() {
+  const bool sidebar_open = active_panel_ != PanelType::kNone;
   gui::StyleColorGuard button_colors({
       {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
       {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
       {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
       {ImGuiCol_Text,
-       any_drawer_open ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4()},
+       sidebar_open ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4()},
   });
 
-  if (ImGui::SmallButton(ICON_MD_VERTICAL_SPLIT "##DrawersOverflow")) {
-    ImGui::OpenPopup("##DrawersOverflowMenu");
+  bool interacted = false;
+  if (ImGui::SmallButton(ICON_MD_VIEW_SIDEBAR "##RightSidebarToggle")) {
+    ToggleLastDrawer();
     interacted = true;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("%s", tr("Drawers"));
-  }
-
-  if (ImGui::BeginPopup("##DrawersOverflowMenu")) {
-    for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
-      std::string label = absl::StrFormat("%s %s", entry.icon, entry.name);
-      std::string shortcut;
-      if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
-        shortcut = GetShortcutLabel(entry.shortcut_action, "");
-        if (shortcut == "Unassigned") {
-          shortcut.clear();
-        }
-      }
-      if (ImGui::MenuItem(label.c_str(),
-                          shortcut.empty() ? nullptr : shortcut.c_str(),
-                          IsDrawerActive(entry.type))) {
-        ToggleDrawer(entry.type);
-        interacted = true;
-      }
-    }
-    ImGui::EndPopup();
+    const std::string tooltip =
+        sidebar_open ? tr("Close Right Sidebar")
+                     : absl::StrFormat("Open Right Sidebar (%s)",
+                                       GetPanelTypeName(last_active_panel_));
+    ImGui::SetTooltip("%s", tooltip.c_str());
   }
 
   return interacted;
 }
 
-float RightDrawerManager::GetDrawerToggleClusterWidth() {
+float RightDrawerManager::GetSidebarToggleWidth() {
   const float frame_padding = ImGui::GetStyle().FramePadding.x;
-  // Match SmallButton("##DrawersOverflow") footprint used above.
-  const float icon_width = ImGui::CalcTextSize(ICON_MD_VERTICAL_SPLIT).x;
+  const float icon_width = ImGui::CalcTextSize(ICON_MD_VIEW_SIDEBAR).x;
   return icon_width + frame_padding * 2.0f;
 }
 

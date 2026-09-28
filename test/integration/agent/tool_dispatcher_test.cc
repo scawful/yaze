@@ -208,7 +208,7 @@ TEST_F(ToolDispatcherTest, ToolPreferencesDisableOverworld) {
 
   dispatcher_.SetToolPreferences(prefs);
 
-  auto call = CreateToolCall("overworld-describe-map", {{"map", "0"}});
+  auto call = CreateToolCall("overworld-describe-map", {{"screen", "0x00"}});
 
   auto result = dispatcher_.Dispatch(call);
 

@@ -1,4 +1,7 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "canvas_context_menu.h"
+
+#include <optional>
 #include "util/i18n/tr.h"
 
 #include "app/gfx/debug/performance/performance_dashboard.h"
@@ -10,6 +13,7 @@
 #include "app/gui/widgets/palette_editor_widget.h"
 #include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace gui {
@@ -77,12 +81,14 @@ void CanvasContextMenu::Render(
   // Context menu (under default mouse threshold)
   if (ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
       enable_context_menu_ && drag_delta.x == 0.0F && drag_delta.y == 0.0F) {
-    if (ImGui::IsItemHovered() &&
-        ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
-      context_open_screen_position_ = ImGui::GetIO().MousePos;
+    if (ImGui::IsPopupOpenRequestForItem(ImGuiPopupFlags_MouseButtonRight,
+                                         ImGui::GetItemID())) {
+      const ImVec2 position = ImGui::GetIO().MousePos;
+      if (!canvas || canvas->PrepareContextMenu(position)) {
+        context_open_screen_position_ = position;
+        ImGui::OpenPopup(context_id.c_str());
+      }
     }
-    ImGui::OpenPopupOnItemClick(context_id.c_str(),
-                                ImGuiPopupFlags_MouseButtonRight);
   }
 
   // Phase 4: Popup callback for automatic popup management
@@ -93,7 +99,12 @@ void CanvasContextMenu::Render(
     }
   };
 
-  // Contents of the Context Menu (Phase 4: Priority-based ordering)
+  // Contents of the Context Menu (Phase 4: Priority-based ordering).
+  // Canvases draw with zero padding; the popup must not inherit it.
+  std::optional<PopupStyleScope> popup_style;
+  if (ImGui::IsPopupOpen(context_id.c_str())) {
+    popup_style.emplace();
+  }
   if (ImGui::BeginPopup(context_id.c_str())) {
     // PRIORITY 0: Editor-specific items (from Canvas::editor_menu_)
     if (canvas && !canvas->editor_menu().sections.empty()) {

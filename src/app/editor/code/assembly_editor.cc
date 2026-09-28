@@ -2226,6 +2226,16 @@ absl::Status AssemblyEditor::Paste() {
   return absl::OkStatus();
 }
 
+bool AssemblyEditor::CanUndo() const {
+  const TextEditor* editor = GetActiveEditor();
+  return editor != nullptr && editor->CanUndo();
+}
+
+bool AssemblyEditor::CanRedo() const {
+  const TextEditor* editor = GetActiveEditor();
+  return editor != nullptr && editor->CanRedo();
+}
+
 absl::Status AssemblyEditor::Undo() {
   GetActiveEditor()->Undo();
   return absl::OkStatus();

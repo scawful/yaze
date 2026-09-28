@@ -907,6 +907,18 @@ TEST(MesenSocketClientTest, InvalidExplicitTcpDoesNotUseDiscoveredLocalSocket) {
   EXPECT_FALSE(client.IsConnected());
 }
 
+TEST(MesenSocketClientTest, ConnectTcpFailureReturnsPromptly) {
+  MesenSocketClient client;
+  const auto started = std::chrono::steady_clock::now();
+  const auto status = client.Connect("tcp://192.0.2.1:27015");
+  const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                              std::chrono::steady_clock::now() - started)
+                              .count();
+  EXPECT_FALSE(status.ok()) << status.message();
+  EXPECT_FALSE(client.IsConnected());
+  EXPECT_LT(elapsed_ms, 8000) << status.message();
+}
+
 }  // namespace
 }  // namespace yaze::emu::mesen
 

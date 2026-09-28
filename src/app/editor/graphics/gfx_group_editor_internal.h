@@ -55,28 +55,53 @@ inline void EnsureSheetTextureQueued(gfx::Bitmap& sheet) {
 //   * the role's palette group cannot be resolved (palette data not loaded
 //     yet, or unknown group name)
 //   * the binding's sub_index is out of range for the resolved group
+inline const gfx::SnesPalette* ResolveRoleDefaultPalette(
+    gfx::SheetRole role, gfx::PaletteGroupMap& palette_groups) {
+  if (role == gfx::SheetRole::kUnclassified)
+    return nullptr;
+  const auto binding = gfx::DefaultBindingFor(role);
+  if (binding.palette_group_name.empty())
+    return nullptr;
+  auto* group =
+      palette_groups.get_group(std::string(binding.palette_group_name));
+  if (group == nullptr || group->size() == 0)
+    return nullptr;
+  const size_t index =
+      binding.default_sub_index < group->size() ? binding.default_sub_index : 0;
+  const auto* palette = group->mutable_palette(index);
+  return palette && !palette->empty() ? palette : nullptr;
+}
+
 inline bool ApplyRoleDefaultPalette(gfx::Bitmap& sheet, gfx::SheetRole role,
                                     gfx::PaletteGroupMap& palette_groups) {
-  if (role == gfx::SheetRole::kUnclassified) {
+  const auto* palette = ResolveRoleDefaultPalette(role, palette_groups);
+  if (!palette)
     return false;
-  }
-  const gfx::SheetRolePaletteBinding binding = gfx::DefaultBindingFor(role);
-  if (binding.palette_group_name.empty()) {
-    return false;
-  }
-  gfx::PaletteGroup* group =
-      palette_groups.get_group(std::string(binding.palette_group_name));
-  if (group == nullptr || group->size() == 0) {
-    return false;
-  }
-  const size_t resolved_index =
-      binding.default_sub_index < group->size() ? binding.default_sub_index : 0;
-  gfx::SnesPalette* palette = group->mutable_palette(resolved_index);
-  if (palette == nullptr || palette->empty()) {
-    return false;
-  }
   sheet.SetPalette(*palette);
   return true;
+}
+
+// A view owns its palette and texture; Arena sheets remain source data.
+inline void SyncSheetPreview(const gfx::Bitmap& source,
+                             const gfx::SnesPalette& palette,
+                             gfx::Bitmap& preview) {
+  if (!source.surface())
+    return;
+  const bool pixels_changed =
+      !preview.surface() || preview.width() != source.width() ||
+      preview.height() != source.height() ||
+      preview.depth() != source.depth() || preview.vector() != source.vector();
+  const bool palette_changed = !(preview.palette() == palette);
+  if (pixels_changed) {
+    preview.Create(source.width(), source.height(), source.depth(),
+                   source.vector());
+  }
+  if (pixels_changed || palette_changed)
+    preview.SetPalette(palette);
+  EnsureSheetTextureQueued(preview);
+  if (preview.texture() && (pixels_changed || palette_changed)) {
+    preview.UpdateTexture();
+  }
 }
 
 }  // namespace internal
