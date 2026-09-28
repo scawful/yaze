@@ -41,7 +41,10 @@ bool SafeRelativePath(const std::string& value) {
       value.find(':') != std::string::npos)
     return false;
   const std::filesystem::path path(value);
-  if (path.is_absolute() || path.has_root_name())
+  // On Windows, a POSIX-style path such as "/outside.asm" has a
+  // root-directory but no root-name, so is_absolute() reports false; check
+  // has_root_directory() too so it is still rejected there.
+  if (path.is_absolute() || path.has_root_name() || path.has_root_directory())
     return false;
   for (const auto& part : path) {
     if (part == "..")
