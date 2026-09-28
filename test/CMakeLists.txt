@@ -347,7 +347,6 @@ if(YAZE_BUILD_TESTS)
     unit/gui/empty_state_test.cc
     unit/gui/animator_test.cc
     unit/gui/property_inspector_test.cc
-    unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
@@ -415,6 +414,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/cutscene_camera_panel_test.cc
     unit/editor/collision_source_pairing_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
+    unit/editor/editor_manager_write_conflict_test.cc
     unit/editor/menu_orchestrator_helpers_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/oracle_hack_workflow_backend_test.cc
@@ -581,7 +581,6 @@ if(YAZE_BUILD_TESTS)
     integration/dungeon_editor_v2_test.cc
     integration/overworld_editor_test.cc
     integration/editor/tile16_editor_test.cc
-    # NOTE: editor_integration_test.cc removed - legacy code with Controller dependency
     integration/zelda3/overworld_integration_test.cc
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
@@ -607,12 +606,10 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_room_render_parity_test.cc
     integration/zelda3/dungeon_room_regression_fixtures_test.cc
     integration/zelda3/dungeon_palette_test.cc
-    integration/zelda3/dungeon_room_test.cc
     integration/zelda3/dungeon_staircase_slot_parity_test.cc
     integration/zelda3/minecart_audit_integration_test.cc
     integration/zelda3/oracle_workflow_integration_test.cc
     integration/zelda3/oracle_smoke_check_integration_test.cc
-    integration/zelda3/sprite_position_test.cc
     integration/zelda3/message_test.cc
     integration/palette_manager_test.cc
     integration/object_selection_integration_test.cc
@@ -1048,8 +1045,6 @@ if(YAZE_BUILD_TESTS)
     # AI Multimodal Testing Framework
     e2e/ai_multimodal_test.cc
     e2e/emulator_stepping_test.cc
-    # ImGui Test Engine feature demos
-    e2e/imgui_test_engine_demo.cc
   )
 
   if(YAZE_ENABLE_AI_RUNTIME)
