@@ -63,7 +63,14 @@ void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
                             std::move(mode_opts));
 }
 
+// Builds the shared editor-context snapshot for the current dungeon room:
+// identity (owner id, title, workflow mode), room metadata and object counts,
+// diagnostics, and the capabilities/actions the right sidebar can offer.
+// Graphics fields come from the census-owned render context; a room with no
+// resolved owner reports the room header instead of inferring one. Rooms that
+// are not materialized yet only get a "room_not_loaded" diagnostic.
 EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
+  // Identity: stable owner id, room label title, workflow mode subtitle.
   EditorContextSnapshot snapshot;
   snapshot.category = "Dungeon";
   snapshot.semantic_owner =
@@ -86,6 +93,8 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
         .message = "Room data has not been materialized yet.",
     });
   } else {
+    // Graphics metadata: the entrance's main blockset when an owner entrance
+    // supplies it, otherwise only the room header's own blockset.
     const DungeonRenderContext render_context =
         ResolveDungeonRenderContextForRoom(current_room_id_);
     const uint8_t entrance_blockset = render_context.uses_entrance()
@@ -138,6 +147,8 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
          .label = "Pot items",
          .value = std::to_string(room->GetPotItems().size())},
     };
+    // Pending edits, then owner diagnostics: an ambiguous owner falls back to
+    // the room header; a census failure is reported, not guessed around.
     snapshot.has_pending_changes = room->HasUnsavedChanges();
     snapshot.pending_label =
         snapshot.has_pending_changes ? "Room has unapplied changes" : "";
@@ -157,6 +168,8 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
                                      dungeon_render_context_census_error_),
       });
     }
+    // Entrance camera: unsafe geometry is an error; a safe camera that differs
+    // from the derived values is a warning (repair stays an explicit action).
     if (const auto camera = GetEntranceCameraState(current_entrance_id_);
         camera.has_value()) {
       const auto validation = ValidateDungeonEntranceCamera(*camera);
@@ -188,6 +201,8 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
     }
   }
 
+  // Capabilities and sidebar actions; minecart tracks only when the project's
+  // hack manifest declares a track layout.
   snapshot.capabilities = {
       "dungeon.room_matrix",
       "dungeon.entrances",
