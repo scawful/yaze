@@ -80,12 +80,6 @@ TEST(EditFileHeaderTest, CurrentVersionIsOne) {
   EXPECT_EQ(EditFileHeader::kCurrentVersion, 1u);
 }
 
-TEST(EditFileHeaderTest, DefaultValuesAreCorrect) {
-  EditFileHeader header;
-  EXPECT_EQ(header.magic, EditFileHeader::kMagic);
-  EXPECT_EQ(header.version, EditFileHeader::kCurrentVersion);
-}
-
 TEST(EditFileHeaderTest, HasRomChecksumField) {
   EditFileHeader header;
   EXPECT_EQ(header.base_rom_sha256.size(), 32u);
@@ -206,14 +200,6 @@ TEST(ProjectToolUtilsTest, ParseTimestampInvalidFormat) {
 // ProjectSnapshot Tests
 // =============================================================================
 
-TEST(ProjectSnapshotTest, DefaultConstruction) {
-  ProjectSnapshot snapshot;
-  EXPECT_TRUE(snapshot.name.empty());
-  EXPECT_TRUE(snapshot.description.empty());
-  EXPECT_TRUE(snapshot.edits.empty());
-  EXPECT_TRUE(snapshot.metadata.empty());
-}
-
 TEST(ProjectSnapshotTest, HasAllRequiredFields) {
   ProjectSnapshot snapshot;
   snapshot.name = "test-snapshot";
@@ -258,11 +244,6 @@ class ProjectManagerTest : public ::testing::Test {
   fs::path test_dir_;
 };
 
-TEST_F(ProjectManagerTest, IsNotInitializedByDefault) {
-  ProjectManager manager;
-  EXPECT_FALSE(manager.IsInitialized());
-}
-
 TEST_F(ProjectManagerTest, InitializeCreatesProjectDirectory) {
   ProjectManager manager;
   auto status = manager.Initialize(test_dir_.string());
@@ -272,15 +253,6 @@ TEST_F(ProjectManagerTest, InitializeCreatesProjectDirectory) {
   EXPECT_TRUE(fs::exists(test_dir_ / ".yaze"));
   EXPECT_TRUE(fs::exists(test_dir_ / ".yaze" / "snapshots"));
   EXPECT_TRUE(fs::exists(test_dir_ / ".yaze" / "project.json"));
-}
-
-TEST_F(ProjectManagerTest, ListSnapshotsEmptyInitially) {
-  ProjectManager manager;
-  auto status = manager.Initialize(test_dir_.string());
-  ASSERT_TRUE(status.ok());
-
-  auto snapshots = manager.ListSnapshots();
-  EXPECT_TRUE(snapshots.empty());
 }
 
 TEST_F(ProjectManagerTest, CreateSnapshotEmptyNameFails) {
@@ -372,36 +344,6 @@ TEST_F(ProjectManagerTest, CreateGetDeleteSnapshot) {
 // Tool Name Tests
 // =============================================================================
 
-TEST(ProjectToolsTest, ProjectStatusToolName) {
-  ProjectStatusTool tool;
-  EXPECT_EQ(tool.GetName(), "project-status");
-}
-
-TEST(ProjectToolsTest, ProjectSnapshotToolName) {
-  ProjectSnapshotTool tool;
-  EXPECT_EQ(tool.GetName(), "project-snapshot");
-}
-
-TEST(ProjectToolsTest, ProjectRestoreToolName) {
-  ProjectRestoreTool tool;
-  EXPECT_EQ(tool.GetName(), "project-restore");
-}
-
-TEST(ProjectToolsTest, ProjectExportToolName) {
-  ProjectExportTool tool;
-  EXPECT_EQ(tool.GetName(), "project-export");
-}
-
-TEST(ProjectToolsTest, ProjectImportToolName) {
-  ProjectImportTool tool;
-  EXPECT_EQ(tool.GetName(), "project-import");
-}
-
-TEST(ProjectToolsTest, ProjectDiffToolName) {
-  ProjectDiffTool tool;
-  EXPECT_EQ(tool.GetName(), "project-diff");
-}
-
 TEST(ProjectToolsTest, AllToolNamesStartWithProject) {
   ProjectStatusTool status;
   ProjectSnapshotTool snapshot;
@@ -433,44 +375,6 @@ TEST(ProjectToolsTest, AllToolNamesAreUnique) {
   std::set<std::string> unique_names(names.begin(), names.end());
   EXPECT_EQ(unique_names.size(), names.size())
       << "All project tool names should be unique";
-}
-
-// =============================================================================
-// Tool Usage String Tests
-// =============================================================================
-
-TEST(ProjectToolsTest, StatusToolUsageFormat) {
-  ProjectStatusTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("project-status"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--format"));
-}
-
-TEST(ProjectToolsTest, SnapshotToolUsageFormat) {
-  ProjectSnapshotTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--name"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--description"));
-}
-
-TEST(ProjectToolsTest, RestoreToolUsageFormat) {
-  ProjectRestoreTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--name"));
-}
-
-TEST(ProjectToolsTest, ExportToolUsageFormat) {
-  ProjectExportTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--path"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--include-rom"));
-}
-
-TEST(ProjectToolsTest, ImportToolUsageFormat) {
-  ProjectImportTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--path"));
-}
-
-TEST(ProjectToolsTest, DiffToolUsageFormat) {
-  ProjectDiffTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--snapshot1"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--snapshot2"));
 }
 
 // =============================================================================

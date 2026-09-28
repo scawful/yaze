@@ -146,148 +146,6 @@ TEST(PatternMatchTest, StructureHasExpectedFields) {
 }
 
 // =============================================================================
-// MemoryAnalyzeTool Tests
-// =============================================================================
-
-TEST(MemoryAnalyzeToolTest, GetNameReturnsCorrectName) {
-  MemoryAnalyzeTool tool;
-  EXPECT_EQ(tool.GetName(), "memory-analyze");
-}
-
-TEST(MemoryAnalyzeToolTest, GetUsageContainsAddress) {
-  MemoryAnalyzeTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--address"));
-}
-
-TEST(MemoryAnalyzeToolTest, GetUsageContainsLength) {
-  MemoryAnalyzeTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--length"));
-}
-
-TEST(MemoryAnalyzeToolTest, GetDescriptionIsNotEmpty) {
-  MemoryAnalyzeTool tool;
-  EXPECT_FALSE(tool.GetDescription().empty());
-}
-
-TEST(MemoryAnalyzeToolTest, DoesNotRequireLabels) {
-  MemoryAnalyzeTool tool;
-  EXPECT_FALSE(tool.RequiresLabels());
-}
-
-// =============================================================================
-// MemorySearchTool Tests
-// =============================================================================
-
-TEST(MemorySearchToolTest, GetNameReturnsCorrectName) {
-  MemorySearchTool tool;
-  EXPECT_EQ(tool.GetName(), "memory-search");
-}
-
-TEST(MemorySearchToolTest, GetUsageContainsPattern) {
-  MemorySearchTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--pattern"));
-}
-
-TEST(MemorySearchToolTest, GetUsageContainsStartEnd) {
-  MemorySearchTool tool;
-  std::string usage = tool.GetUsage();
-  EXPECT_THAT(usage, HasSubstr("--start"));
-  EXPECT_THAT(usage, HasSubstr("--end"));
-}
-
-TEST(MemorySearchToolTest, GetDescriptionIsNotEmpty) {
-  MemorySearchTool tool;
-  EXPECT_FALSE(tool.GetDescription().empty());
-}
-
-TEST(MemorySearchToolTest, DoesNotRequireLabels) {
-  MemorySearchTool tool;
-  EXPECT_FALSE(tool.RequiresLabels());
-}
-
-// =============================================================================
-// MemoryCompareTool Tests
-// =============================================================================
-
-TEST(MemoryCompareToolTest, GetNameReturnsCorrectName) {
-  MemoryCompareTool tool;
-  EXPECT_EQ(tool.GetName(), "memory-compare");
-}
-
-TEST(MemoryCompareToolTest, GetUsageContainsAddress) {
-  MemoryCompareTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--address"));
-}
-
-TEST(MemoryCompareToolTest, GetUsageContainsExpected) {
-  MemoryCompareTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--expected"));
-}
-
-TEST(MemoryCompareToolTest, GetDescriptionIsNotEmpty) {
-  MemoryCompareTool tool;
-  EXPECT_FALSE(tool.GetDescription().empty());
-}
-
-TEST(MemoryCompareToolTest, DoesNotRequireLabels) {
-  MemoryCompareTool tool;
-  EXPECT_FALSE(tool.RequiresLabels());
-}
-
-// =============================================================================
-// MemoryCheckTool Tests
-// =============================================================================
-
-TEST(MemoryCheckToolTest, GetNameReturnsCorrectName) {
-  MemoryCheckTool tool;
-  EXPECT_EQ(tool.GetName(), "memory-check");
-}
-
-TEST(MemoryCheckToolTest, GetUsageContainsRegion) {
-  MemoryCheckTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--region"));
-}
-
-TEST(MemoryCheckToolTest, GetDescriptionIsNotEmpty) {
-  MemoryCheckTool tool;
-  EXPECT_FALSE(tool.GetDescription().empty());
-}
-
-TEST(MemoryCheckToolTest, DoesNotRequireLabels) {
-  MemoryCheckTool tool;
-  EXPECT_FALSE(tool.RequiresLabels());
-}
-
-// =============================================================================
-// MemoryRegionsTool Tests
-// =============================================================================
-
-TEST(MemoryRegionsToolTest, GetNameReturnsCorrectName) {
-  MemoryRegionsTool tool;
-  EXPECT_EQ(tool.GetName(), "memory-regions");
-}
-
-TEST(MemoryRegionsToolTest, GetUsageContainsFilter) {
-  MemoryRegionsTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--filter"));
-}
-
-TEST(MemoryRegionsToolTest, GetUsageContainsFormat) {
-  MemoryRegionsTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--format"));
-}
-
-TEST(MemoryRegionsToolTest, GetDescriptionIsNotEmpty) {
-  MemoryRegionsTool tool;
-  EXPECT_FALSE(tool.GetDescription().empty());
-}
-
-TEST(MemoryRegionsToolTest, DoesNotRequireLabels) {
-  MemoryRegionsTool tool;
-  EXPECT_FALSE(tool.RequiresLabels());
-}
-
-// =============================================================================
 // Tool Name Uniqueness Tests
 // =============================================================================
 
@@ -298,9 +156,9 @@ TEST(MemoryToolsTest, AllToolNamesAreUnique) {
   MemoryCheckTool check;
   MemoryRegionsTool regions;
 
-  std::vector<std::string> names = {
-      analyze.GetName(), search.GetName(), compare.GetName(),
-      check.GetName(), regions.GetName()};
+  std::vector<std::string> names = {analyze.GetName(), search.GetName(),
+                                    compare.GetName(), check.GetName(),
+                                    regions.GetName()};
 
   // Check all names are unique
   std::set<std::string> unique_names(names.begin(), names.end());

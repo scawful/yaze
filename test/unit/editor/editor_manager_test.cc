@@ -58,13 +58,6 @@ class EditorManagerTest : public ::testing::Test {
   ImGuiContext* imgui_context_ = nullptr;
 };
 
-TEST_F(EditorManagerTest, Initialization) {
-  // Verify basic initialization doesn't crash
-  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
-                                               renderer_.get());
-  EXPECT_TRUE(true);  // Should reach here
-}
-
 TEST_F(EditorManagerTest, UpdateWithoutCrash) {
   ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
                                                renderer_.get());
@@ -80,17 +73,6 @@ TEST_F(EditorManagerTest, UpdateWithoutCrash) {
 
   ImGui::EndFrame();
   ImGui::Render();
-}
-
-TEST_F(EditorManagerTest, PublicAPISurface) {
-  // Just verifying the API exists and links
-  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
-                                               renderer_.get());
-
-  // This function is now public, we can call it (though it requires ImGui context)
-  // We can't easily test DrawMainMenuBar without a full ImGui setup,
-  // but we can verify it compiles.
-  // editor_manager_->DrawMainMenuBar();
 }
 
 TEST(LayoutCoordinatorChromeBudgetTest,

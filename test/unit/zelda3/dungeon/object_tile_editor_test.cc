@@ -893,11 +893,10 @@ TEST(ObjectTileEditorTest,
   }
 }
 
-TEST(ObjectTileEditorTest, StandardWritePlansAreOpaqueAndBuilderOwned) {
-  static_assert(!std::is_aggregate_v<ObjectTileWritePlan>);
-  static_assert(!std::is_default_constructible_v<ObjectTileWritePlan>);
-  SUCCEED();
-}
+// Standard write plans are opaque and owned by BuildStandardWritePlan: callers
+// cannot brace-initialize or default-construct one and skip its validation.
+static_assert(!std::is_aggregate_v<ObjectTileWritePlan>);
+static_assert(!std::is_default_constructible_v<ObjectTileWritePlan>);
 
 TEST(ObjectTileEditorTest,
      BuildStandardWritePlanRejectsStaleDescriptorAndSource) {
