@@ -337,6 +337,9 @@ TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
   disk_file.read(reinterpret_cast<char*>(disk_data.data()),
                  static_cast<std::streamsize>(disk_data.size()));
   ASSERT_TRUE(disk_file.good());
+  // Close before SaveRom(): on Windows an open handle makes the atomic
+  // temp-file rename over the ROM fail with "Access is denied".
+  disk_file.close();
 
   // Sanity check: on-disk byte is still the original value before SaveRom().
   EXPECT_EQ(disk_data[kPcOffset], original);
