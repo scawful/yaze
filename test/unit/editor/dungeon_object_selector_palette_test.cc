@@ -518,14 +518,6 @@ TEST(DungeonObjectSelectorPaletteTest,
   EXPECT_EQ(arena.texture_command_queue_size(), 0u);
 }
 
-TEST(DungeonObjectSelectorPaletteTest, InitialInvalidationCountIsZero) {
-  // Defensive: a freshly-constructed selector must report no invalidations,
-  // so a test asserting "+1" can rely on baseline 0 without an explicit
-  // setup-phase reset.
-  DungeonObjectSelector selector;
-  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 0u);
-}
-
 TEST(DungeonObjectSelectorPaletteTest,
      FloorHeaderChangesInvalidateRoomDependentPreviews) {
   DungeonObjectSelector selector;

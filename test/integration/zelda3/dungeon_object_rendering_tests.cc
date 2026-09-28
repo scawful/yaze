@@ -39,8 +39,9 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
     }
 
     // Create dummy graphics buffer
-    gfx_buffer_.resize(0x10000, 1); // Fill with 1s so we see something
-    drawer_ = std::make_unique<zelda3::ObjectDrawer>(rom(), 0, gfx_buffer_.data());
+    gfx_buffer_.resize(0x10000, 1);  // Fill with 1s so we see something
+    drawer_ =
+        std::make_unique<zelda3::ObjectDrawer>(rom(), 0, gfx_buffer_.data());
 
     // Create background buffers
     bg1_ = std::make_unique<gfx::BackgroundBuffer>(512, 512);
@@ -81,7 +82,7 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
     zelda3::RoomObject obj(id, x, y, size, layer);
     obj.SetRom(rom());
     obj.EnsureTilesLoaded();
-    
+
     // Force add a tile if none loaded (for testing without real ROM data)
     if (obj.tiles().empty()) {
       gfx::TileInfo tile;
@@ -89,7 +90,7 @@ class DungeonObjectRenderingTests : public TestRomManager::BoundRomTest {
       tile.palette_ = 0;
       obj.mutable_tiles().push_back(tile);
     }
-    
+
     return obj;
   }
 
@@ -136,7 +137,8 @@ TEST_F(DungeonObjectRenderingTests, MultiLayerRendering) {
   EXPECT_TRUE(bg2_->bitmap().is_active());
 }
 
-TEST_F(DungeonObjectRenderingTests, PotItemHeartUsesNonTransparentPaletteIndex) {
+TEST_F(DungeonObjectRenderingTests,
+       PotItemHeartUsesNonTransparentPaletteIndex) {
   gfx::BackgroundBuffer bg(64, 64);
   bg.EnsureBitmapInitialized();
   bg.bitmap().Fill(255);
@@ -244,7 +246,7 @@ TEST_F(DungeonObjectRenderingTests, PreviewBufferRendersContent) {
 
   gfx::BackgroundBuffer preview_bg(64, 64);
   gfx::BackgroundBuffer preview_bg2(64, 64);
-  
+
   // Initialize bitmaps
   std::vector<uint8_t> empty_data(64 * 64, 0);
   preview_bg.bitmap().Create(64, 64, 8, empty_data);
@@ -322,34 +324,6 @@ TEST_F(DungeonObjectRenderingTests, BoundaryObjects) {
 
   auto status = drawer_->DrawObjectList(objects, *bg1_, *bg2_, palette_group_);
   EXPECT_TRUE(status.ok());
-}
-
-// Test various object types
-TEST_F(DungeonObjectRenderingTests, VariousObjectTypes) {
-  // Test common object types
-  std::vector<int> object_types = {
-      0x00, 0x01, 0x02, 0x03,  // Floor/wall objects
-      0x09, 0x0A,              // Diagonal objects
-      0x10, 0x11, 0x12,        // Standard objects
-      0x20, 0x21,              // Decorative objects
-      0x34,                    // Solid block
-  };
-
-  for (int obj_type : object_types) {
-    std::vector<zelda3::RoomObject> objects;
-    objects.push_back(CreateTestObject(obj_type, 10, 10, 0x12, 0));
-
-    bg1_->ClearBuffer();
-    bg2_->ClearBuffer();
-
-    auto status =
-        drawer_->DrawObjectList(objects, *bg1_, *bg2_, palette_group_);
-    // Some object types might not be valid, that's okay
-    if (!status.ok()) {
-      std::cout << "Object type 0x" << std::hex << obj_type << std::dec
-                << " not renderable: " << status.message() << std::endl;
-    }
-  }
 }
 
 // Test error handling

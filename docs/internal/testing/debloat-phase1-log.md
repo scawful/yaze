@@ -77,3 +77,251 @@ Not deleted, although the plan's §2(d) proposes it:
 |---|---:|---|
 | `test/unit/editor/editor_manager_write_conflict_test.cc` | 28 | Added to `STABLE_UNIT_TEST_SOURCES`. It was only in the quick editor list, whose binary no preset builds, so its ROM write-conflict, backup and save-safety cases (§3 protected set) ran nowhere. It is still maintained (`903376666`, `1677e0e7d`). Its first Windows run failed `SaveRomBlocksAndAllowsBypass` with "Failed to move temp ROM into place: Access is denied.": the test held an `std::ifstream` on the ROM open across `SaveRom()`. The test now closes it first. |
 | `test/unit/gui/empty_state_test.cc` | 0 | The second copy of the line inside `STABLE_UNIT_TEST_SOURCES` was removed. CMake already de-duplicated the source, so the test count does not change. |
+
+## 3. Trivial tests (plan §2(a), Appendix A, §5 Phase 1 step 2)
+
+Each Appendix A entry was read. Before deleting, `git log -S'<name>' -- <file>`
+and `git log --grep='<name>'` were checked for a bug-fix commit that added or
+relied on the test. The only fix commit found, `142ed8880`, added
+`PaletteJsonTest.JsonSupportDisabled`, whose whole body is `GTEST_SKIP()`; the
+other hits were bulk snapshot imports ("hotfix7 snapshot") or commits that only
+mention an API with the same name.
+
+Totals: 167 cases deleted from `stable` (A1 64, A2 34, A3 1, A4 58, object
+selection duplicates 10), 4 given the assertion they were missing, and 50 kept
+(1 of the 34 A2 deletions kept its checks as namespace-scope `static_assert`s).
+Two files lost every case and were deleted with their `test/CMakeLists.txt`
+lines: `test/integration/zelda3/sprite_position_test.cc` (3 print-only cases)
+and `test/integration/zelda3/dungeon_room_test.cc` (1 case, no assertion). Both
+also needed a ROM, so they always skipped. Section banners left without tests
+were removed with them.
+
+### A1. Metadata getters (plan Appendix A1): 64 deleted
+
+| Test | File | Reason |
+|---|---|---|
+| `MemoryAnalyzeToolTest.GetNameReturnsCorrectName` | `test/unit/tools/memory_inspector_tool_test.cc` | string constant getter |
+| `MemoryAnalyzeToolTest.GetUsageContainsAddress` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemoryAnalyzeToolTest.GetUsageContainsLength` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemoryAnalyzeToolTest.GetDescriptionIsNotEmpty` | `test/unit/tools/memory_inspector_tool_test.cc` | description not empty |
+| `MemoryAnalyzeToolTest.DoesNotRequireLabels` | `test/unit/tools/memory_inspector_tool_test.cc` | constant flag getter |
+| `MemorySearchToolTest.GetNameReturnsCorrectName` | `test/unit/tools/memory_inspector_tool_test.cc` | string constant getter |
+| `MemorySearchToolTest.GetUsageContainsPattern` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemorySearchToolTest.GetUsageContainsStartEnd` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemorySearchToolTest.GetDescriptionIsNotEmpty` | `test/unit/tools/memory_inspector_tool_test.cc` | description not empty |
+| `MemorySearchToolTest.DoesNotRequireLabels` | `test/unit/tools/memory_inspector_tool_test.cc` | constant flag getter |
+| `MemoryCompareToolTest.GetNameReturnsCorrectName` | `test/unit/tools/memory_inspector_tool_test.cc` | string constant getter |
+| `MemoryCompareToolTest.GetUsageContainsAddress` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemoryCompareToolTest.GetUsageContainsExpected` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemoryCompareToolTest.GetDescriptionIsNotEmpty` | `test/unit/tools/memory_inspector_tool_test.cc` | description not empty |
+| `MemoryCompareToolTest.DoesNotRequireLabels` | `test/unit/tools/memory_inspector_tool_test.cc` | constant flag getter |
+| `MemoryCheckToolTest.GetNameReturnsCorrectName` | `test/unit/tools/memory_inspector_tool_test.cc` | string constant getter |
+| `MemoryCheckToolTest.GetUsageContainsRegion` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemoryCheckToolTest.GetDescriptionIsNotEmpty` | `test/unit/tools/memory_inspector_tool_test.cc` | description not empty |
+| `MemoryCheckToolTest.DoesNotRequireLabels` | `test/unit/tools/memory_inspector_tool_test.cc` | constant flag getter |
+| `MemoryRegionsToolTest.GetNameReturnsCorrectName` | `test/unit/tools/memory_inspector_tool_test.cc` | string constant getter |
+| `MemoryRegionsToolTest.GetUsageContainsFilter` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemoryRegionsToolTest.GetUsageContainsFormat` | `test/unit/tools/memory_inspector_tool_test.cc` | usage string substring |
+| `MemoryRegionsToolTest.GetDescriptionIsNotEmpty` | `test/unit/tools/memory_inspector_tool_test.cc` | description not empty |
+| `MemoryRegionsToolTest.DoesNotRequireLabels` | `test/unit/tools/memory_inspector_tool_test.cc` | constant flag getter |
+| `ProjectToolsTest.ProjectStatusToolName` | `test/unit/tools/project_tool_test.cc` | string constant getter |
+| `ProjectToolsTest.ProjectSnapshotToolName` | `test/unit/tools/project_tool_test.cc` | string constant getter |
+| `ProjectToolsTest.ProjectRestoreToolName` | `test/unit/tools/project_tool_test.cc` | string constant getter |
+| `ProjectToolsTest.ProjectExportToolName` | `test/unit/tools/project_tool_test.cc` | string constant getter |
+| `ProjectToolsTest.ProjectImportToolName` | `test/unit/tools/project_tool_test.cc` | string constant getter |
+| `ProjectToolsTest.ProjectDiffToolName` | `test/unit/tools/project_tool_test.cc` | string constant getter |
+| `ProjectToolsTest.StatusToolUsageFormat` | `test/unit/tools/project_tool_test.cc` | usage string substring |
+| `ProjectToolsTest.SnapshotToolUsageFormat` | `test/unit/tools/project_tool_test.cc` | usage string substring |
+| `ProjectToolsTest.RestoreToolUsageFormat` | `test/unit/tools/project_tool_test.cc` | usage string substring |
+| `ProjectToolsTest.ExportToolUsageFormat` | `test/unit/tools/project_tool_test.cc` | usage string substring |
+| `ProjectToolsTest.ImportToolUsageFormat` | `test/unit/tools/project_tool_test.cc` | usage string substring |
+| `ProjectToolsTest.DiffToolUsageFormat` | `test/unit/tools/project_tool_test.cc` | usage string substring |
+| `BuildConfigureCommandHandlerTest.GetNameReturnsCorrectName` | `test/unit/tools/build_tool_test.cc` | string constant getter |
+| `BuildConfigureCommandHandlerTest.GetUsageReturnsValidUsage` | `test/unit/tools/build_tool_test.cc` | usage string substring |
+| `BuildCompileCommandHandlerTest.GetNameReturnsCorrectName` | `test/unit/tools/build_tool_test.cc` | string constant getter |
+| `BuildCompileCommandHandlerTest.GetUsageReturnsValidUsage` | `test/unit/tools/build_tool_test.cc` | usage string substring |
+| `BuildTestCommandHandlerTest.GetNameReturnsCorrectName` | `test/unit/tools/build_tool_test.cc` | string constant getter |
+| `BuildTestCommandHandlerTest.GetUsageReturnsValidUsage` | `test/unit/tools/build_tool_test.cc` | usage string substring |
+| `BuildStatusCommandHandlerTest.GetNameReturnsCorrectName` | `test/unit/tools/build_tool_test.cc` | string constant getter |
+| `BuildStatusCommandHandlerTest.GetUsageReturnsValidUsage` | `test/unit/tools/build_tool_test.cc` | usage string substring |
+| `CodeGenToolsTest.AsmHookToolName` | `test/unit/tools/code_gen_tool_test.cc` | string constant getter |
+| `CodeGenToolsTest.FreespacePatchToolName` | `test/unit/tools/code_gen_tool_test.cc` | string constant getter |
+| `CodeGenToolsTest.SpriteTemplateToolName` | `test/unit/tools/code_gen_tool_test.cc` | string constant getter |
+| `CodeGenToolsTest.EventHandlerToolName` | `test/unit/tools/code_gen_tool_test.cc` | string constant getter |
+| `CodeGenToolsTest.AsmHookToolUsageFormat` | `test/unit/tools/code_gen_tool_test.cc` | usage string substring |
+| `CodeGenToolsTest.FreespacePatchToolUsageFormat` | `test/unit/tools/code_gen_tool_test.cc` | usage string substring |
+| `CodeGenToolsTest.SpriteTemplateToolUsageFormat` | `test/unit/tools/code_gen_tool_test.cc` | usage string substring |
+| `CodeGenToolsTest.EventHandlerToolUsageFormat` | `test/unit/tools/code_gen_tool_test.cc` | usage string substring |
+| `FileSystemToolTest.ListToolGetNameReturnsCorrectName` | `test/unit/tools/filesystem_tool_test.cc` | string constant getter |
+| `FileSystemToolTest.ListToolGetUsageContainsPath` | `test/unit/tools/filesystem_tool_test.cc` | usage string substring |
+| `FileSystemToolTest.ReadToolGetNameReturnsCorrectName` | `test/unit/tools/filesystem_tool_test.cc` | string constant getter |
+| `FileSystemToolTest.ReadToolGetUsageContainsPath` | `test/unit/tools/filesystem_tool_test.cc` | usage string substring |
+| `FileSystemToolTest.ExistsToolGetNameReturnsCorrectName` | `test/unit/tools/filesystem_tool_test.cc` | string constant getter |
+| `FileSystemToolTest.InfoToolGetNameReturnsCorrectName` | `test/unit/tools/filesystem_tool_test.cc` | string constant getter |
+| `EditorPanelTest.IdentityMethods` | `test/unit/editor/panel_system_test.cc` | returns the mock's own constructor arguments |
+| `EditorPanelTest.DefaultBehavior` | `test/unit/editor/panel_system_test.cc` | base-class member defaults |
+| `ResourcePanelTest.GeneratedId` | `test/unit/editor/panel_system_test.cc` | same id format is checked by MultiplePanelTest.DifferentResourceTypes (kept) |
+| `ResourcePanelTest.GeneratedDisplayName` | `test/unit/editor/panel_system_test.cc` | cosmetic default label |
+| `PaletteCommandsTest.AnalyzeHasNoRequiredArgs` | `test/unit/cli/palette_commands_test.cc` | asserts only that Run fails without a ROM; the named validation is never isolated |
+| `PaletteCommandsTest.HandlerNames` | `test/unit/cli/palette_commands_test.cc` | string constant getters |
+
+### A2. No assertion (plan Appendix A2): 34 deleted
+
+| Test | File | Reason |
+|---|---|---|
+| `InteractionCoordinatorTest.CanAccessDoorHandler` | `test/unit/editor/interaction_coordinator_test.cc` | accessor compiles; no assertion |
+| `InteractionCoordinatorTest.CanAccessSpriteHandler` | `test/unit/editor/interaction_coordinator_test.cc` | accessor compiles; no assertion |
+| `InteractionCoordinatorTest.CanAccessItemHandler` | `test/unit/editor/interaction_coordinator_test.cc` | accessor compiles; no assertion |
+| `InteractionCoordinatorTest.CanAccessTileHandler` | `test/unit/editor/interaction_coordinator_test.cc` | accessor compiles; no assertion |
+| `InteractionCoordinatorTest.DrawGhostPreviewsDoesNotCrashWithNoActiveHandler` | `test/unit/editor/interaction_coordinator_test.cc` | no assertion; draws outside an ImGui frame |
+| `InteractionCoordinatorTest.DrawSelectionHighlightsDoesNotCrash` | `test/unit/editor/interaction_coordinator_test.cc` | no assertion; draws outside an ImGui frame |
+| `MapRefreshCoordinatorTest.RefreshOverworldMapOnDemandNegativeIndexNoCrash` | `test/unit/editor/map_refresh_coordinator_test.cc` | no assertion; ForceRefreshGraphics bounds tests keep the bounds contract |
+| `MapRefreshCoordinatorTest.RefreshOverworldMapOnDemandExcessiveIndexNoCrash` | `test/unit/editor/map_refresh_coordinator_test.cc` | no assertion; an OOB write would be UB, not a failure |
+| `MapRefreshCoordinatorTest.RefreshOverworldMapDelegatesToOnDemand` | `test/unit/editor/map_refresh_coordinator_test.cc` | no assertion; one-line delegation |
+| `MapRefreshCoordinatorTest.UpdateBlocksetNotLoadedReturnsImmediately` | `test/unit/editor/map_refresh_coordinator_test.cc` | no assertion; early return on a flag |
+| `CanvasAutomationAPITest.ScrollToTile_ValidTile` | `test/unit/gui/canvas_automation_api_test.cc` | no assertion ("depends on ImGui state") |
+| `CanvasAutomationAPITest.ScrollToTile_OutOfBounds` | `test/unit/gui/canvas_automation_api_test.cc` | no assertion |
+| `CanvasAutomationAPITest.CenterOn_ValidTile` | `test/unit/gui/canvas_automation_api_test.cc` | reads scroll but never asserts it |
+| `CanvasAutomationAPITest.CenterOn_OutOfBounds` | `test/unit/gui/canvas_automation_api_test.cc` | no assertion |
+| `SpritePositionTest.SpriteCoordinateSystem` | `test/integration/zelda3/sprite_position_test.cc` | prints sprite fields; no assertion (file deleted) |
+| `SpritePositionTest.SpriteFilteringLogic` | `test/integration/zelda3/sprite_position_test.cc` | prints a copy of the filter; no assertion (file deleted) |
+| `SpritePositionTest.MapCoordinateCalculations` | `test/integration/zelda3/sprite_position_test.cc` | prints match/mismatch; no assertion (file deleted) |
+| `ObjectDrawerTest.ChestStateHandling` | `test/unit/dungeon_object_drawer_test.cc` | body is only comments |
+| `ObjectDrawerTest.ChestStateHandlingDirect` | `test/unit/dungeon_object_drawer_test.cc` | no assertion; chest open/closed draw is covered by ObjectDrawerRegistryReplayTest chest cases |
+| `FileSystemToolTest.DotDotInPathBlocked` | `test/unit/tools/filesystem_tool_test.cc` | no assertion; PathTraversalBlocked and AbsolutePathTraversalBlocked assert the sandbox |
+| `FileSystemToolTest.NegativeOffsetParameter` | `test/unit/tools/filesystem_tool_test.cc` | no assertion ("either fail or treat as 0") |
+| `TileSelectorWidgetTest.AttachCanvas` | `test/unit/gui/tile_selector_widget_test.cc` | no assertion |
+| `TileSelectorWidgetTest.ScrollToTile` | `test/unit/gui/tile_selector_widget_test.cc` | no assertion |
+| `TileObjectHandlerTest.SetPreviewObject` | `test/unit/editor/tile_object_handler_test.cc` | no assertion |
+| `PaletteJsonTest.JsonSupportDisabled` | `test/unit/palette_json_test.cc` | skip-only placeholder in the no-JSON #else branch |
+| `ToolSchemaBuilderTest.RequiresAiRuntimeAndJson` | `test/unit/cli/tool_schema_builder_test.cc` | skip-only placeholder in the no-AI #else branch |
+| `OverworldRegressionTest.VanillaRomUsesFetchLargeMaps` | `test/unit/zelda3/overworld_regression_test.cc` | body is only planning comments |
+| `ObjectTileEditorTest.StandardWritePlansAreOpaqueAndBuilderOwned` | `test/unit/zelda3/dungeon/object_tile_editor_test.cc` | static_asserts moved to namespace scope (still enforced at compile time); runtime body was SUCCEED() |
+| `Bpp3To8ConversionTest.OutputSizeIs64BytesPerTile` | `test/unit/zelda3/dungeon/bpp_conversion_test.cc` | SUCCEED() only; the other Bpp3To8 cases assert the output bytes |
+| `EditorManagerTest.PublicAPISurface` | `test/unit/editor/editor_manager_test.cc` | no assertion; duplicate of the init in every other case |
+| `InteractionDelegationTest.AllHandlersAccessible` | `test/integration/interaction_delegation_test.cc` | accessor compiles; no assertion |
+| `PaletteManagerTest.ResetColorWithoutInitializationReturnsError` | `test/integration/palette_manager_test.cc` | no assertion ("depends on implementation") |
+| `DungeonObjectRenderingTests.VariousObjectTypes` | `test/integration/zelda3/dungeon_object_rendering_tests.cc` | prints failures instead of asserting |
+| `DungeonRoomTest.SingleRoomLoadOk` | `test/integration/zelda3/dungeon_room_test.cc` | loads room 0 with no assertion (file deleted) |
+
+### A3. `*_NO_THROW` only (plan Appendix A3): 1 deleted
+
+| Test | File | Reason |
+|---|---|---|
+| `CommandListHandlerTest.BodyIsValidJson` | `test/unit/cli/api_handlers_test.cc` | redundant: ResponseContainsCommandsArray and later cases json::parse the same body |
+
+### A4. Initial or default state, reviewed one by one (plan Appendix A4): 58 deleted
+
+| Test | File | Reason |
+|---|---|---|
+| `PaletteManagerTest.InitializationState` | `test/integration/palette_manager_test.cc` | null-ROM init; comment says it is order dependent |
+| `PaletteManagerTest.HasNoUnsavedChangesInitially` | `test/integration/palette_manager_test.cc` | initial state |
+| `PaletteManagerTest.UndoRedoInitialState` | `test/integration/palette_manager_test.cc` | initial state |
+| `PaletteManagerTest.DiscardGroupWithoutInitializationIsNoOp` | `test/integration/palette_manager_test.cc` | no-op on uninitialized singleton |
+| `PaletteManagerTest.DiscardAllWithoutInitializationIsNoOp` | `test/integration/palette_manager_test.cc` | no-op on uninitialized singleton |
+| `PaletteManagerTest.IsGroupModifiedInitiallyFalse` | `test/integration/palette_manager_test.cc` | initial state |
+| `PaletteManagerTest.IsPaletteModifiedInitiallyFalse` | `test/integration/palette_manager_test.cc` | initial state |
+| `PaletteManagerTest.IsColorModifiedInitiallyFalse` | `test/integration/palette_manager_test.cc` | initial state |
+| `BuildToolTest.DefaultConfigUsesCorrectBuildDirectory` | `test/unit/tools/build_tool_test.cc` | struct member default |
+| `BuildToolTest.DefaultConfigUsesCorrectTimeout` | `test/unit/tools/build_tool_test.cc` | struct member default |
+| `BuildToolTest.DefaultConfigEnablesCaptureOutput` | `test/unit/tools/build_tool_test.cc` | struct member default |
+| `BuildToolTest.DefaultConfigUsesCorrectMaxOutputSize` | `test/unit/tools/build_tool_test.cc` | struct member default |
+| `BuildToolTest.InitialBuildStatusNotRunning` | `test/unit/tools/build_tool_test.cc` | initial state |
+| `BuildToolTest.GetLastResultInitiallyEmpty` | `test/unit/tools/build_tool_test.cc` | initial state |
+| `SnesColorConversionTest.DefaultConstructor` | `test/unit/gfx/snes_palette_test.cc` | default-constructed black |
+| `SnesPaletteTest.DefaultConstructor` | `test/unit/gfx/snes_palette_test.cc` | empty container |
+| `SnesPaletteTest.VectorConstructor` | `test/unit/gfx/snes_palette_test.cc` | size() after construction |
+| `EditFileHeaderTest.DefaultValuesAreCorrect` | `test/unit/tools/project_tool_test.cc` | member default equals constant |
+| `ProjectSnapshotTest.DefaultConstruction` | `test/unit/tools/project_tool_test.cc` | empty members |
+| `ProjectManagerTest.IsNotInitializedByDefault` | `test/unit/tools/project_tool_test.cc` | initial state |
+| `ProjectManagerTest.ListSnapshotsEmptyInitially` | `test/unit/tools/project_tool_test.cc` | empty list after init |
+| `RoomLayerManagerTest.DefaultVisibilityAllLayersVisible` | `test/unit/zelda3/dungeon/room_layer_manager_test.cc` | initial state |
+| `RoomLayerManagerTest.DefaultBlendModeIsNormal` | `test/unit/zelda3/dungeon/room_layer_manager_test.cc` | initial state |
+| `RoomLayerManagerTest.DefaultObjectsNotTranslucent` | `test/unit/zelda3/dungeon/room_layer_manager_test.cc` | initial state |
+| `EditorPanelTest.RelationshipDefaults` | `test/unit/editor/panel_system_test.cc` | base-class member defaults |
+| `PanelCategoryTest.EditorBoundDefault` | `test/unit/editor/panel_system_test.cc` | base-class member default |
+| `ResourcePanelTest.AllowMultipleInstancesDefault` | `test/unit/editor/panel_system_test.cc` | base-class member default |
+| `ResourcePanelLimitsTest.DefaultLimits` | `test/unit/editor/panel_system_test.cc` | constants |
+| `DockNodeTest.DefaultIsEmptyLeaf` | `test/unit/editor/layout/dock_tree_test.cc` | struct member defaults |
+| `DockTreeTest.DefaultHasEmptyLeafRoot` | `test/unit/editor/layout/dock_tree_test.cc` | struct member defaults |
+| `DockTreeTest.NamedConstructorStoresName` | `test/unit/editor/layout/dock_tree_test.cc` | constructor stores its argument |
+| `DockNodeIdTest.DefaultConstructedNodeHasInvalidId` | `test/unit/editor/layout/dock_tree_test.cc` | struct member default |
+| `DiggableTilesTest.DefaultStateIsAllClear` | `test/unit/diggable_tiles_test.cc` | initial state |
+| `DiggableTilesTest.GetAllDiggableTileIdsEmpty` | `test/unit/diggable_tiles_test.cc` | initial state |
+| `TileSimilarityMatchTest.DefaultInitialization` | `test/unit/tools/visual_analysis_tool_test.cc` | aggregate = {} zero-init |
+| `PaletteUsageStatsTest.DefaultInitialization` | `test/unit/tools/visual_analysis_tool_test.cc` | aggregate = {} zero-init |
+| `TileUsageEntryTest.DefaultInitialization` | `test/unit/tools/visual_analysis_tool_test.cc` | aggregate = {} zero-init |
+| `TileSelectorWidgetTest.Construction` | `test/unit/gui/tile_selector_widget_test.cc` | initial state |
+| `TileSelectorWidgetTest.ConstructionWithConfig` | `test/unit/gui/tile_selector_widget_test.cc` | initial state |
+| `TileSelectorWidgetTest.RangeFilterDefaultInactive` | `test/unit/gui/tile_selector_widget_test.cc` | initial state |
+| `ObjectParserStructsTest.ObjectRoutineInfoDefaultConstructor` | `test/unit/zelda3/object_parser_structs_test.cc` | struct member defaults |
+| `ObjectParserStructsTest.ObjectSubtypeInfoDefaultConstructor` | `test/unit/zelda3/object_parser_structs_test.cc` | struct member defaults |
+| `ObjectParserStructsTest.ObjectSizeInfoDefaultConstructor` | `test/unit/zelda3/object_parser_structs_test.cc` | struct member defaults |
+| `InteractionCoordinatorTest.InitializesInSelectMode` | `test/unit/editor/interaction_coordinator_test.cc` | initial state |
+| `InteractionCoordinatorTest.InitiallyHasNoEntitySelection` | `test/unit/editor/interaction_coordinator_test.cc` | initial state |
+| `InteractionCoordinatorTest.GetEntityAtPositionReturnsNulloptOnEmpty` | `test/unit/editor/interaction_coordinator_test.cc` | hit test on an empty room |
+| `CodeGenerationResultTest.DefaultConstruction` | `test/unit/tools/code_gen_tool_test.cc` | empty members |
+| `CodeGenToolBaseTest.GetAllTemplatesNotEmpty` | `test/unit/tools/code_gen_tool_test.cc` | non-empty table; the generate cases use the templates |
+| `DungeonObjectSelectorPaletteTest.InitialInvalidationCountIsZero` | `test/unit/editor/dungeon_object_selector_palette_test.cc` | test-counter baseline |
+| `DungeonEditorV2IntegrationTest.EditorInitialization` | `test/integration/dungeon_editor_v2_test.cc` | Initialize() with a ROM pointer set |
+| `DungeonEditorV2IntegrationTest.ComponentsInitializedAfterLoad` | `test/integration/dungeon_editor_v2_test.cc` | Load()+Update() smoke; the other cases in the file Load too |
+| `CanvasCoordinateSyncTest.HoverMousePos_InitialState` | `test/unit/gui/canvas_coordinate_sync_test.cc` | initial state (>= 0) |
+| `EditorManagerTest.Initialization` | `test/unit/editor/editor_manager_test.cc` | EXPECT_TRUE(true) after init; every other case initializes |
+| `ThemeStyleSnapshotTest.EntityMarkerDefaultsFollowTheDocumentedHues` | `test/unit/editor/theme_style_snapshot_test.cc` | colour constants |
+| `MoreActionsRegistryTest.StartsEmpty` | `test/unit/editor/activity_bar_actions_registry_test.cc` | initial state |
+| `UserSettingsNamedLayoutsTest.DefaultsAreEmpty` | `test/unit/editor/user_settings_named_layouts_test.cc` | initial state |
+| `ThemePersistenceTest.DefaultIsEmpty` | `test/unit/editor/theme_persistence_test.cc` | initial state |
+| `DungeonEditorSystemIntegrationTest.BasicInitialization` | `test/integration/zelda3/dungeon_editor_system_integration_test.cc` | constructor stores its arguments |
+
+### Duplicates in `integration/object_selection_integration_test.cc` (plan §2(b), §2(c), §5 Phase 1 step 2): 10 deleted
+
+| Test | File | Reason |
+|---|---|---|
+| `ObjectSelectionIntegrationTest.InitialStateHasNoSelection` | `test/integration/object_selection_integration_test.cc` | initial state (A4) |
+| `ObjectSelectionIntegrationTest.SetSelectedObjectsUpdatesSelection` | `test/integration/object_selection_integration_test.cc` | subset of SetSelectedObjectsReplacesPreviousSelection |
+| `ObjectSelectionIntegrationTest.ClearSelectionRemovesAllSelections` | `test/integration/object_selection_integration_test.cc` | covered by IsObjectSelectActiveWhenHasSelection and ObjectSelectionTest.ClearSelection |
+| `ObjectSelectionIntegrationTest.IsObjectSelectedReturnsCorrectValue` | `test/integration/object_selection_integration_test.cc` | duplicate of the replace case |
+| `ObjectSelectionIntegrationTest.MultipleSelectionChangesFireMultipleCallbacks` | `test/integration/object_selection_integration_test.cc` | weaker duplicate of SelectionCallbackFires |
+| `ObjectSelectionIntegrationTest.GetSelectionCountReturnsCorrectCount` | `test/integration/object_selection_integration_test.cc` | count is asserted by every kept case |
+| `ObjectSelectionIntegrationTest.SelectionPersistsAcrossRoomAccess` | `test/integration/object_selection_integration_test.cc` | reading room data cannot change selection |
+| `ObjectSelectionIntegrationTest.OutOfBoundsIndicesAreAccepted` | `test/integration/object_selection_integration_test.cc` | freezes a lack of validation (plan 2b) |
+| `ObjectSelectionIntegrationTest.EmptyVectorClearsSelection` | `test/integration/object_selection_integration_test.cc` | same effect as ClearSelection |
+| `ObjectSelectionIntegrationTest.ClearSelectionIsIdempotent` | `test/integration/object_selection_integration_test.cc` | trivial |
+
+### Assertion added instead of deleting (A2): 4 tests, plus 1 conversion
+
+Each of these had a clear, useful intent but no check. The added assertion is
+the one the test name or comment already described.
+
+| Test | File | Added check |
+|---|---|---|
+| `InteractionCoordinatorTest.SetContextPropagatestoHandlers` | `test/unit/editor/interaction_coordinator_test.cc` | `PlaceObjectAt` succeeds through the fresh coordinator and room 42 gains one object (fails if the handler did not get the context) |
+| `MapRefreshCoordinatorTest.RefreshOverworldMapOnDemandCurrentMapNotDeferred` | `test/unit/editor/map_refresh_coordinator_test.cc` | map 5 stays unmodified (only the deferred path marks it) |
+| `MapRefreshCoordinatorTest.RefreshOverworldMapOnDemandSameWorldNotDeferred` | `test/unit/editor/map_refresh_coordinator_test.cc` | map 10 stays unmodified (only the deferred path marks it) |
+| `TileObjectHandlerTest.HasValidContextReturnsFalseWithoutContext` | `test/unit/editor/tile_object_handler_test.cc` | `PlaceObjectAt` and `DeleteObjects` both return false without a context |
+| `ObjectTileEditorTest.StandardWritePlansAreOpaqueAndBuilderOwned` | `test/unit/zelda3/dungeon/object_tile_editor_test.cc` | the two `static_assert`s moved to namespace scope, so the compiler still enforces them; the runtime entry (`SUCCEED()`) is gone. Counted as deleted in the A2 table. |
+
+### Flagged by the plan but kept
+
+| Test | Group | Why it stays |
+|---|---|---|
+| `GraphicsEditorWindowIds.PolyhedralPanelMatchesWrapperId` | A1 | Checks that two separate classes agree on one window id; a mismatch duplicates the window in the registry. |
+| `LayoutPresetsTest.Tile16EditorHasUsableFirstUseSizeButIsOptional` | A1 | Added with the tile16 editor fix (`9fee4ae94`); pins a minimum first-use size, not a constant name. |
+| `MultiplePanelTest.DifferentResourceTypes` | A1 | Checks the computed `{category}.{type}_{id}` id that saved layouts key on. `ResourcePanelTest.GeneratedId` (deleted) was a subset. |
+| `ObjectCoveragePanelTest.UnplacedObjectKeepsParentWindowActive`, `NoSelectionKeepsParentWindowActive` | A2 | False positive: the `DrawDetailsAndCheckParent` helper asserts the ImGui window stack. |
+| `DungeonRoomRegressionFixturesTest.ScanAllRoomsForFixtureCandidates`, `DiscoverFixtureFingerprints` | A2 | Env-gated recorders (`YAZE_SCAN_DUNGEON_ROOMS`, `YAZE_RECORD_DUNGEON_ROOM_FIXTURES`) that print the golden fingerprints; they are the tool for re-recording the regression fixtures. |
+| `MesenSocketClientTest.SubscribeDispatchesFrameEvents` | A2 / skip placeholder | Its body was restored since the audit and now asserts the event payload. |
+| `OracleValidationViewModelTest.ParseSmokeInvalidJsonReturnsError` | A2 | False positive: it asserts the status code. |
+| `RightDrawerManagerTest.RenderFrameWithAllDrawersDoesNotCrash` | A3 | Renders every drawer type inside a real ImGui frame; a Begin/End mismatch or crash in any drawer fails it. That is a render smoke test, not an `absl::Status` no-throw check. |
+| `RomTest.Uninitialized`, `RomTest.LoadFromFileEmpty` | A4 | `unit/rom/rom_test.cc` is in the §3 protected set; `LoadFromFileEmpty` also checks an error path. |
+| `PaletteManagerTest.ResetPaletteWithoutInitializationFails`, `SaveGroupWithoutInitializationFails`, `SaveAllWithoutInitializationFails` | A4 | Fail-closed save guards in a protected file: saving before initialization must return `FailedPrecondition` instead of writing. |
+| `ChestEditTest.AddsSmallAndBigChestsWithDefaultReward`, `OrdinaryObjectBecomingChestGetsDefaultContents` | A4 | Real planner logic (the plan's own sample called these meaningful). |
+| `DungeonEntranceEditPolicyTest.SpawnSlotCannotMarkDefaultModelDirtyBeforeLoad`, `DedicatedSpawnSlotCannotMarkDefaultModelDirtyBeforeLoad` | A4 | ROM-safety guards: a default model must not become dirty before load. |
+| `DungeonObjectSelectorPaletteTest.ObjectPreviewsDefaultOn` | A4 | Documented UX policy (plan sample: meaningful). |
+| `ToolDispatcherUnitTest.RegistryInitializesBuiltinToolsOnDemand`, `DefaultPreferencesDisallowMutatingTools` | A4 | Lazy registry initialization, and the safety default that the agent cannot mutate the ROM unless allowed. |
+| `LayoutManagerDockTreeTest.DungeonDefaultBuildsSingleDockLeaf`, `StartupReapplyNoopWhenLastAppliedEmpty` | A4 | Real layout behavior, not member defaults. |
+| `RoomLayerManagerTest.DefaultDrawOrderBG2First` | A4 | Computes the draw order after `SetBG2OnTop(false)`. |
+| `DiggableTilesTest.SetVanillaDefaultsClearsExisting` | A4 | Behavior: custom tiles are cleared and the vanilla set applied. |
+| `BuildToolTest.ListAvailablePresetsNotEmpty`, `IsBuildDirectoryReadyInitiallyFalse` | A4 | Read `CMakePresets.json` and probe a missing directory; not member defaults. |
+| `SnesColorConversionTest.RGBConstructor`, `SNESConstructor`, `SnesColorTest.ConstructFromSnesValue`, `ConstructFromSnesBlack` | A4 | Colour conversion (codec-adjacent); the plan merges these in Phase 2 instead. |
+| `AsarWrapperTest.DoubleInitialization`, `AsmPatchTest.DefaultNameFromFilename`, `AIConfigUtilsTest.NormalizeOpenAiBaseUrlDefaultsWhenEmpty`, `EmptyStateTest.DrawEmptyStateNoopsWhenEmpty`, `ResizeHandlesTest.DefaultColorComesFromTheme`, `ResourceLabelsTest.ResolvesVanillaLabelsByDefault`, `OverworldAreaRenderTest.AnimatedFallbackUsesWorldDefaultSheet7`, `RoomCollisionTest.AttributeTableCombinesDefaultAndCustomTypes`, `SheetRolePaletteTableTest.UnclassifiedBindingIsEmpty`, `EmulatorRuntimePolicyTest.PreferStartupCategoryNeverDefaultsToEmulator`, `OracleValidationViewModelTest.BuildCliCommandReconstructsCorrectly`, `MenuShortcutLabelsTest.UnknownUnboundOrMissingManagerIsEmpty`, `CollisionSourcePairingTest.MissingJsonIsCreated`, `TileObjectHandlerTest.PasteEmptyClipboardReturnsEmpty`, `DockTreeJsonTest.MissingRootUsesDefaultEmptyLeaf`, `ExpandedBankTest.ReadExpandedTextDataEmpty`, `DungeonEditorIntegrationTest.DungeonEditorInitialization`, `WindowBackendFactoryTest.CreateGlfwFallsBackToDefault` | A4 | Each calls a function with logic (parsing, lookup, fallback, idempotence, save, codec edge case) rather than reading a freshly constructed member. The heuristic matched a word like "Default" or "Empty" in the name. |

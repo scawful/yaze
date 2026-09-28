@@ -23,18 +23,6 @@ unsigned int test_convert(snes_color col) {
 }
 }  // namespace
 
-// SnesColor Conversion Tests
-// NOTE: These tests focus on color conversion utilities (ConvertRgbToSnes, etc.)
-// The SnesColor class itself is tested in test/unit/snes_color_test.cc
-TEST(SnesColorConversionTest, DefaultConstructor) {
-  yaze::gfx::SnesColor color;
-  EXPECT_EQ(color.rgb().x, 0.0f);
-  EXPECT_EQ(color.rgb().y, 0.0f);
-  EXPECT_EQ(color.rgb().z, 0.0f);
-  EXPECT_EQ(color.rgb().w, 255.0f);
-  EXPECT_EQ(color.snes(), 0);
-}
-
 TEST(SnesColorConversionTest, RGBConstructor) {
   ImVec4 rgb(1.0f, 0.5f, 0.25f, 1.0f);
   yaze::gfx::SnesColor color(rgb);
@@ -111,13 +99,6 @@ TEST(SnesColorConversionTest, Convert) {
   EXPECT_THAT(data, ElementsAreArray(snes_string.data(), 10));
 }
 
-// SnesPalette Tests
-TEST(SnesPaletteTest, DefaultConstructor) {
-  yaze::gfx::SnesPalette palette;
-  EXPECT_TRUE(palette.empty());
-  EXPECT_EQ(palette.size(), 0);
-}
-
 TEST(SnesPaletteTest, AddColor) {
   yaze::gfx::SnesPalette palette;
   yaze::gfx::SnesColor color;
@@ -157,13 +138,6 @@ TEST(SnesPaletteTest, SubPalette) {
   ASSERT_EQ(sub.size(), 2);
   auto result = sub[0];
   ASSERT_EQ(result.snes(), 0x7FFF);
-}
-
-TEST(SnesPaletteTest, VectorConstructor) {
-  std::vector<yaze::gfx::SnesColor> colors = {yaze::gfx::SnesColor(0x4210),
-                                              yaze::gfx::SnesColor(0x7FFF)};
-  yaze::gfx::SnesPalette palette(colors);
-  ASSERT_EQ(palette.size(), 2);
 }
 
 TEST(SnesPaletteTest, Clear) {

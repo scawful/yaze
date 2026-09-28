@@ -288,19 +288,6 @@ TEST_F(VisualAnalysisBaseTest,
 }
 
 // =============================================================================
-// TileSimilarityMatch Struct Tests
-// =============================================================================
-
-TEST(TileSimilarityMatchTest, DefaultInitialization) {
-  TileSimilarityMatch match = {};
-  EXPECT_EQ(match.tile_id, 0);
-  EXPECT_DOUBLE_EQ(match.similarity_score, 0.0);
-  EXPECT_EQ(match.sheet_index, 0);
-  EXPECT_EQ(match.x_position, 0);
-  EXPECT_EQ(match.y_position, 0);
-}
-
-// =============================================================================
 // UnusedRegion Struct Tests
 // =============================================================================
 
@@ -312,30 +299,6 @@ TEST(UnusedRegionTest, DefaultInitialization) {
   EXPECT_EQ(region.width, 0);
   EXPECT_EQ(region.height, 0);
   EXPECT_EQ(region.tile_count, 0);
-}
-
-// =============================================================================
-// PaletteUsageStats Struct Tests
-// =============================================================================
-
-TEST(PaletteUsageStatsTest, DefaultInitialization) {
-  PaletteUsageStats stats = {};
-  EXPECT_EQ(stats.palette_index, 0);
-  EXPECT_EQ(stats.usage_count, 0);
-  EXPECT_DOUBLE_EQ(stats.usage_percentage, 0.0);
-  EXPECT_TRUE(stats.used_by_maps.empty());
-}
-
-// =============================================================================
-// TileUsageEntry Struct Tests
-// =============================================================================
-
-TEST(TileUsageEntryTest, DefaultInitialization) {
-  TileUsageEntry entry = {};
-  EXPECT_EQ(entry.tile_id, 0);
-  EXPECT_EQ(entry.usage_count, 0);
-  EXPECT_DOUBLE_EQ(entry.usage_percentage, 0.0);
-  EXPECT_TRUE(entry.locations.empty());
 }
 
 // =============================================================================

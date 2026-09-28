@@ -293,42 +293,6 @@ TEST_F(CanvasAutomationAPITest, SetZoom_Clamping) {
   EXPECT_GE(api_->GetZoom(), 0.25f);
 }
 
-TEST_F(CanvasAutomationAPITest, ScrollToTile_ValidTile) {
-  // Should not crash when scrolling to valid tiles
-  api_->ScrollToTile(0, 0, true);
-  api_->ScrollToTile(10, 10, false);
-  api_->ScrollToTile(15, 15, true);
-
-  // Just verify no crash - actual scroll behavior depends on ImGui state
-}
-
-TEST_F(CanvasAutomationAPITest, ScrollToTile_OutOfBounds) {
-  // Should handle out of bounds gracefully
-  api_->ScrollToTile(-1, 0, true);
-  api_->ScrollToTile(100, 100, true);
-
-  // Should not crash
-}
-
-TEST_F(CanvasAutomationAPITest, CenterOn_ValidTile) {
-  // Should not crash when centering on valid tiles
-  api_->CenterOn(10, 10);
-  api_->CenterOn(0, 0);
-  api_->CenterOn(20, 20);
-
-  // Verify scroll position changed (should be non-zero after centering on
-  // non-origin)
-  ImVec2 scroll = canvas_->scrolling();
-  // Scroll values will depend on canvas size, just verify they're set
-}
-
-TEST_F(CanvasAutomationAPITest, CenterOn_OutOfBounds) {
-  api_->CenterOn(-1, 0);
-  api_->CenterOn(100, 100);
-
-  // Should not crash
-}
-
 // ============================================================================
 // Query Operations Tests
 // ============================================================================

@@ -196,12 +196,6 @@ TEST(ToolSchemaBuilderTest,
   EXPECT_FALSE((*declarations_or)[0].contains("function"));
 }
 
-#else
-
-TEST(ToolSchemaBuilderTest, RequiresAiRuntimeAndJson) {
-  GTEST_SKIP() << "Tool schema builder tests require AI runtime and JSON";
-}
-
 #endif
 
 }  // namespace

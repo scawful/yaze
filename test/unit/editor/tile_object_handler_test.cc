@@ -2158,15 +2158,6 @@ TEST_F(TileObjectHandlerTest, PlaceAnotherPreservesSelectedObjectGeometry) {
   EXPECT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>({1}));
 }
 
-TEST_F(TileObjectHandlerTest, SetPreviewObject) {
-  auto preview = CreateTestObject(0, 0, 0x05, 0x42);
-
-  handler_.SetPreviewObject(preview);
-
-  // Implicitly tested - no crash means success
-  // Preview object is used internally for ghost rendering
-}
-
 // ============================================================================
 // Hit Testing Tests
 // ============================================================================
@@ -2326,9 +2317,10 @@ TEST_F(TileObjectHandlerTest,
 TEST_F(TileObjectHandlerTest, HasValidContextReturnsFalseWithoutContext) {
   TileObjectHandler handler;  // No context set
 
-  // Operations should be safe (no crash)
-  handler.PlaceObjectAt(0, CreateTestObject(0, 0), 0, 0);
-  handler.DeleteObjects(0, {0});
+  // Without a context there is no room to mutate: both calls must reject
+  // instead of dereferencing a null context.
+  EXPECT_FALSE(handler.PlaceObjectAt(0, CreateTestObject(0, 0), 0, 0));
+  EXPECT_FALSE(handler.DeleteObjects(0, {0}));
 }
 
 TEST_F(TileObjectHandlerTest, NotifiesOnMutation) {
