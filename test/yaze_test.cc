@@ -8,12 +8,18 @@
 #include <SDL.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cctype>
+#include <charconv>
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <random>
 #include <string>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "absl/debugging/failure_signal_handler.h"
@@ -108,6 +114,9 @@ struct TestConfig {
   bool enable_ui_tests = false;
   bool show_gui = false;
   ImGuiTestRunSpeed test_speed = ImGuiTestRunSpeed_Fast;
+  // --shard=K/N: run shard K (0-based) of N. 0 shards means no sharding.
+  int shard_index = 0;
+  int shard_count = 0;
 };
 
 namespace {
@@ -121,8 +130,9 @@ void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
 
   // Every test process gets its own settings root so no test reads or writes
   // the developer's real ~/Documents/Yaze/settings.json or ~/.yaze. ctest runs
-  // one process per case with -j, so the name carries the pid, a steady-clock
-  // stamp and a random_device value (pids are reused; rand() is unseeded).
+  // several test processes at once (shards, or one process per case with
+  // YAZE_TEST_PER_CASE=ON), so the name carries the pid, a steady-clock stamp
+  // and a random_device value (pids are reused; rand() is unseeded).
   std::error_code ec;
   auto temp_dir = std::filesystem::temp_directory_path(ec);
   if (ec) {
@@ -156,8 +166,8 @@ void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
 // Fails the whole run before any test starts if UserSettings would resolve to
 // the developer's real settings.json (for example, if the platform path
 // override stopped being honored). A fatal failure in a global environment's
-// SetUp makes gtest skip every test and exit non-zero, including in ctest's
-// one-process-per-case mode, which runs this same main.
+// SetUp makes gtest skip every test and exit non-zero, in every ctest shard
+// and in the per-case mode, which all run this same main.
 class RealSettingsGuardEnvironment : public ::testing::Environment {
  public:
   void SetUp() override {
@@ -202,6 +212,137 @@ class IsolatedSettingsResetter : public ::testing::EmptyTestEventListener {
   }
 };
 
+// A ctest shard runs hundreds of cases in one process. When any of them fail,
+// print a command that re-runs only those cases, after gtest's own
+// "[  FAILED  ]" summary, so fixing one case does not mean re-running a shard.
+class FailedCaseRerunHint : public ::testing::EmptyTestEventListener {
+ public:
+  explicit FailedCaseRerunHint(std::string program)
+      : program_(std::move(program)) {}
+
+  void OnTestProgramEnd(const ::testing::UnitTest& unit_test) override {
+    std::string filter;
+    for (int i = 0; i < unit_test.total_test_suite_count(); ++i) {
+      const ::testing::TestSuite* suite = unit_test.GetTestSuite(i);
+      for (int j = 0; j < suite->total_test_count(); ++j) {
+        const ::testing::TestInfo* info = suite->GetTestInfo(j);
+        if (!info->should_run() || !info->result()->Failed()) {
+          continue;
+        }
+        if (!filter.empty()) {
+          filter += ':';
+        }
+        filter += std::string(info->test_suite_name()) + "." + info->name();
+      }
+    }
+    if (filter.empty()) {
+      return;
+    }
+    std::cout << "Re-run only the failed cases:\n  " << program_
+              << " --gtest_filter='" << filter << "'" << std::endl;
+  }
+
+ private:
+  std::string program_;
+};
+
+// --shard=K/N (used by the ctest shard entries in test/CMakeLists.txt) runs
+// whole fixtures, not every Nth case as GTEST_TOTAL_SHARDS does. All cases of
+// a fixture, including every instantiation of a parameterized or typed one,
+// run in one process in declaration order. Cases that share a fixed file path
+// or other outside state therefore never race their own siblings running in a
+// concurrent shard. A fixture goes to shard FNV-1a(fixture name) % N, so it
+// keeps its shard, and its shard-mates, when unrelated tests are added.
+std::string FixtureKey(const std::string& suite_name) {
+  // "Prefix/Fixture" (parameterized), "Fixture/0" (typed) and
+  // "Prefix/Fixture/0" (type-parameterized) all belong to "Fixture".
+  const size_t first = suite_name.find('/');
+  if (first == std::string::npos) {
+    return suite_name;
+  }
+  const size_t second = suite_name.find('/', first + 1);
+  if (second != std::string::npos) {
+    return suite_name.substr(first + 1, second - first - 1);
+  }
+  const std::string tail = suite_name.substr(first + 1);
+  const bool typed = !tail.empty() &&
+                     std::all_of(tail.begin(), tail.end(), [](unsigned char c) {
+                       return std::isdigit(c) != 0;
+                     });
+  return typed ? suite_name.substr(0, first) : tail;
+}
+
+uint32_t Fnv1a(const std::string& text) {
+  uint32_t hash = 2166136261u;
+  for (const unsigned char c : text) {
+    hash = (hash ^ c) * 16777619u;
+  }
+  return hash;
+}
+
+// Narrows gtest's filter to the fixtures of one shard, intersected with any
+// --gtest_filter the caller passed. Returns the number of fixtures selected.
+int ApplyFixtureShard(int index, int count, const std::string& user_filter) {
+  const ::testing::UnitTest& unit_test = *::testing::UnitTest::GetInstance();
+  std::unordered_set<std::string> fixtures_here;
+  std::string mine;
+  std::string others;
+  for (int i = 0; i < unit_test.total_test_suite_count(); ++i) {
+    const std::string suite = unit_test.GetTestSuite(i)->name();
+    const std::string fixture = FixtureKey(suite);
+    const bool here = Fnv1a(fixture) % static_cast<uint32_t>(count) ==
+                      static_cast<uint32_t>(index);
+    if (here) {
+      fixtures_here.insert(fixture);
+    }
+    std::string& patterns = here ? mine : others;
+    patterns += (patterns.empty() ? "" : ":") + suite + ".*";
+  }
+
+  std::string filter;
+  if (user_filter.empty() || user_filter == "*") {
+    filter = mine.empty() ? "-*" : mine;
+  } else {
+    // gtest filter syntax is POSITIVE[-NEGATIVE]. Keep the caller's positive
+    // patterns and exclude the other shards' fixtures with the negatives.
+    const size_t dash = user_filter.find('-');
+    const std::string positive = user_filter.substr(0, dash);
+    const std::string negative =
+        dash == std::string::npos ? "" : user_filter.substr(dash + 1);
+    filter = (positive.empty() ? "*" : positive) + "-" + negative +
+             (negative.empty() || others.empty() ? "" : ":") + others;
+  }
+  ::testing::GTEST_FLAG(filter) = filter;
+  return static_cast<int>(fixtures_here.size());
+}
+
+// gtest selects the cases before OnTestProgramStart and prints its filter
+// banner later, at OnTestIterationStart. Restore the caller's filter in
+// between so the banner is not the shard's whole fixture list, and name the
+// shard instead.
+class FixtureShardNote : public ::testing::EmptyTestEventListener {
+ public:
+  FixtureShardNote(int index, int count, int fixtures, std::string user_filter)
+      : index_(index),
+        count_(count),
+        fixtures_(fixtures),
+        user_filter_(std::move(user_filter)) {}
+
+  void OnTestProgramStart(const ::testing::UnitTest& unit_test) override {
+    ::testing::GTEST_FLAG(filter) = user_filter_;
+    std::cout << "Note: yaze test shard " << index_ << " of " << count_
+              << " (--shard=" << index_ << "/" << count_ << "): " << fixtures_
+              << " fixtures, " << unit_test.test_to_run_count() << " cases."
+              << std::endl;
+  }
+
+ private:
+  int index_;
+  int count_;
+  int fixtures_;
+  std::string user_filter_;
+};
+
 }  // namespace
 
 // Parse command line arguments for better AI agent testing support
@@ -228,6 +369,7 @@ TestConfig ParseArguments(int argc, char* argv[]) {
                 << "  --rom-jp=<path>\n"
                 << "  --rom-eu=<path>\n"
                 << "  --rom-expanded=<path>\n"
+                << "  --shard=K/N     : Run shard K of N (whole fixtures)\n"
                 << std::endl;
       std::cout << "Test Modes:\n";
       std::cout << "  --unit              Run unit tests only\n";
@@ -329,6 +471,25 @@ TestConfig ParseArguments(int argc, char* argv[]) {
       config.test_speed = ImGuiTestRunSpeed_Normal;
     } else if (arg == "--cinematic") {
       config.test_speed = ImGuiTestRunSpeed_Cinematic;
+    } else if (arg.rfind("--shard=", 0) == 0) {
+      const std::string spec = arg.substr(std::string("--shard=").size());
+      const size_t slash = spec.find('/');
+      int index = -1;
+      int count = 0;
+      const bool parsed =
+          slash != std::string::npos &&
+          std::from_chars(spec.data(), spec.data() + slash, index).ec ==
+              std::errc() &&
+          std::from_chars(spec.data() + slash + 1, spec.data() + spec.size(),
+                          count)
+                  .ec == std::errc();
+      if (!parsed || count < 1 || index < 0 || index >= count) {
+        std::cerr << "Invalid " << arg
+                  << "; expected --shard=K/N with 0 <= K < N" << std::endl;
+        exit(2);
+      }
+      config.shard_index = index;
+      config.shard_count = count;
     } else if (arg == "--ui") {
       config.enable_ui_tests = true;
     } else if (arg.find("--") != 0) {
@@ -481,6 +642,7 @@ int main(int argc, char* argv[]) {
   auto& listeners = ::testing::UnitTest::GetInstance()->listeners();
   listeners.Append(new yaze::test::ArenaQueueCleaner());
   listeners.Append(new yaze::test::IsolatedSettingsResetter());
+  listeners.Append(new yaze::test::FailedCaseRerunHint(argv[0]));
   ::testing::AddGlobalTestEnvironment(
       new yaze::test::RealSettingsGuardEnvironment());
 
@@ -625,6 +787,14 @@ int main(int argc, char* argv[]) {
     return 1;
 #endif
   } else {
+    if (config.shard_count > 1) {
+      const std::string user_filter = ::testing::GTEST_FLAG(filter);
+      const int fixtures = yaze::test::ApplyFixtureShard(
+          config.shard_index, config.shard_count, user_filter);
+      listeners.Append(new yaze::test::FixtureShardNote(
+          config.shard_index, config.shard_count, fixtures, user_filter));
+    }
+
     // Run tests
     int result = RUN_ALL_TESTS();
 
