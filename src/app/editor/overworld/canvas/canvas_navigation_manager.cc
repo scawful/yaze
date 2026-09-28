@@ -319,22 +319,27 @@ bool IsMapSelectClick(const MapClickInput& input) {
     case EditingMode::FILL_TILE:
       return input.right_clicked && !input.shift;
     case EditingMode::MOUSE:
-      return input.left_released && !input.left_dragged &&
-             !input.entity_hovered;
+      return input.left_released && input.left_press_owned &&
+             !input.left_dragged && !input.entity_hovered;
   }
   return false;
+}
+
+std::optional<int> CanvasNavigationManager::MapUnderCursor() const {
+  if (!ctx_.ow_map_canvas) {
+    return std::nullopt;
+  }
+  if (ctx_.hovered_map && *ctx_.hovered_map >= 0) {
+    return *ctx_.hovered_map;
+  }
+  return MapFromCanvasPosition(ctx_, ctx_.ow_map_canvas->hover_mouse_pos());
 }
 
 bool CanvasNavigationManager::SelectMapUnderCursor() {
   if (!ctx_.ow_map_canvas || !ctx_.current_map) {
     return false;
   }
-  std::optional<int> map;
-  if (ctx_.hovered_map && *ctx_.hovered_map >= 0) {
-    map = *ctx_.hovered_map;
-  } else {
-    map = MapFromCanvasPosition(ctx_, ctx_.ow_map_canvas->hover_mouse_pos());
-  }
+  const std::optional<int> map = MapUnderCursor();
   if (!map) {
     return false;
   }
@@ -355,11 +360,26 @@ void CanvasNavigationManager::HandleMapInteraction() {
 
   const ImGuiIO& io = ImGui::GetIO();
   const float threshold = io.MouseDragThreshold;
+
+  // Press ownership. This runs only while the canvas item is hovered (not
+  // blocked by a popup), so it records only presses that land on the canvas.
+  // io.MouseClickedTime names the latest left press: a release ends a press
+  // this canvas owns only when that time still matches, so a press that
+  // dismissed a popup or began on another window never selects on release.
+  const std::optional<int> map_under_cursor = MapUnderCursor();
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    left_press_time_ = io.MouseClickedTime[ImGuiMouseButton_Left];
+    left_press_map_ = map_under_cursor;
+  }
+
   MapClickInput input;
   input.mode = *ctx_.current_mode;
   input.left_released = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
   input.left_dragged = io.MouseDragMaxDistanceSqr[ImGuiMouseButton_Left] >=
                        threshold * threshold;
+  input.left_press_owned =
+      left_press_map_.has_value() && map_under_cursor == left_press_map_ &&
+      left_press_time_ == io.MouseClickedTime[ImGuiMouseButton_Left];
   input.right_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
   input.shift = io.KeyShift;
   input.entity_hovered =
@@ -370,6 +390,9 @@ void CanvasNavigationManager::HandleMapInteraction() {
   // this; sampling here too made every right-click select the tile twice.
   if (IsMapSelectClick(input)) {
     (void)SelectMapUnderCursor();
+  }
+  if (input.left_released) {
+    left_press_map_.reset();
   }
 
   if (*ctx_.current_mode == EditingMode::MOUSE && !input.entity_hovered &&

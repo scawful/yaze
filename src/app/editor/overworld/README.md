@@ -138,8 +138,10 @@ blockset and palette (`TilePaintingManager::DrawBrushPreview`,
 `Tile16PixelsForMap`), so a pinned map or a stroke that crosses into another
 area never shows or writes the current map's graphics there.
 Explicit clicks select the map under the cursor even when pinned, and the pin
-then holds that map: a Select-tool left click that did not pan (on release)
-and a Brush/Fill right click. Both go through
+then holds that map: a Select-tool left click that did not pan (on release;
+its press must also have landed on the canvas, on the same map, so a press
+that dismissed a menu does not select) and a Brush/Fill right click. Both go
+through
 `CanvasNavigationManager::SelectMapUnderCursor` (policy: `IsMapSelectClick`);
 large areas resolve to the parent area's properties.
 Middle-drag only pans; it does not pin or open properties. Entity dragging holds

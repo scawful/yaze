@@ -1,6 +1,7 @@
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
 
 #include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -17,6 +18,7 @@
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "rom/rom_diff.h"
+#include "util/hex.h"
 #include "util/indexed_png.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
@@ -30,14 +32,13 @@ namespace {
 
 absl::StatusOr<int> ParseNumber(absl::string_view text, const char* what) {
   text = absl::StripAsciiWhitespace(text);
-  int base = 10;
-  if (absl::ConsumePrefix(&text, "0x") || absl::ConsumePrefix(&text, "0X") ||
-      absl::ConsumePrefix(&text, "$")) {
-    base = 16;
-  }
+  // yaze::util::ParseHexString instead of absl::SimpleHexAtoi: Ubuntu 22.04's
+  // system Abseil (20210324) predates SimpleHexAtoi.
+  const bool hex = absl::StartsWith(text, "0x") ||
+                   absl::StartsWith(text, "0X") || absl::StartsWith(text, "$");
   int value = 0;
-  const bool ok = base == 16 ? absl::SimpleHexAtoi(text, &value)
-                             : absl::SimpleAtoi(text, &value);
+  const bool ok = hex ? yaze::util::ParseHexString(text, &value)
+                      : absl::SimpleAtoi(text, &value);
   if (!ok) {
     return absl::InvalidArgumentError(
         absl::StrFormat("%s '%s' is not a number", what, std::string(text)));
@@ -87,7 +88,10 @@ absl::StatusOr<zelda3::SheetPalette> ResolvePalette(
       absl::string_view hex = absl::StripAsciiWhitespace(parts[i]);
       absl::ConsumePrefix(&hex, "#");
       uint32_t rgb = 0;
-      if (hex.size() != 6 || !absl::SimpleHexAtoi(hex, &rgb)) {
+      if (hex.size() != 6 ||
+          !std::all_of(hex.begin(), hex.end(),
+                       [](unsigned char c) { return std::isxdigit(c) != 0; }) ||
+          !yaze::util::ParseHexString(hex, &rgb)) {
         return absl::InvalidArgumentError("rgb: colors are #RRGGBB");
       }
       palette[i] = {static_cast<uint8_t>(rgb >> 16),

@@ -106,16 +106,21 @@ struct MapClickInput {
   EditingMode mode = EditingMode::MOUSE;
   bool left_released = false;
   bool left_dragged = false;  // Moved past the drag threshold while down.
+  // The left press this release ends also landed on this canvas, on the map
+  // now under the cursor. False for a press that dismissed a popup or menu,
+  // or began on another window or another map.
+  bool left_press_owned = false;
   bool right_clicked = false;
   bool shift = false;
   bool entity_hovered = false;
 };
 
 /// True when this input is an explicit "make the map under the cursor the
-/// current map" click: a Select-tool left click that did not pan (on
-/// release), or a paint-tool right click (which also samples the Tile16).
-/// Shift+right-click opens the map menu instead. Explicit clicks select even
-/// when the map is pinned; the pin then holds the clicked map.
+/// current map" click: a Select-tool left click that did not pan and whose
+/// press also landed on this canvas and map (on release), or a paint-tool
+/// right click (which also samples the Tile16). Shift+right-click opens the
+/// map menu instead. Explicit clicks select even when the map is pinned; the
+/// pin then holds the clicked map.
 bool IsMapSelectClick(const MapClickInput& input);
 
 class CanvasNavigationManager {
@@ -216,6 +221,14 @@ class CanvasNavigationManager {
  private:
   CanvasNavigationContext ctx_;
   CanvasNavigationCallbacks callbacks_;
+
+  // Map under the cursor: the hover-tracked map, else the canvas position.
+  std::optional<int> MapUnderCursor() const;
+
+  // Left press owned by this canvas (see MapClickInput::left_press_owned):
+  // ImGuiIO::MouseClickedTime of that press and the map it landed on.
+  double left_press_time_ = -1.0;
+  std::optional<int> left_press_map_;
 
   // Hover debounce state
   int last_hovered_map_ = -1;
