@@ -118,11 +118,16 @@ void CutsceneCameraPanel::Save() {
     status_is_error_ = true;
     return;
   }
-  // Refuse to overwrite edits made outside yaze since the last load.
-  std::ifstream in(*path, std::ios::binary);
+  // Refuse to overwrite edits made outside yaze since the last load. Read
+  // and close the handle before any write below: on Windows an open handle
+  // without FILE_SHARE_DELETE blocks the atomic replace that follows,
+  // failing every save after the first with "Access is denied".
   std::optional<std::string> on_disk;
-  if (in) {
-    on_disk = std::string((std::istreambuf_iterator<char>(in)), {});
+  {
+    std::ifstream in(*path, std::ios::binary);
+    if (in) {
+      on_disk = std::string((std::istreambuf_iterator<char>(in)), {});
+    }
   }
   if (on_disk != loaded_bytes_) {
     status_ = absl::StrFormat(
