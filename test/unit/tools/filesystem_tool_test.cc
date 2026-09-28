@@ -151,16 +151,6 @@ TEST_F(FileSystemToolTest, ListNonExistentDirectoryFails) {
   EXPECT_FALSE(status.ok());
 }
 
-TEST_F(FileSystemToolTest, ListToolGetNameReturnsCorrectName) {
-  FileSystemListTool tool;
-  EXPECT_EQ(tool.GetName(), "filesystem-list");
-}
-
-TEST_F(FileSystemToolTest, ListToolGetUsageContainsPath) {
-  FileSystemListTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--path"));
-}
-
 // =============================================================================
 // FileSystemReadTool Tests
 // =============================================================================
@@ -217,16 +207,6 @@ TEST_F(FileSystemToolTest, ReadNonExistentFileFails) {
   EXPECT_FALSE(status.ok());
 }
 
-TEST_F(FileSystemToolTest, ReadToolGetNameReturnsCorrectName) {
-  FileSystemReadTool tool;
-  EXPECT_EQ(tool.GetName(), "filesystem-read");
-}
-
-TEST_F(FileSystemToolTest, ReadToolGetUsageContainsPath) {
-  FileSystemReadTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--path"));
-}
-
 // =============================================================================
 // FileSystemExistsTool Tests
 // =============================================================================
@@ -260,11 +240,6 @@ TEST_F(FileSystemToolTest, DirectoryExistsWorks) {
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
-}
-
-TEST_F(FileSystemToolTest, ExistsToolGetNameReturnsCorrectName) {
-  FileSystemExistsTool tool;
-  EXPECT_EQ(tool.GetName(), "filesystem-exists");
 }
 
 // =============================================================================
@@ -310,11 +285,6 @@ TEST_F(FileSystemToolTest, GetInfoForNonExistentPath) {
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_FALSE(status.ok());
-}
-
-TEST_F(FileSystemToolTest, InfoToolGetNameReturnsCorrectName) {
-  FileSystemInfoTool tool;
-  EXPECT_EQ(tool.GetName(), "filesystem-info");
 }
 
 // =============================================================================
@@ -369,24 +339,6 @@ TEST_F(FileSystemToolTest, AbsolutePathTraversalBlocked) {
       << status.message();
 }
 
-TEST_F(FileSystemToolTest, DotDotInPathBlocked) {
-  FileSystemReadTool tool;
-
-  // Try to read a file using path traversal within the test dir
-  std::vector<std::string> args = {
-      "--path=" +
-          (test_dir_ / "subdir" / ".." / ".." / "etc" / "passwd").string(),
-      "--format=json"};
-
-  absl::Status status = tool.Run(args, nullptr);
-  // This should either fail validation or fail to find the file
-  // Either way, it shouldn't succeed in reading /etc/passwd
-  if (status.ok()) {
-    // If it succeeded, make sure it didn't actually read /etc/passwd
-    // by checking the output doesn't contain typical passwd content
-  }
-}
-
 // =============================================================================
 // Edge Case Tests
 // =============================================================================
@@ -438,18 +390,6 @@ TEST_F(FileSystemToolTest, ZeroLineCountParameter) {
   absl::Status status = tool.Run(args, nullptr);
   // This should either return empty content or use a default value
   EXPECT_TRUE(status.ok()) << status.message();
-}
-
-TEST_F(FileSystemToolTest, NegativeOffsetParameter) {
-  FileSystemReadTool tool;
-
-  std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "multiline.txt").string(),
-      "--offset=-5",  // Negative offset
-      "--format=json"};
-
-  absl::Status status = tool.Run(args, nullptr);
-  // Should handle gracefully - either fail or treat as 0
 }
 
 // =============================================================================

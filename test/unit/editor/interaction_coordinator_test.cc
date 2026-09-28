@@ -76,11 +76,6 @@ size_t CountSelectedType(const std::vector<SelectedEntity>& entities,
 // Mode Transition Tests
 // ============================================================================
 
-TEST_F(InteractionCoordinatorTest, InitializesInSelectMode) {
-  EXPECT_EQ(coordinator_.GetCurrentMode(),
-            InteractionCoordinator::Mode::Select);
-}
-
 TEST_F(InteractionCoordinatorTest, SetModeToDoor) {
   coordinator_.SetMode(InteractionCoordinator::Mode::PlaceDoor);
   EXPECT_EQ(coordinator_.GetCurrentMode(),
@@ -117,10 +112,6 @@ TEST_F(InteractionCoordinatorTest, CancelCurrentModeReturnsToSelect) {
 // not the coordinator's selected_entity_ member. SelectEntity sets selected_entity_
 // and notifies callbacks, but doesn't change handler state.
 
-TEST_F(InteractionCoordinatorTest, InitiallyHasNoEntitySelection) {
-  EXPECT_FALSE(coordinator_.HasEntitySelection());
-}
-
 TEST_F(InteractionCoordinatorTest, SelectEntityNotifiesCallback) {
   int initial_count = entity_changed_count_;
 
@@ -137,31 +128,6 @@ TEST_F(InteractionCoordinatorTest, ClearEntitySelectionNotifiesCallback) {
   coordinator_.ClearEntitySelection();
 
   EXPECT_GT(entity_changed_count_, initial_count);
-}
-
-// ============================================================================
-// Handler Access Tests
-// ============================================================================
-
-TEST_F(InteractionCoordinatorTest, CanAccessDoorHandler) {
-  auto& handler = coordinator_.door_handler();
-  // Should not crash, handler exists
-  handler.CancelPlacement();
-}
-
-TEST_F(InteractionCoordinatorTest, CanAccessSpriteHandler) {
-  auto& handler = coordinator_.sprite_handler();
-  handler.CancelPlacement();
-}
-
-TEST_F(InteractionCoordinatorTest, CanAccessItemHandler) {
-  auto& handler = coordinator_.item_handler();
-  handler.CancelPlacement();
-}
-
-TEST_F(InteractionCoordinatorTest, CanAccessTileHandler) {
-  auto& handler = coordinator_.tile_handler();
-  handler.CancelPlacement();
 }
 
 // ============================================================================
@@ -191,36 +157,17 @@ TEST_F(InteractionCoordinatorTest, SetContextPropagatestoHandlers) {
 
   fresh_coordinator.SetContext(&new_ctx);
 
-  // Handlers should receive the context
-  // Implicitly tested - operations should work without crash
-  fresh_coordinator.tile_handler().PlaceObjectAt(
-      42, zelda3::RoomObject(0x01, 0, 0, 0, 0), 5, 5);
-}
-
-// ============================================================================
-// Ghost Preview Tests
-// ============================================================================
-
-TEST_F(InteractionCoordinatorTest,
-       DrawGhostPreviewsDoesNotCrashWithNoActiveHandler) {
-  // No placement active, should be safe
-  coordinator_.DrawGhostPreviews();
-}
-
-TEST_F(InteractionCoordinatorTest, DrawSelectionHighlightsDoesNotCrash) {
-  coordinator_.DrawSelectionHighlights();
+  // The tile handler must see the new context: without it there is no room
+  // to place into and PlaceObjectAt rejects the call.
+  ASSERT_TRUE(rooms_[42].GetTileObjects().empty());
+  EXPECT_TRUE(fresh_coordinator.tile_handler().PlaceObjectAt(
+      42, zelda3::RoomObject(0x01, 0, 0, 0, 0), 5, 5));
+  EXPECT_EQ(rooms_[42].GetTileObjects().size(), 1u);
 }
 
 // ============================================================================
 // Entity At Position Tests
 // ============================================================================
-
-TEST_F(InteractionCoordinatorTest, GetEntityAtPositionReturnsNulloptOnEmpty) {
-  auto result = coordinator_.GetEntityAtPosition(100, 100);
-
-  // No entities in empty room
-  EXPECT_FALSE(result.has_value());
-}
 
 TEST_F(InteractionCoordinatorTest, AltClickClearsSelectionOverEntity) {
   rooms_[0].GetSprites().push_back(

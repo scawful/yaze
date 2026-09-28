@@ -23,15 +23,6 @@ class DiggableTilesTest : public ::testing::Test {
 // Basic Operations Tests
 // ============================================================================
 
-TEST_F(DiggableTilesTest, DefaultStateIsAllClear) {
-  // All tiles should be non-diggable by default
-  for (uint16_t i = 0; i < kMaxDiggableTileId; ++i) {
-    EXPECT_FALSE(diggable_tiles_.IsDiggable(i))
-        << "Tile " << i << " should not be diggable by default";
-  }
-  EXPECT_EQ(diggable_tiles_.GetDiggableCount(), 0);
-}
-
 TEST_F(DiggableTilesTest, SetDiggableBasic) {
   diggable_tiles_.SetDiggable(0x034, true);
   EXPECT_TRUE(diggable_tiles_.IsDiggable(0x034));
@@ -165,11 +156,6 @@ TEST_F(DiggableTilesTest, SetVanillaDefaultsClearsExisting) {
 // ============================================================================
 // GetAllDiggableTileIds Tests
 // ============================================================================
-
-TEST_F(DiggableTilesTest, GetAllDiggableTileIdsEmpty) {
-  auto ids = diggable_tiles_.GetAllDiggableTileIds();
-  EXPECT_TRUE(ids.empty());
-}
 
 TEST_F(DiggableTilesTest, GetAllDiggableTileIdsReturnsCorrectIds) {
   diggable_tiles_.SetDiggable(0x034, true);

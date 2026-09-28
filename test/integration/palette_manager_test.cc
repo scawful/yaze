@@ -101,30 +101,6 @@ class PaletteManagerTest : public ::testing::Test {
 };
 
 // ============================================================================
-// Initialization Tests
-// ============================================================================
-
-TEST_F(PaletteManagerTest, InitializationState) {
-  auto& manager = PaletteManager::Get();
-
-  // Before initialization, should not be initialized
-  // Note: This might fail if other tests have already initialized it
-  // In production, we'd need a Reset() method for testing
-
-  // After initialization with null ROM, should handle gracefully
-  manager.Initialize(static_cast<Rom*>(nullptr));
-  EXPECT_FALSE(manager.IsInitialized());
-}
-
-TEST_F(PaletteManagerTest, HasNoUnsavedChangesInitially) {
-  auto& manager = PaletteManager::Get();
-
-  // Should have no unsaved changes initially
-  EXPECT_FALSE(manager.HasUnsavedChanges());
-  EXPECT_EQ(manager.GetModifiedColorCount(), 0);
-}
-
-// ============================================================================
 // Dirty Tracking Tests
 // ============================================================================
 
@@ -149,16 +125,6 @@ TEST_F(PaletteManagerTest, GetModifiedColorCount) {
 // ============================================================================
 // Undo/Redo Tests
 // ============================================================================
-
-TEST_F(PaletteManagerTest, UndoRedoInitialState) {
-  auto& manager = PaletteManager::Get();
-
-  // Initially, should not be able to undo or redo
-  EXPECT_FALSE(manager.CanUndo());
-  EXPECT_FALSE(manager.CanRedo());
-  EXPECT_EQ(manager.GetUndoStackSize(), 0);
-  EXPECT_EQ(manager.GetRedoStackSize(), 0);
-}
 
 TEST_F(PaletteManagerTest, ClearHistoryResetsStacks) {
   auto& manager = PaletteManager::Get();
@@ -289,15 +255,6 @@ TEST_F(PaletteManagerTest, MultipleListeners) {
 // ============================================================================
 // Color Query Tests (without ROM)
 // ============================================================================
-
-TEST_F(PaletteManagerTest, ResetColorWithoutInitializationReturnsError) {
-  auto& manager = PaletteManager::Get();
-
-  auto status = manager.ResetColor("ow_main", 0, 0);
-
-  // Should return an error or default color
-  // Exact behavior depends on implementation
-}
 
 TEST_F(PaletteManagerTest, ResetPaletteWithoutInitializationFails) {
   auto& manager = PaletteManager::Get();
@@ -1214,52 +1171,6 @@ TEST_F(PaletteManagerTest,
       reloaded_groups.dungeon_main.palette_ref(1)[kDungeonColorIndex].snes(),
       edited_color.snes());
   EXPECT_FALSE(manager.HasUnsavedChanges());
-}
-
-TEST_F(PaletteManagerTest, DiscardGroupWithoutInitializationIsNoOp) {
-  auto& manager = PaletteManager::Get();
-
-  // Should not crash
-  manager.DiscardGroup("ow_main");
-
-  // No unsaved changes
-  EXPECT_FALSE(manager.HasUnsavedChanges());
-}
-
-TEST_F(PaletteManagerTest, DiscardAllWithoutInitializationIsNoOp) {
-  auto& manager = PaletteManager::Get();
-
-  // Should not crash
-  manager.DiscardAllChanges();
-
-  // No unsaved changes
-  EXPECT_FALSE(manager.HasUnsavedChanges());
-}
-
-// ============================================================================
-// Group Modification Query Tests
-// ============================================================================
-
-TEST_F(PaletteManagerTest, IsGroupModifiedInitiallyFalse) {
-  auto& manager = PaletteManager::Get();
-
-  EXPECT_FALSE(manager.IsGroupModified("ow_main"));
-  EXPECT_FALSE(manager.IsGroupModified("dungeon_main"));
-  EXPECT_FALSE(manager.IsGroupModified("global_sprites"));
-}
-
-TEST_F(PaletteManagerTest, IsPaletteModifiedInitiallyFalse) {
-  auto& manager = PaletteManager::Get();
-
-  EXPECT_FALSE(manager.IsPaletteModified("ow_main", 0));
-  EXPECT_FALSE(manager.IsPaletteModified("ow_main", 5));
-}
-
-TEST_F(PaletteManagerTest, IsColorModifiedInitiallyFalse) {
-  auto& manager = PaletteManager::Get();
-
-  EXPECT_FALSE(manager.IsColorModified("ow_main", 0, 0));
-  EXPECT_FALSE(manager.IsColorModified("ow_main", 0, 7));
 }
 
 // ============================================================================

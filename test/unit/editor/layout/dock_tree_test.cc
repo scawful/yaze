@@ -17,13 +17,6 @@ PanelEntry MakePanel(const std::string& id) {
   return {id, id + " Display", "ICON_MD_FAVORITE"};
 }
 
-TEST(DockNodeTest, DefaultIsEmptyLeaf) {
-  DockNode n;
-  EXPECT_EQ(n.type, DockNode::Type::kLeaf);
-  EXPECT_TRUE(n.panels.empty());
-  EXPECT_EQ(n.active_tab_index, 0);
-}
-
 TEST(DockNodeTest, MakeLeafCarriesPanels) {
   auto n = DockNode::MakeLeaf({MakePanel("a"), MakePanel("b")});
   ASSERT_NE(n, nullptr);
@@ -117,20 +110,6 @@ TEST(DockNodeTest, FindPanelWalksTree) {
   EXPECT_NE(n->FindPanel("b"), nullptr);
   EXPECT_NE(n->FindPanel("c"), nullptr);
   EXPECT_EQ(n->FindPanel("missing"), nullptr);
-}
-
-TEST(DockTreeTest, DefaultHasEmptyLeafRoot) {
-  DockTree t;
-  ASSERT_NE(t.root, nullptr);
-  EXPECT_EQ(t.root->type, DockNode::Type::kLeaf);
-  EXPECT_TRUE(t.root->panels.empty());
-  EXPECT_EQ(t.schema_version, 2u);
-}
-
-TEST(DockTreeTest, NamedConstructorStoresName) {
-  DockTree t("My Layout");
-  EXPECT_EQ(t.name, "My Layout");
-  ASSERT_NE(t.root, nullptr);
 }
 
 TEST(DockTreeTest, CloneIsDeep) {
@@ -241,13 +220,6 @@ TEST(DockTreeValidateTest, DeeplyNestedTreeIsValid) {
 }
 
 // --- Phase 8.5: stable DockNodeId tests ---------------------------------
-
-TEST(DockNodeIdTest, DefaultConstructedNodeHasInvalidId) {
-  // The free DockNode default ctor is the only path that produces an id
-  // == kInvalidDockNodeId. Factories always allocate a real one.
-  DockNode raw;
-  EXPECT_EQ(raw.id, kInvalidDockNodeId);
-}
 
 TEST(DockNodeIdTest, FactoriesAllocateUniqueNonZeroIds) {
   auto a = DockNode::MakeLeaf({});

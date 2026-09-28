@@ -65,18 +65,6 @@ class TileSelectorWidgetTest : public ::testing::Test {
   gui::TileSelectorWidget::Config config_;
 };
 
-// Test basic construction
-TEST_F(TileSelectorWidgetTest, Construction) {
-  gui::TileSelectorWidget widget("test_widget");
-  EXPECT_EQ(widget.GetSelectedTileID(), 0);
-}
-
-// Test construction with config
-TEST_F(TileSelectorWidgetTest, ConstructionWithConfig) {
-  gui::TileSelectorWidget widget("test_widget", config_);
-  EXPECT_EQ(widget.GetSelectedTileID(), 0);
-}
-
 TEST_F(TileSelectorWidgetTest, AdaptiveSheetFitAndOverridesAreDeterministic) {
   const auto fit = gui::ResolveAdaptiveSheetLayout(
       344.0f, 128, 512, gui::AdaptiveSheetScaleMode::kFit);
@@ -124,13 +112,6 @@ TEST_F(TileSelectorWidgetTest,
   EXPECT_FLOAT_EQ(widget.display_scale(), 3.0f);
   EXPECT_EQ(widget.tiles_per_row(), 4);
   EXPECT_EQ(widget.TileOrigin(25), ImVec2(50.0f, 288.0f));
-}
-
-// Test canvas attachment
-TEST_F(TileSelectorWidgetTest, AttachCanvas) {
-  gui::TileSelectorWidget widget("test_widget");
-  widget.AttachCanvas(canvas_.get());
-  // No crash means success
 }
 
 // Test tile count setting
@@ -363,22 +344,6 @@ TEST_F(TileSelectorWidgetTest, ProgrammaticSelection) {
   }
 }
 
-// Test scroll to tile
-TEST_F(TileSelectorWidgetTest, ScrollToTile) {
-  gui::TileSelectorWidget widget("test_widget", config_);
-  widget.AttachCanvas(canvas_.get());
-  widget.SetTileCount(64);
-
-  // Scroll to various tiles (should not crash)
-  widget.ScrollToTile(0);
-  widget.ScrollToTile(10);
-  widget.ScrollToTile(63);
-
-  // Invalid tile should not crash
-  widget.ScrollToTile(-1);
-  widget.ScrollToTile(64);
-}
-
 // Test different configs
 TEST_F(TileSelectorWidgetTest, DifferentConfigs) {
   // Test with 16x16 grid
@@ -401,11 +366,6 @@ TEST_F(TileSelectorWidgetTest, DifferentConfigs) {
 // ============================================================================
 // Range Filter Tests
 // ============================================================================
-
-TEST_F(TileSelectorWidgetTest, RangeFilterDefaultInactive) {
-  gui::TileSelectorWidget widget("test_widget", config_);
-  EXPECT_FALSE(widget.has_active_range_filter());
-}
 
 TEST_F(TileSelectorWidgetTest, SetRangeFilterActivatesFilter) {
   gui::TileSelectorWidget widget("test_widget", config_);

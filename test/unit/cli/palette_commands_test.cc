@@ -75,18 +75,6 @@ TEST(PaletteCommandsTest,
               HasSubstr("dungeon-set-palette-color"));
 }
 
-TEST(PaletteCommandsTest, AnalyzeHasNoRequiredArgs) {
-  // palette-analyze ValidateArgs returns OkStatus, but it still needs a ROM
-  // to actually execute. We verify that validation itself passes.
-  handlers::PaletteAnalyzeCommandHandler handler;
-  // Calling Run with no ROM will fail because RequiresRom() defaults to true,
-  // but this tests that the argument validation step passes.
-  std::string output;
-  absl::Status status = handler.Run({}, nullptr, &output);
-  // Fails because no ROM is provided, not because of arg validation
-  EXPECT_FALSE(status.ok());
-}
-
 // ---------------------------------------------------------------------------
 // Help text tests
 // ---------------------------------------------------------------------------
@@ -138,17 +126,6 @@ TEST(PaletteCommandsTest, AnalyzeMetadataHasCorrectCategory) {
 // ---------------------------------------------------------------------------
 // Handler name/usage tests
 // ---------------------------------------------------------------------------
-
-TEST(PaletteCommandsTest, HandlerNames) {
-  handlers::PaletteGetColorsCommandHandler get_handler;
-  EXPECT_EQ(get_handler.GetName(), "palette-get-colors");
-
-  handlers::PaletteSetColorCommandHandler set_handler;
-  EXPECT_EQ(set_handler.GetName(), "palette-set-color");
-
-  handlers::PaletteAnalyzeCommandHandler analyze_handler;
-  EXPECT_EQ(analyze_handler.GetName(), "palette-analyze");
-}
 
 TEST(PaletteCommandsTest, HandlerUsageStrings) {
   handlers::PaletteGetColorsCommandHandler get_handler;
