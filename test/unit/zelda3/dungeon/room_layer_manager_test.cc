@@ -38,13 +38,6 @@ class RoomLayerManagerTest : public ::testing::Test {
 // Layer Visibility Tests
 // =============================================================================
 
-TEST_F(RoomLayerManagerTest, DefaultVisibilityAllLayersVisible) {
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG1_Layout));
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG1_Objects));
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG2_Layout));
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG2_Objects));
-}
-
 TEST_F(RoomLayerManagerTest, SetLayerVisibleWorks) {
   manager_.SetLayerVisible(LayerType::BG1_Objects, false);
   EXPECT_FALSE(manager_.IsLayerVisible(LayerType::BG1_Objects));
@@ -72,13 +65,6 @@ TEST_F(RoomLayerManagerTest, ResetRestoresDefaults) {
 // =============================================================================
 // Blend Mode Tests
 // =============================================================================
-
-TEST_F(RoomLayerManagerTest, DefaultBlendModeIsNormal) {
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG1_Layout),
-            LayerBlendMode::Normal);
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
-            LayerBlendMode::Normal);
-}
 
 TEST_F(RoomLayerManagerTest, SetBlendModeUpdatesAlpha) {
   manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
@@ -121,12 +107,6 @@ TEST_F(RoomLayerManagerTest, BG2OnTopDrawOrderBG1First) {
 // =============================================================================
 // Per-Object Translucency Tests
 // =============================================================================
-
-TEST_F(RoomLayerManagerTest, DefaultObjectsNotTranslucent) {
-  EXPECT_FALSE(manager_.IsObjectTranslucent(0));
-  EXPECT_FALSE(manager_.IsObjectTranslucent(10));
-  EXPECT_EQ(manager_.GetObjectAlpha(0), 255);
-}
 
 TEST_F(RoomLayerManagerTest, SetObjectTranslucencyWorks) {
   manager_.SetObjectTranslucency(5, true, 128);

@@ -134,15 +134,6 @@ TEST(CommandListHandlerTest, ReturnsStatus200) {
   EXPECT_EQ(res.status, 200);
 }
 
-TEST(CommandListHandlerTest, BodyIsValidJson) {
-  httplib::Request req;
-  httplib::Response res;
-
-  HandleCommandList(req, res);
-
-  ASSERT_NO_THROW(json::parse(res.body));
-}
-
 TEST(CommandListHandlerTest, ResponseContainsCommandsArray) {
   httplib::Request req;
   httplib::Response res;

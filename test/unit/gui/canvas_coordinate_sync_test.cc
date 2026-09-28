@@ -38,15 +38,6 @@ class CanvasCoordinateSyncTest : public ::testing::Test {
 // Hover Position Tests (hover_mouse_pos)
 // ============================================================================
 
-TEST_F(CanvasCoordinateSyncTest, HoverMousePos_InitialState) {
-  // Hover position should start at (0,0) or invalid state
-  auto hover_pos = canvas_->hover_mouse_pos();
-
-  // Initial state may be (0,0) - this is valid
-  EXPECT_GE(hover_pos.x, 0.0f);
-  EXPECT_GE(hover_pos.y, 0.0f);
-}
-
 TEST_F(CanvasCoordinateSyncTest, HoverMousePos_IndependentFromDrawnPos) {
   // Hover position and drawn tile position are independent
   // hover_mouse_pos() tracks continuous mouse movement

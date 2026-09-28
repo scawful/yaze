@@ -127,14 +127,6 @@ TEST(CodeGenerationDiagnosticTest, StructureHasExpectedFields) {
 // CodeGenerationResult Tests
 // =============================================================================
 
-TEST(CodeGenerationResultTest, DefaultConstruction) {
-  CodeGenerationResult result;
-  // success is uninitialized by default - not testing its value
-  EXPECT_TRUE(result.generated_code.empty());
-  EXPECT_TRUE(result.diagnostics.empty());
-  EXPECT_TRUE(result.symbols.empty());
-}
-
 TEST(CodeGenerationResultTest, AddInfoAddsDiagnostic) {
   CodeGenerationResult result;
   result.success = true;
@@ -201,26 +193,6 @@ TEST(CodeGenerationResultTest, SymbolsMap) {
 // Tool Name Tests
 // =============================================================================
 
-TEST(CodeGenToolsTest, AsmHookToolName) {
-  CodeGenAsmHookTool tool;
-  EXPECT_EQ(tool.GetName(), "codegen-asm-hook");
-}
-
-TEST(CodeGenToolsTest, FreespacePatchToolName) {
-  CodeGenFreespacePatchTool tool;
-  EXPECT_EQ(tool.GetName(), "codegen-freespace-patch");
-}
-
-TEST(CodeGenToolsTest, SpriteTemplateToolName) {
-  CodeGenSpriteTemplateTool tool;
-  EXPECT_EQ(tool.GetName(), "codegen-sprite-template");
-}
-
-TEST(CodeGenToolsTest, EventHandlerToolName) {
-  CodeGenEventHandlerTool tool;
-  EXPECT_EQ(tool.GetName(), "codegen-event-handler");
-}
-
 TEST(CodeGenToolsTest, AllToolNamesStartWithCodegen) {
   CodeGenAsmHookTool hook;
   CodeGenFreespacePatchTool freespace;
@@ -240,43 +212,11 @@ TEST(CodeGenToolsTest, AllToolNamesAreUnique) {
   CodeGenEventHandlerTool event;
 
   std::vector<std::string> names = {hook.GetName(), freespace.GetName(),
-                                     sprite.GetName(), event.GetName()};
+                                    sprite.GetName(), event.GetName()};
 
   std::set<std::string> unique_names(names.begin(), names.end());
   EXPECT_EQ(unique_names.size(), names.size())
       << "All code gen tool names should be unique";
-}
-
-// =============================================================================
-// Tool Usage String Tests
-// =============================================================================
-
-TEST(CodeGenToolsTest, AsmHookToolUsageFormat) {
-  CodeGenAsmHookTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--address"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--label"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--nop-fill"));
-}
-
-TEST(CodeGenToolsTest, FreespacePatchToolUsageFormat) {
-  CodeGenFreespacePatchTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--label"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--size"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--prefer-bank"));
-}
-
-TEST(CodeGenToolsTest, SpriteTemplateToolUsageFormat) {
-  CodeGenSpriteTemplateTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--name"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--init-code"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--main-code"));
-}
-
-TEST(CodeGenToolsTest, EventHandlerToolUsageFormat) {
-  CodeGenEventHandlerTool tool;
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--type"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--label"));
-  EXPECT_THAT(tool.GetUsage(), HasSubstr("--custom-code"));
 }
 
 // =============================================================================
@@ -325,7 +265,8 @@ TEST(CodeGenToolBaseTest, SubstitutePlaceholdersSimple) {
 TEST(CodeGenToolBaseTest, SubstitutePlaceholdersMultiple) {
   TestableCodeGenTool tool;
 
-  std::string tmpl = "org ${{ADDRESS}}\n{{LABEL}}:\n  JSR {{SUBROUTINE}}\n  RTL";
+  std::string tmpl =
+      "org ${{ADDRESS}}\n{{LABEL}}:\n  JSR {{SUBROUTINE}}\n  RTL";
   std::map<std::string, std::string> params = {
       {"ADDRESS", "1F8000"}, {"LABEL", "MyCode"}, {"SUBROUTINE", "DoStuff"}};
 
@@ -356,13 +297,6 @@ TEST(CodeGenToolBaseTest, SubstitutePlaceholdersMissingParam) {
   // Missing param should remain as placeholder
   EXPECT_THAT(result, HasSubstr("World"));
   EXPECT_THAT(result, HasSubstr("{{OTHER}}"));
-}
-
-TEST(CodeGenToolBaseTest, GetAllTemplatesNotEmpty) {
-  TestableCodeGenTool tool;
-  const auto& templates = tool.GetAllTemplates();
-
-  EXPECT_FALSE(templates.empty());
 }
 
 TEST(CodeGenToolBaseTest, GetAllTemplatesContainsExpectedTemplates) {

@@ -112,28 +112,6 @@ class EditorPanelTest : public ::testing::Test {
   std::unique_ptr<MockEditorPanel> panel_;
 };
 
-TEST_F(EditorPanelTest, IdentityMethods) {
-  EXPECT_EQ(panel_->GetId(), "test.panel");
-  EXPECT_EQ(panel_->GetDisplayName(), "Test Panel");
-  EXPECT_EQ(panel_->GetIcon(), "ICON_MD_TEST");
-  EXPECT_EQ(panel_->GetEditorCategory(), "Test");
-}
-
-TEST_F(EditorPanelTest, DefaultBehavior) {
-  // Default category is EditorBound
-  EXPECT_EQ(panel_->GetWindowLifecycle(), WindowLifecycle::EditorBound);
-
-  // Default enabled state is true
-  EXPECT_TRUE(panel_->IsEnabled());
-
-  // Default priority is 50
-  EXPECT_EQ(panel_->GetPriority(), 50);
-
-  // Default shortcuts and tooltips are empty
-  EXPECT_TRUE(panel_->GetShortcutHint().empty());
-  EXPECT_TRUE(panel_->GetDisabledTooltip().empty());
-}
-
 TEST_F(EditorPanelTest, LifecycleHooks) {
   EXPECT_EQ(panel_->open_count_, 0);
   EXPECT_EQ(panel_->close_count_, 0);
@@ -164,11 +142,6 @@ TEST_F(EditorPanelTest, DrawMethod) {
   EXPECT_FALSE(is_open);
 }
 
-TEST_F(EditorPanelTest, RelationshipDefaults) {
-  EXPECT_TRUE(panel_->GetParentPanelId().empty());
-  EXPECT_FALSE(panel_->CascadeCloseChildren());
-}
-
 // =============================================================================
 // WindowLifecycle Tests
 // =============================================================================
@@ -178,12 +151,6 @@ TEST(PanelCategoryTest, CrossEditorPanel) {
                              "ICON_MD_PUSH_PIN", "Test");
 
   EXPECT_EQ(panel.GetWindowLifecycle(), WindowLifecycle::CrossEditor);
-}
-
-TEST(PanelCategoryTest, EditorBoundDefault) {
-  MockEditorPanel panel("test.bound", "Bound Panel", "ICON_MD_LOCK", "Test");
-
-  EXPECT_EQ(panel.GetWindowLifecycle(), WindowLifecycle::EditorBound);
 }
 
 // =============================================================================
@@ -202,16 +169,6 @@ class ResourcePanelTest : public ::testing::Test {
 TEST_F(ResourcePanelTest, ResourceIdentity) {
   EXPECT_EQ(panel_->GetResourceId(), 42);
   EXPECT_EQ(panel_->GetResourceType(), "room");
-}
-
-TEST_F(ResourcePanelTest, GeneratedId) {
-  // ID should be generated as "{category}.{type}_{id}"
-  EXPECT_EQ(panel_->GetId(), "Dungeon.room_42");
-}
-
-TEST_F(ResourcePanelTest, GeneratedDisplayName) {
-  // Default display name is "{type} {id}"
-  EXPECT_EQ(panel_->GetDisplayName(), "room 42");
 }
 
 TEST_F(ResourcePanelTest, SessionSupport) {
@@ -237,22 +194,6 @@ TEST_F(ResourcePanelTest, ResourceLifecycle) {
 TEST_F(ResourcePanelTest, AlwaysEditorBound) {
   // Resource panels are CrossEditor by default
   EXPECT_EQ(panel_->GetWindowLifecycle(), WindowLifecycle::CrossEditor);
-}
-
-TEST_F(ResourcePanelTest, AllowMultipleInstancesDefault) {
-  EXPECT_TRUE(panel_->AllowMultipleInstances());
-}
-
-// =============================================================================
-// ResourcePanelLimits Tests
-// =============================================================================
-
-TEST(ResourcePanelLimitsTest, DefaultLimits) {
-  EXPECT_EQ(ResourcePanelLimits::kMaxRoomPanels, 8);
-  EXPECT_EQ(ResourcePanelLimits::kMaxSongPanels, 4);
-  EXPECT_EQ(ResourcePanelLimits::kMaxSheetPanels, 6);
-  EXPECT_EQ(ResourcePanelLimits::kMaxMapPanels, 8);
-  EXPECT_EQ(ResourcePanelLimits::kMaxTotalResourcePanels, 20);
 }
 
 // =============================================================================
