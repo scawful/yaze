@@ -98,7 +98,10 @@ class MenuTilemapEditorUI {
   void DrawStatusBar();
 
   void BeginStroke(const std::string& description);
-  void CommitStroke(UndoManager* undo_manager);
+  // Pushes the pending stroke onto undo_manager_ (set at the top of
+  // Draw() from its parameter) if it actually changed any bytes; no-ops
+  // if undo_manager_ is null (e.g. a caller that doesn't have one).
+  void CommitStroke();
   void RestoreSnapshot(const std::vector<uint8_t>& bytes);
 
   void PaintCellAt(int row, int col);
@@ -127,6 +130,9 @@ class MenuTilemapEditorUI {
   std::array<gfx::SnesColor, 32> palette_colors_{};
   std::string source_status_;  // last resolve error/status, shown in UI
   bool sources_ready_ = false;
+  // Cached from Draw()'s parameter so BeginStroke/CommitStroke call sites
+  // elsewhere in this class don't each need it threaded through.
+  UndoManager* undo_manager_ = nullptr;
 
   // Render/textures
   gfx::Bitmap canvas_bitmap_;

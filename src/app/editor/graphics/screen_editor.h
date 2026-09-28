@@ -69,6 +69,9 @@ class ScreenEditor : public Editor {
     return menu_tilemap_ui_.LoadFileForTesting(path);
   }
   bool IsMenuTilemapDirtyForTesting() const { return menu_tilemap_ui_.dirty(); }
+  bool IsMenuTilemapLoadedForTesting() const {
+    return menu_tilemap_ui_.loaded();
+  }
 
   bool HasPendingDungeonMapChanges() const {
     return pending_dungeon_map_changes_;
