@@ -1,7 +1,11 @@
 #ifndef YAZE_TEST_FRESH_ROM_FIXTURE_OUTPUT_H_
 #define YAZE_TEST_FRESH_ROM_FIXTURE_OUTPUT_H_
 
+#include <atomic>
+#include <chrono>
+#include <cstdint>
 #include <filesystem>
+#include <string>
 #include <system_error>
 
 #include "absl/status/status.h"
@@ -56,8 +60,19 @@ inline absl::Status SaveFreshFixtureRom(Rom& rom,
   if (!validation.ok()) {
     return validation;
   }
+  // A short, purely-unique suffix, not a diagnostic one: `target`'s own
+  // directory (built with UniqueTempPath by the caller) already identifies
+  // the test. Reusing UniqueTempPath's full "<stem>_<Suite>_<Test>_<stamp>_
+  // <n>" format here would nest a second copy of the suite/test name under
+  // the first and can push the path past Windows' 260-character MAX_PATH
+  // once TEMP itself is a deep, job-specific directory.
+  static std::atomic<uint64_t> sequence{0};
+  const auto stamp =
+      std::chrono::steady_clock::now().time_since_epoch().count();
   const auto scratch =
-      target.parent_path() / UniqueTempPath("yaze_edit_fixture").filename();
+      target.parent_path() /
+      ("yaze_edit_fixture_" + std::to_string(stamp) + "_" +
+       std::to_string(sequence.fetch_add(1, std::memory_order_relaxed)));
   std::error_code ec;
   if (!std::filesystem::create_directory(scratch, ec)) {
     return absl::UnavailableError(
