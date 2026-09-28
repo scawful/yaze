@@ -41,7 +41,8 @@ Load only:
 ### 5) Essential Repo Facts
 - Build: `cmake --preset mac-ai && cmake --build --preset mac-ai` (agent preset: `build_ai`)
 - Jobs: presets default ≤4 workers; override with `--parallel` / `YAZE_BUILD_JOBS`
-- Unit tests: `ctest --preset mac-ai-unit`
+- Tests before push: `ctest --preset mac-ai` (same `^stable$` selection as CI; `mac-ai-unit` is a subset)
+- One test: `build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='Suite.Case'` (ctest entries are shards)
 - Coord SoT: `~/.context/agent-universe/{events.jsonl,state.json}`
 - Snapshot: `docs/internal/agents/coordination-board.generated.md` (legacy board = history only)
 - Status / roadmap / changelog: `docs/internal/status.md`, `docs/internal/roadmap.md`,
