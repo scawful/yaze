@@ -66,9 +66,9 @@ struct WindowDescriptor {
   WindowContextScope context_scope = WindowContextScope::kNone;
 
   // Product admission/hosting policy. This does not affect registration or
-  // command-palette reachability.
-  WindowPresentationPolicy presentation =
-      WindowPresentationPolicy::OptionalPopOut();
+  // command-palette reachability. Undeclared (default) behaves as a listed
+  // optional pop-out and is reported by the admission audit.
+  WindowPresentationPolicy presentation;
 
   WindowScope scope = WindowScope::kSession;
   enum class ShortcutScope {
