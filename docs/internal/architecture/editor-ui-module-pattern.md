@@ -128,6 +128,63 @@ Avoid dual implementations. Do not keep both a modal popup path and an inspector
 path for the same local tool unless the temporary duplicate is tracked by a
 handoff with deletion criteria.
 
+### Panel admission
+
+Registering a `WindowContent` does not make it a first-class window. Every
+registered window declares a `WindowPresentationPolicy`
+(`src/app/editor/system/workspace/editor_panel.h`) by overriding
+`GetPresentationPolicy()` in the panel class:
+
+| Policy | Use it for | Window browser | Visible by default |
+|---|---|---|---|
+| `CoreWorkspace()` | an editor's primary work surface | listed | allowlist only |
+| `EmbeddedTool().WithHost("...")` | a tool that acts on another surface's selection; the host names the inspector section, tool tab, or canvas context-menu popup | not listed | never |
+| `OptionalPopOut()` | a standalone window users choose to open (reference browsers, catalogs) | listed | allowlist only |
+| `Diagnostic().WithHost("...")` | developer, validation, or debug tooling | not listed | never |
+
+Rules for a new window:
+
+1. Name the primary workflow first, and check whether an existing inspector,
+   tool tab, or context-menu popup can host it. A canvas action that opens a
+   tool is a `gui::CanvasMenuItem` whose callback opens the window (see
+   [Context Menus](../gui/context-menus.md)); that is an `EmbeddedTool` hosted
+   by the canvas context menu.
+2. A window that leaves the window browser must stay reachable. The command
+   palette lists a `Show:` command for every registered window, and Tools >
+   Hack Workflows lists every window with a workflow group. Name the trigger
+   users will actually use in `WithHost()`.
+3. `CoreWorkspace()` and default-visible windows (`IsVisibleByDefault()`,
+   `visible_by_default`, or a `LayoutPresets` default) need an entry in
+   `FirstClassPanelAllowlist()` in
+   `src/app/editor/system/workspace/panel_admission.cc`, with the workflow the
+   window serves and why nothing else can host it. Keep that list short.
+4. Declare the policy on the content class. When an editor pre-registers a
+   descriptor and later registers the content, the content's declared policy
+   fills a descriptor that declared nothing; a descriptor that declared one
+   keeps it.
+5. To change what existing users see, add the window to
+   `kRevision26DemotedWindows` (or a new revision) in `user_settings.cc` and a
+   row to `test/unit/editor/panel_demotions.h`. The migration closes only
+   persisted live visibility; pins, saved layouts, and named layouts are the
+   user's.
+
+Enforcement, so a new panel cannot skip the decision:
+
+- `test/unit/editor/panel_admission_test.cc` boots an `EditorManager` and fails
+  for any registered window that declares no policy, is Core or default-visible
+  without an allowlist entry, or is Embedded or Diagnostic without a host. It
+  also checks that every hidden window opens from the command palette. The
+  failure text says which policy to pick.
+- `scripts/audit_panel_policies.py` checks the source tree for registered
+  `WindowContent` classes that declare nothing, including panels that only
+  register with a ROM loaded. It runs from `scripts/dev/editor-guardrails.sh`
+  and release readiness.
+- `PanelAdmissionBudgetTest` caps each editor's default layout at three
+  windows and requires every default-open window to be allowlisted.
+
+The current inventory and proposals are in
+[panel-admission-audit-2026-09-29.md](../plans/panel-admission-audit-2026-09-29.md).
+
 ### Refactor triggers
 
 A UI surface should be considered for layout refactor when any of these appear:
