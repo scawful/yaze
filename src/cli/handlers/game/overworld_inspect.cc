@@ -656,6 +656,114 @@ absl::StatusOr<TileStatistics> AnalyzeTileUsage(
   return stats;
 }
 
+absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
+                                                  const TileUsageQuery& query) {
+  std::vector<int> worlds = {0, 1, 2};
+  if (query.world.has_value()) {
+    if (*query.world < 0 || *query.world > 2) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Unknown world index: %d", *query.world));
+    }
+    worlds = {*query.world};
+  }
+  if (query.map_id.has_value()) {
+    ASSIGN_OR_RETURN(const int map_world, InferWorldFromMapId(*query.map_id));
+    if (query.world.has_value() && *query.world != map_world) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Map 0x%02X belongs to the %s World but --world requested %s",
+          *query.map_id, WorldName(map_world), WorldName(*query.world)));
+    }
+    worlds = {map_world};
+  }
+
+  constexpr int kScreenTiles = 32;
+  constexpr size_t kTileIds = 0x10000;
+  std::vector<int> counts(kTileIds, 0);
+  std::vector<int> screens_using(kTileIds, 0);
+  std::vector<uint16_t> screen_tiles;
+  screen_tiles.reserve(kScreenTiles * kScreenTiles);
+
+  TileUsageSummary summary;
+  for (const int world : worlds) {
+    const auto& grid = overworld.GetMapTiles(world);
+    const int world_screens = world == 2 ? 0x20 : 0x40;
+    std::vector<bool> seen_in_world(kTileIds, false);
+    WorldTileUsage world_usage;
+    world_usage.world = world;
+
+    for (int local = 0; local < world_screens; ++local) {
+      const int map_id = WorldOffset(world) + local;
+      if (query.map_id.has_value() && map_id != *query.map_id) {
+        continue;
+      }
+      const int x0 = (local % 8) * kScreenTiles;
+      const int y0 = (local / 8) * kScreenTiles;
+      screen_tiles.clear();
+      for (int x = x0; x < x0 + kScreenTiles; ++x) {
+        if (x >= static_cast<int>(grid.size()) ||
+            static_cast<int>(grid[x].size()) < y0 + kScreenTiles) {
+          return absl::FailedPreconditionError(
+              absl::StrFormat("Overworld tile data is not loaded for the %s "
+                              "World",
+                              WorldName(world)));
+        }
+        screen_tiles.insert(screen_tiles.end(), grid[x].begin() + y0,
+                            grid[x].begin() + y0 + kScreenTiles);
+      }
+      std::sort(screen_tiles.begin(), screen_tiles.end());
+
+      ScreenTileUsage screen;
+      screen.map_id = map_id;
+      screen.world = world;
+      const auto* map = overworld.overworld_map(map_id);
+      screen.parent_map = map != nullptr ? map->parent() : map_id;
+      screen.total_tiles = static_cast<int>(screen_tiles.size());
+      for (size_t i = 0; i < screen_tiles.size();) {
+        const uint16_t tile_id = screen_tiles[i];
+        size_t end = i;
+        while (end < screen_tiles.size() && screen_tiles[end] == tile_id) {
+          ++end;
+        }
+        const int run = static_cast<int>(end - i);
+        i = end;
+
+        ++screen.unique_tiles;
+        counts[tile_id] += run;
+        ++screens_using[tile_id];
+        if (!seen_in_world[tile_id]) {
+          seen_in_world[tile_id] = true;
+          ++world_usage.unique_tiles;
+        }
+        if (run > screen.top_tile_count) {
+          screen.top_tile = tile_id;
+          screen.top_tile_count = run;
+        }
+        if (query.tile_id.has_value() && tile_id == *query.tile_id) {
+          screen.tile_count = run;
+        }
+      }
+      ++world_usage.screens;
+      world_usage.total_tiles += screen.total_tiles;
+      summary.total_tiles += screen.total_tiles;
+      summary.screens.push_back(screen);
+    }
+    summary.worlds.push_back(world_usage);
+  }
+  summary.screens_scanned = static_cast<int>(summary.screens.size());
+
+  for (size_t tile_id = 0; tile_id < kTileIds; ++tile_id) {
+    if (counts[tile_id] > 0) {
+      summary.tiles.push_back({static_cast<uint16_t>(tile_id), counts[tile_id],
+                               screens_using[tile_id]});
+    }
+  }
+  std::stable_sort(summary.tiles.begin(), summary.tiles.end(),
+                   [](const TileUsageCount& a, const TileUsageCount& b) {
+                     return a.count > b.count;
+                   });
+  return summary;
+}
+
 }  // namespace overworld
 }  // namespace cli
 }  // namespace yaze

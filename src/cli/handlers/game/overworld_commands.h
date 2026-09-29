@@ -194,10 +194,12 @@ class OverworldTileStatsCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "overworld-tile-stats"; }
   std::string GetDescription() const {
-    return "Get tile usage statistics for overworld";
+    return "Count tile16 usage per screen, per world and per tile16 id";
   }
   std::string GetUsage() const {
-    return "overworld-tile-stats [--screen <screen_id>] [--format <json|text>]";
+    return "overworld-tile-stats [--screen <hex>|--map <hex>] "
+           "[--world <light|dark|special>] [--tile <hex>] [--top <n>] "
+           "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

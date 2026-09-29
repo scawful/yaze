@@ -285,7 +285,7 @@ object stream. Without the flag, the legacy output and count are unchanged.
 - `overworld-list-sprites [--screen <hex>] [--phase <0|1|2>]`
 - `overworld-list-items --map <hex>`
 - `overworld-get-entrance --entrance <hex>`
-- `overworld-tile-stats --map <hex>`
+- `overworld-tile-stats [--map <hex>] [--world <light|dark|special>] [--tile <hex>] [--top <n>]`
 - `overworld-render --screen <hex> --out <file.png> [--overlays <list>] [--phase <0|1|2>] [--scale <float>]`
 - `overworld-add-sprite --screen <hex> --phase <0|1|2> --id <hex> --x <tile> --y <tile> [--replace-index <n>] [--write]`
 - `overworld-move-sprite --screen <hex> --phase <0|1|2> --index <n> --x <tile> --y <tile> [--expect-id <hex>] [--write]`
@@ -306,6 +306,17 @@ and `--map 0x40 --x 40` name the same tile. Output reports the resolved
 `parent_area`, the `screen` holding the tile with `screen_x`/`screen_y`
 (0-31), and `world_x`/`world_y` (editor canvas tile). `overworld-find-tile`
 matches carry the same `x`/`y`, so they can be passed straight back.
+
+`overworld-tile-stats` counts tile16 placements in the loaded world grids.
+Each screen is one 32x32 block of 1024 tiles, so a multi-screen area appears
+as its screens, each with its `parent_area`. Output: `screens_scanned`,
+`total_tiles`, `unique_tiles`; `worlds` (screens, total and unique tiles per
+world); `screens` (unique tiles and the most placed `top_tile` per screen);
+and `tile_counts`, most placed first, with the number of `screens` using each
+tile (`--top`, default 32; `0` lists every tile). `--map` (or `--screen`)
+limits the scan to one screen and `--world` to one world. `--tile` adds a
+`tile` total and a `tile_count` per screen; use `overworld-find-tile` for
+positions.
 
 `overworld-set-tile` is dry-run by default. Both modes rebuild the tile32 table
 and compressed screens exactly as the editor's overworld save does (tile16
