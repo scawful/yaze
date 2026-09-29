@@ -330,6 +330,7 @@ if(YAZE_BUILD_TESTS)
     unit/emu/memory_rom_mapping_test.cc
     unit/diggable_tiles_test.cc
     unit/core/asm_patch_test.cc
+    unit/core/tail_expansion_guard_test.cc
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
     unit/gfx/hyrule_magic_compress_test.cc
