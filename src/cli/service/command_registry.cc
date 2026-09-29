@@ -246,6 +246,13 @@ void CommandRegistry::RegisterHandlers(
       if (name == "overworld-find-tile") {
         metadata.examples = {
             "z3ed overworld-find-tile --tile=0x42 --format=json"};
+      } else if (name == "overworld-allocation") {
+        metadata.description =
+            "Area ID allocation map ($00-$BF) and TailMapExpansion check";
+        metadata.examples = {
+            "z3ed overworld-allocation --rom=zelda3.sfc",
+            "z3ed overworld-allocation --rom=oos168x.sfc "
+            "--project=Oracle-of-Secrets.yaze --tail-check --format=json"};
       }
     } else if (name.find("project-bundle-") == 0) {
       metadata.category = "project";

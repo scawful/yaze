@@ -59,6 +59,7 @@ set(
   zelda3/overworld/diggable_tiles_patch.cc
   zelda3/overworld/overworld_sprite_io.cc
   zelda3/overworld/overworld.cc
+  zelda3/overworld/overworld_allocation.cc
   zelda3/overworld/overworld_entrance.cc
   zelda3/overworld/overworld_exit.cc
   zelda3/overworld/overworld_item.cc
