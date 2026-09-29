@@ -25,6 +25,9 @@ class CutsceneCameraPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Cutscene Camera"; }
   std::string GetIcon() const override { return ICON_MD_VIDEOCAM; }
   std::string GetEditorCategory() const override { return "Overworld"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   WindowScope GetScope() const override { return WindowScope::kGlobal; }
 
   void Draw(bool* p_open) override;

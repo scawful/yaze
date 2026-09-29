@@ -40,6 +40,9 @@ class ProgressionDashboardPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Game State Dashboard"; }
   std::string GetIcon() const override { return ICON_MD_DASHBOARD; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Game State"; }
   std::string GetWorkflowDescription() const override {
     return "Inspect progression, SRAM-derived flags, and live game state";

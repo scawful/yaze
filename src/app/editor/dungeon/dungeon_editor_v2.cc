@@ -88,6 +88,14 @@ bool ProjectAdvertisesMinecartTracks(const project::YazeProject* project) {
          project->hack_manifest.minecart_track_layout().source.has_value();
 }
 
+// Dungeon tools are hosted by the Workbench inspector's tool drawer. They also
+// open standalone from shortcuts and canvas actions, and from the command
+// palette.
+WindowPresentationPolicy WorkbenchTool(std::string capability = std::string()) {
+  return WindowPresentationPolicy::EmbeddedTool(std::move(capability))
+      .WithHost("Dungeon Workbench inspector");
+}
+
 }  // namespace
 
 void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
@@ -202,8 +210,7 @@ absl::Status DungeonEditorV2::EnsureMinecartTrackEditorPanel() {
   ConfigureMinecartProjectCallbacks();
   if (dependencies_.window_manager != nullptr) {
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(minecart_panel),
-        WindowPresentationPolicy::EmbeddedTool("minecart_tracks"));
+        std::move(minecart_panel), WorkbenchTool("minecart_tracks"));
   } else {
     owned_minecart_track_editor_panel_ = std::move(minecart_panel);
   }
@@ -704,7 +711,8 @@ void DungeonEditorV2::Initialize() {
        .presentation = {.role = WindowPresentationRole::kOptionalPopOut,
                         .default_host = WindowDefaultHost::kWorkspace,
                         .list_in_window_browser = false,
-                        .allow_popout = true},
+                        .allow_popout = true,
+                        .declared = true},
        .shortcut_hint = shortcut_hint(
            "dungeon.open_room_list", {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_L}),
        .shortcut_scope = WindowDescriptor::ShortcutScope::kEditor,
@@ -753,7 +761,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_IMAGE,
        .category = "Dungeon",
        .workflow_group = "Editors",
-       .presentation = WindowPresentationPolicy::EmbeddedTool(),
+       .presentation = WorkbenchTool(),
        .shortcut_hint =
            shortcut_hint("dungeon.open_room_graphics",
                          {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_G}),
@@ -770,7 +778,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_CATEGORY,
        .category = "Dungeon",
        .workflow_group = "Editors",
-       .presentation = WindowPresentationPolicy::EmbeddedTool(),
+       .presentation = WorkbenchTool(),
        .shortcut_hint = "",
        .visibility_flag = nullptr,
        .priority = 60,
@@ -784,7 +792,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_DOOR_FRONT,
        .category = "Dungeon",
        .workflow_group = "Editors",
-       .presentation = WindowPresentationPolicy::EmbeddedTool(),
+       .presentation = WorkbenchTool(),
        .shortcut_hint = "",
        .visibility_flag = nullptr,
        .priority = 69,
@@ -798,7 +806,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_PALETTE,
        .category = "Dungeon",
        .workflow_group = "Editors",
-       .presentation = WindowPresentationPolicy::EmbeddedTool(),
+       .presentation = WorkbenchTool(),
        // Avoid conflicting with the global Command Palette (Ctrl/Cmd+Shift+P).
        .shortcut_hint = shortcut_hint(
            "dungeon.open_palette",
@@ -995,12 +1003,12 @@ absl::Status DungeonEditorV2::Load() {
         &current_room_id_, &rooms_, renderer_);
     room_graphics_panel_ = graphics_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(graphics_panel), WindowPresentationPolicy::EmbeddedTool());
+        std::move(graphics_panel), WorkbenchTool());
     auto palette_panel =
         std::make_unique<PaletteEditorContent>(&palette_editor_);
     palette_editor_panel_ = palette_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(palette_panel), WindowPresentationPolicy::EmbeddedTool());
+        std::move(palette_panel), WorkbenchTool());
   }
 
   dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
@@ -1099,9 +1107,9 @@ absl::Status DungeonEditorV2::Load() {
   // Panel manager takes ownership
   if (dependencies_.window_manager) {
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(object_selector), WindowPresentationPolicy::EmbeddedTool());
-    dependencies_.window_manager->RegisterWindowContent(
-        std::move(door_editor), WindowPresentationPolicy::EmbeddedTool());
+        std::move(object_selector), WorkbenchTool());
+    dependencies_.window_manager->RegisterWindowContent(std::move(door_editor),
+                                                        WorkbenchTool());
 
     // Register sprite and item editor panels with canvas viewer = nullptr
     // They will get the viewer reference in OnRoomSelected when a room is selected
@@ -1110,27 +1118,27 @@ absl::Status DungeonEditorV2::Load() {
     sprite_panel->SetOpenSelectionInspectorCallback(
         open_workbench_selection_inspector);
     sprite_editor_panel_ = sprite_panel.get();
-    dependencies_.window_manager->RegisterWindowContent(
-        std::move(sprite_panel), WindowPresentationPolicy::EmbeddedTool());
+    dependencies_.window_manager->RegisterWindowContent(std::move(sprite_panel),
+                                                        WorkbenchTool());
 
     auto item_panel =
         std::make_unique<ItemEditorPanel>(&current_room_id_, &rooms_, nullptr);
     item_panel->SetOpenSelectionInspectorCallback(
         open_workbench_selection_inspector);
     item_editor_panel_ = item_panel.get();
-    dependencies_.window_manager->RegisterWindowContent(
-        std::move(item_panel), WindowPresentationPolicy::EmbeddedTool());
+    dependencies_.window_manager->RegisterWindowContent(std::move(item_panel),
+                                                        WorkbenchTool());
 
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(custom_collision_panel),
-        WindowPresentationPolicy::EmbeddedTool());
+        std::move(custom_collision_panel), WorkbenchTool());
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(water_fill_panel), WindowPresentationPolicy::EmbeddedTool());
+        std::move(water_fill_panel), WorkbenchTool());
     dependencies_.window_manager->RegisterWindowContent(
-        std::move(room_tag_panel), WindowPresentationPolicy::EmbeddedTool());
+        std::move(room_tag_panel), WorkbenchTool());
     dependencies_.window_manager->RegisterWindowContent(
         std::move(object_coverage_panel),
-        WindowPresentationPolicy::Diagnostic());
+        WindowPresentationPolicy::Diagnostic().WithHost(
+            "Canvas context menu > Check in Object Coverage"));
     // Object Tile Editor Panel
     {
       auto tile_editor_panel =
@@ -1157,7 +1165,8 @@ absl::Status DungeonEditorV2::Load() {
       object_tile_editor_panel_ = tile_editor_panel.get();
       dependencies_.window_manager->RegisterWindowContent(
           std::move(tile_editor_panel),
-          WindowPresentationPolicy::EmbeddedTool());
+          WorkbenchTool().WithHost(
+              "Canvas selection menu > Edit Object Tiles"));
     }
 
     // Wire fixed-slot custom-object management actions to their workspace
@@ -1186,7 +1195,8 @@ absl::Status DungeonEditorV2::Load() {
       auto overlay_panel = std::make_unique<OverlayManagerPanel>();
       overlay_manager_panel_ = overlay_panel.get();
       dependencies_.window_manager->RegisterWindowContent(
-          std::move(overlay_panel), WindowPresentationPolicy::EmbeddedTool());
+          std::move(overlay_panel),
+          WorkbenchTool().WithHost("Command palette"));
     }
 
   } else {
@@ -2077,6 +2087,7 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
          .icon = ICON_MD_GRID_ON,
          .category = "Dungeon",
          .workflow_group = "Rooms",
+         .presentation = WindowPresentationPolicy::OptionalPopOut(),
          .shortcut_hint = "",
          .visibility_flag = nullptr,
          .priority = 200 + room_id});
@@ -2434,6 +2445,7 @@ void DungeonEditorV2::ProcessPendingSwap() {
          .icon = ICON_MD_GRID_ON,
          .category = "Dungeon",
          .workflow_group = "Rooms",
+         .presentation = WindowPresentationPolicy::OptionalPopOut(),
          .shortcut_hint = "",
          .visibility_flag = nullptr,
          .priority = 200 + new_room_id});
@@ -2920,6 +2932,7 @@ void DungeonEditorV2::ShowRoomPanel(int room_id) {
            .icon = ICON_MD_GRID_ON,
            .category = "Dungeon",
            .workflow_group = "Rooms",
+           .presentation = WindowPresentationPolicy::OptionalPopOut(),
            .shortcut_hint = "",
            .visibility_flag = nullptr,
            .priority = 200 + room_id});

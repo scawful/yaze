@@ -47,6 +47,13 @@ const std::vector<PanelAdmissionEntry>& FirstClassPanelAllowlist();
 const PanelAdmissionEntry* FindFirstClassPanelEntry(
     const std::string& window_id);
 
+/// Windows that have not declared a policy yet because their source directory
+/// is frozen (its owner must approve the edit). Each entry names the blocker.
+/// The audit tolerates an undeclared policy for these ids only; remove the
+/// entry in the same change that declares the policy.
+const std::vector<PanelAdmissionEntry>& DeferredPolicyDeclarations();
+bool IsPolicyDeclarationDeferred(const std::string& window_id);
+
 /// One audit failure. `fix` tells the panel author what to change.
 struct PanelAdmissionFinding {
   std::string window_id;

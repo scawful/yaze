@@ -24,6 +24,9 @@ class OracleRamPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Oracle RAM"; }
   std::string GetIcon() const override;  // Returns ICON_MD_MEMORY
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   WindowLifecycle GetWindowLifecycle() const override {
     return WindowLifecycle::CrossEditor;
   }

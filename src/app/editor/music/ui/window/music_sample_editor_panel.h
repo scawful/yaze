@@ -33,6 +33,9 @@ class MusicSampleEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Sample Editor"; }
   std::string GetIcon() const override { return ICON_MD_WAVES; }
   std::string GetEditorCategory() const override { return "Music"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 25; }
 
   // ==========================================================================

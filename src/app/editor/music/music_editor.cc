@@ -745,6 +745,7 @@ void MusicEditor::OpenSong(int song_index) {
          .window_title = ICON_MD_MUSIC_NOTE " " + song_name,
          .icon = ICON_MD_MUSIC_NOTE,
          .category = "Music",
+         .presentation = WindowPresentationPolicy::OptionalPopOut(),
          .shortcut_hint = "",
          .visibility_flag = nullptr,
          .priority = 200 + song_index});
@@ -808,6 +809,7 @@ void MusicEditor::OpenSongPianoRoll(int song_index) {
          .window_title = ICON_MD_PIANO " " + song_name + " (Piano)",
          .icon = ICON_MD_PIANO,
          .category = "Music",
+         .presentation = WindowPresentationPolicy::OptionalPopOut(),
          .shortcut_hint = "",
          .visibility_flag = nullptr,
          .priority = 250 + song_index});

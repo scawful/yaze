@@ -36,6 +36,9 @@ class MusicSongBrowserPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Song Browser"; }
   std::string GetIcon() const override { return ICON_MD_LIBRARY_MUSIC; }
   std::string GetEditorCategory() const override { return "Music"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 5; }
 
   // ==========================================================================

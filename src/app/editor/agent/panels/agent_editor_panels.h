@@ -32,6 +32,9 @@ class AgentConfigurationPanel : public WindowContent {
   std::string GetDisplayName() const override { return "AI Configuration"; }
   std::string GetIcon() const override { return ICON_MD_SETTINGS; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 10; }
 
   void Draw(bool* p_open) override {
@@ -58,6 +61,9 @@ class AgentStatusPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Agent Status"; }
   std::string GetIcon() const override { return ICON_MD_INFO; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 20; }
 
   void Draw(bool* p_open) override {
@@ -84,6 +90,9 @@ class AgentPromptEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Prompt Editor"; }
   std::string GetIcon() const override { return ICON_MD_EDIT; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 30; }
 
   void Draw(bool* p_open) override {
@@ -110,6 +119,9 @@ class AgentBotProfilesPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Bot Profiles"; }
   std::string GetIcon() const override { return ICON_MD_FOLDER; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 40; }
 
   void Draw(bool* p_open) override {
@@ -162,6 +174,9 @@ class AgentBuilderPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Agent Builder"; }
   std::string GetIcon() const override { return ICON_MD_AUTO_FIX_HIGH; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 70; }
 
   void Draw(bool* p_open) override {
@@ -188,6 +203,9 @@ class AgentMesenDebugPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Mesen2 Debug"; }
   std::string GetIcon() const override { return ICON_MD_BUG_REPORT; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Live Debugging"; }
   std::string GetWorkflowDescription() const override {
     return "Inspect and control a connected Mesen2 debugging session";
@@ -222,6 +240,9 @@ class AgentKnowledgeBasePanel : public WindowContent {
   std::string GetDisplayName() const override { return "Knowledge Base"; }
   std::string GetIcon() const override { return ICON_MD_PSYCHOLOGY; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 25; }  // Between Status and Prompt
 
   void Draw(bool* p_open) override {
@@ -245,6 +266,9 @@ class AgentChatPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Agent Chat"; }
   std::string GetIcon() const override { return ICON_MD_CHAT; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::CoreWorkspace();
+  }
   int GetPriority() const override { return 5; }
 
   void Draw(bool* p_open) override;
@@ -273,6 +297,9 @@ class OracleStateLibraryEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Oracle States"; }
   std::string GetIcon() const override { return ICON_MD_SAVE; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Live Debugging"; }
   std::string GetWorkflowLabel() const override { return "State Library"; }
   std::string GetWorkflowDescription() const override {
@@ -309,6 +336,9 @@ class FeatureFlagEditorEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Feature Flags"; }
   std::string GetIcon() const override { return ICON_MD_FLAG; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Build & Config"; }
   std::string GetWorkflowDescription() const override {
     return "Inspect and edit project feature flags";
@@ -342,6 +372,9 @@ class ManifestEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Hack Manifest"; }
   std::string GetIcon() const override { return ICON_MD_DESCRIPTION; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Build & Config"; }
   std::string GetWorkflowDescription() const override {
     return "Inspect manifest metadata, protected regions, and registry state";
@@ -375,6 +408,9 @@ class SramViewerEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "SRAM Viewer"; }
   std::string GetIcon() const override { return ICON_MD_MEMORY; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Game State"; }
   std::string GetWorkflowDescription() const override {
     return "Inspect live SRAM variables from the active emulator session";
@@ -410,6 +446,9 @@ class MesenScreenshotEditorPanel : public WindowContent {
   }
   std::string GetIcon() const override { return ICON_MD_CAMERA_ALT; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Live Debugging"; }
   std::string GetWorkflowDescription() const override {
     return "Preview live emulator screenshots while debugging hack changes";
