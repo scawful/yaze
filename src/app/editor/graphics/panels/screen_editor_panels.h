@@ -212,7 +212,8 @@ class NamingScreenPanel : public EditorPanel {
   std::string GetIcon() const override { return ICON_MD_EDIT; }
   std::string GetEditorCategory() const override { return "Screen"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Command palette (stub: the editor draws nothing yet)");
   }
   int GetPriority() const override { return 50; }
 
