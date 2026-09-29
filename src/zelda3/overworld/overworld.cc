@@ -3251,48 +3251,23 @@ absl::Status Overworld::SaveOverworldTilesType() {
 }
 
 absl::Status Overworld::LoadDiggableTiles() {
-  util::logf("Loading Diggable Tiles");
-
-  // Check if custom diggable tiles are enabled
-  ASSIGN_OR_RETURN(uint8_t enable_flag,
-                   rom()->ReadByte(kOverworldCustomDiggableTilesEnabled));
-
-  if (enable_flag != 0x00 && enable_flag != 0xFF) {
-    // Custom table is enabled, load from ROM
-    std::array<uint8_t, kDiggableTilesBitfieldSize> bitfield;
-    for (int i = 0; i < kDiggableTilesBitfieldSize; ++i) {
-      ASSIGN_OR_RETURN(bitfield[i],
-                       rom()->ReadByte(kOverworldCustomDiggableTilesArray + i));
-    }
-    diggable_tiles_.FromBytes(bitfield.data());
-  } else {
-    // Use vanilla defaults
-    diggable_tiles_.SetVanillaDefaults();
-  }
-
+  // Diggable tiles have no ROM storage yet. The addresses in
+  // diggable_tiles.h are ZSCustomOverworld v3 data: 0x140149 sits in its
+  // settings block, and 0x140980-0x1409BF is OverworldCustomDefaultGFXGroups
+  // followed by the expanded parent table (kOverworldMapParentIdExpanded).
+  // Reading them as a diggable bitfield yields garbage, so the table always
+  // starts from the vanilla list.
+  diggable_tiles_.SetVanillaDefaults();
   return absl::OkStatus();
 }
 
 absl::Status Overworld::SaveDiggableTiles() {
-  // Diggable tiles require v3+ (custom table at 0x140980+)
-  const auto version = OverworldVersionHelper::GetVersion(*rom_);
-  cached_version_ = version;
-  if (!OverworldVersionHelper::SupportsAreaEnum(version)) {
-    return absl::OkStatus();  // Skip for vanilla/v1/v2
-  }
-
-  util::logf("Saving Diggable Tiles");
-
-  // Write enable flag
-  RETURN_IF_ERROR(rom()->WriteByte(kOverworldCustomDiggableTilesEnabled, 0xFF));
-
-  // Write the 64-byte bitfield
-  const auto& bitfield = diggable_tiles_.GetRawData();
-  for (int i = 0; i < kDiggableTilesBitfieldSize; ++i) {
-    RETURN_IF_ERROR(
-        rom()->WriteByte(kOverworldCustomDiggableTilesArray + i, bitfield[i]));
-  }
-
+  // Later steps of Save() read cached_version_.
+  cached_version_ = OverworldVersionHelper::GetVersion(*rom_);
+  // Writing the diggable table would overwrite the ZSCustomOverworld v3
+  // tables described in LoadDiggableTiles(), corrupting default GFX groups
+  // and the bridge color on hacks such as Oracle of Secrets. Diggable edits
+  // ship through the exported ASM patch until a non-colliding table exists.
   return absl::OkStatus();
 }
 
