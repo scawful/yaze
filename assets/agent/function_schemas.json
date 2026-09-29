@@ -339,13 +339,25 @@
     },
     {
       "name": "overworld-tile-stats",
-      "description": "Get statistical analysis of tile usage across overworld maps",
+      "description": "Count tile16 usage per screen, per world and per tile16 id (most placed first)",
       "parameters": {
         "type": "object",
         "properties": {
-          "map_id": {
+          "map": {
             "type": "string",
-            "description": "Specific map ID or 'all' for global statistics"
+            "description": "Optional: one screen ID in hex (0x00-0x9F); omit for every screen"
+          },
+          "world": {
+            "type": "string",
+            "description": "Optional: light, dark or special"
+          },
+          "tile": {
+            "type": "string",
+            "description": "Optional: tile16 ID in hex; adds its total and per-screen counts"
+          },
+          "top": {
+            "type": "integer",
+            "description": "Number of tile_counts entries to list (default 32, 0 = all)"
           }
         }
       }

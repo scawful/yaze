@@ -187,6 +187,52 @@ struct TileStatistics {
   std::vector<std::pair<int, int>> positions;  // (x, y) positions
 };
 
+// Tile16 placement counts over the 32x32 tile grid of each screen. Every
+// screen of a multi-screen area is its own 32x32 block of the world grid, so
+// counting per screen covers each placed tile exactly once.
+struct TileUsageCount {
+  uint16_t tile_id = 0;
+  int count = 0;    // placements in the scanned screens
+  int screens = 0;  // scanned screens that place it at least once
+};
+
+struct ScreenTileUsage {
+  int map_id = 0;
+  int world = 0;
+  int parent_map = 0;
+  int total_tiles = 0;  // always 1024 (32x32)
+  int unique_tiles = 0;
+  uint16_t top_tile = 0;
+  int top_tile_count = 0;
+  int tile_count = 0;  // placements of TileUsageQuery::tile_id, if set
+};
+
+struct WorldTileUsage {
+  int world = 0;
+  int screens = 0;
+  int total_tiles = 0;
+  int unique_tiles = 0;
+};
+
+struct TileUsageQuery {
+  std::optional<int> map_id;  // one screen
+  std::optional<int> world;
+  std::optional<uint16_t> tile_id;  // also count this tile per screen
+};
+
+struct TileUsageSummary {
+  int screens_scanned = 0;
+  int total_tiles = 0;
+  std::vector<TileUsageCount> tiles;  // most placed first, then by tile id
+  std::vector<WorldTileUsage> worlds;
+  std::vector<ScreenTileUsage> screens;  // by map id
+};
+
+// Counts tile16 usage from the loaded world grids. Fails when a scanned
+// world's grid is not loaded.
+absl::StatusOr<TileUsageSummary> CollectTileUsage(zelda3::Overworld& overworld,
+                                                  const TileUsageQuery& query);
+
 absl::StatusOr<int> ParseNumeric(std::string_view value, int base = 0);
 absl::StatusOr<int> ParseWorldSpecifier(std::string_view value);
 absl::StatusOr<int> InferWorldFromMapId(int map_id);

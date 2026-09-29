@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -174,8 +175,158 @@ TEST(OverworldTileBlocksetTest, UnloadedGridFailsClosed) {
 }
 
 // ---------------------------------------------------------------------------
+// Tile usage statistics on a synthetic overworld grid
+// ---------------------------------------------------------------------------
+
+class OverworldTileUsageTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    overworld_ = std::make_unique<zelda3::Overworld>(&rom_);
+    auto* tiles = overworld_->mutable_map_tiles();
+    FillWorld(tiles->light_world);
+    FillWorld(tiles->dark_world);
+    FillWorld(tiles->special_world);
+    // LW $04 (column 4): ten 0x0123 and three 0x0456.
+    for (int i = 0; i < 10; ++i) {
+      tiles->light_world[128 + i][0] = 0x0123;
+    }
+    for (int i = 0; i < 3; ++i) {
+      tiles->light_world[128 + i][31] = 0x0456;
+    }
+    // DW $40: five 0x0123.
+    for (int i = 0; i < 5; ++i) {
+      tiles->dark_world[i][i] = 0x0123;
+    }
+    // SW $81 (column 1): two 0x0777.
+    tiles->special_world[32][0] = 0x0777;
+    tiles->special_world[63][31] = 0x0777;
+    // Below the special world's four screen rows: not a screen, not counted.
+    tiles->special_world[0][200] = 0x0999;
+  }
+
+  static const overworld::TileUsageCount* Find(
+      const overworld::TileUsageSummary& summary, uint16_t tile_id) {
+    for (const auto& usage : summary.tiles) {
+      if (usage.tile_id == tile_id) {
+        return &usage;
+      }
+    }
+    return nullptr;
+  }
+
+  Rom rom_;
+  std::unique_ptr<zelda3::Overworld> overworld_;
+};
+
+TEST_F(OverworldTileUsageTest, CountsEveryScreenOfEveryWorld) {
+  auto summary = overworld::CollectTileUsage(*overworld_, {});
+  ASSERT_TRUE(summary.ok()) << summary.status();
+  EXPECT_EQ(summary->screens_scanned, 0xA0);
+  EXPECT_EQ(summary->total_tiles, 0xA0 * 1024);
+  ASSERT_EQ(summary->tiles.size(), 4u);
+
+  // Most placed first.
+  EXPECT_EQ(summary->tiles[0].tile_id, 0x0000);
+  EXPECT_EQ(summary->tiles[0].count, 0xA0 * 1024 - 20);
+  EXPECT_EQ(summary->tiles[0].screens, 0xA0);
+  EXPECT_EQ(summary->tiles[1].tile_id, 0x0123);
+  EXPECT_EQ(summary->tiles[1].count, 15);
+  EXPECT_EQ(summary->tiles[1].screens, 2);
+  const auto* bush = Find(*summary, 0x0456);
+  ASSERT_NE(bush, nullptr);
+  EXPECT_EQ(bush->count, 3);
+  const auto* cloud = Find(*summary, 0x0777);
+  ASSERT_NE(cloud, nullptr);
+  EXPECT_EQ(cloud->count, 2);
+  EXPECT_EQ(cloud->screens, 1);
+  EXPECT_EQ(Find(*summary, 0x0999), nullptr);
+
+  int total = 0;
+  for (const auto& usage : summary->tiles) {
+    total += usage.count;
+  }
+  EXPECT_EQ(total, summary->total_tiles);
+
+  ASSERT_EQ(summary->worlds.size(), 3u);
+  EXPECT_EQ(summary->worlds[0].screens, 0x40);
+  EXPECT_EQ(summary->worlds[0].unique_tiles, 3);
+  EXPECT_EQ(summary->worlds[1].unique_tiles, 2);
+  EXPECT_EQ(summary->worlds[2].screens, 0x20);
+  EXPECT_EQ(summary->worlds[2].total_tiles, 0x20 * 1024);
+  EXPECT_EQ(summary->worlds[2].unique_tiles, 2);
+
+  ASSERT_EQ(summary->screens.size(), 0xA0u);
+  const auto& lw04 = summary->screens[0x04];
+  EXPECT_EQ(lw04.map_id, 0x04);
+  EXPECT_EQ(lw04.unique_tiles, 3);
+  EXPECT_EQ(lw04.top_tile, 0x0000);
+  EXPECT_EQ(lw04.top_tile_count, 1024 - 13);
+  EXPECT_EQ(summary->screens[0x81].unique_tiles, 2);
+  EXPECT_EQ(summary->screens[0x80].unique_tiles, 1);
+}
+
+TEST_F(OverworldTileUsageTest, ScopesToOneScreenOrWorld) {
+  overworld::TileUsageQuery screen_query;
+  screen_query.map_id = 0x04;
+  auto screen = overworld::CollectTileUsage(*overworld_, screen_query);
+  ASSERT_TRUE(screen.ok()) << screen.status();
+  EXPECT_EQ(screen->screens_scanned, 1);
+  EXPECT_EQ(screen->total_tiles, 1024);
+  ASSERT_EQ(screen->tiles.size(), 3u);
+  EXPECT_EQ(screen->tiles[1].tile_id, 0x0123);
+  EXPECT_EQ(screen->tiles[1].count, 10);
+  ASSERT_EQ(screen->worlds.size(), 1u);
+  EXPECT_EQ(screen->worlds[0].world, 0);
+
+  overworld::TileUsageQuery world_query;
+  world_query.world = 1;
+  world_query.tile_id = 0x0123;
+  auto dark = overworld::CollectTileUsage(*overworld_, world_query);
+  ASSERT_TRUE(dark.ok()) << dark.status();
+  EXPECT_EQ(dark->screens_scanned, 0x40);
+  ASSERT_FALSE(dark->screens.empty());
+  EXPECT_EQ(dark->screens[0].map_id, 0x40);
+  EXPECT_EQ(dark->screens[0].tile_count, 5);
+  EXPECT_EQ(dark->screens[1].tile_count, 0);
+  EXPECT_EQ(Find(*dark, 0x0456), nullptr);
+}
+
+TEST_F(OverworldTileUsageTest, RejectsInconsistentFiltersAndUnloadedGrids) {
+  overworld::TileUsageQuery mismatch;
+  mismatch.map_id = 0x04;
+  mismatch.world = 1;
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      overworld::CollectTileUsage(*overworld_, mismatch).status()));
+
+  overworld::TileUsageQuery bad_map;
+  bad_map.map_id = 0xA0;
+  EXPECT_TRUE(absl::IsInvalidArgument(
+      overworld::CollectTileUsage(*overworld_, bad_map).status()));
+
+  Rom rom;
+  zelda3::Overworld empty(&rom);
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      overworld::CollectTileUsage(empty, {}).status()));
+}
+
+// ---------------------------------------------------------------------------
 // Argument parsing (fails before the overworld loads)
 // ---------------------------------------------------------------------------
+
+TEST(OverworldTileCommandArgsTest, TileStatsRejectsBadFilters) {
+  handlers::OverworldTileStatsCommandHandler handler;
+  std::string output;
+  auto status = handler.Run({"--mock-rom", "--top=-1", "--format=json"},
+                            nullptr, &output);
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  status = handler.Run(
+      {"--mock-rom", "--screen=0x04", "--map=0x05", "--format=json"}, nullptr,
+      &output);
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  status = handler.Run({"--mock-rom", "--map=0xA0", "--format=json"}, nullptr,
+                       &output);
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+}
 
 TEST(OverworldTileCommandArgsTest, RejectsNonNumericCoordinates) {
   handlers::OverworldGetTileCommandHandler handler;
@@ -329,6 +480,57 @@ TEST_F(OverworldTileRomTest, FindTileMatchesFeedBackIntoGetTile) {
   if (overworld::AreaScreenSpan(*dw40).first == 2) {
     EXPECT_TRUE(saw_probe);
   }
+}
+
+TEST_F(OverworldTileRomTest, TileStatsCountsMatchTheWorldGrid) {
+  handlers::OverworldTileStatsCommandHandler handler;
+  auto json = RunJson(handler, {"--top=0"}, &rom_);
+  auto& stats = json["Overworld Tile Statistics"];
+  ASSERT_TRUE(stats.is_object()) << json.dump();
+  EXPECT_EQ(stats["screens_scanned"], 0xA0);
+  EXPECT_EQ(stats["total_tiles"], 0xA0 * 1024);
+  auto& counts = stats["tile_counts"];
+  ASSERT_TRUE(counts.is_array());
+  EXPECT_EQ(stats["unique_tiles"].get<int>(), static_cast<int>(counts.size()));
+  EXPECT_GT(counts.size(), 1u) << "a real overworld uses many tile16s";
+  int total = 0;
+  int previous = counts[0]["count"].get<int>();
+  for (auto& entry : counts) {
+    const int count = entry["count"].get<int>();
+    EXPECT_LE(count, previous);
+    previous = count;
+    total += count;
+  }
+  EXPECT_EQ(total, 0xA0 * 1024);
+
+  // One screen: recount it straight from the grid.
+  auto screen = RunJson(handler, {"--map=0x40", "--top=0"}, &rom_);
+  auto& screen_stats = screen["Overworld Tile Statistics"];
+  EXPECT_EQ(screen_stats["screens_scanned"], 1);
+  std::map<uint16_t, int> expected;
+  for (int x = 0; x < 32; ++x) {
+    for (int y = 0; y < 32; ++y) {
+      ++expected[RawWorldTile(1, x, y)];
+    }
+  }
+  auto& screen_counts = screen_stats["tile_counts"];
+  ASSERT_EQ(screen_counts.size(), expected.size());
+  for (auto& entry : screen_counts) {
+    const int tile_id = HexField(entry["tile_id"]);
+    EXPECT_EQ(entry["count"].get<int>(), expected[tile_id]) << tile_id;
+  }
+
+  // --tile agrees with overworld-find-tile on the same screen.
+  const std::string top_tile =
+      screen_stats["screens"][0]["top_tile"].get<std::string>();
+  auto tile = RunJson(handler, {"--map=0x40", "--tile=" + top_tile}, &rom_);
+  handlers::OverworldFindTileCommandHandler find_handler;
+  auto found =
+      RunJson(find_handler, {"--tile=" + top_tile, "--map=0x40"}, &rom_);
+  EXPECT_EQ(tile["Overworld Tile Statistics"]["tile"]["count"],
+            found["Overworld Tile Search"]["matches_found"]);
+  EXPECT_EQ(tile["Overworld Tile Statistics"]["screens"][0]["tile_count"],
+            found["Overworld Tile Search"]["matches_found"]);
 }
 
 std::filesystem::path CopyRomTo(const std::string& source,
