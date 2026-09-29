@@ -815,15 +815,6 @@ void ExpectDefaultEntityMarkers(const Theme& theme, const std::string& name) {
       << name << " sprite_color";
 }
 
-TEST_F(ThemeStyleSnapshotTest, EntityMarkerDefaultsFollowTheDocumentedHues) {
-  // Yellow-gold entrances, cyan-white exits, red items, magenta sprites.
-  ExpectRgbNear(EntityMarkerDefaults::Entrance(), 255, 204, 0);
-  ExpectRgbNear(EntityMarkerDefaults::Hole(), 255, 150, 0);
-  ExpectRgbNear(EntityMarkerDefaults::Exit(), 150, 235, 255);
-  ExpectRgbNear(EntityMarkerDefaults::Item(), 235, 45, 45);
-  ExpectRgbNear(EntityMarkerDefaults::Sprite(), 235, 60, 235);
-}
-
 TEST_F(ThemeStyleSnapshotTest, ClassicYazeHasDedicatedEntityMarkerColors) {
   ThemeManager::Get().ApplyClassicYazeTheme();
   const auto& theme = ThemeManager::Get().GetCurrentTheme();

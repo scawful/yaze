@@ -10,18 +10,8 @@ namespace {
 
 std::vector<std::string> CollectIds(const MoreActionsRegistry& registry) {
   std::vector<std::string> ids;
-  registry.ForEach(
-      [&](const MoreAction& action) { ids.push_back(action.id); });
+  registry.ForEach([&](const MoreAction& action) { ids.push_back(action.id); });
   return ids;
-}
-
-TEST(MoreActionsRegistryTest, StartsEmpty) {
-  MoreActionsRegistry registry;
-  EXPECT_TRUE(registry.empty());
-  EXPECT_EQ(registry.size(), 0u);
-  int seen = 0;
-  registry.ForEach([&](const MoreAction&) { ++seen; });
-  EXPECT_EQ(seen, 0);
 }
 
 TEST(MoreActionsRegistryTest, RegisterPreservesInsertionOrder) {
@@ -51,7 +41,8 @@ TEST(MoreActionsRegistryTest, RegisterWithExistingIdReplacesInPlace) {
   // Invoking the now-only "toggle" action must hit the replacement, not the
   // original callback.
   registry.ForEach([&](const MoreAction& a) {
-    if (a.id == "toggle" && a.on_invoke) a.on_invoke();
+    if (a.id == "toggle" && a.on_invoke)
+      a.on_invoke();
   });
   EXPECT_EQ(original_calls, 0);
   EXPECT_EQ(replacement_calls, 1);

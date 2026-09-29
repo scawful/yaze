@@ -363,7 +363,8 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
   // overwrite, not append
   EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
-  const char* tmp_name = "test_temp_rom.sfc";
+  ScopedTempDirectory temp;
+  const std::string tmp_name = (temp.path() / "test_temp_rom.sfc").string();
   yaze::Rom::SaveSettings settings;
   settings.filename = tmp_name;
 

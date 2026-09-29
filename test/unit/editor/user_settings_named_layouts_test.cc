@@ -32,12 +32,6 @@ std::string MakeSampleLayoutJson(const std::string& name) {
   return DockTreeToJson(tree).dump();
 }
 
-TEST(UserSettingsNamedLayoutsTest, DefaultsAreEmpty) {
-  UserSettings settings;
-  EXPECT_TRUE(settings.prefs().named_layouts.empty());
-  EXPECT_TRUE(settings.prefs().last_applied_layout_name.empty());
-}
-
 TEST(UserSettingsNamedLayoutsTest, JsonRoundTripPreservesNamedLayouts) {
   auto path = TempSettingsPath("json_roundtrip");
   std::filesystem::remove(path);

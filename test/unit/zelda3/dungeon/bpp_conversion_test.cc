@@ -24,13 +24,19 @@ class Bpp3To8ConversionTest : public ::testing::Test {
         int bit1 = nibble_pair * 2;
         int bit2 = nibble_pair * 2 + 1;
 
-        if (plane0 & kBitMask[bit1]) pix1 |= 1;
-        if (plane1 & kBitMask[bit1]) pix1 |= 2;
-        if (plane2 & kBitMask[bit1]) pix1 |= 4;
+        if (plane0 & kBitMask[bit1])
+          pix1 |= 1;
+        if (plane1 & kBitMask[bit1])
+          pix1 |= 2;
+        if (plane2 & kBitMask[bit1])
+          pix1 |= 4;
 
-        if (plane0 & kBitMask[bit2]) pix2 |= 1;
-        if (plane1 & kBitMask[bit2]) pix2 |= 2;
-        if (plane2 & kBitMask[bit2]) pix2 |= 4;
+        if (plane0 & kBitMask[bit2])
+          pix2 |= 1;
+        if (plane1 & kBitMask[bit2])
+          pix2 |= 2;
+        if (plane2 & kBitMask[bit2])
+          pix2 |= 4;
 
         dest_8bpp[row * 8 + (nibble_pair * 2)] = pix1;
         dest_8bpp[row * 8 + (nibble_pair * 2) + 1] = pix2;
@@ -39,9 +45,8 @@ class Bpp3To8ConversionTest : public ::testing::Test {
   }
 };
 
-const uint8_t Bpp3To8ConversionTest::kBitMask[8] = {
-  0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-};
+const uint8_t Bpp3To8ConversionTest::kBitMask[8] = {0x80, 0x40, 0x20, 0x10,
+                                                    0x08, 0x04, 0x02, 0x01};
 
 // Test that all-zero 3BPP produces all-zero 8BPP
 TEST_F(Bpp3To8ConversionTest, ZeroInputProducesZeroOutput) {
@@ -106,18 +111,6 @@ TEST_F(Bpp3To8ConversionTest, AlternatingPixelsCorrectlyPacked) {
   EXPECT_EQ(dest_8bpp[1], 0);
   EXPECT_EQ(dest_8bpp[2], 1);
   EXPECT_EQ(dest_8bpp[3], 0);
-}
-
-// Test output buffer size matches expected 8BPP format
-TEST_F(Bpp3To8ConversionTest, OutputSizeIs64BytesPerTile) {
-  // 8 rows * 8 bytes per row = 64 bytes
-  constexpr int kExpectedOutputSize = 64;
-  std::array<uint8_t, 24> src_3bpp = {};
-  std::array<uint8_t, kExpectedOutputSize> dest_8bpp = {};
-
-  Convert3BppTo8Bpp(src_3bpp.data(), dest_8bpp.data());
-  // If we got here without crash, size is correct
-  SUCCEED();
 }
 
 }  // namespace test

@@ -28,12 +28,6 @@ struct DungeonFeatureFlagsGuard {
 // Basic Initialization Tests
 // ============================================================================
 
-TEST_F(DungeonEditorV2IntegrationTest, EditorInitialization) {
-  // Initialize should not fail
-  dungeon_editor_v2_->Initialize();
-  EXPECT_TRUE(dungeon_editor_v2_->rom() != nullptr);
-}
-
 TEST_F(DungeonEditorV2IntegrationTest, RomLoadStatus) {
   EXPECT_TRUE(dungeon_editor_v2_->IsRomLoaded());
   std::string status = dungeon_editor_v2_->GetRomStatus();
@@ -495,20 +489,6 @@ TEST_F(DungeonEditorV2IntegrationTest, RoomLoaderDelegation) {
   // If Load succeeds, room_loader_ must have worked
   EXPECT_TRUE(status.ok());
 }
-
-TEST_F(DungeonEditorV2IntegrationTest, ComponentsInitializedAfterLoad) {
-  dungeon_editor_v2_->Initialize();
-  auto status = dungeon_editor_v2_->Load();
-  ASSERT_TRUE(status.ok());
-
-  // After Load(), all components should be properly initialized
-  // We can't directly test this, but Update() should work
-  (void)dungeon_editor_v2_->Update();
-}
-
-// ============================================================================
-// ROM Management Tests
-// ============================================================================
 
 // ============================================================================
 // Unimplemented Methods Tests

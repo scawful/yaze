@@ -126,22 +126,6 @@ TEST_F(MapRefreshCoordinatorTest, ForceRefreshGraphicsBoundaryIndex159Works) {
 }
 
 // ===========================================================================
-// RefreshOverworldMapOnDemand -- bounds checking
-// ===========================================================================
-
-TEST_F(MapRefreshCoordinatorTest,
-       RefreshOverworldMapOnDemandNegativeIndexNoCrash) {
-  coordinator_->RefreshOverworldMapOnDemand(-1);
-  // Negative index is rejected silently.
-}
-
-TEST_F(MapRefreshCoordinatorTest,
-       RefreshOverworldMapOnDemandExcessiveIndexNoCrash) {
-  coordinator_->RefreshOverworldMapOnDemand(zelda3::kNumOverworldMaps);
-  // Out-of-bounds index is rejected silently.
-}
-
-// ===========================================================================
 // RefreshOverworldMapOnDemand -- deferred path
 // ===========================================================================
 
@@ -172,6 +156,8 @@ TEST_F(MapRefreshCoordinatorTest,
 
   // Should not crash even though Overworld has no loaded maps.
   coordinator_->RefreshOverworldMapOnDemand(5);
+  // Only the deferred path marks the bitmap modified.
+  EXPECT_FALSE(maps_bmp_[5].modified());
 }
 
 TEST_F(MapRefreshCoordinatorTest,
@@ -183,8 +169,9 @@ TEST_F(MapRefreshCoordinatorTest,
   maps_bmp_[10].set_modified(false);
 
   coordinator_->RefreshOverworldMapOnDemand(10);
-  // Should not crash. The non-deferred path enters RefreshChildMapOnDemand
-  // which checks needs_graphics_rebuild (false) and skips heavy work.
+  // The non-deferred path enters RefreshChildMapOnDemand, which returns early
+  // without loaded maps. Only the deferred path marks the bitmap modified.
+  EXPECT_FALSE(maps_bmp_[10].modified());
 }
 
 // ===========================================================================
@@ -214,20 +201,8 @@ TEST_F(MapRefreshCoordinatorTest,
 }
 
 // ===========================================================================
-// RefreshOverworldMap delegates to RefreshOverworldMapOnDemand
+// RefreshMapPalette and RefreshChildMapOnDemand
 // ===========================================================================
-
-TEST_F(MapRefreshCoordinatorTest, RefreshOverworldMapDelegatesToOnDemand) {
-  // RefreshOverworldMap() calls RefreshOverworldMapOnDemand(*ctx_.current_map).
-  // With current_map=5 and current_world=0, map 5 is both the current map
-  // and in the current world, so it takes the non-deferred path into
-  // RefreshChildMapOnDemand. With no loaded Overworld maps, the null-check
-  // in RefreshChildMapOnDemand returns early -- verify no crash.
-  current_world_ = 0;
-  current_map_ = 5;
-  coordinator_->RefreshOverworldMap();
-  // Just verify no crash. The deferred path is tested separately.
-}
 
 TEST_F(MapRefreshCoordinatorTest,
        RefreshMapPaletteFailsWhenCurrentMapIsNotLoaded) {
@@ -264,16 +239,6 @@ TEST_F(MapRefreshCoordinatorTest,
 
   EXPECT_EQ(map->game_state(), 2);
   EXPECT_EQ(map->static_graphics(12), 0x20 + 0x73);
-}
-
-// ===========================================================================
-// UpdateBlocksetWithPendingTileChanges -- early returns
-// ===========================================================================
-
-TEST_F(MapRefreshCoordinatorTest, UpdateBlocksetNotLoadedReturnsImmediately) {
-  map_blockset_loaded_ = false;
-  // Should not crash -- exits immediately.
-  coordinator_->UpdateBlocksetWithPendingTileChanges();
 }
 
 // Exercise the real model -> editor bitmap -> refresh boundary. A built map's

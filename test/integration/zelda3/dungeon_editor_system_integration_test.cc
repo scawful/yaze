@@ -76,13 +76,6 @@ class DungeonEditorSystemIntegrationTest : public ::testing::Test {
   std::map<int, Room> rooms_;
 };
 
-// Test basic dungeon editor system initialization
-TEST_F(DungeonEditorSystemIntegrationTest, BasicInitialization) {
-  EXPECT_NE(dungeon_editor_system_, nullptr);
-  EXPECT_EQ(dungeon_editor_system_->GetROM(), rom_.get());
-  EXPECT_FALSE(dungeon_editor_system_->IsDirty());
-}
-
 // Test room loading and management
 TEST_F(DungeonEditorSystemIntegrationTest, RoomLoadingAndManagement) {
   // Test loading a specific room

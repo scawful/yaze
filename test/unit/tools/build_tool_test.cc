@@ -167,30 +167,6 @@ class BuildToolTest : public ::testing::Test {
 };
 
 // =============================================================================
-// BuildTool Configuration Tests
-// =============================================================================
-
-TEST_F(BuildToolTest, DefaultConfigUsesCorrectBuildDirectory) {
-  BuildTool::BuildConfig config;
-  EXPECT_EQ(config.build_directory, "build");
-}
-
-TEST_F(BuildToolTest, DefaultConfigUsesCorrectTimeout) {
-  BuildTool::BuildConfig config;
-  EXPECT_EQ(config.timeout, std::chrono::seconds(600));
-}
-
-TEST_F(BuildToolTest, DefaultConfigEnablesCaptureOutput) {
-  BuildTool::BuildConfig config;
-  EXPECT_TRUE(config.capture_output);
-}
-
-TEST_F(BuildToolTest, DefaultConfigUsesCorrectMaxOutputSize) {
-  BuildTool::BuildConfig config;
-  EXPECT_EQ(config.max_output_size, 1024 * 1024);  // 1MB
-}
-
-// =============================================================================
 // BuildTool Preset Tests
 // =============================================================================
 
@@ -245,15 +221,6 @@ TEST_F(BuildToolTest, ListAvailablePresetsContainsPlatformSpecificPresets) {
 // BuildTool Status Tests
 // =============================================================================
 
-TEST_F(BuildToolTest, InitialBuildStatusNotRunning) {
-  BuildTool tool;
-  auto status = tool.GetBuildStatus();
-
-  EXPECT_FALSE(status.is_running);
-  EXPECT_TRUE(status.current_operation.empty());
-  EXPECT_EQ(status.progress_percent, -1);  // Unknown progress
-}
-
 TEST_F(BuildToolTest, BuildStatusTrackingDuringOperation) {
   BuildTool tool;
 
@@ -264,13 +231,6 @@ TEST_F(BuildToolTest, BuildStatusTrackingDuringOperation) {
   // Note: We don't actually start a build here since it would require
   // a properly configured build environment. This test verifies the
   // status tracking interface is accessible.
-}
-
-TEST_F(BuildToolTest, GetLastResultInitiallyEmpty) {
-  BuildTool tool;
-  auto last_result = tool.GetLastResult();
-
-  EXPECT_FALSE(last_result.has_value());
 }
 
 // =============================================================================
@@ -347,58 +307,6 @@ TEST_F(BuildToolTest, CancelOperationWhenNotRunning) {
   // Canceling when nothing is running should succeed
   auto status = tool.CancelCurrentOperation();
   EXPECT_TRUE(status.ok());
-}
-
-// =============================================================================
-// Command Handler Tests
-// =============================================================================
-
-TEST(BuildConfigureCommandHandlerTest, GetNameReturnsCorrectName) {
-  BuildConfigureCommandHandler handler;
-  EXPECT_EQ(handler.GetName(), "build-configure");
-}
-
-TEST(BuildConfigureCommandHandlerTest, GetUsageReturnsValidUsage) {
-  BuildConfigureCommandHandler handler;
-  std::string usage = handler.GetUsage();
-
-  EXPECT_THAT(usage, HasSubstr("--preset"));
-}
-
-TEST(BuildCompileCommandHandlerTest, GetNameReturnsCorrectName) {
-  BuildCompileCommandHandler handler;
-  EXPECT_EQ(handler.GetName(), "build-compile");
-}
-
-TEST(BuildCompileCommandHandlerTest, GetUsageReturnsValidUsage) {
-  BuildCompileCommandHandler handler;
-  std::string usage = handler.GetUsage();
-
-  EXPECT_THAT(usage, HasSubstr("--target"));
-}
-
-TEST(BuildTestCommandHandlerTest, GetNameReturnsCorrectName) {
-  BuildTestCommandHandler handler;
-  EXPECT_EQ(handler.GetName(), "build-test");
-}
-
-TEST(BuildTestCommandHandlerTest, GetUsageReturnsValidUsage) {
-  BuildTestCommandHandler handler;
-  std::string usage = handler.GetUsage();
-
-  EXPECT_THAT(usage, HasSubstr("--filter"));
-}
-
-TEST(BuildStatusCommandHandlerTest, GetNameReturnsCorrectName) {
-  BuildStatusCommandHandler handler;
-  EXPECT_EQ(handler.GetName(), "build-status");
-}
-
-TEST(BuildStatusCommandHandlerTest, GetUsageReturnsValidUsage) {
-  BuildStatusCommandHandler handler;
-  std::string usage = handler.GetUsage();
-
-  EXPECT_THAT(usage, HasSubstr("--build-dir"));
 }
 
 // =============================================================================

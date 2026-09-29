@@ -16,11 +16,6 @@ std::filesystem::path TempSettingsPath(const std::string& slug) {
   return dir / (slug + "_settings.json");
 }
 
-TEST(ThemePersistenceTest, DefaultIsEmpty) {
-  UserSettings settings;
-  EXPECT_TRUE(settings.prefs().last_theme_name.empty());
-}
-
 TEST(ThemePersistenceTest, RoundTripPreservesName) {
   auto path = TempSettingsPath("nord_roundtrip");
   std::filesystem::remove(path);

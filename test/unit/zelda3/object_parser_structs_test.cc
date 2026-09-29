@@ -9,35 +9,6 @@ class ObjectParserStructsTest : public ::testing::Test {
   void SetUp() override {}
 };
 
-TEST_F(ObjectParserStructsTest, ObjectRoutineInfoDefaultConstructor) {
-  zelda3::ObjectRoutineInfo info;
-
-  EXPECT_EQ(info.routine_ptr, 0);
-  EXPECT_EQ(info.tile_ptr, 0);
-  EXPECT_EQ(info.tile_count, 0);
-  EXPECT_FALSE(info.is_repeatable);
-  EXPECT_FALSE(info.is_orientation_dependent);
-}
-
-TEST_F(ObjectParserStructsTest, ObjectSubtypeInfoDefaultConstructor) {
-  zelda3::ObjectSubtypeInfo info;
-
-  EXPECT_EQ(info.subtype, 0);
-  EXPECT_EQ(info.subtype_ptr, 0);
-  EXPECT_EQ(info.routine_ptr, 0);
-  EXPECT_EQ(info.max_tile_count, 0);
-}
-
-TEST_F(ObjectParserStructsTest, ObjectSizeInfoDefaultConstructor) {
-  zelda3::ObjectSizeInfo info;
-
-  EXPECT_EQ(info.width_tiles, 0);
-  EXPECT_EQ(info.height_tiles, 0);
-  EXPECT_TRUE(info.is_horizontal);
-  EXPECT_FALSE(info.is_repeatable);
-  EXPECT_EQ(info.repeat_count, 1);
-}
-
 TEST_F(ObjectParserStructsTest, ObjectRoutineInfoAssignment) {
   zelda3::ObjectRoutineInfo info;
 

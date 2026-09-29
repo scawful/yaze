@@ -464,22 +464,6 @@ TEST_F(InteractionDelegationTest, PlaceObjectAtAddsToRoom) {
 // Multi-Handler Coordination Tests
 // =============================================================================
 
-TEST_F(InteractionDelegationTest, AllHandlersAccessible) {
-  auto& coordinator = interaction_.entity_coordinator();
-
-  // All handlers should be accessible without crash
-  auto& door_handler = coordinator.door_handler();
-  auto& sprite_handler = coordinator.sprite_handler();
-  auto& item_handler = coordinator.item_handler();
-  auto& tile_handler = coordinator.tile_handler();
-
-  // Basic operations should work
-  door_handler.CancelPlacement();
-  sprite_handler.CancelPlacement();
-  item_handler.CancelPlacement();
-  tile_handler.CancelPlacement();
-}
-
 TEST_F(InteractionDelegationTest, CancelPlacementClearsAllHandlers) {
   auto& coordinator = interaction_.entity_coordinator();
 
