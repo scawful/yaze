@@ -35,3 +35,9 @@ runs:
     - name: Test registration audit self-test
       shell: bash
       run: python3 scripts/audit_test_registration.py --self-test
+    - name: Panel admission source audit
+      shell: bash
+      run: python3 scripts/audit_panel_policies.py
+    - name: Panel admission source audit self-test
+      shell: bash
+      run: python3 scripts/audit_panel_policies.py --self-test
