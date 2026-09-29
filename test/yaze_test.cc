@@ -62,6 +62,17 @@ int CurrentProcessId() {
 #endif
 }
 
+// Sets an environment variable in the C runtime's table, which is what
+// std::getenv reads. SDL_setenv is not enough on Windows: it calls
+// SetEnvironmentVariable, which the CRT's copy of the environment never sees.
+void SetTestEnv(const char* name, const char* value) {
+#ifdef _WIN32
+  _putenv_s(name, value);
+#else
+  setenv(name, value, 1);
+#endif
+}
+
 void RemoveIsolatedAppDataDir() {
   if (g_test_app_data_dir.empty()) {
     return;
@@ -144,12 +155,12 @@ void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
   if (std::getenv("YAZE_APP_DATA_DIR") == nullptr) {
     const auto app_data = g_test_app_data_dir / "appdata";
     std::filesystem::create_directories(app_data, ec);
-    SDL_setenv("YAZE_APP_DATA_DIR", app_data.string().c_str(), 1);
+    SetTestEnv("YAZE_APP_DATA_DIR", app_data.string().c_str());
   }
   if (std::getenv("YAZE_USER_DOCUMENTS_DIR") == nullptr) {
     const auto documents = g_test_app_data_dir / "documents";
     std::filesystem::create_directories(documents, ec);
-    SDL_setenv("YAZE_USER_DOCUMENTS_DIR", documents.string().c_str(), 1);
+    SetTestEnv("YAZE_USER_DOCUMENTS_DIR", documents.string().c_str());
   }
 }
 
@@ -343,47 +354,47 @@ TestConfig ParseArguments(int argc, char* argv[]) {
 
 // Set up test environment based on configuration
 void SetupTestEnvironment(const TestConfig& config) {
-  // Set environment variables for tests using SDL's cross-platform function
+  // Set environment variables for tests (read back through std::getenv)
   if (!config.rom_path.empty()) {
-    SDL_setenv("YAZE_TEST_ROM_PATH", config.rom_path.c_str(), 1);
+    SetTestEnv("YAZE_TEST_ROM_PATH", config.rom_path.c_str());
     if (config.rom_vanilla.empty()) {
-      SDL_setenv("YAZE_TEST_ROM_VANILLA", config.rom_path.c_str(), 1);
+      SetTestEnv("YAZE_TEST_ROM_VANILLA", config.rom_path.c_str());
     }
   }
   if (!config.rom_vanilla.empty()) {
-    SDL_setenv("YAZE_TEST_ROM_VANILLA", config.rom_vanilla.c_str(), 1);
+    SetTestEnv("YAZE_TEST_ROM_VANILLA", config.rom_vanilla.c_str());
     if (config.rom_path.empty()) {
-      SDL_setenv("YAZE_TEST_ROM_PATH", config.rom_vanilla.c_str(), 1);
+      SetTestEnv("YAZE_TEST_ROM_PATH", config.rom_vanilla.c_str());
     }
   }
   if (!config.rom_us.empty()) {
-    SDL_setenv("YAZE_TEST_ROM_US", config.rom_us.c_str(), 1);
-    SDL_setenv("YAZE_TEST_ROM_US_PATH", config.rom_us.c_str(), 1);
+    SetTestEnv("YAZE_TEST_ROM_US", config.rom_us.c_str());
+    SetTestEnv("YAZE_TEST_ROM_US_PATH", config.rom_us.c_str());
   }
   if (!config.rom_jp.empty()) {
-    SDL_setenv("YAZE_TEST_ROM_JP", config.rom_jp.c_str(), 1);
-    SDL_setenv("YAZE_TEST_ROM_JP_PATH", config.rom_jp.c_str(), 1);
+    SetTestEnv("YAZE_TEST_ROM_JP", config.rom_jp.c_str());
+    SetTestEnv("YAZE_TEST_ROM_JP_PATH", config.rom_jp.c_str());
   }
   if (!config.rom_eu.empty()) {
-    SDL_setenv("YAZE_TEST_ROM_EU", config.rom_eu.c_str(), 1);
-    SDL_setenv("YAZE_TEST_ROM_EU_PATH", config.rom_eu.c_str(), 1);
+    SetTestEnv("YAZE_TEST_ROM_EU", config.rom_eu.c_str());
+    SetTestEnv("YAZE_TEST_ROM_EU_PATH", config.rom_eu.c_str());
   }
   if (!config.rom_expanded.empty()) {
-    SDL_setenv("YAZE_TEST_ROM_EXPANDED", config.rom_expanded.c_str(), 1);
-    SDL_setenv("YAZE_TEST_ROM_OOS", config.rom_expanded.c_str(), 1);
-    SDL_setenv("YAZE_TEST_ROM_EXPANDED_PATH", config.rom_expanded.c_str(), 1);
+    SetTestEnv("YAZE_TEST_ROM_EXPANDED", config.rom_expanded.c_str());
+    SetTestEnv("YAZE_TEST_ROM_OOS", config.rom_expanded.c_str());
+    SetTestEnv("YAZE_TEST_ROM_EXPANDED_PATH", config.rom_expanded.c_str());
   }
 
   if (config.skip_rom_tests) {
-    SDL_setenv("YAZE_SKIP_ROM_TESTS", "1", 1);
+    SetTestEnv("YAZE_SKIP_ROM_TESTS", "1");
   }
 
   if (config.enable_ui_tests) {
-    SDL_setenv("YAZE_ENABLE_UI_TESTS", "1", 1);
+    SetTestEnv("YAZE_ENABLE_UI_TESTS", "1");
   }
 
   if (config.verbose) {
-    SDL_setenv("YAZE_VERBOSE_TESTS", "1", 1);
+    SetTestEnv("YAZE_VERBOSE_TESTS", "1");
   }
 }
 
