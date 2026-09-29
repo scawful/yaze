@@ -663,6 +663,17 @@ void WorkspaceWindowManager::RegisterWindowContent(
     instance_id = MakeWindowId(active_session_, panel_id, panel->GetScope());
   }
 
+  // An editor may pre-register a descriptor that names no presentation policy
+  // and then register the content that does. The content's declared policy
+  // fills the gap; a descriptor that already declared one keeps it.
+  if (descriptor_preexisting && presentation.declared) {
+    if (auto descriptor_it = cards_.find(instance_id);
+        descriptor_it != cards_.end() &&
+        !descriptor_it->second.presentation.declared) {
+      descriptor_it->second.presentation = presentation;
+    }
+  }
+
   // Descriptors created here must not capture the first content instance.
   // Resolve IsEnabled through the owning slot so same-session reloads can
   // replace content without leaving a dangling callback. Descriptors that an

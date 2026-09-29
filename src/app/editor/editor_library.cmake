@@ -228,6 +228,7 @@ set(
   app/editor/system/workspace/workspace_window_manager_state.cc
   app/editor/system/workspace/workspace_window_manager_support.cc
   app/editor/system/workspace/file_browser.cc
+  app/editor/system/workspace/panel_admission.cc
   app/editor/system/workspace/proposal_drawer.cc
 )
 
