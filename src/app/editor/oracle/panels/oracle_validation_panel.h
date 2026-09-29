@@ -16,6 +16,9 @@ namespace yaze::editor {
 
 class OracleValidationPanel : public WindowContent {
  public:
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   ~OracleValidationPanel() override;
 
   std::string GetId() const override;

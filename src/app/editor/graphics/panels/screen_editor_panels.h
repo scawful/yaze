@@ -28,6 +28,9 @@ class DungeonMapsPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Dungeon Maps"; }
   std::string GetIcon() const override { return ICON_MD_MAP; }
   std::string GetEditorCategory() const override { return "Screen"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 10; }
 
   void Draw(bool* p_open) override {
@@ -54,6 +57,9 @@ class InventoryMenuPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Inventory Menu"; }
   std::string GetIcon() const override { return ICON_MD_INVENTORY; }
   std::string GetEditorCategory() const override { return "Screen"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 20; }
 
   void Draw(bool* p_open) override {
@@ -147,6 +153,9 @@ class OverworldMapScreenPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Overworld Map"; }
   std::string GetIcon() const override { return ICON_MD_PUBLIC; }
   std::string GetEditorCategory() const override { return "Screen"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 30; }
 
   void Draw(bool* p_open) override {
@@ -173,6 +182,9 @@ class TitleScreenPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Title Screen"; }
   std::string GetIcon() const override { return ICON_MD_TITLE; }
   std::string GetEditorCategory() const override { return "Screen"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 40; }
 
   void Draw(bool* p_open) override {
@@ -199,6 +211,9 @@ class NamingScreenPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Naming Screen"; }
   std::string GetIcon() const override { return ICON_MD_EDIT; }
   std::string GetEditorCategory() const override { return "Screen"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 50; }
 
   void Draw(bool* p_open) override {

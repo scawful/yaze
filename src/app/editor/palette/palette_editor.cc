@@ -299,6 +299,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Palette Controls",
        .icon = ICON_MD_PALETTE,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::CoreWorkspace(),
        .shortcut_hint = "Ctrl+Shift+P",
        .visibility_flag = &show_control_panel_,
        .priority = 10,
@@ -311,6 +312,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Overworld Main",
        .icon = ICON_MD_LANDSCAPE,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+1",
        .visibility_flag = &show_ow_main_panel_,
        .priority = 20,
@@ -323,6 +325,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Overworld Animated",
        .icon = ICON_MD_WATER,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+2",
        .visibility_flag = &show_ow_animated_panel_,
        .priority = 30,
@@ -335,6 +338,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Dungeon Main",
        .icon = ICON_MD_CASTLE,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+3",
        .visibility_flag = &show_dungeon_main_panel_,
        .priority = 40,
@@ -347,6 +351,7 @@ void PaletteEditor::Initialize() {
        .window_title = " SNES Palette",
        .icon = ICON_MD_PETS,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+4",
        .visibility_flag = &show_sprite_panel_,
        .priority = 50,
@@ -359,6 +364,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Sprites Aux 1",
        .icon = ICON_MD_FILTER_1,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+7",
        .visibility_flag = &show_sprites_aux1_panel_,
        .priority = 51,
@@ -371,6 +377,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Sprites Aux 2",
        .icon = ICON_MD_FILTER_2,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+8",
        .visibility_flag = &show_sprites_aux2_panel_,
        .priority = 52,
@@ -383,6 +390,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Sprites Aux 3",
        .icon = ICON_MD_FILTER_3,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+9",
        .visibility_flag = &show_sprites_aux3_panel_,
        .priority = 53,
@@ -395,6 +403,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Equipment Palettes",
        .icon = ICON_MD_SHIELD,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+5",
        .visibility_flag = &show_equipment_panel_,
        .priority = 60,
@@ -407,6 +416,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Color Harmony",
        .icon = ICON_MD_COLOR_LENS,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+Q",
        .visibility_flag = &show_quick_access_,
        .priority = 70,
@@ -419,6 +429,7 @@ void PaletteEditor::Initialize() {
        .window_title = " Palette Editor",
        .icon = ICON_MD_BRUSH,
        .category = "Palette",
+       .presentation = WindowPresentationPolicy::OptionalPopOut(),
        .shortcut_hint = "Ctrl+Alt+C",
        .visibility_flag = &show_custom_palette_,
        .priority = 80,
@@ -442,6 +453,9 @@ class PaletteControlPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Palette Controls"; }
   std::string GetIcon() const override { return ICON_MD_PALETTE; }
   std::string GetEditorCategory() const override { return "Palette"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::CoreWorkspace();
+  }
   int GetPriority() const override { return 10; }
   float GetPreferredWidth() const override { return 320.0f; }
 
@@ -465,6 +479,9 @@ class QuickAccessPalettePanel : public WindowContent {
   std::string GetDisplayName() const override { return "Quick Access"; }
   std::string GetIcon() const override { return ICON_MD_COLOR_LENS; }
   std::string GetEditorCategory() const override { return "Palette"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 70; }
   float GetPreferredWidth() const override { return 340.0f; }
 
@@ -488,6 +505,9 @@ class CustomPalettePanel : public WindowContent {
   std::string GetDisplayName() const override { return "Custom Palette"; }
   std::string GetIcon() const override { return ICON_MD_BRUSH; }
   std::string GetEditorCategory() const override { return "Palette"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 80; }
   float GetPreferredWidth() const override { return 420.0f; }
 

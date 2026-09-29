@@ -108,6 +108,11 @@ class PaletteGroupPanel : public WindowContent {
     return ICON_MD_PALETTE;
   }  // Default, override in derived
   std::string GetEditorCategory() const override { return "Palette"; }
+  // Every palette group window is a companion of the Palette Controls
+  // checklist. Subclasses override this only when they are a default surface.
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override {
     return 50;
   }  // Default, override in derived

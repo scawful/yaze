@@ -28,6 +28,9 @@ class MusicAssemblyPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Assembly View"; }
   std::string GetIcon() const override { return ICON_MD_CODE; }
   std::string GetEditorCategory() const override { return "Music"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 30; }
 
   // ==========================================================================

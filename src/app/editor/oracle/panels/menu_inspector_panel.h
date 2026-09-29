@@ -19,6 +19,9 @@ class OracleMenuInspectorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Menu Inspector"; }
   std::string GetIcon() const override { return ICON_MD_MENU_BOOK; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Assets"; }
   std::string GetWorkflowDescription() const override {
     return "Inspect menu registries and generated menu assets for the project";

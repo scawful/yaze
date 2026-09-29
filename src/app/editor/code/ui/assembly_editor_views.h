@@ -28,6 +28,9 @@ class AssemblyCodeEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Code Editor"; }
   std::string GetIcon() const override { return ICON_MD_CODE; }
   std::string GetEditorCategory() const override { return "Assembly"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::CoreWorkspace();
+  }
   int GetPriority() const override { return 10; }
   bool IsVisibleByDefault() const override { return true; }
   float GetPreferredWidth() const override { return 600.0f; }
@@ -56,6 +59,9 @@ class AssemblyFileBrowserPanel : public WindowContent {
   std::string GetDisplayName() const override { return "File Browser"; }
   std::string GetIcon() const override { return ICON_MD_FOLDER_OPEN; }
   std::string GetEditorCategory() const override { return "Assembly"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 20; }
   bool IsVisibleByDefault() const override { return true; }
   float GetPreferredWidth() const override { return 280.0f; }
@@ -84,6 +90,9 @@ class AssemblySymbolsPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Symbols"; }
   std::string GetIcon() const override { return ICON_MD_LIST_ALT; }
   std::string GetEditorCategory() const override { return "Assembly"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 30; }
   float GetPreferredWidth() const override { return 320.0f; }
 
@@ -111,6 +120,9 @@ class AssemblyBuildOutputPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Build Output"; }
   std::string GetIcon() const override { return ICON_MD_TERMINAL; }
   std::string GetEditorCategory() const override { return "Assembly"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 40; }
   float GetPreferredWidth() const override { return 400.0f; }
 
@@ -138,6 +150,9 @@ class AssemblyDisassemblyPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Disassembly"; }
   std::string GetIcon() const override { return ICON_MD_MEMORY; }
   std::string GetEditorCategory() const override { return "Assembly"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 35; }
   float GetPreferredWidth() const override { return 420.0f; }
 
@@ -165,6 +180,9 @@ class AssemblyToolbarPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Toolbar"; }
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Assembly"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 5; }
   bool IsVisibleByDefault() const override { return true; }
 

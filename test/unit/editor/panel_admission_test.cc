@@ -238,17 +238,55 @@ TEST(PanelAdmissionAuditTest, ContentPolicyFillsAnUndeclaredDescriptor) {
   EXPECT_EQ(kept->presentation.role, WindowPresentationRole::kOptionalPopOut);
 }
 
-TEST(PanelAdmissionAllowlistTest, EntriesAreUniqueAndExplained) {
+void ExpectUniqueAndExplained(const std::vector<PanelAdmissionEntry>& entries,
+                              const char* list_name) {
   std::set<std::string> seen;
-  for (const auto& entry : FirstClassPanelAllowlist()) {
+  for (const auto& entry : entries) {
     ASSERT_NE(entry.window_id, nullptr);
     ASSERT_NE(entry.reason, nullptr);
     EXPECT_FALSE(std::string(entry.window_id).empty());
     EXPECT_GE(std::string(entry.reason).size(), 20u)
-        << entry.window_id << " needs a real reason, not a placeholder";
+        << list_name << ": " << entry.window_id
+        << " needs a real reason, not a placeholder";
     EXPECT_TRUE(seen.insert(entry.window_id).second)
-        << "duplicate allowlist entry: " << entry.window_id;
+        << list_name << ": duplicate entry " << entry.window_id;
   }
+}
+
+TEST(PanelAdmissionAllowlistTest, EntriesAreUniqueAndExplained) {
+  ExpectUniqueAndExplained(FirstClassPanelAllowlist(), "FirstClassAllowlist");
+  ExpectUniqueAndExplained(DeferredPolicyDeclarations(),
+                           "DeferredPolicyDeclarations");
+}
+
+TEST(PanelAdmissionAuditTest, DeferredDeclarationsAreToleratedOnlyForTheirIds) {
+  // Frozen-directory panels (Overworld) may stay undeclared for now.
+  ASSERT_TRUE(IsPolicyDeclarationDeferred("overworld.tile16_editor"));
+  EXPECT_TRUE(AuditOne("overworld.tile16_editor", std::nullopt).empty());
+  // Any other undeclared window is still reported.
+  EXPECT_EQ(AuditOne("test.not_deferred", std::nullopt).size(), 1u);
+}
+
+TEST(PanelAdmissionAuditTest, FormatGroupsIdenticalFixesIntoOneBlock) {
+  WorkspaceWindowManager wm;
+  wm.RegisterSession(0);
+  wm.SetActiveSession(0);
+  for (const char* id : {"test.a", "test.b", "test.c"}) {
+    wm.RegisterWindowContent(
+        std::make_unique<MockPolicyPanel>(id, "Test", std::nullopt));
+  }
+  const auto findings = AuditPanelAdmission(wm, 0);
+  ASSERT_EQ(findings.size(), 3u);
+  const std::string text = FormatPanelAdmissionFindings(findings);
+  for (const char* id : {"test.a", "test.b", "test.c"}) {
+    EXPECT_NE(text.find(id), std::string::npos) << id;
+  }
+  size_t fixes = 0;
+  for (size_t pos = text.find("Fix:"); pos != std::string::npos;
+       pos = text.find("Fix:", pos + 1)) {
+    ++fixes;
+  }
+  EXPECT_EQ(fixes, 1u) << text;
 }
 
 // Applies the rules to what a real EditorManager registers with no ROM:

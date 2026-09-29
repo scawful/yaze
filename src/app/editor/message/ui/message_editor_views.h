@@ -28,6 +28,9 @@ class MessageListPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Message List"; }
   std::string GetIcon() const override { return ICON_MD_LIST; }
   std::string GetEditorCategory() const override { return "Message"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 10; }
 
   void Draw(bool* p_open) override {
@@ -54,6 +57,9 @@ class MessageEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Message Editor"; }
   std::string GetIcon() const override { return ICON_MD_EDIT; }
   std::string GetEditorCategory() const override { return "Message"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::CoreWorkspace();
+  }
   int GetPriority() const override { return 20; }
 
   void Draw(bool* p_open) override {
@@ -80,6 +86,9 @@ class FontAtlasPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Font Atlas"; }
   std::string GetIcon() const override { return ICON_MD_FONT_DOWNLOAD; }
   std::string GetEditorCategory() const override { return "Message"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 30; }
 
   void Draw(bool* p_open) override {
@@ -106,6 +115,9 @@ class DictionaryPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Dictionary"; }
   std::string GetIcon() const override { return ICON_MD_BOOK; }
   std::string GetEditorCategory() const override { return "Message"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 40; }
 
   void Draw(bool* p_open) override {

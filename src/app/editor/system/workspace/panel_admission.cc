@@ -1,6 +1,7 @@
 #include "app/editor/system/workspace/panel_admission.h"
 
 #include <algorithm>
+#include <map>
 #include <set>
 
 #include "app/editor/editor.h"
@@ -50,6 +51,9 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
     // Screen
     {"screen.dungeon_maps",
      "Primary surface of the Screen editor's default preset."},
+    {"screen.title_screen",
+     "Opened by ScreenEditor::Initialize, so it is what actually shows on "
+     "first open (the preset lists dungeon_maps); resolve in the audit doc."},
 
     // Music
     {"music.song_browser", "Song list that selects what the tracker edits."},
@@ -66,6 +70,12 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
     {"assembly.file_browser", "Project file tree that opens sources."},
     {"assembly.disassembly",
      "Current default: disassembly view in the Assembly Default preset."},
+    {"assembly.toolbar",
+     "Current default: registered visible. Its Open Folder and Save buttons "
+     "are the only quick actions when no project code folder is set."},
+
+    // Shell
+    {"dashboard.main", "Editor picker shown at startup and on Ctrl+E."},
 
     // Emulator and memory
     {"emulator.ppu_viewer", "Primary emulator output surface."},
@@ -78,20 +88,63 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
     {"agent.status", "Current default: agent status in the Agent preset."},
 };
 
-std::string AuthorFix(const std::string& window_id) {
-  return "Override GetPresentationPolicy() in the panel class (or pass a "
-         "policy to RegisterWindowContent) and return one of: "
-         "WindowPresentationPolicy::EmbeddedTool().WithHost(\"<surface that "
-         "embeds it>\") for a tool that acts on another surface's selection "
-         "(inspector section, tool tab, canvas context-menu popup); "
-         "OptionalPopOut() for a standalone window users choose to open; "
-         "Diagnostic().WithHost(\"Command palette\") for developer or "
-         "validation tooling. CoreWorkspace() is only for an editor's primary "
-         "work surface and needs a FirstClassPanelAllowlist() entry for '" +
-         window_id +
-         "'. See \"Panel admission\" in "
-         "docs/internal/architecture/editor-ui-module-pattern.md.";
-}
+// panel-admission: deferred-begin
+// The Overworld panels are Codex-coordinated: src/app/editor/overworld/* is
+// frozen for edits until scawful approves, and Codex has in-flight branches
+// there (codex/overworld-large-selection-preview, codex/terrain-catalog).
+// Proposals for each window are in the audit document.
+constexpr char kOverworldFrozen[] =
+    "Overworld panels are Codex-coordinated; src/app/editor/overworld/* needs "
+    "scawful's approval before edits.";
+const std::vector<PanelAdmissionEntry> kDeferredDeclarations = {
+    {"overworld.canvas", kOverworldFrozen},
+    {"overworld.tile16_selector", kOverworldFrozen},
+    {"overworld.properties", kOverworldFrozen},
+    {"overworld.tile16_editor", kOverworldFrozen},
+    {"overworld.tile8_selector", kOverworldFrozen},
+    {"overworld.area_graphics", kOverworldFrozen},
+    {"overworld.scratch", kOverworldFrozen},
+    {"overworld.gfx_groups", kOverworldFrozen},
+    {"overworld.usage_stats", kOverworldFrozen},
+    {"overworld.item_list", kOverworldFrozen},
+    {"overworld.v3_settings", kOverworldFrozen},
+    {"overworld.debug", kOverworldFrozen},
+    {"overworld.entity_workbench", kOverworldFrozen},
+};
+// panel-admission: deferred-end
+
+// Fix texts carry no window id so identical failures group into one block.
+constexpr char kUndeclaredFix[] =
+    "Override GetPresentationPolicy() in the panel class (or pass a policy to "
+    "RegisterWindowContent) and return one of: "
+    "WindowPresentationPolicy::EmbeddedTool().WithHost(\"<surface that embeds "
+    "it>\") for a tool that acts on another surface's selection (inspector "
+    "section, tool tab, canvas context-menu popup); OptionalPopOut() for a "
+    "standalone window users choose to open; "
+    "Diagnostic().WithHost(\"Command palette\") for developer or validation "
+    "tooling. CoreWorkspace() is only for an editor's primary work surface and "
+    "needs a FirstClassPanelAllowlist() entry. See \"Panel admission\" in "
+    "docs/internal/architecture/editor-ui-module-pattern.md.";
+
+constexpr char kCoreFix[] =
+    "Core is reserved for an editor's primary work surface. Either add the "
+    "window id to FirstClassPanelAllowlist() in "
+    "src/app/editor/system/workspace/panel_admission.cc with the workflow it "
+    "serves and why no inspector, tool tab, or context-menu popup can host it, "
+    "or pick EmbeddedTool().WithHost(...) or OptionalPopOut().";
+
+constexpr char kDefaultVisibleFix[] =
+    "Hide it by default: remove IsVisibleByDefault()/visible_by_default and "
+    "its LayoutPresets default_visible_panels entry so it opens from its host "
+    "or the command palette. If it really is a primary surface, add the window "
+    "id to FirstClassPanelAllowlist() in "
+    "src/app/editor/system/workspace/panel_admission.cc with a reason.";
+
+constexpr char kHostFix[] =
+    "Add .WithHost(\"<surface>\") to the policy, for example "
+    "EmbeddedTool().WithHost(\"Dungeon Workbench inspector\") or "
+    "Diagnostic().WithHost(\"Command palette\"). The host is where users find "
+    "the window now that it is not in the window browser.";
 
 }  // namespace
 
@@ -107,6 +160,19 @@ const PanelAdmissionEntry* FindFirstClassPanelEntry(
     }
   }
   return nullptr;
+}
+
+const std::vector<PanelAdmissionEntry>& DeferredPolicyDeclarations() {
+  return kDeferredDeclarations;
+}
+
+bool IsPolicyDeclarationDeferred(const std::string& window_id) {
+  for (const auto& entry : kDeferredDeclarations) {
+    if (window_id == entry.window_id) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::string PanelAdmissionFinding::ToString() const {
@@ -174,21 +240,14 @@ std::vector<PanelAdmissionFinding> AuditPanelAdmission(
                           std::move(fix)});
     };
 
-    if (!policy.declared) {
-      add("declares no presentation policy.", AuthorFix(window_id));
+    if (!policy.declared && !IsPolicyDeclarationDeferred(window_id)) {
+      add("declares no presentation policy.", kUndeclaredFix);
       continue;
     }
 
     if (policy.role == WindowPresentationRole::kCoreWorkspace && !admitted) {
       add("declares CoreWorkspace but is not in FirstClassPanelAllowlist().",
-          "Core is reserved for an editor's primary work surface. Either add "
-          "'" +
-              window_id +
-              "' to FirstClassPanelAllowlist() in "
-              "src/app/editor/system/workspace/panel_admission.cc with the "
-              "workflow it serves and why no inspector, tool tab, or "
-              "context-menu popup can host it, or pick "
-              "EmbeddedTool().WithHost(...) or OptionalPopOut().");
+          kCoreFix);
     }
 
     if (default_visible_set.count(window_id) != 0 && !admitted) {
@@ -197,14 +256,7 @@ std::vector<PanelAdmissionFinding> AuditPanelAdmission(
                       "role ") +
               WindowPresentationRoleName(policy.role) +
               " but is not in FirstClassPanelAllowlist().",
-          "Hide it by default: remove IsVisibleByDefault()/visible_by_default "
-          "and its LayoutPresets default_visible_panels entry so it opens "
-          "from its host or the command palette. If it really is a primary "
-          "surface, add '" +
-              window_id +
-              "' to FirstClassPanelAllowlist() in "
-              "src/app/editor/system/workspace/panel_admission.cc with a "
-              "reason.");
+          kDefaultVisibleFix);
     }
 
     const bool needs_host =
@@ -213,10 +265,7 @@ std::vector<PanelAdmissionFinding> AuditPanelAdmission(
     if (needs_host && policy.host.empty()) {
       add(std::string(WindowPresentationRoleName(policy.role)) +
               " names no host surface.",
-          "Add .WithHost(\"<surface>\") to the policy, for example "
-          "EmbeddedTool().WithHost(\"Dungeon Workbench inspector\") or "
-          "Diagnostic().WithHost(\"Command palette\"). The host is where "
-          "users find the window now that it is not in the window browser.");
+          kHostFix);
     }
   }
   return findings;
@@ -224,10 +273,25 @@ std::vector<PanelAdmissionFinding> AuditPanelAdmission(
 
 std::string FormatPanelAdmissionFindings(
     const std::vector<PanelAdmissionFinding>& findings) {
-  std::string out;
+  // One block per distinct fix so 60 identical failures do not repeat the
+  // instructions 60 times.
+  std::vector<std::string> fix_order;
+  std::map<std::string, std::vector<const PanelAdmissionFinding*>> groups;
   for (const auto& finding : findings) {
-    out += finding.ToString();
-    out += "\n";
+    auto [it, inserted] = groups.try_emplace(finding.fix);
+    if (inserted) {
+      fix_order.push_back(finding.fix);
+    }
+    it->second.push_back(&finding);
+  }
+
+  std::string out;
+  for (const auto& fix : fix_order) {
+    for (const PanelAdmissionFinding* finding : groups[fix]) {
+      out += "  [" + finding->category + "] " + finding->window_id + ": " +
+             finding->problem + "\n";
+    }
+    out += "  Fix: " + fix + "\n\n";
   }
   return out;
 }
