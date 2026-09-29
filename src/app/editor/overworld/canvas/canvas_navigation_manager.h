@@ -257,6 +257,7 @@ class CanvasNavigationManager {
 
   // Scroll to apply at the next BeginCanvasViewport.
   std::optional<ImVec2> pending_scroll_;
+  std::optional<int> pending_center_map_;
 
   // Wheel state
   StickyWheelPan wheel_pan_;

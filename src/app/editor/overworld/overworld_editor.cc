@@ -1761,6 +1761,10 @@ void OverworldEditor::JumpToMap(int map_id) {
   if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
     return;
   }
+  if (!overworld_.is_loaded()) {
+    set_current_map(map_id);
+    return;
+  }
   const int world = std::clamp(map_id / 0x40, 0, 2);
   if (world != current_world_) {
     SwitchToWorld(world);
