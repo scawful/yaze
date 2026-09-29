@@ -61,8 +61,16 @@ which colors to draw them in.
   in a project's normal ROM.
 - **File** -- a raw 2bpp `.bin` chr file or VRAM dump.
 
-**Palette:**
-- **Symbol** (default) -- 32 SNES colors read from a project ROM symbol's
+**Palette** (radio buttons in the panel; **Reload** re-reads every source,
+e.g. after editing `menu_palette.asm` on disk):
+- **Auto** (default) -- the **Symbol** source when it resolves to real
+  data, otherwise the **ASM** source when the project has a
+  `Menu/menu_palette.asm`. This is the case that matters for Oracle: the
+  project ROM `oos168.sfc` is the base ROM, where the assembled table
+  reads all zero, so Auto falls back to the ASM source instead of
+  showing an error. The status line says which one is active, e.g.
+  `Palette: ASM menu_palette.asm (auto: symbol reads all zero ...)`.
+- **Symbol** -- 32 SNES colors read from a project ROM symbol's
   address (default label `Oracle_Menu_Palette`, editable in the panel),
   applying Oracle's menu-upload **+1 CGRAM offset**: `Menu_UploadLeft`
   copies its 32-word table to CGRAM starting at color 1, not color 0, so
@@ -70,6 +78,17 @@ which colors to draw them in.
   every sub-palette is always transparent.
   The symbols file comes from the project's `symbols_filename` when set
   (e.g. `Roms/oos168x.sym`), or can be picked manually.
+- **ASM** -- parses `Menu/menu_palette.asm` directly (looked up in
+  `<project>/Menu/`, then `<project>/<code_folder>/Menu/`; override with
+  the **...** button). It reads the table after the `Menu_Palette:` label
+  (the `Oracle_` prefix of the symbol label is ignored) and uses the same
+  +1 CGRAM mapping. Accepted lines: `dw hexto555($RRGGBB)` (the file's
+  macro: each channel / 8, packed `B<<10 | G<<5 | R`; `$814f16` is
+  `0x0930`), plain `dw $XXXX` words, several comma-separated operands per
+  `dw`, `;` comments, blank lines, CRLF or LF. The table ends at the first
+  non-`dw` line or after 32 entries; at least 31 are required (the real
+  file defines 31). A malformed line is reported with its line number
+  (`menu_palette.asm: line 12: ...`).
 - **HUD** -- `palette_groups.hud[0]`, the 32-color HUD palette group
   already loaded from the base ROM (vanilla colors, not Oracle's runtime
   HUD palette patches).
@@ -88,8 +107,9 @@ applied by asar). `Menu_Palette`, `Menu_DrawRingBox`, and the tilemap
 `incbin`s are pure ASM -- they only exist in the *patched* ROM. If you
 point the Symbol palette source at a project's base ROM, the resolved
 bytes will read as all zero; the panel detects this and shows an error
-naming the label and suggesting the patched ROM or the HUD/File source
-instead, rather than silently rendering a black palette. The 2bpp CHR
+naming the label and suggesting the patched ROM or the ASM/HUD/File source
+instead, rather than silently rendering a black palette (Auto mode then
+uses `Menu/menu_palette.asm` if the project has it). The 2bpp CHR
 sheets are unaffected by this -- they're ZScream-managed and present in
 either ROM.
 
@@ -156,7 +176,8 @@ render pipeline is available from the command line:
 ```
 z3ed gfx-tilemap-render --tilemap <file> --out <png> \
     [--rom <rom>] [--symbols <sym file>] \
-    [--palette-source symbol|hud|file] [--palette-label <label>] \
+    [--palette-source symbol|asm|hud|file] [--palette-label <label>] \
+    [--palette-asm <Menu/menu_palette.asm>] \
     [--palette-file <path>] [--palette-file-offset <n>] \
     [--chr-source rom|file] [--chr-file <path>]
 ```

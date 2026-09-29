@@ -80,6 +80,10 @@ class MenuTilemapEditorUI {
   void DrawSourceBar(Rom* rom, zelda3::GameData* game_data,
                      project::YazeProject* project);
   absl::Status ResolveSources(Rom* rom, zelda3::GameData* game_data);
+  // Resolves palette_colors_ per palette_source_kind_ and describes the
+  // source that actually supplied it (including an Auto fallback).
+  absl::Status ResolvePaletteSource(Rom* rom, zelda3::GameData* game_data,
+                                    std::string* description);
   void RebuildRenderTextures();
 
   // Owns a small SDL streaming texture for the reference-image overlay
@@ -118,14 +122,27 @@ class MenuTilemapEditorUI {
 
   // Sources
   enum class ChrSourceKind { kRom, kFile };
-  enum class PaletteSourceKind { kSymbol, kHud, kFile };
+  // kAuto (default): the ROM symbol when it resolves to real data,
+  // otherwise Menu/menu_palette.asm when the project has one (the symbol
+  // reads all zero against a base ROM such as oos168.sfc, where the table
+  // is assembled rather than stored). The other kinds are explicit.
+  enum class PaletteSourceKind { kAuto, kSymbol, kAsm, kHud, kFile };
   ChrSourceKind chr_source_kind_ = ChrSourceKind::kRom;
-  PaletteSourceKind palette_source_kind_ = PaletteSourceKind::kSymbol;
+  PaletteSourceKind palette_source_kind_ = PaletteSourceKind::kAuto;
   std::string palette_label_ = "Oracle_Menu_Palette";
   std::string chr_file_path_;
   std::string palette_file_path_;
   std::string last_symbols_path_;
   bool symbols_path_from_project_ = false;
+  // Discovered <project>/Menu/menu_palette.asm, or a user-picked override.
+  std::string palette_asm_path_;
+  bool palette_asm_from_project_ = false;
+  std::string asm_search_key_;  // project path + code folder last searched
+  // Set when an input to the sources changed (kind, path, label, ROM);
+  // ResolveSources() runs once per change instead of every frame, even
+  // when it fails.
+  bool sources_dirty_ = true;
+  const Rom* resolved_rom_ = nullptr;
   std::vector<uint8_t> chr_sheet_;
   std::array<gfx::SnesColor, 32> palette_colors_{};
   std::string source_status_;  // last resolve error/status, shown in UI

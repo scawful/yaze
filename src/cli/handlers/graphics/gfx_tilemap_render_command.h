@@ -25,8 +25,9 @@ class GfxTilemapRenderCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "gfx-tilemap-render --tilemap <file> --out <png> [--rom <rom>] "
            "[--symbols <sym file>] "
-           "[--palette-source symbol|hud|file] "
-           "[--palette-label <label>] [--palette-file <path>] "
+           "[--palette-source symbol|asm|hud|file] "
+           "[--palette-label <label>] [--palette-asm <menu_palette.asm>] "
+           "[--palette-file <path>] "
            "[--palette-file-offset <n>] "
            "[--chr-source rom|file] [--chr-file <path>]";
   }

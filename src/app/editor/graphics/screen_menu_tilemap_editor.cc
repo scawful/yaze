@@ -364,6 +364,25 @@ void MenuTilemapEditorUI::DrawSourceBar(Rom* rom, zelda3::GameData* game_data,
       changed = true;
     }
   }
+  // Same idea for Menu/menu_palette.asm: find it under the project once per
+  // project/code-folder (not every frame), never clobbering a picked file.
+  if (project != nullptr &&
+      (palette_asm_path_.empty() || palette_asm_from_project_)) {
+    const std::string key = project->filepath + "|" + project->code_folder;
+    if (key != asm_search_key_) {
+      asm_search_key_ = key;
+      std::string found =
+          zelda3::FindMenuPaletteAsm(
+              fs::path(project->filepath).parent_path().string(),
+              project->code_folder)
+              .value_or("");
+      if (found != palette_asm_path_) {
+        palette_asm_path_ = found;
+        palette_asm_from_project_ = true;
+        changed = true;
+      }
+    }
+  }
   ImGui::TextUnformatted(tr("CHR:"));
   ImGui::SameLine();
   int chr_kind = static_cast<int>(chr_source_kind_);
@@ -395,23 +414,38 @@ void MenuTilemapEditorUI::DrawSourceBar(Rom* rom, zelda3::GameData* game_data,
 
   ImGui::TextUnformatted(tr("Palette:"));
   ImGui::SameLine();
-  int pal_kind = static_cast<int>(palette_source_kind_);
-  if (ImGui::RadioButton("Symbol##pal", pal_kind == 0)) {
-    palette_source_kind_ = PaletteSourceKind::kSymbol;
-    changed = true;
-  }
-  ImGui::SameLine();
-  if (ImGui::RadioButton("HUD##pal", pal_kind == 1)) {
-    palette_source_kind_ = PaletteSourceKind::kHud;
-    changed = true;
-  }
-  ImGui::SameLine();
-  if (ImGui::RadioButton("File##pal", pal_kind == 2)) {
-    palette_source_kind_ = PaletteSourceKind::kFile;
-    changed = true;
-  }
-  if (palette_source_kind_ == PaletteSourceKind::kSymbol) {
+  struct PaletteChoice {
+    const char* label;
+    PaletteSourceKind kind;
+  };
+  static constexpr PaletteChoice kChoices[] = {
+      {"Auto##pal", PaletteSourceKind::kAuto},
+      {"Symbol##pal", PaletteSourceKind::kSymbol},
+      {"ASM##pal", PaletteSourceKind::kAsm},
+      {"HUD##pal", PaletteSourceKind::kHud},
+      {"File##pal", PaletteSourceKind::kFile},
+  };
+  for (const PaletteChoice& choice : kChoices) {
+    if (ImGui::RadioButton(choice.label, palette_source_kind_ == choice.kind)) {
+      palette_source_kind_ = choice.kind;
+      changed = true;
+    }
     ImGui::SameLine();
+  }
+  if (ImGui::Button(tr("Reload"))) {
+    changed = true;  // e.g. after editing menu_palette.asm on disk
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s",
+                      tr("Re-read the CHR and palette sources (ROM symbol, "
+                         "menu_palette.asm, files)."));
+  }
+
+  const bool uses_symbol = palette_source_kind_ == PaletteSourceKind::kAuto ||
+                           palette_source_kind_ == PaletteSourceKind::kSymbol;
+  const bool uses_asm = palette_source_kind_ == PaletteSourceKind::kAuto ||
+                        palette_source_kind_ == PaletteSourceKind::kAsm;
+  if (uses_symbol) {
     ImGui::SetNextItemWidth(180);
     char buf[128];
     std::snprintf(buf, sizeof(buf), "%s", palette_label_.c_str());
@@ -435,7 +469,27 @@ void MenuTilemapEditorUI::DrawSourceBar(Rom* rom, zelda3::GameData* game_data,
                         last_symbols_path_.empty()
                             ? "(no symbols loaded)"
                             : util::GetFileName(last_symbols_path_).c_str());
-  } else if (palette_source_kind_ == PaletteSourceKind::kFile) {
+  }
+  if (uses_asm) {
+    ImGui::TextUnformatted(tr("menu_palette.asm:"));
+    ImGui::SameLine();
+    if (ImGui::Button("...##asmfile")) {
+      util::FileDialogOptions options;
+      options.filters.push_back({"ASM", "asm"});
+      std::string path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+      if (!path.empty()) {
+        palette_asm_path_ = path;
+        palette_asm_from_project_ = false;
+        changed = true;
+      }
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s",
+                        palette_asm_path_.empty()
+                            ? "(none found in project)"
+                            : util::GetFileName(palette_asm_path_).c_str());
+  }
+  if (palette_source_kind_ == PaletteSourceKind::kFile) {
     ImGui::SameLine();
     if (ImGui::Button("...##palfile")) {
       util::FileDialogOptions options;
@@ -453,21 +507,132 @@ void MenuTilemapEditorUI::DrawSourceBar(Rom* rom, zelda3::GameData* game_data,
                             : util::GetFileName(palette_file_path_).c_str());
   }
 
-  if (changed || !sources_ready_) {
+  // Resolve once per change (kind, path, label, ROM), not every frame --
+  // including when resolution fails, so an error doesn't re-decompress the
+  // CHR sheets and re-read files on every draw.
+  if (changed || rom != resolved_rom_) {
+    sources_dirty_ = true;
+  }
+  if (sources_dirty_) {
+    resolved_rom_ = rom;
     ResolveSources(rom, game_data);
   }
 
   const auto& theme = AgentUI::GetTheme();
   if (!source_status_.empty()) {
-    ImGui::TextColored(
-        sources_ready_ ? theme.status_success : theme.text_error_red, "%s",
-        source_status_.c_str());
+    ImGui::PushStyleColor(ImGuiCol_Text, sources_ready_ ? theme.status_success
+                                                        : theme.text_error_red);
+    ImGui::TextWrapped("%s", source_status_.c_str());
+    ImGui::PopStyleColor();
   }
+}
+
+// Short, single-line reason for an Auto fallback (the all-zero symbol
+// message is a paragraph; the panel only needs the gist).
+static std::string ShortenSourceError(const absl::Status& status) {
+  std::string message(status.message());
+  if (message.find("every byte there is 0") != std::string::npos) {
+    return "symbol reads all zero (assembled data; base ROM)";
+  }
+  constexpr size_t kMax = 100;
+  if (message.size() > kMax) {
+    message.resize(kMax);
+    message += "...";
+  }
+  return message;
+}
+
+absl::Status MenuTilemapEditorUI::ResolvePaletteSource(
+    Rom* rom, zelda3::GameData* game_data, std::string* description) {
+  using PaletteColors = std::array<gfx::SnesColor, 32>;
+
+  auto from_symbol = [&]() -> absl::StatusOr<PaletteColors> {
+    if (rom == nullptr || !rom->is_loaded()) {
+      return absl::FailedPreconditionError("no ROM loaded");
+    }
+    if (last_symbols_path_.empty()) {
+      return absl::FailedPreconditionError(
+          "no symbol file loaded (the project's symbols_filename, or pick "
+          "one with ...)");
+    }
+    emu::debug::SymbolProvider symbols;
+    absl::Status loaded = symbols.LoadSymbolFile(last_symbols_path_);
+    if (!loaded.ok())
+      return loaded;
+    return zelda3::ResolveMenuPaletteFromSymbol(*rom, symbols, palette_label_);
+  };
+  auto from_asm = [&]() -> absl::StatusOr<PaletteColors> {
+    if (palette_asm_path_.empty()) {
+      return absl::NotFoundError(
+          "no Menu/menu_palette.asm found for this project (pick one with "
+          "...)");
+    }
+    return zelda3::ResolveMenuPaletteFromAsm(palette_asm_path_, palette_label_);
+  };
+  const std::string asm_name = util::GetFileName(palette_asm_path_);
+
+  switch (palette_source_kind_) {
+    case PaletteSourceKind::kFile: {
+      auto result = zelda3::ResolveMenuPaletteFromFile(palette_file_path_);
+      if (!result.ok())
+        return result.status();
+      palette_colors_ = *result;
+      *description = "file " + util::GetFileName(palette_file_path_);
+      return absl::OkStatus();
+    }
+    case PaletteSourceKind::kHud: {
+      if (game_data == nullptr) {
+        return absl::FailedPreconditionError("no GameData loaded");
+      }
+      auto result = zelda3::ResolveMenuPaletteFromHud(*game_data);
+      if (!result.ok())
+        return result.status();
+      palette_colors_ = *result;
+      *description = "HUD palette (palette_groups.hud[0])";
+      return absl::OkStatus();
+    }
+    case PaletteSourceKind::kAsm: {
+      auto result = from_asm();
+      if (!result.ok())
+        return result.status();
+      palette_colors_ = *result;
+      *description = absl::StrFormat("ASM %s (%s)", asm_name, palette_label_);
+      return absl::OkStatus();
+    }
+    case PaletteSourceKind::kSymbol: {
+      auto result = from_symbol();
+      if (!result.ok())
+        return result.status();
+      palette_colors_ = *result;
+      *description = absl::StrFormat("ROM symbol %s", palette_label_);
+      return absl::OkStatus();
+    }
+    case PaletteSourceKind::kAuto: {
+      auto symbol = from_symbol();
+      if (symbol.ok()) {
+        palette_colors_ = *symbol;
+        *description = absl::StrFormat("ROM symbol %s (auto)", palette_label_);
+        return absl::OkStatus();
+      }
+      auto asm_result = from_asm();
+      if (asm_result.ok()) {
+        palette_colors_ = *asm_result;
+        *description = absl::StrFormat("ASM %s (auto: %s)", asm_name,
+                                       ShortenSourceError(symbol.status()));
+        return absl::OkStatus();
+      }
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "symbol: %s; asm: %s", ShortenSourceError(symbol.status()),
+          ShortenSourceError(asm_result.status())));
+    }
+  }
+  return absl::InternalError("unknown palette source");
 }
 
 absl::Status MenuTilemapEditorUI::ResolveSources(Rom* rom,
                                                  zelda3::GameData* game_data) {
   sources_ready_ = false;
+  sources_dirty_ = false;
 
   if (chr_source_kind_ == ChrSourceKind::kFile) {
     auto result = zelda3::ResolveMenuChrFromFile(chr_file_path_);
@@ -489,59 +654,17 @@ absl::Status MenuTilemapEditorUI::ResolveSources(Rom* rom,
     chr_sheet_ = std::move(*result);
   }
 
-  if (palette_source_kind_ == PaletteSourceKind::kFile) {
-    auto result = zelda3::ResolveMenuPaletteFromFile(palette_file_path_);
-    if (!result.ok()) {
-      source_status_ =
-          absl::StrFormat("Palette: %s", result.status().message());
-      return result.status();
-    }
-    palette_colors_ = *result;
-  } else if (palette_source_kind_ == PaletteSourceKind::kHud) {
-    if (game_data == nullptr) {
-      source_status_ = "Palette: no GameData loaded";
-      return absl::FailedPreconditionError(source_status_);
-    }
-    auto result = zelda3::ResolveMenuPaletteFromHud(*game_data);
-    if (!result.ok()) {
-      source_status_ =
-          absl::StrFormat("Palette: %s", result.status().message());
-      return result.status();
-    }
-    palette_colors_ = *result;
-  } else {
-    if (rom == nullptr || !rom->is_loaded()) {
-      source_status_ = "Palette: no ROM loaded";
-      return absl::FailedPreconditionError(source_status_);
-    }
-    emu::debug::SymbolProvider symbols;
-    // Symbols come from the project's symbols_filename; DrawSourceBar()
-    // doesn't have that path directly, so this source only resolves once
-    // the caller has separately confirmed a symbol table is loaded. For
-    // now this falls through to an explicit error naming the constraint
-    // rather than silently doing nothing -- see docs/public for how to
-    // wire a real project's .sym path in.
-    if (last_symbols_path_.empty()) {
-      source_status_ =
-          "Palette: no symbol file loaded (use --symbols via z3ed for "
-          "headless rendering, or the HUD/File source in the panel)";
-      return absl::FailedPreconditionError(source_status_);
-    }
-    RETURN_IF_ERROR(symbols.LoadSymbolFile(last_symbols_path_));
-    auto result =
-        zelda3::ResolveMenuPaletteFromSymbol(*rom, symbols, palette_label_);
-    if (!result.ok()) {
-      source_status_ =
-          absl::StrFormat("Palette: %s", result.status().message());
-      return result.status();
-    }
-    palette_colors_ = *result;
+  std::string palette_description;
+  absl::Status palette_status =
+      ResolvePaletteSource(rom, game_data, &palette_description);
+  if (!palette_status.ok()) {
+    source_status_ = absl::StrFormat("Palette: %s", palette_status.message());
+    return palette_status;
   }
 
   sources_ready_ = true;
-  source_status_ =
-      absl::StrFormat("CHR: %s tiles, Palette: ready",
-                      std::to_string(chr_sheet_.size() / 64).c_str());
+  source_status_ = absl::StrFormat("CHR: %zu tiles | Palette: %s",
+                                   chr_sheet_.size() / 64, palette_description);
   RebuildRenderTextures();
   return absl::OkStatus();
 }

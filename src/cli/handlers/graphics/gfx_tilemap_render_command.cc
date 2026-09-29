@@ -70,9 +70,13 @@ absl::Status GfxTilemapRenderCommandHandler::ValidateArgs(
   std::string palette_source =
       parser.GetString("palette-source").value_or("symbol");
   if (palette_source != "symbol" && palette_source != "hud" &&
-      palette_source != "file") {
+      palette_source != "file" && palette_source != "asm") {
     return absl::InvalidArgumentError(
-        "--palette-source must be 'symbol', 'hud' or 'file'");
+        "--palette-source must be 'symbol', 'asm', 'hud' or 'file'");
+  }
+  if (palette_source == "asm" && !parser.GetString("palette-asm").has_value()) {
+    return absl::InvalidArgumentError(
+        "--palette-source asm needs --palette-asm <Menu/menu_palette.asm>");
   }
   if (palette_source == "file" &&
       !parser.GetString("palette-file").has_value()) {
@@ -119,6 +123,14 @@ absl::Status GfxTilemapRenderCommandHandler::Execute(
     ASSIGN_OR_RETURN(colors, zelda3::ResolveMenuPaletteFromFile(
                                  *parser.GetString("palette-file"),
                                  static_cast<size_t>(offset)));
+  } else if (palette_source == "asm") {
+    // Parses Oracle's Menu/menu_palette.asm directly; no ROM or symbol file
+    // needed, and it works when the project ROM is the base ROM (where the
+    // assembled Menu_Palette table reads all zero).
+    palette_label = parser.GetString("palette-label").value_or("Menu_Palette");
+    ASSIGN_OR_RETURN(colors,
+                     zelda3::ResolveMenuPaletteFromAsm(
+                         *parser.GetString("palette-asm"), palette_label));
   } else if (palette_source == "hud") {
     ASSIGN_OR_RETURN(Rom pal_rom,
                      LoadRomArg("--palette-source hud needs a ROM"));
@@ -161,6 +173,9 @@ absl::Status GfxTilemapRenderCommandHandler::Execute(
   formatter.AddField("height", doc.render_height());
   formatter.AddField("chr_source", chr_source);
   formatter.AddField("palette_source", palette_source);
+  if (palette_source == "asm") {
+    formatter.AddField("palette_asm", *parser.GetString("palette-asm"));
+  }
   if (!palette_label.empty()) {
     formatter.AddField("palette_label", palette_label);
   }
