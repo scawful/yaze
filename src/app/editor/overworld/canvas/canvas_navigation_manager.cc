@@ -597,12 +597,24 @@ void CanvasNavigationManager::EndCanvasViewport(bool canvas_item_hovered) {
   if (!window) {
     return;
   }
+  const ImVec2 previous_size = viewport_size_;
+  const bool had_viewport = viewport_known_;
   viewport_min_ = window->InnerRect.Min;
   viewport_size_ = window->InnerRect.GetSize();
   last_scroll_ = window->Scroll;
   canvas_item_hovered_ = canvas_item_hovered;
   canvas_window_hovered_ = ImGui::IsWindowHovered();
   viewport_known_ = viewport_size_.x > 0.0f && viewport_size_.y > 0.0f;
+  if (viewport_known_ && pending_center_map_) {
+    const int map = *pending_center_map_;
+    // Scrollbars can change InnerRect after the first content frame. Recenter
+    // until the measured size settles, then release this startup request.
+    if (had_viewport && previous_size.x == viewport_size_.x &&
+        previous_size.y == viewport_size_.y) {
+      pending_center_map_.reset();
+    }
+    CenterOnMap(map);
+  }
 }
 
 void CanvasNavigationManager::SuspendHoverFollowUntilMouseMoves() {
@@ -634,6 +646,7 @@ void CanvasNavigationManager::ZoomToFit() {
 }
 
 void CanvasNavigationManager::ResetOverworldView() {
+  pending_center_map_.reset();
   if (ctx_.ow_map_canvas) {
     ctx_.ow_map_canvas->set_global_scale(1.0f);
   }
@@ -649,6 +662,12 @@ void CanvasNavigationManager::CenterOverworldView() {
 void CanvasNavigationManager::CenterOnMap(int map_id) {
   if (!ctx_.ow_map_canvas || map_id < 0 ||
       map_id >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  // Startup jumps arrive before the canvas child has a measured viewport.
+  // Wait for that size rather than placing the map's center at the top-left.
+  if (!viewport_known_) {
+    pending_center_map_ = map_id;
     return;
   }
   float scale = ctx_.ow_map_canvas->global_scale();
