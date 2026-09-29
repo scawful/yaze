@@ -25,12 +25,14 @@
 
 #include "app/editor/editor_manager.h"
 #include "app/editor/session_types.h"
+#include "app/editor/system/commands/command_palette.h"
 #include "app/editor/system/session/session_coordinator.h"
 #include "app/editor/system/workspace/resource_panel.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "editor_test_support.h"
 #include "imgui/imgui.h"
+#include "panel_demotions.h"
 
 namespace yaze::editor {
 namespace {
@@ -320,33 +322,40 @@ class PanelAdmissionRegistryTest : public ::testing::Test {
   ImGuiContext* imgui_context_ = nullptr;
 };
 
-TEST_F(PanelAdmissionRegistryTest, EveryRegisteredWindowIsAdmitted) {
-  ::yaze::test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
-  manager_->CreateNewSession();
+// Registers every window a ROM-free session can register. Returns the session
+// id whose windows to inspect.
+size_t RegisterRomFreeWindows(EditorManager* manager) {
+  manager->CreateNewSession();
 
   // The production path: without a ROM only editors that are safe to run
   // empty initialize, exactly as the app does.
   for (size_t i = 0; i < kEditorTypeCount; ++i) {
-    ASSERT_TRUE(
-        manager_->EnsureEditorAssetsLoaded(static_cast<EditorType>(i)).ok());
+    EXPECT_TRUE(
+        manager->EnsureEditorAssetsLoaded(static_cast<EditorType>(i)).ok());
   }
 
   // These editors register their descriptors in Initialize() without touching
   // ROM data; run them directly so their windows are audited too. Message and
   // Music are left to the ROM-backed GUI audit (they read ROM bytes or open an
   // audio device while initializing).
-  RomSession* session = manager_->session_coordinator()->GetActiveRomSession();
-  ASSERT_NE(session, nullptr);
-  for (EditorType type :
-       {EditorType::kDungeon, EditorType::kOverworld, EditorType::kPalette,
-        EditorType::kScreen, EditorType::kSprite}) {
-    if (Editor* editor = session->editors.GetEditor(type)) {
-      editor->Initialize();
+  RomSession* session = manager->session_coordinator()->GetActiveRomSession();
+  if (session != nullptr) {
+    for (EditorType type :
+         {EditorType::kDungeon, EditorType::kOverworld, EditorType::kPalette,
+          EditorType::kScreen, EditorType::kSprite}) {
+      if (Editor* editor = session->editors.GetEditor(type)) {
+        editor->Initialize();
+      }
     }
   }
+  return manager->window_manager().GetActiveSessionId();
+}
+
+TEST_F(PanelAdmissionRegistryTest, EveryRegisteredWindowIsAdmitted) {
+  ::yaze::test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
+  const size_t session_id = RegisterRomFreeWindows(manager_.get());
 
   const auto& wm = manager_->window_manager();
-  const size_t session_id = wm.GetActiveSessionId();
   const size_t registered = wm.GetWindowsInSession(session_id).size();
   RecordProperty("registered_windows", static_cast<int>(registered));
   ASSERT_GT(registered, 10u) << "the audit saw almost nothing; the test setup "
@@ -356,6 +365,72 @@ TEST_F(PanelAdmissionRegistryTest, EveryRegisteredWindowIsAdmitted) {
   EXPECT_TRUE(findings.empty()) << findings.size() << " of " << registered
                                 << " registered windows fail panel admission:\n"
                                 << FormatPanelAdmissionFindings(findings);
+}
+
+// A window that leaves the window browser must stay one step away: the
+// command palette lists a Show command and running it opens the window.
+TEST_F(PanelAdmissionRegistryTest,
+       HiddenWindowsStayOpenableFromTheCommandPalette) {
+  ::yaze::test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
+  const size_t session_id = RegisterRomFreeWindows(manager_.get());
+  auto& wm = manager_->window_manager();
+
+  CommandPalette palette;
+  palette.RegisterPanelCommands(&wm, session_id);
+  const auto commands = palette.GetAllCommands();
+
+  int checked = 0;
+  for (const std::string& window_id : wm.GetWindowsInSession(session_id)) {
+    const WindowDescriptor* descriptor =
+        wm.GetWindowDescriptor(session_id, window_id);
+    if (descriptor == nullptr || descriptor->IsListedInWindowBrowser() ||
+        !descriptor->IsAdmitted()) {
+      continue;
+    }
+    const std::string command_name = "Show: " + descriptor->display_name;
+    const auto command = std::find_if(
+        commands.begin(), commands.end(),
+        [&](const CommandEntry& entry) { return entry.name == command_name; });
+    ASSERT_NE(command, commands.end())
+        << window_id << " is hidden from the window browser but has no '"
+        << command_name << "' command";
+    wm.CloseWindow(session_id, window_id);
+    command->callback();
+    EXPECT_TRUE(wm.IsWindowOpen(session_id, window_id))
+        << window_id << ": '" << command_name << "' did not open the window";
+    ++checked;
+  }
+  RecordProperty("hidden_windows_checked", checked);
+  EXPECT_GT(checked, 0);
+}
+
+// Each demoted window keeps the role and host it was demoted with, and stays
+// out of the window browser. The persisted-visibility half of the contract is
+// pinned in user_settings_layout_defaults_test.cc from the same table.
+TEST_F(PanelAdmissionRegistryTest, DemotedWindowsKeepTheirDeclaredHost) {
+  ::yaze::test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
+  const size_t session_id = RegisterRomFreeWindows(manager_.get());
+  const auto& wm = manager_->window_manager();
+
+  int found = 0;
+  for (const auto& expected : admission::kDemotedWindows) {
+    const WindowDescriptor* descriptor =
+        wm.GetWindowDescriptor(session_id, expected.window_id);
+    if (descriptor == nullptr) {
+      // Registered only with a ROM, a project, or another build option.
+      continue;
+    }
+    ++found;
+    EXPECT_EQ(descriptor->category, expected.category) << expected.window_id;
+    EXPECT_EQ(descriptor->presentation.role, expected.role)
+        << expected.window_id;
+    EXPECT_NE(descriptor->presentation.host.find(expected.host_contains),
+              std::string::npos)
+        << expected.window_id << " host is '" << descriptor->presentation.host
+        << "'";
+    EXPECT_FALSE(descriptor->IsListedInWindowBrowser()) << expected.window_id;
+  }
+  RecordProperty("demoted_windows_registered", found);
 }
 
 }  // namespace

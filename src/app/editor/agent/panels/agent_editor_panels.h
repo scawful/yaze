@@ -204,7 +204,8 @@ class AgentMesenDebugPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_BUG_REPORT; }
   std::string GetEditorCategory() const override { return "Agent"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Live Debugging");
   }
   std::string GetWorkflowGroup() const override { return "Live Debugging"; }
   std::string GetWorkflowDescription() const override {
@@ -298,7 +299,8 @@ class OracleStateLibraryEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_SAVE; }
   std::string GetEditorCategory() const override { return "Agent"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Live Debugging");
   }
   std::string GetWorkflowGroup() const override { return "Live Debugging"; }
   std::string GetWorkflowLabel() const override { return "State Library"; }
@@ -337,7 +339,8 @@ class FeatureFlagEditorEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_FLAG; }
   std::string GetEditorCategory() const override { return "Agent"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Build & Config");
   }
   std::string GetWorkflowGroup() const override { return "Build & Config"; }
   std::string GetWorkflowDescription() const override {
@@ -373,7 +376,8 @@ class ManifestEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_DESCRIPTION; }
   std::string GetEditorCategory() const override { return "Agent"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Build & Config");
   }
   std::string GetWorkflowGroup() const override { return "Build & Config"; }
   std::string GetWorkflowDescription() const override {
@@ -409,7 +413,8 @@ class SramViewerEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_MEMORY; }
   std::string GetEditorCategory() const override { return "Agent"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Game State");
   }
   std::string GetWorkflowGroup() const override { return "Game State"; }
   std::string GetWorkflowDescription() const override {
@@ -447,7 +452,8 @@ class MesenScreenshotEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_CAMERA_ALT; }
   std::string GetEditorCategory() const override { return "Agent"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Live Debugging");
   }
   std::string GetWorkflowGroup() const override { return "Live Debugging"; }
   std::string GetWorkflowDescription() const override {

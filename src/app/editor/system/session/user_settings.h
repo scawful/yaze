@@ -209,7 +209,7 @@ class UserSettings {
   // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 25;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 26;
   // Revisions through 21 changed whole-workspace arrangements. Later revisions
   // are targeted preference migrations and must preserve the live ImGui layout.
   static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 21;
