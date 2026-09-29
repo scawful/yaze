@@ -380,19 +380,7 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
       if (piece.pixels.empty())
         continue;
       auto& preview = map_brush_previews_[map_id];
-      const bool pixels_changed = preview.width() != piece.width ||
-                                  preview.height() != piece.height ||
-                                  preview.vector() != piece.pixels;
-      const bool palette_changed =
-          !(preview.palette() == map->current_palette());
-      if (pixels_changed)
-        preview.Create(piece.width, piece.height, 8, piece.pixels);
-      if (pixels_changed || palette_changed)
-        preview.SetPalette(map->current_palette());
-      if (!preview.texture())
-        preview.CreateTexture();
-      else if (pixels_changed || palette_changed)
-        preview.UpdateTexture();
+      SyncMapBrushPreview(piece, map->current_palette(), preview);
       has_piece[map_id] = true;
     }
   }
