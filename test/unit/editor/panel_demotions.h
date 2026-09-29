@@ -36,6 +36,8 @@ inline constexpr DemotedWindowExpectation kDemotedWindows[] = {
      "Hack Workflows"},
     {"Graphics", "graphics.prototype_viewer",
      WindowPresentationRole::kDiagnostic, "Welcome screen"},
+    {"Screen", "screen.naming_screen", WindowPresentationRole::kDiagnostic,
+     "Command palette"},
 };
 
 }  // namespace yaze::editor::admission
