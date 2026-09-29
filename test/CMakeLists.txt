@@ -2,9 +2,92 @@
 
 if(YAZE_BUILD_TESTS)
 
+  # --- CTest registration: shards (default) or one entry per gtest case ---
+  #
+  # Starting a test process costs about 0.3 s, and most cases do under 1 ms of
+  # work. One ctest entry per case (gtest_discover_tests) spent about 92% of the
+  # local -j4 wall time on process startup, so the suites listed below are
+  # registered as a few shard entries, <suite>_shard_<i>, instead. Each shard
+  # runs the same binary with --shard=<i>/<N>, keeps the suite's labels, and
+  # names every failing case in its output ("[  FAILED  ] Suite.Case").
+  # test/yaze_test.cc gives each shard whole fixtures, not every Nth case like
+  # GTEST_TOTAL_SHARDS: sibling cases that share a fixed temp or settings path
+  # then run one after another in one process, never in two concurrent shards.
+  #
+  # Run one case by name with the binary itself:
+  #   build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='Suite.Case'
+  # Re-run one shard exactly as ctest does (same cases, same order):
+  #   build/presets/mac-ai/bin/Debug/yaze_test_unit --shard=3/10
+  # YAZE_TEST_PER_CASE=ON restores one ctest entry per case (ctest -R Suite.Case)
+  # for isolation checks. Suites not listed here (GUI, quick, ROM, experimental,
+  # benchmark) always use per-case discovery.
+  option(YAZE_TEST_PER_CASE
+    "Register one ctest entry per gtest case instead of per-suite shards" OFF)
+  # Shard counts: yaze_test_unit does about 130 s of Debug work on an M-series
+  # Mac, so 10 shards average about 13 s. The heaviest fixture
+  # (DungeonRoomCensusCommandTest, about 20 s) sets the floor for one shard.
+  set(YAZE_TEST_SHARDS_yaze_test_unit 10)
+  set(YAZE_TEST_SHARDS_yaze_test_integration 1)
+  # A shard runs hundreds of cases. Under `taskpolicy -b` (efficiency cores,
+  # about 5x slower) the heaviest unit shard takes about 180 s, so allow 600 s.
+  # CI's `--timeout 300` applies only to entries without their own TIMEOUT.
+  set(YAZE_TEST_SHARD_TIMEOUT 600)
+  # A unit shard prints about 300 KB. ctest stores at most 300 KB of a failed
+  # test's output (JUnit XML, LastTest.log) and keeps the head, which would
+  # drop gtest's closing "[  FAILED  ]" summary. --output-on-failure on the
+  # console is not truncated either way.
+  file(WRITE "${CMAKE_BINARY_DIR}/CTestCustom.cmake"
+    "set(CTEST_CUSTOM_MAXIMUM_FAILED_TEST_OUTPUT_SIZE 8388608)\n")
+
+  # Registers <suite_name>_shard_0..N-1. The entries are written to a
+  # per-configuration CTest include file (like gtest_discover_tests), so they
+  # resolve without `-C <config>`, falling back to the default build config.
+  function(yaze_add_test_shards suite_name label shard_count)
+    set(_content "")
+    math(EXPR _last_shard "${shard_count} - 1")
+    foreach(_shard RANGE 0 ${_last_shard})
+      set(_test "${suite_name}_shard_${_shard}")
+      string(APPEND _content
+        "add_test([==[${_test}]==] [==[$<TARGET_FILE:${suite_name}>]==]"
+        " [==[--shard=${_shard}/${shard_count}]==])\n"
+        "set_tests_properties([==[${_test}]==] PROPERTIES\n"
+        "  LABELS [==[${label}]==]\n"
+        "  WORKING_DIRECTORY [==[${CMAKE_BINARY_DIR}]==]\n"
+        "  TIMEOUT ${YAZE_TEST_SHARD_TIMEOUT})\n")
+    endforeach()
+
+    set(_base "${CMAKE_CURRENT_BINARY_DIR}/${suite_name}_shards")
+    get_property(_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(_multi_config)
+      file(GENERATE OUTPUT "${_base}-$<CONFIG>.cmake" CONTENT "${_content}")
+      if(CMAKE_DEFAULT_BUILD_TYPE)
+        set(_default_config "${CMAKE_DEFAULT_BUILD_TYPE}")
+      else()
+        list(GET CMAKE_CONFIGURATION_TYPES 0 _default_config)
+      endif()
+      set(_include "string(TOLOWER \"\${CTEST_CONFIGURATION_TYPE}\" _yaze_config)\n")
+      string(APPEND _include
+        "if(_yaze_config STREQUAL \"\")\n"
+        "  include([==[${_base}-${_default_config}.cmake]==])\n")
+      foreach(_config IN LISTS CMAKE_CONFIGURATION_TYPES)
+        string(TOLOWER "${_config}" _config_lower)
+        string(APPEND _include
+          "elseif(_yaze_config STREQUAL [==[${_config_lower}]==])\n"
+          "  include([==[${_base}-${_config}.cmake]==])\n")
+      endforeach()
+      string(APPEND _include "endif()\n")
+      file(WRITE "${_base}_include.cmake" "${_include}")
+    else()
+      file(GENERATE OUTPUT "${_base}_include.cmake" CONTENT "${_content}")
+    endif()
+    set_property(DIRECTORY APPEND PROPERTY TEST_INCLUDE_FILES
+      "${_base}_include.cmake")
+  endfunction()
+
   # Helper function to create and configure a test executable for a suite of tests.
-  # This function adds the executable, links common dependencies, discovers the
-  # tests using gtest_discover_tests, and assigns a label to all discovered tests.
+  # This function adds the executable, links common dependencies, and registers
+  # the tests with CTest (shards or per-case discovery, see above) under the
+  # given labels.
   function(yaze_add_test_suite suite_name label is_gui_test)
     set(sources ${ARGN})
     
@@ -114,6 +197,13 @@ if(YAZE_BUILD_TESTS)
       else()
         target_link_options(${suite_name} PRIVATE -Wl,--stack,16777216)
       endif()
+    endif()
+
+    if(NOT is_gui_test AND NOT YAZE_TEST_PER_CASE
+       AND DEFINED YAZE_TEST_SHARDS_${suite_name})
+      yaze_add_test_shards(${suite_name} "${label}"
+        ${YAZE_TEST_SHARDS_${suite_name}})
+      return()
     endif()
 
     include(GoogleTest)

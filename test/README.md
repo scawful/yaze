@@ -218,11 +218,26 @@ ctest --test-dir build -L stable
 ctest --test-dir build -L unit
 ctest --test-dir build -L integration
 
-# mac-ai preset convenience (macOS, build_ai)
-ctest --preset mac-ai
-ctest --preset mac-ai-unit
-ctest --preset mac-ai-integration
+# mac-ai preset convenience (macOS, build/presets/mac-ai)
+ctest --preset mac-ai              # before every push: same ^stable$ selection as CI
+ctest --preset mac-ai-unit         # subset: ^unit$ only
+ctest --preset mac-ai-integration  # subset: ^integration$ only
 ```
+
+`yaze_test_unit` and `yaze_test_integration` are registered as shard entries
+(`yaze_test_unit_shard_0` … `_9`, `yaze_test_integration_shard_0`), each running
+one slice of the binary in one process, not one ctest entry per gtest case. A
+failing shard prints `[  FAILED  ] Suite.Case` for each failure and a
+`--gtest_filter` command that re-runs only those cases. To run one test by name,
+call the binary:
+
+```bash
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='SettingsPanelTest.*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --shard=3/10    # one ctest shard: whole fixtures, same order
+cmake --preset mac-ai -DYAZE_TEST_PER_CASE=ON   # one ctest entry per case again
+```
+
+See `docs/internal/testing/overview.md` (Sharded Registration) for details.
 
 ### GUI Smoke Tests
 ```bash
@@ -535,7 +550,10 @@ ctest --test-dir build -R "ObjectDrawingComprehensive" --output-on-failure
 4. **ROM-dependent**: Add to `e2e/rom_dependent/`, requires `YAZE_ENABLE_ROM_TESTS=ON`
 5. **Experimental**: Add to `integration/ai/`, requires `YAZE_ENABLE_AI_RUNTIME=ON`
 
-All files are automatically discovered by CMake's `add_executable()` and `gtest_discover_tests()`.
+Each file must be listed in the matching source list in `test/CMakeLists.txt`
+(`scripts/audit_test_registration.py` checks this). Its cases then run in that
+suite's ctest entries: shards for `yaze_test_unit` and `yaze_test_integration`,
+one entry per case (`gtest_discover_tests()`) for the other suites.
 
 ## References
 

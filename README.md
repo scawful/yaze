@@ -123,9 +123,13 @@ ctest --test-dir build_ai -C Debug -L unit
 ctest --test-dir build_ai -C Debug -L integration
 
 # Preset-based runs (see CMakePresets.json testPresets)
-ctest --preset mac-ai-unit
+ctest --preset mac-ai        # before every push: same ^stable$ selection as CI
+ctest --preset mac-ai-unit   # subset: ^unit$ only
 ctest --preset mac-ai-quick-unit
 ctest --preset mac-ai-quick-integration
+
+# One test by name (stable suites run as ctest shards, not one entry per case)
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='Suite.Case'
 ```
 
 Some tests require a ROM. Set `YAZE_TEST_ROM_VANILLA` or
