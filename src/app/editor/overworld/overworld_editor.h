@@ -492,15 +492,15 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     if (map_refresh_)
       map_refresh_->RefreshChildMapOnDemand(map_index);
   }
-  absl::Status RefreshMapPalette() {
+  absl::Status RefreshMapPalette(int map_id = -1) {
     if (map_refresh_)
-      return map_refresh_->RefreshMapPalette();
+      return map_refresh_->RefreshMapPalette(map_id);
     return absl::FailedPreconditionError(
         "MapRefreshCoordinator not initialized");
   }
-  void RefreshMapProperties() {
+  void RefreshMapProperties(int map_id = -1) {
     if (map_refresh_)
-      map_refresh_->RefreshMapProperties();
+      map_refresh_->RefreshMapProperties(map_id);
   }
   absl::Status RefreshTile16Blockset() {
     if (map_refresh_)

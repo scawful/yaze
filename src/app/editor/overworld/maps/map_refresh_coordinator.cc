@@ -421,21 +421,15 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
   }
 }
 
-absl::Status MapRefreshCoordinator::RefreshMapPalette() {
-  auto* current_map = ctx_.overworld->mutable_overworld_map(*ctx_.current_map);
+absl::Status MapRefreshCoordinator::RefreshMapPalette(int map_id) {
+  const int target_map = map_id < 0 ? *ctx_.current_map : map_id;
+  auto* current_map = ctx_.overworld->mutable_overworld_map(target_map);
   if (!current_map) {
     return absl::FailedPreconditionError("Current overworld map not loaded");
   }
   PrepareMapForRefresh(ctx_, current_map);
   RETURN_IF_ERROR(current_map->LoadPalette());
   const auto current_map_palette = current_map->current_palette();
-  *ctx_.palette = current_map_palette;
-  // Keep tile16 editor in sync with the currently active overworld palette.
-  // Tile16Editor::set_palette owns remapping current_gfx_bmp to the selected
-  // brush row for the Tile8 source view, so do not overwrite it with the raw
-  // area palette here.
-  ctx_.tile16_editor->set_palette(current_map_palette);
-
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*ctx_.rom);
   bool use_v3_area_sizes =
@@ -486,7 +480,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
       }
     } else {
       // Small area - only update current map
-      (*ctx_.maps_bmp)[*ctx_.current_map].SetPalette(current_map_palette);
+      (*ctx_.maps_bmp)[target_map].SetPalette(current_map_palette);
     }
   } else {
     // Legacy logic for vanilla and v2 ROMs
@@ -515,14 +509,14 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
     }
 
     // SAFETY: Only set palette if bitmap has a valid surface
-    if ((*ctx_.maps_bmp)[*ctx_.current_map].is_active() &&
-        (*ctx_.maps_bmp)[*ctx_.current_map].surface()) {
-      (*ctx_.maps_bmp)[*ctx_.current_map].SetPalette(current_map_palette);
+    if ((*ctx_.maps_bmp)[target_map].is_active() &&
+        (*ctx_.maps_bmp)[target_map].surface()) {
+      (*ctx_.maps_bmp)[target_map].SetPalette(current_map_palette);
     }
   }
 
-  // The selector atlas owns a palette separately from Tile16Editor's preview.
-  // Refresh both after a palette edit or undo, including child-map selection.
+  // The area above is the edit target; the selector and Tile16 preview still
+  // belong to the current selection, which may have moved since the edit.
   return RefreshTile16Blockset();
 }
 
@@ -600,8 +594,9 @@ void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
   }
 }
 
-void MapRefreshCoordinator::RefreshMapProperties() {
-  const auto* selected = ctx_.overworld->overworld_map(*ctx_.current_map);
+void MapRefreshCoordinator::RefreshMapProperties(int map_id) {
+  const int target_map = map_id < 0 ? *ctx_.current_map : map_id;
+  const auto* selected = ctx_.overworld->overworld_map(target_map);
   if (!selected) {
     return;
   }

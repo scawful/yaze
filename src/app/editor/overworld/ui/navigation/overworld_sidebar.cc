@@ -377,7 +377,7 @@ void OverworldSidebar::DrawAreaSection(int property_map, int& game_state) {
                 "palettes below are stored per game state."));
   ImGui::SetNextItemWidth(-FLT_MIN);
   if (ImGui::Combo("##GameState", &game_state, kGameStateNames, 3)) {
-    map_properties_system_->RefreshMapProperties();
+    map_properties_system_->RefreshMapProperties(property_map);
     map_properties_system_->RefreshOverworldMap();
   }
 
