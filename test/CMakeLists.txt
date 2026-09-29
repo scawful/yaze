@@ -394,6 +394,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/cutscene_shot_test.cc
     unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
+    unit/zelda3/menu_tilemap_test.cc
     unit/zelda3/gfx_sheet_png_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
     unit/zelda3/graphics_sheet_store_test.cc
@@ -945,6 +946,7 @@ if(YAZE_BUILD_TESTS)
     e2e/controller_window_close_test.cc
     e2e/dead_click_regression_test.cc
     e2e/settings_drawer_test.cc
+    e2e/menu_tilemap_editor_test.cc
     e2e/room_matrix_census_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
@@ -1011,6 +1013,20 @@ if(YAZE_BUILD_TESTS)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
   set_tests_properties(gui_settings_drawer_smoke PROPERTIES
+    LABELS "gui_smoke;gui"
+    TIMEOUT 300
+  )
+
+  # Menu Tilemap (2bpp) panel: load a synthetic tilemap, real-click-paint a
+  # cell, undo, save via Ctrl/Cmd+S, verify the saved bytes match the
+  # pristine original. Needs a test ROM (YAZE_TEST_ROM_VANILLA) to open the
+  # Screen editor; skipped without one.
+  add_test(
+      NAME gui_menu_tilemap_editor_smoke
+      COMMAND $<TARGET_FILE:yaze_test_gui> --ui --fast MenuTilemapEditorSmoke
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(gui_menu_tilemap_editor_smoke PROPERTIES
     LABELS "gui_smoke;gui"
     TIMEOUT 300
   )

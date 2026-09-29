@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/panels/screen_editor_panels.h"
+#include "app/editor/graphics/screen_menu_tilemap_editor.h"
 #include "app/editor/graphics/screen_undo_actions.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -55,6 +56,23 @@ class ScreenEditor : public Editor {
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
+  // Cheap contribution: just the currently-open menu tilemap file name and
+  // dirty state, appended to the base Screen category snapshot. Skips
+  // entirely (falls through to Editor::BuildContextSnapshot()) when no
+  // tilemap is loaded, so this never does I/O or ROM work.
+  EditorContextSnapshot BuildContextSnapshot() const override;
+
+  // Test-only hook (see MenuTilemapEditorUI::LoadFileForTesting): loads a
+  // tilemap file directly, bypassing the native "Open..." file dialog that
+  // ImGuiTestEngine can't drive.
+  absl::Status LoadMenuTilemapForTesting(const std::string& path) {
+    return menu_tilemap_ui_.LoadFileForTesting(path);
+  }
+  bool IsMenuTilemapDirtyForTesting() const { return menu_tilemap_ui_.dirty(); }
+  bool IsMenuTilemapLoadedForTesting() const {
+    return menu_tilemap_ui_.loaded();
+  }
+
   bool HasPendingDungeonMapChanges() const {
     return pending_dungeon_map_changes_;
   }
@@ -88,6 +106,7 @@ class ScreenEditor : public Editor {
 
   void DrawInventoryMenuEditor();
   void DrawInventoryItemIcons();
+  void DrawMenuTilemapEditor();
   void DrawToolset();
   void DrawDungeonMapToolset();
   void DrawInventoryToolset();
@@ -177,6 +196,7 @@ class ScreenEditor : public Editor {
   std::unique_ptr<zelda3::Inventory> inventory_ =
       std::make_unique<zelda3::Inventory>();
   bool inventory_loaded_ = false;
+  MenuTilemapEditorUI menu_tilemap_ui_;
   zelda3::TitleScreen title_screen_;
   zelda3::OverworldMapScreen ow_map_screen_;
 

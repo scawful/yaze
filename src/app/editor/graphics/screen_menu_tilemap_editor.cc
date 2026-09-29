@@ -1,0 +1,1112 @@
+#include "app/editor/graphics/screen_menu_tilemap_editor.h"
+
+#include <algorithm>
+#include <cstdio>
+#include <filesystem>
+
+#include "absl/status/status.h"
+#include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/graphics/screen_undo_actions.h"
+#include "app/editor/registry/undo_action.h"
+#include "app/editor/registry/undo_manager.h"
+#include "app/emu/debug/symbol_provider.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_tile.h"
+#include "app/gui/core/color.h"
+#include "core/project.h"
+#include "imgui/imgui.h"
+#include "util/file_util.h"
+#include "util/i18n/tr.h"
+#include "util/indexed_png.h"
+#include "util/macro.h"
+#include "zelda3/screen/menu_tilemap_sources.h"
+
+namespace yaze {
+namespace editor {
+
+namespace fs = std::filesystem;
+
+namespace {
+
+// menu_offset(row,col) = row*64 + col*2 -- see Core/symbols.asm in Oracle
+// of Secrets. The five mask icons on the "Masks & Rings" page 3 prototype
+// (Menu/menu_page3.asm, Menu_Page3_Draw) are each a 2x2 block of tiles
+// written directly into the $1000 buffer at these (row, col) anchors, from
+// the 4-word *GFX tables in Menu/menu_gfx_table.asm. These are *not*
+// stored in ring_box.tilemap itself -- the frame file only has the empty
+// background under them -- so this is an optional read-only overlay, not
+// something this editor can paint into the tilemap file. The title text
+// ("MASKS  RINGS" at menu_offset(6,10)) and the six ring slots
+// (Menu_DrawMagicRingsInBox, ownership-dependent) are *not* included here:
+// the title needs the menu's font/text encoding table and the ring slots
+// depend on which rings are owned, both well beyond "a few regexes" to
+// derive safely, per the brief.
+struct MaskIconAnchor {
+  int row;
+  int col;
+  std::array<uint16_t, 4>
+      words;  // top-left, top-right, bottom-left, bottom-right
+};
+// Values transcribed from Menu/menu_gfx_table.asm (DekuMaskGFX,
+// ZoraMaskGFX, WolfMaskGFX, BunnyHoodGFX, StoneMaskGFX) and the anchor
+// (row, col) + GFX-table pairing from Menu_Page3_Draw in
+// Menu/menu_page3.asm.
+constexpr MaskIconAnchor kPage3MaskIcons[] = {
+    {16, 5, {0x2066, 0x6066, 0x2076, 0x6076}},   // DekuMaskGFX
+    {16, 8, {0x2C88, 0x6C88, 0x2C89, 0x6C89}},   // ZoraMaskGFX
+    {16, 11, {0x3086, 0x7086, 0x3087, 0x7087}},  // WolfMaskGFX
+    {16, 14, {0x3469, 0x7469, 0x3479, 0x7479}},  // BunnyHoodGFX
+    {16, 17, {0x30B4, 0x30B5, 0x30C4, 0x30C5}},  // StoneMaskGFX
+};
+
+std::vector<std::array<uint8_t, 4>> BuildRgbaPalette(
+    const std::array<gfx::SnesColor, 32>& colors) {
+  std::vector<std::array<uint8_t, 4>> out(32);
+  for (int i = 0; i < 32; ++i) {
+    auto rgb = colors[i].rgb();
+    uint8_t alpha = (i % 4 == 0) ? 0 : 255;
+    out[i] = {static_cast<uint8_t>(rgb.x), static_cast<uint8_t>(rgb.y),
+              static_cast<uint8_t>(rgb.z), alpha};
+  }
+  return out;
+}
+
+gfx::SnesPalette BuildSnesPalette(
+    const std::array<gfx::SnesColor, 32>& colors) {
+  return gfx::SnesPalette(
+      std::vector<gfx::SnesColor>(colors.begin(), colors.end()));
+}
+
+}  // namespace
+
+MenuTilemapEditorUI::~MenuTilemapEditorUI() {
+  DestroyReferenceTexture();
+}
+
+void MenuTilemapEditorUI::DestroyReferenceTexture() {
+  if (ref_texture_) {
+    SDL_DestroyTexture(ref_texture_);
+    ref_texture_ = nullptr;
+    ref_texture_width_ = 0;
+    ref_texture_height_ = 0;
+  }
+}
+
+void MenuTilemapEditorUI::SetReferenceImage(const std::vector<uint8_t>& rgba,
+                                            int width, int height) {
+  DestroyReferenceTexture();
+  if (width <= 0 || height <= 0)
+    return;
+
+  SDL_Renderer* renderer = nullptr;
+  SDL_Window* window = SDL_GetMouseFocus();
+  if (!window)
+    window = SDL_GetKeyboardFocus();
+  if (window)
+    renderer = SDL_GetRenderer(window);
+  if (!renderer)
+    return;
+
+  ref_texture_ = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
+                                   SDL_TEXTUREACCESS_STATIC, width, height);
+  if (!ref_texture_)
+    return;
+  SDL_SetTextureBlendMode(ref_texture_, SDL_BLENDMODE_BLEND);
+  SDL_UpdateTexture(ref_texture_, nullptr, rgba.data(), width * 4);
+  ref_texture_width_ = width;
+  ref_texture_height_ = height;
+  ref_loaded_ = true;
+}
+
+void MenuTilemapEditorUI::Draw(Rom* rom, zelda3::GameData* game_data,
+                               project::YazeProject* project,
+                               UndoManager* undo_manager) {
+  const auto& theme = AgentUI::GetTheme();
+  undo_manager_ = undo_manager;
+
+  DrawFileBar(rom, project);
+  ImGui::Separator();
+
+  if (!loaded_) {
+    ImGui::TextWrapped(
+        "%s", tr("Open a .tilemap/.bin file, or pick one from the project "
+                 "list above, to begin editing."));
+    if (!open_error_.empty()) {
+      ImGui::TextColored(theme.text_error_red, "%s", open_error_.c_str());
+    }
+    return;
+  }
+
+  DrawSourceBar(rom, game_data, project);
+  ImGui::Separator();
+
+  if (show_reload_prompt_) {
+    ImGui::TextColored(theme.status_warning, "%s",
+                       tr("This file changed on disk. Reload it? Your "
+                          "unsaved edits will be lost if you do."));
+    if (ImGui::Button(tr("Reload"))) {
+      RevertCurrent();
+      show_reload_prompt_ = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Keep My Edits"))) {
+      // Adopt the on-disk version as the baseline; otherwise the very next
+      // poll would report the same external change and re-open this prompt.
+      doc_.AcknowledgeExternalChange();
+      show_reload_prompt_ = false;
+    }
+    ImGui::Separator();
+  }
+
+  DrawToolbar();
+  ImGui::Separator();
+
+  if (ImGui::BeginTable("##MenuTilemapLayout", 2, ImGuiTableFlags_Resizable)) {
+    ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Tools", ImGuiTableColumnFlags_WidthFixed, 220);
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+    DrawMainCanvas();
+    DrawHoverReadout();
+    DrawOverlayControls();
+
+    ImGui::TableSetColumnIndex(1);
+    DrawTilePicker();
+
+    ImGui::EndTable();
+  }
+
+  ImGui::Separator();
+  DrawStatusBar();
+
+  // ShortcutManager gives the Screen editor its own Ctrl/Cmd+S while
+  // that editor is active (Scope::kEditor keyed to EditorType::kScreen --
+  // see shortcut_configurator.cc); this panel-local accelerator only fires
+  // while the mouse is over this panel's content, so it never competes
+  // with either the global save or the editor-wide one.
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) &&
+      (ImGui::GetIO().KeyMods & (ImGuiMod_Ctrl | ImGuiMod_Super)) &&
+      ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+    SaveCurrent();
+  }
+}
+
+void MenuTilemapEditorUI::DrawFileBar(Rom* rom, project::YazeProject* project) {
+  if (ImGui::Button(tr("Open..."))) {
+    util::FileDialogOptions options;
+    options.filters.push_back({"Menu tilemap", "tilemap,bin"});
+    options.filters.push_back({"All files", "*"});
+    std::string path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+    if (!path.empty()) {
+      LoadFile(path);
+    }
+  }
+
+  if (project != nullptr) {
+    if (project_files_stale_) {
+      RefreshProjectFileList(project);
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(280);
+    std::string preview = loaded_ ? util::GetFileName(doc_.path())
+                                  : std::string(tr("Project files..."));
+    if (ImGui::BeginCombo("##MenuTilemapProjectFiles", preview.c_str())) {
+      if (project_has_page3_) {
+        ImGui::TextDisabled("%s", tr("Masks & Rings (page 3)"));
+        ImGui::Separator();
+      }
+      for (const auto& entry : project_files_) {
+        bool is_current = loaded_ && entry.full_path == doc_.path();
+        std::string label = entry.label;
+        if (is_current && doc_.dirty())
+          label += " *";
+        if (ImGui::Selectable(label.c_str(), is_current)) {
+          LoadFile(entry.full_path);
+        }
+      }
+      ImGui::EndCombo();
+    }
+  }
+
+  if (loaded_) {
+    ImGui::SameLine();
+    ImGui::Text("%s%s", util::GetFileName(doc_.path()).c_str(),
+                doc_.dirty() ? " *" : "");
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Save")))
+      SaveCurrent();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Save As...")))
+      SaveCurrentAs();
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Revert")))
+      RevertCurrent();
+
+    CheckExternalChange();
+  }
+}
+
+void MenuTilemapEditorUI::RefreshProjectFileList(
+    project::YazeProject* project) {
+  project_files_.clear();
+  project_files_stale_ = false;
+  if (project == nullptr || project->filepath.empty())
+    return;
+
+  fs::path root = fs::path(project->filepath).parent_path();
+  project_has_page3_ = fs::exists(root / "Menu" / "menu_page3.asm");
+
+  auto add_dir = [&](const fs::path& dir) {
+    std::error_code ec;
+    if (!fs::exists(dir, ec))
+      return;
+    for (const auto& it : fs::directory_iterator(dir, ec)) {
+      if (ec)
+        break;
+      if (!it.is_regular_file())
+        continue;
+      auto ext = it.path().extension().string();
+      if (ext != ".tilemap" && ext != ".bin")
+        continue;
+      FileListEntry entry;
+      entry.full_path = it.path().string();
+      entry.label = fs::relative(it.path(), root, ec).string();
+      if (ec)
+        entry.label = it.path().filename().string();
+      project_files_.push_back(std::move(entry));
+    }
+  };
+  add_dir(root / "Menu" / "tilemaps");
+  add_dir(root / "Menu" / "rings");
+
+  std::sort(project_files_.begin(), project_files_.end(),
+            [](const FileListEntry& a, const FileListEntry& b) {
+              return a.label < b.label;
+            });
+  if (project_has_page3_) {
+    // ring_box.tilemap drives the "Masks & Rings" page 3 prototype
+    // (Menu_Page3_Draw / Menu_DrawRingBox) -- surface it first.
+    auto it = std::find_if(project_files_.begin(), project_files_.end(),
+                           [](const FileListEntry& e) {
+                             return util::GetFileName(e.full_path) ==
+                                    "ring_box.tilemap";
+                           });
+    if (it != project_files_.end() && it != project_files_.begin()) {
+      std::rotate(project_files_.begin(), it, it + 1);
+    }
+  }
+}
+
+absl::Status MenuTilemapEditorUI::LoadFile(const std::string& path) {
+  zelda3::MenuTilemapDocument new_doc;
+  absl::Status status = new_doc.LoadFromFile(path);
+  if (!status.ok()) {
+    open_error_ = std::string(status.message());
+    return status;
+  }
+  doc_ = std::move(new_doc);
+  loaded_ = true;
+  open_error_.clear();
+  show_reload_prompt_ = false;
+  has_selection_ = false;
+  RebuildRenderTextures();
+  return absl::OkStatus();
+}
+
+absl::Status MenuTilemapEditorUI::SaveCurrent() {
+  if (!loaded_)
+    return absl::FailedPreconditionError("nothing loaded");
+  return doc_.Save();
+}
+
+absl::Status MenuTilemapEditorUI::SaveCurrentAs() {
+  if (!loaded_)
+    return absl::FailedPreconditionError("nothing loaded");
+  std::string default_name = util::GetFileName(doc_.path());
+  std::string path = util::FileDialogWrapper::ShowSaveFileDialog(
+      default_name, util::GetFileExtension(doc_.path()));
+  if (path.empty())
+    return absl::CancelledError("save cancelled");
+  return doc_.SaveAs(path);
+}
+
+absl::Status MenuTilemapEditorUI::RevertCurrent() {
+  if (!loaded_)
+    return absl::FailedPreconditionError("nothing loaded");
+  RETURN_IF_ERROR(doc_.Revert());
+  RebuildRenderTextures();
+  return absl::OkStatus();
+}
+
+void MenuTilemapEditorUI::CheckExternalChange() {
+  if (!loaded_ || show_reload_prompt_)
+    return;
+  // Detection re-reads the (<= 2 KB) file, so poll a couple of times a
+  // second rather than every frame.
+  const double now = ImGui::GetTime();
+  if (last_external_check_time_ >= 0.0 &&
+      now - last_external_check_time_ < 0.5) {
+    return;
+  }
+  last_external_check_time_ = now;
+  auto changed = doc_.ExternalChangeDetected();
+  if (changed.ok() && *changed) {
+    show_reload_prompt_ = true;
+  }
+}
+
+void MenuTilemapEditorUI::DrawSourceBar(Rom* rom, zelda3::GameData* game_data,
+                                        project::YazeProject* project) {
+  bool changed = false;
+
+  // Auto-fill the symbol file from the project the first time one is
+  // available, so the common case (an Oracle-style project with
+  // symbols_filename set) needs no manual picking. A user-picked path
+  // (symbols_path_from_project_ == false after an explicit "..." pick)
+  // is never clobbered by this.
+  if (project != nullptr && !project->symbols_filename.empty() &&
+      (last_symbols_path_.empty() || symbols_path_from_project_)) {
+    fs::path root = fs::path(project->filepath).parent_path();
+    std::string resolved = (root / project->symbols_filename).string();
+    if (resolved != last_symbols_path_) {
+      last_symbols_path_ = resolved;
+      symbols_path_from_project_ = true;
+      changed = true;
+    }
+  }
+  // Same idea for Menu/menu_palette.asm: find it under the project once per
+  // project/code-folder (not every frame), never clobbering a picked file.
+  if (project != nullptr &&
+      (palette_asm_path_.empty() || palette_asm_from_project_)) {
+    const std::string key = project->filepath + "|" + project->code_folder;
+    if (key != asm_search_key_) {
+      asm_search_key_ = key;
+      std::string found =
+          zelda3::FindMenuPaletteAsm(
+              fs::path(project->filepath).parent_path().string(),
+              project->code_folder)
+              .value_or("");
+      if (found != palette_asm_path_) {
+        palette_asm_path_ = found;
+        palette_asm_from_project_ = true;
+        changed = true;
+      }
+    }
+  }
+  ImGui::TextUnformatted(tr("CHR:"));
+  ImGui::SameLine();
+  int chr_kind = static_cast<int>(chr_source_kind_);
+  if (ImGui::RadioButton("ROM##chr", chr_kind == 0)) {
+    chr_source_kind_ = ChrSourceKind::kRom;
+    changed = true;
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton("File##chr", chr_kind == 1)) {
+    chr_source_kind_ = ChrSourceKind::kFile;
+    changed = true;
+  }
+  if (chr_source_kind_ == ChrSourceKind::kFile) {
+    ImGui::SameLine();
+    if (ImGui::Button("...##chrfile")) {
+      util::FileDialogOptions options;
+      options.filters.push_back({"2bpp CHR", "bin,chr,4bpp,2bpp"});
+      std::string path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+      if (!path.empty()) {
+        chr_file_path_ = path;
+        changed = true;
+      }
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", chr_file_path_.empty()
+                                  ? "(none)"
+                                  : util::GetFileName(chr_file_path_).c_str());
+  }
+
+  ImGui::TextUnformatted(tr("Palette:"));
+  ImGui::SameLine();
+  struct PaletteChoice {
+    const char* label;
+    PaletteSourceKind kind;
+  };
+  static constexpr PaletteChoice kChoices[] = {
+      {"Auto##pal", PaletteSourceKind::kAuto},
+      {"Symbol##pal", PaletteSourceKind::kSymbol},
+      {"ASM##pal", PaletteSourceKind::kAsm},
+      {"HUD##pal", PaletteSourceKind::kHud},
+      {"File##pal", PaletteSourceKind::kFile},
+  };
+  for (const PaletteChoice& choice : kChoices) {
+    if (ImGui::RadioButton(choice.label, palette_source_kind_ == choice.kind)) {
+      palette_source_kind_ = choice.kind;
+      changed = true;
+    }
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(tr("Reload"))) {
+    changed = true;  // e.g. after editing menu_palette.asm on disk
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s",
+                      tr("Re-read the CHR and palette sources (ROM symbol, "
+                         "menu_palette.asm, files)."));
+  }
+
+  const bool uses_symbol = palette_source_kind_ == PaletteSourceKind::kAuto ||
+                           palette_source_kind_ == PaletteSourceKind::kSymbol;
+  const bool uses_asm = palette_source_kind_ == PaletteSourceKind::kAuto ||
+                        palette_source_kind_ == PaletteSourceKind::kAsm;
+  if (uses_symbol) {
+    ImGui::SetNextItemWidth(180);
+    char buf[128];
+    std::snprintf(buf, sizeof(buf), "%s", palette_label_.c_str());
+    if (ImGui::InputText("##palLabel", buf, sizeof(buf))) {
+      palette_label_ = buf;
+      changed = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("...##symfile")) {
+      util::FileDialogOptions options;
+      options.filters.push_back({"Symbol file", "sym,mlb"});
+      std::string path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+      if (!path.empty()) {
+        last_symbols_path_ = path;
+        symbols_path_from_project_ = false;
+        changed = true;
+      }
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s",
+                        last_symbols_path_.empty()
+                            ? "(no symbols loaded)"
+                            : util::GetFileName(last_symbols_path_).c_str());
+  }
+  if (uses_asm) {
+    ImGui::TextUnformatted(tr("menu_palette.asm:"));
+    ImGui::SameLine();
+    if (ImGui::Button("...##asmfile")) {
+      util::FileDialogOptions options;
+      options.filters.push_back({"ASM", "asm"});
+      std::string path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+      if (!path.empty()) {
+        palette_asm_path_ = path;
+        palette_asm_from_project_ = false;
+        changed = true;
+      }
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s",
+                        palette_asm_path_.empty()
+                            ? "(none found in project)"
+                            : util::GetFileName(palette_asm_path_).c_str());
+  }
+  if (palette_source_kind_ == PaletteSourceKind::kFile) {
+    ImGui::SameLine();
+    if (ImGui::Button("...##palfile")) {
+      util::FileDialogOptions options;
+      options.filters.push_back({"Palette/CGRAM dump", "pal,bin,cgram"});
+      std::string path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+      if (!path.empty()) {
+        palette_file_path_ = path;
+        changed = true;
+      }
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s",
+                        palette_file_path_.empty()
+                            ? "(none)"
+                            : util::GetFileName(palette_file_path_).c_str());
+  }
+
+  // Resolve once per change (kind, path, label, ROM), not every frame --
+  // including when resolution fails, so an error doesn't re-decompress the
+  // CHR sheets and re-read files on every draw.
+  if (changed || rom != resolved_rom_) {
+    sources_dirty_ = true;
+  }
+  if (sources_dirty_) {
+    resolved_rom_ = rom;
+    ResolveSources(rom, game_data);
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  if (!source_status_.empty()) {
+    ImGui::PushStyleColor(ImGuiCol_Text, sources_ready_ ? theme.status_success
+                                                        : theme.text_error_red);
+    ImGui::TextWrapped("%s", source_status_.c_str());
+    ImGui::PopStyleColor();
+  }
+}
+
+// Short, single-line reason for an Auto fallback (the all-zero symbol
+// message is a paragraph; the panel only needs the gist).
+static std::string ShortenSourceError(const absl::Status& status) {
+  std::string message(status.message());
+  if (message.find("every byte there is 0") != std::string::npos) {
+    return "symbol reads all zero (assembled data; base ROM)";
+  }
+  constexpr size_t kMax = 100;
+  if (message.size() > kMax) {
+    message.resize(kMax);
+    message += "...";
+  }
+  return message;
+}
+
+absl::Status MenuTilemapEditorUI::ResolvePaletteSource(
+    Rom* rom, zelda3::GameData* game_data, std::string* description) {
+  using PaletteColors = std::array<gfx::SnesColor, 32>;
+
+  auto from_symbol = [&]() -> absl::StatusOr<PaletteColors> {
+    if (rom == nullptr || !rom->is_loaded()) {
+      return absl::FailedPreconditionError("no ROM loaded");
+    }
+    if (last_symbols_path_.empty()) {
+      return absl::FailedPreconditionError(
+          "no symbol file loaded (the project's symbols_filename, or pick "
+          "one with ...)");
+    }
+    emu::debug::SymbolProvider symbols;
+    absl::Status loaded = symbols.LoadSymbolFile(last_symbols_path_);
+    if (!loaded.ok())
+      return loaded;
+    return zelda3::ResolveMenuPaletteFromSymbol(*rom, symbols, palette_label_);
+  };
+  auto from_asm = [&]() -> absl::StatusOr<PaletteColors> {
+    if (palette_asm_path_.empty()) {
+      return absl::NotFoundError(
+          "no Menu/menu_palette.asm found for this project (pick one with "
+          "...)");
+    }
+    return zelda3::ResolveMenuPaletteFromAsm(palette_asm_path_, palette_label_);
+  };
+  const std::string asm_name = util::GetFileName(palette_asm_path_);
+
+  switch (palette_source_kind_) {
+    case PaletteSourceKind::kFile: {
+      auto result = zelda3::ResolveMenuPaletteFromFile(palette_file_path_);
+      if (!result.ok())
+        return result.status();
+      palette_colors_ = *result;
+      *description = "file " + util::GetFileName(palette_file_path_);
+      return absl::OkStatus();
+    }
+    case PaletteSourceKind::kHud: {
+      if (game_data == nullptr) {
+        return absl::FailedPreconditionError("no GameData loaded");
+      }
+      auto result = zelda3::ResolveMenuPaletteFromHud(*game_data);
+      if (!result.ok())
+        return result.status();
+      palette_colors_ = *result;
+      *description = "HUD palette (palette_groups.hud[0])";
+      return absl::OkStatus();
+    }
+    case PaletteSourceKind::kAsm: {
+      auto result = from_asm();
+      if (!result.ok())
+        return result.status();
+      palette_colors_ = *result;
+      *description = absl::StrFormat("ASM %s (%s)", asm_name, palette_label_);
+      return absl::OkStatus();
+    }
+    case PaletteSourceKind::kSymbol: {
+      auto result = from_symbol();
+      if (!result.ok())
+        return result.status();
+      palette_colors_ = *result;
+      *description = absl::StrFormat("ROM symbol %s", palette_label_);
+      return absl::OkStatus();
+    }
+    case PaletteSourceKind::kAuto: {
+      auto symbol = from_symbol();
+      if (symbol.ok()) {
+        palette_colors_ = *symbol;
+        *description = absl::StrFormat("ROM symbol %s (auto)", palette_label_);
+        return absl::OkStatus();
+      }
+      auto asm_result = from_asm();
+      if (asm_result.ok()) {
+        palette_colors_ = *asm_result;
+        *description = absl::StrFormat("ASM %s (auto: %s)", asm_name,
+                                       ShortenSourceError(symbol.status()));
+        return absl::OkStatus();
+      }
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "symbol: %s; asm: %s", ShortenSourceError(symbol.status()),
+          ShortenSourceError(asm_result.status())));
+    }
+  }
+  return absl::InternalError("unknown palette source");
+}
+
+absl::Status MenuTilemapEditorUI::ResolveSources(Rom* rom,
+                                                 zelda3::GameData* game_data) {
+  sources_ready_ = false;
+  sources_dirty_ = false;
+
+  if (chr_source_kind_ == ChrSourceKind::kFile) {
+    auto result = zelda3::ResolveMenuChrFromFile(chr_file_path_);
+    if (!result.ok()) {
+      source_status_ = absl::StrFormat("CHR: %s", result.status().message());
+      return result.status();
+    }
+    chr_sheet_ = std::move(*result);
+  } else {
+    if (rom == nullptr || !rom->is_loaded()) {
+      source_status_ = "CHR: no ROM loaded";
+      return absl::FailedPreconditionError(source_status_);
+    }
+    auto result = zelda3::ResolveMenuChrFromRom(*rom);
+    if (!result.ok()) {
+      source_status_ = absl::StrFormat("CHR: %s", result.status().message());
+      return result.status();
+    }
+    chr_sheet_ = std::move(*result);
+  }
+
+  std::string palette_description;
+  absl::Status palette_status =
+      ResolvePaletteSource(rom, game_data, &palette_description);
+  if (!palette_status.ok()) {
+    source_status_ = absl::StrFormat("Palette: %s", palette_status.message());
+    return palette_status;
+  }
+
+  sources_ready_ = true;
+  source_status_ = absl::StrFormat("CHR: %zu tiles | Palette: %s",
+                                   chr_sheet_.size() / 64, palette_description);
+  RebuildRenderTextures();
+  return absl::OkStatus();
+}
+
+void MenuTilemapEditorUI::RebuildRenderTextures() {
+  if (!loaded_)
+    return;
+  auto chr_fn = zelda3::MakeChrPixelFn(chr_sheet_);
+  std::vector<uint8_t> indexed = doc_.RenderIndexed(chr_fn);
+
+  if (show_dynamic_layer_) {
+    // Display-only overlay: paints the page-3 mask icons directly into the
+    // rendered pixels (never into doc_'s bytes -- these tiles are written
+    // by ASM at runtime, not stored in ring_box.tilemap itself).
+    int width = doc_.render_width();
+    int height = doc_.render_height();
+    for (const auto& icon : kPage3MaskIcons) {
+      for (int sub = 0; sub < 4; ++sub) {
+        gfx::TileInfo info = gfx::WordToTileInfo(icon.words[sub]);
+        int cell_row = icon.row + sub / 2;
+        int cell_col = icon.col + sub % 2;
+        int base_x = cell_col * 8;
+        int base_y = cell_row * 8;
+        if (base_x + 8 > width || base_y + 8 > height)
+          continue;
+        for (int y = 0; y < 8; ++y) {
+          int sy = info.vertical_mirror_ ? 7 - y : y;
+          for (int x = 0; x < 8; ++x) {
+            int sx = info.horizontal_mirror_ ? 7 - x : x;
+            uint8_t color = chr_fn(info.id_, sx, sy) & 0x03;
+            uint8_t index =
+                static_cast<uint8_t>((info.palette_ & 0x07) * 4 + color);
+            size_t idx = static_cast<size_t>(base_y + y) * width + (base_x + x);
+            if (color != 0)
+              indexed[idx] = index;  // color 0 = transparent
+          }
+        }
+      }
+    }
+  }
+
+  canvas_bitmap_.Create(doc_.render_width(), doc_.render_height(), 8, indexed);
+  canvas_bitmap_.SetPalette(BuildSnesPalette(palette_colors_));
+  gfx::Arena::Get().QueueTextureCommand(
+      canvas_bitmap_.is_active() ? gfx::Arena::TextureCommandType::UPDATE
+                                 : gfx::Arena::TextureCommandType::CREATE,
+      &canvas_bitmap_);
+
+  if (!chr_sheet_.empty()) {
+    picker_width_ = 128;
+    picker_height_ = static_cast<int>(chr_sheet_.size() / picker_width_);
+    picker_indexed_ =
+        chr_sheet_;  // raw 2bpp values 0-3; palette below maps them
+    picker_bitmap_.Create(picker_width_, picker_height_, 8, picker_indexed_);
+    std::array<gfx::SnesColor, 32> slice{};
+    for (int i = 0; i < 4; ++i) {
+      slice[i] = palette_colors_[selected_palette_ * 4 + i];
+    }
+    picker_bitmap_.SetPalette(BuildSnesPalette(slice));
+    gfx::Arena::Get().QueueTextureCommand(
+        picker_bitmap_.is_active() ? gfx::Arena::TextureCommandType::UPDATE
+                                   : gfx::Arena::TextureCommandType::CREATE,
+        &picker_bitmap_);
+  }
+}
+
+void MenuTilemapEditorUI::DrawToolbar() {
+  if (ImGui::RadioButton(tr("Paint"), tool_ == Tool::kPaint)) {
+    tool_ = Tool::kPaint;
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton(tr("Select"), tool_ == Tool::kSelect)) {
+    tool_ = Tool::kSelect;
+  }
+  ImGui::SameLine();
+  ImGui::Checkbox(tr("Grid"), &show_grid_);
+  ImGui::SameLine();
+  ImGui::Checkbox(tr("Tint Priority"), &show_priority_tint_);
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120);
+  ImGui::SliderFloat("Zoom", &zoom_, 1.0f, 4.0f, "%.1fx");
+
+  if (tool_ == Tool::kSelect && has_selection_) {
+    if (ImGui::Button(tr("Copy"))) {
+      clipboard_ = doc_.CopyRect(selection_);
+      has_clipboard_ = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Paste")) && has_clipboard_) {
+      BeginStroke("Paste");
+      doc_.PasteRect(selection_.row, selection_.col, clipboard_);
+      CommitStroke();
+      RebuildRenderTextures();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Fill"))) {
+      BeginStroke("Fill selection");
+      gfx::TileInfo info(static_cast<uint16_t>(selected_tile_id_),
+                         static_cast<uint8_t>(selected_palette_), v_flip_,
+                         h_flip_, priority_);
+      doc_.FillRect(selection_, info);
+      CommitStroke();
+      RebuildRenderTextures();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Erase"))) {
+      BeginStroke("Erase selection");
+      doc_.EraseRect(selection_, erase_word_);
+      CommitStroke();
+      RebuildRenderTextures();
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(90);
+    int erase_val = erase_word_;
+    if (ImGui::InputInt("Erase word", &erase_val, 0, 0,
+                        ImGuiInputTextFlags_CharsHexadecimal)) {
+      erase_word_ = static_cast<uint16_t>(std::clamp(erase_val, 0, 0xFFFF));
+    }
+  }
+}
+
+void MenuTilemapEditorUI::DrawMainCanvas() {
+  // Keep the canvas's own scale (used internally for grid lines and for
+  // converting screen-space mouse position back to unscaled tile-pixel
+  // coordinates in points()/hover_mouse_pos()) in lockstep with the zoom
+  // slider passed to DrawBitmap() below -- otherwise the grid/hover/click
+  // mapping and the visible bitmap drift apart as zoom_ changes.
+  canvas_.SetGlobalScale(zoom_);
+  canvas_.SetCanvasSize(
+      ImVec2(doc_.render_width() * zoom_, doc_.render_height() * zoom_));
+  last_canvas_screen_origin_ = ImGui::GetCursorScreenPos();
+  canvas_.DrawBackground();
+  canvas_.DrawContextMenu();
+
+  if (canvas_bitmap_.is_active()) {
+    canvas_.DrawBitmap(canvas_bitmap_, 0, 0, zoom_, 255);
+  }
+
+  if (show_wram_overlay_ && wram_loaded_ && wram_bitmap_.is_active()) {
+    canvas_.DrawBitmap(wram_bitmap_, 0, 0, zoom_, 255);
+  }
+
+  if (show_ref_overlay_ && ref_loaded_ && ref_texture_ != nullptr) {
+    ImVec2 p_min(last_canvas_screen_origin_.x + ref_nudge_.x * zoom_,
+                 last_canvas_screen_origin_.y + ref_nudge_.y * zoom_);
+    ImVec2 p_max(p_min.x + ref_texture_width_ * zoom_,
+                 p_min.y + ref_texture_height_ * zoom_);
+    uint8_t alpha =
+        static_cast<uint8_t>(std::clamp(ref_opacity_, 0.0f, 1.0f) * 255.0f);
+    ImGui::GetWindowDrawList()->AddImage(
+        reinterpret_cast<ImTextureID>(ref_texture_), p_min, p_max, ImVec2(0, 0),
+        ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
+  }
+
+  has_hover_ = canvas_.IsMouseHovering();
+  if (has_hover_) {
+    ImVec2 mp = canvas_.hover_mouse_pos();
+    hover_col_ = static_cast<int>(mp.x) / 8;
+    hover_row_ = static_cast<int>(mp.y) / 8;
+  }
+
+  bool alt_click =
+      ImGui::GetIO().KeyAlt && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+  bool right_click = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+  if (has_hover_ && (alt_click || right_click) &&
+      doc_.InBounds(hover_row_, hover_col_)) {
+    EyedropAt(hover_row_, hover_col_);
+  }
+
+  if (tool_ == Tool::kPaint) {
+    // Canvas::DrawTileSelector() only reports a *double*-click via its
+    // return value (see canvas_runtime_draw.cc) -- it still updates hover
+    // bookkeeping on a single click, which we don't need since has_hover_/
+    // hover_row_/hover_col_ (above) already give us the same thing. Paint
+    // directly off those: single click paints one cell, holding the button
+    // down paints continuously (click-drag), matching a normal tile
+    // editor rather than requiring a double-click per cell.
+    canvas_.DrawTileSelector(8.0f);
+    if (has_hover_ && ImGui::IsMouseDown(ImGuiMouseButton_Left) &&
+        doc_.InBounds(hover_row_, hover_col_)) {
+      if (!stroke_active_)
+        BeginStroke("Paint tile");
+      PaintCellAt(hover_row_, hover_col_);
+      RebuildRenderTextures();
+    }
+    if (stroke_active_ && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+      CommitStroke();
+    }
+  } else if (tool_ == Tool::kSelect) {
+    if (has_hover_ && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+      selecting_ = true;
+      select_drag_start_ = ImVec2(static_cast<float>(hover_col_),
+                                  static_cast<float>(hover_row_));
+    }
+    if (selecting_ && has_hover_) {
+      int c0 = static_cast<int>(select_drag_start_.x);
+      int r0 = static_cast<int>(select_drag_start_.y);
+      selection_.col = std::min(c0, hover_col_);
+      selection_.row = std::min(r0, hover_row_);
+      selection_.cols = std::abs(hover_col_ - c0) + 1;
+      selection_.rows = std::abs(hover_row_ - r0) + 1;
+      has_selection_ = true;
+    }
+    if (selecting_ && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+      selecting_ = false;
+    }
+  }
+
+  if (show_grid_)
+    canvas_.DrawGrid(8.0f);
+  canvas_.DrawOverlay();
+}
+
+void MenuTilemapEditorUI::DrawTilePicker() {
+  ImGui::TextUnformatted(tr("Tile Picker"));
+  if (chr_sheet_.empty() || picker_width_ <= 0 || picker_height_ <= 0) {
+    ImGui::TextDisabled("%s", tr("No CHR source loaded."));
+    return;
+  }
+
+  // Adaptive sheet layout (Fit/1x/2x/4x): the CHR sheet can be a few
+  // hundred pixels tall (7 sheets * 64px from Load2BppGraphics), so this
+  // matches the room-graphics / overworld tile16-selector convention
+  // rather than always showing it at native size.
+  const int tiles_per_row = picker_width_ / 8;
+  const int total_tiles = tiles_per_row * (picker_height_ / 8);
+  tile_picker_widget_.AttachCanvas(&picker_canvas_);
+  tile_picker_widget_.SetTilesPerRow(tiles_per_row);
+  tile_picker_widget_.SetTileCount(total_tiles);
+  if (tile_picker_widget_.GetSelectedTileID() != selected_tile_id_) {
+    tile_picker_widget_.SetSelectedTile(selected_tile_id_);
+  }
+
+  const float available_width = ImGui::GetContentRegionAvail().x;
+  {
+    constexpr const char* kLabels[] = {"Fit", "1x", "2x", "4x"};
+    int mode_idx = static_cast<int>(picker_scale_mode_);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextDisabled("%s", tr("Scale"));
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(80.0f);
+    if (ImGui::Combo("##MenuTilemapPickerScale", &mode_idx, kLabels,
+                     IM_ARRAYSIZE(kLabels))) {
+      picker_scale_mode_ = static_cast<gui::AdaptiveSheetScaleMode>(mode_idx);
+    }
+  }
+  const gui::AdaptiveSheetLayout layout = gui::ResolveAdaptiveSheetLayout(
+      available_width, picker_width_, picker_height_, picker_scale_mode_, 0.5f,
+      4.0f, gui::TileSelectorWidget::CurrentScrollbarSize());
+  tile_picker_widget_.SetDisplayScale(layout.display_scale);
+  ImGui::SameLine();
+  ImGui::TextDisabled("%.2fx", layout.display_scale);
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  const bool grid_visible = ImGui::BeginChild(
+      "##MenuTilemapPickerGrid", ImVec2(0.0f, 220.0f), ImGuiChildFlags_None,
+      ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  ImGui::PopStyleVar();
+  if (grid_visible) {
+    auto result =
+        tile_picker_widget_.Render(picker_bitmap_, picker_bitmap_.is_active());
+    if ((result.tile_clicked || result.selection_changed) &&
+        result.selected_tile >= 0) {
+      selected_tile_id_ = result.selected_tile;
+    }
+  }
+  ImGui::EndChild();
+
+  ImGui::Text("%s %d", tr("Tile:"), selected_tile_id_);
+  ImGui::SetNextItemWidth(140);
+  ImGui::SliderInt(tr("Palette"), &selected_palette_, 0, 7);
+  if (ImGui::IsItemDeactivatedAfterEdit())
+    RebuildRenderTextures();
+  ImGui::Checkbox(tr("H Flip"), &h_flip_);
+  ImGui::SameLine();
+  ImGui::Checkbox(tr("V Flip"), &v_flip_);
+  ImGui::Checkbox(tr("Priority"), &priority_);
+}
+
+void MenuTilemapEditorUI::DrawHoverReadout() {
+  if (!has_hover_ || !doc_.InBounds(hover_row_, hover_col_))
+    return;
+  gfx::TileInfo info = doc_.GetCell(hover_row_, hover_col_);
+  uint16_t word = doc_.GetCellWord(hover_row_, hover_col_);
+  ImGui::Text("x=%d y=%d  tile=%03X  pal=%d  H=%d V=%d P=%d  word=%04X",
+              hover_col_, hover_row_, info.id_, info.palette_,
+              info.horizontal_mirror_ ? 1 : 0, info.vertical_mirror_ ? 1 : 0,
+              info.over_ ? 1 : 0, word);
+}
+
+void MenuTilemapEditorUI::DrawOverlayControls() {
+  if (ImGui::CollapsingHeader(tr("Preview Overlays"))) {
+    ImGui::Checkbox(tr("Reference image"), &show_ref_overlay_);
+    if (show_ref_overlay_) {
+      ImGui::SameLine();
+      if (ImGui::Button("...##refimg")) {
+        util::FileDialogOptions options;
+        options.filters.push_back({"PNG", "png"});
+        std::string path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+        if (!path.empty()) {
+          ref_image_path_ = path;
+          auto bytes = util::ReadBinaryFile(path);
+          if (bytes.ok()) {
+            auto png = util::DecodePng(*bytes);
+            if (png.ok()) {
+              if (png->indexed) {
+                std::vector<uint8_t> rgba(png->indices.size() * 4);
+                for (size_t i = 0; i < png->indices.size(); ++i) {
+                  auto& c = png->palette[png->indices[i]];
+                  rgba[i * 4 + 0] = c[0];
+                  rgba[i * 4 + 1] = c[1];
+                  rgba[i * 4 + 2] = c[2];
+                  rgba[i * 4 + 3] = c[3];
+                }
+                SetReferenceImage(rgba, png->width, png->height);
+              } else {
+                SetReferenceImage(png->rgba, png->width, png->height);
+              }
+            }
+          }
+        }
+      }
+      ImGui::SliderFloat(tr("Opacity"), &ref_opacity_, 0.0f, 1.0f);
+      ImGui::SliderFloat("dx", &ref_nudge_.x, -32.0f, 32.0f);
+      ImGui::SameLine();
+      ImGui::SliderFloat("dy", &ref_nudge_.y, -32.0f, 32.0f);
+    }
+
+    ImGui::Checkbox(tr("WRAM composite dump ($7E1000-17FF)"),
+                    &show_wram_overlay_);
+    if (show_wram_overlay_) {
+      ImGui::SameLine();
+      if (ImGui::Button("...##wramdump")) {
+        util::FileDialogOptions options;
+        options.filters.push_back({"WRAM dump", "bin"});
+        std::string path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+        if (!path.empty()) {
+          wram_dump_path_ = path;
+          zelda3::MenuTilemapDocument wram_doc;
+          if (wram_doc.LoadFromFile(path).ok() && !chr_sheet_.empty()) {
+            auto chr_fn = zelda3::MakeChrPixelFn(chr_sheet_);
+            auto indexed = wram_doc.RenderIndexed(chr_fn);
+            wram_bitmap_.Create(wram_doc.render_width(),
+                                wram_doc.render_height(), 8, indexed);
+            wram_bitmap_.SetPalette(BuildSnesPalette(palette_colors_));
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::CREATE, &wram_bitmap_);
+            wram_loaded_ = true;
+          }
+        }
+      }
+    }
+
+    if (ImGui::Checkbox(tr("Dynamic content (page 3 mask icons, read-only)"),
+                        &show_dynamic_layer_)) {
+      RebuildRenderTextures();
+    }
+    if (show_dynamic_layer_) {
+      ImGui::TextDisabled(
+          "%s", tr("Display only -- the five mask icons at their fixed "
+                   "menu_offset() cells. Not saved into this file, and not the "
+                   "title text or ring slots (see docs)."));
+    }
+  }
+}
+
+void MenuTilemapEditorUI::DrawStatusBar() {
+  ImGui::Text("%s", doc_.dirty() ? tr("Modified") : tr("Saved"));
+  if (doc_.has_backup()) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("(backup: %s)", doc_.backup_path().c_str());
+  }
+}
+
+void MenuTilemapEditorUI::BeginStroke(const std::string& description) {
+  stroke_active_ = true;
+  stroke_before_bytes_ = doc_.raw_bytes();
+  stroke_description_ = description;
+}
+
+void MenuTilemapEditorUI::CommitStroke() {
+  stroke_active_ = false;
+  if (undo_manager_ == nullptr)
+    return;
+  ScreenSnapshot before;
+  before.edit_type = ScreenEditType::kMenuTilemap;
+  before.menu_tilemap.path = doc_.path();
+  before.menu_tilemap.bytes = stroke_before_bytes_;
+
+  ScreenSnapshot after;
+  after.edit_type = ScreenEditType::kMenuTilemap;
+  after.menu_tilemap.path = doc_.path();
+  after.menu_tilemap.bytes = doc_.raw_bytes();
+
+  if (before.menu_tilemap.bytes == after.menu_tilemap.bytes)
+    return;
+
+  undo_manager_->Push(std::make_unique<ScreenEditAction>(
+      before, after,
+      [this](const ScreenSnapshot& snap) {
+        RestoreSnapshot(snap.menu_tilemap.path, snap.menu_tilemap.bytes);
+      },
+      stroke_description_));
+}
+
+void MenuTilemapEditorUI::RestoreSnapshot(const std::string& path,
+                                          const std::vector<uint8_t>& bytes) {
+  // The shared undo stack outlives the open file: a snapshot taken on one
+  // tilemap must never be applied to another that was opened afterwards.
+  if (path != doc_.path())
+    return;
+  if (doc_.RestoreBytes(bytes).ok()) {
+    RebuildRenderTextures();
+  }
+}
+
+void MenuTilemapEditorUI::PaintCellAt(int row, int col) {
+  gfx::TileInfo info(static_cast<uint16_t>(selected_tile_id_),
+                     static_cast<uint8_t>(selected_palette_), v_flip_, h_flip_,
+                     priority_);
+  doc_.SetCell(row, col, info);
+}
+
+void MenuTilemapEditorUI::EyedropAt(int row, int col) {
+  gfx::TileInfo info = doc_.GetCell(row, col);
+  selected_tile_id_ = info.id_;
+  selected_palette_ = info.palette_;
+  h_flip_ = info.horizontal_mirror_;
+  v_flip_ = info.vertical_mirror_;
+  priority_ = info.over_;
+}
+
+}  // namespace editor
+}  // namespace yaze

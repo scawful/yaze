@@ -23,6 +23,7 @@
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_inventory_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
+#include "cli/handlers/graphics/gfx_tilemap_render_command.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
@@ -247,6 +248,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<GfxImportCommandHandler>());
   handlers.push_back(std::make_unique<GfxRoomExportCommandHandler>());
   handlers.push_back(std::make_unique<GfxRoomImportCommandHandler>());
+  handlers.push_back(std::make_unique<GfxTilemapRenderCommandHandler>());
   handlers.push_back(std::make_unique<RomCompareCommandHandler>());
 
   return handlers;
