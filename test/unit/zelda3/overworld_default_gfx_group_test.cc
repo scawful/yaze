@@ -11,11 +11,8 @@
 // (Scroll transitions skip $FF slots and keep the previous sheet, which the
 // editor cannot model; this pins the full-load result.)
 //
-// OverworldMap::LoadAreaGraphics currently keeps the legacy vanilla groups
-// (kOverworldGfxGroups2 main blockset + kOverworldGfxGroups1 area group) for
-// $00/$FF slots instead, so the tests below that expect the default row are
-// DISABLED_ until that is fixed. Run them with
-//   --gtest_also_run_disabled_tests --gtest_filter='OverworldDefaultGfxGroup*'
+// OverworldMap::LoadAreaGraphics follows that full-load contract: $FF reads
+// the area world's DefaultGFXGroups row, and $00 is sheet 0.
 
 #include <gtest/gtest.h>
 
@@ -85,7 +82,7 @@ std::unique_ptr<Rom> LoadRom(const std::vector<uint8_t>& bytes) {
 
 // Oracle of Secrets sky area 0x83 as shipped: slots 3 and 6 are $FF. The
 // game loads SW defaults $3D/$3E there; the editor showed $0A/$1D.
-TEST(OverworldDefaultGfxGroupTest, DISABLED_FfSlotsLoadTheWorldDefaultSheet) {
+TEST(OverworldDefaultGfxGroupTest, FfSlotsLoadTheWorldDefaultSheet) {
   auto bytes = MakeV3Rom();
   SetGroup(bytes, 0x83, {0x3A, 0x3B, 0x3C, 0xFF, 0x38, 0x45, 0xFF, 0x5B});
   auto rom = LoadRom(bytes);
@@ -95,7 +92,7 @@ TEST(OverworldDefaultGfxGroupTest, DISABLED_FfSlotsLoadTheWorldDefaultSheet) {
   EXPECT_EQ(ResolvedSheets(rom.get(), 0x83), expected);
 }
 
-TEST(OverworldDefaultGfxGroupTest, DISABLED_DefaultRowFollowsTheAreaWorld) {
+TEST(OverworldDefaultGfxGroupTest, DefaultRowFollowsTheAreaWorld) {
   auto bytes = MakeV3Rom();
   const std::array<uint8_t, 8> all_default = {0xFF, 0xFF, 0xFF, 0xFF,
                                               0xFF, 0xFF, 0xFF, 0xFF};
@@ -116,7 +113,7 @@ TEST(OverworldDefaultGfxGroupTest, DISABLED_DefaultRowFollowsTheAreaWorld) {
 // Secondary: InitTilesetsLongCalls compares only with $FF, so $00 is a
 // literal sheet. (Oracle's one $00 entry, area 0x88 slot 0, happens to match
 // the legacy group, so no shipped area differs today.)
-TEST(OverworldDefaultGfxGroupTest, DISABLED_ZeroIsALiteralSheet) {
+TEST(OverworldDefaultGfxGroupTest, ZeroIsALiteralSheet) {
   auto bytes = MakeV3Rom();
   SetGroup(bytes, 0x10, {0x00, 0x3B, 0x3C, 0x3D, 0x53, 0x4D, 0x3E, 0x5B});
   auto rom = LoadRom(bytes);
