@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "app/editor/editor_manager.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/commands/command_palette.h"
 #include "app/editor/system/session/session_coordinator.h"
@@ -289,6 +290,30 @@ TEST(PanelAdmissionAuditTest, FormatGroupsIdenticalFixesIntoOneBlock) {
     ++fixes;
   }
   EXPECT_EQ(fixes, 1u) << text;
+}
+
+// A first open must not bury the editor's canvas. Each editor's default layout
+// opens a handful of windows at most, and every one of them is a reviewed
+// first-class window. Adding a default-open window means adding an allowlist
+// entry with a reason, not editing this budget.
+TEST(PanelAdmissionBudgetTest, DefaultLayoutsOpenAFewAllowlistedWindows) {
+  constexpr size_t kMaxDefaultOpenWindows = 3;
+  constexpr EditorType kEditors[] = {
+      EditorType::kOverworld, EditorType::kDungeon, EditorType::kGraphics,
+      EditorType::kPalette,   EditorType::kSprite,  EditorType::kScreen,
+      EditorType::kMusic,     EditorType::kMessage, EditorType::kAssembly,
+      EditorType::kEmulator,  EditorType::kHex,     EditorType::kAgent,
+  };
+  for (EditorType type : kEditors) {
+    const PanelLayoutPreset preset = LayoutPresets::GetDefaultPreset(type);
+    EXPECT_LE(preset.default_visible_panels.size(), kMaxDefaultOpenWindows)
+        << preset.name << " opens too many windows on first use";
+    for (const auto& window_id : preset.default_visible_panels) {
+      EXPECT_NE(FindFirstClassPanelEntry(window_id), nullptr)
+          << preset.name << ": '" << window_id
+          << "' opens by default but is not in FirstClassPanelAllowlist()";
+    }
+  }
 }
 
 // Applies the rules to what a real EditorManager registers with no ROM:

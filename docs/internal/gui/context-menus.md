@@ -31,6 +31,22 @@ gui::ItemContextMenu(nullptr, [&]() {
   `ImGui::BeginPopupContextItem()`.
 - Inside an existing `BeginPopup*` block, call `gui::RenderMenuItems(items)`.
 
+## Hosting a tool from a context menu
+
+A tool that acts on the canvas selection does not need its own default window.
+Register the window as `WindowPresentationPolicy::EmbeddedTool().WithHost(
+"Canvas context menu > <Item>")` and add a menu item whose callback opens it:
+
+```cpp
+items.emplace_back("Edit Tile16...", ICON_MD_GRID_ON, [&]() {
+  window_manager->OpenWindow(session_id, "overworld.tile16_editor");
+});
+```
+
+`EmbeddedTool` windows are not listed in the window browser, stay openable from
+the command palette, and may still pop out. See "Panel admission" in
+[editor-ui-module-pattern.md](../architecture/editor-ui-module-pattern.md#panel-admission).
+
 ## Destructive items
 
 Set `destructive = true` (or use `MenuItemSpec::Destructive`) for actions that
