@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "app/editor/overworld/painting/tile_brush.h"
+#include "app/gfx/core/bitmap.h"
 
 namespace yaze::editor {
 
@@ -55,6 +56,37 @@ inline MapBrushPreview BuildMapBrushPreview(const TileBrush& brush,
     }
   }
   return result;
+}
+
+// A GPU texture cannot be resized with UpdateTexture. Keep one quadrant-sized
+// allocation per destination map while the clipped piece grows/shrinks at its
+// edges. This is a storage-quadrant extent, not the parent area's dimensions.
+inline void SyncMapBrushPreview(const MapBrushPreview& piece,
+                                const gfx::SnesPalette& palette,
+                                gfx::Bitmap& preview) {
+  constexpr int kTextureExtent = 32 * 16;
+  if (piece.width <= 0 || piece.height <= 0 || piece.width > kTextureExtent ||
+      piece.height > kTextureExtent ||
+      piece.pixels.size() != static_cast<size_t>(piece.width) * piece.height) {
+    return;
+  }
+  std::vector<uint8_t> pixels(kTextureExtent * kTextureExtent, 0);
+  for (int y = 0; y < piece.height; ++y) {
+    std::copy_n(piece.pixels.begin() + y * piece.width, piece.width,
+                pixels.begin() + y * kTextureExtent);
+  }
+  const bool pixels_changed =
+      !preview.is_active() || preview.vector() != pixels;
+  const bool palette_changed = !(preview.palette() == palette);
+  if (pixels_changed) {
+    preview.Create(kTextureExtent, kTextureExtent, 8, pixels);
+  }
+  if (pixels_changed || palette_changed)
+    preview.SetPalette(palette);
+  if (!preview.texture())
+    preview.CreateTexture();
+  else if (pixels_changed || palette_changed)
+    preview.UpdateTexture();
 }
 
 // The 16x16 pixels (palette indices) of `tile_id` in a tile16 blockset atlas
