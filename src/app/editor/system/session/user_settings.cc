@@ -144,6 +144,8 @@ constexpr DemotedWindow kRevision26DemotedWindows[] = {
     {"Graphics", "graphics.prototype_viewer"},
     // Stub: draws nothing yet.
     {"Screen", "screen.naming_screen"},
+    // Placeholder: shows "Coming Soon".
+    {"Emulator", "emulator.save_states"},
 };
 
 void CloseDemotedWindowVisibility(

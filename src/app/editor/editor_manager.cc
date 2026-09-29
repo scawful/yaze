@@ -2176,7 +2176,8 @@ void EditorManager::RegisterEmulatorPanels() {
        .icon = ICON_MD_SAVE,
        .category = "Emulator",
        .priority = 70,
-       .presentation = WindowPresentationPolicy::OptionalPopOut()},
+       .presentation = WindowPresentationPolicy::Diagnostic().WithHost(
+           "Command palette (placeholder: Coming Soon)")},
       {.id = "emulator.keyboard_config",
        .display_name = "Keyboard Config",
        .icon = ICON_MD_KEYBOARD,
