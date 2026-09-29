@@ -342,5 +342,30 @@ TEST_F(OverworldPaintRefreshTest, RebuiltModelStillSynchronizesCleanBitmap) {
   EXPECT_FALSE(maps_bmp_[0].modified());
 }
 
+TEST_F(OverworldPaintRefreshTest, GraphicsPreviewSurvivesEditRefreshAndClears) {
+  zelda3::PreviewTile8 pixels{};
+  pixels.fill(13);
+  overworld_->SetGraphicsPreview({{0, {{0, pixels}}}});
+  coordinator_->InvalidateTile16Definitions();
+  coordinator_->RefreshOverworldMapOnDemand(0);
+  ASSERT_TRUE(status_.ok()) << status_;
+  EXPECT_EQ(maps_bmp_[0].vector()[0], 13);
+
+  // Exercise the same invalidation/rebuild used after definition undo/redo.
+  for (int tile : {1, 0, 1}) {
+    overworld_->GetMapTiles(0)[0][0] = tile;
+    coordinator_->InvalidateTile16Definitions();
+    coordinator_->RefreshOverworldMapOnDemand(0);
+    ASSERT_TRUE(status_.ok()) << status_;
+    EXPECT_EQ(maps_bmp_[0].vector()[0], 13 + tile * 16);
+    EXPECT_EQ(overworld_->overworld_map(0)->current_graphics()[0], 13);
+  }
+  overworld_->SetGraphicsPreview({});
+  coordinator_->InvalidateTile16Definitions();
+  coordinator_->RefreshOverworldMapOnDemand(0);
+  EXPECT_EQ(maps_bmp_[0].vector()[0], 16);
+  EXPECT_EQ(overworld_->overworld_map(0)->current_graphics()[0], 0);
+}
+
 }  // namespace
 }  // namespace yaze::editor

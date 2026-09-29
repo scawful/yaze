@@ -1132,6 +1132,12 @@ absl::Status Overworld::BuildMapWithTilesetCache(int map_index,
                                                  int world_type) {
   auto& map = overworld_maps_[map_index];
   map.LoadAreaGraphics();
+  // Preview-only DMA pixels must never enter the shared ordinary-sheet cache.
+  if (map.HasGraphicsPreview()) {
+    return map.BuildMapWithCache(static_cast<int>(tiles16_.size()), game_state_,
+                                 world_type, tiles16_, GetMapTiles(world_type),
+                                 nullptr);
+  }
   const OverworldTilesetKey key = map.tileset_key();
   const uint64_t fingerprint = Tiles16Fingerprint();
 
@@ -1206,6 +1212,13 @@ void Overworld::InvalidateTilesetCacheForSheet(int sheet) {
   }
 }
 
+void Overworld::SetGraphicsPreview(OverworldGraphicsPreview preview) {
+  graphics_preview_ = std::move(preview);
+  for (int i = 0; i < static_cast<int>(overworld_maps_.size()); ++i) {
+    SyncAreaProperties(i);
+  }
+}
+
 void Overworld::SyncAreaProperties(int map_index) {
   if (map_index < 0 ||
       static_cast<size_t>(map_index) >= overworld_maps_.size()) {
@@ -1213,6 +1226,10 @@ void Overworld::SyncAreaProperties(int map_index) {
   }
   auto& map = overworld_maps_[map_index];
   const int parent = map.parent();
+  const auto preview = graphics_preview_.find(parent);
+  map.SetGraphicsPreview(preview == graphics_preview_.end()
+                             ? AreaGraphicsPreview{}
+                             : preview->second);
   if (parent == map_index || parent < 0 ||
       static_cast<size_t>(parent) >= overworld_maps_.size()) {
     map.ClearInheritedAreaProperties();

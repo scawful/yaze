@@ -14,6 +14,7 @@
 #include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/graphics_preview.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
@@ -207,6 +208,14 @@ class OverworldMap : public gfx::GfxContext {
   OverworldMap() = default;
   OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
 
+  void SetGraphicsPreview(const AreaGraphicsPreview& preview) {
+    if (graphics_preview_ == preview)
+      return;
+    graphics_preview_ = preview;
+    built_ = false;
+  }
+  bool HasGraphicsPreview() const { return !graphics_preview_.empty(); }
+
   void SetGameData(GameData* game_data) { game_data_ = game_data; }
 
   /// Sheet pixels to use instead of GameData::graphics_buffer when
@@ -269,6 +278,7 @@ class OverworldMap : public gfx::GfxContext {
    */
   void UseCachedTileset(const std::vector<uint8_t>& cached_gfx) {
     current_gfx_ = cached_gfx;
+    ApplyGraphicsPreview(graphics_preview_, current_gfx_);
     // Overworld::BuildMapWithTilesetCache only hands out an entry whose
     // recorded sheet revisions match the store, so these pixels are current.
     RecordSourceSheetRevisions();
@@ -511,6 +521,7 @@ class OverworldMap : public gfx::GfxContext {
   OverworldMapTiles map_tiles_;
   gfx::SnesPalette current_palette_;
   std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
+  AreaGraphicsPreview graphics_preview_;
   // Store revision of each static_graphics_ slot at the last BuildTileset();
   // 0 for slots not read from the store.
   static constexpr int kNumSourceSheets = 17;  // 16 slots + animated sheet
