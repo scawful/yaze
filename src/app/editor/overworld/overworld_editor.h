@@ -256,6 +256,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    * assembling the OverworldMap Bitmap objects.
    */
   absl::Status LoadGraphics();
+  absl::Status SyncProjectGraphicsPreview(bool force = false);
 
   // ===========================================================================
   // Entity Interaction API
@@ -454,6 +455,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawOverworldCanvas();
 
  private:
+  std::string graphics_preview_config_path_;
   // ===========================================================================
   // Entity Interaction System
   // ===========================================================================

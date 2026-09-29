@@ -450,6 +450,7 @@ class Overworld {
    * parent's values. Call before rebuilding a map's graphics or palette.
    */
   void SyncAreaProperties(int map_index);
+  void SetGraphicsPreview(OverworldGraphicsPreview preview);
 
   /// Subscreen overlay layer for one screen, in that screen's palette.
   struct SubscreenOverlayLayer {
@@ -882,6 +883,7 @@ class Overworld {
   absl::Status BuildMapWithTilesetCache(int map_index, int world_type);
 
   std::vector<OverworldMap> overworld_maps_;
+  OverworldGraphicsPreview graphics_preview_;
   std::vector<OverworldEntrance> all_entrances_;
   std::vector<OverworldEntrance> all_holes_;
   std::vector<OverworldExit> all_exits_;

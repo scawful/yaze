@@ -470,6 +470,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/toast_dedup_test.cc
     unit/editor/tile_painting_manager_test.cc
+    unit/zelda3/overworld_graphics_preview_test.cc
     unit/editor/overworld_undo_actions_test.cc
     unit/editor/tile16_document_history_test.cc
     unit/editor/tile16_editor_action_state_test.cc
@@ -885,6 +886,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/project_manager_validator_test.cc
     unit/editor/tile_painting_manager_test.cc
+    unit/zelda3/overworld_graphics_preview_test.cc
     unit/editor/overworld_undo_actions_test.cc
     unit/editor/tile16_document_history_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc

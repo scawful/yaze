@@ -236,8 +236,8 @@ absl::Status OverworldMap::BuildMapWithCache(
   // The tile16 blockset only depends on the tileset and the tile16
   // definitions, so a shared copy can be reused (see Overworld's tileset
   // cache).
-  if (cached_tileset && !cached_tileset->empty() && cached_tile16_blockset &&
-      !cached_tile16_blockset->empty()) {
+  if (!HasGraphicsPreview() && cached_tileset && !cached_tileset->empty() &&
+      cached_tile16_blockset && !cached_tile16_blockset->empty()) {
     current_blockset_ = *cached_tile16_blockset;
   } else {
     RETURN_IF_ERROR(BuildTiles16Gfx(tiles16, count))
@@ -1385,11 +1385,12 @@ void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
 }
 
 absl::Status OverworldMap::BuildTileset() {
-  if (current_gfx_.size() == 0)
-    current_gfx_.resize(0x10000, 0x00);
+  // Rebuild ordinary sources so cleared previews cannot leave stale pixels.
+  current_gfx_.assign(0x10000, 0x00);
 
   if (!game_data_) {
     // Headless/tests: allow map builds without graphics by keeping zeroed data.
+    ApplyGraphicsPreview(graphics_preview_, current_gfx_);
     return absl::OkStatus();
   }
 
@@ -1417,6 +1418,7 @@ absl::Status OverworldMap::BuildTileset() {
   // built from, so an unsaved sheet edit can be detected
   // (SourceSheetsChanged).
   RecordSourceSheetRevisions();
+  ApplyGraphicsPreview(graphics_preview_, current_gfx_);
 
   return absl::OkStatus();
 }

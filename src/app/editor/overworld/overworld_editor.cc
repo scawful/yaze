@@ -74,6 +74,7 @@
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "core/asar_wrapper.h"
 #include "core/features.h"
+#include "core/overworld_graphics_preview.h"
 #include "core/project.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
@@ -613,6 +614,7 @@ absl::Status OverworldEditor::Update() {
   }
 
   NormalizeCurrentSelectionState();
+  status_.Update(SyncProjectGraphicsPreview());
 
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
@@ -1462,10 +1464,34 @@ absl::Status OverworldEditor::Redo() {
 
 // ============================================================================
 
+absl::Status OverworldEditor::SyncProjectGraphicsPreview(bool force) {
+  const auto* owner = dependencies_.project;
+  const std::string path =
+      owner && !owner->overworld_graphics_preview.empty()
+          ? owner->GetAbsolutePath(owner->overworld_graphics_preview)
+          : std::string{};
+  if (!force && path == graphics_preview_config_path_)
+    return absl::OkStatus();
+  graphics_preview_config_path_ = path;
+  // An invalid new config must not leave the previous project's art active.
+  overworld_.SetGraphicsPreview({});
+  auto preview = core::LoadOverworldGraphicsPreview(path);
+  if (preview.ok())
+    overworld_.SetGraphicsPreview(std::move(*preview));
+  if (!force && overworld_.is_loaded()) {
+    for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+      maps_bmp_[i].set_modified(true);
+    }
+    RETURN_IF_ERROR(RefreshTile16Blockset());
+  }
+  return preview.status();
+}
+
 absl::Status OverworldEditor::LoadGraphics() {
   gfx::ScopedTimer timer("LoadGraphics");
 
   LOG_DEBUG("OverworldEditor", "Loading overworld.");
+  RETURN_IF_ERROR(SyncProjectGraphicsPreview(true));
   // Load the Link to the Past overworld.
   {
     gfx::ScopedTimer load_timer("Overworld::Load");

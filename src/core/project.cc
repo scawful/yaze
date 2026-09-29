@@ -795,6 +795,10 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "patches_folder=" << GetRelativePath(patches_folder) << "\n";
   file << "labels_filename=" << GetRelativePath(labels_filename) << "\n";
   file << "symbols_filename=" << GetRelativePath(symbols_filename) << "\n";
+  if (!overworld_graphics_preview.empty()) {
+    file << "overworld_graphics_preview="
+         << GetRelativePath(overworld_graphics_preview) << "\n";
+  }
   if (!cutscene_shots.empty()) {
     file << "cutscene_shots=" << GetRelativePath(cutscene_shots) << "\n";
   }
@@ -1176,6 +1180,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         labels_filename = value;
       else if (key == "symbols_filename")
         symbols_filename = value;
+      else if (key == "overworld_graphics_preview")
+        overworld_graphics_preview = value;
       else if (key == "cutscene_shots")
         cutscene_shots = value;
       else if (key == "custom_collision_json")
@@ -1732,6 +1738,7 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&hack_manifest_file);
   normalize(&sprite_catalog_file);
   normalize(&sprite_source_root);
+  normalize(&overworld_graphics_preview);
   for (auto& asset : sprite_assets)
     normalize(&asset.zsm_path);
   normalize(&output_folder);
