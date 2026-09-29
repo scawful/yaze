@@ -38,6 +38,13 @@ Load only:
 - Legacy board migration: `scripts/agents/import-coordination-board.sh`,
   `scripts/agents/migrate-coordination-board.sh`
 
+
+### Remote native testing
+Before launching a native Yaze verification app, read
+[`docs/internal/testing/remote-native-testing.md`](docs/internal/testing/remote-native-testing.md).
+Use a dedicated macOS Space and an exact-app floating rule. Always quit owned
+test apps and verify process/window cleanup before finishing or handing off.
+
 ### 5) Essential Repo Facts
 - Build: `cmake --preset mac-ai && cmake --build --preset mac-ai` (agent preset: `build_ai`)
 - Jobs: presets default ≤4 workers; override with `--parallel` / `YAZE_BUILD_JOBS`
