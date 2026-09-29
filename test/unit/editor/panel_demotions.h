@@ -38,6 +38,8 @@ inline constexpr DemotedWindowExpectation kDemotedWindows[] = {
      WindowPresentationRole::kDiagnostic, "Welcome screen"},
     {"Screen", "screen.naming_screen", WindowPresentationRole::kDiagnostic,
      "Command palette"},
+    {"Emulator", "emulator.save_states", WindowPresentationRole::kDiagnostic,
+     "Command palette"},
 };
 
 }  // namespace yaze::editor::admission
