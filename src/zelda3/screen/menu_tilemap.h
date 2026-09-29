@@ -84,9 +84,19 @@ class MenuTilemapDocument {
   absl::Status Revert();
 
   // Compares the file at path_ on disk against the content this document
-  // last loaded/saved. Returns true if it has changed (size, mtime, or
-  // content differ). Returns an error if path_ is empty or unreadable.
+  // last loaded from or saved to it (never the unsaved in-memory edits).
+  // Returns true iff the bytes differ. Content-based on purpose: size and
+  // mtime cannot see a same-size rewrite inside one timestamp tick, and a
+  // touch that leaves the bytes alone is not a change. Returns an error if
+  // path_ is empty or the file is missing/unreadable.
   absl::StatusOr<bool> ExternalChangeDetected() const;
+
+  // "Keep my edits" after an external change: adopts the file's current
+  // on-disk content as the baseline (so ExternalChangeDetected() stops
+  // reporting it and the next save's .bak captures what it overwrites)
+  // while keeping the in-memory bytes. dirty() becomes "differs from the
+  // file on disk".
+  absl::Status AcknowledgeExternalChange();
 
   int rows() const { return rows_; }
   int cols() const { return kCols; }
@@ -94,6 +104,11 @@ class MenuTilemapDocument {
   bool dirty() const { return dirty_; }
   bool loaded() const { return rows_ > 0; }
   bool has_backup() const { return backup_written_; }
+
+  // Replaces the in-memory bytes (same size only) for undo/redo. Unlike
+  // LoadFromBytes() it keeps the file baseline, backup bookkeeping and path,
+  // and recomputes dirty() as "differs from the file as last loaded/saved".
+  absl::Status RestoreBytes(std::vector<uint8_t> bytes);
   const std::string& backup_path() const { return backup_path_; }
   const std::vector<uint8_t>& raw_bytes() const { return bytes_; }
 
@@ -130,17 +145,15 @@ class MenuTilemapDocument {
   void ClipRect(Rect& rect) const;
 
   std::vector<uint8_t> bytes_;
-  std::vector<uint8_t> pristine_bytes_;  // captured at Load* time
+  // The file's content as last read by Load*() or written by Save*(): the
+  // baseline for dirty() after RestoreBytes(), the source of the one-time
+  // ".bak", and what ExternalChangeDetected() compares the disk against.
+  std::vector<uint8_t> pristine_bytes_;
   int rows_ = 0;
   std::string path_;
   bool dirty_ = false;
   bool backup_written_ = false;
   std::string backup_path_;
-
-  // Snapshot of the file on disk as of the last Load/Save/Revert, used by
-  // ExternalChangeDetected().
-  uint64_t known_file_size_ = 0;
-  int64_t known_file_mtime_ns_ = 0;
 };
 
 // Composites an indexed image (as produced by RenderIndexed) into RGBA8.
