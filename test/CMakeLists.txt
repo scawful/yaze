@@ -288,6 +288,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/command_registry_test.cc
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/overworld_doctor_tile16_test.cc
+    unit/cli/overworld_allocation_commands_test.cc
     unit/cli/graphics_doctor_test.cc
     unit/cli/rom_header_size_test.cc
     unit/cli/dungeon_object_validate_test.cc
@@ -500,6 +501,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/overworld_area_render_test.cc
     unit/zelda3/overworld_default_gfx_group_test.cc
     unit/zelda3/overworld_version_helper_test.cc
+    unit/zelda3/overworld_allocation_test.cc
     unit/zelda3/zelda3_version_test.cc
     unit/zelda3/tile16_metadata_test.cc
     unit/zelda3/tile16_stamp_test.cc
