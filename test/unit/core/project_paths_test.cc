@@ -86,6 +86,29 @@ std::string WithCrLf(const std::string& content) {
 
 }  // namespace
 
+TEST(ProjectPathsTest, TerrainCatalogPathSurvivesSaveAndResetsOnNextProject) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_terrain_project"));
+  const auto project_file = temp.path() / "Terrain.yaze";
+  const auto catalog_file = temp.path() / "terrain.json";
+  WriteTextFile(catalog_file, "{}");
+  YazeProject project;
+  project.name = "Terrain";
+  project.filepath = project_file.string();
+  project.terrain_catalog_file = catalog_file.string();
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_NE(
+      ReadTextFile(project_file).find("terrain_catalog_file=terrain.json"),
+      std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_EQ(reopened.terrain_catalog_file, catalog_file.string());
+  ASSERT_TRUE(reopened
+                  .LoadFromString("[project]\nname=Other\n",
+                                  (temp.path() / "Other.yaze").string())
+                  .ok());
+  EXPECT_TRUE(reopened.terrain_catalog_file.empty());
+}
+
 TEST(ProjectPathsTest, OpenNormalizesRelativePathsToAbsolute) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_paths"));
 

@@ -271,6 +271,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_query_test.cc
     unit/core/rom_hash_test.cc
     unit/core/oracle_rom_fixture_test.cc
+    unit/core/terrain_catalog_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_bundle_path_test.cc
@@ -801,6 +802,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/oracle_progression_loader_test.cc
     unit/core/story_event_graph_test.cc
     unit/core/project_bundle_test.cc
+    unit/core/terrain_catalog_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_path_test.cc
     unit/core/source_artifact_publisher_test.cc

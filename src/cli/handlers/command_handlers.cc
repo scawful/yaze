@@ -21,6 +21,7 @@
 #include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
+#include "cli/handlers/game/terrain_catalog_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_inventory_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
 #include "cli/handlers/graphics/gfx_tilemap_render_command.h"
@@ -168,6 +169,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonListPotItemsCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetPotItemCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetCollisionTileCommandHandler>());
+
+  handlers.push_back(std::make_unique<OverworldTerrainCatalogCommandHandler>());
 
   // Overworld inspection
   handlers.push_back(std::make_unique<OverworldGetTileCommandHandler>());

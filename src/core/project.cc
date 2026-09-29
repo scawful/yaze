@@ -809,6 +809,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
   file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder)
        << "\n";
+  file << "terrain_catalog_file="
+       << GetRelativePath(GetAbsolutePath(terrain_catalog_file)) << "\n";
   file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
   file << "sprite_catalog_file="
        << GetRelativePath(GetAbsolutePath(sprite_catalog_file)) << "\n";
@@ -1118,6 +1120,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   sprite_catalog_file.clear();
   sprite_source_root.clear();
   sprite_assets.clear();
+  terrain_catalog_file.clear();
   std::istringstream stream(content);
   std::string line;
   std::string current_section;
@@ -1190,6 +1193,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         output_folder = value;
       else if (key == "custom_objects_folder")
         custom_objects_folder = value;
+      else if (key == "terrain_catalog_file")
+        terrain_catalog_file = value;
       else if (key == "hack_manifest_file")
         hack_manifest_file = value;
       else if (key == "sprite_catalog_file")
@@ -1739,6 +1744,7 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&sprite_catalog_file);
   normalize(&sprite_source_root);
   normalize(&overworld_graphics_preview);
+  normalize(&terrain_catalog_file);
   for (auto& asset : sprite_assets)
     normalize(&asset.zsm_path);
   normalize(&output_folder);
@@ -2096,6 +2102,7 @@ void YazeProject::InitializeDefaults() {
   sprite_catalog_file.clear();
   sprite_source_root.clear();
   sprite_assets.clear();
+  terrain_catalog_file.clear();
   if (metadata.project_id.empty()) {
     metadata.project_id = GenerateProjectId();
   }
@@ -2733,6 +2740,7 @@ void YazeProject::InitializeResourceLabelProvider() {
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
 
 absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
+  terrain_catalog_file.clear();
 #ifdef __EMSCRIPTEN__
   return absl::UnimplementedError(
       "JSON project format loading is not supported in the web build");
@@ -2785,6 +2793,8 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         labels_filename = proj["labels_filename"].get<std::string>();
       if (proj.contains("symbols_filename"))
         symbols_filename = proj["symbols_filename"].get<std::string>();
+      if (proj.contains("terrain_catalog_file"))
+        terrain_catalog_file = proj["terrain_catalog_file"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
         hack_manifest_file = proj["hack_manifest_file"].get<std::string>();
       if (proj.contains("sprite_catalog_file"))
@@ -3069,6 +3079,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["patches_folder"] = patches_folder;
   proj["labels_filename"] = labels_filename;
   proj["symbols_filename"] = symbols_filename;
+  proj["terrain_catalog_file"] =
+      GetRelativePath(GetAbsolutePath(terrain_catalog_file));
   proj["hack_manifest_file"] = hack_manifest_file;
   proj["sprite_catalog_file"] =
       GetRelativePath(GetAbsolutePath(sprite_catalog_file));
