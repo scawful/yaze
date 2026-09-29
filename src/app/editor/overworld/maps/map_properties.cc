@@ -613,11 +613,14 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       {ICON_MD_DOOR_BACK, "Exit", "exit"},
       {ICON_MD_GRASS, "Item", "item"},
       {ICON_MD_PEST_CONTROL_RODENT, "Sprite", "sprite"}};
-  for (const auto& [icon, label, type] : entity_types) {
-    insert_menu.subitems.emplace_back(label, icon, [this, target, type]() {
-      if (entity_insert_callback_ && target.valid())
-        entity_insert_callback_(type, target);
-    });
+  // Not a structured binding: lambdas can't capture those before Clang 16.
+  for (const EntityType& entity : entity_types) {
+    const char* type = entity.type;
+    insert_menu.subitems.emplace_back(
+        entity.label, entity.icon, [this, target, type]() {
+          if (entity_insert_callback_ && target.valid())
+            entity_insert_callback_(type, target);
+        });
   }
   add(std::move(insert_menu), ICON_MD_ADD_LOCATION);
 
