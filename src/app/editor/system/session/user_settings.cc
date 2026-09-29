@@ -130,9 +130,16 @@ struct DemotedWindow {
 
 constexpr DemotedWindow kRevision26DemotedWindows[] = {
     // Agent developer tooling: opened from Tools > Hack Workflows.
-    {"Agent", "agent.mesen_debug"},   {"Agent", "agent.mesen_screenshot"},
-    {"Agent", "agent.oracle_states"}, {"Agent", "agent.feature_flags"},
-    {"Agent", "agent.manifest"},      {"Agent", "agent.sram_viewer"},
+    {"Agent", "agent.mesen_debug"},
+    {"Agent", "agent.mesen_screenshot"},
+    {"Agent", "agent.oracle_states"},
+    {"Agent", "agent.feature_flags"},
+    {"Agent", "agent.manifest"},
+    {"Agent", "agent.sram_viewer"},
+    // Oracle validation and inspection tooling: opened from Tools > Hack
+    // Workflows.
+    {"Agent", "oracle.validation"},
+    {"Agent", "oracle.menu_inspector"},
 };
 
 void CloseDemotedWindowVisibility(

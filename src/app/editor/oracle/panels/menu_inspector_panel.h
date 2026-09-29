@@ -20,7 +20,8 @@ class OracleMenuInspectorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_MENU_BOOK; }
   std::string GetEditorCategory() const override { return "Agent"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Assets");
   }
   std::string GetWorkflowGroup() const override { return "Assets"; }
   std::string GetWorkflowDescription() const override {

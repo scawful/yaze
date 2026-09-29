@@ -30,6 +30,10 @@ inline constexpr DemotedWindowExpectation kDemotedWindows[] = {
      "Hack Workflows"},
     {"Agent", "agent.sram_viewer", WindowPresentationRole::kDiagnostic,
      "Hack Workflows"},
+    {"Agent", "oracle.validation", WindowPresentationRole::kDiagnostic,
+     "Hack Workflows"},
+    {"Agent", "oracle.menu_inspector", WindowPresentationRole::kDiagnostic,
+     "Hack Workflows"},
 };
 
 }  // namespace yaze::editor::admission
