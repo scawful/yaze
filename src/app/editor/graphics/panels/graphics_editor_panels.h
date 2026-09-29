@@ -211,7 +211,8 @@ class GraphicsPrototypeViewerPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Graphics"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Welcome screen Prototype Research action");
   }
   int GetPriority() const override { return 50; }
   float GetPreferredWidth() const override { return 800.0f; }

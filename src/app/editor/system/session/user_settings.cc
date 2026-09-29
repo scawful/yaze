@@ -140,6 +140,8 @@ constexpr DemotedWindow kRevision26DemotedWindows[] = {
     // Workflows.
     {"Agent", "oracle.validation"},
     {"Agent", "oracle.menu_inspector"},
+    // Graphics research importer: opened from the welcome screen.
+    {"Graphics", "graphics.prototype_viewer"},
 };
 
 void CloseDemotedWindowVisibility(
