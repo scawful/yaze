@@ -12,15 +12,11 @@
 #include "absl/strings/str_join.h"
 #include "core/hack_manifest.h"
 #include "rom/rom.h"
-#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_census_vanilla_fingerprints.h"
-#include "zelda3/dungeon/room_collision.h"
-#include "zelda3/dungeon/room_entrance.h"
-#include "zelda3/dungeon/room_header_destination.h"
-#include "zelda3/dungeon/room_layout.h"
+#include "zelda3/dungeon/room_links.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/screen/dungeon_map.h"
 
@@ -34,113 +30,10 @@ constexpr int kRooms = kRoomCensusRoomCount;
 // (Chebyshev distance, same $A1 page).
 constexpr int kFreeBlockMinCore = 3;
 constexpr int kFreeBlockMergeDistance = 3;
-// Custom collision (ZScream) tile types.
-constexpr uint8_t kCollisionPit = 0x20;
-constexpr uint8_t kCollisionWarp = 0x4B;
-// ZScream's expanded entrance tables: the loader at $02:D99F becomes
-// JSL $0FF008 and reads rooms from $0F:8000 and dungeon IDs from $0F:9800.
-constexpr int kEntranceLoaderHookPc = 0x1599F;
-constexpr int kExpandedEntranceRoomPc = 0x078000;
-constexpr int kExpandedEntranceDungeonPc = 0x079800;
-constexpr int kVanillaEntranceCount = 0x85;
 
 bool IsEncodedStreamObject(const RoomObject& object) {
   return (object.options() & ObjectOption::Torch) == ObjectOption::Nothing &&
          (object.options() & ObjectOption::Block) == ObjectOption::Nothing;
-}
-
-// Pits, pit edges, layer-2 pit masks, and bombable floor (bombing it opens a
-// hole that uses the holewarp, e.g. Oracle D5 0xAD -> boss room 0xAC).
-bool IsPitObject(int id) {
-  return (id >= 0x023 && id <= 0x02E) || id == 0x06A || id == 0x06B ||
-         id == 0x0A4 || id == 0x0C2 || id == 0x0C3 || id == 0xFC7 ||
-         id == 0xFE6;
-}
-
-bool IsWarpTileObject(int id) {
-  return id == 0xFCA;
-}
-
-bool IsHeaderStairObject(int id) {
-  return id == 0x12D || id == 0x12E || id == 0x12F ||
-         (id >= 0x138 && id <= 0x13B) || (id >= 0xF9E && id <= 0xFA1) ||
-         (id >= 0xFA6 && id <= 0xFA9);
-}
-
-bool IsHoleTag(uint8_t tag) {
-  switch (static_cast<TagKey>(tag)) {
-    case TagKey::Holes_0:
-    case TagKey::Open_Chest_Activate_Holes_0:
-    case TagKey::Holes_1:
-    case TagKey::Holes_2:
-    case TagKey::Holes_3:
-    case TagKey::Holes_4:
-    case TagKey::Holes_5:
-    case TagKey::Holes_6:
-    case TagKey::Holes_7:
-    case TagKey::Holes_8:
-    case TagKey::Open_Chest_for_Holes_8:
-      return true;
-    default:
-      return false;
-  }
-}
-
-bool IsKeyStairDoor(DoorType type) {
-  return type == DoorType::SmallKeyStairsUp ||
-         type == DoorType::SmallKeyStairsDown ||
-         type == DoorType::SmallKeyStairsUpLower ||
-         type == DoorType::SmallKeyStairsDownLower;
-}
-
-// Outer-wall door slots (USDASM RoomDraw_DoorPartner*): N/W 0..5, S/E 6..11.
-bool IsOuterDoorPosition(int direction, int position) {
-  if (position >= 12) {
-    return false;
-  }
-  return (direction == 0 || direction == 2) ? position < 6 : position >= 6;
-}
-
-// Edge transitions change only $A0; $A1 is unchanged, and the room grid
-// is 16 wide. Returns -1 when the neighbor would leave the page.
-int NeighborRoom(int room_id, int direction) {
-  const int low = room_id & 0xFF;
-  const int row = low >> 4;
-  const int col = low & 0x0F;
-  int target = -1;
-  switch (direction) {
-    case 0:  // North
-      target = row > 0 ? room_id - 16 : -1;
-      break;
-    case 1:  // South
-      target = row < 15 ? room_id + 16 : -1;
-      break;
-    case 2:  // West
-      target = col > 0 ? room_id - 1 : -1;
-      break;
-    case 3:  // East
-      target = col < 15 ? room_id + 1 : -1;
-      break;
-  }
-  return (target >= 0 && target < kRooms) ? target : -1;
-}
-
-int OppositeDirection(int direction) {
-  return direction ^ 1;
-}
-
-const char* DirectionName(int direction) {
-  switch (direction) {
-    case 0:
-      return "north";
-    case 1:
-      return "south";
-    case 2:
-      return "west";
-    case 3:
-      return "east";
-  }
-  return "?";
 }
 
 std::string RoomHex(int room_id) {
@@ -181,33 +74,6 @@ std::string VanillaDungeonName(int dungeon_id) {
   return "";
 }
 
-bool UsesExpandedEntranceTables(const Rom& rom) {
-  const auto& data = rom.vector();
-  if (kEntranceLoaderHookPc + 3 >= static_cast<int>(data.size())) {
-    return false;
-  }
-  return data[kEntranceLoaderHookPc] == 0x22 &&
-         data[kEntranceLoaderHookPc + 1] == 0x08 &&
-         data[kEntranceLoaderHookPc + 2] == 0xF0 &&
-         data[kEntranceLoaderHookPc + 3] == 0x0F;
-}
-
-// Room and dungeon ID of an entrance, from the table the game reads.
-std::optional<std::pair<int, int>> ReadEntrance(const Rom& rom, int entrance,
-                                                bool expanded) {
-  const auto& data = rom.vector();
-  const int room_pc = expanded ? kExpandedEntranceRoomPc + entrance * 2
-                               : kEntranceRoom + entrance * 2;
-  const int dungeon_pc = expanded ? kExpandedEntranceDungeonPc + entrance
-                                  : kEntranceDungeon + entrance;
-  if (room_pc + 1 >= static_cast<int>(data.size()) ||
-      dungeon_pc >= static_cast<int>(data.size())) {
-    return std::nullopt;
-  }
-  const int room = data[room_pc] | (data[room_pc + 1] << 8);
-  return std::make_pair(room, static_cast<int>(data[dungeon_pc]));
-}
-
 std::vector<uint16_t> FingerprintRoom(const Room& room) {
   std::vector<uint16_t> hashes;
   for (const auto& object : room.GetTileObjects()) {
@@ -221,15 +87,6 @@ std::vector<uint16_t> FingerprintRoom(const Room& room) {
   return hashes;
 }
 
-struct Edge {
-  int from = -1;
-  int to = -1;
-  RoomReferenceKind kind = RoomReferenceKind::kDoor;
-  bool strong = false;
-  bool owner_ok = false;  // May carry ownership (same area).
-  std::string detail;
-};
-
 }  // namespace
 
 const char* RoomCensusStatusName(RoomCensusStatus status) {
@@ -242,34 +99,6 @@ const char* RoomCensusStatusName(RoomCensusStatus status) {
       return "in_use";
   }
   return "in_use";
-}
-
-const char* RoomReferenceKindName(RoomReferenceKind kind) {
-  switch (kind) {
-    case RoomReferenceKind::kEntrance:
-      return "entrance";
-    case RoomReferenceKind::kHole:
-      return "hole";
-    case RoomReferenceKind::kSpawn:
-      return "spawn";
-    case RoomReferenceKind::kUnplacedEntrance:
-      return "unplaced_entrance";
-    case RoomReferenceKind::kDoor:
-      return "door";
-    case RoomReferenceKind::kStair:
-      return "stair";
-    case RoomReferenceKind::kHolewarp:
-      return "holewarp";
-    case RoomReferenceKind::kWarpTag:
-      return "warp_tag";
-    case RoomReferenceKind::kHeaderOnly:
-      return "header_only";
-    case RoomReferenceKind::kProjectListing:
-      return "project";
-    case RoomReferenceKind::kDungeonMap:
-      return "dungeon_map";
-  }
-  return "?";
 }
 
 uint16_t HashRoomCensusObject(int id, int x, int y, int size) {
@@ -386,80 +215,12 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
     Room room = LoadRoomFromRom(rom, room_id);
     room.LoadSprites();
     RoomCensusRoomFacts& facts = input.rooms[room_id];
-    facts.room_id = room_id;
-    facts.blockset = room.blockset();
-    facts.tag1 = static_cast<uint8_t>(room.tag1());
-    facts.tag2 = static_cast<uint8_t>(room.tag2());
+    static_cast<RoomLinkFacts&>(facts) =
+        CollectRoomLinkFacts(rom, room, has_pit_table ? &pit_table : nullptr);
     facts.sprite_count = static_cast<int>(room.GetSprites().size());
     facts.chest_count = static_cast<int>(room.GetChests().size());
-    facts.holewarp_byte = room.holewarp();
-    for (int slot = 0; slot < 4; ++slot) {
-      facts.stair_bytes[slot] = room.staircase_room(slot);
-    }
-    facts.in_pit_damage_table =
-        has_pit_table && pit_table.Contains(static_cast<uint16_t>(room_id));
-    facts.has_hole_tag = IsHoleTag(facts.tag1) || IsHoleTag(facts.tag2);
-
-    bool has_stairs = false;
     for (const auto& object : room.GetTileObjects()) {
-      if (!IsEncodedStreamObject(object)) {
-        continue;
-      }
-      ++facts.object_count;
-      facts.has_pits |= IsPitObject(object.id_);
-      facts.has_warp_tiles |= IsWarpTileObject(object.id_);
-      has_stairs |= IsHeaderStairObject(object.id_);
-    }
-    if (room.has_custom_collision()) {
-      for (uint8_t tile : room.custom_collision().tiles) {
-        facts.has_pits |= tile == kCollisionPit;
-        facts.has_warp_tiles |= tile == kCollisionWarp;
-      }
-    }
-
-    // Stair objects -> header slots, same replay as
-    // `dungeon-describe-room --include-staircase-resolution`.
-    if (has_stairs) {
-      RoomLayout layout(rom);
-      const bool layout_ok = layout.LoadLayout(room.layout_id()).ok();
-      auto collision_input = MakeRoomCollisionInput(room);
-      const auto& prefix = layout.GetObjects();
-      if (layout_ok) {
-        collision_input.objects.insert(collision_input.objects.begin(),
-                                       prefix.begin(), prefix.end());
-      }
-      const size_t prefix_size = layout_ok ? prefix.size() : 0;
-      const auto resolutions =
-          ResolveVanillaStaircaseSlots(*rom, collision_input);
-      int placement_index = 0;
-      for (const auto& resolution : resolutions) {
-        if (resolution.object_index < prefix_size) {
-          continue;
-        }
-        if (resolution.slot.has_value() && *resolution.slot >= 0 &&
-            *resolution.slot < 4) {
-          facts.stair_slot_used[*resolution.slot] = true;
-          facts.stair_slot_estimated[*resolution.slot] = false;
-        } else if (placement_index < 4 &&
-                   !facts.stair_slot_used[placement_index]) {
-          // Replay could not place it; fall back to placement order.
-          facts.stair_slot_used[placement_index] = true;
-          facts.stair_slot_estimated[placement_index] = true;
-        }
-        ++placement_index;
-      }
-    }
-
-    for (const auto& door : room.GetDoors()) {
-      if (!IsRoomConnectionDoorType(door.type) || IsKeyStairDoor(door.type)) {
-        continue;
-      }
-      RoomCensusRoomFacts::Door fact;
-      fact.direction = static_cast<int>(door.direction);
-      const auto [tile_x, tile_y] = door.GetTileCoords();
-      fact.along = (fact.direction <= 1) ? tile_x : tile_y;
-      fact.outer = IsOuterDoorPosition(fact.direction, door.position);
-      facts.doors.push_back(fact);
+      facts.object_count += IsEncodedStreamObject(object) ? 1 : 0;
     }
 
     if (input.has_vanilla_baseline) {
@@ -477,15 +238,14 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
   std::set<int> placed_entrances;
   auto add_entrance = [&](int entrance_id, RoomReferenceKind kind,
                           std::string placement) {
-    const auto entry =
-        ReadEntrance(*rom, entrance_id, input.expanded_entrance_tables);
-    if (!entry.has_value() || entry->first < 0 || entry->first >= kRooms) {
+    const auto entry = ReadDungeonEntranceTarget(*rom, entrance_id);
+    if (!entry.has_value() || !IsDungeonRoomId(entry->room_id)) {
       return;
     }
     RoomCensusEntranceFact fact;
     fact.entrance_id = entrance_id;
-    fact.room_id = entry->first;
-    fact.dungeon_id = entry->second;
+    fact.room_id = entry->room_id;
+    fact.dungeon_id = entry->dungeon_id;
     fact.kind = kind;
     fact.placement = std::move(placement);
     input.entrances.push_back(std::move(fact));
@@ -507,7 +267,7 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
                    absl::StrFormat("OW 0x%02X", hole.map_id_ & 0xFF));
     }
   }
-  for (int entrance_id = 0; entrance_id < kVanillaEntranceCount;
+  for (int entrance_id = 0; entrance_id < kDungeonEntranceCount;
        ++entrance_id) {
     if (!placed_entrances.contains(entrance_id)) {
       add_entrance(entrance_id, RoomReferenceKind::kUnplacedEntrance, "");
@@ -515,7 +275,7 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
   }
   for (int spawn_id = 0; spawn_id < kNumDungeonSpawnPoints; ++spawn_id) {
     auto spawn = DungeonSpawnPoint::Load(*rom, spawn_id);
-    if (!spawn.ok() || spawn->room_id >= kRooms) {
+    if (!spawn.ok() || !IsDungeonRoomId(spawn->room_id)) {
       continue;
     }
     RoomCensusEntranceFact fact;
@@ -616,133 +376,20 @@ RoomCensus BuildRoomCensus(const RoomCensusInput& input) {
   }
 
   // ---- Edges -------------------------------------------------------------
-  std::vector<std::vector<Edge>> out_edges(kRooms);
-  auto add_edge = [&](Edge edge) {
-    if (edge.to < 0 || edge.to >= kRooms) {
-      return;
-    }
-    out_edges[edge.from].push_back(std::move(edge));
+  // Shared with the z3ed graph commands (room_links.h). Links whose
+  // destination is not a room (a header byte past 0x127) are dropped here;
+  // the lookup never indexes `facts` out of range.
+  const RoomLinkFactsLookup lookup =
+      [&facts](int room) -> const RoomLinkFacts* {
+    return IsDungeonRoomId(room) ? &facts[room] : nullptr;
   };
-
-  // Header stair slots that a stair object uses; used for the reciprocity
-  // check below. A header byte can resolve past the last room (a page-1 byte
-  // >= 0x28 gives 0x128-0x1FF), so check the range before indexing `facts`.
-  auto stair_targets = [&](int room) {
-    std::vector<int> targets;
-    if (room < 0 || room >= kRooms) {
-      return targets;
-    }
-    for (int slot = 0; slot < 4; ++slot) {
-      if (facts[room].stair_slot_used[slot]) {
-        targets.push_back(
-            ResolveHeaderDestinationRoom(room, facts[room].stair_bytes[slot]));
-      }
-    }
-    return targets;
-  };
-
+  std::vector<std::vector<RoomLink>> out_edges(kRooms);
   for (int room = 0; room < kRooms; ++room) {
-    const auto& f = facts[room];
-    for (const auto& door : f.doors) {
-      if (!door.outer) {
-        continue;
-      }
-      const int neighbor = NeighborRoom(room, door.direction);
-      if (neighbor < 0) {
-        continue;
-      }
-      bool mutual = false;
-      for (const auto& other : facts[neighbor].doors) {
-        if (other.outer &&
-            other.direction == OppositeDirection(door.direction) &&
-            std::abs(other.along - door.along) <= 3) {
-          mutual = true;
-          break;
-        }
-      }
-      Edge edge;
-      edge.from = room;
-      edge.to = neighbor;
-      edge.kind = RoomReferenceKind::kDoor;
-      edge.strong = mutual;
-      edge.owner_ok = mutual;
-      edge.detail =
-          mutual ? absl::StrFormat("door from %s (%s wall)", RoomHex(room),
-                                   DirectionName(door.direction))
-                 : absl::StrFormat(
-                       "one-sided door from %s (%s wall, no door back)",
-                       RoomHex(room), DirectionName(door.direction));
-      add_edge(std::move(edge));
-    }
-
-    const bool warp_tag = input.warp_tag_ids.contains(f.tag1) ||
-                          input.warp_tag_ids.contains(f.tag2);
-    for (int slot = 0; slot < 4; ++slot) {
-      const int target =
-          ResolveHeaderDestinationRoom(room, f.stair_bytes[slot]);
-      Edge edge;
-      edge.from = room;
-      edge.to = target;
-      if (f.stair_slot_used[slot]) {
-        edge.kind = RoomReferenceKind::kStair;
-        edge.strong = true;
-        const auto back = stair_targets(target);
-        edge.owner_ok =
-            (target < kRooms && facts[target].blockset == f.blockset) ||
-            std::find(back.begin(), back.end(), room) != back.end();
-        edge.detail = absl::StrFormat(
-            "stair (slot %d) in %s%s", slot + 1, RoomHex(room),
-            f.stair_slot_estimated[slot] ? ", slot by placement order" : "");
-      } else if (warp_tag) {
-        edge.kind = RoomReferenceKind::kWarpTag;
-        edge.strong = true;
-        edge.owner_ok = target < kRooms && facts[target].blockset == f.blockset;
-        edge.detail = absl::StrFormat("warp tag quadrant %d in %s", slot + 1,
-                                      RoomHex(room));
-      } else if (f.stair_bytes[slot] != 0) {
-        edge.kind = RoomReferenceKind::kHeaderOnly;
-        edge.detail = absl::StrFormat(
-            "header stair slot %d of %s (no stair object uses it)", slot + 1,
-            RoomHex(room));
-      } else {
-        continue;
-      }
-      add_edge(std::move(edge));
-    }
-
-    const int hole_target = ResolveHeaderDestinationRoom(room, f.holewarp_byte);
-    Edge hole;
-    hole.from = room;
-    hole.to = hole_target;
-    hole.kind = RoomReferenceKind::kHolewarp;
-    hole.owner_ok =
-        hole_target < kRooms && facts[hole_target].blockset == f.blockset;
-    if (f.has_warp_tiles) {
-      hole.strong = true;
-      hole.detail = absl::StrFormat("warp tiles in %s", RoomHex(room));
-    } else if (f.has_pits && !f.in_pit_damage_table) {
-      hole.strong = true;
-      hole.detail = absl::StrFormat("pits in %s", RoomHex(room));
-    } else if (f.has_pits) {
-      hole.detail = absl::StrFormat(
-          "holewarp of %s (its pits only cost a heart: RoomsWithPitDamage)",
-          RoomHex(room));
-    } else if (f.has_hole_tag) {
-      hole.detail = absl::StrFormat("holewarp of %s (tag-driven holes only)",
-                                    RoomHex(room));
-    } else if (f.holewarp_byte != 0) {
-      hole.kind = RoomReferenceKind::kHeaderOnly;
-      hole.detail = absl::StrFormat(
-          "header holewarp of %s (no pits or warp tiles there)", RoomHex(room));
-    } else {
-      hole.to = -1;
-    }
-    if (hole.strong) {
-      if (!hole.owner_ok) {
-        hole.detail += " (other blockset)";
+    for (auto& link : CollectRoomLinks(room, lookup, input.warp_tag_ids)) {
+      if (link.to >= 0) {
+        out_edges[room].push_back(std::move(link));
       }
     }
-    add_edge(std::move(hole));
   }
 
   // Inbound references.
@@ -819,19 +466,20 @@ RoomCensus BuildRoomCensus(const RoomCensusInput& input) {
   };
   drain();
   // Pause maps: big halls and open floors change rooms without a door
-  // object. A non-empty room on the map of a reached dungeon is in use.
-  // With project ownership the maps only add caveats: the project registry
-  // is the declared structure, and hacks keep stale grids (Oracle's bank $0A
-  // grids still list 0x01 under Hyrule Castle and 0x95/0x96 under FoS).
-  const bool maps_are_evidence = input.project_owners.empty();
+  // object. A non-empty room on the map of a reached dungeon is in use,
+  // with or without project ownership, so reachability depends only on the
+  // ROM (and the project's warp tags). A stale grid entry (Oracle's bank $0A
+  // grids still list 0x01 under dungeon ID 0x02) keeps the room in use until
+  // the grid is edited: the pause map still draws it.
   std::vector<int> map_dungeon(kRooms, -1);
   std::vector<bool> map_ref_added(kRooms, false);
   for (bool changed = true; changed;) {
     changed = false;
     for (size_t map = 0; map < input.pause_map_rooms.size(); ++map) {
       const auto& rooms = input.pause_map_rooms[map];
-      const bool active = std::any_of(rooms.begin(), rooms.end(),
-                                      [&](int room) { return reached[room]; });
+      const bool active = std::any_of(
+          rooms.begin(), rooms.end(),
+          [&](int room) { return IsDungeonRoomId(room) && reached[room]; });
       for (int room : rooms) {
         if (room < 0 || room >= kRooms) {
           continue;
@@ -839,18 +487,17 @@ RoomCensus BuildRoomCensus(const RoomCensusInput& input) {
         if (map_dungeon[room] < 0) {
           map_dungeon[room] = static_cast<int>(map) * 2;
         }
-        const bool strong = maps_are_evidence && active && !is_empty(room);
+        const bool strong = active && !is_empty(room);
         if (!map_ref_added[room] || (strong && !reached[room])) {
           RoomReference ref;
           ref.kind = RoomReferenceKind::kDungeonMap;
           ref.strong = strong;
-          ref.detail = absl::StrFormat(
-              "on the pause map of dungeon ID 0x%02X%s",
-              static_cast<int>(map) * 2,
-              !maps_are_evidence ? " (project ownership takes precedence)"
-              : !active          ? " (no room of that map is reached)"
-              : strong           ? ""
-                                 : " (room is empty)");
+          ref.detail =
+              absl::StrFormat("on the pause map of dungeon ID 0x%02X%s",
+                              static_cast<int>(map) * 2,
+                              !active  ? " (no room of that map is reached)"
+                              : strong ? ""
+                                       : " (room is empty)");
           if (!map_ref_added[room]) {
             census.rooms[room].references.push_back(ref);
             map_ref_added[room] = true;
