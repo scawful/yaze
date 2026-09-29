@@ -5,6 +5,14 @@
 **Owner:** zelda3-hacking-expert / overworld-specialist
 **Purpose:** Enable editing of special-world tail map slots (0xA0-0xBF) without corrupting existing data
 
+> **Check first.** `z3ed overworld-allocation --rom <rom> --tail-check`
+> reports what this patch would overwrite and gives a safe/unsafe verdict.
+> `overworld-doctor --apply-tail-expansion` and Settings > ASM Patches >
+> Apply refuse the patch when the verdict is unsafe. As shipped the verdict
+> is unsafe on every ROM: the blank map stream has no `$FF` terminator, the
+> other per-area tables still stop at `$9F`, and yaze's overworld save writes
+> the old pointer tables. See [doctor-commands](../../public/cli/doctor-commands.md#overworld-allocation).
+
 ---
 
 ## Quick Start

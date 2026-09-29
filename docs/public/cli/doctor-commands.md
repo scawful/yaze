@@ -83,6 +83,9 @@ exists. `--project` adds area names and hack-manifest ownership (an
 `asm_owned`, `asm_expansion` or hook address blocks the patch). `--symbols`
 names the code at each target.
 
+`overworld-doctor --apply-tail-expansion` and Settings > ASM Patches >
+Apply refuse the patch when the verdict is `unsafe`.
+
 ## dungeon-doctor
 
 Diagnose dungeon room data integrity.
