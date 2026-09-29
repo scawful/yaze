@@ -118,6 +118,41 @@ void ApplyDungeonPanelAdmissionDefaults(
   }
 }
 
+// Windows the panel admission policy moved out of the window browser
+// (Diagnostic or EmbeddedTool). Each is still openable from its declared host
+// and the command palette. Revision 26 closes their persisted live visibility
+// so they stop reopening from an old session; pins, saved layouts, and named
+// layouts are explicit user customizations and are left alone.
+struct DemotedWindow {
+  const char* category;
+  const char* window_id;
+};
+
+constexpr DemotedWindow kRevision26DemotedWindows[] = {
+    // Agent developer tooling: opened from Tools > Hack Workflows.
+    {"Agent", "agent.mesen_debug"},   {"Agent", "agent.mesen_screenshot"},
+    {"Agent", "agent.oracle_states"}, {"Agent", "agent.feature_flags"},
+    {"Agent", "agent.manifest"},      {"Agent", "agent.sram_viewer"},
+};
+
+void CloseDemotedWindowVisibility(
+    std::unordered_map<std::string, std::unordered_map<std::string, bool>>*
+        visibility_state) {
+  if (!visibility_state) {
+    return;
+  }
+  for (const DemotedWindow& window : kRevision26DemotedWindows) {
+    auto category_it = visibility_state->find(window.category);
+    if (category_it == visibility_state->end()) {
+      continue;
+    }
+    auto window_it = category_it->second.find(window.window_id);
+    if (window_it != category_it->second.end()) {
+      window_it->second = false;
+    }
+  }
+}
+
 bool PruneEmbeddedDungeonUtilityPanelsFromDockTreeJson(std::string* json_body) {
   if (!json_body || json_body->empty()) {
     return false;
@@ -1748,6 +1783,15 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
       ApplyDungeonPanelAdmissionDefaults(&dungeon_it->second);
     }
     prefs_.panel_layout_defaults_revision = 25;
+    applied = true;
+  }
+
+  // Revision 26: panel admission demotions (see kRevision26DemotedWindows).
+  // Only persisted live visibility changes; the windows stay reachable from
+  // their hosts and the command palette.
+  if (prefs_.panel_layout_defaults_revision < 26 && target_revision >= 26) {
+    CloseDemotedWindowVisibility(&prefs_.panel_visibility_state);
+    prefs_.panel_layout_defaults_revision = 26;
     applied = true;
   }
 

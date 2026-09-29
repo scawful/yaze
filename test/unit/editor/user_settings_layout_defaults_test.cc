@@ -6,6 +6,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
+#include "panel_demotions.h"
 
 namespace yaze::editor {
 
@@ -532,8 +533,8 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.named_layouts["custom"] =
       R"({"schema_version":2,"name":"custom","root":{"id":1,"type":"leaf","active_tab_index":0,"panels":[{"panel_id":"dungeon.object_coverage"}]}})";
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  // Target revision 25 exactly: later revisions have their own tests.
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(25));
 
   EXPECT_EQ(prefs.panel_layout_defaults_revision, 25);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
@@ -651,6 +652,55 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_TRUE(prefs.saved_layouts["custom"]["overworld.tile16_editor"]);
   EXPECT_NE(prefs.named_layouts["custom"].find("overworld.tile16_editor"),
             std::string::npos);
+}
+
+// Revision 26 closes the persisted visibility of windows the panel admission
+// policy moved out of the window browser, and touches nothing else: pins, saved
+// layouts, named layouts, and other windows are the user's.
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentySixClosesDemotedWindowsAndKeepsCustomizations) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 25;
+  for (const auto& demoted : admission::kDemotedWindows) {
+    prefs.panel_visibility_state[demoted.category][demoted.window_id] = true;
+    prefs.pinned_panels[demoted.window_id] = true;
+    prefs.saved_layouts["mine"][demoted.window_id] = true;
+  }
+  prefs.panel_visibility_state["Agent"]["agent.chat"] = true;
+  const std::string named_layout = R"({"panels":["agent.mesen_debug"]})";
+  prefs.named_layouts["favorite"] = named_layout;
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(26));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 26);
+
+  for (const auto& demoted : admission::kDemotedWindows) {
+    EXPECT_FALSE(
+        prefs.panel_visibility_state.at(demoted.category).at(demoted.window_id))
+        << demoted.window_id;
+    EXPECT_TRUE(prefs.pinned_panels.at(demoted.window_id))
+        << demoted.window_id << " pin must survive";
+    EXPECT_TRUE(prefs.saved_layouts.at("mine").at(demoted.window_id))
+        << demoted.window_id << " saved layout must survive";
+  }
+  EXPECT_TRUE(prefs.panel_visibility_state.at("Agent").at("agent.chat"));
+  EXPECT_EQ(prefs.named_layouts.at("favorite"), named_layout);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentySixDoesNotCreateVisibilityEntries) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 25;
+  prefs.panel_visibility_state["Agent"]["agent.chat"] = true;
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(26));
+
+  EXPECT_EQ(prefs.panel_visibility_state.size(), 1U);
+  EXPECT_EQ(prefs.panel_visibility_state.at("Agent").size(), 1U);
+  EXPECT_TRUE(prefs.panel_visibility_state.at("Agent").at("agent.chat"));
 }
 
 }  // namespace yaze::editor
