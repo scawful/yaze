@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -237,6 +238,12 @@ TEST(MenuTilemapTest, SaveNeverChangesFileSize) {
 }
 
 // --- External change detection ---
+//
+// Detection compares the file's *content* with what the document last
+// loaded or saved. It must not depend on filesystem timestamp resolution:
+// a same-size rewrite inside one timestamp tick leaves both the size and the
+// mtime unchanged (the Ubuntu CI runner hit exactly this), so these tests
+// never rely on time passing between writes.
 
 TEST(MenuTilemapTest, ExternalChangeDetectedAfterOutOfBandRewrite) {
   auto path = UniqueTempPath("menu_tilemap_extchange", ".tilemap");
@@ -257,6 +264,136 @@ TEST(MenuTilemapTest, ExternalChangeDetectedAfterOutOfBandRewrite) {
   EXPECT_TRUE(*after);
 
   std::filesystem::remove(path);
+}
+
+TEST(MenuTilemapTest, ExternalChangeDetectedWhenSizeAndTimestampAreUnchanged) {
+  namespace fs = std::filesystem;
+  auto path = UniqueTempPath("menu_tilemap_extchange_same_tick", ".tilemap");
+  WriteFile(path, MakeSyntheticMap(2, 0x1111));
+
+  MenuTilemapDocument doc;
+  ASSERT_TRUE(doc.LoadFromFile(path.string()).ok());
+  const auto loaded_stamp = fs::last_write_time(path);
+
+  // Different bytes, same size, then put the timestamp back: exactly what a
+  // rewrite landing in the same timestamp tick looks like to stat().
+  WriteFile(path, MakeSyntheticMap(2, 0x2222));
+  fs::last_write_time(path, loaded_stamp);
+
+  auto after = doc.ExternalChangeDetected();
+  ASSERT_TRUE(after.ok()) << after.status().message();
+  EXPECT_TRUE(*after);
+
+  fs::remove(path);
+}
+
+TEST(MenuTilemapTest, TouchingTheFileWithoutChangingContentIsNotAChange) {
+  namespace fs = std::filesystem;
+  auto path = UniqueTempPath("menu_tilemap_touch", ".tilemap");
+  WriteFile(path, MakeSyntheticMap(2, 0x1111));
+
+  MenuTilemapDocument doc;
+  ASSERT_TRUE(doc.LoadFromFile(path.string()).ok());
+  fs::last_write_time(path,
+                      fs::file_time_type::clock::now() + std::chrono::hours(1));
+
+  auto after = doc.ExternalChangeDetected();
+  ASSERT_TRUE(after.ok());
+  EXPECT_FALSE(*after);
+
+  fs::remove(path);
+}
+
+TEST(MenuTilemapTest, UnsavedInMemoryEditsAreNotExternalChanges) {
+  auto path = UniqueTempPath("menu_tilemap_inmem", ".tilemap");
+  WriteFile(path, MakeSyntheticMap(2, 0x1111));
+
+  MenuTilemapDocument doc;
+  ASSERT_TRUE(doc.LoadFromFile(path.string()).ok());
+  doc.SetCellWord(0, 0, 0x7777);
+  ASSERT_TRUE(doc.dirty());
+
+  auto after = doc.ExternalChangeDetected();
+  ASSERT_TRUE(after.ok());
+  EXPECT_FALSE(*after);
+
+  std::filesystem::remove(path);
+}
+
+TEST(MenuTilemapTest, ExternalChangeBaselineFollowsOurOwnSave) {
+  auto path = UniqueTempPath("menu_tilemap_extchange_save", ".tilemap");
+  WriteFile(path, MakeSyntheticMap(2, 0x1111));
+
+  MenuTilemapDocument doc;
+  ASSERT_TRUE(doc.LoadFromFile(path.string()).ok());
+  doc.SetCellWord(0, 0, 0x7777);
+  ASSERT_TRUE(doc.Save().ok());  // our own write is not an external change
+  auto after_save = doc.ExternalChangeDetected();
+  ASSERT_TRUE(after_save.ok());
+  EXPECT_FALSE(*after_save);
+
+  WriteFile(path, MakeSyntheticMap(2, 0x3333));  // someone else rewrites it
+  auto after_rewrite = doc.ExternalChangeDetected();
+  ASSERT_TRUE(after_rewrite.ok());
+  EXPECT_TRUE(*after_rewrite);
+
+  std::filesystem::remove(path);
+  std::filesystem::remove(path.string() + ".bak");
+}
+
+TEST(MenuTilemapTest, AcknowledgeExternalChangeKeepsEditsAndStopsReporting) {
+  auto path = UniqueTempPath("menu_tilemap_ack", ".tilemap");
+  WriteFile(path, MakeSyntheticMap(2, 0x1111));
+
+  MenuTilemapDocument doc;
+  ASSERT_TRUE(doc.LoadFromFile(path.string()).ok());
+  doc.SetCellWord(0, 0, 0x7777);  // unsaved in-memory edit
+
+  WriteFile(path, MakeSyntheticMap(2, 0x2222));  // external rewrite
+  ASSERT_TRUE(*doc.ExternalChangeDetected());
+
+  ASSERT_TRUE(doc.AcknowledgeExternalChange().ok());
+  auto after = doc.ExternalChangeDetected();
+  ASSERT_TRUE(after.ok());
+  EXPECT_FALSE(*after);  // no more nagging about the same rewrite
+  EXPECT_EQ(doc.GetCellWord(0, 0), 0x7777);  // edit kept
+  EXPECT_TRUE(doc.dirty());  // differs from the file now on disk
+
+  WriteFile(path, MakeSyntheticMap(2, 0x3333));  // a *new* external change
+  EXPECT_TRUE(*doc.ExternalChangeDetected());
+
+  std::filesystem::remove(path);
+}
+
+TEST(MenuTilemapTest, RestoreBytesTracksDirtyAgainstTheFileBaseline) {
+  auto path = UniqueTempPath("menu_tilemap_restore", ".tilemap");
+  auto original = MakeSyntheticMap(2, 0x1111);
+  WriteFile(path, original);
+
+  MenuTilemapDocument doc;
+  ASSERT_TRUE(doc.LoadFromFile(path.string()).ok());
+  doc.SetCellWord(0, 0, 0x7777);
+  auto edited = doc.raw_bytes();
+  ASSERT_TRUE(doc.dirty());
+
+  ASSERT_TRUE(doc.RestoreBytes(original).ok());  // undo back to the file
+  EXPECT_FALSE(doc.dirty());
+  ASSERT_TRUE(doc.RestoreBytes(edited).ok());  // redo
+  EXPECT_TRUE(doc.dirty());
+  EXPECT_EQ(doc.GetCellWord(0, 0), 0x7777);
+
+  // Same-size only; path and backup bookkeeping are untouched.
+  EXPECT_FALSE(doc.RestoreBytes(std::vector<uint8_t>(64, 0)).ok());
+  EXPECT_EQ(doc.path(), path.string());
+  EXPECT_FALSE(doc.has_backup());
+
+  // After a save the file is the new baseline.
+  ASSERT_TRUE(doc.Save().ok());
+  ASSERT_TRUE(doc.RestoreBytes(original).ok());
+  EXPECT_TRUE(doc.dirty());
+
+  std::filesystem::remove(path);
+  std::filesystem::remove(path.string() + ".bak");
 }
 
 // --- Render: known tile/palette/flip ---
