@@ -188,6 +188,20 @@ and/or `--palette-source symbol|hud`); a fully file-backed invocation
 output is an 8-bit indexed PNG (color 0 of each sub-palette is
 transparent, via a `tRNS` chunk), matching the panel's own render.
 
+### Comparing a render with a Mesen screenshot
+
+A live screenshot of the menu is not the raw tilemap at row 0: BG3 is
+vertically scrolled. Oracle's `Menu_ScrollDown` (Menu/menu.asm) ends when
+BG3 V-scroll (`$EA`, the BG3VOFS shadow) reaches `$FF12`, so at rest the
+screen shows the 256-line map starting at `$12` = 18 lines down (the map
+wraps at 256), and the SNES PPU draws BG line `VOFS + 1` on its first
+visible scanline: screenshot row *Y* is tilemap row *Y + 19*. Cropping a
+`gfx-tilemap-render` PNG at rows 19..242 lines up with Mesen's 256x224
+captures of the Items and Masks & Rings pages (a shift search against both
+captures independently peaks at exactly +19, and the static parts of the
+Items frame then match about 98%). The panel itself shows the file as-is,
+starting at row 0.
+
 ## Known limits
 
 - The dynamic-content overlay covers the five mask icons only (see above).
