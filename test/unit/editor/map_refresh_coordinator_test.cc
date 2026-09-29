@@ -1,5 +1,7 @@
 #include "app/editor/overworld/maps/map_refresh_coordinator.h"
+#include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/maps/map_texture_coordinator.h"
+#include "app/editor/overworld/overworld_undo_actions.h"
 
 #include <array>
 #include <memory>
@@ -107,6 +109,56 @@ TEST_F(MapRefreshCoordinatorTest, ChildSelectionRefreshesFromEditedParent) {
     EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x1C) << child;
     EXPECT_EQ(overworld_->overworld_map(child)->area_graphics(), 0x38) << child;
   }
+}
+
+TEST_F(MapRefreshCoordinatorTest,
+       PaletteUndoRefreshesOriginalAreaAfterNavigation) {
+  ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rom_[zelda3::OverworldCustomASMHasBeenApplied] = 3;
+  PopulateSingleMapForRefresh(0x39);
+  for (int child : {0x30, 0x31, 0x38, 0x39}) {
+    auto* map = overworld_->mutable_overworld_map(child);
+    map->SetAsLargeMap(0x30, (child - 0x30) / 8 * 2 + (child - 0x30) % 8);
+    map->set_area_palette(0x0E);
+  }
+  auto* unrelated = overworld_->mutable_overworld_map(0x00);
+  unrelated->SetAsSmallMap(0x00);
+  unrelated->set_area_palette(0x05);
+  MapPropertiesSystem properties(overworld_.get(), &rom_);
+  std::vector<int> palette_targets;
+  properties.SetRefreshCallbacks(
+      [this](int map_id) { coordinator_->RefreshMapProperties(map_id); },
+      nullptr,
+      [&](int map_id) {
+        palette_targets.push_back(map_id);
+        return absl::OkStatus();
+      });
+  const OverworldPropertyEdit before{0x31, OverworldPropertyField::kAreaPalette,
+                                     0, 0x0E};
+  auto after = before;
+  after.value = 0x1C;
+  current_map_ = 0x31;
+  ASSERT_TRUE(properties.ApplyPropertyEditDirect(after).ok());
+  for (int child : {0x30, 0x31, 0x38, 0x39})
+    EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x1C);
+  OverworldMapPropertyEditAction action(
+      before, after,
+      [&](const OverworldPropertyEdit& edit) {
+        return properties.ApplyPropertyEditDirect(edit);
+      },
+      "Palette");
+  current_map_ = 0x00;
+  ASSERT_TRUE(action.Undo().ok());
+  for (int child : {0x30, 0x31, 0x38, 0x39})
+    EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x0E) << child;
+  EXPECT_EQ(unrelated->area_palette(), 0x05);
+  EXPECT_EQ(current_map_, 0x00);
+  ASSERT_TRUE(action.Redo().ok());
+  for (int child : {0x30, 0x31, 0x38, 0x39})
+    EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x1C) << child;
+  EXPECT_EQ(unrelated->area_palette(), 0x05);
+  EXPECT_EQ(current_map_, 0x00);
+  EXPECT_EQ(palette_targets, (std::vector<int>{0x30, 0x30, 0x30}));
 }
 
 // ===========================================================================

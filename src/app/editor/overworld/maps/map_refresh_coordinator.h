@@ -93,7 +93,8 @@ class MapRefreshCoordinator {
   void RefreshMultiAreaMapsSafely(int map_index, zelda3::OverworldMap* map);
 
   /// @brief Refresh map palette after palette property changes
-  absl::Status RefreshMapPalette();
+  // Explicit targets let undo refresh an area without changing selection.
+  absl::Status RefreshMapPalette(int map_id = -1);
 
   /// @brief Force refresh graphics for a specific map
   void ForceRefreshGraphics(int map_index);
@@ -102,7 +103,7 @@ class MapRefreshCoordinator {
   void RefreshSiblingMapGraphics(int map_index, bool include_self = false);
 
   /// @brief Refresh map properties (copy parent properties to siblings)
-  void RefreshMapProperties();
+  void RefreshMapProperties(int map_id = -1);
 
   /// @brief Refresh the tile16 blockset after graphics/palette changes
   absl::Status RefreshTile16Blockset();

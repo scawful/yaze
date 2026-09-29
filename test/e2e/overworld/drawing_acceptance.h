@@ -11,6 +11,7 @@
 #include "app/editor/session_types.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "core/features.h"
+#include "imgui/imgui_internal.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 
@@ -23,7 +24,8 @@ inline void RegisterOverworldDrawingAcceptance(ImGuiTestEngine* engine,
   if (!std::getenv("YAZE_DRAWING_ACCEPTANCE_DIR")) {
     return;
   }
-  for (const char* name : {"LargeDrawing", "WideDrawing", "TallDrawing"}) {
+  for (const char* name : {"LargeDrawing", "WideDrawing", "TallDrawing",
+                           "PaletteUndoAfterNavigation"}) {
     auto* test = IM_REGISTER_TEST(engine, "OverworldAcceptance", name);
     test->UserData = controller;
     test->TestFunc = [](ImGuiTestContext* ctx) {
@@ -82,6 +84,72 @@ inline void RegisterOverworldDrawingAcceptance(ImGuiTestEngine* engine,
                         : name == "TallDrawing" ? 0x38
                                                 : 0x39);
       ctx->Yield(10);
+      if (name == "PaletteUndoAfterNavigation") {
+        const int original =
+            editor->overworld().overworld_map(0x30)->area_palette();
+        const int changed = original ^ 1;
+        auto* canvas_window = ImGui::FindWindowByName(window.c_str());
+        IM_CHECK(canvas_window != nullptr);
+        // Match the real quick-properties field's ID stack, including the area.
+        ImGuiID field = ImGui::GetIDWithSeed("OverworldAppearance", nullptr,
+                                             canvas_window->ID);
+        field = ImGui::GetIDWithSeed(0x30, field);
+        field = ImGui::GetIDWithSeed("Palette", nullptr, field);
+        field = ImGui::GetIDWithSeed("##Value", nullptr, field);
+        // Replace one selected digit: a single edit, with no intermediate hex value.
+        ctx->ItemClick(field);
+        ctx->KeyPress(ImGuiKey_End);
+        ctx->KeyPress(ImGuiMod_Shift | ImGuiKey_LeftArrow);
+        const char digit[] = {"0123456789ABCDEF"[changed & 0x0F], 0};
+        ctx->KeyChars(digit);
+        ctx->KeyPress(ImGuiKey_Enter);
+        ctx->Yield(3);
+        for (int map_id : {0x30, 0x31, 0x38, 0x39})
+          IM_CHECK_EQ(editor->overworld().overworld_map(map_id)->area_palette(),
+                      changed);
+        const auto changed_palette = editor->map_bitmap(0x30).palette();
+        // Keep the pointer off the canvas so cursor-follow cannot undo the jump.
+        ctx->MouseMoveToPos(
+            ImVec2(canvas_window->Pos.x + 8, canvas_window->Pos.y + 8));
+        editor->JumpToMap(0x00);
+        ctx->Yield(10);
+        IM_CHECK_EQ(editor->current_map_id(), 0x00);
+        const auto other_id =
+            editor->overworld().overworld_map(0)->area_palette();
+        const auto other_palette = editor->map_bitmap(0).palette();
+        const auto other_atlas = editor->tile16_blockset().atlas.palette();
+        IM_CHECK(editor->Undo().ok());
+        ctx->Yield(3);
+        IM_CHECK_EQ(editor->current_map_id(), 0x00);
+        for (int map_id : {0x30, 0x31, 0x38, 0x39}) {
+          const auto* map = editor->overworld().overworld_map(map_id);
+          IM_CHECK_EQ(map->area_palette(), original);
+          IM_CHECK(editor->map_bitmap(map_id).palette() ==
+                   map->current_palette());
+          IM_CHECK(editor->map_bitmap(map_id).palette() != changed_palette);
+        }
+        IM_CHECK_EQ(editor->overworld().overworld_map(0)->area_palette(),
+                    other_id);
+        IM_CHECK(editor->map_bitmap(0).palette() == other_palette);
+        IM_CHECK(editor->tile16_blockset().atlas.palette() == other_atlas);
+        IM_CHECK(editor->Redo().ok());
+        ctx->Yield(3);
+        for (int map_id : {0x30, 0x31, 0x38, 0x39}) {
+          IM_CHECK_EQ(editor->overworld().overworld_map(map_id)->area_palette(),
+                      changed);
+          IM_CHECK(editor->map_bitmap(map_id).palette() == changed_palette);
+        }
+        IM_CHECK_EQ(editor->current_map_id(), 0x00);
+        IM_CHECK_EQ(editor->overworld().overworld_map(0)->area_palette(),
+                    other_id);
+        IM_CHECK(editor->map_bitmap(0).palette() == other_palette);
+        IM_CHECK(editor->tile16_blockset().atlas.palette() == other_atlas);
+        IM_CHECK(read(source) == protected_bytes);
+        IM_CHECK(read(input) == protected_bytes);
+        ctx->LogInfo(
+            "Palette UI edit, unrelated-area navigation, undo/redo passed");
+        return;
+      }
       auto& canvas = editor->ow_map_canvas();
       const auto screen = [&](int x, int y) {
         const auto origin = canvas.zero_point();

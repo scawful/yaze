@@ -199,9 +199,11 @@ void OverworldEditor::Initialize() {
 
   // Set up refresh callbacks for MapPropertiesSystem
   map_properties_system_->SetRefreshCallbacks(
-      [this]() { this->RefreshMapProperties(); },
+      [this](int map_id) { this->RefreshMapProperties(map_id); },
       [this]() { this->RefreshOverworldMap(); },
-      [this]() -> absl::Status { return this->RefreshMapPalette(); },
+      [this](int map_id) -> absl::Status {
+        return this->RefreshMapPalette(map_id);
+      },
       [this]() -> absl::Status { return this->RefreshTile16Blockset(); },
       [this](int map_index) { this->ForceRefreshGraphics(map_index); });
   map_properties_system_->SetMapSelectionCallback(

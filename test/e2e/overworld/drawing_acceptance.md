@@ -22,13 +22,14 @@ export YAZE_DRAWING_ACCEPTANCE_DIR=/absolute/path/to/new-acceptance-directory
 /path/to/Verification.app/Contents/MacOS/yaze --ui --normal OverworldAcceptance
 ```
 
-Expect `Test Results: 3/3 passed`. To isolate a case, use `LargeDrawing`,
-`WideDrawing`, or `TallDrawing` as the positional filter and a fresh output
+Expect `Test Results: 4/4 passed`. To isolate a case, use `LargeDrawing`,
+`WideDrawing`, `TallDrawing`, or `PaletteUndoAfterNavigation` as the positional
+filter and a fresh output
 folder. The engine matches category and test name separately; a
 `OverworldAcceptance/LargeDrawing` filter does not select this test. A `0/0`
 result is not acceptance.
 
-Each case copies the source, configures area `$30` as Large, Wide, or Tall,
+The three drawing cases copy the source, configure area `$30` as Large, Wide, or Tall,
 centers a child map, and captures a 2x3 brush through right-button mouse input.
 The Large brush spans `$30/$31/$38/$39`; Wide and Tall cross their respective
 horizontal and vertical boundaries. Wide selects a nonuniform patch so the
@@ -45,8 +46,15 @@ Assertions verify:
   world tile matrix and area size through a fresh ROM/overworld model.
 - Source and copied input ROM bytes remain unchanged.
 
-The test runs native canvas input and the real editor command handlers. Saving
+`PaletteUndoAfterNavigation` replaces one hex digit in the visible Palette field
+for area `$30` (one edit, without intermediate typed values),
+navigates to unrelated map `$00`, and uses editor Undo/Redo. It checks all four
+shared screens, their bitmap palettes, unchanged selection, and the unrelated
+map and Tile16 atlas palettes. Both input ROMs remain unchanged. This verifies
+palette data supplied to the renderer, not a GPU screenshot comparison.
+
+The tests run native canvas input and the real editor command handlers. Saving
 uses the editor serializer and explicit destination API; it does not drive the
 native Save As dialog. Reopen uses a fresh data model rather than a new editor
 window. These tests do not assert GPU preview pixels, project raw-graphics
-manifest overlays, palette undo after selecting another area, or gameplay.
+manifest overlays or gameplay.

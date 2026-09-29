@@ -788,7 +788,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
     }
     case OverworldPropertyField::kAreaGraphics:
       map->set_area_graphics(static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       if (maps_bmp_) {
         (*maps_bmp_)[map_id].set_modified(true);
       }
@@ -800,31 +800,31 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       break;
     case OverworldPropertyField::kAreaPalette:
       map->set_area_palette(static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
-      RefreshMapPalette();
+      RefreshMapProperties(map_id);
+      RefreshMapPalette(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kMainPalette:
       map->set_main_palette(static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
-      RefreshMapPalette();
+      RefreshMapProperties(map_id);
+      RefreshMapPalette(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSpriteGraphics:
       map->set_sprite_graphics(game_state, static_cast<uint8_t>(edit.value));
       ForceRefreshGraphics(map_id);
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSpritePalette:
       map->set_sprite_palette(game_state, static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kAnimatedGraphics:
       map->set_animated_gfx(static_cast<uint8_t>(edit.value));
       ForceRefreshGraphics(map_id);
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshTile16Blockset();
       RefreshOverworldMap();
       break;
@@ -835,14 +835,14 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       map->LoadAreaGraphics();
       ForceRefreshGraphics(map_id);
       RefreshSiblingMapGraphics(map_id);
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshTile16Blockset();
       RefreshOverworldMap();
       break;
     }
     case OverworldPropertyField::kMessageId:
       map->set_message_id(static_cast<uint16_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kMusic: {
@@ -850,17 +850,17 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       *map->mutable_area_music(music_state) = static_cast<uint8_t>(edit.value);
       WriteRomByteIfValid(rom_, MusicRomAddressForMapState(map_id, music_state),
                           static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       break;
     }
     case OverworldPropertyField::kMosaic:
       *map->mutable_mosaic() = edit.value != 0;
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kMosaicExpanded:
       map->set_mosaic_expanded(std::clamp(edit.index, 0, 3), edit.value != 0);
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kAreaSpecificBgColor:
@@ -868,7 +868,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       WriteRomWordIfValid(
           rom_, zelda3::OverworldCustomAreaSpecificBGPalette + (map_id * 2),
           static_cast<uint16_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSubscreenOverlay:
@@ -876,7 +876,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       WriteRomWordIfValid(
           rom_, zelda3::OverworldCustomSubscreenOverlayArray + (map_id * 2),
           static_cast<uint16_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
   }
@@ -885,9 +885,9 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
   return absl::OkStatus();
 }
 
-void MapPropertiesSystem::RefreshMapProperties() {
+void MapPropertiesSystem::RefreshMapProperties(int map_id) {
   if (refresh_map_properties_) {
-    refresh_map_properties_();
+    refresh_map_properties_(map_id);
   }
 }
 
@@ -897,9 +897,9 @@ void MapPropertiesSystem::RefreshOverworldMap() {
   }
 }
 
-absl::Status MapPropertiesSystem::RefreshMapPalette() {
+absl::Status MapPropertiesSystem::RefreshMapPalette(int map_id) {
   if (refresh_map_palette_) {
-    return refresh_map_palette_();
+    return refresh_map_palette_(map_id);
   }
   return absl::OkStatus();
 }
