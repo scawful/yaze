@@ -886,15 +886,19 @@ void OverworldMap::LoadAreaGraphics() {
   LoadAreaGraphicsBlocksets();
   LoadDeathMountainGFX();
 
-  // v3 custom tile GFX groups: override main sheets when enabled
+  // v3 custom tile GFX groups replace all eight sheets when enabled. Like the
+  // game's full load (InitTilesetsLongCalls), $FF selects the area world's
+  // DefaultGFXGroups row and any other value, $00 included, is that sheet.
   if (OverworldVersionHelper::SupportsCustomTileGFX(
           OverworldVersionHelper::GetVersion(*rom_)) &&
       (*rom_)[OverworldCustomTileGFXGroupEnabled] != 0x00) {
     const auto area_props = area_render_properties();
+    const int world_offset = (parent_ & 0xC0) >> 3;
     for (int i = 0; i < 8; i++) {
       uint8_t custom_sheet = area_props.custom_gfx_ids[i];
-      if (custom_sheet == 0x00 || custom_sheet == 0xFF) {
-        continue;  // 0/FF = don't load/override this slot
+      if (custom_sheet == 0xFF) {
+        custom_sheet =
+            (*rom_)[OverworldCustomDefaultGFXGroups + world_offset + i];
       }
       static_graphics_[i] = custom_sheet;
     }
