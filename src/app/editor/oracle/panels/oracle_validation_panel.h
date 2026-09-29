@@ -17,7 +17,8 @@ namespace yaze::editor {
 class OracleValidationPanel : public WindowContent {
  public:
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Validation");
   }
   ~OracleValidationPanel() override;
 
