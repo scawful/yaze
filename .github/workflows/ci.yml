@@ -34,6 +34,7 @@ on:
       - 'scripts/release/**'
       - 'scripts/agents/**'
       - 'scripts/audit_test_registration.py'
+      - 'scripts/audit_panel_policies.py'
       - 'scripts/build_cleaner.py'
       - 'ext/imgui'
   pull_request:
@@ -52,6 +53,7 @@ on:
       - 'scripts/release/**'
       - 'scripts/agents/**'
       - 'scripts/audit_test_registration.py'
+      - 'scripts/audit_panel_policies.py'
       - 'scripts/build_cleaner.py'
       - 'ext/imgui'
   workflow_dispatch:

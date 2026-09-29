@@ -100,6 +100,19 @@ for entry in "${changed_editor_cc[@]}"; do
   fi
 done
 
+# Panel admission: every registered WindowContent declares a presentation policy
+# (role + host), so a new panel does not silently become a first-class window.
+# The runtime half of this rule is test/unit/editor/panel_admission_test.cc.
+repo_root="$(git rev-parse --show-toplevel)"
+if command -v python3 >/dev/null 2>&1; then
+  if ! panel_audit_output="$(python3 "$repo_root/scripts/audit_panel_policies.py" 2>&1)"; then
+    failures+=("panel admission failed (scripts/audit_panel_policies.py):
+$panel_audit_output")
+  fi
+else
+  echo "python3 not found; skipping panel admission audit" >&2
+fi
+
 if (( ${#failures[@]} > 0 )); then
   echo "Editor guardrails failed:"
   for msg in "${failures[@]}"; do
