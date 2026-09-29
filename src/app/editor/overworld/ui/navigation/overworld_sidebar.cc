@@ -113,6 +113,88 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
   ImGui::EndChild();
 }
 
+void OverworldSidebar::DrawQuickProperties(int current_map,
+                                           bool current_map_lock,
+                                           project::YazeProject* project) {
+  if (!overworld_ || !overworld_->is_loaded() || !rom_ ||
+      !map_properties_system_) {
+    return;
+  }
+  const auto* selected = overworld_->overworld_map(current_map);
+  if (!selected) {
+    return;
+  }
+  project_ = project;
+  const int parent = selected->parent();
+  const int property_map = parent >= 0 && parent < zelda3::kNumOverworldMaps &&
+                                   overworld_->overworld_map(parent)
+                               ? parent
+                               : current_map;
+  const auto* map = overworld_->overworld_map(property_map);
+  if (edit_error_map_ != property_map) {
+    edit_error_map_ = property_map;
+    edit_error_.clear();
+  }
+
+  ImGui::PushID("OverworldAppearance");
+  // Include the target in widget IDs: an unfinished text edit must not migrate
+  // to another area when cursor-follow changes the current map.
+  ImGui::PushID(property_map);
+  ImGui::AlignTextToFramePadding();
+  ImGui::Text("Area %02X%s", property_map,
+              current_map_lock ? " (pinned)" : " (follow)");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Appearance edits apply to area %02X and its shared screens.\n"
+        "Unpinned controls follow the cursor over the canvas.\n"
+        "Pin the map to keep editing this area while navigating.",
+        property_map);
+  }
+  const float row_start = ImGui::GetCursorPosX();
+  const float right = row_start + ImGui::GetContentRegionAvail().x;
+  const float input_width = ImGui::GetFontSize() * 5.0f;
+  const auto field = [&](const char* label, const char* tip,
+                         OverworldPropertyField kind, uint8_t value) {
+    const float width = ImGui::CalcTextSize(label).x + input_width +
+                        ImGui::GetStyle().ItemInnerSpacing.x;
+    if (ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x +
+            ImGui::GetScrollX() + ImGui::GetStyle().ItemSpacing.x + width <=
+        right) {
+      ImGui::SameLine();
+    }
+    ImGui::BeginGroup();
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(label);
+    ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+    ImGui::PushID(label);
+    if (gui::InputHexByte("##Value", &value, input_width, /*no_step=*/true)) {
+      Apply(kind, 0, property_map, value);
+    }
+    ImGui::PopID();
+    ImGui::EndGroup();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "%s\nHexadecimal ID. Changes refresh the canvas and "
+          "Tile16 preview; undo restores the previous value.",
+          tip);
+    }
+  };
+  field("Graphics", "Tile graphics group assigned to this area",
+        OverworldPropertyField::kAreaGraphics, map->area_graphics());
+  field("Palette", "Area palette set assigned to this area",
+        OverworldPropertyField::kAreaPalette, map->area_palette());
+  const auto version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
+  if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(version)) {
+    field("Main palette", "Extended main palette assigned to this area",
+          OverworldPropertyField::kMainPalette, map->main_palette());
+  }
+  if (!edit_error_.empty()) {
+    ImGui::TextWrapped("%s", edit_error_.c_str());
+  }
+  ImGui::PopID();
+  ImGui::PopID();
+}
+
 void OverworldSidebar::DrawHeader(int current_world, int current_map,
                                   int property_map, bool& current_map_lock,
                                   int game_state) {
