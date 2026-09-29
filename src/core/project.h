@@ -226,6 +226,9 @@ struct YazeProject {
   std::string sprite_source_root;
   std::vector<SpriteAssetBinding> sprite_assets;
 
+  // Optional game-independent terrain labels, stored outside the ROM.
+  std::string terrain_catalog_file;
+
   // Optional custom object file mapping (object_id -> filenames per subtype).
   std::unordered_map<int, std::vector<std::string>> custom_object_files;
 

@@ -1044,7 +1044,7 @@ absl::Status OverworldMap::LoadPalette() {
     return absl::OkStatus();
   }
 
-  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  uint8_t asm_version = OverworldVersionHelper::GetAsmVersion(*rom_);
   auto version = OverworldVersionHelper::GetVersion(*rom_);
 
   int previous_pal_id = 0;

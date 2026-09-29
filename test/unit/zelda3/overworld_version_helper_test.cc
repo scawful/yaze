@@ -52,6 +52,16 @@ void PopulateUniqueTile32Maps(OverworldMapTiles* maps,
 
 }  // namespace
 
+TEST(OverworldReadOnlyTest, VanillaDiggableDefaultsDoNotReadExpandedStorage) {
+  Rom rom;
+  std::vector<uint8_t> bytes(1024 * 1024, 0);
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  Overworld ow(&rom);
+  ASSERT_TRUE(ow.LoadDiggableTiles().ok());
+  EXPECT_GT(ow.diggable_tiles().GetDiggableCount(), 0);
+  EXPECT_EQ(rom.vector(), bytes);
+}
+
 TEST(OverworldVersionHelperTest, GetVersion_VanillaSmallRom) {
   Rom rom;
   std::vector<uint8_t> data(1024 * 1024, 0);  // 1MB ROM

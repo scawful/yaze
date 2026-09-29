@@ -47,6 +47,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/oracle_menu_commands.cc
   cli/handlers/game/oracle_smoke_check_commands.cc
   cli/handlers/game/overworld_commands.cc
+  cli/handlers/game/terrain_catalog_commands.cc
   cli/handlers/game/overworld_graph_commands.cc
   cli/handlers/game/overworld_inspect.cc
   cli/handlers/game/overworld_render_commands.cc
