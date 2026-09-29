@@ -313,6 +313,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
+    unit/rom/rom_copier_header_test.cc
     unit/rom/fresh_rom_fixture_output_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc

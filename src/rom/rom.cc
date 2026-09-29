@@ -46,26 +46,43 @@ namespace yaze {
 namespace {
 
 // ============================================================================
-// ROM Structure Constants
+// Copier Header Detection and Removal
 // ============================================================================
 
-/// Standard SNES ROM size for The Legend of Zelda: A Link to the Past (1MB)
-constexpr size_t kBaseRomSize = 1048576;
+/// SNES ROM images are multiples of 32 KB; a copier header adds 0x200.
+constexpr size_t kCopierHeaderAlignment = 0x8000;
+constexpr size_t kLoRomInternalHeader = 0x7FC0;
+constexpr size_t kHiRomInternalHeader = 0xFFC0;
 
-/// Size of the optional SMC/SFC copier header that some ROM dumps include.
-constexpr size_t kHeaderSize = 0x200;  // 512 bytes
-
-// ============================================================================
-// SMC Header Detection and Removal
-// ============================================================================
-
-void MaybeStripSmcHeader(std::vector<uint8_t>& rom_data, unsigned long& size) {
-  if (size % kBaseRomSize == kHeaderSize && size >= kHeaderSize &&
-      rom_data.size() >= kHeaderSize) {
-    rom_data.erase(rom_data.begin(), rom_data.begin() + kHeaderSize);
-    size -= kHeaderSize;
-    LOG_INFO("Rom", "Stripped SMC header from ROM (new size: %lu)", size);
+// A plausible SNES internal header: map mode byte of the form 0x2X and a
+// checksum/complement pair that XORs to 0xFFFF.
+bool HasInternalHeaderAt(const uint8_t* data, size_t size, size_t offset) {
+  if (offset + 0x20 > size) {
+    return false;
   }
+  const uint8_t map_mode = data[offset + 0x15];
+  const uint16_t complement = data[offset + 0x1C] | (data[offset + 0x1D] << 8);
+  const uint16_t checksum = data[offset + 0x1E] | (data[offset + 0x1F] << 8);
+  return (map_mode & 0xE0) == 0x20 && (complement ^ checksum) == 0xFFFF;
+}
+
+bool HasInternalHeader(const uint8_t* data, size_t size, size_t base) {
+  return HasInternalHeaderAt(data, size, base + kLoRomInternalHeader) ||
+         HasInternalHeaderAt(data, size, base + kHiRomInternalHeader);
+}
+
+void MaybeStripCopierHeader(std::vector<uint8_t>& rom_data,
+                            std::vector<uint8_t>& header,
+                            CopierHeaderReason& reason) {
+  header.clear();
+  reason = DetectCopierHeader(rom_data.data(), rom_data.size());
+  if (reason == CopierHeaderReason::kNone) {
+    return;
+  }
+  header.assign(rom_data.begin(), rom_data.begin() + kCopierHeaderSize);
+  rom_data.erase(rom_data.begin(), rom_data.begin() + kCopierHeaderSize);
+  LOG_INFO("Rom", "Stripped copier header (%s); ROM size 0x%zX",
+           CopierHeaderReasonName(reason), rom_data.size());
 }
 
 std::string MakeSafeTimestamp(std::time_t now_c) {
@@ -358,6 +375,42 @@ void BestEffortFsyncParentDir(const std::filesystem::path& file_path) {
 
 }  // namespace
 
+CopierHeaderReason DetectCopierHeader(const uint8_t* data, size_t size) {
+  if (data == nullptr || size <= kCopierHeaderSize) {
+    return CopierHeaderReason::kNone;
+  }
+  const size_t remainder = size % kCopierHeaderAlignment;
+  if (remainder == 0) {
+    return CopierHeaderReason::kNone;
+  }
+  const bool header_in_place = HasInternalHeader(data, size, 0);
+  const bool header_after_skip =
+      HasInternalHeader(data, size, kCopierHeaderSize);
+  if (remainder == kCopierHeaderSize) {
+    // Standard layout. Still keep a headerless image with 0x200 trailing
+    // bytes, recognizable by an internal header valid only in place.
+    return header_in_place && !header_after_skip
+               ? CopierHeaderReason::kNone
+               : CopierHeaderReason::kSizeAlignment;
+  }
+  // Nonstandard sizes (trailing data after the ROM) need positive evidence.
+  return header_after_skip && !header_in_place
+             ? CopierHeaderReason::kInternalHeaderOffset
+             : CopierHeaderReason::kNone;
+}
+
+const char* CopierHeaderReasonName(CopierHeaderReason reason) {
+  switch (reason) {
+    case CopierHeaderReason::kNone:
+      return "none";
+    case CopierHeaderReason::kSizeAlignment:
+      return "size_alignment";
+    case CopierHeaderReason::kInternalHeaderOffset:
+      return "internal_header_offset";
+  }
+  return "none";
+}
+
 void Rom::SetStagingFailureForTesting(bool fail) {
   g_fail_rom_staging_for_testing.store(fail, std::memory_order_relaxed);
 }
@@ -368,6 +421,8 @@ Rom::Rom(const Rom& other)
       filename_(other.filename_),
       short_name_(other.short_name_),
       rom_data_(other.rom_data_),
+      copier_header_(other.copier_header_),
+      copier_header_reason_(other.copier_header_reason_),
       resource_label_manager_(other.resource_label_manager_),
       dirty_(other.dirty_),
       object_tile_revision_(other.object_tile_revision_) {
@@ -386,6 +441,8 @@ Rom& Rom::operator=(const Rom& other) {
   filename_ = other.filename_;
   short_name_ = other.short_name_;
   rom_data_ = other.rom_data_;
+  copier_header_ = other.copier_header_;
+  copier_header_reason_ = other.copier_header_reason_;
   resource_label_manager_ = other.resource_label_manager_;
   dirty_ = other.dirty_;
 
@@ -474,8 +531,10 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
 
   file.close();
 
+  copier_header_.clear();
+  copier_header_reason_ = CopierHeaderReason::kNone;
   if (options.strip_header) {
-    MaybeStripSmcHeader(rom_data_, size_);
+    MaybeStripCopierHeader(rom_data_, copier_header_, copier_header_reason_);
   }
   size_ = rom_data_.size();
 
@@ -521,10 +580,11 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
         "Could not load ROM: parameter `data` is empty.");
   }
   rom_data_ = data;
-  size_ = data.size();
 
+  copier_header_.clear();
+  copier_header_reason_ = CopierHeaderReason::kNone;
   if (options.strip_header) {
-    MaybeStripSmcHeader(rom_data_, size_);
+    MaybeStripCopierHeader(rom_data_, copier_header_, copier_header_reason_);
   }
   size_ = rom_data_.size();
 
@@ -609,11 +669,23 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     }
   }
 
+  // A copier header stripped at load goes back in front of the data, so the
+  // file keeps its layout (dropping it would shift every file offset).
+  std::vector<uint8_t> headered;
+  if (!copier_header_.empty()) {
+    headered.reserve(copier_header_.size() + rom_data_.size());
+    headered.insert(headered.end(), copier_header_.begin(),
+                    copier_header_.end());
+    headered.insert(headered.end(), rom_data_.begin(), rom_data_.end());
+  }
+  const std::vector<uint8_t>& file_bytes =
+      copier_header_.empty() ? rom_data_ : headered;
+
   // Write only through an exclusively created staging handle, then replace
   // the destination. A pre-existing .tmp file/link must never be truncated.
   const std::filesystem::path target_path(filename);
   ASSIGN_OR_RETURN(const std::filesystem::path temp_path,
-                   WriteExclusiveRomTemp(target_path, rom_data_));
+                   WriteExclusiveRomTemp(target_path, file_bytes));
 
   std::error_code rename_ec;
   std::filesystem::rename(temp_path, target_path, rename_ec);
