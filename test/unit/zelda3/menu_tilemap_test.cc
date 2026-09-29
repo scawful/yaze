@@ -2,9 +2,13 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdio>
+#include <filesystem>
 #include <fstream>
+#include <string>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "unique_temp_path.h"
 #include "zelda3/screen/menu_tilemap_sources.h"
 
@@ -389,6 +393,237 @@ TEST(MenuTilemapTest, ResolveMenuChrFromFileRejectsSizeNotMultipleOf16) {
   auto result = zelda3::ResolveMenuChrFromFile(path.string());
   EXPECT_FALSE(result.ok());
   std::filesystem::remove(path);
+}
+
+// --- menu_palette.asm source (Hexto555 / ParseMenuPaletteAsmText / ...) ---
+
+// Synthetic asm in the same shape as Oracle's Menu/menu_palette.asm: CRLF
+// line endings, a hexto555 function definition and `org ... : dw
+// hexto555(..), hexto555(..)` patch lines *before* the label (which must be
+// ignored), comments, blank lines, and a table that is 31 entries long.
+std::string SyntheticPaletteAsm(const std::string& eol = "\r\n") {
+  std::string asm_text;
+  asm_text += "; Menu Palette" + eol;
+  asm_text += eol;
+  asm_text +=
+      "function hexto555(h) = ((((h&$FF)/8)<<10)|(((h>>8&$FF)/8)<<5)|"
+      "(((h>>16&$FF)/8)<<0))" +
+      eol;
+  asm_text += eol;
+  asm_text += "pushpc" + eol;
+  asm_text += "org $1BD662 : dw hexto555($112233), hexto555($445566)" + eol;
+  asm_text += "pullpc" + eol;
+  asm_text += eol;
+  asm_text += "Menu_Palette:" + eol;
+  for (int i = 0; i < 31; ++i) {
+    // Channels chosen so every entry is distinct and independent of the
+    // production Hexto555(): r = i*8, g = i*4, b = i*2 (all < 256).
+    char line[96];
+    std::snprintf(line, sizeof(line), "  dw hexto555($%02X%02X%02X)%s", i * 8,
+                  i * 4, i * 2, (i % 4 == 3) ? " ; transparent" : "");
+    asm_text += std::string(line) + eol;
+  }
+  return asm_text;
+}
+
+uint16_t ExpectedSyntheticWord(int i) {
+  const int r = i * 8, g = i * 4, b = i * 2;
+  return static_cast<uint16_t>(((b >> 3) << 10) | ((g >> 3) << 5) | (r >> 3));
+}
+
+TEST(MenuTilemapTest, Hexto555MatchesHandComputedBgr555) {
+  // $814f16: R=0x81=129 -> 16, G=0x4f=79 -> 9, B=0x16=22 -> 2
+  //   -> (2<<10) | (9<<5) | 16 = 2048 + 288 + 16 = 0x0930
+  EXPECT_EQ(zelda3::Hexto555(0x814f16), 0x0930);
+  // $552903: R=85 -> 10, G=41 -> 5, B=3 -> 0 -> 0 | 160 | 10 = 0x00AA
+  EXPECT_EQ(zelda3::Hexto555(0x552903), 0x00AA);
+  // $f9f9f9: every channel 249/8 = 31 -> 0x7FFF
+  EXPECT_EQ(zelda3::Hexto555(0xf9f9f9), 0x7FFF);
+  EXPECT_EQ(zelda3::Hexto555(0x000000), 0x0000);
+  // Channel order: $RRGGBB puts R in the LOW 5 bits, B in the high 5.
+  EXPECT_EQ(zelda3::Hexto555(0xff0000), 0x001F);
+  EXPECT_EQ(zelda3::Hexto555(0x00ff00), 0x03E0);
+  EXPECT_EQ(zelda3::Hexto555(0x0000ff), 0x7C00);
+  // Floor division by 8: 7 -> 0, 8 -> 1.
+  EXPECT_EQ(zelda3::Hexto555(0x070707), 0x0000);
+  EXPECT_EQ(zelda3::Hexto555(0x080808), 0x0421);
+}
+
+TEST(MenuTilemapTest, ParseMenuPaletteAsmTextReadsCrlfTableAndIgnoresPatches) {
+  auto words = zelda3::ParseMenuPaletteAsmText(SyntheticPaletteAsm());
+  ASSERT_TRUE(words.ok()) << words.status().message();
+  ASSERT_EQ(words->size(), 31u);
+  for (int i = 0; i < 31; ++i) {
+    EXPECT_EQ((*words)[i], ExpectedSyntheticWord(i)) << "entry " << i;
+  }
+}
+
+TEST(MenuTilemapTest, ParseMenuPaletteAsmTextWorksWithLfEndings) {
+  auto words = zelda3::ParseMenuPaletteAsmText(SyntheticPaletteAsm("\n"));
+  ASSERT_TRUE(words.ok()) << words.status().message();
+  EXPECT_EQ(words->size(), 31u);
+}
+
+TEST(MenuTilemapTest, ParseMenuPaletteAsmTextAcceptsPlainWordsAndLists) {
+  std::string text =
+      "Menu_Palette: dw $0930, hexto555($552903) ; label + directive\n"
+      "\n"
+      "  ; a comment-only line\n"
+      "  DW 0x7fff,   $0001 ,0\n";  // upper-case DW, mixed spacing, decimal 0
+  for (int i = 0; i < 26; ++i)
+    text += "  dw $0000\n";
+  text += "  RTS\n";       // non-dw line ends the table
+  text += "  dw $FFFF\n";  // must not be read
+  auto words = zelda3::ParseMenuPaletteAsmText(text);
+  ASSERT_TRUE(words.ok()) << words.status().message();
+  ASSERT_EQ(words->size(), 31u);  // 2 + 3 + 26 entries
+  EXPECT_EQ((*words)[0], 0x0930);
+  EXPECT_EQ((*words)[1], 0x00AA);  // hexto555($552903), hand-computed above
+  EXPECT_EQ((*words)[2], 0x7FFF);
+  EXPECT_EQ((*words)[3], 0x0001);
+  EXPECT_EQ((*words)[4], 0x0000);
+}
+
+TEST(MenuTilemapTest, ParseMenuPaletteAsmTextStopsAtNextLabelAndCapsAt32) {
+  std::string text = "Menu_Palette:\n";
+  for (int i = 0; i < 40; ++i)
+    text += "  dw $0001\n";
+  auto capped = zelda3::ParseMenuPaletteAsmText(text);
+  ASSERT_TRUE(capped.ok());
+  EXPECT_EQ(capped->size(), 32u);
+
+  std::string short_text = "Menu_Palette:\n";
+  for (int i = 0; i < 31; ++i)
+    short_text += "  dw $0002\n";
+  short_text += "Other_Label:\n  dw $0003\n";
+  auto stopped = zelda3::ParseMenuPaletteAsmText(short_text);
+  ASSERT_TRUE(stopped.ok());
+  EXPECT_EQ(stopped->size(), 31u);
+}
+
+TEST(MenuTilemapTest, ParseMenuPaletteAsmTextIgnoresSimilarLabels) {
+  std::string text = "Menu_Palette_Old:\n  dw $1111\nMenu_Palette:\n";
+  for (int i = 0; i < 31; ++i)
+    text += "  dw $2222\n";
+  auto words = zelda3::ParseMenuPaletteAsmText(text);
+  ASSERT_TRUE(words.ok()) << words.status().message();
+  EXPECT_EQ((*words)[0], 0x2222);  // the exact label's table, not _Old's
+}
+
+TEST(MenuTilemapTest, ParseMenuPaletteAsmTextReportsLineNumbersOnErrors) {
+  // Bad hexto555 argument on line 5 (1-based).
+  std::string text =
+      "; header\n"
+      "\n"
+      "Menu_Palette:\n"
+      "  dw hexto555($112233)\n"
+      "  dw hexto555($GG0000)\n"
+      "  dw hexto555($445566)\n";
+  auto bad_arg = zelda3::ParseMenuPaletteAsmText(text);
+  ASSERT_FALSE(bad_arg.ok());
+  EXPECT_TRUE(absl::IsInvalidArgument(bad_arg.status()));
+  EXPECT_NE(bad_arg.status().message().find("line 5"), std::string::npos)
+      << bad_arg.status().message();
+
+  // Unsupported operand on line 4.
+  auto bad_op = zelda3::ParseMenuPaletteAsmText(
+      "Menu_Palette:\n  dw $1234\n  dw $5678\n  dw some_label\n");
+  ASSERT_FALSE(bad_op.ok());
+  EXPECT_NE(bad_op.status().message().find("line 4"), std::string::npos)
+      << bad_op.status().message();
+
+  // Word too large for 16 bits, line 2.
+  auto too_big =
+      zelda3::ParseMenuPaletteAsmText("Menu_Palette:\n  dw $12345\n");
+  ASSERT_FALSE(too_big.ok());
+  EXPECT_NE(too_big.status().message().find("line 2"), std::string::npos);
+
+  // Trailing comma -> empty operand, line 2.
+  auto comma = zelda3::ParseMenuPaletteAsmText("Menu_Palette:\n  dw $0001,\n");
+  ASSERT_FALSE(comma.ok());
+  EXPECT_NE(comma.status().message().find("line 2"), std::string::npos);
+}
+
+TEST(MenuTilemapTest, ParseMenuPaletteAsmTextRejectsShortTableAndMissingLabel) {
+  std::string text = "Menu_Palette:\n";
+  for (int i = 0; i < 10; ++i)
+    text += "  dw $0000\n";
+  auto short_table = zelda3::ParseMenuPaletteAsmText(text);
+  ASSERT_FALSE(short_table.ok());
+  EXPECT_NE(short_table.status().message().find("line 11"), std::string::npos)
+      << short_table.status().message();  // last dw is on line 11
+  EXPECT_NE(short_table.status().message().find("10"), std::string::npos);
+
+  auto missing = zelda3::ParseMenuPaletteAsmText("nothing here\n");
+  ASSERT_FALSE(missing.ok());
+  EXPECT_TRUE(absl::IsNotFound(missing.status()));
+}
+
+TEST(MenuTilemapTest, ResolveMenuPaletteFromAsmAppliesPlusOneCgramOffset) {
+  auto path = UniqueTempPath("menu_palette", ".asm");
+  {
+    std::string text = SyntheticPaletteAsm();
+    std::ofstream out(path, std::ios::binary);
+    out.write(text.data(), static_cast<std::streamsize>(text.size()));
+  }
+  // The symbol-file spelling of the label works too (prefix is stripped).
+  auto colors =
+      zelda3::ResolveMenuPaletteFromAsm(path.string(), "Oracle_Menu_Palette");
+  ASSERT_TRUE(colors.ok()) << colors.status().message();
+  // Sub-palette p, color c (c=1..3) = table[p*4 + c - 1], same mapping as
+  // the ROM-symbol and CGRAM-dump sources.
+  for (int p = 0; p < 8; ++p) {
+    for (int c = 1; c <= 3; ++c) {
+      int table_index = p * 4 + c - 1;
+      if (table_index > 30)
+        continue;  // 31 entries: index 30 is the last
+      EXPECT_EQ((*colors)[p * 4 + c].snes(), ExpectedSyntheticWord(table_index))
+          << "p=" << p << " c=" << c;
+    }
+  }
+  std::filesystem::remove(path);
+}
+
+TEST(MenuTilemapTest, ResolveMenuPaletteFromAsmPrefixesPathOnParseError) {
+  auto path = UniqueTempPath("menu_palette_bad", ".asm");
+  {
+    std::ofstream out(path, std::ios::binary);
+    out << "Menu_Palette:\n  dw hexto555($ZZZZZZ)\n";
+  }
+  auto colors = zelda3::ResolveMenuPaletteFromAsm(path.string());
+  ASSERT_FALSE(colors.ok());
+  EXPECT_NE(colors.status().message().find(path.string()), std::string::npos);
+  EXPECT_NE(colors.status().message().find("line 2"), std::string::npos);
+  std::filesystem::remove(path);
+
+  auto missing = zelda3::ResolveMenuPaletteFromAsm(path.string());
+  ASSERT_FALSE(missing.ok());
+  EXPECT_TRUE(absl::IsNotFound(missing.status()));
+}
+
+TEST(MenuTilemapTest, FindMenuPaletteAsmChecksProjectDirThenCodeFolder) {
+  namespace fs = std::filesystem;
+  fs::path root = UniqueTempPath("menu_asm_project");
+  fs::create_directories(root / "Menu");
+  fs::create_directories(root / "Core" / "Menu");
+
+  EXPECT_FALSE(zelda3::FindMenuPaletteAsm(root.string()).has_value());
+
+  // Only under <code_folder>/Menu/.
+  { std::ofstream(root / "Core" / "Menu" / "menu_palette.asm") << "x\n"; }
+  auto via_code = zelda3::FindMenuPaletteAsm(root.string(), "Core");
+  ASSERT_TRUE(via_code.has_value());
+  EXPECT_EQ(fs::path(*via_code), root / "Core" / "Menu" / "menu_palette.asm");
+  EXPECT_FALSE(zelda3::FindMenuPaletteAsm(root.string()).has_value());
+
+  // <project_dir>/Menu/ wins when both exist.
+  { std::ofstream(root / "Menu" / "menu_palette.asm") << "y\n"; }
+  auto via_project = zelda3::FindMenuPaletteAsm(root.string(), "Core");
+  ASSERT_TRUE(via_project.has_value());
+  EXPECT_EQ(fs::path(*via_project), root / "Menu" / "menu_palette.asm");
+
+  std::error_code ec;
+  fs::remove_all(root, ec);
 }
 
 }  // namespace
