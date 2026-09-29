@@ -1,7 +1,6 @@
 #include "zelda3/screen/menu_tilemap.h"
 
 #include <algorithm>
-#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <system_error>
@@ -13,18 +12,6 @@ namespace yaze::zelda3 {
 namespace {
 
 namespace fs = std::filesystem;
-
-// Small self-contained FNV-1a 64-bit hash. Only used for external-change
-// detection (mtime is checked first; this is a cheap belt-and-suspenders
-// content check), so a full cryptographic hash isn't needed here.
-uint64_t Fnv1a64(const std::vector<uint8_t>& data) {
-  uint64_t h = 14695981039346656037ull;
-  for (uint8_t b : data) {
-    h ^= b;
-    h *= 1099511628211ull;
-  }
-  return h;
-}
 
 absl::StatusOr<std::vector<uint8_t>> ReadWholeFile(const std::string& path) {
   std::ifstream in(path, std::ios::binary | std::ios::ate);
@@ -112,22 +99,6 @@ absl::Status MenuTilemapDocument::LoadFromBytes(std::vector<uint8_t> bytes,
   dirty_ = false;
   backup_written_ = false;
   backup_path_.clear();
-  known_file_size_ = 0;
-  known_file_mtime_ns_ = 0;
-
-  if (!path_.empty()) {
-    std::error_code ec;
-    auto file_size = fs::file_size(path_, ec);
-    if (!ec)
-      known_file_size_ = file_size;
-    auto mtime = fs::last_write_time(path_, ec);
-    if (!ec) {
-      known_file_mtime_ns_ =
-          std::chrono::duration_cast<std::chrono::nanoseconds>(
-              mtime.time_since_epoch())
-              .count();
-    }
-  }
   return absl::OkStatus();
 }
 
@@ -174,16 +145,6 @@ absl::Status MenuTilemapDocument::SaveAs(const std::string& path) {
   pristine_bytes_ = bytes_;
   dirty_ = false;
 
-  std::error_code ec;
-  auto file_size = fs::file_size(path_, ec);
-  if (!ec)
-    known_file_size_ = file_size;
-  auto mtime = fs::last_write_time(path_, ec);
-  if (!ec) {
-    known_file_mtime_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                               mtime.time_since_epoch())
-                               .count();
-  }
   return absl::OkStatus();
 }
 
@@ -213,25 +174,42 @@ absl::StatusOr<bool> MenuTilemapDocument::ExternalChangeDetected() const {
   if (!fs::exists(path_, ec) || ec) {
     return absl::NotFoundError(absl::StrFormat("'%s' no longer exists", path_));
   }
-  auto file_size = fs::file_size(path_, ec);
-  if (ec) {
-    return absl::InternalError(
-        absl::StrFormat("could not stat '%s': %s", path_, ec.message()));
+  // Compare content, not stat() data. A same-size rewrite that lands in the
+  // same filesystem timestamp tick leaves size and mtime untouched (seen on
+  // the Ubuntu CI runner), and a touch that changes only the mtime is not a
+  // change. The baseline is pristine_bytes_ -- what this document last read
+  // from or wrote to the file -- not bytes_, so unsaved in-memory edits never
+  // look like an external change. Files are at most 2 KB.
+  ASSIGN_OR_RETURN(std::vector<uint8_t> on_disk, ReadWholeFile(path_));
+  return on_disk != pristine_bytes_;
+}
+
+absl::Status MenuTilemapDocument::AcknowledgeExternalChange() {
+  if (path_.empty()) {
+    return absl::FailedPreconditionError(
+        "MenuTilemapDocument has no associated path");
   }
-  auto mtime = fs::last_write_time(path_, ec);
-  int64_t mtime_ns = 0;
-  if (!ec) {
-    mtime_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                   mtime.time_since_epoch())
-                   .count();
+  ASSIGN_OR_RETURN(std::vector<uint8_t> on_disk, ReadWholeFile(path_));
+  pristine_bytes_ = std::move(on_disk);
+  dirty_ = bytes_ != pristine_bytes_;
+  return absl::OkStatus();
+}
+
+absl::Status MenuTilemapDocument::RestoreBytes(std::vector<uint8_t> bytes) {
+  if (!loaded()) {
+    return absl::FailedPreconditionError(
+        "MenuTilemapDocument::RestoreBytes() called with no data loaded");
   }
-  if (file_size != known_file_size_ || mtime_ns != known_file_mtime_ns_) {
-    // mtime/size differ: confirm with content in case of a same-size
-    // rewrite that also happens to land on the same mtime granularity.
-    ASSIGN_OR_RETURN(std::vector<uint8_t> on_disk, ReadWholeFile(path_));
-    return Fnv1a64(on_disk) != Fnv1a64(bytes_);
+  if (bytes.size() != bytes_.size()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "RestoreBytes size %zu does not match the loaded size %zu",
+        bytes.size(), bytes_.size()));
   }
-  return false;
+  bytes_ = std::move(bytes);
+  // Dirty means "differs from the file as last loaded/saved", so undoing
+  // back to that state is clean and redoing away from it is dirty again.
+  dirty_ = bytes_ != pristine_bytes_;
+  return absl::OkStatus();
 }
 
 void MenuTilemapDocument::ClipRect(Rect& rect) const {

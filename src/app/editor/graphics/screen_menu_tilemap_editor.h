@@ -106,7 +106,8 @@ class MenuTilemapEditorUI {
   // Draw() from its parameter) if it actually changed any bytes; no-ops
   // if undo_manager_ is null (e.g. a caller that doesn't have one).
   void CommitStroke();
-  void RestoreSnapshot(const std::vector<uint8_t>& bytes);
+  void RestoreSnapshot(const std::string& path,
+                       const std::vector<uint8_t>& bytes);
 
   void PaintCellAt(int row, int col);
   void EyedropAt(int row, int col);
@@ -220,6 +221,7 @@ class MenuTilemapEditorUI {
 
   // Reload-on-external-change prompt
   bool show_reload_prompt_ = false;
+  double last_external_check_time_ = -1.0;
 };
 
 }  // namespace editor

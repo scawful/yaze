@@ -151,6 +151,9 @@ void MenuTilemapEditorUI::Draw(Rom* rom, zelda3::GameData* game_data,
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Keep My Edits"))) {
+      // Adopt the on-disk version as the baseline; otherwise the very next
+      // poll would report the same external change and re-open this prompt.
+      doc_.AcknowledgeExternalChange();
       show_reload_prompt_ = false;
     }
     ImGui::Separator();
@@ -339,6 +342,14 @@ absl::Status MenuTilemapEditorUI::RevertCurrent() {
 void MenuTilemapEditorUI::CheckExternalChange() {
   if (!loaded_ || show_reload_prompt_)
     return;
+  // Detection re-reads the (<= 2 KB) file, so poll a couple of times a
+  // second rather than every frame.
+  const double now = ImGui::GetTime();
+  if (last_external_check_time_ >= 0.0 &&
+      now - last_external_check_time_ < 0.5) {
+    return;
+  }
+  last_external_check_time_ = now;
   auto changed = doc_.ExternalChangeDetected();
   if (changed.ok() && *changed) {
     show_reload_prompt_ = true;
@@ -1065,14 +1076,18 @@ void MenuTilemapEditorUI::CommitStroke() {
   undo_manager_->Push(std::make_unique<ScreenEditAction>(
       before, after,
       [this](const ScreenSnapshot& snap) {
-        RestoreSnapshot(snap.menu_tilemap.bytes);
+        RestoreSnapshot(snap.menu_tilemap.path, snap.menu_tilemap.bytes);
       },
       stroke_description_));
 }
 
-void MenuTilemapEditorUI::RestoreSnapshot(const std::vector<uint8_t>& bytes) {
-  std::string path = doc_.path();
-  if (doc_.LoadFromBytes(bytes, path).ok()) {
+void MenuTilemapEditorUI::RestoreSnapshot(const std::string& path,
+                                          const std::vector<uint8_t>& bytes) {
+  // The shared undo stack outlives the open file: a snapshot taken on one
+  // tilemap must never be applied to another that was opened afterwards.
+  if (path != doc_.path())
+    return;
+  if (doc_.RestoreBytes(bytes).ok()) {
     RebuildRenderTextures();
   }
 }
