@@ -46,6 +46,16 @@ The initial profile uses phase zero and editor ROM graphics; custom runtime
 DMA, time tinting and project graphics-preview overrides are not applied.
 Exports are observations, not runtime collision or layering verification.
 
+`transparent_mask` contains 256 source-zero flags in thumbnail pixel order,
+including quadrant flips. Use this mask instead of inferring transparency from
+`pixels`: the editor remaps source zero to index 8 in some graphics slots.
+Opaque source color 8 must remain opaque. Unavailable source sheets fail export.
+The mask describes decoded ROM graphics, not custom runtime graphics transfers.
+
+Main palette, auxiliary palette selection, resolved colors, backdrop, sheets,
+and world are part of the profile fingerprint. Keep separate bindings for
+alternate Kalyxo and Eon Abyss profiles even when they share a Tile16 ID.
+
 ## Label file
 
 ```json

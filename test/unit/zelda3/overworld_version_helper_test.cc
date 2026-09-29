@@ -7,6 +7,7 @@
 #include "rom/snes.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/terrain_graphics.h"
 
 namespace yaze::zelda3 {
 
@@ -60,6 +61,34 @@ TEST(OverworldReadOnlyTest, VanillaDiggableDefaultsDoNotReadExpandedStorage) {
   ASSERT_TRUE(ow.LoadDiggableTiles().ok());
   EXPECT_GT(ow.diggable_tiles().GetDiggableCount(), 0);
   EXPECT_EQ(rom.vector(), bytes);
+}
+
+TEST(OverworldReadOnlyTest, TransparencyUsesSourceZeroAndPreservesOpaqueEight) {
+  std::vector<uint8_t> decoded(3 * 4096, 7);
+  decoded[2 * 4096] = 0;
+  decoded[2 * 4096 + 1] = 8;
+  // Tile 192 is in upper-palette slot 3; source zero would preview as index 8.
+  auto mask = Tile8SourceTransparency(decoded, 2, 192, false, false);
+  ASSERT_TRUE(mask.ok());
+  EXPECT_EQ((*mask)[0], 1);
+  EXPECT_EQ((*mask)[1], 0);
+  EXPECT_EQ((*mask)[2], 0);
+  auto lower = Tile8SourceTransparency(decoded, 2, 64, false, false);
+  ASSERT_TRUE(lower.ok());
+  EXPECT_EQ(*lower, *mask);
+  auto flipped = Tile8SourceTransparency(decoded, 2, 192, true, true);
+  ASSERT_TRUE(flipped.ok());
+  EXPECT_EQ((*flipped)[63], 1);
+  EXPECT_EQ((*flipped)[62], 0);
+}
+
+TEST(OverworldReadOnlyTest, TransparencyRejectsUnloadedOrMissingSheets) {
+  const std::vector<uint8_t> decoded(2 * 4096, 0);
+  EXPECT_FALSE(Tile8SourceTransparency(decoded, 0, 0, false, false).ok());
+  EXPECT_FALSE(Tile8SourceTransparency(decoded, 2, 0, false, false).ok());
+  EXPECT_FALSE(Tile8SourceTransparency(decoded, 1, 1024, false, false).ok());
+  const std::vector<uint8_t> failed_sheet(2 * 4096, 0xFF);
+  EXPECT_FALSE(Tile8SourceTransparency(failed_sheet, 1, 0, false, false).ok());
 }
 
 TEST(OverworldVersionHelperTest, GetVersion_VanillaSmallRom) {
