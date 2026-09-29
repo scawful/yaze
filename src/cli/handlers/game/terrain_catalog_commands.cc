@@ -12,6 +12,7 @@
 #include "util/macro.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/terrain_graphics.h"
 
 namespace yaze::cli::handlers {
 namespace {
@@ -148,6 +149,8 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
     const gfx::TileInfo quadrants[] = {tile.tile0_, tile.tile1_, tile.tile2_,
                                        tile.tile3_};
     json pieces = json::array();
+    std::array<uint8_t, 256> transparency{};
+    int quadrant_index = 0;
     std::string definition;
     for (const auto& q : quadrants) {
       const uint16_t word = gfx::TileInfoToWord(q);
@@ -163,19 +166,22 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
       if (q.id_ < types.size())
         piece["tile_type"] = types[q.id_];
       int transparent = 0;
-      const auto& graphics = map->current_graphics();
+      ASSIGN_OR_RETURN(
+          auto mask, zelda3::Tile8SourceTransparency(
+                         data.graphics_buffer, map->static_graphics(q.id_ / 64),
+                         q.id_, q.horizontal_mirror_, q.vertical_mirror_));
       for (int py = 0; py < 8; ++py) {
         for (int px = 0; px < 8; ++px) {
-          const size_t source =
-              (q.id_ / 16) * 1024 + (q.id_ % 16) * 8 + py * 128 + px;
-          if (source >= graphics.size())
-            return absl::DataLossError("Tile8 graphics unavailable");
-          if ((graphics[source] & 15) == 0)
-            ++transparent;
+          const auto zero = mask[py * 8 + px];
+          transparent += zero;
+          const int destination =
+              (quadrant_index / 2 * 8 + py) * 16 + quadrant_index % 2 * 8 + px;
+          transparency[destination] = zero;
         }
       }
       piece["transparent_pixels"] = transparent;
       pieces.push_back(piece);
+      ++quadrant_index;
     }
     const auto definition_id = core::TerrainFingerprint(definition);
     json labels = json::array();
@@ -193,6 +199,7 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
     }
     records.push_back({{"tile_id", id},
                        {"pixels", pixels},
+                       {"transparent_mask", transparency},
                        {"definition_fingerprint", definition_id},
                        {"quadrants", pieces},
                        {"occurrences", uses},
@@ -201,6 +208,7 @@ absl::Status OverworldTerrainCatalogCommandHandler::Execute(
   json output = {
       {"schema_version", 1},
       {"adapter", kAdapter},
+      {"transparency_basis", "decoded_source_zero_before_palette_remapping"},
       {"rom_fingerprint", core::TerrainFingerprint(Bytes(rom->vector()))},
       {"requested_map", requested},
       {"parent_area", parent},
