@@ -35,12 +35,9 @@ struct OverworldPanelIds {
   static constexpr const char* kDebugWindow = "overworld.debug";
 };
 
-/// Canvas toolbar: navigation, tools and view only.
-///
-/// Per-map data (graphics, palettes, message, music, area size) is edited in
-/// the Map Properties panel; the toolbar just opens it. Groups keep a fixed
-/// order; when the canvas is too narrow the view group folds into a "More"
-/// menu with hysteresis so items never flicker in and out.
+/// Canvas navigation, labeled drawing tools, view controls and editing windows.
+/// Appearance fields are rendered below this toolbar by OverworldSidebar.
+/// Secondary view controls stay in a labeled menu; groups wrap in narrow docks.
 class OverworldToolbar {
  public:
   OverworldToolbar() = default;
@@ -80,10 +77,6 @@ class OverworldToolbar {
   std::string WithHint(const char* text, const char* shortcut_name) const;
 
   void DrawViewControls(bool in_menu);
-
-  // Hysteresis for folding the view group into the overflow menu.
-  bool compact_ = false;
-  float full_width_ = 0.0f;
 };
 
 }  // namespace yaze::editor

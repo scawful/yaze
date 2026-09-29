@@ -235,8 +235,8 @@ void OverworldEditor::Initialize() {
         return this->RenameProjectResourceLabelWithUndo(type, id, label);
       });
 
-  // Initialize Toolbar: navigation, tools and view only. Per-map data is
-  // edited in the Map Properties panel (sidebar_).
+  // Initialize canvas navigation and drawing tools. The sidebar also renders
+  // quick appearance fields above the canvas.
   toolbar_ = std::make_unique<OverworldToolbar>();
   toolbar_->on_world_changed = [this](int world) {
     SwitchToWorld(world);

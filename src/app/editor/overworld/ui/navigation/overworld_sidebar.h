@@ -17,11 +17,7 @@ struct YazeProject;
 namespace yaze {
 namespace editor {
 
-/// Map Properties panel: every per-map field, shown once.
-///
-/// The toolbar only navigates (world, map, tool, view); the canvas context
-/// menu only offers quick actions. Anything that edits per-map data lives
-/// here, grouped Area / Graphics / Palettes / Music / Effects.
+/// Map properties and canvas appearance controls share the same edit path.
 class OverworldSidebar {
  public:
   using RenameLabelCallback =
@@ -33,6 +29,9 @@ class OverworldSidebar {
   void Draw(int& current_world, int& current_map, bool& current_map_lock,
             int& game_state, bool& show_custom_bg_color_editor,
             bool& show_overlay_editor, project::YazeProject* project = nullptr);
+
+  void DrawQuickProperties(int current_map, bool current_map_lock,
+                           project::YazeProject* project = nullptr);
 
   /// Renames a project resource label (map names, gfx/palette/music labels)
   /// through the editor so the change is undoable.

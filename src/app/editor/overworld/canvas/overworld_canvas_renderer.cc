@@ -81,8 +81,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     return;
   }
 
-  // Toolbar: world, map, tools, entity focus, view and panels. Per-map
-  // fields live in the Map Properties panel only.
+  // Keep appearance edits beside the canvas, using the same undo/refresh path
+  // as the full Map Properties panel.
   if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
       editor_->overworld_.is_loaded() && editor_->toolbar_) {
     editor_->toolbar_->shortcuts = editor_->dependencies_.shortcut_manager;
@@ -93,6 +93,11 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->rom_, &editor_->overworld_, editor_->dependencies_.project,
         editor_->game_state_);
     editor_->NormalizeCurrentSelectionState();
+    if (editor_->sidebar_) {
+      editor_->sidebar_->DrawQuickProperties(editor_->current_map_,
+                                             editor_->current_map_lock_,
+                                             editor_->dependencies_.project);
+    }
   }
 
   // ==========================================================================

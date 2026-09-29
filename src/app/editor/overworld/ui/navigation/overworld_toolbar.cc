@@ -17,29 +17,39 @@ namespace yaze::editor {
 
 namespace {
 
-// Extra width required before a folded view group comes back, so a canvas
-// resized right at the boundary does not toggle every frame.
-constexpr float kToolbarUnfoldHysteresis = 32.0f;
-
 struct EntityModeButton {
   EntityEditMode mode;
-  const char* icon;
+  const char* label;
   const char* tooltip;
 };
 
 constexpr EntityModeButton kEntityModeButtons[] = {
-    {EntityEditMode::ENTRANCES, ICON_MD_DOOR_FRONT,
+    {EntityEditMode::ENTRANCES, "Entrances",
      "Entrances (3)\nOnly entrances respond to hover and drag"},
-    {EntityEditMode::EXITS, ICON_MD_DOOR_BACK,
+    {EntityEditMode::EXITS, "Exits",
      "Exits (4)\nOnly exits respond to hover and drag"},
-    {EntityEditMode::ITEMS, ICON_MD_GRASS,
+    {EntityEditMode::ITEMS, "Items",
      "Items (5)\nOnly items respond to hover and drag.\n"
      "Arrows nudge the selected item (Shift = 16px), Cmd/Ctrl+D duplicates"},
-    {EntityEditMode::SPRITES, ICON_MD_PEST_CONTROL_RODENT,
+    {EntityEditMode::SPRITES, "Sprites",
      "Sprites (6)\nOnly sprites respond to hover and drag"},
 };
 
-void GroupSeparator() {
+bool ToolButton(const char* label, const char* tooltip, bool active) {
+  const bool clicked = gui::ToggleButton(label, active);
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("%s", tooltip);
+  }
+  return clicked;
+}
+
+void GroupSeparator(float next_width) {
+  const float right = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
+  const float previous_end =
+      ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x + ImGui::GetScrollX();
+  if (previous_end + next_width + 13.0f > right) {
+    return;
+  }
   ImGui::SameLine(0, 6.0f);
   const ImVec2 pos = ImGui::GetCursorScreenPos();
   const float height = ImGui::GetFrameHeight();
@@ -82,10 +92,15 @@ void OverworldToolbar::DrawViewControls(bool in_menu) {
     if (in_menu) {
       const std::string keys =
           shortcuts && shortcut ? shortcuts->GetDisplayString(shortcut) : "";
-      const std::string item = absl::StrFormat("%s %s", icon, label);
+      const std::string title =
+          std::string(label).substr(0, std::string(label).find('\n'));
+      const std::string item = absl::StrFormat("%s %s", icon, title);
       if (ImGui::MenuItem(item.c_str(), keys.empty() ? nullptr : keys.c_str(),
                           on())) {
         flip();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", tip.c_str());
       }
       return;
     }
@@ -103,10 +118,15 @@ void OverworldToolbar::DrawViewControls(bool in_menu) {
     if (in_menu) {
       const std::string keys =
           shortcuts && shortcut ? shortcuts->GetDisplayString(shortcut) : "";
-      const std::string item = absl::StrFormat("%s %s", icon, label);
+      const std::string title =
+          std::string(label).substr(0, std::string(label).find('\n'));
+      const std::string item = absl::StrFormat("%s %s", icon, title);
       if (ImGui::MenuItem(item.c_str(),
                           keys.empty() ? nullptr : keys.c_str())) {
         run();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", WithHint(label, shortcut).c_str());
       }
       return;
     }
@@ -155,11 +175,6 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   const float avail = ImGui::GetContentRegionAvail().x;
-  if (!compact_ && full_width_ > 0.0f && avail < full_width_) {
-    compact_ = true;
-  } else if (compact_ && avail >= full_width_ + kToolbarUnfoldHysteresis) {
-    compact_ = false;
-  }
 
   gui::StyleVarGuard toolbar_style_guard(
       {{ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f)},
@@ -189,7 +204,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   // --- Map -------------------------------------------------------------------
-  GroupSeparator();
+  GroupSeparator(ImGui::GetFontSize() * 8.0f);
   const auto metadata = BuildOverworldMapMetadata(*overworld, rom, project,
                                                   current_map, game_state);
   if (ImGui::Button(metadata.map_id_label.c_str()) && on_open_map_properties) {
@@ -197,7 +212,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "%s\n%s\nClick or double-click the map to open Map Properties.\n"
+        "%s\n%s\nClick this button or double-click the canvas map for "
+        "properties.\n"
         "%s / %s: adjacent map",
         metadata.map_title.c_str(), metadata.area_size_label.c_str(),
         WithHint("Previous", "overworld.map_left").c_str(),
@@ -217,7 +233,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   // --- Tool ------------------------------------------------------------------
-  GroupSeparator();
+  GroupSeparator(ImGui::GetFontSize() * 15.0f);
   const auto set_mode = [&](EditingMode mode) {
     if (on_set_mode) {
       on_set_mode(mode);
@@ -225,12 +241,11 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       current_mode = mode;
     }
   };
-  if (gui::ToolbarIconButton(
-          ICON_MD_MOUSE,
-          "Select (1)\nLeft-drag empty map: pan   Middle-drag: pan\n"
-          "Drag entities to move them   Right-click: map menu\n"
-          "Double-click a map: Map Properties",
-          current_mode == EditingMode::MOUSE)) {
+  if (ToolButton(ICON_MD_MOUSE " Select",
+                 "Select (1)\nLeft-drag empty map: pan   Middle-drag: pan\n"
+                 "Drag entities to move them   Right-click: map menu\n"
+                 "Double-click a map: Map Properties",
+                 current_mode == EditingMode::MOUSE)) {
     set_mode(EditingMode::MOUSE);
   }
   ImGui::SameLine(0, 2);
@@ -239,8 +254,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       "Right-click: sample tile16 (or I)   Right-drag: capture a brush\n"
       "[ / ]: previous / next tile16   Shift+Right-click: map menu",
       "overworld.brush_toggle");
-  if (gui::ToolbarIconButton(ICON_MD_DRAW, brush_tip.c_str(),
-                             current_mode == EditingMode::DRAW_TILE)) {
+  if (ToolButton(ICON_MD_DRAW " Paint", brush_tip.c_str(),
+                 current_mode == EditingMode::DRAW_TILE)) {
     set_mode(EditingMode::DRAW_TILE);
   }
   ImGui::SameLine(0, 2);
@@ -248,49 +263,63 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       "Fill screen\nClick fills the 32x32 screen under the cursor\n"
       "Right-click: sample tile16   Shift+Right-click: map menu",
       "overworld.fill");
-  if (gui::ToolbarIconButton(ICON_MD_FORMAT_COLOR_FILL, fill_tip.c_str(),
-                             current_mode == EditingMode::FILL_TILE)) {
+  if (ToolButton(ICON_MD_FORMAT_COLOR_FILL " Fill", fill_tip.c_str(),
+                 current_mode == EditingMode::FILL_TILE)) {
     set_mode(EditingMode::FILL_TILE);
   }
 
   // --- Entity modes ------------------------------------------------------------
-  GroupSeparator();
+  GroupSeparator(ImGui::GetFontSize() * 7.0f);
+  const char* entity_label = "Entities";
   for (const auto& button : kEntityModeButtons) {
-    const bool active = entity_edit_mode == button.mode;
-    const std::string tip =
-        std::string(button.tooltip) + (active ? "\nClick again for all" : "");
-    if (gui::ToolbarIconButton(button.icon, tip.c_str(), active)) {
-      const EntityEditMode next = active ? EntityEditMode::NONE : button.mode;
+    if (entity_edit_mode == button.mode) {
+      entity_label = button.label;
+    }
+  }
+  if (ImGui::Button(entity_label)) {
+    ImGui::OpenPopup("EntityTools");
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Choose which entities respond to hover and drag.\n"
+        "Entrances (3), exits (4), items (5), sprites (6).");
+  }
+  if (ImGui::BeginPopup("EntityTools")) {
+    const auto choose = [&](EntityEditMode mode) {
       if (on_set_entity_mode) {
-        on_set_entity_mode(next);
+        on_set_entity_mode(mode);
       } else {
-        entity_edit_mode = next;
+        entity_edit_mode = mode;
+      }
+    };
+    if (ImGui::MenuItem("All entities", nullptr,
+                        entity_edit_mode == EntityEditMode::NONE)) {
+      choose(EntityEditMode::NONE);
+    }
+    for (const auto& button : kEntityModeButtons) {
+      if (ImGui::MenuItem(button.label, nullptr,
+                          entity_edit_mode == button.mode)) {
+        choose(button.mode);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", button.tooltip);
       }
     }
-    ImGui::SameLine(0, 2);
+    ImGui::EndPopup();
   }
 
-  // --- View (folds into "More" when narrow) ------------------------------------
-  if (!compact_) {
-    GroupSeparator();
-    DrawViewControls(/*in_menu=*/false);
-  }
-
-  // --- Panels ----------------------------------------------------------------
-  GroupSeparator();
+  // Secondary display controls stay in a named menu, leaving space for tools.
+  GroupSeparator(ImGui::GetFontSize() * 21.0f);
   const size_t session_id = window_manager->GetActiveSessionId();
-  if (compact_) {
-    if (gui::ToolbarIconButton(ICON_MD_MORE_HORIZ,
-                               "View\nGrid, entities, overlay and zoom")) {
-      ImGui::OpenPopup("OverworldViewMenu");
-    }
-    if (ImGui::BeginPopup("OverworldViewMenu")) {
-      DrawViewControls(/*in_menu=*/true);
-      ImGui::EndPopup();
-    }
-    ImGui::SameLine(0, 2);
+  if (ToolButton("View", "Grid, entities, overlay and zoom", false)) {
+    ImGui::OpenPopup("OverworldViewMenu");
   }
-  if (gui::ToolbarIconButton(ICON_MD_APPS, "Overworld windows")) {
+  if (ImGui::BeginPopup("OverworldViewMenu")) {
+    DrawViewControls(/*in_menu=*/true);
+    ImGui::EndPopup();
+  }
+  ImGui::SameLine(0, 2);
+  if (ToolButton("Windows", "Open overworld editing windows", false)) {
     ImGui::OpenPopup("OverworldWindowsPopup");
   }
   if (ImGui::BeginPopup("OverworldWindowsPopup")) {
@@ -324,8 +353,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     ImGui::EndPopup();
   }
   ImGui::SameLine(0, 2);
-  if (gui::ToolbarIconButton(
-          ICON_MD_TUNE,
+  if (ToolButton(
+          "Properties",
           "Map Properties\nGraphics, palettes, message, music and area size",
           window_manager->IsWindowOpen(OverworldPanelIds::kMapProperties))) {
     window_manager->ToggleWindow(session_id, OverworldPanelIds::kMapProperties);
@@ -345,11 +374,35 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     }
   }
 
-  // Natural width of the full row, measured only while unfolded.
-  if (!compact_) {
-    full_width_ = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x -
-                  row_start_x + ImGui::GetScrollX();
-  }
+  const auto panel_button = [&](const char* label, const char* tip,
+                                const char* panel) {
+    const float width =
+        ImGui::CalcTextSize(label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    if (ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x +
+            ImGui::GetScrollX() + ImGui::GetStyle().ItemSpacing.x + width <=
+        row_start_x + avail) {
+      ImGui::SameLine();
+    }
+    if (ToolButton(label, tip, window_manager->IsWindowOpen(panel))) {
+      window_manager->OpenWindow(session_id, panel);
+      window_manager->MarkWindowRecentlyUsed(panel);
+      const auto name =
+          window_manager->GetWorkspaceWindowName(session_id, panel);
+      if (!name.empty()) {
+        ImGui::SetWindowFocus(name.c_str());
+      }
+    }
+  };
+  panel_button("Choose Tile16", "Choose a tile or rectangular brush to paint",
+               OverworldPanelIds::kTile16Selector);
+  panel_button("Edit Tile16",
+               "Edit Tile8 pieces, palette rows, flips and priority.\n"
+               "A shared Tile16 definition changes everywhere it is used.",
+               OverworldPanelIds::kTile16Editor);
+  panel_button("Graphics groups",
+               "Edit the sheet assignments in graphics groups.\n"
+               "Shared groups affect every area that uses them.",
+               OverworldPanelIds::kGfxGroups);
   ImGui::PopID();
 }
 

@@ -521,7 +521,9 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
     }
   }
 
-  return absl::OkStatus();
+  // The selector atlas owns a palette separately from Tile16Editor's preview.
+  // Refresh both after a palette edit or undo, including child-map selection.
+  return RefreshTile16Blockset();
 }
 
 void MapRefreshCoordinator::ForceRefreshGraphics(int map_index) {
@@ -599,8 +601,14 @@ void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
 }
 
 void MapRefreshCoordinator::RefreshMapProperties() {
-  const auto& current_ow_map =
-      *ctx_.overworld->mutable_overworld_map(*ctx_.current_map);
+  const auto* selected = ctx_.overworld->overworld_map(*ctx_.current_map);
+  if (!selected) {
+    return;
+  }
+  const auto* parent = ctx_.overworld->overworld_map(selected->parent());
+  // Property edits target the parent even while cursor-follow selects a child.
+  // Never overwrite siblings with the child's stale pre-edit values.
+  const auto& current_ow_map = parent ? *parent : *selected;
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*ctx_.rom);

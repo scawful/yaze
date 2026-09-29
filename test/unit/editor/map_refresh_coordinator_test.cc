@@ -88,6 +88,27 @@ class MapRefreshCoordinatorTest : public ::testing::Test {
   }
 };
 
+TEST_F(MapRefreshCoordinatorTest, ChildSelectionRefreshesFromEditedParent) {
+  ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rom_[zelda3::OverworldCustomASMHasBeenApplied] = 3;
+  PopulateSingleMapForRefresh(0x39);
+  for (int child : {0x30, 0x31, 0x38, 0x39}) {
+    overworld_->mutable_overworld_map(child)->SetAsLargeMap(
+        0x30, (child - 0x30) / 8 * 2 + (child - 0x30) % 8);
+    overworld_->mutable_overworld_map(child)->set_area_palette(0x0E);
+    overworld_->mutable_overworld_map(child)->set_area_graphics(0x10);
+  }
+  auto* parent = overworld_->mutable_overworld_map(0x30);
+  parent->set_area_palette(0x1C);
+  parent->set_area_graphics(0x38);
+  current_map_ = 0x31;
+  coordinator_->RefreshMapProperties();
+  for (int child : {0x30, 0x31, 0x38, 0x39}) {
+    EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x1C) << child;
+    EXPECT_EQ(overworld_->overworld_map(child)->area_graphics(), 0x38) << child;
+  }
+}
+
 // ===========================================================================
 // ForceRefreshGraphics
 // ===========================================================================
