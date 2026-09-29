@@ -82,6 +82,18 @@ z3ed rom info --rom <file>
 z3ed rom info --rom zelda3.sfc
 ```
 
+**Copier headers:** z3ed and yaze strip a 512-byte copier (SMC/SWC) header
+when the file size is a 32 KB multiple plus `0x200`, or when the size is
+nonstandard and the SNES internal header is valid only `0x200` bytes into the
+file (for example `LYRA-v038b.smc`, `0x10083B` bytes). A file whose internal
+header is valid in place is never stripped. `rom info` reports
+`copier_header`, `copier_header_size`, `copier_header_detection`
+(`size_alignment`, `internal_header_offset`, or `none`) and `file_size`;
+`size`/`size_bytes` and all ROM offsets exclude the header. Every save writes
+the header back in front of the data, so an in-place save (or Save As) keeps
+the file's layout, and saving an unedited ROM reproduces the file byte for
+byte.
+
 ### `z3ed rom diff`
 Compare two ROM files.
 

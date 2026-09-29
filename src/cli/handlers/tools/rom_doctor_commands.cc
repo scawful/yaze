@@ -380,6 +380,10 @@ absl::Status RomDoctorCommandHandler::Execute(
   formatter.AddField("rom_path", rom->filename());
   formatter.AddField("size_bytes", static_cast<int>(rom->size()));
   formatter.AddHexField("size_hex", rom->size(), 6);
+  // Sizes above exclude a copier header stripped at load.
+  formatter.AddField("copier_header", rom->has_copier_header());
+  formatter.AddField("copier_header_detection",
+                     CopierHeaderReasonName(rom->copier_header_reason()));
 
   // Size validation
   bool size_valid =

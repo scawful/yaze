@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "cli/util/hex_util.h"
+#include "rom/rom.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -140,6 +141,14 @@ absl::Status RomInfoCommandHandler::Execute(
   formatter.AddField("title", rom->title());
   formatter.AddField("size", absl::StrFormat("0x%X", rom->size()));
   formatter.AddField("size_bytes", static_cast<int>(rom->size()));
+  // size/size_bytes exclude a stripped copier header; saves write it back.
+  const size_t header_size = rom->copier_header().size();
+  formatter.AddField("copier_header", rom->has_copier_header());
+  formatter.AddField("copier_header_size", static_cast<int>(header_size));
+  formatter.AddField("copier_header_detection",
+                     CopierHeaderReasonName(rom->copier_header_reason()));
+  formatter.AddField("file_size",
+                     absl::StrFormat("0x%X", rom->size() + header_size));
 
   return absl::OkStatus();
 }
@@ -331,7 +340,8 @@ absl::Status RomResolveAddressCommandHandler::Execute(
         formatter.AddField("name", nearest->name);
         formatter.AddHexField("symbol_address", nearest->address, 6);
         formatter.AddHexField("offset", offset);
-        formatter.AddField("formatted", absl::StrFormat("%s+$%X", nearest->name, offset));
+        formatter.AddField("formatted",
+                           absl::StrFormat("%s+$%X", nearest->name, offset));
       } else {
         formatter.AddField("status", "not_found");
         formatter.AddField("message", "Nearest symbol too far away");
@@ -351,7 +361,8 @@ absl::Status RomFindSymbolCommandHandler::Execute(
   auto name = parser.GetString("name").value();
 
   if (symbol_provider_ == nullptr || !symbol_provider_->HasSymbols()) {
-    return absl::FailedPreconditionError("No symbols loaded. Provide a ROM with .mlb/.sym file.");
+    return absl::FailedPreconditionError(
+        "No symbols loaded. Provide a ROM with .mlb/.sym file.");
   }
 
   auto symbol = symbol_provider_->FindSymbol(name);
