@@ -3,7 +3,10 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -62,6 +65,48 @@ absl::StatusOr<std::array<gfx::SnesColor, 32>> ResolveMenuPaletteFromHud(
 // the palette).
 absl::StatusOr<std::array<gfx::SnesColor, 32>> ResolveMenuPaletteFromFile(
     const std::string& path, size_t byte_offset = 2);
+
+// Source (d): Oracle of Secrets' Menu/menu_palette.asm parsed directly, so
+// the palette is available even when the project ROM is the *base* ROM
+// (oos168.sfc), where the assembled Menu_Palette table reads all zero
+// (see the note on source (a)). Same +1 CGRAM mapping as source (a).
+//
+// Accepted grammar after the `Menu_Palette:` label (CRLF or LF, `;`
+// comments, blank lines, one or several comma-separated operands per
+// `dw`):
+//   dw hexto555($RRGGBB)   -> Hexto555() (menu_palette.asm's macro)
+//   dw $XXXX / 0xXXXX / N  -> that raw 16-bit BGR555 word
+// The table ends at the first line that is not a `dw`, blank or comment,
+// or after 32 entries. At least 31 are required (8 sub-palettes x 3
+// colors + the unused final slot; the real file defines exactly 31).
+// Errors carry the 1-based line number ("line N: ...").
+
+// $RRGGBB -> SNES BGR555, exactly menu_palette.asm's
+//   function hexto555(h) = (((h&$FF)/8)<<10)|(((h>>8&$FF)/8)<<5)|
+//                          (((h>>16&$FF)/8)<<0)
+// i.e. each 8-bit channel is divided by 8 (floor) and packed B<<10 | G<<5
+// | R. Example: $814f16 -> 0x0930, $f9f9f9 -> 0x7FFF.
+uint16_t Hexto555(uint32_t rgb);
+
+// Pure text parser (no I/O) for the table under `label` (default
+// "Menu_Palette"). Returns the raw BGR555 words (31 or 32 of them).
+absl::StatusOr<std::vector<uint16_t>> ParseMenuPaletteAsmText(
+    std::string_view text, std::string_view label = "Menu_Palette");
+
+// Reads `path` and applies ParseMenuPaletteAsmText(). If `label` starts
+// with "Oracle_" (the symbol-file spelling, e.g. "Oracle_Menu_Palette")
+// and is not found, retries with that prefix stripped, so one label
+// field can drive both this source and the symbol source. Parse errors
+// are prefixed with the file path ("<path>: line N: ...").
+absl::StatusOr<std::array<gfx::SnesColor, 32>> ResolveMenuPaletteFromAsm(
+    const std::string& path, const std::string& label = "Menu_Palette");
+
+// Looks for `Menu/menu_palette.asm` under a project: first
+// <project_dir>/Menu/, then <project_dir>/<code_folder>/Menu/ (if
+// code_folder is set and relative; an absolute code_folder is tried as
+// is). Returns the first existing regular file.
+std::optional<std::string> FindMenuPaletteAsm(
+    const std::string& project_dir, const std::string& code_folder = "");
 
 // --- CHR (tile graphics) sources ---------------------------------------
 
