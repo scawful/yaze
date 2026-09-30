@@ -27,6 +27,7 @@
 #include "app/editor/dungeon/minecart_track_source.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
@@ -47,6 +48,45 @@ namespace yaze::editor {
 
 class AuthoringSaveWorkflowTestPeer {
  public:
+  static void OpenObjectGraphics(DungeonEditorV2& editor, int room_id,
+                                 const zelda3::RoomObject& object) {
+    editor.OpenGraphicsEditorForObject(room_id, object);
+  }
+
+  static absl::Status LoadDungeonRoom(DungeonEditorV2& editor, int room_id) {
+    return editor.room_loader_.LoadRoom(room_id, editor.rooms_[room_id]);
+  }
+
+  static GraphicsEditorState& GraphicsState(GraphicsEditor& editor) {
+    return editor.state_;
+  }
+
+  static void PaintGraphicsPixel(GraphicsEditor& editor, int x, int y,
+                                 uint8_t color, bool finish = true) {
+    editor.state_.current_color_index = color;
+    auto& panel = *editor.pixel_editor_panel_;
+    panel.BeginStroke();
+    panel.ApplyPencil(x, y);
+    if (finish)
+      panel.EndStroke();
+  }
+
+  static void EndGraphicsStroke(GraphicsEditor& editor) {
+    editor.pixel_editor_panel_->EndStroke();
+  }
+
+  static void DrawGraphics(GraphicsEditor& editor) {
+    EXPECT_OK(editor.pixel_editor_panel_->Update());
+  }
+
+  static gfx::Bitmap& GraphicsDisplay(GraphicsEditor& editor) {
+    return editor.pixel_editor_panel_->DisplaySheet();
+  }
+
+  static void DrawUsage(GraphicsEditor& editor) {
+    editor.usage_preview_view_->Draw();
+  }
+
   static absl::StatusOr<MinecartTrackEditorPanel*> MinecartPanel(
       DungeonEditorV2& editor) {
     const auto status = editor.EnsureMinecartTrackEditorPanel();
@@ -333,6 +373,182 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   gfx::NullRenderer renderer_;
   std::unique_ptr<EditorManager> manager_;
 };
+
+TEST_F(AuthoringSaveWorkflowTest,
+       DungeonObjectGraphicsKeepsContextThroughPixelsUndoAndReturn) {
+  auto fixture = CopyProject("yaze-graphics-source");
+  const auto assets = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/Objects/Data";
+  ASSERT_TRUE(std::filesystem::is_directory(assets));
+  for (const auto& entry : std::filesystem::directory_iterator(assets)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin") {
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+    }
+  }
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* editors = manager_->GetCurrentEditorSet();
+  auto* dungeon = editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  auto* graphics = editors->GetGraphicsEditor();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(graphics, nullptr);
+  manager_->window_manager().CloseWindow("graphics.prototype_viewer");
+  manager_->window_manager().CloseWindow("graphics.polyhedral");
+  constexpr int kRoom = 5;
+  auto& room = dungeon->rooms()[kRoom];
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+  AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, kRoom);
+  AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
+  room.PrepareForRender();
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  size_t chosen = 0;
+  for (; chosen < room.GetTileObjects().size(); ++chosen) {
+    AuthoringSaveWorkflowTestPeer::OpenObjectGraphics(
+        *dungeon, kRoom, room.GetTileObjects()[chosen]);
+    if (state.source_context)
+      break;
+  }
+  ASSERT_LT(chosen, room.GetTileObjects().size());
+  ASSERT_TRUE(state.SourceTarget());
+  EXPECT_TRUE(manager_->window_manager().IsWindowOpen("graphics.pixel_editor"));
+  EXPECT_TRUE(
+      manager_->window_manager().IsWindowOpen("graphics.usage_preview"));
+  EXPECT_FALSE(
+      manager_->window_manager().IsWindowOpen("graphics.prototype_viewer"));
+  EXPECT_FALSE(manager_->window_manager().IsWindowOpen("graphics.polyhedral"));
+  const auto inspector = graphics->BuildContextSnapshot();
+  EXPECT_EQ(inspector.category, "Graphics");
+  EXPECT_TRUE(std::any_of(inspector.metadata.begin(), inspector.metadata.end(),
+                          [](const auto& value) {
+                            return value.id == "gfx.raw_palette" &&
+                                   !value.value.empty();
+                          }));
+  const auto context = *state.source_context;
+  EXPECT_EQ(context.resolved.id, kRoom);
+  EXPECT_EQ(context.resolved.slots.size(), 16u);
+  EXPECT_EQ(context.owner, state.game_data);
+  const auto target = *state.SourceTarget();
+  ASSERT_EQ(target.palette.size(), 8u);
+  auto& arena_sheet =
+      gfx::Arena::Get().mutable_gfx_sheets()->at(target.sheet_id);
+  const auto original_palette = arena_sheet.palette();
+  const auto original_pixels = arena_sheet.vector();
+  const auto before = context.render_preview();
+  ASSERT_OK(before.status());
+  ASSERT_FALSE(before->empty());
+
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0, font_height = 0;
+  ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width,
+                                           &font_height);
+  auto frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Always);
+    ImGui::Begin("ContextGraphics", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    AuthoringSaveWorkflowTestPeer::DrawGraphics(*graphics);
+    ImGui::End();
+    ImGui::Begin("ContextUsage", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    AuthoringSaveWorkflowTestPeer::DrawUsage(*graphics);
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  ASSERT_EQ(state.current_sheet_id, target.sheet_id);
+  const auto& displayed =
+      AuthoringSaveWorkflowTestPeer::GraphicsDisplay(*graphics);
+  EXPECT_EQ(displayed.vector(), original_pixels);
+  for (size_t i = 0; i < 8; ++i) {
+    EXPECT_EQ(displayed.palette()[i].snes(), target.palette[i].snes());
+  }
+  ASSERT_EQ(arena_sheet.palette().size(), original_palette.size());
+  for (size_t i = 0; i < original_palette.size(); ++i) {
+    EXPECT_EQ(arena_sheet.palette()[i].snes(), original_palette[i].snes());
+  }
+
+  // A stroke on a used tile, through the production pixel/undo path.
+  const int x = (target.tile_index % 16) * 8;
+  const int y = (target.tile_index / 16) * 8;
+  const uint8_t color = (original_pixels[y * 128 + x] + 1) % 8;
+  const auto original_graphics = room.get_gfx_buffer();
+  const auto revision = state.game_data->sheet_store.Revision(target.sheet_id);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, x, y, color,
+                                                    /*finish=*/false);
+  auto edited = context.render_preview();
+  ASSERT_OK(edited.status());
+  EXPECT_EQ(state.game_data->sheet_store.Revision(target.sheet_id), revision);
+  EXPECT_NE(room.get_gfx_buffer(), original_graphics);
+  AuthoringSaveWorkflowTestPeer::EndGraphicsStroke(*graphics);
+  // Some object tiles are covered by later room objects, so compare the loaded
+  // source buffer as well as the full preview's successful rendering.
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id)[y * 128 + x],
+            color);
+  const auto changed_graphics = room.get_gfx_buffer();
+  ASSERT_OK(graphics->Undo());
+  auto undone = context.render_preview();
+  ASSERT_OK(undone.status());
+  EXPECT_EQ(undone->pixels, before->pixels);
+  EXPECT_EQ(undone->ToRgba(), before->ToRgba());
+  EXPECT_EQ(arena_sheet.vector(), original_pixels);
+  ASSERT_OK(graphics->Redo());
+  auto redone = context.render_preview();
+  ASSERT_OK(redone.status());
+  EXPECT_EQ(redone->pixels, edited->pixels);
+  EXPECT_EQ(room.get_gfx_buffer(), changed_graphics);
+  ASSERT_OK(graphics->Undo());
+
+  // A real unsaved source-room edit must appear, rather than a ROM reload.
+  auto metadata = room.CaptureMetadataSnapshot();
+  const auto old_palette = room.palette();
+  room.SetPalette(static_cast<uint8_t>(old_palette ^ 1));
+  auto recolored = context.render_preview();
+  ASSERT_OK(recolored.status());
+  EXPECT_NE(recolored->ToRgba(), before->ToRgba());
+  room.RestoreMetadataSnapshot(metadata);
+  ASSERT_OK(context.render_preview().status());
+
+  zelda3::GameData foreign;
+  auto wrong_session = context;
+  wrong_session.owner = &foreign;
+  EXPECT_TRUE(
+      absl::IsFailedPrecondition(graphics->OpenInContext(wrong_session)));
+  EXPECT_EQ(state.source_context->owner, context.owner);
+  state.selection.is_floating = true;
+  EXPECT_TRUE(absl::IsFailedPrecondition(graphics->OpenInContext(context)));
+  state.selection.Clear();
+  context.return_to_source();
+  EXPECT_EQ(dungeon->current_room_id(), kRoom);
+  ASSERT_OK(graphics->Redo());
+  const auto destination = fixture.root / "graphics-edited.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_FALSE(graphics->HasPendingGraphicsChanges());
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  auto reopened = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* reopened_graphics =
+      reopened->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& reopened_state =
+      AuthoringSaveWorkflowTestPeer::GraphicsState(*reopened_graphics);
+  EXPECT_EQ(
+      reopened_state.game_data->sheet_store.Sheet(target.sheet_id)[y * 128 + x],
+      color);
+  EXPECT_FALSE(reopened_state.source_context);
+  reopened.reset();
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  graphics->SetGameData(&foreign);
+  EXPECT_FALSE(state.source_context);
+  graphics->SetGameData(const_cast<zelda3::GameData*>(context.owner));
+}
 
 TEST_F(AuthoringSaveWorkflowTest,
        OverworldPaletteUndoRedoSaveAsReopensOnFreshEditor) {

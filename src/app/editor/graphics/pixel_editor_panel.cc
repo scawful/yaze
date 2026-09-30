@@ -33,6 +33,7 @@ void PixelEditorPanel::Draw(bool* p_open) {
 
 absl::Status PixelEditorPanel::Update() {
   HandleFloatingPasteKeys();
+  DrawSourceContext();
 
   // Top toolbar
   DrawToolbar();
@@ -70,6 +71,82 @@ absl::Status PixelEditorPanel::Update() {
   DrawStatusBar();
 
   return absl::OkStatus();
+}
+
+const gfx::SnesPalette& PixelEditorPanel::DisplayPalette() const {
+  if (const auto* target = state_->SourceTarget()) {
+    return target->palette;
+  }
+  return gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id].palette();
+}
+
+gfx::Bitmap& PixelEditorPanel::DisplaySheet() {
+  auto& sheet =
+      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  if (state_->SourceTarget() == nullptr || !sheet.is_active()) {
+    return sheet;
+  }
+  bool changed = !context_sheet_.is_active();
+  if (!context_sheet_.is_active()) {
+    context_sheet_.Create(sheet.width(), sheet.height(), 8, sheet.vector());
+  } else if (context_sheet_.vector() != sheet.vector()) {
+    context_sheet_.set_data(sheet.vector());
+    changed = true;
+  }
+  const auto& palette = DisplayPalette();
+  const auto& old = context_sheet_.palette();
+  bool palette_changed = old.size() != palette.size();
+  for (size_t i = 0; !palette_changed && i < palette.size(); ++i) {
+    palette_changed = old[i].snes() != palette[i].snes();
+  }
+  if (palette_changed) {
+    context_sheet_.SetPaletteWithTransparent(palette, 1, 7);
+  }
+  if (changed || palette_changed || !context_sheet_.texture()) {
+    gfx::Arena::Get().QueueTextureCommand(
+        context_sheet_.texture() ? gfx::Arena::TextureCommandType::UPDATE
+                                 : gfx::Arena::TextureCommandType::CREATE,
+        &context_sheet_);
+  }
+  return context_sheet_;
+}
+
+void PixelEditorPanel::DrawSourceContext() {
+  if (!state_->source_context) {
+    return;
+  }
+  auto& context = *state_->source_context;
+  ImGui::TextWrapped("%s", context.label.c_str());
+  if (context.return_to_source && ImGui::SmallButton(tr("Return to source"))) {
+    // Copy before invoking: navigation may replace editor state.
+    auto navigate = context.return_to_source;
+    navigate();
+    return;
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton(tr("Use manual palette"))) {
+    state_->ClearSourceContext();
+    return;
+  }
+  if (!context.limitation.empty()) {
+    ImGui::TextWrapped("%s", context.limitation.c_str());
+  }
+  const auto& target = context.targets[context.selected_target];
+  ImGui::BeginDisabled(state_->selection.is_floating);
+  ImGui::SetNextItemWidth(-1);
+  if (ImGui::BeginCombo("##SourceTile", target.label.c_str())) {
+    for (size_t i = 0; i < context.targets.size(); ++i) {
+      ImGui::PushID(static_cast<int>(i));
+      if (ImGui::Selectable(context.targets[i].label.c_str(),
+                            i == context.selected_target)) {
+        state_->SelectSourceTarget(i);
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::EndDisabled();
+  ImGui::Separator();
 }
 
 void PixelEditorPanel::DrawToolbar() {
@@ -212,12 +289,16 @@ void PixelEditorPanel::DrawCanvas() {
         tab_label += "*";
       }
 
-      if (ImGui::BeginTabItem(tab_label.c_str(), &open)) {
+      const bool requested = state_->requested_sheet_tab == sheet_id;
+      if (ImGui::BeginTabItem(tab_label.c_str(), &open,
+                              requested ? ImGuiTabItemFlags_SetSelected : 0)) {
         state_->current_sheet_id = sheet_id;
+        if (requested) {
+          state_->requested_sheet_tab.reset();
+        }
 
         // Get the current sheet bitmap
-        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(
-            state_->current_sheet_id);
+        auto& sheet = DisplaySheet();
 
         if (!sheet.is_active()) {
           ImGui::TextDisabled(tr("Sheet %02X is not active"), sheet_id);
@@ -406,7 +487,7 @@ void PixelEditorPanel::DrawPixelInfoTooltip(const gfx::Bitmap& sheet) {
   }
 
   uint8_t color_index = sheet.GetPixel(cursor_x_, cursor_y_);
-  auto palette = sheet.palette();
+  const auto& palette = DisplayPalette();
 
   ImGui::BeginTooltip();
   ImGui::Text(tr("Pos: %d, %d"), cursor_x_, cursor_y_);
@@ -487,12 +568,10 @@ void PixelEditorPanel::DrawColorPicker() {
     return;
   }
 
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
-  auto palette = sheet.palette();
+  const auto& palette = DisplayPalette();
 
-  // Draw palette colors in 4x4 grid (16 colors)
-  for (int i = 0; i < static_cast<int>(palette.size()) && i < 16; i++) {
+  // Sheet editing is indexed 3bpp; rendered 4bpp expansion is not authored.
+  for (int i = 0; i < static_cast<int>(palette.size()) && i < 8; i++) {
     if (i > 0 && i % 4 == 0) {
       // New row
     } else if (i > 0) {
@@ -556,8 +635,7 @@ void PixelEditorPanel::DrawMiniMap() {
     return;
   }
 
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  auto& sheet = DisplaySheet();
   if (!sheet.texture())
     return;
 
@@ -840,7 +918,7 @@ void PixelEditorPanel::ApplyEyedropper(int x, int y) {
     state_->current_color_index = sheet.GetPixel(x, y);
 
     // Update current color display
-    auto palette = sheet.palette();
+    const auto& palette = DisplayPalette();
     if (state_->current_color_index < palette.size()) {
       auto& color = palette[state_->current_color_index];
       state_->current_color =
@@ -960,7 +1038,7 @@ void PixelEditorPanel::EndSelection() {
       }
     }
 
-    state_->selection.palette = sheet.palette();
+    state_->selection.palette = DisplayPalette();
   }
 }
 
@@ -1106,6 +1184,12 @@ void PixelEditorPanel::DrawPixelGrids(float canvas_width, float canvas_height) {
 }
 
 void PixelEditorPanel::DrawPaletteRowPicker() {
+  if (const auto* target = state_->SourceTarget()) {
+    ImGui::TextWrapped("%s", target->label.c_str());
+    ImGui::TextDisabled("%s", tr("Colors resolved by the source editor"));
+    ImGui::Separator();
+    return;
+  }
   ImGui::TextUnformatted(tr("Palette row"));
   int row = static_cast<int>(state_->sub_palette_index);
   const bool can_apply = static_cast<bool>(state_->apply_palette_to_sheet) &&
@@ -1136,8 +1220,7 @@ void PixelEditorPanel::DrawPaletteRowPicker() {
 
 SheetColors PixelEditorPanel::CurrentSheetColors() const {
   SheetColors colors{};
-  const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
-  const auto& palette = sheet.palette();
+  const auto& palette = DisplayPalette();
   for (size_t i = 0; i < colors.size(); ++i) {
     if (i < palette.size()) {
       const ImVec4 rgb = palette[i].rgb();  // 0-255 components

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/graphics/graphics_preview_image.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
@@ -42,28 +43,18 @@ constexpr size_t kSheetBytes = 4096;  // 128x32 8bpp sheet
 /// Sheet id -> 4096 8bpp pixels (the GameData::graphics_buffer layout).
 using SheetPixels = std::map<uint16_t, std::vector<uint8_t>>;
 
-/// Copies the Arena sheets in `ids` (where the pixel editor writes). Sheets
+/// Compatibility reader for Arena display copies, not authoritative pixels.
+/// Copies sheets in `ids`. Sheets
 /// that are not loaded or not 128x32 8bpp are left out. Returns nothing when
 /// the Arena holds another ROM's sheets (its owner is not `game_data`).
+[[deprecated("Use SnapshotSessionSheets; Arena is a display cache")]]
 SheetPixels SnapshotArenaSheets(const std::set<uint16_t>& ids,
                                 const zelda3::GameData* game_data);
 
-/// An 8bpp image with its own 256-color table. Index 0 is transparent when
-/// `index0_transparent` is set (sprites, tile16s).
-struct IndexedImage {
-  int width = 0;
-  int height = 0;
-  std::vector<uint8_t> pixels;
-  std::array<SDL_Color, 256> colors{};
-  bool index0_transparent = false;
-
-  bool empty() const { return width <= 0 || height <= 0; }
-  /// RGBA8 rows; transparent pixels get alpha 0.
-  std::vector<uint8_t> ToRgba() const;
-  /// Number of pixels whose index differs from `other` (sizes must match;
-  /// returns -1 when they do not).
-  int CountDifferentPixels(const IndexedImage& other) const;
-};
+// Preferred preview source: this ROM session's authoritative raw pixels.
+// Independent of whichever session currently occupies the global Arena.
+SheetPixels SnapshotSessionSheets(const std::set<uint16_t>& ids,
+                                  const zelda3::GameData* game_data);
 
 /// Copies a palettized Bitmap (for example a room composite).
 IndexedImage SnapshotBitmap(const gfx::Bitmap& bitmap);

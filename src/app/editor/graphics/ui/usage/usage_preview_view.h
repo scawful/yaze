@@ -22,8 +22,8 @@ namespace yaze::editor {
  * edited: a room that loads it, a sprite animation drawn from it, and the
  * tile16s that use the selected 8x8 tile.
  *
- * Renders from the Arena sheets (unsaved pixel edits) through
- * usage_preview's renderers; nothing is written to the ROM or GameData.
+ * Renders from the session's sheet store (unsaved pixel edits) through
+ * usage_preview's renderers, or the source editor's live context.
  * Re-renders at most 10 times a second while pixels change, and once more
  * when the stroke ends.
  */
@@ -46,7 +46,7 @@ class UsagePreviewView {
   void DrawRoomContext(bool render_now);
   void DrawSpriteContext(bool render_now, float delta);
   void DrawTile16Context(bool render_now);
-  // Hash of the current sheet's and the modified sheets' Arena pixels.
+  // Hash of the current, source-context, and modified session sheet pixels.
   uint64_t HashWatchedSheets() const;
   usage_preview::SheetPixels Snapshot() const;
   void ShowImage(gfx::Bitmap& bitmap, const usage_preview::IndexedImage& image);
@@ -104,6 +104,8 @@ class UsagePreviewView {
   std::vector<int> tile16s_;
   std::vector<SDL_Rect> tile16_highlights_;
   gfx::Bitmap tile16_bitmap_;
+  uint64_t source_context_revision_ = 0;
+  gfx::Bitmap source_bitmap_;
 };
 
 }  // namespace yaze::editor

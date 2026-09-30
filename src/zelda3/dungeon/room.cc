@@ -1086,6 +1086,35 @@ void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
   }
 }
 
+int Room::BackgroundPaletteOffset(int block) const {
+  // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
+  // The engine expands 3BPP graphics to 4BPP in two modes:
+  // - Left palette: plane3 = 0 (pixel values 0-7).
+  // - Right palette: plane3 = OR(planes0..2), so non-zero pixels get bit3=1
+  //   (pixel values 1-7 become 9-15; 0 remains 0/transparent).
+  //
+  // For background graphics sets, the game selects Left/Right based on the
+  // active main graphics group ($0AA1) and the slot index ($0F).
+  // InitializeTilesets starts $0F at 7 for destination block 0 and decrements
+  // it through destination block 7, so the runtime slot is 7 - block. For UW
+  // groups (< $20), runtime slots 4-7 use Right; for OW groups (>= $20), the
+  // Right runtime slots are {2,3,4,7}.
+  const uint8_t active_main_blockset =
+      resolved_main_blockset_ != 0xFF
+          ? resolved_main_blockset_
+          : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
+                                               : blockset_);
+  if (block < 0 || block >= 8) {
+    return 0;
+  }
+  const int runtime_slot = 7 - block;
+  const bool right = active_main_blockset < 0x20
+                         ? runtime_slot >= 4
+                         : (runtime_slot == 2 || runtime_slot == 3 ||
+                            runtime_slot == 4 || runtime_slot == 7);
+  return right ? 8 : 0;
+}
+
 void Room::CopyRoomGraphicsToBuffer() {
   if (!rom_ || !rom_->is_loaded()) {
     LOG_DEBUG("Room", "CopyRoomGraphicsToBuffer: ROM not loaded");
@@ -1111,35 +1140,6 @@ void Room::CopyRoomGraphicsToBuffer() {
   };
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
   source_sheet_revisions_.clear();
-
-  // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
-  // The engine expands 3BPP graphics to 4BPP in two modes:
-  // - Left palette: plane3 = 0 (pixel values 0-7).
-  // - Right palette: plane3 = OR(planes0..2), so non-zero pixels get bit3=1
-  //   (pixel values 1-7 become 9-15; 0 remains 0/transparent).
-  //
-  // For background graphics sets, the game selects Left/Right based on the
-  // active main graphics group ($0AA1) and the slot index ($0F).
-  // InitializeTilesets starts $0F at 7 for destination block 0 and decrements
-  // it through destination block 7, so the runtime slot is 7 - block. For UW
-  // groups (< $20), runtime slots 4-7 use Right; for OW groups (>= $20), the
-  // Right runtime slots are {2,3,4,7}.
-  const uint8_t active_main_blockset =
-      resolved_main_blockset_ != 0xFF
-          ? resolved_main_blockset_
-          : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
-                                               : blockset_);
-  auto is_right_palette_background_slot = [&](int block) -> bool {
-    if (block < 0 || block >= 8) {
-      return false;
-    }
-    const int runtime_slot = 7 - block;
-    if (active_main_blockset < 0x20) {
-      return runtime_slot >= 4;
-    }
-    return (runtime_slot == 2 || runtime_slot == 3 || runtime_slot == 4 ||
-            runtime_slot == 7);
-  };
 
   // Process each of the 16 graphics blocks
   for (int block = 0; block < 16; block++) {
@@ -1168,7 +1168,7 @@ void Room::CopyRoomGraphicsToBuffer() {
 
       // Only background blocks (0-7) participate in Left/Right palette
       // expansion. Sprite sheets are handled separately by the game.
-      const bool right_pal = is_right_palette_background_slot(block);
+      const bool right_pal = BackgroundPaletteOffset(block) == 8;
       if (!right_pal) {
         memcpy(dst, src, 4096);
       } else {

@@ -1108,6 +1108,8 @@ class Room {
   const std::vector<SDL_Color>& rendered_palette() const {
     return rendered_palette_;
   }
+  // Palette-half expansion applied to nonzero raw 3bpp background pixels.
+  int BackgroundPaletteOffset(int slot) const;
 
   // Per-room background buffers (not shared via arena!)
   auto& bg1_buffer() { return bg1_buffer_; }

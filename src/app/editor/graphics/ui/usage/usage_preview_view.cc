@@ -76,7 +76,12 @@ uint64_t UsagePreviewView::HashWatchedSheets() const {
   uint64_t hash = kFnvOffset;
   std::set<uint16_t> ids = state_->modified_sheets;
   ids.insert(state_->current_sheet_id);
-  const auto sheets = usage_preview::SnapshotArenaSheets(ids, game_data_);
+  if (state_->source_context) {
+    for (const auto& slot : state_->source_context->resolved.slots) {
+      ids.insert(slot.sheet_id);
+    }
+  }
+  const auto sheets = usage_preview::SnapshotSessionSheets(ids, game_data_);
   for (const auto& [id, pixels] : sheets) {
     hash = (hash ^ id) * kFnvPrime;
     hash = HashBytes(hash, pixels);
@@ -87,7 +92,7 @@ uint64_t UsagePreviewView::HashWatchedSheets() const {
 usage_preview::SheetPixels UsagePreviewView::Snapshot() const {
   std::set<uint16_t> ids = state_->modified_sheets;
   ids.insert(state_->current_sheet_id);
-  return usage_preview::SnapshotArenaSheets(ids, game_data_);
+  return usage_preview::SnapshotSessionSheets(ids, game_data_);
 }
 
 int UsagePreviewView::SelectedTileIndex() const {
@@ -147,6 +152,13 @@ void UsagePreviewView::Draw() {
     return;
   }
   EnsureTables();
+  const bool source_changed =
+      source_context_revision_ != state_->source_context_revision;
+  if (source_changed) {
+    source_context_revision_ = state_->source_context_revision;
+    dirty_ = true;
+    last_render_time_ = -1.0;
+  }
   const uint16_t sheet = state_->current_sheet_id;
   if (sheet != last_sheet_) {
     last_sheet_ = sheet;
@@ -212,6 +224,27 @@ void UsagePreviewView::Draw() {
   }
 
   if (ImGui::BeginTabBar("##UsagePreviewTabs")) {
+    if (state_->source_context && state_->source_context->render_preview &&
+        state_->source_context->owner == game_data_) {
+      if (ImGui::BeginTabItem(
+              tr("Source"), nullptr,
+              source_changed ? ImGuiTabItemFlags_SetSelected : 0)) {
+        auto& source = *state_->source_context;
+        ImGui::TextWrapped("%s", source.label.c_str());
+        if (render_now) {
+          const auto rendered = source.render_preview();
+          status_ = rendered.ok() ? std::string()
+                                  : std::string(rendered.status().message());
+          if (rendered.ok()) {
+            ShowImage(source_bitmap_, *rendered);
+          }
+        }
+        if (status_.empty()) {
+          DrawBitmapFit(source_bitmap_, {}, 2.0f);
+        }
+        ImGui::EndTabItem();
+      }
+    }
     if (ImGui::BeginTabItem(tr("Room"))) {
       if (mode_ != Mode::kRoom) {
         mode_ = Mode::kRoom;
