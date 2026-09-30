@@ -2308,23 +2308,17 @@ void EditorManager::InitializeServices() {
   ApplyLayoutDefaultsMigrationIfNeeded();
 
   if (right_drawer_manager_) {
-    if (pending_layout_defaults_reset_) {
-      right_drawer_manager_->ResetDrawerWidths();
-      MergeRightDrawerWidthPreferences(
-          &user_settings_.prefs().right_panel_widths,
-          right_drawer_manager_->SerializeDrawerWidths());
-    } else {
-      right_drawer_manager_->RestoreDrawerWidths(
-          user_settings_.prefs().right_panel_widths);
-      auto normalized_widths = user_settings_.prefs().right_panel_widths;
-      MergeRightDrawerWidthPreferences(
-          &normalized_widths, right_drawer_manager_->SerializeDrawerWidths());
-      if (user_settings_.prefs().right_panel_widths != normalized_widths) {
-        user_settings_.prefs().right_panel_widths =
-            std::move(normalized_widths);
-        settings_dirty_ = true;
-        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
-      }
+    // Rebuilding dock placement does not invalidate user-sized drawers.
+    // Migrations that intentionally discard widths clear them in UserSettings.
+    right_drawer_manager_->RestoreDrawerWidths(
+        user_settings_.prefs().right_panel_widths);
+    auto normalized_widths = user_settings_.prefs().right_panel_widths;
+    MergeRightDrawerWidthPreferences(
+        &normalized_widths, right_drawer_manager_->SerializeDrawerWidths());
+    if (user_settings_.prefs().right_panel_widths != normalized_widths) {
+      user_settings_.prefs().right_panel_widths = std::move(normalized_widths);
+      settings_dirty_ = true;
+      settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
     }
     right_drawer_manager_->SetDrawerWidthChangedCallback(
         [this](RightDrawerManager::DrawerType, float) {
