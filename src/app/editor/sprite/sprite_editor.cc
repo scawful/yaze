@@ -598,7 +598,12 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
 
   // Sprite list
   Text(tr("Loaded Sprites:"));
-  if (ImGui::BeginChild("SpriteList", ImVec2(0, 100), true)) {
+  const float avail_y = std::max(0.0f, ImGui::GetContentRegionAvail().y);
+  const float metadata_reserve = std::min(160.0f, avail_y * 0.45f);
+  const float list_budget = std::max(0.0f, avail_y - metadata_reserve);
+  const float preferred_list = std::clamp(avail_y * 0.35f, 180.0f, 280.0f);
+  const float list_height = std::min(preferred_list, list_budget);
+  if (ImGui::BeginChild("SpriteList", ImVec2(0, list_height), true)) {
     for (size_t i = 0; i < custom_sprites_.size(); i++) {
       std::string label = custom_sprites_[i].sprName.empty()
                               ? "Unnamed Sprite"

@@ -17,6 +17,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
+#include "zelda3/graphics/resolved_graphics_context.h"
 
 #include "app/gfx/render/background_buffer.h"
 #include "rom/rom.h"
@@ -286,6 +287,8 @@ class Room {
 
   void LoadRoomGraphics(
       std::optional<uint8_t> entrance_blockset = std::nullopt);
+  friend ResolvedGraphicsContext DescribeDungeonGraphicsContext(
+      const Room& room, const GraphicsContextIdentity& identity);
   void CopyRoomGraphicsToBuffer();
   // LoadGraphicsSheetsIntoArena() removed - per-room graphics instead
   void RenderRoomGraphics();

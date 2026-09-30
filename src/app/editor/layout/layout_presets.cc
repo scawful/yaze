@@ -13,10 +13,11 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
     case EditorType::kOverworld:
       preset.name = "Overworld Default";
       preset.description =
-          "Minimal map-first layout with selector and map properties";
+          "Map-first layout with Tile16 and area graphics on the right";
       preset.default_visible_panels = {
           Panels::kOverworldCanvas,
           Panels::kOverworldTile16Selector,
+          Panels::kOverworldAreaGraphics,
           Panels::kOverworldMapProperties,
       };
       preset.dock_only_default_visible_panels = true;
@@ -26,20 +27,19 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           {Panels::kOverworldTile16Editor, DockPosition::RightTop},
           {Panels::kOverworldMapProperties, DockPosition::RightBottom},
           {Panels::kOverworldTile8Selector, DockPosition::LeftBottom},
-          {Panels::kOverworldAreaGraphics, DockPosition::Bottom},
-          {Panels::kOverworldScratch, DockPosition::Bottom},
+          {Panels::kOverworldAreaGraphics, DockPosition::RightBottom},
+          {Panels::kOverworldScratch, DockPosition::RightBottom},
           {Panels::kOverworldGfxGroups, DockPosition::RightBottom},
           {Panels::kOverworldUsageStats, DockPosition::RightBottom},
-          {Panels::kOverworldItemList, DockPosition::Bottom},
+          {Panels::kOverworldItemList, DockPosition::RightBottom},
           {Panels::kOverworldV3Settings, DockPosition::RightBottom},
           {Panels::kOverworldDebug, DockPosition::RightBottom},
       };
       preset.optional_panels = {
           Panels::kOverworldTile16Editor, Panels::kOverworldTile8Selector,
-          Panels::kOverworldAreaGraphics, Panels::kOverworldScratch,
-          Panels::kOverworldGfxGroups,    Panels::kOverworldUsageStats,
-          Panels::kOverworldItemList,     Panels::kOverworldV3Settings,
-          Panels::kOverworldDebug,
+          Panels::kOverworldScratch,      Panels::kOverworldGfxGroups,
+          Panels::kOverworldUsageStats,   Panels::kOverworldItemList,
+          Panels::kOverworldV3Settings,   Panels::kOverworldDebug,
       };
       break;
 

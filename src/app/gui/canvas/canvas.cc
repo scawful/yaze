@@ -1235,18 +1235,21 @@ void Canvas::DrawBitmapTable(const BitmapTable& gfx_bin) {
 }
 
 void Canvas::DrawOutline(int x, int y, int w, int h) {
+  const float scale = global_scale() > 0.0f ? global_scale() : 1.0f;
   CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h,
-                                 IM_COL32(255, 255, 255, 200));
+                                 IM_COL32(255, 255, 255, 200), scale);
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
+  const float scale = global_scale() > 0.0f ? global_scale() : 1.0f;
   CanvasUtils::DrawCanvasOutlineWithColor(draw_list_, canvas_p0_, scrolling_, x,
-                                          y, w, h, color);
+                                          y, w, h, color, scale);
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
+  const float scale = global_scale() > 0.0f ? global_scale() : 1.0f;
   CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h,
-                                 color);
+                                 color, scale);
 }
 
 void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,

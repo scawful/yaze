@@ -54,6 +54,7 @@ class OverworldToolbar {
   std::function<void(int)> on_world_changed;
   std::function<void(EditingMode)> on_set_mode;
   std::function<void(EntityEditMode)> on_set_entity_mode;
+  std::function<void()> on_insert_item;
   std::function<void()> on_open_map_properties;
 
   // View

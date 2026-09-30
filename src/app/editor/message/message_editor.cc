@@ -2,6 +2,11 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <limits>
 #include <string>
 #include <unordered_map>
@@ -11,7 +16,10 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/menu/status_bar.h"
 #include "app/editor/message/message_id_resolver.h"
+#include "app/editor/message/message_list_query.h"
+#include "app/editor/message/message_source_sync.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
@@ -23,11 +31,15 @@
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/empty_state.h"
 #include "imgui.h"
+#include "imgui/imgui_internal.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "util/file_util.h"
@@ -82,11 +94,7 @@ void MessageEditor::Initialize() {
         DrawExpandedMessageSettings();
       }));
   window_manager->RegisterWindowContent(
-      std::make_unique<DictionaryPanel>([this]() {
-        DrawTextCommands();
-        DrawSpecialCharacters();
-        DrawDictionary();
-      }));
+      std::make_unique<DictionaryPanel>([this]() { DrawMessageTools(); }));
 
   // Show message list by default
   window_manager->OpenWindow(session_id, "message.message_list");
@@ -111,6 +119,7 @@ void MessageEditor::Initialize() {
   }
   parsed_messages_ =
       ParseMessageData(list_of_texts_, message_preview_.all_dictionaries_);
+  NoteLoadedMessages();
 
   expanded_message_base_id_ = ResolveExpandedMessageBaseId();
 
@@ -147,8 +156,9 @@ bool MessageEditor::OpenMessageById(int display_id) {
   // messages yet, try loading from ROM once.
   if (!resolved.has_value() && expanded_count == 0 &&
       display_id >= expanded_base_id && rom_ && rom_->is_loaded()) {
-    const int start = GetExpandedTextDataStart();
-    const int end = GetExpandedTextDataEnd();
+    const auto range = ExpandedInspectionRange();
+    const int start = range.first;
+    const int end = range.second;
     const size_t rom_size = rom_->size();
     if (start >= 0 && end >= start && static_cast<size_t>(end) < rom_size) {
       const auto status = LoadExpandedMessagesFromRom();
@@ -201,6 +211,11 @@ bool MessageEditor::OpenMessageById(int display_id) {
 
     current_parse_errors_.clear();
     current_parse_warnings_.clear();
+    editor_cursor_ = 0;
+    find_has_match_ = false;
+    pending_selection_start_ = -1;
+    pending_selection_end_ = -1;
+    scroll_list_to_selection_ = true;
     DrawMessagePreview();
     return true;
   }
@@ -226,6 +241,11 @@ bool MessageEditor::OpenMessageById(int display_id) {
 
   current_parse_errors_.clear();
   current_parse_warnings_.clear();
+  editor_cursor_ = 0;
+  find_has_match_ = false;
+  pending_selection_start_ = -1;
+  pending_selection_end_ = -1;
+  scroll_list_to_selection_ = true;
   DrawMessagePreview();
   return true;
 }
@@ -349,14 +369,9 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  // Panel drawing is handled centrally by WorkspaceWindowManager::DrawAllVisiblePanels()
-  // via the WindowContent implementations registered in Initialize().
-  // The Find & Replace window is the one editor-owned floating window: Find()
-  // (Edit > Find) only requests it, and it is drawn here every frame so it
-  // persists until the user closes it.
-  if (show_find_replace_) {
-    DrawFindReplaceWindow();
-  }
+  // Panels are drawn by WorkspaceWindowManager. Shortcuts stay here so they
+  // run once per frame, and only while a message window actually has focus.
+  HandleMessageShortcuts();
   return absl::OkStatus();
 }
 
@@ -410,473 +425,1563 @@ void MessageEditor::EnsureFontTexturesReady() {
   }
 }
 
-void MessageEditor::DrawMessageList() {
-  gui::BeginNoPadding();
-  if (BeginChild("##MessagesList", ImVec2(0, 0), true,
-                 ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    gui::EndNoPadding();
-    if (ImGui::Button(tr("Import Bundle"))) {
-      std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
-      if (!path.empty()) {
-        ImportMessageBundleFromFile(path);
-      }
+namespace {
+
+struct MessageInputState {
+  int* cursor = nullptr;
+  int* select_start = nullptr;
+  int* select_end = nullptr;
+};
+
+int MessageInputCallback(ImGuiInputTextCallbackData* data) {
+  auto* state = static_cast<MessageInputState*>(data->UserData);
+  if (state == nullptr) {
+    return 0;
+  }
+  if (state->select_start != nullptr && state->select_end != nullptr &&
+      *state->select_start >= 0) {
+    const int start = *state->select_start;
+    const int end = std::max(start, *state->select_end);
+    data->CursorPos = std::min(end, data->BufTextLen);
+    data->SelectionStart = std::min(start, data->BufTextLen);
+    data->SelectionEnd = data->CursorPos;
+    *state->select_start = -1;
+    *state->select_end = -1;
+  }
+  if (state->cursor != nullptr) {
+    *state->cursor = data->CursorPos;
+  }
+  return 0;
+}
+
+bool MessageSurfaceFocused() {
+  ImGuiContext* context = ImGui::GetCurrentContext();
+  if (context == nullptr || context->NavWindow == nullptr) {
+    return false;
+  }
+  ImGuiWindow* root = context->NavWindow->RootWindow != nullptr
+                          ? context->NavWindow->RootWindow
+                          : context->NavWindow;
+  return root->Name != nullptr &&
+         std::strstr(root->Name, "message.message") != nullptr;
+}
+
+}  // namespace
+
+void MessageEditor::HandleMessageShortcuts() {
+  if (!MessageSurfaceFocused()) {
+    return;
+  }
+  const ImGuiIO& io = ImGui::GetIO();
+  if (io.KeyAlt && !io.KeyCtrl && !io.KeyShift &&
+      ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
+    SelectAdjacentMessage(-1);
+  }
+  if (io.KeyAlt && !io.KeyCtrl && !io.KeyShift &&
+      ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
+    SelectAdjacentMessage(1);
+  }
+  if (!io.WantTextInput && ImGui::IsKeyPressed(ImGuiKey_F3, false)) {
+    if (!find_panel_open_) {
+      find_panel_open_ = true;
+      find_focus_search_ = true;
     }
-    ImGui::SameLine();
-    if (ImGui::Button(tr("Export Bundle"))) {
-      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
-      if (!path.empty()) {
-        auto status =
-            ExportMessageBundleToJson(path, list_of_texts_, expanded_messages_);
-        if (!status.ok()) {
-          message_bundle_status_ =
-              absl::StrFormat("Export failed: %s", status.message());
-          message_bundle_status_error_ = true;
-        } else {
-          message_bundle_status_ = absl::StrFormat("Exported bundle: %s", path);
-          message_bundle_status_error_ = false;
-        }
-      }
+    AdvanceFind(!io.KeyShift);
+  }
+}
+
+void MessageEditor::ContributeStatus(StatusBar* status_bar) {
+  if (status_bar == nullptr) {
+    return;
+  }
+  const char* bank = current_message_is_expanded_ ? "Expanded" : "Vanilla";
+  status_bar->SetCustomSegment(
+      "Message",
+      absl::StrFormat("%s $%04X", bank, CurrentDisplayId() & 0xFFFF));
+  status_bar->SetCustomSegment(
+      "Size", absl::StrFormat("%zu B", current_message_.Data.size()));
+  status_bar->SetCustomSegment(
+      "Lines", absl::StrFormat("%d", message_preview_.text_line + 1));
+  const int shown = static_cast<int>(CollectMessageRows(true).size());
+  const int total = static_cast<int>(CollectMessageRows(false).size());
+  if (!list_filter_.empty() || list_bank_filter_ != 0) {
+    status_bar->SetCustomSegment("Shown",
+                                 absl::StrFormat("%d/%d", shown, total));
+  }
+  if (!current_parse_errors_.empty()) {
+    status_bar->SetEditorMode("Parse error");
+  } else if (dirty_state_.vanilla_messages || dirty_state_.expanded_messages ||
+             dirty_state_.font_widths) {
+    status_bar->SetEditorMode("Unsaved");
+  } else {
+    status_bar->SetEditorMode("Dialogue");
+  }
+}
+
+int MessageEditor::CurrentDisplayId() const {
+  if (current_message_is_expanded_) {
+    return expanded_message_base_id_ + current_message_index_;
+  }
+  return current_message_index_;
+}
+
+std::string_view MessageEditor::ContentsForDisplayId(int display_id) const {
+  if (display_id < 0 ||
+      display_id >= static_cast<int>(parsed_messages_.size())) {
+    return {};
+  }
+  return parsed_messages_[display_id];
+}
+
+std::vector<MessageEditor::MessageRow> MessageEditor::CollectMessageRows(
+    bool apply_filter) const {
+  std::vector<MessageRow> rows;
+  rows.reserve(list_of_texts_.size() + expanded_messages_.size());
+  const auto bank = static_cast<MessageBankFilter>(list_bank_filter_);
+  const auto consider = [&](int display_id, bool expanded, uint32_t address) {
+    if (apply_filter &&
+        !MessageListQueryMatches(display_id, address,
+                                 ContentsForDisplayId(display_id), expanded,
+                                 bank, list_filter_)) {
+      return;
     }
-    if (!message_bundle_status_.empty()) {
-      ImVec4 color = message_bundle_status_error_ ? gui::GetErrorColor()
-                                                  : gui::GetSuccessColor();
-      ImGui::TextColored(color, "%s", message_bundle_status_.c_str());
-    }
-    ImGui::Separator();
-    if (BeginTable("##MessagesTable", 4, kMessageTableFlags)) {
-      TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 50);
-      TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 80);
-      TableSetupColumn("Contents", ImGuiTableColumnFlags_WidthStretch);
-      TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 100);
+    rows.push_back(MessageRow{display_id, expanded, address});
+  };
+  for (const auto& message : list_of_texts_) {
+    consider(message.ID, false, static_cast<uint32_t>(message.Address));
+  }
+  for (const auto& message : expanded_messages_) {
+    consider(expanded_message_base_id_ + message.ID, true,
+             static_cast<uint32_t>(message.Address));
+  }
+  return rows;
+}
 
-      TableHeadersRow();
+void MessageEditor::InsertTokenAtCursor(const std::string& token) {
+  if (token.empty()) {
+    return;
+  }
+  auto& text = message_text_box_.text;
+  const int pos = std::clamp(editor_cursor_, 0, static_cast<int>(text.size()));
+  text.insert(static_cast<size_t>(pos), token);
+  editor_cursor_ = pos + static_cast<int>(token.size());
+  pending_selection_start_ = editor_cursor_;
+  pending_selection_end_ = editor_cursor_;
+  ImGui::ClearActiveID();
+  UpdateCurrentMessageFromText(text);
+}
 
-      // Calculate total rows for clipper
-      const int vanilla_count = static_cast<int>(list_of_texts_.size());
-      const int expanded_count = static_cast<int>(expanded_messages_.size());
-      const int total_rows = vanilla_count + expanded_count;
-
-      // Right-click menu on a message's ID button.
-      auto message_context_menu = [this](int display_id, int address) {
-        gui::ItemContextMenu(nullptr, [this, display_id, address]() {
-          std::vector<gui::MenuItemSpec> items;
-          auto open_item = gui::MenuItemSpec::Conditional(
-              "Open Message",
-              [this, display_id]() {
-                FinalizePendingUndo();
-                OpenMessageById(display_id);
-              },
-              // Same gate as the ID button: a parse error blocks switching.
-              [this]() { return current_parse_errors_.empty(); });
-          open_item.icon = ICON_MD_ARROW_FORWARD;
-          open_item.separator_after = true;
-          items.push_back(std::move(open_item));
-          items.push_back(gui::CopyToClipboardItem("Copy Message ID",
-                                                   util::HexWord(display_id)));
-          if (display_id >= 0 &&
-              display_id < static_cast<int>(parsed_messages_.size())) {
-            items.push_back(gui::CopyToClipboardItem(
-                "Copy Text", parsed_messages_[display_id]));
-          }
-          items.push_back(
-              gui::CopyToClipboardItem("Copy Address", util::HexLong(address)));
-          return items;
-        });
-      };
-
-      // Use ImGuiListClipper for virtualized rendering
-      ImGuiListClipper clipper;
-      clipper.Begin(total_rows);
-
-      while (clipper.Step()) {
-        for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-          if (row < vanilla_count) {
-            // Vanilla message
-            const auto& message = list_of_texts_[row];
-            TableNextColumn();
-            PushID(message.ID);
-            if (Button(util::HexWord(message.ID).c_str())) {
-              if (current_parse_errors_.empty()) {
-                FinalizePendingUndo();
-                OpenMessageById(message.ID);
-              }
-            }
-            message_context_menu(message.ID, message.Address);
-            PopID();
-
-            TableNextColumn();
-            ImGui::TextColored(gui::GetInfoColor(), tr("Vanilla"));
-
-            TableNextColumn();
-            TextWrapped("%s", parsed_messages_[message.ID].c_str());
-
-            TableNextColumn();
-            TextWrapped("%s", util::HexLong(message.Address).c_str());
-          } else {
-            // Expanded message
-            int expanded_idx = row - vanilla_count;
-            const auto& expanded_message = expanded_messages_[expanded_idx];
-            const int display_id =
-                expanded_message_base_id_ + expanded_message.ID;
-            const char* display_text = "Missing text";
-            if (display_id >= 0 &&
-                display_id < static_cast<int>(parsed_messages_.size())) {
-              display_text = parsed_messages_[display_id].c_str();
-            }
-            TableNextColumn();
-            PushID(display_id);
-            if (Button(util::HexWord(display_id).c_str())) {
-              if (current_parse_errors_.empty()) {
-                FinalizePendingUndo();
-                OpenMessageById(display_id);
-              }
-            }
-            message_context_menu(display_id, expanded_message.Address);
-            PopID();
-
-            TableNextColumn();
-            ImGui::TextColored(gui::GetWarningColor(), tr("Expanded"));
-
-            TableNextColumn();
-            TextWrapped("%s", display_text);
-
-            TableNextColumn();
-            TextWrapped("%s", util::HexLong(expanded_message.Address).c_str());
-          }
-        }
-      }
-
-      EndTable();
+void MessageEditor::SelectAdjacentMessage(int delta) {
+  if (delta == 0) {
+    return;
+  }
+  if (!current_parse_errors_.empty()) {
+    replace_status_ = "Resolve parse errors before switching messages";
+    replace_status_error_ = true;
+    find_panel_open_ = true;
+    return;
+  }
+  const std::vector<MessageRow> rows = CollectMessageRows(true);
+  if (rows.empty()) {
+    return;
+  }
+  int current = 0;
+  const int current_id = CurrentDisplayId();
+  for (int i = 0; i < static_cast<int>(rows.size()); ++i) {
+    if (rows[i].display_id == current_id &&
+        rows[i].expanded == current_message_is_expanded_) {
+      current = i;
+      break;
     }
   }
-  EndChild();
+  const int next =
+      std::clamp(current + delta, 0, static_cast<int>(rows.size()) - 1);
+  if (next == current) {
+    return;
+  }
+  FinalizePendingUndo();
+  OpenMessageById(rows[next].display_id);
+}
+
+bool MessageEditor::ActivateFindMatch(const MessageRow& row, size_t offset,
+                                      bool wrapped) {
+  const bool same = row.display_id == CurrentDisplayId() &&
+                    row.expanded == current_message_is_expanded_;
+  if (!same) {
+    if (!current_parse_errors_.empty()) {
+      replace_status_ = "Resolve parse errors before leaving this message";
+      replace_status_error_ = true;
+      return false;
+    }
+    FinalizePendingUndo();
+    if (!OpenMessageById(row.display_id)) {
+      replace_status_ = "Could not open the matching message";
+      replace_status_error_ = true;
+      return false;
+    }
+  }
+  find_match_start_ = offset;
+  find_has_match_ = true;
+  const int end = static_cast<int>(offset + search_text_.size());
+  pending_selection_start_ = static_cast<int>(offset);
+  pending_selection_end_ = end;
+  editor_cursor_ = end;
+  scroll_list_to_selection_ = true;
+  replace_status_ = absl::StrFormat("Match in $%04X%s", row.display_id & 0xFFFF,
+                                    wrapped ? " (wrapped)" : "");
+  replace_status_error_ = false;
+  return true;
+}
+
+bool MessageEditor::AdvanceFind(bool forward) {
+  if (search_text_.empty()) {
+    replace_status_ = "Enter text to search";
+    replace_status_error_ = true;
+    return false;
+  }
+  const std::vector<MessageRow> rows = CollectMessageRows(false);
+  if (rows.empty()) {
+    replace_status_ = "No messages to search";
+    replace_status_error_ = true;
+    return false;
+  }
+
+  int start = 0;
+  const int current_id = CurrentDisplayId();
+  for (int i = 0; i < static_cast<int>(rows.size()); ++i) {
+    if (rows[i].display_id == current_id &&
+        rows[i].expanded == current_message_is_expanded_) {
+      start = i;
+      break;
+    }
+  }
+
+  const int count = static_cast<int>(rows.size());
+  const size_t cursor = static_cast<size_t>(std::clamp(
+      editor_cursor_, 0, static_cast<int>(message_text_box_.text.size())));
+  const size_t forward_from = find_has_match_ ? find_match_start_ + 1 : cursor;
+  const size_t backward_before = find_has_match_ ? find_match_start_ : cursor;
+
+  auto match_at = [&](int row_index, size_t bound,
+                      bool from_start) -> std::optional<size_t> {
+    const std::string_view text =
+        ContentsForDisplayId(rows[row_index].display_id);
+    if (forward) {
+      return FindNextTextMatch(text, search_text_, from_start ? 0 : bound,
+                               case_sensitive_, match_whole_word_);
+    }
+    const size_t before = from_start ? std::string::npos : bound;
+    return FindPreviousTextMatch(text, search_text_, before, case_sensitive_,
+                                 match_whole_word_);
+  };
+
+  if (auto found =
+          match_at(start, forward ? forward_from : backward_before, false)) {
+    return ActivateFindMatch(rows[start], *found, false);
+  }
+  for (int step = 1; step < count; ++step) {
+    const int row_index =
+        forward ? (start + step) % count : (start - step + count) % count;
+    if (auto found = match_at(row_index, 0, true)) {
+      return ActivateFindMatch(rows[row_index], *found, false);
+    }
+  }
+  // Forward wrap only matters once the cursor has moved past the start.
+  // Backward wrap also covers "previous" from the first match, which should
+  // land on the last match in this message.
+  const bool can_wrap = forward ? forward_from > 0 : true;
+  if (can_wrap) {
+    if (auto found = match_at(start, 0, true)) {
+      return ActivateFindMatch(rows[start], *found, true);
+    }
+  }
+  replace_status_ = "No matches";
+  replace_status_error_ = true;
+  return false;
+}
+
+void MessageEditor::OptimizeCurrentMessage() {
+  MessageData scratch;
+  const std::string optimized = scratch.OptimizeMessageForDictionary(
+      message_text_box_.text, message_preview_.all_dictionaries_);
+  if (optimized == message_text_box_.text) {
+    replace_status_ = "Dictionary optimize made no changes";
+    replace_status_error_ = false;
+    find_panel_open_ = true;
+    return;
+  }
+  const auto parsed = ParseMessageToDataWithDiagnostics(optimized);
+  if (!parsed.ok()) {
+    replace_status_ = "Dictionary optimize produced invalid text";
+    replace_status_error_ = true;
+    find_panel_open_ = true;
+    return;
+  }
+  message_text_box_.text = optimized;
+  pending_selection_start_ = 0;
+  pending_selection_end_ = 0;
+  editor_cursor_ = 0;
+  ImGui::ClearActiveID();
+  UpdateCurrentMessageFromText(optimized);
+  FinalizePendingUndo();
+  replace_status_ = "Applied dictionary compression";
+  replace_status_error_ = false;
+  find_panel_open_ = true;
+}
+
+void MessageEditor::DrawFindBar() {
+  if (!find_panel_open_) {
+    return;
+  }
+  ImGui::PushID("FindReplace");
+  if (find_focus_search_) {
+    ImGui::SetKeyboardFocusHere();
+    find_focus_search_ = false;
+  }
+  const float half =
+      std::max(80.0f, ImGui::GetContentRegionAvail().x * 0.5f - 8.0f);
+  ImGui::SetNextItemWidth(half);
+  if (ImGui::InputTextWithHint("##find", "Find in dialogue", &search_text_)) {
+    find_has_match_ = false;
+  }
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  ImGui::InputTextWithHint("##replace", "Replace with", &replace_text_);
+
+  if (ImGui::Button(tr("Find Next"))) {
+    AdvanceFind(true);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Previous"))) {
+    AdvanceFind(false);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Find All"))) {
+    if (search_text_.empty()) {
+      replace_status_ = "Enter text to search";
+      replace_status_error_ = true;
+    } else {
+      list_filter_ = search_text_;
+      list_bank_filter_ = 0;
+      const int matches = static_cast<int>(CollectMessageRows(true).size());
+      replace_status_ = absl::StrFormat("List filtered to %d message%s",
+                                        matches, matches == 1 ? "" : "s");
+      replace_status_error_ = matches == 0;
+      scroll_list_to_selection_ = true;
+      if (dependencies_.window_manager) {
+        dependencies_.window_manager->OpenWindow(dependencies_.session_id,
+                                                 "message.message_list");
+      }
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Replace"))) {
+    const int count = ReplaceCurrentMatch();
+    if (count > 0) {
+      replace_status_ = "Replaced 1 occurrence";
+      replace_status_error_ = false;
+    } else if (search_text_.empty()) {
+      replace_status_ = "Enter text to search";
+      replace_status_error_ = true;
+    } else {
+      replace_status_ = "No match found in current message";
+      replace_status_error_ = true;
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Replace All"))) {
+    int count = ReplaceAllMatches();
+    if (count >= 0) {
+      replace_status_ = absl::StrFormat("Replaced %d occurrence%s", count,
+                                        count == 1 ? "" : "s");
+      replace_status_error_ = count == 0;
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton(tr("Close"))) {
+    find_panel_open_ = false;
+  }
+
+  ImGui::Checkbox(tr("Case Sensitive"), &case_sensitive_);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Applies to Find Next, Previous, and Replace.");
+  }
+  ImGui::SameLine();
+  ImGui::Checkbox(tr("Whole Word"), &match_whole_word_);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Match only when both sides are not letters or digits.");
+  }
+  if (!replace_status_.empty()) {
+    const ImVec4 color =
+        replace_status_error_ ? gui::GetErrorColor() : gui::GetSuccessColor();
+    ImGui::TextColored(color, "%s", replace_status_.c_str());
+  }
+  ImGui::PopID();
+}
+
+void MessageEditor::NoteLoadedMessages() {
+  if (baseline_messages_.size() >= parsed_messages_.size()) {
+    return;
+  }
+  baseline_messages_.insert(
+      baseline_messages_.end(),
+      parsed_messages_.begin() +
+          static_cast<std::ptrdiff_t>(baseline_messages_.size()),
+      parsed_messages_.end());
+}
+
+std::string MessageEditor::CurrentReferenceText() const {
+  const int display_id = CurrentDisplayId();
+  if (display_id < 0 ||
+      display_id >= static_cast<int>(baseline_messages_.size())) {
+    return {};
+  }
+  return baseline_messages_[display_id];
+}
+
+void MessageEditor::AcceptCurrentAsReference() {
+  if (!current_parse_errors_.empty()) {
+    return;
+  }
+  const int display_id = CurrentDisplayId();
+  if (display_id < 0) {
+    return;
+  }
+  if (display_id >= static_cast<int>(baseline_messages_.size())) {
+    baseline_messages_.resize(static_cast<size_t>(display_id) + 1);
+  }
+  baseline_messages_[display_id] = message_text_box_.text;
+  reference_view_text_ = message_text_box_.text;
+}
+
+void MessageEditor::DrawDialogueTextPane(float height) {
+  const std::string reference = CurrentReferenceText();
+  if (reference != reference_view_text_) {
+    reference_view_text_ = reference;
+  }
+  const bool show_reference = show_reference_ && !reference_view_text_.empty();
+  const float label_h = ImGui::GetFrameHeightWithSpacing();
+  const float text_h = std::max(48.0f, height - label_h);
+
+  auto draw_editor = [&](float editor_height) {
+    MessageInputState input_state{&editor_cursor_, &pending_selection_start_,
+                                  &pending_selection_end_};
+    if (InputTextMultiline("##MessageEditor", &message_text_box_.text,
+                           ImVec2(-1.0f, editor_height),
+                           ImGuiInputTextFlags_CallbackAlways,
+                           MessageInputCallback, &input_state)) {
+      UpdateCurrentMessageFromText(message_text_box_.text);
+    }
+    if (ImGui::IsItemDeactivatedAfterEdit()) {
+      FinalizePendingUndo();
+    }
+  };
+
+  if (!show_reference) {
+    draw_editor(-1.0f);
+    return;
+  }
+
+  const bool side_by_side = ImGui::GetContentRegionAvail().x >= 640.0f;
+  if (side_by_side &&
+      ImGui::BeginTable("##DialogueColumns", 2, ImGuiTableFlags_Resizable,
+                        ImVec2(0.0f, height))) {
+    ImGui::TableSetupColumn(tr("Loaded"), ImGuiTableColumnFlags_WidthStretch,
+                            0.45f);
+    ImGui::TableSetupColumn(tr("Editing"), ImGuiTableColumnFlags_WidthStretch,
+                            0.55f);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::TextDisabled(tr("Loaded"));
+    ImGui::InputTextMultiline("##MessageReference", &reference_view_text_,
+                              ImVec2(-1.0f, text_h),
+                              ImGuiInputTextFlags_ReadOnly);
+    ImGui::TableNextColumn();
+    ImGui::TextDisabled(tr("Editing"));
+    draw_editor(text_h);
+    ImGui::EndTable();
+    return;
+  }
+
+  ImGui::TextDisabled(tr("Loaded"));
+  const float reference_h = std::clamp(height * 0.34f, 64.0f, 140.0f);
+  ImGui::InputTextMultiline("##MessageReference", &reference_view_text_,
+                            ImVec2(-1.0f, reference_h),
+                            ImGuiInputTextFlags_ReadOnly);
+  ImGui::TextDisabled(tr("Editing"));
+  draw_editor(std::max(48.0f, height - reference_h - label_h * 2.0f));
+}
+
+bool MessageEditor::HasMessageSourceLayout() const {
+  const auto* project = dependencies_.project;
+  return project != nullptr && project->hack_manifest.loaded() &&
+         project->hack_manifest.message_layout().source.has_value();
+}
+
+bool MessageEditor::ExpandedEditsAreSourceOwned() const {
+  return HasMessageSourceLayout();
+}
+
+std::pair<int, int> MessageEditor::ExpandedInspectionRange() const {
+  const int fallback_start = GetExpandedTextDataStart();
+  const int fallback_end = GetExpandedTextDataEnd();
+  const auto* project = dependencies_.project;
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return {fallback_start, fallback_end};
+  }
+  const auto& layout = project->hack_manifest.message_layout();
+  if (layout.data_start == 0 || layout.data_end < layout.data_start) {
+    return {fallback_start, fallback_end};
+  }
+  const int start = static_cast<int>(SnesToPc(layout.data_start));
+  const int end = static_cast<int>(SnesToPc(layout.data_end));
+  if (end < start) {
+    return {fallback_start, fallback_end};
+  }
+  return {start, end};
+}
+
+void MessageEditor::InvalidateSourcePreview() {
+  if (source_sync_ready_) {
+    source_sync_status_ =
+        "The draft changed after preview. Preview again before publishing.";
+    source_sync_status_error_ = true;
+  }
+  source_sync_ready_ = false;
+  source_sync_changed_ = false;
+  source_sync_sha_before_.clear();
+  source_sync_draft_sha_.clear();
+}
+
+absl::StatusOr<std::filesystem::path>
+MessageEditor::ResolveCanonicalBundlePath() const {
+  if (!HasMessageSourceLayout() || dependencies_.project->filepath.empty()) {
+    return absl::FailedPreconditionError(
+        "The project hack manifest does not define messages.source");
+  }
+  const auto& configured = dependencies_.project->hack_manifest.message_layout()
+                               .source->canonical_bundle_path;
+  const std::filesystem::path relative(configured);
+  if (relative.empty() || relative.is_absolute() || relative.has_root_name()) {
+    return absl::InvalidArgumentError(
+        "Canonical message bundle must be a project-relative path");
+  }
+  std::error_code error;
+  const std::filesystem::path descriptor =
+      std::filesystem::absolute(dependencies_.project->filepath, error);
+  if (error) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot resolve project descriptor %s: %s",
+                        dependencies_.project->filepath, error.message()));
+  }
+  const std::filesystem::path root =
+      std::filesystem::canonical(descriptor.parent_path(), error);
+  if (error) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot resolve project root for %s: %s",
+                        dependencies_.project->filepath, error.message()));
+  }
+  const std::filesystem::path joined = (root / relative).lexically_normal();
+  const std::filesystem::path from_root = joined.lexically_relative(root);
+  if (from_root.empty() || from_root.is_absolute() ||
+      *from_root.begin() == "..") {
+    return absl::InvalidArgumentError(
+        "Canonical message bundle must stay inside the project root");
+  }
+  return joined;
+}
+
+absl::StatusOr<std::string> MessageEditor::HashFileSha256(
+    const std::filesystem::path& path) const {
+  std::ifstream input(path, std::ios::binary);
+  if (!input.is_open()) {
+    return absl::NotFoundError(absl::StrFormat(
+        "Cannot read canonical message bundle: %s", path.string()));
+  }
+  const std::string content((std::istreambuf_iterator<char>(input)),
+                            std::istreambuf_iterator<char>());
+  if (!input.good() && !input.eof()) {
+    return absl::InternalError(absl::StrFormat(
+        "Cannot read canonical message bundle: %s", path.string()));
+  }
+  return ComputeMessageSourceSha256(content);
+}
+
+bool MessageEditor::IsCanonicalBundlePath(const std::string& path) const {
+  const auto canonical_or = ResolveCanonicalBundlePath();
+  if (!canonical_or.ok() || path.empty()) {
+    return false;
+  }
+  std::error_code error;
+  const auto incoming = std::filesystem::weakly_canonical(path, error);
+  if (error) {
+    return false;
+  }
+  const auto target =
+      std::filesystem::weakly_canonical(canonical_or.value(), error);
+  return !error && incoming == target;
+}
+
+MessageEditor::ExpandedDraftSnapshot MessageEditor::CaptureExpandedDraft()
+    const {
+  ExpandedDraftSnapshot snapshot;
+  snapshot.messages = expanded_messages_;
+  snapshot.vanilla_messages = list_of_texts_;
+  snapshot.parsed_messages = parsed_messages_;
+  snapshot.base_id = expanded_message_base_id_;
+  snapshot.path = expanded_message_path_;
+  snapshot.expanded_dirty = dirty_state_.expanded_messages;
+  snapshot.vanilla_dirty = dirty_state_.vanilla_messages;
+  snapshot.loaded_canonical_sha = source_loaded_canonical_sha_;
+  snapshot.preview_ready = source_sync_ready_;
+  snapshot.preview_changed = source_sync_changed_;
+  snapshot.preview_sha_before = source_sync_sha_before_;
+  snapshot.preview_draft_sha = source_sync_draft_sha_;
+  snapshot.preview_summary = source_sync_summary_;
+  snapshot.preview_status = source_sync_status_;
+  snapshot.preview_status_error = source_sync_status_error_;
+  return snapshot;
+}
+
+void MessageEditor::RestoreExpandedDraft(
+    const ExpandedDraftSnapshot& snapshot) {
+  expanded_messages_ = snapshot.messages;
+  list_of_texts_ = snapshot.vanilla_messages;
+  parsed_messages_ = snapshot.parsed_messages;
+  expanded_message_base_id_ = snapshot.base_id;
+  expanded_message_path_ = snapshot.path;
+  dirty_state_.expanded_messages = snapshot.expanded_dirty;
+  dirty_state_.vanilla_messages = snapshot.vanilla_dirty;
+  source_loaded_canonical_sha_ = snapshot.loaded_canonical_sha;
+  source_sync_ready_ = snapshot.preview_ready;
+  source_sync_changed_ = snapshot.preview_changed;
+  source_sync_sha_before_ = snapshot.preview_sha_before;
+  source_sync_draft_sha_ = snapshot.preview_draft_sha;
+  source_sync_summary_ = snapshot.preview_summary;
+  source_sync_status_ = snapshot.preview_status;
+  source_sync_status_error_ = snapshot.preview_status_error;
+}
+
+std::string MessageEditor::MessageSourceIncomingPath() const {
+  std::error_code error;
+  std::filesystem::path directory = std::filesystem::temp_directory_path(error);
+  if (error) {
+    directory = std::filesystem::current_path(error);
+  }
+  return (directory / absl::StrFormat("yaze-message-source-sync-%zu.json",
+                                      dependencies_.session_id))
+      .string();
+}
+
+void MessageEditor::PreviewMessageSource() {
+  source_sync_ready_ = false;
+  source_sync_changed_ = false;
+  source_sync_sha_before_.clear();
+  source_sync_draft_sha_.clear();
+  source_sync_summary_.clear();
+  if (!current_parse_errors_.empty()) {
+    source_sync_status_ = "Resolve parse errors before previewing source";
+    source_sync_status_error_ = true;
+    return;
+  }
+  if (expanded_messages_.empty()) {
+    source_sync_status_ = "Load expanded messages before publishing source";
+    source_sync_status_error_ = true;
+    return;
+  }
+  if (!HasMessageSourceLayout()) {
+    source_sync_status_ =
+        "The project hack manifest does not define messages.source";
+    source_sync_status_error_ = true;
+    return;
+  }
+  if (source_loaded_canonical_sha_.empty()) {
+    source_sync_status_ =
+        "Load the canonical expanded bundle before previewing publication";
+    source_sync_status_error_ = true;
+    return;
+  }
+
+  const auto canonical_sha_or = [&]() -> absl::StatusOr<std::string> {
+    const auto path_or = ResolveCanonicalBundlePath();
+    if (!path_or.ok()) {
+      return path_or.status();
+    }
+    return HashFileSha256(path_or.value());
+  }();
+  if (!canonical_sha_or.ok()) {
+    source_sync_status_ = std::string(canonical_sha_or.status().message());
+    source_sync_status_error_ = true;
+    return;
+  }
+  if (canonical_sha_or.value() != source_loaded_canonical_sha_) {
+    source_sync_status_ =
+        "Canonical source changed on disk after it was loaded. Reload the "
+        "canonical bundle before preview. This draft was not published.";
+    source_sync_status_error_ = true;
+    return;
+  }
+
+  const std::string incoming_path = MessageSourceIncomingPath();
+  const auto write_status =
+      ExportMessageBundleToJson(incoming_path, {}, expanded_messages_);
+  if (!write_status.ok()) {
+    source_sync_status_ = absl::StrFormat(
+        "Could not write the preview bundle: %s", write_status.message());
+    source_sync_status_error_ = true;
+    return;
+  }
+  const auto draft_sha_or =
+      HashFileSha256(std::filesystem::path(incoming_path));
+  if (!draft_sha_or.ok()) {
+    source_sync_status_ = std::string(draft_sha_or.status().message());
+    source_sync_status_error_ = true;
+    return;
+  }
+
+  auto result_or = SyncMessageSource(*dependencies_.project, incoming_path,
+                                     MessageSourceSyncOptions{});
+  if (!result_or.ok()) {
+    source_sync_status_ = std::string(result_or.status().message());
+    source_sync_status_error_ = true;
+    return;
+  }
+
+  const MessageSourceSyncResult& result = *result_or;
+  source_sync_ready_ = true;
+  source_sync_changed_ = result.changed;
+  source_sync_sha_before_ = result.source_sha256_before;
+  source_sync_draft_sha_ = draft_sha_or.value();
+  source_sync_summary_ = absl::StrFormat(
+      "%s. %d update%s, %zu / %zu bytes. SHA %s",
+      result.changed ? "Source would change" : "Source already matches",
+      result.incoming_updates, result.incoming_updates == 1 ? "" : "s",
+      result.encoded_size, result.capacity,
+      result.proposed_source_sha256.substr(
+          0, std::min<size_t>(12, result.proposed_source_sha256.size())));
+  source_sync_status_ = source_sync_summary_;
+  source_sync_status_error_ = false;
+}
+
+void MessageEditor::PublishMessageSource() {
+  if (!source_sync_ready_ || source_sync_sha_before_.empty() ||
+      source_sync_draft_sha_.empty()) {
+    source_sync_status_ = "Preview the publication before writing it";
+    source_sync_status_error_ = true;
+    return;
+  }
+  if (!current_parse_errors_.empty() || expanded_messages_.empty() ||
+      !HasMessageSourceLayout()) {
+    source_sync_status_ = "Publication is no longer valid";
+    source_sync_status_error_ = true;
+    source_sync_ready_ = false;
+    source_sync_draft_sha_.clear();
+    return;
+  }
+
+  const std::string incoming_path = MessageSourceIncomingPath();
+  const auto write_status =
+      ExportMessageBundleToJson(incoming_path, {}, expanded_messages_);
+  if (!write_status.ok()) {
+    source_sync_status_ = absl::StrFormat(
+        "Could not write the publication bundle: %s", write_status.message());
+    source_sync_status_error_ = true;
+    return;
+  }
+  const auto draft_sha_or =
+      HashFileSha256(std::filesystem::path(incoming_path));
+  if (!draft_sha_or.ok() || draft_sha_or.value() != source_sync_draft_sha_) {
+    source_sync_ready_ = false;
+    source_sync_draft_sha_.clear();
+    source_sync_status_ =
+        "The draft changed after preview. Preview again before publishing. "
+        "Nothing was written.";
+    source_sync_status_error_ = true;
+    return;
+  }
+
+  const auto canonical_path_or = ResolveCanonicalBundlePath();
+  const auto canonical_sha_or =
+      canonical_path_or.ok()
+          ? HashFileSha256(canonical_path_or.value())
+          : absl::StatusOr<std::string>(canonical_path_or.status());
+  if (!canonical_sha_or.ok() ||
+      canonical_sha_or.value() != source_sync_sha_before_ ||
+      canonical_sha_or.value() != source_loaded_canonical_sha_) {
+    source_sync_ready_ = false;
+    source_sync_draft_sha_.clear();
+    source_sync_status_ =
+        "Canonical source changed after preview. Reload the canonical bundle "
+        "and preview again. This draft was not published.";
+    source_sync_status_error_ = true;
+    return;
+  }
+
+  MessageSourceSyncOptions options;
+  options.write = true;
+  options.expected_source_sha256 = source_sync_sha_before_;
+  auto result_or =
+      SyncMessageSource(*dependencies_.project, incoming_path, options);
+  source_sync_ready_ = false;
+  source_sync_draft_sha_.clear();
+  if (!result_or.ok()) {
+    source_sync_status_ = std::string(result_or.status().message());
+    source_sync_status_error_ = true;
+    return;
+  }
+  dirty_state_.expanded_messages = false;
+  source_loaded_canonical_sha_ = result_or->proposed_source_sha256;
+  source_sync_changed_ = false;
+  source_sync_status_ =
+      result_or->wrote ? "Published the canonical bundle and ASM include. "
+                         "Rebuild before the patched ROM shows this text."
+                       : "Canonical source already matched; nothing written";
+  source_sync_status_error_ = false;
+  source_sync_summary_ =
+      absl::StrFormat("%s\n%s", result_or->canonical_bundle_path.string(),
+                      result_or->generated_asm_include_path.string());
+}
+
+MessageEditor::MessageSourcePublishButtons
+MessageEditor::DrawMessageSourcePublishButtons() {
+  MessageSourcePublishButtons state;
+  ImGui::BeginDisabled(expanded_messages_.empty() ||
+                       !current_parse_errors_.empty());
+  if (ImGui::Button(tr("Preview Publication"))) {
+    PreviewMessageSource();
+  }
+  state.preview_disabled =
+      (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) != 0;
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!source_sync_ready_ || !source_sync_changed_);
+  if (ImGui::Button(tr("Publish"))) {
+    ImGui::OpenPopup("Publish message source###PublishMessageSource");
+  }
+  state.publish_disabled =
+      (ImGui::GetItemFlags() & ImGuiItemFlags_Disabled) != 0;
+  ImGui::EndDisabled();
+  return state;
+}
+
+void MessageEditor::DrawMessageSourceSync() {
+  ImGui::Separator();
+  gui::SectionHeader(ICON_MD_PUBLISH, tr("ASM Source"), gui::GetInfoColor());
+  if (!HasMessageSourceLayout()) {
+    ImGui::TextWrapped(
+        "%s",
+        tr("Load a project whose hack manifest defines messages.source to "
+           "publish expanded dialogue as a canonical bundle and ASM include."));
+    return;
+  }
+
+  const auto& source =
+      dependencies_.project->hack_manifest.message_layout().source.value();
+  ImGui::TextDisabled("%s", source.canonical_bundle_path.c_str());
+  ImGui::TextDisabled("%s", source.generated_asm_include_path.c_str());
+  ImGui::TextWrapped(
+      "%s",
+      tr("Preview checks capacity and the current source SHA without writing. "
+         "Publish updates the bundle and generated include, not the ROM."));
+
+  DrawMessageSourcePublishButtons();
+
+  if (ImGui::BeginPopupModal("Publish message source###PublishMessageSource",
+                             nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextWrapped(
+        "%s", tr("Write the expanded messages into the canonical bundle and "
+                 "generated ASM include. The ROM is not modified."));
+    if (!source_sync_summary_.empty()) {
+      ImGui::TextWrapped("%s", source_sync_summary_.c_str());
+    }
+    if (ImGui::Button(tr("Publish now"))) {
+      PublishMessageSource();
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Cancel"))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  if (!source_sync_status_.empty()) {
+    const ImVec4 color = source_sync_status_error_ ? gui::GetErrorColor()
+                                                   : gui::GetSuccessColor();
+    ImGui::TextWrapped("%s", source_sync_status_.c_str());
+  }
+}
+
+void MessageEditor::DrawMessageHeader() {
+  const bool can_navigate = current_parse_errors_.empty();
+  ImGui::BeginDisabled(!can_navigate);
+  if (ImGui::Button(ICON_MD_NAVIGATE_BEFORE "##prev_message")) {
+    SelectAdjacentMessage(-1);
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("Previous message (Alt+Up)");
+  }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!can_navigate);
+  if (ImGui::Button(ICON_MD_NAVIGATE_NEXT "##next_message")) {
+    SelectAdjacentMessage(1);
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip("Next message (Alt+Down)");
+  }
+
+  ImGui::SameLine();
+  ImGui::Text("$%04X", CurrentDisplayId() & 0xFFFF);
+  ImGui::SameLine();
+  gui::StatusBadge(
+      current_message_is_expanded_ ? tr("Expanded") : tr("Vanilla"),
+      current_message_is_expanded_ ? gui::ButtonType::Warning
+                                   : gui::ButtonType::Info);
+  ImGui::SameLine();
+  ImGui::TextDisabled("%s", util::HexLong(current_message_.Address).c_str());
+  ImGui::SameLine();
+  ImGui::TextDisabled("%zu B", current_message_.Data.size());
+
+  ImGui::SameLine();
+  const std::string reference_now = CurrentReferenceText();
+  if (!reference_now.empty() && reference_now != message_text_box_.text) {
+    gui::StatusBadge(tr("Edited"), gui::ButtonType::Warning);
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(show_reference_ ? tr("Hide reference")
+                                    : tr("Show reference"))) {
+    show_reference_ = !show_reference_;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Show the text from when this message was loaded.");
+  }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(reference_now == message_text_box_.text ||
+                       !current_parse_errors_.empty());
+  if (ImGui::Button(tr("Accept"))) {
+    AcceptCurrentAsReference();
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "Make the current draft the loaded reference for this message.");
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SEARCH "##toggle_find")) {
+    find_panel_open_ = !find_panel_open_;
+    find_focus_search_ = find_panel_open_;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Find and replace (F3 finds the next match)");
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Optimize"))) {
+    OptimizeCurrentMessage();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Replace dictionary phrases in this message with [D:XX] tokens.");
+  }
+}
+
+void MessageEditor::DrawMessageList() {
+  gui::LayoutHelpers::BeginToolbar("##MessageListTools");
+  if (gui::LayoutHelpers::ToolbarButton(ICON_MD_UPLOAD)) {
+    const std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
+    if (!path.empty()) {
+      ImportMessageBundleFromFile(path);
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Import message bundle");
+  }
+  ImGui::SameLine();
+  if (gui::LayoutHelpers::ToolbarButton(ICON_MD_DOWNLOAD)) {
+    const std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+    if (!path.empty()) {
+      auto status =
+          ExportMessageBundleToJson(path, list_of_texts_, expanded_messages_);
+      if (!status.ok()) {
+        message_bundle_status_ =
+            absl::StrFormat("Export failed: %s", status.message());
+        message_bundle_status_error_ = true;
+      } else {
+        message_bundle_status_ = absl::StrFormat("Exported bundle: %s", path);
+        message_bundle_status_error_ = false;
+      }
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Export message bundle");
+  }
+  gui::LayoutHelpers::EndToolbar();
+
+  ImGui::SetNextItemWidth(
+      std::max(120.0f, ImGui::GetContentRegionAvail().x - 120.0f));
+  ImGui::InputTextWithHint("##message_filter", "Filter by text, ID, or address",
+                           &list_filter_);
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(110.0f);
+  ImGui::Combo("##message_bank", &list_bank_filter_,
+               "All\0Vanilla\0Expanded\0");
+
+  if (!message_bundle_status_.empty()) {
+    const ImVec4 color = message_bundle_status_error_ ? gui::GetErrorColor()
+                                                      : gui::GetSuccessColor();
+    ImGui::TextWrapped("%s", message_bundle_status_.c_str());
+  }
+
+  const std::vector<MessageRow> rows = CollectMessageRows(true);
+  const int total = static_cast<int>(CollectMessageRows(false).size());
+  ImGui::TextDisabled("%d / %d", static_cast<int>(rows.size()), total);
+
+  if (list_of_texts_.empty() && expanded_messages_.empty()) {
+    gui::DrawEmptyState(gui::EmptyStateOptions{ICON_MD_CHAT, "No messages",
+                                               "Load a ROM to edit dialogue.",
+                                               nullptr, nullptr, true});
+    return;
+  }
+  if (rows.empty()) {
+    gui::EmptyStateOptions empty;
+    empty.icon = ICON_MD_SEARCH;
+    empty.title = "No matches";
+    empty.detail = "No messages match this filter.";
+    empty.action_label = "Clear filter";
+    empty.compact = true;
+    empty.on_action = [this]() {
+      list_filter_.clear();
+      list_bank_filter_ = 0;
+    };
+    gui::DrawEmptyState(empty);
+    return;
+  }
+
+  constexpr ImGuiTableFlags kListFlags =
+      ImGuiTableFlags_Hideable | ImGuiTableFlags_Borders |
+      ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg |
+      ImGuiTableFlags_ScrollY;
+  if (!BeginTable("##MessagesTable", 4, kListFlags, ImVec2(0, 0))) {
+    return;
+  }
+  TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 64);
+  TableSetupColumn("Bank", ImGuiTableColumnFlags_WidthFixed, 84);
+  TableSetupColumn("Contents", ImGuiTableColumnFlags_WidthStretch);
+  TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed, 90);
+  TableHeadersRow();
+
+  const int current_id = CurrentDisplayId();
+  int target_row = -1;
+  for (int i = 0; i < static_cast<int>(rows.size()); ++i) {
+    if (rows[i].display_id == current_id &&
+        rows[i].expanded == current_message_is_expanded_) {
+      target_row = i;
+      break;
+    }
+  }
+
+  if (scroll_list_to_selection_ && target_row < 0) {
+    scroll_list_to_selection_ = false;
+  }
+  ImGuiListClipper clipper;
+  clipper.Begin(static_cast<int>(rows.size()));
+  if (scroll_list_to_selection_ && target_row >= 0) {
+    clipper.IncludeItemByIndex(target_row);
+  }
+  while (clipper.Step()) {
+    for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+      const MessageRow& message = rows[row];
+      const bool selected = row == target_row;
+      ImGui::TableNextRow();
+      TableNextColumn();
+      ImGui::PushID(row);
+      char id_label[16];
+      std::snprintf(id_label, sizeof(id_label), "$%04X",
+                    message.display_id & 0xFFFF);
+      if (ImGui::Selectable(id_label, selected,
+                            ImGuiSelectableFlags_SpanAllColumns |
+                                ImGuiSelectableFlags_AllowOverlap)) {
+        if (!selected && !current_parse_errors_.empty()) {
+          replace_status_ = "Resolve parse errors before switching messages";
+          replace_status_error_ = true;
+          find_panel_open_ = true;
+        } else if (!selected) {
+          FinalizePendingUndo();
+          OpenMessageById(message.display_id);
+        }
+      }
+      gui::ItemContextMenu(nullptr, [this, display_id = message.display_id,
+                                     address = message.address]() {
+        std::vector<gui::MenuItemSpec> items;
+        auto open_item = gui::MenuItemSpec::Conditional(
+            "Open Message",
+            [this, display_id]() {
+              FinalizePendingUndo();
+              OpenMessageById(display_id);
+            },
+            [this]() { return current_parse_errors_.empty(); });
+        open_item.icon = ICON_MD_ARROW_FORWARD;
+        open_item.separator_after = true;
+        items.push_back(std::move(open_item));
+        items.push_back(gui::CopyToClipboardItem("Copy Message ID",
+                                                 util::HexWord(display_id)));
+        if (display_id >= 0 &&
+            display_id < static_cast<int>(parsed_messages_.size())) {
+          items.push_back(gui::CopyToClipboardItem(
+              "Copy Text", parsed_messages_[display_id]));
+        }
+        items.push_back(
+            gui::CopyToClipboardItem("Copy Address", util::HexLong(address)));
+        return items;
+      });
+      if (selected && scroll_list_to_selection_) {
+        ImGui::SetScrollHereY(0.25f);
+        scroll_list_to_selection_ = false;
+      }
+      ImGui::PopID();
+
+      TableNextColumn();
+      gui::StatusBadge(
+          message.expanded ? tr("Expanded") : tr("Vanilla"),
+          message.expanded ? gui::ButtonType::Warning : gui::ButtonType::Info);
+
+      TableNextColumn();
+      const std::string preview =
+          MessageListPreview(ContentsForDisplayId(message.display_id));
+      ImGui::TextUnformatted(preview.c_str());
+
+      TableNextColumn();
+      ImGui::TextUnformatted(util::HexLong(message.address).c_str());
+    }
+  }
+  EndTable();
+}
+
+void MessageEditor::DrawMessageStructure() {
+  if (!ImGui::CollapsingHeader(tr("Message Structure"),
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  ImGui::Text(tr("Lines: %d"), message_preview_.text_line + 1);
+
+  int scroll_count = 0;
+  int current_line_chars = 0;
+  int line_num = 0;
+  const ImVec4 line_color = gui::GetSuccessColor();
+
+  for (size_t i = 0; i < current_message_.Data.size(); i++) {
+    const uint8_t byte = current_message_.Data[i];
+    if (byte == kScrollVertical) {
+      scroll_count++;
+      ImGui::TextColored(gui::GetInfoColor(),
+                         tr("  [V] Scroll at byte %zu (line %d, %d chars)"), i,
+                         line_num, current_line_chars);
+      current_line_chars = 0;
+      line_num++;
+    } else if (byte == kLine1) {
+      ImGui::TextColored(line_color, tr("  [1] Line 1 at byte %zu"), i);
+      current_line_chars = 0;
+      line_num = 0;
+    } else if (byte == kLine2) {
+      ImGui::TextColored(line_color, tr("  [2] Line 2 at byte %zu"), i);
+      current_line_chars = 0;
+      line_num = 1;
+    } else if (byte == kLine3) {
+      ImGui::TextColored(line_color, tr("  [3] Line 3 at byte %zu"), i);
+      current_line_chars = 0;
+      line_num = 2;
+    } else if (byte < 100) {
+      current_line_chars++;
+    }
+  }
+
+  if (scroll_count == 0) {
+    ImGui::TextDisabled(tr("No scroll breaks in this message"));
+  } else {
+    ImGui::Text(tr("Total scroll breaks: %d"), scroll_count);
+  }
+
+  ImGui::Separator();
+  ImGui::TextDisabled(tr("Line width budget (max ~170px):"));
+  const int estimated_line_width = current_line_chars * 8;
+  const float width_ratio = static_cast<float>(estimated_line_width) / 170.0f;
+  const ImVec4 width_color = (width_ratio > 1.0f)    ? gui::GetErrorColor()
+                             : (width_ratio > 0.85f) ? gui::GetWarningColor()
+                                                     : gui::GetSuccessColor();
+  ImGui::TextColored(width_color, tr("Last line: ~%dpx / 170px (%d chars)"),
+                     estimated_line_width, current_line_chars);
 }
 
 void MessageEditor::DrawCurrentMessage() {
-  Button(absl::StrCat("Message ", current_message_.ID).c_str());
-  if (InputTextMultiline("##MessageEditor", &message_text_box_.text,
-                         ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-    UpdateCurrentMessageFromText(message_text_box_.text);
+  DrawMessageHeader();
+  DrawFindBar();
+
+  const float available = ImGui::GetContentRegionAvail().y;
+  const float max_editor = std::max(96.0f, available - 160.0f);
+  editor_pane_height_ = std::clamp(editor_pane_height_, 96.0f, max_editor);
+
+  if (ImGui::BeginChild("##MessageTextPane", ImVec2(0, editor_pane_height_),
+                        true)) {
+    DrawDialogueTextPane(ImGui::GetContentRegionAvail().y);
   }
-  if (ImGui::IsItemDeactivatedAfterEdit()) {
-    FinalizePendingUndo();
+  ImGui::EndChild();
+
+  ImGui::InvisibleButton("##message_editor_split", ImVec2(-1.0f, 6.0f));
+  if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
   }
-  if (!current_parse_errors_.empty()) {
-    ImGui::TextColored(gui::GetErrorColor(), tr("Message parse errors"));
-    for (const auto& error : current_parse_errors_) {
-      ImGui::BulletText("%s", error.c_str());
+  if (ImGui::IsItemActive()) {
+    editor_pane_height_ += ImGui::GetIO().MouseDelta.y;
+  }
+
+  if (!current_parse_errors_.empty() || !current_parse_warnings_.empty()) {
+    if (ImGui::BeginChild("##MessageDiagnostics", ImVec2(0, 72), true)) {
+      if (!current_parse_errors_.empty()) {
+        ImGui::TextColored(gui::GetErrorColor(), tr("Message parse errors"));
+        for (const auto& error : current_parse_errors_) {
+          ImGui::BulletText("%s", error.c_str());
+        }
+      }
+      if (!current_parse_warnings_.empty()) {
+        ImGui::TextColored(gui::GetWarningColor(),
+                           tr("Message parse warnings"));
+        for (const auto& warning : current_parse_warnings_) {
+          ImGui::BulletText("%s", warning.c_str());
+        }
+      }
     }
+    ImGui::EndChild();
   }
-  if (!current_parse_warnings_.empty()) {
-    ImGui::TextColored(gui::GetWarningColor(), tr("Message parse warnings"));
-    for (const auto& warning : current_parse_warnings_) {
-      ImGui::BulletText("%s", warning.c_str());
-    }
-  }
-  auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
+  const auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
   if (!line_warnings.empty()) {
     ImGui::TextColored(gui::GetWarningColor(), tr("Line width warnings"));
     for (const auto& warning : line_warnings) {
       ImGui::BulletText("%s", warning.c_str());
     }
   }
-  Separator();
+
   gui::MemoryEditorPopup("Message Data", current_message_.Data);
 
-  ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true);
-  EnsureFontTexturesReady();
-  Text(tr("Message Preview"));
-  if (Button(tr("View Palette"))) {
-    ImGui::OpenPopup("Palette");
-  }
-  if (ImGui::BeginPopup("Palette")) {
-    gui::DisplayPalette(font_preview_colors_, true);
-    ImGui::EndPopup();
-  }
-  gui::BeginPadding(1);
-  BeginChild("CurrentGfxFont", ImVec2(348, 0), true,
-             ImGuiWindowFlags_NoScrollWithMouse);
-  current_font_gfx16_canvas_.GetConfig().role =
-      gui::CanvasRole::kSelectionSource;
-  current_font_gfx16_canvas_.DrawBackground();
-  gui::EndPadding();
-  current_font_gfx16_canvas_.DrawContextMenu();
-
-  // Handle mouse wheel scrolling
-  if (ImGui::IsWindowHovered()) {
-    float wheel = ImGui::GetIO().MouseWheel;
-    if (wheel > 0 && message_preview_.shown_lines > 0) {
-      message_preview_.shown_lines--;
-    } else if (wheel < 0 &&
-               message_preview_.shown_lines < message_preview_.text_line - 2) {
-      message_preview_.shown_lines++;
+  if (ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true)) {
+    EnsureFontTexturesReady();
+    Text(tr("Message Preview"));
+    ImGui::SameLine();
+    if (Button(tr("View Palette"))) {
+      ImGui::OpenPopup("Palette");
     }
-  }
-
-  // Draw only the visible portion of the text
-  const ImVec2 preview_canvas_size = current_font_gfx16_canvas_.canvas_size();
-  const float dest_width = std::max(0.0f, preview_canvas_size.x - 8.0f);
-  const float dest_height = std::max(0.0f, preview_canvas_size.y - 8.0f);
-  float src_height = 0.0f;
-  if (dest_width > 0.0f && dest_height > 0.0f) {
-    const float src_width =
-        std::min(dest_width * 0.5f, static_cast<float>(kCurrentMessageWidth));
-    src_height =
-        std::min(dest_height * 0.5f, static_cast<float>(kCurrentMessageHeight));
-    current_font_gfx16_canvas_.DrawBitmap(
-        current_font_gfx16_bitmap_, ImVec2(0, 0),      // Destination position
-        ImVec2(dest_width, dest_height),               // Destination size
-        ImVec2(0, message_preview_.shown_lines * 16),  // Source position
-        ImVec2(src_width, src_height)                  // Source size
-    );
-  }
-
-  // Draw scroll break separator lines on the preview canvas
-  {
-    ImDrawList* overlay_draw_list = ImGui::GetWindowDrawList();
-    ImVec2 canvas_p0 = current_font_gfx16_canvas_.zero_point();
-    ImVec2 canvas_sz = current_font_gfx16_canvas_.canvas_size();
-    float line_height = 16.0f;
-    // The bitmap is drawn scaled: dest occupies full canvas, so compute the
-    // vertical scale factor from destination height to source height.
-    float scale_y = 1.0f;
-    if (dest_height > 0.0f && src_height > 0.0f) {
-      scale_y = dest_height / src_height;
+    if (ImGui::BeginPopup("Palette")) {
+      gui::DisplayPalette(font_preview_colors_, true);
+      ImGui::EndPopup();
     }
-    for (int marker_line : message_preview_.scroll_marker_lines) {
-      float src_y = (marker_line - message_preview_.shown_lines) * line_height;
-      float y = canvas_p0.y + src_y * scale_y;
-      if (y >= canvas_p0.y && y <= canvas_p0.y + canvas_sz.y) {
-        overlay_draw_list->AddLine(ImVec2(canvas_p0.x, y),
-                                   ImVec2(canvas_p0.x + canvas_sz.x, y),
-                                   IM_COL32(100, 180, 255, 180), 1.5f);
-        overlay_draw_list->AddText(ImVec2(canvas_p0.x + canvas_sz.x + 4, y - 6),
-                                   IM_COL32(100, 180, 255, 200), "[V]");
-      }
-    }
-  }
+    ImGui::SameLine();
+    ImGui::TextDisabled(tr("Scroll the preview with the mouse wheel"));
 
-  current_font_gfx16_canvas_.DrawGrid();
-  current_font_gfx16_canvas_.DrawOverlay();
-  EndChild();
+    gui::BeginPadding(1);
+    BeginChild("CurrentGfxFont", ImVec2(0, 200), true,
+               ImGuiWindowFlags_NoScrollWithMouse);
+    current_font_gfx16_canvas_.GetConfig().role =
+        gui::CanvasRole::kSelectionSource;
+    current_font_gfx16_canvas_.DrawBackground();
+    gui::EndPadding();
+    current_font_gfx16_canvas_.DrawContextMenu();
 
-  // Message Structure info panel
-  if (ImGui::CollapsingHeader(tr("Message Structure"),
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Text(tr("Lines: %d"), message_preview_.text_line + 1);
-
-    int scroll_count = 0;
-    int current_line_chars = 0;
-    int line_num = 0;
-
-    for (size_t i = 0; i < current_message_.Data.size(); i++) {
-      uint8_t byte = current_message_.Data[i];
-      if (byte == kScrollVertical) {
-        scroll_count++;
-        ImGui::TextColored(gui::GetInfoColor(),
-                           tr("  [V] Scroll at byte %zu (line %d, %d chars)"),
-                           i, line_num, current_line_chars);
-        current_line_chars = 0;
-        line_num++;
-      } else if (byte == kLine1) {
-        ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
-                           tr("  [1] Line 1 at byte %zu"), i);
-        current_line_chars = 0;
-        line_num = 0;
-      } else if (byte == kLine2) {
-        ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
-                           tr("  [2] Line 2 at byte %zu"), i);
-        current_line_chars = 0;
-        line_num = 1;
-      } else if (byte == kLine3) {
-        ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
-                           tr("  [3] Line 3 at byte %zu"), i);
-        current_line_chars = 0;
-        line_num = 2;
-      } else if (byte < 100) {
-        current_line_chars++;
+    if (ImGui::IsWindowHovered()) {
+      const float wheel = ImGui::GetIO().MouseWheel;
+      if (wheel > 0 && message_preview_.shown_lines > 0) {
+        message_preview_.shown_lines--;
+      } else if (wheel < 0 && message_preview_.shown_lines <
+                                  message_preview_.text_line - 2) {
+        message_preview_.shown_lines++;
       }
     }
 
-    if (scroll_count == 0) {
-      ImGui::TextDisabled(tr("No scroll breaks in this message"));
-    } else {
-      ImGui::Text(tr("Total scroll breaks: %d"), scroll_count);
+    const ImVec2 preview_canvas_size = current_font_gfx16_canvas_.canvas_size();
+    const float dest_width = std::max(0.0f, preview_canvas_size.x - 8.0f);
+    const float dest_height = std::max(0.0f, preview_canvas_size.y - 8.0f);
+    float src_height = 0.0f;
+    if (dest_width > 0.0f && dest_height > 0.0f) {
+      const float src_width =
+          std::min(dest_width * 0.5f, static_cast<float>(kCurrentMessageWidth));
+      src_height = std::min(dest_height * 0.5f,
+                            static_cast<float>(kCurrentMessageHeight));
+      current_font_gfx16_canvas_.DrawBitmap(
+          current_font_gfx16_bitmap_, ImVec2(0, 0),
+          ImVec2(dest_width, dest_height),
+          ImVec2(0, message_preview_.shown_lines * 16),
+          ImVec2(src_width, src_height));
     }
 
-    // Character width budget
-    ImGui::Separator();
-    ImGui::TextDisabled(tr("Line width budget (max ~170px):"));
-    int estimated_line_width = current_line_chars * 8;
-    float width_ratio = static_cast<float>(estimated_line_width) / 170.0f;
-    ImVec4 width_color = (width_ratio > 1.0f)    ? gui::GetErrorColor()
-                         : (width_ratio > 0.85f) ? gui::GetWarningColor()
-                                                 : gui::GetSuccessColor();
-    ImGui::TextColored(width_color, tr("Last line: ~%dpx / 170px (%d chars)"),
-                       estimated_line_width, current_line_chars);
-  }
+    {
+      ImDrawList* overlay_draw_list = ImGui::GetWindowDrawList();
+      const ImVec2 canvas_p0 = current_font_gfx16_canvas_.zero_point();
+      const ImVec2 canvas_sz = current_font_gfx16_canvas_.canvas_size();
+      const float line_height = 16.0f;
+      float scale_y = 1.0f;
+      if (dest_height > 0.0f && src_height > 0.0f) {
+        scale_y = dest_height / src_height;
+      }
+      const ImU32 marker_color =
+          ImGui::ColorConvertFloat4ToU32(gui::GetInfoColor());
+      for (int marker_line : message_preview_.scroll_marker_lines) {
+        const float src_y =
+            (marker_line - message_preview_.shown_lines) * line_height;
+        const float y = canvas_p0.y + src_y * scale_y;
+        if (y >= canvas_p0.y && y <= canvas_p0.y + canvas_sz.y) {
+          overlay_draw_list->AddLine(ImVec2(canvas_p0.x, y),
+                                     ImVec2(canvas_p0.x + canvas_sz.x, y),
+                                     marker_color, 1.5f);
+          overlay_draw_list->AddText(
+              ImVec2(canvas_p0.x + canvas_sz.x + 4, y - 6), marker_color,
+              "[V]");
+        }
+      }
+    }
 
+    current_font_gfx16_canvas_.DrawGrid();
+    current_font_gfx16_canvas_.DrawOverlay();
+    EndChild();
+    DrawMessageStructure();
+  }
   ImGui::EndChild();
 }
 
 void MessageEditor::DrawFontAtlas() {
+  gui::SectionHeader(ICON_MD_FONT_DOWNLOAD, tr("Font Atlas"),
+                     gui::GetInfoColor());
   EnsureFontTexturesReady();
   font_gfx_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
   gui::BeginCanvas(font_gfx_canvas_, ImVec2(256, 256));
   font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0, 2.0f);
   font_gfx_canvas_.DrawTileSelector(16, 32);
   gui::EndCanvas(font_gfx_canvas_);
+  ImGui::TextDisabled(
+      tr("2bpp dialogue font at $070000. Click a tile to inspect it."));
 }
 
 void MessageEditor::DrawExpandedMessageSettings() {
-  ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 130), true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  ImGui::Text(tr("Expanded Messages"));
+  ImGui::Separator();
+  gui::SectionHeader(ICON_MD_LIBRARY_ADD, tr("Expanded Messages"),
+                     gui::GetWarningColor());
 
-  if (ImGui::Button(tr("Load from ROM"))) {
+  if (HasMessageSourceLayout()) {
+    ImGui::TextWrapped(
+        "%s",
+        tr("Expanded dialogue is published from the canonical bundle. Load "
+           "that bundle before editing. Inspecting the built ROM uses the "
+           "manifest data range and does not replace the canonical source."));
+    if (ImGui::Button(tr("Load canonical source"))) {
+      const auto status = LoadCanonicalExpandedSource();
+      if (!status.ok()) {
+        message_bundle_status_ = std::string(status.message());
+        message_bundle_status_error_ = true;
+      }
+    }
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(HasMessageSourceLayout() ? tr("Inspect built ROM")
+                                             : tr("Load from ROM"))) {
     auto status = LoadExpandedMessagesFromRom();
     if (!status.ok()) {
       LOG_WARN("MessageEditor", "Load from ROM: %s",
                std::string(status.message()).c_str());
+      message_bundle_status_ =
+          absl::StrFormat("Load from ROM failed: %s", status.message());
+      message_bundle_status_error_ = true;
     }
   }
   ImGui::SameLine();
   if (ImGui::Button(tr("Load from File"))) {
     std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!path.empty()) {
-      expanded_message_path_ = path;
-      expanded_message_base_id_ = ResolveExpandedMessageBaseId();
-      parsed_messages_.resize(expanded_message_base_id_);
-      expanded_messages_.clear();
-      std::vector<std::string> parsed_expanded;
-      auto status = LoadExpandedMessages(expanded_message_path_,
-                                         parsed_expanded, expanded_messages_,
-                                         message_preview_.all_dictionaries_);
+      const auto status = LoadExpandedMessagesFromBin(path);
       if (!status.ok()) {
+        message_bundle_status_ = std::string(status.message());
+        message_bundle_status_error_ = true;
         if (auto* popup_manager = dependencies_.popup_manager) {
           popup_manager->Show("Error");
         }
-      } else {
-        parsed_messages_.insert(parsed_messages_.end(), parsed_expanded.begin(),
-                                parsed_expanded.end());
-        MarkDomainDirty(SaveDomain::kExpandedMessages);
       }
     }
   }
 
-  if (expanded_messages_.size() > 0) {
-    ImGui::Text(tr("Source: %s"), expanded_message_path_.c_str());
-    ImGui::Text(tr("Messages: %lu"), expanded_messages_.size());
+  if (expanded_messages_.empty()) {
+    ImGui::TextDisabled(
+        tr("No expanded bank loaded. Vanilla dialogue is still editable."));
+    return;
+  }
 
-    // Capacity indicator
-    int capacity = GetExpandedTextDataEnd() - GetExpandedTextDataStart() + 1;
-    int used = CalculateExpandedBankUsage();
-    int remaining = capacity - used;
-    float usage_ratio = static_cast<float>(used) / static_cast<float>(capacity);
+  ImGui::Text(tr("Source: %s"), expanded_message_path_.c_str());
+  ImGui::Text(tr("Messages: %lu"), expanded_messages_.size());
 
-    ImVec4 capacity_color;
-    if (usage_ratio < 0.75f) {
-      capacity_color = gui::GetSuccessColor();
-    } else if (usage_ratio < 0.90f) {
-      capacity_color = gui::GetWarningColor();
-    } else {
-      capacity_color = gui::GetErrorColor();
+  const auto inspection_range = ExpandedInspectionRange();
+  const int capacity = inspection_range.second - inspection_range.first + 1;
+  const int used = CalculateExpandedBankUsage();
+  const int remaining = capacity - used;
+  const float usage_ratio =
+      capacity > 0 ? static_cast<float>(used) / static_cast<float>(capacity)
+                   : 1.0f;
+  const ImVec4 capacity_color = (usage_ratio < 0.75f)   ? gui::GetSuccessColor()
+                                : (usage_ratio < 0.90f) ? gui::GetWarningColor()
+                                                        : gui::GetErrorColor();
+  ImGui::PushStyleColor(ImGuiCol_PlotHistogram, capacity_color);
+  char capacity_label[64];
+  std::snprintf(capacity_label, sizeof(capacity_label), "%d / %d bytes", used,
+                capacity);
+  ImGui::ProgressBar(std::clamp(usage_ratio, 0.0f, 1.0f), ImVec2(-1, 0),
+                     capacity_label);
+  ImGui::PopStyleColor();
+  ImGui::TextDisabled(tr("%d bytes free"), remaining);
+
+  if (ImGui::Button(tr("Add New Message"))) {
+    MessageData new_message;
+    new_message.ID = expanded_messages_.back().ID + 1;
+    new_message.Address =
+        expanded_messages_.back().Address +
+        static_cast<int>(expanded_messages_.back().Data.size());
+    expanded_messages_.push_back(new_message);
+    MarkDomainDirty(SaveDomain::kExpandedMessages);
+    const int display_id = expanded_message_base_id_ + new_message.ID;
+    if (display_id >= 0 &&
+        static_cast<size_t>(display_id) >= parsed_messages_.size()) {
+      parsed_messages_.resize(display_id + 1);
     }
-    ImGui::TextColored(capacity_color, tr("Bank: %d / %d bytes (%d free)"),
-                       used, capacity, remaining);
-
-    if (ImGui::Button(tr("Add New Message"))) {
-      MessageData new_message;
-      new_message.ID = expanded_messages_.back().ID + 1;
-      new_message.Address = expanded_messages_.back().Address +
-                            expanded_messages_.back().Data.size();
-      expanded_messages_.push_back(new_message);
-      MarkDomainDirty(SaveDomain::kExpandedMessages);
-      const int display_id = expanded_message_base_id_ + new_message.ID;
-      if (display_id >= 0 &&
-          static_cast<size_t>(display_id) >= parsed_messages_.size()) {
-        parsed_messages_.resize(display_id + 1);
-      }
+    if (current_parse_errors_.empty()) {
+      FinalizePendingUndo();
+      OpenMessageById(display_id);
     }
-
-    ImGui::SameLine();
-    if (ImGui::Button(tr("Export to JSON"))) {
-      std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
-      if (!path.empty()) {
-        PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
-      }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Export to JSON"))) {
+    std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+    if (!path.empty()) {
+      PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
     }
   }
 
-  EndChild();
+  DrawMessageSourceSync();
+}
+
+void MessageEditor::DrawTokenInserter(const std::vector<TextElement>& elements,
+                                      std::string& filter, bool use_parameter) {
+  ImGui::SetNextItemWidth(-1);
+  ImGui::InputTextWithHint("##token_filter", "Filter tokens", &filter);
+  if (!BeginTable("##TokenInserter", 2, kMessageTableFlags, ImVec2(0, 0))) {
+    return;
+  }
+  TableSetupColumn("Token", ImGuiTableColumnFlags_WidthFixed, 110);
+  TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch);
+  TableHeadersRow();
+  for (const auto& text_element : elements) {
+    if (!filter.empty() &&
+        !ContainsCaseInsensitive(text_element.GenericToken, filter) &&
+        !ContainsCaseInsensitive(text_element.Description, filter)) {
+      continue;
+    }
+    ImGui::TableNextRow();
+    TableNextColumn();
+    ImGui::PushID(text_element.ID);
+    const std::string token =
+        use_parameter ? text_element.GetParamToken(command_parameter_)
+                      : text_element.GenericToken;
+    if (ImGui::Selectable(text_element.GenericToken.c_str(), false,
+                          ImGuiSelectableFlags_SpanAllColumns)) {
+      InsertTokenAtCursor(token);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Insert %s", token.c_str());
+    }
+    ImGui::PopID();
+    TableNextColumn();
+    TextWrapped("%s", text_element.Description.c_str());
+  }
+  EndTable();
 }
 
 void MessageEditor::DrawTextCommands() {
-  ImGui::BeginChild("##TextCommands",
-                    ImVec2(0, ImGui::GetContentRegionAvail().y / 2), true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  static uint8_t command_parameter = 0;
-  gui::InputHexByte("Command Parameter", &command_parameter);
-  for (const auto& text_element : TextCommands) {
-    if (Button(text_element.GenericToken.c_str())) {
-      message_text_box_.text.append(
-          text_element.GetParamToken(command_parameter));
-      UpdateCurrentMessageFromText(message_text_box_.text);
-    }
-    SameLine();
-    TextWrapped("%s", text_element.Description.c_str());
-    Separator();
+  gui::InputHexByte("Command Parameter", &command_parameter_);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Argument byte for commands such as [W:02] or [SPD:00].");
   }
-  EndChild();
+  DrawTokenInserter(TextCommands, command_filter_, true);
 }
 
 void MessageEditor::DrawSpecialCharacters() {
-  ImGui::BeginChild("##SpecialChars",
-                    ImVec2(0, ImGui::GetContentRegionAvail().y / 2), true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  for (const auto& text_element : SpecialChars) {
-    if (Button(text_element.GenericToken.c_str())) {
-      message_text_box_.text.append(text_element.GenericToken);
-      UpdateCurrentMessageFromText(message_text_box_.text);
-    }
-    SameLine();
-    TextWrapped("%s", text_element.Description.c_str());
-    Separator();
-  }
-  EndChild();
+  DrawTokenInserter(SpecialChars, symbol_filter_, false);
 }
 
 void MessageEditor::DrawDictionary() {
-  if (ImGui::BeginChild("##DictionaryChild",
-                        ImVec2(0, ImGui::GetContentRegionAvail().y), true,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    if (BeginTable("##Dictionary", 2, kMessageTableFlags)) {
-      TableSetupColumn("ID");
-      TableSetupColumn("Contents");
-      TableHeadersRow();
+  ImGui::SetNextItemWidth(-1);
+  ImGui::InputTextWithHint("##dictionary_filter", "Filter dictionary",
+                           &dictionary_filter_);
+  std::vector<int> visible;
+  visible.reserve(message_preview_.all_dictionaries_.size());
+  for (int i = 0;
+       i < static_cast<int>(message_preview_.all_dictionaries_.size()); ++i) {
+    const auto& dictionary = message_preview_.all_dictionaries_[i];
+    if (!dictionary_filter_.empty() &&
+        !ContainsCaseInsensitive(dictionary.Contents, dictionary_filter_) &&
+        !ContainsCaseInsensitive(dictionary.Token, dictionary_filter_)) {
+      continue;
+    }
+    visible.push_back(i);
+  }
+  if (visible.empty()) {
+    ImGui::TextDisabled(tr("No dictionary entries match."));
+    return;
+  }
+  if (!BeginTable("##Dictionary", 3,
+                  kMessageTableFlags | ImGuiTableFlags_ScrollY, ImVec2(0, 0))) {
+    return;
+  }
+  TableSetupColumn("Token", ImGuiTableColumnFlags_WidthFixed, 72);
+  TableSetupColumn("Text", ImGuiTableColumnFlags_WidthStretch);
+  TableSetupColumn("Len", ImGuiTableColumnFlags_WidthFixed, 40);
+  TableHeadersRow();
 
-      // Use ImGuiListClipper for virtualized rendering
-      const int dict_count =
-          static_cast<int>(message_preview_.all_dictionaries_.size());
-      ImGuiListClipper clipper;
-      clipper.Begin(dict_count);
-
-      while (clipper.Step()) {
-        for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-          const auto& dictionary = message_preview_.all_dictionaries_[row];
-          TableNextColumn();
-          Text("%s", util::HexWord(dictionary.ID).c_str());
-          TableNextColumn();
-          Text("%s", dictionary.Contents.c_str());
-        }
+  ImGuiListClipper clipper;
+  clipper.Begin(static_cast<int>(visible.size()));
+  while (clipper.Step()) {
+    for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+      const auto& dictionary = message_preview_.all_dictionaries_[visible[row]];
+      ImGui::TableNextRow();
+      TableNextColumn();
+      ImGui::PushID(dictionary.ID);
+      if (ImGui::Selectable(dictionary.Token.c_str(), false,
+                            ImGuiSelectableFlags_SpanAllColumns)) {
+        InsertTokenAtCursor(dictionary.Token);
       }
-
-      EndTable();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Insert %s", dictionary.Token.c_str());
+      }
+      ImGui::PopID();
+      TableNextColumn();
+      Text("%s", dictionary.Contents.c_str());
+      TableNextColumn();
+      Text("%d", dictionary.Length);
     }
   }
-  EndChild();
+  EndTable();
 }
 
+void MessageEditor::DrawMessageTools() {
+  if (!ImGui::BeginTabBar("##MessageTools")) {
+    return;
+  }
+  if (ImGui::BeginTabItem(tr("Commands"))) {
+    DrawTextCommands();
+    ImGui::EndTabItem();
+  }
+  if (ImGui::BeginTabItem(tr("Symbols"))) {
+    DrawSpecialCharacters();
+    ImGui::EndTabItem();
+  }
+  if (ImGui::BeginTabItem(tr("Dictionary"))) {
+    DrawDictionary();
+    ImGui::EndTabItem();
+  }
+  ImGui::EndTabBar();
+}
 void MessageEditor::UpdateCurrentMessageFromText(const std::string& text) {
   PushUndoSnapshot();
 
@@ -886,12 +1991,6 @@ void MessageEditor::UpdateCurrentMessageFromText(const std::string& text) {
   auto parse_result = ParseMessageToDataWithDiagnostics(text);
   current_parse_errors_ = parse_result.errors;
   current_parse_warnings_ = parse_result.warnings;
-  if (rom_) {
-    // Invalid intermediate input is still unsaved work. Save() will fail
-    // closed until the diagnostics are resolved rather than silently dropping
-    // unsupported characters or unknown tokens.
-    rom_->set_dirty(true);
-  }
   if (!parse_result.ok()) {
     return;
   }
@@ -941,6 +2040,20 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
         absl::StrFormat("Import failed: %s", entries_or.status().message());
     message_bundle_status_error_ = true;
     return;
+  }
+
+  const ExpandedDraftSnapshot snapshot = CaptureExpandedDraft();
+  const bool rom_dirty_before = rom_ && rom_->dirty();
+  const bool importing_canonical = IsCanonicalBundlePath(path);
+  std::string canonical_sha;
+  if (importing_canonical) {
+    const auto sha_or = HashFileSha256(std::filesystem::path(path));
+    if (!sha_or.ok()) {
+      message_bundle_status_ = std::string(sha_or.status().message());
+      message_bundle_status_error_ = true;
+      return;
+    }
+    canonical_sha = sha_or.value();
   }
 
   int applied = 0;
@@ -1048,19 +2161,11 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
   }
 
   if (expanded_modified) {
-    int pos = GetExpandedTextDataStart();
+    int pos = ExpandedInspectionRange().first;
     for (auto& message : expanded_messages_) {
       message.Address = pos;
       pos += static_cast<int>(message.Data.size()) + 1;
     }
-  }
-
-  int current_display_id = current_message_index_;
-  if (current_message_is_expanded_) {
-    current_display_id = expanded_message_base_id_ + current_message_index_;
-  }
-  if (current_display_id >= 0) {
-    OpenMessageById(current_display_id);
   }
 
   if (errors > 0) {
@@ -1081,14 +2186,33 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
         "created, %d warnings).",
         applied, vanilla_updated, expanded_updated, expanded_created, warnings);
   }
-  if (applied > 0 && rom_) {
-    rom_->set_dirty(true);
+  if (errors > 0) {
+    RestoreExpandedDraft(snapshot);
+    if (rom_) {
+      rom_->set_dirty(rom_dirty_before);
+    }
+    return;
+  }
+  int current_display_id = current_message_index_;
+  if (current_message_is_expanded_) {
+    current_display_id = expanded_message_base_id_ + current_message_index_;
+  }
+  if (current_display_id >= 0) {
+    OpenMessageById(current_display_id);
   }
   if (vanilla_updated > 0) {
     MarkDomainDirty(SaveDomain::kVanillaMessages);
   }
   if (expanded_modified) {
-    MarkDomainDirty(SaveDomain::kExpandedMessages);
+    if (importing_canonical) {
+      source_loaded_canonical_sha_ = canonical_sha;
+      dirty_state_.expanded_messages = false;
+      InvalidateSourcePreview();
+      expanded_message_path_ = path;
+    } else {
+      source_loaded_canonical_sha_.clear();
+      MarkDomainDirty(SaveDomain::kExpandedMessages);
+    }
   }
 }
 
@@ -1198,8 +2322,9 @@ absl::StatusOr<MessageEditor::SavePlan> MessageEditor::BuildSavePlan(
 
   if (include_expanded_messages && dirty_state_.expanded_messages &&
       !expanded_messages_.empty()) {
-    const int start = GetExpandedTextDataStart();
-    const int end = GetExpandedTextDataEnd();
+    const auto range = ExpandedInspectionRange();
+    const int start = range.first;
+    const int end = range.second;
     if (start < 0 || end < start) {
       return absl::InvalidArgumentError("Invalid expanded message region");
     }
@@ -1281,11 +2406,7 @@ absl::Status MessageEditor::ValidateSavePlan(const SavePlan& plan) const {
       plan.saves_expanded_messages &&
       absl::StrContains(yaze_project.hack_manifest.hack_name(),
                         "Oracle of Secrets")) {
-    return absl::PermissionDeniedError(
-        "Oracle of Secrets expanded messages are owned by ASM. No message "
-        "bytes were written; keep the draft in Yaze, edit Core/message.asm, "
-        "rebuild Oracle of Secrets, and reopen the rebuilt ROM before "
-        "retrying.");
+    return absl::PermissionDeniedError(kOracleExpandedRomWriteRefusal);
   }
 
   const auto status = ValidateHackManifestSaveConflicts(
@@ -1421,7 +2542,11 @@ void MessageEditor::MarkDomainDirty(SaveDomain domain) {
   if (save_transaction_active_) {
     *transaction_saved = false;
   }
-  if (rom_) {
+  if (domain == SaveDomain::kExpandedMessages) {
+    InvalidateSourcePreview();
+  }
+  if (rom_ && !(domain == SaveDomain::kExpandedMessages &&
+                ExpandedEditsAreSourceOwned())) {
     rom_->set_dirty(true);
   }
 }
@@ -1458,25 +2583,86 @@ void MessageEditor::SyncCurrentExpandedMessageAddress() {
   current_message_.Address = expanded_messages_[current_message_index_].Address;
 }
 
+absl::Status MessageEditor::LoadCanonicalExpandedSource() {
+  if (!HasMessageSourceLayout()) {
+    return absl::FailedPreconditionError(
+        "The project hack manifest does not define messages.source");
+  }
+  const auto path_or = ResolveCanonicalBundlePath();
+  if (!path_or.ok()) {
+    return path_or.status();
+  }
+  std::error_code error;
+  if (!std::filesystem::is_regular_file(path_or.value(), error) || error) {
+    return absl::NotFoundError(absl::StrFormat(
+        "Canonical message bundle was not found: %s", path_or->string()));
+  }
+  ImportMessageBundleFromFile(path_or->string());
+  if (message_bundle_status_error_) {
+    return absl::FailedPreconditionError(message_bundle_status_);
+  }
+  if (source_loaded_canonical_sha_.empty()) {
+    return absl::FailedPreconditionError(
+        "Canonical bundle did not bind an expanded-message identity");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::LoadExpandedMessagesFromBin(
+    const std::string& path) {
+  const ExpandedDraftSnapshot snapshot = CaptureExpandedDraft();
+  const bool rom_dirty_before = rom_ && rom_->dirty();
+  expanded_message_base_id_ = ResolveExpandedMessageBaseId();
+  parsed_messages_.resize(
+      static_cast<size_t>(std::max(expanded_message_base_id_, 0)));
+  expanded_messages_.clear();
+  std::vector<std::string> parsed_expanded;
+  std::string mutable_path = path;
+  const auto status =
+      LoadExpandedMessages(mutable_path, parsed_expanded, expanded_messages_,
+                           message_preview_.all_dictionaries_);
+  if (!status.ok() || expanded_messages_.empty()) {
+    RestoreExpandedDraft(snapshot);
+    if (rom_) {
+      rom_->set_dirty(rom_dirty_before);
+    }
+    if (!status.ok()) {
+      return status;
+    }
+    return absl::NotFoundError("No expanded messages found in file");
+  }
+  parsed_messages_.insert(parsed_messages_.end(), parsed_expanded.begin(),
+                          parsed_expanded.end());
+  expanded_message_path_ = path;
+  source_loaded_canonical_sha_.clear();
+  NoteLoadedMessages();
+  MarkDomainDirty(SaveDomain::kExpandedMessages);
+  return absl::OkStatus();
+}
+
 absl::Status MessageEditor::LoadExpandedMessagesFromRom() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  expanded_message_base_id_ = ResolveExpandedMessageBaseId();
-  parsed_messages_.resize(expanded_message_base_id_);
-
-  expanded_messages_.clear();
-  expanded_messages_ = ReadExpandedTextData(
-      rom_->mutable_data(), GetExpandedTextDataStart(),
-      std::min(GetExpandedTextDataEnd(), static_cast<int>(rom_->size()) - 1));
-
-  if (expanded_messages_.empty()) {
+  const ExpandedDraftSnapshot snapshot = CaptureExpandedDraft();
+  const bool rom_dirty_before = rom_ && rom_->dirty();
+  const auto range = ExpandedInspectionRange();
+  const int end = std::min(range.second, static_cast<int>(rom_->size()) - 1);
+  auto loaded = ReadExpandedTextData(rom_->mutable_data(), range.first, end);
+  if (loaded.empty()) {
+    RestoreExpandedDraft(snapshot);
+    if (rom_) {
+      rom_->set_dirty(rom_dirty_before);
+    }
     return absl::NotFoundError(
-        "No expanded messages found in ROM at expanded text region");
+        "No expanded messages found in ROM at the manifest data range");
   }
 
-  // Parse the expanded messages and append to the unified list
+  expanded_message_base_id_ = ResolveExpandedMessageBaseId();
+  parsed_messages_.resize(
+      static_cast<size_t>(std::max(expanded_message_base_id_, 0)));
+  expanded_messages_ = std::move(loaded);
   auto parsed_expanded =
       ParseMessageData(expanded_messages_, message_preview_.all_dictionaries_);
   for (const auto& msg : expanded_messages_) {
@@ -1485,8 +2671,11 @@ absl::Status MessageEditor::LoadExpandedMessagesFromRom() {
     }
   }
 
-  expanded_message_path_ = "(ROM)";
+  expanded_message_path_ = "(ROM inspection)";
+  source_loaded_canonical_sha_.clear();
   dirty_state_.expanded_messages = false;
+  InvalidateSourcePreview();
+  NoteLoadedMessages();
   return absl::OkStatus();
 }
 
@@ -1629,9 +2818,6 @@ void MessageEditor::ApplySnapshot(const MessageSnapshot& snapshot) {
     }
   }
 
-  if (rom_) {
-    rom_->set_dirty(true);
-  }
   MarkDomainDirty(snapshot.is_expanded ? SaveDomain::kExpandedMessages
                                        : SaveDomain::kVanillaMessages);
   DrawMessagePreview();
@@ -1666,110 +2852,43 @@ void MessageEditor::SelectAll() {
 }
 
 absl::Status MessageEditor::Find() {
-  // Called from menu/shortcut callbacks, which run outside this editor's
-  // draw pass. Drawing the window here would show it for a single frame.
-  show_find_replace_ = true;
+  // Edit > Find is a one-shot menu action. The bar itself is drawn every
+  // frame from the message editor panel so it stays open across frames.
+  find_panel_open_ = true;
+  find_focus_search_ = true;
+  if (dependencies_.window_manager) {
+    dependencies_.window_manager->OpenWindow(dependencies_.session_id,
+                                             "message.message_editor");
+  }
   return absl::OkStatus();
 }
 
-void MessageEditor::DrawFindReplaceWindow() {
-  if (ImGui::Begin("Find & Replace", &show_find_replace_,
-                   ImGuiWindowFlags_AlwaysAutoResize)) {
-    static char find_text[256] = "";
-    static char replace_text[256] = "";
-    ImGui::InputText(tr("Search"), find_text, IM_ARRAYSIZE(find_text));
-    ImGui::InputText(tr("Replace with"), replace_text,
-                     IM_ARRAYSIZE(replace_text));
-
-    if (ImGui::Button(tr("Find Next"))) {
-      search_text_ = find_text;
-      replace_status_.clear();
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(tr("Find All"))) {
-      search_text_ = find_text;
-      replace_status_.clear();
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(tr("Replace"))) {
-      search_text_ = find_text;
-      replace_text_ = replace_text;
-      int count = ReplaceCurrentMatch();
-      if (count > 0) {
-        replace_status_ = "Replaced 1 occurrence";
-        replace_status_error_ = false;
-      } else {
-        replace_status_ = "No match found in current message";
-        replace_status_error_ = true;
-      }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(tr("Replace All"))) {
-      search_text_ = find_text;
-      replace_text_ = replace_text;
-      int count = ReplaceAllMatches();
-      if (count >= 0) {
-        replace_status_ = absl::StrFormat("Replaced %d occurrence%s", count,
-                                          count == 1 ? "" : "s");
-        replace_status_error_ = (count == 0);
-      }
-    }
-
-    ImGui::Checkbox(tr("Case Sensitive"), &case_sensitive_);
-    ImGui::SameLine();
-    ImGui::Checkbox(tr("Match Whole Word"), &match_whole_word_);
-
-    if (!replace_status_.empty()) {
-      ImVec4 color =
-          replace_status_error_ ? gui::GetErrorColor() : gui::GetSuccessColor();
-      ImGui::TextColored(color, "%s", replace_status_.c_str());
-    }
-  }
-  ImGui::End();
-}
-
 int MessageEditor::ReplaceCurrentMatch() {
-  if (search_text_.empty())
+  if (search_text_.empty()) {
     return 0;
+  }
 
   std::string& text = message_text_box_.text;
-  std::string search = search_text_;
-  std::string source = text;
-
-  if (!case_sensitive_) {
-    std::transform(search.begin(), search.end(), search.begin(), ::tolower);
-    std::transform(source.begin(), source.end(), source.begin(), ::tolower);
+  const size_t cursor = static_cast<size_t>(
+      std::clamp(editor_cursor_, 0, static_cast<int>(text.size())));
+  const size_t from = find_has_match_ ? find_match_start_ : cursor;
+  auto match = FindNextTextMatch(text, search_text_, from, case_sensitive_,
+                                 match_whole_word_);
+  if (!match && from > 0) {
+    match = FindNextTextMatch(text, search_text_, 0, case_sensitive_,
+                              match_whole_word_);
   }
-
-  size_t pos = source.find(search);
-  if (pos == std::string::npos)
+  if (!match) {
     return 0;
-
-  // Check whole word boundary if required
-  if (match_whole_word_) {
-    bool start_ok = (pos == 0 || !std::isalnum(source[pos - 1]));
-    bool end_ok = (pos + search.size() >= source.size() ||
-                   !std::isalnum(source[pos + search.size()]));
-    if (!start_ok || !end_ok) {
-      // Search for a whole-word match further in the string
-      while (pos != std::string::npos) {
-        start_ok = (pos == 0 || !std::isalnum(source[pos - 1]));
-        end_ok = (pos + search.size() >= source.size() ||
-                  !std::isalnum(source[pos + search.size()]));
-        if (start_ok && end_ok)
-          break;
-        pos = source.find(search, pos + 1);
-      }
-      if (pos == std::string::npos)
-        return 0;
-    }
   }
 
-  // Perform the replacement in the original (case-preserving) text
-  text.replace(pos, search_text_.size(), replace_text_);
+  text.replace(*match, search_text_.size(), replace_text_);
+  pending_selection_start_ = static_cast<int>(*match);
+  pending_selection_end_ =
+      pending_selection_start_ + static_cast<int>(replace_text_.size());
+  editor_cursor_ = pending_selection_end_;
+  find_has_match_ = false;
+  ImGui::ClearActiveID();
   UpdateCurrentMessageFromText(text);
   FinalizePendingUndo();
   return 1;

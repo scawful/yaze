@@ -1,0 +1,4 @@
+{
+ "_about": "Known differences between the Dungeon Atlas and Oracle's Scripts/Maps/room_data.py on oos-v0.9.0-b28.sfc (fixture oracle_b28_room_matrix.json). dungeon_atlas_oracle_golden_test.cc fails on any other difference and on an entry that no longer reproduces. Entry: {id, field, oracle, yaze, class, reason}; class: yaze-fix-pending | oracle-heuristic | annotation-only. Empty on 2026-09-28: all 296 rooms and 203 door edges match when the dream-warp symbol link (design doc 6.5) is loaded; without it, 0x00/0x31/0x61 lose DREAM pills and 0x31 is free instead of reserved.",
+ "diffs": []
+}

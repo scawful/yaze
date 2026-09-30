@@ -1861,7 +1861,8 @@ void RightDrawerManager::DrawEditorSpecificShortcuts() {
     case EditorType::kOverworld:
       DrawPanelLabel("Overworld");
       ImGui::Indent(8.0f);
-      DrawPanelValue("1-3", "Switch World (LW/DW/SP)");
+      DrawPanelValue("1 / 2 / 3", "Select / Paint / Entrances");
+      DrawPanelValue("Alt+1 / Alt+2 / Alt+3", "Switch World (LW/DW/SP)");
       DrawPanelValue("Arrow Keys", "Navigate Maps");
       DrawPanelValue("E", "Entity Mode");
       DrawPanelValue("T", "Tile Mode");

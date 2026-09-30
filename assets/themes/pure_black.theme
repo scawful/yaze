@@ -1,0 +1,118 @@
+# Pure Black Theme
+# High-contrast pitch black theme with crisp neutral borders and clean accents
+name=Pure Black
+description=Deep OLED pitch black with neutral accents and sharp contrast
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors
+primary=59,130,246,255          # Vibrant modern blue
+secondary=37,99,235,255         # Medium blue
+accent=96,165,250,255           # Light accent blue
+background=0,0,0,255            # Pure black
+surface=14,14,14,255            # Very dark surface
+editor_background=8,8,10,255      # Subtle OLED canvas background
+
+# Status colors
+error=239,68,68,255
+warning=245,158,11,255
+success=34,197,94,255
+info=59,130,246,255
+
+# Text colors
+text_primary=250,250,250,255
+text_secondary=161,161,170,255
+text_disabled=100,100,108,255
+
+# Window colors
+window_bg=0,0,0,250
+child_bg=10,10,10,255
+popup_bg=14,14,14,255
+
+# Interactive elements
+button=24,24,27,255
+button_hovered=39,39,42,255
+button_active=59,130,246,200
+frame_bg=18,18,20,255
+frame_bg_hovered=28,28,32,255
+frame_bg_active=39,39,44,255
+
+# Navigation
+header=24,24,27,255
+header_hovered=39,39,42,255
+header_active=59,130,246,160
+tab=18,18,20,255
+tab_hovered=39,39,42,255
+tab_active=59,130,246,200
+menu_bar_bg=14,14,14,255
+title_bg=14,14,14,255
+title_bg_active=24,24,27,255
+title_bg_collapsed=10,10,10,200
+
+# Borders and separators
+border=45,45,50,255
+border_shadow=0,0,0,0
+separator=45,45,50,255
+separator_hovered=82,82,91,255
+separator_active=59,130,246,255
+
+# Scrollbars
+scrollbar_bg=10,10,10,255
+scrollbar_grab=39,39,42,255
+scrollbar_grab_hovered=63,63,70,255
+scrollbar_grab_active=59,130,246,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=59,130,246,160
+resize_grip_active=59,130,246,255
+
+# Controls
+check_mark=59,130,246,255
+slider_grab=59,130,246,255
+slider_grab_active=96,165,250,255
+
+# Tables
+table_header_bg=20,20,23,255
+table_border_strong=45,45,50,255
+table_border_light=30,30,34,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,6
+
+# Links
+text_link=96,165,250,255
+
+# Navigation and special
+input_text_cursor=255,255,255,255
+nav_cursor=59,130,246,255
+nav_windowing_highlight=59,130,246,200
+nav_windowing_dim_bg=0,0,0,160
+modal_window_dim_bg=0,0,0,180
+text_selected_bg=59,130,246,100
+drag_drop_target=59,130,246,220
+
+# Docking
+docking_preview=59,130,246,180
+docking_empty_bg=10,10,10,255
+
+# Tree lines
+tree_lines=63,63,70,200
+
+# Tab variations
+tab_dimmed=14,14,16,255
+tab_dimmed_selected=24,24,28,255
+tab_dimmed_selected_overline=59,130,246,255
+tab_selected_overline=59,130,246,255
+
+[style]
+window_rounding=4.0
+frame_rounding=4.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=1.0
+frame_border_size=1.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

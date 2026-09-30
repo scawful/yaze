@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/scawful/yaze/schemas/atlas-annotations-1.json",
+  "title": "yaze Atlas annotations",
+  "description": "Project annotations for the Atlas map views. yaze also reads the Oracle of Secrets room_annotations.json and overworld_annotations.json files (no schema key); see docs/public/guides/atlas-annotations.md. Keys starting with '_' are comments. Unknown keys are errors.",
+  "type": "object",
+  "required": ["schema"],
+  "patternProperties": {"^_": {}},
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "yaze.atlas/1"},
+    "title": {"type": "string"},
+    "about": {"type": "string"},
+    "dungeons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "patternProperties": {"^_": {}},
+        "additionalProperties": false,
+        "properties": {
+          "owner": {"type": "string"},
+          "dungeon_id": {"$ref": "#/$defs/id"},
+          "code": {"type": "string", "maxLength": 4},
+          "name": {"type": "string"},
+          "color": {"$ref": "#/$defs/color"}
+        },
+        "anyOf": [{"required": ["owner"]}, {"required": ["dungeon_id"]}]
+      }
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "rooms"],
+        "patternProperties": {"^_": {}},
+        "additionalProperties": false,
+        "properties": {
+          "key": {"type": "string", "minLength": 1},
+          "code": {"type": "string", "maxLength": 4},
+          "name": {"type": "string"},
+          "color": {"$ref": "#/$defs/color"},
+          "rooms": {"$ref": "#/$defs/idList"},
+          "source": {"type": "string"}
+        }
+      }
+    },
+    "rooms": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/idString"},
+      "additionalProperties": {
+        "type": "object",
+        "patternProperties": {"^_": {}},
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "status": {"enum": ["reserved"]},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["view", "kind", "from"],
+        "patternProperties": {"^_": {}},
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "view": {"enum": ["dungeon", "overworld"]},
+          "kind": {"$ref": "#/$defs/linkKind"},
+          "from": {"$ref": "#/$defs/id"},
+          "to": {"$ref": "#/$defs/id"},
+          "label": {"type": "string"},
+          "source": {"type": "string"}
+        }
+      }
+    },
+    "symbol_links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["symbol", "count", "kind"],
+        "patternProperties": {"^_": {}},
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {"type": "string"},
+          "count": {"type": "integer", "minimum": 1, "maximum": 296},
+          "width": {"enum": [1, 2]},
+          "kind": {"$ref": "#/$defs/linkKind"},
+          "label": {"type": "string"}
+        }
+      }
+    },
+    "plans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "rooms"],
+        "patternProperties": {"^_": {}},
+        "additionalProperties": false,
+        "properties": {
+          "key": {"type": "string"},
+          "label": {"type": "string"},
+          "name": {"type": "string"},
+          "status": {"enum": ["decided", "provisional"]},
+          "color": {"$ref": "#/$defs/color"},
+          "rooms": {"$ref": "#/$defs/idList"},
+          "source": {"type": "string"}
+        }
+      }
+    },
+    "legend_notes": {
+      "type": "object",
+      "patternProperties": {"^_": {}},
+      "additionalProperties": false,
+      "properties": {
+        "dungeon": {"type": "array", "items": {"type": "string"}},
+        "overworld": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "items": {
+      "type": "object",
+      "patternProperties": {"^_": {}},
+      "additionalProperties": false,
+      "properties": {
+        "small_key": {"$ref": "#/$defs/id"},
+        "compass": {"$ref": "#/$defs/id"},
+        "big_key": {"$ref": "#/$defs/id"},
+        "map": {"$ref": "#/$defs/id"},
+        "pot_small_key": {"$ref": "#/$defs/id"}
+      }
+    },
+    "overworld": {
+      "type": "object",
+      "patternProperties": {"^_": {}},
+      "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["maps", "origin"],
+            "patternProperties": {"^_": {}},
+            "additionalProperties": false,
+            "properties": {
+              "title": {"type": "string"},
+              "subtitle": {"type": "string"},
+              "maps": {"$ref": "#/$defs/idList"},
+              "origin": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+            }
+          }
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "maps"],
+            "patternProperties": {"^_": {}},
+            "additionalProperties": false,
+            "properties": {
+              "name": {"type": "string"},
+              "code": {"type": "string"},
+              "world": {"enum": ["LW", "DW", "SW"]},
+              "color": {"$ref": "#/$defs/color"},
+              "maps": {"$ref": "#/$defs/idList"}
+            }
+          }
+        },
+        "maps": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/idString"},
+          "additionalProperties": {
+            "type": "object",
+            "patternProperties": {"^_": {}},
+            "additionalProperties": false,
+            "properties": {
+              "name": {"type": "string"},
+              "note": {"type": "string"}
+            }
+          }
+        },
+        "gates": {
+          "type": "object",
+          "propertyNames": {"pattern": "^(0x)?[0-9A-Fa-f]{1,2}:(Glove|Mitt|Hammer|Boots)$"},
+          "additionalProperties": {
+            "type": "object",
+            "patternProperties": {"^_": {}},
+            "additionalProperties": false,
+            "properties": {
+              "note": {"type": "string"},
+              "role": {"enum": ["ROUTE", "POCKET", "DECOR"]},
+              "suppress": {"type": "boolean"}
+            }
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["a", "b", "status"],
+            "patternProperties": {"^_": {}},
+            "additionalProperties": false,
+            "properties": {
+              "a": {"$ref": "#/$defs/id"},
+              "b": {"$ref": "#/$defs/id"},
+              "status": {"enum": ["open", "swim", "blocked", "special"]},
+              "note": {"type": "string"}
+            }
+          }
+        },
+        "closed_border_maps": {"$ref": "#/$defs/idList"},
+        "isolated_maps": {"$ref": "#/$defs/idList"},
+        "tile_classes": {
+          "type": "object",
+          "patternProperties": {"^_": {}},
+          "additionalProperties": false,
+          "properties": {
+            "free": {"$ref": "#/$defs/idList"},
+            "water": {"$ref": "#/$defs/idList"},
+            "ledge": {"$ref": "#/$defs/idList"},
+            "glove": {"$ref": "#/$defs/idList"},
+            "mitt": {"$ref": "#/$defs/idList"},
+            "boots": {"$ref": "#/$defs/idList"},
+            "pit": {"$ref": "#/$defs/idList"},
+            "hammer_tile16": {"$ref": "#/$defs/idList"}
+          }
+        },
+        "gate_role_thresholds": {
+          "type": "object",
+          "patternProperties": {"^_": {}},
+          "additionalProperties": false,
+          "properties": {
+            "big": {"type": "integer", "minimum": 1},
+            "small": {"type": "integer", "minimum": 1}
+          }
+        },
+        "warp_tile_rule": {"enum": ["toggle_world", "none"]}
+      }
+    }
+  },
+  "$defs": {
+    "idString": {"pattern": "^(0x|0X)?[0-9A-Fa-f]{1,3}$"},
+    "id": {
+      "oneOf": [
+        {"type": "integer", "minimum": 0, "maximum": 4095},
+        {"type": "string", "pattern": "^(0x|0X)?[0-9A-Fa-f]{1,3}$"}
+      ]
+    },
+    "idList": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"$ref": "#/$defs/id"},
+          {"type": "string", "pattern": "^(0x|0X)?[0-9A-Fa-f]{1,3}-(0x|0X)?[0-9A-Fa-f]{1,3}$"}
+        ]
+      }
+    },
+    "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+    "linkKind": {"enum": ["pit", "warp", "stair", "pad", "whirlpool", "special", "dream", "warn"]}
+  }
+}

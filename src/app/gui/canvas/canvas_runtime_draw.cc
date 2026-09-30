@@ -143,7 +143,7 @@ void DrawOutline(const CanvasRuntime& rt, int x, int y, int w, int h,
   if (!rt.draw_list)
     return;
   CanvasUtils::DrawCanvasOutline(rt.draw_list, rt.canvas_p0, rt.scrolling, x, y,
-                                 w, h, color);
+                                 w, h, color, rt.scale);
 }
 
 bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap,

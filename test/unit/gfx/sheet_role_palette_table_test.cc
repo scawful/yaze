@@ -32,11 +32,17 @@ TEST(SheetRolePaletteTableTest, BlocksetSlotsOutOfRangeAreUnclassified) {
   EXPECT_EQ(RoleForBlocksetSlot(99), SheetRole::kUnclassified);
 }
 
-TEST(SheetRolePaletteTableTest, RoomsetSlotsMapToBlocksetSlots4Through7) {
-  EXPECT_EQ(RoleForRoomsetSlot(0), RoleForBlocksetSlot(4));
-  EXPECT_EQ(RoleForRoomsetSlot(1), RoleForBlocksetSlot(5));
-  EXPECT_EQ(RoleForRoomsetSlot(2), RoleForBlocksetSlot(6));
-  EXPECT_EQ(RoleForRoomsetSlot(3), RoleForBlocksetSlot(7));
+TEST(SheetRolePaletteTableTest, RoomsetEntriesMatchLoaderSlots3Through6) {
+  // Room::LoadRoomGraphics and OverworldMap::LoadAreaGraphicsBlocksets place
+  // entry i in background slot 3 + i. Entries 1 and 3 are the ones the old
+  // 4-7 mapping assigned to a different role.
+  EXPECT_EQ(RoleForRoomsetSlot(0), RoleForBlocksetSlot(3));
+  EXPECT_EQ(RoleForRoomsetSlot(1), RoleForBlocksetSlot(4));
+  EXPECT_EQ(RoleForRoomsetSlot(2), RoleForBlocksetSlot(5));
+  EXPECT_EQ(RoleForRoomsetSlot(3), RoleForBlocksetSlot(6));
+  EXPECT_EQ(RoleForRoomsetSlot(1), SheetRole::kOverworldAreaAux1);
+  EXPECT_EQ(RoleForRoomsetSlot(3), SheetRole::kOverworldAreaAux2);
+  EXPECT_NE(RoleForRoomsetSlot(3), SheetRole::kOverworldAnimated);
 }
 
 TEST(SheetRolePaletteTableTest, RoomsetSlotsOutOfRangeAreUnclassified) {

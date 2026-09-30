@@ -607,4 +607,50 @@ hack_manifest_file=manifests/broken.json
             std::string::npos);
 }
 
+// Regression (2026-09-28): Open() does not make these keys absolute, and the
+// serializer passed the relative value straight to GetRelativePath, which
+// resolves it against the process working directory. Saving from any other
+// directory rewrote Oracle's custom_collision_json=Data/dungeons/... into a
+// path relative to the working directory.
+TEST(ProjectPathsTest, RelativeFileKeysSurviveSaveFromAnotherDirectory) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_relative_keys"));
+  ScopedTempDir elsewhere(MakeUniqueTempDir("yaze_project_relative_cwd"));
+  const auto project_file = temp.path() / "Oracle.yaze";
+  WriteTextFile(project_file,
+                R"(
+[project]
+name=Relative Keys
+
+[files]
+custom_collision_json=Data/dungeons/custom_collision.json
+cutscene_shots=Data/cutscenes/shots.json
+
+[agent_settings]
+custom_system_prompt=.gemini/yaze_agent_prompt.md
+)");
+
+  {
+    ScopedCurrentPath current_path(elsewhere.path());
+    YazeProject project;
+    ASSERT_TRUE(project.Open(project_file.string()).ok());
+    EXPECT_EQ(project.GetAbsolutePath(project.custom_collision_json),
+              (temp.path() / "Data" / "dungeons" / "custom_collision.json")
+                  .lexically_normal()
+                  .make_preferred()
+                  .string());
+    ASSERT_TRUE(project.Save().ok());
+  }
+  const auto saved = ReadTextFile(project_file);
+  EXPECT_NE(
+      saved.find("custom_collision_json=Data/dungeons/custom_collision.json\n"),
+      std::string::npos)
+      << saved;
+  EXPECT_NE(saved.find("cutscene_shots=Data/cutscenes/shots.json\n"),
+            std::string::npos)
+      << saved;
+  EXPECT_NE(saved.find("custom_system_prompt=.gemini/yaze_agent_prompt.md\n"),
+            std::string::npos)
+      << saved;
+}
+
 }  // namespace yaze::project

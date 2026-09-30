@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/graphics/resolved_graphics_context_view.h"
 
 #include <string>
 #include <utility>
@@ -127,6 +128,12 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
          .label = "Palette",
          .value = absl::StrFormat("0x%02X", room->palette())},
     };
+    zelda3::GraphicsContextIdentity identity;
+    if (dependencies_.project != nullptr) {
+      identity.project_name = dependencies_.project->name;
+    }
+    AppendResolvedGraphicsContext(
+        snapshot, zelda3::DescribeDungeonGraphicsContext(*room, identity));
     snapshot.counts = {
         {.id = "objects",
          .label = "Objects",

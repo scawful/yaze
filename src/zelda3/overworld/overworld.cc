@@ -219,6 +219,8 @@ absl::Status Overworld::Load(Rom* rom) {
     }
   }
 
+  loaded_map_tiles_ = map_tiles_;
+  loaded_map_tiles_valid_ = true;
   is_loaded_ = true;
   return absl::OkStatus();
 }
@@ -1476,8 +1478,42 @@ absl::Status Overworld::Save(Rom* rom) {
   return absl::OkStatus();
 }
 
+bool Overworld::MapTilesUnchanged() const {
+  return loaded_map_tiles_valid_ &&
+         map_tiles_.light_world == loaded_map_tiles_.light_world &&
+         map_tiles_.dark_world == loaded_map_tiles_.dark_world &&
+         map_tiles_.special_world == loaded_map_tiles_.special_world;
+}
+
+void Overworld::StageSavedMapTiles() {
+  staged_map_tiles_ = map_tiles_;
+  staged_map_tiles_valid_ = true;
+}
+
+void Overworld::CommitSavedMapTiles() {
+  if (!staged_map_tiles_valid_) {
+    return;
+  }
+  loaded_map_tiles_ = std::move(staged_map_tiles_);
+  loaded_map_tiles_valid_ = true;
+  staged_map_tiles_ = OverworldMapTiles{};
+  staged_map_tiles_valid_ = false;
+}
+
+void Overworld::RollbackSavedMapTiles() {
+  staged_map_tiles_ = OverworldMapTiles{};
+  staged_map_tiles_valid_ = false;
+}
+
 absl::Status Overworld::SaveOverworldMaps() {
   util::logf("Saving Overworld Maps");
+
+  if (MapTilesUnchanged()) {
+    util::logf("Overworld tiles unchanged; preserving compressed map pointers");
+    RETURN_IF_ERROR(SaveLargeMaps());
+    StageSavedMapTiles();
+    return absl::OkStatus();
+  }
 
   if (tiles32_list_.size() < NumberOfMap32) {
     RETURN_IF_ERROR(CreateTile32Tilemap())
@@ -1615,6 +1651,7 @@ absl::Status Overworld::SaveOverworldMaps() {
   }
 
   RETURN_IF_ERROR(SaveLargeMaps());
+  StageSavedMapTiles();
   return absl::OkStatus();
 }
 
@@ -2752,6 +2789,10 @@ absl::Status Overworld::CreateTile32Tilemap() {
 }
 
 absl::Status Overworld::SaveMap32Expanded() {
+  if (MapTilesUnchanged()) {
+    util::logf("Overworld tiles unchanged; preserving expanded tile32");
+    return absl::OkStatus();
+  }
   ASSIGN_OR_RETURN(const auto storage_layout,
                    ResolveMap32StorageLayout(*rom(), version_constants()));
   if (!storage_layout.expanded) {
@@ -2911,6 +2952,10 @@ absl::Status Overworld::SaveMap32Expanded() {
 }
 
 absl::Status Overworld::SaveMap32Tiles() {
+  if (MapTilesUnchanged()) {
+    util::logf("Overworld tiles unchanged; preserving tile32 definitions");
+    return absl::OkStatus();
+  }
   util::logf("Saving Map32 Tiles");
   ASSIGN_OR_RETURN(const auto storage_layout,
                    ResolveMap32StorageLayout(*rom(), version_constants()));
@@ -3528,8 +3573,21 @@ absl::Status Overworld::SaveMapProperties() {
 absl::Status Overworld::SaveMusic() {
   util::logf("Saving Music Data");
 
-  // Save music data for Light World maps
+  // Music is loaded and played by parent screen. A child of a large, wide, or
+  // tall area carries its parent's track in memory, so writing that track into
+  // the child slot replaces bytes the game does not use as music. Oracle keeps
+  // overworld ASM hooks in part of the light-world beginning table.
+  const auto owns_slot = [this](int map_index) {
+    const int parent = overworld_maps_[map_index].parent();
+    // A parent of 0xFF is not a table index. Music for that screen was not
+    // loaded from its own slot, so leave the slot untouched.
+    return parent == map_index;
+  };
+
   for (int i = 0; i < kDarkWorldMapIdStart; i++) {
+    if (!owns_slot(i)) {
+      continue;
+    }
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicBeginning + i,
                                      overworld_maps_[i].area_music(0)));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicZelda + i,
@@ -3540,8 +3598,10 @@ absl::Status Overworld::SaveMusic() {
                                      overworld_maps_[i].area_music(3)));
   }
 
-  // Save music data for Dark World maps
   for (int i = kDarkWorldMapIdStart; i < kSpecialWorldMapIdStart; i++) {
+    if (!owns_slot(i)) {
+      continue;
+    }
     RETURN_IF_ERROR(
         rom()->WriteByte(kOverworldMusicDarkWorld + (i - kDarkWorldMapIdStart),
                          overworld_maps_[i].area_music(0)));

@@ -30,6 +30,7 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <set>
 #include <string>
@@ -46,6 +47,8 @@ class HackManifest;
 }  // namespace core
 
 namespace zelda3 {
+
+class Room;
 
 inline constexpr int kRoomCensusRoomCount = kDungeonRoomCount;
 inline constexpr float kReclaimableVanillaSimilarity = 0.90f;
@@ -82,6 +85,7 @@ struct RoomCensusEntranceFact {
   int dungeon_id = kRoomCensusInteriorDungeonId;
   RoomReferenceKind kind = RoomReferenceKind::kEntrance;
   std::string placement;  // e.g. "OW 0x0B"
+  int ow_map = -1;        // Overworld map of the placement, -1 = none.
 };
 
 struct RoomCensusOwnerGroup {
@@ -158,6 +162,10 @@ struct RoomCensusOptions {
   const core::HackManifest* manifest = nullptr;  // Warp tags.
   // Optional vanilla ROM used instead of the built-in fingerprints.
   Rom* vanilla_rom = nullptr;
+  // Optional: called once per room with the room as the census loaded it
+  // (objects, doors, chests, pot items and sprites), so callers such as the
+  // Atlas read extra facts without loading all 296 rooms a second time.
+  std::function<void(int room_id, const Room& room)> room_visitor;
 };
 
 // Reads everything the census needs from `rom`.

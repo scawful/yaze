@@ -167,11 +167,13 @@ Theme BuildClassicYazeTheme() {
   classic_theme.item_color = EntityMarkerDefaults::Item();
   classic_theme.sprite_color = EntityMarkerDefaults::Sprite();
 
-  classic_theme.window_rounding = 0.0f;
-  classic_theme.frame_rounding = 5.0f;
-  classic_theme.scrollbar_rounding = 5.0f;
+  classic_theme.window_rounding = 2.0f;
+  classic_theme.frame_rounding = 4.0f;
+  classic_theme.scrollbar_rounding = 4.0f;
   classic_theme.grab_rounding = 5.0f;
-  classic_theme.tab_rounding = 0.0f;
+  classic_theme.tab_rounding = 3.0f;
+  classic_theme.window_border_size = 1.0f;
+  classic_theme.frame_border_size = 1.0f;
   classic_theme.enable_glow_effects = false;
 
   return classic_theme;
@@ -261,10 +263,10 @@ void Theme::ApplyToImGui() const {
   colors[ImGuiCol_TabSelectedOverline] =
       ConvertColorToImVec4(tab_selected_overline);
 
-  // Apply style parameters
+  // Apply style parameters. A theme file may set a border or rounding to 0;
+  // that value is the authored metric and must reach ImGui.
   style->WindowRounding = window_rounding;
-  style->ChildRounding =
-      window_rounding * 0.5f;  // Consistent with window rounding
+  style->ChildRounding = window_rounding * 0.5f;
   style->FrameRounding = frame_rounding;
   style->PopupRounding = frame_rounding;
   style->ScrollbarRounding = scrollbar_rounding;
@@ -282,11 +284,11 @@ void Theme::ApplyToImGui() const {
 void Theme::ApplyDensitySizingToImGui() const {
   ImGuiStyle* style = &ImGui::GetStyle();
   float base_spacing = 8.0f * compact_factor;
-  style->WindowPadding = ImVec2(base_spacing, base_spacing);
-  style->FramePadding = ImVec2(base_spacing * 0.5f, base_spacing * 0.375f);
-  style->CellPadding = ImVec2(base_spacing * 0.5f, base_spacing * 0.25f);
-  style->ItemSpacing = ImVec2(base_spacing, base_spacing * 0.5f);
-  style->ItemInnerSpacing = ImVec2(base_spacing * 0.5f, base_spacing * 0.5f);
+  style->WindowPadding = ImVec2(base_spacing * 1.25f, base_spacing * 1.25f);
+  style->FramePadding = ImVec2(base_spacing * 1.0f, base_spacing * 0.625f);
+  style->CellPadding = ImVec2(base_spacing * 0.75f, base_spacing * 0.5f);
+  style->ItemSpacing = ImVec2(base_spacing * 1.0f, base_spacing * 0.75f);
+  style->ItemInnerSpacing = ImVec2(base_spacing * 0.75f, base_spacing * 0.5f);
   style->IndentSpacing = base_spacing * 2.5f;
   style->ScrollbarSize = 14.0f * compact_factor;
   style->GrabMinSize = 12.0f * compact_factor;
@@ -571,10 +573,12 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.agent.gradient_bottom = theme.secondary;
 
   // Apply original style settings
-  theme.window_rounding = 0.0f;
-  theme.frame_rounding = 5.0f;
-  theme.scrollbar_rounding = 5.0f;
-  theme.tab_rounding = 0.0f;
+  theme.window_rounding = 2.0f;
+  theme.frame_rounding = 4.0f;
+  theme.scrollbar_rounding = 4.0f;
+  theme.tab_rounding = 3.0f;
+  theme.window_border_size = 1.0f;
+  theme.frame_border_size = 1.0f;
   theme.enable_glow_effects = false;
 
   // Hydrate semantic/interaction defaults so the fallback matches the
@@ -1577,7 +1581,11 @@ void ThemeManager::ApplySmartDefaults(
 
   // Editor-specific defaults
   if (needs_semantic_default(theme.editor_background, "editor_background")) {
-    theme.editor_background = theme.background;
+    theme.editor_background =
+        (theme.background.red <= 0.01f && theme.background.green <= 0.01f &&
+         theme.background.blue <= 0.01f)
+            ? RGBA(8, 8, 10, 255)
+            : theme.background;
   }
   if (needs_semantic_default(theme.editor_grid, "editor_grid")) {
     theme.editor_grid = with_alpha(theme.text_secondary, 0.2f);
@@ -2344,7 +2352,7 @@ void ThemeManager::ApplyClassicYazeTheme(std::optional<DensityPreset> density) {
   // isn't missing fields (selection_primary, dungeon.object_door, agent.*).
   ApplySmartDefaults(classic_theme);
   // Carry the active Display Density across the switch. ColorsYaze() writes
-  // Classic's OWN metrics (FramePadding 10x2, ItemSpacing 10x5, WindowPadding
+  // Classic's OWN metrics (FramePadding 8x5, ItemSpacing 8x6, WindowPadding
   // 10x10), which are not the shared 8px base that Theme::ApplyToImGui uses.
   // Scale what ColorsYaze just wrote instead of calling the generic density
   // sizing, which would substitute that base and change Classic's look at

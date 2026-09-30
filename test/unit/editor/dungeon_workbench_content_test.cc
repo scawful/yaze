@@ -15,6 +15,7 @@
 #include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
@@ -980,6 +981,19 @@ TEST(DungeonWorkbenchContentLayoutTest,
             DungeonWorkbenchToolRequestTarget::kEmbeddedInspector);
   EXPECT_EQ(ResolveDungeonWorkbenchToolRequestTarget(true),
             DungeonWorkbenchToolRequestTarget::kStandaloneWindow);
+}
+
+TEST(DungeonWorkbenchContentLayoutTest, SwitchingToolsReleasesRailStampInput) {
+  int current_room_id = 0x89;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+  MinecartTrackEditorPanel panel;
+  content.SetEmbeddedToolPanels(nullptr, nullptr, nullptr, &panel);
+  panel.set_collision_stamping(true);
+  ASSERT_TRUE(panel.collision_stamping());
+  content.OpenPaletteTool();
+  EXPECT_FALSE(panel.collision_stamping());
+  EXPECT_FALSE(panel.canvas_editing());
 }
 
 TEST(DungeonWorkbenchContentLayoutTest, ToolRequestsOpenEmbeddedInspector) {

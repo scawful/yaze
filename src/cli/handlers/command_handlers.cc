@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "cli/handlers/game/atlas_commands.h"
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_census_commands.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
@@ -25,6 +26,7 @@
 #include "cli/handlers/graphics/gfx_sheet_inventory_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
 #include "cli/handlers/graphics/gfx_tilemap_render_command.h"
+#include "cli/handlers/graphics/graphics_context_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
@@ -148,6 +150,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomCensusCommandHandler>());
+  handlers.push_back(std::make_unique<AtlasRenderCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
@@ -249,6 +252,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<SpriteDoctorCommandHandler>());
   handlers.push_back(std::make_unique<GraphicsDoctorCommandHandler>());
   handlers.push_back(std::make_unique<GfxSheetInventoryCommandHandler>());
+  handlers.push_back(std::make_unique<GraphicsContextCommandHandler>());
   handlers.push_back(std::make_unique<GfxExportCommandHandler>());
   handlers.push_back(std::make_unique<GfxImportCommandHandler>());
   handlers.push_back(std::make_unique<GfxRoomExportCommandHandler>());

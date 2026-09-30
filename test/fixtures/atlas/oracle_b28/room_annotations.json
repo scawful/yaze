@@ -1,0 +1,48 @@
+{
+  "_about": "Hand-maintained names and plans for Scripts/Maps/render_room_matrix.py. Only facts the ROM cannot give live here. Room ownership for D1-D8/S1-S3 comes from the ROM (z3ed dungeon-room-census --project, dungeon IDs from the bank $0F entrance tables); 'areas' below only names rooms whose dungeon ID is not in Docs/Dev/Planning/dungeons.json. Update 'plans' when Docs/Planning/Status/decisions.org changes.",
+  "dungeon_codes": {
+    "D1": "D1", "D2": "D2", "D3": "D3", "D4": "D4", "D5": "D5", "D6": "D6", "D7": "D7",
+    "FOS": "D8", "SOW": "S1", "SOP": "S2", "SOC": "S3"
+  },
+  "areas": [
+    {"key": "ORIGINS", "name": "Shrine of Origins", "rooms": ["0x05"],
+     "source": "room census 2026-09-26: entrance $76 (OW 40) -> $05; Dungeons/custom_tag.asm checks $05"},
+    {"key": "HOS", "name": "Hall of Secrets", "rooms": ["0x11", "0x12", "0x21", "0x22", "0x40", "0x41", "0x42"],
+     "source": "room census 2026-09-26: entrances $02 (OW 0E) and $12 (OW 02)"},
+    {"key": "FINAL", "name": "Master Sword cave / final route", "rooms": ["0x04", "0x13", "0x14", "0x15", "0x23", "0x24"],
+     "source": "room census 2026-09-26: entrances $18/$19/$2D/$24 (OW 40, 46, 57)"},
+    {"key": "GANON", "name": "Final boss room", "rooms": ["0x00"],
+     "source": "room census 2026-09-26: OW hole $7B (OW 57) and the Dream 2 warp land here"},
+    {"key": "DREAM", "name": "Dream set (Hyrule Castle rooms)", "rooms": ["0x50", "0x51", "0x52", "0x60", "0x61", "0x62"],
+     "source": "room census 2026-09-26: Dream 1 warp -> $61; Sprites/NPCs/hyrule_dream.asm checks $51/$60"},
+    {"key": "UWS", "name": "Underwater shrine block-out", "rooms": ["0x90", "0x91", "0x92"],
+     "source": "authored block-out (Moldorm, Titan's Mitt chest); b28 entrance $29 on OW 7A leads to $90"},
+    {"key": "INT", "name": "Interiors (houses, caves)", "rooms": ["0xE6", "0xE7", "0x105"],
+     "source": "interiors whose entrances carry a dungeon ID: Tail Palace cave route $E6/$E7, Zora Princess house $105"}
+  ],
+  "room_names": {
+    "0x0F": "Maple's Dream Hut",
+    "0x31": "Dream 3 room (placeholder)",
+    "0x11D": "Mayor's basement",
+    "0xE6": "Tail Palace cave route",
+    "0xE7": "Tail Palace cave route"
+  },
+  "runtime_pits": [
+    {"room": "0x81", "to": "0x05",
+     "source": "runtime check on b28, 2026-09-27 (decisions.org OPEN Room census follow-ups): D3 $81 pit ring drops into Origins $05; z3ed's static census misses these pits"}
+  ],
+  "plans": [
+    {"key": "TOWER", "label": "SKY TOWER", "name": "Sky tower (DECIDED, room budget step 1)", "status": "decided",
+     "rooms": ["0x90", "0x91", "0x92", "0x93", "0x94", "0x95", "0x96", "0xA0", "0xA6", "0xB0"],
+     "source": "Docs/Planning/Status/decisions.org: DECIDED Room budget step 1 (scawful 2026-09-27)"},
+    {"key": "SHRINE", "label": "UW SHRINE?", "name": "Underwater shrine candidates (provisional)", "status": "provisional",
+     "rooms": ["0x1F", "0xAB", "0xE9", "0xF7", "0x106"],
+     "source": "Docs/Planning/Status/decisions.org: DECIDED Room budget step 2 (5 rooms; IDs provisional)"},
+    {"key": "TEMPLE", "label": "SKY TEMPLE?", "name": "Sky temple candidates (provisional)", "status": "provisional",
+     "rooms": ["0x127", "0x4C"],
+     "source": "Docs/Planning/Status/decisions.org: DECIDED Room budget step 3 (1-2 rooms; IDs provisional)"},
+    {"key": "RESERVE", "label": "RESERVE", "name": "Kept in reserve", "status": "decided",
+     "rooms": ["0xA7", "0xC0", "0x01", "0x10", "0x30"],
+     "source": "Docs/Planning/Status/decisions.org: Room budget step 3, 'Left in reserve'"}
+  ]
+}

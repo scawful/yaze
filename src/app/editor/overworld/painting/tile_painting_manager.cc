@@ -165,8 +165,15 @@ void TilePaintingManager::PaintPattern(const TileBrush& brush,
     single_paint_pending_ = true;
   }
   if (IsValidTile(anchor)) {
-    *deps_.current_map = MapIndexForGridPosition(
+    const int anchor_map = MapIndexForGridPosition(
         *deps_.current_world, anchor.x / kTilesPerMap, anchor.y / kTilesPerMap);
+    // A direct write changes the selected map without refreshing its Tile16
+    // palette and ignores the pin. The editor callback does both.
+    if (callbacks_.select_map_for_editing) {
+      callbacks_.select_map_for_editing(anchor_map);
+    } else {
+      *deps_.current_map = anchor_map;
+    }
   }
   for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
     if (changed_maps[map]) {

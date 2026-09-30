@@ -443,8 +443,9 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
 
 const DungeonRenderingHelpers::CollisionOverlayCache&
 DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
+  const auto* working = rooms_ ? rooms_->GetIfLoaded(room_id) : nullptr;
   auto it = collision_overlay_cache_.find(room_id);
-  if (it != collision_overlay_cache_.end()) {
+  if (!working && it != collision_overlay_cache_.end()) {
     return it->second;
   }
 
@@ -456,7 +457,12 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
     return collision_overlay_cache_.at(room_id);
   }
 
-  auto map_or = zelda3::LoadCustomCollisionMap(rom_, room_id);
+  // A loaded room is the authoring source of truth. Rebuild its small overlay
+  // from the model so edits, Undo and save-dirty clearing cannot leave ROM-era
+  // pixels cached. Unloaded rooms still use the ROM-backed cache.
+  auto map_or = working ? absl::StatusOr<zelda3::CustomCollisionMap>(
+                              working->custom_collision())
+                        : zelda3::LoadCustomCollisionMap(rom_, room_id);
   if (!map_or.ok()) {
     collision_overlay_cache_.emplace(room_id, cache);
     return collision_overlay_cache_.at(room_id);
@@ -479,7 +485,7 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
     }
   }
 
-  collision_overlay_cache_.emplace(room_id, std::move(cache));
+  collision_overlay_cache_.insert_or_assign(room_id, std::move(cache));
   return collision_overlay_cache_.at(room_id);
 }
 

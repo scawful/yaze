@@ -1,0 +1,117 @@
+# Clean White Theme
+# Standard light theme with pure white canvas, crisp neutral borders, and iOS/macOS blue accents
+name=Clean White
+description=Modern clean white theme with crisp borders and high-contrast text
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors
+primary=0,122,255,255           # System blue
+secondary=88,86,214,255         # Indigo
+accent=0,122,255,255            # Blue accent
+background=255,255,255,255      # Pure white
+surface=245,245,247,255         # Light gray surface
+
+# Status colors
+error=255,59,48,255             # System red
+warning=255,149,0,255           # System orange
+success=52,199,89,255           # System green
+info=0,122,255,255              # System blue
+
+# Text colors
+text_primary=28,28,30,255       # Very dark gray/near black
+text_secondary=99,99,102,255    # Mid-gray
+text_disabled=174,174,178,255   # Light gray
+
+# Window colors
+window_bg=255,255,255,255
+child_bg=245,245,247,255
+popup_bg=255,255,255,255
+
+# Interactive elements
+button=235,235,238,255
+button_hovered=220,220,225,255
+button_active=0,122,255,200
+frame_bg=240,240,244,255
+frame_bg_hovered=230,230,235,255
+frame_bg_active=220,220,226,255
+
+# Navigation
+header=235,235,238,255
+header_hovered=220,220,225,255
+header_active=0,122,255,160
+tab=235,235,238,255
+tab_hovered=220,220,225,255
+tab_active=255,255,255,255
+menu_bar_bg=245,245,247,255
+title_bg=245,245,247,255
+title_bg_active=235,235,238,255
+title_bg_collapsed=245,245,247,200
+
+# Borders and separators
+border=209,209,214,255
+border_shadow=0,0,0,0
+separator=209,209,214,255
+separator_hovered=142,142,147,255
+separator_active=0,122,255,255
+
+# Scrollbars
+scrollbar_bg=245,245,247,255
+scrollbar_grab=199,199,204,255
+scrollbar_grab_hovered=142,142,147,255
+scrollbar_grab_active=0,122,255,255
+
+# Resize grips
+resize_grip=0,0,0,26
+resize_grip_hovered=0,122,255,153
+resize_grip_active=0,122,255,230
+
+# Controls
+check_mark=0,122,255,255
+slider_grab=0,122,255,255
+slider_grab_active=88,86,214,255
+
+# Tables
+table_header_bg=235,235,238,255
+table_border_strong=209,209,214,255
+table_border_light=229,229,234,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=0,0,0,8
+
+# Links
+text_link=0,122,255,255
+
+# Navigation and special
+input_text_cursor=28,28,30,255
+nav_cursor=0,122,255,255
+nav_windowing_highlight=0,122,255,180
+nav_windowing_dim_bg=0,0,0,60
+modal_window_dim_bg=0,0,0,80
+text_selected_bg=0,122,255,75
+drag_drop_target=0,122,255,200
+
+# Docking
+docking_preview=0,122,255,160
+docking_empty_bg=245,245,247,255
+
+# Tree lines
+tree_lines=174,174,178,200
+
+# Tab variations
+tab_dimmed=240,240,244,255
+tab_dimmed_selected=255,255,255,255
+tab_dimmed_selected_overline=0,122,255,255
+tab_selected_overline=0,122,255,255
+
+[style]
+window_rounding=4.0
+frame_rounding=4.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=1.0
+frame_border_size=1.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

@@ -296,10 +296,7 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
   if (yaze_project.rom_metadata.write_policy ==
           project::RomWritePolicy::kBlock &&
       absl::StrContains(lowered_hack_name, "oracle of secrets")) {
-    return absl::PermissionDeniedError(
-        "Oracle of Secrets expanded messages are owned by ASM. No message "
-        "bytes were written; edit Core/message.asm, rebuild Oracle of Secrets, "
-        "and reopen the rebuilt ROM before retrying.");
+    return absl::PermissionDeniedError(editor::kOracleExpandedRomWriteRefusal);
   }
 
   const auto conflicts =

@@ -286,6 +286,15 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
     callbacks.request_tile16_selection = [this](int tile_id) {
       current_tile_ = tile_id;
     };
+    select_map_hook_ = [this](int map) {
+      current_map_ = map;
+    };
+    callbacks.select_map_for_editing = [this](int map) {
+      selected_maps_.push_back(map);
+      if (select_map_hook_) {
+        select_map_hook_(map);
+      }
+    };
     manager_ = std::make_unique<TilePaintingManager>(deps, callbacks);
 
     // Establish the window before delivering input to its canvas item.
@@ -431,6 +440,8 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
   std::vector<int> selected_ids_;
   std::vector<std::array<int, 5>> undo_points_;
   std::vector<int> refreshed_maps_;
+  std::vector<int> selected_maps_;
+  std::function<void(int)> select_map_hook_;
   int current_tile_ = 2;
   int current_map_ = 0;
   int current_world_ = 0;
@@ -862,6 +873,23 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_EQ(refreshed_maps_, (std::vector<int>{0, 1, 8, 9}));
   EXPECT_EQ(finalize_count_, 1);
   EXPECT_TRUE(rom_.dirty());
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       PasteDelegatesMapSelectionWithoutWritingCurrentMap) {
+  InitializeMapBitmap(0x31);
+  SetView(1.0f, ImVec2(512, 3072));
+  current_map_ = 0x30;
+  selected_maps_.clear();
+  select_map_hook_ = [](int) {
+  };
+
+  const auto status = PasteAt(AtWorld(520, 3080), TileBrush{1, 1, {7}});
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(selected_maps_, (std::vector<int>{0x31}));
+  EXPECT_EQ(current_map_, 0x30);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[32][192], 7);
 }
 
 TEST_F(TilePaintingManagerGestureTest,

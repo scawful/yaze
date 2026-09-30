@@ -52,12 +52,16 @@ if (YAZE_PLATFORM_MACOS)
   target_sources(yaze PRIVATE ${ICON_FILE})
   set_source_files_properties(${ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
+  # Keep the numeric bundle version independent from a development suffix.
+  set(YAZE_BUNDLE_BUILD_VERSION "${PROJECT_VERSION}" CACHE STRING
+      "Numeric macOS bundle build version")
   set_target_properties(yaze PROPERTIES
     MACOSX_BUNDLE_ICON_FILE "yaze.icns"
     MACOSX_BUNDLE_BUNDLE_NAME "Yaze"
     MACOSX_BUNDLE_GUI_IDENTIFIER "com.scawful.yaze"
     MACOSX_BUNDLE_INFO_STRING "Yet Another Zelda3 Editor"
-    MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}${YAZE_VERSION_SUFFIX}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${YAZE_BUNDLE_BUILD_VERSION}"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
   )
 elseif(EMSCRIPTEN)

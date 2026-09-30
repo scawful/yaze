@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_POPUP_MANAGER_H
 #define YAZE_APP_EDITOR_POPUP_MANAGER_H
 
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -81,6 +82,7 @@ constexpr const char* kTroubleshooting = "Troubleshooting";
 constexpr const char* kContributing = "Contributing";
 constexpr const char* kWhatsNew = "What's New";
 constexpr const char* kOpenRomHelp = "Open a ROM";
+constexpr const char* kComingFromZScream = "Coming from ZScream";
 
 // Settings
 constexpr const char* kDisplaySettings = "Display Settings";
@@ -156,6 +158,7 @@ class PopupManager {
 
   // Draw the save as popup
   void DrawSaveAsPopup();
+  void ResetSaveAsState();
   void DrawSaveScopePopup();
 
   // Draw the new project popup
@@ -178,6 +181,7 @@ class PopupManager {
   void DrawTroubleshootingPopup();
   void DrawContributingPopup();
   void DrawWhatsNewPopup();
+  void DrawComingFromZScreamPopup();
 
   // Workspace-related popups
   void DrawWorkspaceHelpPopup();
@@ -197,6 +201,15 @@ class PopupManager {
   void DrawRomWriteConfirmPopup();
   void DrawWriteConflictWarningPopup();
   void DrawUnsavedSessionChangesPopup();
+
+  struct SaveAsState {
+    bool initialized = false;
+    std::size_t session_id = 0;
+    std::string source_path;
+    std::string folder;
+    std::string filename;
+    std::string error;
+  } save_as_;
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;

@@ -124,6 +124,11 @@ void ObjectSelectorContent::Draw(bool* p_open) {
   DrawContent(true);
 }
 
+bool ObjectSelectorContent::DrawMinecartPalette() {
+  ResolveCanvasViewer();
+  return object_selector_.DrawMinecartPalette();
+}
+
 void ObjectSelectorContent::DrawInWorkbench() {
   DrawContent(false);
 }

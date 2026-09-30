@@ -72,6 +72,11 @@ class WelcomeScreen {
     open_project_management_callback_ = callback;
   }
 
+  /// Open the migration guide for users coming from ZScream.
+  void SetComingFromZScreamCallback(std::function<void()> callback) {
+    coming_from_zscream_callback_ = std::move(callback);
+  }
+
   /**
    * @brief Refresh recent projects list from the project manager.
    *
@@ -156,6 +161,7 @@ class WelcomeScreen {
   std::function<void()> open_prototype_research_callback_;
   std::function<void()> open_assembly_editor_no_rom_callback_;
   std::function<void()> open_project_management_callback_;
+  std::function<void()> coming_from_zscream_callback_;
 
   // Animation state
   float animation_time_ = 0.0f;

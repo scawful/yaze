@@ -295,7 +295,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
       ImVec2(viewport->WorkPos.x + bar_width, viewport->WorkPos.y + top_inset),
       ImVec2(panel_width, panel_height),
       {.bg = gui::ConvertColorToImVec4(theme.surface),
-       .padding = {8.0f, 8.0f},
+       .padding = {10.0f, 10.0f},
        .border_size = 1.0f,
        .rounding = 0.0f},
       ImGuiWindowFlags_NoFocusOnAppearing);

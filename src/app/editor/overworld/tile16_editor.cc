@@ -191,7 +191,10 @@ absl::Status Tile16Editor::UpdateBlockset() {
 }
 
 void Tile16Editor::HandleKeyboardShortcuts() {
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+  // Child windows of this panel only. RootAndChildWindows is true whenever
+  // the overworld map canvas (a sibling under the same root) is focused, so
+  // Command+Z was consumed as a Tile16 undo while hovering the map.
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) &&
       !ImGui::IsAnyItemActive()) {
     const ImGuiIO& io = ImGui::GetIO();
 #if defined(__APPLE__)

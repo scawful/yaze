@@ -63,6 +63,15 @@ void OverworldItemListPanel::Draw(bool* p_open) {
   if (!ow_editor) {
     return;
   }
+  // Selecting this right-hand window starts item placement. Insert Item uses
+  // the catalog popup instead.
+  static bool was_focused = false;
+  const bool focused =
+      ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+  if (focused && !was_focused) {
+    ow_editor->SetEntityEditMode(EntityEditMode::ITEMS);
+  }
+  was_focused = focused;
 
   auto* items = ow_editor->overworld().mutable_all_items();
   if (!items) {

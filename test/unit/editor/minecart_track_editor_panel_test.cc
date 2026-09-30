@@ -12,7 +12,9 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
@@ -33,11 +35,48 @@ class DungeonEditorV2MinecartTrackTestPeer {
     editor.minecart_track_editor_panel_ = panel;
   }
 
+  static zelda3::Room& BindCanvas(DungeonEditorV2& editor,
+                                  MinecartTrackEditorPanel& panel, Rom& rom) {
+    editor.minecart_track_editor_panel_ = &panel;
+    panel.SetRooms(&editor.rooms_);
+    editor.ConfigureMinecartProjectCallbacks();
+    auto& room = editor.rooms_[0x98];
+    room = zelda3::LoadRoomFromRom(&rom, 0x98);
+    return room;
+  }
+  static size_t UndoCount(DungeonEditorV2& editor) {
+    return editor.undo_manager_.UndoStackSize();
+  }
+
+  static absl::Status Stamp(DungeonEditorV2& editor, int room,
+                            const zelda3::CustomCollisionMap& before,
+                            const MinecartCollisionStamp& stamp) {
+    return editor.ApplyMinecartCollisionStamp(room, before, stamp);
+  }
+
   static absl::Status ApplyCollisionBatch(
       DungeonEditorV2& editor,
       const std::vector<zelda3::TrackCollisionResult>& preview,
       const zelda3::GeneratorOptions& options = {}) {
     return editor.ApplyMinecartCollisionBatch(preview, options);
+  }
+};
+
+class DungeonCanvasMinecartTestPeer {
+ public:
+  static bool Draw(DungeonCanvasViewer& viewer, const gui::CanvasRuntime& rt,
+                   zelda3::Room& room, int room_id) {
+    viewer.room_canvas_shortcut_focus_ = rt.hovered;
+    return viewer.DrawMinecartCanvas(rt, room, room_id);
+  }
+  static auto CollisionEntries(DungeonCanvasViewer& viewer, int room) {
+    return viewer.GetCollisionOverlayCache(room).entries;
+  }
+  static std::string CollisionMessage(const DungeonCanvasViewer& viewer) {
+    return viewer.minecart_collision_tool_.message();
+  }
+  static bool Dragging(const DungeonCanvasViewer& viewer) {
+    return viewer.minecart_canvas_tool_.dragging();
   }
 };
 
@@ -1946,6 +1985,326 @@ TEST(MinecartTrackEditorPanelTest,
       (std::vector<int>{14}));
   EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::RouteSlotUsed(panel, 7));
   EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::RouteSlotUsed(panel, 14));
+}
+
+// Pointer events run through the production canvas tool binding and editor
+// command. Fixture-only room/source setup never substitutes for the gesture.
+class MinecartCanvasWorkflowTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ImGui::GetIO().DisplaySize = ImVec2(1400, 1000);
+    ImGui::GetIO().DeltaTime = 1.0f / 60;
+    ImGui::GetIO().IniFilename = nullptr;
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    ConfigureMinecartAuditRom(&rom_, 0x98);
+    fixture_.WriteSource(MakeFlatSource(32));
+    ASSERT_TRUE(panel_.SetProject(fixture_.project()).ok());
+    ASSERT_TRUE(panel_.ReloadTracks().ok());
+    ASSERT_TRUE(panel_.UpdateTrack(0, start_).ok());
+    ASSERT_TRUE(panel_.SaveTracks().ok());
+    original_source_ = fixture_.ReadSource();
+    editor_ = std::make_unique<DungeonEditorV2>(&rom_);
+    room_ = &DungeonEditorV2MinecartTrackTestPeer::BindCanvas(*editor_, panel_,
+                                                              rom_);
+    room_->GetSprites() = {zelda3::Sprite(0xA3, 25, 24, 0, 0)};
+    room_->custom_collision().has_data = true;
+    room_->custom_collision().tiles.fill(0);
+    room_->custom_collision().tiles[48 * 64 + 50] = 0xB7;
+    room_->custom_collision().tiles[48 * 64 + 52] = 0xB8;
+    panel_.set_canvas_editing(true);
+    viewer_.SetMinecartTrackPanel(&panel_);
+    Frame();
+    Frame();
+  }
+  void TearDown() override {
+    if (editor_)
+      DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(
+          *editor_, nullptr);
+    editor_.reset();
+  }
+  ImVec2 Point(int x, int y) const {
+    return ImVec2(80 - 24 + (x + 8) * 1.25f, 90 - 40 + (y + 8) * 1.25f);
+  }
+  void Move(int x, int y) {
+    const auto p = Point(x, y);
+    ImGui::GetIO().AddMousePosEvent(p.x, p.y);
+    Frame();
+  }
+  void Button(bool down) {
+    ImGui::GetIO().AddMouseButtonEvent(0, down);
+    Frame();
+  }
+  void Frame(int room_id = 0x98) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1000, 850), ImGuiCond_Always);
+    ImGui::Begin("CartCanvasTest", nullptr,
+                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoResize);
+    gui::CanvasRuntime rt;
+    rt.draw_list = ImGui::GetWindowDrawList();
+    rt.canvas_p0 = ImVec2(80, 90);
+    rt.canvas_sz = ImVec2(800, 750);
+    rt.scrolling = ImVec2(-24, -40);
+    rt.scale = 1.25f;
+    rt.hovered = ImGui::IsWindowHovered() &&
+                 ImGui::IsMouseHoveringRect(rt.canvas_p0, ImVec2(880, 840));
+    owns_input_ =
+        DungeonCanvasMinecartTestPeer::Draw(viewer_, rt, *room_, room_id);
+    ImGui::End();
+    ImGui::Render();
+  }
+  ScopedImGuiContext imgui_;
+  ScopedTestProject fixture_;
+  Rom rom_;
+  MinecartTrackEditorPanel panel_;
+  std::unique_ptr<DungeonEditorV2> editor_;
+  DungeonCanvasViewer viewer_;
+  zelda3::Room* room_ = nullptr;
+  MinecartTrack start_{0, 0x98, 0x1190, 0x1380};
+  std::string original_source_;
+  bool owns_input_ = false;
+};
+
+TEST_F(MinecartCanvasWorkflowTest, DragIsOnePairedUndoAndPublishesExactSource) {
+  Move(400, 384);
+  Button(true);
+  ASSERT_TRUE(DungeonCanvasMinecartTestPeer::Dragging(viewer_));
+  EXPECT_EQ(panel_.selected_track(), 0);
+  Move(416, 384);
+  EXPECT_EQ(panel_.GetTracks()[0], start_);  // Ghost only until release.
+  EXPECT_EQ(room_->GetSprites()[0].x(), 25);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 0u);
+  Button(false);
+  EXPECT_EQ(panel_.GetTracks()[0].start_x, 0x11A0);
+  EXPECT_EQ(room_->GetSprites()[0].x(), 26);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 1u);
+  EXPECT_FALSE(panel_.DiscardUnpublishedChanges().ok());
+  EXPECT_EQ(room_->GetSprites()[0].x(), 26);
+  EXPECT_EQ(panel_.GetTracks()[0].start_x, 0x11A0);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  EXPECT_EQ(room_->GetSprites()[0].x(), 25);
+  EXPECT_FALSE(panel_.HasUnpublishedChanges());
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetSprites()[0].x(), 26);
+  EXPECT_EQ(fixture_.ReadSource(), original_source_);
+  ASSERT_TRUE(panel_.SaveTracks().ok());
+  const auto parsed = MinecartTrackSourceDocument::Parse(fixture_.ReadSource());
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->tracks()[0].start_x, 0x11A0);
+  const auto old = MinecartTrackSourceDocument::Parse(original_source_);
+  ASSERT_TRUE(old.ok());
+  auto expected = old->tracks();
+  expected[0].start_x = 0x11A0;
+  ASSERT_TRUE(old->Render(expected).ok());
+  EXPECT_EQ(fixture_.ReadSource(), *old->Render(expected));
+  ASSERT_TRUE(panel_.ReloadTracks().ok());
+  EXPECT_EQ(panel_.GetTracks()[0].start_x, 0x11A0);
+}
+
+TEST_F(MinecartCanvasWorkflowTest, InvalidStopAndEscapeDoNotCommit) {
+  Move(400, 384);
+  Button(true);
+  Move(432, 384);
+  Button(false);
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  EXPECT_EQ(room_->GetSprites()[0].x(), 25);
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, true);
+  Frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, false);
+  Button(false);
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 0u);
+}
+
+TEST_F(MinecartCanvasWorkflowTest, ReadOnlyRoomSwitchAndReloadCancelGestures) {
+  viewer_.SetObjectInteractionEnabled(false);
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  Button(false);
+  EXPECT_FALSE(DungeonCanvasMinecartTestPeer::Dragging(viewer_));
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  viewer_.SetObjectInteractionEnabled(true);
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  Frame(0x89);
+  Button(false);
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  ASSERT_TRUE(panel_.ReloadTracks().ok());
+  Frame();
+  Button(false);
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 0u);
+}
+
+TEST_F(MinecartCanvasWorkflowTest, KeyboardNudgeUsesTheSamePairedCommand) {
+  Move(400, 384);
+  Button(true);
+  Button(false);
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_RightArrow, true);
+  Frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_RightArrow, false);
+  Frame();
+  EXPECT_EQ(panel_.GetTracks()[0].start_x, 0x11A0);
+  EXPECT_EQ(room_->GetSprites()[0].x(), 26);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 1u);
+}
+
+TEST_F(MinecartCanvasWorkflowTest, PlacementToolAndPanCancelTheCartGesture) {
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, true);
+  Frame();
+  EXPECT_FALSE(DungeonCanvasMinecartTestPeer::Dragging(viewer_));
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, false);
+  Button(false);
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  viewer_.object_interaction().SetSpritePlacementMode(true, 0x01);
+  Frame();
+  Button(false);
+  EXPECT_FALSE(panel_.canvas_editing());
+  EXPECT_FALSE(owns_input_);
+  EXPECT_TRUE(viewer_.object_interaction().IsSpritePlacementActive());
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 0u);
+}
+
+TEST_F(MinecartCanvasWorkflowTest,
+       StampFailurePersistsAndReadOnlyDoesNotApply) {
+  int calls = 0;
+  panel_.SetCollisionStampCallback([&](int, const zelda3::CustomCollisionMap&,
+                                       const MinecartCollisionStamp&) {
+    ++calls;
+    return absl::FailedPreconditionError("Activate this dungeon project");
+  });
+  panel_.set_collision_stamping(true);
+  Move(100, 100);
+  Button(true);
+  Button(false);
+  Frame();
+  EXPECT_EQ(calls, 1);
+  EXPECT_EQ(DungeonCanvasMinecartTestPeer::CollisionMessage(viewer_),
+            "Activate this dungeon project");
+  viewer_.SetObjectInteractionEnabled(false);
+  Button(true);
+  Button(false);
+  EXPECT_EQ(calls, 1);
+  EXPECT_FALSE(owns_input_);
+}
+
+TEST_F(MinecartCanvasWorkflowTest, LowerLayerAndMissingPairAreRefused) {
+  room_->GetSprites()[0].set_layer(1);
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  Button(false);
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  room_->GetSprites().clear();
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  Button(false);
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 0u);
+}
+
+TEST(MinecartCanvasCoordinatesTest, RealStartsAndHighRoomsUseWorldPixels) {
+  EXPECT_EQ(MinecartLocalPosition({0, 0x98, 0x1190, 0x1380}),
+            std::make_pair(400, 384));
+  EXPECT_EQ(MinecartLocalPosition({1, 0x88, 0x1160, 0x10D0}),
+            std::make_pair(352, 208));
+  EXPECT_EQ(MinecartLocalPosition({2, 0x100, 0x0010, 0x2020}),
+            std::make_pair(16, 32));
+  EXPECT_FALSE(MinecartLocalPosition({2, 0x100, 0x0200, 0x2020}));
+  EXPECT_FALSE(MinecartLocalPosition({0, 0x98, 0x0FFF, 0x1380}));
+}
+
+TEST(MinecartCollisionStampTest, PreservesStopsSwitchesAndUnrelatedCollision) {
+  zelda3::CustomCollisionMap before;
+  before.has_data = true;
+  before.tiles[16 * 64 + 48] = 0xB7;
+  before.tiles[1] = 0xD0;
+  before.tiles[2] = 0x08;
+  auto preview = PreviewMinecartCollisionStamp(before, {48, 18, 2, 0xB1});
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  auto expected = before;
+  for (int y = 18; y < 20; ++y)
+    for (int x = 48; x < 50; ++x)
+      expected.tiles[y * 64 + x] = 0xB1;
+  EXPECT_EQ(preview->tiles, expected.tiles);
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {48, 16, 2, 0xB1}).ok());
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {1, 0, 1, 0xB1}).ok());
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {2, 0, 1, 0xB7}).ok());
+  EXPECT_TRUE(PreviewMinecartCollisionStamp(before, {48, 16, 1, 0xB8}).ok());
+  EXPECT_TRUE(PreviewMinecartCollisionStamp(before, {1, 0, 1, 0xD2}).ok());
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {63, 63, 2, 0xB1}).ok());
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {0, 0, 3, 0xB1}).ok());
+  EXPECT_FALSE(
+      PreviewMinecartCollisionStamp(before, {0x7FFFFFFF, 0, 2, 0xB1}).ok());
+}
+
+TEST(MinecartCollisionStampTest, StaleStampRefusedWithoutMutationOrUndo) {
+  ScopedImGuiContext imgui;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x400000, 0)).ok());
+  DungeonEditorV2 editor(&rom);
+  auto& room = editor.rooms()[0x89];
+  room = zelda3::Room(0x89, &rom);
+  const auto before = room.custom_collision();
+  room.SetCollisionTile(1, 1, 0x08);
+  const auto edited = room.custom_collision();
+  EXPECT_FALSE(DungeonEditorV2MinecartTrackTestPeer::Stamp(editor, 0x89, before,
+                                                           {48, 18, 2, 0xB1})
+                   .ok());
+  EXPECT_EQ(room.custom_collision().tiles, edited.tiles);
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 0u);
+}
+
+TEST(MinecartCollisionStampTest, TrackOverlayFollowsWorkingRoomAndUndo) {
+  ScopedImGuiContext imgui;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x400000, 0)).ok());
+  ConfigureMinecartAuditRom(&rom, 0x89);
+  DungeonEditorV2 editor(&rom);
+  auto& room = editor.rooms()[0x89];
+  room = zelda3::LoadRoomFromRom(&rom, 0x89);
+  ASSERT_TRUE(room.IsLoaded());
+  room.custom_collision() = {};
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&editor.rooms());
+  viewer.SetProject(nullptr);
+  EXPECT_TRUE(
+      DungeonCanvasMinecartTestPeer::CollisionEntries(viewer, 0x89).empty());
+  const auto before = room.custom_collision();
+  ASSERT_TRUE(DungeonEditorV2MinecartTrackTestPeer::Stamp(editor, 0x89, before,
+                                                          {48, 18, 2, 0xB1})
+                  .ok());
+  const auto entries =
+      DungeonCanvasMinecartTestPeer::CollisionEntries(viewer, 0x89);
+  ASSERT_EQ(entries.size(), 4u);
+  for (const auto& entry : entries)
+    EXPECT_EQ(entry.tile, 0xB1);
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_TRUE(
+      DungeonCanvasMinecartTestPeer::CollisionEntries(viewer, 0x89).empty());
+  ASSERT_TRUE(editor.Redo().ok());
+  room.ClearCustomCollisionDirty();  // Saving must not revert to cached ROM bytes.
+  EXPECT_EQ(
+      DungeonCanvasMinecartTestPeer::CollisionEntries(viewer, 0x89).size(), 4u);
 }
 
 }  // namespace yaze::editor

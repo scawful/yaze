@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <string_view>
 #include <system_error>
 
 #include "absl/strings/str_format.h"
@@ -291,6 +292,15 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->restore_last_session = (val == "1");
     } else if (key == "prefer_hmagic_sprite_names") {
       prefs->prefer_hmagic_sprite_names = (val == "1");
+    } else if (key == "feature_hints_enabled") {
+      prefs->feature_hints_enabled = (val == "1");
+    } else if (constexpr std::string_view kDismissedHintPrefix =
+                   "dismissed_feature_hint.";
+               key.rfind(kDismissedHintPrefix, 0) == 0) {
+      const std::string hint_id = key.substr(kDismissedHintPrefix.size());
+      if (!hint_id.empty() && val == "1") {
+        prefs->dismissed_feature_hints.insert(hint_id);
+      }
     } else if (key == "welcome_triforce_alpha") {
       prefs->welcome_triforce_alpha =
           to_float(val, prefs->welcome_triforce_alpha);
@@ -485,6 +495,15 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "restore_last_session=" << (prefs.restore_last_session ? 1 : 0) << "\n";
   ss << "prefer_hmagic_sprite_names="
      << (prefs.prefer_hmagic_sprite_names ? 1 : 0) << "\n";
+  ss << "feature_hints_enabled=" << (prefs.feature_hints_enabled ? 1 : 0)
+     << "\n";
+  std::vector<std::string> dismissed_hints(
+      prefs.dismissed_feature_hints.begin(),
+      prefs.dismissed_feature_hints.end());
+  std::sort(dismissed_hints.begin(), dismissed_hints.end());
+  for (const auto& hint_id : dismissed_hints) {
+    ss << "dismissed_feature_hint." << hint_id << "=1\n";
+  }
   ss << "welcome_triforce_alpha=" << prefs.welcome_triforce_alpha << "\n";
   ss << "welcome_triforce_speed=" << prefs.welcome_triforce_speed << "\n";
   ss << "welcome_triforce_size=" << prefs.welcome_triforce_size << "\n";
@@ -885,6 +904,21 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         "welcome_mouse_repel_enabled", prefs->welcome_mouse_repel_enabled);
   }
 
+  if (root.contains("onboarding")) {
+    const auto& onboarding = root["onboarding"];
+    prefs->feature_hints_enabled =
+        onboarding.value("feature_hints_enabled", prefs->feature_hints_enabled);
+    if (onboarding.contains("dismissed_feature_hints") &&
+        onboarding["dismissed_feature_hints"].is_array()) {
+      prefs->dismissed_feature_hints.clear();
+      for (const auto& item : onboarding["dismissed_feature_hints"]) {
+        if (item.is_string()) {
+          prefs->dismissed_feature_hints.insert(item.get<std::string>());
+        }
+      }
+    }
+  }
+
   if (root.contains("appearance")) {
     const auto& appearance = root["appearance"];
     prefs->reduced_motion =
@@ -1180,6 +1214,20 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"welcome_particles_enabled", prefs.welcome_particles_enabled},
       {"welcome_mouse_repel_enabled", prefs.welcome_mouse_repel_enabled},
   };
+
+  {
+    auto set_to_sorted_vec = [](const std::unordered_set<std::string>& s)
+        -> std::vector<std::string> {
+      std::vector<std::string> v(s.begin(), s.end());
+      std::sort(v.begin(), v.end());
+      return v;
+    };
+    root["onboarding"] = {
+        {"feature_hints_enabled", prefs.feature_hints_enabled},
+        {"dismissed_feature_hints",
+         set_to_sorted_vec(prefs.dismissed_feature_hints)},
+    };
+  }
 
   root["appearance"] = {
       {"reduced_motion", prefs.reduced_motion},
@@ -1805,6 +1853,19 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
   if (prefs_.panel_layout_defaults_revision < 26 && target_revision >= 26) {
     CloseDemotedWindowVisibility(&prefs_.panel_visibility_state);
     prefs_.panel_layout_defaults_revision = 26;
+    applied = true;
+  }
+
+  // Revision 27: overworld area graphics opens in the right column. The
+  // workspace reset that follows this revision rebuilds the dock so a saved
+  // bottom strip does not keep covering the maps.
+  if (prefs_.panel_layout_defaults_revision < 27 && target_revision >= 27) {
+    if (auto overworld_it = prefs_.panel_visibility_state.find("Overworld");
+        overworld_it != prefs_.panel_visibility_state.end()) {
+      overworld_it->second["overworld.area_graphics"] = true;
+      overworld_it->second["overworld.tile16_selector"] = true;
+    }
+    prefs_.panel_layout_defaults_revision = 27;
     applied = true;
   }
 

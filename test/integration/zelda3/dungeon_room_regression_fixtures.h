@@ -48,6 +48,11 @@ struct DungeonRoomRegressionFixture {
 // These self-fingerprints are drift guards only — not independent visual 1:1.
 // Independent truth comes from Mesen ROI fixtures for rooms 0x007, 0x012,
 // 0x031, 0x065, and 0x076.
+// Pot-marker coordinates were corrected by 804b32eea. The 2026-09-30
+// fingerprints include that fix in rooms 0x050, 0x016 and 0x004: only their
+// object BG1/composite hashes and room 0x050's BG1 count changed. Restoring
+// just the old marker decoder reproduces every previous golden exactly.
+// These remain editor self-fingerprints, not independent game captures.
 inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
     {
         {
@@ -80,12 +85,12 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             .required_object_id = 0x034,
             .expected_layer_merge_id = 6,
             // The BG2 0x034/0x071 strips now begin at their encoded origin.
-            .composite_checksum = 12705092217259824174ull,
-            .object_bg1_checksum = 12090658100540583468ull,
+            .composite_checksum = 9557525346549393214ull,
+            .object_bg1_checksum = 14719704437286907724ull,
             .object_bg2_checksum = 14942757394939352408ull,
             .layout_bg1_checksum = 14374714413720404755ull,
             .composite_non_backdrop_pixels = 262144,
-            .object_bg1_non_backdrop_pixels = 52608,
+            .object_bg1_non_backdrop_pixels = 52640,
             .object_bg2_non_backdrop_pixels = 46720,
         },
         {
@@ -123,8 +128,8 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             // sheet $5D, not the old misindexed $94. The counterfactual test
             // reproduces the old hashes and confines pixel changes to the
             // BG2 water tiles $1B0/$1B1. This remains a self-fingerprint.
-            .composite_checksum = 15016426039182598051ull,
-            .object_bg1_checksum = 10182215693742640491ull,
+            .composite_checksum = 7095718157671064982ull,
+            .object_bg1_checksum = 5833978440941290290ull,
             .object_bg2_checksum = 18329464225895248363ull,
             .layout_bg1_checksum = 10260335362238553655ull,
             .composite_non_backdrop_pixels = 251392,
@@ -142,8 +147,8 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             .expected_layer_merge_id = 0,
             // Room 0x004 contains six F92 rupee-floor objects. Their
             // USDASM-accurate sparse five-by-eight pattern changes BG1.
-            .composite_checksum = 2845038811880130538ull,
-            .object_bg1_checksum = 5024287954780586053ull,
+            .composite_checksum = 13882535363713552950ull,
+            .object_bg1_checksum = 279631652553368693ull,
             .object_bg2_checksum = 11028269878064776067ull,
             .layout_bg1_checksum = 10084805582793809819ull,
             .composite_non_backdrop_pixels = 262144,
