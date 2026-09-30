@@ -115,9 +115,18 @@ DungeonRenderContext DungeonEditorV2::ResolveDungeonRenderContextForRoom(
     }
   }
   const auto candidates = BuildDungeonRenderEntranceCandidates();
+  zelda3::RoomDefaultEntrance default_entrance;
+  if (game_data_ != nullptr && room_id >= 0 &&
+      room_id < static_cast<int>(game_data_->room_default_entrances.size())) {
+    default_entrance = game_data_->room_default_entrances[room_id];
+    if (default_entrance.main_blockset >=
+        game_data_->main_blockset_ids.size()) {
+      default_entrance = {};
+    }
+  }
   return ResolveDungeonRenderContext(
       room_id, current_entrance_id_, room_header_blockset,
-      GetDungeonRenderContextCensus(), candidates);
+      GetDungeonRenderContextCensus(), candidates, default_entrance);
 }
 
 }  // namespace yaze::editor

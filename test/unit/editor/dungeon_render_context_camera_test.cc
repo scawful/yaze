@@ -220,6 +220,59 @@ TEST(DungeonRenderContextTest, ViewerUsesResolvedOwnerEntranceSlot) {
   EXPECT_EQ(viewer.current_entrance_blockset(), 0x2A);
 }
 
+TEST(DungeonRenderContextTest, AmbiguousOwnerReportsLoaderDefault) {
+  const auto census = MakeCensus({{0x50, 0x51, 0x52}});
+  const std::array candidates = {
+      DungeonRenderEntranceCandidate{.slot = 7, .room_id = 0x50, .main_gfx = 1},
+      DungeonRenderEntranceCandidate{.slot = 8, .room_id = 0x51, .main_gfx = 2},
+  };
+  const zelda3::RoomDefaultEntrance fallback{
+      .entrance_id = 0,
+      .main_blockset = 1,
+      .source = zelda3::RoomEntranceSource::kNeighbour,
+      .via_room = 0x51};
+  const auto context =
+      ResolveDungeonRenderContext(0x52, -1, 7, &census, candidates, fallback);
+  EXPECT_EQ(context.source, DungeonRenderContextSource::kAmbiguous);
+  EXPECT_FALSE(context.uses_entrance());
+  EXPECT_EQ(context.effective_blockset(), 1);
+  EXPECT_STREQ(DungeonRenderContextSourceName(context),
+               "Default entrance inferred from neighboring room");
+}
+
+TEST(DungeonRenderContextTest, SnapshotDefaultMatchesLoadedSheets) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData data;
+  data.main_blockset_ids[1][0] = 9;
+  data.room_default_entrances.resize(0x12);
+  data.room_default_entrances[0x11] = {
+      .entrance_id = 2,
+      .main_blockset = 1,
+      .source = zelda3::RoomEntranceSource::kDungeonMap};
+  DungeonEditorV2 editor(&rom);
+  editor.SetGameData(&data);
+  DungeonEditorV2EntranceCameraTestPeer::SetRenderContextCensus(editor, {});
+  editor.rooms()[0x11] = zelda3::Room(0x11, &rom, &data);
+  DungeonEditorV2EntranceCameraTestPeer::MaterializeCurrentRoom(editor, 0x11,
+                                                                4);
+  auto& room = editor.rooms()[0x11];
+  room.LoadRoomGraphics();
+  ASSERT_EQ(room.blocks()[0], 9);
+  const auto snapshot = editor.BuildContextSnapshot();
+  const auto value_for = [&snapshot](const std::string& id) {
+    for (const auto& value : snapshot.metadata) {
+      if (value.id == id)
+        return value.value;
+    }
+    return std::string{};
+  };
+  EXPECT_EQ(value_for("graphics_entrance"), "0x09 (default)");
+  EXPECT_EQ(value_for("graphics_source"),
+            "Default entrance inferred from dungeon map");
+  EXPECT_EQ(value_for("blockset"), "main 0x01 / room 0x04");
+}
+
 TEST(DungeonRenderContextTest, ContextSnapshotReportsOwnerSourceAndCamera) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());

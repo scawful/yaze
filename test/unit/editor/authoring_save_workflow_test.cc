@@ -64,6 +64,10 @@ class AuthoringSaveWorkflowTestPeer {
     editor.SyncPanelsToRoom(room);
   }
 
+  static void SelectDungeonEntrance(DungeonEditorV2& editor, int slot) {
+    editor.OnEntranceSelected(slot);
+  }
+
   static absl::Status EditAreaPalette(OverworldEditor& editor, int map_id,
                                       int value) {
     return editor.ApplyOverworldPropertyEdit(
@@ -889,6 +893,106 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(reopened_room.GetTileObjects().front().x_, original_x + delta_x);
   EXPECT_EQ(reopened_room.GetTileObjects().front().y_, original_y);
   reopened.reset();
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       GoronMinesGraphicsAndLayersUndoRedoSaveAsReopen) {
+  constexpr int kRoom = 0x89;
+  const auto fixture = CopyProject("yaze_mines_graphics_save_as");
+  const auto assets = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/Objects/Data";
+  ASSERT_TRUE(std::filesystem::is_directory(assets));
+  for (const auto& entry : std::filesystem::directory_iterator(assets)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin") {
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+    }
+  }
+  Open(fixture);
+  ASSERT_TRUE(core::FeatureFlags::get().dungeon.kSaveRoomHeaders);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  dungeon->add_room(kRoom);
+  auto& room = dungeon->rooms()[kRoom];
+  ASSERT_TRUE(room.IsLoaded());
+  ASSERT_NE(room.game_data(), nullptr);
+  const auto entrance = room.game_data()->room_default_entrances.at(kRoom);
+  ASSERT_GE(entrance.entrance_id, 0);
+  const int entrance_slot =
+      entrance.entrance_id + zelda3::kNumDungeonSpawnPoints;
+  AuthoringSaveWorkflowTestPeer::SelectDungeonEntrance(*dungeon, entrance_slot);
+  dungeon->add_room(kRoom);
+  room.PrepareForRender();
+  const int original_palette = room.palette();
+  const int original_bg2 = room.layer_merging().ID;
+  const int edited_palette = original_palette == 1 ? 0 : 1;
+  const int edited_bg2 = original_bg2 == 1 ? 0 : 1;
+  const auto original_sheets = room.blocks();
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  const auto object = room.GetTileObjects().front();
+  const int delta_x = object.x_ >= 63 ? -1 : 1;
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
+  ASSERT_NE(viewer, nullptr);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kRoom);
+  viewer->object_interaction().entity_coordinator().tile_handler().MoveObjects(
+      kRoom, {0}, delta_x, 0);
+  ASSERT_OK(dungeon->EditRoomMetadataBatch({
+      {kRoom, {RoomMetadataField::kPalette, edited_palette}},
+      {kRoom, {RoomMetadataField::kBg2, edited_bg2}},
+  }));
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.palette(), original_palette);
+  EXPECT_EQ(room.layer_merging().ID, original_bg2);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects().front().x_, object.x_);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_OK(dungeon->Redo());
+  room.PrepareForRender();
+  EXPECT_EQ(room.palette(), edited_palette);
+  EXPECT_EQ(room.layer_merging().ID, edited_bg2);
+  EXPECT_EQ(room.blocks(), original_sheets);
+  const auto bg1 = room.bg1_buffer().bitmap().vector();
+  const auto bg2 = room.bg2_buffer().bitmap().vector();
+  const auto palette = room.rendered_dungeon_palette();
+  const auto registers = room.GameLayerRegisters();
+  ASSERT_FALSE(bg1.empty());
+  ASSERT_FALSE(bg2.empty());
+  ASSERT_FALSE(palette.empty());
+  const auto destination = fixture.root / "mines-authoring.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  // Save As creates a copy. Bind the disposable project to it explicitly before
+  // reopening with the same custom assets and entrance context.
+  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
+  manager_.reset();
+  Open(fixture);
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), destination.string());
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  AuthoringSaveWorkflowTestPeer::SelectDungeonEntrance(*dungeon, entrance_slot);
+  dungeon->add_room(kRoom);
+  auto& reopened = dungeon->rooms()[kRoom];
+  reopened.PrepareForRender();
+  EXPECT_EQ(reopened.GetTileObjects().front().x_, object.x_ + delta_x);
+  EXPECT_EQ(reopened.GetTileObjects().front().y_, object.y_);
+  EXPECT_EQ(reopened.palette(), edited_palette);
+  EXPECT_EQ(reopened.layer_merging().ID, edited_bg2);
+  EXPECT_EQ(reopened.blocks(), original_sheets);
+  EXPECT_EQ(reopened.bg1_buffer().bitmap().vector(), bg1);
+  EXPECT_EQ(reopened.bg2_buffer().bitmap().vector(), bg2);
+  EXPECT_EQ(reopened.rendered_dungeon_palette(), palette);
+  EXPECT_EQ(reopened.GameLayerRegisters().tm, registers.tm);
+  EXPECT_EQ(reopened.GameLayerRegisters().ts, registers.ts);
+  EXPECT_EQ(reopened.GameLayerRegisters().cgadsub, registers.cgadsub);
 }
 
 std::filesystem::path ResolveOracleEditRom() {

@@ -143,21 +143,9 @@ void RoomGraphicsContent::Draw(bool* p_open) {
   }
 
   auto& room = (*rooms_)[active_room_id];
-  bool needs_render = false;
-  if (room.blocks().empty()) {
-    room.LoadRoomGraphics();
-    needs_render = true;
-  }
-  if (!room.AreObjectsLoaded()) {
-    room.LoadObjects();
-    needs_render = true;
-  }
-  auto& bg1_bitmap = room.bg1_buffer().bitmap();
-  if (needs_render || !bg1_bitmap.is_active() || bg1_bitmap.width() == 0) {
-    room.RenderRoomGraphics();
-  }
-  // Keep room-sheet assignments in sync with the active room header.
-  room.LoadRoomGraphics();
+  // Rebuild pixels and palettes together when entrance/header context changes.
+  // Loading only the sheet IDs can label old pixels with the new assignment.
+  room.PrepareForRender();
   RefreshSheetPreviews(room);
 
   if (renderer_ != nullptr) {
@@ -172,8 +160,9 @@ void RoomGraphicsContent::Draw(bool* p_open) {
 
   const int block_count = static_cast<int>(blocks.size());
   ImGui::Text(tr("Room %03X Graphics Blocks"), active_room_id);
-  ImGui::TextDisabled(tr("Blockset %02X | Spriteset %02X"), room.blockset(),
-                      room.spriteset());
+  ImGui::TextDisabled(tr("Main %02X | Room %02X | Sprites %02X | Palette %02X"),
+                      room.resolved_main_blockset(), room.blockset(),
+                      room.spriteset(), room.palette());
   ImGui::Checkbox(tr("Source Trace"), &show_source_trace_);
   ImGui::SameLine();
   DrawRoomGraphicsScaleControl(&sheet_scale_mode_);

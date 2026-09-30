@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -73,6 +74,69 @@ TEST_F(RoomGraphicsContentTest,
   RoomGraphicsContentTestAccess::Refresh(content, *room_);
   EXPECT_EQ(sheet.at(0), 10);
   EXPECT_NE(sheet.generation(), bitmap_generation);
+  EXPECT_FALSE(rom_.dirty());
+}
+
+TEST_F(RoomGraphicsContentTest, DrawRefreshesEntrancePixelsWithoutRoomCanvas) {
+  ImGuiContext* previous = ImGui::GetCurrentContext();
+  ImGuiContext* context = ImGui::CreateContext();
+  const absl::Cleanup restore_context = [&] {
+    ImGui::DestroyContext(context);
+    ImGui::SetCurrentContext(previous);
+  };
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1280, 720);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  game_data_.main_blockset_ids[1][0] = 1;
+  std::fill_n(game_data_.graphics_buffer.begin() + 4096, 4096, 2);
+  DungeonRoomStore rooms(&rom_, &game_data_);
+  int selected_room = 0;
+  auto& room = rooms[0];
+  room.SetTileObjects({});
+  RoomGraphicsContent content(&selected_room, &rooms);
+  const auto draw = [&] {
+    ImGui::NewFrame();
+    ImGui::Begin("Room graphics test");
+    content.Draw(nullptr);
+    ImGui::End();
+    ImGui::Render();
+  };
+  draw();
+  ASSERT_EQ(RoomGraphicsContentTestAccess::Sheet(content, 0).at(0), 9);
+  room.SetRenderEntranceBlockset(1);
+  draw();
+  EXPECT_EQ(room.blocks()[0], 1);
+  EXPECT_EQ(RoomGraphicsContentTestAccess::Sheet(content, 0).at(0), 10);
+  room.SetRenderEntranceBlockset(0xFF);
+  draw();
+  EXPECT_EQ(room.blocks()[0], 0);
+  EXPECT_EQ(RoomGraphicsContentTestAccess::Sheet(content, 0).at(0), 9);
+  // The group editor writes this shared table directly, without a room edit.
+  game_data_.room_blockset_ids[0][0] = 1;
+  draw();
+  EXPECT_EQ(room.blocks()[3], 1);
+  EXPECT_EQ(RoomGraphicsContentTestAccess::Sheet(content, 3).at(0), 10);
+  game_data_.room_blockset_ids[0][0] = 0;
+  draw();
+  EXPECT_EQ(room.blocks()[3], 0);
+  EXPECT_EQ(RoomGraphicsContentTestAccess::Sheet(content, 3).at(0), 9);
+  // Identical sheet IDs still expand differently for main groups >= 0x20.
+  const auto same_sheets = room.blocks();
+  game_data_.room_default_entrances.resize(1);
+  game_data_.room_default_entrances[0] = {
+      .entrance_id = 0,
+      .main_blockset = 0x20,
+      .source = zelda3::RoomEntranceSource::kDirect};
+  draw();
+  EXPECT_EQ(room.blocks(), same_sheets);
+  EXPECT_EQ(RoomGraphicsContentTestAccess::Sheet(content, 1).at(0), 1);
+  game_data_.room_default_entrances[0].main_blockset = 0;
+  draw();
+  EXPECT_EQ(RoomGraphicsContentTestAccess::Sheet(content, 1).at(0), 9);
   EXPECT_FALSE(rom_.dirty());
 }
 

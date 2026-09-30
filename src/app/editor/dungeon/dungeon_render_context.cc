@@ -65,13 +65,36 @@ const char* DungeonRenderContextSourceName(DungeonRenderContextSource source) {
   return "Unknown";
 }
 
+const char* DungeonRenderContextSourceName(
+    const DungeonRenderContext& context) {
+  if (!context.uses_entrance() &&
+      context.default_entrance.main_blockset != 0xFF) {
+    switch (context.default_entrance.source) {
+      case zelda3::RoomEntranceSource::kDirect:
+        return "Default direct entrance";
+      case zelda3::RoomEntranceSource::kDungeonMap:
+        return "Default entrance inferred from dungeon map";
+      case zelda3::RoomEntranceSource::kNeighbour:
+        return "Default entrance inferred from neighboring room";
+      case zelda3::RoomEntranceSource::kNone:
+        break;
+    }
+  }
+  return DungeonRenderContextSourceName(
+      context.source == DungeonRenderContextSource::kAmbiguous
+          ? DungeonRenderContextSource::kRoomHeaderFallback
+          : context.source);
+}
+
 DungeonRenderContext ResolveDungeonRenderContext(
     int room_id, int selected_entrance_slot, uint8_t room_header_blockset,
     const zelda3::RoomCensus* census,
-    std::span<const DungeonRenderEntranceCandidate> entrances) {
+    std::span<const DungeonRenderEntranceCandidate> entrances,
+    zelda3::RoomDefaultEntrance default_entrance) {
   DungeonRenderContext context;
   context.room_id = room_id;
   context.room_header_blockset = room_header_blockset;
+  context.default_entrance = default_entrance;
   context.owner_index = OwnerIndexForRoom(census, room_id);
   SetOwnerMetadata(&context, census);
 

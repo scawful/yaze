@@ -405,8 +405,10 @@ ResolvedGraphicsContext DescribeDungeonGraphicsContext(
         resolved.role = "main_blockset";
         resolved.palette_group = PaletteGroupFor(SheetRole::kDungeonMain);
       } else if (slot >= 3) {
-        resolved.role = RoleName(RoleForRoomsetSlot(slot - 3));
-        resolved.palette_group = PaletteGroupFor(RoleForRoomsetSlot(slot - 3));
+        // The shared roomset table also serves the overworld, but dungeon
+        // sheets use the room's dungeon palette, not overworld aux palettes.
+        resolved.role = "room_blockset";
+        resolved.palette_group = PaletteGroupFor(SheetRole::kDungeonMain);
       } else {
         resolved.role = "main_blockset";
         resolved.palette_group = PaletteGroupFor(SheetRole::kDungeonMain);

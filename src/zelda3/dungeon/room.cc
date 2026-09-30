@@ -1064,6 +1064,14 @@ void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
     SetRenderEntranceBlockset(*entrance_blockset);
   }
   EnsureObjectsLoaded();
+  // Graphics-group editors can change shared assignments without a room edit.
+  // Resolve IDs before checking pixel revisions so all previews stay current.
+  const auto previous_blocks = blocks_;
+  const auto previous_main = resolved_main_blockset_;
+  LoadRoomGraphics();
+  if (blocks_ != previous_blocks || resolved_main_blockset_ != previous_main) {
+    MarkGraphicsDirty();
+  }
   // An unsaved graphics edit to a sheet this room shows.
   if (SourceSheetsChanged()) {
     MarkGraphicsDirty();

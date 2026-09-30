@@ -1001,6 +1001,7 @@ class Room {
   // Room header property accessors
   uint8_t blockset() const { return blockset_; }
   uint8_t render_entrance_blockset() const { return render_entrance_blockset_; }
+  uint8_t resolved_main_blockset() const { return resolved_main_blockset_; }
   uint8_t spriteset() const { return spriteset_; }
   uint8_t palette() const { return palette_; }
 
