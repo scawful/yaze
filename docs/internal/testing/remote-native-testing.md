@@ -9,7 +9,10 @@ owned test applications when finished. Leaving a test app open is not a handoff.
 
 - Before launch, record the candidate commit, executable path/hash, bundle ID,
   app display name, disposable project/ROM paths, fixture hashes, and test owner.
-- Use a task-specific verification bundle and `YAZE_APP_DATA_DIR`. Never reuse
+- Use a task-specific verification bundle, `YAZE_APP_DATA_DIR`, and
+  `YAZE_USER_DOCUMENTS_DIR`. The latter isolates `settings.json`; app data alone
+  isolates the legacy INI and ImGui layout but still loads the user's JSON
+  preferences from `~/Documents/Yaze`. Set both overrides before launch. Never reuse
   the user's running Yaze instance or shared project settings for automation.
 - Prefer existing headless/focused tests when they answer the question. Native
   acceptance still requires the actual interaction and renderer being claimed.
