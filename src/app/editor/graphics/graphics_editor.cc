@@ -19,6 +19,7 @@
 // Project headers
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/panels/graphics_editor_panels.h"
+#include "app/editor/graphics/resolved_graphics_context_view.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
@@ -190,6 +191,7 @@ void GraphicsEditor::Initialize() {
 
 absl::Status GraphicsEditor::Load() {
   gfx::ScopedTimer timer("GraphicsEditor::Load");
+  state_.ClearSourceContext();
 
   // Initialize all graphics sheets with appropriate palettes from ROM
   // This ensures textures are created for editing
@@ -277,6 +279,41 @@ void GraphicsEditor::ContributeStatus(StatusBar* status_bar) {
         "Modified", absl::StrFormat("%zu", state_.modified_sheets.size()),
         std::move(modified_opts));
   }
+}
+
+EditorContextSnapshot GraphicsEditor::BuildContextSnapshot() const {
+  EditorContextSnapshot snapshot;
+  snapshot.category = "Graphics";
+  snapshot.semantic_owner =
+      absl::StrFormat("graphics.sheet.%02X", state_.current_sheet_id);
+  snapshot.title = absl::StrFormat("Sheet %02X", state_.current_sheet_id);
+  snapshot.has_pending_changes = state_.HasUnsavedChanges();
+  if (state_.source_context) {
+    snapshot.subtitle = state_.source_context->label;
+    AppendResolvedGraphicsContext(snapshot, state_.source_context->resolved);
+    snapshot.metadata.push_back(
+        {"gfx.source_capture", "Source mapping",
+         "Captured when opened; preview uses live pixels"});
+  }
+  if (const auto* target = state_.SourceTarget()) {
+    snapshot.metadata.push_back(
+        {"gfx.selected_tile", "Source tile", target->label});
+    std::string colors;
+    for (size_t i = 0; i < target->palette.size(); ++i) {
+      if (i != 0)
+        colors += " ";
+      colors += absl::StrFormat("%04X", target->palette[i].snes());
+    }
+    snapshot.metadata.push_back(
+        {"gfx.raw_palette", "Raw index colors (SNES)", colors});
+  }
+  if (state_.game_data != nullptr) {
+    snapshot.metadata.push_back(
+        {"gfx.current_sheet_revision", "Current sheet revision",
+         std::to_string(
+             state_.game_data->sheet_store.Revision(state_.current_sheet_id))});
+  }
+  return snapshot;
 }
 
 absl::Status GraphicsEditor::EditProject(
@@ -985,6 +1022,40 @@ void GraphicsEditor::SelectSheet(uint16_t sheet_id) {
     return;
   }
   state_.SelectSheet(sheet_id);
+  state_.requested_sheet_tab = sheet_id;
+}
+
+absl::Status GraphicsEditor::OpenInContext(GraphicsEditContext context) {
+  if (context.owner == nullptr || context.owner != state_.game_data) {
+    return absl::FailedPreconditionError(
+        "Graphics context belongs to a different ROM session");
+  }
+  if (context.targets.empty()) {
+    return absl::InvalidArgumentError("Graphics context has no editable tiles");
+  }
+  for (const auto& target : context.targets) {
+    if (target.sheet_id >= zelda3::kNumGfxSheets || target.tile_index >= 64 ||
+        target.palette.size() != 8 ||
+        zelda3::GetGfxSheetStorageKind(target.sheet_id) ==
+            zelda3::GfxSheetStorageKind::kCompressed2bpp ||
+        !state_.game_data->sheet_store.HasSheet(target.sheet_id)) {
+      return absl::InvalidArgumentError(
+          "Graphics context needs loaded 3bpp sheets and eight indexed colors");
+    }
+  }
+  if (state_.selection.is_floating) {
+    return absl::FailedPreconditionError(
+        "Commit or cancel the floating paste before opening another source");
+  }
+  state_.selection.Clear();
+  state_.source_context = std::move(context);
+  ++state_.source_context_revision;
+  state_.SelectSourceTarget(0);
+  if (dependencies_.window_manager) {
+    dependencies_.window_manager->OpenWindow("graphics.pixel_editor");
+    dependencies_.window_manager->OpenWindow("graphics.usage_preview");
+  }
+  return absl::OkStatus();
 }
 
 void GraphicsEditor::HighlightTile(uint16_t sheet_id, uint16_t tile_index,

@@ -4,10 +4,12 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
 
+#include "app/editor/graphics/graphics_edit_context.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
@@ -129,6 +131,37 @@ class GraphicsEditorState {
   // The session whose GraphicsSheetStore holds the pixels; pixel writes go
   // there, and the Arena's bitmaps are display copies.
   zelda3::GameData* game_data = nullptr;
+  std::optional<GraphicsEditContext> source_context;
+  uint64_t source_context_revision = 0;
+  // Set once when navigating to an existing pixel-editor tab.
+  std::optional<uint16_t> requested_sheet_tab;
+
+  const GraphicsEditTarget* SourceTarget() const {
+    if (!source_context || source_context->owner != game_data ||
+        source_context->selected_target >= source_context->targets.size()) {
+      return nullptr;
+    }
+    const auto& target =
+        source_context->targets[source_context->selected_target];
+    return target.sheet_id == current_sheet_id ? &target : nullptr;
+  }
+
+  void SelectSourceTarget(size_t index) {
+    if (!source_context || index >= source_context->targets.size()) {
+      return;
+    }
+    source_context->selected_target = index;
+    const auto& target = source_context->targets[index];
+    SelectSheet(target.sheet_id);
+    requested_sheet_tab = target.sheet_id;
+    current_color_index = 0;
+    HighlightTile(target.sheet_id, target.tile_index, target.label, 8.0);
+  }
+
+  void ClearSourceContext() {
+    source_context.reset();
+    ++source_context_revision;
+  }
   // Store revision each Arena sheet was last refreshed from.
   std::array<uint64_t, 223> arena_revisions{};
 

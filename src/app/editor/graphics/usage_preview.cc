@@ -33,6 +33,21 @@ void CopySheet(const std::vector<uint8_t>& sheet, std::vector<uint8_t>& dst,
 
 }  // namespace
 
+SheetPixels SnapshotSessionSheets(const std::set<uint16_t>& ids,
+                                  const zelda3::GameData* game_data) {
+  SheetPixels out;
+  if (game_data == nullptr) {
+    return out;
+  }
+  for (uint16_t id : ids) {
+    const auto pixels = game_data->sheet_store.Sheet(id);
+    if (!pixels.empty()) {
+      out[id] = std::vector<uint8_t>(pixels.begin(), pixels.end());
+    }
+  }
+  return out;
+}
+
 SheetPixels SnapshotArenaSheets(const std::set<uint16_t>& ids,
                                 const zelda3::GameData* game_data) {
   SheetPixels out;

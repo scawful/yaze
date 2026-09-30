@@ -1,3 +1,4 @@
+#include "app/editor/graphics/graphics_edit_context.h"
 #include "app/editor/graphics/usage_preview.h"
 
 #include <gtest/gtest.h>
@@ -178,6 +179,20 @@ TEST(GraphicsUsagePreviewTest, ArenaSnapshotCopiesSheetsForOwnerOnly) {
   arena.set_gfx_sheets_owner(saved_owner);
 }
 
+TEST(GraphicsUsagePreviewTest, SessionSnapshotIgnoresAnotherRomsArena) {
+  SyntheticGame first(1);
+  SyntheticGame second(6);
+  auto& arena = gfx::Arena::Get();
+  const auto* old_owner = arena.gfx_sheets_owner();
+  arena.set_gfx_sheets_owner(&second.game_data);
+  const auto snapshot = SnapshotSessionSheets({0, 222, 999}, &first.game_data);
+  EXPECT_EQ(snapshot.size(), 2u);
+  EXPECT_EQ(snapshot.at(0), std::vector<uint8_t>(kSheetBytes, 1));
+  EXPECT_EQ(snapshot.at(222), std::vector<uint8_t>(kSheetBytes, 1));
+  EXPECT_TRUE(SnapshotSessionSheets({0}, nullptr).empty());
+  arena.set_gfx_sheets_owner(old_owner);
+}
+
 // --- Oracle ROM copy (YAZE_TEST_ROM_OOS) ---------------------------------
 
 class GraphicsUsagePreviewRomTest : public ::testing::Test {
@@ -200,6 +215,44 @@ class GraphicsUsagePreviewRomTest : public ::testing::Test {
   Rom rom_;
   zelda3::GameData game_data_;
 };
+
+TEST_F(GraphicsUsagePreviewRomTest, SourceColorsFollowLoadedEntranceSlots) {
+  auto room = zelda3::LoadRoomFromRom(&rom_, 5);
+  room.SetGameData(&game_data_);
+  room.PrepareForRender();
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  auto object = room.GetTileObjects().front();
+  object.EnsureTilesLoaded();
+  // Tile cache overrides let this object exercise both halves of every slot.
+  object.mutable_tiles().clear();
+  for (int slot = 0; slot < 8; ++slot) {
+    object.mutable_tiles().emplace_back(slot * 64, 2, false, false, false);
+  }
+  // One animated tile is omitted; normal tiles remain available.
+  object.mutable_tiles().emplace_back(0x1B0, 2, false, false, false);
+  for (uint8_t main : {0x00, 0x20}) {
+    room.PrepareForRender(main);
+    const auto context =
+        MakeDungeonGraphicsEditContext(room, object, &game_data_);
+    ASSERT_TRUE(context.ok()) << context.status();
+    // Slot 7's first tile ($1C0) is animated too.
+    ASSERT_EQ(context->targets.size(), 7u);
+    EXPECT_FALSE(context->limitation.empty());
+    for (int slot = 0; slot < 7; ++slot) {
+      const auto& target = context->targets[slot];
+      EXPECT_EQ(target.sheet_id, room.blocks()[slot]);
+      ASSERT_EQ(target.palette.size(), 8u);
+      for (int pixel = 0; pixel < 8; ++pixel) {
+        const int offset = pixel == 0 ? 0 : room.BackgroundPaletteOffset(slot);
+        const auto color = room.rendered_palette()[2 * 16 + offset + pixel];
+        EXPECT_EQ(target.palette[pixel].snes(),
+                  gfx::SnesColor(color.r, color.g, color.b).snes());
+      }
+    }
+    EXPECT_EQ(room.BackgroundPaletteOffset(1), main < 0x20 ? 8 : 0);
+    EXPECT_EQ(room.BackgroundPaletteOffset(4), main < 0x20 ? 0 : 8);
+  }
+}
 
 // D1 (Mushroom Grotto) entrance room 0x4A: edit one pixel of a background
 // sheet an object draws from; the room preview must change and the shared

@@ -101,6 +101,7 @@ class GraphicsEditor : public Editor {
   absl::Status Redo() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   void ContributeStatus(StatusBar* status_bar) override;
+  EditorContextSnapshot BuildContextSnapshot() const override;
 
   bool HasPendingGraphicsChanges() const { return state_.HasUnsavedChanges(); }
 
@@ -122,6 +123,9 @@ class GraphicsEditor : public Editor {
 
   // Set the ROM pointer (propagates to panels that cache `Rom*`.)
   void set_rom(Rom* rom) {
+    if (rom_ != rom) {
+      state_.ClearSourceContext();
+    }
     rom_ = rom;
     if (sheet_browser_panel_) {
       sheet_browser_panel_->SetDataSources(
@@ -183,6 +187,9 @@ class GraphicsEditor : public Editor {
   void ToggleGrid();
   void PrevSheet();
   void SelectSheet(uint16_t sheet_id);
+  // Opens only Pixel Editor and Usage Preview, retaining the source editor's
+  // resolved colors and live preview for this ROM session.
+  absl::Status OpenInContext(GraphicsEditContext context);
   void HighlightTile(uint16_t sheet_id, uint16_t tile_index,
                      const std::string& label = "", double duration_secs = 3.0);
 
@@ -205,6 +212,7 @@ class GraphicsEditor : public Editor {
       verify_written_sheet_ = VerifyWrittenSheetPixels;
 
   friend class GraphicsEditorSaveStoplossTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
 
   // Applies `edit` to the active project (the copy that is saved) and to this
   // session's project snapshot, then marks the project dirty. Fails when no

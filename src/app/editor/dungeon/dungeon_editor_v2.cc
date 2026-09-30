@@ -2283,41 +2283,64 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
 
   auto& room = rooms_[room_id];
   ApplyEntranceRenderContext(room_id);
-  room.LoadRoomGraphics();
-
-  uint16_t sheet_id = 0;
-  uint16_t tile_index = 0;
-  bool resolved_sheet = false;
-  if (auto tiles_or = object.GetTiles();
-      tiles_or.ok() && !tiles_or.value().empty()) {
-    const uint16_t tile_id = tiles_or.value().front().id_;
-    const size_t block_index = static_cast<size_t>(tile_id / 64);
-    const auto blocks = room.blocks();
-    if (block_index < blocks.size()) {
-      sheet_id = blocks[block_index];
-      resolved_sheet = true;
+  room.PrepareForRender();
+  auto context = MakeDungeonGraphicsEditContext(room, object, game_data_);
+  if (!context.ok()) {
+    LOG_WARN("DungeonEditorV2", "Edit Graphics: %s",
+             std::string(context.status().message()).c_str());
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(std::string(context.status().message()),
+                                        ToastType::kWarning);
     }
-    const int tiles_per_row = gfx::kTilesheetWidth / 8;
-    const int tiles_per_col = gfx::kTilesheetHeight / 8;
-    const int tiles_per_sheet = tiles_per_row * tiles_per_col;
-    if (tiles_per_sheet > 0) {
-      tile_index = static_cast<uint16_t>(tile_id % tiles_per_sheet);
-    }
+    return;
   }
+  const auto entrance = ResolveDungeonRenderContextForRoom(room_id);
+  context->label +=
+      absl::StrFormat(" / %s", DungeonRenderContextSourceName(entrance));
+  context->render_preview =
+      [this, room_id]() -> absl::StatusOr<usage_preview::IndexedImage> {
+    auto& source = rooms_[room_id];
+    ApplyEntranceRenderContext(room_id);
+    // A stroke updates store pixels before committing its revision. Usage
+    // Preview already throttles on pixel changes; render those live pixels too.
+    source.MarkGraphicsDirty();
+    source.PrepareForRender();
+    zelda3::RoomLayerManager layers;
+    layers.ApplyLayerMerging(source.layer_merging());
+    layers.ApplyRoomEffect(source.effect());
+    layers.ApplyGameLayerRegisters(source.GameLayerRegisters());
+    gfx::Bitmap composite;
+    source.RenderComposite(layers, composite);
+    return usage_preview::SnapshotBitmap(composite);
+  };
+  context->return_to_source = [this, editor_manager, room_id]() {
+    editor_manager->SwitchToEditor(EditorType::kDungeon, true);
+    OnRoomSelected(room_id);
+  };
 
-  editor_manager->SwitchToEditor(EditorType::kGraphics, true);
   if (auto* editor_set = editor_manager->GetCurrentEditorSet()) {
     if (auto* graphics = editor_set->GetGraphicsEditor()) {
-      if (resolved_sheet) {
-        graphics->SelectSheet(sheet_id);
-        graphics->HighlightTile(sheet_id, tile_index,
-                                absl::StrFormat("Object 0x%02X", object.id_));
+      const auto loaded =
+          editor_manager->EnsureEditorAssetsLoaded(EditorType::kGraphics);
+      if (!loaded.ok()) {
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(std::string(loaded.message()),
+                                            ToastType::kWarning);
+        }
+        return;
       }
+      const auto status = graphics->OpenInContext(std::move(*context));
+      if (!status.ok()) {
+        LOG_WARN("DungeonEditorV2", "Edit Graphics: %s",
+                 std::string(status.message()).c_str());
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(std::string(status.message()),
+                                            ToastType::kWarning);
+        }
+        return;
+      }
+      editor_manager->SwitchToEditor(EditorType::kGraphics, true);
     }
-  }
-
-  if (dependencies_.window_manager) {
-    dependencies_.window_manager->ShowAllWindowsInCategory("Graphics");
   }
 }
 

@@ -68,6 +68,11 @@ class PixelEditorPanel : public WindowContent {
   void PasteFromSystemClipboard();
 
  private:
+  void DrawSourceContext();
+  // A palette-only display copy. Pixel tools still write the session store.
+  gfx::Bitmap& DisplaySheet();
+  const gfx::SnesPalette& DisplayPalette() const;
+  gfx::Bitmap context_sheet_;
   /**
    * @brief Draw the toolbar with tool selection
    */
@@ -233,6 +238,7 @@ class PixelEditorPanel : public WindowContent {
   void DrawTileHighlight(const gfx::Bitmap& sheet);
 
   friend class PixelEditorPanelTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
 
   GraphicsEditorState* state_;
   Rom* rom_;
