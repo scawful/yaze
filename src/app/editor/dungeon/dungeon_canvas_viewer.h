@@ -19,8 +19,6 @@
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
-#include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
-#include "app/editor/dungeon/ui/minecart/minecart_collision_tool.h"
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -40,9 +38,11 @@
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
 
-// Room-based plans must follow canvas.h's ImGui math-operator configuration.
+// Room-based plans and tools must follow canvas.h's ImGui math configuration.
 #include "app/editor/dungeon/dungeon_connection_edit.h"
 #include "app/editor/dungeon/dungeon_room_transfer.h"
+#include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
+#include "app/editor/dungeon/ui/minecart/minecart_collision_tool.h"
 
 namespace yaze {
 namespace editor {
