@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "zelda3/dungeon/room_census.h"
+#include "zelda3/dungeon/room_default_entrance.h"
 
 namespace yaze::editor {
 
@@ -33,15 +34,21 @@ struct DungeonRenderContext {
   int entrance_slot = -1;
   uint8_t entrance_blockset = 0xFF;
   uint8_t room_header_blockset = 0xFF;
+  zelda3::RoomDefaultEntrance default_entrance;
   std::vector<int> candidate_slots;
 
   bool uses_entrance() const { return entrance_slot >= 0; }
   uint8_t effective_blockset() const {
-    return uses_entrance() ? entrance_blockset : room_header_blockset;
+    return uses_entrance() ? entrance_blockset
+           : default_entrance.main_blockset != 0xFF
+               ? default_entrance.main_blockset
+               : room_header_blockset;
   }
 };
 
 const char* DungeonRenderContextSourceName(DungeonRenderContextSource source);
+// Includes the loader's fallback provenance when no owner entrance resolves.
+const char* DungeonRenderContextSourceName(const DungeonRenderContext& context);
 
 // Resolves the graphics owner for a room without mutating either the census or
 // entrance records. A selected entrance wins for its direct room and all rooms
@@ -50,7 +57,8 @@ const char* DungeonRenderContextSourceName(DungeonRenderContextSource source);
 DungeonRenderContext ResolveDungeonRenderContext(
     int room_id, int selected_entrance_slot, uint8_t room_header_blockset,
     const zelda3::RoomCensus* census,
-    std::span<const DungeonRenderEntranceCandidate> entrances);
+    std::span<const DungeonRenderEntranceCandidate> entrances,
+    zelda3::RoomDefaultEntrance default_entrance = {});
 
 }  // namespace yaze::editor
 

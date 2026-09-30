@@ -126,6 +126,12 @@ TEST(GraphicsContextCommandTest, MapAndRoomMatchTheLoaderAndTheInspector) {
   ASSERT_TRUE(room_context.loader_agrees) << room_context.ToJson();
   ASSERT_EQ(room_context.slots.size(), 16u);
   EXPECT_EQ(room_context.rom_sha256, before);
+  for (int slot = 0; slot < 8; ++slot) {
+    EXPECT_EQ(room_context.slots[slot].palette_group, "dungeon_main") << slot;
+    EXPECT_EQ(room_context.slots[slot].role.find("overworld"),
+              std::string::npos)
+        << slot;
+  }
   bool saw_unresolved_world = false;
   for (const auto& alternate : room_context.alternates) {
     if (alternate.name == "entrance_world") {

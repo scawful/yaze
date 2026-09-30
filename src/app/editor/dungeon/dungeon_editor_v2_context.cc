@@ -67,8 +67,8 @@ void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
 // Builds the shared editor-context snapshot for the current dungeon room:
 // identity (owner id, title, workflow mode), room metadata and object counts,
 // diagnostics, and the capabilities/actions the right sidebar can offer.
-// Graphics fields come from the census-owned render context; a room with no
-// resolved owner reports the room header instead of inferring one. Rooms that
+// Graphics fields include the loader's default entrance when census ownership
+// cannot resolve an entrance. Rooms that
 // are not materialized yet only get a "room_not_loaded" diagnostic.
 EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
   // Identity: stable owner id, room label title, workflow mode subtitle.
@@ -94,22 +94,23 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
         .message = "Room data has not been materialized yet.",
     });
   } else {
-    // Graphics metadata: the entrance's main blockset when an owner entrance
-    // supplies it, otherwise only the room header's own blockset.
+    // The room header selects secondary sheets, not necessarily the main set.
     const DungeonRenderContext render_context =
         ResolveDungeonRenderContextForRoom(current_room_id_);
-    const uint8_t entrance_blockset = render_context.uses_entrance()
-                                          ? render_context.entrance_blockset
-                                          : 0xFF;
+    const auto& fallback = render_context.default_entrance;
     snapshot.metadata = {
         {.id = "graphics_entrance",
          .label = "Graphics entrance",
          .value = render_context.uses_entrance()
                       ? absl::StrFormat("0x%02X", render_context.entrance_slot)
+                  : fallback.entrance_id >= 0
+                      ? absl::StrFormat("0x%02X (default)",
+                                        fallback.entrance_id +
+                                            zelda3::kNumDungeonSpawnPoints)
                       : "None"},
         {.id = "graphics_source",
          .label = "Graphics source",
-         .value = DungeonRenderContextSourceName(render_context.source)},
+         .value = DungeonRenderContextSourceName(render_context)},
         {.id = "dungeon_owner",
          .label = "Dungeon owner",
          .value = render_context.owner_name.empty()
@@ -117,10 +118,9 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
                       : render_context.owner_name},
         {.id = "blockset",
          .label = "Blockset",
-         .value = entrance_blockset == 0xFF
-                      ? absl::StrFormat("room 0x%02X", room->blockset())
-                      : absl::StrFormat("main 0x%02X / room 0x%02X",
-                                        entrance_blockset, room->blockset())},
+         .value = absl::StrFormat("main 0x%02X / room 0x%02X",
+                                  render_context.effective_blockset(),
+                                  room->blockset())},
         {.id = "spriteset",
          .label = "Spriteset",
          .value = absl::StrFormat("0x%02X", room->spriteset())},
@@ -154,8 +154,7 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
          .label = "Pot items",
          .value = std::to_string(room->GetPotItems().size())},
     };
-    // Pending edits, then owner diagnostics: an ambiguous owner falls back to
-    // the room header; a census failure is reported, not guessed around.
+    // A default entrance is a preview inference, not proof of a gameplay route.
     snapshot.has_pending_changes = room->HasUnsavedChanges();
     snapshot.pending_label =
         snapshot.has_pending_changes ? "Room has unapplied changes" : "";
@@ -163,8 +162,11 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
       snapshot.diagnostics.push_back({
           .id = "ambiguous_dungeon_graphics_owner",
           .severity = EditorContextDiagnosticSeverity::kWarning,
-          .message =
-              "Owner entrances disagree on main GFX; using the room header.",
+          .message = absl::StrFormat(
+              "Owner entrances disagree on main GFX. Preview: %s (0x%02X). "
+              "Select the entrance used in game to verify the walls.",
+              DungeonRenderContextSourceName(render_context),
+              render_context.effective_blockset()),
           .action_id = "open_entrance",
       });
     } else if (!dungeon_render_context_census_error_.empty()) {
