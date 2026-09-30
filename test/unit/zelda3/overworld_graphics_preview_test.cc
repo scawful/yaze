@@ -3,6 +3,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <map>
 
 #include "core/project.h"
 #include "gtest/gtest.h"
@@ -70,6 +71,14 @@ TEST(OverworldGraphicsPreviewTest,
     maps.reserve(kNumOverworldMaps);
     for (int id = 0; id < kNumOverworldMaps; ++id)
       maps.emplace_back(id, &rom, &game);
+    // Ordinary graphics can contain palette offsets even when source pixels
+    // are zero. Clearing a preview must restore those exact loaded graphics.
+    std::map<int, std::vector<uint8_t>> ordinary_graphics;
+    for (int id : {0x30, 0x31, 0x38, 0x39, 0x32}) {
+      maps[id].LoadAreaGraphics();
+      ASSERT_TRUE(maps[id].BuildTileset().ok());
+      ordinary_graphics[id] = maps[id].current_graphics();
+    }
     PreviewTile8 pixels{};
     pixels.fill(13);
     const bool dirty = rom.dirty();
@@ -80,7 +89,8 @@ TEST(OverworldGraphicsPreviewTest,
       ASSERT_TRUE(map.BuildTileset().ok());
       const bool belongs = map.parent() == 0x30;
       EXPECT_EQ(map.HasGraphicsPreview(), belongs);
-      EXPECT_EQ(map.current_graphics()[0xC0 / 16 * 8 * 128], belongs ? 13 : 0);
+      EXPECT_EQ(map.current_graphics()[0xC0 / 16 * 8 * 128],
+                belongs ? 13 : ordinary_graphics[id][0xC0 / 16 * 8 * 128]);
     }
     EXPECT_EQ(game.graphics_buffer, before);
     EXPECT_EQ(rom.dirty(), dirty);
@@ -88,7 +98,7 @@ TEST(OverworldGraphicsPreviewTest,
     for (int id : {0x30, 0x31, 0x38, 0x39}) {
       EXPECT_FALSE(maps[id].HasGraphicsPreview());
       ASSERT_TRUE(maps[id].BuildTileset().ok());
-      EXPECT_EQ(maps[id].current_graphics()[0xC0 / 16 * 8 * 128], 0);
+      EXPECT_EQ(maps[id].current_graphics(), ordinary_graphics[id]);
     }
   }
 }
