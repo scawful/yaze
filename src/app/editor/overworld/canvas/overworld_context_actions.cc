@@ -4,6 +4,8 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "util/i18n/tr.h"
+#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze::editor {
 
@@ -56,10 +58,15 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
 
 void OverworldEditor::HandleEntityInsertion(
     const std::string& entity_type, const OverworldContextTarget& target) {
-  if (target.valid()) {
-    pending_entity_insertion_ =
-        OverworldEntityInsertionRequest{entity_type, target};
+  if (!target.valid()) {
+    return;
   }
+  if (entity_type == "item") {
+    RequestItemInsertPopup(target);
+    return;
+  }
+  pending_entity_insertion_ =
+      OverworldEntityInsertionRequest{entity_type, target, 0};
 }
 
 bool OverworldEditor::SampleContextTile16(
@@ -72,6 +79,79 @@ bool OverworldEditor::SampleContextTile16(
   // Use the existing switch guard so pending Tile16 edits are preserved.
   RequestTile16Selection(target.tile16_id);
   ScrollBlocksetCanvasToCurrentTile();
+  return true;
+}
+
+void OverworldEditor::RequestItemInsertPopup(
+    const std::optional<OverworldContextTarget>& target) {
+  item_insert_target_ = target;
+  item_insert_popup_requested_ = true;
+}
+
+void OverworldEditor::DrawItemInsertPopup() {
+  if (item_insert_popup_requested_) {
+    ImGui::OpenPopup("Insert Item");
+    item_insert_popup_requested_ = false;
+  }
+  if (!ImGui::BeginPopup("Insert Item")) {
+    return;
+  }
+  ImGui::TextUnformatted(tr("Choose an item"));
+  ImGui::BeginChild("##ItemInsertList", ImVec2(220.0f, 220.0f),
+                    ImGuiChildFlags_Borders);
+  for (size_t i = 0; i < zelda3::kSecretItemNames.size(); ++i) {
+    if (ImGui::Selectable(zelda3::kSecretItemNames[i].c_str())) {
+      const auto item_id = static_cast<uint8_t>(i);
+      if (item_insert_target_ && item_insert_target_->valid()) {
+        pending_entity_insertion_ = OverworldEntityInsertionRequest{
+            "item", *item_insert_target_, item_id};
+        item_placement_armed_ = false;
+      } else {
+        armed_item_id_ = item_id;
+        item_placement_armed_ = true;
+        SetEntityEditMode(EntityEditMode::ITEMS);
+      }
+      item_insert_target_.reset();
+      ImGui::CloseCurrentPopup();
+    }
+  }
+  ImGui::EndChild();
+  if (!item_insert_target_) {
+    ImGui::TextDisabled(tr("Click the map to place the item."));
+  }
+  ImGui::EndPopup();
+}
+
+bool OverworldEditor::TryPlaceArmedItem() {
+  if (!item_placement_armed_ || entity_edit_mode_ != EntityEditMode::ITEMS ||
+      !ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+      !ow_map_canvas_.IsMouseHovering()) {
+    return false;
+  }
+  if (entity_renderer_ && entity_renderer_->hovered_entity() != nullptr) {
+    return false;
+  }
+  const float scale = ow_map_canvas_.global_scale() > 0.0f
+                          ? ow_map_canvas_.global_scale()
+                          : 1.0f;
+  auto target = ResolveOverworldContextTarget(
+      current_world_, game_state_, ow_map_canvas_.hover_mouse_pos(),
+      ImVec2(0.0f, 0.0f), ImVec2(0.0f, 0.0f), scale);
+  if (!target) {
+    return false;
+  }
+  const auto* map = overworld_.overworld_map(target->map_id);
+  if (!map) {
+    return false;
+  }
+  target->parent_map_id =
+      map->parent() == 0xFF ? target->map_id : map->parent();
+  if (!target->valid()) {
+    return false;
+  }
+  pending_entity_insertion_ =
+      OverworldEntityInsertionRequest{"item", *target, armed_item_id_};
+  item_placement_armed_ = false;
   return true;
 }
 

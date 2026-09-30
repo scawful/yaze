@@ -177,6 +177,7 @@ class MenuOrchestrator {
   // Help menu actions
   void OnShowAbout();
   void OnShowGettingStarted();
+  void OnShowComingFromZScream();
   void OnShowBuildInstructions();
   void OnShowCLIUsage();
   void OnShowTroubleshooting();

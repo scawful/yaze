@@ -60,6 +60,8 @@ class DungeonEditorV2ShortcutTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
 class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
+struct MinecartCollisionStamp;
+struct MinecartTrack;
 class ObjectCoveragePanel;
 class ObjectTileEditorPanel;
 class OverlayManagerPanel;
@@ -322,6 +324,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorV2EntranceCameraTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
   friend class DungeonEditorV2ShortcutTestPeer;
   friend class DungeonEditorV2SpawnPointTestPeer;
   friend class DungeonEditorV2SpawnRejectionTestPeer;
@@ -392,6 +395,9 @@ class DungeonEditorV2 : public Editor {
   void RefreshEntranceCameraOverlays();
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
   void ConfigureMinecartProjectCallbacks();
+  absl::Status ApplyMinecartTrackEdit(const MinecartTrack& before,
+                                      const MinecartTrack& after,
+                                      bool move_cart);
   void SynchronizeCustomObjectAssets();
 
   // Show or create a standalone room panel
@@ -670,6 +676,9 @@ class DungeonEditorV2 : public Editor {
   void FinalizeCollisionUndoAction(int room_id);
   void RestoreRoomCustomCollision(int room_id,
                                   const zelda3::CustomCollisionMap& map);
+  absl::Status ApplyMinecartCollisionStamp(
+      int room_id, const zelda3::CustomCollisionMap& expected,
+      const MinecartCollisionStamp& stamp);
   absl::Status ApplyMinecartCollisionBatch(
       const std::vector<zelda3::TrackCollisionResult>& preview,
       const zelda3::GeneratorOptions& options);

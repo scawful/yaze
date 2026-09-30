@@ -223,6 +223,10 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
       facts.object_count += IsEncodedStreamObject(object) ? 1 : 0;
     }
 
+    if (options.room_visitor) {
+      options.room_visitor(room_id, room);
+    }
+
     if (input.has_vanilla_baseline) {
       const auto fingerprint = FingerprintRoom(room);
       const std::vector<uint16_t> vanilla =
@@ -237,7 +241,7 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
   input.expanded_entrance_tables = UsesExpandedEntranceTables(*rom);
   std::set<int> placed_entrances;
   auto add_entrance = [&](int entrance_id, RoomReferenceKind kind,
-                          std::string placement) {
+                          std::string placement, int ow_map) {
     const auto entry = ReadDungeonEntranceTarget(*rom, entrance_id);
     if (!entry.has_value() || !IsDungeonRoomId(entry->room_id)) {
       return;
@@ -248,6 +252,7 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
     fact.dungeon_id = entry->dungeon_id;
     fact.kind = kind;
     fact.placement = std::move(placement);
+    fact.ow_map = ow_map;
     input.entrances.push_back(std::move(fact));
   };
   if (auto entrances = LoadEntrances(rom); entrances.ok()) {
@@ -257,20 +262,22 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
       }
       placed_entrances.insert(entrance.entrance_id_);
       add_entrance(entrance.entrance_id_, RoomReferenceKind::kEntrance,
-                   absl::StrFormat("OW 0x%02X", entrance.map_id_ & 0xFF));
+                   absl::StrFormat("OW 0x%02X", entrance.map_id_ & 0xFF),
+                   entrance.map_id_ & 0xFF);
     }
   }
   if (auto holes = LoadHoles(rom); holes.ok()) {
     for (const auto& hole : *holes) {
       placed_entrances.insert(hole.entrance_id_);
       add_entrance(hole.entrance_id_, RoomReferenceKind::kHole,
-                   absl::StrFormat("OW 0x%02X", hole.map_id_ & 0xFF));
+                   absl::StrFormat("OW 0x%02X", hole.map_id_ & 0xFF),
+                   hole.map_id_ & 0xFF);
     }
   }
   for (int entrance_id = 0; entrance_id < kDungeonEntranceCount;
        ++entrance_id) {
     if (!placed_entrances.contains(entrance_id)) {
-      add_entrance(entrance_id, RoomReferenceKind::kUnplacedEntrance, "");
+      add_entrance(entrance_id, RoomReferenceKind::kUnplacedEntrance, "", -1);
     }
   }
   for (int spawn_id = 0; spawn_id < kNumDungeonSpawnPoints; ++spawn_id) {

@@ -1,0 +1,452 @@
+{
+ "_about": "Hand-maintained overworld names, regions, gate notes and link pills for Scripts/Maps/ow_regions.py and render_overworld_grid.py, ported from the 2026-09-27 design-session tables (mkcsv.py, render_overworld_grid.py). Sources: area signs (z3ed message-read), decisions.org DECIDED entries, labels, inference. Everything else in overworld_regions.csv is recomputed from the ROM. Warp-pad pills are derived from warp tiles (type $4B) in the ROM, so only non-pad links are listed here.",
+ "regions": {
+  "LW Toto Ranch / Hotel Kaly (northwest)": [
+   "0x00",
+   "0x01",
+   "0x08",
+   "0x09",
+   "0x0A"
+  ],
+  "LW Hall of Secrets pyramid route": [
+   "0x02"
+  ],
+  "LW Mount Frostpeak": [
+   "0x03",
+   "0x04",
+   "0x05",
+   "0x06",
+   "0x07"
+  ],
+  "LW Kalyxo Castle & Witch hills": [
+   "0x0B",
+   "0x0C",
+   "0x0D",
+   "0x13",
+   "0x14",
+   "0x15",
+   "0x16"
+  ],
+  "LW Hall of Secrets & Graveyard": [
+   "0x0E",
+   "0x0F",
+   "0x17"
+  ],
+  "LW West Kalyxo (woods, D1)": [
+   "0x10",
+   "0x11",
+   "0x12",
+   "0x18",
+   "0x19",
+   "0x20",
+   "0x21",
+   "0x28",
+   "0x29"
+  ],
+  "LW Central Kalyxo (field, lake, Tail Pond)": [
+   "0x1A",
+   "0x1B",
+   "0x1C",
+   "0x1D",
+   "0x25",
+   "0x2D"
+  ],
+  "LW Zora Sanctuary / Zora River (east)": [
+   "0x1E",
+   "0x1F",
+   "0x26",
+   "0x27"
+  ],
+  "LW Wayward Village": [
+   "0x22",
+   "0x23",
+   "0x24",
+   "0x2A",
+   "0x2B",
+   "0x2C"
+  ],
+  "LW Tail Palace plateau": [
+   "0x2E",
+   "0x2F"
+  ],
+  "LW Dragon Ship dock": [
+   "0x30",
+   "0x31",
+   "0x38",
+   "0x39"
+  ],
+  "LW Loom Beach (south coast)": [
+   "0x32",
+   "0x33",
+   "0x34",
+   "0x35",
+   "0x3A",
+   "0x3B",
+   "0x3C",
+   "0x3D"
+  ],
+  "LW Goron desert (southeast)": [
+   "0x36",
+   "0x37",
+   "0x3E",
+   "0x3F"
+  ],
+  "DW Temporal Pyramid + Forest of Dreams (intro chunk)": [
+   "0x40",
+   "0x41",
+   "0x48",
+   "0x49",
+   "0x50",
+   "0x51",
+   "0x58",
+   "0x59",
+   "0x60",
+   "0x61",
+   "0x68",
+   "0x69",
+   "0x6A"
+  ],
+  "DW Northwest ridge": [
+   "0x42",
+   "0x4A",
+   "0x52"
+  ],
+  "DW Volcano / Lava Lands": [
+   "0x43",
+   "0x44",
+   "0x45",
+   "0x46",
+   "0x47",
+   "0x4E",
+   "0x4F",
+   "0x55",
+   "0x56",
+   "0x57"
+  ],
+  "DW Lupo Mountain": [
+   "0x4B",
+   "0x4C",
+   "0x4D",
+   "0x53",
+   "0x54"
+  ],
+  "DW Yesterwind village & swamp": [
+   "0x5A",
+   "0x5B",
+   "0x5C",
+   "0x5D",
+   "0x62",
+   "0x63",
+   "0x64",
+   "0x65",
+   "0x6B",
+   "0x6C",
+   "0x6D"
+  ],
+  "DW Fortress of Secrets (D8)": [
+   "0x5E",
+   "0x5F",
+   "0x66",
+   "0x67",
+   "0x6E",
+   "0x6F"
+  ],
+  "DW Underwater Abyss": [
+   "0x70",
+   "0x71",
+   "0x72",
+   "0x73",
+   "0x74",
+   "0x75",
+   "0x78",
+   "0x79",
+   "0x7A",
+   "0x7B",
+   "0x7C",
+   "0x7D"
+  ],
+  "DW Abyss desert beach": [
+   "0x76",
+   "0x77",
+   "0x7E",
+   "0x7F"
+  ],
+  "SW Forest Glade / Tree house": [
+   "0x80"
+  ],
+  "SW Korok Cove": [
+   "0x81",
+   "0x82",
+   "0x89",
+   "0x8A"
+  ],
+  "SW East Kalyxo (doc plan; drafts)": [
+   "0x83",
+   "0x8B",
+   "0x90",
+   "0x91",
+   "0x92",
+   "0x93",
+   "0x98",
+   "0x99",
+   "0x9A",
+   "0x9B"
+  ],
+  "SW Sky Islands (drafts)": [
+   "0x84",
+   "0x85",
+   "0x86",
+   "0x87",
+   "0x8C",
+   "0x8D",
+   "0x8E",
+   "0x8F"
+  ],
+  "SW unused/blank": [
+   "0x88",
+   "0x94",
+   "0x95",
+   "0x96",
+   "0x97",
+   "0x9C",
+   "0x9D",
+   "0x9E",
+   "0x9F"
+  ]
+ },
+ "names": {
+  "0x00": "Toto Ranch (Loom Ranch)",
+  "0x01": "Toto Ranch",
+  "0x02": "Hall of Secrets pyramid route (plateau; pad to DW $42)",
+  "0x03": "Frostpeak west (pad to DW $43)",
+  "0x04": "Frostpeak west peak (pit chasm east)",
+  "0x05": "Frostpeak east peak",
+  "0x06": "Glacia Estate approach (D5)",
+  "0x07": "Frostpeak summit (2 pads to DW $47)",
+  "0x08": "Toto Ranch",
+  "0x09": "Toto Ranch",
+  "0x0A": "Hotel Kaly (West Hotel)",
+  "0x0B": "Kalyxo Castle (D3)",
+  "0x0C": "Kalyxo Castle",
+  "0x0D": "Witch/Potion Shop hills",
+  "0x0E": "Hall of Secrets",
+  "0x0F": "Graveyard (Korok Cove waterfall)",
+  "0x10": "Mushroom Grotto (D1)",
+  "0x11": "Healing Fairy pond (pad to DW $51)",
+  "0x12": "West crossroads",
+  "0x13": "Kalyxo Castle",
+  "0x14": "Kalyxo Castle",
+  "0x15": "Fairy Fountain East",
+  "0x16": "East road",
+  "0x17": "South of Graveyard (tree house trigger; pad to DW $57)",
+  "0x18": "Toadstool Woods",
+  "0x19": "Toadstool Woods",
+  "0x1A": "Archery area",
+  "0x1B": "Castle lake",
+  "0x1C": "Castle lake",
+  "0x1D": "Fairy Fountain South",
+  "0x1E": "Zora Sanctuary (D4)",
+  "0x1F": "Zora River",
+  "0x20": "Toadstool Woods",
+  "0x21": "Toadstool Woods",
+  "0x22": "Smith's House",
+  "0x23": "Wayward Village",
+  "0x24": "Wayward Village",
+  "0x25": "Kalyxo Field (pad to DW $65)",
+  "0x26": "Zora River",
+  "0x27": "Zora River",
+  "0x28": "West woods",
+  "0x29": "Lost Woods (maze)",
+  "0x2A": "Forest Crossroads (Maku Tree/Forest Glade trigger)",
+  "0x2B": "Wayward Village",
+  "0x2C": "Wayward Village",
+  "0x2D": "Tail Pond (Mask shop)",
+  "0x2E": "Tail Palace cave exit",
+  "0x2F": "Tail Palace (D2)",
+  "0x30": "Dragon Ship dock (D7)",
+  "0x31": "Dragon Ship dock",
+  "0x32": "Beach Cave area",
+  "0x33": "Loom Beach (Link's House)",
+  "0x34": "Loom Beach",
+  "0x35": "East beach road",
+  "0x36": "Goron desert (D6 Goron Mines)",
+  "0x37": "Goron desert (pad to DW $77)",
+  "0x38": "Dragon Ship sea",
+  "0x39": "Dragon Ship sea",
+  "0x3A": "Beach island",
+  "0x3B": "Loom Beach",
+  "0x3C": "Loom Beach",
+  "0x3D": "SE beach (whirlpool to DW $7D)",
+  "0x3E": "Goron desert",
+  "0x3F": "Goron desert",
+  "0x40": "Temporal Pyramid (Shrine of Origins)",
+  "0x41": "Temporal Pyramid (pedestal)",
+  "0x42": "Pyramid east (LW $02 pad lands)",
+  "0x43": "Lava Lands west (LW $03 pad lands)",
+  "0x44": "Lava Lands",
+  "0x45": "Lava Lands",
+  "0x46": "Volcano",
+  "0x47": "Volcano east (LW $07 pads land)",
+  "0x48": "Temporal Pyramid (Pyramid Fairy)",
+  "0x49": "Temporal Pyramid",
+  "0x4A": "Northwest ridge",
+  "0x4B": "Lupo Mountain (S2)",
+  "0x4C": "Lupo Mountain",
+  "0x4D": "Lupo east heights",
+  "0x4E": "Volcano slope",
+  "0x4F": "Volcano slope",
+  "0x50": "Shrine of Courage (S3) / Eon Owl",
+  "0x51": "Pyramid-Forest connector",
+  "0x52": "Northwest woods",
+  "0x53": "Lupo Mountain",
+  "0x54": "Lupo Mountain",
+  "0x55": "Volcano foot",
+  "0x56": "Volcano foot",
+  "0x57": "Volcano summit (Ganon hole; LW $17 pad lands)",
+  "0x58": "Forest of Dreams",
+  "0x59": "Forest of Dreams",
+  "0x5A": "West swamp woods",
+  "0x5B": "Yesterwind north",
+  "0x5C": "Dream Hut hill",
+  "0x5D": "Dream Hut (Maple)",
+  "0x5E": "Fortress of Secrets (D8)",
+  "0x5F": "Fortress of Secrets",
+  "0x60": "Forest of Dreams",
+  "0x61": "Forest of Dreams",
+  "0x62": "Swamp west",
+  "0x63": "Village of Yesterwind (S1)",
+  "0x64": "Village of Yesterwind",
+  "0x65": "Yesterwind east (LW $25 pad lands)",
+  "0x66": "Fortress of Secrets",
+  "0x67": "Fortress of Secrets",
+  "0x68": "Forest of Dreams south",
+  "0x69": "Forest of Dreams south",
+  "0x6A": "Forest of Dreams exit (pad to LW $2A)",
+  "0x6B": "Village of Yesterwind",
+  "0x6C": "Village of Yesterwind",
+  "0x6D": "South swamp",
+  "0x6E": "Fortress south",
+  "0x6F": "Fortress southeast",
+  "0x70": "Underwater Abyss",
+  "0x71": "Underwater Abyss",
+  "0x72": "Underwater Abyss",
+  "0x73": "Underwater Abyss",
+  "0x74": "Underwater Abyss",
+  "0x75": "Underwater Abyss (Octobos)",
+  "0x76": "Abyss desert beach (LW $37 pad lands)",
+  "0x77": "Abyss desert beach",
+  "0x78": "Underwater Abyss",
+  "0x79": "Underwater Abyss (Sea Shrine plan)",
+  "0x7A": "Underwater Abyss",
+  "0x7B": "Underwater Abyss",
+  "0x7C": "Underwater Abyss",
+  "0x7D": "Underwater Abyss (whirlpool lands)",
+  "0x7E": "Abyss desert beach",
+  "0x7F": "Abyss desert beach",
+  "0x80": "Forest Glade (left) + Tree house (right)",
+  "0x81": "Korok Cove",
+  "0x82": "Korok Cove",
+  "0x83": "East of Korok Cove (test foot bridge to Sky)",
+  "0x88": "vanilla leftover (exit $189 target)",
+  "0x89": "Korok Cove",
+  "0x8A": "Korok Cove",
+  "0x8B": "East Kalyxo (draft)",
+  "0x91": "Tiny house ($191) / East Kalyxo plan conflict",
+  "0x99": "River Zora Village (doc plan)"
+ },
+ "gate_notes": {
+  "0x04:Glove": "POCKET: 18 cells",
+  "0x0B:Glove": "POCKET: inside castle courtyard (ent 0x0A, 0x11)",
+  "0x0F:Hammer": "ROUTE: seals Korok Cove waterfall trigger (22-24,1)",
+  "0x10:Hammer": "POCKET: 48-cell pocket (16-17,5-6)",
+  "0x15:Glove": "POCKET: big rock (4-5,3-4) 24-cell pocket; small rocks decor",
+  "0x17:Glove": "ROUTE: ring around warp pad $17->DW $57",
+  "0x1A:Mitt": "DECOR",
+  "0x30:Boots": "ACCIDENTAL char alias",
+  "0x30:Glove": "ACCIDENTAL char alias",
+  "0x30:Mitt": "ACCIDENTAL char alias (shoreline tiles)",
+  "0x31:Boots": "ACCIDENTAL char alias",
+  "0x31:Glove": "ACCIDENTAL char alias",
+  "0x31:Mitt": "ACCIDENTAL char alias",
+  "0x33:Hammer": "DECOR/internal (fenced yard pegs)",
+  "0x34:Hammer": "internal (fenced yard)",
+  "0x37:Hammer": "ROUTE: foot of stairs to $37 plateau (pad->DW $77, ent 0x5E); bypass by ledge from Tail Palace plateau",
+  "0x48:Mitt": "POCKET: ring around ent 0x63 (room $116 Pyramid Fairy)",
+  "0x4D:Glove": "ROUTE: main <-> Lupo heights (14,19); pocket (21-22,7)",
+  "0x50:Glove": "ROUTE: Shrine of Courage door pocket",
+  "0x51:Glove": "ROUTE: intro chunk <-> main Abyss",
+  "0x53:Glove": "POCKET: 36 cells",
+  "0x5C:Glove": "POCKET: 966-cell pocket on $5C/$5D (ent 0x7C)",
+  "0x61:Glove": "ROUTE: intro chunk <-> main Abyss (x=29,y=4-7); others decor",
+  "0x67:Mitt": "SHORTCUT: row inside Fortress area (both sides same zone)",
+  "0x84:Hammer": "DECOR (sky draft corners)",
+  "0x8C:Hammer": "DECOR (sky draft corners)"
+ },
+ "special_edge_block": [
+  "0x80",
+  "0x88",
+  "0x91"
+ ],
+ "sw_isolated_maps": [
+  "0x80",
+  "0x91",
+  "0x88"
+ ],
+ "links": [
+  {
+   "map": "0x3D",
+   "text": "WHIRLPOOL to ABYSS",
+   "kind": "pad"
+  },
+  {
+   "map": "0x0F",
+   "text": "TO 81 (HAMMER)",
+   "kind": "special"
+  },
+  {
+   "map": "0x81",
+   "text": "FROM 0F GRAVEYARD",
+   "kind": "special"
+  },
+  {
+   "map": "0x2A",
+   "text": "TO 80",
+   "kind": "special"
+  },
+  {
+   "map": "0x17",
+   "text": "TO 80",
+   "kind": "special"
+  },
+  {
+   "map": "0x20",
+   "text": "TO 80",
+   "kind": "special"
+  },
+  {
+   "map": "0x80",
+   "text": "FROM 2A \u00b7 17 \u00b7 20",
+   "kind": "special"
+  },
+  {
+   "map": "0x33",
+   "text": "TO 91",
+   "kind": "special"
+  },
+  {
+   "map": "0x91",
+   "text": "FROM 33",
+   "kind": "special"
+  },
+  {
+   "map": "0x83",
+   "text": "TEST BRIDGE TO 84",
+   "kind": "warn"
+  },
+  {
+   "map": "0x84",
+   "text": "TEST BRIDGE FROM 83",
+   "kind": "warn"
+  }
+ ]
+}diff --git a/test/fixtures/atlas/oracle_b28/room_annotations.json b/test/fixtures/atlas/oracle_b28/room_annotations.json

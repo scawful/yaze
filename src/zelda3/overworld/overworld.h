@@ -513,6 +513,13 @@ class Overworld {
   /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
 
+  // Map-grid identity for skipping recompression. SaveOverworldMaps stages the
+  // grids it serialized; the editor save transaction publishes that stage only
+  // after the ROM transaction and disk write both commit.
+  void StageSavedMapTiles();
+  void CommitSavedMapTiles();
+  void RollbackSavedMapTiles();
+
   /// @brief Save large map parent/sibling relationships
   absl::Status SaveLargeMaps();
 
@@ -848,6 +855,16 @@ class Overworld {
   OverworldVersion cached_version_ = OverworldVersion::kVanilla;
 
   OverworldMapTiles map_tiles_;
+  // Grids last published by a committed save, or captured at load. Recompressing
+  // maps rewrites pointer tables that overlap Oracle overworld ASM hooks, and
+  // resaving tile32 reorders expanded definitions. An unchanged grid leaves
+  // both on disk. The staged copy is not this identity: a failed save rolls
+  // the ROM back and must not treat the unsaved edit as already written.
+  OverworldMapTiles loaded_map_tiles_;
+  bool loaded_map_tiles_valid_ = false;
+  OverworldMapTiles staged_map_tiles_;
+  bool staged_map_tiles_valid_ = false;
+  bool MapTilesUnchanged() const;
 
   // Thread safety for parallel operations
   mutable std::mutex map_tiles_mutex_;

@@ -26,12 +26,10 @@ class Tile16SelectorView : public WindowContent {
   std::string GetDisplayName() const override { return "Tile16 Selector"; }
   std::string GetIcon() const override { return ICON_MD_GRID_ON; }
   std::string GetEditorCategory() const override { return "Overworld"; }
-  // Grid + scrollbar + panel padding, computed from the shared selector
-  // geometry so the dock is exactly as wide as the grid needs.
+  // Starting width for the right column. The grid scales with the dock
+  // after that, so this is not an exact lock.
   float GetPreferredWidth() const override;
-  // The selector is a fixed-width grid: when it leads its dock region the
-  // region takes this width instead of the widest stacked panel's.
-  bool HasExactPreferredWidth() const override { return true; }
+  bool HasExactPreferredWidth() const override { return false; }
   bool PreferAutoHideTabBar() const override { return true; }
   bool IsVisibleByDefault() const override { return true; }
   void Draw(bool* p_open) override;

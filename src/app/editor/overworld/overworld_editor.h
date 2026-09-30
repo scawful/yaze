@@ -178,6 +178,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  absl::Status BeginSaveTransaction() override;
+  void RollbackSaveTransaction() override;
+  void CommitSaveTransaction() override;
   absl::Status Clear() override;
   void ContributeStatus(StatusBar* status_bar) override;
   EditorContextSnapshot BuildContextSnapshot() const override;
@@ -307,6 +310,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// @param entity_type Type: "entrance", "hole", "exit", "item", "sprite"
   void HandleEntityInsertion(const std::string& entity_type,
                              const OverworldContextTarget& target);
+  /// Insert Item opens the item catalog. A context-menu target places the
+  /// chosen item there; otherwise the next map click places it.
+  void RequestItemInsertPopup(
+      const std::optional<OverworldContextTarget>& target);
+  void DrawItemInsertPopup();
+  bool TryPlaceArmedItem();
 
   /// @brief Handle tile16 editing from context menu (MOUSE mode)
   /// Opens the Tile16 captured at menu-open through the pending-edit guard.
@@ -455,6 +464,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawOverworldCanvas();
 
  private:
+  friend class AuthoringSaveWorkflowTestPeer;
+
   std::string graphics_preview_config_path_;
   // ===========================================================================
   // Entity Interaction System
@@ -769,6 +780,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
 
   zelda3::Overworld overworld_{rom_};
+  bool map_tile_save_transaction_open_ = false;
   zelda3::OverworldBlockset refresh_blockset_;
 
   // ===========================================================================
@@ -790,6 +802,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Deferred entity insertion (needed for popup flow from context menu)
   std::optional<OverworldEntityInsertionRequest> pending_entity_insertion_;
+  std::optional<OverworldContextTarget> item_insert_target_;
+  bool item_insert_popup_requested_ = false;
+  bool item_placement_armed_ = false;
+  uint8_t armed_item_id_ = 0;
   std::string insert_error_;
 
   // ===========================================================================

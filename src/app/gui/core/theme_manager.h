@@ -263,13 +263,13 @@ struct Theme {
   } agent;
 
   // Style parameters
-  float window_rounding = 0.0f;
-  float frame_rounding = 5.0f;
-  float scrollbar_rounding = 5.0f;
+  float window_rounding = 2.0f;
+  float frame_rounding = 4.0f;
+  float scrollbar_rounding = 4.0f;
   float grab_rounding = 3.0f;
-  float tab_rounding = 0.0f;
-  float window_border_size = 0.0f;
-  float frame_border_size = 0.0f;
+  float tab_rounding = 3.0f;
+  float window_border_size = 1.0f;
+  float frame_border_size = 1.0f;
 
   // Animation and effects
   bool enable_animations = true;

@@ -19,6 +19,8 @@
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
+#include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
+#include "app/editor/dungeon/ui/minecart/minecart_collision_tool.h"
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -293,6 +295,7 @@ class DungeonCanvasViewer {
                                        float scale) const;
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
+  void CancelMinecartGesture() { minecart_canvas_tool_.Cancel(); }
   void TriggerChangePing();
   using MetadataEditCallback =
       std::function<absl::Status(int, const RoomMetadataEdit&)>;
@@ -909,6 +912,7 @@ class DungeonCanvasViewer {
 
  private:
   friend class DungeonCanvasViewerTestPeer;
+  friend class DungeonCanvasMinecartTestPeer;
   friend class DungeonRoomTransferEditorTestPeer;
   friend class DungeonRoomEditsTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
@@ -1125,6 +1129,11 @@ class DungeonCanvasViewer {
   std::function<void(int)> save_room_callback_;
   std::function<void(int, const zelda3::RoomObject&)> edit_graphics_callback_;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
+  MinecartCanvasTool minecart_canvas_tool_;
+  MinecartCollisionTool minecart_collision_tool_;
+  bool minecart_owned_input_ = false;
+  bool DrawMinecartCanvas(const gui::CanvasRuntime& rt, zelda3::Room& room,
+                          int room_id);
   bool show_minecart_tracks_ = false;
   bool is_pinned_ = false;
   std::function<void(bool)> pin_callback_;

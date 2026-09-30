@@ -40,6 +40,14 @@ struct MessageSourceSyncResult {
 // Compute the lowercase SHA-256 used by canonical source/include provenance.
 std::string ComputeMessageSourceSha256(std::string_view content);
 
+// ROM writes of the expanded bank stay refused. The durable copy is the
+// canonical bundle; the generated include is produced by source sync.
+inline constexpr char kOracleExpandedRomWriteRefusal[] =
+    "Oracle of Secrets expanded messages are owned by ASM. No message "
+    "bytes were written. Publish Data/dialogue/expanded_messages.json through "
+    "Yaze source sync, which regenerates Core/Generated/expanded_messages.asm, "
+    "then rebuild Oracle of Secrets and reopen the rebuilt ROM.";
+
 // Merge a validated expanded-message subset into the complete canonical
 // project bundle and render its deterministic, no-org Asar include.
 //

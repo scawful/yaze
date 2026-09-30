@@ -61,6 +61,10 @@ set(
   app/editor/dungeon/interaction/sprite_interaction_handler.cc
   app/editor/dungeon/interaction/tile_object_handler.cc
   app/editor/dungeon/dungeon_proposal_overlay.cc
+  app/editor/dungeon/dungeon_editor_v2_minecart.cc
+  app/editor/dungeon/ui/minecart/minecart_canvas_tool.cc
+  app/editor/dungeon/ui/minecart/minecart_collision_tool.cc
+  app/editor/dungeon/ui/minecart/minecart_rail_tools.cc
   app/editor/dungeon/minecart_track_source.cc
   app/editor/dungeon/object_selection.cc
   app/editor/dungeon/selectors/object_selector_content.cc
@@ -189,6 +193,7 @@ set(
   app/editor/shell/dialogs/editor_selection_dialog.cc
   app/editor/shell/dialogs/new_project_dialog.cc
   app/editor/shell/dialogs/rom_load_options_dialog.cc
+  app/editor/shell/feedback/feature_hint_manager.cc
   app/editor/shell/feedback/popup_manager.cc
   app/editor/shell/windows/about_panel.cc
   app/editor/shell/windows/dashboard_panel.cc

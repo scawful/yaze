@@ -14,6 +14,7 @@
 #include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
+#include "zelda3/graphics/resolved_graphics_context.h"
 #include "zelda3/overworld/graphics_preview.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -247,6 +248,8 @@ class OverworldMap : public gfx::GfxContext {
       const std::vector<uint8_t>* cached_tile16_blockset = nullptr);
 
   void LoadAreaGraphics();
+  friend ResolvedGraphicsContext DescribeOverworldGraphicsContext(
+      const OverworldMap& map, const GraphicsContextIdentity& identity);
   absl::Status LoadPalette();
   absl::Status LoadOverlay();
   absl::Status LoadVanillaOverlayData();

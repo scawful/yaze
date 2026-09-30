@@ -26,6 +26,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/graphics/palette_commands.cc
   cli/handlers/graphics/sprite_commands.cc
 
+  cli/handlers/game/atlas_commands.cc
   cli/handlers/game/dialogue_commands.cc
   cli/handlers/game/dungeon_collision_commands.cc
   cli/handlers/game/dungeon_commands.cc
@@ -65,6 +66,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/tools/dungeon_object_validate_commands.cc
   cli/handlers/tools/graphics_doctor_commands.cc
   cli/handlers/graphics/gfx_sheet_inventory_commands.cc
+  cli/handlers/graphics/graphics_context_commands.cc
   cli/handlers/graphics/gfx_sheet_png_commands.cc
   cli/handlers/graphics/gfx_tilemap_render_command.cc
   cli/handlers/tools/gui_commands.cc

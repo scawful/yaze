@@ -211,7 +211,8 @@ void OverworldEntityWorkbench::ProcessPendingInsertion(
   if (!request)
     return;
 
-  auto res = mutation_service->InsertEntity(request->type, request->target);
+  auto res = mutation_service->InsertEntity(request->type, request->target,
+                                            request->item_id);
 
   if (res.ok()) {
     OpenEditorFor(res.entity);

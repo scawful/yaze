@@ -155,6 +155,11 @@ absl::StatusOr<std::vector<uint16_t>> ParseHexList(const std::string& input) {
 }  // namespace
 
 void MinecartTrackEditorPanel::ResetTrackSession() {
+  collision_stamping_ = false;
+  ++track_generation_;
+  paired_track_draft_ = false;
+  canvas_editing_ = false;
+  selected_track_ = -1;
   tracks_.clear();
   loaded_tracks_.clear();
   source_document_.reset();
@@ -356,15 +361,52 @@ absl::Status MinecartTrackEditorPanel::UpdateTrack(size_t track_index,
   }
   MinecartTrack updated = track;
   updated.id = static_cast<int>(track_index);
-  tracks_[track_index] = updated;
+  const auto before = tracks_[track_index];
+  if (before == updated)
+    return absl::OkStatus();
+  if (track_edit_callback_)
+    return track_edit_callback_(before, updated, false);
+  return RestoreTrackDraft(track_generation_, before, updated);
+}
+
+absl::Status MinecartTrackEditorPanel::RestoreTrackDraft(
+    uint64_t generation, const MinecartTrack& expected,
+    const MinecartTrack& replacement) {
+  if (generation != track_generation_ || !loaded_ || expected.id < 0 ||
+      expected.id >= static_cast<int>(tracks_.size()) ||
+      tracks_[expected.id] != expected || replacement.id != expected.id) {
+    return absl::FailedPreconditionError(
+        "Track source or draft changed; this edit cannot be replayed");
+  }
+  auto candidate = tracks_;
+  candidate[expected.id] = replacement;
+  const auto validated = source_document_->Render(candidate);
+  if (!validated.ok())
+    return validated.status();
+  tracks_[expected.id] = replacement;
+  selected_track_ = expected.id;
   audit_dirty_ = true;
   return absl::OkStatus();
 }
 
+absl::Status MinecartTrackEditorPanel::MoveCartStart(
+    const MinecartTrack& before, const MinecartTrack& after) {
+  if (!track_edit_callback_)
+    return absl::FailedPreconditionError(
+        "Open the dungeon editor to move a cart and its start together");
+  return track_edit_callback_(before, after, true);
+}
+
 absl::Status MinecartTrackEditorPanel::DiscardUnpublishedChanges() {
+  if (paired_track_draft_ && HasUnpublishedChanges()) {
+    return absl::FailedPreconditionError(
+        "Use dungeon Undo to reverse paired cart moves before discarding "
+        "source drafts");
+  }
   if (!loaded_) {
     return absl::FailedPreconditionError("Minecart tracks are not loaded");
   }
+  ++track_generation_;
   tracks_ = loaded_tracks_;
   CancelCoordinatePicking();
   audit_dirty_ = true;
@@ -701,32 +743,9 @@ const std::vector<MinecartTrack>& MinecartTrackEditorPanel::GetTracks() {
   return tracks_;
 }
 
-void MinecartTrackEditorPanel::SetPickedCoordinates(int room_id,
-                                                    uint16_t camera_x,
-                                                    uint16_t camera_y) {
-  if (picking_mode_ && picking_track_index_ >= 0 &&
-      picking_track_index_ < static_cast<int>(tracks_.size())) {
-    tracks_[picking_track_index_].room_id = room_id;
-    tracks_[picking_track_index_].start_x = camera_x;
-    tracks_[picking_track_index_].start_y = camera_y;
-
-    last_picked_x_ = camera_x;
-    last_picked_y_ = camera_y;
-    has_picked_coords_ = true;
-    audit_dirty_ = true;
-
-    status_message_ =
-        absl::StrFormat("Track %d: Set to Room $%04X, Pos ($%04X, $%04X)",
-                        picking_track_index_, room_id, camera_x, camera_y);
-    show_success_ = true;
-  }
-
-  // Exit picking mode
-  picking_mode_ = false;
-  picking_track_index_ = -1;
-}
-
 void MinecartTrackEditorPanel::StartCoordinatePicking(int track_index) {
+  canvas_editing_ = true;
+  selected_track_ = track_index;
   picking_mode_ = true;
   picking_track_index_ = track_index;
   status_message_ = absl::StrFormat(
@@ -1010,6 +1029,27 @@ void MinecartTrackEditorPanel::ClearCollisionPreview() {
   collision_preview_options_ = {};
 }
 
+void MinecartTrackEditorPanel::set_canvas_editing(bool enabled) {
+  if (!enabled) {
+    canvas_editing_ = false;
+    CancelCoordinatePicking();
+    return;
+  }
+  // The canvas is usable before this inspector has ever been drawn.
+  auto status = RefreshProjectBinding();
+  if (status.ok() && !load_attempted_)
+    status = LoadTracks();
+  if (!status.ok() || tracks_.empty()) {
+    canvas_editing_ = false;
+    status_message_ = status.ok() ? "No cart starts are loaded"
+                                  : std::string(status.message());
+    show_success_ = false;
+    return;
+  }
+  collision_stamping_ = false;
+  canvas_editing_ = true;
+}
+
 void MinecartTrackEditorPanel::Draw(bool* p_open) {
   if (project_ == nullptr) {
     ImGui::TextColored(ImVec4(1, 0, 0, 1),
@@ -1040,7 +1080,34 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
     RebuildAuditCache();
   }
 
-  ImGui::Text(tr("Minecart Track Editor"));
+  DrawRailTools();
+  ImGui::Separator();
+  ImGui::TextUnformatted("Cart starts");
+  bool canvas_editing = canvas_editing_;
+  if (ImGui::Checkbox("Edit starts on room canvas", &canvas_editing)) {
+    set_canvas_editing(canvas_editing);
+  }
+  ImGui::TextWrapped(
+      "Select a cart marker, then drag it onto a stop. "
+      "Escape cancels. Arrow keys nudge one sprite cell.");
+  if (selected_track_ >= 0 &&
+      selected_track_ < static_cast<int>(tracks_.size())) {
+    const auto& selected = tracks_[selected_track_];
+    ImGui::Text("Cart %d - room %03X%s", selected.id, selected.room_id,
+                HasUnpublishedChanges() ? " (unpublished changes)" : "");
+    ImGui::TextDisabled("Moving a start also moves its matching placed cart.");
+  }
+  for (const auto& track : tracks_) {
+    if (track.room_id != active_room_)
+      continue;
+    if (ImGui::Selectable(
+            absl::StrFormat("Cart %d##cart_start_%d", track.id, track.id)
+                .c_str(),
+            selected_track_ == track.id)) {
+      selected_track_ = track.id;
+      set_canvas_editing(true);
+    }
+  }
   if (picking_mode_) {
     if (ImGui::Button(ICON_MD_CANCEL " Cancel Pick")) {
       CancelCoordinatePicking();
@@ -1128,24 +1195,23 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
 
     ImGui::Separator();
 
-    // Coordinate format help
-    ImGui::TextDisabled(tr(
-        "Camera coordinates use $1XXX format (base $1000 + room offset + local "
-        "position)"));
-    ImGui::TextDisabled(
-        tr("Hover over dungeon canvas to see coordinates, or click 'Pick' "
-           "button."));
-    ImGui::Separator();
-
-    if (ImGui::BeginTable("TracksTable", 7,
+    const bool advanced = ImGui::CollapsingHeader("Advanced: raw start table");
+    if (advanced)
+      ImGui::TextWrapped(
+          "World pixels use the room grid origin; there is no added $1000 "
+          "offset. "
+          "Raw changes do not relocate placed carts. Use the canvas for paired "
+          "moves.");
+    if (advanced &&
+        ImGui::BeginTable("TracksTable", 7,
                           ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                               ImGuiTableFlags_Resizable)) {
       ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 30.0f);
       ImGui::TableSetupColumn("Room ID", ImGuiTableColumnFlags_WidthFixed,
                               80.0f);
-      ImGui::TableSetupColumn("Camera X", ImGuiTableColumnFlags_WidthFixed,
+      ImGui::TableSetupColumn("World X", ImGuiTableColumnFlags_WidthFixed,
                               80.0f);
-      ImGui::TableSetupColumn("Camera Y", ImGuiTableColumnFlags_WidthFixed,
+      ImGui::TableSetupColumn("World Y", ImGuiTableColumnFlags_WidthFixed,
                               80.0f);
       ImGui::TableSetupColumn("Pick", ImGuiTableColumnFlags_WidthFixed, 50.0f);
       ImGui::TableSetupColumn("Go", ImGuiTableColumnFlags_WidthFixed, 40.0f);
@@ -1185,8 +1251,11 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         if (yaze::gui::InputHexWordCustom(
                 absl::StrFormat("##Room%d", track.id).c_str(), &room_id,
                 60.0f)) {
-          track.room_id = room_id;
-          audit_dirty_ = true;
+          auto next = track;
+          next.room_id = room_id;
+          const auto status = UpdateTrack(track.id, next);
+          if (!status.ok())
+            status_message_ = std::string(status.message());
         }
 
         ImGui::TableNextColumn();
@@ -1194,8 +1263,11 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         if (yaze::gui::InputHexWordCustom(
                 absl::StrFormat("##StartX%d", track.id).c_str(), &start_x,
                 60.0f)) {
-          track.start_x = start_x;
-          audit_dirty_ = true;
+          auto next = track;
+          next.start_x = start_x;
+          const auto status = UpdateTrack(track.id, next);
+          if (!status.ok())
+            status_message_ = std::string(status.message());
         }
 
         ImGui::TableNextColumn();
@@ -1203,8 +1275,11 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         if (yaze::gui::InputHexWordCustom(
                 absl::StrFormat("##StartY%d", track.id).c_str(), &start_y,
                 60.0f)) {
-          track.start_y = start_y;
-          audit_dirty_ = true;
+          auto next = track;
+          next.start_y = start_y;
+          const auto status = UpdateTrack(track.id, next);
+          if (!status.ok())
+            status_message_ = std::string(status.message());
         }
 
         // Pick button to select coordinates from canvas
@@ -1521,6 +1596,7 @@ absl::Status MinecartTrackEditorPanel::LoadTracks() {
   const std::string source_sha256 =
       core::ComputeSourceArtifactSha256(document_or->source_bytes());
 
+  ++track_generation_;
   tracks_ = candidate_tracks;
   loaded_tracks_ = std::move(candidate_tracks);
   source_document_ = std::move(*document_or);
@@ -1640,6 +1716,7 @@ absl::Status MinecartTrackEditorPanel::SaveTracks() {
 
   tracks_ = published_document_or->tracks();
   loaded_tracks_ = tracks_;
+  paired_track_draft_ = false;
   source_document_ = std::move(*published_document_or);
   loaded_source_path_ = std::move(locked_source_path);
   loaded_source_sha256_ = source_sha256_after;

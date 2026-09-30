@@ -111,6 +111,9 @@ class DungeonObjectSelector {
   // AssetBrowser-style object selection
   void DrawObjectAssetBrowser(float minimum_grid_height = 1.0f);
 
+  // Rail palette shares the room-context thumbnail cache and placement path.
+  bool DrawMinecartPalette();
+
   // Programmatic selection
   void SelectObject(int obj_id, int subtype = -1);
 

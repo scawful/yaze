@@ -290,7 +290,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
 
   PushID("RoomsetViewer");
   auto& ws = Ws();
-  Text(tr("Roomsets overwrite slots 4-7 of the main blockset"));
+  Text(tr("Roomsets overwrite slots 3-6 of the main blockset"));
 
   if (BeginTable("##RoomsTable", 3,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
@@ -320,11 +320,11 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     // Inputs column
     TableNextColumn();
     BeginGroup();
-    Text(tr("Sheet IDs (overwrites slots 4-7):"));
+    Text(tr("Sheet IDs (overwrites slots 3-6):"));
     for (int idx = 0; idx < 4; idx++) {
       SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
       gui::InputHexByte(
-          ("Slot " + std::to_string(idx + 4)).c_str(),
+          ("Slot " + std::to_string(idx + 3)).c_str(),
           &game_data()->room_blockset_ids[ws.selected_roomset][idx]);
     }
     EndGroup();

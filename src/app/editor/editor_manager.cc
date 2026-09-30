@@ -111,6 +111,7 @@
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/sprite/sprite.h"
@@ -2263,6 +2264,15 @@ void EditorManager::InitializeServices() {
     LOG_WARN("EditorManager", "Failed to load user settings: %s",
              status_.ToString().c_str());
   }
+
+  feature_hint_manager_.SetUserSettings(&user_settings_);
+  feature_hint_manager_.SetToastManager(&toast_manager_);
+  feature_hint_manager_.RegisterBuiltinHints();
+  feature_hint_manager_.SetGuideCallback([this]() {
+    if (popup_manager_) {
+      popup_manager_->Show(PopupID::kComingFromZScream);
+    }
+  });
 
   // Wire theme persistence. Any successful theme application (selector click,
   // command-palette switch, programmatic call) stamps the name into prefs and
@@ -4825,6 +4835,7 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     }
 
     ShowPostLoadSurface();
+    MaybeEmitZScreamRomLoadHints();
   }
   return absl::OkStatus();
 }
@@ -5414,6 +5425,8 @@ absl::Status EditorManager::LoadProjectWithRom() {
   }
 
   ShowPostLoadSurface();
+
+  MaybeEmitZScreamRomLoadHints();
 
   // Apply workspace settings
   user_settings_.prefs().font_global_scale =
@@ -7267,6 +7280,41 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
 
   // Delegate all other editor switching to EditorActivator
   editor_activator_.SwitchToEditor(editor_type, force_visible, from_dialog);
+
+  switch (editor_type) {
+    case EditorType::kOverworld:
+      // Show at most one migration tip per editor transition. The next visit
+      // naturally advances to the more specific Tile16 tip.
+      if (!feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamOverworld)) {
+        feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamTile16);
+      }
+      break;
+    case EditorType::kDungeon:
+      feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamDungeon);
+      break;
+    case EditorType::kScreen:
+      feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamScreenMap);
+      break;
+    default:
+      break;
+  }
+}
+
+void EditorManager::MaybeEmitZScreamRomLoadHints() {
+  // Avoid a wall of onboarding toasts after load. Each subsequent load
+  // advances to the next unseen, context-relevant tip.
+  if (feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamWelcome)) {
+    return;
+  }
+  Rom* rom = GetCurrentRom();
+  if (rom && rom->is_loaded()) {
+    const auto version = zelda3::OverworldVersionHelper::GetVersion(*rom);
+    if (version != zelda3::OverworldVersion::kVanilla &&
+        feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamZso)) {
+      return;
+    }
+  }
+  feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamProjects);
 }
 
 void EditorManager::DismissEditorSelection() {
@@ -7426,6 +7474,20 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   editor_set->ApplyDependencies(deps);
 
   if (auto* settings_panel = editor_set->GetSettingsPanel()) {
+    // Settings edit the same active project that CaptureActiveProjectContext
+    // persists. Editing the session snapshot directly loses changes when the
+    // next capture replaces that snapshot with current_project_.
+    settings_panel->SetProjectContextProvider(
+        [this, session_id]() -> project::YazeProject* {
+          return IsCurrentProjectContextOwnedBySession(session_id)
+                     ? &current_project_
+                     : nullptr;
+        },
+        [this, session_id]() -> std::string {
+          return IsCurrentProjectContextOwnedBySession(session_id)
+                     ? GetCurrentRomHash()
+                     : std::string();
+        });
     settings_panel->SetOpenMinecartTracksCallback(
         [this, session_id]() -> absl::Status {
           if (!IsCurrentProjectContextOwnedBySession(session_id)) {

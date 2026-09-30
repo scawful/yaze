@@ -121,6 +121,32 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
 
   auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
   const size_t session_id = dependencies_.session_id;
+  minecart_track_editor_panel_->SetTrackEditCallback(
+      [this, editor_manager, session_id](const MinecartTrack& before,
+                                         const MinecartTrack& after,
+                                         bool move_cart) {
+        if (editor_manager &&
+            !editor_manager->IsCurrentProjectContextOwnedBySession(session_id))
+          return absl::FailedPreconditionError(
+              "Activate this dungeon project before editing tracks");
+        return ApplyMinecartTrackEdit(before, after, move_cart);
+      });
+  minecart_track_editor_panel_->SetRailPaletteCallback([this]() {
+    return object_selector_panel_ &&
+           object_selector_panel_->DrawMinecartPalette();
+  });
+  minecart_track_editor_panel_->SetCollisionStampCallback(
+      [this, editor_manager, session_id](
+          int room, const zelda3::CustomCollisionMap& expected,
+          const MinecartCollisionStamp& stamp) -> absl::Status {
+        if (editor_manager &&
+            !editor_manager->IsCurrentProjectContextOwnedBySession(
+                session_id)) {
+          return absl::FailedPreconditionError(
+              "Activate this dungeon project before editing rails");
+        }
+        return ApplyMinecartCollisionStamp(room, expected, stamp);
+      });
   minecart_track_editor_panel_->SetCollisionBatchApplyCallback(
       [this, editor_manager, session_id](
           const std::vector<zelda3::TrackCollisionResult>& preview,

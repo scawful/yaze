@@ -15,6 +15,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "util/hex.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
 
@@ -51,18 +52,15 @@ constexpr size_t kMenuPaletteMinEntries = 31;
 constexpr size_t kMenuPaletteMaxEntries = 32;
 
 // asar-style number: $HEX, 0xHEX or decimal. nullopt if it isn't one.
-std::optional<uint32_t> ParseAsmNumber(std::string_view s) {
+// absl::string_view and util::ParseHexString: Ubuntu 22.04's system Abseil
+// (20210324) has its own string_view and predates SimpleHexAtoi.
+std::optional<uint32_t> ParseAsmNumber(absl::string_view s) {
   s = absl::StripAsciiWhitespace(s);
   if (s.empty())
     return std::nullopt;
   uint64_t value = 0;
-  if (s.front() == '$') {
-    s.remove_prefix(1);
-    if (s.empty() || !absl::SimpleHexAtoi(s, &value))
-      return std::nullopt;
-  } else if (absl::StartsWithIgnoreCase(s, "0x")) {
-    s.remove_prefix(2);
-    if (s.empty() || !absl::SimpleHexAtoi(s, &value))
+  if (s.front() == '$' || absl::StartsWithIgnoreCase(s, "0x")) {
+    if (!util::ParseHexString(s, &value))
       return std::nullopt;
   } else if (!absl::SimpleAtoi(s, &value)) {
     return std::nullopt;
@@ -73,20 +71,20 @@ std::optional<uint32_t> ParseAsmNumber(std::string_view s) {
 }
 
 // One operand of a `dw`: hexto555($RRGGBB) or a raw 16-bit word.
-absl::StatusOr<uint16_t> ParseDwOperand(std::string_view op) {
+absl::StatusOr<uint16_t> ParseDwOperand(absl::string_view op) {
   op = absl::StripAsciiWhitespace(op);
   if (op.empty()) {
     return absl::InvalidArgumentError("empty dw operand (stray comma?)");
   }
-  constexpr std::string_view kMacro = "hexto555";
+  constexpr absl::string_view kMacro = "hexto555";
   if (absl::StartsWithIgnoreCase(op, kMacro)) {
-    std::string_view rest =
+    absl::string_view rest =
         absl::StripAsciiWhitespace(op.substr(kMacro.size()));
     if (rest.size() < 2 || rest.front() != '(' || rest.back() != ')') {
       return absl::InvalidArgumentError(absl::StrFormat(
           "expected hexto555($RRGGBB), got '%s'", std::string(op)));
     }
-    std::string_view inner = rest.substr(1, rest.size() - 2);
+    absl::string_view inner = rest.substr(1, rest.size() - 2);
     std::optional<uint32_t> rgb = ParseAsmNumber(inner);
     if (!rgb.has_value() || *rgb > 0xFFFFFF) {
       return absl::InvalidArgumentError(
@@ -109,13 +107,13 @@ absl::StatusOr<uint16_t> ParseDwOperand(std::string_view op) {
   return static_cast<uint16_t>(*word);
 }
 
-bool IsDwDirective(std::string_view line, std::string_view* operands) {
+bool IsDwDirective(absl::string_view line, absl::string_view* operands) {
   size_t end = line.find_first_of(" \t");
-  std::string_view token = line.substr(0, end);
+  absl::string_view token = line.substr(0, end);
   if (!absl::EqualsIgnoreCase(token, "dw"))
     return false;
   *operands =
-      end == std::string_view::npos ? std::string_view() : line.substr(end);
+      end == absl::string_view::npos ? absl::string_view() : line.substr(end);
   return true;
 }
 
@@ -129,7 +127,9 @@ uint16_t Hexto555(uint32_t rgb) {
 }
 
 absl::StatusOr<std::vector<uint16_t>> ParseMenuPaletteAsmText(
-    std::string_view text, std::string_view label) {
+    std::string_view text_in, std::string_view label_in) {
+  const absl::string_view text(text_in.data(), text_in.size());
+  const absl::string_view label(label_in.data(), label_in.size());
   std::vector<uint16_t> words;
   bool in_table = false;
   int label_line = 0;
@@ -137,10 +137,10 @@ absl::StatusOr<std::vector<uint16_t>> ParseMenuPaletteAsmText(
   int line_no = 0;
   bool done = false;
 
-  for (std::string_view raw : absl::StrSplit(text, '\n')) {
+  for (absl::string_view raw : absl::StrSplit(text, '\n')) {
     ++line_no;
     // Strip the `;` comment, then whitespace (this also drops a CRLF's \r).
-    std::string_view line =
+    absl::string_view line =
         absl::StripAsciiWhitespace(raw.substr(0, raw.find(';')));
     if (line.empty())
       continue;
@@ -151,8 +151,9 @@ absl::StatusOr<std::vector<uint16_t>> ParseMenuPaletteAsmText(
         continue;
       in_table = true;
       label_line = line_no;
-      std::string_view rest =
-          end == std::string_view::npos ? std::string_view() : line.substr(end);
+      absl::string_view rest = end == absl::string_view::npos
+                                   ? absl::string_view()
+                                   : line.substr(end);
       if (!rest.empty() && rest.front() == ':')
         rest.remove_prefix(1);
       line = absl::StripAsciiWhitespace(rest);
@@ -160,12 +161,12 @@ absl::StatusOr<std::vector<uint16_t>> ParseMenuPaletteAsmText(
         continue;  // `Menu_Palette:` alone on its line
     }
 
-    std::string_view operands;
+    absl::string_view operands;
     if (!IsDwDirective(line, &operands)) {
       break;  // first non-`dw` line ends the table
     }
     last_table_line = line_no;
-    for (std::string_view op : absl::StrSplit(operands, ',')) {
+    for (absl::string_view op : absl::StrSplit(operands, ',')) {
       absl::StatusOr<uint16_t> word = ParseDwOperand(op);
       if (!word.ok()) {
         return absl::InvalidArgumentError(
@@ -208,7 +209,7 @@ absl::StatusOr<std::array<gfx::SnesColor, 32>> ResolveMenuPaletteFromAsm(
 
   absl::StatusOr<std::vector<uint16_t>> words =
       ParseMenuPaletteAsmText(text, label);
-  constexpr std::string_view kSymbolPrefix = "Oracle_";
+  constexpr absl::string_view kSymbolPrefix = "Oracle_";
   if (!words.ok() && absl::IsNotFound(words.status()) &&
       absl::StartsWith(label, kSymbolPrefix)) {
     words = ParseMenuPaletteAsmText(text, label.substr(kSymbolPrefix.size()));

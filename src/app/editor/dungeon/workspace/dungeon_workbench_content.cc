@@ -1605,6 +1605,11 @@ void DungeonWorkbenchContent::OpenTool(WorkbenchTool tool) {
     return;
   }
   active_tool_ = tool;
+  if (minecart_track_panel_) {
+    minecart_track_panel_->set_collision_stamping(false);
+    minecart_track_panel_->set_canvas_editing(tool ==
+                                              WorkbenchTool::MinecartTracks);
+  }
 
   if (ResolveDungeonWorkbenchToolRequestTarget(IsStandaloneToolOpen(tool)) ==
       DungeonWorkbenchToolRequestTarget::kStandaloneWindow) {

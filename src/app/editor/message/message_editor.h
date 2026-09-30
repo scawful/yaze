@@ -3,8 +3,11 @@
 
 #include <array>
 #include <cstdint>
+#include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -25,6 +28,7 @@ namespace editor {
 
 class MessageEditorTestPeer;
 class MessageEditorSaveTestPeer;
+class MessageEditorPublishGuardTestPeer;
 
 constexpr int kGfxFont = 0x70000;  // 2bpp format
 constexpr int kCharactersWidth = 0x74ADF;
@@ -60,8 +64,10 @@ class MessageEditor : public Editor {
   void DrawSpecialCharacters();
   void DrawExpandedMessageSettings();
   void DrawDictionary();
+  void DrawMessageTools();
   void DrawMessagePreview();
   void UpdateCurrentMessageFromText(const std::string& text);
+  void ContributeStatus(StatusBar* status_bar) override;
 
   // Jump/navigation helper used by panels (e.g. Story Event Graph).
   // Accepts vanilla IDs (0..N) and expanded IDs (expanded_base_id..).
@@ -73,6 +79,7 @@ class MessageEditor : public Editor {
   void CommitSaveTransaction() override;
   absl::Status SaveExpandedMessages();
   absl::Status LoadExpandedMessagesFromRom();
+  absl::Status LoadCanonicalExpandedSource();
   int CalculateExpandedBankUsage() const;
 
   absl::Status Cut() override;
@@ -87,7 +94,6 @@ class MessageEditor : public Editor {
   }
   bool CanFind() const override { return true; }
   void Delete();
-  void DrawFindReplaceWindow();
   void SelectAll();
 
   void set_rom(Rom* rom) { rom_ = rom; }
@@ -96,6 +102,7 @@ class MessageEditor : public Editor {
  private:
   friend class MessageEditorTestPeer;
   friend class MessageEditorSaveTestPeer;
+  friend class MessageEditorPublishGuardTestPeer;
 
   enum class SaveDomain {
     kFontWidths,
@@ -140,10 +147,98 @@ class MessageEditor : public Editor {
 
   bool case_sensitive_ = false;
   bool match_whole_word_ = false;
-  std::string search_text_ = "";
-  std::string replace_text_ = "";
-  std::string replace_status_ = "";
+  std::string search_text_;
+  std::string replace_text_;
+  std::string replace_status_;
   bool replace_status_error_ = false;
+  std::string list_filter_;
+  std::string command_filter_;
+  std::string symbol_filter_;
+  std::string dictionary_filter_;
+  std::vector<std::string> baseline_messages_;
+  std::string reference_view_text_;
+  bool show_reference_ = true;
+  bool source_sync_ready_ = false;
+  bool source_sync_changed_ = false;
+  std::string source_sync_sha_before_;
+  std::string source_sync_draft_sha_;
+  std::string source_loaded_canonical_sha_;
+  std::string source_sync_summary_;
+  std::string source_sync_status_;
+  bool source_sync_status_error_ = false;
+  int list_bank_filter_ = 0;
+  bool find_panel_open_ = false;
+  bool find_focus_search_ = false;
+  bool find_has_match_ = false;
+  size_t find_match_start_ = 0;
+  bool scroll_list_to_selection_ = false;
+  int editor_cursor_ = 0;
+  int pending_selection_start_ = -1;
+  int pending_selection_end_ = -1;
+  float editor_pane_height_ = 180.0f;
+  uint8_t command_parameter_ = 0;
+
+  struct MessageRow {
+    int display_id = 0;
+    bool expanded = false;
+    uint32_t address = 0;
+  };
+
+  std::vector<MessageRow> CollectMessageRows(bool apply_filter) const;
+  int CurrentDisplayId() const;
+  std::string_view ContentsForDisplayId(int display_id) const;
+  void DrawFindBar();
+  void DrawMessageHeader();
+  void DrawMessageStructure();
+  void DrawTokenInserter(const std::vector<TextElement>& elements,
+                         std::string& filter, bool use_parameter);
+  void InsertTokenAtCursor(const std::string& token);
+  void SelectAdjacentMessage(int delta);
+  void NoteLoadedMessages();
+  void AcceptCurrentAsReference();
+  std::string CurrentReferenceText() const;
+  void DrawDialogueTextPane(float height);
+  bool HasMessageSourceLayout() const;
+  bool ExpandedEditsAreSourceOwned() const;
+  std::pair<int, int> ExpandedInspectionRange() const;
+  std::string MessageSourceIncomingPath() const;
+  void InvalidateSourcePreview();
+  absl::StatusOr<std::filesystem::path> ResolveCanonicalBundlePath() const;
+  absl::StatusOr<std::string> HashFileSha256(
+      const std::filesystem::path& path) const;
+  bool IsCanonicalBundlePath(const std::string& path) const;
+  struct ExpandedDraftSnapshot {
+    std::vector<MessageData> messages;
+    std::vector<MessageData> vanilla_messages;
+    std::vector<std::string> parsed_messages;
+    int base_id = 0;
+    std::string path;
+    bool expanded_dirty = false;
+    bool vanilla_dirty = false;
+    std::string loaded_canonical_sha;
+    bool preview_ready = false;
+    bool preview_changed = false;
+    std::string preview_sha_before;
+    std::string preview_draft_sha;
+    std::string preview_summary;
+    std::string preview_status;
+    bool preview_status_error = false;
+  };
+  ExpandedDraftSnapshot CaptureExpandedDraft() const;
+  void RestoreExpandedDraft(const ExpandedDraftSnapshot& snapshot);
+  absl::Status LoadExpandedMessagesFromBin(const std::string& path);
+  void PreviewMessageSource();
+  void PublishMessageSource();
+  struct MessageSourcePublishButtons {
+    bool preview_disabled = false;
+    bool publish_disabled = false;
+  };
+  MessageSourcePublishButtons DrawMessageSourcePublishButtons();
+  void DrawMessageSourceSync();
+  bool AdvanceFind(bool forward);
+  bool ActivateFindMatch(const MessageRow& row, size_t offset, bool wrapped);
+  void OptimizeCurrentMessage();
+  void HandleMessageShortcuts();
 
   // Replace helpers
   int ReplaceCurrentMatch();
@@ -179,7 +274,6 @@ class MessageEditor : public Editor {
 
   // Undo/Redo - delegates to UndoManager (inherited from Editor)
   std::optional<MessageSnapshot> pending_undo_before_;
-  bool show_find_replace_ = false;
   void PushUndoSnapshot();
   void FinalizePendingUndo();
   void ApplySnapshot(const MessageSnapshot& snapshot);

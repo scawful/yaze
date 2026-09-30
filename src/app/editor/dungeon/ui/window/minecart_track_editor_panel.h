@@ -15,6 +15,7 @@
 #include "absl/status/statusor.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/minecart_track_source.h"
+#include "app/editor/dungeon/ui/minecart/minecart_collision_tool.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
@@ -67,10 +68,47 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool HasPendingProjectDraftChanges() const;
   absl::Status PrepareProjectSave();
 
-  // Coordinate picking from dungeon canvas
-  // When picking mode is active, the next canvas click will set the coordinates
-  // for the selected track slot
-  void SetPickedCoordinates(int room_id, uint16_t camera_x, uint16_t camera_y);
+  using TrackEditCallback = std::function<absl::Status(
+      const MinecartTrack&, const MinecartTrack&, bool)>;
+  void SetTrackEditCallback(TrackEditCallback callback) {
+    track_edit_callback_ = std::move(callback);
+  }
+  absl::Status MoveCartStart(const MinecartTrack& before,
+                             const MinecartTrack& after);
+  // Undo replay only; validates source generation and expected record first.
+  absl::Status RestoreTrackDraft(uint64_t generation,
+                                 const MinecartTrack& expected,
+                                 const MinecartTrack& replacement);
+  uint64_t track_generation() const { return track_generation_; }
+  void MarkPairedTrackDraft() { paired_track_draft_ = HasUnpublishedChanges(); }
+  bool HasPairedTrackDraft() const { return paired_track_draft_; }
+  bool canvas_editing() const { return canvas_editing_; }
+  void set_canvas_editing(bool enabled);
+  int selected_track() const { return selected_track_; }
+  void SelectTrack(int id) { selected_track_ = id; }
+  void SetActiveRoom(int room) { active_room_ = room; }
+  void CancelPick() { CancelCoordinatePicking(); }
+
+  void SetRailPaletteCallback(std::function<bool()> draw) {
+    draw_rail_palette_ = std::move(draw);
+  }
+  void SetCollisionStampCallback(MinecartCollisionApply apply) {
+    apply_collision_stamp_ = std::move(apply);
+  }
+  const MinecartCollisionApply& collision_stamp_callback() const {
+    return apply_collision_stamp_;
+  }
+  bool collision_stamping() const { return collision_stamping_; }
+  void set_collision_stamping(bool enabled) {
+    collision_stamping_ = enabled;
+    if (enabled)
+      set_canvas_editing(false);
+  }
+  uint8_t collision_stamp_value() const { return collision_stamp_value_; }
+  int collision_stamp_size() const { return collision_stamp_large_ ? 2 : 1; }
+  void DrawRailTools();
+
+  // Advanced Pick uses the same paired move operation as marker dragging.
   bool IsPickingCoordinates() const { return picking_mode_; }
   int GetPickingTrackIndex() const { return picking_track_index_; }
   const std::vector<MinecartTrack>& GetTracks();
@@ -103,6 +141,11 @@ class MinecartTrackEditorPanel : public WindowContent {
     project_draft_changed_callback_ = {};
     project_save_callback_ = {};
     collision_batch_apply_callback_ = {};
+    track_edit_callback_ = {};
+    draw_rail_palette_ = {};
+    apply_collision_stamp_ = {};
+    collision_stamping_ = false;
+    canvas_editing_ = false;
     rooms_ = nullptr;
     project_ = nullptr;
     picking_mode_ = false;
@@ -153,6 +196,17 @@ class MinecartTrackEditorPanel : public WindowContent {
     std::vector<int> route_slots;
   };
 
+  std::function<bool()> draw_rail_palette_;
+  MinecartCollisionApply apply_collision_stamp_;
+  bool collision_stamping_ = false;
+  bool collision_stamp_large_ = true;
+  uint8_t collision_stamp_value_ = 0xB1;
+  TrackEditCallback track_edit_callback_;
+  uint64_t track_generation_ = 0;
+  int selected_track_ = -1;
+  int active_room_ = -1;
+  bool canvas_editing_ = false;
+  bool paired_track_draft_ = false;
   std::vector<MinecartTrack> tracks_;
   std::vector<MinecartTrack> loaded_tracks_;
   std::optional<MinecartTrackSourceDocument> source_document_;
@@ -179,11 +233,6 @@ class MinecartTrackEditorPanel : public WindowContent {
   // Coordinate picking state
   bool picking_mode_ = false;
   int picking_track_index_ = -1;
-
-  // Last picked coordinates (for display)
-  uint16_t last_picked_x_ = 0;
-  uint16_t last_picked_y_ = 0;
-  bool has_picked_coords_ = false;
 
   RoomNavigationCallback room_navigation_callback_;
   ProjectChangedCallback project_changed_callback_;

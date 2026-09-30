@@ -1,3 +1,4 @@
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "dungeon_canvas_viewer.h"
 
 #include <algorithm>
@@ -210,6 +211,62 @@ void DungeonCanvasViewer::HandleRoomCanvasDropTargets(zelda3::Room& room,
   }
 }
 
+bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
+                                             zelda3::Room& room, int room_id) {
+  if (!minecart_track_panel_) {
+    minecart_canvas_tool_.Cancel();
+    return false;
+  }
+  auto* panel = minecart_track_panel_;
+  if ((panel->canvas_editing() || panel->collision_stamping()) &&
+      minecart_owned_input_ && object_interaction_enabled_ &&
+      !object_interaction_.mode_manager().IsSelectMode()) {
+    // Choosing another placement/paint tool ends cart editing immediately.
+    panel->set_canvas_editing(false);
+    panel->set_collision_stamping(false);
+  }
+  const bool owns_input =
+      (panel->canvas_editing() || panel->collision_stamping()) &&
+      object_interaction_enabled_;
+  if (owns_input && !minecart_owned_input_) {
+    object_interaction_.HandleMouseRelease();
+    object_interaction_.CancelPlacement();
+    object_interaction_.mode_manager().CancelCurrentMode();
+    object_interaction_.ClearSelection();
+    object_interaction_.entity_coordinator().ClearAllEntitySelections();
+  }
+  minecart_owned_input_ = owns_input;
+  if (object_interaction_enabled_)
+    panel->SetActiveRoom(room_id);
+  if (panel->collision_stamping() && object_interaction_enabled_) {
+    minecart_canvas_tool_.Cancel();
+    if (room_canvas_shortcut_focus_ && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+      panel->set_collision_stamping(false);
+      return true;
+    }
+    show_custom_collision_overlay_ = true;
+    minecart_collision_tool_.Draw(
+        rt, room.custom_collision(), room_id, panel->collision_stamp_value(),
+        panel->collision_stamp_size(), panel->collision_stamp_callback());
+    return true;
+  }
+  const MinecartCanvasBinding binding{
+      .tracks = panel->GetTracks(),
+      .selected = panel->selected_track(),
+      .picking = panel->GetPickingTrackIndex(),
+      .revision = panel->track_generation(),
+      .enabled = panel->canvas_editing(),
+      .select = [panel](int id) { panel->SelectTrack(id); },
+      .move =
+          [panel](const MinecartTrack& before, const MinecartTrack& after) {
+            return panel->MoveCartStart(before, after);
+          },
+      .cancel_pick = [panel]() { panel->CancelPick(); }};
+  return minecart_canvas_tool_.Draw(rt, room, room_id,
+                                    object_interaction_enabled_,
+                                    room_canvas_shortcut_focus_, binding);
+}
+
 void DungeonCanvasViewer::DrawRoomCanvasContent(
     const gui::CanvasRuntime& canvas_rt, zelda3::Room& room, int room_id) {
   PrepareRoomStateForCanvas(room, room_id);
@@ -225,7 +282,8 @@ void DungeonCanvasViewer::DrawRoomCanvasContent(
 
   RenderEntityOverlay(canvas_rt, room);
 
-  if (object_interaction_enabled_) {
+  const bool tracks_own_input = DrawMinecartCanvas(canvas_rt, room, room_id);
+  if (object_interaction_enabled_ && !tracks_own_input) {
     object_interaction_.HandleCanvasMouseInput();
     object_interaction_.CheckForObjectSelection();
     object_interaction_.DrawSelectionHighlights();
@@ -257,7 +315,9 @@ void DungeonCanvasViewer::DrawRoomCanvasContent(
     HandleTouchLongPressContextMenu(canvas_rt, room);
   }
 
-  HandleRoomCanvasDropTargets(room, room_id);
+  if (object_interaction_enabled_ && !tracks_own_input) {
+    HandleRoomCanvasDropTargets(room, room_id);
+  }
 }
 
 }  // namespace yaze::editor

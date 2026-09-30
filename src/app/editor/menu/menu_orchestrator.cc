@@ -15,6 +15,7 @@
 #include "app/editor/menu/menu_shortcut_labels.h"
 #include "app/editor/menu/recent_files_menu_model.h"
 #include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/shell/feedback/feature_hint_manager.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/commands/shortcut_manager.h"
@@ -194,8 +195,14 @@ void MenuOrchestrator::AddFileMenuItems() {
           [this]() { return CanSaveRom(); })
       .Item(
           "Save Scope...", ICON_MD_TUNE,
-          [this]() { popup_manager_.Show(PopupID::kSaveScope); }, nullptr,
-          [this]() { return CanSaveRom(); })
+          [this]() {
+            popup_manager_.Show(PopupID::kSaveScope);
+            if (editor_manager_) {
+              editor_manager_->feature_hint_manager()->MaybeShow(
+                  FeatureHintId::kZScreamSave);
+            }
+          },
+          nullptr, [this]() { return CanSaveRom(); })
       .Item(
           "Revert to Saved", ICON_MD_RESTORE, [this]() { OnRevertRom(); },
           nullptr,
@@ -1090,6 +1097,8 @@ void MenuOrchestrator::AddHelpMenuItems() {
   menu_builder_
       .Item("Getting Started", ICON_MD_PLAY_ARROW,
             [this]() { OnShowGettingStarted(); })
+      .Item("Coming from ZScream", ICON_MD_COMPARE_ARROWS,
+            [this]() { OnShowComingFromZScream(); })
       .Item(
           "Keyboard Shortcuts", ICON_MD_KEYBOARD,
           [this]() {
@@ -1733,6 +1742,10 @@ void MenuOrchestrator::OnShowAbout() {
 
 void MenuOrchestrator::OnShowGettingStarted() {
   popup_manager_.Show(PopupID::kGettingStarted);
+}
+
+void MenuOrchestrator::OnShowComingFromZScream() {
+  popup_manager_.Show(PopupID::kComingFromZScream);
 }
 
 void MenuOrchestrator::OnShowBuildInstructions() {

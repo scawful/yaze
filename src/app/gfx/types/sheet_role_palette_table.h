@@ -28,7 +28,8 @@ struct SheetRolePaletteBinding {
 // Map a blockset slot (0-7) to a role. Mirrors tile16_editor.cc.
 SheetRole RoleForBlocksetSlot(int slot_index);
 
-// Map a roomset slot (0-3) to a role. Roomsets override blockset slots 4-7.
+// Map a roomset entry (0-3) to a role. Loaders place those entries in
+// background slots 3-6. Slot 7 remains the animated sheet.
 SheetRole RoleForRoomsetSlot(int slot_index);
 
 // Map a spriteset slot (0-3) to a role. All currently resolve to kSpriteAux1.

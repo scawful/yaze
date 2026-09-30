@@ -1,4 +1,5 @@
 #include "dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 
 #include <algorithm>
 #include <vector>
@@ -310,6 +311,7 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
                                                 int room_id) {
   // Refresh can replace Room values in place while all backing pointers stay
   // identical. Discard presentation stamps before those replacements occur.
+  minecart_canvas_tool_.Cancel();
   ResetRoomCompositeOutputs();
   connection_editor_state_ = {};
   room_transfer_state_ = {};
@@ -377,6 +379,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   SyncCanvasConfigFromViewerState();
   zelda3::Room* active_room = PrepareActiveRoomForCanvasFrame(room_id);
   DrawCompactLayerToggles(room_id);
+  if (minecart_track_panel_ && object_interaction_enabled_) {
+    bool tracks = minecart_track_panel_->canvas_editing();
+    if (ImGui::Checkbox("Tracks##canvas_tracks", &tracks)) {
+      object_interaction_.HandleMouseRelease();
+      object_interaction_.CancelPlacement();
+      object_interaction_.mode_manager().CancelCurrentMode();
+      minecart_track_panel_->set_canvas_editing(tracks);
+      minecart_canvas_tool_.Cancel();
+    }
+  }
   ImGui::EndGroup();
 
   // BeginCanvas renders context-menu callbacks before the room draw pass. Bind

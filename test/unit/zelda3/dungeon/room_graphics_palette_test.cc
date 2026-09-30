@@ -7,6 +7,7 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/types/sheet_role_palette_table.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -495,6 +496,15 @@ TEST(RoomGraphicsPaletteTest,
   EXPECT_EQ(blocks[5], 82);
   EXPECT_EQ(blocks[6], 83);
   EXPECT_EQ(blocks[7], 17);
+  // Group previews must use the role of the slot this loader wrote. Entry 1
+  // is zero here, so the main sheet stays in slot 4; its preview role is
+  // still that slot, not the animated sheet in slot 7.
+  EXPECT_EQ(gfx::RoleForRoomsetSlot(0), gfx::RoleForBlocksetSlot(3));
+  EXPECT_EQ(gfx::RoleForRoomsetSlot(1), gfx::RoleForBlocksetSlot(4));
+  EXPECT_EQ(gfx::RoleForRoomsetSlot(2), gfx::RoleForBlocksetSlot(5));
+  EXPECT_EQ(gfx::RoleForRoomsetSlot(3), gfx::RoleForBlocksetSlot(6));
+  EXPECT_EQ(gfx::RoleForRoomsetSlot(1), gfx::SheetRole::kOverworldAreaAux1);
+  EXPECT_EQ(gfx::RoleForRoomsetSlot(3), gfx::SheetRole::kOverworldAreaAux2);
 }
 
 TEST(RoomGraphicsPaletteTest,

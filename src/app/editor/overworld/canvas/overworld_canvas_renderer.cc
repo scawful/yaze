@@ -178,7 +178,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
 
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---
     if (editor_->current_mode == EditingMode::MOUSE &&
-        editor_->entity_renderer_) {
+        editor_->TryPlaceArmedItem()) {
+      // The click placed the item chosen from Insert Item.
+    } else if (editor_->current_mode == EditingMode::MOUSE &&
+               editor_->entity_renderer_) {
       auto hovered_entity = editor_->entity_renderer_->hovered_entity();
 
       // 1. Initiate drag
@@ -256,6 +259,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // End canvas frame - draws grid/overlay based on frame_opts
   gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
   ImGui::EndChild();
+  editor_->DrawItemInsertPopup();
 }
 
 // =============================================================================
@@ -512,7 +516,7 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   const gui::AdaptiveSheetLayout selector_layout =
       gui::ResolveAdaptiveSheetLayout(
           selector_available_width, 16 * kTile16SelectorColumns, 16 * tile_rows,
-          tile16_scale_mode_, 0.35f, 4.0f,
+          tile16_scale_mode_, 0.25f, 4.0f,
           gui::TileSelectorWidget::CurrentScrollbarSize());
   editor_->blockset_selector_->SetDisplayScale(selector_layout.display_scale);
   ImGui::SameLine();

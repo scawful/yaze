@@ -151,6 +151,14 @@ UICoordinator::UICoordinator(
     }
   });
 
+  welcome_screen_->SetComingFromZScreamCallback([this]() {
+    popup_manager_.Show(PopupID::kComingFromZScream);
+    if (editor_manager_) {
+      editor_manager_->feature_hint_manager()->Dismiss(
+          FeatureHintId::kZScreamWelcome);
+    }
+  });
+
   welcome_screen_->SetOpenPrototypeResearchCallback([this]() {
     if (!editor_manager_) {
       return;

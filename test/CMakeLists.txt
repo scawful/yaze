@@ -273,6 +273,8 @@ if(YAZE_BUILD_TESTS)
     unit/core/oracle_rom_fixture_test.cc
     unit/core/terrain_catalog_test.cc
     unit/core/project_paths_test.cc
+    unit/core/project_file_passthrough_test.cc
+    unit/core/project_atlas_settings_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_bundle_path_test.cc
     unit/core/source_artifact_publisher_test.cc
@@ -302,6 +304,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_room_destination_high_byte_test.cc
     unit/cli/dungeon_room_census_commands_test.cc
     unit/cli/dungeon_graph_links_test.cc
+    unit/cli/atlas_render_commands_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
     unit/cli/dungeon_minecart_audit_test.cc
@@ -338,6 +341,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/usdasm_palette_loading_test.cc
     unit/gfx/bpp_conversion_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
+    unit/cli/graphics_context_command_test.cc
     unit/gfx/arena_retirement_test.cc
     unit/palette_json_test.cc
     unit/snes_color_test.cc
@@ -368,7 +372,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/user_settings_test_isolation_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
+    unit/editor/message/message_list_query_test.cc
     unit/editor/message/message_expanded_write_test.cc
+    unit/editor/message/message_source_publish_guard_test.cc
     unit/editor/message/message_source_sync_test.cc
     unit/editor/oracle_validation_view_model_test.cc
     unit/editor/hack_workflow_backend_factory_test.cc
@@ -417,6 +423,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dashboard_panel_test.cc
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/popup_manager_test.cc
+    unit/editor/authoring_save_workflow_test.cc
     unit/editor/cutscene_camera_panel_test.cc
     unit/editor/collision_source_pairing_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
@@ -474,6 +481,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/minecart_track_source_test.cc
     unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/toast_dedup_test.cc
+    unit/editor/feature_hint_manager_test.cc
     unit/editor/tile_painting_manager_test.cc
     unit/zelda3/overworld_graphics_preview_test.cc
     unit/editor/overworld_undo_actions_test.cc
@@ -540,6 +548,9 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_editor_system_test.cc
     unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
     unit/zelda3/dungeon/room_census_test.cc
+    unit/zelda3/atlas/atlas_annotations_test.cc
+    unit/zelda3/atlas/dungeon_atlas_synthetic_test.cc
+    unit/zelda3/atlas/dungeon_atlas_oracle_golden_test.cc
     unit/zelda3/dungeon/room_census_oracle_rom_test.cc
     unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
@@ -835,7 +846,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_activator_test.cc
     unit/editor/story_event_graph_navigation_test.cc
+    unit/editor/message/message_list_query_test.cc
     unit/editor/message/message_expanded_write_test.cc
+    unit/editor/message/message_source_publish_guard_test.cc
     unit/editor/message/message_source_sync_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/background_command_task_test.cc

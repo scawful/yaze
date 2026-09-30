@@ -380,7 +380,7 @@ void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
     }
   }
 
-  if (minecart_track_panel_) {
+  if (minecart_track_panel_ && !minecart_track_panel_->canvas_editing()) {
     const bool show_tracks =
         show_minecart_tracks_ || minecart_track_panel_->IsPickingCoordinates();
     const auto& tracks = minecart_track_panel_->GetTracks();
@@ -394,10 +394,8 @@ void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
               : -1;
 
       for (const auto& track : tracks) {
-        auto local = dungeon_coords::CameraToLocalCoords(
-            static_cast<uint16_t>(track.start_x),
-            static_cast<uint16_t>(track.start_y));
-        if (local.room_id != room_id) {
+        const auto local = MinecartLocalPosition(track);
+        if (track.room_id != room_id || !local) {
           continue;
         }
 
@@ -406,8 +404,8 @@ void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
           marker_color = theme.status_warning;
         }
 
-        const float px = static_cast<float>(local.local_pixel_x) * scale;
-        const float py = static_cast<float>(local.local_pixel_y) * scale;
+        const float px = static_cast<float>(local->first + 8) * scale;
+        const float py = static_cast<float>(local->second + 8) * scale;
         ImVec2 center(canvas_pos.x + px, canvas_pos.y + py);
         const float radius = 6.0f * scale;
 

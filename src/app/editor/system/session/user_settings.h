@@ -59,6 +59,11 @@ class UserSettings {
     bool restore_last_session = true;
     bool prefer_hmagic_sprite_names = true;
 
+    // One-shot feature tips (FeatureHintManager). Dismissed ids persist so
+    // ZScream/HM migrant tips do not re-fire after the user has seen them.
+    bool feature_hints_enabled = true;
+    std::unordered_set<std::string> dismissed_feature_hints;
+
     // Welcome screen animation preferences. Match the defaults hard-coded in
     // WelcomeScreen so first-run behavior is unchanged.
     float welcome_triforce_alpha = 1.0f;
@@ -209,10 +214,12 @@ class UserSettings {
   // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 26;
-  // Revisions through 21 changed whole-workspace arrangements. Later revisions
-  // are targeted preference migrations and must preserve the live ImGui layout.
-  static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 21;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 27;
+  // Revisions through 21, and 27, changed whole-workspace arrangements.
+  // Revision 27 rebuilds once so the overworld map keeps its height: Tile16
+  // and area graphics share the right column, and nothing starts on the bottom.
+  // Revisions 22-26 are targeted preference migrations.
+  static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 27;
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }

@@ -317,6 +317,60 @@ void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
   }
 }
 
+bool DungeonObjectSelector::DrawMinecartPalette() {
+  SynchronizeCustomObjectGeneration();
+  if (!core::FeatureFlags::get().kEnableCustomObjects) {
+    ImGui::TextDisabled("This project has no custom rail assets.");
+    return false;
+  }
+  const auto layout = ResolveDungeonObjectSelectorGridLayout(
+      ImGui::GetContentRegionAvail().x, 64.0f, ImGui::GetStyle().ItemSpacing.x);
+  bool chosen = false;
+  int column = 0;
+  ImGui::PushID("MinecartRailPalette");
+  for (int subtype = 0; subtype < 16; ++subtype) {
+    if (!IsMinecartGraphicsRuntimeSlot(0x31, subtype))
+      continue;
+    if (column)
+      ImGui::SameLine();
+    const auto status = GetCustomObjectAssetStatus(0x31, subtype);
+    const auto name = GetDungeonCustomObjectSlotName(0x31, subtype);
+    const auto label = absl::StrFormat("##Rail%d", subtype);
+    ImGui::BeginDisabled(!status.ok());
+    if (ImGui::Selectable(label.c_str(),
+                          object_loaded_ && preview_object_.id_ == 0x31 &&
+                              preview_object_.size_ == subtype,
+                          0, ImVec2(layout.item_size, layout.item_size))) {
+      SelectObject(0x31, subtype);
+      chosen = true;
+    }
+    ImGui::EndDisabled();
+    const auto top = ImGui::GetItemRectMin();
+    auto obj = MakePreviewObject(0x31);
+    obj.size_ = subtype;
+    const bool rendered =
+        status.ok() && ImGui::IsItemVisible() &&
+        DrawObjectPreview(obj, ImVec2(top.x + 3, top.y + 3),
+                          ImVec2(layout.item_size - 6, layout.item_size - 6));
+    if (!rendered) {
+      ImGui::GetWindowDrawList()->AddText(
+          top, ImGui::GetColorU32(ImGuiCol_TextDisabled),
+          status.ok() ? "Preview..." : "Missing");
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::BeginTooltip();
+      ImGui::TextUnformatted(name.c_str());
+      ImGui::TextUnformatted(status.ok()
+                                 ? "Click, then place on the room canvas."
+                                 : std::string(status.message()).c_str());
+      ImGui::EndTooltip();
+    }
+    column = (column + 1) % layout.columns;
+  }
+  ImGui::PopID();
+  return chosen;
+}
+
 void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
   const auto& theme = AgentUI::GetTheme();
 

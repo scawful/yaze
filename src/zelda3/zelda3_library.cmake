@@ -1,5 +1,10 @@
 set(
   YAZE_APP_ZELDA3_SRC
+  zelda3/atlas/atlas_annotations.cc
+  zelda3/atlas/atlas_defaults.cc
+  zelda3/atlas/atlas_json.cc
+  zelda3/atlas/dungeon_atlas.cc
+  zelda3/atlas/dungeon_door_edges.cc
   zelda3/common.cc
   zelda3/cutscene/cutscene_shot.cc
   zelda3/dungeon/chest_edit.cc
@@ -46,6 +51,7 @@ set(
   zelda3/formats/offsets.cc
   zelda3/game_data.cc
   zelda3/gfx_sheet_inventory.cc
+  zelda3/graphics/resolved_graphics_context.cc
   zelda3/gfx_sheet_png.cc
   zelda3/gfx_sheet_storage.cc
   zelda3/graphics_sheet_store.cc

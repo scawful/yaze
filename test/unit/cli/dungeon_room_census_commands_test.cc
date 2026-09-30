@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <set>
 #include <string>
 #include <vector>
@@ -102,6 +103,81 @@ TEST_F(DungeonRoomCensusCommandTest, StatusFilterAndTable) {
   EXPECT_THAT(table, HasSubstr("0x93   free"));
 
   EXPECT_FALSE(handler.Run({"--status=bogus"}, &rom_, &output).ok());
+}
+
+// Regression (2026-09-27): `--project <.yaze>` read the registry from the
+// project's code_folder only. Oracle's .yaze says code_folder=Core while the
+// registry is <repo>/Docs/Dev/Planning/, so the census silently derived
+// owners from entrances (different counts, exit 0). The project file must go
+// through YazeProject::Open's fallbacks, and a missing registry is an error.
+class DungeonRoomCensusProjectTest : public DungeonRoomCensusCommandTest {
+ protected:
+  void SetUp() override {
+    DungeonRoomCensusCommandTest::SetUp();
+    root_ = yaze::test::UniqueTempPath("room_census_project_file");
+    fs::create_directories(root_ / "Core");
+  }
+  void TearDown() override {
+    std::error_code ec;
+    fs::remove_all(root_, ec);
+  }
+  fs::path WriteProjectFile() {
+    const fs::path path = root_ / "Hack.yaze";
+    std::ofstream(path) << "[project]\nname=Hack\n\n[files]\n"
+                           "code_folder=Core\n";
+    return path;
+  }
+  void AddRegistry() {
+    fs::create_directories(root_ / "Docs" / "Dev" / "Planning");
+    fs::copy_file(fs::path(YAZE_TEST_FIXTURE_DIR) / "room_census" /
+                      "oracle_dungeon_owners.json",
+                  root_ / "Docs" / "Dev" / "Planning" / "dungeons.json");
+  }
+  fs::path root_;
+};
+
+TEST_F(DungeonRoomCensusProjectTest, ProjectFileFindsRegistryBesideIt) {
+  AddRegistry();
+  const fs::path project = WriteProjectFile();
+  handlers::DungeonRoomCensusCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--project=" + project.string(), "--format=json"}, &rom_, &output);
+  ASSERT_TRUE(status.ok()) << status;
+  const auto json = Unwrap(nlohmann::json::parse(output));
+  EXPECT_EQ(json.at("owners_source"), "project");
+  bool has_d1 = false;
+  for (const auto& owner : json.at("owners")) {
+    has_d1 |= owner.at("id") == "D1" && owner.at("from_project") == true;
+  }
+  EXPECT_TRUE(has_d1);
+}
+
+TEST_F(DungeonRoomCensusProjectTest, ProjectFileWithoutRegistryFails) {
+  const fs::path project = WriteProjectFile();
+  handlers::DungeonRoomCensusCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--project=" + project.string(), "--format=json"}, &rom_, &output);
+  ASSERT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("no dungeon registry found"));
+}
+
+TEST_F(DungeonRoomCensusProjectTest, ProjectFolderWithoutRegistryFails) {
+  handlers::DungeonRoomCensusCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--project=" + root_.string(), "--format=json"}, &rom_, &output);
+  ASSERT_FALSE(status.ok());
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("no dungeon registry found"));
+
+  EXPECT_FALSE(handler
+                   .Run({"--project=" + (root_ / "missing.yaze").string()},
+                        &rom_, &output)
+                   .ok());
 }
 
 // Oracle copy + the fixture dungeons.json as a project folder: the CLI gives

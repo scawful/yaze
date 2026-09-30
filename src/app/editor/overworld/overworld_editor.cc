@@ -1,5 +1,6 @@
 // Related header
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/graphics/resolved_graphics_context_view.h"
 #include "app/editor/overworld/overworld_map_status.h"
 #include "rom/transaction.h"
 #include "util/i18n/tr.h"
@@ -249,6 +250,9 @@ void OverworldEditor::Initialize() {
   toolbar_->on_set_entity_mode = [this](EntityEditMode mode) {
     SetEntityEditMode(mode);
   };
+  toolbar_->on_insert_item = [this]() {
+    RequestItemInsertPopup(std::nullopt);
+  };
   toolbar_->on_open_map_properties = [this]() {
     OpenMapPropertiesWindow();
   };
@@ -421,6 +425,14 @@ void OverworldEditor::InitTilePaintingManager() {
   };
   callbacks.request_tile16_selection = [this](int tile_id) {
     this->RequestTile16Selection(tile_id);
+  };
+  callbacks.select_map_for_editing = [this](int map_id) {
+    if (map_id == current_map_) {
+      return;
+    }
+    // Respects the pin and refreshes the Tile16 selector palette for the
+    // newly selected map. A same-map stroke does not rebuild the atlas.
+    SelectMapForEditing(map_id, true);
   };
 
   tile_painting_ = std::make_unique<TilePaintingManager>(deps, callbacks);
@@ -1172,6 +1184,32 @@ absl::Status OverworldEditor::UpdateGfxGroupEditor() {
 // DrawV3Settings - now in OverworldCanvasRenderer
 
 // DrawMapProperties - now in OverworldCanvasRenderer
+
+absl::Status OverworldEditor::BeginSaveTransaction() {
+  if (map_tile_save_transaction_open_) {
+    return absl::FailedPreconditionError(
+        "Overworld save transaction is already active");
+  }
+  overworld_.RollbackSavedMapTiles();
+  map_tile_save_transaction_open_ = true;
+  return absl::OkStatus();
+}
+
+void OverworldEditor::RollbackSaveTransaction() {
+  if (!map_tile_save_transaction_open_) {
+    return;
+  }
+  overworld_.RollbackSavedMapTiles();
+  map_tile_save_transaction_open_ = false;
+}
+
+void OverworldEditor::CommitSaveTransaction() {
+  if (!map_tile_save_transaction_open_) {
+    return;
+  }
+  overworld_.CommitSavedMapTiles();
+  map_tile_save_transaction_open_ = false;
+}
 
 absl::Status OverworldEditor::Save() {
   // Validate sprite capacity before any editor serializer changes ROM bytes.
@@ -1968,6 +2006,14 @@ EditorContextSnapshot OverworldEditor::BuildContextSnapshot() const {
        .label = "Tile16 Selector",
        .target = "overworld.tile16_selector"},
   };
+  if (const auto* map = overworld_.overworld_map(current_map_)) {
+    zelda3::GraphicsContextIdentity identity;
+    if (dependencies_.project != nullptr) {
+      identity.project_name = dependencies_.project->name;
+    }
+    AppendResolvedGraphicsContext(
+        snapshot, zelda3::DescribeOverworldGraphicsContext(*map, identity));
+  }
   return snapshot;
 }
 

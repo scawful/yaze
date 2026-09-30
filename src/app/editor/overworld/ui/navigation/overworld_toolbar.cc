@@ -267,6 +267,14 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                  current_mode == EditingMode::FILL_TILE)) {
     set_mode(EditingMode::FILL_TILE);
   }
+  ImGui::SameLine(0, 2);
+  if (ToolButton(ICON_MD_GRASS " Insert Item",
+                 "Pick an item from the list, then click the map to place it",
+                 false)) {
+    if (on_insert_item) {
+      on_insert_item();
+    }
+  }
 
   // --- Entity modes ------------------------------------------------------------
   GroupSeparator(ImGui::GetFontSize() * 7.0f);
@@ -330,7 +338,12 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                                    : "";
       if (ImGui::MenuItem(label, keys.empty() ? nullptr : keys.c_str(),
                           window_manager->IsWindowOpen(panel_id))) {
+        const bool opening = !window_manager->IsWindowOpen(panel_id);
         window_manager->ToggleWindow(session_id, panel_id);
+        if (opening && panel_id == OverworldPanelIds::kItemList &&
+            on_set_entity_mode) {
+          on_set_entity_mode(EntityEditMode::ITEMS);
+        }
       }
     };
     item(ICON_MD_TUNE " Map Properties", OverworldPanelIds::kMapProperties,

@@ -155,7 +155,7 @@ TEST(UserSettingsLayoutDefaultsTest,
       prefs.panel_visibility_state["Overworld"]["overworld.tile16_editor"]);
   EXPECT_FALSE(
       prefs.panel_visibility_state["Overworld"]["overworld.tile8_selector"]);
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       prefs.panel_visibility_state["Overworld"]["overworld.area_graphics"]);
   EXPECT_FALSE(
       prefs.panel_visibility_state["Overworld"]["overworld.item_list"]);

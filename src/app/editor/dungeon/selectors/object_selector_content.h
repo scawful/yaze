@@ -64,6 +64,7 @@ class ObjectSelectorContent : public WindowContent {
   void Draw(bool* p_open) override;
   // The Workbench supplies the active placement inspector above this browser.
   void DrawInWorkbench();
+  bool DrawMinecartPalette();
   void OnOpen() override {}
   void OnClose() override {}
 

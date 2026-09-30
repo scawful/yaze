@@ -1,9 +1,12 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_TOAST_MANAGER_H
 #define YAZE_APP_EDITOR_SYSTEM_TOAST_MANAGER_H
 
+#include <algorithm>
 #include <chrono>
 #include <deque>
+#include <functional>
 #include <string>
+#include <utility>
 
 // Must define before including imgui.h
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -24,6 +27,9 @@ struct Toast {
   std::string message;
   ToastType type = ToastType::kInfo;
   float ttl_seconds = 3.0f;
+  /// Optional button label (empty = message-only toast).
+  std::string action_label;
+  std::function<void()> on_action;
 };
 
 /**
@@ -43,7 +49,8 @@ class ToastManager {
   static constexpr float kDedupCooldownSeconds = 1.0f;
 
   void Show(const std::string& message, ToastType type = ToastType::kInfo,
-            float ttl_seconds = 3.0f) {
+            float ttl_seconds = 3.0f, std::string action_label = {},
+            std::function<void()> on_action = nullptr) {
     // Dedup: skip if same message+type was shown within the cooldown window.
     auto now = std::chrono::steady_clock::now();
     if (message == last_shown_message_ && type == last_shown_type_) {
@@ -57,7 +64,8 @@ class ToastManager {
     last_shown_type_ = type;
     last_shown_time_ = now;
 
-    toasts_.push_back({message, type, ttl_seconds});
+    toasts_.push_back({message, type, ttl_seconds, std::move(action_label),
+                       std::move(on_action)});
 
     // Also add to notification history
     NotificationEntry entry;
@@ -77,6 +85,15 @@ class ToastManager {
   /// Number of toasts suppressed by dedup since last reset.
   size_t dedup_suppressed_count() const { return dedup_suppressed_count_; }
   void reset_dedup_stats() { dedup_suppressed_count_ = 0; }
+
+  /// Active on-screen toasts (not notification history). For tests / UI.
+  size_t pending_count() const { return toasts_.size(); }
+  const Toast* GetPendingToast(size_t index) const {
+    if (index >= toasts_.size()) {
+      return nullptr;
+    }
+    return &toasts_[index];
+  }
 
   void Draw() {
     if (toasts_.empty())
@@ -134,18 +151,45 @@ class ToastManager {
       char window_name[32];
       snprintf(window_name, sizeof(window_name), "##toast_%p", (void*)&t);
 
+      bool action_clicked = false;
+      bool hovered = false;
+      float toast_height = 0.0f;
       if (ImGui::Begin(window_name, nullptr, flags)) {
+        // Constrain width so long migrant tips wrap instead of spanning the
+        // display.
+        const float max_width = std::min(360.f, io.DisplaySize.x * 0.4f);
+        ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + max_width);
         ImGui::TextUnformatted(t.message.c_str());
+        ImGui::PopTextWrapPos();
+        if (!t.action_label.empty()) {
+          ImGui::Spacing();
+          if (ImGui::SmallButton(t.action_label.c_str())) {
+            action_clicked = true;
+          }
+        }
+        hovered = ImGui::IsWindowHovered();
+        toast_height = ImGui::GetWindowSize().y;
       }
       ImGui::End();
 
-      // Decrease TTL
-      t.ttl_seconds -= io.DeltaTime;
+      if (action_clicked) {
+        if (t.on_action) {
+          t.on_action();
+        }
+        it = toasts_.erase(it);
+        continue;
+      }
+
+      // Decrease TTL (pause while hovered so users can reach the action)
+      if (!hovered) {
+        t.ttl_seconds -= io.DeltaTime;
+      }
       if (t.ttl_seconds <= 0.f) {
         it = toasts_.erase(it);
       } else {
-        // Next toast stacks below with proper spacing
-        pos.y += ImGui::GetItemRectSize().y + 8.f;
+        // ItemRect is only the last text/button. Stack by the full toast
+        // window height so actionable toasts cannot overlap the next toast.
+        pos.y += std::max(toast_height, ImGui::GetFrameHeight()) + 8.f;
         ++it;
       }
     }

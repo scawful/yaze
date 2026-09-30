@@ -1179,11 +1179,9 @@ absl::Status OverworldMap::LoadPalette() {
       *rom_, game_data_, parent_, current_palette_, main, animated, aux1, aux2,
       hud, bgr, spr, spr2));
 
-  if (palettesets_.count(area_palette_) == 0) {
-    palettesets_[area_palette_] = gfx::Paletteset{
-        main, animated, aux1, aux2, bgr, hud, spr, spr2, current_palette_};
-  }
-
+  // current_palette_ is this map's resolved palette. Do not populate the
+  // unused process-wide GfxContext cache here: maps load concurrently, and
+  // unsynchronized insertions can corrupt its unordered_map during rehash.
   return absl::OkStatus();
 }
 

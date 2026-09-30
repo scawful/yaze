@@ -93,5 +93,27 @@ TEST(ToastDedupTest, UnreadCountTracksCorrectly) {
   EXPECT_EQ(mgr.GetUnreadCount(), 1u);
 }
 
+TEST(ToastActionTest, ShowStoresOptionalAction) {
+  ToastManager mgr;
+  bool clicked = false;
+  mgr.Show("actionable", ToastType::kInfo, 5.0f, "Open guide",
+           [&]() { clicked = true; });
+
+  ASSERT_EQ(mgr.pending_count(), 1u);
+  const Toast* pending = mgr.GetPendingToast(0);
+  ASSERT_NE(pending, nullptr);
+  EXPECT_EQ(pending->action_label, "Open guide");
+  ASSERT_TRUE(static_cast<bool>(pending->on_action));
+  pending->on_action();
+  EXPECT_TRUE(clicked);
+}
+
+TEST(ToastActionTest, ShowWithoutActionLeavesLabelEmpty) {
+  ToastManager mgr;
+  mgr.Show("plain", ToastType::kInfo);
+  ASSERT_EQ(mgr.pending_count(), 1u);
+  EXPECT_TRUE(mgr.GetPendingToast(0)->action_label.empty());
+}
+
 }  // namespace
 }  // namespace yaze::editor

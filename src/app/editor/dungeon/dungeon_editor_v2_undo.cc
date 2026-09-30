@@ -77,13 +77,17 @@ void DungeonEditorV2::FinalizePendingUndoActions() {
   // Closing history alone leaves a handler's drag/paint gesture running, so its
   // next movement could bypass the before-snapshot. End gestures first.
   room_viewers_.ForEach([](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
-    if (viewer)
+    if (viewer) {
+      viewer->CancelMinecartGesture();
       viewer->object_interaction().HandleMouseRelease();
+    }
   });
   for (auto* viewer :
        {workbench_viewer_.get(), workbench_compare_viewer_.get()}) {
-    if (viewer)
+    if (viewer) {
+      viewer->CancelMinecartGesture();
       viewer->object_interaction().HandleMouseRelease();
+    }
   }
   if (pending_undo_.room_id >= 0) {
     FinalizeUndoAction(pending_undo_.room_id);
@@ -727,6 +731,46 @@ class CollisionBatchRollback {
 };
 
 }  // namespace
+
+absl::Status DungeonEditorV2::ApplyMinecartCollisionStamp(
+    int room_id, const zelda3::CustomCollisionMap& expected,
+    const MinecartCollisionStamp& stamp) {
+  auto* room = rooms_.GetIfMaterialized(room_id);
+  if (!room || !rom_ ||
+      !zelda3::HasCustomCollisionWriteSupport(rom_->vector().size())) {
+    return absl::FailedPreconditionError(
+        "Load a room with expanded collision support");
+  }
+  if (!CollisionMapsEqual(room->custom_collision(), expected)) {
+    return absl::FailedPreconditionError(
+        "Collision changed; preview the stamp again");
+  }
+  ASSIGN_OR_RETURN(auto after, PreviewMinecartCollisionStamp(expected, stamp));
+  if (CollisionMapsEqual(expected, after))
+    return absl::OkStatus();
+  // Finalizing another tool may invalidate overlays, so keep value snapshots.
+  const auto before = expected;
+  FinalizePendingUndoActions();
+  auto action = std::make_unique<DungeonCustomCollisionAction>(
+      room_id, before, after,
+      [this](int rid, const zelda3::CustomCollisionMap& map) {
+        RestoreRoomCustomCollision(rid, map);
+      });
+  CollisionBatchRollback rollback(
+      {{room, before, room->custom_collision_dirty()}});
+  room->custom_collision() = after;
+  room->MarkCustomCollisionDirty();
+  try {
+    undo_manager_.Push(std::move(action));
+  } catch (const std::exception& error) {
+    return absl::InternalError(
+        absl::StrFormat("Could not record rail undo: %s", error.what()));
+  }
+  rollback.Commit();
+  if (minecart_track_editor_panel_)
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  return absl::OkStatus();
+}
 
 absl::Status DungeonEditorV2::ApplyMinecartCollisionBatch(
     const std::vector<zelda3::TrackCollisionResult>& preview,
