@@ -158,11 +158,7 @@ std::string FormatTable(const zelda3::RoomCensus& census,
 
 absl::Status LoadRoomCensusProject(const std::string& project_arg,
                                    core::HackManifest* manifest) {
-  auto code_folder = ResolveCodeFolder(project_arg);
-  if (!code_folder.ok()) {
-    return code_folder.status();
-  }
-  return LoadProjectData(*code_folder, manifest);
+  return LoadProjectData(project_arg, manifest);
 }
 
 absl::Status DungeonRoomCensusCommandHandler::ValidateArgs(
