@@ -173,6 +173,14 @@ struct AreaRenderProperties {
   uint16_t subscreen_overlay = 0x00FF;
 };
 
+/// Source of slots 3-6 for roomset impact reporting. Custom v3 background
+/// groups replace all eight slots, including $FF world-default entries.
+enum class OverworldRoomsetSource {
+  kSharedSessionGroup,
+  kCustomTileGroups,
+  kIndependentRomGroup,
+};
+
 /// Overworld screen whose tilemap the game shows as BG1 for a subscreen
 /// overlay id (0x93 curtains, 0x95 sky, 0x96 pyramid, 0x97/0x9D fog, 0x9C
 /// lava, and hack-defined ids up to 0x9F), or -1 for none (0x00FF).
@@ -305,6 +313,7 @@ class OverworldMap : public gfx::GfxContext {
   void SetNotBuilt() { built_ = false; }
 
   auto area_graphics() const { return area_graphics_; }
+  OverworldRoomsetSource roomset_source() const;
   auto area_palette() const { return area_palette_; }
   auto sprite_graphics(int i) const { return sprite_graphics_[i]; }
   auto sprite_palette(int i) const { return sprite_palette_[i]; }

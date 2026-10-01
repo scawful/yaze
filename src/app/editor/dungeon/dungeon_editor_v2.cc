@@ -350,6 +350,10 @@ DungeonEditorV2::~DungeonEditorV2() {
 void DungeonEditorV2::PrepareForSessionTeardown() {
   // Clear runtime references in panels BEFORE editor-owned rooms and viewers are
   // destroyed. WorkspaceWindowManager panels may outlive this editor session.
+  if (room_graphics_panel_) {
+    room_graphics_panel_->DetachRuntimeContext();
+    room_graphics_panel_ = nullptr;
+  }
   if (object_tile_editor_panel_) {
     object_tile_editor_panel_->Close();
     object_tile_editor_panel_->SetStandardWritePreflightCallback({});
@@ -1031,6 +1035,8 @@ absl::Status DungeonEditorV2::Load() {
         [this](int room, int slot, int sheet) {
           return EditRoomGraphicsSheet(room, slot, sheet);
         });
+    graphics_panel->SetUsageCallback(
+        [this](int roomset) { return GetRoomGraphicsUsage(roomset); });
     room_graphics_panel_ = graphics_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
         std::move(graphics_panel), WorkbenchTool());

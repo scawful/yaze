@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -572,15 +573,75 @@ void AuthoringSaveWorkflowTest::QualifySharedGraphicsAssignment(
   auto* data = room.game_data();
   const int group = room.blockset();
   ASSERT_TRUE(data->gfx_groups_loaded);
+  // Reading usage must not initialize the other editor merely to show counts.
+  const bool overworld_was_created =
+      manager_->GetCurrentEditorSet()->GetExistingEditor(
+          EditorType::kOverworld) != nullptr;
+  auto room_usage = dungeon->GetRoomGraphicsUsage(group);
+  ASSERT_OK(room_usage.status());
+  const auto measure_usage = [&](const char* property) {
+    const auto start = std::chrono::steady_clock::now();
+    for (int scan = 0; scan < 20; ++scan) {
+      EXPECT_OK(dungeon->GetRoomGraphicsUsage(group).status());
+    }
+    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start);
+    RecordProperty(property, static_cast<int>(elapsed.count() / 20));
+  };
+  measure_usage("room_usage_rom_mean_us");
+  const auto zero_group_before = dungeon->GetRoomGraphicsUsage(0);
+  ASSERT_OK(zero_group_before.status());
+  ASSERT_FALSE(dungeon->rooms()[0x100].IsLoaded());
+  const auto zero_group_after = dungeon->GetRoomGraphicsUsage(0);
+  ASSERT_OK(zero_group_after.status());
+  EXPECT_EQ(zero_group_before->rooms, zero_group_after->rooms);
+  EXPECT_FALSE(room_usage->uses_live_overworld);
+  EXPECT_EQ(manager_->GetCurrentEditorSet()->GetExistingEditor(
+                EditorType::kOverworld) != nullptr,
+            overworld_was_created);
+  EXPECT_NE(
+      std::find(room_usage->rooms.begin(), room_usage->rooms.end(), kRoom),
+      room_usage->rooms.end());
+  const int other_group = (group + 1) % data->room_blockset_ids.size();
+  ASSERT_OK(dungeon->EditRoomMetadata(
+      kRoom, {RoomMetadataField::kBlockset, other_group}));
+  room_usage = dungeon->GetRoomGraphicsUsage(group);
+  ASSERT_OK(room_usage.status());
+  EXPECT_EQ(
+      std::find(room_usage->rooms.begin(), room_usage->rooms.end(), kRoom),
+      room_usage->rooms.end());
+  ASSERT_OK(dungeon->Undo());
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
   auto* overworld =
       manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
           EditorType::kOverworld);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::EditAreaGraphics(*overworld, 0,
+                                                            other_group));
+  auto other_usage = dungeon->GetRoomGraphicsUsage(group);
+  ASSERT_OK(other_usage.status());
+  EXPECT_TRUE(other_usage->uses_live_overworld);
+  EXPECT_EQ(
+      std::find(other_usage->ow_areas.begin(), other_usage->ow_areas.end(), 0),
+      other_usage->ow_areas.end());
+  EXPECT_EQ(std::find(other_usage->overridden_ow_areas.begin(),
+                      other_usage->overridden_ow_areas.end(), 0),
+            other_usage->overridden_ow_areas.end());
   // Explicitly share the room's group through the normal property edit path.
   ASSERT_OK(
       AuthoringSaveWorkflowTestPeer::EditAreaGraphics(*overworld, 0, group));
   overworld->SelectMapForEditing(0, false);
   ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*overworld));
+  const auto shared_usage = dungeon->GetRoomGraphicsUsage(group);
+  ASSERT_OK(shared_usage.status());
+  measure_usage("room_usage_live_mean_us");
+  EXPECT_TRUE(shared_usage->uses_live_overworld);
+  EXPECT_EQ(shared_usage->unscanned_rooms, 0);
+  EXPECT_EQ(shared_usage->unscanned_ow_areas, 0);
+  const auto& map_users = custom_sheets ? shared_usage->overridden_ow_areas
+                                        : shared_usage->ow_areas;
+  EXPECT_NE(std::find(map_users.begin(), map_users.end(), 0), map_users.end());
+  if (custom_sheets)
+    EXPECT_TRUE(shared_usage->ow_areas.empty());
   auto capture_overworld = [&]() {
     const auto* map = overworld->overworld().overworld_map(0);
     EXPECT_EQ(map->game_state(), overworld->game_state());
@@ -714,6 +775,12 @@ void AuthoringSaveWorkflowTest::QualifySharedGraphicsAssignment(
   overworld->SelectMapForEditing(0, false);
   ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*overworld));
   expect_overworld(edited_overworld, "Fresh reopen");
+  const auto reopened_usage = dungeon->GetRoomGraphicsUsage(group);
+  ASSERT_OK(reopened_usage.status());
+  EXPECT_EQ(reopened_usage->rooms, shared_usage->rooms);
+  EXPECT_EQ(reopened_usage->ow_areas, shared_usage->ow_areas);
+  EXPECT_EQ(reopened_usage->overridden_ow_areas,
+            shared_usage->overridden_ow_areas);
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);

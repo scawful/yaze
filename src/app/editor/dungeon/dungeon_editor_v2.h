@@ -185,6 +185,14 @@ class DungeonEditorV2 : public Editor {
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
   // Shared roomset assignment (background slots 3-6); zero inherits main.
   absl::Status EditRoomGraphicsSheet(int room_id, int slot, int sheet_id);
+  // The owning EditorSet supplies an existing model only; usage queries must
+  // not create another editor or read another ROM session's window context.
+  void SetRoomGraphicsOverworldProvider(
+      std::function<const zelda3::Overworld*()> provider) {
+    room_graphics_overworld_provider_ = std::move(provider);
+  }
+  absl::StatusOr<zelda3::RoomsetUsageReport> GetRoomGraphicsUsage(
+      int roomset) const;
   absl::Status EditRoomMetadataBatch(
       const std::vector<RoomMetadataRequest>& requests);
   absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
@@ -501,6 +509,7 @@ class DungeonEditorV2 : public Editor {
   ObjectEditorContent* object_editor_content_ = nullptr;
   DoorEditorContent* door_editor_panel_ = nullptr;
   RoomGraphicsContent* room_graphics_panel_ = nullptr;
+  std::function<const zelda3::Overworld*()> room_graphics_overworld_provider_;
   PaletteEditorContent* palette_editor_panel_ = nullptr;
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
   class ItemEditorPanel* item_editor_panel_ = nullptr;
