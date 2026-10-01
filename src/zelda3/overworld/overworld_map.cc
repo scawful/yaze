@@ -808,26 +808,96 @@ void OverworldMap::LoadMainBlocksetId() {
   }
 }
 
-void OverworldMap::LoadSpritesBlocksets() {
-  int static_graphics_base = 0x73;
-  static_graphics_[8] = static_graphics_base + 0x00;
-  static_graphics_[9] = static_graphics_base + 0x01;
-  static_graphics_[10] = static_graphics_base + 0x06;
-  static_graphics_[11] = static_graphics_base + 0x07;
-
-  for (int i = 0; i < 4; i++) {
-    static_graphics_[12 + i] =
-        ((*rom_)[version_constants().kSpriteBlocksetPointer +
-                 (sprite_graphics_[game_state_] * 4) + i] +
-         static_graphics_base);
-  }
+bool OverworldMap::UsesSessionMainGraphicsGroup() const {
+  // Dungeon groups may be relocated independently of the overworld table.
+  return game_data_ && game_data_->gfx_groups_loaded &&
+         game_data_->gfx_main_group_address ==
+             version_constants().kOverworldGfxGroups2 &&
+         main_gfx_id_ < game_data_->main_blockset_ids.size();
 }
 
-void OverworldMap::LoadMainBlocksets() {
-  for (int i = 0; i < 8; i++) {
-    static_graphics_[i] = (*rom_)[version_constants().kOverworldGfxGroups2 +
-                                  (main_gfx_id_ * 8) + i];
+bool OverworldMap::UsesSessionAreaGraphicsGroup() const {
+  // JP's overworld area table differs from the dungeon's room table.
+  return game_data_ && game_data_->gfx_groups_loaded &&
+         kEntranceGfxGroup == version_constants().kOverworldGfxGroups1 &&
+         area_graphics_ < game_data_->room_blockset_ids.size();
+}
+
+bool OverworldMap::UsesSessionSpriteGraphicsGroup() const {
+  return game_data_ && game_data_->gfx_groups_loaded &&
+         sprite_graphics_[game_state_] < game_data_->spriteset_ids.size();
+}
+
+std::array<uint8_t, 8> OverworldMap::ResolveMainGraphicsGroup() const {
+  if (UsesSessionMainGraphicsGroup()) {
+    return game_data_->main_blockset_ids[main_gfx_id_];
   }
+  std::array<uint8_t, 8> sheets{};
+  for (int i = 0; i < 8; ++i) {
+    sheets[i] = (*rom_)[version_constants().kOverworldGfxGroups2 +
+                        main_gfx_id_ * 8 + i];
+  }
+  return sheets;
+}
+
+std::array<uint8_t, 4> OverworldMap::ResolveAreaGraphicsGroup() const {
+  if (UsesSessionAreaGraphicsGroup()) {
+    return game_data_->room_blockset_ids[area_graphics_];
+  }
+  std::array<uint8_t, 4> sheets{};
+  for (int i = 0; i < 4; ++i) {
+    sheets[i] = (*rom_)[version_constants().kOverworldGfxGroups1 +
+                        area_graphics_ * 4 + i];
+  }
+  return sheets;
+}
+
+std::array<uint8_t, 4> OverworldMap::ResolveSpriteGraphicsGroup() const {
+  const int set = sprite_graphics_[game_state_];
+  if (UsesSessionSpriteGraphicsGroup()) {
+    return game_data_->spriteset_ids[set];
+  }
+  std::array<uint8_t, 4> sheets{};
+  for (int i = 0; i < 4; ++i) {
+    sheets[i] =
+        (*rom_)[version_constants().kSpriteBlocksetPointer + set * 4 + i];
+  }
+  return sheets;
+}
+
+std::array<uint8_t, 16> OverworldMap::ResolveStaticGraphics() const {
+  std::array<uint8_t, 16> sheets{};
+  const auto main = ResolveMainGraphicsGroup();
+  const auto area = ResolveAreaGraphicsGroup();
+  const auto sprites = ResolveSpriteGraphicsGroup();
+  std::copy(main.begin(), main.end(), sheets.begin());
+  for (int i = 0; i < 4; ++i) {
+    if (area[i] != 0) {
+      sheets[3 + i] = area[i];
+    }
+    sheets[12 + i] = static_cast<uint8_t>(sprites[i] + 0x73);
+  }
+  sheets[8] = 0x73;
+  sheets[9] = 0x74;
+  sheets[10] = 0x79;
+  sheets[11] = 0x7A;
+
+  // v3 explicit tile groups replace the shared background assignment in full.
+  // $FF inherits the world's custom defaults; $00 is an explicit sheet ID.
+  if (OverworldVersionHelper::SupportsCustomTileGFX(
+          OverworldVersionHelper::GetVersion(*rom_)) &&
+      (*rom_)[OverworldCustomTileGFXGroupEnabled] != 0x00) {
+    const auto area_props = area_render_properties();
+    const int world_offset = (parent_ & 0xC0) >> 3;
+    for (int i = 0; i < 8; ++i) {
+      const uint8_t custom_sheet = area_props.custom_gfx_ids[i];
+      sheets[i] =
+          custom_sheet == 0xFF
+              ? (*rom_)[OverworldCustomDefaultGFXGroups + world_offset + i]
+              : custom_sheet;
+    }
+  }
+  return sheets;
 }
 
 // For animating water tiles on the overworld map.
@@ -844,16 +914,6 @@ void OverworldMap::DrawAnimatedTiles() {
       static_graphics_[7] = 0x58;
     }
     static_graphics_[7] = 0x5B;
-  }
-}
-
-void OverworldMap::LoadAreaGraphicsBlocksets() {
-  for (int i = 0; i < 4; i++) {
-    uint8_t value = (*rom_)[version_constants().kOverworldGfxGroups1 +
-                            (area_graphics_ * 4) + i];
-    if (value != 0) {
-      static_graphics_[3 + i] = value;
-    }
   }
 }
 
@@ -881,28 +941,8 @@ void OverworldMap::LoadDeathMountainGFX() {
 
 void OverworldMap::LoadAreaGraphics() {
   LoadMainBlocksetId();
-  LoadSpritesBlocksets();
-  LoadMainBlocksets();
-  LoadAreaGraphicsBlocksets();
+  static_graphics_ = ResolveStaticGraphics();
   LoadDeathMountainGFX();
-
-  // v3 custom tile GFX groups replace all eight sheets when enabled. Like the
-  // game's full load (InitTilesetsLongCalls), $FF selects the area world's
-  // DefaultGFXGroups row and any other value, $00 included, is that sheet.
-  if (OverworldVersionHelper::SupportsCustomTileGFX(
-          OverworldVersionHelper::GetVersion(*rom_)) &&
-      (*rom_)[OverworldCustomTileGFXGroupEnabled] != 0x00) {
-    const auto area_props = area_render_properties();
-    const int world_offset = (parent_ & 0xC0) >> 3;
-    for (int i = 0; i < 8; i++) {
-      uint8_t custom_sheet = area_props.custom_gfx_ids[i];
-      if (custom_sheet == 0xFF) {
-        custom_sheet =
-            (*rom_)[OverworldCustomDefaultGFXGroups + world_offset + i];
-      }
-      static_graphics_[i] = custom_sheet;
-    }
-  }
 }
 
 namespace palette_internal {
@@ -1330,6 +1370,7 @@ uint16_t OverworldMap::SourceSheetForRevision(int i) const {
 }
 
 void OverworldMap::RecordSourceSheetRevisions() {
+  source_assignments_recorded_ = true;
   for (int i = 0; i < kNumSourceSheets; i++) {
     const uint16_t sheet = SourceSheetForRevision(i);
     source_sheet_revisions_[i] =
@@ -1343,6 +1384,10 @@ void OverworldMap::RecordSourceSheetRevisions() {
 bool OverworldMap::SourceSheetsChanged() const {
   if (game_data_ == nullptr) {
     return false;
+  }
+  if (source_assignments_recorded_ && rom_ && game_data_->gfx_groups_loaded &&
+      ResolveStaticGraphics() != static_graphics_) {
+    return true;
   }
   for (int i = 0; i < kNumSourceSheets; i++) {
     const uint16_t sheet = SourceSheetForRevision(i);

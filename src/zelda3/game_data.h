@@ -97,6 +97,9 @@ struct GameData : GraphicsSheetStoreHolder {
   std::array<std::array<uint8_t, 8>, kNumMainBlocksets> main_blockset_ids{};
   std::array<std::array<uint8_t, 4>, kNumRoomBlocksets> room_blockset_ids{};
   std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids{};
+  // Zero is a valid assignment. Do not infer readiness from table contents.
+  bool gfx_groups_loaded = false;
+  uint32_t gfx_main_group_address = 0;
 
   // Palette set lookup table (72 entries × 4 bytes each)
   // Entry format: [bg_palette_offset, aux1, aux2, aux3]
@@ -115,6 +118,8 @@ struct GameData : GraphicsSheetStoreHolder {
   std::vector<RoomDefaultEntrance> room_default_entrances;
 
   void Clear() {
+    gfx_groups_loaded = false;
+    gfx_main_group_address = 0;
     room_default_entrances.clear();
     sheet_store.Clear();
     for (auto& sheet : raw_gfx_sheets)

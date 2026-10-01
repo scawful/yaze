@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -44,6 +45,7 @@
 #include "unique_temp_path.h"
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/graphics/resolved_graphics_context.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
@@ -121,6 +123,25 @@ class AuthoringSaveWorkflowTestPeer {
 
   static void SelectDungeonEntrance(DungeonEditorV2& editor, int slot) {
     editor.OnEntranceSelected(slot);
+  }
+
+  static absl::Status EditAreaGraphics(OverworldEditor& editor, int map_id,
+                                       int group) {
+    return editor.ApplyOverworldPropertyEdit(
+        {map_id, OverworldPropertyField::kAreaGraphics, 0, group});
+  }
+
+  static absl::Status DrawOverworld(OverworldEditor& editor) {
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    ImGui::NewFrame();
+    ImGui::Begin("AuthoringOverworldHost");
+    const auto result = editor.Update();
+    ImGui::End();
+    ImGui::Render();
+    return result;
   }
 
   static absl::Status EditAreaPalette(OverworldEditor& editor, int map_id,
@@ -380,6 +401,8 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
               project::RomWritePolicy::kBlock);
   }
 
+  void QualifySharedGraphicsAssignment(bool custom_sheets);
+
   void QualifySpecialArea(zelda3::AreaSizeEnum size, int child, int x, int y);
 
   void QualifySourcePixelRoundTrip(const DisposableOracleProject& fixture) {
@@ -504,7 +527,28 @@ TEST_F(AuthoringSaveWorkflowTest, SpriteSourcePixelsUndoReturnSaveAsReopen) {
 
 TEST_F(AuthoringSaveWorkflowTest,
        DungeonSheetAssignmentUndoAfterNavigationSaveAsReopen) {
+  QualifySharedGraphicsAssignment(/*custom_sheets=*/true);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SharedDungeonOverworldAssignmentUndoRedoSaveAsReopen) {
+  QualifySharedGraphicsAssignment(/*custom_sheets=*/false);
+}
+
+void AuthoringSaveWorkflowTest::QualifySharedGraphicsAssignment(
+    bool custom_sheets) {
   auto fixture = CopyProject("yaze-room-sheet-assignment");
+  if (!custom_sheets) {
+    // Declared legacy-assignment fixture: Oracle normally overrides every
+    // background slot. Disable that feature only in this disposable copy.
+    std::fstream rom(fixture.rom,
+                     std::ios::binary | std::ios::in | std::ios::out);
+    ASSERT_TRUE(rom.good());
+    rom.seekp(zelda3::OverworldCustomTileGFXGroupEnabled);
+    rom.put(0);
+    rom.close();
+    fixture.source_hash = util::ComputeFileSha1Hex(fixture.rom.string());
+  }
   const auto assets = std::filesystem::path(kSharedProject).parent_path() /
                       "Dungeons/Objects/Data";
   for (const auto& entry : std::filesystem::directory_iterator(assets)) {
@@ -527,6 +571,47 @@ TEST_F(AuthoringSaveWorkflowTest,
   room.PrepareForRender();
   auto* data = room.game_data();
   const int group = room.blockset();
+  ASSERT_TRUE(data->gfx_groups_loaded);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* overworld =
+      manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+          EditorType::kOverworld);
+  // Explicitly share the room's group through the normal property edit path.
+  ASSERT_OK(
+      AuthoringSaveWorkflowTestPeer::EditAreaGraphics(*overworld, 0, group));
+  overworld->SelectMapForEditing(0, false);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*overworld));
+  auto capture_overworld = [&]() {
+    const auto* map = overworld->overworld().overworld_map(0);
+    EXPECT_EQ(map->game_state(), overworld->game_state());
+    std::vector<uint16_t> palette;
+    for (const auto& color : map->current_palette())
+      palette.push_back(color.snes());
+    return std::make_tuple(
+        map->current_graphics(), overworld->map_bitmap(0).vector(),
+        overworld->tile16_blockset().atlas.vector(), palette);
+  };
+  auto expect_overworld = [&](const auto& expected, const char* phase) {
+    SCOPED_TRACE(phase);
+    const auto actual = capture_overworld();
+    const auto compare = [](const auto& a, const auto& b, const char* surface) {
+      SCOPED_TRACE(surface);
+      ASSERT_EQ(a.size(), b.size());
+      const auto mismatch = std::mismatch(a.begin(), a.end(), b.begin());
+      EXPECT_TRUE(mismatch.first == a.end())
+          << "first differing element "
+          << std::distance(a.begin(), mismatch.first) << ", actual "
+          << static_cast<int>(*mismatch.first) << ", expected "
+          << static_cast<int>(*mismatch.second);
+    };
+    compare(std::get<0>(actual), std::get<0>(expected), "resolved graphics");
+    compare(std::get<1>(actual), std::get<1>(expected), "map bitmap");
+    compare(std::get<2>(actual), std::get<2>(expected), "Tile16 atlas");
+    compare(std::get<3>(actual), std::get<3>(expected), "palette");
+  };
+  const auto original_overworld = capture_overworld();
+  ASSERT_FALSE(std::get<1>(original_overworld).empty());
+  ASSERT_FALSE(std::get<2>(original_overworld).empty());
   const auto original_groups = data->room_blockset_ids;
   const auto original_main = data->main_blockset_ids;
   const auto original_sprites = data->spriteset_ids;
@@ -545,16 +630,41 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_NE(room.get_gfx_buffer(), original_pixels);
   const auto edited_pixels = room.get_gfx_buffer();
   const auto edited_groups = data->room_blockset_ids;
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*overworld));
+  const auto edited_overworld = capture_overworld();
+  EXPECT_EQ(overworld->current_map_id(), 0);
+  if (custom_sheets) {
+    EXPECT_EQ(edited_overworld, original_overworld);
+  } else {
+    EXPECT_NE(std::get<0>(edited_overworld), std::get<0>(original_overworld));
+    EXPECT_NE(std::get<1>(edited_overworld), std::get<1>(original_overworld));
+    EXPECT_NE(std::get<2>(edited_overworld), std::get<2>(original_overworld));
+    EXPECT_EQ(overworld->overworld().overworld_map(0)->static_graphics(kSlot),
+              replacement);
+  }
+  EXPECT_EQ(std::get<3>(edited_overworld), std::get<3>(original_overworld));
+  const auto context = zelda3::DescribeOverworldGraphicsContext(
+      *overworld->overworld().overworld_map(0));
+  EXPECT_TRUE(context.loader_agrees);
+  EXPECT_EQ(context.slots[kSlot].sheet_id,
+            overworld->overworld().overworld_map(0)->static_graphics(kSlot));
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
   AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, 5);
   ASSERT_OK(dungeon->Undo());
   room.PrepareForRender();
   EXPECT_EQ(dungeon->current_room_id(), 5);
   EXPECT_EQ(data->room_blockset_ids, original_groups);
   EXPECT_EQ(room.get_gfx_buffer(), original_pixels);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*overworld));
+  expect_overworld(original_overworld, "Undo");
   ASSERT_OK(dungeon->Redo());
   room.PrepareForRender();
   EXPECT_EQ(room.get_gfx_buffer(), edited_pixels);
   EXPECT_EQ(data->room_blockset_ids, edited_groups);
+  // Selection is also a refresh boundary: do not require a canvas draw first.
+  overworld->SelectMapForEditing(0, false);
+  expect_overworld(edited_overworld, "Redo and select");
   // No-op and invalid edits do not add undo steps or alter neighboring groups.
   ASSERT_OK(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, replacement));
   EXPECT_FALSE(dungeon->EditRoomGraphicsSheet(kRoom, 7, replacement).ok());
@@ -598,6 +708,12 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(reopened.get_gfx_buffer(), edited_pixels);
   EXPECT_EQ(reopened.game_data()->main_blockset_ids, original_main);
   EXPECT_EQ(reopened.game_data()->spriteset_ids, original_sprites);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  overworld = manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  overworld->SelectMapForEditing(0, false);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*overworld));
+  expect_overworld(edited_overworld, "Fresh reopen");
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);

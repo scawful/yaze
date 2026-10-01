@@ -53,6 +53,7 @@ void PrepareMapForRefresh(const MapRefreshContext& ctx,
   // Child screens render with the area parent's main palette, animated GFX,
   // tile GFX groups, and subscreen overlay (the game reads them with $8A).
   if (ctx.overworld) {
+    ctx.overworld->set_game_state(CurrentGameState(ctx));
     ctx.overworld->SyncAreaProperties(map->index());
   }
 }

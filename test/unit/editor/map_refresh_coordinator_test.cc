@@ -312,6 +312,13 @@ TEST_F(MapRefreshCoordinatorTest,
 
   EXPECT_EQ(map->game_state(), 2);
   EXPECT_EQ(map->static_graphics(12), 0x20 + 0x73);
+
+  // A later on-demand rebuild must keep the coordinator's selected state.
+  // Previously the model's default state 0 silently restored spriteset 1.
+  overworld_->InvalidateMapCache(0);
+  ASSERT_TRUE(overworld_->EnsureMapBuilt(0).ok());
+  EXPECT_EQ(map->game_state(), 2);
+  EXPECT_EQ(map->static_graphics(12), 0x20 + 0x73);
 }
 
 // Exercise the real model -> editor bitmap -> refresh boundary. A built map's

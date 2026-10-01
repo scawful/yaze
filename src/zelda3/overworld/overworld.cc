@@ -129,6 +129,10 @@ absl::Status ValidateMap32DefinitionCount(size_t definition_count,
 
 }  // namespace
 
+void Overworld::set_game_state(int state) {
+  game_state_ = std::clamp(state, 0, 2);
+}
+
 absl::Status Overworld::Load(Rom* rom) {
   gfx::ScopedTimer timer("Overworld::Load");
 
