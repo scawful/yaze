@@ -48,6 +48,12 @@ class GfxGroupAssignmentTest : public ::testing::Test {
       usage.ow_areas = {0};
       return absl::StatusOr<zelda3::MainGroupUsageReport>(usage);
     });
+    panel.SetRoomsetUsageCallback([](int) {
+      zelda3::RoomsetUsageReport usage;
+      usage.rooms = {5};
+      usage.ow_areas = {0};
+      return absl::StatusOr<zelda3::RoomsetUsageReport>(usage);
+    });
     rom.set_dirty(false);
   }
   void TearDown() override { gfx::Arena::Get().ClearTextureQueue(); }
@@ -201,6 +207,119 @@ TEST_F(GfxGroupAssignmentTest, ThumbnailChoiceAppliesAndNavigationCancels) {
   for (const auto& [path, widget] :
        gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
     EXPECT_NE(widget.label, "Apply to shared main group");
+  }
+}
+
+TEST_F(GfxGroupAssignmentTest, RoomsetUndoRejectsForeignAndReboundAssignments) {
+  const auto main = data.main_blockset_ids;
+  ASSERT_TRUE(panel.EditRoomsetGraphicsSheet(0, 3, 1).ok());
+  EXPECT_TRUE(rom.dirty());
+  panel.SetSelectedRoomset(1);
+  ASSERT_TRUE(undo.Undo().ok());
+  EXPECT_EQ(data.room_blockset_ids[0][3], 0);
+  EXPECT_EQ(data.room_blockset_ids[1][3], 0);
+  ASSERT_TRUE(undo.Redo().ok());
+  EXPECT_EQ(data.room_blockset_ids[0][3], 1);
+  ASSERT_TRUE(panel.EditRoomsetGraphicsSheet(0, 3, 1).ok());
+  EXPECT_EQ(undo.UndoStackSize(), 1);
+  EXPECT_FALSE(panel.EditRoomsetGraphicsSheet(0, 4, 1).ok());
+  EXPECT_FALSE(panel.EditRoomsetGraphicsSheet(82, 0, 1).ok());
+  EXPECT_FALSE(panel.EditRoomsetGraphicsSheet(0, 0, 113).ok());
+  EXPECT_FALSE(panel.EditRoomsetGraphicsSheet(0, 0, 223).ok());
+  data.room_blockset_ids[0][3] = 2;
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo.Undo()));
+  EXPECT_EQ(data.room_blockset_ids[0][3], 2);
+  data.room_blockset_ids[0][3] = 1;
+  panel.SetGameData(&data);
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo.Undo()));
+  EXPECT_EQ(data.room_blockset_ids[0][3], 1);
+  EXPECT_EQ(data.main_blockset_ids, main);
+}
+
+TEST_F(GfxGroupAssignmentTest, RoomsetThumbnailInheritanceAndNavigation) {
+  ImGuiContext* previous = ImGui::GetCurrentContext();
+  ImGuiContext* context = ImGui::CreateContext();
+  const absl::Cleanup cleanup = [&] {
+    ImGui::DestroyContext(context);
+    ImGui::SetCurrentContext(previous);
+    gui::WidgetIdRegistry::Instance().Clear();
+  };
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1280, 1600);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  std::string rendered_text;
+  auto draw = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(900, 1500), ImGuiCond_Always);
+    ImGui::Begin("MainAssignmentTest", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    {
+      gui::AutoWidgetScope scope("MainAssignmentTest");
+      ImGui::LogToBuffer(0);
+      panel.DrawRoomsetViewer();
+      rendered_text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+      ImGui::LogFinish();
+    }
+    ImGui::End();
+    ImGui::Render();
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  auto click = [&](const std::string& label) {
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label != label || !widget.visible || !widget.enabled)
+        continue;
+      const auto b = widget.bounds;
+      io.AddMousePosEvent((b.min_x + b.max_x) / 2, (b.min_y + b.max_y) / 2);
+      found = true;
+      break;
+    }
+    ASSERT_TRUE(found) << label;
+    draw();
+    io.AddMouseButtonEvent(0, true);
+    draw();
+    io.AddMouseButtonEvent(0, false);
+    draw();
+    draw();
+  };
+  draw();
+  draw();
+  EXPECT_NE(rendered_text.find("Shared by 1 rooms and 1 map screens"),
+            std::string::npos);
+  click("Roomset slot 4");
+  click("Choose replacement sheet");
+  click("Roomset sheet 01");
+  EXPECT_FALSE(undo.CanUndo());
+  click("Apply to shared roomset");
+  EXPECT_EQ(data.room_blockset_ids[0][1], 1);
+  ASSERT_TRUE(undo.Undo().ok());
+  EXPECT_EQ(data.room_blockset_ids[0][1], 0);
+  ASSERT_TRUE(undo.Redo().ok());
+  click("Choose replacement sheet");
+  click("Inherit from main group");
+  click("Apply to shared roomset");
+  EXPECT_EQ(data.room_blockset_ids[0][1], 0);
+  ASSERT_TRUE(undo.Undo().ok());
+  EXPECT_EQ(data.room_blockset_ids[0][1], 1);
+  click("Choose replacement sheet");
+  click("Roomset sheet 02");
+  data.room_blockset_ids[0][1] = 3;
+  click("Apply to shared roomset");
+  EXPECT_EQ(data.room_blockset_ids[0][1], 3);
+  EXPECT_NE(rendered_text.find("Assignment changed while choosing"),
+            std::string::npos);
+  panel.SetSelectedRoomset(1);
+  draw();
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    EXPECT_NE(widget.label, "Apply to shared roomset");
   }
 }
 

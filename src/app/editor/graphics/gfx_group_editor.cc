@@ -161,7 +161,6 @@ absl::Status GfxGroupEditor::Update() {
       rom()->resource_label()->SelectableLabelWithNameEdit(
           false, "roomset", std::to_string(Ws().selected_roomset),
           absl::StrFormat("Roomset 0x%02X", Ws().selected_roomset));
-      DrawGroupUsage(/*spriteset=*/false, Ws().selected_roomset);
       DrawRoomsetViewer();
       EndTabItem();
     }
@@ -172,7 +171,7 @@ absl::Status GfxGroupEditor::Update() {
       rom()->resource_label()->SelectableLabelWithNameEdit(
           false, "spriteset", std::to_string(Ws().selected_spriteset),
           absl::StrFormat("Spriteset 0x%02X", Ws().selected_spriteset));
-      DrawGroupUsage(/*spriteset=*/true, Ws().selected_spriteset);
+      DrawSpritesetUsage(Ws().selected_spriteset);
       DrawSpritesetViewer();
       EndTabItem();
     }
@@ -183,10 +182,9 @@ absl::Status GfxGroupEditor::Update() {
   return absl::OkStatus();
 }
 
-void GfxGroupEditor::DrawGroupUsage(bool spriteset, int id) {
-  if (!ImGui::TreeNodeEx(
-          spriteset ? "Used by##SpritesetUsage" : "Used by##RoomsetUsage",
-          ImGuiTreeNodeFlags_DefaultOpen)) {
+void GfxGroupEditor::DrawSpritesetUsage(int id) {
+  if (!ImGui::TreeNodeEx("Used by##SpritesetUsage",
+                         ImGuiTreeNodeFlags_DefaultOpen)) {
     return;
   }
   const bool refresh = ImGui::SmallButton(ICON_MD_REFRESH " Refresh");
@@ -209,30 +207,21 @@ void GfxGroupEditor::DrawGroupUsage(bool spriteset, int id) {
                            out->append(absl::StrFormat("%02X", v));
                          });
   };
-  if (spriteset) {
-    const auto usage =
-        zelda3::FindSpritesetUsage(id, *usage_areas_, *usage_rooms_);
-    static constexpr const char* kStates[] = {
-        "OW areas, state 0 (start)", "OW areas, state 1", "OW areas, state 2"};
-    for (int state = 0; state < 3; ++state) {
-      ImGui::TextWrapped("%s (%zu): %s", kStates[state],
-                         usage.ow_areas_by_state[state].size(),
-                         hex_list(usage.ow_areas_by_state[state]).c_str());
-    }
-    ImGui::TextWrapped("Rooms, header 0x%02X (%zu): %s",
-                       std::max(0, id - zelda3::kDungeonSpritesetBase),
-                       usage.rooms.size(), hex_list(usage.rooms).c_str());
-    if (id < zelda3::kDungeonSpritesetBase) {
-      ImGui::TextDisabled(
-          tr("Dungeon rooms use spritesets 0x40-0x8F (header + 0x40)."));
-    }
-  } else {
-    const auto usage =
-        zelda3::FindRoomsetUsage(id, *usage_areas_, *usage_rooms_);
-    ImGui::TextWrapped("OW areas, area graphics (%zu): %s",
-                       usage.ow_areas.size(), hex_list(usage.ow_areas).c_str());
-    ImGui::TextWrapped("Rooms, blockset (%zu): %s", usage.rooms.size(),
-                       hex_list(usage.rooms).c_str());
+  const auto usage =
+      zelda3::FindSpritesetUsage(id, *usage_areas_, *usage_rooms_);
+  static constexpr const char* kStates[] = {
+      "OW areas, state 0 (start)", "OW areas, state 1", "OW areas, state 2"};
+  for (int state = 0; state < 3; ++state) {
+    ImGui::TextWrapped("%s (%zu): %s", kStates[state],
+                       usage.ow_areas_by_state[state].size(),
+                       hex_list(usage.ow_areas_by_state[state]).c_str());
+  }
+  ImGui::TextWrapped("Rooms, header 0x%02X (%zu): %s",
+                     std::max(0, id - zelda3::kDungeonSpritesetBase),
+                     usage.rooms.size(), hex_list(usage.rooms).c_str());
+  if (id < zelda3::kDungeonSpritesetBase) {
+    ImGui::TextDisabled(
+        tr("Dungeon rooms use spritesets 0x40-0x8F (header + 0x40)."));
   }
   ImGui::TreePop();
 }
@@ -265,7 +254,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
     if (!sheet_only) {
       TableNextColumn();
       BeginGroup();
-      DrawMainAssignmentControls();
+      DrawAssignmentControls(GroupKind::kMain);
       EndGroup();
     }
 
@@ -296,6 +285,10 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     return;
   }
 
+  if (Ws().selected_roomset >= game_data()->room_blockset_ids.size()) {
+    ImGui::TextUnformatted("Roomset is unavailable");
+    return;
+  }
   PushID("RoomsetViewer");
   auto& ws = Ws();
   Text(tr("Roomsets overwrite slots 3-6 of the main blockset"));
@@ -325,23 +318,19 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     }
     EndChild();
 
-    // Inputs column
     TableNextColumn();
-    BeginGroup();
-    Text(tr("Sheet IDs (overwrites slots 3-6):"));
-    for (int idx = 0; idx < 4; idx++) {
-      SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
-      gui::InputHexByte(
-          ("Slot " + std::to_string(idx + 3)).c_str(),
-          &game_data()->room_blockset_ids[ws.selected_roomset][idx]);
-    }
-    EndGroup();
+    DrawAssignmentControls(GroupKind::kRoomset);
 
     // Sheets column
     TableNextColumn();
     BeginGroup();
     for (int idx = 0; idx < 4; idx++) {
       int sheet_id = game_data()->room_blockset_ids[ws.selected_roomset][idx];
+      if (sheet_id == 0) {
+        Text("Slot %d: Inherit from main group", idx + 3);
+        continue;
+      }
+      Text("Slot %d / Sheet %02X", idx + 3, sheet_id);
       auto* sheet = PrepareSheetPreview(sheet_id, gfx::RoleForRoomsetSlot(idx),
                                         roomset_previews_[idx]);
       if (!sheet)

@@ -14,13 +14,13 @@
 namespace yaze::editor {
 namespace {
 
-class MainGraphicsSheetAction final : public UndoAction {
+class GraphicsSheetAssignmentAction final : public UndoAction {
  public:
   using Apply = std::function<absl::Status(uint8_t, uint8_t)>;
-  MainGraphicsSheetAction(int group, int slot, uint8_t before, uint8_t after,
-                          Apply apply)
-      : description_(
-            absl::StrFormat("Main graphics group %02X slot %d", group, slot)),
+  GraphicsSheetAssignmentAction(const char* kind, int group, int slot,
+                                uint8_t before, uint8_t after, Apply apply)
+      : description_(absl::StrFormat("%s graphics group %02X slot %d", kind,
+                                     group, slot)),
         before_(before),
         after_(after),
         apply_(std::move(apply)) {}
@@ -50,7 +50,7 @@ void DrawIds(const char* label, const std::vector<int>& ids, int digits) {
 }  // namespace
 
 GfxGroupEditor::~GfxGroupEditor() {
-  ResetMainPicker();
+  ResetSheetPicker();
   for (auto& preview : blockset_previews_)
     gfx::Arena::Get().RetireBitmap(preview);
   for (auto& preview : roomset_previews_)
@@ -59,20 +59,20 @@ GfxGroupEditor::~GfxGroupEditor() {
     gfx::Arena::Get().RetireBitmap(preview);
 }
 
-void GfxGroupEditor::ResetMainPicker() {
-  show_main_picker_ = false;
+void GfxGroupEditor::ResetSheetPicker() {
+  show_sheet_picker_ = false;
   pending_sheet_ = -1;
   picker_group_ = -1;
-  for (auto& [id, preview] : main_picker_previews_)
+  for (auto& [id, preview] : picker_previews_)
     gfx::Arena::Get().RetireBitmap(preview);
-  main_picker_previews_.clear();
+  picker_previews_.clear();
   assignment_error_.clear();
 }
 
 void GfxGroupEditor::SetRom(Rom* rom) {
   if (rom_ != rom) {
     ++assignment_session_->generation;
-    ResetMainPicker();
+    ResetSheetPicker();
     usage_areas_.reset();
     usage_rooms_.reset();
     current_palette_ = nullptr;
@@ -86,7 +86,7 @@ void GfxGroupEditor::SetGameData(zelda3::GameData* data) {
   // and rollback where both pointer addresses are unchanged. Every binding
   // notification starts a new assignment generation.
   ++assignment_session_->generation;
-  ResetMainPicker();
+  ResetSheetPicker();
   current_palette_ = nullptr;
   game_data_ = data;
   assignment_session_->data = data;
@@ -97,34 +97,49 @@ void GfxGroupEditor::DetachRuntimeContext() {
   SetGameData(nullptr);
   undo_ = nullptr;
   main_usage_ = {};
+  roomset_usage_ = {};
   workspace_ = nullptr;
 }
 
 absl::Status GfxGroupEditor::EditMainGraphicsSheet(int group, int slot,
                                                    int sheet) {
+  return EditGraphicsSheet(GroupKind::kMain, group, slot, sheet);
+}
+
+absl::Status GfxGroupEditor::EditRoomsetGraphicsSheet(int group, int entry,
+                                                      int sheet) {
+  return EditGraphicsSheet(GroupKind::kRoomset, group, entry, sheet);
+}
+
+absl::Status GfxGroupEditor::EditGraphicsSheet(GroupKind kind, int group,
+                                               int slot, int sheet) {
   if (!rom_ || !rom_->is_loaded() || !game_data_ ||
       !game_data_->gfx_groups_loaded || !undo_) {
     return absl::FailedPreconditionError("No editable graphics session");
   }
-  if (group < 0 || group >= game_data_->main_blockset_ids.size() || slot < 0 ||
-      slot >= 8 || sheet < 0 ||
-      sheet >= zelda3::GraphicsSheetStore::kSheetCount) {
+  const bool roomset = kind == GroupKind::kRoomset;
+  const int groups = roomset ? game_data_->room_blockset_ids.size()
+                             : game_data_->main_blockset_ids.size();
+  if (group < 0 || group >= groups || slot < 0 || slot >= (roomset ? 4 : 8) ||
+      sheet < 0 || sheet >= zelda3::GraphicsSheetStore::kSheetCount) {
     return absl::InvalidArgumentError(
-        "Choose a main group, slot 0-7 and sheet");
+        "Choose a valid graphics group, slot and sheet");
   }
-  if (!game_data_->sheet_store.HasSheet(sheet) ||
-      zelda3::GetGfxSheetStorageKind(sheet) ==
-          zelda3::GfxSheetStorageKind::kCompressed2bpp) {
+  if (!(roomset && sheet == 0) &&
+      (!game_data_->sheet_store.HasSheet(sheet) ||
+       zelda3::GetGfxSheetStorageKind(sheet) ==
+           zelda3::GfxSheetStorageKind::kCompressed2bpp)) {
     return absl::InvalidArgumentError(
-        "Main backgrounds require a loaded 3bpp sheet");
+        "Backgrounds require a loaded 3bpp sheet");
   }
-  const uint8_t before = game_data_->main_blockset_ids[group][slot];
+  const uint8_t before = roomset ? game_data_->room_blockset_ids[group][slot]
+                                 : game_data_->main_blockset_ids[group][slot];
   const auto after = static_cast<uint8_t>(sheet);
   if (before == after)
     return absl::OkStatus();
   const std::weak_ptr<AssignmentSession> weak = assignment_session_;
-  auto apply = [weak, generation = assignment_session_->generation, group,
-                slot](uint8_t expected, uint8_t value) -> absl::Status {
+  auto apply = [weak, generation = assignment_session_->generation, group, slot,
+                roomset](uint8_t expected, uint8_t value) -> absl::Status {
     const auto session = weak.lock();
     if (!session || session->generation != generation || !session->rom ||
         !session->rom->is_loaded() || !session->data ||
@@ -132,7 +147,8 @@ absl::Status GfxGroupEditor::EditMainGraphicsSheet(int group, int slot,
       return absl::FailedPreconditionError(
           "Graphics assignment belongs to another session");
     }
-    auto& assigned = session->data->main_blockset_ids[group][slot];
+    auto& assigned = roomset ? session->data->room_blockset_ids[group][slot]
+                             : session->data->main_blockset_ids[group][slot];
     if (assigned != expected) {
       return absl::FailedPreconditionError(
           "Graphics assignment changed elsewhere; Undo was not applied");
@@ -144,8 +160,9 @@ absl::Status GfxGroupEditor::EditMainGraphicsSheet(int group, int slot,
     return absl::OkStatus();
   };
   RETURN_IF_ERROR(apply(before, after));
-  undo_->Push(std::make_unique<MainGraphicsSheetAction>(
-      group, slot, before, after, std::move(apply)));
+  undo_->Push(std::make_unique<GraphicsSheetAssignmentAction>(
+      roomset ? "Roomset" : "Main", group, roomset ? slot + 3 : slot, before,
+      after, std::move(apply)));
   return absl::OkStatus();
 }
 
@@ -200,87 +217,152 @@ void GfxGroupEditor::DrawMainUsage() {
   }
 }
 
-void GfxGroupEditor::DrawMainAssignmentControls() {
-  const int group = Ws().selected_blockset;
-  if (picker_group_ != -1 && picker_group_ != group)
-    ResetMainPicker();
-  for (int slot = 0; slot < 8; ++slot) {
-    const auto label =
-        absl::StrFormat("Slot %d / Sheet %02X", slot,
-                        game_data_->main_blockset_ids[group][slot]);
-    if (ImGui::Selectable(label.c_str(), selected_main_slot_ == slot)) {
-      if (selected_main_slot_ != slot)
-        ResetMainPicker();
-      selected_main_slot_ = slot;
-    }
-    gui::AutoRegisterLastItem("selectable",
-                              absl::StrFormat("Main slot %d", slot));
+void GfxGroupEditor::DrawRoomsetUsage() {
+  if (!roomset_usage_) {
+    ImGui::TextDisabled("Roomset usage unavailable.");
+    return;
   }
-  DrawMainUsage();
-  ImGui::BeginDisabled(!undo_ || !main_usage_ ||
+  const auto usage = roomset_usage_(Ws().selected_roomset);
+  if (!usage.ok()) {
+    ImGui::TextWrapped("Usage unavailable: %s",
+                       std::string(usage.status().message()).c_str());
+    return;
+  }
+  ImGui::TextWrapped("Shared by %zu rooms and %zu map screens",
+                     usage->rooms.size(), usage->ow_areas.size());
+  if (usage->unscanned_rooms || usage->unscanned_ow_areas) {
+    ImGui::TextWrapped("Incomplete scan: %d rooms / %d maps unavailable.",
+                       usage->unscanned_rooms, usage->unscanned_ow_areas);
+  }
+  if (ImGui::TreeNode("Roomset assignment details")) {
+    ImGui::TextWrapped(
+        "%s", usage->uses_live_overworld
+                  ? "Includes unsaved room and map selections."
+                  : "Includes unsaved rooms; maps read from ROM until loaded.");
+    if (ImGui::BeginChild("##RoomsetUsage", ImVec2(0, 150), true)) {
+      DrawIds("Rooms", usage->rooms, 3);
+      DrawIds("Affected map screens", usage->ow_areas, 2);
+      DrawIds("Maps using custom sheets", usage->overridden_ow_areas, 2);
+      DrawIds("Maps using an independent table", usage->independent_ow_areas,
+              2);
+    }
+    ImGui::EndChild();
+    ImGui::TreePop();
+  }
+}
+
+void GfxGroupEditor::DrawAssignmentControls(GroupKind kind) {
+  const bool roomset = kind == GroupKind::kRoomset;
+  const int group = roomset ? Ws().selected_roomset : Ws().selected_blockset;
+  int& selected = roomset ? selected_roomset_entry_ : selected_main_slot_;
+  if (picker_kind_ != kind || (picker_group_ != -1 && picker_group_ != group))
+    ResetSheetPicker();
+  picker_kind_ = kind;
+  const auto* entries = roomset ? game_data_->room_blockset_ids[group].data()
+                                : game_data_->main_blockset_ids[group].data();
+  for (int slot = 0; slot < (roomset ? 4 : 8); ++slot) {
+    const int display_slot = roomset ? slot + 3 : slot;
+    const auto label = roomset && entries[slot] == 0
+                           ? absl::StrFormat("Slot %d / Inherit", display_slot)
+                           : absl::StrFormat("Slot %d / Sheet %02X",
+                                             display_slot, entries[slot]);
+    if (ImGui::Selectable(label.c_str(), selected == slot)) {
+      if (selected != slot)
+        ResetSheetPicker();
+      selected = slot;
+    }
+    gui::AutoRegisterLastItem(
+        "selectable",
+        absl::StrFormat("%s slot %d", roomset ? "Roomset" : "Main",
+                        display_slot));
+  }
+  if (roomset)
+    DrawRoomsetUsage();
+  else
+    DrawMainUsage();
+  ImGui::BeginDisabled(!undo_ || (roomset ? !roomset_usage_ : !main_usage_) ||
                        !game_data_->gfx_groups_loaded);
   if (ImGui::Button("Choose replacement sheet")) {
-    const bool open = !show_main_picker_;
-    ResetMainPicker();
-    show_main_picker_ = open;
+    const bool open = !show_sheet_picker_;
+    ResetSheetPicker();
+    show_sheet_picker_ = open;
     picker_group_ = group;
-    picker_expected_sheet_ =
-        game_data_->main_blockset_ids[group][selected_main_slot_];
+    picker_expected_sheet_ = entries[selected];
   }
   gui::AutoRegisterLastItem("button", "Choose replacement sheet");
   ImGui::EndDisabled();
-  if (show_main_picker_)
-    DrawMainSheetPicker();
+  if (show_sheet_picker_)
+    DrawSheetPicker();
   if (!assignment_error_.empty())
     ImGui::TextWrapped("%s", assignment_error_.c_str());
 }
 
-void GfxGroupEditor::DrawMainSheetPicker() {
-  ImGui::TextWrapped(
-      "Preview uses the selected palette or slot default. Sheet 00 is a "
-      "physical sheet, not inheritance.");
+void GfxGroupEditor::DrawSheetPicker() {
+  const bool roomset = picker_kind_ == GroupKind::kRoomset;
+  const int selected = roomset ? selected_roomset_entry_ : selected_main_slot_;
+  ImGui::TextWrapped("Preview uses the selected palette or slot default.");
+  if (roomset) {
+    ImGui::TextWrapped(
+        "Inherit uses each room or map's main group. Its appearance can differ "
+        "between areas.");
+    if (ImGui::Selectable("Inherit from main group (00)", pending_sheet_ == 0))
+      pending_sheet_ = 0;
+    gui::AutoRegisterLastItem("selectable", "Inherit from main group");
+  } else {
+    ImGui::TextWrapped("Sheet 00 is a physical sheet, not inheritance.");
+  }
   if (pending_sheet_ >= 0) {
-    if (ImGui::Button("Apply to shared main group")) {
-      if (game_data_->main_blockset_ids[picker_group_][selected_main_slot_] !=
-          picker_expected_sheet_) {
+    const char* apply_label =
+        roomset ? "Apply to shared roomset" : "Apply to shared main group";
+    if (ImGui::Button(apply_label)) {
+      const auto current =
+          roomset ? game_data_->room_blockset_ids[picker_group_][selected]
+                  : game_data_->main_blockset_ids[picker_group_][selected];
+      if (current != picker_expected_sheet_) {
         assignment_error_ =
             "Assignment changed while choosing. Reopen the picker.";
       } else {
-        const auto status = EditMainGraphicsSheet(
-            picker_group_, selected_main_slot_, pending_sheet_);
+        const auto status = EditGraphicsSheet(picker_kind_, picker_group_,
+                                              selected, pending_sheet_);
         assignment_error_ = status.ok() ? "" : std::string(status.message());
         if (status.ok())
-          show_main_picker_ = false;
+          show_sheet_picker_ = false;
       }
     }
-    gui::AutoRegisterLastItem("button", "Apply to shared main group");
-    ImGui::Text("Selected sheet %02X", pending_sheet_);
+    gui::AutoRegisterLastItem("button", apply_label);
+    if (roomset && pending_sheet_ == 0)
+      ImGui::TextUnformatted("Selected: Inherit");
+    else
+      ImGui::Text("Selected sheet %02X", pending_sheet_);
   }
-  if (ImGui::BeginChild("##MainSheetPicker", ImVec2(0, 220), true)) {
+  if (ImGui::BeginChild("##SheetPicker", ImVec2(0, 220), true)) {
     std::vector<int> candidates;
-    for (int id = 0; id < zelda3::GraphicsSheetStore::kSheetCount; ++id) {
+    for (int id = roomset ? 1 : 0; id < zelda3::GraphicsSheetStore::kSheetCount;
+         ++id) {
       if (game_data_->sheet_store.HasSheet(id) &&
           zelda3::GetGfxSheetStorageKind(id) !=
-              zelda3::GfxSheetStorageKind::kCompressed2bpp) {
+              zelda3::GfxSheetStorageKind::kCompressed2bpp)
         candidates.push_back(id);
-      }
     }
     ImGuiListClipper clipper;
     clipper.Begin(static_cast<int>(candidates.size()), 54.0f);
     while (clipper.Step()) {
       for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
         const int id = candidates[row];
-        auto* preview = PrepareSheetPreview(
-            id, gfx::RoleForBlocksetSlot(selected_main_slot_),
-            main_picker_previews_[id]);
+        auto* preview =
+            PrepareSheetPreview(id,
+                                roomset ? gfx::RoleForRoomsetSlot(selected)
+                                        : gfx::RoleForBlocksetSlot(selected),
+                                picker_previews_[id]);
         const auto position = ImGui::GetCursorScreenPos();
-        const auto label = absl::StrFormat("Sheet %02X##main_replacement", id);
+        const auto label = absl::StrFormat("Sheet %02X##replacement", id);
         ImGui::PushID(id);
         if (ImGui::Selectable(label.c_str(), pending_sheet_ == id, 0,
                               ImVec2(0, 50)))
           pending_sheet_ = id;
-        gui::AutoRegisterLastItem("selectable",
-                                  absl::StrFormat("Main sheet %02X", id));
+        gui::AutoRegisterLastItem(
+            "selectable",
+            absl::StrFormat("%s sheet %02X", roomset ? "Roomset" : "Main", id));
         if (preview && preview->texture()) {
           ImGui::GetWindowDrawList()->AddImage(
               (ImTextureID)preview->texture(),

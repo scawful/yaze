@@ -156,6 +156,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       GfxGroupEditor::MainUsageCallback callback) {
     gfx_group_editor_.SetMainUsageCallback(std::move(callback));
   }
+  void SetRoomsetGraphicsUsageCallback(
+      GfxGroupEditor::RoomsetUsageCallback callback) {
+    gfx_group_editor_.SetRoomsetUsageCallback(std::move(callback));
+  }
   void PrepareForSessionTeardown() override {
     gfx_group_editor_.DetachRuntimeContext();
   }
