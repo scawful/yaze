@@ -6,9 +6,12 @@
 #include <vector>
 
 #include "absl/cleanup/cleanup.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::editor {
 
@@ -34,6 +37,11 @@ class RoomGraphicsContentTest : public ::testing::Test {
   void SetUp() override {
     gfx::Arena::Get().ClearTextureQueue();
     ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    // A zero-filled ROM otherwise decodes its entire tail as layout objects.
+    for (int pointer : zelda3::kRoomLayoutPointers) {
+      ASSERT_TRUE(rom_.WriteShort(SnesToPc(pointer), 0xFFFF).ok());
+    }
+    rom_.set_dirty(false);
     game_data_.graphics_buffer.assign(223 * 4096, 1);
     room_ = std::make_unique<zelda3::Room>(0, &rom_, &game_data_);
     room_->LoadRoomGraphics();
@@ -57,6 +65,89 @@ class RoomGraphicsContentTest : public ::testing::Test {
   zelda3::GameData game_data_;
   std::unique_ptr<zelda3::Room> room_;
 };
+
+TEST_F(RoomGraphicsContentTest,
+       ThumbnailSelectionAppliesThroughCallbackAndNavigationClosesPicker) {
+  ImGuiContext* previous = ImGui::GetCurrentContext();
+  ImGuiContext* context = ImGui::CreateContext();
+  const absl::Cleanup restore = [&] {
+    ImGui::DestroyContext(context);
+    ImGui::SetCurrentContext(previous);
+    gui::WidgetIdRegistry::Instance().Clear();
+  };
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1280, 1600);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* font_pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &width, &height);
+  game_data_.palette_groups.dungeon_main.AddPalette(gfx::SnesPalette(
+      std::vector<gfx::SnesColor>(90, gfx::SnesColor(80, 96, 112))));
+  DungeonRoomStore rooms(&rom_, &game_data_);
+  int selected_room = 0;
+  rooms[0].SetTileObjects({});
+  rooms[1].SetTileObjects({});
+  RoomGraphicsContent content(&selected_room, &rooms);
+  std::vector<std::array<int, 3>> edits;
+  content.SetAssignmentCallback([&](int room, int slot, int sheet) {
+    edits.push_back({room, slot, sheet});
+    game_data_.room_blockset_ids[rooms[room].blockset()][slot - 3] = sheet;
+    return absl::OkStatus();
+  });
+  const auto draw = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(440, 1500), ImGuiCond_Always);
+    ImGui::Begin("RoomGraphicsTest", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    content.Draw(nullptr);
+    ImGui::End();
+    ImGui::Render();
+  };
+  const auto click = [&](const std::string& label) {
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label != label || !widget.visible || !widget.enabled)
+        continue;
+      const auto b = widget.bounds;
+      io.AddMousePosEvent((b.min_x + b.max_x) / 2, (b.min_y + b.max_y) / 2);
+      found = true;
+      break;
+    }
+    ASSERT_TRUE(found) << label;
+    draw();
+    io.AddMouseButtonEvent(0, true);
+    draw();
+    io.AddMouseButtonEvent(0, false);
+    draw();
+    // Controls earlier in the draw order observe a selection next frame.
+    draw();
+  };
+  draw();
+  draw();
+  click("Slot 04");
+  click("Choose replacement sheet");
+  EXPECT_TRUE(edits.empty());
+  click("Sheet 01");
+  EXPECT_TRUE(edits.empty());
+  click("Apply to shared group");
+  ASSERT_EQ(edits.size(), 1u);
+  EXPECT_EQ(edits[0], (std::array<int, 3>{0, 4, 1}));
+  click("Use main group");
+  ASSERT_EQ(edits.size(), 2u);
+  EXPECT_EQ(edits[1], (std::array<int, 3>{0, 4, 0}));
+  click("Choose replacement sheet");
+  click("Sheet 02");
+  selected_room = 1;
+  draw();
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    EXPECT_NE(widget.label, "Apply to shared group");
+  }
+  EXPECT_EQ(edits.size(), 2u);
+}
 
 TEST_F(RoomGraphicsContentTest,
        ReloadRefreshesPixelsWithoutChangingRoomHeader) {

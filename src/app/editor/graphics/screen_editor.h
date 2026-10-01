@@ -94,11 +94,16 @@ class ScreenEditor : public Editor {
   void InvalidateRomBackedState();
   absl::Status RefreshRomBackedState();
   bool IsRomBackedStateValid() const { return rom_backed_state_valid_; }
+  // Opens the selected ROM-backed Dungeon Map / Tiles Gfx tile in Graphics.
+  // BIN graphics and unavailable same-session sheets fail without navigation.
+  absl::Status OpenDungeonMapTileGraphics();
 
   std::vector<zelda3::DungeonMap> dungeon_maps_;
 
  private:
   friend class ScreenEditorSaveStoplossTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
+  friend class ScreenGraphicsContextTestPeer;
 
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
@@ -124,6 +129,7 @@ class ScreenEditor : public Editor {
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
   void DrawDungeonMapsRoomGfx();
+  void RefreshDungeonMapGraphicsFromSession();
 
   void LoadBinaryGfx();
   gfx::Bitmap* GetOrCreateSheet(int index);

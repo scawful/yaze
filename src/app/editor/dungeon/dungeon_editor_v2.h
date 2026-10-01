@@ -183,6 +183,8 @@ class DungeonEditorV2 : public Editor {
       const DungeonRoomTransferOptions& options);
   absl::Status ApplyRoomTransfer(const DungeonRoomTransferPlan& plan);
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
+  // Shared roomset assignment (background slots 3-6); zero inherits main.
+  absl::Status EditRoomGraphicsSheet(int room_id, int slot, int sheet_id);
   absl::Status EditRoomMetadataBatch(
       const std::vector<RoomMetadataRequest>& requests);
   absl::Status EditChest(int room_id, size_t index, uint8_t item_id,

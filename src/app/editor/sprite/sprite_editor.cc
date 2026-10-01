@@ -8,9 +8,12 @@
 #include <cstring>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/sprite/sprite_authoring.h"
 #include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/sprite_editor_internal.h"
+#include "app/editor/sprite/sprite_graphics_context.h"
 #include "app/editor/sprite/sprite_undo_actions.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -312,6 +315,83 @@ void SpriteEditor::ApplySpritesetToSheets(int spriteset) {
     MarkSpriteMutated();
   }
   CommitUndoTransaction();
+}
+
+absl::Status SpriteEditor::OpenSelectedOamGraphics() {
+  const auto* sprite = current_custom_sprite();
+  if (!sprite || current_frame_ < 0 ||
+      current_frame_ >= static_cast<int>(sprite->editor.Frames.size())) {
+    return absl::FailedPreconditionError("Select a sprite frame");
+  }
+  if (!rom_ || !rom_->is_loaded() || !game_data()) {
+    return absl::FailedPreconditionError(
+        "Load a ROM before editing sprite pixels");
+  }
+  if (!gfx_buffer_loaded_)
+    LoadSpriteGraphicsBuffer();
+  LoadSpritePalettes();
+  if (!graphics_binding_status_.ok())
+    return graphics_binding_status_;
+  if (!palette_binding_status_.ok())
+    return palette_binding_status_;
+  std::array<uint8_t, 8> slots;
+  std::copy_n(current_sheets_, 8, slots.begin());
+  const auto frame = sprite->editor.Frames[current_frame_];
+  const auto palettes = sprite_palettes_;
+  const std::string source =
+      preview_use_room_palette_
+          ? absl::StrFormat("room %03X CGRAM rows 8-15; sprite slots %02X",
+                            preview_room_, preview_spriteset_)
+          : (current_sprite_binding()
+                 ? absl::StrFormat(
+                       "sprite asset binding; preview spriteset %02X",
+                       preview_spriteset_)
+                 : absl::StrFormat("preview spriteset %02X",
+                                   preview_spriteset_));
+  auto context = sprite_graphics_context::Make(
+      frame, current_frame_, selected_tile_index_, slots, palettes, game_data(),
+      sprite->sprName, source);
+  if (!context.ok())
+    return context.status();
+  const auto* owner = game_data();
+  context->render_preview = [frame, slots, palettes, owner]() {
+    return sprite_graphics_context::RenderCapturedFrame(frame, slots, palettes,
+                                                        owner);
+  };
+  auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (!manager)
+    return absl::FailedPreconditionError("Editor manager unavailable");
+  const int sprite_index = current_custom_sprite_index_;
+  const int frame_index = current_frame_;
+  const int tile_index = selected_tile_index_;
+  context->return_to_source = [this, manager, sprite_index, frame_index,
+                               tile_index]() {
+    if (sprite_index >= 0 &&
+        sprite_index < static_cast<int>(custom_sprites_.size())) {
+      current_custom_sprite_index_ = sprite_index;
+      if (frame_index <
+          static_cast<int>(
+              custom_sprites_[sprite_index].editor.Frames.size())) {
+        current_frame_ = frame_index;
+        selected_tile_index_ = tile_index;
+      }
+      preview_needs_update_ = true;
+      gfx_buffer_loaded_ = false;
+    }
+    manager->SwitchToEditor(EditorType::kSprite, true);
+  };
+  auto* editor_set = manager->GetCurrentEditorSet();
+  if (!editor_set || !editor_set->GetGraphicsEditor()) {
+    return absl::FailedPreconditionError("Graphics editor unavailable");
+  }
+  auto status = manager->EnsureEditorAssetsLoaded(EditorType::kGraphics);
+  if (!status.ok())
+    return status;
+  status = editor_set->GetGraphicsEditor()->OpenInContext(std::move(*context));
+  if (!status.ok())
+    return status;
+  manager->SwitchToEditor(EditorType::kGraphics, true);
+  return absl::OkStatus();
 }
 
 void SpriteEditor::DrawSpritesetPicker() {
@@ -1220,6 +1300,14 @@ void SpriteEditor::DrawFrameEditor() {
         preview_needs_update_ = true;
       }
 
+      if (ImGui::Button(tr("Edit selected OAM pixels"))) {
+        graphics_context_status_ = OpenSelectedOamGraphics();
+      }
+      if (!graphics_context_status_.ok()) {
+        ImGui::TextWrapped(
+            "%s", std::string(graphics_context_status_.message()).c_str());
+      }
+
       if (ImGui::Button(tr("Duplicate Tile"))) {
         const auto copy = tile;
         frame.Tiles.push_back(copy);
@@ -1337,18 +1425,13 @@ void SpriteEditor::LoadSpriteGraphicsBuffer() {
 
   for (int sheet_idx = 0; sheet_idx < 8; sheet_idx++) {
     uint8_t sheet_id = current_sheets_[sheet_idx];
-    if (sheet_id >= gfx::Arena::Get().gfx_sheets().size()) {
+    if (game_data() == nullptr ||
+        !game_data()->sheet_store.HasSheet(sheet_id)) {
       graphics_binding_status_ = absl::OutOfRangeError(
           "Sprite graphics sheet unavailable in loaded ROM");
       continue;
     }
-
-    auto& sheet = gfx::Arena::Get().gfx_sheets().at(sheet_id);
-    if (!sheet.is_active() || sheet.size() == 0) {
-      graphics_binding_status_ = absl::FailedPreconditionError(
-          "Sprite graphics sheet has not been loaded");
-      continue;
-    }
+    const auto sheet = game_data()->sheet_store.Sheet(sheet_id);
 
     // Copy sheet data to buffer at appropriate offset
     // Each sheet occupies 8 tile rows (8 * 8 scanlines = 64 scanlines)

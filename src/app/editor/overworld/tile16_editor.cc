@@ -109,6 +109,16 @@ absl::Status Tile16Editor::UpdateAsPanel() {
   SameLine();
   TextDisabled(tr("Right-click for more options"));
 
+  if (Button("Edit quadrant pixels in Graphics")) {
+    graphics_open_status_ = OpenGraphicsForActiveQuadrant();
+  }
+  SameLine();
+  TextDisabled("Quadrant %d", session_.active_quadrant() + 1);
+  if (!graphics_open_status_.ok()) {
+    ImGui::TextWrapped("Graphics edit unavailable: %s",
+                       graphics_open_status_.message().data());
+  }
+
   // Context menu
   DrawContextMenu();
 

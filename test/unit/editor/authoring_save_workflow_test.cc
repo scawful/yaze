@@ -28,7 +28,9 @@
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/screen_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/sprite/sprite_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
 #include "core/hack_manifest.h"
@@ -48,6 +50,15 @@ namespace yaze::editor {
 
 class AuthoringSaveWorkflowTestPeer {
  public:
+  static absl::Status OpenScreenGraphics(ScreenEditor& editor) {
+    editor.selected_tile8_ = 64;
+    return editor.OpenDungeonMapTileGraphics();
+  }
+  static absl::Status OpenSpriteGraphics(SpriteEditor& editor) {
+    editor.current_frame_ = 0;
+    editor.selected_tile_index_ = 0;
+    return editor.OpenSelectedOamGraphics();
+  }
   static void OpenObjectGraphics(DungeonEditorV2& editor, int room_id,
                                  const zelda3::RoomObject& object) {
     editor.OpenGraphicsEditorForObject(room_id, object);
@@ -102,6 +113,10 @@ class AuthoringSaveWorkflowTestPeer {
   static void ActivateDungeonRoom(DungeonEditorV2& editor, int room) {
     editor.current_room_id_ = room;
     editor.SyncPanelsToRoom(room);
+  }
+
+  static void SelectDungeonRoom(DungeonEditorV2& editor, int room) {
+    editor.OnRoomSelected(room);
   }
 
   static void SelectDungeonEntrance(DungeonEditorV2& editor, int slot) {
@@ -367,12 +382,226 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
 
   void QualifySpecialArea(zelda3::AreaSizeEnum size, int child, int x, int y);
 
+  void QualifySourcePixelRoundTrip(const DisposableOracleProject& fixture) {
+    auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+    auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+    ASSERT_TRUE(state.source_context);
+    ASSERT_TRUE(state.SourceTarget());
+    const auto context = *state.source_context;
+    const auto target = *state.SourceTarget();
+    ASSERT_EQ(target.palette.size(), 8u);
+    const int x = (target.tile_index % 16) * 8;
+    const int y = (target.tile_index / 16) * 8;
+    const int offset = y * 128 + x;
+    const auto original =
+        state.game_data->sheet_store.Sheet(target.sheet_id)[offset];
+    const uint8_t changed = original == 1 ? 2 : 1;
+    const auto before = context.render_preview();
+    ASSERT_OK(before.status());
+    ASSERT_FALSE(before->empty());
+    const auto revision =
+        state.game_data->sheet_store.Revision(target.sheet_id);
+    AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, x, y, changed,
+                                                      false);
+    const auto painted = context.render_preview();
+    ASSERT_OK(painted.status());
+    EXPECT_EQ(state.game_data->sheet_store.Revision(target.sheet_id), revision);
+    EXPECT_NE(painted->pixels, before->pixels);
+    AuthoringSaveWorkflowTestPeer::EndGraphicsStroke(*graphics);
+    ASSERT_OK(graphics->Undo());
+    const auto undone = context.render_preview();
+    ASSERT_OK(undone.status());
+    EXPECT_EQ(undone->ToRgba(), before->ToRgba());
+    ASSERT_OK(graphics->Redo());
+    const auto redone = context.render_preview();
+    ASSERT_OK(redone.status());
+    EXPECT_EQ(redone->ToRgba(), painted->ToRgba());
+    ASSERT_TRUE(context.return_to_source);
+    context.return_to_source();
+    const auto destination = fixture.root / "source-pixels.sfc";
+    ASSERT_OK(manager_->SaveRomAs(destination.string()));
+    ExpectProtectedRegionsMatch(
+        ReadFile(fixture.rom), ReadFile(destination),
+        manager_->GetCurrentProject()->hack_manifest.protected_regions());
+    auto reopened = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+    reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+    ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+    auto& fresh = AuthoringSaveWorkflowTestPeer::GraphicsState(
+        *reopened->GetCurrentEditorSet()->GetGraphicsEditor());
+    EXPECT_EQ(fresh.game_data->sheet_store.Sheet(target.sheet_id)[offset],
+              changed);
+    EXPECT_FALSE(fresh.source_context);
+    reopened.reset();
+    EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+              fixture.source_hash);
+    EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  }
+
   std::filesystem::path root_;
   core::FeatureFlags::Flags original_flags_{};
   ScopedImGuiContext imgui_;
   gfx::NullRenderer renderer_;
   std::unique_ptr<EditorManager> manager_;
 };
+
+TEST_F(AuthoringSaveWorkflowTest, ScreenSourcePixelsUndoReturnSaveAsReopen) {
+  const auto fixture = CopyProject("yaze-screen-source-pixels");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kScreen));
+  auto* screen = manager_->GetCurrentEditorSet()->GetEditorAs<ScreenEditor>(
+      EditorType::kScreen);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::OpenScreenGraphics(*screen));
+  EXPECT_FALSE(screen->HasPendingScreenChanges());
+  QualifySourcePixelRoundTrip(fixture);
+  EXPECT_FALSE(screen->HasPendingScreenChanges());
+}
+
+TEST_F(AuthoringSaveWorkflowTest, OverworldSourcePixelsUndoReturnSaveAsReopen) {
+  const auto fixture = CopyProject("yaze-overworld-source-pixels");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* overworld =
+      manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+          EditorType::kOverworld);
+  overworld->SetCurrentMap(0);
+  auto& world = overworld->overworld();
+  absl::Status opened = absl::NotFoundError("No editable tile on map");
+  for (int y = 0; y < 32 && !opened.ok(); ++y) {
+    for (int x = 0; x < 32 && !opened.ok(); ++x) {
+      const auto tile = world.GetMapTiles(0)[x][y];
+      for (int quadrant = 0; quadrant < 4 && !opened.ok(); ++quadrant) {
+        opened = overworld->OpenGraphicsForTile16Quadrant(tile, quadrant);
+      }
+    }
+  }
+  ASSERT_OK(opened);
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  const auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  ASSERT_TRUE(state.source_context);
+  EXPECT_EQ(state.source_context->resolved.id, 0);
+  EXPECT_EQ(state.source_context->resolved.slots.size(), 16u);
+  QualifySourcePixelRoundTrip(fixture);
+}
+
+TEST_F(AuthoringSaveWorkflowTest, SpriteSourcePixelsUndoReturnSaveAsReopen) {
+  const auto fixture = CopyProject("yaze-sprite-source-pixels");
+  zsprite::ZSprite source;
+  source.editor.Frames.resize(1);
+  source.editor.Frames[0].Tiles.emplace_back(128, 112, false, false, 0x100, 0,
+                                             false, 3);
+  const auto asset = fixture.root / "context-sprite.zsm";
+  ASSERT_OK(source.Save(asset.string()));
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kSprite));
+  auto* sprite = manager_->GetCurrentEditorSet()->GetEditorAs<SpriteEditor>(
+      EditorType::kSprite);
+  ASSERT_OK(sprite->OpenSpriteAsset(asset.string()));
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::OpenSpriteGraphics(*sprite));
+  QualifySourcePixelRoundTrip(fixture);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       DungeonSheetAssignmentUndoAfterNavigationSaveAsReopen) {
+  auto fixture = CopyProject("yaze-room-sheet-assignment");
+  const auto assets = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/Objects/Data";
+  for (const auto& entry : std::filesystem::directory_iterator(assets)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin") {
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+    }
+  }
+  Open(fixture);
+  ASSERT_TRUE(core::FeatureFlags::get().kSaveGfxGroups);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  constexpr int kRoom = 0x89;
+  constexpr int kSlot = 3;
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, 5));
+  auto& room = dungeon->rooms()[kRoom];
+  AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, kRoom);
+  room.PrepareForRender();
+  auto* data = room.game_data();
+  const int group = room.blockset();
+  const auto original_groups = data->room_blockset_ids;
+  const auto original_main = data->main_blockset_ids;
+  const auto original_sprites = data->spriteset_ids;
+  const auto original_pixels = room.get_gfx_buffer();
+  const auto original_sheet = room.blocks()[kSlot];
+  int replacement = 1;
+  while (replacement < 113 &&
+         std::equal(data->sheet_store.Sheet(replacement).begin(),
+                    data->sheet_store.Sheet(replacement).end(),
+                    data->sheet_store.Sheet(original_sheet).begin()))
+    ++replacement;
+  ASSERT_LT(replacement, 113);
+  ASSERT_OK(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, replacement));
+  room.PrepareForRender();
+  EXPECT_EQ(room.blocks()[kSlot], replacement);
+  EXPECT_NE(room.get_gfx_buffer(), original_pixels);
+  const auto edited_pixels = room.get_gfx_buffer();
+  const auto edited_groups = data->room_blockset_ids;
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, 5);
+  ASSERT_OK(dungeon->Undo());
+  room.PrepareForRender();
+  EXPECT_EQ(dungeon->current_room_id(), 5);
+  EXPECT_EQ(data->room_blockset_ids, original_groups);
+  EXPECT_EQ(room.get_gfx_buffer(), original_pixels);
+  ASSERT_OK(dungeon->Redo());
+  room.PrepareForRender();
+  EXPECT_EQ(room.get_gfx_buffer(), edited_pixels);
+  EXPECT_EQ(data->room_blockset_ids, edited_groups);
+  // No-op and invalid edits do not add undo steps or alter neighboring groups.
+  ASSERT_OK(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, replacement));
+  EXPECT_FALSE(dungeon->EditRoomGraphicsSheet(kRoom, 7, replacement).ok());
+  EXPECT_FALSE(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, 113).ok());
+  EXPECT_EQ(data->main_blockset_ids, original_main);
+  EXPECT_EQ(data->spriteset_ids, original_sprites);
+  // Zero is an inheritance instruction, not a request for physical sheet zero.
+  ASSERT_OK(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, 0));
+  room.PrepareForRender();
+  EXPECT_EQ(room.blocks()[kSlot],
+            original_main[room.resolved_main_blockset()][kSlot]);
+  ASSERT_OK(dungeon->Undo());
+  // A newer assignment outside this undo stack must survive a failed Undo.
+  const uint8_t external = replacement == 2 ? 3 : 2;
+  data->room_blockset_ids[group][0] = external;
+  EXPECT_TRUE(absl::IsFailedPrecondition(dungeon->Undo()));
+  EXPECT_EQ(data->room_blockset_ids[group][0], external);
+  data->room_blockset_ids[group][0] = replacement;
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(data->room_blockset_ids, original_groups);
+  EXPECT_FALSE(dungeon->CanUndo());
+  ASSERT_OK(dungeon->Redo());
+  room.PrepareForRender();
+  EXPECT_EQ(room.get_gfx_buffer(), edited_pixels);
+  const auto destination = fixture.root / "room-sheets.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+  auto& reopened = dungeon->rooms()[kRoom];
+  reopened.PrepareForRender();
+  EXPECT_EQ(reopened.game_data()->room_blockset_ids, edited_groups);
+  EXPECT_EQ(reopened.blocks()[kSlot], replacement);
+  EXPECT_EQ(reopened.get_gfx_buffer(), edited_pixels);
+  EXPECT_EQ(reopened.game_data()->main_blockset_ids, original_main);
+  EXPECT_EQ(reopened.game_data()->spriteset_ids, original_sprites);
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
 
 TEST_F(AuthoringSaveWorkflowTest,
        DungeonObjectGraphicsKeepsContextThroughPixelsUndoAndReturn) {
