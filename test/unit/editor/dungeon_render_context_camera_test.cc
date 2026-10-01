@@ -1,22 +1,54 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_entrance_camera.h"
 #include "app/editor/dungeon/dungeon_render_context.h"
+#include "app/editor/dungeon/workspace/room_matrix_census.h"
 
 #include <algorithm>
 #include <array>
+#include <chrono>
+#include <future>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "core/project.h"
 #include "gtest/gtest.h"
+#include "unit/zelda3/dungeon/room_census_test_rom.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze::editor {
 
+class RoomMatrixCensusTestPeer {
+ public:
+  static bool WaitForPending(RoomMatrixCensusOverlay& overlay) {
+    return overlay.pending_.valid() &&
+           overlay.pending_.wait_for(std::chrono::seconds(60)) ==
+               std::future_status::ready;
+  }
+};
+
 class DungeonEditorV2EntranceCameraTestPeer {
  public:
+  static const zelda3::RoomCensus* Census(DungeonEditorV2& editor) {
+    return editor.GetDungeonRenderContextCensus();
+  }
+  static bool WaitForPendingCensus(DungeonEditorV2& editor) {
+    return editor.dungeon_render_context_census_pending_.valid() &&
+           editor.dungeon_render_context_census_pending_.wait_for(
+               std::chrono::seconds(60)) == std::future_status::ready;
+  }
+  static auto TakePendingCensus(DungeonEditorV2& editor) {
+    return std::move(editor.dungeon_render_context_census_pending_);
+  }
+  static void SynchronizeAssets(DungeonEditorV2& editor) {
+    editor.SynchronizeCustomObjectAssets();
+  }
+  static bool HasCachedCensus(const DungeonEditorV2& editor) {
+    return editor.dungeon_render_context_census_.has_value();
+  }
   static void SetRegularEntrance(DungeonEditorV2& editor, int slot_index,
                                  const DungeonEntranceCameraState& state) {
     auto& entrance = editor.entrances_[slot_index];
@@ -112,6 +144,137 @@ DungeonEntranceCameraState StateFromDerived(int room_id, uint16_t player_x,
       .boundaries = derived.boundaries,
       .quadrant = derived.quadrant,
   };
+}
+
+TEST(DungeonRenderContextTest, PendingCensusDiscardsReplacedRomAndProject) {
+  auto original = std::make_unique<Rom>();
+  auto data = zelda3::test::BuildRoomCensusTestRom();
+  ASSERT_TRUE(original->LoadFromData(data).ok());
+  project::YazeProject project;
+  ASSERT_TRUE(
+      project.hack_manifest.LoadFromString(R"({"manifest_version":2})").ok());
+  DungeonEditorV2 editor(original.get());
+  EditorDependencies deps;
+  deps.project = &project;
+  editor.SetDependencies(deps);
+  EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(editor), nullptr);
+
+  Rom replacement;
+  // Original room 0 reaches 4; replacement reaches 6.
+  data[SnesToPc(0x019010) + zelda3::test::kTestHeaderHolewarp] = 6;
+  ASSERT_TRUE(replacement.LoadFromData(data).ok());
+  editor.SetRom(&replacement);
+  original.reset();
+  // Rebinding can replace a manifest in the same project object.
+  project.hack_manifest = {};
+  ASSERT_TRUE(
+      project.hack_manifest
+          .LoadFromString(R"({"manifest_version":2,"hack_name":"replacement"})")
+          .ok());
+  editor.SetDependencies(deps);
+  ASSERT_TRUE(
+      DungeonEditorV2EntranceCameraTestPeer::WaitForPendingCensus(editor));
+  EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(editor), nullptr)
+      << "The completed old generation must be discarded, then rescheduled";
+  ASSERT_TRUE(
+      DungeonEditorV2EntranceCameraTestPeer::WaitForPendingCensus(editor));
+  const auto* census = DungeonEditorV2EntranceCameraTestPeer::Census(editor);
+  ASSERT_NE(census, nullptr);
+  EXPECT_TRUE(census->rooms[6].reached);
+  EXPECT_FALSE(census->rooms[4].reached);
+}
+
+TEST(DungeonRenderContextTest, CensusJobOwnsInputsAfterEditorTeardown) {
+  auto rom = std::make_unique<Rom>();
+  ASSERT_TRUE(rom->LoadFromData(zelda3::test::BuildRoomCensusTestRom()).ok());
+  auto project = std::make_unique<project::YazeProject>();
+  ASSERT_TRUE(
+      project->hack_manifest.LoadFromString(R"({"manifest_version":2})").ok());
+  auto editor = std::make_unique<DungeonEditorV2>(rom.get());
+  EditorDependencies deps;
+  deps.project = project.get();
+  editor->SetDependencies(deps);
+  EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(*editor), nullptr);
+  // Retain the actual dispatched job so its result remains inspectable after
+  // destroying all originating editor, project and ROM objects.
+  auto pending =
+      DungeonEditorV2EntranceCameraTestPeer::TakePendingCensus(*editor);
+  ASSERT_TRUE(pending.valid());
+  editor.reset();
+  project.reset();
+  rom.reset();
+  auto census = pending.get();
+  ASSERT_TRUE(census.ok()) << census.status();
+  EXPECT_TRUE(census->rooms[4].reached);
+  EXPECT_TRUE(census->rooms[0x105].reached);
+}
+
+TEST(DungeonRenderContextTest, ReloadedAssetsInvalidateCachedCensus) {
+  DungeonEditorV2 editor;
+  DungeonEditorV2EntranceCameraTestPeer::SynchronizeAssets(editor);
+  DungeonEditorV2EntranceCameraTestPeer::SetRenderContextCensus(editor, {});
+  ASSERT_TRUE(DungeonEditorV2EntranceCameraTestPeer::HasCachedCensus(editor));
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonEditorV2EntranceCameraTestPeer::SynchronizeAssets(editor);
+  EXPECT_FALSE(DungeonEditorV2EntranceCameraTestPeer::HasCachedCensus(editor));
+}
+
+TEST(RoomMatrixCensusTest, ReplacedRomDiscardsPendingResult) {
+  auto original = std::make_unique<Rom>();
+  auto data = zelda3::test::BuildRoomCensusTestRom();
+  ASSERT_TRUE(original->LoadFromData(data).ok());
+  RoomMatrixCensusOverlay overlay;
+  overlay.SetEnabled(true);
+  overlay.Update(original.get());
+  ASSERT_TRUE(overlay.computing());
+  ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+
+  Rom replacement;
+  data[SnesToPc(0x019010) + zelda3::test::kTestHeaderHolewarp] = 6;
+  ASSERT_TRUE(replacement.LoadFromData(data).ok());
+  original.reset();
+  overlay.Update(&replacement);
+  EXPECT_EQ(overlay.census(), nullptr);
+  ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+  overlay.Update(&replacement);
+  ASSERT_NE(overlay.census(), nullptr);
+  EXPECT_TRUE(overlay.census()->rooms[6].reached);
+  EXPECT_FALSE(overlay.census()->rooms[4].reached);
+}
+
+TEST(RoomMatrixCensusTest, SameAddressRomReplacementDiscardsPendingResult) {
+  Rom rom;
+  auto data = zelda3::test::BuildRoomCensusTestRom();
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  RoomMatrixCensusOverlay overlay;
+  overlay.SetEnabled(true);
+  overlay.Update(&rom);
+  ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+  data[SnesToPc(0x019010) + zelda3::test::kTestHeaderHolewarp] = 6;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  overlay.Update(&rom);
+  EXPECT_EQ(overlay.census(), nullptr);
+  ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+  overlay.Update(&rom);
+  ASSERT_NE(overlay.census(), nullptr);
+  EXPECT_TRUE(overlay.census()->rooms[6].reached);
+  EXPECT_FALSE(overlay.census()->rooms[4].reached);
+}
+
+TEST(RoomMatrixCensusTest, AssetReloadDiscardsCompletedPendingResult) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(zelda3::test::BuildRoomCensusTestRom()).ok());
+  RoomMatrixCensusOverlay overlay;
+  overlay.SetEnabled(true);
+  overlay.Update(&rom);
+  ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  overlay.Update(&rom);
+  EXPECT_EQ(overlay.census(), nullptr);
+  ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+  overlay.Update(&rom);
+  ASSERT_NE(overlay.census(), nullptr);
+  EXPECT_TRUE(overlay.census()->rooms[4].reached);
 }
 
 TEST(DungeonRenderContextTest, SelectedEntranceOwnsSiblingRooms) {

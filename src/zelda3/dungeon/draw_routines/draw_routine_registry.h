@@ -228,6 +228,9 @@ class DrawRoutineRegistry {
 
   // Look up draw routine ID for an object ID. Returns -1 if unmapped.
   int GetRoutineIdForObject(int16_t object_id) const;
+  // Explicit routing for a frozen background job; does not read global mode.
+  int GetRoutineIdForObject(int16_t object_id,
+                            bool custom_objects_enabled) const;
 
   // Every object ID with a routine mapping, ascending. This is the supported
   // object inventory; callers should use it instead of hard-coding the

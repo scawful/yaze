@@ -11,8 +11,12 @@
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
+#include "core/features.h"
 #include "core/hack_manifest.h"
+#include "core/rom_settings.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
 namespace yaze::editor {
 
@@ -85,6 +89,11 @@ ImVec4 RoomMatrixCensusOverlay::OwnerColor(int owner_index, bool interior) {
 void RoomMatrixCensusOverlay::StartComputation(Rom* rom) {
   // Work on a copy so edits and saves on the live ROM never race the
   // background read. Project data is copied too.
+  (void)zelda3::DrawRoutineRegistry::Get();
+  auto custom_objects =
+      zelda3::CustomObjectManager::Get().CaptureRenderSnapshot(
+          core::FeatureFlags::get().kEnableCustomObjects);
+  auto addresses = core::RomSettings::Get().address_overrides();
   auto rom_copy = std::make_shared<Rom>(*rom);
   std::vector<zelda3::RoomCensusOwnerGroup> owners;
   std::set<uint8_t> warp_tags;
@@ -97,9 +106,14 @@ void RoomMatrixCensusOverlay::StartComputation(Rom* rom) {
   }
   pending_ = std::async(
       std::launch::async,
-      [rom_copy, owners = std::move(owners), warp_tags = std::move(warp_tags)]()
-          -> absl::StatusOr<zelda3::RoomCensus> {
-        auto input = zelda3::CollectRoomCensusInput(rom_copy.get());
+      [rom_copy, owners = std::move(owners), warp_tags = std::move(warp_tags),
+       custom_objects = std::move(custom_objects),
+       addresses =
+           std::move(addresses)]() -> absl::StatusOr<zelda3::RoomCensus> {
+        zelda3::RoomCensusOptions options;
+        options.custom_objects = &custom_objects;
+        options.address_overrides = &addresses;
+        auto input = zelda3::CollectRoomCensusInput(rom_copy.get(), options);
         if (!input.ok()) {
           return input.status();
         }
@@ -110,10 +124,26 @@ void RoomMatrixCensusOverlay::StartComputation(Rom* rom) {
 }
 
 void RoomMatrixCensusOverlay::Update(Rom* rom) {
+  const auto generation = zelda3::CustomObjectManager::Get().asset_generation();
+  const bool custom_enabled = core::FeatureFlags::get().kEnableCustomObjects;
+  const uint64_t rom_revision =
+      rom != nullptr ? rom->object_tile_revision() : 0;
+  if (computed_for_ != rom || observed_rom_revision_ != rom_revision ||
+      observed_asset_generation_ != generation ||
+      observed_custom_enabled_ != custom_enabled) {
+    Invalidate();
+    observed_asset_generation_ = generation;
+    observed_rom_revision_ = rom_revision;
+    observed_custom_enabled_ = custom_enabled;
+  }
   if (pending_.valid() &&
       pending_.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
     auto result = pending_.get();
-    if (result.ok()) {
+    if (stale_) {
+      // The worker owns safe inputs, but its result no longer describes this
+      // ROM/project. Drain it before starting a replacement below.
+      census_.reset();
+    } else if (result.ok()) {
       census_ = std::move(result).value();
       error_.clear();
       largest_block_.clear();

@@ -40,6 +40,7 @@ namespace yaze {
 class Rom;
 namespace zelda3 {
 
+class CustomObjectRenderSnapshot;
 class PitDamageTable;
 class Room;
 
@@ -176,8 +177,9 @@ bool IsWarpTileAttribute(uint8_t attribute);
 // sprites (LoadRoomFromRom + LoadSprites). Draws the room's layout and
 // objects without graphics to find pit and warp tiles. `pit_table` may be
 // null (no room counts as a pit-damage room).
-RoomLinkFacts CollectRoomLinkFacts(Rom* rom, const Room& room,
-                                   const PitDamageTable* pit_table);
+RoomLinkFacts CollectRoomLinkFacts(
+    Rom* rom, const Room& room, const PitDamageTable* pit_table,
+    const CustomObjectRenderSnapshot* custom_objects = nullptr);
 
 // Loads rooms on demand and keeps their link facts.
 class RoomLinkFactsCache {

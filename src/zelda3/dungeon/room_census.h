@@ -43,6 +43,7 @@ namespace yaze {
 class Rom;
 namespace core {
 struct ProjectRegistry;
+struct RomAddressOverrides;
 class HackManifest;
 }  // namespace core
 
@@ -158,6 +159,10 @@ struct RoomCensus {
 };
 
 struct RoomCensusOptions {
+  // Background callers must capture on the owner thread and retain this
+  // snapshot for the entire call. Null keeps synchronous live-editor behavior.
+  const CustomObjectRenderSnapshot* custom_objects = nullptr;
+  const core::RomAddressOverrides* address_overrides = nullptr;
   const core::ProjectRegistry* project = nullptr;
   const core::HackManifest* manifest = nullptr;  // Warp tags.
   // Optional vanilla ROM used instead of the built-in fingerprints.

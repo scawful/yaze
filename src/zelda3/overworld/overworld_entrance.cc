@@ -13,13 +13,16 @@
 namespace yaze::zelda3 {
 namespace {
 
-bool HasExpandedEntranceTables(const Rom& rom) {
+bool HasExpandedEntranceTables(const Rom& rom,
+                               const core::RomAddressOverrides& addresses) {
   const auto version = OverworldVersionHelper::GetVersion(rom);
   if (version == OverworldVersion::kVanilla) {
     return false;
   }
-  const int flag_addr = GetOverworldEntranceFlagExpanded();
-  if (flag_addr < 0 || static_cast<size_t>(flag_addr) >= rom.size()) {
+  const auto flag_addr =
+      addresses.GetAddress(core::RomAddressKey::kOverworldEntranceFlagExpanded)
+          .value_or(kOverworldEntranceExpandedFlagPos);
+  if (flag_addr >= rom.size()) {
     return false;
   }
   return rom.data()[flag_addr] != 0xB8;
@@ -28,6 +31,11 @@ bool HasExpandedEntranceTables(const Rom& rom) {
 }  // namespace
 
 absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(Rom* rom) {
+  return LoadEntrances(rom, core::RomSettings::Get().address_overrides());
+}
+
+absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(
+    Rom* rom, const core::RomAddressOverrides& addresses) {
   std::vector<OverworldEntrance> entrances;
   int ow_entrance_map_ptr = kOverworldEntranceMap;
   int ow_entrance_pos_ptr = kOverworldEntrancePos;
@@ -37,11 +45,17 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(Rom* rom) {
   // Check if expanded entrance data is actually present in ROM
   // The flag position should contain 0xB8 for vanilla, something else for
   // expanded
-  if (HasExpandedEntranceTables(*rom)) {
+  if (HasExpandedEntranceTables(*rom, addresses)) {
     // ROM has expanded entrance data - use expanded addresses
-    ow_entrance_map_ptr = GetOverworldEntranceMapExpanded();
-    ow_entrance_pos_ptr = GetOverworldEntrancePosExpanded();
-    ow_entrance_id_ptr = GetOverworldEntranceIdExpanded();
+    ow_entrance_map_ptr =
+        addresses.GetAddress(core::RomAddressKey::kOverworldEntranceMapExpanded)
+            .value_or(kOverworldEntranceMapExpanded);
+    ow_entrance_pos_ptr =
+        addresses.GetAddress(core::RomAddressKey::kOverworldEntrancePosExpanded)
+            .value_or(kOverworldEntrancePosExpanded);
+    ow_entrance_id_ptr =
+        addresses.GetAddress(core::RomAddressKey::kOverworldEntranceIdExpanded)
+            .value_or(kOverworldEntranceEntranceIdExpanded);
     num_entrances = 256;  // Expanded entrance count
   }
   // Otherwise use vanilla addresses (already set above)

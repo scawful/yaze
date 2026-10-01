@@ -3,15 +3,25 @@
 #include "zelda3/dungeon/room_census.h"
 
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <future>
 #include <string>
 #include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "core/features.h"
+#include "core/rom_settings.h"
 #include "rom/rom.h"
+#include "unique_temp_path.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room_census_vanilla_fingerprints.h"
+#include "zelda3/overworld/overworld_entrance.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -475,6 +485,128 @@ class RoomCensusSyntheticRomTest : public ::testing::Test {
  protected:
   std::vector<uint8_t> data_ = test::BuildRoomCensusTestRom();
 };
+
+// Hold the real collector after room 0, then change live session state before
+// it draws custom objects in rooms 1 and 2. No sleeps or scheduling assumptions.
+TEST_F(RoomCensusSyntheticRomTest, FrozenAssetsSurviveConcurrentSessionChange) {
+  auto& manager = CustomObjectManager::Get();
+  const auto previous = manager.SnapshotState();
+  const bool previous_enabled = core::FeatureFlags::get().kEnableCustomObjects;
+  const auto root = ::yaze::test::UniqueTempPath("census_assets");
+  struct Restore {
+    CustomObjectManager::State state;
+    bool enabled;
+    std::filesystem::path root;
+    ~Restore() {
+      CustomObjectManager::Get().RestoreState(state);
+      core::FeatureFlags::get().kEnableCustomObjects = enabled;
+      DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+      std::filesystem::remove_all(root);
+    }
+  } restore{previous, previous_enabled, root};
+  ASSERT_TRUE(std::filesystem::create_directories(root));
+  const std::vector<uint8_t> pit = {1, 0, 0x40, 0, 0, 0};
+  const std::vector<uint8_t> warp = {1, 0, 0x41, 0, 0, 0};
+  for (const auto& [name, bytes] :
+       std::vector<std::pair<std::string, std::vector<uint8_t>>>{
+           {"pit.bin", pit}, {"warp.bin", warp}}) {
+    std::ofstream file(root / name, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  }
+  manager.Initialize(root.string());
+  manager.SetObjectFileMap(
+      {{0x31, {"pit.bin"}}, {0x32, {"warp.bin"}}, {0x54, {}}});
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  const auto frozen = manager.CaptureRenderSnapshot(true);
+  const auto disabled = manager.CaptureRenderSnapshot(false);
+  const core::RomAddressOverrides addresses;
+
+  for (int room : {1, 2}) {
+    test::SetTestRoom(data_, room, test::kTestObjectDataPc + room * 0x200,
+                      test::TestRoomStream({test::TestObjectBytes(
+                          room == 1 ? 0x31 : 0x32, 8, 8)}),
+                      0x9040 + room * 0x10, {});
+  }
+  data_[0x071659 + 0x40] = 0x20;  // TILEATTR: pit.
+  data_[0x071659 + 0x41] = 0x4B;  // TILEATTR: warp.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  std::promise<void> entered, resume;
+  auto entered_future = entered.get_future();
+  auto resume_future = resume.get_future();
+  auto scan = std::async(std::launch::async, [&] {
+    RoomCensusOptions options;
+    options.custom_objects = &frozen;
+    options.address_overrides = &addresses;
+    options.room_visitor = [&](int id, const Room&) {
+      if (id == 0) {
+        entered.set_value();
+        resume_future.wait();
+      }
+    };
+    return CollectRoomCensusInput(&rom, options);
+  });
+  const auto entered_status = entered_future.wait_for(std::chrono::seconds(10));
+  // Always release the worker, even if the handshake failed.
+  if (entered_status == std::future_status::ready) {
+    manager.RestoreState({});
+    std::filesystem::remove_all(root);
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+  resume.set_value();
+  ASSERT_EQ(entered_status, std::future_status::ready);
+  auto input = scan.get();
+  ASSERT_TRUE(input.ok()) << input.status();
+  EXPECT_TRUE(input->rooms[1].has_pits);
+  EXPECT_TRUE(input->rooms[2].has_warp_tiles);
+  EXPECT_FALSE(input->rooms[1].has_warp_tiles);
+
+  // An explicitly disabled job must remain vanilla when the live flag is on.
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  RoomCensusOptions options;
+  options.custom_objects = &disabled;
+  options.address_overrides = &addresses;
+  auto vanilla = CollectRoomCensusInput(&rom, options);
+  ASSERT_TRUE(vanilla.ok()) << vanilla.status();
+  EXPECT_FALSE(vanilla->rooms[1].has_pits);
+  EXPECT_FALSE(vanilla->rooms[2].has_warp_tiles);
+}
+
+TEST_F(RoomCensusSyntheticRomTest, ExpandedEntranceAddressesAreJobOwned) {
+  auto previous = core::RomSettings::Get().address_overrides();
+  struct Restore {
+    core::RomAddressOverrides addresses;
+    ~Restore() { core::RomSettings::Get().SetAddressOverrides(addresses); }
+  } restore{previous};
+  data_[0x140145] = 3;  // ZSCustomOverworld v3.
+  const core::RomAddressOverrides addresses{
+      {{core::RomAddressKey::kOverworldEntranceFlagExpanded, 0x180000},
+       {core::RomAddressKey::kOverworldEntranceMapExpanded, 0x181000},
+       {core::RomAddressKey::kOverworldEntrancePosExpanded, 0x182000},
+       {core::RomAddressKey::kOverworldEntranceIdExpanded, 0x183000}}};
+  std::fill(data_.begin() + 0x182000, data_.begin() + 0x182200, 0xFF);
+  data_[0x182000] = data_[0x182001] = 0;
+  data_[0x181000] = 0x27;
+  data_[0x183000] = 7;
+  core::RomSettings::Get().ClearOverrides();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  RoomCensusOptions options;
+  options.address_overrides = &addresses;
+  auto input = CollectRoomCensusInput(&rom, options);
+  ASSERT_TRUE(input.ok()) << input.status();
+  std::vector<int> placed;
+  for (const auto& entrance : input->entrances) {
+    if (entrance.kind == RoomReferenceKind::kEntrance) {
+      placed.push_back(entrance.entrance_id);
+      EXPECT_EQ(entrance.ow_map, 0x27);
+    }
+  }
+  EXPECT_THAT(placed, ElementsAre(7));
+}
 
 TEST_F(RoomCensusSyntheticRomTest, ReadsWarpsEntrancesAndHighByte) {
   Rom rom;

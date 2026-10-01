@@ -35,8 +35,9 @@ namespace zelda3 {
  */
 class ObjectDrawer {
  public:
-  explicit ObjectDrawer(Rom* rom, int room_id,
-                        const uint8_t* room_gfx_buffer = nullptr);
+  explicit ObjectDrawer(
+      Rom* rom, int room_id, const uint8_t* room_gfx_buffer = nullptr,
+      const CustomObjectRenderSnapshot* custom_objects = nullptr);
 
   /**
    * @brief Draw a room object to background buffers
@@ -340,6 +341,8 @@ class ObjectDrawer {
   std::vector<TileTrace>* trace_collector_ = nullptr;
   bool trace_only_ = false;
 
+  // Optional job-owned snapshot; caller keeps it alive through drawing.
+  const CustomObjectRenderSnapshot* custom_objects_ = nullptr;
   Rom* rom_;
   int room_id_;
   mutable int current_chest_index_ = 0;
