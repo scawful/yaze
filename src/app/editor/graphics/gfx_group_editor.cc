@@ -104,22 +104,31 @@ gfx::Bitmap* GfxGroupEditor::PrepareSheetPreview(int sheet_id,
                                                  gfx::SheetRole role,
                                                  gfx::Bitmap& preview) {
   UpdateCurrentPalette();
-  const auto& sheets = *gfx::Arena::Get().mutable_gfx_sheets();
-  if (sheet_id < 0 || static_cast<size_t>(sheet_id) >= sheets.size()) {
-    Text("Sheet 0x%02X is unavailable", sheet_id);
-    return nullptr;
-  }
-  const auto& source = sheets[sheet_id];
-  if (!source.surface()) {
+  if (!game_data_ || sheet_id < 0 ||
+      sheet_id >= zelda3::GraphicsSheetStore::kSheetCount ||
+      !game_data_->sheet_store.HasSheet(sheet_id)) {
     Text("Sheet 0x%02X is not loaded", sheet_id);
     return nullptr;
   }
+  const auto pixels = game_data_->sheet_store.Sheet(sheet_id);
+  const bool changed =
+      !preview.surface() || preview.vector().size() != pixels.size() ||
+      !std::equal(pixels.begin(), pixels.end(), preview.vector().begin());
+  if (changed)
+    preview.Create(128, 32, 8,
+                   std::vector<uint8_t>(pixels.begin(), pixels.end()));
   const auto* palette = Ws().override_palette && current_palette_
                             ? current_palette_
                             : internal::ResolveRoleDefaultPalette(
-                                  role, game_data()->palette_groups);
-  internal::SyncSheetPreview(source, palette ? *palette : source.palette(),
-                             preview);
+                                  role, game_data_->palette_groups);
+  if (palette && preview.palette() != *palette) {
+    preview.SetPalette(*palette);
+    if (preview.texture())
+      preview.UpdateTexture();
+  } else if (changed && preview.texture()) {
+    preview.UpdateTexture();
+  }
+  internal::EnsureSheetTextureQueued(preview);
   return &preview;
 }
 
@@ -234,6 +243,10 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
     return;
   }
 
+  if (Ws().selected_blockset >= game_data()->main_blockset_ids.size()) {
+    Text("Main graphics group is unavailable");
+    return;
+  }
   PushID("BlocksetViewer");
   auto& ws = Ws();
 
@@ -252,12 +265,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
     if (!sheet_only) {
       TableNextColumn();
       BeginGroup();
-      for (int idx = 0; idx < 8; idx++) {
-        SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
-        gui::InputHexByte(
-            ("Slot " + std::to_string(idx)).c_str(),
-            &game_data()->main_blockset_ids[ws.selected_blockset][idx]);
-      }
+      DrawMainAssignmentControls();
       EndGroup();
     }
 

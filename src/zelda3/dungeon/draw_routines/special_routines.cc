@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <array>
 
-#include "core/features.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
@@ -375,7 +374,7 @@ void CustomDraw(const DrawContext& ctx) {
   // managed by CustomObjectManager. Each binary encodes SNES tilemap entries
   // with relative x/y positions computed from the buffer stride layout.
 
-  if (!core::FeatureFlags::get().kEnableCustomObjects) {
+  if (!DrawRoutineRegistry::Get().CustomObjectsEnabled()) {
     // Feature disabled: fall back to vanilla 1x1 draw from ROM tile span
     if (ctx.tiles.size() >= 1) {
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,

@@ -33,6 +33,28 @@ struct RoomDefaultEntrance {
   int via_room = -1;  // For kNeighbour: the room inherited from.
 };
 
+struct GameData;
+
+// The source selected by the same main-blockset precedence as
+// Room::LoadRoomGraphics. A default is direct only when the default entrance
+// actually leads into this room; map and neighbour defaults are inferred.
+enum class RoomMainBlocksetSource : uint8_t {
+  kExplicitPreview,
+  kDirectDefault,
+  kInferredDefault,
+  kHeaderFallback,
+  kZeroFallback,
+};
+
+struct RoomMainBlocksetResolution {
+  uint8_t main_blockset = 0;
+  RoomMainBlocksetSource source = RoomMainBlocksetSource::kZeroFallback;
+};
+
+RoomMainBlocksetResolution ResolveRoomMainBlockset(
+    int room_id, uint8_t header_blockset, uint8_t requested_main_blockset,
+    const GameData& game_data);
+
 // One entry per dungeon room (kNumberOfRooms), in order:
 //  1. an entrance whose room is this room;
 //  2. an entrance of the dungeon whose pause-menu map lists the room (map

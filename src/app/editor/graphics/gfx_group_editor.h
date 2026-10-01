@@ -2,12 +2,15 @@
 #define YAZE_APP_EDITOR_GFX_GROUP_EDITOR_H
 
 #include <array>
+#include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 
 #include "absl/status/status.h"
 #include "app/editor/graphics/gfx_group_workspace_state.h"
+#include "app/editor/registry/undo_manager.h"
 #include "app/gfx/types/sheet_role.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
@@ -35,6 +38,7 @@ namespace editor {
  */
 class GfxGroupEditor {
  public:
+  ~GfxGroupEditor();
   absl::Status Update();
 
   void DrawBlocksetViewer(bool sheet_only = false);
@@ -49,9 +53,19 @@ class GfxGroupEditor {
   void SetSelectedSpriteset(uint8_t spriteset) {
     Ws().selected_spriteset = spriteset;
   }
-  void SetRom(Rom* rom) { rom_ = rom; }
+  void SetRom(Rom* rom);
+  void SetUndoManager(UndoManager* undo) { undo_ = undo; }
+  using MainUsageCallback =
+      std::function<absl::StatusOr<zelda3::MainGroupUsageReport>(int, int)>;
+  void SetMainUsageCallback(MainUsageCallback callback) {
+    main_usage_ = std::move(callback);
+  }
+  // Shared main table edit on the host editor's undo stack. Zero is a real
+  // sheet here, unlike zero in a room override (which means inherit).
+  absl::Status EditMainGraphicsSheet(int group, int slot, int sheet);
+  void DetachRuntimeContext();
   Rom* rom() const { return rom_; }
-  void SetGameData(zelda3::GameData* data) { game_data_ = data; }
+  void SetGameData(zelda3::GameData* data);
   zelda3::GameData* game_data() const { return game_data_; }
 
   void SetWorkspaceState(GfxGroupWorkspaceState* state) { workspace_ = state; }
@@ -65,6 +79,26 @@ class GfxGroupEditor {
 
  private:
   void UpdateCurrentPalette();
+  void DrawMainAssignmentControls();
+  void DrawMainUsage();
+  void DrawMainSheetPicker();
+  void ResetMainPicker();
+  struct AssignmentSession {
+    Rom* rom = nullptr;
+    zelda3::GameData* data = nullptr;
+    uint64_t generation = 0;
+  };
+  std::shared_ptr<AssignmentSession> assignment_session_ =
+      std::make_shared<AssignmentSession>();
+  UndoManager* undo_ = nullptr;
+  MainUsageCallback main_usage_;
+  int selected_main_slot_ = 0;
+  int picker_group_ = -1;
+  int pending_sheet_ = -1;
+  uint8_t picker_expected_sheet_ = 0;
+  bool show_main_picker_ = false;
+  std::string assignment_error_;
+  std::map<int, gfx::Bitmap> main_picker_previews_;
   gfx::Bitmap* PrepareSheetPreview(int sheet_id, gfx::SheetRole role,
                                    gfx::Bitmap& preview);
 

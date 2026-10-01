@@ -100,6 +100,8 @@ void GraphicsEditor::Initialize() {
   gfx_group_panel_->SetWorkspaceState(dependencies_.gfx_group_workspace);
   gfx_group_panel_->SetRom(rom_);
   gfx_group_panel_->SetGameData(game_data_);
+  gfx_group_panel_->SetUndoManager(&undo_manager_);
+  gfx_group_panel_->SetMainUsageCallback(main_graphics_usage_);
   gfx_group_panel_->SetHostSurfaceHint(
       "Gfx Groups: blockset/roomset/spriteset selection syncs with the "
       "Overworld "

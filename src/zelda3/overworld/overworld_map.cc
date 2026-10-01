@@ -791,21 +791,26 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
 }
 
 void OverworldMap::LoadMainBlocksetId() {
+  main_gfx_id_ = ComputeMainBlocksetId();
+}
+
+int OverworldMap::ComputeMainBlocksetId() const {
   if (parent_ < kDarkWorldMapIdStart) {
-    main_gfx_id_ = 0x20;
+    return 0x20;
   } else if (parent_ >= kDarkWorldMapIdStart &&
              parent_ < kSpecialWorldMapIdStart) {
-    main_gfx_id_ = 0x21;
+    return 0x21;
   } else if (parent_ >= kSpecialWorldMapIdStart) {
     // Special world maps - use appropriate graphics ID based on the specific
     // map
     if (parent_ == 0x88) {
-      main_gfx_id_ = 0x24;
+      return 0x24;
     } else {
       // Default special world graphics ID
-      main_gfx_id_ = 0x20;
+      return 0x20;
     }
   }
+  return 0x20;
 }
 
 bool OverworldMap::UsesSessionMainGraphicsGroup() const {
@@ -813,7 +818,7 @@ bool OverworldMap::UsesSessionMainGraphicsGroup() const {
   return game_data_ && game_data_->gfx_groups_loaded &&
          game_data_->gfx_main_group_address ==
              version_constants().kOverworldGfxGroups2 &&
-         main_gfx_id_ < game_data_->main_blockset_ids.size();
+         ComputeMainBlocksetId() < game_data_->main_blockset_ids.size();
 }
 
 bool OverworldMap::UsesSessionAreaGraphicsGroup() const {
@@ -841,15 +846,38 @@ bool OverworldMap::UsesSessionSpriteGraphicsGroup() const {
 }
 
 std::array<uint8_t, 8> OverworldMap::ResolveMainGraphicsGroup() const {
+  const int main_group_id = ComputeMainBlocksetId();
   if (UsesSessionMainGraphicsGroup()) {
-    return game_data_->main_blockset_ids[main_gfx_id_];
+    return game_data_->main_blockset_ids[main_group_id];
   }
   std::array<uint8_t, 8> sheets{};
   for (int i = 0; i < 8; ++i) {
     sheets[i] = (*rom_)[version_constants().kOverworldGfxGroups2 +
-                        main_gfx_id_ * 8 + i];
+                        main_group_id * 8 + i];
   }
   return sheets;
+}
+
+OverworldMainSlotProvenance OverworldMap::MainSlotProvenance(int slot) const {
+  OverworldMainSlotProvenance result;
+  if (slot < 0 || slot >= 8) {
+    return result;
+  }
+  result.main_group_id = ComputeMainBlocksetId();
+  result.main_sheet = ResolveMainGraphicsGroup()[slot];
+  result.effective_sheet = ResolveStaticGraphics()[slot];
+  result.bottom_half_only = slot == 7;
+  if (roomset_source() == OverworldRoomsetSource::kCustomTileGroups) {
+    result.source = OverworldMainSlotSource::kCustomTileGroups;
+  } else if (slot >= 3 && slot <= 6 &&
+             ResolveAreaGraphicsGroup()[slot - 3] != 0) {
+    result.source = OverworldMainSlotSource::kAreaOverride;
+  } else if (UsesSessionMainGraphicsGroup()) {
+    result.source = OverworldMainSlotSource::kSharedSessionGroup;
+  } else {
+    result.source = OverworldMainSlotSource::kIndependentRomGroup;
+  }
+  return result;
 }
 
 std::array<uint8_t, 4> OverworldMap::ResolveAreaGraphicsGroup() const {
