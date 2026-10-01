@@ -89,6 +89,18 @@ class RoomMatrixContent : public WindowContent {
     census_.SetManifestProvider(std::move(provider));
   }
   RoomMatrixCensusOverlay& census_overlay() { return census_; }
+  // The window manager can retain this panel after its editor is destroyed.
+  void DetachRuntimeContext() {
+    census_.SetEnabled(false);
+    census_.SetManifestProvider({});
+    SetRooms(nullptr);
+    current_room_id_ = nullptr;
+    active_rooms_ = nullptr;
+    on_room_selected_ = {};
+    on_room_swap_ = {};
+    on_room_intent_ = {};
+    navigation_shortcut_focus_ = false;
+  }
   bool OwnsNavigationShortcutFocus() const {
     if (!navigation_shortcut_focus_ || ImGui::GetCurrentContext() == nullptr) {
       return false;

@@ -486,6 +486,74 @@ class RoomCensusSyntheticRomTest : public ::testing::Test {
   std::vector<uint8_t> data_ = test::BuildRoomCensusTestRom();
 };
 
+TEST_F(RoomCensusSyntheticRomTest, PreCancelledScanDoesNotReadRomOrVisitRooms) {
+  std::stop_source source;
+  source.request_stop();
+  RoomCensusOptions options;
+  options.stop_token = source.get_token();
+  options.room_visitor = [](int, const Room&) {
+    ADD_FAILURE();
+  };
+  EXPECT_TRUE(
+      absl::IsCancelled(CollectRoomCensusInput(nullptr, options).status()));
+  EXPECT_TRUE(absl::IsCancelled(ComputeRoomCensus(nullptr, options).status()));
+  EXPECT_TRUE(absl::IsCancelled(
+      ComputeRoomFingerprints(nullptr, source.get_token()).status()));
+}
+
+TEST_F(RoomCensusSyntheticRomTest,
+       CancellationBetweenRoomsDiscardsPartialFacts) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  const auto frozen = CustomObjectManager::Get().CaptureRenderSnapshot(false);
+  const core::RomAddressOverrides addresses;
+  std::stop_source source;
+  std::promise<void> entered, resume;
+  auto entered_future = entered.get_future();
+  auto resume_future = resume.get_future();
+  int visited = 0;
+  auto pending = std::async(std::launch::async, [&] {
+    RoomCensusOptions options;
+    options.stop_token = source.get_token();
+    options.custom_objects = &frozen;
+    options.address_overrides = &addresses;
+    options.room_visitor = [&](int room_id, const Room&) {
+      ++visited;
+      if (room_id == 0) {
+        entered.set_value();
+        resume_future.wait();
+      }
+    };
+    return ComputeRoomCensus(&rom, options);
+  });
+  const auto started = entered_future.wait_for(std::chrono::seconds(10));
+  source.request_stop();
+  resume.set_value();  // Release even if the handshake failed.
+  const auto result = pending.get();
+  ASSERT_EQ(started, std::future_status::ready);
+  EXPECT_TRUE(absl::IsCancelled(result.status())) << result.status();
+  EXPECT_EQ(visited, 1);
+}
+
+TEST_F(RoomCensusSyntheticRomTest,
+       CancellationAfterLastRoomDiscardsPartialFacts) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  std::stop_source source;
+  RoomCensusOptions options;
+  options.stop_token = source.get_token();
+  int visited = 0;
+  options.room_visitor = [&](int room_id, const Room&) {
+    ++visited;
+    if (room_id == kRoomCensusRoomCount - 1) {
+      source.request_stop();
+    }
+  };
+  const auto result = ComputeRoomCensus(&rom, options);
+  EXPECT_TRUE(absl::IsCancelled(result.status())) << result.status();
+  EXPECT_EQ(visited, kRoomCensusRoomCount);
+}
+
 // Hold the real collector after room 0, then change live session state before
 // it draws custom objects in rooms 1 and 2. No sleeps or scheduling assumptions.
 TEST_F(RoomCensusSyntheticRomTest, FrozenAssetsSurviveConcurrentSessionChange) {

@@ -8,6 +8,7 @@
 #include <future>
 #include <memory>
 #include <optional>
+#include <stop_token>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -449,6 +450,9 @@ class DungeonEditorV2 : public Editor {
   mutable std::optional<zelda3::RoomCensus> dungeon_render_context_census_;
   mutable std::future<absl::StatusOr<zelda3::RoomCensus>>
       dungeon_render_context_census_pending_;
+  mutable std::stop_source dungeon_render_context_census_stop_{
+      std::nostopstate};
+  bool dungeon_render_context_census_shutdown_ = false;
   mutable bool dungeon_render_context_census_attempted_ = false;
   mutable uint64_t dungeon_render_context_census_generation_ = 0;
   mutable uint64_t dungeon_render_context_pending_generation_ = 0;

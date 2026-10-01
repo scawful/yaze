@@ -2,9 +2,11 @@
 #include "app/editor/dungeon/dungeon_entrance_camera.h"
 #include "app/editor/dungeon/dungeon_render_context.h"
 #include "app/editor/dungeon/workspace/room_matrix_census.h"
+#include "app/editor/dungeon/workspace/room_matrix_content.h"
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <future>
 #include <string>
@@ -23,6 +25,25 @@ namespace yaze::editor {
 
 class RoomMatrixCensusTestPeer {
  public:
+  static std::stop_token NewToken(RoomMatrixCensusOverlay& overlay) {
+    overlay.stop_source_ = std::stop_source{};
+    return overlay.stop_source_.get_token();
+  }
+  static std::stop_token Token(RoomMatrixCensusOverlay& overlay) {
+    return overlay.stop_source_.get_token();
+  }
+  static void SetPending(
+      RoomMatrixCensusOverlay& overlay,
+      std::future<absl::StatusOr<zelda3::RoomCensus>> pending) {
+    overlay.pending_ = std::move(pending);
+    overlay.stale_ = false;
+  }
+  static std::string Error(const RoomMatrixCensusOverlay& overlay) {
+    return overlay.error_;
+  }
+  static bool HasCachedCensus(const RoomMatrixCensusOverlay& overlay) {
+    return overlay.census_.has_value();
+  }
   static bool WaitForPending(RoomMatrixCensusOverlay& overlay) {
     return overlay.pending_.valid() &&
            overlay.pending_.wait_for(std::chrono::seconds(60)) ==
@@ -32,6 +53,26 @@ class RoomMatrixCensusTestPeer {
 
 class DungeonEditorV2EntranceCameraTestPeer {
  public:
+  static std::stop_token NewToken(DungeonEditorV2& editor) {
+    editor.dungeon_render_context_census_stop_ = std::stop_source{};
+    return editor.dungeon_render_context_census_stop_.get_token();
+  }
+  static std::stop_token Token(DungeonEditorV2& editor) {
+    return editor.dungeon_render_context_census_stop_.get_token();
+  }
+  static void SetPending(
+      DungeonEditorV2& editor,
+      std::future<absl::StatusOr<zelda3::RoomCensus>> pending) {
+    editor.dungeon_render_context_census_pending_ = std::move(pending);
+    editor.dungeon_render_context_pending_generation_ =
+        editor.dungeon_render_context_census_generation_;
+  }
+  static void AttachMatrix(DungeonEditorV2& editor, RoomMatrixContent* matrix) {
+    editor.room_matrix_panel_ = matrix;
+  }
+  static bool Shutdown(const DungeonEditorV2& editor) {
+    return editor.dungeon_render_context_census_shutdown_;
+  }
   static const zelda3::RoomCensus* Census(DungeonEditorV2& editor) {
     return editor.GetDungeonRenderContextCensus();
   }
@@ -146,6 +187,155 @@ DungeonEntranceCameraState StateFromDerived(int room_id, uint16_t player_x,
   };
 }
 
+// A worker that can complete only after the owner requests stop. The timeout
+// bounds a broken test; success depends on the stop signal, not elapsed time.
+class WaitingCensusJob {
+ public:
+  explicit WaitingCensusJob(std::stop_token token,
+                            bool return_success = false) {
+    std::promise<void> started_promise;
+    auto started = started_promise.get_future();
+    pending = std::async(
+        std::launch::async,
+        [observed = observed_stop_, token, return_success,
+         started_promise = std::move(
+             started_promise)]() mutable -> absl::StatusOr<zelda3::RoomCensus> {
+          std::promise<void> stopped;
+          auto stopped_future = stopped.get_future();
+          std::stop_callback notify(token, [&] { stopped.set_value(); });
+          started_promise.set_value();
+          *observed = stopped_future.wait_for(std::chrono::seconds(10)) ==
+                      std::future_status::ready;
+          if (return_success) {
+            return MakeCensus({{4}});
+          }
+          return absl::CancelledError("Room census cancelled");
+        });
+    EXPECT_EQ(started.wait_for(std::chrono::seconds(10)),
+              std::future_status::ready);
+  }
+  bool observed_stop() const { return observed_stop_->load(); }
+  std::future<absl::StatusOr<zelda3::RoomCensus>> pending;
+
+ private:
+  std::shared_ptr<std::atomic<bool>> observed_stop_ =
+      std::make_shared<std::atomic<bool>>(false);
+};
+
+TEST(DungeonRenderContextTest, TeardownStopsWorkerBeforeJoining) {
+  auto editor = std::make_unique<DungeonEditorV2>();
+  const auto token = DungeonEditorV2EntranceCameraTestPeer::NewToken(*editor);
+  WaitingCensusJob job(token);
+  DungeonEditorV2EntranceCameraTestPeer::SetPending(*editor,
+                                                    std::move(job.pending));
+  editor.reset();
+  EXPECT_TRUE(token.stop_requested());
+  EXPECT_TRUE(job.observed_stop());
+}
+
+TEST(DungeonRenderContextTest, TeardownCannotRestartCensus) {
+  DungeonEditorV2 editor;
+  editor.PrepareForSessionTeardown();
+  editor.PrepareForSessionTeardown();
+  EXPECT_TRUE(DungeonEditorV2EntranceCameraTestPeer::Shutdown(editor));
+  EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(editor), nullptr);
+  EXPECT_FALSE(
+      DungeonEditorV2EntranceCameraTestPeer::TakePendingCensus(editor).valid());
+}
+
+TEST(DungeonRenderContextTest,
+     RomReplacementCancelsAndRejectsSuccessfulOldJob) {
+  DungeonEditorV2 editor;
+  const auto token = DungeonEditorV2EntranceCameraTestPeer::NewToken(editor);
+  WaitingCensusJob job(token, /*return_success=*/true);
+  DungeonEditorV2EntranceCameraTestPeer::SetPending(editor,
+                                                    std::move(job.pending));
+  Rom replacement;
+  editor.SetRom(&replacement);
+  EXPECT_TRUE(token.stop_requested());
+  ASSERT_TRUE(
+      DungeonEditorV2EntranceCameraTestPeer::WaitForPendingCensus(editor));
+  EXPECT_TRUE(job.observed_stop());
+  EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(editor), nullptr);
+  EXPECT_FALSE(DungeonEditorV2EntranceCameraTestPeer::HasCachedCensus(editor));
+}
+
+TEST(RoomMatrixCensusTest, TeardownStopsWorkerBeforeJoining) {
+  auto overlay = std::make_unique<RoomMatrixCensusOverlay>();
+  const auto token = RoomMatrixCensusTestPeer::NewToken(*overlay);
+  WaitingCensusJob job(token);
+  RoomMatrixCensusTestPeer::SetPending(*overlay, std::move(job.pending));
+  overlay.reset();
+  EXPECT_TRUE(token.stop_requested());
+  EXPECT_TRUE(job.observed_stop());
+}
+
+TEST(RoomMatrixCensusTest, DisablingCancelsWithoutPublishingErrorOrRestarting) {
+  RoomMatrixCensusOverlay overlay;
+  overlay.SetEnabled(true);
+  const auto token = RoomMatrixCensusTestPeer::NewToken(overlay);
+  WaitingCensusJob job(token);
+  RoomMatrixCensusTestPeer::SetPending(overlay, std::move(job.pending));
+  overlay.SetEnabled(false);
+  EXPECT_TRUE(token.stop_requested());
+  ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+  overlay.Update(nullptr);
+  EXPECT_TRUE(job.observed_stop());
+  EXPECT_FALSE(overlay.computing());
+  EXPECT_EQ(overlay.census(), nullptr);
+  EXPECT_TRUE(RoomMatrixCensusTestPeer::Error(overlay).empty());
+  EXPECT_FALSE(RoomMatrixCensusTestPeer::HasCachedCensus(overlay));
+}
+
+TEST(DungeonRenderContextTest, ProjectRebindCancelsRoomMatrixJob) {
+  DungeonEditorV2 editor;
+  int room = 4;
+  ImVector<int> active;
+  RoomMatrixContent matrix(&room, &active, [](int) {});
+  DungeonEditorV2EntranceCameraTestPeer::AttachMatrix(editor, &matrix);
+  auto& overlay = matrix.census_overlay();
+  const auto token = RoomMatrixCensusTestPeer::NewToken(overlay);
+  WaitingCensusJob job(token, /*return_success=*/true);
+  RoomMatrixCensusTestPeer::SetPending(overlay, std::move(job.pending));
+  editor.SetDependencies({});
+  EXPECT_TRUE(token.stop_requested());
+  EXPECT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+  overlay.Update(nullptr);
+  EXPECT_TRUE(job.observed_stop());
+  EXPECT_EQ(overlay.census(), nullptr);
+  EXPECT_TRUE(RoomMatrixCensusTestPeer::Error(overlay).empty());
+  EXPECT_FALSE(RoomMatrixCensusTestPeer::HasCachedCensus(overlay));
+  // The production window manager keeps the panel alive through this boundary.
+  editor.PrepareForSessionTeardown();
+}
+
+TEST(DungeonRenderContextTest, TeardownDetachesSurvivingRoomMatrix) {
+  auto editor = std::make_unique<DungeonEditorV2>();
+  int room = 4;
+  ImVector<int> active;
+  RoomMatrixContent matrix(&room, &active, [](int) { ADD_FAILURE(); });
+  matrix.SetCensusManifestProvider([]() -> const core::HackManifest* {
+    ADD_FAILURE() << "A detached panel must not consult its old project";
+    return nullptr;
+  });
+  auto& overlay = matrix.census_overlay();
+  overlay.SetEnabled(true);
+  const auto token = RoomMatrixCensusTestPeer::NewToken(overlay);
+  WaitingCensusJob job(token);
+  RoomMatrixCensusTestPeer::SetPending(overlay, std::move(job.pending));
+  DungeonEditorV2EntranceCameraTestPeer::AttachMatrix(*editor, &matrix);
+  editor->PrepareForSessionTeardown();
+  editor.reset();
+  EXPECT_TRUE(token.stop_requested());
+  ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
+  overlay.Update(nullptr);
+  EXPECT_FALSE(overlay.enabled());
+  EXPECT_FALSE(overlay.computing());
+  bool open = true;
+  // No ImGui context is needed: a detached panel must return before drawing.
+  matrix.Draw(&open);
+}
+
 TEST(DungeonRenderContextTest, PendingCensusDiscardsReplacedRomAndProject) {
   auto original = std::make_unique<Rom>();
   auto data = zelda3::test::BuildRoomCensusTestRom();
@@ -159,11 +349,14 @@ TEST(DungeonRenderContextTest, PendingCensusDiscardsReplacedRomAndProject) {
   editor.SetDependencies(deps);
   EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(editor), nullptr);
 
+  const auto old_token = DungeonEditorV2EntranceCameraTestPeer::Token(editor);
+  ASSERT_TRUE(old_token.stop_possible());
   Rom replacement;
   // Original room 0 reaches 4; replacement reaches 6.
   data[SnesToPc(0x019010) + zelda3::test::kTestHeaderHolewarp] = 6;
   ASSERT_TRUE(replacement.LoadFromData(data).ok());
   editor.SetRom(&replacement);
+  EXPECT_TRUE(old_token.stop_requested());
   original.reset();
   // Rebinding can replace a manifest in the same project object.
   project.hack_manifest = {};
@@ -176,6 +369,8 @@ TEST(DungeonRenderContextTest, PendingCensusDiscardsReplacedRomAndProject) {
       DungeonEditorV2EntranceCameraTestPeer::WaitForPendingCensus(editor));
   EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(editor), nullptr)
       << "The completed old generation must be discarded, then rescheduled";
+  EXPECT_FALSE(
+      DungeonEditorV2EntranceCameraTestPeer::Token(editor).stop_requested());
   ASSERT_TRUE(
       DungeonEditorV2EntranceCameraTestPeer::WaitForPendingCensus(editor));
   const auto* census = DungeonEditorV2EntranceCameraTestPeer::Census(editor);
@@ -184,7 +379,8 @@ TEST(DungeonRenderContextTest, PendingCensusDiscardsReplacedRomAndProject) {
   EXPECT_FALSE(census->rooms[4].reached);
 }
 
-TEST(DungeonRenderContextTest, CensusJobOwnsInputsAfterEditorTeardown) {
+TEST(DungeonRenderContextTest,
+     CompletedCensusJobOwnsInputsAfterEditorTeardown) {
   auto rom = std::make_unique<Rom>();
   ASSERT_TRUE(rom->LoadFromData(zelda3::test::BuildRoomCensusTestRom()).ok());
   auto project = std::make_unique<project::YazeProject>();
@@ -195,7 +391,9 @@ TEST(DungeonRenderContextTest, CensusJobOwnsInputsAfterEditorTeardown) {
   deps.project = project.get();
   editor->SetDependencies(deps);
   EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(*editor), nullptr);
-  // Retain the actual dispatched job so its result remains inspectable after
+  ASSERT_TRUE(
+      DungeonEditorV2EntranceCameraTestPeer::WaitForPendingCensus(*editor));
+  // Retain the completed job so its result remains inspectable after
   // destroying all originating editor, project and ROM objects.
   auto pending =
       DungeonEditorV2EntranceCameraTestPeer::TakePendingCensus(*editor);
@@ -226,6 +424,8 @@ TEST(RoomMatrixCensusTest, ReplacedRomDiscardsPendingResult) {
   RoomMatrixCensusOverlay overlay;
   overlay.SetEnabled(true);
   overlay.Update(original.get());
+  const auto old_token = RoomMatrixCensusTestPeer::Token(overlay);
+  ASSERT_TRUE(old_token.stop_possible());
   ASSERT_TRUE(overlay.computing());
   ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
 
@@ -234,6 +434,8 @@ TEST(RoomMatrixCensusTest, ReplacedRomDiscardsPendingResult) {
   ASSERT_TRUE(replacement.LoadFromData(data).ok());
   original.reset();
   overlay.Update(&replacement);
+  EXPECT_TRUE(old_token.stop_requested());
+  EXPECT_FALSE(RoomMatrixCensusTestPeer::Token(overlay).stop_requested());
   EXPECT_EQ(overlay.census(), nullptr);
   ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
   overlay.Update(&replacement);

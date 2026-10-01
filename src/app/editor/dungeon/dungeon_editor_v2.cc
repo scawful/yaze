@@ -349,6 +349,12 @@ DungeonEditorV2::~DungeonEditorV2() {
 }
 
 void DungeonEditorV2::PrepareForSessionTeardown() {
+  dungeon_render_context_census_shutdown_ = true;
+  InvalidateDungeonRenderContextCensus();
+  if (room_matrix_panel_) {
+    room_matrix_panel_->DetachRuntimeContext();
+    room_matrix_panel_ = nullptr;
+  }
   // Clear runtime references in panels BEFORE editor-owned rooms and viewers are
   // destroyed. WorkspaceWindowManager panels may outlive this editor session.
   if (room_graphics_panel_) {

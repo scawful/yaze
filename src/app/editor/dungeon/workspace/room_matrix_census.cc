@@ -74,7 +74,9 @@ ImVec4 OrphanColor() {
 }  // namespace
 
 RoomMatrixCensusOverlay::RoomMatrixCensusOverlay() = default;
-RoomMatrixCensusOverlay::~RoomMatrixCensusOverlay() = default;
+RoomMatrixCensusOverlay::~RoomMatrixCensusOverlay() {
+  stop_source_.request_stop();
+}
 
 ImVec4 RoomMatrixCensusOverlay::OwnerColor(int owner_index, bool interior) {
   if (interior) {
@@ -104,13 +106,16 @@ void RoomMatrixCensusOverlay::StartComputation(Rom* rom) {
       warp_tags = zelda3::RoomCensusWarpTagsFromManifest(*manifest);
     }
   }
+  stop_source_ = std::stop_source{};
   pending_ = std::async(
       std::launch::async,
       [rom_copy, owners = std::move(owners), warp_tags = std::move(warp_tags),
        custom_objects = std::move(custom_objects),
-       addresses =
-           std::move(addresses)]() -> absl::StatusOr<zelda3::RoomCensus> {
+       addresses = std::move(addresses),
+       stop_token =
+           stop_source_.get_token()]() -> absl::StatusOr<zelda3::RoomCensus> {
         zelda3::RoomCensusOptions options;
+        options.stop_token = stop_token;
         options.custom_objects = &custom_objects;
         options.address_overrides = &addresses;
         auto input = zelda3::CollectRoomCensusInput(rom_copy.get(), options);
@@ -119,7 +124,14 @@ void RoomMatrixCensusOverlay::StartComputation(Rom* rom) {
         }
         input->project_owners = owners;
         input->warp_tag_ids = warp_tags;
-        return zelda3::BuildRoomCensus(*input);
+        if (stop_token.stop_requested()) {
+          return absl::CancelledError("Room census cancelled");
+        }
+        auto census = zelda3::BuildRoomCensus(*input);
+        if (stop_token.stop_requested()) {
+          return absl::CancelledError("Room census cancelled");
+        }
+        return census;
       });
 }
 
@@ -253,7 +265,7 @@ void RoomMatrixCensusOverlay::DrawControls(Rom* rom) {
   ImGui::PushID("RoomMatrixCensus");
   bool on = enabled_;
   if (ImGui::Checkbox("Census overlay", &on)) {
-    enabled_ = on;
+    SetEnabled(on);
     Update(rom);
   }
   gui::AutoRegisterLastItem("checkbox", "Census overlay");
