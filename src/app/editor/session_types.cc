@@ -171,11 +171,24 @@ Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
                                           rooms, explicit_main,
                                           GetOverworldData());
   };
+  auto roomset_usage =
+      [this](int group) -> absl::StatusOr<zelda3::RoomsetUsageReport> {
+    if (!rom_ || !game_data_ || session_teardown_prepared_)
+      return absl::FailedPreconditionError("No loaded graphics session");
+    if (const auto* dungeon = dynamic_cast<const DungeonEditorV2*>(
+            GetExistingEditor(EditorType::kDungeon)))
+      return dungeon->GetRoomGraphicsUsage(group);
+    return zelda3::DescribeRoomsetUsage(*rom_, *game_data_, group,
+                                        zelda3::CollectRoomGfx(*rom_),
+                                        GetOverworldData());
+  };
   if (auto* graphics = dynamic_cast<GraphicsEditor*>(editor.get())) {
     graphics->SetMainGraphicsUsageCallback(main_usage);
+    graphics->SetRoomsetGraphicsUsageCallback(roomset_usage);
   }
   if (auto* overworld = dynamic_cast<OverworldEditor*>(editor.get())) {
     overworld->SetMainGraphicsUsageCallback(main_usage);
+    overworld->SetRoomsetGraphicsUsageCallback(roomset_usage);
   }
   if (type == EditorType::kSettings && user_settings_ != nullptr) {
     if (auto* settings_panel = static_cast<SettingsPanel*>(editor.get())) {

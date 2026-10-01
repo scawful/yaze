@@ -409,7 +409,8 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
               project::RomWritePolicy::kBlock);
   }
 
-  void QualifySharedGraphicsAssignment(bool custom_sheets);
+  void QualifySharedGraphicsAssignment(
+      bool custom_sheets, EditorType host_type = EditorType::kDungeon);
   void QualifyMainGraphicsAssignment(bool custom_sheets);
 
   void QualifySpecialArea(zelda3::AreaSizeEnum size, int child, int x, int y);
@@ -544,8 +545,16 @@ TEST_F(AuthoringSaveWorkflowTest,
   QualifySharedGraphicsAssignment(/*custom_sheets=*/false);
 }
 
+TEST_F(AuthoringSaveWorkflowTest, RoomsetGraphicsHostSaveAsReopen) {
+  QualifySharedGraphicsAssignment(true, EditorType::kGraphics);
+}
+
+TEST_F(AuthoringSaveWorkflowTest, RoomsetOverworldHostSaveAsReopen) {
+  QualifySharedGraphicsAssignment(false, EditorType::kOverworld);
+}
+
 void AuthoringSaveWorkflowTest::QualifySharedGraphicsAssignment(
-    bool custom_sheets) {
+    bool custom_sheets, EditorType host_type) {
   auto fixture = CopyProject("yaze-room-sheet-assignment");
   if (!custom_sheets) {
     // Declared legacy-assignment fixture: Oracle normally overrides every
@@ -693,7 +702,37 @@ void AuthoringSaveWorkflowTest::QualifySharedGraphicsAssignment(
                     data->sheet_store.Sheet(original_sheet).begin()))
     ++replacement;
   ASSERT_LT(replacement, 113);
-  ASSERT_OK(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, replacement));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(host_type));
+  Editor* host = manager_->GetCurrentEditorSet()->GetEditor(host_type);
+  GfxGroupEditor* group_panel = nullptr;
+  if (host_type == EditorType::kGraphics) {
+    group_panel = &AuthoringSaveWorkflowTestPeer::MainGroups(
+        *static_cast<GraphicsEditor*>(host));
+  } else if (host_type == EditorType::kOverworld) {
+    group_panel = &AuthoringSaveWorkflowTestPeer::MainGroups(*overworld);
+  }
+  if (group_panel) {
+    group_panel->SetSelectedRoomset(group);
+    ImGui::NewFrame();
+    ImGui::SetNextWindowSize(ImVec2(1100, 1400), ImGuiCond_Always);
+    ImGui::Begin("Roomset shared usage acceptance");
+    ImGui::LogToBuffer(2);
+    group_panel->DrawRoomsetViewer();
+    const std::string text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
+    ImGui::End();
+    ImGui::Render();
+    EXPECT_NE(text.find(absl::StrFormat(
+                  "Shared by %zu rooms and %zu map screens",
+                  shared_usage->rooms.size(), shared_usage->ow_areas.size())),
+              std::string::npos);
+  }
+  const auto edit = [&](int slot, int sheet) {
+    return group_panel
+               ? group_panel->EditRoomsetGraphicsSheet(group, slot - 3, sheet)
+               : dungeon->EditRoomGraphicsSheet(kRoom, slot, sheet);
+  };
+  ASSERT_OK(edit(kSlot, replacement));
   room.PrepareForRender();
   EXPECT_EQ(room.blocks()[kSlot], replacement);
   EXPECT_NE(room.get_gfx_buffer(), original_pixels);
@@ -719,15 +758,17 @@ void AuthoringSaveWorkflowTest::QualifySharedGraphicsAssignment(
             overworld->overworld().overworld_map(0)->static_graphics(kSlot));
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
+  if (group_panel)
+    group_panel->SetSelectedRoomset(other_group);
   AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, 5);
-  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(host->Undo());
   room.PrepareForRender();
   EXPECT_EQ(dungeon->current_room_id(), 5);
   EXPECT_EQ(data->room_blockset_ids, original_groups);
   EXPECT_EQ(room.get_gfx_buffer(), original_pixels);
   ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*overworld));
   expect_overworld(original_overworld, "Undo");
-  ASSERT_OK(dungeon->Redo());
+  ASSERT_OK(host->Redo());
   room.PrepareForRender();
   EXPECT_EQ(room.get_gfx_buffer(), edited_pixels);
   EXPECT_EQ(data->room_blockset_ids, edited_groups);
@@ -735,27 +776,29 @@ void AuthoringSaveWorkflowTest::QualifySharedGraphicsAssignment(
   overworld->SelectMapForEditing(0, false);
   expect_overworld(edited_overworld, "Redo and select");
   // No-op and invalid edits do not add undo steps or alter neighboring groups.
-  ASSERT_OK(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, replacement));
-  EXPECT_FALSE(dungeon->EditRoomGraphicsSheet(kRoom, 7, replacement).ok());
-  EXPECT_FALSE(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, 113).ok());
+  ASSERT_OK(edit(kSlot, replacement));
+  EXPECT_FALSE(edit(7, replacement).ok());
+  EXPECT_FALSE(edit(kSlot, 113).ok());
   EXPECT_EQ(data->main_blockset_ids, original_main);
   EXPECT_EQ(data->spriteset_ids, original_sprites);
   // Zero is an inheritance instruction, not a request for physical sheet zero.
-  ASSERT_OK(dungeon->EditRoomGraphicsSheet(kRoom, kSlot, 0));
+  ASSERT_OK(edit(kSlot, 0));
   room.PrepareForRender();
   EXPECT_EQ(room.blocks()[kSlot],
             original_main[room.resolved_main_blockset()][kSlot]);
-  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(host->Undo());
   // A newer assignment outside this undo stack must survive a failed Undo.
   const uint8_t external = replacement == 2 ? 3 : 2;
   data->room_blockset_ids[group][0] = external;
-  EXPECT_TRUE(absl::IsFailedPrecondition(dungeon->Undo()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(host->Undo()));
   EXPECT_EQ(data->room_blockset_ids[group][0], external);
   data->room_blockset_ids[group][0] = replacement;
-  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(host->Undo());
   EXPECT_EQ(data->room_blockset_ids, original_groups);
-  EXPECT_FALSE(dungeon->CanUndo());
-  ASSERT_OK(dungeon->Redo());
+  if (host_type != EditorType::kOverworld)
+    EXPECT_FALSE(
+        host->CanUndo());  // Overworld retains its earlier selector edits.
+  ASSERT_OK(host->Redo());
   room.PrepareForRender();
   EXPECT_EQ(room.get_gfx_buffer(), edited_pixels);
   const auto destination = fixture.root / "room-sheets.sfc";

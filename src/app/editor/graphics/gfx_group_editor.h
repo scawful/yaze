@@ -63,6 +63,13 @@ class GfxGroupEditor {
   // Shared main table edit on the host editor's undo stack. Zero is a real
   // sheet here, unlike zero in a room override (which means inherit).
   absl::Status EditMainGraphicsSheet(int group, int slot, int sheet);
+  // Roomset entries 0-3 override background slots 3-6. Sheet zero inherits.
+  absl::Status EditRoomsetGraphicsSheet(int group, int entry, int sheet);
+  using RoomsetUsageCallback =
+      std::function<absl::StatusOr<zelda3::RoomsetUsageReport>(int)>;
+  void SetRoomsetUsageCallback(RoomsetUsageCallback callback) {
+    roomset_usage_ = std::move(callback);
+  }
   void DetachRuntimeContext();
   Rom* rom() const { return rom_; }
   void SetGameData(zelda3::GameData* data);
@@ -79,10 +86,14 @@ class GfxGroupEditor {
 
  private:
   void UpdateCurrentPalette();
-  void DrawMainAssignmentControls();
+  enum class GroupKind { kMain, kRoomset };
+  absl::Status EditGraphicsSheet(GroupKind kind, int group, int slot,
+                                 int sheet);
+  void DrawAssignmentControls(GroupKind kind);
+  void DrawRoomsetUsage();
   void DrawMainUsage();
-  void DrawMainSheetPicker();
-  void ResetMainPicker();
+  void DrawSheetPicker();
+  void ResetSheetPicker();
   struct AssignmentSession {
     Rom* rom = nullptr;
     zelda3::GameData* data = nullptr;
@@ -92,13 +103,16 @@ class GfxGroupEditor {
       std::make_shared<AssignmentSession>();
   UndoManager* undo_ = nullptr;
   MainUsageCallback main_usage_;
+  RoomsetUsageCallback roomset_usage_;
+  GroupKind picker_kind_ = GroupKind::kMain;
+  int selected_roomset_entry_ = 0;
   int selected_main_slot_ = 0;
   int picker_group_ = -1;
   int pending_sheet_ = -1;
   uint8_t picker_expected_sheet_ = 0;
-  bool show_main_picker_ = false;
+  bool show_sheet_picker_ = false;
   std::string assignment_error_;
-  std::map<int, gfx::Bitmap> main_picker_previews_;
+  std::map<int, gfx::Bitmap> picker_previews_;
   gfx::Bitmap* PrepareSheetPreview(int sheet_id, gfx::SheetRole role,
                                    gfx::Bitmap& preview);
 
@@ -122,9 +136,9 @@ class GfxGroupEditor {
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
 
-  // "Used by" for the selected spriteset/roomset. Area and room data are read
+  // "Used by" for the selected spriteset. Area and room data are read
   // from the ROM buffer on first use and on Refresh.
-  void DrawGroupUsage(bool spriteset, int id);
+  void DrawSpritesetUsage(int id);
   std::optional<std::map<int, zelda3::OverworldAreaGfxInfo>> usage_areas_;
   std::optional<std::map<int, zelda3::RoomGfxInfo>> usage_rooms_;
   const Rom* usage_rom_ = nullptr;
