@@ -14,25 +14,19 @@ namespace zelda3 {
 
 DrawRoutineRegistry& DrawRoutineRegistry::Get() {
   static DrawRoutineRegistry instance;
-  if (!instance.initialized_) {
-    instance.Initialize();
-  }
   return instance;
 }
 
-void DrawRoutineRegistry::Initialize() {
-  if (initialized_)
-    return;
+DrawRoutineRegistry::DrawRoutineRegistry() {
   BuildRegistry();
-  initialized_ = true;
+  RefreshFeatureFlagMappings();
 }
 
+void DrawRoutineRegistry::Initialize() {}
+
 void DrawRoutineRegistry::RefreshFeatureFlagMappings() {
-  if (!initialized_) {
-    Initialize();
-    return;
-  }
-  BuildObjectMapping();
+  custom_objects_enabled_.store(core::FeatureFlags::get().kEnableCustomObjects,
+                                std::memory_order_release);
 }
 
 void DrawRoutineRegistry::BuildRegistry() {
@@ -82,6 +76,10 @@ bool DrawRoutineRegistry::GetRoutineDimensions(int routine_id, int* base_width,
 }
 
 int DrawRoutineRegistry::GetRoutineIdForObject(int16_t object_id) const {
+  if (object_id == 0x31 || object_id == 0x32 || object_id == 0x54) {
+    return CustomObjectsEnabled() ? DrawRoutineIds::kCustomObject
+                                  : DrawRoutineIds::kNothing;
+  }
   auto it = object_to_routine_map_.find(object_id);
   if (it != object_to_routine_map_.end()) {
     return it->second;
@@ -145,16 +143,11 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0x2F] = 23;
   object_to_routine_map_[0x30] = 24;
 
-  // Oracle fixed custom-object families (0x31, 0x32, 0x54).
-  if (core::FeatureFlags::get().kEnableCustomObjects) {
-    object_to_routine_map_[0x31] = DrawRoutineIds::kCustomObject;
-    object_to_routine_map_[0x32] = DrawRoutineIds::kCustomObject;
-    object_to_routine_map_[0x54] = DrawRoutineIds::kCustomObject;
-  } else {
-    object_to_routine_map_[0x31] = DrawRoutineIds::kNothing;
-    object_to_routine_map_[0x32] = DrawRoutineIds::kNothing;
-    object_to_routine_map_[0x54] = DrawRoutineIds::kNothing;
-  }
+  // Keep the inventory stable. The atomic snapshot selects these IDs at
+  // lookup time, without mutating a map while census workers read it.
+  object_to_routine_map_[0x31] = DrawRoutineIds::kNothing;
+  object_to_routine_map_[0x32] = DrawRoutineIds::kNothing;
+  object_to_routine_map_[0x54] = DrawRoutineIds::kNothing;
   object_to_routine_map_[0x33] = 16;
   object_to_routine_map_[0x34] = 25;
   object_to_routine_map_[0x35] = 26;

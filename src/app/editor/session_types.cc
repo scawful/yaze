@@ -152,6 +152,31 @@ Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
     dungeon->SetRoomGraphicsOverworldProvider(
         [this]() { return GetOverworldData(); });
   }
+  auto main_usage =
+      [this](int group,
+             int slot) -> absl::StatusOr<zelda3::MainGroupUsageReport> {
+    if (!rom_ || !game_data_ || session_teardown_prepared_) {
+      return absl::FailedPreconditionError("No loaded graphics session");
+    }
+    auto rooms = zelda3::CollectRoomGfx(*rom_);
+    std::map<int, uint8_t> explicit_main;
+    if (const auto* dungeon = dynamic_cast<const DungeonEditorV2*>(
+            GetExistingEditor(EditorType::kDungeon))) {
+      dungeon->rooms().ForEachLoaded([&](int id, const zelda3::Room& room) {
+        rooms[id] = {room.blockset(), room.spriteset()};
+        explicit_main[id] = room.render_entrance_blockset();
+      });
+    }
+    return zelda3::DescribeMainGroupUsage(*rom_, *game_data_, group, slot,
+                                          rooms, explicit_main,
+                                          GetOverworldData());
+  };
+  if (auto* graphics = dynamic_cast<GraphicsEditor*>(editor.get())) {
+    graphics->SetMainGraphicsUsageCallback(main_usage);
+  }
+  if (auto* overworld = dynamic_cast<OverworldEditor*>(editor.get())) {
+    overworld->SetMainGraphicsUsageCallback(main_usage);
+  }
   if (type == EditorType::kSettings && user_settings_ != nullptr) {
     if (auto* settings_panel = static_cast<SettingsPanel*>(editor.get())) {
       settings_panel->SetUserSettings(user_settings_);

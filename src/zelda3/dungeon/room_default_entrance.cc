@@ -6,6 +6,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/game_data.h"
 #include "zelda3/screen/dungeon_map.h"
 
 namespace yaze::zelda3 {
@@ -14,6 +15,31 @@ namespace {
 constexpr uint8_t kEmptyMapRoom = 0x0F;
 
 }  // namespace
+
+RoomMainBlocksetResolution ResolveRoomMainBlockset(
+    int room_id, uint8_t header_blockset, uint8_t requested_main_blockset,
+    const GameData& game_data) {
+  const auto valid = [&game_data](uint8_t group) {
+    return group != 0xFF && group < game_data.main_blockset_ids.size();
+  };
+  if (valid(requested_main_blockset)) {
+    return {requested_main_blockset, RoomMainBlocksetSource::kExplicitPreview};
+  }
+  if (room_id >= 0 &&
+      room_id < static_cast<int>(game_data.room_default_entrances.size())) {
+    const auto& entrance = game_data.room_default_entrances[room_id];
+    if (valid(entrance.main_blockset)) {
+      return {entrance.main_blockset,
+              entrance.source == RoomEntranceSource::kDirect
+                  ? RoomMainBlocksetSource::kDirectDefault
+                  : RoomMainBlocksetSource::kInferredDefault};
+    }
+  }
+  if (valid(header_blockset)) {
+    return {header_blockset, RoomMainBlocksetSource::kHeaderFallback};
+  }
+  return {0, RoomMainBlocksetSource::kZeroFallback};
+}
 
 std::vector<RoomDefaultEntrance> ComputeRoomDefaultEntrances(Rom& rom) {
   std::vector<RoomDefaultEntrance> result(kNumberOfRooms);

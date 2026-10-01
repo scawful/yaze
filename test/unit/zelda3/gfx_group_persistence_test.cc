@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <map>
 #include <vector>
 
 #include "rom/rom.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
+#include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 #include "zelda3/gfx_sheet_inventory.h"
 #include "zelda3/overworld/overworld.h"
@@ -51,6 +53,10 @@ LoadedGroups LoadRoomsetUsageGroups(
   EXPECT_TRUE(loaded.rom.LoadFromData(bytes).ok());
   EXPECT_TRUE(zelda3::LoadGfxGroups(loaded.rom, loaded.data).ok());
   return loaded;
+}
+
+bool HasId(const std::vector<int>& ids, int id) {
+  return std::find(ids.begin(), ids.end(), id) != ids.end();
 }
 
 TEST(GfxGroupPersistenceTest, FreshlyLoadedGroupsHaveNoDiff) {
@@ -228,6 +234,111 @@ TEST(GfxGroupPersistenceTest,
     EXPECT_TRUE(report->ow_areas.empty());
     EXPECT_TRUE(report->overridden_ow_areas.empty());
   }
+}
+
+TEST(GfxGroupPersistenceTest, MainGroupResolverMatchesRoomPreview) {
+  auto loaded = LoadRoomsetUsageGroups();
+  loaded.data.room_default_entrances.resize(zelda3::kNumDungeonRooms);
+  loaded.data.room_default_entrances[2] = {
+      1, 7, zelda3::RoomEntranceSource::kDirect, -1};
+  loaded.data.room_default_entrances[3] = {
+      1, 7, zelda3::RoomEntranceSource::kNeighbour, 2};
+  loaded.data.room_default_entrances[4] = {
+      1, 7, zelda3::RoomEntranceSource::kDungeonMap, -1};
+  loaded.data.room_blockset_ids[9] = {0x44, 0, 0, 0};
+  loaded.data.main_blockset_ids[7][0] = 0x31;
+  loaded.data.main_blockset_ids[8][0] = 0x32;
+
+  const std::map<int, zelda3::RoomGfxInfo> rooms = {{2, {9, 0}}, {3, {9, 0}},
+                                                    {4, {9, 0}}, {5, {7, 0}},
+                                                    {6, {9, 0}}, {7, {9, 0}}};
+  const std::map<int, uint8_t> explicit_main = {{6, 7}, {7, 0xFE}};
+  auto report = zelda3::DescribeMainGroupUsage(loaded.rom, loaded.data, 7, 0,
+                                               rooms, explicit_main);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_EQ(report->direct_default_rooms, (std::vector<int>{2}));
+  EXPECT_EQ(report->inferred_default_rooms, (std::vector<int>{3, 4}));
+  EXPECT_EQ(report->fallback_rooms, (std::vector<int>{5}));
+  EXPECT_EQ(report->explicit_preview_rooms, (std::vector<int>{6}));
+  EXPECT_EQ(report->unscanned_rooms, zelda3::kNumDungeonRooms - 6);
+
+  zelda3::Room room(2, &loaded.rom, &loaded.data);
+  room.SetBlockset(9);
+  room.LoadRoomGraphics();
+  EXPECT_EQ(room.resolved_main_blockset(), 7);
+  EXPECT_EQ(room.blocks()[0], 0x31);
+  room.SetRenderEntranceBlockset(8);
+  room.LoadRoomGraphics();
+  EXPECT_EQ(room.resolved_main_blockset(), 8);
+  EXPECT_EQ(room.blocks()[0], 0x32);
+  const auto resolved = zelda3::ResolveRoomMainBlockset(2, 9, 8, loaded.data);
+  EXPECT_EQ(resolved.main_blockset, room.resolved_main_blockset());
+  EXPECT_EQ(resolved.source, zelda3::RoomMainBlocksetSource::kExplicitPreview);
+}
+
+TEST(GfxGroupPersistenceTest, MainGroupReportSeparatesRoomSlotOverrides) {
+  auto loaded = LoadRoomsetUsageGroups();
+  loaded.data.room_default_entrances.resize(zelda3::kNumDungeonRooms);
+  loaded.data.room_default_entrances[2] = {
+      1, 7, zelda3::RoomEntranceSource::kDirect, -1};
+  loaded.data.room_blockset_ids[9] = {0x44, 0, 0, 0};
+  loaded.data.main_blockset_ids[7][3] = 0x33;
+  loaded.data.main_blockset_ids[7][7] = 0x51;
+  const std::map<int, zelda3::RoomGfxInfo> rooms = {{2, {9, 0}}};
+
+  auto slot3 =
+      zelda3::DescribeMainGroupUsage(loaded.rom, loaded.data, 7, 3, rooms);
+  ASSERT_TRUE(slot3.ok()) << slot3.status();
+  EXPECT_EQ(slot3->overridden_rooms, (std::vector<int>{2}));
+  EXPECT_TRUE(slot3->direct_default_rooms.empty());
+  auto slot7 =
+      zelda3::DescribeMainGroupUsage(loaded.rom, loaded.data, 7, 7, rooms);
+  ASSERT_TRUE(slot7.ok()) << slot7.status();
+  EXPECT_EQ(slot7->direct_default_rooms, (std::vector<int>{2}));
+  EXPECT_TRUE(slot7->overridden_rooms.empty());
+  EXPECT_TRUE(slot7->slot7_bottom_half_only);
+
+  zelda3::Room room(2, &loaded.rom, &loaded.data);
+  room.SetBlockset(9);
+  room.LoadRoomGraphics();
+  EXPECT_EQ(room.blocks()[3], 0x44);
+  EXPECT_EQ(room.blocks()[7], 0x51);
+}
+
+TEST(GfxGroupPersistenceTest, MainGroupReportUsesSharedAndIndependentTables) {
+  auto loaded = LoadRoomsetUsageGroups();
+  loaded.data.gfx_main_group_address = zelda3_us_pointers.kOverworldGfxGroups2;
+  loaded.rom[zelda3::kAreaGfxIdPtr + 1] = 7;
+  loaded.data.room_blockset_ids[7][0] = 0x42;
+  auto shared =
+      zelda3::DescribeMainGroupUsage(loaded.rom, loaded.data, 0x20, 3, {});
+  ASSERT_TRUE(shared.ok()) << shared.status();
+  EXPECT_TRUE(HasId(shared->ow_areas, 0));
+  EXPECT_TRUE(HasId(shared->overridden_ow_areas, 1));
+  EXPECT_EQ(shared->unscanned_ow_areas, 0);
+  auto slot7 =
+      zelda3::DescribeMainGroupUsage(loaded.rom, loaded.data, 0x20, 7, {});
+  ASSERT_TRUE(slot7.ok()) << slot7.status();
+  EXPECT_TRUE(HasId(slot7->ow_areas, 1));
+  EXPECT_TRUE(slot7->slot7_bottom_half_only);
+
+  loaded.data.version = zelda3_version::JP;
+  auto independent =
+      zelda3::DescribeMainGroupUsage(loaded.rom, loaded.data, 0x20, 0, {});
+  ASSERT_TRUE(independent.ok()) << independent.status();
+  EXPECT_TRUE(HasId(independent->independent_ow_areas, 0));
+  EXPECT_FALSE(HasId(independent->ow_areas, 0));
+}
+
+TEST(GfxGroupPersistenceTest, MainGroupReportMarksCustomSlot7Override) {
+  auto loaded = LoadRoomsetUsageGroups(/*custom=*/true);
+  loaded.data.gfx_main_group_address = zelda3_us_pointers.kOverworldGfxGroups2;
+  auto report =
+      zelda3::DescribeMainGroupUsage(loaded.rom, loaded.data, 0x20, 7, {});
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_TRUE(HasId(report->overridden_ow_areas, 0));
+  EXPECT_FALSE(HasId(report->ow_areas, 0));
+  EXPECT_TRUE(report->slot7_bottom_half_only);
 }
 
 }  // namespace

@@ -171,6 +171,33 @@ absl::StatusOr<RoomsetUsageReport> DescribeRoomsetUsage(
     const std::map<int, RoomGfxInfo>& rooms,
     const Overworld* live_overworld = nullptr);
 
+/// Main-group use in current/default room previews and overworld maps for one
+/// background slot. Room previews do not enumerate every gameplay entrance.
+/// A room blockset or overworld area/custom assignment that replaces the
+/// selected slot is reported as overridden instead of effective.
+struct MainGroupUsageReport {
+  std::vector<int> explicit_preview_rooms;
+  std::vector<int> direct_default_rooms;
+  std::vector<int> inferred_default_rooms;
+  std::vector<int> fallback_rooms;
+  std::vector<int> overridden_rooms;
+  std::vector<int> ow_areas;
+  std::vector<int> overridden_ow_areas;
+  std::vector<int> independent_ow_areas;
+  int unscanned_rooms = 0;
+  int unscanned_ow_areas = 0;
+  bool uses_live_overworld = false;
+  // Overworld slot 7's main/area sheet supplies its bottom half only; the top
+  // half is animated. Dungeon room slot 7 uses the full sheet.
+  bool slot7_bottom_half_only = false;
+};
+
+absl::StatusOr<MainGroupUsageReport> DescribeMainGroupUsage(
+    Rom& rom, GameData& game_data, int group, int slot,
+    const std::map<int, RoomGfxInfo>& rooms,
+    const std::map<int, uint8_t>& explicit_room_main = {},
+    const Overworld* live_overworld = nullptr);
+
 /// JSON with the same keys and value formats as Oracle's reference inventory
 /// (`sheets`, `spritesets`, `main_blocksets`, `room_blocksets`,
 /// `overworld_areas`, `rooms`), plus `flagged`, `reserved_blocks` and

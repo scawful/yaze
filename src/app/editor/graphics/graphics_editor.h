@@ -82,6 +82,17 @@ class GraphicsEditor : public Editor {
     }
   }
 
+  void SetMainGraphicsUsageCallback(
+      GfxGroupEditor::MainUsageCallback callback) {
+    main_graphics_usage_ = std::move(callback);
+    if (gfx_group_panel_)
+      gfx_group_panel_->SetMainUsageCallback(main_graphics_usage_);
+  }
+  void PrepareForSessionTeardown() override {
+    if (gfx_group_panel_)
+      gfx_group_panel_->DetachRuntimeContext();
+    main_graphics_usage_ = {};
+  }
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override;
@@ -228,6 +239,7 @@ class GraphicsEditor : public Editor {
   std::unique_ptr<PaletteControlsPanel> palette_controls_panel_;
   std::unique_ptr<LinkSpritePanel> link_sprite_panel_;
   std::unique_ptr<GfxGroupEditor> gfx_group_panel_;
+  GfxGroupEditor::MainUsageCallback main_graphics_usage_;
   std::unique_ptr<PalettesetEditorPanel> paletteset_panel_;
   std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
   std::unique_ptr<UsagePreviewView> usage_preview_view_;

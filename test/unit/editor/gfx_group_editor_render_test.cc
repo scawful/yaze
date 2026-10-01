@@ -1,8 +1,14 @@
 #include "app/editor/graphics/gfx_group_editor_internal.h"
 
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <vector>
+#include "absl/cleanup/cleanup.h"
+#include "app/editor/graphics/gfx_group_editor.h"
+#include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/automation/widget_id_registry.h"
+#include "imgui/imgui_internal.h"
 
 #include "app/editor/graphics/screen_editor_internal.h"
 #include "app/gfx/core/bitmap.h"
@@ -23,6 +29,179 @@ gfx::Bitmap MakeSheetBitmap() {
   std::vector<uint8_t> pixels(kSheetWidth * kSheetHeight, 0);
   bmp.Create(kSheetWidth, kSheetHeight, kSheetDepth, pixels);
   return bmp;
+}
+
+class GfxGroupAssignmentTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000)).ok());
+    data.gfx_groups_loaded = true;
+    data.graphics_buffer.assign(223 * 4096, 1);
+    data.palette_groups.dungeon_main.AddPalette(
+        gfx::SnesPalette(std::vector<uint16_t>(90, 0x3DEF)));
+    panel.SetRom(&rom);
+    panel.SetGameData(&data);
+    panel.SetUndoManager(&undo);
+    panel.SetMainUsageCallback([](int, int) {
+      zelda3::MainGroupUsageReport usage;
+      usage.explicit_preview_rooms = {5};
+      usage.ow_areas = {0};
+      return absl::StatusOr<zelda3::MainGroupUsageReport>(usage);
+    });
+    rom.set_dirty(false);
+  }
+  void TearDown() override { gfx::Arena::Get().ClearTextureQueue(); }
+  Rom rom;
+  zelda3::GameData data;
+  UndoManager undo;
+  GfxGroupEditor panel;
+};
+
+TEST_F(GfxGroupAssignmentTest, UndoTargetsOriginalGroupAfterSelectionChanges) {
+  ASSERT_TRUE(panel.EditMainGraphicsSheet(0, 0, 1).ok());
+  EXPECT_TRUE(rom.dirty());
+  panel.SetSelectedBlockset(1);
+  ASSERT_TRUE(undo.Undo().ok());
+  EXPECT_EQ(data.main_blockset_ids[0][0], 0);
+  EXPECT_EQ(data.main_blockset_ids[1][0], 0);
+  ASSERT_TRUE(undo.Redo().ok());
+  EXPECT_EQ(data.main_blockset_ids[0][0], 1);
+  ASSERT_TRUE(panel.EditMainGraphicsSheet(0, 0, 1).ok());
+  EXPECT_EQ(undo.UndoStackSize(), 1);
+  EXPECT_FALSE(panel.EditMainGraphicsSheet(0, 8, 1).ok());
+  EXPECT_FALSE(panel.EditMainGraphicsSheet(0, 0, 113).ok());
+  EXPECT_FALSE(panel.EditMainGraphicsSheet(0, 0, 223).ok());
+  EXPECT_FALSE(panel.EditMainGraphicsSheet(-1, 0, 1).ok());
+  EXPECT_EQ(undo.UndoStackSize(), 1);
+  ASSERT_TRUE(panel.EditMainGraphicsSheet(0, 0, 0).ok());
+  EXPECT_EQ(data.main_blockset_ids[0][0], 0);
+}
+
+TEST_F(GfxGroupAssignmentTest, OtherHostAssignmentSurvivesStaleUndo) {
+  GfxGroupEditor other;
+  UndoManager other_undo;
+  other.SetRom(&rom);
+  other.SetGameData(&data);
+  other.SetUndoManager(&other_undo);
+  ASSERT_TRUE(panel.EditMainGraphicsSheet(0, 0, 1).ok());
+  ASSERT_TRUE(other.EditMainGraphicsSheet(0, 0, 2).ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo.Undo()));
+  EXPECT_EQ(data.main_blockset_ids[0][0], 2);
+  ASSERT_TRUE(other_undo.Undo().ok());
+  ASSERT_TRUE(undo.Undo().ok());
+  EXPECT_EQ(data.main_blockset_ids[0][0], 0);
+}
+
+TEST_F(GfxGroupAssignmentTest, ForeignSessionAndRebindingBackRefuseOldUndo) {
+  ASSERT_TRUE(panel.EditMainGraphicsSheet(0, 0, 1).ok());
+  zelda3::GameData other;
+  panel.SetGameData(&other);
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo.Undo()));
+  panel.SetGameData(&data);
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo.Undo()));
+  EXPECT_EQ(data.main_blockset_ids[0][0], 1);
+  EXPECT_EQ(other.main_blockset_ids[0][0], 0);
+  panel.DetachRuntimeContext();
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo.Undo()));
+}
+
+TEST_F(GfxGroupAssignmentTest, SameAddressRebindingInvalidatesOldUndo) {
+  ASSERT_TRUE(panel.EditMainGraphicsSheet(0, 0, 1).ok());
+  panel.SetGameData(&data);
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo.Undo()));
+  EXPECT_EQ(data.main_blockset_ids[0][0], 1);
+}
+
+TEST_F(GfxGroupAssignmentTest, DestroyedPanelRefusesOutstandingUndo) {
+  {
+    GfxGroupEditor temporary;
+    temporary.SetRom(&rom);
+    temporary.SetGameData(&data);
+    temporary.SetUndoManager(&undo);
+    ASSERT_TRUE(temporary.EditMainGraphicsSheet(0, 0, 1).ok());
+  }
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo.Undo()));
+  EXPECT_EQ(data.main_blockset_ids[0][0], 1);
+}
+
+TEST_F(GfxGroupAssignmentTest, ThumbnailChoiceAppliesAndNavigationCancels) {
+  ImGuiContext* previous = ImGui::GetCurrentContext();
+  ImGuiContext* context = ImGui::CreateContext();
+  const absl::Cleanup cleanup = [&] {
+    ImGui::DestroyContext(context);
+    ImGui::SetCurrentContext(previous);
+    gui::WidgetIdRegistry::Instance().Clear();
+  };
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1280, 1600);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  std::string rendered_text;
+  auto draw = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(900, 1500), ImGuiCond_Always);
+    ImGui::Begin("MainAssignmentTest", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    {
+      gui::AutoWidgetScope scope("MainAssignmentTest");
+      ImGui::LogToBuffer(0);
+      panel.DrawBlocksetViewer();
+      rendered_text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+      ImGui::LogFinish();
+    }
+    ImGui::End();
+    ImGui::Render();
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  auto click = [&](const std::string& label) {
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label != label || !widget.visible || !widget.enabled)
+        continue;
+      const auto b = widget.bounds;
+      io.AddMousePosEvent((b.min_x + b.max_x) / 2, (b.min_y + b.max_y) / 2);
+      found = true;
+      break;
+    }
+    ASSERT_TRUE(found) << label;
+    draw();
+    io.AddMouseButtonEvent(0, true);
+    draw();
+    io.AddMouseButtonEvent(0, false);
+    draw();
+    draw();
+  };
+  draw();
+  draw();
+  EXPECT_NE(rendered_text.find("Affects 1 room previews and 1 map screens"),
+            std::string::npos);
+  click("Main slot 4");
+  click("Choose replacement sheet");
+  click("Main sheet 01");
+  EXPECT_FALSE(undo.CanUndo());
+  click("Apply to shared main group");
+  EXPECT_EQ(data.main_blockset_ids[0][4], 1);
+  ASSERT_TRUE(undo.Undo().ok());
+  EXPECT_EQ(data.main_blockset_ids[0][4], 0);
+  click("Choose replacement sheet");
+  click("Main sheet 02");
+  data.main_blockset_ids[0][4] = 3;
+  click("Apply to shared main group");
+  EXPECT_EQ(data.main_blockset_ids[0][4], 3);
+  EXPECT_NE(rendered_text.find("Assignment changed while choosing"),
+            std::string::npos);
+  panel.SetSelectedBlockset(1);
+  draw();
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    EXPECT_NE(widget.label, "Apply to shared main group");
+  }
 }
 
 TEST(BitmapTileExtractionTest,

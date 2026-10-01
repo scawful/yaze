@@ -181,6 +181,24 @@ enum class OverworldRoomsetSource {
   kIndependentRomGroup,
 };
 
+enum class OverworldMainSlotSource {
+  kSharedSessionGroup,
+  kIndependentRomGroup,
+  kAreaOverride,
+  kCustomTileGroups,
+};
+
+struct OverworldMainSlotProvenance {
+  int main_group_id = 0;
+  uint8_t main_sheet = 0;
+  uint8_t effective_sheet = 0;
+  OverworldMainSlotSource source =
+      OverworldMainSlotSource::kIndependentRomGroup;
+  // Overworld slot 7 retains the main/area sheet in the bottom half; its top
+  // half is replaced with animated tiles when the map is rendered.
+  bool bottom_half_only = false;
+};
+
 /// Overworld screen whose tilemap the game shows as BG1 for a subscreen
 /// overlay id (0x93 curtains, 0x95 sky, 0x96 pyramid, 0x97/0x9D fog, 0x9C
 /// lava, and hack-defined ids up to 0x9F), or -1 for none (0x00FF).
@@ -314,6 +332,7 @@ class OverworldMap : public gfx::GfxContext {
 
   auto area_graphics() const { return area_graphics_; }
   OverworldRoomsetSource roomset_source() const;
+  OverworldMainSlotProvenance MainSlotProvenance(int slot) const;
   auto area_palette() const { return area_palette_; }
   auto sprite_graphics(int i) const { return sprite_graphics_[i]; }
   auto sprite_palette(int i) const { return sprite_palette_[i]; }
@@ -466,6 +485,7 @@ class OverworldMap : public gfx::GfxContext {
   void SetupCustomTileset(uint8_t asm_version);
 
   void LoadMainBlocksetId();
+  int ComputeMainBlocksetId() const;
   bool UsesSessionMainGraphicsGroup() const;
   bool UsesSessionAreaGraphicsGroup() const;
   bool UsesSessionSpriteGraphicsGroup() const;

@@ -142,6 +142,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
     gfx_group_editor_.SetRom(rom);
+    gfx_group_editor_.SetUndoManager(&undo_manager_);
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are
     // ready
   }
@@ -151,6 +152,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     dependencies_ = deps;
   }
   ~OverworldEditor() override;
+  void SetMainGraphicsUsageCallback(
+      GfxGroupEditor::MainUsageCallback callback) {
+    gfx_group_editor_.SetMainUsageCallback(std::move(callback));
+  }
+  void PrepareForSessionTeardown() override {
+    gfx_group_editor_.DetachRuntimeContext();
+  }
 
   void SetDependencies(const EditorDependencies& deps) override {
     Editor::SetDependencies(deps);
