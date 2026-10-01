@@ -476,7 +476,7 @@ class OverworldMap : public gfx::GfxContext {
                                               : zelda3_version::US);
   }
 
-  Rom* rom_;
+  Rom* rom_ = nullptr;
   GameData* game_data_ = nullptr;
 
   bool built_ = false;

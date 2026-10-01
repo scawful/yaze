@@ -24,7 +24,7 @@ namespace editor {
  *
  * Provides a UI for viewing and editing:
  * - Blocksets (8 sheets per blockset)
- * - Roomsets (4 sheets that override blockset slots 4-7)
+ * - Roomsets (4 sheets that override blockset slots 3-6; zero inherits)
  * - Spritesets (4 sheets for enemy/NPC graphics)
  *
  * Features palette preview controls for viewing sheets with different palettes.

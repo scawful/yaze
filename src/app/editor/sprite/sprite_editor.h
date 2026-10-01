@@ -47,6 +47,8 @@ constexpr ImGuiTableFlags kSpriteTableFlags =
  * Supports both vanilla ROM sprites and custom ZSM format sprites.
  */
 class SpriteEditor : public Editor {
+  friend class AuthoringSaveWorkflowTestPeer;
+
  public:
   explicit SpriteEditor(Rom* rom = nullptr) : rom_(rom) {
     type_ = EditorType::kSprite;
@@ -257,6 +259,8 @@ class SpriteEditor : public Editor {
   void DrawSpritesetPicker();
   void ApplySpritesetToSheets(int spriteset);
   void DrawFrameTileWarnings();
+  absl::Status OpenSelectedOamGraphics();
+  absl::Status graphics_context_status_;
   int preview_spriteset_ = 0;
   uint16_t preview_room_ = 0;
   bool preview_use_room_palette_ = false;

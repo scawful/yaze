@@ -100,6 +100,9 @@ set(
   app/editor/graphics/graphics_save_plan.cc
   app/editor/graphics/graphics_sheet_sync.cc
   app/editor/graphics/graphics_edit_context.cc
+  app/editor/graphics/screen_graphics_context.cc
+  app/editor/overworld/overworld_graphics_context.cc
+  app/editor/sprite/sprite_graphics_context.cc
   app/editor/graphics/usage_preview.cc
   app/editor/graphics/ui/usage/usage_preview_view.cc
   app/editor/graphics/ui/browser/sheet_browser_view.cc

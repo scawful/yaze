@@ -69,9 +69,91 @@
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/water_fill_zone.h"
+#include "zelda3/gfx_sheet_storage.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
+
+namespace {
+
+class RoomGraphicsSheetAction final : public UndoAction {
+ public:
+  using Apply = std::function<absl::Status(uint8_t, uint8_t)>;
+  RoomGraphicsSheetAction(int group, int slot, uint8_t before, uint8_t after,
+                          Apply apply)
+      : group_(group),
+        slot_(slot),
+        before_(before),
+        after_(after),
+        apply_(std::move(apply)) {}
+  absl::Status Undo() override { return apply_(after_, before_); }
+  absl::Status Redo() override { return apply_(before_, after_); }
+  std::string Description() const override {
+    return absl::StrFormat("Room graphics group %02X slot %d", group_, slot_);
+  }
+  size_t MemoryUsage() const override { return sizeof(*this); }
+
+ private:
+  int group_;
+  int slot_;
+  uint8_t before_;
+  uint8_t after_;
+  Apply apply_;
+};
+
+}  // namespace
+
+absl::Status DungeonEditorV2::EditRoomGraphicsSheet(int room_id, int slot,
+                                                    int sheet_id) {
+  if (!game_data_ || !rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("No loaded graphics session");
+  }
+  auto* room = rooms_.GetIfMaterialized(room_id);
+  if (!room || slot < 3 || slot > 6 || sheet_id < 0 ||
+      sheet_id >= zelda3::GraphicsSheetStore::kSheetCount) {
+    return absl::InvalidArgumentError("Choose a roomset slot (3-6) and sheet");
+  }
+  if (sheet_id != 0 && (!game_data_->sheet_store.HasSheet(sheet_id) ||
+                        zelda3::GetGfxSheetStorageKind(sheet_id) ==
+                            zelda3::GfxSheetStorageKind::kCompressed2bpp)) {
+    return absl::InvalidArgumentError(
+        "Room backgrounds require a loaded 3bpp sheet");
+  }
+  const int group = room->blockset();
+  if (group >= static_cast<int>(game_data_->room_blockset_ids.size())) {
+    return absl::OutOfRangeError("Room graphics group is unavailable");
+  }
+  const uint8_t before = game_data_->room_blockset_ids[group][slot - 3];
+  const auto after = static_cast<uint8_t>(sheet_id);
+  if (before == after) {
+    return absl::OkStatus();
+  }
+  FinalizePendingUndoActions();
+  auto apply = [this, owner = game_data_, source_rom = rom_, group, slot](
+                   uint8_t expected, uint8_t value) -> absl::Status {
+    if (game_data_ != owner || rom_ != source_rom) {
+      return absl::FailedPreconditionError(
+          "Graphics assignment belongs to another session");
+    }
+    auto& assigned = game_data_->room_blockset_ids[group][slot - 3];
+    if (assigned != expected) {
+      return absl::FailedPreconditionError(
+          "Graphics assignment changed elsewhere; Undo was not applied");
+    }
+    assigned = value;
+    rooms_.ForEachMaterialized([group](int, zelda3::Room& affected) {
+      if (affected.blockset() == group) {
+        affected.MarkGraphicsDirty();
+      }
+    });
+    rom_->set_dirty(true);
+    return absl::OkStatus();
+  };
+  RETURN_IF_ERROR(apply(before, after));
+  undo_manager_.Push(std::make_unique<RoomGraphicsSheetAction>(
+      group, slot, before, after, std::move(apply)));
+  return absl::OkStatus();
+}
 
 void DungeonEditorV2::FinalizePendingUndoActions() {
   // Closing history alone leaves a handler's drag/paint gesture running, so its

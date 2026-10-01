@@ -1027,6 +1027,10 @@ absl::Status DungeonEditorV2::Load() {
   if (dependencies_.window_manager) {
     auto graphics_panel = std::make_unique<RoomGraphicsContent>(
         &current_room_id_, &rooms_, renderer_);
+    graphics_panel->SetAssignmentCallback(
+        [this](int room, int slot, int sheet) {
+          return EditRoomGraphicsSheet(room, slot, sheet);
+        });
     room_graphics_panel_ = graphics_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
         std::move(graphics_panel), WorkbenchTool());

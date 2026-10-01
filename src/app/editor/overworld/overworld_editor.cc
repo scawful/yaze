@@ -1,6 +1,9 @@
 // Related header
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/resolved_graphics_context_view.h"
+#include "app/editor/overworld/overworld_graphics_context.h"
 #include "app/editor/overworld/overworld_map_status.h"
 #include "rom/transaction.h"
 #include "util/i18n/tr.h"
@@ -21,6 +24,7 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -532,6 +536,10 @@ absl::Status OverworldEditor::Load() {
   tile16_editor_.SetRom(rom_);
   tile16_editor_.set_on_current_tile_changed(
       [this](int id) { current_tile16_ = id; });
+  tile16_editor_.SetOpenGraphicsForQuadrant(
+      [this](int tile16_id, int quadrant) {
+        return OpenGraphicsForTile16Quadrant(tile16_id, quadrant);
+      });
 
   tile16_editor_.set_on_document_changed(
       [this](const std::vector<Tile16Commit>&) {
@@ -1692,6 +1700,95 @@ void OverworldEditor::HandleMapInteraction() {
 void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
   if (canvas_nav_)
     canvas_nav_->ScrollBlocksetCanvasToCurrentTile();
+}
+
+absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
+                                                            int quadrant) {
+  if (rom_ == nullptr || !rom_->is_loaded() || game_data_ == nullptr ||
+      !overworld_.is_loaded()) {
+    return absl::FailedPreconditionError("Overworld ROM session is not loaded");
+  }
+  if (tile16_id < 0 ||
+      tile16_id >= static_cast<int>(overworld_.tiles16().size())) {
+    return absl::InvalidArgumentError("Selected Tile16 is unavailable");
+  }
+  auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (manager == nullptr) {
+    return absl::FailedPreconditionError("Graphics editor is unavailable");
+  }
+  FinalizePaintOperation();
+  const int source_map_id = current_map_;
+  RETURN_IF_ERROR(overworld_.EnsureMapBuilt(source_map_id));
+  const auto* map = overworld_.overworld_map(source_map_id);
+  if (map == nullptr || !map->is_built()) {
+    return absl::FailedPreconditionError("Selected overworld map is not built");
+  }
+  if (map->HasGraphicsPreview()) {
+    return absl::UnimplementedError(
+        "Project graphics overrides need an explicit editable source map");
+  }
+  auto context = MakeOverworldGraphicsEditContext(
+      *map, overworld_.tiles16()[tile16_id], tile16_id, quadrant, game_data_);
+  if (!context.ok()) {
+    return context.status();
+  }
+  // Keep the source map's resolved assignments, palette, parent, and special
+  // area state. The copied renderer reads live tile/map definitions and every
+  // watched sheet from this ROM session on each preview refresh.
+  auto preview_map = std::make_shared<zelda3::OverworldMap>(*map);
+  const auto* owner = game_data_;
+  context->render_preview =
+      [this, preview_map, owner,
+       source_map_id]() -> absl::StatusOr<usage_preview::IndexedImage> {
+    if (game_data_ != owner || !overworld_.is_loaded()) {
+      return absl::FailedPreconditionError(
+          "Overworld graphics source session has changed");
+    }
+    std::set<uint16_t> ids;
+    for (int slot = 0; slot < 8; ++slot) {
+      ids.insert(preview_map->static_graphics(slot));
+    }
+    ids.insert(preview_map->animated_sheet());
+    preview_map->SetGraphicsSheetOverrides(
+        usage_preview::SnapshotSessionSheets(ids, owner));
+    RETURN_IF_ERROR(preview_map->BuildTileset());
+    RETURN_IF_ERROR(preview_map->BuildTiles16Gfx(
+        *overworld_.mutable_tiles16(),
+        static_cast<int>(overworld_.tiles16().size())));
+    const int world = source_map_id / 0x40;
+    RETURN_IF_ERROR(preview_map->BuildBitmap(overworld_.GetMapTiles(world)));
+    usage_preview::IndexedImage image;
+    image.width = 512;
+    image.height = 512;
+    image.pixels = preview_map->bitmap_data();
+    image.index0_transparent = false;
+    const auto& palette = preview_map->current_palette();
+    for (size_t i = 0; i < palette.size() && i < image.colors.size(); ++i) {
+      const auto rgb = palette[i].rgb();
+      image.colors[i] =
+          SDL_Color{static_cast<uint8_t>(rgb.x), static_cast<uint8_t>(rgb.y),
+                    static_cast<uint8_t>(rgb.z), 255};
+    }
+    return image;
+  };
+  context->return_to_source = [this, manager, source_map_id, tile16_id]() {
+    manager->SwitchToEditor(EditorType::kOverworld, true);
+    SelectMapForEditing(source_map_id, false);
+    RequestTile16Selection(tile16_id);
+    if (dependencies_.window_manager) {
+      dependencies_.window_manager->OpenWindow(
+          OverworldPanelIds::kTile16Editor);
+    }
+  };
+  auto* editor_set = manager->GetCurrentEditorSet();
+  if (editor_set == nullptr || editor_set->GetGraphicsEditor() == nullptr) {
+    return absl::FailedPreconditionError("Graphics editor is unavailable");
+  }
+  RETURN_IF_ERROR(manager->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  RETURN_IF_ERROR(
+      editor_set->GetGraphicsEditor()->OpenInContext(std::move(*context)));
+  manager->SwitchToEditor(EditorType::kGraphics, true);
+  return absl::OkStatus();
 }
 
 void OverworldEditor::RequestTile16Selection(int tile_id) {

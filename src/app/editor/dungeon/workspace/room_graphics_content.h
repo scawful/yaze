@@ -3,6 +3,8 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
+#include <map>
 #include <string>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -56,6 +58,11 @@ class RoomGraphicsContent : public WindowContent {
     palette_dirty_ = true;
   }
 
+  using AssignmentCallback = std::function<absl::Status(int, int, int)>;
+  void SetAssignmentCallback(AssignmentCallback callback) {
+    assignment_callback_ = std::move(callback);
+  }
+
   // ==========================================================================
   // WindowContent Identity
   // ==========================================================================
@@ -90,6 +97,9 @@ class RoomGraphicsContent : public WindowContent {
   };
 
   void RefreshSheetPreviews(const zelda3::Room& room);
+  void DrawAssignmentControls(const zelda3::Room& room);
+  void DrawAssignmentPicker(const zelda3::Room& room);
+  void ClearPickerPreviews();
 
   int* current_room_id_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
@@ -102,6 +112,14 @@ class RoomGraphicsContent : public WindowContent {
   uint64_t preview_graphics_revision_ = 0;
   bool preview_cache_valid_ = false;
   bool show_source_trace_ = false;
+  int selected_slot_ = 3;
+  int selection_room_ = -1;
+  int selection_group_ = -1;
+  int pending_sheet_ = -1;
+  bool show_picker_ = false;
+  std::string assignment_error_;
+  AssignmentCallback assignment_callback_;
+  std::map<int, gfx::Bitmap> picker_previews_;
   gui::AdaptiveSheetScaleMode sheet_scale_mode_ =
       gui::AdaptiveSheetScaleMode::kFit;
 

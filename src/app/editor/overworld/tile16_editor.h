@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_TILE16EDITOR_H
 #define YAZE_APP_EDITOR_TILE16EDITOR_H
 
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -38,6 +39,17 @@ class Tile16Editor : public gfx::GfxContext {
 
   absl::Status Update();
   absl::Status UpdateAsPanel();
+  void SetOpenGraphicsForQuadrant(
+      std::function<absl::Status(int, int)> callback) {
+    open_graphics_for_quadrant_ = std::move(callback);
+  }
+  absl::Status OpenGraphicsForActiveQuadrant() {
+    if (!open_graphics_for_quadrant_) {
+      return absl::FailedPreconditionError("Graphics editor is unavailable");
+    }
+    return open_graphics_for_quadrant_(session_.current_tile16(),
+                                       session_.active_quadrant());
+  }
   void DrawContextMenu();
   void DrawTile16Editor();
   absl::Status UpdateBlockset();
@@ -273,6 +285,8 @@ class Tile16Editor : public gfx::GfxContext {
 
   PaletteEditor palette_editor_;
   absl::Status status_;
+  absl::Status graphics_open_status_;
+  std::function<absl::Status(int, int)> open_graphics_for_quadrant_;
 };
 
 }  // namespace editor

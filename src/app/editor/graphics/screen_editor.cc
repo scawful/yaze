@@ -9,7 +9,10 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor_internal.h"
+#include "app/editor/graphics/screen_graphics_context.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -132,11 +135,15 @@ absl::Status ScreenEditor::Load() {
   // Recreate sheet contents in place. Arena commands retain Bitmap*, so the
   // unique_ptr owners must remain stable across reloads.
   for (int i = 0; i < 4; i++) {
-    const auto& source = gfx::Arena::Get().gfx_sheets()[212 + i];
+    const auto pixels = game_data()->sheet_store.Sheet(212 + i);
+    if (pixels.size() != 128 * 32) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Screen Dungeon Map sheet %d is unavailable in this ROM session",
+          212 + i));
+    }
     auto* sheet = GetOrCreateSheet(i);
-    sheet->Create(source.width(), source.height(), source.depth(),
-                  source.vector());
-    sheet->metadata() = source.metadata();
+    sheet->Create(128, 32, 8,
+                  std::vector<uint8_t>(pixels.begin(), pixels.end()));
     sheet->SetPalette(
         *game_data()->palette_groups.dungeon_main.mutable_palette(3));
     gfx::Arena::Get().QueueTextureCommand(
@@ -180,6 +187,81 @@ absl::Status ScreenEditor::Load() {
   RefreshTileCacheForReload(tile16_blockset_);
   RefreshTileCacheForReload(tile8_tilemap_);
   rom_backed_state_valid_ = true;
+  return absl::OkStatus();
+}
+
+void ScreenEditor::RefreshDungeonMapGraphicsFromSession() {
+  // Rebuild only the source-dependent bitmaps. Keep floor layouts, Tile16
+  // composition words, undo history, and pending save flags in memory.
+  if (!rom_backed_state_valid_ || binary_gfx_loaded_ || !game_data()) {
+    return;
+  }
+  std::vector<uint8_t> atlas_pixels(128 * 128);
+  for (int slot = 0; slot < 4; ++slot) {
+    const auto pixels = game_data()->sheet_store.Sheet(212 + slot);
+    if (pixels.size() != 128 * 32) {
+      return;
+    }
+    std::copy(pixels.begin(), pixels.end(),
+              atlas_pixels.begin() + slot * 128 * 32);
+    auto* sheet = GetOrCreateSheet(slot);
+    sheet->Create(128, 32, 8,
+                  std::vector<uint8_t>(pixels.begin(), pixels.end()));
+    sheet->SetPalette(
+        *game_data()->palette_groups.dungeon_main.mutable_palette(3));
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, sheet);
+  }
+  tile8_tilemap_.atlas.Create(128, 128, 8, atlas_pixels);
+  tile8_tilemap_.atlas.SetPalette(
+      *game_data()->palette_groups.dungeon_main.mutable_palette(3));
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &tile8_tilemap_.atlas);
+  RefreshTileCacheForReload(tile8_tilemap_);
+
+  // Recompose from the current in-memory Tile16 words, not the ROM table: an
+  // unsaved Tile16 edit must survive the return from Graphics.
+  for (size_t tile_id = 0; tile_id < tile16_blockset_.tile_info.size();
+       ++tile_id) {
+    const auto info = tile16_blockset_.tile_info[tile_id];
+    gfx::ModifyTile16(tile16_blockset_, game_data()->graphics_buffer, info[0],
+                      info[1], info[2], info[3], 212,
+                      static_cast<int>(tile_id));
+  }
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &tile16_blockset_.atlas);
+  RefreshTileCacheForReload(tile16_blockset_);
+}
+
+absl::Status ScreenEditor::OpenDungeonMapTileGraphics() {
+  if (!rom_backed_state_valid_ || !rom_ || !rom_->is_loaded() || !game_data()) {
+    return absl::FailedPreconditionError(
+        "Screen Dungeon Map graphics are not loaded");
+  }
+  auto context = MakeDungeonMapTilesGfxEditContext(game_data(), selected_tile8_,
+                                                   binary_gfx_loaded_);
+  if (!context.ok()) {
+    return context.status();
+  }
+  auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (manager == nullptr) {
+    return absl::FailedPreconditionError("Editor manager is unavailable");
+  }
+  auto* editor_set = manager->GetCurrentEditorSet();
+  if (editor_set == nullptr || editor_set->GetGraphicsEditor() == nullptr) {
+    return absl::FailedPreconditionError("Graphics editor is unavailable");
+  }
+  context->return_to_source = [this, manager] {
+    RefreshDungeonMapGraphicsFromSession();
+    manager->SwitchToEditor(EditorType::kScreen, true);
+    if (dependencies_.window_manager) {
+      dependencies_.window_manager->OpenWindow("screen.dungeon_maps");
+    }
+  };
+  RETURN_IF_ERROR(manager->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  RETURN_IF_ERROR(
+      editor_set->GetGraphicsEditor()->OpenInContext(std::move(*context)));
+  manager->SwitchToEditor(EditorType::kGraphics, true);
   return absl::OkStatus();
 }
 
@@ -889,15 +971,32 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     tilemap_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
     tilemap_canvas_.DrawBackground();
     tilemap_canvas_.DrawContextMenu();
-    if (tilemap_canvas_.DrawTileSelector(16.f)) {
-      // Get the tile8 ID to use for the tile16 drawing above
-      selected_tile8_ = tilemap_canvas_.GetTileIdFromMousePos();
+    tilemap_canvas_.DrawTileSelector(16);
+    if (tilemap_canvas_.IsMouseHovering() &&
+        ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+        !tilemap_canvas_.points().empty()) {
+      // Four 128x32 sheets are displayed at 2x: 16 tiles per row, 16 rows.
+      // Canvas::GetTileIdFromMousePos uses the unscaled 8px grid here, so it
+      // would select a different tile than the visible 16px highlight.
+      const auto point = tilemap_canvas_.points().front();
+      const int x = static_cast<int>(point.x) / 16;
+      const int y = static_cast<int>(point.y) / 16;
+      if (x >= 0 && x < 16 && y >= 0 && y < 16) {
+        selected_tile8_ = x + y * 16;
+      }
     }
     tilemap_canvas_.DrawBitmapTable(sheets_);
     tilemap_canvas_.DrawGrid();
     tilemap_canvas_.DrawOverlay();
 
     ImGui::Text(tr("Selected tile8: %d"), selected_tile8_);
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Edit selected graphics tile"))) {
+      status_ = OpenDungeonMapTileGraphics();
+    }
+    if (!status_.ok()) {
+      ImGui::TextWrapped("%s", std::string(status_.message()).c_str());
+    }
     ImGui::Separator();
     ImGui::Text(tr("For use with custom inserted graphics assembly patches."));
     if (ImGui::Button(tr("Load GFX from BIN file")))
