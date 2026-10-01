@@ -130,13 +130,14 @@ struct DrawnTiles {
 // blockset's TILEATTR ($7EFE00). Later draws replace earlier ones, as in the
 // game's tilemaps. Undrawn tiles are ignored.
 DrawnTiles ScanDrawnTiles(Rom* rom, const Room& room,
-                          const std::vector<RoomObject>& layout_objects) {
+                          const std::vector<RoomObject>& layout_objects,
+                          const CustomObjectRenderSnapshot* custom_objects) {
   DrawnTiles result;
   std::vector<int> bg1(kRoomTilemapWords, -1);
   std::vector<int> bg2(kRoomTilemapWords, -1);
   std::vector<int> bg1_owner(kRoomTilemapWords, -1);
   std::vector<int> bg2_owner(kRoomTilemapWords, -1);
-  ObjectDrawer drawer(rom, room.id(), nullptr);
+  ObjectDrawer drawer(rom, room.id(), nullptr, custom_objects);
   std::vector<ObjectDrawer::TileTrace> trace;
   drawer.SetTraceCollector(&trace, /*trace_only=*/true);
   gfx::BackgroundBuffer buffer1(512, 512);
@@ -354,8 +355,9 @@ bool IsWarpTileAttribute(uint8_t attribute) {
   return attribute == 0x4B;
 }
 
-RoomLinkFacts CollectRoomLinkFacts(Rom* rom, const Room& room,
-                                   const PitDamageTable* pit_table) {
+RoomLinkFacts CollectRoomLinkFacts(
+    Rom* rom, const Room& room, const PitDamageTable* pit_table,
+    const CustomObjectRenderSnapshot* custom_objects) {
   RoomLinkFacts facts;
   facts.room_id = room.id();
   facts.blockset = room.blockset();
@@ -395,7 +397,8 @@ RoomLinkFacts CollectRoomLinkFacts(Rom* rom, const Room& room,
     }
   }
   if (rom != nullptr && rom->is_loaded()) {
-    const DrawnTiles drawn = ScanDrawnTiles(rom, room, layout_objects);
+    const DrawnTiles drawn =
+        ScanDrawnTiles(rom, room, layout_objects, custom_objects);
     if (drawn.pit && !facts.has_pits) {
       facts.pits_only_in_braziers = !drawn.pit_outside_braziers;
     }

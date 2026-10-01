@@ -5,7 +5,10 @@
 #include <utility>
 
 #include "core/project.h"
+#include "core/rom_settings.h"
 #include "util/log.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
@@ -78,6 +81,14 @@ const zelda3::RoomCensus* DungeonEditorV2::GetDungeonRenderContextCensus()
     return nullptr;
   }
 
+  // Capture while this session owns the runtime context. The worker must not
+  // consult another session's assets or settings after a tab switch/teardown.
+  // Registry construction reads the initial feature mode on this thread.
+  (void)zelda3::DrawRoutineRegistry::Get();
+  auto custom_objects =
+      zelda3::CustomObjectManager::Get().CaptureRenderSnapshot(
+          core::FeatureFlags::get().kEnableCustomObjects);
+  auto addresses = core::RomSettings::Get().address_overrides();
   auto rom_copy = std::make_shared<Rom>(*rom_);
   core::ProjectRegistry project_registry =
       dependencies_.project->hack_manifest.project_registry();
@@ -87,10 +98,14 @@ const zelda3::RoomCensus* DungeonEditorV2::GetDungeonRenderContextCensus()
   dungeon_render_context_census_pending_ =
       std::async(std::launch::async,
                  [rom_copy, project_registry = std::move(project_registry),
-                  manifest = std::move(manifest)]() mutable {
+                  manifest = std::move(manifest),
+                  custom_objects = std::move(custom_objects),
+                  addresses = std::move(addresses)]() mutable {
                    zelda3::RoomCensusOptions options;
                    options.project = &project_registry;
                    options.manifest = &manifest;
+                   options.custom_objects = &custom_objects;
+                   options.address_overrides = &addresses;
                    return zelda3::ComputeRoomCensus(rom_copy.get(), options);
                  });
   return nullptr;

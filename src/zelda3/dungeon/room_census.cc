@@ -216,7 +216,8 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
     room.LoadSprites();
     RoomCensusRoomFacts& facts = input.rooms[room_id];
     static_cast<RoomLinkFacts&>(facts) =
-        CollectRoomLinkFacts(rom, room, has_pit_table ? &pit_table : nullptr);
+        CollectRoomLinkFacts(rom, room, has_pit_table ? &pit_table : nullptr,
+                             options.custom_objects);
     facts.sprite_count = static_cast<int>(room.GetSprites().size());
     facts.chest_count = static_cast<int>(room.GetChests().size());
     for (const auto& object : room.GetTileObjects()) {
@@ -255,7 +256,10 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
     fact.ow_map = ow_map;
     input.entrances.push_back(std::move(fact));
   };
-  if (auto entrances = LoadEntrances(rom); entrances.ok()) {
+  auto entrances = options.address_overrides != nullptr
+                       ? LoadEntrances(rom, *options.address_overrides)
+                       : LoadEntrances(rom);
+  if (entrances.ok()) {
     for (const auto& entrance : *entrances) {
       if (entrance.map_pos_ == 0xFFFF) {
         continue;

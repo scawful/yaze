@@ -276,6 +276,7 @@ void DungeonEditorV2::SynchronizeCustomObjectAssets() {
     return;
   }
 
+  InvalidateDungeonRenderContextCensus();
   if (custom_objects_state_changed) {
     zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }

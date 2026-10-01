@@ -664,6 +664,48 @@ CustomObjectManager::GetObjectInternal(int object_id, int subtype) {
   return LoadObject((*list)[subtype]);
 }
 
+absl::StatusOr<std::shared_ptr<const CustomObject>>
+CustomObjectRenderSnapshot::GetObject(int object_id, int subtype) const {
+  const auto family = objects_.find(object_id);
+  if (family == objects_.end()) {
+    return absl::NotFoundError("Object ID not mapped to custom object");
+  }
+  if (subtype < 0 || subtype >= static_cast<int>(family->second.size())) {
+    return absl::OutOfRangeError("Subtype index out of range");
+  }
+  return family->second[subtype];
+}
+
+CustomObjectRenderSnapshot CustomObjectManager::CaptureRenderSnapshot(
+    bool enabled) {
+  CustomObjectRenderSnapshot snapshot;
+  snapshot.enabled_ = enabled;
+  if (!enabled) {
+    return snapshot;
+  }
+  std::unordered_set<int> families(RuntimeObjectIds().begin(),
+                                   RuntimeObjectIds().end());
+  for (const auto& [id, files] : ActiveContext().state.custom_file_map) {
+    families.insert(id);
+  }
+  for (int id : families) {
+    auto& objects = snapshot.objects_[id];
+    const int count = GetSubtypeCount(id);
+    objects.reserve(count);
+    for (int subtype = 0; subtype < count; ++subtype) {
+      auto object = GetObjectInternal(id, subtype);
+      if (!object.ok()) {
+        objects.emplace_back(object.status());
+      } else if (*object) {
+        objects.emplace_back(std::make_shared<const CustomObject>(**object));
+      } else {
+        objects.emplace_back(absl::NotFoundError("Custom object is null"));
+      }
+    }
+  }
+  return snapshot;
+}
+
 int CustomObjectManager::GetSubtypeCount(int object_id) const {
   const int runtime_count = RuntimeSubtypeCountForObject(object_id);
   if (runtime_count > 0) {

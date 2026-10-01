@@ -130,6 +130,23 @@ struct CustomObjectSlotBinding {
       CustomObjectMappingOrigin::kConfiguredSlotUnmapped;
 };
 
+// Immutable decoded assets and routing mode for one background render job.
+// Capture on the session owner thread. Reads never consult files, the active
+// runtime context, mutable cache entries, or global feature flags.
+class CustomObjectRenderSnapshot {
+ public:
+  bool enabled() const { return enabled_; }
+  absl::StatusOr<std::shared_ptr<const CustomObject>> GetObject(
+      int object_id, int subtype) const;
+
+ private:
+  friend class CustomObjectManager;
+  bool enabled_ = false;
+  std::unordered_map<
+      int, std::vector<absl::StatusOr<std::shared_ptr<const CustomObject>>>>
+      objects_;
+};
+
 /**
  * @brief Manages loading and caching of custom object binary files.
  */
@@ -204,6 +221,10 @@ class CustomObjectManager {
 
   // Snapshot/restore helpers for scoped CLI/runtime feature application.
   State SnapshotState() const;
+
+  // Freezes the active session, including cached failures and deep copies of
+  // decoded assets. Call before dispatching work, never from a worker thread.
+  CustomObjectRenderSnapshot CaptureRenderSnapshot(bool enabled);
   void RestoreState(const State& state);
 
  private:

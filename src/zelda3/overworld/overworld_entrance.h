@@ -160,6 +160,9 @@ struct OverworldEntranceTileTypes {
 };
 
 absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(Rom* rom);
+// Background readers supply their captured address settings explicitly.
+absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(
+    Rom* rom, const core::RomAddressOverrides& addresses);
 absl::StatusOr<std::vector<OverworldEntrance>> LoadHoles(Rom* rom);
 
 absl::Status SaveEntrances(Rom* rom,

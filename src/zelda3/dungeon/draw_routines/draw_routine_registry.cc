@@ -76,8 +76,13 @@ bool DrawRoutineRegistry::GetRoutineDimensions(int routine_id, int* base_width,
 }
 
 int DrawRoutineRegistry::GetRoutineIdForObject(int16_t object_id) const {
+  return GetRoutineIdForObject(object_id, CustomObjectsEnabled());
+}
+
+int DrawRoutineRegistry::GetRoutineIdForObject(
+    int16_t object_id, bool custom_objects_enabled) const {
   if (object_id == 0x31 || object_id == 0x32 || object_id == 0x54) {
-    return CustomObjectsEnabled() ? DrawRoutineIds::kCustomObject
+    return custom_objects_enabled ? DrawRoutineIds::kCustomObject
                                   : DrawRoutineIds::kNothing;
   }
   auto it = object_to_routine_map_.find(object_id);
