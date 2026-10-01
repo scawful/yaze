@@ -4,6 +4,7 @@
 #include <memory>
 #include <utility>
 
+#include "app/editor/dungeon/workspace/room_matrix_content.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
 #include "util/log.h"
@@ -42,6 +43,9 @@ DungeonEditorV2::BuildDungeonRenderEntranceCandidates() const {
 
 const zelda3::RoomCensus* DungeonEditorV2::GetDungeonRenderContextCensus()
     const {
+  if (dungeon_render_context_census_shutdown_) {
+    return nullptr;
+  }
   if (dungeon_render_context_census_pending_.valid()) {
     if (dungeon_render_context_census_pending_.wait_for(
             std::chrono::seconds(0)) != std::future_status::ready) {
@@ -95,23 +99,30 @@ const zelda3::RoomCensus* DungeonEditorV2::GetDungeonRenderContextCensus()
   core::HackManifest manifest = dependencies_.project->hack_manifest;
   dungeon_render_context_pending_generation_ =
       dungeon_render_context_census_generation_;
-  dungeon_render_context_census_pending_ =
-      std::async(std::launch::async,
-                 [rom_copy, project_registry = std::move(project_registry),
-                  manifest = std::move(manifest),
-                  custom_objects = std::move(custom_objects),
-                  addresses = std::move(addresses)]() mutable {
-                   zelda3::RoomCensusOptions options;
-                   options.project = &project_registry;
-                   options.manifest = &manifest;
-                   options.custom_objects = &custom_objects;
-                   options.address_overrides = &addresses;
-                   return zelda3::ComputeRoomCensus(rom_copy.get(), options);
-                 });
+  dungeon_render_context_census_stop_ = std::stop_source{};
+  dungeon_render_context_census_pending_ = std::async(
+      std::launch::async,
+      [rom_copy, project_registry = std::move(project_registry),
+       manifest = std::move(manifest),
+       custom_objects = std::move(custom_objects),
+       addresses = std::move(addresses),
+       stop_token = dungeon_render_context_census_stop_.get_token()]() mutable {
+        zelda3::RoomCensusOptions options;
+        options.stop_token = stop_token;
+        options.project = &project_registry;
+        options.manifest = &manifest;
+        options.custom_objects = &custom_objects;
+        options.address_overrides = &addresses;
+        return zelda3::ComputeRoomCensus(rom_copy.get(), options);
+      });
   return nullptr;
 }
 
 void DungeonEditorV2::InvalidateDungeonRenderContextCensus() {
+  dungeon_render_context_census_stop_.request_stop();
+  if (room_matrix_panel_) {
+    room_matrix_panel_->census_overlay().Invalidate();
+  }
   dungeon_render_context_census_.reset();
   dungeon_render_context_census_attempted_ = false;
   ++dungeon_render_context_census_generation_;

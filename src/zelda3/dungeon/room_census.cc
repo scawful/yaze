@@ -140,14 +140,23 @@ float RoomFingerprintSimilarity(const std::vector<uint16_t>& a,
 }
 
 absl::StatusOr<std::vector<std::vector<uint16_t>>> ComputeRoomFingerprints(
-    Rom* rom) {
+    Rom* rom, std::stop_token stop_token) {
+  if (stop_token.stop_requested()) {
+    return absl::CancelledError("Room census cancelled");
+  }
   if (rom == nullptr || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM is not loaded");
   }
   std::vector<std::vector<uint16_t>> out(kRooms);
   for (int room_id = 0; room_id < kRooms; ++room_id) {
+    if (stop_token.stop_requested()) {
+      return absl::CancelledError("Room census cancelled");
+    }
     Room room = LoadRoomFromRom(rom, room_id);
     out[room_id] = FingerprintRoom(room);
+  }
+  if (stop_token.stop_requested()) {
+    return absl::CancelledError("Room census cancelled");
   }
   return out;
 }
@@ -187,6 +196,9 @@ std::set<uint8_t> RoomCensusWarpTagsFromManifest(
 
 absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
     Rom* rom, const RoomCensusOptions& options) {
+  if (options.stop_token.stop_requested()) {
+    return absl::CancelledError("Room census cancelled");
+  }
   if (rom == nullptr || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM is not loaded");
   }
@@ -198,7 +210,8 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
 
   std::vector<std::vector<uint16_t>> vanilla_from_rom;
   if (options.vanilla_rom != nullptr) {
-    auto fingerprints = ComputeRoomFingerprints(options.vanilla_rom);
+    auto fingerprints =
+        ComputeRoomFingerprints(options.vanilla_rom, options.stop_token);
     if (!fingerprints.ok()) {
       return fingerprints.status();
     }
@@ -212,6 +225,9 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
   }
 
   for (int room_id = 0; room_id < kRooms; ++room_id) {
+    if (options.stop_token.stop_requested()) {
+      return absl::CancelledError("Room census cancelled");
+    }
     Room room = LoadRoomFromRom(rom, room_id);
     room.LoadSprites();
     RoomCensusRoomFacts& facts = input.rooms[room_id];
@@ -239,6 +255,9 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
   }
 
   // Entrances. The game reads ZScream's bank $0F tables when present.
+  if (options.stop_token.stop_requested()) {
+    return absl::CancelledError("Room census cancelled");
+  }
   input.expanded_entrance_tables = UsesExpandedEntranceTables(*rom);
   std::set<int> placed_entrances;
   auto add_entrance = [&](int entrance_id, RoomReferenceKind kind,
@@ -297,6 +316,9 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
     input.entrances.push_back(std::move(fact));
   }
 
+  if (options.stop_token.stop_requested()) {
+    return absl::CancelledError("Room census cancelled");
+  }
   {
     DungeonMapLabels labels;
     if (auto maps = LoadDungeonMaps(*rom, labels); maps.ok()) {
@@ -321,6 +343,9 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
   }
   if (options.manifest != nullptr) {
     input.warp_tag_ids = RoomCensusWarpTagsFromManifest(*options.manifest);
+  }
+  if (options.stop_token.stop_requested()) {
+    return absl::CancelledError("Room census cancelled");
   }
   return input;
 }
@@ -879,7 +904,14 @@ absl::StatusOr<RoomCensus> ComputeRoomCensus(Rom* rom,
   if (!input.ok()) {
     return input.status();
   }
-  return BuildRoomCensus(*input);
+  if (options.stop_token.stop_requested()) {
+    return absl::CancelledError("Room census cancelled");
+  }
+  auto census = BuildRoomCensus(*input);
+  if (options.stop_token.stop_requested()) {
+    return absl::CancelledError("Room census cancelled");
+  }
+  return census;
 }
 
 }  // namespace yaze::zelda3

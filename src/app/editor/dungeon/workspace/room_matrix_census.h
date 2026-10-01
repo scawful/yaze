@@ -6,6 +6,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <stop_token>
 #include <string>
 
 #include "absl/status/statusor.h"
@@ -41,12 +42,18 @@ class RoomMatrixCensusOverlay {
   }
 
   bool enabled() const { return enabled_; }
-  void SetEnabled(bool enabled) { enabled_ = enabled; }
+  void SetEnabled(bool enabled) {
+    enabled_ = enabled;
+    if (!enabled && pending_.valid()) {
+      Invalidate();
+    }
+  }
 
   // Starts a computation when enabled and the ROM changed; polls a running
   // one. Call once per frame before drawing.
   void Update(Rom* rom);
   void Invalidate() {
+    stop_source_.request_stop();
     stale_ = true;
     census_.reset();
     largest_block_.clear();
@@ -103,6 +110,7 @@ class RoomMatrixCensusOverlay {
   std::optional<zelda3::RoomCensus> census_;
   std::string error_;
   std::future<absl::StatusOr<zelda3::RoomCensus>> pending_;
+  std::stop_source stop_source_{std::nostopstate};
   std::set<int> largest_block_;
 
   bool filter_free_ = false;

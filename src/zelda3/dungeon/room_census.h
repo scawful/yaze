@@ -33,6 +33,7 @@
 #include <functional>
 #include <optional>
 #include <set>
+#include <stop_token>
 #include <string>
 #include <vector>
 
@@ -159,6 +160,9 @@ struct RoomCensus {
 };
 
 struct RoomCensusOptions {
+  // Cancellation discards all partial facts. Background owners request stop
+  // before invalidating or joining the job; synchronous callers need no token.
+  std::stop_token stop_token;
   // Background callers must capture on the owner thread and retain this
   // snapshot for the entire call. Null keeps synchronous live-editor behavior.
   const CustomObjectRenderSnapshot* custom_objects = nullptr;
@@ -206,7 +210,7 @@ float RoomFingerprintSimilarity(const std::vector<uint16_t>& a,
 
 // Fingerprints of every room in `rom`, for generating the built-in table.
 absl::StatusOr<std::vector<std::vector<uint16_t>>> ComputeRoomFingerprints(
-    Rom* rom);
+    Rom* rom, std::stop_token stop_token = {});
 
 }  // namespace zelda3
 }  // namespace yaze
