@@ -50,6 +50,75 @@ void RoomGraphicsContent::ClearPickerPreviews() {
   picker_previews_.clear();
 }
 
+void RoomGraphicsContent::DetachRuntimeContext() {
+  runtime_detached_ = true;
+  current_room_id_ = nullptr;
+  rooms_ = nullptr;
+  renderer_ = nullptr;
+  assignment_callback_ = {};
+  usage_callback_ = {};
+}
+
+void RoomGraphicsContent::DrawSharedUsage(int roomset) {
+  if (!usage_callback_) {
+    ImGui::TextDisabled("Shared usage unavailable.");
+    return;
+  }
+  const auto usage = usage_callback_(roomset);
+  if (!usage.ok()) {
+    ImGui::TextWrapped("Shared usage unavailable: %s",
+                       std::string(usage.status().message()).c_str());
+    return;
+  }
+  const auto summary = absl::StrFormat(
+      "Shared by %d room%s and %d map screen%s", usage->rooms.size(),
+      usage->rooms.size() == 1 ? "" : "s", usage->ow_areas.size(),
+      usage->ow_areas.size() == 1 ? "" : "s");
+  ImGui::TextWrapped("%s", summary.c_str());
+  if (usage->unscanned_rooms || usage->unscanned_ow_areas) {
+    ImGui::TextWrapped(
+        "Incomplete scan: %d rooms / %d map screens unavailable.",
+        usage->unscanned_rooms, usage->unscanned_ow_areas);
+  }
+  const bool expanded = ImGui::TreeNode("Shared assignment details");
+  gui::AutoRegisterLastItem("tree", "Shared assignment details");
+  if (!expanded)
+    return;
+  ImGui::TextWrapped("%s", usage->uses_live_overworld
+                               ? "Includes unsaved room and map selections."
+                               : "Includes unsaved room selections; maps read "
+                                 "from ROM until the overworld is loaded.");
+  ImGui::TextWrapped(
+      "Map screens include large-map children. Zero inherits "
+      "each room or map's main group.");
+  if (ImGui::BeginChild("##SharedRoomGraphicsUsage", ImVec2(0, 150), true)) {
+    const auto draw_ids = [](const char* label, const std::vector<int>& ids,
+                             int digits) {
+      const auto title = absl::StrFormat("%s (%d)", label, ids.size());
+      ImGui::TextWrapped("%s", title.c_str());
+      if (ids.empty()) {
+        ImGui::TextDisabled("None");
+        return;
+      }
+      std::string text;
+      for (const int id : ids) {
+        if (!text.empty())
+          text += ", ";
+        text += absl::StrFormat("%0*X", digits, id);
+      }
+      ImGui::TextWrapped("%s", text.c_str());
+    };
+    draw_ids("Rooms using this assignment", usage->rooms, 3);
+    draw_ids("Map screens using this assignment", usage->ow_areas, 2);
+    draw_ids("Map references overridden by custom sheets",
+             usage->overridden_ow_areas, 2);
+    draw_ids("Map references using a separate ROM table",
+             usage->independent_ow_areas, 2);
+  }
+  ImGui::EndChild();
+  ImGui::TreePop();
+}
+
 void RoomGraphicsContent::DrawAssignmentControls(const zelda3::Room& room) {
   auto* data = rooms_->game_data();
   const auto blocks = room.blocks();
@@ -67,9 +136,7 @@ void RoomGraphicsContent::DrawAssignmentControls(const zelda3::Room& room) {
         "%s / Room group %02X",
         assigned == 0 ? "Inherited from main group" : "Room override",
         room.blockset());
-    ImGui::TextWrapped(
-        "Changes affect all rooms and overworld areas using room group %02X.",
-        room.blockset());
+    DrawSharedUsage(room.blockset());
     ImGui::BeginDisabled(!assignment_callback_);
     if (ImGui::Button("Choose replacement sheet")) {
       show_picker_ = !show_picker_;
@@ -258,6 +325,10 @@ void RoomGraphicsContent::RefreshSheetPreviews(const zelda3::Room& room) {
 void RoomGraphicsContent::Draw(bool* p_open) {
   gui::AutoWidgetScope scope("Dungeon/RoomGraphics");
   (void)p_open;
+  if (runtime_detached_) {
+    ImGui::TextDisabled("Room graphics session closed.");
+    return;
+  }
   // Resolve the active dungeon editor lazily when this panel is hosted through
   // the workspace window system instead of the legacy direct constructor.
   if (current_room_id_ == nullptr || rooms_ == nullptr) {
@@ -269,6 +340,9 @@ void RoomGraphicsContent::Draw(bool* p_open) {
       assignment_callback_ = [editor = ctx.editor](int room, int slot,
                                                    int sheet) {
         return editor->EditRoomGraphicsSheet(room, slot, sheet);
+      };
+      usage_callback_ = [editor = ctx.editor](int roomset) {
+        return editor->GetRoomGraphicsUsage(roomset);
       };
     }
   }

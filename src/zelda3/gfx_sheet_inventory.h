@@ -17,6 +17,7 @@
 namespace yaze::zelda3 {
 
 struct GameData;
+class Overworld;
 
 /**
  * @file gfx_sheet_inventory.h
@@ -149,6 +150,26 @@ GfxGroupUsage FindSpritesetUsage(
 GfxGroupUsage FindRoomsetUsage(int roomset,
                                const std::map<int, OverworldAreaGfxInfo>& areas,
                                const std::map<int, RoomGfxInfo>& rooms);
+
+/// Raw roomset references, separated by whether an overworld screen actually
+/// reads the shared session area group. A zero group entry still counts as a
+/// dependency because it inherits the main graphics sheet.
+struct RoomsetUsageReport {
+  std::vector<int> rooms;
+  std::vector<int> ow_areas;
+  std::vector<int> overridden_ow_areas;
+  std::vector<int> independent_ow_areas;
+  int unscanned_rooms = 0;
+  int unscanned_ow_areas = 0;
+  bool uses_live_overworld = false;
+};
+
+/// Uses live map selectors when supplied, otherwise scans ROM metadata only.
+/// Requires loaded graphics groups; never builds maps or decompresses pixels.
+absl::StatusOr<RoomsetUsageReport> DescribeRoomsetUsage(
+    Rom& rom, GameData& game_data, int roomset,
+    const std::map<int, RoomGfxInfo>& rooms,
+    const Overworld* live_overworld = nullptr);
 
 /// JSON with the same keys and value formats as Oracle's reference inventory
 /// (`sheets`, `spritesets`, `main_blocksets`, `room_blocksets`,

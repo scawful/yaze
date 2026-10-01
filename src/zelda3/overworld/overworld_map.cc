@@ -823,6 +823,18 @@ bool OverworldMap::UsesSessionAreaGraphicsGroup() const {
          area_graphics_ < game_data_->room_blockset_ids.size();
 }
 
+OverworldRoomsetSource OverworldMap::roomset_source() const {
+  if (rom_ &&
+      OverworldVersionHelper::SupportsCustomTileGFX(
+          OverworldVersionHelper::GetVersion(*rom_)) &&
+      (*rom_)[OverworldCustomTileGFXGroupEnabled] != 0) {
+    return OverworldRoomsetSource::kCustomTileGroups;
+  }
+  return UsesSessionAreaGraphicsGroup()
+             ? OverworldRoomsetSource::kSharedSessionGroup
+             : OverworldRoomsetSource::kIndependentRomGroup;
+}
+
 bool OverworldMap::UsesSessionSpriteGraphicsGroup() const {
   return game_data_ && game_data_->gfx_groups_loaded &&
          sprite_graphics_[game_state_] < game_data_->spriteset_ids.size();
@@ -884,9 +896,7 @@ std::array<uint8_t, 16> OverworldMap::ResolveStaticGraphics() const {
 
   // v3 explicit tile groups replace the shared background assignment in full.
   // $FF inherits the world's custom defaults; $00 is an explicit sheet ID.
-  if (OverworldVersionHelper::SupportsCustomTileGFX(
-          OverworldVersionHelper::GetVersion(*rom_)) &&
-      (*rom_)[OverworldCustomTileGFXGroupEnabled] != 0x00) {
+  if (roomset_source() == OverworldRoomsetSource::kCustomTileGroups) {
     const auto area_props = area_render_properties();
     const int world_offset = (parent_ & 0xC0) >> 3;
     for (int i = 0; i < 8; ++i) {

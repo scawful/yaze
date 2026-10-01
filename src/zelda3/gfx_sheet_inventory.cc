@@ -12,6 +12,8 @@
 #include "rom/snes.h"
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/game_data.h"
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::zelda3 {
@@ -359,6 +361,84 @@ GfxGroupUsage FindRoomsetUsage(int roomset,
     }
   }
   return usage;
+}
+
+absl::StatusOr<RoomsetUsageReport> DescribeRoomsetUsage(
+    Rom& rom, GameData& game_data, int roomset,
+    const std::map<int, RoomGfxInfo>& rooms, const Overworld* live_overworld) {
+  if (!rom.is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (roomset < 0 || roomset >= static_cast<int>(kNumRoomBlocksets)) {
+    return absl::InvalidArgumentError("Invalid roomset index");
+  }
+  if (!game_data.gfx_groups_loaded) {
+    return absl::FailedPreconditionError("Graphics groups are not loaded");
+  }
+  if (live_overworld && live_overworld->rom() != &rom) {
+    return absl::FailedPreconditionError(
+        "Live overworld belongs to a different ROM");
+  }
+
+  RoomsetUsageReport report;
+  report.uses_live_overworld =
+      live_overworld != nullptr && live_overworld->is_loaded();
+  std::map<int, RoomGfxInfo> scanned_rooms;
+  for (const auto& [id, info] : rooms) {
+    if (id >= 0 && id < kNumDungeonRooms) {
+      scanned_rooms.emplace(id, info);
+    }
+  }
+  report.unscanned_rooms = kNumDungeonRooms - scanned_rooms.size();
+
+  std::map<int, OverworldAreaGfxInfo> scanned_areas;
+  std::map<int, OverworldRoomsetSource> sources;
+  // A metadata-only map constructor needs a complete vanilla image or the
+  // expanded metadata tables. Short ROMs can still report room references.
+  const bool can_scan_rom =
+      rom.size() >=
+      (OverworldVersionHelper::GetVersion(rom) == OverworldVersion::kVanilla
+           ? 0x100000u
+           : 0x200000u);
+  if (report.uses_live_overworld) {
+    for (int id = 0; id < kNumOverworldAreas; ++id) {
+      const auto* map = live_overworld->overworld_map(id);
+      if (!map) {
+        continue;
+      }
+      OverworldAreaGfxInfo info;
+      info.area_graphics = map->area_graphics();
+      scanned_areas.emplace(id, info);
+      sources.emplace(id, map->roomset_source());
+    }
+  } else if (can_scan_rom) {
+    for (int id = 0; id < kNumOverworldAreas; ++id) {
+      OverworldMap map(id, &rom, &game_data);
+      OverworldAreaGfxInfo info;
+      info.area_graphics = map.area_graphics();
+      scanned_areas.emplace(id, info);
+      sources.emplace(id, map.roomset_source());
+    }
+  }
+  report.unscanned_ow_areas = kNumOverworldAreas - scanned_areas.size();
+
+  const GfxGroupUsage raw =
+      FindRoomsetUsage(roomset, scanned_areas, scanned_rooms);
+  report.rooms = raw.rooms;
+  for (int id : raw.ow_areas) {
+    switch (sources.at(id)) {
+      case OverworldRoomsetSource::kSharedSessionGroup:
+        report.ow_areas.push_back(id);
+        break;
+      case OverworldRoomsetSource::kCustomTileGroups:
+        report.overridden_ow_areas.push_back(id);
+        break;
+      case OverworldRoomsetSource::kIndependentRomGroup:
+        report.independent_ow_areas.push_back(id);
+        break;
+    }
+  }
+  return report;
 }
 
 const char* GfxSheetInventoryKindName(GfxSheetStorageKind kind) {

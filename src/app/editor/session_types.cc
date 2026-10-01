@@ -148,6 +148,10 @@ Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
   if (game_data_ != nullptr) {
     editor->SetGameData(game_data_);
   }
+  if (auto* dungeon = dynamic_cast<DungeonEditorV2*>(editor.get())) {
+    dungeon->SetRoomGraphicsOverworldProvider(
+        [this]() { return GetOverworldData(); });
+  }
   if (type == EditorType::kSettings && user_settings_ != nullptr) {
     if (auto* settings_panel = static_cast<SettingsPanel*>(editor.get())) {
       settings_panel->SetUserSettings(user_settings_);

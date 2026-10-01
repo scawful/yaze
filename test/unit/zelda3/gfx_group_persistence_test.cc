@@ -8,6 +8,8 @@
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "zelda3/game_data.h"
 #include "zelda3/gfx_sheet_inventory.h"
+#include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::test {
 namespace {
@@ -24,6 +26,29 @@ LoadedGroups LoadFixtureGroups() {
   auto fixture = BuildGfxSheetTestRom();
   EXPECT_TRUE(loaded.rom.LoadFromData(fixture.bytes).ok());
   loaded.data.version = zelda3_version::US;
+  EXPECT_TRUE(zelda3::LoadGfxGroups(loaded.rom, loaded.data).ok());
+  return loaded;
+}
+
+LoadedGroups LoadRoomsetUsageGroups(
+    bool custom = false, zelda3_version version = zelda3_version::US) {
+  LoadedGroups loaded;
+  auto bytes = BuildGfxSheetTestRom().bytes;
+  bytes.resize(0x200000, 0);
+  loaded.data.version = version;
+  for (int i = 0; i < 0x40; ++i) {
+    bytes[zelda3::kOverworldMapParentId + i] = static_cast<uint8_t>(i);
+  }
+  if (custom) {
+    bytes[zelda3::OverworldCustomASMHasBeenApplied] = 0x03;
+    bytes[zelda3::OverworldCustomTileGFXGroupEnabled] = 0xFF;
+    for (int i = 0; i < zelda3::kNumOverworldAreas; ++i) {
+      bytes[zelda3::kOverworldMapParentIdExpanded + i] =
+          static_cast<uint8_t>(i);
+      bytes[zelda3::kOverworldScreenSize + i] = 0;
+    }
+  }
+  EXPECT_TRUE(loaded.rom.LoadFromData(bytes).ok());
   EXPECT_TRUE(zelda3::LoadGfxGroups(loaded.rom, loaded.data).ok());
   return loaded;
 }
@@ -94,6 +119,115 @@ TEST(GfxGroupPersistenceTest, FindsSpritesetAndRoomsetUsage) {
   const auto roomset = zelda3::FindRoomsetUsage(0x20, areas, rooms);
   EXPECT_EQ(roomset.ow_areas, (std::vector<int>{0x00, 0x40}));
   EXPECT_EQ(roomset.rooms, (std::vector<int>{0x12, 0x14}));
+}
+
+TEST(GfxGroupPersistenceTest,
+     RoomsetReportCountsSharedZeroEntriesAndMissingRooms) {
+  auto loaded = LoadRoomsetUsageGroups();
+  loaded.rom[zelda3::kAreaGfxIdPtr + 1] = 7;
+  loaded.data.room_blockset_ids[7] = {0, 0, 0, 0};
+  const std::map<int, zelda3::RoomGfxInfo> rooms = {{2, {7, 0}}, {4, {3, 0}}};
+
+  auto report = zelda3::DescribeRoomsetUsage(loaded.rom, loaded.data, 7, rooms);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_EQ(report->rooms, (std::vector<int>{2}));
+  EXPECT_EQ(report->ow_areas, (std::vector<int>{1}));
+  EXPECT_TRUE(report->overridden_ow_areas.empty());
+  EXPECT_TRUE(report->independent_ow_areas.empty());
+  EXPECT_EQ(report->unscanned_rooms, 294);
+  EXPECT_EQ(report->unscanned_ow_areas, 0);
+  EXPECT_FALSE(report->uses_live_overworld);
+}
+
+TEST(GfxGroupPersistenceTest, RoomsetReportSeparatesCustomWorldDefaultAreas) {
+  auto loaded = LoadRoomsetUsageGroups(/*custom=*/true);
+  loaded.rom[zelda3::kOverworldMapParentIdExpanded + 0x41] = 0x40;
+  loaded.rom[zelda3::kAreaGfxIdPtr + 0x40] = 7;
+  for (int slot = 0; slot < 8; ++slot) {
+    loaded.rom[zelda3::OverworldCustomTileGFXGroupArray + 0x40 * 8 + slot] =
+        0xFF;
+  }
+  loaded.data.room_blockset_ids[7][0] = 0x42;
+  const std::map<int, zelda3::RoomGfxInfo> rooms = {{2, {7, 0}}};
+
+  auto report = zelda3::DescribeRoomsetUsage(loaded.rom, loaded.data, 7, rooms);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_TRUE(report->ow_areas.empty());
+  EXPECT_EQ(report->overridden_ow_areas, (std::vector<int>{0x40, 0x41}));
+  EXPECT_TRUE(report->independent_ow_areas.empty());
+  EXPECT_EQ(report->rooms, (std::vector<int>{2}));
+}
+
+TEST(GfxGroupPersistenceTest, RoomsetReportSeparatesJapaneseRomAreaTable) {
+  auto loaded = LoadRoomsetUsageGroups(/*custom=*/false, zelda3_version::JP);
+  loaded.rom[zelda3::kAreaGfxIdPtr + 1] = 7;
+  const std::map<int, zelda3::RoomGfxInfo> rooms = {{2, {7, 0}}};
+
+  auto report = zelda3::DescribeRoomsetUsage(loaded.rom, loaded.data, 7, rooms);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_TRUE(report->ow_areas.empty());
+  EXPECT_TRUE(report->overridden_ow_areas.empty());
+  EXPECT_EQ(report->independent_ow_areas, (std::vector<int>{1}));
+  EXPECT_EQ(report->rooms, (std::vector<int>{2}));
+}
+
+TEST(GfxGroupPersistenceTest, RoomsetReportFallsBackForUnloadedLiveModel) {
+  auto loaded = LoadRoomsetUsageGroups();
+  loaded.rom[zelda3::kAreaGfxIdPtr + 1] = 7;
+  zelda3::Overworld lazy_overworld(&loaded.rom, &loaded.data);
+  ASSERT_FALSE(lazy_overworld.is_loaded());
+  const std::map<int, zelda3::RoomGfxInfo> rooms = {{2, {7, 0}}};
+
+  auto report = zelda3::DescribeRoomsetUsage(loaded.rom, loaded.data, 7, rooms,
+                                             &lazy_overworld);
+  ASSERT_TRUE(report.ok()) << report.status();
+  EXPECT_FALSE(report->uses_live_overworld);
+  EXPECT_EQ(report->ow_areas, (std::vector<int>{1}));
+  EXPECT_EQ(report->unscanned_ow_areas, 0);
+}
+
+TEST(GfxGroupPersistenceTest, RoomsetReportRefusesUnavailableGroupState) {
+  auto loaded = LoadRoomsetUsageGroups();
+  const std::map<int, zelda3::RoomGfxInfo> rooms = {{2, {7, 0}}};
+  loaded.data.Clear();
+  EXPECT_EQ(zelda3::DescribeRoomsetUsage(loaded.rom, loaded.data, 7, rooms)
+                .status()
+                .code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(zelda3::DescribeRoomsetUsage(loaded.rom, loaded.data, 82, rooms)
+                .status()
+                .code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
+TEST(GfxGroupPersistenceTest, RoomsetReportRefusesAnotherRomSession) {
+  auto loaded = LoadRoomsetUsageGroups();
+  auto other = LoadRoomsetUsageGroups();
+  zelda3::Overworld foreign(&other.rom, &other.data);
+  EXPECT_EQ(
+      zelda3::DescribeRoomsetUsage(loaded.rom, loaded.data, 7, {}, &foreign)
+          .status()
+          .code(),
+      absl::StatusCode::kFailedPrecondition);
+}
+
+TEST(GfxGroupPersistenceTest,
+     RoomsetReportMarksTruncatedExpandedMapsUnavailable) {
+  auto loaded = LoadRoomsetUsageGroups(/*custom=*/true);
+  auto bytes = loaded.rom.vector();
+  bytes.resize(0x141000);  // The expanded message table is beyond this image.
+  for (uint8_t version : {1, 2, 3}) {
+    SCOPED_TRACE(version);
+    bytes[zelda3::OverworldCustomASMHasBeenApplied] = version;
+    ASSERT_TRUE(loaded.rom.LoadFromData(bytes).ok());
+    auto report =
+        zelda3::DescribeRoomsetUsage(loaded.rom, loaded.data, 7, {{2, {7, 0}}});
+    ASSERT_TRUE(report.ok()) << report.status();
+    EXPECT_EQ(report->rooms, (std::vector<int>{2}));
+    EXPECT_EQ(report->unscanned_ow_areas, zelda3::kNumOverworldAreas);
+    EXPECT_TRUE(report->ow_areas.empty());
+    EXPECT_TRUE(report->overridden_ow_areas.empty());
+  }
 }
 
 }  // namespace

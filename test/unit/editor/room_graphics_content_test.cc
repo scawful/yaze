@@ -10,6 +10,7 @@
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "imgui/imgui_internal.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
@@ -89,19 +90,36 @@ TEST_F(RoomGraphicsContentTest,
   rooms[0].SetTileObjects({});
   rooms[1].SetTileObjects({});
   RoomGraphicsContent content(&selected_room, &rooms);
+  zelda3::RoomsetUsageReport usage;
+  usage.rooms = {0, 1};
+  usage.ow_areas = {0x30};
+  usage.overridden_ow_areas = {0x31};
+  usage.independent_ow_areas = {0x32};
+  bool usage_available = true;
+  content.SetUsageCallback(
+      [&](int group) -> absl::StatusOr<zelda3::RoomsetUsageReport> {
+        EXPECT_EQ(group, rooms[selected_room].blockset());
+        if (!usage_available)
+          return absl::FailedPreconditionError("Graphics groups not loaded");
+        return usage;
+      });
   std::vector<std::array<int, 3>> edits;
   content.SetAssignmentCallback([&](int room, int slot, int sheet) {
     edits.push_back({room, slot, sheet});
     game_data_.room_blockset_ids[rooms[room].blockset()][slot - 3] = sheet;
     return absl::OkStatus();
   });
+  std::string rendered_text;
   const auto draw = [&] {
     gui::WidgetIdRegistry::Instance().Clear();
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(440, 1500), ImGuiCond_Always);
     ImGui::Begin("RoomGraphicsTest", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer(0);
     content.Draw(nullptr);
+    rendered_text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
     ImGui::End();
     ImGui::Render();
   };
@@ -127,6 +145,20 @@ TEST_F(RoomGraphicsContentTest,
   };
   draw();
   draw();
+  const auto has_label = [&](const std::string& label) {
+    return rendered_text.find(label) != std::string::npos;
+  };
+  EXPECT_TRUE(has_label("Shared by 2 rooms and 1 map screen"));
+  click("Shared assignment details");
+  EXPECT_TRUE(has_label("Map references overridden by custom sheets (1)"));
+  EXPECT_TRUE(has_label("Map references using a separate ROM table (1)"));
+  // Counts must follow current session data without requiring another group.
+  usage.ow_areas.clear();
+  usage.unscanned_ow_areas = 1;
+  draw();
+  EXPECT_TRUE(has_label("Shared by 2 rooms and 0 map screens"));
+  EXPECT_TRUE(has_label("Incomplete scan:"));
+  click("Shared assignment details");
   click("Slot 04");
   click("Choose replacement sheet");
   EXPECT_TRUE(edits.empty());
@@ -147,6 +179,15 @@ TEST_F(RoomGraphicsContentTest,
     EXPECT_NE(widget.label, "Apply to shared group");
   }
   EXPECT_EQ(edits.size(), 2u);
+  usage_available = false;
+  draw();
+  EXPECT_TRUE(has_label("Shared usage unavailable"));
+  EXPECT_FALSE(has_label("Shared by 2 rooms and 0 map screens"));
+  content.DetachRuntimeContext();
+  rooms.Clear();
+  draw();
+  EXPECT_TRUE(has_label("Room graphics session closed."));
+  EXPECT_FALSE(has_label("Shared usage unavailable"));
 }
 
 TEST_F(RoomGraphicsContentTest,

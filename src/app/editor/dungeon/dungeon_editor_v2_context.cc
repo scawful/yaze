@@ -15,6 +15,24 @@
 
 namespace yaze::editor {
 
+absl::StatusOr<zelda3::RoomsetUsageReport>
+DungeonEditorV2::GetRoomGraphicsUsage(int roomset) const {
+  if (rom_ == nullptr || !rom_->is_loaded() || game_data_ == nullptr) {
+    return absl::FailedPreconditionError(
+        "Load a ROM to inspect shared graphics.");
+  }
+  auto room_headers = zelda3::CollectRoomGfx(*rom_);
+  // A materialized Room may still have default header values. Only loaded
+  // rooms can replace the ROM census with unsaved editor selections.
+  rooms_.ForEachLoaded([&](int id, const zelda3::Room& room) {
+    room_headers[id] = {room.blockset(), room.spriteset()};
+  });
+  return zelda3::DescribeRoomsetUsage(*rom_, *game_data_, roomset, room_headers,
+                                      room_graphics_overworld_provider_
+                                          ? room_graphics_overworld_provider_()
+                                          : nullptr);
+}
+
 void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
   if (!status_bar)
     return;
