@@ -199,16 +199,19 @@ ResolvedGraphicsContext DescribeOverworldGraphicsContext(
       OverworldVersionHelper::SupportsCustomTileGFX(version) &&
       rom[OverworldCustomTileGFXGroupEnabled] != 0;
   const int world_offset = (map.parent() & 0xC0) >> 3;
-  uint8_t main_sheets[8] = {};
-  for (int i = 0; i < 8; ++i) {
-    main_sheets[i] =
-        rom[constants.kOverworldGfxGroups2 + (map.main_gfx_id() * 8) + i];
-  }
-  uint8_t area_sheets[4] = {};
-  for (int i = 0; i < 4; ++i) {
-    area_sheets[i] =
-        rom[constants.kOverworldGfxGroups1 + (map.area_graphics() * 4) + i];
-  }
+  const auto main_sheets = map.ResolveMainGraphicsGroup();
+  const auto area_sheets = map.ResolveAreaGraphicsGroup();
+  const auto sprite_sheets = map.ResolveSpriteGraphicsGroup();
+  const auto record_group_source = [&](const char* name, bool shared) {
+    context.alternates.push_back(
+        {name, shared ? "session" : "rom",
+         shared ? "Includes unsaved shared group assignments"
+                : "Session table is unloaded or uses a different ROM address"});
+  };
+  record_group_source("main_group_storage", map.UsesSessionMainGraphicsGroup());
+  record_group_source("area_group_storage", map.UsesSessionAreaGraphicsGroup());
+  record_group_source("sprite_group_storage",
+                      map.UsesSessionSpriteGraphicsGroup());
 
   std::string fingerprint_bytes;
   context.loader_agrees = true;
@@ -258,9 +261,8 @@ ResolvedGraphicsContext DescribeOverworldGraphicsContext(
       resolved.palette_group = PaletteGroupFor(SheetRole::kSpriteAux1);
       resolved.source = "spriteset";
       const int set = map.sprite_graphics(map.game_state());
-      const int predicted = static_cast<uint8_t>(
-          rom[constants.kSpriteBlocksetPointer + (set * 4) + (slot - 12)] +
-          0x73);
+      const int predicted =
+          static_cast<uint8_t>(sprite_sheets[slot - 12] + 0x73);
       resolved.inherited_sheet = set;
       resolved.loader_agrees = predicted == resolved.sheet_id;
     }

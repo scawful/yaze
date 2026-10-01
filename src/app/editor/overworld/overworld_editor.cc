@@ -609,15 +609,27 @@ absl::Status OverworldEditor::Load() {
 }
 
 void OverworldEditor::RefreshMapsForSheetEdits() {
+  overworld_.set_game_state(game_state_);
+  bool refresh_selection = false;
   for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
     auto* overworld_map = overworld_.mutable_overworld_map(map);
+    if (overworld_map != nullptr) {
+      overworld_map->set_game_state(std::clamp(game_state_, 0, 2));
+    }
     // A map already marked for refresh waits for its rebuild, which records
     // the new sheet revisions; marking it again every frame would keep
     // clearing the blockset cache.
     if (overworld_map != nullptr && !maps_bmp_[map].modified() &&
         overworld_map->SourceSheetsChanged()) {
       ForceRefreshGraphics(map);
+      refresh_selection |= map == current_map_;
     }
+  }
+  if (refresh_selection) {
+    // Keep the selected map, Tile16 thumbnails and pixel-source metadata in
+    // agreement even when the map canvas is closed. Other maps refresh lazily.
+    RefreshOverworldMapOnDemand(current_map_);
+    status_.Update(RefreshTile16Blockset());
   }
 }
 
@@ -641,7 +653,7 @@ absl::Status OverworldEditor::Update() {
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
 
-  // Show unsaved Graphics editor edits in the maps that use those sheets.
+  // Show unsaved shared assignments and pixels in maps using those sources.
   RefreshMapsForSheetEdits();
 
   // Early return if window_manager is not available
@@ -818,6 +830,9 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
   overworld_.set_current_map(current_map_);
   overworld_.set_current_world(current_world_);
 
+  if (all_gfx_loaded_) {
+    RefreshMapsForSheetEdits();
+  }
   status_ = overworld_.EnsureMapBuilt(current_map_);
   if (!status_.ok()) {
     PRINT_IF_ERROR(status_);
@@ -1543,6 +1558,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Load the Link to the Past overworld.
   {
     gfx::ScopedTimer load_timer("Overworld::Load");
+    overworld_.set_game_state(game_state_);
     RETURN_IF_ERROR(overworld_.Load(rom_));
   }
   palette_ = overworld_.current_area_palette();
@@ -1718,6 +1734,7 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
   }
   FinalizePaintOperation();
   const int source_map_id = current_map_;
+  RefreshMapsForSheetEdits();
   RETURN_IF_ERROR(overworld_.EnsureMapBuilt(source_map_id));
   const auto* map = overworld_.overworld_map(source_map_id);
   if (map == nullptr || !map->is_built()) {

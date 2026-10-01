@@ -783,6 +783,8 @@ class Overworld {
   int current_world() const { return current_world_; }
   void set_current_map(int i) { current_map_ = i; }
   void set_current_world(int world) { current_world_ = world; }
+  // Select the state for future builds; editor refresh owns bitmap invalidation.
+  void set_game_state(int state);
   uint16_t GetTile(int x, int y) const {
     if (current_world_ == 0) {
       return map_tiles_.light_world[x][y];

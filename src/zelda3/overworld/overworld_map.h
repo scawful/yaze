@@ -228,9 +228,8 @@ class OverworldMap : public gfx::GfxContext {
     graphics_sheet_overrides_ = std::move(overrides);
   }
 
-  /// True when a sheet BuildTileset() read from GameData's sheet store has a
-  /// newer store revision than that build (an unsaved graphics edit). Maps
-  /// never built from the store, and override sheets, report false.
+  /// True when resolved sheet assignments or source pixel revisions changed
+  /// since BuildTileset(). Maps never built from the store report false.
   bool SourceSheetsChanged() const;
 
   absl::Status BuildMap(int count, int game_state, int world,
@@ -458,9 +457,13 @@ class OverworldMap : public gfx::GfxContext {
   void SetupCustomTileset(uint8_t asm_version);
 
   void LoadMainBlocksetId();
-  void LoadSpritesBlocksets();
-  void LoadMainBlocksets();
-  void LoadAreaGraphicsBlocksets();
+  bool UsesSessionMainGraphicsGroup() const;
+  bool UsesSessionAreaGraphicsGroup() const;
+  bool UsesSessionSpriteGraphicsGroup() const;
+  std::array<uint8_t, 8> ResolveMainGraphicsGroup() const;
+  std::array<uint8_t, 4> ResolveAreaGraphicsGroup() const;
+  std::array<uint8_t, 4> ResolveSpriteGraphicsGroup() const;
+  std::array<uint8_t, 16> ResolveStaticGraphics() const;
   void LoadDeathMountainGFX();
   uint8_t ComputeWorldBasedMainPalette() const;
 
@@ -529,6 +532,7 @@ class OverworldMap : public gfx::GfxContext {
   // 0 for slots not read from the store.
   static constexpr int kNumSourceSheets = 17;  // 16 slots + animated sheet
   std::array<uint64_t, kNumSourceSheets> source_sheet_revisions_{};
+  bool source_assignments_recorded_ = false;
   uint16_t SourceSheetForRevision(int i) const;
   void RecordSourceSheetRevisions();
 };

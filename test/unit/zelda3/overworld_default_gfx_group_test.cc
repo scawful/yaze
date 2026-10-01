@@ -22,7 +22,9 @@
 #include <vector>
 
 #include "rom/rom.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/game_data.h"
+#include "zelda3/graphics_sheet_store.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 
@@ -48,6 +50,10 @@ std::vector<uint8_t> MakeV3Rom() {
   const auto& us = kVersionConstantsMap.at(zelda3_version::US);
   std::fill(rom.begin() + us.kOverworldGfxGroups1,
             rom.begin() + us.kOverworldGfxGroups2 + 0x25 * 8, kLegacySheet);
+  // The checked GameData loader follows this pointer, while the overworld
+  // loader reads the corresponding US main-group table directly.
+  rom[kGfxGroupsPointer] = 0x73;
+  rom[kGfxGroupsPointer + 1] = 0xE0;
   for (int world = 0; world < 3; ++world) {
     for (int slot = 0; slot < 8; ++slot) {
       rom[OverworldCustomDefaultGFXGroups + world * 8 + slot] =
@@ -128,6 +134,73 @@ TEST(OverworldDefaultGfxGroupTest, ExplicitSheetsAreLoadedAsIs) {
   SetGroup(bytes, 0x86, explicit_sheets);
   auto rom = LoadRom(bytes);
   EXPECT_EQ(ResolvedSheets(rom.get(), 0x86), explicit_sheets);
+}
+
+TEST(OverworldDefaultGfxGroupTest,
+     SharedBackgroundEditsCannotOverrideExplicitOrWorldDefaultSlots) {
+  auto bytes = MakeV3Rom();
+  SetGroup(bytes, 0x05, {0x00, 0x31, 0xFF, 0x42, 0xFF, 0x45, 0x46, 0x47});
+  auto rom = LoadRom(bytes);
+  GameData data;
+  data.version = zelda3_version::US;
+  ASSERT_TRUE(LoadGfxGroups(*rom, data).ok());
+  ASSERT_TRUE(data.gfx_groups_loaded);
+  data.graphics_buffer.assign(
+      GraphicsSheetStore::kSheetCount * GraphicsSheetStore::kSheetBytes, 1);
+  data.sheet_store.MarkAllSheetsChanged();
+  OverworldMap map(0x05, rom.get(), &data);
+  map.set_area_graphics(7);
+  map.set_sprite_graphics(0, 5);
+  map.LoadAreaGraphics();
+  const std::array<uint8_t, 8> expected = {
+      0x00, 0x31, DefaultSheet(0, 2), 0x42, DefaultSheet(0, 4), 0x45,
+      0x46, 0x47};
+  for (int slot = 0; slot < 8; ++slot) {
+    EXPECT_EQ(map.static_graphics(slot), expected[slot]) << "slot " << slot;
+  }
+  ASSERT_TRUE(map.BuildTileset().ok());
+  EXPECT_FALSE(map.SourceSheetsChanged());
+
+  data.main_blockset_ids[0x20][0] = 0x60;
+  data.main_blockset_ids[0x20][2] = 0x61;
+  data.room_blockset_ids[7][0] = 0x62;
+  data.room_blockset_ids[7][1] = 0x63;
+  EXPECT_FALSE(map.SourceSheetsChanged());
+  map.LoadAreaGraphics();
+  for (int slot = 0; slot < 8; ++slot) {
+    EXPECT_EQ(map.static_graphics(slot), expected[slot]) << "slot " << slot;
+  }
+
+  data.spriteset_ids[5][0] = 0x10;
+  EXPECT_TRUE(map.SourceSheetsChanged());
+  map.LoadAreaGraphics();
+  EXPECT_EQ(map.static_graphics(12), 0x83);
+}
+
+TEST(OverworldDefaultGfxGroupTest,
+     AnimatedTopHalfUsesItsOwnFallbackWhileStaticSlotSevenStaysCustom) {
+  auto bytes = MakeV3Rom();
+  bytes[OverworldCustomAnimatedGFXEnabled] = 0xFF;
+  bytes[OverworldCustomAnimatedGFXArray + 0x45] = 0xFF;
+  SetGroup(bytes, 0x45, {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x58});
+  auto rom = LoadRom(bytes);
+  GameData data;
+  data.version = zelda3_version::US;
+  ASSERT_TRUE(LoadGfxGroups(*rom, data).ok());
+  OverworldMap map(0x45, rom.get(), &data);
+  map.LoadAreaGraphics();
+  EXPECT_EQ(map.static_graphics(7), 0x58);
+  EXPECT_EQ(map.animated_sheet(), DefaultSheet(1, 7));
+
+  data.main_blockset_ids[0x21][7] = 0x64;
+  map.LoadAreaGraphics();
+  EXPECT_EQ(map.static_graphics(7), 0x58);
+  EXPECT_EQ(map.animated_sheet(), DefaultSheet(1, 7));
+
+  map.set_animated_gfx(0x5A);
+  map.LoadAreaGraphics();
+  EXPECT_EQ(map.static_graphics(7), 0x58);
+  EXPECT_EQ(map.animated_sheet(), 0x5A);
 }
 
 }  // namespace
