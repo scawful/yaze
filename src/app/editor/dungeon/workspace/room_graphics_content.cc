@@ -14,6 +14,7 @@
 #include "app/gui/core/ui_config.h"
 #include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/gfx_sheet_storage.h"
 
 namespace yaze {
@@ -389,6 +390,22 @@ void RoomGraphicsContent::Draw(bool* p_open) {
   ImGui::TextDisabled(tr("Main %02X | Room %02X | Sprites %02X | Palette %02X"),
                       room.resolved_main_blockset(), room.blockset(),
                       room.spriteset(), room.palette());
+  auto& asset_manager = zelda3::CustomObjectManager::Get();
+  const auto patterns = asset_manager.GetTilePatterns();
+  if (!patterns.ok()) {
+    ImGui::TextWrapped("%s", patterns.status().ToString().c_str());
+  } else if (*patterns) {
+    ImGui::TextWrapped(
+        "%s", tr("Standard object patterns: source preview (read-only)"));
+    ImGui::TextWrapped("%s", (*patterns)->source_path.c_str());
+    ImGui::TextDisabled(tr("%zu tile words; ROM bytes unchanged"),
+                        (*patterns)->words.size());
+  }
+  if (!patterns.ok() || *patterns) {
+    if (gui::AutoSmallButton(tr("Reload Pattern Source"))) {
+      asset_manager.ReloadAll();
+    }
+  }
   ImGui::Checkbox(tr("Source Trace"), &show_source_trace_);
   ImGui::SameLine();
   DrawRoomGraphicsScaleControl(&sheet_scale_mode_);

@@ -550,6 +550,11 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
     uint16_t tile_word =
         rom_->data()[tile_offset] | (rom_->data()[tile_offset + 1] << 8);
 
+    if (patterns_ != nullptr) {
+      const auto it = patterns_->words.find(static_cast<uint32_t>(tile_offset));
+      if (it != patterns_->words.end())
+        tile_word = it->second;
+    }
     auto tile_info = gfx::WordToTileInfo(tile_word);
     tiles.push_back(tile_info);
 

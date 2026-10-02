@@ -10,6 +10,7 @@ set(
   zelda3/dungeon/chest_edit.cc
   zelda3/dungeon/custom_collision.cc
   zelda3/dungeon/custom_object.cc
+  zelda3/dungeon/dungeon_tile_patterns.cc
   zelda3/dungeon/dimension_service.cc
   zelda3/dungeon/door_position.cc
   zelda3/dungeon/draw_routines/corner_routines.cc

@@ -552,6 +552,7 @@ uint64_t CustomObjectManager::NextAssetGeneration() {
 void CustomObjectManager::InvalidateCaches() {
   auto& context = ActiveContext();
   context.cache.clear();
+  context.tile_patterns.reset();
   context.asset_generation = NextAssetGeneration();
   ObjectGeometry::Get().ClearCache();
 }
@@ -580,6 +581,31 @@ void CustomObjectManager::ClearObjectFileMap() {
   InvalidateCaches();
 }
 
+void CustomObjectManager::SetTilePatternsSource(const std::string& path) {
+  ActiveContext().state.dungeon_tile_patterns = path;
+  InvalidateCaches();
+}
+
+absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>>
+CustomObjectManager::GetTilePatterns() {
+  auto& context = ActiveContext();
+  if (!context.tile_patterns.has_value()) {
+    if (context.state.dungeon_tile_patterns.empty()) {
+      context.tile_patterns = std::shared_ptr<const DungeonTilePatterns>{};
+    } else {
+      auto source =
+          LoadDungeonTilePatterns(context.state.dungeon_tile_patterns);
+      if (source.ok()) {
+        context.tile_patterns =
+            std::make_shared<const DungeonTilePatterns>(std::move(*source));
+      } else {
+        context.tile_patterns = source.status();
+      }
+    }
+  }
+  return *context.tile_patterns;
+}
+
 bool CustomObjectManager::HasCustomFileMap() const {
   return !ActiveContext().state.custom_file_map.empty();
 }
@@ -591,6 +617,7 @@ void CustomObjectManager::ActivateRuntimeContext(uint64_t context_id,
   if (inserted || context.state != state) {
     context.state = state;
     context.cache.clear();
+    context.tile_patterns.reset();
     context.asset_generation = NextAssetGeneration();
     ObjectGeometry::Get().ClearCache();
   }
@@ -680,6 +707,7 @@ CustomObjectRenderSnapshot CustomObjectManager::CaptureRenderSnapshot(
     bool enabled) {
   CustomObjectRenderSnapshot snapshot;
   snapshot.enabled_ = enabled;
+  snapshot.tile_patterns_ = GetTilePatterns();
   if (!enabled) {
     return snapshot;
   }

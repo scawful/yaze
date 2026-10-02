@@ -707,6 +707,24 @@ bounded tasks. Do not call either entire package complete from this increment.
 
 ### DA-5: independent qualification lane
 
+Source-authored standard-object patterns (2026-10-01): the consolidated
+candidate supports a project-scoped, read-only `dungeon_tile_patterns` data
+source. The existing renderer and Edit Graphics use the resolved words; room
+objects/layouts, selectors, and immutable census snapshots share asset
+invalidation. Source-owned composition writes are refused at capture, planning,
+and application. This closes the base-versus-assembled wall-pattern preview
+gap for literal bank-00 data; it does not execute arbitrary ASM or repair art.
+
+Focused qualification: 351 passing tests and one deliberately inapplicable
+expanded-ROM floor-copy case skipped. Headless ImGui covers source reload/error
+display. Product workflows cover source-aware object movement, Undo/Redo,
+Save As/fresh reopen, source/ROM protection, and Goron Mines graphics/layers.
+Rooms E6, E7 and 89 have zero pixel differences against a matched base carrying
+only the compiled pattern bytes. The app and CLI are built; installed `.5`
+remains unchanged while the user reviews it. Native/GPU/SNES parity, art cleanup,
+and full DA-5 acceptance remain open. Evidence:
+AFS `scratchpad/handoffs/yaze_wall_pattern_preview_2026-10-01/README.md`.
+
 Use the existing [dungeon backlog](dungeon-0.8.0-issue-test-backlog-2026-06-28.md),
 Object Coverage evidence, ROM fixtures, and reviewed parity gate. Keep synthetic
 geometry, renderer replay, captured game tilemaps, and actual gameplay as

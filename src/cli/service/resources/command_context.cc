@@ -255,7 +255,19 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
     zelda3::CustomObjectManager::Get().Initialize("");
   }
 
+  zelda3::CustomObjectManager::Get().SetTilePatternsSource(
+      active_project.dungeon_tile_patterns.empty()
+          ? ""
+          : active_project.GetAbsolutePath(
+                active_project.dungeon_tile_patterns));
   project_runtime_applied_ = true;
+  // Do not render a partial preview when an explicitly configured source is
+  // invalid. Restore immediately so a retry cannot skip the failed load.
+  const auto patterns = zelda3::CustomObjectManager::Get().GetTilePatterns();
+  if (!patterns.ok()) {
+    RestoreProjectRuntimeContext();
+    return patterns.status();
+  }
   return absl::OkStatus();
 }
 

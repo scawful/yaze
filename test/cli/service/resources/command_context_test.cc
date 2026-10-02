@@ -97,6 +97,62 @@ TEST_F(CommandContextTest, LoadsRomFromConfig) {
   EXPECT_TRUE(rom_or.value()->is_loaded());
 }
 
+TEST_F(CommandContextTest,
+       PatternSourceAppliesAndRestoresWithCustomObjectsOff) {
+  project::YazeProject project;
+  ASSERT_TRUE(project.Create("patterns", temp_root_.string()).ok());
+  const auto path =
+      std::filesystem::path(project.filepath).parent_path() / "walls.asm";
+  {
+    std::ofstream out(path);
+    out << "org $009E3A\ndw $4890\n";
+  }
+  project.custom_objects_folder.clear();
+  project.custom_object_files.clear();
+  project.dungeon_tile_patterns = path.string();
+  project.feature_flags.kEnableCustomObjects = false;
+  ASSERT_TRUE(project.Save().ok());
+  auto& manager = zelda3::CustomObjectManager::Get();
+  const auto state = manager.SnapshotState();
+  {
+    CommandContext::Config config;
+    config.use_mock_rom = true;
+    config.project_context_path = project.filepath;
+    CommandContext context(config);
+    ASSERT_TRUE(context.GetRom().ok());
+    EXPECT_FALSE(core::FeatureFlags::get().kEnableCustomObjects);
+    const auto patterns = manager.GetTilePatterns();
+    ASSERT_TRUE(patterns.ok());
+    ASSERT_NE(*patterns, nullptr);
+    EXPECT_EQ((*patterns)->words.at(0x1E3A), 0x4890);
+  }
+  EXPECT_EQ(manager.SnapshotState(), state);
+}
+
+TEST_F(CommandContextTest,
+       InvalidPatternSourceFailsEveryRetryAndRestoresState) {
+  project::YazeProject project;
+  ASSERT_TRUE(project.Create("bad_patterns", temp_root_.string()).ok());
+  const auto path =
+      std::filesystem::path(project.filepath).parent_path() / "walls.asm";
+  {
+    std::ofstream out(path);
+    out << "org $009E3A\ndw $4890\nincsrc \"unsupported.asm\"\n";
+  }
+  project.dungeon_tile_patterns = path.string();
+  ASSERT_TRUE(project.Save().ok());
+  auto& manager = zelda3::CustomObjectManager::Get();
+  const auto state = manager.SnapshotState();
+  CommandContext::Config config;
+  config.use_mock_rom = true;
+  config.project_context_path = project.filepath;
+  CommandContext context(config);
+  for (int retry = 0; retry < 2; ++retry) {
+    EXPECT_TRUE(absl::IsInvalidArgument(context.GetRom().status()));
+    EXPECT_EQ(manager.SnapshotState(), state);
+  }
+}
+
 TEST_F(CommandContextTest, UsesExternalRomContext) {
   CommandContext::Config config;
   config.external_rom_context = &mock_rom_;

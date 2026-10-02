@@ -1012,6 +1012,10 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
     file << "overworld_graphics_preview="
          << GetRelativePath(overworld_graphics_preview) << "\n";
   }
+  if (!dungeon_tile_patterns.empty()) {
+    file << "dungeon_tile_patterns="
+         << GetRelativePath(GetAbsolutePath(dungeon_tile_patterns)) << "\n";
+  }
   if (!cutscene_shots.empty()) {
     file << "cutscene_shots="
          << GetRelativePath(GetAbsolutePath(cutscene_shots)) << "\n";
@@ -1345,6 +1349,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   sprite_source_root.clear();
   sprite_assets.clear();
   terrain_catalog_file.clear();
+  dungeon_tile_patterns.clear();
   file_passthrough = ProjectFilePassthrough{};
   atlas = AtlasSettings{};
   std::istringstream stream(content);
@@ -1431,6 +1436,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         symbols_filename = value;
       else if (key == "overworld_graphics_preview")
         overworld_graphics_preview = value;
+      else if (key == "dungeon_tile_patterns")
+        dungeon_tile_patterns = value;
       else if (key == "cutscene_shots")
         cutscene_shots = value;
       else if (key == "custom_collision_json")
@@ -2031,6 +2038,7 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&sprite_catalog_file);
   normalize(&sprite_source_root);
   normalize(&overworld_graphics_preview);
+  normalize(&dungeon_tile_patterns);
   normalize(&terrain_catalog_file);
   for (auto& asset : sprite_assets)
     normalize(&asset.zsm_path);
@@ -2403,6 +2411,7 @@ void YazeProject::InitializeDefaults() {
   sprite_source_root.clear();
   sprite_assets.clear();
   terrain_catalog_file.clear();
+  dungeon_tile_patterns.clear();
   if (metadata.project_id.empty()) {
     metadata.project_id = GenerateProjectId();
   }
@@ -3041,6 +3050,7 @@ void YazeProject::InitializeResourceLabelProvider() {
 
 absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   terrain_catalog_file.clear();
+  dungeon_tile_patterns.clear();
 #ifdef __EMSCRIPTEN__
   return absl::UnimplementedError(
       "JSON project format loading is not supported in the web build");
@@ -3093,6 +3103,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         labels_filename = proj["labels_filename"].get<std::string>();
       if (proj.contains("symbols_filename"))
         symbols_filename = proj["symbols_filename"].get<std::string>();
+      if (proj.contains("dungeon_tile_patterns"))
+        dungeon_tile_patterns =
+            proj["dungeon_tile_patterns"].get<std::string>();
       if (proj.contains("terrain_catalog_file"))
         terrain_catalog_file = proj["terrain_catalog_file"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
@@ -3379,6 +3392,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["patches_folder"] = patches_folder;
   proj["labels_filename"] = labels_filename;
   proj["symbols_filename"] = symbols_filename;
+  proj["dungeon_tile_patterns"] =
+      GetRelativePath(GetAbsolutePath(dungeon_tile_patterns));
   proj["terrain_catalog_file"] =
       GetRelativePath(GetAbsolutePath(terrain_catalog_file));
   proj["hack_manifest_file"] = hack_manifest_file;

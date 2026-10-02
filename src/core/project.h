@@ -288,6 +288,8 @@ struct YazeProject {
   std::string cutscene_shots;
   // Optional read-only raw DMA graphics preview manifest, relative to project.
   std::string overworld_graphics_preview;
+  // Read-only literal ASM tile patterns for the standard dungeon renderer.
+  std::string dungeon_tile_patterns;
   // Tracked custom collision source kept in step with the ROM on every save
   // ([files] custom_collision_json). Empty: collision lives only in the ROM.
   std::string custom_collision_json;
