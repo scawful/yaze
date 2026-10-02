@@ -256,16 +256,8 @@ RoomBackgroundSet ResolveRoomBackgroundSet(const GameData& data, int room,
   RoomBackgroundSet set;
   set.room = room;
   set.header_blockset = header_blockset;
-  const size_t mains = data.main_blockset_ids.size();
-  const uint8_t entrance_main =
-      room >= 0 && room < static_cast<int>(data.room_default_entrances.size())
-          ? data.room_default_entrances[room].main_blockset
-          : 0xFF;
-  if (entrance_main != 0xFF && entrance_main < mains) {
-    set.main_blockset = entrance_main;
-  } else if (header_blockset < mains) {
-    set.main_blockset = header_blockset;
-  }
+  set.main_blockset =
+      ResolveRoomMainBlockset(room, header_blockset, 0xFF, data).main_blockset;
   for (int i = 0; i < 8; ++i) {
     set.sheets[i] = data.main_blockset_ids[set.main_blockset][i];
     if (i >= 3 && i <= 6 && header_blockset < data.room_blockset_ids.size()) {
@@ -277,6 +269,43 @@ RoomBackgroundSet ResolveRoomBackgroundSet(const GameData& data, int room,
     }
   }
   return set;
+}
+
+absl::StatusOr<RoomSheetPaletteContext> ResolveRoomSheetPalette(
+    Rom& rom, GameData& data, int room, int slot, int row) {
+  if (slot < 0 || slot >= 8 || row < 0 || row >= 8) {
+    return absl::InvalidArgumentError("Background slot and row must be 0-7");
+  }
+  ASSIGN_OR_RETURN(Room loaded, LoadRoomWithPalettes(rom, data, room));
+  RoomSheetPaletteContext result;
+  result.background = ResolveRoomBackgroundSet(data, room, loaded.blockset());
+  result.main = ResolveRoomMainBlockset(room, loaded.blockset(), 0xFF, data);
+  if (result.main.source == RoomMainBlocksetSource::kDirectDefault ||
+      result.main.source == RoomMainBlocksetSource::kInferredDefault) {
+    result.entrance = data.room_default_entrances[room];
+  }
+  result.slot = slot;
+  result.row = row;
+  result.palette_offset =
+      DungeonBackgroundPaletteOffset(result.main.main_blockset, slot);
+  const auto group = BuildDungeonRenderPaletteGroupFromGameData(
+      data.palette_groups.dungeon_main.palette_ref(
+          loaded.ResolveDungeonPaletteId()),
+      &data);
+  if (row >= static_cast<int>(group.size()) ||
+      group.palette_ref(row).size() < 16) {
+    return absl::FailedPreconditionError(
+        "Room background palette is incomplete");
+  }
+  for (int index = 0; index < 8; ++index) {
+    const int column = index == 0 ? 0 : index + result.palette_offset;
+    result.cgram_indices[index] = row * 16 + column;
+    const auto rgb = group.palette_ref(row)[column].rgb();
+    result.colors[index] = {static_cast<uint8_t>(rgb.x),
+                            static_cast<uint8_t>(rgb.y),
+                            static_cast<uint8_t>(rgb.z)};
+  }
+  return result;
 }
 
 std::vector<RoomBackgroundSet> ResolveAllRoomBackgroundSets(

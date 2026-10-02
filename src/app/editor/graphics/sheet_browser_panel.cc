@@ -23,6 +23,7 @@
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/indexed_png.h"
+#include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 #include "zelda3/gfx_sheet_png.h"
 
@@ -341,12 +342,39 @@ void SheetBrowserPanel::SetPngStatus(std::string message, bool is_error) {
   png_status_is_error_ = is_error;
 }
 
-absl::StatusOr<zelda3::SheetPalette> SheetBrowserPanel::PngPalette() {
+absl::StatusOr<zelda3::SheetPalette> SheetBrowserPanel::PngPalette(
+    int sheet_id) {
   if (png_palette_mode_ == 0) {
     return zelda3::GrayscaleSheetPalette();
   }
   if (rom_ == nullptr || game_data_ == nullptr || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("Open a ROM to use room palettes");
+  }
+  if (png_palette_mode_ == 4) {
+    const auto* target = state_->SourceTarget();
+    if (target == nullptr || state_->game_data != game_data_ ||
+        target->sheet_id != sheet_id || target->palette.size() != 8) {
+      return absl::FailedPreconditionError(
+          "Use Edit Graphics from a source tile to supply its palette");
+    }
+    zelda3::SheetPalette palette;
+    for (int i = 0; i < 8; ++i) {
+      const auto rgb = target->palette[i].rgb();
+      palette[i] = {static_cast<uint8_t>(rgb.x), static_cast<uint8_t>(rgb.y),
+                    static_cast<uint8_t>(rgb.z)};
+    }
+    return palette;
+  }
+  if (png_palette_mode_ == 3) {
+    auto context = zelda3::ResolveRoomSheetPalette(
+        *rom_, *game_data_, png_room_, png_room_slot_, png_palette_row_);
+    if (!context.ok())
+      return context.status();
+    if (sheet_id != context->background.sheets[png_room_slot_]) {
+      return absl::FailedPreconditionError(
+          "Choose a room slot that loads the selected sheet");
+    }
+    return context->colors;
   }
   return png_palette_mode_ == 1
              ? zelda3::RoomBackgroundSheetPalette(*rom_, *game_data_, png_room_,
@@ -368,11 +396,13 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
     return;
   }
 
-  const char* modes[] = {tr("Grayscale"), tr("Room background row"),
-                         tr("Room sprite row")};
+  const char* modes[] = {tr("Grayscale"), tr("Background row (left half)"),
+                         tr("Room sprite row"), tr("Room background slot"),
+                         tr("Selected source tile")};
   ImGui::SetNextItemWidth(180.0f);
   ImGui::Combo(tr("Palette##png"), &png_palette_mode_, modes,
                IM_ARRAYSIZE(modes));
+  ImGui::BeginDisabled(png_palette_mode_ == 4);
   ImGui::SetNextItemWidth(90.0f);
   ImGui::InputInt(tr("Room##png"), &png_room_, 1, 16,
                   ImGuiInputTextFlags_CharsHexadecimal);
@@ -385,6 +415,53 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
   HOVER_HINT(
       "The room picks the palette rows and, for room PNGs, the room's 8 "
       "background sheets.");
+  ImGui::EndDisabled();
+  if (png_palette_mode_ == 4) {
+    const auto* target = state_->SourceTarget();
+    ImGui::TextWrapped(
+        "%s", target != nullptr
+                  ? target->label.c_str()
+                  : "Use Edit Graphics from the tile you want to work on.");
+  }
+  if (png_palette_mode_ == 3 && rom_ != nullptr && game_data_ != nullptr) {
+    const auto room = zelda3::LoadRoomHeaderFromRom(rom_, png_room_);
+    const auto set = zelda3::ResolveRoomBackgroundSet(*game_data_, png_room_,
+                                                      room.blockset());
+    std::vector<int> matches;
+    for (int slot = 0; slot < 8; ++slot) {
+      if (set.sheets[slot] == sheet_id)
+        matches.push_back(slot);
+    }
+    if (std::find(matches.begin(), matches.end(), png_room_slot_) ==
+        matches.end()) {
+      png_room_slot_ = matches.size() == 1 ? matches.front() : -1;
+    }
+    auto slot_label = [&](int slot) {
+      return absl::StrFormat(
+          "Slot %d / %s half", slot,
+          zelda3::DungeonBackgroundPaletteOffset(set.main_blockset, slot) == 8
+              ? "right"
+              : "left");
+    };
+    const std::string selected =
+        png_room_slot_ < 0 ? (matches.empty() ? "Sheet not loaded by this room"
+                                              : "Choose a loaded slot")
+                           : slot_label(png_room_slot_);
+    if (ImGui::BeginCombo(tr("Loaded slot##png"), selected.c_str())) {
+      for (int slot : matches) {
+        if (ImGui::Selectable(slot_label(slot).c_str(),
+                              slot == png_room_slot_)) {
+          png_room_slot_ = slot;
+        }
+      }
+      ImGui::EndCombo();
+    }
+    HOVER_HINT(
+        "Uses the saved room header and its default entrance graphics. "
+        "Inherited entrance "
+        "choices may differ from a particular gameplay route. PNG "
+        "indices stay 0-7; slot 7's animation overlay is not included.");
+  }
   ImGui::SetNextItemWidth(320.0f);
   ImGui::InputTextWithHint("File##PngPath", tr("empty: choose in a dialog"),
                            &png_path_);
@@ -417,7 +494,7 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
   };
 
   if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Export sheet PNG")) {
-    auto palette = PngPalette();
+    auto palette = PngPalette(sheet_id);
     auto png = palette.ok()
                    ? ExportSheetPixelsPng(sheet_id, pixels, *palette)
                    : absl::StatusOr<std::vector<uint8_t>>(palette.status());
@@ -436,7 +513,7 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
   }
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FILE_UPLOAD " Import into sheet")) {
-    auto palette = PngPalette();
+    auto palette = PngPalette(sheet_id);
     const std::string path = palette.ok() ? open_path() : std::string();
     if (!palette.ok()) {
       SetPngStatus(std::string(palette.status().message()), true);
@@ -456,6 +533,7 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
     }
   }
 
+  ImGui::BeginDisabled(png_palette_mode_ >= 3);
   if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Export room PNG")) {
     auto palette = PngPalette();
     if (!palette.ok()) {
@@ -482,7 +560,8 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
   }
   HOVER_HINT(
       "128x256: the room's 8 background sheets in slot order, read from the "
-      "ROM (save pixel edits first to include them).");
+      "ROM (save pixel edits first to include them). This legacy layout uses "
+      "one uniform palette for all slots.");
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FILE_UPLOAD " Import room PNG")) {
     auto palette = PngPalette();
@@ -523,6 +602,12 @@ void SheetBrowserPanel::DrawPngTransfer(uint16_t sheet_id) {
     }
   }
 
+  ImGui::EndDisabled();
+  if (png_palette_mode_ >= 3) {
+    ImGui::TextWrapped(
+        "Room slot colors apply to one sheet. Use Export sheet "
+        "PNG for the selected slot.");
+  }
   if (!png_status_.empty()) {
     ImGui::TextColored(
         png_status_is_error_ ? gui::GetErrorColor() : gui::GetInfoColor(), "%s",
