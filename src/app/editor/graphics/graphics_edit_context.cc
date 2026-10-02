@@ -4,6 +4,9 @@
 #include <utility>
 
 #include "absl/strings/str_format.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
@@ -11,9 +14,21 @@ namespace yaze::editor {
 absl::StatusOr<GraphicsEditContext> MakeDungeonGraphicsEditContext(
     const zelda3::Room& room, const zelda3::RoomObject& object,
     const zelda3::GameData* owner) {
-  const auto tiles = object.GetTiles();
+  auto tiles = object.GetTiles();
   if (!tiles.ok()) {
     return tiles.status();
+  }
+  const auto patterns = zelda3::CustomObjectManager::Get().GetTilePatterns();
+  if (!patterns.ok())
+    return patterns.status();
+  std::vector<gfx::TileInfo> source_tiles;
+  if (*patterns && !zelda3::HasActiveCustomObjectOverride(object)) {
+    auto parsed = zelda3::ObjectParser(room.rom(), patterns->get())
+                      .ParseObject(object.id_);
+    if (!parsed.ok())
+      return parsed.status();
+    source_tiles = std::move(*parsed);
+    tiles = std::span<const gfx::TileInfo>(source_tiles);
   }
   GraphicsEditContext context;
   context.owner = owner;

@@ -23,6 +23,22 @@ namespace zelda3 {
 
 namespace {
 
+absl::Status CheckPatternSourceReadOnly(int64_t begin, int64_t end) {
+  const auto patterns = CustomObjectManager::Get().GetTilePatterns();
+  if (!patterns.ok())
+    return patterns.status();
+  if (*patterns && begin >= 0) {
+    const auto it =
+        (*patterns)->words.lower_bound(static_cast<uint32_t>(begin));
+    if (it != (*patterns)->words.end() && it->first < end) {
+      return absl::FailedPreconditionError(
+          "Object tile words are supplied by a read-only pattern source; edit "
+          "the source file");
+    }
+  }
+  return absl::OkStatus();
+}
+
 constexpr int kPaletteBankSize = 16;
 
 gfx::SnesPalette BuildPaddedPaletteBank(const gfx::SnesPalette& source) {
@@ -369,6 +385,7 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
         "metadata");
   }
 
+  RETURN_IF_ERROR(CheckPatternSourceReadOnly(source_address, source_end));
   auto layout_or = CaptureObjectLayout(object_id, room, palette);
   if (!layout_or.ok()) {
     return layout_or.status();
@@ -670,6 +687,7 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
         "metadata");
   }
 
+  RETURN_IF_ERROR(CheckPatternSourceReadOnly(span_start, span_end));
   std::vector<int> precondition_addresses;
   const int descriptor_address =
       static_cast<int>(provenance.descriptor_pc_address);
@@ -793,6 +811,7 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
       return absl::OutOfRangeError(
           "Object tile precondition is outside the loaded ROM");
     }
+    RETURN_IF_ERROR(CheckPatternSourceReadOnly(address, address + 2));
     if (std::any_of(precondition_addresses.begin(),
                     precondition_addresses.end(), [&](int existing_address) {
                       return WordRangesOverlap(existing_address,

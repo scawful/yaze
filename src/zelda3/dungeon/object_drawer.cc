@@ -19,6 +19,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_parser.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -369,6 +370,22 @@ absl::Status ObjectDrawer::DrawObject(
 
   std::array<gfx::TileInfo, 8> room_floor_tiles;
   std::span<const gfx::TileInfo> render_tiles = mutable_obj.tiles();
+  // Keep source patterns out of the RoomObject cache and ROM save path. Worker
+  // draws use their immutable snapshot rather than the active session.
+  auto patterns = custom_objects_ != nullptr
+                      ? custom_objects_->tile_patterns()
+                      : CustomObjectManager::Get().GetTilePatterns();
+  if (!patterns.ok())
+    return patterns.status();
+  std::vector<gfx::TileInfo> source_tiles;
+  if (*patterns) {
+    ObjectParser parser(rom_, patterns->get());
+    auto parsed = parser.ParseObject(object.id_);
+    if (!parsed.ok())
+      return parsed.status();
+    source_tiles = std::move(*parsed);
+    render_tiles = source_tiles;
+  }
   if (has_room_floor_graphics_ &&
       (object.id_ == 0x00C4 || object.id_ == 0x00DB)) {
     const uint8_t floor_graphics =

@@ -2,8 +2,12 @@
 
 #include <algorithm>
 #include <array>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <vector>
+#include "unique_temp_path.h"
+#include "zelda3/dungeon/custom_object.h"
 
 #include "absl/cleanup/cleanup.h"
 #include "app/gui/automation/widget_id_registry.h"
@@ -148,6 +152,39 @@ TEST_F(RoomGraphicsContentTest,
   const auto has_label = [&](const std::string& label) {
     return rendered_text.find(label) != std::string::npos;
   };
+  auto& assets = zelda3::CustomObjectManager::Get();
+  const auto previous_assets = assets.SnapshotState();
+  const auto patterns_path = test::UniqueTempPath("room-graphics-patterns.asm");
+  const absl::Cleanup restore_patterns = [&] {
+    assets.RestoreState(previous_assets);
+    std::filesystem::remove(patterns_path);
+  };
+  {
+    std::ofstream out(patterns_path);
+    out << "org $009E3A\ndw $4890\n";
+  }
+  assets.SetTilePatternsSource(patterns_path.string());
+  draw();
+  EXPECT_TRUE(
+      has_label("Standard object patterns: source preview (read-only)"));
+  EXPECT_TRUE(has_label("1 tile words; ROM bytes unchanged"));
+  const auto before_reload = assets.asset_generation();
+  {
+    std::ofstream out(patterns_path);
+    out << "org $009E3A\ndw $4890,$0896\n";
+  }
+  click("Reload Pattern Source");
+  EXPECT_GT(assets.asset_generation(), before_reload);
+  EXPECT_TRUE(has_label("2 tile words; ROM bytes unchanged"));
+  {
+    std::ofstream out(patterns_path);
+    out << "incsrc bad.asm\n";
+  }
+  click("Reload Pattern Source");
+  EXPECT_TRUE(has_label("unsupported statement"));
+  assets.SetTilePatternsSource("");
+  draw();
+  EXPECT_FALSE(has_label("source preview (read-only)"));
   EXPECT_TRUE(has_label("Shared by 2 rooms and 1 map screen"));
   click("Shared assignment details");
   EXPECT_TRUE(has_label("Map references overridden by custom sheets (1)"));

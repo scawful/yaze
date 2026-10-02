@@ -13,6 +13,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/gfx/types/snes_tile.h"
+#include "zelda3/dungeon/dungeon_tile_patterns.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -136,12 +137,18 @@ struct CustomObjectSlotBinding {
 class CustomObjectRenderSnapshot {
  public:
   bool enabled() const { return enabled_; }
+  absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>> tile_patterns()
+      const {
+    return tile_patterns_;
+  }
   absl::StatusOr<std::shared_ptr<const CustomObject>> GetObject(
       int object_id, int subtype) const;
 
  private:
   friend class CustomObjectManager;
   bool enabled_ = false;
+  absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>> tile_patterns_ =
+      std::shared_ptr<const DungeonTilePatterns>{};
   std::unordered_map<
       int, std::vector<absl::StatusOr<std::shared_ptr<const CustomObject>>>>
       objects_;
@@ -155,6 +162,7 @@ class CustomObjectManager {
   struct State {
     std::string base_path;
     std::unordered_map<int, std::vector<std::string>> custom_file_map;
+    std::string dungeon_tile_patterns;
 
     bool operator==(const State&) const = default;
   };
@@ -169,6 +177,9 @@ class CustomObjectManager {
   void SetObjectFileMap(
       const std::unordered_map<int, std::vector<std::string>>& map);
   void ClearObjectFileMap();
+  // Independent of custom-object dispatch. Empty path restores ROM patterns.
+  void SetTilePatternsSource(const std::string& path);
+  absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>> GetTilePatterns();
   bool HasCustomFileMap() const;
 
   // Editor sessions share the manager entry point but retain independent
@@ -234,6 +245,8 @@ class CustomObjectManager {
                        absl::StatusOr<std::shared_ptr<CustomObject>>>
         cache;
     uint64_t asset_generation = 0;
+    std::optional<absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>>>
+        tile_patterns;
   };
 
   CustomObjectManager();

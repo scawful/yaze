@@ -109,6 +109,28 @@ TEST(ProjectPathsTest, TerrainCatalogPathSurvivesSaveAndResetsOnNextProject) {
   EXPECT_TRUE(reopened.terrain_catalog_file.empty());
 }
 
+TEST(ProjectPathsTest, DungeonPatternPathSurvivesSaveAndResetsOnNextProject) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_dungeon_patterns_project"));
+  const auto project_file = temp.path() / "Patterns.yaze";
+  const auto patterns_file = temp.path() / "walls.asm";
+  WriteTextFile(patterns_file, "org $009E3A\ndw $4890\n");
+  YazeProject project;
+  project.name = "Patterns";
+  project.filepath = project_file.string();
+  project.dungeon_tile_patterns = patterns_file.string();
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_NE(ReadTextFile(project_file).find("dungeon_tile_patterns=walls.asm"),
+            std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_EQ(reopened.dungeon_tile_patterns, patterns_file.string());
+  ASSERT_TRUE(reopened
+                  .LoadFromString("[project]\nname=Other\n",
+                                  (temp.path() / "Other.yaze").string())
+                  .ok());
+  EXPECT_TRUE(reopened.dungeon_tile_patterns.empty());
+}
+
 TEST(ProjectPathsTest, OpenNormalizesRelativePathsToAbsolute) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_paths"));
 

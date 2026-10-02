@@ -46,6 +46,7 @@
 #include "testing.h"
 #include "unique_temp_path.h"
 #include "util/rom_hash.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/graphics/resolved_graphics_context.h"
 #include "zelda3/overworld/overworld.h"
@@ -70,6 +71,10 @@ class AuthoringSaveWorkflowTestPeer {
 
   static absl::Status LoadDungeonRoom(DungeonEditorV2& editor, int room_id) {
     return editor.room_loader_.LoadRoom(room_id, editor.rooms_[room_id]);
+  }
+
+  static void SynchronizePatternAssets(DungeonEditorV2& editor) {
+    editor.SynchronizeCustomObjectAssets();
   }
 
   static GfxGroupEditor& MainGroups(GraphicsEditor& editor) {
@@ -346,6 +351,7 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   void TearDown() override {
     manager_.reset();
     core::FeatureFlags::get() = original_flags_;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
     if (!root_.empty()) {
       std::error_code ec;
       std::filesystem::remove_all(root_, ec);
@@ -378,6 +384,9 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
     ReplaceAssignment(&text, "build_target", "patched-output.sfc");
     ReplaceAssignment(&text, "rom_backup_folder", "Backups");
     ReplaceAssignment(&text, "cutscene_shots", "");
+    if (text.find("dungeon_tile_patterns=") != std::string::npos) {
+      ReplaceAssignment(&text, "dungeon_tile_patterns", "");
+    }
     ReplaceAssignment(&text, "code_folder", ".");
     ReplaceAssignment(&text, "assets_folder", ".");
     ReplaceAssignment(&text, "patches_folder", ".");
@@ -1739,6 +1748,109 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(reopened_room.GetTileObjects().front().x_, original_x + delta_x);
   EXPECT_EQ(reopened_room.GetTileObjects().front().y_, original_y);
   reopened.reset();
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SourceWallPatternsPreviewMoveUndoSaveAsReopenPreservesRomPatterns) {
+  constexpr int kRoom = 0xE6;
+  const auto fixture = CopyProject("yaze-source-wall-patterns");
+  const auto source = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/house_walls.asm";
+  ASSERT_TRUE(std::filesystem::is_regular_file(source));
+  const auto patterns_path = fixture.root / "walls.asm";
+  std::filesystem::copy_file(source, patterns_path);
+  const auto assets = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/Objects/Data";
+  for (const auto& entry : std::filesystem::directory_iterator(assets)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin") {
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+    }
+  }
+  {
+    std::ofstream project(fixture.project, std::ios::app);
+    project << "\n[files]\ndungeon_tile_patterns=walls.asm\n";
+  }
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  dungeon->add_room(kRoom);
+  auto& room = dungeon->rooms()[kRoom];
+  const auto memory_before = manager_->GetCurrentRom()->vector();
+  AuthoringSaveWorkflowTestPeer::SynchronizePatternAssets(*dungeon);
+  room.PrepareForRender();
+  const auto preview = room.object_bg1_buffer().bitmap().vector();
+  const auto source_patterns =
+      zelda3::CustomObjectManager::Get().GetTilePatterns();
+  ASSERT_TRUE(source_patterns.ok()) << source_patterns.status();
+  ASSERT_NE(*source_patterns, nullptr);
+  EXPECT_EQ((*source_patterns)->words.size(), 96);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory_before);
+  EXPECT_EQ(ReadFile(patterns_path), ReadFile(source));
+
+  zelda3::RoomObject corner(0x100, 0, 0, 0, 0);
+  corner.SetRom(manager_->GetCurrentRom());
+  const auto graphics_context =
+      MakeDungeonGraphicsEditContext(room, corner, room.game_data());
+  ASSERT_TRUE(graphics_context.ok()) << graphics_context.status();
+  ASSERT_FALSE(graphics_context->targets.empty());
+  // Source corner starts with $C89E: slot 2, tile $1E, palette row 2.
+  EXPECT_EQ(graphics_context->targets.front().sheet_id, room.blocks()[2]);
+  EXPECT_EQ(graphics_context->targets.front().tile_index, 0x1E);
+
+  // A raw ROM view has the original patterns. Changing the preview does not
+  // change the object's cached source payload or the ROM's dirty bytes.
+  zelda3::CustomObjectManager::Get().SetTilePatternsSource("");
+  AuthoringSaveWorkflowTestPeer::SynchronizePatternAssets(*dungeon);
+  room.PrepareForRender();
+  EXPECT_NE(room.object_bg1_buffer().bitmap().vector(), preview);
+  zelda3::CustomObjectManager::Get().SetTilePatternsSource(
+      patterns_path.string());
+  AuthoringSaveWorkflowTestPeer::SynchronizePatternAssets(*dungeon);
+  room.PrepareForRender();
+  EXPECT_EQ(room.object_bg1_buffer().bitmap().vector(), preview);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory_before);
+
+  const auto object = room.GetTileObjects().front();
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
+  ASSERT_NE(viewer, nullptr);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kRoom);
+  viewer->object_interaction().entity_coordinator().tile_handler().MoveObjects(
+      kRoom, {0}, 1, 0);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects().front().x_, object.x_);
+  ASSERT_OK(dungeon->Redo());
+  room.PrepareForRender();
+  const auto edited_preview = room.object_bg1_buffer().bitmap().vector();
+  const auto destination = fixture.root / "walls-authoring.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  const auto saved = ReadFile(destination);
+  const auto original = ReadFile(fixture.rom);
+  for (const auto& [pc, word] : (*source_patterns)->words) {
+    ASSERT_LT(pc + 1, saved.size());
+    EXPECT_EQ(saved[pc], original[pc]) << pc;
+    EXPECT_EQ(saved[pc + 1], original[pc + 1]) << pc;
+  }
+  ExpectProtectedRegionsMatch(
+      original, saved,
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  dungeon->add_room(kRoom);
+  auto& reopened = dungeon->rooms()[kRoom];
+  reopened.PrepareForRender();
+  EXPECT_EQ(reopened.GetTileObjects().front().x_, object.x_ + 1);
+  EXPECT_EQ(reopened.object_bg1_buffer().bitmap().vector(), edited_preview);
+  EXPECT_EQ(ReadFile(patterns_path), ReadFile(source));
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
 TEST_F(AuthoringSaveWorkflowTest,

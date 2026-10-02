@@ -281,8 +281,10 @@ void DungeonEditorV2::SynchronizeCustomObjectAssets() {
     zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 
-  rooms_.ForEachMaterialized(
-      [](int, zelda3::Room& room) { room.MarkObjectsDirty(); });
+  rooms_.ForEachMaterialized([](int, zelda3::Room& room) {
+    room.MarkObjectsDirty();
+    room.MarkLayoutDirty();
+  });
   // Reload Assets also refreshes external sprite art in every session-owned
   // viewer, including hidden room windows and the comparison canvas.
   const auto invalidate_sprite_resources = [](DungeonCanvasViewer* viewer) {

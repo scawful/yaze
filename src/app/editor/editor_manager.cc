@@ -282,6 +282,10 @@ zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
                        ? ""
                        : project.GetAbsolutePath(project.custom_objects_folder),
       .custom_file_map = project.custom_object_files,
+      .dungeon_tile_patterns =
+          project.dungeon_tile_patterns.empty()
+              ? ""
+              : project.GetAbsolutePath(project.dungeon_tile_patterns),
   };
 }
 

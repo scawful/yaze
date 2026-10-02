@@ -763,6 +763,43 @@ TEST(ObjectTileEditorTest,
   EXPECT_EQ(rom.dirty(), original_dirty);
 }
 
+TEST(ObjectTileEditorTest, PatternSourceBlocksCaptureAndStaleWritePlan) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  ScopedCustomObjectDirectory assets("yaze_pattern_write_guard");
+  ASSERT_TRUE(assets.ready());
+  auto& manager = CustomObjectManager::Get();
+  manager.SetTilePatternsSource("");
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+  const auto original = rom.vector();
+  Room room(0, &rom, nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  auto* cell = layout->FindCell(0, 0);
+  ASSERT_NE(cell, nullptr);
+  cell->tile_info.id_ ^= 1;
+  cell->modified = true;
+  const auto plan = editor.BuildStandardWritePlan(*layout);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const auto path = assets.path() / "walls.asm";
+  {
+    std::ofstream out(path);
+    // Equal bytes still belong to the source, not to the ROM editor.
+    out << "org $00A9EC\ndw $0DEE\n";
+  }
+  manager.SetTilePatternsSource(path.string());
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      editor.CaptureEditableObjectLayout(0x11F, room, palette).status()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      editor.BuildStandardWritePlan(*layout).status()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(*plan)));
+  EXPECT_EQ(rom.vector(), original);
+  // Unrelated ordinary ROM patterns remain editable.
+  EXPECT_TRUE(editor.CaptureEditableObjectLayout(0x120, room, palette).ok());
+}
+
 TEST(ObjectTileEditorTest, BuildStandardWritePlanRejectsObjectMismatch) {
   ScopedCustomObjectsDisabled disable_custom_objects;
   Rom rom;
