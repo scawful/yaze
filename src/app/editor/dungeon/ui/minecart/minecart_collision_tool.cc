@@ -65,8 +65,10 @@ void MinecartCollisionTool::Draw(const gui::CanvasRuntime& rt,
   const auto preview = PreviewMinecartCollisionStamp(collision, stamp);
   const auto delta = ImGui::GetIO().MouseDelta;
   if (message_.empty() || delta.x != 0 || delta.y != 0 || !preview.ok()) {
-    message_ = preview.ok() ? "Click to stamp. Escape returns to selection."
-                            : std::string(preview.status().message());
+    message_ = preview.ok()
+                   ? "Click to stamp. Click the room canvas, then Escape "
+                     "leaves stamping."
+                   : std::string(preview.status().message());
   }
   const auto& theme = AgentUI::GetTheme();
   if (rt.draw_list) {

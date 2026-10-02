@@ -66,7 +66,8 @@ void MinecartTrackEditorPanel::DrawRailTools() {
   ImGui::Checkbox("2 x 2 cells (16 pixels)", &collision_stamp_large_);
   ImGui::TextWrapped(
       "Upper layer only. Hover to preview; click to stamp. "
-      "Each click is one Undo step. Escape leaves this tool.");
+      "Each click is one Undo step. Click the room canvas, then Escape "
+      "leaves stamping.");
   ImGui::TextWrapped(
       "Ordinary rails preserve stops, switches and other "
       "collision. Use a stop or switch tool to change its direction.");

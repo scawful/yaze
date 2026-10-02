@@ -320,8 +320,7 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
     yaze_more.icon = ICON_MD_MORE_HORIZ;
     yaze_more.subitems.emplace_back(
         "Duplicate", ICON_MD_FILE_COPY,
-        [&interaction]() { (void)interaction.HandleDuplicateSelected(); },
-        "Ctrl+D");
+        [&interaction]() { (void)interaction.HandleDuplicateSelected(); });
     if (group_selection) {
       yaze_more.subitems.push_back(
           disabled_item("Save As New Layout...", ICON_MD_SAVE_AS, nullptr));
@@ -378,16 +377,14 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildRoomContextMenu(int room_id) {
   if (save_room_callback_) {
     room_menu.subitems.emplace_back(
         "Apply Room to ROM", ICON_MD_SAVE,
-        [this, room_id]() { save_room_callback_(room_id); }, "Ctrl+Shift+S");
+        [this, room_id]() { save_room_callback_(room_id); });
   }
   room_menu.subitems.emplace_back(
-      "Re-render Room", ICON_MD_REFRESH,
-      [this, room_id]() {
+      "Re-render Room", ICON_MD_REFRESH, [this, room_id]() {
         if (rooms_ && room_id >= 0 && room_id < zelda3::kNumberOfRooms) {
           (*rooms_)[room_id].RenderRoomGraphics();
         }
-      },
-      "Ctrl+R");
+      });
   if (rooms_ && !(*rooms_)[room_id].GetTileObjects().empty()) {
     room_menu.subitems.push_back(gui::CanvasMenuItem::Destructive(
         "Delete All Objects...", ICON_MD_DELETE_FOREVER,
