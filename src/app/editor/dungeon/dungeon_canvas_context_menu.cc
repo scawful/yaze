@@ -8,6 +8,7 @@
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -283,21 +284,23 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
       items.emplace_back(
           "Bring to Front", ICON_MD_FLIP_TO_FRONT,
           [&interaction]() { interaction.SendSelectedToFront(); },
-          "Ctrl+Shift+]");
+          gui::FormatCtrlShiftShortcut(ImGuiKey_RightBracket));
       items.emplace_back(
           "Send to Back", ICON_MD_FLIP_TO_BACK,
           [&interaction]() { interaction.SendSelectedToBack(); },
-          "Ctrl+Shift+[");
+          gui::FormatCtrlShiftShortcut(ImGuiKey_LeftBracket));
 
       gui::CanvasMenuItem z_order;
       z_order.label = "Z Order";
       z_order.icon = ICON_MD_LAYERS;
       z_order.subitems.emplace_back(
           "Bring Forward", ICON_MD_ARROW_UPWARD,
-          [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
+          [&interaction]() { interaction.BringSelectedForward(); },
+          gui::FormatCtrlShortcut(ImGuiKey_RightBracket));
       z_order.subitems.emplace_back(
           "Send Backward", ICON_MD_ARROW_DOWNWARD,
-          [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
+          [&interaction]() { interaction.SendSelectedBackward(); },
+          gui::FormatCtrlShortcut(ImGuiKey_LeftBracket));
       items.push_back(std::move(z_order));
 
       if (has_room_stream_object && !has_special_layer_object) {
