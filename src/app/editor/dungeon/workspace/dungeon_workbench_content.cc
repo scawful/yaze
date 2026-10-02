@@ -37,6 +37,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/platform_keys.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_config.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -650,8 +651,12 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
             ImGui::Separator();
             const bool can_open_shortcuts =
                 static_cast<bool>(open_keyboard_shortcuts_);
-            if (ImGui::MenuItem(ICON_MD_KEYBOARD " Keyboard Shortcuts", "?",
-                                false, can_open_shortcuts) &&
+            // Default "Keyboard Shortcuts" chord: platform Ctrl/Cmd+Shift+/.
+            const std::string keyboard_shortcuts =
+                gui::FormatCtrlShiftShortcut(ImGuiKey_Slash);
+            if (ImGui::MenuItem(ICON_MD_KEYBOARD " Keyboard Shortcuts",
+                                keyboard_shortcuts.c_str(), false,
+                                can_open_shortcuts) &&
                 open_keyboard_shortcuts_) {
               open_keyboard_shortcuts_();
             }
