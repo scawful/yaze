@@ -1093,15 +1093,7 @@ int Room::BackgroundPaletteOffset(int block) const {
           ? resolved_main_blockset_
           : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
                                                : blockset_);
-  if (block < 0 || block >= 8) {
-    return 0;
-  }
-  const int runtime_slot = 7 - block;
-  const bool right = active_main_blockset < 0x20
-                         ? runtime_slot >= 4
-                         : (runtime_slot == 2 || runtime_slot == 3 ||
-                            runtime_slot == 4 || runtime_slot == 7);
-  return right ? 8 : 0;
+  return DungeonBackgroundPaletteOffset(active_main_blockset, block);
 }
 
 void Room::CopyRoomGraphicsToBuffer() {

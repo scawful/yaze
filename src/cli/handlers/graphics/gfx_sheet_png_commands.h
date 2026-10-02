@@ -9,7 +9,8 @@ namespace cli {
 // Palette specs shared by gfx-export and gfx-import:
 //   gray                      8-step grayscale (default)
 //   rgb:#RRGGBB,...           exactly 8 colors for indices 0-7
-//   room-bg:<room>:<row>      dungeon room background CGRAM row 0-7
+//   room-bg:<room>:<row>      explicit LEFT half of background CGRAM row 0-7
+//   room-slot:<room>:<slot>:<row>  loaded slot's palette half (single sheet)
 //   room-sprite:<room>:<row>  dungeon room sprite palette (OAM row 0-7)
 
 /**
@@ -21,7 +22,8 @@ class GfxExportCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "gfx-export --sheet <id> --png <file> [--block <0-15>] "
            "[--count <n>] [--palette gray|rgb:...|room-bg:<room>:<row>|"
-           "room-sprite:<room>:<row>]";
+           "room-sprite:<room>:<row>|room-slot:<room>:<slot>:<row>] [--json "
+           "<file>]";
   }
   std::string GetDefaultFormat() const override { return "json"; }
   std::string GetOutputTitle() const override { return "Graphics Export"; }
@@ -69,15 +71,17 @@ class GfxImportCommandHandler : public resources::CommandHandler {
 
 /**
  * @brief Export a dungeon room's 8 background sheets as one 128x256 indexed
- * PNG with the room's palette, plus an optional JSON sidecar listing each
+ * PNG with one uniform palette, plus an optional JSON sidecar listing each
  * slot's sheet and which rooms share the main blockset, room blockset and
- * each sheet.
+ * each sheet. --out-dir instead exports one PNG per slot using its resolved
+ * palette half, plus manifest.json. PNGs keep raw 3bpp indices for gfx-import.
  */
 class GfxRoomExportCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "gfx-room-export"; }
   std::string GetUsage() const override {
-    return "gfx-room-export --room <id> --png <file> [--row <0-7>] "
+    return "gfx-room-export --room <id> (--png <file> | --out-dir <new-dir>) "
+           "[--row <0-7>] "
            "[--palette ...] [--json <file>]";
   }
   std::string GetDefaultFormat() const override { return "json"; }

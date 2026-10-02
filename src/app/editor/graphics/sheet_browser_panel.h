@@ -183,11 +183,13 @@ class SheetBrowserPanel : public WindowContent {
   // applied to the Arena as one undo step per sheet; saving the ROM writes
   // them through GraphicsEditor::Save.
   void DrawPngTransfer(uint16_t sheet_id);
-  absl::StatusOr<zelda3::SheetPalette> PngPalette();
+  absl::StatusOr<zelda3::SheetPalette> PngPalette(int sheet_id = -1);
   void SetPngStatus(std::string message, bool is_error);
   UndoManager* undo_manager_ = nullptr;
-  int png_palette_mode_ = 0;  // 0 grayscale, 1 room background, 2 room sprite
+  int png_palette_mode_ =
+      0;  // 0 gray, 1 explicit left, 2 sprite, 3 loaded slot
   int png_room_ = 0;
+  int png_room_slot_ = -1;
   int png_palette_row_ = 2;
   int png_first_block_ = 0;  // 16x16 block a sheet import starts at
   std::string png_path_;     // typed PNG path; empty picks in a dialog

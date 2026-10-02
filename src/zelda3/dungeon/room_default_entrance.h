@@ -55,6 +55,11 @@ RoomMainBlocksetResolution ResolveRoomMainBlockset(
     int room_id, uint8_t header_blockset, uint8_t requested_main_blockset,
     const GameData& game_data);
 
+// Palette half for a destination background slot (tile ID / 64). The game's
+// runtime upload slot runs in the opposite direction. Index zero remains
+// transparent; apply this offset only to nonzero 3bpp pixel indices.
+int DungeonBackgroundPaletteOffset(uint8_t main_blockset, int destination_slot);
+
 // One entry per dungeon room (kNumberOfRooms), in order:
 //  1. an entrance whose room is this room;
 //  2. an entrance of the dungeon whose pause-menu map lists the room (map

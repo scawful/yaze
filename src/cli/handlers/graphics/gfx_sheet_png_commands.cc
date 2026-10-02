@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -73,7 +74,8 @@ absl::StatusOr<int> ParseIntArg(const resources::ArgumentParser& parser,
 }
 
 absl::StatusOr<zelda3::SheetPalette> ResolvePalette(
-    Rom& rom, const resources::ArgumentParser& parser) {
+    Rom& rom, const resources::ArgumentParser& parser, int sheet = -1,
+    std::optional<zelda3::RoomSheetPaletteContext>* context = nullptr) {
   const std::string spec = parser.GetString("palette").value_or("gray");
   if (spec == "gray") {
     return zelda3::GrayscaleSheetPalette();
@@ -99,6 +101,32 @@ absl::StatusOr<zelda3::SheetPalette> ResolvePalette(
     }
     return palette;
   }
+  if (absl::StartsWith(spec, "room-slot:")) {
+    const std::vector<std::string> parts = absl::StrSplit(spec, ':');
+    if (parts.size() != 4 || sheet < 0) {
+      return absl::InvalidArgumentError(
+          "room-slot:<room>:<slot>:<row> requires a single --sheet; use "
+          "gfx-room-export --out-dir for per-slot room palettes");
+    }
+    ASSIGN_OR_RETURN(const int room, ParseNumber(parts[1], "room"));
+    ASSIGN_OR_RETURN(const int slot, ParseNumber(parts[2], "slot"));
+    ASSIGN_OR_RETURN(const int row, ParseNumber(parts[3], "row"));
+    zelda3::GameData data;
+    zelda3::LoadOptions options;
+    options.load_graphics = false;
+    options.expand_rom = false;
+    RETURN_IF_ERROR(zelda3::LoadGameData(rom, data, options));
+    ASSIGN_OR_RETURN(auto resolved, zelda3::ResolveRoomSheetPalette(
+                                        rom, data, room, slot, row));
+    if (resolved.background.sheets[slot] != sheet) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Room 0x%03X slot %d loads sheet 0x%02X, not --sheet 0x%02X", room,
+          slot, resolved.background.sheets[slot], sheet));
+    }
+    if (context != nullptr)
+      *context = resolved;
+    return resolved.colors;
+  }
   const bool background = absl::StartsWith(spec, "room-bg:");
   if (background || absl::StartsWith(spec, "room-sprite:")) {
     std::vector<std::string> parts = absl::StrSplit(spec, ':');
@@ -123,6 +151,95 @@ std::string PaletteText(const zelda3::SheetPalette& palette) {
   return absl::StrJoin(palette, ",", [](std::string* out, const auto& color) {
     out->append(absl::StrFormat("#%02X%02X%02X", color[0], color[1], color[2]));
   });
+}
+
+nlohmann::json PaletteContextJson(
+    const zelda3::RoomSheetPaletteContext& context) {
+  using Source = zelda3::RoomMainBlocksetSource;
+  const char* main_source = "zero_fallback";
+  switch (context.main.source) {
+    case Source::kExplicitPreview:
+      main_source = "explicit_preview";
+      break;
+    case Source::kDirectDefault:
+      main_source = "direct_default";
+      break;
+    case Source::kInferredDefault:
+      main_source = "inferred_default";
+      break;
+    case Source::kHeaderFallback:
+      main_source = "header_fallback";
+      break;
+    case Source::kZeroFallback:
+      break;
+  }
+  using EntranceSource = zelda3::RoomEntranceSource;
+  const char* entrance_source = "none";
+  switch (context.entrance.source) {
+    case EntranceSource::kDirect:
+      entrance_source = "direct";
+      break;
+    case EntranceSource::kDungeonMap:
+      entrance_source = "dungeon_map";
+      break;
+    case EntranceSource::kNeighbour:
+      entrance_source = "neighbour";
+      break;
+    case EntranceSource::kNone:
+      break;
+  }
+  return {{"room", context.background.room},
+          {"slot", context.slot},
+          {"sheet", context.background.sheets[context.slot]},
+          {"main_blockset", context.main.main_blockset},
+          {"main_source", main_source},
+          {"room_blockset", context.background.header_blockset},
+          {"sheet_source", context.background.from_room_blockset[context.slot]
+                               ? "room_blockset"
+                               : "main_blockset"},
+          {"entrance_id", context.entrance.entrance_id},
+          {"entrance_source", entrance_source},
+          {"entrance_via_room", context.entrance.via_room},
+          {"palette_row", context.row},
+          {"palette_half", context.palette_offset == 8 ? "right" : "left"},
+          {"raw_index_to_cgram", context.cgram_indices},
+          {"colors_rgb", context.colors},
+          {"transparent_index", 0},
+          {"animation_overlay_included", false}};
+}
+
+// Check all output aliases before the first write, including symlinks and hard
+// links. PNG/JSON destinations must not destroy each other or the source ROM.
+absl::Status ValidateExportPaths(const Rom& rom,
+                                 const std::vector<std::string>& outputs) {
+  std::vector<std::string> seen;
+  if (!rom.filename().empty())
+    seen.push_back(rom.filename());
+  for (const auto& path : outputs) {
+    if (path.empty())
+      return absl::InvalidArgumentError("Empty export path");
+    std::error_code ec;
+    const auto canonical = std::filesystem::weakly_canonical(path, ec);
+    if (ec)
+      return absl::InvalidArgumentError("Invalid export path: " + path);
+    for (const auto& other : seen) {
+      const bool equivalent = std::filesystem::equivalent(path, other, ec);
+      ec.clear();
+      const auto other_canonical = std::filesystem::weakly_canonical(other, ec);
+      if (equivalent || (!ec && canonical == other_canonical)) {
+        return absl::InvalidArgumentError(
+            "Export destinations must differ from each other and the input "
+            "ROM");
+      }
+    }
+    seen.push_back(path);
+  }
+  return absl::OkStatus();
+}
+
+absl::Status WriteJson(const std::string& path, const nlohmann::json& value) {
+  const std::string text = value.dump(2) + "\n";
+  return util::WriteBinaryFile(path, {text.begin(), text.end()});
 }
 
 std::string RangeText(const std::vector<std::pair<int, int>>& ranges) {
@@ -173,6 +290,70 @@ absl::StatusOr<RoomContext> LoadRoomContext(
   return context;
 }
 
+absl::Status ExportRoomBundle(Rom& rom, RoomContext& context,
+                              const std::string& directory,
+                              resources::OutputFormatter& formatter) {
+  if (directory.empty())
+    return absl::InvalidArgumentError("Empty --out-dir");
+  // Resolve and encode every supported slot before creating any output. Each
+  // PNG keeps raw indices 0-7 while carrying that slot's display palette.
+  std::vector<std::pair<std::string, std::vector<uint8_t>>> files;
+  nlohmann::json manifest = {{"schema_version", 1},
+                             {"room", context.set.room},
+                             {"palette_row", context.row},
+                             {"source_rom", rom.filename()},
+                             {"slots", nlohmann::json::array()}};
+  for (int slot = 0; slot < 8; ++slot) {
+    ASSIGN_OR_RETURN(
+        const auto palette_context,
+        zelda3::ResolveRoomSheetPalette(rom, context.data, context.set.room,
+                                        slot, context.row));
+    auto entry = PaletteContextJson(palette_context);
+    const uint16_t sheet = context.set.sheets[slot];
+    if (sheet >= zelda3::kGfxSheetCount ||
+        zelda3::GetGfxSheetStorageKind(sheet) ==
+            zelda3::GfxSheetStorageKind::kCompressed2bpp) {
+      entry["status"] = "unsupported_sheet_format";
+    } else {
+      ASSIGN_OR_RETURN(const auto raw, zelda3::ReadGfxSheetData(rom, sheet));
+      ASSIGN_OR_RETURN(
+          auto png, zelda3::ExportSheetBlocksPng(raw, palette_context.colors));
+      const std::string name =
+          absl::StrFormat("slot-%d-sheet-%02X.png", slot, sheet);
+      entry["status"] = "exported";
+      entry["png"] = name;
+      entry["palette_spec"] = absl::StrFormat(
+          "room-slot:0x%03X:%d:%d", context.set.room, slot, context.row);
+      files.emplace_back(name, std::move(png));
+    }
+    manifest["slots"].push_back(std::move(entry));
+  }
+  std::error_code ec;
+  if (!std::filesystem::create_directory(directory, ec)) {
+    return absl::FailedPreconditionError(
+        "--out-dir must be a new directory in an existing parent: " +
+        directory + (ec ? " (" + ec.message() + ")" : ""));
+  }
+  auto write = [&]() -> absl::Status {
+    for (const auto& [name, png] : files) {
+      RETURN_IF_ERROR(util::WriteBinaryFile(
+          (std::filesystem::path(directory) / name).string(), png));
+    }
+    return WriteJson(
+        (std::filesystem::path(directory) / "manifest.json").string(),
+        manifest);
+  };
+  const absl::Status status = write();
+  if (!status.ok()) {
+    // This invocation created the directory; never clean up a preexisting one.
+    std::filesystem::remove_all(directory, ec);
+    return status;
+  }
+  formatter.AddField("out_dir", directory);
+  formatter.AddRawJsonField("manifest", manifest.dump());
+  return absl::OkStatus();
+}
+
 std::string HexIds(const std::vector<int>& ids) {
   return absl::StrJoin(ids, " ", [](std::string* out, int id) {
     out->append(absl::StrFormat("%03X", id));
@@ -204,12 +385,26 @@ absl::Status GfxExportCommandHandler::Execute(
   ASSIGN_OR_RETURN(const uint16_t sheet, ParseSheet(parser));
   ASSIGN_OR_RETURN(const int block, ParseIntArg(parser, "block", 0));
   ASSIGN_OR_RETURN(const int count, ParseIntArg(parser, "count", 16 - block));
-  ASSIGN_OR_RETURN(const auto palette, ResolvePalette(*rom, parser));
+  std::optional<zelda3::RoomSheetPaletteContext> context;
+  ASSIGN_OR_RETURN(const auto palette,
+                   ResolvePalette(*rom, parser, sheet, &context));
   ASSIGN_OR_RETURN(const auto data, zelda3::ReadGfxSheetData(*rom, sheet));
   ASSIGN_OR_RETURN(const auto png,
                    zelda3::ExportSheetBlocksPng(data, palette, block, count));
   const std::string path = *parser.GetString("png");
+  const auto json_path = parser.GetString("json");
+  std::vector<std::string> outputs = {path};
+  if (json_path.has_value())
+    outputs.push_back(*json_path);
+  RETURN_IF_ERROR(ValidateExportPaths(*rom, outputs));
+  nlohmann::json metadata = {{"sheet", sheet},        {"png", path},
+                             {"first_block", block},  {"block_count", count},
+                             {"colors_rgb", palette}, {"transparent_index", 0}};
+  if (context.has_value())
+    metadata["room_context"] = PaletteContextJson(*context);
   RETURN_IF_ERROR(util::WriteBinaryFile(path, png));
+  if (json_path.has_value())
+    RETURN_IF_ERROR(WriteJson(*json_path, metadata));
 
   formatter.AddField("sheet", absl::StrFormat("0x%02X", sheet));
   formatter.AddField("png", path);
@@ -218,6 +413,9 @@ absl::Status GfxExportCommandHandler::Execute(
   formatter.AddField("width", std::min(count, 8) * 16);
   formatter.AddField("height", (count + 7) / 8 * 16);
   formatter.AddField("palette", PaletteText(palette));
+  if (context.has_value()) {
+    formatter.AddRawJsonField("room_context", metadata["room_context"].dump());
+  }
   return absl::OkStatus();
 }
 
@@ -242,7 +440,13 @@ absl::Status GfxImportCommandHandler::Execute(
   RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(const uint16_t sheet, ParseSheet(parser));
   ASSIGN_OR_RETURN(const int block, ParseIntArg(parser, "block", 0));
-  ASSIGN_OR_RETURN(const auto palette, ResolvePalette(*rom, parser));
+  std::optional<zelda3::RoomSheetPaletteContext> context;
+  ASSIGN_OR_RETURN(const auto palette,
+                   ResolvePalette(*rom, parser, sheet, &context));
+  if (context.has_value()) {
+    formatter.AddRawJsonField("room_context",
+                              PaletteContextJson(*context).dump());
+  }
   ASSIGN_OR_RETURN(const auto current, zelda3::ReadGfxSheetData(*rom, sheet));
   const std::string png_path = *parser.GetString("png");
   ASSIGN_OR_RETURN(const auto png_bytes, util::ReadBinaryFile(png_path));
@@ -316,7 +520,18 @@ absl::Status GfxImportCommandHandler::Execute(
 
 absl::Status GfxRoomExportCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
-  return parser.RequireArgs({"room", "png"});
+  RETURN_IF_ERROR(parser.RequireArgs({"room"}));
+  const bool bundle = parser.GetString("out-dir").has_value();
+  if (bundle == parser.GetString("png").has_value()) {
+    return absl::InvalidArgumentError("Pass exactly one of --png or --out-dir");
+  }
+  if (bundle && (parser.GetString("palette").has_value() ||
+                 parser.GetString("json").has_value())) {
+    return absl::InvalidArgumentError(
+        "--out-dir resolves each slot's palette and writes manifest.json; "
+        "do not pass --palette or --json");
+  }
+  return absl::OkStatus();
 }
 
 absl::Status GfxRoomExportCommandHandler::Execute(
@@ -324,10 +539,19 @@ absl::Status GfxRoomExportCommandHandler::Execute(
     resources::OutputFormatter& formatter) {
   RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
+  if (const auto directory = parser.GetString("out-dir");
+      directory.has_value()) {
+    return ExportRoomBundle(*rom, context, *directory, formatter);
+  }
   const auto& set = context.set;
   ASSIGN_OR_RETURN(const auto png,
                    zelda3::ExportRoomBackgroundPng(*rom, set, context.palette));
   const std::string png_path = *parser.GetString("png");
+  std::vector<std::string> outputs = {png_path};
+  if (const auto json_path = parser.GetString("json"); json_path.has_value()) {
+    outputs.push_back(*json_path);
+  }
+  RETURN_IF_ERROR(ValidateExportPaths(*rom, outputs));
   RETURN_IF_ERROR(util::WriteBinaryFile(png_path, png));
 
   // Who else sees these sheets: an edit changes every one of these rooms.
@@ -368,6 +592,7 @@ absl::Status GfxRoomExportCommandHandler::Execute(
       {"room_blockset", set.header_blockset},
       {"palette_row", context.row},
       {"palette", PaletteText(context.palette)},
+      {"palette_mode", "uniform_palette_all_slots"},
       {"png", png_path},
       {"slots", slots},
       {"rooms_with_same_main_blockset", same_main},

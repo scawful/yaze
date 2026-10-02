@@ -16,6 +16,18 @@ constexpr uint8_t kEmptyMapRoom = 0x0F;
 
 }  // namespace
 
+int DungeonBackgroundPaletteOffset(uint8_t main_blockset,
+                                   int destination_slot) {
+  if (destination_slot < 0 || destination_slot >= 8)
+    return 0;
+  const int runtime_slot = 7 - destination_slot;
+  const bool right = main_blockset < 0x20
+                         ? runtime_slot >= 4
+                         : runtime_slot == 2 || runtime_slot == 3 ||
+                               runtime_slot == 4 || runtime_slot == 7;
+  return right ? 8 : 0;
+}
+
 RoomMainBlocksetResolution ResolveRoomMainBlockset(
     int room_id, uint8_t header_blockset, uint8_t requested_main_blockset,
     const GameData& game_data) {
