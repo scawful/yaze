@@ -11,8 +11,10 @@
 #include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/gfx/resource/arena.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite_sheet_slots.h"
@@ -252,6 +254,69 @@ TEST_F(GraphicsUsagePreviewRomTest, SourceColorsFollowLoadedEntranceSlots) {
     EXPECT_EQ(room.BackgroundPaletteOffset(1), main < 0x20 ? 8 : 0);
     EXPECT_EQ(room.BackgroundPaletteOffset(4), main < 0x20 ? 0 : 8);
   }
+}
+
+TEST_F(GraphicsUsagePreviewRomTest,
+       ObjectPatternKeepsAllOrientationsAndPaletteVariants) {
+  auto& manager = zelda3::CustomObjectManager::Get();
+  const auto saved = manager.SnapshotState();
+  const absl::Cleanup restore = [&] {
+    manager.RestoreState(saved);
+  };
+  manager.SetTilePatternsSource("");
+
+  auto room = zelda3::LoadRoomFromRom(&rom_, 0xE6);
+  room.SetGameData(&game_data_);
+  room.PrepareForRender();
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  auto object = room.GetTileObjects().front();
+  object.EnsureTilesLoaded();
+  object.id_ = 0x019;  // Inner diagonal draws to both backgrounds.
+  object.layer_ = zelda3::RoomObject::LayerType::BG2;
+  object.all_bgs_ = false;
+  object.mutable_tiles().clear();
+  for (int orientation = 0; orientation < 4; ++orientation) {
+    object.mutable_tiles().emplace_back(0x049, 2, orientation & 2,
+                                        orientation & 1, false);
+  }
+  // Repeated uses must not produce duplicate editing targets. A distinct
+  // palette row still needs its own target, even on the same source tile.
+  object.mutable_tiles().emplace_back(0x049, 2, false, true, false);
+  object.mutable_tiles().emplace_back(0x049, 3, false, true, false);
+  auto context = MakeDungeonGraphicsEditContext(room, object, &game_data_);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(context->drawing_description, "Both BGs (full)");
+  ASSERT_EQ(context->targets.size(), 2u);
+  const auto& first = context->targets[0];
+  const auto& second = context->targets[1];
+  EXPECT_EQ(first.source_orientation_mask, 0x0F);
+  EXPECT_EQ(first.SourceOrientationLabel(),
+            "Unflipped, Horizontal, Vertical, Horizontal + vertical");
+  EXPECT_EQ(second.source_orientation_mask, 0x02);
+  EXPECT_EQ(second.SourceOrientationLabel(), "Horizontal");
+  EXPECT_EQ(first.sheet_id, second.sheet_id);
+  EXPECT_EQ(first.tile_index, second.tile_index);
+  EXPECT_NE(first.label, second.label);
+  for (size_t row = 2; row <= 3; ++row) {
+    const auto& palette = context->targets[row - 2].palette;
+    for (int pixel = 0; pixel < 8; ++pixel) {
+      const int half = pixel == 0 ? 0 : room.BackgroundPaletteOffset(1);
+      const auto color = room.rendered_palette()[row * 16 + half + pixel];
+      EXPECT_EQ(palette[pixel].snes(),
+                gfx::SnesColor(color.r, color.g, color.b).snes());
+    }
+  }
+
+  object.id_ = 0x000;  // Ordinary placement on BG2.
+  object.all_bgs_ = false;
+  context = MakeDungeonGraphicsEditContext(room, object, &game_data_);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(context->drawing_description, "BG2 (stored placement)");
+  object.id_ = 0xFA6;  // Stairs split their drawing between BG1 and BG2.
+  context = MakeDungeonGraphicsEditContext(room, object, &game_data_);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(context->drawing_description, "Mixed BG1/BG2");
+  EXPECT_EQ(GraphicsEditTarget{}.SourceOrientationLabel(), "");
 }
 
 // D1 (Mushroom Grotto) entrance room 0x4A: edit one pixel of a background

@@ -1070,6 +1070,8 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(context.resolved.slots.size(), 16u);
   EXPECT_EQ(context.owner, state.game_data);
   const auto target = *state.SourceTarget();
+  ASSERT_FALSE(context.drawing_description.empty());
+  ASSERT_NE(target.source_orientation_mask, 0);
   ASSERT_EQ(target.palette.size(), 8u);
   auto& arena_sheet =
       gfx::Arena::Get().mutable_gfx_sheets()->at(target.sheet_id);
@@ -1087,7 +1089,15 @@ TEST_F(AuthoringSaveWorkflowTest,
     ImGui::NewFrame();
     ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_Always);
     ImGui::Begin("ContextGraphics", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer(2);
     AuthoringSaveWorkflowTestPeer::DrawGraphics(*graphics);
+    const std::string text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
+    EXPECT_NE(text.find("Drawing: " + context.drawing_description),
+              std::string::npos);
+    EXPECT_NE(text.find("Pattern orientations: " +
+                        state.SourceTarget()->SourceOrientationLabel()),
+              std::string::npos);
     ImGui::End();
     ImGui::Begin("ContextUsage", nullptr, ImGuiWindowFlags_NoSavedSettings);
     AuthoringSaveWorkflowTestPeer::DrawUsage(*graphics);
