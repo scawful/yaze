@@ -1253,6 +1253,10 @@ TEST(DungeonEditCommandsTest,
   EXPECT_EQ(objects.at(0).at("y"), 2);
   EXPECT_EQ(objects.at(0).at("size"), 6);
   EXPECT_EQ(objects.at(0).at("stream_index"), 0);
+  EXPECT_EQ(objects.at(0).at("entity_kind"), "room_object");
+  EXPECT_EQ(objects.at(0).at("coordinate_space"), "room_tile8");
+  EXPECT_EQ(objects.at(0).at("name_source"), "vanilla_object_catalog");
+  EXPECT_FALSE(objects.at(0).at("name").get<std::string>().empty());
 
   EXPECT_EQ(objects.at(1).at("object_id"), "0x112");
   EXPECT_EQ(objects.at(1).at("subtype"), 2);
@@ -1271,10 +1275,40 @@ TEST(DungeonEditCommandsTest,
   // The table-backed torch is intentionally absent, while the door parsed
   // from the encoded stream remains available through the existing array.
   ASSERT_EQ(result.at("doors").size(), 1u);
+  const auto& door = result.at("doors").at(0);
+  EXPECT_EQ(door.at("entity_kind"), "door");
+  EXPECT_EQ(door.at("bounds_px").at("coordinate_space"), "room_pixels");
+  EXPECT_EQ(door.at("bounds_px").at("x"), door.at("tile_x").get<int>() * 8);
+  // This fixture's south door is drawn one tile below its encoded anchor.
+  // Scene overlays need the render bounds, not anchor * 8 on every axis.
+  EXPECT_EQ(door.at("tile_y"), 26);
+  EXPECT_EQ(door.at("bounds_px").at("y"), 216);
+  EXPECT_GT(door.at("bounds_px").at("width").get<int>(), 0);
+  EXPECT_GT(door.at("bounds_px").at("height").get<int>(), 0);
   EXPECT_EQ(rom.vector(), before);
   EXPECT_FALSE(rom.dirty());
   EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest, DescribeRoomKeepsUnicodeObjectNames) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  const auto encoded =
+      zelda3::RoomObject(0x005, 45, 35, 0).EncodeObjectToBytes();
+  rom.mutable_data()[kObjectDataPc + 2] = encoded.b1;
+  rom.mutable_data()[kObjectDataPc + 3] = encoded.b2;
+  rom.mutable_data()[kObjectDataPc + 4] = encoded.b3;
+  const auto before = rom.vector();
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(handler
+                  .Run({"--room=0x00", "--include-objects", "--format=json"},
+                       &rom, &output)
+                  .ok());
+  const auto result = nlohmann::json::parse(output);
+  EXPECT_EQ(result.at("objects").at(0).at("name"), "Wall columns (north) ↔");
+  EXPECT_EQ(rom.vector(), before);
 }
 
 TEST(DungeonEditCommandsTest, SetCollisionTileRejectsRoomIdOutOfRange) {
