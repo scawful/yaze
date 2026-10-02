@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_GRAPHICS_EDIT_CONTEXT_H_
 #define YAZE_APP_EDITOR_GRAPHICS_GRAPHICS_EDIT_CONTEXT_H_
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
@@ -25,6 +26,11 @@ struct GraphicsEditTarget {
   uint16_t tile_index = 0;
   std::string label;
   gfx::SnesPalette palette;
+  // Pattern uses of this source tile: bits 0/1/2/3 = normal/H/V/HV.
+  // Zero means the source editor did not supply orientation information.
+  uint8_t source_orientation_mask = 0;
+
+  std::string SourceOrientationLabel() const;
 };
 
 // Session-local navigation and preview state, not ROM/project data. Callbacks
@@ -39,6 +45,7 @@ struct GraphicsEditContext {
   size_t selected_target = 0;
   std::function<absl::StatusOr<usage_preview::IndexedImage>()> render_preview;
   std::function<void()> return_to_source;
+  std::string drawing_description;
 };
 
 // The room must already have its entrance context applied and be prepared for

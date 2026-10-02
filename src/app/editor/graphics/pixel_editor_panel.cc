@@ -117,6 +117,9 @@ void PixelEditorPanel::DrawSourceContext() {
   }
   auto& context = *state_->source_context;
   ImGui::TextWrapped("%s", context.label.c_str());
+  if (!context.drawing_description.empty()) {
+    ImGui::TextWrapped(tr("Drawing: %s"), context.drawing_description.c_str());
+  }
   if (context.return_to_source && ImGui::SmallButton(tr("Return to source"))) {
     // Copy before invoking: navigation may replace editor state.
     auto navigate = context.return_to_source;
@@ -146,6 +149,16 @@ void PixelEditorPanel::DrawSourceContext() {
     ImGui::EndCombo();
   }
   ImGui::EndDisabled();
+  const auto& selected = context.targets[context.selected_target];
+  if (selected.source_orientation_mask != 0) {
+    ImGui::TextWrapped(tr("Pattern orientations: %s"),
+                       selected.SourceOrientationLabel().c_str());
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", tr("These flips occur in the selected object's "
+                                 "tile pattern. Paint the unflipped source; "
+                                 "all uses of that sheet share the pixels."));
+    }
+  }
   ImGui::Separator();
 }
 
