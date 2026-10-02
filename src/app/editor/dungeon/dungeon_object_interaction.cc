@@ -873,20 +873,22 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
   if (ImGui::IsAnyItemActive())
     return;
 
-  // Check for stored placement shortcuts (1, 2, 3 keys). The third room
-  // object stream is intentionally unavailable to torches/pushable blocks.
-  if (ImGui::IsKeyPressed(ImGuiKey_1)) {
-    SendSelectedToLayer(0);  // Primary stream / upper layer (BG1)
-  } else if (ImGui::IsKeyPressed(ImGuiKey_2)) {
-    SendSelectedToLayer(1);  // BG2 overlay / lower layer (BG2)
-  } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
-    SendSelectedToLayer(2);  // BG1 overlay stream
+  // Modified digits belong to editor/window shortcuts, not object placement.
+  // The third room stream is unavailable to torches/pushable blocks.
+  const auto& io = ImGui::GetIO();
+  if (io.KeyMods == ImGuiMod_None) {
+    if (ImGui::IsKeyPressed(ImGuiKey_1)) {
+      SendSelectedToLayer(0);  // Primary stream / upper layer (BG1)
+    } else if (ImGui::IsKeyPressed(ImGuiKey_2)) {
+      SendSelectedToLayer(1);  // BG2 overlay / lower layer (BG2)
+    } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
+      SendSelectedToLayer(2);  // BG1 overlay stream
+    }
   }
 
   // Object ordering shortcuts
   // Ctrl+Shift+] = Bring to Front, Ctrl+Shift+[ = Send to Back
   // Ctrl+] = Bring Forward, Ctrl+[ = Send Backward
-  auto& io = ImGui::GetIO();
   if (io.KeyCtrl && io.KeyShift) {
     if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
       SendSelectedToFront();

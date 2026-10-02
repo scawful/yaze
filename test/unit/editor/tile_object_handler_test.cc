@@ -1187,6 +1187,89 @@ TEST_F(TileObjectHandlerTest,
   }
 }
 
+TEST_F(TileObjectHandlerTest, CanvasPlacementDigitsIgnoreModifiedChords) {
+  AddTestObjects({CreateTestObject(5, 5)});
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  interaction.SetSelectedObjects({0});
+
+  ImGuiIO& io = ImGui::GetIO();
+  const auto frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700, 650), ImGuiCond_Always);
+    ImGui::Begin("PlacementKeysHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    canvas_->DrawBackground(ImVec2(512, 512));
+    EXPECT_TRUE(canvas_->IsMouseHovering());
+    interaction.HandleCanvasMouseInput();
+    ImGui::End();
+    ImGui::Render();
+  };
+  const auto press = [&](ImGuiKey modifier, ImGuiKey key) {
+    if (modifier != ImGuiKey_None) {
+      io.AddKeyEvent(modifier, true);
+    }
+    io.AddKeyEvent(key, true);
+    frame();
+    io.AddKeyEvent(key, false);
+    if (modifier != ImGuiKey_None) {
+      io.AddKeyEvent(modifier, false);
+    }
+    frame();
+  };
+
+  io.AddMousePosEvent(100, 100);
+  // Prime the host window before checking canvas hover.
+  ImGui::NewFrame();
+  ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(700, 650), ImGuiCond_Always);
+  ImGui::Begin("PlacementKeysHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+  canvas_->DrawBackground(ImVec2(512, 512));
+  ImGui::End();
+  ImGui::Render();
+
+  constexpr std::array<ImGuiKey, 3> kDigits = {ImGuiKey_1, ImGuiKey_2,
+                                               ImGuiKey_3};
+  constexpr std::array<ImGuiKey, 4> kModifiers = {ImGuiMod_Ctrl, ImGuiMod_Super,
+                                                  ImGuiMod_Alt, ImGuiMod_Shift};
+  for (bool mac_behavior : {false, true}) {
+    io.ConfigMacOSXBehaviors = mac_behavior;
+    for (ImGuiKey modifier : kModifiers) {
+      for (size_t i = 0; i < kDigits.size(); ++i) {
+        SCOPED_TRACE(::testing::Message()
+                     << "mac=" << mac_behavior << " modifier=" << modifier
+                     << " digit=" << i + 1);
+        // Every chord requests a different placement, so a leak is observable.
+        const auto original =
+            static_cast<zelda3::RoomObject::LayerType>((i + 1) % 3);
+        rooms_[0].GetTileObjects()[0].layer_ = original;
+        rooms_[0].ClearSaveDirtyState();
+        mutation_count_ = 0;
+        invalidate_count_ = 0;
+        press(modifier, kDigits[i]);
+        EXPECT_EQ(rooms_[0].GetTileObjects()[0].layer_, original);
+        EXPECT_FALSE(rooms_[0].object_stream_dirty());
+        EXPECT_EQ(mutation_count_, 0);
+        EXPECT_EQ(invalidate_count_, 0);
+      }
+    }
+    for (size_t i = 0; i < kDigits.size(); ++i) {
+      rooms_[0].GetTileObjects()[0].layer_ =
+          static_cast<zelda3::RoomObject::LayerType>((i + 1) % 3);
+      rooms_[0].ClearSaveDirtyState();
+      mutation_count_ = 0;
+      invalidate_count_ = 0;
+      press(ImGuiKey_None, kDigits[i]);
+      EXPECT_EQ(static_cast<int>(rooms_[0].GetTileObjects()[0].layer_), i);
+      EXPECT_TRUE(rooms_[0].object_stream_dirty());
+      EXPECT_EQ(mutation_count_, 1);
+      EXPECT_EQ(invalidate_count_, 1);
+    }
+  }
+}
+
 TEST_F(TileObjectHandlerTest,
        PlacementCanvasRoutesMacShiftHorizontalWheelToPreviewWidth) {
   AddTestObjects({CreateTestObject(5, 5, 7, 0x01)});
