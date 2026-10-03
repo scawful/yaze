@@ -409,17 +409,24 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   };
 
   // --- Header: where the click landed -------------------------------------
+  // Menu rows share a label column. Keep metadata in tooltips so long map
+  // names cannot widen every action and its shortcut column.
   auto title = gui::CanvasMenuItem::Disabled(
-      valid_map ? describe(map_id) : std::string("Outside Overworld"));
+      valid_map ? absl::StrFormat("Map 0x%02X", map_id) : "Outside Overworld");
+  if (valid_map) {
+    title.tooltip = describe(map_id);
+  }
   add(std::move(title), ICON_MD_MAP, !(valid_map && target.tile16_id >= 0));
   if (valid_map && target.tile16_id >= 0) {
     const int tile_x =
         static_cast<int>(target.world_position.x / kTile16Size) % 32;
     const int tile_y =
         static_cast<int>(target.world_position.y / kTile16Size) % 32;
-    add(gui::CanvasMenuItem::Disabled(absl::StrFormat(
-            "Tile16 0x%03X | (%d, %d)", target.tile16_id, tile_x, tile_y)),
-        ICON_MD_GRID_ON, true);
+    auto tile = gui::CanvasMenuItem::Disabled(
+        absl::StrFormat("Tile16 0x%03X", target.tile16_id));
+    tile.tooltip =
+        absl::StrFormat("Tile coordinates: (%d, %d)", tile_x, tile_y);
+    add(std::move(tile), ICON_MD_GRID_ON, true);
   }
 
   // --- Tile ------------------------------------------------------------------
@@ -485,7 +492,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
         return valid_map && bool(map_selection_callback_) &&
                bool(open_map_properties_callback_);
       });
-  properties_item.shortcut = "Double-click";
+  properties_item.tooltip = "Double-click the map to open properties.";
   add(std::move(properties_item), ICON_MD_TUNE);
 
   auto pin_item = gui::CanvasMenuItem::Conditional(

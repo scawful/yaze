@@ -342,20 +342,23 @@ TEST_F(MapPropertiesContextMenuTest, TopLevelOrderAndCount) {
     }
   }
   // Header rows (map, tile) come first; no overworld here, so the map row
-  // is the bare ID and there are no Related Maps or clipboard rows.
-  const std::vector<std::string> expected{"0x4B",
-                                          "Tile16 0x123 | (2, 1)",
-                                          "Sample Tile16",
-                                          "Edit Tile16...",
-                                          "Select This Map",
-                                          "Map Properties...",
-                                          "Pin Map",
-                                          "Insert",
-                                          "View"};
+  // has no name tooltip and there are no Related Maps or clipboard rows.
+  const std::vector<std::string> expected{
+      "Map 0x4B",       "Tile16 0x123",    "Sample Tile16",
+      "Edit Tile16...", "Select This Map", "Map Properties...",
+      "Pin Map",        "Insert",          "View"};
   EXPECT_EQ(labels, expected);
   auto* map_properties = FindRootMenuItem(canvas_, "Map Properties");
   ASSERT_NE(map_properties, nullptr);
-  EXPECT_EQ(map_properties->shortcut, "Double-click");
+  EXPECT_TRUE(map_properties->shortcut.empty());
+  EXPECT_EQ(map_properties->tooltip,
+            "Double-click the map to open properties.");
+  auto* map = FindRootMenuItem(canvas_, "Map 0x4B");
+  ASSERT_NE(map, nullptr);
+  EXPECT_EQ(map->tooltip, "0x4B");
+  auto* tile = FindRootMenuItem(canvas_, "Tile16 0x123");
+  ASSERT_NE(tile, nullptr);
+  EXPECT_EQ(tile->tooltip, "Tile coordinates: (2, 1)");
 }
 
 TEST_F(MapPropertiesContextMenuTest, SelectThisMapHiddenWhenAlreadyCurrent) {
@@ -548,10 +551,12 @@ class CanvasContextMenuOpenTest : public ::testing::Test {
     }
     popup_open_ = ImGui::IsPopupOpen("CaptureCanvasContext");
     popup_padding_ = ImVec2(-1, -1);
+    popup_width_ = 0;
     for (ImGuiWindow* window : context_->Windows) {
       if (window->Active && (window->Flags & ImGuiWindowFlags_Popup) &&
           std::string(window->Name).find("##Popup_") == 0) {
         popup_padding_ = window->WindowPadding;
+        popup_width_ = window->Size.x;
       }
     }
     ImGui::End();
@@ -576,6 +581,7 @@ class CanvasContextMenuOpenTest : public ::testing::Test {
   bool allow_open_ = true;
   bool popup_open_ = false;
   bool no_padding_ = false;
+  float popup_width_ = 0;
   ImVec2 popup_padding_{-1, -1};
   ImVec2 captured_position_{};
   std::vector<int> rendered_targets_;
@@ -592,6 +598,49 @@ TEST_F(CanvasContextMenuOpenTest, RespectsBuiltinMenuVisibilityAtRenderTime) {
   canvas_->SetShowBuiltinContextMenu(true);
   Frame(position);
   EXPECT_NE(rendered_text_.find("View Controls"), std::string::npos);
+}
+
+TEST_F(CanvasContextMenuOpenTest, OverworldMetadataDoesNotWidenActionMenu) {
+  MapPropertiesSystem system(nullptr, nullptr);
+  OverworldContextTarget target;
+  target.map_id = 0x06;
+  target.parent_map_id = 0x06;
+  target.world = 0;
+  target.game_state = 0;
+  target.world_position = ImVec2(3472, 128);
+  target.tile16_id = 0x034;
+  bool map_lock = false;
+  system.SetShortcutHintProvider([](const char*) { return "Cmd+L"; });
+  canvas_->SetContextMenuOpenCallback([&](const ImVec2&) {
+    system.SetupCanvasContextMenu(*canvas_, target, map_lock, 0);
+    return true;
+  });
+  const ImVec2 position = At(64, 64);
+  Open(position);
+  Frame(position);
+  Frame(position);
+  ASSERT_TRUE(popup_open_);
+  const float compact_width = popup_width_;
+  ASSERT_GT(compact_width, 0);
+
+  auto* map = FindRootMenuItem(*canvas_, "Map 0x06");
+  ASSERT_NE(map, nullptr);
+  // A project-supplied name remains available without setting column width.
+  map->tooltip = "0x06 | Light World | Glacia Estate Approach";
+  Frame(position);
+  Frame(position);
+  EXPECT_FLOAT_EQ(popup_width_, compact_width);
+
+  // Reconstruct the reported layout through the same production renderer.
+  map->label = map->tooltip;
+  auto* properties = FindRootMenuItem(*canvas_, "Map Properties");
+  ASSERT_NE(properties, nullptr);
+  properties->shortcut = "Double-click";
+  Frame(position);
+  Frame(position);
+  EXPECT_GT(popup_width_, compact_width + 100.0f);
+  RecordProperty("compact_width_px", std::to_string(compact_width));
+  RecordProperty("previous_width_px", std::to_string(popup_width_));
 }
 
 TEST_F(CanvasContextMenuOpenTest,
