@@ -1223,12 +1223,16 @@ absl::Status DungeonEditorV2::Load() {
       dependencies_.window_manager->RegisterWindowContent(
           std::move(tile_editor_panel),
           WorkbenchTool().WithHost(
-              "Canvas selection menu > Edit Object Tiles"));
+              "Object navigator or canvas selection menu > Edit tiles"));
     }
 
     // Wire fixed-slot custom-object management actions to their workspace
     // windows.
     if (object_selector_panel_) {
+      object_selector_panel_->object_selector().SetEditObjectTilesCallback(
+          [this](int room_id, const zelda3::RoomObject& object) {
+            return OpenObjectTileEditorForObject(room_id, object);
+          });
       object_selector_panel_->object_selector().SetTileEditorPanel(
           object_tile_editor_panel_);
       object_selector_panel_->object_selector().SetOpenTileEditorWindowCallback(
@@ -2410,8 +2414,7 @@ absl::Status DungeonEditorV2::OpenObjectTileEditorForObject(
   }
   if (!zelda3::ObjectTileEditor::IsEditableStandardObject(object.id_)) {
     return absl::UnimplementedError(
-        "Object tile editing is supported only for audited objects 0x11F and "
-        "0x120");
+        "Tile editing is not yet supported for this object layout");
   }
   if (game_data_ == nullptr ||
       game_data_->palette_groups.dungeon_main.empty()) {

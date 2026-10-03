@@ -396,8 +396,7 @@ void RoomGraphicsContent::Draw(bool* p_open) {
   if (!patterns.ok()) {
     ImGui::TextWrapped("%s", patterns.status().ToString().c_str());
   } else if (*patterns) {
-    ImGui::TextWrapped(
-        "%s", tr("Standard object patterns: source preview (read-only)"));
+    ImGui::TextWrapped("%s", tr("Standard object patterns: source file"));
     ImGui::TextWrapped("%s", (*patterns)->source_path.c_str());
     ImGui::TextDisabled(tr("%zu tile words; ROM bytes unchanged"),
                         (*patterns)->words.size());

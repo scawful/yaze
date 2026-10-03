@@ -29,6 +29,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/minecart_track_source.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
@@ -62,6 +63,23 @@ namespace yaze::editor {
 
 class AuthoringSaveWorkflowTestPeer {
  public:
+  static ObjectTileEditorPanel* OpenObjectTiles(DungeonEditorV2& editor,
+                                                int room_id, int id) {
+    zelda3::RoomObject object(id, 0, 0, 0, 0);
+    const auto status = editor.OpenObjectTileEditorForObject(room_id, object);
+    EXPECT_TRUE(status.ok()) << status;
+    return status.ok() ? editor.object_tile_editor_panel_ : nullptr;
+  }
+  static void PublishFirstWallTile(ObjectTileEditorPanel& panel) {
+    auto& cell = panel.current_layout_.cells.front();
+    cell.tile_info.id_ ^= 0x10;
+    cell.modified = true;
+    panel.ApplyChanges();
+    if (panel.pending_shared_confirmation_)
+      panel.ApplyChanges(false);
+    EXPECT_FALSE(panel.HasUnappliedChanges()) << panel.action_status_message_;
+  }
+
   static absl::Status OpenScreenGraphics(ScreenEditor& editor) {
     editor.selected_tile8_ = 64;
     return editor.OpenDungeonMapTileGraphics();
@@ -365,6 +383,10 @@ struct DisposableOracleProject {
 class AuthoringSaveWorkflowTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    original_custom_state_ = zelda3::CustomObjectManager::Get().SnapshotState();
+    original_custom_context_ =
+        zelda3::CustomObjectManager::Get().active_runtime_context_id();
+    original_flags_ = core::FeatureFlags::get();
     // NullRenderer cannot fulfill texture uploads. Do not retry work whose
     // Bitmap owners belonged to a previous application fixture.
     gfx::Arena::Get().ClearTextureQueue();
@@ -374,12 +396,19 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
         !std::filesystem::exists(kSharedCollision)) {
       GTEST_SKIP() << "Oracle base ROM/project fixture is not available";
     }
-    original_flags_ = core::FeatureFlags::get();
   }
 
   void TearDown() override {
     gfx::Arena::Get().ClearTextureQueue();
     manager_.reset();
+    auto& custom = zelda3::CustomObjectManager::Get();
+    if (original_custom_context_) {
+      custom.ActivateRuntimeContext(*original_custom_context_,
+                                    original_custom_state_);
+    } else {
+      custom.ActivateStandaloneContext();
+      custom.RestoreState(original_custom_state_);
+    }
     gfx::Arena::Get().ClearTextureQueue();
     core::FeatureFlags::get() = original_flags_;
     zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
@@ -514,6 +543,8 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
 
   std::filesystem::path root_;
   core::FeatureFlags::Flags original_flags_{};
+  zelda3::CustomObjectManager::State original_custom_state_;
+  std::optional<uint64_t> original_custom_context_;
   ScopedImGuiContext imgui_;
   gfx::NullRenderer renderer_;
   std::unique_ptr<EditorManager> manager_;
@@ -1947,6 +1978,22 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(room.object_bg1_buffer().bitmap().vector(), preview);
   EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory_before);
 
+  // Exercise the same tile editor action used by the catalog and canvas.
+  // Publish twice in one session to verify its source snapshot is refreshed.
+  auto* tiles =
+      AuthoringSaveWorkflowTestPeer::OpenObjectTiles(*dungeon, kRoom, 0x100);
+  ASSERT_NE(tiles, nullptr);
+  AuthoringSaveWorkflowTestPeer::PublishFirstWallTile(*tiles);
+  const auto changed_patterns = ReadFile(patterns_path);
+  EXPECT_NE(changed_patterns, ReadFile(source));
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory_before);
+  room.PrepareForRender();
+  EXPECT_NE(room.object_bg1_buffer().bitmap().vector(), preview);
+  AuthoringSaveWorkflowTestPeer::PublishFirstWallTile(*tiles);
+  EXPECT_EQ(ReadFile(patterns_path), ReadFile(source));
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory_before);
+  AuthoringSaveWorkflowTestPeer::PublishFirstWallTile(*tiles);
+
   const auto object = room.GetTileObjects().front();
   auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
   ASSERT_NE(viewer, nullptr);
@@ -1981,7 +2028,7 @@ TEST_F(AuthoringSaveWorkflowTest,
   reopened.PrepareForRender();
   EXPECT_EQ(reopened.GetTileObjects().front().x_, object.x_ + 1);
   EXPECT_EQ(reopened.object_bg1_buffer().bitmap().vector(), edited_preview);
-  EXPECT_EQ(ReadFile(patterns_path), ReadFile(source));
+  EXPECT_EQ(ReadFile(patterns_path), changed_patterns);
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);

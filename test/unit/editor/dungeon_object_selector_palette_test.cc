@@ -26,6 +26,9 @@ namespace yaze {
 namespace editor {
 
 struct DungeonObjectSelectorTestAccess {
+  static void DrawContextMenu(DungeonObjectSelector& selector, int id) {
+    selector.DrawObjectContextMenu(id);
+  }
   static void SetUsedHere(DungeonObjectSelector& selector, bool enabled) {
     selector.used_here_only_ = enabled;
   }
@@ -311,6 +314,79 @@ TEST(DungeonObjectSelectorPaletteTest,
   DungeonObjectSelectorTestAccess::SetUsedHere(selector, false);
   EXPECT_TRUE(
       DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x31));
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     RightClickEditTilesUsesRoomWithoutSelectingOrPlacing) {
+  auto* previous = ImGui::GetCurrentContext();
+  auto* context = ImGui::CreateContext();
+  ImGui::SetCurrentContext(context);
+  auto& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(800, 600);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.IniFilename = nullptr;
+  io.LogFilename = nullptr;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  DungeonRoomStore rooms;
+  rooms[5].SetLoaded(true);
+  DungeonObjectSelector selector;
+  selector.set_rooms(&rooms);
+  selector.set_current_room_id(5);
+  int calls = 0;
+  selector.SetEditObjectTilesCallback(
+      [&](int room_id, const zelda3::RoomObject& object) {
+        ++calls;
+        EXPECT_EQ(room_id, 5);
+        EXPECT_EQ(object.id_, 0x100);
+        return absl::OkStatus();
+      });
+  const int selection = selector.selected_object_id_for_testing();
+  ImVec2 card_center;
+  ImVec2 action_center;
+  bool found_popup = false;
+  const auto frame = [&] {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(30, 30));
+    ImGui::SetNextWindowSize(ImVec2(400, 300));
+    ImGui::Begin("ObjectCatalogContextTest", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    ImGui::Selectable("Wall corner", false, 0, ImVec2(80, 80));
+    card_center =
+        ImVec2(ImGui::GetItemRectMin().x + 40, ImGui::GetItemRectMin().y + 40);
+    DungeonObjectSelectorTestAccess::DrawContextMenu(selector, 0x100);
+    if (!context->OpenPopupStack.empty()) {
+      if (auto* popup = context->OpenPopupStack.back().Window) {
+        action_center =
+            ImVec2(popup->Pos.x + 50, popup->Pos.y + popup->WindowPadding.y +
+                                          ImGui::GetTextLineHeight() * 0.5f);
+        found_popup = true;
+      }
+    }
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  io.AddMousePosEvent(card_center.x, card_center.y);
+  io.AddMouseButtonEvent(1, true);
+  frame();
+  io.AddMouseButtonEvent(1, false);
+  frame();
+  frame();
+  EXPECT_TRUE(found_popup);
+  io.AddMousePosEvent(action_center.x, action_center.y);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  EXPECT_EQ(calls, 1);
+  EXPECT_EQ(selector.selected_object_id_for_testing(), selection);
+  EXPECT_TRUE(rooms[5].GetTileObjects().empty());
+  ImGui::DestroyContext(context);
+  ImGui::SetCurrentContext(previous);
 }
 
 TEST(DungeonObjectSelectorPaletteTest,

@@ -7,6 +7,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "core/source_artifact_publisher.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -57,6 +58,7 @@ absl::StatusOr<DungeonTilePatterns> ParseDungeonTilePatterns(
         "Dungeon pattern source exceeds 64 KiB");
   }
   DungeonTilePatterns result;
+  result.source_text = std::string(source);
   std::optional<uint32_t> cursor;
   int line_number = 0;
   for (absl::string_view line : absl::StrSplit(source, '\n')) {
@@ -96,6 +98,11 @@ absl::StatusOr<DungeonTilePatterns> ParseDungeonTilePatterns(
                  .second) {
           return fail("tile words overlap an earlier declaration");
         }
+        token = absl::StripAsciiWhitespace(token);
+        result.tokens.emplace(
+            *cursor, DungeonTilePatterns::Token{
+                         static_cast<size_t>(token.data() - source.data()),
+                         token.size()});
         *cursor += 2;
       }
     } else {
@@ -135,8 +142,61 @@ absl::StatusOr<DungeonTilePatterns> LoadDungeonTilePatterns(
     return absl::Status(result.status().code(),
                         path + ": " + std::string(result.status().message()));
   }
-  result->source_path = path;
+  const auto canonical_path = std::filesystem::canonical(path, error);
+  if (error)
+    return absl::NotFoundError("Cannot resolve dungeon pattern source: " +
+                               path);
+  result->source_path = canonical_path.string();
   return result;
+}
+
+absl::Status PublishDungeonTilePatterns(
+    const DungeonTilePatterns& expected,
+    const std::map<uint32_t, uint16_t>& replacements) {
+  if (expected.source_path.empty()) {
+    return absl::FailedPreconditionError("Pattern source has no file path");
+  }
+  auto lock = core::AcquireSourceArtifactPublicationLock(
+      {expected.source_path},
+      {"dungeon tile patterns", "dungeon pattern source"});
+  if (!lock.ok())
+    return lock.status();
+  auto current = LoadDungeonTilePatterns(expected.source_path);
+  if (!current.ok())
+    return current.status();
+  if (current->source_text != expected.source_text) {
+    return absl::AbortedError(
+        "Wall pattern source changed after opening; reopen before applying");
+  }
+  std::map<size_t, std::pair<size_t, uint16_t>, std::greater<size_t>> edits;
+  for (const auto& [pc, word] : replacements) {
+    const auto token = current->tokens.find(pc);
+    if (token == current->tokens.end()) {
+      return absl::FailedPreconditionError(
+          "Tile is not owned by this pattern source");
+    }
+    edits.emplace(token->second.offset,
+                  std::make_pair(token->second.length, word));
+  }
+  std::string after = current->source_text;
+  for (const auto& [offset, edit] : edits) {
+    after.replace(offset, edit.first, absl::StrFormat("$%04X", edit.second));
+  }
+  auto parsed = ParseDungeonTilePatterns(after);
+  if (!parsed.ok())
+    return parsed.status();
+  auto expected_words = current->words;
+  for (const auto& [pc, word] : replacements)
+    expected_words.at(pc) = word;
+  if (parsed->words != expected_words) {
+    return absl::DataLossError("Pattern edit changed unrelated tile words");
+  }
+  return core::PublishSourceArtifacts(
+      **lock,
+      {{.target = expected.source_path,
+        .before = expected.source_text,
+        .after = after}},
+      core::ComputeSourceArtifactSha256(expected.source_text));
 }
 
 }  // namespace yaze::zelda3

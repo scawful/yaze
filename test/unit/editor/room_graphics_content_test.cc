@@ -165,8 +165,7 @@ TEST_F(RoomGraphicsContentTest,
   }
   assets.SetTilePatternsSource(patterns_path.string());
   draw();
-  EXPECT_TRUE(
-      has_label("Standard object patterns: source preview (read-only)"));
+  EXPECT_TRUE(has_label("Standard object patterns: source file"));
   EXPECT_TRUE(has_label("1 tile words; ROM bytes unchanged"));
   const auto before_reload = assets.asset_generation();
   {
@@ -184,7 +183,7 @@ TEST_F(RoomGraphicsContentTest,
   EXPECT_TRUE(has_label("unsupported statement"));
   assets.SetTilePatternsSource("");
   draw();
-  EXPECT_FALSE(has_label("source preview (read-only)"));
+  EXPECT_FALSE(has_label("source file"));
   EXPECT_TRUE(has_label("Shared by 2 rooms and 1 map screen"));
   click("Shared assignment details");
   EXPECT_TRUE(has_label("Map references overridden by custom sheets (1)"));
