@@ -3,6 +3,7 @@
 #include "zelda3/game_data.h"
 
 #include <algorithm>
+#include <filesystem>
 
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
@@ -390,6 +391,18 @@ RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id,
       editors(&rom, &game_data, user_settings, session_id, editor_registry) {
   filepath = rom.filename();
   feature_flags = core::FeatureFlags::Flags{};
+  CaptureRomIdentity();
+}
+
+void RomSession::CaptureRomIdentity() {
+  if (!rom.is_loaded()) {
+    rom_baseline.reset();
+    return;
+  }
+  auto path = std::filesystem::path(rom.filename()).lexically_normal();
+  path.make_preferred();
+  rom_baseline = RomBaselineIdentity{
+      util::ComputeRomIdentityHashes(rom.data(), rom.size()), path.string()};
 }
 
 RomSession::~RomSession() {

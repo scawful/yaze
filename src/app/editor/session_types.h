@@ -20,6 +20,7 @@
 #include "core/features.h"
 #include "core/project.h"
 #include "rom/rom.h"
+#include "util/rom_hash.h"
 #include "zelda3/game_data.h"
 
 namespace yaze::core {
@@ -162,6 +163,11 @@ class EditorSet {
   std::unique_ptr<GfxGroupWorkspaceState> gfx_group_workspace_;
 };
 
+struct RomBaselineIdentity {
+  util::RomIdentityHashes hashes;
+  std::string normalized_path;
+};
+
 /**
  * @struct RomSession
  * @brief Represents a single session, containing a ROM and its associated
@@ -169,6 +175,11 @@ class EditorSet {
  */
 struct RomSession {
   Rom rom;
+  // Identity of loaded/committed bytes, independent of pending raw/model edits.
+  // Empty sessions have no baseline. Session activation must never capture it.
+  std::optional<RomBaselineIdentity> rom_baseline;
+  void CaptureRomIdentity();
+
   zelda3::GameData game_data;
   EditorSet editors;
   std::string custom_name;  // User-defined session name

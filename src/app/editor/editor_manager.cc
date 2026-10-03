@@ -1777,9 +1777,9 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
   test::TestManager::Get().SetCurrentRom(session ? &session->rom : nullptr);
 #endif
 
-  // RomLifecycleManager caches both identity hash and path; refresh them for
-  // the newly active session before its next save-policy check.
-  UpdateCurrentRomHash();
+  // Restore this session's loaded/committed identity, never its pending bytes,
+  // before the next save-policy check (including transient activation).
+  RestoreCurrentRomIdentity();
 
   LOG_DEBUG("EditorManager", "Session switched to %zu via EventBus", new_index);
 }
@@ -1810,7 +1810,7 @@ void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
     RestoreProjectContextForSession(session);
     gfx::PaletteManager::Get().ActivateSession(session ? &session->game_data
                                                        : nullptr);
-    UpdateCurrentRomHash();
+    RestoreCurrentRomIdentity();
   }
   LOG_INFO("EditorManager", "Session %zu created via EventBus", index);
 }
@@ -3944,7 +3944,7 @@ absl::Status EditorManager::LoadRomInternal() {
 
     ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                                 GetCurrentSessionId());
-    UpdateCurrentRomHash();
+    RestoreCurrentRomIdentity();
 
     // HandleSessionCreated binds the project context that governed this open.
     // Reapply it here rather than partially clearing global runtime state.
@@ -4631,7 +4631,7 @@ absl::Status EditorManager::SaveRomInternal(
   if (save_status.ok()) {
     editor_transactions.Commit();
     rom_transaction.Commit();
-    UpdateCurrentRomHash();
+    CaptureCurrentRomIdentity();
     if (session_coordinator_) {
       if (auto* session = session_coordinator_->GetActiveRomSession()) {
         session->backup_restore_pending = false;
@@ -4775,7 +4775,7 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
 
     ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                                 GetCurrentSessionId());
-    UpdateCurrentRomHash();
+    RestoreCurrentRomIdentity();
 
     // Apply project feature flags to both session and global singleton
     session->feature_flags = current_project_.feature_flags;
@@ -5304,7 +5304,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
 
   ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                               GetCurrentSessionId());
-  UpdateCurrentRomHash();
+  RestoreCurrentRomIdentity();
 
   // Auto-enable custom object rendering when a project defines custom object
   // data but the stale feature flag is off.
@@ -5533,7 +5533,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   ResetAssetState(session);
   ConfigureSession(session);
   HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
-  UpdateCurrentRomHash();
+  // Retain the prior baseline until the replacement and its assets succeed.
   auto load_status = LoadAssetsForMode();
   if (load_status.ok() && game_data_was_loaded && !session->game_data_loaded) {
     load_status = EnsureGameDataLoaded();
@@ -5564,7 +5564,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     ResetAssetState(session);
     ConfigureSession(session);
     HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
-    UpdateCurrentRomHash();
+    RestoreCurrentRomIdentity();
     auto rollback_status = LoadAssetsForMode();
     if (game_data_was_loaded && !session->game_data_loaded) {
       auto game_data_status = EnsureGameDataLoaded();
@@ -5600,6 +5600,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     }
     return load_status;
   }
+  CaptureCurrentRomIdentity();
   ApplyCurrentProjectRuntimeContext();
   return absl::OkStatus();
 }
@@ -6271,7 +6272,7 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
         // Update test manager with current ROM for ROM-dependent tests
         test::TestManager::Get().SetCurrentRom(GetCurrentRom());
         RefreshResourceLabelProvider();
-        UpdateCurrentRomHash();
+        RestoreCurrentRomIdentity();
         return absl::OkStatus();
       }
     }
@@ -6286,8 +6287,19 @@ void EditorManager::ApplyDefaultBackupPolicy() {
       user_settings_.prefs().backup_before_save, "", 20, true, 14);
 }
 
-void EditorManager::UpdateCurrentRomHash() {
-  rom_lifecycle_.UpdateCurrentRomHash(GetCurrentRom());
+void EditorManager::CaptureCurrentRomIdentity() {
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      session->CaptureRomIdentity();
+    }
+  }
+  RestoreCurrentRomIdentity();
+}
+
+void EditorManager::RestoreCurrentRomIdentity() {
+  rom_lifecycle_.ActivateRomIdentity(
+      session_coordinator_ ? session_coordinator_->GetActiveRomSession()
+                           : nullptr);
 }
 
 // IsRomHashMismatch() is now inline in editor_manager.h delegating to
@@ -6455,7 +6467,7 @@ void EditorManager::CloseCurrentSession() {
   }
 
   session_coordinator_->CloseCurrentSession();
-  UpdateCurrentRomHash();
+  RestoreCurrentRomIdentity();
 }
 
 void EditorManager::CloseRom() {
@@ -6556,7 +6568,7 @@ void EditorManager::RemoveSession(size_t index) {
   }
 
   session_coordinator_->RemoveSession(index);
-  UpdateCurrentRomHash();
+  RestoreCurrentRomIdentity();
 }
 
 void EditorManager::SwitchToSession(size_t index) {
@@ -6909,7 +6921,7 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
             ResolveSessionIndexById(action.target_session_id);
         if (target_index.has_value()) {
           session_coordinator_->RemoveSession(*target_index);
-          UpdateCurrentRomHash();
+          RestoreCurrentRomIdentity();
         }
       }
       break;
@@ -6919,7 +6931,7 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
             ResolveSessionIndexById(action.target_session_id);
         if (target_index.has_value()) {
           session_coordinator_->CloseSessionAllowingEmpty(*target_index);
-          UpdateCurrentRomHash();
+          RestoreCurrentRomIdentity();
         }
       }
       break;

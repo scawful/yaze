@@ -10,6 +10,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/session_types.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
@@ -137,15 +138,14 @@ void RomLifecycleManager::Initialize(Dependencies deps) {
 // ROM Hash & Write Policy
 // =============================================================================
 
-void RomLifecycleManager::UpdateCurrentRomHash(Rom* rom) {
-  if (!rom || !rom->is_loaded()) {
+void RomLifecycleManager::ActivateRomIdentity(const RomSession* session) {
+  if (!session || !session->rom.is_loaded() || !session->rom_baseline) {
     current_rom_identity_ = {};
     current_rom_path_.clear();
     return;
   }
-  current_rom_identity_ =
-      util::ComputeRomIdentityHashes(rom->data(), rom->size());
-  current_rom_path_ = NormalizePath(rom->filename());
+  current_rom_identity_ = session->rom_baseline->hashes;
+  current_rom_path_ = session->rom_baseline->normalized_path;
 }
 
 bool RomLifecycleManager::IsRomHashMismatch() const {
