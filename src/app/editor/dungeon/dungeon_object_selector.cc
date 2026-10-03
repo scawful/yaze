@@ -444,12 +444,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
     const bool stack_filters = toolbar_width < 230.0f;
     const float filter_row_width =
         std::max(1.0f, toolbar_width - more_width - control_spacing);
+    const float used_width = ImGui::GetFrameHeight() +
+                             ImGui::CalcTextSize("Used here").x +
+                             style.ItemInnerSpacing.x;
     const float category_width =
-        stack_filters ? toolbar_width : filter_row_width * 0.56f;
-    const float stream_width =
-        stack_filters ? filter_row_width
-                      : std::max(1.0f, filter_row_width - category_width -
-                                           control_spacing);
+        stack_filters
+            ? toolbar_width
+            : std::max(1.0f, filter_row_width - used_width - control_spacing);
 
     ImGui::SetNextItemWidth(category_width);
     ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
@@ -462,9 +463,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
     if (!stack_filters) {
       ImGui::SameLine(0.0f, control_spacing);
     }
-    ImGui::SetNextItemWidth(stream_width);
-    ImGui::Combo("##ObjectStreamFilter", &object_stream_filter_, kStreamLabels,
-                 IM_ARRAYSIZE(kStreamLabels));
+    ImGui::Checkbox("Used here", &used_here_only_);
     ImGui::SameLine(0.0f, control_spacing);
     if (ImGui::Button(kMoreLabel, ImVec2(more_width, 0.0f))) {
       ImGui::OpenPopup("##ObjectSelectorOptionsPopup");
@@ -472,12 +471,17 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
     if (ImGui::BeginPopup("##ObjectSelectorOptionsPopup")) {
       const bool has_filters = object_search_buffer_[0] != '\0' ||
                                object_type_filter_ != 0 ||
-                               object_stream_filter_ != 0;
+                               object_stream_filter_ != 0 || used_here_only_;
       if (ImGui::MenuItem(tr("Clear filters"), nullptr, false, has_filters)) {
         object_search_buffer_[0] = '\0';
         object_type_filter_ = 0;
         object_stream_filter_ = 0;
+        used_here_only_ = false;
       }
+
+      ImGui::SetNextItemWidth(130.0f);
+      ImGui::Combo("Object stream", &object_stream_filter_, kStreamLabels,
+                   IM_ARRAYSIZE(kStreamLabels));
 
       ImGui::SeparatorText(tr("Display"));
       ImGui::Checkbox(tr("Show thumbnails"), &enable_object_previews_);
@@ -541,6 +545,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
         if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
           continue;
         }
+        if (!MatchesRoomUsage(obj_id))
+          continue;
         if (!MatchesDungeonObjectStreamFilter(obj_id, object_stream_filter_)) {
           continue;
         }
@@ -770,6 +776,18 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
   }
 
   ImGui::EndChild();
+}
+
+bool DungeonObjectSelector::MatchesRoomUsage(int obj_id) const {
+  if (!used_here_only_)
+    return true;
+  const auto* room = rooms_ ? rooms_->GetIfLoaded(current_room_id_) : nullptr;
+  if (!room)
+    return false;
+  const auto& objects = room->GetTileObjects();
+  return std::any_of(
+      objects.begin(), objects.end(),
+      [obj_id](const auto& object) { return object.id_ == obj_id; });
 }
 
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {

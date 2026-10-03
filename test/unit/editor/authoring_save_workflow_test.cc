@@ -143,6 +143,9 @@ class AuthoringSaveWorkflowTestPeer {
   static void SelectDungeonEntrance(DungeonEditorV2& editor, int slot) {
     editor.OnEntranceSelected(slot);
   }
+  static void PreviewDungeonEntrance(DungeonEditorV2& editor, int slot) {
+    editor.SetGraphicsPreviewEntrance(slot);
+  }
 
   static absl::Status EditAreaGraphics(OverworldEditor& editor, int map_id,
                                        int group) {
@@ -1727,6 +1730,32 @@ TEST_F(AuthoringSaveWorkflowTest,
   auto* data = dungeon->game_data();
   ASSERT_NE(data, nullptr);
   const auto bytes = manager_->GetCurrentRom()->vector();
+  ASSERT_OK(manager_->GetCurrentProject()->hack_manifest.LoadProjectRegistry(
+      std::filesystem::path(kSharedProject).parent_path().string()));
+  // Auto resolves project membership immediately, including a direct jump to
+  // an interior room. Preview changes must not navigate to the entrance room.
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, 0x89);
+  EXPECT_EQ(dungeon->current_room_id(), 0x89);
+  auto* automatic_viewer =
+      AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, 0x89);
+  ASSERT_NE(automatic_viewer, nullptr);
+  EXPECT_EQ(automatic_viewer->current_entrance_blockset(), 4);
+  auto& automatic_room = dungeon->rooms()[0x89];
+  automatic_room.PrepareForRender();
+  EXPECT_EQ(automatic_room.blocks()[2], data->main_blockset_ids[4][2]);
+  AuthoringSaveWorkflowTestPeer::PreviewDungeonEntrance(
+      *dungeon, zelda3::kNumDungeonSpawnPoints);
+  EXPECT_EQ(dungeon->current_room_id(), 0x89);
+  EXPECT_EQ(automatic_viewer->current_entrance_blockset(), 3);
+  AuthoringSaveWorkflowTestPeer::PreviewDungeonEntrance(*dungeon, -1);
+  EXPECT_EQ(dungeon->current_room_id(), 0x89);
+  EXPECT_EQ(automatic_viewer->current_entrance_blockset(), 4);
+  for (const auto [room_id, main] : {std::pair{0x90, 1}, std::pair{0x89, 4}}) {
+    AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, room_id);
+    EXPECT_EQ(AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, room_id)
+                  ->current_entrance_blockset(),
+              main);
+  }
   // 00 and 06 isolate preview persistence; 29 and 2D also exercise Oracle's
   // relocated records, whose main sets differ from the stale vanilla tables.
   // Expected sheets come from the ROM group table reached by PC6237.

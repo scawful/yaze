@@ -133,6 +133,7 @@ class DungeonEditorV2EntranceCameraTestPeer {
                                           int slot_index, int room_id,
                                           uint8_t main_gfx) {
     editor.current_entrance_id_ = slot_index;
+    editor.automatic_entrance_preview_ = false;
     editor.entrances_[slot_index].room_ = static_cast<int16_t>(room_id);
     editor.entrances_[slot_index].blockset_ = main_gfx;
   }
@@ -502,6 +503,41 @@ TEST(DungeonRenderContextTest, SelectedEntranceOwnsSiblingRooms) {
   EXPECT_EQ(context.owner_id, "D1");
 }
 
+TEST(DungeonRenderContextTest, ProjectMembershipWorksWithoutManifestOrCensus) {
+  core::DungeonEntry dungeon;
+  dungeon.id = "D6";
+  dungeon.name = "Goron Mines";
+  dungeon.rooms = {{.id = 0x89}, {.id = 0x98}};
+  const std::array candidates = {
+      DungeonRenderEntranceCandidate{.slot = 7, .room_id = 0x90, .main_gfx = 3},
+      DungeonRenderEntranceCandidate{
+          .slot = 0x2E, .room_id = 0x98, .main_gfx = 4}};
+  const auto automatic = ResolveDungeonRenderContext(0x89, -1, 6, nullptr,
+                                                     candidates, {}, &dungeon);
+  EXPECT_EQ(automatic.entrance_slot, 0x2E);
+  EXPECT_EQ(automatic.effective_blockset(), 4);
+  EXPECT_EQ(automatic.owner_name, "Goron Mines");
+  const auto manual = ResolveDungeonRenderContext(0x89, 7, 6, nullptr,
+                                                  candidates, {}, &dungeon);
+  EXPECT_EQ(manual.entrance_slot, 7);
+  EXPECT_EQ(manual.effective_blockset(), 3);
+}
+
+TEST(DungeonRenderContextTest, ConflictingDirectEntrancesStayAmbiguous) {
+  const std::array candidates = {
+      DungeonRenderEntranceCandidate{.slot = 7, .room_id = 0x89, .main_gfx = 3},
+      DungeonRenderEntranceCandidate{
+          .slot = 8, .room_id = 0x89, .main_gfx = 4}};
+  const auto context = ResolveDungeonRenderContext(
+      0x89, -1, 6, nullptr, candidates,
+      {.entrance_id = 0,
+       .main_blockset = 3,
+       .source = zelda3::RoomEntranceSource::kDirect});
+  EXPECT_FALSE(context.uses_entrance());
+  EXPECT_EQ(context.source, DungeonRenderContextSource::kAmbiguous);
+  EXPECT_EQ(context.effective_blockset(), 6);
+}
+
 TEST(DungeonRenderContextTest, DirectTargetWorksWithoutCensusOwnership) {
   const std::array candidates = {
       DungeonRenderEntranceCandidate{
@@ -538,7 +574,7 @@ TEST(DungeonRenderContextTest, SelectedEntranceSurvivesUnrelatedRoomBrowsing) {
   EXPECT_EQ(changed.effective_blockset(), 10);
 }
 
-TEST(DungeonRenderContextTest, MissingSelectionDoesNotInferWithoutOwner) {
+TEST(DungeonRenderContextTest, MissingSelectionUsesUnambiguousDirectEntrance) {
   const std::array candidates = {
       DungeonRenderEntranceCandidate{
           .slot = 9, .room_id = 0x44, .main_gfx = 0x12},
@@ -548,9 +584,9 @@ TEST(DungeonRenderContextTest, MissingSelectionDoesNotInferWithoutOwner) {
       0x44, /*selected_entrance_slot=*/0, /*room_header_blockset=*/0x08,
       nullptr, candidates);
 
-  EXPECT_EQ(context.source, DungeonRenderContextSource::kRoomHeaderFallback);
-  EXPECT_FALSE(context.uses_entrance());
-  EXPECT_EQ(context.effective_blockset(), 0x08);
+  EXPECT_EQ(context.source, DungeonRenderContextSource::kDirectEntrance);
+  EXPECT_TRUE(context.uses_entrance());
+  EXPECT_EQ(context.effective_blockset(), 0x12);
 }
 
 TEST(DungeonRenderContextTest, InfersOwnerWhenAllEntrancesAgree) {
@@ -611,7 +647,7 @@ TEST(DungeonRenderContextTest, ViewerUsesResolvedOwnerEntranceSlot) {
   EXPECT_EQ(viewer.current_entrance_blockset(), 0x2A);
 }
 
-TEST(DungeonRenderContextTest, AmbiguousOwnerReportsLoaderDefault) {
+TEST(DungeonRenderContextTest, AmbiguousOwnerDoesNotTrustMatrixNeighbor) {
   const auto census = MakeCensus({{0x50, 0x51, 0x52}});
   const std::array candidates = {
       DungeonRenderEntranceCandidate{.slot = 7, .room_id = 0x50, .main_gfx = 1},
@@ -626,9 +662,9 @@ TEST(DungeonRenderContextTest, AmbiguousOwnerReportsLoaderDefault) {
       ResolveDungeonRenderContext(0x52, -1, 7, &census, candidates, fallback);
   EXPECT_EQ(context.source, DungeonRenderContextSource::kAmbiguous);
   EXPECT_FALSE(context.uses_entrance());
-  EXPECT_EQ(context.effective_blockset(), 1);
+  EXPECT_EQ(context.effective_blockset(), 7);
   EXPECT_STREQ(DungeonRenderContextSourceName(context),
-               "Default entrance inferred from neighboring room");
+               "Ambiguous owner entrances");
 }
 
 TEST(DungeonRenderContextTest, SnapshotDefaultMatchesLoadedSheets) {
@@ -643,6 +679,8 @@ TEST(DungeonRenderContextTest, SnapshotDefaultMatchesLoadedSheets) {
       .source = zelda3::RoomEntranceSource::kDungeonMap};
   DungeonEditorV2 editor(&rom);
   editor.SetGameData(&data);
+  DungeonEditorV2EntranceCameraTestPeer::SetSelectedEntranceGraphics(
+      editor, 2 + zelda3::kNumDungeonSpawnPoints, 0x10, 1);
   DungeonEditorV2EntranceCameraTestPeer::ClearSelectedEntrance(editor);
   DungeonEditorV2EntranceCameraTestPeer::SetRenderContextCensus(editor, {});
   editor.rooms()[0x11] = zelda3::Room(0x11, &rom, &data);
@@ -659,9 +697,8 @@ TEST(DungeonRenderContextTest, SnapshotDefaultMatchesLoadedSheets) {
     }
     return std::string{};
   };
-  EXPECT_EQ(value_for("graphics_entrance"), "Entrance 02 (default)");
-  EXPECT_EQ(value_for("graphics_source"),
-            "Default entrance inferred from dungeon map");
+  EXPECT_EQ(value_for("graphics_entrance"), "Entrance 02");
+  EXPECT_EQ(value_for("graphics_source"), "Inferred owner entrance");
   EXPECT_EQ(value_for("blockset"), "main 0x01 / room 0x04");
 }
 

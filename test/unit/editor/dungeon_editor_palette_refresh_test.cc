@@ -889,6 +889,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   constexpr uint8_t kEntranceBlockset = 3;
   editor_->current_room_id_ = 0;
   editor_->current_entrance_id_ = 0;
+  editor_->automatic_entrance_preview_ = false;
   auto spawn_or = zelda3::DungeonSpawnPoint::Load(rom_, 0);
   ASSERT_TRUE(spawn_or.ok()) << spawn_or.status();
   editor_->spawn_points_[0] = *spawn_or;

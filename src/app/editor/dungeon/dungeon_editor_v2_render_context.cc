@@ -4,6 +4,7 @@
 #include <memory>
 #include <utility>
 
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/workspace/room_matrix_content.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
@@ -150,9 +151,12 @@ DungeonRenderContext DungeonEditorV2::ResolveDungeonRenderContextForRoom(
       default_entrance = {};
     }
   }
+  const auto* dungeon = dungeon_project_labels::FindDungeonForRoom(
+      dependencies_.project, room_id);
   return ResolveDungeonRenderContext(
-      room_id, current_entrance_id_, room_header_blockset,
-      GetDungeonRenderContextCensus(), candidates, default_entrance);
+      room_id, automatic_entrance_preview_ ? -1 : current_entrance_id_,
+      room_header_blockset, dungeon ? nullptr : GetDungeonRenderContextCensus(),
+      candidates, default_entrance, dungeon);
 }
 
 }  // namespace yaze::editor

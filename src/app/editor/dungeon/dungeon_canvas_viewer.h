@@ -490,6 +490,11 @@ class DungeonCanvasViewer {
   uint8_t current_entrance_blockset() const {
     return current_entrance_blockset_;
   }
+  // Auto may assign different graphics to rooms in a connected preview.
+  // The editor owns inference; standalone viewers retain their fixed context.
+  void SetEntranceBlocksetResolver(std::function<uint8_t(int)> resolver) {
+    entrance_blockset_resolver_ = std::move(resolver);
+  }
   void SetEntranceCameraOverlay(int entrance_slot,
                                 const DungeonEntranceCameraState& state) {
     camera_overlay_entrance_slot_ = entrance_slot;
@@ -1062,6 +1067,7 @@ class DungeonCanvasViewer {
   std::vector<int> recently_visited_rooms_;
   int current_entrance_id_ = -1;
   uint8_t current_entrance_blockset_ = 0xFF;
+  std::function<uint8_t(int)> entrance_blockset_resolver_;
   int camera_overlay_entrance_slot_ = -1;
   std::optional<DungeonEntranceCameraState> entrance_camera_overlay_;
   // Used by overworld editor for double-click entrance → open dungeon room

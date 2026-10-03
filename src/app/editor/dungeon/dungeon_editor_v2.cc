@@ -973,6 +973,12 @@ void DungeonEditorV2::Initialize() {
     auto entrances_panel = std::make_unique<DungeonEntrancesPanel>(
         &entrances_, &spawn_points_, &current_entrance_id_,
         [this](int entrance_id) { OnEntranceSelected(entrance_id); });
+    entrances_panel->SetGraphicsPreview(
+        [this]() {
+          return ResolveDungeonRenderContextForRoom(current_room_id_);
+        },
+        [this]() { return automatic_entrance_preview_; },
+        [this](int slot) { SetGraphicsPreviewEntrance(slot); });
     entrances_panel->SetCameraTools(
         [this](int slot_index) { return GetEntranceCameraState(slot_index); },
         [this](int slot_index) { return RepairEntranceCamera(slot_index); },
@@ -2027,6 +2033,13 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     workbench_panel_->NotifyRoomChanged(current_room_id_);
   }
   current_room_id_ = room_id;
+  if (automatic_entrance_preview_) {
+    const auto context = ResolveDungeonRenderContextForRoom(room_id);
+    if (context.uses_entrance()) {
+      current_entrance_id_ = context.entrance_slot;
+      room_selector_.set_current_entrance_id(current_entrance_id_);
+    }
+  }
   room_selector_.set_current_room_id(static_cast<uint16_t>(room_id));
 
   // Track recent rooms (remove if already present, add to front)
@@ -2152,6 +2165,7 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
     return;
   }
   current_entrance_id_ = entrance_id;
+  automatic_entrance_preview_ = false;
   room_selector_.set_current_entrance_id(entrance_id);
   RefreshEntranceCameraOverlays();
 
@@ -2160,6 +2174,16 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
     return;
   }
   OnRoomSelected(room_id);
+}
+
+void DungeonEditorV2::SetGraphicsPreviewEntrance(int entrance_id) {
+  if (entrance_id < -1 || entrance_id >= static_cast<int>(entrances_.size()))
+    return;
+  automatic_entrance_preview_ = entrance_id == -1;
+  if (!automatic_entrance_preview_)
+    current_entrance_id_ = entrance_id;
+  RefreshEntranceCameraOverlays();
+  OnRoomSelected(current_room_id_, /*request_focus=*/false);
 }
 
 int DungeonEditorV2::ResolveEntranceRoomId(int entrance_id) const {
@@ -2177,7 +2201,7 @@ uint8_t DungeonEditorV2::ResolveSelectedEntranceBlocksetForRoom(
     int room_id) const {
   const DungeonRenderContext context =
       ResolveDungeonRenderContextForRoom(room_id);
-  return context.uses_entrance() ? context.entrance_blockset : 0xFF;
+  return context.effective_blockset();
 }
 
 void DungeonEditorV2::ApplyEntranceRenderContext(int room_id) {
@@ -2199,15 +2223,14 @@ void DungeonEditorV2::ConfigureViewerRenderContext(DungeonCanvasViewer* viewer,
   }
   const DungeonRenderContext context =
       ResolveDungeonRenderContextForRoom(room_id);
-  if (!context.uses_entrance()) {
-    viewer->ClearEntranceRenderContext();
-  } else {
-    viewer->SetEntranceRenderContext(context.entrance_slot,
-                                     context.entrance_blockset);
-  }
-  const auto camera = GetEntranceCameraState(current_entrance_id_);
+  viewer->SetEntranceRenderContext(context.entrance_slot,
+                                   context.effective_blockset());
+  viewer->SetEntranceBlocksetResolver([this](int target_room) {
+    return ResolveSelectedEntranceBlocksetForRoom(target_room);
+  });
+  const auto camera = GetEntranceCameraState(context.entrance_slot);
   if (camera.has_value() && camera->room_id == room_id) {
-    viewer->SetEntranceCameraOverlay(current_entrance_id_, *camera);
+    viewer->SetEntranceCameraOverlay(context.entrance_slot, *camera);
   } else {
     viewer->ClearEntranceCameraOverlay();
   }

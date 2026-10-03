@@ -35,7 +35,7 @@ float ObjectResizeWheelDelta(const ImGuiIO& io) {
 }  // namespace
 
 void DungeonObjectInteraction::HandleCanvasMouseInput() {
-  const ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO& io = ImGui::GetIO();
   const bool hovered = canvas_->IsMouseHovering();
   const bool mouse_left_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
   const bool mouse_left_released =
@@ -70,8 +70,23 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   }
 
   if (hovered) {
-    if (pointer_within_room &&
-        entity_coordinator_.HandleMouseWheel(ObjectResizeWheelDelta(io))) {
+    if (pointer_within_room && ImGui::IsWindowHovered() &&
+        (io.MouseWheel != 0 || io.MouseWheelH != 0)) {
+      // A selected catalog object also owns its placement preview. Wheel input
+      // never edits an arbitrary object merely because the pointer covers it.
+      if (selection_.HasSelection() ||
+          entity_coordinator_.IsPlacementActive()) {
+        entity_coordinator_.HandleMouseWheel(ObjectResizeWheelDelta(io));
+      } else {
+        const ImVec2 scroll = canvas_->scrolling();
+        constexpr float kWheelPanPixels = 24.0f;
+        canvas_->set_scrolling(
+            ImVec2(scroll.x + io.MouseWheelH * kWheelPanPixels,
+                   scroll.y + io.MouseWheel * kWheelPanPixels));
+      }
+      // One gesture has one owner; the parent pane must not also scroll.
+      io.MouseWheel = 0;
+      io.MouseWheelH = 0;
       return;
     }
     HandleLayerKeyboardShortcuts();

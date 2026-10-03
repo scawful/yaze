@@ -227,6 +227,9 @@ class DungeonEditorV2 : public Editor {
     rooms_.SetRom(rom);
     // Reset viewers on ROM change
     if (rom_changed) {
+      automatic_entrance_preview_ = true;
+      current_entrance_id_ = zelda3::kNumDungeonSpawnPoints;
+      room_selector_.set_current_entrance_id(current_entrance_id_);
       rooms_.Clear();
       room_viewers_.Clear();
       workbench_viewer_.reset();
@@ -381,6 +384,7 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<ObjectCoveragePanel> CreateObjectCoveragePanel();
   void FocusObjectCoverage(int room_id, const zelda3::RoomObject& object);
   void OnEntranceSelected(int entrance_id);
+  void SetGraphicsPreviewEntrance(int entrance_id);
   int ResolveEntranceRoomId(int entrance_id) const;
 
   // Sync all sub-panels to the current room configuration
@@ -473,6 +477,7 @@ class DungeonEditorV2 : public Editor {
   // Current selection state
   // Combined slots begin with spawn points; regular Entrance 00 follows them.
   int current_entrance_id_ = zelda3::kNumDungeonSpawnPoints;
+  bool automatic_entrance_preview_ = true;
 
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
