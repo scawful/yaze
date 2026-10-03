@@ -13,7 +13,9 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_entrance_camera.h"
 #include "app/editor/dungeon/dungeon_entrance_edit_policy.h"
+#include "app/editor/dungeon/dungeon_render_context.h"
 #include "app/editor/system/workspace/editor_panel.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
@@ -74,6 +76,54 @@ class DungeonEntrancesPanel : public WindowContent {
       return false;
     }
     return navigation_shortcut_last_draw_frame_ >= ImGui::GetFrameCount() - 1;
+  }
+
+  // Shared preview selector: regular IDs are not the combined list slots,
+  // whose first entries are dedicated spawn points.
+  void DrawGraphicsContext() {
+    if (!entrances_ || !spawn_points_ || !current_entrance_id_)
+      return;
+    if (*current_entrance_id_ < 0 ||
+        *current_entrance_id_ >= static_cast<int>(entrances_->size()))
+      *current_entrance_id_ = zelda3::kNumDungeonSpawnPoints;
+    const int selected = *current_entrance_id_;
+    const uint8_t main_gfx = selected < zelda3::kNumDungeonSpawnPoints
+                                 ? (*spawn_points_)[selected].main_gfx
+                                 : (*entrances_)[selected].blockset_;
+    const std::string preview = absl::StrFormat(
+        "%s / GFX %02X", DungeonEntrancePreviewLabel(selected), main_gfx);
+    ImGui::SetNextItemWidth(-1);
+    const bool open = ImGui::BeginCombo("##GraphicsEntrance", preview.c_str());
+    gui::AutoRegisterLastItem("combo", "Graphics entrance");
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip(
+          "This entrance supplies the main graphics while you "
+          "browse rooms. Each room keeps its own graphics overrides.");
+    if (open) {
+      for (int slot = 0; slot < static_cast<int>(entrances_->size()); ++slot) {
+        const std::string entry = DungeonEntrancePreviewLabel(slot);
+        if (ImGui::Selectable(entry.c_str(), slot == selected)) {
+          *current_entrance_id_ = slot;
+          if (on_entrance_selected_)
+            on_entrance_selected_(slot);
+        }
+        gui::AutoRegisterLastItem("selectable", entry);
+        if (ImGui::IsItemHovered() && slot >= zelda3::kNumDungeonSpawnPoints)
+          ImGui::SetTooltip("%s", zelda3::GetEntranceLabel(
+                                      slot - zelda3::kNumDungeonSpawnPoints)
+                                      .c_str());
+        if (slot == selected)
+          ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
+    }
+  }
+
+  void DrawPropertiesInWorkbench() {
+    if (entrances_ && spawn_points_ && current_entrance_id_ &&
+        *current_entrance_id_ >= 0 &&
+        *current_entrance_id_ < static_cast<int>(entrances_->size()))
+      DrawSelectedProperties();
   }
 
   // ==========================================================================

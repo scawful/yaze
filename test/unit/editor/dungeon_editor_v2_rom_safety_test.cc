@@ -830,7 +830,7 @@ TEST(DungeonEditorV2RomSafetyTest,
             kMainGfx);
   EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::ResolveSelectedBlockset(
                 *editor, kRoomId - 1),
-            0xFF);
+            kMainGfx);
 }
 
 TEST(DungeonEditorV2RomSafetyTest,

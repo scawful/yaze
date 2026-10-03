@@ -502,6 +502,12 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
 
 gfx::Bitmap* DungeonCanvasViewer::PrepareConnectedRoomCompositeBitmap(
     int room_id) {
+  // The connected canvas previews the same active entrance across every room.
+  // A neighbor may already have been rendered under another entrance earlier.
+  if (rooms_) {
+    if (auto* room = rooms_->TryEnsureRoom(room_id))
+      room->SetRenderEntranceBlockset(current_entrance_blockset_);
+  }
   auto& entry = connected_composite_outputs_[room_id];
   if (!entry.output) {
     entry.output = std::make_unique<RoomCompositeOutput>();

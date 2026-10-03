@@ -547,13 +547,35 @@ TEST(UserSettingsLayoutDefaultsTest,
             std::string::npos);
 }
 
-// Default ctor seeds "right". Setter normalizes unrecognized values back to
+TEST(UserSettingsLayoutDefaultsTest,
+     Revision28MovesNavigatorWithoutResettingLayout) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+  prefs.panel_layout_defaults_revision = 27;
+  prefs.dungeon_inspector_side = "right";
+  prefs.pinned_panels["dungeon.room_matrix"] = true;
+  prefs.saved_layouts["mine"]["dungeon.workbench"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.canvas"] = true;
+  const auto pins = prefs.pinned_panels;
+  const auto layouts = prefs.saved_layouts;
+  const auto visibility = prefs.panel_visibility_state;
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(28));
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "left");
+  EXPECT_EQ(prefs.pinned_panels, pins);
+  EXPECT_EQ(prefs.saved_layouts, layouts);
+  EXPECT_EQ(prefs.panel_visibility_state, visibility);
+  settings.SetDungeonInspectorSide("right");
+  EXPECT_FALSE(settings.ApplyPanelLayoutDefaultsRevision(28));
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "right");
+}
+
+// Default ctor puts the navigator on the right. Setter normalizes unknowns to
 // "right" so callers can switch on the result without a sentinel.
 TEST(UserSettingsLayoutDefaultsTest,
      DungeonInspectorSideDefaultsAndNormalizes) {
   UserSettings settings;
-  EXPECT_EQ(settings.prefs().dungeon_inspector_side, "right");
-  EXPECT_EQ(settings.GetDungeonInspectorSide(), "right");
+  EXPECT_EQ(settings.prefs().dungeon_inspector_side, "left");
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "left");
 
   settings.SetDungeonInspectorSide("left");
   EXPECT_EQ(settings.prefs().dungeon_inspector_side, "left");

@@ -290,7 +290,7 @@ class DungeonWorkbenchContent : public WindowContent {
   // Workbench-owned UI state (was in DungeonEditorV2, moved here Phase 6.2).
   int previous_room_id_ = -1;
   bool split_view_enabled_ = false;
-  bool inspector_on_left_ = false;
+  bool inspector_on_left_ = true;
   int compare_room_id_ = -1;
   DungeonWorkbenchLayoutState layout_state_{};
   std::function<void(int)> on_room_selected_;
@@ -310,8 +310,9 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
   Rom* rom_ = nullptr;
 
-  enum class SidebarMode : uint8_t { Matrix, Entrances };
-  SidebarMode sidebar_mode_ = SidebarMode::Matrix;
+  enum class SidebarMode : uint8_t { Objects, Entrances };
+  SidebarMode sidebar_mode_ = SidebarMode::Objects;
+  float navigator_tools_fraction_ = 0.40f;
   enum class InspectorMode : uint8_t { Room, Selection, Tools };
   InspectorMode inspector_mode_ = InspectorMode::Room;
   InspectorMode inspector_mode_before_tools_ = InspectorMode::Room;

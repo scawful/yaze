@@ -8,6 +8,7 @@
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
+#include "app/editor/dungeon/workspace/room_matrix_content.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gfx/util/palette_manager.h"
@@ -792,6 +793,74 @@ TEST_F(DungeonEditorPaletteRefreshTest,
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
+       ConnectedPreviewRefreshesMainSheetsAndPreservesRoomOverrides) {
+  game_data_.main_blockset_ids[1][0] = 9;
+  game_data_.main_blockset_ids[2][0] = 10;
+  game_data_.room_blockset_ids[4] = {11, 12, 13, 14};
+  DungeonRoomStore rooms(&rom_, &game_data_);
+  auto& room = rooms[1];
+  room.SetTileObjects({});
+  room.SetBlockset(4);
+  room.SetRenderEntranceBlockset(1);
+  room.PrepareForRender();
+  ASSERT_EQ(room.blocks()[0], 9);
+  const auto before = rom_.vector();
+  const auto dirty_before = room.CaptureSaveDirtySnapshot();
+  DungeonCanvasViewer viewer(&rom_);
+  viewer.SetGameData(&game_data_);
+  viewer.SetRooms(&rooms);
+  for (const uint8_t main_gfx : {2, 1}) {
+    viewer.SetEntranceRenderContext(zelda3::kNumDungeonSpawnPoints, main_gfx);
+    ASSERT_NE(DungeonEditorPaletteRefreshTestPeer::PrepareConnectedComposite(
+                  viewer, 1),
+              nullptr);
+    EXPECT_EQ(room.blocks()[0], main_gfx == 1 ? 9 : 10);
+    for (int i = 0; i < 4; ++i)
+      EXPECT_EQ(room.blocks()[3 + i], 11 + i);
+    EXPECT_EQ(room.blockset(), 4);
+    EXPECT_EQ(room.CaptureSaveDirtySnapshot().header, dirty_before.header);
+    EXPECT_EQ(room.CaptureSaveDirtySnapshot().object_stream,
+              dirty_before.object_stream);
+  }
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       RoomMatrixUsesSelectedEntranceBeforeRenderingCachedRoom) {
+  game_data_.main_blockset_ids[1][0] = 9;
+  game_data_.main_blockset_ids[2][0] = 10;
+  DungeonRoomStore rooms(&rom_, &game_data_);
+  auto& room = rooms[0];
+  room.SetTileObjects({});
+  room.SetLoaded(true);
+  room.SetRenderEntranceBlockset(1);
+  room.PrepareForRender();
+  ASSERT_EQ(room.blocks()[0], 9);
+  int current_room = 0;
+  ImVector<int> active_rooms;
+  RoomMatrixContent matrix(&current_room, &active_rooms, [](int) {});
+  matrix.SetRooms(&rooms);
+  uint8_t selected_main = 2;
+  int calls = 0;
+  matrix.SetRenderContextCallback([&](int id) {
+    ++calls;
+    rooms[id].SetRenderEntranceBlockset(selected_main);
+  });
+  ScopedImGuiTestContext imgui;
+  for (const uint8_t main_gfx : {2, 1}) {
+    selected_main = main_gfx;
+    const int before = calls;
+    imgui.NextFrame();
+    ImGui::SetNextWindowSize(ImVec2(340, 720), ImGuiCond_Always);
+    ImGui::Begin("MatrixContext", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    matrix.Draw(nullptr);
+    ImGui::End();
+    EXPECT_GT(calls, before);
+    EXPECT_EQ(room.blocks()[0], main_gfx == 1 ? 9 : 10);
+  }
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
        CompareViewerScopesEntranceContextToRequestedRoom) {
   constexpr int kCompareRoomId = 1;
   constexpr int kUnrelatedRoomId = 2;
@@ -812,8 +881,13 @@ TEST_F(DungeonEditorPaletteRefreshTest,
 
   compare_viewer = editor_->GetWorkbenchCompareViewer(kUnrelatedRoomId);
   ASSERT_NE(compare_viewer, nullptr);
-  EXPECT_EQ(compare_viewer->current_entrance_id(), -1);
-  EXPECT_EQ(compare_viewer->current_entrance_blockset(), 0xFF);
+  EXPECT_EQ(compare_viewer->current_entrance_id(), 0);
+  EXPECT_EQ(compare_viewer->current_entrance_blockset(), kEntranceBlockset);
+  // Browsing an unrelated room must not silently replace the user's main
+  // graphics. A new entrance selection, however, refreshes the same viewer.
+  editor_->spawn_points_[0].main_gfx = 4;
+  compare_viewer = editor_->GetWorkbenchCompareViewer(kUnrelatedRoomId);
+  EXPECT_EQ(compare_viewer->current_entrance_blockset(), 4);
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,

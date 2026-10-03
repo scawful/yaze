@@ -7,6 +7,10 @@ namespace yaze::editor {
 
 class DungeonWorkbenchContentTestPeer {
  public:
+  static void DrawNavigator(DungeonWorkbenchContent& content, float width,
+                            float height) {
+    content.DrawSidebarPane(width, height, 22, false);
+  }
   static void DrawInspector(DungeonWorkbenchContent& content,
                             DungeonCanvasViewer& viewer) {
     content.DrawInspectorShelf(viewer, false);

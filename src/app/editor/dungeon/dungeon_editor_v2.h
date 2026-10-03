@@ -471,7 +471,8 @@ class DungeonEditorV2 : public Editor {
   std::optional<int> room_canvas_delete_shortcut_frame_;
 
   // Current selection state
-  int current_entrance_id_ = 0;
+  // Combined slots begin with spawn points; regular Entrance 00 follows them.
+  int current_entrance_id_ = zelda3::kNumDungeonSpawnPoints;
 
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;

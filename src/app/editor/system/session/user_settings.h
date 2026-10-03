@@ -168,12 +168,12 @@ class UserSettings {
     bool show_experimental_editors = false;
 
     // Dungeon workbench layout: which side of the workbench window the
-    // inspector pane occupies. "right" (default) places selectors on the left
-    // and inspector on the right (Layout C / ZScream-style); "left" mirrors it.
+    // inspector pane occupies. "left" (default) places object/entrance tools
+    // above the room matrix on the right; "right" mirrors that arrangement.
     // Read by dungeon_workbench_content at draw time. Persisted as a string so
     // a future "top" / "bottom" / "floating" extension does not require a
     // migration of existing settings files.
-    std::string dungeon_inspector_side = "right";
+    std::string dungeon_inspector_side = "left";
 
     // Panel Visibility State (per editor type)
     // Maps editor_type_name -> (panel_id -> visible)
@@ -214,11 +214,11 @@ class UserSettings {
   // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 27;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 28;
   // Revisions through 21, and 27, changed whole-workspace arrangements.
   // Revision 27 rebuilds once so the overworld map keeps its height: Tile16
   // and area graphics share the right column, and nothing starts on the bottom.
-  // Revisions 22-26 are targeted preference migrations.
+  // Revisions 22-26 and 28 are targeted preference migrations.
   static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 27;
 
   Preferences& prefs() { return prefs_; }

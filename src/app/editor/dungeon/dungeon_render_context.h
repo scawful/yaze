@@ -46,13 +46,15 @@ struct DungeonRenderContext {
   }
 };
 
+std::string DungeonEntrancePreviewLabel(int slot);
+
 const char* DungeonRenderContextSourceName(DungeonRenderContextSource source);
 // Includes the loader's fallback provenance when no owner entrance resolves.
 const char* DungeonRenderContextSourceName(const DungeonRenderContext& context);
 
 // Resolves the graphics owner for a room without mutating either the census or
-// entrance records. A selected entrance wins for its direct room and all rooms
-// with the same census owner. Otherwise an owner entrance is inferred only
+// entrance records. A selected entrance wins for every previewed room until the user
+// chooses another. Without a selection, an owner entrance is inferred only
 // when every candidate agrees on main GFX.
 DungeonRenderContext ResolveDungeonRenderContext(
     int room_id, int selected_entrance_slot, uint8_t room_header_blockset,
