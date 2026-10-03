@@ -17,6 +17,7 @@ namespace yaze::editor {
 class SessionCoordinator;
 class ToastManager;
 class PopupManager;
+struct RomSession;
 
 /**
  * @class RomLifecycleManager
@@ -64,8 +65,9 @@ class RomLifecycleManager {
   // ROM Hash & Write Policy
   // =========================================================================
 
-  /// Recompute the hash of the current ROM.
-  void UpdateCurrentRomHash(Rom* rom);
+  /// Restore a session's captured baseline, or clear identity for no/empty ROM.
+  /// Never hashes mutable ROM bytes during activation.
+  void ActivateRomIdentity(const RomSession* session);
 
   /// Get the cached ROM hash string.
   const std::string& current_rom_hash() const {
@@ -183,7 +185,7 @@ class RomLifecycleManager {
   PopupManager* popup_manager_ = nullptr;
   const project::YazeProject* project_ = nullptr;
 
-  // ROM hash state
+  // Active view of the session-owned baseline; replaced on every activation.
   util::RomIdentityHashes current_rom_identity_;
   std::string current_rom_path_;
 
