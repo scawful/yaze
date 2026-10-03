@@ -11,8 +11,10 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_graph_commands.h"
 #include "rom/rom.h"
+#include "test_utils/expanded_entrance_fixture.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_entrance.h"
@@ -53,10 +55,7 @@ std::array<uint8_t, 14> Header(uint8_t holewarp,
 //   0x1D with no stair object.
 std::vector<uint8_t> BuildGraphTestRom() {
   auto data = zelda3::test::BuildRoomCensusTestRom();
-  data[0x1599F] = 0x22;
-  data[0x159A0] = 0x08;
-  data[0x159A1] = 0xF0;
-  data[0x159A2] = 0x0F;
+  yaze::test::InstallExpandedEntranceLoader(data);
   auto expanded = [&](int entrance, uint16_t room, uint8_t dungeon) {
     data[0x078000 + entrance * 2] = room & 0xFF;
     data[0x078000 + entrance * 2 + 1] = room >> 8;
@@ -123,6 +122,7 @@ TEST_F(DungeonGraphLinksTest, EntranceTablesMatchTheGame) {
   EXPECT_EQ(entrance.at("dungeon_id"), "0x04");
   EXPECT_EQ(entrance.at("entrance_table"), "zscream_bank_0f");
   EXPECT_EQ(entrance.at("vanilla_table_room_id"), "0x021");
+  EXPECT_EQ(entrance.at("other_fields_table"), "zscream_bank_0f");
 
   handlers::DungeonDiscoverCommandHandler discover;
   EXPECT_EQ(Run(discover, {"--entrance=0x05"}, "discovery").at("start_room"),
@@ -144,6 +144,19 @@ TEST_F(DungeonGraphLinksTest, EntranceTablesMatchTheGame) {
     }
   }
   EXPECT_TRUE(entrance_5);
+}
+
+TEST_F(DungeonGraphLinksTest, EntranceCommandsRejectMalformedAndWrappedIds) {
+  handlers::EntranceInfoCommandHandler info;
+  handlers::DungeonGetEntranceCommandHandler get;
+  std::string output;
+  EXPECT_FALSE(get.Run({"--entrance=0x100"}, &rom_, &output).ok());
+  rom_.mutable_data()[0x7F00F] ^= 1;
+  EXPECT_EQ(info.Run({"--entrance=0x05"}, &rom_, &output).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(get.Run({"--entrance=0x05"}, &rom_, &output).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_FALSE(zelda3::CollectRoomCensusInput(&rom_).ok());
 }
 
 TEST_F(DungeonGraphLinksTest, TeleportDoorsUseStairSlots) {

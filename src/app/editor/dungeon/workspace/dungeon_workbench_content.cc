@@ -1212,7 +1212,8 @@ void DungeonWorkbenchContent::DrawSplitView(
 void DungeonWorkbenchContent::BuildRoomDungeonCache() {
   room_dungeon_cache_.clear();
   room_dungeon_cache_built_ = true;  // Always set, even if ROM missing.
-  if (!rom_ || !rom_->is_loaded())
+  if (!rom_ || !rom_->is_loaded() ||
+      !zelda3::ResolveEntranceLayout(rom_->vector()).ok())
     return;
 
   // Short dungeon names for display in the inspector badge.
@@ -1225,7 +1226,7 @@ void DungeonWorkbenchContent::BuildRoomDungeonCache() {
       static_cast<int>(sizeof(kShortNames) / sizeof(kShortNames[0]));
 
   auto AddRoom = [&](int room_id, int dungeon_id) {
-    if (room_id < 0)
+    if (room_id < 0 || room_id >= zelda3::kNumberOfRooms)
       return;
     if (room_dungeon_cache_.contains(room_id))
       return;  // Entrance wins over spawn.
@@ -1238,9 +1239,12 @@ void DungeonWorkbenchContent::BuildRoomDungeonCache() {
     }
   };
 
-  // Standard entrances (0x00–0x83) — authoritative dungeon assignment.
-  for (int i = 0; i < 0x84; ++i) {
+  // Standard entrances — authoritative dungeon assignment.
+  for (int i = 0; i < zelda3::kNumRegularDungeonEntrances; ++i) {
     zelda3::RoomEntrance ent(rom_, static_cast<uint8_t>(i), false);
+    if (!ent.load_status().ok() || ent.room_ < 0 ||
+        ent.room_ >= zelda3::kNumberOfRooms)
+      continue;
     int did = ent.dungeon_id_;
     if (did >= 0 && did < kVanillaCount) {
       room_dungeon_cache_[ent.room_] = kShortNames[did];
@@ -1251,10 +1255,11 @@ void DungeonWorkbenchContent::BuildRoomDungeonCache() {
     }
   }
 
-  // Spawn points (0x00–0x13) — fill in rooms not covered by entrances.
-  for (int i = 0; i < 0x14; ++i) {
+  // Spawn points — fill in rooms not covered by entrances.
+  for (int i = 0; i < zelda3::kNumDungeonSpawnPoints; ++i) {
     zelda3::RoomEntrance ent(rom_, static_cast<uint8_t>(i), true);
-    AddRoom(static_cast<int>(ent.room_), static_cast<int>(ent.dungeon_id_));
+    if (ent.load_status().ok())
+      AddRoom(static_cast<int>(ent.room_), static_cast<int>(ent.dungeon_id_));
   }
 }
 

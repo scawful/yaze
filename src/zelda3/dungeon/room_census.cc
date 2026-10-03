@@ -13,6 +13,7 @@
 #include "core/hack_manifest.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
+#include "zelda3/dungeon/entrance_layout.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_census_vanilla_fingerprints.h"
@@ -258,7 +259,9 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
   if (options.stop_token.stop_requested()) {
     return absl::CancelledError("Room census cancelled");
   }
-  input.expanded_entrance_tables = UsesExpandedEntranceTables(*rom);
+  ASSIGN_OR_RETURN(auto entrance_layout, ResolveEntranceLayout(rom->vector()));
+  input.expanded_entrance_tables =
+      entrance_layout.kind == EntranceLayoutKind::kZscreamExpanded;
   std::set<int> placed_entrances;
   auto add_entrance = [&](int entrance_id, RoomReferenceKind kind,
                           std::string placement, int ow_map) {

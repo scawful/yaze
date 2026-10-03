@@ -670,7 +670,11 @@ absl::Status DungeonGetEntranceCommandHandler::Execute(
     return WriteDungeonSpawnPointReport(rom, entrance_id, formatter, "");
   }
 
+  if (entrance_id < 0 || entrance_id >= zelda3::kNumRegularDungeonEntrances) {
+    return absl::OutOfRangeError("Regular dungeon entrance ID is out of range");
+  }
   zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id), false);
+  RETURN_IF_ERROR(entrance.load_status());
 
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
   formatter.AddField("is_spawn_point", is_spawn_point);

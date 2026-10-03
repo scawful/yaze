@@ -316,6 +316,7 @@ absl::Status EntranceInfoCommandHandler::Execute(
   }
 
   zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id), false);
+  RETURN_IF_ERROR(entrance.load_status());
   // Room and dungeon ID from the table the game reads (ZScream's bank $0F
   // copy when present), like dungeon-room-census.
   const auto target = zelda3::ReadDungeonEntranceTarget(*rom, entrance_id);
@@ -334,11 +335,13 @@ absl::Status EntranceInfoCommandHandler::Execute(
   formatter.AddField("dungeon_id",
                      absl::StrFormat("0x%02X", target->dungeon_id));
   if (target->expanded) {
-    // RoomEntrance still reads the fields below from the vanilla bank $02
-    // tables; ZScream moves them to bank $0F too.
+    // Keep the legacy copy as an explicit diagnostic only. Every active
+    // model field below comes from the same validated bank-$0F layout.
+    ASSIGN_OR_RETURN(auto legacy_room,
+                     rom->ReadWord(zelda3::kEntranceRoom + entrance_id * 2));
     formatter.AddField("vanilla_table_room_id",
-                       absl::StrFormat("0x%03X", entrance.room_));
-    formatter.AddField("other_fields_table", "vanilla_bank_02");
+                       absl::StrFormat("0x%03X", legacy_room));
+    formatter.AddField("other_fields_table", EntranceTableName(true));
   }
   formatter.AddField("exit_id", absl::StrFormat("0x%04X", entrance.exit_));
 

@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/dungeon_room_loader.h"
 
 #include <algorithm>
 #include <array>
@@ -16,6 +17,7 @@
 #include "rom/snes.h"
 #include "rom/transaction.h"
 #include "test_utils/dungeon_editor_v2_regular_entrance_test_peer.h"
+#include "test_utils/expanded_entrance_fixture.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_stream_ordering.h"
@@ -776,8 +778,10 @@ TEST(DungeonEditorV2RomSafetyTest,
   flags.kSaveObjects = false;
   flags.kSaveEntrances = true;
 
-  EXPECT_EQ(editor->CollectWriteRanges(),
-            zelda3::RegularDungeonEntranceWriteRanges(kEntranceId));
+  const auto expected =
+      zelda3::RegularDungeonEntranceWriteRanges(rom, kEntranceId);
+  ASSERT_TRUE(expected.ok()) << expected.status();
+  EXPECT_EQ(editor->CollectWriteRanges(), *expected);
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
@@ -1035,6 +1039,55 @@ TEST(DungeonEditorV2RomSafetyTest,
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     SaveBlocksProtectedRegularEntranceBeforeMutationExpanded) {
+  constexpr int kEntranceId = 3;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  yaze::test::InstallExpandedEntranceLoader(rom.mutable_vector());
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x0F8006",
+        "end": "0x0F8008",
+        "size": 2,
+        "hook_count": 1,
+        "module": "RegularEntranceGuard"
+      }
+    ]
+  }
+}
+)json");
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+      *editor, kEntranceId);
+  auto& entrance = DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+      *editor, kEntranceId);
+  entrance.room_ = 0x0123;
+  entrance.MarkDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveEntrances = true;
+  const auto before = rom.vector();
+
+  const absl::Status status = editor->Save();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(entrance.dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      SaveRoomBlocksProtectedRegularEntranceBeforeMutation) {
   constexpr int kEntranceId = 3;
   Rom rom;
@@ -1048,6 +1101,55 @@ TEST(DungeonEditorV2RomSafetyTest,
       {
         "start": "0x02C819",
         "end": "0x02C81B",
+        "size": 2,
+        "hook_count": 1,
+        "module": "RegularEntranceGuard"
+      }
+    ]
+  }
+}
+)json");
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+      *editor, kEntranceId);
+  auto& entrance = DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+      *editor, kEntranceId);
+  entrance.room_ = 0x0123;
+  entrance.MarkDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveEntrances = true;
+  const auto before = rom.vector();
+
+  const absl::Status status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(entrance.dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomBlocksProtectedRegularEntranceBeforeMutationExpanded) {
+  constexpr int kEntranceId = 3;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  yaze::test::InstallExpandedEntranceLoader(rom.mutable_vector());
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x0F8006",
+        "end": "0x0F8008",
         "size": 2,
         "hook_count": 1,
         "module": "RegularEntranceGuard"
@@ -2275,6 +2377,97 @@ TEST(DungeonEditorV2RomSafetyTest, ViewerCacheLRUAccessOrderUpdate) {
 
   // Restore workbench flag
   core::FeatureFlags::get().dungeon.kUseWorkbench = prev_workbench;
+}
+
+TEST(DungeonEditorV2RomSafetyTest, ExpandedEntranceRangesAndSaveUseSameLayout) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  yaze::test::InstallExpandedEntranceLoader(rom.mutable_vector());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(*editor,
+                                                                     3);
+  auto& entrance =
+      DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(*editor, 3);
+  entrance.blockset_ = 7;
+  entrance.MarkDirty();
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveEntrances = true;
+  const auto ranges = editor->CollectWriteRanges();
+  EXPECT_NE(std::find(ranges.begin(), ranges.end(),
+                      std::pair<uint32_t, uint32_t>{0x79603, 0x79604}),
+            ranges.end());
+  EXPECT_EQ(std::find(ranges.begin(), ranges.end(),
+                      std::pair<uint32_t, uint32_t>{0x15384, 0x15385}),
+            ranges.end());
+  auto expected = rom.vector();
+  expected[0x79603] = 7;
+  ASSERT_TRUE(editor->Save().ok());
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_FALSE(entrance.dirty());
+  entrance.blockset_ = 9;
+  entrance.MarkDirty();
+  expected[0x79603] = 9;
+  ASSERT_TRUE(editor->SaveRoom(0).ok());
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_FALSE(entrance.dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     MalformedExpandedEntranceStopsBothSavePaths) {
+  for (bool room_save : {false, true}) {
+    SCOPED_TRACE(room_save);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    SetupHeaderPointers(rom);
+    yaze::test::InstallExpandedEntranceLoader(rom.mutable_vector());
+    auto editor = std::make_unique<DungeonEditorV2>(&rom);
+    DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(*editor,
+                                                                       3);
+    auto& entrance =
+        DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(*editor, 3);
+    entrance.blockset_ = 7;
+    entrance.MarkDirty();
+    auto& room = editor->rooms()[0];
+    room.SetLoaded(true);
+    room.SetPalette(0x2A);
+    DungeonSaveFlagsGuard guard;
+    ConfigureMinimalDungeonSave();
+    auto& flags = core::FeatureFlags::get().dungeon;
+    flags.kSaveObjects = false;
+    flags.kSaveEntrances = true;
+    flags.kSaveRoomHeaders = true;
+    rom.mutable_data()[0x7F00F] ^= 1;
+    const auto before = rom.vector();
+    const bool dirty = rom.dirty();
+    const auto status = room_save ? editor->SaveRoom(0) : editor->Save();
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_EQ(rom.dirty(), dirty);
+    EXPECT_TRUE(entrance.dirty());
+    EXPECT_TRUE(room.header_dirty());
+  }
+}
+
+TEST(DungeonEditorV2RomSafetyTest, MalformedExpandedEntranceLoadIsAtomic) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  yaze::test::InstallExpandedEntranceLoader(rom.mutable_vector());
+  DungeonRoomLoader loader(&rom);
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> entries;
+  ASSERT_TRUE(loader.LoadRoomEntrances(entries).ok());
+  for (auto& e : entries) {
+    e.blockset_ = 0x17;
+    e.MarkDirty();
+  }
+  rom.mutable_data()[0x15A75] ^= 1;
+  EXPECT_FALSE(loader.LoadRoomEntrances(entries).ok());
+  for (const auto& e : entries) {
+    EXPECT_EQ(e.blockset_, 0x17);
+    EXPECT_TRUE(e.dirty());
+  }
 }
 
 }  // namespace yaze::editor

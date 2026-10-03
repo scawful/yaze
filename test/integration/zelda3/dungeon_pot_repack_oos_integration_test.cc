@@ -1013,8 +1013,11 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   auto read_regular_record = [](const std::vector<uint8_t>& data,
                                 int entrance_id) {
     std::vector<uint8_t> bytes;
+    const auto layout = ResolveEntranceLayout(data);
+    if (!layout.ok())
+      return bytes;
     for (const auto& [begin, end] :
-         RegularDungeonEntranceWriteRanges(entrance_id)) {
+         RegularDungeonEntranceWriteRanges(*layout, entrance_id)) {
       bytes.insert(bytes.end(), data.begin() + begin, data.begin() + end);
     }
     return bytes;
@@ -1055,7 +1058,10 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   entrance.room_ = static_cast<int16_t>(replacement_room);
   entrance.MarkDirty();
 
-  const auto expected_ranges = RegularDungeonEntranceWriteRanges(kEntranceId);
+  const auto expected_ranges_or =
+      RegularDungeonEntranceWriteRanges(rom, kEntranceId);
+  ASSERT_TRUE(expected_ranges_or.ok()) << expected_ranges_or.status();
+  const auto& expected_ranges = *expected_ranges_or;
   ASSERT_EQ(expected_ranges.size(), 17u);
   EXPECT_EQ(dungeon_editor->CollectWriteRanges(), expected_ranges);
   EXPECT_TRUE(
@@ -2183,8 +2189,10 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   expect_range(kMessagesIdDungeon + selected_room * 2u,
                kMessagesIdDungeon + selected_room * 2u + 2u,
                "Missing selected dungeon message-ID prediction");
-  for (const DungeonEntranceWriteRange& range :
-       RegularDungeonEntranceWriteRanges(kEntranceId)) {
+  const auto entrance_ranges =
+      RegularDungeonEntranceWriteRanges(rom, kEntranceId);
+  ASSERT_TRUE(entrance_ranges.ok()) << entrance_ranges.status();
+  for (const DungeonEntranceWriteRange& range : *entrance_ranges) {
     expect_range(range.first, range.second,
                  "Missing regular entrance range prediction");
   }

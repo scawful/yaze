@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 #include <algorithm>
 #include <array>
+#include <chrono>
+#include <cstdlib>
+#include <filesystem>
 #include <initializer_list>
 #include <memory>
 #include <string>
@@ -10,11 +13,14 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/write_fence.h"
+#include "test_utils/expanded_entrance_fixture.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_default_entrance.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room_links.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -2717,7 +2723,10 @@ TEST_F(DungeonSaveTest, CollectDirtyRegularDungeonEntranceWriteRangesIsExact) {
       {kEntranceMusic + kEntranceId, kEntranceMusic + kEntranceId + 1},
   };
 
-  const auto ranges = CollectDirtyRegularDungeonEntranceWriteRanges(entrances);
+  const auto ranges_or =
+      CollectDirtyRegularDungeonEntranceWriteRanges(*rom_, entrances);
+  ASSERT_TRUE(ranges_or.ok()) << ranges_or.status();
+  const auto& ranges = *ranges_or;
   EXPECT_EQ(ranges, expected);
   size_t unique_bytes = 0;
   for (const auto& [begin, end] : ranges) {
@@ -4001,6 +4010,263 @@ TEST_F(DungeonSaveTest,
   EXPECT_EQ(reopened_block.y(), 45);
   EXPECT_EQ(reopened_block.GetLayerValue(), 1);
   EXPECT_EQ(reopened_block.block_behavior_layer(), 1);
+}
+
+// These cases exercise production resolution and model persistence using a
+// literal game-loader fixture independent of the resolver's table constants.
+TEST(ExpandedEntranceLayoutTest, AlternatingRomsDoNotShareDetection) {
+  Rom legacy, expanded;
+  std::vector<uint8_t> data(0x200000, 0);
+  ASSERT_TRUE(legacy.LoadFromData(data).ok());
+  yaze::test::InstallExpandedEntranceLoader(data);
+  ASSERT_TRUE(expanded.LoadFromData(data).ok());
+  for (int i = 0; i < 3; ++i) {
+    auto a = ResolveEntranceLayout(legacy.vector());
+    auto b = ResolveEntranceLayout(expanded.vector());
+    ASSERT_TRUE(a.ok()) << a.status();
+    ASSERT_TRUE(b.ok()) << b.status();
+    EXPECT_EQ(a->kind, EntranceLayoutKind::kLegacy);
+    EXPECT_EQ(b->kind, EntranceLayoutKind::kZscreamExpanded);
+    EXPECT_EQ(b->table(EntranceField::kYScroll), 0x78C00u);
+    EXPECT_EQ(b->table(EntranceField::kXScroll), 0x78A00u);
+  }
+}
+
+TEST(ExpandedEntranceLayoutTest, FirstAndLastRecordReadWriteUseGameTables) {
+  Rom rom;
+  std::vector<uint8_t> data(0x200000, 0);
+  yaze::test::InstallExpandedEntranceLoader(data);
+  // Existing legacy and expanded facing/tail bytes are canaries, not padding.
+  std::fill(data.begin() + 0x14813, data.begin() + 0x158B3, 0xA5);
+  std::fill(data.begin() + 0x78000, data.begin() + 0x7A100, 0x6D);
+  for (int id : {0, 0x84}) {
+    data[0x78000 + id * 2] = 0x23;
+    data[0x78001 + id * 2] = 1;
+    data[0x78C00 + id * 2] = 0x12;
+    data[0x78C01 + id * 2] = 0x34;
+    data[0x78A00 + id * 2] = 0x56;
+    data[0x78A01 + id * 2] = 0x78;
+  }
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  for (int id : {0, 0x84}) {
+    RoomEntrance e(&rom, id);
+    ASSERT_TRUE(e.load_status().ok()) << e.load_status();
+    EXPECT_EQ(e.room_, 0x123);
+    EXPECT_EQ(e.camera_y_, 0x3412);
+    EXPECT_EQ(e.camera_x_, 0x7856);
+    ASSERT_TRUE(e.Save(&rom, id).ok());
+    EXPECT_EQ(rom.vector(), data) << "Every field must round-trip unchanged";
+  }
+  for (int id : {0, 0x84}) {
+    RoomEntrance e(&rom, id);
+    auto before = rom.vector();
+    e.room_ = 0x42;
+    e.camera_y_ = 0xFEDC;
+    e.camera_x_ = 0xBA98;
+    e.blockset_ = 3;
+    e.music_ = 7;
+    e.MarkDirty();
+    const auto ranges = RegularDungeonEntranceWriteRanges(rom, id);
+    ASSERT_TRUE(ranges.ok());
+    ASSERT_EQ(ranges->size(), 17u);
+    rom::WriteFence fence;
+    for (auto [first, last] : *ranges)
+      ASSERT_TRUE(fence.Allow(first, last, "regular entrance").ok());
+    rom::ScopedWriteFence scope(&rom, &fence);
+    ASSERT_TRUE(e.Save(&rom, id).ok());
+    EXPECT_FALSE(e.dirty());
+    EXPECT_EQ(rom.ReadWord(0x78C00 + id * 2).value(), 0xFEDC);
+    EXPECT_EQ(rom.ReadWord(0x78A00 + id * 2).value(), 0xBA98);
+    size_t changed = 0;
+    for (size_t pc = 0; pc < before.size(); ++pc) {
+      if (before[pc] == rom.data()[pc])
+        continue;
+      ++changed;
+      EXPECT_TRUE(std::any_of(ranges->begin(), ranges->end(), [pc](auto r) {
+        return pc >= r.first && pc < r.second;
+      })) << pc;
+    }
+    EXPECT_EQ(changed, 8u);
+    auto target = ReadDungeonEntranceTarget(rom, id);
+    ASSERT_TRUE(target.has_value());
+    EXPECT_EQ(target->room_id, 0x42);
+  }
+  EXPECT_FALSE(RegularDungeonEntranceWriteRanges(rom, 0x85).ok());
+  EXPECT_FALSE(RegularDungeonEntranceWriteRanges(rom, -1).ok());
+  EXPECT_FALSE(RoomEntrance(&rom, 0x85).load_status().ok());
+}
+
+TEST(ExpandedEntranceLayoutTest, RecognizedMalformedLayoutsNeverFallBack) {
+  std::vector<uint8_t> valid(0x200000, 0);
+  yaze::test::InstallExpandedEntranceLoader(valid);
+  // Each detection/DB/table site is independently corrupted; legacy records
+  // remain valid-looking to expose accidental fallback.
+  for (size_t pc : {0x7F000u, 0x7F001u, 0x159A0u, 0x15ACFu, 0x7F00Fu, 0x7F01Au,
+                    0x159A4u, 0x159ACu, 0x159B9u, 0x15A75u, 0x15A1Bu, 0x15A45u,
+                    0x15AABu, 0x15ABCu, 0x15ACCu}) {
+    SCOPED_TRACE(pc);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(valid).ok());
+    RoomEntrance loaded(&rom, 0);
+    loaded.room_ = 0x23;
+    loaded.MarkDirty();
+    rom.mutable_data()[pc] ^= 0x01;
+    rom.set_filename("unchanged-session.sfc");
+    rom.set_dirty(true);
+    const auto before = rom.vector();
+    EXPECT_FALSE(ResolveEntranceLayout(rom.vector()).ok());
+    EXPECT_FALSE(RoomEntrance(&rom, 0).load_status().ok());
+    EXPECT_FALSE(ReadDungeonEntranceTarget(rom, 0).has_value());
+    EXPECT_FALSE(RegularDungeonEntranceWriteRanges(rom, 0).ok());
+    const auto defaults = ComputeRoomDefaultEntrances(rom);
+    EXPECT_TRUE(std::all_of(defaults.begin(), defaults.end(), [](auto d) {
+      return d.source == RoomEntranceSource::kNone;
+    }));
+    EXPECT_FALSE(loaded.Save(&rom, 0).ok());
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_TRUE(loaded.dirty());
+    EXPECT_TRUE(rom.dirty());
+    EXPECT_EQ(rom.filename(), "unchanged-session.sfc");
+  }
+  valid.resize(0x7F010);
+  EXPECT_FALSE(ResolveEntranceLayout(valid).ok());
+  std::vector<uint8_t> truncated_legacy(0x15800, 0);
+  EXPECT_FALSE(ResolveEntranceLayout(truncated_legacy).ok());
+}
+
+TEST(ExpandedEntranceLayoutTest, LayoutChangeRequiresReloadBeforeSaving) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  RoomEntrance e(&rom, 0);
+  e.room_ = 0x23;
+  e.MarkDirty();
+  yaze::test::InstallExpandedEntranceLoader(rom.mutable_vector());
+  const auto before = rom.vector();
+  const auto status = e.Save(&rom, 0);
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(status.message().find("reload entrances"), std::string::npos);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(e.dirty());
+}
+
+TEST(ExpandedEntranceLayoutTest, OracleAndVanillaSaveAsFreshReopen) {
+  for (const char* env : {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_VANILLA"}) {
+    const char* source = std::getenv(env);
+    if (!source)
+      GTEST_SKIP() << "Set both Oracle and vanilla ROM fixtures";
+    SCOPED_TRACE(env);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromFile(source).ok());
+    const auto original = rom.vector();
+    const bool expanded = std::string(env) == "YAZE_TEST_ROM_OOS";
+    const auto layout = ResolveEntranceLayout(rom.vector());
+    ASSERT_TRUE(layout.ok()) << layout.status();
+    EXPECT_EQ(layout->kind, expanded ? EntranceLayoutKind::kZscreamExpanded
+                                     : EntranceLayoutKind::kLegacy);
+    if (expanded) {
+      RoomEntrance e29(&rom, 0x29), e2d(&rom, 0x2D);
+      EXPECT_EQ(e29.blockset_, 1);
+      EXPECT_EQ(e29.room_, 0x90);
+      EXPECT_EQ(e2d.blockset_, 0x0D);
+      EXPECT_EQ(rom.data()[0x15381 + 0x29], 9);
+      const auto defaults = ComputeRoomDefaultEntrances(rom);
+      EXPECT_EQ(defaults[0x90].main_blockset, 1);
+    }
+    for (int id = 0; id < 0x85; ++id) {
+      RoomEntrance e(&rom, id);
+      ASSERT_TRUE(e.load_status().ok()) << id;
+      // Literal semantic addresses from the game loader, independent of the
+      // product resolver and of ZScream/Yaze's old reversed scroll names.
+      const auto word = [&](int pc) {
+        return rom.ReadWord(pc + id * 2).value();
+      };
+      EXPECT_EQ(e.room_, word(expanded ? 0x78000 : 0x14813));
+      EXPECT_EQ(e.camera_y_, word(expanded ? 0x78C00 : 0x14E4F));
+      EXPECT_EQ(e.camera_x_, word(expanded ? 0x78A00 : 0x14D45));
+      EXPECT_EQ(e.y_position_, word(expanded ? 0x78E00 : 0x14F59));
+      EXPECT_EQ(e.x_position_, word(expanded ? 0x79000 : 0x15063));
+      EXPECT_EQ(e.camera_trigger_y_, word(expanded ? 0x79200 : 0x1516D));
+      EXPECT_EQ(e.camera_trigger_x_, word(expanded ? 0x79400 : 0x15277));
+      EXPECT_EQ(static_cast<uint16_t>(e.exit_),
+                word(expanded ? 0x79D00 : 0x15724));
+      const std::array<uint8_t, 8> actual = {
+          e.blockset_,  e.floor_,     e.dungeon_id_,      e.door_,
+          e.ladder_bg_, e.scrolling_, e.scroll_quadrant_, e.music_};
+      const std::array<int, 8> legacy = {0x15381, 0x15406, 0x1548B, 0x15510,
+                                         0x15595, 0x1561A, 0x1569F, 0x1582E};
+      const std::array<int, 8> relocated = {0x79600, 0x79700, 0x79800, 0x79900,
+                                            0x79A00, 0x79B00, 0x79C00, 0x79F00};
+      for (size_t f = 0; f < actual.size(); ++f)
+        EXPECT_EQ(actual[f],
+                  rom.data()[(expanded ? relocated[f] : legacy[f]) + id]);
+      const std::array<uint8_t, 8> edges = {
+          e.camera_boundary_qn_, e.camera_boundary_fn_, e.camera_boundary_qs_,
+          e.camera_boundary_fs_, e.camera_boundary_qw_, e.camera_boundary_fw_,
+          e.camera_boundary_qe_, e.camera_boundary_fe_};
+      for (size_t f = 0; f < edges.size(); ++f)
+        EXPECT_EQ(edges[f],
+                  rom.data()[(expanded ? 0x78200 : 0x1491D) + 8 * id + f]);
+      ASSERT_TRUE(e.Save(&rom, id).ok()) << id;
+    }
+    EXPECT_EQ(rom.vector(), original);
+    for (bool x_axis : {true, false}) {
+      Rom directed;
+      ASSERT_TRUE(directed.LoadFromData(original).ok());
+      RoomEntrance axis(&directed, 0x29);
+      const uint16_t value = x_axis ? 0x0192 : 0x03A4;
+      const int pc = (expanded ? (x_axis ? 0x78A00 : 0x78C00)
+                               : (x_axis ? 0x14D45 : 0x14E4F)) +
+                     0x29 * 2;
+      ASSERT_NE(directed.ReadWord(pc).value(), value);
+      if (x_axis)
+        axis.camera_x_ = value;
+      else
+        axis.camera_y_ = value;
+      axis.MarkDirty();
+      ASSERT_TRUE(axis.Save(&directed, 0x29).ok());
+      auto expected_axis = original;
+      expected_axis[pc] = value & 0xFF;
+      expected_axis[pc + 1] = value >> 8;
+      EXPECT_EQ(directed.vector(), expected_axis)
+          << "A directed edit must change only the selected runtime scroll "
+             "word";
+    }
+    RoomEntrance edit(&rom, 0x29);
+    edit.blockset_ = 2;
+    edit.MarkDirty();
+    ASSERT_TRUE(edit.Save(&rom, 0x29).ok());
+    auto expected = original;
+    expected[expanded ? 0x79629 : 0x153AA] = 2;
+    EXPECT_EQ(rom.vector(), expected);
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto dir = std::filesystem::temp_directory_path() /
+                     ("yaze-entrance-layout-" + std::to_string(nonce));
+    ASSERT_TRUE(std::filesystem::create_directory(dir));
+    struct Cleanup {
+      std::filesystem::path dir;
+      ~Cleanup() {
+        std::error_code ec;
+        std::filesystem::remove_all(dir, ec);
+      }
+    } cleanup{dir};
+    const auto saved = cleanup.dir / "copy.sfc";
+    // An explicit filename is Save As; save_new requests an additional
+    // timestamp suffix and is a different product option.
+    const auto save_status = rom.SaveToFile({.filename = saved.string()});
+    ASSERT_TRUE(save_status.ok()) << save_status;
+    Rom reopened;
+    const auto reopen_status = reopened.LoadFromFile(saved.string());
+    ASSERT_TRUE(reopen_status.ok()) << reopen_status;
+    EXPECT_EQ(reopened.vector(), expected);
+    RoomEntrance result(&reopened, 0x29);
+    EXPECT_EQ(result.blockset_, 2);
+    EXPECT_EQ(result.camera_x_, edit.camera_x_);
+    EXPECT_EQ(result.camera_y_, edit.camera_y_);
+    Rom source_again;
+    ASSERT_TRUE(source_again.LoadFromFile(source).ok());
+    EXPECT_EQ(source_again.vector(), original);
+  }
 }
 
 }  // namespace test
