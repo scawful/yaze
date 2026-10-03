@@ -841,13 +841,12 @@ class DungeonWorkbenchPlacementUiTest
 };
 
 TEST_F(DungeonWorkbenchPlacementUiTest,
-       PlaceOnceSelectsResultAndPlaceAnotherRestoresPreviewControls) {
+       DefaultPlacementSelectsResultAndPlaceAnotherRestoresPreviewControls) {
   auto& interaction = viewer_.object_interaction();
   DrawInspectorFrame();
   DrawInspectorFrame();
   ASSERT_TRUE(Widget("checkbox:repeat_placement").has_value());
   ASSERT_TRUE(Widget("combo:selected_object_width").has_value());
-  ClickInspector("checkbox:repeat_placement");
   EXPECT_EQ(interaction.GetPlacementPolicy(),
             DungeonObjectInteraction::PlacementPolicy::kOnce);
   ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
@@ -875,6 +874,9 @@ TEST_F(DungeonWorkbenchPlacementUiTest,
   auto& interaction = viewer_.object_interaction();
   DrawInspectorFrame();
   DrawInspectorFrame();
+  ClickInspector("checkbox:repeat_placement");
+  EXPECT_EQ(interaction.GetPlacementPolicy(),
+            DungeonObjectInteraction::PlacementPolicy::kRepeat);
   const auto preview = *interaction.GetPlacementPreview();
   auto& handler = interaction.entity_coordinator().tile_handler();
   ASSERT_TRUE(handler.PlaceObjectAt(0, preview, 12, 14));

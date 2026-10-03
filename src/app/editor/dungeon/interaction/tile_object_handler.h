@@ -235,7 +235,7 @@ class TileObjectHandler : public BaseEntityHandler {
  private:
   // Placement state
   bool object_placement_mode_ = false;
-  PlacementPolicy placement_policy_ = PlacementPolicy::kRepeat;
+  PlacementPolicy placement_policy_ = PlacementPolicy::kOnce;
   std::function<void(const zelda3::RoomObject&)> placement_callback_;
   PlacementBlockReason placement_block_reason_ = PlacementBlockReason::kNone;
   zelda3::RoomObject preview_object_{-1, 0, 0, 0};
