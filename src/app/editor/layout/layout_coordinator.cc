@@ -8,6 +8,7 @@
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/editor_registry.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -203,6 +204,28 @@ void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
   }
 }
 
+std::string LayoutCoordinator::DefaultLayoutBackupName(EditorType type) {
+  return "Before default: " + EditorRegistry::GetEditorCategory(type);
+}
+
+bool LayoutCoordinator::HasPreviousEditorLayout(EditorType type) const {
+  return layout_manager_ &&
+         layout_manager_->HasLayout(DefaultLayoutBackupName(type));
+}
+
+bool LayoutCoordinator::RestorePreviousEditorLayout(EditorType type) {
+  if (!HasPreviousEditorLayout(type))
+    return false;
+  const std::string backup = DefaultLayoutBackupName(type);
+  layout_manager_->LoadLayout(backup);
+  layout_manager_->ClearRebuildRequest();
+  layout_manager_->DeleteLayout(backup);
+  if (toast_manager_) {
+    toast_manager_->Show("Previous layout restored", ToastType::kSuccess);
+  }
+  return true;
+}
+
 void LayoutCoordinator::ResetCurrentEditorLayout(EditorType editor_type,
                                                  size_t session_id) {
   if (!window_manager_) {
@@ -212,8 +235,14 @@ void LayoutCoordinator::ResetCurrentEditorLayout(EditorType editor_type,
     return;
   }
 
-  // Get the default preset for the current editor
-  auto preset = LayoutPresets::GetDefaultPreset(editor_type);
+  // Keep the first pre-reset workspace until it is explicitly restored.
+  // Repeated default-layout tests must not overwrite the user's recovery copy.
+  if (layout_manager_) {
+    const std::string backup = DefaultLayoutBackupName(editor_type);
+    if (!layout_manager_->HasLayout(backup)) {
+      layout_manager_->SaveCurrentLayout(backup);
+    }
+  }
 
   // Reset panels to defaults
   window_manager_->ResetToDefaults(session_id, editor_type);
@@ -227,7 +256,8 @@ void LayoutCoordinator::ResetCurrentEditorLayout(EditorType editor_type,
   LOG_INFO("LayoutCoordinator", "Reset editor layout to defaults for type %d",
            static_cast<int>(editor_type));
   if (toast_manager_) {
-    toast_manager_->Show("Layout reset to defaults", ToastType::kSuccess);
+    toast_manager_->Show("Default layout applied; previous layout saved",
+                         ToastType::kSuccess);
   }
 }
 

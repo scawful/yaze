@@ -1153,7 +1153,9 @@ bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
   const ImVec2 image_bottom_right(image_top_left.x + fit.width,
                                   image_top_left.y + fit.height);
   ImGui::GetWindowDrawList()->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
-                                       image_top_left, image_bottom_right);
+                                       image_top_left, image_bottom_right,
+                                       ImVec2(0, 0), ImVec2(1, 1),
+                                       ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   return true;
 }
 

@@ -313,7 +313,8 @@ class DungeonMapPanel : public WindowContent {
           if (preview_bitmap.is_active() && preview_bitmap.texture() != 0) {
             // Draw room thumbnail
             draw_list->AddImage((ImTextureID)(intptr_t)preview_bitmap.texture(),
-                                room_min, room_max);
+                                room_min, room_max, ImVec2(0, 0), ImVec2(1, 1),
+                                ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
           } else {
             // Placeholder for loaded but no texture
             draw_list->AddRectFilled(

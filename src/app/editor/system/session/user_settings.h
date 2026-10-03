@@ -214,11 +214,11 @@ class UserSettings {
   // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 28;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 29;
   // Revisions through 21, and 27, changed whole-workspace arrangements.
   // Revision 27 rebuilds once so the overworld map keeps its height: Tile16
   // and area graphics share the right column, and nothing starts on the bottom.
-  // Revisions 22-26 and 28 are targeted preference migrations.
+  // Revisions 22-26 and 28-29 are targeted preference migrations.
   static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 27;
 
   Preferences& prefs() { return prefs_; }

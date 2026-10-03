@@ -245,6 +245,10 @@ void OverworldEditor::Initialize() {
   // Initialize canvas navigation and drawing tools. The sidebar also renders
   // quick appearance fields above the canvas.
   toolbar_ = std::make_unique<OverworldToolbar>();
+  toolbar_->on_story_changed = [this](int state) {
+    SetPreviewStoryState(state);
+  };
+  sidebar_->on_story_changed = toolbar_->on_story_changed;
   toolbar_->on_world_changed = [this](int world) {
     SwitchToWorld(world);
   };
@@ -606,6 +610,28 @@ absl::Status OverworldEditor::Load() {
   }
 
   return absl::OkStatus();
+}
+
+void OverworldEditor::SetPreviewStoryState(int state) {
+  state = std::clamp(state, 0, 2);
+  if (state == game_state_)
+    return;
+  if (current_entity_ && current_entity_->entity_type_ ==
+                             zelda3::GameEntity::EntityType::kSprite) {
+    SetCurrentEntity(nullptr);
+  }
+  game_state_ = state;
+  overworld_.set_game_state(state);
+  for (int id = 0; id < zelda3::kNumOverworldMaps; ++id) {
+    if (auto* map = overworld_.mutable_overworld_map(id)) {
+      map->set_game_state(state);
+      ForceRefreshGraphics(id);
+    }
+  }
+  if (all_gfx_loaded_) {
+    RefreshOverworldMap();
+    status_.Update(RefreshTile16Blockset());
+  }
 }
 
 void OverworldEditor::RefreshMapsForSheetEdits() {

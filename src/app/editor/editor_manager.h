@@ -375,6 +375,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::vector<std::string> ListLayoutSnapshots() const;
 
   void ResetCurrentEditorLayout();
+  bool HasPreviousEditorLayout() const;
+  void RestorePreviousEditorLayout();
 
   // Helper methods
   std::string GenerateUniqueEditorTitle(EditorType type,

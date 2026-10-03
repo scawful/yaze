@@ -179,7 +179,9 @@ void LinkSpriteView::DrawSheetThumbnail(int sheet_index) {
       ImGui::GetWindowDrawList()->AddImage(
           (ImTextureID)(intptr_t)sheet.texture(), cursor_pos,
           ImVec2(cursor_pos.x + kThumbnailSize,
-                 cursor_pos.y + kThumbnailSize / 4));  // 128x32 aspect
+                 cursor_pos.y + kThumbnailSize / 4),
+          ImVec2(0, 0), ImVec2(1, 1),
+          ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));  // 128x32 aspect
     }
   }
 

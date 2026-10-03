@@ -1077,7 +1077,7 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
       (ImTextureID)(intptr_t)overlay_bitmap.texture(), ImVec2(map_x, map_y),
       ImVec2(map_x + kOverworldMapSize * scale,
              map_y + kOverworldMapSize * scale),
-      ImVec2(0, 0), ImVec2(1, 1), overlay_color);
+      ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(overlay_color));
 }
 
 }  // namespace editor

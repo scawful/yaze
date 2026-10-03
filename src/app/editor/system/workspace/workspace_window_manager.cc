@@ -1562,8 +1562,10 @@ void WorkspaceWindowManager::ResetToDefaults(size_t session_id,
     return;
   }
 
-  // Hide all cards in this category first
-  HideAllWindowsInCategory(session_id, category);
+  // Publish every close so the next editor switch cannot restore stale prefs.
+  for (const auto& window : GetWindowsInCategory(session_id, category)) {
+    CloseWindow(session_id, window.card_id);
+  }
 
   // Get default cards from LayoutPresets
   auto default_panels = LayoutPresets::GetDefaultPanels(editor_type);

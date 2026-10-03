@@ -23,6 +23,8 @@
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
 #include "app/editor/dungeon/workspace/room_matrix_content.h"
+#include "app/editor/system/session/user_settings.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
 #include "core/project.h"
@@ -261,6 +263,27 @@ TEST(DungeonWorkbenchNavigatorUiTest, EntranceSelectorAboveToolsAndMatrix) {
   content.SetNavigationPanels(&matrix, &entrance_panel);
   content.SetEmbeddedEditorPanels(&browser, nullptr, nullptr, nullptr, nullptr,
                                   nullptr);
+  WorkspaceWindowManager windows;
+  windows.RegisterSession(0);
+  windows.SetActiveSession(0);
+  bool matrix_visible = true;
+  WindowDescriptor descriptor;
+  descriptor.card_id = "dungeon.room_matrix";
+  descriptor.category = "Dungeon";
+  descriptor.visibility_flag = &matrix_visible;
+  windows.RegisterWindow(0, descriptor);
+  UserSettings settings;
+  settings.prefs().panel_layout_defaults_revision = 28;
+  settings.prefs().panel_visibility_state["Dungeon"] = {
+      {"dungeon.workbench", true}, {"dungeon.room_matrix", true}};
+  settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision);
+  windows.RestoreVisibilityState(
+      0, settings.prefs().panel_visibility_state["Dungeon"]);
+  EXPECT_FALSE(matrix_visible);
+  content.SetStandaloneToolCallbacks(
+      [&](const std::string& id) { return windows.IsWindowOpen(0, id); },
+      [](const std::string&) { return false; });
   const auto frame = [&]() {
     gui::WidgetIdRegistry::Instance().Clear();
     ImGui::NewFrame();

@@ -4,9 +4,13 @@
 #include <fstream>
 #include <string>
 
+#include "app/editor/events/core_events.h"
+#include "app/editor/layout/layout_coordinator.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "unique_temp_path.h"
@@ -206,4 +210,47 @@ TEST_F(LayoutManagerPersistenceTest,
 }
 
 }  // namespace
+}  // namespace yaze::editor
+
+namespace yaze::editor {
+TEST_F(LayoutManagerPersistenceTest,
+       DefaultTrialSurvivesSwitchAndCanRestoreAfterRestart) {
+  const auto old_flags = core::FeatureFlags::get().dungeon;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  layout_manager_.SetProjectLayoutKey(project_key_);
+  window_manager_.OpenWindow(0, LayoutPresets::Panels::kDungeonObjectSelector);
+  window_manager_.CloseWindow(0, LayoutPresets::Panels::kDungeonWorkbench);
+  layout_manager_.SaveCurrentLayout("My workspace");
+  const auto original = window_manager_.SerializeVisibilityState(0);
+  auto persisted = original;
+  EventBus bus;
+  bus.Subscribe<PanelVisibilityChangedEvent>(
+      [&](const auto& e) { persisted[e.base_panel_id] = e.visible; });
+  auto* old_bus = ContentRegistry::Context::event_bus();
+  ContentRegistry::Context::SetEventBus(&bus);
+  LayoutCoordinator coordinator;
+  coordinator.Initialize(
+      {.layout_manager = &layout_manager_, .window_manager = &window_manager_});
+  coordinator.ResetCurrentEditorLayout(EditorType::kDungeon, 0);
+  EXPECT_TRUE(dungeon_workbench_visible_);
+  EXPECT_FALSE(dungeon_object_selector_visible_);
+  window_manager_.RestoreVisibilityState(0, persisted);
+  EXPECT_FALSE(dungeon_object_selector_visible_);
+  EXPECT_TRUE(dungeon_workbench_visible_);
+  // A second trial must not replace the first recovery copy with defaults.
+  coordinator.ResetCurrentEditorLayout(EditorType::kDungeon, 0);
+  EXPECT_TRUE(coordinator.HasPreviousEditorLayout(EditorType::kDungeon));
+  LayoutManager reopened;
+  reopened.SetWindowManager(&window_manager_);
+  reopened.SetProjectLayoutKey(project_key_);
+  LayoutCoordinator resumed;
+  resumed.Initialize(
+      {.layout_manager = &reopened, .window_manager = &window_manager_});
+  EXPECT_TRUE(resumed.RestorePreviousEditorLayout(EditorType::kDungeon));
+  EXPECT_EQ(window_manager_.SerializeVisibilityState(0), original);
+  EXPECT_FALSE(resumed.HasPreviousEditorLayout(EditorType::kDungeon));
+  EXPECT_TRUE(reopened.HasLayout("My workspace"));
+  ContentRegistry::Context::SetEventBus(old_bus);
+  core::FeatureFlags::get().dungeon = old_flags;
+}
 }  // namespace yaze::editor

@@ -439,6 +439,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_selection_snapshot_test.cc
     unit/editor/layout_presets_test.cc
     unit/editor/graphics_editor_window_ids_test.cc
+    unit/editor/graphics_workspace_layout_test.cc
     unit/editor/gfx_group_workspace_state_test.cc
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/sheet_png_transfer_test.cc

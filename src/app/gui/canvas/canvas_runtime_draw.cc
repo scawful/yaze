@@ -189,7 +189,7 @@ bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap,
             ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
             ImVec2(origin.x + paint_pos.x + scaled_size,
                    origin.y + paint_pos.y + scaled_size),
-            uv0, uv1);
+            uv0, uv1, ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
       }
     }
   }

@@ -226,7 +226,9 @@ void PixelEditorView::DrawCanvas() {
           canvas_.draw_list()->AddImage(
               (ImTextureID)(intptr_t)sheet.texture(), canvas_.zero_point(),
               ImVec2(canvas_.zero_point().x + canvas_width,
-                     canvas_.zero_point().y + canvas_height));
+                     canvas_.zero_point().y + canvas_height),
+              ImVec2(0, 0), ImVec2(1, 1),
+              ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
         }
 
         // Draw grid if enabled
@@ -550,7 +552,8 @@ void PixelEditorView::DrawMiniMap() {
 
   ImGui::GetWindowDrawList()->AddImage(
       (ImTextureID)(intptr_t)sheet.texture(), pos,
-      ImVec2(pos.x + mini_width, pos.y + mini_height));
+      ImVec2(pos.x + mini_width, pos.y + mini_height), ImVec2(0, 0),
+      ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 
   // Draw viewport rectangle
   // TODO: Calculate actual viewport bounds based on scroll position

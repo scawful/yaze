@@ -666,11 +666,27 @@ void EditorManager::SyncLayoutScopeFromCurrentProject() {
   }
 }
 
+bool EditorManager::HasPreviousEditorLayout() const {
+  return current_editor_ &&
+         layout_coordinator_.HasPreviousEditorLayout(current_editor_->type());
+}
+
+void EditorManager::RestorePreviousEditorLayout() {
+  if (current_editor_) {
+    layout_coordinator_.RestorePreviousEditorLayout(current_editor_->type());
+  }
+}
+
 void EditorManager::ResetCurrentEditorLayout() {
   if (!current_editor_) {
     toast_manager_.Show("No active editor to reset", ToastType::kWarning);
     return;
   }
+  // Choosing defaults ends automatic reapplication of a named layout. Keep
+  // the named layout itself; the recovery snapshot also retains live docking.
+  user_settings_.prefs().last_applied_layout_name.clear();
+  settings_dirty_ = true;
+  settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
   layout_coordinator_.ResetCurrentEditorLayout(current_editor_->type(),
                                                GetCurrentSessionId());
 }

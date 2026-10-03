@@ -10,6 +10,7 @@
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
@@ -38,12 +39,32 @@ absl::Status PixelEditorPanel::Update() {
   // Top toolbar
   DrawToolbar();
   ImGui::SameLine();
-  DrawViewControls();
-  DrawClipboardControls();
+  if (ImGui::Button(ICON_MD_TUNE "##ViewOptions")) {
+    ImGui::OpenPopup("View options");
+  }
+  gui::AutoRegisterLastItem("button", "View options");
+  HOVER_HINT("Zoom and display overlays");
+  if (ImGui::BeginPopup("View options")) {
+    DrawViewControls();
+    ImGui::EndPopup();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_MORE_HORIZ "##PixelEditOptions")) {
+    ImGui::OpenPopup("Edit options");
+  }
+  gui::AutoRegisterLastItem("button", "Edit options");
+  HOVER_HINT("Copy and paste a PNG");
+  if (ImGui::BeginPopup("Edit options")) {
+    DrawClipboardControls();
+    ImGui::EndPopup();
+  }
+  if (state_->selection.is_floating) {
+    DrawClipboardControls();
+  }
 
   ImGui::Separator();
 
-  constexpr float kColorPickerWidth = 200.0f;
+  constexpr float kColorPickerWidth = 144.0f;
   constexpr float kStatusBarHeight = 24.0f;
 
   // Main content area with canvas and side panels
@@ -51,16 +72,17 @@ absl::Status PixelEditorPanel::Update() {
                     false);
 
   // Color picker on the left
-  ImGui::BeginChild("##ColorPickerSide", ImVec2(kColorPickerWidth, 0), true);
+  ImGui::BeginChild("##ColorPickerSide", ImVec2(kColorPickerWidth, 0), false);
   DrawColorPicker();
-  ImGui::Separator();
-  DrawMiniMap();
+  if (ImGui::CollapsingHeader(tr("Navigator"))) {
+    DrawMiniMap();
+  }
   ImGui::EndChild();
 
   ImGui::SameLine();
 
   // Main canvas
-  ImGui::BeginChild("##CanvasArea", ImVec2(0, 0), true,
+  ImGui::BeginChild("##CanvasArea", ImVec2(0, 0), false,
                     ImGuiWindowFlags_HorizontalScrollbar);
   DrawCanvas();
   ImGui::EndChild();
@@ -163,44 +185,56 @@ void PixelEditorPanel::DrawSourceContext() {
 }
 
 void PixelEditorPanel::DrawToolbar() {
-  // Tool selection buttons
-  auto tool_button = [this](PixelTool tool, const char* icon,
-                            const char* tooltip) {
-    bool is_selected = state_->current_tool == tool;
-    std::optional<gui::StyleColorGuard> sel_guard;
-    if (is_selected) {
-      sel_guard.emplace(ImGuiCol_Button, gui::GetPrimaryVec4());
-    }
-    if (ImGui::Button(icon)) {
-      state_->SetTool(tool);
-    }
-    sel_guard.reset();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", tooltip);
-    }
-    ImGui::SameLine();
+  struct Tool {
+    PixelTool tool;
+    const char* icon;
+    const char* label;
   };
-
-  tool_button(PixelTool::kSelect, ICON_MD_SELECT_ALL, "Select (M)");
-  tool_button(PixelTool::kHand, ICON_MD_PAN_TOOL,
-              "Hand: drag to pan (H; middle mouse pans with any tool)");
-  tool_button(PixelTool::kPencil, ICON_MD_DRAW, "Pencil (B)");
-  tool_button(PixelTool::kBrush, ICON_MD_BRUSH, "Brush (P)");
-  tool_button(PixelTool::kEraser, ICON_MD_AUTO_FIX_HIGH, "Eraser (E)");
-  tool_button(PixelTool::kFill, ICON_MD_FORMAT_COLOR_FILL, "Fill (G)");
-  tool_button(PixelTool::kLine, ICON_MD_HORIZONTAL_RULE, "Line (L)");
-  tool_button(PixelTool::kRectangle, ICON_MD_CROP_SQUARE, "Rectangle (R)");
-  tool_button(PixelTool::kEyedropper, ICON_MD_COLORIZE, "Eyedropper (I)");
-
-  ImGui::SameLine();
-  ImGui::Text("|");
+  const Tool tools[] = {
+      {PixelTool::kSelect, ICON_MD_SELECT_ALL, "Select (M)"},
+      {PixelTool::kHand, ICON_MD_PAN_TOOL, "Hand (H)"},
+      {PixelTool::kPencil, ICON_MD_DRAW, "Pencil (B)"},
+      {PixelTool::kBrush, ICON_MD_BRUSH, "Brush (P)"},
+      {PixelTool::kEraser, ICON_MD_AUTO_FIX_HIGH, "Eraser (E)"},
+      {PixelTool::kFill, ICON_MD_FORMAT_COLOR_FILL, "Fill (G)"},
+      {PixelTool::kLine, ICON_MD_HORIZONTAL_RULE, "Line (L)"},
+      {PixelTool::kRectangle, ICON_MD_CROP_SQUARE, "Rectangle (R)"},
+      {PixelTool::kEyedropper, ICON_MD_COLORIZE, "Eyedropper (I)"},
+  };
+  const float button_size = ImGui::GetFrameHeight();
+  const float toolbar_width =
+      13 * (button_size + ImGui::GetStyle().ItemSpacing.x) + 90;
+  if (ImGui::GetContentRegionAvail().x < toolbar_width) {
+    ImGui::SetNextItemWidth(125);
+    if (ImGui::BeginCombo("##PixelTool", state_->GetToolName())) {
+      for (const auto& tool : tools) {
+        if (ImGui::Selectable(tool.label, state_->current_tool == tool.tool)) {
+          state_->SetTool(tool.tool);
+        }
+      }
+      ImGui::EndCombo();
+    }
+  } else {
+    for (const auto& tool : tools) {
+      std::optional<gui::StyleColorGuard> selected;
+      if (state_->current_tool == tool.tool) {
+        selected.emplace(ImGuiCol_Button, gui::GetPrimaryVec4());
+      }
+      if (ImGui::Button(tool.icon, ImVec2(button_size, button_size))) {
+        state_->SetTool(tool.tool);
+      }
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tool.label);
+      ImGui::SameLine();
+    }
+  }
   ImGui::SameLine();
 
   // Brush size for pencil/brush/eraser
   if (state_->current_tool == PixelTool::kPencil ||
       state_->current_tool == PixelTool::kBrush ||
       state_->current_tool == PixelTool::kEraser) {
-    ImGui::SetNextItemWidth(80);
+    ImGui::SetNextItemWidth(60);
     int brush = state_->brush_size;
     if (ImGui::SliderInt("##BrushSize", &brush, 1, 8, "%d px")) {
       state_->brush_size = static_cast<uint8_t>(brush);
@@ -210,9 +244,6 @@ void PixelEditorPanel::DrawToolbar() {
   }
 
   // Undo/Redo buttons
-  ImGui::Text("|");
-  ImGui::SameLine();
-
   ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanUndo());
   if (gui::ToolbarIconButton(ICON_MD_UNDO, "Undo (Cmd/Ctrl+Z)") &&
       undo_manager_) {
@@ -248,32 +279,13 @@ void PixelEditorPanel::DrawViewControls() {
     state_->ZoomIn();
   }
 
-  ImGui::SameLine();
-  ImGui::Text("|");
-  ImGui::SameLine();
-
-  // View overlay toggles
-  ImGui::Checkbox(ICON_MD_GRID_4X4 "##pixelgrid", &state_->show_pixel_grid);
-  HOVER_HINT("Pixel grid (from 6x zoom)");
-  ImGui::SameLine();
-  ImGui::Checkbox(ICON_MD_GRID_ON " 8##grid8", &state_->show_grid);
-  HOVER_HINT("8x8 tile grid (Cmd/Ctrl+G)");
-  ImGui::SameLine();
-  ImGui::Checkbox(ICON_MD_GRID_VIEW " 16##grid16",
-                  &state_->show_tile_boundaries);
-  HOVER_HINT("16x16 block grid");
-  ImGui::SameLine();
-
-  ImGui::Checkbox(ICON_MD_ADD, &state_->show_cursor_crosshair);
-  HOVER_HINT("Toggle cursor crosshair");
-  ImGui::SameLine();
-
-  ImGui::Checkbox(ICON_MD_BRUSH, &state_->show_brush_preview);
-  HOVER_HINT("Toggle brush preview");
-  ImGui::SameLine();
-
-  ImGui::Checkbox(ICON_MD_TEXTURE, &state_->show_transparency_grid);
-  HOVER_HINT("Toggle transparency grid");
+  ImGui::Separator();
+  ImGui::Checkbox(tr("Pixel grid (6x zoom)"), &state_->show_pixel_grid);
+  ImGui::Checkbox(tr("8x8 tile grid"), &state_->show_grid);
+  ImGui::Checkbox(tr("16x16 block grid"), &state_->show_tile_boundaries);
+  ImGui::Checkbox(tr("Cursor crosshair"), &state_->show_cursor_crosshair);
+  ImGui::Checkbox(tr("Brush preview"), &state_->show_brush_preview);
+  ImGui::Checkbox(tr("Transparency grid"), &state_->show_transparency_grid);
 }
 
 void PixelEditorPanel::DrawCanvas() {
@@ -336,7 +348,9 @@ void PixelEditorPanel::DrawCanvas() {
           canvas_.draw_list()->AddImage(
               (ImTextureID)(intptr_t)sheet.texture(), canvas_.zero_point(),
               ImVec2(canvas_.zero_point().x + canvas_width,
-                     canvas_.zero_point().y + canvas_height));
+                     canvas_.zero_point().y + canvas_height),
+              ImVec2(0, 0), ImVec2(1, 1),
+              ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
         }
 
         // Draw grid if enabled
@@ -356,11 +370,13 @@ void PixelEditorPanel::DrawCanvas() {
               PixelToScreen(state_->selection.x + state_->selection.width,
                             state_->selection.y + state_->selection.height);
           canvas_.draw_list()->AddRect(
-              sel_min, sel_max, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+              sel_min, sel_max, ImGui::GetColorU32(IM_COL32(255, 255, 0, 255)),
+              0.0f, 0, 2.0f);
 
           // Marching ants effect (simplified)
-          canvas_.draw_list()->AddRect(sel_min, sel_max, IM_COL32(0, 0, 0, 128),
-                                       0.0f, 0, 1.0f);
+          canvas_.draw_list()->AddRect(
+              sel_min, sel_max, ImGui::GetColorU32(IM_COL32(0, 0, 0, 128)),
+              0.0f, 0, 1.0f);
         }
 
         DrawFloatingPaste();
@@ -373,11 +389,13 @@ void PixelEditorPanel::DrawCanvas() {
                                      static_cast<int>(preview_end_.y));
 
           if (state_->current_tool == PixelTool::kLine) {
-            canvas_.draw_list()->AddLine(start, end, IM_COL32(255, 255, 0, 200),
-                                         2.0f);
+            canvas_.draw_list()->AddLine(
+                start, end, ImGui::GetColorU32(IM_COL32(255, 255, 0, 200)),
+                2.0f);
           } else if (state_->current_tool == PixelTool::kRectangle) {
-            canvas_.draw_list()->AddRect(start, end, IM_COL32(255, 255, 0, 200),
-                                         0.0f, 0, 2.0f);
+            canvas_.draw_list()->AddRect(
+                start, end, ImGui::GetColorU32(IM_COL32(255, 255, 0, 200)),
+                0.0f, 0, 2.0f);
           }
         }
 
@@ -423,8 +441,8 @@ void PixelEditorPanel::DrawCanvas() {
 void PixelEditorPanel::DrawTransparencyGrid(float canvas_width,
                                             float canvas_height) {
   const float cell_size = 8.0f;  // Checkerboard cell size
-  const ImU32 color1 = IM_COL32(180, 180, 180, 255);
-  const ImU32 color2 = IM_COL32(220, 220, 220, 255);
+  const ImU32 color1 = ImGui::GetColorU32(IM_COL32(180, 180, 180, 255));
+  const ImU32 color2 = ImGui::GetColorU32(IM_COL32(220, 220, 220, 255));
 
   ImVec2 origin = canvas_.zero_point();
   int cols = static_cast<int>(canvas_width / cell_size) + 1;
@@ -450,21 +468,22 @@ void PixelEditorPanel::DrawCursorCrosshair() {
   ImVec2 v_start(cursor_screen.x + pixel_size / 2, canvas_.zero_point().y);
   ImVec2 v_end(cursor_screen.x + pixel_size / 2,
                canvas_.zero_point().y + canvas_.canvas_size().y);
-  canvas_.draw_list()->AddLine(v_start, v_end, IM_COL32(255, 100, 100, 100),
-                               1.0f);
+  canvas_.draw_list()->AddLine(
+      v_start, v_end, ImGui::GetColorU32(IM_COL32(255, 100, 100, 100)), 1.0f);
 
   // Horizontal line through cursor pixel
   ImVec2 h_start(canvas_.zero_point().x, cursor_screen.y + pixel_size / 2);
   ImVec2 h_end(canvas_.zero_point().x + canvas_.canvas_size().x,
                cursor_screen.y + pixel_size / 2);
-  canvas_.draw_list()->AddLine(h_start, h_end, IM_COL32(255, 100, 100, 100),
-                               1.0f);
+  canvas_.draw_list()->AddLine(
+      h_start, h_end, ImGui::GetColorU32(IM_COL32(255, 100, 100, 100)), 1.0f);
 
   // Highlight current pixel with a bright outline
   ImVec2 pixel_min = cursor_screen;
   ImVec2 pixel_max(cursor_screen.x + pixel_size, cursor_screen.y + pixel_size);
   canvas_.draw_list()->AddRect(pixel_min, pixel_max,
-                               IM_COL32(255, 255, 255, 200), 0.0f, 0, 2.0f);
+                               ImGui::GetColorU32(IM_COL32(255, 255, 255, 200)),
+                               0.0f, 0, 2.0f);
 }
 
 void PixelEditorPanel::DrawBrushPreview() {
@@ -481,14 +500,14 @@ void PixelEditorPanel::DrawBrushPreview() {
 
   // Fill with semi-transparent color preview
   ImU32 preview_color = (state_->current_tool == PixelTool::kEraser)
-                            ? IM_COL32(255, 0, 0, 50)
-                            : IM_COL32(0, 255, 0, 50);
+                            ? ImGui::GetColorU32(IM_COL32(255, 0, 0, 50))
+                            : ImGui::GetColorU32(IM_COL32(0, 255, 0, 50));
   canvas_.draw_list()->AddRectFilled(brush_min, brush_max, preview_color);
 
   // Outline
   ImU32 outline_color = (state_->current_tool == PixelTool::kEraser)
-                            ? IM_COL32(255, 100, 100, 200)
-                            : IM_COL32(100, 255, 100, 200);
+                            ? ImGui::GetColorU32(IM_COL32(255, 100, 100, 200))
+                            : ImGui::GetColorU32(IM_COL32(100, 255, 100, 200));
   canvas_.draw_list()->AddRect(brush_min, brush_max, outline_color, 0.0f, 0,
                                1.0f);
 }
@@ -635,7 +654,7 @@ void PixelEditorPanel::DrawColorPicker() {
   // Current color preview
   ImGui::Text(tr("Current:"));
   ImGui::ColorButton("##CurrentColor", state_->current_color,
-                     ImGuiColorEditFlags_NoTooltip, ImVec2(40, 40));
+                     ImGuiColorEditFlags_NoTooltip, ImVec2(24, 24));
   ImGui::SameLine();
   ImGui::Text(tr("Index: %d"), state_->current_color_index);
 }
@@ -661,7 +680,8 @@ void PixelEditorPanel::DrawMiniMap() {
 
   ImGui::GetWindowDrawList()->AddImage(
       (ImTextureID)(intptr_t)sheet.texture(), pos,
-      ImVec2(pos.x + mini_width, pos.y + mini_height));
+      ImVec2(pos.x + mini_width, pos.y + mini_height), ImVec2(0, 0),
+      ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 
   // Draw viewport rectangle
   // TODO: Calculate actual viewport bounds based on scroll position
@@ -1189,7 +1209,7 @@ void PixelEditorPanel::DrawPixelGrids(float canvas_width, float canvas_height) {
     }
   };
   if (state_->show_pixel_grid && zoom >= 6.0f) {
-    lines(zoom, IM_COL32(255, 255, 255, 28), 1.0f);
+    lines(zoom, ImGui::GetColorU32(IM_COL32(255, 255, 255, 28)), 1.0f);
   }
   if (state_->show_tile_boundaries) {
     lines(16.0f * zoom, ImGui::GetColorU32(gui::GetInfoColor()), 1.5f);
@@ -1520,7 +1540,8 @@ void PixelEditorPanel::DrawFloatingPaste() {
       const ImVec2 p0 = PixelToScreen(selection.x + dx, selection.y + dy);
       const ImVec2 p1 =
           PixelToScreen(selection.x + dx + 1, selection.y + dy + 1);
-      draw_list->AddRectFilled(p0, p1, IM_COL32(rgb[0], rgb[1], rgb[2], 230));
+      draw_list->AddRectFilled(
+          p0, p1, ImGui::GetColorU32(IM_COL32(rgb[0], rgb[1], rgb[2], 230)));
     }
   }
   draw_list->AddRect(PixelToScreen(selection.x, selection.y),

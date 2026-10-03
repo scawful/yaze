@@ -236,7 +236,8 @@ void RoomGraphicsContent::DrawAssignmentPicker(const zelda3::Room& room) {
           ImGui::GetWindowDrawList()->AddImage(
               (ImTextureID)preview.texture(),
               ImVec2(position.x + 84, position.y + 8),
-              ImVec2(position.x + 212, position.y + 40));
+              ImVec2(position.x + 212, position.y + 40), ImVec2(0, 0),
+              ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
         }
         ImGui::PopID();
       }

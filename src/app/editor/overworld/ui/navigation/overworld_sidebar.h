@@ -31,7 +31,10 @@ class OverworldSidebar {
             bool& show_overlay_editor, project::YazeProject* project = nullptr);
 
   void DrawQuickProperties(int current_map, bool current_map_lock,
-                           project::YazeProject* project = nullptr);
+                           project::YazeProject* project = nullptr,
+                           bool compact = false);
+
+  std::function<void(int)> on_story_changed;
 
   /// Renames a project resource label (map names, gfx/palette/music labels)
   /// through the editor so the change is undoable.

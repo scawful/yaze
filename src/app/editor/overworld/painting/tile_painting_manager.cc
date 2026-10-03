@@ -431,7 +431,7 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
                        uv0.y + 16.0f / atlas.height());
       draw->AddImage((ImTextureID)(intptr_t)atlas.texture(), start,
                      ImVec2(start.x + size, start.y + size), uv0, uv1,
-                     IM_COL32(255, 255, 255, alpha));
+                     ImGui::GetColorU32(IM_COL32(255, 255, 255, alpha)));
     }
   }
   draw->PopClipRect();

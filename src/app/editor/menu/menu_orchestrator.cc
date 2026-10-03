@@ -816,11 +816,16 @@ void MenuOrchestrator::AddLayoutSubmenu() {
       OnResetWorkspaceLayout();
     }
     if (ImGui::MenuItem(
-            absl::StrFormat("%s Reset Active Editor Layout", ICON_MD_REFRESH)
+            absl::StrFormat("%s Try Default Editor Layout", ICON_MD_REFRESH)
                 .c_str(),
             nullptr, false, layout_enabled)) {
       if (editor_manager_)
         editor_manager_->ResetCurrentEditorLayout();
+    }
+    if (ImGui::MenuItem(
+            "Restore Layout Before Default", nullptr, false,
+            editor_manager_ && editor_manager_->HasPreviousEditorLayout())) {
+      editor_manager_->RestorePreviousEditorLayout();
     }
 
     ImGui::Separator();
