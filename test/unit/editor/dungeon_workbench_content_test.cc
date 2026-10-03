@@ -543,24 +543,43 @@ TEST(DungeonWorkbenchNavigatorUiTest,
   rooms[0x89].SetGameData(&data);
   rooms[0x89].SetLoaded(true);
   frame();
-  EXPECT_EQ(fill(0x89), original);
+  const ImU32 visited = fill(0x89);
   active.push_back(0x89);
   frame();
+  EXPECT_EQ(fill(0x89),
+            visited);  // Tabs and workbench use the same open state.
   const auto before = ImGui::ColorConvertU32ToFloat4(original);
   const auto after = ImGui::ColorConvertU32ToFloat4(fill(0x89));
-  EXPECT_GE(after.x + after.y + after.z, before.x + before.y + before.z);
+  EXPECT_GT(after.x + after.y + after.z, before.x + before.y + before.z);
+  float before_h, before_s, before_v, after_h, after_s, after_v;
+  ImGui::ColorConvertRGBtoHSV(before.x, before.y, before.z, before_h, before_s,
+                              before_v);
+  ImGui::ColorConvertRGBtoHSV(after.x, after.y, after.z, after_h, after_s,
+                              after_v);
+  EXPECT_NEAR(before_h, after_h, 0.01f);
+  EXPECT_NEAR(before_s, after_s, 0.01f);
   active.clear();
+  // Follow the same brightness treatment after an in-memory palette change.
+  const auto open_color = [](ImVec4 color) {
+    float h, s, v;
+    ImGui::ColorConvertRGBtoHSV(color.x, color.y, color.z, h, s, v);
+    ImGui::ColorConvertHSVtoRGB(h, s, v + (1 - v) * 0.22f, color.x, color.y,
+                                color.z);
+    return ImGui::ColorConvertFloat4ToU32(color);
+  };
   const int palette_id = rooms[0x89].ResolveDungeonPaletteId();
   data.palette_groups.dungeon_main.mutable_palette(palette_id)
       ->UpdateColor(3, gfx::SnesColor(80, 120, 160));
   frame();
-  EXPECT_EQ(fill(0x89), IM_COL32(80, 120, 160, 255));
+  EXPECT_EQ(fill(0x89),
+            open_color(ImVec4(80 / 255.0f, 120 / 255.0f, 160 / 255.0f, 1)));
   rooms[0x89].SetPalette(0);
   frame();
   const auto& next = data.palette_groups.dungeon_main
                          .palette_ref(rooms[0x89].ResolveDungeonPaletteId())[3]
                          .rgb();
-  EXPECT_EQ(fill(0x89), IM_COL32(next.x, next.y, next.z, 255));
+  EXPECT_EQ(fill(0x89),
+            open_color(ImVec4(next.x / 255, next.y / 255, next.z / 255, 1)));
   EXPECT_EQ(std::vector<uint8_t>(rom.begin(), rom.end()), initial);
 }
 

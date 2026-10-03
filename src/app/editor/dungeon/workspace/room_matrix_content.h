@@ -187,7 +187,7 @@ class RoomMatrixContent : public WindowContent {
           }
 
           bool is_current = (*current_room_id_ == room_id);
-          bool is_open = false;
+          bool is_open = rooms_ && rooms_->GetIfLoaded(room_id);
           for (int i = 0; i < active_rooms_->Size; i++) {
             if ((*active_rooms_)[i] == room_id) {
               is_open = true;
@@ -350,7 +350,8 @@ class RoomMatrixContent : public WindowContent {
             }
 
             ImGui::Separator();
-            ImGui::TextDisabled(tr("Click to %s"), is_open ? "focus" : "open");
+            ImGui::TextDisabled(tr("Click to %s"),
+                                (is_open || is_current) ? "focus" : "open");
             ImGui::TextDisabled(tr("Double-click to open as panel"));
             ImGui::TextDisabled(tr("Right-click for actions"));
             ImGui::EndTooltip();
@@ -428,7 +429,9 @@ class RoomMatrixContent : public WindowContent {
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
       ImGui::TextUnformatted(caption.c_str());
-      ImGui::TextDisabled("%d open rooms", active_rooms_->Size);
+      ImGui::TextDisabled("%d loaded rooms",
+                          rooms_ ? static_cast<int>(rooms_->LoadedCount())
+                                 : active_rooms_->Size);
       if (const auto meta = GetRoomMetadata(*current_room_id_))
         ImGui::TextDisabled("Palette %02X / Room GFX %02X", meta->first,
                             meta->second);
