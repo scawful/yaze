@@ -293,9 +293,15 @@ class DungeonCanvasViewerTestPeer {
   static std::vector<std::string> SelectionContextMenuLabels(
       DungeonCanvasViewer& viewer, int room_id) {
     std::vector<std::string> labels;
-    for (const auto& item : viewer.BuildSelectionContextMenuItems(room_id)) {
-      labels.push_back(item.label);
-    }
+    const auto collect =
+        [&](auto&& self,
+            const std::vector<gui::CanvasMenuItem>& items) -> void {
+      for (const auto& item : items) {
+        labels.push_back(item.label);
+        self(self, item.subitems);
+      }
+    };
+    collect(collect, viewer.BuildSelectionContextMenuItems(room_id));
     return labels;
   }
 
@@ -1358,7 +1364,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 }  // namespace
 
-TEST(DungeonCanvasViewerContextMenuTest, RootActionsUseStableSubmenus) {
+TEST(DungeonCanvasViewerContextMenuTest,
+     EmptySelectionKeepsPasteAndInsertAtRoot) {
   ScopedImGuiContext imgui;
   DungeonCanvasViewer viewer;
   viewer.SetShowObjectPanelCallback([]() {});
@@ -1368,9 +1375,11 @@ TEST(DungeonCanvasViewerContextMenuTest, RootActionsUseStableSubmenus) {
   const auto labels =
       DungeonCanvasViewerTestPeer::InteractionContextMenuLabels(viewer, 0);
 
-  ASSERT_EQ(labels.size(), 2u);
-  EXPECT_EQ(labels[0], "Selection");
-  EXPECT_EQ(labels[1], "Insert");
+  ASSERT_EQ(labels.size(), 4u);
+  EXPECT_EQ(labels[0], "Paste");
+  EXPECT_EQ(labels[1], "Delete");
+  EXPECT_EQ(labels[2], "Use Object as Brush");
+  EXPECT_EQ(labels[3], "Insert");
 }
 
 TEST(DungeonCanvasViewerContextMenuTest,
@@ -1408,7 +1417,7 @@ TEST(DungeonCanvasViewerContextMenuTest,
 }
 
 TEST(DungeonCanvasViewerContextMenuTest,
-     SelectedObjectUsesDirectZAndObjectStreamLabels) {
+     SelectedObjectKeepsCommonActionsDirectAndGroupsArrangement) {
   ScopedImGuiContext imgui;
   DungeonRoomStore rooms;
   rooms[0].GetTileObjects().push_back(
@@ -1422,9 +1431,22 @@ TEST(DungeonCanvasViewerContextMenuTest,
   const auto labels =
       DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
 
+  const auto root =
+      DungeonCanvasViewerTestPeer::InteractionContextMenuLabels(viewer, 0);
+  ASSERT_GE(root.size(), 7u);
+  EXPECT_EQ(root[0], "Cut");
+  EXPECT_EQ(root[1], "Copy");
+  EXPECT_EQ(root[2], "Paste");
+  EXPECT_EQ(root[3], "Duplicate");
+  EXPECT_EQ(root[4], "Delete");
+  EXPECT_EQ(root[5], "Arrange");
+  EXPECT_EQ(root[6], "Placement");
+  EXPECT_EQ(FindLabelIndex(root, "Bring to Front"), root.size());
+  EXPECT_EQ(FindLabelIndex(root, "Object Stream: Primary"), root.size());
+
   const size_t bring_front = FindLabelIndex(labels, "Bring to Front");
   const size_t send_back = FindLabelIndex(labels, "Send to Back");
-  const size_t z_order = FindLabelIndex(labels, "Z Order");
+  const size_t z_order = FindLabelIndex(labels, "Arrange");
   const size_t primary = FindLabelIndex(labels, "Object Stream: Primary");
   const size_t bg1_overlay =
       FindLabelIndex(labels, "Object Stream: BG1 Overlay");
@@ -1434,8 +1456,8 @@ TEST(DungeonCanvasViewerContextMenuTest,
   ASSERT_LT(z_order, labels.size());
   ASSERT_LT(primary, labels.size());
   ASSERT_LT(bg1_overlay, labels.size());
-  EXPECT_LT(bring_front, z_order);
-  EXPECT_LT(send_back, z_order);
+  EXPECT_LT(z_order, bring_front);
+  EXPECT_LT(z_order, send_back);
   EXPECT_LT(z_order, primary);
   EXPECT_LT(primary, bg1_overlay);
   EXPECT_EQ(FindLabelIndex(labels, "Increase Z"), labels.size());

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "app/editor/system/workspace/panel_visibility.h"
 #include "app/gui/animation/animator.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
@@ -37,17 +38,6 @@ WindowDescriptor BuildDescriptorFromPanel(const WindowContent& panel) {
   descriptor.visibility_flag = nullptr;
   descriptor.window_title = panel.GetIcon() + " " + panel.GetDisplayName();
   return descriptor;
-}
-
-bool IsTransientPanelVisibilityId(const std::string& panel_id) {
-  constexpr char kRoomPanelPrefix[] = "dungeon.room_";
-  constexpr size_t kRoomPanelPrefixLength = 13;
-  if (panel_id.rfind(kRoomPanelPrefix, 0) != 0 ||
-      panel_id.size() <= kRoomPanelPrefixLength) {
-    return false;
-  }
-  return std::all_of(panel_id.begin() + kRoomPanelPrefixLength, panel_id.end(),
-                     [](char ch) { return ch >= '0' && ch <= '9'; });
 }
 
 }  // namespace

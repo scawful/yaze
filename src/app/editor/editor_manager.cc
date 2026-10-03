@@ -67,6 +67,7 @@
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/session/default_editor_factories.h"
 #include "app/editor/system/shortcut_configurator.h"
+#include "app/editor/system/workspace/panel_visibility.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
@@ -190,20 +191,6 @@ bool HasAnyOverride(const core::RomAddressOverrides& overrides,
     }
   }
   return false;
-}
-
-bool IsTransientPanelVisibilityId(absl::string_view panel_id) {
-  constexpr absl::string_view kRoomPanelPrefix = "dungeon.room_";
-  if (!absl::StartsWith(panel_id, kRoomPanelPrefix) ||
-      panel_id.size() <= kRoomPanelPrefix.size()) {
-    return false;
-  }
-  for (char ch : panel_id.substr(kRoomPanelPrefix.size())) {
-    if (ch < '0' || ch > '9') {
-      return false;
-    }
-  }
-  return true;
 }
 
 std::string LastNonEmptyLine(const std::string& text) {

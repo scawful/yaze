@@ -29,19 +29,12 @@ void DungeonCanvasViewer::AddInteractionContextMenuItems(int room_id) {
     return;
   }
 
-  canvas_.AddContextMenuItem(BuildSelectionContextMenu(room_id));
+  for (auto& item : BuildSelectionContextMenuItems(room_id)) {
+    canvas_.AddContextMenuItem(std::move(item));
+  }
   auto insert_menu = BuildInsertContextMenu();
   insert_menu.separator_after = true;
   canvas_.AddContextMenuItem(insert_menu);
-}
-
-gui::CanvasMenuItem DungeonCanvasViewer::BuildSelectionContextMenu(
-    int room_id) {
-  gui::CanvasMenuItem selection_menu;
-  selection_menu.label = "Selection";
-  selection_menu.icon = ICON_MD_SELECT_ALL;
-  selection_menu.subitems = BuildSelectionContextMenuItems(room_id);
-  return selection_menu;
 }
 
 void DungeonCanvasViewer::AddLoadedRoomContextMenuItems(int room_id) {
@@ -50,14 +43,23 @@ void DungeonCanvasViewer::AddLoadedRoomContextMenuItems(int room_id) {
   }
 
   canvas_.AddContextMenuItem(BuildRoomContextMenu(room_id));
-  canvas_.AddContextMenuItem(BuildReportContextMenu(room_id));
   if (auto open_menu = BuildOpenContextMenu(); open_menu.has_value()) {
     canvas_.AddContextMenuItem(std::move(*open_menu));
   }
-  canvas_.AddContextMenuItem(BuildCopyExportContextMenu(room_id));
-  canvas_.AddContextMenuItem(BuildLayerVisibilityContextMenu(room_id));
-  canvas_.AddContextMenuItem(BuildOverlayContextMenu());
-  canvas_.AddContextMenuItem(BuildDebugContextMenu(room_id));
+  gui::CanvasMenuItem display;
+  display.label = "Display";
+  display.icon = ICON_MD_VISIBILITY;
+  display.subitems.push_back(BuildLayerVisibilityContextMenu(room_id));
+  display.subitems.push_back(BuildOverlayContextMenu());
+  canvas_.AddContextMenuItem(std::move(display));
+
+  gui::CanvasMenuItem advanced;
+  advanced.label = "Advanced";
+  advanced.icon = ICON_MD_MORE_HORIZ;
+  advanced.subitems.push_back(BuildCopyExportContextMenu(room_id));
+  advanced.subitems.push_back(BuildReportContextMenu(room_id));
+  advanced.subitems.push_back(BuildDebugContextMenu(room_id));
+  canvas_.AddContextMenuItem(std::move(advanced));
 }
 
 gui::CanvasMenuItem DungeonCanvasViewer::BuildInsertContextMenu() {
@@ -159,13 +161,10 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   const bool has_entity_selection = interaction.HasEntitySelection();
   const bool has_selection = !selected.empty() || has_entity_selection;
   const bool single_selection = selected.size() == 1 && !has_entity_selection;
-  const bool group_selection = selected.size() > 1 || has_entity_selection;
   const bool has_clipboard = interaction.HasClipboardData();
   const bool placing_object = interaction.IsObjectLoaded();
   const bool valid_room =
       rooms_ && room_id >= 0 && room_id < zelda3::kNumberOfRooms;
-  const bool room_has_objects =
-      valid_room && !(*rooms_)[room_id].GetTileObjects().empty();
   bool has_room_stream_object = false;
   bool has_special_layer_object = false;
   if (has_selection && valid_room) {
@@ -227,7 +226,8 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   auto paste_item = [&]() {
     gui::CanvasMenuItem item(
         "Paste", ICON_MD_CONTENT_PASTE,
-        [&interaction]() { (void)interaction.HandlePasteObjects(); }, "Ctrl+V");
+        [&interaction]() { (void)interaction.HandlePasteObjects(); },
+        gui::FormatCtrlShortcut(ImGuiKey_V));
     item.enabled_condition = enabled_if(has_clipboard);
     return item;
   };
@@ -260,7 +260,6 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
                                   });
   sample_item.enabled_condition = enabled_if(context_object.has_value());
   sample_item.separator_after = true;
-  items.push_back(std::move(sample_item));
 
   if (has_selection) {
     items.emplace_back(
@@ -270,65 +269,66 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
             (void)interaction.HandleDeleteSelected();
           }
         },
-        "Ctrl+X");
+        gui::FormatCtrlShortcut(ImGuiKey_X));
     items.emplace_back(
         "Copy", ICON_MD_CONTENT_COPY,
-        [&interaction]() { (void)interaction.HandleCopySelected(); }, "Ctrl+C");
+        [&interaction]() { (void)interaction.HandleCopySelected(); },
+        gui::FormatCtrlShortcut(ImGuiKey_C));
     items.push_back(paste_item());
+    items.emplace_back("Duplicate", ICON_MD_FILE_COPY, [&interaction]() {
+      (void)interaction.HandleDuplicateSelected();
+    });
     items.push_back(gui::CanvasMenuItem::Destructive(
         "Delete", ICON_MD_DELETE,
         [&interaction]() { (void)interaction.HandleDeleteSelected(); },
         /*confirm=*/false, "Delete"));
 
+    items.back().separator_after = true;
     if (!selected.empty()) {
-      items.emplace_back(
+      gui::CanvasMenuItem arrange;
+      arrange.label = "Arrange";
+      arrange.icon = ICON_MD_LAYERS;
+      arrange.subitems.emplace_back(
           "Bring to Front", ICON_MD_FLIP_TO_FRONT,
           [&interaction]() { interaction.SendSelectedToFront(); },
           gui::FormatCtrlShiftShortcut(ImGuiKey_RightBracket));
-      items.emplace_back(
+      arrange.subitems.emplace_back(
           "Send to Back", ICON_MD_FLIP_TO_BACK,
           [&interaction]() { interaction.SendSelectedToBack(); },
           gui::FormatCtrlShiftShortcut(ImGuiKey_LeftBracket));
 
-      gui::CanvasMenuItem z_order;
-      z_order.label = "Z Order";
-      z_order.icon = ICON_MD_LAYERS;
-      z_order.subitems.emplace_back(
+      arrange.subitems.emplace_back(
           "Bring Forward", ICON_MD_ARROW_UPWARD,
           [&interaction]() { interaction.BringSelectedForward(); },
           gui::FormatCtrlShortcut(ImGuiKey_RightBracket));
-      z_order.subitems.emplace_back(
+      arrange.subitems.emplace_back(
           "Send Backward", ICON_MD_ARROW_DOWNWARD,
           [&interaction]() { interaction.SendSelectedBackward(); },
           gui::FormatCtrlShortcut(ImGuiKey_LeftBracket));
-      items.push_back(std::move(z_order));
+      items.push_back(std::move(arrange));
+
+      gui::CanvasMenuItem placement;
+      placement.label = "Placement";
+      placement.icon = ICON_MD_LAYERS;
 
       if (has_room_stream_object && !has_special_layer_object) {
-        items.push_back(layer_item("Object Stream: Primary", 0, "1"));
-        items.push_back(layer_item("Object Stream: BG2 Overlay", 1, "2"));
-        items.push_back(layer_item("Object Stream: BG1 Overlay", 2, "3"));
+        placement.subitems.push_back(
+            layer_item("Object Stream: Primary", 0, "1"));
+        placement.subitems.push_back(
+            layer_item("Object Stream: BG2 Overlay", 1, "2"));
+        placement.subitems.push_back(
+            layer_item("Object Stream: BG1 Overlay", 2, "3"));
       } else if (has_special_layer_object && !has_room_stream_object) {
-        items.push_back(layer_item("Upper Layer (BG1)", 0, "1"));
-        items.push_back(layer_item("Lower Layer (BG2)", 1, "2"));
+        placement.subitems.push_back(layer_item("Upper Layer (BG1)", 0, "1"));
+        placement.subitems.push_back(layer_item("Lower Layer (BG2)", 1, "2"));
       } else {
-        items.push_back(
+        placement.subitems.push_back(
             layer_item("Placement 0: Primary / Upper Layer (BG1)", 0, "1"));
-        items.push_back(
+        placement.subitems.push_back(
             layer_item("Placement 1: BG2 Overlay / Lower Layer (BG2)", 1, "2"));
       }
+      items.push_back(std::move(placement));
     }
-
-    gui::CanvasMenuItem yaze_more;
-    yaze_more.label = "More";
-    yaze_more.icon = ICON_MD_MORE_HORIZ;
-    yaze_more.subitems.emplace_back(
-        "Duplicate", ICON_MD_FILE_COPY,
-        [&interaction]() { (void)interaction.HandleDuplicateSelected(); });
-    if (group_selection) {
-      yaze_more.subitems.push_back(
-          disabled_item("Save As New Layout...", ICON_MD_SAVE_AS, nullptr));
-    }
-    items.push_back(std::move(yaze_more));
   }
 
   if (can_edit_selected_graphics) {
@@ -347,12 +347,9 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   if (!has_selection && !has_entity_selection) {
     items.push_back(paste_item());
     items.push_back(disabled_item("Delete", ICON_MD_DELETE, "Delete"));
-    auto delete_all_item = gui::CanvasMenuItem::Destructive(
-        "Delete All Objects...", ICON_MD_DELETE_FOREVER,
-        [&interaction]() { interaction.HandleDeleteAllObjects(); });
-    delete_all_item.enabled_condition = enabled_if(room_has_objects);
-    items.push_back(std::move(delete_all_item));
   }
+
+  items.push_back(std::move(sample_item));
 
   if (placing_object) {
     gui::CanvasMenuItem cancel_item(

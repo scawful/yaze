@@ -272,6 +272,36 @@ TEST(WorkspaceWindowManagerPolicyTest,
 }
 
 TEST(WorkspaceWindowManagerPolicyTest,
+     CutsceneCameraIsExplicitlyOpenedAndNotRestored) {
+  WorkspaceWindowManager wm;
+  wm.RegisterSession(0);
+  wm.SetActiveSession(0);
+
+  wm.RegisterPanel({.card_id = "overworld.canvas",
+                    .display_name = "Workbench",
+                    .icon = "ICON_WORKBENCH",
+                    .category = "Overworld"});
+  wm.RegisterPanel({.card_id = "overworld.cutscene_camera",
+                    .display_name = "Cutscene Camera",
+                    .icon = "ICON_ROOM",
+                    .category = "Overworld"});
+
+  EXPECT_TRUE(wm.OpenWindow(0, "overworld.canvas"));
+  EXPECT_TRUE(wm.OpenWindow(0, "overworld.cutscene_camera"));
+
+  const auto serialized = wm.SerializeVisibilityState(0);
+  EXPECT_EQ(serialized.count("overworld.cutscene_camera"), 0U);
+  ASSERT_EQ(serialized.count("overworld.canvas"), 1U);
+  EXPECT_TRUE(serialized.at("overworld.canvas"));
+
+  EXPECT_TRUE(wm.CloseWindow(0, "overworld.cutscene_camera"));
+  wm.RestoreVisibilityState(
+      0, {{"overworld.cutscene_camera", true}, {"overworld.canvas", true}});
+  EXPECT_FALSE(wm.IsWindowOpen(0, "overworld.cutscene_camera"));
+  EXPECT_TRUE(wm.IsWindowOpen(0, "overworld.canvas"));
+}
+
+TEST(WorkspaceWindowManagerPolicyTest,
      DuplicateWindowContentRegistrationReplacesStaleInstance) {
   WorkspaceWindowManager wm;
   wm.RegisterSession(0);

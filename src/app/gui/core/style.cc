@@ -34,10 +34,10 @@ void ColorsYaze() {
   ImGuiStyle* style = &ImGui::GetStyle();
   ImVec4* colors = style->Colors;
 
-  style->WindowPadding = ImVec2(10.f, 10.f);
-  style->FramePadding = ImVec2(8.f, 5.f);
+  style->WindowPadding = ImVec2(8.f, 8.f);
+  style->FramePadding = ImVec2(6.f, 3.f);
   style->CellPadding = ImVec2(6.f, 4.f);
-  style->ItemSpacing = ImVec2(8.f, 6.f);
+  style->ItemSpacing = ImVec2(6.f, 4.f);
   style->ItemInnerSpacing = ImVec2(6.f, 4.f);
   style->TouchExtraPadding = ImVec2(0.f, 0.f);
   style->IndentSpacing = 20.f;
@@ -45,10 +45,10 @@ void ColorsYaze() {
   style->GrabMinSize = 14.f;
 
   style->WindowBorderSize = 1.f;
-  style->ChildBorderSize = 1.f;
+  style->ChildBorderSize = 0.f;
   style->PopupBorderSize = 1.f;
-  style->FrameBorderSize = 1.f;
-  style->TabBorderSize = 1.f;
+  style->FrameBorderSize = 0.f;
+  style->TabBorderSize = 0.f;
 
   style->WindowRounding = 2.f;
   style->ChildRounding = 3.f;
