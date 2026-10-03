@@ -38,6 +38,7 @@
 #include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/background_renderer.h"
 #include "core/features.h"
@@ -364,6 +365,9 @@ struct DisposableOracleProject {
 class AuthoringSaveWorkflowTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    // NullRenderer cannot fulfill texture uploads. Do not retry work whose
+    // Bitmap owners belonged to a previous application fixture.
+    gfx::Arena::Get().ClearTextureQueue();
     if (!std::filesystem::exists(kSharedRom) ||
         !std::filesystem::exists(kSharedProject) ||
         !std::filesystem::exists(kSharedManifest) ||
@@ -374,7 +378,9 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    gfx::Arena::Get().ClearTextureQueue();
     manager_.reset();
+    gfx::Arena::Get().ClearTextureQueue();
     core::FeatureFlags::get() = original_flags_;
     zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
     if (!root_.empty()) {
