@@ -3027,7 +3027,7 @@ TEST(ScreenSaveStoplossTest,
 }
 
 TEST(ScreenSaveStoplossTest,
-     FailedRomReplacementRefreshesLoadedScreenAfterRollback) {
+     FailedRomReplacementPreservesLoadedScreenAfterAssetFailure) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -3058,8 +3058,8 @@ TEST(ScreenSaveStoplossTest,
       ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0;
   Rom* const rom_before = manager->GetCurrentRom();
 
-  // This ROM passes the 512 KiB file gate but cannot load palettes,
-  // forcing ReplaceActiveSessionRom through its in-place rollback path.
+  // This ROM passes the 512 KiB file gate but cannot load palettes. A failed
+  // replacement must leave the loaded screen usable, including bitmap owners.
   WriteTooSmallForAssetsTestRom(rom_path);
   const auto reload_status = manager->ReloadProjectRom();
   EXPECT_EQ(reload_status.code(), absl::StatusCode::kOutOfRange)
@@ -3577,6 +3577,48 @@ class SessionRomIdentityTest : public ::testing::Test {
     EXPECT_EQ(manager->GetCurrentRomHash(), baseline.hashes.crc32);
   }
 
+  void CheckFailedRevertPreservesScreenModelAndUndo() {
+
+    ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kScreen));
+    auto* screen = manager->GetCurrentEditorSet()->GetScreenEditor();
+    ASSERT_NE(screen, nullptr);
+    const auto baseline = *Session()->rom_baseline;
+    const auto raw = manager->GetCurrentRom()->vector();
+    const uint16_t before =
+        ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen);
+    ASSERT_NE(before, 0x0123);
+    ScreenEditorSaveStoplossTestPeer::EditLoadedBossRoom(screen, 0x0123);
+    ASSERT_TRUE(screen->HasPendingScreenChanges());
+    ASSERT_TRUE(screen->CanUndo());
+    const auto undo_description = screen->GetUndoDescription();
+    EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
+
+    WriteTooSmallForAssetsTestRom(a);
+    const auto disk_hash = util::ComputeFileSha1Hex(a.string());
+    ASSERT_OK(manager->RevertRomToSaved());
+    ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+    manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+    EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+    const auto* toast = manager->toast_manager()->GetPendingToast(
+        manager->toast_manager()->pending_count() - 1);
+    ASSERT_NE(toast, nullptr);
+    EXPECT_EQ(toast->type, ToastType::kError);
+    EXPECT_NE(toast->message.find("Revert failed:"), std::string::npos);
+    EXPECT_NE(toast->message.find("palette"), std::string::npos);
+    ExpectBaseline(baseline);
+    EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
+    EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), disk_hash);
+    EXPECT_EQ(manager->GetCurrentEditorSet()->GetScreenEditor(), screen);
+    EXPECT_TRUE(screen->HasPendingScreenChanges());
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), 0x0123);
+    EXPECT_EQ(screen->GetUndoDescription(), undo_description);
+    ASSERT_TRUE(screen->CanUndo());
+    ASSERT_OK(screen->Undo());
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), before);
+    ASSERT_OK(screen->Redo());
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), 0x0123);
+  }
+
   FeatureFlagsGuard flags;
   ScopedImGuiContext imgui;
   gfx::NullRenderer renderer;
@@ -3699,7 +3741,7 @@ TEST_F(SessionRomIdentityTest, FailedRevertRestoresDirtyBytesAndPriorBaseline) {
   ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
   const auto bytes = manager->GetCurrentRom()->vector();
   const auto id = manager->GetCurrentSessionId();
-  // Pass file loading, fail palette loading after the live replacement starts.
+  // Pass file loading, then fail shared-asset validation on the palette table.
   WriteTooSmallForAssetsTestRom(a);
   const auto external_disk_hash = util::ComputeFileSha1Hex(a.string());
   ASSERT_OK(manager->RevertRomToSaved());
@@ -3723,6 +3765,16 @@ TEST_F(SessionRomIdentityTest, FailedRevertRestoresDirtyBytesAndPriorBaseline) {
   Switch(1);
   Switch(0);
   ExpectBaseline(baseline);
+}
+
+TEST_F(SessionRomIdentityTest, FailedRevertPreservesScreenModelAndUndo) {
+  CheckFailedRevertPreservesScreenModelAndUndo();
+}
+
+TEST_F(SessionRomIdentityTest,
+       FailedFullLoadRevertPreservesScreenModelAndUndo) {
+  manager->SetAssetLoadMode(AssetLoadMode::kFull);
+  CheckFailedRevertPreservesScreenModelAndUndo();
 }
 
 TEST_F(SessionRomIdentityTest,
