@@ -218,11 +218,11 @@ TEST_F(TileObjectHandlerTest,
   constexpr ImVec2 kPlacementRoomPixel(160.0f, 160.0f);
   constexpr ImVec2 kHitRoomPixel(164.0f, 164.0f);
 
-  handler_.SetPreviewObject(CreateTestObject(0, 0, 0x00, 0x01));
-  handler_.BeginPlacement();
   for (const ImVec2 scrolling : kScrolling) {
     for (const float scale : kScales) {
       rooms_[0].ClearTileObjects();
+      handler_.SetPreviewObject(CreateTestObject(0, 0, 0x00, 0x01));
+      handler_.BeginPlacement();
       canvas_->set_scrolling(scrolling);
       canvas_->set_global_scale(scale);
       const DungeonCanvasTransform transform = handler_.GetCanvasTransform();
@@ -2132,6 +2132,8 @@ TEST_F(TileObjectHandlerTest, PlacementModeLifecycle) {
 TEST_F(TileObjectHandlerTest, RepeatPlacementSelectsEachStampAndKeepsPreview) {
   DungeonObjectInteraction interaction(canvas_.get());
   interaction.SetContext(ctx_);
+  interaction.SetPlacementPolicy(
+      DungeonObjectInteraction::PlacementPolicy::kRepeat);
   int placed_count = 0;
   int selection_count = 0;
   interaction.SetObjectPlacedCallback([&](const zelda3::RoomObject& object) {
@@ -2165,13 +2167,13 @@ TEST_F(TileObjectHandlerTest, RepeatPlacementSelectsEachStampAndKeepsPreview) {
   }
 }
 
-TEST_F(TileObjectHandlerTest, PlaceOnceSynchronizesBothPlacementPaths) {
+TEST_F(TileObjectHandlerTest, DefaultPlacementSynchronizesBothPlacementPaths) {
   for (bool direct_placement : {false, true}) {
     SCOPED_TRACE(direct_placement);
     DungeonObjectInteraction interaction(canvas_.get());
     interaction.SetContext(ctx_);
-    interaction.SetPlacementPolicy(
-        DungeonObjectInteraction::PlacementPolicy::kOnce);
+    EXPECT_EQ(interaction.GetPlacementPolicy(),
+              DungeonObjectInteraction::PlacementPolicy::kOnce);
     interaction.SetPreviewObject(CreateTestObject(0, 0, 3), true);
     const size_t placed_index = rooms_[0].GetTileObjects().size();
     if (direct_placement) {
