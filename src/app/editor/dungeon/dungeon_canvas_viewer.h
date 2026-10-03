@@ -945,7 +945,6 @@ class DungeonCanvasViewer {
   void AddInteractionContextMenuItems(int room_id);
   void AddLoadedRoomContextMenuItems(int room_id);
   gui::CanvasMenuItem BuildInsertContextMenu();
-  gui::CanvasMenuItem BuildSelectionContextMenu(int room_id);
   std::vector<gui::CanvasMenuItem> BuildSelectionContextMenuItems(int room_id);
   std::vector<gui::CanvasMenuItem> BuildSelectionContextMenuItems(
       int room_id, std::optional<zelda3::RoomObject> context_object);

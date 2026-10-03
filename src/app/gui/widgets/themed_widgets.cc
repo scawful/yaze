@@ -189,7 +189,9 @@ bool ThemedIconButton(const char* icon, const char* tooltip, const ImVec2& size,
                         ConvertColorToImVec4(theme.button_active));
   ImGui::PushStyleColor(ImGuiCol_Text, text_color);
 
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.5f));
   bool clicked = ImGui::Button(icon, size);
+  ImGui::PopStyleVar();
 
   // Animated hover effect
   const bool hovered =
@@ -224,6 +226,9 @@ bool TransparentIconButton(const char* icon, const ImVec2& size,
                            const char* anim_id) {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
 
+  // Transparent buttons must not inherit a visible frame from the theme.
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+
   // Transparent background
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
@@ -256,7 +261,9 @@ bool TransparentIconButton(const char* icon, const ImVec2& size,
   splitter.Split(draw_list, 2);
   splitter.SetCurrentChannel(draw_list, 1);
 
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.5f));
   bool clicked = ImGui::Button(icon, size);
+  ImGui::PopStyleVar();
 
   const bool hovered =
       ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
@@ -283,6 +290,7 @@ bool TransparentIconButton(const char* icon, const ImVec2& size,
   splitter.Merge(draw_list);
 
   ImGui::PopStyleColor(4);
+  ImGui::PopStyleVar();
 
   if (tooltip && hovered) {
     ImGui::SetTooltip("%s", tooltip);

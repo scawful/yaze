@@ -7,6 +7,7 @@
 #include "app/editor/overworld/maps/overworld_map_metadata.h"
 #include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -35,28 +36,28 @@ constexpr EntityModeButton kEntityModeButtons[] = {
      "Sprites (6)\nOnly sprites respond to hover and drag"},
 };
 
-bool ToolButton(const char* label, const char* tooltip, bool active) {
+bool ToolButton(const char* label, const char* tooltip, bool active,
+                const char* automation_id = nullptr) {
   const bool clicked = gui::ToggleButton(label, active);
+  if (automation_id) {
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        std::string("OverworldToolbar/button:") + automation_id, "button",
+        ImGui::GetItemID());
+  }
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
     ImGui::SetTooltip("%s", tooltip);
   }
   return clicked;
 }
 
-void GroupSeparator(float next_width) {
-  const float right = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
-  const float previous_end =
-      ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x + ImGui::GetScrollX();
-  if (previous_end + next_width + 13.0f > right) {
-    return;
-  }
+void GroupSeparator() {
   ImGui::SameLine(0, 6.0f);
   const ImVec2 pos = ImGui::GetCursorScreenPos();
   const float height = ImGui::GetFrameHeight();
   ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x, pos.y + 3.0f),
                                       ImVec2(pos.x, pos.y + height - 3.0f),
                                       ImGui::GetColorU32(ImGuiCol_Separator));
-  ImGui::Dummy(ImVec2(1.0f, height));
+  ImGui::Dummy(ImVec2(1.0f, 0.0f));
   ImGui::SameLine(0, 6.0f);
 }
 
@@ -166,7 +167,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                             EntityEditMode& entity_edit_mode,
                             WorkspaceWindowManager* window_manager, Rom* rom,
                             zelda3::Overworld* overworld,
-                            project::YazeProject* project, int game_state) {
+                            project::YazeProject* project, int game_state,
+                            const std::function<void()>& draw_appearance) {
   if (!overworld || !overworld->is_loaded() || !window_manager || !rom) {
     return;
   }
@@ -175,12 +177,13 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   const float avail = ImGui::GetContentRegionAvail().x;
+  const bool compact = avail < ImGui::GetFontSize() * 68.0f;
+  const bool overflow = avail < ImGui::GetFontSize() * 45.0f;
 
   gui::StyleVarGuard toolbar_style_guard(
-      {{ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f)},
+      {{ImGuiStyleVar_FramePadding, ImVec2(4.0f, 3.0f)},
        {ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f)}});
   ImGui::PushID("OverworldToolbar");
-  const float row_start_x = ImGui::GetCursorPosX();
 
   // --- World -----------------------------------------------------------------
   static constexpr const char* kWorldButtons[] = {"LW", "DW", "SW"};
@@ -204,7 +207,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   // --- Map -------------------------------------------------------------------
-  GroupSeparator(ImGui::GetFontSize() * 8.0f);
+  GroupSeparator();
   const auto metadata = BuildOverworldMapMetadata(*overworld, rom, project,
                                                   current_map, game_state);
   if (ImGui::Button(metadata.map_id_label.c_str()) && on_open_map_properties) {
@@ -226,14 +229,29 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                      "overworld.toggle_lock")
           : WithHint("Pin map\nKeep properties on this map while navigating",
                      "overworld.toggle_lock");
-  if (gui::ToolbarIconButton(
+  if (gui::ThemedIconButton(
           current_map_lock ? ICON_MD_PUSH_PIN : ICON_MD_GPS_FIXED,
-          pin_tip.c_str(), current_map_lock)) {
+          pin_tip.c_str(),
+          ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()),
+          current_map_lock)) {
     current_map_lock = !current_map_lock;
   }
 
+  // Narrow docks keep navigation visible; editing tools remain one click away.
+  if (overflow) {
+    GroupSeparator();
+    if (ToolButton(ICON_MD_MORE_HORIZ " Tools", "Drawing tools and map options",
+                   false, "Tools")) {
+      ImGui::OpenPopup("ToolsOverflow");
+    }
+    if (!ImGui::BeginPopup("ToolsOverflow")) {
+      ImGui::PopID();
+      return;
+    }
+  } else {
+    GroupSeparator();
+  }
   // --- Tool ------------------------------------------------------------------
-  GroupSeparator(ImGui::GetFontSize() * 15.0f);
   const auto set_mode = [&](EditingMode mode) {
     if (on_set_mode) {
       on_set_mode(mode);
@@ -241,7 +259,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       current_mode = mode;
     }
   };
-  if (ToolButton(ICON_MD_MOUSE " Select",
+  if (ToolButton(compact ? ICON_MD_MOUSE : ICON_MD_MOUSE " Select",
                  "Select (1)\nLeft-drag empty map: pan   Middle-drag: pan\n"
                  "Drag entities to move them   Right-click: map menu\n"
                  "Double-click a map: Map Properties",
@@ -254,8 +272,9 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       "Right-click: sample tile16 (or I)   Right-drag: capture a brush\n"
       "[ / ]: previous / next tile16   Shift+Right-click: map menu",
       "overworld.brush_toggle");
-  if (ToolButton(ICON_MD_DRAW " Paint", brush_tip.c_str(),
-                 current_mode == EditingMode::DRAW_TILE)) {
+  if (ToolButton(compact ? ICON_MD_DRAW : ICON_MD_DRAW " Paint",
+                 brush_tip.c_str(), current_mode == EditingMode::DRAW_TILE,
+                 "Paint")) {
     set_mode(EditingMode::DRAW_TILE);
   }
   ImGui::SameLine(0, 2);
@@ -263,12 +282,13 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       "Fill screen\nClick fills the 32x32 screen under the cursor\n"
       "Right-click: sample tile16   Shift+Right-click: map menu",
       "overworld.fill");
-  if (ToolButton(ICON_MD_FORMAT_COLOR_FILL " Fill", fill_tip.c_str(),
-                 current_mode == EditingMode::FILL_TILE)) {
+  if (ToolButton(compact ? ICON_MD_FORMAT_COLOR_FILL
+                         : ICON_MD_FORMAT_COLOR_FILL " Fill",
+                 fill_tip.c_str(), current_mode == EditingMode::FILL_TILE)) {
     set_mode(EditingMode::FILL_TILE);
   }
   ImGui::SameLine(0, 2);
-  if (ToolButton(ICON_MD_GRASS " Insert Item",
+  if (ToolButton(compact ? ICON_MD_GRASS : ICON_MD_GRASS " Insert Item",
                  "Pick an item from the list, then click the map to place it",
                  false)) {
     if (on_insert_item) {
@@ -277,14 +297,14 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   // --- Entity modes ------------------------------------------------------------
-  GroupSeparator(ImGui::GetFontSize() * 7.0f);
+  GroupSeparator();
   const char* entity_label = "Entities";
   for (const auto& button : kEntityModeButtons) {
     if (entity_edit_mode == button.mode) {
       entity_label = button.label;
     }
   }
-  if (ImGui::Button(entity_label)) {
+  if (ImGui::Button(compact ? ICON_MD_PLACE : entity_label)) {
     ImGui::OpenPopup("EntityTools");
   }
   if (ImGui::IsItemHovered()) {
@@ -317,9 +337,10 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   // Secondary display controls stay in a named menu, leaving space for tools.
-  GroupSeparator(ImGui::GetFontSize() * 21.0f);
+  GroupSeparator();
   const size_t session_id = window_manager->GetActiveSessionId();
-  if (ToolButton("View", "Grid, entities, overlay and zoom", false)) {
+  if (ToolButton(compact ? ICON_MD_VISIBILITY : "View",
+                 "Grid, entities, overlay and zoom", false)) {
     ImGui::OpenPopup("OverworldViewMenu");
   }
   if (ImGui::BeginPopup("OverworldViewMenu")) {
@@ -327,7 +348,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     ImGui::EndPopup();
   }
   ImGui::SameLine(0, 2);
-  if (ToolButton("Windows", "Open overworld editing windows", false)) {
+  if (ToolButton(compact ? ICON_MD_WINDOW : "Windows",
+                 "Open overworld editing windows", false)) {
     ImGui::OpenPopup("OverworldWindowsPopup");
   }
   if (ImGui::BeginPopup("OverworldWindowsPopup")) {
@@ -363,59 +385,33 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
          OverworldPanelIds::kScratchSpace, nullptr);
     item(ICON_MD_ANALYTICS " Usage Statistics", OverworldPanelIds::kUsageStats,
          nullptr);
-    ImGui::EndPopup();
-  }
-  ImGui::SameLine(0, 2);
-  if (ToolButton(
-          "Properties",
-          "Map Properties\nGraphics, palettes, message, music and area size",
-          window_manager->IsWindowOpen(OverworldPanelIds::kMapProperties))) {
-    window_manager->ToggleWindow(session_id, OverworldPanelIds::kMapProperties);
-  }
-
-  const auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom);
-  if (rom_version == zelda3::OverworldVersion::kVanilla &&
-      on_upgrade_rom_version) {
-    ImGui::SameLine(0, 6);
-    if (gui::PrimaryButton(ICON_MD_UPGRADE " Upgrade")) {
-      on_upgrade_rom_version(3);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "%s", tr("Upgrade ROM to ZSCustomOverworld v3\n"
-                   "Enables wide/tall areas, custom palettes and more"));
-    }
-  }
-
-  const auto panel_button = [&](const char* label, const char* tip,
-                                const char* panel) {
-    const float width =
-        ImGui::CalcTextSize(label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
-    if (ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x +
-            ImGui::GetScrollX() + ImGui::GetStyle().ItemSpacing.x + width <=
-        row_start_x + avail) {
-      ImGui::SameLine();
-    }
-    if (ToolButton(label, tip, window_manager->IsWindowOpen(panel))) {
-      window_manager->OpenWindow(session_id, panel);
-      window_manager->MarkWindowRecentlyUsed(panel);
-      const auto name =
-          window_manager->GetWorkspaceWindowName(session_id, panel);
-      if (!name.empty()) {
-        ImGui::SetWindowFocus(name.c_str());
+    const auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom);
+    if (rom_version == zelda3::OverworldVersion::kVanilla &&
+        on_upgrade_rom_version) {
+      ImGui::Separator();
+      if (ImGui::MenuItem(ICON_MD_UPGRADE
+                          " Upgrade to ZSCustomOverworld v3...")) {
+        on_upgrade_rom_version(3);
       }
     }
-  };
-  panel_button("Choose Tile16", "Choose a tile or rectangular brush to paint",
-               OverworldPanelIds::kTile16Selector);
-  panel_button("Edit Tile16",
-               "Edit Tile8 pieces, palette rows, flips and priority.\n"
-               "A shared Tile16 definition changes everywhere it is used.",
-               OverworldPanelIds::kTile16Editor);
-  panel_button("Graphics groups",
-               "Edit the sheet assignments in graphics groups.\n"
-               "Shared groups affect every area that uses them.",
-               OverworldPanelIds::kGfxGroups);
+    ImGui::EndPopup();
+  }
+  if (draw_appearance) {
+    ImGui::SameLine(0, 2);
+    if (ToolButton(compact ? ICON_MD_PALETTE : "Appearance",
+                   "Map graphics and palettes", false, "Appearance")) {
+      ImGui::OpenPopup("MapAppearance");
+    }
+    ImGui::SetNextWindowSizeConstraints(ImVec2(320.0f, 0.0f),
+                                        ImVec2(480.0f, 500.0f));
+    if (ImGui::BeginPopup("MapAppearance")) {
+      draw_appearance();
+      ImGui::EndPopup();
+    }
+  }
+  if (overflow) {
+    ImGui::EndPopup();
+  }
   ImGui::PopID();
 }
 

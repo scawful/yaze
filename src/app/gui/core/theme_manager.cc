@@ -173,7 +173,7 @@ Theme BuildClassicYazeTheme() {
   classic_theme.grab_rounding = 5.0f;
   classic_theme.tab_rounding = 3.0f;
   classic_theme.window_border_size = 1.0f;
-  classic_theme.frame_border_size = 1.0f;
+  classic_theme.frame_border_size = 0.0f;
   classic_theme.enable_glow_effects = false;
 
   return classic_theme;
@@ -2352,8 +2352,8 @@ void ThemeManager::ApplyClassicYazeTheme(std::optional<DensityPreset> density) {
   // isn't missing fields (selection_primary, dungeon.object_door, agent.*).
   ApplySmartDefaults(classic_theme);
   // Carry the active Display Density across the switch. ColorsYaze() writes
-  // Classic's OWN metrics (FramePadding 8x5, ItemSpacing 8x6, WindowPadding
-  // 10x10), which are not the shared 8px base that Theme::ApplyToImGui uses.
+  // Classic's OWN metrics (FramePadding 6x3, ItemSpacing 6x4, WindowPadding
+  // 8x8), which are not the shared 8px base that Theme::ApplyToImGui uses.
   // Scale what ColorsYaze just wrote instead of calling the generic density
   // sizing, which would substitute that base and change Classic's look at
   // every density — including Normal, i.e. on every startup.

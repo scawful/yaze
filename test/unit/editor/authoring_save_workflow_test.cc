@@ -32,8 +32,10 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
 #include "core/hack_manifest.h"
 #include "editor_test_support.h"
@@ -142,6 +144,21 @@ class AuthoringSaveWorkflowTestPeer {
                                        int group) {
     return editor.ApplyOverworldPropertyEdit(
         {map_id, OverworldPropertyField::kAreaGraphics, 0, group});
+  }
+
+  static EditingMode EditingModeOf(OverworldEditor& editor) {
+    return editor.current_mode;
+  }
+
+  static void DrawToolbar(
+      OverworldEditor& editor, const std::function<void()>& appearance = []() {
+        ImGui::TextUnformatted("Appearance");
+      }) {
+    editor.toolbar_->Draw(
+        editor.current_world_, editor.current_map_, editor.current_map_lock_,
+        editor.current_mode, editor.entity_edit_mode_,
+        editor.dependencies_.window_manager, editor.rom_, &editor.overworld_,
+        editor.dependencies_.project, editor.game_state_, appearance);
   }
 
   static absl::Status DrawOverworld(OverworldEditor& editor) {
@@ -1988,6 +2005,87 @@ OverworldEditor* LoadedOverworld(EditorManager* manager) {
   }
   return manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
       EditorType::kOverworld);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       OverworldToolbarStaysOneRowAtLaptopDockWidths) {
+  const auto fixture = CopyProject("yaze-compact-toolbar");
+  Open(fixture);
+  auto* overworld = LoadedOverworld(manager_.get());
+  ASSERT_NE(overworld, nullptr);
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  for (float dock_width : {320.0f, 480.0f, 680.0f, 980.0f}) {
+    SCOPED_TRACE(dock_width);
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(dock_width, 600));
+    ImGui::Begin("ToolbarLaptopHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    const auto start = ImGui::GetCursorScreenPos();
+    const float right = start.x + ImGui::GetContentRegionAvail().x;
+    AuthoringSaveWorkflowTestPeer::DrawToolbar(*overworld);
+    const auto* window = ImGui::GetCurrentWindow();
+    EXPECT_LE(window->DC.CursorMaxPos.x, right);
+    EXPECT_LE(window->DC.CursorMaxPos.y - start.y, ImGui::GetFontSize() + 6.0f);
+    ImGui::End();
+    ImGui::Render();
+  }
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       NarrowToolbarKeepsPaintAndAppearanceReachable) {
+  const auto fixture = CopyProject("yaze-toolbar-overflow");
+  Open(fixture);
+  auto* overworld = LoadedOverworld(manager_.get());
+  ASSERT_NE(overworld, nullptr);
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  overworld->SetEditingMode(EditingMode::MOUSE);
+  int appearance_frames = 0;
+  const auto frame = [&]() {
+    gui::WidgetIdRegistry::Instance().BeginFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(480, 600));
+    ImGui::Begin("ToolbarInputHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    AuthoringSaveWorkflowTestPeer::DrawToolbar(*overworld, [&]() {
+      ++appearance_frames;
+      ImGui::TextUnformatted("Appearance controls");
+    });
+    ImGui::End();
+    ImGui::Render();
+    gui::WidgetIdRegistry::Instance().EndFrame();
+  };
+  const auto click = [&](const char* name) {
+    const auto info = gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+        std::string("OverworldToolbar/button:") + name);
+    ASSERT_TRUE(info.has_value()) << name;
+    ASSERT_TRUE(info->bounds.valid);
+    const auto b = info->bounds;
+    ImGui::GetIO().AddMousePosEvent((b.min_x + b.max_x) / 2,
+                                    (b.min_y + b.max_y) / 2);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    frame();
+    frame();
+  };
+  frame();
+  frame();
+  EXPECT_EQ(appearance_frames, 0);
+  click("Tools");
+  click("Paint");
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::EditingModeOf(*overworld),
+            EditingMode::DRAW_TILE);
+  click("Appearance");
+  EXPECT_GT(appearance_frames, 0);
+  gui::WidgetIdRegistry::Instance().Clear();
 }
 
 TEST_F(AuthoringSaveWorkflowTest, TileEditSurvivesLateSaveFailureRetryAndUndo) {

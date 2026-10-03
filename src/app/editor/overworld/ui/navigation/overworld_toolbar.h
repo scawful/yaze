@@ -36,8 +36,8 @@ struct OverworldPanelIds {
 };
 
 /// Canvas navigation, labeled drawing tools, view controls and editing windows.
-/// Appearance fields are rendered below this toolbar by OverworldSidebar.
-/// Secondary view controls stay in a labeled menu; groups wrap in narrow docks.
+/// One row at every dock width; narrow docks expose tools through overflow.
+/// Appearance edits reuse the sidebar controls in a local popup.
 class OverworldToolbar {
  public:
   OverworldToolbar() = default;
@@ -46,7 +46,7 @@ class OverworldToolbar {
             EditingMode& current_mode, EntityEditMode& entity_edit_mode,
             WorkspaceWindowManager* window_manager, Rom* rom,
             zelda3::Overworld* overworld, project::YazeProject* project,
-            int game_state);
+            int game_state, const std::function<void()>& draw_appearance = {});
 
   /// Used for shortcut hints in tooltips (GetDisplayString).
   ShortcutManager* shortcuts = nullptr;

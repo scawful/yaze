@@ -91,13 +91,14 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->current_map_lock_, editor_->current_mode,
         editor_->entity_edit_mode_, editor_->dependencies_.window_manager,
         editor_->rom_, &editor_->overworld_, editor_->dependencies_.project,
-        editor_->game_state_);
+        editor_->game_state_, [this]() {
+          if (editor_->sidebar_) {
+            editor_->sidebar_->DrawQuickProperties(
+                editor_->current_map_, editor_->current_map_lock_,
+                editor_->dependencies_.project);
+          }
+        });
     editor_->NormalizeCurrentSelectionState();
-    if (editor_->sidebar_) {
-      editor_->sidebar_->DrawQuickProperties(editor_->current_map_,
-                                             editor_->current_map_lock_,
-                                             editor_->dependencies_.project);
-    }
   }
 
   // ==========================================================================
@@ -522,9 +523,10 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   ImGui::SameLine();
   ImGui::TextDisabled("%.2fx", selector_layout.display_scale);
 
-  // Filter bar sits directly in the panel; only the grid scrolls. The grid
-  // child fills the panel width (the panel's preferred width is grid +
+  // Tile lookup and filtering share the scale row; only the grid scrolls.
+  // The child fills the panel width (the panel's preferred width is grid +
   // scrollbar), has no padding or border, and never scrolls horizontally.
+  ImGui::SameLine();
   if (editor_->blockset_selector_->DrawFilterBar()) {
     editor_->RequestTile16Selection(
         editor_->blockset_selector_->GetSelectedTileID());

@@ -279,9 +279,9 @@ void ActivityBar::DrawActivityBarStrip(
       ImVec2(bar_width, viewport_height),
       {.bg = gui::ConvertColorToImVec4(theme.surface),
        .border = gui::ConvertColorToImVec4(theme.text_disabled),
-       .padding = {0.0f, 8.0f},
-       .spacing = {0.0f, 8.0f},
-       .border_size = 1.0f},
+       .padding = {0.0f, 6.0f},
+       .spacing = {0.0f, 4.0f},
+       .border_size = 0.0f},
       kExtraFlags);
 
   if (bar) {

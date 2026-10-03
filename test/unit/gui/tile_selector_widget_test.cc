@@ -4,9 +4,11 @@
 #include <gtest/gtest.h>
 
 #include "app/gfx/core/bitmap.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/layout/adaptive_sheet_layout.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "testing.h"
 
 namespace yaze {
@@ -64,6 +66,81 @@ class TileSelectorWidgetTest : public ::testing::Test {
   std::unique_ptr<gui::Canvas> canvas_;
   gui::TileSelectorWidget::Config config_;
 };
+
+TEST_F(TileSelectorWidgetTest, LookupButtonSharesScaleRowAtNarrowWidths) {
+  ImGui::GetIO().IniFilename = nullptr;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  gui::TileSelectorWidget widget("compact_lookup", config_);
+  for (float dock_width : {240.0f, 320.0f, 460.0f}) {
+    SCOPED_TRACE(dock_width);
+    ImGui::NewFrame();
+    ImGui::SetNextWindowSize(ImVec2(dock_width, 400));
+    ImGui::Begin("LookupLaptopHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    const auto start = ImGui::GetCursorScreenPos();
+    const float right = start.x + ImGui::GetContentRegionAvail().x;
+    ImGui::Button("Scale: Fit", ImVec2(110, 0));
+    ImGui::SameLine();
+    ImGui::TextUnformatted("3.37x");
+    ImGui::SameLine();
+    EXPECT_FALSE(widget.DrawFilterBar());
+    EXPECT_LE(ImGui::GetItemRectMax().x, right);
+    EXPECT_LE(ImGui::GetCurrentWindow()->DC.CursorMaxPos.y - start.y,
+              ImGui::GetFrameHeight());
+    ImGui::End();
+    ImGui::Render();
+  }
+}
+
+TEST_F(TileSelectorWidgetTest,
+       PopupAcceptsDecimalKeyboardInputAndReturnsSelection) {
+  ImGui::GetIO().IniFilename = nullptr;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  gui::TileSelectorWidget widget("lookup_input", config_);
+  bool jumped = false;
+  const auto frame = [&]() {
+    gui::WidgetIdRegistry::Instance().BeginFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(320, 400));
+    ImGui::Begin("LookupInputHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    jumped |= widget.DrawFilterBar();
+    ImGui::End();
+    ImGui::Render();
+    gui::WidgetIdRegistry::Instance().EndFrame();
+  };
+  const auto click = [&](const char* path) {
+    const auto info = gui::WidgetIdRegistry::Instance().GetWidgetInfo(path);
+    ASSERT_TRUE(info.has_value()) << path;
+    ASSERT_TRUE(info->bounds.valid);
+    const auto& b = info->bounds;
+    ImGui::GetIO().AddMousePosEvent((b.min_x + b.max_x) / 2,
+                                    (b.min_y + b.max_y) / 2);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    frame();
+    frame();
+  };
+  frame();
+  frame();
+  click("lookup_input/button:Lookup");
+  click("lookup_input/input:TileID");
+  ImGui::GetIO().AddInputCharactersUTF8("d:26");
+  frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Enter, true);
+  frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Enter, false);
+  frame();
+  EXPECT_TRUE(jumped);
+  EXPECT_EQ(widget.GetSelectedTileID(), 26);
+  EXPECT_TRUE(GImGui->OpenPopupStack.empty());
+  gui::WidgetIdRegistry::Instance().Clear();
+}
 
 TEST_F(TileSelectorWidgetTest, AdaptiveSheetFitAndOverridesAreDeterministic) {
   const auto fit = gui::ResolveAdaptiveSheetLayout(

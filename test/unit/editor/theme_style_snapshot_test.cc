@@ -283,7 +283,7 @@ TEST_F(ThemeStyleSnapshotTest, ClassicYazeWritesEveryImGuiColorSlot) {
 }
 
 // Classic YAZE's spacing is part of its identity: ColorsYaze() sets
-// FramePadding 8x5 and ItemSpacing 8x6. Carrying density across a theme
+// FramePadding 6x3 and ItemSpacing 6x4. Carrying density across a theme
 // switch must scale those authored dimensions, not replace them.
 TEST_F(ThemeStyleSnapshotTest, ClassicYazeKeepsItsOwnSpacingAtNormalDensity) {
   auto& mgr = ThemeManager::Get();
@@ -292,13 +292,14 @@ TEST_F(ThemeStyleSnapshotTest, ClassicYazeKeepsItsOwnSpacingAtNormalDensity) {
 
   const ImGuiStyle& style = ImGui::GetStyle();
   ASSERT_EQ(mgr.GetCurrentTheme().density_preset, DensityPreset::kNormal);
-  EXPECT_FLOAT_EQ(style.FramePadding.x, 8.0f);
-  EXPECT_FLOAT_EQ(style.FramePadding.y, 5.0f);
-  EXPECT_FLOAT_EQ(style.ItemSpacing.x, 8.0f);
-  EXPECT_FLOAT_EQ(style.ItemSpacing.y, 6.0f);
-  EXPECT_FLOAT_EQ(style.WindowPadding.x, 10.0f);
-  EXPECT_FLOAT_EQ(style.WindowPadding.y, 10.0f);
+  EXPECT_FLOAT_EQ(style.FramePadding.x, 6.0f);
+  EXPECT_FLOAT_EQ(style.FramePadding.y, 3.0f);
+  EXPECT_FLOAT_EQ(style.ItemSpacing.x, 6.0f);
+  EXPECT_FLOAT_EQ(style.ItemSpacing.y, 4.0f);
+  EXPECT_FLOAT_EQ(style.WindowPadding.x, 8.0f);
+  EXPECT_FLOAT_EQ(style.WindowPadding.y, 8.0f);
   EXPECT_FLOAT_EQ(style.GrabMinSize, 14.0f);
+  EXPECT_FLOAT_EQ(style.FrameBorderSize, 0.0f);
 }
 
 // EndPreview restores through ApplyTheme(const Theme&), which repaints from the
