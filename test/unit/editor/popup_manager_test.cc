@@ -2,9 +2,16 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cctype>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <thread>
+#include "app/editor/shell/coordinator/recent_projects_model.h"
+#include "nlohmann/json.hpp"
+#include "util/platform_paths.h"
 
 #include "app/editor/editor_manager.h"
 #include "app/editor/shell/windows/settings_panel.h"
@@ -310,6 +317,176 @@ TEST_F(SaveAsPopupTest, ConfirmationPreservesTypedDestination) {
   Frame();
   Click("RomWriteConfirm/button:Save anyway");
   ExpectSaved(root_ / "confirmed.sfc", 0x42);
+}
+
+TEST_F(SaveAsPopupTest, LegacyRecentCrcCacheRescansAndPreservesAnnotations) {
+  const auto config = util::PlatformPaths::GetConfigDirectory();
+  ASSERT_TRUE(config.ok());
+  const auto cache_path = *config / "recent_files_cache.json";
+  const auto mtime =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
+          std::filesystem::last_write_time(source_).time_since_epoch())
+          .count();
+  auto* rom = manager_->GetCurrentRom();
+  const auto identity =
+      util::ComputeRomIdentityHashes(rom->data(), rom->size());
+  nlohmann::json cache = {{"version", 1},
+                          {"entries",
+                           {{source_.string(),
+                             {{"size", rom->size()},
+                              {"mtime", mtime},
+                              {"crc32", identity.legacy_crc32},
+                              {"pinned", true},
+                              {"display_name_override", "Keep name"},
+                              {"notes", "Keep notes"}}}}}};
+  std::ofstream(cache_path) << cache.dump();
+  RecentProjectsModel model;
+  model.AddRecent(source_.string());
+  model.Refresh(true);
+  auto find_entry = [&]() -> const RecentProject* {
+    for (const auto& e : model.entries())
+      if (e.filepath == source_.string())
+        return &e;
+    return nullptr;
+  };
+  ASSERT_NE(find_entry(), nullptr);
+  EXPECT_NE(find_entry()->crc32, identity.legacy_crc32);
+  for (int attempt = 0; attempt < 100 && find_entry()->crc32.empty();
+       ++attempt) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    model.Refresh();
+  }
+  std::string uppercase = identity.crc32;
+  std::transform(uppercase.begin(), uppercase.end(), uppercase.begin(),
+                 ::toupper);
+  EXPECT_EQ(find_entry()->crc32, uppercase);
+  EXPECT_TRUE(find_entry()->pinned);
+  EXPECT_EQ(find_entry()->display_name_override, "Keep name");
+  EXPECT_EQ(find_entry()->notes, "Keep notes");
+  std::ifstream file(cache_path);
+  const auto saved = nlohmann::json::parse(file);
+  EXPECT_EQ(saved.at("crc32_algorithm"), "ieee");
+  RecentProjectsModel reopened;
+  reopened.Refresh(true);
+  bool matched = false;
+  for (const auto& e : reopened.entries()) {
+    if (e.filepath == source_.string())
+      matched = e.crc32 == uppercase && e.pinned;
+  }
+  EXPECT_TRUE(matched);
+}
+
+TEST_F(SaveAsPopupTest,
+       LegacyProjectOpenPreservesFileAndHashPolicyRejectsForeignRom) {
+  auto* rom = manager_->GetCurrentRom();
+  const auto identity =
+      util::ComputeRomIdentityHashes(rom->data(), rom->size());
+  const auto project_path = root_ / "legacy.yaze";
+  auto* project = manager_->GetCurrentProject();
+  project->name = "Legacy checksum project";
+  project->filepath = project_path.string();
+  project->rom_filename = source_.string();
+  project->rom_metadata.expected_hash = identity.legacy_crc32;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  ASSERT_TRUE(project->Save().ok());
+  const auto project_hash = util::ComputeFileSha1Hex(project_path.string());
+  // Preserve the existing one-session-per-backing-file guard, then exercise a
+  // genuine fresh legacy-project open rather than opening the same ROM twice.
+  const auto duplicate = manager_->OpenRomOrProject(project_path.string());
+  EXPECT_EQ(duplicate.code(), absl::StatusCode::kAlreadyExists) << duplicate;
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const auto opened = manager_->OpenRomOrProject(project_path.string());
+  ASSERT_TRUE(opened.ok()) << opened;
+  EXPECT_EQ(util::ComputeFileSha1Hex(project_path.string()), project_hash);
+  project = manager_->GetCurrentProject();
+  rom = manager_->GetCurrentRom();
+  EXPECT_EQ(project->rom_metadata.expected_hash, identity.legacy_crc32);
+  EXPECT_EQ(manager_->GetCurrentRomHash(), identity.crc32);
+  // The existing editable-target policy bypasses expected_hash. Use a distinct
+  // configured target in memory to exercise the actual hash-policy branch.
+  project->rom_filename = (root_ / "configured-other.sfc").string();
+  for (const auto& expected :
+       {identity.crc32, identity.legacy_crc32, identity.sha1}) {
+    project->rom_metadata.expected_hash = expected;
+    EXPECT_FALSE(manager_->IsRomHashMismatch()) << expected;
+  }
+  auto foreign = rom->vector();
+  foreign[0] ^= 1;
+  const auto foreign_identity =
+      util::ComputeRomIdentityHashes(foreign.data(), foreign.size());
+  const auto destination = root_ / "preserve.sfc";
+  std::ofstream(destination, std::ios::binary) << "PRESERVE";
+  const auto source_hash = util::ComputeFileSha1Hex(source_.string());
+  const auto destination_hash = util::ComputeFileSha1Hex(destination.string());
+  ASSERT_TRUE(rom->WriteByte(0x1234, 0x72).ok());
+  const auto bytes = rom->vector();
+  const auto session_id = manager_->GetCurrentSessionId();
+  for (const auto& expected :
+       {foreign_identity.crc32, foreign_identity.legacy_crc32,
+        foreign_identity.sha1}) {
+    project->rom_metadata.expected_hash = expected;
+    EXPECT_TRUE(manager_->IsRomHashMismatch());
+    EXPECT_EQ(manager_->SaveRomAs(destination.string()).code(),
+              absl::StatusCode::kPermissionDenied);
+    EXPECT_EQ(manager_->SaveRom().code(), absl::StatusCode::kPermissionDenied);
+    EXPECT_EQ(rom->vector(), bytes);
+    EXPECT_TRUE(rom->dirty());
+    EXPECT_EQ(manager_->GetCurrentSessionId(), session_id);
+    EXPECT_EQ(rom->filename(), source_.string());
+    EXPECT_EQ(util::ComputeFileSha1Hex(source_.string()), source_hash);
+    EXPECT_EQ(util::ComputeFileSha1Hex(destination.string()), destination_hash);
+    EXPECT_EQ(util::ComputeFileSha1Hex(project_path.string()), project_hash);
+  }
+}
+
+TEST_F(SaveAsPopupTest,
+       LegacyHashUpgradesOnlyByExplicitSettingsActionAndReopens) {
+  auto* project = manager_->GetCurrentProject();
+  project->name = "Explicit CRC update";
+  project->filepath = (root_ / "identity.yaze").string();
+  // Keep this an identity-policy test, not the editable-target exemption.
+  project->rom_filename = (root_ / "configured-other.sfc").string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  auto* rom = manager_->GetCurrentRom();
+  const auto identity =
+      util::ComputeRomIdentityHashes(rom->data(), rom->size());
+  project->rom_metadata.expected_hash = identity.legacy_crc32;
+  ASSERT_TRUE(project->Save().ok());
+  ASSERT_FALSE(manager_->IsRomHashMismatch());
+  ASSERT_TRUE(rom->WriteByte(0x1234, 0x54).ok());
+  const auto source_hash = util::ComputeFileSha1Hex(source_.string());
+  Show();
+  Filename("legacy-saved");
+  Click("SaveAs/button:Save");
+  ExpectSaved(root_ / "legacy-saved.sfc", 0x54);
+  EXPECT_EQ(util::ComputeFileSha1Hex(source_.string()), source_hash);
+  const auto standard = util::ComputeRomHash(rom->data(), rom->size());
+  EXPECT_EQ(manager_->GetCurrentRomHash(), standard);
+  EXPECT_EQ(project->rom_metadata.expected_hash, identity.legacy_crc32);
+  EXPECT_TRUE(manager_->IsRomHashMismatch());
+  draw_settings_ = true;
+  Frame();
+  Frame();
+  Click("Settings/tab:Project");
+  Frame();
+  Click("Settings/button:Use Current ROM Hash");
+  EXPECT_EQ(project->rom_metadata.expected_hash, standard);
+  project->rom_filename = (root_ / "legacy-saved.sfc").string();
+  ASSERT_TRUE(project->Save().ok());
+  const auto saved_project_hash = util::ComputeFileSha1Hex(project->filepath);
+  const auto saved_project = project->filepath;
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_TRUE(manager_->OpenRomOrProject(saved_project).ok());
+  EXPECT_EQ(manager_->GetCurrentRomHash(), standard);
+  EXPECT_EQ(manager_->GetCurrentProject()->rom_metadata.expected_hash,
+            standard);
+  EXPECT_EQ(util::ComputeFileSha1Hex(saved_project), saved_project_hash);
 }
 
 TEST_F(SaveAsPopupTest, SettingsHashUsesSaveIdentityAndSurvivesProjectCapture) {

@@ -23,17 +23,6 @@ namespace yaze::editor {
 
 namespace {
 
-std::string NormalizeHash(std::string value) {
-  absl::AsciiStrToLower(&value);
-  if (absl::StartsWith(value, "0x")) {
-    value = value.substr(2);
-  }
-  value.erase(std::remove_if(value.begin(), value.end(),
-                             [](unsigned char c) { return std::isspace(c); }),
-              value.end());
-  return value;
-}
-
 std::string NormalizePath(std::string value) {
   if (value.empty()) {
     return value;
@@ -150,11 +139,12 @@ void RomLifecycleManager::Initialize(Dependencies deps) {
 
 void RomLifecycleManager::UpdateCurrentRomHash(Rom* rom) {
   if (!rom || !rom->is_loaded()) {
-    current_rom_hash_.clear();
+    current_rom_identity_ = {};
     current_rom_path_.clear();
     return;
   }
-  current_rom_hash_ = util::ComputeRomHash(rom->data(), rom->size());
+  current_rom_identity_ =
+      util::ComputeRomIdentityHashes(rom->data(), rom->size());
   current_rom_path_ = NormalizePath(rom->filename());
 }
 
@@ -167,12 +157,12 @@ bool RomLifecycleManager::IsRomHashMismatch() const {
       !target_info.matches_build_output) {
     return false;
   }
-  const auto expected = NormalizeHash(project_->rom_metadata.expected_hash);
-  const auto actual = NormalizeHash(current_rom_hash_);
-  if (expected.empty() || actual.empty()) {
+  const std::string expected(
+      absl::StripAsciiWhitespace(project_->rom_metadata.expected_hash));
+  if (expected.empty() || current_rom_identity_.crc32.empty()) {
     return false;
   }
-  return expected != actual;
+  return current_rom_identity_.Match(expected) == util::RomHashMatch::kMismatch;
 }
 
 absl::Status RomLifecycleManager::CheckRomOpenPolicy(Rom* rom) {
@@ -248,10 +238,11 @@ absl::Status RomLifecycleManager::CheckRomWritePolicy(
     return absl::OkStatus();
   }
 
-  const auto expected = NormalizeHash(project_->rom_metadata.expected_hash);
-  const auto actual = NormalizeHash(current_rom_hash_);
+  const std::string expected(
+      absl::StripAsciiWhitespace(project_->rom_metadata.expected_hash));
 
-  if (expected.empty() || actual.empty() || expected == actual) {
+  if (expected.empty() || current_rom_identity_.crc32.empty() ||
+      current_rom_identity_.Match(expected) != util::RomHashMatch::kMismatch) {
     return absl::OkStatus();
   }
 
