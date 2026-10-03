@@ -177,8 +177,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   const float avail = ImGui::GetContentRegionAvail().x;
-  const bool compact = avail < ImGui::GetFontSize() * 68.0f;
-  const bool overflow = avail < ImGui::GetFontSize() * 70.0f;
+  const float right_edge = ImGui::GetCursorScreenPos().x + avail;
   const bool tiny = avail < ImGui::GetFontSize() * 38.0f;
 
   gui::StyleVarGuard toolbar_style_guard(
@@ -272,6 +271,32 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     draw_appearance();
   }
 
+  const char* entity_label = "Entities";
+  for (const auto& button : kEntityModeButtons) {
+    if (entity_edit_mode == button.mode) {
+      entity_label = button.label;
+    }
+  }
+  const auto button_width = [](const char* label) {
+    return ImGui::CalcTextSize(label, nullptr, true).x +
+           ImGui::GetStyle().FramePadding.x * 2.0f;
+  };
+  // Match the actual buttons and gaps below. Shorten secondary labels before
+  // moving tools into overflow; input fields do not imply a narrow toolbar.
+  const float drawing_width =
+      button_width(ICON_MD_MOUSE) + button_width(ICON_MD_DRAW) +
+      button_width(ICON_MD_FORMAT_COLOR_FILL) +
+      button_width(ICON_MD_GRASS " Insert Item") + 3.0f * 2.0f;
+  const auto tools_width = [&](bool compact_labels) {
+    return 3.0f * 13.0f + drawing_width +
+           button_width(compact_labels ? ICON_MD_PLACE : entity_label) +
+           button_width(compact_labels ? ICON_MD_VISIBILITY : "View") + 2.0f +
+           button_width(compact_labels ? ICON_MD_WINDOW : "Windows");
+  };
+  const float remaining = right_edge - ImGui::GetItemRectMax().x;
+  const bool compact = tools_width(false) > remaining;
+  // Tiny docks also need access to the world selector through this popup.
+  const bool overflow = tiny || tools_width(true) > remaining;
   if (overflow) {
     ImGui::SameLine(0, 4);
     if (ToolButton(ICON_MD_MORE_HORIZ, "Drawing tools and map options", false,
@@ -332,7 +357,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   ImGui::SameLine(0, 2);
   if (ToolButton(ICON_MD_GRASS " Insert Item",
                  "Pick an item from the list, then click the map to place it",
-                 false)) {
+                 false, "Insert Item")) {
     if (on_insert_item) {
       on_insert_item();
     }
@@ -340,15 +365,11 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
   // --- Entity modes ------------------------------------------------------------
   GroupSeparator();
-  const char* entity_label = "Entities";
-  for (const auto& button : kEntityModeButtons) {
-    if (entity_edit_mode == button.mode) {
-      entity_label = button.label;
-    }
-  }
   if (ImGui::Button(compact ? ICON_MD_PLACE : entity_label)) {
     ImGui::OpenPopup("EntityTools");
   }
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      "OverworldToolbar/button:Entities", "button", ImGui::GetItemID());
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
         "Choose which entities respond to hover and drag.\n"
@@ -382,7 +403,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   GroupSeparator();
   const size_t session_id = window_manager->GetActiveSessionId();
   if (ToolButton(compact ? ICON_MD_VISIBILITY : "View",
-                 "Grid, entities, overlay and zoom", false)) {
+                 "Grid, entities, overlay and zoom", false, "View")) {
     ImGui::OpenPopup("OverworldViewMenu");
   }
   if (ImGui::BeginPopup("OverworldViewMenu")) {
@@ -391,7 +412,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
   ImGui::SameLine(0, 2);
   if (ToolButton(compact ? ICON_MD_WINDOW : "Windows",
-                 "Open overworld editing windows", false)) {
+                 "Open overworld editing windows", false, "Windows")) {
     ImGui::OpenPopup("OverworldWindowsPopup");
   }
   if (ImGui::BeginPopup("OverworldWindowsPopup")) {
