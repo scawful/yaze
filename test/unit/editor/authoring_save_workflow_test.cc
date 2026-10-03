@@ -2175,6 +2175,8 @@ TEST_F(AuthoringSaveWorkflowTest,
   ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
   for (float dock_width : {320.0f, 480.0f, 680.0f, 980.0f}) {
     SCOPED_TRACE(dock_width);
+    gui::WidgetIdRegistry::Instance().Clear();
+    gui::WidgetIdRegistry::Instance().BeginFrame();
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImVec2(dock_width, 600));
@@ -2186,8 +2188,22 @@ TEST_F(AuthoringSaveWorkflowTest,
     const auto* window = ImGui::GetCurrentWindow();
     EXPECT_LE(window->DC.CursorMaxPos.x, right);
     EXPECT_LE(window->DC.CursorMaxPos.y - start.y, ImGui::GetFontSize() + 6.0f);
+    if (dock_width >= 680.0f) {
+      for (const char* tool : {"Select", "Paint", "Fill", "Insert Item",
+                               "Entities", "View", "Windows"}) {
+        const auto info = gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+            std::string("OverworldToolbar/button:") + tool);
+        ASSERT_TRUE(info.has_value()) << tool;
+        EXPECT_TRUE(info->bounds.valid) << tool;
+        EXPECT_LE(info->bounds.max_x, right) << tool;
+      }
+      EXPECT_FALSE(gui::WidgetIdRegistry::Instance()
+                       .GetWidgetInfo("OverworldToolbar/button:Tools")
+                       .has_value());
+    }
     ImGui::End();
     ImGui::Render();
+    gui::WidgetIdRegistry::Instance().EndFrame();
   }
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
@@ -2205,11 +2221,12 @@ TEST_F(AuthoringSaveWorkflowTest,
   overworld->SetEditingMode(EditingMode::MOUSE);
   const auto items_before = overworld->overworld().all_items().size();
   const auto rom_before = ReadFile(fixture.rom);
+  float dock_width = 480.0f;
   const auto frame = [&]() {
     gui::WidgetIdRegistry::Instance().BeginFrame();
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(480, 600));
+    ImGui::SetNextWindowSize(ImVec2(dock_width, 600));
     ImGui::Begin("ToolbarInputHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
     AuthoringSaveWorkflowTestPeer::DrawToolbar(*overworld);
     ImGui::End();
@@ -2255,6 +2272,26 @@ TEST_F(AuthoringSaveWorkflowTest,
   click("button:Paint");
   EXPECT_EQ(AuthoringSaveWorkflowTestPeer::EditingModeOf(*overworld),
             EditingMode::DRAW_TILE);
+
+  // Widening the dock restores direct access without another Tools click.
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, true);
+  frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, false);
+  frame();
+  dock_width = 680.0f;
+  gui::WidgetIdRegistry::Instance().Clear();
+  frame();
+  frame();
+  click("button:Fill");
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::EditingModeOf(*overworld),
+            EditingMode::FILL_TILE);
+  click("button:Select");
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::EditingModeOf(*overworld),
+            EditingMode::MOUSE);
+  click("button:View");
+  ASSERT_FALSE(GImGui->OpenPopupStack.empty());
+  ASSERT_NE(GImGui->OpenPopupStack.back().Window, nullptr);
+  EXPECT_TRUE(GImGui->OpenPopupStack.back().Window->Active);
 
   gui::WidgetIdRegistry::Instance().Clear();
 }
