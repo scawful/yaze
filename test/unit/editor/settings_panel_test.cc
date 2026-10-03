@@ -232,7 +232,7 @@ TEST(SettingsPanelTest, DisplayDensityKeepsClassicYazePaintedByColorsYaze) {
   // ThemeManager is a process-wide singleton. Earlier cases in the same
   // process (welcome-screen and theme density tests) can leave it on Compact
   // or Comfortable, and ApplyClassicYazeTheme() carries the current density
-  // forward. Pin Normal so the 8px baseline holds in any order, and restore
+  // forward. Pin Normal so the 6px baseline holds in any order, and restore
   // the whole theme (density included) afterwards, not only its name.
   const gui::Theme saved = themes.GetCurrentTheme();
   themes.ApplyClassicYazeTheme(gui::DensityPreset::kNormal);
@@ -240,7 +240,7 @@ TEST(SettingsPanelTest, DisplayDensityKeepsClassicYazePaintedByColorsYaze) {
   // Assert on spacing, not colour: ApplyTheme starts a lerp that leaves the
   // colour array at its START values until frames run, so a colour check here
   // passes under both routes and proves nothing.
-  ASSERT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 8.0f);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 6.0f);
 
   SettingsPanel panel;
   SettingsPanelTestPeer::ApplyDisplayDensity(panel,
@@ -249,9 +249,9 @@ TEST(SettingsPanelTest, DisplayDensityKeepsClassicYazePaintedByColorsYaze) {
   EXPECT_EQ(themes.GetCurrentThemeName(), "Classic YAZE");
   EXPECT_EQ(themes.GetCurrentTheme().density_preset,
             gui::DensityPreset::kCompact);
-  // ColorsYaze's authored 8px padding scales by Compact's 0.75. Rebuilding
+  // ColorsYaze's authored 6px padding scales by Compact's 0.75. Rebuilding
   // from a default Theme instead would discard Classic's identity metrics.
-  EXPECT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 6.0f);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 4.5f);
 
   themes.ReapplyTheme(saved);
 }

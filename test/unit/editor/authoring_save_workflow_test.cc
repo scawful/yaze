@@ -32,11 +32,14 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
 #include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gui/automation/widget_id_registry.h"
+#include "app/gui/core/background_renderer.h"
 #include "core/features.h"
 #include "core/hack_manifest.h"
 #include "editor_test_support.h"
@@ -151,15 +154,16 @@ class AuthoringSaveWorkflowTestPeer {
     return editor.current_mode;
   }
 
-  static void DrawToolbar(
-      OverworldEditor& editor, const std::function<void()>& appearance = []() {
-        ImGui::TextUnformatted("Appearance");
-      }) {
+  static void DrawToolbar(OverworldEditor& editor) {
     editor.toolbar_->Draw(
         editor.current_world_, editor.current_map_, editor.current_map_lock_,
         editor.current_mode, editor.entity_edit_mode_,
         editor.dependencies_.window_manager, editor.rom_, &editor.overworld_,
-        editor.dependencies_.project, editor.game_state_, appearance);
+        editor.dependencies_.project, editor.game_state_, [&]() {
+          editor.sidebar_->DrawQuickProperties(
+              editor.current_map_, editor.current_map_lock_,
+              editor.dependencies_.project, true);
+        });
   }
 
   static absl::Status DrawOverworld(OverworldEditor& editor) {
@@ -2075,6 +2079,91 @@ OverworldEditor* LoadedOverworld(EditorManager* manager) {
       EditorType::kOverworld);
 }
 
+TEST_F(AuthoringSaveWorkflowTest, MainMenusStayOpenWithRightSettingsDrawer) {
+  const auto fixture = CopyProject("yaze-menu-settings");
+  Open(fixture);
+  ASSERT_NE(LoadedOverworld(manager_.get()), nullptr);
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  manager_->SwitchToEditor(EditorType::kOverworld, true);
+  ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  auto* drawer = manager_->right_drawer_manager();
+  ASSERT_NE(drawer, nullptr);
+  const auto frame = [&]() {
+    gui::WidgetIdRegistry::Instance().BeginFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(48, 0));
+    ImGui::SetNextWindowSize(ImVec2(1280 - 48 - drawer->GetDrawerWidth(), 720));
+    ImGui::Begin("DockSpaceWindow", nullptr,
+                 ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
+                     ImGuiWindowFlags_NoBringToFrontOnFocus |
+                     ImGuiWindowFlags_NoNavFocus);
+    gui::DockSpaceRenderer::BeginEnhancedDockSpace(
+        ImGui::GetID("MainDockSpace"), ImVec2(0, 0),
+        ImGuiDockNodeFlags_PassthruCentralNode);
+    manager_->DrawMainMenuBar();
+    gui::DockSpaceRenderer::EndEnhancedDockSpace();
+    ImGui::End();
+    EXPECT_OK(manager_->Update());
+    ImGui::Render();
+    gui::WidgetIdRegistry::Instance().EndFrame();
+  };
+  for (int i = 0; i < 3; ++i)
+    frame();
+  drawer->OpenDrawer(RightDrawerManager::DrawerType::kSettings);
+  for (int i = 0; i < 30; ++i)
+    frame();
+  for (const char* name :
+       {"File", "Edit", "View", "Windows", "Tools", "Help"}) {
+    SCOPED_TRACE(name);
+    const auto search = gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+        "Settings/input:Search");
+    ASSERT_TRUE(search.has_value());
+    ASSERT_TRUE(search->bounds.valid);
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((search->bounds.min_x + search->bounds.max_x) / 2,
+                        (search->bounds.min_y + search->bounds.max_y) / 2);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+    ASSERT_EQ(GImGui->ActiveId, search->imgui_id)
+        << "hovered="
+        << (GImGui->HoveredWindow ? GImGui->HoveredWindow->Name : "none")
+        << " nav=" << (GImGui->NavWindow ? GImGui->NavWindow->Name : "none")
+        << " popups=" << GImGui->OpenPopupStack.Size
+        << " search=" << search->bounds.min_x << ',' << search->bounds.min_y;
+    const auto info = gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+        std::string("MainMenu/menu:") + name);
+    ASSERT_TRUE(info.has_value());
+    ASSERT_TRUE(info->bounds.valid);
+    io.AddMousePosEvent((info->bounds.min_x + info->bounds.max_x) / 2,
+                        (info->bounds.min_y + info->bounds.max_y) / 2);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+    for (int i = 0; i < 3; ++i)
+      frame();
+    ASSERT_EQ(drawer->GetActiveDrawer(),
+              RightDrawerManager::DrawerType::kSettings);
+    ASSERT_FALSE(GImGui->OpenPopupStack.empty());
+    EXPECT_EQ(GImGui->OpenPopupStack[0].PopupId, info->imgui_id);
+    // Dismiss back into the drawer. An arbitrary canvas coordinate can raise
+    // the synthetic undocked Dashboard over it in this headless host.
+    io.AddMousePosEvent((search->bounds.min_x + search->bounds.max_x) / 2,
+                        (search->bounds.min_y + search->bounds.max_y) / 2);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+  }
+}
+
 TEST_F(AuthoringSaveWorkflowTest,
        OverworldToolbarStaysOneRowAtLaptopDockWidths) {
   const auto fixture = CopyProject("yaze-compact-toolbar");
@@ -2105,7 +2194,7 @@ TEST_F(AuthoringSaveWorkflowTest,
 }
 
 TEST_F(AuthoringSaveWorkflowTest,
-       NarrowToolbarKeepsPaintAndAppearanceReachable) {
+       NarrowToolbarKeepsAppearanceAndStoryVisibleAndPaintReachable) {
   const auto fixture = CopyProject("yaze-toolbar-overflow");
   Open(fixture);
   auto* overworld = LoadedOverworld(manager_.get());
@@ -2114,24 +2203,22 @@ TEST_F(AuthoringSaveWorkflowTest,
   int width = 0, height = 0;
   ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
   overworld->SetEditingMode(EditingMode::MOUSE);
-  int appearance_frames = 0;
+  const auto items_before = overworld->overworld().all_items().size();
+  const auto rom_before = ReadFile(fixture.rom);
   const auto frame = [&]() {
     gui::WidgetIdRegistry::Instance().BeginFrame();
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImVec2(480, 600));
     ImGui::Begin("ToolbarInputHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
-    AuthoringSaveWorkflowTestPeer::DrawToolbar(*overworld, [&]() {
-      ++appearance_frames;
-      ImGui::TextUnformatted("Appearance controls");
-    });
+    AuthoringSaveWorkflowTestPeer::DrawToolbar(*overworld);
     ImGui::End();
     ImGui::Render();
     gui::WidgetIdRegistry::Instance().EndFrame();
   };
   const auto click = [&](const char* name) {
     const auto info = gui::WidgetIdRegistry::Instance().GetWidgetInfo(
-        std::string("OverworldToolbar/button:") + name);
+        std::string("OverworldToolbar/") + name);
     ASSERT_TRUE(info.has_value()) << name;
     ASSERT_TRUE(info->bounds.valid);
     const auto b = info->bounds;
@@ -2146,13 +2233,29 @@ TEST_F(AuthoringSaveWorkflowTest,
   };
   frame();
   frame();
-  EXPECT_EQ(appearance_frames, 0);
-  click("Tools");
-  click("Paint");
+  for (const char* id : {"field:Graphics", "field:Palette", "combo:Story"}) {
+    const auto info = gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+        std::string("OverworldToolbar/") + id);
+    ASSERT_TRUE(info.has_value()) << id;
+    EXPECT_TRUE(info->bounds.valid) << id;
+    EXPECT_LT(info->bounds.max_x, 480.0f) << id;
+  }
+  for (int state : {0, 2, 1}) {
+    click("combo:Story");
+    click(absl::StrFormat("story:%d", state).c_str());
+    EXPECT_EQ(overworld->game_state(), state);
+    // Sprite rendering and insertion both use the editor's selected state.
+    for (int id : {0, 0x30, 0x40, 0x80}) {
+      EXPECT_EQ(overworld->overworld().overworld_map(id)->game_state(), state);
+    }
+  }
+  EXPECT_EQ(overworld->overworld().all_items().size(), items_before);
+  EXPECT_EQ(ReadFile(fixture.rom), rom_before);
+  click("button:Tools");
+  click("button:Paint");
   EXPECT_EQ(AuthoringSaveWorkflowTestPeer::EditingModeOf(*overworld),
             EditingMode::DRAW_TILE);
-  click("Appearance");
-  EXPECT_GT(appearance_frames, 0);
+
   gui::WidgetIdRegistry::Instance().Clear();
 }
 

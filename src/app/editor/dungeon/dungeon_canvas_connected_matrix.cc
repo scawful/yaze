@@ -1163,9 +1163,10 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
 
     if (gfx::Bitmap* composite = PrepareConnectedRoomCompositeBitmap(room_id);
         composite && composite->texture()) {
-      canvas_rt.draw_list->AddImage((ImTextureID)(intptr_t)composite->texture(),
-                                    screen_min, screen_max, ImVec2(0, 0),
-                                    ImVec2(1, 1), IM_COL32(255, 255, 255, 255));
+      canvas_rt.draw_list->AddImage(
+          (ImTextureID)(intptr_t)composite->texture(), screen_min, screen_max,
+          ImVec2(0, 0), ImVec2(1, 1),
+          ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)));
     } else {
       canvas_rt.draw_list->AddRectFilled(screen_min, screen_max,
                                          placeholder_fill, 6.0f);

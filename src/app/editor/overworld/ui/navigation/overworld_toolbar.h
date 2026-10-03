@@ -37,7 +37,7 @@ struct OverworldPanelIds {
 
 /// Canvas navigation, labeled drawing tools, view controls and editing windows.
 /// One row at every dock width; narrow docks expose tools through overflow.
-/// Appearance edits reuse the sidebar controls in a local popup.
+/// Graphics, palette and story preview remain directly on the canvas bar.
 class OverworldToolbar {
  public:
   OverworldToolbar() = default;
@@ -52,6 +52,7 @@ class OverworldToolbar {
   ShortcutManager* shortcuts = nullptr;
 
   std::function<void(int)> on_world_changed;
+  std::function<void(int)> on_story_changed;
   std::function<void(EditingMode)> on_set_mode;
   std::function<void(EntityEditMode)> on_set_entity_mode;
   std::function<void()> on_insert_item;

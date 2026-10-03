@@ -979,7 +979,9 @@ bool Canvas::DrawTilePainter(const Bitmap& bitmap, int size, float scale) {
     draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                          ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
                          ImVec2(origin.x + paint_pos.x + scaled_size,
-                                origin.y + paint_pos.y + scaled_size));
+                                origin.y + paint_pos.y + scaled_size),
+                         ImVec2(0, 0), ImVec2(1, 1),
+                         ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   }
 
   if (IsMouseClicked(ImGuiMouseButton_Left) &&
@@ -1230,7 +1232,9 @@ void Canvas::DrawBitmapTable(const BitmapTable& gfx_bin) {
     }
     draw_list_->AddImage((ImTextureID)(intptr_t)value->texture(),
                          ImVec2(canvas_p0_.x + 2, top_left_y),
-                         ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset));
+                         ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset),
+                         ImVec2(0, 0), ImVec2(1, 1),
+                         ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   }
 }
 
@@ -1363,7 +1367,7 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
                 (ImTextureID)(intptr_t)tilemap.atlas.texture(),
                 ImVec2(screen_x, screen_y),
                 ImVec2(screen_x + screen_w, screen_y + screen_h), uv0, uv1,
-                alpha_color);
+                ImGui::GetColorU32(alpha_color));
           }
         }
       }
@@ -1941,7 +1945,8 @@ void Canvas::AddImageAt(ImTextureID texture, ImVec2 local_top_left,
                     canvas_p0_.y + local_top_left.y * global_scale_);
   ImVec2 screen_end(screen_pos.x + size.x * global_scale_,
                     screen_pos.y + size.y * global_scale_);
-  draw_list_->AddImage(texture, screen_pos, screen_end);
+  draw_list_->AddImage(texture, screen_pos, screen_end, ImVec2(0, 0),
+                       ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 }
 
 void Canvas::AddRectFilledAt(ImVec2 local_top_left, ImVec2 size,

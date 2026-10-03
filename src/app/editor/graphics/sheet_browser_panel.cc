@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
@@ -46,14 +47,33 @@ absl::Status SheetBrowserPanel::Update() {
       (!inventory_.has_value() && inventory_error_.empty())) {
     RefreshInventory();
   }
-  DrawSearchBar();
-  ImGui::Separator();
-  DrawBatchOperations();
-  ImGui::Separator();
   DrawPendingSave();
-  DrawSelectedSheetInfo();
-  DrawPngTransfer(state_->current_sheet_id);
-  DrawSheetGrid();
+  if (ImGui::BeginTabBar("##SheetBrowserTabs")) {
+    const bool show_sheets = ImGui::BeginTabItem(tr("Sheets"));
+    gui::AutoRegisterLastItem("tab", "Sheets");
+    if (show_sheets) {
+      DrawSearchBar();
+      DrawSheetGrid();
+      ImGui::EndTabItem();
+    }
+    const bool show_details = ImGui::BeginTabItem(tr("Details"));
+    gui::AutoRegisterLastItem("tab", "Details");
+    if (show_details) {
+      ImGui::BeginChild("##SheetDetails", ImVec2(0, 0));
+      DrawSelectedSheetInfo();
+      ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
+    const bool show_png = ImGui::BeginTabItem(tr("PNG"));
+    gui::AutoRegisterLastItem("tab", "PNG");
+    if (show_png) {
+      ImGui::BeginChild("##SheetTransfer", ImVec2(0, 0));
+      DrawPngTransfer(state_->current_sheet_id);
+      ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
+    ImGui::EndTabBar();
+  }
   return absl::OkStatus();
 }
 
@@ -123,7 +143,7 @@ void SheetBrowserPanel::DrawSheetLabelEditor(uint16_t sheet_id) {
   }
   const bool can_edit = static_cast<bool>(label_setter_);
   ImGui::BeginDisabled(!can_edit);
-  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth() * 2.0f);
+  ImGui::SetNextItemWidth(-1);
   const bool submitted = ImGui::InputTextWithHint(
       "##SheetLabel", tr("Sheet label (stored in the project)"), &label_buffer_,
       ImGuiInputTextFlags_EnterReturnsTrue);
@@ -132,7 +152,6 @@ void SheetBrowserPanel::DrawSheetLabelEditor(uint16_t sheet_id) {
     label_status_ = status.ok() ? "Label set; save the project to keep it"
                                 : std::string(status.message());
   }
-  ImGui::SameLine();
   if (ImGui::SmallButton(ICON_MD_UPLOAD_FILE " Import Spritesets CSV") &&
       label_importer_) {
     const std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
@@ -662,17 +681,23 @@ void SheetBrowserPanel::DrawSearchBar() {
   HOVER_HINT("Enter hex sheet number (00-DE)");
 
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetCompactInputWidth());
-  ImGui::DragInt("##FilterMin", &filter_min_, 1.0f, 0, 222, "%02X");
-  ImGui::SameLine();
-  ImGui::Text("-");
-  ImGui::SameLine();
-  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetCompactInputWidth());
-  ImGui::DragInt("##FilterMax", &filter_max_, 1.0f, 0, 222, "%02X");
-
-  ImGui::SameLine();
-  ImGui::Checkbox(tr("Modified"), &show_only_modified_);
-  HOVER_HINT("Show only modified sheets");
+  if (ImGui::Button(ICON_MD_TUNE "##SheetFilters")) {
+    ImGui::OpenPopup("Sheet filters");
+  }
+  gui::AutoRegisterLastItem("button", "Sheet filters");
+  HOVER_HINT("Filter range, modified sheets, and thumbnail size");
+  if (ImGui::BeginPopup("Sheet filters")) {
+    ImGui::SetNextItemWidth(70);
+    ImGui::DragInt("First", &filter_min_, 1.0f, 0, 222, "%02X");
+    ImGui::SetNextItemWidth(70);
+    ImGui::DragInt("Last", &filter_max_, 1.0f, 0, 222, "%02X");
+    filter_min_ = std::clamp(filter_min_, 0, 222);
+    filter_max_ = std::clamp(filter_max_, filter_min_, 222);
+    ImGui::Checkbox(tr("Modified only"), &show_only_modified_);
+    ImGui::Separator();
+    DrawBatchOperations();
+    ImGui::EndPopup();
+  }
 }
 
 void SheetBrowserPanel::DrawBatchOperations() {
@@ -704,8 +729,11 @@ void SheetBrowserPanel::DrawSheetGrid() {
   auto& sheets = gfx::Arena::Get().gfx_sheets();
 
   // Calculate thumbnail size
-  const float thumb_width = 128 * thumbnail_scale_;
-  const float thumb_height = 32 * thumbnail_scale_;
+  const float fit_scale =
+      std::min(thumbnail_scale_,
+               std::max(0.25f, (ImGui::GetContentRegionAvail().x - 12) / 128));
+  const float thumb_width = 128 * fit_scale;
+  const float thumb_height = 32 * fit_scale;
   const float padding = 4.0f;
 
   // Calculate columns based on available width
@@ -741,8 +769,11 @@ void SheetBrowserPanel::DrawSheetGrid() {
 }
 
 void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
-  const float thumb_width = 128 * thumbnail_scale_;
-  const float thumb_height = 32 * thumbnail_scale_;
+  const float fit_scale =
+      std::min(thumbnail_scale_,
+               std::max(0.25f, (ImGui::GetContentRegionAvail().x - 12) / 128));
+  const float thumb_width = 128 * fit_scale;
+  const float thumb_height = 32 * fit_scale;
 
   bool is_selected =
       state_->current_sheet_id == static_cast<uint16_t>(sheet_id);
@@ -771,7 +802,7 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
   preview_opts.canvas_size = ImVec2(thumb_width + 1, thumb_height + 1);
   preview_opts.dest_pos = ImVec2(2, 2);
   preview_opts.dest_size = ImVec2(thumb_width - 2, thumb_height - 2);
-  preview_opts.grid_step = 8.0f * thumbnail_scale_;
+  preview_opts.grid_step = 8.0f * fit_scale;
   preview_opts.draw_context_menu = false;
   preview_opts.ensure_texture = true;
 
@@ -799,11 +830,13 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
     ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
     thumbnail_canvas_.AddRectFilledAt(
         ImVec2(2, 2), ImVec2(text_size.x + 4, text_size.y + 2),
-        is_modified ? IM_COL32(180, 100, 0, 200) : IM_COL32(0, 100, 0, 180));
+        is_modified ? ImGui::GetColorU32(IM_COL32(180, 100, 0, 200))
+                    : ImGui::GetColorU32(IM_COL32(0, 100, 0, 180)));
 
-    thumbnail_canvas_.AddTextAt(ImVec2(4, 2), label,
-                                is_modified ? IM_COL32(255, 200, 100, 255)
-                                            : IM_COL32(150, 255, 150, 255));
+    thumbnail_canvas_.AddTextAt(
+        ImVec2(4, 2), label,
+        is_modified ? ImGui::GetColorU32(IM_COL32(255, 200, 100, 255))
+                    : ImGui::GetColorU32(IM_COL32(150, 255, 150, 255)));
     if (is_modified) {
       // Dirty dot: unsaved pixel edits in this sheet.
       const ImVec2 dot =
@@ -824,8 +857,8 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
               ImVec2(preview_opts.dest_pos.x + (block % 8) * block_w,
                      preview_opts.dest_pos.y + (block / 8) * block_h),
               ImVec2(block_w, block_h),
-              entry.flagged ? IM_COL32(230, 180, 40, 70)
-                            : IM_COL32(60, 200, 90, 70));
+              entry.flagged ? ImGui::GetColorU32(IM_COL32(230, 180, 40, 70))
+                            : ImGui::GetColorU32(IM_COL32(60, 200, 90, 70)));
         }
       }
       const char* badge =
@@ -835,10 +868,11 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
         const ImVec2 badge_pos(thumb_width - badge_size.x - 4, 2);
         thumbnail_canvas_.AddRectFilledAt(
             badge_pos, ImVec2(badge_size.x + 4, badge_size.y + 2),
-            entry.reserved ? IM_COL32(170, 30, 30, 220)
-                           : IM_COL32(170, 120, 20, 220));
-        thumbnail_canvas_.AddTextAt(ImVec2(badge_pos.x + 2, badge_pos.y), badge,
-                                    IM_COL32(255, 255, 255, 255));
+            entry.reserved ? ImGui::GetColorU32(IM_COL32(170, 30, 30, 220))
+                           : ImGui::GetColorU32(IM_COL32(170, 120, 20, 220)));
+        thumbnail_canvas_.AddTextAt(
+            ImVec2(badge_pos.x + 2, badge_pos.y), badge,
+            ImGui::GetColorU32(IM_COL32(255, 255, 255, 255)));
       }
     }
     gui::EndCanvas(thumbnail_canvas_, rt, frame_opts);

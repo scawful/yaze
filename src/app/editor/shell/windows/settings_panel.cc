@@ -303,6 +303,8 @@ void SettingsPanel::Draw() {
   ImGui::InputTextWithHint("##SettingsSearch",
                            ICON_MD_SEARCH " Search settings",
                            settings_search_.data(), settings_search_.size());
+  gui::WidgetIdRegistry::Instance().RegisterWidget("Settings/input:Search",
+                                                   "input", ImGui::GetItemID());
 
   const auto categories =
       FilterCategories(active_scope_, settings_search_.data());
@@ -336,7 +338,6 @@ void SettingsPanel::Draw() {
   }
 
   DrawCategoryNavigation(categories, true);
-  ImGui::Separator();
   DrawCategoryContent(active_category_);
 }
 

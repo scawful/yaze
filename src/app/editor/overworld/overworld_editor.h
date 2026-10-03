@@ -313,6 +313,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   gui::Canvas& ow_map_canvas() { return ow_map_canvas_; }
   int game_state() const { return game_state_; }
+  // Preview only; does not rewrite story progression or entity placements.
+  void SetPreviewStoryState(int state);
 
   // ===========================================================================
   // Entity System - Insertion and Editing

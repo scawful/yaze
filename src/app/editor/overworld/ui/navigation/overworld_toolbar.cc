@@ -178,7 +178,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
   const float avail = ImGui::GetContentRegionAvail().x;
   const bool compact = avail < ImGui::GetFontSize() * 68.0f;
-  const bool overflow = avail < ImGui::GetFontSize() * 45.0f;
+  const bool overflow = avail < ImGui::GetFontSize() * 70.0f;
+  const bool tiny = avail < ImGui::GetFontSize() * 38.0f;
 
   gui::StyleVarGuard toolbar_style_guard(
       {{ImGuiStyleVar_FramePadding, ImVec2(4.0f, 3.0f)},
@@ -190,7 +191,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   static constexpr const char* kWorldShortcuts[] = {"overworld.world_light",
                                                     "overworld.world_dark",
                                                     "overworld.world_special"};
-  for (int world_index = 0; world_index < 3; ++world_index) {
+  for (int world_index = 0; !tiny && world_index < 3; ++world_index) {
     if (world_index > 0) {
       ImGui::SameLine(0, 2);
     }
@@ -207,7 +208,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   // --- Map -------------------------------------------------------------------
-  GroupSeparator();
+  if (!tiny)
+    GroupSeparator();
   const auto metadata = BuildOverworldMapMetadata(*overworld, rom, project,
                                                   current_map, game_state);
   if (ImGui::Button(metadata.map_id_label.c_str()) && on_open_map_properties) {
@@ -237,16 +239,58 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     current_map_lock = !current_map_lock;
   }
 
-  // Narrow docks keep navigation visible; editing tools remain one click away.
+  // Keep frequent map properties visible even when secondary tools overflow.
+  ImGui::SameLine(0, 4);
+  const std::string story_label = absl::StrFormat("Story %d", game_state);
+  ImGui::SetNextItemWidth(ImGui::CalcTextSize("Story 0").x +
+                          ImGui::GetFrameHeight() + 8.0f);
+  const bool story_open = ImGui::BeginCombo("##Story", story_label.c_str());
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      "OverworldToolbar/combo:Story", "combobox", ImGui::GetItemID());
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Story part to preview. Changes the active sprite set, "
+        "sprite graphics and sprite palettes. "
+        "Shared item placements stay the same.");
+  }
+  if (story_open) {
+    for (int state = 0; state < 3; ++state) {
+      const std::string label =
+          absl::StrFormat("%d — %s", state, kGameStateNames[state]);
+      if (ImGui::Selectable(label.c_str(), game_state == state) &&
+          on_story_changed) {
+        on_story_changed(state);
+      }
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          absl::StrFormat("OverworldToolbar/story:%d", state), "selectable",
+          ImGui::GetItemID());
+    }
+    ImGui::EndCombo();
+  }
+  if (draw_appearance) {
+    ImGui::SameLine(0, 4);
+    draw_appearance();
+  }
+
   if (overflow) {
-    GroupSeparator();
-    if (ToolButton(ICON_MD_MORE_HORIZ " Tools", "Drawing tools and map options",
-                   false, "Tools")) {
+    ImGui::SameLine(0, 4);
+    if (ToolButton(ICON_MD_MORE_HORIZ, "Drawing tools and map options", false,
+                   "Tools")) {
       ImGui::OpenPopup("ToolsOverflow");
     }
     if (!ImGui::BeginPopup("ToolsOverflow")) {
       ImGui::PopID();
       return;
+    }
+    if (tiny) {
+      for (int world = 0; world < 3; ++world) {
+        if (ImGui::MenuItem(kWorldNames[world], nullptr,
+                            current_world == world) &&
+            on_world_changed) {
+          on_world_changed(world);
+        }
+      }
+      ImGui::Separator();
     }
   } else {
     GroupSeparator();
@@ -259,11 +303,11 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       current_mode = mode;
     }
   };
-  if (ToolButton(compact ? ICON_MD_MOUSE : ICON_MD_MOUSE " Select",
+  if (ToolButton(ICON_MD_MOUSE,
                  "Select (1)\nLeft-drag empty map: pan   Middle-drag: pan\n"
                  "Drag entities to move them   Right-click: map menu\n"
                  "Double-click a map: Map Properties",
-                 current_mode == EditingMode::MOUSE)) {
+                 current_mode == EditingMode::MOUSE, "Select")) {
     set_mode(EditingMode::MOUSE);
   }
   ImGui::SameLine(0, 2);
@@ -272,9 +316,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       "Right-click: sample tile16 (or I)   Right-drag: capture a brush\n"
       "[ / ]: previous / next tile16   Shift+Right-click: map menu",
       "overworld.brush_toggle");
-  if (ToolButton(compact ? ICON_MD_DRAW : ICON_MD_DRAW " Paint",
-                 brush_tip.c_str(), current_mode == EditingMode::DRAW_TILE,
-                 "Paint")) {
+  if (ToolButton(ICON_MD_DRAW, brush_tip.c_str(),
+                 current_mode == EditingMode::DRAW_TILE, "Paint")) {
     set_mode(EditingMode::DRAW_TILE);
   }
   ImGui::SameLine(0, 2);
@@ -282,13 +325,12 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       "Fill screen\nClick fills the 32x32 screen under the cursor\n"
       "Right-click: sample tile16   Shift+Right-click: map menu",
       "overworld.fill");
-  if (ToolButton(compact ? ICON_MD_FORMAT_COLOR_FILL
-                         : ICON_MD_FORMAT_COLOR_FILL " Fill",
-                 fill_tip.c_str(), current_mode == EditingMode::FILL_TILE)) {
+  if (ToolButton(ICON_MD_FORMAT_COLOR_FILL, fill_tip.c_str(),
+                 current_mode == EditingMode::FILL_TILE, "Fill")) {
     set_mode(EditingMode::FILL_TILE);
   }
   ImGui::SameLine(0, 2);
-  if (ToolButton(compact ? ICON_MD_GRASS : ICON_MD_GRASS " Insert Item",
+  if (ToolButton(ICON_MD_GRASS " Insert Item",
                  "Pick an item from the list, then click the map to place it",
                  false)) {
     if (on_insert_item) {
@@ -395,19 +437,6 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       }
     }
     ImGui::EndPopup();
-  }
-  if (draw_appearance) {
-    ImGui::SameLine(0, 2);
-    if (ToolButton(compact ? ICON_MD_PALETTE : "Appearance",
-                   "Map graphics and palettes", false, "Appearance")) {
-      ImGui::OpenPopup("MapAppearance");
-    }
-    ImGui::SetNextWindowSizeConstraints(ImVec2(320.0f, 0.0f),
-                                        ImVec2(480.0f, 500.0f));
-    if (ImGui::BeginPopup("MapAppearance")) {
-      draw_appearance();
-      ImGui::EndPopup();
-    }
   }
   if (overflow) {
     ImGui::EndPopup();

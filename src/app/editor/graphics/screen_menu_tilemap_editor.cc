@@ -827,7 +827,7 @@ void MenuTilemapEditorUI::DrawMainCanvas() {
         static_cast<uint8_t>(std::clamp(ref_opacity_, 0.0f, 1.0f) * 255.0f);
     ImGui::GetWindowDrawList()->AddImage(
         reinterpret_cast<ImTextureID>(ref_texture_), p_min, p_max, ImVec2(0, 0),
-        ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
+        ImVec2(1, 1), ImGui::GetColorU32(IM_COL32(255, 255, 255, alpha)));
   }
 
   has_hover_ = canvas_.IsMouseHovering();

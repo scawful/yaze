@@ -98,6 +98,7 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
     case EditorType::kGraphics:
       preset.name = "Graphics Default";
       preset.description = "Sheet browser with pixel editor";
+      preset.dock_only_default_visible_panels = true;
       preset.default_visible_panels = {
           Panels::kGraphicsSheetBrowser,
           Panels::kGraphicsSheetEditor,

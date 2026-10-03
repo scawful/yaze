@@ -726,3 +726,57 @@ TEST(UserSettingsLayoutDefaultsTest,
 }
 
 }  // namespace yaze::editor
+
+namespace yaze::editor {
+TEST(UserSettingsLayoutDefaultsTest,
+     Revision29KeepsNamedLayoutsAndPinsClosesLiveDuplicates) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+  prefs.panel_layout_defaults_revision = 28;
+  prefs.panel_visibility_state["Dungeon"] = {
+      {"dungeon.workbench", true},
+      {"dungeon.room_matrix", true},
+      {"dungeon.entrance_properties", true},
+      {"dungeon.object_selector", true}};
+  prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"] =
+      true;
+  prefs.panel_visibility_state["Overworld"]["overworld.cutscene_camera"] = true;
+  prefs.saved_layouts["My layout"] = prefs.panel_visibility_state["Dungeon"];
+  const auto saved = prefs.saved_layouts;
+  prefs.pinned_panels["dungeon.object_selector"] = true;
+  ASSERT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(29));
+  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.entrance_properties"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
+  EXPECT_TRUE(prefs.pinned_panels["dungeon.object_selector"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Overworld"]["overworld.cutscene_camera"]);
+  EXPECT_EQ(prefs.saved_layouts, saved);
+  EXPECT_FALSE(settings.ApplyPanelLayoutDefaultsRevision(29));
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     Revision29RetainsStandaloneWorkflowAndPinnedNavigation) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+  prefs.panel_layout_defaults_revision = 28;
+  prefs.panel_visibility_state["Dungeon"] = {
+      {"dungeon.workbench", false},
+      {"dungeon.room_matrix", true},
+      {"dungeon.entrance_properties", true}};
+  prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"] =
+      true;
+  prefs.pinned_panels["graphics.link_sprite_editor"] = true;
+  settings.ApplyPanelLayoutDefaultsRevision(29);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.entrance_properties"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"]);
+}
+}  // namespace yaze::editor

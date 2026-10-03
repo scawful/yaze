@@ -1868,6 +1868,33 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  // Revision 29: the Workbench owns navigation; an old live visibility
+  // snapshot must not steal its embedded matrix or entrance selector. Explicit
+  // named layouts and pins remain available for standalone workflows.
+  if (prefs_.panel_layout_defaults_revision < 29 && target_revision >= 29) {
+    auto close_unpinned = [this](const char* category, const char* id) {
+      auto it = prefs_.panel_visibility_state.find(category);
+      if (it == prefs_.panel_visibility_state.end())
+        return;
+      const auto pin = prefs_.pinned_panels.find(id);
+      if (pin == prefs_.pinned_panels.end() || !pin->second) {
+        it->second[id] = false;
+      }
+    };
+    auto dungeon = prefs_.panel_visibility_state.find("Dungeon");
+    if (dungeon != prefs_.panel_visibility_state.end() &&
+        dungeon->second["dungeon.workbench"]) {
+      close_unpinned("Dungeon", "dungeon.room_matrix");
+      close_unpinned("Dungeon", "dungeon.room_selector");
+      close_unpinned("Dungeon", "dungeon.entrance_list");
+      close_unpinned("Dungeon", "dungeon.entrance_properties");
+    }
+    close_unpinned("Graphics", "graphics.link_sprite_editor");
+    close_unpinned("Overworld", "overworld.cutscene_camera");
+    prefs_.panel_layout_defaults_revision = 29;
+    applied = true;
+  }
+
   return applied;
 }
 

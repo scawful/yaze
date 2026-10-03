@@ -95,7 +95,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
           if (editor_->sidebar_) {
             editor_->sidebar_->DrawQuickProperties(
                 editor_->current_map_, editor_->current_map_lock_,
-                editor_->dependencies_.project);
+                editor_->dependencies_.project, /*compact=*/true);
           }
         });
     editor_->NormalizeCurrentSelectionState();
@@ -589,8 +589,8 @@ void OverworldCanvasRenderer::DrawTile8Selector() {
       canvas_rt.draw_list->AddImage(
           (ImTextureID)(intptr_t)texture,
           ImVec2(canvas_rt.canvas_p0.x + 2, top_left_y),
-          ImVec2(canvas_rt.canvas_p0.x + 0x100,
-                 canvas_rt.canvas_p0.y + offset));
+          ImVec2(canvas_rt.canvas_p0.x + 0x100, canvas_rt.canvas_p0.y + offset),
+          ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
       key++;
     }
   }
