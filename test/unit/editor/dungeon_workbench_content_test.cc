@@ -29,8 +29,10 @@
 #include "dungeon_workbench_test_peer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "test_utils/expanded_entrance_fixture.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
+#include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze::editor {
 
@@ -57,6 +59,46 @@ DungeonWorkbenchContent MakeWorkbenchForToolStateTests(
       [](int) -> DungeonCanvasViewer* { return nullptr; },
       [&recent_rooms]() -> const std::deque<int>& { return recent_rooms; },
       [](int) {}, [](bool) {});
+}
+
+TEST(DungeonWorkbenchEntranceBadgeTest, ResolvedBoundsAndSpawnPrecedence) {
+  Rom rom;
+  std::vector<uint8_t> data(0x200000, 0);
+  yaze::test::InstallExpandedEntranceLoader(data);
+  std::fill_n(data.begin() + 0x78000, 2 * zelda3::kNumRegularDungeonEntrances,
+              0xFF);
+  std::fill_n(data.begin() + zelda3::kStartingEntranceroom,
+              2 * zelda3::kNumDungeonSpawnPoints, 0xFF);
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  ASSERT_TRUE(rom.WriteWord(0x78000 + 0x84 * 2, 0x122).ok());
+  ASSERT_TRUE(rom.WriteByte(0x79800 + 0x84, 0x1F).ok());
+  ASSERT_TRUE(rom.WriteWord(0x78000, 0x42).ok());
+  ASSERT_TRUE(rom.WriteByte(0x79800, 2).ok());
+  ASSERT_TRUE(rom.WriteWord(zelda3::kStartingEntranceroom, 0x42).ok());
+  ASSERT_TRUE(rom.WriteByte(zelda3::kStartingEntranceDungeon, 3).ok());
+  ASSERT_TRUE(rom.WriteWord(zelda3::kStartingEntranceroom + 6 * 2, 0x123).ok());
+  ASSERT_TRUE(rom.WriteByte(zelda3::kStartingEntranceDungeon + 6, 4).ok());
+  int current = 0;
+  const std::deque<int> recent;
+  auto workbench = MakeWorkbenchForToolStateTests(current, recent);
+  workbench.SetRom(&rom);
+  const auto& cache =
+      DungeonWorkbenchContentTestPeer::RebuildDungeonBadgeCache(workbench);
+  ASSERT_EQ(cache.size(), 3u);
+  EXPECT_EQ(cache.at(0x122), "Dungeon 1F");
+  EXPECT_EQ(cache.at(0x42), "Eastern");
+  EXPECT_EQ(cache.at(0x123), "A-Tower");
+  EXPECT_FALSE(cache.contains(-1));
+  EXPECT_FALSE(cache.contains(0xFFFF));
+  rom.mutable_data()[0x7F00F] ^= 1;
+  EXPECT_TRUE(
+      DungeonWorkbenchContentTestPeer::RebuildDungeonBadgeCache(workbench)
+          .empty());
+  Rom unloaded;
+  workbench.SetRom(&unloaded);
+  EXPECT_TRUE(
+      DungeonWorkbenchContentTestPeer::RebuildDungeonBadgeCache(workbench)
+          .empty());
 }
 
 class FakeWorkbenchToolContent final : public WindowContent {

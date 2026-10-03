@@ -387,8 +387,9 @@ absl::Status ValidateDungeonEntranceSavePreflight(
   if (project == nullptr || !project->hack_manifest.loaded()) {
     return absl::OkStatus();
   }
-  auto ranges =
-      zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances);
+  ASSIGN_OR_RETURN(
+      auto ranges,
+      zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(*rom, entrances));
   auto spawn_ranges =
       zelda3::CollectDirtyDungeonSpawnPointWriteRanges(spawn_points);
   ranges.insert(ranges.end(), spawn_ranges.begin(), spawn_ranges.end());
@@ -759,8 +760,14 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 
   if (flags.kSaveEntrances) {
     auto entrance_ranges =
-        zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances_);
-    ranges.insert(ranges.end(), entrance_ranges.begin(), entrance_ranges.end());
+        zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(*rom_,
+                                                              entrances_);
+    if (entrance_ranges.ok()) {
+      ranges.insert(ranges.end(), entrance_ranges->begin(),
+                    entrance_ranges->end());
+    }
+    // Invalid layouts are rejected by ValidateDungeonEntranceSavePreflight
+    // before any save domain mutates bytes. Do not predict legacy ranges here.
     auto spawn_ranges =
         zelda3::CollectDirtyDungeonSpawnPointWriteRanges(spawn_points_);
     ranges.insert(ranges.end(), spawn_ranges.begin(), spawn_ranges.end());

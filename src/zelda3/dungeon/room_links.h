@@ -147,8 +147,8 @@ int DungeonNeighborRoom(int room_id, int direction);
 // ResolveHeaderDestinationRoom, or -1 when the result is not a room.
 int CheckedHeaderDestinationRoom(int source_room_id, uint8_t header_byte);
 
-// True when the entrance loader at $02:D99F is ZScream's JSL $0FF008, which
-// reads rooms from $0F:8000 and dungeon IDs from $0F:9800.
+// True only for a validated supported ZScream expanded entrance layout.
+// ReadDungeonEntranceTarget rejects malformed layouts instead of falling back.
 bool UsesExpandedEntranceTables(const Rom& rom);
 
 struct DungeonEntranceTarget {

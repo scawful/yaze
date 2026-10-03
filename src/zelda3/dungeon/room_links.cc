@@ -22,13 +22,6 @@ namespace yaze::zelda3 {
 
 namespace {
 
-// ZScream's expanded entrance tables: the loader's TAX/ASL/ASL/TAY at
-// $02:D99F becomes JSL $0FF008, which does the same and sets the data bank
-// to $0F, so the loader reads rooms from $0F:8000 and dungeon IDs from
-// $0F:9800.
-constexpr int kEntranceLoaderHookPc = 0x1599F;
-constexpr int kExpandedEntranceRoomPc = 0x078000;
-constexpr int kExpandedEntranceDungeonPc = 0x079800;
 // Sprite 0xD6: Ganon_Phase3_DropTiles ($1D:9055) spawns overlords 0x0C-0x0F.
 constexpr uint8_t kGanonSprite = 0xD6;
 constexpr int kDirectionWest = 2;
@@ -280,14 +273,8 @@ int CheckedHeaderDestinationRoom(int source_room_id, uint8_t header_byte) {
 }
 
 bool UsesExpandedEntranceTables(const Rom& rom) {
-  const auto& data = rom.vector();
-  if (kEntranceLoaderHookPc + 3 >= static_cast<int>(data.size())) {
-    return false;
-  }
-  return data[kEntranceLoaderHookPc] == 0x22 &&
-         data[kEntranceLoaderHookPc + 1] == 0x08 &&
-         data[kEntranceLoaderHookPc + 2] == 0xF0 &&
-         data[kEntranceLoaderHookPc + 3] == 0x0F;
+  const auto layout = ResolveEntranceLayout(rom.vector());
+  return layout.ok() && layout->kind == EntranceLayoutKind::kZscreamExpanded;
 }
 
 std::optional<DungeonEntranceTarget> ReadDungeonEntranceTarget(
@@ -296,11 +283,12 @@ std::optional<DungeonEntranceTarget> ReadDungeonEntranceTarget(
     return std::nullopt;
   }
   const auto& data = rom.vector();
-  const bool expanded = UsesExpandedEntranceTables(rom);
-  const int room_pc = expanded ? kExpandedEntranceRoomPc + entrance_id * 2
-                               : kEntranceRoom + entrance_id * 2;
-  const int dungeon_pc = expanded ? kExpandedEntranceDungeonPc + entrance_id
-                                  : kEntranceDungeon + entrance_id;
+  const auto layout = ResolveEntranceLayout(data);
+  if (!layout.ok()) {
+    return std::nullopt;
+  }
+  const int room_pc = layout->address(EntranceField::kRoom, entrance_id);
+  const int dungeon_pc = layout->address(EntranceField::kDungeon, entrance_id);
   if (room_pc + 1 >= static_cast<int>(data.size()) ||
       dungeon_pc >= static_cast<int>(data.size())) {
     return std::nullopt;
@@ -308,7 +296,7 @@ std::optional<DungeonEntranceTarget> ReadDungeonEntranceTarget(
   DungeonEntranceTarget target;
   target.room_id = data[room_pc] | (data[room_pc + 1] << 8);
   target.dungeon_id = data[dungeon_pc];
-  target.expanded = expanded;
+  target.expanded = layout->kind == EntranceLayoutKind::kZscreamExpanded;
   return target;
 }
 

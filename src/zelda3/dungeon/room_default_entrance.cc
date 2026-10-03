@@ -58,6 +58,10 @@ std::vector<RoomDefaultEntrance> ComputeRoomDefaultEntrances(Rom& rom) {
   if (!rom.is_loaded()) {
     return result;
   }
+  if (!ResolveEntranceLayout(rom.vector()).ok()) {
+    // Do not infer defaults from the populated but inactive legacy tables.
+    return result;
+  }
 
   struct EntranceInfo {
     int id;
@@ -69,6 +73,9 @@ std::vector<RoomDefaultEntrance> ComputeRoomDefaultEntrances(Rom& rom) {
   entrances.reserve(kNumRegularDungeonEntrances);
   for (int id = 0; id < kNumRegularDungeonEntrances; ++id) {
     RoomEntrance entrance(&rom, static_cast<uint8_t>(id), false);
+    if (!entrance.load_status().ok()) {
+      continue;
+    }
     entrances.push_back(
         {id, entrance.room_, entrance.blockset_, entrance.dungeon_id_});
   }

@@ -11,6 +11,12 @@ class DungeonWorkbenchContentTestPeer {
                             float height) {
     content.DrawSidebarPane(width, height, 22, false);
   }
+  static const auto& RebuildDungeonBadgeCache(
+      DungeonWorkbenchContent& content) {
+    content.BuildRoomDungeonCache();
+    return content.room_dungeon_cache_;
+  }
+
   static void DrawInspector(DungeonWorkbenchContent& content,
                             DungeonCanvasViewer& viewer) {
     content.DrawInspectorShelf(viewer, false);
