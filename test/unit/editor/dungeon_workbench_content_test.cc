@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <deque>
 #include <filesystem>
 #include <fstream>
@@ -334,12 +335,19 @@ TEST(DungeonWorkbenchNavigatorUiTest, EntranceSelectorAboveToolsAndMatrix) {
       tools_top = window->Pos.y;
       tools_bottom = window->Pos.y + window->Size.y;
     }
-    if (name.find("/##NavigatorMatrix_") != std::string::npos)
+    if (name.find("/##NavigatorMatrix_") != std::string::npos) {
       matrix_top = window->Pos.y;
+      EXPECT_EQ(window->ScrollMax.y, 0);
+      EXPECT_EQ(window->ScrollMax.x, 0);
+    }
   }
   EXPECT_GT(tools_top, combo->bounds.max_y);
   EXPECT_GE(matrix_top, tools_bottom);
   EXPECT_GT(tools_bottom, tools_top);
+  click(find_widget("Navigator Entrances"));
+  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "entrances");
+  click(find_widget("Navigator Objects"));
+  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "objects");
   content.FocusEntranceBrowser();
   frame();
   EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "entrances");
@@ -367,6 +375,193 @@ TEST(DungeonWorkbenchNavigatorUiTest, EntranceSelectorAboveToolsAndMatrix) {
     EXPECT_GT(canvas_right, 0) << host_width;
     EXPECT_GE(navigator_left, canvas_right) << host_width;
   }
+}
+
+// Exercise the real matrix drawing and its registered input rectangles. This
+// catches extra layout extent even when every cell happens to look on-screen.
+TEST(DungeonWorkbenchNavigatorUiTest, MatrixFitsAndBottomRoomRemainsClickable) {
+  auto* previous = ImGui::GetCurrentContext();
+  auto* context = ImGui::CreateContext();
+  absl::Cleanup cleanup = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::DestroyContext(context);
+    ImGui::SetCurrentContext(previous);
+  };
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1000, 900);
+  io.ConfigInputTrickleEventQueue = false;
+  unsigned char* pixels;
+  int w, h;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &w, &h);
+  int current = 0;
+  ImVector<int> active;
+  RoomMatrixContent matrix(&current, &active,
+                           [&](int room) { current = room; });
+  const auto frame = [&](ImVec2 size) {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+    ImGui::Begin("MatrixHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    matrix.Draw(nullptr);
+    ImGui::End();
+    ImGui::Render();
+  };
+  for (const auto size :
+       {ImVec2(240, 300), ImVec2(272, 380), ImVec2(340, 540)}) {
+    frame(size);
+    frame(size);
+    auto* window = ImGui::FindWindowByName("MatrixHost");
+    ASSERT_NE(window, nullptr);
+    EXPECT_EQ(window->ScrollMax.y, 0) << size.y;
+    EXPECT_EQ(window->ScrollMax.x, 0) << size.x;
+    std::optional<gui::WidgetIdRegistry::WidgetInfo> last;
+    int cells = 0;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label.find("Room 0x") == 0) {
+        ++cells;
+        EXPECT_GE(widget.bounds.min_y, window->InnerClipRect.Min.y);
+        EXPECT_LE(widget.bounds.max_y, window->InnerClipRect.Max.y);
+        EXPECT_GE(widget.bounds.min_x, window->InnerClipRect.Min.x);
+        EXPECT_LE(widget.bounds.max_x, window->InnerClipRect.Max.x);
+      }
+      if (widget.label == "Room 0x127")
+        last = widget;
+    }
+    EXPECT_EQ(cells, 296);
+    ASSERT_TRUE(last.has_value());
+    io.AddMousePosEvent((last->bounds.min_x + last->bounds.max_x) * 0.5f,
+                        (last->bounds.min_y + last->bounds.max_y) * 0.5f);
+    frame(size);
+    io.AddMouseButtonEvent(0, true);
+    frame(size);
+    io.AddMouseButtonEvent(0, false);
+    frame(size);
+    EXPECT_EQ(current, 0x127);
+    current = 0;
+  }
+  const auto click_label = [&](const std::string& label) {
+    std::optional<gui::WidgetIdRegistry::WidgetInfo> target;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets())
+      if (widget.label == label)
+        target = widget;
+    ASSERT_TRUE(target.has_value()) << label;
+    io.AddMousePosEvent((target->bounds.min_x + target->bounds.max_x) * 0.5f,
+                        (target->bounds.min_y + target->bounds.max_y) * 0.5f);
+    frame(ImVec2(340, 540));
+    io.AddMouseButtonEvent(0, true);
+    frame(ImVec2(340, 540));
+    io.AddMouseButtonEvent(0, false);
+    frame(ImVec2(340, 540));
+    frame(ImVec2(340, 540));
+  };
+  click_label("Room matrix options");
+  click_label("Census overlay");
+  EXPECT_TRUE(matrix.census_overlay().enabled());
+  click_label("Census overlay");
+  EXPECT_FALSE(matrix.census_overlay().enabled());
+}
+
+TEST(DungeonWorkbenchNavigatorUiTest,
+     OraclePaletteColorsBeforeOpeningAndAfterEdits) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to the Oracle base ROM";
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(path).ok());
+  const std::vector<uint8_t> initial(rom.begin(), rom.end());
+  zelda3::GameData data(&rom);
+  ASSERT_TRUE(zelda3::LoadGfxGroups(rom, data).ok());
+  ASSERT_TRUE(zelda3::LoadPalettes(rom, data).ok());
+  DungeonRoomStore rooms(&rom, &data);
+  auto* previous = ImGui::GetCurrentContext();
+  auto* context = ImGui::CreateContext();
+  absl::Cleanup cleanup = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::DestroyContext(context);
+    ImGui::SetCurrentContext(previous);
+  };
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(800, 800);
+  unsigned char* pixels;
+  int w, h;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &w, &h);
+  io.AddMousePosEvent(-1000, -1000);
+  int current = 0;
+  ImVector<int> active;
+  RoomMatrixContent matrix(&current, &active, [](int) {}, nullptr, &rooms);
+  const auto frame = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(400, 660), ImGuiCond_Always);
+    ImGui::Begin("PaletteMatrix", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    matrix.Draw(nullptr);
+    ImGui::End();
+    ImGui::Render();
+  };
+  const auto fill = [&](int id) -> ImU32 {
+    const std::string label = absl::StrFormat("Room 0x%03X", id);
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label != label)
+        continue;
+      auto* window = ImGui::FindWindowByName("PaletteMatrix");
+      for (const auto& vertex : window->DrawList->VtxBuffer)
+        if (vertex.pos.x == widget.bounds.min_x &&
+            vertex.pos.y == widget.bounds.min_y)
+          return vertex.col;
+    }
+    ADD_FAILURE() << "Missing rendered room fill " << label;
+    return 0;
+  };
+  frame();
+  frame();
+  // Expected color independently follows ZScream's palette-set/pointer lookup,
+  // using raw ROM bytes and its CGRAM [4,2] swatch (stored color 3).
+  for (int id = 1; id < 296; ++id) {
+    const auto header = zelda3::LoadRoomHeaderFromRom(&rom, id);
+    const auto offset =
+        rom.ReadByte(zelda3::kPalettesetIdsAddress + header.palette() * 4);
+    ASSERT_TRUE(offset.ok());
+    const auto pointer =
+        rom.ReadWord(zelda3::kDungeonPalettePointerTable + *offset);
+    ASSERT_TRUE(pointer.ok());
+    const auto value = rom.ReadWord(gfx::kDungeonMainPalettes + *pointer + 6);
+    ASSERT_TRUE(value.ok());
+    const auto color = gfx::ConvertSnesToRgb(*value);
+    EXPECT_EQ(fill(id), IM_COL32(color.red, color.green, color.blue, 255))
+        << id;
+    EXPECT_EQ(rooms.GetIfMaterialized(id), nullptr);
+  }
+  const ImU32 original = fill(0x89);
+  rooms[0x89] = zelda3::LoadRoomHeaderFromRom(&rom, 0x89);
+  rooms[0x89].SetGameData(&data);
+  rooms[0x89].SetLoaded(true);
+  frame();
+  EXPECT_EQ(fill(0x89), original);
+  active.push_back(0x89);
+  frame();
+  const auto before = ImGui::ColorConvertU32ToFloat4(original);
+  const auto after = ImGui::ColorConvertU32ToFloat4(fill(0x89));
+  EXPECT_GE(after.x + after.y + after.z, before.x + before.y + before.z);
+  active.clear();
+  const int palette_id = rooms[0x89].ResolveDungeonPaletteId();
+  data.palette_groups.dungeon_main.mutable_palette(palette_id)
+      ->UpdateColor(3, gfx::SnesColor(80, 120, 160));
+  frame();
+  EXPECT_EQ(fill(0x89), IM_COL32(80, 120, 160, 255));
+  rooms[0x89].SetPalette(0);
+  frame();
+  const auto& next = data.palette_groups.dungeon_main
+                         .palette_ref(rooms[0x89].ResolveDungeonPaletteId())[3]
+                         .rgb();
+  EXPECT_EQ(fill(0x89), IM_COL32(next.x, next.y, next.z, 255));
+  EXPECT_EQ(std::vector<uint8_t>(rom.begin(), rom.end()), initial);
 }
 
 TEST(DungeonWorkbenchApplyScopeTest, SelectAllAndNoneIncludeEntrances) {

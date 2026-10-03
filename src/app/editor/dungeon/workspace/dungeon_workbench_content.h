@@ -245,7 +245,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawSidebarPane(float width, float height, float button_size,
                        bool compact);
   void DrawSidebarHeader(float button_size, bool compact);
-  void DrawSidebarModeTabs(bool stacked, float segment_height);
+  void DrawSidebarModeTabs();
   void DrawSidebarContent();
   void DrawCanvasPane(float width, float height,
                       DungeonCanvasViewer* primary_viewer);

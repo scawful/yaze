@@ -62,6 +62,10 @@ void E2ETest_RoomMatrixCensusToggleAndHoverFreeRoom(ImGuiTestContext* ctx) {
   auto& overlay = matrix->census_overlay();
   IM_CHECK(!overlay.enabled());
   ctx->SetRef(title.c_str());
+  ctx->ItemClick("##MatrixOptions");
+  ctx->Yield(2);
+  IM_CHECK(!ctx->UiContext->OpenPopupStack.empty());
+  ctx->SetRef(ctx->UiContext->OpenPopupStack.back().Window);
   ctx->ItemClick("RoomMatrixCensus/Census overlay");
   ctx->Yield(2);
   IM_CHECK(overlay.enabled());
@@ -92,11 +96,14 @@ void E2ETest_RoomMatrixCensusToggleAndHoverFreeRoom(ImGuiTestContext* ctx) {
 
   // Legend chips are laid out and fit inside the window.
   ctx->Yield(2);
-  ImGuiWindow* window = ImGui::FindWindowByName(title.c_str());
+  ImGuiWindow* window = ctx->UiContext->OpenPopupStack.back().Window;
   IM_CHECK(window != nullptr);
   const ImGuiTestItemInfo chip = ctx->ItemInfo("RoomMatrixCensus/##chip_free");
   IM_CHECK(chip.ID != 0);
   IM_CHECK_LE(chip.RectFull.Max.x, window->InnerRect.Max.x + 1.0f);
+
+  ctx->KeyPress(ImGuiKey_Escape);
+  ctx->SetRef(title.c_str());
 
   // Hover the free room's cell: the tooltip shows its census status.
   const std::string cell = absl::StrFormat("##room%d", free_room);
@@ -130,10 +137,14 @@ void E2ETest_RoomMatrixCensusToggleAndHoverFreeRoom(ImGuiTestContext* ctx) {
   overlay.SetFilterFree(false);
 
   // Toggle back off with a real click.
-  ctx->MouseMove("RoomMatrixCensus/Census overlay");
+  ctx->ItemClick("##MatrixOptions");
+  ctx->Yield(2);
+  IM_CHECK(!ctx->UiContext->OpenPopupStack.empty());
+  ctx->SetRef(ctx->UiContext->OpenPopupStack.back().Window);
   ctx->ItemClick("RoomMatrixCensus/Census overlay");
   ctx->Yield(2);
   IM_CHECK(!overlay.enabled());
+  ctx->KeyPress(ImGuiKey_Escape);
 }
 
 }  // namespace

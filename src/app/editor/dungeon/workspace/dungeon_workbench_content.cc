@@ -626,8 +626,6 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
                                                ICON_MD_MORE_HORIZ, button_size)
                                          : 0.0f;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float header_width = ImGui::GetContentRegionAvail().x;
-  const bool stack_mode_switch = compact && header_width < 220.0f;
   const float action_cluster_w =
       collapse_w + (can_open_overview ? (spacing + menu_w) : 0.0f);
 
@@ -675,39 +673,24 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
 
   if (entrance_navigator_content_)
     entrance_navigator_content_->DrawGraphicsContext();
-  DrawSidebarModeTabs(stack_mode_switch, std::max(button_size, 26.0f));
+  DrawSidebarModeTabs();
   ImGui::Separator();
 }
 
-void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
-                                                  float segment_height) {
-  const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float available_width = ImGui::GetContentRegionAvail().x;
-  const bool show_labels = !stacked && available_width >= 180.0f;
-  const ImVec2 button_size(
-      show_labels ? (available_width - spacing) * 0.5f : segment_height,
-      segment_height);
-  const char* object_label = show_labels ? ICON_MD_CONSTRUCTION " Objects"
-                                         : ICON_MD_CONSTRUCTION "##NavObjects";
-  const char* entrance_label = show_labels ? ICON_MD_DOOR_FRONT " Entrances"
-                                           : ICON_MD_DOOR_FRONT
-                                   "##NavEntrances";
-
-  if (gui::ToggleButton(object_label, sidebar_mode_ == SidebarMode::Objects,
-                        button_size)) {
+void DungeonWorkbenchContent::DrawSidebarModeTabs() {
+  const float width =
+      (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) *
+      0.5f;
+  const ImVec2 size(width, ImGui::GetTextLineHeight() + 4.0f);
+  if (ImGui::Selectable("Objects", sidebar_mode_ == SidebarMode::Objects, 0,
+                        size))
     sidebar_mode_ = SidebarMode::Objects;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr("Object selector"));
-  }
-  ImGui::SameLine(0.0f, spacing);
-  if (gui::ToggleButton(entrance_label, sidebar_mode_ == SidebarMode::Entrances,
-                        button_size)) {
+  gui::AutoRegisterLastItem("selectable", "Navigator Objects");
+  ImGui::SameLine();
+  if (ImGui::Selectable("Entrances", sidebar_mode_ == SidebarMode::Entrances, 0,
+                        size))
     sidebar_mode_ = SidebarMode::Entrances;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr("Entrances"));
-  }
+  gui::AutoRegisterLastItem("selectable", "Navigator Entrances");
 }
 
 void DungeonWorkbenchContent::DrawSidebarContent() {
