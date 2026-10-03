@@ -484,6 +484,7 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
       const std::string rom_abs = proj.GetAbsolutePath(proj.rom_filename);
       std::string actual;
       std::string algorithm;
+      bool legacy_match = false;
 
       if (is_bundle) {
         // Bundle manifests explicitly declare a raw-file SHA1. Keep that
@@ -506,7 +507,11 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
           any_fail = true;
           hash_metadata_ready = false;
         } else if (expected.size() == 8) {
-          actual = util::ComputeRomHash(loaded_rom.data(), loaded_rom.size());
+          const auto identity = util::ComputeRomIdentityHashes(
+              loaded_rom.data(), loaded_rom.size());
+          actual = identity.crc32;
+          legacy_match =
+              identity.Match(expected) == util::RomHashMatch::kLegacyCrc32;
         } else {
           actual = util::ComputeSha1Hex(loaded_rom.data(), loaded_rom.size());
         }
@@ -525,6 +530,12 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
               {"rom_hash_check", "fail",
                absl::StrFormat("Cannot read ROM for hashing: %s", rom_abs)});
           any_fail = true;
+        } else if (legacy_match) {
+          checks.push_back(
+              {"rom_hash_check", "pass",
+               absl::StrFormat(
+                   "Legacy Yaze CRC32 match: %s; standard CRC32: %s", expected,
+                   actual)});
         } else if (NormalizeHash(actual) == expected) {
           const std::string detail =
               is_bundle ? absl::StrFormat("%s match (%s): %s", algorithm,

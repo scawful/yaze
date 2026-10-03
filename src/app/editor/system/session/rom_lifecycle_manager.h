@@ -10,6 +10,7 @@
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"
+#include "util/rom_hash.h"
 
 namespace yaze::editor {
 
@@ -67,7 +68,9 @@ class RomLifecycleManager {
   void UpdateCurrentRomHash(Rom* rom);
 
   /// Get the cached ROM hash string.
-  const std::string& current_rom_hash() const { return current_rom_hash_; }
+  const std::string& current_rom_hash() const {
+    return current_rom_identity_.crc32;
+  }
 
   /// Check whether the ROM hash mismatches the project's expected hash.
   bool IsRomHashMismatch() const;
@@ -181,7 +184,7 @@ class RomLifecycleManager {
   const project::YazeProject* project_ = nullptr;
 
   // ROM hash state
-  std::string current_rom_hash_;
+  util::RomIdentityHashes current_rom_identity_;
   std::string current_rom_path_;
 
   // Write confirmation state machine

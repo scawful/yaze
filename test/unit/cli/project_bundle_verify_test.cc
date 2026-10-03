@@ -488,6 +488,42 @@ TEST(ProjectBundleVerifyTest, NestedPathResolvesToBundleRoot) {
 // --check-rom-hash tests
 // ============================================================================
 
+TEST(ProjectBundleVerifyTest,
+     LegacyCrc32RequiresExactLoadedBytesAndNeverRewrites) {
+  ScopedTempDir tmp;
+  const fs::path rom_path = tmp.path / "rom.sfc";
+  std::vector<uint8_t> data(0x8000, 0x2a);
+  const auto identity =
+      util::ComputeRomIdentityHashes(data.data(), data.size());
+  ASSERT_NE(identity.crc32, identity.legacy_crc32);
+  const fs::path project_path = tmp.path / "legacy.yaze";
+  {
+    std::ofstream project(project_path);
+    project << MakeProjectYaze("Legacy", "rom.sfc")
+            << "\n[rom]\nexpected_hash=" << identity.legacy_crc32 << "\n";
+  }
+  const auto project_hash = util::ComputeFileSha1Hex(project_path.string());
+  handlers::ProjectBundleVerifyCommandHandler handler;
+  for (bool wrong_rom : {false, true}) {
+    data[0] = wrong_rom ? 0x2b : 0x2a;
+    {
+      std::ofstream rom(rom_path, std::ios::binary);
+      rom.write(reinterpret_cast<const char*>(data.data()), data.size());
+    }
+    const auto rom_hash = util::ComputeFileSha1Hex(rom_path.string());
+    std::string out;
+    const auto status = handler.Run({"--project=" + project_path.string(),
+                                     "--check-rom-hash", "--format=json"},
+                                    nullptr, &out);
+    EXPECT_EQ(status.ok(), !wrong_rom) << out;
+    EXPECT_NE(
+        out.find(wrong_rom ? "CRC32 mismatch" : "Legacy Yaze CRC32 match"),
+        std::string::npos);
+    EXPECT_EQ(util::ComputeFileSha1Hex(project_path.string()), project_hash);
+    EXPECT_EQ(util::ComputeFileSha1Hex(rom_path.string()), rom_hash);
+  }
+}
+
 TEST(ProjectBundleVerifyTest, CheckStandaloneCrc32HashUsesLoadedRomBytes) {
   ScopedTempDir tmp;
   const fs::path rom_path = tmp.path / "rom.sfc";

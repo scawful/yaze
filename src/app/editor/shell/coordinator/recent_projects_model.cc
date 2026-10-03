@@ -805,7 +805,14 @@ void RecentProjectsModel::LoadCache() {
       CachedExtras extras;
       extras.size_bytes = value.value("size", std::uint64_t{0});
       extras.mtime_epoch_ns = value.value("mtime", std::int64_t{0});
-      extras.crc32 = value.value("crc32", std::string{});
+      // Old untagged cache entries contain the defective Yaze checksum.
+      // Preserve annotations, but force a fresh standard CRC/header scan.
+      if (root.value("crc32_algorithm", std::string{}) == "ieee") {
+        extras.crc32 = value.value("crc32", std::string{});
+      } else {
+        extras.size_bytes = 0;
+        extras.mtime_epoch_ns = 0;
+      }
       extras.snes_title = value.value("snes_title", std::string{});
       extras.snes_region = value.value("snes_region", std::string{});
       extras.snes_map_mode = value.value("snes_map_mode", std::string{});
@@ -831,6 +838,7 @@ void RecentProjectsModel::SaveCache() {
 
   nlohmann::json root;
   root["version"] = 1;
+  root["crc32_algorithm"] = "ieee";
   nlohmann::json& entries = root["entries"] = nlohmann::json::object();
   for (const auto& [key, extras] : cache_) {
     entries[key] = {
