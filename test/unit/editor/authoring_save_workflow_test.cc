@@ -1723,14 +1723,17 @@ TEST_F(AuthoringSaveWorkflowTest,
   auto* data = dungeon->game_data();
   ASSERT_NE(data, nullptr);
   const auto bytes = manager_->GetCurrentRom()->vector();
-  // These two entrances agree in Oracle's active and legacy table copies.
-  // This regression isolates preview persistence from table-format decoding.
-  // Their slot-2 sheets are architectural walls (13) and rock/cave walls (12).
+  // 00 and 06 isolate preview persistence; 29 and 2D also exercise Oracle's
+  // relocated records, whose main sets differ from the stale vanilla tables.
+  // Expected sheets come from the ROM group table reached by PC6237.
   for (const auto [entrance, main, wall_sheet] :
        {std::tuple{0x00, 0x03, 0x13}, std::tuple{0x06, 0x06, 0x12},
+        std::tuple{0x29, 0x01, 0x15}, std::tuple{0x2D, 0x0D, 0x12},
         std::tuple{0x00, 0x03, 0x13}}) {
     AuthoringSaveWorkflowTestPeer::SelectDungeonEntrance(
         *dungeon, zelda3::kNumDungeonSpawnPoints + entrance);
+    if (entrance == 0x29)
+      EXPECT_EQ(dungeon->current_room_id(), 0x90);
     for (const int room_id : {0x089, 0x098, 0x005, 0x089}) {
       SCOPED_TRACE(
           absl::StrFormat("entrance %02X room %03X", entrance, room_id));
