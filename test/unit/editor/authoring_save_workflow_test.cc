@@ -2484,5 +2484,153 @@ TEST_F(AuthoringSaveWorkflowTest,
                          reopened_bytes.begin() + kHookStart));
 }
 
+TEST_F(AuthoringSaveWorkflowTest,
+       RevertRefusalKeepsPendingDungeonAndGraphicsEdits) {
+  const auto fixture = CopyProject("yaze_failed_authoring_revert");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* editors = manager_->GetCurrentEditorSet();
+  auto* dungeon = editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  auto* graphics = editors->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  constexpr int kRoom = 5;
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+  AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, kRoom);
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
+  ASSERT_NE(viewer, nullptr);
+  auto& room = dungeon->rooms()[kRoom];
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  const auto object = room.GetTileObjects().front();
+  const int dx = object.x_ >= 63 ? -1 : 1;
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kRoom);
+  viewer->object_interaction().entity_coordinator().tile_handler().MoveObjects(
+      kRoom, {0}, dx, 0);
+  ASSERT_TRUE(dungeon->CanUndo());
+  ASSERT_EQ(room.GetTileObjects().front().x_, object.x_ + dx);
+
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  for (const auto& candidate : room.GetTileObjects()) {
+    AuthoringSaveWorkflowTestPeer::OpenObjectGraphics(*dungeon, kRoom,
+                                                      candidate);
+    if (state.SourceTarget())
+      break;
+  }
+  ASSERT_TRUE(state.SourceTarget());
+  const auto target = *state.SourceTarget();
+  const int x = (target.tile_index % 16) * 8;
+  const int y = (target.tile_index / 16) * 8;
+  const int offset = y * 128 + x;
+  const auto original =
+      state.game_data->sheet_store.Sheet(target.sheet_id)[offset];
+  const uint8_t changed = original == 1 ? 2 : 1;
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, x, y, changed);
+  ASSERT_TRUE(graphics->HasPendingGraphicsChanges());
+  ASSERT_TRUE(graphics->CanUndo());
+  const auto raw = manager_->GetCurrentRom()->vector();
+  const auto identity = manager_->GetCurrentRomHash();
+  const auto project_path = manager_->GetCurrentProject()->filepath;
+
+  // A loadable ROM header whose missing palette data fails asset loading.
+  auto invalid = raw;
+  invalid.resize(512 * 1024);
+  {
+    std::ofstream out(fixture.rom, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(invalid.data()), invalid.size());
+    ASSERT_TRUE(out.good());
+  }
+  const auto disk_hash = util::ComputeFileSha1Hex(fixture.rom.string());
+  ASSERT_OK(manager_->RevertRomToSaved());
+  ASSERT_TRUE(manager_->HasPendingUnsavedSessionAction());
+  manager_->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+  const auto* toast = manager_->toast_manager()->GetPendingToast(
+      manager_->toast_manager()->pending_count() - 1);
+  ASSERT_NE(toast, nullptr);
+  EXPECT_EQ(toast->type, ToastType::kError);
+  EXPECT_NE(toast->message.find("Revert failed:"), std::string::npos);
+  // The existing graphics-draft guard refuses before attempting asset reload.
+  EXPECT_NE(toast->message.find("unsaved sheet edits"), std::string::npos)
+      << toast->message;
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), raw);
+  EXPECT_EQ(manager_->GetCurrentRomHash(), identity);
+  EXPECT_EQ(manager_->GetCurrentProject()->filepath, project_path);
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()), disk_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  EXPECT_EQ(room.GetTileObjects().front().x_, object.x_ + dx);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id)[offset],
+            changed);
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  EXPECT_TRUE(dungeon->CanUndo());
+  EXPECT_TRUE(graphics->CanUndo());
+  // Exercise both surviving histories, rather than checking only stack size.
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects().front().x_, object.x_);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(room.GetTileObjects().front().x_, object.x_ + dx);
+  ASSERT_OK(graphics->Undo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id)[offset],
+            original);
+  ASSERT_OK(graphics->Redo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id)[offset],
+            changed);
+  ASSERT_TRUE(state.source_context);
+  ASSERT_TRUE(state.source_context->return_to_source);
+  state.source_context->return_to_source();
+}
+
+TEST_F(AuthoringSaveWorkflowTest, FailedRevertKeepsDungeonObjectAndUndo) {
+  const auto fixture = CopyProject("yaze_failed_dungeon_revert");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  constexpr int kRoom = 5;
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+  AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, kRoom);
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
+  ASSERT_NE(viewer, nullptr);
+  auto& room = dungeon->rooms()[kRoom];
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  const auto object = room.GetTileObjects().front();
+  const int dx = object.x_ >= 63 ? -1 : 1;
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kRoom);
+  viewer->object_interaction().entity_coordinator().tile_handler().MoveObjects(
+      kRoom, {0}, dx, 0);
+  ASSERT_EQ(room.GetTileObjects().front().x_, object.x_ + dx);
+  ASSERT_TRUE(dungeon->CanUndo());
+  const auto raw = manager_->GetCurrentRom()->vector();
+  const auto identity = manager_->GetCurrentRomHash();
+  const auto project_path = manager_->GetCurrentProject()->filepath;
+  auto invalid = raw;
+  invalid.resize(512 * 1024);
+  {
+    std::ofstream out(fixture.rom, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(invalid.data()), invalid.size());
+    ASSERT_TRUE(out.good());
+  }
+  const auto disk_hash = util::ComputeFileSha1Hex(fixture.rom.string());
+  ASSERT_OK(manager_->RevertRomToSaved());
+  ASSERT_TRUE(manager_->HasPendingUnsavedSessionAction());
+  manager_->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+  const auto* toast = manager_->toast_manager()->GetPendingToast(
+      manager_->toast_manager()->pending_count() - 1);
+  ASSERT_NE(toast, nullptr);
+  EXPECT_EQ(toast->type, ToastType::kError);
+  EXPECT_NE(toast->message.find("palette"), std::string::npos)
+      << toast->message;
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), raw);
+  EXPECT_EQ(manager_->GetCurrentRomHash(), identity);
+  EXPECT_EQ(manager_->GetCurrentProject()->filepath, project_path);
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()), disk_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  EXPECT_EQ(room.GetTileObjects().front().x_, object.x_ + dx);
+  ASSERT_TRUE(dungeon->CanUndo());
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects().front().x_, object.x_);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(room.GetTileObjects().front().x_, object.x_ + dx);
+}
+
 }  // namespace
 }  // namespace yaze::editor

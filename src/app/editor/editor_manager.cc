@@ -5487,6 +5487,18 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     return absl::FailedPreconditionError("No active ROM session");
   }
 
+  // Reject invalid shared assets before invalidating live editor models and
+  // their Undo histories. Rebuilding the old ROM on failure cannot recover
+  // model-only edits. Keep this preflight CPU-only and leave lazy, unloaded
+  // sessions lazy; editor-specific refresh failures still use rollback below.
+  if (session->game_data_loaded || asset_load_mode_ != AssetLoadMode::kLazy) {
+    zelda3::GameData replacement_data;
+    zelda3::LoadOptions options;
+    options.load_graphics = false;
+    options.expand_rom = false;
+    RETURN_IF_ERROR(zelda3::LoadGameData(rom, replacement_data, options));
+  }
+
   Rom previous_rom = session->rom;
   const std::string previous_filepath = session->filepath;
   const bool game_data_was_loaded = session->game_data_loaded;
