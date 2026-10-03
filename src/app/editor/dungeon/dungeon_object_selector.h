@@ -117,6 +117,11 @@ class DungeonObjectSelector {
   // Programmatic selection
   void SelectObject(int obj_id, int subtype = -1);
 
+  void SetEditObjectTilesCallback(
+      std::function<absl::Status(int, const zelda3::RoomObject&)> callback) {
+    edit_object_tiles_callback_ = std::move(callback);
+  }
+
   // Fixed-slot custom-object management actions.
   void SetTileEditorPanel(ObjectTileEditorPanel* panel) {
     tile_editor_panel_ = panel;
@@ -183,6 +188,9 @@ class DungeonObjectSelector {
   int custom_asset_subtype_ = 0;
 
   // References for custom-object management.
+  std::function<absl::Status(int, const zelda3::RoomObject&)>
+      edit_object_tiles_callback_;
+  void DrawObjectContextMenu(int object_id, int subtype = -1);
   ObjectTileEditorPanel* tile_editor_panel_ = nullptr;
   std::function<bool()> open_tile_editor_window_callback_;
   std::function<bool()> open_minecart_editor_window_callback_;

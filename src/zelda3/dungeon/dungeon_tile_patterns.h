@@ -10,10 +10,16 @@
 
 namespace yaze::zelda3 {
 
-// Read-only tile words for ObjectParser's standard-object payloads. This is
-// deliberately not an assembler, ROM patch or authorization to write bytes.
+// Literal tile words for ObjectParser and their exact source tokens. This is
+// deliberately not an assembler or a ROM patch.
 struct DungeonTilePatterns {
   std::string source_path;
+  std::string source_text;
+  struct Token {
+    size_t offset;
+    size_t length;
+  };
+  std::map<uint32_t, Token> tokens;
   std::map<uint32_t, uint16_t> words;  // Headerless PC offset -> tilemap word.
 };
 
@@ -24,6 +30,12 @@ absl::StatusOr<DungeonTilePatterns> ParseDungeonTilePatterns(
     absl::string_view source);
 absl::StatusOr<DungeonTilePatterns> LoadDungeonTilePatterns(
     const std::string& path);
+
+// Replace only requested literal words. Requires the exact captured file bytes;
+// publication uses the shared atomic source-artifact transaction.
+absl::Status PublishDungeonTilePatterns(
+    const DungeonTilePatterns& expected,
+    const std::map<uint32_t, uint16_t>& replacements);
 
 }  // namespace yaze::zelda3
 

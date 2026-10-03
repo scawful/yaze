@@ -372,6 +372,10 @@ bool DungeonObjectSelector::DrawMinecartPalette() {
 }
 
 void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
+  if (browser_mode_ == BrowserMode::kObjects &&
+      !custom_object_action_error_.empty()) {
+    ImGui::TextWrapped("%s", custom_object_action_error_.c_str());
+  }
   const auto& theme = AgentUI::GetTheme();
 
   // Object ranges supported by the room-object stream codec.
@@ -580,6 +584,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
           sym = zelda3::GetSymbologyForObject(static_cast<int16_t>(obj_id));
         }
         ImVec2 button_pos = ImGui::GetItemRectMin();
+        DrawObjectContextMenu(obj_id);
         gui::BeginRoomObjectDragSource(
             static_cast<uint16_t>(obj_id), current_room_id_, 0, 0,
             zelda3::DefaultRoomObjectSizeForPlacement(obj_id));
@@ -778,6 +783,36 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
   ImGui::EndChild();
 }
 
+void DungeonObjectSelector::DrawObjectContextMenu(int object_id, int subtype) {
+  if (!ImGui::BeginPopupContextItem("##ObjectActions"))
+    return;
+  const bool supported =
+      subtype >= 0
+          ? GetCustomObjectAssetStatus(object_id, subtype).ok()
+          : zelda3::ObjectTileEditor::IsEditableStandardObject(object_id);
+  const bool has_context = rooms_ && rooms_->GetIfLoaded(current_room_id_);
+  const bool can_edit =
+      supported && has_context &&
+      (subtype >= 0 ? tile_editor_panel_ != nullptr
+                    : static_cast<bool>(edit_object_tiles_callback_));
+  if (ImGui::MenuItem("Edit tiles...", nullptr, false, can_edit)) {
+    const auto status =
+        subtype >= 0 ? OpenExistingCustomObjectEditor(object_id, subtype,
+                                                      current_room_id_)
+                     : edit_object_tiles_callback_(
+                           current_room_id_, MakePreviewObject(object_id));
+    custom_object_action_error_ =
+        status.ok() ? "" : std::string(status.message());
+  }
+  if (!supported && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "Tile editing is available for straight walls, 4x4 corners, "
+        "fixed 2x2 objects and custom assets. This layout is not supported "
+        "yet.");
+  }
+  ImGui::EndPopup();
+}
+
 bool DungeonObjectSelector::MatchesRoomUsage(int obj_id) const {
   if (!used_here_only_)
     return true;
@@ -934,6 +969,7 @@ void DungeonObjectSelector::SynchronizeCustomObjectGeneration() {
 }
 
 void DungeonObjectSelector::DetachRuntimeContext() {
+  edit_object_tiles_callback_ = {};
   rom_ = nullptr;
   game_data_ = nullptr;
   rooms_ = nullptr;
@@ -1361,6 +1397,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
         }
         const bool item_visible = ImGui::IsItemVisible();
         ImVec2 button_pos = ImGui::GetItemRectMin();
+        DrawObjectContextMenu(obj_id, subtype);
         if (asset_ready && rooms_ != nullptr &&
             rooms_->GetIfLoaded(current_room_id_) != nullptr) {
           gui::BeginRoomObjectDragSource(

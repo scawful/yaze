@@ -763,6 +763,87 @@ TEST(ObjectTileEditorTest,
   EXPECT_EQ(rom.dirty(), original_dirty);
 }
 
+TEST(ObjectTileEditorTest, WallAndCornerSourceMapsRoundTripEveryCell) {
+  ScopedCustomObjectsDisabled disable;
+  ScopedCustomObjectDirectory assets("wall_source_maps");
+  CustomObjectManager::Get().SetTilePatternsSource("");
+  for (int id : {1, 2, 3, 4, 0x61, 0x62, 0x63, 0x64, 0x100, 0x101, 0x102, 0x103,
+                 0x104, 0x105, 0x106, 0x107}) {
+    SCOPED_TRACE(id);
+    const bool vertical = id >= 0x61 && id <= 0x64;
+    const int width = id >= 0x100 ? 4 : vertical ? 4 : 2;
+    const int height = id >= 0x100 ? 4 : vertical ? 2 : 4;
+    auto data = MakeEditableObjectRomData();
+    const int descriptor =
+        id < 0x100 ? 0x8000 + id * 2 : 0x83F0 + (id - 0x100) * 2;
+    StoreWord(data, descriptor, 0x1100);
+    for (int n = 0; n < width * height; ++n)
+      StoreWord(data, 0x2C52 + n * 2, 0x0800 + n);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(data).ok());
+    Room room(0, &rom, nullptr);
+    ObjectTileEditor editor(&rom);
+    auto layout = editor.CaptureEditableObjectLayout(id, room, {});
+    ASSERT_TRUE(layout.ok()) << layout.status();
+    EXPECT_EQ(layout->bounds_width, width);
+    EXPECT_EQ(layout->bounds_height, height);
+    for (auto& cell : layout->cells) {
+      const int index = vertical ? cell.rel_y * width + cell.rel_x
+                                 : cell.rel_x * height + cell.rel_y;
+      EXPECT_EQ(cell.original_word, 0x0800 + index);
+      ASSERT_TRUE(cell.source_ref.has_value());
+      EXPECT_EQ(cell.source_ref->word_index, index);
+      cell.tile_info.id_ += 32;
+      cell.modified = true;
+    }
+    ASSERT_TRUE(editor.WriteBack(*layout).ok());
+    for (int n = 0; n < width * height; ++n)
+      EXPECT_EQ(*rom.ReadWord(0x2C52 + n * 2), 0x0820 + n);
+  }
+}
+
+TEST(ObjectTileEditorTest, CompletePatternSourcePublishesWithoutChangingRom) {
+  ScopedCustomObjectsDisabled disable;
+  ScopedCustomObjectDirectory assets("wall_source_publish");
+  auto& manager = CustomObjectManager::Get();
+  const auto path = assets.path() / "walls.asm";
+  const std::string original =
+      "; keep comment\r\norg $00A9EC\r\ndw $0DEE, $8DEE, $4DEE, $CDEE ; "
+      "corner\r\n";
+  {
+    std::ofstream out(path, std::ios::binary);
+    out << original;
+  }
+  manager.SetTilePatternsSource(path.string());
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+  const auto before = rom.vector();
+  Room room(0, &rom, nullptr);
+  ObjectTileEditor editor(&rom);
+  auto layout = editor.CaptureEditableObjectLayout(0x11F, room, {});
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  ASSERT_NE(layout->pattern_source, nullptr);
+  auto* cell = layout->FindCell(1, 0);
+  cell->tile_info.id_ = 0x22;
+  cell->modified = true;
+  const auto plan = editor.BuildStandardWritePlan(*layout);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_TRUE(plan->writes_pattern_source());
+  ASSERT_TRUE(editor.ApplyStandardWritePlan(*plan).ok());
+  auto expected = original;
+  expected.replace(expected.find("$4DEE"), 5, "$4C22");
+  const auto written = ReadTestBinary(path);
+  EXPECT_EQ(std::string(written.begin(), written.end()), expected);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_FALSE(editor.ApplyStandardWritePlan(*plan).ok());
+  auto reopened = editor.CaptureEditableObjectLayout(0x11F, room, {});
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->FindCell(1, 0)->original_word, 0x4C22);
+  manager.SetTilePatternsSource("");
+  EXPECT_FALSE(editor.BuildStandardWritePlan(*reopened).ok());
+}
+
 TEST(ObjectTileEditorTest, PatternSourceBlocksCaptureAndStaleWritePlan) {
   ScopedCustomObjectsDisabled disable_custom_objects;
   ScopedCustomObjectDirectory assets("yaze_pattern_write_guard");
