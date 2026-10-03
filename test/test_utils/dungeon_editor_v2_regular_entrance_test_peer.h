@@ -62,6 +62,7 @@ class DungeonEditorV2SpawnPointTestPeer {
 
   static void SetSelectedEntranceSlot(DungeonEditorV2& editor, int slot_index) {
     editor.current_entrance_id_ = slot_index;
+    editor.automatic_entrance_preview_ = false;
   }
 
   static uint8_t ResolveSelectedBlockset(const DungeonEditorV2& editor,

@@ -90,6 +90,9 @@ class DungeonMapPanelTestPeer {
 
 class DungeonCanvasViewerTestPeer {
  public:
+  static void PrepareConnectedRoom(DungeonCanvasViewer& viewer, int room_id) {
+    viewer.PrepareConnectedRoomCompositeBitmap(room_id);
+  }
   static std::span<const uint8_t> ExternalSpriteGraphics(
       DungeonCanvasViewer& viewer) {
     const auto* project = viewer.project();
@@ -662,6 +665,30 @@ TEST(DungeonCanvasViewerShortcutFocusTest,
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
+     ConnectedPreviewResolvesEachRoomWithoutChangingPrimaryContext) {
+  DungeonRoomStore rooms;
+  for (const int id : {0x89, 0x90})
+    rooms[id].SetLoaded(true);
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.SetEntranceRenderContext(0x27 + zelda3::kNumDungeonSpawnPoints, 4);
+  bool automatic = true;
+  viewer.SetEntranceBlocksetResolver([&](int room_id) -> uint8_t {
+    return automatic && room_id == 0x90 ? 1 : 4;
+  });
+  DungeonCanvasViewerTestPeer::PrepareConnectedRoom(viewer, 0x89);
+  DungeonCanvasViewerTestPeer::PrepareConnectedRoom(viewer, 0x90);
+  EXPECT_EQ(rooms[0x89].render_entrance_blockset(), 4);
+  EXPECT_EQ(rooms[0x90].render_entrance_blockset(), 1);
+  EXPECT_EQ(viewer.current_entrance_blockset(), 4);
+  EXPECT_EQ(viewer.current_entrance_id(),
+            0x27 + zelda3::kNumDungeonSpawnPoints);
+  automatic = false;
+  DungeonCanvasViewerTestPeer::PrepareConnectedRoom(viewer, 0x90);
+  EXPECT_EQ(rooms[0x90].render_entrance_blockset(), 4);
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
      PendingScrollAlignsBackgroundOverlayAndInputInSameFrame) {
   ScopedImGuiContext imgui;
   ImGuiIO& io = ImGui::GetIO();
@@ -984,7 +1011,8 @@ class DungeonCanvasSpritePreviewCacheTest
   }
 
   std::vector<ImDrawVert> Frame(const zelda3::Room& room, float scale = 1.0f,
-                                ImVec2 scroll = ImVec2(0, 0)) {
+                                ImVec2 scroll = ImVec2(0, 0),
+                                bool hovered = false) {
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(950, 720), ImGuiCond_Always);
@@ -995,6 +1023,7 @@ class DungeonCanvasSpritePreviewCacheTest
     runtime.canvas_sz = ImVec2(850, 650);
     runtime.scrolling = scroll;
     runtime.scale = scale;
+    runtime.hovered = hovered;
     const int first_vertex = runtime.draw_list->VtxBuffer.Size;
     DungeonCanvasViewerTestPeer::RenderSprites(viewer_, runtime, room);
     std::vector<ImDrawVert> vertices(
@@ -1264,6 +1293,27 @@ TEST_F(DungeonCanvasSpritePreviewCacheTest,
   EXPECT_NE(
       DungeonCanvasViewerTestPeer::CachedSpritePreview(viewer_, room, sprite),
       nullptr);
+}
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       EntityLabelsFollowHoverAndSelection) {
+  DungeonRoomStore rooms;
+  rooms[0] = MakeRoom(0);
+  auto& room = rooms[0];
+  viewer_.object_interaction().SetCurrentRoom(&rooms, 0);
+  ImGui::GetIO().AddMousePosEvent(800, 600);
+  Frame(room);
+  const auto quiet = Frame(room);
+  ImGui::GetIO().AddMousePosEvent(171, 181);
+  Frame(room, 1, ImVec2(0, 0), true);
+  const auto hovered = Frame(room, 1, ImVec2(0, 0), true);
+  EXPECT_GT(hovered.size(), quiet.size());
+  ImGui::GetIO().AddMousePosEvent(800, 600);
+  viewer_.object_interaction().SelectEntity(EntityType::Sprite, 0);
+  const auto selected = Frame(room);
+  EXPECT_GT(selected.size(), quiet.size());
+  viewer_.object_interaction().entity_coordinator().ClearAllEntitySelections();
+  EXPECT_EQ(Frame(room).size(), quiet.size());
 }
 
 class DungeonCanvasSpritePreviewBoundsTest

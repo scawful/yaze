@@ -9,10 +9,15 @@
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_default_entrance.h"
 
+namespace yaze::core {
+struct DungeonEntry;
+}
+
 namespace yaze::editor {
 
 enum class DungeonRenderContextSource {
   kSelectedEntrance,
+  kDirectEntrance,
   kInferredOwnerEntrance,
   kRoomHeaderFallback,
   kAmbiguous,
@@ -60,7 +65,8 @@ DungeonRenderContext ResolveDungeonRenderContext(
     int room_id, int selected_entrance_slot, uint8_t room_header_blockset,
     const zelda3::RoomCensus* census,
     std::span<const DungeonRenderEntranceCandidate> entrances,
-    zelda3::RoomDefaultEntrance default_entrance = {});
+    zelda3::RoomDefaultEntrance default_entrance = {},
+    const core::DungeonEntry* project_dungeon = nullptr);
 
 }  // namespace yaze::editor
 

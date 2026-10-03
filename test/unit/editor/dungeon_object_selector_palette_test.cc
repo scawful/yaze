@@ -26,6 +26,12 @@ namespace yaze {
 namespace editor {
 
 struct DungeonObjectSelectorTestAccess {
+  static void SetUsedHere(DungeonObjectSelector& selector, bool enabled) {
+    selector.used_here_only_ = enabled;
+  }
+  static bool MatchesRoomUsage(const DungeonObjectSelector& selector, int id) {
+    return selector.MatchesRoomUsage(id);
+  }
   static zelda3::RoomObject MakePreviewObject(
       const DungeonObjectSelector& selector, int object_id) {
     return selector.MakePreviewObject(object_id);
@@ -272,6 +278,39 @@ TEST(DungeonObjectSelectorPaletteTest,
               invalidations);
   }
   EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     UsedHereIsOptInAndFollowsLiveRoomObjects) {
+  DungeonRoomStore rooms;
+  rooms[1].SetLoaded(true);
+  rooms[2].SetLoaded(true);
+  rooms[1].GetTileObjects().emplace_back(0x31, 4, 4, 2, 0);
+  rooms[2].GetTileObjects().emplace_back(0x22, 4, 4, 2, 0);
+  DungeonObjectSelector selector;
+  selector.set_rooms(&rooms);
+  selector.set_current_room_id(1);
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  DungeonObjectSelectorTestAccess::SetUsedHere(selector, true);
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x31));
+  EXPECT_FALSE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  rooms[1].GetTileObjects().emplace_back(0x22, 8, 8, 2, 0);
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  rooms[1].GetTileObjects().pop_back();
+  EXPECT_FALSE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  selector.set_current_room_id(2);
+  EXPECT_FALSE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x31));
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  DungeonObjectSelectorTestAccess::SetUsedHere(selector, false);
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x31));
 }
 
 TEST(DungeonObjectSelectorPaletteTest,

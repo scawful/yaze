@@ -309,8 +309,17 @@ TEST(DungeonWorkbenchNavigatorUiTest, EntranceSelectorAboveToolsAndMatrix) {
   auto combo = find_widget("Graphics entrance");
   ASSERT_TRUE(combo.has_value());
   const auto click = [&](const auto& widget) {
+    ASSERT_TRUE(widget.has_value());
+    const std::string label = widget->label;
     io.AddMousePosEvent((widget->bounds.min_x + widget->bounds.max_x) * 0.5f,
                         (widget->bounds.min_y + widget->bounds.max_y) * 0.5f);
+    frame();
+    // A newly opened combo can scroll its selected entrance into view on the
+    // next frame. Use the resulting input rectangle rather than stale bounds.
+    const auto settled = find_widget(label);
+    ASSERT_TRUE(settled.has_value());
+    io.AddMousePosEvent((settled->bounds.min_x + settled->bounds.max_x) * 0.5f,
+                        (settled->bounds.min_y + settled->bounds.max_y) * 0.5f);
     frame();
     io.AddMouseButtonEvent(0, true);
     frame();
@@ -326,6 +335,38 @@ TEST(DungeonWorkbenchNavigatorUiTest, EntranceSelectorAboveToolsAndMatrix) {
   EXPECT_EQ(entrance_slot, selected_slot);
   EXPECT_EQ(entrances[zelda3::kNumDungeonSpawnPoints].blockset_, 4);
   EXPECT_EQ(entrances[zelda3::kNumDungeonSpawnPoints + 1].blockset_, 10);
+  bool automatic = false;
+  entrance_panel.SetGraphicsPreview(
+      [&]() {
+        DungeonRenderContext render;
+        render.room_id = room_id;
+        render.owner_name = "Test dungeon";
+        render.entrance_slot = entrance_slot;
+        render.entrance_blockset = entrances[entrance_slot].blockset_;
+        render.source = automatic
+                            ? DungeonRenderContextSource::kInferredOwnerEntrance
+                            : DungeonRenderContextSource::kSelectedEntrance;
+        return render;
+      },
+      [&]() { return automatic; },
+      [&](int slot) {
+        automatic = slot == -1;
+        entrance_slot = automatic ? zelda3::kNumDungeonSpawnPoints : slot;
+      });
+  frame();
+  click(find_widget("Graphics entrance"));
+  frame();
+  const auto auto_choice = find_widget("Auto (follow room)");
+  ASSERT_TRUE(auto_choice.has_value());
+  click(auto_choice);
+  EXPECT_TRUE(automatic);
+  EXPECT_EQ(entrance_slot, zelda3::kNumDungeonSpawnPoints);
+  click(find_widget("Graphics entrance"));
+  frame();
+  click(find_widget("Entrance 01"));
+  EXPECT_FALSE(automatic);
+  EXPECT_EQ(entrance_slot, zelda3::kNumDungeonSpawnPoints + 1);
+  EXPECT_EQ(room_id, 0);
   float tools_top = -1, matrix_top = -1, tools_bottom = -1;
   for (ImGuiWindow* window : context->Windows) {
     if (!window->Active)

@@ -28,6 +28,18 @@ namespace yaze::editor {
 
 namespace {
 
+bool ShowEntityLabel(const gui::CanvasRuntime& rt, int x, int y, int width,
+                     int height, bool selected) {
+  if (selected)
+    return true;
+  if (!rt.hovered || !ImGui::IsWindowHovered())
+    return false;
+  const ImVec2 min(rt.canvas_p0.x + rt.scrolling.x + x * rt.scale,
+                   rt.canvas_p0.y + rt.scrolling.y + y * rt.scale);
+  return ImGui::IsMouseHoveringRect(
+      min, ImVec2(min.x + width * rt.scale, min.y + height * rt.scale));
+}
+
 bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
                              const std::vector<uint8_t>& preview,
                              const SDL_Rect& bounds, int room_x, int room_y,
@@ -131,7 +143,11 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
   const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
                                                room_gfx.size());
 
-  for (const auto& sprite : room.GetSprites()) {
+  const auto& selected =
+      object_interaction_.entity_coordinator().GetSelectedEntities();
+  const auto& sprites = room.GetSprites();
+  for (size_t index = 0; index < sprites.size(); ++index) {
+    const auto& sprite = sprites[index];
     const int canvas_x = sprite.x() * 16;
     const int canvas_y = sprite.y() * 16;
 
@@ -170,10 +186,17 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
           rt, preview->pixels, preview_bounds, canvas_x + preview_bounds.x,
           canvas_y + preview_bounds.y, sprite_colors);
 
-      if (drew_preview) {
+      const bool show_label = ShowEntityLabel(
+          rt, canvas_x, canvas_y, entity_size, entity_size,
+          std::any_of(selected.begin(), selected.end(),
+                      [index](const auto& entity) {
+                        return entity.type == EntityType::Sprite &&
+                               entity.index == index;
+                      }));
+      if (drew_preview && show_label) {
         gui::DrawOutline(rt, canvas_x, canvas_y, entity_size, entity_size,
                          ImGui::GetColorU32(sprite_color));
-      } else {
+      } else if (!drew_preview) {
         gui::DrawRect(rt, canvas_x, canvas_y, entity_size, entity_size,
                       sprite_color);
       }
@@ -190,7 +213,8 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
             absl::StrFormat("%02X %s", sprite.id(), full_name.c_str());
       }
 
-      gui::DrawText(rt, sprite_text, canvas_x, canvas_y);
+      if (show_label)
+        gui::DrawText(rt, sprite_text, canvas_x, canvas_y);
     }
   }
 }
@@ -216,7 +240,10 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
   constexpr size_t kPotItemNameCount =
       sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
 
-  for (const auto& pot_item : pot_items) {
+  const auto& selected =
+      object_interaction_.entity_coordinator().GetSelectedEntities();
+  for (size_t index = 0; index < pot_items.size(); ++index) {
+    const auto& pot_item = pot_items[index];
     const int pixel_x = pot_item.GetPixelX();
     const int pixel_y = pot_item.GetPixelY();
     auto [canvas_x, canvas_y] =
@@ -250,7 +277,15 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
 
       std::string item_text =
           absl::StrFormat("%02X %s", pot_item.item, item_name.c_str());
-      gui::DrawText(rt, item_text, canvas_x, canvas_y - 10);
+      if (ShowEntityLabel(rt, canvas_x, canvas_y, entity_size, entity_size,
+                          std::any_of(selected.begin(), selected.end(),
+                                      [index](const auto& entity) {
+                                        return entity.type ==
+                                                   EntityType::Item &&
+                                               entity.index == index;
+                                      }))) {
+        gui::DrawText(rt, item_text, canvas_x, canvas_y - 10);
+      }
     }
   }
 }
@@ -502,11 +537,14 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
 
 gfx::Bitmap* DungeonCanvasViewer::PrepareConnectedRoomCompositeBitmap(
     int room_id) {
-  // The connected canvas previews the same active entrance across every room.
-  // A neighbor may already have been rendered under another entrance earlier.
+  // Resolve Auto for each neighbor without changing the primary room's context.
+  // Manual mode returns the same pinned entrance for every room.
   if (rooms_) {
-    if (auto* room = rooms_->TryEnsureRoom(room_id))
-      room->SetRenderEntranceBlockset(current_entrance_blockset_);
+    if (auto* room = rooms_->TryEnsureRoom(room_id)) {
+      room->SetRenderEntranceBlockset(entrance_blockset_resolver_
+                                          ? entrance_blockset_resolver_(room_id)
+                                          : current_entrance_blockset_);
+    }
   }
   auto& entry = connected_composite_outputs_[room_id];
   if (!entry.output) {

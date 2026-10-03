@@ -1187,6 +1187,46 @@ TEST_F(TileObjectHandlerTest,
   }
 }
 
+TEST_F(TileObjectHandlerTest,
+       CanvasWheelPansWithoutSelectionAndResizesSelection) {
+  AddTestObjects({CreateTestObject(5, 5, 3, 0x01)});
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(100, 100);
+  const auto frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700, 650), ImGuiCond_Always);
+    ImGui::Begin(
+        "WheelOwnerHost", nullptr,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse);
+    canvas_->DrawBackground(ImVec2(512, 512));
+    interaction.HandleCanvasMouseInput();
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  rooms_[0].ClearSaveDirtyState();
+  const auto initial = canvas_->scrolling();
+  io.AddMouseWheelEvent(0, 1);
+  frame();
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 3);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_GT(canvas_->scrolling().y, initial.y);
+  EXPECT_EQ(io.MouseWheel, 0);
+  interaction.SetSelectedObjects({0});
+  const auto selected_scroll = canvas_->scrolling();
+  io.AddMouseWheelEvent(0, 1);
+  frame();
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 4);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(canvas_->scrolling().y, selected_scroll.y);
+  EXPECT_EQ(io.MouseWheel, 0);
+}
+
 TEST_F(TileObjectHandlerTest, CanvasPlacementDigitsIgnoreModifiedChords) {
   AddTestObjects({CreateTestObject(5, 5)});
   DungeonObjectInteraction interaction(canvas_.get());
