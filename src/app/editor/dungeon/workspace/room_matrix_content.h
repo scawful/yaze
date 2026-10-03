@@ -83,6 +83,10 @@ class RoomMatrixContent : public WindowContent {
     on_room_intent_ = std::move(callback);
   }
 
+  void SetRenderContextCallback(std::function<void(int)> callback) {
+    prepare_render_context_ = std::move(callback);
+  }
+
   // Project dungeon ownership and warp tags for the census overlay.
   void SetCensusManifestProvider(
       RoomMatrixCensusOverlay::ManifestProvider provider) {
@@ -99,6 +103,7 @@ class RoomMatrixContent : public WindowContent {
     on_room_selected_ = {};
     on_room_swap_ = {};
     on_room_intent_ = {};
+    prepare_render_context_ = {};
     navigation_shortcut_focus_ = false;
   }
   bool OwnsNavigationShortcutFocus() const {
@@ -361,6 +366,8 @@ class RoomMatrixContent : public WindowContent {
                                     loaded_room->blockset());
 
                 // Show thumbnail preview of the room
+                if (prepare_render_context_)
+                  prepare_render_context_(room_id);
                 auto& preview_bitmap = PrepareCanonicalRoomComposite(
                     *loaded_room, tooltip_composite_output_);
                 gfx::EnsureCompositeBitmapTextureQueued(preview_bitmap);
@@ -409,6 +416,7 @@ class RoomMatrixContent : public WindowContent {
   }
 
  private:
+  std::function<void(int)> prepare_render_context_;
   void DrawMatrixSummary(const AgentUITheme& theme, int total_rooms) const {
     const int open_rooms = active_rooms_ ? active_rooms_->Size : 0;
     const int current_room = current_room_id_ ? *current_room_id_ : -1;
@@ -654,6 +662,8 @@ class RoomMatrixContent : public WindowContent {
     if (rooms_) {
       auto* room = rooms_->GetIfLoaded(room_id);
       if (room != nullptr) {
+        if (prepare_render_context_)
+          prepare_render_context_(room_id);
         room->PrepareForRender();
         const uint64_t source_revision = room->composite_source_revision();
         auto cache_it = room_color_cache_.find(room_id);

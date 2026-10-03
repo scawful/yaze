@@ -507,6 +507,7 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   room_selector_.set_rooms(&rooms_);
   room_selector_.set_entrances(&entrances_);
   room_selector_.set_spawn_points(&spawn_points_);
+  room_selector_.set_current_entrance_id(current_entrance_id_);
 
   if (dungeon_editor_system_) {
     dungeon_editor_system_->SetGameData(game_data_);
@@ -983,6 +984,10 @@ void DungeonEditorV2::Initialize() {
     workbench_panel_->SetNavigationPanels(room_matrix_panel_,
                                           entrance_navigator_panel_);
   }
+  if (room_matrix_panel_) {
+    room_matrix_panel_->SetRenderContextCallback(
+        [this](int room_id) { ApplyEntranceRenderContext(room_id); });
+  }
 
   // Note: RoomGraphicsContent and PaletteEditorContent are registered
   // in Load() after their dependencies (renderer_, palette_editor_) are initialized
@@ -1015,6 +1020,7 @@ absl::Status DungeonEditorV2::Load() {
   room_selector_.set_rooms(&rooms_);
   room_selector_.set_entrances(&entrances_);
   room_selector_.set_spawn_points(&spawn_points_);
+  room_selector_.set_current_entrance_id(current_entrance_id_);
   room_selector_.set_active_rooms(active_rooms_);
   room_selector_.SetRoomSelectedCallback(
       [this](int room_id) { OnRoomSelected(room_id); });

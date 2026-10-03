@@ -119,13 +119,14 @@ EditorContextSnapshot DungeonEditorV2::BuildContextSnapshot() const {
     snapshot.metadata = {
         {.id = "graphics_entrance",
          .label = "Graphics entrance",
-         .value = render_context.uses_entrance()
-                      ? absl::StrFormat("0x%02X", render_context.entrance_slot)
-                  : fallback.entrance_id >= 0
-                      ? absl::StrFormat("0x%02X (default)",
-                                        fallback.entrance_id +
-                                            zelda3::kNumDungeonSpawnPoints)
-                      : "None"},
+         .value =
+             render_context.uses_entrance()
+                 ? DungeonEntrancePreviewLabel(render_context.entrance_slot)
+             : fallback.entrance_id >= 0
+                 ? DungeonEntrancePreviewLabel(fallback.entrance_id +
+                                               zelda3::kNumDungeonSpawnPoints) +
+                       " (default)"
+                 : "None"},
         {.id = "graphics_source",
          .label = "Graphics source",
          .value = DungeonRenderContextSourceName(render_context)},

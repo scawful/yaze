@@ -174,17 +174,19 @@ DungeonWorkbenchResponsiveLayout ResolveDungeonWorkbenchResponsiveLayout(
                                    result.compact_left, false)) {
     result.compact_right = true;
   }
-  if (result.show_left &&
-      total_width < required_width(result.show_left, result.show_right,
-                                   result.compact_left, result.compact_right)) {
-    result.show_left = false;
-    result.compact_left = false;
-  }
+  // Keep the entrance selector, object browser, and room navigation available
+  // when only one pane fits. Toolbar pane toggles still allow either alone.
   if (result.show_right &&
       total_width < required_width(result.show_left, result.show_right,
                                    result.compact_left, result.compact_right)) {
     result.show_right = false;
     result.compact_right = false;
+  }
+  if (result.show_left &&
+      total_width < required_width(result.show_left, result.show_right,
+                                   result.compact_left, result.compact_right)) {
+    result.show_left = false;
+    result.compact_left = false;
   }
 
   return result;
@@ -359,7 +361,7 @@ void DungeonWorkbenchContent::FocusSelectionInspector() {
 
 void DungeonWorkbenchContent::FocusRoomMatrix() {
   layout_state_.show_left_sidebar = true;
-  sidebar_mode_ = SidebarMode::Matrix;
+  sidebar_mode_ = SidebarMode::Objects;
 }
 
 void DungeonWorkbenchContent::FocusEntranceBrowser() {
@@ -596,8 +598,8 @@ const char* DungeonWorkbenchContent::GetActiveToolIdForTesting() const {
 
 const char* DungeonWorkbenchContent::GetSidebarModeIdForTesting() const {
   switch (sidebar_mode_) {
-    case SidebarMode::Matrix:
-      return "matrix";
+    case SidebarMode::Objects:
+      return "objects";
     case SidebarMode::Entrances:
       return "entrances";
   }
@@ -607,7 +609,7 @@ const char* DungeonWorkbenchContent::GetSidebarModeIdForTesting() const {
 void DungeonWorkbenchContent::DrawSidebarPane(float width, float height,
                                               float button_size, bool compact) {
   const bool sidebar_open = ImGui::BeginChild("##DungeonWorkbenchSidebar",
-                                              ImVec2(width, height), true);
+                                              ImVec2(width, height), false);
   if (sidebar_open) {
     DrawSidebarHeader(button_size, compact);
     DrawSidebarContent();
@@ -671,7 +673,8 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
         }
       });
 
-  ImGui::Dummy(ImVec2(0.0f, 2.0f));
+  if (entrance_navigator_content_)
+    entrance_navigator_content_->DrawGraphicsContext();
   DrawSidebarModeTabs(stack_mode_switch, std::max(button_size, 26.0f));
   ImGui::Separator();
 }
@@ -684,18 +687,18 @@ void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
   const ImVec2 button_size(
       show_labels ? (available_width - spacing) * 0.5f : segment_height,
       segment_height);
-  const char* matrix_label = show_labels ? ICON_MD_GRID_VIEW " Matrix"
-                                         : ICON_MD_GRID_VIEW "##NavMatrix";
+  const char* object_label = show_labels ? ICON_MD_CONSTRUCTION " Objects"
+                                         : ICON_MD_CONSTRUCTION "##NavObjects";
   const char* entrance_label = show_labels ? ICON_MD_DOOR_FRONT " Entrances"
                                            : ICON_MD_DOOR_FRONT
                                    "##NavEntrances";
 
-  if (gui::ToggleButton(matrix_label, sidebar_mode_ == SidebarMode::Matrix,
+  if (gui::ToggleButton(object_label, sidebar_mode_ == SidebarMode::Objects,
                         button_size)) {
-    sidebar_mode_ = SidebarMode::Matrix;
+    sidebar_mode_ = SidebarMode::Objects;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr("Visual room matrix"));
+    ImGui::SetTooltip(tr("Object selector"));
   }
   ImGui::SameLine(0.0f, spacing);
   if (gui::ToggleButton(entrance_label, sidebar_mode_ == SidebarMode::Entrances,
@@ -709,47 +712,58 @@ void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
 
 void DungeonWorkbenchContent::DrawSidebarContent() {
   ImGui::PushID("WorkbenchSidebarMode");
-  const char* standalone_id = sidebar_mode_ == SidebarMode::Matrix
-                                  ? "dungeon.room_matrix"
-                                  : "dungeon.entrance_properties";
-  const bool standalone_open =
-      is_standalone_tool_open_ && is_standalone_tool_open_(standalone_id);
-  if (standalone_open) {
-    ImGui::TextWrapped("%s",
-                       tr("This Navigator view is open in its own window."));
-    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Focus Window",
-                      ImVec2(-1.0f, 0.0f)) &&
-        open_and_focus_standalone_tool_) {
-      open_and_focus_standalone_tool_(standalone_id);
+  const auto draw_external = [this](const char* id) {
+    if (!is_standalone_tool_open_ || !is_standalone_tool_open_(id))
+      return false;
+    ImGui::TextWrapped("Open in a separate window.");
+    if (ImGui::Button("Focus Window") && open_and_focus_standalone_tool_)
+      open_and_focus_standalone_tool_(id);
+    return true;
+  };
+  const float available = std::max(1.0f, ImGui::GetContentRegionAvail().y);
+  const float separator = 6.0f;
+  const float upper =
+      std::max(1.0f, (available - separator) * navigator_tools_fraction_);
+  if (ImGui::BeginChild("##NavigatorTools", ImVec2(0, upper), false)) {
+    if (sidebar_mode_ == SidebarMode::Objects) {
+      if (!draw_external("dungeon.object_selector")) {
+        if (auto* selector =
+                dynamic_cast<ObjectSelectorContent*>(object_selector_content_))
+          selector->DrawInWorkbench();
+        else if (object_selector_content_)
+          object_selector_content_->Draw(nullptr);
+        else
+          ImGui::TextDisabled("Object selector unavailable");
+      }
+    } else if (!draw_external("dungeon.entrance_properties")) {
+      if (entrance_navigator_content_)
+        entrance_navigator_content_->DrawPropertiesInWorkbench();
+      else
+        ImGui::TextDisabled("Entrance properties unavailable");
     }
-    ImGui::PopID();
-    return;
   }
-
-  if (open_and_focus_standalone_tool_ &&
-      ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Pop Out")) {
-    open_and_focus_standalone_tool_(standalone_id);
-    ImGui::PopID();
-    return;
-  }
-  ImGui::Separator();
-
-  switch (sidebar_mode_) {
-    case SidebarMode::Matrix:
-      if (room_matrix_content_) {
+  ImGui::EndChild();
+  const ImVec2 divider = ImGui::GetCursorScreenPos();
+  ImGui::InvisibleButton("##NavigatorSplit", ImVec2(-1, separator));
+  if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+  if (ImGui::IsItemActive())
+    navigator_tools_fraction_ = std::clamp(
+        navigator_tools_fraction_ + ImGui::GetIO().MouseDelta.y / available,
+        0.20f, 0.65f);
+  ImGui::GetWindowDrawList()->AddLine(
+      ImVec2(divider.x, divider.y + separator * 0.5f),
+      ImVec2(ImGui::GetItemRectMax().x, divider.y + separator * 0.5f),
+      ImGui::GetColorU32(ImGuiCol_Separator));
+  if (ImGui::BeginChild("##NavigatorMatrix", ImVec2(0, 0), false)) {
+    if (!draw_external("dungeon.room_matrix")) {
+      if (room_matrix_content_)
         room_matrix_content_->Draw(nullptr);
-      } else {
-        ImGui::TextDisabled(tr("Room Matrix unavailable"));
-      }
-      break;
-    case SidebarMode::Entrances:
-      if (entrance_navigator_content_) {
-        entrance_navigator_content_->Draw(nullptr);
-      } else {
-        ImGui::TextDisabled(tr("Entrance Navigator unavailable"));
-      }
-      break;
+      else
+        ImGui::TextDisabled("Room Matrix unavailable");
+    }
   }
+  ImGui::EndChild();
   ImGui::PopID();
 }
 
@@ -1626,6 +1640,14 @@ void DungeonWorkbenchContent::OpenTool(WorkbenchTool tool) {
         (void)open_and_focus_standalone_tool_(content->GetId());
       }
     }
+    return;
+  }
+
+  if (tool == WorkbenchTool::ObjectSelector) {
+    CloseToolInspector();
+    sidebar_mode_ = SidebarMode::Objects;
+    layout_state_.show_left_sidebar = true;
+    FocusSelectionInspector();
     return;
   }
 

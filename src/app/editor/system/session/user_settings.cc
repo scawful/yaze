@@ -1859,6 +1859,15 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  // Revision 28: host Objects/Entrance above the room matrix on the right.
+  // This changes only the pane side; named layouts, pins, and workspace docks
+  // survive. The user's subsequent side-swap choice remains authoritative.
+  if (prefs_.panel_layout_defaults_revision < 28 && target_revision >= 28) {
+    prefs_.dungeon_inspector_side = "left";
+    prefs_.panel_layout_defaults_revision = 28;
+    applied = true;
+  }
+
   return applied;
 }
 

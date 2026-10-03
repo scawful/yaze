@@ -20,6 +20,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -1696,6 +1697,70 @@ TEST_F(AuthoringSaveWorkflowTest, RailPaletteStampUndoSaveAsReopens) {
   EXPECT_EQ(saved.size_, placed.size_);
   EXPECT_EQ(saved.x_, placed.x_);
   EXPECT_EQ(saved.y_, placed.y_);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       SelectedEntranceKeepsOracleWallFamilyAcrossRoomNavigation) {
+  const auto custom_state = zelda3::CustomObjectManager::Get().SnapshotState();
+  absl::Cleanup restore_custom_state = [&] {
+    manager_.reset();
+    zelda3::CustomObjectManager::Get().RestoreState(custom_state);
+  };
+  const auto fixture = CopyProject("yaze_entrance_preview");
+  const auto assets = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/Objects/Data";
+  ASSERT_TRUE(std::filesystem::is_directory(assets));
+  for (const auto& entry : std::filesystem::directory_iterator(assets)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin")
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+  }
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto* data = dungeon->game_data();
+  ASSERT_NE(data, nullptr);
+  const auto bytes = manager_->GetCurrentRom()->vector();
+  // These two entrances agree in Oracle's active and legacy table copies.
+  // This regression isolates preview persistence from table-format decoding.
+  // Their slot-2 sheets are architectural walls (13) and rock/cave walls (12).
+  for (const auto [entrance, main, wall_sheet] :
+       {std::tuple{0x00, 0x03, 0x13}, std::tuple{0x06, 0x06, 0x12},
+        std::tuple{0x00, 0x03, 0x13}}) {
+    AuthoringSaveWorkflowTestPeer::SelectDungeonEntrance(
+        *dungeon, zelda3::kNumDungeonSpawnPoints + entrance);
+    for (const int room_id : {0x089, 0x098, 0x005, 0x089}) {
+      SCOPED_TRACE(
+          absl::StrFormat("entrance %02X room %03X", entrance, room_id));
+      AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, room_id);
+      auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, room_id);
+      ASSERT_NE(viewer, nullptr);
+      auto& room = dungeon->rooms()[room_id];
+      const auto header = room.CaptureMetadataSnapshot();
+      const auto dirty = room.CaptureSaveDirtySnapshot();
+      room.PrepareForRender();
+      EXPECT_EQ(viewer->current_entrance_blockset(), main);
+      EXPECT_EQ(room.render_entrance_blockset(), main);
+      EXPECT_EQ(room.blocks()[2], wall_sheet);
+      for (int slot = 3; slot <= 6; ++slot) {
+        const auto override_sheet =
+            data->room_blockset_ids[room.blockset()][slot - 3];
+        EXPECT_EQ(room.blocks()[slot], override_sheet == 0
+                                           ? data->main_blockset_ids[main][slot]
+                                           : override_sheet);
+      }
+      EXPECT_EQ(room.CaptureMetadataSnapshot(), header);
+      EXPECT_EQ(room.CaptureSaveDirtySnapshot().header, dirty.header);
+      EXPECT_EQ(room.CaptureSaveDirtySnapshot().object_stream,
+                dirty.object_stream);
+    }
+  }
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), bytes);
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
 TEST_F(AuthoringSaveWorkflowTest,

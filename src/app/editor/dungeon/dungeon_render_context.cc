@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <map>
 
+#include "absl/strings/str_format.h"
+#include "zelda3/dungeon/dungeon_spawn_point.h"
+
 namespace yaze::editor {
 
 namespace {
@@ -50,6 +53,15 @@ void UseEntrance(DungeonRenderContext* context,
 }
 
 }  // namespace
+
+std::string DungeonEntrancePreviewLabel(int slot) {
+  if (slot < 0)
+    return "None";
+  return slot < zelda3::kNumDungeonSpawnPoints
+             ? absl::StrFormat("Spawn %02X", slot)
+             : absl::StrFormat("Entrance %02X",
+                               slot - zelda3::kNumDungeonSpawnPoints);
+}
 
 const char* DungeonRenderContextSourceName(DungeonRenderContextSource source) {
   switch (source) {
@@ -101,17 +113,12 @@ DungeonRenderContext ResolveDungeonRenderContext(
   const DungeonRenderEntranceCandidate* selected =
       FindCandidate(entrances, selected_entrance_slot);
   if (selected != nullptr) {
-    if (selected->room_id == room_id) {
-      UseEntrance(&context, DungeonRenderContextSource::kSelectedEntrance,
-                  *selected);
-      return context;
-    }
-    const int selected_owner = OwnerIndexForRoom(census, selected->room_id);
-    if (context.owner_index >= 0 && selected_owner == context.owner_index) {
-      UseEntrance(&context, DungeonRenderContextSource::kSelectedEntrance,
-                  *selected);
-      return context;
-    }
+    // An explicit preview entrance remains selected while browsing rooms.
+    // The game keeps $0AA1 until another entrance is loaded; census ownership
+    // must not silently replace the user's choice with different wall sheets.
+    UseEntrance(&context, DungeonRenderContextSource::kSelectedEntrance,
+                *selected);
+    return context;
   }
 
   std::map<uint8_t, std::vector<const DungeonRenderEntranceCandidate*>>
