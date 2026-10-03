@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/workspace/room_matrix_content.h"
@@ -826,7 +827,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
-       RoomMatrixUsesSelectedEntranceBeforeRenderingCachedRoom) {
+       RoomMatrixTooltipUsesSelectedEntranceBeforeRenderingCachedRoom) {
   game_data_.main_blockset_ids[1][0] = 9;
   game_data_.main_blockset_ids[2][0] = 10;
   DungeonRoomStore rooms(&rom_, &game_data_);
@@ -847,14 +848,35 @@ TEST_F(DungeonEditorPaletteRefreshTest,
     rooms[id].SetRenderEntranceBlockset(selected_main);
   });
   ScopedImGuiTestContext imgui;
-  for (const uint8_t main_gfx : {2, 1}) {
-    selected_main = main_gfx;
-    const int before = calls;
+  absl::Cleanup clear_registry = [] {
+    gui::WidgetIdRegistry::Instance().Clear();
+  };
+  const auto frame = [&] {
     imgui.NextFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(340, 720), ImGuiCond_Always);
     ImGui::Begin("MatrixContext", nullptr, ImGuiWindowFlags_NoSavedSettings);
     matrix.Draw(nullptr);
     ImGui::End();
+  };
+  ImGui::GetIO().AddMousePosEvent(-1000, -1000);
+  frame();
+  frame();
+  EXPECT_EQ(calls, 0);  // Palette swatches do not render rooms.
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> cell;
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets())
+    if (widget.label == "Room 0x000")
+      cell = widget;
+  ASSERT_TRUE(cell.has_value());
+  for (const uint8_t main_gfx : {2, 1}) {
+    selected_main = main_gfx;
+    const int before = calls;
+    ImGui::GetIO().AddMousePosEvent(
+        (cell->bounds.min_x + cell->bounds.max_x) * 0.5f,
+        (cell->bounds.min_y + cell->bounds.max_y) * 0.5f);
+    frame();
+    frame();
     EXPECT_GT(calls, before);
     EXPECT_EQ(room.blocks()[0], main_gfx == 1 ? 9 : 10);
   }
