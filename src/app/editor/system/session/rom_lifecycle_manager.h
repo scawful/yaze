@@ -178,6 +178,8 @@ class RomLifecycleManager {
                                 int keep_daily_days);
 
  private:
+  bool HasEditableSource(const std::string& source_path) const;
+
   // Dependencies (non-owning pointers)
   RomFileManager* rom_file_manager_ = nullptr;
   SessionCoordinator* session_coordinator_ = nullptr;
@@ -188,6 +190,7 @@ class RomLifecycleManager {
   // Active view of the session-owned baseline; replaced on every activation.
   util::RomIdentityHashes current_rom_identity_;
   std::string current_rom_path_;
+  std::string current_rom_editing_source_path_;
 
   // Write confirmation state machine
   bool pending_rom_write_confirm_ = false;

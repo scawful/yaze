@@ -142,10 +142,25 @@ void RomLifecycleManager::ActivateRomIdentity(const RomSession* session) {
   if (!session || !session->rom.is_loaded() || !session->rom_baseline) {
     current_rom_identity_ = {};
     current_rom_path_.clear();
+    current_rom_editing_source_path_.clear();
     return;
   }
   current_rom_identity_ = session->rom_baseline->hashes;
   current_rom_path_ = session->rom_baseline->normalized_path;
+  current_rom_editing_source_path_ = session->rom_baseline->editing_source_path;
+}
+
+bool RomLifecycleManager::HasEditableSource(
+    const std::string& source_path) const {
+  // Save As must retain the editing-target exemption only for this session's
+  // own descendants. A hash-matched foreign ROM does not acquire it by saving.
+  if (current_rom_path_.empty() ||
+      NormalizePath(source_path) != current_rom_path_) {
+    return false;
+  }
+  const auto source =
+      GetRomTargetInfo(project_, current_rom_editing_source_path_);
+  return source.matches_editable_target && !source.matches_build_output;
 }
 
 bool RomLifecycleManager::IsRomHashMismatch() const {
@@ -153,7 +168,8 @@ bool RomLifecycleManager::IsRomHashMismatch() const {
     return false;
   }
   const auto target_info = GetRomTargetInfo(project_, current_rom_path_);
-  if (target_info.matches_editable_target &&
+  if ((target_info.matches_editable_target ||
+       HasEditableSource(current_rom_path_)) &&
       !target_info.matches_build_output) {
     return false;
   }
@@ -233,7 +249,7 @@ absl::Status RomLifecycleManager::CheckRomWritePolicy(
         GetEditableTargetPath(target_info)));
   }
 
-  if (source_info.matches_editable_target &&
+  if ((source_info.matches_editable_target || HasEditableSource(source_path)) &&
       !source_info.matches_build_output) {
     return absl::OkStatus();
   }
