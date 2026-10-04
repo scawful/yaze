@@ -1,7 +1,7 @@
 # Graphics System Architecture
 
 **Status**: Active
-**Last Updated**: 2026-04-19
+**Last Updated**: 2026-10-03
 **Related Code**: `src/app/gfx/`, `src/app/editor/graphics/`
 
 This document outlines the architecture of the graphics system in YAZE,
@@ -44,6 +44,10 @@ Represents a single graphics sheet or image optimized for SNES ROM editing.
 *   **Tile Extraction**: Provides methods like `Get8x8Tile()`, `Get16x16Tile()` for SNES tile operations
 
 **Important Synchronization Rules**:
+*   Authored pixels belong to `GameData::sheet_store`. Graphics edits use
+    `graphics_sheet_sync.*` and stroke transactions; Arena bitmaps are display
+    copies. The bitmap operations below are rendering/cache operations, not
+    independent authoring paths.
 *   Never modify `SDL_Texture` directly - always modify the `Bitmap` data
 *   Use `set_data()` for bulk updates to keep CPU and GPU in sync
 *   Use `WriteToPixel()` for single-pixel modifications
@@ -63,8 +67,10 @@ The graphics domain is split between two editors:
 `WindowContent` shells from [`graphics_editor_panels.h`](../../../src/app/editor/graphics/panels/graphics_editor_panels.h)
 that forward into `*_panel` / `GfxGroupEditor` / `PolyhedralEditorPanel`
 implementations. `ScreenEditor` registers its screen surfaces the same way.
-Parallel `graphics/ui/**` `*_view` sources exist for incremental migration; new
-work should follow [`editor-ui-module-pattern.md`](./editor-ui-module-pattern.md)
+The unregistered `SheetBrowserView`, `PixelEditorView`, `PaletteControlsView`,
+and `PalettesetEditorView` implementations were removed. Extend the live
+`SheetBrowserPanel`, `PixelEditorPanel`, `PaletteControlsPanel`, and
+`PalettesetEditorPanel`; do not recreate parallel editing paths. New work should follow [`editor-ui-module-pattern.md`](./editor-ui-module-pattern.md)
 and prefer [`graphics/ui/shared/graphics_window_context.h`](../../../src/app/editor/graphics/ui/shared/graphics_window_context.h)
 over ad-hoc `ContentRegistry` downcasts when a `GraphicsEditor` pointer is needed.
 
@@ -72,10 +78,6 @@ over ad-hoc `ContentRegistry` downcasts when a `GraphicsEditor` pointer is neede
 
 ```text
 src/app/editor/graphics/ui/
-  browser/sheet_browser_view.{h,cc}
-  editing/pixel_editor_view.{h,cc}
-  palette/palette_controls_view.{h,cc}
-  palette/paletteset_editor_view.{h,cc}
   research/prototype_research_view.{h,cc}
   research/polyhedral_editor_view.{h,cc}
   screen/screen_editor_views.h
@@ -87,9 +89,9 @@ src/app/editor/graphics/ui/
 
 | Module | Primary role |
 |--------|--------------|
-| `browser/` | Sheet selection and navigation |
-| `editing/` | Pixel editing for in-ROM graphics sheets |
-| `palette/` | Palette controls and palette-set editing |
+| `sheet_browser_panel.*` | Live sheet selection and navigation |
+| `pixel_editor_panel.*` | Live pixel editing through the session sheet store |
+| `palette_controls_panel.*`, `paletteset_editor_panel.*` | Live palette preview controls and palette-set editing |
 | `research/` | Prototype asset decode (CGX/SCR/COL/BIN/OBJ, Super Donkey, etc.) **and** ROM polyhedral table editing (`PolyhedralEditorPanel` / `graphics.polyhedral`) |
 | `screen/` | `ScreenEditor` window descriptors and shortcuts |
 | `sprite/` | Link sprite preview and animation inspection |

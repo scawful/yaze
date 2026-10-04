@@ -106,10 +106,6 @@ set(
   app/editor/sprite/sprite_graphics_context.cc
   app/editor/graphics/usage_preview.cc
   app/editor/graphics/ui/usage/usage_preview_view.cc
-  app/editor/graphics/ui/browser/sheet_browser_view.cc
-  app/editor/graphics/ui/editing/pixel_editor_view.cc
-  app/editor/graphics/ui/palette/palette_controls_view.cc
-  app/editor/graphics/ui/palette/paletteset_editor_view.cc
   app/editor/graphics/ui/research/polyhedral_editor_view.cc
   app/editor/graphics/ui/research/prototype_research_view.cc
   app/editor/graphics/ui/sprite/link_sprite_view.cc
