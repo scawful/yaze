@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
@@ -157,6 +158,15 @@ void UsagePreviewView::Draw() {
     return;
   }
   EnsureTables();
+  const auto palette_revision =
+      gfx::PaletteManager::Get().ColorRevision(game_data_);
+  if (palette_revision != palette_revision_) {
+    palette_revision_ = palette_revision;
+    dirty_ = true;
+    // Cached generic renderers must reload colors too, even without a stroke.
+    room_preview_.Reset();
+    tile16_preview_ = usage_preview::Tile16UsagePreview{};
+  }
   const bool source_changed =
       source_context_revision_ != state_->source_context_revision;
   if (source_changed) {
@@ -236,7 +246,9 @@ void UsagePreviewView::Draw() {
               source_changed ? ImGuiTabItemFlags_SetSelected : 0)) {
         auto& source = *state_->source_context;
         ImGui::TextWrapped("%s", source.label.c_str());
-        if (render_now) {
+        if (!source.palette_error.empty()) {
+          status_ = source.palette_error;
+        } else if (render_now) {
           const auto rendered = source.render_preview();
           status_ = rendered.ok() ? std::string()
                                   : std::string(rendered.status().message());
@@ -352,7 +364,8 @@ void UsagePreviewView::DrawSpriteContext(bool render_now, float delta) {
     ImGui::EndCombo();
   }
 
-  if (configured_spriteset_ != spriteset) {
+  const bool spriteset_changed = configured_spriteset_ != spriteset;
+  if (spriteset_changed || sprite_palette_revision_ != palette_revision_) {
     // Palette: the first dungeon room using this spriteset (header value +
     // 0x40), else the default sprite preview rows.
     int palette_room = -1;
@@ -365,12 +378,15 @@ void UsagePreviewView::DrawSpriteContext(bool render_now, float delta) {
     const auto status = sprite_preview_.Configure(rom_, game_data_, spriteset,
                                                   palette_room, hack_name_);
     status_ = status.ok() ? std::string() : std::string(status.message());
-    if (zsm_.has_value()) {
-      sprite_preview_.SetZsm(*zsm_, zsm_animation_);
-    } else {
-      sprite_preview_.SetVanillaSprite(
-          static_cast<uint8_t>(vanilla_sprite_id_));
+    if (spriteset_changed) {
+      if (zsm_.has_value()) {
+        sprite_preview_.SetZsm(*zsm_, zsm_animation_);
+      } else {
+        sprite_preview_.SetVanillaSprite(
+            static_cast<uint8_t>(vanilla_sprite_id_));
+      }
     }
+    sprite_palette_revision_ = palette_revision_;
     configured_spriteset_ = spriteset;
     render_now = true;
   }

@@ -64,6 +64,12 @@ bool PaletteManager::IsInitialized() const {
   return state != nullptr && state->initialized && rom_ == game_data_->rom();
 }
 
+uint64_t PaletteManager::ColorRevision(
+    const zelda3::GameData* game_data) const {
+  const auto* state = FindState(game_data);
+  return state ? state->color_revision : 0;
+}
+
 void PaletteManager::ActivateSession(zelda3::GameData* game_data) {
   game_data_ = game_data;
   rom_ = game_data ? game_data->rom() : nullptr;
@@ -538,6 +544,7 @@ absl::Status PaletteManager::ApplyPreviewChanges() {
     return absl::OkStatus();  // Nothing to preview
   }
 
+  ++CurrentState()->color_revision;
   for (const auto& group_name : modified_groups) {
     Arena::Get().NotifyPaletteModified(group_name, -1);
   }
@@ -793,6 +800,14 @@ void PaletteManager::RecordChange(const PaletteColorChange& change) {
 }
 
 void PaletteManager::NotifyListeners(const PaletteChangeEvent& event) {
+  // Publish changes after the model and history agree. Saved notifications do
+  // not change colors; discard-all already publishes each affected group.
+  if (event.type == PaletteChangeEvent::Type::kColorChanged ||
+      event.type == PaletteChangeEvent::Type::kPaletteReset ||
+      event.type == PaletteChangeEvent::Type::kGroupDiscarded) {
+    ++CurrentState()->color_revision;
+    Arena::Get().NotifyPaletteModified(event.group_name, event.palette_index);
+  }
   for (const auto& [_, callback] : change_listeners_) {
     callback(event);
   }

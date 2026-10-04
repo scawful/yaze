@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -46,7 +47,18 @@ struct GraphicsEditContext {
   std::function<absl::StatusOr<usage_preview::PreviewImage>()> render_preview;
   std::function<void()> return_to_source;
   std::string drawing_description;
+  // Re-resolve display colors through the source loader without replacing
+  // the selected raw sheet/tile or pending pixel edits.
+  std::function<absl::Status(GraphicsEditContext&)> refresh_palettes;
+  std::optional<uint64_t> palette_revision;
+  std::string palette_error;
 };
+
+// Applies fresh colors only when the source still addresses the same tiles.
+// A source assignment change requires reopening rather than silently redirecting
+// a pending stroke or paste to a different sheet.
+absl::Status UpdateGraphicsContextPalettes(GraphicsEditContext& context,
+                                           GraphicsEditContext refreshed);
 
 // The room must already have its entrance context applied and be prepared for
 // rendering. Animated spans are omitted until they have explicit source maps.

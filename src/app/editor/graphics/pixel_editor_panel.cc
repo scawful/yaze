@@ -176,6 +176,10 @@ void PixelEditorPanel::DrawSourceContext() {
   if (!context.limitation.empty()) {
     ImGui::TextWrapped("%s", context.limitation.c_str());
   }
+  if (!context.palette_error.empty()) {
+    ImGui::TextWrapped(tr("Source colors could not refresh: %s"),
+                       context.palette_error.c_str());
+  }
   const auto& target = context.targets[context.selected_target];
   ImGui::BeginDisabled(state_->selection.is_floating);
   ImGui::SetNextItemWidth(-1);

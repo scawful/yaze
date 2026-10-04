@@ -5,6 +5,7 @@
 
 #include "app/editor/graphics/palette_controls_panel_internal.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/platform/sdl_compat.h"
 #include "zelda3/game_data.h"
 
@@ -95,6 +96,17 @@ absl::Status SetGraphicsPreviewPalette(
 }
 
 void RefreshGraphicsPreviewPalettes(GraphicsEditorState& state) {
+  auto& manager = gfx::PaletteManager::Get();
+  if (manager.IsManaging(state.game_data) && state.source_context &&
+      state.source_context->owner == state.game_data) {
+    auto& context = *state.source_context;
+    const auto revision = manager.ColorRevision(state.game_data);
+    if (context.refresh_palettes && context.palette_revision != revision) {
+      const auto status = context.refresh_palettes(context);
+      context.palette_error = status.ok() ? "" : std::string(status.message());
+      context.palette_revision = revision;
+    }
+  }
   for (const auto& [sheet, selection] : state.preview_palettes) {
     SetGraphicsPreviewPalette(state, sheet, selection).IgnoreError();
   }

@@ -116,6 +116,9 @@ class PaletteManager {
    */
   void ActivateSession(zelda3::GameData* game_data);
 
+  // In-memory color changes, independent of sheet pixels and file-save state.
+  uint64_t ColorRevision(const zelda3::GameData* game_data) const;
+
   /**
    * @brief Check whether this exact GameData is the active palette session.
    *
@@ -383,6 +386,7 @@ class PaletteManager {
 
   struct SessionState {
     bool initialized = false;
+    uint64_t color_revision = 0;
     std::unordered_map<std::string, std::vector<SnesPalette>> original_palettes;
     std::unordered_map<std::string, std::unordered_set<int>> modified_palettes;
     std::unordered_map<std::string,

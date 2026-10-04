@@ -422,6 +422,40 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
   }
 }
 
+absl::Status MapRefreshCoordinator::RefreshPaletteUsers(
+    const std::string& group, int palette_index) {
+  if (group != "ow_main" && group != "ow_aux" && group != "ow_animated" &&
+      group != "grass" && group != "hud" && group != "global_sprites" &&
+      group != "sprites_aux1" && group != "sprites_aux2" &&
+      group != "sprites_aux3") {
+    return absl::OkStatus();
+  }
+  bool refreshed = false;
+  for (int id = 0; id < zelda3::kNumOverworldMaps; ++id) {
+    auto* map = ctx_.overworld->mutable_overworld_map(id);
+    if (!map || map->current_palette().empty()) {
+      continue;
+    }
+    if (group == "ow_main" && palette_index >= 0 &&
+        map->render_main_palette() != palette_index) {
+      continue;
+    }
+    RETURN_IF_ERROR(map->LoadPalette());
+    auto& bitmap = (*ctx_.maps_bmp)[id];
+    if (bitmap.is_active() && bitmap.surface()) {
+      bitmap.SetPalette(map->current_palette());
+      gfx::Arena::Get().QueueTextureCommand(
+          bitmap.texture() ? gfx::Arena::TextureCommandType::UPDATE
+                           : gfx::Arena::TextureCommandType::CREATE,
+          &bitmap);
+    }
+    refreshed = true;
+  }
+  // This path updates display colors only. Do not invalidate/reload sheets or
+  // repack Tile16/map data just because a palette word changed.
+  return refreshed ? RefreshTile16Blockset() : absl::OkStatus();
+}
+
 absl::Status MapRefreshCoordinator::RefreshMapPalette(int map_id) {
   const int target_map = map_id < 0 ? *ctx_.current_map : map_id;
   auto* current_map = ctx_.overworld->mutable_overworld_map(target_map);

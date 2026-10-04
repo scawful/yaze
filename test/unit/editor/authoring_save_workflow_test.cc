@@ -40,6 +40,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/background_renderer.h"
 #include "core/features.h"
@@ -560,6 +561,91 @@ TEST_F(AuthoringSaveWorkflowTest, ScreenSourcePixelsUndoReturnSaveAsReopen) {
   EXPECT_FALSE(screen->HasPendingScreenChanges());
   QualifySourcePixelRoundTrip(fixture);
   EXPECT_FALSE(screen->HasPendingScreenChanges());
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       OverworldPaletteColorsRefreshCanvasAndOpenGraphicsWithoutSave) {
+  const auto fixture = CopyProject("yaze-overworld-live-colors");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* ow = manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ow->SelectMapForEditing(0, false);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*ow));
+  auto& world = ow->overworld();
+  ASSERT_OK(world.EnsureMapBuilt(0x40));
+  // A declared disposable Tile16 variant addresses main-palette color 0:
+  // slot 1 uses the left half, row 2, raw pixel index 1 -> display index 33.
+  const gfx::TileInfo info(64, 2, false, false, false);
+  (*world.mutable_tiles16())[0] = gfx::Tile16(info, info, info, info);
+  ASSERT_OK(ow->OpenGraphicsForTile16Quadrant(0, 0));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  ASSERT_TRUE(state.SourceTarget());
+  const auto target = *state.SourceTarget();
+  const auto* map = world.overworld_map(0);
+  const auto* other_world = world.overworld_map(0x40);
+  const int palette_id = map->render_main_palette();
+  const auto unrelated_before = other_world->current_palette()[33];
+  auto& palettes = gfx::PaletteManager::Get();
+  ASSERT_TRUE(palettes.IsManaging(state.game_data));
+  const auto original = palettes.GetColor("ow_main", palette_id, 0);
+  ASSERT_EQ(target.palette[1].snes(), original.snes());
+  const gfx::SnesColor changed(original.snes() ^ 0x7FFF);
+  const auto bytes = manager_->GetCurrentRom()->vector();
+  const auto indices = ow->map_bitmap(0).vector();
+  const int offset =
+      (target.tile_index / 16) * 8 * 128 + (target.tile_index % 16) * 8;
+  const int before_pixel =
+      state.game_data->sheet_store.Sheet(target.sheet_id)[offset];
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(
+      *graphics, offset % 128, offset / 128, (before_pixel + 1) % 8);
+  const auto sheet_revision =
+      state.game_data->sheet_store.Revision(target.sheet_id);
+  auto check = [&](const gfx::SnesColor& color) {
+    EXPECT_OK(graphics->Update());
+    EXPECT_TRUE(state.source_context->palette_error.empty())
+        << state.source_context->palette_error;
+    EXPECT_EQ(state.SourceTarget()->palette[1].snes(), color.snes());
+    EXPECT_EQ(map->current_palette()[33].snes(), color.snes());
+    EXPECT_EQ(ow->map_bitmap(0).palette()[33].snes(), color.snes());
+    const auto preview = state.source_context->render_preview();
+    ASSERT_OK(preview.status());
+    const auto rgb = color.rgb();
+    EXPECT_EQ(preview->colors[33].r, static_cast<uint8_t>(rgb.x));
+    EXPECT_EQ(preview->colors[33].g, static_cast<uint8_t>(rgb.y));
+    EXPECT_EQ(preview->colors[33].b, static_cast<uint8_t>(rgb.z));
+  };
+  ASSERT_OK(palettes.SetColor("ow_main", palette_id, 0, changed));
+  check(changed);
+  palettes.Undo();
+  check(original);
+  palettes.Redo();
+  check(changed);
+  palettes.DiscardAllChanges();
+  check(original);
+  EXPECT_EQ(ow->map_bitmap(0).vector(), indices);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), bytes);
+  EXPECT_EQ(state.game_data->sheet_store.Revision(target.sheet_id),
+            sheet_revision);
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  if (other_world->render_main_palette() != palette_id)
+    EXPECT_EQ(other_world->current_palette()[33].snes(),
+              unrelated_before.snes());
+
+  // Activating another actual editor session must not recolor this canvas.
+  auto other = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*other, &renderer_);
+  other->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(other->OpenRomOrProject(fixture.project.string()));
+  ASSERT_OK(other->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_OK(palettes.SetColor("ow_main", palette_id, 0, changed));
+  EXPECT_EQ(map->current_palette()[33].snes(), original.snes());
+  EXPECT_EQ(ow->map_bitmap(0).palette()[33].snes(), original.snes());
+  gfx::Arena::Get().ClearTextureQueue();
+  other.reset();
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
 }
 
 TEST_F(AuthoringSaveWorkflowTest, OverworldSourcePixelsUndoReturnSaveAsReopen) {
@@ -1178,6 +1264,42 @@ TEST_F(AuthoringSaveWorkflowTest,
   ASSERT_EQ(arena_sheet.palette().size(), original_palette.size());
   for (size_t i = 0; i < original_palette.size(); ++i) {
     EXPECT_EQ(arena_sheet.palette()[i].snes(), original_palette[i].snes());
+  }
+
+  // Recolor the room's full dungeon bank in one batch so whichever standard
+  // wall tile this fixture selects must refresh from that bank. This changes
+  // only temporary in-memory palette words, then discards them before the
+  // existing pixel Save As/reopen proof.
+  auto& palette_manager = gfx::PaletteManager::Get();
+  const int palette_id = room.ResolveDungeonPaletteId();
+  const auto original_bank =
+      state.game_data->palette_groups.dungeon_main.palette(palette_id);
+  palette_manager.BeginBatch();
+  for (size_t i = 0; i < original_bank.size(); ++i) {
+    ASSERT_OK(palette_manager.SetColor(
+        "dungeon_main", palette_id, i,
+        gfx::SnesColor(original_bank[i].snes() ^ 0x7FFF)));
+  }
+  palette_manager.EndBatch();
+  ASSERT_OK(graphics->Update());
+  ASSERT_TRUE(state.source_context->palette_error.empty())
+      << state.source_context->palette_error;
+  bool recolored_target = false;
+  for (size_t i = 0; i < context.targets.size(); ++i) {
+    for (size_t c = 1; c < 8; ++c) {
+      recolored_target |= context.targets[i].palette[c].snes() !=
+                          state.source_context->targets[i].palette[c].snes();
+    }
+  }
+  EXPECT_TRUE(recolored_target);
+  EXPECT_EQ(arena_sheet.vector(), original_pixels);
+  palette_manager.DiscardAllChanges();
+  ASSERT_OK(graphics->Update());
+  for (size_t i = 0; i < context.targets.size(); ++i) {
+    for (size_t c = 0; c < 8; ++c) {
+      EXPECT_EQ(context.targets[i].palette[c].snes(),
+                state.source_context->targets[i].palette[c].snes());
+    }
   }
 
   // A stroke on a used tile, through the production pixel/undo path.

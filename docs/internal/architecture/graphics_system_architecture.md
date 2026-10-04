@@ -69,6 +69,27 @@ authoring dirty state or undo history. Reloading or replacing the ROM clears
 these temporary choices. A source-bound `GraphicsEditContext` controls its colors
 until the user explicitly chooses **Use manual palette**.
 
+Palette edits, Undo/Redo, reset and discard publish through the existing
+`PaletteManager` → Arena notification path. `ColorRevision(GameData*)` names the
+session's in-memory color state; it is separate from sheet-store revisions and
+save checkpoints. Consumers must scope callbacks to the owning GameData.
+Overworld refreshes resolved palettes on materialized maps (including cached
+other worlds) without rebuilding authored tile grids; Dungeon uses its existing
+palette-user invalidation. Do not require Save or a manual Apply to preview a
+supported PaletteManager edit.
+
+Dungeon and Overworld `GraphicsEditContext::refresh_palettes` callbacks reuse
+source loaders when the color revision changes. `UpdateGraphicsContextPalettes`
+checks all target identities before replacing any color. A changed sheet/tile
+assignment reports a stale source rather than redirecting pending pixel edits.
+Selection, floating paste, sheet revisions and pixel Undo are retained. Overworld
+source assignments remain captured at entry; changing those requires reopening
+Edit Graphics. Sprite/Screen captured source contexts are not upgraded by this
+callback path yet. Manual **Loaded colors** remains the load-time snapshot.
+Usage Preview watches color revisions separately from pixel changes, and generic
+Room/Sprite/Tile16 contexts reload their palette caches. New resolvers should
+supply the same callback rather than creating another palette owner.
+
 `RomSession` owns a lazily allocated display-sheet array. Both eager and lazy
 asset loads populate it from loaded bitmaps and `GameData::sheet_store`.
 `HandleSessionSwitched` selects it through `Arena::BindGraphicsSheets`, including

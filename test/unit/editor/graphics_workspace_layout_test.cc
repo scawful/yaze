@@ -7,12 +7,15 @@
 #include <utility>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/graphics/graphics_palette_preview.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
+#include "app/editor/graphics/ui/usage/usage_preview_view.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas_rendering.h"
 #include "imgui/imgui_internal.h"
@@ -143,6 +146,142 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
   gfx::Bitmap* bitmap_ = nullptr;
   gfx::Bitmap saved_bitmap_;
 };
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       SourceColorsFollowPaletteUndoWithoutReplacingPendingPixels) {
+  auto& manager = gfx::PaletteManager::Get();
+  manager.ResetForTesting();
+  absl::Cleanup cleanup = [&] {
+    manager.ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  data_->palette_groups.dungeon_main.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(90, 0x001F)));
+  manager.Initialize(data_.get());
+  GraphicsEditContext source;
+  source.owner = data_.get();
+  source.targets.push_back(
+      {.sheet_id = 0,
+       .tile_index = 0,
+       .palette = gfx::SnesPalette(std::vector<uint16_t>(8, 0x001F))});
+  int refreshes = 0;
+  source.refresh_palettes = [&](GraphicsEditContext& context) {
+    ++refreshes;
+    auto fresh = context;
+    fresh.targets[0].palette = gfx::SnesPalette(std::vector<uint16_t>(
+        8, data_->palette_groups.dungeon_main.palette_ref(0)[0].snes()));
+    return UpdateGraphicsContextPalettes(context, std::move(fresh));
+  };
+  state_.source_context = std::move(source);
+  state_.source_context_revision++;
+  state_.open_sheets.insert(0);
+  auto painted = bitmap_->vector();
+  painted[16] = 5;
+  ASSERT_TRUE(CommitSheetPixels(state_, 0, painted).ok());
+  const auto sheet_revision = data_->sheet_store.Revision(0);
+  state_.selection.is_floating = true;
+  state_.selection.pixel_data = {2, 3};
+  PixelEditorPanel pixel(&state_, nullptr);
+  const auto frame = [&] {
+    RefreshGraphicsPreviewPalettes(state_);
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 0, 0, 255));
+  EXPECT_EQ(refreshes, 1);
+  ASSERT_TRUE(
+      manager.SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x03E0)).ok());
+  frame();
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 255, 0, 255));
+  manager.Undo();
+  frame();
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 0, 0, 255));
+  manager.Redo();
+  frame();
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 255, 0, 255));
+  manager.DiscardAllChanges();
+  frame();
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 0, 0, 255));
+  EXPECT_EQ(bitmap_->vector(), painted);
+  EXPECT_EQ(data_->sheet_store.Revision(0), sheet_revision);
+  EXPECT_TRUE(state_.modified_sheets.contains(0));
+  EXPECT_TRUE(state_.selection.is_floating);
+  EXPECT_EQ(state_.selection.pixel_data, (std::vector<uint8_t>{2, 3}));
+
+  zelda3::GameData other;
+  other.palette_groups.dungeon_main.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(90, 0x7C00)));
+  manager.Initialize(&other);
+  ASSERT_TRUE(
+      manager.SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x001F)).ok());
+  const int previous_refreshes = refreshes;
+  frame();
+  EXPECT_EQ(refreshes, previous_refreshes);
+  EXPECT_EQ(state_.source_context->targets[0].palette[1].snes(), 0x001F);
+  manager.ReleaseSession(&other);
+  manager.ActivateSession(data_.get());
+
+  auto changed_source = *state_.source_context;
+  changed_source.targets[0].sheet_id = 1;
+  changed_source.targets[0].palette =
+      gfx::SnesPalette(std::vector<uint16_t>(8, 0x7C00));
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(*state_.source_context,
+                                             std::move(changed_source))
+                   .ok());
+  EXPECT_EQ(state_.source_context->targets[0].sheet_id, 0);
+  EXPECT_EQ(state_.source_context->targets[0].palette[1].snes(), 0x001F);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest, UsageSourceRendersAfterColorOnlyChange) {
+  auto& manager = gfx::PaletteManager::Get();
+  manager.ResetForTesting();
+  absl::Cleanup cleanup = [&] {
+    manager.ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  data_->palette_groups.dungeon_main.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(90, 0x001F)));
+  manager.Initialize(data_.get());
+  GraphicsEditContext source;
+  source.owner = data_.get();
+  int renders = 0;
+  uint16_t rendered_color = 0;
+  source.render_preview = [&]() -> absl::StatusOr<usage_preview::PreviewImage> {
+    ++renders;
+    rendered_color = manager.GetColor("dungeon_main", 0, 0).snes();
+    usage_preview::PreviewImage image;
+    image.width = image.height = 1;
+    image.pixels = {1};
+    return image;
+  };
+  state_.source_context = std::move(source);
+  state_.source_context_revision++;
+  UsagePreviewView view(&state_);
+  view.SetRom(&rom);
+  view.SetGameData(data_.get());
+  const auto frame = [&] {
+    Frame([&] { view.Draw(); });
+  };
+  frame();
+  frame();
+  frame();
+  ASSERT_GT(renders, 0);
+  EXPECT_EQ(rendered_color, 0x001F);
+  const int before = renders;
+  ASSERT_TRUE(
+      manager.SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x03E0)).ok());
+  frame();
+  frame();
+  EXPECT_GT(renders, before);
+  EXPECT_EQ(rendered_color, 0x03E0);
+  manager.Undo();
+  frame();
+  EXPECT_EQ(rendered_color, 0x001F);
+  gfx::Arena::Get().ClearTextureQueue();
+}
 
 TEST_F(GraphicsWorkspaceLayoutTest,
        CurrentSwatchFollowsSelectionAndPaletteRow) {
