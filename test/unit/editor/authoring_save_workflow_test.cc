@@ -26,6 +26,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "absl/types/span.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/minecart_track_source.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
@@ -484,6 +485,7 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   void QualifyMainGraphicsAssignment(bool custom_sheets);
 
   void QualifySpecialArea(zelda3::AreaSizeEnum size, int child, int x, int y);
+  void QualifyPaletteWordRoundTrip(bool dungeon_source);
 
   void QualifySourcePixelRoundTrip(const DisposableOracleProject& fixture) {
     auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
@@ -561,6 +563,203 @@ TEST_F(AuthoringSaveWorkflowTest, ScreenSourcePixelsUndoReturnSaveAsReopen) {
   EXPECT_FALSE(screen->HasPendingScreenChanges());
   QualifySourcePixelRoundTrip(fixture);
   EXPECT_FALSE(screen->HasPendingScreenChanges());
+}
+
+TEST_F(AuthoringSaveWorkflowTest, GoronPaletteWordUndoRetrySaveAsReopen) {
+  QualifyPaletteWordRoundTrip(/*dungeon_source=*/true);
+}
+
+TEST_F(AuthoringSaveWorkflowTest, OverworldPaletteWordUndoRetrySaveAsReopen) {
+  QualifyPaletteWordRoundTrip(/*dungeon_source=*/false);
+}
+
+void AuthoringSaveWorkflowTest::QualifyPaletteWordRoundTrip(
+    bool dungeon_source) {
+  const auto fixture = CopyProject("yaze-palette-word-roundtrip");
+  Open(fixture);
+  const auto editor_type =
+      dungeon_source ? EditorType::kDungeon : EditorType::kOverworld;
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(editor_type));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* editors = manager_->GetCurrentEditorSet();
+  auto* graphics = editors->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  constexpr int kRoom = 0x89;
+  constexpr int kMap = 0;
+  int palette_id = -1;
+  if (dungeon_source) {
+    auto* dungeon = editors->GetEditorAs<DungeonEditorV2>(editor_type);
+    AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kRoom);
+    ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+    auto& room = dungeon->rooms()[kRoom];
+    room.PrepareForRender();
+    palette_id = room.ResolveDungeonPaletteId();
+    for (const auto& object : room.GetTileObjects()) {
+      AuthoringSaveWorkflowTestPeer::OpenObjectGraphics(*dungeon, kRoom,
+                                                        object);
+      if (state.source_context)
+        break;
+    }
+  } else {
+    auto* ow = editors->GetEditorAs<OverworldEditor>(editor_type);
+    ow->SelectMapForEditing(kMap, false);
+    ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*ow));
+    palette_id = ow->overworld().overworld_map(kMap)->render_main_palette();
+    for (int x = 0; x < 32 && !state.source_context; ++x) {
+      for (int y = 0; y < 32 && !state.source_context; ++y) {
+        const auto tile = ow->overworld().GetMapTiles(0)[x][y];
+        for (int quadrant = 0; quadrant < 4 && !state.source_context;
+             ++quadrant)
+          (void)ow->OpenGraphicsForTile16Quadrant(tile, quadrant);
+      }
+    }
+  }
+  ASSERT_TRUE(state.source_context);
+  ASSERT_TRUE(state.SourceTarget());
+  ASSERT_TRUE(state.source_context->render_preview);
+  auto& palettes = gfx::PaletteManager::Get();
+  ASSERT_TRUE(palettes.IsManaging(state.game_data));
+  ASSERT_TRUE(core::FeatureFlags::get().kSaveAllPalettes ||
+              core::FeatureFlags::get().dungeon.kSavePalettes);
+
+  // Establish a product-saved control: existing serializers can normalize data
+  // on the first save. The color edit must add only its word to this baseline.
+  const auto control_path = fixture.root / "control.sfc";
+  ASSERT_OK(manager_->SaveRomAs(control_path.string()));
+  const auto control = ReadFile(control_path);
+  const auto before = state.source_context->render_preview();
+  ASSERT_OK(before.status());
+  ASSERT_FALSE(before->empty());
+  ASSERT_EQ(before->format, usage_preview::PreviewImage::Format::kIndexed);
+  const std::string group = dungeon_source ? "dungeon_main" : "ow_main";
+  const int colors_per_row = dungeon_source ? 15 : 7;
+  const int last_row = dungeon_source ? 7 : 6;
+  // Choose a color actually drawn in the unmodified room/map, rather than
+  // inserting a synthetic Tile16 or changing the source object's tilewords.
+  const auto used = std::find_if(
+      before->pixels.begin(), before->pixels.end(), [&](uint8_t pixel) {
+        return pixel / 16 >= 2 && pixel / 16 <= last_row && pixel % 16 >= 1 &&
+               pixel % 16 <= colors_per_row;
+      });
+  ASSERT_NE(used, before->pixels.end());
+  const int display_index = *used;
+  const int color_index =
+      (display_index / 16 - 2) * colors_per_row + display_index % 16 - 1;
+  const auto original = palettes.GetColor(group, palette_id, color_index);
+  const gfx::SnesColor changed(original.snes() ^ 0x7FFF);
+  const auto address = gfx::GetPaletteAddress(group, palette_id, color_index);
+  ASSERT_LT(address + 1, control.size());
+  ASSERT_EQ(control[address] | (control[address + 1] << 8), original.snes());
+  const auto sheet =
+      state.game_data->sheet_store.Sheet(state.SourceTarget()->sheet_id);
+  const std::vector<uint8_t> original_pixels(sheet.begin(), sheet.end());
+  const auto before_rgba = before->ToRgba();
+  auto check_preview = [&](const gfx::SnesColor& color, bool edited) {
+    ASSERT_OK(graphics->Update());
+    ASSERT_TRUE(state.source_context->palette_error.empty());
+    const auto image = state.source_context->render_preview();
+    ASSERT_OK(image.status());
+    ASSERT_LT(display_index, image->colors.size());
+    EXPECT_EQ(image->pixels, before->pixels);
+    const auto rgb = color.rgb();
+    EXPECT_EQ(image->colors[display_index].r, static_cast<uint8_t>(rgb.x));
+    EXPECT_EQ(image->colors[display_index].g, static_cast<uint8_t>(rgb.y));
+    EXPECT_EQ(image->colors[display_index].b, static_cast<uint8_t>(rgb.z));
+    EXPECT_EQ(image->ToRgba() == before_rgba, !edited);
+    EXPECT_EQ(
+        state.game_data->sheet_store.Sheet(state.SourceTarget()->sheet_id),
+        absl::MakeConstSpan(original_pixels));
+    EXPECT_FALSE(graphics->HasPendingGraphicsChanges());
+  };
+  check_preview(original, false);
+  const auto undo_count = palettes.GetUndoStackSize();
+  ASSERT_OK(palettes.BeginColorEdit(group, palette_id, color_index));
+  ASSERT_OK(palettes.SetColor(group, palette_id, color_index,
+                              gfx::SnesColor(original.snes() ^ 0x001F)));
+  ASSERT_OK(palettes.SetColor(group, palette_id, color_index, changed));
+  check_preview(changed, true);
+  palettes.CommitColorEdit();
+  EXPECT_EQ(palettes.GetUndoStackSize(), undo_count + 1);
+  palettes.Undo();
+  check_preview(original, false);
+  palettes.Redo();
+  check_preview(changed, true);
+  ASSERT_TRUE(palettes.HasUnsavedChanges());
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), control);
+
+  const auto destination = fixture.root / "palette-edited.sfc";
+  const auto filename = manager_->GetCurrentRom()->filename();
+  {
+    test::ScopedRomStagingFailure fault;
+    const auto failed = manager_->SaveRomAs(destination.string());
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), filename);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), control);
+  EXPECT_EQ(ReadFile(control_path), control);
+  EXPECT_TRUE(palettes.HasUnsavedChanges());
+  EXPECT_EQ(palettes.GetUndoStackSize(), undo_count + 1);
+  check_preview(changed, true);
+  palettes.Undo();
+  check_preview(original, false);
+  palettes.Redo();
+  check_preview(changed, true);
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_FALSE(palettes.HasUnsavedChanges());
+  const auto saved = ReadFile(destination);
+  ASSERT_EQ(saved.size(), control.size());
+  auto expected = control;
+  expected[address] = changed.snes() & 0xFF;
+  expected[address + 1] = changed.snes() >> 8;
+  // The normal file save may update the SNES checksum/complement.
+  std::copy_n(saved.begin() + 0x7FDC, 4, expected.begin() + 0x7FDC);
+  EXPECT_EQ(saved, expected);
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), saved,
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+
+  auto reopened = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(editor_type));
+  EXPECT_EQ(palettes.GetColor(group, palette_id, color_index).snes(),
+            changed.snes());
+  EXPECT_FALSE(palettes.HasUnsavedChanges());
+  if (dungeon_source) {
+    auto* dungeon =
+        reopened->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+            editor_type);
+    AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kRoom);
+    ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+    auto& room = dungeon->rooms()[kRoom];
+    room.PrepareForRender();
+    EXPECT_EQ(room.ResolveDungeonPaletteId(), palette_id);
+    EXPECT_EQ(room.rendered_dungeon_palette()[color_index].snes(),
+              changed.snes());
+  } else {
+    auto* ow = reopened->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+        editor_type);
+    ow->SelectMapForEditing(kMap, false);
+    ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*ow));
+    EXPECT_EQ(ow->map_bitmap(kMap).palette()[display_index].snes(),
+              changed.snes());
+  }
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  RecordProperty("palette_word_pc", address);
+  RecordProperty("palette_group", group);
+  RecordProperty("palette_id", palette_id);
+  RecordProperty("color_index", color_index);
+  RecordProperty("original_word", original.snes());
+  RecordProperty("saved_word", changed.snes());
+  RecordProperty("saved_rom_sha1",
+                 util::ComputeFileSha1Hex(destination.string()));
 }
 
 TEST_F(AuthoringSaveWorkflowTest,

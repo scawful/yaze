@@ -4668,7 +4668,7 @@ absl::Status EditorManager::SaveRomInternal(
   if (save_status.ok()) {
     editor_transactions.Commit();
     rom_transaction.Commit();
-    CaptureCurrentRomIdentity();
+    CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);
     if (session_coordinator_) {
       if (auto* session = session_coordinator_->GetActiveRomSession()) {
         session->backup_restore_pending = false;
@@ -6336,10 +6336,10 @@ void EditorManager::ApplyDefaultBackupPolicy() {
       user_settings_.prefs().backup_before_save, "", 20, true, 14);
 }
 
-void EditorManager::CaptureCurrentRomIdentity() {
+void EditorManager::CaptureCurrentRomIdentity(bool preserve_editing_source) {
   if (session_coordinator_) {
     if (auto* session = session_coordinator_->GetActiveRomSession()) {
-      session->CaptureRomIdentity();
+      session->CaptureRomIdentity(preserve_editing_source);
     }
   }
   RestoreCurrentRomIdentity();

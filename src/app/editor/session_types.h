@@ -166,6 +166,8 @@ class EditorSet {
 struct RomBaselineIdentity {
   util::RomIdentityHashes hashes;
   std::string normalized_path;
+  // Retained across our own saves, reset when loading/replacing ROM bytes.
+  std::string editing_source_path;
 };
 
 /**
@@ -178,7 +180,7 @@ struct RomSession {
   // Identity of loaded/committed bytes, independent of pending raw/model edits.
   // Empty sessions have no baseline. Session activation must never capture it.
   std::optional<RomBaselineIdentity> rom_baseline;
-  void CaptureRomIdentity();
+  void CaptureRomIdentity(bool preserve_editing_source = false);
 
   zelda3::GameData game_data;
   // Display copies have stable addresses across user and per-frame activation.

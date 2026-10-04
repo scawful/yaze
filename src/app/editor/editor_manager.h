@@ -682,7 +682,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   emu::input::InputConfig BuildInputConfigFromSettings() const;
   void PersistInputConfig(const emu::input::InputConfig& config);
-  void CaptureCurrentRomIdentity();
+  void CaptureCurrentRomIdentity(bool preserve_editing_source = false);
   void RestoreCurrentRomIdentity();
   void ApplyDefaultBackupPolicy();
   void CaptureRuntimeFeatureFlags();

@@ -41,6 +41,7 @@
 #include "core/features.h"
 #include "editor_test_support.h"
 #include "framework/mock_renderer.h"
+#include "framework/rom_save_fault.h"
 #include "gmock/gmock.h"
 #include "imgui/imgui_internal.h"
 #include "rom/snes.h"
@@ -1962,6 +1963,7 @@ TEST(EditorManagerRomWritePolicyTest, SaveRomAsRefreshesLifecycleHashAndPath) {
   project->rom_filename = source_path.string();
   project->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
   project->rom_metadata.expected_hash = manager->GetCurrentRomHash();
+  const std::string expected_hash = project->rom_metadata.expected_hash;
   EXPECT_FALSE(manager->IsRomHashMismatch());
 
   Rom* rom = manager->GetCurrentRom();
@@ -1970,7 +1972,15 @@ TEST(EditorManagerRomWritePolicyTest, SaveRomAsRefreshesLifecycleHashAndPath) {
   ASSERT_OK(manager->SaveRomAs(target_path.string()));
 
   EXPECT_EQ(rom->filename(), target_path.string());
-  EXPECT_TRUE(manager->IsRomHashMismatch());
+  // Our Save As retains the canonical editing-source exemption, while the
+  // baseline hash follows committed bytes and the project expectation stays put.
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  EXPECT_NE(manager->GetCurrentRomHash(), expected_hash);
+  EXPECT_EQ(project->rom_metadata.expected_hash, expected_hash);
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(target_path.string()));
+  EXPECT_EQ(manager->GetCurrentRomHash(),
+            util::ComputeRomHash(reopened.data(), reopened.size()));
 }
 
 TEST(EditorManagerRomWritePolicyTest,
@@ -3594,6 +3604,7 @@ class SessionRomIdentityTest : public ::testing::Test {
     ASSERT_TRUE(Session()->rom_baseline.has_value());
     const auto& actual = *Session()->rom_baseline;
     EXPECT_EQ(actual.normalized_path, baseline.normalized_path);
+    EXPECT_EQ(actual.editing_source_path, baseline.editing_source_path);
     EXPECT_EQ(actual.hashes.crc32, baseline.hashes.crc32);
     EXPECT_EQ(actual.hashes.legacy_crc32, baseline.hashes.legacy_crc32);
     EXPECT_EQ(actual.hashes.sha1, baseline.hashes.sha1);
@@ -3694,6 +3705,110 @@ TEST_F(SessionRomIdentityTest, SwitchedRawEditSaveAsRebindsOnlyAfterCommit) {
   Switch(1);
   Switch(0);
   ExpectBaseline(committed);
+}
+
+TEST_F(SessionRomIdentityTest,
+       EditableSaveAsRetainsSourceAcrossFailureSwitchAndRepeatedSaves) {
+  auto* project = manager->GetCurrentProject();
+  project->rom_filename = a.string();
+  project->build_target = (root / "patched.sfc").string();
+  const auto expected_hash = project->rom_metadata.expected_hash;
+  const auto project_path = project->filepath;
+  const auto source_hash = util::ComputeFileSha1Hex(a.string());
+  const auto first = root / "first.sfc";
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  ASSERT_OK(manager->SaveRomAs(first.string()));
+  const auto committed = *Session()->rom_baseline;
+  EXPECT_EQ(committed.normalized_path, first.string());
+  EXPECT_EQ(committed.editing_source_path, a.string());
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1235, 0x72));
+  const auto pending = manager->GetCurrentRom()->vector();
+  const auto first_hash = util::ComputeFileSha1Hex(first.string());
+  const auto second = root / "second.sfc";
+  {
+    test::ScopedRomStagingFailure fault;
+    const auto failed = manager->SaveRomAs(second.string());
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  ExpectBaseline(committed);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), pending);
+  EXPECT_TRUE(manager->GetCurrentRom()->dirty());
+  EXPECT_FALSE(std::filesystem::exists(second));
+  EXPECT_EQ(util::ComputeFileSha1Hex(first.string()), first_hash);
+  Switch(1);
+  EXPECT_EQ(Session()->rom_baseline->editing_source_path, b.string());
+  Switch(0);
+  ExpectBaseline(committed);
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  ASSERT_OK(manager->SaveRomAs(second.string()));
+  EXPECT_EQ(Session()->rom_baseline->editing_source_path, a.string());
+  EXPECT_EQ(Session()->rom_baseline->normalized_path, second.string());
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1236, 0x31));
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_EQ(ReadByteAt(second, 0x1236), 0x31);
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), source_hash);
+  EXPECT_EQ(project->rom_metadata.expected_hash, expected_hash);
+  EXPECT_EQ(project->filepath, project_path);
+
+  // The session's own Save As does not authorize writing a build output.
+  const auto saved = *Session()->rom_baseline;
+  const auto blocked = manager->SaveRomAs(project->build_target);
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kPermissionDenied) << blocked;
+  EXPECT_NE(blocked.message().find("build output"), absl::string_view::npos);
+  EXPECT_FALSE(std::filesystem::exists(project->build_target));
+  ExpectBaseline(saved);
+  // Changing the configured editable target also removes this exemption.
+  project->rom_filename = (root / "different-edit-target.sfc").string();
+  EXPECT_TRUE(manager->IsRomHashMismatch());
+  EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kPermissionDenied);
+  ExpectBaseline(saved);
+}
+
+TEST_F(SessionRomIdentityTest,
+       HashMatchedForeignSaveDoesNotAcquireEditableSource) {
+  // StrictProject deliberately configures a different editable target. A hash
+  // match permits the first save but must not turn it into a trusted lineage.
+  const auto expected_hash =
+      manager->GetCurrentProject()->rom_metadata.expected_hash;
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto first = root / "foreign-copy.sfc";
+  ASSERT_OK(manager->SaveRomAs(first.string()));
+  EXPECT_TRUE(manager->IsRomHashMismatch());
+  const auto saved = *Session()->rom_baseline;
+  const auto disk_hash = util::ComputeFileSha1Hex(first.string());
+  const auto second = root / "refused-copy.sfc";
+  EXPECT_EQ(manager->SaveRomAs(second.string()).code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_FALSE(std::filesystem::exists(second));
+  EXPECT_EQ(util::ComputeFileSha1Hex(first.string()), disk_hash);
+  ExpectBaseline(saved);
+  EXPECT_EQ(manager->GetCurrentProject()->rom_metadata.expected_hash,
+            expected_hash);
+}
+
+TEST_F(SessionRomIdentityTest, ReloadingSavedCopyResetsEditableSource) {
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  manager->GetCurrentProject()->rom_filename = a.string();
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto destination = root / "saved-copy.sfc";
+  ASSERT_OK(manager->SaveRomAs(destination.string()));
+  EXPECT_EQ(Session()->rom_baseline->editing_source_path, a.string());
+  const auto saved = *Session()->rom_baseline;
+  // Failed external replacement preserves our own committed lineage.
+  WriteTooSmallForAssetsTestRom(destination);
+  EXPECT_FALSE(manager->RevertRomToSaved().ok());
+  ExpectBaseline(saved);
+  // Once different disk bytes are loaded successfully, their source is the
+  // replacement file, not the original editable target.
+  WriteScreenModelTestRom(destination, "EXTERNAL REPLACEMENT");
+  ASSERT_OK(manager->RevertRomToSaved());
+  EXPECT_EQ(Session()->rom_baseline->editing_source_path, destination.string());
+  EXPECT_TRUE(manager->IsRomHashMismatch());
+  EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kPermissionDenied);
 }
 
 TEST_F(SessionRomIdentityTest, TwoDirtySessionsKeepTheirOwnPolicyAndIdentity) {
@@ -3811,6 +3926,7 @@ TEST_F(SessionRomIdentityTest,
                                  manager->GetCurrentRom()->size()));
   const auto replacement = *Session()->rom_baseline;
   EXPECT_EQ(replacement.normalized_path, a.string());
+  EXPECT_EQ(replacement.editing_source_path, a.string());
   Switch(1);
   Switch(0);
   ExpectBaseline(replacement);
@@ -3824,6 +3940,7 @@ TEST_F(SessionRomIdentityTest,
   ASSERT_OK(manager->SwapProjectRom(replacement_file.string()));
   const auto rebound = *Session()->rom_baseline;
   EXPECT_EQ(rebound.normalized_path, replacement_file.string());
+  EXPECT_EQ(rebound.editing_source_path, replacement_file.string());
   EXPECT_EQ(rebound.hashes.crc32,
             util::ComputeRomHash(manager->GetCurrentRom()->data(),
                                  manager->GetCurrentRom()->size()));

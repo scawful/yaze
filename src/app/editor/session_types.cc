@@ -395,15 +395,19 @@ RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id,
   CaptureRomIdentity();
 }
 
-void RomSession::CaptureRomIdentity() {
+void RomSession::CaptureRomIdentity(bool preserve_editing_source) {
   if (!rom.is_loaded()) {
     rom_baseline.reset();
     return;
   }
   auto path = std::filesystem::path(rom.filename()).lexically_normal();
   path.make_preferred();
+  const std::string editing_source = preserve_editing_source && rom_baseline
+                                         ? rom_baseline->editing_source_path
+                                         : path.string();
   rom_baseline = RomBaselineIdentity{
-      util::ComputeRomIdentityHashes(rom.data(), rom.size()), path.string()};
+      util::ComputeRomIdentityHashes(rom.data(), rom.size()), path.string(),
+      editing_source};
 }
 
 void RomSession::ReloadGraphicsDisplay() {
