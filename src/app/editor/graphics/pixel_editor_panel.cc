@@ -11,6 +11,7 @@
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
@@ -602,6 +603,17 @@ void PixelEditorPanel::DrawColorPicker() {
 
   const auto& palette = DisplayPalette();
 
+  // Selection is an index, not a cached RGB value. Resolve it again when the
+  // sheet, palette row, or source context changes. Index zero stays transparent.
+  const auto display_color = [&palette](int index) {
+    ImVec4 color = gui::ConvertSnesColorToImVec4(palette[index]);
+    color.w = index == 0 ? 0.0f : 1.0f;
+    return color;
+  };
+  constexpr auto kSwatchFlags = ImGuiColorEditFlags_NoTooltip |
+                                ImGuiColorEditFlags_NoBorder |
+                                ImGuiColorEditFlags_AlphaPreview;
+
   // Sheet editing is indexed 3bpp; rendered 4bpp expansion is not authored.
   for (int i = 0; i < static_cast<int>(palette.size()) && i < 8; i++) {
     if (i > 0 && i % 4 == 0) {
@@ -610,29 +622,20 @@ void PixelEditorPanel::DrawColorPicker() {
       ImGui::SameLine();
     }
 
-    ImVec4 color(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
-                 palette[i].rgb().z / 255.0f, 1.0f);
-
-    bool is_selected = state_->current_color_index == i;
-    std::optional<gui::StyleVarGuard> border_var;
-    std::optional<gui::StyleColorGuard> border_color;
-    if (is_selected) {
-      border_var.emplace(ImGuiStyleVar_FrameBorderSize, 2.0f);
-      border_color.emplace(ImGuiCol_Border, gui::GetWarningColor());
-    }
-
     std::string id = absl::StrFormat("##Color%d", i);
-    if (ImGui::ColorButton(
-            id.c_str(), color,
-            ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoBorder,
-            ImVec2(24, 24))) {
+    if (ImGui::ColorButton(id.c_str(), display_color(i), kSwatchFlags,
+                           ImVec2(24, 24))) {
       state_->current_color_index = static_cast<uint8_t>(i);
-      state_->current_color = color;
     }
+    gui::AutoRegisterLastItem("color", absl::StrFormat("Palette index %d", i));
 
-    if (is_selected) {
-      border_color.reset();
-      border_var.reset();
+    if (state_->current_color_index == i) {
+      const auto min = ImGui::GetItemRectMin();
+      const auto max = ImGui::GetItemRectMax();
+      ImGui::GetWindowDrawList()->AddRect(
+          ImVec2(min.x - 1, min.y - 1), ImVec2(max.x + 1, max.y + 1),
+          ImGui::GetColorU32(gui::GetSelectedColor()),
+          ImGui::GetStyle().FrameRounding, 0, 1.5f);
     }
 
     if (ImGui::IsItemHovered()) {
@@ -653,8 +656,17 @@ void PixelEditorPanel::DrawColorPicker() {
 
   // Current color preview
   ImGui::Text(tr("Current:"));
-  ImGui::ColorButton("##CurrentColor", state_->current_color,
-                     ImGuiColorEditFlags_NoTooltip, ImVec2(24, 24));
+  const int index = state_->current_color_index;
+  if (index >= 8 || index >= palette.size()) {
+    ImGui::TextDisabled(tr("Index: %d (unavailable)"), index);
+    return;
+  }
+  ImGui::ColorButton("##CurrentColor", display_color(index), kSwatchFlags,
+                     ImVec2(24, 24));
+  gui::AutoRegisterLastItem("color", "Current color");
+  if (index == 0) {
+    HOVER_HINT("Transparent pixel");
+  }
   ImGui::SameLine();
   ImGui::Text(tr("Index: %d"), state_->current_color_index);
 }
@@ -949,15 +961,6 @@ void PixelEditorPanel::ApplyEyedropper(int x, int y) {
 
   if (x >= 0 && x < sheet.width() && y >= 0 && y < sheet.height()) {
     state_->current_color_index = sheet.GetPixel(x, y);
-
-    // Update current color display
-    const auto& palette = DisplayPalette();
-    if (state_->current_color_index < palette.size()) {
-      auto& color = palette[state_->current_color_index];
-      state_->current_color =
-          ImVec4(color.rgb().x / 255.0f, color.rgb().y / 255.0f,
-                 color.rgb().z / 255.0f, 1.0f);
-    }
   }
 }
 
@@ -1231,12 +1234,14 @@ void PixelEditorPanel::DrawPaletteRowPicker() {
   if (ImGui::ArrowButton("##RowDown", ImGuiDir_Left) && row > 0) {
     --row;
   }
+  gui::AutoRegisterLastItem("button", "Previous palette row");
   ImGui::SameLine();
   ImGui::Text("%d", row);
   ImGui::SameLine();
   if (ImGui::ArrowButton("##RowUp", ImGuiDir_Right) && row < 7) {
     ++row;
   }
+  gui::AutoRegisterLastItem("button", "Next palette row");
   ImGui::EndDisabled();
   HOVER_HINT(
       "Row of the palette chosen in Palette Controls; applied to this "

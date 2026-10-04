@@ -95,7 +95,6 @@ class GraphicsEditorState {
   // --- Editing State ---
   PixelTool current_tool = PixelTool::kPencil;
   uint8_t current_color_index = 1;  // Palette index (0 = transparent)
-  ImVec4 current_color;             // RGBA for display
   uint8_t brush_size = 1;           // 1-8 pixel brush
   bool fill_contiguous = true;      // Fill tool: contiguous only
 
