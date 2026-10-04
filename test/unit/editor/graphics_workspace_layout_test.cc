@@ -134,29 +134,50 @@ TEST_F(GraphicsWorkspaceLayoutTest,
        CurrentSwatchFollowsSelectionAndPaletteRow) {
   PixelEditorPanel pixel(&state_, nullptr);
   state_.open_sheets.insert(0);
-  std::vector<uint16_t> colors(8, 0x001f);
-  colors[2] = 0x7c00;
-  bitmap_->SetPalette(gfx::SnesPalette(colors));
+  // The sheet displays one seven-color slice with transparent index zero.
+  // The source palette intentionally has different colors at the same indices.
+  std::vector<uint16_t> colors(14, 0x001f);
+  colors[1] = 0x7c00;
+  colors[7] = 0x03e0;
+  colors[8] = 0x7c00;
+  bitmap_->SetPaletteWithTransparent(gfx::SnesPalette(colors), 0, 7);
   const auto pixels_before = bitmap_->vector();
   const auto frame = [&] {
     Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
   };
+  const auto expect_display_color = [&](ImU32 expected) {
+    const auto color = bitmap_->ReadColor(0, 0);  // This pixel is index one.
+    EXPECT_EQ(IM_COL32(color.r, color.g, color.b, 255), expected);
+    EXPECT_EQ(SwatchColor("Palette index 1"), expected);
+    EXPECT_EQ(SwatchColor("Current color"), expected);
+  };
   frame();
   frame();
   EXPECT_EQ(state_.current_color_index, 1);
-  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 0, 0, 255));
+  expect_display_color(IM_COL32(255, 0, 0, 255));
   state_.apply_palette_to_sheet = [&](uint16_t sheet) {
     EXPECT_EQ(sheet, 0);
-    colors[1] = 0x03e0;
-    bitmap_->SetPalette(gfx::SnesPalette(colors));
+    bitmap_->SetPaletteWithTransparent(gfx::SnesPalette(colors),
+                                       state_.sub_palette_index * 7, 7);
   };
   Click("Next palette row", frame);
   EXPECT_EQ(state_.sub_palette_index, 1);
   EXPECT_EQ(state_.current_color_index, 1);
-  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 255, 0, 255));
+  expect_display_color(IM_COL32(0, 255, 0, 255));
   Click("Palette index 2", frame);
   EXPECT_EQ(state_.current_color_index, 2);
   EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 0, 255, 255));
+  Click("Palette index 1", frame);
+  Click("Previous palette row", frame);
+  EXPECT_EQ(state_.sub_palette_index, 0);
+  expect_display_color(IM_COL32(255, 0, 0, 255));
+  // A complete three-bit palette may store only seven source colors.
+  bitmap_->SetPaletteWithTransparent(
+      gfx::SnesPalette(std::vector<uint16_t>(7, 0x03e0)), 0, 7);
+  frame();
+  Click("Palette index 7", frame);
+  EXPECT_EQ(state_.current_color_index, 7);
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 255, 0, 255));
   EXPECT_EQ(bitmap_->vector(), pixels_before);
   EXPECT_TRUE(state_.modified_sheets.empty());
 }
@@ -180,11 +201,10 @@ TEST_F(GraphicsWorkspaceLayoutTest,
             (*color >> IM_COL32_G_SHIFT) & 255);
   EXPECT_EQ((*color >> IM_COL32_G_SHIFT) & 255,
             (*color >> IM_COL32_B_SHIFT) & 255);
-  state_.current_color_index = 7;
-  bitmap_->SetPalette(gfx::SnesPalette(std::vector<uint16_t>(2, 0x001f)));
+  state_.current_color_index = 8;  // Outside the sheet's three-bit indices.
   frame();
   EXPECT_FALSE(FindWidget("Current color"));
-  EXPECT_EQ(state_.current_color_index, 7);
+  EXPECT_EQ(state_.current_color_index, 8);
   EXPECT_TRUE(state_.modified_sheets.empty());
 }
 

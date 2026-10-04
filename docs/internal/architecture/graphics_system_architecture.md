@@ -52,6 +52,11 @@ Represents a single graphics sheet or image optimized for SNES ROM editing.
 *   Use `set_data()` for bulk updates to keep CPU and GPU in sync
 *   Use `WriteToPixel()` for single-pixel modifications
 *   Call `UpdateTexture()` to sync changes to GPU
+*   `Bitmap::palette()` preserves the source palette bank. It is not the
+    displayed row after `SetPaletteWithTransparent()`. Manual pixel tools read
+    the SDL surface palette; source-bound tools use `GraphicsEditTarget::palette`.
+    `PixelEditorPanel::DisplayPalette()` provides this choice for swatches,
+    pixel inspection and clipboard colors without changing source palette data.
 
 ### 3. Graphics Workspaces (`src/app/editor/graphics/`)
 
