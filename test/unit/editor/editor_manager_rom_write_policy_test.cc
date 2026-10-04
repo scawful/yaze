@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -4116,6 +4117,8 @@ class PaletteWorkspaceTest : public SessionRomIdentityTest {
   void Frame(float width = 1000) {
     gui::WidgetIdRegistry::Instance().Clear();
     ImGui::NewFrame();
+    if (visit_sessions_)
+      manager->session_coordinator()->UpdateSessions();
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, 820), ImGuiCond_Always);
     ImGui::Begin("PaletteWorkspaceTestHost", nullptr,
@@ -4164,6 +4167,29 @@ class PaletteWorkspaceTest : public SessionRomIdentityTest {
     Frame();
     Frame();
   }
+  // Hit the rendered hue wheel, then move it across multiple actual frames.
+  void MoveOnWheel(float angle) {
+    const auto item = Widget("Palette color picker");
+    ASSERT_TRUE(item);
+    const float width = ImGui::GetFontSize() * 19;
+    const float bar = ImGui::GetFrameHeight();
+    const float size = width - bar - ImGui::GetStyle().ItemInnerSpacing.x;
+    const ImVec2 center(item->bounds.min_x + (size + bar) * 0.5f,
+                        item->bounds.min_y + size * 0.5f);
+    ImGui::GetIO().AddMousePosEvent(center.x + size * 0.46f * std::cos(angle),
+                                    center.y + size * 0.46f * std::sin(angle));
+    Frame();
+  }
+  void StartWheelDrag() {
+    MoveOnWheel(0.5f);
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    Frame();
+  }
+  void ReleaseWheel() {
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    Frame();
+    Frame();
+  }
   std::optional<ImU32> SwatchColor(const char* name) {
     auto item = Widget(name);
     if (!item)
@@ -4189,6 +4215,7 @@ class PaletteWorkspaceTest : public SessionRomIdentityTest {
     }
     return result;
   }
+  bool visit_sessions_ = false;
   PaletteEditor* palette = nullptr;
   WindowContent* workspace = nullptr;
 };
@@ -4254,6 +4281,164 @@ TEST_F(PaletteWorkspaceTest, ColorInputUndoAndOriginalUseTheSameModel) {
   EnterColor("FFFF");
   EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
   EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+}
+
+TEST_F(PaletteWorkspaceTest, WheelDragCommitsOneUndoAndKeepsLiveColors) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("001F");
+  auto& pm = gfx::PaletteManager::Get();
+  pm.ClearHistory();
+  const auto bytes = manager->GetCurrentRom()->vector();
+  const auto start = pm.GetColor("dungeon_main", 0, 3).snes();
+  const auto revision = pm.ColorRevision(&Session()->game_data);
+  StartWheelDrag();
+  ASSERT_TRUE(pm.HasColorEdit());
+  // Render the normal picker in those same frames, retaining ImGui's active ID.
+  visit_sessions_ = true;
+  Frame();
+  EXPECT_TRUE(pm.HasColorEdit());
+  EXPECT_EQ(pm.GetUndoStackSize(), 0);
+  for (float angle : {1.f, 1.5f, 2.f}) {
+    MoveOnWheel(angle);
+    EXPECT_EQ(pm.GetUndoStackSize(), 0);
+    EXPECT_EQ(SwatchColor("Current palette color"),
+              ImGui::GetColorU32(gui::ConvertSnesColorToImVec4(
+                  pm.GetColor("dungeon_main", 0, 3))));
+  }
+  const auto end = pm.GetColor("dungeon_main", 0, 3).snes();
+  ASSERT_NE(end, start);
+  EXPECT_GT(pm.ColorRevision(&Session()->game_data), revision + 1);
+  ReleaseWheel();
+  EXPECT_FALSE(pm.HasColorEdit());
+  EXPECT_EQ(pm.GetUndoStackSize(), 1);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), start);
+  EXPECT_EQ(pm.GetUndoStackSize(), 0);
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), end);
+  StartWheelDrag();
+  MoveOnWheel(4.f);
+  ReleaseWheel();
+  EXPECT_EQ(pm.GetUndoStackSize(), 2);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), end);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+}
+
+TEST_F(PaletteWorkspaceTest,
+       EscapeCancelsHeldDragAndPreservesRedoAndDirtyState) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("001F");
+  EnterColor("03E0");
+  Click("Undo palette edit");
+  auto& pm = gfx::PaletteManager::Get();
+  const auto bytes = manager->GetCurrentRom()->vector();
+  const auto undo = pm.GetUndoStackSize();
+  const auto redo = pm.GetRedoStackSize();
+  const auto dirty = pm.GetModifiedColorCount();
+  ASSERT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  StartWheelDrag();
+  MoveOnWheel(2.f);
+  ASSERT_NE(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, true);
+  Frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, false);
+  MoveOnWheel(4.f);  // Still held: must not start a replacement gesture.
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  EXPECT_FALSE(pm.HasColorEdit());
+  ReleaseWheel();
+  EXPECT_EQ(pm.GetUndoStackSize(), undo);
+  EXPECT_EQ(pm.GetRedoStackSize(), redo);
+  EXPECT_EQ(pm.GetModifiedColorCount(), dirty);
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x03E0);
+  // Cancellation must not leave the picker disabled on its next use.
+  StartWheelDrag();
+  MoveOnWheel(4.f);
+  ReleaseWheel();
+  EXPECT_EQ(pm.GetUndoStackSize(), undo + 2);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+}
+
+TEST_F(PaletteWorkspaceTest,
+       UnchangedGesturePreservesRedoAndCancelRestoresClean) {
+  auto& pm = gfx::PaletteManager::Get();
+  const auto original = pm.GetColor("dungeon_main", 0, 3);
+  ASSERT_OK(pm.SetColor("dungeon_main", 0, 3, gfx::SnesColor(0x1234)));
+  pm.Undo();
+  ASSERT_FALSE(pm.HasUnsavedChanges());
+  ASSERT_TRUE(pm.CanRedo());
+  ASSERT_OK(pm.BeginColorEdit("dungeon_main", 0, 3));
+  ASSERT_OK(pm.SetColor("dungeon_main", 0, 3, gfx::SnesColor(0x03E0)));
+  ASSERT_OK(pm.SetColor("dungeon_main", 0, 3, original));
+  pm.CommitColorEdit();
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  EXPECT_EQ(pm.GetUndoStackSize(), 0);
+  EXPECT_EQ(pm.GetRedoStackSize(), 1);
+  ASSERT_OK(pm.BeginColorEdit("dungeon_main", 0, 3, 17));
+  ASSERT_OK(pm.SetColor("dungeon_main", 0, 3, gfx::SnesColor(0x001F)));
+  pm.CommitColorEdit(18);
+  pm.CancelColorEdit(18);
+  EXPECT_TRUE(pm.HasColorEdit(17));
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  pm.CancelColorEdit(17);
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  EXPECT_EQ(pm.GetUndoStackSize(), 0);
+  EXPECT_EQ(pm.GetRedoStackSize(), 1);
+}
+
+TEST_F(PaletteWorkspaceTest, SessionSwitchCommitsOnlyTheOwningGesture) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("001F");
+  auto& pm = gfx::PaletteManager::Get();
+  pm.ClearHistory();
+  StartWheelDrag();
+  MoveOnWheel(2.f);
+  const auto end = pm.GetColor("dungeon_main", 0, 3).snes();
+  Switch(1);
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  EXPECT_FALSE(pm.HasColorEdit());
+  EXPECT_FALSE(pm.CanUndo());
+  pm.CancelColorEdit();
+  Switch(0);
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), end);
+  EXPECT_EQ(pm.GetUndoStackSize(), 1);
+  ReleaseWheel();
+  pm.Undo();
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+}
+
+TEST_F(PaletteWorkspaceTest, SavingDuringGestureCommitsOneStepAndReopensColor) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("001F");
+  auto& pm = gfx::PaletteManager::Get();
+  pm.ClearHistory();
+  StartWheelDrag();
+  MoveOnWheel(2.f);
+  const auto end = pm.GetColor("dungeon_main", 0, 3).snes();
+  ASSERT_TRUE(pm.HasColorEdit());
+  core::FeatureFlags::get().kSaveAllPalettes = true;
+  manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
+  const auto destination = root / "gesture-save.sfc";
+  ASSERT_OK(manager->SaveRomAs(destination.string()));
+  EXPECT_FALSE(pm.HasColorEdit());
+  EXPECT_EQ(pm.GetUndoStackSize(), 1);
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  ReleaseWheel();
+  EXPECT_EQ(pm.GetUndoStackSize(), 1);
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(destination.string()));
+  gfx::PaletteGroupMap groups;
+  ASSERT_OK(gfx::LoadAllPalettes(reopened.vector(), groups));
+  EXPECT_EQ(groups.dungeon_main.palette_ref(0)[3].snes(), end);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  EXPECT_TRUE(pm.HasUnsavedChanges());
 }
 
 TEST_F(PaletteWorkspaceTest,

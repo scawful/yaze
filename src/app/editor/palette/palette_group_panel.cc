@@ -1,3 +1,4 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "palette_group_panel.h"
 #include "util/i18n/tr.h"
 
@@ -21,6 +22,7 @@
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/json.h"
 
 namespace yaze {
@@ -413,20 +415,64 @@ void PaletteGroupPanel::DrawColorPicker() {
 
   if (selected_color_ >= palette->size())
     return;
-  const auto color = (*palette)[selected_color_];
   auto original = GetOriginalColor(selected_palette_, selected_color_);
+
+  auto& manager = gfx::PaletteManager::Get();
+  const ImGuiID picker_id = ImGui::GetID("##picker");
+  if (active_picker_ == picker_id &&
+      ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
+    manager.CancelColorEdit(picker_id);
+    picker_cancelled_ = true;
+  }
 
   // Read current model state so Undo/Redo and comparison windows stay in sync.
   ImGui::SetNextItemWidth(
       std::min(ImGui::GetContentRegionAvail().x, ImGui::GetFontSize() * 19));
-  ImVec4 col = ConvertSnesColorToImVec4(color);
-  if (ImGui::ColorPicker4("##picker", &col.x,
-                          ImGuiColorEditFlags_NoAlpha |
-                              ImGuiColorEditFlags_PickerHueWheel |
-                              ImGuiColorEditFlags_DisplayRGB |
-                              ImGuiColorEditFlags_DisplayHSV)) {
-    SetColor(selected_palette_, selected_color_, ConvertImVec4ToSnesColor(col));
+  ImVec4 col = ConvertSnesColorToImVec4((*palette)[selected_color_]);
+  ImGui::BeginDisabled(picker_cancelled_ && active_picker_ == picker_id);
+  const bool changed = ImGui::ColorPicker4(
+      "##picker", &col.x,
+      ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_PickerHueWheel |
+          ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHSV);
+  const bool active = ImGui::IsItemActive();
+  // ColorPicker is a group with ID zero while idle; register its actual bounds
+  // with our stable ID so automation can discover it before starting a drag.
+  gui::WidgetIdRegistry::WidgetMetadata picker_metadata;
+  picker_metadata.label = "Palette color picker";
+  picker_metadata.window_name = ImGui::GetCurrentWindow()->Name;
+  picker_metadata.visible = ImGui::IsItemVisible();
+  picker_metadata.enabled = !picker_cancelled_;
+  const auto min = ImGui::GetItemRectMin();
+  const auto max = ImGui::GetItemRectMax();
+  picker_metadata.bounds = {min.x, min.y, max.x, max.y, true};
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      absl::StrCat("Palette/picker:", picker_id), "color", picker_id,
+      "Drag to preview; release commits one Undo step; Escape cancels",
+      picker_metadata);
+  ImGui::EndDisabled();
+  if (!picker_cancelled_) {
+    if (active &&
+        (active_picker_ != picker_id || !manager.HasColorEdit(picker_id))) {
+      const auto status = manager.BeginColorEdit(group_name_, selected_palette_,
+                                                 selected_color_, picker_id);
+      if (status.ok()) {
+        active_picker_ = picker_id;
+      }
+    }
+    if (changed) {
+      SetColor(selected_palette_, selected_color_,
+               ConvertImVec4ToSnesColor(col));
+    }
+    if (!active && active_picker_ == picker_id) {
+      manager.CommitColorEdit(picker_id);
+      active_picker_ = 0;
+    }
+  } else if (active_picker_ == picker_id && !ImGui::IsMouseDown(0)) {
+    // Keep a held mouse from starting another edit immediately after Escape.
+    picker_cancelled_ = false;
+    active_picker_ = 0;
   }
+  col = ConvertSnesColorToImVec4((*palette)[selected_color_]);
 
   char snes[5];
   absl::SNPrintF(snes, sizeof(snes), "%04X",

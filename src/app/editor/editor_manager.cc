@@ -1715,6 +1715,11 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
     gfx::Arena::Get().BindGraphicsSheets(nullptr, nullptr);
   }
 
+  // Explicit navigation completes the gesture. Per-frame visits to another
+  // session must not split a held color-picker drag into separate undo steps.
+  if (!transient) {
+    gfx::PaletteManager::Get().CommitColorEdit();
+  }
   // Palette edit history and dirty tracking are session-owned. Select the
   // matching state before any session-specific editor or save action runs.
   gfx::PaletteManager::Get().ActivateSession(session ? &session->game_data

@@ -201,41 +201,37 @@ absl::Status PaletteManager::SetColor(const std::string& group_name,
         "Color index %d out of range [0, %d)", color_index, palette->size()));
   }
 
-  // Get original color
-  SnesColor original_color = (*palette)[color_index];
-
-  // Update in-memory palette
+  auto* state = CurrentState();
+  if (state->color_edit && (state->color_edit->group_name != group_name ||
+                            state->color_edit->palette_index != palette_index ||
+                            state->color_edit->color_index != color_index)) {
+    CommitColorEdit();
+  }
+  const SnesColor original_color = (*palette)[color_index];
+  if (original_color.snes() == new_color.snes()) {
+    return absl::OkStatus();
+  }
   (*palette)[color_index] = new_color;
-
-  // Track modification
   MarkModified(group_name, palette_index, color_index);
 
-  // Record for undo (unless in batch mode - batch changes recorded separately)
-  if (!InBatch()) {
-    auto now = std::chrono::system_clock::now();
-    auto timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            now.time_since_epoch())
-                            .count();
-
-    PaletteColorChange change{group_name,  palette_index,
-                              color_index, original_color,
-                              new_color,   static_cast<uint64_t>(timestamp_ms)};
-    RecordChange(change);
-
-    // Notify listeners
-    PaletteChangeEvent event{PaletteChangeEvent::Type::kColorChanged,
-                             group_name, palette_index, color_index};
-    NotifyListeners(event);
+  const auto timestamp_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count();
+  PaletteColorChange change{group_name,  palette_index,
+                            color_index, original_color,
+                            new_color,   static_cast<uint64_t>(timestamp_ms)};
+  if (state->color_edit) {
+    state->color_edit->new_color = new_color;
+    state->color_edit->timestamp_ms = change.timestamp_ms;
+  } else if (InBatch()) {
+    state->batch_changes.push_back(change);
+    return absl::OkStatus();
   } else {
-    // Store in batch buffer
-    auto now = std::chrono::system_clock::now();
-    auto timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            now.time_since_epoch())
-                            .count();
-    CurrentState()->batch_changes.push_back(
-        {group_name, palette_index, color_index, original_color, new_color,
-         static_cast<uint64_t>(timestamp_ms)});
+    RecordChange(change);
   }
+  NotifyListeners({PaletteChangeEvent::Type::kColorChanged, group_name,
+                   palette_index, color_index});
 
   return absl::OkStatus();
 }
@@ -248,6 +244,7 @@ absl::Status PaletteManager::ResetColor(const std::string& group_name,
 
 absl::Status PaletteManager::ResetPalette(const std::string& group_name,
                                           int palette_index) {
+  CommitColorEdit();
   if (!IsInitialized()) {
     return absl::FailedPreconditionError("PaletteManager not initialized");
   }
@@ -290,6 +287,66 @@ absl::Status PaletteManager::ResetPalette(const std::string& group_name,
   NotifyListeners(event);
 
   return absl::OkStatus();
+}
+
+absl::Status PaletteManager::BeginColorEdit(const std::string& group_name,
+                                            int palette_index, int color_index,
+                                            uint64_t caller_id) {
+  if (!IsInitialized() || InBatch()) {
+    return absl::FailedPreconditionError(
+        "Color interaction requires an initialized session outside a batch");
+  }
+  const auto* group = GetGroup(group_name);
+  if (!group || palette_index < 0 || palette_index >= group->size() ||
+      color_index < 0 ||
+      color_index >= group->palette_ref(palette_index).size()) {
+    return absl::InvalidArgumentError("Invalid color interaction target");
+  }
+  CommitColorEdit();
+  const auto color = group->palette_ref(palette_index)[color_index];
+  CurrentState()->color_edit_caller = caller_id;
+  CurrentState()->color_edit = PaletteColorChange{
+      group_name, palette_index, color_index, color, color, 0};
+  return absl::OkStatus();
+}
+
+void PaletteManager::CommitColorEdit(uint64_t caller_id) {
+  auto* state = CurrentState();
+  if (!HasColorEdit(caller_id)) {
+    return;
+  }
+  auto change = std::move(*state->color_edit);
+  state->color_edit.reset();
+  if (change.original_color.snes() != change.new_color.snes()) {
+    RecordChange(change);
+  }
+}
+
+void PaletteManager::CancelColorEdit(uint64_t caller_id) {
+  auto* state = CurrentState();
+  if (!HasColorEdit(caller_id)) {
+    return;
+  }
+  const auto change = std::move(*state->color_edit);
+  state->color_edit.reset();
+  auto* group = GetMutableGroup(change.group_name);
+  if (group && change.palette_index < group->size()) {
+    auto* palette = group->mutable_palette(change.palette_index);
+    if (change.color_index < palette->size() &&
+        (*palette)[change.color_index].snes() != change.original_color.snes()) {
+      (*palette)[change.color_index] = change.original_color;
+      MarkModified(change.group_name, change.palette_index, change.color_index);
+      NotifyListeners({PaletteChangeEvent::Type::kColorChanged,
+                       change.group_name, change.palette_index,
+                       change.color_index});
+    }
+  }
+}
+
+bool PaletteManager::HasColorEdit(uint64_t caller_id) const {
+  const auto* state = CurrentState();
+  return state->color_edit.has_value() &&
+         (caller_id == 0 || state->color_edit_caller == caller_id);
 }
 
 // ========== Dirty Tracking ==========
@@ -412,6 +469,7 @@ PaletteManager::GetModifiedGroupColorWriteRanges(
 // ========== Persistence ==========
 
 absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
+  CommitColorEdit();
   if (!IsInitialized()) {
     return absl::FailedPreconditionError("PaletteManager not initialized");
   }
@@ -498,6 +556,7 @@ absl::Status PaletteManager::SaveAllToRom() {
 }
 
 absl::Status PaletteManager::BeginSaveTransaction() {
+  CommitColorEdit();
   if (!IsInitialized()) {
     return absl::FailedPreconditionError("PaletteManager not initialized");
   }
@@ -557,6 +616,9 @@ absl::Status PaletteManager::ApplyPreviewChanges() {
 }
 
 void PaletteManager::DiscardGroup(const std::string& group_name) {
+  if (HasColorEdit() && CurrentState()->color_edit->group_name == group_name) {
+    CancelColorEdit();
+  }
   if (!IsInitialized()) {
     return;
   }
@@ -612,6 +674,7 @@ void PaletteManager::DiscardAllChanges() {
 // ========== Undo/Redo ==========
 
 void PaletteManager::Undo() {
+  CommitColorEdit();
   if (!CanUndo()) {
     return;
   }
@@ -640,6 +703,7 @@ void PaletteManager::Undo() {
 }
 
 void PaletteManager::Redo() {
+  CommitColorEdit();
   if (!CanRedo()) {
     return;
   }
@@ -668,16 +732,23 @@ void PaletteManager::Redo() {
 }
 
 void PaletteManager::ClearHistory() {
+  CommitColorEdit();
   CurrentState()->undo_stack.clear();
   CurrentState()->redo_stack.clear();
 }
 
 bool PaletteManager::CanUndo() const {
-  return !CurrentState()->undo_stack.empty();
+  const auto* state = CurrentState();
+  return !state->undo_stack.empty() ||
+         (state->color_edit && state->color_edit->original_color.snes() !=
+                                   state->color_edit->new_color.snes());
 }
 
 bool PaletteManager::CanRedo() const {
-  return !CurrentState()->redo_stack.empty();
+  const auto* state = CurrentState();
+  return !state->redo_stack.empty() &&
+         (!state->color_edit || state->color_edit->original_color.snes() ==
+                                    state->color_edit->new_color.snes());
 }
 
 size_t PaletteManager::GetUndoStackSize() const {
@@ -703,6 +774,7 @@ void PaletteManager::UnregisterChangeListener(int callback_id) {
 // ========== Batch Operations ==========
 
 void PaletteManager::BeginBatch() {
+  CommitColorEdit();
   CurrentState()->batch_depth++;
   if (CurrentState()->batch_depth == 1) {
     CurrentState()->batch_changes.clear();

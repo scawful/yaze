@@ -78,6 +78,15 @@ other worlds) without rebuilding authored tile grids; Dungeon uses its existing
 palette-user invalidation. Do not require Save or a manual Apply to preview a
 supported PaletteManager edit.
 
+The Palette workspace's continuous picker interaction uses
+`PaletteManager::BeginColorEdit`, `SetColor`, and `CommitColorEdit`. Each preview
+still publishes immediately; release records one first/final-color Undo step.
+`CancelColorEdit` restores the gesture's starting color and dirty state without
+clearing Redo. Do not use BeginBatch/EndBatch for live gestures: that API defers
+notifications. Explicit session navigation completes a gesture, but transient
+frame activation must not. Saves and history actions finish pending gestures
+before operating. Equivalent SNES words and net-zero gestures add no history.
+
 Dungeon and Overworld `GraphicsEditContext::refresh_palettes` callbacks reuse
 source loaders when the color revision changes. `UpdateGraphicsContextPalettes`
 checks all target identities before replacing any color. A changed sheet/tile
