@@ -600,6 +600,9 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   SheetBrowserPanel browser(&state_);
   browser.Initialize();
   PixelEditorPanel pixel(&state_, nullptr);
+  bool browser_visible = true;
+  pixel.SetSheetBrowserCallbacks([&] { return browser_visible; },
+                                 [&](bool value) { browser_visible = value; });
   const ImGuiStyle original_style = ImGui::GetStyle();
   auto& io = ImGui::GetIO();
   for (const ImVec2 viewport :
@@ -646,8 +649,8 @@ TEST_F(GraphicsWorkspaceLayoutTest,
       EXPECT_GT(canvas->Size.x, panel->Size.x - 40 * scale);
       EXPECT_GT(canvas->Size.y, (viewport.y - 100) * 0.60f);
       for (const auto* label :
-           {"Palette index 0", "Palette index 7", "Current color", "Zoom out",
-            "Zoom in", "Fit sheet"}) {
+           {"Toggle Sheet Browser", "Palette index 0", "Palette index 7",
+            "Current color", "Zoom out", "Zoom in", "Fit sheet"}) {
         const auto widget = FindWidget(label);
         ASSERT_TRUE(widget) << label;
         EXPECT_GE(widget->bounds.min_x, panel->InnerRect.Min.x) << label;

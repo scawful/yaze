@@ -1162,6 +1162,122 @@ void AuthoringSaveWorkflowTest::QualifyMainGraphicsAssignment(
 }
 
 TEST_F(AuthoringSaveWorkflowTest,
+       GraphicsBrowserToggleRestoresDockAndPreservesPendingPixels) {
+  const auto fixture = CopyProject("yaze-graphics-browser");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  ASSERT_NE(graphics, nullptr);
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  auto& windows = manager_->window_manager();
+  constexpr const char* kBrowser = "graphics.sheet_browser_v2";
+  ASSERT_TRUE(windows.OpenWindow(kBrowser));
+  windows.SetWindowPinned(kBrowser, true);
+  state.SetZoom(5);
+  const auto original = state.game_data->sheet_store.Sheet(0);
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, 0, 0,
+                                                    (original[0] + 1) % 8);
+  const auto authored = state.game_data->sheet_store.Sheet(0);
+  const auto revision = state.game_data->sheet_store.Revision(0);
+  const auto rom = manager_->GetCurrentRom()->vector();
+  state.selection.is_active = true;
+  state.selection.x = state.selection.y = 8;
+  state.selection.width = state.selection.height = 8;
+
+  auto& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  io.ConfigInputTrickleEventQueue = false;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  bool create_dock = true;
+  ImGuiID browser_dock = 0;
+  const auto frame = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1200, 700), ImGuiCond_Always);
+    ImGui::Begin(
+        "GraphicsDockHost", nullptr,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
+    const auto dock = ImGui::GetID("GraphicsDock");
+    if (create_dock) {
+      ImGui::DockBuilderRemoveNode(dock);
+      ImGui::DockBuilderAddNode(dock, ImGuiDockNodeFlags_DockSpace);
+      ImGui::DockBuilderSetNodeSize(dock, ImGui::GetContentRegionAvail());
+      ImGuiID center = dock;
+      browser_dock = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Left, 0.27f,
+                                                 nullptr, &center);
+      ImGui::DockBuilderDockWindow("Browser", browser_dock);
+      ImGui::DockBuilderDockWindow("Pixels", center);
+      ImGui::DockBuilderFinish(dock);
+      create_dock = false;
+    }
+    ImGui::DockSpace(dock);
+    ImGui::End();
+    if (windows.IsWindowOpen(kBrowser)) {
+      ImGui::Begin("Browser");
+      ImGui::TextUnformatted("Existing sheet browser dock");
+      ImGui::End();
+    }
+    ImGui::Begin("Pixels");
+    AuthoringSaveWorkflowTestPeer::DrawGraphics(*graphics);
+    ImGui::End();
+    ImGui::Render();
+  };
+  const auto settle = [&] {
+    for (int i = 0; i < 5; ++i)
+      frame();
+  };
+  const auto toggle = [&] {
+    std::optional<gui::WidgetIdRegistry::WidgetInfo> button;
+    for (const auto& [path, item] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (item.label ==
+          gui::WidgetIdRegistry::NormalizeLabel("Toggle Sheet Browser"))
+        button = item;
+    }
+    ASSERT_TRUE(button);
+    io.AddMousePosEvent((button->bounds.min_x + button->bounds.max_x) / 2,
+                        (button->bounds.min_y + button->bounds.max_y) / 2);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    settle();
+  };
+  settle();
+  auto* canvas = ImGui::FindWindowByName("Pixels");
+  ASSERT_NE(canvas, nullptr);
+  const float original_width = canvas->Size.x;
+  toggle();
+  EXPECT_FALSE(windows.IsWindowOpen(kBrowser));
+  EXPECT_GT(canvas->Size.x, original_width + 250);
+  EXPECT_TRUE(windows.IsWindowPinned(kBrowser));
+  toggle();
+  EXPECT_TRUE(windows.IsWindowOpen(kBrowser));
+  EXPECT_NEAR(canvas->Size.x, original_width, 1);
+  EXPECT_EQ(ImGui::FindWindowByName("Browser")->DockId, browser_dock);
+  // A menu/close action and the toolbar use the same visibility owner.
+  ASSERT_TRUE(windows.CloseWindow(kBrowser));
+  settle();
+  toggle();
+  EXPECT_TRUE(windows.IsWindowOpen(kBrowser));
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0), authored);
+  EXPECT_EQ(state.game_data->sheet_store.Revision(0), revision);
+  EXPECT_TRUE(state.HasUnsavedChanges());
+  EXPECT_TRUE(state.selection.is_active);
+  EXPECT_EQ(state.selection.x, 8);
+  EXPECT_FLOAT_EQ(state.zoom_level, 5);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom);
+  ASSERT_OK(graphics->Undo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0), original);
+  ASSERT_OK(graphics->Redo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0), authored);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
        DungeonObjectGraphicsKeepsContextThroughPixelsUndoAndReturn) {
   auto fixture = CopyProject("yaze-graphics-source");
   const auto assets = std::filesystem::path(kSharedProject).parent_path() /

@@ -94,6 +94,18 @@ void GraphicsEditor::Initialize() {
       });
   pixel_editor_panel_ =
       std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
+  pixel_editor_panel_->SetSheetBrowserCallbacks(
+      [this]() {
+        return dependencies_.window_manager->IsWindowOpen(
+            "graphics.sheet_browser_v2");
+      },
+      [this](bool visible) {
+        auto* workspace = dependencies_.window_manager;
+        if (visible)
+          workspace->OpenWindow("graphics.sheet_browser_v2");
+        else
+          workspace->CloseWindow("graphics.sheet_browser_v2");
+      });
   palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
