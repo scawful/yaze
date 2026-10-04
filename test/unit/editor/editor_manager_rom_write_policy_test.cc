@@ -4332,7 +4332,8 @@ TEST_F(PaletteWorkspaceTest, FailedFileWriteRestoresBaselineAndAllowsRetry) {
   const auto disk_hash = util::ComputeFileSha1Hex(a.string());
   const auto bytes = manager->GetCurrentRom()->vector();
   const auto baseline = *Session()->rom_baseline;
-  core::FeatureFlags::get().dungeon.kSavePalettes = true;
+  // Force the new Palette transaction, not Dungeon's existing palette path.
+  core::FeatureFlags::get().kSaveAllPalettes = true;
   manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
   const auto parent_file = root / "not-a-directory";
   std::ofstream(parent_file) << "PRESERVE";
