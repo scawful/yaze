@@ -58,14 +58,28 @@ void Choose(GraphicsEditorState& state,
 
 }  // namespace
 
-void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state) {
+void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
+                                        GraphicsPaletteSelectorLayout layout) {
+  const bool inline_controls = layout == GraphicsPaletteSelectorLayout::kInline;
+  const float font = ImGui::GetFontSize();
+  const float right =
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+  const auto next_control = [inline_controls, right](float width) {
+    if (inline_controls &&
+        ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + width <=
+            right) {
+      ImGui::SameLine();
+    }
+    ImGui::SetNextItemWidth(inline_controls ? width : -1);
+  };
   const auto* selected = state.PreviewPalette(state.current_sheet_id);
   const std::string selected_group = selected ? selected->group : "";
   const char* label =
       selected ? GroupLabel(selected->group) : tr("Loaded colors");
-  ImGui::TextUnformatted(tr("Preview palette"));
+  if (!inline_controls)
+    ImGui::TextUnformatted(tr("Preview palette"));
   ImGui::BeginDisabled(!CanPreview(state));
-  ImGui::SetNextItemWidth(-1);
+  ImGui::SetNextItemWidth(inline_controls ? 11 * font : -1);
   const bool open = ImGui::BeginCombo("##PreviewPalette", label);
   gui::AutoRegisterLastItem("combo", "Preview palette");
   if (open) {
@@ -101,23 +115,39 @@ void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state) {
   }
   if (resolved->palette_count > 1) {
     int index = choice.palette;
-    ImGui::SetNextItemWidth(-1);
+    next_control(6 * font);
     if (ImGui::InputInt("##PreviewPaletteIndex", &index)) {
       choice.palette = std::clamp(index, 0, resolved->palette_count - 1);
       choice.row = 0;
       Choose(state, choice);
     }
-    gui::AutoRegisterLastItem("input", "Preview palette index");
+    // InputInt's step buttons form a group with ID zero while idle. Register
+    // the visible group explicitly so automation can discover it before focus.
+    const auto min = ImGui::GetItemRectMin();
+    const auto max = ImGui::GetItemRectMax();
+    gui::WidgetIdRegistry::WidgetMetadata metadata;
+    metadata.label = "Preview palette index";
+    metadata.visible = ImGui::IsItemVisible();
+    metadata.bounds = {min.x, min.y, max.x, max.y, true};
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "input:preview_palette_index", "input",
+        ImGui::GetID("##PreviewPaletteIndex"), "", metadata);
     HOVER_HINT(
         "Palette index in the selected group; changes only this preview");
   }
   if (resolved->row_count > 1) {
+    const auto row_label = absl::StrFormat("%s %d/%d", tr("Row"),
+                                           choice.row + 1, resolved->row_count);
+    next_control(
+        ImGui::CalcTextSize(row_label.c_str()).x +
+        2 * (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemSpacing.x));
+    ImGui::BeginGroup();
     ImGui::BeginDisabled(choice.row == 0);
     const bool previous = ImGui::ArrowButton("##RowDown", ImGuiDir_Left);
     gui::AutoRegisterLastItem("button", "Previous palette row");
     ImGui::EndDisabled();
     ImGui::SameLine();
-    ImGui::Text(tr("Row %d/%d"), choice.row + 1, resolved->row_count);
+    ImGui::TextUnformatted(row_label.c_str());
     ImGui::SameLine();
     ImGui::BeginDisabled(choice.row + 1 >= resolved->row_count);
     const bool next = ImGui::ArrowButton("##RowUp", ImGuiDir_Right);
@@ -127,6 +157,7 @@ void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state) {
       choice.row += next ? 1 : -1;
       Choose(state, choice);
     }
+    ImGui::EndGroup();
   }
 }
 
