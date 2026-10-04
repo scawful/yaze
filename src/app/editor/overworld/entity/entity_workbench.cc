@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "absl/strings/str_format.h"
+
 #include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/entity/entity.h"
 #include "app/editor/overworld/entity/entity_mutation_service.h"
@@ -10,6 +12,7 @@
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/popup_id.h"
 #include "imgui/imgui.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze {
 namespace editor {
@@ -50,6 +53,90 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
     return;
 
   auto* editor = ctx.editor;
+
+  // Special triggers are tile properties, not entrance entities. Keep their
+  // on-demand inspector reachable even when no marker is selected.
+  const Rom* rom = editor->rom();
+  if (rom != inspected_rom_ ||
+      (rom && (rom->data() != inspected_rom_data_ ||
+               rom->filename() != inspected_filename_)) ||
+      (special_entrances_ &&
+       special_entrances_->inspected_map != editor->current_map_id())) {
+    special_entrances_.reset();
+  }
+  if (ImGui::Button(special_entrances_ ? "Refresh special entrances"
+                                       : "Inspect special entrances")) {
+    special_entrances_ =
+        rom ? std::optional<zelda3::SpecialEntranceInspection>(
+                  zelda3::InspectSpecialEntrances(*rom, editor->overworld(),
+                                                  editor->current_map_id()))
+            : std::nullopt;
+    inspected_rom_ = rom;
+    inspected_rom_data_ = rom ? rom->data() : nullptr;
+    inspected_filename_ = rom ? rom->filename() : "";
+  }
+  if (special_entrances_) {
+    const auto& inspection = *special_entrances_;
+    if (!inspection.available) {
+      ImGui::TextWrapped("%s", inspection.provenance.c_str());
+    } else {
+      ImGui::Text("%zu matching positions", inspection.matches.size());
+      for (size_t i = 0; i < inspection.matches.size(); ++i) {
+        const auto& match = inspection.matches[i];
+        const auto& row = inspection.rows[match.row_index];
+        const int destination = row.destination_area;
+        const std::string name =
+            destination >= 0
+                ? zelda3::Zelda3Labels::GetLabel(
+                      "overworld_map", destination,
+                      absl::StrFormat("Special area $%02X", destination))
+                : "Unresolved destination";
+        ImGui::PushID(static_cast<int>(i));
+        if (ImGui::Button(absl::StrFormat("%s ($%02X) - tile (%d,%d)", name,
+                                          destination, match.world_x,
+                                          match.world_y)
+                              .c_str())) {
+          editor->LocateOverworldTile(match.screen_id, match.world_x,
+                                      match.world_y);
+        }
+        ImGui::PopID();
+      }
+      if (ImGui::TreeNode("Technical details and provenance")) {
+        ImGui::TextWrapped("%s", inspection.provenance.c_str());
+        ImGui::TextWrapped("%s", inspection.limitation.c_str());
+        if (inspection.overlay_may_replace_tiles) {
+          ImGui::TextWrapped(
+              "This area has an overlay; the runtime sampled "
+              "tile may depend on overlay state.");
+        }
+        for (const auto& match : inspection.matches) {
+          const auto& row = inspection.rows[match.row_index];
+          ImGui::Text(
+              "Screen $%02X parent $%02X at (%d,%d): Map16 $%03X, "
+              "word $%04X, mask $%03X -> fake exit $%04X "
+              "(arrival direction $%04X)",
+              match.screen_id, match.parent_area, match.tile_x, match.tile_y,
+              match.tile16_id, match.first_word, match.masked_trigger,
+              row.destination_marker, row.direction);
+        }
+        if (ImGui::Button("Copy special entrance details")) {
+          std::string details = inspection.provenance + "\n";
+          for (const auto& match : inspection.matches) {
+            const auto& row = inspection.rows[match.row_index];
+            details += absl::StrFormat(
+                "screen=$%02X parent=$%02X tile=(%d,%d) map16=$%03X "
+                "word=$%04X mask=$%03X marker=$%04X\n",
+                match.screen_id, match.parent_area, match.tile_x, match.tile_y,
+                match.tile16_id, match.first_word, match.masked_trigger,
+                row.destination_marker);
+          }
+          ImGui::SetClipboardText(details.c_str());
+        }
+        ImGui::TreePop();
+      }
+    }
+    ImGui::Separator();
+  }
 
   auto* active_entity = editor->current_entity();
   if (active_entity == nullptr) {

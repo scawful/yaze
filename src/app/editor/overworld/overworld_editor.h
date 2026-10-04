@@ -390,6 +390,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// Select @p map_id (switching world if needed) and center it; the context
   /// menu's Related Maps entries.
   void JumpToMap(int map_id);
+  // Navigate to an inspected Tile16 without changing ROM or edit history.
+  void LocateOverworldTile(int map_id, int world_x, int world_y);
   void SwitchToWorld(int world);
   // View requests; applied when the canvas child begins (safe anywhere).
   void ZoomIn();

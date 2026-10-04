@@ -190,6 +190,7 @@ class CanvasNavigationManager {
 
   /// @brief Center the viewport on @p map_id (same world grid).
   void CenterOnMap(int map_id);
+  void CenterOnWorldTile(int world_x, int world_y);
 
   bool is_panning() const { return pan_active_; }
 
