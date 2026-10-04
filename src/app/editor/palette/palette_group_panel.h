@@ -294,6 +294,11 @@ class PaletteGroupPanel : public WindowContent {
   int selected_palette_ = 0;  // Currently selected palette index
   int selected_color_ = -1;   // Currently selected color (-1 = none)
 
+  // Widget identity keeps an optional comparison window from ending the
+  // workspace picker gesture when both render this panel in the same frame.
+  ImGuiID active_picker_ = 0;
+  bool picker_cancelled_ = false;
+
   // Settings
   bool show_snes_format_ = true;  // Show SNES $xxxx format in info
   bool show_hex_format_ = true;   // Show #xxxxxx hex in info

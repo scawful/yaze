@@ -176,6 +176,16 @@ class PaletteManager {
    */
   absl::Status ResetPalette(const std::string& group_name, int palette_index);
 
+  // Live single-color interaction. SetColor still publishes every preview;
+  // commit records only its first/final colors. Cancel preserves Undo/Redo.
+  // Explicit navigation or another operation commits the interaction. A nonzero
+  // caller ID prevents another visible picker from ending this gesture.
+  absl::Status BeginColorEdit(const std::string& group_name, int palette_index,
+                              int color_index, uint64_t caller_id = 0);
+  void CommitColorEdit(uint64_t caller_id = 0);
+  void CancelColorEdit(uint64_t caller_id = 0);
+  bool HasColorEdit(uint64_t caller_id = 0) const;
+
   // ========== Dirty Tracking ==========
 
   /**
@@ -395,6 +405,8 @@ class PaletteManager {
     std::optional<SaveTransactionSnapshot> save_transaction_snapshot;
     std::deque<PaletteColorChange> undo_stack;
     std::deque<PaletteColorChange> redo_stack;
+    std::optional<PaletteColorChange> color_edit;
+    uint64_t color_edit_caller = 0;
     int batch_depth = 0;
     std::vector<PaletteColorChange> batch_changes;
   };
