@@ -181,6 +181,20 @@ per [`EditorSet`](../../../src/app/editor/session_types.h) (injected via
 `EditorDependencies::gfx_group_workspace`). A short per-surface host hint remains
 at the top of each widget.
 
+#### Pixel Editor layout
+
+Keep drawing tools in one frame-height row and indexed colors above the canvas.
+`DrawGraphicsPreviewPaletteSelector` shares the same selection/preview owner in
+its stacked Palette Controls and inline Pixel Editor presentations. Inline
+controls may wrap at narrow widths; do not reintroduce a permanent color sidebar
+or another palette cache. Optional comparison windows remain independent.
+
+Zoom controls stay visible in the footer. **Fit** is an explicit, one-shot integer
+zoom, computed after the sheet tabs establish the available canvas area. Apply
+its scroll reset before opening the canvas child so the new zoom and pan appear
+in the same frame. Window resizing does not implicitly refit. Internal canvas
+layout changes keep existing window IDs and do not reset saved dock layouts.
+
 #### Persistent workspace IDs
 
 Window IDs are part of the compatibility contract for saved layouts, shortcuts,

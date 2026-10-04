@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/cleanup/cleanup.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/graphics/graphics_palette_preview.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/palette_controls_panel.h"
@@ -34,6 +35,8 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
     io.DisplaySize = ImVec2(1440, 900);
     io.DeltaTime = 1.0f / 60;
     io.ConfigInputTrickleEventQueue = false;
+    // Match SDL/Metal's large-mesh support at high pixel-editor zoom levels.
+    io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -112,7 +115,7 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
   // right color while the production widget still renders a stale value.
   std::optional<ImU32> SwatchColor(const char* label) {
     const auto widget = FindWidget(label);
-    auto* picker = ActiveChild("##ColorPickerSide");
+    auto* picker = ImGui::FindWindowByName("GraphicsHost");
     if (!widget || !picker)
       return std::nullopt;
     const ImVec2 point(widget->bounds.min_x + 6.5f,
@@ -573,13 +576,148 @@ TEST_F(GraphicsWorkspaceLayoutTest,
     EXPECT_GT(content->Size.y, 580) << width;
     auto* canvas = ActiveChild("##CanvasArea");
     ASSERT_NE(canvas, nullptr);
-    EXPECT_GT(canvas->Size.x, width - 190) << width;
+    EXPECT_GT(canvas->Size.x, width - 40) << width;
   }
   const auto frame = [&] {
     Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
   };
   Click("View options", frame);
   EXPECT_TRUE(ImGui::IsPopupOpen("View options", ImGuiPopupFlags_AnyPopupId));
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       LaptopWorkspaceKeepsToolsColorsAndZoomVisibleAtFontScales) {
+  for (int i = 0; i < 2; ++i) {
+    data_->palette_groups.overworld_main.AddPalette(
+        gfx::SnesPalette(std::vector<uint16_t>(14, 0x001f)));
+  }
+  SheetBrowserPanel browser(&state_);
+  browser.Initialize();
+  PixelEditorPanel pixel(&state_, nullptr);
+  const ImGuiStyle original_style = ImGui::GetStyle();
+  auto& io = ImGui::GetIO();
+  for (const ImVec2 viewport :
+       {ImVec2(1280, 800), ImVec2(1440, 900), ImVec2(1920, 1080)}) {
+    for (float scale : {1.0f, 1.25f, 1.5f}) {
+      SCOPED_TRACE(absl::StrFormat("%.0fx%.0f scale %.2f", viewport.x,
+                                   viewport.y, scale));
+      io.DisplaySize = viewport;
+      io.FontGlobalScale = scale;
+      ImGui::GetStyle() = original_style;
+      ImGui::GetStyle().ScaleAllSizes(scale);
+      const auto frame = [&] {
+        gui::WidgetIdRegistry::Instance().Clear();
+        ImGui::NewFrame();
+        ImGui::SetNextWindowPos(ImVec2(48, 48), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(viewport.x - 64, viewport.y - 100),
+                                 ImGuiCond_Always);
+        ImGui::Begin("Workspace", nullptr, ImGuiWindowFlags_NoSavedSettings);
+        ImGui::BeginChild("Browser", ImVec2(viewport.x * 0.28f, 0));
+        EXPECT_TRUE(browser.Update().ok());
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("Pixel", ImVec2(0, 0));
+        EXPECT_TRUE(pixel.Update().ok());
+        ImGui::EndChild();
+        ImGui::End();
+        ImGui::Render();
+      };
+      frame();
+      frame();
+      const auto first = FindWidget("Select (M)");
+      const auto last = FindWidget("Eyedropper (I)");
+      const auto undo = FindWidget("Undo pixels");
+      const auto options = FindWidget("Edit options");
+      ASSERT_TRUE(first && last && undo && options);
+      EXPECT_FLOAT_EQ(first->bounds.min_y, last->bounds.min_y);
+      EXPECT_FLOAT_EQ(first->bounds.min_y, options->bounds.min_y);
+      EXPECT_FLOAT_EQ(first->bounds.max_y, undo->bounds.max_y);
+      auto* panel = ActiveChild("/Pixel_");
+      auto* canvas = ActiveChild("##CanvasArea");
+      ASSERT_NE(panel, nullptr);
+      ASSERT_NE(canvas, nullptr);
+      EXPECT_LE(panel->ContentSize.x, panel->InnerRect.GetWidth() + 1);
+      EXPECT_GT(canvas->Size.x, panel->Size.x - 40 * scale);
+      EXPECT_GT(canvas->Size.y, (viewport.y - 100) * 0.60f);
+      for (const auto* label :
+           {"Palette index 0", "Palette index 7", "Current color", "Zoom out",
+            "Zoom in", "Fit sheet"}) {
+        const auto widget = FindWidget(label);
+        ASSERT_TRUE(widget) << label;
+        EXPECT_GE(widget->bounds.min_x, panel->InnerRect.Min.x) << label;
+        EXPECT_LE(widget->bounds.max_x, panel->InnerRect.Max.x) << label;
+        EXPECT_LE(widget->bounds.max_y, panel->InnerRect.Max.y) << label;
+      }
+      Click("Brush (P)", frame);
+      EXPECT_EQ(state_.current_tool, PixelTool::kBrush);
+      Click("Palette index 6", frame);
+      EXPECT_EQ(state_.current_color_index, 6);
+      ASSERT_TRUE(SetGraphicsPreviewPalette(state_, 0,
+                                            GraphicsPaletteSelection{"ow_main"})
+                      .ok());
+      frame();
+      frame();
+      for (const auto* label : {"Preview palette index", "Next palette row",
+                                "Palette index 7", "Current color"}) {
+        const auto widget = FindWidget(label);
+        ASSERT_TRUE(widget) << label;
+        EXPECT_LE(widget->bounds.max_x, panel->InnerRect.Max.x) << label;
+        EXPECT_LE(widget->bounds.max_y, canvas->Pos.y) << label;
+      }
+      EXPECT_LE(panel->ContentSize.x, panel->InnerRect.GetWidth() + 1);
+      Click("Next palette row", frame);
+      EXPECT_EQ(state_.PreviewPalette(0)->row, 1);
+      ASSERT_TRUE(SetGraphicsPreviewPalette(state_, 0, std::nullopt).ok());
+      state_.SetTool(PixelTool::kPencil);
+    }
+  }
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       FitIsExplicitIntegerZoomAndPreservesPendingPixelsAndSelection) {
+  PixelEditorPanel pixel(&state_, nullptr);
+  auto authored = bitmap_->vector();
+  authored[16] = 5;
+  ASSERT_TRUE(CommitSheetPixels(state_, 0, authored).ok());
+  const auto revision = data_->sheet_store.Revision(0);
+  state_.open_sheets.insert(0);
+  state_.selection.is_active = true;
+  state_.selection.x = 1;
+  state_.selection.y = 2;
+  state_.selection.width = 8;
+  state_.selection.height = 8;
+  state_.SetZoom(16);
+  float width = 640;
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); }, width);
+  };
+  frame();
+  frame();
+  auto* canvas = ActiveChild("##CanvasArea");
+  ASSERT_NE(canvas, nullptr);
+  canvas->Scroll.x = 200;
+  frame();
+  Click("Fit sheet", frame);
+  EXPECT_FLOAT_EQ(state_.zoom_level, 4);
+  EXPECT_FLOAT_EQ(canvas->Scroll.x, 0);
+  EXPECT_FLOAT_EQ(canvas->Scroll.y, 0);
+  EXPECT_EQ(bitmap_->vector(), authored);
+  EXPECT_EQ(data_->sheet_store.Revision(0), revision);
+  EXPECT_TRUE(state_.modified_sheets.contains(0));
+  EXPECT_TRUE(state_.selection.is_active);
+  EXPECT_EQ(state_.selection.x, 1);
+  EXPECT_EQ(state_.selection.y, 2);
+  width = 980;
+  frame();
+  frame();
+  EXPECT_FLOAT_EQ(state_.zoom_level, 4);  // Window resize does not refit.
+  Click("Zoom in", frame);
+  EXPECT_FLOAT_EQ(state_.zoom_level, 5);
+  Click("Zoom out", frame);
+  EXPECT_FLOAT_EQ(state_.zoom_level, 4);
+  Click("Fit sheet", frame);
+  EXPECT_FLOAT_EQ(state_.zoom_level, 7);
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest, PixelTextureUsesTheSameFadeAsItsWindow) {

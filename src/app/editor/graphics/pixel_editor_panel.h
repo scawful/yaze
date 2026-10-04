@@ -73,6 +73,7 @@ class PixelEditorPanel : public WindowContent {
   gfx::Bitmap& DisplaySheet();
   gfx::SnesPalette DisplayPalette() const;
   gfx::Bitmap context_sheet_;
+  bool fit_canvas_requested_ = false;
   /**
    * @brief Draw the toolbar with tool selection
    */

@@ -10,7 +10,10 @@ namespace yaze {
 namespace editor {
 
 // Shared by the pixel strip and the existing Palette Controls panel.
-void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state);
+enum class GraphicsPaletteSelectorLayout { kStacked, kInline };
+void DrawGraphicsPreviewPaletteSelector(
+    GraphicsEditorState& state, GraphicsPaletteSelectorLayout layout =
+                                    GraphicsPaletteSelectorLayout::kStacked);
 
 /**
  * @brief Panel for managing palettes applied to graphics sheets
