@@ -38,6 +38,7 @@ enum BitmapFormat {
   kIndexed = 0,
   k4bpp = 1,
   k8bpp = 2,
+  kRgba = 3,  // Display output: packed R, G, B, A bytes, not ROM indices.
 };
 
 /**
@@ -283,6 +284,7 @@ class Bitmap {
   /**
    * @brief Write a color to a pixel at the given position
    */
+  [[deprecated("Choose an explicit palette slot and use WriteToPixel")]]
   void WriteColor(int position, const ImVec4& color);
 
   /**
@@ -396,6 +398,11 @@ class Bitmap {
   int width() const { return width_; }
   int height() const { return height_; }
   int depth() const { return depth_; }
+  bool IsIndexed() const { return depth_ <= 8; }
+  // Read display colors without treating RGBA bytes as palette indices.
+  // Source palette rows remain on indexed sheets; composite output has none.
+  SDL_Color ReadColor(int x, int y) const;
+  std::vector<uint8_t> ToRgba() const;
   auto size() const { return data_.size(); }
   const uint8_t* data() const { return data_.data(); }
   std::vector<uint8_t>& mutable_data() { return data_; }
@@ -413,6 +420,7 @@ class Bitmap {
 
  private:
   friend class Arena;
+  void CopySurfaceState(const Bitmap& other);
 
   // Arena alone may split a Bitmap's CPU and GPU resources during explicit
   // owner retirement. Keeping these helpers private prevents ordinary callers
@@ -470,7 +478,7 @@ class Bitmap {
   // Metadata for tracking source format and palette requirements
   BitmapMetadata metadata_;
 
-  // Data for the bitmap (indexed pixel values, 0-255)
+  // Packed rows: one byte per indexed pixel, or four RGBA bytes per pixel.
   std::vector<uint8_t> data_;
 
   /**

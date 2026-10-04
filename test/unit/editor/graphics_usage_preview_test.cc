@@ -22,9 +22,9 @@
 namespace yaze::editor::usage_preview {
 namespace {
 
-// 32-bit BMP of an IndexedImage, for offscreen evidence captures
+// 32-bit BMP of a PreviewImage, for offscreen evidence captures
 // (YAZE_USAGE_PREVIEW_DUMP_DIR). BMP needs no image library.
-void DumpBmp(const IndexedImage& image, const std::string& name) {
+void DumpBmp(const PreviewImage& image, const std::string& name) {
   const char* dir = std::getenv("YAZE_USAGE_PREVIEW_DUMP_DIR");
   if (dir == nullptr || image.empty()) {
     return;
@@ -78,6 +78,10 @@ struct SyntheticGame {
 
 TEST(GraphicsUsagePreviewTest, ZsmFrameDrawsEditedSheetPixels) {
   SyntheticGame game(0);
+  // A visible-color assertion needs a resolved palette, not just changed
+  // indices. The former fixture supplied no colors at all.
+  game.game_data.palette_groups.sprites_aux1.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>{0, 1, 2, 3, 4, 0x001F, 6, 7}));
   SpriteUsagePreview preview;
   ASSERT_TRUE(preview.Configure(&game.rom, &game.game_data, 0x50, -1).ok());
   // Slot 4 holds the spriteset's first value + 0x73.
@@ -98,13 +102,13 @@ TEST(GraphicsUsagePreviewTest, ZsmFrameDrawsEditedSheetPixels) {
   zsm.animations.emplace_back(0, 0, 1, "idle");
   preview.SetZsm(zsm, 0);
 
-  const IndexedImage before = preview.RenderFrame({});
+  const PreviewImage before = preview.RenderFrame({});
   ASSERT_FALSE(before.empty());
   EXPECT_TRUE(before.index0_transparent);
 
   std::vector<uint8_t> edited(kSheetBytes, 0);
   edited[0] = 5;  // tile 0, pixel (0,0)
-  const IndexedImage after = preview.RenderFrame({{sheet, edited}});
+  const PreviewImage after = preview.RenderFrame({{sheet, edited}});
   EXPECT_EQ(after.CountDifferentPixels(before), 1);
   // OAM palette 2 lands on CGRAM row 10.
   bool found = false;
@@ -142,8 +146,34 @@ TEST(GraphicsUsagePreviewTest, RoomsUsingSheetMatchesBlocks) {
   EXPECT_EQ(RoomsUsingSheet(blocks, 0x20, true), std::vector<int>({1, 2}));
 }
 
-TEST(GraphicsUsagePreviewTest, IndexedImageRgbaKeepsTransparency) {
-  IndexedImage image;
+TEST(GraphicsUsagePreviewTest, DisplayDiffIncludesPaletteEditsAndMixedFormats) {
+  PreviewImage indexed;
+  indexed.width = 2;
+  indexed.height = 1;
+  indexed.pixels = {1, 2};
+  indexed.colors[1] = {17, 34, 51, 255};
+  indexed.colors[2] = {68, 85, 102, 0};
+  auto recolored = indexed;
+  recolored.colors[1].g = 50;
+  EXPECT_EQ(indexed.CountDifferentPixels(recolored), 1);
+  PreviewImage rgba;
+  rgba.width = 2;
+  rgba.height = 1;
+  rgba.format = PreviewImage::Format::kRgba;
+  rgba.pixels = indexed.ToRgba();
+  EXPECT_EQ(indexed.CountDifferentPixels(rgba), 0);
+  rgba.pixels[2] = 123;
+  EXPECT_EQ(indexed.CountDifferentPixels(rgba), 1);
+  gfx::Bitmap bitmap(2, 1, 32, rgba.pixels);
+  const auto snapshot = SnapshotBitmap(bitmap);
+  EXPECT_EQ(snapshot.format, PreviewImage::Format::kRgba);
+  EXPECT_EQ(snapshot.ToRgba(), rgba.pixels);
+  EXPECT_EQ(snapshot.ToRgba()[7], 0);
+  gfx::Arena::Get().RetireBitmap(bitmap);
+}
+
+TEST(GraphicsUsagePreviewTest, PreviewImageRgbaKeepsTransparency) {
+  PreviewImage image;
   image.width = 2;
   image.height = 1;
   image.pixels = {0, 1};
@@ -326,7 +356,7 @@ TEST_F(GraphicsUsagePreviewRomTest, D1RoomPreviewShowsOnePixelEdit) {
   constexpr int kRoom = 0x4A;
   RoomUsagePreview preview;
   ASSERT_TRUE(preview.Render(&rom_, &game_data_, kRoom, {}, false).ok());
-  const IndexedImage before = preview.Snapshot();
+  const PreviewImage before = preview.Snapshot();
   DumpBmp(before, "room_4a_before");
 
   // Pick the first background sheet with an object drawing from it, and the
@@ -372,7 +402,7 @@ TEST_F(GraphicsUsagePreviewRomTest, D1RoomPreviewShowsOnePixelEdit) {
 
   ASSERT_TRUE(
       preview.Render(&rom_, &game_data_, kRoom, {{sheet, edited}}, false).ok());
-  const IndexedImage after = preview.Snapshot();
+  const PreviewImage after = preview.Snapshot();
   DumpBmp(after, "room_4a_after");
   const int changed = after.CountDifferentPixels(before);
   std::cout << "room 0x4A sheet 0x" << std::hex << sheet << " tile 0x"
@@ -412,7 +442,7 @@ TEST_F(GraphicsUsagePreviewRomTest, StalfosPreviewShowsOnePixelEdit) {
   ASSERT_TRUE(
       preview.Configure(&rom_, &game_data_, spriteset, stalfos_room).ok());
   preview.SetVanillaSprite(0xA7);
-  const IndexedImage before = preview.RenderFrame({});
+  const PreviewImage before = preview.RenderFrame({});
   ASSERT_FALSE(before.empty());
   DumpBmp(before, "stalfos_before");
 
@@ -423,7 +453,7 @@ TEST_F(GraphicsUsagePreviewRomTest, StalfosPreviewShowsOnePixelEdit) {
   const int px = 6 * 8 + 4;
   const int py = 4;
   edited[py * 128 + px] = edited[py * 128 + px] == 3 ? 5 : 3;
-  const IndexedImage after = preview.RenderFrame({{sheet, edited}});
+  const PreviewImage after = preview.RenderFrame({{sheet, edited}});
   DumpBmp(after, "stalfos_after");
   const int changed = after.CountDifferentPixels(before);
   std::cout << "stalfos room 0x" << std::hex << stalfos_room << " spriteset 0x"
@@ -455,7 +485,7 @@ TEST_F(GraphicsUsagePreviewRomTest, Tile16PreviewShowsOnePixelEdit) {
   }
   ASSERT_GE(tile, 0);
   std::vector<SDL_Rect> highlights;
-  const IndexedImage before =
+  const PreviewImage before =
       preview.Render({}, tile16s, sheet, tile, &highlights);
   ASSERT_FALSE(before.empty());
   EXPECT_FALSE(highlights.empty());
@@ -465,7 +495,7 @@ TEST_F(GraphicsUsagePreviewRomTest, Tile16PreviewShowsOnePixelEdit) {
   const int px = (tile % 16) * 8 + 2;
   const int py = (tile / 16) * 8 + 2;
   edited[py * 128 + px] = edited[py * 128 + px] == 6 ? 2 : 6;
-  const IndexedImage after =
+  const PreviewImage after =
       preview.Render({{sheet, edited}}, tile16s, sheet, tile);
   DumpBmp(after, "tile16_after");
   std::cout << "area 0x00 sheet 0x" << std::hex << sheet << " tile 0x" << tile

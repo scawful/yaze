@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "app/gfx/types/snes_color_math.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -17,17 +18,9 @@ constexpr uint16_t SNES_GREEN_SHIFT = 32;
 constexpr uint16_t SNES_BLUE_SHIFT = 1024;
 
 snes_color ConvertSnesToRgb(uint16_t color_snes) {
-  snes_color result;
-
-  result.red = (color_snes % SNES_RED_MASK) * 8;
-  result.green = ((color_snes / SNES_GREEN_MASK) % SNES_GREEN_MASK) * 8;
-  result.blue = ((color_snes / SNES_BLUE_SHIFT) % SNES_BLUE_MASK) * 8;
-
-  result.red += result.red / SNES_RED_MASK;
-  result.green += result.green / SNES_GREEN_MASK;
-  result.blue += result.blue / SNES_BLUE_MASK;
-
-  return result;
+  return {ExpandSnesChannel(color_snes & 31),
+          ExpandSnesChannel((color_snes >> 5) & 31),
+          ExpandSnesChannel((color_snes >> 10) & 31)};
 }
 
 uint16_t ConvertRgbToSnes(const snes_color& color) {
@@ -48,13 +41,9 @@ uint16_t ConvertRgbToSnes(const ImVec4& color) {
 SnesColor ReadColorFromRom(int offset, const uint8_t* rom) {
   // Note: Bounds checking should be done by caller before calling this function
   // This function assumes valid offset and rom pointer
-  short color = (uint16_t)((rom[offset + 1]) << 8) | rom[offset];
-  snes_color new_color;
-  new_color.red = (color & 0x1F) * 8;
-  new_color.green = ((color >> 5) & 0x1F) * 8;
-  new_color.blue = ((color >> 10) & 0x1F) * 8;
-  SnesColor snes_color(new_color);
-  return snes_color;
+  const uint16_t color =
+      (static_cast<uint16_t>(rom[offset + 1]) << 8) | rom[offset];
+  return SnesColor(color);
 }
 
 std::vector<snes_color> Extract(const char* data, unsigned int offset,
@@ -79,11 +68,7 @@ std::vector<char> Convert(const std::vector<snes_color>& palette) {
 }
 
 SnesColor GetCgxColor(uint16_t color) {
-  snes_color rgb;
-  rgb.red = (color & 0x1F) * 8;
-  rgb.green = ((color & 0x3E0) >> 5) * 8;
-  rgb.blue = ((color & 0x7C00) >> 10) * 8;
-  return SnesColor(rgb);
+  return SnesColor(color);
 }
 
 std::vector<SnesColor> GetColFileData(uint8_t* data) {

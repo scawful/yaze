@@ -43,7 +43,7 @@ struct GraphicsEditContext {
   zelda3::ResolvedGraphicsContext resolved;
   std::vector<GraphicsEditTarget> targets;
   size_t selected_target = 0;
-  std::function<absl::StatusOr<usage_preview::IndexedImage>()> render_preview;
+  std::function<absl::StatusOr<usage_preview::PreviewImage>()> render_preview;
   std::function<void()> return_to_source;
   std::string drawing_description;
 };

@@ -2350,7 +2350,7 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   context->label +=
       absl::StrFormat(" / %s", DungeonRenderContextSourceName(entrance));
   context->render_preview =
-      [this, room_id]() -> absl::StatusOr<usage_preview::IndexedImage> {
+      [this, room_id]() -> absl::StatusOr<usage_preview::PreviewImage> {
     auto& source = rooms_[room_id];
     ApplyEntranceRenderContext(room_id);
     // A stroke updates store pixels before committing its revision. Usage

@@ -1782,7 +1782,7 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
   const auto* owner = game_data_;
   context->render_preview =
       [this, preview_map, owner,
-       source_map_id]() -> absl::StatusOr<usage_preview::IndexedImage> {
+       source_map_id]() -> absl::StatusOr<usage_preview::PreviewImage> {
     if (game_data_ != owner || !overworld_.is_loaded()) {
       return absl::FailedPreconditionError(
           "Overworld graphics source session has changed");
@@ -1800,7 +1800,7 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
         static_cast<int>(overworld_.tiles16().size())));
     const int world = source_map_id / 0x40;
     RETURN_IF_ERROR(preview_map->BuildBitmap(overworld_.GetMapTiles(world)));
-    usage_preview::IndexedImage image;
+    usage_preview::PreviewImage image;
     image.width = 512;
     image.height = 512;
     image.pixels = preview_map->bitmap_data();

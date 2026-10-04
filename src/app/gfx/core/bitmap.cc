@@ -38,6 +38,8 @@ Uint32 GetSnesPixelFormat(int format) {
       return SNES_PIXELFORMAT_4BPP;
     case 2:
       return SNES_PIXELFORMAT_8BPP;
+    case BitmapFormat::kRgba:
+      return SDL_PIXELFORMAT_RGBA32;
     default:
       return SDL_PIXELFORMAT_INDEX8;
   }
@@ -67,22 +69,18 @@ Bitmap::Bitmap(const Bitmap& other)
       active_(other.active_),
       modified_(other.modified_),
       palette_(other.palette_),
+      metadata_(other.metadata_),
       data_(other.data_) {
   // Copy the data and recreate surface/texture with simple assignment
   pixel_data_ = data_.data();
   if (active_ && !data_.empty()) {
     surface_ = Arena::Get().AllocateSurface(
-        width_, height_, depth_, GetSnesPixelFormat(BitmapFormat::kIndexed));
+        width_, height_, depth_,
+        GetSnesPixelFormat(depth_ == 32 ? BitmapFormat::kRgba
+                                        : BitmapFormat::kIndexed));
     if (surface_) {
-      platform::EnsureSurfacePalette256(surface_);
-      SDL_LockSurface(surface_);
-      memcpy(surface_->pixels, pixel_data_, data_.size());
-      SDL_UnlockSurface(surface_);
-
-      // Apply the copied palette to the new SDL surface
-      if (!palette_.empty()) {
-        ApplyStoredPalette();
-      }
+      UpdateSurfacePixels();
+      CopySurfaceState(other);
     }
   }
 }
@@ -107,6 +105,7 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
     active_ = other.active_;
     modified_ = other.modified_;
     palette_ = other.palette_;
+    metadata_ = other.metadata_;
     data_ = other.data_;
     // Assign new generation since this is effectively a new bitmap
     generation_ = next_generation_++;
@@ -115,17 +114,12 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
     pixel_data_ = data_.data();
     if (active_ && !data_.empty()) {
       surface_ = Arena::Get().AllocateSurface(
-          width_, height_, depth_, GetSnesPixelFormat(BitmapFormat::kIndexed));
+          width_, height_, depth_,
+          GetSnesPixelFormat(depth_ == 32 ? BitmapFormat::kRgba
+                                          : BitmapFormat::kIndexed));
       if (surface_) {
-        platform::EnsureSurfacePalette256(surface_);
-        SDL_LockSurface(surface_);
-        memcpy(surface_->pixels, pixel_data_, data_.size());
-        SDL_UnlockSurface(surface_);
-
-        // Apply the copied palette to the new SDL surface
-        if (!palette_.empty()) {
-          ApplyStoredPalette();
-        }
+        UpdateSurfacePixels();
+        CopySurfaceState(other);
       }
     }
     texture_ = nullptr;  // Will be recreated on demand
@@ -143,6 +137,7 @@ Bitmap::Bitmap(Bitmap&& other) noexcept
       texture_pixels(other.texture_pixels),
       pixel_data_(other.pixel_data_),
       palette_(std::move(other.palette_)),
+      metadata_(std::move(other.metadata_)),
       data_(std::move(other.data_)),
       surface_(other.surface_),
       texture_(other.texture_) {
@@ -180,6 +175,7 @@ Bitmap& Bitmap::operator=(Bitmap&& other) noexcept {
     texture_pixels = other.texture_pixels;
     pixel_data_ = other.pixel_data_;
     palette_ = std::move(other.palette_);
+    metadata_ = std::move(other.metadata_);
     data_ = std::move(other.data_);
     surface_ = other.surface_;
     texture_ = other.texture_;
@@ -206,7 +202,8 @@ void Bitmap::Create(int width, int height, int depth, std::span<uint8_t> data) {
 
 void Bitmap::Create(int width, int height, int depth,
                     const std::vector<uint8_t>& data) {
-  Create(width, height, depth, static_cast<int>(BitmapFormat::kIndexed), data);
+  Create(width, height, depth,
+         depth == 32 ? BitmapFormat::kRgba : BitmapFormat::kIndexed, data);
 }
 
 /**
@@ -259,26 +256,23 @@ void Bitmap::Create(int width, int height, int depth, int format,
     return;
   }
 
+  // Pooled surfaces may retain the previous view's presentation state.
+  SDL_SetColorKey(surface_, SDL_FALSE, 0);
+  SDL_SetSurfaceColorMod(surface_, 255, 255, 255);
+  SDL_SetSurfaceAlphaMod(surface_, 255);
+  SDL_SetSurfaceBlendMode(surface_, SDL_BLENDMODE_NONE);
+
   // Ensure indexed surfaces have a proper 256-color palette
   // This fixes issues where SDL3 creates surfaces with smaller default palettes
   if (format == static_cast<int>(BitmapFormat::kIndexed)) {
     platform::EnsureSurfacePalette256(surface_);
   }
 
-  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer
-  // assignment Direct assignment breaks SDL's memory management and causes
-  // malloc errors on shutdown
-  if (surface_ && data_.size() > 0) {
-    SDL_LockSurface(surface_);
-    size_t copy_size = std::min(
-        data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
-    memcpy(surface_->pixels, pixel_data_, copy_size);
-    SDL_UnlockSurface(surface_);
-  }
+  UpdateSurfacePixels();
   active_ = true;
 
   // Apply the stored palette if one exists
-  if (!palette_.empty()) {
+  if (IsIndexed() && !palette_.empty()) {
     ApplyStoredPalette();
   }
 }
@@ -325,7 +319,7 @@ void Bitmap::UpdateTexture() {
  * - We cast these directly to Uint8 for SDL
  */
 void Bitmap::ApplyStoredPalette() {
-  if (!surface_ || palette_.empty()) {
+  if (!surface_ || !IsIndexed() || palette_.empty()) {
     return;  // Can't apply without surface or palette
   }
 
@@ -377,18 +371,82 @@ void Bitmap::ApplyStoredPalette() {
 }
 
 void Bitmap::UpdateSurfacePixels() {
-  if (!surface_ || data_.empty()) {
+  if (!surface_ || !surface_->pixels || data_.empty()) {
     return;
   }
-
-  // Copy pixel data from data_ vector to SDL surface
+  const size_t row_bytes = static_cast<size_t>(width_) * (IsIndexed() ? 1 : 4);
   SDL_LockSurface(surface_);
-  if (surface_->pixels && data_.size() > 0) {
-    memcpy(surface_->pixels, data_.data(),
-           std::min(data_.size(),
-                    static_cast<size_t>(surface_->pitch * surface_->h)));
+  for (int y = 0; y < height_; ++y) {
+    const size_t offset = static_cast<size_t>(y) * row_bytes;
+    if (offset >= data_.size())
+      break;
+    memcpy(static_cast<uint8_t*>(surface_->pixels) + y * surface_->pitch,
+           data_.data() + offset,
+           std::min({row_bytes, data_.size() - offset,
+                     static_cast<size_t>(surface_->pitch)}));
   }
   SDL_UnlockSurface(surface_);
+}
+
+void Bitmap::CopySurfaceState(const Bitmap& other) {
+  if (!surface_ || !other.surface_)
+    return;
+  if (const auto* palette = platform::GetSurfacePalette(other.surface_)) {
+    SetPalette(std::vector<SDL_Color>(palette->colors,
+                                      palette->colors + palette->ncolors));
+  }
+  Uint32 key;
+  if (SDL_GetColorKey(other.surface_, &key) == 0) {
+    SDL_SetColorKey(surface_, SDL_TRUE, key);
+  } else {
+    SDL_SetColorKey(surface_, SDL_FALSE, 0);
+  }
+  Uint8 r, g, b, a;
+  SDL_GetSurfaceColorMod(other.surface_, &r, &g, &b);
+  SDL_SetSurfaceColorMod(surface_, r, g, b);
+  SDL_GetSurfaceAlphaMod(other.surface_, &a);
+  SDL_SetSurfaceAlphaMod(surface_, a);
+  SDL_BlendMode blend;
+  SDL_GetSurfaceBlendMode(other.surface_, &blend);
+  SDL_SetSurfaceBlendMode(surface_, blend);
+}
+
+SDL_Color Bitmap::ReadColor(int x, int y) const {
+  if (x < 0 || y < 0 || x >= width_ || y >= height_)
+    return {0, 0, 0, 0};
+  const size_t pixel = static_cast<size_t>(y) * width_ + x;
+  if (!IsIndexed()) {
+    const size_t offset = pixel * 4;
+    if (offset + 3 >= data_.size())
+      return {0, 0, 0, 0};
+    return {data_[offset], data_[offset + 1], data_[offset + 2],
+            data_[offset + 3]};
+  }
+  const auto* palette = platform::GetSurfacePalette(surface_);
+  if (pixel >= data_.size() || !palette || data_[pixel] >= palette->ncolors)
+    return {0, 0, 0, 0};
+  SDL_Color color = palette->colors[data_[pixel]];
+  Uint32 key;
+  if (SDL_GetColorKey(surface_, &key) == 0 && key == data_[pixel])
+    color.a = 0;
+  return color;
+}
+
+std::vector<uint8_t> Bitmap::ToRgba() const {
+  if (width_ <= 0 || height_ <= 0)
+    return {};
+  std::vector<uint8_t> result(static_cast<size_t>(width_) * height_ * 4);
+  for (int y = 0; y < height_; ++y) {
+    for (int x = 0; x < width_; ++x) {
+      const auto color = ReadColor(x, y);
+      const size_t i = (static_cast<size_t>(y) * width_ + x) * 4;
+      result[i] = color.r;
+      result[i + 1] = color.g;
+      result[i + 2] = color.b;
+      result[i + 3] = color.a;
+    }
+  }
+  return result;
 }
 
 void Bitmap::SetPalette(const SnesPalette& palette) {
@@ -543,10 +601,13 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
 }
 
 void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
-  // CRITICAL: Validate surface and palette before accessing
-  if (!surface_) {
+  // Render palette changes also invalidate derived lookup and GPU caches.
+  if (!surface_ || !IsIndexed()) {
     return;
   }
+
+  InvalidatePaletteCache();
+  modified_ = true;
 
   // Ensure surface has a proper 256-color palette before setting colors
   // This fixes issues where SDL creates surfaces with smaller default palettes
@@ -570,8 +631,6 @@ void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
     colors_to_set = max_colors;  // Clamp to available space
   }
 
-  SDL_UnlockSurface(surface_);
-
   // Use SDL_SetPaletteColors for proper palette setting
   // This is more reliable than direct array access
   if (SDL_SetPaletteColors(sdl_palette, palette.data(), 0, colors_to_set) !=
@@ -585,11 +644,12 @@ void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
       sdl_palette->colors[i].a = palette[i].a;
     }
   }
-
-  SDL_LockSurface(surface_);
 }
 
 void Bitmap::WriteToPixel(int position, uint8_t value) {
+  if (!IsIndexed())
+    return;  // Presentation composites are not editable source indices.
+
   // Bounds checking to prevent crashes
   if (position < 0 || position >= static_cast<int>(data_.size())) {
     SDL_Log("ERROR: WriteToPixel - position %d out of bounds (size: %zu)",
@@ -632,7 +692,9 @@ void Bitmap::WriteToPixel(int position, uint8_t value) {
   // Update surface if it exists
   if (surface_) {
     SDL_LockSurface(surface_);
-    static_cast<uint8_t*>(surface_->pixels)[position] = value;
+    static_cast<uint8_t*>(
+        surface_->pixels)[(position / width_) * surface_->pitch +
+                          position % width_] = value;
     SDL_UnlockSurface(surface_);
   }
 
@@ -641,47 +703,14 @@ void Bitmap::WriteToPixel(int position, uint8_t value) {
 }
 
 void Bitmap::WriteColor(int position, const ImVec4& color) {
-  // Bounds checking to prevent crashes
-  if (position < 0 || position >= static_cast<int>(data_.size())) {
+  if (!IsIndexed() || !surface_)
     return;
-  }
-
-  // Safety check: ensure bitmap is active and has valid data
-  if (!active_ || data_.empty()) {
-    return;
-  }
-
-  // Safety check: ensure surface exists and is valid
-  if (!surface_ || !surface_->pixels) {
-    return;
-  }
-
-  // Convert ImVec4 (RGBA) to SDL_Color (RGBA)
-  SDL_Color sdl_color;
-  sdl_color.r = static_cast<Uint8>(color.x * 255);
-  sdl_color.g = static_cast<Uint8>(color.y * 255);
-  sdl_color.b = static_cast<Uint8>(color.z * 255);
-  sdl_color.a = static_cast<Uint8>(color.w * 255);
-
-  // Map SDL_Color to the nearest color index in the surface's palette
-  Uint8 index = static_cast<Uint8>(
-      platform::MapRGB(surface_, sdl_color.r, sdl_color.g, sdl_color.b));
-
-  // CRITICAL FIX: Update both data_ and surface_ properly
-  if (pixel_data_ == nullptr) {
-    pixel_data_ = data_.data();
-  }
-  data_[position] = ConvertRgbToSnes(color);
-  pixel_data_[position] = index;
-
-  // Update surface if it exists
-  if (surface_) {
-    SDL_LockSurface(surface_);
-    static_cast<uint8_t*>(surface_->pixels)[position] = index;
-    SDL_UnlockSurface(surface_);
-  }
-
-  modified_ = true;
+  // RGB-to-index selection is an explicit authoring operation. The selected
+  // index, never the SNES color word, is what belongs in the pixel buffer.
+  const auto index = static_cast<uint8_t>(platform::MapRGB(
+      surface_, static_cast<Uint8>(color.x * 255),
+      static_cast<Uint8>(color.y * 255), static_cast<Uint8>(color.z * 255)));
+  WriteToPixel(position, index);
 }
 
 void Bitmap::Get8x8Tile(int tile_index, int x, int y,
@@ -735,6 +764,9 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
  * - Dirty region tracking to minimize texture update area
  */
 void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
+  if (!IsIndexed())
+    return;  // Presentation composites are not editable source indices.
+
   if (x < 0 || x >= width_ || y < 0 || y >= height_) {
     return;  // Bounds check
   }
@@ -752,7 +784,8 @@ void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
     // Update surface if it exists
     if (surface_) {
       SDL_LockSurface(surface_);
-      static_cast<uint8_t*>(surface_->pixels)[position] = color_index;
+      static_cast<uint8_t*>(surface_->pixels)[y * surface_->pitch + x] =
+          color_index;
       SDL_UnlockSurface(surface_);
     }
 
@@ -763,6 +796,8 @@ void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
 }
 
 void Bitmap::Resize(int new_width, int new_height) {
+  if (!IsIndexed())
+    return;
   if (new_width <= 0 || new_height <= 0) {
     return;  // Invalid dimensions
   }
@@ -789,7 +824,9 @@ void Bitmap::Resize(int new_width, int new_height) {
 
   // Recreate surface with new dimensions
   surface_ = Arena::Get().AllocateSurface(
-      width_, height_, depth_, GetSnesPixelFormat(BitmapFormat::kIndexed));
+      width_, height_, depth_,
+      GetSnesPixelFormat(depth_ == 32 ? BitmapFormat::kRgba
+                                      : BitmapFormat::kIndexed));
   if (surface_) {
     SDL_LockSurface(surface_);
     memcpy(surface_->pixels, pixel_data_, data_.size());
@@ -871,13 +908,7 @@ void Bitmap::set_data(const std::vector<uint8_t>& data) {
   data_ = data;
   pixel_data_ = data_.data();
 
-  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer
-  // assignment
-  if (surface_ && !data_.empty()) {
-    SDL_LockSurface(surface_);
-    memcpy(surface_->pixels, pixel_data_, data_.size());
-    SDL_UnlockSurface(surface_);
-  }
+  UpdateSurfacePixels();
 
   modified_ = true;
 }
@@ -888,21 +919,14 @@ bool Bitmap::ValidateDataSurfaceSync() {
     return false;
   }
 
-  // Check if data and surface are synchronized
-  size_t surface_size = static_cast<size_t>(surface_->h * surface_->pitch);
-  size_t data_size = data_.size();
-  size_t compare_size = std::min(data_size, surface_size);
-
-  if (compare_size == 0) {
-    SDL_Log("ValidateDataSurfaceSync: invalid sizes - surface: %zu, data: %zu",
-            surface_size, data_size);
+  const size_t row_bytes = static_cast<size_t>(width_) * (IsIndexed() ? 1 : 4);
+  if (data_.size() < row_bytes * height_ ||
+      static_cast<size_t>(surface_->pitch) < row_bytes)
     return false;
-  }
-
-  // Compare first few bytes to check synchronization
-  if (memcmp(surface_->pixels, data_.data(), compare_size) != 0) {
-    SDL_Log("ValidateDataSurfaceSync: data and surface are not synchronized");
-    return false;
+  for (int y = 0; y < height_; ++y) {
+    if (memcmp(static_cast<uint8_t*>(surface_->pixels) + y * surface_->pitch,
+               data_.data() + y * row_bytes, row_bytes) != 0)
+      return false;
   }
 
   return true;

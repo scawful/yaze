@@ -15,7 +15,7 @@ absl::StatusOr<GraphicsEditContext> Make(
     const zelda3::GameData* owner, const std::string& source_label,
     const std::string& sheet_source = "sprite sheet selection");
 // Captured pose/palette, live pixels from the owning session's store.
-absl::StatusOr<usage_preview::IndexedImage> RenderCapturedFrame(
+absl::StatusOr<usage_preview::PreviewImage> RenderCapturedFrame(
     const zsprite::Frame& frame, const std::array<uint8_t, 8>& slots,
     const gfx::PaletteGroup& palettes, const zelda3::GameData* owner);
 }  // namespace yaze::editor::sprite_graphics_context

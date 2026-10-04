@@ -363,6 +363,8 @@ void Canvas::SetGameData(zelda3::GameData* game_data) {
 }
 
 void Canvas::ShowPaletteEditor() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;  // Composite colors are derived.
   if (bitmap_) {
     auto& ext = EnsureExtensions();
     ext.InitializePaletteEditor();
@@ -375,6 +377,8 @@ void Canvas::ShowPaletteEditor() {
 }
 
 void Canvas::ShowColorAnalysis() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;  // Composite colors are derived.
   if (bitmap_) {
     auto& ext = EnsureExtensions();
     ext.InitializePaletteEditor();
@@ -385,7 +389,8 @@ void Canvas::ShowColorAnalysis() {
 }
 
 bool Canvas::ApplyROMPalette(int group_index, int palette_index) {
-  if (bitmap_ && extensions_ && extensions_->palette_editor) {
+  if (bitmap_ && bitmap_->IsIndexed() && extensions_ &&
+      extensions_->palette_editor) {
     return extensions_->palette_editor->ApplyROMPalette(bitmap_, group_index,
                                                         palette_index);
   }
@@ -1851,6 +1856,8 @@ void Canvas::ShowScalingControls() {
 
 // BPP format management methods
 void Canvas::ShowBppFormatSelector() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;  // Composite colors are derived.
   auto& ext = EnsureExtensions();
   ext.InitializeBppUI(canvas_id_);
 
@@ -1862,6 +1869,8 @@ void Canvas::ShowBppFormatSelector() {
 }
 
 void Canvas::ShowBppAnalysis() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;
   auto& ext = EnsureExtensions();
   ext.InitializeBppUI(canvas_id_);
 
@@ -1871,6 +1880,8 @@ void Canvas::ShowBppAnalysis() {
 }
 
 void Canvas::ShowBppConversionDialog() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;
   auto& ext = EnsureExtensions();
   if (!ext.bpp_conversion_dialog) {
     ext.bpp_conversion_dialog = std::make_unique<gui::BppConversionDialog>(
@@ -1891,7 +1902,7 @@ void Canvas::ShowBppConversionDialog() {
 }
 
 bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
-  if (!bitmap_)
+  if (!bitmap_ || !bitmap_->IsIndexed())
     return false;
 
   gfx::BppFormat current_format = GetCurrentBppFormat();

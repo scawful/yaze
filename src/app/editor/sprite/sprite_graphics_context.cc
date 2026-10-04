@@ -99,7 +99,7 @@ absl::StatusOr<GraphicsEditContext> Make(const zsprite::Frame& frame,
 
 // The frame, assignments and colors are captured at navigation time; pixels
 // always come from the owning session's sheet store, including unsaved strokes.
-absl::StatusOr<usage_preview::IndexedImage> RenderCapturedFrame(
+absl::StatusOr<usage_preview::PreviewImage> RenderCapturedFrame(
     const zsprite::Frame& frame, const std::array<uint8_t, 8>& slots,
     const gfx::PaletteGroup& palettes, const zelda3::GameData* owner) {
   if (!owner)
@@ -120,7 +120,7 @@ absl::StatusOr<usage_preview::IndexedImage> RenderCapturedFrame(
   gfx::Bitmap canvas(kSize, kSize, 8, std::vector<uint8_t>(kSize * kSize, 0));
   SpriteDrawer drawer(buffer.data());
   drawer.DrawFrame(canvas, frame, 128, 128);
-  usage_preview::IndexedImage image;
+  usage_preview::PreviewImage image;
   image.width = kSize;
   image.height = kSize;
   image.pixels = canvas.vector();
