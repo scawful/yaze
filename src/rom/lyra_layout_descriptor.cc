@@ -254,6 +254,9 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   if (U32(d + 0x18) != size) {
     return bad("Lyra image length mismatch");
   }
+  if (image[0x140145] != 3 || image[0x1423FF] == 0xEA) {
+    return bad("Conflicting ZS version or older $EA tail identity");
+  }
   std::array<uint8_t, kDescriptorSize> checked;
   std::copy_n(d, kDescriptorSize, checked.begin());
   std::fill_n(checked.begin() + 0x1C, 4, 0);

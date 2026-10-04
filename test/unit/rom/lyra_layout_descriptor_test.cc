@@ -10,9 +10,18 @@
 
 #include <nlohmann/json.hpp>
 
+#include "app/editor/system/session/collision_source_pairing.h"
+#include "app/editor/system/session/rom_file_manager.h"
+#include "cli/handlers/rom/rom_commands.h"
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+#include "miniz/miniz.h"
+#undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "rom/lyra_layout_descriptor.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "unique_temp_path.h"
+#include "zelda3/dungeon/custom_collision.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
@@ -27,6 +36,35 @@ std::filesystem::path FixtureDir() {
   const char* path = std::getenv("YAZE_LYRA_FIXTURE_DIR");
   return path == nullptr ? std::filesystem::path()
                          : std::filesystem::path(path);
+}
+
+void WriteBytes(const std::filesystem::path& path,
+                const std::vector<uint8_t>& bytes) {
+  std::ofstream out(path, std::ios::binary | std::ios::trunc);
+  out.write(reinterpret_cast<const char*>(bytes.data()),
+            static_cast<std::streamsize>(bytes.size()));
+}
+
+void Put32(std::vector<uint8_t>* bytes, size_t pc, uint32_t value) {
+  for (int i = 0; i < 4; ++i) {
+    (*bytes)[pc + i] = static_cast<uint8_t>(value >> (8 * i));
+  }
+}
+
+// Reseal each directory entry and the descriptor after a semantic mutation.
+// This prevents a CRC failure from masking the deeper contract being tested.
+void Reseal(std::vector<uint8_t>* bytes,
+            const rom::LyraLayoutInspection& original) {
+  constexpr size_t kDescriptorPc = 0x147000;
+  for (size_t i = 0; i < original.entries.size(); ++i) {
+    const auto& e = original.entries[i];
+    Put32(bytes, kDescriptorPc + 32 + 16 * i + 12,
+          mz_crc32(MZ_CRC32_INIT, bytes->data() + e.pc_address,
+                   e.count * e.stride));
+  }
+  Put32(bytes, kDescriptorPc + 28, 0);
+  Put32(bytes, kDescriptorPc + 28,
+        mz_crc32(MZ_CRC32_INIT, bytes->data() + kDescriptorPc, 1024));
 }
 
 TEST(LyraLayoutDescriptorTest, ShortAndUnrelatedImagesAreNotAttributed) {
@@ -151,6 +189,176 @@ TEST(LyraLayoutDescriptorTest, HeaderedImageAndTwoSessionsKeepSavePolicy) {
             rom::LyraLayoutPresence::kInvalid);
   EXPECT_FALSE(lyra.CheckLayoutWritable().ok());
   EXPECT_TRUE(ordinary.CheckLayoutWritable().ok());
+}
+
+TEST(LyraLayoutDescriptorTest, ResealedSemanticCorruptionAndIdentityFail) {
+  const auto dir = FixtureDir();
+  if (dir.empty())
+    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
+  const auto original_bytes = ReadBytes(dir / "OFFLINE_ONLY.bin");
+  const auto original =
+      rom::InspectLyraLayout(original_bytes.data(), original_bytes.size());
+  ASSERT_EQ(original.presence, rom::LyraLayoutPresence::kValid);
+  ASSERT_EQ(original.entries.size(), 35u);
+
+  for (int mutation = 0; mutation < 7; ++mutation) {
+    SCOPED_TRACE(mutation);
+    auto bytes = original_bytes;
+    std::string expected;
+    switch (mutation) {
+      case 0:
+        bytes[0x147000 + 900] = 1;
+        expected = "padding";
+        break;
+      case 1:
+        std::fill_n(bytes.begin() + 0x1E4000, 0x4000, 0);
+        expected = "sprite pointer";
+        break;
+      case 2:
+        bytes[original.entries[19].pc_address + 3 * 160] = 0xFF;
+        bytes[original.entries[19].pc_address + 3 * 160 + 1] = 0xFF;
+        bytes[original.entries[19].pc_address + 3 * 160 + 2] = 0x26;
+        bytes[0x137FFF] = 0xE4;
+        expected = "compressed map stream";
+        break;
+      case 3:
+        bytes[0x131002] = 0xFF;
+        expected = "Tile32";
+        break;
+      case 4:
+        bytes[original.entries[6].pc_address + 160] = 0xC0;
+        expected = "inactive tail";
+        break;
+      case 5:
+        bytes[0x1423FF] = 0xEA;
+        expected = "Conflicting";
+        break;
+      case 6:
+        bytes[0x140145] = 2;
+        expected = "Conflicting";
+        break;
+    }
+    Reseal(&bytes, original);
+    const auto result = rom::InspectLyraLayout(bytes.data(), bytes.size());
+    EXPECT_EQ(result.presence, rom::LyraLayoutPresence::kInvalid);
+    EXPECT_NE(result.error.find(expected), std::string::npos) << result.error;
+    Rom malformed;
+    ASSERT_TRUE(malformed.LoadFromData(bytes).ok());
+    EXPECT_EQ(zelda3::DetectOverworldRomProfile(malformed).layout_kind,
+              zelda3::OverworldRomProfile::LayoutKind::kLyraOffline);
+    EXPECT_FALSE(malformed.CheckLayoutWritable().ok());
+  }
+}
+
+TEST(LyraLayoutDescriptorTest, InvalidDescriptorFailsCliValidation) {
+  const auto dir = FixtureDir();
+  if (dir.empty())
+    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
+  cli::handlers::RomValidateCommandHandler validate;
+  std::string output;
+  for (const char* filename : {"OFFLINE_ONLY.bin", "legacy_160_input.bin"}) {
+    Rom control;
+    ASSERT_TRUE(control.LoadFromData(ReadBytes(dir / filename)).ok());
+    output.clear();
+    ASSERT_TRUE(validate.Run({"--format=json"}, &control, &output).ok());
+    EXPECT_TRUE(
+        nlohmann::json::parse(output).at("validation_passed").get<bool>());
+  }
+  auto bytes = ReadBytes(dir / "OFFLINE_ONLY.bin");
+  bytes[0x14701C] ^= 1;
+  Rom malformed;
+  ASSERT_TRUE(malformed.LoadFromData(bytes).ok());
+  cli::handlers::RomInfoCommandHandler info;
+  output.clear();
+  ASSERT_TRUE(info.Run({"--format=json"}, &malformed, &output).ok());
+  EXPECT_FALSE(
+      nlohmann::json::parse(output).at("overworld_format_valid").get<bool>());
+  output.clear();
+  const auto status = validate.Run({"--format=json"}, &malformed, &output);
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(std::string(status.message()).find("CRC"), std::string::npos);
+  const auto result = nlohmann::json::parse(output);
+  EXPECT_FALSE(result.at("validation_passed").get<bool>());
+  EXPECT_NE(
+      result.at("results").get<std::string>().find("lyra_descriptor: FAILED"),
+      std::string::npos);
+}
+
+TEST(LyraLayoutDescriptorTest, PairedSourceAndBackupsRefuseBeforeWrites) {
+  const auto dir = FixtureDir();
+  if (dir.empty())
+    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
+  const auto root = test::UniqueTempPath("lyra_paired_refusal");
+  std::filesystem::create_directories(root);
+  struct Cleanup {
+    std::filesystem::path root;
+    ~Cleanup() { std::filesystem::remove_all(root); }
+  } cleanup{root};
+  const auto source = root / "source.sfc";
+  const auto destination = root / "destination.sfc";
+  const auto missing_json = root / "missing.json";
+  const auto changed_json = root / "changed.json";
+  const auto backups = root / "backups";
+  const auto source_bytes = ReadBytes(dir / "OFFLINE_ONLY.bin");
+  const std::vector<uint8_t> destination_bytes(64, 0xA5);
+  WriteBytes(source, source_bytes);
+  WriteBytes(destination, destination_bytes);
+  std::filesystem::create_directory(backups);
+
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromFile(source.string()).ok());
+  const auto disk_source = zelda3::DumpCustomCollisionSourceFromRom(&loaded);
+  ASSERT_TRUE(disk_source.ok()) << disk_source.status();
+  const std::vector<uint8_t> changed_bytes(disk_source->begin(),
+                                           disk_source->end());
+  WriteBytes(changed_json, changed_bytes);
+  // Room $25 has a single-tile collision stream in the frozen fixture. Change
+  // one tile in memory while the sidecar remains coherent with the disk ROM.
+  constexpr int kRoom = 0x25;
+  const int pointer_offset = zelda3::kCustomCollisionRoomPointers + kRoom * 3;
+  auto& memory = loaded.mutable_vector();
+  const uint32_t snes = memory[pointer_offset] |
+                        (memory[pointer_offset + 1] << 8) |
+                        (memory[pointer_offset + 2] << 16);
+  const int stream_pc = SnesToPc(snes);
+  ASSERT_GE(stream_pc, 0);
+  ASSERT_LT(static_cast<size_t>(stream_pc + 4), memory.size());
+  ASSERT_EQ(memory[stream_pc], 0xF0);
+  ASSERT_EQ(memory[stream_pc + 1], 0xF0);
+  memory[stream_pc + 4] ^= 1;
+  const auto pending_source = zelda3::DumpCustomCollisionSourceFromRom(&loaded);
+  ASSERT_TRUE(pending_source.ok()) << pending_source.status();
+  ASSERT_NE(*pending_source, *disk_source);
+  loaded.set_dirty(true);
+  const auto memory_before = loaded.vector();
+  const auto filename_before = loaded.filename();
+  auto expect_unchanged = [&] {
+    EXPECT_EQ(loaded.vector(), memory_before);
+    EXPECT_TRUE(loaded.dirty());
+    EXPECT_EQ(loaded.filename(), filename_before);
+    EXPECT_EQ(ReadBytes(source), source_bytes);
+    EXPECT_EQ(ReadBytes(destination), destination_bytes);
+    EXPECT_FALSE(std::filesystem::exists(missing_json));
+    EXPECT_EQ(ReadBytes(changed_json), changed_bytes);
+    EXPECT_TRUE(std::filesystem::is_empty(backups));
+  };
+  for (const auto& json : {missing_json, changed_json}) {
+    const auto direct = editor::SaveRomWithCollisionSource(&loaded, json);
+    EXPECT_EQ(direct.code(), absl::StatusCode::kFailedPrecondition) << direct;
+    expect_unchanged();
+  }
+  editor::RomFileManager manager(nullptr);
+  manager.SetBackupFolder(backups.string());
+  manager.SetBackupBeforeSave(true);
+  for (const auto& json : {missing_json, changed_json}) {
+    const auto paired = manager.SaveRom(&loaded, json);
+    EXPECT_EQ(paired.code(), absl::StatusCode::kFailedPrecondition) << paired;
+    expect_unchanged();
+  }
+  EXPECT_FALSE(manager.SaveRom(&loaded).ok());
+  expect_unchanged();
+  EXPECT_FALSE(manager.SaveRomAs(&loaded, destination.string()).ok());
+  expect_unchanged();
 }
 
 }  // namespace

@@ -59,6 +59,7 @@ absl::Status RomFileManager::SaveRom(
   if (!IsRomLoaded(rom)) {
     return absl::FailedPreconditionError("No ROM loaded to save");
   }
+  RETURN_IF_ERROR(rom->CheckLayoutWritable());
 
   if (backup_before_save_) {
     auto backup_status = CreateBackup(rom);
@@ -96,6 +97,7 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
   if (filename.empty()) {
     return absl::InvalidArgumentError("No filename provided for save as");
   }
+  RETURN_IF_ERROR(rom->CheckLayoutWritable());
 
   // Save As must not overwrite or back up the source ROM. If the requested
   // target already exists, back up that target before replacing it.
