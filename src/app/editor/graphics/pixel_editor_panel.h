@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_PIXEL_EDITOR_PANEL_H
 #define YAZE_APP_EDITOR_GRAPHICS_PIXEL_EDITOR_PANEL_H
 
+#include <functional>
 #include <optional>
 
 #include "absl/status/status.h"
@@ -49,6 +50,11 @@ class PixelEditorPanel : public WindowContent {
   void Initialize();
 
   void SetRom(Rom* rom) { rom_ = rom; }
+  // The Graphics owner supplies its existing Usage Preview; no second renderer.
+  void SetSourcePreviewCallback(std::function<void()> draw) {
+    draw_source_preview_ = std::move(draw);
+  }
+  void ShowSourcePreview() { show_source_preview_ = true; }
 
   /**
    * @brief Draw the pixel editor UI (WindowContent interface)
@@ -74,6 +80,8 @@ class PixelEditorPanel : public WindowContent {
   gfx::SnesPalette DisplayPalette() const;
   gfx::Bitmap context_sheet_;
   bool fit_canvas_requested_ = false;
+  bool show_source_preview_ = true;
+  std::function<void()> draw_source_preview_;
   /**
    * @brief Draw the toolbar with tool selection
    */
