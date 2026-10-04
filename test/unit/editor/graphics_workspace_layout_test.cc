@@ -12,6 +12,7 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas_rendering.h"
 #include "imgui/imgui_internal.h"
+#include "zelda3/game_data.h"
 
 namespace yaze::editor {
 namespace {
@@ -68,13 +69,18 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
     return nullptr;
   }
 
-  void Click(const char* label, const std::function<void()>& frame) {
-    std::optional<gui::WidgetIdRegistry::WidgetInfo> target;
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> FindWidget(
+      const char* label) {
     for (const auto& [path, widget] :
          gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
       if (widget.label == gui::WidgetIdRegistry::NormalizeLabel(label))
-        target = widget;
+        return widget;
     }
+    return std::nullopt;
+  }
+
+  void Click(const char* label, const std::function<void()>& frame) {
+    const auto target = FindWidget(label);
     ASSERT_TRUE(target) << label;
     auto& io = ImGui::GetIO();
     io.AddMousePosEvent((target->bounds.min_x + target->bounds.max_x) / 2,
@@ -87,12 +93,131 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
     frame();
   }
 
+  // Inspect the actual swatch draw geometry, not a helper that could return the
+  // right color while the production widget still renders a stale value.
+  std::optional<ImU32> SwatchColor(const char* label) {
+    const auto widget = FindWidget(label);
+    auto* picker = ActiveChild("##ColorPickerSide");
+    if (!widget || !picker)
+      return std::nullopt;
+    const ImVec2 point(widget->bounds.min_x + 6.5f,
+                       widget->bounds.min_y + 6.5f);
+    const auto& draw = *picker->DrawList;
+    std::optional<ImU32> result;
+    for (const auto& command : draw.CmdBuffer) {
+      for (unsigned int i = 0; i + 2 < command.ElemCount; i += 3) {
+        const auto& a = draw.VtxBuffer[command.VtxOffset +
+                                       draw.IdxBuffer[command.IdxOffset + i]];
+        const auto& b =
+            draw.VtxBuffer[command.VtxOffset +
+                           draw.IdxBuffer[command.IdxOffset + i + 1]];
+        const auto& c =
+            draw.VtxBuffer[command.VtxOffset +
+                           draw.IdxBuffer[command.IdxOffset + i + 2]];
+        if (a.col == b.col && b.col == c.col &&
+            ImTriangleContainsPoint(a.pos, b.pos, c.pos, point)) {
+          result = a.col;
+        }
+      }
+    }
+    return result;
+  }
+
   ImGuiContext* previous_ = nullptr;
   ImGuiContext* context_ = nullptr;
   GraphicsEditorState state_;
   gfx::Bitmap* bitmap_ = nullptr;
   gfx::Bitmap saved_bitmap_;
 };
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       CurrentSwatchFollowsSelectionAndPaletteRow) {
+  PixelEditorPanel pixel(&state_, nullptr);
+  state_.open_sheets.insert(0);
+  std::vector<uint16_t> colors(8, 0x001f);
+  colors[2] = 0x7c00;
+  bitmap_->SetPalette(gfx::SnesPalette(colors));
+  const auto pixels_before = bitmap_->vector();
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  EXPECT_EQ(state_.current_color_index, 1);
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 0, 0, 255));
+  state_.apply_palette_to_sheet = [&](uint16_t sheet) {
+    EXPECT_EQ(sheet, 0);
+    colors[1] = 0x03e0;
+    bitmap_->SetPalette(gfx::SnesPalette(colors));
+  };
+  Click("Next palette row", frame);
+  EXPECT_EQ(state_.sub_palette_index, 1);
+  EXPECT_EQ(state_.current_color_index, 1);
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 255, 0, 255));
+  Click("Palette index 2", frame);
+  EXPECT_EQ(state_.current_color_index, 2);
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 0, 255, 255));
+  EXPECT_EQ(bitmap_->vector(), pixels_before);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       TransparentAndUnavailableSlotsAreNotColors) {
+  PixelEditorPanel pixel(&state_, nullptr);
+  state_.open_sheets.insert(0);
+  bitmap_->SetPalette(gfx::SnesPalette(std::vector<uint16_t>(8, 0x001f)));
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  Click("Palette index 0", frame);
+  ASSERT_EQ(state_.current_color_index, 0);
+  const auto color = SwatchColor("Current color");
+  ASSERT_TRUE(color);
+  // A transparent index displays the neutral checkerboard, not palette0 red.
+  EXPECT_EQ((*color >> IM_COL32_R_SHIFT) & 255,
+            (*color >> IM_COL32_G_SHIFT) & 255);
+  EXPECT_EQ((*color >> IM_COL32_G_SHIFT) & 255,
+            (*color >> IM_COL32_B_SHIFT) & 255);
+  state_.current_color_index = 7;
+  bitmap_->SetPalette(gfx::SnesPalette(std::vector<uint16_t>(2, 0x001f)));
+  frame();
+  EXPECT_FALSE(FindWidget("Current color"));
+  EXPECT_EQ(state_.current_color_index, 7);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       CurrentSwatchUsesOnlyTheOwningSourcePalette) {
+  zelda3::GameData owner;
+  zelda3::GameData other;
+  PixelEditorPanel pixel(&state_, nullptr);
+  state_.open_sheets.insert(0);
+  state_.game_data = &owner;
+  GraphicsEditContext context;
+  context.owner = &owner;
+  context.targets.push_back(
+      {.sheet_id = 0,
+       .label = "Source tile",
+       .palette = gfx::SnesPalette(std::vector<uint16_t>(8, 0x001f))});
+  state_.source_context = std::move(context);
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 0, 0, 255));
+  state_.source_context->targets[0].palette =
+      gfx::SnesPalette(std::vector<uint16_t>(8, 0x03e0));
+  frame();
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 255, 0, 255));
+  state_.game_data = &other;
+  frame();
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 255, 255, 255));
+  EXPECT_EQ(state_.current_color_index, 1);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
 
 TEST_F(GraphicsWorkspaceLayoutTest,
        BrowserStartsWithSheetsAndDetailsRemainReachable) {
