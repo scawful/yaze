@@ -43,6 +43,18 @@ absl::Status PixelEditorPanel::Update() {
   // presets and normal buttons made Undo taller than the drawing tools.
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
                       ImVec2(4, ImGui::GetStyle().ItemSpacing.y));
+  if (sheet_browser_visible_ && set_sheet_browser_visible_) {
+    const bool visible = sheet_browser_visible_();
+    std::optional<gui::StyleColorGuard> selected;
+    if (visible)
+      selected.emplace(ImGuiCol_Button, gui::GetPrimaryVec4());
+    if (ImGui::Button(tr("Sheets")))
+      set_sheet_browser_visible_(!visible);
+    gui::AutoRegisterLastItem("button", "Toggle Sheet Browser");
+    HOVER_HINT(visible ? "Hide Sheet Browser to expand the canvas"
+                       : "Show Sheet Browser in its previous position");
+    ImGui::SameLine();
+  }
   DrawToolbar();
   ImGui::SameLine();
   const float button_size = ImGui::GetFrameHeight();

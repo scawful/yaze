@@ -55,6 +55,12 @@ class PixelEditorPanel : public WindowContent {
     draw_source_preview_ = std::move(draw);
   }
   void ShowSourcePreview() { show_source_preview_ = true; }
+  // Visibility belongs to the workspace manager, including saved layouts.
+  void SetSheetBrowserCallbacks(std::function<bool()> visible,
+                                std::function<void(bool)> set_visible) {
+    sheet_browser_visible_ = std::move(visible);
+    set_sheet_browser_visible_ = std::move(set_visible);
+  }
 
   /**
    * @brief Draw the pixel editor UI (WindowContent interface)
@@ -82,6 +88,8 @@ class PixelEditorPanel : public WindowContent {
   bool fit_canvas_requested_ = false;
   bool show_source_preview_ = true;
   std::function<void()> draw_source_preview_;
+  std::function<bool()> sheet_browser_visible_;
+  std::function<void(bool)> set_sheet_browser_visible_;
   /**
    * @brief Draw the toolbar with tool selection
    */
