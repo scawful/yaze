@@ -211,6 +211,16 @@ absl::Status RomValidateCommandHandler::Execute(
     all_ok = false;
   }
 
+  const auto layout = rom->InspectLyraLayout();
+  if (layout.presence != yaze::rom::LyraLayoutPresence::kAbsent) {
+    const bool layout_valid =
+        layout.presence == yaze::rom::LyraLayoutPresence::kValid;
+    all_ok = all_ok && layout_valid;
+    validation_results.push_back(layout_valid ? "lyra_descriptor: PASSED"
+                                              : "lyra_descriptor: FAILED (" +
+                                                    layout.error + ")");
+  }
+
   formatter.AddField("validation_passed", all_ok);
   std::string results_str;
   for (const auto& result : validation_results) {
@@ -220,7 +230,10 @@ absl::Status RomValidateCommandHandler::Execute(
   }
   formatter.AddField("results", results_str);
 
-  return absl::OkStatus();
+  return layout.presence == yaze::rom::LyraLayoutPresence::kInvalid
+             ? absl::FailedPreconditionError(
+                   "Invalid Lyra overworld ROM layout: " + layout.error)
+             : absl::OkStatus();
 }
 
 absl::Status RomDiffCommandHandler::Execute(
