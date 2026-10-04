@@ -406,6 +406,58 @@ TEST_F(RoomLayerManagerTest, ModeFourRetainsExistingHalfAddAndFallback) {
   }
 }
 
+TEST_F(RoomLayerManagerTest, GameColorMathPreservesBothTilemapsUnderWater) {
+  for (const int mode : {4, 7}) {
+    for (const bool priority : {false, true}) {
+      SCOPED_TRACE(mode);
+      SCOPED_TRACE(priority);
+      manager_.Reset();
+      manager_.SetPriorityCompositing(priority);
+      manager_.ApplyLayerMerging(mode == 4 ? LayerMerge04 : LayerMerge07);
+      manager_.ApplyGameLayerRegisters(
+          DeriveRoomLayerRegisters(mode, false, 0, 0, {}));
+      Room room(/*room_id=*/0x38, /*rom=*/nullptr);
+      room.SetLayer2Mode(mode);
+      PrepareColorMathRoom(room);
+      auto& upper = room.bg1_buffer();
+      auto& upper_objects = room.object_bg1_buffer();
+      auto& water = room.object_bg2_buffer();
+      upper.bitmap().mutable_data()[0] = 33;
+      upper_objects.bitmap().mutable_data()[1] = 33;
+      upper_objects.mutable_coverage_data()[1] = 1;
+      upper.bitmap().mutable_data()[2] = 33;
+      upper_objects.mutable_coverage_data()[2] =
+          1;  // Genuine transparent write.
+      for (int pixel = 0; pixel < 3; ++pixel) {
+        water.bitmap().mutable_data()[pixel] = 34;
+        water.mutable_coverage_data()[pixel] = 1;
+      }
+      // D9 water objects emit these legacy cross-layer reveal masks. They
+      // must not erase either input to the game's main/subscreen color math.
+      upper.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Objects, 0, 0, 3,
+                                 1);
+      upper_objects.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Objects,
+                                         0, 0, 3, 1);
+      const auto original_upper = upper.bitmap().vector();
+      const auto original_objects = upper_objects.bitmap().vector();
+      gfx::Bitmap output;
+      manager_.CompositeToOutput(room, output);
+      const int blended = mode == 4 ? 36 : 35;
+      EXPECT_EQ(output.data()[0], blended);
+      EXPECT_EQ(output.data()[1], blended);
+      EXPECT_EQ(output.data()[2], 34) << "Same-tilemap coverage still applies";
+      EXPECT_EQ(upper.bitmap().vector(), original_upper);
+      EXPECT_EQ(upper_objects.bitmap().vector(), original_objects);
+
+      manager_.SetLayerVisible(LayerType::BG2_Objects, false);
+      manager_.CompositeToOutput(room, output);
+      EXPECT_EQ(output.data()[0], 33);
+      EXPECT_EQ(output.data()[1], 33);
+      EXPECT_EQ(output.data()[2], 0);
+    }
+  }
+}
+
 TEST_F(RoomLayerManagerTest,
        HiddenTranslucentBG2SourceDoesNotBlendVisibleNormalSource) {
   for (const LayerType hidden_source :
