@@ -139,6 +139,17 @@ absl::Status Overworld::Load(Rom* rom) {
   if (rom->size() == 0) {
     return absl::InvalidArgumentError("ROM file not loaded");
   }
+  // Existing map readers still use the 160-area legacy tables. A descriptor
+  // image may be inspected through ROM Information, but cannot be rendered as
+  // though those readers understood its relocated tables.
+  const auto layout = rom->InspectLyraLayout();
+  if (layout.presence != yaze::rom::LyraLayoutPresence::kAbsent) {
+    return absl::FailedPreconditionError(
+        layout.presence == yaze::rom::LyraLayoutPresence::kValid
+            ? "Lyra descriptor is inspection-only; legacy overworld loading "
+              "refused"
+            : "Invalid Lyra descriptor; legacy overworld loading refused");
+  }
   rom_ = rom;
 
   const auto profile = DetectOverworldRomProfile(*rom_);
@@ -1454,6 +1465,7 @@ absl::Status Overworld::SaveSprites() {
 }
 
 absl::Status Overworld::Save(Rom* rom) {
+  RETURN_IF_ERROR(rom->CheckLayoutWritable());
   rom_ = rom;
   ASSIGN_OR_RETURN(auto sprite_plan, PrepareSpriteSave());
   ScopedRomTransaction transaction(*rom_);

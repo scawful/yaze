@@ -415,6 +415,30 @@ void Rom::SetStagingFailureForTesting(bool fail) {
   g_fail_rom_staging_for_testing.store(fail, std::memory_order_relaxed);
 }
 
+rom::LyraLayoutInspection Rom::InspectLyraLayout() const {
+  auto result = rom::InspectLyraLayout(rom_data_.data(), rom_data_.size());
+  if (lyra_attributed_at_load_ &&
+      result.presence == rom::LyraLayoutPresence::kAbsent) {
+    result.presence = rom::LyraLayoutPresence::kInvalid;
+    result.write_supported = false;
+    result.error = "Loaded Lyra descriptor was removed or damaged";
+  }
+  return result;
+}
+
+absl::Status Rom::CheckLayoutWritable() const {
+  const auto layout = InspectLyraLayout();
+  if (layout.presence == rom::LyraLayoutPresence::kAbsent) {
+    return absl::OkStatus();
+  }
+  return absl::FailedPreconditionError(
+      layout.presence == rom::LyraLayoutPresence::kValid
+          ? "Lyra overworld ROM layout revision 1 is inspection-only; save "
+            "refused"
+          : absl::StrCat("Invalid Lyra overworld ROM layout: ", layout.error,
+                         "; save refused"));
+}
+
 Rom::Rom(const Rom& other)
     : size_(other.size_),
       title_(other.title_),
@@ -423,6 +447,7 @@ Rom::Rom(const Rom& other)
       rom_data_(other.rom_data_),
       copier_header_(other.copier_header_),
       copier_header_reason_(other.copier_header_reason_),
+      lyra_attributed_at_load_(other.lyra_attributed_at_load_),
       resource_label_manager_(other.resource_label_manager_),
       dirty_(other.dirty_),
       object_tile_revision_(other.object_tile_revision_) {
@@ -443,6 +468,7 @@ Rom& Rom::operator=(const Rom& other) {
   rom_data_ = other.rom_data_;
   copier_header_ = other.copier_header_;
   copier_header_reason_ = other.copier_header_reason_;
+  lyra_attributed_at_load_ = other.lyra_attributed_at_load_;
   resource_label_manager_ = other.resource_label_manager_;
   dirty_ = other.dirty_;
 
@@ -538,6 +564,10 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   }
   size_ = rom_data_.size();
 
+  lyra_attributed_at_load_ =
+      rom::InspectLyraLayout(rom_data_.data(), rom_data_.size()).presence !=
+      rom::LyraLayoutPresence::kAbsent;
+
   if (options.load_resource_labels) {
     resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
   }
@@ -588,6 +618,10 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
   }
   size_ = rom_data_.size();
 
+  lyra_attributed_at_load_ =
+      rom::InspectLyraLayout(rom_data_.data(), rom_data_.size()).presence !=
+      rom::LyraLayoutPresence::kAbsent;
+
   // Parse SNES Header for Title
   if (rom_data_.size() >= 0x8000) {
     size_t header_offset = 0x7FC0;
@@ -612,6 +646,7 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
 }
 
 absl::Status Rom::SaveToFile(const SaveSettings& settings) {
+  RETURN_IF_ERROR(CheckLayoutWritable());
   if (rom_data_.empty()) {
     return absl::InternalError("ROM data is empty.");
   }
@@ -816,6 +851,7 @@ absl::Status Rom::WriteTile16(int tile16_id, uint32_t tile16_ptr,
 }
 
 absl::Status Rom::WriteByte(int addr, uint8_t value) {
+  RETURN_IF_ERROR(CheckLayoutWritable());
   if (addr < 0 || addr >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Address out of range");
   }
@@ -835,6 +871,7 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
 }
 
 absl::Status Rom::WriteWord(int addr, uint16_t value) {
+  RETURN_IF_ERROR(CheckLayoutWritable());
   if (addr < 0 || addr + 1 >= static_cast<int>(rom_data_.size())) {
     return absl::OutOfRangeError("Address out of range");
   }
@@ -862,6 +899,7 @@ absl::Status Rom::WriteShort(int addr, uint16_t value) {
 }
 
 absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
+  RETURN_IF_ERROR(CheckLayoutWritable());
   if (addr + 2 >= static_cast<uint32_t>(rom_data_.size())) {
     return absl::OutOfRangeError("Address out of range");
   }
@@ -888,6 +926,7 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
 }
 
 absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
+  RETURN_IF_ERROR(CheckLayoutWritable());
   if (addr < 0) {
     return absl::OutOfRangeError("Address out of range");
   }
