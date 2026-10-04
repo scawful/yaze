@@ -105,21 +105,26 @@ int UsagePreviewView::SelectedTileIndex() const {
 }
 
 void UsagePreviewView::ShowImage(gfx::Bitmap& bitmap,
-                                 const usage_preview::IndexedImage& image) {
+                                 const usage_preview::PreviewImage& image) {
   if (image.empty()) {
     return;
   }
+  const bool indexed =
+      image.format == usage_preview::PreviewImage::Format::kIndexed;
+  const int depth = indexed ? 8 : 32;
   std::vector<SDL_Color> colors(image.colors.begin(), image.colors.end());
   if (image.index0_transparent) {
     colors[0].a = 0;
   }
   if (bitmap.width() != image.width || bitmap.height() != image.height ||
-      !bitmap.is_active()) {
-    bitmap.Create(image.width, image.height, 8, image.pixels);
+      !bitmap.is_active() || bitmap.depth() != depth) {
+    bitmap.Create(image.width, image.height, depth, image.pixels);
   } else {
     bitmap.set_data(image.pixels);
   }
-  bitmap.SetPalette(colors);
+  if (indexed)
+    bitmap.SetPalette(colors);
+  bitmap.metadata().purpose = gfx::Bitmap::BitmapPurpose::kPreview;
   QueueTexture(bitmap);
 }
 

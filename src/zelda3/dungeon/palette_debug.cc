@@ -157,17 +157,12 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
   event.color_count = ncolors;
 
   if (!is_indexed) {
-    event.level = PaletteDebugLevel::WARNING;
+    event.level = PaletteDebugLevel::INFO;
     event.message = absl::StrFormat(
-        "Surface is NOT indexed (format=0x%08X). Palette will be ignored!",
-        fmt);
+        "Surface OK: direct-color format=0x%08X; no palette required", fmt);
   } else if (!has_palette) {
     event.level = PaletteDebugLevel::WARNING;
     event.message = "Surface is indexed but has NO palette attached!";
-  } else if (ncolors < 90) {
-    event.level = PaletteDebugLevel::WARNING;
-    event.message = absl::StrFormat(
-        "Surface has palette with only %d colors (expected 90)", ncolors);
   } else {
     event.level = PaletteDebugLevel::INFO;
     event.message = absl::StrFormat(
@@ -232,6 +227,15 @@ ColorComparison PaletteDebugger::SamplePixelAt(int x, int y) const {
 
   if (x < 0 || x >= width || y < 0 || y >= height) {
     return comp;
+  }
+
+  if (!current_bitmap_->IsIndexed()) {
+    const auto color = current_bitmap_->ReadColor(x, y);
+    comp.palette_index = -1;
+    comp.actual_r = color.r;
+    comp.actual_g = color.g;
+    comp.actual_b = color.b;
+    return comp;  // No source palette index exists after color math.
   }
 
   // Get palette index from bitmap data
@@ -500,7 +504,7 @@ std::string PaletteDebugger::GetDiagnosticSummary() const {
 
   // Check color comparisons for mismatches
   for (const auto& c : comparisons_) {
-    if (!c.matches) {
+    if (c.palette_index >= 0 && !c.matches) {
       has_color_mismatch = true;
       break;
     }
@@ -558,16 +562,9 @@ std::string PaletteDebugger::GetHypothesisAnalysis() const {
              << first_texture_create_seq << "). ";
   }
 
-  // Check for palette group selection hypothesis (60% confidence)
+  // A palette size alone does not identify a bad group: eight-color source
+  // sheets, 90-color dungeon groups and 256-color CGRAM views are all valid.
   bool wrong_palette_group = false;
-  for (const auto& e : events_) {
-    if (e.color_count > 0 && e.color_count < 90) {
-      wrong_palette_group = true;
-      analysis << "PALETTE GROUP ISSUE: Only " << e.color_count
-               << " colors (expected 90). Check palette group selection. ";
-      break;
-    }
-  }
 
   // Check for surface format mismatch (40% confidence)
   for (const auto& e : events_) {

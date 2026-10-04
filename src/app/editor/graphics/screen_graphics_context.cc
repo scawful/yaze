@@ -17,7 +17,7 @@ namespace yaze::editor {
 // 128x32 sheets stacked into a 128x128, 8x8-tile atlas. Its displayed raw
 // indices use the first eight colors of dungeon_main[3]. This is deliberately
 // separate from the map's Tile16 composition and its per-tile palette words.
-absl::StatusOr<usage_preview::IndexedImage> RenderDungeonMapTilesGfxPreview(
+absl::StatusOr<usage_preview::PreviewImage> RenderDungeonMapTilesGfxPreview(
     const zelda3::GameData* owner) {
   if (owner == nullptr || owner->palette_groups.dungeon_main.size() <= 3) {
     return absl::FailedPreconditionError(
@@ -29,7 +29,7 @@ absl::StatusOr<usage_preview::IndexedImage> RenderDungeonMapTilesGfxPreview(
         "Dungeon Map / Tiles Gfx needs eight preview colors");
   }
 
-  usage_preview::IndexedImage image;
+  usage_preview::PreviewImage image;
   image.width = 128;
   image.height = 128;
   image.pixels.resize(128 * 128);

@@ -49,7 +49,7 @@ class UsagePreviewView {
   // Hash of the current, source-context, and modified session sheet pixels.
   uint64_t HashWatchedSheets() const;
   usage_preview::SheetPixels Snapshot() const;
-  void ShowImage(gfx::Bitmap& bitmap, const usage_preview::IndexedImage& image);
+  void ShowImage(gfx::Bitmap& bitmap, const usage_preview::PreviewImage& image);
   void DrawBitmapFit(gfx::Bitmap& bitmap, const std::vector<SDL_Rect>& rects,
                      float max_scale);
   int SelectedTileIndex() const;

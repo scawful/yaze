@@ -2,10 +2,10 @@
 
 #include <algorithm>
 #include <array>
-#include <climits>
 #include <vector>
 
 #include "SDL.h"
+#include "app/gfx/types/snes_color_math.h"
 #include "app/gfx/types/snes_palette.h"
 #include "util/log.h"
 
@@ -74,18 +74,6 @@ void RoomLayerManager::CompositeToOutput(Room& room,
               current_merge_type_id_);
   }
 
-  // Ensure output bitmap is properly sized
-  if (output.width() != kWidth || output.height() != kHeight) {
-    output.Create(kWidth, kHeight, 8, std::vector<uint8_t>(kPixelCount, 0));
-  } else {
-    // Clear to backdrop (0). Transparent pixels (255) from layers will reveal
-    // this backdrop, matching SNES behavior when all layers are transparent.
-    output.Fill(0);
-  }
-
-  // Track if we've copied the palette yet
-  bool palette_copied = false;
-
   // Get all 4 layer buffers
   auto& bg1_layout = GetLayerBuffer(room, LayerType::BG1_Layout);
   auto& bg1_objects = GetLayerBuffer(room, LayerType::BG1_Objects);
@@ -109,6 +97,29 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
   const bool game_color_math =
       game_registers_applied_ && upper_tilemap_blended_;
+  const bool bg2_layout_translucent =
+      bg2_layout_on &&
+      GetLayerBlendMode(LayerType::BG2_Layout) == LayerBlendMode::Translucent;
+  const bool bg2_objects_translucent =
+      bg2_obj_on &&
+      GetLayerBlendMode(LayerType::BG2_Objects) == LayerBlendMode::Translucent;
+  const bool true_color = !UpperTilemapCoversLower(room.layer2_mode()) &&
+                          (use_priority_compositing_ ||
+                           current_merge_type_id_ == 7 || game_color_math) &&
+                          (bg2_layout_translucent || bg2_objects_translucent);
+  const int depth = true_color ? 32 : 8;
+  if (output.width() != kWidth || output.height() != kHeight ||
+      output.depth() != depth) {
+    output.Create(kWidth, kHeight, depth,
+                  std::vector<uint8_t>(kPixelCount * (true_color ? 4 : 1), 0));
+  } else {
+    output.Fill(0);
+  }
+  output.metadata().purpose = gfx::Bitmap::BitmapPurpose::kCompositeOutput;
+  // Preserve source indices; only the presentation image becomes RGBA.
+  bool palette_copied = false;
+  std::array<SDL_Color, 256> pal_lut{};
+  pal_lut.fill({0, 0, 0, 255});
   auto bg1_revealed_at = [&](const gfx::BackgroundBuffer& target, int index) {
     // Water objects' legacy reveal masks emulate opaque cross-layer drawing.
     // Main/subscreen color math needs both tilemaps intact. Actual transparent
@@ -135,7 +146,14 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   // Copy palette from first available visible layer
   auto CopyPaletteIfNeeded = [&](const gfx::Bitmap& src_bitmap) {
     if (!palette_copied && src_bitmap.surface()) {
-      ApplySDLPaletteToBitmap(src_bitmap.surface(), output);
+      if (const auto* palette = src_bitmap.surface()->format->palette) {
+        std::copy_n(palette->colors, std::min(palette->ncolors, 256),
+                    pal_lut.begin());
+      }
+      pal_lut[0] = {0, 0, 0, 255};
+      pal_lut[255] = {0, 0, 0, 0};
+      if (!true_color)
+        ApplySDLPaletteToBitmap(src_bitmap.surface(), output);
       palette_copied = true;
     }
   };
@@ -211,8 +229,10 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     // then resolve BG1 vs BG2 per-pixel using the stored priority buffers.
     // Game color math and mode 7 still blend with tile priority turned off.
     // In that case rank_for below retains the simple upper-over-lower order.
-    // Other translucent modes retain the existing half-add approximation.
-    const bool full_add_color_math = current_merge_type_id_ == 0x07;
+    // CGADSUB arithmetic is in five-bit channels, before display expansion.
+    const bool subtract = game_registers_applied_ && (cgadsub_ & 0x80);
+    const bool halve = game_registers_applied_ ? (cgadsub_ & 0x40) != 0
+                                               : current_merge_type_id_ != 0x07;
     // Ensure the output palette matches the room's SDL palette.
     if (layer_enabled(LayerType::BG1_Layout, bg1_layout)) {
       CopyPaletteIfNeeded(bg1_layout.bitmap());
@@ -227,90 +247,29 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       CopyPaletteIfNeeded(bg2_objects.bitmap());
     }
 
-    // Check if BG2 uses translucent blending (water rooms, color math effects).
-    // The editor maps color-math results back into the indexed palette. This
-    // remains an approximation when the resulting RGB color is absent.
-    const bool bg2_layout_translucent =
-        bg2_layout_on &&
-        GetLayerBlendMode(LayerType::BG2_Layout) == LayerBlendMode::Translucent;
-    const bool bg2_objects_translucent =
-        bg2_obj_on && GetLayerBlendMode(LayerType::BG2_Objects) ==
-                          LayerBlendMode::Translucent;
-
-    // Build palette lookup table for color blending (only when needed).
-    // Extract from the output bitmap's SDL palette so we can do RGB math.
-    std::vector<SDL_Color> pal_lut;
-    if ((bg2_layout_translucent || bg2_objects_translucent) &&
-        output.surface() && output.surface()->format &&
-        output.surface()->format->palette) {
-      SDL_Palette* sdl_pal = output.surface()->format->palette;
-      int n = std::min(sdl_pal->ncolors, 256);
-      pal_lut.resize(256, {0, 0, 0, 0});
-      for (int i = 0; i < n; ++i) {
-        pal_lut[i] = sdl_pal->colors[i];
-      }
-    }
-
-    // Nearest-color lookup for blended result.
-    // Searches within the same 16-color bank as the winning pixel to preserve
-    // palette coherence (avoids cross-bank color artifacts).
-    auto find_nearest_in_bank = [&](uint8_t base_idx, uint8_t r, uint8_t g,
-                                    uint8_t b) -> uint8_t {
-      if (pal_lut.empty())
-        return base_idx;
-      int bank_start = (base_idx / 16) * 16;
-      int bank_end = bank_start + 16;
-      int best_idx = base_idx;
-      int best_dist = INT_MAX;
-      for (int i = bank_start + 1; i < bank_end && i < 256; ++i) {
-        int dr = static_cast<int>(pal_lut[i].r) - r;
-        int dg = static_cast<int>(pal_lut[i].g) - g;
-        int db = static_cast<int>(pal_lut[i].b) - b;
-        int dist = dr * dr + dg * dg + db * db;
-        if (dist < best_dist) {
-          best_dist = dist;
-          best_idx = i;
-        }
-      }
-      return static_cast<uint8_t>(best_idx);
+    auto write_color = [&](int pixel, SDL_Color color) {
+      auto* dst = output.mutable_data().data() + pixel * 4;
+      dst[0] = color.r;
+      dst[1] = color.g;
+      dst[2] = color.b;
+      dst[3] = 255;
     };
-
-    // Cache resolved blended indices to avoid repeating nearest-bank searches
-    // for the same winner/other palette pair in this frame.
-    std::array<uint8_t, 256 * 256> blend_cache{};
-    std::array<uint8_t, 256 * 256> blend_cache_valid{};
-    auto blend_channel = [&](uint8_t first, uint8_t second) -> uint8_t {
-      if (!full_add_color_math) {
-        return static_cast<uint8_t>((first + second) / 2);
+    auto write_index = [&](int pixel, uint8_t index) {
+      if (true_color) {
+        write_color(pixel, pal_lut[index]);
+      } else {
+        output.mutable_data()[pixel] = index;
       }
-      // USDASM $02:A20C selects CGADSUB=$32 for mode 7 (full add),
-      // whereas $02:A212 selects $62 for mode 4 (half add). Saturate in
-      // five-bit color space, then expand to the room's SDL palette format.
-      const int sum = std::min(31, (first >> 3) + (second >> 3));
-      return static_cast<uint8_t>((sum << 3) | (sum >> 2));
     };
-    auto resolve_blended_index = [&](uint8_t winner_idx,
-                                     uint8_t other_idx) -> uint8_t {
-      if (pal_lut.empty() ||
-          (!full_add_color_math && winner_idx == other_idx)) {
-        return winner_idx;
-      }
-      const size_t key = (static_cast<size_t>(winner_idx) << 8) |
-                         static_cast<size_t>(other_idx);
-      if (blend_cache_valid[key] != 0) {
-        return blend_cache[key];
-      }
-
-      const SDL_Color& c1 = pal_lut[winner_idx];
-      const SDL_Color& c2 = pal_lut[other_idx];
-      const uint8_t blend_r = blend_channel(c1.r, c2.r);
-      const uint8_t blend_g = blend_channel(c1.g, c2.g);
-      const uint8_t blend_b = blend_channel(c1.b, c2.b);
-      const uint8_t resolved =
-          find_nearest_in_bank(winner_idx, blend_r, blend_g, blend_b);
-      blend_cache[key] = resolved;
-      blend_cache_valid[key] = 1;
-      return resolved;
+    auto blend_color = [&](uint8_t main_index, uint8_t sub_index) {
+      const auto& main = pal_lut[main_index];
+      const auto& sub = pal_lut[sub_index];
+      const auto channel = [&](uint8_t m, uint8_t s) {
+        return gfx::ExpandSnesChannel(
+            gfx::SnesColorMathChannel(m >> 3, s >> 3, subtract, halve));
+      };
+      return SDL_Color{channel(main.r, sub.r), channel(main.g, sub.g),
+                       channel(main.b, sub.b), 255};
     };
 
     auto normalize_pri = [](uint8_t pri) -> uint8_t {
@@ -342,8 +301,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     const auto& bg1_obj_cov = bg1_objects.coverage_data();
     const auto& bg2_obj_cov = bg2_objects.coverage_data();
 
-    auto& dst_data = output.mutable_data();
     for (int idx = 0; idx < kPixelCount; ++idx) {
+      write_index(idx, 0);
       uint8_t bg1_pixel = 255;
       uint8_t bg1_pri = 0;
       const bool bg1_obj_wrote =
@@ -381,12 +340,20 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
       if (IsTransparent(bg1_pixel)) {
         if (!IsTransparent(bg2_pixel)) {
-          dst_data[idx] = bg2_pixel;
+          if (game_color_math && (cgadsub_ & 0x20) && bg2_pixel_translucent &&
+              (bg1_layout_on || bg1_obj_on)) {
+            // A transparent main tile exposes the backdrop, which CGADSUB
+            // can also blend. Explicitly hiding the main layers is an editor
+            // inspection view and continues to show the sub layer alone.
+            write_color(idx, blend_color(0, bg2_pixel));
+          } else {
+            write_index(idx, bg2_pixel);
+          }
         }
         continue;
       }
       if (IsTransparent(bg2_pixel)) {
-        dst_data[idx] = bg1_pixel;
+        write_index(idx, bg1_pixel);
         continue;
       }
 
@@ -394,17 +361,13 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       const int r1 = rank_for(/*is_bg1=*/true, bg1_pri);
       const int r2 = rank_for(/*is_bg1=*/false, bg2_pri);
 
-      // Resolve overlapping colors using mode 7 full add or the existing
-      // half-add approximation. Indexed output still quantizes to a palette.
-      // Blend only the selected BG2 source. Hidden or overwritten sources do
-      // not participate in this pixel's color math.
-      if (bg2_pixel_translucent && !pal_lut.empty()) {
-        const bool bg1_wins = (r1 >= r2);
-        const uint8_t winner = bg1_wins ? bg1_pixel : bg2_pixel;
-        const uint8_t other = bg1_wins ? bg2_pixel : bg1_pixel;
-        dst_data[idx] = resolve_blended_index(winner, other);
+      // Upper tilemap is hardware BG2 on the main screen. Subtraction must
+      // preserve that operand order even when inspecting tile priorities.
+      // Hidden or overwritten BG2 sources never participate in color math.
+      if (bg2_pixel_translucent && true_color) {
+        write_color(idx, blend_color(bg1_pixel, bg2_pixel));
       } else {
-        dst_data[idx] = (r1 >= r2) ? bg1_pixel : bg2_pixel;
+        write_index(idx, (r1 >= r2) ? bg1_pixel : bg2_pixel);
       }
     }
   } else {
@@ -494,7 +457,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   }
 
   // If no palette was copied from layers, try to get it from bg1_buffer directly
-  if (!palette_copied) {
+  if (!palette_copied && !true_color) {
     const auto& bg1_bitmap = room.bg1_buffer().bitmap();
     if (bg1_bitmap.surface()) {
       ApplySDLPaletteToBitmap(bg1_bitmap.surface(), output);
@@ -508,7 +471,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   if (output.surface()) {
     // IMPORTANT: Use the same transparency setup as room.cc's set_dungeon_palette
     // Color key on index 255 (unused in 90-color dungeon palette)
-    SDL_SetColorKey(output.surface(), SDL_TRUE, 255);
+    SDL_SetColorKey(output.surface(), true_color ? SDL_FALSE : SDL_TRUE, 255);
     SDL_SetSurfaceBlendMode(output.surface(), SDL_BLENDMODE_BLEND);
 
     // Apply DarkRoom effect if merge type is 0x08

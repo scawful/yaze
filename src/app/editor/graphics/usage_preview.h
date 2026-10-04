@@ -57,7 +57,7 @@ SheetPixels SnapshotSessionSheets(const std::set<uint16_t>& ids,
                                   const zelda3::GameData* game_data);
 
 /// Copies a palettized Bitmap (for example a room composite).
-IndexedImage SnapshotBitmap(const gfx::Bitmap& bitmap);
+PreviewImage SnapshotBitmap(const gfx::Bitmap& bitmap);
 
 // ---------------------------------------------------------------------------
 // Room context
@@ -86,7 +86,7 @@ class RoomUsagePreview {
   int room_id() const { return room_id_; }
   const gfx::Bitmap& bitmap() const { return composite_; }
   gfx::Bitmap& mutable_bitmap() { return composite_; }
-  IndexedImage Snapshot() const { return SnapshotBitmap(composite_); }
+  PreviewImage Snapshot() const { return SnapshotBitmap(composite_); }
 
   /// Room graphics blocks (0-7 background, 8-15 sprites) of the loaded room.
   std::array<uint8_t, 16> blocks() const;
@@ -130,7 +130,7 @@ class SpriteUsagePreview {
   bool Advance(float seconds);
 
   /// Draws the current frame with `sheets` (edited pixels) over the ROM's.
-  IndexedImage RenderFrame(const SheetPixels& sheets) const;
+  PreviewImage RenderFrame(const SheetPixels& sheets) const;
 
   const std::array<uint8_t, 8>& slots() const { return slots_; }
   bool UsesSheet(uint16_t sheet) const;
@@ -167,7 +167,7 @@ class Tile16UsagePreview {
   /// Draws `tile16s` in rows of 8 (16x16 each) with `sheets` swapped in.
   /// Quadrants that use `sheet`/`tile_index` are listed in `highlights` as
   /// pixel rectangles.
-  IndexedImage Render(const SheetPixels& sheets,
+  PreviewImage Render(const SheetPixels& sheets,
                       const std::vector<int>& tile16s, uint16_t sheet,
                       int tile_index,
                       std::vector<SDL_Rect>* highlights = nullptr);

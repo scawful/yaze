@@ -70,8 +70,15 @@ SheetPixels SnapshotArenaSheets(const std::set<uint16_t>& ids,
   return out;
 }
 
-std::vector<uint8_t> IndexedImage::ToRgba() const {
+std::vector<uint8_t> PreviewImage::ToRgba() const {
+  if (empty())
+    return {};
   std::vector<uint8_t> rgba(static_cast<size_t>(width) * height * 4, 0);
+  if (format == Format::kRgba) {
+    std::copy_n(pixels.begin(), std::min(pixels.size(), rgba.size()),
+                rgba.begin());
+    return rgba;
+  }
   for (size_t i = 0; i < pixels.size() && i * 4 + 3 < rgba.size(); ++i) {
     const uint8_t index = pixels[i];
     if (index0_transparent && index == 0) {
@@ -81,36 +88,46 @@ std::vector<uint8_t> IndexedImage::ToRgba() const {
     rgba[i * 4 + 0] = c.r;
     rgba[i * 4 + 1] = c.g;
     rgba[i * 4 + 2] = c.b;
-    rgba[i * 4 + 3] = 255;
+    rgba[i * 4 + 3] = c.a;
   }
   return rgba;
 }
 
-int IndexedImage::CountDifferentPixels(const IndexedImage& other) const {
-  if (width != other.width || height != other.height ||
-      pixels.size() != other.pixels.size()) {
+int PreviewImage::CountDifferentPixels(const PreviewImage& other) const {
+  if (width != other.width || height != other.height)
     return -1;
-  }
+  const auto a = ToRgba();
+  const auto b = other.ToRgba();
   int count = 0;
-  for (size_t i = 0; i < pixels.size(); ++i) {
-    count += pixels[i] != other.pixels[i] ? 1 : 0;
+  for (size_t i = 0; i < a.size(); i += 4) {
+    count += !std::equal(a.begin() + i, a.begin() + i + 4, b.begin() + i);
   }
   return count;
 }
 
-IndexedImage SnapshotBitmap(const gfx::Bitmap& bitmap) {
-  IndexedImage image;
+PreviewImage SnapshotBitmap(const gfx::Bitmap& bitmap) {
+  PreviewImage image;
   if (!bitmap.is_active() || bitmap.width() <= 0 || bitmap.height() <= 0) {
     return image;
   }
   image.width = bitmap.width();
   image.height = bitmap.height();
   image.pixels = bitmap.vector();
-  image.pixels.resize(static_cast<size_t>(image.width) * image.height, 0);
+  image.format = bitmap.IsIndexed() ? PreviewImage::Format::kIndexed
+                                    : PreviewImage::Format::kRgba;
+  image.pixels.resize(static_cast<size_t>(image.width) * image.height *
+                          (bitmap.IsIndexed() ? 1 : 4),
+                      0);
   if (SDL_Palette* palette = platform::GetSurfacePalette(bitmap.surface())) {
     for (int i = 0; i < palette->ncolors && i < 256; ++i) {
       image.colors[i] = palette->colors[i];
     }
+  }
+  Uint32 color_key;
+  if (bitmap.IsIndexed() &&
+      SDL_GetColorKey(bitmap.surface(), &color_key) == 0 &&
+      color_key < image.colors.size()) {
+    image.colors[color_key].a = 0;
   }
   return image;
 }
@@ -337,8 +354,8 @@ std::vector<uint8_t> SpriteUsagePreview::SheetOrRom(const SheetPixels& sheets,
   return {};
 }
 
-IndexedImage SpriteUsagePreview::RenderFrame(const SheetPixels& sheets) const {
-  IndexedImage image;
+PreviewImage SpriteUsagePreview::RenderFrame(const SheetPixels& sheets) const {
+  PreviewImage image;
   image.colors = colors_;
   image.index0_transparent = true;
   if (game_data_ == nullptr) {
@@ -465,11 +482,11 @@ std::vector<int> Tile16UsagePreview::Tile16sUsingTile(uint16_t sheet,
   return result;
 }
 
-IndexedImage Tile16UsagePreview::Render(const SheetPixels& sheets,
+PreviewImage Tile16UsagePreview::Render(const SheetPixels& sheets,
                                         const std::vector<int>& tile16s,
                                         uint16_t sheet, int tile_index,
                                         std::vector<SDL_Rect>* highlights) {
-  IndexedImage image;
+  PreviewImage image;
   image.index0_transparent = false;
   if (!map_ || tile16s.empty()) {
     return image;

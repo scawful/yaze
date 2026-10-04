@@ -395,9 +395,8 @@ struct PaletteSamplePoint {
   int y = 0;
 };
 
-bool PaletteIndexMatchesTracePalette(uint8_t palette_index,
-                                     uint8_t trace_flags) {
-  if ((palette_index & 0x0F) == 0) {
+bool PaletteIndexMatchesTracePalette(int palette_index, uint8_t trace_flags) {
+  if (palette_index < 0 || (palette_index & 0x0F) == 0) {
     return false;
   }
   const uint8_t trace_palette = static_cast<uint8_t>((trace_flags >> 3) & 0x7);
@@ -721,6 +720,14 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
           const auto comp = palette_debugger.SamplePixelAt(sample_x, sample_y);
           palette_debugger.AddComparison(comp);
           const std::string label_text(label);
+          if (comp.palette_index < 0) {
+            report += absl::StrFormat(
+                "\nComposite sample %s (%d,%d): RGB=(%d,%d,%d), after color "
+                "math; no palette index",
+                label_text, sample_x, sample_y, comp.actual_r, comp.actual_g,
+                comp.actual_b);
+            return;
+          }
           report += absl::StrFormat(
               "\nPalette sample %s (%d,%d): idx=%d expected=(%d,%d,%d) "
               "actual=(%d,%d,%d) match=%s",

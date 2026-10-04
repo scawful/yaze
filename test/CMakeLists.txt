@@ -343,6 +343,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/sheet_role_palette_table_test.cc
     unit/cli/graphics_context_command_test.cc
     unit/gfx/arena_retirement_test.cc
+    unit/gfx/bitmap_color_test.cc
     unit/palette_json_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
@@ -836,6 +837,7 @@ if(YAZE_BUILD_TESTS)
     unit/emu/mesen_socket_client_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
     unit/gfx/arena_retirement_test.cc
+    unit/gfx/bitmap_color_test.cc
     unit/gui/canvas_context_menu_role_test.cc
     unit/gui/item_context_menu_test.cc
     unit/zelda3/resource_labels_test.cc

@@ -1862,28 +1862,26 @@ TEST_F(AuthoringSaveWorkflowTest, OracleRoom038PreservesSubmergedDetails) {
   layers.ApplyGameLayerRegisters(room.GameLayerRegisters());
   gfx::Bitmap output;
   room.RenderComposite(layers, output);
-  const auto blended = output.vector();
+  ASSERT_FALSE(output.IsIndexed());
+  const auto blended = output.ToRgba();
   layers.SetPriorityCompositing(false);
   room.RenderComposite(layers, output);
-  EXPECT_EQ(output.vector(), blended)
+  EXPECT_EQ(output.ToRgba(), blended)
       << "Turning off tile priority must not disable water blending";
   layers.SetLayerVisible(zelda3::LayerType::BG1_Layout, false);
   layers.SetLayerVisible(zelda3::LayerType::BG1_Objects, false);
   room.RenderComposite(layers, output);
-  const auto& water_only = output.vector();
-  const auto* palette = output.surface()->format->palette;
-  ASSERT_NE(palette, nullptr);
+  const auto water_only = output.ToRgba();
   const auto& layout_mask = room.bg1_buffer().bg1_reveal_mask_data();
   const auto& object_mask = room.object_bg1_buffer().bg1_reveal_mask_data();
   int submerged_detail_pixels = 0;
-  for (size_t i = 0; i < blended.size(); ++i) {
+  for (size_t i = 0; i < layout_mask.size(); ++i) {
     // These are precisely the water-covered pixels the legacy rectangular
     // masks erased. Require visible RGB differences, not just distinct indices.
     if ((layout_mask[i] | object_mask[i]) == 0)
       continue;
-    const auto& color = palette->colors[blended[i]];
-    const auto& water = palette->colors[water_only[i]];
-    if (color.r != water.r || color.g != water.g || color.b != water.b)
+    if (!std::equal(blended.begin() + i * 4, blended.begin() + i * 4 + 3,
+                    water_only.begin() + i * 4))
       ++submerged_detail_pixels;
   }
   EXPECT_GT(submerged_detail_pixels, 1024)

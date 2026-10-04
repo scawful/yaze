@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_color_math.h"
 
 namespace yaze {
 namespace test {
@@ -22,6 +23,31 @@ unsigned int test_convert(snes_color col) {
   return toret;
 }
 }  // namespace
+
+TEST(SnesColorConversionTest, RomAndColImportUseCanonicalDisplayExpansion) {
+  for (uint16_t word = 0; word < 0x8000; ++word) {
+    const uint8_t rom[] = {static_cast<uint8_t>(word),
+                           static_cast<uint8_t>(word >> 8)};
+    const auto expected = gfx::SnesColor(word);
+    for (const auto actual :
+         {gfx::ReadColorFromRom(0, rom), gfx::GetCgxColor(word)}) {
+      ASSERT_EQ(actual.snes(), word);
+      ASSERT_EQ(actual.rgb().x, expected.rgb().x);
+      ASSERT_EQ(actual.rgb().y, expected.rgb().y);
+      ASSERT_EQ(actual.rgb().z, expected.rgb().z);
+    }
+  }
+}
+
+TEST(SnesColorConversionTest, FiveBitMathBoundaryCases) {
+  EXPECT_EQ(gfx::SnesColorMathChannel(31, 31, false, true), 31);
+  EXPECT_EQ(gfx::SnesColorMathChannel(31, 31, false, false), 31);
+  EXPECT_EQ(gfx::SnesColorMathChannel(2, 1, false, true), 1);
+  EXPECT_EQ(gfx::SnesColorMathChannel(1, 2, true, false), 0);
+  EXPECT_EQ(gfx::SnesColorMathChannel(31, 2, true, true), 14);
+  EXPECT_EQ(gfx::ExpandSnesChannel(15), 123);
+  EXPECT_EQ(gfx::ExpandSnesChannel(31), 255);
+}
 
 TEST(SnesColorConversionTest, RGBConstructor) {
   ImVec4 rgb(1.0f, 0.5f, 0.25f, 1.0f);

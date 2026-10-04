@@ -9,9 +9,11 @@
 
 namespace yaze::editor::usage_preview {
 
-/// An 8bpp image with its own 256-color table. Index 0 is transparent when
-/// `index0_transparent` is set (sprites, tile16s).
-struct IndexedImage {
+/// Display snapshot with an explicit pixel format. Source indices are retained
+/// for uncomposited assets; color-math results use packed RGBA.
+struct PreviewImage {
+  enum class Format { kIndexed, kRgba };
+  Format format = Format::kIndexed;
   int width = 0;
   int height = 0;
   std::vector<uint8_t> pixels;
@@ -21,9 +23,9 @@ struct IndexedImage {
   bool empty() const { return width <= 0 || height <= 0; }
   /// RGBA8 rows; transparent pixels get alpha 0.
   std::vector<uint8_t> ToRgba() const;
-  /// Number of pixels whose index differs from `other` (sizes must match;
+  /// Number of pixels whose displayed color differs (sizes must match;
   /// returns -1 when they do not).
-  int CountDifferentPixels(const IndexedImage& other) const;
+  int CountDifferentPixels(const PreviewImage& other) const;
 };
 
 }  // namespace yaze::editor::usage_preview

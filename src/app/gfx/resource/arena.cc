@@ -262,26 +262,20 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
           // Log detailed surface state for debugging
           zelda3::PaletteDebugger::Get().LogSurfaceState(
               "Arena::ProcessTextureQueue (CREATE)", surf);
-          zelda3::PaletteDebugger::Get().LogTextureCreation(
-              "Arena::ProcessTextureQueue", has_palette, color_count);
+          if (command.bitmap->IsIndexed()) {
+            zelda3::PaletteDebugger::Get().LogTextureCreation(
+                "Arena::ProcessTextureQueue", has_palette, color_count);
+          }
 
           // WARNING: Creating texture without proper palette will produce wrong
           // colors
-          if (!has_palette) {
+          if (command.bitmap->IsIndexed() && !has_palette) {
             LOG_WARN("Arena",
                      "Creating texture from surface WITHOUT palette - "
                      "colors will be incorrect!");
             zelda3::PaletteDebugger::Get().LogPaletteApplication(
                 "Arena::ProcessTextureQueue", 0, false,
                 "Surface has NO palette");
-          } else if (color_count < 90) {
-            LOG_WARN("Arena",
-                     "Creating texture with only %d palette colors (expected "
-                     "90 for dungeon)",
-                     color_count);
-            zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                "Arena::ProcessTextureQueue", 0, false,
-                absl::StrFormat("Low color count: %d", color_count));
           }
 
           zelda3::PaletteDebugger::Get().LogPaletteApplication(
@@ -461,7 +455,9 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
   }
 
   // Create new surface if none available in pool
-  Uint32 sdl_format = GetSnesPixelFormat(format);
+  // Bitmap callers already resolved BitmapFormat to an SDL pixel format.
+  // Converting that numeric SDL value again silently falls back to INDEX8.
+  const Uint32 sdl_format = static_cast<Uint32>(format);
   SDL_Surface* surface =
       platform::CreateSurface(width, height, depth, sdl_format);
 
