@@ -107,7 +107,15 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   const bool bg2_layout_on = layer_enabled(LayerType::BG2_Layout, bg2_layout);
   const bool bg2_obj_on = layer_enabled(LayerType::BG2_Objects, bg2_objects);
 
+  const bool game_color_math =
+      game_registers_applied_ && upper_tilemap_blended_;
   auto bg1_revealed_at = [&](const gfx::BackgroundBuffer& target, int index) {
+    // Water objects' legacy reveal masks emulate opaque cross-layer drawing.
+    // Main/subscreen color math needs both tilemaps intact. Actual transparent
+    // writes still replace their own tilemap through the coverage buffers.
+    if (game_color_math) {
+      return false;
+    }
     const auto& mask = target.bg1_reveal_mask_data();
     if (index < 0 || index >= static_cast<int>(mask.size())) {
       return false;
@@ -192,7 +200,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
         dst_data[idx] = lower_pixel;
       }
     }
-  } else if (use_priority_compositing_ || current_merge_type_id_ == 0x07) {
+  } else if (use_priority_compositing_ || current_merge_type_id_ == 0x07 ||
+             game_color_math) {
     // Priority compositing (SNES Mode 1):
     // - BG2 priority=0 is behind BG1 priority=0.
     // - BG2 priority=1 can appear above BG1 priority=0.
@@ -200,7 +209,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     //
     // We first combine Layout+Objects for each BG (objects overwrite layout),
     // then resolve BG1 vs BG2 per-pixel using the stored priority buffers.
-    // Mode 7 needs palette-aware full addition even with tile priority off.
+    // Game color math and mode 7 still blend with tile priority turned off.
     // In that case rank_for below retains the simple upper-over-lower order.
     // Other translucent modes retain the existing half-add approximation.
     const bool full_add_color_math = current_merge_type_id_ == 0x07;

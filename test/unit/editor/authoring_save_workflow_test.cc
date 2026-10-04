@@ -1836,6 +1836,68 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
+TEST_F(AuthoringSaveWorkflowTest, OracleRoom038PreservesSubmergedDetails) {
+  constexpr int kRoom = 0x38;
+  const auto fixture = CopyProject("yaze-water-composite");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_OK(manager_->GetCurrentProject()->hack_manifest.LoadProjectRegistry(
+      std::filesystem::path(kSharedProject).parent_path().string()));
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kRoom);
+  auto& room = dungeon->rooms()[kRoom];
+  room.PrepareForRender();
+  ASSERT_EQ(room.layer2_mode(), 4);
+  ASSERT_TRUE(room.GameLayerRegisters().UpperTilemapBlended());
+  const auto bytes = manager_->GetCurrentRom()->vector();
+  const auto dirty = room.CaptureSaveDirtySnapshot();
+  const auto upper = room.bg1_buffer().bitmap().vector();
+  const auto upper_objects = room.object_bg1_buffer().bitmap().vector();
+
+  zelda3::RoomLayerManager layers;
+  layers.ApplyLayerMerging(room.layer_merging());
+  layers.ApplyRoomEffect(room.effect());
+  layers.ApplyGameLayerRegisters(room.GameLayerRegisters());
+  gfx::Bitmap output;
+  room.RenderComposite(layers, output);
+  const auto blended = output.vector();
+  layers.SetPriorityCompositing(false);
+  room.RenderComposite(layers, output);
+  EXPECT_EQ(output.vector(), blended)
+      << "Turning off tile priority must not disable water blending";
+  layers.SetLayerVisible(zelda3::LayerType::BG1_Layout, false);
+  layers.SetLayerVisible(zelda3::LayerType::BG1_Objects, false);
+  room.RenderComposite(layers, output);
+  const auto& water_only = output.vector();
+  const auto* palette = output.surface()->format->palette;
+  ASSERT_NE(palette, nullptr);
+  const auto& layout_mask = room.bg1_buffer().bg1_reveal_mask_data();
+  const auto& object_mask = room.object_bg1_buffer().bg1_reveal_mask_data();
+  int submerged_detail_pixels = 0;
+  for (size_t i = 0; i < blended.size(); ++i) {
+    // These are precisely the water-covered pixels the legacy rectangular
+    // masks erased. Require visible RGB differences, not just distinct indices.
+    if ((layout_mask[i] | object_mask[i]) == 0)
+      continue;
+    const auto& color = palette->colors[blended[i]];
+    const auto& water = palette->colors[water_only[i]];
+    if (color.r != water.r || color.g != water.g || color.b != water.b)
+      ++submerged_detail_pixels;
+  }
+  EXPECT_GT(submerged_detail_pixels, 1024)
+      << "Room 038's submerged architecture must survive its D9 water masks";
+  EXPECT_EQ(room.bg1_buffer().bitmap().vector(), upper);
+  EXPECT_EQ(room.object_bg1_buffer().bitmap().vector(), upper_objects);
+  EXPECT_EQ(room.CaptureSaveDirtySnapshot().header, dirty.header);
+  EXPECT_EQ(room.CaptureSaveDirtySnapshot().object_stream, dirty.object_stream);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), bytes);
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
 TEST_F(AuthoringSaveWorkflowTest,
        DungeonObjectUndoRedoSaveReopensOnFreshEditor) {
   const auto fixture = CopyProject("yaze_dungeon_authoring_save");
