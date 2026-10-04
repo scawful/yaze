@@ -105,6 +105,20 @@ and `PalettesetEditorView` implementations were removed. Extend the live
 and prefer [`graphics/ui/shared/graphics_window_context.h`](../../../src/app/editor/graphics/ui/shared/graphics_window_context.h)
 over ad-hoc `ContentRegistry` downcasts when a `GraphicsEditor` pointer is needed.
 
+**Palette workspace:** `palette.control_panel` hosts group navigation and the
+existing `PaletteGroupPanel::DrawEmbedded()` controls. Ordinary navigation uses
+`PaletteEditor::JumpToPalette()`; opening a comparison window is explicit. Extend
+the shared grid and picker rather than adding a second color model or copying a
+grid into another group. Current colors come from the session's `PaletteManager`;
+original colors come from its loaded/committed snapshot.
+
+The workspace's **Save ROM** action routes through `EditorManager`. Pending
+palettes participate in the file-save transaction even when Dungeon has never
+opened. If Dungeon already serialized them, Palette does not start a second
+transaction. Both existing palette-save settings remain supported; disabling
+both refuses a save with pending palette edits. **Apply to buffer** in an optional
+comparison window only updates ROM memory. It does not report disk persistence.
+
 #### Graphics UI module layout (migration + screen descriptors)
 
 ```text

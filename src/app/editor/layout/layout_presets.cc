@@ -121,23 +121,24 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
 
     case EditorType::kPalette:
       preset.name = "Palette Default";
-      preset.description = "Palette groups with editor and preview";
+      preset.description =
+          "Palette selection and color editing in one workspace";
       preset.default_visible_panels = {
           Panels::kPaletteControlPanel,
-          Panels::kPaletteOwMain,
       };
+      preset.dock_only_default_visible_panels = true;
       preset.panel_positions = {
-          {Panels::kPaletteOwMain, DockPosition::Center},
-          {Panels::kPaletteControlPanel, DockPosition::LeftTop},
+          {Panels::kPaletteControlPanel, DockPosition::Center},
+          {Panels::kPaletteOwMain, DockPosition::Right},
           {Panels::kPaletteQuickAccess, DockPosition::RightTop},
           {Panels::kPaletteOwAnimated, DockPosition::Bottom},
       };
       preset.optional_panels = {
-          Panels::kPaletteQuickAccess, Panels::kPaletteOwAnimated,
-          Panels::kPaletteDungeonMain, Panels::kPaletteSprites,
-          Panels::kPaletteSpritesAux1, Panels::kPaletteSpritesAux2,
-          Panels::kPaletteSpritesAux3, Panels::kPaletteEquipment,
-          Panels::kPaletteCustom,
+          Panels::kPaletteOwMain,      Panels::kPaletteQuickAccess,
+          Panels::kPaletteOwAnimated,  Panels::kPaletteDungeonMain,
+          Panels::kPaletteSprites,     Panels::kPaletteSpritesAux1,
+          Panels::kPaletteSpritesAux2, Panels::kPaletteSpritesAux3,
+          Panels::kPaletteEquipment,   Panels::kPaletteCustom,
       };
       break;
 

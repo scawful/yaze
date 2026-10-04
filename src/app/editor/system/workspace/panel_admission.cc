@@ -42,8 +42,7 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
 
     // Palette
     {"palette.control_panel",
-     "Palette group picker; selects what the palette editor shows."},
-    {"palette.ow_main", "Primary palette grid in the Palette Default preset."},
+     "Single Palette workspace; hosts group navigation and color editing."},
 
     // Sprite
     {"sprite.vanilla_editor", "Primary sprite editing surface."},

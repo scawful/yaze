@@ -4382,6 +4382,21 @@ absl::Status EditorManager::SaveRomInternal(
   // GameData. Without Save Gfx Groups they cannot be written, so block before
   // any serializer runs instead of saving a ROM that silently drops them.
   auto* save_session = session_coordinator_->GetActiveRomSession();
+  auto& palette_manager = gfx::PaletteManager::Get();
+  const bool pending_palettes =
+      save_session != nullptr &&
+      palette_manager.HasUnsavedChanges(&save_session->game_data);
+  // Both existing save settings authorize PaletteManager's modified colors.
+  // Do not make palette-only persistence depend on opening Dungeon first.
+  const bool palette_save_enabled =
+      core::FeatureFlags::get().kSaveAllPalettes ||
+      core::FeatureFlags::get().dungeon.kSavePalettes;
+  if (pending_palettes && !palette_save_enabled) {
+    return absl::FailedPreconditionError(
+        "Save blocked: palette edits are pending, but palette saving is "
+        "disabled. Enable Save All Palettes or Save Dungeon Palettes, or undo "
+        "the palette edits before saving the ROM.");
+  }
   const bool pending_gfx_groups =
       save_session != nullptr && save_session->HasPendingGfxGroupChanges();
   if (pending_gfx_groups && !core::FeatureFlags::get().kSaveGfxGroups) {
@@ -4534,6 +4549,15 @@ absl::Status EditorManager::SaveRomInternal(
       save_editor(current_editor_set->GetExistingEditor(EditorType::kDungeon)));
   RETURN_IF_ERROR(save_editor(
       current_editor_set->GetExistingEditor(EditorType::kOverworld)));
+
+  // Dungeon may already have serialized palettes under its own transaction.
+  // Otherwise enlist the Palette editor in the same file-save transaction.
+  if (pending_palettes &&
+      palette_manager.HasUnsavedChanges(&save_session->game_data)) {
+    RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kPalette));
+    RETURN_IF_ERROR(save_editor(
+        current_editor_set->GetExistingEditor(EditorType::kPalette)));
+  }
 
   if (core::FeatureFlags::get().kSaveMessages) {
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));

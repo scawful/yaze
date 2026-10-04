@@ -27,16 +27,21 @@
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/graphics/sheet_png_transfer.h"
+#include "app/editor/layout/layout_presets.h"
+#include "app/editor/palette/palette_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/gui/automation/widget_id_registry.h"
+#include "app/gui/core/color.h"
 #include "app/platform/sdl_compat.h"
 #include "core/features.h"
 #include "editor_test_support.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
+#include "imgui/imgui_internal.h"
 #include "rom/snes.h"
 #include "testing.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
@@ -4078,6 +4083,284 @@ TEST_F(GraphicsSessionActivationTest, QueuedUploadsKeepBothSessionsAlive) {
   EXPECT_EQ(recorder.destroyed,
             (std::vector<gfx::TextureHandle>{texture_b, texture_a}));
   EXPECT_EQ(arena.gfx_sheets_owner(), nullptr);
+}
+
+// Exercise the registered workspace and real ImGui inputs on disposable ROMs.
+class PaletteWorkspaceTest : public SessionRomIdentityTest {
+ protected:
+  void SetUp() override {
+    SessionRomIdentityTest::SetUp();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(1440, 1000);
+    io.DeltaTime = 1.0f / 60;
+    io.ConfigInputTrickleEventQueue = false;
+    ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+    palette = manager->GetCurrentEditorSet()->GetEditorAs<PaletteEditor>(
+        EditorType::kPalette);
+    ASSERT_NE(palette, nullptr);
+    workspace =
+        manager->window_manager().GetWindowContent(0, "palette.control_panel");
+    ASSERT_NE(workspace, nullptr);
+    // Ordinary navigation should not open comparison windows.
+    for (const char* id :
+         {"palette.ow_main", "palette.ow_animated", "palette.dungeon_main"})
+      manager->window_manager().CloseWindow(0, id);
+    Frame();
+    Frame();
+  }
+  void TearDown() override {
+    gui::WidgetIdRegistry::Instance().Clear();
+    SessionRomIdentityTest::TearDown();
+  }
+  void Frame(float width = 1000) {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, 820), ImGuiCond_Always);
+    ImGui::Begin("PaletteWorkspaceTestHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    workspace->Draw(nullptr);
+    ImGui::End();
+    ImGui::Render();
+  }
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> Widget(const char* name) {
+    for (const auto& [path, item] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets())
+      if (item.label == gui::WidgetIdRegistry::NormalizeLabel(name))
+        return item;
+    return std::nullopt;
+  }
+  void Click(const char* name, float width = 1000) {
+    const auto item = Widget(name);
+    ASSERT_TRUE(item) << name;
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((item->bounds.min_x + item->bounds.max_x) / 2,
+                        (item->bounds.min_y + item->bounds.max_y) / 2);
+    Frame(width);
+    io.AddMouseButtonEvent(0, true);
+    Frame(width);
+    io.AddMouseButtonEvent(0, false);
+    Frame(width);
+    Frame(width);
+  }
+  void EnterColor(const char* value) {
+    Click("SNES color");
+    auto& io = ImGui::GetIO();
+    // AddKeyEvent takes physical modifiers; ImGui swaps Command internally.
+    const ImGuiKey command =
+        io.ConfigMacOSXBehaviors ? ImGuiMod_Super : ImGuiMod_Ctrl;
+    io.AddKeyEvent(command, true);
+    io.AddKeyEvent(ImGuiKey_A, true);
+    Frame();
+    io.AddKeyEvent(ImGuiKey_A, false);
+    io.AddKeyEvent(command, false);
+    Frame();
+    io.AddInputCharactersUTF8(value);
+    Frame();
+    io.AddKeyEvent(ImGuiKey_Enter, true);
+    Frame();
+    io.AddKeyEvent(ImGuiKey_Enter, false);
+    Frame();
+    Frame();
+  }
+  std::optional<ImU32> SwatchColor(const char* name) {
+    auto item = Widget(name);
+    if (!item)
+      return std::nullopt;
+    auto* window = ImGui::FindWindowByName(item->window_name.c_str());
+    if (!window)
+      return std::nullopt;
+    const ImVec2 point(item->bounds.min_x + 7, item->bounds.min_y + 7);
+    const auto& draw = *window->DrawList;
+    std::optional<ImU32> result;
+    for (const auto& cmd : draw.CmdBuffer) {
+      for (unsigned i = 0; i + 2 < cmd.ElemCount; i += 3) {
+        const auto& a =
+            draw.VtxBuffer[cmd.VtxOffset + draw.IdxBuffer[cmd.IdxOffset + i]];
+        const auto& b = draw.VtxBuffer[cmd.VtxOffset +
+                                       draw.IdxBuffer[cmd.IdxOffset + i + 1]];
+        const auto& c = draw.VtxBuffer[cmd.VtxOffset +
+                                       draw.IdxBuffer[cmd.IdxOffset + i + 2]];
+        if (a.col == b.col && b.col == c.col &&
+            ImTriangleContainsPoint(a.pos, b.pos, c.pos, point))
+          result = a.col;
+      }
+    }
+    return result;
+  }
+  PaletteEditor* palette = nullptr;
+  WindowContent* workspace = nullptr;
+};
+
+TEST_F(PaletteWorkspaceTest, NavigationFitsAndDoesNotMultiplyWindows) {
+  const auto before = manager->GetCurrentRom()->vector();
+  Click("Dungeon Main");
+  EXPECT_FALSE(
+      manager->window_manager().IsWindowOpen(0, "palette.dungeon_main"));
+  auto* panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(panel, nullptr);
+  for (float width : {720.f, 1000.f, 1280.f}) {
+    Frame(width);
+    Frame(width);
+    Click("Palette color 14", width);
+    EXPECT_EQ(panel->GetSelectedColorIndex(), 14);
+    auto cell = Widget("Palette color 14");
+    ASSERT_TRUE(cell);
+    EXPECT_LT(cell->bounds.max_x, width + 10);
+    for (auto* win : ImGui::GetCurrentContext()->Windows)
+      if (win->Active && std::string(win->Name).find(
+                             "PaletteWorkspaceTestHost") != std::string::npos)
+        EXPECT_LE(win->ScrollMax.x, 0.f) << win->Name;
+  }
+  palette->JumpToPalette("dungeon_main", 2);
+  Frame();
+  Frame();
+  EXPECT_EQ(panel->GetSelectedPaletteIndex(), 2);
+  EXPECT_EQ(panel->GetSelectedColorIndex(), -1);
+  EXPECT_FALSE(
+      manager->window_manager().IsWindowOpen(0, "palette.dungeon_main"));
+  Click("Open comparison window");
+  EXPECT_TRUE(
+      manager->window_manager().IsWindowOpen(0, "palette.dungeon_main"));
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), before);
+  const auto preset = LayoutPresets::GetDefaultPreset(EditorType::kPalette);
+  EXPECT_EQ(preset.default_visible_panels,
+            (std::vector<std::string>{"palette.control_panel"}));
+}
+
+TEST_F(PaletteWorkspaceTest, ColorInputUndoAndOriginalUseTheSameModel) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  auto& pm = gfx::PaletteManager::Get();
+  const auto original = pm.GetColor("dungeon_main", 0, 3);
+  const auto bytes = manager->GetCurrentRom()->vector();
+  EnterColor("001F");
+  ASSERT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  EXPECT_EQ(pm.GetOriginalColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_EQ(SwatchColor("Current palette color"),
+            ImGui::GetColorU32(
+                gui::ConvertSnesColorToImVec4(gfx::SnesColor(0x001F))));
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_EQ(SwatchColor("Current palette color"),
+            ImGui::GetColorU32(gui::ConvertSnesColorToImVec4(original)));
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  Click("Restore original palette color");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+  EnterColor("FFFF");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+}
+
+TEST_F(PaletteWorkspaceTest,
+       SaveButtonCommitsAndFreshPaletteLoaderReadsTheEdit) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("1234");
+  auto& pm = gfx::PaletteManager::Get();
+  ASSERT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
+  auto before = manager->GetCurrentRom()->vector();
+  const auto ranges = pm.GetModifiedColorWriteRanges();
+  ASSERT_EQ(ranges.size(), 1);
+  ASSERT_EQ(ranges[0].second - ranges[0].first, 2);
+  before[ranges[0].first] = 0x34;
+  before[ranges[0].first + 1] = 0x12;
+  core::FeatureFlags::get().kSaveAllPalettes = true;
+  manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
+  Click("Save ROM");
+  for (size_t i = 0; i < manager->toast_manager()->pending_count(); ++i) {
+    const auto* toast = manager->toast_manager()->GetPendingToast(i);
+    EXPECT_NE(toast->type, ToastType::kError) << toast->message;
+  }
+  ASSERT_FALSE(pm.HasUnsavedChanges());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(a.string()));
+  EXPECT_EQ(reopened.vector(), before);
+  gfx::PaletteGroupMap groups;
+  ASSERT_OK(gfx::LoadAllPalettes(reopened.vector(), groups));
+  EXPECT_EQ(groups.dungeon_main.palette_ref(0)[3].snes(), 0x1234);
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+}
+
+TEST_F(PaletteWorkspaceTest, DiscardConfirmationCancelPreservesPendingEdit) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("1234");
+  Click("Palette tools");
+  Click("Discard palette changes");
+  ASSERT_TRUE(Widget("Cancel discard"));
+  Click("Cancel discard");
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 3).snes(),
+            0x1234);
+  EXPECT_TRUE(palette->CanUndo());
+}
+
+TEST_F(PaletteWorkspaceTest, DisabledSavePreservesColorAndDisk) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("1234");
+  const auto disk_hash = util::ComputeFileSha1Hex(a.string());
+  const auto bytes = manager->GetCurrentRom()->vector();
+  Click("Save ROM");
+  bool refusal_shown = false;
+  for (size_t i = 0; i < manager->toast_manager()->pending_count(); ++i) {
+    const auto* toast = manager->toast_manager()->GetPendingToast(i);
+    refusal_shown |=
+        toast->type == ToastType::kError &&
+        toast->message.find("palette saving is disabled") != std::string::npos;
+  }
+  EXPECT_TRUE(refusal_shown);
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), disk_hash);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges());
+  EXPECT_TRUE(palette->CanUndo());
+}
+
+TEST_F(PaletteWorkspaceTest, FailedFileWriteRestoresBaselineAndAllowsRetry) {
+  auto* dungeon_before =
+      manager->GetCurrentEditorSet()->GetExistingEditor(EditorType::kDungeon);
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  auto& pm = gfx::PaletteManager::Get();
+  const auto original = pm.GetOriginalColor("dungeon_main", 0, 3).snes();
+  EnterColor("1234");
+  const auto disk_hash = util::ComputeFileSha1Hex(a.string());
+  const auto bytes = manager->GetCurrentRom()->vector();
+  const auto baseline = *Session()->rom_baseline;
+  core::FeatureFlags::get().dungeon.kSavePalettes = true;
+  manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
+  const auto parent_file = root / "not-a-directory";
+  std::ofstream(parent_file) << "PRESERVE";
+  const auto status = manager->SaveRomAs((parent_file / "fail.sfc").string());
+  EXPECT_NE(
+      std::string(status.message()).find("Could not create temp ROM file"),
+      std::string::npos)
+      << status;
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), disk_hash);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+  ExpectBaseline(baseline);
+  EXPECT_TRUE(pm.HasUnsavedChanges());
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
+  EXPECT_EQ(pm.GetOriginalColor("dungeon_main", 0, 3).snes(), original);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original);
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
+  Click("Save ROM");
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  EXPECT_EQ(
+      manager->GetCurrentEditorSet()->GetExistingEditor(EditorType::kDungeon),
+      dungeon_before);
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(a.string()));
+  gfx::PaletteGroupMap groups;
+  ASSERT_OK(gfx::LoadAllPalettes(reopened.vector(), groups));
+  EXPECT_EQ(groups.dungeon_main.palette_ref(0)[3].snes(), 0x1234);
 }
 
 }  // namespace
