@@ -684,6 +684,16 @@ void CanvasNavigationManager::CenterOnMap(int map_id) {
                            center_y - viewport_size_.y * 0.5f);
 }
 
+void CanvasNavigationManager::CenterOnWorldTile(int world_x, int world_y) {
+  if (!ctx_.ow_map_canvas || !viewport_known_) {
+    return;
+  }
+  const float scale = std::max(ctx_.ow_map_canvas->global_scale(), 0.01f);
+  pending_scroll_ =
+      ImVec2((world_x * 16.0f + 8.0f) * scale - viewport_size_.x * 0.5f,
+             (world_y * 16.0f + 8.0f) * scale - viewport_size_.y * 0.5f);
+}
+
 // =============================================================================
 // Blockset Selector Synchronization
 // =============================================================================

@@ -1971,6 +1971,14 @@ void OverworldEditor::JumpToMap(int map_id) {
   }
 }
 
+void OverworldEditor::LocateOverworldTile(int map_id, int world_x,
+                                          int world_y) {
+  JumpToMap(map_id);
+  if (canvas_nav_) {
+    canvas_nav_->CenterOnWorldTile(world_x, world_y);
+  }
+}
+
 void OverworldEditor::SetEditingMode(EditingMode mode) {
   current_mode = mode;
   entity_edit_mode_ = EntityEditMode::NONE;
