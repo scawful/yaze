@@ -1183,6 +1183,7 @@ TEST_F(AuthoringSaveWorkflowTest,
   ASSERT_NE(graphics, nullptr);
   manager_->window_manager().CloseWindow("graphics.prototype_viewer");
   manager_->window_manager().CloseWindow("graphics.polyhedral");
+  manager_->window_manager().CloseWindow("graphics.usage_preview");
   constexpr int kRoom = 5;
   auto& room = dungeon->rooms()[kRoom];
   ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
@@ -1201,6 +1202,11 @@ TEST_F(AuthoringSaveWorkflowTest,
   ASSERT_LT(chosen, room.GetTileObjects().size());
   ASSERT_TRUE(state.SourceTarget());
   EXPECT_TRUE(manager_->window_manager().IsWindowOpen("graphics.pixel_editor"));
+  EXPECT_FALSE(
+      manager_->window_manager().IsWindowOpen("graphics.usage_preview"));
+  // A deliberate comparison window remains open on subsequent source entry.
+  manager_->window_manager().OpenWindow("graphics.usage_preview");
+  ASSERT_OK(graphics->OpenInContext(*state.source_context));
   EXPECT_TRUE(
       manager_->window_manager().IsWindowOpen("graphics.usage_preview"));
   EXPECT_FALSE(
@@ -1241,10 +1247,11 @@ TEST_F(AuthoringSaveWorkflowTest,
     AuthoringSaveWorkflowTestPeer::DrawGraphics(*graphics);
     const std::string text = ImGui::GetCurrentContext()->LogBuffer.c_str();
     ImGui::LogFinish();
-    EXPECT_NE(text.find("Drawing: " + context.drawing_description),
-              std::string::npos);
-    EXPECT_NE(text.find("Pattern orientations: " +
-                        state.SourceTarget()->SourceOrientationLabel()),
+    EXPECT_NE(text.find("Source preview"), std::string::npos);
+    EXPECT_NE(text.find("Return to source"), std::string::npos);
+    // Detailed pattern metadata is available through Source details; it no
+    // longer consumes permanent canvas height.
+    EXPECT_EQ(text.find("Drawing: " + context.drawing_description),
               std::string::npos);
     ImGui::End();
     ImGui::Begin("ContextUsage", nullptr, ImGuiWindowFlags_NoSavedSettings);

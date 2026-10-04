@@ -117,6 +117,8 @@ void GraphicsEditor::Initialize() {
   usage_preview_view_ = std::make_unique<UsagePreviewView>(&state_);
   usage_preview_view_->SetRom(rom_);
   usage_preview_view_->SetGameData(game_data_);
+  pixel_editor_panel_->SetSourcePreviewCallback(
+      [this]() { usage_preview_view_->DrawSourcePreview(); });
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
@@ -1055,9 +1057,12 @@ absl::Status GraphicsEditor::OpenInContext(GraphicsEditContext context) {
   state_.source_context = std::move(context);
   ++state_.source_context_revision;
   state_.SelectSourceTarget(0);
+  if (pixel_editor_panel_)
+    pixel_editor_panel_->ShowSourcePreview();
   if (dependencies_.window_manager) {
     dependencies_.window_manager->OpenWindow("graphics.pixel_editor");
-    dependencies_.window_manager->OpenWindow("graphics.usage_preview");
+    // Source preview is embedded. Deliberately opened comparison windows keep
+    // their visibility, pins and layout; entering Graphics adds no pop-out.
   }
   return absl::OkStatus();
 }

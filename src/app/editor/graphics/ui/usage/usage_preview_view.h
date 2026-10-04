@@ -36,10 +36,13 @@ class UsagePreviewView {
   void SetHackName(std::string hack_name) { hack_name_ = std::move(hack_name); }
 
   void Draw();
+  // Both the inline view and Source tab use the same cache and renderer.
+  void DrawSourcePreview(bool show_controls = true);
 
   static constexpr double kMinRenderInterval = 0.1;  // 10 renders/s
 
  private:
+  friend class UsagePreviewViewTestPeer;
   enum class Mode { kRoom, kSprite, kTile16 };
 
   void EnsureTables();
@@ -51,7 +54,7 @@ class UsagePreviewView {
   usage_preview::SheetPixels Snapshot() const;
   void ShowImage(gfx::Bitmap& bitmap, const usage_preview::PreviewImage& image);
   void DrawBitmapFit(gfx::Bitmap& bitmap, const std::vector<SDL_Rect>& rects,
-                     float max_scale);
+                     float max_scale, bool fit_height = false);
   int SelectedTileIndex() const;
   void InvalidateTables();
 
@@ -108,6 +111,12 @@ class UsagePreviewView {
   uint64_t palette_revision_ = 0;
   uint64_t sprite_palette_revision_ = 0;
   gfx::Bitmap source_bitmap_;
+  uint64_t rendered_source_revision_ = 0;
+  uint64_t source_palette_revision_ = 0;
+  uint64_t source_hash_ = 0;
+  double source_render_time_ = -1.0;
+  bool source_dirty_ = true;
+  std::string source_status_;
 };
 
 }  // namespace yaze::editor

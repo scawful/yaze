@@ -77,13 +77,38 @@ absl::Status PixelEditorPanel::Update() {
   const float status_height =
       ImGui::GetFrameHeightWithSpacing() + ImGui::GetStyle().ItemSpacing.y + 1;
   ImGui::BeginChild("##PixelEditorContent", ImVec2(0, -status_height), false);
+  const ImVec2 available = ImGui::GetContentRegionAvail();
+  const float font = ImGui::GetFontSize();
+  const bool preview = show_source_preview_ && draw_source_preview_ &&
+                       state_->source_context &&
+                       state_->source_context->owner == state_->game_data &&
+                       state_->source_context->render_preview;
+  const bool beside = preview && available.x >= 48 * font;
+  const float preview_width =
+      std::clamp(available.x * 0.30f, 14 * font, 22 * font);
+  const float preview_height = std::min(available.y * 0.38f, 18 * font);
+  const float gap = ImGui::GetStyle().ItemSpacing.x;
+  const ImVec2 canvas_size(
+      beside ? std::max(1.0f, available.x - preview_width - gap) : 0,
+      preview && !beside ? std::max(1.0f, available.y - preview_height -
+                                              ImGui::GetStyle().ItemSpacing.y)
+                         : 0);
   if (fit_canvas_requested_) {
     ImGui::SetNextWindowScroll(ImVec2(0, 0));
   }
-  ImGui::BeginChild("##CanvasArea", ImVec2(0, 0), false,
+  ImGui::BeginChild("##CanvasArea", canvas_size, false,
                     ImGuiWindowFlags_HorizontalScrollbar);
   DrawCanvas();
   ImGui::EndChild();
+  if (preview) {
+    if (beside)
+      ImGui::SameLine();
+    ImGui::BeginChild(
+        "##SourceUsagePreview",
+        beside ? ImVec2(preview_width, 0) : ImVec2(0, preview_height), false);
+    draw_source_preview_();
+    ImGui::EndChild();
+  }
   ImGui::EndChild();
 
   // Status bar
@@ -148,58 +173,114 @@ gfx::Bitmap& PixelEditorPanel::DisplaySheet() {
 }
 
 void PixelEditorPanel::DrawSourceContext() {
-  if (!state_->source_context) {
+  if (!state_->source_context ||
+      state_->source_context->owner != state_->game_data) {
     return;
   }
   auto& context = *state_->source_context;
-  ImGui::TextWrapped("%s", context.label.c_str());
-  if (!context.drawing_description.empty()) {
-    ImGui::TextWrapped(tr("Drawing: %s"), context.drawing_description.c_str());
-  }
-  if (context.return_to_source && ImGui::SmallButton(tr("Return to source"))) {
+  ImGui::BeginDisabled(!context.return_to_source);
+  const bool return_to_source = ImGui::SmallButton(tr("Return to source"));
+  gui::AutoRegisterLastItem("button", "Return to source");
+  ImGui::EndDisabled();
+  if (return_to_source) {
     // Copy before invoking: navigation may replace editor state.
     auto navigate = context.return_to_source;
     navigate();
     return;
   }
+  if (draw_source_preview_ && context.render_preview) {
+    ImGui::SameLine();
+    ImGui::Checkbox(tr("Preview"), &show_source_preview_);
+    gui::AutoRegisterLastItem("checkbox", "Show source preview");
+  }
   ImGui::SameLine();
-  if (ImGui::SmallButton(tr("Use manual palette"))) {
-    state_->ClearSourceContext();
-    return;
+  if (ImGui::SmallButton(ICON_MD_INFO_OUTLINE "##SourceDetails")) {
+    ImGui::OpenPopup("Source details");
   }
-  if (!context.limitation.empty()) {
-    ImGui::TextWrapped("%s", context.limitation.c_str());
+  gui::AutoRegisterLastItem("button", "Source details");
+  HOVER_HINT("Source, drawing pattern and palette details");
+  if (ImGui::BeginPopup("Source details")) {
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 28 * ImGui::GetFontSize());
+    ImGui::TextWrapped("%s", context.label.c_str());
+    if (!context.drawing_description.empty()) {
+      ImGui::TextWrapped(tr("Drawing: %s"),
+                         context.drawing_description.c_str());
+    }
+    if (const auto* target = state_->SourceTarget();
+        target && target->source_orientation_mask != 0) {
+      ImGui::TextWrapped(tr("Pattern orientations: %s"),
+                         target->SourceOrientationLabel().c_str());
+      ImGui::TextWrapped("%s",
+                         tr("Paint the unflipped source; all uses of this "
+                            "sheet share its pixels."));
+    }
+    if (!context.limitation.empty()) {
+      ImGui::TextWrapped("%s", context.limitation.c_str());
+    }
+    ImGui::PopTextWrapPos();
+    ImGui::Separator();
+    ImGui::BeginDisabled(state_->selection.is_floating);
+    const bool manual = ImGui::SmallButton(tr("Use manual palette"));
+    gui::AutoRegisterLastItem("button", "Use manual palette");
+    ImGui::EndDisabled();
+    if (manual)
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+    if (manual) {
+      state_->ClearSourceContext();
+      return;
+    }
   }
+  ImGui::SameLine();
+  const ImVec2 label_pos = ImGui::GetCursorScreenPos();
+  const ImVec2 label_size(std::max(1.0f, ImGui::GetContentRegionAvail().x),
+                          ImGui::GetFrameHeight());
+  const ImVec2 text_pos(label_pos.x,
+                        label_pos.y + ImGui::GetStyle().FramePadding.y);
+  const bool clipped =
+      ImGui::CalcTextSize(context.label.c_str()).x > label_size.x;
+  const float ellipsis_width = clipped ? ImGui::CalcTextSize("...").x : 0;
+  const float text_right =
+      label_pos.x + std::max(0.0f, label_size.x - ellipsis_width);
+  auto* draw = ImGui::GetWindowDrawList();
+  draw->PushClipRect(label_pos, ImVec2(text_right, label_pos.y + label_size.y),
+                     true);
+  draw->AddText(text_pos, ImGui::GetColorU32(ImGuiCol_Text),
+                context.label.c_str());
+  draw->PopClipRect();
+  if (clipped && label_size.x >= ellipsis_width) {
+    draw->AddText(ImVec2(text_right, text_pos.y),
+                  ImGui::GetColorU32(ImGuiCol_Text), "...");
+  }
+  ImGui::Dummy(label_size);
+  if (ImGui::IsItemHovered())
+    ImGui::SetTooltip("%s", context.label.c_str());
+
   if (!context.palette_error.empty()) {
     ImGui::TextWrapped(tr("Source colors could not refresh: %s"),
                        context.palette_error.c_str());
   }
+  if (context.targets.empty())
+    return;
   const auto& target = context.targets[context.selected_target];
   ImGui::BeginDisabled(state_->selection.is_floating);
   ImGui::SetNextItemWidth(-1);
-  if (ImGui::BeginCombo("##SourceTile", target.label.c_str())) {
+  const bool open = ImGui::BeginCombo("##SourceTile", target.label.c_str());
+  gui::AutoRegisterLastItem("combo", "Source tile");
+  if (open) {
     for (size_t i = 0; i < context.targets.size(); ++i) {
       ImGui::PushID(static_cast<int>(i));
       if (ImGui::Selectable(context.targets[i].label.c_str(),
                             i == context.selected_target)) {
         state_->SelectSourceTarget(i);
       }
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("Source tile %zu", i));
       ImGui::PopID();
     }
     ImGui::EndCombo();
   }
   ImGui::EndDisabled();
-  const auto& selected = context.targets[context.selected_target];
-  if (selected.source_orientation_mask != 0) {
-    ImGui::TextWrapped(tr("Pattern orientations: %s"),
-                       selected.SourceOrientationLabel().c_str());
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", tr("These flips occur in the selected object's "
-                                 "tile pattern. Paint the unflipped source; "
-                                 "all uses of that sheet share the pixels."));
-    }
-  }
-  ImGui::Separator();
 }
 
 void PixelEditorPanel::DrawToolbar() {

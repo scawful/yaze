@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
@@ -52,6 +53,8 @@ void UsagePreviewView::SetGameData(zelda3::GameData* game_data) {
 }
 
 void UsagePreviewView::InvalidateTables() {
+  source_dirty_ = true;
+  source_render_time_ = -1.0;
   tables_ready_ = false;
   room_blocks_.clear();
   room_gfx_.clear();
@@ -78,6 +81,9 @@ uint64_t UsagePreviewView::HashWatchedSheets() const {
   std::set<uint16_t> ids = state_->modified_sheets;
   ids.insert(state_->current_sheet_id);
   if (state_->source_context) {
+    for (const auto& target : state_->source_context->targets) {
+      ids.insert(target.sheet_id);
+    }
     for (const auto& slot : state_->source_context->resolved.slots) {
       ids.insert(slot.sheet_id);
     }
@@ -131,14 +137,19 @@ void UsagePreviewView::ShowImage(gfx::Bitmap& bitmap,
 
 void UsagePreviewView::DrawBitmapFit(gfx::Bitmap& bitmap,
                                      const std::vector<SDL_Rect>& rects,
-                                     float max_scale) {
+                                     float max_scale, bool fit_height) {
   if (!bitmap.is_active() || bitmap.width() <= 0 || !bitmap.texture()) {
     ImGui::TextDisabled("%s", tr("Rendering..."));
     return;
   }
-  const float avail = std::max(64.0f, ImGui::GetContentRegionAvail().x);
-  const float scale =
-      std::clamp(avail / static_cast<float>(bitmap.width()), 0.5f, max_scale);
+  const auto available = ImGui::GetContentRegionAvail();
+  float scale =
+      std::min(max_scale, std::max(1.0f, available.x) / bitmap.width());
+  if (fit_height) {
+    scale = std::min(scale, std::max(1.0f, available.y) / bitmap.height());
+  } else {
+    scale = std::max(0.5f, scale);
+  }
   const ImVec2 size(bitmap.width() * scale, bitmap.height() * scale);
   const ImVec2 origin = ImGui::GetCursorScreenPos();
   ImGui::Image((ImTextureID)(intptr_t)bitmap.texture(), size);
@@ -150,6 +161,70 @@ void UsagePreviewView::DrawBitmapFit(gfx::Bitmap& bitmap,
         ImVec2(origin.x + (r.x + r.w) * scale, origin.y + (r.y + r.h) * scale),
         color, 0.0f, 0, 1.5f);
   }
+}
+
+void UsagePreviewView::DrawSourcePreview(bool show_controls) {
+  if (!state_ || !game_data_ || !state_->source_context ||
+      state_->source_context->owner != game_data_ ||
+      !state_->source_context->render_preview) {
+    ImGui::TextDisabled("%s", tr("No source preview available."));
+    return;
+  }
+  auto& source = *state_->source_context;
+  if (show_controls) {
+    ImGui::TextUnformatted(tr("Source preview"));
+    ImGui::SameLine();
+    ImGui::Checkbox(tr("Live"), &live_);
+    gui::AutoRegisterLastItem("checkbox", "Live source preview");
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_REFRESH "##SourceRefresh")) {
+      source_dirty_ = true;
+      source_render_time_ = -1.0;
+    }
+    gui::AutoRegisterLastItem("button", "Refresh source preview");
+    HOVER_HINT("Render unsaved source pixels now");
+  }
+  if (!source.palette_error.empty()) {
+    // Never present an old image as a successfully refreshed source.
+    source_dirty_ = true;
+    source_render_time_ = -1.0;
+    ImGui::TextWrapped("%s", source.palette_error.c_str());
+    return;
+  }
+  const auto revision = gfx::PaletteManager::Get().ColorRevision(game_data_);
+  if (rendered_source_revision_ != state_->source_context_revision ||
+      source_palette_revision_ != revision) {
+    rendered_source_revision_ = state_->source_context_revision;
+    source_palette_revision_ = revision;
+    source_dirty_ = true;
+    source_render_time_ = -1.0;
+  }
+  const uint64_t hash = live_ ? HashWatchedSheets() : source_hash_;
+  if (hash != source_hash_) {
+    source_hash_ = hash;
+    source_dirty_ = true;
+  }
+  const double now = ImGui::GetTime();
+  if (source_dirty_ && (source_render_time_ < 0.0 ||
+                        !ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
+                        now - source_render_time_ >= kMinRenderInterval)) {
+    const auto rendered = source.render_preview();
+    source_status_ = rendered.ok() ? std::string()
+                                   : std::string(rendered.status().message());
+    if (rendered.ok()) {
+      if (rendered->empty())
+        source_status_ = tr("Source preview is empty.");
+      else
+        ShowImage(source_bitmap_, *rendered);
+    }
+    source_dirty_ = false;
+    source_render_time_ = now;
+  }
+  if (!source_status_.empty()) {
+    ImGui::TextWrapped("%s", source_status_.c_str());
+    return;
+  }
+  DrawBitmapFit(source_bitmap_, {}, 2.0f, true);
 }
 
 void UsagePreviewView::Draw() {
@@ -218,6 +293,8 @@ void UsagePreviewView::Draw() {
   if (ImGui::SmallButton(ICON_MD_REFRESH)) {
     dirty_ = true;
     last_render_time_ = -1.0;
+    source_dirty_ = true;
+    source_render_time_ = -1.0;
   }
   HOVER_HINT("Render now");
 
@@ -244,21 +321,7 @@ void UsagePreviewView::Draw() {
       if (ImGui::BeginTabItem(
               tr("Source"), nullptr,
               source_changed ? ImGuiTabItemFlags_SetSelected : 0)) {
-        auto& source = *state_->source_context;
-        ImGui::TextWrapped("%s", source.label.c_str());
-        if (!source.palette_error.empty()) {
-          status_ = source.palette_error;
-        } else if (render_now) {
-          const auto rendered = source.render_preview();
-          status_ = rendered.ok() ? std::string()
-                                  : std::string(rendered.status().message());
-          if (rendered.ok()) {
-            ShowImage(source_bitmap_, *rendered);
-          }
-        }
-        if (status_.empty()) {
-          DrawBitmapFit(source_bitmap_, {}, 2.0f);
-        }
+        DrawSourcePreview(false);
         ImGui::EndTabItem();
       }
     }

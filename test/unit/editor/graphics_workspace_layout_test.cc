@@ -23,6 +23,12 @@
 #include "zelda3/game_data.h"
 
 namespace yaze::editor {
+class UsagePreviewViewTestPeer {
+ public:
+  static gfx::Bitmap& SourceBitmap(UsagePreviewView& view) {
+    return view.source_bitmap_;
+  }
+};
 namespace {
 
 class GraphicsWorkspaceLayoutTest : public ::testing::Test {
@@ -718,6 +724,210 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   EXPECT_FLOAT_EQ(state_.zoom_level, 4);
   Click("Fit sheet", frame);
   EXPECT_FLOAT_EQ(state_.zoom_level, 7);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       SourceWorkspaceReflowsAndKeepsDetailsAndReturnReachable) {
+  UsagePreviewView view(&state_);
+  view.SetGameData(data_.get());
+  PixelEditorPanel pixel(&state_, nullptr);
+  pixel.SetSourcePreviewCallback([&] { view.DrawSourcePreview(); });
+  GraphicsEditContext source;
+  source.owner = data_.get();
+  source.label = "Room 005 / ornate corner pillar / selected entrance 00";
+  source.drawing_description = "Corner pattern with repeated horizontal beams";
+  source.limitation = "Animated pixels are omitted";
+  source.targets = {
+      {.sheet_id = 0,
+       .tile_index = 0,
+       .label = "First source tile",
+       .palette = gfx::SnesPalette(std::vector<uint16_t>(8, 0x001f)),
+       .source_orientation_mask = 3},
+      {.sheet_id = 0,
+       .tile_index = 1,
+       .label = "Second source tile",
+       .palette = gfx::SnesPalette(std::vector<uint16_t>(8, 0x001f))}};
+  int returns = 0;
+  int renders = 0;
+  source.return_to_source = [&] {
+    ++returns;
+  };
+  source.render_preview = [&]() -> absl::StatusOr<usage_preview::PreviewImage> {
+    ++renders;
+    usage_preview::PreviewImage image;
+    image.width = image.height = 512;
+    image.pixels.assign(512 * 512, 1);
+    image.colors[1] = {255, 0, 0, 255};
+    return image;
+  };
+  state_.source_context = source;
+  ++state_.source_context_revision;
+  state_.SelectSourceTarget(0);
+  absl::Cleanup cleanup = [&] {
+    UsagePreviewViewTestPeer::SourceBitmap(view).set_texture(nullptr);
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  float width = 440;
+  std::string text;
+  const auto frame = [&] {
+    Frame(
+        [&] {
+          ImGui::LogToBuffer(2);
+          EXPECT_TRUE(pixel.Update().ok());
+          text = context_->LogBuffer.c_str();
+          ImGui::LogFinish();
+        },
+        width);
+  };
+  frame();
+  UsagePreviewViewTestPeer::SourceBitmap(view).set_texture(
+      reinterpret_cast<gfx::TextureHandle>(0x2345));
+  const auto original_style = ImGui::GetStyle();
+  for (float scale : {1.0f, 1.5f}) {
+    ImGui::GetIO().FontGlobalScale = scale;
+    ImGui::GetStyle() = original_style;
+    ImGui::GetStyle().ScaleAllSizes(scale);
+    for (float target_width : {440.f, 1280.f}) {
+      width = target_width;
+      frame();
+      frame();
+      auto* canvas = ActiveChild("##CanvasArea");
+      auto* preview = ActiveChild("##SourceUsagePreview");
+      auto* host = ImGui::FindWindowByName("GraphicsHost");
+      ASSERT_NE(canvas, nullptr);
+      ASSERT_NE(preview, nullptr);
+      ASSERT_NE(host, nullptr);
+      EXPECT_LE(host->ContentSize.x, host->InnerRect.GetWidth() + 1);
+      EXPECT_LE(host->ContentSize.y, host->InnerRect.GetHeight() + 1);
+      if (width == 440) {
+        EXPECT_GE(preview->Pos.y, canvas->Pos.y + canvas->Size.y);
+      } else {
+        EXPECT_GE(preview->Pos.x, canvas->Pos.x + canvas->Size.x);
+      }
+      // The actual source image fits both dimensions, even for a full room.
+      int image_vertices = 0;
+      for (const auto& command : preview->DrawList->CmdBuffer) {
+        if (command.GetTexID() != (ImTextureID)0x2345)
+          continue;
+        for (unsigned i = 0; i < command.ElemCount; ++i) {
+          const auto& vertex =
+              preview->DrawList->VtxBuffer
+                  [command.VtxOffset +
+                   preview->DrawList->IdxBuffer[command.IdxOffset + i]];
+          EXPECT_LE(vertex.pos.x, preview->InnerRect.Max.x + 1);
+          EXPECT_LE(vertex.pos.y, preview->InnerRect.Max.y + 1);
+          ++image_vertices;
+        }
+      }
+      EXPECT_GE(image_vertices, 6);
+      Click("Show source preview", frame);
+      EXPECT_EQ(ActiveChild("##SourceUsagePreview"), nullptr);
+      EXPECT_GT(canvas->Size.x, host->Size.x - 40);
+      Click("Show source preview", frame);
+      EXPECT_NE(ActiveChild("##SourceUsagePreview"), nullptr);
+    }
+  }
+  EXPECT_EQ(renders, 1);  // Reflow/show/hide use the same cached source.
+  Click("Source tile", frame);
+  Click("Source tile 1", frame);
+  EXPECT_EQ(state_.source_context->selected_target, 1);
+  EXPECT_EQ(state_.current_sheet_id, 0);
+  Click("Return to source", frame);
+  EXPECT_EQ(returns, 1);
+  Click("Source details", frame);
+  EXPECT_NE(text.find(source.drawing_description), std::string::npos);
+  EXPECT_NE(text.find(source.limitation), std::string::npos);
+  state_.selection.is_floating = true;
+  Click("Use manual palette", frame);
+  EXPECT_TRUE(state_.source_context);
+  state_.selection.is_floating = false;
+  Click("Use manual palette", frame);
+  EXPECT_FALSE(state_.source_context);
+  EXPECT_EQ(ActiveChild("##SourceUsagePreview"), nullptr);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       InlineAndComparisonShareSourceRefreshThroughPixelsPaletteAndErrors) {
+  auto& palettes = gfx::PaletteManager::Get();
+  palettes.ResetForTesting();
+  UsagePreviewView view(&state_);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  view.SetRom(&rom);
+  view.SetGameData(data_.get());
+  data_->palette_groups.dungeon_main.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(90, 0x001f)));
+  palettes.Initialize(data_.get());
+  absl::Cleanup cleanup = [&] {
+    palettes.ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  GraphicsEditContext source;
+  source.owner = data_.get();
+  int renders = 0;
+  bool fail = false;
+  source.render_preview = [&]() -> absl::StatusOr<usage_preview::PreviewImage> {
+    ++renders;
+    if (fail)
+      return absl::FailedPreconditionError("Source render failed");
+    usage_preview::PreviewImage image;
+    image.width = image.height = 1;
+    image.pixels = {bitmap_->GetPixel(0, 0)};
+    return image;
+  };
+  state_.source_context = source;
+  ++state_.source_context_revision;
+  bool reverse_order = false;
+  const auto frame = [&] {
+    Frame([&] {
+      if (reverse_order) {
+        view.Draw();
+        ImGui::PushID("Inline");
+        view.DrawSourcePreview();
+        ImGui::PopID();
+      } else {
+        ImGui::PushID("Inline");
+        view.DrawSourcePreview();
+        ImGui::PopID();
+        view.Draw();
+      }
+    });
+  };
+  frame();
+  frame();
+  EXPECT_EQ(renders, 1);
+  auto changed = bitmap_->vector();
+  changed[0] = 6;
+  ASSERT_TRUE(CommitSheetPixels(state_, 0, changed).ok());
+  frame();
+  EXPECT_EQ(renders, 2);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SourceBitmap(view).GetPixel(0, 0), 6);
+  reverse_order = true;
+  ASSERT_TRUE(
+      palettes.SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x03e0)).ok());
+  frame();
+  EXPECT_EQ(renders, 3);
+  palettes.Undo();
+  frame();
+  EXPECT_EQ(renders, 4);
+  state_.source_context->palette_error = "Source assignment changed";
+  frame();
+  EXPECT_EQ(renders, 4);
+  state_.source_context->palette_error.clear();
+  fail = true;
+  frame();
+  EXPECT_EQ(renders, 5);
+  fail = false;
+  Click("Refresh source preview", frame);
+  EXPECT_EQ(renders, 6);
+  zelda3::GameData other;
+  view.SetGameData(&other);
+  Frame([&] { view.DrawSourcePreview(); });
+  EXPECT_EQ(renders, 6);  // Never render another session's captured callback.
+  view.SetGameData(data_.get());
+  frame();
+  EXPECT_EQ(renders, 7);
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest, PixelTextureUsesTheSameFadeAsItsWindow) {
