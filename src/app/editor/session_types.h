@@ -181,6 +181,13 @@ struct RomSession {
   void CaptureRomIdentity();
 
   zelda3::GameData game_data;
+  // Display copies have stable addresses across user and per-frame activation.
+  // Authored pixels remain in game_data.sheet_store; loaded palette colors stay
+  // in game_data.gfx_bitmaps. Allocate only after graphics are loaded.
+  void ReloadGraphicsDisplay();
+  void ActivateGraphicsDisplay();
+  void ResetGraphicsDisplay();
+
   EditorSet editors;
   std::string custom_name;  // User-defined session name
   std::string filepath;     // ROM filepath for duplicate detection
@@ -214,6 +221,11 @@ struct RomSession {
                       EditorRegistry* editor_registry = nullptr);
   ~RomSession();
 
+ private:
+  std::unique_ptr<std::array<gfx::Bitmap, zelda3::kNumGfxSheets>>
+      graphics_display_;
+
+ public:
   size_t session_id() const { return editors.session_id(); }
 
   // Get display name (custom name or ROM title)

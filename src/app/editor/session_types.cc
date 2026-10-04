@@ -20,6 +20,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/version_manager.h"
 
@@ -405,7 +406,40 @@ void RomSession::CaptureRomIdentity() {
       util::ComputeRomIdentityHashes(rom.data(), rom.size()), path.string()};
 }
 
+void RomSession::ReloadGraphicsDisplay() {
+  ResetGraphicsDisplay();
+  graphics_display_ =
+      std::make_unique<std::array<gfx::Bitmap, zelda3::kNumGfxSheets>>(
+          game_data.gfx_bitmaps);
+  // Rehydration always reads the authoring store, including unsaved pixels.
+  for (uint16_t i = 0; i < graphics_display_->size(); ++i) {
+    auto& bitmap = graphics_display_->at(i);
+    if (!bitmap.is_active() || !game_data.sheet_store.HasSheet(i))
+      continue;
+    const auto pixels = game_data.sheet_store.Sheet(i);
+    bitmap.set_data(std::vector<uint8_t>(pixels.begin(), pixels.end()));
+  }
+  ActivateGraphicsDisplay();
+}
+
+void RomSession::ActivateGraphicsDisplay() {
+  gfx::Arena::Get().BindGraphicsSheets(graphics_display_.get(), &game_data);
+}
+
+void RomSession::ResetGraphicsDisplay() {
+  auto& arena = gfx::Arena::Get();
+  if (arena.gfx_sheets_owner() == &game_data) {
+    arena.BindGraphicsSheets(nullptr, nullptr);
+  }
+  if (graphics_display_) {
+    for (auto& bitmap : *graphics_display_)
+      arena.RetireBitmap(bitmap);
+    graphics_display_.reset();
+  }
+}
+
 RomSession::~RomSession() {
+  ResetGraphicsDisplay();
   gfx::PaletteManager::Get().ReleaseSession(&game_data);
 }
 

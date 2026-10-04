@@ -519,6 +519,16 @@ void Arena::Shutdown() {
   renderer_ = nullptr;
 }
 
+void Arena::BindGraphicsSheets(GraphicsSheets* sheets, const void* owner) {
+  auto* next = sheets ? sheets : &gfx_sheets_;
+  if (active_gfx_sheets_ != next) {
+    // LRU entries are sheet indices in the active storage, not global IDs.
+    ClearSheetCache();
+    active_gfx_sheets_ = next;
+  }
+  gfx_sheets_owner_ = sheets ? owner : nullptr;
+}
+
 void Arena::NotifySheetModified(int sheet_index) {
   if (sheet_index < 0 || sheet_index >= 223) {
     LOG_WARN("Arena", "Invalid sheet index %d, ignoring notification",
@@ -526,7 +536,7 @@ void Arena::NotifySheetModified(int sheet_index) {
     return;
   }
 
-  auto& sheet = gfx_sheets_[sheet_index];
+  auto& sheet = gfx_sheets()[sheet_index];
   if (!sheet.is_active() || !sheet.surface()) {
     LOG_DEBUG("Arena",
               "Sheet %d not active or no surface, skipping notification",
@@ -607,7 +617,7 @@ Bitmap* Arena::GetSheetWithCache(int sheet_index) {
     return nullptr;
   }
 
-  auto& sheet = gfx_sheets_[sheet_index];
+  auto& sheet = gfx_sheets()[sheet_index];
 
   // Check if sheet already has texture (cache hit)
   bool had_texture = sheet.texture() != nullptr;
@@ -659,7 +669,7 @@ size_t Arena::EvictLRUSheets(size_t count) {
   // Evict from back of list (least recently used)
   while (!sheet_lru_list_.empty() && evicted < target_evictions) {
     int sheet_index = sheet_lru_list_.back();
-    auto& sheet = gfx_sheets_[sheet_index];
+    auto& sheet = gfx_sheets()[sheet_index];
 
     // Destroy texture if it exists
     if (sheet.texture()) {

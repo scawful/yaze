@@ -16,10 +16,13 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/application.h"
+#include "app/editor/core/content_registry.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/events/core_events.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/graphics_palette_preview.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/graphics/screen_editor.h"
@@ -29,6 +32,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/platform/sdl_compat.h"
 #include "core/features.h"
 #include "editor_test_support.h"
 #include "framework/mock_renderer.h"
@@ -79,6 +83,19 @@ class GraphicsEditorSaveStoplossTestPeer {
     }
     gfx::Arena::Get().set_gfx_sheets_owner(data);
     AttachSheetStore(editor->state_, data);
+  }
+  static absl::Status PaintPixel(GraphicsEditor* editor, uint8_t value) {
+    auto& state = editor->state_;
+    const auto pixels = state.game_data->sheet_store.Sheet(0);
+    std::vector<uint8_t> before(pixels.begin(), pixels.end());
+    auto after = before;
+    after[0] = value;
+    auto status = CommitSheetPixels(state, 0, after);
+    if (!status.ok())
+      return status;
+    editor->undo_manager_.Push(std::make_unique<GraphicsPixelEditAction>(
+        &state, MakeSheetPixelDiff(0, before, after), "Session pixel"));
+    return absl::OkStatus();
   }
   // Runs the real read-back check against pixels with one index changed, so
   // every sheet the save writes fails verification.
@@ -3888,6 +3905,179 @@ TEST_F(SessionRomIdentityTest,
   EXPECT_EQ(Session()->rom_baseline->normalized_path, a.string());
   EXPECT_EQ(manager->GetCurrentProject()->rom_metadata.expected_hash,
             baseline.hashes.crc32);
+}
+
+// Real coordinator activation with loaded ROMs, not manual Arena owner changes.
+class GraphicsSessionActivationTest : public SessionRomIdentityTest {
+ protected:
+  void SetUp() override {
+    SessionRomIdentityTest::SetUp();
+    for (size_t i = 0; i < 2; ++i) {
+      Switch(i);
+      ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+      sessions[i] = Session();
+      graphics[i] = manager->GetCurrentEditorSet()->GetEditorAs<GraphicsEditor>(
+          EditorType::kGraphics);
+      ASSERT_NE(graphics[i], nullptr);
+      ASSERT_TRUE(Session()->game_data.sheet_store.HasSheet(0));
+      // Distinct fixture colors make cross-session contamination observable.
+      Session()->game_data.palette_groups.overworld_main.SetColor(
+          0, 0, gfx::SnesColor(uint16_t(i == 0 ? 0x001F : 0x03E0)));
+      *graphics[i]->active() = false;
+    }
+    Switch(0);
+  }
+
+  GraphicsEditorState& State(size_t i) {
+    return GraphicsEditorSaveStoplossTestPeer::State(graphics[i]);
+  }
+  RomSession* sessions[2]{};
+  GraphicsEditor* graphics[2]{};
+};
+
+TEST_F(GraphicsSessionActivationTest, SwitchPreservesPixelsPaletteAndUndo) {
+  auto& arena = gfx::Arena::Get();
+  ASSERT_EQ(arena.gfx_sheets_owner(), &sessions[0]->game_data);
+  auto* sheet_a = arena.mutable_gfx_sheet(0);
+  const auto original_a = sheet_a->vector();
+  const auto rom_a = sessions[0]->rom.vector();
+  const auto rom_b = sessions[1]->rom.vector();
+  const auto baseline = *sessions[0]->rom_baseline;
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics[0], 3));
+  ASSERT_OK(SetGraphicsPreviewPalette(State(0), 0,
+                                      GraphicsPaletteSelection{"ow_main"}));
+  Switch(1);
+  ASSERT_EQ(arena.gfx_sheets_owner(), &sessions[1]->game_data);
+  auto* sheet_b = arena.mutable_gfx_sheet(0);
+  EXPECT_NE(sheet_a, sheet_b);
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics[1], 5));
+  ASSERT_OK(SetGraphicsPreviewPalette(State(1), 0,
+                                      GraphicsPaletteSelection{"ow_main"}));
+  for (int repeat = 0; repeat < 3; ++repeat) {
+    Switch(0);
+    EXPECT_EQ(arena.mutable_gfx_sheet(0), sheet_a);
+    EXPECT_EQ(sheet_a->vector()[0], 3);
+    const auto* colors = platform::GetSurfacePalette(sheet_a->surface());
+    ASSERT_NE(colors, nullptr);
+    EXPECT_EQ(colors->colors[1].r, 255);
+    EXPECT_EQ(colors->colors[1].g, 0);
+    ASSERT_NE(State(0).PreviewPalette(0), nullptr);
+    EXPECT_EQ(State(0).PreviewPalette(0)->group, "ow_main");
+    ExpectBaseline(baseline);
+    ASSERT_OK(graphics[0]->Undo());
+    EXPECT_EQ(sheet_a->vector(), original_a);
+    ASSERT_OK(graphics[0]->Redo());
+    EXPECT_EQ(sheet_a->vector()[0], 3);
+    Switch(1);
+    EXPECT_EQ(arena.mutable_gfx_sheet(0), sheet_b);
+    EXPECT_EQ(sheet_b->vector()[0], 5);
+    colors = platform::GetSurfacePalette(sheet_b->surface());
+    ASSERT_NE(colors, nullptr);
+    EXPECT_EQ(colors->colors[1].g, 255);
+    EXPECT_EQ(colors->colors[1].r, 0);
+    EXPECT_TRUE(graphics[1]->CanUndo());
+  }
+  EXPECT_EQ(sessions[0]->game_data.sheet_store.Sheet(0)[0], 3);
+  EXPECT_EQ(sessions[1]->game_data.sheet_store.Sheet(0)[0], 5);
+  EXPECT_TRUE(graphics[0]->HasPendingGraphicsChanges());
+  EXPECT_TRUE(graphics[1]->HasPendingGraphicsChanges());
+  EXPECT_EQ(sessions[0]->rom.vector(), rom_a);
+  EXPECT_EQ(sessions[1]->rom.vector(), rom_b);
+}
+
+TEST_F(GraphicsSessionActivationTest, FrameSwitchesAndCloseKeepCacheOwnership) {
+  auto& arena = gfx::Arena::Get();
+  auto* sheet_a = arena.mutable_gfx_sheet(0);
+  Switch(1);
+  auto* sheet_b = arena.mutable_gfx_sheet(0);
+  ASSERT_NE(sheet_a, sheet_b);
+  // Both queued commands must still address their own live bitmap after the
+  // real frame loop visits B and restores A.
+  arena.ClearTextureQueue();
+  arena.NotifySheetModified(0);
+  Switch(0);
+  arena.NotifySheetModified(0);
+  auto* events = ContentRegistry::Context::event_bus();
+  ASSERT_NE(events, nullptr);
+  std::vector<size_t> visits;
+  const auto observer = events->Subscribe<SessionSwitchedEvent>(
+      [&](const SessionSwitchedEvent& event) {
+        if (!event.transient)
+          return;
+        visits.push_back(event.new_index);
+        EXPECT_EQ(arena.gfx_sheets_owner(), &event.session->game_data);
+        EXPECT_EQ(arena.mutable_gfx_sheet(0),
+                  event.new_index == 0 ? sheet_a : sheet_b);
+      });
+  ImGui::NewFrame();
+  manager->session_coordinator()->UpdateSessions();
+  ImGui::Render();
+  events->Unsubscribe(observer);
+  EXPECT_EQ(visits, (std::vector<size_t>{1, 0}));
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0);
+  EXPECT_EQ(arena.gfx_sheets_owner(), &sessions[0]->game_data);
+  EXPECT_EQ(arena.mutable_gfx_sheet(0), sheet_a);
+  EXPECT_TRUE(arena.HasPendingTextureCommand(
+      gfx::Arena::TextureCommandType::CREATE, sheet_a));
+  EXPECT_TRUE(arena.HasPendingTextureCommand(
+      gfx::Arena::TextureCommandType::CREATE, sheet_b));
+  manager->session_coordinator()->CloseSessionAllowingEmpty(1);
+  EXPECT_EQ(arena.gfx_sheets_owner(), &sessions[0]->game_data);
+  EXPECT_EQ(arena.texture_command_queue_size(), 1);
+  manager->session_coordinator()->CloseSessionAllowingEmpty(0);
+  EXPECT_EQ(arena.gfx_sheets_owner(), nullptr);
+  EXPECT_EQ(arena.texture_command_queue_size(), 0);
+}
+
+TEST_F(GraphicsSessionActivationTest, QueuedUploadsKeepBothSessionsAlive) {
+  class RecordingRenderer : public gfx::NullRenderer {
+   public:
+    gfx::TextureHandle CreateTexture(int, int) override {
+      return reinterpret_cast<gfx::TextureHandle>(++next);
+    }
+    void UpdateTexture(gfx::TextureHandle texture,
+                       const gfx::Bitmap& bitmap) override {
+      uploads[texture] = bitmap.vector()[0];
+    }
+    void DestroyTexture(gfx::TextureHandle texture) override {
+      destroyed.push_back(texture);
+    }
+    uintptr_t next = 0;
+    std::map<gfx::TextureHandle, uint8_t> uploads;
+    std::vector<gfx::TextureHandle> destroyed;
+  } recorder;
+  auto& arena = gfx::Arena::Get();
+  // Limit this renderer trace to our two explicitly requested sheets.
+  arena.ClearTextureQueue();
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics[0], 3));
+  auto* sheet_a = arena.mutable_gfx_sheet(0);
+  Switch(1);
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics[1], 5));
+  auto* sheet_b = arena.mutable_gfx_sheet(0);
+  Switch(0);
+  arena.ProcessTextureQueue(&recorder);
+  const auto texture_a = sheet_a->texture();
+  const auto texture_b = sheet_b->texture();
+  EXPECT_NE(texture_a, nullptr);
+  EXPECT_NE(texture_b, nullptr);
+  EXPECT_NE(texture_a, texture_b);
+  EXPECT_EQ(recorder.uploads[texture_a], 3);
+  EXPECT_EQ(recorder.uploads[texture_b], 5);
+  EXPECT_TRUE(recorder.destroyed.empty());
+  Switch(1);
+  EXPECT_EQ(arena.mutable_gfx_sheet(0)->texture(), texture_b);
+  Switch(0);
+  EXPECT_EQ(arena.mutable_gfx_sheet(0)->texture(), texture_a);
+  manager->session_coordinator()->CloseSessionAllowingEmpty(1);
+  // Texture retirement is deferred until the frame has finished drawing.
+  EXPECT_TRUE(recorder.destroyed.empty());
+  arena.DrainRetiredBitmaps(&recorder);
+  EXPECT_EQ(recorder.destroyed, (std::vector<gfx::TextureHandle>{texture_b}));
+  manager->session_coordinator()->CloseSessionAllowingEmpty(0);
+  arena.DrainRetiredBitmaps(&recorder);
+  EXPECT_EQ(recorder.destroyed,
+            (std::vector<gfx::TextureHandle>{texture_b, texture_a}));
+  EXPECT_EQ(arena.gfx_sheets_owner(), nullptr);
 }
 
 }  // namespace

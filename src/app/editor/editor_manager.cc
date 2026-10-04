@@ -1707,6 +1707,14 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
     zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 
+  // User switches and per-frame visits must select the same session's display
+  // cache. Its stable bitmap addresses also keep queued uploads/draws valid.
+  if (session) {
+    session->ActivateGraphicsDisplay();
+  } else {
+    gfx::Arena::Get().BindGraphicsSheets(nullptr, nullptr);
+  }
+
   // Palette edit history and dirty tracking are session-owned. Select the
   // matching state before any session-specific editor or save action runs.
   gfx::PaletteManager::Get().ActivateSession(session ? &session->game_data
@@ -2885,6 +2893,7 @@ void EditorManager::ResetAssetState(RomSession* session) {
   if (!session) {
     return;
   }
+  session->ResetGraphicsDisplay();
   session->game_data_loaded = false;
   session->editor_initialized.fill(false);
   session->editor_assets_loaded.fill(false);
@@ -3183,8 +3192,7 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
   }
 
   RETURN_IF_ERROR(zelda3::LoadGameData(session->rom, session->game_data));
-  *gfx::Arena::Get().mutable_gfx_sheets() = session->game_data.gfx_bitmaps;
-  gfx::Arena::Get().set_gfx_sheets_owner(&session->game_data);
+  session->ReloadGraphicsDisplay();
 
   auto* game_data = &session->game_data;
   auto* editor_set = &session->editors;
@@ -4107,10 +4115,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
       zelda3::LoadGameData(*current_rom, current_session->game_data));
   current_session->game_data_loaded = true;
 
-  // Copy loaded graphics to Arena for global access
-  *gfx::Arena::Get().mutable_gfx_sheets() =
-      current_session->game_data.gfx_bitmaps;
-  gfx::Arena::Get().set_gfx_sheets_owner(&current_session->game_data);
+  current_session->ReloadGraphicsDisplay();
 
   // Propagate GameData to editors that already exist; future editors inherit it
   // on first construction via EditorSet.

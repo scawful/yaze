@@ -69,10 +69,20 @@ authoring dirty state or undo history. Reloading or replacing the ROM clears
 these temporary choices. A source-bound `GraphicsEditContext` controls its colors
 until the user explicitly chooses **Use manual palette**.
 
-The preview setter refuses a mismatched Arena owner. This is an ownership guard,
-not a session activation implementation: `HandleSessionSwitched` still needs a
-separate graphics-cache rebinding audit before claiming full two-ROM display
-continuity. Tests that replace the Arena owner directly qualify the guard only.
+`RomSession` owns a lazily allocated display-sheet array. Both eager and lazy
+asset loads populate it from loaded bitmaps and `GameData::sheet_store`.
+`HandleSessionSwitched` selects it through `Arena::BindGraphicsSheets`, including
+transient visits during `SessionCoordinator::UpdateSessions`. Bitmap addresses
+and textures stay stable while another session draws; queued uploads therefore
+retain the correct session's pixels. Switching does not reload assets, overwrite
+pending edits, or clear preview choices and undo history.
+
+Closing/resetting the owning session retires its bitmaps through Arena before
+freeing the array. Queued bitmap references are removed immediately; textures
+are destroyed through the existing frame-end retirement path. The active sheet
+LRU is cleared on a binding change. Use `BindGraphicsSheets` for session storage;
+`set_gfx_sheets_owner` is a legacy standalone/test marker and does not select an
+array. The preview setter still rejects a mismatched owner.
 
 ### 3. Graphics Workspaces (`src/app/editor/graphics/`)
 
