@@ -780,3 +780,23 @@ TEST(UserSettingsLayoutDefaultsTest,
       prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"]);
 }
 }  // namespace yaze::editor
+
+namespace yaze::editor {
+TEST(UserSettingsLayoutDefaultsTest,
+     Revision30ConsolidatesPaletteRetainsPinsAndSavedLayouts) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+  prefs.panel_layout_defaults_revision = 29;
+  prefs.panel_visibility_state["Palette"] = {{"palette.ow_main", true},
+                                             {"palette.dungeon_main", true}};
+  prefs.pinned_panels["palette.dungeon_main"] = true;
+  prefs.saved_layouts["Comparison"] = prefs.panel_visibility_state["Palette"];
+  const auto saved = prefs.saved_layouts;
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(30));
+  EXPECT_TRUE(prefs.panel_visibility_state["Palette"]["palette.control_panel"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Palette"]["palette.ow_main"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Palette"]["palette.dungeon_main"]);
+  EXPECT_EQ(prefs.saved_layouts, saved);
+  EXPECT_FALSE(settings.ApplyPanelLayoutDefaultsRevision(30));
+}
+}  // namespace yaze::editor

@@ -1895,6 +1895,23 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  // Revision 30 consolidates ordinary Palette navigation in one workspace.
+  // Preserve explicit comparison pins and named layouts; migrate only live state.
+  if (prefs_.panel_layout_defaults_revision < 30 && target_revision >= 30) {
+    auto palettes = prefs_.panel_visibility_state.find("Palette");
+    if (palettes != prefs_.panel_visibility_state.end()) {
+      for (auto& [id, visible] : palettes->second) {
+        const auto pin = prefs_.pinned_panels.find(id);
+        if (id != "palette.control_panel" &&
+            (pin == prefs_.pinned_panels.end() || !pin->second))
+          visible = false;
+      }
+      palettes->second["palette.control_panel"] = true;
+    }
+    prefs_.panel_layout_defaults_revision = 30;
+    applied = true;
+  }
+
   return applied;
 }
 

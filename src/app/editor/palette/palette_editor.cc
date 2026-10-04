@@ -15,6 +15,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/app/editor_layout.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
@@ -23,6 +24,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 
 #include <cstring>
@@ -295,8 +297,8 @@ void PaletteEditor::Initialize() {
 
   window_manager->RegisterPanel(
       {.card_id = "palette.control_panel",
-       .display_name = "Palette Controls",
-       .window_title = " Palette Controls",
+       .display_name = "Palette",
+       .window_title = " Palette",
        .icon = ICON_MD_PALETTE,
        .category = "Palette",
        .presentation = WindowPresentationPolicy::CoreWorkspace(),
@@ -450,14 +452,14 @@ class PaletteControlPanel : public WindowContent {
       : draw_callback_(std::move(draw_callback)) {}
 
   std::string GetId() const override { return "palette.control_panel"; }
-  std::string GetDisplayName() const override { return "Palette Controls"; }
+  std::string GetDisplayName() const override { return "Palette"; }
   std::string GetIcon() const override { return ICON_MD_PALETTE; }
   std::string GetEditorCategory() const override { return "Palette"; }
   WindowPresentationPolicy GetPresentationPolicy() const override {
     return WindowPresentationPolicy::CoreWorkspace();
   }
   int GetPriority() const override { return 10; }
-  float GetPreferredWidth() const override { return 320.0f; }
+  float GetPreferredWidth() const override { return 900.0f; }
 
   void Draw(bool* p_open) override {
     if (p_open && !*p_open)
@@ -682,6 +684,23 @@ absl::Status PaletteEditor::Load() {
   }
 
   return absl::OkStatus();
+}
+
+absl::Status PaletteEditor::BeginSaveTransaction() {
+  auto& manager = gfx::PaletteManager::Get();
+  if (!game_data() || !manager.IsManaging(game_data())) {
+    return absl::FailedPreconditionError(
+        "Cannot save palettes from an inactive ROM session");
+  }
+  return manager.BeginSaveTransaction();
+}
+
+void PaletteEditor::RollbackSaveTransaction() {
+  gfx::PaletteManager::Get().RollbackSaveTransaction();
+}
+
+void PaletteEditor::CommitSaveTransaction() {
+  gfx::PaletteManager::Get().CommitSaveTransaction();
 }
 
 absl::Status PaletteEditor::Save() {
@@ -1071,182 +1090,105 @@ absl::Status PaletteEditor::ResetColorToOriginal(
 // Panel-Based UI Methods
 // ============================================================================
 
-void PaletteEditor::DrawToolset() {
-  // Sidebar is drawn by WorkspaceWindowManager in EditorManager
-  // Panels registered in Initialize() appear in the sidebar automatically
-}
-
 void PaletteEditor::DrawControlPanel() {
-  if (!game_data() || !gfx::PaletteManager::Get().IsManaging(game_data())) {
+  auto& manager = gfx::PaletteManager::Get();
+  if (!game_data() || !manager.IsManaging(game_data())) {
     ImGui::TextDisabled(
         tr("Palette controls are unavailable for an inactive ROM session."));
     return;
   }
-
   RefreshPanelReferences();
-
-  // Toolbar with quick toggles
-  DrawToolset();
-
-  ImGui::Separator();
-
-  // Categorized palette list with search
-  DrawCategorizedPaletteList();
-
-  ImGui::Separator();
-
-  // Modified status indicator
-  ImGui::TextColored(gui::GetWarningColor(), tr("Modified Panels:"));
-  bool any_modified = false;
-
-  if (ow_main_panel_ && ow_main_panel_->HasUnsavedChanges()) {
-    ImGui::BulletText(tr("Overworld Main"));
-    any_modified = true;
-  }
-  if (ow_anim_panel_ && ow_anim_panel_->HasUnsavedChanges()) {
-    ImGui::BulletText(tr("Overworld Animated"));
-    any_modified = true;
-  }
-  if (dungeon_main_panel_ && dungeon_main_panel_->HasUnsavedChanges()) {
-    ImGui::BulletText(tr("Dungeon Main"));
-    any_modified = true;
-  }
-  if (sprite_global_panel_ && sprite_global_panel_->HasUnsavedChanges()) {
-    ImGui::BulletText(tr("Global Sprite Palettes"));
-    any_modified = true;
-  }
-  if (sprite_aux1_panel_ && sprite_aux1_panel_->HasUnsavedChanges()) {
-    ImGui::BulletText(tr("Sprites Aux 1"));
-    any_modified = true;
-  }
-  if (sprite_aux2_panel_ && sprite_aux2_panel_->HasUnsavedChanges()) {
-    ImGui::BulletText(tr("Sprites Aux 2"));
-    any_modified = true;
-  }
-  if (sprite_aux3_panel_ && sprite_aux3_panel_->HasUnsavedChanges()) {
-    ImGui::BulletText(tr("Sprites Aux 3"));
-    any_modified = true;
-  }
-  if (equipment_panel_ && equipment_panel_->HasUnsavedChanges()) {
-    ImGui::BulletText(tr("Equipment Palettes"));
-    any_modified = true;
-  }
-
-  if (!any_modified) {
-    ImGui::TextDisabled(tr("No unsaved changes"));
-  }
-
-  ImGui::Separator();
-
-  // Quick actions
-  ImGui::Text(tr("Quick Actions:"));
-
-  // Use centralized PaletteManager for global operations
-  bool has_unsaved = gfx::PaletteManager::Get().HasUnsavedChanges();
-  size_t modified_count = gfx::PaletteManager::Get().GetModifiedColorCount();
-
-  ImGui::BeginDisabled(!has_unsaved);
-  if (ImGui::Button(
-          absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)", modified_count)
-              .c_str(),
-          ImVec2(-1, 0))) {
-    auto status = Save();
-    if (!status.ok()) {
-      if (dependencies_.toast_manager) {
-        dependencies_.toast_manager->Show(
-            absl::StrFormat("Failed to save palettes: %s", status.message()),
-            ToastType::kError);
-      }
-    }
-  }
+  const size_t modified_count = manager.GetModifiedColorCount();
+  const bool pending = manager.HasUnsavedChanges() || (rom_ && rom_->dirty());
+  ImGui::BeginDisabled(!pending || !dependencies_.window_manager);
+  const bool save = ImGui::Button(ICON_MD_SAVE " Save ROM");
+  gui::AutoRegisterLastItem("button", "Save ROM");
+  if (save)
+    dependencies_.window_manager->TriggerSaveRom();
   ImGui::EndDisabled();
-
-  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    if (has_unsaved) {
-      ImGui::SetTooltip(tr("Save all modified colors to ROM"));
-    } else {
-      ImGui::SetTooltip(tr("No unsaved changes"));
-    }
-  }
-
-  // Apply to Editors button - preview changes without saving to ROM
-  ImGui::BeginDisabled(!has_unsaved);
-  if (ImGui::Button(ICON_MD_VISIBILITY " Apply to Editors", ImVec2(-1, 0))) {
-    auto status = gfx::PaletteManager::Get().ApplyPreviewChanges();
-    if (!status.ok()) {
-      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                        gui::PopupNames::kSaveError)
-                           .c_str());
-    }
-  }
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+    ImGui::SetTooltip(
+        tr("Save through the application, including pending editor changes."));
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!CanUndo());
+  if (gui::ThemedIconButton(ICON_MD_UNDO, "Undo palette edit"))
+    Undo();
+  gui::AutoRegisterLastItem("button", "Undo palette edit");
   ImGui::EndDisabled();
-
-  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    if (has_unsaved) {
-      ImGui::SetTooltip(
-          tr("Preview palette changes in other editors without saving to ROM"));
-    } else {
-      ImGui::SetTooltip(tr("No changes to preview"));
-    }
-  }
-
-  ImGui::BeginDisabled(!has_unsaved);
-  if (ImGui::Button(ICON_MD_UNDO " Discard All Changes", ImVec2(-1, 0))) {
-    ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kPalette,
-                                      gui::PopupNames::kConfirmDiscardAll)
-                         .c_str());
-  }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!CanRedo());
+  if (gui::ThemedIconButton(ICON_MD_REDO, "Redo palette edit"))
+    Redo();
+  gui::AutoRegisterLastItem("button", "Redo palette edit");
   ImGui::EndDisabled();
-
-  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    if (has_unsaved) {
-      ImGui::SetTooltip(tr("Discard all unsaved changes"));
-    } else {
-      ImGui::SetTooltip(tr("No changes to discard"));
+  ImGui::SameLine();
+  if (gui::ThemedIconButton(ICON_MD_MORE_HORIZ, "Palette tools"))
+    ImGui::OpenPopup("PaletteTools");
+  gui::AutoRegisterLastItem("button", "Palette tools");
+  bool discard_requested = false;
+  if (ImGui::BeginPopup("PaletteTools")) {
+    if (ImGui::MenuItem(tr("Refresh editor previews"))) {
+      const auto result = manager.ApplyPreviewChanges();
+      if (!result.ok() && dependencies_.toast_manager)
+        dependencies_.toast_manager->Show(std::string(result.message()),
+                                          ToastType::kError);
     }
-  }
-
-  // Confirmation popup for discard
-  if (ImGui::BeginPopupModal(
-          gui::MakePopupId(gui::EditorNames::kPalette,
-                           gui::PopupNames::kConfirmDiscardAll)
-              .c_str(),
-          nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text(tr("Discard all unsaved changes?"));
-    ImGui::TextColored(gui::GetWarningColor(),
-                       tr("This will revert %zu modified colors."),
-                       modified_count);
+    if (ImGui::MenuItem(tr("Discard palette changes..."), nullptr, false,
+                        manager.HasUnsavedChanges()))
+      discard_requested = true;
+    gui::AutoRegisterLastItem("menu", "Discard palette changes");
     ImGui::Separator();
-
-    if (ImGui::Button(tr("Discard"), ImVec2(120, 0))) {
-      gfx::PaletteManager::Get().DiscardAllChanges();
+    if (ImGui::MenuItem(tr("Color reference")))
+      dependencies_.window_manager->OpenWindow(dependencies_.session_id,
+                                               "palette.quick_access");
+    if (ImGui::MenuItem(tr("Custom swatches")))
+      dependencies_.window_manager->OpenWindow(dependencies_.session_id,
+                                               "palette.custom");
+    ImGui::EndPopup();
+  }
+  if (discard_requested)
+    ImGui::OpenPopup("Discard palette changes?###ConfirmPaletteDiscard");
+  if (ImGui::BeginPopupModal("Discard palette changes?###ConfirmPaletteDiscard",
+                             nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text(tr("Discard changes to %zu colors?"), modified_count);
+    if (ImGui::Button(tr("Discard"))) {
+      manager.DiscardAllChanges();
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Cancel"), ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Cancel")))
       ImGui::CloseCurrentPopup();
-    }
+    gui::AutoRegisterLastItem("button", "Cancel discard");
     ImGui::EndPopup();
   }
-
-  // Error popup for save failures
-  if (ImGui::BeginPopupModal(gui::MakePopupId(gui::EditorNames::kPalette,
-                                              gui::PopupNames::kSaveError)
-                                 .c_str(),
-                             nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(gui::GetErrorColor(), tr("Failed to save changes"));
-    ImGui::Text(tr("An error occurred while saving to ROM."));
-    ImGui::Separator();
-
-    if (ImGui::Button(tr("OK"), ImVec2(120, 0))) {
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndPopup();
-  }
-
+  ImGui::SameLine();
+  if (modified_count)
+    ImGui::TextDisabled(tr("%zu edited colors"), modified_count);
+  else
+    ImGui::TextDisabled(pending ? tr("ROM has unsaved changes")
+                                : tr("No pending palette edits"));
   ImGui::Separator();
 
-  // Panel management handled globally in the sidebar/menu system.
+  const float nav_width =
+      std::clamp(ImGui::GetContentRegionAvail().x * 0.22f,
+                 ImGui::GetFontSize() * 11, ImGui::GetFontSize() * 16);
+  ImGui::BeginChild("PaletteGroups", ImVec2(nav_width, 0));
+  DrawCategorizedPaletteList();
+  ImGui::EndChild();
+  ImGui::SameLine();
+  ImGui::BeginChild("PaletteSelection", ImVec2(0, 0));
+  if (auto* panel = GetPanelForGroup(selected_group_)) {
+    ImGui::TextUnformatted(GetGroupDisplayName(selected_group_).c_str());
+    ImGui::SameLine();
+    if (gui::ThemedIconButton(ICON_MD_OPEN_IN_NEW, "Open comparison window"))
+      dependencies_.window_manager->OpenWindow(dependencies_.session_id,
+                                               panel->GetId());
+    gui::AutoRegisterLastItem("button", "Open comparison window");
+    ImGui::PushID(selected_group_.c_str());
+    panel->DrawEmbedded();
+    ImGui::PopID();
+  }
+  ImGui::EndChild();
 }
 
 void PaletteEditor::DrawQuickAccessPanel() {
@@ -1397,68 +1339,37 @@ void PaletteEditor::DrawCustomPalettePanel() {
   }
 }
 
+PaletteGroupPanel* PaletteEditor::GetPanelForGroup(const std::string& group) {
+  if (group == "ow_main")
+    return ow_main_panel_;
+  if (group == "ow_animated")
+    return ow_anim_panel_;
+  if (group == "dungeon_main")
+    return dungeon_main_panel_;
+  if (group == "global_sprites")
+    return sprite_global_panel_;
+  if (group == "sprites_aux1")
+    return sprite_aux1_panel_;
+  if (group == "sprites_aux2")
+    return sprite_aux2_panel_;
+  if (group == "sprites_aux3")
+    return sprite_aux3_panel_;
+  if (group == "armors")
+    return equipment_panel_;
+  return nullptr;
+}
+
 void PaletteEditor::JumpToPalette(const std::string& group_name,
                                   int palette_index) {
-  if (!dependencies_.window_manager) {
+  if (!dependencies_.window_manager)
     return;
-  }
   RefreshPanelReferences();
-  auto* window_manager = dependencies_.window_manager;
-  const size_t session_id = dependencies_.session_id;
-
-  // Show and focus the appropriate card
-  if (group_name == "ow_main") {
-    window_manager->OpenWindow(session_id, "palette.ow_main");
-    if (ow_main_panel_) {
-      ow_main_panel_->Show();
-      ow_main_panel_->SetSelectedPaletteIndex(palette_index);
-    }
-  } else if (group_name == "ow_animated") {
-    window_manager->OpenWindow(session_id, "palette.ow_animated");
-    if (ow_anim_panel_) {
-      ow_anim_panel_->Show();
-      ow_anim_panel_->SetSelectedPaletteIndex(palette_index);
-    }
-  } else if (group_name == "dungeon_main") {
-    window_manager->OpenWindow(session_id, "palette.dungeon_main");
-    if (dungeon_main_panel_) {
-      dungeon_main_panel_->Show();
-      dungeon_main_panel_->SetSelectedPaletteIndex(palette_index);
-    }
-  } else if (group_name == "global_sprites") {
-    window_manager->OpenWindow(session_id, "palette.sprites");
-    if (sprite_global_panel_) {
-      sprite_global_panel_->Show();
-      sprite_global_panel_->SetSelectedPaletteIndex(palette_index);
-    }
-  } else if (group_name == "sprites_aux1") {
-    window_manager->OpenWindow(session_id, "palette.sprites_aux1");
-    if (sprite_aux1_panel_) {
-      sprite_aux1_panel_->Show();
-      sprite_aux1_panel_->SetSelectedPaletteIndex(palette_index);
-    }
-  } else if (group_name == "sprites_aux2") {
-    window_manager->OpenWindow(session_id, "palette.sprites_aux2");
-    if (sprite_aux2_panel_) {
-      sprite_aux2_panel_->Show();
-      sprite_aux2_panel_->SetSelectedPaletteIndex(palette_index);
-    }
-  } else if (group_name == "sprites_aux3") {
-    window_manager->OpenWindow(session_id, "palette.sprites_aux3");
-    if (sprite_aux3_panel_) {
-      sprite_aux3_panel_->Show();
-      sprite_aux3_panel_->SetSelectedPaletteIndex(palette_index);
-    }
-  } else if (group_name == "armors") {
-    window_manager->OpenWindow(session_id, "palette.equipment");
-    if (equipment_panel_) {
-      equipment_panel_->Show();
-      equipment_panel_->SetSelectedPaletteIndex(palette_index);
-    }
+  if (auto* panel = GetPanelForGroup(group_name)) {
+    selected_group_ = group_name;
+    panel->SetSelectedPaletteIndex(palette_index);
+    dependencies_.window_manager->OpenWindow(dependencies_.session_id,
+                                             "palette.control_panel");
   }
-
-  // Show control panel too for easy navigation
-  window_manager->OpenWindow(session_id, "palette.control_panel");
 }
 
 // ============================================================================
@@ -1483,94 +1394,26 @@ bool PaletteEditor::PassesSearchFilter(const std::string& group_name) const {
          gui::FuzzyMatch(search_buffer_, GetGroupDisplayName(group_name));
 }
 
-bool* PaletteEditor::GetShowFlagForGroup(const std::string& group_name) {
-  if (group_name == "ow_main")
-    return &show_ow_main_panel_;
-  if (group_name == "ow_animated")
-    return &show_ow_animated_panel_;
-  if (group_name == "dungeon_main")
-    return &show_dungeon_main_panel_;
-  if (group_name == "global_sprites")
-    return &show_sprite_panel_;
-  if (group_name == "sprites_aux1")
-    return &show_sprites_aux1_panel_;
-  if (group_name == "sprites_aux2")
-    return &show_sprites_aux2_panel_;
-  if (group_name == "sprites_aux3")
-    return &show_sprites_aux3_panel_;
-  if (group_name == "armors")
-    return &show_equipment_panel_;
-  return nullptr;
-}
-
 void PaletteEditor::DrawCategorizedPaletteList() {
-  // Search bar at top
   DrawSearchBar();
-  ImGui::Separator();
-
-  const auto& categories = GetPaletteCategories();
-
-  for (size_t cat_idx = 0; cat_idx < categories.size(); cat_idx++) {
-    const auto& cat = categories[cat_idx];
-
-    // Check if any items in category match search
-    bool has_visible_items = false;
-    for (const auto& group_name : cat.group_names) {
-      if (PassesSearchFilter(group_name)) {
-        has_visible_items = true;
-        break;
+  for (const auto& category : GetPaletteCategories()) {
+    bool heading_drawn = false;
+    for (const auto& group : category.group_names) {
+      if (!GetPanelForGroup(group) || !PassesSearchFilter(group))
+        continue;
+      if (!heading_drawn) {
+        ImGui::Spacing();
+        ImGui::TextDisabled("%s", category.display_name.c_str());
+        heading_drawn = true;
       }
+      auto label = GetGroupDisplayName(group);
+      if (gfx::PaletteManager::Get().IsGroupModified(group))
+        label += " *";
+      if (ImGui::Selectable(label.c_str(), selected_group_ == group))
+        selected_group_ = group;
+      gui::AutoRegisterLastItem("selectable", GetGroupDisplayName(group));
     }
-
-    if (!has_visible_items)
-      continue;
-
-    ImGui::PushID(static_cast<int>(cat_idx));
-
-    // Collapsible header for category with icon
-    std::string header_text =
-        absl::StrFormat("%s %s", cat.icon, cat.display_name);
-    bool open = ImGui::CollapsingHeader(header_text.c_str(),
-                                        ImGuiTreeNodeFlags_DefaultOpen);
-
-    if (open) {
-      ImGui::Indent(10.0f);
-      for (const auto& group_name : cat.group_names) {
-        if (!PassesSearchFilter(group_name))
-          continue;
-
-        bool* show_flag = GetShowFlagForGroup(group_name);
-        if (show_flag) {
-          std::string label = GetGroupDisplayName(group_name);
-
-          // Show modified indicator
-          bool is_modified =
-              gfx::PaletteManager::Get().IsGroupModified(group_name);
-          if (is_modified) {
-            label += " *";
-          }
-          std::optional<gui::StyleColorGuard> mod_guard;
-          if (is_modified) {
-            mod_guard.emplace(ImGuiCol_Text, gui::GetWarningColor());
-          }
-
-          ImGui::Checkbox(label.c_str(), show_flag);
-          mod_guard.reset();
-        }
-      }
-      ImGui::Unindent(10.0f);
-    }
-    ImGui::PopID();
   }
-
-  ImGui::Separator();
-
-  // Utilities section
-  ImGui::Text(tr("Utilities:"));
-  ImGui::Indent(10.0f);
-  ImGui::Checkbox(tr("Quick Access"), &show_quick_access_);
-  ImGui::Checkbox(tr("Custom Palette"), &show_custom_palette_);
-  ImGui::Unindent(10.0f);
 }
 
 }  // namespace editor

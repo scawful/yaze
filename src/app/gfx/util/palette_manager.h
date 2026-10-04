@@ -346,6 +346,10 @@ class PaletteManager {
    */
   bool InBatch() const;
 
+  // Original value used by ResetColor and the before/after comparison UI.
+  SnesColor GetOriginalColor(const std::string& group_name, int palette_index,
+                             int color_index) const;
+
  private:
   PaletteManager() = default;
   ~PaletteManager() = default;
@@ -355,10 +359,6 @@ class PaletteManager {
 
   /// Helper: Get const palette group
   const PaletteGroup* GetGroup(const std::string& group_name) const;
-
-  /// Helper: Get original color from snapshot
-  SnesColor GetOriginalColor(const std::string& group_name, int palette_index,
-                             int color_index) const;
 
   /// Helper: Record a change for undo
   void RecordChange(const PaletteColorChange& change);

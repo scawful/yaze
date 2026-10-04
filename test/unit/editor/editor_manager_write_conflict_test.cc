@@ -1827,7 +1827,12 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_TRUE(gfx::PaletteManager::Get()
                   .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x1111))
                   .ok());
-  ASSERT_OK(manager->SaveRom());
+  // Refuse before writing a file that would omit the pending palette edits.
+  const auto save_status = manager->SaveRom();
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(
+      std::string(save_status.message()).find("palette saving is disabled"),
+      std::string::npos);
   ASSERT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
 
   manager->SwitchToSession(1);
