@@ -270,6 +270,9 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
 constexpr int kNumMapsPerWorld = 0x40;
 
 struct OverworldRomProfile {
+  enum class LayoutKind { kLegacy, kOlderTailEa, kLyraOffline };
+  LayoutKind layout_kind = LayoutKind::kLegacy;
+  rom::LyraLayoutInspection lyra_layout;
   uint8_t asm_version = 0xFF;
   OverworldVersion version = OverworldVersion::kVanilla;
   bool is_vanilla = true;
@@ -312,6 +315,7 @@ inline bool IsSpecialTailMapExpansionEnabled(const Rom& rom) {
 
 inline OverworldRomProfile DetectOverworldRomProfile(const Rom& rom) {
   OverworldRomProfile profile;
+  profile.lyra_layout = rom.InspectLyraLayout();
   profile.asm_version = OverworldVersionHelper::GetAsmVersion(rom);
   profile.version = OverworldVersionHelper::GetVersion(rom);
   profile.is_vanilla = profile.version == OverworldVersion::kVanilla;
@@ -336,6 +340,13 @@ inline OverworldRomProfile DetectOverworldRomProfile(const Rom& rom) {
   profile.has_expanded_entrances = !profile.is_vanilla && entrance_flag != 0xB8;
   profile.has_tail_map_expansion =
       profile.supports_area_enum && IsSpecialTailMapExpansionEnabled(rom);
+  if (profile.lyra_layout.presence != yaze::rom::LyraLayoutPresence::kAbsent) {
+    profile.layout_kind = OverworldRomProfile::LayoutKind::kLyraOffline;
+    // The 192-record descriptor is not the older editable $EA tail format.
+    profile.has_tail_map_expansion = false;
+  } else if (profile.has_tail_map_expansion) {
+    profile.layout_kind = OverworldRomProfile::LayoutKind::kOlderTailEa;
+  }
   profile.editable_map_count =
       profile.has_tail_map_expansion ? kExpandedMapCount : kNumOverworldMaps;
   return profile;

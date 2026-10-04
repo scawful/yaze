@@ -13,6 +13,7 @@
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/project.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom_diagnostics.h"
 
 namespace yaze {
@@ -102,6 +103,7 @@ class Rom {
     rom_data_.clear();
     copier_header_.clear();
     copier_header_reason_ = CopierHeaderReason::kNone;
+    lyra_attributed_at_load_ = false;
     size_ = 0;
     if (had_data) {
       AdvanceObjectTileRevision();
@@ -214,6 +216,11 @@ class Rom {
     return copier_header_reason_;
   }
 
+  // The parsed result is derived from this ROM's current bytes. Attribution
+  // captured at load prevents a damaged/erased signature from enabling saves.
+  rom::LyraLayoutInspection InspectLyraLayout() const;
+  absl::Status CheckLayoutWritable() const;
+
   // Resource labels are generic enough to keep here
   project::ResourceLabelManager* resource_label() {
     return &resource_label_manager_;
@@ -247,6 +254,7 @@ class Rom {
   // Copier header bytes removed from the front of the file at load.
   std::vector<uint8_t> copier_header_;
   CopierHeaderReason copier_header_reason_ = CopierHeaderReason::kNone;
+  bool lyra_attributed_at_load_ = false;
 
   // Label manager for unique resource names.
   project::ResourceLabelManager resource_label_manager_;

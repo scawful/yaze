@@ -1257,6 +1257,7 @@ void OverworldEditor::CommitSaveTransaction() {
 }
 
 absl::Status OverworldEditor::Save() {
+  RETURN_IF_ERROR(rom_->CheckLayoutWritable());
   // Validate sprite capacity before any editor serializer changes ROM bytes.
   ASSIGN_OR_RETURN(auto sprite_plan, overworld_.PrepareSpriteSave());
   if (!sprite_plan.empty() && dependencies_.project &&

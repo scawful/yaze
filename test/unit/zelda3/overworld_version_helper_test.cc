@@ -191,6 +191,19 @@ TEST(OverworldRomProfileTest, V2UsesExplicitExpansionFlags) {
   EXPECT_TRUE(profile.has_expanded_entrances);
 }
 
+TEST(OverworldRomProfileTest, LegacyV1AndV2StaySeparateFromLyra) {
+  Rom rom;
+  for (const uint8_t version : {0x01, 0x02}) {
+    InitOverworldTestRom(rom, version);
+    const auto profile = DetectOverworldRomProfile(rom);
+    EXPECT_EQ(profile.layout_kind, OverworldRomProfile::LayoutKind::kLegacy);
+    EXPECT_EQ(profile.lyra_layout.presence,
+              yaze::rom::LyraLayoutPresence::kAbsent);
+    EXPECT_EQ(profile.editable_map_count, kNumOverworldMaps);
+    EXPECT_TRUE(rom.CheckLayoutWritable().ok());
+  }
+}
+
 TEST(OverworldRomProfileTest, V3ForcesExpandedTilesAndRequiresTailMarker) {
   Rom rom;
   InitOverworldTestRom(rom, 0x03);

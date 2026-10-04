@@ -4356,6 +4356,7 @@ absl::Status EditorManager::SaveRomInternal(
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
+  RETURN_IF_ERROR(current_rom->CheckLayoutWritable());
   if (save_as_filename.has_value() && save_as_filename->empty()) {
     return absl::InvalidArgumentError("No filename provided for save as");
   }
