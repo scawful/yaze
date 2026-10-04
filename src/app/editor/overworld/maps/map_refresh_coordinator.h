@@ -3,6 +3,7 @@
 
 #include <array>
 #include <functional>
+#include <string>
 
 #include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
@@ -76,6 +77,10 @@ class MapRefreshCoordinator {
 
   /// Shared Tile16 definitions affect maps in every world, including hidden maps.
   void InvalidateTile16Definitions();
+
+  // Color-only refresh of materialized maps, including cached other worlds.
+  // Unbuilt maps resolve current GameData colors when they are first built.
+  absl::Status RefreshPaletteUsers(const std::string& group, int palette_index);
 
   /// @brief Refresh a child map's graphics pipeline (legacy full rebuild)
   void RefreshChildMap(int map_index);

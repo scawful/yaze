@@ -2349,6 +2349,20 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   const auto entrance = ResolveDungeonRenderContextForRoom(room_id);
   context->label +=
       absl::StrFormat(" / %s", DungeonRenderContextSourceName(entrance));
+  context->refresh_palettes = [this, room_id, object, owner = game_data_](
+                                  GraphicsEditContext& source) {
+    if (game_data_ != owner) {
+      return absl::FailedPreconditionError("Dungeon source session changed");
+    }
+    auto& room = rooms_[room_id];
+    ApplyEntranceRenderContext(room_id);
+    room.MarkGraphicsDirty();
+    room.PrepareForRender();
+    auto refreshed = MakeDungeonGraphicsEditContext(room, object, owner);
+    if (!refreshed.ok())
+      return refreshed.status();
+    return UpdateGraphicsContextPalettes(source, std::move(*refreshed));
+  };
   context->render_preview =
       [this, room_id]() -> absl::StatusOr<usage_preview::PreviewImage> {
     auto& source = rooms_[room_id];

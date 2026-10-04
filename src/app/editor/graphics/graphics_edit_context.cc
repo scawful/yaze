@@ -27,6 +27,31 @@ std::string GraphicsEditTarget::SourceOrientationLabel() const {
   return label;
 }
 
+absl::Status UpdateGraphicsContextPalettes(GraphicsEditContext& context,
+                                           GraphicsEditContext refreshed) {
+  if (context.owner != refreshed.owner ||
+      context.targets.size() != refreshed.targets.size()) {
+    return absl::FailedPreconditionError(
+        "Graphics source changed; reopen Edit Graphics from the source.");
+  }
+  for (size_t i = 0; i < context.targets.size(); ++i) {
+    const auto& old = context.targets[i];
+    const auto& next = refreshed.targets[i];
+    if (old.sheet_id != next.sheet_id || old.tile_index != next.tile_index ||
+        old.label != next.label ||
+        old.source_orientation_mask != next.source_orientation_mask ||
+        next.palette.size() != 8) {
+      return absl::FailedPreconditionError(
+          "Graphics source changed; reopen Edit Graphics from the source.");
+    }
+  }
+  for (size_t i = 0; i < context.targets.size(); ++i) {
+    context.targets[i].palette = std::move(refreshed.targets[i].palette);
+  }
+  context.resolved = std::move(refreshed.resolved);
+  return absl::OkStatus();
+}
+
 absl::StatusOr<GraphicsEditContext> MakeDungeonGraphicsEditContext(
     const zelda3::Room& room, const zelda3::RoomObject& object,
     const zelda3::GameData* owner) {

@@ -105,6 +105,8 @@ class UsagePreviewView {
   std::vector<SDL_Rect> tile16_highlights_;
   gfx::Bitmap tile16_bitmap_;
   uint64_t source_context_revision_ = 0;
+  uint64_t palette_revision_ = 0;
+  uint64_t sprite_palette_revision_ = 0;
   gfx::Bitmap source_bitmap_;
 };
 

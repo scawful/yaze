@@ -65,6 +65,7 @@
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/canvas/canvas_automation_api.h"
@@ -579,17 +580,12 @@ absl::Status OverworldEditor::Load() {
   if (palette_listener_id_ < 0) {
     palette_listener_id_ = gfx::Arena::Get().RegisterPaletteListener(
         [this](const std::string& group_name, int palette_index) {
-          // Only respond to overworld-related palette changes
-          if (group_name == "ow_main" || group_name == "ow_animated" ||
-              group_name == "ow_aux" || group_name == "grass") {
-            LOG_DEBUG("OverworldEditor",
-                      "Palette change detected: %s, refreshing current map",
-                      group_name.c_str());
-            // Refresh current map graphics to reflect palette changes
-            if (current_map_ >= 0 && all_gfx_loaded_) {
-              RefreshOverworldMap();
-            }
+          if (!gfx::PaletteManager::Get().IsManaging(game_data_) ||
+              !all_gfx_loaded_ || !map_refresh_) {
+            return;
           }
+          status_ =
+              map_refresh_->RefreshPaletteUsers(group_name, palette_index);
         });
     LOG_DEBUG("OverworldEditor", "Registered as palette listener (ID: %d)",
               palette_listener_id_);
@@ -1780,6 +1776,23 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
   // watched sheet from this ROM session on each preview refresh.
   auto preview_map = std::make_shared<zelda3::OverworldMap>(*map);
   const auto* owner = game_data_;
+  context->limitation =
+      "Source map assignments are captured. Palette colors follow live edits; "
+      "reopen from the overworld after changing map assignments.";
+  context->refresh_palettes = [this, preview_map, owner, tile16_id, quadrant](
+                                  GraphicsEditContext& source) -> absl::Status {
+    if (game_data_ != owner || !overworld_.is_loaded() ||
+        tile16_id >= static_cast<int>(overworld_.tiles16().size())) {
+      return absl::FailedPreconditionError("Overworld source session changed");
+    }
+    RETURN_IF_ERROR(preview_map->LoadPalette());
+    auto refreshed = MakeOverworldGraphicsEditContext(
+        *preview_map, overworld_.tiles16()[tile16_id], tile16_id, quadrant,
+        owner);
+    if (!refreshed.ok())
+      return refreshed.status();
+    return UpdateGraphicsContextPalettes(source, std::move(*refreshed));
+  };
   context->render_preview =
       [this, preview_map, owner,
        source_map_id]() -> absl::StatusOr<usage_preview::PreviewImage> {
