@@ -71,7 +71,7 @@ class PixelEditorPanel : public WindowContent {
   void DrawSourceContext();
   // A palette-only display copy. Pixel tools still write the session store.
   gfx::Bitmap& DisplaySheet();
-  const gfx::SnesPalette& DisplayPalette() const;
+  gfx::SnesPalette DisplayPalette() const;
   gfx::Bitmap context_sheet_;
   /**
    * @brief Draw the toolbar with tool selection

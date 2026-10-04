@@ -18,6 +18,7 @@
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 #include "util/image_clipboard.h"
 
@@ -96,11 +97,28 @@ absl::Status PixelEditorPanel::Update() {
   return absl::OkStatus();
 }
 
-const gfx::SnesPalette& PixelEditorPanel::DisplayPalette() const {
+gfx::SnesPalette PixelEditorPanel::DisplayPalette() const {
   if (const auto* target = state_->SourceTarget()) {
     return target->palette;
   }
-  return gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id].palette();
+  const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
+  const auto* palette = platform::GetSurfacePalette(sheet.surface());
+  if (!palette) {
+    return {};
+  }
+
+  // Bitmap::palette() retains the full source bank. Manual row selection
+  // applies a slice to the surface, inserting transparent index zero. Pixel
+  // tools and PNG transfer must use those displayed three-bit indices.
+  std::vector<gfx::SnesColor> colors;
+  const int count = std::min(8, palette->ncolors);
+  colors.reserve(count);
+  for (int i = 0; i < count; ++i) {
+    const auto& color = palette->colors[i];
+    colors.emplace_back(color.r, color.g, color.b);
+    colors.back().set_transparent(i == 0);
+  }
+  return gfx::SnesPalette(colors);
 }
 
 gfx::Bitmap& PixelEditorPanel::DisplaySheet() {
