@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <optional>
 #include <set>
 #include <string>
@@ -77,6 +78,13 @@ struct TileHighlight {
   }
 };
 
+// A display choice, never an authored palette or a graphics-save operation.
+struct GraphicsPaletteSelection {
+  std::string group;
+  int palette = 0;
+  int row = 0;
+};
+
 /**
  * @brief Shared state between GraphicsEditor panel components
  *
@@ -111,11 +119,14 @@ class GraphicsEditorState {
   bool show_transparency_grid = true;   // Checkerboard for transparent pixels
   bool show_pixel_info_tooltip = true;  // Tooltip with pixel info on hover
 
-  // --- Palette State ---
-  uint64_t palette_group_index = 0;
-  uint64_t palette_index = 0;
-  uint64_t sub_palette_index = 0;
-  bool refresh_graphics = false;
+  // No entry means the sheet's loaded colors. This editor state belongs to one
+  // session; choices survive sheet/session navigation, not a ROM replacement.
+  std::map<uint16_t, GraphicsPaletteSelection> preview_palettes;
+
+  const GraphicsPaletteSelection* PreviewPalette(uint16_t sheet) const {
+    const auto found = preview_palettes.find(sheet);
+    return found == preview_palettes.end() ? nullptr : &found->second;
+  }
 
   // --- Selection State ---
   PixelSelection selection;
@@ -166,12 +177,8 @@ class GraphicsEditorState {
 
   // --- Callbacks for cross-panel communication ---
   std::function<void(uint16_t)> on_sheet_selected;
-  std::function<void()> on_palette_changed;
   std::function<void()> on_tool_changed;
   std::function<void(uint16_t)> on_sheet_modified;
-  // Applies the selected palette group, palette and row to a sheet. Set by
-  // the Palette Controls panel so other panels can re-apply a row.
-  std::function<void(uint16_t)> apply_palette_to_sheet;
 
   // --- Methods ---
 
