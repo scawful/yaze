@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
 
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "app/editor/graphics/graphics_palette_preview.h"
+#include "app/editor/graphics/graphics_sheet_sync.h"
+#include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
 #include "app/gfx/resource/arena.h"
@@ -35,6 +39,13 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
     saved_bitmap_ = std::move(*bitmap_);
     bitmap_->Create(128, 32, 8, std::vector<uint8_t>(4096, 1));
     bitmap_->SetPalette(gfx::SnesPalette(std::vector<uint16_t>(8, 0x7fff)));
+    data_ = std::make_unique<zelda3::GameData>();
+    data_->graphics_buffer.assign(223 * 4096, 1);
+    data_->sheet_store.MarkAllSheetsChanged();
+    data_->gfx_bitmaps[0] = *bitmap_;
+    previous_owner_ = gfx::Arena::Get().gfx_sheets_owner();
+    gfx::Arena::Get().set_gfx_sheets_owner(data_.get());
+    AttachSheetStore(state_, data_.get());
     // The headless draw-list test never sends this sentinel to a renderer.
     bitmap_->set_texture(reinterpret_cast<gfx::TextureHandle>(0x1234));
   }
@@ -42,6 +53,7 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
   void TearDown() override {
     bitmap_->set_texture(nullptr);
     *bitmap_ = std::move(saved_bitmap_);
+    gfx::Arena::Get().set_gfx_sheets_owner(previous_owner_);
     gui::WidgetIdRegistry::Instance().Clear();
     ImGui::DestroyContext(context_);
     ImGui::SetCurrentContext(previous_);
@@ -126,6 +138,8 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
   ImGuiContext* previous_ = nullptr;
   ImGuiContext* context_ = nullptr;
   GraphicsEditorState state_;
+  std::unique_ptr<zelda3::GameData> data_;
+  const void* previous_owner_ = nullptr;
   gfx::Bitmap* bitmap_ = nullptr;
   gfx::Bitmap saved_bitmap_;
 };
@@ -140,7 +154,10 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   colors[1] = 0x7c00;
   colors[7] = 0x03e0;
   colors[8] = 0x7c00;
-  bitmap_->SetPaletteWithTransparent(gfx::SnesPalette(colors), 0, 7);
+  data_->palette_groups.overworld_main.AddPalette(gfx::SnesPalette(colors));
+  ASSERT_TRUE(
+      SetGraphicsPreviewPalette(state_, 0, GraphicsPaletteSelection{"ow_main"})
+          .ok());
   const auto pixels_before = bitmap_->vector();
   const auto frame = [&] {
     Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
@@ -155,13 +172,8 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   frame();
   EXPECT_EQ(state_.current_color_index, 1);
   expect_display_color(IM_COL32(255, 0, 0, 255));
-  state_.apply_palette_to_sheet = [&](uint16_t sheet) {
-    EXPECT_EQ(sheet, 0);
-    bitmap_->SetPaletteWithTransparent(gfx::SnesPalette(colors),
-                                       state_.sub_palette_index * 7, 7);
-  };
   Click("Next palette row", frame);
-  EXPECT_EQ(state_.sub_palette_index, 1);
+  EXPECT_EQ(state_.PreviewPalette(0)->row, 1);
   EXPECT_EQ(state_.current_color_index, 1);
   expect_display_color(IM_COL32(0, 255, 0, 255));
   Click("Palette index 2", frame);
@@ -169,7 +181,7 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   EXPECT_EQ(SwatchColor("Current color"), IM_COL32(0, 0, 255, 255));
   Click("Palette index 1", frame);
   Click("Previous palette row", frame);
-  EXPECT_EQ(state_.sub_palette_index, 0);
+  EXPECT_EQ(state_.PreviewPalette(0)->row, 0);
   expect_display_color(IM_COL32(255, 0, 0, 255));
   // A complete three-bit palette may store only seven source colors.
   bitmap_->SetPaletteWithTransparent(
@@ -237,6 +249,146 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 255, 255, 255));
   EXPECT_EQ(state_.current_color_index, 1);
   EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest, PresetsApplyTheirNamedPaletteImmediately) {
+  struct Preset {
+    const char* button;
+    const char* group;
+    uint16_t color;
+    int size;
+  };
+  const Preset presets[] = {{"Overworld preview", "ow_main", 0x001f, 14},
+                            {"Dungeon preview", "dungeon_main", 0x03e0, 30},
+                            {"Sprites preview", "sprites_aux1", 0x7c00, 7},
+                            {"Link preview", "armors", 0x03ff, 15},
+                            {"HUD preview", "hud", 0x7c1f, 16}};
+  for (const auto& preset : presets) {
+    data_->palette_groups.get_group(preset.group)
+        ->AddPalette(
+            gfx::SnesPalette(std::vector<uint16_t>(preset.size, preset.color)));
+  }
+  PaletteControlsPanel palettes(&state_);
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(palettes.Update().ok()); });
+  };
+  const auto authored = data_->graphics_buffer;
+  const auto pixels = bitmap_->vector();
+  const auto revision = data_->sheet_store.Revision(0);
+  frame();
+  frame();
+  EXPECT_EQ(state_.PreviewPalette(0), nullptr);
+  for (const auto& preset : presets) {
+    Click(preset.button, frame);
+    ASSERT_NE(state_.PreviewPalette(0), nullptr);
+    EXPECT_EQ(state_.PreviewPalette(0)->group, preset.group);
+    const auto expected = gfx::SnesColor(preset.color).rgb();
+    const auto actual = bitmap_->ReadColor(0, 0);
+    EXPECT_EQ(actual.r, expected.x) << preset.button;
+    EXPECT_EQ(actual.g, expected.y) << preset.button;
+    EXPECT_EQ(actual.b, expected.z) << preset.button;
+  }
+  Click("Restore loaded colors", frame);
+  EXPECT_EQ(state_.PreviewPalette(0), nullptr);
+  EXPECT_EQ(bitmap_->ReadColor(0, 0).r, 255);
+  EXPECT_EQ(bitmap_->ReadColor(0, 0).g, 255);
+  EXPECT_EQ(bitmap_->ReadColor(0, 0).b, 255);
+  EXPECT_EQ(data_->graphics_buffer, authored);
+  EXPECT_EQ(bitmap_->vector(), pixels);
+  EXPECT_EQ(data_->sheet_store.Revision(0), revision);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       PixelPaletteChoiceIsExplicitAndRowsAreBounded) {
+  data_->palette_groups.overworld_main.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(14, 0x001f)));
+  PixelEditorPanel pixel(&state_, nullptr);
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  EXPECT_EQ(state_.PreviewPalette(0), nullptr);
+  EXPECT_FALSE(FindWidget("Next palette row"));
+  Click("Preview palette", frame);
+  Click("Preview group ow_main", frame);
+  ASSERT_NE(state_.PreviewPalette(0), nullptr);
+  EXPECT_EQ(state_.PreviewPalette(0)->group, "ow_main");
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 0, 0, 255));
+  Click("Next palette row", frame);
+  EXPECT_EQ(state_.PreviewPalette(0)->row, 1);
+  Click("Next palette row", frame);  // Disabled at the actual final row.
+  EXPECT_EQ(state_.PreviewPalette(0)->row, 1);
+  EXPECT_FALSE(SetGraphicsPreviewPalette(
+                   state_, 0, GraphicsPaletteSelection{"ow_main", 0, 2})
+                   .ok());
+  EXPECT_FALSE(SetGraphicsPreviewPalette(
+                   state_, 0, GraphicsPaletteSelection{"missing", 0, 0})
+                   .ok());
+  EXPECT_EQ(state_.PreviewPalette(0)->row, 1);
+  Click("Preview palette", frame);
+  Click("Loaded colors", frame);
+  EXPECT_EQ(state_.PreviewPalette(0), nullptr);
+  EXPECT_EQ(SwatchColor("Current color"), IM_COL32(255, 255, 255, 255));
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       PreviewChoicesSurviveSheetNavigationAndRespectArenaOwner) {
+  auto& arena = gfx::Arena::Get();
+  auto saved_second = std::move(arena.mutable_gfx_sheets()->at(1));
+  auto& second = arena.mutable_gfx_sheets()->at(1);
+  second.Create(128, 32, 8, std::vector<uint8_t>(4096, 1));
+  second.SetPalette(gfx::SnesPalette(std::vector<uint16_t>(8, 0x7fff)));
+  data_->gfx_bitmaps[1] = second;
+  data_->palette_groups.overworld_main.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(7, 0x001f)));
+  data_->palette_groups.dungeon_main.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(15, 0x03e0)));
+  EXPECT_TRUE(
+      SetGraphicsPreviewPalette(state_, 0, GraphicsPaletteSelection{"ow_main"})
+          .ok());
+  state_.SelectSheet(1);
+  EXPECT_EQ(state_.PreviewPalette(1), nullptr);
+  EXPECT_TRUE(SetGraphicsPreviewPalette(
+                  state_, 1, GraphicsPaletteSelection{"dungeon_main"})
+                  .ok());
+  state_.SelectSheet(0);
+  EXPECT_EQ(state_.PreviewPalette(0)->group, "ow_main");
+  EXPECT_EQ(bitmap_->ReadColor(0, 0).r, 255);
+  EXPECT_EQ(second.ReadColor(0, 0).g, 255);
+
+  zelda3::GameData other;
+  other.palette_groups.overworld_main.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>(7, 0x7c00)));
+  GraphicsEditorState other_state;
+  AttachSheetStore(other_state, &other);
+  arena.set_gfx_sheets_owner(&other);
+  EXPECT_FALSE(SetGraphicsPreviewPalette(
+                   state_, 0, GraphicsPaletteSelection{"dungeon_main"})
+                   .ok());
+  EXPECT_TRUE(SetGraphicsPreviewPalette(other_state, 0,
+                                        GraphicsPaletteSelection{"ow_main"})
+                  .ok());
+  RefreshGraphicsPreviewPalettes(
+      state_);  // Must not overwrite the other session.
+  EXPECT_EQ(bitmap_->ReadColor(0, 0).b, 255);
+  arena.set_gfx_sheets_owner(data_.get());
+  RefreshGraphicsPreviewPalettes(state_);
+  EXPECT_EQ(bitmap_->ReadColor(0, 0).r, 255);
+  EXPECT_EQ(bitmap_->ReadColor(0, 0).b, 0);
+  EXPECT_EQ(state_.PreviewPalette(1)->group, "dungeon_main");
+  // A source palette edit changes the preview without changing its identity.
+  data_->palette_groups.overworld_main.SetColor(
+      0, 0, gfx::SnesColor(uint16_t{0x03ff}));
+  RefreshGraphicsPreviewPalettes(state_);
+  EXPECT_EQ(bitmap_->ReadColor(0, 0).g, 255);
+  AttachSheetStore(state_,
+                   &other);  // Replacement, not activation of an editor.
+  EXPECT_TRUE(state_.preview_palettes.empty());
+  EXPECT_EQ(other_state.PreviewPalette(0)->group, "ow_main");
+  second = std::move(saved_second);
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,

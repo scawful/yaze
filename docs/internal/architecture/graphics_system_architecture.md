@@ -58,6 +58,22 @@ Represents a single graphics sheet or image optimized for SNES ROM editing.
     `PixelEditorPanel::DisplayPalette()` provides this choice for swatches,
     pixel inspection and clipboard colors without changing source palette data.
 
+Manual palette preview uses `graphics_palette_preview.*`. Each Graphics editor
+keeps a named group, palette index and row per sheet in
+`GraphicsEditorState::preview_palettes`. No entry means **Loaded colors**, taken
+from that session's loaded bitmap. Do not infer a group from RGB equality or use
+numeric group ordering. The Pixel Editor and Palette Controls share one selector.
+Selections apply immediately to the owning Arena display copy and refresh when
+the source palette changes. They do not mutate sheet-store pixels, ROM palettes,
+authoring dirty state or undo history. Reloading or replacing the ROM clears
+these temporary choices. A source-bound `GraphicsEditContext` controls its colors
+until the user explicitly chooses **Use manual palette**.
+
+The preview setter refuses a mismatched Arena owner. This is an ownership guard,
+not a session activation implementation: `HandleSessionSwitched` still needs a
+separate graphics-cache rebinding audit before claiming full two-ROM display
+continuity. Tests that replace the Arena owner directly qualify the guard only.
+
 ### 3. Graphics Workspaces (`src/app/editor/graphics/`)
 
 The graphics domain is split between two editors:

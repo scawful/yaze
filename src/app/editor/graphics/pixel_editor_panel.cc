@@ -9,6 +9,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
+#include "app/editor/graphics/palette_controls_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/color.h"
@@ -1244,33 +1245,7 @@ void PixelEditorPanel::DrawPaletteRowPicker() {
     ImGui::Separator();
     return;
   }
-  ImGui::TextUnformatted(tr("Palette row"));
-  int row = static_cast<int>(state_->sub_palette_index);
-  const bool can_apply = static_cast<bool>(state_->apply_palette_to_sheet) &&
-                         !state_->open_sheets.empty();
-  ImGui::BeginDisabled(!can_apply);
-  if (ImGui::ArrowButton("##RowDown", ImGuiDir_Left) && row > 0) {
-    --row;
-  }
-  gui::AutoRegisterLastItem("button", "Previous palette row");
-  ImGui::SameLine();
-  ImGui::Text("%d", row);
-  ImGui::SameLine();
-  if (ImGui::ArrowButton("##RowUp", ImGuiDir_Right) && row < 7) {
-    ++row;
-  }
-  gui::AutoRegisterLastItem("button", "Next palette row");
-  ImGui::EndDisabled();
-  HOVER_HINT(
-      "Row of the palette chosen in Palette Controls; applied to this "
-      "sheet at once");
-  if (row != static_cast<int>(state_->sub_palette_index) && can_apply) {
-    state_->sub_palette_index = static_cast<uint64_t>(row);
-    state_->apply_palette_to_sheet(state_->current_sheet_id);
-  }
-  ImGui::TextDisabled(tr("group %d, palette %d"),
-                      static_cast<int>(state_->palette_group_index),
-                      static_cast<int>(state_->palette_index));
+  DrawGraphicsPreviewPaletteSelector(*state_);
   ImGui::Separator();
 }
 

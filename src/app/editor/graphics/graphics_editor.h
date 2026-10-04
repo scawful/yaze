@@ -143,6 +143,7 @@ class GraphicsEditor : public Editor {
   void set_rom(Rom* rom) {
     if (rom_ != rom) {
       state_.ClearSourceContext();
+      state_.preview_palettes.clear();
     }
     rom_ = rom;
     if (sheet_browser_panel_) {
@@ -152,9 +153,6 @@ class GraphicsEditor : public Editor {
     }
     if (pixel_editor_panel_) {
       pixel_editor_panel_->SetRom(rom);
-    }
-    if (palette_controls_panel_) {
-      palette_controls_panel_->SetRom(rom);
     }
     if (link_sprite_panel_) {
       link_sprite_panel_->SetRom(rom);
@@ -181,9 +179,6 @@ class GraphicsEditor : public Editor {
       sheet_browser_panel_->SetDataSources(
           rom_, game_data,
           [this]() -> const project::YazeProject* { return project(); });
-    }
-    if (palette_controls_panel_) {
-      palette_controls_panel_->SetGameData(game_data);
     }
     if (gfx_group_panel_) {
       gfx_group_panel_->SetGameData(game_data);

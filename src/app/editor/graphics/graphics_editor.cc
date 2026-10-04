@@ -1,5 +1,6 @@
 // Related header
 #include "graphics_editor.h"
+#include "app/editor/graphics/graphics_palette_preview.h"
 #include "util/i18n/tr.h"
 
 // C++ standard library headers
@@ -93,8 +94,7 @@ void GraphicsEditor::Initialize() {
       });
   pixel_editor_panel_ =
       std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
-  palette_controls_panel_ =
-      std::make_unique<PaletteControlsPanel>(&state_, rom_);
+  palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
   gfx_group_panel_->SetWorkspaceState(dependencies_.gfx_group_workspace);
@@ -120,7 +120,6 @@ void GraphicsEditor::Initialize() {
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
-  palette_controls_panel_->Initialize();
   link_sprite_panel_->Initialize();
 
   // Register panels using WindowContent system with callbacks
@@ -195,6 +194,7 @@ void GraphicsEditor::Initialize() {
 absl::Status GraphicsEditor::Load() {
   gfx::ScopedTimer timer("GraphicsEditor::Load");
   state_.ClearSourceContext();
+  state_.preview_palettes.clear();
 
   // Initialize all graphics sheets with appropriate palettes from ROM
   // This ensures textures are created for editing
@@ -526,6 +526,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Show store changes (undo, redo, imports) in the Arena's display copies.
   SyncArenaFromStore(state_);
+  RefreshGraphicsPreviewPalettes(state_);
 
   // Keyboard shortcuts (tools, zoom, grid, sheet navigation) are registered
   // in shortcut_configurator.cc, scoped to EditorType::kGraphics.
