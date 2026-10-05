@@ -39,17 +39,14 @@ void QueueTexture(gfx::Bitmap& bitmap) {
 }  // namespace
 
 void UsagePreviewView::SetRom(Rom* rom) {
-  if (rom != rom_) {
-    rom_ = rom;
-    InvalidateTables();
-  }
+  rom_ = rom;
+  // Explicit rebinding also covers replacement at the same Rom address.
+  InvalidateTables();
 }
 
 void UsagePreviewView::SetGameData(zelda3::GameData* game_data) {
-  if (game_data != game_data_) {
-    game_data_ = game_data;
-    InvalidateTables();
-  }
+  game_data_ = game_data;
+  InvalidateTables();
 }
 
 void UsagePreviewView::InvalidateTables() {
@@ -57,6 +54,14 @@ void UsagePreviewView::InvalidateTables() {
   source_render_time_ = -1.0;
   tables_ready_ = false;
   room_blocks_.clear();
+  fallback_room_blocks_.clear();
+  live_rooms_.clear();
+  live_room_revisions_.clear();
+  rooms_for_sheet_.clear();
+  object_rects_.clear();
+  current_live_room_ = -1;
+  group_hash_ = 0;
+  last_render_time_ = -1.0;
   room_gfx_.clear();
   areas_.reset();
   room_preview_.Reset();
@@ -66,14 +71,81 @@ void UsagePreviewView::InvalidateTables() {
 }
 
 void UsagePreviewView::EnsureTables() {
-  if (tables_ready_ || rom_ == nullptr || !rom_->is_loaded() ||
-      game_data_ == nullptr) {
+  if (!rom_ || !rom_->is_loaded() || !game_data_)
     return;
-  }
+  uint64_t hash = kFnvOffset;
+  auto groups = [&](const auto& table) {
+    for (const auto& row : table)
+      for (const auto id : row)
+        hash = (hash ^ id) * kFnvPrime;
+  };
+  groups(game_data_->main_blockset_ids);
+  groups(game_data_->room_blockset_ids);
+  groups(game_data_->spriteset_ids);
+  if (tables_ready_ && group_hash_ == hash)
+    return;
+  group_hash_ = hash;
   room_gfx_ = zelda3::CollectRoomGfx(*rom_);
-  room_blocks_ =
+  fallback_room_blocks_ =
       usage_preview::CollectRoomSheetBlocks(rom_, game_data_, room_gfx_);
+  room_preview_.Reset();
+  last_sheet_ = 0xFFFF;
+  dirty_ = true;
   tables_ready_ = true;
+}
+
+void UsagePreviewView::RefreshRoomContexts() {
+  auto contexts = live_rooms_provider_ ? live_rooms_provider_()
+                                       : usage_preview::LiveRoomContexts{};
+  auto blocks = fallback_room_blocks_;
+  std::map<int, uint64_t> revisions;
+  int current = -1;
+  for (auto it = contexts.begin(); it != contexts.end();) {
+    auto* room = it->second.room;
+    if (!room || room->rom() != rom_ || room->game_data() != game_data_ ||
+        !room->IsLoaded() || room->id() != it->first) {
+      it = contexts.erase(it);
+      continue;
+    }
+    std::copy_n(room->blocks().begin(), 16, blocks[it->first].begin());
+    revisions[it->first] = room->composite_source_revision();
+    if (it->second.current)
+      current = it->first;
+    ++it;
+  }
+  const bool changed = blocks != room_blocks_ ||
+                       revisions != live_room_revisions_ ||
+                       current != current_live_room_;
+  if (changed || last_sheet_ != state_->current_sheet_id) {
+    const int previous =
+        room_choice_ >= 0 &&
+                room_choice_ < static_cast<int>(rooms_for_sheet_.size())
+            ? rooms_for_sheet_[room_choice_]
+            : -1;
+    rooms_for_sheet_ =
+        usage_preview::RoomsUsingSheet(blocks, state_->current_sheet_id, true);
+    // Keep the selected live room inspectable even if it stops loading the
+    // edited sheet; that absence is useful feedback, not a reason to hide it.
+    if (current >= 0 &&
+        std::find(rooms_for_sheet_.begin(), rooms_for_sheet_.end(), current) ==
+            rooms_for_sheet_.end())
+      rooms_for_sheet_.push_back(current);
+    const int preferred =
+        current != current_live_room_ || last_sheet_ != state_->current_sheet_id
+            ? current
+            : previous;
+    const auto selected =
+        std::find(rooms_for_sheet_.begin(), rooms_for_sheet_.end(), preferred);
+    room_choice_ = selected == rooms_for_sheet_.end()
+                       ? 0
+                       : static_cast<int>(selected - rooms_for_sheet_.begin());
+    dirty_ = true;
+    last_render_time_ = -1.0;
+  }
+  room_blocks_ = std::move(blocks);
+  live_room_revisions_ = std::move(revisions);
+  live_rooms_ = std::move(contexts);
+  current_live_room_ = current;
 }
 
 uint64_t UsagePreviewView::HashWatchedSheets() const {
@@ -233,6 +305,7 @@ void UsagePreviewView::Draw() {
     return;
   }
   EnsureTables();
+  RefreshRoomContexts();
   const auto palette_revision =
       gfx::PaletteManager::Get().ColorRevision(game_data_);
   if (palette_revision != palette_revision_) {
@@ -252,9 +325,6 @@ void UsagePreviewView::Draw() {
   const uint16_t sheet = state_->current_sheet_id;
   if (sheet != last_sheet_) {
     last_sheet_ = sheet;
-    rooms_for_sheet_ =
-        usage_preview::RoomsUsingSheet(room_blocks_, sheet, true);
-    room_choice_ = 0;
     spritesets_for_sheet_.clear();
     for (int ss = 0; ss < static_cast<int>(game_data_->spriteset_ids.size());
          ++ss) {
@@ -388,14 +458,59 @@ void UsagePreviewView::DrawRoomContext(bool render_now) {
   ImGui::Checkbox(tr("Outline objects using this sheet"), &outline_objects_);
 
   if (render_now || room_preview_.room_id() != room_id) {
+    const auto live = live_rooms_.find(room_id);
+    auto* room = live == live_rooms_.end() ? nullptr : live->second.room;
     const auto status = room_preview_.Render(rom_, game_data_, room_id,
-                                             Snapshot(), objects_only_);
+                                             Snapshot(), objects_only_, room);
+    if (room)
+      live_room_revisions_[room_id] = room->composite_source_revision();
     status_ = status.ok() ? std::string() : std::string(status.message());
+    if (!status.ok()) {
+      object_rects_.clear();
+      return;
+    }
     object_rects_ =
         room_preview_.ObjectRectsUsingSheet(state_->current_sheet_id);
     QueueTexture(room_preview_.mutable_bitmap());
   }
+  const auto live = live_rooms_.find(room_id);
+  ImGui::TextWrapped(
+      "%s", live == live_rooms_.end()
+                ? "ROM room header / default entrance (not live room edits)"
+                : live->second.provenance.c_str());
+  ImGui::TextDisabled("Session sheet pixels and graphics-group assignments");
+  ImGui::TextDisabled(
+      "%zu objects with traced references; %zu unknown/unattributed",
+      object_rects_.size(), room_preview_.unknown_objects());
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::TextUnformatted(
+        "Object traces only; doors, layout and sprites are unscanned.");
+    ImGui::TextUnformatted(
+        "Loaded sheets and traced references do not prove a visible pixel "
+        "change.");
+    ImGui::TextUnformatted(
+        "Coverage can be partial. Unknown includes covered, custom or untraced "
+        "drawing.");
+    int shown = 0;
+    for (const auto& use : room_preview_.tile_references()) {
+      if (use.sheet != state_->current_sheet_id)
+        continue;
+      if (++shown > 12) {
+        ImGui::TextDisabled("Additional traced references omitted here.");
+        break;
+      }
+      ImGui::Text("Object %03X: slot %d, tile %03X, palette row %d, H:%d V:%d",
+                  use.object_id, use.slot, use.tile_word & 0x3FF,
+                  (use.tile_word >> 10) & 7, (use.tile_word >> 14) & 1,
+                  (use.tile_word >> 15) & 1);
+    }
+    ImGui::EndTooltip();
+  }
   const auto blocks = room_preview_.blocks();
+  if (std::find(blocks.begin(), blocks.end(), state_->current_sheet_id) ==
+      blocks.end())
+    ImGui::TextDisabled("This context does not load the selected sheet.");
   ImGui::TextDisabled(tr("BG sheets: %02X %02X %02X %02X %02X %02X %02X %02X"),
                       blocks[0], blocks[1], blocks[2], blocks[3], blocks[4],
                       blocks[5], blocks[6], blocks[7]);

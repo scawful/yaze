@@ -129,6 +129,7 @@ void GraphicsEditor::Initialize() {
   usage_preview_view_ = std::make_unique<UsagePreviewView>(&state_);
   usage_preview_view_->SetRom(rom_);
   usage_preview_view_->SetGameData(game_data_);
+  usage_preview_view_->SetLiveRoomProvider(room_usage_provider_);
   pixel_editor_panel_->SetSourcePreviewCallback(
       [this]() { usage_preview_view_->DrawSourcePreview(); });
 
@@ -207,6 +208,8 @@ void GraphicsEditor::Initialize() {
 
 absl::Status GraphicsEditor::Load() {
   gfx::ScopedTimer timer("GraphicsEditor::Load");
+  if (usage_preview_view_)
+    usage_preview_view_->Reset();
   state_.ClearSourceContext();
   state_.preview_palettes.clear();
 

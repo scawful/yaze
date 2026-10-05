@@ -2318,6 +2318,21 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
   }
 }
 
+void DungeonEditorV2::VisitGraphicsUsageRooms(
+    const std::function<void(int, zelda3::Room&, const std::string&, bool)>&
+        visitor) {
+  rooms_.ForEachLoaded([&](int id, zelda3::Room& room) {
+    ApplyEntranceRenderContext(id);
+    room.PrepareForRender();
+    const auto context = ResolveDungeonRenderContextForRoom(id);
+    visitor(id, room,
+            absl::StrFormat("Live room model / %s / entrance %d",
+                            DungeonRenderContextSourceName(context),
+                            context.entrance_slot),
+            id == current_room_id_);
+  });
+}
+
 void DungeonEditorV2::OpenGraphicsEditorForObject(
     int room_id, const zelda3::RoomObject& object) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {

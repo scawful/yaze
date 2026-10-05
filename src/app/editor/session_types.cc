@@ -185,6 +185,21 @@ Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
                                         GetOverworldData());
   };
   if (auto* graphics = dynamic_cast<GraphicsEditor*>(editor.get())) {
+    graphics->SetRoomUsageProvider([this]() {
+      usage_preview::LiveRoomContexts contexts;
+      if (session_teardown_prepared_ || !rom_ || !game_data_)
+        return contexts;
+      if (auto* dungeon = static_cast<DungeonEditorV2*>(
+              GetExistingEditor(EditorType::kDungeon))) {
+        dungeon->VisitGraphicsUsageRooms([&](int id, zelda3::Room& room,
+                                             const std::string& provenance,
+                                             bool current) {
+          contexts.emplace(
+              id, usage_preview::LiveRoomContext{&room, provenance, current});
+        });
+      }
+      return contexts;
+    });
     graphics->SetMainGraphicsUsageCallback(main_usage);
     graphics->SetRoomsetGraphicsUsageCallback(roomset_usage);
   }
