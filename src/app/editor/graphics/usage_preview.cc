@@ -171,6 +171,14 @@ std::vector<int> RoomsUsingSheet(
   return rooms;
 }
 
+std::string RoomContextLabel(const LiveRoomContext* live) {
+  if (!live)
+    return "ROM · Default entrance";
+  if (live->entrance_slot < 0)
+    return "Live · Default entrance";
+  return absl::StrFormat("Live · Entrance $%02X", live->entrance_slot);
+}
+
 absl::Status RoomUsagePreview::Render(Rom* rom, zelda3::GameData* game_data,
                                       int room_id, const SheetPixels& sheets,
                                       bool objects_only,

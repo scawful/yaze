@@ -136,6 +136,14 @@ TEST(GraphicsUsagePreviewTest, ZsmAnimationAdvancesAtGameSpeed) {
   EXPECT_EQ(preview.frame(), 0);
 }
 
+TEST(GraphicsUsagePreviewTest, RoomContextLabelUsesHexAndExplicitFallback) {
+  EXPECT_EQ(RoomContextLabel(nullptr), "ROM · Default entrance");
+  LiveRoomContext live;
+  EXPECT_EQ(RoomContextLabel(&live), "Live · Default entrance");
+  live.entrance_slot = 0x2A;
+  EXPECT_EQ(RoomContextLabel(&live), "Live · Entrance $2A");
+}
+
 TEST(GraphicsUsagePreviewTest, RoomsUsingSheetMatchesBlocks) {
   std::map<int, std::array<uint8_t, 16>> blocks;
   blocks[1] = {};

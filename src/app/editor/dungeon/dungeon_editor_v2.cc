@@ -2319,17 +2319,22 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
 }
 
 void DungeonEditorV2::VisitGraphicsUsageRooms(
-    const std::function<void(int, zelda3::Room&, const std::string&, bool)>&
-        visitor) {
+    const std::function<void(int, zelda3::Room&, const std::string&, bool,
+                             int)>& visitor) {
   rooms_.ForEachLoaded([&](int id, zelda3::Room& room) {
     ApplyEntranceRenderContext(id);
-    room.PrepareForRender();
+    const auto previous_blocks = room.blocks();
+    const auto previous_main = room.resolved_main_blockset();
+    room.LoadRoomGraphics();
+    if (room.blocks() != previous_blocks ||
+        room.resolved_main_blockset() != previous_main) {
+      // Membership resolution must not consume a group change without leaving
+      // the room dirty for its eventual on-demand render.
+      room.MarkGraphicsDirty();
+    }
     const auto context = ResolveDungeonRenderContextForRoom(id);
-    visitor(id, room,
-            absl::StrFormat("Live room model / %s / entrance %d",
-                            DungeonRenderContextSourceName(context),
-                            context.entrance_slot),
-            id == current_room_id_);
+    visitor(id, room, DungeonRenderContextSourceName(context),
+            id == current_room_id_, context.entrance_slot);
   });
 }
 

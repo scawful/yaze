@@ -193,9 +193,9 @@ Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
               GetExistingEditor(EditorType::kDungeon))) {
         dungeon->VisitGraphicsUsageRooms([&](int id, zelda3::Room& room,
                                              const std::string& provenance,
-                                             bool current) {
-          contexts.emplace(
-              id, usage_preview::LiveRoomContext{&room, provenance, current});
+                                             bool current, int entrance_slot) {
+          contexts.emplace(id, usage_preview::LiveRoomContext{
+                                   &room, provenance, current, entrance_slot});
         });
       }
       return contexts;

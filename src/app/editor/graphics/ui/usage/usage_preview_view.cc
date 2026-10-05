@@ -150,6 +150,19 @@ void UsagePreviewView::RefreshRoomContexts() {
 
 uint64_t UsagePreviewView::HashWatchedSheets() const {
   uint64_t hash = kFnvOffset;
+  // Other sheet editors can commit a sheet this room uses without adding it
+  // to GraphicsEditor's modified_sheets. Watch only the chosen room's store
+  // revisions here; membership refresh must not rasterize loaded rooms.
+  if (room_choice_ >= 0 &&
+      room_choice_ < static_cast<int>(rooms_for_sheet_.size())) {
+    const auto found = room_blocks_.find(rooms_for_sheet_[room_choice_]);
+    if (found != room_blocks_.end()) {
+      for (const auto sheet : found->second) {
+        hash = (hash ^ sheet) * kFnvPrime;
+        hash = (hash ^ game_data_->sheet_store.Revision(sheet)) * kFnvPrime;
+      }
+    }
+  }
   std::set<uint16_t> ids = state_->modified_sheets;
   ids.insert(state_->current_sheet_id);
   if (state_->source_context) {
@@ -474,16 +487,24 @@ void UsagePreviewView::DrawRoomContext(bool render_now) {
     QueueTexture(room_preview_.mutable_bitmap());
   }
   const auto live = live_rooms_.find(room_id);
-  ImGui::TextWrapped(
-      "%s", live == live_rooms_.end()
-                ? "ROM room header / default entrance (not live room edits)"
-                : live->second.provenance.c_str());
-  ImGui::TextDisabled("Session sheet pixels and graphics-group assignments");
-  ImGui::TextDisabled(
-      "%zu objects with traced references; %zu unknown/unattributed",
-      object_rects_.size(), room_preview_.unknown_objects());
+  const auto* context = live == live_rooms_.end() ? nullptr : &live->second;
+  const auto blocks = room_preview_.blocks();
+  const bool loads_sheet = std::find(blocks.begin(), blocks.end(),
+                                     state_->current_sheet_id) != blocks.end();
+  ImGui::TextDisabled("%s%s", usage_preview::RoomContextLabel(context).c_str(),
+                      loads_sheet ? "" : " · Sheet not loaded");
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
+    ImGui::TextUnformatted(
+        context ? context->provenance.c_str()
+                : "ROM room header / default entrance (not live room edits)");
+    ImGui::TextUnformatted(
+        "Session sheet pixels and graphics-group assignments");
+    ImGui::Text("%zu objects with traced references; %zu unknown/unattributed",
+                object_rects_.size(), room_preview_.unknown_objects());
+    ImGui::Text("BG sheets: %02X %02X %02X %02X %02X %02X %02X %02X", blocks[0],
+                blocks[1], blocks[2], blocks[3], blocks[4], blocks[5],
+                blocks[6], blocks[7]);
     ImGui::TextUnformatted(
         "Object traces only; doors, layout and sprites are unscanned.");
     ImGui::TextUnformatted(
@@ -507,13 +528,6 @@ void UsagePreviewView::DrawRoomContext(bool render_now) {
     }
     ImGui::EndTooltip();
   }
-  const auto blocks = room_preview_.blocks();
-  if (std::find(blocks.begin(), blocks.end(), state_->current_sheet_id) ==
-      blocks.end())
-    ImGui::TextDisabled("This context does not load the selected sheet.");
-  ImGui::TextDisabled(tr("BG sheets: %02X %02X %02X %02X %02X %02X %02X %02X"),
-                      blocks[0], blocks[1], blocks[2], blocks[3], blocks[4],
-                      blocks[5], blocks[6], blocks[7]);
   DrawBitmapFit(room_preview_.mutable_bitmap(),
                 outline_objects_ ? object_rects_ : std::vector<SDL_Rect>{},
                 2.0f);

@@ -125,10 +125,20 @@ class AuthoringSaveWorkflowTestPeer {
       GraphicsEditor& editor) {
     return editor.usage_preview_view_->room_preview_.tile_references();
   }
-  static std::string RoomUsageProvenance(GraphicsEditor& editor, int room) {
+  static std::string RoomUsageContextLabel(GraphicsEditor& editor, int room) {
     const auto& contexts = editor.usage_preview_view_->live_rooms_;
     const auto found = contexts.find(room);
-    return found == contexts.end() ? "ROM fallback" : found->second.provenance;
+    return usage_preview::RoomContextLabel(
+        found == contexts.end() ? nullptr : &found->second);
+  }
+
+  static void ChooseRoomUsage(GraphicsEditor& editor, int room_id) {
+    auto& view = *editor.usage_preview_view_;
+    const auto found = std::find(view.rooms_for_sheet_.begin(),
+                                 view.rooms_for_sheet_.end(), room_id);
+    ASSERT_NE(found, view.rooms_for_sheet_.end());
+    view.room_choice_ = static_cast<int>(found - view.rooms_for_sheet_.begin());
+    view.dirty_ = true;
   }
 
   static GraphicsEditorState& GraphicsState(GraphicsEditor& editor) {
@@ -2585,6 +2595,82 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
+TEST_F(AuthoringSaveWorkflowTest, RoomUsageDefersUnselectedSharedSheetRender) {
+  constexpr int kSelected = 0x89;
+  constexpr int kOther = 0x4A;
+  // The existing D1 preview fixture qualifies this sheet/tile pixel as visible.
+  constexpr int kSheet = 0x11, kX = 99, kY = 19;
+  const auto fixture = CopyProject("yaze_lazy_room_usage");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kSelected);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kOther));
+  graphics->SelectSheet(kSheet);
+  auto draw = [&] {
+    unsigned char* pixels = nullptr;
+    int width = 0, height = 0;
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    ImGui::NewFrame();
+    ImGui::Begin("Lazy room usage");
+    AuthoringSaveWorkflowTestPeer::DrawRoomUsage(*graphics);
+    ImGui::End();
+    ImGui::EndFrame();
+  };
+  draw();
+  for (int id : {kSelected, kOther}) {
+    const auto blocks =
+        AuthoringSaveWorkflowTestPeer::RoomUsageBlocks(*graphics, id);
+    ASSERT_NE(std::find(blocks.begin(), blocks.begin() + 8, kSheet),
+              blocks.begin() + 8);
+  }
+  AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kOther);
+  draw();
+  const auto before = AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics);
+  ASSERT_FALSE(before.empty());
+  AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kSelected);
+  draw();
+  auto& other = dungeon->rooms()[kOther];
+  const auto other_revision = other.graphics_revision();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  const auto old_pixel =
+      state.game_data->sheet_store.Sheet(kSheet)[kY * 128 + kX];
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, kX, kY,
+                                                    old_pixel == 7 ? 1 : 7);
+  draw();
+  EXPECT_EQ(other.graphics_revision(), other_revision)
+      << "Index refresh rasterized an unselected loaded room";
+  EXPECT_TRUE(other.SourceSheetsChanged());
+  AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kOther);
+  draw();
+  EXPECT_NE(other.graphics_revision(), other_revision);
+  EXPECT_FALSE(other.SourceSheetsChanged());
+  EXPECT_GT(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                .CountDifferentPixels(before),
+            0);
+  ASSERT_OK(graphics->Undo());
+  draw();
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                .CountDifferentPixels(before),
+            0);
+
+  // A cheap group-index refresh must leave an assignment change dirty for the
+  // unselected room, even though LoadRoomGraphics already replaced its IDs.
+  AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kSelected);
+  draw();
+  const auto assignment_revision = other.graphics_revision();
+  auto& group = state.game_data->room_blockset_ids[other.blockset()];
+  group[0] = other.blocks()[3] == 0x11 ? 0x12 : 0x11;
+  draw();
+  EXPECT_EQ(other.graphics_revision(), assignment_revision);
+  EXPECT_EQ(other.blocks()[3], group[0]);
+  AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kOther);
+  draw();
+  EXPECT_NE(other.graphics_revision(), assignment_revision);
+}
+
 TEST_F(AuthoringSaveWorkflowTest, RoomUsageFollowsUnsavedMinesContext) {
   constexpr int kRoom = 0x89;
   const auto fixture = CopyProject("yaze_live_room_usage");
@@ -2637,9 +2723,10 @@ TEST_F(AuthoringSaveWorkflowTest, RoomUsageFollowsUnsavedMinesContext) {
     draw(*graphics);
   EXPECT_EQ(room.composite_source_revision(), idle_revision)
       << "Idle usage frames must not rerender the room";
-  EXPECT_NE(AuthoringSaveWorkflowTestPeer::RoomUsageProvenance(*graphics, kRoom)
-                .find("Live room model"),
-            std::string::npos);
+  EXPECT_NE(
+      AuthoringSaveWorkflowTestPeer::RoomUsageContextLabel(*graphics, kRoom)
+          .find("Live ·"),
+      std::string::npos);
 
   AuthoringSaveWorkflowTestPeer::PreviewDungeonEntrance(
       *dungeon, zelda3::kNumDungeonSpawnPoints);

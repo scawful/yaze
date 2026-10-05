@@ -125,8 +125,8 @@ class DungeonEditorV2 : public Editor {
   ~DungeonEditorV2() override;
   // Visit loaded models using the dungeon canvas's entrance resolver.
   void VisitGraphicsUsageRooms(
-      const std::function<void(int, zelda3::Room&, const std::string&, bool)>&
-          visitor);
+      const std::function<void(int, zelda3::Room&, const std::string&, bool,
+                               int)>& visitor);
   void PrepareForSessionTeardown() override;
 
   void SetGameData(zelda3::GameData* game_data) override {
