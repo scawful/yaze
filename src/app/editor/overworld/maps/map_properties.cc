@@ -451,7 +451,19 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
           [this, has_tile]() {
             return bool(edit_tile16_callback_) && has_tile;
           }),
-      ICON_MD_GRID_VIEW, true);
+      ICON_MD_GRID_VIEW);
+  add(gui::CanvasMenuItem::Conditional(
+          "Edit Graphics...",
+          [this, target]() {
+            if (edit_graphics_callback_ && target.valid() &&
+                target.tile16_id >= 0) {
+              edit_graphics_callback_(target);
+            }
+          },
+          [this, has_tile]() {
+            return bool(edit_graphics_callback_) && has_tile;
+          }),
+      ICON_MD_IMAGE, true);
 
   // --- Map -------------------------------------------------------------------
   auto select_item = gui::CanvasMenuItem::Conditional(

@@ -74,6 +74,9 @@ absl::StatusOr<GraphicsEditTarget> ResolveOverworldQuadrantTarget(
           tile16_id, quadrant + 1, tile.id_, slot, sheet, tile.palette_,
           right ? "right" : "left"),
       .palette = gfx::SnesPalette(display_colors),
+      .source_orientation_mask =
+          static_cast<uint8_t>(1 << ((tile.horizontal_mirror_ ? 1 : 0) |
+                                     (tile.vertical_mirror_ ? 2 : 0))),
   };
 }
 
@@ -92,10 +95,30 @@ absl::StatusOr<GraphicsEditContext> MakeOverworldGraphicsEditContext(
       map.index(), map.parent(), tile16_id, quadrant + 1,
       map.render_main_palette());
   context.limitation =
-      "Map assignments and palette are captured on entry; reopen from the "
-      "overworld after changing either.";
+      "Map assignments are captured on entry; reopen from the overworld "
+      "after changing assignments.";
   context.resolved = zelda3::DescribeOverworldGraphicsContext(map);
   context.targets.push_back(std::move(*target));
+  // Focus the requested quadrant, but keep the rest of this Tile16 available
+  // without another trip through the source editor. Each quadrant retains its
+  // own palette and orientation, even when two use the same physical tile.
+  for (int other = 0; other < 4; ++other) {
+    if (other == quadrant) {
+      continue;
+    }
+    auto neighbor =
+        ResolveOverworldQuadrantTarget(map, tile16, tile16_id, other, owner);
+    if (!neighbor.ok()) {
+      if (neighbor.status().code() != absl::StatusCode::kUnimplemented) {
+        return neighbor.status();
+      }
+      context.limitation +=
+          absl::StrFormat(" Quadrant %d is omitted: %s.", other + 1,
+                          neighbor.status().message());
+      continue;
+    }
+    context.targets.push_back(std::move(*neighbor));
+  }
   return context;
 }
 

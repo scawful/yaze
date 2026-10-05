@@ -86,6 +86,11 @@ class MapPropertiesSystem {
     sample_tile16_callback_ = std::move(callback);
   }
 
+  void SetTile16GraphicsCallback(
+      std::function<void(const OverworldContextTarget&)> callback) {
+    edit_graphics_callback_ = std::move(callback);
+  }
+
   void SetMapSelectionCallback(std::function<void(int, bool)> callback) {
     map_selection_callback_ = std::move(callback);
   }
@@ -224,6 +229,7 @@ class MapPropertiesSystem {
   // Callback for tile16 editing from context menu
   std::function<void(const OverworldContextTarget&)> edit_tile16_callback_;
   std::function<bool(const OverworldContextTarget&)> sample_tile16_callback_;
+  std::function<void(const OverworldContextTarget&)> edit_graphics_callback_;
 
   std::function<void()> open_map_properties_callback_;
   std::function<void()> zoom_fit_callback_;

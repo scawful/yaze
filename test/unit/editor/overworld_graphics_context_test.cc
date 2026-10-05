@@ -75,7 +75,7 @@ TEST_F(OverworldGraphicsContextTest,
       MakeOverworldGraphicsEditContext(map_, Tile(64 + 4, 2), 0x234, 0, &data_);
   ASSERT_TRUE(context.ok()) << context.status();
   EXPECT_EQ(context->owner, &data_);
-  EXPECT_EQ(context->targets.size(), 1u);
+  EXPECT_EQ(context->targets.size(), 4u);
   EXPECT_NE(context->label.find("area 82"), std::string::npos);
 
   // An alternate selected-map palette changes display colors without
@@ -114,6 +114,50 @@ TEST_F(OverworldGraphicsContextTest, RefusesAnimatedUnmappedAndMissingSources) {
                 .status()
                 .code(),
             absl::StatusCode::kInvalidArgument);
+}
+
+TEST_F(OverworldGraphicsContextTest,
+       WholeTileKeepsEachQuadrantsPaletteAndFlipWithRequestedTileFirst) {
+  const gfx::Tile16 tile(gfx::TileInfo(64 + 5, 2, false, false, false),
+                         gfx::TileInfo(3 * 64 + 6, 3, false, true, false),
+                         gfx::TileInfo(64 + 5, 4, true, false, false),
+                         gfx::TileInfo(3 * 64 + 6, 5, true, true, false));
+  auto context = MakeOverworldGraphicsEditContext(map_, tile, 0x123, 2, &data_);
+  ASSERT_TRUE(context.ok()) << context.status();
+  ASSERT_EQ(context->targets.size(), 4u);
+  const int order[] = {2, 0, 1, 3};
+  for (int i = 0; i < 4; ++i) {
+    const auto resolved =
+        ResolveOverworldQuadrantTarget(map_, tile, 0x123, order[i], &data_);
+    ASSERT_TRUE(resolved.ok()) << resolved.status();
+    const auto& target = context->targets[i];
+    EXPECT_EQ(target.label, resolved->label);
+    EXPECT_EQ(target.source_orientation_mask, 1 << order[i]);
+    for (int pixel = 0; pixel < 8; ++pixel) {
+      EXPECT_EQ(target.palette[pixel].snes(), resolved->palette[pixel].snes());
+    }
+  }
+  // Reused physical tiles remain separate uses because their palettes differ.
+  EXPECT_EQ(context->targets[0].sheet_id, context->targets[1].sheet_id);
+  EXPECT_EQ(context->targets[0].tile_index, context->targets[1].tile_index);
+  EXPECT_NE(context->targets[0].palette[1].snes(),
+            context->targets[1].palette[1].snes());
+}
+
+TEST_F(OverworldGraphicsContextTest,
+       OtherAnimatedQuadrantsAreExplicitlyOmitted) {
+  const gfx::TileInfo ordinary(64 + 5, 2, false, false, false);
+  const gfx::TileInfo animated(7 * 64 + 1, 2, false, false, false);
+  const gfx::Tile16 tile(ordinary, animated, ordinary, ordinary);
+  auto context = MakeOverworldGraphicsEditContext(map_, tile, 0x123, 0, &data_);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(context->targets.size(), 3u);
+  EXPECT_NE(context->limitation.find("Quadrant 2 is omitted"),
+            std::string::npos);
+  EXPECT_EQ(MakeOverworldGraphicsEditContext(map_, tile, 0x123, 1, &data_)
+                .status()
+                .code(),
+            absl::StatusCode::kUnimplemented);
 }
 
 TEST(OverworldGraphicsContextUiTest, InspectorActionUsesActiveQuadrant) {

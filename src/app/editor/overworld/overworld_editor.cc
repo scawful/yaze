@@ -572,6 +572,10 @@ absl::Status OverworldEditor::Load() {
         [this](const OverworldContextTarget& target) {
           HandleTile16Edit(target);
         });
+    map_properties_system_->SetTile16GraphicsCallback(
+        [this](const OverworldContextTarget& target) {
+          status_ = OpenGraphicsForContextTile16(target);
+        });
   }
 
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
@@ -1776,9 +1780,7 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
   // watched sheet from this ROM session on each preview refresh.
   auto preview_map = std::make_shared<zelda3::OverworldMap>(*map);
   const auto* owner = game_data_;
-  context->limitation =
-      "Source map assignments are captured. Palette colors follow live edits; "
-      "reopen from the overworld after changing map assignments.";
+  context->limitation += " Palette colors follow live edits.";
   context->refresh_palettes = [this, preview_map, owner, tile16_id, quadrant](
                                   GraphicsEditContext& source) -> absl::Status {
     if (game_data_ != owner || !overworld_.is_loaded() ||

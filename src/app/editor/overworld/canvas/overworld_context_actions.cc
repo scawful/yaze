@@ -82,6 +82,33 @@ bool OverworldEditor::SampleContextTile16(
   return true;
 }
 
+absl::Status OverworldEditor::OpenGraphicsForContextTile16(
+    const OverworldContextTarget& target) {
+  if (!target.valid() || !overworld_.is_loaded() || target.tile16_id < 0 ||
+      target.tile16_id >= static_cast<int>(overworld_.tiles16().size())) {
+    return absl::InvalidArgumentError("The clicked Tile16 is unavailable");
+  }
+  // Explicit source navigation uses the clicked screen even when another map
+  // is pinned. The context target was captured before menu hover can change it.
+  const int previous_map = current_map_;
+  SelectMapForEditing(target.map_id, /*respect_pin=*/false);
+  if (!status_.ok()) {
+    const auto failure = status_;
+    SelectMapForEditing(previous_map, /*respect_pin=*/false);
+    return failure;
+  }
+  const int quadrant =
+      (static_cast<int>(target.world_position.x) % 16 >= 8 ? 1 : 0) +
+      (static_cast<int>(target.world_position.y) % 16 >= 8 ? 2 : 0);
+  const auto result = OpenGraphicsForTile16Quadrant(target.tile16_id, quadrant);
+  if (!result.ok()) {
+    // A floating paste or unsupported source must not leave navigation on the
+    // clicked map when the Graphics editor refused the new context.
+    SelectMapForEditing(previous_map, /*respect_pin=*/false);
+  }
+  return result;
+}
+
 void OverworldEditor::RequestItemInsertPopup(
     const std::optional<OverworldContextTarget>& target) {
   item_insert_target_ = target;

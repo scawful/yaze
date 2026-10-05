@@ -162,6 +162,26 @@ TEST_F(MapPropertiesContextMenuTest, LockItemMutatesReferencedMapLockState) {
   EXPECT_EQ(selection_calls_, 1);
 }
 
+TEST_F(MapPropertiesContextMenuTest, GraphicsActionRetainsClickedMapAndTile) {
+  const auto expected = target_;
+  OverworldContextTarget received;
+  system_.SetTile16GraphicsCallback(
+      [&](const OverworldContextTarget& target) { received = target; });
+  Build();
+  auto* item = FindRootMenuItem(canvas_, "Edit Graphics");
+  ASSERT_NE(item, nullptr);
+  ASSERT_TRUE(item->enabled_condition());
+  const auto callback = item->callback;
+  target_ = {};
+  selected_map_ = 0x07;
+  callback();
+  ExpectTarget(received, expected);
+  Build();
+  item = FindRootMenuItem(canvas_, "Edit Graphics");
+  ASSERT_NE(item, nullptr);
+  EXPECT_FALSE(item->enabled_condition());
+}
+
 TEST_F(MapPropertiesContextMenuTest,
        MapPropertiesSelectsCapturedMapBeforeOpeningPanel) {
   bool selected_before_open = false;
@@ -343,10 +363,16 @@ TEST_F(MapPropertiesContextMenuTest, TopLevelOrderAndCount) {
   }
   // Header rows (map, tile) come first; no overworld here, so the map row
   // has no name tooltip and there are no Related Maps or clipboard rows.
-  const std::vector<std::string> expected{
-      "Map 0x4B",       "Tile16 0x123",    "Sample Tile16",
-      "Edit Tile16...", "Select This Map", "Map Properties...",
-      "Pin Map",        "Insert",          "View"};
+  const std::vector<std::string> expected{"Map 0x4B",
+                                          "Tile16 0x123",
+                                          "Sample Tile16",
+                                          "Edit Tile16...",
+                                          "Edit Graphics...",
+                                          "Select This Map",
+                                          "Map Properties...",
+                                          "Pin Map",
+                                          "Insert",
+                                          "View"};
   EXPECT_EQ(labels, expected);
   auto* map_properties = FindRootMenuItem(canvas_, "Map Properties");
   ASSERT_NE(map_properties, nullptr);

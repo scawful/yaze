@@ -506,6 +506,16 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     open_tile16_editor(editor_->blockset_selector_->GetSelectedTileID());
   };
   editor_->blockset_canvas_.AddContextMenuItem(edit_tile_item);
+  auto graphics_item = edit_tile_item;
+  graphics_item.label = "Edit Graphics...";
+  graphics_item.icon = ICON_MD_IMAGE;
+  graphics_item.callback = [this]() {
+    if (editor_->blockset_selector_) {
+      editor_->status_ = editor_->OpenGraphicsForTile16Quadrant(
+          editor_->blockset_selector_->GetSelectedTileID(), 0);
+    }
+  };
+  editor_->blockset_canvas_.AddContextMenuItem(std::move(graphics_item));
   editor_->blockset_canvas_.AddContextMenuItem(
       editor_->blockset_selector_->CopyTileIdMenuItem());
 
