@@ -22,6 +22,7 @@
 #include "unique_temp_path.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
@@ -161,6 +162,9 @@ TEST(LyraLayoutDescriptorTest, HeaderedImageAndTwoSessionsKeepSavePolicy) {
   EXPECT_TRUE(copied.CheckLayoutWritable().ok());
   zelda3::Overworld overworld(&lyra);
   EXPECT_FALSE(overworld.Load(&lyra).ok());
+  EXPECT_TRUE(overworld.LoadLyraTerrainPreview(&lyra).ok());
+  EXPECT_TRUE(overworld.is_lyra_preview());
+  EXPECT_FALSE(overworld.descriptor_sprite_display_available());
   EXPECT_FALSE(overworld.Save(&lyra).ok());
   Rom ordinary;
   ASSERT_TRUE(ordinary.LoadFromData(legacy).ok());
@@ -189,6 +193,81 @@ TEST(LyraLayoutDescriptorTest, HeaderedImageAndTwoSessionsKeepSavePolicy) {
             rom::LyraLayoutPresence::kInvalid);
   EXPECT_FALSE(lyra.CheckLayoutWritable().ok());
   EXPECT_TRUE(ordinary.CheckLayoutWritable().ok());
+}
+
+TEST(LyraLayoutDescriptorTest, InactiveA0A1TerrainUsesDescriptorRenderPath) {
+  const auto fixture = FixtureDir() / "LYRA_PREVIEW_A0_A1.bin";
+  if (!std::filesystem::exists(fixture)) {
+    GTEST_SKIP()
+        << "Set YAZE_LYRA_FIXTURE_DIR to the disposable preview packet";
+  }
+  Rom lyra;
+  ASSERT_TRUE(lyra.LoadFromData(ReadBytes(fixture)).ok());
+  const auto layout = lyra.InspectLyraLayout();
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid);
+  EXPECT_EQ(layout.capacity, 192);
+  EXPECT_EQ(layout.active_count, 160);
+  EXPECT_FALSE(layout.write_supported);
+  const auto a0_tiles =
+      rom::LyraMapTile32(layout, lyra.data(), lyra.size(), 0xA0);
+  const auto a1_tiles =
+      rom::LyraMapTile32(layout, lyra.data(), lyra.size(), 0xA1);
+  ASSERT_TRUE(a0_tiles.has_value());
+  ASSERT_TRUE(a1_tiles.has_value());
+  EXPECT_NE(*a0_tiles, *a1_tiles);
+  EXPECT_EQ((*a0_tiles)[7 * 16 + 15], 0x2103);
+  EXPECT_EQ((*a1_tiles)[7 * 16], 0x2103);
+  EXPECT_EQ((*a1_tiles)[7 * 16 + 8], 0x20B2);
+  EXPECT_FALSE(rom::LyraMapTile32(layout, lyra.data(), lyra.size(), 0xC0));
+
+  zelda3::GameData game_data(&lyra);
+  ASSERT_TRUE(zelda3::LoadGameData(lyra, game_data).ok());
+  zelda3::Overworld world(&lyra, &game_data);
+  EXPECT_FALSE(world.Load(&lyra).ok());
+  ASSERT_TRUE(world.LoadLyraTerrainPreview(&lyra).ok());
+  ASSERT_EQ(world.overworld_maps().size(), 192u);
+  ASSERT_TRUE(world.EnsureMapBuilt(0xA0).ok());
+  ASSERT_TRUE(world.EnsureMapBuilt(0xA1).ok());
+  const auto* a0 = world.overworld_map(0xA0);
+  const auto* a1 = world.overworld_map(0xA1);
+  ASSERT_NE(a0, nullptr);
+  ASSERT_NE(a1, nullptr);
+  EXPECT_EQ(a0->parent(), 0xA0);
+  EXPECT_EQ(a1->parent(), 0xA1);
+  EXPECT_EQ(a0->area_specific_bg_color(), 0x19C6);
+  EXPECT_EQ(a0->main_palette(), 0);
+  EXPECT_EQ(a0->subscreen_overlay(), 0x00FF);
+  EXPECT_EQ(a0->animated_gfx(), 0x5B);
+  EXPECT_EQ(a0->custom_tileset(0), 0x3A);
+  EXPECT_EQ(a0->area_palette(), 0x0A);
+  EXPECT_EQ(a0->bitmap_data().size(), 512u * 512u);
+  EXPECT_EQ(a1->bitmap_data().size(), 512u * 512u);
+  EXPECT_NE(a0->bitmap_data(), a1->bitmap_data());
+  EXPECT_FALSE(lyra.CheckLayoutWritable().ok());
+
+  Rom sealed;
+  ASSERT_TRUE(
+      sealed.LoadFromData(ReadBytes(FixtureDir() / "OFFLINE_ONLY.bin")).ok());
+  zelda3::Overworld sealed_world(&sealed);
+  ASSERT_TRUE(sealed_world.LoadLyraTerrainPreview(&sealed).ok());
+  const auto sealed_tiles = rom::LyraMapTile32(
+      sealed.InspectLyraLayout(), sealed.data(), sealed.size(), 0xA0);
+  ASSERT_TRUE(sealed_tiles.has_value());
+  EXPECT_NE(*sealed_tiles, *a0_tiles);
+  EXPECT_EQ((*sealed_tiles)[7 * 16 + 15], 0);
+
+  // Keep the failure semantic: reseal the CRCs so stream decoding, rather
+  // than the descriptor checksum, rejects the broken source.
+  auto malformed_bytes = ReadBytes(fixture);
+  malformed_bytes[0x131010] = 0xFF;
+  Reseal(&malformed_bytes, layout);
+  Rom malformed;
+  ASSERT_TRUE(malformed.LoadFromData(malformed_bytes).ok());
+  EXPECT_EQ(malformed.InspectLyraLayout().presence,
+            rom::LyraLayoutPresence::kInvalid);
+  zelda3::Overworld bad_world(&malformed);
+  EXPECT_FALSE(bad_world.Load(&malformed).ok());
+  EXPECT_FALSE(bad_world.LoadLyraTerrainPreview(&malformed).ok());
 }
 
 TEST(LyraLayoutDescriptorTest, ResealedSemanticCorruptionAndIdentityFail) {

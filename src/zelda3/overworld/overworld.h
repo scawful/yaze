@@ -424,6 +424,13 @@ class Overworld {
 
   /// @brief Load all overworld data from ROM
   absl::Status Load(Rom* rom);
+  // Explicit model-only entry point. The normal editor load remains refused
+  // until descriptor canvas/navigation and sprite presentation are qualified.
+  absl::Status LoadLyraTerrainPreview(Rom* rom);
+  bool is_lyra_preview() const {
+    return descriptor_layout_.presence == rom::LyraLayoutPresence::kValid;
+  }
+  bool descriptor_sprite_display_available() const { return false; }
 
   /// @brief Load overworld map tile data
   absl::Status LoadOverworldMaps();
@@ -851,6 +858,8 @@ class Overworld {
                         std::vector<uint8_t>& bytes2, int i, int sx, int sy,
                         int& ttpos);
   absl::Status DecompressAllMapTilesParallel();
+  absl::Status BuildLyraTerrainPreview(Rom* rom,
+                                       rom::LyraLayoutInspection layout);
 
   Rom* rom_;
   GameData* game_data_ = nullptr;
@@ -868,6 +877,7 @@ class Overworld {
   OverworldVersion cached_version_ = OverworldVersion::kVanilla;
 
   OverworldMapTiles map_tiles_;
+  rom::LyraLayoutInspection descriptor_layout_;
   // Grids last published by a committed save, or captured at load. Recompressing
   // maps rewrites pointer tables that overlap Oracle overworld ASM hooks, and
   // resaving tile32 reorders expanded definitions. An unchanged grid leaves
