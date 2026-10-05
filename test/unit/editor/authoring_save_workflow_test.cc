@@ -2598,17 +2598,28 @@ TEST_F(AuthoringSaveWorkflowTest,
 TEST_F(AuthoringSaveWorkflowTest, RoomUsageDefersUnselectedSharedSheetRender) {
   constexpr int kSelected = 0x89;
   constexpr int kOther = 0x4A;
-  // The existing D1 preview fixture qualifies this sheet/tile pixel as visible.
-  constexpr int kSheet = 0x11, kX = 99, kY = 19;
   const auto fixture = CopyProject("yaze_lazy_room_usage");
+  const auto assets = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/Objects/Data";
+  for (const auto& entry : std::filesystem::directory_iterator(assets)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin") {
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+    }
+  }
   Open(fixture);
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
   auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
   auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
-  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kSelected);
-  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kOther));
-  graphics->SelectSheet(kSheet);
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kOther);
+  ASSERT_OK(
+      AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kSelected));
+  // Hold an explicit entrance while checking rendering, independently of the
+  // background census that can refine Automatic entrance selection.
+  AuthoringSaveWorkflowTestPeer::PreviewDungeonEntrance(
+      *dungeon, zelda3::kNumDungeonSpawnPoints);
+  graphics->SelectSheet(0);
   auto draw = [&] {
     unsigned char* pixels = nullptr;
     int width = 0, height = 0;
@@ -2620,44 +2631,69 @@ TEST_F(AuthoringSaveWorkflowTest, RoomUsageDefersUnselectedSharedSheetRender) {
     ImGui::EndFrame();
   };
   draw();
-  for (int id : {kSelected, kOther}) {
-    const auto blocks =
-        AuthoringSaveWorkflowTestPeer::RoomUsageBlocks(*graphics, id);
-    ASSERT_NE(std::find(blocks.begin(), blocks.begin() + 8, kSheet),
-              blocks.begin() + 8);
-  }
-  AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kOther);
+  const auto references =
+      AuthoringSaveWorkflowTestPeer::RoomUsageReferences(*graphics);
+  ASSERT_FALSE(references.empty());
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kSelected);
   draw();
-  const auto before = AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics);
-  ASSERT_FALSE(before.empty());
-  AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kSelected);
-  draw();
+  const auto selected_blocks =
+      AuthoringSaveWorkflowTestPeer::RoomUsageBlocks(*graphics, kSelected);
   auto& other = dungeon->rooms()[kOther];
-  const auto other_revision = other.graphics_revision();
   auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
-  const auto old_pixel =
-      state.game_data->sheet_store.Sheet(kSheet)[kY * 128 + kX];
-  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, kX, kY,
-                                                    old_pixel == 7 ? 1 : 7);
-  draw();
-  EXPECT_EQ(other.graphics_revision(), other_revision)
-      << "Index refresh rasterized an unselected loaded room";
-  EXPECT_TRUE(other.SourceSheetsChanged());
-  AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kOther);
-  draw();
-  EXPECT_NE(other.graphics_revision(), other_revision);
-  EXPECT_FALSE(other.SourceSheetsChanged());
-  EXPECT_GT(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
-                .CountDifferentPixels(before),
-            0);
-  ASSERT_OK(graphics->Undo());
-  draw();
-  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
-                .CountDifferentPixels(before),
-            0);
+  bool visible_edit = false;
+  int attempts = 0;
+  for (const auto& use : references) {
+    const int tile = use.tile_word & 0x3FF;
+    if (use.sheet >= 0x73 || (tile >= 0x1B0 && tile < 0x1D0) ||
+        std::find(selected_blocks.begin(), selected_blocks.begin() + 8,
+                  use.sheet) == selected_blocks.begin() + 8) {
+      continue;
+    }
+    if (++attempts > 16) {
+      break;
+    }
+    ASSERT_EQ(use.sheet, other.blocks()[use.slot]);
+    graphics->SelectSheet(use.sheet);
+    draw();
+    AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kOther);
+    draw();
+    const auto before =
+        AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics);
+    ASSERT_FALSE(before.empty());
+    AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kSelected);
+    draw();
+    const auto other_revision = other.graphics_revision();
+    const int x = (tile % 16) * 8 + 3;
+    const int y = ((tile % 64) / 16) * 8 + 3;
+    const auto old_pixel =
+        state.game_data->sheet_store.Sheet(use.sheet)[y * 128 + x];
+    AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, x, y,
+                                                      old_pixel == 7 ? 1 : 7);
+    draw();
+    EXPECT_EQ(other.graphics_revision(), other_revision)
+        << "Index refresh rasterized an unselected loaded room";
+    EXPECT_TRUE(other.SourceSheetsChanged());
+    AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kOther);
+    draw();
+    EXPECT_NE(other.graphics_revision(), other_revision);
+    EXPECT_FALSE(other.SourceSheetsChanged());
+    visible_edit = AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                       .CountDifferentPixels(before) > 0;
+    ASSERT_OK(graphics->Undo());
+    draw();
+    EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                  .CountDifferentPixels(before),
+              0);
+    if (visible_edit) {
+      break;
+    }
+  }
+  ASSERT_TRUE(visible_edit) << "No visible shared background pixel qualified";
 
-  // A cheap group-index refresh must leave an assignment change dirty for the
-  // unselected room, even though LoadRoomGraphics already replaced its IDs.
+  // Use a shared main slot so changing an auxiliary assignment cannot filter
+  // the other room out of the chooser. Both rooms use the explicit entrance.
+  graphics->SelectSheet(other.blocks()[0]);
+  draw();
   AuthoringSaveWorkflowTestPeer::ChooseRoomUsage(*graphics, kSelected);
   draw();
   const auto assignment_revision = other.graphics_revision();

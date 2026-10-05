@@ -148,12 +148,12 @@ void UsagePreviewView::RefreshRoomContexts() {
   current_live_room_ = current;
 }
 
-uint64_t UsagePreviewView::HashWatchedSheets() const {
+uint64_t UsagePreviewView::HashWatchedSheets(bool include_room_context) const {
   uint64_t hash = kFnvOffset;
   // Other sheet editors can commit a sheet this room uses without adding it
   // to GraphicsEditor's modified_sheets. Watch only the chosen room's store
   // revisions here; membership refresh must not rasterize loaded rooms.
-  if (room_choice_ >= 0 &&
+  if (include_room_context && room_choice_ >= 0 &&
       room_choice_ < static_cast<int>(rooms_for_sheet_.size())) {
     const auto found = room_blocks_.find(rooms_for_sheet_[room_choice_]);
     if (found != room_blocks_.end()) {
@@ -284,7 +284,9 @@ void UsagePreviewView::DrawSourcePreview(bool show_controls) {
     source_dirty_ = true;
     source_render_time_ = -1.0;
   }
-  const uint64_t hash = live_ ? HashWatchedSheets() : source_hash_;
+  // The independent Room chooser must not invalidate the captured Source.
+  const uint64_t hash =
+      live_ ? HashWatchedSheets(/*include_room_context=*/false) : source_hash_;
   if (hash != source_hash_) {
     source_hash_ = hash;
     source_dirty_ = true;
@@ -383,7 +385,9 @@ void UsagePreviewView::Draw() {
 
   // Throttle: re-render when the watched pixels changed, no more than every
   // kMinRenderInterval, and always once the mouse is released (stroke end).
-  const uint64_t hash = live_ ? HashWatchedSheets() : last_hash_;
+  const uint64_t hash =
+      live_ ? HashWatchedSheets(/*include_room_context=*/mode_ == Mode::kRoom)
+            : last_hash_;
   if (hash != last_hash_) {
     last_hash_ = hash;
     dirty_ = true;
