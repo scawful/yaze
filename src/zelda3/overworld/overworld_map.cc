@@ -82,8 +82,11 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
     : OverworldMap(index, rom, game_data, /*seed_area_parent=*/true) {}
 
 OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
-                           bool seed_area_parent)
+                           bool seed_area_parent, bool skip_legacy_data)
     : index_(index), parent_(index), rom_(rom), game_data_(game_data) {
+  if (skip_legacy_data) {
+    return;
+  }
   // Load parent ID from ROM data for all versions
   // This is critical for proper large map sibling coordination
   auto version = OverworldVersionHelper::GetVersion(*rom_);
@@ -140,6 +143,71 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
                              /*seed_area_parent=*/false);
     InheritAreaProperties(area_parent);
   }
+}
+
+absl::StatusOr<OverworldMap> OverworldMap::CreateLyraPreview(
+    int index, Rom* rom, GameData* game_data,
+    const rom::LyraLayoutInspection* layout) {
+  if (rom == nullptr || layout == nullptr ||
+      layout->presence != rom::LyraLayoutPresence::kValid || index < 0 ||
+      index >= layout->capacity) {
+    return absl::InvalidArgumentError("Invalid Lyra preview map");
+  }
+  OverworldMap map(index, rom, game_data, /*seed_area_parent=*/false,
+                   /*skip_legacy_data=*/true);
+  map.descriptor_layout_ = layout;
+  RETURN_IF_ERROR(map.LoadLyraPreviewProperties());
+  return map;
+}
+
+absl::Status OverworldMap::LoadLyraPreviewProperties() {
+  auto read = [this](uint16_t id,
+                     size_t index) -> absl::StatusOr<std::span<const uint8_t>> {
+    auto record = rom::LyraLayoutRecord(*descriptor_layout_, rom_->data(),
+                                        rom_->size(), id, index);
+    if (!record) {
+      return absl::FailedPreconditionError("Lyra preview property unavailable");
+    }
+    return *record;
+  };
+  ASSIGN_OR_RETURN(auto parent, read(7, index_));
+  parent_ = parent[0];
+  if (parent_ >= descriptor_layout_->capacity) {
+    return absl::FailedPreconditionError("Lyra preview parent out of range");
+  }
+  ASSIGN_OR_RETURN(auto size, read(30, index_));
+  if (size[0] > 3) {
+    return absl::FailedPreconditionError("Lyra preview area size invalid");
+  }
+  area_size_ = static_cast<AreaSizeEnum>(size[0]);
+  large_map_ = area_size_ == AreaSizeEnum::LargeArea;
+  ASSIGN_OR_RETURN(auto bg, read(1, parent_));
+  area_specific_bg_color_ = static_cast<uint16_t>(bg[0] | (bg[1] << 8));
+  ASSIGN_OR_RETURN(auto palette, read(2, parent_));
+  main_palette_ = palette[0];
+  ASSIGN_OR_RETURN(auto mosaic, read(3, parent_));
+  mosaic_ = mosaic[0] != 0;
+  for (int i = 0; i < 4; ++i) {
+    mosaic_expanded_[i] = (mosaic[0] & (0x08 >> i)) != 0;
+  }
+  ASSIGN_OR_RETURN(auto animated, read(4, parent_));
+  animated_gfx_ = animated[0];
+  ASSIGN_OR_RETURN(auto overlay, read(5, parent_));
+  subscreen_overlay_ = static_cast<uint16_t>(overlay[0] | (overlay[1] << 8));
+  ASSIGN_OR_RETURN(auto gfx, read(6, parent_));
+  std::copy_n(gfx.begin(), custom_gfx_ids_.size(), custom_gfx_ids_.begin());
+  ASSIGN_OR_RETURN(auto area_gfx, read(26, parent_));
+  area_graphics_ = area_gfx[0];
+  ASSIGN_OR_RETURN(auto palette_set, read(31, parent_));
+  area_palette_ = palette_set[0];
+  if (parent_ >= kSpecialWorldMapIdStart) {
+    const size_t special = parent_ - kSpecialWorldMapIdStart;
+    ASSIGN_OR_RETURN(auto sprite_gfx, read(24, special));
+    ASSIGN_OR_RETURN(auto sprite_palette, read(25, special));
+    sprite_graphics_.fill(sprite_gfx[0]);
+    sprite_palette_.fill(sprite_palette[0]);
+  }
+  return absl::OkStatus();
 }
 
 AreaRenderProperties OverworldMap::area_render_properties() const {
@@ -829,6 +897,9 @@ bool OverworldMap::UsesSessionAreaGraphicsGroup() const {
 }
 
 OverworldRoomsetSource OverworldMap::roomset_source() const {
+  if (descriptor_layout_ != nullptr) {
+    return OverworldRoomsetSource::kCustomTileGroups;
+  }
   if (rom_ &&
       OverworldVersionHelper::SupportsCustomTileGFX(
           OverworldVersionHelper::GetVersion(*rom_)) &&
@@ -964,8 +1035,10 @@ void OverworldMap::DrawAnimatedTiles() {
 void OverworldMap::LoadDeathMountainGFX() {
   const auto version = OverworldVersionHelper::GetVersion(*rom_);
   uint8_t sheet = area_render_properties().animated_gfx;
-  const bool custom_animated = version != OverworldVersion::kVanilla &&
-                               (*rom_)[OverworldCustomAnimatedGFXEnabled] != 0;
+  const bool custom_animated =
+      descriptor_layout_ != nullptr ||
+      (version != OverworldVersion::kVanilla &&
+       (*rom_)[OverworldCustomAnimatedGFXEnabled] != 0);
   if (custom_animated) {
     if (sheet == 0x00 || sheet == 0xFF) {
       const int world_offset = (parent_ & 0xC0) >> 3;
@@ -1132,16 +1205,36 @@ absl::Status OverworldMap::LoadPalette() {
   int previous_pal_id = 0;
   int previous_spr_pal_id = 0;
 
-  if (index_ > 0) {
+  if (index_ > 0 && (descriptor_layout_ == nullptr || parent_ > 0)) {
     // Load previous palette ID based on ASM version
-    if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+    if (descriptor_layout_ != nullptr) {
+      auto previous = rom::LyraLayoutRecord(*descriptor_layout_, rom_->data(),
+                                            rom_->size(), 31, parent_ - 1);
+      if (!previous) {
+        return absl::FailedPreconditionError(
+            "Lyra preview previous palette unavailable");
+      }
+      previous_pal_id = (*previous)[0];
+      if (parent_ > kSpecialWorldMapIdStart) {
+        auto previous_sprite = rom::LyraLayoutRecord(
+            *descriptor_layout_, rom_->data(), rom_->size(), 25,
+            parent_ - kSpecialWorldMapIdStart - 1);
+        if (!previous_sprite) {
+          return absl::FailedPreconditionError(
+              "Lyra preview previous sprite palette unavailable");
+        }
+        previous_spr_pal_id = (*previous_sprite)[0];
+      }
+    } else if (OverworldVersionHelper::SupportsAreaEnum(version)) {
       // v3 uses expanded palette table
       previous_pal_id = (*rom_)[kOverworldPalettesScreenToSetNew + parent_ - 1];
     } else {
       previous_pal_id = (*rom_)[kOverworldMapPaletteIds + parent_ - 1];
     }
 
-    previous_spr_pal_id = (*rom_)[kOverworldSpritePaletteIds + parent_ - 1];
+    if (descriptor_layout_ == nullptr) {
+      previous_spr_pal_id = (*rom_)[kOverworldSpritePaletteIds + parent_ - 1];
+    }
   }
 
   area_palette_ = std::min((int)area_palette_, 0xA3);
@@ -1185,14 +1278,17 @@ absl::Status OverworldMap::LoadPalette() {
 
   // Set background color based on world type and area-specific settings
   bool use_area_specific_bg =
-      OverworldVersionHelper::SupportsCustomBGColors(version) &&
-      (*rom_)[OverworldCustomAreaSpecificBGEnabled] != 0x00;
+      descriptor_layout_ != nullptr ||
+      (OverworldVersionHelper::SupportsCustomBGColors(version) &&
+       (*rom_)[OverworldCustomAreaSpecificBGEnabled] != 0x00);
   if (use_area_specific_bg) {
     // Use area-specific background color from custom array
-    area_specific_bg_color_ =
-        (*rom_)[OverworldCustomAreaSpecificBGPalette + (parent_ * 2)] |
-        ((*rom_)[OverworldCustomAreaSpecificBGPalette + (parent_ * 2) + 1]
-         << 8);
+    if (descriptor_layout_ == nullptr) {
+      area_specific_bg_color_ =
+          (*rom_)[OverworldCustomAreaSpecificBGPalette + (parent_ * 2)] |
+          ((*rom_)[OverworldCustomAreaSpecificBGPalette + (parent_ * 2) + 1]
+           << 8);
+    }
     // Convert 15-bit SNES color to palette color
     bgr = gfx::SnesColor(area_specific_bg_color_);
   } else {

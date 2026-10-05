@@ -1,8 +1,11 @@
 #ifndef YAZE_ROM_LYRA_LAYOUT_DESCRIPTOR_H_
 #define YAZE_ROM_LYRA_LAYOUT_DESCRIPTOR_H_
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -36,6 +39,17 @@ struct LyraLayoutInspection {
 // an attributed image remains protected even if a later in-memory edit removes
 // its magic bytes. Unrelated ROM data at the locator is not attribution.
 LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size);
+
+// Checked, session-local reads from an already validated descriptor. The
+// descriptor owns table addresses; ordinary ROM settings are not consulted.
+std::optional<std::span<const uint8_t>> LyraLayoutRecord(
+    const LyraLayoutInspection& layout, const uint8_t* image, size_t size,
+    uint16_t table_id, size_t index);
+
+// Reuses the descriptor validator's stream decoder and allocation fences.
+std::optional<std::array<uint16_t, 256>> LyraMapTile32(
+    const LyraLayoutInspection& layout, const uint8_t* image, size_t size,
+    size_t map_index);
 
 }  // namespace yaze::rom
 

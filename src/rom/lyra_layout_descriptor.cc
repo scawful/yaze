@@ -382,4 +382,55 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   return result;
 }
 
+std::optional<std::span<const uint8_t>> LyraLayoutRecord(
+    const LyraLayoutInspection& layout, const uint8_t* image, size_t size,
+    uint16_t table_id, size_t index) {
+  if (layout.presence != LyraLayoutPresence::kValid || image == nullptr) {
+    return std::nullopt;
+  }
+  for (const auto& entry : layout.entries) {
+    if (entry.id != table_id) {
+      continue;
+    }
+    if (entry.kind != 1 || index >= entry.count) {
+      return std::nullopt;
+    }
+    const size_t start = entry.pc_address + index * entry.stride;
+    if (start > size || entry.stride > size - start) {
+      return std::nullopt;
+    }
+    return std::span<const uint8_t>(image + start, entry.stride);
+  }
+  return std::nullopt;
+}
+
+std::optional<std::array<uint16_t, 256>> LyraMapTile32(
+    const LyraLayoutInspection& layout, const uint8_t* image, size_t size,
+    size_t map_index) {
+  auto high_record = LyraLayoutRecord(layout, image, size, 20, map_index);
+  auto low_record = LyraLayoutRecord(layout, image, size, 21, map_index);
+  if (!high_record || !low_record || high_record->size() != 3 ||
+      low_record->size() != 3) {
+    return std::nullopt;
+  }
+  std::array<uint8_t, 256> high{};
+  std::array<uint8_t, 256> low{};
+  uint32_t high_pc = 0;
+  uint32_t low_pc = 0;
+  if (!StreamPointerPc(size, U24(high_record->data()), &high_pc) ||
+      !StreamPointerPc(size, U24(low_record->data()), &low_pc) ||
+      !DecodeStream(image, size, high_pc, &high) ||
+      !DecodeStream(image, size, low_pc, &low)) {
+    return std::nullopt;
+  }
+  std::array<uint16_t, 256> tiles{};
+  for (size_t i = 0; i < tiles.size(); ++i) {
+    tiles[i] = static_cast<uint16_t>((high[i] << 8) | low[i]);
+    if (tiles[i] >= 17728) {
+      return std::nullopt;
+    }
+  }
+  return tiles;
+}
+
 }  // namespace yaze::rom
