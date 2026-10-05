@@ -205,6 +205,179 @@ TEST_F(PaletteManagerTest, EndBatchWithoutBeginIsNoOp) {
   EXPECT_FALSE(manager.InBatch());
 }
 
+TEST_F(PaletteManagerTest, BatchedColorSwapIsOneUndoAndRedoStep) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("dungeon_main"), 2, 90,
+                   0x0200);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+
+  constexpr int kPalette = 1;
+  constexpr int kFirst = 31;
+  constexpr int kSecond = 32;
+  const SnesColor first = manager.GetColor("dungeon_main", kPalette, kFirst);
+  const SnesColor second = manager.GetColor("dungeon_main", kPalette, kSecond);
+  ASSERT_NE(first.snes(), second.snes());
+  int notifications = 0;
+  bool expect_swapped = true;
+  const int listener =
+      manager.RegisterChangeListener([&](const PaletteChangeEvent& event) {
+        if (event.type == PaletteChangeEvent::Type::kColorChanged &&
+            event.group_name == "dungeon_main") {
+          ++notifications;
+          EXPECT_EQ(manager.GetColor("dungeon_main", kPalette, kFirst).snes(),
+                    expect_swapped ? second.snes() : first.snes());
+          EXPECT_EQ(manager.GetColor("dungeon_main", kPalette, kSecond).snes(),
+                    expect_swapped ? first.snes() : second.snes());
+        }
+      });
+
+  manager.BeginBatch();
+  ASSERT_TRUE(manager.SetColor("dungeon_main", kPalette, kFirst, second).ok());
+  manager.BeginBatch();
+  ASSERT_TRUE(manager.SetColor("dungeon_main", kPalette, kSecond, first).ok());
+  manager.EndBatch();
+  EXPECT_EQ(manager.GetUndoStackSize(), 0u);
+  manager.EndBatch();
+  EXPECT_EQ(manager.GetUndoStackSize(), 1u);
+  EXPECT_EQ(notifications, 2);
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPalette, kFirst).snes(),
+            second.snes());
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPalette, kSecond).snes(),
+            first.snes());
+
+  expect_swapped = false;
+  manager.Undo();
+  EXPECT_EQ(manager.GetUndoStackSize(), 0u);
+  EXPECT_EQ(manager.GetRedoStackSize(), 1u);
+  EXPECT_EQ(notifications, 4);
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPalette, kFirst).snes(),
+            first.snes());
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPalette, kSecond).snes(),
+            second.snes());
+  EXPECT_FALSE(manager.HasUnsavedChanges());
+
+  expect_swapped = true;
+  manager.Redo();
+  EXPECT_EQ(manager.GetUndoStackSize(), 1u);
+  EXPECT_EQ(manager.GetRedoStackSize(), 0u);
+  EXPECT_EQ(notifications, 6);
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPalette, kFirst).snes(),
+            second.snes());
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPalette, kSecond).snes(),
+            first.snes());
+  manager.UnregisterChangeListener(listener);
+}
+
+TEST_F(PaletteManagerTest, NetNoOpBatchKeepsRedoAndRejectsInvalidColor) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("dungeon_main"), 1, 90,
+                   0x0200);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+
+  const SnesColor original = manager.GetColor("dungeon_main", 0, 31);
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 31, SnesColor(0x7FFF)).ok());
+  manager.Undo();
+  ASSERT_EQ(manager.GetRedoStackSize(), 1u);
+
+  manager.BeginBatch();
+  EXPECT_FALSE(manager.SetColor("dungeon_main", 0, 90, SnesColor(0x1111)).ok());
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 31, SnesColor(0x1111)).ok());
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 31, original).ok());
+  manager.EndBatch();
+
+  EXPECT_EQ(manager.GetUndoStackSize(), 0u);
+  EXPECT_EQ(manager.GetRedoStackSize(), 1u);
+  EXPECT_FALSE(manager.HasUnsavedChanges());
+  manager.Redo();
+  EXPECT_EQ(manager.GetColor("dungeon_main", 0, 31).snes(), 0x7FFF);
+}
+
+TEST_F(PaletteManagerTest, BatchHistoryStaysWithItsRomSession) {
+  Rom first_rom;
+  Rom second_rom;
+  ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  ASSERT_TRUE(second_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData first_data(&first_rom);
+  zelda3::GameData second_data(&second_rom);
+  SeedPaletteGroup(first_data.palette_groups.get_group("dungeon_main"), 1, 90,
+                   0x0200);
+  SeedPaletteGroup(second_data.palette_groups.get_group("dungeon_main"), 1, 90,
+                   0x0300);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&first_data);
+  const SnesColor first_original = manager.GetColor("dungeon_main", 0, 31);
+  manager.BeginBatch();
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 31, SnesColor(0x1111)).ok());
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 32, SnesColor(0x2222)).ok());
+  manager.EndBatch();
+  ASSERT_EQ(manager.GetUndoStackSize(), 1u);
+
+  manager.Initialize(&second_data);
+  const SnesColor second_original = manager.GetColor("dungeon_main", 0, 31);
+  ASSERT_EQ(manager.GetUndoStackSize(), 0u);
+  manager.Undo();
+  EXPECT_EQ(manager.GetColor("dungeon_main", 0, 31).snes(),
+            second_original.snes());
+
+  manager.ActivateSession(&first_data);
+  ASSERT_EQ(manager.GetUndoStackSize(), 1u);
+  manager.Undo();
+  EXPECT_EQ(manager.GetColor("dungeon_main", 0, 31).snes(),
+            first_original.snes());
+  EXPECT_EQ(manager.GetUndoStackSize(), 0u);
+  EXPECT_EQ(manager.GetRedoStackSize(), 1u);
+  manager.Redo();
+  EXPECT_EQ(manager.GetColor("dungeon_main", 0, 31).snes(), 0x1111);
+  manager.ActivateSession(&second_data);
+  EXPECT_EQ(manager.GetUndoStackSize(), 0u);
+  EXPECT_EQ(manager.GetColor("dungeon_main", 0, 31).snes(),
+            second_original.snes());
+}
+
+TEST_F(PaletteManagerTest, BatchStopsNotificationsOnSessionSwitch) {
+  Rom first_rom;
+  Rom second_rom;
+  ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  ASSERT_TRUE(second_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData first_data(&first_rom);
+  zelda3::GameData second_data(&second_rom);
+  SeedPaletteGroup(first_data.palette_groups.get_group("dungeon_main"), 1, 90,
+                   0x0200);
+  SeedPaletteGroup(second_data.palette_groups.get_group("dungeon_main"), 1, 90,
+                   0x0300);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&first_data);
+  const uint64_t second_revision = manager.ColorRevision(&second_data);
+  int notifications = 0;
+  const int listener =
+      manager.RegisterChangeListener([&](const PaletteChangeEvent& event) {
+        if (event.type == PaletteChangeEvent::Type::kColorChanged) {
+          ++notifications;
+          manager.Initialize(&second_data);
+        }
+      });
+
+  manager.BeginBatch();
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 31, SnesColor(0x1111)).ok());
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 32, SnesColor(0x2222)).ok());
+  manager.EndBatch();
+  EXPECT_EQ(notifications, 1);
+  EXPECT_EQ(manager.ColorRevision(&second_data), second_revision);
+  EXPECT_EQ(manager.GetUndoStackSize(), 0u);  // Active second session.
+
+  manager.UnregisterChangeListener(listener);
+  manager.ActivateSession(&first_data);
+  EXPECT_EQ(manager.GetUndoStackSize(), 1u);
+  EXPECT_EQ(manager.GetColor("dungeon_main", 0, 31).snes(), 0x1111);
+  EXPECT_EQ(manager.GetColor("dungeon_main", 0, 32).snes(), 0x2222);
+}
+
 // ============================================================================
 // Change Notification Tests
 // ============================================================================
