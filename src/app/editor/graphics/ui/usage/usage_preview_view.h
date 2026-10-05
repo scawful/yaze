@@ -57,7 +57,7 @@ class UsagePreviewView {
   void DrawSpriteContext(bool render_now, float delta);
   void DrawTile16Context(bool render_now);
   // Hash of the current, source-context, and modified session sheet pixels.
-  uint64_t HashWatchedSheets() const;
+  uint64_t HashWatchedSheets(bool include_room_context) const;
   usage_preview::SheetPixels Snapshot() const;
   void ShowImage(gfx::Bitmap& bitmap, const usage_preview::PreviewImage& image);
   void DrawBitmapFit(gfx::Bitmap& bitmap, const std::vector<SDL_Rect>& rects,
