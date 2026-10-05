@@ -345,6 +345,8 @@ class PaletteManager {
 
   /**
    * @brief Begin a batch operation (groups multiple changes into one undo step)
+   * @note A batch groups history and notifications; it does not roll back
+   *       earlier successful SetColor calls if a later call fails.
    * @note Must be paired with EndBatch()
    */
   void BeginBatch();
@@ -373,7 +375,10 @@ class PaletteManager {
   /// Helper: Get const palette group
   const PaletteGroup* GetGroup(const std::string& group_name) const;
 
-  /// Helper: Record a change for undo
+  /// Helper: Record one undo step (a gesture or an entire batch).
+  void RecordChanges(std::vector<PaletteColorChange> changes);
+
+  /// Helper: Record a single-color undo step.
   void RecordChange(const PaletteColorChange& change);
 
   /// Helper: Notify all listeners of an event
@@ -403,8 +408,8 @@ class PaletteManager {
                        std::unordered_map<int, std::unordered_set<int>>>
         modified_colors;
     std::optional<SaveTransactionSnapshot> save_transaction_snapshot;
-    std::deque<PaletteColorChange> undo_stack;
-    std::deque<PaletteColorChange> redo_stack;
+    std::deque<std::vector<PaletteColorChange>> undo_stack;
+    std::deque<std::vector<PaletteColorChange>> redo_stack;
     std::optional<PaletteColorChange> color_edit;
     uint64_t color_edit_caller = 0;
     int batch_depth = 0;

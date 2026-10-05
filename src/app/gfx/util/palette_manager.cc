@@ -679,27 +679,36 @@ void PaletteManager::Undo() {
     return;
   }
 
-  auto change = CurrentState()->undo_stack.back();
-  CurrentState()->undo_stack.pop_back();
+  auto* state = CurrentState();
+  auto changes = std::move(state->undo_stack.back());
+  state->undo_stack.pop_back();
 
-  // Restore original color
-  auto* group = GetMutableGroup(change.group_name);
-  if (group && change.palette_index < group->size()) {
-    auto* palette = group->mutable_palette(change.palette_index);
-    if (change.color_index < palette->size()) {
-      (*palette)[change.color_index] = change.original_color;
-      MarkModified(change.group_name, change.palette_index, change.color_index);
+  // Apply the whole step before publishing any color notifications. Reverse
+  // order preserves the first value when a batch edits one slot repeatedly.
+  for (auto it = changes.rbegin(); it != changes.rend(); ++it) {
+    const auto& change = *it;
+    auto* group = GetMutableGroup(change.group_name);
+    if (group && change.palette_index >= 0 &&
+        change.palette_index < group->size()) {
+      auto* palette = group->mutable_palette(change.palette_index);
+      if (change.color_index >= 0 && change.color_index < palette->size()) {
+        (*palette)[change.color_index] = change.original_color;
+        MarkModified(change.group_name, change.palette_index,
+                     change.color_index);
+      }
     }
   }
 
-  // Move to redo stack
-  CurrentState()->redo_stack.push_back(change);
-
-  // Notify listeners
-  PaletteChangeEvent event{PaletteChangeEvent::Type::kColorChanged,
-                           change.group_name, change.palette_index,
-                           change.color_index};
-  NotifyListeners(event);
+  state->redo_stack.push_back(changes);
+  const auto* owner = game_data_;
+  const auto* owner_rom = rom_;
+  for (const auto& change : changes) {
+    if (game_data_ != owner || rom_ != owner_rom) {
+      break;  // A listener activated another ROM session.
+    }
+    NotifyListeners({PaletteChangeEvent::Type::kColorChanged, change.group_name,
+                     change.palette_index, change.color_index});
+  }
 }
 
 void PaletteManager::Redo() {
@@ -708,27 +717,33 @@ void PaletteManager::Redo() {
     return;
   }
 
-  auto change = CurrentState()->redo_stack.back();
-  CurrentState()->redo_stack.pop_back();
+  auto* state = CurrentState();
+  auto changes = std::move(state->redo_stack.back());
+  state->redo_stack.pop_back();
 
-  // Reapply new color
-  auto* group = GetMutableGroup(change.group_name);
-  if (group && change.palette_index < group->size()) {
-    auto* palette = group->mutable_palette(change.palette_index);
-    if (change.color_index < palette->size()) {
-      (*palette)[change.color_index] = change.new_color;
-      MarkModified(change.group_name, change.palette_index, change.color_index);
+  for (const auto& change : changes) {
+    auto* group = GetMutableGroup(change.group_name);
+    if (group && change.palette_index >= 0 &&
+        change.palette_index < group->size()) {
+      auto* palette = group->mutable_palette(change.palette_index);
+      if (change.color_index >= 0 && change.color_index < palette->size()) {
+        (*palette)[change.color_index] = change.new_color;
+        MarkModified(change.group_name, change.palette_index,
+                     change.color_index);
+      }
     }
   }
 
-  // Move back to undo stack
-  CurrentState()->undo_stack.push_back(change);
-
-  // Notify listeners
-  PaletteChangeEvent event{PaletteChangeEvent::Type::kColorChanged,
-                           change.group_name, change.palette_index,
-                           change.color_index};
-  NotifyListeners(event);
+  state->undo_stack.push_back(changes);
+  const auto* owner = game_data_;
+  const auto* owner_rom = rom_;
+  for (const auto& change : changes) {
+    if (game_data_ != owner || rom_ != owner_rom) {
+      break;  // A listener activated another ROM session.
+    }
+    NotifyListeners({PaletteChangeEvent::Type::kColorChanged, change.group_name,
+                     change.palette_index, change.color_index});
+  }
 }
 
 void PaletteManager::ClearHistory() {
@@ -788,20 +803,45 @@ void PaletteManager::EndBatch() {
 
   CurrentState()->batch_depth--;
 
-  if (CurrentState()->batch_depth == 0 &&
-      !CurrentState()->batch_changes.empty()) {
-    // Commit all batch changes as a single undo step
-    for (const auto& change : CurrentState()->batch_changes) {
-      RecordChange(change);
-
-      // Notify listeners for each change
-      PaletteChangeEvent event{PaletteChangeEvent::Type::kColorChanged,
-                               change.group_name, change.palette_index,
-                               change.color_index};
-      NotifyListeners(event);
+  auto* state = CurrentState();
+  if (state->batch_depth == 0 && !state->batch_changes.empty()) {
+    // Coalesce repeated writes to one slot. A batch that returns every slot
+    // to its starting value has no history entry and preserves Redo.
+    std::vector<PaletteColorChange> changes;
+    for (const auto& change : state->batch_changes) {
+      auto existing = std::find_if(
+          changes.begin(), changes.end(), [&](const PaletteColorChange& entry) {
+            return entry.group_name == change.group_name &&
+                   entry.palette_index == change.palette_index &&
+                   entry.color_index == change.color_index;
+          });
+      if (existing == changes.end()) {
+        changes.push_back(change);
+      } else {
+        existing->new_color = change.new_color;
+        existing->timestamp_ms = change.timestamp_ms;
+      }
     }
-
-    CurrentState()->batch_changes.clear();
+    changes.erase(std::remove_if(changes.begin(), changes.end(),
+                                 [](const PaletteColorChange& change) {
+                                   return change.original_color.snes() ==
+                                          change.new_color.snes();
+                                 }),
+                  changes.end());
+    state->batch_changes.clear();
+    if (!changes.empty()) {
+      RecordChanges(changes);
+      const auto* owner = game_data_;
+      const auto* owner_rom = rom_;
+      for (const auto& change : changes) {
+        if (game_data_ != owner || rom_ != owner_rom) {
+          break;  // Do not publish this batch in another ROM session.
+        }
+        NotifyListeners({PaletteChangeEvent::Type::kColorChanged,
+                         change.group_name, change.palette_index,
+                         change.color_index});
+      }
+    }
   }
 }
 
@@ -860,7 +900,14 @@ SnesColor PaletteManager::GetOriginalColor(const std::string& group_name,
 }
 
 void PaletteManager::RecordChange(const PaletteColorChange& change) {
-  CurrentState()->undo_stack.push_back(change);
+  RecordChanges({change});
+}
+
+void PaletteManager::RecordChanges(std::vector<PaletteColorChange> changes) {
+  if (changes.empty()) {
+    return;
+  }
+  CurrentState()->undo_stack.push_back(std::move(changes));
 
   // Limit history size
   if (CurrentState()->undo_stack.size() > kMaxUndoHistory) {
@@ -880,7 +927,12 @@ void PaletteManager::NotifyListeners(const PaletteChangeEvent& event) {
     ++CurrentState()->color_revision;
     Arena::Get().NotifyPaletteModified(event.group_name, event.palette_index);
   }
+  const auto* owner = game_data_;
+  const auto* owner_rom = rom_;
   for (const auto& [_, callback] : change_listeners_) {
+    if (game_data_ != owner || rom_ != owner_rom) {
+      break;
+    }
     callback(event);
   }
 }
