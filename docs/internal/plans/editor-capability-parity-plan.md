@@ -114,9 +114,9 @@ Do not publish estimated parity percentages.
 | DA-3 | Visual room connection authoring | Partial; ordinary outer normal-door pair Candidate below; stairs, pits, special doors, and runtime qualification remain | DA-1 header/compound coverage | zelda3-hacking-expert |
 | DA-4 | Complete room clone/import and reusable selections | Partial; versioned authored-room clone/clipboard import Candidate below; asset compatibility and portable project resources remain | DA-1 compound coverage | zelda3-hacking-expert |
 | DA-5 | Dungeon render, persistence, and packaged-candidate qualification | Partial; independent active lane | Exact candidate from DA-1–DA-4 | test-infrastructure-expert |
-| OW-1 | Overworld sprite persistence for all supported states | Missing writer in inspected save paths | Format/capacity inventory | zelda3-hacking-expert |
+| OW-1 | Overworld sprite persistence for all supported states | Partial; state-aware writer reaches editor save, full workflow qualification pending | Three-state save/reopen and runtime evidence | zelda3-hacking-expert |
 | OW-2 | Consistent overworld entity editing and undo | Partial | Existing entity workbench; OW-1 for full sprite loop | imgui-frontend-engineer |
-| GF-1 | Safe graphics-sheet save and asset exchange | Blocked coordinated save | Compressed allocation/write plan | zelda3-hacking-expert |
+| GF-1 | Safe graphics-sheet save and asset exchange | Partial; guarded 3bpp sheet writer reaches coordinated save, broader asset exchange and runtime open | Exact-candidate qualification and remaining formats | zelda3-hacking-expert |
 | SC-1 | Coordinated screen and map persistence | Blocked coordinated save | Verified writers/transaction integration | zelda3-hacking-expert |
 | SC-2 | Complete remaining screen authoring surfaces | Partial | SC-1 for persistence claims | imgui-frontend-engineer |
 | AU-1 | Real sample import and instrument/sample save | Missing writers; WAV import placeholder | BRR/allocation/format inventory | snes-emulator-expert |
@@ -748,16 +748,40 @@ Whole-ROM safety claims require comparison beyond the readback helper's object
 fields. Wheel/Shift-wheel, Escape, scaled layout, block placement, and game
 runtime remain separate open qualification items.
 
+### GF-1 / DA-5 cross-editor authoring increment (2026-10-05)
+
+At consolidated source `bd9f0497a`, `bfd222515` keeps a batched palette color
+change in one Undo step; `de7943db0` opens Graphics from the clicked Overworld
+Tile16 context, retaining its map, quadrant, palette, and orientation;
+`f8bac6d61` connects Room Usage to loaded Dungeon models, selected entrance,
+and unsaved sheet assignments; and `bd9f0497a` defers rendering other loaded
+rooms until chosen and moves detailed provenance into a tooltip. These reuse
+the existing editor workflows. Follow-up `067b74ff6` keeps the independent
+Room chooser out of the captured Source preview cache and resolves the lazy
+rendering fixture from actual room draw references.
+
+On the final combined binaries, 88/88 selected unit/product tests and 38/38
+PaletteManager integration tests passed with zero skips. The selection includes
+headless ImGui source/room previews, pixel and assignment Undo/Redo, coordinated
+Save As and fresh reopen on disposable Oracle copies, session identity, and
+palette batch history. Evidence: AFS `graphics_authoring_integration_2026-10-05`.
+This does not qualify every editor feature: the authoring fixture leaves dungeon
+maps, water-fill zones, and pot-item saving disabled; paired palette/pixel
+remapping is not implemented. Native/GPU behavior, game runtime, CI, and full
+packaged-release acceptance remain open. Keep DA-5 and full GF-1 open.
+
 ### OW-1 and OW-2: overworld entity completion
 
 Inspect `src/app/editor/overworld/entity_operations.cc`,
 `entity/entity_workbench.cc`, `overworld_editor.cc`, and
-`src/zelda3/overworld/overworld.cc`. Sprite edits populate state-specific vectors
-but the inspected ordinary and model save paths have no sprite writer.
-Implement shared state-aware serialization with table/pointer/capacity rules,
-then connect both callers. Preserve the other game states and unrelated maps.
-Property edits and insertion currently bypass entity undo; extend the existing
-history rather than introducing a second manager.
+`src/zelda3/overworld/overworld.cc`. Sprite edits populate state-specific vectors.
+`Overworld::PrepareSpriteSave` plans the three state tables, and
+`Overworld::SaveSprites` applies that plan. `OverworldEditor::Save` preflights
+the sprite plan against the manifest and calls `ApplyOverworldSpriteSave` inside
+its ROM transaction, even when map saving is disabled. Keep the capacity and
+unsupported-state refusals; qualify application Save As/reopen and game behavior
+for each supported state and preserve unrelated maps. Property edits and
+insertion still need consistent entity undo through the existing history.
 
 **Exit criteria:** create/edit/remove each entity, undo/redo, save/reopen all
 three supported states, and verify the correct state in-game. Painting/paste
@@ -765,12 +789,14 @@ undo and persistent scratch space already exist and are not new deliverables.
 
 ### GF-1 and SC-1/SC-2: persistent assets and screens
 
-The central guards are in `src/app/editor/editor_manager.cc`. The old
-`GraphicsEditor::Save` writes recompressed data at existing addresses without
-proving allocation capacity. Build a compression/write plan, validate spans
-and shared references, and use approved relocation only where supported.
-Retain the gate until the coordinated save can include the complete operation.
-Graphics-group editing/saving already exists and differs from sheet persistence.
+The central guards are in `src/app/editor/editor_manager.cc`. With
+`save_graphics_sheet` enabled, coordinated save calls `GraphicsEditor::Save`.
+It preflights the modified 3bpp sheets, writes in place or relocates into
+manifest-approved `graphics_sheet_regions`, restores the ROM batch on failure,
+and decodes written sheets before file save. Pending sheet edits are refused
+when that flag is disabled. Complete remaining format and asset-exchange scope,
+then qualify exact-candidate runtime, CI, and packaged behavior. Graphics-group
+editing/saving already exists and differs from sheet persistence.
 
 The Screen Editor central gate covers all pending screen domains, including
 dungeon maps. Direct title/pause-map writers also reject writes. Complete
