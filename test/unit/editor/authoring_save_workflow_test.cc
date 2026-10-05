@@ -110,6 +110,27 @@ class AuthoringSaveWorkflowTestPeer {
   static GfxGroupEditor& MainGroups(OverworldEditor& editor) {
     return editor.gfx_group_editor_;
   }
+  static void DrawRoomUsage(GraphicsEditor& editor) {
+    editor.usage_preview_view_->Draw();
+  }
+  static std::array<uint8_t, 16> RoomUsageBlocks(GraphicsEditor& editor,
+                                                 int room_id) {
+    return editor.usage_preview_view_->room_blocks_.at(room_id);
+  }
+
+  static usage_preview::PreviewImage RoomUsageImage(GraphicsEditor& editor) {
+    return editor.usage_preview_view_->room_preview_.Snapshot();
+  }
+  static std::vector<usage_preview::RoomTileReference> RoomUsageReferences(
+      GraphicsEditor& editor) {
+    return editor.usage_preview_view_->room_preview_.tile_references();
+  }
+  static std::string RoomUsageProvenance(GraphicsEditor& editor, int room) {
+    const auto& contexts = editor.usage_preview_view_->live_rooms_;
+    const auto found = contexts.find(room);
+    return found == contexts.end() ? "ROM fallback" : found->second.provenance;
+  }
+
   static GraphicsEditorState& GraphicsState(GraphicsEditor& editor) {
     return editor.state_;
   }
@@ -2559,6 +2580,215 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(reopened.GetTileObjects().front().x_, object.x_ + 1);
   EXPECT_EQ(reopened.object_bg1_buffer().bitmap().vector(), edited_preview);
   EXPECT_EQ(ReadFile(patterns_path), changed_patterns);
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest, RoomUsageFollowsUnsavedMinesContext) {
+  constexpr int kRoom = 0x89;
+  const auto fixture = CopyProject("yaze_live_room_usage");
+  const auto source_root = std::filesystem::path(kSharedProject).parent_path();
+  for (const auto& entry : std::filesystem::directory_iterator(
+           source_root / "Dungeons/Objects/Data")) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin")
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+  }
+  std::filesystem::copy_file(source_root / "Dungeons/house_walls.asm",
+                             fixture.root / "house_walls.asm");
+  auto project_text_bytes = ReadFile(fixture.project);
+  std::string project_text(project_text_bytes.begin(),
+                           project_text_bytes.end());
+  ReplaceAssignment(&project_text, "dungeon_tile_patterns", "house_walls.asm");
+  {
+    std::ofstream output(fixture.project);
+    output << project_text;
+  }
+  Open(fixture);
+  ASSERT_TRUE(core::FeatureFlags::get().dungeon.kSaveRoomHeaders);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kRoom);
+  auto& room = dungeon->rooms()[kRoom];
+  ASSERT_TRUE(room.IsLoaded());
+  room.PrepareForRender();
+  const auto saved_blocks = room.blocks();
+  graphics->SelectSheet(saved_blocks[2]);
+  manager_->window_manager().OpenWindow("graphics.usage_preview");
+  auto draw = [](GraphicsEditor& editor) {
+    unsigned char* pixels = nullptr;
+    int width = 0, height = 0;
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    ImGui::NewFrame();
+    ImGui::Begin("Live room usage");
+    AuthoringSaveWorkflowTestPeer::DrawRoomUsage(editor);
+    ImGui::End();
+    ImGui::EndFrame();
+  };
+  draw(*graphics);
+  const auto original_image =
+      AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics);
+  ASSERT_FALSE(original_image.empty());
+  const auto idle_revision = room.composite_source_revision();
+  for (int frame = 0; frame < 3; ++frame)
+    draw(*graphics);
+  EXPECT_EQ(room.composite_source_revision(), idle_revision)
+      << "Idle usage frames must not rerender the room";
+  EXPECT_NE(AuthoringSaveWorkflowTestPeer::RoomUsageProvenance(*graphics, kRoom)
+                .find("Live room model"),
+            std::string::npos);
+
+  AuthoringSaveWorkflowTestPeer::PreviewDungeonEntrance(
+      *dungeon, zelda3::kNumDungeonSpawnPoints);
+  draw(*graphics);
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageBlocks(*graphics, kRoom),
+            room.blocks());
+  EXPECT_GT(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                .CountDifferentPixels(original_image),
+            0);
+  AuthoringSaveWorkflowTestPeer::PreviewDungeonEntrance(*dungeon, -1);
+  draw(*graphics);
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                .CountDifferentPixels(original_image),
+            0);
+
+  const int new_blockset = room.blockset() == 1 ? 2 : 1;
+  ASSERT_OK(dungeon->EditRoomMetadata(
+      kRoom, {RoomMetadataField::kBlockset, new_blockset}));
+  draw(*graphics);
+  ASSERT_NE(room.blocks(), saved_blocks);
+  const auto usage =
+      AuthoringSaveWorkflowTestPeer::RoomUsageBlocks(*graphics, kRoom);
+  for (int slot = 0; slot < 16; ++slot)
+    EXPECT_EQ(usage[slot], room.blocks()[slot]) << "slot " << slot;
+  const auto roomset_image =
+      AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics);
+  EXPECT_GT(roomset_image.CountDifferentPixels(original_image), 0);
+  ASSERT_OK(dungeon->Undo());
+  draw(*graphics);
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                .CountDifferentPixels(original_image),
+            0);
+  ASSERT_OK(dungeon->Redo());
+  draw(*graphics);
+
+  // Choose a traced source and prove visibility separately from sheet loading.
+  const auto references =
+      AuthoringSaveWorkflowTestPeer::RoomUsageReferences(*graphics);
+  ASSERT_FALSE(references.empty());
+  bool changed_reference = false;
+  for (const auto& use : references) {
+    ASSERT_GE(use.slot, 0);
+    ASSERT_LT(use.slot, 8);
+    EXPECT_EQ(use.sheet, room.blocks()[use.slot]);
+    EXPECT_EQ(use.slot, (use.tile_word & 0x3FF) / 64);
+    changed_reference |= use.sheet != saved_blocks[use.slot];
+  }
+  EXPECT_TRUE(changed_reference)
+      << "Affected-object feedback kept the old sheets";
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  int edited_sheet = -1, edited_x = 0, edited_y = 0, edited_color = 0;
+  usage_preview::PreviewImage edited_image;
+  int attempts = 0;
+  for (const auto& use : references) {
+    if (++attempts > 16)
+      break;
+    ASSERT_EQ(use.sheet, room.blocks()[use.slot]);
+    ASSERT_EQ(use.slot, (use.tile_word & 0x3FF) / 64);
+    if (use.sheet >= 0x73)
+      continue;  // This fixture qualifies the background 3bpp persistence lane.
+    graphics->SelectSheet(use.sheet);
+    draw(*graphics);
+    const auto before =
+        AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics);
+    const int tile = use.tile_word & 63;
+    const int x = (tile % 16) * 8 + 3;
+    const int y = (tile / 16) * 8 + 3;
+    const int old_color =
+        state.game_data->sheet_store.Sheet(use.sheet)[y * 128 + x];
+    const int color = old_color == 7 ? 1 : 7;
+    AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, x, y, color);
+    draw(*graphics);
+    const auto after = AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics);
+    if (after.CountDifferentPixels(before) > 0) {
+      edited_sheet = use.sheet;
+      edited_x = x;
+      edited_y = y;
+      edited_color = color;
+      edited_image = after;
+      ASSERT_OK(graphics->Undo());
+      draw(*graphics);
+      EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                    .CountDifferentPixels(before),
+                0);
+      ASSERT_OK(graphics->Redo());
+      draw(*graphics);
+      EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                    .CountDifferentPixels(after),
+                0);
+      break;
+    }
+    ASSERT_OK(graphics->Undo());
+  }
+  ASSERT_GE(edited_sheet, 0) << "No visible background pixel qualified";
+  EXPECT_TRUE(
+      manager_->window_manager().IsWindowOpen("graphics.usage_preview"));
+  const auto destination = fixture.root / "usage-edited.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kRoom);
+  EXPECT_EQ(dungeon->rooms()[kRoom].blockset(), new_blockset);
+  graphics->SelectSheet(edited_sheet);
+  draw(*graphics);
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                .CountDifferentPixels(edited_image),
+            0);
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics)
+                .game_data->sheet_store.Sheet(
+                    edited_sheet)[edited_y * 128 + edited_x],
+            edited_color);
+
+  // A second session resolves its own original room, not the first session's
+  // unsaved/live context or cached renderer. Revert also rebinds same addresses.
+  const auto second_path = fixture.root / "second.sfc";
+  std::filesystem::copy_file(fixture.rom, second_path);
+  ASSERT_OK(manager_->OpenRomOrProject(second_path.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* second_dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  auto* second_graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  ASSERT_NE(second_graphics, graphics);
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*second_dungeon, kRoom);
+  second_graphics->SelectSheet(edited_sheet);
+  draw(*second_graphics);
+  EXPECT_EQ(
+      AuthoringSaveWorkflowTestPeer::RoomUsageBlocks(*second_graphics, kRoom),
+      second_dungeon->rooms()[kRoom].blocks());
+  EXPECT_NE(second_dungeon->rooms()[kRoom].blockset(), new_blockset);
+  ASSERT_OK(manager_->RevertRomToSaved());
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*second_dungeon, kRoom);
+  draw(*second_graphics);
+  EXPECT_EQ(
+      AuthoringSaveWorkflowTestPeer::RoomUsageBlocks(*second_graphics, kRoom),
+      second_dungeon->rooms()[kRoom].blocks());
+  manager_->SwitchToSession(0);
+  draw(*graphics);
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::RoomUsageImage(*graphics)
+                .CountDifferentPixels(edited_image),
+            0);
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);

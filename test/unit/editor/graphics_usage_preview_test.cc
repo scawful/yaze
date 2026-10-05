@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -352,6 +353,50 @@ TEST_F(GraphicsUsagePreviewRomTest,
 // D1 (Mushroom Grotto) entrance room 0x4A: edit one pixel of a background
 // sheet an object draws from; the room preview must change and the shared
 // graphics buffer must not.
+TEST_F(GraphicsUsagePreviewRomTest, RoomContextOwnershipAndFallback) {
+  constexpr int kRoom = 0x89;
+  RoomUsagePreview preview;
+  ASSERT_TRUE(preview.Render(&rom_, &game_data_, kRoom, {}, false).ok());
+  const auto original_blocks = preview.blocks();
+  const auto original_image = preview.Snapshot();
+  auto live = zelda3::LoadRoomFromRom(&rom_, kRoom);
+  live.SetGameData(&game_data_);
+  live.SetBlockset(live.blockset() == 1 ? 2 : 1);
+  ASSERT_TRUE(preview.Render(&rom_, &game_data_, kRoom, {}, false, &live).ok());
+  EXPECT_EQ(preview.blocks(), live.blocks());
+  EXPECT_NE(preview.blocks(), original_blocks);
+  EXPECT_GT(preview.Snapshot().CountDifferentPixels(original_image), 0);
+  std::set<size_t> attributed;
+  for (const auto& use : preview.tile_references()) {
+    ASSERT_LT(use.object_index, live.GetTileObjects().size());
+    ASSERT_GE(use.slot, 0);
+    ASSERT_LT(use.slot, 8);
+    EXPECT_EQ(use.sheet, live.blocks()[use.slot]);
+    EXPECT_EQ(use.slot, (use.tile_word & 0x3FF) / 64);
+    attributed.insert(use.object_index);
+  }
+  EXPECT_EQ(preview.unknown_objects(),
+            live.GetTileObjects().size() - attributed.size());
+  ASSERT_TRUE(preview.Render(&rom_, &game_data_, kRoom, {}, false).ok());
+  EXPECT_EQ(preview.blocks(), original_blocks);
+  EXPECT_EQ(preview.Snapshot().CountDifferentPixels(original_image), 0);
+
+  Rom other_rom;
+  ASSERT_TRUE(other_rom.LoadFromData(rom_.vector()).ok());
+  zelda3::GameData other_data;
+  ASSERT_TRUE(zelda3::LoadGameData(other_rom, other_data).ok());
+  const auto rejected =
+      preview.Render(&other_rom, &other_data, kRoom, {}, false, &live);
+  EXPECT_EQ(rejected.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(preview.room_id(), -1);
+  ASSERT_TRUE(preview.Render(&other_rom, &other_data, kRoom, {}, false).ok());
+  EXPECT_EQ(preview.blocks(), original_blocks);
+  EXPECT_EQ(preview.Snapshot().CountDifferentPixels(original_image), 0);
+  preview.Reset();
+  EXPECT_TRUE(preview.tile_references().empty());
+  EXPECT_EQ(preview.unknown_objects(), 0);
+}
+
 TEST_F(GraphicsUsagePreviewRomTest, D1RoomPreviewShowsOnePixelEdit) {
   constexpr int kRoom = 0x4A;
   RoomUsagePreview preview;

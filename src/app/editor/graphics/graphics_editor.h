@@ -94,9 +94,15 @@ class GraphicsEditor : public Editor {
     if (gfx_group_panel_)
       gfx_group_panel_->SetRoomsetUsageCallback(roomset_graphics_usage_);
   }
+  void SetRoomUsageProvider(usage_preview::LiveRoomProvider provider) {
+    room_usage_provider_ = std::move(provider);
+    if (usage_preview_view_)
+      usage_preview_view_->SetLiveRoomProvider(room_usage_provider_);
+  }
   void PrepareForSessionTeardown() override {
     if (gfx_group_panel_)
       gfx_group_panel_->DetachRuntimeContext();
+    SetRoomUsageProvider({});
     main_graphics_usage_ = {};
     roomset_graphics_usage_ = {};
   }
@@ -245,6 +251,7 @@ class GraphicsEditor : public Editor {
   GfxGroupEditor::RoomsetUsageCallback roomset_graphics_usage_;
   std::unique_ptr<PalettesetEditorPanel> paletteset_panel_;
   std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
+  usage_preview::LiveRoomProvider room_usage_provider_;
   std::unique_ptr<UsagePreviewView> usage_preview_view_;
 
   // --- Prototype Viewer (Super Donkey / Dev Format Imports) ---

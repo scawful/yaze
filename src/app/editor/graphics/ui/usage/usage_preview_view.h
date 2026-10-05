@@ -35,6 +35,11 @@ class UsagePreviewView {
   void SetGameData(zelda3::GameData* game_data);
   void SetHackName(std::string hack_name) { hack_name_ = std::move(hack_name); }
 
+  void SetLiveRoomProvider(usage_preview::LiveRoomProvider provider) {
+    live_rooms_provider_ = std::move(provider);
+    InvalidateTables();
+  }
+  void Reset() { InvalidateTables(); }
   void Draw();
   // Both the inline view and Source tab use the same cache and renderer.
   void DrawSourcePreview(bool show_controls = true);
@@ -43,9 +48,11 @@ class UsagePreviewView {
 
  private:
   friend class UsagePreviewViewTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
   enum class Mode { kRoom, kSprite, kTile16 };
 
   void EnsureTables();
+  void RefreshRoomContexts();
   void DrawRoomContext(bool render_now);
   void DrawSpriteContext(bool render_now, float delta);
   void DrawTile16Context(bool render_now);
@@ -76,6 +83,13 @@ class UsagePreviewView {
   std::map<int, std::array<uint8_t, 16>> room_blocks_;
   std::map<int, zelda3::RoomGfxInfo> room_gfx_;
   std::optional<std::map<int, zelda3::OverworldAreaGfxInfo>> areas_;
+
+  usage_preview::LiveRoomProvider live_rooms_provider_;
+  usage_preview::LiveRoomContexts live_rooms_;
+  std::map<int, std::array<uint8_t, 16>> fallback_room_blocks_;
+  std::map<int, uint64_t> live_room_revisions_;
+  uint64_t group_hash_ = 0;
+  int current_live_room_ = -1;
 
   // Room context.
   usage_preview::RoomUsagePreview room_preview_;

@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -76,12 +77,35 @@ std::vector<int> RoomsUsingSheet(
     const std::map<int, std::array<uint8_t, 16>>& room_blocks, uint16_t sheet,
     bool include_sprites);
 
+// Ephemeral pointers, resolved by the owning session before each view update.
+struct LiveRoomContext {
+  zelda3::Room* room = nullptr;
+  std::string provenance;
+  bool current = false;
+};
+using LiveRoomContexts = std::map<int, LiveRoomContext>;
+using LiveRoomProvider = std::function<LiveRoomContexts()>;
+
+struct RoomTileReference {
+  size_t object_index = 0;
+  uint16_t object_id = 0;
+  uint16_t tile_word = 0;
+  uint16_t sheet = 0;
+  int slot = 0;
+};
+
 class RoomUsagePreview {
  public:
   /// Loads `room_id` on first use (or when it changes) and renders it with
   /// `sheets` swapped in. `objects_only` hides the floor and layout layers.
   absl::Status Render(Rom* rom, zelda3::GameData* game_data, int room_id,
-                      const SheetPixels& sheets, bool objects_only);
+                      const SheetPixels& sheets, bool objects_only,
+                      zelda3::Room* live_room = nullptr);
+
+  const std::vector<RoomTileReference>& tile_references() const {
+    return tile_references_;
+  }
+  size_t unknown_objects() const { return unknown_objects_; }
 
   int room_id() const { return room_id_; }
   const gfx::Bitmap& bitmap() const { return composite_; }
@@ -97,7 +121,12 @@ class RoomUsagePreview {
   void Reset();
 
  private:
+  void CaptureUsage(const zelda3::Room& room);
   std::unique_ptr<zelda3::Room> room_;
+  std::array<uint8_t, 16> blocks_{};
+  std::vector<RoomTileReference> tile_references_;
+  std::map<size_t, SDL_Rect> object_rects_;
+  size_t unknown_objects_ = 0;
   int room_id_ = -1;
   gfx::Bitmap composite_;
 };
