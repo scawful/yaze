@@ -248,9 +248,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
   int current_tile16_id() const { return current_tile16_; }
-  // Opens one quadrant of a Tile16 in the session's Graphics editor. The
-  // selected map at invocation supplies the sheet and palette context.
+  // Opens a Tile16's editable quadrants, focused on the requested quadrant.
+  // The selected map at invocation supplies the sheet and palette context.
   absl::Status OpenGraphicsForTile16Quadrant(int tile16_id, int quadrant);
+  // Uses the map/tile captured by the context menu, not the hovered or pinned
+  // map. The clicked quadrant is focused first.
+  absl::Status OpenGraphicsForContextTile16(
+      const OverworldContextTarget& target);
   const TilePaintingManager* tile_painting() const {
     return tile_painting_.get();
   }

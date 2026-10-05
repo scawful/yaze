@@ -11,6 +11,8 @@ namespace yaze::editor {
 absl::StatusOr<GraphicsEditTarget> ResolveOverworldQuadrantTarget(
     const zelda3::OverworldMap& map, const gfx::Tile16& tile16, int tile16_id,
     int quadrant, const zelda3::GameData* owner);
+// Opens the requested quadrant first and includes every other editable
+// quadrant, retaining separate palette/flip context for each use.
 absl::StatusOr<GraphicsEditContext> MakeOverworldGraphicsEditContext(
     const zelda3::OverworldMap& map, const gfx::Tile16& tile16, int tile16_id,
     int quadrant, const zelda3::GameData* owner);

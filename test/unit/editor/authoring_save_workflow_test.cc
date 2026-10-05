@@ -857,20 +857,46 @@ TEST_F(AuthoringSaveWorkflowTest, OverworldSourcePixelsUndoReturnSaveAsReopen) {
   overworld->SetCurrentMap(0);
   auto& world = overworld->overworld();
   absl::Status opened = absl::NotFoundError("No editable tile on map");
+  OverworldContextTarget accepted_target;
   for (int y = 0; y < 32 && !opened.ok(); ++y) {
     for (int x = 0; x < 32 && !opened.ok(); ++x) {
       const auto tile = world.GetMapTiles(0)[x][y];
       for (int quadrant = 0; quadrant < 4 && !opened.ok(); ++quadrant) {
-        opened = overworld->OpenGraphicsForTile16Quadrant(tile, quadrant);
+        OverworldContextTarget clicked;
+        clicked.map_id = 0;
+        clicked.parent_map_id = world.overworld_map(0)->parent();
+        clicked.world = 0;
+        clicked.game_state = 0;
+        clicked.world_position =
+            ImVec2(x * 16 + (quadrant % 2) * 8, y * 16 + (quadrant / 2) * 8);
+        clicked.tile16_id = tile;
+        // Navigation since menu opening must not choose another map's colors.
+        overworld->SetCurrentMap(0x30);
+        opened = overworld->OpenGraphicsForContextTile16(clicked);
+        if (opened.ok()) {
+          accepted_target = clicked;
+        }
       }
     }
   }
   ASSERT_OK(opened);
   auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
-  const auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
   ASSERT_TRUE(state.source_context);
   EXPECT_EQ(state.source_context->resolved.id, 0);
   EXPECT_EQ(state.source_context->resolved.slots.size(), 16u);
+  EXPECT_EQ(overworld->current_map_id(), 0);
+  ASSERT_FALSE(state.source_context->targets.empty());
+  EXPECT_NE(state.SourceTarget()->source_orientation_mask, 0);
+  state.selection.is_floating = true;
+  overworld->SetCurrentMap(0x30);
+  const auto refused = overworld->OpenGraphicsForContextTile16(accepted_target);
+  EXPECT_EQ(refused.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(refused.message().find("floating paste"), absl::string_view::npos);
+  EXPECT_EQ(overworld->current_map_id(), 0x30);
+  EXPECT_TRUE(state.selection.is_floating);
+  state.selection.is_floating = false;
+  ASSERT_OK(overworld->OpenGraphicsForContextTile16(accepted_target));
   QualifySourcePixelRoundTrip(fixture);
 }
 
