@@ -82,9 +82,11 @@ struct LiveRoomContext {
   zelda3::Room* room = nullptr;
   std::string provenance;
   bool current = false;
+  int entrance_slot = -1;
 };
 using LiveRoomContexts = std::map<int, LiveRoomContext>;
 using LiveRoomProvider = std::function<LiveRoomContexts()>;
+std::string RoomContextLabel(const LiveRoomContext* live);
 
 struct RoomTileReference {
   size_t object_index = 0;
