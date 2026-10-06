@@ -82,7 +82,7 @@ void PopulateDungeonRenderPaletteRows(const gfx::SnesPalette& dungeon_palette,
   if (hud_palette != nullptr) {
     const size_t hud_count = std::min<size_t>(hud_palette->size(), 32);
     for (size_t i = 0; i < hud_count; ++i) {
-      write_color(static_cast<int>(i), (*hud_palette)[i]);
+      write_color(static_cast<int>(i), (*hud_palette)[i], -1);
     }
   }
 
@@ -99,7 +99,8 @@ void PopulateDungeonRenderPaletteRows(const gfx::SnesPalette& dungeon_palette,
         return;
       }
       const int dst_index = sdl_bank * kIndicesPerSdlBank + color + 1;
-      write_color(dst_index, dungeon_palette[rom_index]);
+      write_color(dst_index, dungeon_palette[rom_index],
+                  static_cast<int>(rom_index));
     }
   }
 }
@@ -136,13 +137,20 @@ void CopyPaletteToCgram(const gfx::SnesPalette* source, size_t source_offset,
 
 std::vector<SDL_Color> BuildDungeonRenderPalette(
     const gfx::SnesPalette& dungeon_palette,
-    const gfx::SnesPalette* hud_palette) {
+    const gfx::SnesPalette* hud_palette, PaletteAddressMap* addresses,
+    int palette_id) {
+  if (addresses)
+    *addresses = {};
   std::vector<SDL_Color> colors(256, {0, 0, 0, 0});
   PopulateDungeonRenderPaletteRows(
       dungeon_palette, hud_palette,
-      [&](int dst_index, const gfx::SnesColor& color) {
+      [&](int dst_index, const gfx::SnesColor& color, int source_index) {
         if (dst_index < 0 || dst_index >= static_cast<int>(colors.size())) {
           return;
+        }
+        if (addresses && source_index >= 0 && dst_index < 128) {
+          (*addresses)[dst_index] = PaletteColorAddress{
+              PaletteAddressGroup::kDungeonMain, palette_id, source_index};
         }
         const ImVec4 rgb = color.rgb();
         colors[dst_index] = {static_cast<Uint8>(rgb.x),
@@ -170,7 +178,7 @@ gfx::PaletteGroup BuildDungeonRenderPaletteGroup(
 
   PopulateDungeonRenderPaletteRows(
       dungeon_palette, hud_palette,
-      [&group](int dst_index, const gfx::SnesColor& color) {
+      [&group](int dst_index, const gfx::SnesColor& color, int) {
         if (dst_index < 0 || dst_index >= kRenderPaletteRows * kColorsPerRow) {
           return;
         }
@@ -250,7 +258,7 @@ void LoadDungeonRenderPaletteToCgram(std::span<uint16_t> cgram,
                                      const gfx::SnesPalette* hud_palette) {
   PopulateDungeonRenderPaletteRows(
       dungeon_palette, hud_palette,
-      [&](int dst_index, const gfx::SnesColor& color) {
+      [&](int dst_index, const gfx::SnesColor& color, int) {
         if (dst_index < 0 || dst_index >= static_cast<int>(cgram.size())) {
           return;
         }
@@ -1410,8 +1418,8 @@ void Room::RenderRoomGraphics() {
     //
     // Drawing formula (see ObjectDrawer): final_color = pixel + (pal * 16).
     // Where pal is the 3-bit tile palette field (0-7) and pixel is 1-15.
-    const auto render_palette =
-        BuildDungeonRenderPalette(bg1_palette, hud_palette);
+    const auto render_palette = BuildDungeonRenderPalette(
+        bg1_palette, hud_palette, &rendered_palette_addresses_, palette_id);
 
     // Retain this room's palette context. The active presentation publishes it
     // atomically with its bitmap; auxiliary room renders must not replace the

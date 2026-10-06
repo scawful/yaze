@@ -1,9 +1,14 @@
 #ifndef YAZE_ZELDA3_GRAPHICS_RESOLVED_GRAPHICS_CONTEXT_H_
 #define YAZE_ZELDA3_GRAPHICS_RESOLVED_GRAPHICS_CONTEXT_H_
 
+#include <array>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
+
+#include "absl/status/statusor.h"
+#include "app/gfx/types/snes_color.h"
 
 namespace yaze {
 namespace core {
@@ -14,6 +19,21 @@ namespace zelda3 {
 
 class OverworldMap;
 class Room;
+struct GameData;
+
+// Model addresses recorded by the palette loaders, not CGRAM or ROM offsets.
+// HUD and animated palette frames have no writable mapping in this slice.
+enum class PaletteAddressGroup { kDungeonMain, kOverworldMain, kOverworldAux };
+struct PaletteColorAddress {
+  PaletteAddressGroup group = PaletteAddressGroup::kDungeonMain;
+  int palette_index = 0;
+  int color_index = 0;
+  bool operator==(const PaletteColorAddress&) const = default;
+};
+using PaletteAddressMap = std::array<std::optional<PaletteColorAddress>, 128>;
+const char* PaletteAddressGroupName(PaletteAddressGroup group);
+absl::StatusOr<gfx::SnesColor> ReadPaletteColor(
+    const GameData& owner, const PaletteColorAddress& address);
 
 // Caller-supplied project facts. Sheet and palette facts come from the loader.
 struct GraphicsContextIdentity {

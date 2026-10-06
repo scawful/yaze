@@ -22,9 +22,9 @@ namespace yaze::editor {
 absl::StatusOr<GraphicsEditTarget> ResolveOverworldQuadrantTarget(
     const zelda3::OverworldMap& map, const gfx::Tile16& tile16, int tile16_id,
     int quadrant, const zelda3::GameData* owner) {
-  if (owner == nullptr) {
+  if (owner == nullptr || (map.game_data() && map.game_data() != owner)) {
     return absl::FailedPreconditionError(
-        "Overworld graphics session is missing");
+        "Overworld graphics session is missing or mismatched");
   }
   if (quadrant < 0 || quadrant >= 4 || tile16_id < 0 ||
       tile16_id >= zelda3::kNumTile16Individual) {
@@ -65,7 +65,7 @@ absl::StatusOr<GraphicsEditTarget> ResolveOverworldQuadrantTarget(
   for (int i = 0; i < 8; ++i) {
     display_colors.push_back(colors[base + i]);
   }
-  return GraphicsEditTarget{
+  GraphicsEditTarget target{
       .sheet_id = sheet,
       .tile_index = static_cast<uint16_t>(tile_index),
       .label = absl::StrFormat(
@@ -78,6 +78,11 @@ absl::StatusOr<GraphicsEditTarget> ResolveOverworldQuadrantTarget(
           static_cast<uint8_t>(1 << ((tile.horizontal_mirror_ ? 1 : 0) |
                                      (tile.vertical_mirror_ ? 2 : 0))),
   };
+  if (map.game_data() == owner) {
+    ResolveGraphicsPaletteAddressing(target, owner, map.palette_addresses(),
+                                     tile.palette_, right ? 8 : 0);
+  }
+  return target;
 }
 
 absl::StatusOr<GraphicsEditContext> MakeOverworldGraphicsEditContext(
