@@ -117,7 +117,7 @@ Do not publish estimated parity percentages.
 | OW-1 | Overworld sprite persistence for all supported states | Partial; state-aware writer reaches editor save, full workflow qualification pending | Three-state save/reopen and runtime evidence | zelda3-hacking-expert |
 | OW-2 | Consistent overworld entity editing and undo | Partial | Existing entity workbench; OW-1 for full sprite loop | imgui-frontend-engineer |
 | GF-1 | Safe graphics-sheet save and asset exchange | Partial; guarded 3bpp sheet writer reaches coordinated save, broader asset exchange and runtime open | Exact-candidate qualification and remaining formats | zelda3-hacking-expert |
-| SC-1 | Coordinated screen and map persistence | Blocked coordinated save | Verified writers/transaction integration | zelda3-hacking-expert |
+| SC-1 | Coordinated screen and map persistence | Partial: dungeon-map records use coordinated save; other Screen domains blocked | Remaining writers and runtime qualification | zelda3-hacking-expert |
 | SC-2 | Complete remaining screen authoring surfaces | Partial | SC-1 for persistence claims | imgui-frontend-engineer |
 | AU-1 | Real sample import and instrument/sample save | Missing writers; WAV import placeholder | BRR/allocation/format inventory | snes-emulator-expert |
 | AU-2 | Music event clipboard and editing completion | Partial | Existing song model; AU-1 for sample workflows | imgui-frontend-engineer |
@@ -798,10 +798,18 @@ when that flag is disabled. Complete remaining format and asset-exchange scope,
 then qualify exact-candidate runtime, CI, and packaged behavior. Graphics-group
 editing/saving already exists and differs from sheet persistence.
 
-The Screen Editor central gate covers all pending screen domains, including
-dungeon maps. Direct title/pause-map writers also reject writes. Complete
-the relevant codecs and transaction integration; verify all affected maps,
-palette/tile references, and exact persisted data. Naming-screen UI is empty;
+Dungeon-map records now participate in coordinated Save/Save As when Save
+Dungeon Maps is enabled: room assignments, references to existing map Tile16
+artwork, floor counts and boss-room selection. A validated full-map write plan
+protects pointer tables and artwork, including vanilla layouts. Pending map
+state clears only after the file commit, and Undo/Redo survives saving. The
+headless product tests cover the actual Add Basement control, Undo/Redo,
+late-failure retry, protected-region refusal, and fresh editor reopen.
+
+Dungeon-map Tile16 artwork, title-screen and overworld pause-map edits still
+reject saving, including mixed edits with otherwise supported map records.
+Remaining codecs, exact-candidate in-game display and packaged UI acceptance
+remain open. Naming-screen UI is empty;
 inventory controls and clipboard/find are partial. Credits/ending coverage
 requires an explicit resource inventory. Polyhedral crystal/Triforce editing
 already exists and must not be incorrectly classified as absent.

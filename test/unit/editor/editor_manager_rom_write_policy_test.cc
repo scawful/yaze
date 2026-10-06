@@ -132,6 +132,28 @@ class ScreenEditorSaveStoplossTestPeer {
   static uint16_t LoadedBossRoom(const ScreenEditor* editor) {
     return editor->dungeon_maps_.at(0).boss_room;
   }
+  static uint8_t LoadedFirstMapRoom(const ScreenEditor* editor) {
+    return editor->dungeon_maps_.at(0).floor_rooms.at(0).at(0);
+  }
+  static void EditLoadedFirstMapRoom(ScreenEditor* editor, uint8_t room) {
+    ASSERT_TRUE(editor->IsRomBackedStateValid());
+    ASSERT_EQ(editor->dungeon_maps_.size(), zelda3::kNumDungeons);
+    ASSERT_EQ(editor->dungeon_maps_[0].floor_rooms.size(), 1u);
+    editor->selected_dungeon = 0;
+    editor->floor_number = 0;
+    editor->SaveDungeonMapUndoState("Edit loaded dungeon map room");
+    editor->dungeon_maps_[0].floor_rooms[0][0] = room;
+    editor->dungeon_maps_[0].floor_gfx[0][0] = 0;
+    editor->CommitDungeonMapUndo();
+  }
+  static void StartUnfinishedDungeonMapEdit(ScreenEditor* editor) {
+    editor->selected_dungeon = 0;
+    editor->SaveDungeonMapUndoState("Unfinished dungeon map edit");
+  }
+  static void CancelUnfinishedDungeonMapEdit(ScreenEditor* editor) {
+    editor->has_pending_dungeon_undo_ = false;
+    editor->pending_dungeon_desc_.clear();
+  }
 
   struct BitmapOwners {
     zelda3::Inventory* inventory = nullptr;
@@ -621,6 +643,31 @@ void WriteScreenModelTestRom(const std::filesystem::path& path,
   out.write(reinterpret_cast<const char*>(rom_data.data()),
             static_cast<std::streamsize>(rom_data.size()));
   ASSERT_TRUE(out.good());
+}
+
+void WriteAdmissibleScreenMapTestRom(const std::filesystem::path& path,
+                                     const std::string& title) {
+  WriteScreenModelTestRom(path, title);
+  // The expanded map layout reads Tile16 at PC 0x109010, beyond 1 MiB.
+  std::filesystem::resize_file(path, 2 * 1024 * 1024);
+  WriteByteAt(path, zelda3::kDungeonMapExpCheck, 0x20);
+  // One real floor with one room; all fourteen maps have a valid no-boss
+  // sentinel. The remaining thirteen maps intentionally have zero floors.
+  for (int dungeon = 0; dungeon < zelda3::kNumDungeons; ++dungeon) {
+    WriteWordAt(path, zelda3::kDungeonMapBossRooms + dungeon * 2, 0xFFFF);
+  }
+  WriteByteAt(path, zelda3::kDungeonMapFloors, 0x10);
+  const uint16_t room_ptr =
+      static_cast<uint16_t>(PcToSnes(zelda3::kDungeonMapDataStart));
+  const uint16_t gfx_ptr = static_cast<uint16_t>(
+      PcToSnes(zelda3::kDungeonMapDataStart + zelda3::kNumRooms));
+  WriteWordAt(path, zelda3::kDungeonMapRoomsPtr, room_ptr);
+  WriteWordAt(path, zelda3::kDungeonMapGfxPtr, gfx_ptr);
+  WriteByteAt(path, zelda3::kDungeonMapDataStart, 0x01);
+  for (int room = 1; room < zelda3::kNumRooms; ++room) {
+    WriteByteAt(path, zelda3::kDungeonMapDataStart + room, 0x0F);
+  }
+  WriteByteAt(path, zelda3::kDungeonMapDataStart + zelda3::kNumRooms, 0x00);
 }
 
 void WriteTooSmallForAssetsTestRom(const std::filesystem::path& path) {
@@ -3022,6 +3069,8 @@ TEST(ScreenSaveStoplossTest,
                                               : "full replacement");
     manager->SetAssetLoadMode(mode);
     WriteScreenModelTestRom(rom_path, "AFTER SCREEN RELOAD");
+    // This successful-save fixture uses the supported vanilla Tile16 layout.
+    WriteByteAt(rom_path, zelda3::kDungeonMapExpCheck, 0xB9);
     WriteByteAt(rom_path, zelda3::kDungeonMapFloors, kReplacementFloorByte);
     for (int dungeon = 0; dungeon < zelda3::kNumDungeons; ++dungeon) {
       WriteWordAt(rom_path, zelda3::kDungeonMapBossRooms + (dungeon * 2),
@@ -3215,7 +3264,9 @@ TEST(ScreenSaveStoplossTest,
     EXPECT_EQ(autosave_status.code(), absl::StatusCode::kFailedPrecondition)
         << autosave_status;
     EXPECT_NE(std::string(autosave_status.message())
-                  .find("Screen Editor edits are pending"),
+                  .find(domain == PendingDomain::kDungeonMap
+                            ? "ROM-backed state is invalid"
+                            : "unsupported domains"),
               std::string::npos);
 
     auto* session = manager->session_coordinator()->GetActiveRomSession();
@@ -3237,12 +3288,14 @@ TEST(ScreenSaveStoplossTest,
 
       EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition)
           << save_status;
-      EXPECT_NE(std::string(save_status.message())
-                    .find("Screen Editor edits are pending"),
-                std::string::npos);
-      EXPECT_NE(std::string(save_status.message())
-                    .find(screen_scope_enabled ? "enabled" : "disabled"),
-                std::string::npos);
+      const std::string save_message(save_status.message());
+      if (domain == PendingDomain::kDungeonMap) {
+        // This peer marks a map pending without loading valid ROM-backed
+        // Screen assets. Enabling map writes must not admit that model.
+        EXPECT_NE(save_message.find("ROM-backed state"), std::string::npos);
+      } else {
+        EXPECT_NE(save_message.find("unsupported domains"), std::string::npos);
+      }
       EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), 0x00);
       ASSERT_TRUE(rom->ReadByte(kPcOffset).ok());
       EXPECT_EQ(*rom->ReadByte(kPcOffset), kPendingRomByte);
@@ -3267,6 +3320,220 @@ TEST(ScreenSaveStoplossTest, DirectEditorSaveFailsClosedForEveryDomain) {
     const auto status = editor.Save();
     EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
   }
+}
+
+class ScreenMapSaveAdmissionTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    root_ = MakeTempFilePath("yaze_screen_map_save_admission");
+    ASSERT_TRUE(std::filesystem::create_directories(root_));
+    source_ = root_ / "source.sfc";
+    const auto project_path = root_ / "source.yaze";
+    WriteAdmissibleScreenMapTestRom(source_, "MAP SAVE ADMISSION");
+    WriteTestProject(project_path, source_);
+    manager_ = std::make_unique<EditorManager>();
+    InitializeWithIsolatedSettings(*manager_, &renderer_);
+    manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager_->user_settings().prefs().backup_before_save = false;
+    ASSERT_OK(manager_->OpenRomOrProject(project_path.string()));
+    DisableRomWritesForTest();
+    core::FeatureFlags::get().kSaveDungeonMaps = true;
+    auto* project = manager_->GetCurrentProject();
+    ASSERT_NE(project, nullptr);
+    project->workspace_settings.backup_on_save = false;
+    project->rom_metadata.expected_hash.clear();
+    project->feature_flags = core::FeatureFlags::get();
+    auto* session = manager_->session_coordinator()->GetActiveRomSession();
+    ASSERT_NE(session, nullptr);
+    session->feature_flags = core::FeatureFlags::get();
+    ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kScreen));
+    screen_ = manager_->GetCurrentEditorSet()->GetScreenEditor();
+    ASSERT_NE(screen_, nullptr);
+    ASSERT_TRUE(screen_->IsRomBackedStateValid());
+    ASSERT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen_), 14u);
+    ASSERT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(screen_),
+              0x01);
+  }
+
+  void TearDown() override {
+    manager_.reset();
+    std::error_code ec;
+    std::filesystem::remove_all(root_, ec);
+  }
+
+  void EditFirstRoom() {
+    ScreenEditorSaveStoplossTestPeer::EditLoadedFirstMapRoom(screen_, 0x02);
+    ASSERT_TRUE(screen_->HasPendingDungeonMapChanges());
+    ASSERT_TRUE(screen_->CanUndo());
+  }
+
+  FeatureFlagsGuard flags_;
+  ScopedImGuiContext imgui_;
+  gfx::NullRenderer renderer_;
+  std::unique_ptr<EditorManager> manager_;
+  std::filesystem::path root_;
+  std::filesystem::path source_;
+  ScreenEditor* screen_ = nullptr;
+};
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       MapOnlySaveAsReopensAndUndoAfterCommitCanBeSavedAgain) {
+  EditFirstRoom();
+  const auto source_hash = util::ComputeFileSha1Hex(source_.string());
+  const auto destination = root_ / "saved.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_EQ(util::ComputeFileSha1Hex(source_.string()), source_hash);
+  EXPECT_EQ(ReadByteAt(destination, zelda3::kDungeonMapDataStart), 0x02);
+  EXPECT_FALSE(screen_->HasPendingDungeonMapChanges());
+  ASSERT_TRUE(screen_->CanUndo());
+  ASSERT_OK(screen_->Undo());
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(screen_),
+            0x01);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  ASSERT_OK(screen_->Redo());
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(screen_),
+            0x02);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_FALSE(screen_->HasPendingDungeonMapChanges());
+
+  manager_.reset();
+  auto reopened = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kScreen));
+  auto* fresh_screen = reopened->GetCurrentEditorSet()->GetScreenEditor();
+  ASSERT_NE(fresh_screen, nullptr);
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(fresh_screen),
+            0x02);
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       DirectSaveKeepsMapPendingUntilCoordinatedFileCommit) {
+  EditFirstRoom();
+  ASSERT_OK(screen_->Save());
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x01);
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x02);
+  EXPECT_FALSE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       FailedFileCommitPreservesMapModelHistoryAndPendingForRetry) {
+  EditFirstRoom();
+  const auto memory_before = manager_->GetCurrentRom()->vector();
+  {
+    test::ScopedRomStagingFailure fault;
+    const auto failed = manager_->SaveRom();
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x01);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory_before);
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(screen_),
+            0x02);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x02);
+  EXPECT_FALSE(screen_->HasPendingDungeonMapChanges());
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       DisabledMixedAndUnfinishedMapEditsAreRefusedBeforeWriting) {
+  EditFirstRoom();
+  core::FeatureFlags::get().kSaveDungeonMaps = false;
+  const auto disabled = manager_->SaveRom();
+  EXPECT_EQ(disabled.code(), absl::StatusCode::kFailedPrecondition) << disabled;
+  EXPECT_NE(disabled.message().find("disabled"), absl::string_view::npos);
+  core::FeatureFlags::get().kSaveDungeonMaps = true;
+
+  ScreenEditorSaveStoplossTestPeer::MarkDungeonMapTile16Modified(screen_);
+  const auto mixed = manager_->SaveRom();
+  EXPECT_EQ(mixed.code(), absl::StatusCode::kFailedPrecondition) << mixed;
+  EXPECT_NE(mixed.message().find("unsupported domains"),
+            absl::string_view::npos);
+  ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(screen_);
+  ScreenEditorSaveStoplossTestPeer::EditLoadedFirstMapRoom(screen_, 0x03);
+  ScreenEditorSaveStoplossTestPeer::StartUnfinishedDungeonMapEdit(screen_);
+  const auto unfinished = manager_->SaveRom();
+  EXPECT_EQ(unfinished.code(), absl::StatusCode::kFailedPrecondition)
+      << unfinished;
+  EXPECT_NE(unfinished.message().find("Finish the current"),
+            absl::string_view::npos);
+  ScreenEditorSaveStoplossTestPeer::CancelUnfinishedDungeonMapEdit(screen_);
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x01);
+  EXPECT_TRUE(screen_->CanUndo());
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       ChangedRomRefusesAndManagerRestoresGameDataOwner) {
+  EditFirstRoom();
+  auto* original_rom = manager_->GetCurrentRom();
+  auto* original_data = manager_->GetCurrentGameData();
+  const auto memory_before = original_rom->vector();
+  const auto source_hash = util::ComputeFileSha1Hex(source_.string());
+  Rom other_rom;
+  ASSERT_OK(other_rom.LoadFromFile(source_.string()));
+  screen_->set_rom(&other_rom);
+  const auto wrong_rom = manager_->SaveRom();
+  EXPECT_EQ(wrong_rom.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(wrong_rom.message().find("current ROM session"),
+            absl::string_view::npos);
+  screen_->set_rom(original_rom);
+  zelda3::GameData other_data;
+  screen_->SetGameData(&other_data);
+  const auto wrong_data = screen_->Save();
+  EXPECT_EQ(wrong_data.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(wrong_data.message().find("current ROM session"),
+            absl::string_view::npos);
+  EXPECT_EQ(original_rom->vector(), memory_before);
+  EXPECT_EQ(util::ComputeFileSha1Hex(source_.string()), source_hash);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+  // Project-save preparation rebinds the active session's dependencies before
+  // Screen Editor preflight, repairing the stale GameData pointer above.
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(screen_->game_data(), original_data);
+  EXPECT_FALSE(screen_->HasPendingScreenChanges());
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       ManifestConflictBlocksMapSaveWithAndWithoutBackingFile) {
+  EditFirstRoom();
+  auto* project = manager_->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  ASSERT_OK(project->hack_manifest.LoadFromString(R"json({
+    "manifest_version": 3,
+    "protected_regions": {"regions": [
+      {"start": "0x0AF039", "end": "0x0AF03A", "module": "Map hook"}
+    ]}
+  })json"));
+  const auto blocked = manager_->SaveRom();
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kCancelled) << blocked;
+  EXPECT_FALSE(manager_->pending_write_conflicts().empty());
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x01);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+
+  // With the original ROM file absent, diffing cannot identify changed
+  // bytes. The preflight map plan must still protect the same ASM-owned cell.
+  manager_->ClearPendingWriteConflicts();
+  ASSERT_TRUE(std::filesystem::remove(source_));
+  const auto destination = root_ / "blocked-without-source.sfc";
+  const auto fallback_blocked = manager_->SaveRomAs(destination.string());
+  EXPECT_EQ(fallback_blocked.code(), absl::StatusCode::kCancelled)
+      << fallback_blocked;
+  EXPECT_FALSE(manager_->pending_write_conflicts().empty());
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
 }
 
 TEST(ScreenSaveStoplossTest,
@@ -4009,13 +4276,13 @@ TEST_F(SessionRomIdentityTest,
   ASSERT_OK(screen->Redo());
   EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), 0x0123);
   const auto undo_description = screen->GetUndoDescription();
-  // Screen edits intentionally fail closed even with dungeon-map saves enabled.
-  // Preserve that domain guard; this is not a model serializer expansion.
+  // This identity fixture has an unsupported map-layout marker. The failed
+  // product save must preserve its edited model and history after switching.
   const auto destination = root / "model-refused.sfc";
   const auto source_hash = util::ComputeFileSha1Hex(a.string());
   const auto failed = manager->SaveRomAs(destination.string());
   EXPECT_EQ(failed.code(), absl::StatusCode::kFailedPrecondition) << failed;
-  EXPECT_NE(std::string(failed.message()).find("Screen Editor"),
+  EXPECT_NE(std::string(failed.message()).find("Unsupported dungeon map"),
             std::string::npos);
   ExpectBaseline(baseline);
   EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);

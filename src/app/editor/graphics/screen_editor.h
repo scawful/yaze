@@ -53,6 +53,12 @@ class ScreenEditor : public Editor {
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  // Pure preflight, also used before any coordinated serializer runs. Only
+  // pending map records are admitted; a clean editor produces no writes.
+  absl::StatusOr<zelda3::DungeonMapWritePlan> PrepareDungeonMapSave() const;
+  absl::Status BeginSaveTransaction() override;
+  void RollbackSaveTransaction() override;
+  void CommitSaveTransaction() override;
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
@@ -173,6 +179,7 @@ class ScreenEditor : public Editor {
   int selected_tile8_ = 0;
   int selected_dungeon = 0;
   int floor_number = 1;
+  bool select_floor_tab_ = true;
 
   bool copy_button_pressed = false;
   bool paste_button_pressed = false;
@@ -238,6 +245,10 @@ class ScreenEditor : public Editor {
   bool pending_overworld_map_changes_ = false;
   bool pending_overworld_map_palette_changes_ = false;
   bool rom_backed_state_valid_ = false;
+  Rom* loaded_rom_ = nullptr;
+  zelda3::GameData* loaded_game_data_ = nullptr;
+  bool map_save_transaction_active_ = false;
+  bool map_save_serialized_ = false;
   ScreenSnapshot pending_dungeon_before_;
   ScreenSnapshot pending_tile16_before_;
   std::string pending_dungeon_desc_;
