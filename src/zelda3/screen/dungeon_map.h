@@ -82,6 +82,19 @@ using DungeonMapLabels =
 absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
     Rom& rom, DungeonMapLabels& dungeon_map_labels);
 
+// A complete, pure serialization plan. PC extents are half-open; payloads
+// include both metadata and packed streams. Only SaveDungeonMaps applies it.
+struct DungeonMapWrite {
+  int pc_address;
+  std::vector<uint8_t> data;
+};
+struct DungeonMapWritePlan {
+  std::vector<DungeonMapWrite> writes;
+};
+absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
+    const std::vector<DungeonMap>& dungeon_maps, size_t rom_size,
+    bool relocated_tile16);
+
 /**
  * @brief Save the dungeon maps to the ROM.
  *

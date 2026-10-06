@@ -79,11 +79,13 @@ absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
   return dungeon_maps;
 }
 
-absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
-  // Validate every supplied record before the first write, including records
-  // later in the batch. Floor rooms are bytes, with 0F denoting an empty cell.
-  if (dungeon_maps.size() > kNumDungeons) {
-    return absl::InvalidArgumentError("Too many dungeon maps");
+absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
+    const std::vector<DungeonMap>& dungeon_maps, size_t rom_size,
+    bool relocated_tile16) {
+  // Repacking a prefix would overwrite streams owned by omitted maps.
+  if (dungeon_maps.size() != kNumDungeons) {
+    return absl::InvalidArgumentError(
+        "A full set of 14 dungeon maps is required");
   }
   std::array<uint16_t, kNumDungeons> boss_floors;
   boss_floors.fill(0xFFFF);
@@ -117,83 +119,137 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
     }
   }
 
-  // Direct serializer callers need the same rollback protection as coordinated
-  // saves if capacity, bounds or a ROM write fence rejects a later write.
-  ScopedRomTransaction transaction(rom);
-  int pos = kDungeonMapDataStart;
-
-  for (int d = 0; d < kNumDungeons; d++) {
-    if (d >= static_cast<int>(dungeon_maps.size())) {
-      break;
-    }
-
-    auto& map = dungeon_maps[d];
-    const int total_floors = map.nbr_of_floor + map.nbr_of_basement;
-
-    uint16_t floors = (map.nbr_of_floor << 4) | map.nbr_of_basement;
-    RETURN_IF_ERROR(rom.WriteWord(kDungeonMapFloors + (d * 2), floors));
-    RETURN_IF_ERROR(
-        rom.WriteWord(kDungeonMapBossRooms + (d * 2), map.boss_room));
-
-    RETURN_IF_ERROR(
-        rom.WriteWord(kDungeonMapBossFloors + (d * 2), boss_floors[d]));
-
-    RETURN_IF_ERROR(
-        rom.WriteWord(kDungeonMapRoomsPtr + (d * 2), PcToSnes(pos)));
-
-    bool restart = false;
-    for (int f = 0; f < total_floors; f++) {
-      for (int r = 0; r < kNumRooms; r++) {
-        if (pos >= kDungeonMapDataReservedStart &&
-            pos <= kDungeonMapDataReservedEnd) {
-          pos = kDungeonMapDataReservedEnd + 1;
-          restart = true;
+  DungeonMapWritePlan plan;
+  // The room pointer/floor block AND the GFX pointer block are fixed owners.
+  // A stream must fit contiguously in one remaining interval; loaders cannot
+  // skip a table in the middle of a room or graphics stream.
+  constexpr std::array<std::pair<int, int>, 3> regions = {{
+      {kDungeonMapDataStart, kDungeonMapDataReservedStart},
+      {kDungeonMapDataReservedEnd + 1, kDungeonMapGfxPtr},
+      {kDungeonMapGfxPtr + 2 * kNumDungeons, kDungeonMapDataLimit},
+  }};
+  int cursor =
+      relocated_tile16 ? kDungeonMapDataStart : kDungeonMapDataReservedEnd + 1;
+  auto allocate = [&](std::vector<uint8_t> bytes) -> absl::StatusOr<uint16_t> {
+    // Empty streams have a valid bank0A pointer but consume no storage.
+    int start = relocated_tile16 ? kDungeonMapDataStart
+                                 : kDungeonMapDataReservedEnd + 1;
+    if (!bytes.empty()) {
+      bool found = false;
+      for (const auto& [begin, end] : regions) {
+        start = std::max(cursor, begin);
+        if (start < end && bytes.size() <= static_cast<size_t>(end - start)) {
+          found = true;
           break;
         }
-
-        RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_rooms[f][r]));
-        pos++;
       }
-      if (restart)
-        break;
-    }
-
-    if (restart) {
-      d--;
-      continue;
-    }
-
-    RETURN_IF_ERROR(rom.WriteWord(kDungeonMapGfxPtr + (d * 2), PcToSnes(pos)));
-    for (int f = 0; f < total_floors; f++) {
-      for (int r = 0; r < kNumRooms; r++) {
-        if (map.floor_rooms[f][r] != 0x0F) {
-          if (pos >= kDungeonMapDataReservedStart &&
-              pos <= kDungeonMapDataReservedEnd) {
-            pos = kDungeonMapDataReservedEnd + 1;
-            RETURN_IF_ERROR(
-                rom.WriteWord(kDungeonMapGfxPtr + (d * 2), PcToSnes(pos)));
-            restart = true;
-            break;
-          }
-
-          RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_gfx[f][r]));
-          pos++;
-        }
+      if (!found) {
+        return absl::OutOfRangeError(
+            "Dungeon map streams exceed safe capacity");
       }
-      if (restart)
-        break;
     }
-
-    if (pos >= kDungeonMapDataLimit) {
-      return absl::OutOfRangeError("Dungeon map data exceeds reserved space");
+    const int snes = PcToSnes(start);
+    const int last =
+        start + static_cast<int>(bytes.empty() ? 0 : bytes.size() - 1);
+    if ((snes >> 16) != 0x0A || (snes & 0xFFFF) < 0x8000 ||
+        (PcToSnes(last) >> 16) != 0x0A ||
+        static_cast<size_t>(last) >= rom_size) {
+      return absl::OutOfRangeError(
+          "Dungeon map stream violates ROM/bank bounds");
     }
-
-    if (restart) {
-      d--;
-      continue;
+    if (!bytes.empty()) {
+      cursor = start + bytes.size();
+      plan.writes.push_back({start, std::move(bytes)});
+    }
+    return static_cast<uint16_t>(snes);
+  };
+  auto word = [&](int address, uint16_t value) {
+    plan.writes.push_back(
+        {address,
+         {static_cast<uint8_t>(value), static_cast<uint8_t>(value >> 8)}});
+  };
+  std::array<std::vector<uint8_t>, kNumDungeons> room_streams, gfx_streams;
+  std::array<uint16_t, kNumDungeons> room_pointers, gfx_pointers;
+  for (int d = 0; d < kNumDungeons; ++d) {
+    const auto& map = dungeon_maps[d];
+    for (size_t f = 0; f < map.floor_rooms.size(); ++f) {
+      for (int r = 0; r < kNumRooms; ++r) {
+        room_streams[d].push_back(map.floor_rooms[f][r]);
+        if (map.floor_rooms[f][r] != 0x0F)
+          gfx_streams[d].push_back(map.floor_gfx[f][r]);
+      }
     }
   }
+  // Vanilla fills the room-data interval before its separate graphics interval.
+  // Keep that ordering so interleaving cannot fragment an otherwise valid fit.
+  for (int d = 0; d < kNumDungeons; ++d) {
+    ASSIGN_OR_RETURN(room_pointers[d], allocate(std::move(room_streams[d])));
+  }
+  for (int d = 0; d < kNumDungeons; ++d) {
+    ASSIGN_OR_RETURN(gfx_pointers[d], allocate(std::move(gfx_streams[d])));
+  }
+  for (int d = 0; d < kNumDungeons; ++d) {
+    const auto& map = dungeon_maps[d];
+    word(kDungeonMapRoomsPtr + 2 * d, room_pointers[d]);
+    word(kDungeonMapGfxPtr + 2 * d, gfx_pointers[d]);
+    word(kDungeonMapFloors + 2 * d,
+         (map.nbr_of_floor << 4) | map.nbr_of_basement);
+    word(kDungeonMapBossRooms + 2 * d, map.boss_room);
+    word(kDungeonMapBossFloors + 2 * d, boss_floors[d]);
+  }
+  // Validate the complete output, including fixed tables, without touching ROM.
+  std::vector<std::pair<int, int>> extents;
+  for (const auto& write : plan.writes) {
+    const int end = write.pc_address + write.data.size();
+    if (write.pc_address < 0 || static_cast<size_t>(end) > rom_size ||
+        (PcToSnes(write.pc_address) >> 16) != 0x0A ||
+        (PcToSnes(end - 1) >> 16) != 0x0A) {
+      return absl::OutOfRangeError(
+          "Dungeon map write violates ROM/bank bounds");
+    }
+    extents.emplace_back(write.pc_address, end);
+  }
+  std::sort(extents.begin(), extents.end());
+  for (size_t i = 1; i < extents.size(); ++i) {
+    if (extents[i].first < extents[i - 1].second)
+      return absl::InternalError("Overlapping dungeon map write plan");
+  }
+  return plan;
+}
 
+absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
+  ASSIGN_OR_RETURN(auto marker, rom.ReadByte(kDungeonMapExpCheck));
+  if (marker != 0xB9 && marker != 0x20) {
+    return absl::FailedPreconditionError(
+        "Unsupported dungeon map Tile16 layout");
+  }
+  const bool relocated_tile16 = marker == 0x20;
+  const int tile16 = GetDungeonMapTile16Expanded();
+  const int64_t tile16_end =
+      static_cast<int64_t>(tile16) + kNumDungeonMapTile16 * 8;
+  if (relocated_tile16) {
+    if (tile16 < 0 || tile16_end > rom.size() ||
+        (tile16 < kDungeonMapDataLimit && tile16_end > kDungeonMapDataStart)) {
+      return absl::FailedPreconditionError(
+          "Invalid relocated dungeon map Tile16 extent");
+    }
+  }
+  ASSIGN_OR_RETURN(auto plan, BuildDungeonMapWritePlan(dungeon_maps, rom.size(),
+                                                       relocated_tile16));
+  if (relocated_tile16) {
+    for (const auto& write : plan.writes) {
+      const int64_t write_end = static_cast<int64_t>(write.pc_address) +
+                                static_cast<int64_t>(write.data.size());
+      if ((write.pc_address < tile16_end) && (write_end > tile16)) {
+        return absl::FailedPreconditionError(
+            "Dungeon map write overlaps relocated Tile16 artwork");
+      }
+    }
+  }
+  ScopedRomTransaction transaction(rom);
+  for (const auto& write : plan.writes) {
+    RETURN_IF_ERROR(rom.WriteVector(write.pc_address, write.data));
+  }
   transaction.Commit();
   return absl::OkStatus();
 }

@@ -104,6 +104,7 @@ class ScreenEditor : public Editor {
   friend class ScreenEditorSaveStoplossTestPeer;
   friend class AuthoringSaveWorkflowTestPeer;
   friend class ScreenGraphicsContextTestPeer;
+  friend class ScreenFloorMutationTestPeer;
 
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
@@ -136,6 +137,8 @@ class ScreenEditor : public Editor {
   void RefreshTileCacheForReload(gfx::Tilemap& tilemap);
   bool HasValidDungeonSelection() const;
   bool HasValidDungeonFloorSelection(int floor) const;
+
+  absl::Status ChangeDungeonMapFloorCount(bool basement, bool add);
 
   // Undo/redo helpers
   ScreenSnapshot CaptureDungeonMapSnapshot() const;
