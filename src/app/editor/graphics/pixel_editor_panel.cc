@@ -798,6 +798,7 @@ void PixelEditorPanel::DrawColorPicker() {
   }
   ImGui::EndGroup();
   ImGui::PopStyleVar();
+  palette_reorder_.Draw(*state_, apply_palette_reorder_, HasActiveStroke());
 }
 
 void PixelEditorPanel::DrawMiniMap() {

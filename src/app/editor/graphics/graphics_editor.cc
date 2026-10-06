@@ -95,6 +95,11 @@ void GraphicsEditor::Initialize() {
       });
   pixel_editor_panel_ =
       std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
+  pixel_editor_panel_->SetPaletteReorderCallback(
+      [this](const std::vector<size_t>& targets,
+             const PalettePermutation& permutation) {
+        return ReorderSourcePalette(targets, permutation);
+      });
   pixel_editor_panel_->SetSheetBrowserCallbacks(
       [this]() {
         return dependencies_.window_manager->IsWindowOpen(

@@ -343,6 +343,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
   friend class AuthoringSaveWorkflowTestPeer;
+  friend class DungeonPaletteSourceTestPeer;
   friend class DungeonEditorV2ShortcutTestPeer;
   friend class DungeonEditorV2SpawnPointTestPeer;
   friend class DungeonEditorV2SpawnRejectionTestPeer;

@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/palette_reorder_control.h"
 #include "app/editor/graphics/pixel_clipboard.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
@@ -80,8 +81,13 @@ class PixelEditorPanel : public WindowContent {
   void PasteFromSystemClipboard();
 
   bool HasActiveStroke() const { return stroke_.has_value(); }
+  void SetPaletteReorderCallback(PaletteReorderControl::Apply apply) {
+    apply_palette_reorder_ = std::move(apply);
+  }
 
  private:
+  PaletteReorderControl palette_reorder_;
+  PaletteReorderControl::Apply apply_palette_reorder_;
   void DrawSourceContext();
   // A palette-only display copy. Pixel tools still write the session store.
   gfx::Bitmap& DisplaySheet();
