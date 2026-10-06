@@ -25,6 +25,66 @@ TEST(DungeonTilePatternsTest, ParsesSparseLiteralWordsIncludingZeroAndFlips) {
   EXPECT_EQ(parsed->words.at(0x26B8), 0xC89E);
 }
 
+TEST(DungeonTilePatternsTest, ValidatesLiteralProgramCounterAssertions) {
+  const std::string source =
+      "org $00A6B8\ndw $C89E,$489E\n"
+      "assert pc() == $00A6BC, \"Corner size; unchanged\" ; comment\n"
+      "org $009E3A\ndw $0890\nassert pc()==$009E3C\n"
+      "org $009E1A\ndw $0892\n"
+      "assert pc() == $009E1C, \"Left wall size\"\n";
+  const auto parsed = ParseDungeonTilePatterns(source);
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  EXPECT_EQ(parsed->words.size(), 4u);
+  EXPECT_EQ(parsed->source_text, source);
+  for (const auto& [pc, token] : parsed->tokens) {
+    EXPECT_EQ(source.substr(token.offset, token.length),
+              pc == 0x26B8   ? "$C89E"
+              : pc == 0x26BA ? "$489E"
+              : pc == 0x1E3A ? "$0890"
+                             : "$0892");
+  }
+}
+
+TEST(DungeonTilePatternsTest, RejectsFailedOrUnsupportedAssertions) {
+  EXPECT_FALSE(
+      ParseDungeonTilePatterns("assert pc() == $009E3A\norg $009E3A\ndw $0001")
+          .ok());
+  for (const char* assertion :
+       {"assert pc() == $009E3A, \"Wrong size\"", "assert pc() != $009E3C",
+        "assert 1", "assert pc() == end", "assert pc() == $009E3C + $0000",
+        "assert pc() == $7E9E3C", "assert pc() == $009E3C, unquoted",
+        "assert pc() == $009E3C, \"unterminated",
+        "assert pc() == $009E3C, \"ok\" extra"}) {
+    const auto parsed = ParseDungeonTilePatterns(
+        std::string("org $009E3A\ndw $0001\n") + assertion);
+    EXPECT_FALSE(parsed.ok()) << assertion;
+    EXPECT_NE(parsed.status().message().find("line 3"), std::string::npos);
+  }
+}
+
+TEST(DungeonTilePatternsTest, PublishingWordsPreservesAssertions) {
+  const auto path = test::UniqueTempPath("asserted_wall_patterns.asm");
+  const absl::Cleanup cleanup = [&] {
+    std::filesystem::remove(path);
+  };
+  const std::string source =
+      "org $009E3A\ndw $0890,$0896\n"
+      "assert pc() == $009E3E, \"Top wall size\"\n";
+  {
+    std::ofstream file(path);
+    file << source;
+  }
+  const auto parsed = LoadDungeonTilePatterns(path.string());
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  ASSERT_TRUE(PublishDungeonTilePatterns(*parsed, {{0x1E3A, 0x4890}}).ok());
+  const auto changed = LoadDungeonTilePatterns(path.string());
+  ASSERT_TRUE(changed.ok()) << changed.status();
+  auto expected = source;
+  expected.replace(expected.find("$0890"), 5, "$4890");
+  EXPECT_EQ(changed->source_text, expected);
+  EXPECT_EQ(changed->words.at(0x1E3A), 0x4890);
+}
+
 TEST(DungeonTilePatternsTest,
      RejectsUnsupportedOrAmbiguousSourceWithoutPartialResult) {
   for (const char* text :

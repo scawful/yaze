@@ -7,6 +7,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/strip.h"
 #include "core/source_artifact_publisher.h"
 
 namespace yaze::zelda3 {
@@ -30,6 +31,40 @@ std::optional<uint32_t> HexLiteral(absl::string_view text, size_t digits) {
             (ch <= '9' ? ch - '0' : absl::ascii_tolower(ch) - 'a' + 10);
   }
   return value;
+}
+
+// Semicolons inside an assertion message are text, not assembler comments.
+absl::string_view StripComment(absl::string_view line) {
+  bool quoted = false;
+  for (size_t i = 0; i < line.size(); ++i) {
+    if (line[i] == '"')
+      quoted = !quoted;
+    if (line[i] == ';' && !quoted)
+      return line.substr(0, i);
+  }
+  return line;
+}
+
+std::optional<uint32_t> ProgramCounterAssertion(absl::string_view operand) {
+  if (!absl::ConsumePrefix(&operand, "pc()"))
+    return std::nullopt;
+  operand = absl::StripAsciiWhitespace(operand);
+  if (!absl::ConsumePrefix(&operand, "=="))
+    return std::nullopt;
+  const auto comma = operand.find(',');
+  const auto address = HexLiteral(operand.substr(0, comma), 6);
+  if (!address || *address < 0x009B52 || *address > 0x00FFFF)
+    return std::nullopt;
+  if (comma != absl::string_view::npos) {
+    auto message = absl::StripAsciiWhitespace(operand.substr(comma + 1));
+    if (message.size() < 2 || message.front() != '"' || message.back() != '"')
+      return std::nullopt;
+    message.remove_prefix(1);
+    message.remove_suffix(1);
+    if (message.find_first_of("\\\"") != absl::string_view::npos)
+      return std::nullopt;
+  }
+  return address;
 }
 
 bool IsLabel(absl::string_view text) {
@@ -63,7 +98,7 @@ absl::StatusOr<DungeonTilePatterns> ParseDungeonTilePatterns(
   int line_number = 0;
   for (absl::string_view line : absl::StrSplit(source, '\n')) {
     ++line_number;
-    line = absl::StripAsciiWhitespace(line.substr(0, line.find(';')));
+    line = absl::StripAsciiWhitespace(StripComment(line));
     if (line.empty() || line == "lorom" || IsLabel(line))
       continue;
     const auto fail = [&](absl::string_view reason) {
@@ -105,10 +140,25 @@ absl::StatusOr<DungeonTilePatterns> ParseDungeonTilePatterns(
                          token.size()});
         *cursor += 2;
       }
+    } else if (command == "assert") {
+      if (!cursor)
+        return fail("assert pc() requires an org first");
+      const auto address = ProgramCounterAssertion(operand);
+      if (!address) {
+        return fail(
+            "assert requires pc() == $00xxxx with an optional quoted "
+            "message; expressions are not supported");
+      }
+      const uint32_t actual = *cursor + 0x8000;
+      if (*address != actual) {
+        return fail(absl::StrFormat(
+            "assert pc() failed: expected $%06X, current address $%06X",
+            *address, actual));
+      }
     } else {
       return fail(
-          "unsupported statement; only labels, lorom, org and literal dw are "
-          "supported");
+          "unsupported statement; only labels, lorom, org, literal dw "
+          "and assert pc() == $00xxxx are supported");
     }
   }
   if (result.words.empty()) {
