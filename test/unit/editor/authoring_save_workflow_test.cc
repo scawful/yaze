@@ -2497,6 +2497,79 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
+TEST_F(AuthoringSaveWorkflowTest, AssertedWallSourceRendersCompleteRooms) {
+  const auto fixture = CopyProject("yaze-asserted-wall-render");
+  const auto source_root = std::filesystem::path(kSharedProject).parent_path();
+  const auto source = source_root / "Dungeons/house_walls.asm";
+  const auto original_source = ReadFile(source);
+  const auto patterns_path = fixture.root / "walls.asm";
+  std::filesystem::copy_file(source, patterns_path);
+  for (const auto& entry : std::filesystem::directory_iterator(
+           source_root / "Dungeons/Objects/Data")) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin") {
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+    }
+  }
+  {
+    std::ofstream project(fixture.project, std::ios::app);
+    project << "\n[files]\ndungeon_tile_patterns=walls.asm\n";
+  }
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  ASSERT_NE(dungeon, nullptr);
+  auto& custom = zelda3::CustomObjectManager::Get();
+  const auto patterns = custom.GetTilePatterns();
+  ASSERT_OK(patterns.status());
+  ASSERT_NE(*patterns, nullptr);
+  EXPECT_EQ((*patterns)->words.size(), 96u);
+
+  // The guards are zero-byte directives. The same literal words without the
+  // guards must render identically, including layout walls and room objects.
+  const auto reference_path = fixture.root / "unguarded-walls.asm";
+  {
+    std::ifstream input(patterns_path);
+    std::ofstream output(reference_path);
+    for (std::string line; std::getline(input, line);) {
+      if (line.find("assert pc()") == std::string::npos)
+        output << line << '\n';
+    }
+  }
+  const auto bytes = manager_->GetCurrentRom()->vector();
+  const char* capture_path = std::getenv("YAZE_DUNGEON_RENDER_CAPTURE");
+  for (int id : {0x05, 0x27, 0x38, 0x89, 0xE6}) {
+    SCOPED_TRACE(absl::StrFormat("room $%03X", id));
+    AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, id);
+    auto& room = dungeon->rooms()[id];
+    auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, id);
+    ASSERT_NE(viewer, nullptr);
+    RoomCompositeOutput output;
+    auto& composite = output.Prepare(room, viewer->GetRoomLayerManager(id));
+    const auto pixels = composite.vector();
+    const auto& coverage = room.object_bg1_buffer().coverage_data();
+    EXPECT_GT(std::count_if(coverage.begin(), coverage.end(),
+                            [](uint8_t value) { return value != 0; }),
+              256);
+    if (capture_path && *capture_path) {
+      std::filesystem::create_directories(capture_path);
+      const auto path = std::filesystem::path(capture_path) /
+                        absl::StrFormat("%03X-composite.bmp", id);
+      ASSERT_EQ(SDL_SaveBMP(composite.surface(), path.string().c_str()), 0)
+          << SDL_GetError();
+    }
+    custom.SetTilePatternsSource(reference_path.string());
+    room.MarkGraphicsDirty();
+    const auto& reference =
+        output.Prepare(room, viewer->GetRoomLayerManager(id));
+    EXPECT_EQ(reference.vector(), pixels);
+    custom.SetTilePatternsSource(patterns_path.string());
+  }
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), bytes);
+  EXPECT_EQ(ReadFile(source), original_source);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
 TEST_F(AuthoringSaveWorkflowTest, OracleRoom038PreservesSubmergedDetails) {
   constexpr int kRoom = 0x38;
   const auto fixture = CopyProject("yaze-water-composite");

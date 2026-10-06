@@ -24,8 +24,9 @@ struct DungeonTilePatterns {
 };
 
 // Supports comments, labels, optional `lorom`, `org $00xxxx` and literal `dw`
-// lists in the bank-00 object-data range. Unsupported directives, expressions,
-// overlapping words and invalid addresses reject the entire source.
+// lists in the bank-00 object-data range. Literal `assert pc() == $00xxxx`
+// checks the current address, with an optional quoted message. Other directives,
+// expressions, overlapping words and invalid addresses reject the entire source.
 absl::StatusOr<DungeonTilePatterns> ParseDungeonTilePatterns(
     absl::string_view source);
 absl::StatusOr<DungeonTilePatterns> LoadDungeonTilePatterns(
