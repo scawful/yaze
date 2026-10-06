@@ -655,36 +655,19 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
   const auto button_size = ImVec2(130, 0);
 
-  if (ImGui::Button(tr("Add Floor"), button_size) &&
-      current_dungeon.nbr_of_floor < 8) {
-    SaveDungeonMapUndoState("Add floor");
-    current_dungeon.nbr_of_floor++;
-    dungeon_map_labels_[selected_dungeon].emplace_back();
-    CommitDungeonMapUndo();
+  if (ImGui::Button(tr("Add Floor"), button_size)) {
+    status_ = ChangeDungeonMapFloorCount(/*basement=*/false, /*add=*/true);
   }
   ImGui::SameLine();
-  if (ImGui::Button(tr("Remove Floor"), button_size) &&
-      current_dungeon.nbr_of_floor > 0) {
-    SaveDungeonMapUndoState("Remove floor");
-    current_dungeon.nbr_of_floor--;
-    dungeon_map_labels_[selected_dungeon].pop_back();
-    CommitDungeonMapUndo();
+  if (ImGui::Button(tr("Remove Floor"), button_size)) {
+    status_ = ChangeDungeonMapFloorCount(/*basement=*/false, /*add=*/false);
   }
-
-  if (ImGui::Button(tr("Add Basement"), button_size) &&
-      current_dungeon.nbr_of_basement < 8) {
-    SaveDungeonMapUndoState("Add basement");
-    current_dungeon.nbr_of_basement++;
-    dungeon_map_labels_[selected_dungeon].emplace_back();
-    CommitDungeonMapUndo();
+  if (ImGui::Button(tr("Add Basement"), button_size)) {
+    status_ = ChangeDungeonMapFloorCount(/*basement=*/true, /*add=*/true);
   }
   ImGui::SameLine();
-  if (ImGui::Button(tr("Remove Basement"), button_size) &&
-      current_dungeon.nbr_of_basement > 0) {
-    SaveDungeonMapUndoState("Remove basement");
-    current_dungeon.nbr_of_basement--;
-    dungeon_map_labels_[selected_dungeon].pop_back();
-    CommitDungeonMapUndo();
+  if (ImGui::Button(tr("Remove Basement"), button_size)) {
+    status_ = ChangeDungeonMapFloorCount(/*basement=*/true, /*add=*/false);
   }
 
   if (ImGui::Button(tr("Copy Floor"), button_size)) {
@@ -1564,10 +1547,68 @@ void ScreenEditor::DrawDungeonMapToolset() {
 // Undo/redo helpers
 // ---------------------------------------------------------------------------
 
+absl::Status ScreenEditor::ChangeDungeonMapFloorCount(bool basement, bool add) {
+  if (!rom_backed_state_valid_ || !HasValidDungeonSelection() ||
+      has_pending_dungeon_undo_ || has_pending_tile16_undo_) {
+    return absl::FailedPreconditionError("Dungeon map edit is unavailable");
+  }
+  auto& map = dungeon_maps_[selected_dungeon];
+  auto& labels = dungeon_map_labels_[selected_dungeon];
+  const size_t total = map.nbr_of_basement + map.nbr_of_floor;
+  const int count = basement ? map.nbr_of_basement : map.nbr_of_floor;
+  if (map.floor_rooms.size() != total || map.floor_gfx.size() != total ||
+      labels.size() != total) {
+    return absl::InvalidArgumentError(
+        "Dungeon map floor vectors are inconsistent");
+  }
+  if ((add && count >= 8) || (!add && (count == 0 || total <= 1))) {
+    return absl::FailedPreconditionError(
+        "Keep at least one map floor and at most eight floors of each type");
+  }
+  const size_t index = basement ? 0 : (add ? total : total - 1);
+  if (!add && map.boss_room != 0x000F && map.boss_room != 0xFFFF) {
+    const auto& rooms = map.floor_rooms[index];
+    if (std::find(rooms.begin(), rooms.end(), map.boss_room) != rooms.end()) {
+      return absl::FailedPreconditionError(
+          "Move or clear the boss before removing its map floor");
+    }
+  }
+  // All refusal paths precede history/model changes. Basement insertion/removal
+  // acts on the deepest row; upper floors act on the last row.
+  SaveDungeonMapUndoState(
+      add ? (basement ? "Add basement" : "Add floor")
+          : (basement ? "Remove basement" : "Remove floor"));
+  if (add) {
+    std::array<uint8_t, zelda3::kNumRooms> rooms, graphics;
+    std::array<std::string, zelda3::kNumRooms> row_labels;
+    rooms.fill(0x0F);
+    graphics.fill(0xFF);
+    row_labels.fill(util::HexByte(0x0F));
+    map.floor_rooms.insert(map.floor_rooms.begin() + index, rooms);
+    map.floor_gfx.insert(map.floor_gfx.begin() + index, graphics);
+    labels.insert(labels.begin() + index, row_labels);
+    if (basement && total > 0)
+      ++floor_number;
+  } else {
+    map.floor_rooms.erase(map.floor_rooms.begin() + index);
+    map.floor_gfx.erase(map.floor_gfx.begin() + index);
+    labels.erase(labels.begin() + index);
+    if (basement)
+      --floor_number;
+  }
+  auto& changed_count = basement ? map.nbr_of_basement : map.nbr_of_floor;
+  changed_count += add ? 1 : -1;
+  floor_number =
+      std::clamp(floor_number, 0, static_cast<int>(map.floor_rooms.size()) - 1);
+  CommitDungeonMapUndo();
+  return absl::OkStatus();
+}
+
 ScreenSnapshot ScreenEditor::CaptureDungeonMapSnapshot() const {
   ScreenSnapshot snap;
   snap.edit_type = ScreenEditType::kDungeonMap;
   snap.dungeon_map.dungeon_index = selected_dungeon;
+  snap.dungeon_map.floor_index = floor_number;
   if (selected_dungeon >= 0 &&
       selected_dungeon < static_cast<int>(dungeon_maps_.size())) {
     snap.dungeon_map.map_data = dungeon_maps_[selected_dungeon];
@@ -1630,6 +1671,11 @@ void ScreenEditor::RestoreFromSnapshot(const ScreenSnapshot& snapshot) {
         dungeon_maps_[idx] = snapshot.dungeon_map.map_data;
         dungeon_map_labels_[idx] = snapshot.dungeon_map.labels;
         selected_dungeon = idx;
+        floor_number = std::clamp(
+            snapshot.dungeon_map.floor_index, 0,
+            std::max(
+                0,
+                static_cast<int>(dungeon_maps_[idx].floor_rooms.size()) - 1));
         MarkDungeonMapModified();
       }
       break;

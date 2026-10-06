@@ -35,6 +35,7 @@ enum class ScreenEditType {
  */
 struct DungeonMapSnapshot {
   int dungeon_index = 0;
+  int floor_index = 0;
   zelda3::DungeonMap map_data{0, 0, 0, {}, {}};
   std::vector<std::array<std::string, zelda3::kNumRooms>> labels;
 };
