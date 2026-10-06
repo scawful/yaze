@@ -5,6 +5,36 @@ depend on the room palette, the entrance's main graphics group, and the slot
 where it is loaded. Some slots use colors 1–7 of a palette row; others use 9–15.
 Raw index 0 stays transparent in both cases.
 
+## Reorder source colors without changing selected artwork
+
+1. Use **Edit Graphics** on a dungeon object or Overworld Tile16. The source
+   supplies its actual palette row, half, graphics sheets, and entrance context.
+2. Beside the Pixel Editor's color swatches, choose **Reorder**. Choose
+   **Current tile** (the initial scope) or **Source pattern** (the source's
+   resolved tiles). Click two colors in the **After** row to exchange slots.
+3. Review the tile/color counts, then **Apply**. **Cancel** changes nothing.
+   Slot 0 stays transparent. One Graphics **Undo** restores both colors and pixels.
+4. Use **Return to source** to review the room/map, then File **Save As**.
+   Palette and graphics saving must both be enabled in the project's save policy.
+
+This changes the real palette slots and selected indexed pixels together; it is
+not a preview-palette adjustment. Other artwork sharing those palette slots or
+physical tiles can change. The operation does not clone resources or claim a
+complete game-wide usage census.
+
+The operation supports loader-addressed, static 3bpp targets in dungeon and
+Overworld sources. Missing mappings, animated/HUD sources, conflicting selected
+mappings, stale entrance/sheet assignments, and foreign sessions are refused.
+Changing the source while the popup is open requires closing and reopening it.
+An older Palette-editor Undo/Redo that conflicts with this edit stays retained
+but unavailable until its expected colors are restored; undo the paired edit
+in Graphics first.
+
+Headless product checks cover the actual control, one-step Undo/Redo, failed-save
+retention, and Save As/fresh reopen on disposable Oracle copies, including the
+custom wall-corner pattern in room `$089`. This is not whole-game visual or
+runtime qualification.
+
 ## Export one sheet with its room colors
 
 In **Graphics → Sheet Browser → PNG export and import**, select **Room background
