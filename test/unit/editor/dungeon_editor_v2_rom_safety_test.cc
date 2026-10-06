@@ -838,17 +838,29 @@ TEST(DungeonEditorV2RomSafetyTest,
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
-     SpawnSelectionRejectsUnloadedDedicatedRecord) {
+     UnloadedSpawnIsRejectedWhileGraphicsUseRoomFallback) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   auto editor = std::make_unique<DungeonEditorV2>(&rom);
-
+  // Default regular records otherwise all look like entrances to room zero.
+  for (int id = 0; id < zelda3::kNumRegularDungeonEntrances; ++id) {
+    DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(*editor, id).room_ =
+        -1;
+  }
+  editor->rooms()[0].SetBlockset(0x12);
+  EXPECT_NE(
+      DungeonEditorV2SpawnPointTestPeer::SpawnPoint(*editor, 0).spawn_id(), 0);
   EXPECT_EQ(
       DungeonEditorV2SpawnPointTestPeer::ResolveEntranceRoomId(*editor, 0), -1);
   DungeonEditorV2SpawnPointTestPeer::SetSelectedEntranceSlot(*editor, 0);
   EXPECT_EQ(
       DungeonEditorV2SpawnPointTestPeer::ResolveSelectedBlockset(*editor, 0),
-      0xFF);
+      0x12);
+  const auto context =
+      DungeonEditorV2SpawnPointTestPeer::ResolveRenderContext(*editor, 0);
+  EXPECT_EQ(context.source, DungeonRenderContextSource::kRoomHeaderFallback);
+  EXPECT_FALSE(context.uses_entrance());
+  EXPECT_EQ(context.entrance_slot, -1);
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
@@ -1568,7 +1580,7 @@ TEST(DungeonEditorV2RomSafetyTest, SaveWritesPotItemsWhenEnabled) {
   EXPECT_EQ(reloaded_room.GetPotItems()[0].item, 0x56);
 }
 
-TEST(DungeonEditorV2RomSafetyTest, SaveSkipsPotItemsWhenDisabled) {
+TEST(DungeonEditorV2RomSafetyTest, SaveRefusesDirtyPotItemsWhenDisabled) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   SetupPotItemTable(rom);
@@ -1589,8 +1601,12 @@ TEST(DungeonEditorV2RomSafetyTest, SaveSkipsPotItemsWhenDisabled) {
   d.kSaveObjects = false;
   d.kSavePotItems = false;
 
+  room.MarkPotItemsDirty();
+  const auto before = rom.vector();
   auto status = editor->Save();
-  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.pot_items_dirty());
 
   zelda3::Room reloaded_room(0, &rom);
   reloaded_room.LoadPotItems();
@@ -1600,7 +1616,7 @@ TEST(DungeonEditorV2RomSafetyTest, SaveSkipsPotItemsWhenDisabled) {
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
-     SaveSkipsPotItemsWhenDisabledForSelectedRoom) {
+     SaveRefusesDirtyPotItemsWhenDisabledForSelectedRoom) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   SetupRoomObjectPointers(rom);
@@ -1620,8 +1636,12 @@ TEST(DungeonEditorV2RomSafetyTest,
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
 
+  room.MarkPotItemsDirty();
+  const auto before = rom.vector();
   auto status = editor->Save();
-  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.pot_items_dirty());
 
   zelda3::Room reloaded_room(0, &rom);
   reloaded_room.LoadPotItems();

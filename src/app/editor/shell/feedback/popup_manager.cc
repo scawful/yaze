@@ -469,7 +469,8 @@ void PopupManager::DrawSaveScopePopup() {
   Text(tr("%s Save Scope"), ICON_MD_SAVE);
   Separator();
   TextWrapped(
-      tr("Controls which data is written during File > Save ROM. "
+      tr("Controls which data is written during File > Save ROM. Dungeon "
+         "choices also control Apply Room. "
          "Changes apply immediately."));
   Separator();
 
@@ -504,6 +505,11 @@ void PopupManager::DrawSaveScopePopup() {
     Checkbox(tr("Save Chests"), &core::FeatureFlags::get().dungeon.kSaveChests);
     Checkbox(tr("Save Pot Items"),
              &core::FeatureFlags::get().dungeon.kSavePotItems);
+    if (IsItemHovered()) {
+      SetTooltip(
+          tr("Enable to save pending pot item edits, then retry Save "
+             "or Apply Room. No project reopen is needed."));
+    }
     Checkbox(tr("Save Palettes"),
              &core::FeatureFlags::get().dungeon.kSavePalettes);
   }

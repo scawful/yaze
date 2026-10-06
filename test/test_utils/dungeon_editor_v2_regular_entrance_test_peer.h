@@ -69,6 +69,10 @@ class DungeonEditorV2SpawnPointTestPeer {
                                          int room_id) {
     return editor.ResolveSelectedEntranceBlocksetForRoom(room_id);
   }
+  static DungeonRenderContext ResolveRenderContext(
+      const DungeonEditorV2& editor, int room_id) {
+    return editor.ResolveDungeonRenderContextForRoom(room_id);
+  }
 };
 
 // Test-only access to prove the editor rejects dirty spawn records before any

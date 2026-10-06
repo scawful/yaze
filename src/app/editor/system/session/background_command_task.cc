@@ -68,8 +68,8 @@ absl::Status BackgroundCommandTask::Start(const std::string& command,
   output_.clear();
   output_tail_.clear();
   status_ = absl::UnknownError("Task is running");
-  worker_ = std::thread(&BackgroundCommandTask::WorkerMain, this, command,
-                        directory);
+  worker_ =
+      std::thread(&BackgroundCommandTask::WorkerMain, this, command, directory);
   return absl::OkStatus();
 }
 
@@ -141,10 +141,16 @@ void BackgroundCommandTask::WorkerMain(std::string command,
     close(pipe_fds[0]);
     close(pipe_fds[1]);
     if (!directory.empty()) {
-      (void)chdir(directory.c_str());
+      if (chdir(directory.c_str()) != 0) {
+        constexpr char kPrefix[] = "Cannot enter command working directory: ";
+        constexpr char kNewline[] = "\n";
+        (void)write(STDERR_FILENO, kPrefix, sizeof(kPrefix) - 1);
+        (void)write(STDERR_FILENO, directory.data(), directory.size());
+        (void)write(STDERR_FILENO, kNewline, sizeof(kNewline) - 1);
+        _exit(127);
+      }
     }
-    execl("/bin/sh", "sh", "-lc", command.c_str(),
-          static_cast<char*>(nullptr));
+    execl("/bin/sh", "sh", "-lc", command.c_str(), static_cast<char*>(nullptr));
     _exit(127);
   }
 
@@ -164,12 +170,11 @@ void BackgroundCommandTask::WorkerMain(std::string command,
   bool child_reaped = false;
 
   while (!pipe_closed || !child_reaped) {
-    struct pollfd pfd {
-      pipe_fds[0], POLLIN | POLLHUP, 0
-    };
+    struct pollfd pfd{pipe_fds[0], POLLIN | POLLHUP, 0};
     const int poll_result = poll(&pfd, 1, kPollIntervalMs);
     if (poll_result > 0 && (pfd.revents & (POLLIN | POLLHUP))) {
-      const ssize_t bytes_read = read(pipe_fds[0], buffer.data(), buffer.size());
+      const ssize_t bytes_read =
+          read(pipe_fds[0], buffer.data(), buffer.size());
       if (bytes_read > 0) {
         AppendOutput(buffer.data(), static_cast<size_t>(bytes_read));
       } else if (bytes_read == 0) {
@@ -222,7 +227,8 @@ void BackgroundCommandTask::WorkerMain(std::string command,
   }
 
   if (!WIFEXITED(wait_status) || WEXITSTATUS(wait_status) != 0) {
-    const int exit_code = WIFEXITED(wait_status) ? WEXITSTATUS(wait_status) : -1;
+    const int exit_code =
+        WIFEXITED(wait_status) ? WEXITSTATUS(wait_status) : -1;
     Finalize(absl::InternalError("Background command failed"), exit_code);
     return;
   }
@@ -252,7 +258,8 @@ void BackgroundCommandTask::JoinIfNeeded() {
   }
 }
 
-std::string BackgroundCommandTask::ComputeOutputTail(const std::string& output) {
+std::string BackgroundCommandTask::ComputeOutputTail(
+    const std::string& output) {
   if (output.empty()) {
     return "";
   }

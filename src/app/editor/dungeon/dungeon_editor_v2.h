@@ -172,6 +172,8 @@ class DungeonEditorV2 : public Editor {
     return undo_manager_.CanUndo() || HasPendingUndoSnapshot();
   }
   absl::Status Save() override;
+  // Reject omitted pending pot edits without materializing rooms or mutating history.
+  absl::Status ValidatePotItemSaveScope() const;
   absl::Status BeginSaveTransaction() override;
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;

@@ -2,12 +2,14 @@
 
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <thread>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
@@ -200,6 +202,271 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_TRUE(std::filesystem::exists(marker_path));
   EXPECT_EQ(ReadFile(marker_path), "manifest-build");
 #endif  // _WIN32
+}
+
+TEST(EditorManagerProjectActionsTest,
+     BuildRefusesUnsavedRomBeforeStartingConfiguredScript) {
+#ifdef _WIN32
+  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_build_unsaved_rom"));
+  const auto rom_path = temp_dir.path / "source.sfc";
+  const auto marker_path = temp_dir.path / "build.marker";
+  const auto script_path = temp_dir.path / "build_ok.sh";
+  WriteRomFile(rom_path);
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << "#!/bin/sh\nprintf 'built' > build.marker\n";
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "BuildUnsavedRom";
+  project->filepath = (temp_dir.path / "project.yaze").string();
+  project->rom_filename = rom_path.string();
+  project->build_script = "./build_ok.sh";
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+
+  const auto status = manager->BuildCurrentProject();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("Save project and ROM changes"),
+            std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(marker_path));
+#endif
+}
+
+TEST(EditorManagerProjectActionsTest,
+     BuildRefusesSavedCopyWhenProjectStillNamesOriginalRom) {
+#ifdef _WIN32
+  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
+#else
+  const auto original_flags = core::FeatureFlags::get();
+  const auto restore_flags =
+      absl::MakeCleanup([&] { core::FeatureFlags::get() = original_flags; });
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_build_saved_copy"));
+  const auto rom_path = temp_dir.path / "source.sfc";
+  const auto copy_path = temp_dir.path / "saved-copy.sfc";
+  const auto marker_path = temp_dir.path / "build.marker";
+  const auto script_path = temp_dir.path / "build_ok.sh";
+  WriteRomFile(rom_path);
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << "#!/bin/sh\nprintf 'built' > build.marker\n";
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "BuildSavedCopy";
+  project->filepath = (temp_dir.path / "project.yaze").string();
+  project->rom_filename = rom_path.string();
+  project->build_script = "./build_ok.sh";
+  ASSERT_OK(manager->BuildCurrentProject());
+  ASSERT_TRUE(std::filesystem::exists(marker_path));
+  ASSERT_TRUE(std::filesystem::remove(marker_path));
+
+  // This synthetic ROM tests Save As binding, not asset serialization. The
+  // Oracle acceptance tests below exercise the actual build inputs separately.
+  auto& flags = core::FeatureFlags::get();
+  flags.kSaveDungeonMaps = flags.kSaveGraphicsSheet = flags.kSaveMessages =
+      false;
+  flags.kSaveAllPalettes = flags.kSaveGfxGroups = false;
+  flags.dungeon = {.kSaveObjects = false,
+                   .kSaveSprites = false,
+                   .kSaveRoomHeaders = false,
+                   .kSaveTorches = false,
+                   .kSavePits = false,
+                   .kSaveBlocks = false,
+                   .kSaveCollision = false,
+                   .kSaveWaterFillZones = false,
+                   .kSaveChests = false,
+                   .kSavePotItems = false,
+                   .kSaveEntrances = false,
+                   .kSavePalettes = false};
+  flags.overworld.kSaveOverworldMaps = false;
+  flags.overworld.kSaveOverworldEntrances = false;
+  flags.overworld.kSaveOverworldExits = false;
+  flags.overworld.kSaveOverworldItems = false;
+  flags.overworld.kSaveOverworldProperties = false;
+  manager->user_settings().prefs().backup_before_save = false;
+  ASSERT_OK(manager->SaveRomAs(copy_path.string()));
+  ASSERT_TRUE(std::filesystem::exists(copy_path));
+  const auto status = manager->BuildCurrentProject();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("Build source mismatch"),
+            std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(marker_path));
+#endif
+}
+
+TEST(EditorManagerProjectActionsTest,
+     BuildRefusesMissingManifestFallbackBeforeStartingProcess) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_build_missing_manifest_script"));
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "EditorOnlyProject";
+  project->filepath = (temp_dir.path / "project.yaze").string();
+  project->build_script.clear();
+  ASSERT_OK(project->hack_manifest.LoadFromString(R"json(
+{
+  "manifest_version": 2,
+  "hack_name": "Editor-only fixture",
+  "build_pipeline": {
+    "build_script": "Scripts/Build/build_rom.sh"
+  }
+}
+)json"));
+
+  manager->QueueBuildCurrentProject();
+  const auto status = ContentRegistry::Context::build_workflow_status();
+  EXPECT_EQ(status.summary, "Build unavailable");
+  EXPECT_NE(status.detail.find("Manifest build script is unavailable"),
+            std::string::npos);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     BuildRefusesManifestDevelopmentRomMismatchBeforeProcess) {
+#ifdef _WIN32
+  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_build_manifest_source"));
+  const auto marker_path = temp_dir.path / "build.marker";
+  const auto script_path = temp_dir.path / "build_ok.sh";
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << "#!/bin/sh\nprintf 'built' > build.marker\n";
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "ManifestSourceMismatch";
+  project->filepath = (temp_dir.path / "project.yaze").string();
+  project->rom_filename = "source.sfc";
+  project->build_script.clear();
+  ASSERT_OK(project->hack_manifest.LoadFromString(R"json(
+{
+  "manifest_version": 2,
+  "hack_name": "Manifest source fixture",
+  "build_pipeline": {
+    "dev_rom": "other.sfc",
+    "build_script": "./build_ok.sh"
+  }
+}
+)json"));
+
+  const auto status = manager->BuildCurrentProject();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("manifest development ROM"),
+            std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(marker_path));
+#endif
+}
+
+TEST(EditorManagerProjectActionsTest,
+     BuildRefusesLiveProjectPanelAndRawProjectFileDraft) {
+#ifdef _WIN32
+  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
+#else
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_build_live_project_drafts"));
+  const auto rom_path = temp_dir.path / "source.sfc";
+  const auto project_path = temp_dir.path / "project.yaze";
+  const auto marker_path = temp_dir.path / "build.marker";
+  const auto script_path = temp_dir.path / "build_ok.sh";
+  WriteRomFile(rom_path);
+  {
+    std::ofstream project(project_path);
+    ASSERT_TRUE(project.is_open());
+    project << ProjectFileContents("Build Draft", rom_path)
+            << "[build]\nbuild_script=./build_ok.sh\n";
+  }
+  {
+    std::ofstream script(script_path);
+    ASSERT_TRUE(script.is_open());
+    script << "#!/bin/sh\nprintf 'built' > build.marker\n";
+  }
+  std::filesystem::permissions(
+      script_path,
+      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read,
+      std::filesystem::perm_options::add);
+
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  auto* panel = manager->project_management_panel();
+  ASSERT_NE(panel, nullptr);
+  EXPECT_FALSE(session->project_dirty);
+  panel->SetProjectDirty(true);
+  EXPECT_FALSE(session->project_dirty);
+
+  const auto panel_status = manager->BuildCurrentProject();
+  EXPECT_EQ(panel_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(
+      std::string(panel_status.message()).find("unsaved project settings"),
+      std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(marker_path));
+
+  panel->SetProjectDirty(false);
+  manager->ShowProjectFileEditor();
+  auto* raw_editor = manager->project_file_editor();
+  ASSERT_NE(raw_editor, nullptr);
+  MakeModifiedProjectDraft(raw_editor, manager->GetCurrentProject(),
+                           ProjectFileContents("Unsaved Raw Draft", rom_path));
+  EXPECT_FALSE(session->project_file_editor_state.modified);
+
+  manager->QueueBuildCurrentProject();
+  const auto build_status = ContentRegistry::Context::build_workflow_status();
+  EXPECT_EQ(build_status.summary, "Build unavailable");
+  EXPECT_NE(build_status.detail.find("unsaved project-file draft"),
+            std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(marker_path));
+#endif
 }
 
 TEST(EditorManagerProjectActionsTest,
@@ -1167,6 +1434,64 @@ TEST(EditorManagerProjectActionsTest,
   manager->ShowProjectManagement();
   EXPECT_TRUE(manager->IsCurrentProjectDirty());
   EXPECT_TRUE(panel->IsProjectDirty());
+}
+
+// Opt-in because this invokes the configured external build, not a fake script.
+// The full authoring folder is copied; the supplied project is never written.
+TEST(OracleProjectBuildAcceptance, SavedProjectBuildsFromProductCallback) {
+  const char* input = std::getenv("YAZE_TEST_PROJECT_BUILD_FILE");
+  if (!input || !*input) {
+    GTEST_SKIP()
+        << "Set YAZE_TEST_PROJECT_BUILD_FILE to a configured disposable "
+           "Oracle authoring project";
+  }
+  ScopedImGuiContext imgui;
+  ScopedTempDir temp(MakeTempDir("yaze_project_build_acceptance"));
+  const std::filesystem::path source_project(input);
+  const auto copy = temp.path / "authoring";
+  std::filesystem::copy(source_project.parent_path(), copy,
+                        std::filesystem::copy_options::recursive);
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(
+      manager->OpenRomOrProject((copy / source_project.filename()).string()));
+  const auto* project = manager->GetCurrentProject();
+  const auto rom_path = project->GetAbsolutePath(project->rom_filename);
+  const auto output_path = project->GetAbsolutePath(project->build_target);
+  ASSERT_NE(rom_path, output_path);
+  ASSERT_FALSE(std::filesystem::exists(output_path));
+  const auto source_bytes = ReadFile(rom_path);
+  auto start = ContentRegistry::Context::start_build_workflow_callback();
+  ASSERT_TRUE(start);
+  start();
+  ASSERT_EQ(ContentRegistry::Context::build_workflow_status().state,
+            ProjectWorkflowState::kRunning)
+      << ContentRegistry::Context::build_workflow_status().detail;
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::minutes(3);
+  while (std::chrono::steady_clock::now() < deadline &&
+         ContentRegistry::Context::build_workflow_status().state ==
+             ProjectWorkflowState::kRunning) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+    ImGui::NewFrame();
+    const auto update = manager->Update();
+    ImGui::Render();
+    ASSERT_OK(update);
+  }
+  const auto status = ContentRegistry::Context::build_workflow_status();
+  std::cout << ContentRegistry::Context::build_workflow_log() << std::endl;
+  ASSERT_EQ(status.state, ProjectWorkflowState::kSuccess)
+      << status.detail << "\n"
+      << status.output_tail;
+  ASSERT_TRUE(std::filesystem::exists(output_path));
+  EXPECT_EQ(ReadFile(rom_path), source_bytes);
+  EXPECT_GT(std::filesystem::file_size(output_path), 512u * 1024u);
+  Rom compiled;
+  ASSERT_OK(compiled.LoadFromFile(output_path));
+  EXPECT_NE(compiled.vector(), manager->GetCurrentRom()->vector());
 }
 
 }  // namespace
