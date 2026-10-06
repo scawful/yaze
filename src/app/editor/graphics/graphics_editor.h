@@ -209,6 +209,9 @@ class GraphicsEditor : public Editor {
   // Opens only Pixel Editor and Usage Preview, retaining the source editor's
   // resolved colors and live preview for this ROM session.
   absl::Status OpenInContext(GraphicsEditContext context);
+  // Callable command only; the existing controls own its future UI entry point.
+  absl::Status ReorderSourcePalette(const std::vector<size_t>& targets,
+                                    const std::array<uint8_t, 8>& permutation);
   void HighlightTile(uint16_t sheet_id, uint16_t tile_index,
                      const std::string& label = "", double duration_secs = 3.0);
 

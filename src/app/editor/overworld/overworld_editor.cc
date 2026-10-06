@@ -1780,6 +1780,28 @@ absl::Status OverworldEditor::OpenGraphicsForTile16Quadrant(int tile16_id,
   // watched sheet from this ROM session on each preview refresh.
   auto preview_map = std::make_shared<zelda3::OverworldMap>(*map);
   const auto* owner = game_data_;
+  context->resolve_live_source = [this, owner, source_map_id, tile16_id,
+                                  quadrant](GraphicsEditContext& fresh) {
+    if (game_data_ != owner || !overworld_.is_loaded() ||
+        tile16_id >= static_cast<int>(overworld_.tiles16().size())) {
+      return absl::FailedPreconditionError("Overworld source session changed");
+    }
+    RETURN_IF_ERROR(SyncProjectGraphicsPreview());
+    overworld_.SyncAreaProperties(source_map_id);
+    auto* live = overworld_.mutable_overworld_map(source_map_id);
+    if (!live || live->HasGraphicsPreview()) {
+      return absl::UnimplementedError(
+          "Project graphics overrides have no writable source");
+    }
+    live->LoadAreaGraphics();
+    RETURN_IF_ERROR(live->LoadPalette());
+    auto resolved = MakeOverworldGraphicsEditContext(
+        *live, overworld_.tiles16()[tile16_id], tile16_id, quadrant, owner);
+    if (!resolved.ok())
+      return resolved.status();
+    fresh = std::move(*resolved);
+    return absl::OkStatus();
+  };
   context->limitation += " Palette colors follow live edits.";
   context->refresh_palettes = [this, preview_map, owner, tile16_id, quadrant](
                                   GraphicsEditContext& source) -> absl::Status {

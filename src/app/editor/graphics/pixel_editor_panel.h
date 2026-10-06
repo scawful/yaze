@@ -79,6 +79,8 @@ class PixelEditorPanel : public WindowContent {
   void CutToSystemClipboard();
   void PasteFromSystemClipboard();
 
+  bool HasActiveStroke() const { return stroke_.has_value(); }
+
  private:
   void DrawSourceContext();
   // A palette-only display copy. Pixel tools still write the session store.

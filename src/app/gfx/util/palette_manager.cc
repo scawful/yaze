@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <chrono>
+#include <set>
+#include <tuple>
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
@@ -233,6 +235,65 @@ absl::Status PaletteManager::SetColor(const std::string& group_name,
   NotifyListeners({PaletteChangeEvent::Type::kColorChanged, group_name,
                    palette_index, color_index});
 
+  return absl::OkStatus();
+}
+
+absl::Status PaletteManager::ApplyExternalChanges(
+    const zelda3::GameData* owner,
+    const std::vector<PaletteColorChange>& changes,
+    const std::function<absl::Status()>& participant) {
+  if (!owner || !IsManaging(owner) || !IsInitialized() || !participant) {
+    return absl::FailedPreconditionError(
+        "Palette command session is unavailable");
+  }
+  auto* state = CurrentState();
+  if (state->color_edit || state->batch_depth ||
+      state->save_transaction_snapshot) {
+    return absl::FailedPreconditionError(
+        "Finish the active palette operation first");
+  }
+  std::set<std::tuple<std::string, int, int>> addresses;
+  std::vector<SnesColor*> slots;
+  for (const auto& change : changes) {
+    auto* group = GetMutableGroup(change.group_name);
+    if (!group || change.palette_index < 0 ||
+        change.palette_index >= group->size()) {
+      return absl::InvalidArgumentError("Invalid command palette");
+    }
+    auto* palette = group->mutable_palette(change.palette_index);
+    if (change.color_index < 0 || change.color_index >= palette->size() ||
+        !addresses
+             .emplace(change.group_name, change.palette_index,
+                      change.color_index)
+             .second) {
+      return absl::InvalidArgumentError("Invalid or duplicate command color");
+    }
+    auto* slot = &(*palette)[change.color_index];
+    if (slot->snes() != change.original_color.snes()) {
+      return absl::FailedPreconditionError(
+          "Palette changed since command planning");
+    }
+    slots.push_back(slot);
+  }
+  const auto before = *state;
+  for (size_t i = 0; i < changes.size(); ++i) {
+    *slots[i] = changes[i].new_color;
+    MarkModified(changes[i].group_name, changes[i].palette_index,
+                 changes[i].color_index);
+  }
+  const auto status = participant();
+  if (!status.ok()) {
+    for (size_t i = 0; i < changes.size(); ++i)
+      *slots[i] = changes[i].original_color;
+    *state = before;
+    return status;
+  }
+  for (const auto& change : changes) {
+    if (!IsManaging(owner))
+      break;
+    NotifyListeners({PaletteChangeEvent::Type::kColorChanged, change.group_name,
+                     change.palette_index, change.color_index});
+  }
   return absl::OkStatus();
 }
 

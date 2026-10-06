@@ -1,6 +1,7 @@
 // Related header
 #include "graphics_editor.h"
 #include "app/editor/graphics/graphics_palette_preview.h"
+#include "app/editor/graphics/palette_pixel_command.h"
 #include "util/i18n/tr.h"
 
 // C++ standard library headers
@@ -553,10 +554,14 @@ absl::Status GraphicsEditor::Update() {
 }
 
 absl::Status GraphicsEditor::Undo() {
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError("Finish the pixel stroke before Undo");
   return undo_manager_.Undo();
 }
 
 absl::Status GraphicsEditor::Redo() {
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError("Finish the pixel stroke before Redo");
   return undo_manager_.Redo();
 }
 
@@ -1079,6 +1084,17 @@ absl::Status GraphicsEditor::OpenInContext(GraphicsEditContext context) {
     // Source preview is embedded. Deliberately opened comparison windows keep
     // their visibility, pins and layout; entering Graphics adds no pop-out.
   }
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::ReorderSourcePalette(
+    const std::vector<size_t>& targets,
+    const std::array<uint8_t, 8>& permutation) {
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError("Finish the pixel stroke first");
+  RETURN_IF_ERROR(ApplyPalettePixelPermutation(state_, undo_manager_, targets,
+                                               permutation));
+  RefreshGraphicsPreviewPalettes(state_);
   return absl::OkStatus();
 }
 
