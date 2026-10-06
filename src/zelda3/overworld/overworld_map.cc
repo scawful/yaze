@@ -990,18 +990,23 @@ absl::Status SetColorsPalette(Rom& rom, GameData* game_data, int index,
                               gfx::SnesPalette animated, gfx::SnesPalette aux1,
                               gfx::SnesPalette aux2, gfx::SnesPalette hud,
                               gfx::SnesColor bgrcolor, gfx::SnesPalette spr,
-                              gfx::SnesPalette spr2) {
+                              gfx::SnesPalette spr2,
+                              PaletteAddressMap* addresses,
+                              std::array<int, 3> palette_ids) {
   // Palettes infos, color 0 of a palette is always transparent (the arrays
   // contains 7 colors width wide) There is 16 color per line so 16*Y
 
   // Left side of the palette - Main, Animated
   std::array<gfx::SnesColor, 256> new_palette = {};
+  *addresses = {};
 
   // Main Palette, Location 0,2 : 35 colors [7x5]
   int k = 0;
   for (int y = 2; y < 7; y++) {
     for (int x = 1; x < 8; x++) {
       new_palette[x + (16 * y)] = main[k];
+      (*addresses)[x + 16 * y] = PaletteColorAddress{
+          PaletteAddressGroup::kOverworldMain, palette_ids[0], k};
       k++;
     }
   }
@@ -1018,6 +1023,8 @@ absl::Status SetColorsPalette(Rom& rom, GameData* game_data, int index,
   for (int y = 2; y < 5; y++) {
     for (int x = 9; x < 16; x++) {
       new_palette[x + (16 * y)] = aux1[k];
+      (*addresses)[x + 16 * y] = PaletteColorAddress{
+          PaletteAddressGroup::kOverworldAux, palette_ids[1], k};
       k++;
     }
   }
@@ -1027,6 +1034,8 @@ absl::Status SetColorsPalette(Rom& rom, GameData* game_data, int index,
   for (int y = 5; y < 8; y++) {
     for (int x = 9; x < 16; x++) {
       new_palette[x + (16 * y)] = aux2[k];
+      (*addresses)[x + 16 * y] = PaletteColorAddress{
+          PaletteAddressGroup::kOverworldAux, palette_ids[2], k};
       k++;
     }
   }
@@ -1109,7 +1118,7 @@ absl::Status SetColorsPalette(Rom& rom, GameData* game_data, int index,
 
 absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
     const gfx::PaletteGroup& palette_group, int index, int previous_index,
-    int limit) {
+    int limit, int* resolved_index) {
   if (index == 255) {
     index = (*rom_)[version_constants().kOverworldMapPaletteGroup +
                     (previous_index * 4)];
@@ -1117,10 +1126,13 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
   if (index >= limit) {
     index = limit - 1;
   }
+  if (resolved_index)
+    *resolved_index = index;
   return palette_group[index];
 }
 
 absl::Status OverworldMap::LoadPalette() {
+  palette_addresses_ = {};
   if (!game_data_) {
     current_palette_.clear();
     return absl::OkStatus();
@@ -1177,11 +1189,15 @@ absl::Status OverworldMap::LoadPalette() {
                    (previous_pal_id * 4) + 2];
   }
 
+  std::array<int, 3>
+      palette_ids{};  // Main, aux1, aux2 after all loader fallbacks.
   auto& ow_aux_pal_group = game_data_->palette_groups.overworld_aux;
-  ASSIGN_OR_RETURN(gfx::SnesPalette aux1,
-                   GetPalette(ow_aux_pal_group, pal1, previous_pal_id, 20));
-  ASSIGN_OR_RETURN(gfx::SnesPalette aux2,
-                   GetPalette(ow_aux_pal_group, pal2, previous_pal_id, 20));
+  ASSIGN_OR_RETURN(
+      gfx::SnesPalette aux1,
+      GetPalette(ow_aux_pal_group, pal1, previous_pal_id, 20, &palette_ids[1]));
+  ASSIGN_OR_RETURN(
+      gfx::SnesPalette aux2,
+      GetPalette(ow_aux_pal_group, pal2, previous_pal_id, 20, &palette_ids[2]));
 
   // Set background color based on world type and area-specific settings
   bool use_area_specific_bg =
@@ -1219,7 +1235,8 @@ absl::Status OverworldMap::LoadPalette() {
 
   auto& ow_main_pal_group = game_data_->palette_groups.overworld_main;
   ASSIGN_OR_RETURN(gfx::SnesPalette main,
-                   GetPalette(ow_main_pal_group, pal0, previous_pal_id, 255));
+                   GetPalette(ow_main_pal_group, pal0, previous_pal_id, 255,
+                              &palette_ids[0]));
   auto& ow_animated_pal_group = game_data_->palette_groups.overworld_animated;
   ASSIGN_OR_RETURN(gfx::SnesPalette animated,
                    GetPalette(ow_animated_pal_group, std::min((int)pal3, 13),
@@ -1255,7 +1272,7 @@ absl::Status OverworldMap::LoadPalette() {
 
   RETURN_IF_ERROR(palette_internal::SetColorsPalette(
       *rom_, game_data_, parent_, current_palette_, main, animated, aux1, aux2,
-      hud, bgr, spr, spr2));
+      hud, bgr, spr, spr2, &palette_addresses_, palette_ids));
 
   // current_palette_ is this map's resolved palette. Do not populate the
   // unused process-wide GfxContext cache here: maps load concurrently, and

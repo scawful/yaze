@@ -243,7 +243,12 @@ class OverworldMap : public gfx::GfxContext {
   }
   bool HasGraphicsPreview() const { return !graphics_preview_.empty(); }
 
-  void SetGameData(GameData* game_data) { game_data_ = game_data; }
+  const GameData* game_data() const { return game_data_; }
+  void SetGameData(GameData* game_data) {
+    if (game_data_ != game_data)
+      palette_addresses_ = {};
+    game_data_ = game_data;
+  }
 
   /// Sheet pixels to use instead of GameData::graphics_buffer when
   /// BuildTileset() runs (8bpp, 4096 bytes per sheet). Lets a preview show
@@ -326,7 +331,14 @@ class OverworldMap : public gfx::GfxContext {
   auto parent() const { return parent_; }
   int index() const { return index_; }
   auto mutable_mosaic() { return &mosaic_; }
-  auto mutable_current_palette() { return &current_palette_; }
+  auto mutable_current_palette() {
+    // A display/project override has not declared a writable model source.
+    palette_addresses_ = {};
+    return &current_palette_;
+  }
+  const PaletteAddressMap& palette_addresses() const {
+    return palette_addresses_;
+  }
 
   void SetNotBuilt() { built_ = false; }
 
@@ -500,7 +512,8 @@ class OverworldMap : public gfx::GfxContext {
                              const uint8_t* all_gfx);
   absl::StatusOr<gfx::SnesPalette> GetPalette(const gfx::PaletteGroup& group,
                                               int index, int previous_index,
-                                              int limit);
+                                              int limit,
+                                              int* resolved_index = nullptr);
 
   // Helper to get version constants from game_data or default to US
   zelda3_version_pointers version_constants() const {
@@ -555,6 +568,7 @@ class OverworldMap : public gfx::GfxContext {
 
   OverworldMapTiles map_tiles_;
   gfx::SnesPalette current_palette_;
+  PaletteAddressMap palette_addresses_{};
   std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
   AreaGraphicsPreview graphics_preview_;
   // Store revision of each static_graphics_ slot at the last BuildTileset();

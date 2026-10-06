@@ -257,6 +257,158 @@ class GraphicsUsagePreviewRomTest : public ::testing::Test {
   zelda3::GameData game_data_;
 };
 
+TEST_F(GraphicsUsagePreviewRomTest,
+       WritableDungeonPaletteFollowsLoaderRowsAndSelectors) {
+  auto& custom = zelda3::CustomObjectManager::Get();
+  const auto saved = custom.SnapshotState();
+  const absl::Cleanup restore = [&] {
+    custom.RestoreState(saved);
+  };
+  custom.SetTilePatternsSource("");
+  auto room = zelda3::LoadRoomFromRom(&rom_, 5);
+  room.SetGameData(&game_data_);
+  room.SetPalette(0);
+  const int first_id = room.ResolveDungeonPaletteId();
+  int alternate = -1;
+  for (int selector = 1;
+       selector < static_cast<int>(game_data_.paletteset_ids.size());
+       ++selector) {
+    room.SetPalette(selector);
+    if (room.ResolveDungeonPaletteId() != first_id) {
+      alternate = selector;
+      break;
+    }
+  }
+  ASSERT_GE(alternate, 0)
+      << "Fixture has no alternate dungeon palette selector";
+  room.PrepareForRender();
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  auto object = room.GetTileObjects().front();
+  object.EnsureTilesLoaded();
+  object.mutable_tiles().clear();
+  for (int row = 0; row < 8; ++row) {
+    for (int slot : {0, 1, 4})
+      object.mutable_tiles().emplace_back(slot * 64 + 1, row, false, false,
+                                          false);
+  }
+  for (int selector : {0, alternate}) {
+    room.SetPalette(selector);
+    for (uint8_t main : {0x00, 0x20}) {
+      room.PrepareForRender(main);
+      auto context = MakeDungeonGraphicsEditContext(room, object, &game_data_);
+      ASSERT_TRUE(context.ok()) << context.status();
+      ASSERT_EQ(context->targets.size(), 24u);
+      int index = 0;
+      for (int row = 0; row < 8; ++row) {
+        for (int slot : {0, 1, 4}) {
+          const auto& target = context->targets[index++];
+          if (row < 2) {
+            EXPECT_FALSE(target.writable_palette);
+            EXPECT_NE(target.palette_address_limitation.find("HUD"),
+                      std::string::npos);
+            continue;
+          }
+          ASSERT_TRUE(target.writable_palette)
+              << target.palette_address_limitation;
+          EXPECT_TRUE(
+              ValidateGraphicsPaletteAddressing(target, &game_data_).ok());
+          const auto& binding = *target.writable_palette;
+          EXPECT_FALSE(binding.colors[0]);
+          EXPECT_EQ(binding.row, row);
+          EXPECT_EQ(binding.half_offset, room.BackgroundPaletteOffset(slot));
+          for (int raw = 1; raw < 8; ++raw) {
+            ASSERT_TRUE(binding.colors[raw]);
+            const auto& address = *binding.colors[raw];
+            EXPECT_EQ(address.group, zelda3::PaletteAddressGroup::kDungeonMain);
+            EXPECT_EQ(address.palette_index, room.ResolveDungeonPaletteId());
+            EXPECT_EQ(address.color_index,
+                      (row - 2) * 15 + binding.half_offset + raw - 1);
+            auto read = zelda3::ReadPaletteColor(game_data_, address);
+            ASSERT_TRUE(read.ok());
+            EXPECT_EQ(read->snes(), target.palette[raw].snes());
+          }
+        }
+      }
+    }
+  }
+  zelda3::GameData foreign;
+  EXPECT_EQ(
+      MakeDungeonGraphicsEditContext(room, object, &foreign).status().code(),
+      absl::StatusCode::kFailedPrecondition);
+}
+
+TEST(GraphicsUsagePreviewTest,
+     WritablePaletteRefreshIsSessionBoundAndPreservesZero) {
+  zelda3::GameData owner;
+  for (int palette = 0; palette < 2; ++palette) {
+    std::vector<uint16_t> words;
+    for (int color = 0; color < 90; ++color)
+      words.push_back(static_cast<uint16_t>(color + palette * 128));
+    owner.palette_groups.dungeon_main.AddPalette(gfx::SnesPalette(words));
+  }
+  auto resolve = [&](int index) {
+    zelda3::PaletteAddressMap addresses{};
+    const auto colors = zelda3::BuildDungeonRenderPalette(
+        owner.palette_groups.dungeon_main.palette_ref(index), nullptr,
+        &addresses, index);
+    GraphicsEditTarget target;
+    std::vector<gfx::SnesColor> palette;
+    palette.emplace_back(uint16_t{0});
+    for (int raw = 1; raw < 8; ++raw) {
+      const auto color = colors[2 * 16 + 8 + raw];
+      palette.emplace_back(color.r, color.g, color.b);
+    }
+    target.palette = gfx::SnesPalette(palette);
+    ResolveGraphicsPaletteAddressing(target, &owner, addresses, 2, 8);
+    return target;
+  };
+  GraphicsEditContext context;
+  context.owner = &owner;
+  context.targets.push_back(resolve(0));
+  ASSERT_TRUE(context.targets[0].writable_palette);
+  auto refreshed = context;
+  refreshed.targets[0] = resolve(1);
+  ASSERT_TRUE(UpdateGraphicsContextPalettes(context, refreshed).ok());
+  EXPECT_EQ(context.targets[0].writable_palette->colors[1]->palette_index, 1);
+  EXPECT_FALSE(context.targets[0].writable_palette->colors[0]);
+  auto bad = refreshed;
+  bad.targets[0].writable_palette->colors[0] =
+      *bad.targets[0].writable_palette->colors[1];
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  EXPECT_FALSE(context.targets[0].writable_palette->colors[0]);
+  zelda3::GameData foreign;
+  bad = refreshed;
+  bad.owner = &foreign;
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  EXPECT_FALSE(
+      ValidateGraphicsPaletteAddressing(refreshed.targets[0], &foreign).ok());
+  bad = refreshed;
+  bad.targets[0].writable_palette->owner = &foreign;
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  bad = refreshed;
+  bad.targets[0].writable_palette->row = 0;
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  bad = refreshed;
+  bad.targets[0].writable_palette->colors[7].reset();
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  EXPECT_FALSE(zelda3::ReadPaletteColor(
+                   owner, {zelda3::PaletteAddressGroup::kDungeonMain, -1, 0})
+                   .ok());
+  EXPECT_FALSE(zelda3::ReadPaletteColor(
+                   owner, {zelda3::PaletteAddressGroup::kDungeonMain, 0, 90})
+                   .ok());
+  bad = refreshed;
+  bad.targets[0].palette[1] = gfx::SnesColor(uint16_t{0x7FFF});
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  EXPECT_EQ(context.targets[0].palette[1].snes(),
+            refreshed.targets[0].palette[1].snes());
+  // Refreshing to an explicitly unbound display source clears old addresses.
+  refreshed.targets[0].writable_palette.reset();
+  refreshed.targets[0].palette_address_limitation = "Project display override";
+  ASSERT_TRUE(UpdateGraphicsContextPalettes(context, refreshed).ok());
+  EXPECT_FALSE(context.targets[0].writable_palette);
+}
+
 TEST_F(GraphicsUsagePreviewRomTest, SourceColorsFollowLoadedEntranceSlots) {
   auto room = zelda3::LoadRoomFromRom(&rom_, 5);
   room.SetGameData(&game_data_);

@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_GRAPHICS_EDIT_CONTEXT_H_
 #define YAZE_APP_EDITOR_GRAPHICS_GRAPHICS_EDIT_CONTEXT_H_
 
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <optional>
@@ -20,6 +21,15 @@ struct GameData;
 
 namespace yaze::editor {
 
+// Addresses for raw 3bpp indices. Index zero is fixed transparency/backdrop and
+// deliberately has no writable address. Every nonzero entry must be proven.
+struct GraphicsPaletteAddressing {
+  const zelda3::GameData* owner = nullptr;
+  uint8_t row = 0;
+  uint8_t half_offset = 0;
+  std::array<std::optional<zelda3::PaletteColorAddress>, 8> colors{};
+};
+
 // A source editor supplies the resolved colors for raw sheet indices. The
 // Graphics editor never infers a palette from a sheet ID in this workflow.
 struct GraphicsEditTarget {
@@ -30,9 +40,20 @@ struct GraphicsEditTarget {
   // Pattern uses of this source tile: bits 0/1/2/3 = normal/H/V/HV.
   // Zero means the source editor did not supply orientation information.
   uint8_t source_orientation_mask = 0;
+  std::optional<GraphicsPaletteAddressing> writable_palette;
+  std::string palette_address_limitation =
+      "No loader-owned palette address mapping.";
 
   std::string SourceOrientationLabel() const;
 };
+
+// Read-only validation against the owning session's current palette model.
+// No fallback RGB lookup or palette/pixel mutation is performed.
+absl::Status ValidateGraphicsPaletteAddressing(const GraphicsEditTarget& target,
+                                               const zelda3::GameData* owner);
+void ResolveGraphicsPaletteAddressing(
+    GraphicsEditTarget& target, const zelda3::GameData* owner,
+    const zelda3::PaletteAddressMap& addresses, int row, int half_offset);
 
 // Session-local navigation and preview state, not ROM/project data. Callbacks
 // belong to editors in the same EditorSet and are cleared on ROM replacement.

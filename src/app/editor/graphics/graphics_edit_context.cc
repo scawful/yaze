@@ -27,6 +27,65 @@ std::string GraphicsEditTarget::SourceOrientationLabel() const {
   return label;
 }
 
+absl::Status ValidateGraphicsPaletteAddressing(const GraphicsEditTarget& target,
+                                               const zelda3::GameData* owner) {
+  if (!target.writable_palette)
+    return absl::UnimplementedError(target.palette_address_limitation);
+  const auto& binding = *target.writable_palette;
+  if (!owner || binding.owner != owner)
+    return absl::FailedPreconditionError("Palette address session mismatch");
+  if (binding.colors[0] || target.palette.size() != 8 || binding.row < 2 ||
+      binding.row >= 8 ||
+      (binding.half_offset != 0 && binding.half_offset != 8)) {
+    return absl::FailedPreconditionError("Invalid raw palette address mapping");
+  }
+  for (int raw = 1; raw < 8; ++raw) {
+    if (!binding.colors[raw])
+      return absl::FailedPreconditionError("Nonzero palette index is unmapped");
+    auto color = zelda3::ReadPaletteColor(*owner, *binding.colors[raw]);
+    if (!color.ok())
+      return color.status();
+    const auto expected = color->rom_color();
+    const auto displayed = target.palette[raw].rom_color();
+    if (expected.red != displayed.red || expected.green != displayed.green ||
+        expected.blue != displayed.blue) {
+      return absl::FailedPreconditionError(
+          "Displayed palette differs from its writable source; refresh the "
+          "source");
+    }
+  }
+  return absl::OkStatus();
+}
+
+void ResolveGraphicsPaletteAddressing(
+    GraphicsEditTarget& target, const zelda3::GameData* owner,
+    const zelda3::PaletteAddressMap& addresses, int row, int half_offset) {
+  target.writable_palette.reset();
+  target.palette_address_limitation =
+      row < 2 ? "HUD palette addressing is unavailable for this operation."
+              : "Animated, overridden or unresolved palette source has no "
+                "writable mapping.";
+  if (!owner || row < 0 || row >= 8 || (half_offset != 0 && half_offset != 8))
+    return;
+  GraphicsPaletteAddressing binding;
+  binding.owner = owner;
+  binding.row = static_cast<uint8_t>(row);
+  binding.half_offset = static_cast<uint8_t>(half_offset);
+  for (int raw = 1; raw < 8; ++raw) {
+    binding.colors[raw] = addresses[row * 16 + half_offset + raw];
+    if (!binding.colors[raw])
+      return;
+  }
+  target.writable_palette = std::move(binding);
+  const auto status = ValidateGraphicsPaletteAddressing(target, owner);
+  if (!status.ok()) {
+    target.writable_palette.reset();
+    target.palette_address_limitation = std::string(status.message());
+    return;
+  }
+  target.palette_address_limitation.clear();
+}
+
 absl::Status UpdateGraphicsContextPalettes(GraphicsEditContext& context,
                                            GraphicsEditContext refreshed) {
   if (context.owner != refreshed.owner ||
@@ -44,8 +103,18 @@ absl::Status UpdateGraphicsContextPalettes(GraphicsEditContext& context,
       return absl::FailedPreconditionError(
           "Graphics source changed; reopen Edit Graphics from the source.");
     }
+    if (next.writable_palette) {
+      const auto status =
+          ValidateGraphicsPaletteAddressing(next, refreshed.owner);
+      if (!status.ok())
+        return status;
+    }
   }
   for (size_t i = 0; i < context.targets.size(); ++i) {
+    context.targets[i].writable_palette =
+        std::move(refreshed.targets[i].writable_palette);
+    context.targets[i].palette_address_limitation =
+        std::move(refreshed.targets[i].palette_address_limitation);
     context.targets[i].palette = std::move(refreshed.targets[i].palette);
   }
   context.resolved = std::move(refreshed.resolved);
@@ -55,6 +124,9 @@ absl::Status UpdateGraphicsContextPalettes(GraphicsEditContext& context,
 absl::StatusOr<GraphicsEditContext> MakeDungeonGraphicsEditContext(
     const zelda3::Room& room, const zelda3::RoomObject& object,
     const zelda3::GameData* owner) {
+  if (!owner || room.game_data() != owner) {
+    return absl::FailedPreconditionError("Dungeon graphics session mismatch");
+  }
   auto tiles = object.GetTiles();
   if (!tiles.ok()) {
     return tiles.status();
@@ -118,6 +190,9 @@ absl::StatusOr<GraphicsEditContext> MakeDungeonGraphicsEditContext(
         .palette = gfx::SnesPalette(palette),
         .source_orientation_mask = orientation_bit,
     });
+    ResolveGraphicsPaletteAddressing(context.targets.back(), owner,
+                                     room.rendered_palette_addresses(),
+                                     tile.palette_, half);
   }
   if (context.targets.empty()) {
     return absl::UnimplementedError(

@@ -8,6 +8,7 @@
 #include "core/terrain_catalog.h"
 #include "nlohmann/json.hpp"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 #include "zelda3/graphics_sheet_store.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -134,6 +135,34 @@ bool DeathMountain(int area) {
 }
 
 }  // namespace
+
+const char* PaletteAddressGroupName(PaletteAddressGroup group) {
+  switch (group) {
+    case PaletteAddressGroup::kDungeonMain:
+      return "dungeon_main";
+    case PaletteAddressGroup::kOverworldMain:
+      return "ow_main";
+    case PaletteAddressGroup::kOverworldAux:
+      return "ow_aux";
+  }
+  return "";
+}
+
+absl::StatusOr<gfx::SnesColor> ReadPaletteColor(
+    const GameData& owner, const PaletteColorAddress& address) {
+  const auto* group =
+      owner.palette_groups.get_group(PaletteAddressGroupName(address.group));
+  if (!group || address.palette_index < 0 ||
+      address.palette_index >= static_cast<int>(group->size())) {
+    return absl::OutOfRangeError("Palette address group/index is unavailable");
+  }
+  const auto& palette = group->palette_ref(address.palette_index);
+  if (address.color_index < 0 ||
+      address.color_index >= static_cast<int>(palette.size())) {
+    return absl::OutOfRangeError("Palette address color is unavailable");
+  }
+  return palette[address.color_index];
+}
 
 std::string ResolvedGraphicsContext::ToJson() const {
   nlohmann::json document = {

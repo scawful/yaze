@@ -14,6 +14,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::editor {
@@ -62,6 +63,8 @@ TEST_F(OverworldGraphicsContextTest,
     const auto tile = Tile(slot * 64 + tile_index, 3);
     auto result = ResolveOverworldQuadrantTarget(map_, tile, 0x123, 2, &data_);
     ASSERT_TRUE(result.ok()) << result.status();
+    EXPECT_FALSE(result->writable_palette);
+    EXPECT_FALSE(result->palette_address_limitation.empty());
     EXPECT_EQ(result->sheet_id, 0x10 + slot);
     EXPECT_EQ(result->tile_index, tile_index);
     EXPECT_NE(result->label.find("quadrant 3"), std::string::npos);
@@ -174,6 +177,105 @@ TEST(OverworldGraphicsContextUiTest, InspectorActionUsesActiveQuadrant) {
   EXPECT_TRUE(editor.OpenGraphicsForActiveQuadrant().ok());
   EXPECT_EQ(seen_tile, editor.current_tile16());
   EXPECT_EQ(seen_quadrant, 3);
+}
+
+TEST(OverworldGraphicsContextRomTest,
+     WritablePaletteTracksMainAuxAndInheritedSelectors) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (path == nullptr || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM copy";
+  Rom rom;
+  zelda3::GameData data;
+  ASSERT_TRUE(rom.LoadFromFile(path).ok());
+  ASSERT_TRUE(zelda3::LoadGameData(rom, data).ok());
+  const auto version = zelda3::OverworldVersionHelper::GetVersion(rom);
+  ASSERT_NE(version, zelda3::OverworldVersion::kVanilla);
+  const auto group_table =
+      zelda3::kVersionConstantsMap.at(data.version).kOverworldMapPaletteGroup;
+  const auto area_table =
+      zelda3::OverworldVersionHelper::SupportsAreaEnum(version)
+          ? zelda3::kOverworldPalettesScreenToSetNew
+          : zelda3::kOverworldMapPaletteIds;
+  // Controlled selectors in this private in-memory ROM only. The real loader
+  // must resolve FF through the previous area's group, not guess from RGB.
+  ASSERT_TRUE(rom.WriteByte(area_table + 0x81, 4).ok());
+  for (int column = 0; column < 3; ++column) {
+    ASSERT_TRUE(rom.WriteByte(group_table + 3 * 4 + column, 0xFF).ok());
+    ASSERT_TRUE(rom.WriteByte(group_table + 4 * 4 + column, 7 + column).ok());
+  }
+  zelda3::OverworldMap parent(0x82, &rom, &data);
+  parent.set_main_palette(1);
+  zelda3::OverworldMap map(0x83, &rom, &data);
+  map.SetParent(0x82);
+  map.set_main_palette(0);
+  map.InheritAreaProperties(parent);
+  map.set_area_palette(3);
+  map.LoadAreaGraphics();
+  ASSERT_TRUE(map.LoadPalette().ok());
+  // Keep each tested quadrant on a known editable sheet; this fixture tests
+  // palette routing, independently of the child's graphics assignment.
+  for (int slot = 0; slot < 8; ++slot)
+    *map.mutable_static_graphics(slot) = 0x11;
+  auto resolve = [&](int row, int slot) {
+    const gfx::TileInfo tile(slot * 64 + 32, row, false, false, false);
+    return ResolveOverworldQuadrantTarget(
+        map, gfx::Tile16(tile, tile, tile, tile), 0, 0, &data);
+  };
+  for (int row = 0; row < 8; ++row) {
+    for (int slot = 0; slot < 8; ++slot) {
+      auto result = resolve(row, slot);
+      ASSERT_TRUE(result.ok()) << result.status();
+      const int half =
+          (slot == 0 || slot == 3 || slot == 4 || slot == 5) ? 8 : 0;
+      if (row < 2 || (row == 7 && half == 0)) {
+        EXPECT_FALSE(result->writable_palette);
+        EXPECT_FALSE(result->palette_address_limitation.empty());
+        continue;
+      }
+      ASSERT_TRUE(result->writable_palette)
+          << result->palette_address_limitation;
+      EXPECT_TRUE(ValidateGraphicsPaletteAddressing(*result, &data).ok());
+      const auto& binding = *result->writable_palette;
+      EXPECT_EQ(binding.row, row);
+      EXPECT_EQ(binding.half_offset, half);
+      EXPECT_FALSE(binding.colors[0]);
+      for (int raw = 1; raw < 8; ++raw) {
+        ASSERT_TRUE(binding.colors[raw]);
+        const auto& address = *binding.colors[raw];
+        EXPECT_EQ(address.group,
+                  half == 0 ? zelda3::PaletteAddressGroup::kOverworldMain
+                            : zelda3::PaletteAddressGroup::kOverworldAux);
+        EXPECT_EQ(address.palette_index, half == 0 ? 1 : (row < 5 ? 7 : 8));
+        EXPECT_EQ(address.color_index,
+                  (row - (half == 0 || row < 5 ? 2 : 5)) * 7 + raw - 1);
+        auto color = zelda3::ReadPaletteColor(data, address);
+        ASSERT_TRUE(color.ok());
+        EXPECT_EQ(color->snes(), result->palette[raw].snes());
+      }
+    }
+  }
+  parent.set_main_palette(0);
+  map.InheritAreaProperties(parent);
+  ASSERT_TRUE(map.LoadPalette().ok());
+  auto alternate = resolve(2, 1);
+  ASSERT_TRUE(alternate.ok());
+  ASSERT_TRUE(alternate->writable_palette);
+  EXPECT_EQ(alternate->writable_palette->colors[1]->palette_index, 0);
+  zelda3::GameData foreign;
+  const gfx::TileInfo tile(64 + 32, 2, false, false, false);
+  EXPECT_EQ(ResolveOverworldQuadrantTarget(
+                map, gfx::Tile16(tile, tile, tile, tile), 0, 0, &foreign)
+                .status()
+                .code(),
+            absl::StatusCode::kFailedPrecondition);
+  // Even an override with identical RGB does not establish writable provenance.
+  auto* display_override = map.mutable_current_palette();
+  ASSERT_FALSE(display_override->empty());
+  auto unbound = resolve(2, 1);
+  ASSERT_TRUE(unbound.ok());
+  EXPECT_FALSE(unbound->writable_palette);
+  ASSERT_TRUE(map.LoadPalette().ok());
+  EXPECT_TRUE(resolve(2, 1)->writable_palette);
 }
 
 TEST(OverworldGraphicsContextRomTest, SlotZeroRawZeroUsesAreaBackdrop) {

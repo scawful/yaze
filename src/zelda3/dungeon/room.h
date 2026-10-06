@@ -43,7 +43,8 @@ struct DungeonStreamLayout;
 
 std::vector<SDL_Color> BuildDungeonRenderPalette(
     const gfx::SnesPalette& dungeon_palette,
-    const gfx::SnesPalette* hud_palette = nullptr);
+    const gfx::SnesPalette* hud_palette = nullptr,
+    PaletteAddressMap* addresses = nullptr, int palette_id = 0);
 
 // Builds the same eight CGRAM rows as BuildDungeonRenderPalette, but keeps
 // them grouped for tools whose tile renderer indexes colors as
@@ -1062,7 +1063,12 @@ class Room {
   auto mutable_rom() { return rom_; }
   void SetRom(Rom* rom) { rom_ = rom; }
   auto game_data() { return game_data_; }
-  void SetGameData(GameData* data) { game_data_ = data; }
+  const GameData* game_data() const { return game_data_; }
+  void SetGameData(GameData* data) {
+    if (game_data_ != data)
+      rendered_palette_addresses_ = {};
+    game_data_ = data;
+  }
 
   /// Sheet pixels to use instead of GameData::graphics_buffer for the given
   /// sheet ids (8bpp, 4096 bytes each, the graphics_buffer layout). Lets a
@@ -1104,6 +1110,9 @@ class Room {
   }
   const gfx::SnesPalette& rendered_dungeon_palette() const {
     return rendered_dungeon_palette_;
+  }
+  const PaletteAddressMap& rendered_palette_addresses() const {
+    return rendered_palette_addresses_;
   }
   const std::vector<SDL_Color>& rendered_palette() const {
     return rendered_palette_;
@@ -1153,6 +1162,7 @@ class Room {
   uint64_t composite_source_revision_ = 0;
   gfx::SnesPalette rendered_dungeon_palette_;
   std::vector<SDL_Color> rendered_palette_;
+  PaletteAddressMap rendered_palette_addresses_{};
 
   // Each room has its OWN background buffers and bitmaps
   // Each room has its OWN background buffers and bitmaps
