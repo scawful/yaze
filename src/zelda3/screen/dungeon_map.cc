@@ -1,5 +1,6 @@
 #include "dungeon_map.h"
 
+#include <algorithm>
 #include <fstream>
 #include <vector>
 
@@ -11,6 +12,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/platform/window.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "zelda3/game_data.h"
@@ -78,6 +80,46 @@ absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
 }
 
 absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
+  // Validate every supplied record before the first write, including records
+  // later in the batch. Floor rooms are bytes, with 0F denoting an empty cell.
+  if (dungeon_maps.size() > kNumDungeons) {
+    return absl::InvalidArgumentError("Too many dungeon maps");
+  }
+  std::array<uint16_t, kNumDungeons> boss_floors;
+  boss_floors.fill(0xFFFF);
+  for (size_t d = 0; d < dungeon_maps.size(); ++d) {
+    const auto& map = dungeon_maps[d];
+    const size_t count = map.nbr_of_floor + map.nbr_of_basement;
+    if (map.nbr_of_floor > 0x0F || map.nbr_of_basement > 0x0F ||
+        map.floor_rooms.size() != count || map.floor_gfx.size() != count) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid floor dimensions for dungeon %d", d));
+    }
+    if (map.boss_room == 0x000F || map.boss_room == 0xFFFF)
+      continue;
+    if (map.boss_room > 0xFF) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Boss room cannot fit a map cell for dungeon %d", d));
+    }
+    for (size_t f = 0; f < count; ++f) {
+      const auto& rooms = map.floor_rooms[f];
+      if (std::find(rooms.begin(), rooms.end(), map.boss_room) != rooms.end()) {
+        // The game uses a signed LOW byte, but FF in the HIGH byte means no
+        // boss. In particular B1 must be 00FF, never sign-extended to FFFF.
+        boss_floors[d] =
+            static_cast<uint8_t>(static_cast<int>(f) - map.nbr_of_basement);
+        break;  // Preserve the existing first-occurrence selection.
+      }
+    }
+    if (boss_floors[d] == 0xFFFF) {
+      return absl::NotFoundError(
+          absl::StrFormat("Boss room not found for dungeon %d", d));
+    }
+  }
+
+  // Direct serializer callers need the same rollback protection as coordinated
+  // saves if capacity, bounds or a ROM write fence rejects a later write.
+  ScopedRomTransaction transaction(rom);
   int pos = kDungeonMapDataStart;
 
   for (int d = 0; d < kNumDungeons; d++) {
@@ -93,11 +135,8 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
     RETURN_IF_ERROR(
         rom.WriteWord(kDungeonMapBossRooms + (d * 2), map.boss_room));
 
-    const bool has_boss = map.boss_room != 0x000F && map.boss_room != 0xFFFF;
-    bool search_boss = has_boss;
-    if (!has_boss) {
-      RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossFloors + (d * 2), 0xFFFF));
-    }
+    RETURN_IF_ERROR(
+        rom.WriteWord(kDungeonMapBossFloors + (d * 2), boss_floors[d]));
 
     RETURN_IF_ERROR(
         rom.WriteWord(kDungeonMapRoomsPtr + (d * 2), PcToSnes(pos)));
@@ -105,11 +144,6 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
     bool restart = false;
     for (int f = 0; f < total_floors; f++) {
       for (int r = 0; r < kNumRooms; r++) {
-        if (search_boss && map.floor_rooms[f][r] == map.boss_room) {
-          RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossFloors + (d * 2), f));
-          search_boss = false;
-        }
-
         if (pos >= kDungeonMapDataReservedStart &&
             pos <= kDungeonMapDataReservedEnd) {
           pos = kDungeonMapDataReservedEnd + 1;
@@ -158,13 +192,9 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
       d--;
       continue;
     }
-
-    if (search_boss) {
-      return absl::NotFoundError(
-          absl::StrFormat("Boss room not found for dungeon %d", d));
-    }
   }
 
+  transaction.Commit();
   return absl::OkStatus();
 }
 
