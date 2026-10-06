@@ -95,6 +95,11 @@ absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
     const std::vector<DungeonMap>& dungeon_maps, size_t rom_size,
     bool relocated_tile16);
 
+// Includes ROM layout-marker and relocated-artwork validation. Use this
+// overload for save admission and write-range prediction.
+absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
+    Rom& rom, const std::vector<DungeonMap>& dungeon_maps);
+
 /**
  * @brief Save the dungeon maps to the ROM.
  *

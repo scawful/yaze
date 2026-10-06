@@ -1,4 +1,28 @@
-# Screen Editor: Menu Tilemap (2bpp)
+# Screen Editor
+
+## Dungeon maps
+
+Open **Dungeon Maps** in the Screen editor. Room assignments, references to
+existing map tiles, floor/basement counts, and boss-room selection save through
+**File → Save ROM** or **Save As**. Enable **File → Save Scope… → Dungeon →
+Save Dungeon Maps** for this editing scope.
+
+Adding or removing a floor updates its rooms, graphics references and labels
+as one Undo action. New basements go below the existing deepest basement.
+Removing the last floor or a floor containing the assigned boss is refused.
+Undo/Redo restores the selected floor and remains available after saving.
+
+A save that fails leaves the map edit pending for retry. The writer checks
+capacity and writes map records and pointer tables within validated ranges
+without overlapping map Tile16 artwork. A clean map does not rewrite data
+during unrelated ROM saves.
+
+**Limit:** editing the map's Tile16 composition, title screen, or overworld
+pause map still blocks ROM saving. Those domains require separate persistence
+work. The disabled **Save dungeon map tiles** button refers to Tile16 artwork,
+not room layout records. Existing 2bpp menu files use the file workflow below.
+
+## Menu Tilemap (2bpp)
 
 The Screen editor's **Menu Tilemap (2bpp)** panel edits the raw 2bpp SNES
 BG3 tilemap files that ROM hacks like Oracle of Secrets use for a custom

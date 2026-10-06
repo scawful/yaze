@@ -4419,18 +4419,19 @@ absl::Status EditorManager::SaveRomInternal(
         "before saving the ROM.");
   }
 
-  // ScreenEditor keeps dungeon-map, Tile16, title-screen, and pause-map edits
-  // in editor-owned models. Not every domain can safely participate in the
-  // coordinated ROM transaction yet, so fail before any serializer mutates
-  // the ROM instead of reporting a partial save as successful.
-  if (current_editor_set->HasPendingScreenChanges()) {
-    return absl::FailedPreconditionError(absl::StrFormat(
-        "Save blocked: Screen Editor edits are pending, but they cannot all "
-        "participate safely in the coordinated ROM save (Save Dungeon Maps is "
-        "%s). Title-screen and pause-map ROM writes remain disabled until "
-        "write/reopen/readback verification exists; discard the pending Screen "
-        "Editor edits before saving the ROM.",
-        core::FeatureFlags::get().kSaveDungeonMaps ? "enabled" : "disabled"));
+  // Preflight map-only Screen edits before any serializer can mutate the ROM.
+  // Retain the exact planned extents for manifest protection if disk diffing
+  // is unavailable. Never materialize an unopened Screen editor here.
+  auto* screen_editor = static_cast<ScreenEditor*>(
+      current_editor_set->GetExistingEditor(EditorType::kScreen));
+  std::vector<std::pair<uint32_t, uint32_t>> predicted_screen_write_ranges;
+  if (screen_editor != nullptr && (screen_editor->IsRomBackedStateValid() ||
+                                   screen_editor->HasPendingScreenChanges())) {
+    ASSIGN_OR_RETURN(auto plan, screen_editor->PrepareDungeonMapSave());
+    for (const auto& write : plan.writes) {
+      predicted_screen_write_ranges.emplace_back(
+          write.pc_address, write.pc_address + write.data.size());
+    }
   }
 
   // --- State machine checks (delegated to RomLifecycleManager) ---
@@ -4539,8 +4540,6 @@ absl::Status EditorManager::SaveRomInternal(
   };
 
   // --- Save editor-specific data ---
-  auto* screen_editor = static_cast<ScreenEditor*>(
-      current_editor_set->GetExistingEditor(EditorType::kScreen));
   // A failed lazy Screen load leaves an invalid, clean editor behind. It has
   // nothing to serialize and must not poison unrelated ROM saves.
   if (screen_editor != nullptr && (screen_editor->IsRomBackedStateValid() ||
@@ -4621,6 +4620,9 @@ absl::Status EditorManager::SaveRomInternal(
 
       if (write_ranges.empty() && !diff_computed) {
         write_ranges = predicted_dungeon_write_ranges;
+        write_ranges.insert(write_ranges.end(),
+                            predicted_screen_write_ranges.begin(),
+                            predicted_screen_write_ranges.end());
       }
 
       if (!write_ranges.empty()) {

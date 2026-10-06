@@ -83,6 +83,18 @@ class AuthoringSaveWorkflowTestPeer {
     EXPECT_FALSE(panel.HasUnappliedChanges()) << panel.action_status_message_;
   }
 
+  static void SelectMapFloor(ScreenEditor& editor, int dungeon, int floor) {
+    editor.selected_dungeon = dungeon;
+    editor.floor_number = floor;
+    editor.select_floor_tab_ = true;
+  }
+  static void DrawMapTabs(ScreenEditor& editor) {
+    editor.DrawDungeonMapsTabs();
+  }
+  static ScreenSnapshot MapSnapshot(const ScreenEditor& editor) {
+    return editor.CaptureDungeonMapSnapshot();
+  }
+
   static absl::Status OpenScreenGraphics(ScreenEditor& editor) {
     editor.selected_tile8_ = 64;
     return editor.OpenDungeonMapTileGraphics();
@@ -588,6 +600,148 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   gfx::NullRenderer renderer_;
   std::unique_ptr<EditorManager> manager_;
 };
+
+TEST_F(AuthoringSaveWorkflowTest,
+       DungeonMapFloorControlsUndoRetrySaveAsReopen) {
+  const auto fixture = CopyProject("yaze-map-floor-save");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kScreen));
+  auto* screen = manager_->GetCurrentEditorSet()->GetEditorAs<ScreenEditor>(
+      EditorType::kScreen);
+  ASSERT_NE(screen, nullptr);
+  // This fixture explicitly opts into the bounded map-record save domain.
+  // All other project save settings remain as the real authoring project sets them.
+  core::FeatureFlags::get().kSaveDungeonMaps = true;
+  const auto control_path = fixture.root / "control.sfc";
+  ASSERT_OK(manager_->SaveRomAs(control_path.string()));
+  const auto control = ReadFile(control_path);
+  const auto all_before = screen->dungeon_maps_;
+  ASSERT_EQ(all_before.size(), 14u);
+  AuthoringSaveWorkflowTestPeer::SelectMapFloor(*screen, 0, 0);
+
+  auto& io = ImGui::GetIO();
+  io.ConfigInputTrickleEventQueue = false;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  const auto frame = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700, 700), ImGuiCond_Always);
+    ImGui::Begin("DungeonMapFloorControls", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    AuthoringSaveWorkflowTestPeer::DrawMapTabs(*screen);
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  const auto before = AuthoringSaveWorkflowTestPeer::MapSnapshot(*screen);
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> button;
+  for (const auto& [path, item] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (item.label == gui::WidgetIdRegistry::NormalizeLabel("Add Basement"))
+      button = item;
+  }
+  ASSERT_TRUE(button);
+  io.AddMousePosEvent((button->bounds.min_x + button->bounds.max_x) / 2,
+                      (button->bounds.min_y + button->bounds.max_y) / 2);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  frame();
+  const auto after = AuthoringSaveWorkflowTestPeer::MapSnapshot(*screen);
+  ASSERT_EQ(after.dungeon_map.map_data.nbr_of_basement,
+            before.dungeon_map.map_data.nbr_of_basement + 1);
+  EXPECT_EQ(after.dungeon_map.floor_index, before.dungeon_map.floor_index + 1);
+  EXPECT_EQ(after.dungeon_map.map_data.floor_rooms[1],
+            before.dungeon_map.map_data.floor_rooms[0]);
+  EXPECT_TRUE(screen->HasPendingDungeonMapChanges());
+  ASSERT_OK(screen->Undo());
+  frame();
+  frame();
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::MapSnapshot(*screen)
+                .dungeon_map.floor_index,
+            before.dungeon_map.floor_index);
+  EXPECT_EQ(screen->dungeon_maps_[0].floor_rooms,
+            before.dungeon_map.map_data.floor_rooms);
+  ASSERT_OK(screen->Redo());
+  frame();
+  frame();
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::MapSnapshot(*screen)
+                .dungeon_map.floor_index,
+            after.dungeon_map.floor_index);
+  const auto expected_maps = screen->dungeon_maps_;
+  const auto plan = screen->PrepareDungeonMapSave();
+  ASSERT_OK(plan.status());
+  ASSERT_FALSE(plan->writes.empty());
+  const auto undo_count = screen->undo_manager().UndoStackSize();
+  const auto destination = fixture.root / "dungeon-map.sfc";
+  const auto rom_before = manager_->GetCurrentRom()->vector();
+  {
+    test::ScopedRomStagingFailure fail;
+    EXPECT_FALSE(manager_->SaveRomAs(destination.string()).ok());
+  }
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), control_path.string());
+  EXPECT_EQ(screen->undo_manager().UndoStackSize(), undo_count);
+  EXPECT_TRUE(screen->HasPendingDungeonMapChanges());
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_FALSE(screen->HasPendingScreenChanges());
+  EXPECT_EQ(screen->undo_manager().UndoStackSize(), undo_count);
+  const auto saved = ReadFile(destination);
+  ASSERT_EQ(saved.size(), control.size());
+  // Account for every byte changed by map serialization and ROM checksum.
+  for (size_t pc = 0; pc < saved.size(); ++pc) {
+    if (saved[pc] == control[pc] || (pc >= 0x7FDC && pc < 0x7FE0))
+      continue;
+    EXPECT_TRUE(std::any_of(
+        plan->writes.begin(), plan->writes.end(),
+        [pc](const auto& write) {
+          return pc >= static_cast<size_t>(write.pc_address) &&
+                 pc < static_cast<size_t>(write.pc_address) + write.data.size();
+        }))
+        << "Unexpected changed PC byte " << pc;
+  }
+  ExpectProtectedRegionsMatch(
+      control, saved,
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+
+  auto reopened = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kScreen));
+  auto* fresh = reopened->GetCurrentEditorSet()->GetEditorAs<ScreenEditor>(
+      EditorType::kScreen);
+  ASSERT_EQ(fresh->dungeon_maps_.size(), expected_maps.size());
+  for (size_t d = 0; d < expected_maps.size(); ++d) {
+    const auto& actual = fresh->dungeon_maps_[d];
+    const auto& expected = expected_maps[d];
+    EXPECT_EQ(actual.boss_room, expected.boss_room);
+    EXPECT_EQ(actual.nbr_of_basement, expected.nbr_of_basement);
+    EXPECT_EQ(actual.nbr_of_floor, expected.nbr_of_floor);
+    EXPECT_EQ(actual.floor_rooms, expected.floor_rooms);
+    EXPECT_EQ(actual.floor_gfx, expected.floor_gfx);
+    if (d != 0) {
+      EXPECT_EQ(actual.floor_rooms, all_before[d].floor_rooms);
+      EXPECT_EQ(actual.floor_gfx, all_before[d].floor_gfx);
+    }
+  }
+  EXPECT_FALSE(fresh->HasPendingScreenChanges());
+  reopened.reset();
+  ASSERT_OK(screen->Undo());
+  EXPECT_TRUE(screen->HasPendingDungeonMapChanges());
+  ASSERT_OK(screen->Redo());
+  EXPECT_EQ(screen->dungeon_maps_[0].floor_rooms, expected_maps[0].floor_rooms);
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
 
 TEST_F(AuthoringSaveWorkflowTest, ScreenSourcePixelsUndoReturnSaveAsReopen) {
   const auto fixture = CopyProject("yaze-screen-source-pixels");

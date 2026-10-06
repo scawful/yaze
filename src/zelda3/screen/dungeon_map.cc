@@ -217,7 +217,8 @@ absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
   return plan;
 }
 
-absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
+absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
+    Rom& rom, const std::vector<DungeonMap>& dungeon_maps) {
   ASSIGN_OR_RETURN(auto marker, rom.ReadByte(kDungeonMapExpCheck));
   if (marker != 0xB9 && marker != 0x20) {
     return absl::FailedPreconditionError(
@@ -246,6 +247,11 @@ absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
       }
     }
   }
+  return plan;
+}
+
+absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
+  ASSIGN_OR_RETURN(auto plan, BuildDungeonMapWritePlan(rom, dungeon_maps));
   ScopedRomTransaction transaction(rom);
   for (const auto& write : plan.writes) {
     RETURN_IF_ERROR(rom.WriteVector(write.pc_address, write.data));
