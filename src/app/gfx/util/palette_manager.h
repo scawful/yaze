@@ -313,12 +313,14 @@ class PaletteManager {
   void Redo();
 
   /**
-   * @brief Check if undo is available
+   * @brief Check if the complete undo entry matches current colors.
+   * Conflicting history is retained, but unavailable until values match again.
    */
   bool CanUndo() const;
 
   /**
-   * @brief Check if redo is available
+   * @brief Check if the complete redo entry matches current colors.
+   * Conflicting history is retained, but unavailable until values match again.
    */
   bool CanRedo() const;
 
@@ -386,6 +388,11 @@ class PaletteManager {
 
   /// Helper: Record one undo step (a gesture or an entire batch).
   void RecordChanges(std::vector<PaletteColorChange> changes);
+
+  // Simulate the complete entry in replay order before changing any color or
+  // history. Repeated-slot changes compare against staged intermediate values.
+  bool CanReplayHistory(const std::vector<PaletteColorChange>& changes,
+                        bool redo) const;
 
   /// Helper: Record a single-color undo step.
   void RecordChange(const PaletteColorChange& change);

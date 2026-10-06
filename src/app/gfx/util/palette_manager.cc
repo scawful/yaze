@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <map>
 #include <set>
 #include <tuple>
 
@@ -735,10 +736,10 @@ void PaletteManager::DiscardAllChanges() {
 // ========== Undo/Redo ==========
 
 void PaletteManager::Undo() {
-  CommitColorEdit();
   if (!CanUndo()) {
     return;
   }
+  CommitColorEdit();
 
   auto* state = CurrentState();
   auto changes = std::move(state->undo_stack.back());
@@ -773,10 +774,10 @@ void PaletteManager::Undo() {
 }
 
 void PaletteManager::Redo() {
-  CommitColorEdit();
   if (!CanRedo()) {
     return;
   }
+  CommitColorEdit();
 
   auto* state = CurrentState();
   auto changes = std::move(state->redo_stack.back());
@@ -815,16 +816,49 @@ void PaletteManager::ClearHistory() {
 
 bool PaletteManager::CanUndo() const {
   const auto* state = CurrentState();
-  return !state->undo_stack.empty() ||
-         (state->color_edit && state->color_edit->original_color.snes() !=
-                                   state->color_edit->new_color.snes());
+  if (state->batch_depth || state->save_transaction_snapshot)
+    return false;
+  if (state->color_edit && state->color_edit->original_color.snes() !=
+                               state->color_edit->new_color.snes()) {
+    return CanReplayHistory({*state->color_edit}, /*redo=*/false);
+  }
+  return !state->undo_stack.empty() &&
+         CanReplayHistory(state->undo_stack.back(), /*redo=*/false);
 }
 
 bool PaletteManager::CanRedo() const {
   const auto* state = CurrentState();
-  return !state->redo_stack.empty() &&
+  return !state->redo_stack.empty() && !state->batch_depth &&
+         !state->save_transaction_snapshot &&
          (!state->color_edit || state->color_edit->original_color.snes() ==
-                                    state->color_edit->new_color.snes());
+                                    state->color_edit->new_color.snes()) &&
+         CanReplayHistory(state->redo_stack.back(), /*redo=*/true);
+}
+
+bool PaletteManager::CanReplayHistory(
+    const std::vector<PaletteColorChange>& changes, bool redo) const {
+  if (changes.empty())
+    return false;
+  std::map<std::tuple<std::string, int, int>, uint16_t> staged;
+  for (size_t step = 0; step < changes.size(); ++step) {
+    const auto& change = changes[redo ? step : changes.size() - 1 - step];
+    const auto* group = GetGroup(change.group_name);
+    if (!group || change.palette_index < 0 ||
+        change.palette_index >= group->size())
+      return false;
+    const auto& palette = group->palette_ref(change.palette_index);
+    if (change.color_index < 0 || change.color_index >= palette.size())
+      return false;
+    const auto [at, inserted] = staged.try_emplace(
+        std::make_tuple(change.group_name, change.palette_index,
+                        change.color_index),
+        palette[change.color_index].snes());
+    const auto expected = redo ? change.original_color : change.new_color;
+    if (at->second != expected.snes())
+      return false;
+    at->second = (redo ? change.new_color : change.original_color).snes();
+  }
+  return true;
 }
 
 size_t PaletteManager::GetUndoStackSize() const {

@@ -394,6 +394,73 @@ TEST_F(PalettePixelCommandTest,
 }
 
 TEST_F(PalettePixelCommandTest,
+       OverlappingPaletteRedoCannotSplitPairedCommand) {
+  auto& palettes = gfx::PaletteManager::Get();
+  const auto original = palettes.GetColor("dungeon_main", 0, 0);
+  ASSERT_TRUE(
+      palettes.SetColor("dungeon_main", 0, 0, gfx::SnesColor(uint16_t{12}))
+          .ok());
+  palettes.Undo();
+  ASSERT_TRUE(palettes.CanRedo());
+  UndoManager history;
+  ASSERT_TRUE(ApplyPalettePixelPermutation(state_, history, {0}, swap_).ok());
+  const auto pixels = StoreSheet();
+  const auto colors = data_->palette_groups.dungeon_main.palette_ref(0);
+  const auto revision = palettes.ColorRevision(data_.get());
+  const auto dirty_count = palettes.GetModifiedColorCount();
+  EXPECT_FALSE(palettes.CanRedo());
+  EXPECT_EQ(palettes.GetRedoStackSize(), 1u);
+  palettes.Redo();
+  EXPECT_EQ(palettes.ColorRevision(data_.get()), revision);
+  EXPECT_EQ(palettes.GetModifiedColorCount(), dirty_count);
+  EXPECT_EQ(palettes.GetRedoStackSize(), 1u);
+  EXPECT_EQ(palettes.GetUndoStackSize(), 0u);
+  EXPECT_EQ(StoreSheet(), pixels);
+  for (int i = 0; i < 7; ++i)
+    EXPECT_EQ(palettes.GetColor("dungeon_main", 0, i).snes(), colors[i].snes());
+  // Regression: blind palette replay would make this Graphics Undo refuse.
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(palettes.GetColor("dungeon_main", 0, 0).snes(), original.snes());
+  ASSERT_TRUE(palettes.CanRedo());
+  palettes.Redo();
+  EXPECT_EQ(palettes.GetColor("dungeon_main", 0, 0).snes(), 12);
+}
+
+TEST_F(PalettePixelCommandTest,
+       OverlappingPaletteUndoCannotSplitPairedCommand) {
+  auto& palettes = gfx::PaletteManager::Get();
+  const auto original = palettes.GetColor("dungeon_main", 0, 0);
+  ASSERT_TRUE(
+      palettes.SetColor("dungeon_main", 0, 0, gfx::SnesColor(uint16_t{12}))
+          .ok());
+  ASSERT_TRUE(palettes.CanUndo());
+  GraphicsEditContext refreshed;
+  ASSERT_TRUE(context_.resolve_live_source(refreshed).ok());
+  state_.source_context = std::move(refreshed);
+  UndoManager history;
+  ASSERT_TRUE(ApplyPalettePixelPermutation(state_, history, {0}, swap_).ok());
+  const auto pixels = StoreSheet();
+  const auto colors = data_->palette_groups.dungeon_main.palette_ref(0);
+  const auto revision = palettes.ColorRevision(data_.get());
+  const auto dirty_count = palettes.GetModifiedColorCount();
+  EXPECT_FALSE(palettes.CanUndo());
+  EXPECT_EQ(palettes.GetUndoStackSize(), 1u);
+  palettes.Undo();
+  EXPECT_EQ(palettes.ColorRevision(data_.get()), revision);
+  EXPECT_EQ(palettes.GetModifiedColorCount(), dirty_count);
+  EXPECT_EQ(palettes.GetUndoStackSize(), 1u);
+  EXPECT_EQ(palettes.GetRedoStackSize(), 0u);
+  EXPECT_EQ(StoreSheet(), pixels);
+  for (int i = 0; i < 7; ++i)
+    EXPECT_EQ(palettes.GetColor("dungeon_main", 0, i).snes(), colors[i].snes());
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(palettes.GetColor("dungeon_main", 0, 0).snes(), 12);
+  ASSERT_TRUE(palettes.CanUndo());
+  palettes.Undo();
+  EXPECT_EQ(palettes.GetColor("dungeon_main", 0, 0).snes(), original.snes());
+}
+
+TEST_F(PalettePixelCommandTest,
        FailedUndoRetainsSingleActionAndOtherPaletteHistory) {
   auto& palettes = gfx::PaletteManager::Get();
   ASSERT_TRUE(
