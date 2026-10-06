@@ -164,6 +164,10 @@ class AuthoringSaveWorkflowTestPeer {
     EXPECT_OK(editor.pixel_editor_panel_->Update());
   }
 
+  static void DrawGraphicsPalette(GraphicsEditor& editor) {
+    editor.pixel_editor_panel_->DrawColorPicker();
+  }
+
   static gfx::Bitmap& GraphicsDisplay(GraphicsEditor& editor) {
     return editor.pixel_editor_panel_->DisplaySheet();
   }
@@ -3129,7 +3133,51 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo);
   parent->set_main_palette(old_assignment);
 
-  ASSERT_OK(graphics->ReorderSourcePalette({0}, permutation));
+  // Drive the actual Pixel Editor control and the callback installed by
+  // GraphicsEditor::Initialize, not a private encoder or test-only UI.
+  auto& io = ImGui::GetIO();
+  io.ConfigInputTrickleEventQueue = false;
+  unsigned char* font_pixels;
+  int font_width, font_height;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+  const auto frame = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(600, 650), ImGuiCond_Always);
+    ImGui::Begin("PaletteReorderHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    AuthoringSaveWorkflowTestPeer::DrawGraphicsPalette(*graphics);
+    ImGui::End();
+    ImGui::Render();
+  };
+  const auto click = [&](const std::string& label) {
+    std::optional<gui::WidgetIdRegistry::WidgetInfo> button;
+    for (const auto& [path, item] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (item.label == gui::WidgetIdRegistry::NormalizeLabel(label))
+        button = item;
+    }
+    ASSERT_TRUE(button) << label;
+    io.AddMousePosEvent((button->bounds.min_x + button->bounds.max_x) / 2,
+                        (button->bounds.min_y + button->bounds.max_y) / 2);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+    frame();
+  };
+  frame();
+  frame();
+  click("Reorder source colors");
+  for (int slot = 1; slot < 8; ++slot)
+    if (permutation[slot] != slot)
+      click(absl::StrFormat("Reorder after slot %d", slot));
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(before));
+  EXPECT_FALSE(palettes.HasUnsavedChanges());
+  click("Apply palette reorder");
   EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo + 1);
   EXPECT_EQ(palettes.GetUndoStackSize(), palette_undo);
   EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
@@ -3228,6 +3276,113 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo + 1);
   gfx::Arena::Get().ClearTextureQueue();
   reopened.reset();
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       DungeonWallPalettePatternSaveAsFreshReopenPreservesAppearance) {
+  constexpr int kRoom = 0x89;
+  const auto fixture = CopyProject("yaze-wall-palette-permutation");
+  const auto oracle = std::filesystem::path(kSharedProject).parent_path();
+  std::filesystem::copy_file(oracle / "Dungeons/house_walls.asm",
+                             fixture.root / "walls.asm");
+  for (const auto& entry :
+       std::filesystem::directory_iterator(oracle / "Dungeons/Objects/Data")) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin")
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+  }
+  {
+    std::ofstream project(fixture.project, std::ios::app);
+    project << "\n[files]\ndungeon_tile_patterns=walls.asm\n";
+  }
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kRoom);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+  AuthoringSaveWorkflowTestPeer::SynchronizePatternAssets(*dungeon);
+  zelda3::RoomObject corner(0x100, 0, 0, 0, 0);
+  corner.SetRom(manager_->GetCurrentRom());
+  AuthoringSaveWorkflowTestPeer::OpenObjectGraphics(*dungeon, kRoom, corner);
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  ASSERT_TRUE(state.source_context);
+  const auto source = *state.source_context;
+  ASSERT_GT(source.targets.size(), 1u);
+  std::vector<size_t> targets;
+  for (size_t i = 0; i < source.targets.size(); ++i)
+    targets.push_back(i);
+  std::optional<PalettePermutation> permutation;
+  for (uint8_t a = 1; a < 8 && !permutation; ++a) {
+    for (uint8_t b = a + 1; b < 8 && !permutation; ++b) {
+      PalettePermutation candidate{0, 1, 2, 3, 4, 5, 6, 7};
+      std::swap(candidate[a], candidate[b]);
+      auto plan = PlanPalettePixelPermutation(source, targets, candidate);
+      if (plan.ok() && !plan->colors.empty() && !plan->sheets.empty())
+        permutation = candidate;
+    }
+  }
+  ASSERT_TRUE(permutation) << "Custom corner needs an addressable used palette";
+  const auto plan = PlanPalettePixelPermutation(source, targets, *permutation);
+  ASSERT_OK(plan.status());
+  auto appearance = [](const zelda3::GameData& data,
+                       const GraphicsEditTarget& target) {
+    std::vector<uint16_t> colors;
+    const auto pixels = data.sheet_store.Sheet(target.sheet_id);
+    const int start =
+        (target.tile_index / 16) * 8 * 128 + (target.tile_index % 16) * 8;
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        const int raw = pixels[start + y * 128 + x];
+        if (raw == 0) {
+          colors.push_back(0);  // Fixed transparency.
+        } else {
+          const auto color = zelda3::ReadPaletteColor(
+              data, *target.writable_palette->colors[raw]);
+          EXPECT_TRUE(color.ok()) << color.status();
+          colors.push_back(color.ok() ? color->snes() : 0xffff);
+        }
+      }
+    }
+    return colors;
+  };
+  std::vector<std::vector<uint16_t>> before;
+  for (const auto& target : source.targets)
+    before.push_back(appearance(*state.game_data, target));
+  const auto control_path = fixture.root / "control.sfc";
+  ASSERT_OK(manager_->SaveRomAs(control_path.string()));
+  const auto undo_depth = graphics->undo_manager().UndoStackSize();
+  ASSERT_OK(graphics->ReorderSourcePalette(targets, *permutation));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_depth + 1);
+  for (size_t i = 0; i < source.targets.size(); ++i)
+    EXPECT_EQ(appearance(*state.game_data, source.targets[i]), before[i]);
+  ASSERT_OK(graphics->Undo());
+  ASSERT_OK(graphics->Redo());
+  const auto destination = fixture.root / "wall-palette.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  ExpectProtectedRegionsMatch(
+      ReadFile(control_path), ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  manager_.reset();
+  gfx::Arena::Get().ClearTextureQueue();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(destination.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  const auto* loaded = manager_->GetCurrentGameData();
+  for (size_t i = 0; i < source.targets.size(); ++i)
+    EXPECT_EQ(appearance(*loaded, source.targets[i]), before[i]);
+  for (const auto& diff : plan->sheets) {
+    const auto pixels = loaded->sheet_store.Sheet(diff.sheet);
+    for (size_t i = 0; i < diff.offsets.size(); ++i)
+      EXPECT_EQ(pixels[diff.offsets[i]], diff.after[i]);
+  }
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);

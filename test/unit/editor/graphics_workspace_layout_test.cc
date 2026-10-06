@@ -117,6 +117,43 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
     frame();
   }
 
+  void BindReorderSource() {
+    data_->palette_groups.dungeon_main.AddPalette(gfx::SnesPalette(
+        std::vector<uint16_t>{31, 992, 31744, 1023, 31775, 32736, 32767}));
+    gfx::PaletteManager::Get().Initialize(data_.get());
+    GraphicsEditContext source;
+    source.owner = data_.get();
+    source.label = "Two-tile source pattern";
+    for (uint16_t tile = 0; tile < 2; ++tile) {
+      GraphicsEditTarget target;
+      target.tile_index = tile;
+      target.label = absl::StrFormat("Tile %d", tile);
+      target.palette = gfx::SnesPalette(std::vector<uint16_t>(8, 0));
+      GraphicsPaletteAddressing binding;
+      binding.owner = data_.get();
+      binding.row = 2;
+      for (int raw = 1; raw < 8; ++raw) {
+        binding.colors[raw] = zelda3::PaletteColorAddress{
+            zelda3::PaletteAddressGroup::kDungeonMain, 0, raw - 1};
+        target.palette[raw] =
+            data_->palette_groups.dungeon_main.palette_ref(0)[raw - 1];
+      }
+      target.writable_palette = binding;
+      ASSERT_TRUE(ValidateGraphicsPaletteAddressing(target, data_.get()).ok());
+      source.targets.push_back(target);
+    }
+    source.resolve_live_source = [this, source](GraphicsEditContext& fresh) {
+      fresh = source;
+      for (auto& target : fresh.targets)
+        for (int raw = 1; raw < 8; ++raw)
+          target.palette[raw] =
+              data_->palette_groups.dungeon_main.palette_ref(0)[raw - 1];
+      return absl::OkStatus();
+    };
+    state_.source_context = std::move(source);
+    state_.open_sheets.insert(0);
+  }
+
   // Inspect the actual swatch draw geometry, not a helper that could return the
   // right color while the production widget still renders a stale value.
   std::optional<ImU32> SwatchColor(const char* label) {
@@ -931,6 +968,108 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   view.SetGameData(data_.get());
   frame();
   EXPECT_EQ(renders, 7);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       PaletteReorderStagesScopeCancelApplyAndOneUndo) {
+  BindReorderSource();
+  auto cleanup = absl::MakeCleanup([&] {
+    gfx::PaletteManager::Get().ReleaseSession(data_.get());
+    gfx::Arena::Get().ClearTextureQueue();
+  });
+  UndoManager history;
+  PixelEditorPanel pixel(&state_, nullptr, &history);
+  pixel.SetPaletteReorderCallback([&](const auto& targets,
+                                      const auto& permutation) {
+    return ApplyPalettePixelPermutation(state_, history, targets, permutation);
+  });
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); }, 460);
+  };
+  const auto before = data_->graphics_buffer;
+  frame();
+  frame();
+  Click("Reorder source colors", frame);
+  Click("Reorder after slot 1", frame);
+  Click("Reorder after slot 2", frame);
+  Click("Reorder source pattern", frame);
+  EXPECT_EQ(data_->graphics_buffer, before);
+  EXPECT_FALSE(gfx::PaletteManager::Get().HasUnsavedChanges());
+  Click("Cancel palette reorder", frame);
+  EXPECT_EQ(history.UndoStackSize(), 0u);
+  EXPECT_EQ(data_->graphics_buffer, before);
+
+  // Reopening resets to Current tile and the original order. Zero is fixed.
+  Click("Reorder source colors", frame);
+  Click("Reorder after slot 0", frame);
+  Click("Reorder after slot 1", frame);
+  Click("Reorder after slot 2", frame);
+  Click("Apply palette reorder", frame);
+  ASSERT_EQ(history.UndoStackSize(), 1u);
+  auto pixels = data_->sheet_store.Sheet(0);
+  for (int y = 0; y < 8; ++y)
+    for (int x = 0; x < 16; ++x)
+      EXPECT_EQ(pixels[y * 128 + x], x < 8 ? 2 : 1);
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 1).snes(),
+            31);  // Index two remains red after its pixels are remapped.
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(data_->graphics_buffer, before);
+  ASSERT_TRUE(history.Redo().ok());
+  ASSERT_TRUE(history.Undo().ok());
+
+  Click("Reorder source colors", frame);
+  Click("Reorder source pattern", frame);
+  Click("Reorder after slot 1", frame);
+  Click("Reorder after slot 2", frame);
+  Click("Apply palette reorder", frame);
+  ASSERT_EQ(history.UndoStackSize(), 1u);
+  pixels = data_->sheet_store.Sheet(0);
+  for (int y = 0; y < 8; ++y)
+    for (int x = 0; x < 16; ++x)
+      EXPECT_EQ(pixels[y * 128 + x], 2);
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(data_->graphics_buffer, before);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       PaletteReorderRefusesChangedSourceAndUnmappedTargets) {
+  BindReorderSource();
+  auto cleanup = absl::MakeCleanup([&] {
+    gfx::PaletteManager::Get().ReleaseSession(data_.get());
+    gfx::Arena::Get().ClearTextureQueue();
+  });
+  PixelEditorPanel pixel(&state_, nullptr);
+  int apply_count = 0;
+  pixel.SetPaletteReorderCallback([&](const auto&, const auto&) {
+    ++apply_count;
+    return absl::OkStatus();
+  });
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); }, 460);
+  };
+  frame();
+  frame();
+  Click("Reorder source colors", frame);
+  Click("Reorder after slot 1", frame);
+  Click("Reorder after slot 2", frame);
+  ASSERT_TRUE(gfx::PaletteManager::Get()
+                  .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x1234))
+                  .ok());
+  frame();
+  EXPECT_FALSE(FindWidget("Apply palette reorder"));
+  Click("Cancel palette reorder", frame);
+  EXPECT_EQ(apply_count, 0);
+
+  state_.source_context->targets[0].writable_palette.reset();
+  Click("Reorder source colors", frame);
+  Click("Reorder after slot 1", frame);
+  Click("Reorder after slot 2", frame);
+  Click("Apply palette reorder",
+        frame);  // Disabled, despite nonidentity order.
+  EXPECT_EQ(apply_count, 0);
+  state_.ClearSourceContext();
+  frame();
+  EXPECT_EQ(ImGui::GetCurrentContext()->OpenPopupStack.Size, 0);
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest, PixelTextureUsesTheSameFadeAsItsWindow) {

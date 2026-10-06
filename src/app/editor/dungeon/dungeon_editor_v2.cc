@@ -11,7 +11,9 @@
 #include <array>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -82,6 +84,21 @@
 namespace yaze::editor {
 
 namespace {
+
+auto GraphicsObjectStamp(const zelda3::RoomObject& object) {
+  return std::make_tuple(object.id_, object.x_, object.y_, object.size_,
+                         object.GetLayerValue(), object.all_bgs_, object.lit_,
+                         object.options(), object.block_behavior_layer(),
+                         object.torch_reserved_bit());
+}
+
+bool SameGraphicsEntrance(const DungeonRenderContext& a,
+                          const DungeonRenderContext& b) {
+  return a.source == b.source && a.entrance_slot == b.entrance_slot &&
+         a.effective_blockset() == b.effective_blockset() &&
+         a.room_header_blockset == b.room_header_blockset &&
+         a.owner_index == b.owner_index && a.owner_id == b.owner_id;
+}
 
 bool ProjectAdvertisesMinecartTracks(const project::YazeProject* project) {
   return project != nullptr && project->hack_manifest.loaded() &&
@@ -2356,6 +2373,23 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   auto& room = rooms_[room_id];
   ApplyEntranceRenderContext(room_id);
   room.PrepareForRender();
+  const auto object_stamp = GraphicsObjectStamp(object);
+  std::optional<size_t> placed_index;
+  bool ambiguous_placement = false;
+  // The canvas callback supplies an object copy, without its room index.
+  // Infer a placement only when its scalar identity has one match. An
+  // unmatched copy is a catalog pattern; duplicates may be previewed, but
+  // their mutation source is ambiguous until the callback carries an index.
+  const auto& placed_objects = room.GetTileObjects();
+  for (size_t i = 0; i < placed_objects.size(); ++i) {
+    if (GraphicsObjectStamp(placed_objects[i]) != object_stamp)
+      continue;
+    if (placed_index) {
+      ambiguous_placement = true;
+      break;
+    }
+    placed_index = i;
+  }
   auto context = MakeDungeonGraphicsEditContext(room, object, game_data_);
   if (!context.ok()) {
     LOG_WARN("DungeonEditorV2", "Edit Graphics: %s",
@@ -2369,16 +2403,60 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   const auto entrance = ResolveDungeonRenderContextForRoom(room_id);
   context->label +=
       absl::StrFormat(" / %s", DungeonRenderContextSourceName(entrance));
+  auto resolve_live_source =
+      [this, room_id, object, object_stamp, placed_index, ambiguous_placement,
+       entrance, owner = game_data_,
+       source_rom = rom_](GraphicsEditContext& fresh) -> absl::Status {
+    if (game_data_ != owner || rom_ != source_rom || !rom_ ||
+        !rom_->is_loaded()) {
+      return absl::FailedPreconditionError("Dungeon source session changed");
+    }
+    if (ambiguous_placement) {
+      return absl::FailedPreconditionError(
+          "Dungeon object placement is ambiguous; reopen Graphics");
+    }
+    auto* live_room = rooms_.GetIfMaterialized(room_id);
+    if (!live_room || !live_room->IsLoaded()) {
+      return absl::FailedPreconditionError("Dungeon source room changed");
+    }
+    if (!SameGraphicsEntrance(entrance,
+                              ResolveDungeonRenderContextForRoom(room_id))) {
+      return absl::FailedPreconditionError(
+          "Dungeon entrance or blockset source changed; reopen Graphics");
+    }
+    const zelda3::RoomObject* live_object = &object;
+    if (placed_index) {
+      const auto& objects = live_room->GetTileObjects();
+      if (*placed_index >= objects.size() ||
+          GraphicsObjectStamp(objects[*placed_index]) != object_stamp) {
+        return absl::FailedPreconditionError(
+            "Dungeon object placement changed; reopen Graphics");
+      }
+      live_object = &objects[*placed_index];
+    }
+    ApplyEntranceRenderContext(room_id);
+    live_room->MarkGraphicsDirty();
+    live_room->PrepareForRender();
+    auto refreshed =
+        MakeDungeonGraphicsEditContext(*live_room, *live_object, owner);
+    if (!refreshed.ok())
+      return refreshed.status();
+    fresh = std::move(*refreshed);
+    return absl::OkStatus();
+  };
+  context->resolve_live_source = resolve_live_source;
+  // Display refresh retains its earlier captured-source behavior. The strict
+  // live resolver runs only at the palette/pixel mutation boundary.
   context->refresh_palettes = [this, room_id, object, owner = game_data_](
-                                  GraphicsEditContext& source) {
+                                  GraphicsEditContext& source) -> absl::Status {
     if (game_data_ != owner) {
       return absl::FailedPreconditionError("Dungeon source session changed");
     }
-    auto& room = rooms_[room_id];
+    auto& live_room = rooms_[room_id];
     ApplyEntranceRenderContext(room_id);
-    room.MarkGraphicsDirty();
-    room.PrepareForRender();
-    auto refreshed = MakeDungeonGraphicsEditContext(room, object, owner);
+    live_room.MarkGraphicsDirty();
+    live_room.PrepareForRender();
+    auto refreshed = MakeDungeonGraphicsEditContext(live_room, object, owner);
     if (!refreshed.ok())
       return refreshed.status();
     return UpdateGraphicsContextPalettes(source, std::move(*refreshed));
