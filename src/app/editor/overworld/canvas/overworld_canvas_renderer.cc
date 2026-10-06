@@ -331,7 +331,7 @@ OverworldCanvasRenderer::EnsureOverlayLayer(int map_index) {
       entry.bitmap_serial = map->bitmap_serial();
       entry.background = layer->background;
       if (!entry.bitmap.is_active()) {
-        entry.bitmap.Create(kOverworldMapSize, kOverworldMapSize, 0x80,
+        entry.bitmap.Create(kOverworldMapSize, kOverworldMapSize, 8,
                             layer->pixels);
       } else {
         entry.bitmap.set_data(layer->pixels);

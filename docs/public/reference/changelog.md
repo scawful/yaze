@@ -11,6 +11,11 @@ they do not establish current end-to-end or release qualification.
 
 Release date, final merge SHA, and packaged-candidate evidence are pending.
 
+- Fixed white overworld map and subscreen overlay textures. Their indexed
+  bitmaps now declare 8-bit depth, restoring palette application and pixel row
+  copying. A windowless SDL regression checks first-load and recreated map
+  textures against the model's pixel colors.
+
 ### Upgrading from 0.7.2
 Every item below was checked against the `v0.7.2` tag and current `master`: the
 behaviour is on master, was absent or different in 0.7.2, and a user, script,

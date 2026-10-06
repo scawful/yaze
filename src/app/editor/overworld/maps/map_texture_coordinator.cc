@@ -95,7 +95,7 @@ void OverworldMapTextureCoordinator::EnsureMapTexture(int map_index) {
   if (!bitmap.is_active()) {
     const auto& palette = map->current_palette();
     try {
-      bitmap.Create(kOverworldMapSize, kOverworldMapSize, 0x80,
+      bitmap.Create(kOverworldMapSize, kOverworldMapSize, 8,
                     map->bitmap_data());
       bitmap.SetPalette(palette);
     } catch (const std::bad_alloc& e) {

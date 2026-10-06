@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "absl/status/status.h"
+#include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
@@ -373,6 +374,71 @@ class OverworldPaintRefreshTest : public MapRefreshCoordinatorTest {
   int refresh_count_ = 0;
   std::unique_ptr<OverworldMapTextureCoordinator> textures_;
 };
+
+TEST_F(OverworldPaintRefreshTest,
+       FreshMapTexturePreservesIndexedPixelsAndColors) {
+  auto* map = overworld_->mutable_overworld_map(0);
+  for (int y = 0; y < 32; ++y) {
+    for (int x = 0; x < 32; ++x) {
+      overworld_->GetMapTiles(0)[x][y] = (x + y) % 2;
+    }
+  }
+  ASSERT_TRUE(map->BuildBitmap(overworld_->GetMapTiles(0)).ok());
+  *map->mutable_current_palette() =
+      gfx::SnesPalette(std::vector<gfx::SnesColor>(256));
+  (*map->mutable_current_palette())[0] = gfx::SnesColor(248, 0, 0);
+  (*map->mutable_current_palette())[16] = gfx::SnesColor(0, 0, 248);
+
+  // Exercise first display and recreation, not a pre-created test bitmap.
+  for (int pass = 0; pass < 2; ++pass) {
+    SCOPED_TRACE(pass);
+    textures_->ResetMapBitmaps();
+    textures_->EnsureMapTexture(0);
+    auto& bitmap = maps_bmp_[0];
+    ASSERT_TRUE(bitmap.is_active());
+    EXPECT_EQ(bitmap.depth(), 8);
+    EXPECT_TRUE(bitmap.IsIndexed());
+    EXPECT_TRUE(bitmap.ValidateDataSurfaceSync());
+
+    // Use the production SDL upload and a windowless software renderer. Checking
+    // the indexed model alone misses palette/row-stride errors at this boundary.
+    std::unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)> target(
+        SDL_CreateRGBSurfaceWithFormat(0, 512, 512, 32, SDL_PIXELFORMAT_RGBA32),
+        SDL_FreeSurface);
+    ASSERT_NE(target, nullptr) << SDL_GetError();
+    std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> renderer(
+        SDL_CreateSoftwareRenderer(target.get()), SDL_DestroyRenderer);
+    ASSERT_NE(renderer, nullptr) << SDL_GetError();
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture(
+        SDL_CreateTexture(renderer.get(), SDL_PIXELFORMAT_RGBA8888,
+                          SDL_TEXTUREACCESS_STREAMING, 512, 512),
+        SDL_DestroyTexture);
+    ASSERT_NE(texture, nullptr) << SDL_GetError();
+    gfx::SDL2Renderer uploader;
+    uploader.UpdateTexture(texture.get(), bitmap);
+    ASSERT_EQ(SDL_RenderCopy(renderer.get(), texture.get(), nullptr, nullptr),
+              0)
+        << SDL_GetError();
+    std::vector<uint8_t> rendered(512 * 512 * 4);
+    ASSERT_EQ(
+        SDL_RenderReadPixels(renderer.get(), nullptr, SDL_PIXELFORMAT_RGBA32,
+                             rendered.data(), 512 * 4),
+        0)
+        << SDL_GetError();
+    size_t mismatched_pixels = 0;
+    for (size_t i = 0; i < map->bitmap_data().size(); ++i) {
+      const auto color = map->current_palette()[map->bitmap_data()[i]].rgb();
+      if (rendered[i * 4] != static_cast<uint8_t>(color.x) ||
+          rendered[i * 4 + 1] != static_cast<uint8_t>(color.y) ||
+          rendered[i * 4 + 2] != static_cast<uint8_t>(color.z) ||
+          rendered[i * 4 + 3] != 255) {
+        ++mismatched_pixels;
+      }
+    }
+    EXPECT_EQ(mismatched_pixels, 0u);
+    gfx::Arena::Get().ClearTextureQueue();
+  }
+}
 
 TEST_F(OverworldPaintRefreshTest,
        EnsureTexturePreservesPaintUntilModelRefresh) {

@@ -4,6 +4,8 @@ High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
 ## 0.8.0 (in development)
+- Fixed white overworld map and overlay textures caused by an incorrect indexed
+  bitmap depth. First-load and recreation coverage now checks rendered colors.
 - Dungeon-map layout records now join normal Save/Save As with enabled Save
   Dungeon Maps scope, transaction rollback, retained Undo/Redo, protected
   pointer/artwork ranges, and signed basement boss-floor encoding. Floor
