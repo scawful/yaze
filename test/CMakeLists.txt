@@ -400,6 +400,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sprite_authoring_test.cc
     unit/editor/sprite_behavior_test.cc
     unit/editor/sprite_catalog_session_test.cc
+    unit/zelda3/dungeon_map_serialization_test.cc
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/dungeon_room_edit_test.cc
