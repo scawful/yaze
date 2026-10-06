@@ -33,6 +33,7 @@
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/palette_pixel_command.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/overworld/overworld_editor.h"
@@ -3042,6 +3043,194 @@ OverworldEditor* LoadedOverworld(EditorManager* manager) {
   }
   return manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
       EditorType::kOverworld);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       PalettePixelCommandLiveSourceAtomicSaveAsFreshReopen) {
+  const auto fixture = CopyProject("yaze-palette-pixel-command");
+  Open(fixture);
+  auto* ow = LoadedOverworld(manager_.get());
+  ASSERT_NE(ow, nullptr);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  ow->SetCurrentMap(0);
+  int tile16 = -1, quadrant = -1;
+  PalettePermutation permutation{0, 1, 2, 3, 4, 5, 6, 7};
+  // Select an actual map tile with an addressable palette and a used nonzero
+  // index whose color differs from another slot. No synthetic art is inserted.
+  for (int y = 0; y < 32 && tile16 < 0; ++y) {
+    for (int x = 0; x < 32 && tile16 < 0; ++x) {
+      const int id = ow->overworld().GetMapTiles(0)[x][y];
+      for (int q = 0; q < 4 && tile16 < 0; ++q) {
+        if (!ow->OpenGraphicsForTile16Quadrant(id, q).ok())
+          continue;
+        const auto* t = state.SourceTarget();
+        if (!t || !t->writable_palette ||
+            t->writable_palette->colors[1]->group !=
+                zelda3::PaletteAddressGroup::kOverworldMain)
+          continue;
+        const auto pixels = state.game_data->sheet_store.Sheet(t->sheet_id);
+        const int start =
+            (t->tile_index / 16) * 8 * 128 + (t->tile_index % 16) * 8;
+        for (int py = 0; py < 8 && tile16 < 0; ++py)
+          for (int px = 0; px < 8 && tile16 < 0; ++px) {
+            const int raw = pixels[start + py * 128 + px];
+            if (raw == 0 || raw > 7)
+              continue;
+            for (int other = 1; other < 8; ++other) {
+              if (t->palette[raw].snes() == t->palette[other].snes())
+                continue;
+              std::swap(permutation[raw], permutation[other]);
+              tile16 = id;
+              quadrant = q;
+              break;
+            }
+          }
+      }
+    }
+  }
+  ASSERT_GE(tile16, 0);
+  const auto target = *state.SourceTarget();
+  RecordProperty("tile16", tile16);
+  RecordProperty("quadrant", quadrant);
+  RecordProperty("sheet", target.sheet_id);
+  const auto control_path = fixture.root / "control.sfc";
+  ASSERT_OK(manager_->SaveRomAs(control_path.string()));
+  const auto control = ReadFile(control_path);
+  auto plan =
+      PlanPalettePixelPermutation(*state.source_context, {0}, permutation);
+  ASSERT_OK(plan.status());
+  ASSERT_FALSE(plan->colors.empty());
+  ASSERT_FALSE(plan->sheets.empty());
+  const auto span = state.game_data->sheet_store.Sheet(target.sheet_id);
+  const std::vector<uint8_t> before(span.begin(), span.end());
+  auto& palettes = gfx::PaletteManager::Get();
+  const auto palette_undo = palettes.GetUndoStackSize();
+  const auto graphics_undo = graphics->undo_manager().UndoStackSize();
+
+  // Retained negative reproduction: the display-only refresh still resolves
+  // the old copied map. The mutation boundary must consult the actual parent.
+  auto* parent = ow->overworld().mutable_overworld_map(
+      ow->overworld().overworld_map(0)->parent());
+  const auto old_assignment = parent->main_palette();
+  ASSERT_GT(state.game_data->palette_groups.overworld_main.size(), 1u);
+  parent->set_main_palette(
+      (old_assignment + 1) %
+      state.game_data->palette_groups.overworld_main.size());
+  ASSERT_OK(state.source_context->refresh_palettes(*state.source_context));
+  EXPECT_EQ(state.SourceTarget()->sheet_id, target.sheet_id);
+  const auto refused = graphics->ReorderSourcePalette({0}, permutation);
+  EXPECT_FALSE(refused.ok())
+      << "Captured preview must not authorize a stale assignment";
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(before));
+  EXPECT_FALSE(palettes.HasUnsavedChanges());
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo);
+  parent->set_main_palette(old_assignment);
+
+  ASSERT_OK(graphics->ReorderSourcePalette({0}, permutation));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo + 1);
+  EXPECT_EQ(palettes.GetUndoStackSize(), palette_undo);
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  EXPECT_TRUE(palettes.HasUnsavedChanges());
+  const auto changed_span = state.game_data->sheet_store.Sheet(target.sheet_id);
+  const std::vector<uint8_t> after(changed_span.begin(), changed_span.end());
+  auto appearance = [&](const std::vector<uint8_t>& pixels,
+                        const gfx::SnesPalette& colors) {
+    std::vector<uint16_t> words;
+    const int start =
+        (target.tile_index / 16) * 8 * 128 + (target.tile_index % 16) * 8;
+    for (int y = 0; y < 8; ++y)
+      for (int x = 0; x < 8; ++x)
+        words.push_back(colors[pixels[start + y * 128 + x]].snes());
+    return words;
+  };
+  const auto expected_appearance = appearance(before, target.palette);
+  GraphicsEditContext fresh;
+  ASSERT_OK(state.source_context->resolve_live_source(fresh));
+  EXPECT_EQ(appearance(after, fresh.targets[0].palette), expected_appearance);
+  const int tile_x = (target.tile_index % 16) * 8;
+  const int tile_y = (target.tile_index / 16) * 8;
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(
+      *graphics, tile_x, tile_y, after[tile_y * 128 + tile_x], false);
+  EXPECT_FALSE(graphics->Undo().ok());
+  EXPECT_FALSE(graphics->ReorderSourcePalette({0}, permutation).ok());
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo + 1);
+  AuthoringSaveWorkflowTestPeer::EndGraphicsStroke(*graphics);
+  ASSERT_OK(graphics->Undo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(before));
+  for (const auto& change : plan->colors)
+    EXPECT_EQ(palettes
+                  .GetColor(change.group_name, change.palette_index,
+                            change.color_index)
+                  .snes(),
+              change.original_color.snes());
+  ASSERT_OK(graphics->Redo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(after));
+  const auto destination = fixture.root / "palette-pixel.sfc";
+  const auto filename = manager_->GetCurrentRom()->filename();
+  {
+    test::ScopedRomStagingFailure failure;
+    const auto failed = manager_->SaveRomAs(destination.string());
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), filename);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), control);
+  EXPECT_EQ(ReadFile(control_path), control);
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo + 1);
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  EXPECT_TRUE(palettes.HasUnsavedChanges());
+  ASSERT_OK(graphics->Undo());
+  ASSERT_OK(graphics->Redo());
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  const auto saved = ReadFile(destination);
+  for (const auto& change : plan->colors) {
+    const auto pc = gfx::GetPaletteAddress(
+        change.group_name, change.palette_index, change.color_index);
+    ASSERT_LT(pc + 1, saved.size());
+    EXPECT_EQ(saved[pc] | (saved[pc + 1] << 8), change.new_color.snes());
+  }
+  ExpectProtectedRegionsMatch(
+      control, saved,
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  EXPECT_FALSE(graphics->HasPendingGraphicsChanges());
+  EXPECT_FALSE(palettes.HasUnsavedChanges());
+
+  auto reopened = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  auto* reopened_ow = LoadedOverworld(reopened.get());
+  ASSERT_NE(reopened_ow, nullptr);
+  reopened_ow->SetCurrentMap(0);
+  ASSERT_OK(reopened_ow->OpenGraphicsForTile16Quadrant(tile16, quadrant));
+  auto& loaded = AuthoringSaveWorkflowTestPeer::GraphicsState(
+      *reopened->GetCurrentEditorSet()->GetGraphicsEditor());
+  ASSERT_TRUE(loaded.SourceTarget());
+  EXPECT_EQ(loaded.SourceTarget()->sheet_id, target.sheet_id);
+  EXPECT_EQ(loaded.SourceTarget()->tile_index, target.tile_index);
+  EXPECT_EQ(loaded.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(after));
+  EXPECT_EQ(appearance(after, loaded.SourceTarget()->palette),
+            expected_appearance);
+  EXPECT_TRUE(ValidateGraphicsPaletteAddressing(*loaded.SourceTarget(),
+                                                loaded.game_data)
+                  .ok());
+  // The original session's command cannot operate while the second owns Arena.
+  EXPECT_FALSE(graphics->Undo().ok());
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), graphics_undo + 1);
+  gfx::Arena::Get().ClearTextureQueue();
+  reopened.reset();
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
 TEST_F(AuthoringSaveWorkflowTest, MainMenusStayOpenWithRightSettingsDrawer) {

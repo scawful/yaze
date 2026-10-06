@@ -165,6 +165,15 @@ class PaletteManager {
   absl::Status SetColor(const std::string& group_name, int palette_index,
                         int color_index, const SnesColor& new_color);
 
+  // A command in another editor owns history for these changes. Preflights
+  // expected colors and defers notifications until the participant succeeds.
+  // On failure restores palette values and tracking; the participant must
+  // restore its own state before returning an error. Does not push/clear history.
+  absl::Status ApplyExternalChanges(
+      const zelda3::GameData* owner,
+      const std::vector<PaletteColorChange>& changes,
+      const std::function<absl::Status()>& participant);
+
   /**
    * @brief Reset a single color to its original ROM value
    */

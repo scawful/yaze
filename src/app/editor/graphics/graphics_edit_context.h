@@ -71,6 +71,10 @@ struct GraphicsEditContext {
   // Re-resolve display colors through the source loader without replacing
   // the selected raw sheet/tile or pending pixel edits.
   std::function<absl::Status(GraphicsEditContext&)> refresh_palettes;
+  // Authoritative mutation boundary: resolve the owning live model, including
+  // assignments and tile definitions. A cached preview is insufficient.
+  // Missing callback means palette/pixel commands are unsupported.
+  std::function<absl::Status(GraphicsEditContext&)> resolve_live_source;
   std::optional<uint64_t> palette_revision;
   std::string palette_error;
 };

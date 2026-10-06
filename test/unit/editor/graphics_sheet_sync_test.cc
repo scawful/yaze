@@ -2,13 +2,16 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <utility>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
+#include "app/editor/graphics/palette_pixel_command.h"
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "app/editor/registry/undo_manager.h"
 #include "app/gfx/resource/arena.h"
@@ -196,6 +199,219 @@ TEST_F(SheetSyncTest, StrokesAreRefusedWhileTheArenaShowsAnotherRom) {
   EXPECT_EQ(StoreSheet(), Pattern());
   EXPECT_EQ(bitmap_->vector(), Pattern());
   EXPECT_EQ(undo.UndoStackSize(), 0u);
+}
+
+class PalettePixelCommandTest : public SheetSyncTest {
+ protected:
+  void SetUp() override {
+    SheetSyncTest::SetUp();
+    auto pixels = StoreSheet();
+    for (int y = 0; y < 8; ++y)
+      for (int x = 0; x < 8; ++x)
+        pixels[y * 128 + x] = (x + y) % 8;
+    ASSERT_TRUE(CommitSheetPixels(state_, kSheet, pixels).ok());
+    state_.modified_sheets.clear();
+    data_->palette_groups.dungeon_main.AddPalette(gfx::SnesPalette(
+        std::vector<uint16_t>{31, 992, 31744, 1023, 31775, 32736, 32767}));
+    gfx::PaletteManager::Get().Initialize(data_.get());
+    GraphicsEditTarget target;
+    target.sheet_id = kSheet;
+    GraphicsPaletteAddressing binding;
+    binding.owner = data_.get();
+    binding.row = 2;
+    std::vector<gfx::SnesColor> colors{gfx::SnesColor(uint16_t{0})};
+    for (int raw = 1; raw < 8; ++raw) {
+      binding.colors[raw] = zelda3::PaletteColorAddress{
+          zelda3::PaletteAddressGroup::kDungeonMain, 0, raw - 1};
+      colors.push_back(
+          data_->palette_groups.dungeon_main.palette_ref(0)[raw - 1]);
+    }
+    target.palette = gfx::SnesPalette(colors);
+    target.writable_palette = binding;
+    context_.owner = data_.get();
+    context_.targets = {target, target};
+    context_.resolve_live_source = [this](GraphicsEditContext& fresh) {
+      fresh = context_;
+      for (auto& t : fresh.targets)
+        for (int raw = 1; raw < 8; ++raw) {
+          auto color = zelda3::ReadPaletteColor(
+              *data_, *t.writable_palette->colors[raw]);
+          if (!color.ok())
+            return color.status();
+          t.palette[raw] = *color;
+        }
+      return absl::OkStatus();
+    };
+    state_.source_context = context_;
+  }
+  void TearDown() override {
+    gfx::PaletteManager::Get().ReleaseSession(data_.get());
+    SheetSyncTest::TearDown();
+  }
+  GraphicsEditContext context_;
+  PalettePermutation swap_{0, 2, 1, 3, 4, 5, 6, 7};
+};
+
+TEST_F(PalettePixelCommandTest,
+       PurePlanDeduplicatesAndPreservesAppearanceWithOneHistoryAction) {
+  auto& palettes = gfx::PaletteManager::Get();
+  const auto before = StoreSheet();
+  const auto old_palette = context_.targets[0].palette;
+  auto plan = PlanPalettePixelPermutation(context_, {0, 0, 1}, swap_);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->physical_tiles, 1u);
+  EXPECT_EQ(plan->colors.size(), 2u);
+  ASSERT_EQ(plan->sheets.size(), 1u);
+  EXPECT_EQ(StoreSheet(), before);  // Planning is pure.
+  EXPECT_FALSE(palettes.HasUnsavedChanges());
+  UndoManager history;
+  int observations = 0;
+  const int listener = palettes.RegisterChangeListener([&](const auto&) {
+    GraphicsEditContext visible;
+    EXPECT_TRUE(context_.resolve_live_source(visible).ok());
+    const auto pixels = StoreSheet();
+    for (int y = 0; y < 8; ++y)
+      for (int x = 0; x < 8; ++x) {
+        const int at = y * 128 + x;
+        EXPECT_EQ(old_palette[before[at]].snes(),
+                  visible.targets[0].palette[pixels[at]].snes());
+      }
+    ++observations;
+  });
+  const absl::Cleanup remove_listener = [&] {
+    palettes.UnregisterChangeListener(listener);
+  };
+  ASSERT_TRUE(
+      ApplyPalettePixelPermutation(state_, history, {0, 0, 1}, swap_).ok());
+  EXPECT_EQ(history.UndoStackSize(), 1u);
+  EXPECT_EQ(palettes.GetUndoStackSize(), 0u);
+  EXPECT_TRUE(palettes.HasUnsavedChanges());
+  const auto after = StoreSheet();
+  EXPECT_NE(before, after);
+  GraphicsEditContext fresh;
+  ASSERT_TRUE(context_.resolve_live_source(fresh).ok());
+  for (int y = 0; y < 8; ++y)
+    for (int x = 0; x < 8; ++x) {
+      const int at = y * 128 + x;
+      EXPECT_EQ(old_palette[before[at]].snes(),
+                fresh.targets[0].palette[after[at]].snes());
+      if (before[at] == 0)
+        EXPECT_EQ(after[at], 0);
+    }
+  // Another physical tile is outside the explicit remap selection.
+  EXPECT_TRUE(
+      std::equal(before.begin() + 8, before.begin() + 128, after.begin() + 8));
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(StoreSheet(), before);
+  EXPECT_FALSE(palettes.HasUnsavedChanges());
+  EXPECT_EQ(history.RedoStackSize(), 1u);
+  ASSERT_TRUE(history.Redo().ok());
+  EXPECT_EQ(StoreSheet(), after);
+  EXPECT_EQ(history.UndoStackSize(), 1u);
+  EXPECT_EQ(palettes.GetUndoStackSize(), 0u);
+  EXPECT_GT(observations, 0);
+}
+
+TEST_F(PalettePixelCommandTest,
+       RejectsInvalidPermutationsBindingsAndUnsupportedSource) {
+  auto invalid = swap_;
+  invalid[0] = 1;
+  EXPECT_FALSE(PlanPalettePixelPermutation(context_, {0}, invalid).ok());
+  invalid = swap_;
+  invalid[3] = 2;
+  EXPECT_FALSE(PlanPalettePixelPermutation(context_, {0}, invalid).ok());
+  EXPECT_FALSE(PlanPalettePixelPermutation(context_, {}, swap_).ok());
+  EXPECT_FALSE(PlanPalettePixelPermutation(context_, {99}, swap_).ok());
+  auto conflict = context_;
+  std::swap(conflict.targets[1].writable_palette->colors[2],
+            conflict.targets[1].writable_palette->colors[3]);
+  std::swap(conflict.targets[1].palette[2], conflict.targets[1].palette[3]);
+  const auto refused = PlanPalettePixelPermutation(conflict, {0, 1}, swap_);
+  EXPECT_FALSE(refused.ok());
+  EXPECT_NE(refused.status().message().find("conflicting"),
+            absl::string_view::npos);
+  state_.source_context->resolve_live_source = {};
+  UndoManager history;
+  EXPECT_EQ(ApplyPalettePixelPermutation(state_, history, {0}, swap_).code(),
+            absl::StatusCode::kUnimplemented);
+  EXPECT_FALSE(history.CanUndo());
+}
+
+TEST_F(PalettePixelCommandTest,
+       StaleLiveAssignmentsForeignSessionAndPixelsRefuseWithoutChanges) {
+  auto plan = PlanPalettePixelPermutation(context_, {0}, swap_);
+  ASSERT_TRUE(plan.ok());
+  const auto before = StoreSheet();
+  context_.targets[0].tile_index = 1;
+  EXPECT_FALSE(ExecutePalettePixelPlan(state_, *plan, true).ok());
+  EXPECT_EQ(StoreSheet(), before);
+  context_.targets[0].tile_index = 0;
+  zelda3::GameData foreign;
+  gfx::Arena::Get().set_gfx_sheets_owner(&foreign);
+  EXPECT_FALSE(ExecutePalettePixelPlan(state_, *plan, true).ok());
+  gfx::Arena::Get().set_gfx_sheets_owner(data_.get());
+  gfx::PaletteManager::Get().Initialize(&foreign);
+  EXPECT_FALSE(ExecutePalettePixelPlan(state_, *plan, true).ok());
+  gfx::PaletteManager::Get().ReleaseSession(&foreign);
+  gfx::PaletteManager::Get().ActivateSession(data_.get());
+  auto pixels = before;
+  pixels[1] = 6;
+  ASSERT_TRUE(CommitSheetPixels(state_, kSheet, pixels).ok());
+  EXPECT_FALSE(ExecutePalettePixelPlan(state_, *plan, true).ok());
+  EXPECT_EQ(StoreSheet(), pixels);
+  EXPECT_FALSE(gfx::PaletteManager::Get().HasUnsavedChanges());
+}
+
+TEST_F(PalettePixelCommandTest,
+       MidCommitFailureRestoresModelsRevisionsDirtyStateAndHistory) {
+  auto& palettes = gfx::PaletteManager::Get();
+  auto plan = PlanPalettePixelPermutation(context_, {0}, swap_);
+  ASSERT_TRUE(plan.ok());
+  const auto before = StoreSheet();
+  const auto pixels_revision = data_->sheet_store.Revision(kSheet);
+  const auto color_revision = palettes.ColorRevision(data_.get());
+  state_.modified_sheets.insert(1);
+  int notifications = 0;
+  const int listener =
+      palettes.RegisterChangeListener([&](const auto&) { ++notifications; });
+  const auto failure =
+      ExecutePalettePixelPlan(state_, *plan, true, [](size_t written) {
+        EXPECT_EQ(written, 1u);
+        return absl::InternalError("injected after first sheet write");
+      });
+  palettes.UnregisterChangeListener(listener);
+  EXPECT_FALSE(failure.ok());
+  EXPECT_EQ(StoreSheet(), before);
+  EXPECT_EQ(bitmap_->vector(), before);
+  EXPECT_EQ(data_->sheet_store.Revision(kSheet), pixels_revision);
+  EXPECT_EQ(palettes.ColorRevision(data_.get()), color_revision);
+  EXPECT_EQ(state_.modified_sheets, std::set<uint16_t>{1});
+  EXPECT_FALSE(palettes.HasUnsavedChanges());
+  EXPECT_EQ(palettes.GetUndoStackSize(), 0u);
+  EXPECT_EQ(notifications, 0);
+  EXPECT_TRUE(
+      ValidateGraphicsPaletteAddressing(context_.targets[0], data_.get()).ok());
+}
+
+TEST_F(PalettePixelCommandTest,
+       FailedUndoRetainsSingleActionAndOtherPaletteHistory) {
+  auto& palettes = gfx::PaletteManager::Get();
+  ASSERT_TRUE(
+      palettes.SetColor("dungeon_main", 0, 6, gfx::SnesColor(uint16_t{12}))
+          .ok());
+  palettes.Undo();  // A separate palette redo entry must survive the command.
+  UndoManager history;
+  ASSERT_TRUE(ApplyPalettePixelPermutation(state_, history, {0}, swap_).ok());
+  EXPECT_EQ(palettes.GetRedoStackSize(), 1u);
+  const auto after = StoreSheet();
+  context_.targets[0].tile_index = 1;
+  EXPECT_FALSE(history.Undo().ok());
+  EXPECT_EQ(history.UndoStackSize(), 1u);
+  EXPECT_EQ(history.RedoStackSize(), 0u);
+  EXPECT_EQ(StoreSheet(), after);
+  context_.targets[0].tile_index = 0;
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(palettes.GetRedoStackSize(), 1u);
 }
 
 }  // namespace

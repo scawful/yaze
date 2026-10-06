@@ -102,6 +102,7 @@ set(
   app/editor/graphics/graphics_sheet_sync.cc
   app/editor/graphics/graphics_palette_preview.cc
   app/editor/graphics/graphics_edit_context.cc
+  app/editor/graphics/palette_pixel_command.cc
   app/editor/graphics/screen_graphics_context.cc
   app/editor/overworld/overworld_graphics_context.cc
   app/editor/sprite/sprite_graphics_context.cc
