@@ -716,31 +716,18 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_NE(rom, nullptr);
   const auto before_save = rom->vector();
 
-  const auto paused = manager->SaveRom();
-  EXPECT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
-  ASSERT_TRUE(manager->HasPendingPotItemSaveConfirmation());
-
-  // The first save snapshots the mutable manager project into the stable
-  // session-owned editor context before pausing for pot-item confirmation.
+  // Sparse pot saves need no load-all prompt. Missing disk evidence must still
+  // use the declared repack range and reject its protected allocation.
+  std::error_code remove_error;
+  ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
+  ASSERT_FALSE(remove_error) << remove_error.message();
+  const auto blocked = manager->SaveRom();
+  EXPECT_FALSE(blocked.ok());
+  EXPECT_FALSE(manager->HasPendingPotItemSaveConfirmation());
   const auto predicted_ranges = dungeon->CollectWriteRanges();
   EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
                       std::pair<uint32_t, uint32_t>{0x00E100, 0x00E140}),
             predicted_ranges.end());
-  EXPECT_NE(
-      std::find(predicted_ranges.begin(), predicted_ranges.end(),
-                std::pair<uint32_t, uint32_t>{
-                    zelda3::kRoomItemsPointers,
-                    zelda3::kRoomItemsPointers + zelda3::kNumberOfRooms * 2}),
-      predicted_ranges.end());
-
-  std::error_code remove_error;
-  ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
-  ASSERT_FALSE(remove_error) << remove_error.message();
-  ASSERT_FALSE(std::filesystem::exists(rom_path));
-
-  manager->ResolvePotItemSaveConfirmation(
-      EditorManager::PotItemSaveDecision::kSaveWithPotItems);
-
   ASSERT_FALSE(manager->pending_write_conflicts().empty());
   EXPECT_EQ(manager->pending_write_conflicts()[0].address, 0x01E100u);
   EXPECT_EQ(rom->vector(), before_save);

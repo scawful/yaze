@@ -2081,7 +2081,7 @@ TEST(EditorManagerRomWritePolicyTest,
 }
 
 TEST(EditorManagerRomWritePolicyTest,
-     CancellingLaterPromptConsumesHashConfirmationBypass) {
+     EnabledPotScopeWithoutEditsDoesNotAddUnloadedRoomPrompt) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -2116,18 +2116,10 @@ TEST(EditorManagerRomWritePolicyTest,
 
   EXPECT_TRUE(absl::IsCancelled(manager->SaveRomAs(target_path.string())));
   manager->ConfirmRomWrite();
-  EXPECT_TRUE(absl::IsCancelled(manager->ResumePendingRomSave()));
-  EXPECT_TRUE(manager->HasPendingPotItemSaveConfirmation());
-
-  manager->ResolvePotItemSaveConfirmation(
-      EditorManager::PotItemSaveDecision::kCancel);
-  core::FeatureFlags::get().dungeon.kSavePotItems = false;
-
-  const auto retry = manager->SaveRom();
-  EXPECT_TRUE(absl::IsCancelled(retry)) << retry;
-  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  ASSERT_OK(manager->ResumePendingRomSave());
+  EXPECT_FALSE(manager->HasPendingPotItemSaveConfirmation());
   EXPECT_EQ(ReadByteAt(source_path, 0x1234), 0x00);
-  EXPECT_FALSE(std::filesystem::exists(target_path));
+  EXPECT_EQ(ReadByteAt(target_path, 0x1234), 0xA5);
 }
 
 TEST(EditorManagerRomWritePolicyTest,

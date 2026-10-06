@@ -559,7 +559,26 @@ absl::Status DungeonEditorV2::RunWithSaveTransaction(
   return absl::OkStatus();
 }
 
+absl::Status DungeonEditorV2::ValidatePotItemSaveScope() const {
+  if (core::FeatureFlags::get().dungeon.kSavePotItems) {
+    return absl::OkStatus();
+  }
+  bool pending = false;
+  rooms_.ForEachMaterialized([&](int, const zelda3::Room& room) {
+    pending |= room.pot_items_dirty();
+  });
+  if (pending) {
+    return absl::FailedPreconditionError(
+        "Save blocked: pot item edits are pending, but Save Pot Items is "
+        "disabled. Open File > Save Scope > Dungeon and enable Save Pot Items, "
+        "then retry Save or Apply Room. Or undo the pot item edits in Dungeon. "
+        "No project reopen is needed.");
+  }
+  return absl::OkStatus();
+}
+
 absl::Status DungeonEditorV2::Save() {
+  RETURN_IF_ERROR(ValidatePotItemSaveScope());
   if (minecart_track_editor_panel_ != nullptr &&
       minecart_track_editor_panel_->HasUnpublishedChanges()) {
     return absl::FailedPreconditionError(kMinecartDraftSaveBlockMessage);
@@ -971,6 +990,7 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
 // The room-only path is used exclusively by a detached scratch editor during
 // transfer preflight. It cannot save project-global palettes, pits or entrances.
 absl::Status DungeonEditorV2::SaveRoomImpl(int room_id, bool room_data_only) {
+  RETURN_IF_ERROR(ValidatePotItemSaveScope());
   if (minecart_track_editor_panel_ != nullptr &&
       minecart_track_editor_panel_->HasUnpublishedChanges()) {
     return absl::FailedPreconditionError(kMinecartDraftSaveBlockMessage);

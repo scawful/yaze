@@ -718,7 +718,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                                       const std::string& detail,
                                       ProjectWorkflowState state) const;
   absl::StatusOr<std::string> RunProjectBuildCommand();
-  absl::StatusOr<std::string> ResolveProjectBuildCommand() const;
+  absl::StatusOr<std::string> ResolveProjectBuildCommand();
   absl::StatusOr<std::string> ResolveProjectRunTarget() const;
   absl::Status CheckRomWritePolicy(
       const std::optional<std::string>& target_filename = std::nullopt);

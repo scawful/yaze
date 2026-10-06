@@ -39,6 +39,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
 #include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
+#include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
@@ -2554,6 +2555,152 @@ TEST_F(AuthoringSaveWorkflowTest, OracleRoom038PreservesSubmergedDetails) {
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
             fixture.source_hash);
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       PotHandlerDisabledSaveRejectsThenScopeRetryReopens) {
+  const auto fixture = CopyProject("yaze-pot-scope-retry");
+  Open(fixture);
+  ASSERT_FALSE(core::FeatureFlags::get().dungeon.kSavePotItems);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  std::vector<std::vector<zelda3::PotItem>> original;
+  int selected = -1;
+  for (int id = 0; id < zelda3::kNumberOfRooms; ++id) {
+    zelda3::Room room(id, manager_->GetCurrentRom());
+    room.LoadPotItems();
+    original.push_back(room.GetPotItems());
+    if (selected < 0 && !original.back().empty())
+      selected = id;
+  }
+  ASSERT_GE(selected, 0);
+  dungeon->add_room(selected);
+  auto& room = dungeon->rooms()[selected];
+  room.LoadPotItems();
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, selected);
+  ASSERT_NE(viewer, nullptr);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), selected);
+  auto& handler =
+      viewer->object_interaction().entity_coordinator().item_handler();
+  const auto old_type = room.GetPotItems()[0].item;
+  const uint8_t changed = old_type == 1 ? 2 : 1;
+  ASSERT_TRUE(handler.MutateItemType(0, changed));
+  ASSERT_TRUE(room.pot_items_dirty());
+  ASSERT_TRUE(dungeon->CanUndo());
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetPotItems()[0].item, old_type);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(room.GetPotItems()[0].item, changed);
+  const auto history = dungeon->undo_manager().UndoStackSize();
+  const auto loaded = dungeon->LoadedRoomCount();
+  ASSERT_LT(loaded, zelda3::kNumberOfRooms);
+  const auto memory = manager_->GetCurrentRom()->vector();
+  const auto project_bytes = ReadFile(fixture.project);
+  const auto binding = manager_->GetCurrentRom()->filename();
+  const auto target = fixture.root / "pot-scope.sfc";
+  // Existing destination bytes must also survive a refused Save As.
+  {
+    std::ofstream out(target, std::ios::binary);
+    out << "existing destination";
+  }
+  const auto target_before = ReadFile(target);
+  const auto blocked = manager_->SaveRomAs(target.string());
+  EXPECT_TRUE(absl::IsFailedPrecondition(blocked)) << blocked;
+  EXPECT_NE(blocked.message().find("File > Save Scope"),
+            absl::string_view::npos);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory);
+  EXPECT_EQ(ReadFile(target), target_before);
+  EXPECT_EQ(ReadFile(fixture.project), project_bytes);
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), binding);
+  EXPECT_EQ(dungeon->undo_manager().UndoStackSize(), history);
+  EXPECT_TRUE(room.pot_items_dirty());
+  EXPECT_EQ(dungeon->LoadedRoomCount(), loaded);
+  EXPECT_TRUE(absl::IsFailedPrecondition(manager_->SaveRom()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(dungeon->SaveRoom(selected)));
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory);
+  EXPECT_EQ(dungeon->undo_manager().UndoStackSize(), history);
+  ASSERT_FALSE(HasFailure());
+
+  // Reach the existing File > Save Scope checkbox using headless keyboard input.
+  auto* popup = manager_->popup_manager();
+  auto& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  popup->Show(PopupID::kSaveScope);
+  auto frame = [&]() {
+    ImGui::NewFrame();
+    popup->DrawPopups();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  auto* window = ImGui::FindWindowByName(PopupID::kSaveScope);
+  ASSERT_NE(window, nullptr);
+  const auto checkbox = window->GetID("Save Pot Items");
+  for (int i = 0; i < 80 && ImGui::GetCurrentContext()->NavId != checkbox;
+       ++i) {
+    io.AddKeyEvent(ImGuiKey_Tab, true);
+    frame();
+    io.AddKeyEvent(ImGuiKey_Tab, false);
+    frame();
+  }
+  ASSERT_EQ(ImGui::GetCurrentContext()->NavId, checkbox);
+  io.AddKeyEvent(ImGuiKey_Space, true);
+  frame();
+  io.AddKeyEvent(ImGuiKey_Space, false);
+  frame();
+  ASSERT_TRUE(core::FeatureFlags::get().dungeon.kSavePotItems);
+  popup->Hide(PopupID::kSaveScope);
+  ASSERT_OK(manager_->SaveRomAs(target.string()));
+  EXPECT_FALSE(manager_->HasPendingPotItemSaveConfirmation());
+  EXPECT_EQ(dungeon->LoadedRoomCount(), loaded);
+  EXPECT_FALSE(room.pot_items_dirty());
+  auto fresh = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*fresh, &renderer_);
+  fresh->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(fresh->OpenRomOrProject(target.string()));
+  for (int id = 0; id < zelda3::kNumberOfRooms; ++id) {
+    zelda3::Room reread(id, fresh->GetCurrentRom());
+    reread.LoadPotItems();
+    const auto& actual = reread.GetPotItems();
+    ASSERT_EQ(actual.size(), original[id].size()) << id;
+    for (size_t j = 0; j < actual.size(); ++j) {
+      EXPECT_EQ(actual[j].position, original[id][j].position) << id;
+      EXPECT_EQ(actual[j].item,
+                id == selected && j == 0 ? changed : original[id][j].item)
+          << id;
+    }
+  }
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), ReadFile(target),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  // Enabled Apply Room uses the same sparse serializer without a disk prompt.
+  ASSERT_TRUE(handler.MutateItemType(0, old_type));
+  ASSERT_OK(dungeon->SaveRoom(selected));
+  EXPECT_FALSE(room.pot_items_dirty());
+  zelda3::Room applied(selected, manager_->GetCurrentRom());
+  applied.LoadPotItems();
+  EXPECT_EQ(applied.GetPotItems()[0].item, old_type);
+  EXPECT_EQ(dungeon->LoadedRoomCount(), loaded);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       PotScopeEnabledWithoutEditsSavesWithoutLoadingRooms) {
+  const auto fixture = CopyProject("yaze-pot-no-edits");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  const auto loaded = dungeon->LoadedRoomCount();
+  core::FeatureFlags::get().dungeon.kSavePotItems = true;
+  ASSERT_OK(manager_->SaveRomAs((fixture.root / "unchanged.sfc").string()));
+  EXPECT_FALSE(manager_->HasPendingPotItemSaveConfirmation());
+  EXPECT_EQ(dungeon->LoadedRoomCount(), loaded);
 }
 
 TEST_F(AuthoringSaveWorkflowTest,

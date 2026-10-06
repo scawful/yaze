@@ -4364,6 +4364,13 @@ absl::Status EditorManager::SaveRomInternal(
         *save_as_filename, GetCurrentSessionId()));
   }
 
+  // Refuse excluded model edits before serializers, project rebinding, or disk
+  // writes. Reuse the same preflight as direct Save / Apply Room.
+  if (auto* dungeon = static_cast<DungeonEditorV2*>(
+          current_editor_set->GetExistingEditor(EditorType::kDungeon))) {
+    RETURN_IF_ERROR(dungeon->ValidatePotItemSaveScope());
+  }
+
   ASSIGN_OR_RETURN(const project::YazeProject* save_project,
                    PrepareActiveProjectContextForSave());
   // Hash/write/safety checks must read the same immutable session snapshot as
@@ -4441,52 +4448,8 @@ absl::Status EditorManager::SaveRomInternal(
 
   RETURN_IF_ERROR(CheckRomWritePolicy(save_as_filename));
 
-  if (rom_lifecycle_.HasPendingPotItemSaveConfirmation()) {
-    return absl::CancelledError("Save pending confirmation");
-  }
-
-  const bool pot_items_enabled =
-      core::FeatureFlags::get().dungeon.kSavePotItems;
-  if (!rom_lifecycle_.ShouldBypassPotItemConfirm() &&
-      !rom_lifecycle_.ShouldSuppressPotItemSave() && pot_items_enabled) {
-    const int loaded_rooms = current_editor_set->LoadedDungeonRoomCount();
-    const int total_rooms = current_editor_set->TotalDungeonRoomCount();
-    if (loaded_rooms < total_rooms) {
-      rom_lifecycle_.SetPotItemConfirmPending(total_rooms - loaded_rooms,
-                                              total_rooms);
-      if (popup_manager_) {
-        popup_manager_->Show(PopupID::kDungeonPotItemSaveConfirm);
-      }
-      toast_manager_.Show(
-          absl::StrFormat(
-              "Save paused: pot items enabled with %d unloaded rooms",
-              rom_lifecycle_.pending_pot_item_unloaded_rooms()),
-          ToastType::kWarning);
-      return absl::CancelledError("Pot item save confirmation required");
-    }
-  }
-
-  const bool bypass_confirm = rom_lifecycle_.ShouldBypassPotItemConfirm();
-  const bool suppress_pot_items = rom_lifecycle_.ShouldSuppressPotItemSave();
-  rom_lifecycle_.ClearPotItemBypass();
-
-  struct PotItemFlagGuard {
-    bool restore = false;
-    bool previous = false;
-    ~PotItemFlagGuard() {
-      if (restore) {
-        core::FeatureFlags::get().dungeon.kSavePotItems = previous;
-      }
-    }
-  } pot_item_guard;
-
-  if (suppress_pot_items) {
-    pot_item_guard.previous = core::FeatureFlags::get().dungeon.kSavePotItems;
-    pot_item_guard.restore = true;
-    core::FeatureFlags::get().dungeon.kSavePotItems = false;
-  } else if (bypass_confirm) {
-    // Explicitly allow pot item save once after confirmation.
-  }
+  // Pot streams are saved sparsely: unchanged/unloaded rooms are inventoried
+  // from ROM by the serializer. No load-all confirmation is necessary.
 
   // --- Backup policy setup ---
   const auto experiment_policy =
@@ -5993,14 +5956,67 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
   return save_status;
 }
 
-absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() const {
+absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() {
   if (!current_project_.project_opened()) {
     return absl::FailedPreconditionError("No project open");
   }
 
+  // A Build button can run during the panel's Draw() before the frame-end
+  // project draft capture. Read the live panel and raw editor state now.
+  CaptureActiveProjectEditingState();
+  const size_t session_index = GetCurrentSessionIndex();
+  if (SessionHasPendingUnsavedWork(session_index)) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Save project and ROM changes before building: %s",
+                        DescribePendingUnsavedWork(session_index)));
+  }
+
+  const Rom* active_rom = GetCurrentRom();
+  if (active_rom != nullptr && active_rom->is_loaded() &&
+      !current_project_.rom_filename.empty() &&
+      !SessionCoordinator::PathsReferToSameBackingFile(
+          active_rom->filename(),
+          current_project_.GetAbsolutePath(current_project_.rom_filename))) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Build source mismatch: active ROM %s differs from project ROM %s. "
+        "Use Project Management > Swap ROM to bind the saved copy, or reopen "
+        "the project's ROM before building.",
+        active_rom->filename(),
+        current_project_.GetAbsolutePath(current_project_.rom_filename)));
+  }
+
   std::string command = current_project_.build_script;
   if (command.empty() && current_project_.hack_manifest.loaded()) {
-    command = current_project_.hack_manifest.build_pipeline().build_script;
+    const auto& pipeline = current_project_.hack_manifest.build_pipeline();
+    if (!pipeline.dev_rom.empty() && !current_project_.rom_filename.empty() &&
+        !SessionCoordinator::PathsReferToSameBackingFile(
+            current_project_.GetAbsolutePath(pipeline.dev_rom),
+            current_project_.GetAbsolutePath(current_project_.rom_filename))) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Build source mismatch: manifest development ROM %s differs from "
+          "project ROM %s.",
+          current_project_.GetAbsolutePath(pipeline.dev_rom),
+          current_project_.GetAbsolutePath(current_project_.rom_filename)));
+    }
+    command = pipeline.build_script;
+    // Manifest build_script is normally a path. Do not parse arbitrary shell
+    // commands here; only check a single, unquoted file-path token.
+    if (!command.empty() &&
+        command.find_first_of(" \t\r\n|&;<>()$`'\"\\") == std::string::npos) {
+      const std::filesystem::path script_path(command);
+      if (script_path.is_absolute() || script_path.has_parent_path() ||
+          script_path.extension() == ".sh") {
+        const std::string absolute_script =
+            current_project_.GetAbsolutePath(command);
+        std::error_code ec;
+        if (!std::filesystem::is_regular_file(absolute_script, ec)) {
+          return absl::FailedPreconditionError(absl::StrFormat(
+              "Manifest build script is unavailable: %s. Configure a build "
+              "script for this project before building.",
+              absolute_script));
+        }
+      }
+    }
   }
   if (command.empty()) {
     return absl::NotFoundError("Project does not define a build command");
@@ -6082,13 +6098,18 @@ absl::Status EditorManager::BuildCurrentProject() {
 
   auto result_or = RunProjectBuildCommand();
   if (!result_or.ok()) {
+    const bool unavailable =
+        result_or.status().code() == absl::StatusCode::kFailedPrecondition ||
+        result_or.status().code() == absl::StatusCode::kNotFound;
     UpdateBuildWorkflowStatus(
         &status_bar_, project_management_panel_.get(),
-        MakeBuildStatus("Build failed",
+        MakeBuildStatus(unavailable ? "Build unavailable" : "Build failed",
                         std::string(result_or.status().message()),
                         ProjectWorkflowState::kFailure));
     toast_manager_.Show(
-        absl::StrFormat("Build unavailable: %s", result_or.status().message()),
+        absl::StrFormat("%s: %s",
+                        unavailable ? "Build unavailable" : "Build failed",
+                        result_or.status().message()),
         ToastType::kWarning);
     return result_or.status();
   }
