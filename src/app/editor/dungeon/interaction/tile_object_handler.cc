@@ -143,19 +143,53 @@ bool SameChests(const std::vector<chest_data>& lhs,
          });
 }
 
+bool SameAuthoredObject(const zelda3::RoomObject& a,
+                        const zelda3::RoomObject& b) {
+  return a.id_ == b.id_ && a.x_ == b.x_ && a.y_ == b.y_ && a.size_ == b.size_ &&
+         a.layer_ == b.layer_ && a.options_ == b.options_ &&
+         a.block_load_order_ == b.block_load_order_ &&
+         a.block_behavior_layer_ == b.block_behavior_layer_ &&
+         a.torch_reserved_bit_ == b.torch_reserved_bit_;
+}
+
 bool SameAuthoredObjects(const std::vector<zelda3::RoomObject>& lhs,
                          const std::vector<zelda3::RoomObject>& rhs) {
   return lhs.size() == rhs.size() &&
-         std::equal(lhs.begin(), lhs.end(), rhs.begin(),
-                    [](const auto& a, const auto& b) {
-                      return a.id_ == b.id_ && a.x_ == b.x_ && a.y_ == b.y_ &&
-                             a.size_ == b.size_ && a.layer_ == b.layer_ &&
-                             a.options_ == b.options_ &&
-                             a.block_load_order_ == b.block_load_order_ &&
-                             a.block_behavior_layer_ ==
-                                 b.block_behavior_layer_ &&
-                             a.torch_reserved_bit_ == b.torch_reserved_bit_;
-                    });
+         std::equal(lhs.begin(), lhs.end(), rhs.begin(), SameAuthoredObject);
+}
+
+// Imported entries may need repair. Retain each unchanged original once, but
+// validate new copies and changed entries with the same rules as serialization.
+// This is pure preflight: drag increments must not run the command callback
+// that finishes an active gesture before capturing its next undo snapshot.
+absl::Status ValidateObjectCandidates(
+    const std::vector<zelda3::RoomObject>& original,
+    const std::vector<zelda3::RoomObject>& candidate,
+    const std::vector<std::optional<size_t>>& sources) {
+  if (sources.size() != candidate.size()) {
+    return absl::InvalidArgumentError("Object source mapping is incomplete");
+  }
+  std::unordered_set<size_t> retained;
+  for (size_t i = 0; i < candidate.size(); ++i) {
+    if (sources[i]) {
+      const auto source = *sources[i];
+      if (source >= original.size()) {
+        return absl::InvalidArgumentError("Object source is unavailable");
+      }
+      if (retained.insert(source).second &&
+          SameAuthoredObject(original[source], candidate[i])) {
+        continue;
+      }
+    }
+    if (zelda3::UsesRoomObjectStream(candidate[i])) {
+      const auto status =
+          zelda3::ValidateRoomObjectStreamEntryForSave(candidate[i]);
+      if (!status.ok()) {
+        return status;
+      }
+    }
+  }
+  return absl::OkStatus();
 }
 
 struct GuideRect {
@@ -294,6 +328,7 @@ void TileObjectHandler::InitDrag(const ImVec2& start_pos) {
   drag_last_dy_ = 0;
   drag_has_duplicated_ = false;
   drag_mutation_started_ = false;
+  drag_rejected_delta_.reset();
 }
 
 void TileObjectHandler::BeginMarqueeSelection(const ImVec2& start_pos) {
@@ -368,18 +403,22 @@ void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
   const int inc_dx = tile_dx - drag_last_dx_;
   const int inc_dy = tile_dy - drag_last_dy_;
 
+  const std::pair<int, int> requested_delta{tile_dx, tile_dy};
+  if (drag_rejected_delta_ == requested_delta) {
+    return;
+  }
+  drag_rejected_delta_.reset();
   if (inc_dx != 0 || inc_dy != 0) {
-    if (!drag_mutation_started_) {
-      ctx_->NotifyMutation(MutationDomain::kTileObjects);
+    if (MoveObjects(ctx_->current_room_id,
+                    ctx_->selection->GetSelectedIndices(), inc_dx, inc_dy,
+                    /*notify_mutation=*/!drag_mutation_started_)) {
       drag_mutation_started_ = true;
+      drag_last_dx_ = tile_dx;
+      drag_last_dy_ = tile_dy;
+    } else if (!mutation_status_.ok()) {
+      // A stationary invalid ghost must not produce one toast every frame.
+      drag_rejected_delta_ = requested_delta;
     }
-
-    MoveObjects(ctx_->current_room_id, ctx_->selection->GetSelectedIndices(),
-                inc_dx, inc_dy,
-                /*notify_mutation=*/false);
-
-    drag_last_dx_ = tile_dx;
-    drag_last_dy_ = tile_dy;
   }
 }
 
@@ -722,6 +761,11 @@ bool TileObjectHandler::CommitCandidate(
     return RejectMutation(
         absl::ResourceExhaustedError("Room object limit reached"));
   }
+  const auto admission =
+      ValidateObjectCandidates(room->GetTileObjects(), candidate, sources);
+  if (!admission.ok()) {
+    return RejectMutation(admission);
+  }
   auto chests =
       zelda3::PlanChestObjectEdit(room->GetTileObjects(), room->GetChests(),
                                   candidate, sources, chest_overrides);
@@ -756,27 +800,38 @@ bool TileObjectHandler::CommitCandidate(
   return true;
 }
 
-void TileObjectHandler::MoveObjects(int room_id,
+bool TileObjectHandler::MoveObjects(int room_id,
                                     const std::vector<size_t>& indices,
                                     int delta_x, int delta_y,
                                     bool notify_mutation) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
-    return;
-  if (notify_mutation && ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
+    return false;
 
   auto& objects = room->GetTileObjects();
+  auto candidate = objects;
   for (size_t index : indices) {
-    if (index < objects.size()) {
-      objects[index].x_ =
-          std::clamp(static_cast<int>(objects[index].x_ + delta_x), 0, 63);
-      objects[index].y_ =
-          std::clamp(static_cast<int>(objects[index].y_ + delta_y), 0, 63);
+    if (index < candidate.size()) {
+      candidate[index].x_ =
+          std::clamp(static_cast<int>(candidate[index].x_) + delta_x, 0, 63);
+      candidate[index].y_ =
+          std::clamp(static_cast<int>(candidate[index].y_) + delta_y, 0, 63);
     }
   }
-
+  if (SameAuthoredObjects(objects, candidate)) {
+    return false;
+  }
+  const auto admission = ValidateObjectCandidates(
+      objects, candidate, IdentitySources(objects.size()));
+  if (!admission.ok()) {
+    return RejectMutation(admission);
+  }
+  if (notify_mutation && ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  objects = std::move(candidate);
   NotifyChange(room);
+  return true;
 }
 
 void TileObjectHandler::UpdateObjectsId(int room_id,
@@ -814,6 +869,7 @@ void TileObjectHandler::UpdateObjectsId(int room_id,
 void TileObjectHandler::UpdateObjectsSize(int room_id,
                                           const std::vector<size_t>& indices,
                                           uint8_t new_size) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
@@ -842,20 +898,28 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
   if (!has_change) {
     return;
   }
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  auto candidate = objects;
 
   for (size_t index : indices) {
-    if (index < objects.size() && can_update_size(objects[index])) {
+    if (index < objects.size() && can_update_size(candidate[index])) {
       const uint8_t canonical_size =
-          zelda3::CanonicalRoomObjectSize(objects[index].id_, new_size);
-      if (objects[index].size_ == canonical_size) {
+          zelda3::CanonicalRoomObjectSize(candidate[index].id_, new_size);
+      if (candidate[index].size_ == canonical_size) {
         continue;
       }
-      objects[index].size_ = canonical_size;
-      objects[index].tiles_loaded_ = false;
+      candidate[index].size_ = canonical_size;
+      candidate[index].tiles_loaded_ = false;
     }
   }
+  const auto admission = ValidateObjectCandidates(
+      objects, candidate, IdentitySources(objects.size()));
+  if (!admission.ok()) {
+    RejectMutation(admission);
+    return;
+  }
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  objects = std::move(candidate);
   NotifyChange(room);
 }
 
@@ -1108,6 +1172,7 @@ bool TileObjectHandler::ResizeObjects(int room_id,
                                       const std::vector<size_t>& indices,
                                       int delta, bool horizontal,
                                       bool uniform) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return false;
@@ -1127,20 +1192,28 @@ bool TileObjectHandler::ResizeObjects(int room_id,
   if (!has_change) {
     return false;
   }
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  auto candidate = objects;
 
   for (size_t index : indices) {
     if (index < objects.size() &&
-        zelda3::IsRoomObjectResizable(objects[index].id_)) {
-      const uint8_t new_size = resized_size(objects[index]);
-      if (objects[index].size_ == new_size) {
+        zelda3::IsRoomObjectResizable(candidate[index].id_)) {
+      const uint8_t new_size = resized_size(candidate[index]);
+      if (candidate[index].size_ == new_size) {
         continue;
       }
-      objects[index].size_ = new_size;
-      objects[index].tiles_loaded_ = false;
+      candidate[index].size_ = new_size;
+      candidate[index].tiles_loaded_ = false;
     }
   }
+  const auto admission = ValidateObjectCandidates(
+      objects, candidate, IdentitySources(objects.size()));
+  if (!admission.ok()) {
+    RejectMutation(admission);
+    return false;
+  }
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  objects = std::move(candidate);
   NotifyChange(room);
   return true;
 }

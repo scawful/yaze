@@ -2967,6 +2967,93 @@ TEST_F(AuthoringSaveWorkflowTest,
 }
 
 TEST_F(AuthoringSaveWorkflowTest,
+       ObjectAdmissionPreservesDragHistoryAndSavesLegalEdge) {
+  const auto fixture = CopyProject("yaze-object-admission");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  dungeon->rooms()[kDungeonRoom] =
+      zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kDungeonRoom);
+  auto& room = dungeon->rooms()[kDungeonRoom];
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kDungeonRoom);
+  ASSERT_NE(viewer, nullptr);
+  auto& interaction = viewer->object_interaction();
+  interaction.SetCurrentRoom(&dungeon->rooms(), kDungeonRoom);
+  auto& handler = interaction.entity_coordinator().tile_handler();
+  const auto original_count = room.GetTileObjects().size();
+  const auto original_bytes = manager_->GetCurrentRom()->vector();
+  zelda3::RoomObject object(0x10, 0, 0, 0, 0);
+  ASSERT_FALSE(dungeon->CanUndo());
+
+  EXPECT_FALSE(handler.PlaceObjectAt(kDungeonRoom, object, 63, 20));
+  EXPECT_FALSE(dungeon->CanUndo());
+  EXPECT_EQ(room.GetTileObjects().size(), original_count);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), original_bytes);
+
+  ASSERT_TRUE(handler.PlaceObjectAt(kDungeonRoom, object, 61, 20));
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_FALSE(handler.PlaceObjectAt(kDungeonRoom, object, 63, 20));
+  // A refused edit must not clear the preceding placement's redo action.
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_EQ(room.GetTileObjects().size(), original_count + 1);
+  handler.context()->selection->SelectObject(original_count);
+
+  interaction.mode_manager().SetMode(InteractionMode::DraggingObjects);
+  handler.InitDrag(ImVec2(80, 80));
+  handler.HandleDrag(ImVec2(88, 80), ImVec2(8, 0));
+  ASSERT_EQ(room.GetTileObjects()[original_count].x_, 62);
+  handler.HandleDrag(ImVec2(96, 80), ImVec2(8, 0));
+  EXPECT_FALSE(handler.mutation_status().ok());
+  handler.HandleDrag(ImVec2(88, 80), ImVec2(-8, 0));
+  EXPECT_EQ(room.GetTileObjects()[original_count].x_, 62);
+  interaction.mode_manager().SetMode(InteractionMode::Select);
+  handler.HandleRelease();
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects()[original_count].x_, 61);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects().size(), original_count);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_EQ(room.GetTileObjects()[original_count].x_, 62);
+
+  interaction.mode_manager().SetMode(InteractionMode::DraggingObjects);
+  handler.InitDrag(ImVec2(80, 80));
+  handler.HandleDrag(ImVec2(88, 80), ImVec2(8, 0));
+  interaction.mode_manager().SetMode(InteractionMode::Select);
+  handler.HandleRelease();
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects()[original_count].x_, 61);
+  ASSERT_OK(dungeon->Redo());
+
+  const auto output = fixture.root / "legal-edge.sfc";
+  const auto protected_regions =
+      manager_->GetCurrentProject()->hack_manifest.protected_regions();
+  ASSERT_OK(manager_->SaveRomAs(output.string()));
+  ExpectProtectedRegionsMatch(original_bytes, ReadFile(output),
+                              protected_regions);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(output.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto reopened =
+      zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kDungeonRoom);
+  ASSERT_EQ(reopened.GetTileObjects().size(), original_count + 1);
+  EXPECT_EQ(std::count_if(reopened.GetTileObjects().begin(),
+                          reopened.GetTileObjects().end(),
+                          [](const auto& entry) {
+                            return entry.id_ == 0x10 && entry.x_ == 62 &&
+                                   entry.y_ == 20 && entry.size_ == 0 &&
+                                   entry.GetLayerValue() == 0;
+                          }),
+            1);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
        SourceWallPatternsPreviewMoveUndoSaveAsReopenPreservesRomPatterns) {
   constexpr int kRoom = 0xE6;
   const auto fixture = CopyProject("yaze-source-wall-patterns");

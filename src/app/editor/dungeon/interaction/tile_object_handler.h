@@ -84,8 +84,9 @@ class TileObjectHandler : public BaseEntityHandler {
 
   /**
    * @brief Move a set of objects by a tile delta.
+   * @return True only when an encodable batch changed the room.
    */
-  void MoveObjects(int room_id, const std::vector<size_t>& indices, int delta_x,
+  bool MoveObjects(int room_id, const std::vector<size_t>& indices, int delta_x,
                    int delta_y, bool notify_mutation = true);
 
   /**
@@ -270,6 +271,7 @@ class TileObjectHandler : public BaseEntityHandler {
   int drag_last_dy_ = 0;
   bool drag_has_duplicated_ = false;
   bool drag_mutation_started_ = false;
+  std::optional<std::pair<int, int>> drag_rejected_delta_;
 
   ImVec2 ApplyDragModifiers(const ImVec2& delta) const;
   void DrawSmartGuides(const std::vector<zelda3::RoomObject>& objects) const;
