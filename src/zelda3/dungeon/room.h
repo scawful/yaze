@@ -1300,6 +1300,11 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id);
 absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms);
 absl::Status SaveAllTorches(Rom* rom, int room_count,
                             const std::function<const Room*(int)>& room_lookup);
+// Validate and describe the exact torch writes without changing ROM or rooms.
+// Returns no ranges when the merged table already matches the source ROM.
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetTorchSaveWriteRanges(const Rom* rom, int room_count,
+                        const std::function<const Room*(int)>& room_lookup);
 
 // Preserve pit count/pointer and table bytes, or encode an explicitly supplied
 // dirty RoomsWithPitDamage table through the overload below.
@@ -1322,6 +1327,11 @@ absl::Status SaveAllBlocks(Rom* rom);
 // 4 bytes per entry).
 absl::Status SaveAllBlocks(Rom* rom, int room_count,
                            const std::function<const Room*(int)>& room_lookup);
+// Validate and describe the room-aware block serializer's exact write spans
+// without changing ROM bytes, dirty flags, or block load-order identities.
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetBlockSaveWriteRanges(const Rom* rom, int room_count,
+                        const std::function<const Room*(int)>& room_lookup);
 
 // Save custom collision maps for any rooms marked dirty.
 //

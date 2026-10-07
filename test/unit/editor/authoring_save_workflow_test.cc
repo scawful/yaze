@@ -2967,6 +2967,115 @@ TEST_F(AuthoringSaveWorkflowTest,
 }
 
 TEST_F(AuthoringSaveWorkflowTest,
+       SpecialObjectCapacityRecoveryUndoSaveAsReopens) {
+  const auto fixture = CopyProject("yaze-special-capacity");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto* rom = manager_->GetCurrentRom();
+  const auto original_bytes = rom->vector();
+  const auto original_length = rom->ReadWord(zelda3::kBlocksLength);
+  ASSERT_OK(original_length.status());
+  ASSERT_EQ(*original_length, 99 * 4);
+  const auto first_page = rom->ReadLong(zelda3::kBlocksPointer1);
+  ASSERT_OK(first_page.status());
+  const auto source_id = rom->ReadWord(SnesToPc(*first_page));
+  ASSERT_OK(source_id.status());
+  ASSERT_NE(*source_id, kDungeonRoom);
+  dungeon->rooms()[kDungeonRoom] = zelda3::LoadRoomFromRom(rom, kDungeonRoom);
+  dungeon->rooms()[*source_id] = zelda3::LoadRoomFromRom(rom, *source_id);
+  auto& target = dungeon->rooms()[kDungeonRoom];
+  auto& source = dungeon->rooms()[*source_id];
+  const auto target_count = target.GetTileObjects().size();
+  const auto source_count = source.GetTileObjects().size();
+  auto get_handler = [&](int id) -> TileObjectHandler& {
+    auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, id);
+    viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), id);
+    return viewer->object_interaction().entity_coordinator().tile_handler();
+  };
+  zelda3::RoomObject block(0x0E00, 20, 20, 0, 1);
+  block.set_options(zelda3::ObjectOption::Block);
+  block.set_block_behavior_layer(1);
+  block.set_block_load_order(zelda3::RoomObject::kBlockLoadOrderNew);
+  EXPECT_FALSE(
+      get_handler(kDungeonRoom).PlaceObjectAt(kDungeonRoom, block, 20, 20));
+  EXPECT_FALSE(dungeon->CanUndo());
+  EXPECT_EQ(target.GetTileObjects().size(), target_count);
+  EXPECT_EQ(rom->vector(), original_bytes);
+
+  const auto old_block =
+      std::find_if(source.GetTileObjects().begin(),
+                   source.GetTileObjects().end(), [](const auto& object) {
+                     return (object.options() & zelda3::ObjectOption::Block) !=
+                            zelda3::ObjectOption::Nothing;
+                   });
+  ASSERT_NE(old_block, source.GetTileObjects().end());
+  const size_t old_index = old_block - source.GetTileObjects().begin();
+  ASSERT_TRUE(get_handler(*source_id).DeleteObjects(*source_id, {old_index}));
+  ASSERT_TRUE(
+      get_handler(kDungeonRoom).PlaceObjectAt(kDungeonRoom, block, 20, 20));
+  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(source.GetTileObjects().size(), source_count);
+  EXPECT_EQ(target.GetTileObjects().size(), target_count);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_OK(dungeon->Redo());
+  zelda3::RoomObject torch(0x150, 24, 20, 0, 1);
+  torch.set_options(zelda3::ObjectOption::Torch);
+  torch.set_torch_reserved_bit(1);
+  torch.lit_ = true;
+  ASSERT_TRUE(
+      get_handler(kDungeonRoom).PlaceObjectAt(kDungeonRoom, torch, 24, 20));
+  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(dungeon->Redo());
+  const auto protected_regions =
+      manager_->GetCurrentProject()->hack_manifest.protected_regions();
+  const auto output = fixture.root / "special-capacity.sfc";
+  ASSERT_OK(manager_->SaveRomAs(output.string()));
+  ExpectProtectedRegionsMatch(original_bytes, ReadFile(output),
+                              protected_regions);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(output.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* reopened_rom = manager_->GetCurrentRom();
+  const auto reopened_length = reopened_rom->ReadWord(zelda3::kBlocksLength);
+  ASSERT_OK(reopened_length.status());
+  EXPECT_EQ(*reopened_length, *original_length);
+  auto reopened_target = zelda3::LoadRoomFromRom(reopened_rom, kDungeonRoom);
+  auto reopened_source = zelda3::LoadRoomFromRom(reopened_rom, *source_id);
+  EXPECT_EQ(reopened_source.GetTileObjects().size(), source_count - 1);
+  EXPECT_EQ(reopened_target.GetTileObjects().size(), target_count + 2);
+  EXPECT_EQ(
+      std::count_if(reopened_target.GetTileObjects().begin(),
+                    reopened_target.GetTileObjects().end(),
+                    [](const auto& object) {
+                      return (object.options() & zelda3::ObjectOption::Block) !=
+                                 zelda3::ObjectOption::Nothing &&
+                             object.x() == 20 && object.y() == 20 &&
+                             object.GetLayerValue() == 1 &&
+                             object.block_behavior_layer() == 1;
+                    }),
+      1);
+  EXPECT_EQ(
+      std::count_if(reopened_target.GetTileObjects().begin(),
+                    reopened_target.GetTileObjects().end(),
+                    [](const auto& object) {
+                      return (object.options() & zelda3::ObjectOption::Torch) !=
+                                 zelda3::ObjectOption::Nothing &&
+                             object.x() == 24 && object.y() == 20 &&
+                             object.GetLayerValue() == 1 &&
+                             object.torch_reserved_bit() == 1 && object.lit_;
+                    }),
+      1);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
        ObjectAdmissionPreservesDragHistoryAndSavesLegalEdge) {
   const auto fixture = CopyProject("yaze-object-admission");
   Open(fixture);

@@ -1246,6 +1246,51 @@ TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {
   EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
 }
 
+TEST_F(DungeonSaveTest, TorchWriteRangesPlanIsPureAndMatchesSave) {
+  Room room(1, rom_.get());
+  RoomObject torch(0x150, 10, 20, 0, 1);
+  torch.set_options(ObjectOption::Torch);
+  torch.lit_ = true;
+  room.AddTileObject(torch);
+  ASSERT_TRUE(room.torches_dirty());
+  const auto lookup = [&room](int id) -> const Room* {
+    return id == 1 ? &room : nullptr;
+  };
+  const auto before = rom_->vector();
+  const bool was_dirty = rom_->dirty();
+
+  const auto ranges = GetTorchSaveWriteRanges(rom_.get(), 2, lookup);
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  EXPECT_EQ(*ranges, (std::vector<std::pair<uint32_t, uint32_t>>{
+                         {kTorchesLengthPointer, kTorchesLengthPointer + 2},
+                         {kTorchData, kTorchData + 6}}));
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), was_dirty);
+  EXPECT_TRUE(room.torches_dirty());
+  EXPECT_FALSE(room.AreTorchesLoaded());
+
+  ASSERT_TRUE(SaveAllTorches(rom_.get(), 2, lookup).ok());
+  EXPECT_EQ(rom_->ReadWord(kTorchesLengthPointer).value(), 6);
+  EXPECT_FALSE(room.torches_dirty());
+  const auto no_op_ranges = GetTorchSaveWriteRanges(rom_.get(), 2, lookup);
+  ASSERT_TRUE(no_op_ranges.ok()) << no_op_ranges.status();
+  EXPECT_TRUE(no_op_ranges->empty());
+}
+
+TEST_F(DungeonSaveTest, TorchWriteRangesRejectTruncatedPayloadBeforeRead) {
+  std::vector<uint8_t> truncated(kTorchData + 2, 0);
+  truncated[kTorchesLengthPointer] = 6;
+  ASSERT_TRUE(rom_->LoadFromData(truncated).ok());
+  const auto before = rom_->vector();
+  const bool was_dirty = rom_->dirty();
+
+  const auto ranges = GetTorchSaveWriteRanges(
+      rom_.get(), 2, [](int) -> const Room* { return nullptr; });
+  EXPECT_EQ(ranges.status().code(), absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), was_dirty);
+}
+
 TEST_F(DungeonSaveTest, SaveAllTorches_RejectsLayerTwoWithoutMutatingRom) {
   std::vector<Room> rooms(kNumberOfRooms);
 
@@ -2906,6 +2951,46 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_ValidRegionsPreserveExistingBytes) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0xDD);
 }
 
+TEST_F(DungeonSaveTest, BlockWriteRangesPlanPreservesRomAndRoomIdentity) {
+  SetupBlockRegions();
+  const auto original = EncodePushableBlockEntry({0, 10, 20, 1, 0});
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = original.b1;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = original.b2;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = original.b3;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = original.b4;
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  room.AddTileObject(MakePushableBlock(11, 20, 1));
+  ASSERT_TRUE(room.blocks_dirty());
+  ASSERT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  ASSERT_EQ(room.GetTileObjects()[1].block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+  const auto lookup = [&room](int id) -> const Room* {
+    return id == 0 ? &room : nullptr;
+  };
+  const auto before = rom_->vector();
+  const bool was_dirty = rom_->dirty();
+
+  const auto ranges = GetBlockSaveWriteRanges(rom_.get(), 1, lookup);
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  EXPECT_EQ(*ranges, (std::vector<std::pair<uint32_t, uint32_t>>{
+                         {kBlocksRegion1Pc, kBlocksRegion1Pc + 8},
+                         {kBlocksLength, kBlocksLength + 2}}));
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), was_dirty);
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_TRUE(room.AreBlocksLoaded());
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_EQ(room.GetTileObjects()[1].block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+
+  ASSERT_TRUE(SaveAllBlocks(rom_.get(), 1, lookup).ok());
+  EXPECT_EQ(rom_->ReadWord(kBlocksLength).value(), 8);
+  EXPECT_EQ(room.GetTileObjects()[1].block_load_order(), 1);
+  EXPECT_FALSE(room.blocks_dirty());
+}
+
 TEST_F(DungeonSaveTest, SaveAllBlocks_RejectsCorruptLoaderOperand) {
   SetupBlockRegions();
   rom_->mutable_data()[kBlocksPointer1 - 1] = 0xEA;  // Not LDA.l.
@@ -3652,6 +3737,57 @@ TEST_F(DungeonSaveTest,
 }
 
 TEST_F(DungeonSaveTest,
+       BlockWriteRangesVanillaCapacityRejectsThenRepointedPageAccepts) {
+  SetupVanillaBlockRegions(99);
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_EQ(room.GetTileObjects().size(), 99u);
+  room.AddTileObject(MakePushableBlock(22, 24, 1));
+  const auto lookup = [&room](int id) -> const Room* {
+    return id == 0 ? &room : nullptr;
+  };
+  const auto before_repoint = rom_->vector();
+
+  const auto rejected = GetBlockSaveWriteRanges(rom_.get(), 1, lookup);
+  EXPECT_EQ(rejected.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(SaveAllBlocks(rom_.get(), 1, lookup).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before_repoint);
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects().back().block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+
+  constexpr int kVanillaFourthPagePc = 0x271DE + 3 * 0x80;
+  ASSERT_TRUE(rom_->WriteVector(
+                      kBlocksRegion4Pc,
+                      std::vector<uint8_t>(rom_->data() + kVanillaFourthPagePc,
+                                           rom_->data() + kTorchData))
+                  .ok());
+  WriteLongPointer(kBlocksPointer4, PcToSnes(kBlocksRegion4Pc));
+  const auto repointed = rom_->vector();
+  const bool was_dirty = rom_->dirty();
+
+  const auto accepted = GetBlockSaveWriteRanges(rom_.get(), 1, lookup);
+  ASSERT_TRUE(accepted.ok()) << accepted.status();
+  EXPECT_EQ(*accepted, (std::vector<std::pair<uint32_t, uint32_t>>{
+                           {0x271DE, 0x271DE + 0x80},
+                           {0x271DE + 0x80, 0x271DE + 0x100},
+                           {0x271DE + 0x100, 0x271DE + 0x180},
+                           {kBlocksRegion4Pc, kBlocksRegion4Pc + 16},
+                           {kBlocksLength, kBlocksLength + 2}}));
+  EXPECT_EQ(rom_->vector(), repointed);
+  EXPECT_EQ(rom_->dirty(), was_dirty);
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects().back().block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+
+  ASSERT_TRUE(SaveAllBlocks(rom_.get(), 1, lookup).ok());
+  EXPECT_EQ(rom_->ReadWord(kBlocksLength).value(), 100 * 4);
+  EXPECT_FALSE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects().back().block_load_order(), 99);
+}
+
+TEST_F(DungeonSaveTest,
        SaveAllBlocks_RejectsExistingVanillaLengthIntoTorchesBeforeAnyWrite) {
   SetupVanillaBlockRegions(99);
   ASSERT_TRUE(rom_->WriteWord(kBlocksLength, 100 * 4).ok());
@@ -3748,8 +3884,20 @@ TEST_F(DungeonSaveTest,
     room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 64, i % 2));
   }
 
-  const auto status = SaveAllBlocks(
-      rom_.get(), 1, [&room](int rid) { return rid == 0 ? &room : nullptr; });
+  const auto lookup = [&room](int rid) -> const Room* {
+    return rid == 0 ? &room : nullptr;
+  };
+  const auto before = rom_->vector();
+  const bool was_dirty = rom_->dirty();
+  const auto ranges = GetBlockSaveWriteRanges(rom_.get(), 1, lookup);
+  EXPECT_EQ(ranges.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), was_dirty);
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects().front().block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+
+  const auto status = SaveAllBlocks(rom_.get(), 1, lookup);
 
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
   EXPECT_NE(std::string(status.message()).find("Pushable-block table overflow"),
