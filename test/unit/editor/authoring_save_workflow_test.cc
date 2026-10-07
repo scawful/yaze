@@ -2631,6 +2631,115 @@ TEST_F(AuthoringSaveWorkflowTest, OracleRoom038PreservesSubmergedDetails) {
 }
 
 TEST_F(AuthoringSaveWorkflowTest,
+       MixedRoomEditsRequireEnabledScopesThenReopen) {
+  const auto fixture = CopyProject("yaze-mixed-save-scope");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  constexpr int kRoom = 5;
+  dungeon->add_room(kRoom);
+  auto& room = dungeon->rooms()[kRoom];
+  const auto original_floor = room.floor1();
+  const auto original_destination = room.holewarp();
+  const int floor = original_floor == 1 ? 2 : 1;
+  const int destination = original_destination == 9 ? 10 : 9;
+  ASSERT_OK(dungeon->EditRoomMetadataBatch({
+      {kRoom, {RoomMetadataField::kFloor1, floor}},
+      {kRoom, {RoomMetadataField::kHolewarp, destination}},
+  }));
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.floor1(), original_floor);
+  EXPECT_EQ(room.holewarp(), original_destination);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_TRUE(room.header_dirty());
+  ASSERT_TRUE(room.object_stream_header_dirty());
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveRoomHeaders = false;
+  flags.kSaveObjects = false;
+  const auto memory = manager_->GetCurrentRom()->vector();
+  const auto project_bytes = ReadFile(fixture.project);
+  const auto binding = manager_->GetCurrentRom()->filename();
+  const auto history = dungeon->undo_manager().UndoStackSize();
+  const auto loaded = dungeon->LoadedRoomCount();
+  const auto target = fixture.root / "mixed-scope.sfc";
+  {
+    std::ofstream out(target, std::ios::binary);
+    out << "existing destination";
+  }
+  const auto target_before = ReadFile(target);
+  const auto blocked = manager_->SaveRomAs(target.string());
+  ASSERT_TRUE(absl::IsFailedPrecondition(blocked)) << blocked;
+  EXPECT_NE(blocked.message().find("Save Objects"), absl::string_view::npos);
+  EXPECT_NE(blocked.message().find("Save Room Headers"),
+            absl::string_view::npos);
+  EXPECT_NE(blocked.message().find("File > Save Scope"),
+            absl::string_view::npos);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory);
+  EXPECT_EQ(ReadFile(target), target_before);
+  EXPECT_EQ(ReadFile(fixture.project), project_bytes);
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), binding);
+  EXPECT_EQ(dungeon->undo_manager().UndoStackSize(), history);
+  EXPECT_EQ(dungeon->LoadedRoomCount(), loaded);
+  EXPECT_TRUE(absl::IsFailedPrecondition(manager_->SaveRom()));
+  EXPECT_TRUE(absl::IsFailedPrecondition(dungeon->SaveRoom(kRoom)));
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory);
+
+  auto* popup = manager_->popup_manager();
+  auto& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  popup->Show(PopupID::kSaveScope);
+  auto frame = [&]() {
+    ImGui::NewFrame();
+    popup->DrawPopups();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  auto* window = ImGui::FindWindowByName(PopupID::kSaveScope);
+  ASSERT_NE(window, nullptr);
+  for (const char* label : {"Save Objects", "Save Room Headers"}) {
+    const auto checkbox = window->GetID(label);
+    for (int i = 0; i < 100 && ImGui::GetCurrentContext()->NavId != checkbox;
+         ++i) {
+      io.AddKeyEvent(ImGuiKey_Tab, true);
+      frame();
+      io.AddKeyEvent(ImGuiKey_Tab, false);
+      frame();
+    }
+    ASSERT_EQ(ImGui::GetCurrentContext()->NavId, checkbox) << label;
+    io.AddKeyEvent(ImGuiKey_Space, true);
+    frame();
+    io.AddKeyEvent(ImGuiKey_Space, false);
+    frame();
+  }
+  ASSERT_TRUE(flags.kSaveObjects);
+  ASSERT_TRUE(flags.kSaveRoomHeaders);
+  popup->Hide(PopupID::kSaveScope);
+  ASSERT_OK(manager_->SaveRomAs(target.string()));
+  EXPECT_FALSE(room.header_dirty());
+  EXPECT_FALSE(room.object_stream_header_dirty());
+  auto fresh = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*fresh, &renderer_);
+  fresh->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(fresh->OpenRomOrProject(target.string()));
+  ASSERT_OK(fresh->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* reopened = fresh->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  reopened->add_room(kRoom);
+  EXPECT_EQ(reopened->rooms()[kRoom].floor1(), floor);
+  EXPECT_EQ(reopened->rooms()[kRoom].holewarp(), destination);
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), ReadFile(target),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
        PotHandlerDisabledSaveRejectsThenScopeRetryReopens) {
   const auto fixture = CopyProject("yaze-pot-scope-retry");
   Open(fixture);

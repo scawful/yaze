@@ -172,8 +172,10 @@ class DungeonEditorV2 : public Editor {
     return undo_manager_.CanUndo() || HasPendingUndoSnapshot();
   }
   absl::Status Save() override;
-  // Reject omitted pending pot edits without materializing rooms or mutating history.
-  absl::Status ValidatePotItemSaveScope() const;
+  // Reject excluded model edits before any writer runs. Apply Room narrows
+  // room-local streams; shared tables still include all pending room records.
+  absl::Status ValidateSaveScope(int only_room = -1,
+                                 bool room_data_only = false) const;
   absl::Status BeginSaveTransaction() override;
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;

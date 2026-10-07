@@ -248,6 +248,69 @@ void SeedPotItemBytes(Rom& rom, int pc_addr,
 
 }  // namespace
 
+TEST(DungeonEditorV2RomSafetyTest,
+     ApplyRoomScopesLocalStreamsButIncludesPendingSharedRecords) {
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& other = editor->rooms()[1];
+  other.SetPalette(3);
+  ASSERT_TRUE(other.header_dirty());
+  const auto before = rom.vector();
+  EXPECT_TRUE(editor->ValidateSaveScope(0).ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(editor->ValidateSaveScope()));
+  // Apply Room does not write the other room's header stream.
+  ASSERT_TRUE(editor->SaveRoom(0).ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(other.header_dirty());
+  // Shared reward tables do include other rooms, so their exclusions apply.
+  other.GetChests().push_back(chest_data{0x42, false});
+  other.MarkChestsDirty();
+  const auto status = editor->SaveRoom(0);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(status.message().find("Save Chests"), absl::string_view::npos);
+  EXPECT_EQ(status.message().find("Save Room Headers"),
+            absl::string_view::npos);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(other.chests_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveScopeNamesEveryExcludedDomainBeforeAnyWriterRuns) {
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  core::FeatureFlags::get().dungeon.kSaveObjects = false;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room.AddTileObject(zelda3::RoomObject(1, 8, 8, 0, 0));
+  room.SetPalette(3);
+  room.MarkSpritesDirty();
+  room.MarkChestsDirty();
+  room.MarkPotItemsDirty();
+  room.MarkTorchesDirty();
+  room.MarkBlocksDirty();
+  room.SetCollisionTile(8, 8, 0xBA);
+  auto& entrance =
+      DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(*editor, 0);
+  entrance.MarkDirty();
+  const auto before = rom.vector();
+  const auto status = editor->Save();
+  ASSERT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  for (const char* label :
+       {"Save Objects", "Save Sprites", "Save Room Headers", "Save Chests",
+        "Save Pot Items", "Save Torches", "Save Blocks", "Save Collision",
+        "Save Entrances"}) {
+    EXPECT_NE(status.message().find(label), absl::string_view::npos) << label;
+  }
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.HasUnsavedChanges());
+  EXPECT_TRUE(entrance.dirty());
+}
+
 TEST(DungeonEditorV2RomSafetyTest, SaveUsesRoomIndicesNotInternalIds) {
   test::MockRom rom;
   ASSERT_TRUE(rom.SetTestData(std::vector<uint8_t>(0x8000, 0)).ok());
@@ -1763,7 +1826,7 @@ TEST(DungeonEditorV2RomSafetyTest,
   EXPECT_TRUE(room.header_dirty());
 }
 
-TEST(DungeonEditorV2RomSafetyTest, SaveSkipsRoomHeadersWhenDisabled) {
+TEST(DungeonEditorV2RomSafetyTest, SaveRejectsDirtyRoomHeadersWhenDisabled) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   SetupHeaderPointers(rom);
@@ -1786,7 +1849,8 @@ TEST(DungeonEditorV2RomSafetyTest, SaveSkipsRoomHeadersWhenDisabled) {
   d.kSaveRoomHeaders = false;
 
   auto status = editor->Save();
-  ASSERT_TRUE(status.ok()) << status.message();
+  ASSERT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_TRUE(room.header_dirty());
 
   zelda3::Room reloaded_room = zelda3::LoadRoomHeaderFromRom(&rom, 0);
   EXPECT_EQ(reloaded_room.palette(), 0x03);

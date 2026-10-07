@@ -4368,7 +4368,7 @@ absl::Status EditorManager::SaveRomInternal(
   // writes. Reuse the same preflight as direct Save / Apply Room.
   if (auto* dungeon = static_cast<DungeonEditorV2*>(
           current_editor_set->GetExistingEditor(EditorType::kDungeon))) {
-    RETURN_IF_ERROR(dungeon->ValidatePotItemSaveScope());
+    RETURN_IF_ERROR(dungeon->ValidateSaveScope());
   }
 
   ASSIGN_OR_RETURN(const project::YazeProject* save_project,
