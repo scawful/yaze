@@ -19,6 +19,10 @@ constexpr absl::string_view kPlannedTrackGuard =
     "if !ENABLE_MINECART_PLANNED_TRACK_TABLE == 1";
 constexpr std::array<absl::string_view, 3> kSectionLabels = {
     ".TrackStartingRooms", ".TrackStartingX", ".TrackStartingY"};
+// Oracle's table-size checks emit no data. Keep this allowlist exact: other
+// statements after a table could change its layout and invalidate token slots.
+constexpr std::array<absl::string_view, 3> kSectionEndLabels = {
+    ".TrackStartingRoomsEnd", ".TrackStartingXEnd", ".TrackStartingYEnd"};
 
 struct SourceLine {
   size_t offset;
@@ -57,6 +61,59 @@ absl::string_view Trim(absl::string_view value) {
 absl::string_view CodeForLine(absl::string_view line) {
   const size_t comment = line.find(';');
   return Trim(line.substr(0, comment));
+}
+
+void SkipSpace(absl::string_view* code) {
+  while (!code->empty() && IsSpace(code->front()))
+    code->remove_prefix(1);
+}
+
+bool Consume(absl::string_view* code, absl::string_view token) {
+  if (code->substr(0, token.size()) != token)
+    return false;
+  code->remove_prefix(token.size());
+  return true;
+}
+
+bool IsExpectedSizeAssertion(absl::string_view code, size_t section) {
+  if (!Consume(&code, "assert") || code.empty() || !IsSpace(code.front()))
+    return false;
+  SkipSpace(&code);
+  if (!Consume(&code, kSectionEndLabels[section]))
+    return false;
+  SkipSpace(&code);
+  if (!Consume(&code, "-"))
+    return false;
+  SkipSpace(&code);
+  if (!Consume(&code, kSectionLabels[section]))
+    return false;
+  SkipSpace(&code);
+  if (!Consume(&code, "=="))
+    return false;
+  SkipSpace(&code);
+  if (!Consume(&code, "$20"))
+    return false;
+  SkipSpace(&code);
+  if (!Consume(&code, "*"))
+    return false;
+  SkipSpace(&code);
+  if (!Consume(&code, "2"))
+    return false;
+  SkipSpace(&code);
+  if (code.empty())
+    return true;
+  if (!Consume(&code, ","))
+    return false;
+  SkipSpace(&code);
+  if (!Consume(&code, "\""))
+    return false;
+  const size_t close = code.find('"');
+  if (close == absl::string_view::npos || close == 0 ||
+      code.substr(0, close).find('\\') != absl::string_view::npos)
+    return false;
+  code.remove_prefix(close + 1);
+  SkipSpace(&code);
+  return code.empty();
 }
 
 std::vector<SourceLine> SplitLines(absl::string_view source) {
@@ -160,9 +217,12 @@ absl::StatusOr<std::vector<ParsedToken>> ParseDwLine(const SourceLine& line,
 
 absl::StatusOr<ParsedSection> ParseSection(const std::vector<SourceLine>& lines,
                                            size_t first_line, size_t end_line,
-                                           absl::string_view label) {
+                                           size_t section) {
+  const absl::string_view label = kSectionLabels[section];
   enum class GuardState { kPrefix, kEnabled, kDisabled, kComplete };
+  enum class TrailerState { kNone, kEndLabel, kAssertion };
   GuardState state = GuardState::kPrefix;
+  TrailerState trailer = TrailerState::kNone;
   bool saw_guard = false;
   bool saw_else = false;
   bool saw_endif = false;
@@ -174,6 +234,24 @@ absl::StatusOr<ParsedSection> ParseSection(const std::vector<SourceLine>& lines,
        ++line_index) {
     const absl::string_view code = CodeForLine(lines[line_index].text);
     if (code.empty()) {
+      continue;
+    }
+    if (trailer != TrailerState::kNone) {
+      if (trailer == TrailerState::kEndLabel &&
+          IsExpectedSizeAssertion(code, section)) {
+        trailer = TrailerState::kAssertion;
+        continue;
+      }
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Unexpected content after %s table end: %s", label, code));
+    }
+    if (code == kSectionEndLabels[section]) {
+      if ((saw_guard && state != GuardState::kComplete) ||
+          (!saw_guard && prefix.size() != kMinecartTrackSlotCount)) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Size assertion follows an incomplete %s table", label));
+      }
+      trailer = TrailerState::kEndLabel;
       continue;
     }
     if (code == kPlannedTrackGuard) {
@@ -220,6 +298,11 @@ absl::StatusOr<ParsedSection> ParseSection(const std::vector<SourceLine>& lines,
     }
     destination->insert(destination->end(), tokens_or->begin(),
                         tokens_or->end());
+  }
+
+  if (trailer == TrailerState::kEndLabel) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Missing size assertion after %s table end", label));
   }
 
   ParsedSection result;
@@ -308,8 +391,8 @@ absl::StatusOr<MinecartTrackSourceDocument> MinecartTrackSourceDocument::Parse(
     const size_t end_line = section + 1 < kSectionLabels.size()
                                 ? section_lines[section + 1]
                                 : lines.size();
-    auto parsed_or = ParseSection(lines, section_lines[section], end_line,
-                                  kSectionLabels[section]);
+    auto parsed_or =
+        ParseSection(lines, section_lines[section], end_line, section);
     if (!parsed_or.ok()) {
       return parsed_or.status();
     }
