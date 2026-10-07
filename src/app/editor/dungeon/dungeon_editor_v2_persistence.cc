@@ -13,7 +13,9 @@
 #include <utility>
 #include <vector>
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -559,26 +561,78 @@ absl::Status DungeonEditorV2::RunWithSaveTransaction(
   return absl::OkStatus();
 }
 
-absl::Status DungeonEditorV2::ValidatePotItemSaveScope() const {
-  if (core::FeatureFlags::get().dungeon.kSavePotItems) {
-    return absl::OkStatus();
-  }
-  bool pending = false;
-  rooms_.ForEachMaterialized([&](int, const zelda3::Room& room) {
-    pending |= room.pot_items_dirty();
+absl::Status DungeonEditorV2::ValidateSaveScope(int only_room,
+                                                bool room_data_only) const {
+  // A chest object and its reward are one edit. Preserve the more specific
+  // recovery instruction when only one half of that edit would be written.
+  RETURN_IF_ERROR(ValidateChestObjectSaveCoupling(rooms_, only_room));
+  const auto& flags = core::FeatureFlags::get().dungeon;
+  zelda3::Room::SaveDirtySnapshot pending{};
+  bool collision = false;
+  bool water_fill = false;
+  rooms_.ForEachMaterialized([&](int id, const zelda3::Room& room) {
+    // Apply Room writes local streams for its selected room, but the compact
+    // shared tables below include pending records from every materialized room.
+    if (only_room < 0 || only_room == id) {
+      pending.object_stream |=
+          room.object_stream_dirty() || room.object_stream_header_dirty();
+      pending.sprites |= room.sprites_dirty();
+      pending.header |= room.header_dirty();
+    }
+    pending.chests |= room.chests_dirty();
+    pending.pot_items |= room.pot_items_dirty();
+    pending.torches |= room.torches_dirty();
+    pending.blocks |= room.blocks_dirty();
+    collision |= room.custom_collision_dirty();
+    water_fill |= room.water_fill_dirty();
   });
-  if (pending) {
-    return absl::FailedPreconditionError(
-        "Save blocked: pot item edits are pending, but Save Pot Items is "
-        "disabled. Open File > Save Scope > Dungeon and enable Save Pot Items, "
-        "then retry Save or Apply Room. Or undo the pot item edits in Dungeon. "
-        "No project reopen is needed.");
+  std::vector<std::string> excluded;
+  auto check = [&](bool dirty, bool enabled, const char* label) {
+    if (dirty && !enabled) {
+      excluded.emplace_back(label);
+    }
+  };
+  check(pending.object_stream, flags.kSaveObjects, "Save Objects");
+  check(pending.sprites, flags.kSaveSprites, "Save Sprites");
+  check(pending.header, flags.kSaveRoomHeaders, "Save Room Headers");
+  check(pending.torches, flags.kSaveTorches, "Save Torches");
+  check(pending.blocks, flags.kSaveBlocks, "Save Blocks");
+  check(collision, flags.kSaveCollision, "Save Collision");
+  check(pending.chests, flags.kSaveChests, "Save Chests");
+  check(pending.pot_items, flags.kSavePotItems, "Save Pot Items");
+  if (!room_data_only) {
+    check(game_data_ && game_data_->pit_damage_table.dirty(), flags.kSavePits,
+          "Save Pits");
+    const auto dirty = [](const auto& entrance) {
+      return entrance.dirty();
+    };
+    check(std::any_of(entrances_.begin(), entrances_.end(), dirty) ||
+              std::any_of(spawn_points_.begin(), spawn_points_.end(), dirty),
+          flags.kSaveEntrances, "Save Entrances");
   }
-  return absl::OkStatus();
+  std::string message;
+  if (!excluded.empty()) {
+    message = absl::StrCat(
+        "Save blocked: pending dungeon edits are excluded by ",
+        absl::StrJoin(excluded, ", "),
+        ". Open File > Save Scope > Dungeon, enable these choices and retry "
+        "Save or Apply Room. Or undo the excluded edits. No project reopen "
+        "is needed.");
+  }
+  // Water Fill import/migration is established at project load, so keep its
+  // existing project-only scope contract rather than silently enabling it.
+  if (water_fill && !flags.kSaveWaterFillZones) {
+    absl::StrAppend(&message, message.empty() ? "Save blocked: " : " ",
+                    "Water Fill edits are pending while their project save "
+                    "scope is disabled. Undo these edits or restore the "
+                    "project's Water Fill save setting before saving.");
+  }
+  return message.empty() ? absl::OkStatus()
+                         : absl::FailedPreconditionError(message);
 }
 
 absl::Status DungeonEditorV2::Save() {
-  RETURN_IF_ERROR(ValidatePotItemSaveScope());
+  RETURN_IF_ERROR(ValidateSaveScope());
   if (minecart_track_editor_panel_ != nullptr &&
       minecart_track_editor_panel_->HasUnpublishedChanges()) {
     return absl::FailedPreconditionError(kMinecartDraftSaveBlockMessage);
@@ -594,8 +648,10 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   FinalizePendingUndoActions();
+  // A sprite/item drag can first become dirty when the gesture is released.
+  // Direct Save callers need the same post-finalization check as File > Save.
+  RETURN_IF_ERROR(ValidateSaveScope());
   const auto& flags = core::FeatureFlags::get().dungeon;
-  RETURN_IF_ERROR(ValidateChestObjectSaveCoupling(rooms_));
   std::optional<zelda3::ChestSavePlan> chest_save_plan;
 
   if (flags.kSaveCollision) {
@@ -990,7 +1046,6 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
 // The room-only path is used exclusively by a detached scratch editor during
 // transfer preflight. It cannot save project-global palettes, pits or entrances.
 absl::Status DungeonEditorV2::SaveRoomImpl(int room_id, bool room_data_only) {
-  RETURN_IF_ERROR(ValidatePotItemSaveScope());
   if (minecart_track_editor_panel_ != nullptr &&
       minecart_track_editor_panel_->HasUnpublishedChanges()) {
     return absl::FailedPreconditionError(kMinecartDraftSaveBlockMessage);
@@ -1006,8 +1061,8 @@ absl::Status DungeonEditorV2::SaveRoomImpl(int room_id, bool room_data_only) {
       return absl::InvalidArgumentError("Invalid room ID");
     }
 
+    RETURN_IF_ERROR(ValidateSaveScope(room_id, room_data_only));
     const auto& flags = core::FeatureFlags::get().dungeon;
-    RETURN_IF_ERROR(ValidateChestObjectSaveCoupling(rooms_, room_id));
     std::optional<zelda3::ChestSavePlan> chest_save_plan;
     if (flags.kSaveCollision) {
       RETURN_IF_ERROR(ValidateCustomCollisionManifestConflicts(

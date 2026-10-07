@@ -510,6 +510,8 @@ void PopupManager::DrawSaveScopePopup() {
           tr("Enable to save pending pot item edits, then retry Save "
              "or Apply Room. No project reopen is needed."));
     }
+    Checkbox(tr("Save Entrances"),
+             &core::FeatureFlags::get().dungeon.kSaveEntrances);
     Checkbox(tr("Save Palettes"),
              &core::FeatureFlags::get().dungeon.kSavePalettes);
   }

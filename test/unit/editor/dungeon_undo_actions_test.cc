@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+#include "absl/cleanup/cleanup.h"
+
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/gfx/resource/arena.h"
@@ -271,6 +273,31 @@ TEST_P(DungeonEntityUndoLifecycleTest,
   ASSERT_TRUE(editor_->Redo().ok());
   EXPECT_EQ(room_->GetPotItems()[0].position, 0x2660);
   EXPECT_EQ(room_->GetPotItems()[0].item, 6);
+}
+
+TEST_P(DungeonEntityUndoLifecycleTest,
+       DirectSaveRechecksExcludedSpriteAfterFinishingDrag) {
+  auto& enabled = core::FeatureFlags::get().dungeon.kSaveSprites;
+  const bool before_enabled = enabled;
+  absl::Cleanup restore = [&] {
+    enabled = before_enabled;
+  };
+  enabled = false;
+  room_->GetSprites().emplace_back(0x09, 4, 6, 0, 0);
+  ASSERT_FALSE(room_->sprites_dirty());
+  const auto before = rom_.vector();
+  ASSERT_TRUE(coordinator().HandleClick(65, 97));
+  coordinator().HandleDrag(ImVec2(112, 144), ImVec2(47, 47));
+  ASSERT_FALSE(room_->sprites_dirty());
+  // Save must finish the gesture without pretending the excluded edit saved.
+  const auto status = editor_->Save();
+  ASSERT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(status.message().find("Save Sprites"), absl::string_view::npos);
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_TRUE(room_->sprites_dirty());
+  EXPECT_EQ(room_->GetSprites()[0].x(), 7);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetSprites()[0].x(), 4);
 }
 
 TEST_P(DungeonEntityUndoLifecycleTest,
