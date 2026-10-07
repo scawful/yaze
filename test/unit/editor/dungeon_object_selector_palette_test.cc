@@ -983,7 +983,7 @@ TEST(DungeonObjectSelectorCustomRuntimeTest, FixedSlotsMatchOracleDispatch) {
   EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x54, 2));
   EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x30, 0));
 
-  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 0), "Track horizontal");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 0), "Pit track horizontal");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 13),
             "Sword House wall object");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 2), "Ice chair");

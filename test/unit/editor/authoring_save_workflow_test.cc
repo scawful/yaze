@@ -535,6 +535,8 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
 
   void QualifySpecialArea(zelda3::AreaSizeEnum size, int child, int x, int y);
   void QualifyPaletteWordRoundTrip(bool dungeon_source);
+  void QualifyGoronRouteRedesign(bool floor_art);
+  void QualifyGoronRouteBuild(bool floor_art);
 
   void QualifySourcePixelRoundTrip(const DisposableOracleProject& fixture) {
     auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
@@ -4733,10 +4735,20 @@ TEST_F(AuthoringSaveWorkflowTest, FailedRevertKeepsDungeonObjectAndUndo) {
 // Opt-in rehearsal on a complete, disposable copy of the real authoring project.
 // This leaves artifacts for a separate Build Project and emulator acceptance.
 TEST_F(AuthoringSaveWorkflowTest, GoronRouteRedesignSaveAsReopen) {
-  const char* input = std::getenv("YAZE_GORON_ROUTE_PROJECT");
+  QualifyGoronRouteRedesign(false);
+}
+
+TEST_F(AuthoringSaveWorkflowTest, GoronFloorRouteRedesignSaveAsReopen) {
+  QualifyGoronRouteRedesign(true);
+}
+
+void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
+  const char* fixture_variable =
+      floor_art ? "YAZE_GORON_FLOOR_ROUTE_PROJECT" : "YAZE_GORON_ROUTE_PROJECT";
+  const char* input = std::getenv(fixture_variable);
   if (!input || !*input)
-    GTEST_SKIP()
-        << "Set YAZE_GORON_ROUTE_PROJECT to a disposable route project";
+    GTEST_SKIP() << "Set " << fixture_variable
+                 << " to a disposable route project";
   const auto project_path = std::filesystem::weakly_canonical(input);
   ASSERT_NE(project_path.string().find("goron_route_redesign_"),
             std::string::npos);
@@ -4838,6 +4850,16 @@ TEST_F(AuthoringSaveWorkflowTest, GoronRouteRedesignSaveAsReopen) {
   };
   frame();
   frame(true);
+  RoomCompositeOutput room_output;
+  std::vector<uint8_t> before_pixels;
+  if (floor_art) {
+    auto& image = PrepareCanonicalRoomComposite(room, room_output);
+    before_pixels = image.ToRgba();
+    ASSERT_EQ(before_pixels.size(), 512u * 512u * 4u);
+    ASSERT_EQ(SDL_SaveBMP(image.surface(),
+                          (root / "before-ground.bmp").string().c_str()),
+              0);
+  }
   auto click_widget = [&](const char* label) {
     frame();
     std::optional<gui::WidgetIdRegistry::WidgetInfo> widget;
@@ -4922,8 +4944,13 @@ TEST_F(AuthoringSaveWorkflowTest, GoronRouteRedesignSaveAsReopen) {
   ASSERT_OK(dungeon->Undo());
   ASSERT_EQ(room.GetTileObjects().size(), objects_before.size());
   ASSERT_OK(dungeon->Redo());
-  for (const auto& [subtype, x] : std::array<std::pair<int, int>, 4>{
-           {{4, 14}, {0, 16}, {0, 18}, {0, 20}}}) {
+  const int corner_art = floor_art ? 10 : 4;
+  const int straight_art = floor_art ? 7 : 0;
+  for (const auto& [subtype, x] :
+       std::array<std::pair<int, int>, 4>{{{corner_art, 14},
+                                           {straight_art, 16},
+                                           {straight_art, 18},
+                                           {straight_art, 20}}}) {
     ASSERT_NO_FATAL_FAILURE(
         click_widget(absl::StrFormat("Rail%d", subtype).c_str()));
     const auto count = room.GetTileObjects().size();
@@ -4938,6 +4965,34 @@ TEST_F(AuthoringSaveWorkflowTest, GoronRouteRedesignSaveAsReopen) {
     ASSERT_OK(dungeon->Undo());
     EXPECT_EQ(room.GetTileObjects().size(), count);
     ASSERT_OK(dungeon->Redo());
+  }
+  EXPECT_EQ(room.custom_collision().tiles, expected_collision.tiles);
+  std::vector<uint8_t> expected_pixels;
+  if (floor_art) {
+    auto& image = PrepareCanonicalRoomComposite(room, room_output);
+    expected_pixels = image.ToRgba();
+    ASSERT_EQ(expected_pixels.size(), before_pixels.size());
+    int inside_changes = 0;
+    int outside_changes = 0;
+    for (int y = 0; y < 512; ++y) {
+      for (int x = 0; x < 512; ++x) {
+        const auto pixel = (y * 512 + x) * 4;
+        if (std::equal(expected_pixels.begin() + pixel,
+                       expected_pixels.begin() + pixel + 4,
+                       before_pixels.begin() + pixel))
+          continue;
+        if (x >= 14 * 8 && x < 22 * 8 && y >= 34 * 8 && y < 36 * 8)
+          ++inside_changes;
+        else
+          ++outside_changes;
+      }
+    }
+    EXPECT_GT(inside_changes, 0);
+    EXPECT_EQ(outside_changes, 0)
+        << "Rail artwork must not repaint surrounding floors or walls";
+    ASSERT_EQ(SDL_SaveBMP(image.surface(),
+                          (root / "floor-route.bmp").string().c_str()),
+              0);
   }
 
   // Enable Tracks through the same control a designer uses, then drag the pair.
@@ -5053,16 +5108,34 @@ TEST_F(AuthoringSaveWorkflowTest, GoronRouteRedesignSaveAsReopen) {
   EXPECT_EQ((*panel_or)->GetTracks(), parsed->tracks());
   EXPECT_EQ(ReadFile(collision_path), published_collision);
   EXPECT_EQ(ReadFile(source_path), published);
+  if (floor_art) {
+    RoomCompositeOutput reopened_output;
+    auto& image = PrepareCanonicalRoomComposite(fresh, reopened_output);
+    EXPECT_EQ(image.ToRgba(), expected_pixels);
+    ASSERT_EQ(SDL_SaveBMP(image.surface(),
+                          (root / "reopened-floor-route.bmp").string().c_str()),
+              0);
+  }
   std::ofstream(root / "route-authoring-passed.txt")
-      << "room=089 track=10 start=12A0,1110 corner=14,34/B3 stop=20,34/BA\n";
+      << "room=089 track=10 start=12A0,1110 corner=14,34/B3 stop=20,34/BA art="
+      << (floor_art ? "floor" : "pit") << '\n';
 }
 
 // Invoked separately so the product build runner can acquire the heavy-job lock.
 TEST_F(AuthoringSaveWorkflowTest, GoronRouteSavedProjectBuild) {
-  const char* input = std::getenv("YAZE_GORON_ROUTE_PROJECT");
+  QualifyGoronRouteBuild(false);
+}
+
+TEST_F(AuthoringSaveWorkflowTest, GoronFloorRouteSavedProjectBuild) {
+  QualifyGoronRouteBuild(true);
+}
+
+void AuthoringSaveWorkflowTest::QualifyGoronRouteBuild(bool floor_art) {
+  const char* fixture_variable =
+      floor_art ? "YAZE_GORON_FLOOR_ROUTE_PROJECT" : "YAZE_GORON_ROUTE_PROJECT";
+  const char* input = std::getenv(fixture_variable);
   if (!input || !*input)
-    GTEST_SKIP()
-        << "Set YAZE_GORON_ROUTE_PROJECT to the authored disposable project";
+    GTEST_SKIP() << "Set " << fixture_variable << " to the authored project";
   const auto project_path = std::filesystem::weakly_canonical(input);
   ASSERT_NE(project_path.string().find("goron_route_redesign_"),
             std::string::npos);
@@ -5084,6 +5157,18 @@ TEST_F(AuthoringSaveWorkflowTest, GoronRouteSavedProjectBuild) {
   auto room = zelda3::LoadRoomFromRom(&compiled, 0x89);
   room.EnsureObjectsLoaded();
   room.EnsureSpritesLoaded();
+  for (int x : {14, 16, 18, 20}) {
+    const int subtype = x == 14 ? (floor_art ? 10 : 4) : (floor_art ? 7 : 0);
+    EXPECT_EQ(std::count_if(
+                  room.GetTileObjects().begin(), room.GetTileObjects().end(),
+                  [&](const auto& object) {
+                    return object.id_ == 0x31 && object.x_ == x &&
+                           object.y_ == 34 && object.size_ == subtype &&
+                           object.GetLayerValue() == 0;
+                  }),
+              1)
+        << "Compiled route artwork at " << x << ",34";
+  }
   EXPECT_EQ(room.custom_collision().tiles[34 * 64 + 14], 0xB3);
   EXPECT_EQ(room.custom_collision().tiles[34 * 64 + 16], 0xB0);
   EXPECT_EQ(room.custom_collision().tiles[34 * 64 + 20], 0xBA);
