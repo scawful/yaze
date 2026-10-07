@@ -441,6 +441,129 @@ TEST_P(DungeonSelectionEditsLifecycleTest,
 }
 
 TEST_P(DungeonSelectionEditsLifecycleTest,
+       TorchCapacityRejectsWholeMixedPasteBeforeHistory) {
+  // One torch in room 0 plus 139 in unopened room 2 exactly fills 0x120 bytes.
+  std::vector<uint8_t> torches{0, 0, 0x10, 0x04, 0xFF, 0xFF, 2, 0};
+  for (int i = 0; i < 139; ++i) {
+    torches.insert(torches.end(), {0x10, 0x04});
+  }
+  torches.insert(torches.end(), {0xFF, 0xFF});
+  ASSERT_EQ(torches.size(), 0x120u);
+  ASSERT_TRUE(rom_.WriteVector(zelda3::kTorchData, torches).ok());
+  ASSERT_TRUE(
+      rom_.WriteWord(zelda3::kTorchesLengthPointer, torches.size()).ok());
+  room_->LoadTorches();
+  room_->ClearSaveDirtyState();
+  interaction().SetSelectedObjects({room_->GetTileObjects().size() - 1});
+  coordinator().SetSelectedEntities({{EntityType::Sprite, 0}});
+  ASSERT_TRUE(interaction().HandleCopySelected().ok());
+  ExpectRejectedWithoutChanges(
+      [&] { return interaction().HandleDuplicateSelected(); });
+  ExpectRejectedWithoutChanges(
+      [&] { return interaction().HandlePasteAt(80, 80); });
+  EXPECT_EQ(editor_->rooms().GetIfMaterialized(2), nullptr);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       TorchPlacementCountsAnotherRoomsPendingEdit) {
+  // ROM has 282 bytes: adding the first torch to room 1 would fit exactly.
+  std::vector<uint8_t> torches{0, 0, 0x10, 0x04, 0xFF, 0xFF, 2, 0};
+  for (int i = 0; i < 136; ++i) {
+    torches.insert(torches.end(), {0x10, 0x04});
+  }
+  torches.insert(torches.end(), {0xFF, 0xFF});
+  ASSERT_TRUE(rom_.WriteVector(zelda3::kTorchData, torches).ok());
+  ASSERT_TRUE(
+      rom_.WriteWord(zelda3::kTorchesLengthPointer, torches.size()).ok());
+  room_->LoadTorches();
+  interaction().SetSelectedObjects({room_->GetTileObjects().size() - 1});
+  ASSERT_TRUE(interaction().HandleDuplicateSelected().ok());
+  const auto pending_room = CaptureDungeonSelectionEditState(*room_);
+  room_ = &editor_->rooms()[1];
+  room_->LoadTorches();
+  room_->ClearSaveDirtyState();
+  viewer_ = DungeonSelectionEditsTestPeer::Viewer(*editor_, 1);
+  zelda3::RoomObject torch(0x150, 8, 8, 0, 0);
+  torch.set_options(zelda3::ObjectOption::Torch);
+  auto& handler = coordinator().tile_handler();
+  ExpectRejectedWithoutChanges([&] {
+    EXPECT_FALSE(handler.PlaceObjectAt(1, torch, 8, 8));
+    return handler.mutation_status();
+  });
+  ExpectRoomData(editor_->rooms()[0], pending_room);
+  EXPECT_EQ(editor_->rooms().GetIfMaterialized(2), nullptr);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       NativeBlockCapacityRejectsDuplicateAndFinalBlockDeletion) {
+  const int pointers[] = {zelda3::kBlocksPointer1, zelda3::kBlocksPointer2,
+                          zelda3::kBlocksPointer3, zelda3::kBlocksPointer4};
+  for (int page = 0; page < 4; ++page) {
+    rom_.mutable_data()[pointers[page] - 1] = 0xBF;
+    rom_.mutable_data()[pointers[page] + 3] = 0x9D;
+    WritePointer(rom_, pointers[page], 0x271DE + page * 0x80);
+  }
+  for (int i = 0; i < 99; ++i) {
+    ASSERT_TRUE(rom_.WriteVector(0x271DE + i * 4,
+                                 {static_cast<uint8_t>(i ? 2 : 0), 0, 0x10, 4})
+                    .ok());
+  }
+  ASSERT_TRUE(rom_.WriteWord(zelda3::kBlocksLength, 99 * 4).ok());
+  room_->LoadBlocks();
+  ASSERT_TRUE(room_->AreBlocksLoaded());
+  ASSERT_EQ(room_->GetTileObjects().size(), 3u);
+  room_->ClearSaveDirtyState();
+  interaction().SetSelectedObjects({room_->GetTileObjects().size() - 1});
+  coordinator().SetSelectedEntities({{EntityType::Sprite, 0}});
+  ExpectRejectedWithoutChanges(
+      [&] { return interaction().HandleDuplicateSelected(); });
+  EXPECT_EQ(editor_->rooms().GetIfMaterialized(2), nullptr);
+
+  EXPECT_NE(std::string(interaction().selection_edit_status().message())
+                .find("overlaps torch data"),
+            std::string::npos);
+
+  // With only the room's original block left, deletion would make the runtime
+  // scan unsafe. The accompanying sprite must also remain in the room.
+  ASSERT_TRUE(rom_.WriteWord(zelda3::kBlocksLength, 4).ok());
+  ExpectRejectedWithoutChanges(
+      [&] { return interaction().HandleDeleteSelected(); });
+  EXPECT_NE(std::string(interaction().selection_edit_status().message())
+                .find("cannot be empty"),
+            std::string::npos);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       ProtectedTorchLengthRejectsPlacementBeforeUndo) {
+  ASSERT_TRUE(rom_.WriteWord(zelda3::kTorchesLengthPointer, 0).ok());
+  room_->LoadTorches();
+  project::YazeProject project;
+  ASSERT_TRUE(
+      project.hack_manifest
+          .LoadFromString(absl::StrFormat(
+              R"json({"manifest_version":3,"protected_regions":{"total_hooks":1,
+      "regions":[{"start":"0x%06X","end":"0x%06X","size":2,
+      "hook_count":1,"module":"SpecialTableGuard"}]}})json",
+              PcToSnes(zelda3::kTorchesLengthPointer),
+              PcToSnes(zelda3::kTorchesLengthPointer + 2)))
+          .ok());
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  EditorDependencies dependencies;
+  dependencies.rom = &rom_;
+  dependencies.project = &project;
+  editor_->SetDependencies(dependencies);
+  zelda3::RoomObject torch(0x150, 8, 8, 0, 0);
+  torch.set_options(zelda3::ObjectOption::Torch);
+  auto& handler = coordinator().tile_handler();
+  ExpectRejectedWithoutChanges([&] {
+    EXPECT_FALSE(handler.PlaceObjectAt(0, torch, 8, 8));
+    return handler.mutation_status();
+  });
+  dependencies.project = nullptr;
+  editor_->SetDependencies(dependencies);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
        ProtectedChestLengthRejectsWholeMixedDelete) {
   project::YazeProject project;
   ASSERT_TRUE(project.hack_manifest

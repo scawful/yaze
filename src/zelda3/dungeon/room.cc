@@ -3075,23 +3075,42 @@ absl::Status ValidateLightableTorchForSave(const RoomObject& object,
 
 }  // namespace
 
+namespace {
+
+struct TorchSavePlan {
+  std::vector<uint8_t> bytes;
+  int room_limit = 0;
+  bool any_owned_room = false;
+  bool needs_write = false;
+};
+
 template <typename RoomLookup>
-absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
-                                RoomLookup&& room_lookup) {
+absl::StatusOr<TorchSavePlan> BuildTorchSavePlan(const Rom* rom, int room_count,
+                                                 RoomLookup&& room_lookup) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
   const auto& rom_data = rom->vector();
+  if (kTorchesLengthPointer < 0 ||
+      kTorchesLengthPointer + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Torch length pointer is out of range");
+  }
   int existing_count = (rom_data[kTorchesLengthPointer + 1] << 8) |
                        rom_data[kTorchesLengthPointer];
   if (existing_count > kTorchesMaxSize) {
     existing_count = kTorchesMaxSize;
   }
+  if (kTorchData < 0 ||
+      static_cast<uint64_t>(kTorchData) + existing_count > rom_data.size()) {
+    return absl::OutOfRangeError("Torch data is out of range");
+  }
   auto rom_segments = ParseRomTorchSegments(rom_data, existing_count);
 
-  std::vector<uint8_t> bytes;
-  const int room_limit = std::min(room_count, kNumberOfRooms);
+  TorchSavePlan plan;
+  auto& bytes = plan.bytes;
+  const int room_limit = std::clamp(room_count, 0, kNumberOfRooms);
+  plan.room_limit = room_limit;
   std::vector<bool> owned_rooms(room_limit, false);
   std::vector<bool> seen_original_room(room_limit, false);
   std::vector<bool> emitted_owned_room(room_limit, false);
@@ -3115,8 +3134,9 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
   }
 
   if (!any_owned_room) {
-    return absl::OkStatus();
+    return plan;
   }
+  plan.any_owned_room = true;
 
   for (const auto& segment : rom_segments) {
     if (segment.room_id < room_limit) {
@@ -3146,27 +3166,33 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
         absl::StrFormat("Torch data too large: %d bytes (max %d)", bytes.size(),
                         kTorchesMaxSize));
   }
+  if (static_cast<uint64_t>(kTorchData) + bytes.size() > rom_data.size()) {
+    return absl::OutOfRangeError("Torch save data is out of range");
+  }
 
   const uint16_t current_len =
       static_cast<uint16_t>(rom_data[kTorchesLengthPointer]) |
       (static_cast<uint16_t>(rom_data[kTorchesLengthPointer + 1]) << 8);
-  if (current_len == bytes.size() &&
-      kTorchData + static_cast<int>(bytes.size()) <=
-          static_cast<int>(rom_data.size()) &&
-      std::equal(bytes.begin(), bytes.end(), rom_data.begin() + kTorchData)) {
-    for (int room_id = 0; room_id < room_limit; ++room_id) {
-      if (const Room* room = room_lookup(room_id);
-          room != nullptr && room->torches_dirty()) {
-        const_cast<Room*>(room)->ClearTorchesDirty();
-      }
-    }
+  plan.needs_write =
+      current_len != bytes.size() ||
+      !std::equal(bytes.begin(), bytes.end(), rom_data.begin() + kTorchData);
+  return plan;
+}
+
+template <typename RoomLookup>
+absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
+                                RoomLookup&& room_lookup) {
+  ASSIGN_OR_RETURN(auto plan, BuildTorchSavePlan(rom, room_count, room_lookup));
+  if (!plan.any_owned_room) {
     return absl::OkStatus();
   }
 
-  RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
-                                 static_cast<uint16_t>(bytes.size())));
-  RETURN_IF_ERROR(rom->WriteVector(kTorchData, bytes));
-  for (int room_id = 0; room_id < room_limit; ++room_id) {
+  if (plan.needs_write) {
+    RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
+                                   static_cast<uint16_t>(plan.bytes.size())));
+    RETURN_IF_ERROR(rom->WriteVector(kTorchData, plan.bytes));
+  }
+  for (int room_id = 0; room_id < plan.room_limit; ++room_id) {
     if (const Room* room = room_lookup(room_id);
         room != nullptr && room->torches_dirty()) {
       const_cast<Room*>(room)->ClearTorchesDirty();
@@ -3174,6 +3200,8 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
   }
   return absl::OkStatus();
 }
+
+}  // namespace
 
 absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
   return SaveAllTorchesImpl(rom, static_cast<int>(rooms.size()),
@@ -3184,6 +3212,19 @@ absl::Status SaveAllTorches(
     Rom* rom, int room_count,
     const std::function<const Room*(int)>& room_lookup) {
   return SaveAllTorchesImpl(rom, room_count, room_lookup);
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetTorchSaveWriteRanges(const Rom* rom, int room_count,
+                        const std::function<const Room*(int)>& room_lookup) {
+  ASSIGN_OR_RETURN(const auto plan,
+                   BuildTorchSavePlan(rom, room_count, room_lookup));
+  if (!plan.needs_write) {
+    return std::vector<std::pair<uint32_t, uint32_t>>{};
+  }
+  return std::vector<std::pair<uint32_t, uint32_t>>{
+      {kTorchesLengthPointer, kTorchesLengthPointer + 2},
+      {kTorchData, kTorchData + static_cast<uint32_t>(plan.bytes.size())}};
 }
 
 // Region preservation for `RoomsWithPitDamage` when no edited table is supplied.
@@ -3407,8 +3448,23 @@ absl::Status SaveAllBlocks(Rom* rom) {
   return absl::OkStatus();
 }
 
-absl::Status SaveAllBlocks(Rom* rom, int room_count,
-                           const std::function<const Room*(int)>& room_lookup) {
+namespace {
+
+struct BlockWriteDestination {
+  int pc;
+  int output_offset;
+  int length;
+};
+
+struct BlockSavePlan {
+  std::vector<uint8_t> bytes;
+  std::vector<BlockWriteDestination> destinations;
+  std::vector<std::pair<const RoomObject*, int>> load_order_updates;
+};
+
+absl::StatusOr<BlockSavePlan> BuildBlockSavePlan(
+    const Rom* rom, int room_count,
+    const std::function<const Room*(int)>& room_lookup) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -3594,12 +3650,8 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   const int total_bytes = static_cast<int>(output.size());
   RETURN_IF_ERROR(
       PreflightBlocksPayloadDestinations(destination_pcs, total_bytes));
-  struct BlockWriteDestination {
-    int pc;
-    int output_offset;
-    int length;
-  };
-  std::vector<BlockWriteDestination> write_destinations;
+  BlockSavePlan plan;
+  auto& write_destinations = plan.destinations;
   write_destinations.reserve(4);
   for (int r = 0; r < 4; ++r) {
     const int off = r * kBlocksRegionSize;
@@ -3609,24 +3661,35 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     write_destinations.push_back({destination_pcs[r], off, len});
   }
 
+  plan.bytes = std::move(output);
+  plan.load_order_updates = std::move(load_order_updates);
+  return plan;
+}
+
+}  // namespace
+
+absl::Status SaveAllBlocks(Rom* rom, int room_count,
+                           const std::function<const Room*(int)>& room_lookup) {
+  ASSIGN_OR_RETURN(auto plan, BuildBlockSavePlan(rom, room_count, room_lookup));
+
   // Write each prevalidated region. We do not relocate the data — the four
   // operand slots keep pointing at their existing SNES addresses.
-  for (const auto& destination : write_destinations) {
+  for (const auto& destination : plan.destinations) {
     std::vector<uint8_t> chunk(
-        output.begin() + destination.output_offset,
-        output.begin() + destination.output_offset + destination.length);
+        plan.bytes.begin() + destination.output_offset,
+        plan.bytes.begin() + destination.output_offset + destination.length);
     RETURN_IF_ERROR(rom->WriteVector(destination.pc, chunk));
   }
 
   RETURN_IF_ERROR(
-      rom->WriteWord(kBlocksLength, static_cast<uint16_t>(total_bytes)));
+      rom->WriteWord(kBlocksLength, static_cast<uint16_t>(plan.bytes.size())));
 
   // Deleting an entry compacts every following slot. Rebase each loaded
   // object's identity to its committed output slot so a later no-op save does
   // not try to replace the stale pre-compaction slot and silently drop it.
   // This metadata stays untouched until every ROM write succeeds, matching
   // the dirty-state failure contract below.
-  for (const auto& [object, load_order] : load_order_updates) {
+  for (const auto& [object, load_order] : plan.load_order_updates) {
     const_cast<RoomObject*>(object)->set_block_load_order(load_order);
   }
   for (int room_id = 0; room_id < room_count; ++room_id) {
@@ -3636,6 +3699,20 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     }
   }
   return absl::OkStatus();
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetBlockSaveWriteRanges(const Rom* rom, int room_count,
+                        const std::function<const Room*(int)>& room_lookup) {
+  ASSIGN_OR_RETURN(const auto plan,
+                   BuildBlockSavePlan(rom, room_count, room_lookup));
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  ranges.reserve(plan.destinations.size() + 1);
+  for (const auto& destination : plan.destinations) {
+    ranges.emplace_back(destination.pc, destination.pc + destination.length);
+  }
+  ranges.emplace_back(kBlocksLength, kBlocksLength + 2);
+  return ranges;
 }
 
 template <typename RoomLookup>
@@ -4318,7 +4395,7 @@ absl::Status SaveAllPotItems(Rom* rom, int room_count,
 }
 
 void Room::LoadBlocks() {
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Read blocks length
   int blocks_count =
