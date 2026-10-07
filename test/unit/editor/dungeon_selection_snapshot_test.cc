@@ -14,8 +14,8 @@ class DungeonSelectionSnapshotTest : public ::testing::Test {
  protected:
   void SetUp() override {
     auto& room = rooms_[0];
-    room.AddTileObject(zelda3::RoomObject{0x01, 10, 10, 0x12, 0});
-    room.AddTileObject(zelda3::RoomObject{0x02, 20, 10, 0x14, 2});
+    room.AddTileObject(zelda3::RoomObject{0x01, 10, 10, 0x02, 0});
+    room.AddTileObject(zelda3::RoomObject{0x02, 20, 10, 0x04, 2});
     room.AddDoor(zelda3::Room::Door{.position = 1,
                                     .type = zelda3::DoorType::NormalDoor,
                                     .direction = zelda3::DoorDirection::North,
@@ -160,7 +160,7 @@ TEST_F(DungeonSelectionSnapshotTest, RoomChangeClearsObjectAndEntitySelection) {
 }
 
 TEST_F(DungeonSelectionSnapshotTest, RoomChangeKeepsObjectPlacementActive) {
-  interaction_.SetPreviewObject(zelda3::RoomObject{0x01, 0, 0, 0x12, 0},
+  interaction_.SetPreviewObject(zelda3::RoomObject{0x01, 0, 0, 0x02, 0},
                                 /*loaded=*/true);
   ASSERT_NE(interaction_.GetPlacementPreview(), nullptr);
 
