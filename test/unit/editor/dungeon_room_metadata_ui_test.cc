@@ -13,6 +13,7 @@
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/icons.h"
+#include "core/features.h"
 #include "dungeon_workbench_test_peer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -42,6 +43,22 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
       if (reject_) {
         return absl::FailedPreconditionError(
             "Metadata edit deliberately rejected");
+      }
+      if (simulate_product_refresh_) {
+        // The product stages a metadata snapshot, restores it into the loaded
+        // room, then refreshes room views. Force the resulting render revision
+        // advance here so a destination-only write cannot stale stair lookup.
+        zelda3::Room staged;
+        staged.RestoreMetadataSnapshot(
+            rooms_[room_id].CaptureMetadataSnapshot());
+        const auto status = ApplyRoomMetadataEdit(staged, request);
+        if (!status.ok()) {
+          return status;
+        }
+        rooms_[room_id].RestoreMetadataSnapshot(
+            staged.CaptureMetadataSnapshot());
+        rooms_[room_id].MarkCompositeDirty();
+        return absl::OkStatus();
       }
       return ApplyRoomMetadataEdit(rooms_[room_id], request);
     };
@@ -131,6 +148,7 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
   };
   std::vector<Edit> edits_;
   bool reject_ = false;
+  bool simulate_product_refresh_ = false;
   bool show_tag_panel_ = false;
   bool show_destinations_ = false;
   float width_ = 380;
@@ -342,6 +360,133 @@ TEST_F(DungeonRoomMetadataUiTest, SelectedStairLookupOpensSlotWithoutEditing) {
   ASSERT_EQ(edits_.size(), 1u);
   EXPECT_EQ(edits_[0].request.index, 1);
   EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kStaircasePlane);
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       MovingSelectedStairDisablesStaleAutoSelectedHeaderSlot) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  rooms_[0].SetRom(&rom);
+  rooms_[1].SetRom(&rom);
+  viewer_.RefreshRomBackedState(&rom, nullptr, &rooms_, room_id_);
+  ASSERT_TRUE(
+      rooms_[0].AddObject(zelda3::RoomObject(0x138, 10, 10, 0, 1)).ok());
+  ASSERT_TRUE(
+      rooms_[0].AddObject(zelda3::RoomObject(0x138, 20, 20, 0, 0)).ok());
+  rooms_[0].ClearSaveDirtyState();
+  viewer_.object_interaction().SetSelectedObjects({0});
+  show_destinations_ = true;
+  width_ = 260;
+  DrawFrame();
+  DrawFrame();
+  Click("FindStairSlot");
+  ASSERT_NE(logged_text_.find("Opened the selected stair"), std::string::npos);
+  ASSERT_NE(logged_text_.find("Stair slot 2"), std::string::npos);
+
+  auto moved = rooms_[0].GetTileObjects()[0];
+  moved.set_x(11);
+  ASSERT_TRUE(rooms_[0].UpdateObject(0, moved).ok());
+  DrawFrame();
+  EXPECT_EQ(logged_text_.find("Opened the selected stair"), std::string::npos);
+  EXPECT_NE(logged_text_.find("Selected stair mapping is stale"),
+            std::string::npos);
+  EXPECT_NE(logged_text_.find("Stair slot 2"), std::string::npos);
+  ASSERT_TRUE(Widget("Room"));
+  EXPECT_FALSE(Widget("Room")->enabled);
+  ASSERT_TRUE(Widget("Plane"));
+  EXPECT_FALSE(Widget("Plane")->enabled);
+  EXPECT_TRUE(edits_.empty());
+
+  Click("Route");
+  DrawFrame();
+  Click("Route/3");
+  DrawFrame();
+  EXPECT_TRUE(Widget("Room")->enabled);
+  EXPECT_TRUE(Widget("Plane")->enabled);
+  EXPECT_EQ(logged_text_.find("Selected stair mapping is stale"),
+            std::string::npos);
+  Click("Plane");
+  DrawFrame();
+  Click("Plane/1");
+  ASSERT_EQ(edits_.size(), 1u);
+  EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kStaircasePlane);
+  EXPECT_EQ(edits_[0].request.index, 2);
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       CustomObjectModeChangeStalesSelectedStairLookup) {
+  struct RestoreCustomMode {
+    bool previous = core::FeatureFlags::get().kEnableCustomObjects;
+    ~RestoreCustomMode() {
+      core::FeatureFlags::get().kEnableCustomObjects = previous;
+    }
+  } restore_custom_mode;
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  rooms_[0].SetRom(&rom);
+  rooms_[1].SetRom(&rom);
+  viewer_.RefreshRomBackedState(&rom, nullptr, &rooms_, room_id_);
+  ASSERT_TRUE(
+      rooms_[0].AddObject(zelda3::RoomObject(0x138, 10, 10, 0, 1)).ok());
+  ASSERT_TRUE(
+      rooms_[0].AddObject(zelda3::RoomObject(0x138, 20, 20, 0, 0)).ok());
+  rooms_[0].ClearSaveDirtyState();
+  viewer_.object_interaction().SetSelectedObjects({0});
+  show_destinations_ = true;
+  width_ = 260;
+  DrawFrame();
+  DrawFrame();
+  Click("FindStairSlot");
+  ASSERT_NE(logged_text_.find("Opened the selected stair"), std::string::npos);
+
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Selected stair mapping is stale"),
+            std::string::npos);
+  ASSERT_TRUE(Widget("Room"));
+  EXPECT_FALSE(Widget("Room")->enabled);
+  ASSERT_TRUE(Widget("Plane"));
+  EXPECT_FALSE(Widget("Plane")->enabled);
+  EXPECT_TRUE(edits_.empty());
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       DestinationEditKeepsInspectedStairSlotForNextPlaneEdit) {
+  simulate_product_refresh_ = true;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  rooms_[0].SetRom(&rom);
+  rooms_[1].SetRom(&rom);
+  viewer_.RefreshRomBackedState(&rom, nullptr, &rooms_, room_id_);
+  ASSERT_TRUE(
+      rooms_[0].AddObject(zelda3::RoomObject(0x138, 10, 10, 0, 1)).ok());
+  ASSERT_TRUE(
+      rooms_[0].AddObject(zelda3::RoomObject(0x138, 20, 20, 0, 0)).ok());
+  rooms_[0].ClearSaveDirtyState();
+  viewer_.object_interaction().SetSelectedObjects({0});
+  show_destinations_ = true;
+  width_ = 260;
+  DrawFrame();
+  DrawFrame();
+  Click("FindStairSlot");
+  ASSERT_NE(logged_text_.find("Stair slot 2"), std::string::npos);
+
+  Type("Room", "12");
+  Enter();
+  ASSERT_EQ(edits_.size(), 1u);
+  EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kStaircaseRoom);
+  EXPECT_EQ(edits_[0].request.index, 1);
+  DrawFrame();
+  EXPECT_TRUE(Widget("Plane")->enabled);
+  EXPECT_EQ(logged_text_.find("Selected stair mapping is stale"),
+            std::string::npos);
+  Click("Plane");
+  DrawFrame();
+  Click("Plane/1");
+  ASSERT_EQ(edits_.size(), 2u);
+  EXPECT_EQ(edits_[1].request.field, RoomMetadataField::kStaircasePlane);
+  EXPECT_EQ(edits_[1].request.index, 1);
 }
 
 TEST_F(DungeonRoomMetadataUiTest,
