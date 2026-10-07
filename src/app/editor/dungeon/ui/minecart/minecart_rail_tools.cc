@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 
+#include "app/gui/automation/widget_auto_register.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -21,6 +22,7 @@ void MinecartTrackEditorPanel::DrawRailTools() {
   if (ImGui::Checkbox("Stamp rail behavior", &stamping)) {
     set_collision_stamping(stamping);
   }
+  gui::AutoRegisterLastItem("checkbox", "Stamp rail behavior");
   ImGui::EndDisabled();
   if (!collision_stamping_)
     return;
@@ -47,19 +49,23 @@ void MinecartTrackEditorPanel::DrawRailTools() {
                                             {0xD0, "Switch: right / down"},
                                             {0xD1, "Switch: right / up"},
                                             {0xD2, "Switch: left / down"},
-                                            {0xD3, "Switch: left / up"}};
+                                            {0xD3, "Switch: left / up"},
+                                            {0x00, "Erase rail behavior"}};
   const char* selected = kBehaviors[1].label;
   for (const auto& behavior : kBehaviors) {
     if (behavior.value == collision_stamp_value_)
       selected = behavior.label;
   }
   ImGui::SetNextItemWidth(-1);
-  if (ImGui::BeginCombo("##RailBehavior", selected)) {
+  const bool open = ImGui::BeginCombo("##RailBehavior", selected);
+  gui::AutoRegisterLastItem("combo", "RailBehavior");
+  if (open) {
     for (const auto& behavior : kBehaviors) {
       if (ImGui::Selectable(behavior.label,
                             behavior.value == collision_stamp_value_)) {
         collision_stamp_value_ = behavior.value;
       }
+      gui::AutoRegisterLastItem("selectable", behavior.label);
     }
     ImGui::EndCombo();
   }
@@ -70,7 +76,9 @@ void MinecartTrackEditorPanel::DrawRailTools() {
       "leaves stamping.");
   ImGui::TextWrapped(
       "Ordinary rails preserve stops, switches and other "
-      "collision. Use a stop or switch tool to change its direction.");
+      "collision. Use a stop or switch tool to change its direction. "
+      "Erase rail behavior removes rails, stops and switches only; "
+      "artwork is unchanged.");
 }
 
 }  // namespace yaze::editor

@@ -23,7 +23,7 @@ absl::StatusOr<zelda3::CustomCollisionMap> PreviewMinecartCollisionStamp(
     const MinecartCollisionStamp& stamp) {
   if ((stamp.size != 1 && stamp.size != 2) || stamp.x < 0 || stamp.y < 0 ||
       stamp.x > 64 - stamp.size || stamp.y > 64 - stamp.size ||
-      !IsRail(stamp.value)) {
+      (stamp.value != 0 && !IsRail(stamp.value))) {
     return absl::InvalidArgumentError("Choose a rail stamp inside the room");
   }
   auto after = before;
@@ -34,15 +34,15 @@ absl::StatusOr<zelda3::CustomCollisionMap> PreviewMinecartCollisionStamp(
         return absl::FailedPreconditionError(
             "Other collision occupies this cell; use the collision inspector");
       }
-      if ((IsStop(old) && !IsStop(stamp.value)) ||
-          (IsSwitch(old) && !IsSwitch(stamp.value))) {
+      if (stamp.value != 0 && ((IsStop(old) && !IsStop(stamp.value)) ||
+                               (IsSwitch(old) && !IsSwitch(stamp.value)))) {
         return absl::FailedPreconditionError(
             "Stop or switch protected; choose the matching behavior tool");
       }
       after.tiles[y * 64 + x] = stamp.value;
     }
   }
-  after.has_data = true;
+  after.has_data = before.has_data || stamp.value != 0;
   return after;
 }
 

@@ -2257,6 +2257,32 @@ TEST(MinecartCollisionStampTest, PreservesStopsSwitchesAndUnrelatedCollision) {
       PreviewMinecartCollisionStamp(before, {0x7FFFFFFF, 0, 2, 0xB1}).ok());
 }
 
+// Removing a stop is a deliberate route edit, distinct from painting over it.
+TEST(MinecartCollisionStampTest, EraseRailBehaviorPreservesOtherCollision) {
+  zelda3::CustomCollisionMap before;
+  before.has_data = true;
+  for (int y = 34; y < 36; ++y)
+    for (int x = 14; x < 16; ++x)
+      before.tiles[y * 64 + x] = 0xB8;
+  before.tiles[2] = 0x08;
+  const auto erased = PreviewMinecartCollisionStamp(before, {14, 34, 2, 0});
+  ASSERT_TRUE(erased.ok()) << erased.status();
+  auto expected = before;
+  for (int y = 34; y < 36; ++y)
+    for (int x = 14; x < 16; ++x)
+      expected.tiles[y * 64 + x] = 0;
+  EXPECT_EQ(erased->tiles, expected.tiles);
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {2, 0, 1, 0}).ok());
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {1, 0, 2, 0}).ok());
+  EXPECT_EQ(before.tiles[34 * 64 + 14], 0xB8);
+  EXPECT_TRUE(PreviewMinecartCollisionStamp(before, {0, 0, 1, 0}).ok());
+  const zelda3::CustomCollisionMap empty;
+  const auto no_op = PreviewMinecartCollisionStamp(empty, {0, 0, 2, 0});
+  ASSERT_TRUE(no_op.ok());
+  EXPECT_EQ(no_op->tiles, empty.tiles);
+  EXPECT_FALSE(no_op->has_data);
+}
+
 TEST(MinecartCollisionStampTest, StaleStampRefusedWithoutMutationOrUndo) {
   ScopedImGuiContext imgui;
   Rom rom;

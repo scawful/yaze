@@ -4621,5 +4621,372 @@ TEST_F(AuthoringSaveWorkflowTest, FailedRevertKeepsDungeonObjectAndUndo) {
   EXPECT_EQ(room.GetTileObjects().front().x_, object.x_ + dx);
 }
 
+// Opt-in rehearsal on a complete, disposable copy of the real authoring project.
+// This leaves artifacts for a separate Build Project and emulator acceptance.
+TEST_F(AuthoringSaveWorkflowTest, GoronRouteRedesignSaveAsReopen) {
+  const char* input = std::getenv("YAZE_GORON_ROUTE_PROJECT");
+  if (!input || !*input)
+    GTEST_SKIP()
+        << "Set YAZE_GORON_ROUTE_PROJECT to a disposable route project";
+  const auto project_path = std::filesystem::weakly_canonical(input);
+  ASSERT_NE(project_path.string().find("goron_route_redesign_"),
+            std::string::npos);
+  constexpr int kRoom = 0x89;
+  constexpr int kTrack = 10;
+  const auto root = project_path.parent_path();
+  DisposableOracleProject fixture;
+  fixture.root = root;
+  fixture.project = project_path;
+  fixture.rom = root / "Roms/oos168.sfc";
+  Open(fixture);
+  const auto rom_before = ReadFile(fixture.rom);
+  const auto collision_path = root / "Data/dungeons/custom_collision.json";
+  const auto source_path = root / "Sprites/Objects/data/minecart_tracks.asm";
+  const auto source_before = ReadFile(source_path);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  dungeon->add_room(kRoom);
+  auto& room = dungeon->rooms()[kRoom];
+  room.EnsureObjectsLoaded();
+  room.EnsureSpritesLoaded();
+  const auto collision_before = room.custom_collision();
+  const auto objects_before = room.GetTileObjects();
+  const auto sprites_before = room.GetSprites();
+  auto panel_or = AuthoringSaveWorkflowTestPeer::MinecartPanel(*dungeon);
+  ASSERT_OK(panel_or.status());
+  auto* panel = *panel_or;
+  ASSERT_OK(panel->ReloadTracks());
+  const auto tracks_before = panel->GetTracks();
+  ASSERT_EQ(tracks_before.at(kTrack).start_x, 0x1270);
+  ASSERT_EQ(tracks_before.at(kTrack).start_y, 0x1110);
+  ASSERT_EQ(collision_before.tiles[34 * 64 + 14], 0xB8);
+  AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, kRoom);
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
+  ASSERT_NE(viewer, nullptr);
+  viewer->SetHeaderVisible(false);
+  viewer->SetHeaderHiddenMetadataHudVisible(false);
+  viewer->canvas().set_global_scale(1.0f);
+  viewer->canvas().set_scrolling(ImVec2(0, 0));
+  auto& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1280, 900);
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  ImGuiID stamp_id = 0, behavior_id = 0, tracks_id = 0;
+  std::array<ImGuiID, 16> art_ids{};
+  auto frame = [&](bool focus_tools = false) {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(300, 870), ImGuiCond_Always);
+    if (focus_tools)
+      ImGui::SetNextWindowFocus();
+    ImGui::Begin("RouteTools", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::PushID("MinecartRailPalette");
+    for (int i = 0; i < 16; ++i)
+      art_ids[i] = ImGui::GetID(absl::StrFormat("##Rail%d", i).c_str());
+    ImGui::PopID();
+    stamp_id = ImGui::GetID("Stamp rail behavior");
+    behavior_id = ImGui::GetID("##RailBehavior");
+    panel->DrawRailTools();
+    ImGui::End();
+    ImGui::SetNextWindowPos(ImVec2(320, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(940, 870), ImGuiCond_Always);
+    ImGui::Begin("RouteCanvas", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    tracks_id = ImGui::GetID("Tracks##canvas_tracks");
+    viewer->DrawDungeonCanvas(kRoom);
+    ImGui::End();
+    ImGui::Render();
+  };
+  auto key = [&](ImGuiKey k) {
+    io.AddKeyEvent(k, true);
+    frame();
+    io.AddKeyEvent(k, false);
+    frame();
+  };
+  auto activate = [&](ImGuiID id, bool focus_tools = true) {
+    frame(focus_tools);
+    for (int step = 0; step < 80 && ImGui::GetCurrentContext()->NavId != id;
+         ++step)
+      key(ImGuiKey_Tab);
+    ASSERT_EQ(ImGui::GetCurrentContext()->NavId, id);
+    key(ImGuiKey_Space);
+  };
+  auto point = [&](int x, int y, int offset = 1) {
+    const auto& canvas = viewer->canvas();
+    io.AddMousePosEvent(canvas.zero_point().x + canvas.scrolling().x +
+                            (x * 8 + offset) * canvas.global_scale(),
+                        canvas.zero_point().y + canvas.scrolling().y +
+                            (y * 8 + offset) * canvas.global_scale());
+    frame();
+  };
+  auto click = [&] {
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+  };
+  frame();
+  frame(true);
+  auto click_widget = [&](const char* label) {
+    frame();
+    std::optional<gui::WidgetIdRegistry::WidgetInfo> widget;
+    for (const auto& [path, info] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets())
+      if (info.label == gui::WidgetIdRegistry::NormalizeLabel(label))
+        widget = info;
+    ASSERT_TRUE(widget.has_value()) << label;
+    io.AddMousePosEvent((widget->bounds.min_x + widget->bounds.max_x) / 2,
+                        (widget->bounds.min_y + widget->bounds.max_y) / 2);
+    frame();
+    click();
+    frame();
+  };
+  auto choose_behavior = [&](const char* label, uint8_t value) {
+    ASSERT_NO_FATAL_FAILURE(click_widget("RailBehavior"));
+    auto* popup = ImGui::FindWindowByName("##Combo_00");
+    ASSERT_NE(popup, nullptr);
+    ASSERT_TRUE(popup->Active);
+    const auto target = popup->GetID(label);
+    for (int step = 0; step < 26 && ImGui::GetCurrentContext()->NavId != target;
+         ++step)
+      key(ImGuiKey_DownArrow);
+    ASSERT_EQ(ImGui::GetCurrentContext()->NavId, target) << label;
+    frame();
+    ASSERT_NO_FATAL_FAILURE(click_widget(label));
+    ASSERT_EQ(panel->collision_stamp_value(), value);
+    ASSERT_TRUE(panel->collision_stamping());
+    std::cout << "behavior=" << label
+              << " value=" << static_cast<int>(panel->collision_stamp_value())
+              << " active=" << panel->collision_stamping() << std::endl;
+  };
+
+  // Turn the original south stop into a curved spur, retaining the north route.
+  ASSERT_NO_FATAL_FAILURE(click_widget("Stamp rail behavior"));
+  ASSERT_TRUE(panel->collision_stamping());
+  ASSERT_NO_FATAL_FAILURE(choose_behavior("Erase rail behavior", 0));
+  point(14, 34);
+  click();
+  EXPECT_EQ(room.custom_collision().tiles[34 * 64 + 14], 0);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.custom_collision().tiles, collision_before.tiles);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_NO_FATAL_FAILURE(choose_behavior("Corner: right / up", 0xB3));
+  point(14, 34);
+  click();
+  ASSERT_NO_FATAL_FAILURE(choose_behavior("Straight: horizontal", 0xB0));
+  point(16, 34);
+  click();
+  point(18, 34);
+  click();
+  ASSERT_NO_FATAL_FAILURE(choose_behavior("Stop: depart west", 0xBA));
+  point(20, 34);
+  click();
+  auto expected_collision = collision_before;
+  for (int y = 34; y < 36; ++y)
+    for (int x = 14; x < 22; ++x)
+      expected_collision.tiles[y * 64 + x] = x < 16   ? 0xB3
+                                             : x < 20 ? 0xB0
+                                                      : 0xBA;
+  for (size_t i = 0; i < expected_collision.tiles.size(); ++i)
+    if (room.custom_collision().tiles[i] != expected_collision.tiles[i])
+      std::cout << "collision mismatch " << i % 64 << "," << i / 64
+                << " actual="
+                << static_cast<int>(room.custom_collision().tiles[i])
+                << " expected=" << static_cast<int>(expected_collision.tiles[i])
+                << std::endl;
+  ASSERT_EQ(room.custom_collision().tiles, expected_collision.tiles);
+  key(ImGuiKey_Escape);
+  ASSERT_FALSE(panel->collision_stamping());
+
+  // Existing object-delete action, then real palette clicks and canvas stamps.
+  auto& handler =
+      viewer->object_interaction().entity_coordinator().tile_handler();
+  size_t old_art = objects_before.size();
+  for (size_t i = 0; i < objects_before.size(); ++i)
+    if (objects_before[i].id_ == 0x31 && objects_before[i].x_ == 14 &&
+        objects_before[i].y_ == 34)
+      old_art = i;
+  ASSERT_LT(old_art, objects_before.size());
+  ASSERT_TRUE(handler.DeleteObjects(kRoom, {old_art}));
+  ASSERT_OK(dungeon->Undo());
+  ASSERT_EQ(room.GetTileObjects().size(), objects_before.size());
+  ASSERT_OK(dungeon->Redo());
+  for (const auto& [subtype, x] : std::array<std::pair<int, int>, 4>{
+           {{4, 14}, {0, 16}, {0, 18}, {0, 20}}}) {
+    ASSERT_NO_FATAL_FAILURE(
+        click_widget(absl::StrFormat("Rail%d", subtype).c_str()));
+    const auto count = room.GetTileObjects().size();
+    point(x, 34);
+    click();
+    ASSERT_EQ(room.GetTileObjects().size(), count + 1);
+    const auto& placed = room.GetTileObjects().back();
+    EXPECT_EQ(placed.id_, 0x31);
+    EXPECT_EQ(placed.size_, subtype);
+    EXPECT_EQ(placed.x_, x);
+    EXPECT_EQ(placed.y_, 34);
+    ASSERT_OK(dungeon->Undo());
+    EXPECT_EQ(room.GetTileObjects().size(), count);
+    ASSERT_OK(dungeon->Redo());
+  }
+
+  // Enable Tracks through the same control a designer uses, then drag the pair.
+  point(14, 34, 8);
+  click();  // Focus the canvas after leaving one-shot artwork placement.
+  ASSERT_NO_FATAL_FAILURE(activate(tracks_id, false));
+  ASSERT_TRUE(panel->canvas_editing());
+  point(14, 34, 8);
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  point(20, 34, 8);
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  const auto revised = panel->GetTracks().at(kTrack);
+  EXPECT_EQ(revised.start_x, 0x12A0);
+  EXPECT_EQ(revised.start_y, 0x1110);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(panel->GetTracks(), tracks_before);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(panel->GetTracks().at(kTrack), revised);
+  ASSERT_OK(panel->SaveTracks());
+  EXPECT_NE(ReadFile(source_path), source_before);
+  const auto published = ReadFile(source_path);
+  const auto parsed = MinecartTrackSourceDocument::Parse(
+      std::string(published.begin(), published.end()));
+  ASSERT_OK(parsed.status());
+  EXPECT_EQ(parsed->tracks(), panel->GetTracks());
+  auto expected_tracks = tracks_before;
+  expected_tracks.at(kTrack) = revised;
+  EXPECT_EQ(panel->GetTracks(), expected_tracks);
+  auto original_cart = sprites_before.size();
+  for (size_t i = 0; i < sprites_before.size(); ++i)
+    if (sprites_before[i].id() == 0xA3 &&
+        sprites_before[i].subtype() == kTrack && sprites_before[i].x() == 7 &&
+        sprites_before[i].y() == 17) {
+      ASSERT_EQ(original_cart, sprites_before.size());
+      original_cart = i;
+    }
+  ASSERT_LT(original_cart, sprites_before.size());
+  EXPECT_EQ(sprites_before[original_cart].x(), 7);
+  EXPECT_EQ(sprites_before[original_cart].y(), 17);
+  ASSERT_EQ(room.GetSprites().size(), sprites_before.size());
+  for (size_t i = 0; i < sprites_before.size(); ++i) {
+    const auto& actual = room.GetSprites()[i];
+    const auto& before = sprites_before[i];
+    EXPECT_EQ(actual.id(), before.id());
+    EXPECT_EQ(actual.subtype(), before.subtype());
+    EXPECT_EQ(actual.layer(), before.layer());
+    EXPECT_EQ(actual.key_drop(), before.key_drop());
+    EXPECT_EQ(actual.deleted(), before.deleted());
+    EXPECT_EQ(actual.x(), i == original_cart ? 10 : before.x());
+    EXPECT_EQ(actual.y(), before.y());
+  }
+  ASSERT_EQ(room.GetTileObjects().size(), objects_before.size() + 3);
+  for (size_t i = 0, j = 0; i < objects_before.size(); ++i) {
+    if (i == old_art)
+      continue;
+    const auto& before = objects_before[i];
+    const auto& actual = room.GetTileObjects()[j++];
+    EXPECT_EQ(std::make_tuple(actual.id_, actual.x_, actual.y_, actual.size_,
+                              actual.layer_),
+              std::make_tuple(before.id_, before.x_, before.y_, before.size_,
+                              before.layer_));
+  }
+  const auto expected_objects = room.GetTileObjects();
+  const auto expected_sprites = room.GetSprites();
+
+  // Commit collision source together with its bound disposable ROM. Save As
+  // then rebinds the project to the copy that Build Project will consume.
+  ASSERT_OK(manager_->SaveRom());
+  const auto canonical =
+      zelda3::DumpCustomCollisionSourceFromRom(manager_->GetCurrentRom());
+  ASSERT_OK(canonical.status());
+  const auto published_collision = ReadFile(collision_path);
+  EXPECT_EQ(std::string(published_collision.begin(), published_collision.end()),
+            *canonical);
+  const auto destination = root / "Roms/goron-route.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  ExpectProtectedRegionsMatch(
+      rom_before, ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  dungeon->add_room(kRoom);
+  auto& fresh = dungeon->rooms()[kRoom];
+  fresh.EnsureObjectsLoaded();
+  fresh.EnsureSpritesLoaded();
+  EXPECT_EQ(fresh.custom_collision().tiles, expected_collision.tiles);
+  ASSERT_EQ(fresh.GetTileObjects().size(), expected_objects.size());
+  for (size_t i = 0; i < expected_objects.size(); ++i) {
+    const auto& expected = expected_objects[i];
+    const auto& actual = fresh.GetTileObjects()[i];
+    EXPECT_EQ(std::make_tuple(actual.id_, actual.x_, actual.y_, actual.size_,
+                              actual.layer_),
+              std::make_tuple(expected.id_, expected.x_, expected.y_,
+                              expected.size_, expected.layer_));
+  }
+  ASSERT_EQ(fresh.GetSprites().size(), expected_sprites.size());
+  for (size_t i = 0; i < expected_sprites.size(); ++i) {
+    const auto& expected = expected_sprites[i];
+    const auto& actual = fresh.GetSprites()[i];
+    EXPECT_EQ(std::make_tuple(actual.id(), actual.x(), actual.y(),
+                              actual.subtype(), actual.layer()),
+              std::make_tuple(expected.id(), expected.x(), expected.y(),
+                              expected.subtype(), expected.layer()));
+  }
+  panel_or = AuthoringSaveWorkflowTestPeer::MinecartPanel(*dungeon);
+  ASSERT_OK(panel_or.status());
+  ASSERT_OK((*panel_or)->ReloadTracks());
+  EXPECT_EQ((*panel_or)->GetTracks(), parsed->tracks());
+  EXPECT_EQ(ReadFile(collision_path), published_collision);
+  EXPECT_EQ(ReadFile(source_path), published);
+  std::ofstream(root / "route-authoring-passed.txt")
+      << "room=089 track=10 start=12A0,1110 corner=14,34/B3 stop=20,34/BA\n";
+}
+
+// Invoked separately so the product build runner can acquire the heavy-job lock.
+TEST_F(AuthoringSaveWorkflowTest, GoronRouteSavedProjectBuild) {
+  const char* input = std::getenv("YAZE_GORON_ROUTE_PROJECT");
+  if (!input || !*input)
+    GTEST_SKIP()
+        << "Set YAZE_GORON_ROUTE_PROJECT to the authored disposable project";
+  const auto project_path = std::filesystem::weakly_canonical(input);
+  ASSERT_NE(project_path.string().find("goron_route_redesign_"),
+            std::string::npos);
+  const auto root = project_path.parent_path();
+  ASSERT_TRUE(std::filesystem::exists(root / "route-authoring-passed.txt"));
+  DisposableOracleProject fixture;
+  fixture.root = root;
+  fixture.project = project_path;
+  Open(fixture);
+  const auto* project = manager_->GetCurrentProject();
+  const auto rom = project->GetAbsolutePath(project->rom_filename);
+  const auto before = ReadFile(rom);
+  ASSERT_OK(manager_->BuildCurrentProject());
+  EXPECT_EQ(ReadFile(rom), before);
+  const auto output = project->GetAbsolutePath(project->build_target);
+  ASSERT_TRUE(std::filesystem::exists(output));
+  Rom compiled;
+  ASSERT_OK(compiled.LoadFromFile(output));
+  auto room = zelda3::LoadRoomFromRom(&compiled, 0x89);
+  room.EnsureObjectsLoaded();
+  room.EnsureSpritesLoaded();
+  EXPECT_EQ(room.custom_collision().tiles[34 * 64 + 14], 0xB3);
+  EXPECT_EQ(room.custom_collision().tiles[34 * 64 + 16], 0xB0);
+  EXPECT_EQ(room.custom_collision().tiles[34 * 64 + 20], 0xBA);
+  EXPECT_EQ(std::count_if(room.GetSprites().begin(), room.GetSprites().end(),
+                          [](const auto& sprite) {
+                            return sprite.id() == 0xA3 &&
+                                   sprite.subtype() == 10 && sprite.x() == 10 &&
+                                   sprite.y() == 17;
+                          }),
+            1);
+  std::cout << "Authored runtime ROM: " << output << std::endl;
+}
+
 }  // namespace
 }  // namespace yaze::editor

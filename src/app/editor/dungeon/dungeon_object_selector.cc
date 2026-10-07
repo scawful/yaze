@@ -19,6 +19,7 @@
 // Project headers
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
@@ -344,6 +345,7 @@ bool DungeonObjectSelector::DrawMinecartPalette() {
       SelectObject(0x31, subtype);
       chosen = true;
     }
+    gui::AutoRegisterLastItem("selectable", absl::StrFormat("Rail%d", subtype));
     ImGui::EndDisabled();
     const auto top = ImGui::GetItemRectMin();
     auto obj = MakePreviewObject(0x31);
