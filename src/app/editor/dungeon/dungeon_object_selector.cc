@@ -174,22 +174,14 @@ bool IsMinecartGraphicsRuntimeSlot(int object_id, int subtype) {
 
 std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
   static constexpr std::array<const char*, 16> kObject31Names = {
-      "Track horizontal",
-      "Track vertical",
-      "Track corner top-left",
-      "Track corner top-right",
-      "Track corner bottom-left",
-      "Track corner bottom-right",
-      "Floor track vertical",
-      "Floor track horizontal",
-      "Floor track corner top-left",
-      "Floor track corner top-right",
-      "Floor track corner bottom-left",
-      "Floor track corner bottom-right",
-      "Floor track any direction",
-      "Sword House wall object",
-      "Track any direction",
-      "Small statue",
+      "Pit track horizontal",           "Pit track vertical",
+      "Pit track corner top-left",      "Pit track corner top-right",
+      "Pit track corner bottom-left",   "Pit track corner bottom-right",
+      "Floor track vertical",           "Floor track horizontal",
+      "Floor track corner top-left",    "Floor track corner top-right",
+      "Floor track corner bottom-left", "Floor track corner bottom-right",
+      "Floor track any direction",      "Sword House wall object",
+      "Pit track any direction",        "Small statue",
   };
   static constexpr std::array<const char*, 3> kObject32Names = {
       "Ice furnace",
@@ -327,47 +319,58 @@ bool DungeonObjectSelector::DrawMinecartPalette() {
   const auto layout = ResolveDungeonObjectSelectorGridLayout(
       ImGui::GetContentRegionAvail().x, 64.0f, ImGui::GetStyle().ItemSpacing.x);
   bool chosen = false;
-  int column = 0;
   ImGui::PushID("MinecartRailPalette");
-  for (int subtype = 0; subtype < 16; ++subtype) {
-    if (!IsMinecartGraphicsRuntimeSlot(0x31, subtype))
-      continue;
-    if (column)
-      ImGui::SameLine();
-    const auto status = GetCustomObjectAssetStatus(0x31, subtype);
-    const auto name = GetDungeonCustomObjectSlotName(0x31, subtype);
-    const auto label = absl::StrFormat("##Rail%d", subtype);
-    ImGui::BeginDisabled(!status.ok());
-    if (ImGui::Selectable(label.c_str(),
-                          object_loaded_ && preview_object_.id_ == 0x31 &&
-                              preview_object_.size_ == subtype,
-                          0, ImVec2(layout.item_size, layout.item_size))) {
-      SelectObject(0x31, subtype);
-      chosen = true;
+  // Keep the complete catalog visible, with the same shape order in both
+  // families. These are artwork choices; behavior is edited separately.
+  static constexpr std::array<std::array<int, 7>, 2> kFamilies = {
+      {{7, 6, 8, 9, 10, 11, 12}, {0, 1, 2, 3, 4, 5, 14}}};
+  for (size_t family = 0; family < kFamilies.size(); ++family) {
+    ImGui::TextDisabled("%s",
+                        family == 0 ? "Floor-style rails" : "Pit-style rails");
+    int column = 0;
+    for (int subtype : kFamilies[family]) {
+      if (column)
+        ImGui::SameLine();
+      const auto status = GetCustomObjectAssetStatus(0x31, subtype);
+      const auto name = GetDungeonCustomObjectSlotName(0x31, subtype);
+      const auto label = absl::StrFormat("##Rail%d", subtype);
+      ImGui::BeginDisabled(!status.ok());
+      if (ImGui::Selectable(label.c_str(),
+                            object_loaded_ && preview_object_.id_ == 0x31 &&
+                                preview_object_.size_ == subtype,
+                            0, ImVec2(layout.item_size, layout.item_size))) {
+        SelectObject(0x31, subtype);
+        chosen = true;
+      }
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("Rail%d", subtype));
+      ImGui::EndDisabled();
+      const auto top = ImGui::GetItemRectMin();
+      auto obj = MakePreviewObject(0x31);
+      obj.size_ = subtype;
+      const bool rendered =
+          status.ok() && ImGui::IsItemVisible() &&
+          DrawObjectPreview(obj, ImVec2(top.x + 3, top.y + 3),
+                            ImVec2(layout.item_size - 6, layout.item_size - 6));
+      if (!rendered) {
+        ImGui::GetWindowDrawList()->AddText(
+            top, ImGui::GetColorU32(ImGuiCol_TextDisabled),
+            status.ok() ? "Preview..." : "Missing");
+      }
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(status.ok()
+                                   ? "Click, then place on the room canvas."
+                                   : std::string(status.message()).c_str());
+        if (status.ok() && family == 0) {
+          ImGui::TextUnformatted(
+              "Uses fixed floor tiles; check the room's graphics and palette.");
+        }
+        ImGui::EndTooltip();
+      }
+      column = (column + 1) % layout.columns;
     }
-    gui::AutoRegisterLastItem("selectable", absl::StrFormat("Rail%d", subtype));
-    ImGui::EndDisabled();
-    const auto top = ImGui::GetItemRectMin();
-    auto obj = MakePreviewObject(0x31);
-    obj.size_ = subtype;
-    const bool rendered =
-        status.ok() && ImGui::IsItemVisible() &&
-        DrawObjectPreview(obj, ImVec2(top.x + 3, top.y + 3),
-                          ImVec2(layout.item_size - 6, layout.item_size - 6));
-    if (!rendered) {
-      ImGui::GetWindowDrawList()->AddText(
-          top, ImGui::GetColorU32(ImGuiCol_TextDisabled),
-          status.ok() ? "Preview..." : "Missing");
-    }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::BeginTooltip();
-      ImGui::TextUnformatted(name.c_str());
-      ImGui::TextUnformatted(status.ok()
-                                 ? "Click, then place on the room canvas."
-                                 : std::string(status.message()).c_str());
-      ImGui::EndTooltip();
-    }
-    column = (column + 1) % layout.columns;
   }
   ImGui::PopID();
   return chosen;
