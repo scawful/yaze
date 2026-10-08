@@ -145,6 +145,32 @@ class DungeonEntityUndoLifecycleTest : public ::testing::TestWithParam<bool> {
     ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
     const int layout = SnesToPc(zelda3::kRoomLayoutPointers.front());
     ASSERT_TRUE(rom_.WriteWord(layout, 0xFFFF).ok());
+    constexpr int kObjectTablePc = 0x0F8000;
+    constexpr int kSpriteTablePc = 0x048000;
+    const auto write_object_pointer = [&](int slot, int pc) {
+      const uint32_t snes = PcToSnes(pc);
+      rom_.mutable_data()[slot] = snes & 0xFF;
+      rom_.mutable_data()[slot + 1] = (snes >> 8) & 0xFF;
+      rom_.mutable_data()[slot + 2] = (snes >> 16) & 0xFF;
+    };
+    write_object_pointer(zelda3::kRoomObjectPointer, kObjectTablePc);
+    ASSERT_TRUE(rom_.WriteWord(zelda3::kRoomsSpritePointer,
+                               PcToSnes(kSpriteTablePc) & 0xFFFF)
+                    .ok());
+    // Rooms 0 and 1 are edited by this fixture. Room 2 is a physical
+    // boundary, giving each editable stream 0x100 bytes of private space.
+    for (int id = 0; id < 3; ++id) {
+      const int object_pc = 0x100000 + id * 0x100;
+      const int sprite_pc = 0x049000 + id * 0x100;
+      write_object_pointer(kObjectTablePc + id * 3, object_pc);
+      ASSERT_TRUE(
+          rom_.WriteWord(kSpriteTablePc + id * 2, PcToSnes(sprite_pc) & 0xFFFF)
+              .ok());
+      ASSERT_TRUE(rom_.WriteVector(object_pc, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF,
+                                               0xF0, 0xFF, 0xFF, 0xFF})
+                      .ok());
+      ASSERT_TRUE(rom_.WriteVector(sprite_pc, {0, 0xFF}).ok());
+    }
     editor_ = std::make_unique<DungeonEditorV2>(&rom_);
     room_ = &editor_->rooms()[0];
     room_->SetLoaded(true);

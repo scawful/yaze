@@ -2966,6 +2966,65 @@ TEST_F(AuthoringSaveWorkflowTest,
   reopened.reset();
 }
 
+TEST_F(AuthoringSaveWorkflowTest, ObjectAndSpriteAdmissionUndoSaveAsReopens) {
+  const auto fixture = CopyProject("yaze-stream-admission");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto* rom = manager_->GetCurrentRom();
+  const auto before = rom->vector();
+  dungeon->rooms()[kDungeonRoom] = zelda3::LoadRoomFromRom(rom, kDungeonRoom);
+  auto& room = dungeon->rooms()[kDungeonRoom];
+  room.EnsureSpritesLoaded();
+  const auto initial_objects = room.GetTileObjects().size();
+  const auto initial_sprites = room.GetSprites().size();
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kDungeonRoom);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kDungeonRoom);
+  auto& coordinator = viewer->object_interaction().entity_coordinator();
+  zelda3::RoomObject object(0x01, 20, 20, 0, 0);
+  ASSERT_TRUE(
+      coordinator.tile_handler().PlaceObjectAt(kDungeonRoom, object, 20, 20));
+  auto& handler = coordinator.sprite_handler();
+  handler.SetSpriteId(9);
+  handler.BeginPlacement();
+  handler.HandleClick(384, 384);
+  handler.CancelPlacement();
+  ASSERT_OK(handler.mutation_status());
+  ASSERT_EQ(room.GetSprites().size(), initial_sprites + 1);
+  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects().size(), initial_objects);
+  EXPECT_EQ(room.GetSprites().size(), initial_sprites);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_TRUE(handler.UpdateSprite(initial_sprites, 9, 24, 24, 0, 1, 1));
+  ASSERT_OK(handler.mutation_status());
+  const auto objects = room.EncodeObjects();
+  const auto sprites = room.EncodeSprites();
+  const auto output = fixture.root / "stream-admission.sfc";
+  ASSERT_OK(manager_->SaveRomAs(output.string()));
+  ExpectProtectedRegionsMatch(
+      before, ReadFile(output),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(output.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto reopened =
+      zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kDungeonRoom);
+  reopened.EnsureSpritesLoaded();
+  EXPECT_EQ(reopened.EncodeObjects(), objects);
+  EXPECT_EQ(reopened.EncodeSprites(), sprites);
+  ASSERT_EQ(reopened.GetSprites().size(), initial_sprites + 1);
+  EXPECT_EQ(reopened.GetSprites().back().key_drop(), 1);
+  EXPECT_EQ(reopened.GetSprites().back().layer(), 1);
+}
+
 TEST_F(AuthoringSaveWorkflowTest,
        SpecialObjectCapacityRecoveryUndoSaveAsReopens) {
   const auto fixture = CopyProject("yaze-special-capacity");

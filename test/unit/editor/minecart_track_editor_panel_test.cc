@@ -1997,6 +1997,19 @@ class MinecartCanvasWorkflowTest : public ::testing::Test {
     ImGui::GetIO().IniFilename = nullptr;
     ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
     ConfigureMinecartAuditRom(&rom_, 0x98);
+    // The canvas edits room $98's cart. Give it a private, bounded sprite
+    // stream; the audit fixture's shared empty stream cannot be saved in place.
+    constexpr int kSpriteTablePc = 0x048000;
+    constexpr int kCartStreamPc = 0x049100;
+    constexpr int kNextStreamPc = 0x049200;
+    ASSERT_TRUE(rom_.WriteWord(kSpriteTablePc + 0x98 * 2,
+                               PcToSnes(kCartStreamPc) & 0xFFFF)
+                    .ok());
+    ASSERT_TRUE(rom_.WriteWord(kSpriteTablePc + 0x99 * 2,
+                               PcToSnes(kNextStreamPc) & 0xFFFF)
+                    .ok());
+    ASSERT_TRUE(rom_.WriteVector(kCartStreamPc, {0, 0xFF}).ok());
+    ASSERT_TRUE(rom_.WriteVector(kNextStreamPc, {0, 0xFF}).ok());
     fixture_.WriteSource(MakeFlatSource(32));
     ASSERT_TRUE(panel_.SetProject(fixture_.project()).ok());
     ASSERT_TRUE(panel_.ReloadTracks().ok());

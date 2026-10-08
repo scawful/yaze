@@ -53,6 +53,9 @@ absl::Status DungeonEditorV2::ApplyMinecartTrackEdit(
                        old_sprite->subtype(), old_sprite->layer());
     new_sprite->set_key_drop(old_sprite->key_drop());
     new_sprite->set_deleted(old_sprite->deleted());
+    auto candidates = room->GetSprites();
+    candidates[index] = *new_sprite;
+    RETURN_IF_ERROR(PreflightSpriteMutation(before.room_id, candidates));
   }
   auto restore = [this, generation, before, after, sprite_index, old_sprite,
                   new_sprite](bool forward) -> absl::Status {

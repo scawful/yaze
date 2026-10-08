@@ -397,9 +397,12 @@ TEST(DungeonEditorV2RomSafetyTest,
   ConfigureMinimalDungeonSave();
 
   const auto write_ranges = editor->CollectWriteRanges();
+  const uint32_t object_end =
+      static_cast<uint32_t>(kObjectAllocationPc) + 2u +
+      static_cast<uint32_t>(room.EncodeObjects().size());
   EXPECT_NE(
       std::find(write_ranges.begin(), write_ranges.end(),
-                std::pair<uint32_t, uint32_t>{kObjectAllocationPc, 0x148000}),
+                std::pair<uint32_t, uint32_t>{kObjectAllocationPc, object_end}),
       write_ranges.end());
   EXPECT_NE(std::find(write_ranges.begin(), write_ranges.end(),
                       std::pair<uint32_t, uint32_t>{0x0F8000, 0x0F8003}),
@@ -470,9 +473,12 @@ TEST(DungeonEditorV2RomSafetyTest,
   flags.kSaveSprites = true;
 
   const auto write_ranges = editor->CollectWriteRanges();
+  const uint32_t sprite_end =
+      static_cast<uint32_t>(kSpriteAllocationPc) + 1u +
+      static_cast<uint32_t>(room.EncodeSprites().size());
   EXPECT_NE(
       std::find(write_ranges.begin(), write_ranges.end(),
-                std::pair<uint32_t, uint32_t>{kSpriteAllocationPc, 0x04B000}),
+                std::pair<uint32_t, uint32_t>{kSpriteAllocationPc, sprite_end}),
       write_ranges.end());
   EXPECT_NE(std::find(write_ranges.begin(), write_ranges.end(),
                       std::pair<uint32_t, uint32_t>{kSpritePointerTablePc,

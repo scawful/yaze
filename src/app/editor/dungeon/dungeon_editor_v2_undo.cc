@@ -385,6 +385,19 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
               ToastType::kWarning, 4.0f);
         }
       });
+  auto& sprite_handler =
+      viewer->object_interaction().entity_coordinator().sprite_handler();
+  sprite_handler.SetSpriteMutationPreflight(
+      [this](int id, const std::vector<zelda3::Sprite>& sprites) {
+        return PreflightSpriteMutation(id, sprites);
+      });
+  sprite_handler.SetMutationErrorCallback([this](const absl::Status& status) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Edit not applied: %s", status.message()),
+          ToastType::kWarning, 4.0f);
+    }
+  });
   // The interaction context is the mutation source of truth. A retained viewer
   // can change rooms, so do not capture the room ID from its creation time.
   viewer->object_interaction().SetMutationCallback([this, viewer]() {
