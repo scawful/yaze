@@ -41,6 +41,7 @@
 // Room-based plans and tools must follow canvas.h's ImGui math configuration.
 #include "app/editor/dungeon/dungeon_connection_edit.h"
 #include "app/editor/dungeon/dungeon_room_transfer.h"
+#include "app/editor/dungeon/ui/crumble/crumble_floor_view.h"
 #include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
 #include "app/editor/dungeon/ui/minecart/minecart_collision_tool.h"
 
@@ -399,6 +400,7 @@ class DungeonCanvasViewer {
 
   void SetContext(EditorContext ctx) {
     if (rom_ != ctx.rom || game_data_ != ctx.game_data) {
+      crumble_floor_view_.Reset();
       ResetRoomCompositeOutputs();
     }
     rom_ = ctx.rom;
@@ -409,6 +411,7 @@ class DungeonCanvasViewer {
   }
   EditorContext context() const { return {rom_, game_data_}; }
   void SetRom(Rom* rom) {
+    crumble_floor_view_.Reset();
     if (rom_ != rom) {
       ResetRoomCompositeOutputs();
     }
@@ -616,6 +619,12 @@ class DungeonCanvasViewer {
   void set_show_texture_debug(bool show) { show_texture_debug_ = show; }
   bool show_layer_info() const { return show_layer_info_; }
   void set_show_layer_info(bool show) { show_layer_info_ = show; }
+  bool show_crumble_floor() const { return show_crumble_floor_; }
+  void set_show_crumble_floor(bool show) {
+    show_crumble_floor_ = show;
+    if (!show)
+      crumble_floor_view_.Stop();
+  }
   bool show_minecart_tracks() const { return show_minecart_tracks_; }
   void set_show_minecart_tracks(bool show) { show_minecart_tracks_ = show; }
   bool show_track_collision_legend() const {
@@ -1137,8 +1146,12 @@ class DungeonCanvasViewer {
   MinecartCanvasTool minecart_canvas_tool_;
   MinecartCollisionTool minecart_collision_tool_;
   bool minecart_owned_input_ = false;
+  friend class DungeonCanvasCrumbleTestPeer;
+  bool DrawCrumbleCanvas(const gui::CanvasRuntime& rt);
   bool DrawMinecartCanvas(const gui::CanvasRuntime& rt, zelda3::Room& room,
                           int room_id);
+  bool show_crumble_floor_ = false;
+  CrumbleFloorView crumble_floor_view_;
   bool show_minecart_tracks_ = false;
   bool is_pinned_ = false;
   std::function<void(bool)> pin_callback_;

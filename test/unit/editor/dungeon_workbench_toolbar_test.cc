@@ -8,6 +8,7 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -99,7 +100,8 @@ ToolbarGeometry DrawToolbarForHistoryGeometry(
 ToolbarGeometry DrawWorstCaseToolbarGeometry(const char* child_id, float width,
                                              DungeonCanvasViewer* viewer,
                                              bool open_overflow = false,
-                                             bool compare_active = false) {
+                                             bool compare_active = false,
+                                             bool open_view = false) {
   const bool child_open = ImGui::BeginChild(
       child_id, ImVec2(width, 96.0f), false,
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -140,6 +142,8 @@ ToolbarGeometry DrawWorstCaseToolbarGeometry(const char* child_id, float width,
   params.compare_search_buf = compare_search;
   params.compare_search_buf_size = sizeof(compare_search);
 
+  if (open_view)
+    ImGui::OpenPopup("##WorkbenchViewOptions");
   if (open_overflow) {
     ImGui::OpenPopup("##WorkbenchToolbarOverflow");
   }
@@ -521,5 +525,26 @@ TEST_F(DungeonWorkbenchToolbarTest,
   EXPECT_EQ(context->CurrentWindowStack.Size, window_stack_before);
 }
 
+}  // namespace
+}  // namespace yaze::editor
+
+namespace yaze::editor {
+namespace {
+TEST_F(DungeonWorkbenchToolbarTest, ViewOptionsExposeCrumbleFloorControl) {
+  gui::WidgetIdRegistry::Instance().Clear();
+  DungeonCanvasViewer viewer;
+  DrawWorstCaseToolbarGeometry("##CrumbleToolbar", 1100.0f, &viewer, false,
+                               false, true);
+  bool found = false;
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (widget.label == "Crumble Floor (Oracle)") {
+      found = true;
+      EXPECT_TRUE(widget.enabled);
+    }
+  }
+  EXPECT_TRUE(found);
+  gui::WidgetIdRegistry::Instance().Clear();
+}
 }  // namespace
 }  // namespace yaze::editor

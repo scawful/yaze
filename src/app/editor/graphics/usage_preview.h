@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/graphics/graphics_edit_context.h"
 #include "app/editor/graphics/graphics_preview_image.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gfx/core/bitmap.h"
@@ -94,7 +95,25 @@ struct RoomTileReference {
   uint16_t tile_word = 0;
   uint16_t sheet = 0;
   int slot = 0;
+  // Loader-owned source addresses, not displayed palette-row identity.
+  std::array<std::optional<zelda3::PaletteColorAddress>, 8> palette_colors{};
 };
+
+struct SourceObjectUse {
+  size_t object_index = 0;
+  uint16_t object_id = 0;
+  bool shares_pixels = false;
+  bool shares_palette = false;
+  std::vector<RoomTileReference> references;
+};
+
+// Potential consumers of the selected source. Pixel identity is sheet + local
+// tile; palette identity is the loader-owned group/index/color address. A match
+// does not promise a visible change (raw indices and occlusion also matter).
+std::vector<SourceObjectUse> FindSourceObjectUses(
+    const std::vector<RoomTileReference>& references,
+    const std::vector<GraphicsEditTarget>& targets,
+    const zelda3::GameData* owner);
 
 class RoomUsagePreview {
  public:
@@ -119,6 +138,11 @@ class RoomUsagePreview {
   /// Pixel rectangles of objects that draw at least one 8x8 tile from
   /// `sheet` (background blocks only).
   std::vector<SDL_Rect> ObjectRectsUsingSheet(uint16_t sheet) const;
+  std::vector<SDL_Rect> ObjectRectsForObject(size_t index) const;
+  // Explicit loaded-room scan; never loads another room from ROM or creates a
+  // composite image. Rendering caches may refresh, authoring state is retained.
+  absl::Status TraceLoadedRoom(Rom* rom, zelda3::GameData* game_data,
+                               zelda3::Room* room);
   /// Clears the loaded room so the next Render() reloads it from the ROM.
   void Reset();
 
@@ -132,6 +156,17 @@ class RoomUsagePreview {
   int room_id_ = -1;
   gfx::Bitmap composite_;
 };
+
+struct LoadedRoomSourceUses {
+  int room_id = -1;
+  std::vector<SourceObjectUse> objects;
+  size_t unknown_objects = 0;
+  std::string error;
+};
+
+std::vector<LoadedRoomSourceUses> FindLoadedRoomSourceUses(
+    Rom* rom, zelda3::GameData* game_data, const LiveRoomContexts& rooms,
+    const std::vector<GraphicsEditTarget>& targets);
 
 // ---------------------------------------------------------------------------
 // Sprite context

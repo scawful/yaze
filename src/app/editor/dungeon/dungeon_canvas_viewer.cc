@@ -146,6 +146,7 @@ void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
 
 void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
   if (project_ != project) {
+    crumble_floor_view_.Reset();
     InvalidateExternalSpriteResources();
   }
   project_ = project;
@@ -386,6 +387,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.CancelPlacement();
       object_interaction_.mode_manager().CancelCurrentMode();
       minecart_track_panel_->set_canvas_editing(tracks);
+      if (tracks)
+        crumble_floor_view_.Stop();
       minecart_canvas_tool_.Cancel();
     }
   }
@@ -396,6 +399,24 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // compare viewer or auxiliary preview left active by the previous frame.
   if (active_room != nullptr) {
     PrepareRoomCompositeBitmap(room_id);
+  }
+
+  if (show_crumble_floor_ && active_room != nullptr) {
+    crumble_floor_view_.Sync(rom_, project_, *active_room);
+    const bool was_rehearsing = crumble_floor_view_.rehearsing();
+    crumble_floor_view_.DrawControls(object_interaction_enabled_);
+    if (!was_rehearsing && crumble_floor_view_.rehearsing()) {
+      object_interaction_.HandleMouseRelease();
+      object_interaction_.CancelPlacement();
+      object_interaction_.mode_manager().CancelCurrentMode();
+      object_interaction_.ClearSelection();
+      object_interaction_.entity_coordinator().ClearAllEntitySelections();
+      minecart_canvas_tool_.Cancel();
+      if (minecart_track_panel_) {
+        minecart_track_panel_->set_canvas_editing(false);
+        minecart_track_panel_->set_collision_stamping(false);
+      }
+    }
   }
 
   PopulateCanvasContextMenu(room_id);
@@ -441,7 +462,8 @@ void DungeonCanvasViewer::UpdateRoomCanvasShortcutFocus(bool hovered,
 
 bool DungeonCanvasViewer::HasRoomCanvasShortcutFocusForFrame(
     int frame_index) const {
-  return object_interaction_enabled_ && room_canvas_shortcut_focus_ &&
+  return object_interaction_enabled_ && !crumble_floor_view_.rehearsing() &&
+         room_canvas_shortcut_focus_ &&
          room_canvas_last_draw_frame_ == frame_index;
 }
 

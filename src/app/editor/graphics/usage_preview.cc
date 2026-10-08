@@ -179,6 +179,81 @@ std::string RoomContextLabel(const LiveRoomContext* live) {
   return absl::StrFormat("Live · Entrance $%02X", live->entrance_slot);
 }
 
+std::vector<SourceObjectUse> FindSourceObjectUses(
+    const std::vector<RoomTileReference>& references,
+    const std::vector<GraphicsEditTarget>& targets,
+    const zelda3::GameData* owner) {
+  std::map<size_t, SourceObjectUse> matches;
+  for (const auto& reference : references) {
+    bool pixels = false;
+    bool palette = false;
+    for (const auto& target : targets) {
+      pixels |= target.sheet_id == reference.sheet &&
+                target.tile_index == (reference.tile_word & 0x3F);
+      if (!owner || !target.writable_palette ||
+          target.writable_palette->owner != owner)
+        continue;
+      for (size_t raw = 1; raw < reference.palette_colors.size(); ++raw) {
+        if (!reference.palette_colors[raw])
+          continue;
+        for (size_t source = 1; source < 8; ++source) {
+          palette |= target.writable_palette->colors[source] &&
+                     reference.palette_colors[raw] ==
+                         target.writable_palette->colors[source];
+        }
+      }
+    }
+    if (!pixels && !palette)
+      continue;
+    auto& match = matches[reference.object_index];
+    match.object_index = reference.object_index;
+    match.object_id = reference.object_id;
+    match.shares_pixels |= pixels;
+    match.shares_palette |= palette;
+    match.references.push_back(reference);
+  }
+  std::vector<SourceObjectUse> out;
+  for (auto& [index, match] : matches)
+    out.push_back(std::move(match));
+  return out;
+}
+
+absl::Status RoomUsagePreview::TraceLoadedRoom(Rom* rom,
+                                               zelda3::GameData* game_data,
+                                               zelda3::Room* room) {
+  if (!rom || !rom->is_loaded() || !game_data || !room || room->rom() != rom ||
+      room->game_data() != game_data || !room->IsLoaded()) {
+    return absl::FailedPreconditionError("Room usage session mismatch");
+  }
+  room->PrepareForRender();
+  CaptureUsage(*room);
+  return absl::OkStatus();
+}
+
+std::vector<LoadedRoomSourceUses> FindLoadedRoomSourceUses(
+    Rom* rom, zelda3::GameData* game_data, const LiveRoomContexts& rooms,
+    const std::vector<GraphicsEditTarget>& targets) {
+  std::vector<LoadedRoomSourceUses> out;
+  RoomUsagePreview trace;
+  for (const auto& [id, context] : rooms) {
+    LoadedRoomSourceUses result;
+    result.room_id = id;
+    const auto status =
+        context.room && context.room->id() == id
+            ? trace.TraceLoadedRoom(rom, game_data, context.room)
+            : absl::FailedPreconditionError("Room ID mismatch");
+    if (!status.ok()) {
+      result.error = std::string(status.message());
+    } else {
+      result.objects =
+          FindSourceObjectUses(trace.tile_references(), targets, game_data);
+      result.unknown_objects = trace.unknown_objects();
+    }
+    out.push_back(std::move(result));
+  }
+  return out;
+}
+
 absl::Status RoomUsagePreview::Render(Rom* rom, zelda3::GameData* game_data,
                                       int room_id, const SheetPixels& sheets,
                                       bool objects_only,
@@ -261,6 +336,13 @@ void RoomUsagePreview::CaptureUsage(const zelda3::Room& room) {
       tile_references_.push_back(
           {static_cast<size_t>(index), static_cast<uint16_t>(object.id_), word,
            blocks_[tile / kTilesPerSheet], tile / kTilesPerSheet});
+      auto& reference = tile_references_.back();
+      const int half = room.BackgroundPaletteOffset(reference.slot);
+      const int row = (word >> 10) & 7;
+      for (int raw = 1; raw < 8; ++raw) {
+        reference.palette_colors[raw] =
+            room.rendered_palette_addresses()[row * 16 + half + raw];
+      }
       const auto [x, y, w, h] =
           zelda3::DimensionService::Get().GetSelectionBoundsPixels(object);
       object_rects_[index] = {x, y, w, h};
@@ -280,6 +362,13 @@ std::vector<SDL_Rect> RoomUsagePreview::ObjectRectsUsingSheet(
       rects.push_back(object_rects_.at(use.object_index));
   }
   return rects;
+}
+
+std::vector<SDL_Rect> RoomUsagePreview::ObjectRectsForObject(
+    size_t index) const {
+  const auto found = object_rects_.find(index);
+  return found == object_rects_.end() ? std::vector<SDL_Rect>{}
+                                      : std::vector<SDL_Rect>{found->second};
 }
 
 void RoomUsagePreview::Reset() {

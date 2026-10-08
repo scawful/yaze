@@ -62,6 +62,8 @@ set(
   app/editor/dungeon/interaction/tile_object_handler.cc
   app/editor/dungeon/dungeon_proposal_overlay.cc
   app/editor/dungeon/dungeon_editor_v2_minecart.cc
+  app/editor/dungeon/ui/crumble/crumble_floor_model.cc
+  app/editor/dungeon/ui/crumble/crumble_floor_view.cc
   app/editor/dungeon/ui/minecart/minecart_canvas_tool.cc
   app/editor/dungeon/ui/minecart/minecart_collision_tool.cc
   app/editor/dungeon/ui/minecart/minecart_rail_tools.cc

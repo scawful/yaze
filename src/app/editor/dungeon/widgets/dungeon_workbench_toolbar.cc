@@ -11,10 +11,12 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_overlay_controls.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
 #include "app/editor/dungeon/widgets/dungeon_room_nav_widget.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/canvas/item_context_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -154,62 +156,25 @@ void DrawViewOptionsContents(DungeonCanvasViewer* viewer) {
     return;
   }
 
-  // Canvas overlays — generic, common, expected on by default.
+  gui::AutoWidgetScope scope("Dungeon/ViewOptions");
   ImGui::TextDisabled(tr("Canvas"));
-  bool v = viewer->show_grid();
-  if (ImGui::Checkbox(tr("Grid (8x8)"), &v)) {
-    viewer->set_show_grid(v);
-  }
-  v = viewer->show_object_bounds();
-  if (ImGui::Checkbox(tr("Object Bounds"), &v)) {
-    viewer->set_show_object_bounds(v);
-  }
-  v = viewer->show_coordinate_overlay();
-  if (ImGui::Checkbox(tr("Hover Coordinates"), &v)) {
-    viewer->set_show_coordinate_overlay(v);
-  }
-  v = viewer->show_camera_quadrant_overlay();
-  if (ImGui::Checkbox(tr("Camera Quadrants"), &v)) {
-    viewer->set_show_camera_quadrant_overlay(v);
-  }
-
-  // Authoring overlays — specialized, infrequent. Grouped together so the
-  // common four don't get visually drowned by Oracle/track-specific ones.
-  ImGui::Spacing();
-  ImGui::Separator();
-  ImGui::TextDisabled(tr("Authoring"));
-  v = viewer->show_track_collision_overlay();
-  if (ImGui::Checkbox(tr("Track Collision"), &v)) {
-    viewer->set_show_track_collision_overlay(v);
-  }
-  v = viewer->show_custom_collision_overlay();
-  if (ImGui::Checkbox(tr("Custom Collision"), &v)) {
-    viewer->set_show_custom_collision_overlay(v);
-  }
-  v = viewer->show_water_fill_overlay();
-  if (ImGui::Checkbox(tr("Water Fill (Oracle)"), &v)) {
-    viewer->set_show_water_fill_overlay(v);
-  }
-  v = viewer->show_minecart_sprite_overlay();
-  if (ImGui::Checkbox(tr("Minecart Pathing"), &v)) {
-    viewer->set_show_minecart_sprite_overlay(v);
-  }
-  v = viewer->show_track_gap_overlay();
-  if (ImGui::Checkbox(tr("Track Gaps"), &v)) {
-    viewer->set_show_track_gap_overlay(v);
-  }
-  v = viewer->show_track_route_overlay();
-  if (ImGui::Checkbox(tr("Track Routes"), &v)) {
-    viewer->set_show_track_route_overlay(v);
-  }
-  v = viewer->show_custom_objects_overlay();
-  if (ImGui::Checkbox(tr("Custom Objects (Oracle)"), &v)) {
-    viewer->set_show_custom_objects_overlay(v);
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        tr("Highlight registered custom-draw objects\n"
-           "with a cyan overlay showing position and subtype."));
+  for (const auto& spec : GetDungeonOverlayControlSpecs()) {
+    if (spec.id == DungeonOverlayControlId::kTrackCollision) {
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::TextDisabled(tr("Authoring"));
+    }
+    bool enabled = GetDungeonOverlayControlEnabled(*viewer, spec.id);
+    if (ImGui::Checkbox(tr(spec.label), &enabled)) {
+      SetDungeonOverlayControlEnabled(*viewer, spec.id, enabled);
+    }
+    gui::AutoRegisterLastItem("checkbox", spec.label);
+    if (spec.id == DungeonOverlayControlId::kCustomObjects &&
+        ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          tr("Highlight registered custom-draw objects with their position and "
+             "subtype."));
+    }
   }
 }
 

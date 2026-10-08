@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstdlib>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -20,6 +23,7 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas_rendering.h"
 #include "imgui/imgui_internal.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/game_data.h"
 
 namespace yaze::editor {
@@ -27,6 +31,23 @@ class UsagePreviewViewTestPeer {
  public:
   static gfx::Bitmap& SourceBitmap(UsagePreviewView& view) {
     return view.source_bitmap_;
+  }
+  static bool SharedScanReady(const UsagePreviewView& view) {
+    return view.shared_scan_ready_;
+  }
+  static const auto& SharedUses(const UsagePreviewView& view) {
+    return view.shared_uses_;
+  }
+  static const auto& SharedTargets(const UsagePreviewView& view) {
+    return view.shared_targets_;
+  }
+  static int SharedPreviewRoom(const UsagePreviewView& view) {
+    return view.shared_preview_room_;
+  }
+  static size_t SharedOutlineCount(const UsagePreviewView& view) {
+    return view.shared_room_preview_
+        .ObjectRectsForObject(view.shared_preview_object_)
+        .size();
   }
 };
 namespace {
@@ -764,6 +785,156 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   EXPECT_FLOAT_EQ(state_.zoom_level, 4);
   Click("Fit sheet", frame);
   EXPECT_FLOAT_EQ(state_.zoom_level, 7);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       SharedUsesControlsRespectScopeAndRefuseStaleSource) {
+  BindReorderSource();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  UsagePreviewView view(&state_);
+  view.SetRom(&rom);
+  view.SetGameData(data_.get());
+  state_.source_context->render_preview =
+      []() -> absl::StatusOr<usage_preview::PreviewImage> {
+    usage_preview::PreviewImage image;
+    image.width = image.height = 8;
+    image.pixels.assign(64, 1);
+    return image;
+  };
+  const absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+  };
+  std::string text;
+  const auto frame = [&] {
+    Frame([&] {
+      ImGui::LogToBuffer(2);
+      view.DrawSourcePreview();
+      text = context_->LogBuffer.c_str();
+      ImGui::LogFinish();
+    });
+  };
+  frame();
+  Click("Shared uses in loaded rooms", frame);
+  ASSERT_TRUE(FindWidget("Find shared uses"));
+  Click("Find shared uses", frame);
+  EXPECT_TRUE(UsagePreviewViewTestPeer::SharedScanReady(view));
+  EXPECT_EQ(UsagePreviewViewTestPeer::SharedTargets(view).size(), 2u);
+  EXPECT_TRUE(UsagePreviewViewTestPeer::SharedUses(view).empty());
+  EXPECT_NE(text.find("does not establish exclusive use"), std::string::npos);
+  EXPECT_NE(text.find("unloaded"), std::string::npos);
+  Click("Shared uses current tile", frame);
+  EXPECT_FALSE(UsagePreviewViewTestPeer::SharedScanReady(view));
+  Click("Find shared uses", frame);
+  ASSERT_EQ(UsagePreviewViewTestPeer::SharedTargets(view).size(), 1u);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SharedTargets(view)[0].tile_index, 0);
+
+  state_.source_context->resolve_live_source = [](GraphicsEditContext&) {
+    return absl::FailedPreconditionError("Source placement changed");
+  };
+  Click("Find shared uses", frame);
+  EXPECT_FALSE(UsagePreviewViewTestPeer::SharedScanReady(view));
+  EXPECT_TRUE(UsagePreviewViewTestPeer::SharedUses(view).empty());
+  EXPECT_NE(text.find("Source placement changed"), std::string::npos);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       OracleSharedUsesFindsLoadedObjectsPreviewsAndInvalidates) {
+  const char* path = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!path || !std::filesystem::exists(path))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM copy";
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(path).ok());
+  ASSERT_TRUE(zelda3::LoadGameData(rom, *data_).ok());
+  auto& custom = zelda3::CustomObjectManager::Get();
+  const auto custom_state = custom.SnapshotState();
+  const absl::Cleanup cleanup = [&] {
+    gfx::Arena::Get().ClearTextureQueue();
+    custom.RestoreState(custom_state);
+  };
+  custom.SetTilePatternsSource("");
+  auto source_room = zelda3::LoadRoomFromRom(&rom, 0x89);
+  auto neighbor = zelda3::LoadRoomFromRom(&rom, 0x88);
+  source_room.SetGameData(data_.get());
+  neighbor.SetGameData(data_.get());
+  usage_preview::RoomUsagePreview trace;
+  ASSERT_TRUE(trace.TraceLoadedRoom(&rom, data_.get(), &source_room).ok());
+  ASSERT_FALSE(trace.tile_references().empty());
+  const size_t object_index = trace.tile_references().front().object_index;
+  auto source = MakeDungeonGraphicsEditContext(
+      source_room, source_room.GetTileObjects()[object_index], data_.get());
+  ASSERT_TRUE(source.ok()) << source.status();
+  source->resolve_live_source = [&](GraphicsEditContext& fresh) {
+    auto current = MakeDungeonGraphicsEditContext(
+        source_room, source_room.GetTileObjects()[object_index], data_.get());
+    if (!current.ok())
+      return current.status();
+    fresh = std::move(*current);
+    return absl::OkStatus();
+  };
+  source->render_preview = []() -> absl::StatusOr<usage_preview::PreviewImage> {
+    usage_preview::PreviewImage image;
+    image.width = image.height = 8;
+    image.pixels.assign(64, 1);
+    return image;
+  };
+  state_.source_context = std::move(*source);
+  ++state_.source_context_revision;
+  state_.SelectSourceTarget(0);
+  source_room.ClearSaveDirtyState();
+  neighbor.ClearSaveDirtyState();
+  source_room.MarkHeaderDirty();
+  const auto before = rom.vector();
+  UsagePreviewView view(&state_);
+  view.SetRom(&rom);
+  view.SetGameData(data_.get());
+  view.SetLiveRoomProvider([&] {
+    return usage_preview::LiveRoomContexts{
+        {0x89, {&source_room, "Live source", true}},
+        {0x88, {&neighbor, "Live neighbor", false}}};
+  });
+  const auto frame = [&] {
+    Frame([&] { view.DrawSourcePreview(); }, 850);
+  };
+  frame();
+  Click("Shared uses in loaded rooms", frame);
+  Click("Find shared uses", frame);
+  ASSERT_TRUE(UsagePreviewViewTestPeer::SharedScanReady(view));
+  const auto& report = UsagePreviewViewTestPeer::SharedUses(view);
+  ASSERT_EQ(report.size(), 2u);
+  const auto matching =
+      std::find_if(report.begin(), report.end(),
+                   [](const auto& entry) { return !entry.objects.empty(); });
+  ASSERT_NE(matching, report.end());
+  const auto& object = matching->objects.front();
+  const auto label = absl::StrFormat(
+      "$%03X / object %03X #%zu: %s%s%s", matching->room_id, object.object_id,
+      object.object_index, object.shares_pixels ? "Pixels" : "",
+      object.shares_pixels && object.shares_palette ? " + " : "",
+      object.shares_palette ? "Palette" : "");
+  const int preview_room = matching->room_id;
+  Click(label.c_str(), frame);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SharedPreviewRoom(view), preview_room);
+  EXPECT_EQ(UsagePreviewViewTestPeer::SharedOutlineCount(view), 1u);
+  const auto source_revision = source_room.composite_source_revision();
+  const auto neighbor_revision = neighbor.composite_source_revision();
+  frame();
+  frame();
+  EXPECT_TRUE(UsagePreviewViewTestPeer::SharedScanReady(view));
+  EXPECT_EQ(source_room.composite_source_revision(), source_revision);
+  EXPECT_EQ(neighbor.composite_source_revision(), neighbor_revision);
+  EXPECT_TRUE(source_room.header_dirty());
+  EXPECT_FALSE(neighbor.HasUnsavedChanges());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+
+  neighbor.MarkGraphicsDirty();
+  frame();
+  EXPECT_FALSE(UsagePreviewViewTestPeer::SharedScanReady(view));
+  EXPECT_EQ(UsagePreviewViewTestPeer::SharedPreviewRoom(view), -1);
+  view.SetRom(&rom);  // Same-address session replacement clears the census too.
+  EXPECT_TRUE(UsagePreviewViewTestPeer::SharedUses(view).empty());
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,

@@ -12,6 +12,7 @@
 #include "imgui/imgui.h"
 #include "util/i18n/tr.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/sprite/sprite.h"
 #include "zelda3/sprite/sprite_sheet_slots.h"
 
@@ -50,6 +51,12 @@ void UsagePreviewView::SetGameData(zelda3::GameData* game_data) {
 }
 
 void UsagePreviewView::InvalidateTables() {
+  shared_scan_ready_ = false;
+  shared_scan_status_.clear();
+  shared_targets_.clear();
+  shared_uses_.clear();
+  shared_preview_room_ = -1;
+  shared_room_preview_.Reset();
   source_dirty_ = true;
   source_render_time_ = -1.0;
   tables_ready_ = false;
@@ -311,7 +318,205 @@ void UsagePreviewView::DrawSourcePreview(bool show_controls) {
     ImGui::TextWrapped("%s", source_status_.c_str());
     return;
   }
+  DrawSharedUses();
   DrawBitmapFit(source_bitmap_, {}, 2.0f, true);
+}
+
+uint64_t UsagePreviewView::SharedUsesHash(
+    const usage_preview::LiveRoomContexts& rooms) const {
+  uint64_t hash = kFnvOffset;
+  auto add = [&](uint64_t value) {
+    hash = (hash ^ value) * kFnvPrime;
+  };
+  add(state_->source_context_revision);
+  add(state_->source_context ? state_->source_context->selected_target : 0);
+  add(state_->current_sheet_id);
+  add(shared_whole_pattern_);
+  add(gfx::PaletteManager::Get().ColorRevision(game_data_));
+  add(zelda3::CustomObjectManager::Get().asset_generation());
+  for (const auto& [id, context] : rooms) {
+    add(id);
+    add(reinterpret_cast<uintptr_t>(context.room));
+    add(context.entrance_slot);
+    if (context.room && context.room->rom() == rom_ &&
+        context.room->game_data() == game_data_) {
+      add(context.room->composite_source_revision());
+      for (const auto sheet : context.room->blocks()) {
+        add(sheet);
+        add(game_data_->sheet_store.Revision(sheet));
+      }
+    }
+  }
+  return hash;
+}
+
+absl::Status UsagePreviewView::ScanSharedUses(
+    const usage_preview::LiveRoomContexts& rooms) {
+  shared_scan_ready_ = false;
+  shared_uses_.clear();
+  shared_targets_.clear();
+  shared_preview_room_ = -1;
+  if (!rom_ || !rom_->is_loaded() || !game_data_ || !state_->SourceTarget() ||
+      !state_->source_context->resolve_live_source) {
+    return absl::FailedPreconditionError(
+        "Reopen Edit Graphics from a live source to find shared uses.");
+  }
+  const auto& source = *state_->source_context;
+  GraphicsEditContext fresh;
+  RETURN_IF_ERROR(source.resolve_live_source(fresh));
+  if (fresh.owner != game_data_ ||
+      fresh.resolved.surface != source.resolved.surface ||
+      fresh.resolved.id != source.resolved.id ||
+      fresh.resolved.parent_id != source.resolved.parent_id) {
+    return absl::FailedPreconditionError(
+        "Graphics source changed; reopen Edit Graphics from the source.");
+  }
+  // Validate against the captured source without redirecting pending edits.
+  auto validated = source;
+  RETURN_IF_ERROR(UpdateGraphicsContextPalettes(validated, std::move(fresh)));
+  if (shared_whole_pattern_) {
+    shared_targets_ = std::move(validated.targets);
+  } else {
+    shared_targets_.push_back(validated.targets.at(source.selected_target));
+  }
+  shared_uses_ = usage_preview::FindLoadedRoomSourceUses(
+      rom_, game_data_, rooms, shared_targets_);
+  shared_scan_hash_ = SharedUsesHash(rooms);
+  shared_scan_ready_ = true;
+  return absl::OkStatus();
+}
+
+void UsagePreviewView::DrawSharedUses() {
+  const bool expanded = ImGui::CollapsingHeader(
+      tr("Shared uses in loaded rooms"), ImGuiTreeNodeFlags_NoAutoOpenOnLog);
+  gui::AutoRegisterLastItem("header", "Shared uses in loaded rooms");
+  if (!expanded)
+    return;
+  const auto rooms = live_rooms_provider_ ? live_rooms_provider_()
+                                          : usage_preview::LiveRoomContexts{};
+  if (shared_scan_ready_ && shared_scan_hash_ != SharedUsesHash(rooms)) {
+    shared_scan_ready_ = false;
+    shared_uses_.clear();
+    shared_preview_room_ = -1;
+    shared_scan_status_ =
+        tr("Source or loaded rooms changed. Find shared uses again.");
+  }
+  if (ImGui::RadioButton(tr("Current tile##SharedScope"),
+                         !shared_whole_pattern_)) {
+    shared_whole_pattern_ = false;
+    shared_scan_ready_ = false;
+    shared_preview_room_ = -1;
+  }
+  gui::AutoRegisterLastItem("radio", "Shared uses current tile");
+  if (ImGui::RadioButton(tr("Source pattern##SharedScope"),
+                         shared_whole_pattern_)) {
+    shared_whole_pattern_ = true;
+    shared_scan_ready_ = false;
+    shared_preview_room_ = -1;
+  }
+  gui::AutoRegisterLastItem("radio", "Shared uses source pattern");
+  if (ImGui::Button(tr("Find shared uses"))) {
+    const auto status = ScanSharedUses(rooms);
+    shared_scan_status_ =
+        status.ok() ? std::string() : std::string(status.message());
+  }
+  gui::AutoRegisterLastItem("button", "Find shared uses");
+  ImGui::TextWrapped(
+      "%s", tr("Loaded dungeon rooms only. Doors, layout, sprites, unloaded "
+               "rooms and untraced drawing are not covered. Matches are "
+               "possible uses, not a prediction of visible changes."));
+  if (!shared_scan_status_.empty())
+    ImGui::TextWrapped("%s", shared_scan_status_.c_str());
+  if (!shared_scan_ready_)
+    return;
+  size_t matches = 0, unknown = 0, failed = 0;
+  for (const auto& room : shared_uses_) {
+    matches += room.objects.size();
+    unknown += room.unknown_objects;
+    failed += !room.error.empty();
+  }
+  ImGui::Text(tr("%zu objects / %zu loaded rooms"), matches,
+              shared_uses_.size());
+  ImGui::Text(tr("%zu unknown objects; %zu rooms unavailable"), unknown,
+              failed);
+  ImGui::TextWrapped("%s", tr("Pixels = same sheet and tile. Palette = shared "
+                              "source color addresses; unmapped colors are "
+                              "not counted."));
+  if (ImGui::TreeNodeEx(tr("Source tiles and palettes"),
+                        ImGuiTreeNodeFlags_NoAutoOpenOnLog)) {
+    for (const auto& target : shared_targets_) {
+      ImGui::Text("Sheet $%02X / tile $%02X", target.sheet_id,
+                  target.tile_index);
+      if (target.writable_palette) {
+        const auto& mapping = *target.writable_palette;
+        ImGui::Text("Row %u, %s half", mapping.row,
+                    mapping.half_offset == 8 ? "right" : "left");
+        for (size_t i = 1; i < mapping.colors.size(); ++i) {
+          if (const auto& address = mapping.colors[i])
+            ImGui::Text("%zu: %s / %d / %d", i,
+                        zelda3::PaletteAddressGroupName(address->group),
+                        address->palette_index, address->color_index);
+        }
+      } else {
+        ImGui::TextWrapped("%s", target.palette_address_limitation.c_str());
+      }
+    }
+    ImGui::TreePop();
+  }
+  if (matches == 0) {
+    ImGui::TextWrapped("%s", tr("No traced matches in these loaded rooms. "
+                                "This does not establish exclusive use."));
+  }
+  ImGui::BeginChild("##SharedUseResults", ImVec2(0, 8 * ImGui::GetFontSize()),
+                    true);
+  for (const auto& room : shared_uses_) {
+    if (!room.error.empty())
+      ImGui::TextWrapped("$%03X: %s", room.room_id, room.error.c_str());
+    for (const auto& object : room.objects) {
+      const auto label = absl::StrFormat(
+          "$%03X / object %03X #%zu: %s%s%s", room.room_id, object.object_id,
+          object.object_index, object.shares_pixels ? "Pixels" : "",
+          object.shares_pixels && object.shares_palette ? " + " : "",
+          object.shares_palette ? "Palette" : "");
+      if (ImGui::Selectable(
+              label.c_str(),
+              shared_preview_room_ == room.room_id &&
+                  shared_preview_object_ == object.object_index)) {
+        const auto live = rooms.find(room.room_id);
+        const auto status =
+            live == rooms.end()
+                ? absl::FailedPreconditionError("Room is no longer loaded")
+                : shared_room_preview_.Render(rom_, game_data_, room.room_id,
+                                              {}, false, live->second.room);
+        shared_scan_status_ =
+            status.ok() ? std::string() : std::string(status.message());
+        if (status.ok()) {
+          shared_preview_room_ = room.room_id;
+          shared_preview_object_ = object.object_index;
+          QueueTexture(shared_room_preview_.mutable_bitmap());
+          shared_scan_hash_ = SharedUsesHash(rooms);
+        }
+      }
+      gui::AutoRegisterLastItem("selectable", label);
+      if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        for (const auto& reference : object.references)
+          ImGui::Text("Sheet $%02X / tile $%02X / row %d / slot %d",
+                      reference.sheet, reference.tile_word & 0x3F,
+                      (reference.tile_word >> 10) & 7, reference.slot);
+        ImGui::EndTooltip();
+      }
+    }
+  }
+  ImGui::EndChild();
+  if (shared_preview_room_ >= 0) {
+    ImGui::Text("Room $%03X / object #%zu", shared_preview_room_,
+                shared_preview_object_);
+    DrawBitmapFit(
+        shared_room_preview_.mutable_bitmap(),
+        shared_room_preview_.ObjectRectsForObject(shared_preview_object_),
+        0.5f);
+  }
 }
 
 void UsagePreviewView::Draw() {

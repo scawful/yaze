@@ -830,6 +830,7 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
   // This is a read-only overview. A release here must not complete a gesture
   // that began in the editable room canvas when the user returns to that view.
   CancelMinecartGesture();
+  crumble_floor_view_.Stop();
   current_room_id_ = center_room_id;
   if (center_room_id < 0 || center_room_id >= zelda3::kNumberOfRooms) {
     ImGui::Text(tr("Invalid room ID: %d"), center_room_id);
