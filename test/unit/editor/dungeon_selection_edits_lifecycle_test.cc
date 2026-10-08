@@ -441,6 +441,179 @@ TEST_P(DungeonSelectionEditsLifecycleTest,
 }
 
 TEST_P(DungeonSelectionEditsLifecycleTest,
+       SpriteAdmissionIncludesPendingObjectHeaderRelocation) {
+  // Room 1 shares its object stream with unopened rooms. A pending layout
+  // change needs COW even though this gesture only changes room 0's sprites.
+  editor_->rooms()[1].SetLayoutId(1);
+  auto& handler = coordinator().sprite_handler();
+  ExpectRejectedWithoutChanges([&] {
+    EXPECT_FALSE(handler.UpdateSprite(0, 9, 7, 8, 3, 1, 2));
+    const auto status = handler.mutation_status();
+    EXPECT_NE(std::string(status.message()).find("shared"), std::string::npos);
+    return status;
+  });
+  EXPECT_TRUE(editor_->rooms()[1].object_stream_header_dirty());
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       InPlaceSpriteSaveIgnoresProtectedUnusedAllocatorAndSortByte) {
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(R"json({
+    "manifest_version":3,
+    "protected_regions":{"total_hooks":2,"regions":[
+      {"start":"0x09DB00","end":"0x09DB01","size":1,"hook_count":1,"module":"UnusedArena"},
+      {"start":"0x09D900","end":"0x09D901","size":1,"hook_count":1,"module":"SortByte"}]},
+    "dungeon_stream_regions":{"sprites":{
+      "pointer_table":"0x09D000", "pointer_count":296,
+      "pointer_encoding":"bank16", "pointer_bank":"0x09",
+      "strategy":"copy_on_write",
+      "data_regions":[{"start":"0x09D900","end":"0x09DC00"}],
+      "allocation_regions":[{"start":"0x09DB00","end":"0x09DB01"}]
+    }}})json")
+                  .ok());
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  EditorDependencies dependencies;
+  dependencies.rom = &rom_;
+  dependencies.project = &project;
+  editor_->SetDependencies(dependencies);
+  const auto bytes = rom_.vector();
+  auto& handler = coordinator().sprite_handler();
+  ASSERT_TRUE(handler.UpdateSprite(0, 9, 7, 8, 3, 1, 2))
+      << handler.mutation_status();
+  ASSERT_TRUE(editor_->Save().ok());
+  EXPECT_EQ(rom_.vector()[kSpritePc], bytes[kSpritePc]);
+  EXPECT_EQ(rom_.vector()[kSpritePc + 0x200], bytes[kSpritePc + 0x200]);
+  EXPECT_EQ(*rom_.ReadWord(kSpriteTablePc), PcToSnes(kSpritePc) & 0xFFFF);
+  dependencies.project = nullptr;
+  editor_->SetDependencies(dependencies);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       ObjectStorageRejectsWholeMixedDuplicateBeforeHistory) {
+  const int boundary = kObjectPc + 2 + room_->EncodeObjects().size();
+  WritePointer(rom_, 0x0F8000 + 3, boundary);
+  ASSERT_TRUE(rom_.WriteVector(boundary, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0,
+                                          0xFF, 0xFF, 0xFF})
+                  .ok());
+  SelectMixed();
+  ExpectRejectedWithoutChanges([&] {
+    const auto status = interaction().HandleDuplicateSelected();
+    EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+    EXPECT_NE(std::string(status.message()).find("object data too large"),
+              std::string::npos);
+    return status;
+  });
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       SpriteStorageRejectsPlacementAndKeyGrowthBeforeHistory) {
+  auto& handler = coordinator().sprite_handler();
+  room_->GetSprites()[0].set_key_drop(0);
+  const int boundary = kSpritePc + 1 + room_->EncodeSprites().size();
+  ASSERT_TRUE(
+      rom_.WriteWord(kSpriteTablePc + 2, PcToSnes(boundary) & 0xFFFF).ok());
+  ASSERT_TRUE(rom_.WriteVector(boundary, {0, 0xFF}).ok());
+  ExpectRejectedWithoutChanges([&] {
+    EXPECT_FALSE(handler.UpdateSprite(0, 9, 6, 8, 3, 1, 1));
+    EXPECT_EQ(handler.mutation_status().code(),
+              absl::StatusCode::kResourceExhausted);
+    return handler.mutation_status();
+  });
+  handler.SetSpriteId(9);
+  handler.BeginPlacement();
+  ExpectRejectedWithoutChanges([&] {
+    handler.HandleClick(160, 160);
+    EXPECT_EQ(
+        handler.placement_block_reason(),
+        SpriteInteractionHandler::PlacementBlockReason::kStorageValidation);
+    return handler.mutation_status();
+  });
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       SpriteStorageCountsPendingRoomsAndUndoReleasesReservation) {
+  // All 296 rooms share an empty source stream. The declared COW arena has room
+  // for exactly one five-byte sprite list. Only saved pointers consume ROM.
+  for (int id = 0; id < zelda3::kNumberOfRooms; ++id) {
+    ASSERT_TRUE(
+        rom_.WriteWord(kSpriteTablePc + id * 2, PcToSnes(kSpritePc) & 0xFFFF)
+            .ok());
+  }
+  for (int id : {0, 1}) {
+    editor_->rooms()[id].GetSprites().clear();
+    editor_->rooms()[id].ClearSaveDirtyState();
+  }
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(R"json({
+    "manifest_version":3, "dungeon_stream_regions":{"sprites":{
+      "pointer_table":"0x09D000", "pointer_count":296,
+      "pointer_encoding":"bank16", "pointer_bank":"0x09",
+      "strategy":"copy_on_write",
+      "data_regions":[{"start":"0x09D900","end":"0x09DB05"}],
+      "allocation_regions":[{"start":"0x09DB00","end":"0x09DB05"}]
+    }}})json")
+                  .ok());
+  EditorDependencies dependencies;
+  dependencies.rom = &rom_;
+  dependencies.project = &project;
+  editor_->SetDependencies(dependencies);
+  auto place = [&](int id) {
+    room_ = &editor_->rooms()[id];
+    viewer_ = DungeonSelectionEditsTestPeer::Viewer(*editor_, id);
+    auto& handler = coordinator().sprite_handler();
+    handler.SetSpriteId(9);
+    handler.BeginPlacement();
+    handler.HandleClick(160, 160);
+    handler.CancelPlacement();
+    return handler.mutation_status();
+  };
+  const auto bytes = rom_.vector();
+  ASSERT_TRUE(place(0).ok());
+  room_ = &editor_->rooms()[1];
+  viewer_ = DungeonSelectionEditsTestPeer::Viewer(*editor_, 1);
+  ExpectRejectedWithoutChanges([&] {
+    const auto status = place(1);
+    EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+    return status;
+  });
+  EXPECT_EQ(editor_->rooms()[0].GetSprites().size(), 1u);
+  EXPECT_EQ(rom_.vector(), bytes);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(place(1).ok());
+  EXPECT_EQ(editor_->rooms()[0].GetSprites().size(), 0u);
+  EXPECT_EQ(editor_->rooms()[1].GetSprites().size(), 1u);
+  dependencies.project = nullptr;
+  editor_->SetDependencies(dependencies);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       ProtectedSpritePayloadRejectsMixedEditAndPreservesRedo) {
+  SelectMixed();
+  ASSERT_TRUE(interaction().HandleDuplicateSelected().ok());
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_EQ(RedoDepth(), 1u);
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(R"json({
+    "manifest_version":3,"protected_regions":{"total_hooks":1,
+    "regions":[{"start":"0x09D901","end":"0x09D902","size":1,
+    "hook_count":1,"module":"SpritePayloadGuard"}]}})json")
+                  .ok());
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  EditorDependencies dependencies;
+  dependencies.rom = &rom_;
+  dependencies.project = &project;
+  editor_->SetDependencies(dependencies);
+  ExpectRejectedWithoutChanges(
+      [&] { return interaction().HandleDuplicateSelected(); });
+  EXPECT_EQ(RedoDepth(), 1u);
+  dependencies.project = nullptr;
+  editor_->SetDependencies(dependencies);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
        TorchCapacityRejectsWholeMixedPasteBeforeHistory) {
   // One torch in room 0 plus 139 in unopened room 2 exactly fills 0x120 bytes.
   std::vector<uint8_t> torches{0, 0, 0x10, 0x04, 0xFF, 0xFF, 2, 0};

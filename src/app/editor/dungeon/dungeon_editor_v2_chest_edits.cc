@@ -164,7 +164,7 @@ absl::Status DungeonEditorV2::DeleteChest(int room_id, size_t index) {
 
 absl::Status DungeonEditorV2::PreflightObjectMutation(
     int room_id, const std::vector<zelda3::RoomObject>& objects,
-    const std::vector<chest_data>& chests) {
+    const std::vector<chest_data>& chests, bool check_streams) {
   const auto* room = rooms_.GetIfLoaded(room_id);
   if (!room || room->rom() != rom_) {
     return absl::FailedPreconditionError("Room objects are not loaded");
@@ -221,6 +221,12 @@ absl::Status DungeonEditorV2::PreflightObjectMutation(
           dependencies_.project->rom_metadata.write_policy, ranges,
           "special object authoring", "DungeonEditorV2", nullptr));
     }
+  }
+  if (check_streams) {
+    auto candidate = CaptureDungeonSelectionEditState(*room);
+    candidate.objects = objects;
+    RETURN_IF_ERROR(
+        PreflightStreamMutation(room_id, candidate, kSelectionObjects));
   }
   const auto& original = room->GetChests();
   if (original.size() == chests.size() &&

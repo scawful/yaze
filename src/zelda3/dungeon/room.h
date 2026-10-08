@@ -26,6 +26,7 @@
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room_header_destination.h"
 #include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/dungeon/room_layout.h"
@@ -1049,10 +1050,19 @@ class Room {
 
   // Object saving (Phase 1, Task 1.3)
   absl::Status SaveObjects(const DungeonStreamLayout* layout = nullptr);
+  // Read-only save plans expose half-open PC ranges for the same direct or
+  // copy-on-write writes as the matching Save method. Clean streams return {}.
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetObjectSaveWriteRanges(const DungeonStreamLayout* layout = nullptr) const;
   absl::Status SaveObjectStreamHeader(
       const DungeonStreamLayout* layout = nullptr);
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetObjectStreamHeaderSaveWriteRanges(
+      const DungeonStreamLayout* layout = nullptr) const;
   std::vector<uint8_t> EncodeObjects() const;
   absl::Status SaveSprites(const DungeonStreamLayout* layout = nullptr);
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetSpriteSaveWriteRanges(const DungeonStreamLayout* layout = nullptr) const;
   std::vector<uint8_t> EncodeSprites() const;
   absl::Status SaveRoomHeader();
 
@@ -1145,6 +1155,20 @@ class Room {
   const DungeonState* GetDungeonState() const { return dungeon_state_.get(); }
 
  private:
+  struct StreamSavePlan {
+    std::vector<std::pair<uint32_t, std::vector<uint8_t>>> direct_writes;
+    std::optional<std::pair<uint32_t, uint32_t>> direct_long_write;
+    std::optional<DungeonStreamWritePlan> relocation;
+
+    std::vector<std::pair<uint32_t, uint32_t>> write_ranges() const;
+  };
+  absl::StatusOr<StreamSavePlan> PlanObjectSave(
+      const DungeonStreamLayout* layout) const;
+  absl::StatusOr<StreamSavePlan> PlanSpriteSave(
+      const DungeonStreamLayout* layout) const;
+  absl::StatusOr<StreamSavePlan> PlanObjectStreamHeaderSave(
+      const DungeonStreamLayout* layout) const;
+  absl::Status ApplyStreamSavePlan(const StreamSavePlan& plan);
   Rom* rom_;
   GameData* game_data_ = nullptr;
 

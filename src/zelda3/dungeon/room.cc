@@ -556,10 +556,9 @@ int MeasureSpriteStreamSize(const std::vector<uint8_t>& rom_data,
   return std::max(0, cursor - sprite_address);
 }
 
-absl::Status RelocateDungeonStream(Rom* rom, int room_id,
-                                   DungeonStreamKind expected_kind,
-                                   const DungeonStreamLayout& layout,
-                                   std::vector<uint8_t> encoded_stream) {
+absl::StatusOr<DungeonStreamWritePlan> PlanRelocateDungeonStream(
+    const Rom& rom, int room_id, DungeonStreamKind expected_kind,
+    const DungeonStreamLayout& layout, std::vector<uint8_t> encoded_stream) {
   if (layout.kind != expected_kind) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Room %d relocation layout has the wrong dungeon stream kind",
@@ -567,12 +566,12 @@ absl::Status RelocateDungeonStream(Rom* rom, int room_id,
   }
 
   ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
-                   InventoryDungeonStreams(*rom, layout));
+                   InventoryDungeonStreams(rom, layout));
   ASSIGN_OR_RETURN(
       const DungeonStreamWritePlan plan,
       PlanDungeonStreamWrites(inventory, {{static_cast<uint32_t>(room_id),
                                            std::move(encoded_stream)}}));
-  return ApplyDungeonStreamWritePlan(rom, plan);
+  return plan;
 }
 
 absl::StatusOr<bool> DungeonStreamRequiresCopyOnWrite(
@@ -2290,21 +2289,62 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
+std::vector<std::pair<uint32_t, uint32_t>> Room::StreamSavePlan::write_ranges()
+    const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  const auto add = [&](uint32_t address, size_t size) {
+    ranges.emplace_back(address, address + static_cast<uint32_t>(size));
+  };
+  for (const auto& [address, bytes] : direct_writes) {
+    add(address, bytes.size());
+  }
+  if (direct_long_write.has_value()) {
+    add(direct_long_write->first, 3);
+  }
+  if (relocation.has_value()) {
+    for (const auto& write : relocation->payload_writes) {
+      add(write.address, write.bytes.size());
+    }
+    for (const auto& write : relocation->pointer_writes) {
+      add(write.address, write.bytes.size());
+    }
+    for (const auto& write : relocation->auxiliary_pointer_writes) {
+      add(write.address, write.bytes.size());
+    }
+  }
+  return ranges;
+}
+
+absl::Status Room::ApplyStreamSavePlan(const StreamSavePlan& plan) {
+  if (plan.relocation.has_value()) {
+    return ApplyDungeonStreamWritePlan(rom_, *plan.relocation);
+  }
+  for (const auto& [address, bytes] : plan.direct_writes) {
+    RETURN_IF_ERROR(rom_->WriteVector(address, bytes));
+  }
+  if (plan.direct_long_write.has_value()) {
+    RETURN_IF_ERROR(rom_->WriteLong(plan.direct_long_write->first,
+                                    plan.direct_long_write->second));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectSave(
+    const DungeonStreamLayout* layout) const {
+  StreamSavePlan plan;
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
   if (!object_stream_dirty()) {
-    return absl::OkStatus();
+    return plan;
   }
-
   for (const auto& object : tile_objects_) {
     if (UsesRoomObjectStream(object)) {
       RETURN_IF_ERROR(ValidateRoomObjectStreamEntryForSave(object));
     }
   }
 
-  const auto& rom_data = rom()->vector();
+  const auto& rom_data = rom_->vector();
   ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
                    GetObjectStreamInfo(rom_data, room_id_));
   const auto encoded_bytes = EncodeObjects();
@@ -2315,7 +2355,7 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
                          *rom_, room_id_, DungeonStreamKind::kObject, *layout,
                          encoded_bytes.size() + 2u));
   }
-  const auto relocate = [&]() -> absl::Status {
+  const auto relocate = [&]() -> absl::StatusOr<StreamSavePlan> {
     if (stream_info.address + 2 > static_cast<int>(rom_data.size())) {
       return absl::OutOfRangeError("Object stream header is out of range");
     }
@@ -2323,11 +2363,12 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
                                         rom_data[stream_info.address + 1]};
     replacement.insert(replacement.end(), encoded_bytes.begin(),
                        encoded_bytes.end());
-    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
-                                          DungeonStreamKind::kObject, *layout,
-                                          std::move(replacement)));
-    ClearObjectStreamDirty();
-    return absl::OkStatus();
+    ASSIGN_OR_RETURN(
+        auto relocation,
+        PlanRelocateDungeonStream(*rom_, room_id_, DungeonStreamKind::kObject,
+                                  *layout, std::move(replacement)));
+    plan.relocation = std::move(relocation);
+    return plan;
   };
   if (stream_info.shared || requires_copy_on_write) {
     if (layout != nullptr) {
@@ -2345,14 +2386,8 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
         "Room %d object stream has no safe physical boundary", room_id_));
   }
 
-  // Skip graphics/layout header (2 bytes)
   const int write_pos = stream_info.address + 2;
-
-  // Encode all objects
   const int available_payload_size = stream_info.capacity() - 2;
-
-  // Validate against the nearest greater physical pointer, not the next room
-  // ID. Pointer tables are not ordered by room ID in vanilla or expanded ROMs.
   if (encoded_bytes.size() > static_cast<size_t>(available_payload_size)) {
     if (layout != nullptr) {
       return relocate();
@@ -2372,32 +2407,41 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
       door_pointer_slot + 2 >= static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Door pointer slot is out of range");
   }
-  const int door_pointer_pc = write_pos + door_list_offset;
   ASSIGN_OR_RETURN(const uint32_t source_door_pointer,
                    rom_->ReadLong(door_pointer_slot));
-
-  // Write encoded bytes to ROM (includes 0xF0 0xFF + door list)
-  RETURN_IF_ERROR(rom_->WriteVector(write_pos, encoded_bytes));
-
-  // Write door pointer: first byte after 0xF0 0xFF (per ZScreamDungeon
-  // Save.cs). Preserve the source pointer's slow/fast ROM bank mirror; both
-  // encodings address the same bytes, but normalizing an unchanged pointer
-  // creates an unrelated ROM diff.
-  uint32_t encoded_door_pointer = PcToSnes(door_pointer_pc);
+  // Preserve the source slow/fast bank mirror when updating the door pointer.
+  uint32_t encoded_door_pointer = PcToSnes(write_pos + door_list_offset);
   encoded_door_pointer |= source_door_pointer & 0x800000u;
-  RETURN_IF_ERROR(rom_->WriteLong(door_pointer_slot, encoded_door_pointer));
 
-  ClearObjectStreamDirty();
+  plan.direct_writes.emplace_back(write_pos, encoded_bytes);
+  plan.direct_long_write = std::make_pair(
+      static_cast<uint32_t>(door_pointer_slot), encoded_door_pointer);
+  return plan;
+}
 
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+Room::GetObjectSaveWriteRanges(const DungeonStreamLayout* layout) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanObjectSave(layout));
+  return plan.write_ranges();
+}
+
+absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanObjectSave(layout));
+  RETURN_IF_ERROR(ApplyStreamSavePlan(plan));
+  if (object_stream_dirty()) {
+    ClearObjectStreamDirty();
+  }
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
+absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectStreamHeaderSave(
+    const DungeonStreamLayout* layout) const {
+  StreamSavePlan plan;
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
   if (!object_stream_header_dirty()) {
-    return absl::OkStatus();
+    return plan;
   }
   if (floor1_graphics_ > 0x0F || floor2_graphics_ > 0x0F) {
     return absl::InvalidArgumentError(
@@ -2475,30 +2519,50 @@ absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
           room_id_, stream_info.address));
     }
     RETURN_IF_ERROR(patch_header(&replacement));
-    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
-                                          DungeonStreamKind::kObject, *layout,
-                                          std::move(replacement)));
-    ClearObjectStreamHeaderDirty();
-    return absl::OkStatus();
+    ASSIGN_OR_RETURN(
+        auto relocation,
+        PlanRelocateDungeonStream(*rom_, room_id_, DungeonStreamKind::kObject,
+                                  *layout, std::move(replacement)));
+    plan.relocation = std::move(relocation);
+    return plan;
   }
 
   std::vector<uint8_t> header = {rom_data[stream_info.address],
                                  rom_data[stream_info.address + 1]};
   RETURN_IF_ERROR(patch_header(&header));
-  RETURN_IF_ERROR(rom_->WriteVector(stream_info.address, std::move(header)));
-  ClearObjectStreamHeaderDirty();
+  plan.direct_writes.emplace_back(stream_info.address, std::move(header));
+  return plan;
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+Room::GetObjectStreamHeaderSaveWriteRanges(
+    const DungeonStreamLayout* layout) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan,
+                   PlanObjectStreamHeaderSave(layout));
+  return plan.write_ranges();
+}
+
+absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan,
+                   PlanObjectStreamHeaderSave(layout));
+  RETURN_IF_ERROR(ApplyStreamSavePlan(plan));
+  if (object_stream_header_dirty()) {
+    ClearObjectStreamHeaderDirty();
+  }
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
+absl::StatusOr<Room::StreamSavePlan> Room::PlanSpriteSave(
+    const DungeonStreamLayout* layout) const {
+  StreamSavePlan plan;
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
   if (!sprites_dirty()) {
-    return absl::OkStatus();
+    return plan;
   }
 
-  const auto& rom_data = rom()->vector();
+  const auto& rom_data = rom_->vector();
   if (room_id_ < 0 || room_id_ >= kNumberOfRooms) {
     return absl::OutOfRangeError("Room ID out of range");
   }
@@ -2513,15 +2577,33 @@ absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
                          *rom_, room_id_, DungeonStreamKind::kSprite, *layout,
                          encoded_bytes.size() + 1u));
   }
-  const auto relocate = [&]() -> absl::Status {
+  // Undo can restore a stream byte-for-byte while leaving its dirty bit set.
+  // A no-op needs neither a new allocation nor an in-place write. Parse the
+  // complete live stream first so a matching prefix in a longer or malformed
+  // stream cannot be mistaken for an unchanged payload.
+  const uint64_t source_payload_address =
+      static_cast<uint64_t>(stream_info.address) + 1u;
+  if (source_payload_address <= rom_data.size() &&
+      encoded_bytes.size() <= rom_data.size() - source_payload_address) {
+    const auto source = ReadDungeonSpriteStream(*rom_, room_id_);
+    if (source.ok() &&
+        source->data_pc == static_cast<uint32_t>(stream_info.address) &&
+        source->encoded_stream.size() == encoded_bytes.size() + 1u &&
+        std::equal(encoded_bytes.begin(), encoded_bytes.end(),
+                   source->encoded_stream.begin() + 1)) {
+      return plan;
+    }
+  }
+  const auto relocate = [&]() -> absl::StatusOr<StreamSavePlan> {
     std::vector<uint8_t> replacement = {rom_data[stream_info.address]};
     replacement.insert(replacement.end(), encoded_bytes.begin(),
                        encoded_bytes.end());
-    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
-                                          DungeonStreamKind::kSprite, *layout,
-                                          std::move(replacement)));
-    ClearSpritesDirty();
-    return absl::OkStatus();
+    ASSIGN_OR_RETURN(
+        auto relocation,
+        PlanRelocateDungeonStream(*rom_, room_id_, DungeonStreamKind::kSprite,
+                                  *layout, std::move(replacement)));
+    plan.relocation = std::move(relocation);
+    return plan;
   };
   if (stream_info.shared || requires_copy_on_write) {
     if (layout != nullptr) {
@@ -2558,8 +2640,22 @@ absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
         available_payload_size));
   }
 
-  RETURN_IF_ERROR(rom_->WriteVector(payload_address, encoded_bytes));
-  ClearSpritesDirty();
+  plan.direct_writes.emplace_back(payload_address, encoded_bytes);
+  return plan;
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+Room::GetSpriteSaveWriteRanges(const DungeonStreamLayout* layout) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanSpriteSave(layout));
+  return plan.write_ranges();
+}
+
+absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanSpriteSave(layout));
+  RETURN_IF_ERROR(ApplyStreamSavePlan(plan));
+  if (sprites_dirty()) {
+    ClearSpritesDirty();
+  }
   return absl::OkStatus();
 }
 
