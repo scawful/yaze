@@ -56,6 +56,9 @@ class UsagePreviewView {
   void DrawRoomContext(bool render_now);
   void DrawSpriteContext(bool render_now, float delta);
   void DrawTile16Context(bool render_now);
+  void DrawSharedUses();
+  absl::Status ScanSharedUses(const usage_preview::LiveRoomContexts& rooms);
+  uint64_t SharedUsesHash(const usage_preview::LiveRoomContexts& rooms) const;
   // Hash of the current, source-context, and modified session sheet pixels.
   uint64_t HashWatchedSheets(bool include_room_context) const;
   usage_preview::SheetPixels Snapshot() const;
@@ -131,6 +134,17 @@ class UsagePreviewView {
   double source_render_time_ = -1.0;
   bool source_dirty_ = true;
   std::string source_status_;
+
+  // Explicit loaded-room census. No background/full-ROM scan while drawing.
+  bool shared_whole_pattern_ = true;
+  bool shared_scan_ready_ = false;
+  uint64_t shared_scan_hash_ = 0;
+  std::string shared_scan_status_;
+  std::vector<GraphicsEditTarget> shared_targets_;
+  std::vector<usage_preview::LoadedRoomSourceUses> shared_uses_;
+  usage_preview::RoomUsagePreview shared_room_preview_;
+  int shared_preview_room_ = -1;
+  size_t shared_preview_object_ = 0;
 };
 
 }  // namespace yaze::editor

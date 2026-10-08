@@ -7,7 +7,7 @@ namespace yaze::editor {
 
 namespace {
 
-constexpr std::array<DungeonOverlayControlSpec, 11> kOverlaySpecs = {{
+constexpr std::array<DungeonOverlayControlSpec, 12> kOverlaySpecs = {{
     {DungeonOverlayControlId::kGrid, "Grid (8x8)"},
     {DungeonOverlayControlId::kObjectBounds, "Object Bounds"},
     {DungeonOverlayControlId::kHoverCoordinates, "Hover Coordinates"},
@@ -19,11 +19,12 @@ constexpr std::array<DungeonOverlayControlSpec, 11> kOverlaySpecs = {{
     {DungeonOverlayControlId::kTrackGaps, "Track Gaps"},
     {DungeonOverlayControlId::kTrackRoutes, "Track Routes"},
     {DungeonOverlayControlId::kCustomObjects, "Custom Objects (Oracle)"},
+    {DungeonOverlayControlId::kCrumbleFloor, "Crumble Floor (Oracle)"},
 }};
 
 }  // namespace
 
-const std::array<DungeonOverlayControlSpec, 11>&
+const std::array<DungeonOverlayControlSpec, 12>&
 GetDungeonOverlayControlSpecs() {
   return kOverlaySpecs;
 }
@@ -51,6 +52,8 @@ bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,
       return viewer.show_track_gap_overlay();
     case DungeonOverlayControlId::kTrackRoutes:
       return viewer.show_track_route_overlay();
+    case DungeonOverlayControlId::kCrumbleFloor:
+      return viewer.show_crumble_floor();
     case DungeonOverlayControlId::kCustomObjects:
       return viewer.show_custom_objects_overlay();
   }
@@ -90,6 +93,9 @@ void SetDungeonOverlayControlEnabled(DungeonCanvasViewer& viewer,
       return;
     case DungeonOverlayControlId::kTrackRoutes:
       viewer.set_show_track_route_overlay(enabled);
+      return;
+    case DungeonOverlayControlId::kCrumbleFloor:
+      viewer.set_show_crumble_floor(enabled);
       return;
     case DungeonOverlayControlId::kCustomObjects:
       viewer.set_show_custom_objects_overlay(enabled);

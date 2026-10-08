@@ -1600,6 +1600,9 @@ TEST(DungeonCanvasViewerContextMenuTest,
   rooms[0].GetTileObjects().push_back(
       zelda3::RoomObject{0x01, 12, 12, 0x00, 0});
 
+  rooms[0].GetTileObjects().push_back(
+      zelda3::RoomObject{0x05, 14, 14, 0x00, 0});
+
   DungeonCanvasViewer viewer;
   viewer.SetRooms(&rooms);
   viewer.object_interaction().SetCurrentRoom(&rooms, 0);
@@ -1608,6 +1611,10 @@ TEST(DungeonCanvasViewerContextMenuTest,
   viewer.object_interaction().SetSelectedObjects({1});
   auto labels =
       DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+  EXPECT_LT(FindLabelIndex(labels, "Edit Object Tiles..."), labels.size());
+
+  viewer.object_interaction().SetSelectedObjects({2});
+  labels = DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
   EXPECT_EQ(FindLabelIndex(labels, "Edit Object Tiles..."), labels.size());
 
   viewer.object_interaction().SetSelectedObjects({0, 1});

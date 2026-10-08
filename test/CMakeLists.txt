@@ -479,6 +479,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_palette_source_test.cc
+    unit/editor/crumble_floor_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/room_graphics_content_test.cc

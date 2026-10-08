@@ -236,6 +236,78 @@ TEST(GraphicsUsagePreviewTest, SessionSnapshotIgnoresAnotherRomsArena) {
 
 // --- Oracle ROM copy (YAZE_TEST_ROM_OOS) ---------------------------------
 
+TEST(GraphicsUsagePreviewTest, SharedUsesMatchPhysicalTilesAndPaletteSources) {
+  SyntheticGame game(0);
+  const zelda3::PaletteColorAddress shared{
+      zelda3::PaletteAddressGroup::kDungeonMain, 3, 17};
+  GraphicsEditTarget target;
+  target.sheet_id = 0x12;
+  target.tile_index = 9;
+  target.writable_palette = GraphicsPaletteAddressing{};
+  target.writable_palette->owner = &game.game_data;
+  target.writable_palette->row = 3;
+  target.writable_palette->colors[1] = shared;
+  std::vector<RoomTileReference> references = {
+      // Same physical tile in a different VRAM slot, row and orientation.
+      {0, 0x100, static_cast<uint16_t>(0xC000 | (5 << 10) | (4 * 64 + 9)), 0x12,
+       4},
+      // Same VRAM tile number is not the same source sheet.
+      {1, 0x100, static_cast<uint16_t>((3 << 10) | 9), 0x13, 0},
+      // Another tile and row can consume the same palette source address.
+      {2, 0x101, static_cast<uint16_t>((2 << 10) | 8), 0x15, 0},
+      {3, 0x102, static_cast<uint16_t>((3 << 10) | 8), 0x15, 0},
+  };
+  references[2].palette_colors[7] = shared;
+  references[3].palette_colors[1] = zelda3::PaletteColorAddress{
+      zelda3::PaletteAddressGroup::kDungeonMain, 4, 17};
+  references[1].palette_colors[0] =
+      shared;  // Transparency is not a source use.
+  const auto matches =
+      FindSourceObjectUses(references, {target}, &game.game_data);
+  ASSERT_EQ(matches.size(), 2u);
+  EXPECT_EQ(matches[0].object_index, 0u);
+  EXPECT_TRUE(matches[0].shares_pixels);
+  EXPECT_FALSE(matches[0].shares_palette);
+  EXPECT_EQ(matches[1].object_index, 2u);
+  EXPECT_FALSE(matches[1].shares_pixels);
+  EXPECT_TRUE(matches[1].shares_palette);
+
+  zelda3::GameData foreign;
+  const auto foreign_matches =
+      FindSourceObjectUses(references, {target}, &foreign);
+  ASSERT_EQ(foreign_matches.size(), 1u);
+  EXPECT_TRUE(foreign_matches.front().shares_pixels);
+  EXPECT_FALSE(foreign_matches.front().shares_palette);
+}
+
+TEST(GraphicsUsagePreviewTest, SharedUsesGroupByPlacementAndRetainBothReasons) {
+  SyntheticGame game(0);
+  GraphicsEditTarget pixels;
+  pixels.sheet_id = 0x11;
+  pixels.tile_index = 1;
+  GraphicsEditTarget palette;
+  palette.sheet_id = 0x12;
+  palette.tile_index = 2;
+  palette.writable_palette = GraphicsPaletteAddressing{};
+  palette.writable_palette->owner = &game.game_data;
+  palette.writable_palette->colors[1] = zelda3::PaletteColorAddress{
+      zelda3::PaletteAddressGroup::kDungeonMain, 0, 0};
+  std::vector<RoomTileReference> references = {
+      {0, 0x101, 1, 0x11, 0}, {0, 0x101, 3, 0x13, 0}, {1, 0x101, 1, 0x11, 0}};
+  references[1].palette_colors[2] = palette.writable_palette->colors[1];
+  const auto tile_only =
+      FindSourceObjectUses(references, {pixels}, &game.game_data);
+  ASSERT_EQ(tile_only.size(), 2u);
+  EXPECT_FALSE(tile_only.front().shares_palette);
+  const auto pattern =
+      FindSourceObjectUses(references, {pixels, palette}, &game.game_data);
+  ASSERT_EQ(pattern.size(), 2u);
+  EXPECT_TRUE(pattern.front().shares_pixels);
+  EXPECT_TRUE(pattern.front().shares_palette);
+  EXPECT_EQ(pattern.front().references.size(), 2u);
+  EXPECT_EQ(pattern.back().object_index, 1u);
+}
+
 class GraphicsUsagePreviewRomTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -555,6 +627,69 @@ TEST_F(GraphicsUsagePreviewRomTest, RoomContextOwnershipAndFallback) {
   preview.Reset();
   EXPECT_TRUE(preview.tile_references().empty());
   EXPECT_EQ(preview.unknown_objects(), 0);
+}
+
+TEST_F(GraphicsUsagePreviewRomTest,
+       SharedUsesScanOnlyLoadedSessionRoomsAndFollowUnsavedAssignments) {
+  auto room = zelda3::LoadRoomFromRom(&rom_, 0x89);
+  room.SetGameData(&game_data_);
+  RoomUsagePreview trace;
+  ASSERT_TRUE(trace.TraceLoadedRoom(&rom_, &game_data_, &room).ok());
+  ASSERT_FALSE(trace.tile_references().empty());
+  const auto original_references = trace.tile_references();
+  const auto reference = trace.tile_references().front();
+  GraphicsEditTarget target;
+  target.sheet_id = reference.sheet;
+  target.tile_index = reference.tile_word & 0x3F;
+  const auto original_rom = rom_.vector();
+  const auto original_pixels = game_data_.graphics_buffer;
+  room.MarkHeaderDirty();
+  auto scanned =
+      FindLoadedRoomSourceUses(&rom_, &game_data_, {{0x89, {&room}}}, {target});
+  ASSERT_EQ(scanned.size(), 1u);
+  EXPECT_EQ(scanned[0].room_id, 0x89);
+  EXPECT_TRUE(scanned[0].error.empty());
+  EXPECT_FALSE(scanned[0].objects.empty());
+  EXPECT_TRUE(room.header_dirty());
+  EXPECT_EQ(rom_.vector(), original_rom);
+  EXPECT_EQ(game_data_.graphics_buffer, original_pixels);
+
+  // Change the unsaved main blockset and find a traced slot it changes. The
+  // same VRAM tile must resolve to the replacement sheet.
+  std::optional<RoomTileReference> changed_reference;
+  for (int main = 0;
+       main < static_cast<int>(game_data_.main_blockset_ids.size()); ++main) {
+    room.SetBlockset(main);
+    room.LoadRoomGraphics();
+    for (const auto& use : original_references) {
+      if (room.blocks()[use.slot] != use.sheet) {
+        changed_reference = use;
+        break;
+      }
+    }
+    if (changed_reference)
+      break;
+  }
+  ASSERT_TRUE(changed_reference.has_value());
+  ASSERT_TRUE(trace.TraceLoadedRoom(&rom_, &game_data_, &room).ok());
+  const auto updated = std::find_if(
+      trace.tile_references().begin(), trace.tile_references().end(),
+      [&](const auto& use) {
+        return use.object_index == changed_reference->object_index &&
+               use.tile_word == changed_reference->tile_word;
+      });
+  ASSERT_NE(updated, trace.tile_references().end());
+  EXPECT_EQ(updated->sheet, room.blocks()[changed_reference->slot]);
+  EXPECT_NE(updated->sheet, changed_reference->sheet);
+
+  zelda3::GameData foreign;
+  const auto refused = FindLoadedRoomSourceUses(
+      &rom_, &foreign, {{0x89, {&room}}, {0x88, {nullptr}}}, {target});
+  ASSERT_EQ(refused.size(), 2u);
+  for (const auto& result : refused) {
+    EXPECT_FALSE(result.error.empty());
+    EXPECT_TRUE(result.objects.empty());
+  }
 }
 
 TEST_F(GraphicsUsagePreviewRomTest, D1RoomPreviewShowsOnePixelEdit) {

@@ -267,6 +267,18 @@ bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
                                     room_canvas_shortcut_focus_, binding);
 }
 
+bool DungeonCanvasViewer::DrawCrumbleCanvas(const gui::CanvasRuntime& rt) {
+  if (!object_interaction_.mode_manager().IsSelectMode() ||
+      (minecart_track_panel_ &&
+       (minecart_track_panel_->canvas_editing() ||
+        minecart_track_panel_->collision_stamping()))) {
+    crumble_floor_view_.Stop();
+  }
+  return show_crumble_floor_ &&
+         crumble_floor_view_.DrawCanvas(rt, object_interaction_enabled_,
+                                        room_canvas_shortcut_focus_);
+}
+
 void DungeonCanvasViewer::DrawRoomCanvasContent(
     const gui::CanvasRuntime& canvas_rt, zelda3::Room& room, int room_id) {
   PrepareRoomStateForCanvas(room, room_id);
@@ -282,8 +294,10 @@ void DungeonCanvasViewer::DrawRoomCanvasContent(
 
   RenderEntityOverlay(canvas_rt, room);
 
-  const bool tracks_own_input = DrawMinecartCanvas(canvas_rt, room, room_id);
-  if (object_interaction_enabled_ && !tracks_own_input) {
+  const bool crumble_owns_input = DrawCrumbleCanvas(canvas_rt);
+  const bool tool_owns_input =
+      crumble_owns_input || DrawMinecartCanvas(canvas_rt, room, room_id);
+  if (object_interaction_enabled_ && !tool_owns_input) {
     object_interaction_.HandleCanvasMouseInput();
     object_interaction_.CheckForObjectSelection();
     object_interaction_.DrawSelectionHighlights();
@@ -315,7 +329,7 @@ void DungeonCanvasViewer::DrawRoomCanvasContent(
     HandleTouchLongPressContextMenu(canvas_rt, room);
   }
 
-  if (object_interaction_enabled_ && !tracks_own_input) {
+  if (object_interaction_enabled_ && !tool_owns_input) {
     HandleRoomCanvasDropTargets(room, room_id);
   }
 }
