@@ -2966,6 +2966,58 @@ TEST_F(AuthoringSaveWorkflowTest,
   reopened.reset();
 }
 
+TEST_F(AuthoringSaveWorkflowTest, ObjectAndDoorUndoSaveAsNeedsNoStreamWrites) {
+  const auto fixture = CopyProject("yaze-restored-object-save");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto* rom = manager_->GetCurrentRom();
+  const auto before = rom->vector();
+  dungeon->rooms()[kDungeonRoom] = zelda3::LoadRoomFromRom(rom, kDungeonRoom);
+  auto& room = dungeon->rooms()[kDungeonRoom];
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  ASSERT_FALSE(room.GetDoors().empty());
+  const auto original = room.EncodeObjects();
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kDungeonRoom);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kDungeonRoom);
+  auto& coordinator = viewer->object_interaction().entity_coordinator();
+  const int x = room.GetTileObjects().front().x_;
+  coordinator.tile_handler().MoveObjects(kDungeonRoom, {0}, x < 62 ? 1 : -1, 0);
+  ASSERT_NE(room.EncodeObjects(), original);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.EncodeObjects(), original);
+  const auto old_type = room.GetDoors().front().type;
+  const auto new_type = old_type == zelda3::DoorType::NormalDoor
+                            ? zelda3::DoorType::SmallKeyDoor
+                            : zelda3::DoorType::NormalDoor;
+  ASSERT_TRUE(coordinator.door_handler().MutateDoorType(0, new_type));
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.EncodeObjects(), original);
+  ASSERT_TRUE(room.object_stream_dirty());
+  const auto ranges = room.GetObjectSaveWriteRanges();
+  ASSERT_OK(ranges.status());
+  EXPECT_TRUE(ranges->empty());
+  const auto output = fixture.root / "restored.sfc";
+  ASSERT_OK(manager_->SaveRomAs(output.string()));
+  EXPECT_FALSE(room.object_stream_dirty());
+  EXPECT_EQ(ReadFile(fixture.rom), before);
+  ExpectProtectedRegionsMatch(
+      before, ReadFile(output),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(output.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto reopened =
+      zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kDungeonRoom);
+  EXPECT_EQ(reopened.EncodeObjects(), original);
+}
+
 TEST_F(AuthoringSaveWorkflowTest, DoorAdmissionUndoSaveAsReopens) {
   const auto fixture = CopyProject("yaze-door-admission");
   Open(fixture);
@@ -5364,8 +5416,9 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
   const auto expected_objects = room.GetTileObjects();
   const auto expected_sprites = room.GetSprites();
 
-  // Commit collision source together with its bound disposable ROM. Save As
-  // then rebinds the project to the copy that Build Project will consume.
+  // Commit collision source with the bound disposable ROM. Save As produces
+  // a spare copy; the fixed manifest still binds the project's editable source.
+  // Reopen that source for the remaining edit/save/build workflow.
   ASSERT_OK(manager_->SaveRom());
   const auto canonical =
       zelda3::DumpCustomCollisionSourceFromRom(manager_->GetCurrentRom());
@@ -5375,10 +5428,11 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
             *canonical);
   const auto destination = root / "Roms/goron-route.sfc";
   ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_EQ(ReadFile(fixture.rom), ReadFile(destination));
   ExpectProtectedRegionsMatch(
       rom_before, ReadFile(destination),
       manager_->GetCurrentProject()->hack_manifest.protected_regions());
-  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
+  ASSERT_OK(manager_->SwapProjectRom(fixture.rom.string()));
   manager_.reset();
   Open(fixture);
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
@@ -5412,6 +5466,7 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
   EXPECT_EQ((*panel_or)->GetTracks(), parsed->tracks());
   EXPECT_EQ(ReadFile(collision_path), published_collision);
   EXPECT_EQ(ReadFile(source_path), published);
+  ASSERT_OK(manager_->SaveRom());
   if (floor_art) {
     RoomCompositeOutput reopened_output;
     auto& image = PrepareCanonicalRoomComposite(fresh, reopened_output);

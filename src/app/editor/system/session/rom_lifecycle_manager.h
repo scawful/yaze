@@ -80,6 +80,11 @@ class RomLifecycleManager {
   /// Validate that the loaded ROM is a safe project target to open/edit.
   absl::Status CheckRomOpenPolicy(Rom* rom);
 
+  /// Validate a project ROM rebind before changing its descriptor or models.
+  /// Guarded projects with a fixed manifest development ROM retain that exact
+  /// backing file; changing rom_filename cannot change the manifest contract.
+  absl::Status CheckRomRebindPolicy(Rom* rom);
+
   /// Enforce project write policy; may set pending_rom_write_confirm.
   absl::Status CheckRomWritePolicy(
       Rom* rom,

@@ -2355,6 +2355,37 @@ absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectSave(
                          *rom_, room_id_, DungeonStreamKind::kObject, *layout,
                          encoded_bytes.size() + 2u));
   }
+  const int write_pos = stream_info.address + 2;
+  const int door_list_offset = static_cast<int>(encoded_bytes.size()) -
+                               static_cast<int>(doors_.size()) * 2 - 2;
+  if (door_list_offset < 0) {
+    return absl::FailedPreconditionError("Invalid encoded door list offset");
+  }
+  const int door_pointer_slot = kDoorPointers + (room_id_ * 3);
+  if (door_pointer_slot < 0 ||
+      door_pointer_slot + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Door pointer slot is out of range");
+  }
+  ASSIGN_OR_RETURN(const uint32_t source_door_pointer,
+                   rom_->ReadLong(door_pointer_slot));
+  // Preserve the source slow/fast bank mirror when updating the door pointer.
+  uint32_t encoded_door_pointer = PcToSnes(write_pos + door_list_offset);
+  encoded_door_pointer |= source_door_pointer & 0x800000u;
+
+  // Undo can restore the original payload while leaving the stream dirty.
+  // Compare the complete bounded stream, not a prefix, and require the runtime
+  // door pointer to agree before treating this as an allocation-free no-op.
+  // Layout validation above still applies even when no bytes need writing.
+  if (source_door_pointer == encoded_door_pointer) {
+    const auto source = ReadDungeonObjectStream(*rom_, room_id_);
+    if (source.ok() &&
+        source->data_pc == static_cast<uint32_t>(stream_info.address) &&
+        source->encoded_stream.size() == encoded_bytes.size() + 2u &&
+        std::equal(encoded_bytes.begin(), encoded_bytes.end(),
+                   source->encoded_stream.begin() + 2)) {
+      return plan;
+    }
+  }
   const auto relocate = [&]() -> absl::StatusOr<StreamSavePlan> {
     if (stream_info.address + 2 > static_cast<int>(rom_data.size())) {
       return absl::OutOfRangeError("Object stream header is out of range");
@@ -2386,7 +2417,6 @@ absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectSave(
         "Room %d object stream has no safe physical boundary", room_id_));
   }
 
-  const int write_pos = stream_info.address + 2;
   const int available_payload_size = stream_info.capacity() - 2;
   if (encoded_bytes.size() > static_cast<size_t>(available_payload_size)) {
     if (layout != nullptr) {
@@ -2396,22 +2426,6 @@ absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectSave(
         "Room %d object data too large! Size: %d, Available: %d", room_id_,
         static_cast<int>(encoded_bytes.size()), available_payload_size));
   }
-
-  const int door_list_offset = static_cast<int>(encoded_bytes.size()) -
-                               static_cast<int>(doors_.size()) * 2 - 2;
-  if (door_list_offset < 0) {
-    return absl::FailedPreconditionError("Invalid encoded door list offset");
-  }
-  const int door_pointer_slot = kDoorPointers + (room_id_ * 3);
-  if (door_pointer_slot < 0 ||
-      door_pointer_slot + 2 >= static_cast<int>(rom_data.size())) {
-    return absl::OutOfRangeError("Door pointer slot is out of range");
-  }
-  ASSIGN_OR_RETURN(const uint32_t source_door_pointer,
-                   rom_->ReadLong(door_pointer_slot));
-  // Preserve the source slow/fast bank mirror when updating the door pointer.
-  uint32_t encoded_door_pointer = PcToSnes(write_pos + door_list_offset);
-  encoded_door_pointer |= source_door_pointer & 0x800000u;
 
   plan.direct_writes.emplace_back(write_pos, encoded_bytes);
   plan.direct_long_write = std::make_pair(
@@ -2511,6 +2525,14 @@ absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectStreamHeaderSave(
         requires_copy_on_write || layout_requires_copy_on_write;
   }
 
+  std::vector<uint8_t> header = {rom_data[stream_info.address],
+                                 rom_data[stream_info.address + 1]};
+  RETURN_IF_ERROR(patch_header(&header));
+  if (header[0] == rom_data[stream_info.address] &&
+      header[1] == rom_data[stream_info.address + 1]) {
+    return plan;
+  }
+
   if (requires_copy_on_write) {
     if (layout == nullptr) {
       return absl::FailedPreconditionError(absl::StrFormat(
@@ -2527,9 +2549,6 @@ absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectStreamHeaderSave(
     return plan;
   }
 
-  std::vector<uint8_t> header = {rom_data[stream_info.address],
-                                 rom_data[stream_info.address + 1]};
-  RETURN_IF_ERROR(patch_header(&header));
   plan.direct_writes.emplace_back(stream_info.address, std::move(header));
   return plan;
 }

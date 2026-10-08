@@ -14,6 +14,7 @@
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
+#include "app/editor/system/session/session_coordinator.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"
@@ -68,8 +69,11 @@ std::string GetEditableProjectRomPath(const project::YazeProject* project) {
   }
   if (project->hack_manifest.loaded() &&
       !project->hack_manifest.build_pipeline().dev_rom.empty()) {
-    return NormalizePath(project->GetAbsolutePath(
+    const std::string development_rom = NormalizePath(project->GetAbsolutePath(
         project->hack_manifest.build_pipeline().dev_rom));
+    std::error_code ec;
+    const auto canonical_rom = std::filesystem::canonical(development_rom, ec);
+    return ec ? development_rom : NormalizePath(canonical_rom.string());
   }
   return NormalizePath(project->GetAbsolutePath(project->rom_filename));
 }
@@ -212,6 +216,32 @@ absl::Status RomLifecycleManager::CheckRomOpenPolicy(Rom* rom) {
       target_info.loaded_path.empty() ? rom->filename()
                                       : target_info.loaded_path,
       editable_target));
+}
+
+absl::Status RomLifecycleManager::CheckRomRebindPolicy(Rom* rom) {
+  const auto open_status = CheckRomOpenPolicy(rom);
+  if (!open_status.ok()) {
+    return open_status;
+  }
+  if (!project_ || !project_->project_opened() || !rom || !rom->is_loaded() ||
+      project_->rom_metadata.write_policy == project::RomWritePolicy::kAllow ||
+      !project_->hack_manifest.loaded() ||
+      project_->hack_manifest.build_pipeline().dev_rom.empty()) {
+    return absl::OkStatus();
+  }
+
+  const std::string development_rom = project_->GetAbsolutePath(
+      project_->hack_manifest.build_pipeline().dev_rom);
+  if (!SessionCoordinator::PathsReferToSameBackingFile(rom->filename(),
+                                                       development_rom)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Project source binding requires the manifest development ROM %s; "
+        "cannot swap to %s. Keep editing the development ROM with Save ROM, "
+        "then use Build Project. Save As copies do not change this source "
+        "binding. The copy and project binding were kept.",
+        development_rom, rom->filename()));
+  }
+  return absl::OkStatus();
 }
 
 absl::Status RomLifecycleManager::CheckRomWritePolicy(
