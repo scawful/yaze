@@ -49,6 +49,31 @@ absl::StatusOr<std::string> CollisionSourceOfRomBytes(
 
 }  // namespace
 
+absl::Status ValidateRomCollisionSourceBinding(Rom* replacement_rom,
+                                               const fs::path& json_path) {
+  if (replacement_rom == nullptr || !replacement_rom->is_loaded()) {
+    return absl::FailedPreconditionError("No replacement ROM loaded");
+  }
+  ASSIGN_OR_RETURN(const auto source, ReadOptionalFile(json_path));
+  if (!source.has_value()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Configured collision source %s is missing; restore it before "
+        "swapping the project ROM. The project binding was not changed.",
+        json_path.string()));
+  }
+  ASSIGN_OR_RETURN(const std::string replacement_source,
+                   zelda3::DumpCustomCollisionSourceFromRom(replacement_rom));
+  if (*source != replacement_source) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Replacement ROM %s does not match configured collision source %s. "
+        "Swap ROM does not publish collision changes. Select a ROM matching "
+        "this source. For collision edits, use Save ROM on the bound project "
+        "and then Build Project. The saved copy and project binding were kept.",
+        replacement_rom->filename(), json_path.string()));
+  }
+  return absl::OkStatus();
+}
+
 absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
   if (rom == nullptr || !rom->is_loaded() || rom->filename().empty()) {
     return absl::FailedPreconditionError("No ROM file to save");

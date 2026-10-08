@@ -65,6 +65,7 @@
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/emulator_runtime_policy.h"
 #include "app/editor/system/project_workflow_status.h"
+#include "app/editor/system/session/collision_source_pairing.h"
 #include "app/editor/system/session/default_editor_factories.h"
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/system/workspace/panel_visibility.h"
@@ -5647,10 +5648,42 @@ absl::Status EditorManager::SwapProjectRom(const std::string& rom_path) {
       rom_path, session->session_id()));
   Rom replacement_rom;
   RETURN_IF_ERROR(rom_file_manager_.LoadRom(&replacement_rom, rom_path));
-  RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&replacement_rom));
+
+  // Save As deliberately leaves the project's collision source untouched.
+  // Refuse an incompatible copy before saving the descriptor or rebuilding
+  // live editor models: otherwise neither normal Save nor Build can repair
+  // the newly mismatched pair. Rebinding never publishes source changes.
+  if (!current_project_.custom_collision_json.empty()) {
+    RETURN_IF_ERROR(ValidateRomCollisionSourceBinding(
+        &replacement_rom, current_project_.GetAbsolutePath(
+                              current_project_.custom_collision_json)));
+  }
+  RETURN_IF_ERROR(rom_lifecycle_.CheckRomRebindPolicy(&replacement_rom));
+
+  std::string replacement_path = rom_path;
+  if (current_project_.rom_metadata.write_policy !=
+          project::RomWritePolicy::kAllow &&
+      current_project_.hack_manifest.loaded() &&
+      !current_project_.hack_manifest.build_pipeline().dev_rom.empty()) {
+    // The policy proved this is the manifest's exact backing file. Bind its
+    // canonical path so an accepted alias cannot later fail the write policy
+    // or be replaced as a separate file by the atomic ROM save.
+    std::error_code ec;
+    const auto development_path = std::filesystem::canonical(
+        current_project_.GetAbsolutePath(
+            current_project_.hack_manifest.build_pipeline().dev_rom),
+        ec);
+    if (ec) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Cannot resolve the manifest development ROM before rebinding: %s",
+          ec.message()));
+    }
+    replacement_path = development_path.string();
+    replacement_rom.set_filename(replacement_path);
+  }
 
   const std::string old_rom_path = current_project_.rom_filename;
-  current_project_.rom_filename = rom_path;
+  current_project_.rom_filename = replacement_path;
   auto save_status = current_project_.Save();
   if (!save_status.ok()) {
     current_project_.rom_filename = old_rom_path;
@@ -5659,7 +5692,7 @@ absl::Status EditorManager::SwapProjectRom(const std::string& rom_path) {
 
   BindProjectContextToSession(session, current_project_);
   auto replace_status =
-      ReplaceActiveSessionRom(std::move(replacement_rom), rom_path);
+      ReplaceActiveSessionRom(std::move(replacement_rom), replacement_path);
   if (!replace_status.ok()) {
     current_project_.rom_filename = old_rom_path;
     auto rollback_status = current_project_.Save();

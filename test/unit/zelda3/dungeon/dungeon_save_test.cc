@@ -542,6 +542,138 @@ TEST_F(DungeonSaveTest, SaveObjects_SharedStreamFailsWithoutMutation) {
   EXPECT_TRUE(room_->object_stream_dirty());
 }
 
+TEST_F(DungeonSaveTest, SaveObjects_RestoredSharedStreamNeedsNoAllocation) {
+  SetObjectRoomPointer(1, 0x100000);
+  WriteLongPointer(kDoorPointers, PcToSnes(0x100008));
+  room_->MarkObjectStreamDirty();
+  const auto before = rom_->vector();
+  const bool was_dirty = rom_->dirty();
+
+  const auto ranges = room_->GetObjectSaveWriteRanges();
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  EXPECT_TRUE(ranges->empty());
+  EXPECT_TRUE(room_->object_stream_dirty());
+  ASSERT_TRUE(room_->SaveObjects().ok());
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), was_dirty);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjects_RestoredLayersAndDoorsPreserveBothBankMirrors) {
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x11, 12, 14, 0, 1)).ok());
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x12, 16, 18, 0, 2)).ok());
+  Room::Door door{};
+  door.position = 3;
+  door.direction = DoorDirection::North;
+  door.type = DoorType::NormalDoor;
+  room_->AddDoor(door);
+  ASSERT_TRUE(room_->SaveObjects().ok());
+  SetObjectRoomPointer(1, 0x100000);
+  const auto layout = MakeObjectLayout({0x100200, 0x100201});
+  const uint32_t door_pointer = *rom_->ReadLong(kDoorPointers);
+
+  for (uint32_t mirror : {0u, 0x800000u}) {
+    WriteLongPointer(kDoorPointers, (door_pointer & 0x7FFFFFu) | mirror);
+    room_->MarkObjectStreamDirty();
+    const auto before = rom_->vector();
+    const bool was_dirty = rom_->dirty();
+    const auto ranges = room_->GetObjectSaveWriteRanges(&layout);
+    ASSERT_TRUE(ranges.ok()) << ranges.status();
+    EXPECT_TRUE(ranges->empty());
+    ASSERT_TRUE(room_->SaveObjects(&layout).ok());
+    EXPECT_EQ(rom_->vector(), before);
+    EXPECT_EQ(rom_->dirty(), was_dirty);
+    EXPECT_EQ(GetObjectRoomPointer(0), 0x100000);
+    EXPECT_FALSE(room_->object_stream_dirty());
+  }
+}
+
+TEST_F(DungeonSaveTest, SaveObjects_RestoredNoOpStillValidatesLayout) {
+  SetObjectRoomPointer(1, 0x100000);
+  WriteLongPointer(kDoorPointers, PcToSnes(0x100008));
+  room_->MarkObjectStreamDirty();
+  auto layout = MakeObjectLayout();
+  layout.pointer_count = 0;
+  const auto before = rom_->vector();
+  EXPECT_FALSE(room_->GetObjectSaveWriteRanges(&layout).ok());
+  EXPECT_FALSE(room_->SaveObjects(&layout).ok());
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveObjects_IdenticalPayloadStillRepairsDoorPointer) {
+  WriteLongPointer(kDoorPointers, PcToSnes(0x100006) | 0x800000u);
+  room_->MarkObjectStreamDirty();
+  auto ranges = room_->GetObjectSaveWriteRanges();
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  EXPECT_FALSE(ranges->empty());
+  ASSERT_TRUE(room_->SaveObjects().ok());
+  EXPECT_EQ(*rom_->ReadLong(kDoorPointers), PcToSnes(0x100008) | 0x800000u);
+
+  // An invalid auxiliary pointer must not bypass shared-stream allocation.
+  SetObjectRoomPointer(1, 0x100000);
+  WriteLongPointer(kDoorPointers, PcToSnes(0x100006));
+  room_->MarkObjectStreamDirty();
+  const auto layout = MakeObjectLayout({0x100200, 0x100201});
+  const auto before = rom_->vector();
+  EXPECT_EQ(room_->SaveObjects(&layout).code(),
+            absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjects_RestoredBytesBeyondPhysicalBoundaryAreNotNoOp) {
+  SetObjectRoomPointer(1, 0x100006);
+  WriteLongPointer(kDoorPointers, PcToSnes(0x100008));
+  room_->MarkObjectStreamDirty();
+  const auto before = rom_->vector();
+  EXPECT_FALSE(room_->GetObjectSaveWriteRanges().ok());
+  EXPECT_FALSE(room_->SaveObjects().ok());
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveObjectStreamHeaderRestoredSharedNeedsNoAllocation) {
+  SetObjectRoomPointer(1, 0x100000);
+  WriteEmptyObjectStream(0x100000, 0xA5, 0xE3);
+  // Restoring floor/layout values can leave their per-field dirty masks set.
+  room_->set_floor1(0x02);
+  room_->set_floor1(0x05);
+  room_->set_floor2(0x0A);
+  room_->SetLayoutId(0x00);
+  const auto before = rom_->vector();
+  const bool was_dirty = rom_->dirty();
+  const auto layout = MakeObjectLayout({0x100200, 0x100201});
+  const auto ranges = room_->GetObjectStreamHeaderSaveWriteRanges(&layout);
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  EXPECT_TRUE(ranges->empty());
+  ASSERT_TRUE(room_->SaveObjectStreamHeader(&layout).ok());
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), was_dirty);
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+
+  room_->set_floor1(0x02);
+  room_->set_floor1(0x05);
+  ASSERT_TRUE(room_->SaveObjectStreamHeader().ok());
+  EXPECT_EQ(rom_->vector(), before);
+}
+
+TEST_F(DungeonSaveTest, SaveObjectStreamHeaderRestoredStillValidatesLayout) {
+  SetObjectRoomPointer(1, 0x100000);
+  room_->set_floor1(0x02);
+  room_->set_floor1(0x00);
+  auto layout = MakeObjectLayout();
+  layout.pointer_count = 0;
+  const auto before = rom_->vector();
+  EXPECT_FALSE(room_->GetObjectStreamHeaderSaveWriteRanges(&layout).ok());
+  EXPECT_FALSE(room_->SaveObjectStreamHeader(&layout).ok());
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+}
+
 TEST_F(DungeonSaveTest,
        SaveObjectStreamHeaderUsesPerFieldRmwAndPreservesPayload) {
   constexpr int kStreamPc = 0x100000;

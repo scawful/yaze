@@ -8,6 +8,12 @@
 
 namespace yaze::editor {
 
+// A project ROM rebind must keep its existing source contract intact. This
+// read-only preflight requires the replacement ROM to reproduce the configured
+// source exactly; it never publishes a new source or changes either ROM.
+absl::Status ValidateRomCollisionSourceBinding(
+    Rom* replacement_rom, const std::filesystem::path& json_path);
+
 // Saves `rom` to its own filename and keeps a tracked custom_collision.json in
 // step with it. Projects that name `custom_collision_json` (Oracle of Secrets)
 // edit collision in the ROM, and their build fails unless the ROM reproduces

@@ -30,6 +30,8 @@
 #include "app/editor/graphics/sheet_png_transfer.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/palette/palette_editor.h"
+#include "app/editor/session_types.h"
+#include "app/editor/system/session/rom_lifecycle_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
@@ -780,6 +782,162 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldExits = false;
   o.kSaveOverworldItems = false;
   o.kSaveOverworldProperties = false;
+}
+
+class RomLifecycleRebindPolicyTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    root_ = MakeTempFilePath("yaze_rebind_policy");
+    std::filesystem::create_directories(root_ / "Roms");
+    std::filesystem::create_directories(root_ / "Other");
+    development_ = root_ / "Roms" / "dev.sfc";
+    alternate_ = root_ / "Other" / "dev.sfc";
+    output_ = root_ / "Roms" / "devx.sfc";
+    for (const auto& path : {development_, alternate_, output_}) {
+      WriteTestRom(path);
+    }
+    ASSERT_OK(rom_.LoadFromFile(development_.string()));
+    project_.name = "Rebind Policy";
+    project_.filepath = (root_ / "project.yaze").string();
+    project_.rom_filename = development_.string();
+    project_.build_target = output_.string();
+    project_.rom_metadata.expected_hash = "unchanged expectation";
+    lifecycle_.SetProjectContext(&project_);
+  }
+
+  void TearDown() override {
+    std::error_code ec;
+    std::filesystem::remove_all(root_, ec);
+  }
+
+  void LoadManifest() {
+    ASSERT_OK(project_.hack_manifest.LoadFromString(R"json({
+      "manifest_version": 2,
+      "hack_name": "Rebind Policy",
+      "build_pipeline": {
+        "dev_rom": "Roms/dev.sfc",
+        "patched_rom": "Roms/devx.sfc"
+      }
+    })json"));
+  }
+
+  std::filesystem::path root_, development_, alternate_, output_;
+  project::YazeProject project_;
+  Rom rom_;
+  RomLifecycleManager lifecycle_;
+};
+
+TEST_F(RomLifecycleRebindPolicyTest, NoFixedManifestRetainsGenericRebind) {
+  rom_.set_filename(alternate_.string());
+  for (const auto policy :
+       {project::RomWritePolicy::kBlock, project::RomWritePolicy::kWarn,
+        project::RomWritePolicy::kAllow}) {
+    project_.rom_metadata.write_policy = policy;
+    EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+  }
+  ASSERT_OK(project_.hack_manifest.LoadFromString(
+      R"json({"manifest_version":2,"hack_name":"No fixed development ROM"})json"));
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+}
+
+TEST_F(RomLifecycleRebindPolicyTest, GuardedManifestRequiresExactBackingFile) {
+  LoadManifest();
+  for (const auto policy :
+       {project::RomWritePolicy::kBlock, project::RomWritePolicy::kWarn}) {
+    project_.rom_metadata.write_policy = policy;
+    rom_.set_filename(development_.string());
+    EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+    // Same basename and byte-identical content are not the same backing file.
+    rom_.set_filename(alternate_.string());
+    const auto status = lifecycle_.CheckRomRebindPolicy(&rom_);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_NE(status.message().find("Project source binding"),
+              absl::string_view::npos);
+    EXPECT_NE(status.message().find(development_.string()),
+              absl::string_view::npos);
+    EXPECT_NE(status.message().find(alternate_.string()),
+              absl::string_view::npos);
+    EXPECT_FALSE(lifecycle_.IsRomWriteConfirmPending());
+    EXPECT_EQ(project_.rom_filename, development_.string());
+    EXPECT_EQ(project_.rom_metadata.expected_hash, "unchanged expectation");
+  }
+}
+
+TEST_F(RomLifecycleRebindPolicyTest, GuardedManifestAcceptsEquivalentAliases) {
+  LoadManifest();
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  rom_.set_filename((root_ / "Roms" / "." / "dev.sfc").string());
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+
+  const auto hard_alias = root_ / "hard-alias.sfc";
+  std::filesystem::create_hard_link(development_, hard_alias);
+  rom_.set_filename(hard_alias.string());
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+#ifndef _WIN32
+  const auto symlink_alias = root_ / "symlink-alias.sfc";
+  std::filesystem::create_symlink(development_, symlink_alias);
+  rom_.set_filename(symlink_alias.string());
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+#endif
+}
+
+#ifndef _WIN32
+TEST_F(RomLifecycleRebindPolicyTest,
+       ManifestSymlinkKeepsCanonicalBindingWritable) {
+  const auto manifest_alias = root_ / "Roms" / "manifest-dev-alias.sfc";
+  std::filesystem::create_symlink(development_, manifest_alias);
+  ASSERT_OK(project_.hack_manifest.LoadFromString(R"json({
+    "manifest_version": 2,
+    "hack_name": "Rebind Policy",
+    "build_pipeline": {
+      "dev_rom": "Roms/manifest-dev-alias.sfc",
+      "patched_rom": "Roms/devx.sfc"
+    }
+  })json"));
+  // Swap binds the accepted alias to the canonical development-ROM path.
+  rom_.set_filename(std::filesystem::canonical(manifest_alias).string());
+  project_.rom_filename = rom_.filename();
+  RomSession session(std::move(rom_));
+  ASSERT_TRUE(session.rom_baseline.has_value());
+  lifecycle_.ActivateRomIdentity(&session);
+  ASSERT_FALSE(lifecycle_.current_rom_hash().empty());
+  const std::string expected_hash =
+      lifecycle_.current_rom_hash() == "00000000" ? "ffffffff" : "00000000";
+  project_.rom_metadata.expected_hash = expected_hash;
+  ASSERT_EQ(session.rom_baseline->hashes.Match(expected_hash),
+            util::RomHashMatch::kMismatch);
+
+  for (const auto policy :
+       {project::RomWritePolicy::kBlock, project::RomWritePolicy::kWarn}) {
+    project_.rom_metadata.write_policy = policy;
+    EXPECT_OK(lifecycle_.CheckRomRebindPolicy(&session.rom));
+    EXPECT_OK(lifecycle_.CheckRomWritePolicy(&session.rom));
+    EXPECT_FALSE(lifecycle_.IsRomHashMismatch());
+    EXPECT_FALSE(lifecycle_.IsRomWriteConfirmPending());
+  }
+  EXPECT_EQ(project_.rom_metadata.expected_hash, expected_hash);
+  EXPECT_EQ(project_.hack_manifest.build_pipeline().dev_rom,
+            "Roms/manifest-dev-alias.sfc");
+}
+#endif
+
+TEST_F(RomLifecycleRebindPolicyTest,
+       OutputProtectionAndAllowPolicyAreUnchanged) {
+  LoadManifest();
+  rom_.set_filename(output_.string());
+  for (const auto policy :
+       {project::RomWritePolicy::kBlock, project::RomWritePolicy::kWarn}) {
+    project_.rom_metadata.write_policy = policy;
+    const auto status = lifecycle_.CheckRomRebindPolicy(&rom_);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_NE(status.message().find("build output"), absl::string_view::npos);
+  }
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+  rom_.set_filename(alternate_.string());
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+  EXPECT_EQ(project_.rom_metadata.expected_hash, "unchanged expectation");
 }
 
 TEST(EditorManagerBackingFileIdentityTest,
