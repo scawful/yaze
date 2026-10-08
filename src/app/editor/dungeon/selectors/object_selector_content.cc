@@ -208,6 +208,10 @@ void ObjectSelectorContent::DrawContent(bool show_placement_summary) {
         case DoorInteractionHandler::PlacementBlockReason::kInvalidRoom:
           SetPlacementError("Invalid room target - door placement blocked");
           break;
+        case DoorInteractionHandler::PlacementBlockReason::kStorageValidation:
+          SetPlacementError(
+              std::string(door_handler.mutation_status().message()));
+          break;
         case DoorInteractionHandler::PlacementBlockReason::kNone:
         default:
           SetPlacementError("Door placement blocked");

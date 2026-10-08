@@ -10,6 +10,7 @@
 #include "app/editor/dungeon/dungeon_selection_edit.h"
 #include "app/gfx/resource/arena.h"
 #include "core/features.h"
+#include "core/project.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "rom/snes.h"
@@ -106,9 +107,9 @@ class DungeonConnectionEditsLifecycleTest
     for (int id = 0; id < zelda3::kNumberOfRooms; ++id) {
       const int offset = std::min(id, 3) * 0x100;
       WritePointer(rom_, kObjectTablePc + id * 3, kObjectPc + offset);
-      ASSERT_TRUE(
-          rom_.WriteWord(kSpriteTablePc + id * 2, PcToSnes(kSpritePc) & 0xFFFF)
-              .ok());
+      ASSERT_TRUE(rom_.WriteWord(kSpriteTablePc + id * 2,
+                                 PcToSnes(kSpritePc + offset) & 0xFFFF)
+                      .ok());
       ASSERT_TRUE(rom_.WriteWord(zelda3::kRoomItemsPointers + id * 2,
                                  PcToSnes(kPotPc) & 0xFFFF)
                       .ok());
@@ -123,7 +124,9 @@ class DungeonConnectionEditsLifecycleTest
                                     0xFF, 0xFF})
                       .ok());
     }
-    ASSERT_TRUE(rom_.WriteVector(kSpritePc, {0, 0xFF}).ok());
+    for (int id = 0; id < 4; ++id) {
+      ASSERT_TRUE(rom_.WriteVector(kSpritePc + id * 0x100, {0, 0xFF}).ok());
+    }
     ASSERT_TRUE(rom_.WriteWord(kPotPc, 0xFFFF).ok());
     editor_ = std::make_unique<DungeonEditorV2>(&rom_);
     for (int id = 0; id < 3; ++id) {
@@ -205,6 +208,70 @@ class DungeonConnectionEditsLifecycleTest
   ImGuiContext* previous_context_ = nullptr;
   ImGuiContext* context_ = nullptr;
 };
+
+TEST_P(DungeonConnectionEditsLifecycleTest,
+       ReturnDoorOverflowRejectsBothEndpointsBeforeHistory) {
+  const int boundary = kObjectPc + 0x100 + 2 + Target().EncodeObjects().size();
+  WritePointer(rom_, kObjectTablePc + 2 * 3, boundary);
+  ASSERT_TRUE(rom_.WriteVector(boundary, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0,
+                                          0xFF, 0xFF, 0xFF})
+                  .ok());
+  const auto plan = editor_->PreviewDoorConnection(Request());
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ExpectRejectedWithoutChanges([&] {
+    const auto status = editor_->ApplyDoorConnection(*plan);
+    EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+    return status;
+  });
+}
+
+TEST_P(DungeonConnectionEditsLifecycleTest,
+       SharedAllocatorMustFitBothConnectionEndpointsTogether) {
+  for (int id = 0; id < zelda3::kNumberOfRooms; ++id)
+    WritePointer(rom_, kObjectTablePc + id * 3, kObjectPc);
+  project::YazeProject project;
+  const auto configure = [&](const char* arena_end) {
+    return project.hack_manifest.LoadFromString(absl::StrFormat(R"json({
+      "manifest_version":3,
+      "dungeon_stream_regions":{"objects":{
+        "pointer_table":"0x1F8000","pointer_count":296,
+        "pointer_encoding":"long24","strategy":"copy_on_write",
+        "data_regions":[{"start":"0x208000","end":"0x208400"},
+                        {"start":"0x248000","end":"%s"}],
+        "allocation_regions":[{"start":"0x248000","end":"%s"}]
+      }}})json",
+                                                                arena_end,
+                                                                arena_end));
+  };
+  ASSERT_TRUE(configure("0x248020").ok());
+  EditorDependencies dependencies;
+  dependencies.rom = &rom_;
+  dependencies.project = &project;
+  editor_->SetDependencies(dependencies);
+  const auto plan = editor_->PreviewDoorConnection(Request());
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  // Either replacement fits alone, but the pair needs more than32 bytes.
+  EXPECT_LE(2 + Source().EncodeObjects().size(), 32u);
+  EXPECT_LE(4 + Target().EncodeObjects().size(), 32u);
+  EXPECT_GT(
+      6 + Source().EncodeObjects().size() + Target().EncodeObjects().size(),
+      32u);
+  ExpectRejectedWithoutChanges(
+      [&] { return editor_->ApplyDoorConnection(*plan); });
+  ASSERT_TRUE(configure("0x248080").ok());
+  ASSERT_TRUE(editor_->ApplyDoorConnection(*plan).ok());
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(editor_->Redo().ok());
+  const auto expected_source = Source().EncodeObjects();
+  const auto expected_target = Target().EncodeObjects();
+  ASSERT_TRUE(editor_->Save().ok());
+  auto source = zelda3::LoadRoomFromRom(&rom_, 0);
+  auto target = zelda3::LoadRoomFromRom(&rom_, 1);
+  EXPECT_EQ(source.EncodeObjects(), expected_source);
+  EXPECT_EQ(target.EncodeObjects(), expected_target);
+  dependencies.project = nullptr;
+  editor_->SetDependencies(dependencies);
+}
 
 TEST_P(DungeonConnectionEditsLifecycleTest, PreviewDoesNotChangeDataOrHistory) {
   const auto source = CaptureDungeonSelectionEditState(Source());
@@ -543,6 +610,7 @@ TEST_P(DungeonConnectionEditsLifecycleTest,
 
 TEST_P(DungeonConnectionEditsLifecycleTest,
        AcceptedConnectionFinishesPendingMixedDragAsSeparateHistory) {
+  core::FeatureFlags::get().dungeon.kSaveSprites = true;
   auto& interaction = viewer_->object_interaction();
   auto& coordinator = interaction.entity_coordinator();
   interaction.SetSelectedObjects({0});
@@ -566,6 +634,7 @@ TEST_P(DungeonConnectionEditsLifecycleTest,
 
 TEST_P(DungeonConnectionEditsLifecycleTest,
        RejectedPreviewDoesNotFinishOrDiscardPendingDrag) {
+  core::FeatureFlags::get().dungeon.kSaveSprites = true;
   auto& interaction = viewer_->object_interaction();
   auto& coordinator = interaction.entity_coordinator();
   interaction.SetSelectedObjects({0});

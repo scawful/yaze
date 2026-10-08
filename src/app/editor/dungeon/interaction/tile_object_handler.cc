@@ -808,9 +808,14 @@ bool TileObjectHandler::MoveObjects(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return false;
+  if (ctx_->current_room_id != room_id) {
+    return RejectMutation(absl::FailedPreconditionError(
+        "Select the destination room before changing its objects"));
+  }
 
   auto& objects = room->GetTileObjects();
-  auto candidate = objects;
+  const auto before = objects;
+  auto candidate = before;
   for (size_t index : indices) {
     if (index < candidate.size()) {
       candidate[index].x_ =
@@ -826,6 +831,20 @@ bool TileObjectHandler::MoveObjects(int room_id,
       objects, candidate, IdentitySources(objects.size()));
   if (!admission.ok()) {
     return RejectMutation(admission);
+  }
+  if (object_mutation_preflight_) {
+    const auto* source_context = ctx_;
+    mutation_status_ =
+        object_mutation_preflight_(room_id, candidate, room->GetChests());
+    if (!mutation_status_.ok()) {
+      return RejectMutation(mutation_status_);
+    }
+    if (ctx_ != source_context || !ctx_ || ctx_->current_room_id != room_id ||
+        GetRoom(room_id) != room ||
+        !SameAuthoredObjects(room->GetTileObjects(), before)) {
+      return RejectMutation(absl::FailedPreconditionError(
+          "Room objects changed during edit preflight; repeat the edit"));
+    }
   }
   if (notify_mutation && ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
@@ -1176,7 +1195,12 @@ bool TileObjectHandler::ResizeObjects(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return false;
+  if (ctx_->current_room_id != room_id) {
+    return RejectMutation(absl::FailedPreconditionError(
+        "Select the destination room before changing its objects"));
+  }
   auto& objects = room->GetTileObjects();
+  const auto before = objects;
   const auto resized_size = [&](const zelda3::RoomObject& object) {
     return uniform ? zelda3::ResizeRoomObjectUniformlyByDelta(
                          object.id_, object.size_, delta)
@@ -1210,6 +1234,20 @@ bool TileObjectHandler::ResizeObjects(int room_id,
   if (!admission.ok()) {
     RejectMutation(admission);
     return false;
+  }
+  if (object_mutation_preflight_) {
+    const auto* source_context = ctx_;
+    mutation_status_ =
+        object_mutation_preflight_(room_id, candidate, room->GetChests());
+    if (!mutation_status_.ok()) {
+      return RejectMutation(mutation_status_);
+    }
+    if (ctx_ != source_context || !ctx_ || ctx_->current_room_id != room_id ||
+        GetRoom(room_id) != room ||
+        !SameAuthoredObjects(room->GetTileObjects(), before)) {
+      return RejectMutation(absl::FailedPreconditionError(
+          "Room objects changed during edit preflight; repeat the edit"));
+    }
   }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);

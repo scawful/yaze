@@ -2966,6 +2966,55 @@ TEST_F(AuthoringSaveWorkflowTest,
   reopened.reset();
 }
 
+TEST_F(AuthoringSaveWorkflowTest, DoorAdmissionUndoSaveAsReopens) {
+  const auto fixture = CopyProject("yaze-door-admission");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto* rom = manager_->GetCurrentRom();
+  const auto before = rom->vector();
+  dungeon->rooms()[kDungeonRoom] = zelda3::LoadRoomFromRom(rom, kDungeonRoom);
+  auto& room = dungeon->rooms()[kDungeonRoom];
+  ASSERT_FALSE(room.GetDoors().empty());
+  const auto original = room.EncodeObjects();
+  const auto door = room.GetDoors().front();
+  const auto type = door.type == zelda3::DoorType::NormalDoor
+                        ? zelda3::DoorType::SmallKeyDoor
+                        : zelda3::DoorType::NormalDoor;
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kDungeonRoom);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kDungeonRoom);
+  auto& handler =
+      viewer->object_interaction().entity_coordinator().door_handler();
+  ASSERT_TRUE(handler.MutateDoorType(0, type)) << handler.mutation_status();
+  const auto expected = room.EncodeObjects();
+  ASSERT_NE(expected, original);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.EncodeObjects(), original);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(room.EncodeObjects(), expected);
+  const auto output = fixture.root / "door-admission.sfc";
+  ASSERT_OK(manager_->SaveRomAs(output.string()));
+  ExpectProtectedRegionsMatch(
+      before, ReadFile(output),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(output.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto reopened =
+      zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kDungeonRoom);
+  EXPECT_EQ(reopened.EncodeObjects(), expected);
+  ASSERT_FALSE(reopened.GetDoors().empty());
+  EXPECT_EQ(reopened.GetDoors().front().type, type);
+  EXPECT_EQ(reopened.GetDoors().front().position, door.position);
+  EXPECT_EQ(reopened.GetDoors().front().direction, door.direction);
+}
+
 TEST_F(AuthoringSaveWorkflowTest, ObjectAndSpriteAdmissionUndoSaveAsReopens) {
   const auto fixture = CopyProject("yaze-stream-admission");
   Open(fixture);

@@ -656,8 +656,7 @@ absl::Status DungeonEditorV2::Save() {
 
   // Simulate the pending room streams in save order before any ROM writer.
   // Earlier relocations can change where later streams and headers will write.
-  ASSIGN_OR_RETURN(const auto stream_ranges,
-                   PlanPendingRoomStreamRanges(-1, nullptr, 0));
+  ASSIGN_OR_RETURN(const auto stream_ranges, PlanPendingRoomStreamRanges({}));
   if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
     RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
         dependencies_.project->hack_manifest,
@@ -860,7 +859,7 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
     ranges.insert(ranges.end(), spawn_ranges.begin(), spawn_ranges.end());
   }
 
-  const auto stream_ranges = PlanPendingRoomStreamRanges(-1, nullptr, 0);
+  const auto stream_ranges = PlanPendingRoomStreamRanges({});
   if (stream_ranges.ok()) {
     ranges.insert(ranges.end(), stream_ranges->begin(), stream_ranges->end());
   } else {

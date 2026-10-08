@@ -490,6 +490,59 @@ TEST_P(DungeonSelectionEditsLifecycleTest,
 }
 
 TEST_P(DungeonSelectionEditsLifecycleTest,
+       SharedStreamRejectsDirectDoorAndObjectGesturesBeforeHistory) {
+  WritePointer(rom_, 0x0F8000 + 3, kObjectPc);
+  auto& doors = coordinator().door_handler();
+  auto& objects = coordinator().tile_handler();
+  ExpectRejectedWithoutChanges([&] {
+    EXPECT_FALSE(doors.MutateDoorType(0, zelda3::DoorType::NormalDoorLower));
+    return doors.mutation_status();
+  });
+  ExpectRejectedWithoutChanges([&] {
+    EXPECT_FALSE(objects.MoveObjects(0, {0}, 1, 0));
+    return objects.mutation_status();
+  });
+  ExpectRejectedWithoutChanges([&] {
+    EXPECT_FALSE(objects.ResizeObjects(0, {0}, 1, true, false));
+    return objects.mutation_status();
+  });
+  // Give the room its private physical storage back. The same gestures can
+  // now be applied and undone without changing the ROM during admission.
+  WritePointer(rom_, 0x0F8000 + 3, kObjectPc + 0x100);
+  const auto bytes = rom_.vector();
+  ASSERT_TRUE(objects.MoveObjects(0, {0}, 1, 0)) << objects.mutation_status();
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 9);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 8);
+  ASSERT_TRUE(doors.MutateDoorType(0, zelda3::DoorType::NormalDoorLower))
+      << doors.mutation_status();
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetDoors()[0].type, zelda3::DoorType::NormalDoor);
+  EXPECT_EQ(rom_.vector(), bytes);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       DoorPlacementRejectsObjectStreamGrowthBeforeHistory) {
+  const int boundary = kObjectPc + 2 + room_->EncodeObjects().size();
+  WritePointer(rom_, 0x0F8000 + 3, boundary);
+  ASSERT_TRUE(rom_.WriteVector(boundary, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0,
+                                          0xFF, 0xFF, 0xFF})
+                  .ok());
+  auto& handler = coordinator().door_handler();
+  handler.SetDoorType(zelda3::DoorType::NormalDoor);
+  handler.BeginPlacement();
+  ExpectRejectedWithoutChanges([&] {
+    handler.HandleClick(240, 16);
+    EXPECT_EQ(handler.placement_block_reason(),
+              DoorInteractionHandler::PlacementBlockReason::kStorageValidation);
+    EXPECT_EQ(handler.mutation_status().code(),
+              absl::StatusCode::kResourceExhausted);
+    return handler.mutation_status();
+  });
+  handler.CancelPlacement();
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
        ObjectStorageRejectsWholeMixedDuplicateBeforeHistory) {
   const int boundary = kObjectPc + 2 + room_->EncodeObjects().size();
   WritePointer(rom_, 0x0F8000 + 3, boundary);

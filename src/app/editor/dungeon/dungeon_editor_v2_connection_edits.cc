@@ -2,6 +2,7 @@
 
 #include <utility>
 
+#include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "rom/snes.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -174,6 +175,15 @@ absl::Status DungeonEditorV2::ApplyDoorConnection(
                           current.source_after));
   edits.push_back(capture(current.target_room_id, current.target_before,
                           current.target_after));
+  // Plan both endpoints together: independent checks can reserve the same
+  // remaining allocation space and admit a connection that cannot be saved.
+  ASSIGN_OR_RETURN(auto ranges, PlanPendingRoomStreamRanges(edits));
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+        dependencies_.project->hack_manifest,
+        dependencies_.project->rom_metadata.write_policy, ranges,
+        "dungeon connection authoring", "DungeonEditorV2", nullptr));
+  }
   // Reuse the same masked collection publisher and batch restore as selection
   // history. Both endpoints become visible before any renderer is refreshed.
   RETURN_IF_ERROR(RestoreSelectionEditBatch(edits, true));
