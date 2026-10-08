@@ -1,6 +1,8 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
+#include <algorithm>
 #include <memory>
+#include <set>
 #include <utility>
 
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
@@ -49,6 +51,17 @@ class DungeonSelectionAction final : public UndoAction {
 
 }  // namespace
 
+absl::Status DungeonEditorV2::PreflightDoorMutation(
+    int room_id, const std::vector<zelda3::Room::Door>& doors) {
+  const auto* room = rooms_.GetIfLoaded(room_id);
+  if (!room || room->rom() != rom_) {
+    return absl::FailedPreconditionError("Door room is not loaded");
+  }
+  auto candidate = CaptureDungeonSelectionEditState(*room);
+  candidate.doors = doors;
+  return PreflightStreamMutation(room_id, candidate, kSelectionDoors);
+}
+
 absl::Status DungeonEditorV2::PreflightSpriteMutation(
     int room_id, const std::vector<zelda3::Sprite>& sprites) {
   const auto* room = rooms_.GetIfLoaded(room_id);
@@ -95,8 +108,11 @@ absl::Status DungeonEditorV2::PreflightStreamMutation(
   uint8_t changed = objects_changed ? kSelectionObjects | kSelectionDoors : 0;
   if (sprites_changed)
     changed |= kSelectionSprites;
-  ASSIGN_OR_RETURN(auto ranges,
-                   PlanPendingRoomStreamRanges(room_id, &candidate, changed));
+  DungeonSelectionEditPlan edit;
+  edit.room_id = room_id;
+  edit.after = candidate;
+  edit.domains = changed;
+  ASSIGN_OR_RETURN(auto ranges, PlanPendingRoomStreamRanges({edit}));
   if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
     RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
         dependencies_.project->hack_manifest,
@@ -108,8 +124,20 @@ absl::Status DungeonEditorV2::PreflightStreamMutation(
 
 absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
 DungeonEditorV2::PlanPendingRoomStreamRanges(
-    int room_id, const DungeonSelectionEditState* candidate,
-    uint8_t domains) const {
+    const std::vector<DungeonSelectionEditPlan>& candidates) const {
+  uint8_t domains = 0;
+  std::set<int> candidate_rooms;
+  for (const auto& candidate : candidates) {
+    if (!candidate.domains)
+      continue;
+    const auto* room = rooms_.GetIfLoaded(candidate.room_id);
+    if (!room || room->rom() != rom_ ||
+        !candidate_rooms.insert(candidate.room_id).second) {
+      return absl::FailedPreconditionError(
+          "Stream candidates must identify distinct loaded rooms");
+    }
+    domains |= candidate.domains;
+  }
   constexpr uint8_t streams =
       kSelectionObjects | kSelectionDoors | kSelectionSprites;
   const auto& flags = core::FeatureFlags::get().dungeon;
@@ -160,10 +188,15 @@ DungeonEditorV2::PlanPendingRoomStreamRanges(
       return;
     const auto check_room = [&]() -> absl::Status {
       auto dirty = source.CaptureSaveDirtySnapshot();
-      if (candidate && id == room_id) {
+      const auto candidate = std::find_if(
+          candidates.begin(), candidates.end(), [id](const auto& edit) {
+            return edit.room_id == id && edit.domains;
+          });
+      const bool has_candidate = candidate != candidates.end();
+      if (has_candidate) {
         dirty.object_stream |=
-            (domains & (kSelectionObjects | kSelectionDoors)) != 0;
-        dirty.sprites |= (domains & kSelectionSprites) != 0;
+            (candidate->domains & (kSelectionObjects | kSelectionDoors)) != 0;
+        dirty.sprites |= (candidate->domains & kSelectionSprites) != 0;
       }
       if (!(objects_enabled &&
             (dirty.object_stream || dirty.object_stream_header)) &&
@@ -173,8 +206,9 @@ DungeonEditorV2::PlanPendingRoomStreamRanges(
       staged.RestoreMetadataSnapshot(source.CaptureMetadataSnapshot());
       ApplyDungeonSelectionEditState(
           staged, CaptureDungeonSelectionEditState(source), streams);
-      if (candidate && id == room_id)
-        ApplyDungeonSelectionEditState(staged, *candidate, domains);
+      if (has_candidate)
+        ApplyDungeonSelectionEditState(staged, candidate->after,
+                                       candidate->domains);
       staged.RestoreSaveDirtySnapshot(dirty);
       const auto* objects = object_layout ? &*object_layout : nullptr;
       const auto* sprites = sprite_layout ? &*sprite_layout : nullptr;

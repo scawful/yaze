@@ -368,9 +368,11 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
                          const std::vector<chest_data>& chests) {
             const auto status =
                 PreflightObjectMutation(room_id, objects, chests);
-            if (status.ok()) {
-              // Preserve rejected gestures, but finish an accepted command's
-              // preceding drag before the handler captures its next snapshot.
+            if (status.ok() &&
+                viewer->object_interaction().mode_manager().GetMode() !=
+                    InteractionMode::DraggingObjects) {
+              // A continuous drag now also preflights each candidate. Releasing
+              // it here would end the gesture on its first accepted movement.
               viewer->object_interaction().HandleMouseRelease();
             }
             return status;
@@ -385,6 +387,19 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
               ToastType::kWarning, 4.0f);
         }
       });
+  auto& door_handler =
+      viewer->object_interaction().entity_coordinator().door_handler();
+  door_handler.SetDoorMutationPreflight(
+      [this](int id, const std::vector<zelda3::Room::Door>& doors) {
+        return PreflightDoorMutation(id, doors);
+      });
+  door_handler.SetMutationErrorCallback([this](const absl::Status& status) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Edit not applied: %s", status.message()),
+          ToastType::kWarning, 4.0f);
+    }
+  });
   auto& sprite_handler =
       viewer->object_interaction().entity_coordinator().sprite_handler();
   sprite_handler.SetSpriteMutationPreflight(

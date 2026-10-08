@@ -673,9 +673,10 @@ class DungeonEditorV2 : public Editor {
   absl::Status PreflightSpriteMutation(
       int room_id, const std::vector<zelda3::Sprite>& sprites);
   absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
-  PlanPendingRoomStreamRanges(int room_id,
-                              const DungeonSelectionEditState* candidate,
-                              uint8_t domains) const;
+  PlanPendingRoomStreamRanges(
+      const std::vector<DungeonSelectionEditPlan>& candidates) const;
+  absl::Status PreflightDoorMutation(
+      int room_id, const std::vector<zelda3::Room::Door>& doors);
   absl::Status ApplyChestObjectEdit(
       int room_id, const std::vector<zelda3::RoomObject>& objects,
       const std::vector<chest_data>& chests,
