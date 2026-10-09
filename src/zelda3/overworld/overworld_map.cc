@@ -140,6 +140,7 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data,
                              /*seed_area_parent=*/false);
     InheritAreaProperties(area_parent);
   }
+  CaptureAreaInfoBaseline();
 }
 
 AreaRenderProperties OverworldMap::area_render_properties() const {
@@ -151,6 +152,7 @@ AreaRenderProperties OverworldMap::area_render_properties() const {
   props.animated_gfx = animated_gfx_;
   props.custom_gfx_ids = custom_gfx_ids_;
   props.subscreen_overlay = subscreen_overlay_;
+  props.area_specific_bg_color = area_specific_bg_color_;
   return props;
 }
 
@@ -164,6 +166,7 @@ void OverworldMap::InheritAreaProperties(const OverworldMap& area_parent) {
   props.animated_gfx = area_parent.animated_gfx_;
   props.custom_gfx_ids = area_parent.custom_gfx_ids_;
   props.subscreen_overlay = area_parent.subscreen_overlay_;
+  props.area_specific_bg_color = area_parent.area_specific_bg_color_;
   inherited_area_ = props;
 }
 
@@ -260,12 +263,22 @@ void OverworldMap::LoadAreaInfo() {
   // Load message ID and area size based on ASM version. v1+ moves message
   // ids into expanded space, but only v3 supports per-map area-size enums.
   if (OverworldVersionHelper::SupportsExpandedSpace(version)) {
+    // Keep persistent per-screen metadata separate from parent-derived display
+    // state. Unused child slots can contain distinct authored values.
     message_id_ =
-        (*rom_)[GetOverworldMessagesExpanded() + (parent_ * 2)] |
-        ((*rom_)[GetOverworldMessagesExpanded() + (parent_ * 2) + 1] << 8);
+        (*rom_)[GetOverworldMessagesExpanded() + (index_ * 2)] |
+        ((*rom_)[GetOverworldMessagesExpanded() + (index_ * 2) + 1] << 8);
   } else {
     message_id_ = (*rom_)[kOverworldMessageIds + (parent_ * 2)] |
                   ((*rom_)[kOverworldMessageIds + (parent_ * 2) + 1] << 8);
+  }
+
+  // Persistent colors must be loaded even when this map is never rendered.
+  // LoadPalette must not replace this value during visual refreshes.
+  if (OverworldVersionHelper::SupportsCustomBGColors(version)) {
+    area_specific_bg_color_ =
+        (*rom_)[OverworldCustomAreaSpecificBGPalette + (index_ * 2)] |
+        ((*rom_)[OverworldCustomAreaSpecificBGPalette + (index_ * 2) + 1] << 8);
   }
 
   if (OverworldVersionHelper::SupportsAreaEnum(version)) {
@@ -461,6 +474,42 @@ void OverworldMap::LoadAreaInfo() {
       }
     }
   }
+}
+
+void OverworldMap::CaptureAreaInfoBaseline() {
+  const auto version = OverworldVersionHelper::GetVersion(*rom_);
+  loaded_area_info_parent_ = parent_;
+  loaded_area_info_ = {area_graphics_,      area_palette_,
+                       sprite_graphics_[0], sprite_graphics_[1],
+                       sprite_graphics_[2], sprite_palette_[0],
+                       sprite_palette_[1],  sprite_palette_[2]};
+  const int palette_table =
+      OverworldVersionHelper::SupportsCustomBGColors(version)
+          ? kOverworldPalettesScreenToSetNew
+          : kOverworldMapPaletteIds;
+  raw_area_info_[0] = (*rom_)[kAreaGfxIdPtr + index_];
+  raw_area_info_[1] = (*rom_)[palette_table + index_];
+  for (int state = 0; state < 3; ++state) {
+    if (index_ < kSpecialWorldMapIdStart) {
+      const int slot = index_ < kDarkWorldMapIdStart
+                           ? index_ + state * kDarkWorldMapIdStart
+                           : index_ + kSpecialWorldMapIdStart;
+      raw_area_info_[2 + state] = (*rom_)[kOverworldSpriteset + slot];
+      raw_area_info_[5 + state] = (*rom_)[kOverworldSpritePaletteIds + slot];
+    } else {
+      const bool expanded = OverworldVersionHelper::SupportsAreaEnum(version);
+      const int gfx_table = expanded
+                                ? kOverworldSpecialSpriteGfxGroupExpandedTemp
+                                : kOverworldSpecialSpriteGFXGroup;
+      const int palette_table = expanded
+                                    ? kOverworldSpecialSpritePaletteExpandedTemp
+                                    : kOverworldSpecialSpritePalette;
+      const int slot = index_ - kSpecialWorldMapIdStart;
+      raw_area_info_[2 + state] = (*rom_)[gfx_table + slot];
+      raw_area_info_[5 + state] = (*rom_)[palette_table + slot];
+    }
+  }
+  area_info_baseline_valid_ = true;
 }
 
 void OverworldMap::LoadCustomOverworldData() {
@@ -1156,15 +1205,15 @@ absl::Status OverworldMap::LoadPalette() {
     previous_spr_pal_id = (*rom_)[kOverworldSpritePaletteIds + parent_ - 1];
   }
 
-  area_palette_ = std::min((int)area_palette_, 0xA3);
+  const int render_area_palette = std::min((int)area_palette_, 0xA3);
 
   uint8_t pal0 = 0;
   uint8_t pal1 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
-                         (area_palette_ * 4)];
+                         (render_area_palette * 4)];
   uint8_t pal2 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
-                         (area_palette_ * 4) + 1];
+                         (render_area_palette * 4) + 1];
   uint8_t pal3 = (*rom_)[version_constants().kOverworldMapPaletteGroup +
-                         (area_palette_ * 4) + 2];
+                         (render_area_palette * 4) + 2];
   uint8_t pal4 = (*rom_)[kOverworldSpritePaletteGroup +
                          (sprite_palette_[game_state_] * 2)];
   uint8_t pal5 = (*rom_)[kOverworldSpritePaletteGroup +
@@ -1204,13 +1253,8 @@ absl::Status OverworldMap::LoadPalette() {
       OverworldVersionHelper::SupportsCustomBGColors(version) &&
       (*rom_)[OverworldCustomAreaSpecificBGEnabled] != 0x00;
   if (use_area_specific_bg) {
-    // Use area-specific background color from custom array
-    area_specific_bg_color_ =
-        (*rom_)[OverworldCustomAreaSpecificBGPalette + (parent_ * 2)] |
-        ((*rom_)[OverworldCustomAreaSpecificBGPalette + (parent_ * 2) + 1]
-         << 8);
-    // Convert 15-bit SNES color to palette color
-    bgr = gfx::SnesColor(area_specific_bg_color_);
+    // Rendering inherits the parent; the raw child color stays saveable.
+    bgr = gfx::SnesColor(area_render_properties().area_specific_bg_color);
   } else {
     // Use default world-based background colors
     if (parent_ < kDarkWorldMapIdStart) {

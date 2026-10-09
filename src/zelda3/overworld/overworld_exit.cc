@@ -188,6 +188,10 @@ absl::Status SaveExits(Rom* rom, const std::vector<OverworldExit>& exits) {
   }
 
   for (int i = 0; i < kNumOverworldExits; i++) {
+    ASSIGN_OR_RETURN(auto stored_room, rom->ReadWord(OWExitRoomId + (i * 2)));
+    ASSIGN_OR_RETURN(auto stored_map, rom->ReadByte(OWExitMapId + i));
+    const bool destination_changed =
+        stored_room != exits[i].room_id_ || stored_map != exits[i].map_id_;
     RETURN_IF_ERROR(rom->WriteShort(OWExitRoomId + (i * 2), exits[i].room_id_));
     RETURN_IF_ERROR(rom->WriteByte(OWExitMapId + i, exits[i].map_id_));
     RETURN_IF_ERROR(rom->WriteShort(OWExitVram + (i * 2), exits[i].map_pos_));
@@ -210,6 +214,11 @@ absl::Status SaveExits(Rom* rom, const std::vector<OverworldExit>& exits) {
     RETURN_IF_ERROR(
         rom->WriteShort(OWExitDoorType2 + (i * 2), exits[i].door_type_2_));
 
+    // These auxiliary bytes may intentionally differ from the exit table in a
+    // hack. Only an authored destination change may update them.
+    if (!destination_changed) {
+      continue;
+    }
     if (exits[i].room_id_ == 0x0180) {
       RETURN_IF_ERROR(
           rom->WriteByte(OWExitDoorPosition + 0, exits[i].map_id_ & 0xFF));

@@ -171,6 +171,7 @@ struct AreaRenderProperties {
   uint8_t animated_gfx = 0;
   std::array<uint8_t, 8> custom_gfx_ids = {};
   uint16_t subscreen_overlay = 0x00FF;
+  uint16_t area_specific_bg_color = 0;
 };
 
 /// Source of slots 3-6 for roomset impact reporting. Custom v3 background
@@ -363,6 +364,22 @@ class OverworldMap : public gfx::GfxContext {
     area_specific_bg_color_ = color;
   }
 
+  // Standard metadata is loaded through the area parent for editing/rendering.
+  // Preserve the screen's original raw slot until that model value is edited.
+  // Keeping both values also restores the original bytes after Save/Undo/Save.
+  uint8_t area_graphics_for_save() const {
+    return AreaInfoForSave(0, area_graphics_);
+  }
+  uint8_t area_palette_for_save() const {
+    return AreaInfoForSave(1, area_palette_);
+  }
+  uint8_t sprite_graphics_for_save(int state) const {
+    return AreaInfoForSave(2 + state, sprite_graphics_[state]);
+  }
+  uint8_t sprite_palette_for_save(int state) const {
+    return AreaInfoForSave(5 + state, sprite_palette_[state]);
+  }
+
   auto subscreen_overlay() const { return subscreen_overlay_; }
   void set_subscreen_overlay(uint16_t overlay) { subscreen_overlay_ = overlay; }
 
@@ -493,6 +510,13 @@ class OverworldMap : public gfx::GfxContext {
   OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent);
   void CopyAnimatedSheetIntoSlot7();
   void LoadAreaInfo();
+  void CaptureAreaInfoBaseline();
+  uint8_t AreaInfoForSave(size_t field, uint8_t value) const {
+    return area_info_baseline_valid_ && parent_ == loaded_area_info_parent_ &&
+                   value == loaded_area_info_[field]
+               ? raw_area_info_[field]
+               : value;
+  }
   void LoadCustomOverworldData();
   void SetupCustomTileset(uint8_t asm_version);
 
@@ -548,6 +572,10 @@ class OverworldMap : public gfx::GfxContext {
   uint8_t animated_sheet_ = 0;  // Sheet for the top half of slot 7
   uint64_t bitmap_serial_ = 0;
   std::optional<AreaRenderProperties> inherited_area_;
+  std::array<uint8_t, 8> loaded_area_info_{};
+  std::array<uint8_t, 8> raw_area_info_{};
+  int loaded_area_info_parent_ = -1;
+  bool area_info_baseline_valid_ = false;
 
   std::array<uint8_t, 8> custom_gfx_ids_ = {};
   std::array<uint8_t, 3> sprite_graphics_;

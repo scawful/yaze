@@ -370,11 +370,11 @@ ResolvedGraphicsContext DescribeOverworldGraphicsContext(
   context.palettes.push_back({
       "backdrop",
       custom_bg ? "area_specific_bg" : "world_default",
-      custom_bg             ? map.area_specific_bg_color()
+      custom_bg             ? props.area_specific_bg_color
       : map.parent() < 0x40 ? 0
       : map.parent() < 0x80 ? 1
                             : 2,
-      false,
+      custom_bg && map.has_inherited_area_properties(),
   });
   context.palette_colors_resolved = !map.current_palette().empty();
 

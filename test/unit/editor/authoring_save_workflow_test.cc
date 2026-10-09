@@ -272,10 +272,32 @@ class AuthoringSaveWorkflowTestPeer {
     return result;
   }
 
+  static std::string DrawBackgroundColorPicker(OverworldEditor& editor,
+                                               int map_id) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowSize(ImVec2(700, 600), ImGuiCond_Always);
+    ImGui::Begin("AreaBackgroundPickerTest", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
+    bool visible = true;
+    editor.map_properties_system_->DrawCustomBackgroundColorEditor(map_id,
+                                                                   visible);
+    const std::string text(ImGui::GetCurrentContext()->LogBuffer.c_str());
+    ImGui::LogFinish();
+    ImGui::End();
+    ImGui::Render();
+    return text;
+  }
+
   static absl::Status EditAreaPalette(OverworldEditor& editor, int map_id,
                                       int value) {
     return editor.ApplyOverworldPropertyEdit(
         {map_id, OverworldPropertyField::kAreaPalette, 0, value});
+  }
+
+  static absl::Status EditProperty(OverworldEditor& editor,
+                                   const OverworldPropertyEdit& edit) {
+    return editor.ApplyOverworldPropertyEdit(edit);
   }
 
   static absl::Status EditAreaSize(OverworldEditor& editor, int map_id,
@@ -555,6 +577,30 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
               project::RomWritePolicy::kBlock);
   }
 
+  void OpenSavedCopyForInspection(const DisposableOracleProject& fixture,
+                                  const std::filesystem::path& destination) {
+    // Save As does not rebind the source project. Inspect the saved bytes with
+    // a separate temporary descriptor in the same directory so relative custom
+    // assets and wall patterns retain their context. The original descriptor,
+    // development ROM, manifest, and strict write policy remain unchanged.
+    const auto source_project = ReadFile(fixture.project);
+    std::string text(source_project.begin(), source_project.end());
+    ReplaceAssignment(&text, "rom_filename", destination.string());
+    auto inspection = fixture;
+    inspection.project = fixture.root / "saved-copy-inspection.yaze";
+    {
+      std::ofstream output(inspection.project);
+      output << text;
+      ASSERT_TRUE(output.good());
+    }
+    manager_.reset();
+    Open(inspection);
+    ASSERT_NE(manager_, nullptr);
+    ASSERT_NE(manager_->GetCurrentRom(), nullptr);
+    EXPECT_EQ(manager_->GetCurrentRom()->filename(), destination.string());
+    EXPECT_EQ(ReadFile(fixture.project), source_project);
+  }
+
   void QualifySharedGraphicsAssignment(
       bool custom_sheets, EditorType host_type = EditorType::kDungeon);
   void QualifyMainGraphicsAssignment(bool custom_sheets);
@@ -789,6 +835,200 @@ TEST_F(AuthoringSaveWorkflowTest, ScreenSourcePixelsUndoReturnSaveAsReopen) {
 
 TEST_F(AuthoringSaveWorkflowTest, GoronPaletteWordUndoRetrySaveAsReopen) {
   QualifyPaletteWordRoundTrip(/*dungeon_source=*/true);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       InitializedOverworldPreservesUneditedBytesDuringDungeonSave) {
+  const auto fixture = CopyProject("yaze_cross_editor_corner_save");
+  const auto original = ReadFile(fixture.rom);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* overworld =
+      manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+          EditorType::kOverworld);
+  ASSERT_NE(overworld, nullptr);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*overworld));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  constexpr int kRoom = 0x89;
+  auto& room = dungeon->rooms()[kRoom];
+  room = zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kRoom);
+  room.EnsureObjectsLoaded();
+  ASSERT_EQ(room.GetTileObjects().size(), 126u);
+  ASSERT_EQ(room.GetTileObjects()[51].id_, 0x31);
+  ASSERT_EQ(room.GetTileObjects()[51].size_, 1);
+  ASSERT_EQ(room.GetTileObjects()[54].id_, 0x31);
+  ASSERT_EQ(room.GetTileObjects()[54].size_, 2);
+  AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, kRoom);
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kRoom);
+  auto& handler =
+      viewer->object_interaction().entity_coordinator().tile_handler();
+  handler.UpdateObjectsSize(kRoom, {51}, 3);
+  handler.UpdateObjectsSize(kRoom, {54}, 4);
+  ASSERT_EQ(room.GetTileObjects()[51].size_, 3);
+  ASSERT_EQ(room.GetTileObjects()[54].size_, 4);
+  const auto edited_objects = room.EncodeObjects();
+  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_EQ(room.EncodeObjects(), edited_objects);
+
+  // Exact independent bytes observed in the user's two corner edits. Do not
+  // normalize a control save first: that would hide unrelated saver writes.
+  auto expected = original;
+  ASSERT_EQ(expected.at(0x14809C), 0x69);
+  ASSERT_EQ(expected.at(0x1480A4), 0x88);
+  ASSERT_EQ(expected.at(0x1480A5), 0x8E);
+  expected[0x14809C] = 0x6B;
+  expected[0x1480A4] = 0x89;
+  expected[0x1480A5] = 0x8C;
+  ASSERT_OK(manager_->SaveRom());
+  const auto saved = ReadFile(fixture.rom);
+  ASSERT_EQ(saved.size(), expected.size());
+  size_t unexpected = 0;
+  for (size_t i = 0; i < saved.size(); ++i) {
+    if (saved[i] != expected[i]) {
+      if (unexpected < 12)
+        ADD_FAILURE() << "Unexpected save byte PC "
+                      << absl::StrFormat("%06X", i) << ": "
+                      << static_cast<int>(expected[i]) << " -> "
+                      << static_cast<int>(saved[i]);
+      ++unexpected;
+    }
+  }
+  EXPECT_EQ(unexpected, 0u);
+
+  // A second save and undo-save must preserve untouched bytes too, rather
+  // than merely suppressing the first or treating all editor saves as no-ops.
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadFile(fixture.rom), expected);
+  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(dungeon->Undo());
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadFile(fixture.rom), original);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadFile(fixture.rom), expected);
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto fresh = zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kRoom);
+  EXPECT_EQ(fresh.EncodeObjects(), edited_objects);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       OverworldMetadataSaveFailureRetryUndoPreservesUneditedScreenSlots) {
+  const auto fixture = CopyProject("yaze-overworld-metadata-preservation");
+  const auto original = ReadFile(fixture.rom);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*editor));
+  constexpr int kParent = 0x30;
+  constexpr int kChild = 0x31;
+  const auto* parent = editor->overworld().overworld_map(kParent);
+  ASSERT_EQ(editor->overworld().overworld_map(kChild)->parent(), kParent);
+  const int old_background = parent->area_specific_bg_color();
+  const int new_background = old_background ^ 0x0421;
+  const int old_message = parent->message_id();
+  const int new_message = old_message ^ 1;
+  const int old_palette = parent->area_palette();
+  const int new_palette = old_palette == 0 ? 1 : 0;
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::EditProperty(
+      *editor, {kChild, OverworldPropertyField::kAreaSpecificBgColor, 0,
+                new_background}));
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::EditProperty(
+      *editor, {kChild, OverworldPropertyField::kMessageId, 0, new_message}));
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::EditAreaPalette(*editor, kChild,
+                                                           new_palette));
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::DrawOverworld(*editor));
+  EXPECT_EQ(parent->area_specific_bg_color(), new_background);
+  EXPECT_EQ(parent->message_id(), new_message);
+  EXPECT_EQ(parent->area_palette(), new_palette);
+  const auto* child = editor->overworld().overworld_map(kChild);
+  EXPECT_NE(child->area_specific_bg_color(), new_background);
+  // Rendering and its editor must use the parent while storage keeps the
+  // dormant child value. Exercise the actual picker, not a duplicate resolver.
+  for (int frame = 0; frame < 2; ++frame) {
+    const auto picker =
+        AuthoringSaveWorkflowTestPeer::DrawBackgroundColorPicker(*editor,
+                                                                 kChild);
+    EXPECT_NE(
+        picker.find(absl::StrFormat("SNES Color: 0x%04X", new_background)),
+        std::string::npos);
+  }
+  ASSERT_OK(editor->overworld().EnsureMapBuilt(kChild));
+  EXPECT_EQ(child->area_render_properties().area_specific_bg_color,
+            new_background);
+  const auto graphics_context =
+      zelda3::DescribeOverworldGraphicsContext(*child);
+  const auto backdrop = std::find_if(
+      graphics_context.palettes.begin(), graphics_context.palettes.end(),
+      [](const auto& palette) { return palette.name == "backdrop"; });
+  ASSERT_NE(backdrop, graphics_context.palettes.end());
+  EXPECT_EQ(backdrop->selector, new_background);
+  EXPECT_TRUE(backdrop->inherited);
+
+  // Parent properties are intentionally edited. Unused child sign/background
+  // slots and every unrelated byte must keep their original stored values.
+  auto expected = original;
+  const auto write_word = [&](int address, int value) {
+    expected.at(address) = value & 0xFF;
+    expected.at(address + 1) = value >> 8;
+  };
+  write_word(zelda3::OverworldCustomAreaSpecificBGPalette + 2 * kParent,
+             new_background);
+  write_word(zelda3::GetOverworldMessagesExpanded() + 2 * kParent, new_message);
+  for (const int map : {0x30, 0x31, 0x38, 0x39}) {
+    expected.at(zelda3::kOverworldPalettesScreenToSetNew + map) = new_palette;
+  }
+  const auto pending = manager_->GetCurrentRom()->vector();
+  ASSERT_TRUE(manager_->GetCurrentRom()->dirty());
+  {
+    test::ScopedRomStagingFailure fault;
+    const auto failed = manager_->SaveRom();
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  EXPECT_EQ(ReadFile(fixture.rom), original);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), pending);
+  EXPECT_TRUE(manager_->GetCurrentRom()->dirty());
+  EXPECT_EQ(parent->message_id(), new_message);
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadFile(fixture.rom), expected);
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadFile(fixture.rom), expected);
+  for (int i = 0; i < 3; ++i)
+    ASSERT_OK(editor->Undo());
+  EXPECT_EQ(parent->area_specific_bg_color(), old_background);
+  EXPECT_EQ(parent->message_id(), old_message);
+  EXPECT_EQ(parent->area_palette(), old_palette);
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadFile(fixture.rom), original);
+  for (int i = 0; i < 3; ++i)
+    ASSERT_OK(editor->Redo());
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadFile(fixture.rom), expected);
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* reopened =
+      manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+          EditorType::kOverworld);
+  const auto* fresh_parent = reopened->overworld().overworld_map(kParent);
+  EXPECT_EQ(fresh_parent->area_specific_bg_color(), new_background);
+  EXPECT_EQ(fresh_parent->message_id(), new_message);
+  EXPECT_EQ(fresh_parent->area_palette(), new_palette);
+  EXPECT_EQ(ReadFile(fixture.rom), expected);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
 TEST_F(AuthoringSaveWorkflowTest, OverworldPaletteWordUndoRetrySaveAsReopen) {
@@ -1410,9 +1650,7 @@ void AuthoringSaveWorkflowTest::QualifySharedGraphicsAssignment(
   ExpectProtectedRegionsMatch(
       ReadFile(fixture.rom), ReadFile(destination),
       manager_->GetCurrentProject()->hack_manifest.protected_regions());
-  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
-  manager_.reset();
-  Open(fixture);
+  ASSERT_NO_FATAL_FAILURE(OpenSavedCopyForInspection(fixture, destination));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
   dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
       EditorType::kDungeon);
@@ -1522,6 +1760,8 @@ void AuthoringSaveWorkflowTest::QualifyMainGraphicsAssignment(
                     : AuthoringSaveWorkflowTestPeer::MainGroups(*ow);
   Editor* host =
       custom_sheets ? static_cast<Editor*>(graphics) : static_cast<Editor*>(ow);
+  const auto host_type =
+      custom_sheets ? EditorType::kGraphics : EditorType::kOverworld;
   panel.SetSelectedBlockset(group);
   const auto usage_text = [&] {
     ImGui::NewFrame();
@@ -1581,13 +1821,24 @@ void AuthoringSaveWorkflowTest::QualifyMainGraphicsAssignment(
   ExpectProtectedRegionsMatch(
       ReadFile(fixture.rom), ReadFile(destination),
       manager_->GetCurrentProject()->hack_manifest.protected_regions());
-  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
-  // ROM replacement reuses session object addresses. Old undo must not apply
-  // even when the newly loaded table has exactly the expected edited byte.
-  ASSERT_TRUE(absl::IsFailedPrecondition(host->Undo()));
+  // Save As leaves this session on the copy without rebinding the source
+  // project. Revert reloads that backing file at the same session addresses.
+  const auto session_id = manager_->GetCurrentSessionId();
+  auto* editor_set = manager_->GetCurrentEditorSet();
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), destination.string());
+  ASSERT_OK(manager_->RevertRomToSaved());
+  EXPECT_EQ(manager_->GetCurrentSessionId(), session_id);
+  EXPECT_EQ(manager_->GetCurrentEditorSet(), editor_set);
+  EXPECT_EQ(manager_->GetCurrentEditorSet()->GetEditor(host_type), host);
+  EXPECT_EQ(manager_->GetCurrentGameData(), data);
+  // Old undo must not apply even when the freshly loaded table still has the
+  // edited byte. A separate descriptor below proves a fresh-editor reopen.
+  const auto stale_undo = host->Undo();
+  ASSERT_TRUE(absl::IsFailedPrecondition(stale_undo));
+  EXPECT_EQ(stale_undo.message(),
+            "Graphics assignment belongs to another session");
   EXPECT_EQ(data->main_blockset_ids, edited_groups);
-  manager_.reset();
-  Open(fixture);
+  ASSERT_NO_FATAL_FAILURE(OpenSavedCopyForInspection(fixture, destination));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
   set = manager_->GetCurrentEditorSet();
   dungeon = set->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
@@ -4044,9 +4295,7 @@ TEST_F(AuthoringSaveWorkflowTest,
   ExpectProtectedRegionsMatch(
       original, saved,
       manager_->GetCurrentProject()->hack_manifest.protected_regions());
-  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
-  manager_.reset();
-  Open(fixture);
+  ASSERT_NO_FATAL_FAILURE(OpenSavedCopyForInspection(fixture, destination));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
   dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
       EditorType::kDungeon);
@@ -4330,9 +4579,7 @@ TEST_F(AuthoringSaveWorkflowTest, RoomUsageFollowsUnsavedMinesContext) {
   ExpectProtectedRegionsMatch(
       ReadFile(fixture.rom), ReadFile(destination),
       manager_->GetCurrentProject()->hack_manifest.protected_regions());
-  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
-  manager_.reset();
-  Open(fixture);
+  ASSERT_NO_FATAL_FAILURE(OpenSavedCopyForInspection(fixture, destination));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
   dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
@@ -4456,11 +4703,9 @@ TEST_F(AuthoringSaveWorkflowTest,
   ExpectProtectedRegionsMatch(
       ReadFile(fixture.rom), ReadFile(destination),
       manager_->GetCurrentProject()->hack_manifest.protected_regions());
-  // Save As creates a copy. Bind the disposable project to it explicitly before
-  // reopening with the same custom assets and entrance context.
-  ASSERT_OK(manager_->SwapProjectRom(destination.string()));
-  manager_.reset();
-  Open(fixture);
+  // Inspect the copy with the same custom assets and entrance context, without
+  // rebinding the source project or changing its manifest development ROM.
+  ASSERT_NO_FATAL_FAILURE(OpenSavedCopyForInspection(fixture, destination));
   EXPECT_EQ(manager_->GetCurrentRom()->filename(), destination.string());
   ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
   dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
