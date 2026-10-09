@@ -1,5 +1,6 @@
 #include "zelda3/overworld/overworld_version_helper.h"
 
+#include <algorithm>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -431,6 +432,83 @@ TEST(OverworldItemCompatibilityTest, V3SaveUsesSpecialWorldPointerSlots) {
                                     (kNumOverworldMapItemPointers * 2));
   ASSERT_TRUE(pointer_after.ok());
   EXPECT_NE(*pointer_after, kSentinel);
+}
+
+TEST(OverworldItemCompatibilityTest,
+     ModelSavePreservesAuthoredOrderForItemsAtTheSamePosition) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  const OverworldItem first(0x01, 0, 16, 32, false);
+  const OverworldItem second(0x02, 0, 16, 32, false);
+  ASSERT_TRUE(SaveItems(&rom, {first, second}).ok());
+
+  // Construct only the metadata required by item loading; no graphics context.
+  Overworld ow(&rom);
+  auto& maps = const_cast<std::vector<OverworldMap>&>(ow.overworld_maps());
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    maps.emplace_back(i, &rom);
+    maps.back().SetAsSmallMap(i);
+  }
+  *ow.mutable_all_items() = {second, first};
+  const auto before = rom.vector();
+  ASSERT_TRUE(ow.SaveItems().ok());
+  EXPECT_NE(rom.vector(), before);
+
+  auto reversed = LoadItems(&rom, maps);
+  ASSERT_TRUE(reversed.ok());
+  ASSERT_EQ(reversed->size(), 2u);
+  EXPECT_EQ((*reversed)[0].id_, second.id_);
+  EXPECT_EQ((*reversed)[1].id_, first.id_);
+  EXPECT_EQ((*reversed)[0].game_x_, (*reversed)[1].game_x_);
+  EXPECT_EQ((*reversed)[0].game_y_, (*reversed)[1].game_y_);
+
+  // A subsequent reverse after saving must persist too.
+  std::reverse(ow.mutable_all_items()->begin(), ow.mutable_all_items()->end());
+  ASSERT_TRUE(ow.SaveItems().ok());
+  auto restored = LoadItems(&rom, maps);
+  ASSERT_TRUE(restored.ok());
+  ASSERT_EQ(restored->size(), 2u);
+  EXPECT_EQ((*restored)[0].id_, first.id_);
+  EXPECT_EQ((*restored)[1].id_, second.id_);
+}
+
+TEST(OverworldItemCompatibilityTest,
+     ModelSavePreservesRawAllocationWhenOnlyMapsAreInterleaved) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  const OverworldItem map0_first(0x01, 0, 16, 16, false);
+  const OverworldItem map0_second(0x02, 0, 32, 16, false);
+  const OverworldItem map1_first(0x03, 1, 512 + 16, 16, false);
+  const OverworldItem map1_second(0x04, 1, 512 + 32, 16, false);
+  ASSERT_TRUE(
+      SaveItems(&rom, {map0_first, map0_second, map1_first, map1_second}).ok());
+
+  // Keep a valid noncanonical allocation, so byte equality proves the no-op
+  // path instead of merely reproducing the serializer's preferred layout.
+  constexpr int kRelocatedMap0Items = 0x0DC780;
+  auto pointer = rom.ReadWord(kOverworldItemsPointersNew);
+  auto bank = rom.ReadByte(overworldItemsAddressBank);
+  ASSERT_TRUE(pointer.ok());
+  ASSERT_TRUE(bank.ok());
+  const int original =
+      SnesToPc((static_cast<uint32_t>(*bank) << 16) | *pointer);
+  for (int i = 0; i < 8; ++i) {
+    ASSERT_TRUE(rom.WriteByte(kRelocatedMap0Items + i, rom[original + i]).ok());
+  }
+  ASSERT_TRUE(rom.WriteShort(kOverworldItemsPointersNew,
+                             PcToSnes(kRelocatedMap0Items) & 0xFFFF)
+                  .ok());
+
+  Overworld ow(&rom);
+  auto& maps = const_cast<std::vector<OverworldMap>&>(ow.overworld_maps());
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    maps.emplace_back(i, &rom);
+    maps.back().SetAsSmallMap(i);
+  }
+  *ow.mutable_all_items() = {map1_first, map0_first, map1_second, map0_second};
+  const auto before = rom.vector();
+  ASSERT_TRUE(ow.SaveItems().ok());
+  EXPECT_EQ(rom.vector(), before);
 }
 
 }  // namespace yaze::zelda3

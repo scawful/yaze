@@ -639,6 +639,8 @@ void MapRefreshCoordinator::RefreshMapProperties(int map_id) {
   // Property edits target the parent even while cursor-follow selects a child.
   // Never overwrite siblings with the child's stale pre-edit values.
   const auto& current_ow_map = parent ? *parent : *selected;
+  // Message editing and lookup use that parent directly. Child message slots
+  // remain independent persistent data, even when graphics are refreshed.
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*ctx_.rom);
@@ -685,7 +687,6 @@ void MapRefreshCoordinator::RefreshMapProperties(int map_id) {
                                 current_ow_map.sprite_graphics(game_state));
         map.set_sprite_palette(game_state,
                                current_ow_map.sprite_palette(game_state));
-        map.set_message_id(current_ow_map.message_id());
 
         // CRITICAL FIX: Reload graphics after changing properties
         PrepareMapForRefresh(ctx_, &map);
@@ -709,7 +710,6 @@ void MapRefreshCoordinator::RefreshMapProperties(int map_id) {
                                 current_ow_map.sprite_graphics(game_state));
         map.set_sprite_palette(game_state,
                                current_ow_map.sprite_palette(game_state));
-        map.set_message_id(current_ow_map.message_id());
 
         // CRITICAL FIX: Reload graphics after changing properties
         PrepareMapForRefresh(ctx_, &map);

@@ -246,9 +246,13 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
   }
 
   if (use_area_specific_bg_color) {
-    // Get current color
-    uint16_t current_color =
-        overworld_->overworld_map(current_map)->area_specific_bg_color();
+    // The edit targets the area parent; display that same persistent value.
+    const int property_map = EffectivePropertyMapId(overworld_, current_map);
+    const auto* map = overworld_->overworld_map(property_map);
+    if (!map) {
+      return;
+    }
+    uint16_t current_color = map->area_specific_bg_color();
     gfx::SnesColor snes_color(current_color);
 
     // Convert to ImVec4 for color picker
