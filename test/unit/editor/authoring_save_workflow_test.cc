@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -31,6 +32,7 @@
 #include "app/editor/dungeon/minecart_track_source.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
+#include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_pixel_command.h"
@@ -62,11 +64,16 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/graphics/resolved_graphics_context.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/resource_labels.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze::editor {
 
 class AuthoringSaveWorkflowTestPeer {
  public:
+  static RoomTagEditorPanel* RoomTags(DungeonEditorV2& editor) {
+    return editor.room_tag_editor_panel_;
+  }
   static ObjectTileEditorPanel* OpenObjectTiles(DungeonEditorV2& editor,
                                                 int room_id, int id) {
     zelda3::RoomObject object(id, 0, 0, 0, 0);
@@ -5090,6 +5097,181 @@ TEST_F(AuthoringSaveWorkflowTest, FailedRevertKeepsDungeonObjectAndUndo) {
 
 // Opt-in rehearsal on a complete, disposable copy of the real authoring project.
 // This leaves artifacts for a separate Build Project and emulator acceptance.
+TEST_F(AuthoringSaveWorkflowTest, OracleRoomTagCatalogSelectUndoSaveReopens) {
+  const char* input = std::getenv("YAZE_ROOM_TAG_PROJECT");
+  if (!input || !*input)
+    GTEST_SKIP() << "Set YAZE_ROOM_TAG_PROJECT to a disposable Oracle project";
+  const auto path = std::filesystem::weakly_canonical(input);
+  ASSERT_NE(path.string().find("room_tag_authoring_"), std::string::npos);
+  DisposableOracleProject fixture;
+  fixture.root = path.parent_path();
+  fixture.project = path;
+  fixture.rom = fixture.root / "Roms/oos168.sfc";
+  const auto before = ReadFile(fixture.rom);
+  const auto shared_before = util::ComputeFileSha1Hex(kSharedRom);
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  constexpr int kRoom = 0x89;
+  dungeon->add_room(kRoom);
+  AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, kRoom);
+  auto* panel = AuthoringSaveWorkflowTestPeer::RoomTags(*dungeon);
+  ASSERT_NE(panel, nullptr);
+  auto* project = manager_->GetCurrentProject();
+  const auto& manifest = project->hack_manifest;
+  for (const auto& [id, label] : std::vector<std::pair<int, std::string>>{
+           {0x21, "StarFloorPuzzle"},
+           {0x23, "RoomTag_MinishSwitch"},
+           {0x34, "CrumbleFloor"},
+           {0x36, "RoomTag_MinishShutterDoor"},
+           {0x37, "RoomTag_ShutterDoorRequiresCart"},
+           {0x39, "CustomTag"},
+           {0x3A, "WarpTag"}}) {
+    EXPECT_EQ(zelda3::GetRoomTagLabel(id), label);
+  }
+  for (int id : {0x33, 0x35, 0x38}) {
+    EXPECT_FALSE(manifest.GetRoomTag(id).has_value());
+    EXPECT_EQ(zelda3::GetRoomTagLabel(id),
+              zelda3::Zelda3Labels::GetRoomTagNames()[id]);
+  }
+  ASSERT_TRUE(manifest.GetRoomTag(0x37).has_value());
+  EXPECT_FALSE(manifest.GetRoomTag(0x37)->enabled);
+  auto& room = dungeon->rooms()[kRoom];
+  const auto original = room.tag1();
+  ASSERT_NE(original, static_cast<zelda3::TagKey>(0x34));
+  const auto undo_count = dungeon->undo_manager().UndoStackSize();
+  auto& io = ImGui::GetIO();
+  io.ConfigInputTrickleEventQueue = false;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  std::string text;
+  auto frame = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(950, 650), ImGuiCond_Always);
+    ImGui::Begin("OracleTagCatalog", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
+    panel->Draw(nullptr);
+    text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
+    ImGui::End();
+    ImGui::Render();
+  };
+  auto widget = [&](const std::string& label)
+      -> std::optional<gui::WidgetIdRegistry::WidgetInfo> {
+    for (const auto& [key, item] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (key.starts_with("Dungeon/RoomTags/") &&
+          item.label == gui::WidgetIdRegistry::NormalizeLabel(label))
+        return item;
+    }
+    return std::nullopt;
+  };
+  auto click = [&](const std::string& label) {
+    auto item = widget(label);
+    ASSERT_TRUE(item) << label;
+    // Scroll the actual combo instead of changing its selected value in code.
+    for (int tries = 0; !item->visible && tries < 30; ++tries) {
+      auto* popup = ImGui::FindWindowByName("##Combo_00");
+      ASSERT_NE(popup, nullptr);
+      io.AddMousePosEvent(popup->Pos.x + 30, popup->Pos.y + 30);
+      io.AddMouseWheelEvent(0, item->bounds.min_y < popup->Pos.y ? 3 : -3);
+      frame();
+      frame();
+      item = widget(label);
+      ASSERT_TRUE(item) << label;
+    }
+    ASSERT_TRUE(item->visible) << label;
+    ASSERT_TRUE(item->enabled) << label;
+    io.AddMousePosEvent((item->bounds.min_x + item->bounds.max_x) / 2,
+                        (item->bounds.min_y + item->bounds.max_y) / 2);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+  };
+  frame();
+  frame();
+  click("Tag1");
+  frame();
+  EXPECT_NE(text.find("CrumbleFloor"), std::string::npos);
+  EXPECT_NE(text.find("disabled by !ENABLE_MINECART_CART_SHUTTERS"),
+            std::string::npos);
+  click("Tag1/52");
+  ASSERT_EQ(room.tag1(), static_cast<zelda3::TagKey>(0x34));
+  EXPECT_EQ(dungeon->undo_manager().UndoStackSize(), undo_count + 1);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.tag1(), original);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(room.tag1(), static_cast<zelda3::TagKey>(0x34));
+  const auto saved_path = fixture.root / "tag-selector-saved.sfc";
+  ASSERT_OK(manager_->SaveRomAs(saved_path.string()));
+  ExpectProtectedRegionsMatch(before, ReadFile(saved_path),
+                              manifest.protected_regions());
+  EXPECT_EQ(ReadFile(fixture.rom), before);
+  project->resource_labels["room_tag"]["52"] = "Weekend Crumble";
+  project->InitializeResourceLabelProvider();
+  frame();
+  EXPECT_EQ(zelda3::GetRoomTagLabel(0x34), "Weekend Crumble");
+  EXPECT_NE(text.find("Weekend Crumble"), std::string::npos);
+  manager_.reset();
+  auto reopened = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(saved_path.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* fresh = reopened->GetCurrentEditorSet()->GetDungeonEditor();
+  fresh->add_room(kRoom);
+  EXPECT_EQ(fresh->rooms()[kRoom].tag1(), static_cast<zelda3::TagKey>(0x34));
+  // Check the decoded headers of every room, not only the selected room.
+  Rom original_rom;
+  ASSERT_OK(original_rom.LoadFromFile(fixture.rom.string()));
+  for (int id = 0; id < 0x128; ++id) {
+    auto prior = zelda3::LoadRoomFromRom(&original_rom, id);
+    auto saved = zelda3::LoadRoomFromRom(reopened->GetCurrentRom(), id);
+    EXPECT_EQ(saved.tag1(), id == kRoom ? 0x34 : prior.tag1());
+    EXPECT_EQ(saved.tag2(), prior.tag2());
+  }
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), shared_before);
+  RecordProperty("saved_rom_sha1",
+                 util::ComputeFileSha1Hex(saved_path.string()));
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       OracleRoomTagCatalogSurvivesProductBuildAndProjectReopen) {
+  const char* input = std::getenv("YAZE_ROOM_TAG_BUILD_PROJECT");
+  if (!input || !*input)
+    GTEST_SKIP() << "Set YAZE_ROOM_TAG_BUILD_PROJECT to a disposable project";
+  const auto path = std::filesystem::weakly_canonical(input);
+  ASSERT_NE(path.string().find("room_tag_authoring_"), std::string::npos);
+  DisposableOracleProject fixture;
+  fixture.root = path.parent_path();
+  fixture.project = path;
+  fixture.rom = fixture.root / "Roms/oos168.sfc";
+  const auto manifest_path = fixture.root / "Roms/hack_manifest.json";
+  const auto manifest_before = ReadFile(manifest_path);
+  const auto rom_before = ReadFile(fixture.rom);
+  Open(fixture);
+  EXPECT_EQ(zelda3::GetRoomTagLabel(0x34), "CrumbleFloor");
+  ASSERT_OK(manager_->BuildCurrentProject());
+  EXPECT_EQ(ReadFile(fixture.rom), rom_before);
+  EXPECT_EQ(ReadFile(manifest_path), manifest_before);
+  ASSERT_TRUE(std::filesystem::exists(fixture.root / "Roms/oos168x.sfc"));
+  manager_.reset();
+  Open(fixture);
+  EXPECT_EQ(zelda3::GetRoomTagLabel(0x34), "CrumbleFloor");
+  const auto cart =
+      manager_->GetCurrentProject()->hack_manifest.GetRoomTag(0x37);
+  ASSERT_TRUE(cart);
+  EXPECT_FALSE(cart->enabled);
+  RecordProperty(
+      "compiled_rom_sha1",
+      util::ComputeFileSha1Hex((fixture.root / "Roms/oos168x.sfc").string()));
+}
+
 TEST_F(AuthoringSaveWorkflowTest, GoronRouteRedesignSaveAsReopen) {
   QualifyGoronRouteRedesign(false);
 }
