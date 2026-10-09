@@ -22,6 +22,7 @@
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas_rendering.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui_internal.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/game_data.h"
@@ -660,6 +661,127 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   };
   Click("View options", frame);
   EXPECT_TRUE(ImGui::IsPopupOpen("View options", ImGuiPopupFlags_AnyPopupId));
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       PixelToolbarCentersCompleteMaterialGlyphsAtFontScales) {
+  // Match the shipped Karla + Material merge, including its inline-text
+  // baseline offset. The default test font has no Material glyphs and cannot
+  // expose the icon displacement seen in the application.
+  const auto font_dir = std::filesystem::path(__FILE__)
+                            .parent_path()
+                            .parent_path()
+                            .parent_path()
+                            .parent_path() /
+                        "assets/font";
+  const auto text_font = font_dir / "Karla-Regular.ttf";
+  const auto icon_font = font_dir / "MaterialIcons-Regular.ttf";
+  ASSERT_TRUE(std::filesystem::is_regular_file(text_font));
+  ASSERT_TRUE(std::filesystem::is_regular_file(icon_font));
+  auto& io = ImGui::GetIO();
+  io.Fonts->Clear();
+  io.FontDefault = io.Fonts->AddFontFromFileTTF(text_font.string().c_str(), 16);
+  ASSERT_NE(io.FontDefault, nullptr);
+  ImFontConfig icons;
+  icons.MergeMode = true;
+  icons.GlyphOffset.y = 5;
+  icons.GlyphMinAdvanceX = 13;
+  icons.PixelSnapH = true;
+  static const ImWchar ranges[] = {ICON_MIN_MD, 0xf900, 0};
+  ASSERT_NE(io.Fonts->AddFontFromFileTTF(icon_font.string().c_str(), 18, &icons,
+                                         ranges),
+            nullptr);
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  io.Fonts->SetTexID((ImTextureID)0x4321);
+
+  const std::pair<const char*, const char*> controls[] = {
+      {"Select (M)", ICON_MD_SELECT_ALL},
+      {"Hand (H)", ICON_MD_PAN_TOOL},
+      {"Pencil (B)", ICON_MD_DRAW},
+      {"Brush (P)", ICON_MD_BRUSH},
+      {"Eraser (E)", ICON_MD_AUTO_FIX_HIGH},
+      {"Fill (G)", ICON_MD_FORMAT_COLOR_FILL},
+      {"Line (L)", ICON_MD_HORIZONTAL_RULE},
+      {"Rectangle (R)", ICON_MD_CROP_SQUARE},
+      {"Eyedropper (I)", ICON_MD_COLORIZE},
+      {"Undo pixels", ICON_MD_UNDO},
+      {"Redo pixels", ICON_MD_REDO},
+      {"View options", ICON_MD_TUNE},
+      {"Edit options", ICON_MD_MORE_HORIZ},
+      {"Zoom out", ICON_MD_ZOOM_OUT},
+      {"Zoom in", ICON_MD_ZOOM_IN},
+  };
+  PixelEditorPanel pixel(&state_, nullptr);
+  const ImGuiStyle original_style = ImGui::GetStyle();
+  for (float scale : {1.0f, 1.25f, 1.5f}) {
+    SCOPED_TRACE(scale);
+    io.FontGlobalScale = scale;
+    ImGui::GetStyle() = original_style;
+    ImGui::GetStyle().ScaleAllSizes(scale);
+    // Icon placement must not inherit an alignment chosen for text buttons.
+    ImGui::GetStyle().ButtonTextAlign = ImVec2(0, 1);
+    ImFontBaked* rendered_font = nullptr;
+    auto frame = [&] {
+      Frame(
+          [&] {
+            EXPECT_TRUE(pixel.Update().ok());
+            rendered_font = ImGui::GetFontBaked();
+          },
+          1100);
+    };
+    frame();
+    frame();
+    auto* host = ImGui::FindWindowByName("GraphicsHost");
+    ASSERT_NE(host, nullptr);
+    const auto& vertices = host->DrawList->VtxBuffer;
+    ASSERT_NE(rendered_font, nullptr);
+    for (const auto& [label, icon] : controls) {
+      SCOPED_TRACE(label);
+      const auto widget = FindWidget(label);
+      ASSERT_TRUE(widget);
+      unsigned int codepoint = 0;
+      ImTextCharFromUtf8(&codepoint, icon, nullptr);
+      const auto* glyph = rendered_font->FindGlyphNoFallback(codepoint);
+      ASSERT_NE(glyph, nullptr);
+      ASSERT_TRUE(glyph->Visible);
+      int complete_glyphs = 0;
+      for (int i = 0; i + 3 < vertices.Size; ++i) {
+        const auto& a = vertices[i];
+        const auto& b = vertices[i + 1];
+        const auto& c = vertices[i + 2];
+        const auto& d = vertices[i + 3];
+        if (a.uv.x != glyph->U0 || a.uv.y != glyph->V0 || b.uv.x != glyph->U1 ||
+            b.uv.y != glyph->V0 || c.uv.x != glyph->U1 || c.uv.y != glyph->V1 ||
+            d.uv.x != glyph->U0 || d.uv.y != glyph->V1 ||
+            (a.col & IM_COL32_A_MASK) == 0)
+          continue;
+        ++complete_glyphs;
+        const auto& bounds = widget->bounds;
+        EXPECT_NEAR((a.pos.x + c.pos.x) * 0.5f,
+                    (bounds.min_x + bounds.max_x) * 0.5f, 0.5f);
+        EXPECT_NEAR((a.pos.y + c.pos.y) * 0.5f,
+                    (bounds.min_y + bounds.max_y) * 0.5f, 0.5f);
+        EXPECT_GE(a.pos.x, bounds.min_x + scale);
+        EXPECT_GE(a.pos.y, bounds.min_y + scale);
+        EXPECT_LE(c.pos.x, bounds.max_x - scale);
+        EXPECT_LE(c.pos.y, bounds.max_y - scale);
+        // Disabled history buttons retain the standard disabled alpha.
+        const bool disabled =
+            std::string(label).find("pixels") != std::string::npos;
+        const int expected_alpha = static_cast<int>(
+            255 * (disabled ? ImGui::GetStyle().DisabledAlpha : 1) + 0.5f);
+        EXPECT_NEAR((a.col >> IM_COL32_A_SHIFT) & 255, expected_alpha, 1);
+      }
+      EXPECT_EQ(complete_glyphs, 1);
+    }
+    Click("Brush (P)", frame);
+    EXPECT_EQ(state_.current_tool, PixelTool::kBrush);
+    const float previous_zoom = state_.zoom_level;
+    Click("Zoom in", frame);
+    EXPECT_GT(state_.zoom_level, previous_zoom);
+  }
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,

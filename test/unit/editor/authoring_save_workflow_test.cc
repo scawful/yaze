@@ -6,6 +6,7 @@
 // with EditorManager::SaveRom / SaveRomAs.
 
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -39,6 +40,7 @@
 #include "app/editor/graphics/pixel_clipboard.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
 #include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
@@ -73,6 +75,11 @@ namespace yaze::editor {
 
 class AuthoringSaveWorkflowTestPeer {
  public:
+  static const std::vector<MessageData>& ExpandedMessages(
+      const MessageEditor& editor) {
+    return editor.expanded_messages_;
+  }
+
   static RoomTagEditorPanel* RoomTags(DungeonEditorV2& editor) {
     return editor.room_tag_editor_panel_;
   }
@@ -678,6 +685,65 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   gfx::NullRenderer renderer_;
   std::unique_ptr<EditorManager> manager_;
 };
+
+TEST_F(AuthoringSaveWorkflowTest, OracleProjectLoadsCanonicalMessagesOnOpen) {
+  const auto fixture = CopyProject("yaze-project-message-autoload");
+  const auto source_root = std::filesystem::path(kSharedProject).parent_path();
+  const auto bundle_relative =
+      std::filesystem::path("Data/dialogue/expanded_messages.json");
+  const auto include_relative =
+      std::filesystem::path("Core/Generated/expanded_messages.asm");
+  for (const auto& relative : {bundle_relative, include_relative}) {
+    std::filesystem::create_directories(
+        (fixture.root / relative).parent_path());
+    std::filesystem::copy_file(source_root / relative, fixture.root / relative);
+  }
+  // The source contract is project-relative, not relative to the ASM folder.
+  auto project_bytes = ReadFile(fixture.project);
+  std::string project_text(project_bytes.begin(), project_bytes.end());
+  ReplaceAssignment(&project_text, "code_folder", "Core");
+  {
+    std::ofstream project_file(fixture.project);
+    project_file << project_text;
+  }
+  const auto bundle_before = ReadFile(fixture.root / bundle_relative);
+  const auto include_before = ReadFile(fixture.root / include_relative);
+  const auto rom_before = ReadFile(fixture.rom);
+  const auto source = nlohmann::json::parse(bundle_before);
+  ASSERT_EQ(source.at("messages").size(), 119u);
+
+  for (const auto mode : {AssetLoadMode::kLazy, AssetLoadMode::kFull}) {
+    SCOPED_TRACE(mode == AssetLoadMode::kLazy ? "lazy open" : "preloaded open");
+    manager_ = std::make_unique<EditorManager>();
+    test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+    manager_->SetAssetLoadMode(mode);
+    ASSERT_OK(manager_->OpenRomOrProject(fixture.project.string()));
+    ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kMessage));
+    auto* messages = manager_->GetCurrentEditorSet()->GetMessageEditor();
+    ASSERT_NE(messages, nullptr);
+    const auto& expanded =
+        AuthoringSaveWorkflowTestPeer::ExpandedMessages(*messages);
+    ASSERT_EQ(expanded.size(), 119u);
+    for (size_t i = 0; i < expanded.size(); ++i) {
+      EXPECT_EQ(expanded[i].ID, source.at("messages")[i].at("id"));
+      EXPECT_EQ(expanded[i].RawString,
+                source.at("messages")[i].at("text").get<std::string>());
+      EXPECT_TRUE(messages->OpenMessageById(0x18D + static_cast<int>(i)));
+    }
+    EXPECT_FALSE(messages->OpenMessageById(0x204));
+    EXPECT_FALSE(messages->CanUndo());
+    EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
+    EXPECT_FALSE(manager_->GetCurrentRom()->dirty());
+    EXPECT_OK(messages->Save());
+    EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
+    EXPECT_EQ(ReadFile(fixture.rom), rom_before);
+    EXPECT_EQ(ReadFile(fixture.root / bundle_relative), bundle_before);
+    EXPECT_EQ(ReadFile(fixture.root / include_relative), include_before);
+    manager_.reset();
+    gfx::Arena::Get().ClearTextureQueue();
+  }
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
 
 TEST_F(AuthoringSaveWorkflowTest,
        DungeonMapFloorControlsUndoRetrySaveAsReopen) {

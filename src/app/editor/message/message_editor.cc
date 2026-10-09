@@ -71,6 +71,7 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 
 void MessageEditor::Initialize() {
   font_graphics_loaded_ = false;
+  project_source_load_attempted_ = false;
   dirty_state_ = {};
   transaction_dirty_snapshot_ = {};
   transaction_saved_domains_ = {};
@@ -152,10 +153,11 @@ bool MessageEditor::OpenMessageById(int display_id) {
   auto resolved = ResolveMessageDisplayId(display_id, vanilla_count,
                                           expanded_base_id, expanded_count);
 
-  // Convenience: if an expanded ID is requested but we haven't loaded expanded
-  // messages yet, try loading from ROM once.
+  // Projects without a canonical source can inspect expanded ROM messages on
+  // navigation. A missing project source must remain an explicit source error.
   if (!resolved.has_value() && expanded_count == 0 &&
-      display_id >= expanded_base_id && rom_ && rom_->is_loaded()) {
+      !HasMessageSourceLayout() && display_id >= expanded_base_id && rom_ &&
+      rom_->is_loaded()) {
     const auto range = ExpandedInspectionRange();
     const int start = range.first;
     const int end = range.second;
@@ -365,6 +367,24 @@ void MessageEditor::RefreshFontAtlasBitmap(
 
 absl::Status MessageEditor::Load() {
   gfx::ScopedTimer timer("MessageEditor::Load");
+  if (!HasMessageSourceLayout() || project_source_load_attempted_) {
+    return absl::OkStatus();
+  }
+  project_source_load_attempted_ = true;
+  // Loading assets may be requested again during Save or editor activation.
+  // Never replace an existing draft (including an explicit ROM inspection).
+  if (!expanded_messages_.empty() || !source_loaded_canonical_sha_.empty()) {
+    return absl::OkStatus();
+  }
+  const auto status = LoadCanonicalExpandedSource();
+  if (!status.ok()) {
+    message_bundle_status_ = absl::StrFormat(
+        "Expanded source unavailable: %s. Vanilla dialogue remains available.",
+        status.message());
+    message_bundle_status_error_ = true;
+  }
+  // Source errors belong in the Message editor; they must not prevent opening
+  // the project or editing its independent vanilla messages.
   return absl::OkStatus();
 }
 
@@ -1767,8 +1787,9 @@ void MessageEditor::DrawExpandedMessageSettings() {
   if (HasMessageSourceLayout()) {
     ImGui::TextWrapped(
         "%s",
-        tr("Expanded dialogue is published from the canonical bundle. Load "
-           "that bundle before editing. Inspecting the built ROM uses the "
+        tr("Expanded dialogue loads automatically from the project bundle. "
+           "Reload it after resolving a source error. Inspecting the built ROM "
+           "uses the "
            "manifest data range and does not replace the canonical source."));
     if (ImGui::Button(tr("Load canonical source"))) {
       const auto status = LoadCanonicalExpandedSource();
@@ -2588,22 +2609,37 @@ absl::Status MessageEditor::LoadCanonicalExpandedSource() {
     return absl::FailedPreconditionError(
         "The project hack manifest does not define messages.source");
   }
-  const auto path_or = ResolveCanonicalBundlePath();
-  if (!path_or.ok()) {
-    return path_or.status();
-  }
-  std::error_code error;
-  if (!std::filesystem::is_regular_file(path_or.value(), error) || error) {
-    return absl::NotFoundError(absl::StrFormat(
-        "Canonical message bundle was not found: %s", path_or->string()));
-  }
-  ImportMessageBundleFromFile(path_or->string());
-  if (message_bundle_status_error_) {
-    return absl::FailedPreconditionError(message_bundle_status_);
-  }
-  if (source_loaded_canonical_sha_.empty()) {
+  if (dirty_state_.expanded_messages || dirty_state_.vanilla_messages ||
+      dirty_state_.font_widths || pending_undo_before_.has_value() ||
+      !current_parse_errors_.empty()) {
     return absl::FailedPreconditionError(
-        "Canonical bundle did not bind an expanded-message identity");
+        "The Message editor has pending edits; canonical source was not "
+        "loaded");
+  }
+  auto source_or = LoadMessageSource(*dependencies_.project);
+  if (!source_or.ok()) {
+    return source_or.status();
+  }
+  // Commit only after the complete source bank validates. This does not import
+  // vanilla messages, set ROM dirty, write a preview, or publish source files.
+  expanded_message_base_id_ = source_or->first_expanded_id;
+  expanded_messages_ = std::move(source_or->messages);
+  expanded_message_path_ = source_or->canonical_bundle_path.string();
+  source_loaded_canonical_sha_ = std::move(source_or->source_sha256);
+  parsed_messages_.resize(expanded_message_base_id_ +
+                          expanded_messages_.size());
+  for (const auto& message : expanded_messages_) {
+    parsed_messages_[expanded_message_base_id_ + message.ID] =
+        message.RawString;
+  }
+  InvalidateSourcePreview();
+  NoteLoadedMessages();
+  message_bundle_status_ =
+      absl::StrFormat("Loaded %zu expanded messages from project source: %s",
+                      expanded_messages_.size(), expanded_message_path_);
+  message_bundle_status_error_ = false;
+  if (current_message_is_expanded_) {
+    OpenMessageById(expanded_message_base_id_ + current_message_index_);
   }
   return absl::OkStatus();
 }

@@ -19,6 +19,7 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/session_types.h"
 #include "core/project.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -29,6 +30,30 @@ class MessageEditorPublishGuardTestPeer {
  public:
   static absl::Status LoadCanonical(MessageEditor& editor) {
     return editor.LoadCanonicalExpandedSource();
+  }
+
+  static size_t ExpandedCount(const MessageEditor& editor) {
+    return editor.expanded_messages_.size();
+  }
+
+  static int ExpandedBaseId(const MessageEditor& editor) {
+    return editor.expanded_message_base_id_;
+  }
+
+  static const std::string& BundleStatus(const MessageEditor& editor) {
+    return editor.message_bundle_status_;
+  }
+
+  static bool BundleStatusError(const MessageEditor& editor) {
+    return editor.message_bundle_status_error_;
+  }
+
+  static const std::string& LoadedSourceSha(const MessageEditor& editor) {
+    return editor.source_loaded_canonical_sha_;
+  }
+
+  static void Import(MessageEditor& editor, const std::string& path) {
+    editor.ImportMessageBundleFromFile(path);
   }
 
   static void Preview(MessageEditor& editor) { editor.PreviewMessageSource(); }
@@ -233,27 +258,26 @@ std::string Bundle(const std::vector<std::pair<int, std::string>>& messages) {
 }
 
 struct PublishFixture {
-  explicit PublishFixture(size_t rom_size = 0x180100)
-      : root(),
-        canonical(root.path() / "Data/dialogue/expanded_messages.json"),
-        rom(MakeRom(rom_size)) {
+  explicit PublishFixture(
+      size_t rom_size = 0x180100,
+      const std::string& source_path = "Data/dialogue/expanded_messages.json")
+      : root(), canonical(root.path() / source_path), rom(MakeRom(rom_size)) {
     fs::create_directories(root.path() / "Core/Generated");
     WriteText(canonical, Bundle({{0, "Alpha"}, {1, "Beta"}}));
-    Json manifest = {
-        {"manifest_version", 3},
-        {"hack_name", "Oracle of Secrets"},
-        {"messages",
-         {{"data_start", "0x2F8026"},
-          {"data_end", "0x2F80FF"},
-          {"vanilla_count", 1},
-          {"expanded_range",
-           {{"first", "0x18D"}, {"last", "0x18E"}, {"count", 2}}},
-          {"source",
-           {{"format", "yaze-message-bundle"},
-            {"version", 1},
-            {"canonical_bundle_path", "Data/dialogue/expanded_messages.json"},
-            {"generated_asm_include_path",
-             "Core/Generated/expanded_messages.asm"}}}}}};
+    Json manifest = {{"manifest_version", 3},
+                     {"hack_name", "Oracle of Secrets"},
+                     {"messages",
+                      {{"data_start", "0x2F8026"},
+                       {"data_end", "0x2F80FF"},
+                       {"vanilla_count", 1},
+                       {"expanded_range",
+                        {{"first", "0x18D"}, {"last", "0x18E"}, {"count", 2}}},
+                       {"source",
+                        {{"format", "yaze-message-bundle"},
+                         {"version", 1},
+                         {"canonical_bundle_path", source_path},
+                         {"generated_asm_include_path",
+                          "Core/Generated/expanded_messages.asm"}}}}}};
     project.filepath = (root.path() / "Oracle-of-Secrets.yaze").string();
     project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
     if (!project.hack_manifest.LoadFromString(manifest.dump()).ok()) {
@@ -280,6 +304,210 @@ struct PublishFixture {
 };
 
 }  // namespace
+
+TEST(MessageProjectSourceLoadTest,
+     EditorLoadUsesDeclaredProjectPathWithoutWrites) {
+  PublishFixture fixture(0x180100, "Dialogue/custom-canonical.json");
+  fixture.project.code_folder = "Core";
+  const auto rom_before = fixture.rom.vector();
+  const auto source_before = ReadText(fixture.canonical);
+  const auto include_path =
+      fixture.root.path() / "Core/Generated/expanded_messages.asm";
+  WriteText(include_path,
+            "Existing generated output is not a load prerequisite");
+  const auto include_before = ReadText(include_path);
+  EditorSet editors(&fixture.rom);
+  editors.ApplyDependencies(fixture.dependencies);
+  auto* editor = editors.GetEditorAs<MessageEditor>(EditorType::kMessage);
+  ASSERT_NE(editor, nullptr);
+  editor->Initialize();
+
+  ASSERT_TRUE(editor->Load().ok());
+
+  ASSERT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(*editor), 2u);
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedBaseId(*editor), 0x18D);
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(*editor, 0),
+            "Alpha");
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(*editor, 1),
+            "Beta");
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::LoadedSourceSha(*editor),
+            ComputeMessageSourceSha256(source_before));
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::BundleStatusError(*editor));
+  EXPECT_NE(MessageEditorPublishGuardTestPeer::BundleStatus(*editor).find(
+                "Dialogue/custom-canonical.json"),
+            std::string::npos);
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ExpandedDirty(*editor));
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::VanillaDirty(*editor));
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::FontDirty(*editor));
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::Ready(*editor));
+  EXPECT_EQ(fixture.rom.vector(), rom_before);
+  EXPECT_FALSE(fixture.rom.dirty());
+  EXPECT_EQ(ReadText(fixture.canonical), source_before);
+  EXPECT_EQ(ReadText(include_path), include_before);
+}
+
+TEST(MessageProjectSourceLoadTest,
+     RepeatedLoadPreservesDraftAndOriginalSourceIdentity) {
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(editor.Load().ok());
+  const auto source_sha =
+      MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor);
+  MessageEditorPublishGuardTestPeer::SetExpandedText(editor, 0, "Draft");
+  MessageEditorPublishGuardTestPeer::MarkExpandedDirty(editor);
+  WriteText(fixture.canonical, Bundle({{0, "External"}, {1, "Beta"}}));
+
+  ASSERT_TRUE(editor.Load().ok());
+
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(editor, 0),
+            "Draft");
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor),
+            source_sha);
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::ExpandedDirty(editor));
+  EXPECT_FALSE(editor.LoadCanonicalExpandedSource().ok());
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(editor, 0),
+            "Draft");
+}
+
+TEST(MessageProjectSourceLoadTest, FirstLoadPreservesManualImport) {
+  PublishFixture fixture;
+  const auto incoming = fixture.root.path() / "draft.json";
+  WriteText(incoming, Bundle({{0, "Imported draft"}}));
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  MessageEditorPublishGuardTestPeer::Import(editor, incoming.string());
+  ASSERT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(editor), 1u);
+
+  ASSERT_TRUE(editor.Load().ok());
+
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(editor), 1u);
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(editor, 0),
+            "Imported draft");
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::ExpandedDirty(editor));
+  EXPECT_TRUE(
+      MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor).empty());
+}
+
+TEST(MessageProjectSourceLoadTest, FirstLoadPreservesPendingVanillaEdits) {
+  PublishFixture fixture;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  MessageEditorPublishGuardTestPeer::SetVanillaDirty(editor);
+  const auto rom_before = fixture.rom.vector();
+
+  ASSERT_TRUE(editor.Load().ok());
+
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(editor), 0u);
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::VanillaDirty(editor));
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::BundleStatusError(editor));
+  EXPECT_NE(MessageEditorPublishGuardTestPeer::BundleStatus(editor).find(
+                "pending edits"),
+            std::string::npos);
+  EXPECT_EQ(fixture.rom.vector(), rom_before);
+  EXPECT_TRUE(fixture.rom.dirty());
+}
+
+TEST(MessageProjectSourceLoadTest,
+     MissingSourceShowsPathAndCanBeRetriedExplicitly) {
+  PublishFixture fixture;
+  fs::remove(fixture.canonical);
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  const auto rom_before = fixture.rom.vector();
+
+  ASSERT_TRUE(editor.Load().ok());
+
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::BundleStatusError(editor));
+  EXPECT_NE(MessageEditorPublishGuardTestPeer::BundleStatus(editor).find(
+                "expanded_messages.json"),
+            std::string::npos);
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(editor), 0u);
+  EXPECT_FALSE(editor.OpenMessageById(0x18D));
+  EXPECT_EQ(fixture.rom.vector(), rom_before);
+  EXPECT_FALSE(fixture.rom.dirty());
+  EXPECT_FALSE(fs::exists(fixture.canonical));
+  WriteText(fixture.canonical, Bundle({{0, "Restored"}, {1, "Beta"}}));
+  ASSERT_TRUE(editor.LoadCanonicalExpandedSource().ok());
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(editor, 0),
+            "Restored");
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::BundleStatusError(editor));
+}
+
+TEST(MessageProjectSourceLoadTest,
+     InvalidSourceNeverPartiallyLoadsOrMarksDirty) {
+  for (const auto& invalid : std::vector<std::string>{
+           "not JSON", Bundle({{0, "Incomplete"}}),
+           Bundle({{0, "First"}, {0, "Duplicate"}}),
+           Bundle({{0, "Valid"}, {2, "Out of range"}}),
+           Bundle({{0, "Valid"}, {1, "[BANK]"}}),
+           Bundle({{0, std::string(300, 'A')}, {1, "Capacity"}})}) {
+    SCOPED_TRACE(invalid);
+    PublishFixture fixture;
+    WriteText(fixture.canonical, invalid);
+    MessageEditor editor(&fixture.rom, fixture.dependencies);
+    const auto rom_before = fixture.rom.vector();
+
+    ASSERT_TRUE(editor.Load().ok());
+
+    EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(editor), 0u);
+    EXPECT_TRUE(MessageEditorPublishGuardTestPeer::BundleStatusError(editor));
+    EXPECT_TRUE(
+        MessageEditorPublishGuardTestPeer::LoadedSourceSha(editor).empty());
+    EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ExpandedDirty(editor));
+    EXPECT_EQ(fixture.rom.vector(), rom_before);
+    EXPECT_FALSE(fixture.rom.dirty());
+    EXPECT_EQ(ReadText(fixture.canonical), invalid);
+  }
+}
+
+TEST(MessageProjectSourceLoadTest, SessionProjectSourcesRemainIsolated) {
+  PublishFixture first;
+  PublishFixture second;
+  WriteText(second.canonical, Bundle({{0, "Second"}, {1, "Session"}}));
+  EditorSet first_editors(&first.rom);
+  EditorSet second_editors(&second.rom);
+  first_editors.ApplyDependencies(first.dependencies);
+  second_editors.ApplyDependencies(second.dependencies);
+  auto* first_editor =
+      first_editors.GetEditorAs<MessageEditor>(EditorType::kMessage);
+  auto* second_editor =
+      second_editors.GetEditorAs<MessageEditor>(EditorType::kMessage);
+  ASSERT_TRUE(first_editor->Load().ok());
+  ASSERT_TRUE(second_editor->Load().ok());
+
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(*first_editor, 0),
+            "Alpha");
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(*second_editor, 0),
+            "Second");
+  MessageEditorPublishGuardTestPeer::SetExpandedText(*first_editor, 0,
+                                                     "First draft");
+  MessageEditorPublishGuardTestPeer::MarkExpandedDirty(*first_editor);
+  ASSERT_TRUE(second_editor->Load().ok());
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(*second_editor, 0),
+            "Second");
+  EXPECT_FALSE(
+      MessageEditorPublishGuardTestPeer::ExpandedDirty(*second_editor));
+  EXPECT_NE(MessageEditorPublishGuardTestPeer::LoadedSourceSha(*first_editor),
+            MessageEditorPublishGuardTestPeer::LoadedSourceSha(*second_editor));
+}
+
+TEST(MessageProjectSourceLoadTest,
+     ProjectsWithoutSourceKeepExistingLoadBehavior) {
+  PublishFixture fixture;
+  project::YazeProject generic;
+  fixture.dependencies.project = &generic;
+  MessageEditor editor(&fixture.rom, fixture.dependencies);
+  const auto incoming = fixture.root.path() / "generic-draft.json";
+  WriteText(incoming, Bundle({{0, "Generic draft"}}));
+  MessageEditorPublishGuardTestPeer::Import(editor, incoming.string());
+  ASSERT_TRUE(editor.Load().ok());
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedText(editor, 0),
+            "Generic draft");
+  EXPECT_TRUE(MessageEditorPublishGuardTestPeer::ExpandedDirty(editor));
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::BundleStatusError(editor));
+  fixture.dependencies.project = nullptr;
+  MessageEditor vanilla(&fixture.rom, fixture.dependencies);
+  ASSERT_TRUE(vanilla.Load().ok());
+  EXPECT_EQ(MessageEditorPublishGuardTestPeer::ExpandedCount(vanilla), 0u);
+  EXPECT_FALSE(MessageEditorPublishGuardTestPeer::BundleStatusError(vanilla));
+}
 
 TEST(MessageSourcePublishGuardTest, ExternalChangeBeforePreviewIsNotPublished) {
   PublishFixture fixture;
