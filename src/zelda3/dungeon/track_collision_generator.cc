@@ -149,15 +149,16 @@ uint8_t ClassifyTile(bool up, bool down, bool left, bool right) {
   }
 
   if (count == 3) {
-    // T-junction — named for the direction WITHOUT a neighbor
+    // Oracle names T junctions for the CLOSED side. Its minecart input and
+    // default-direction tables turn away from that edge (e.g. $BB blocks north).
     if (!up)
-      return static_cast<uint8_t>(TrackTileType::TJuncSouth);
-    if (!down)
       return static_cast<uint8_t>(TrackTileType::TJuncNorth);
+    if (!down)
+      return static_cast<uint8_t>(TrackTileType::TJuncSouth);
     if (!left)
-      return static_cast<uint8_t>(TrackTileType::TJuncEast);
-    if (!right)
       return static_cast<uint8_t>(TrackTileType::TJuncWest);
+    if (!right)
+      return static_cast<uint8_t>(TrackTileType::TJuncEast);
   }
 
   // count == 4: full intersection
