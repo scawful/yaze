@@ -139,6 +139,11 @@ class TileObjectHandler : public BaseEntityHandler {
   void SetObjectMutationPreflight(ObjectMutationPreflight callback) {
     object_mutation_preflight_ = std::move(callback);
   }
+  // Runs only after a discrete command passes preflight, before publishing it.
+  // Continuous drag increments must not finish their own gesture.
+  void SetBeforeObjectCommandCallback(std::function<void()> callback) {
+    before_object_command_callback_ = std::move(callback);
+  }
   const absl::Status& mutation_status() const { return mutation_status_; }
   void SetMutationErrorCallback(
       std::function<void(const absl::Status&)> callback) {
@@ -252,6 +257,7 @@ class TileObjectHandler : public BaseEntityHandler {
   absl::Status clipboard_status_;
   absl::Status mutation_status_;
   ObjectMutationPreflight object_mutation_preflight_;
+  std::function<void()> before_object_command_callback_;
   std::function<void(const absl::Status&)> mutation_error_callback_;
   bool RejectMutation(absl::Status status);
 

@@ -44,6 +44,10 @@ namespace {
 constexpr int kChestPc = 0x110000;
 constexpr int kHeaderTablePc = 0x0F6000;
 constexpr int kHeaderPc = 0x114000;
+constexpr int kObjectTablePc = 0x0F8000;
+constexpr int kObjectPc = 0x100000;
+constexpr int kSpriteTablePc = 0x04D000;
+constexpr int kSpritePc = 0x04D900;
 
 void WritePointer(Rom& rom, int address, int destination) {
   const auto snes = PcToSnes(destination);
@@ -84,6 +88,25 @@ class DungeonRoomEditsLifecycleTest : public ::testing::TestWithParam<bool> {
       ASSERT_TRUE(rom_.WriteWord(kHeaderTablePc + id * 2,
                                  PcToSnes(kHeaderPc + id * 0x20) & 0xFFFF)
                       .ok());
+    }
+    // Authoring preflight validates stream storage even when saving that
+    // domain is disabled. Give both loaded rooms unique writable allocations;
+    // room 2 supplies the physical boundary after room 1 without being loaded.
+    WritePointer(rom_, zelda3::kRoomObjectPointer, kObjectTablePc);
+    ASSERT_TRUE(rom_.WriteWord(zelda3::kRoomsSpritePointer,
+                               PcToSnes(kSpriteTablePc) & 0xFFFF)
+                    .ok());
+    for (int id = 0; id < 3; ++id) {
+      const int object_pc = kObjectPc + id * 0x100;
+      const int sprite_pc = kSpritePc + id * 0x100;
+      WritePointer(rom_, kObjectTablePc + id * 3, object_pc);
+      ASSERT_TRUE(rom_.WriteVector(object_pc, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF,
+                                               0xF0, 0xFF, 0xFF, 0xFF})
+                      .ok());
+      ASSERT_TRUE(
+          rom_.WriteWord(kSpriteTablePc + id * 2, PcToSnes(sprite_pc) & 0xFFFF)
+              .ok());
+      ASSERT_TRUE(rom_.WriteVector(sprite_pc, {0, 0xFF}).ok());
     }
     // Reserved bits must survive header edits and undo after saving.
     rom_.mutable_data()[kHeaderPc] = 0x02;
@@ -272,7 +295,8 @@ TEST_P(DungeonRoomEditsLifecycleTest,
 TEST_P(DungeonRoomEditsLifecycleTest, MixedDomainsUndoChronologically) {
   room_->GetSprites().emplace_back(9, 2, 3, 0, 0);
   auto& coordinator = viewer_->object_interaction().entity_coordinator();
-  ASSERT_TRUE(coordinator.sprite_handler().UpdateSprite(0, 1, 8, 9, 0, 0, 0));
+  ASSERT_TRUE(coordinator.sprite_handler().UpdateSprite(0, 1, 8, 9, 0, 0, 0))
+      << coordinator.sprite_handler().mutation_status();
   ASSERT_TRUE(
       viewer_->EditRoomMetadata(0, {RoomMetadataField::kMessage, 0x123}).ok());
   ASSERT_TRUE(viewer_->EditChest(0, 1, 0x33, false).ok());
@@ -540,7 +564,8 @@ TEST_P(DungeonRoomEditsLifecycleTest,
        ChestPlacementAndDeletionAreCompoundUndo) {
   SeedChestObjects();
   const auto rom_before = rom_.vector();
-  ASSERT_TRUE(Handler().PlaceObjectAt(0, Chest(true), 12, 14));
+  ASSERT_TRUE(Handler().PlaceObjectAt(0, Chest(true), 12, 14))
+      << Handler().mutation_status();
   ASSERT_EQ(UndoDepth(), 1u);
   ASSERT_EQ(room_->GetTileObjects().size(), 3u);
   ASSERT_EQ(room_->GetChests().size(), 3u);
@@ -569,7 +594,8 @@ TEST_P(DungeonRoomEditsLifecycleTest,
 
 TEST_P(DungeonRoomEditsLifecycleTest, ChestTypeAndRewardChangeRestoreTogether) {
   SeedChestObjects();
-  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, true).ok());
+  const auto chest_status = viewer_->EditChest(0, 0, 9, true);
+  ASSERT_TRUE(chest_status.ok()) << chest_status;
   EXPECT_EQ(UndoDepth(), 1u);
   EXPECT_EQ(room_->GetTileObjects()[0].id_, 0xFB1);
   EXPECT_EQ(room_->GetTileObjects()[0].size_,
@@ -630,7 +656,8 @@ TEST_P(DungeonRoomEditsLifecycleTest,
   const auto before = rom_.vector();
   viewer_->object_interaction().SetSelectedObjects({1});
   EXPECT_FALSE(Handler().PlaceObjectAt(0, Chest(), 10, 10));
-  EXPECT_TRUE(absl::IsResourceExhausted(Handler().mutation_status()));
+  EXPECT_TRUE(absl::IsResourceExhausted(Handler().mutation_status()))
+      << Handler().mutation_status();
   EXPECT_EQ(UndoDepth(), 0u);
   EXPECT_EQ(room_->GetTileObjects().size(), 2u);
   EXPECT_EQ(room_->GetChests().size(), 2u);
@@ -647,7 +674,8 @@ TEST_P(DungeonRoomEditsLifecycleTest, GlobalCapacityIncludesOtherDirtyRooms) {
   other.GetChests().push_back({0x33, false});
   other.MarkChestsDirty();
   EXPECT_FALSE(Handler().PlaceObjectAt(0, Chest(), 10, 10));
-  EXPECT_TRUE(absl::IsResourceExhausted(Handler().mutation_status()));
+  EXPECT_TRUE(absl::IsResourceExhausted(Handler().mutation_status()))
+      << Handler().mutation_status();
   EXPECT_EQ(UndoDepth(), 0u);
   EXPECT_FALSE(room_->HasUnsavedChanges());
   EXPECT_EQ(other.GetChests().size(), 2u);
@@ -801,7 +829,8 @@ TEST_P(DungeonRoomEditsLifecycleTest,
   Handler().HandleDrag(ImVec2(80, 64), ImVec2(16, 0));
   EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
   EXPECT_EQ(UndoDepth(), 0u);
-  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, true).ok());
+  const auto chest_status = viewer_->EditChest(0, 0, 9, true);
+  ASSERT_TRUE(chest_status.ok()) << chest_status;
   EXPECT_EQ(UndoDepth(), 2u);
   Handler().HandleDrag(ImVec2(96, 64), ImVec2(16, 0));
   EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
@@ -820,7 +849,18 @@ TEST_P(DungeonRoomEditsLifecycleTest, ChestPlacementFinishesEarlierDrag) {
   interaction.mode_manager().SetMode(InteractionMode::DraggingObjects);
   Handler().InitDrag(ImVec2(64, 64));
   Handler().HandleDrag(ImVec2(80, 64), ImVec2(16, 0));
-  ASSERT_TRUE(Handler().PlaceObjectAt(0, Chest(true), 20, 20));
+  ASSERT_TRUE(Handler().PlaceObjectAt(0, Chest(true), 20, 20))
+      << Handler().mutation_status();
+  EXPECT_EQ(UndoDepth(), 2u);
+  EXPECT_EQ(interaction.mode_manager().GetMode(), InteractionMode::Select);
+  // The accepted placement ends the earlier drag before selecting the chest.
+  // A later movement from that gesture must not move either object.
+  Handler().HandleDrag(ImVec2(96, 64), ImVec2(16, 0));
+  ASSERT_EQ(room_->GetTileObjects().size(), 3u);
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
+  EXPECT_EQ(room_->GetTileObjects()[0].y_, 8);
+  EXPECT_EQ(room_->GetTileObjects()[2].x_, 20);
+  EXPECT_EQ(room_->GetTileObjects()[2].y_, 20);
   EXPECT_EQ(UndoDepth(), 2u);
   ASSERT_TRUE(editor_->Undo().ok());
   EXPECT_EQ(room_->GetTileObjects().size(), 2u);
@@ -828,6 +868,47 @@ TEST_P(DungeonRoomEditsLifecycleTest, ChestPlacementFinishesEarlierDrag) {
   EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
   ASSERT_TRUE(editor_->Undo().ok());
   EXPECT_EQ(room_->GetTileObjects()[0].x_, 8);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetTileObjects().size(), 2u);
+  EXPECT_EQ(room_->GetChests().size(), 2u);
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
+  ASSERT_TRUE(editor_->Redo().ok());
+  ASSERT_EQ(room_->GetTileObjects().size(), 3u);
+  ASSERT_EQ(room_->GetChests().size(), 3u);
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
+  EXPECT_EQ(room_->GetTileObjects()[2].x_, 20);
+  EXPECT_EQ(room_->GetTileObjects()[2].y_, 20);
+  EXPECT_TRUE(room_->GetChests()[2].size);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       ChestPlacementPreservesEditCommittedAtCommandBoundary) {
+  SeedChestObjects();
+  const auto rom_before = rom_.vector();
+  absl::Status boundary_status;
+  int boundary_calls = 0;
+  Handler().SetBeforeObjectCommandCallback([&]() {
+    ++boundary_calls;
+    // Completing earlier work can publish data after placement was planned.
+    boundary_status = viewer_->EditChest(0, 0, 9, true);
+  });
+  EXPECT_FALSE(Handler().PlaceObjectAt(0, Chest(), 20, 20));
+  EXPECT_EQ(boundary_calls, 1);
+  ASSERT_TRUE(boundary_status.ok()) << boundary_status;
+  EXPECT_EQ(Handler().mutation_status().code(),
+            absl::StatusCode::kFailedPrecondition)
+      << Handler().mutation_status();
+  ASSERT_EQ(room_->GetTileObjects().size(), 2u);
+  ASSERT_EQ(room_->GetChests().size(), 2u);
+  EXPECT_EQ(room_->GetTileObjects()[0].id_, 0xFB1);
+  EXPECT_EQ(room_->GetChests()[0].id, 9);
+  EXPECT_TRUE(room_->GetChests()[0].size);
+  EXPECT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(rom_.vector(), rom_before);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].id_, 0xF99);
+  EXPECT_EQ(room_->GetChests()[0].id, 0xF1);
+  EXPECT_FALSE(room_->GetChests()[0].size);
 }
 
 TEST_P(DungeonRoomEditsLifecycleTest, RejectedChestPlacementKeepsPendingDrag) {

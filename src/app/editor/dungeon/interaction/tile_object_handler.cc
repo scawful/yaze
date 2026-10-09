@@ -783,6 +783,22 @@ bool TileObjectHandler::CommitCandidate(
       return RejectMutation(mutation_status_);
     }
   }
+  if (before_object_command_callback_) {
+    const auto* source_context = ctx_;
+    const auto before_objects = room->GetTileObjects();
+    const auto before_chests = room->GetChests();
+    before_object_command_callback_();
+    // Finishing an earlier gesture may publish a preview or rebind the viewer.
+    // Never replace that newer state with the already planned candidate.
+    if (ctx_ != source_context || !ctx_ || ctx_->current_room_id != room_id ||
+        GetRoom(room_id) != room ||
+        !SameAuthoredObjects(room->GetTileObjects(), before_objects) ||
+        !SameChests(room->GetChests(), before_chests)) {
+      return RejectMutation(absl::FailedPreconditionError(
+          "Room objects changed while finishing the previous gesture; repeat "
+          "the edit"));
+    }
+  }
   if (ctx_) {
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
   }

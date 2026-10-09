@@ -365,20 +365,15 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
       .entity_coordinator()
       .tile_handler()
       .SetObjectMutationPreflight(
-          [this, viewer](int room_id,
-                         const std::vector<zelda3::RoomObject>& objects,
-                         const std::vector<chest_data>& chests) {
-            const auto status =
-                PreflightObjectMutation(room_id, objects, chests);
-            if (status.ok() &&
-                viewer->object_interaction().mode_manager().GetMode() !=
-                    InteractionMode::DraggingObjects) {
-              // A continuous drag now also preflights each candidate. Releasing
-              // it here would end the gesture on its first accepted movement.
-              viewer->object_interaction().HandleMouseRelease();
-            }
-            return status;
+          [this](int room_id, const std::vector<zelda3::RoomObject>& objects,
+                 const std::vector<chest_data>& chests) {
+            return PreflightObjectMutation(room_id, objects, chests);
           });
+  viewer->object_interaction()
+      .entity_coordinator()
+      .tile_handler()
+      .SetBeforeObjectCommandCallback(
+          [this]() { FinalizePendingUndoActions(); });
   viewer->object_interaction()
       .entity_coordinator()
       .tile_handler()
