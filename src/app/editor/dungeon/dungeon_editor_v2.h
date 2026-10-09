@@ -213,6 +213,8 @@ class DungeonEditorV2 : public Editor {
   bool HasPendingRoomChanges() const;
   // All dungeon save domains plus unapplied editor-local work.
   bool HasPendingDungeonChanges() const;
+  // Track source must be published separately from the ROM save domains.
+  bool HasUnpublishedMinecartTrackChanges() const;
   bool HasPendingProjectDraftChanges() const;
   absl::Status PrepareProjectSave();
   bool CurrentRoomHasPendingChanges() const;

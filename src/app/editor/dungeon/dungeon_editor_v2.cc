@@ -1639,9 +1639,13 @@ bool DungeonEditorV2::HasPendingRoomChanges() const {
   return PendingRoomCount() > 0;
 }
 
+bool DungeonEditorV2::HasUnpublishedMinecartTrackChanges() const {
+  return minecart_track_editor_panel_ != nullptr &&
+         minecart_track_editor_panel_->HasUnpublishedChanges();
+}
+
 bool DungeonEditorV2::HasPendingDungeonChanges() const {
-  if (minecart_track_editor_panel_ != nullptr &&
-      minecart_track_editor_panel_->HasUnpublishedChanges()) {
+  if (HasUnpublishedMinecartTrackChanges()) {
     return true;
   }
   if (object_tile_editor_panel_ != nullptr &&
