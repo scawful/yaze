@@ -127,11 +127,20 @@ class GraphicsEditor : public Editor {
   void ContributeStatus(StatusBar* status_bar) override;
   EditorContextSnapshot BuildContextSnapshot() const override;
 
-  bool HasPendingGraphicsChanges() const { return state_.HasUnsavedChanges(); }
+  bool HasPendingGraphicsChanges() const {
+    return state_.HasUnsavedChanges() ||
+           (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke());
+  }
 
   // Coordinated ROM save: Save() clears the modified-sheet set, so a failed
   // save elsewhere must put it back (the ROM bytes are restored separately).
   absl::Status BeginSaveTransaction() override {
+    if (pixel_editor_panel_) {
+      pixel_editor_panel_->FinishReleasedGesture();
+      if (pixel_editor_panel_->HasActiveStroke())
+        return absl::FailedPreconditionError(
+            "Finish the pixel stroke before saving");
+    }
     save_transaction_modified_sheets_ = state_.modified_sheets;
     return absl::OkStatus();
   }
@@ -206,6 +215,7 @@ class GraphicsEditor : public Editor {
   void ToggleGrid();
   void PrevSheet();
   void SelectSheet(uint16_t sheet_id);
+  void FinishPixelGesture();
   // Opens only Pixel Editor and Usage Preview, retaining the source editor's
   // resolved colors and live preview for this ROM session.
   absl::Status OpenInContext(GraphicsEditContext context);

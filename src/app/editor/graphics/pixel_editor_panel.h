@@ -81,11 +81,24 @@ class PixelEditorPanel : public WindowContent {
   void PasteFromSystemClipboard();
 
   bool HasActiveStroke() const { return stroke_.has_value(); }
+  // Explicit navigation commits the current gesture before its target changes.
+  void FinishGesture();
+  // A hidden panel may miss the release frame; button-up still finishes it.
+  void FinishReleasedGesture();
+  void SetHistoryCallbacks(std::function<absl::Status()> undo,
+                           std::function<absl::Status()> redo) {
+    undo_ = std::move(undo);
+    redo_ = std::move(redo);
+  }
   void SetPaletteReorderCallback(PaletteReorderControl::Apply apply) {
     apply_palette_reorder_ = std::move(apply);
   }
 
  private:
+  std::function<absl::Status()> undo_;
+  std::function<absl::Status()> redo_;
+  std::string history_error_;
+  PixelTool gesture_tool_ = PixelTool::kPencil;
   PaletteReorderControl palette_reorder_;
   PaletteReorderControl::Apply apply_palette_reorder_;
   void DrawSourceContext();

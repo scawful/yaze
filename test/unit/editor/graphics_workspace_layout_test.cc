@@ -114,6 +114,19 @@ class GraphicsWorkspaceLayoutTest : public ::testing::Test {
     return nullptr;
   }
 
+  std::optional<ImVec2> SheetOrigin() {
+    auto* window = ActiveChild("##CanvasArea");
+    if (!window)
+      return std::nullopt;
+    for (const auto& command : window->DrawList->CmdBuffer) {
+      if (command.GetTexID() == (ImTextureID)0x1234 && command.ElemCount) {
+        const auto index = window->DrawList->IdxBuffer[command.IdxOffset];
+        return window->DrawList->VtxBuffer[command.VtxOffset + index].pos;
+      }
+    }
+    return std::nullopt;
+  }
+
   std::optional<gui::WidgetIdRegistry::WidgetInfo> FindWidget(
       const char* label) {
     for (const auto& [path, widget] :
@@ -785,6 +798,206 @@ TEST_F(GraphicsWorkspaceLayoutTest,
   EXPECT_FLOAT_EQ(state_.zoom_level, 4);
   Click("Fit sheet", frame);
   EXPECT_FLOAT_EQ(state_.zoom_level, 7);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       ReleaseOutsideCanvasFinishesStrokeBeforeToolbarUndo) {
+  UndoManager history;
+  PixelEditorPanel pixel(&state_, nullptr, &history);
+  state_.SelectSheet(0);
+  state_.SetTool(PixelTool::kPencil);
+  state_.current_color_index = 3;
+  const auto original = bitmap_->vector();
+  const auto frame = [&] {
+    Frame([&] { ASSERT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  const auto origin = SheetOrigin();
+  ASSERT_TRUE(origin);
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(origin->x + 2.5f * state_.zoom_level,
+                      origin->y + 2.5f * state_.zoom_level);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  ASSERT_TRUE(pixel.HasActiveStroke());
+  ASSERT_EQ(data_->sheet_store.Sheet(0)[258], 3);
+  io.AddMousePosEvent(1200, 850);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  EXPECT_FALSE(pixel.HasActiveStroke());
+  ASSERT_EQ(history.UndoStackSize(), 1u);
+  Click("Undo pixels", frame);
+  EXPECT_EQ(bitmap_->vector(), original);
+  ASSERT_EQ(history.RedoStackSize(), 1u);
+  Click("Redo pixels", frame);
+  EXPECT_EQ(data_->sheet_store.Sheet(0)[258], 3);
+  EXPECT_EQ(history.UndoStackSize(), 1u);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       ShapeReleaseWhileHiddenUsesLastCanvasPoint) {
+  UndoManager history;
+  PixelEditorPanel pixel(&state_, nullptr, &history);
+  state_.SelectSheet(0);
+  state_.SetTool(PixelTool::kLine);
+  state_.current_color_index = 3;
+  const auto original = bitmap_->vector();
+  const auto frame = [&] {
+    Frame([&] { ASSERT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  const auto origin = SheetOrigin();
+  ASSERT_TRUE(origin);
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(origin->x + 2.5f * state_.zoom_level,
+                      origin->y + 2.5f * state_.zoom_level);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMousePosEvent(origin->x + 6.5f * state_.zoom_level,
+                      origin->y + 2.5f * state_.zoom_level);
+  frame();
+  ASSERT_TRUE(pixel.HasActiveStroke());
+  io.AddMousePosEvent(1200, 850);
+  io.AddMouseButtonEvent(0, false);
+  Frame([] {});  // The release frame occurs while this panel is hidden.
+  frame();
+  EXPECT_FALSE(pixel.HasActiveStroke());
+  ASSERT_EQ(history.UndoStackSize(), 1u);
+  auto expected = original;
+  for (int x = 2; x <= 6; ++x)
+    expected[256 + x] = 3;
+  EXPECT_EQ(bitmap_->vector(), expected);
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(bitmap_->vector(), original);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       ChangingTabsFinishesGestureOnOriginalSheet) {
+  auto& other = gfx::Arena::Get().mutable_gfx_sheets()->at(1);
+  auto saved_other = std::move(other);
+  auto restore = absl::MakeCleanup([&] { other = std::move(saved_other); });
+  other.Create(128, 32, 8, std::vector<uint8_t>(4096, 1));
+  other.SetPalette(gfx::SnesPalette(std::vector<uint16_t>(8, 0x7fff)));
+  data_->gfx_bitmaps[1] = other;
+  UndoManager history;
+  PixelEditorPanel pixel(&state_, nullptr, &history);
+  state_.SelectSheet(0);
+  state_.SetTool(PixelTool::kPencil);
+  state_.current_color_index = 3;
+  const auto original = bitmap_->vector();
+  const auto frame = [&] {
+    Frame([&] { ASSERT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  const auto origin = SheetOrigin();
+  ASSERT_TRUE(origin);
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(origin->x + 2.5f * state_.zoom_level,
+                      origin->y + 2.5f * state_.zoom_level);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  ASSERT_TRUE(pixel.HasActiveStroke());
+  // The same pending-tab request used by source/browser navigation.
+  state_.open_sheets.insert(1);
+  state_.requested_sheet_tab = 1;
+  frame();
+  frame();
+  ASSERT_EQ(state_.current_sheet_id, 1);
+  EXPECT_FALSE(pixel.HasActiveStroke());
+  EXPECT_EQ(other.vector(), original);
+  ASSERT_EQ(history.UndoStackSize(), 1u);
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  Click("Undo pixels", frame);
+  EXPECT_EQ(data_->sheet_store.Sheet(0)[258], 1);
+  EXPECT_EQ(other.vector(), original);
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest, InsideShapeReleaseKeepsItsCurrentEndpoint) {
+  for (const auto tool : {PixelTool::kLine, PixelTool::kRectangle}) {
+    UndoManager history;
+    PixelEditorPanel pixel(&state_, nullptr, &history);
+    state_.SelectSheet(0);
+    state_.SetTool(tool);
+    state_.current_color_index = 3;
+    const auto original = bitmap_->vector();
+    const auto frame = [&] {
+      Frame([&] { ASSERT_TRUE(pixel.Update().ok()); });
+    };
+    frame();
+    frame();
+    const auto origin = SheetOrigin();
+    ASSERT_TRUE(origin);
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(origin->x + 2.5f * state_.zoom_level,
+                        origin->y + 2.5f * state_.zoom_level);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMousePosEvent(origin->x + 6.5f * state_.zoom_level,
+                        origin->y + 2.5f * state_.zoom_level);
+    frame();
+    io.AddMousePosEvent(origin->x + 8.5f * state_.zoom_level,
+                        origin->y + 2.5f * state_.zoom_level);
+    io.AddMouseButtonEvent(0, false);
+    frame();
+    EXPECT_FALSE(pixel.HasActiveStroke());
+    ASSERT_EQ(history.UndoStackSize(), 1u);
+    EXPECT_EQ(data_->sheet_store.Sheet(0)[264], 3);
+    ASSERT_TRUE(history.Undo().ok());
+    EXPECT_EQ(bitmap_->vector(), original);
+  }
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
+       ReleasedShapeWaitsForItsOwnSessionBeforeFinishing) {
+  UndoManager history;
+  PixelEditorPanel pixel(&state_, nullptr, &history);
+  state_.SelectSheet(0);
+  state_.SetTool(PixelTool::kLine);
+  state_.current_color_index = 3;
+  const auto original = bitmap_->vector();
+  const auto frame = [&] {
+    Frame([&] { ASSERT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+  const auto origin = SheetOrigin();
+  ASSERT_TRUE(origin);
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(origin->x + 2.5f * state_.zoom_level,
+                      origin->y + 2.5f * state_.zoom_level);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMousePosEvent(origin->x + 6.5f * state_.zoom_level,
+                      origin->y + 2.5f * state_.zoom_level);
+  frame();
+  ASSERT_TRUE(pixel.HasActiveStroke());
+  zelda3::GameData foreign;
+  gfx::Arena::Get().set_gfx_sheets_owner(&foreign);
+  auto restore_owner = absl::MakeCleanup(
+      [&] { gfx::Arena::Get().set_gfx_sheets_owner(data_.get()); });
+  io.AddMousePosEvent(1200, 850);
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  EXPECT_TRUE(pixel.HasActiveStroke());
+  EXPECT_EQ(history.UndoStackSize(), 0u);
+  EXPECT_TRUE(state_.modified_sheets.empty());
+  EXPECT_EQ(bitmap_->vector(), original);
+  EXPECT_EQ(data_->sheet_store.Sheet(0)[258], 1);
+  gfx::Arena::Get().set_gfx_sheets_owner(data_.get());
+  frame();
+  EXPECT_FALSE(pixel.HasActiveStroke());
+  EXPECT_EQ(history.UndoStackSize(), 1u);
+  EXPECT_EQ(data_->sheet_store.Sheet(0)[258], 3);
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,

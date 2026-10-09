@@ -268,7 +268,10 @@ class DungeonObjectInteraction {
   const absl::Status& selection_edit_status() const {
     return entity_coordinator_.selection_edit_status();
   }
-  bool HasClipboardData() const { return !selection_clipboard_.empty(); }
+  void SetSharedSelectionClipboard(DungeonSelectionClipboard* clipboard) {
+    shared_selection_clipboard_ = clipboard;
+  }
+  bool HasClipboardData() const { return !clipboard().empty(); }
 
   // Inspector-friendly mutation helpers (with undo + rerender integration).
   // These are intended for UI panels that want to edit a single object without
@@ -392,7 +395,18 @@ class DungeonObjectInteraction {
 
   // Ghost preview bitmap (persists across frames for placement preview)
   gfx::PaletteGroup current_palette_group_;
+  DungeonSelectionClipboard& clipboard() {
+    return shared_selection_clipboard_ ? *shared_selection_clipboard_
+                                       : selection_clipboard_;
+  }
+  const DungeonSelectionClipboard& clipboard() const {
+    return shared_selection_clipboard_ ? *shared_selection_clipboard_
+                                       : selection_clipboard_;
+  }
+  // Direct viewer use retains a local clipboard; editor-owned viewers bind the
+  // session clipboard so separate room panels can reuse one selection.
   DungeonSelectionClipboard selection_clipboard_;
+  DungeonSelectionClipboard* shared_selection_clipboard_ = nullptr;
 
   // Unified selection system - replaces legacy selection state
   ObjectSelection selection_;

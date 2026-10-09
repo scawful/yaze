@@ -95,6 +95,11 @@ void GraphicsEditor::Initialize() {
       });
   pixel_editor_panel_ =
       std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
+  state_.on_before_sheet_selected = [this] {
+    FinishPixelGesture();
+  };
+  pixel_editor_panel_->SetHistoryCallbacks([this] { return Undo(); },
+                                           [this] { return Redo(); });
   pixel_editor_panel_->SetPaletteReorderCallback(
       [this](const std::vector<size_t>& targets,
              const PalettePermutation& permutation) {
@@ -423,6 +428,9 @@ GraphicsEditor::PrepareGraphicsSave() {
 }
 
 absl::Status GraphicsEditor::Save() {
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError(
+        "Finish the pixel stroke before saving");
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -559,12 +567,16 @@ absl::Status GraphicsEditor::Update() {
 }
 
 absl::Status GraphicsEditor::Undo() {
+  if (pixel_editor_panel_)
+    pixel_editor_panel_->FinishReleasedGesture();
   if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
     return absl::FailedPreconditionError("Finish the pixel stroke before Undo");
   return undo_manager_.Undo();
 }
 
 absl::Status GraphicsEditor::Redo() {
+  if (pixel_editor_panel_)
+    pixel_editor_panel_->FinishReleasedGesture();
   if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
     return absl::FailedPreconditionError("Finish the pixel stroke before Redo");
   return undo_manager_.Redo();
@@ -1048,6 +1060,11 @@ absl::Status GraphicsEditor::Paste() {
   return absl::OkStatus();
 }
 
+void GraphicsEditor::FinishPixelGesture() {
+  if (pixel_editor_panel_)
+    pixel_editor_panel_->FinishGesture();
+}
+
 void GraphicsEditor::SelectSheet(uint16_t sheet_id) {
   if (sheet_id >= zelda3::kNumGfxSheets) {
     return;
@@ -1078,6 +1095,7 @@ absl::Status GraphicsEditor::OpenInContext(GraphicsEditContext context) {
     return absl::FailedPreconditionError(
         "Commit or cancel the floating paste before opening another source");
   }
+  FinishPixelGesture();
   state_.selection.Clear();
   state_.source_context = std::move(context);
   ++state_.source_context_revision;

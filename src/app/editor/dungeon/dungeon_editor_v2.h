@@ -235,8 +235,9 @@ class DungeonEditorV2 : public Editor {
 
     // Propagate ROM to all rooms
     rooms_.SetRom(rom);
-    // Reset viewers on ROM change
+    // Reset viewers and copied room data on ROM change.
     if (rom_changed) {
+      selection_clipboard_ = {};
       automatic_entrance_preview_ = true;
       current_entrance_id_ = zelda3::kNumDungeonSpawnPoints;
       room_selector_.set_current_entrance_id(current_entrance_id_);
@@ -515,6 +516,8 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
   static constexpr int kMaxCachedViewers = 20;
+  // Shared by this editor's room panels, never by other ROM sessions.
+  DungeonSelectionClipboard selection_clipboard_;
   util::LruCache<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_{
       kMaxCachedViewers};
   std::unique_ptr<DungeonCanvasViewer> workbench_viewer_;

@@ -160,6 +160,8 @@ class GraphicsEditorState {
     if (!source_context || index >= source_context->targets.size()) {
       return;
     }
+    if (on_before_sheet_selected)
+      on_before_sheet_selected();
     source_context->selected_target = index;
     const auto& target = source_context->targets[index];
     SelectSheet(target.sheet_id);
@@ -176,6 +178,7 @@ class GraphicsEditorState {
   std::array<uint64_t, 223> arena_revisions{};
 
   // --- Callbacks for cross-panel communication ---
+  std::function<void()> on_before_sheet_selected;
   std::function<void(uint16_t)> on_sheet_selected;
   std::function<void()> on_tool_changed;
   std::function<void(uint16_t)> on_sheet_modified;
@@ -215,6 +218,8 @@ class GraphicsEditorState {
    * @brief Select a sheet for editing
    */
   void SelectSheet(uint16_t sheet_id) {
+    if (sheet_id != current_sheet_id && on_before_sheet_selected)
+      on_before_sheet_selected();
     current_sheet_id = sheet_id;
     open_sheets.insert(sheet_id);
     if (on_sheet_selected) {
