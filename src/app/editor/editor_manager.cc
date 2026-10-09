@@ -5997,6 +5997,16 @@ absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() {
   // A Build button can run during the panel's Draw() before the frame-end
   // project draft capture. Read the live panel and raw editor state now.
   CaptureActiveProjectEditingState();
+  if (auto* editors = GetCurrentEditorSet()) {
+    const auto* dungeon =
+        editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+    if (dungeon && dungeon->HasUnpublishedMinecartTrackChanges()) {
+      return absl::FailedPreconditionError(
+          "Minecart tracks have unpublished changes. Use Publish Tracks, then "
+          "save remaining project and ROM changes before Build Project. "
+          "Undo the track edits if you do not want to publish them.");
+    }
+  }
   const size_t session_index = GetCurrentSessionIndex();
   if (SessionHasPendingUnsavedWork(session_index)) {
     return absl::FailedPreconditionError(

@@ -544,6 +544,7 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   void QualifyPaletteWordRoundTrip(bool dungeon_source);
   void QualifyGoronRouteRedesign(bool floor_art);
   void QualifyGoronRouteBuild(bool floor_art);
+  void QualifyMinecartBuildRecovery(bool move_cart);
 
   void QualifySourcePixelRoundTrip(const DisposableOracleProject& fixture) {
     auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
@@ -2034,6 +2035,132 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_TRUE(reopened_profile.has_expanded_tile16);
   EXPECT_TRUE(reopened_profile.has_expanded_tile32);
   reopened.reset();
+}
+
+TEST_F(AuthoringSaveWorkflowTest, SourceOnlyTrackBuildExplainsPublishRecovery) {
+  QualifyMinecartBuildRecovery(false);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       PairedCartBuildExplainsPublishAndSaveRecovery) {
+  QualifyMinecartBuildRecovery(true);
+}
+
+void AuthoringSaveWorkflowTest::QualifyMinecartBuildRecovery(bool move_cart) {
+  const auto fixture = CopyProject("yaze-track-build-recovery");
+  const auto source = fixture.root / "Sprites/Objects/data/minecart_tracks.asm";
+  std::filesystem::create_directories(source.parent_path());
+  std::filesystem::copy_file(kSharedTrackSource, source);
+  const auto assets = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/Objects/Data";
+  ASSERT_TRUE(std::filesystem::is_directory(assets));
+  for (const auto& entry : std::filesystem::directory_iterator(assets)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin") {
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+    }
+  }
+  const auto marker = fixture.root / "build.marker";
+  const auto project_bytes = ReadFile(fixture.project);
+  std::string project_text(project_bytes.begin(), project_bytes.end());
+  // A marker qualifies command admission, not assembly or playable output.
+  ReplaceAssignment(&project_text, "build_script", "echo built > build.marker");
+  {
+    std::ofstream output(fixture.project);
+    output << project_text;
+  }
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  ASSERT_NE(dungeon, nullptr);
+  auto panel_or = AuthoringSaveWorkflowTestPeer::MinecartPanel(*dungeon);
+  ASSERT_OK(panel_or.status());
+  auto* panel = *panel_or;
+  ASSERT_OK(panel->ReloadTracks());
+  constexpr int kRoom = 0x89;
+  constexpr int kTrack = 10;
+  if (move_cart) {
+    dungeon->add_room(kRoom);
+    dungeon->rooms()[kRoom].EnsureSpritesLoaded();
+  }
+  const auto before = panel->GetTracks().at(kTrack);
+  auto after = before;
+  after.start_x = 0x1380;
+  after.start_y = 0x1080;
+  const bool originally_dirty = manager_->GetCurrentRom()->dirty();
+  if (move_cart) {
+    ASSERT_OK(panel->MoveCartStart(before, after));
+  } else {
+    ASSERT_OK(panel->UpdateTrack(kTrack, after));
+    EXPECT_EQ(manager_->GetCurrentRom()->dirty(), originally_dirty);
+    EXPECT_EQ(dungeon->PendingRoomCount(), 0);
+  }
+  ASSERT_TRUE(panel->HasUnpublishedChanges());
+  const auto model = manager_->GetCurrentRom()->vector();
+  const auto disk = ReadFile(fixture.rom);
+  const auto published = ReadFile(source);
+  const auto descriptor = ReadFile(fixture.project);
+  const auto undo_count = dungeon->undo_manager().UndoStackSize();
+  const auto redo_count = dungeon->undo_manager().RedoStackSize();
+  const auto refused = manager_->BuildCurrentProject();
+  ASSERT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
+  EXPECT_NE(refused.message().find("Publish Tracks"), absl::string_view::npos);
+  manager_->QueueBuildCurrentProject();
+  const auto queued = ContentRegistry::Context::build_workflow_status();
+  EXPECT_EQ(queued.summary, "Build unavailable");
+  EXPECT_EQ(queued.detail, refused.message());
+  EXPECT_FALSE(std::filesystem::exists(marker));
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), model);
+  EXPECT_EQ(ReadFile(fixture.rom), disk);
+  EXPECT_EQ(ReadFile(source), published);
+  EXPECT_EQ(ReadFile(fixture.project), descriptor);
+  EXPECT_EQ(panel->GetTracks().at(kTrack), after);
+  EXPECT_EQ(dungeon->undo_manager().UndoStackSize(), undo_count);
+  EXPECT_EQ(dungeon->undo_manager().RedoStackSize(), redo_count);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(panel->GetTracks().at(kTrack), before);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(panel->GetTracks().at(kTrack), after);
+
+  ASSERT_OK(panel->SaveTracks());
+  ASSERT_FALSE(panel->HasUnpublishedChanges());
+  EXPECT_NE(ReadFile(source), published);
+  if (move_cart) {
+    const auto needs_save = manager_->BuildCurrentProject();
+    ASSERT_TRUE(absl::IsFailedPrecondition(needs_save)) << needs_save;
+    EXPECT_NE(needs_save.message().find("Save project and ROM changes"),
+              absl::string_view::npos);
+    EXPECT_EQ(needs_save.message().find("Publish Tracks"),
+              absl::string_view::npos);
+    EXPECT_FALSE(std::filesystem::exists(marker));
+  }
+  ASSERT_OK(manager_->SaveRom());
+  ASSERT_OK(manager_->BuildCurrentProject());
+  EXPECT_TRUE(std::filesystem::exists(marker));
+  const auto saved_source = ReadFile(source);
+  manager_.reset();
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  panel_or = AuthoringSaveWorkflowTestPeer::MinecartPanel(*dungeon);
+  ASSERT_OK(panel_or.status());
+  panel = *panel_or;
+  ASSERT_OK(panel->ReloadTracks());
+  EXPECT_EQ(panel->GetTracks().at(kTrack), after);
+  EXPECT_FALSE(panel->HasUnpublishedChanges());
+  EXPECT_EQ(ReadFile(source), saved_source);
+  if (move_cart) {
+    auto room = zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kRoom);
+    room.EnsureSpritesLoaded();
+    EXPECT_EQ(std::count_if(room.GetSprites().begin(), room.GetSprites().end(),
+                            [](const auto& sprite) {
+                              return !sprite.deleted() && sprite.id() == 0xA3 &&
+                                     sprite.subtype() == kTrack &&
+                                     sprite.x() == 24 && sprite.y() == 8;
+                            }),
+              1);
+  }
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
 TEST_F(AuthoringSaveWorkflowTest,
