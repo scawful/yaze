@@ -117,7 +117,7 @@ TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
   },
   "room_tags": {
     "tags": [
-      {"tag_id":"0x34","address":"0x01CC04","name":"RoomTag_MinishSwitch","feature_flag":"!ENABLE_D3_PRISON_SEQUENCE","enabled":false}
+      {"tag_id":"0x23","address":"0x01CC04","name":"RoomTag_MinishSwitch","feature_flag":"!ENABLE_D3_PRISON_SEQUENCE","enabled":false}
     ]
   },
   "feature_flags": {
@@ -163,8 +163,8 @@ TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
   EXPECT_TRUE(manifest.IsWriteOverwritten(0x1E8000));   // asm owned
 
   // Room tags and feature flags.
-  EXPECT_EQ(manifest.GetRoomTagLabel(0x34), "RoomTag_MinishSwitch");
-  auto tag = manifest.GetRoomTag(0x34);
+  EXPECT_EQ(manifest.GetRoomTagLabel(0x23), "RoomTag_MinishSwitch");
+  auto tag = manifest.GetRoomTag(0x23);
   ASSERT_TRUE(tag.has_value());
   EXPECT_FALSE(tag->enabled);
   EXPECT_EQ(tag->feature_flag, "!ENABLE_D3_PRISON_SEQUENCE");

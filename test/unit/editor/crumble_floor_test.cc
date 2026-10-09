@@ -224,6 +224,22 @@ TEST_F(CrumbleFloorViewTest,
   EXPECT_FALSE(HasOracleCrumbleTag(rom, &project, room));
 }
 
+TEST_F(CrumbleFloorViewTest, CorrectedManifestRetainsDispatchValidation) {
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(
+                      R"({"version":1,"hack_name":"Oracle of Secrets",
+      "room_tags":{"tags":[{"tag_id":"0x34","address":"0x01CC08",
+      "name":"CrumbleFloor","enabled":true,
+      "source":"Dungeons/crumblefloor_tag.asm:4"}]}})")
+                  .ok());
+  EXPECT_TRUE(HasOracleCrumbleTag(rom, &project, room));
+  room.SetTag1(static_cast<zelda3::TagKey>(0x35));
+  EXPECT_FALSE(HasOracleCrumbleTag(rom, &project, room));
+  room.SetTag1(static_cast<zelda3::TagKey>(0x34));
+  ASSERT_TRUE(rom.WriteWord(0xC27D + 0x34 * 2, 0xFFFF).ok());
+  EXPECT_FALSE(HasOracleCrumbleTag(rom, &project, room));
+}
+
 TEST_F(CrumbleFloorViewTest, HeadlessCanvasClicksRehearseWithoutEditingRoom) {
   auto* previous = ImGui::GetCurrentContext();
   auto* context = ImGui::CreateContext();
