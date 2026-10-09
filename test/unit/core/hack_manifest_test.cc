@@ -1174,6 +1174,29 @@ TEST(HackManifestTest, LoadsUnifiedResourceLabelsFromProjectRegistry) {
   EXPECT_EQ(labels.at("music").at("12"), "Zora Temple Theme");
 }
 
+TEST(HackManifestTest, LoadsReceiptLabelsSeparatelyFromGenericItemLabels) {
+  namespace fs = std::filesystem;
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_receipt_labels"));
+  const fs::path planning = temp.path() / "Docs" / "Dev" / "Planning";
+  WriteTextFile(planning / "oracle_resource_labels.json", R"json(
+{
+  "item": {"0x25": "Blue Potion", "224": "Generic High Item"},
+  "item_receipt": {"0x25": "Big chest key", "0xE0": "Custom Treasure",
+                   "240": "Other Receipt"}
+}
+)json");
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadProjectRegistry(temp.path().string()).ok());
+  const auto& labels = manifest.project_registry().all_resource_labels;
+  ASSERT_TRUE(labels.contains("item"));
+  ASSERT_TRUE(labels.contains("item_receipt"));
+  EXPECT_EQ(labels.at("item").at("37"), "Blue Potion");
+  EXPECT_EQ(labels.at("item").at("224"), "Generic High Item");
+  EXPECT_EQ(labels.at("item_receipt").at("37"), "Big chest key");
+  EXPECT_EQ(labels.at("item_receipt").at("224"), "Custom Treasure");
+  EXPECT_EQ(labels.at("item_receipt").at("240"), "Other Receipt");
+}
+
 TEST(HackManifestTest, MirrorsDungeonRoomNamesIntoResourceLabels) {
   namespace fs = std::filesystem;
 

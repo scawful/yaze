@@ -7,7 +7,8 @@ namespace yaze::editor {
 
 namespace {
 
-constexpr std::array<DungeonOverlayControlSpec, 12> kOverlaySpecs = {{
+constexpr std::array<DungeonOverlayControlSpec, 13> kOverlaySpecs = {{
+    {DungeonOverlayControlId::kChestContents, "Chest contents"},
     {DungeonOverlayControlId::kGrid, "Grid (8x8)"},
     {DungeonOverlayControlId::kObjectBounds, "Object Bounds"},
     {DungeonOverlayControlId::kHoverCoordinates, "Hover Coordinates"},
@@ -24,7 +25,7 @@ constexpr std::array<DungeonOverlayControlSpec, 12> kOverlaySpecs = {{
 
 }  // namespace
 
-const std::array<DungeonOverlayControlSpec, 12>&
+const std::array<DungeonOverlayControlSpec, 13>&
 GetDungeonOverlayControlSpecs() {
   return kOverlaySpecs;
 }
@@ -32,6 +33,8 @@ GetDungeonOverlayControlSpecs() {
 bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,
                                      DungeonOverlayControlId id) {
   switch (id) {
+    case DungeonOverlayControlId::kChestContents:
+      return viewer.AreChestContentsVisible();
     case DungeonOverlayControlId::kGrid:
       return viewer.show_grid();
     case DungeonOverlayControlId::kObjectBounds:
@@ -64,6 +67,9 @@ bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,
 void SetDungeonOverlayControlEnabled(DungeonCanvasViewer& viewer,
                                      DungeonOverlayControlId id, bool enabled) {
   switch (id) {
+    case DungeonOverlayControlId::kChestContents:
+      viewer.SetChestContentsVisible(enabled);
+      return;
     case DungeonOverlayControlId::kGrid:
       viewer.set_show_grid(enabled);
       return;

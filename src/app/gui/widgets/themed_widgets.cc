@@ -598,8 +598,9 @@ void DrawCanvasHUD(const char* label, const ImVec2& pos, const ImVec2& size,
 
   ImGuiWindowFlags flags =
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
-      ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoScrollWithMouse |
-      ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize;
+      ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing |
+      ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
+      ImGuiWindowFlags_AlwaysAutoResize;
 
   // Glassmorphism-style container
   ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0.7f));

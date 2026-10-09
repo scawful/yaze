@@ -167,16 +167,73 @@ TEST_F(DungeonChestEditorTest, NamesUseReceiptIdsRatherThanInventoryIndices) {
   EXPECT_EQ(GetDungeonChestItemLabel(0xFF), "Unknown item FF");
 }
 
-TEST_F(DungeonChestEditorTest, ProjectSpecificItemLabelsOverrideVanilla) {
+TEST_F(DungeonChestEditorTest, ProjectSpecificReceiptLabelsOverrideVanilla) {
   zelda3::ResourceLabelProvider::ProjectLabels labels;
-  labels["item"]["9"] = "Magic Hammer";
-  labels["item"]["0xE0"] = "Custom Treasure";
+  labels["item_receipt"]["9"] = "Magic Hammer";
+  labels["item_receipt"]["0xE0"] = "Custom Treasure";
   zelda3::GetResourceLabels().SetProjectLabels(&labels);
   EXPECT_EQ(GetDungeonChestItemLabel(0x09), "Magic Hammer");
   EXPECT_EQ(GetDungeonChestItemLabel(0xE0), "Custom Treasure");
   EXPECT_EQ(zelda3::GetItemReceiptLabel(0xE0), "Custom Treasure");
   EXPECT_STREQ(zelda3::GetItemReceiptLabelSource(0xE0), "project");
   EXPECT_EQ(GetDungeonChestItemLabel(0x24), "Small Key");
+  zelda3::GetResourceLabels().SetProjectLabels(nullptr);
+}
+
+TEST_F(DungeonChestEditorTest,
+       PreviewUsesViewerReceiptLabelsWithoutGlobalLeak) {
+  project::YazeProject first, second;
+  zelda3::ResourceLabelProvider::ProjectLabels foreign;
+  foreign["item_receipt"]["37"] = "Wrong session";
+  zelda3::GetResourceLabels().SetProjectLabels(&foreign);
+  first.resource_labels["item"]["0x25"] = "Blue Potion";
+  viewer_.SetProject(&first);
+  rooms_[0].GetChests()[0].id = 0x25;
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Compass"), std::string::npos);
+  EXPECT_EQ(logged_text_.find("Blue Potion"), std::string::npos);
+  EXPECT_EQ(logged_text_.find("Wrong session"), std::string::npos);
+  first.resource_labels["item_receipt"]["37"] = "Big chest key";
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Big chest key"), std::string::npos);
+  second.resource_labels["item_receipt"]["0x25"] = "Second receipt";
+  viewer_.SetProject(&second);
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Second receipt"), std::string::npos);
+  EXPECT_EQ(logged_text_.find("Big chest key"), std::string::npos);
+  viewer_.SetProject(nullptr);
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Compass"), std::string::npos);
+  EXPECT_EQ(logged_text_.find("Wrong session"), std::string::npos);
+  EXPECT_EQ(changes_, 0);
+  zelda3::GetResourceLabels().SetProjectLabels(nullptr);
+}
+
+TEST_F(DungeonChestEditorTest, HighChoicesRequireViewerReceiptMetadata) {
+  project::YazeProject project;
+  zelda3::ResourceLabelProvider::ProjectLabels foreign;
+  foreign["item_receipt"]["226"] = "Wrong session";
+  zelda3::GetResourceLabels().SetProjectLabels(&foreign);
+  project.resource_labels["item"]["224"] = "Generic High Item";
+  project.resource_labels["item_receipt"]["0xE1"] = "Custom Treasure";
+  viewer_.SetProject(&project);
+  rooms_[0].GetChests()[0].id = 0xF0;
+  DrawFrame();
+  DrawFrame();
+  Click("ChestReward");
+  EXPECT_FALSE(Widget("ChestRewardE0").has_value());
+  EXPECT_TRUE(Widget("ChestRewardE1").has_value());
+  EXPECT_FALSE(Widget("ChestRewardE2").has_value());
+  EXPECT_TRUE(Widget("ChestRewardF0").has_value());
+  Click("ChestSearch");
+  ImGui::GetIO().AddInputCharactersUTF8("custom");
+  DrawFrame();
+  DrawFrame();
+  Click("ChestRewardE1");
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0xE1);
+  EXPECT_EQ(changes_, 1);
+  EXPECT_NE(logged_text_.find("Custom Treasure"), std::string::npos);
+  viewer_.SetProject(nullptr);
   zelda3::GetResourceLabels().SetProjectLabels(nullptr);
 }
 

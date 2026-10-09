@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
@@ -93,44 +95,48 @@ void DungeonCanvasViewer::ConsumePendingCanvasScroll(
 }
 
 void DungeonCanvasViewer::DrawHeaderHiddenMetadataHud(int room_id) {
-  if (header_visible_ || !show_header_hidden_metadata_hud_) {
+  const auto* room = rooms_ ? rooms_->GetIfLoaded(room_id) : nullptr;
+  if (!room) {
     return;
   }
 
-  const auto& label = zelda3::GetRoomLabel(room_id);
+  // Tags remain visible in Workbench and standalone rooms. The old detailed
+  // metadata is still controlled by its existing hidden-header preference.
+  const bool show_details =
+      !header_visible_ && show_header_hidden_metadata_hud_;
+  const auto label = dungeon_project_labels::GetRoomLabel(project_, room_id);
   char text1[160];
   snprintf(text1, sizeof(text1), "[%03X] %s", room_id, label.c_str());
 
-  char text2[96] = {};
-  bool show_meta = false;
-  if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size())) {
-    if (const auto* room = rooms_->TryEnsureRoom(room_id)) {
-      if (!object_interaction_enabled_) {
-        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X  RO",
-                 room->blockset(), room->palette(), room->layout_id(),
-                 room->spriteset());
-      } else {
-        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X",
-                 room->blockset(), room->palette(), room->layout_id(),
-                 room->spriteset());
-      }
-      show_meta = true;
-    }
-  } else if (!object_interaction_enabled_) {
-    snprintf(text2, sizeof(text2), "Read-only");
-    show_meta = true;
-  }
+  const auto metadata =
+      absl::StrFormat("B:%02X P:%02X L:%02X S:%02X%s", room->blockset(),
+                      room->palette(), room->layout_id(), room->spriteset(),
+                      object_interaction_enabled_ ? "" : " RO");
+  const auto tags = dungeon_project_labels::GetRoomTagSummary(
+      project_, room->tag1(), room->tag2());
 
   const float pad = 10.0f;
   const ImVec2 hud_pos(canvas_.zero_point().x + pad,
                        canvas_.zero_point().y + pad);
-  const ImVec2 hud_size(0, 0);
+  float content_width = ImGui::CalcTextSize(tags.c_str()).x;
+  if (show_details) {
+    content_width = std::max(content_width, ImGui::CalcTextSize(text1).x);
+  }
+  const float width = std::min(
+      {560.0f, canvas_.canvas_size().x - pad * 2, content_width + 16.0f});
+  if (width <= 16.0f) {
+    return;
+  }
+  const ImVec2 hud_size(width, 0);
+  // A window ID must distinguish the editable and comparison viewers.
+  const auto hud_id = absl::StrFormat("##MetadataHUD_%p", this);
 
-  gui::DrawCanvasHUD("##MetadataHUD", hud_pos, hud_size, [&]() {
-    ImGui::TextUnformatted(text1);
-    if (show_meta) {
-      ImGui::TextDisabled("%s", text2);
+  gui::DrawCanvasHUD(hud_id.c_str(), hud_pos, hud_size, [&]() {
+    if (show_details) {
+      ImGui::TextWrapped("%s", text1);
+      ImGui::TextDisabled("%s", metadata.c_str());
     }
+    ImGui::TextWrapped("%s", tags.c_str());
   });
 }
 

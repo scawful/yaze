@@ -891,6 +891,12 @@ class DungeonCanvasViewer {
     entity_visibility_.show_pot_items = visible;
   }
   bool ArePotItemsVisible() const { return entity_visibility_.show_pot_items; }
+  void SetChestContentsVisible(bool visible) {
+    entity_visibility_.show_chests = visible;
+  }
+  bool AreChestContentsVisible() const {
+    return entity_visibility_.show_chests;
+  }
 
   struct ConnectedRoomGraphData {
     struct RoomPlacement {
@@ -996,6 +1002,8 @@ class DungeonCanvasViewer {
   void DrawIssueReportStatusMessage() const;
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
+  void RenderChestContents(const gui::CanvasRuntime& rt,
+                           const zelda3::Room& room);
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
                            const zelda3::Room& room);
 
@@ -1242,7 +1250,7 @@ class DungeonCanvasViewer {
   struct EntityVisibility {
     bool show_sprites = true;    // Show sprite entities
     bool show_pot_items = true;  // Show pot item entities
-    bool show_chests = true;     // Show chest entities (future)
+    bool show_chests = true;  // Show chest receipt labels above chest objects
   };
   EntityVisibility entity_visibility_;
 
