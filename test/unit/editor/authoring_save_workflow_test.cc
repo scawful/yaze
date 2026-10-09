@@ -63,6 +63,7 @@
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/gfx_sheet_storage.h"
 #include "zelda3/graphics/resolved_graphics_context.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/resource_labels.h"
@@ -450,6 +451,12 @@ struct DisposableOracleProject {
   std::string source_hash;
 };
 
+struct GoronSessionEdits {
+  int sheet_id = -1;
+  std::vector<uint8_t> sheet_pixels;
+  std::vector<uint8_t> copied_room_objects;
+};
+
 class AuthoringSaveWorkflowTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -554,8 +561,10 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
 
   void QualifySpecialArea(zelda3::AreaSizeEnum size, int child, int x, int y);
   void QualifyPaletteWordRoundTrip(bool dungeon_source);
-  void QualifyGoronRouteRedesign(bool floor_art);
+  void QualifyGoronRouteRedesign(bool floor_art, bool combined_session = false);
   void QualifyGoronRouteBuild(bool floor_art);
+  void AddGoronSessionEdits(GoronSessionEdits* expected);
+  void VerifyGoronSessionEdits(Rom& rom, const GoronSessionEdits& expected);
   void QualifyMinecartBuildRecovery(bool move_cart);
 
   void QualifySourcePixelRoundTrip(const DisposableOracleProject& fixture) {
@@ -5884,9 +5893,121 @@ TEST_F(AuthoringSaveWorkflowTest, GoronFloorRouteRedesignSaveAsReopen) {
   QualifyGoronRouteRedesign(true);
 }
 
-void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
-  const char* fixture_variable =
-      floor_art ? "YAZE_GORON_FLOOR_ROUTE_PROJECT" : "YAZE_GORON_ROUTE_PROJECT";
+TEST_F(AuthoringSaveWorkflowTest, GoronCombinedEditingSaveBuildReopens) {
+  QualifyGoronRouteRedesign(true, true);
+}
+
+// Deliberately reuse a real corner in another disposable room. This proves
+// cross-room persistence; its placement is not a proposed gameplay layout.
+void AuthoringSaveWorkflowTest::AddGoronSessionEdits(
+    GoronSessionEdits* expected) {
+  constexpr int kSourceRoom = 0x89;
+  constexpr int kTargetRoom = 0x98;
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kSourceRoom);
+  auto& source = dungeon->rooms()[kSourceRoom];
+  const auto source_stream = source.EncodeObjects();
+  const auto& objects = source.GetTileObjects();
+  const auto corner =
+      std::find_if(objects.begin(), objects.end(), [](const auto& object) {
+        return object.id_ == 0x106 && object.x_ == 22 && object.y_ == 4;
+      });
+  ASSERT_NE(corner, objects.end());
+  const auto selected_object = *corner;
+  auto* source_viewer =
+      AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kSourceRoom);
+  ASSERT_NE(source_viewer, nullptr);
+  source_viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(),
+                                                     kSourceRoom);
+  source_viewer->object_interaction().SetSelectedObjects(
+      {static_cast<size_t>(corner - objects.begin())});
+  ASSERT_OK(dungeon->Copy());
+
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kTargetRoom);
+  auto& target = dungeon->rooms()[kTargetRoom];
+  const auto original_stream = target.EncodeObjects();
+  const auto original_count = target.GetTileObjects().size();
+  auto* target_viewer =
+      AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kTargetRoom);
+  ASSERT_NE(target_viewer, nullptr);
+  target_viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(),
+                                                     kTargetRoom);
+  ImGui::GetIO().MousePos = ImVec2(-1000, -1000);
+  ASSERT_OK(dungeon->Paste());
+  ASSERT_EQ(target.GetTileObjects().size(), original_count + 1);
+  const auto& pasted = target.GetTileObjects().back();
+  EXPECT_EQ(pasted.id_, selected_object.id_);
+  EXPECT_EQ(pasted.x_, selected_object.x_ + 1);
+  EXPECT_EQ(pasted.y_, selected_object.y_ + 1);
+  const auto authored_stream = target.EncodeObjects();
+  ASSERT_NE(authored_stream, original_stream);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(target.EncodeObjects(), original_stream);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(target.EncodeObjects(), authored_stream);
+  expected->copied_room_objects = authored_stream;
+  EXPECT_EQ(source.EncodeObjects(), source_stream);
+
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kSourceRoom);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  source.PrepareForRender();
+  AuthoringSaveWorkflowTestPeer::OpenObjectGraphics(*dungeon, kSourceRoom,
+                                                    selected_object);
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  ASSERT_TRUE(state.source_context);
+  ASSERT_TRUE(state.SourceTarget());
+  const auto context = *state.source_context;
+  EXPECT_EQ(context.resolved.id, kSourceRoom);
+  EXPECT_EQ(context.owner, state.game_data);
+  const auto target_tile = *state.SourceTarget();
+  ASSERT_EQ(target_tile.palette.size(), 8u);
+  const int x = (target_tile.tile_index % 16) * 8;
+  const int y = (target_tile.tile_index / 16) * 8;
+  const auto sheet = state.game_data->sheet_store.Sheet(target_tile.sheet_id);
+  const std::vector<uint8_t> original_pixels(sheet.begin(), sheet.end());
+  const uint8_t changed = original_pixels[y * 128 + x] == 1 ? 2 : 1;
+  const auto before = context.render_preview();
+  ASSERT_OK(before.status());
+  const auto undo_count = graphics->undo_manager().UndoStackSize();
+  AuthoringSaveWorkflowTestPeer::PaintGraphicsPixel(*graphics, x, y, changed);
+  ASSERT_EQ(graphics->undo_manager().UndoStackSize(), undo_count + 1);
+  const auto painted = context.render_preview();
+  ASSERT_OK(painted.status());
+  EXPECT_NE(painted->ToRgba(), before->ToRgba());
+  ASSERT_OK(graphics->Undo());
+  const auto restored =
+      state.game_data->sheet_store.Sheet(target_tile.sheet_id);
+  EXPECT_EQ(std::vector<uint8_t>(restored.begin(), restored.end()),
+            original_pixels);
+  ASSERT_OK(graphics->Redo());
+  const auto edited = state.game_data->sheet_store.Sheet(target_tile.sheet_id);
+  expected->sheet_id = target_tile.sheet_id;
+  expected->sheet_pixels.assign(edited.begin(), edited.end());
+  EXPECT_NE(expected->sheet_pixels, original_pixels);
+  ASSERT_TRUE(context.return_to_source);
+  context.return_to_source();
+  EXPECT_EQ(source.EncodeObjects(), source_stream);
+  EXPECT_EQ(target.EncodeObjects(), authored_stream);
+}
+
+void AuthoringSaveWorkflowTest::VerifyGoronSessionEdits(
+    Rom& rom, const GoronSessionEdits& expected) {
+  auto room = zelda3::LoadRoomFromRom(&rom, 0x98);
+  room.EnsureObjectsLoaded();
+  EXPECT_EQ(room.EncodeObjects(), expected.copied_room_objects);
+  ASSERT_GE(expected.sheet_id, 0);
+  const auto encoded = zelda3::ReadGfxSheetData(rom, expected.sheet_id);
+  ASSERT_OK(encoded.status());
+  EXPECT_EQ(gfx::SnesTo8bppSheet(*encoded, 3), expected.sheet_pixels);
+}
+
+void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(
+    bool floor_art, bool combined_session) {
+  const char* fixture_variable = combined_session
+                                     ? "YAZE_GORON_COMBINED_PROJECT"
+                                 : floor_art ? "YAZE_GORON_FLOOR_ROUTE_PROJECT"
+                                             : "YAZE_GORON_ROUTE_PROJECT";
   const char* input = std::getenv(fixture_variable);
   if (!input || !*input)
     GTEST_SKIP() << "Set " << fixture_variable
@@ -6217,10 +6338,47 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
   const auto expected_objects = room.GetTileObjects();
   const auto expected_sprites = room.GetSprites();
 
+  std::optional<GoronSessionEdits> combined_edits;
+  if (combined_session) {
+    combined_edits.emplace();
+    ASSERT_NO_FATAL_FAILURE(AddGoronSessionEdits(&*combined_edits));
+    expected_pixels = PrepareCanonicalRoomComposite(room, room_output).ToRgba();
+    const auto output = root / "Roms/oos168x.sfc";
+    const auto old_output = ReadFile(output);
+    const auto pending_build = manager_->BuildCurrentProject();
+    ASSERT_TRUE(absl::IsFailedPrecondition(pending_build)) << pending_build;
+    EXPECT_NE(pending_build.message().find(
+                  "Save project and ROM changes before building:"),
+              absl::string_view::npos);
+    EXPECT_EQ(ReadFile(output), old_output);
+  }
+
   // Commit collision source with the bound disposable ROM. Save As produces
   // a spare copy; the fixed manifest still binds the project's editable source.
   // Reopen that source for the remaining edit/save/build workflow.
   ASSERT_OK(manager_->SaveRom());
+  if (combined_edits) {
+    const auto saved = ReadFile(fixture.rom);
+    ASSERT_NO_FATAL_FAILURE(
+        VerifyGoronSessionEdits(*manager_->GetCurrentRom(), *combined_edits));
+    // Build from this same manager while it is still bound to the saved base.
+    // The project runner, not this test, owns the heavy-job lock during build.
+    ASSERT_OK(manager_->BuildCurrentProject());
+    EXPECT_EQ(ReadFile(fixture.rom), saved);
+    Rom compiled;
+    ASSERT_OK(compiled.LoadFromFile((root / "Roms/oos168x.sfc").string()));
+    ASSERT_NO_FATAL_FAILURE(VerifyGoronSessionEdits(compiled, *combined_edits));
+    auto compiled_room = zelda3::LoadRoomFromRom(&compiled, kRoom);
+    compiled_room.EnsureObjectsLoaded();
+    compiled_room.EnsureSpritesLoaded();
+    EXPECT_EQ(compiled_room.EncodeObjects(), room.EncodeObjects());
+    EXPECT_EQ(compiled_room.EncodeSprites(), room.EncodeSprites());
+    EXPECT_EQ(compiled_room.custom_collision().tiles, expected_collision.tiles);
+    RecordProperty("combined_sheet_id", combined_edits->sheet_id);
+    RecordProperty(
+        "compiled_rom_sha1",
+        util::ComputeFileSha1Hex((root / "Roms/oos168x.sfc").string()));
+  }
   const auto canonical =
       zelda3::DumpCustomCollisionSourceFromRom(manager_->GetCurrentRom());
   ASSERT_OK(canonical.status());
@@ -6268,6 +6426,10 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
   EXPECT_EQ(ReadFile(collision_path), published_collision);
   EXPECT_EQ(ReadFile(source_path), published);
   ASSERT_OK(manager_->SaveRom());
+  if (combined_edits) {
+    ASSERT_NO_FATAL_FAILURE(
+        VerifyGoronSessionEdits(*manager_->GetCurrentRom(), *combined_edits));
+  }
   if (floor_art) {
     RoomCompositeOutput reopened_output;
     auto& image = PrepareCanonicalRoomComposite(fresh, reopened_output);
@@ -6276,6 +6438,7 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
                           (root / "reopened-floor-route.bmp").string().c_str()),
               0);
   }
+  ASSERT_FALSE(HasFailure());
   std::ofstream(root / "route-authoring-passed.txt")
       << "room=089 track=10 start=12A0,1110 corner=14,34/B3 stop=20,34/BA art="
       << (floor_art ? "floor" : "pit") << '\n';
