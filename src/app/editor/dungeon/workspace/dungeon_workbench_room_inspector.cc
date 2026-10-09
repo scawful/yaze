@@ -163,32 +163,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     ImGui::TextDisabled("%s", room_label.c_str());
   }
 
-  // Apply Room and Dungeon Map have moved to the canvas toolbar (Save and
-  // Map icons). Apply Scope and Layer Compositing remain here as
-  // collapsibles since they're rarely-touched per-room batch settings.
-  if (workbench::BeginInspectorSection(ICON_MD_SAVE_ALT " Apply Scope",
-                                       false)) {
-    DrawApplyScopeControls(room_id);
-  }
-
-  if (workbench::BeginInspectorSection(ICON_MD_WARNING " Pit Damage", false)) {
-    DrawPitDamageControls(room_id);
-  }
-
-  if (workbench::BeginInspectorSection(ICON_MD_LAYERS " Layer Compositing",
-                                       false)) {
-    DrawLayerCompositingControls(viewer, room_id);
-  }
-
-  if (workbench::BeginInspectorSection(
-          ICON_MD_CONTENT_COPY " Clone / Import Room", false)) {
-    if (viewer.room_transfer_state().popup_open) {
-      ImGui::TextWrapped("Room transfer is open in the canvas dialog.");
-    } else {
-      DrawDungeonRoomTransferEditor(viewer);
-    }
-  }
-
   // Room properties share the editor's validated metadata edit boundary. Raw
   // graphics IDs remain available alongside named behavior choices.
   if (auto* rooms = viewer.rooms();
@@ -196,21 +170,23 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     auto& room = (*rooms)[room_id];
     const ImGuiID error_id =
         ImGui::GetID(absl::StrFormat("RoomMetadataError/%d", room_id).c_str());
+    // Combo selections run inside a popup window. Keep errors in the inspector.
+    auto* inspector_storage = ImGui::GetStateStorage();
     const gui::InputScalarTargetIdentity identity{
         reinterpret_cast<uintptr_t>(rooms), static_cast<uint64_t>(room_id)};
     auto apply = [&](RoomMetadataField field, int value, int index = 0) {
       const auto status = viewer.EditRoomMetadata(
           room_id, {.field = field, .value = value, .index = index});
-      ImGui::GetStateStorage()->SetBool(error_id, !status.ok());
+      inspector_storage->SetBool(error_id, !status.ok());
     };
-    auto begin_properties = [](const char* id) {
+    auto begin_properties = [](const char* id, float label_width = 104.0f) {
       if (!ImGui::BeginTable(
               id, 2,
               ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
         return false;
       }
       ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
-                              104.0f);
+                              label_width);
       ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
       return true;
     };
@@ -271,6 +247,45 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       }
     };
 
+    workbench::DrawInspectorSectionHeader("Room tags");
+    if (begin_properties("##WorkbenchRoomTags", 42.0f)) {
+      const auto tag_name = [&](int value) {
+        return dungeon_project_labels::GetRoomTagLabel(viewer.project(), value);
+      };
+      ImGui::BeginDisabled(viewer.header_read_only() ||
+                           !viewer.IsObjectInteractionEnabled());
+      for (int index = 0; index < 2; ++index) {
+        const int tag = index == 0 ? room.tag1() : room.tag2();
+        draw_choice(
+            index == 0 ? "Tag 1" : "Tag 2",
+            index == 0 ? "##RoomHeaderTag1" : "##RoomHeaderTag2", tag, 0x40,
+            index == 0 ? RoomMetadataField::kTag1 : RoomMetadataField::kTag2,
+            tag_name);
+        // Long project labels must stay readable without opening the selector.
+        const auto label = tag_name(tag);
+        if (ImGui::CalcTextSize(label.c_str()).x + 40.0f >
+            ImGui::GetContentRegionAvail().x) {
+          ImGui::TextWrapped("%s", label.c_str());
+        }
+      }
+      ImGui::EndDisabled();
+      ImGui::EndTable();
+    }
+
+    if (inspector_storage->GetBool(error_id)) {
+      ImGui::TextWrapped(
+          "Edit not applied. Check that this room is editable and the value "
+          "is within the field's supported range. Hover the field for its "
+          "range.");
+    }
+
+    workbench::DrawInspectorSectionHeader("Pit behavior");
+    DrawPitDamageControls(room_id);
+    workbench::DrawInspectorSectionHeader("Destinations");
+    DrawDungeonDestinationEditor(viewer);
+    if (viewer.current_room_id() != room_id)
+      return;
+
     if (workbench::BeginInspectorSection(ICON_MD_TUNE " Room Properties",
                                          false) &&
         begin_properties("##WorkbenchRoomHeader")) {
@@ -297,36 +312,37 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
                   });
       draw_choice("Collision", "##RoomHeaderCollision", room.collision(), 5,
                   RoomMetadataField::kCollision, GetCollisionName);
-      const auto tag_name = [](int value) {
-        return zelda3::GetRoomTagLabel(value);
-      };
-      const int tag_count =
-          static_cast<int>(zelda3::Zelda3Labels::GetRoomTagNames().size());
-      draw_choice("Tag 1", "##RoomHeaderTag1", room.tag1(), tag_count,
-                  RoomMetadataField::kTag1, tag_name);
-      draw_choice("Tag 2", "##RoomHeaderTag2", room.tag2(), tag_count,
-                  RoomMetadataField::kTag2, tag_name);
       ImGui::EndTable();
     }
 
-    if (workbench::BeginInspectorSection(ICON_MD_ALT_ROUTE " Destinations",
-                                         false)) {
-      DrawDungeonDestinationEditor(viewer);
-      if (viewer.current_room_id() != room_id)
-        return;
-    }
     if (workbench::BeginInspectorSection(ICON_MD_INVENTORY_2 " Chest contents",
                                          false)) {
       DrawDungeonChestEditor(room_id, room, viewer);
     }
-    if (ImGui::GetStateStorage()->GetBool(error_id)) {
-      ImGui::TextWrapped(
-          "Edit not applied. Check that this room is editable and the value "
-          "is within the field's supported range. Hover the field for its "
-          "range.");
-    }
   } else {
     ImGui::TextDisabled(tr("Room properties unavailable"));
+  }
+
+  // Apply Room and Dungeon Map have moved to the canvas toolbar (Save and
+  // Map icons). Apply Scope and Layer Compositing remain here as
+  // collapsibles since they're rarely-touched per-room batch settings.
+  if (workbench::BeginInspectorSection(ICON_MD_SAVE_ALT " Apply Scope",
+                                       false)) {
+    DrawApplyScopeControls(room_id);
+  }
+
+  if (workbench::BeginInspectorSection(ICON_MD_LAYERS " Layer Compositing",
+                                       false)) {
+    DrawLayerCompositingControls(viewer, room_id);
+  }
+
+  if (workbench::BeginInspectorSection(
+          ICON_MD_CONTENT_COPY " Clone / Import Room", false)) {
+    if (viewer.room_transfer_state().popup_open) {
+      ImGui::TextWrapped("Room transfer is open in the canvas dialog.");
+    } else {
+      DrawDungeonRoomTransferEditor(viewer);
+    }
   }
 
   auto& interaction = viewer.object_interaction();

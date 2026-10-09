@@ -3181,7 +3181,8 @@ class DungeonCanvasRoomInformationTest : public ::testing::Test {
     imgui_.reset();
   }
 
-  std::string HudFrame(int room_id, float width = 640.0f) {
+  std::string HudFrame(int room_id, float width = 640.0f,
+                       bool expected_hud = false) {
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width + 40, 500), ImGuiCond_Always);
@@ -3195,8 +3196,8 @@ class DungeonCanvasRoomInformationTest : public ::testing::Test {
     ImGui::LogFinish();
     const auto hud_id = absl::StrFormat("##MetadataHUD_%p", &viewer_);
     auto* hud = ImGui::FindWindowByName(hud_id.c_str());
-    EXPECT_NE(hud, nullptr);
-    if (hud) {
+    EXPECT_EQ(hud && hud->Active, expected_hud);
+    if (hud && hud->Active) {
       EXPECT_EQ(hud->Flags & ImGuiWindowFlags_NoInputs,
                 ImGuiWindowFlags_NoInputs);
       EXPECT_LE(hud->Pos.x + hud->Size.x, canvas_bounds.Max.x);
@@ -3274,20 +3275,29 @@ class DungeonCanvasRoomInformationTest : public ::testing::Test {
 };
 
 TEST_F(DungeonCanvasRoomInformationTest,
-       TagsRemainVisibleWhenWorkbenchSuppressesHeaderMetadata) {
+       RoomTagsNeverCoverCanvasEvenWhenMetadataHudIsEnabled) {
   rooms_[0].SetTag1(static_cast<zelda3::TagKey>(0x34));
+  rooms_[0].SetTag2(static_cast<zelda3::TagKey>(0x37));
   for (int frame = 0; frame < 3; ++frame) {
-    const auto text = HudFrame(0);
-    EXPECT_NE(text.find("Tags: 1 $34 Crumble Floor | 2 $00 Nothing"),
-              std::string::npos);
-    EXPECT_EQ(text.find("B:"), std::string::npos);
+    EXPECT_TRUE(HudFrame(0).empty());
   }
+  viewer_.SetHeaderHiddenMetadataHudVisible(true);
+  const auto metadata = HudFrame(0, 260.0f, true);
+  EXPECT_NE(metadata.find("B:"), std::string::npos);
+  EXPECT_EQ(metadata.find("Tags:"), std::string::npos);
+  EXPECT_EQ(metadata.find("Crumble Floor"), std::string::npos);
+  EXPECT_EQ(metadata.find("RoomTag_ShutterDoorRequiresCart"),
+            std::string::npos);
   viewer_.SetHeaderVisible(true);
-  EXPECT_NE(HudFrame(0).find("Crumble Floor"), std::string::npos);
+  EXPECT_TRUE(HudFrame(0).empty());
+  viewer_.SetHeaderVisible(false);
+  viewer_.SetHeaderHiddenMetadataHudVisible(false);
+  EXPECT_TRUE(HudFrame(0).empty());
 }
 
 TEST_F(DungeonCanvasRoomInformationTest,
-       TagHudPreservesActiveControlOnAppearanceAndReappearance) {
+       OptionalMetadataHudPreservesActiveControlOnAppearanceAndReappearance) {
+  viewer_.SetHeaderHiddenMetadataHudVisible(true);
   auto& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.AddMousePosEvent(-1000, -1000);
@@ -3334,48 +3344,6 @@ TEST_F(DungeonCanvasRoomInformationTest,
   io.AddInputCharactersUTF8("b");
   frame(true);
   EXPECT_STREQ(text.data(), "ab");
-}
-
-TEST_F(DungeonCanvasRoomInformationTest,
-       TagsFollowRoomAndProjectLabelsWithoutGlobalSessionLeak) {
-  zelda3::ResourceLabelProvider::ProjectLabels foreign_labels;
-  foreign_labels["room_tag"]["52"] = "Wrong session";
-  zelda3::GetResourceLabels().SetProjectLabels(&foreign_labels);
-  rooms_[0].SetTag1(static_cast<zelda3::TagKey>(0x34));
-  rooms_[1].SetTag2(static_cast<zelda3::TagKey>(0x34));
-  project_.resource_labels["room_tag"]["0x34"] = "Weekend Crumble";
-  EXPECT_NE(HudFrame(0).find("1 $34 Weekend Crumble"), std::string::npos);
-  EXPECT_NE(HudFrame(1).find("2 $34 Weekend Crumble"), std::string::npos);
-  project_.resource_labels.clear();
-  EXPECT_NE(HudFrame(1).find("2 $34 Crumble Floor"), std::string::npos);
-  viewer_.SetProject(nullptr);
-  const auto vanilla = HudFrame(1);
-  EXPECT_NE(vanilla.find("2 $34 Holes 3"), std::string::npos);
-  EXPECT_EQ(vanilla.find("Wrong session"), std::string::npos);
-}
-
-TEST_F(DungeonCanvasRoomInformationTest, TagsExposeDisabledProjectDispatch) {
-  rooms_[0].SetTag1(static_cast<zelda3::TagKey>(0x37));
-  rooms_[0].SetTag2(static_cast<zelda3::TagKey>(0x34));
-  const auto text = HudFrame(0);
-  EXPECT_NE(text.find("1 $37 RoomTag_ShutterDoorRequiresCart (disabled)"),
-            std::string::npos);
-  EXPECT_NE(text.find("2 $34 Crumble Floor"), std::string::npos);
-  EXPECT_EQ(text.find("Crumble Floor (disabled)"), std::string::npos);
-  project_.resource_labels["room_tag"]["55"] = "Cart shutter";
-  EXPECT_NE(HudFrame(0).find("1 $37 Cart shutter (disabled)"),
-            std::string::npos);
-}
-
-TEST_F(DungeonCanvasRoomInformationTest, LongTagsWrapWithinNarrowPassiveHud) {
-  rooms_[0].SetTag1(static_cast<zelda3::TagKey>(0x34));
-  project_.resource_labels["room_tag"]["52"] =
-      "Crumble Floor With A Long Project Label";
-  for (int frame = 0; frame < 3; ++frame) {
-    const auto text = HudFrame(0, 200.0f);
-    EXPECT_NE(text.find("Crumble Floor With A Long Project Label"),
-              std::string::npos);
-  }
 }
 
 TEST_F(DungeonCanvasRoomInformationTest,
