@@ -2114,6 +2114,18 @@ TEST_F(MinecartCanvasWorkflowTest, DragIsOnePairedUndoAndPublishesExactSource) {
   EXPECT_EQ(fixture_.ReadSource(), *old->Render(expected));
   ASSERT_TRUE(panel_.ReloadTracks().ok());
   EXPECT_EQ(panel_.GetTracks()[0].start_x, 0x11A0);
+  const auto published_source = fixture_.ReadSource();
+  const auto undo = editor_->Undo();
+  ASSERT_TRUE(undo.ok()) << undo;
+  EXPECT_EQ(panel_.GetTracks()[0], start_);
+  EXPECT_EQ(room_->GetSprites()[0].x(), 25);
+  EXPECT_TRUE(panel_.HasUnpublishedChanges());
+  EXPECT_EQ(fixture_.ReadSource(), published_source);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(panel_.GetTracks()[0].start_x, 0x11A0);
+  EXPECT_EQ(room_->GetSprites()[0].x(), 26);
+  EXPECT_FALSE(panel_.HasUnpublishedChanges());
+  EXPECT_EQ(fixture_.ReadSource(), published_source);
 }
 
 TEST_F(MinecartCanvasWorkflowTest, InvalidStopAndEscapeDoNotCommit) {
@@ -2132,6 +2144,27 @@ TEST_F(MinecartCanvasWorkflowTest, InvalidStopAndEscapeDoNotCommit) {
   Button(false);
   EXPECT_EQ(panel_.GetTracks()[0], start_);
   EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 0u);
+}
+
+TEST_F(MinecartCanvasWorkflowTest,
+       ChangedSourceReloadRejectsPairedUndoWithoutMutation) {
+  Move(400, 384);
+  Button(true);
+  Move(416, 384);
+  Button(false);
+  ASSERT_TRUE(panel_.SaveTracks().ok());
+  // Same track records in a different document are not an unchanged reload.
+  fixture_.WriteSource(fixture_.ReadSource() + "\n; external source edit\n");
+  ASSERT_TRUE(panel_.ReloadTracks().ok());
+  const auto source = fixture_.ReadSource();
+  const auto tracks = panel_.GetTracks();
+  const auto undo = editor_->Undo();
+  EXPECT_TRUE(absl::IsFailedPrecondition(undo)) << undo;
+  EXPECT_EQ(panel_.GetTracks(), tracks);
+  EXPECT_EQ(room_->GetSprites()[0].x(), 26);
+  EXPECT_EQ(DungeonEditorV2MinecartTrackTestPeer::UndoCount(*editor_), 1u);
+  EXPECT_EQ(fixture_.ReadSource(), source);
+  EXPECT_FALSE(panel_.HasUnpublishedChanges());
 }
 
 TEST_F(MinecartCanvasWorkflowTest, ReadOnlyRoomSwitchAndReloadCancelGestures) {

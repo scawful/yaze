@@ -254,7 +254,7 @@ bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
       .tracks = panel->GetTracks(),
       .selected = panel->selected_track(),
       .picking = panel->GetPickingTrackIndex(),
-      .revision = panel->track_generation(),
+      .revision = panel->canvas_revision(),
       .enabled = panel->canvas_editing(),
       .select = [panel](int id) { panel->SelectTrack(id); },
       .move =

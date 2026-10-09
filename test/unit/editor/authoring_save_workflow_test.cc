@@ -2081,6 +2081,10 @@ TEST_F(AuthoringSaveWorkflowTest,
   dungeon->rooms()[kRoom] = std::move(loaded);
   auto& room = dungeon->rooms()[kRoom];
   room.EnsureSpritesLoaded();
+  const auto original_holewarp = room.holewarp();
+  const int edited_holewarp = original_holewarp == 9 ? 10 : 9;
+  ASSERT_OK(dungeon->EditRoomMetadataBatch(
+      {{kRoom, {RoomMetadataField::kHolewarp, edited_holewarp}}}));
   const auto collision_before = room.custom_collision().tiles;
   auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
   ASSERT_NE(viewer, nullptr);
@@ -2197,6 +2201,25 @@ TEST_F(AuthoringSaveWorkflowTest,
   ASSERT_OK(parsed.status());
   EXPECT_EQ(parsed->tracks().at(kTrack), after);
 
+  // Reloading the just-published source must preserve paired Undo and access
+  // to the earlier room edit. Undo changes drafts, never the published file.
+  ASSERT_OK(panel->ReloadTracks());
+  AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, 0x98);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(panel->GetTracks().at(kTrack), before);
+  EXPECT_EQ(matching_cart(7, 17), 1);
+  EXPECT_TRUE(panel->HasUnpublishedChanges());
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.holewarp(), original_holewarp);
+  EXPECT_EQ(ReadFile(source_path), published);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(room.holewarp(), edited_holewarp);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(panel->GetTracks().at(kTrack), after);
+  EXPECT_EQ(matching_cart(24, 8), 1);
+  EXPECT_FALSE(panel->HasUnpublishedChanges());
+  EXPECT_EQ(ReadFile(source_path), published);
+
   const auto destination = fixture.root / "minecart-authoring.sfc";
   ASSERT_OK(manager_->SaveRomAs(destination.string()));
   EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
@@ -2216,6 +2239,7 @@ TEST_F(AuthoringSaveWorkflowTest,
       zelda3::LoadRoomFromRom(reopened->GetCurrentRom(), kRoom);
   ASSERT_TRUE(reopened_room.IsLoaded());
   reopened_room.EnsureSpritesLoaded();
+  EXPECT_EQ(reopened_room.holewarp(), edited_holewarp);
   EXPECT_EQ(std::count_if(reopened_room.GetSprites().begin(),
                           reopened_room.GetSprites().end(),
                           [](const zelda3::Sprite& sprite) {
@@ -5554,6 +5578,21 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(bool floor_art) {
   ASSERT_OK(panel->SaveTracks());
   EXPECT_NE(ReadFile(source_path), source_before);
   const auto published = ReadFile(source_path);
+  ASSERT_OK(panel->ReloadTracks());
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(panel->GetTracks(), tracks_before);
+  EXPECT_TRUE(panel->HasUnpublishedChanges());
+  // The last rail placement precedes the paired move in the same history.
+  const auto placed_count = room.GetTileObjects().size();
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.GetTileObjects().size(), placed_count - 1);
+  EXPECT_EQ(ReadFile(source_path), published);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(room.GetTileObjects().size(), placed_count);
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(panel->GetTracks().at(kTrack), revised);
+  EXPECT_FALSE(panel->HasUnpublishedChanges());
+  EXPECT_EQ(ReadFile(source_path), published);
   const auto parsed = MinecartTrackSourceDocument::Parse(
       std::string(published.begin(), published.end()));
   ASSERT_OK(parsed.status());
