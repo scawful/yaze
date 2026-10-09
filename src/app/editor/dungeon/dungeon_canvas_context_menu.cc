@@ -597,6 +597,14 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildOverlayContextMenu() {
   overlays_menu.label = "Overlays";
   overlays_menu.icon = ICON_MD_LAYERS;
 
+  gui::CanvasMenuItem chest_contents_item("Chest contents", [this]() {
+    SetChestContentsVisible(!AreChestContentsVisible());
+  });
+  chest_contents_item.checked_condition = [this]() {
+    return AreChestContentsVisible();
+  };
+  overlays_menu.subitems.push_back(std::move(chest_contents_item));
+
   gui::CanvasMenuItem coordinates_item(
       "Coordinates", ICON_MD_MY_LOCATION,
       [this]() { show_coordinate_overlay_ = !show_coordinate_overlay_; });

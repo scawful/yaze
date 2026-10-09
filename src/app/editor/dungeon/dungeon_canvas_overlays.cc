@@ -14,8 +14,10 @@
 #include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/layout_helpers.h"
+#include "core/project.h"
 #include "dungeon_canvas_viewer.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -290,10 +292,75 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
   }
 }
 
+void DungeonCanvasViewer::RenderChestContents(const gui::CanvasRuntime& rt,
+                                              const zelda3::Room& room) {
+  if (!entity_visibility_.show_chests || !rt.draw_list ||
+      !room.AreChestsLoaded() || rt.canvas_sz.x <= 16.0f) {
+    return;
+  }
+  const auto& objects = room.GetTileObjects();
+  const auto& chests = room.GetChests();
+  // Residual records and mismatched small/big objects must not be presented as
+  // a confident reward association. The chest inspector explains the mismatch.
+  if (chests.empty() ||
+      !zelda3::ValidateChestObjectMapping(objects, chests).ok()) {
+    return;
+  }
+
+  const DungeonCanvasTransform transform(rt.canvas_p0, rt.scrolling, rt.scale);
+  const ImVec2 canvas_max(rt.canvas_p0.x + rt.canvas_sz.x,
+                          rt.canvas_p0.y + rt.canvas_sz.y);
+  const auto& theme = AgentUI::GetTheme();
+  const float padding = 4.0f;
+  const float wrap_width = std::min(180.0f, rt.canvas_sz.x - padding * 4);
+  rt.draw_list->PushClipRect(rt.canvas_p0, canvas_max, true);
+  for (size_t i = 0; i < objects.size(); ++i) {
+    const auto chest_index = zelda3::ChestIndexForObject(objects, i);
+    if (!chest_index) {
+      continue;
+    }
+    const auto& object = objects[i];
+    const float chest_width = object.id_ == 0xFB1 ? 32.0f : 16.0f;
+    const ImVec2 chest_min = transform.RoomPixelsToScreen(
+        ImVec2(object.x_ * 8.0f, object.y_ * 8.0f));
+    const ImVec2 chest_max = transform.RoomPixelsToScreen(
+        ImVec2(object.x_ * 8.0f + chest_width,
+               object.y_ * 8.0f + (object.id_ == 0xFB1 ? 24.0f : 16.0f)));
+    if (chest_max.x < rt.canvas_p0.x || chest_min.x > canvas_max.x ||
+        chest_max.y < rt.canvas_p0.y || chest_min.y > canvas_max.y) {
+      continue;
+    }
+    const auto item_id = chests[*chest_index].id;
+    const std::string text = absl::StrFormat(
+        "$%02X %s", item_id,
+        zelda3::GetItemReceiptLabel(
+            item_id, project_ ? &project_->resource_labels : nullptr));
+    const ImVec2 text_size =
+        ImGui::CalcTextSize(text.c_str(), nullptr, false, wrap_width);
+    const float width = text_size.x + padding * 2;
+    const float height = text_size.y + padding * 2;
+    const ImVec2 min(
+        std::clamp((chest_min.x + chest_max.x - width) * 0.5f, rt.canvas_p0.x,
+                   std::max(rt.canvas_p0.x, canvas_max.x - width)),
+        std::max(rt.canvas_p0.y, chest_min.y - height - 3.0f));
+    const ImVec2 max(min.x + width, min.y + height);
+    rt.draw_list->AddRectFilled(min, max, IM_COL32(0, 0, 0, 200), 3.0f);
+    rt.draw_list->AddRect(min, max, ImGui::GetColorU32(theme.item_color), 3.0f);
+    rt.draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
+                          ImVec2(min.x + padding, min.y + padding),
+                          ImGui::GetColorU32(ImGuiCol_Text), text.c_str(),
+                          nullptr, wrap_width);
+    // Draw-list annotations have no ImGui item and cannot take a placement,
+    // selection, drag, or pan gesture away from the room canvas.
+  }
+  rt.draw_list->PopClipRect();
+}
+
 void DungeonCanvasViewer::RenderEntityOverlay(const gui::CanvasRuntime& rt,
                                               const zelda3::Room& room) {
   RenderSprites(rt, room);
   RenderPotItems(rt, room);
+  RenderChestContents(rt, room);
 }
 
 void DungeonCanvasViewer::HandleTouchLongPressContextMenu(

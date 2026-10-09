@@ -16,6 +16,7 @@
 
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
@@ -128,6 +129,28 @@ class DungeonCanvasViewerTestPeer {
                             const gui::CanvasRuntime& runtime,
                             const zelda3::Room& room) {
     viewer.RenderSprites(runtime, room);
+  }
+
+  static void RenderChestContents(DungeonCanvasViewer& viewer,
+                                  const gui::CanvasRuntime& runtime,
+                                  const zelda3::Room& room) {
+    viewer.RenderChestContents(runtime, room);
+  }
+
+  static ImRect DrawMetadataHud(DungeonCanvasViewer& viewer, int room_id,
+                                float canvas_width) {
+    gui::CanvasFrameOptions options;
+    options.canvas_size = ImVec2(canvas_width, 400);
+    options.draw_context_menu = false;
+    options.draw_grid = false;
+    options.draw_overlay = false;
+    options.render_popups = false;
+    auto runtime = gui::BeginCanvas(viewer.canvas_, options);
+    viewer.DrawHeaderHiddenMetadataHud(room_id);
+    gui::EndCanvas(viewer.canvas_, runtime, options);
+    return ImRect(runtime.canvas_p0,
+                  ImVec2(runtime.canvas_p0.x + runtime.canvas_sz.x,
+                         runtime.canvas_p0.y + runtime.canvas_sz.y));
   }
 
   static auto* CachedSpritePreview(DungeonCanvasViewer& viewer,
@@ -3116,6 +3139,317 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   // Collapse only after crossing below (min - hysteresis).
   EXPECT_FALSE(
       dungeon_ui::ShouldShowConnectedSidePanel(kMin - kHyst - 0.001f, true));
+}
+
+class DungeonCanvasRoomInformationTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    old_labels_ = zelda3::GetResourceLabels();
+    imgui_ = std::make_unique<ScopedImGuiContext>();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DeltaTime = 1.0f / 60.0f;
+    io.Fonts->AddFontDefault();
+    unsigned char* pixels = nullptr;
+    int width = 0, height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    for (int id : {0, 1}) {
+      rooms_[id].SetLoaded(true);
+      rooms_[id].LoadChests();
+      rooms_[id].SetTag1(zelda3::Nothing);
+      rooms_[id].SetTag2(zelda3::Nothing);
+      rooms_[id].ClearSaveDirtyState();
+    }
+    viewer_.RefreshRomBackedState(&rom_, nullptr, &rooms_, 0);
+    viewer_.SetHeaderVisible(false);
+    viewer_.SetHeaderHiddenMetadataHudVisible(false);
+    viewer_.SetProject(&project_);
+    ASSERT_TRUE(project_.hack_manifest
+                    .LoadFromString(R"json({
+      "version":1,"hack_name":"Oracle of Secrets",
+      "room_tags":{"tags":[{"tag_id":"0x34","address":"0x01CC08",
+      "name":"Crumble Floor","source":"Dungeons/crumblefloor_tag.asm"},
+      {"tag_id":"0x37","name":"RoomTag_ShutterDoorRequiresCart",
+      "enabled":false,"feature_flag":"!ENABLE_MINECART_CART_SHUTTERS"}]}
+    })json")
+                    .ok());
+  }
+
+  void TearDown() override {
+    zelda3::GetResourceLabels() = old_labels_;
+    imgui_.reset();
+  }
+
+  std::string HudFrame(int room_id, float width = 640.0f) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width + 40, 500), ImGuiCond_Always);
+    ImGui::Begin("RoomInformationHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
+    const auto canvas_bounds =
+        DungeonCanvasViewerTestPeer::DrawMetadataHud(viewer_, room_id, width);
+    const auto text =
+        std::string(ImGui::GetCurrentContext()->LogBuffer.c_str());
+    ImGui::LogFinish();
+    const auto hud_id = absl::StrFormat("##MetadataHUD_%p", &viewer_);
+    auto* hud = ImGui::FindWindowByName(hud_id.c_str());
+    EXPECT_NE(hud, nullptr);
+    if (hud) {
+      EXPECT_EQ(hud->Flags & ImGuiWindowFlags_NoInputs,
+                ImGuiWindowFlags_NoInputs);
+      EXPECT_LE(hud->Pos.x + hud->Size.x, canvas_bounds.Max.x);
+      EXPECT_LE(hud->DC.CursorMaxPos.x, hud->WorkRect.Max.x + 1.0f);
+    }
+    ImGui::End();
+    ImGui::Render();
+    return text;
+  }
+
+  static std::vector<float> GlyphUvs(const ImDrawList& draw_list, int first,
+                                     int last) {
+    std::vector<float> result;
+    const auto white = ImGui::GetFontTexUvWhitePixel();
+    for (int i = first; i < last; ++i) {
+      const auto uv = draw_list.VtxBuffer[i].uv;
+      if (uv.x != white.x || uv.y != white.y) {
+        result.push_back(uv.x);
+        result.push_back(uv.y);
+      }
+    }
+    return result;
+  }
+
+  std::vector<ImDrawVert> BadgeFrame(const zelda3::Room& room,
+                                     const std::string& expected_text,
+                                     float scale = 1.0f,
+                                     ImVec2 scroll = ImVec2(0, 0)) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(850, 700), ImGuiCond_Always);
+    ImGui::Begin("ChestBadgeHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    gui::CanvasRuntime rt;
+    rt.draw_list = ImGui::GetWindowDrawList();
+    rt.canvas_p0 = ImVec2(40, 60);
+    rt.canvas_sz = ImVec2(700, 560);
+    rt.scale = scale;
+    rt.scrolling = scroll;
+    auto& draw_list = *rt.draw_list;
+    // Keep line geometry on the white atlas pixel so GlyphUvs isolates actual
+    // font glyphs. Production badge rendering retains its normal draw flags.
+    draw_list.Flags &= ~ImDrawListFlags_AntiAliasedLinesUseTex;
+    const auto last_item = ImGui::GetItemID();
+    const int first = draw_list.VtxBuffer.Size;
+    DungeonCanvasViewerTestPeer::RenderChestContents(viewer_, rt, room);
+    const int last = draw_list.VtxBuffer.Size;
+    EXPECT_EQ(ImGui::GetItemID(), last_item);
+    const auto actual_uvs = GlyphUvs(draw_list, first, last);
+    std::vector<ImDrawVert> result(draw_list.VtxBuffer.begin() + first,
+                                   draw_list.VtxBuffer.begin() + last);
+    // Compare the font-atlas coordinates actually submitted for the badge with
+    // the expected receipt text. This detects wrong project/room/reward names
+    // without relying on a GPU or adding a text-only production test seam.
+    const int expected_first = draw_list.VtxBuffer.Size;
+    draw_list.AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(40, 60),
+                      IM_COL32_WHITE, expected_text.c_str(), nullptr, 180.0f);
+    EXPECT_EQ(actual_uvs,
+              GlyphUvs(draw_list, expected_first, draw_list.VtxBuffer.Size));
+    ImGui::End();
+    ImGui::Render();
+    return result;
+  }
+
+  void AddChest(int room_id, int object_id, uint8_t item_id, int layer = 0) {
+    rooms_[room_id].GetTileObjects().emplace_back(object_id, 20, 24, 0, layer);
+    rooms_[room_id].GetChests().push_back({item_id, object_id == 0xFB1});
+  }
+
+  std::unique_ptr<ScopedImGuiContext> imgui_;
+  Rom rom_;
+  DungeonRoomStore rooms_{&rom_};
+  DungeonCanvasViewer viewer_;
+  project::YazeProject project_;
+  zelda3::ResourceLabelProvider old_labels_;
+};
+
+TEST_F(DungeonCanvasRoomInformationTest,
+       TagsRemainVisibleWhenWorkbenchSuppressesHeaderMetadata) {
+  rooms_[0].SetTag1(static_cast<zelda3::TagKey>(0x34));
+  for (int frame = 0; frame < 3; ++frame) {
+    const auto text = HudFrame(0);
+    EXPECT_NE(text.find("Tags: 1 $34 Crumble Floor | 2 $00 Nothing"),
+              std::string::npos);
+    EXPECT_EQ(text.find("B:"), std::string::npos);
+  }
+  viewer_.SetHeaderVisible(true);
+  EXPECT_NE(HudFrame(0).find("Crumble Floor"), std::string::npos);
+}
+
+TEST_F(DungeonCanvasRoomInformationTest,
+       TagHudPreservesActiveControlOnAppearanceAndReappearance) {
+  auto& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.AddMousePosEvent(-1000, -1000);
+  std::array<char, 32> text{};
+  ImGuiID control_id = 0;
+  ImGuiWindow* host = nullptr;
+  auto frame = [&](bool show_hud, bool focus_control = false) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(680, 520), ImGuiCond_Always);
+    ImGui::Begin("TagHudFocusHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    host = ImGui::GetCurrentWindow();
+    control_id = ImGui::GetID("Room note");
+    if (focus_control) {
+      ImGui::SetKeyboardFocusHere();
+    }
+    ImGui::InputText("Room note", text.data(), text.size());
+    if (show_hud) {
+      auto& context = *ImGui::GetCurrentContext();
+      EXPECT_EQ(context.NavWindow, host);
+      EXPECT_EQ(context.NavId, control_id);
+      EXPECT_EQ(context.ActiveId, control_id);
+      DungeonCanvasViewerTestPeer::DrawMetadataHud(viewer_, 0, 640.0f);
+      EXPECT_EQ(context.NavWindow, host);
+      EXPECT_EQ(context.NavId, control_id);
+      EXPECT_EQ(context.ActiveId, control_id);
+    }
+    ImGui::End();
+    ImGui::Render();
+  };
+
+  frame(false, true);
+  frame(false);
+  ASSERT_EQ(ImGui::GetCurrentContext()->NavWindow, host);
+  ASSERT_EQ(ImGui::GetCurrentContext()->NavId, control_id);
+  ASSERT_EQ(ImGui::GetCurrentContext()->ActiveId, control_id);
+  frame(true);
+  io.AddInputCharactersUTF8("a");
+  frame(true);
+  EXPECT_STREQ(text.data(), "a");
+  frame(false);
+  frame(false);
+  frame(true);
+  io.AddInputCharactersUTF8("b");
+  frame(true);
+  EXPECT_STREQ(text.data(), "ab");
+}
+
+TEST_F(DungeonCanvasRoomInformationTest,
+       TagsFollowRoomAndProjectLabelsWithoutGlobalSessionLeak) {
+  zelda3::ResourceLabelProvider::ProjectLabels foreign_labels;
+  foreign_labels["room_tag"]["52"] = "Wrong session";
+  zelda3::GetResourceLabels().SetProjectLabels(&foreign_labels);
+  rooms_[0].SetTag1(static_cast<zelda3::TagKey>(0x34));
+  rooms_[1].SetTag2(static_cast<zelda3::TagKey>(0x34));
+  project_.resource_labels["room_tag"]["0x34"] = "Weekend Crumble";
+  EXPECT_NE(HudFrame(0).find("1 $34 Weekend Crumble"), std::string::npos);
+  EXPECT_NE(HudFrame(1).find("2 $34 Weekend Crumble"), std::string::npos);
+  project_.resource_labels.clear();
+  EXPECT_NE(HudFrame(1).find("2 $34 Crumble Floor"), std::string::npos);
+  viewer_.SetProject(nullptr);
+  const auto vanilla = HudFrame(1);
+  EXPECT_NE(vanilla.find("2 $34 Holes 3"), std::string::npos);
+  EXPECT_EQ(vanilla.find("Wrong session"), std::string::npos);
+}
+
+TEST_F(DungeonCanvasRoomInformationTest, TagsExposeDisabledProjectDispatch) {
+  rooms_[0].SetTag1(static_cast<zelda3::TagKey>(0x37));
+  rooms_[0].SetTag2(static_cast<zelda3::TagKey>(0x34));
+  const auto text = HudFrame(0);
+  EXPECT_NE(text.find("1 $37 RoomTag_ShutterDoorRequiresCart (disabled)"),
+            std::string::npos);
+  EXPECT_NE(text.find("2 $34 Crumble Floor"), std::string::npos);
+  EXPECT_EQ(text.find("Crumble Floor (disabled)"), std::string::npos);
+  project_.resource_labels["room_tag"]["55"] = "Cart shutter";
+  EXPECT_NE(HudFrame(0).find("1 $37 Cart shutter (disabled)"),
+            std::string::npos);
+}
+
+TEST_F(DungeonCanvasRoomInformationTest, LongTagsWrapWithinNarrowPassiveHud) {
+  rooms_[0].SetTag1(static_cast<zelda3::TagKey>(0x34));
+  project_.resource_labels["room_tag"]["52"] =
+      "Crumble Floor With A Long Project Label";
+  for (int frame = 0; frame < 3; ++frame) {
+    const auto text = HudFrame(0, 200.0f);
+    EXPECT_NE(text.find("Crumble Floor With A Long Project Label"),
+              std::string::npos);
+  }
+}
+
+TEST_F(DungeonCanvasRoomInformationTest,
+       ChestBadgesUseCurrentReceiptsAndProjectNames) {
+  AddChest(0, 0xF99, 0x24);
+  project_.resource_labels["item_receipt"]["0x24"] = "Mine Key";
+  EXPECT_FALSE(BadgeFrame(rooms_[0], "$24 Mine Key").empty());
+  rooms_[0].GetChests()[0].id = 0x33;
+  EXPECT_FALSE(BadgeFrame(rooms_[0], "$33 Map").empty());
+  AddChest(1, 0xFB1, 0xF0);
+  project_.resource_labels["item_receipt"]["240"] = "Custom Reward";
+  EXPECT_FALSE(BadgeFrame(rooms_[1], "$F0 Custom Reward").empty());
+  viewer_.SetProject(nullptr);
+  EXPECT_FALSE(BadgeFrame(rooms_[1], "$F0 Unknown item F0").empty());
+}
+
+TEST_F(DungeonCanvasRoomInformationTest,
+       ChestBadgesUseReceiptNamespaceAndViewerContext) {
+  zelda3::ResourceLabelProvider::ProjectLabels foreign;
+  foreign["item_receipt"]["37"] = "Wrong session";
+  zelda3::GetResourceLabels().SetProjectLabels(&foreign);
+  AddChest(0, 0xFB1, 0x25);
+  project_.resource_labels["item"]["0x25"] = "Blue Potion";
+  EXPECT_FALSE(BadgeFrame(rooms_[0], "$25 Compass").empty());
+  project_.resource_labels["item_receipt"]["37"] = "Big chest key";
+  EXPECT_FALSE(BadgeFrame(rooms_[0], "$25 Big chest key").empty());
+  project::YazeProject second;
+  second.resource_labels["item_receipt"]["0x25"] = "Second receipt";
+  viewer_.SetProject(&second);
+  EXPECT_FALSE(BadgeFrame(rooms_[0], "$25 Second receipt").empty());
+  viewer_.SetProject(nullptr);
+  EXPECT_FALSE(BadgeFrame(rooms_[0], "$25 Compass").empty());
+  zelda3::GetResourceLabels().SetProjectLabels(nullptr);
+}
+
+TEST_F(DungeonCanvasRoomInformationTest,
+       ChestBadgesRespectStreamOrderAndFixedOpenDecorations) {
+  AddChest(0, 0xF99, 0x33, 1);
+  AddChest(0, 0xFB1, 0x24, 0);
+  rooms_[0].GetChests() = {{0x24, true}, {0x33, false}};
+  rooms_[0].GetTileObjects().emplace_back(0xF9A, 8, 8, 0, 0);
+  EXPECT_FALSE(BadgeFrame(rooms_[0], "$33 Map$24 Small Key").empty());
+}
+
+TEST_F(DungeonCanvasRoomInformationTest,
+       ChestBadgesSkipAmbiguousMappingsAndHonorVisibility) {
+  AddChest(0, 0xF99, 0x24);
+  viewer_.SetChestContentsVisible(false);
+  EXPECT_TRUE(BadgeFrame(rooms_[0], "").empty());
+  viewer_.SetChestContentsVisible(true);
+  rooms_[0].GetChests()[0].size = true;
+  EXPECT_TRUE(BadgeFrame(rooms_[0], "").empty());
+  rooms_[0].GetChests().clear();
+  EXPECT_TRUE(BadgeFrame(rooms_[0], "").empty());
+}
+
+TEST_F(DungeonCanvasRoomInformationTest,
+       ChestBadgeTracksZoomAndScrollAboveBigChestWithoutTakingInput) {
+  AddChest(0, 0xFB1, 0x33);
+  for (const float scale : {0.5f, 1.0f, 2.0f}) {
+    const ImVec2 scroll(12, -7);
+    const auto vertices = BadgeFrame(rooms_[0], "$33 Map", scale, scroll);
+    ASSERT_FALSE(vertices.empty());
+    float left = vertices.front().pos.x, right = left;
+    float bottom = vertices.front().pos.y;
+    for (const auto& vertex : vertices) {
+      left = std::min(left, vertex.pos.x);
+      right = std::max(right, vertex.pos.x);
+      bottom = std::max(bottom, vertex.pos.y);
+    }
+    EXPECT_NEAR((left + right) / 2, 40 + scroll.x + (20 * 8 + 16) * scale,
+                1.0f);
+    EXPECT_LT(bottom, 60 + scroll.y + 24 * 8 * scale);
+  }
 }
 
 }  // namespace yaze::editor

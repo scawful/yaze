@@ -11,6 +11,10 @@ namespace yaze::zelda3 {
 class Room;
 }
 
+namespace yaze::project {
+struct YazeProject;
+}
+
 namespace yaze::editor {
 
 class DungeonCanvasViewer;
@@ -24,8 +28,10 @@ struct DungeonChestEditorState {
 };
 
 // Chest item IDs are receipt-table indices, not inventory slot values. Unknown
-// bytes retain their numeric identity; named project labels override defaults.
+// bytes retain their numeric identity; project item_receipt labels override defaults.
 std::string GetDungeonChestItemLabel(uint8_t item_id);
+std::string GetDungeonChestItemLabel(uint8_t item_id,
+                                     const project::YazeProject* project);
 
 // Shared chest authoring controls. Placement uses the canvas tool, and structural
 // edits keep the visual chest and its contents in one undoable operation.
