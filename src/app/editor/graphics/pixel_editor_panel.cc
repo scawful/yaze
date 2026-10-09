@@ -1,3 +1,4 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "util/i18n/tr.h"
 
@@ -21,10 +22,53 @@
 #include "app/gui/widgets/themed_widgets.h"
 #include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/image_clipboard.h"
 
 namespace yaze {
 namespace editor {
+namespace {
+
+// Material icons are merged with a text-baseline offset. Center their visible
+// glyph bounds, not the text line box, while retaining ordinary button input,
+// navigation, IDs, and disabled styling. This is for one-glyph controls only.
+bool PixelIconButton(const char* label, float button_size) {
+  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 0));
+  const bool pressed = ImGui::Button(label, ImVec2(button_size, button_size));
+  ImGui::PopStyleColor();
+  if (!ImGui::IsItemVisible())
+    return pressed;
+
+  unsigned int codepoint = 0;
+  ImTextCharFromUtf8(&codepoint, label, nullptr);
+  auto* baked = ImGui::GetFontBaked();
+  const auto* glyph = baked->FindGlyph(static_cast<ImWchar>(codepoint));
+  if (!glyph || !glyph->Visible)
+    return pressed;
+
+  const float font_scale = ImGui::GetFontSize() / baked->Size;
+  const float width = (glyph->X1 - glyph->X0) * font_scale;
+  const float height = (glyph->Y1 - glyph->Y0) * font_scale;
+  if (width <= 0 || height <= 0)
+    return pressed;
+  const ImVec2 min = ImGui::GetItemRectMin();
+  const ImVec2 max = ImGui::GetItemRectMax();
+  // Keep the existing compact frame size; fit oversized glyphs inside it.
+  const float inset = ImGui::GetFontSize() / 8.0f;
+  const float available = std::max(1.0f, button_size - 2 * inset);
+  const float fit = std::min({1.0f, available / width, available / height});
+  const ImVec2 glyph_size(width * fit, height * fit);
+  const ImVec2 glyph_min((min.x + max.x - glyph_size.x) * 0.5f,
+                         (min.y + max.y - glyph_size.y) * 0.5f);
+  ImGui::GetWindowDrawList()->AddImage(
+      ImGui::GetFont()->OwnerAtlas->TexRef, glyph_min,
+      ImVec2(glyph_min.x + glyph_size.x, glyph_min.y + glyph_size.y),
+      ImVec2(glyph->U0, glyph->V0), ImVec2(glyph->U1, glyph->V1),
+      ImGui::GetColorU32(ImGuiCol_Text));
+  return pressed;
+}
+
+}  // namespace
 
 void PixelEditorPanel::Initialize() {
   // Canvas is initialized via member initializer list
@@ -58,8 +102,7 @@ absl::Status PixelEditorPanel::Update() {
   DrawToolbar();
   ImGui::SameLine();
   const float button_size = ImGui::GetFrameHeight();
-  if (ImGui::Button(ICON_MD_TUNE "##ViewOptions",
-                    ImVec2(button_size, button_size))) {
+  if (PixelIconButton(ICON_MD_TUNE "##ViewOptions", button_size)) {
     ImGui::OpenPopup("View options");
   }
   gui::AutoRegisterLastItem("button", "View options");
@@ -69,8 +112,7 @@ absl::Status PixelEditorPanel::Update() {
     ImGui::EndPopup();
   }
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_MORE_HORIZ "##PixelEditOptions",
-                    ImVec2(button_size, button_size))) {
+  if (PixelIconButton(ICON_MD_MORE_HORIZ "##PixelEditOptions", button_size)) {
     ImGui::OpenPopup("Edit options");
   }
   gui::AutoRegisterLastItem("button", "Edit options");
@@ -339,7 +381,7 @@ void PixelEditorPanel::DrawToolbar() {
       if (state_->current_tool == tool.tool) {
         selected.emplace(ImGuiCol_Button, gui::GetPrimaryVec4());
       }
-      if (ImGui::Button(tool.icon, ImVec2(button_size, button_size))) {
+      if (PixelIconButton(tool.icon, button_size)) {
         state_->SetTool(tool.tool);
       }
       gui::AutoRegisterLastItem("button", tool.label);
@@ -365,8 +407,7 @@ void PixelEditorPanel::DrawToolbar() {
   // Undo/Redo buttons
   ImGui::BeginDisabled(HasActiveStroke() || !undo_manager_ ||
                        !undo_manager_->CanUndo());
-  if (ImGui::Button(ICON_MD_UNDO, ImVec2(button_size, button_size)) &&
-      undo_manager_) {
+  if (PixelIconButton(ICON_MD_UNDO, button_size) && undo_manager_) {
     const auto status = undo_ ? undo_() : undo_manager_->Undo();
     history_error_ = status.ok() ? "" : std::string(status.message());
   }
@@ -378,8 +419,7 @@ void PixelEditorPanel::DrawToolbar() {
 
   ImGui::BeginDisabled(HasActiveStroke() || !undo_manager_ ||
                        !undo_manager_->CanRedo());
-  if (ImGui::Button(ICON_MD_REDO, ImVec2(button_size, button_size)) &&
-      undo_manager_) {
+  if (PixelIconButton(ICON_MD_REDO, button_size) && undo_manager_) {
     const auto status = redo_ ? redo_() : undo_manager_->Redo();
     history_error_ = status.ok() ? "" : std::string(status.message());
   }
@@ -842,7 +882,7 @@ void PixelEditorPanel::DrawStatusBar() {
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
                       ImVec2(4, ImGui::GetStyle().ItemSpacing.y));
   const float button_size = ImGui::GetFrameHeight();
-  if (ImGui::Button(ICON_MD_ZOOM_OUT, ImVec2(button_size, button_size))) {
+  if (PixelIconButton(ICON_MD_ZOOM_OUT, button_size)) {
     state_->ZoomOut();
   }
   gui::AutoRegisterLastItem("button", "Zoom out");
@@ -860,7 +900,7 @@ void PixelEditorPanel::DrawStatusBar() {
     ImGui::EndCombo();
   }
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_ZOOM_IN, ImVec2(button_size, button_size))) {
+  if (PixelIconButton(ICON_MD_ZOOM_IN, button_size)) {
     state_->ZoomIn();
   }
   gui::AutoRegisterLastItem("button", "Zoom in");

@@ -26,6 +26,7 @@
 namespace yaze {
 namespace editor {
 
+class AuthoringSaveWorkflowTestPeer;
 class MessageEditorTestPeer;
 class MessageEditorSaveTestPeer;
 class MessageEditorPublishGuardTestPeer;
@@ -100,6 +101,7 @@ class MessageEditor : public Editor {
   Rom* rom() const { return rom_; }
 
  private:
+  friend class AuthoringSaveWorkflowTestPeer;
   friend class MessageEditorTestPeer;
   friend class MessageEditorSaveTestPeer;
   friend class MessageEditorPublishGuardTestPeer;
@@ -158,6 +160,7 @@ class MessageEditor : public Editor {
   std::vector<std::string> baseline_messages_;
   std::string reference_view_text_;
   bool show_reference_ = true;
+  bool project_source_load_attempted_ = false;
   bool source_sync_ready_ = false;
   bool source_sync_changed_ = false;
   std::string source_sync_sha_before_;

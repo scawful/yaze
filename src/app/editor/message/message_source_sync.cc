@@ -522,6 +522,61 @@ std::string ComputeMessageSourceSha256(std::string_view content) {
   return core::ComputeSourceArtifactSha256(content);
 }
 
+absl::StatusOr<MessageSourceSnapshot> LoadMessageSource(
+    const project::YazeProject& project) {
+  if (!project.hack_manifest.loaded() ||
+      !project.hack_manifest.message_layout().source.has_value()) {
+    return absl::FailedPreconditionError(
+        "The project hack manifest does not define messages.source");
+  }
+  const auto& layout = project.hack_manifest.message_layout();
+  size_t capacity = 0;
+  ASSIGN_OR_RETURN(capacity, ValidateLayoutAndGetCapacity(layout));
+  fs::path root;
+  ASSIGN_OR_RETURN(root, CanonicalProjectRoot(project));
+  fs::path path;
+  ASSIGN_OR_RETURN(path, ResolveProjectTarget(
+                             root, layout.source->canonical_bundle_path,
+                             /*must_exist=*/true, "Canonical message bundle"));
+  std::string content;
+  ASSIGN_OR_RETURN(content, ReadTextFile(path, "canonical message bundle"));
+  Json document;
+  ASSIGN_OR_RETURN(document,
+                   ParseBundleDocument(content, "Canonical message bundle"));
+  ExpandedSourceBank bank;
+  ASSIGN_OR_RETURN(bank, ParseExpandedBank(document, layout.expanded_count,
+                                           /*require_complete=*/true,
+                                           "Canonical message bundle"));
+  size_t encoded_size = 1;  // Final $FF.
+  for (const auto& [id, message] : bank) {
+    encoded_size += message.bytes.size() + 1;  // Per-message $7F.
+  }
+  if (encoded_size > capacity) {
+    return absl::ResourceExhaustedError(
+        absl::StrFormat("Canonical message bundle needs %zu bytes, but "
+                        "manifest capacity is %zu",
+                        encoded_size, capacity));
+  }
+
+  MessageSourceSnapshot snapshot;
+  snapshot.canonical_bundle_path = std::move(path);
+  snapshot.source_sha256 = ComputeMessageSourceSha256(content);
+  snapshot.first_expanded_id = layout.first_expanded_id;
+  int address = static_cast<int>(SnesToPc(layout.data_start));
+  for (auto& [id, source] : bank) {
+    MessageData message;
+    message.ID = id;
+    message.Address = address;
+    message.RawString = source.text;
+    message.ContentsParsed = source.text;
+    message.Data = std::move(source.bytes);
+    message.DataParsed = message.Data;
+    address += static_cast<int>(message.Data.size()) + 1;
+    snapshot.messages.push_back(std::move(message));
+  }
+  return snapshot;
+}
+
 absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
     const project::YazeProject& project, const fs::path& incoming_bundle_path,
     const MessageSourceSyncOptions& options) {

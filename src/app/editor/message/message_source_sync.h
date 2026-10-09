@@ -5,11 +5,25 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "absl/status/statusor.h"
+#include "app/editor/message/message_data.h"
 #include "core/project.h"
 
 namespace yaze::editor {
+
+// A validated, complete source bank read without touching ROM bytes or generated
+// output. IDs in messages remain bank-local; first_expanded_id is the display base.
+struct MessageSourceSnapshot {
+  std::filesystem::path canonical_bundle_path;
+  std::string source_sha256;
+  int first_expanded_id = 0;
+  std::vector<MessageData> messages;
+};
+
+absl::StatusOr<MessageSourceSnapshot> LoadMessageSource(
+    const project::YazeProject& project);
 
 struct MessageSourceSyncOptions {
   // Source synchronization is a dry-run unless this is explicitly enabled.
