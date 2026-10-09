@@ -183,6 +183,13 @@ class AuthoringSaveWorkflowTestPeer {
   static void DrawGraphics(GraphicsEditor& editor) {
     EXPECT_OK(editor.pixel_editor_panel_->Update());
   }
+  static bool HasActiveGraphicsStroke(const GraphicsEditor& editor) {
+    return editor.pixel_editor_panel_->HasActiveStroke();
+  }
+
+  static ImVec2 GraphicsCanvasOrigin(const GraphicsEditor& editor) {
+    return editor.pixel_editor_panel_->canvas_.zero_point();
+  }
 
   static void DrawGraphicsPalette(GraphicsEditor& editor) {
     editor.pixel_editor_panel_->DrawColorPicker();
@@ -1933,6 +1940,189 @@ TEST_F(AuthoringSaveWorkflowTest,
 }
 
 TEST_F(AuthoringSaveWorkflowTest,
+       GraphicsHiddenLineReleaseSaveAsFailureUndoRedoReopens) {
+  const auto fixture = CopyProject("yaze-graphics-line-save-gesture");
+  const auto assets = std::filesystem::path(kSharedProject).parent_path() /
+                      "Dungeons/Objects/Data";
+  ASSERT_TRUE(std::filesystem::is_directory(assets));
+  for (const auto& entry : std::filesystem::directory_iterator(assets)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".bin") {
+      std::filesystem::copy_file(entry.path(),
+                                 fixture.root / entry.path().filename());
+    }
+  }
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* editors = manager_->GetCurrentEditorSet();
+  auto* dungeon = editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  auto* graphics = editors->GetGraphicsEditor();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(graphics, nullptr);
+  constexpr int kRoom = 5;
+  ASSERT_OK(AuthoringSaveWorkflowTestPeer::LoadDungeonRoom(*dungeon, kRoom));
+  auto& room = dungeon->rooms()[kRoom];
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  size_t chosen = 0;
+  for (; chosen < room.GetTileObjects().size(); ++chosen) {
+    AuthoringSaveWorkflowTestPeer::OpenObjectGraphics(
+        *dungeon, kRoom, room.GetTileObjects()[chosen]);
+    if (state.source_context)
+      break;
+  }
+  ASSERT_LT(chosen, room.GetTileObjects().size());
+  ASSERT_TRUE(state.SourceTarget());
+  const auto target = *state.SourceTarget();
+  const int tile_x = (target.tile_index % 16) * 8;
+  const int tile_y = (target.tile_index / 16) * 8;
+  const auto source = state.game_data->sheet_store.Sheet(target.sheet_id);
+  const std::vector<uint8_t> before(source.begin(), source.end());
+  uint8_t color = 0;
+  for (; color < 8; ++color) {
+    bool used = false;
+    for (int dx = 2; dx <= 6; ++dx)
+      used |= before[(tile_y + 2) * 128 + tile_x + dx] == color;
+    if (!used)
+      break;
+  }
+  ASSERT_LT(color, 8);
+  auto expected = before;
+  for (int dx = 2; dx <= 6; ++dx)
+    expected[(tile_y + 2) * 128 + tile_x + dx] = color;
+
+  state.SetTool(PixelTool::kLine);
+  state.SetZoom(4);
+  state.current_color_index = color;
+  auto& io = ImGui::GetIO();
+  io.ConfigInputTrickleEventQueue = false;
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0, font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+  const auto frame = [&](bool show_pixel_panel = true) {
+    ImGui::NewFrame();
+    if (show_pixel_panel) {
+      ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+      ImGui::SetNextWindowSize(ImVec2(1000, 760), ImGuiCond_Always);
+      ImGui::Begin("GraphicsLineSaveHost", nullptr,
+                   ImGuiWindowFlags_NoSavedSettings);
+      AuthoringSaveWorkflowTestPeer::DrawGraphics(*graphics);
+      ImGui::End();
+    }
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  ASSERT_EQ(state.current_sheet_id, target.sheet_id);
+  const ImVec2 origin =
+      AuthoringSaveWorkflowTestPeer::GraphicsCanvasOrigin(*graphics);
+  ASSERT_GT(origin.x, 0);
+  ASSERT_GT(origin.y, 0);
+  const auto point = [&](int dx) {
+    return ImVec2(origin.x + (tile_x + dx + 0.5f) * state.zoom_level,
+                  origin.y + (tile_y + 2.5f) * state.zoom_level);
+  };
+  const auto start = point(2);
+  const auto end = point(6);
+  const auto filename = manager_->GetCurrentRom()->filename();
+  const auto rom_before = manager_->GetCurrentRom()->vector();
+  const size_t undo_before = graphics->undo_manager().UndoStackSize();
+  const auto revision_before =
+      state.game_data->sheet_store.Revision(target.sheet_id);
+  const auto destination = fixture.root / "graphics-line-save.sfc";
+  ASSERT_FALSE(std::filesystem::exists(destination));
+
+  io.AddMousePosEvent(start.x, start.y);
+  frame();
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  frame();
+  io.AddMousePosEvent(end.x, end.y);
+  frame();
+  ASSERT_TRUE(
+      AuthoringSaveWorkflowTestPeer::HasActiveGraphicsStroke(*graphics));
+  EXPECT_EQ(state.game_data->sheet_store.Revision(target.sheet_id),
+            revision_before);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(before));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_before);
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+
+  const auto held = manager_->SaveRomAs(destination.string());
+  EXPECT_TRUE(absl::IsFailedPrecondition(held)) << held;
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), filename);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
+  EXPECT_EQ(state.game_data->sheet_store.Revision(target.sheet_id),
+            revision_before);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(before));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_before);
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  EXPECT_TRUE(
+      AuthoringSaveWorkflowTestPeer::HasActiveGraphicsStroke(*graphics));
+
+  // The mouse release occurs while the pixel panel is hidden. Save As
+  // must finish this gesture before staging its transaction snapshot.
+  io.AddMousePosEvent(1200, 850);
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  frame(false);
+  ASSERT_TRUE(
+      AuthoringSaveWorkflowTestPeer::HasActiveGraphicsStroke(*graphics));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_before);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(before));
+
+  {
+    test::ScopedRomStagingFailure failure;
+    const auto failed = manager_->SaveRomAs(destination.string());
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), filename);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
+  EXPECT_FALSE(
+      AuthoringSaveWorkflowTestPeer::HasActiveGraphicsStroke(*graphics));
+  EXPECT_GT(state.game_data->sheet_store.Revision(target.sheet_id),
+            revision_before);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(expected));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_before + 1);
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  ASSERT_OK(graphics->Undo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(before));
+  ASSERT_OK(graphics->Redo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(target.sheet_id),
+            absl::MakeConstSpan(expected));
+
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_FALSE(graphics->HasPendingGraphicsChanges());
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  auto reopened = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* reopened_graphics =
+      reopened->GetCurrentEditorSet()->GetGraphicsEditor();
+  ASSERT_NE(reopened_graphics, nullptr);
+  const auto reopened_sheet =
+      AuthoringSaveWorkflowTestPeer::GraphicsState(*reopened_graphics)
+          .game_data->sheet_store.Sheet(target.sheet_id);
+  EXPECT_EQ(std::vector<uint8_t>(reopened_sheet.begin(), reopened_sheet.end()),
+            expected);
+  reopened.reset();
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
        OverworldPaletteUndoRedoSaveAsReopensOnFreshEditor) {
   const auto fixture = CopyProject("yaze_ow_authoring_save");
   Open(fixture);
@@ -3174,6 +3364,76 @@ TEST_F(AuthoringSaveWorkflowTest, ObjectAndDoorUndoSaveAsNeedsNoStreamWrites) {
   auto reopened =
       zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kDungeonRoom);
   EXPECT_EQ(reopened.EncodeObjects(), original);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       DungeonSelectionCopyAcrossRoomPanelsSaveAsReopens) {
+  constexpr int kSourceRoom = 6;
+  const auto fixture = CopyProject("yaze-room-selection-clipboard");
+  Open(fixture);
+  core::FeatureFlags::get().dungeon.kUseWorkbench = false;
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  ASSERT_NE(dungeon, nullptr);
+  auto* rom = manager_->GetCurrentRom();
+  const auto before = rom->vector();
+
+  // Keep the source fixture small and representable. Only the destination is
+  // authored; Copy and Paste still use the editor's real command dispatcher.
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kSourceRoom);
+  auto& source = dungeon->rooms()[kSourceRoom];
+  source.SetTileObjects({zelda3::RoomObject(0x01, 20, 20, 0, 0)});
+  source.ClearSaveDirtyState();
+  auto* source_viewer =
+      AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kSourceRoom);
+  ASSERT_NE(source_viewer, nullptr);
+  source_viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(),
+                                                     kSourceRoom);
+  source_viewer->object_interaction().SetSelectedObjects({0});
+  ASSERT_OK(dungeon->Copy());
+
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kDungeonRoom);
+  auto& target = dungeon->rooms()[kDungeonRoom];
+  const size_t original_count = target.GetTileObjects().size();
+  const auto original_stream = target.EncodeObjects();
+  auto* target_viewer =
+      AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kDungeonRoom);
+  ASSERT_NE(target_viewer, nullptr);
+  ASSERT_NE(target_viewer, source_viewer);
+  target_viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(),
+                                                     kDungeonRoom);
+  ImGui::GetIO().MousePos = ImVec2(-1000, -1000);
+  ASSERT_OK(dungeon->Paste());
+  ASSERT_EQ(target.GetTileObjects().size(), original_count + 1);
+  EXPECT_EQ(target.GetTileObjects().back().id_, 0x01);
+  EXPECT_EQ(target.GetTileObjects().back().x_, 21);
+  EXPECT_EQ(target.GetTileObjects().back().y_, 21);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(target.GetTileObjects().size(), original_count);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_EQ(target.GetTileObjects().size(), original_count + 1);
+  const auto authored_stream = target.EncodeObjects();
+  EXPECT_NE(authored_stream, original_stream);
+  EXPECT_EQ(rom->vector(), before);
+
+  const auto output = fixture.root / "selection-clipboard.sfc";
+  ASSERT_OK(manager_->SaveRomAs(output.string()));
+  ExpectProtectedRegionsMatch(
+      before, ReadFile(output),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(output.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto reopened =
+      zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kDungeonRoom);
+  ASSERT_EQ(reopened.GetTileObjects().size(), original_count + 1);
+  // ROM storage groups objects by layer; reopening need not retain the live
+  // vector's append order. Compare the complete authored stream instead.
+  EXPECT_EQ(reopened.EncodeObjects(), authored_stream);
 }
 
 TEST_F(AuthoringSaveWorkflowTest, DoorAdmissionUndoSaveAsReopens) {

@@ -620,6 +620,9 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
     SyncPanelsToRoom(current_room_id_);
   }
 
+  // This editor-level refresh is used for same-address ROM replacement and
+  // revert. Ordinary room navigation refreshes only its canvas viewer.
+  selection_clipboard_ = {};
   return absl::OkStatus();
 }
 

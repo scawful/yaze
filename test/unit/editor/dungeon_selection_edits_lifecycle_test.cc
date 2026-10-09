@@ -347,6 +347,81 @@ TEST_P(DungeonSelectionEditsLifecycleTest,
 }
 
 TEST_P(DungeonSelectionEditsLifecycleTest,
+       EditorCopyPastesAcrossRoomViewersAndUndoesInDestination) {
+  // Room 1 needs independent in-place storage before adding an object. Room 2
+  // supplies its physical boundary; this test exercises the editor clipboard,
+  // not the allocator's shared-stream refusal.
+  for (int id = 2; id < zelda3::kNumberOfRooms; ++id)
+    WritePointer(rom_, 0x0F8000 + id * 3, kObjectPc + 0x200);
+  ASSERT_TRUE(rom_.WriteVector(kObjectPc + 0x200, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF,
+                                                   0xF0, 0xFF, 0xFF, 0xFF})
+                  .ok());
+  interaction().SetSelectedObjects({0});
+  ASSERT_TRUE(editor_->Copy().ok());
+  ASSERT_EQ(UndoDepth(), 0u);
+  auto* destination_viewer = DungeonSelectionEditsTestPeer::Viewer(*editor_, 1);
+  ASSERT_NE(destination_viewer, nullptr);
+  auto& destination = editor_->rooms()[1];
+  const auto before = CaptureDungeonSelectionEditState(destination);
+  const auto bytes = rom_.vector();
+  ImGui::GetIO().MousePos = ImVec2(-1000, -1000);
+  const auto paste_status = editor_->Paste();
+  ASSERT_TRUE(paste_status.ok()) << paste_status;
+  ASSERT_EQ(destination.GetTileObjects().size(), 1u);
+  EXPECT_EQ(destination.GetTileObjects()[0].id_,
+            room_->GetTileObjects()[0].id_);
+  EXPECT_EQ(destination.GetTileObjects()[0].x_, 9);
+  EXPECT_EQ(destination.GetTileObjects()[0].y_, 9);
+  EXPECT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(rom_.vector(), bytes);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ExpectRoomData(destination, before);
+  ASSERT_TRUE(editor_->Redo().ok());
+  ASSERT_EQ(destination.GetTileObjects().size(), 1u);
+  EXPECT_EQ(destination.GetTileObjects()[0].x_, 9);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       SelectionClipboardDoesNotCrossDungeonEditorSessions) {
+  interaction().SetSelectedObjects({0});
+  ASSERT_TRUE(editor_->Copy().ok());
+  ASSERT_TRUE(interaction().HasClipboardData());
+
+  DungeonEditorV2 other_editor(&rom_);
+  auto& other_room = other_editor.rooms()[1];
+  other_room = zelda3::LoadRoomHeaderFromRom(&rom_, 1);
+  other_room.SetLoaded(true);
+  other_room.SetTileObjects({});
+  other_room.ClearSaveDirtyState();
+  auto* other_viewer = DungeonSelectionEditsTestPeer::Viewer(other_editor, 1);
+  ASSERT_NE(other_viewer, nullptr);
+  EXPECT_FALSE(other_viewer->object_interaction().HasClipboardData());
+  const auto bytes = rom_.vector();
+  EXPECT_TRUE(other_editor.Paste().ok());
+  EXPECT_TRUE(other_room.GetTileObjects().empty());
+  EXPECT_EQ(other_editor.undo_manager().UndoStackSize(), 0u);
+  EXPECT_EQ(rom_.vector(), bytes);
+  EXPECT_TRUE(interaction().HasClipboardData());
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       RoomSwitchKeepsClipboardButRomReplacementClearsIt) {
+  interaction().SetSelectedObjects({0});
+  ASSERT_TRUE(editor_->Copy().ok());
+  auto* destination = DungeonSelectionEditsTestPeer::Viewer(*editor_, 1);
+  ASSERT_NE(destination, nullptr);
+  EXPECT_TRUE(destination->object_interaction().HasClipboardData());
+
+  Rom replacement;
+  ASSERT_TRUE(replacement.LoadFromData(rom_.vector()).ok());
+  editor_->SetRom(&replacement);
+  auto* replacement_viewer = DungeonSelectionEditsTestPeer::Viewer(*editor_, 0);
+  ASSERT_NE(replacement_viewer, nullptr);
+  EXPECT_FALSE(replacement_viewer->object_interaction().HasClipboardData());
+  editor_->SetRom(&rom_);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
        CutAndPasteIncludeDoorsAtExactLegalAnchors) {
   SelectMixed(true);
   const auto before = CaptureDungeonSelectionEditState(*room_);

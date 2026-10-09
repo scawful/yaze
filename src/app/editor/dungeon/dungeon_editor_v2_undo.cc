@@ -297,6 +297,8 @@ std::vector<SelectedEntity> ValidEntitySelection(
 }  // namespace
 
 void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
+  viewer->object_interaction().SetSharedSelectionClipboard(
+      &selection_clipboard_);
   viewer->SetRoomTransferCallbacks(
       [this](int id) { return ExportRoomDocument(id); },
       [this](int target, int source, const std::string& json,

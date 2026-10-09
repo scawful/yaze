@@ -731,7 +731,7 @@ absl::Status DungeonObjectInteraction::HandleCopySelected() {
     return entity_coordinator_.ReportSelectionEditStatus(copied.status());
   }
   // Only replace the clipboard after the complete selection is copyable.
-  selection_clipboard_ = std::move(*copied);
+  clipboard() = std::move(*copied);
   return entity_coordinator_.ReportSelectionEditStatus(absl::OkStatus());
 }
 
@@ -763,19 +763,20 @@ absl::Status DungeonObjectInteraction::HandlePasteAt(int pixel_x, int pixel_y) {
   request.kind = DungeonSelectionEditKind::kPaste;
   request.objects = selection_.GetSelectedIndices();
   request.entities = entity_coordinator_.SelectedEntitiesForEdit();
-  request.clipboard = &selection_clipboard_;
-  request.delta_x_pixels = pixel_x - selection_clipboard_.origin_pixel_x;
-  request.delta_y_pixels = pixel_y - selection_clipboard_.origin_pixel_y;
+  auto& copied = clipboard();
+  request.clipboard = &copied;
+  request.delta_x_pixels = pixel_x - copied.origin_pixel_x;
+  request.delta_y_pixels = pixel_y - copied.origin_pixel_y;
   return entity_coordinator_.CommitSelectionEdit(request);
 }
 
 absl::Status DungeonObjectInteraction::HandlePasteObjects() {
   if (!HasClipboardData())
     return absl::OkStatus();
-  int target_x = selection_clipboard_.origin_pixel_x;
-  int target_y = selection_clipboard_.origin_pixel_y;
-  const int step = !selection_clipboard_.sprites.empty() ||
-                           !selection_clipboard_.items.empty()
+  const auto& copied = clipboard();
+  int target_x = copied.origin_pixel_x;
+  int target_y = copied.origin_pixel_y;
+  const int step = !copied.sprites.empty() || !copied.items.empty()
                        ? dungeon_coords::kSpriteTileSize
                        : dungeon_coords::kTileSize;
   if (canvas_ && ImGui::GetCurrentContext()) {
@@ -792,7 +793,7 @@ absl::Status DungeonObjectInteraction::HandlePasteObjects() {
   }
   // With no canvas target, doors retain their exact source wall slots.
   // An automatic diagonal offset cannot represent a valid wall destination.
-  const int fallback_offset = selection_clipboard_.doors.empty() ? step : 0;
+  const int fallback_offset = copied.doors.empty() ? step : 0;
   return HandlePasteAt(target_x + fallback_offset, target_y + fallback_offset);
 }
 

@@ -47,6 +47,7 @@
 #include "app/application.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/editor/hack/workflow/hack_workflow_backend_factory.h"
@@ -7401,6 +7402,11 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
                         kEditorNames[static_cast<int>(editor_type)],
                         status.message()),
         ToastType::kError);
+  }
+
+  if (current_editor_ && current_editor_->type() == EditorType::kGraphics &&
+      editor_type != EditorType::kGraphics) {
+    static_cast<GraphicsEditor*>(current_editor_)->FinishPixelGesture();
   }
 
   // Delegate all other editor switching to EditorActivator

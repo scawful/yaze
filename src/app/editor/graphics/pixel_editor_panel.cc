@@ -123,6 +123,7 @@ absl::Status PixelEditorPanel::Update() {
   }
   ImGui::EndChild();
 
+  FinishReleasedGesture();
   // Status bar
   DrawStatusBar();
 
@@ -197,6 +198,7 @@ void PixelEditorPanel::DrawSourceContext() {
   if (return_to_source) {
     // Copy before invoking: navigation may replace editor state.
     auto navigate = context.return_to_source;
+    FinishGesture();
     navigate();
     return;
   }
@@ -361,10 +363,12 @@ void PixelEditorPanel::DrawToolbar() {
   }
 
   // Undo/Redo buttons
-  ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanUndo());
+  ImGui::BeginDisabled(HasActiveStroke() || !undo_manager_ ||
+                       !undo_manager_->CanUndo());
   if (ImGui::Button(ICON_MD_UNDO, ImVec2(button_size, button_size)) &&
       undo_manager_) {
-    undo_manager_->Undo().IgnoreError();
+    const auto status = undo_ ? undo_() : undo_manager_->Undo();
+    history_error_ = status.ok() ? "" : std::string(status.message());
   }
   gui::AutoRegisterLastItem("button", "Undo pixels");
   HOVER_HINT("Undo (Cmd/Ctrl+Z)");
@@ -372,10 +376,12 @@ void PixelEditorPanel::DrawToolbar() {
 
   ImGui::SameLine();
 
-  ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanRedo());
+  ImGui::BeginDisabled(HasActiveStroke() || !undo_manager_ ||
+                       !undo_manager_->CanRedo());
   if (ImGui::Button(ICON_MD_REDO, ImVec2(button_size, button_size)) &&
       undo_manager_) {
-    undo_manager_->Redo().IgnoreError();
+    const auto status = redo_ ? redo_() : undo_manager_->Redo();
+    history_error_ = status.ok() ? "" : std::string(status.message());
   }
   gui::AutoRegisterLastItem("button", "Redo pixels");
   HOVER_HINT("Redo (Cmd/Ctrl+Shift+Z)");
@@ -423,6 +429,8 @@ void PixelEditorPanel::DrawCanvas() {
       const bool requested = state_->requested_sheet_tab == sheet_id;
       if (ImGui::BeginTabItem(tab_label.c_str(), &open,
                               requested ? ImGuiTabItemFlags_SetSelected : 0)) {
+        if (state_->current_sheet_id != sheet_id)
+          FinishGesture();
         state_->current_sheet_id = sheet_id;
         if (requested) {
           state_->requested_sheet_tab.reset();
@@ -880,6 +888,8 @@ void PixelEditorPanel::DrawStatusBar() {
   if (state_->modified_sheets.contains(state_->current_sheet_id)) {
     status += tr(" | Modified");
   }
+  if (!history_error_.empty())
+    status += " | " + history_error_;
   // Long cursor/source metadata must not push view controls off a small panel.
   ImGui::BeginChild(
       "##PixelStatus", ImVec2(0, button_size), false,
@@ -920,6 +930,7 @@ void PixelEditorPanel::HandleCanvasInput() {
   // Mouse button handling
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     is_drawing_ = true;
+    gesture_tool_ = state_->current_tool;
     tool_start_pixel_ =
         ImVec2(static_cast<float>(cursor_x_), static_cast<float>(cursor_y_));
     last_mouse_pixel_ = tool_start_pixel_;
@@ -981,10 +992,27 @@ void PixelEditorPanel::HandleCanvasInput() {
         ImVec2(static_cast<float>(cursor_x_), static_cast<float>(cursor_y_));
   }
 
-  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && is_drawing_) {
-    is_drawing_ = false;
+  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && is_drawing_)
+    FinishGesture();
+}
 
-    switch (state_->current_tool) {
+void PixelEditorPanel::FinishReleasedGesture() {
+  if (is_drawing_ && !ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    // The canvas release path already handles the current endpoint. This is
+    // the outside/hidden-panel fallback, so retain the last valid drag point.
+    cursor_x_ = static_cast<int>(last_mouse_pixel_.x);
+    cursor_y_ = static_cast<int>(last_mouse_pixel_.y);
+    FinishGesture();
+  }
+}
+
+void PixelEditorPanel::FinishGesture() {
+  if ((is_drawing_ || stroke_) && ActiveSheetStore(*state_) == nullptr)
+    return;
+  if (is_drawing_) {
+    // Use the last point inside the canvas, never the control released over.
+    // Explicit sheet navigation calls this before changing the selected sheet.
+    switch (gesture_tool_) {
       case PixelTool::kLine:
         DrawLine(static_cast<int>(tool_start_pixel_.x),
                  static_cast<int>(tool_start_pixel_.y), cursor_x_, cursor_y_);
@@ -1000,12 +1028,10 @@ void PixelEditorPanel::HandleCanvasInput() {
       default:
         break;
     }
-
-    // One store revision and one undo step for the whole stroke
-    EndStroke();
-
-    show_tool_preview_ = false;
   }
+  is_drawing_ = false;
+  show_tool_preview_ = false;
+  EndStroke();
 }
 
 void PixelEditorPanel::ApplyPencil(int x, int y) {
