@@ -128,13 +128,19 @@ class GraphicsEditor : public Editor {
   EditorContextSnapshot BuildContextSnapshot() const override;
 
   bool HasPendingGraphicsChanges() const {
-    return state_.HasUnsavedChanges() ||
+    return state_.HasUnsavedChanges() || state_.selection.is_floating ||
            (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke());
   }
 
   // Coordinated ROM save: Save() clears the modified-sheet set, so a failed
   // save elsewhere must put it back (the ROM bytes are restored separately).
   absl::Status BeginSaveTransaction() override {
+    // A floating paste has visible pixels but no committed sheet diff. Do not
+    // report it saved or choose its placement on the user's behalf.
+    if (state_.selection.is_floating)
+      return absl::FailedPreconditionError(
+          "Commit or cancel the floating paste in Graphics before saving "
+          "(Enter to commit, Esc to cancel)");
     if (pixel_editor_panel_) {
       pixel_editor_panel_->FinishReleasedGesture();
       if (pixel_editor_panel_->HasActiveStroke())
