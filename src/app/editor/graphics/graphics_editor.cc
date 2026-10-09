@@ -428,6 +428,10 @@ GraphicsEditor::PrepareGraphicsSave() {
 }
 
 absl::Status GraphicsEditor::Save() {
+  if (state_.selection.is_floating)
+    return absl::FailedPreconditionError(
+        "Commit or cancel the floating paste in Graphics before saving "
+        "(Enter to commit, Esc to cancel)");
   if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
     return absl::FailedPreconditionError(
         "Finish the pixel stroke before saving");

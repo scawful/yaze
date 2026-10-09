@@ -36,6 +36,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_pixel_command.h"
+#include "app/editor/graphics/pixel_clipboard.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/overworld/overworld_editor.h"
@@ -189,6 +190,10 @@ class AuthoringSaveWorkflowTestPeer {
 
   static ImVec2 GraphicsCanvasOrigin(const GraphicsEditor& editor) {
     return editor.pixel_editor_panel_->canvas_.zero_point();
+  }
+
+  static SheetColors GraphicsSheetColors(const GraphicsEditor& editor) {
+    return editor.pixel_editor_panel_->CurrentSheetColors();
   }
 
   static void DrawGraphicsPalette(GraphicsEditor& editor) {
@@ -2114,6 +2119,194 @@ TEST_F(AuthoringSaveWorkflowTest,
   const auto reopened_sheet =
       AuthoringSaveWorkflowTestPeer::GraphicsState(*reopened_graphics)
           .game_data->sheet_store.Sheet(target.sheet_id);
+  EXPECT_EQ(std::vector<uint8_t>(reopened_sheet.begin(), reopened_sheet.end()),
+            expected);
+  reopened.reset();
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       FloatingGraphicsPasteSaveRefusalPreservesSession) {
+  const auto fixture = CopyProject("yaze-floating-paste-save");
+  Open(fixture);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  ASSERT_NE(graphics, nullptr);
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  graphics->SelectSheet(0);
+  // Seed the decoded clipboard payload without accessing the user's clipboard.
+  // It has not been committed to a sheet, so only the floating selection is dirty.
+  state.selection.pixel_data = {1, 2, 3, 4};
+  state.selection.x = state.selection.y = 8;
+  state.selection.width = state.selection.height = 2;
+  state.selection.is_active = state.selection.is_floating = true;
+  const auto before = manager_->GetCurrentRom()->vector();
+  const auto pixels = state.game_data->sheet_store.Sheet(0);
+  const std::vector<uint8_t> original(pixels.begin(), pixels.end());
+  const auto modified = state.modified_sheets;
+  const auto undo_size = graphics->undo_manager().UndoStackSize();
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  EXPECT_TRUE(manager_->session_coordinator()->IsSessionModified(
+      manager_->GetCurrentSessionIndex()));
+  const auto direct = graphics->Save();
+  EXPECT_TRUE(absl::IsFailedPrecondition(direct)) << direct;
+  const auto transaction = graphics->BeginSaveTransaction();
+  EXPECT_TRUE(absl::IsFailedPrecondition(transaction)) << transaction;
+  if (transaction.ok())
+    graphics->RollbackSaveTransaction();
+
+  manager_->SwitchToEditor(EditorType::kDungeon, true);
+  for (const bool save_sheets : {false, true}) {
+    core::FeatureFlags::get().kSaveGraphicsSheet = save_sheets;
+    const auto destination =
+        fixture.root / (save_sheets ? "enabled.sfc" : "disabled.sfc");
+    const auto saved = manager_->SaveRomAs(destination.string());
+    EXPECT_TRUE(absl::IsFailedPrecondition(saved)) << saved;
+    EXPECT_FALSE(std::filesystem::exists(destination));
+    EXPECT_EQ(manager_->GetCurrentRom()->filename(), fixture.rom.string());
+    EXPECT_EQ(manager_->GetCurrentRom()->vector(), before);
+    EXPECT_EQ(state.game_data->sheet_store.Sheet(0),
+              absl::MakeConstSpan(original));
+    EXPECT_EQ(state.modified_sheets, modified);
+    EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_size);
+    EXPECT_TRUE(state.selection.is_floating);
+    EXPECT_EQ(state.selection.pixel_data, (std::vector<uint8_t>{1, 2, 3, 4}));
+  }
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
+TEST_F(AuthoringSaveWorkflowTest,
+       FloatingGraphicsPasteCancelCommitSaveAsReopens) {
+  const auto fixture = CopyProject("yaze-floating-paste-commit");
+  Open(fixture);
+  ASSERT_TRUE(core::FeatureFlags::get().kSaveGraphicsSheet);
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
+  ASSERT_NE(graphics, nullptr);
+  graphics->SelectSheet(0);
+  auto& state = AuthoringSaveWorkflowTestPeer::GraphicsState(*graphics);
+  ASSERT_NE(state.game_data, nullptr);
+  ASSERT_TRUE(state.game_data->sheet_store.HasSheet(0));
+  ASSERT_TRUE(state.modified_sheets.empty());
+  const auto source_sheet = state.game_data->sheet_store.Sheet(0);
+  const std::vector<uint8_t> before(source_sheet.begin(), source_sheet.end());
+  constexpr int kX = 8;
+  constexpr int kY = 8;
+  const uint8_t color = before[kY * 128 + kX] == 1 ? 2 : 1;
+  const std::vector<uint8_t> payload(4, color);
+  const SheetColors colors =
+      AuthoringSaveWorkflowTestPeer::GraphicsSheetColors(*graphics);
+  auto png = EncodeClipboardPng(payload, 2, 2, colors);
+  ASSERT_OK(png.status());
+  auto mapped = MapClipboardPng(*png, colors);
+  ASSERT_OK(mapped.status());
+  ASSERT_EQ(mapped->indices, payload);
+  ASSERT_EQ(mapped->kept, 4);
+  auto expected = before;
+  for (int dy = 0; dy < 2; ++dy)
+    for (int dx = 0; dx < 2; ++dx)
+      expected[(kY + dy) * 128 + kX + dx] = color;
+  ASSERT_NE(expected, before);
+  const auto seed_float = [&] {
+    state.selection.pixel_data = mapped->indices;
+    state.selection.x = kX;
+    state.selection.y = kY;
+    state.selection.width = mapped->width;
+    state.selection.height = mapped->height;
+    state.selection.is_active = true;
+    state.selection.is_floating = true;
+  };
+  seed_float();
+
+  auto& io = ImGui::GetIO();
+  io.ConfigInputTrickleEventQueue = false;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0, font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+  const auto frame = [&] {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(900, 650), ImGuiCond_Always);
+    ImGui::SetNextWindowFocus();
+    ImGui::Begin("FloatingPasteGraphicsHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    AuthoringSaveWorkflowTestPeer::DrawGraphics(*graphics);
+    ImGui::End();
+    ImGui::Render();
+  };
+  const auto key = [&](ImGuiKey code) {
+    io.AddKeyEvent(code, true);
+    frame();
+    io.AddKeyEvent(code, false);
+    frame();
+  };
+  frame();
+  frame();
+  ASSERT_TRUE(state.selection.is_floating);
+  const auto filename = manager_->GetCurrentRom()->filename();
+  const auto rom_before = manager_->GetCurrentRom()->vector();
+  const size_t undo_before = graphics->undo_manager().UndoStackSize();
+  const auto cancelled_output = fixture.root / "floating-refused.sfc";
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  const auto refused = manager_->SaveRomAs(cancelled_output.string());
+  EXPECT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
+  EXPECT_FALSE(std::filesystem::exists(cancelled_output));
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), filename);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0), absl::MakeConstSpan(before));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_before);
+  ASSERT_TRUE(state.selection.is_floating);
+
+  manager_->CloseRom();
+  ASSERT_TRUE(manager_->HasPendingUnsavedSessionAction());
+  manager_->CancelPendingUnsavedSessionAction();
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+  ASSERT_NE(manager_->GetCurrentRom(), nullptr);
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), filename);
+  EXPECT_TRUE(state.selection.is_floating);
+
+  key(ImGuiKey_Escape);
+  EXPECT_FALSE(state.selection.is_floating);
+  EXPECT_FALSE(graphics->HasPendingGraphicsChanges());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0), absl::MakeConstSpan(before));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_before);
+  seed_float();
+  frame();
+  key(ImGuiKey_Enter);
+  EXPECT_FALSE(state.selection.is_floating);
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0),
+            absl::MakeConstSpan(expected));
+  EXPECT_EQ(graphics->undo_manager().UndoStackSize(), undo_before + 1);
+  EXPECT_TRUE(graphics->HasPendingGraphicsChanges());
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
+  ASSERT_OK(graphics->Undo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0), absl::MakeConstSpan(before));
+  ASSERT_OK(graphics->Redo());
+  EXPECT_EQ(state.game_data->sheet_store.Sheet(0),
+            absl::MakeConstSpan(expected));
+
+  const auto destination = fixture.root / "floating-committed.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_FALSE(graphics->HasPendingGraphicsChanges());
+  ExpectProtectedRegionsMatch(
+      ReadFile(fixture.rom), ReadFile(destination),
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  auto reopened = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  auto* reopened_graphics =
+      reopened->GetCurrentEditorSet()->GetGraphicsEditor();
+  ASSERT_NE(reopened_graphics, nullptr);
+  const auto reopened_sheet =
+      AuthoringSaveWorkflowTestPeer::GraphicsState(*reopened_graphics)
+          .game_data->sheet_store.Sheet(0);
   EXPECT_EQ(std::vector<uint8_t>(reopened_sheet.begin(), reopened_sheet.end()),
             expected);
   reopened.reset();
