@@ -157,6 +157,7 @@ absl::StatusOr<std::vector<uint16_t>> ParseHexList(const std::string& input) {
 void MinecartTrackEditorPanel::ResetTrackSession() {
   collision_stamping_ = false;
   ++track_generation_;
+  ++canvas_revision_;
   paired_track_draft_ = false;
   canvas_editing_ = false;
   selected_track_ = -1;
@@ -407,6 +408,7 @@ absl::Status MinecartTrackEditorPanel::DiscardUnpublishedChanges() {
     return absl::FailedPreconditionError("Minecart tracks are not loaded");
   }
   ++track_generation_;
+  ++canvas_revision_;
   tracks_ = loaded_tracks_;
   CancelCoordinatePicking();
   audit_dirty_ = true;
@@ -1596,7 +1598,17 @@ absl::Status MinecartTrackEditorPanel::LoadTracks() {
   const std::string source_sha256 =
       core::ComputeSourceArtifactSha256(document_or->source_bytes());
 
-  ++track_generation_;
+  // An exact reload does not replace Undo's source. Publishing already rebases
+  // these fields without invalidating paired cart actions. A changed document
+  // (including non-track bytes), descriptor, or path must still reject replay.
+  const bool same_source =
+      loaded_ && loaded_source_identity_ == source_identity &&
+      loaded_source_path_ == source_path &&
+      loaded_source_sha256_ == source_sha256 && tracks_ == candidate_tracks;
+  if (!same_source) {
+    ++track_generation_;
+  }
+  ++canvas_revision_;
   tracks_ = candidate_tracks;
   loaded_tracks_ = std::move(candidate_tracks);
   source_document_ = std::move(*document_or);

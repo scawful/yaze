@@ -80,6 +80,8 @@ class MinecartTrackEditorPanel : public WindowContent {
                                  const MinecartTrack& expected,
                                  const MinecartTrack& replacement);
   uint64_t track_generation() const { return track_generation_; }
+  // Reload cancels an unfinished gesture even when Undo's source is unchanged.
+  uint64_t canvas_revision() const { return canvas_revision_; }
   void MarkPairedTrackDraft() { paired_track_draft_ = HasUnpublishedChanges(); }
   bool HasPairedTrackDraft() const { return paired_track_draft_; }
   bool canvas_editing() const { return canvas_editing_; }
@@ -203,6 +205,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   uint8_t collision_stamp_value_ = 0xB1;
   TrackEditCallback track_edit_callback_;
   uint64_t track_generation_ = 0;
+  uint64_t canvas_revision_ = 0;
   int selected_track_ = -1;
   int active_room_ = -1;
   bool canvas_editing_ = false;
