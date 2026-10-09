@@ -163,9 +163,8 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
     ImGui::TextWrapped(
         "Stair lookup is unavailable with active custom object overrides.");
   } else if (storage->GetInt(inspect_key, 0) == 1) {
-    ImGui::TextWrapped(
-        "Opened the selected stair's vanilla collision slot. "
-        "Preview only; verify custom engines in-game.");
+    ImGui::TextWrapped("Selected stair: header slot %d (vanilla preview).",
+                       route);
   } else if (storage->GetInt(inspect_key, 0) == 2) {
     ImGui::TextWrapped(
         "No unambiguous staircase trigger was found. The selected "
@@ -173,117 +172,121 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
         "be overwritten, overlapping, outside the room or overflowing.");
   } else if (storage->GetInt(inspect_key, 0) == 4) {
     ImGui::TextWrapped(
-        "Selected stair mapping is stale. Find the slot again, or choose a "
-        "header slot explicitly before editing its destination.");
+        "Selected stair mapping is stale. Find the slot again. "
+        "The rows below still edit their explicit header slots.");
   }
-  constexpr const char* routes[] = {"Pit / warp", "Stair slot 1",
-                                    "Stair slot 2", "Stair slot 3",
-                                    "Stair slot 4"};
-  ImGui::SetNextItemWidth(-1);
-  const bool route_open = ImGui::BeginCombo("##Route", routes[route]);
-  gui::AutoRegisterLastItem("combo", "Route");
-  if (route_open) {
-    for (int i = 0; i < 5; ++i) {
-      if (ImGui::Selectable(routes[i], route == i)) {
-        route = i;
-        storage->SetInt(route_key, route);
-        storage->SetBool(auto_route_key, false);
-        storage->SetInt(inspect_key, 0);
-      }
-      gui::AutoRegisterLastItem("selectable", absl::StrFormat("Route/%d", i));
-    }
-    ImGui::EndCombo();
-  }
-  const bool pit = route == 0;
-  const int index = pit ? 0 : route - 1;
-  const auto room_field =
-      pit ? RoomMetadataField::kHolewarp : RoomMetadataField::kStaircaseRoom;
-  const auto plane_field =
-      pit ? RoomMetadataField::kPitPlane : RoomMetadataField::kStaircasePlane;
-  int destination = pit ? room->holewarp() : room->staircase_room(index);
-  int plane = pit ? room->CaptureMetadataSnapshot().pit_target_layer
-                  : room->staircase_plane(index);
+  // Every header slot is an explicit target. A selected stair lookup only
+  // highlights a row; it never retargets the edits or hides other destinations.
   const auto error_key = ImGui::GetID("DestinationError");
-  auto edit = [&](RoomMetadataField field, int value) {
-    const auto status = viewer.EditRoomMetadata(room_id, {field, value, index});
-    storage->SetBool(error_key, !status.ok());
-    return status.ok();
-  };
-  const bool auto_route_stale =
-      storage->GetBool(auto_route_key, false) &&
-      (storage->GetInt(inspect_key, 0) != 1 || room->has_custom_collision());
-  const bool editable = !auto_route_stale && !viewer.header_read_only() &&
-                        viewer.IsObjectInteractionEnabled();
-  ImGui::BeginDisabled(!editable);
-  ImGui::TextUnformatted(room_id >= 0x100
-                             ? "Destination room (low byte; page 1xx)"
-                             : "Destination room (hex 00–FF)");
-  ImGui::SetNextItemWidth(-1);
-  int requested = destination;
-  if (gui::InputScalarDeferred(
-          "##DestinationRoom", ImGuiDataType_S32, &requested, "%02X",
-          ImGuiInputTextFlags_CharsHexadecimal,
-          {reinterpret_cast<uintptr_t>(viewer.rooms()),
-           static_cast<uint64_t>(room_id), static_cast<uint64_t>(route)})) {
-    if (edit(room_field, requested))
-      destination = requested;
-  }
-  gui::AutoRegisterLastItem("input_hex", "Room");
-  // $01C31F: 0476 = {0,1,1}; $01C322: EE = {0,0,1}.
-  constexpr const char* planes[] = {"00 · Upper (BG1)", "01 · Lower (BG1)",
-                                    "02 · Lower (BG2)"};
-  const auto plane_label =
-      plane >= 0 && plane < 3
-          ? std::string(planes[plane])
-          : absl::StrFormat("%02X · Unmapped vanilla plane", plane);
-  ImGui::TextUnformatted("Arrival layer");
-  ImGui::SetNextItemWidth(-1);
-  const bool open =
-      ImGui::BeginCombo("##DestinationPlane", plane_label.c_str());
-  gui::AutoRegisterLastItem("combo", "Plane");
-  if (open) {
-    for (int i = 0; i < 3; ++i) {
-      if (ImGui::Selectable(planes[i], plane == i))
-        edit(plane_field, i);
-      gui::AutoRegisterLastItem("selectable", absl::StrFormat("Plane/%d", i));
-    }
-    ImGui::EndCombo();
-  }
-  ImGui::EndDisabled();
-  // The header stores one byte; the game keeps this room's high byte ($A1),
-  // so from room 119 the byte 1D leads to 11D.
-  const int destination_room =
-      zelda3::ResolveHeaderDestinationRoom(room_id, destination);
+  const bool editable =
+      !viewer.header_read_only() && viewer.IsObjectInteractionEnabled();
+  int navigate_to = -1;
   ImGui::TextWrapped(
-      "%03X · %s", destination_room,
-      dungeon_project_labels::GetRoomLabel(viewer.project(), destination_room)
-          .c_str());
-  ImGui::BeginDisabled(auto_route_stale || !viewer.CanNavigateRooms());
-  const bool navigate = ImGui::Button("Open destination", ImVec2(-1, 0));
-  gui::AutoRegisterLastItem("button", "Open");
-  ImGui::EndDisabled();
-  if (!pit) {
-    ImGui::TextWrapped(
-        "Edits header slot %d. Find selected stair slot previews the vanilla "
-        "mapping; editing does not create a return link.",
-        index + 1);
-  } else {
-    ImGui::TextWrapped(
-        "Pit damage and warp behavior depend on the room and game logic. This "
-        "edits the stored destination only.");
+      room_id >= 0x100 ? "Room bytes are hex; destinations stay on page 1xx."
+                       : "Room bytes are hex; destinations stay on page 0xx.");
+  constexpr const char* planes[] = {"Upper BG1", "Lower BG1", "Lower BG2"};
+  if (ImGui::BeginTable(
+          "##DestinationRows", 4,
+          ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Route", ImGuiTableColumnFlags_WidthFixed, 49.0f);
+    ImGui::TableSetupColumn("Room", ImGuiTableColumnFlags_WidthFixed, 38.0f);
+    ImGui::TableSetupColumn("Arrival", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("##Open", ImGuiTableColumnFlags_WidthFixed, 22.0f);
+    ImGui::TableHeadersRow();
+    for (int row = 0; row < 5; ++row) {
+      ImGui::PushID(row);
+      const bool pit = row == 0;
+      const int index = pit ? 0 : row - 1;
+      const auto room_field = pit ? RoomMetadataField::kHolewarp
+                                  : RoomMetadataField::kStaircaseRoom;
+      const auto plane_field = pit ? RoomMetadataField::kPitPlane
+                                   : RoomMetadataField::kStaircasePlane;
+      int destination = pit ? room->holewarp() : room->staircase_room(index);
+      const int plane = pit ? room->CaptureMetadataSnapshot().pit_target_layer
+                            : room->staircase_plane(index);
+      auto edit = [&](RoomMetadataField field, int value) {
+        const auto status =
+            viewer.EditRoomMetadata(room_id, {field, value, index});
+        storage->SetBool(error_key, !status.ok());
+        return status.ok();
+      };
+      ImGui::TableNextRow();
+      if (row == route && storage->GetInt(inspect_key, 0) == 1) {
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+                               ImGui::GetColorU32(ImGuiCol_Header));
+      }
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      if (pit)
+        ImGui::TextUnformatted("Pit");
+      else
+        ImGui::Text("Stair %d", row);
+      ImGui::TableNextColumn();
+      ImGui::BeginDisabled(!editable);
+      ImGui::SetNextItemWidth(-1);
+      int requested = destination;
+      if (gui::InputScalarDeferred(
+              "##DestinationRoom", ImGuiDataType_S32, &requested, "%02X",
+              ImGuiInputTextFlags_CharsHexadecimal,
+              {reinterpret_cast<uintptr_t>(viewer.rooms()),
+               static_cast<uint64_t>(room_id), static_cast<uint64_t>(row)})) {
+        if (edit(room_field, requested))
+          destination = requested;
+      }
+      gui::AutoRegisterLastItem("input_hex", absl::StrFormat("Room/%d", row));
+      ImGui::TableNextColumn();
+      const auto plane_label = plane >= 0 && plane < 3
+                                   ? std::string(planes[plane])
+                                   : absl::StrFormat("%02X Unmapped", plane);
+      ImGui::SetNextItemWidth(-1);
+      const bool open =
+          ImGui::BeginCombo("##DestinationPlane", plane_label.c_str());
+      gui::AutoRegisterLastItem("combo", absl::StrFormat("Plane/%d", row));
+      if (open) {
+        for (int value = 0; value < 3; ++value) {
+          if (ImGui::Selectable(planes[value], plane == value))
+            edit(plane_field, value);
+          gui::AutoRegisterLastItem("selectable",
+                                    absl::StrFormat("Plane/%d/%d", row, value));
+        }
+        ImGui::EndCombo();
+      }
+      ImGui::EndDisabled();
+      ImGui::TableNextColumn();
+      // $01C31F/$01C322: the header stores one byte and retains this room's page.
+      const int destination_room =
+          zelda3::ResolveHeaderDestinationRoom(room_id, destination);
+      ImGui::BeginDisabled(!viewer.CanNavigateRooms());
+      if (ImGui::Button(">", ImVec2(-1, 0)))
+        navigate_to = destination_room;
+      gui::AutoRegisterLastItem("button", absl::StrFormat("Open/%d", row));
+      ImGui::EndDisabled();
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip("Open %03X · %s", destination_room,
+                          dungeon_project_labels::GetRoomLabel(viewer.project(),
+                                                               destination_room)
+                              .c_str());
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndTable();
   }
+  ImGui::TextWrapped(
+      "Stairs are header slots; a destination does not prove a placed stair. "
+      "Editing does not create a return link.");
   if (storage->GetBool(error_key, false)) {
     ImGui::TextWrapped(
         "Destination edit rejected. Use room 00–FF and a supported arrival "
         "layer.");
   }
-  if (!editable && !auto_route_stale)
+  if (!editable)
     ImGui::TextWrapped("This view is read-only.");
+
   ImGui::PopID();
   ImGui::PopID();
   // Navigation may change the current room/view. Do not access room state after it.
-  if (navigate)
-    viewer.NavigateToRoom(destination_room);
+  if (navigate_to >= 0)
+    viewer.NavigateToRoom(navigate_to);
 }
 
 }  // namespace yaze::editor

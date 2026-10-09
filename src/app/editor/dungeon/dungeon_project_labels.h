@@ -25,22 +25,18 @@ inline zelda3::ResourceLabelProvider LabelsForProject(
   return labels;
 }
 
-inline std::string GetRoomTagSummary(const project::YazeProject* project,
-                                     int tag1, int tag2) {
+inline std::string GetRoomTagLabel(const project::YazeProject* project,
+                                   int id) {
   const auto labels = LabelsForProject(project);
-  const auto tag_label = [&](int id) {
-    std::string label = labels.GetLabel(zelda3::ResourceType::kRoomTag, id);
-    if (project) {
-      const auto tag =
-          project->hack_manifest.GetRoomTag(static_cast<uint8_t>(id));
-      if (tag && !tag->enabled) {
-        label += " (disabled)";
-      }
+  std::string label = labels.GetLabel(zelda3::ResourceType::kRoomTag, id);
+  if (project) {
+    const auto tag =
+        project->hack_manifest.GetRoomTag(static_cast<uint8_t>(id));
+    if (tag && !tag->enabled) {
+      label += " (disabled)";
     }
-    return label;
-  };
-  return absl::StrFormat("Tags: 1 $%02X %s | 2 $%02X %s", tag1, tag_label(tag1),
-                         tag2, tag_label(tag2));
+  }
+  return label;
 }
 
 inline const core::DungeonEntry* FindDungeonForRoom(

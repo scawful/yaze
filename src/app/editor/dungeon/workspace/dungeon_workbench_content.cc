@@ -1370,12 +1370,15 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
   const bool room_deals_damage = membership.deals_damage;
   ImGui::TextColored(
       room_deals_damage ? theme.status_warning : theme.text_secondary_gray,
-      tr("%s Room 0x%03X %s pit damage"),
-      room_deals_damage ? ICON_MD_WARNING : ICON_MD_INFO, room_id,
-      room_deals_damage ? "deals" : "does not deal");
-  ImGui::TextWrapped(tr(
-      "RoomsWithPitDamage is fixed-capacity in vanilla. Editing replaces one "
-      "listed room with another instead of growing or shrinking the table."));
+      "%s %s", room_deals_damage ? ICON_MD_WARNING : ICON_MD_INFO,
+      room_deals_damage ? tr("Pits deal damage")
+                        : tr("Pits do not deal damage"));
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "The pit damage table has a fixed number of rooms. Adding or removing "
+        "this room replaces one entry. Other pit behavior follows room/game "
+        "logic.");
+  }
 
   if (membership.dirty) {
     ImGui::TextColored(theme.status_warning,
@@ -1393,7 +1396,6 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
         pit_damage_status_message_.c_str());
   };
 
-  ImGui::Separator();
   if (room_deals_damage) {
     if (!membership.suggested_replacement_room.has_value()) {
       ImGui::TextDisabled(tr("No available non-damaging room slot."));
@@ -1402,7 +1404,7 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
     }
     pit_damage_replacement_room_id_ = *membership.suggested_replacement_room;
 
-    ImGui::TextDisabled(tr("Remove current room by replacing it with:"));
+    ImGui::TextDisabled(tr("Move damage to room:"));
     ImGui::SetNextItemWidth(88.0f);
     auto edit_value = pit_damage_replacement_room_id_;
     if (auto res = gui::InputHexWordEx("##PitDamageReplacementRoom",
@@ -1437,7 +1439,7 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
     }
     pit_damage_victim_room_id_ = *membership.suggested_victim_room;
 
-    ImGui::TextDisabled(tr("Add current room by replacing listed room:"));
+    ImGui::TextDisabled(tr("Take damage slot from room:"));
     ImGui::SetNextItemWidth(88.0f);
     auto edit_value = pit_damage_victim_room_id_;
     if (auto res = gui::InputHexWordEx("##PitDamageVictimRoom", &edit_value,
@@ -1466,9 +1468,7 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
   }
 
   show_status();
-  ImGui::TextDisabled(
-      tr("Apply Current Room / Apply Loaded Rooms writes this via "
-         "SaveAllPits when the Pits scope is enabled."));
+  ImGui::TextDisabled(tr("Apply with Pits scope enabled."));
 }
 
 void DungeonWorkbenchContent::DrawLayerCompositingControls(
@@ -2135,7 +2135,7 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
   // Use the resolved pane layout instead of GetContentRegionAvail().x. The
   // latter changes when a vertical scrollbar appears, which can make the
   // inspector alternate between full and compact content every frame.
-  if (compact && inspector_mode_ != InspectorMode::Tools &&
+  if (compact && inspector_mode_ == InspectorMode::Selection &&
       !compact_inspector_detail_requested_) {
     DrawInspectorCompactSummary(viewer);
     return;

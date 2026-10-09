@@ -95,15 +95,15 @@ void DungeonCanvasViewer::ConsumePendingCanvasScroll(
 }
 
 void DungeonCanvasViewer::DrawHeaderHiddenMetadataHud(int room_id) {
+  // Room tags are edited in Inspect; they must not cover canvas objects.
+  if (header_visible_ || !show_header_hidden_metadata_hud_) {
+    return;
+  }
   const auto* room = rooms_ ? rooms_->GetIfLoaded(room_id) : nullptr;
   if (!room) {
     return;
   }
 
-  // Tags remain visible in Workbench and standalone rooms. The old detailed
-  // metadata is still controlled by its existing hidden-header preference.
-  const bool show_details =
-      !header_visible_ && show_header_hidden_metadata_hud_;
   const auto label = dungeon_project_labels::GetRoomLabel(project_, room_id);
   char text1[160];
   snprintf(text1, sizeof(text1), "[%03X] %s", room_id, label.c_str());
@@ -112,16 +112,11 @@ void DungeonCanvasViewer::DrawHeaderHiddenMetadataHud(int room_id) {
       absl::StrFormat("B:%02X P:%02X L:%02X S:%02X%s", room->blockset(),
                       room->palette(), room->layout_id(), room->spriteset(),
                       object_interaction_enabled_ ? "" : " RO");
-  const auto tags = dungeon_project_labels::GetRoomTagSummary(
-      project_, room->tag1(), room->tag2());
-
   const float pad = 10.0f;
   const ImVec2 hud_pos(canvas_.zero_point().x + pad,
                        canvas_.zero_point().y + pad);
-  float content_width = ImGui::CalcTextSize(tags.c_str()).x;
-  if (show_details) {
-    content_width = std::max(content_width, ImGui::CalcTextSize(text1).x);
-  }
+  const float content_width = std::max(ImGui::CalcTextSize(text1).x,
+                                       ImGui::CalcTextSize(metadata.c_str()).x);
   const float width = std::min(
       {560.0f, canvas_.canvas_size().x - pad * 2, content_width + 16.0f});
   if (width <= 16.0f) {
@@ -132,11 +127,10 @@ void DungeonCanvasViewer::DrawHeaderHiddenMetadataHud(int room_id) {
   const auto hud_id = absl::StrFormat("##MetadataHUD_%p", this);
 
   gui::DrawCanvasHUD(hud_id.c_str(), hud_pos, hud_size, [&]() {
-    if (show_details) {
-      ImGui::TextWrapped("%s", text1);
-      ImGui::TextDisabled("%s", metadata.c_str());
-    }
-    ImGui::TextWrapped("%s", tags.c_str());
+    ImGui::TextWrapped("%s", text1);
+    ImGui::PushTextWrapPos(0);
+    ImGui::TextDisabled("%s", metadata.c_str());
+    ImGui::PopTextWrapPos();
   });
 }
 
