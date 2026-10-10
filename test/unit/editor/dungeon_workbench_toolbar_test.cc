@@ -605,6 +605,86 @@ TEST_F(DungeonWorkbenchToolbarTest, CompareAndLayersUseDirectActions) {
   gui::WidgetIdRegistry::Instance().Clear();
 }
 
+TEST_F(DungeonWorkbenchToolbarTest,
+       RoomAndOverviewChoicesStayVisibleAndLeaveCompareAtLaptopWidths) {
+  DungeonWorkbenchLayoutState layout;
+  int room = 0x89, compare = 0x98;
+  bool split = true;
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &room;
+  params.compare_room_id = &compare;
+  params.split_view_enabled = &split;
+  params.draw_entrance_context = [](float width) {
+    ImGui::SetNextItemWidth(width);
+    if (ImGui::BeginCombo("##ModeEntrance", "Auto: Goron Mines"))
+      ImGui::EndCombo();
+  };
+  params.on_save_room = [](int) {
+  };
+  params.on_request_dungeon_map = [] {
+  };
+  params.set_workflow_mode = [](bool) {
+  };
+  float width = 720.0f;
+  const auto frame = [&] {
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, 180), ImGuiCond_Always);
+    ImGui::Begin("ToolbarHost");
+    gui::WidgetIdRegistry::Instance().Clear();
+    DungeonWorkbenchToolbar::Draw(params);
+    EXPECT_LE(
+        ImGui::GetCurrentWindow()->DC.CursorMaxPos.x,
+        ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x + 0.5f);
+  };
+  const auto click = [&](const char* id) {
+    ImVec2 center;
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label == id && widget.bounds.valid) {
+        found = true;
+        center = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                        (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+      }
+    }
+    ASSERT_TRUE(found) << id;
+    ImGui::GetIO().AddMousePosEvent(center.x, center.y);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    frame();
+  };
+  for (const float pane_width : {720.0f, 1100.0f}) {
+    width = pane_width;
+    split = true;
+    frame();
+    frame();
+    click("CanvasModeConnected");
+    EXPECT_TRUE(layout.show_connected_canvas_view);
+    EXPECT_FALSE(split);
+    EXPECT_EQ(room, 0x89);
+    // Clicking the selected view is idempotent, not an ambiguous toggle.
+    click("CanvasModeConnected");
+    EXPECT_TRUE(layout.show_connected_canvas_view);
+    click("CanvasModeRoom");
+    EXPECT_FALSE(layout.show_connected_canvas_view);
+    EXPECT_FALSE(split);
+    EXPECT_EQ(room, 0x89);
+    EXPECT_EQ(compare, 0x98);
+    split = true;
+    frame();
+    click("CanvasModeRoom");
+    EXPECT_FALSE(layout.show_connected_canvas_view);
+    EXPECT_FALSE(split);
+  }
+  gui::WidgetIdRegistry::Instance().Clear();
+}
+
 TEST_F(DungeonWorkbenchToolbarTest, ViewOptionsExposeCrumbleFloorControl) {
   gui::WidgetIdRegistry::Instance().Clear();
   DungeonCanvasViewer viewer;

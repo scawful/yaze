@@ -33,6 +33,7 @@
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/game_data.h"
 
@@ -100,8 +101,9 @@ class DungeonCanvasViewerTestPeer {
       const DungeonCanvasViewer& viewer) {
     return viewer.primary_composite_output_.bitmap();
   }
-  static void PrepareConnectedRoom(DungeonCanvasViewer& viewer, int room_id) {
-    viewer.PrepareConnectedRoomCompositeBitmap(room_id);
+  static gfx::Bitmap* PrepareConnectedRoom(DungeonCanvasViewer& viewer,
+                                           int room_id) {
+    return viewer.PrepareConnectedRoomCompositeBitmap(room_id);
   }
   static std::span<const uint8_t> ExternalSpriteGraphics(
       DungeonCanvasViewer& viewer) {
@@ -310,6 +312,27 @@ class DungeonCanvasViewerTestPeer {
 
   static double ChangePingStartTime(const DungeonCanvasViewer& viewer) {
     return viewer.change_ping_start_time_;
+  }
+
+  static bool InvokeDisplayContextMenuItem(DungeonCanvasViewer& viewer,
+                                           int room_id, const char* label) {
+    viewer.canvas_.ClearContextMenuItems();
+    viewer.AddLoadedRoomContextMenuItems(room_id);
+    // Copy before dispatch: a Fit callback can refresh the room composite.
+    const auto menu = viewer.canvas_.editor_menu();
+    for (const auto& section : menu.sections) {
+      for (const auto& item : section.items) {
+        if (item.label != "Display")
+          continue;
+        for (const auto& action : item.subitems) {
+          if (action.label == label && action.callback) {
+            action.callback();
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   static std::vector<std::string> InteractionContextMenuLabels(
@@ -610,13 +633,14 @@ class DungeonCanvasWheelRoutingTest : public ::testing::Test {
     return result;
   }
 
-  void SetHost(Host host, float scale = 2.0f) {
+  void SetHost(Host host, float scale = 0.0f) {
     host_ = host;
     DungeonWorkbenchContentTestPeer::SetCompare(*content_,
                                                 host == Host::Compare);
     primary_->SetHeaderVisible(host == Host::Standalone);
     for (auto* viewer : {primary_.get(), compare_.get()}) {
-      viewer->canvas().set_global_scale(scale);
+      if (scale > 0)
+        viewer->canvas().set_global_scale(scale);
       viewer->canvas().set_scrolling(ImVec2(-40, -40));
     }
     Frame();
@@ -657,6 +681,26 @@ class DungeonCanvasWheelRoutingTest : public ::testing::Test {
     EXPECT_LE(frame.canvas_bounds.Max.y, frame.viewport.Max.y + 1);
   }
 
+  void ExpectCentered(const Snapshot& frame) {
+    EXPECT_NEAR(frame.bitmap.GetCenter().x, frame.canvas_bounds.GetCenter().x,
+                1);
+    EXPECT_NEAR(frame.bitmap.GetCenter().y, frame.canvas_bounds.GetCenter().y,
+                1);
+  }
+
+  void ExpectRoomFits(const Snapshot& frame) {
+    ExpectViewportFits(frame);
+    ExpectCentered(frame);
+    EXPECT_GE(frame.bitmap.Min.x, frame.viewport.Min.x - 1);
+    EXPECT_GE(frame.bitmap.Min.y, frame.viewport.Min.y - 1);
+    EXPECT_LE(frame.bitmap.Max.x, frame.viewport.Max.x + 1);
+    EXPECT_LE(frame.bitmap.Max.y, frame.viewport.Max.y + 1);
+    EXPECT_NEAR(frame.bitmap.GetWidth(),
+                std::min(frame.canvas_bounds.GetWidth(),
+                         frame.canvas_bounds.GetHeight()),
+                1);
+  }
+
   void ExpectAttached(const Snapshot& frame) {
     EXPECT_GT(frame.viewport.GetWidth(), 0);
     EXPECT_GT(frame.viewport.GetHeight(), 0);
@@ -691,7 +735,8 @@ class DungeonCanvasWheelRoutingTest : public ::testing::Test {
   std::function<void()> after_canvas_;
 };
 
-TEST_F(DungeonCanvasWheelRoutingTest, UnselectedWheelStaysBoundedInEveryHost) {
+TEST_F(DungeonCanvasWheelRoutingTest,
+       UnselectedWheelKeepsRoomFixedInEveryHost) {
   for (Host host : {Host::Workbench, Host::Compare, Host::Standalone}) {
     SCOPED_TRACE(static_cast<int>(host));
     SetHost(host);
@@ -706,11 +751,16 @@ TEST_F(DungeonCanvasWheelRoutingTest, UnselectedWheelStaysBoundedInEveryHost) {
                                                             : primary_.get());
       const auto modest = Wheel(*target, point, -1, -1);
       ExpectAttached(modest);
-      EXPECT_LT(modest.pan.x, before.pan.x);
-      EXPECT_LT(modest.pan.y, before.pan.y);
+      ExpectRoomFits(modest);
+      EXPECT_FLOAT_EQ(modest.pan.x, before.pan.x);
+      EXPECT_FLOAT_EQ(modest.pan.y, before.pan.y);
       for (const ImVec2 delta : {ImVec2(-1000, -1000), ImVec2(1000, 1000),
                                  ImVec2(-1000, 0), ImVec2(1000, 0)}) {
-        ExpectAttached(Wheel(*target, point, delta.x, delta.y));
+        const auto event = Wheel(*target, point, delta.x, delta.y);
+        ExpectAttached(event);
+        ExpectRoomFits(event);
+        EXPECT_FLOAT_EQ(event.pan.x, before.pan.x);
+        EXPECT_FLOAT_EQ(event.pan.y, before.pan.y);
         ExpectAttached(Frame(target));
       }
       EXPECT_EQ(
@@ -720,7 +770,7 @@ TEST_F(DungeonCanvasWheelRoutingTest, UnselectedWheelStaysBoundedInEveryHost) {
         auto* other =
             target == primary_.get() ? compare_.get() : primary_.get();
         const auto after = Frame(other);
-        // Separate compare viewports never pan each other.
+        // Input in one Compare viewport never changes the other.
         EXPECT_FLOAT_EQ(after.pan.x, other_before.pan.x);
         EXPECT_FLOAT_EQ(after.pan.y, other_before.pan.y);
       }
@@ -736,7 +786,11 @@ TEST_F(DungeonCanvasWheelRoutingTest, BlankViewportMarginOwnsTrackpadWheel) {
     const auto before = Frame();
     const ImVec2 margin(before.viewport.Max.x - 8, before.viewport.Max.y - 8);
     ASSERT_FALSE(before.bitmap.Contains(margin));
-    ExpectAttached(Wheel(*primary_, margin, -1, -1));
+    const auto event = Wheel(*primary_, margin, -1, -1);
+    ExpectAttached(event);
+    ExpectCentered(event);
+    EXPECT_FLOAT_EQ(event.pan.x, before.pan.x);
+    EXPECT_FLOAT_EQ(event.pan.y, before.pan.y);
     ExpectAttached(Frame());
   }
 }
@@ -786,7 +840,8 @@ TEST_F(DungeonCanvasWheelRoutingTest,
   const auto before = Frame();
   const auto event = EnterWithWheel(*primary_, 0, -1);
   ExpectAttached(event);
-  EXPECT_LT(event.pan.y, before.pan.y);
+  EXPECT_FLOAT_EQ(event.pan.x, before.pan.x);
+  EXPECT_FLOAT_EQ(event.pan.y, before.pan.y);
   ExpectAttached(Frame());
 }
 
@@ -857,8 +912,8 @@ TEST_F(DungeonCanvasWheelRoutingTest,
     EXPECT_FLOAT_EQ(host->Scroll.y, 64);
     EXPECT_FLOAT_EQ(event.remaining_wheel.x, 0);
     EXPECT_FLOAT_EQ(event.remaining_wheel.y, 0);
-    EXPECT_FLOAT_EQ(event.pan.x, before.pan.x + wheel.x * 24);
-    EXPECT_FLOAT_EQ(event.pan.y, before.pan.y + wheel.y * 24);
+    EXPECT_FLOAT_EQ(event.pan.x, before.pan.x);
+    EXPECT_FLOAT_EQ(event.pan.y, before.pan.y);
     io.AddKeyEvent(ImGuiMod_Shift, false);
     Frame();
     EXPECT_FLOAT_EQ(host->Scroll.x, 0);
@@ -880,8 +935,10 @@ TEST_F(DungeonCanvasWheelRoutingTest, ProductHostsFitWithoutSyntheticOverflow) {
     if (kind == Host::Compare)
       targets.push_back(compare_.get());
     for (auto* target : targets) {
-      ExpectViewportFits(Frame(target));
-      ExpectAttached(EnterWithWheel(*target, 0, -1));
+      ExpectRoomFits(Frame(target));
+      const auto event = EnterWithWheel(*target, 0, -1);
+      ExpectRoomFits(event);
+      ExpectAttached(event);
       ExpectAttached(Frame(target));
     }
   }
@@ -896,24 +953,202 @@ TEST_F(DungeonCanvasWheelRoutingTest, ShortProductCompareUsesVisibleViewport) {
     const auto before = Frame(target);
     ASSERT_GT(before.viewport.GetHeight(), 0);
     ASSERT_LT(before.viewport.GetHeight(), 200);
-    ExpectViewportFits(before);
-    const auto bottom = Wheel(*target, before.viewport.GetCenter(), 0, -1000);
-    ExpectAttached(bottom);
-    ExpectViewportFits(bottom);
-    // The last room pixel must be reachable at the visible bottom, even when
-    // the split host is shorter than the old 200-pixel minimum child height.
-    EXPECT_NEAR(bottom.bitmap.Max.y, bottom.viewport.Max.y, 1);
-    const auto top = Wheel(*target, before.viewport.GetCenter(), 0, 1000);
-    ExpectAttached(top);
-    EXPECT_NEAR(top.bitmap.Min.y, top.canvas_bounds.Min.y, 1);
+    ExpectRoomFits(before);
+    for (float delta : {-1000.0f, 1000.0f}) {
+      const auto event = Wheel(*target, before.viewport.GetCenter(), 0, delta);
+      ExpectAttached(event);
+      ExpectRoomFits(event);
+      EXPECT_FLOAT_EQ(event.pan.x, before.pan.x);
+      EXPECT_FLOAT_EQ(event.pan.y, before.pan.y);
+    }
   }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest, AutomaticFitTracksPaneAndCompareResize) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  for (Host kind : {Host::Workbench, Host::Compare, Host::Standalone}) {
+    SCOPED_TRACE(static_cast<int>(kind));
+    SetHost(kind);
+    for (const ImVec2 size :
+         {ImVec2(900, 660), ImVec2(800, 520), ImVec2(960, 720)}) {
+      host_size_ = size;
+      Frame();
+      ExpectRoomFits(Frame());
+      if (kind == Host::Compare)
+        ExpectRoomFits(Frame(compare_.get()));
+    }
+  }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       ExplicitZoomStaysCenteredAndFitRestoresAutomaticSizing) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  auto& io = ImGui::GetIO();
+  for (Host kind : {Host::Workbench, Host::Compare, Host::Standalone}) {
+    SCOPED_TRACE(static_cast<int>(kind));
+    host_size_ = ImVec2(900, 660);
+    // Also proves a non-default explicit zoom supplied before the first draw
+    // is preserved rather than being mistaken for the Canvas 1x default.
+    SetHost(kind, 2.0f);
+    const auto zoomed = Frame();
+    EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 2.0f);
+    EXPECT_GT(zoomed.bitmap.GetHeight(), zoomed.viewport.GetHeight());
+    ExpectCentered(zoomed);
+    const auto wheel = Wheel(*primary_, zoomed.viewport.GetCenter(), -3, -3);
+    EXPECT_FLOAT_EQ(wheel.pan.x, zoomed.pan.x);
+    EXPECT_FLOAT_EQ(wheel.pan.y, zoomed.pan.y);
+    for (ImGuiMouseButton button :
+         {ImGuiMouseButton_Middle, ImGuiMouseButton_Right}) {
+      const auto center = zoomed.viewport.GetCenter();
+      io.AddMousePosEvent(center.x, center.y);
+      Frame();
+      Frame();
+      io.AddMouseButtonEvent(button, true);
+      Frame();
+      io.AddMousePosEvent(center.x + 45, center.y + 25);
+      const auto dragged = Frame();
+      EXPECT_FLOAT_EQ(dragged.pan.x, zoomed.pan.x);
+      EXPECT_FLOAT_EQ(dragged.pan.y, zoomed.pan.y);
+      ExpectCentered(dragged);
+      io.AddMouseButtonEvent(button, false);
+      Frame();
+    }
+    host_size_ = ImVec2(840, 600);
+    Frame();
+    ExpectCentered(Frame());
+    EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 2.0f);
+    EXPECT_FALSE(primary_->canvas().GetConfig().show_builtin_context_menu);
+    ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+        *primary_, primary_->current_room_id(), "Fit room"));
+    ExpectRoomFits(Frame());
+    host_size_ = ImVec2(960, 720);
+    Frame();
+    ExpectRoomFits(Frame());
+  }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest, RepeatedZoomOutKeepsRoomVisible) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  SetHost(Host::Workbench, 2.0f);
+  Frame();
+  for (int i = 0; i < 12; ++i) {
+    const float before = primary_->canvas().global_scale();
+    ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+        *primary_, primary_->current_room_id(), "Zoom out"));
+    EXPECT_GT(primary_->canvas().global_scale(), 0.0f);
+    EXPECT_LE(primary_->canvas().global_scale(), before);
+    EXPECT_FLOAT_EQ(primary_->canvas().GetConfig().global_scale,
+                    primary_->canvas().global_scale());
+    ExpectCentered(Frame());
+  }
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+      *primary_, primary_->current_room_id(), "Fit room"));
+  ExpectRoomFits(Frame());
+
+  // Short Compare panes can fit below the regular 0.25 zoom floor.
+  // Zoom Out must not make such a fitted room larger or invert its geometry.
+  host_size_ = ImVec2(900, 220);
+  SetHost(Host::Compare);
+  ExpectRoomFits(Frame());
+  const float fitted = primary_->canvas().global_scale();
+  ASSERT_GT(fitted, 0.0f);
+  ASSERT_LT(fitted, 0.25f);
+  primary_->canvas().ZoomOut();
+  EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), fitted);
+  ExpectRoomFits(Frame());
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest, SmallPaneZoomIsNotMistakenForFit) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  host_size_ = ImVec2(900, 220);
+  SetHost(Host::Compare);
+  ExpectRoomFits(Frame());
+  ASSERT_LT(primary_->canvas().global_scale(), 0.25f);
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+      *primary_, primary_->current_room_id(), "Zoom in"));
+  Frame();
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+      *primary_, primary_->current_room_id(), "Zoom out"));
+  ExpectCentered(Frame());
+  EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 0.25f);
+  host_size_ = ImVec2(900, 660);
+  Frame();
+  ExpectCentered(Frame());
+  EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 0.25f);
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+      *primary_, primary_->current_room_id(), "Fit room"));
+  ExpectRoomFits(Frame());
+  host_size_ = ImVec2(960, 720);
+  Frame();
+  ExpectRoomFits(Frame());
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest, OffscreenSelectionFocusReturnsToFit) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  for (Host kind : {Host::Workbench, Host::Compare, Host::Standalone}) {
+    SCOPED_TRACE(static_cast<int>(kind));
+    host_size_ = ImVec2(900, 660);
+    SetHost(kind, 2.0f);
+    primary_->ScrollToTile(32, 32);
+    const auto central = Frame();
+    EXPECT_FALSE(primary_->HasPendingScrollTarget());
+    EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 2.0f);
+    ExpectCentered(central);
+
+    primary_->object_interaction().SetSelectedObjects({0});
+    const auto& object = rooms_[0].GetTileObjects()[0];
+    const ImVec2 before_target(central.bitmap.Min.x + object.x_ * 8 * 2,
+                               central.bitmap.Min.y + object.y_ * 8 * 2);
+    ASSERT_FALSE(central.viewport.Contains(before_target));
+    primary_->ScrollToTile(object.x_, object.y_);
+    const auto focused = Frame();
+    EXPECT_FALSE(primary_->HasPendingScrollTarget());
+    ExpectRoomFits(focused);
+    EXPECT_EQ(primary_->object_interaction().GetSelectedObjectIndices(),
+              (std::vector<size_t>{0}));
+    const float tile_size = 8 * primary_->canvas().global_scale();
+    const ImVec2 target(focused.bitmap.Min.x + object.x_ * tile_size,
+                        focused.bitmap.Min.y + object.y_ * tile_size);
+    EXPECT_TRUE(focused.viewport.Contains(target));
+    EXPECT_TRUE(focused.viewport.Contains(
+        ImVec2(target.x + tile_size, target.y + tile_size)));
+    host_size_ = ImVec2(960, 720);
+    Frame();
+    ExpectRoomFits(Frame());
+    primary_->object_interaction().ClearSelection();
+  }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       FitReturnsToAutomaticSizingBelowCanvasFloor) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  host_size_ = ImVec2(900, 220);
+  SetHost(Host::Compare, 2.0f);
+  const auto zoomed = Frame();
+  ASSERT_LT(std::min(zoomed.canvas_bounds.GetWidth(),
+                     zoomed.canvas_bounds.GetHeight()),
+            128);
+  ASSERT_TRUE(DungeonCanvasViewerTestPeer::InvokeDisplayContextMenuItem(
+      *primary_, primary_->current_room_id(), "Fit room"));
+  EXPECT_FLOAT_EQ(primary_->canvas().global_scale(), 0.25f);
+  ExpectRoomFits(Frame());
+  EXPECT_LT(primary_->canvas().global_scale(), 0.25f);
+  host_size_ = ImVec2(900, 660);
+  Frame();
+  ExpectRoomFits(Frame());
 }
 
 TEST_F(DungeonCanvasWheelRoutingTest,
        ZoomToFitUsesRenderedViewportFromAnotherWindow) {
   product_host_ = true;
   synthetic_overflow_ = false;
-  SetHost(Host::Workbench);
+  SetHost(Host::Workbench, 2.0f);
   const auto before = Frame();
   const auto expected = gui::ComputeZoomToFit(
       ImVec2(512, 512), before.canvas_bounds.GetSize(), 0);
@@ -1345,10 +1580,14 @@ TEST(DungeonCanvasViewerShortcutFocusTest,
 
 TEST(DungeonCanvasViewerNavigationTest,
      ConnectedPreviewResolvesEachRoomWithoutChangingPrimaryContext) {
-  DungeonRoomStore rooms;
-  for (const int id : {0x89, 0x90})
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  for (const int id : {0x89, 0x90}) {
+    rooms[id].SetTileObjects({});
     rooms[id].SetLoaded(true);
-  DungeonCanvasViewer viewer;
+  }
+  DungeonCanvasViewer viewer(&rom);
   viewer.SetRooms(&rooms);
   viewer.SetEntranceRenderContext(0x27 + zelda3::kNumDungeonSpawnPoints, 4);
   bool automatic = true;
@@ -3504,6 +3743,95 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   EXPECT_EQ(graph.room_floor_labels[0x10], "F1");
   EXPECT_EQ(graph.room_floor_labels[0x40], "B1");
   EXPECT_EQ(graph.floor_order, (std::vector<std::string>{"F1", "B1"}));
+
+  std::filesystem::remove_all(root);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
+     UnmaterializedUnlinkedRoomLoadsFromRomBeforePreview) {
+  const std::filesystem::path root = MakeProjectRegistryRoot(R"json({
+    "dungeons": [{"id": "D6", "name": "Goron Mines", "rooms": [
+      {"id": "0x10", "name": "Start"},
+      {"id": "0x40", "name": "Unlinked", "floor": "B1"}
+    ]}]
+  })json");
+  project::YazeProject project;
+  ASSERT_TRUE(LoadOracleProject(&project, root).ok());
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto write_pointer = [&](int address, int pc) {
+    const int snes = PcToSnes(pc);
+    for (int byte = 0; byte < 3; ++byte) {
+      rom.mutable_data()[address + byte] = (snes >> (8 * byte)) & 0xFF;
+    }
+  };
+  constexpr int kHeaderTablePc = 0x0F6000;
+  constexpr int kHeaderPc = 0x114000;
+  constexpr int kObjectTablePc = 0x0F8000;
+  constexpr int kObjectPc = 0x0F9000;
+  write_pointer(zelda3::kRoomHeaderPointer, kHeaderTablePc);
+  rom.mutable_data()[zelda3::kRoomHeaderPointerBank] =
+      (PcToSnes(kHeaderPc) >> 16) & 0xFF;
+  ASSERT_TRUE(
+      rom.WriteWord(kHeaderTablePc + 0x40 * 2, PcToSnes(kHeaderPc) & 0xFFFF)
+          .ok());
+  std::vector<uint8_t> header(14, 0);
+  header[1] = 0x12;  // Distinctive ROM palette, absent from a default Room.
+  header[2] = 0x23;  // Distinctive ROM room blockset.
+  ASSERT_TRUE(rom.WriteVector(kHeaderPc, header).ok());
+  write_pointer(zelda3::kRoomObjectPointer, kObjectTablePc);
+  write_pointer(kObjectTablePc + 0x40 * 3, kObjectPc);
+  ASSERT_TRUE(rom.WriteVector(kObjectPc, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0,
+                                          0xFF, 0xFF, 0xFF})
+                  .ok());
+  ASSERT_TRUE(
+      rom.WriteWord(zelda3::kRoomItemsPointers + 0x40 * 2, 0xFF00).ok());
+  ASSERT_TRUE(rom.WriteWord(0xFF00, 0xFFFF).ok());
+  ASSERT_TRUE(
+      rom.WriteWord(SnesToPc(zelda3::kRoomLayoutPointers.front()), 0xFFFF)
+          .ok());
+
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(zelda3::kNumGfxSheets * 4096, 0);
+  game_data.palette_groups.dungeon_main.AddPalette(gfx::SnesPalette(
+      std::vector<gfx::SnesColor>(90, gfx::SnesColor(64, 96, 128))));
+  DungeonRoomStore rooms(&rom, &game_data);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  start.SetTileObjects({zelda3::RoomObject(0x01, 5, 5, 0, 0)});
+  start.SetLoaded(true);
+  start.ClearSaveDirtyState();
+  ASSERT_EQ(rooms.GetIfMaterialized(0x40), nullptr);
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.RefreshRomBackedState(&rom, &game_data, &rooms, 0x10);
+  viewer.SetProject(&project);
+  viewer.SetEntranceRenderContext(5, 4);
+  viewer.SetEntranceBlocksetResolver(
+      [](int room_id) -> uint8_t { return room_id == 0x40 ? 7 : 4; });
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  const auto graph =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+  ASSERT_TRUE(graph.room_mask[0x40]);
+  ASSERT_EQ(graph.unlinked_room_count, 1);
+  auto* unlinked = rooms.GetIfLoaded(0x40);
+  ASSERT_NE(unlinked, nullptr);
+  EXPECT_EQ(unlinked->id(), 0x40);
+  EXPECT_EQ(unlinked->palette(), 0x12);
+  EXPECT_EQ(unlinked->blockset(), 0x23);
+  EXPECT_FALSE(unlinked->HasUnsavedChanges());
+
+  EXPECT_NE(DungeonCanvasViewerTestPeer::PrepareConnectedRoom(viewer, 0x40),
+            nullptr);
+  EXPECT_EQ(unlinked->render_entrance_blockset(), 7);
+  EXPECT_EQ(viewer.current_room_id(), 0x10);
+  EXPECT_EQ(viewer.current_entrance_blockset(), 4);
+  EXPECT_EQ(viewer.object_interaction().GetSelectedObjectIndices(),
+            (std::vector<size_t>{0}));
+  EXPECT_FALSE(start.HasUnsavedChanges());
+  EXPECT_FALSE(unlinked->HasUnsavedChanges());
 
   std::filesystem::remove_all(root);
 }

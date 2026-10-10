@@ -64,7 +64,7 @@ inline constexpr const char* kWaterFill = "Water Fill";
 namespace workflow_mode_names {
 inline constexpr const char* kWorkbench = "Workbench";
 inline constexpr const char* kStandalone = "Standalone";
-inline constexpr const char* kConnected = "Connected";
+inline constexpr const char* kConnected = "Overview";
 }  // namespace workflow_mode_names
 
 /**

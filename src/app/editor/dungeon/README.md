@@ -47,11 +47,19 @@ Keep behavior in the shared owner below rather than copying it into each host.
 | Room metadata and selection edits | `EditRoomMetadata` and the existing selection-edit transactions |
 | Workbench panes and standalone window layout | `workspace/` and `ui/window/` |
 
-The room canvas uses a fixed screen-pixel viewport around scaled 512×512 content.
-It claims wheel input before ImGui can scroll an enclosing window. Wheel input
-pans when no object is selected; a selected object or placement preview uses
-the existing resize handler. Compare uses the same viewport without edit access.
-Do not add a second pan offset or wheel handler to a presentation host.
+The room canvas is a fixed, centered view of one 512×512 room. It fits the
+available pane by default and refits when the pane changes size. Explicit zoom
+keeps a centered crop; Fit returns to automatic sizing. Wheel input is claimed
+before ImGui can scroll an enclosing window, but it only edits the size of a
+selected object or placement preview. Empty-room wheel input and canvas drag
+do not pan. Compare uses the same viewport without edit access.
+
+Workbench exposes **Room | Overview** beside room navigation. Overview is the
+separate read-only, pannable/zoomable room graph; clicking a preview opens that
+room for editing. Both choices exit Compare. Unopened project rooms must load
+from ROM before previewing, including rooms without resolved connections, and
+use their own resolved entrance graphics. Never render a default materialized
+Room as a substitute for loading the requested room.
 
 Placement entry points must cancel the previous handler before activating the
 next one. Selection shortcuts operate on the active viewer; the retired

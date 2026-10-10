@@ -307,7 +307,10 @@ void Canvas::ZoomIn() {
 
 void Canvas::ZoomOut() {
   float old_scale = global_scale_;
-  global_scale_ -= 0.25f;
+  // Fit can produce a scale below the normal zoom floor. Preserve that scale
+  // rather than zooming in when the user requests Zoom Out.
+  const float min_scale = old_scale > 0.0f ? std::min(old_scale, 0.25f) : 0.25f;
+  global_scale_ = std::max(min_scale, old_scale - 0.25f);
   config_.global_scale = global_scale_;
 
   // Publish zoom changed event

@@ -49,6 +49,23 @@ void DungeonCanvasViewer::AddLoadedRoomContextMenuItems(int room_id) {
   gui::CanvasMenuItem display;
   display.label = "Display";
   display.icon = ICON_MD_VISIBILITY;
+  display.subitems.emplace_back(
+      "Fit room", ICON_MD_FIT_SCREEN, [this, room_id] {
+        if (auto* bitmap = PrepareRoomCompositeBitmap(room_id)) {
+          canvas_.SetZoomToFit(*bitmap);
+          room_viewport_auto_fit_ = true;
+          room_viewport_last_scale_ = canvas_.global_scale();
+        }
+      });
+  display.subitems.emplace_back("Zoom in", ICON_MD_ZOOM_IN, [this] {
+    room_viewport_auto_fit_ = false;
+    canvas_.ZoomIn();
+  });
+  display.subitems.emplace_back("Zoom out", ICON_MD_ZOOM_OUT, [this] {
+    room_viewport_auto_fit_ = false;
+    canvas_.ZoomOut();
+  });
+  display.subitems.back().separator_after = true;
   display.subitems.push_back(BuildLayerVisibilityContextMenu(room_id));
   display.subitems.push_back(BuildOverlayContextMenu());
   canvas_.AddContextMenuItem(std::move(display));
