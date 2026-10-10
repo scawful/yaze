@@ -1370,7 +1370,7 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
   const bool room_deals_damage = membership.deals_damage;
   ImGui::TextColored(
       room_deals_damage ? theme.status_warning : theme.text_secondary_gray,
-      "%s %s", room_deals_damage ? ICON_MD_WARNING : ICON_MD_INFO,
+      "%s",
       room_deals_damage ? tr("Pits deal damage")
                         : tr("Pits do not deal damage"));
   if (ImGui::IsItemHovered()) {
@@ -1378,6 +1378,23 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
         "The pit damage table has a fixed number of rooms. Adding or removing "
         "this room replaces one entry. Other pit behavior follows room/game "
         "logic.");
+  }
+
+  // The membership stays visible. The fixed-capacity transfer is uncommon and
+  // must remain explicit about which other room gives up or receives a slot.
+  const float details_width =
+      ImGui::GetTreeNodeToLabelSpacing() + ImGui::CalcTextSize("Details").x;
+  if (ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x +
+          details_width <=
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x) {
+    ImGui::SameLine();
+  }
+  const bool details_open = ImGui::TreeNodeEx(
+      "Details##PitDamageDetails",
+      ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanAvailWidth);
+  {
+    gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+    gui::AutoRegisterLastItem("tree_node", "PitDamageDetails");
   }
 
   if (membership.dirty) {
@@ -1395,6 +1412,13 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
         pit_damage_status_error_ ? ICON_MD_WARNING : ICON_MD_CHECK_CIRCLE,
         pit_damage_status_message_.c_str());
   };
+
+  if (!details_open) {
+    // Rejections and pending state remain visible even when details are closed.
+    if (pit_damage_status_error_)
+      show_status();
+    return;
+  }
 
   if (room_deals_damage) {
     if (!membership.suggested_replacement_room.has_value()) {
