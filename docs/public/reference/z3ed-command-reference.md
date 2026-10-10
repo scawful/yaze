@@ -174,6 +174,7 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-get-entrance --entrance <hex> [--spawn]`
 - `entrance-info --entrance <hex> [--spawn]`
 - `dungeon-export-room --room <hex> --output <file>`
+- `dungeon-place-sprite --room <hex> --id <hex> --x <int> --y <int> [--subtype <int>] [--layer <0|1>] [--manifest <path>] [--write]`
 - `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
 - `dungeon-remove-object --room <hex> --index <int> --expect-id <hex> --expect-x <int> --expect-y <int> --expect-size <int> --expect-layer <0|1|2> [--manifest <path>] [--write]`
 - `dungeon-set-door-type --room <hex> --x <int> --y <int> --type <hex> --expect-type <hex> --manifest <path> [--write]`
@@ -187,6 +188,20 @@ writing. Replaying an exact source reports zero `changed_rooms` and
 `write_status`/`save_status` as `not-needed`; it does not create a backup or
 save the active ROM after comparison. `--sandbox` still materializes its copy
 before the comparison.
+
+`dungeon-place-sprite` is a dry-run unless `--write` is supplied. Both modes
+plan the actual sprite save and reload its result on a detached ROM. A shared
+or full stream requires a manifest defining `dungeon_stream_regions.sprites`
+with `copy_on_write` and allocator-owned space. Protected payload and pointer
+writes are blocked. The result reports `storage_strategy`, the source and
+planned stream PC offsets, and exact half-open `write_ranges`. Write mode uses
+a required backup and rolls back the caller's ROM if saving fails.
+
+Sprite subtype values whose low three bits are 7 select the overlord format;
+they require an overlord ID (`0x01`-`0x1A`). In particular, an `0xA3` cart with
+subtype 7, 15, 23, or 31 is refused. Sprite-list terminators and hidden key
+markers are also refused as ordinary placements. This validation does not
+renumber cart tracks or change the game engine.
 
 `dungeon-place-object` is a dry-run unless `--write` is supplied. Both modes
 execute the same immutable capacity preflight. In-place edits can proceed
