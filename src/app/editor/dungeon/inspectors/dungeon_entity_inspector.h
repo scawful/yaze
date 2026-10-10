@@ -8,6 +8,10 @@ namespace yaze::editor {
 
 class DungeonCanvasViewer;
 
+// Contextual reminder for both the pot-item library and selection inspector.
+// Disabled saving does not prevent draft edits or change the project's scope.
+void DrawDungeonPotItemSaveNotice();
+
 // Shared property controls for a single selected door, sprite, or pot item.
 // All writes go through the viewer's interaction handlers and mutation hooks.
 void DrawDungeonEntityInspector(
