@@ -11,6 +11,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
@@ -87,6 +88,7 @@ class ItemEditorPanel : public WindowContent {
       return;
     }
 
+    DrawDungeonPotItemSaveNotice();
     DrawPlacementControls();
     ImGui::Separator();
     DrawItemSelector(show_room_items);

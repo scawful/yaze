@@ -1008,6 +1008,93 @@ TEST_F(DungeonWorkbenchResetUiTest,
 }
 
 TEST_F(DungeonWorkbenchResetUiTest,
+       PotSaveNoticeFollowsSettingBeforeEditingInBothHosts) {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  const bool previous_save = flags.kSavePotItems;
+  absl::Cleanup cleanup = [&] {
+    flags.kSavePotItems = previous_save;
+  };
+  rooms_[0].GetPotItems().push_back(zelda3::PotItem{0x2714, 0x09});
+  viewer_.object_interaction().SelectEntity(EntityType::Item, 0);
+  int mutations = 0;
+  viewer_.object_interaction().SetMutationCallback([&] { ++mutations; });
+
+  for (float width : {260.0f, 320.0f}) {
+    width_ = width;
+    for (bool standalone : {false, true}) {
+      SCOPED_TRACE(width);
+      SCOPED_TRACE(standalone);
+      standalone_content_ = standalone ? &items_ : nullptr;
+      for (bool save_enabled : {false, true, false}) {
+        flags.kSavePotItems = save_enabled;
+        Frame();
+        Frame();
+        const auto notice = text_.find("Pot-item saving is off.");
+        EXPECT_EQ(notice != std::string::npos, !save_enabled);
+        const auto editor =
+            Find(standalone ? "selected_item_raw_type" : "ItemType");
+        ASSERT_TRUE(editor.has_value());
+        EXPECT_TRUE(editor->visible);
+        EXPECT_TRUE(editor->enabled);
+        EXPECT_GE(editor->bounds.min_x, 20);
+        EXPECT_LE(editor->bounds.max_x, 20 + width + 20);
+        if (!save_enabled) {
+          const auto control =
+              text_.find(standalone ? "Selected raw type" : "Type");
+          ASSERT_NE(control, std::string::npos);
+          EXPECT_LT(notice, control);
+        }
+        EXPECT_EQ(flags.kSavePotItems, save_enabled);
+        EXPECT_EQ(rooms_[0].GetPotItems().front().item, 0x09);
+        EXPECT_FALSE(rooms_[0].pot_items_dirty());
+        EXPECT_EQ(mutations, 0);
+      }
+    }
+  }
+  EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
+}
+
+TEST_F(DungeonWorkbenchResetUiTest,
+       ItemLibraryWarnsBeforePlacementWithoutChangingSaveSetting) {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  const bool previous_save = flags.kSavePotItems;
+  absl::Cleanup cleanup = [&] {
+    flags.kSavePotItems = previous_save;
+  };
+  flags.kSavePotItems = false;
+  show_library_ = true;
+  int mutations = 0;
+  viewer_.object_interaction().SetMutationCallback([&] { ++mutations; });
+  Frame();
+  Frame();
+  Click("Place Items");
+  const auto notice = text_.find("Pot-item saving is off.");
+  const auto picker = Find("place_item_08");
+  ASSERT_NE(notice, std::string::npos);
+  ASSERT_TRUE(picker.has_value());
+  const auto selector = text_.find("Select Item:");
+  ASSERT_NE(selector, std::string::npos);
+  EXPECT_LT(notice, selector);
+  EXPECT_TRUE(picker->visible);
+  EXPECT_TRUE(picker->enabled);
+  EXPECT_FALSE(viewer_.object_interaction().IsItemPlacementActive());
+  Click("place_item_08");
+  EXPECT_TRUE(viewer_.object_interaction().IsItemPlacementActive());
+  EXPECT_EQ(viewer_.object_interaction()
+                .entity_coordinator()
+                .item_handler()
+                .GetItemId(),
+            8);
+  EXPECT_FALSE(flags.kSavePotItems);
+  EXPECT_FALSE(rooms_[0].pot_items_dirty());
+  EXPECT_EQ(mutations, 0);
+  flags.kSavePotItems = true;
+  Frame();
+  EXPECT_EQ(text_.find("Pot-item saving is off."), std::string::npos);
+  EXPECT_TRUE(viewer_.object_interaction().IsItemPlacementActive());
+}
+
+TEST_F(DungeonWorkbenchResetUiTest,
        StandaloneRawTypesKeepExistingMutationsAndRejectReadOnlyCommit) {
   rooms_[0].GetDoors().push_back(zelda3::Room::Door::FromRomBytes(0x10, 0x00));
   rooms_[0].GetPotItems().push_back(zelda3::PotItem{0x2714, 0x09});

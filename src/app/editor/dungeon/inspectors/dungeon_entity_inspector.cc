@@ -6,12 +6,14 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
 #include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/sprite/sprite.h"
@@ -257,6 +259,7 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
   const char* name =
       type < kPotItemNames.size() ? kPotItemNames[type] : "Unknown";
   ImGui::TextWrapped("Pot item #%zu · %02X %s", index, type, name);
+  DrawDungeonPotItemSaveNotice();
   bool changed = false;
   bool position_changed = false;
   if (BeginProperties()) {
@@ -294,6 +297,17 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
 }
 
 }  // namespace
+
+void DrawDungeonPotItemSaveNotice() {
+  if (core::FeatureFlags::get().dungeon.kSavePotItems) {
+    return;
+  }
+  ImGui::PushStyleColor(ImGuiCol_Text, AgentUI::GetTheme().status_warning);
+  ImGui::TextWrapped(
+      "Pot-item saving is off. Enable Save Pot Items in File > Save Scope > "
+      "Dungeon before saving.");
+  ImGui::PopStyleColor();
+}
 
 void DrawDungeonEntityInspector(
     DungeonCanvasViewer& viewer,
