@@ -16,6 +16,7 @@
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_item.h"
+#include "zelda3/overworld/special_entrance_inspector.h"
 #include "zelda3/zelda3_labels.h"
 
 namespace yaze {
@@ -229,6 +230,51 @@ absl::Status ApplyTileEdit(Rom& rom, zelda3::Overworld& overworld,
 }
 
 }  // namespace
+
+absl::Status OverworldInspectSpecialEntrancesCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+  zelda3::Overworld overworld(rom);
+  RETURN_IF_ERROR(overworld.Load(rom));
+  const auto inspection =
+      zelda3::InspectSpecialEntrances(*rom, overworld, map_id);
+  formatter.BeginObject("Special Entrances");
+  formatter.AddField("available", inspection.available);
+  formatter.AddField("provenance", inspection.provenance);
+  formatter.AddField("limitation", inspection.limitation);
+  formatter.AddField("overlay_may_replace_tiles",
+                     inspection.overlay_may_replace_tiles);
+  formatter.AddHexField("map_id", map_id, 2);
+  formatter.AddHexField("parent_area", inspection.parent_area, 2);
+  formatter.AddField("match_count",
+                     static_cast<int>(inspection.matches.size()));
+  formatter.BeginArray("matches");
+  for (const auto& match : inspection.matches) {
+    const auto& row = inspection.rows[match.row_index];
+    formatter.BeginObject();
+    formatter.AddHexField("screen_id", match.screen_id, 2);
+    formatter.AddHexField("source_area", match.parent_area, 2);
+    formatter.AddField("tile_x", match.tile_x);
+    formatter.AddField("tile_y", match.tile_y);
+    formatter.AddField("world_x", match.world_x);
+    formatter.AddField("world_y", match.world_y);
+    formatter.AddHexField("map16_id", match.tile16_id, 3);
+    formatter.AddHexField("first_word", match.first_word, 4);
+    formatter.AddHexField("masked_trigger", match.masked_trigger, 3);
+    formatter.AddHexField("destination_marker", row.destination_marker, 4);
+    formatter.AddHexField("arrival_direction", row.direction, 4);
+    if (row.destination_area >= 0) {
+      formatter.AddHexField("destination_area", row.destination_area, 2);
+    } else {
+      formatter.AddField("destination_area", "unresolved");
+    }
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  formatter.EndObject();
+  return absl::OkStatus();
+}
 
 absl::Status OverworldGetTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,

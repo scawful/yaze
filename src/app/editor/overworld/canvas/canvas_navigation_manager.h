@@ -81,7 +81,7 @@ struct CanvasNavigationContext {
   bool* is_dragging_entity = nullptr;
 
   // Graphics
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp = nullptr;
   gfx::Tilemap* tile16_blockset = nullptr;
 
   // Widgets (read-only pointer to editor's unique_ptr)
@@ -190,6 +190,7 @@ class CanvasNavigationManager {
 
   /// @brief Center the viewport on @p map_id (same world grid).
   void CenterOnMap(int map_id);
+  void CenterOnWorldTile(int world_x, int world_y);
 
   bool is_panning() const { return pan_active_; }
 

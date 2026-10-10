@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/rom_settings.h"
@@ -235,6 +236,9 @@ class OverworldMap : public gfx::GfxContext {
  public:
   OverworldMap() = default;
   OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
+  static absl::StatusOr<OverworldMap> CreateLyraPreview(
+      int index, Rom* rom, GameData* game_data,
+      const rom::LyraLayoutInspection* layout);
 
   void SetGraphicsPreview(const AreaGraphicsPreview& preview) {
     if (graphics_preview_ == preview)
@@ -507,7 +511,9 @@ class OverworldMap : public gfx::GfxContext {
   }
 
  private:
-  OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent);
+  OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent,
+               bool skip_legacy_data = false);
+  absl::Status LoadLyraPreviewProperties();
   void CopyAnimatedSheetIntoSlot7();
   void LoadAreaInfo();
   void CaptureAreaInfoBaseline();
@@ -547,6 +553,7 @@ class OverworldMap : public gfx::GfxContext {
 
   Rom* rom_ = nullptr;
   GameData* game_data_ = nullptr;
+  const rom::LyraLayoutInspection* descriptor_layout_ = nullptr;
 
   bool built_ = false;
   bool large_map_ = false;

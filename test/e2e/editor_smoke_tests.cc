@@ -1,5 +1,6 @@
 #include "e2e/editor_smoke_tests.h"
 #include "e2e/overworld/drawing_acceptance.h"
+#include "e2e/overworld/special_entrance_inspector_acceptance.h"
 
 #include <chrono>
 #include <filesystem>
@@ -409,6 +410,7 @@ namespace e2e {
 
 void RegisterEditorSmokeTests(ImGuiTestEngine* engine, Controller* controller) {
   RegisterOverworldDrawingAcceptance(engine, controller);
+  RegisterSpecialEntranceInspectorAcceptance(engine, controller);
   {
     ImGuiTest* test = IM_REGISTER_TEST(engine, "EditorSmoke", "Graphics");
     test->TestFunc = E2ETest_GraphicsEditorSmokeTest;

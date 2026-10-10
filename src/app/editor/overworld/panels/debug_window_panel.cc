@@ -10,6 +10,10 @@ void DebugWindowPanel::Draw(bool* p_open) {
   auto* ow_editor = CurrentOverworldEditor();
   if (!ow_editor)
     return;
+  if (ow_editor->is_lyra_preview()) {
+    ImGui::TextDisabled("Lyra preview: debug editing unavailable");
+    return;
+  }
 
   // Delegate to existing DebugWindowCard
   if (auto* card = ow_editor->debug_window_card()) {

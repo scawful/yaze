@@ -35,7 +35,7 @@ std::optional<int> MapFromCanvasPosition(const CanvasNavigationContext& ctx,
   // truncation previously mapped small negative positions onto screen zero.
   const auto target = ResolveOverworldContextTarget(
       *ctx.current_world, 0, scaled_position, ImVec2(0, 0), ImVec2(0, 0),
-      ctx.ow_map_canvas->global_scale());
+      ctx.ow_map_canvas->global_scale(), ctx.overworld->inspected_map_count());
   if (!target || !ctx.overworld->overworld_map(target->map_id)) {
     return std::nullopt;
   }
@@ -57,7 +57,7 @@ void SelectMapFallback(const CanvasNavigationContext& ctx, int map_id,
   if (respect_pin && *ctx.current_map_lock) {
     return;
   }
-  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+  if (map_id < 0 || map_id >= ctx.overworld->inspected_map_count()) {
     return;
   }
   const auto* map = ctx.overworld->overworld_map(map_id);
@@ -177,7 +177,7 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
 
   const int current_highlighted_map = *ctx_.current_map;
   if (current_highlighted_map < 0 ||
-      current_highlighted_map >= zelda3::kNumOverworldMaps ||
+      current_highlighted_map >= ctx_.overworld->inspected_map_count() ||
       ctx_.overworld->overworld_map(current_highlighted_map) == nullptr) {
     return absl::OkStatus();
   }
@@ -636,7 +636,9 @@ void CanvasNavigationManager::ZoomToFit() {
   }
   constexpr float kWorldSize = kOverworldMapSize * 8.0f;
   // The special world only allocates four rows of screens.
-  const bool special_world = ctx_.current_world && *ctx_.current_world == 2;
+  const bool special_world =
+      ctx_.current_world && *ctx_.current_world == 2 &&
+      (!ctx_.overworld || !ctx_.overworld->is_lyra_preview());
   const float world_height = special_world ? kWorldSize * 0.5f : kWorldSize;
   const float scale =
       std::min(viewport_size_.x / kWorldSize, viewport_size_.y / world_height);
@@ -660,8 +662,9 @@ void CanvasNavigationManager::CenterOverworldView() {
 }
 
 void CanvasNavigationManager::CenterOnMap(int map_id) {
-  if (!ctx_.ow_map_canvas || map_id < 0 ||
-      map_id >= zelda3::kNumOverworldMaps) {
+  const int map_count = ctx_.overworld ? ctx_.overworld->inspected_map_count()
+                                       : zelda3::kNumOverworldMaps;
+  if (!ctx_.ow_map_canvas || map_id < 0 || map_id >= map_count) {
     return;
   }
   // Startup jumps arrive before the canvas child has a measured viewport.
@@ -682,6 +685,16 @@ void CanvasNavigationManager::CenterOnMap(int map_id) {
       scale;
   pending_scroll_ = ImVec2(center_x - viewport_size_.x * 0.5f,
                            center_y - viewport_size_.y * 0.5f);
+}
+
+void CanvasNavigationManager::CenterOnWorldTile(int world_x, int world_y) {
+  if (!ctx_.ow_map_canvas || !viewport_known_) {
+    return;
+  }
+  const float scale = std::max(ctx_.ow_map_canvas->global_scale(), 0.01f);
+  pending_scroll_ =
+      ImVec2((world_x * 16.0f + 8.0f) * scale - viewport_size_.x * 0.5f,
+             (world_y * 16.0f + 8.0f) * scale - viewport_size_.y * 0.5f);
 }
 
 // =============================================================================
@@ -725,7 +738,8 @@ void CanvasNavigationManager::QueueAdjacentMapsForPreload(int center_map) {
   return;
 #endif
 
-  if (center_map < 0 || center_map >= zelda3::kNumOverworldMaps) {
+  if (!ctx_.overworld || center_map < 0 ||
+      center_map >= ctx_.overworld->inspected_map_count()) {
     return;
   }
 
@@ -736,7 +750,10 @@ void CanvasNavigationManager::QueueAdjacentMapsForPreload(int center_map) {
   int local_index = center_map % 64;
   int map_x = local_index % 8;
   int map_y = local_index / 8;
-  int max_rows = (center_map >= zelda3::kSpecialWorldMapIdStart) ? 4 : 8;
+  int max_rows = center_map >= zelda3::kSpecialWorldMapIdStart &&
+                         !ctx_.overworld->is_lyra_preview()
+                     ? 4
+                     : 8;
 
   // Add adjacent maps (4-connected neighbors)
   static const int dx[] = {-1, 1, 0, 0};
@@ -750,7 +767,8 @@ void CanvasNavigationManager::QueueAdjacentMapsForPreload(int center_map) {
     if (nx >= 0 && nx < 8 && ny >= 0 && ny < max_rows) {
       int neighbor_index = world_offset + ny * 8 + nx;
       // Only queue if not already built
-      if (neighbor_index >= 0 && neighbor_index < zelda3::kNumOverworldMaps &&
+      if (neighbor_index >= 0 &&
+          neighbor_index < ctx_.overworld->inspected_map_count() &&
           !ctx_.overworld->overworld_map(neighbor_index)->is_built()) {
         preload_queue_.push_back(neighbor_index);
       }

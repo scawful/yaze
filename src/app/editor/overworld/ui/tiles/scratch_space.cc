@@ -155,6 +155,10 @@ absl::Status OverworldEditor::RebuildScratchBitmapFromTileData() {
 }
 
 absl::Status OverworldEditor::DrawScratchSpace() {
+  if (is_lyra_preview()) {
+    ImGui::TextDisabled("Lyra preview: scratch editing unavailable");
+    return absl::OkStatus();
+  }
   // Header with clear button
   Text(ICON_MD_BRUSH " Scratch Workspace");
   SameLine();

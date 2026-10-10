@@ -52,7 +52,8 @@ absl::Status HexReadCommandHandler::Execute(
   formatter.AddField("length", length);
   formatter.AddField("format", format);
 
-  bool include_hex = (format == "hex" || format == "both" || format == "binary");
+  bool include_hex =
+      (format == "hex" || format == "both" || format == "binary");
   bool include_ascii = (format == "ascii" || format == "both");
 
   if (include_hex) {
@@ -121,8 +122,13 @@ absl::Status HexWriteCommandHandler::Execute(
   }
 
   // Write data
+  if (auto status = rom->CheckLayoutWritable(); !status.ok()) {
+    return status;
+  }
   for (size_t i = 0; i < bytes.size(); ++i) {
-    rom->WriteByte(address + i, bytes[i]);
+    if (auto status = rom->WriteByte(address + i, bytes[i]); !status.ok()) {
+      return status;
+    }
   }
 
   // Format written data

@@ -56,6 +56,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/shell/feedback/popup_manager.h"
@@ -4358,6 +4359,7 @@ absl::Status EditorManager::SaveRomInternal(
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
+  RETURN_IF_ERROR(current_rom->CheckLayoutWritable());
   if (save_as_filename.has_value() && save_as_filename->empty()) {
     return absl::InvalidArgumentError("No filename provided for save as");
   }
@@ -5489,6 +5491,14 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   auto* session = session_coordinator_->GetActiveRomSession();
   if (!session) {
     return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  // Lazy asset loading can defer OverworldEditor::Load after replacement.
+  // Refuse a changed image while its read-only canvas still owns ROM-backed
+  // maps and textures, before changing bytes, dirty state or undo history.
+  if (auto* overworld_editor = static_cast<OverworldEditor*>(
+          session->editors.GetExistingEditor(EditorType::kOverworld))) {
+    RETURN_IF_ERROR(overworld_editor->CheckRomReplacement(rom));
   }
 
   // Reject invalid shared assets before invalidating live editor models and

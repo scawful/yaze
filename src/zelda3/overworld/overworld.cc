@@ -139,6 +139,16 @@ absl::Status Overworld::Load(Rom* rom) {
   if (rom->size() == 0) {
     return absl::InvalidArgumentError("ROM file not loaded");
   }
+  const auto layout = rom->InspectLyraLayout();
+  if (layout.presence == yaze::rom::LyraLayoutPresence::kInvalid) {
+    return absl::FailedPreconditionError(
+        "Invalid Lyra descriptor; overworld loading refused");
+  }
+  if (layout.presence == yaze::rom::LyraLayoutPresence::kValid) {
+    return absl::FailedPreconditionError(
+        "Lyra descriptor canvas loading is not yet supported");
+  }
+  descriptor_layout_ = {};
   rom_ = rom;
 
   const auto profile = DetectOverworldRomProfile(*rom_);
@@ -223,6 +233,74 @@ absl::Status Overworld::Load(Rom* rom) {
     }
   }
 
+  loaded_map_tiles_ = map_tiles_;
+  loaded_map_tiles_valid_ = true;
+  is_loaded_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::LoadLyraTerrainPreview(Rom* rom) {
+  if (rom == nullptr || rom->size() == 0) {
+    return absl::InvalidArgumentError("ROM file not loaded");
+  }
+  if (is_loaded_) {
+    return absl::FailedPreconditionError(
+        "Lyra terrain preview requires a fresh overworld model");
+  }
+  auto layout = rom->InspectLyraLayout();
+  if (layout.presence != yaze::rom::LyraLayoutPresence::kValid) {
+    return absl::FailedPreconditionError(
+        "Valid Lyra descriptor required for terrain preview");
+  }
+  return BuildLyraTerrainPreview(rom, std::move(layout));
+}
+
+absl::Status Overworld::BuildLyraTerrainPreview(
+    Rom* rom, rom::LyraLayoutInspection layout) {
+  // This path materializes descriptor terrain and render properties only.
+  // Sprite display and every serializer remain unavailable for this format.
+  rom_ = rom;
+  descriptor_layout_ = std::move(layout);
+  const auto profile = DetectOverworldRomProfile(*rom_);
+  cached_version_ = profile.version;
+  expanded_entrances_ = profile.has_expanded_entrances;
+  tiles16_.clear();
+  tiles32_unique_.clear();
+  overworld_maps_.clear();
+  built_map_lru_.clear();
+  tileset_cache_.clear();
+  RETURN_IF_ERROR(AssembleMap32Tiles());
+  RETURN_IF_ERROR(AssembleMap16Tiles());
+  for (int map_index = 0; map_index < descriptor_layout_.capacity;
+       ++map_index) {
+    auto tiles = rom::LyraMapTile32(descriptor_layout_, rom_->data(),
+                                    rom_->size(), map_index);
+    if (!tiles) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Lyra map %02X stream is invalid", map_index));
+    }
+    const int local = map_index & 0x3F;
+    const int sx = local % 8;
+    const int sy = local / 8;
+    auto& world = SelectWorldBlockset(WorldForOverworldMap(map_index));
+    for (int y = 0; y < 16; ++y) {
+      for (int x = 0; x < 16; ++x) {
+        const int tile = (*tiles)[y * 16 + x];
+        if (tile >= static_cast<int>(tiles32_unique_.size())) {
+          return absl::FailedPreconditionError(
+              "Lyra Tile32 definition unavailable");
+        }
+        AssignWorldTiles(x, y, sx, sy, tile, world);
+      }
+    }
+    ASSIGN_OR_RETURN(
+        auto map, OverworldMap::CreateLyraPreview(map_index, rom_, game_data_,
+                                                  &descriptor_layout_));
+    overworld_maps_.push_back(std::move(map));
+    if (map_index < kNumOverworldMaps) {
+      map_parent_[map_index] = overworld_maps_.back().parent();
+    }
+  }
   loaded_map_tiles_ = map_tiles_;
   loaded_map_tiles_valid_ = true;
   is_loaded_ = true;
@@ -1019,7 +1097,10 @@ absl::Status Overworld::LoadOverworldMaps() {
 }
 
 absl::Status Overworld::EnsureMapBuilt(int map_index) {
-  if (map_index < 0 || map_index >= kNumOverworldMaps) {
+  const bool descriptor_preview = is_lyra_preview();
+  const int map_count =
+      descriptor_preview ? descriptor_layout_.capacity : kNumOverworldMaps;
+  if (map_index < 0 || map_index >= map_count) {
     return absl::InvalidArgumentError("Invalid map index");
   }
 
@@ -1029,7 +1110,7 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   const bool allow_special_tail =
       core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion &&
       HasExpandedPointerTables();
-  if (!allow_special_tail &&
+  if (!descriptor_preview && !allow_special_tail &&
       map_index >= kSpecialWorldMapIdStart + 0x20) {  // 0xA0-0xBF
     // Do not attempt to build disabled special-tail maps; keep them blank-safe.
     // This prevents pointer table corruption from attempting to access
@@ -1103,7 +1184,9 @@ absl::Status Overworld::EnsureMapBuilt(int map_index) {
   }
 
   // Child screens render with the area parent's settings (game reads $8A).
-  SyncAreaProperties(map_index);
+  if (map_index < kNumOverworldMaps) {
+    SyncAreaProperties(map_index);
+  }
 
   auto status = BuildMapWithTilesetCache(map_index, world_type);
   if (status.ok()) {
@@ -1454,6 +1537,10 @@ absl::Status Overworld::SaveSprites() {
 }
 
 absl::Status Overworld::Save(Rom* rom) {
+  if (rom == nullptr) {
+    return absl::FailedPreconditionError("No ROM for overworld sprites");
+  }
+  RETURN_IF_ERROR(rom->CheckLayoutWritable());
   rom_ = rom;
   ASSIGN_OR_RETURN(auto sprite_plan, PrepareSpriteSave());
   ScopedRomTransaction transaction(*rom_);

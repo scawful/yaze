@@ -270,6 +270,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_test.cc
     unit/core/story_event_graph_query_test.cc
     unit/core/rom_hash_test.cc
+    unit/rom/lyra_layout_descriptor_test.cc
     unit/core/oracle_rom_fixture_test.cc
     unit/core/terrain_catalog_test.cc
     unit/core/project_paths_test.cc
@@ -520,6 +521,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/overworld_default_gfx_group_test.cc
     unit/zelda3/overworld_version_helper_test.cc
     unit/zelda3/overworld_allocation_test.cc
+    unit/zelda3/special_entrance_inspector_test.cc
     unit/zelda3/zelda3_version_test.cc
     unit/zelda3/tile16_metadata_test.cc
     unit/zelda3/tile16_stamp_test.cc

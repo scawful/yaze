@@ -557,7 +557,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette(int map_id) {
 
 void MapRefreshCoordinator::ForceRefreshGraphics(int map_index) {
   // Mark the bitmap as modified to force refresh on next update
-  if (map_index >= 0 && map_index < static_cast<int>(ctx_.maps_bmp->size())) {
+  if (map_index >= 0 && map_index < zelda3::kNumOverworldMaps) {
     (*ctx_.maps_bmp)[map_index].set_modified(true);
 
     // Clear blockset cache
@@ -574,7 +574,7 @@ void MapRefreshCoordinator::ForceRefreshGraphics(int map_index) {
 
 void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
                                                       bool include_self) {
-  if (map_index < 0 || map_index >= static_cast<int>(ctx_.maps_bmp->size())) {
+  if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
     return;
   }
 

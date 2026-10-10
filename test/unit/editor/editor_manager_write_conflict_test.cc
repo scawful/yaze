@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -12,6 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_group_panel.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/types/snes_color.h"
@@ -91,6 +93,11 @@ std::filesystem::path MakeTempFilePath(const std::string& basename) {
       std::chrono::high_resolution_clock::now().time_since_epoch().count());
   return std::filesystem::temp_directory_path() /
          (basename + "_" + std::to_string(nonce));
+}
+
+std::vector<uint8_t> ReadBytes(const std::filesystem::path& path) {
+  std::ifstream in(path, std::ios::binary);
+  return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
 }
 
 uint8_t ReadByteAt(const std::filesystem::path& path, std::streamoff offset) {
@@ -241,6 +248,133 @@ void SetupSharedPotItemTable(std::vector<uint8_t>* data) {
   }
   (*data)[kSharedStreamPc] = 0xFF;
   (*data)[kSharedStreamPc + 1] = 0xFF;
+}
+
+TEST(EditorManagerWriteConflictTest,
+     LyraInspectionOnlyRefusesSaveAndSaveAsBeforeSerialization) {
+  const char* fixture_dir = std::getenv("YAZE_LYRA_FIXTURE_DIR");
+  if (fixture_dir == nullptr)
+    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+  gfx::NullRenderer renderer;
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, &renderer);
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source = MakeTempFilePath("yaze_lyra_inspection.sfc");
+  const auto legacy_source = MakeTempFilePath("yaze_lyra_legacy_session.sfc");
+  const auto destination = MakeTempFilePath("yaze_lyra_destination.sfc");
+  ScopedFileCleanup source_cleanup{source};
+  ScopedFileCleanup legacy_cleanup{legacy_source};
+  ScopedFileCleanup destination_cleanup{destination};
+  std::filesystem::copy_file(
+      std::filesystem::path(fixture_dir) / "OFFLINE_ONLY.bin", source);
+  std::filesystem::copy_file(
+      std::filesystem::path(fixture_dir) / "legacy_160_input.bin",
+      legacy_source);
+  const std::vector<uint8_t> destination_bytes(64, 0xA5);
+  {
+    std::ofstream out(destination, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(destination_bytes.data()),
+              destination_bytes.size());
+  }
+  const auto source_bytes = ReadBytes(source);
+  ASSERT_OK(manager->OpenRomOrProject(source.string()));
+  ASSERT_OK(manager->OpenRomOrProject(legacy_source.string()));
+  EXPECT_EQ(manager->GetCurrentRom()->InspectLyraLayout().presence,
+            yaze::rom::LyraLayoutPresence::kAbsent);
+  EXPECT_TRUE(manager->GetCurrentRom()->CheckLayoutWritable().ok());
+  manager->SwitchToSession(0);
+  DisableRomWritesForTest();  // In particular, overworld serialization is off.
+  ASSERT_NE(manager->GetCurrentProject(), nullptr);
+  manager->GetCurrentProject()->rom_metadata.write_policy =
+      project::RomWritePolicy::kAllow;  // Project policy cannot authorize Lyra.
+  auto* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_EQ(rom->InspectLyraLayout().presence,
+            yaze::rom::LyraLayoutPresence::kValid);
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto& room = dungeon->rooms()[0];
+  room = zelda3::LoadRoomHeaderFromRom(rom, 0);
+  room.SetLoaded(true);
+  room.SetTileObjects({});
+  room.LoadChests();
+  room.ClearSaveDirtyState();
+  const int new_tag = static_cast<int>(room.tag1()) == 1 ? 2 : 1;
+  ASSERT_OK(dungeon->EditRoomMetadata(0, {RoomMetadataField::kTag1, new_tag}));
+  ASSERT_TRUE(dungeon->CanUndo());
+  rom->set_dirty(true);
+  const auto in_memory = rom->vector();
+  const auto bound_filename = rom->filename();
+  const auto session_index = manager->GetCurrentSessionIndex();
+  const std::string undo_before = dungeon->GetUndoDescription();
+
+  const auto save_as = manager->SaveRomAs(destination.string());
+  EXPECT_EQ(save_as.code(), absl::StatusCode::kFailedPrecondition) << save_as;
+  EXPECT_NE(std::string(save_as.message()).find("inspection-only"),
+            std::string::npos);
+  const auto save = manager->SaveRom();
+  EXPECT_EQ(save.code(), absl::StatusCode::kFailedPrecondition) << save;
+  EXPECT_EQ(rom->vector(), in_memory);
+  EXPECT_TRUE(rom->dirty());
+  EXPECT_EQ(rom->filename(), bound_filename);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), session_index);
+  EXPECT_TRUE(dungeon->CanUndo());
+  EXPECT_EQ(dungeon->GetUndoDescription(), undo_before);
+  EXPECT_EQ(static_cast<int>(room.tag1()), new_tag);
+  EXPECT_EQ(ReadBytes(source), source_bytes);
+  EXPECT_EQ(ReadBytes(destination), destination_bytes);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     LyraCanvasReplacementFailureRestoresBoundSession) {
+  const char* fixture_dir = std::getenv("YAZE_LYRA_FIXTURE_DIR");
+  if (fixture_dir == nullptr)
+    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+  gfx::NullRenderer renderer;
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, &renderer);
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source = MakeTempFilePath("yaze_lyra_canvas_replacement.sfc");
+  ScopedFileCleanup cleanup{source};
+  std::filesystem::copy_file(
+      std::filesystem::path(fixture_dir) / "LYRA_PREVIEW_A0_A1.bin", source);
+  ASSERT_OK(manager->OpenRomOrProject(source.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_TRUE(editor->is_lyra_preview());
+  editor->JumpToMap(0xA1);
+  ASSERT_EQ(editor->current_map_id(), 0xA1);
+  const auto before = manager->GetCurrentRom()->vector();
+  const auto session_index = manager->GetCurrentSessionIndex();
+
+  auto changed_disk = ReadBytes(source);
+  ASSERT_EQ(changed_disk.size(), before.size());
+  changed_disk[0x100] ^= 1;
+  {
+    std::ofstream out(source, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(changed_disk.data()),
+              static_cast<std::streamsize>(changed_disk.size()));
+  }
+  const auto refused = manager->RevertRomToSaved();
+  EXPECT_EQ(refused.code(), absl::StatusCode::kFailedPrecondition) << refused;
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), session_index);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), before);
+  EXPECT_EQ(editor->current_map_id(), 0xA1);
+  EXPECT_TRUE(editor->is_lyra_preview());
+  EXPECT_TRUE(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld).ok());
+  EXPECT_FALSE(manager->GetCurrentRom()->CheckLayoutWritable().ok());
 }
 
 TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {

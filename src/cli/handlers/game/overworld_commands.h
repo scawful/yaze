@@ -29,6 +29,25 @@ class OverworldGetTileCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+class OverworldInspectSpecialEntrancesCommandHandler
+    : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "overworld-inspect-special-entrances"; }
+  std::string GetDescription() const {
+    return "Inspect verified four-row special-area tile triggers in the loaded "
+           "ROM";
+  }
+  std::string GetUsage() const {
+    return "overworld-inspect-special-entrances --map <hex> [--format "
+           "<json|text>]";
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"map"});
+  }
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 class OverworldSetTileCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "overworld-set-tile"; }

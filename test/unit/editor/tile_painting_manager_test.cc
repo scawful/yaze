@@ -254,7 +254,7 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
     blockset_.atlas.Create(80, 16, 8, atlas_pixels);
     ASSERT_TRUE(blockset_.atlas.is_active());
     maps_ =
-        std::make_unique<std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>>();
+        std::make_unique<std::array<gfx::Bitmap, zelda3::kExpandedMapCount>>();
     initial_pixels_.assign(512 * 512, 0);
     InitializeMapBitmap(0);
 
@@ -433,7 +433,7 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
   gui::Canvas canvas_;
   Rom rom_;
   std::unique_ptr<zelda3::Overworld> overworld_;
-  std::unique_ptr<std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>> maps_;
+  std::unique_ptr<std::array<gfx::Bitmap, zelda3::kExpandedMapCount>> maps_;
   gfx::Tilemap blockset_{};
   zelda3::OverworldMapTiles initial_tiles_;
   std::vector<uint8_t> initial_pixels_;

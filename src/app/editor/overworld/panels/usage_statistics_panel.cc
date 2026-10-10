@@ -10,6 +10,10 @@ void UsageStatisticsPanel::Draw(bool* p_open) {
   auto* ow_editor = CurrentOverworldEditor();
   if (!ow_editor)
     return;
+  if (ow_editor->is_lyra_preview()) {
+    ImGui::TextDisabled("Lyra preview: usage statistics unavailable");
+    return;
+  }
 
   // Delegate to the existing UsageStatisticsCard
   if (auto* card = ow_editor->usage_stats_card()) {
