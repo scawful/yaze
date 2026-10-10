@@ -7,6 +7,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
 #include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
 #include "app/gui/automation/widget_auto_register.h"
@@ -106,6 +107,8 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
   ImGui::TextWrapped("Door #%zu · %s", index,
                      std::string(zelda3::GetDoorTypeName(door.type)).c_str());
   bool changed = false;
+  ImGui::BeginDisabled(viewer.header_read_only() ||
+                       !viewer.IsObjectInteractionEnabled());
   if (BeginProperties()) {
     if (BeginChoice("Type", "DoorType",
                     std::string(zelda3::GetDoorTypeName(door.type)).c_str())) {
@@ -155,6 +158,7 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
     }
     ImGui::EndTable();
   }
+  ImGui::EndDisabled();
   if (changed) {
     viewer.object_interaction().entity_coordinator().door_handler().UpdateDoor(
         index, door.type, door.direction, door.position);
@@ -175,8 +179,10 @@ void DrawSprite(DungeonCanvasViewer& viewer, size_t index,
   // Read fields before committing below; do not copy the sprite's graphics
   // buffers every frame or retain references across the mutation callback.
   const auto& sprite = sprites[index];
-  ImGui::TextWrapped("Sprite #%zu · %02X %s", index, sprite.id(),
-                     zelda3::ResolveSpriteName(sprite.id()));
+  const auto labels =
+      dungeon_project_labels::LabelsForProject(viewer.project());
+  const auto name = labels.GetLabel(zelda3::ResourceType::kSprite, sprite.id());
+  ImGui::TextWrapped("Sprite #%zu · %02X %s", index, sprite.id(), name.c_str());
   if (sprite.IsOverlord()) {
     ImGui::TextDisabled("Overlord");
   }
@@ -326,10 +332,16 @@ void DrawDungeonEntityInspector(
       DrawDoor(viewer, entity.index, jump_to_reciprocal);
       break;
     case EntityType::Sprite:
+      ImGui::BeginDisabled(viewer.header_read_only() ||
+                           !viewer.IsObjectInteractionEnabled());
       DrawSprite(viewer, entity.index, identity);
+      ImGui::EndDisabled();
       break;
     case EntityType::Item:
+      ImGui::BeginDisabled(viewer.header_read_only() ||
+                           !viewer.IsObjectInteractionEnabled());
       DrawItem(viewer, entity.index, identity);
+      ImGui::EndDisabled();
       break;
     default:
       break;

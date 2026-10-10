@@ -56,25 +56,8 @@ class ItemEditorPanel : public WindowContent {
   // WindowContent Drawing
   // ==========================================================================
 
-  void Draw(bool* p_open) override {
-    gui::AutoWidgetScope automation_scope("Dungeon/ItemEditor");
-    if (!current_room_id_ || !rooms_) {
-      ImGui::TextDisabled(tr("No room data available"));
-      return;
-    }
-
-    if (*current_room_id_ < 0 ||
-        *current_room_id_ >= static_cast<int>(rooms_->size())) {
-      ImGui::TextDisabled(tr("No room selected"));
-      return;
-    }
-
-    DrawPlacementControls();
-    ImGui::Separator();
-    DrawItemSelector();
-    ImGui::Separator();
-    DrawRoomItems();
-  }
+  void Draw(bool* /*p_open*/) override { DrawContent(true); }
+  void DrawInWorkbench() { DrawContent(false); }
 
   // ==========================================================================
   // Panel-Specific Methods
@@ -91,6 +74,48 @@ class ItemEditorPanel : public WindowContent {
   }
 
  private:
+  void DrawContent(bool show_room_items) {
+    gui::AutoWidgetScope automation_scope("Dungeon/ItemEditor");
+    if (!current_room_id_ || !rooms_) {
+      ImGui::TextDisabled(tr("No room data available"));
+      return;
+    }
+
+    if (*current_room_id_ < 0 ||
+        *current_room_id_ >= static_cast<int>(rooms_->size())) {
+      ImGui::TextDisabled(tr("No room selected"));
+      return;
+    }
+
+    DrawPlacementControls();
+    ImGui::Separator();
+    DrawItemSelector(show_room_items);
+    if (show_room_items) {
+      ImGui::Separator();
+      DrawRoomItems();
+    }
+  }
+
+  bool HasMatchingViewer() const {
+    if (!current_room_id_ || !rooms_ || !canvas_viewer_ ||
+        canvas_viewer_->rooms() != rooms_ || *current_room_id_ < 0 ||
+        *current_room_id_ >= static_cast<int>(rooms_->size()) ||
+        canvas_viewer_->current_room_id() != *current_room_id_) {
+      return false;
+    }
+    const auto* context = canvas_viewer_->object_interaction()
+                              .entity_coordinator()
+                              .tile_handler()
+                              .context();
+    return context && context->current_room_id == *current_room_id_;
+  }
+
+  bool CanEditRoom() const {
+    return HasMatchingViewer() &&
+           canvas_viewer_->IsObjectInteractionEnabled() &&
+           !canvas_viewer_->header_read_only();
+  }
+
   // Pot item names from ZELDA3_DUNGEON_SPEC.md Section 7.2
   static constexpr const char* kPotItemNames[] = {
       "Nothing",        // 0
@@ -127,8 +152,15 @@ class ItemEditorPanel : public WindowContent {
 
   void DrawPlacementControls() {
     const auto& theme = AgentUI::GetTheme();
-    // Placement mode indicator
+    // Follow canvas cancellation and selection instead of a stale panel mode.
+    placement_mode_ =
+        HasMatchingViewer() &&
+        canvas_viewer_->object_interaction().IsItemPlacementActive();
     if (placement_mode_) {
+      selected_item_id_ = canvas_viewer_->object_interaction()
+                              .entity_coordinator()
+                              .item_handler()
+                              .GetItemId();
       const char* item_name = (selected_item_id_ < kPotItemCount)
                                   ? kPotItemNames[selected_item_id_]
                                   : "Unknown";
@@ -147,7 +179,8 @@ class ItemEditorPanel : public WindowContent {
     }
   }
 
-  void DrawItemSelector() {
+  void DrawItemSelector(bool show_room_items) {
+    const bool can_edit = CanEditRoom();
     const auto& theme = AgentUI::GetTheme();
     ImGui::Text(ICON_MD_INVENTORY " Select Item:");
 
@@ -156,8 +189,11 @@ class ItemEditorPanel : public WindowContent {
     // Reserve space for room items section (header + list + some margin)
     float reserved_height = 120.0f;
     // Calculate grid height: at least 150px, but responsive to available space
-    float grid_height =
-        std::max(150.0f, std::min(400.0f, available_height - reserved_height));
+    const float grid_height =
+        show_room_items
+            ? std::max(150.0f,
+                       std::min(400.0f, available_height - reserved_height))
+            : std::max(1.0f, available_height);
 
     // Responsive item size based on panel width
     float panel_width = ImGui::GetContentRegionAvail().x;
@@ -168,6 +204,7 @@ class ItemEditorPanel : public WindowContent {
 
     ImGui::BeginChild("##ItemGrid", ImVec2(0, grid_height), true,
                       ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::BeginDisabled(!can_edit);
 
     int col = 0;
     for (size_t i = 0; i < kPotItemCount; ++i) {
@@ -200,7 +237,11 @@ class ItemEditorPanel : public WindowContent {
         const char* icon = GetItemTypeIcon(static_cast<int>(i));
         std::string label =
             absl::StrFormat("%s\n%02X", icon, static_cast<int>(i));
-        if (ImGui::Button(label.c_str(), ImVec2(item_size, item_size))) {
+        const bool picked =
+            ImGui::Button(label.c_str(), ImVec2(item_size, item_size));
+        gui::AutoRegisterLastItem("button",
+                                  absl::StrFormat("place_item_%02X", i));
+        if (picked && can_edit) {
           selected_item_id_ = static_cast<int>(i);
           placement_mode_ = true;
           if (canvas_viewer_) {
@@ -234,6 +275,7 @@ class ItemEditorPanel : public WindowContent {
       }
     }
 
+    ImGui::EndDisabled();
     ImGui::EndChild();
   }
 
@@ -242,7 +284,7 @@ class ItemEditorPanel : public WindowContent {
     auto& room = (*rooms_)[*current_room_id_];
     const auto& items = room.GetPotItems();
     int selected_item_index = -1;
-    if (canvas_viewer_ &&
+    if (HasMatchingViewer() &&
         canvas_viewer_->object_interaction().HasEntitySelection()) {
       const auto selected_entity =
           canvas_viewer_->object_interaction().GetSelectedEntity();
@@ -268,6 +310,8 @@ class ItemEditorPanel : public WindowContent {
     if (selected_item_index >= 0 &&
         selected_item_index < static_cast<int>(items.size()) &&
         canvas_viewer_) {
+      const bool can_edit = CanEditRoom();
+      ImGui::BeginDisabled(!can_edit);
       uint8_t raw_item_type = items[selected_item_index].item;
       ImGui::AlignTextToFramePadding();
       ImGui::TextUnformatted(tr("Selected raw type"));
@@ -281,7 +325,8 @@ class ItemEditorPanel : public WindowContent {
            static_cast<uint64_t>(selected_item_index)});
       gui::AutoRegisterLastItem("input_scalar", "selected_item_raw_type",
                                 "Selected pot item raw type byte");
-      if (type_changed) {
+      ImGui::EndDisabled();
+      if (type_changed && can_edit) {
         canvas_viewer_->object_interaction()
             .entity_coordinator()
             .item_handler()
@@ -310,7 +355,7 @@ class ItemEditorPanel : public WindowContent {
       ImGui::TextColored(theme.text_secondary_gray, "@ (%d,%d)",
                          item.GetTileX(), item.GetTileY());
 
-      if (row_selected && canvas_viewer_) {
+      if (row_selected && HasMatchingViewer()) {
         canvas_viewer_->object_interaction().SelectEntity(EntityType::Item, i);
       }
 

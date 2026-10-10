@@ -14,6 +14,7 @@
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_destination_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
+#include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
@@ -114,7 +115,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
           viewer.object_interaction().SetSelectedObjects({target_index});
           viewer.ScrollToTile(objects[target_index].x(),
                               objects[target_index].y());
-          inspector_mode_ = InspectorMode::Selection;
+          FocusSelectionInspector();
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(tr("Select object index 0-%zu"),
@@ -131,6 +132,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   if (!room_dungeon_cache_built_ && rom_ && rom_->is_loaded()) {
     BuildRoomDungeonCache();
   }
+  ImGui::PushTextWrapPos(0.0f);
   if (room_id >= 0) {
     std::string project_group_name =
         dungeon_project_labels::GetDungeonNameForRoom(viewer.project(),
@@ -159,6 +161,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   } else {
     ImGui::TextDisabled("%s", room_label.c_str());
   }
+  ImGui::PopTextWrapPos();
 
   // Room properties share the editor's validated metadata edit boundary. Raw
   // graphics IDs remain available alongside named behavior choices.
@@ -333,6 +336,27 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     if (viewer.current_room_id() != room_id)
       return;
 
+    if (entrance_navigator_content_) {
+      ImGui::PushID("InspectedEntrance");
+      workbench::DrawInspectorSectionHeader("Entrance");
+      const std::string id = entrance_navigator_content_->GetId();
+      if (is_standalone_tool_open_ && is_standalone_tool_open_(id)) {
+        ImGui::TextDisabled(
+            "Entrance properties are open in a separate window.");
+        if (ImGui::Button("Show entrance window") &&
+            open_and_focus_standalone_tool_)
+          open_and_focus_standalone_tool_(id);
+      } else {
+        ImGui::BeginDisabled(viewer.header_read_only() ||
+                             !viewer.IsObjectInteractionEnabled());
+        entrance_navigator_content_->DrawPropertiesInWorkbench();
+        ImGui::EndDisabled();
+      }
+      ImGui::PopID();
+      if (viewer.current_room_id() != room_id)
+        return;
+    }
+
     const bool details_open = ImGui::CollapsingHeader("Details##RoomDetails");
     {
       gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
@@ -370,17 +394,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       ImGui::TextWrapped("Room transfer is open in the canvas dialog.");
     } else {
       DrawDungeonRoomTransferEditor(viewer);
-    }
-  }
-
-  auto& interaction = viewer.object_interaction();
-  const bool placing = interaction.mode_manager().IsPlacementActive();
-  if (placing) {
-    workbench::DrawInspectorSectionHeader(ICON_MD_BUILD " Editing Status");
-    ImGui::TextColored(theme.text_info, tr("Placement active"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_CLOSE " Cancel")) {
-      interaction.mode_manager().CancelCurrentMode();
     }
   }
 }

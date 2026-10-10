@@ -79,8 +79,6 @@ DungeonWorkbenchPaneLayout ResolveDungeonWorkbenchPaneLayout(
     float splitter_width, float stored_left_width, float stored_right_width,
     bool want_left, bool want_right);
 
-bool ResolveCompactInspectorDetailRequest(bool compact, bool detail_requested);
-
 // An already-open standalone tool owns its WindowContent for that frame. Route
 // repeated Workbench requests back to that window instead of drawing the same
 // instance in both presentations.
@@ -129,6 +127,9 @@ class DungeonWorkbenchContent : public WindowContent {
                            DungeonEntrancesPanel* entrances) {
     room_matrix_content_ = room_matrix;
     entrance_navigator_content_ = entrances;
+  }
+  void SetRoomRenderContextCallback(std::function<void(int)> callback) {
+    prepare_room_render_context_ = std::move(callback);
   }
   void SetStandaloneToolCallbacks(
       std::function<bool(const std::string&)> is_window_open,
@@ -254,8 +255,6 @@ class DungeonWorkbenchContent : public WindowContent {
                          bool compact, DungeonCanvasViewer* viewer);
   void DrawInspectorHeader(float button_size, bool compact);
   void DrawInspector(DungeonCanvasViewer& viewer, bool compact);
-  void DrawInspectorPrimarySelector(float segment_height);
-  void DrawInspectorCompactSummary(DungeonCanvasViewer& viewer);
   void DrawInspectorShelf(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
@@ -307,18 +306,15 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<void()> open_keyboard_shortcuts_;
   std::function<void(bool)> on_inspector_side_changed_;
   std::function<void(DungeonCanvasViewer&)> on_primary_canvas_drawn_;
+  std::function<void(int)> prepare_room_render_context_;
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
   Rom* rom_ = nullptr;
 
-  enum class SidebarMode : uint8_t { Objects, Entrances };
+  enum class SidebarMode : uint8_t { Objects, Sprites, Doors, Items };
   SidebarMode sidebar_mode_ = SidebarMode::Objects;
   float navigator_tools_fraction_ = 0.40f;
-  enum class InspectorMode : uint8_t { Room, Selection, Tools };
-  InspectorMode inspector_mode_ = InspectorMode::Room;
-  InspectorMode inspector_mode_before_tools_ = InspectorMode::Room;
-  bool inspector_selection_was_active_ = false;
-  bool inspector_placement_was_active_ = false;
-  bool compact_inspector_detail_requested_ = false;
+  enum class InspectorMode : uint8_t { Inspect, Tools };
+  InspectorMode inspector_mode_ = InspectorMode::Inspect;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
 
   char compare_search_buf_[64] = {};

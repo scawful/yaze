@@ -138,6 +138,7 @@ void ActivityBar::Render(
     const std::unordered_set<std::string>& active_editor_categories,
     std::function<bool()> has_rom, std::function<bool()> is_rom_dirty,
     std::function<int()> pending_dungeon_rooms) {
+  window_sidebar_.DrawContextDetailsWindow(session_id);
   if (!window_manager_.IsSidebarVisible())
     return;
 

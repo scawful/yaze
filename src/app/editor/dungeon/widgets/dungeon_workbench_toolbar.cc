@@ -32,10 +32,8 @@ namespace yaze::editor {
 
 namespace {
 
-constexpr float kInlineCompareRoomIdToolbarWidth = 980.0f;
-constexpr float kCompactCompareButtonWidth = 34.0f;
+constexpr float kEntranceWidth = 220.0f;
 constexpr int kDungeonRoomCount = 0x128;
-constexpr float kDenseToolbarButtonWidth = 84.0f;
 constexpr float kMaxComparePickerWidth = 420.0f;
 constexpr float kCompareSearchListHeight = 220.0f;
 // Within-cluster gap: tighter for buttons that share a purpose (pane toggles,
@@ -50,20 +48,14 @@ constexpr char kToolbarPopupIdCompareSearchList[] = "##CompareSearchList";
 constexpr char kToolbarPopupIdCompareMenu[] = "##WorkbenchCompareMenu";
 constexpr char kToolbarPopupIdRecentRooms[] = "##WorkbenchRecentRooms";
 constexpr char kToolbarPopupIdOverflow[] = "##WorkbenchToolbarOverflow";
-constexpr char kToolbarStartCompareLabel[] = ICON_MD_COMPARE_ARROWS;
+constexpr char kToolbarStartCompareLabel[] = "Compare";
 constexpr char kToolbarRecentRoomsLabel[] = ICON_MD_HISTORY;
 constexpr char kToolbarViewOptionsLabel[] = ICON_MD_VISIBILITY;
 constexpr char kToolbarModeConnectedLabel[] = ICON_MD_VIEW_QUILT;
 constexpr char kToolbarOverflowLabel[] = ICON_MD_MORE_HORIZ;
 constexpr char kToolbarRoomSearchHint[] = "Type to filter rooms...";
-constexpr char kToolbarComparePickerTooltip[] = "Pick a room to compare";
-constexpr char kToolbarCompareRoomIdTooltip[] = "Compare room ID";
 constexpr char kToolbarPanelWorkflowTooltip[] =
     "Switch to standalone panel workflow";
-constexpr char kToolbarNoCompareHistoryMessage[] =
-    "Visit another room to seed compare history.";
-constexpr char kToolbarNoCompareHistoryTooltip[] =
-    "Visit another room first to seed compare history.";
 constexpr char kToolbarNoRecentRoomsTooltip[] =
     "Visit another room to build room history.";
 struct ToolbarLayout {
@@ -78,6 +70,8 @@ struct CompareDefaultResult {
 };
 
 struct ToolbarVisibility {
+  bool layers = false;
+  bool entrance = false;
   bool pane_toggles = true;
   bool recent_rooms = true;
   bool stitched_rooms = true;
@@ -156,26 +150,7 @@ void DrawViewOptionsContents(DungeonCanvasViewer* viewer) {
     return;
   }
 
-  gui::AutoWidgetScope scope("Dungeon/ViewOptions");
-  ImGui::TextDisabled(tr("Canvas"));
-  for (const auto& spec : GetDungeonOverlayControlSpecs()) {
-    if (spec.id == DungeonOverlayControlId::kTrackCollision) {
-      ImGui::Spacing();
-      ImGui::Separator();
-      ImGui::TextDisabled(tr("Authoring"));
-    }
-    bool enabled = GetDungeonOverlayControlEnabled(*viewer, spec.id);
-    if (ImGui::Checkbox(tr(spec.label), &enabled)) {
-      SetDungeonOverlayControlEnabled(*viewer, spec.id, enabled);
-    }
-    gui::AutoRegisterLastItem("checkbox", spec.label);
-    if (spec.id == DungeonOverlayControlId::kCustomObjects &&
-        ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          tr("Highlight registered custom-draw objects with their position and "
-             "subtype."));
-    }
-  }
+  DrawDungeonOverlayControls(*viewer);
 }
 
 void DrawViewOptionsButton(DungeonCanvasViewer* viewer,
@@ -223,6 +198,10 @@ bool DrawToolbarActionButton(const char* id, const char* label,
                              bool active) {
   ImGui::PushID(id);
   const bool pressed = gui::ToggleButton(label, active, size);
+  {
+    gui::AutoWidgetScope scope("Dungeon/WorkbenchToolbar");
+    gui::AutoRegisterLastItem("button", id, tooltip ? tooltip : label);
+  }
   ImGui::PopID();
   if (tooltip && *tooltip && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tooltip);
@@ -230,208 +209,103 @@ bool DrawToolbarActionButton(const char* id, const char* label,
   return pressed;
 }
 
-void DrawComparePicker(
-    int current_room_id, int* compare_room_id,
-    const std::function<const std::deque<int>&()>& get_recent_rooms,
-    char* search_buf, size_t search_buf_size,
-    const project::YazeProject* project) {
-  if (!compare_room_id || *compare_room_id < 0) {
-    return;
+// One searchable room list is used by the main action and narrow overflow.
+// Selecting a room both starts comparison and chooses its target.
+void DrawCompareContents(const DungeonWorkbenchToolbarParams& p) {
+  ImGui::TextUnformatted(tr("Compare with room"));
+  uint16_t room =
+      static_cast<uint16_t>(std::clamp(*p.compare_room_id, 0, 0x127));
+  if (auto result = gui::InputHexWordEx("Room ID", &room, 90.0f, true);
+      result.ShouldApply() && room < kDungeonRoomCount &&
+      room != *p.current_room_id) {
+    *p.compare_room_id = room;
+    *p.split_view_enabled = true;
+    p.layout->show_connected_canvas_view = false;
   }
-  const bool can_search = search_buf != nullptr && search_buf_size > 1;
-  const char* filter = can_search ? search_buf : "";
-
-  char preview[128];
-  const auto label =
-      dungeon_project_labels::GetRoomLabel(project, *compare_room_id);
-  snprintf(preview, sizeof(preview), "[%03X] %s", *compare_room_id,
-           label.c_str());
-
-  auto to_lower = [](unsigned char c) {
-    return static_cast<char>(std::tolower(c));
-  };
-  auto icontains = [&](const std::string& haystack,
-                       const char* needle) -> bool {
-    if (!needle || *needle == '\0') {
-      return true;
+  if (*p.split_view_enabled) {
+    ImGui::SameLine();
+    if (ImGui::Button(tr("End compare"))) {
+      *p.split_view_enabled = false;
+      ImGui::CloseCurrentPopup();
     }
-    const size_t nlen = std::strlen(needle);
-    for (size_t i = 0; i + nlen <= haystack.size(); ++i) {
-      bool match = true;
-      for (size_t j = 0; j < nlen; ++j) {
-        if (to_lower(static_cast<unsigned char>(haystack[i + j])) !=
-            to_lower(static_cast<unsigned char>(needle[j]))) {
-          match = false;
-          break;
-        }
-      }
-      if (match)
-        return true;
+    if (ImGui::Button(tr("Swap rooms"))) {
+      const int target = *p.compare_room_id;
+      *p.compare_room_id = *p.current_room_id;
+      if (p.on_room_selected)
+        p.on_room_selected(target);
+      else
+        *p.current_room_id = target;
     }
-    return false;
-  };
-
-  // Picker: MRU + searchable full list.
-  ImGui::SetNextItemWidth(std::clamp(ImGui::GetContentRegionAvail().x, 120.0f,
-                                     kMaxComparePickerWidth));
-  if (ImGui::BeginCombo("##CompareRoomPicker", preview,
-                        ImGuiComboFlags_HeightLarge)) {
-    ImGui::TextDisabled(ICON_MD_HISTORY " Recent");
-    if (get_recent_rooms) {
-      const auto& mru = get_recent_rooms();
-      for (int rid : mru) {
-        if (rid == current_room_id) {
-          continue;
-        }
-        char item[128];
-        const auto rid_label =
-            dungeon_project_labels::GetRoomLabel(project, rid);
-        snprintf(item, sizeof(item), "[%03X] %s", rid, rid_label.c_str());
-        const bool is_selected = (rid == *compare_room_id);
-        if (ImGui::Selectable(item, is_selected)) {
-          *compare_room_id = rid;
-        }
-      }
-    }
-
-    ImGui::Separator();
-    ImGui::TextDisabled(ICON_MD_SEARCH " Search");
-    ImGui::SetNextItemWidth(-1.0f);
-    if (can_search) {
-      ImGui::InputTextWithHint("##CompareSearch", kToolbarRoomSearchHint,
-                               search_buf, search_buf_size);
-    } else {
-      ImGui::TextDisabled(tr("Search unavailable"));
-    }
-
-    ImGui::Spacing();
-    std::vector<int> filtered_rooms;
-    filtered_rooms.reserve(kDungeonRoomCount);
-    for (int rid = 0; rid < kDungeonRoomCount; ++rid) {
-      if (rid == current_room_id) {
-        continue;
-      }
-      const auto rid_label = dungeon_project_labels::GetRoomLabel(project, rid);
-      char hex_buf[8];
-      snprintf(hex_buf, sizeof(hex_buf), "%03X", rid);
-      if (!icontains(rid_label, filter) && !icontains(hex_buf, filter)) {
-        continue;
-      }
-      filtered_rooms.push_back(rid);
-    }
-
-    ImGui::BeginChild(kToolbarPopupIdCompareSearchList,
-                      ImVec2(0, kCompareSearchListHeight), true);
-    ImGuiListClipper clipper;
-    clipper.Begin(static_cast<int>(filtered_rooms.size()));
-    while (clipper.Step()) {
-      for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; ++idx) {
-        const int rid = filtered_rooms[idx];
-        const auto rid_label =
-            dungeon_project_labels::GetRoomLabel(project, rid);
-        char item[128];
-        snprintf(item, sizeof(item), "[%03X] %s", rid, rid_label.c_str());
-        const bool is_selected = (rid == *compare_room_id);
-        if (ImGui::Selectable(item, is_selected)) {
-          *compare_room_id = rid;
-        }
-      }
-    }
-    ImGui::EndChild();
-
-    ImGui::EndCombo();
+    ImGui::SameLine();
+    ImGui::Checkbox(tr("Sync view"), &p.layout->sync_split_view);
   }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("%s", kToolbarComparePickerTooltip);
+  const bool search_available =
+      p.compare_search_buf && p.compare_search_buf_size > 1;
+  ImGui::SetNextItemWidth(-1);
+  if (search_available)
+    ImGui::InputTextWithHint("##CompareSearch", kToolbarRoomSearchHint,
+                             p.compare_search_buf, p.compare_search_buf_size);
+  std::string filter = search_available ? p.compare_search_buf : "";
+  std::transform(filter.begin(), filter.end(), filter.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+  ImGui::BeginChild(kToolbarPopupIdCompareSearchList,
+                    ImVec2(0, kCompareSearchListHeight), false);
+  for (int id = 0; id < kDungeonRoomCount; ++id) {
+    if (id == *p.current_room_id)
+      continue;
+    const std::string label = absl::StrFormat(
+        "[%03X] %s", id,
+        dungeon_project_labels::GetRoomLabel(
+            p.primary_viewer ? p.primary_viewer->project() : nullptr, id));
+    std::string lower = label;
+    std::transform(lower.begin(), lower.end(), lower.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    if (lower.find(filter) == std::string::npos)
+      continue;
+    ImGui::PushID(id);
+    if (ImGui::Selectable(label.c_str(),
+                          *p.split_view_enabled && *p.compare_room_id == id)) {
+      *p.compare_room_id = id;
+      *p.split_view_enabled = true;
+      p.layout->show_connected_canvas_view = false;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::PopID();
   }
+  ImGui::EndChild();
 }
 
-void DrawActiveCompareRoomControls(const DungeonWorkbenchToolbarParams& p,
-                                   bool show_direct_room_id) {
-  ImGui::TextDisabled(tr("Compare Room"));
-  DrawComparePicker(*p.current_room_id, p.compare_room_id, p.get_recent_rooms,
-                    p.compare_search_buf, p.compare_search_buf_size,
-                    p.primary_viewer ? p.primary_viewer->project() : nullptr);
-  if (!show_direct_room_id) {
-    return;
-  }
-
-  uint16_t cmp = static_cast<uint16_t>(
-      std::clamp(*p.compare_room_id, 0, kDungeonRoomCount - 1));
-  if (auto res = gui::InputHexWordEx("##CompareRoomId", &cmp,
-                                     kDenseToolbarButtonWidth + 6.0f, true);
-      res.ShouldApply()) {
-    *p.compare_room_id = std::clamp<int>(cmp, 0, kDungeonRoomCount - 1);
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("%s", kToolbarCompareRoomIdTooltip);
+void DrawComparePopup(const DungeonWorkbenchToolbarParams& p) {
+  ImGui::SetNextWindowSize(ImVec2(kMaxComparePickerWidth, 0),
+                           ImGuiCond_Appearing);
+  if (ImGui::BeginPopup(kToolbarPopupIdCompareMenu)) {
+    DrawCompareContents(p);
+    ImGui::EndPopup();
   }
 }
 
 void DrawCompareMenu(const DungeonWorkbenchToolbarParams& p,
                      const ToolbarLayout& layout) {
-  if (!p.layout || !p.current_room_id || !p.compare_room_id ||
-      !p.split_view_enabled) {
-    return;
-  }
-
-  const CompareDefaultResult def = PickDefaultCompareRoom(
-      *p.current_room_id, p.previous_room_id ? *p.previous_room_id : -1,
-      p.get_recent_rooms);
-
-  const bool compare_active = *p.split_view_enabled;
-  const char* tooltip = compare_active ? "Compare settings" : "Start compare";
   if (DrawToolbarActionButton(
           "CompareMenuButton", kToolbarStartCompareLabel,
-          ImVec2(kCompactCompareButtonWidth, layout.button_size), tooltip,
-          compare_active)) {
-    ImGui::OpenPopup(kToolbarPopupIdCompareMenu);
-  }
-
-  if (!ImGui::BeginPopup(kToolbarPopupIdCompareMenu)) {
-    return;
-  }
-
-  if (!compare_active) {
-    if (!def.found) {
-      ImGui::TextDisabled(tr("No recent room to compare"));
-      ImGui::Separator();
-    }
-    if (!def.found) {
-      ImGui::BeginDisabled();
-    }
-    if (ImGui::MenuItem(tr("Start Compare"))) {
-      p.layout->show_connected_canvas_view = false;
+          ImVec2(workbench::CalcIconButtonWidth(kToolbarStartCompareLabel,
+                                                layout.button_size),
+                 layout.button_size),
+          *p.split_view_enabled ? "Choose comparison room or end comparison"
+                                : "Compare rooms",
+          *p.split_view_enabled)) {
+    const auto previous = PickDefaultCompareRoom(
+        *p.current_room_id, p.previous_room_id ? *p.previous_room_id : -1,
+        p.get_recent_rooms);
+    if (!*p.split_view_enabled && previous.found) {
+      *p.compare_room_id = previous.room_id;
       *p.split_view_enabled = true;
-      *p.compare_room_id = def.room_id;
-    }
-    if (!def.found) {
-      ImGui::EndDisabled();
-    }
-  } else {
-    DrawActiveCompareRoomControls(
-        p, layout.width >= kInlineCompareRoomIdToolbarWidth);
-
-    ImGui::Separator();
-    if (ImGui::MenuItem(tr("Swap Rooms"))) {
-      const int old_current = *p.current_room_id;
-      const int old_compare = *p.compare_room_id;
-      *p.compare_room_id = old_current;
-      if (p.on_room_selected) {
-        p.on_room_selected(old_compare);
-      } else {
-        *p.current_room_id = old_compare;
-      }
-    }
-    if (ImGui::MenuItem(tr("Sync View"), nullptr, p.layout->sync_split_view)) {
-      p.layout->sync_split_view = !p.layout->sync_split_view;
-    }
-    if (ImGui::MenuItem(tr("End Compare"))) {
-      *p.split_view_enabled = false;
+      p.layout->show_connected_canvas_view = false;
+    } else {
+      ImGui::OpenPopup(kToolbarPopupIdCompareMenu);
     }
   }
-
-  ImGui::EndPopup();
+  DrawComparePopup(p);
 }
 
 void DrawRecentRoomsContents(const DungeonWorkbenchToolbarParams& p,
@@ -588,6 +462,11 @@ float ToolbarEstimatedWidth(const DungeonWorkbenchToolbarParams& p,
       ImGui::CalcTextSize("00000").x + ImGui::GetStyle().FramePadding.x * 2.0f;
   append_left(navigation_width, kToolbarClusterGap);
 
+  if (visibility.entrance)
+    append_left(kEntranceWidth, kToolbarClusterGap);
+  if (visibility.layers)
+    append_left(DungeonLayerControlsWidth(), kToolbarClusterGap);
+
   if (visibility.recent_rooms) {
     append_left(workbench::CalcIconButtonWidth(kToolbarRecentRoomsLabel,
                                                layout.button_size),
@@ -605,7 +484,9 @@ float ToolbarEstimatedWidth(const DungeonWorkbenchToolbarParams& p,
                 kToolbarClusterGap);
   }
   if (visibility.compare) {
-    append_left(kCompactCompareButtonWidth, kToolbarClusterGap);
+    append_left(workbench::CalcIconButtonWidth(kToolbarStartCompareLabel,
+                                               layout.button_size),
+                kToolbarClusterGap);
   }
 
   const float right_width = ToolbarRightActionsWidth(p, layout, visibility);
@@ -616,6 +497,8 @@ float ToolbarEstimatedWidth(const DungeonWorkbenchToolbarParams& p,
 ToolbarVisibility ResolveToolbarVisibility(
     const DungeonWorkbenchToolbarParams& p, const ToolbarLayout& layout) {
   ToolbarVisibility visibility;
+  visibility.layers = p.primary_viewer != nullptr;
+  visibility.entrance = p.draw_entrance_context != nullptr;
   visibility.compare = true;
   visibility.apply_room =
       p.on_save_room && p.current_room_id && *p.current_room_id >= 0;
@@ -657,48 +540,12 @@ ToolbarVisibility ResolveToolbarVisibility(
     return visibility;
   if (collapse(visibility.stitched_rooms))
     return visibility;
-  collapse(visibility.pane_toggles);
+  if (collapse(visibility.pane_toggles))
+    return visibility;
+  if (collapse(visibility.entrance))
+    return visibility;
+  collapse(visibility.layers);
   return visibility;
-}
-
-void DrawOverflowCompareActions(const DungeonWorkbenchToolbarParams& p) {
-  const CompareDefaultResult def = PickDefaultCompareRoom(
-      *p.current_room_id, p.previous_room_id ? *p.previous_room_id : -1,
-      p.get_recent_rooms);
-  const bool compare_active = *p.split_view_enabled;
-
-  if (!compare_active) {
-    if (ImGui::MenuItem(ICON_MD_COMPARE_ARROWS " Start Compare", nullptr, false,
-                        def.found)) {
-      p.layout->show_connected_canvas_view = false;
-      *p.split_view_enabled = true;
-      *p.compare_room_id = def.room_id;
-    }
-    if (!def.found &&
-        ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("%s", kToolbarNoCompareHistoryTooltip);
-    }
-    return;
-  }
-
-  DrawActiveCompareRoomControls(p, /*show_direct_room_id=*/true);
-  ImGui::Separator();
-  if (ImGui::MenuItem(tr("Swap Rooms"))) {
-    const int old_current = *p.current_room_id;
-    const int old_compare = *p.compare_room_id;
-    *p.compare_room_id = old_current;
-    if (p.on_room_selected) {
-      p.on_room_selected(old_compare);
-    } else {
-      *p.current_room_id = old_compare;
-    }
-  }
-  if (ImGui::MenuItem(tr("Sync View"), nullptr, p.layout->sync_split_view)) {
-    p.layout->sync_split_view = !p.layout->sync_split_view;
-  }
-  if (ImGui::MenuItem(tr("End Compare"))) {
-    *p.split_view_enabled = false;
-  }
 }
 
 bool DrawToolbarOverflowMenu(const DungeonWorkbenchToolbarParams& p,
@@ -715,6 +562,16 @@ bool DrawToolbarOverflowMenu(const DungeonWorkbenchToolbarParams& p,
   bool request_panel_mode = false;
   if (!ImGui::BeginPopup(kToolbarPopupIdOverflow)) {
     return request_panel_mode;
+  }
+
+  if (!visibility.entrance && p.draw_entrance_context) {
+    p.draw_entrance_context(kEntranceWidth);
+    ImGui::Separator();
+  }
+  if (!visibility.layers && p.primary_viewer) {
+    DrawDungeonLayerControls(*p.primary_viewer, *p.current_room_id,
+                             layout.button_size);
+    ImGui::Separator();
   }
 
   if (!visibility.pane_toggles) {
@@ -749,7 +606,7 @@ bool DrawToolbarOverflowMenu(const DungeonWorkbenchToolbarParams& p,
     }
   }
   if (!visibility.compare) {
-    DrawOverflowCompareActions(p);
+    DrawCompareContents(p);
   }
 
   const bool has_hidden_room_action =
@@ -842,6 +699,16 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   }
   DungeonRoomNavWidget::Draw("WorkbenchNav", *p.current_room_id,
                              p.on_room_selected);
+
+  if (visibility.entrance) {
+    ImGui::SameLine(0.0f, kToolbarClusterGap);
+    p.draw_entrance_context(kEntranceWidth);
+  }
+  if (visibility.layers) {
+    ImGui::SameLine(0.0f, kToolbarClusterGap);
+    DrawDungeonLayerControls(*p.primary_viewer, *p.current_room_id,
+                             layout.button_size);
+  }
 
   if (visibility.recent_rooms) {
     ImGui::SameLine(0.0f, kToolbarActionGap);

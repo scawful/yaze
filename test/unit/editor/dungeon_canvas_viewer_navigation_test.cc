@@ -548,6 +548,96 @@ TEST(DungeonMapPanelTest, LoadFromDungeonEntryReplacesAllRoomDerivedState) {
   EXPECT_EQ(DungeonMapPanelTestPeer::CompositeOutputCount(panel), 0u);
 }
 
+TEST(DungeonMapPanelTest, DistantRoomRemainsClickableInsideSmallScrolledMap) {
+  ScopedImGuiContext imgui;
+  ImGuiIO& io = ImGui::GetIO();
+  io.DeltaTime = 1.0f / 60.0f;
+  io.Fonts->AddFontDefault();
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0;
+  int font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+
+  int current_room_id = 0x10;
+  int selected_room_id = -1;
+  int selection_count = 0;
+  ImVector<int> active_rooms;
+  DungeonMapPanel panel(&current_room_id, &active_rooms, [&](int room_id) {
+    selected_room_id = room_id;
+    ++selection_count;
+  });
+  panel.SetDungeonRooms({0x10, 0x11});
+  panel.SetRoomPosition(0x10, 0, 0);
+  panel.SetRoomPosition(0x11, 12, 12);
+
+  struct MapFrame {
+    ImGuiWindow* child = nullptr;
+    ImRect clip;
+    ImRect footer;
+    ImRect host_content;
+    ImVec2 room_center;
+  };
+  auto draw_frame = [&]() -> MapFrame {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(320.0f, 260.0f), ImGuiCond_Always);
+    ImGui::Begin("SmallDungeonMapHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    auto* host = ImGui::GetCurrentWindow();
+    panel.Draw(nullptr);
+    MapFrame result;
+    result.host_content = host->InnerRect;
+    result.footer = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+    for (auto* child : host->DC.ChildWindows) {
+      if (std::string(child->Name).find("##DungeonMapCanvas") !=
+          std::string::npos) {
+        result.child = child;
+        result.clip = child->InnerClipRect;
+        // The room buttons are positioned from the child content origin.
+        constexpr float kDistantRoomCenter = 8.0f + 12.0f * 72.0f + 32.0f;
+        result.room_center =
+            ImVec2(child->DC.CursorStartPos.x + kDistantRoomCenter,
+                   child->DC.CursorStartPos.y + kDistantRoomCenter);
+        break;
+      }
+    }
+    ImGui::End();
+    ImGui::Render();
+    return result;
+  };
+
+  draw_frame();  // ImGui resolves the child scroll range from prior content.
+  const MapFrame initial = draw_frame();
+  ASSERT_NE(initial.child, nullptr);
+  EXPECT_GT(initial.child->ScrollMax.x, 500.0f);
+  EXPECT_GT(initial.child->ScrollMax.y, 500.0f);
+  EXPECT_LE(initial.footer.Max.y, initial.host_content.Max.y + 1.0f);
+  EXPECT_GT(initial.room_center.x, initial.clip.Max.x);
+  EXPECT_GT(initial.room_center.y, initial.clip.Max.y);
+  EXPECT_EQ(selection_count, 0);
+
+  ImGui::SetScrollX(initial.child, initial.child->ScrollMax.x);
+  ImGui::SetScrollY(initial.child, initial.child->ScrollMax.y);
+  const MapFrame scrolled = draw_frame();
+  ASSERT_NE(scrolled.child, nullptr);
+  EXPECT_GT(scrolled.child->Scroll.x, 500.0f);
+  EXPECT_GT(scrolled.child->Scroll.y, 500.0f);
+  EXPECT_GT(scrolled.room_center.x, scrolled.clip.Min.x);
+  EXPECT_LT(scrolled.room_center.x, scrolled.clip.Max.x);
+  EXPECT_GT(scrolled.room_center.y, scrolled.clip.Min.y);
+  EXPECT_LT(scrolled.room_center.y, scrolled.clip.Max.y);
+  EXPECT_LE(scrolled.footer.Max.y, scrolled.host_content.Max.y + 1.0f);
+
+  io.AddMousePosEvent(scrolled.room_center.x, scrolled.room_center.y);
+  draw_frame();  // Establish hover at the scrolled room button.
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  draw_frame();
+  EXPECT_EQ(selected_room_id, 0x11);
+  EXPECT_EQ(selection_count, 1);
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  draw_frame();
+}
+
 TEST(DungeonCanvasViewerNavigationTest, CanNavigateRoomsReflectsCallbacks) {
   DungeonCanvasViewer viewer;
 

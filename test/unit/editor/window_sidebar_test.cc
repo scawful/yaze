@@ -17,6 +17,10 @@ class WindowSidebarTestPeer {
                   "%s", search);
   }
 
+  static void OpenContextDetails(WindowSidebar& sidebar, const char* category) {
+    sidebar.context_details_category_ = category;
+  }
+
   static void DispatchContextAction(WindowSidebar& sidebar, size_t session_id,
                                     const EditorContextAction& action) {
     sidebar.DispatchContextAction(session_id, action);
@@ -157,12 +161,15 @@ class WindowSidebarFrameTest : public ::testing::Test {
                             .priority = 0});
   }
 
-  std::string DrawFrame(WindowSidebar& sidebar) {
+  std::string DrawFrame(WindowSidebar& sidebar, bool has_rom = true,
+                        bool draw_sidebar = true) {
     ImGui::NewFrame();
     // Log actual submitted text. CollapsingHeader deliberately does not auto-
     // expand for logging, so missing rows remain missing in this observation.
     ImGui::LogToBuffer();
-    sidebar.Draw(0, "Dungeon", []() { return true; });
+    if (draw_sidebar)
+      sidebar.Draw(0, "Dungeon", [has_rom]() { return has_rom; });
+    sidebar.DrawContextDetailsWindow(0);
     const std::string text = context_->LogBuffer.c_str();
     ImGui::LogFinish();
     ImGui::EndFrame();
@@ -186,7 +193,7 @@ class WindowSidebarFrameTest : public ::testing::Test {
 };
 
 TEST_F(WindowSidebarFrameTest,
-       FilterRevealsCollapsedSectionWithoutChangingUnfilteredState) {
+       EditingToolsRemainVisibleWithLegacyCollapsedState) {
   RegisterWindow("dungeon.object_selector", "Unique Object Picker");
   WindowSidebar sidebar(manager_, []() { return true; });
   DrawFrame(sidebar);
@@ -199,14 +206,14 @@ TEST_F(WindowSidebarFrameTest,
   list->StateStorage.SetInt(section_id, 1);
   EXPECT_NE(DrawFrame(sidebar).find("Unique Object Picker"), std::string::npos);
   list->StateStorage.SetInt(section_id, 0);
-  EXPECT_EQ(DrawFrame(sidebar).find("Unique Object Picker"), std::string::npos);
+  EXPECT_NE(DrawFrame(sidebar).find("Unique Object Picker"), std::string::npos);
 
   WindowSidebarTestPeer::SetSearch(sidebar, "Unique");
   EXPECT_NE(DrawFrame(sidebar).find("Unique Object Picker"), std::string::npos);
   EXPECT_EQ(list->StateStorage.GetInt(section_id), 0);
 
   WindowSidebarTestPeer::SetSearch(sidebar, "");
-  EXPECT_EQ(DrawFrame(sidebar).find("Unique Object Picker"), std::string::npos);
+  EXPECT_NE(DrawFrame(sidebar).find("Unique Object Picker"), std::string::npos);
   EXPECT_EQ(list->StateStorage.GetInt(section_id), 0);
 }
 
@@ -221,7 +228,8 @@ TEST_F(WindowSidebarFrameTest, WorkbenchSearchIncludesStandaloneRoomTools) {
   EXPECT_NE(text.find("Room Tags Tool"), std::string::npos);
 }
 
-TEST_F(WindowSidebarFrameTest, RendersSharedEditorContextBelowWindowList) {
+TEST_F(WindowSidebarFrameTest,
+       ContextSummaryKeepsWarningsAndMovesMetadataOutOfSidebar) {
   EditorContextSnapshot snapshot;
   snapshot.category = "Dungeon";
   snapshot.title = "Room 0x098";
@@ -240,12 +248,47 @@ TEST_F(WindowSidebarFrameTest, RendersSharedEditorContextBelowWindowList) {
   WindowSidebar sidebar(manager_, {}, {}, {},
                         [snapshot](const std::string&) { return snapshot; });
   const std::string text = DrawFrame(sidebar);
-  EXPECT_NE(text.find("Editor Context"), std::string::npos);
+  EXPECT_NE(text.find("Context"), std::string::npos);
   EXPECT_NE(text.find("Room 0x098"), std::string::npos);
-  EXPECT_NE(text.find("Palette"), std::string::npos);
-  EXPECT_NE(text.find("Sprites"), std::string::npos);
+  EXPECT_EQ(text.find("Palette"), std::string::npos);
+  EXPECT_EQ(text.find("Sprites"), std::string::npos);
   EXPECT_NE(text.find("Entrance camera is off-grid"), std::string::npos);
-  EXPECT_NE(text.find("Room Matrix"), std::string::npos);
+  for (auto* window : context_->Windows)
+    EXPECT_EQ(std::strstr(window->Name, "##EditorContextBody"), nullptr);
+  WindowSidebarTestPeer::OpenContextDetails(sidebar, "Dungeon");
+  const std::string details = DrawFrame(sidebar);
+  EXPECT_NE(details.find("Palette"), std::string::npos);
+  EXPECT_NE(details.find("Sprites"), std::string::npos);
+  EXPECT_NE(details.find("Room Matrix"), std::string::npos);
+}
+
+TEST_F(WindowSidebarFrameTest, DisabledCategoryBalancesChildScopes) {
+  RegisterWindow("dungeon.object_selector", "Unique Object Picker");
+  WindowSidebar sidebar(manager_);
+  const std::string text = DrawFrame(sidebar, /*has_rom=*/false);
+  EXPECT_NE(text.find("Open a ROM"), std::string::npos);
+  EXPECT_EQ(context_->DisabledStackSize, 0);
+  EXPECT_FALSE(visible_);
+  DrawFrame(sidebar, /*has_rom=*/true);
+  EXPECT_EQ(context_->DisabledStackSize, 0);
+}
+
+TEST_F(WindowSidebarFrameTest,
+       ContextDetailsSurviveCollapsedSidebarAndRefresh) {
+  EditorContextSnapshot snapshot;
+  snapshot.title = "Room 0x098";
+  snapshot.subtitle = "Workbench";
+  snapshot.experiment.experimental = true;
+  snapshot.experiment.save_posture = "Read-only";
+  WindowSidebar sidebar(manager_, {}, {}, {},
+                        [&snapshot](const std::string&) { return snapshot; });
+  EXPECT_NE(DrawFrame(sidebar).find("Read-only"), std::string::npos);
+  WindowSidebarTestPeer::OpenContextDetails(sidebar, "Dungeon");
+  EXPECT_NE(DrawFrame(sidebar).find("Room 0x098"), std::string::npos);
+  snapshot.title = "Room 0x089";
+  const std::string text = DrawFrame(sidebar, true, /*draw_sidebar=*/false);
+  EXPECT_NE(text.find("Room 0x089"), std::string::npos);
+  EXPECT_EQ(text.find("Room 0x098"), std::string::npos);
 }
 
 TEST_F(WindowSidebarFrameTest, ContextWindowActionUsesStableTarget) {

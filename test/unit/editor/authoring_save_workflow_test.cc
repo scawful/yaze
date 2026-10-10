@@ -2924,7 +2924,9 @@ TEST_F(AuthoringSaveWorkflowTest,
   const auto collision_before = room.custom_collision().tiles;
   auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
   ASSERT_NE(viewer, nullptr);
-  viewer->SetHeaderVisible(false);
+  // This fixture hosts a standalone canvas. Workbench view controls are
+  // intentionally supplied by its shared toolbar, not by this canvas.
+  viewer->SetHeaderVisible(true);
   viewer->SetHeaderHiddenMetadataHudVisible(false);
   viewer->canvas().set_global_scale(1.25f);
   viewer->canvas().set_scrolling(ImVec2(-24, -40));
@@ -6358,7 +6360,9 @@ void AuthoringSaveWorkflowTest::QualifyGoronRouteRedesign(
   AuthoringSaveWorkflowTestPeer::ActivateDungeonRoom(*dungeon, kRoom);
   auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kRoom);
   ASSERT_NE(viewer, nullptr);
-  viewer->SetHeaderVisible(false);
+  // This fixture hosts a standalone canvas. Workbench view controls are
+  // intentionally supplied by its shared toolbar, not by this canvas.
+  viewer->SetHeaderVisible(true);
   viewer->SetHeaderHiddenMetadataHudVisible(false);
   viewer->canvas().set_global_scale(1.0f);
   viewer->canvas().set_scrolling(ImVec2(0, 0));

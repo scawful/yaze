@@ -3,6 +3,11 @@
 #include <array>
 #include <stdexcept>
 
+#include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/core/ui_helpers.h"
+#include "imgui/imgui.h"
+#include "util/i18n/tr.h"
+
 namespace yaze::editor {
 
 namespace {
@@ -28,6 +33,57 @@ constexpr std::array<DungeonOverlayControlSpec, 13> kOverlaySpecs = {{
 const std::array<DungeonOverlayControlSpec, 13>&
 GetDungeonOverlayControlSpecs() {
   return kOverlaySpecs;
+}
+
+float DungeonLayerControlsWidth() {
+  return ImGui::CalcTextSize("BG1").x + ImGui::CalcTextSize("BG2").x +
+         ImGui::CalcTextSize(tr("Sprites")).x +
+         ImGui::GetStyle().FramePadding.x * 6.0f +
+         ImGui::GetStyle().ItemSpacing.x * 2.0f;
+}
+
+void DrawDungeonLayerControls(DungeonCanvasViewer& viewer, int room_id,
+                              float height) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms)
+    return;
+  ImGui::PushID("DungeonLayers");
+  gui::AutoWidgetScope scope("Dungeon/Layers");
+  const auto toggle = [&](const char* label, bool enabled,
+                          const char* tooltip) {
+    const float width =
+        ImGui::CalcTextSize(label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+    const bool changed =
+        gui::ToggleButton(label, enabled, ImVec2(width, height));
+    gui::AutoRegisterLastItem("button", label);
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("%s", tooltip);
+    return changed;
+  };
+  if (toggle("BG1", viewer.IsBG1Visible(room_id), "Show main background layer"))
+    viewer.SetBG1Visible(room_id, !viewer.IsBG1Visible(room_id));
+  ImGui::SameLine();
+  if (toggle("BG2", viewer.IsBG2Visible(room_id),
+             "Show lower background layer"))
+    viewer.SetBG2Visible(room_id, !viewer.IsBG2Visible(room_id));
+  ImGui::SameLine();
+  if (toggle(tr("Sprites"), viewer.AreSpritesVisible(), "Show room sprites"))
+    viewer.SetSpritesVisible(!viewer.AreSpritesVisible());
+  ImGui::PopID();
+}
+
+void DrawDungeonOverlayControls(DungeonCanvasViewer& viewer) {
+  gui::AutoWidgetScope scope("Dungeon/ViewOptions");
+  for (const auto& spec : GetDungeonOverlayControlSpecs()) {
+    if (spec.id == DungeonOverlayControlId::kTrackCollision)
+      ImGui::SeparatorText(tr("Authoring"));
+    bool enabled = GetDungeonOverlayControlEnabled(viewer, spec.id);
+    if (ImGui::Checkbox(tr(spec.label), &enabled))
+      SetDungeonOverlayControlEnabled(viewer, spec.id, enabled);
+    gui::AutoRegisterLastItem("checkbox", spec.label);
+  }
+  bool pots = viewer.ArePotItemsVisible();
+  if (ImGui::Checkbox(tr("Pot items"), &pots))
+    viewer.SetPotItemsVisible(pots);
 }
 
 bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,

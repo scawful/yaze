@@ -7,6 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_overlay_controls.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_edit.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
@@ -360,111 +361,14 @@ void DungeonCanvasViewer::DrawRecentRoomBreadcrumbs(int room_id) {
 }
 
 void DungeonCanvasViewer::DrawCompactLayerToggles(int room_id) {
-  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
-    return;
+  DrawDungeonLayerControls(*this, room_id, ImGui::GetFrameHeight());
+  ImGui::SameLine();
+  if (ImGui::Button(tr("View")))
+    ImGui::OpenPopup("##RoomViewOptions");
+  if (ImGui::BeginPopup("##RoomViewOptions")) {
+    DrawDungeonOverlayControls(*this);
+    ImGui::EndPopup();
   }
-
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  const float compact_gap =
-      std::max(2.0f, gui::LayoutHelpers::GetStandardSpacing() * 0.25f);
-  const float compact_padding =
-      std::clamp(gui::LayoutHelpers::GetButtonPadding(), 2.0f, 6.0f);
-
-  gui::StyleVarGuard compact_style({
-      {ImGuiStyleVar_FramePadding,
-       ImVec2(compact_padding, compact_padding * 0.5f)},
-      {ImGuiStyleVar_ItemSpacing, ImVec2(compact_gap, 0.0f)},
-  });
-
-  auto as_button_color = [](ImVec4 color, float alpha) {
-    color.w = alpha;
-    return color;
-  };
-
-  const ImVec4 inactive_color =
-      as_button_color(gui::ConvertColorToImVec4(theme.frame_bg), 0.55f);
-  const ImVec4 inactive_hover =
-      as_button_color(gui::ConvertColorToImVec4(theme.frame_bg_hovered), 0.7f);
-  const ImVec4 inactive_active =
-      as_button_color(gui::ConvertColorToImVec4(theme.frame_bg_active), 0.85f);
-
-  auto draw_toggle = [&](const char* label, bool enabled, ImVec4 active_color,
-                         const char* tooltip, auto&& on_toggle) {
-    const ImVec4 button = enabled ? active_color : inactive_color;
-    const ImVec4 hovered =
-        enabled ? as_button_color(
-                      gui::ConvertColorToImVec4(theme.button_hovered), 0.95f)
-                : inactive_hover;
-    const ImVec4 pressed =
-        enabled ? as_button_color(
-                      gui::ConvertColorToImVec4(theme.button_active), 1.0f)
-                : inactive_active;
-
-    gui::StyleColorGuard button_colors({
-        {ImGuiCol_Button, button},
-        {ImGuiCol_ButtonHovered, hovered},
-        {ImGuiCol_ButtonActive, pressed},
-    });
-
-    if (ImGui::SmallButton(label)) {
-      on_toggle();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", tooltip);
-    }
-  };
-
-  const bool bg1_visible = IsBG1Visible(room_id);
-  draw_toggle("BG1##LayerToggleBG1", bg1_visible,
-              as_button_color(gui::ConvertColorToImVec4(theme.info), 0.9f),
-              "Toggle BG1 (main layer) visibility",
-              [&]() { SetBG1Visible(room_id, !bg1_visible); });
-
-  ImGui::SameLine();
-  const bool bg2_visible = IsBG2Visible(room_id);
-  draw_toggle("BG2##LayerToggleBG2", bg2_visible,
-              as_button_color(gui::ConvertColorToImVec4(theme.warning), 0.9f),
-              "Toggle BG2 (overlay layer) visibility",
-              [&]() { SetBG2Visible(room_id, !bg2_visible); });
-
-  ImGui::SameLine();
-  const bool sprites_visible = entity_visibility_.show_sprites;
-  draw_toggle(ICON_MD_PEST_CONTROL "##LayerToggleSprites", sprites_visible,
-              as_button_color(gui::ConvertColorToImVec4(theme.success), 0.9f),
-              "Toggle sprite visibility", [&]() {
-                entity_visibility_.show_sprites =
-                    !entity_visibility_.show_sprites;
-              });
-
-  ImGui::SameLine();
-  draw_toggle(ICON_MD_GRID_ON "##LayerToggleGrid", show_grid_,
-              as_button_color(gui::ConvertColorToImVec4(theme.secondary), 0.9f),
-              "Toggle grid overlay", [&]() { show_grid_ = !show_grid_; });
-
-  ImGui::SameLine();
-  draw_toggle(
-      ICON_MD_CROP_FREE "##LayerToggleBounds", show_object_bounds_,
-      as_button_color(gui::ConvertColorToImVec4(theme.selection_primary), 0.9f),
-      "Toggle object bounds overlay",
-      [&]() { show_object_bounds_ = !show_object_bounds_; });
-
-  ImGui::SameLine();
-  const bool pots_visible = entity_visibility_.show_pot_items;
-  draw_toggle(ICON_MD_INVENTORY_2 "##LayerTogglePots", pots_visible,
-              as_button_color(gui::ConvertColorToImVec4(theme.success), 0.9f),
-              "Toggle pot item markers", [&]() {
-                entity_visibility_.show_pot_items =
-                    !entity_visibility_.show_pot_items;
-              });
-
-  ImGui::SameLine();
-  draw_toggle(ICON_MD_FILTER_CENTER_FOCUS "##LayerToggleCollision",
-              show_custom_collision_overlay_,
-              as_button_color(gui::ConvertColorToImVec4(theme.warning), 0.9f),
-              "Toggle custom collision overlay", [&]() {
-                show_custom_collision_overlay_ =
-                    !show_custom_collision_overlay_;
-              });
 }
 
 void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& /*room*/,

@@ -23,6 +23,7 @@ class DoorEditorContent : public WindowContent {
   float GetPreferredWidth() const override { return 420.0f; }
 
   void Draw(bool* p_open) override;
+  void DrawInWorkbench();
   void OnClose() override;
 
   void SetCurrentRoom(int room_id) { current_room_id_ = room_id; }
@@ -44,6 +45,9 @@ class DoorEditorContent : public WindowContent {
   }
 
  private:
+  void DrawContent(bool show_room_doors);
+  bool HasMatchingViewer() const;
+  bool CanEditRoom() const;
   DungeonCanvasViewer* ResolveCanvasViewer();
   void CancelPlacement();
 

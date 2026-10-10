@@ -2,17 +2,16 @@
 
 #include <algorithm>
 #include <cctype>
-#include <cstdint>
 #include <utility>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
-#include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
-#include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "util/i18n/tr.h"
@@ -53,24 +52,38 @@ std::string SpriteEditorPanel::GetWorkflowGroup() const {
   return "Editors";
 }
 
-void SpriteEditorPanel::Draw(bool* p_open) {
+void SpriteEditorPanel::Draw(bool* /*p_open*/) {
+  DrawContent(true);
+}
+
+void SpriteEditorPanel::DrawInWorkbench() {
+  DrawContent(false);
+}
+
+void SpriteEditorPanel::DrawContent(bool show_room_sprites) {
   gui::AutoWidgetScope automation_scope("Dungeon/SpriteEditor");
-  if (!current_room_id_ || !rooms_) {
-    ImGui::TextDisabled(tr("No room data available"));
-    return;
-  }
-
-  if (*current_room_id_ < 0 ||
+  if (!current_room_id_ || !rooms_ || *current_room_id_ < 0 ||
       *current_room_id_ >= static_cast<int>(rooms_->size())) {
-    ImGui::TextDisabled(tr("No room selected"));
+    ImGui::TextDisabled("No room selected");
     return;
   }
-
   DrawPlacementControls();
-  ImGui::Separator();
-  DrawSpriteSelector();
-  ImGui::Separator();
-  DrawRoomSprites();
+  // Standalone selection stays above the library and room list. Both hosts
+  // share these fields and their validation; Workbench owns its inspector.
+  if (show_room_sprites && canvas_viewer_ &&
+      canvas_viewer_->current_room_id() == *current_room_id_) {
+    const auto& selected = canvas_viewer_->object_interaction()
+                               .entity_coordinator()
+                               .GetSelectedEntities();
+    if (selected.size() == 1 && selected.front().type == EntityType::Sprite) {
+      DrawDungeonEntityInspector(*canvas_viewer_);
+    }
+  }
+  DrawSpriteSelector(show_room_sprites);
+  if (show_room_sprites) {
+    ImGui::Separator();
+    DrawRoomSprites();
+  }
 }
 
 void SpriteEditorPanel::SetCanvasViewer(DungeonCanvasViewer* viewer) {
@@ -88,126 +101,67 @@ void SpriteEditorPanel::SetOpenSelectionInspectorCallback(
 }
 
 void SpriteEditorPanel::DrawPlacementControls() {
-  const auto& theme = AgentUI::GetTheme();
-  // Placement mode indicator
-  if (placement_mode_) {
-    ImGui::TextColored(
-        theme.status_warning, ICON_MD_PLACE " Placing: %s (0x%02X)",
-        zelda3::ResolveSpriteName(selected_sprite_id_), selected_sprite_id_);
-    if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
-      placement_mode_ = false;
-      if (canvas_viewer_) {
-        canvas_viewer_->object_interaction().SetSpritePlacementMode(false, 0);
-      }
-    }
+  const bool placing =
+      canvas_viewer_ &&
+      canvas_viewer_->current_room_id() == *current_room_id_ &&
+      canvas_viewer_->object_interaction().IsSpritePlacementActive();
+  if (placing) {
+    selected_sprite_id_ = canvas_viewer_->object_interaction()
+                              .entity_coordinator()
+                              .sprite_handler()
+                              .GetSpriteId();
+    ImGui::Text("Placing sprite %02X", selected_sprite_id_);
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("%s", SpriteName(selected_sprite_id_).c_str());
+    ImGui::SameLine();
+    const bool done = ImGui::SmallButton("Done (Esc)");
+    gui::AutoRegisterLastItem("button", "finish_sprite_placement");
+    if (done)
+      canvas_viewer_->object_interaction().CancelPlacement();
   } else {
-    ImGui::TextColored(theme.text_secondary_gray,
-                       ICON_MD_INFO " Select a sprite to place");
+    ImGui::TextDisabled("Click a sprite, then the canvas.");
   }
 }
 
-void SpriteEditorPanel::DrawSpriteSelector() {
-  const auto& theme = AgentUI::GetTheme();
-  ImGui::Text(ICON_MD_PERSON " Select Sprite:");
+void SpriteEditorPanel::DrawSpriteSelector(bool show_room_sprites) {
+  ImGui::SetNextItemWidth(-1);
+  ImGui::InputTextWithHint("##Search", "Search sprites by name or hex ID...",
+                           search_filter_, sizeof(search_filter_));
+  gui::AutoRegisterLastItem("input_text", "sprite_search");
 
-  // Filter by category
-  static const char* kCategories[] = {"All", "Enemies", "NPCs", "Bosses",
-                                      "Items"};
-  ImGui::SetNextItemWidth(100);
-  ImGui::Combo("##Category", &selected_category_, kCategories,
-               IM_ARRAYSIZE(kCategories));
-  ImGui::SameLine();
-
-  // Search filter
-  ImGui::SetNextItemWidth(120);
-  ImGui::InputTextWithHint("##Search", "Search...", search_filter_,
-                           sizeof(search_filter_));
-
-  // Sprite grid with responsive sizing
-  float available_height = ImGui::GetContentRegionAvail().y;
-  // Reserve space for room sprites section
-  float reserved_height = 120.0f;
-  // Calculate grid height: at least 150px, responsive to available space
-  float grid_height =
-      std::max(150.0f, std::min(400.0f, available_height - reserved_height));
-
-  // Responsive sprite size based on panel width
-  float panel_width = ImGui::GetContentRegionAvail().x;
-  float sprite_size =
-      std::max(28.0f, std::min(40.0f, (panel_width - 40.0f) / 8.0f));
-  int items_per_row =
-      std::max(1, static_cast<int>(panel_width / (sprite_size + 6)));
-
-  ImGui::BeginChild("##SpriteGrid", ImVec2(0, grid_height), true,
-                    ImGuiWindowFlags_HorizontalScrollbar);
-
-  int col = 0;
-  for (int i = 0; i < 256; ++i) {
-    // Apply filters
-    if (!MatchesFilter(i))
-      continue;
-
-    bool is_selected = (selected_sprite_id_ == i);
-
-    ImGui::PushID(i);
-
-    // Color-coded button based on sprite type using theme colors
-    ImVec4 button_color = GetSpriteTypeColor(i, theme);
-    if (is_selected) {
-      button_color.x = std::min(1.0f, button_color.x + 0.2f);
-      button_color.y = std::min(1.0f, button_color.y + 0.2f);
-      button_color.z = std::min(1.0f, button_color.z + 0.2f);
-    }
-
-    {
-      gui::StyleColorGuard sprite_btn_guard(
-          {{ImGuiCol_Button, button_color},
-           {ImGuiCol_ButtonHovered,
-            ImVec4(std::min(1.0f, button_color.x + 0.1f),
-                   std::min(1.0f, button_color.y + 0.1f),
-                   std::min(1.0f, button_color.z + 0.1f), 1.0f)},
-           {ImGuiCol_ButtonActive,
-            ImVec4(std::min(1.0f, button_color.x + 0.2f),
-                   std::min(1.0f, button_color.y + 0.2f),
-                   std::min(1.0f, button_color.z + 0.2f), 1.0f)}});
-
-      // Get category icon based on sprite type
-      const char* icon = GetSpriteTypeIcon(i);
-      std::string label = absl::StrFormat("%s\n%02X", icon, i);
-      if (ImGui::Button(label.c_str(), ImVec2(sprite_size, sprite_size))) {
-        selected_sprite_id_ = i;
-        placement_mode_ = true;
-        if (canvas_viewer_) {
-          canvas_viewer_->object_interaction().SetSpritePlacementMode(true, i);
-        }
+  const float available = std::max(1.0f, ImGui::GetContentRegionAvail().y);
+  const float list_height =
+      show_room_sprites ? std::max(1.0f, available * 0.55f) : available;
+  const bool can_place =
+      canvas_viewer_ &&
+      canvas_viewer_->current_room_id() == *current_room_id_ &&
+      canvas_viewer_->IsObjectInteractionEnabled() &&
+      !canvas_viewer_->header_read_only();
+  if (ImGui::BeginChild("##SpriteLibrary", ImVec2(0, list_height), true)) {
+    ImGui::BeginDisabled(!can_place);
+    for (int id = 0; id < 256; ++id) {
+      if (!MatchesFilter(id))
+        continue;
+      const std::string name = SpriteName(id);
+      const std::string label = absl::StrFormat("%02X  %s", id, name);
+      ImGui::PushID(id);
+      const bool selected =
+          ImGui::Selectable(label.c_str(), selected_sprite_id_ == id);
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("place_sprite_%02X", id));
+      if (selected) {
+        selected_sprite_id_ = id;
+        canvas_viewer_->object_interaction().SetSpritePlacementMode(true, id);
       }
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s (%02X)\n%s", name.c_str(), id,
+                          can_place
+                              ? "Click, then click the room to place."
+                              : "Select an editable room to place sprites.");
+      ImGui::PopID();
     }
-
-    if (ImGui::IsItemHovered()) {
-      const char* category = GetSpriteCategoryName(i);
-      ImGui::SetTooltip(tr("%s (0x%02X)\n[%s]\nClick to select for placement"),
-                        zelda3::ResolveSpriteName(i), i, category);
-    }
-
-    // Selection highlight using theme color
-    if (is_selected) {
-      ImVec2 min = ImGui::GetItemRectMin();
-      ImVec2 max = ImGui::GetItemRectMax();
-      ImU32 sel_color =
-          ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary);
-      ImGui::GetWindowDrawList()->AddRect(min, max, sel_color, 0.0f, 0, 2.0f);
-    }
-
-    ImGui::PopID();
-
-    col++;
-    if (col < items_per_row) {
-      ImGui::SameLine();
-    } else {
-      col = 0;
-    }
+    ImGui::EndDisabled();
   }
-
   ImGui::EndChild();
 }
 
@@ -256,44 +210,6 @@ void SpriteEditorPanel::DrawRoomSprites() {
     return;
   }
 
-  if (selected_sprite_list_index >= 0 &&
-      selected_sprite_list_index < static_cast<int>(sprites.size()) &&
-      canvas_viewer_) {
-    const auto& sprite = sprites[selected_sprite_list_index];
-    int sprite_x = sprite.x();
-    int sprite_y = sprite.y();
-    ImGui::TextUnformatted(tr("Selected position"));
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(64.0f);
-    const bool x_changed = gui::InputScalarDeferred(
-        "##SelectedSpriteX", ImGuiDataType_S32, &sprite_x, "%d", 0,
-        {reinterpret_cast<uintptr_t>(rooms_),
-         static_cast<uint64_t>(*current_room_id_),
-         static_cast<uint64_t>(selected_sprite_list_index)});
-    gui::AutoRegisterLastItem("input_int", "selected_sprite_x",
-                              "Selected sprite X coordinate");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(64.0f);
-    const bool y_changed = gui::InputScalarDeferred(
-        "##SelectedSpriteY", ImGuiDataType_S32, &sprite_y, "%d", 0,
-        {reinterpret_cast<uintptr_t>(rooms_),
-         static_cast<uint64_t>(*current_room_id_),
-         static_cast<uint64_t>(selected_sprite_list_index)});
-    gui::AutoRegisterLastItem("input_int", "selected_sprite_y",
-                              "Selected sprite Y coordinate");
-    if (x_changed || y_changed) {
-      const int clamped_x =
-          std::clamp(sprite_x, 0, dungeon_coords::kSpriteGridMax);
-      const int clamped_y =
-          std::clamp(sprite_y, 0, dungeon_coords::kSpriteGridMax);
-      auto& handler = canvas_viewer_->object_interaction()
-                          .entity_coordinator()
-                          .sprite_handler();
-      handler.NudgeSelected(clamped_x - static_cast<int>(sprite.x()),
-                            clamped_y - static_cast<int>(sprite.y()));
-    }
-  }
-
   // Split view: list on top, properties below
   float available = ImGui::GetContentRegionAvail().y;
   float list_height = std::max(100.0f, available * 0.4f);
@@ -306,8 +222,8 @@ void SpriteEditorPanel::DrawRoomSprites() {
     ImGui::PushID(static_cast<int>(i));
 
     // Build display string with indicators
-    std::string label = absl::StrFormat("[%02X] %s", sprite.id(),
-                                        zelda3::ResolveSpriteName(sprite.id()));
+    std::string label =
+        absl::StrFormat("[%02X] %s", sprite.id(), SpriteName(sprite.id()));
 
     // Add key drop indicator
     if (sprite.key_drop() == 1) {
@@ -342,77 +258,24 @@ void SpriteEditorPanel::DrawRoomSprites() {
   ImGui::EndChild();
 }
 
-bool SpriteEditorPanel::MatchesFilter(int sprite_id) {
-  // Category filter
-  if (selected_category_ > 0) {
-    // Simplified category matching - in real implementation, use proper categorization
-    bool is_enemy = (sprite_id >= 0x09 && sprite_id <= 0x7F);
-    bool is_npc = (sprite_id >= 0x80 && sprite_id <= 0xBF);
-    bool is_boss = (sprite_id >= 0xC0 && sprite_id <= 0xD8);
-    bool is_item = (sprite_id >= 0xD9 && sprite_id <= 0xFF);
-
-    if (selected_category_ == 1 && !is_enemy)
-      return false;
-    if (selected_category_ == 2 && !is_npc)
-      return false;
-    if (selected_category_ == 3 && !is_boss)
-      return false;
-    if (selected_category_ == 4 && !is_item)
-      return false;
-  }
-
-  // Text search filter
-  if (search_filter_[0] != '\0') {
-    const char* name = zelda3::ResolveSpriteName(sprite_id);
-    // Simple case-insensitive substring search
-    std::string name_lower = name;
-    std::string filter_lower = search_filter_;
-    for (auto& c : name_lower)
-      c = static_cast<char>(tolower(c));
-    for (auto& c : filter_lower)
-      c = static_cast<char>(tolower(c));
-    if (name_lower.find(filter_lower) == std::string::npos) {
-      return false;
-    }
-  }
-
-  return true;
+std::string SpriteEditorPanel::SpriteName(int sprite_id) const {
+  const auto labels = dungeon_project_labels::LabelsForProject(
+      canvas_viewer_ ? canvas_viewer_->project() : nullptr);
+  return labels.GetLabel(zelda3::ResourceType::kSprite, sprite_id);
 }
 
-ImVec4 SpriteEditorPanel::GetSpriteTypeColor(int sprite_id,
-                                             const AgentUITheme& theme) {
-  // Color-code based on sprite type using theme colors
-  if (sprite_id >= 0xC0 && sprite_id <= 0xD8) {
-    return theme.status_error;  // Red for bosses
-  } else if (sprite_id >= 0x80 && sprite_id <= 0xBF) {
-    return theme.dungeon_sprite_layer0;  // Green for NPCs
-  } else if (sprite_id >= 0xD9) {
-    return theme.dungeon_object_chest;  // Gold for items
-  }
-  return theme.dungeon_sprite_layer1;  // Blue for enemies
-}
-
-const char* SpriteEditorPanel::GetSpriteTypeIcon(int sprite_id) {
-  // Return category-appropriate icons
-  if (sprite_id >= 0xC0 && sprite_id <= 0xD8) {
-    return ICON_MD_DANGEROUS;  // Skull for bosses
-  } else if (sprite_id >= 0x80 && sprite_id <= 0xBF) {
-    return ICON_MD_PERSON;  // Person for NPCs
-  } else if (sprite_id >= 0xD9) {
-    return ICON_MD_STAR;  // Star for items
-  }
-  return ICON_MD_PEST_CONTROL;  // Bug for enemies
-}
-
-const char* SpriteEditorPanel::GetSpriteCategoryName(int sprite_id) {
-  if (sprite_id >= 0xC0 && sprite_id <= 0xD8) {
-    return "Boss";
-  } else if (sprite_id >= 0x80 && sprite_id <= 0xBF) {
-    return "NPC";
-  } else if (sprite_id >= 0xD9) {
-    return "Item";
-  }
-  return "Enemy";
+bool SpriteEditorPanel::MatchesFilter(int sprite_id) const {
+  if (search_filter_[0] == '\0')
+    return true;
+  std::string name =
+      absl::StrFormat("%02X %s", sprite_id, SpriteName(sprite_id));
+  std::string filter = search_filter_;
+  const auto lower = [](unsigned char c) {
+    return static_cast<char>(tolower(c));
+  };
+  std::transform(name.begin(), name.end(), name.begin(), lower);
+  std::transform(filter.begin(), filter.end(), filter.begin(), lower);
+  return name.find(filter) != std::string::npos;
 }
 
 }  // namespace editor

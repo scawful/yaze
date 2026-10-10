@@ -88,7 +88,7 @@ class DungeonEntrancesPanel : public WindowContent {
 
   // Shared preview selector: regular IDs are not the combined list slots,
   // whose first entries are dedicated spawn points.
-  void DrawGraphicsContext() {
+  void DrawGraphicsContext(float width = -1.0f) {
     if (!entrances_ || !spawn_points_ || !current_entrance_id_)
       return;
     if (*current_entrance_id_ < 0 ||
@@ -121,7 +121,7 @@ class DungeonEntrancesPanel : public WindowContent {
                         : "Room fallback",
                     context.effective_blockset());
     }
-    ImGui::SetNextItemWidth(-1);
+    ImGui::SetNextItemWidth(width);
     const bool open = ImGui::BeginCombo(
         "##GraphicsEntrance", preview.c_str(),
         select_preview_ ? ImGuiComboFlags_HeightLarge : ImGuiComboFlags_None);
