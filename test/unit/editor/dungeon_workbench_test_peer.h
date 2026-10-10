@@ -21,6 +21,11 @@ class DungeonWorkbenchContentTestPeer {
                             DungeonCanvasViewer& viewer, bool compact = false) {
     content.DrawInspectorShelf(viewer, compact);
   }
+  static void DrawInspectorPane(DungeonWorkbenchContent& content,
+                                DungeonCanvasViewer& viewer, float width,
+                                float height, bool compact = false) {
+    content.DrawInspectorPane(width, height, 22, compact, &viewer);
+  }
   static void DrawRoomInspector(DungeonWorkbenchContent& content,
                                 DungeonCanvasViewer& viewer) {
     content.DrawInspectorShelfRoom(viewer);

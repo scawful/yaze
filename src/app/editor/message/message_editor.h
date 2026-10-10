@@ -30,6 +30,7 @@ class AuthoringSaveWorkflowTestPeer;
 class MessageEditorTestPeer;
 class MessageEditorSaveTestPeer;
 class MessageEditorPublishGuardTestPeer;
+class MessageEditorListPanelTestPeer;
 
 constexpr int kGfxFont = 0x70000;  // 2bpp format
 constexpr int kCharactersWidth = 0x74ADF;
@@ -105,6 +106,7 @@ class MessageEditor : public Editor {
   friend class MessageEditorTestPeer;
   friend class MessageEditorSaveTestPeer;
   friend class MessageEditorPublishGuardTestPeer;
+  friend class MessageEditorListPanelTestPeer;
 
   enum class SaveDomain {
     kFontWidths,

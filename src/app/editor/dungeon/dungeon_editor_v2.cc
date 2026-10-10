@@ -567,13 +567,7 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
     if (!viewer) {
       return;
     }
-    viewer->SetRenderer(renderer_);
-    viewer->SetCurrentPaletteId(current_palette_id_);
-    viewer->SetCurrentPaletteGroup(current_palette_group_);
-    viewer->SetEditorSystem(dungeon_editor_system_.get());
-    viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
-    viewer->SetProject(dependencies_.project);
-    ConfigureViewerRenderContext(viewer, room_id);
+    RefreshViewerRuntimeContext(viewer, room_id, /*rebind_project=*/true);
     ApplyEntranceRenderContext(room_id);
   };
   room_viewers_.ForEach(
@@ -1009,6 +1003,8 @@ void DungeonEditorV2::Initialize() {
   if (workbench_panel_) {
     workbench_panel_->SetNavigationPanels(room_matrix_panel_,
                                           entrance_navigator_panel_);
+    workbench_panel_->SetRoomRenderContextCallback(
+        [this](int room_id) { ApplyEntranceRenderContext(room_id); });
   }
   if (room_matrix_panel_) {
     room_matrix_panel_->SetRenderContextCallback(
@@ -1750,10 +1746,19 @@ void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
     workbench_suspended_navigation_window_ids_.clear();
   }
 
-  if (show_toast && dependencies_.toast_manager && was_enabled != enabled) {
+  const bool now_enabled = IsWorkbenchWorkflowEnabled();
+  if (is_loaded_ && was_enabled != now_enabled &&
+      IsValidRoomId(current_room_id_)) {
+    // One room model and the same tools serve either canvas host. Rebind all
+    // room-scoped panel pointers before closed standalone viewers are retired
+    // by DrawRoomPanels on the next frame.
+    SyncPanelsToRoom(current_room_id_);
+  }
+
+  if (show_toast && dependencies_.toast_manager && was_enabled != now_enabled) {
     dependencies_.toast_manager->Show(
-        enabled ? "Dungeon workflow: Workbench"
-                : "Dungeon workflow: Standalone Panels",
+        now_enabled ? "Dungeon workflow: Workbench"
+                    : "Dungeon workflow: Standalone Panels",
         ToastType::kInfo);
   }
 }
@@ -1961,7 +1966,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
   // Use per-room viewer; reserve a bottom strip for the shared dungeon
   // status bar so this Windows-mode standalone window mirrors the Workbench
   // canvas pane's affordances.
-  if (auto* viewer = GetViewerForRoom(room_id)) {
+  if (auto* viewer = GetStandaloneViewerForRoom(room_id)) {
     const float status_bar_reserved =
         std::max(ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f,
                  gui::UIConfig::kStatusBarHeight) +
@@ -2844,9 +2849,6 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
                                         ToastType::kSuccess);
     }
   });
-
-  viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
-  viewer->SetProject(dependencies_.project);
 }
 
 DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
@@ -2855,6 +2857,10 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     return GetWorkbenchViewer();
   }
 
+  return GetStandaloneViewerForRoom(room_id);
+}
+
+DungeonCanvasViewer* DungeonEditorV2::GetStandaloneViewerForRoom(int room_id) {
   // Set eviction predicate to protect active rooms from eviction
   room_viewers_.SetEvictionPredicate([this](const int& candidate) {
     for (int i = 0; i < active_rooms_.size(); ++i) {
@@ -2867,7 +2873,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   if (auto* existing = room_viewers_.Get(room_id)) {
     // Viewer already exists - Get() already touched LRU
     auto* viewer_ptr = existing->get();
-    ConfigureViewerRenderContext(viewer_ptr, room_id);
+    RefreshViewerRuntimeContext(viewer_ptr, room_id);
     ApplyEntranceRenderContext(room_id);
 
     // Update pinned state from manager
@@ -2878,8 +2884,8 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
       viewer_ptr->SetPinCallback([this, card_id, room_id](bool pinned) {
         if (dependencies_.window_manager) {
           dependencies_.window_manager->SetWindowPinned(card_id, pinned);
-          if (auto* v = GetViewerForRoom(room_id)) {
-            v->SetPinned(pinned);
+          if (auto* existing_viewer = room_viewers_.Get(room_id)) {
+            (*existing_viewer)->SetPinned(pinned);
           }
         }
       });
@@ -2894,22 +2900,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->SetCompactHeaderMode(false);
     viewer->SetRoomDetailsExpanded(true);
     DungeonCanvasViewer* viewer_ptr = viewer.get();
-    viewer->SetRooms(&rooms_);
-    viewer->SetRenderer(renderer_);
-    viewer->SetCurrentPaletteGroup(current_palette_group_);
-    viewer->SetCurrentPaletteId(current_palette_id_);
-    viewer->SetGameData(game_data_);
-    ConfigureViewerRenderContext(viewer_ptr, room_id);
-    ApplyEntranceRenderContext(room_id);
-
-    ConfigureViewerUndoHooks(viewer_ptr);
-
-    viewer->object_interaction().SetObjectPlacedCallback(
-        [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });
-
-    if (dungeon_editor_system_) {
-      viewer->SetEditorSystem(dungeon_editor_system_.get());
-    }
+    ConfigureEditableViewer(viewer_ptr);
     viewer->SetRoomNavigationCallback([this](int target_room) {
       if (target_room >= 0 && target_room < static_cast<int>(rooms_.size())) {
         OnRoomSelected(target_room);
@@ -2919,8 +2910,6 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->SetRoomSwapCallback([this](int old_room, int new_room) {
       SwapRoomInPanel(old_room, new_room);
     });
-    WireViewerPanelCallbacks(viewer.get());
-
     // Wire up pinning for room panels.
     if (dependencies_.window_manager) {
       std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
@@ -2929,20 +2918,30 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         if (dependencies_.window_manager) {
           dependencies_.window_manager->SetWindowPinned(card_id, pinned);
           // Sync state back to viewer in all panels showing this room
-          if (auto* v = GetViewerForRoom(room_id)) {
-            v->SetPinned(pinned);
+          if (auto* existing_viewer = room_viewers_.Get(room_id)) {
+            (*existing_viewer)->SetPinned(pinned);
           }
         }
       });
     }
 
     auto* stored = room_viewers_.Insert(room_id, std::move(viewer));
+    RefreshViewerRuntimeContext(stored->get(), room_id);
+    ApplyEntranceRenderContext(room_id);
     return stored->get();
   }
 }
 
-void DungeonEditorV2::RefreshWorkbenchViewerRuntimeContext(
-    DungeonCanvasViewer* viewer, int room_id) {
+void DungeonEditorV2::ConfigureEditableViewer(DungeonCanvasViewer* viewer) {
+  ConfigureViewerUndoHooks(viewer);
+  viewer->object_interaction().SetObjectPlacedCallback(
+      [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });
+  WireViewerPanelCallbacks(viewer);
+}
+
+void DungeonEditorV2::RefreshViewerRuntimeContext(DungeonCanvasViewer* viewer,
+                                                  int room_id,
+                                                  bool rebind_project) {
   if (!viewer) {
     return;
   }
@@ -2962,7 +2961,7 @@ void DungeonEditorV2::RefreshWorkbenchViewerRuntimeContext(
   ConfigureViewerRenderContext(viewer, room_id);
   viewer->SetEditorSystem(dungeon_editor_system_.get());
   viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
-  if (viewer->project() != dependencies_.project) {
+  if (rebind_project || viewer->project() != dependencies_.project) {
     viewer->SetProject(dependencies_.project);
   }
 }
@@ -2975,20 +2974,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->SetRoomDetailsExpanded(false);
     viewer->SetHeaderVisible(false);
     viewer->SetHeaderHiddenMetadataHudVisible(false);
-    viewer->SetRooms(&rooms_);
-    viewer->SetRenderer(renderer_);
-    viewer->SetCurrentPaletteGroup(current_palette_group_);
-    viewer->SetCurrentPaletteId(current_palette_id_);
-    viewer->SetGameData(game_data_);
-
-    ConfigureViewerUndoHooks(viewer);
-
-    viewer->object_interaction().SetObjectPlacedCallback(
-        [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });
-
-    if (dungeon_editor_system_) {
-      viewer->SetEditorSystem(dungeon_editor_system_.get());
-    }
+    ConfigureEditableViewer(viewer);
 
     // In workbench mode, arrow navigation swaps the current room without
     // changing window identities.
@@ -2998,12 +2984,10 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->SetRoomNavigationCallback([this](int target_room) {
       OnRoomSelected(target_room, /*request_focus=*/false);
     });
-
-    WireViewerPanelCallbacks(viewer);
   }
 
   auto* viewer = workbench_viewer_.get();
-  RefreshWorkbenchViewerRuntimeContext(viewer, current_room_id_);
+  RefreshViewerRuntimeContext(viewer, current_room_id_);
   return viewer;
 }
 
@@ -3014,30 +2998,15 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer(int room_id) {
     viewer->SetCompactHeaderMode(true);
     viewer->SetRoomDetailsExpanded(false);
     viewer->SetHeaderHiddenMetadataHudVisible(false);
-    viewer->SetRooms(&rooms_);
-    viewer->SetRenderer(renderer_);
-    viewer->SetCurrentPaletteGroup(current_palette_group_);
-    viewer->SetCurrentPaletteId(current_palette_id_);
-    viewer->SetGameData(game_data_);
-
     // Compare viewer is read-only by default: no object selection/mutation, but
     // still allows canvas pan/zoom.
     viewer->SetObjectInteractionEnabled(false);
     viewer->SetHeaderReadOnly(true);
     viewer->SetHeaderVisible(false);
-
-    if (dungeon_editor_system_) {
-      // Allows consistent rendering paths that depend on the editor system, but
-      // interaction is still disabled.
-      viewer->SetEditorSystem(dungeon_editor_system_.get());
-    }
-
-    viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
-    viewer->SetProject(dependencies_.project);
   }
 
   auto* viewer = workbench_compare_viewer_.get();
-  RefreshWorkbenchViewerRuntimeContext(viewer, room_id);
+  RefreshViewerRuntimeContext(viewer, room_id);
   viewer->SetObjectInteractionEnabled(false);
   viewer->SetHeaderReadOnly(true);
   viewer->SetHeaderVisible(false);

@@ -41,6 +41,10 @@ class WindowSidebar {
                                         bool dungeon_workbench_mode);
   static bool HasRenderableContext(const EditorContextSnapshot& snapshot);
 
+  // Render independently of sidebar visibility, using the current session's
+  // snapshot instead of retaining a copy of another session's context.
+  void DrawContextDetailsWindow(size_t session_id);
+
   void Draw(size_t session_id, const std::string& category,
             std::function<bool()> has_rom);
 
@@ -49,6 +53,8 @@ class WindowSidebar {
 
   void DrawEditorContext(size_t session_id, const std::string& category,
                          const EditorContextSnapshot& snapshot);
+  void DrawEditorContextDetails(size_t session_id,
+                                const EditorContextSnapshot& snapshot);
   void DispatchContextAction(size_t session_id,
                              const EditorContextAction& action);
 
@@ -59,6 +65,7 @@ class WindowSidebar {
   std::function<EditorContextSnapshot(const std::string&)> context_provider_;
   UserSettings* user_settings_ = nullptr;
   char sidebar_search_[256] = {};
+  std::string context_details_category_;
 };
 
 }  // namespace editor

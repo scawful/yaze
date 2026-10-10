@@ -31,6 +31,12 @@ struct DungeonOverlayControlSpec {
 const std::array<DungeonOverlayControlSpec, 13>&
 GetDungeonOverlayControlSpecs();
 
+// Shared by standalone rooms and the Workbench; visibility is viewer state.
+float DungeonLayerControlsWidth();
+void DrawDungeonLayerControls(DungeonCanvasViewer& viewer, int room_id,
+                              float height = 0.0f);
+void DrawDungeonOverlayControls(DungeonCanvasViewer& viewer);
+
 bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,
                                      DungeonOverlayControlId id);
 

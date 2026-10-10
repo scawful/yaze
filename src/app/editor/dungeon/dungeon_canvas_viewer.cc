@@ -379,8 +379,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   const auto frame_opts = BuildRoomCanvasFrameOptions();
   SyncCanvasConfigFromViewerState();
   zelda3::Room* active_room = PrepareActiveRoomForCanvasFrame(room_id);
-  DrawCompactLayerToggles(room_id);
-  if (minecart_track_panel_ && object_interaction_enabled_) {
+  if (header_visible_)
+    DrawCompactLayerToggles(room_id);
+  if (header_visible_ && minecart_track_panel_ && object_interaction_enabled_) {
     bool tracks = minecart_track_panel_->canvas_editing();
     if (ImGui::Checkbox("Tracks##canvas_tracks", &tracks)) {
       object_interaction_.HandleMouseRelease();

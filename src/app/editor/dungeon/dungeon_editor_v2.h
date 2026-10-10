@@ -442,10 +442,14 @@ class DungeonEditorV2 : public Editor {
 
   // Helper to get or create a viewer for a specific room
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
+  // An explicitly open room panel keeps its own viewer even while the
+  // Workbench is the active workflow (for example, a pinned room panel).
+  DungeonCanvasViewer* GetStandaloneViewerForRoom(int room_id);
   DungeonCanvasViewer* GetWorkbenchViewer();
   DungeonCanvasViewer* GetWorkbenchCompareViewer(int room_id);
-  void RefreshWorkbenchViewerRuntimeContext(DungeonCanvasViewer* viewer,
-                                            int room_id);
+  void RefreshViewerRuntimeContext(DungeonCanvasViewer* viewer, int room_id,
+                                   bool rebind_project = false);
+  void ConfigureEditableViewer(DungeonCanvasViewer* viewer);
   bool ConsumeRoomCanvasDeleteShortcut(DungeonCanvasViewer& viewer);
   void ExpireStaleRoomCanvasDeleteShortcut();
   void TouchViewerLru(int room_id);

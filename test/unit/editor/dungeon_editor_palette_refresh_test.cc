@@ -10,12 +10,14 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/workspace/room_matrix_content.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/widgets/palette_editor_widget.h"
 #include "app/platform/sdl_compat.h"
 #include "core/features.h"
+#include "core/project.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -46,6 +48,27 @@ void SeedPaletteGroup(gfx::PaletteGroup* group, int palette_count,
     }
     group->AddPalette(palette);
   }
+}
+
+void SeedPrivateObjectStream(Rom& rom) {
+  constexpr int kObjectTablePc = 0x0F8000;
+  constexpr int kObjectPc = 0x100000;
+  const auto write_pointer = [&rom](int address, int destination) {
+    const uint32_t snes = PcToSnes(destination);
+    for (int byte = 0; byte < 3; ++byte)
+      rom.mutable_data()[address + byte] = (snes >> (8 * byte)) & 0xFF;
+  };
+  write_pointer(zelda3::kRoomObjectPointer, kObjectTablePc);
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    write_pointer(kObjectTablePc + room_id * 3,
+                  kObjectPc + (room_id == 0 ? 0 : 0x100));
+  }
+  ASSERT_TRUE(rom.WriteVector(kObjectPc, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0,
+                                          0xFF, 0xFF, 0xFF})
+                  .ok());
+  ASSERT_TRUE(rom.WriteVector(kObjectPc + 0x100, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF,
+                                                  0xF0, 0xFF, 0xFF, 0xFF})
+                  .ok());
 }
 
 class ScopedWorkbenchFlag {
@@ -151,6 +174,10 @@ class DungeonEditorPaletteRefreshTestPeer {
     return editor.current_palette_;
   }
 
+  static uint64_t CurrentPaletteId(const DungeonEditorV2& editor) {
+    return editor.current_palette_id_;
+  }
+
   static DungeonCanvasViewer* GetViewerForRoom(DungeonEditorV2* editor,
                                                int room_id) {
     return editor->GetViewerForRoom(room_id);
@@ -158,6 +185,14 @@ class DungeonEditorPaletteRefreshTestPeer {
 
   static DungeonCanvasViewer* GetWorkbenchViewer(DungeonEditorV2* editor) {
     return editor->GetWorkbenchViewer();
+  }
+
+  static ObjectSelectorContent* ObjectSelector(DungeonEditorV2* editor) {
+    return editor->object_selector_panel_;
+  }
+
+  static void SelectRoom(DungeonEditorV2* editor, int room_id) {
+    editor->OnRoomSelected(room_id, /*request_focus=*/false);
   }
 
   static void SetCurrentRoomId(DungeonEditorV2* editor, int room_id) {
@@ -319,6 +354,98 @@ class DungeonEditorPaletteRefreshTest : public ::testing::Test {
   std::unique_ptr<DungeonEditorV2> editor_;
   zelda3::RoomLayerManager layer_manager_;
 };
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       WorkflowCycleRebindsPlacementPreviewAndPreservesUnsavedRoom) {
+  ScopedWorkbenchFlag workflow_mode(/*enabled=*/true);
+  ScopedImGuiTestContext imgui;
+  SeedPrivateObjectStream(rom_);
+  WorkspaceWindowManager windows;
+  windows.RegisterSession(0);
+  windows.SetActiveSession(0);
+  project::YazeProject first_project;
+  project::YazeProject replacement_project;
+
+  EditorDependencies deps;
+  deps.rom = &rom_;
+  deps.game_data = &game_data_;
+  deps.project = &first_project;
+  deps.window_manager = &windows;
+  auto editor = std::make_unique<DungeonEditorV2>(&rom_);
+  editor->SetGameData(&game_data_);
+  editor->SetDependencies(deps);
+  editor->Initialize();
+  ASSERT_TRUE(editor->Load().ok());
+  ASSERT_TRUE(editor->IsWorkbenchWorkflowEnabled());
+
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  const zelda3::RoomObject retained_object(0x01, 8, 8, 0, 0);
+  room.SetTileObjects({retained_object});
+  room.MarkObjectsDirty();
+  DungeonEditorPaletteRefreshTestPeer::SelectRoom(editor.get(), 0);
+
+  auto* selector =
+      DungeonEditorPaletteRefreshTestPeer::ObjectSelector(editor.get());
+  auto* workbench =
+      DungeonEditorPaletteRefreshTestPeer::GetWorkbenchViewer(editor.get());
+  ASSERT_NE(selector, nullptr);
+  ASSERT_NE(workbench, nullptr);
+  auto* initial_image = PrepareComposite(*workbench, 0);
+  ASSERT_NE(initial_image, nullptr);
+  const std::vector<uint8_t> initial_pixels = initial_image->vector();
+
+  selector->SelectObject(0x01);
+  ASSERT_NE(workbench->object_interaction().GetPlacementPreview(), nullptr);
+  selector->CancelPlacement();
+
+  editor->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
+  ASSERT_FALSE(editor->IsWorkbenchWorkflowEnabled());
+  auto* standalone =
+      DungeonEditorPaletteRefreshTestPeer::GetViewerForRoom(editor.get(), 0);
+  ASSERT_NE(standalone, nullptr);
+  ASSERT_NE(standalone, workbench);
+  EXPECT_EQ(standalone->project(), &first_project);
+  standalone->SetHeaderVisible(false);
+  standalone->SetEntranceRenderContext(-1, 0xEE);
+  deps.project = &replacement_project;
+  editor->SetDependencies(deps);
+  auto* refreshed_standalone =
+      DungeonEditorPaletteRefreshTestPeer::GetViewerForRoom(editor.get(), 0);
+  ASSERT_EQ(refreshed_standalone, standalone);
+  EXPECT_EQ(refreshed_standalone->project(), &replacement_project);
+  EXPECT_FALSE(refreshed_standalone->header_visible());
+  EXPECT_NE(refreshed_standalone->current_entrance_blockset(), 0xEE);
+  EXPECT_EQ(refreshed_standalone->current_entrance_blockset(),
+            room.render_entrance_blockset());
+  selector->SelectObject(0x02);
+  EXPECT_NE(standalone->object_interaction().GetPlacementPreview(), nullptr);
+  EXPECT_EQ(workbench->object_interaction().GetPlacementPreview(), nullptr);
+  ASSERT_NE(PrepareComposite(*standalone, 0), nullptr);
+  EXPECT_EQ(PrepareComposite(*standalone, 0)->vector(), initial_pixels);
+  selector->CancelPlacement();
+
+  editor->SetWorkbenchWorkflowMode(true, /*show_toast=*/false);
+  ASSERT_TRUE(editor->IsWorkbenchWorkflowEnabled());
+  EXPECT_EQ(
+      DungeonEditorPaletteRefreshTestPeer::GetWorkbenchViewer(editor.get())
+          ->project(),
+      &replacement_project);
+  imgui.NextFrame();
+  ImGui::Begin("WorkflowCycleHost");
+  const absl::Status update_status = editor->Update();
+  ImGui::End();
+  EXPECT_TRUE(update_status.ok()) << update_status;
+  selector->SelectObject(0x03);
+  EXPECT_NE(workbench->object_interaction().GetPlacementPreview(), nullptr);
+  ASSERT_NE(PrepareComposite(*workbench, 0), nullptr);
+  EXPECT_EQ(PrepareComposite(*workbench, 0)->vector(), initial_pixels);
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  EXPECT_EQ(room.GetTileObjects().front().id_, retained_object.id_);
+  EXPECT_EQ(room.GetTileObjects().front().x_, retained_object.x_);
+  EXPECT_EQ(room.GetTileObjects().front().y_, retained_object.y_);
+  EXPECT_TRUE(room.HasUnsavedChanges());
+}
 
 TEST_F(DungeonEditorPaletteRefreshTest,
        SharedHudEditRefreshesRoomUsingDifferentDungeonPalette) {
@@ -926,6 +1053,12 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   editor_->current_room_id_ = 0;
   editor_->current_entrance_id_ = 0;
   editor_->automatic_entrance_preview_ = false;
+  auto& primary_room = editor_->rooms_[0];
+  primary_room.SetLoaded(true);
+  primary_room.SetRenderEntranceBlockset(0xAA);
+  const auto primary_palette = primary_room.palette();
+  const auto primary_palette_id =
+      DungeonEditorPaletteRefreshTestPeer::CurrentPaletteId(*editor_);
   auto spawn_or = zelda3::DungeonSpawnPoint::Load(rom_, 0);
   ASSERT_TRUE(spawn_or.ok()) << spawn_or.status();
   editor_->spawn_points_[0] = *spawn_or;
@@ -937,6 +1070,8 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   ASSERT_NE(compare_viewer, nullptr);
   EXPECT_EQ(compare_viewer->current_entrance_id(), 0);
   EXPECT_EQ(compare_viewer->current_entrance_blockset(), kEntranceBlockset);
+  EXPECT_FALSE(compare_viewer->IsObjectInteractionEnabled());
+  EXPECT_TRUE(compare_viewer->header_read_only());
 
   compare_viewer = editor_->GetWorkbenchCompareViewer(kUnrelatedRoomId);
   ASSERT_NE(compare_viewer, nullptr);
@@ -947,6 +1082,12 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   editor_->spawn_points_[0].main_gfx = 4;
   compare_viewer = editor_->GetWorkbenchCompareViewer(kUnrelatedRoomId);
   EXPECT_EQ(compare_viewer->current_entrance_blockset(), 4);
+  EXPECT_FALSE(compare_viewer->IsObjectInteractionEnabled());
+  EXPECT_TRUE(compare_viewer->header_read_only());
+  EXPECT_EQ(primary_room.render_entrance_blockset(), 0xAA);
+  EXPECT_EQ(primary_room.palette(), primary_palette);
+  EXPECT_EQ(DungeonEditorPaletteRefreshTestPeer::CurrentPaletteId(*editor_),
+            primary_palette_id);
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
@@ -1527,6 +1668,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   ScopedWorkbenchFlag workflow_mode(/*enabled=*/true);
   ScopedImGuiTestContext imgui;
   imgui.NextFrame();
+  SeedPrivateObjectStream(rom_);
 
   // Give the wall its own palette row while the floor retains row zero. The
   // real parser and renderer must produce a visible difference after the click.
@@ -1562,6 +1704,10 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   const std::vector<uint8_t> before(composite->data(),
                                     composite->data() + composite->size());
   ::testing::NiceMock<yaze::test::MockRenderer> renderer;
+  auto retire_editor_outputs = absl::Cleanup([&] {
+    editor_.reset();
+    gfx::Arena::Get().DrainRetiredBitmaps(&renderer);
+  });
   int texture_storage = 0;
   const auto texture = static_cast<gfx::TextureHandle>(&texture_storage);
   EXPECT_CALL(renderer, CreateTexture).WillOnce(::testing::Return(texture));
@@ -1575,6 +1721,15 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   constexpr int kTileY = 12;
   ASSERT_TRUE(viewer->object_interaction().entity_coordinator().HandleClick(
       kTileX * 8, kTileY * 8));
+  EXPECT_TRUE(viewer->object_interaction()
+                  .entity_coordinator()
+                  .tile_handler()
+                  .mutation_status()
+                  .ok())
+      << viewer->object_interaction()
+             .entity_coordinator()
+             .tile_handler()
+             .mutation_status();
   ASSERT_EQ(room.GetTileObjects().size(), 1u);
   EXPECT_EQ(room.GetTileObjects().front().id_, kObjectId);
   EXPECT_EQ(room.GetTileObjects().front().x_, kTileX);
@@ -1600,9 +1755,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   gfx::Arena::Get().ProcessTextureQueue(&renderer);
   EXPECT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
 
-  // Release presentation-owned textures while the test renderer still exists.
-  editor_.reset();
-  gfx::Arena::Get().DrainRetiredBitmaps(&renderer);
+  // The cleanup releases presentation-owned textures before the renderer.
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,

@@ -78,6 +78,56 @@ These conventions override older `EditorCardManager`-centric examples when they 
      snapshot capture/restore for workflow pivots instead of custom one-off
      panel toggling sequences.
 
+### ImGui identity in repeated and reusable views
+
+An ImGui ID combines the current window, the explicit ID stack, and the widget
+label. Different table columns or rows do not create separate scopes. Repeated
+labels such as `Vanilla`, `Expanded`, or `Edit` therefore need an explicit model
+scope, even when a helper looks decorative: `gui::StatusBadge` submits a button.
+
+- Scope the **entire row**, including badges and context menus, by a stable model
+  key. For message rows, push the bank and message ID, then pop both after the
+  last column. Do not use a filtered row index, mutable display text, or a pointer
+  into a vector that can reallocate as persistent identity.
+- Give each panel instance its resolved session/window identity. When a reusable
+  view appears twice inside one window, its caller must push a distinct, stable
+  instance key around each invocation. A function call or `BeginGroup()` does not
+  add an ID scope.
+- Use `##role` for an invisible widget label and `visible###stable_key` when the
+  visible title changes while the identity must remain fixed. Repeated `##role`
+  labels still require distinct parent scopes. Keep every `PushID`/`PopID`
+  balanced across early returns.
+- Keep `ConfigDebugHighlightIdConflicts` enabled. Do not silence accidental
+  duplicates with `AllowDuplicateId`. Check the real draw path in multiple
+  frames, hover repeated widgets, and verify that filtering or moving rows keeps
+  the same logical item active and that clicks target the intended model.
+
+The Message List regression in `message_list_query_test.cc` draws actual
+`MessageListPanel` callbacks, checks ImGui's hovered-ID submission count for
+repeated bank badges, and verifies selection after filtered row positions change.
+A label-only assertion does not establish unique submitted IDs.
+
+### Shared Workbench and standalone controls
+
+Keep one control body for the same editing operation in both hosts. For example,
+`DrawDungeonLayerControls` serves the Workbench toolbar and standalone room
+chrome; `DrawDungeonEntityInspector` serves Workbench Inspect and the standalone
+Sprite Editor. Pass the current viewer/model and command callbacks
+explicitly. Each host owns its window/child layout and a distinct instance ID
+scope, rather than copying the controls or mutation logic.
+
+Keep editing data, dirty state, Undo history, and persistence in the shared
+editor/model. Zoom, pan, overlays, and selection may intentionally belong to each
+viewer, including distinct pinned room viewers. Refresh common ROM, project,
+graphics, and editor bindings through `RefreshViewerRuntimeContext`; do not
+create a second binding path for a new host. After an action can navigate or
+rebind the viewer, reacquire its model context before drawing further controls.
+
+Extract one duplicated surface at a time. Use explicit presentation options for
+layout differences, and verify both hosts plus simultaneous instances with real
+frames and actions. Consolidation should preserve each host's intended behavior
+without introducing a new general framework.
+
 ## 2. Card-Based Architecture
 
 ### Philosophy

@@ -139,6 +139,11 @@ ToolbarGeometry DrawWorstCaseToolbarGeometry(const char* child_id, float width,
   };
   params.on_request_dungeon_map = []() {
   };
+  params.draw_entrance_context = [](float width) {
+    ImGui::SetNextItemWidth(width);
+    if (ImGui::BeginCombo("##TestEntrance", "Auto: Goron Mines"))
+      ImGui::EndCombo();
+  };
   params.compare_search_buf = compare_search;
   params.compare_search_buf_size = sizeof(compare_search);
 
@@ -530,6 +535,76 @@ TEST_F(DungeonWorkbenchToolbarTest,
 
 namespace yaze::editor {
 namespace {
+TEST_F(DungeonWorkbenchToolbarTest, CompareAndLayersUseDirectActions) {
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0x10].SetLoaded(true);
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+  DungeonWorkbenchLayoutState layout;
+  int room = 0x10, previous = 0x11, compare = -1;
+  bool split = false;
+  char search[32] = {};
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &room;
+  params.previous_room_id = &previous;
+  params.compare_room_id = &compare;
+  params.split_view_enabled = &split;
+  params.primary_viewer = &viewer;
+  params.compare_search_buf = search;
+  params.compare_search_buf_size = sizeof(search);
+  const auto frame = [&] {
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1100, 400), ImGuiCond_Always);
+    ImGui::Begin("ToolbarHost");
+    gui::WidgetIdRegistry::Instance().Clear();
+    DungeonWorkbenchToolbar::Draw(params);
+  };
+  const auto click = [&](const char* name) {
+    bool found = false;
+    ImVec2 center;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label == name && widget.bounds.valid) {
+        found = true;
+        center = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                        (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+      }
+    }
+    ASSERT_TRUE(found) << name;
+    ImGui::GetIO().AddMousePosEvent(center.x, center.y);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    frame();
+  };
+  frame();
+  frame();
+  const bool bg1 = viewer.IsBG1Visible(room);
+  click("BG1");
+  EXPECT_EQ(viewer.IsBG1Visible(room), !bg1);
+  click("CompareMenuButton");
+  EXPECT_TRUE(split);
+  EXPECT_EQ(compare, previous);
+  EXPECT_TRUE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+  click("CompareMenuButton");
+  EXPECT_EQ(ImGui::GetCurrentContext()->OpenPopupStack.Size, 1);
+  bool list_found = false;
+  for (auto* window : ImGui::GetCurrentContext()->Windows)
+    if (window->Active && std::string(window->Name).find("CompareSearchList") !=
+                              std::string::npos)
+      list_found = true;
+  EXPECT_TRUE(list_found);
+  gui::WidgetIdRegistry::Instance().Clear();
+}
+
 TEST_F(DungeonWorkbenchToolbarTest, ViewOptionsExposeCrumbleFloorControl) {
   gui::WidgetIdRegistry::Instance().Clear();
   DungeonCanvasViewer viewer;

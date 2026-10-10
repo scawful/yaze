@@ -6,15 +6,12 @@
 
 #include "app/editor/system/workspace/editor_panel.h"
 
-struct ImVec4;
-
 namespace yaze {
 namespace zelda3 {
 class Sprite;
 }  // namespace zelda3
 namespace editor {
 
-struct AgentUITheme;
 class DungeonCanvasViewer;
 class DungeonRoomStore;
 
@@ -38,6 +35,7 @@ class SpriteEditorPanel : public WindowContent {
   std::string GetWorkflowGroup() const override;
 
   void Draw(bool* p_open) override;
+  void DrawInWorkbench();
 
   void SetCanvasViewer(DungeonCanvasViewer* viewer);
   void SetSpritePlacedCallback(
@@ -45,15 +43,13 @@ class SpriteEditorPanel : public WindowContent {
   void SetOpenSelectionInspectorCallback(std::function<void()> callback);
 
  private:
-  // These three stages follow the panel's visible top-to-bottom layout.
+  void DrawContent(bool show_room_sprites);
   void DrawPlacementControls();
-  void DrawSpriteSelector();
+  void DrawSpriteSelector(bool show_room_sprites);
   void DrawRoomSprites();
 
-  bool MatchesFilter(int sprite_id);
-  ImVec4 GetSpriteTypeColor(int sprite_id, const AgentUITheme& theme);
-  const char* GetSpriteTypeIcon(int sprite_id);
-  const char* GetSpriteCategoryName(int sprite_id);
+  std::string SpriteName(int sprite_id) const;
+  bool MatchesFilter(int sprite_id) const;
 
   int* current_room_id_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
@@ -61,9 +57,7 @@ class SpriteEditorPanel : public WindowContent {
 
   // Selection state
   int selected_sprite_id_ = 0;
-  int selected_category_ = 0;
   char search_filter_[64] = {0};
-  bool placement_mode_ = false;
 
   std::function<void(const zelda3::Sprite&)> sprite_placed_callback_;
   std::function<void()> open_selection_inspector_callback_;

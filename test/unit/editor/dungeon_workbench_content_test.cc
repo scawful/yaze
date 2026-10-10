@@ -18,8 +18,11 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
+#include "app/editor/dungeon/inspectors/door_editor_content.h"
 #include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
+#include "app/editor/dungeon/ui/window/item_editor_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/editor/dungeon/ui/window/sprite_editor_panel.h"
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
@@ -32,6 +35,7 @@
 #include "dungeon_workbench_test_peer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "rom/snes.h"
 #include "test_utils/expanded_entrance_fixture.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
@@ -112,7 +116,8 @@ class FakeWorkbenchToolContent final : public WindowContent {
   std::string GetDisplayName() const override { return "Fake Tool"; }
   std::string GetIcon() const override { return ""; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
-  void Draw(bool*) override {}
+  void Draw(bool*) override { ++draw_count; }
+  int draw_count = 0;
 
  private:
   std::string id_;
@@ -245,7 +250,8 @@ TEST(DungeonWorkbenchContentLayoutTest, KeepsNavigationWhenOnlyOnePaneFits) {
   EXPECT_FALSE(hide_both.show_right);
 }
 
-TEST(DungeonWorkbenchNavigatorUiTest, EntranceSelectorAboveToolsAndMatrix) {
+TEST(DungeonWorkbenchNavigatorUiTest,
+     PlacementLibrariesStaySeparateFromEntrances) {
   auto* previous_context = ImGui::GetCurrentContext();
   auto* context = ImGui::CreateContext();
   absl::Cleanup cleanup = [&] {
@@ -263,181 +269,100 @@ TEST(DungeonWorkbenchNavigatorUiTest, EntranceSelectorAboveToolsAndMatrix) {
   io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
   int room_id = 0;
   int entrance_slot = zelda3::kNumDungeonSpawnPoints;
-  int selected_slot = -1;
   std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> entrances;
   std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints> spawns;
-  entrances[entrance_slot].blockset_ = 4;
-  entrances[entrance_slot + 1].blockset_ = 10;
   DungeonEntrancesPanel entrance_panel(&entrances, &spawns, &entrance_slot,
-                                       [&](int slot) { selected_slot = slot; });
+                                       [](int) {});
   const std::deque<int> recent;
-  Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
-  DungeonRoomSelector room_selector(&rom);
-  DungeonWorkbenchContent content(
-      &room_selector, &room_id, [](int) {}, [](int, RoomSelectionIntent) {},
-      [](int) {}, [] {}, []() -> DungeonCanvasViewer* { return nullptr; },
-      [](int) -> DungeonCanvasViewer* { return nullptr; },
-      [&]() -> const std::deque<int>& { return recent; }, [](int) {},
-      [](bool) {}, &rom);
+  auto content = MakeWorkbenchForToolStateTests(room_id, recent);
   ImVector<int> active_rooms;
   RoomMatrixContent matrix(&room_id, &active_rooms, [](int) {});
-  FakeWorkbenchToolContent browser("dungeon.object_selector");
+  FakeWorkbenchToolContent objects("dungeon.object_selector");
+  FakeWorkbenchToolContent sprites("dungeon.sprite_editor");
+  FakeWorkbenchToolContent doors("dungeon.door_editor");
+  FakeWorkbenchToolContent items("dungeon.item_editor");
   content.SetNavigationPanels(&matrix, &entrance_panel);
-  content.SetEmbeddedEditorPanels(&browser, nullptr, nullptr, nullptr, nullptr,
+  content.SetEmbeddedEditorPanels(&objects, &doors, &sprites, &items, nullptr,
                                   nullptr);
-  WorkspaceWindowManager windows;
-  windows.RegisterSession(0);
-  windows.SetActiveSession(0);
-  bool matrix_visible = true;
-  WindowDescriptor descriptor;
-  descriptor.card_id = "dungeon.room_matrix";
-  descriptor.category = "Dungeon";
-  descriptor.visibility_flag = &matrix_visible;
-  windows.RegisterWindow(0, descriptor);
-  UserSettings settings;
-  settings.prefs().panel_layout_defaults_revision = 28;
-  settings.prefs().panel_visibility_state["Dungeon"] = {
-      {"dungeon.workbench", true}, {"dungeon.room_matrix", true}};
-  settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision);
-  windows.RestoreVisibilityState(
-      0, settings.prefs().panel_visibility_state["Dungeon"]);
-  EXPECT_FALSE(matrix_visible);
-  content.SetStandaloneToolCallbacks(
-      [&](const std::string& id) { return windows.IsWindowOpen(0, id); },
-      [](const std::string&) { return false; });
+  float host_width = 280;
   const auto frame = [&]() {
     gui::WidgetIdRegistry::Instance().Clear();
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(300, 720), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(host_width + 20, 640), ImGuiCond_Always);
     ImGui::Begin("NavigatorHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
-    DungeonWorkbenchContentTestPeer::DrawNavigator(content, 280, 660);
+    DungeonWorkbenchContentTestPeer::DrawNavigator(content, host_width, 600);
     ImGui::End();
     ImGui::Render();
   };
-  frame();
-  frame();
-  const auto find_widget = [](const std::string& label)
+  const auto widget = [](const char* label)
       -> std::optional<gui::WidgetIdRegistry::WidgetInfo> {
-    for (const auto& [path, widget] :
+    for (const auto& [path, info] :
          gui::WidgetIdRegistry::Instance().GetAllWidgets())
-      if (widget.label == gui::WidgetIdRegistry::NormalizeLabel(label))
-        return widget;
+      if (info.label == gui::WidgetIdRegistry::NormalizeLabel(label))
+        return info;
     return std::nullopt;
   };
-  // The production combo remains visible while both child panes are drawn.
-  auto combo = find_widget("Graphics entrance");
-  ASSERT_TRUE(combo.has_value());
-  const auto click = [&](const auto& widget) {
-    ASSERT_TRUE(widget.has_value());
-    const std::string label = widget->label;
-    io.AddMousePosEvent((widget->bounds.min_x + widget->bounds.max_x) * 0.5f,
-                        (widget->bounds.min_y + widget->bounds.max_y) * 0.5f);
+  const auto click = [&](const char* label) {
     frame();
-    // A newly opened combo can scroll its selected entrance into view on the
-    // next frame. Use the resulting input rectangle rather than stale bounds.
-    const auto settled = find_widget(label);
-    ASSERT_TRUE(settled.has_value());
-    io.AddMousePosEvent((settled->bounds.min_x + settled->bounds.max_x) * 0.5f,
-                        (settled->bounds.min_y + settled->bounds.max_y) * 0.5f);
+    const auto target = widget(label);
+    ASSERT_TRUE(target.has_value()) << label;
+    ASSERT_TRUE(target->visible);
+    io.AddMousePosEvent((target->bounds.min_x + target->bounds.max_x) / 2,
+                        (target->bounds.min_y + target->bounds.max_y) / 2);
     frame();
     io.AddMouseButtonEvent(0, true);
     frame();
     io.AddMouseButtonEvent(0, false);
     frame();
   };
-  click(combo);
-  frame();  // Let the newly opened popup settle before using its item bounds.
-  auto choice = find_widget("Entrance 01");
-  ASSERT_TRUE(choice.has_value());
-  click(choice);
-  EXPECT_EQ(selected_slot, zelda3::kNumDungeonSpawnPoints + 1);
-  EXPECT_EQ(entrance_slot, selected_slot);
-  EXPECT_EQ(entrances[zelda3::kNumDungeonSpawnPoints].blockset_, 4);
-  EXPECT_EQ(entrances[zelda3::kNumDungeonSpawnPoints + 1].blockset_, 10);
-  bool automatic = false;
-  entrance_panel.SetGraphicsPreview(
-      [&]() {
-        DungeonRenderContext render;
-        render.room_id = room_id;
-        render.owner_name = "Test dungeon";
-        render.entrance_slot = entrance_slot;
-        render.entrance_blockset = entrances[entrance_slot].blockset_;
-        render.source = automatic
-                            ? DungeonRenderContextSource::kInferredOwnerEntrance
-                            : DungeonRenderContextSource::kSelectedEntrance;
-        return render;
-      },
-      [&]() { return automatic; },
-      [&](int slot) {
-        automatic = slot == -1;
-        entrance_slot = automatic ? zelda3::kNumDungeonSpawnPoints : slot;
-      });
-  frame();
-  click(find_widget("Graphics entrance"));
-  frame();
-  const auto auto_choice = find_widget("Auto (follow room)");
-  ASSERT_TRUE(auto_choice.has_value());
-  click(auto_choice);
-  EXPECT_TRUE(automatic);
-  EXPECT_EQ(entrance_slot, zelda3::kNumDungeonSpawnPoints);
-  click(find_widget("Graphics entrance"));
-  frame();
-  click(find_widget("Entrance 01"));
-  EXPECT_FALSE(automatic);
-  EXPECT_EQ(entrance_slot, zelda3::kNumDungeonSpawnPoints + 1);
-  EXPECT_EQ(room_id, 0);
-  float tools_top = -1, matrix_top = -1, tools_bottom = -1;
-  for (ImGuiWindow* window : context->Windows) {
-    if (!window->Active)
-      continue;
-    const std::string name(window->Name);
-    if (name.find("/##NavigatorTools_") != std::string::npos) {
-      tools_top = window->Pos.y;
-      tools_bottom = window->Pos.y + window->Size.y;
+  for (float width : {260.0f, 320.0f}) {
+    host_width = width;
+    frame();
+    frame();
+    EXPECT_FALSE(widget("Graphics entrance").has_value());
+    EXPECT_FALSE(widget("Navigator Entrances").has_value());
+    for (const char* kind :
+         {"Place Objects", "Place Sprites", "Place Doors", "Place Items"}) {
+      const auto choice = widget(kind);
+      ASSERT_TRUE(choice.has_value()) << kind;
+      EXPECT_TRUE(choice->visible) << kind;
+      EXPECT_LT(choice->bounds.max_x, 20 + host_width + 20) << kind;
+      click(kind);
+      EXPECT_FALSE(content.IsToolInspectorActiveForTesting());
     }
-    if (name.find("/##NavigatorMatrix_") != std::string::npos) {
-      matrix_top = window->Pos.y;
-      EXPECT_EQ(window->ScrollMax.y, 0);
-      EXPECT_EQ(window->ScrollMax.x, 0);
-    }
-  }
-  EXPECT_GT(tools_top, combo->bounds.max_y);
-  EXPECT_GE(matrix_top, tools_bottom);
-  EXPECT_GT(tools_bottom, tools_top);
-  click(find_widget("Navigator Entrances"));
-  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "entrances");
-  click(find_widget("Navigator Objects"));
-  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "objects");
-  content.FocusEntranceBrowser();
-  frame();
-  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "entrances");
-  for (const float host_width : {1200.0f, 800.0f}) {
-    io.DisplaySize = ImVec2(host_width + 40, 800);
-    for (int settle = 0; settle < 2; ++settle) {
-      ImGui::NewFrame();
-      ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
-      ImGui::SetNextWindowSize(ImVec2(host_width, 720), ImGuiCond_Always);
-      ImGui::Begin("WholeWorkbench", nullptr, ImGuiWindowFlags_NoSavedSettings);
-      content.Draw(nullptr);
-      ImGui::End();
-      ImGui::Render();
-    }
-    float canvas_right = -1, navigator_left = -1;
+    EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "items");
+    float tools_bottom = -1, matrix_top = -1;
     for (ImGuiWindow* window : context->Windows) {
       if (!window->Active)
         continue;
       const std::string name(window->Name);
-      if (name.find("/##DungeonWorkbenchCanvas_") != std::string::npos)
-        canvas_right = window->Pos.x + window->Size.x;
-      if (name.find("/##DungeonWorkbenchSidebar_") != std::string::npos)
-        navigator_left = window->Pos.x;
+      if (name.find("/##NavigatorTools_") != std::string::npos)
+        tools_bottom = window->Pos.y + window->Size.y;
+      if (name.find("/##NavigatorMatrix_") != std::string::npos)
+        matrix_top = window->Pos.y;
     }
-    EXPECT_GT(canvas_right, 0) << host_width;
-    EXPECT_GE(navigator_left, canvas_right) << host_width;
+    EXPECT_GT(tools_bottom, 0);
+    EXPECT_GE(matrix_top, tools_bottom);
   }
+  EXPECT_GT(objects.draw_count, 0);
+  EXPECT_GT(sprites.draw_count, 0);
+  EXPECT_GT(doors.draw_count, 0);
+  EXPECT_GT(items.draw_count, 0);
+  int focused = 0;
+  content.SetStandaloneToolCallbacks(
+      [](const std::string& id) { return id == "dungeon.sprite_editor"; },
+      [&](const std::string&) {
+        ++focused;
+        return true;
+      });
+  const int sprite_draws = sprites.draw_count;
+  click("Place Sprites");
+  EXPECT_EQ(focused, 1);
+  EXPECT_EQ(sprites.draw_count, sprite_draws);
+  content.FocusEntranceBrowser();
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "inspect");
+  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "items");
 }
 
 // Exercise the real matrix drawing and its registered input rectangles. This
@@ -678,14 +603,6 @@ TEST(DungeonWorkbenchApplyScopeTest, SelectAllAndNoneIncludeEntrances) {
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
-     CompactInspectorDetailRequestResetsOutsideCompactLayout) {
-  EXPECT_FALSE(ResolveCompactInspectorDetailRequest(false, false));
-  EXPECT_FALSE(ResolveCompactInspectorDetailRequest(true, false));
-  EXPECT_TRUE(ResolveCompactInspectorDetailRequest(true, true));
-  EXPECT_FALSE(ResolveCompactInspectorDetailRequest(false, true));
-}
-
-TEST(DungeonWorkbenchContentLayoutTest,
      NavigatorDefaultsToObjectsAndKeepsMatrixBelow) {
   int current_room_id = 0;
   const std::deque<int> recent_rooms;
@@ -694,7 +611,7 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_TRUE(content.IsInspectorOnLeft());
   EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "objects");
   content.FocusEntranceBrowser();
-  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "entrances");
+  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "objects");
   content.FocusRoomMatrix();
   EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "objects");
 }
@@ -862,6 +779,479 @@ class DungeonWorkbenchPlacementUiTest
       MakeWorkbenchForToolStateTests(room_id_, recent_);
 };
 
+class DungeonWorkbenchResetUiTest : public DungeonWorkbenchObjectSizeUiTest {
+ protected:
+  void SetUp() override {
+    DungeonWorkbenchObjectSizeUiTest::SetUp();
+    ImGui::GetIO().ConfigInputTrickleEventQueue = false;
+    rooms_[0].SetLoaded(true);
+    viewer_.RefreshRomBackedState(nullptr, nullptr, &rooms_, 0);
+    viewer_.SetProject(&project_);
+    project_.resource_labels["sprite"]["1"] = "Oracle test guard";
+    doors_.SetRooms(&rooms_);
+    doors_.SetCurrentRoom(room_id_);
+    doors_.SetCanvasViewer(&viewer_);
+    content_.SetEmbeddedEditorPanels(nullptr, &doors_, &sprites_, &items_,
+                                     nullptr, &palette_);
+    content_.SetEmbeddedToolPanels(nullptr, nullptr, nullptr, &tracks_);
+  }
+
+  void Frame() {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width_ + 20, 640), ImGuiCond_Always);
+    ImGui::Begin("ResetHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
+    ImGui::GetCurrentContext()->LogDepthToExpand = 0;
+    if (standalone_content_)
+      standalone_content_->Draw(nullptr);
+    else if (show_standalone_sprites_)
+      sprites_.Draw(nullptr);
+    else if (show_library_)
+      DungeonWorkbenchContentTestPeer::DrawNavigator(content_, width_, 600);
+    else
+      DungeonWorkbenchContentTestPeer::DrawInspectorPane(content_, viewer_,
+                                                         width_, 600, true);
+    text_ = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> Find(const char* name) {
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets())
+      if (widget.label == gui::WidgetIdRegistry::NormalizeLabel(name))
+        return widget;
+    return std::nullopt;
+  }
+
+  void Click(const char* name) {
+    Frame();
+    const auto widget = Find(name);
+    ASSERT_TRUE(widget.has_value()) << name;
+    ASSERT_TRUE(widget->visible) << name;
+    ASSERT_TRUE(widget->enabled) << name;
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((widget->bounds.min_x + widget->bounds.max_x) / 2,
+                        (widget->bounds.min_y + widget->bounds.max_y) / 2);
+    Frame();
+    io.AddMouseButtonEvent(0, true);
+    Frame();
+    io.AddMouseButtonEvent(0, false);
+    Frame();
+  }
+
+  int room_id_ = 0;
+  std::deque<int> recent_;
+  DungeonRoomStore rooms_;
+  DungeonCanvasViewer viewer_;
+  project::YazeProject project_;
+  SpriteEditorPanel sprites_{&room_id_, &rooms_, &viewer_};
+  DoorEditorContent doors_;
+  ItemEditorPanel items_{&room_id_, &rooms_, &viewer_};
+  WindowContent* standalone_content_ = nullptr;
+  FakeWorkbenchToolContent palette_{"dungeon.palette_editor"};
+  MinecartTrackEditorPanel tracks_;
+  DungeonWorkbenchContent content_{
+      nullptr,
+      &room_id_,
+      [](int) {},
+      [](int, RoomSelectionIntent) {},
+      [](int) {},
+      [] {},
+      [this] { return &viewer_; },
+      [](int) -> DungeonCanvasViewer* { return nullptr; },
+      [this]() -> const std::deque<int>& { return recent_; },
+      [](int) {},
+      [](bool) {}};
+  float width_ = 260;
+  bool show_library_ = false;
+  bool show_standalone_sprites_ = false;
+  std::string text_;
+};
+
+TEST_F(DungeonWorkbenchResetUiTest,
+       SpriteLibraryUsesNamesAndRealPlacementWithoutStaleMode) {
+  show_library_ = true;
+  for (float width : {260.0f, 320.0f}) {
+    width_ = width;
+    Frame();
+    Frame();
+    Click("Place Sprites");
+    EXPECT_FALSE(content_.IsToolInspectorActiveForTesting());
+    EXPECT_NE(text_.find("Oracle test guard"), std::string::npos);
+    auto search = Find("sprite_search");
+    ASSERT_TRUE(search.has_value());
+    EXPECT_TRUE(search->visible);
+    EXPECT_LT(search->bounds.max_x, 20 + width + 20);
+    if (width == 260.0f) {
+      Click("sprite_search");
+      ImGui::GetIO().AddInputCharactersUTF8("Oracle");
+      Frame();
+      EXPECT_TRUE(Find("place_sprite_01").has_value());
+      EXPECT_FALSE(Find("place_sprite_00").has_value());
+    }
+    Click("place_sprite_01");
+    auto& interaction = viewer_.object_interaction();
+    ASSERT_TRUE(interaction.IsSpritePlacementActive());
+    EXPECT_EQ(interaction.entity_coordinator().sprite_handler().GetSpriteId(),
+              1);
+    const size_t before = rooms_[0].GetSprites().size();
+    EXPECT_TRUE(
+        interaction.entity_coordinator().sprite_handler().HandleClick(32, 48));
+    ASSERT_EQ(rooms_[0].GetSprites().size(), before + 1);
+    EXPECT_EQ(rooms_[0].GetSprites().back().id(), 1);
+    EXPECT_EQ(rooms_[0].GetSprites().back().x(), 2);
+    EXPECT_EQ(rooms_[0].GetSprites().back().y(), 3);
+    Click("finish_sprite_placement");
+    EXPECT_FALSE(interaction.IsSpritePlacementActive());
+    Frame();
+    EXPECT_FALSE(Find("finish_sprite_placement").has_value());
+    Click("place_sprite_01");
+    interaction.CancelPlacement();  // Same cancellation used by canvas Escape.
+    Frame();
+    EXPECT_FALSE(Find("finish_sprite_placement").has_value());
+    viewer_.SetHeaderReadOnly(true);
+    Frame();
+    auto choice = Find("place_sprite_01");
+    ASSERT_TRUE(choice.has_value());
+    EXPECT_FALSE(choice->enabled);
+    viewer_.SetHeaderReadOnly(false);
+  }
+  EXPECT_EQ(ImGui::GetCurrentContext()->StyleVarStack.Size, 0);
+  EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
+}
+
+TEST_F(DungeonWorkbenchResetUiTest,
+       DoorAndItemWorkbenchLibrariesExcludeStandaloneSelectedFields) {
+  rooms_[0].GetDoors().push_back(zelda3::Room::Door::FromRomBytes(0x10, 0x00));
+  rooms_[0].GetPotItems().push_back(zelda3::PotItem{0x2714, 0x09});
+  for (float width : {260.0f, 320.0f}) {
+    width_ = width;
+    for (EntityType type : {EntityType::Door, EntityType::Item}) {
+      SCOPED_TRACE(width);
+      SCOPED_TRACE(static_cast<int>(type));
+      const bool door = type == EntityType::Door;
+      const char* picker = door ? "place_door_00" : "place_item_00";
+      const char* raw =
+          door ? "selected_door_raw_type" : "selected_item_raw_type";
+      const char* row = door ? "door_row_0" : "item_row_0";
+      viewer_.object_interaction().SelectEntity(type, 0);
+      show_library_ = true;
+      standalone_content_ = nullptr;
+      Frame();
+      Frame();
+      Click(door ? "Place Doors" : "Place Items");
+      ASSERT_TRUE(Find(picker).has_value());
+      EXPECT_TRUE(Find(picker)->visible);
+      EXPECT_TRUE(Find(picker)->enabled);
+      for (const auto& [path, widget] :
+           gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+        if (widget.visible &&
+            widget.label.starts_with(door ? "place_door_" : "place_item_"))
+          EXPECT_LE(widget.bounds.max_x, 20 + width + 20);
+      }
+      EXPECT_FALSE(Find(raw).has_value());
+      EXPECT_FALSE(Find(row).has_value());
+      Click(picker);
+      EXPECT_TRUE(door ? viewer_.object_interaction().IsDoorPlacementActive()
+                       : viewer_.object_interaction().IsItemPlacementActive());
+      viewer_.object_interaction().CancelPlacement();
+      viewer_.object_interaction().SelectEntity(type, 0);
+
+      standalone_content_ = door ? static_cast<WindowContent*>(&doors_)
+                                 : static_cast<WindowContent*>(&items_);
+      Frame();
+      Frame();
+      ASSERT_TRUE(Find(raw).has_value());
+      EXPECT_TRUE(Find(raw)->visible);
+      EXPECT_TRUE(Find(raw)->enabled);
+      EXPECT_TRUE(Find(row).has_value());
+      EXPECT_LT(Find(raw)->bounds.max_x, 20 + width + 20);
+      viewer_.SetHeaderReadOnly(true);
+      Frame();
+      ASSERT_TRUE(Find(raw).has_value());
+      ASSERT_TRUE(Find(picker).has_value());
+      EXPECT_FALSE(Find(raw)->enabled);
+      EXPECT_FALSE(Find(picker)->enabled);
+      viewer_.SetHeaderReadOnly(false);
+      viewer_.SetObjectInteractionEnabled(false);
+      Frame();
+      ASSERT_TRUE(Find(raw).has_value());
+      EXPECT_FALSE(Find(raw)->enabled);
+      viewer_.SetObjectInteractionEnabled(true);
+
+      // The panel must not reuse another canvas room's selected index.
+      viewer_.object_interaction().SetCurrentRoom(&rooms_, 1);
+      Frame();
+      EXPECT_FALSE(Find(raw).has_value());
+      ASSERT_TRUE(Find(picker).has_value());
+      EXPECT_FALSE(Find(picker)->enabled);
+      viewer_.object_interaction().SetCurrentRoom(&rooms_, 0);
+    }
+  }
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_FALSE(rooms_[0].pot_items_dirty());
+  EXPECT_EQ(ImGui::GetCurrentContext()->StyleVarStack.Size, 0);
+  EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
+}
+
+TEST_F(DungeonWorkbenchResetUiTest,
+       StandaloneRawTypesKeepExistingMutationsAndRejectReadOnlyCommit) {
+  rooms_[0].GetDoors().push_back(zelda3::Room::Door::FromRomBytes(0x10, 0x00));
+  rooms_[0].GetPotItems().push_back(zelda3::PotItem{0x2714, 0x09});
+  int mutations = 0;
+  viewer_.object_interaction().SetMutationCallback([&] { ++mutations; });
+  const auto enter = [&] {
+    ImGui::GetIO().AddKeyEvent(ImGuiKey_Enter, true);
+    Frame();
+    ImGui::GetIO().AddKeyEvent(ImGuiKey_Enter, false);
+    Frame();
+  };
+  for (EntityType type : {EntityType::Door, EntityType::Item}) {
+    const bool door = type == EntityType::Door;
+    const char* raw =
+        door ? "selected_door_raw_type" : "selected_item_raw_type";
+    standalone_content_ = door ? static_cast<WindowContent*>(&doors_)
+                               : static_cast<WindowContent*>(&items_);
+    viewer_.object_interaction().SelectEntity(type, 0);
+    Frame();
+    Frame();
+    const auto before_door = rooms_[0].GetDoors().front();
+    const auto before_item = rooms_[0].GetPotItems().front();
+    const int before_mutations = mutations;
+    Click(raw);
+    ImGui::GetIO().AddInputCharactersUTF8("0A");
+    Frame();
+    EXPECT_EQ(mutations, before_mutations);
+    enter();
+    EXPECT_EQ(mutations, before_mutations + 1);
+    if (door) {
+      EXPECT_EQ(static_cast<uint8_t>(rooms_[0].GetDoors().front().type), 0x0A);
+      EXPECT_EQ(rooms_[0].GetDoors().front().direction, before_door.direction);
+      EXPECT_EQ(rooms_[0].GetDoors().front().position, before_door.position);
+    } else {
+      EXPECT_EQ(rooms_[0].GetPotItems().front().item, 0x0A);
+      EXPECT_EQ(rooms_[0].GetPotItems().front().position, before_item.position);
+    }
+    Click(raw);
+    ImGui::GetIO().AddInputCharactersUTF8("02");
+    Frame();
+    viewer_.SetHeaderReadOnly(true);
+    enter();
+    EXPECT_EQ(mutations, before_mutations + 1);
+    EXPECT_EQ(door ? static_cast<uint8_t>(rooms_[0].GetDoors().front().type)
+                   : rooms_[0].GetPotItems().front().item,
+              0x0A);
+    viewer_.SetHeaderReadOnly(false);
+  }
+  viewer_.object_interaction().SetMutationCallback({});
+}
+
+TEST_F(DungeonWorkbenchResetUiTest,
+       StandaloneAndWorkbenchShareSelectedSpriteFieldsAndMutationGuards) {
+  rooms_[0].GetSprites().emplace_back(1, 2, 3, 2, 0);
+  rooms_[0].GetSprites().front().set_key_drop(1);
+  rooms_[0].GetSprites().emplace_back(2, 7, 8, 3, 1);
+  auto& interaction = viewer_.object_interaction();
+  interaction.SelectEntity(EntityType::Sprite, 0);
+  int mutations = 0;
+  int entity_changes = 0;
+  interaction.SetMutationCallback([&] { ++mutations; });
+  interaction.SetEntityChangedCallback([&] { ++entity_changes; });
+  auto& handler = interaction.entity_coordinator().sprite_handler();
+
+  for (float width : {260.0f, 320.0f}) {
+    width_ = width;
+    for (bool standalone : {false, true}) {
+      SCOPED_TRACE(width);
+      SCOPED_TRACE(standalone);
+      show_standalone_sprites_ = standalone;
+      Frame();
+      Frame();
+      EXPECT_NE(text_.find("Oracle test guard"), std::string::npos);
+      for (const char* field :
+           {"SpriteId", "SpriteX", "SpriteY", "SpriteSubtype", "SpriteLayer",
+            "SpriteKeyDrop"}) {
+        const auto widget = Find(field);
+        ASSERT_TRUE(widget.has_value()) << field;
+        EXPECT_TRUE(widget->visible) << field;
+        EXPECT_TRUE(widget->enabled) << field;
+        EXPECT_GE(widget->bounds.min_x, 20);
+        EXPECT_LE(widget->bounds.max_x, 20 + width + 20);
+        int count = 0;
+        for (const auto& [path, registered] :
+             gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+          if (registered.label ==
+              gui::WidgetIdRegistry::NormalizeLabel(field)) {
+            ++count;
+            EXPECT_NE(path.find("Dungeon/EntityInspector/"), std::string::npos);
+          }
+        }
+        EXPECT_EQ(count, 1) << field;
+      }
+      EXPECT_FALSE(Find("selected_sprite_x").has_value());
+      EXPECT_FALSE(Find("selected_sprite_y").has_value());
+      const int before_x = rooms_[0].GetSprites().front().x();
+      const int before_mutations = mutations;
+      Click("SpriteXIncrease");
+      EXPECT_EQ(rooms_[0].GetSprites().front().x(), before_x + 1);
+      EXPECT_EQ(rooms_[0].GetSprites().front().y(), 3);
+      EXPECT_EQ(rooms_[0].GetSprites().front().id(), 1);
+      EXPECT_EQ(rooms_[0].GetSprites().front().subtype(), 2);
+      EXPECT_EQ(rooms_[0].GetSprites().front().layer(), 0);
+      EXPECT_EQ(rooms_[0].GetSprites().front().key_drop(), 1);
+      EXPECT_EQ(rooms_[0].GetSprites()[1].x(), 7);
+      EXPECT_EQ(mutations, before_mutations + 1);
+      EXPECT_EQ(entity_changes, mutations);
+      EXPECT_TRUE(rooms_[0].sprites_dirty());
+
+      // A rejected save/storage preflight must be identical in both hosts.
+      int preflights = 0;
+      handler.SetSpriteMutationPreflight(
+          [&](int room, const std::vector<zelda3::Sprite>& proposed) {
+            ++preflights;
+            EXPECT_EQ(room, 0);
+            EXPECT_EQ(proposed.front().x(), before_x + 2);
+            return absl::FailedPreconditionError("fixture storage rejection");
+          });
+      Click("SpriteXIncrease");
+      EXPECT_EQ(preflights, 1);
+      EXPECT_EQ(rooms_[0].GetSprites().front().x(), before_x + 1);
+      EXPECT_EQ(mutations, before_mutations + 1);
+      EXPECT_FALSE(handler.mutation_status().ok());
+      handler.SetSpriteMutationPreflight({});
+
+      viewer_.SetHeaderReadOnly(true);
+      Frame();
+      for (const char* field :
+           {"SpriteId", "SpriteX", "SpriteY", "SpriteSubtype", "SpriteLayer",
+            "SpriteKeyDrop"}) {
+        ASSERT_TRUE(Find(field).has_value());
+        EXPECT_FALSE(Find(field)->enabled) << field;
+      }
+      viewer_.SetHeaderReadOnly(false);
+    }
+  }
+  EXPECT_EQ(ImGui::GetCurrentContext()->StyleVarStack.Size, 0);
+  EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
+}
+
+TEST_F(DungeonWorkbenchResetUiTest,
+       CompactInspectFollowsSelectionAndAlwaysDrawsRoomFields) {
+  rooms_[0].GetSprites().emplace_back(1, 2, 3, 0, 0);
+  for (float width : {260.0f, 320.0f}) {
+    width_ = width;
+    viewer_.object_interaction().SelectEntity(EntityType::Sprite, 0);
+    Frame();
+    Frame();
+    ASSERT_TRUE(Find("SpriteX").has_value());
+    EXPECT_TRUE(Find("SpriteX")->visible);
+    for (const char* field : {"RoomHeaderTag1", "RoomHeaderTag2",
+                              "RoomHeaderPalette", "RoomHeaderCollision"})
+      EXPECT_TRUE(Find(field).has_value()) << field;
+    for (const char* old_mode :
+         {"mode_room", "mode_selection", "mode_tools", "room_id"})
+      EXPECT_FALSE(Find(old_mode).has_value()) << old_mode;
+    viewer_.object_interaction().ClearEntitySelection();
+    Frame();
+    EXPECT_FALSE(Find("SpriteX").has_value());
+    ASSERT_TRUE(Find("RoomHeaderTag1").has_value());
+    EXPECT_TRUE(Find("RoomHeaderTag1")->visible);
+  }
+  EXPECT_FALSE(rooms_[0].header_dirty());
+  EXPECT_FALSE(rooms_[0].sprites_dirty());
+}
+
+TEST_F(DungeonWorkbenchResetUiTest, ToolsMenuAndBackReleaseRailEditing) {
+  // Opening the real tool audits materialized rooms through their lazy object
+  // and sprite loaders. SetLoaded alone does not initialize those domains.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  constexpr int kObjectTable = 0x0F8000;
+  constexpr int kObjectStream = 0x100000;
+  constexpr int kSpriteTable = 0x048000;
+  constexpr int kSpriteStream = 0x049000;
+  const auto write_long = [&](int pc, uint32_t value) {
+    rom.mutable_data()[pc] = value & 0xFF;
+    rom.mutable_data()[pc + 1] = (value >> 8) & 0xFF;
+    rom.mutable_data()[pc + 2] = (value >> 16) & 0xFF;
+  };
+  write_long(zelda3::kRoomObjectPointer, PcToSnes(kObjectTable));
+  ASSERT_TRUE(rom.WriteWord(zelda3::kRoomsSpritePointer,
+                            static_cast<uint16_t>(PcToSnes(kSpriteTable)))
+                  .ok());
+  for (int room = 0; room < zelda3::kNumberOfRooms; ++room) {
+    write_long(kObjectTable + room * 3, PcToSnes(kObjectStream));
+    ASSERT_TRUE(rom.WriteWord(kSpriteTable + room * 2,
+                              static_cast<uint16_t>(PcToSnes(kSpriteStream)))
+                    .ok());
+  }
+  const auto track =
+      zelda3::RoomObject(0x31, 10, 10, 0, 0).EncodeObjectToBytes();
+  ASSERT_TRUE(rom.WriteVector(kObjectStream,
+                              {0x00, 0x00, track.b1, track.b2, track.b3, 0xFF,
+                               0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+                  .ok());
+  ASSERT_TRUE(
+      rom.WriteVector(kSpriteStream, {0x00, 0x05, 0x05, 0xA3, 0xFF}).ok());
+  rooms_.SetRom(&rom);
+  ASSERT_FALSE(rooms_[0].AreObjectsLoaded());
+  ASSERT_FALSE(rooms_[0].AreSpritesLoaded());
+  const auto root = MakeTempProjectRoot();
+  std::filesystem::create_directories(root);
+  absl::Cleanup cleanup = [&] {
+    tracks_.DetachRuntimeContext();
+    rooms_.SetRom(nullptr);
+    std::error_code error;
+    std::filesystem::remove_all(root, error);
+  };
+  project_.filepath = (root / "tracks.yaze").string();
+  std::ofstream(project_.filepath) << "name=Track test\n";
+  ASSERT_TRUE(project_.hack_manifest
+                  .LoadFromString(R"json({
+    "manifest_version": 3,
+    "minecart_tracks": {"source": {"format": "yaze-minecart-track-table",
+      "version": 1, "path": "tracks.asm"}}
+  })json")
+                  .ok());
+  {
+    std::ofstream source(root / "tracks.asm");
+    for (const char* label :
+         {".TrackStartingRooms", ".TrackStartingX", ".TrackStartingY"}) {
+      source << label << "\n";
+      for (int i = 0; i < 32; ++i)
+        source << "  dw $0000\n";
+    }
+  }
+  tracks_.SetRooms(&rooms_);
+  ASSERT_TRUE(tracks_.SetProject(&project_).ok());
+  Frame();
+  Frame();
+  Click("tool_picker");
+  Click("tool_minecart");
+  ASSERT_TRUE(content_.IsToolInspectorActiveForTesting());
+  EXPECT_TRUE(tracks_.canvas_editing());
+  EXPECT_TRUE(rooms_[0].AreObjectsLoaded());
+  EXPECT_TRUE(rooms_[0].AreSpritesLoaded());
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetTileObjects().front().id_, 0x31);
+  ASSERT_EQ(rooms_[0].GetSprites().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetSprites().front().id(), 0xA3);
+  tracks_.set_collision_stamping(true);
+  Click("back_to_inspect");
+  Frame();
+  EXPECT_FALSE(content_.IsToolInspectorActiveForTesting());
+  EXPECT_FALSE(tracks_.canvas_editing());
+  EXPECT_FALSE(tracks_.collision_stamping());
+  ASSERT_TRUE(Find("RoomHeaderTag1").has_value());
+  EXPECT_TRUE(Find("RoomHeaderTag1")->visible);
+  EXPECT_EQ(ImGui::GetCurrentContext()->StyleVarStack.Size, 0);
+  EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
+}
+
 TEST_F(DungeonWorkbenchPlacementUiTest,
        DefaultPlacementSelectsResultAndPlaceAnotherRestoresPreviewControls) {
   auto& interaction = viewer_.object_interaction();
@@ -876,12 +1266,12 @@ TEST_F(DungeonWorkbenchPlacementUiTest,
   ASSERT_TRUE(interaction.entity_coordinator().tile_handler().PlaceObjectAt(
       0, preview, 12, 14));
   DrawInspectorFrame();
-  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "selection");
+  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "inspect");
   ASSERT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>{0});
   EXPECT_EQ(interaction.GetPlacementPreview(), nullptr);
   ClickInspector("button:place_another");
   DrawInspectorFrame();
-  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "selection");
+  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "inspect");
   EXPECT_STREQ(content_.GetSidebarModeIdForTesting(), "objects");
   ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
   EXPECT_EQ(interaction.GetPlacementPreview()->size_, preview.size_);
@@ -905,13 +1295,13 @@ TEST_F(DungeonWorkbenchPlacementUiTest,
   DrawInspectorFrame();
   ASSERT_TRUE(handler.PlaceObjectAt(0, preview, 16, 18));
   DrawInspectorFrame();
-  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "selection");
+  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "inspect");
   EXPECT_STREQ(content_.GetSidebarModeIdForTesting(), "objects");
   ASSERT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>{1});
   ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
   ClickInspector("button:finish_placement");
   DrawInspectorFrame();
-  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "selection");
+  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "inspect");
   EXPECT_EQ(interaction.GetPlacementPreview(), nullptr);
   EXPECT_EQ(rooms_[0].GetTileObjects().size(), 2);
   EXPECT_EQ(ImGui::GetCurrentContext()->StyleVarStack.Size, 0);
@@ -1477,11 +1867,12 @@ TEST(DungeonWorkbenchContentLayoutTest, ToolRequestsOpenEmbeddedInspector) {
   const std::deque<int> recent_rooms;
   auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
 
-  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "room");
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "inspect");
 
   content.OpenDoorTool();
-  EXPECT_TRUE(content.IsToolInspectorActiveForTesting());
-  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools");
+  EXPECT_FALSE(content.IsToolInspectorActiveForTesting());
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "inspect");
+  EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "doors");
   EXPECT_STREQ(content.GetActiveToolIdForTesting(), "door");
 
   content.OpenPaletteTool();
@@ -1491,7 +1882,7 @@ TEST(DungeonWorkbenchContentLayoutTest, ToolRequestsOpenEmbeddedInspector) {
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
-     ToolPickerCyclesAllToolsWithoutLeavingInspector) {
+     SpecialtyToolsRemainTemporaryInspectorContexts) {
   // The sidebar's compact picker calls Open*Tool() rapidly as users hop
   // between tools. Switching active tools must keep the inspector in Tools
   // mode, and re-opening the same tool must remain a no-op on mode.
@@ -1504,9 +1895,6 @@ TEST(DungeonWorkbenchContentLayoutTest,
     const char* expected_id;
   };
   const Step steps[] = {
-      {&DungeonWorkbenchContent::OpenDoorTool, "door"},
-      {&DungeonWorkbenchContent::OpenSpriteTool, "sprite"},
-      {&DungeonWorkbenchContent::OpenItemTool, "item"},
       {&DungeonWorkbenchContent::OpenPaletteTool, "palette"},
       {&DungeonWorkbenchContent::OpenRoomGraphicsTool, "room_graphics"},
       {&DungeonWorkbenchContent::OpenRoomTagsTool, "room_tags"},
@@ -1536,9 +1924,9 @@ TEST(DungeonWorkbenchContentLayoutTest,
   int current_room_id = 0x011;
   const std::deque<int> recent_rooms;
   auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
-  FakeWorkbenchToolContent door_editor("dungeon.door_editor");
-  content.SetEmbeddedEditorPanels(nullptr, &door_editor, nullptr, nullptr,
-                                  nullptr, nullptr);
+  FakeWorkbenchToolContent palette_editor("dungeon.palette_editor");
+  content.SetEmbeddedEditorPanels(nullptr, nullptr, nullptr, nullptr, nullptr,
+                                  &palette_editor);
 
   std::string opened_window_id;
   content.SetStandaloneToolCallbacks([](const std::string&) { return false; },
@@ -1547,13 +1935,13 @@ TEST(DungeonWorkbenchContentLayoutTest,
                                        return true;
                                      });
 
-  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "room");
-  content.OpenDoorTool();
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "inspect");
+  content.OpenPaletteTool();
   ASSERT_TRUE(content.IsToolInspectorActiveForTesting());
   EXPECT_TRUE(content.PopOutActiveTool());
-  EXPECT_EQ(opened_window_id, "dungeon.door_editor");
+  EXPECT_EQ(opened_window_id, "dungeon.palette_editor");
   EXPECT_FALSE(content.IsToolInspectorActiveForTesting());
-  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "room");
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "inspect");
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
@@ -1579,7 +1967,7 @@ TEST(DungeonWorkbenchContentLayoutTest,
       });
 
   content.FocusSelectionInspector();
-  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "selection");
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "inspect");
   content.OpenObjectSelectorTool();
   ASSERT_FALSE(content.IsToolInspectorActiveForTesting());
   EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "objects");
@@ -1587,7 +1975,7 @@ TEST(DungeonWorkbenchContentLayoutTest,
   standalone_open = true;
   content.OpenObjectSelectorTool();
   EXPECT_FALSE(content.IsToolInspectorActiveForTesting());
-  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "selection");
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "inspect");
   EXPECT_EQ(focus_count, 1);
   EXPECT_EQ(focused_window_id, "dungeon.object_selector");
 }

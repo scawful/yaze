@@ -1515,7 +1515,10 @@ void MessageEditor::DrawMessageList() {
       const bool selected = row == target_row;
       ImGui::TableNextRow();
       TableNextColumn();
-      ImGui::PushID(row);
+      // Scope every interactive cell, including repeated bank badges, by the
+      // message identity so filtering does not transfer IDs between rows.
+      ImGui::PushID(message.expanded ? "expanded" : "vanilla");
+      ImGui::PushID(message.display_id);
       char id_label[16];
       std::snprintf(id_label, sizeof(id_label), "$%04X",
                     message.display_id & 0xFFFF);
@@ -1559,8 +1562,6 @@ void MessageEditor::DrawMessageList() {
         ImGui::SetScrollHereY(0.25f);
         scroll_list_to_selection_ = false;
       }
-      ImGui::PopID();
-
       TableNextColumn();
       gui::StatusBadge(
           message.expanded ? tr("Expanded") : tr("Vanilla"),
@@ -1573,6 +1574,8 @@ void MessageEditor::DrawMessageList() {
 
       TableNextColumn();
       ImGui::TextUnformatted(util::HexLong(message.address).c_str());
+      ImGui::PopID();
+      ImGui::PopID();
     }
   }
   EndTable();
