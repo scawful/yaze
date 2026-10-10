@@ -695,6 +695,404 @@ std::vector<uint8_t> EncodeSpritePayload(int count, uint8_t id_base = 0x10) {
   return payload;
 }
 
+// B8 has an eight-byte stream, immediately followed by B9. The manifest owns
+// separate free space rather than assuming that any zero-filled ROM is free.
+constexpr int kPlacementRoomId = 0xB8;
+constexpr int kPlacementNeighborRoomId = 0xB9;
+constexpr int kPlacementSpriteTablePc = 0x048000;
+constexpr int kPlacementSpriteDataPc = 0x048400;
+constexpr int kPlacementSpriteOtherPc = 0x048408;
+constexpr int kPlacementSpriteEmptyPc = 0x048420;
+constexpr int kPlacementSpriteAllocationPc = 0x048440;
+constexpr int kPlacementSpriteEndPc = 0x048480;
+
+class DungeonPlaceSpriteStorageTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    rom_.mutable_data()[zelda3::kRoomsSpritePointer] = 0x00;
+    rom_.mutable_data()[zelda3::kRoomsSpritePointer + 1] = 0x80;
+    for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+      SetRoomSpritePointer(&rom_, kPlacementSpriteTablePc, room_id,
+                           kPlacementSpriteEmptyPc);
+    }
+    SetRoomSpritePointer(&rom_, kPlacementSpriteTablePc, kPlacementRoomId,
+                         kPlacementSpriteDataPc);
+    SetRoomSpritePointer(&rom_, kPlacementSpriteTablePc,
+                         kPlacementNeighborRoomId, kPlacementSpriteOtherPc);
+    WriteSpriteStream(&rom_, kPlacementSpriteDataPc, 1, EncodeSpritePayload(2));
+    WriteSpriteStream(&rom_, kPlacementSpriteOtherPc, 0, {0xFF});
+    WriteSpriteStream(&rom_, kPlacementSpriteEmptyPc, 0, {0xFF});
+    PersistFixture();
+    WriteManifest();
+  }
+
+  void PersistFixture() {
+    rom_.set_filename(cleanup_.rom_path.string());
+    rom_.set_dirty(false);
+    WriteRomFile(rom_, cleanup_.rom_path);
+  }
+
+  void WriteManifest(int allocation_size = 0x40, int protected_pc = -1) {
+    nlohmann::json manifest = {
+        {"manifest_version", 3},
+        {"dungeon_stream_regions",
+         {{"sprites",
+           {{"pointer_table", "0x098000"},
+            {"pointer_count", zelda3::kNumberOfRooms},
+            {"pointer_encoding", "bank16"},
+            {"pointer_bank", "0x09"},
+            {"strategy", "copy_on_write"},
+            {"data_regions",
+             {{{"start", "0x098400"},
+               {"end",
+                absl::StrFormat("0x%06X", PcToSnes(kPlacementSpriteEndPc))}}}},
+            {"allocation_regions",
+             {{{"start", "0x098440"},
+               {"end", absl::StrFormat("0x%06X",
+                                       PcToSnes(kPlacementSpriteAllocationPc +
+                                                allocation_size))}}}}}}}}};
+    if (protected_pc >= 0) {
+      manifest["protected_regions"] = {
+          {"total_hooks", 1},
+          {"regions",
+           {{{"start", absl::StrFormat("0x%06X", PcToSnes(protected_pc))},
+             {"end", absl::StrFormat("0x%06X", PcToSnes(protected_pc + 1))},
+             {"size", 1},
+             {"hook_count", 1},
+             {"module", "SpritePlacementGuard"}}}}};
+    }
+    std::ofstream output(manifest_cleanup_.file_path, std::ios::trunc);
+    ASSERT_TRUE(output.is_open());
+    output << manifest.dump(2);
+    ASSERT_TRUE(output.good());
+  }
+
+  std::vector<std::string> Args(int id = 0xA3, int x = 7, int y = 20,
+                                int subtype = 2, int layer = 0) const {
+    return {"--room=0xB8",
+            absl::StrFormat("--id=0x%02X", id),
+            absl::StrFormat("--x=%d", x),
+            absl::StrFormat("--y=%d", y),
+            absl::StrFormat("--subtype=%d", subtype),
+            absl::StrFormat("--layer=%d", layer),
+            "--manifest=" + manifest_cleanup_.file_path.string(),
+            "--format=json"};
+  }
+
+  void ExpectUnchanged(const RomFailClosedBaseline& baseline,
+                       int backup_count = 0) const {
+    EXPECT_EQ(rom_.vector(), baseline.bytes);
+    EXPECT_EQ(rom_.size(), baseline.size);
+    EXPECT_EQ(rom_.dirty(), baseline.dirty);
+    EXPECT_EQ(rom_.filename(), baseline.filename);
+    EXPECT_EQ(ReadFile(cleanup_.rom_path), baseline.disk_bytes);
+    EXPECT_EQ(CountBackupArtifacts(cleanup_.rom_path), backup_count);
+    EXPECT_FALSE(std::filesystem::exists(cleanup_.rom_path.string() + ".tmp"));
+  }
+
+  std::vector<uint8_t> ExpectedRelocation(
+      const std::vector<uint8_t>& before) const {
+    auto expected = before;
+    const int pointer = kPlacementSpriteTablePc + kPlacementRoomId * 2;
+    const uint32_t snes = PcToSnes(kPlacementSpriteAllocationPc);
+    expected[pointer] = snes & 0xFF;
+    expected[pointer + 1] = (snes >> 8) & 0xFF;
+    const std::vector<uint8_t> stream = {1,    0x0A, 0x0B, 0x10, 0x0B, 0x0C,
+                                         0x11, 0x14, 0x47, 0xA3, 0xFF};
+    for (size_t i = 0; i < stream.size(); ++i) {
+      expected[kPlacementSpriteAllocationPc + i] = stream[i];
+    }
+    return expected;
+  }
+
+  void ExpectRelocationPlan(const nlohmann::json& placement) const {
+    EXPECT_EQ(placement.at("preflight_status"), "passed");
+    EXPECT_EQ(placement.at("storage_strategy"), "relocate");
+    EXPECT_EQ(placement.at("source_data_pc"), "0x048400");
+    EXPECT_EQ(placement.at("planned_data_pc"), "0x048440");
+    EXPECT_EQ(placement.at("allocator_capability"), "copy_on_write");
+    const nlohmann::json expected = {
+        {{"begin", "0x048440"}, {"end", "0x04844B"}},
+        {{"begin", "0x048170"}, {"end", "0x048172"}}};
+    ASSERT_EQ(placement.at("write_ranges").size(), expected.size());
+    for (const auto& range : expected) {
+      bool found = false;
+      for (const auto& actual : placement.at("write_ranges")) {
+        found = found || actual == range;
+      }
+      EXPECT_TRUE(found) << range;
+    }
+  }
+
+  Rom rom_;
+  ScopedRomArtifactsCleanup cleanup_{MakeUniqueTempRomPath()};
+  ScopedFileCleanup manifest_cleanup_{cleanup_.rom_path.string() +
+                                      ".manifest.json"};
+  handlers::DungeonPlaceSpriteCommandHandler handler_;
+};
+
+TEST_F(DungeonPlaceSpriteStorageTest,
+       FullB8PreviewAndWriteRelocateWithExactDeltaAndReopen) {
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  auto args = Args();
+  std::string preview_output;
+  ASSERT_TRUE(handler_.Run(args, &rom_, &preview_output).ok())
+      << preview_output;
+  const auto preview = nlohmann::json::parse(preview_output);
+  ExpectRelocationPlan(preview.at("Place Sprite"));
+  EXPECT_EQ(preview.at("Place Sprite").at("mode"), "dry-run");
+  ExpectUnchanged(baseline);
+
+  args.push_back("--write");
+  std::string write_output;
+  ASSERT_TRUE(handler_.Run(args, &rom_, &write_output).ok()) << write_output;
+  const auto written = nlohmann::json::parse(write_output);
+  ExpectRelocationPlan(written.at("Place Sprite"));
+  EXPECT_EQ(written.at("Place Sprite").at("write_status"), "success");
+  const auto expected = ExpectedRelocation(baseline.bytes);
+  EXPECT_EQ(rom_.vector(), expected);
+  EXPECT_EQ(ReadFile(cleanup_.rom_path), expected);
+  EXPECT_FALSE(rom_.dirty());
+  const auto backups = FindBackupArtifacts(cleanup_.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), baseline.disk_bytes);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup_.rom_path.string()).ok());
+  EXPECT_EQ(reopened.vector(), expected);
+  EXPECT_EQ(ReadRoomSpritePointerPc(reopened, kPlacementSpriteTablePc,
+                                    kPlacementRoomId),
+            kPlacementSpriteAllocationPc);
+  EXPECT_EQ(ReadRoomSpritePointerPc(reopened, kPlacementSpriteTablePc,
+                                    kPlacementNeighborRoomId),
+            kPlacementSpriteOtherPc);
+  auto room = zelda3::LoadRoomHeaderFromRom(&reopened, kPlacementRoomId);
+  room.LoadSprites();
+  ASSERT_EQ(room.GetSprites().size(), 3u);
+  const auto& cart = room.GetSprites().back();
+  EXPECT_EQ(cart.id(), 0xA3);
+  EXPECT_EQ(cart.x(), 7);
+  EXPECT_EQ(cart.y(), 20);
+  EXPECT_EQ(cart.subtype(), 2);
+  EXPECT_EQ(cart.layer(), 0);
+  EXPECT_FALSE(cart.IsOverlord());
+}
+
+TEST_F(DungeonPlaceSpriteStorageTest, SharedAliasDetachesOnlySelectedRoom) {
+  SetRoomSpritePointer(&rom_, kPlacementSpriteTablePc, kPlacementNeighborRoomId,
+                       kPlacementSpriteDataPc);
+  PersistFixture();
+  const auto before = rom_.vector();
+  auto args = Args();
+  args.push_back("--write");
+  std::string output;
+  ASSERT_TRUE(handler_.Run(args, &rom_, &output).ok()) << output;
+  ExpectRelocationPlan(nlohmann::json::parse(output).at("Place Sprite"));
+  EXPECT_EQ(rom_.vector(), ExpectedRelocation(before));
+  EXPECT_EQ(ReadFile(cleanup_.rom_path), ExpectedRelocation(before));
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup_.rom_path.string()).ok());
+  EXPECT_EQ(ReadRoomSpritePointerPc(reopened, kPlacementSpriteTablePc,
+                                    kPlacementNeighborRoomId),
+            kPlacementSpriteDataPc);
+  auto neighbor =
+      zelda3::LoadRoomHeaderFromRom(&reopened, kPlacementNeighborRoomId);
+  neighbor.LoadSprites();
+  ASSERT_EQ(neighbor.GetSprites().size(), 2u);
+  EXPECT_EQ(neighbor.GetSprites()[0].id(), 0x10);
+  EXPECT_EQ(neighbor.GetSprites()[1].id(), 0x11);
+  EXPECT_EQ(reopened.data()[kPlacementSpriteDataPc], 1);
+}
+
+TEST_F(DungeonPlaceSpriteStorageTest,
+       InPlacePreservesSortModeAndValidOverlord) {
+  WriteSpriteStream(&rom_, kPlacementSpriteDataPc, 1, {0xFF});
+  PersistFixture();
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  // The upper valid overlord ID is meaningful even though subtype 7 would
+  // corrupt an ordinary A3 cart into an overlord record.
+  auto args = Args(0x1A, 7, 20, 7);
+  std::string output;
+  ASSERT_TRUE(handler_.Run(args, &rom_, &output).ok()) << output;
+  const auto preview = nlohmann::json::parse(output).at("Place Sprite");
+  EXPECT_EQ(preview.at("preflight_status"), "passed");
+  EXPECT_EQ(preview.at("storage_strategy"), "in_place");
+  EXPECT_EQ(preview.at("source_data_pc"), "0x048400");
+  EXPECT_EQ(preview.at("planned_data_pc"), "0x048400");
+  const nlohmann::json ranges = {{{"begin", "0x048401"}, {"end", "0x048405"}}};
+  EXPECT_EQ(preview.at("write_ranges"), ranges);
+  ExpectUnchanged(baseline);
+
+  args.push_back("--write");
+  ASSERT_TRUE(handler_.Run(args, &rom_, &output).ok()) << output;
+  auto expected = baseline.bytes;
+  expected[kPlacementSpriteDataPc + 1] = 0x14;
+  expected[kPlacementSpriteDataPc + 2] = 0xE7;
+  expected[kPlacementSpriteDataPc + 3] = 0x1A;
+  expected[kPlacementSpriteDataPc + 4] = 0xFF;
+  EXPECT_EQ(rom_.vector(), expected);
+  EXPECT_EQ(ReadFile(cleanup_.rom_path), expected);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup_.rom_path.string()).ok());
+  EXPECT_EQ(ReadRoomSpritePointerPc(reopened, kPlacementSpriteTablePc,
+                                    kPlacementRoomId),
+            kPlacementSpriteDataPc);
+  EXPECT_EQ(reopened.data()[kPlacementSpriteDataPc], 1);
+  auto room = zelda3::LoadRoomHeaderFromRom(&reopened, kPlacementRoomId);
+  room.LoadSprites();
+  ASSERT_EQ(room.GetSprites().size(), 1u);
+  EXPECT_EQ(room.GetSprites().front().id(), 0x1A);
+  EXPECT_EQ(room.GetSprites().front().subtype(), 7);
+  EXPECT_TRUE(room.GetSprites().front().IsOverlord());
+}
+
+TEST_F(DungeonPlaceSpriteStorageTest,
+       ExhaustedOrProtectedStorageRejectsBothModesWithoutMutation) {
+  struct StorageCase {
+    const char* name;
+    int allocation_size;
+    int protected_pc;
+    absl::StatusCode code;
+  };
+  const std::array<StorageCase, 3> cases = {{
+      {"exhausted", 10, -1, absl::StatusCode::kResourceExhausted},
+      {"protected payload", 0x40, kPlacementSpriteAllocationPc,
+       absl::StatusCode::kPermissionDenied},
+      {"protected pointer", 0x40,
+       kPlacementSpriteTablePc + kPlacementRoomId * 2,
+       absl::StatusCode::kPermissionDenied},
+  }};
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.name);
+    WriteManifest(test_case.allocation_size, test_case.protected_pc);
+    absl::Status preview_status;
+    for (const bool write : {false, true}) {
+      auto args = Args();
+      if (write)
+        args.push_back("--write");
+      std::string output;
+      const auto status = handler_.Run(args, &rom_, &output);
+      EXPECT_EQ(status.code(), test_case.code) << status;
+      const auto result = ExpectRomFailedClosed(output, rom_, baseline);
+      ASSERT_TRUE(result.contains("Place Sprite")) << output;
+      const auto& placement = result.at("Place Sprite");
+      EXPECT_EQ(placement.at("preflight_status"), "failed");
+      EXPECT_FALSE(placement.contains("write_status"));
+      if (write) {
+        EXPECT_EQ(status.code(), preview_status.code());
+        EXPECT_EQ(status.message(), preview_status.message());
+      } else {
+        preview_status = status;
+      }
+    }
+  }
+}
+
+TEST_F(DungeonPlaceSpriteStorageTest,
+       MissingMalformedOrNoSpriteManifestRejectsBothModes) {
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  for (const std::string manifest_case :
+       {"missing", "malformed", "no sprites"}) {
+    SCOPED_TRACE(manifest_case);
+    if (manifest_case == "missing") {
+      std::error_code error;
+      ASSERT_TRUE(std::filesystem::remove(manifest_cleanup_.file_path, error));
+      ASSERT_FALSE(error);
+    } else {
+      std::ofstream manifest(manifest_cleanup_.file_path, std::ios::trunc);
+      ASSERT_TRUE(manifest.is_open());
+      manifest << (manifest_case == "malformed" ? "{"
+                                                : "{\"manifest_version\":3}");
+      ASSERT_TRUE(manifest.good());
+    }
+    absl::Status preview_status;
+    for (const bool write : {false, true}) {
+      auto args = Args();
+      if (write)
+        args.push_back("--write");
+      std::string output;
+      const auto status = handler_.Run(args, &rom_, &output);
+      EXPECT_FALSE(status.ok());
+      // These validations precede BeginObject, so no JSON shape is promised.
+      ExpectUnchanged(baseline);
+      if (write) {
+        EXPECT_EQ(status.code(), preview_status.code());
+        EXPECT_EQ(status.message(), preview_status.message());
+      } else {
+        preview_status = status;
+      }
+      if (manifest_case == "no sprites") {
+        EXPECT_THAT(std::string(status.message()),
+                    HasSubstr("dungeon_stream_regions.sprites"));
+      }
+    }
+  }
+}
+
+TEST_F(DungeonPlaceSpriteStorageTest, UnsafeEncodingsRejectBothModes) {
+  struct EncodingCase {
+    int id;
+    int x;
+    int y;
+    int subtype;
+    int layer;
+    const char* error;
+  };
+  const std::array<EncodingCase, 9> cases = {{
+      {0xA3, 7, 20, 7, 0, "overlord"},
+      {0xA3, 7, 20, 15, 0, "overlord"},
+      {0xA3, 7, 20, 23, 0, "overlord"},
+      {0xA3, 7, 20, 31, 0, "overlord"},
+      {0x00, 7, 20, 7, 0, "overlord"},
+      {0x1B, 7, 20, 7, 0, "overlord"},
+      {0xA3, 7, 31, 24, 1, "0xFF"},
+      {0xE4, 0, 29, 24, 1, "hidden key marker"},
+      {0xE4, 0, 30, 24, 1, "hidden key marker"},
+  }};
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(absl::StrFormat("id=%02X subtype=%d y=%d", test_case.id,
+                                 test_case.subtype, test_case.y));
+    for (const bool write : {false, true}) {
+      auto args = Args(test_case.id, test_case.x, test_case.y,
+                       test_case.subtype, test_case.layer);
+      if (write)
+        args.push_back("--write");
+      std::string output;
+      const auto status = handler_.Run(args, &rom_, &output);
+      ExpectInvalidArgument(status, test_case.error);
+      ExpectUnchanged(baseline);
+    }
+  }
+}
+
+TEST_F(DungeonPlaceSpriteStorageTest,
+       DiskStagingFailureRollsBackRelocationAndCallerRom) {
+  const auto baseline = CaptureRomFailClosedBaseline(rom_, cleanup_.rom_path);
+  yaze::test::ScopedRomStagingFailure staging_failure;
+  auto args = Args();
+  args.push_back("--write");
+  std::string output;
+  const auto status = handler_.Run(args, &rom_, &output);
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Could not create temp ROM file"));
+  const auto result = nlohmann::json::parse(output, nullptr, false);
+  ASSERT_FALSE(result.is_discarded()) << output;
+  const auto& placement = result.at("Place Sprite");
+  ExpectRelocationPlan(placement);
+  EXPECT_EQ(placement.at("write_status"), "success");
+  EXPECT_TRUE(placement.contains("save_error"));
+  ExpectUnchanged(baseline, 1);
+  const auto backups = FindBackupArtifacts(cleanup_.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), baseline.disk_bytes);
+}
+
 TEST(DungeonEditCommandsTest, PlaceSpriteRejectsInvalidX) {
   handlers::DungeonPlaceSpriteCommandHandler handler;
   std::string output;
@@ -1141,7 +1539,7 @@ TEST(DungeonEditCommandsTest, StaircaseReportIsOptInAndReadOnly) {
 
 TEST(DungeonEditCommandsTest, ChestReadbackHonorsExplicitProjectReceiptLabel) {
   zelda3::ResourceLabelProvider::ProjectLabels labels;
-  labels["item"]["0x3A"] = "Wolf Mask";
+  labels["item_receipt"]["0x3A"] = "Wolf Mask";
   struct ResetLabels {
     ~ResetLabels() { zelda3::GetResourceLabels().SetProjectLabels(nullptr); }
   } reset;
@@ -1929,10 +2327,11 @@ TEST(DungeonEditCommandsTest,
       place_handler.Run({"--room=0x00", "--id=0xA3", "--x=16", "--y=21",
                          "--subtype=4", "--format=json"},
                         &rom, &dry_output);
-  ASSERT_TRUE(dry_status.ok()) << dry_status.message();
+  EXPECT_TRUE(absl::IsResourceExhausted(dry_status)) << dry_status;
   EXPECT_EQ(rom.vector(), before);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
   EXPECT_THAT(dry_output, HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_THAT(dry_output, HasSubstr("\"preflight_status\": \"failed\""));
 
   std::string write_output;
   auto write_status =
@@ -1941,6 +2340,8 @@ TEST(DungeonEditCommandsTest,
                         &rom, &write_output);
   EXPECT_TRUE(absl::IsResourceExhausted(write_status))
       << write_status.message();
+  EXPECT_EQ(write_status.code(), dry_status.code());
+  EXPECT_EQ(write_status.message(), dry_status.message());
   EXPECT_THAT(write_output, HasSubstr("repacking is required"));
   EXPECT_EQ(rom.vector(), before);
   EXPECT_EQ(ReadRoomSpritePointerPc(rom, table_pc, 0), zelda3::kSpritesData);
