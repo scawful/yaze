@@ -1,12 +1,24 @@
 #ifndef YAZE_TEST_UNIT_EDITOR_DUNGEON_WORKBENCH_TEST_PEER_H_
 #define YAZE_TEST_UNIT_EDITOR_DUNGEON_WORKBENCH_TEST_PEER_H_
 
+#include "app/editor/dungeon/widgets/dungeon_workbench_toolbar.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 
 namespace yaze::editor {
 
 class DungeonWorkbenchContentTestPeer {
  public:
+  static void DrawToolsToolbar(DungeonWorkbenchContent& content) {
+    DungeonWorkbenchToolbarParams params;
+    params.layout = &content.layout_state_;
+    params.current_room_id = content.current_room_id_;
+    params.split_view_enabled = &content.split_view_enabled_;
+    params.compare_room_id = &content.compare_room_id_;
+    params.draw_tools = [&content]() {
+      content.DrawInspectorToolPicker();
+    };
+    DungeonWorkbenchToolbar::Draw(params);
+  }
   static void DrawCanvasPane(DungeonWorkbenchContent& content,
                              DungeonCanvasViewer& viewer, float width,
                              float height) {

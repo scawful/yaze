@@ -44,13 +44,15 @@ constexpr float kToolbarActionGap = 6.0f;
 constexpr float kToolbarClusterGap = 12.0f;
 
 constexpr char kToolbarPopupIdViewOptions[] = "##WorkbenchViewOptions";
+constexpr char kToolbarPopupIdSaveContent[] = "##WorkbenchSaveContent";
 constexpr char kToolbarPopupIdCompareSearchList[] = "##CompareSearchList";
 constexpr char kToolbarPopupIdCompareMenu[] = "##WorkbenchCompareMenu";
 constexpr char kToolbarPopupIdRecentRooms[] = "##WorkbenchRecentRooms";
 constexpr char kToolbarPopupIdOverflow[] = "##WorkbenchToolbarOverflow";
 constexpr char kToolbarStartCompareLabel[] = "Compare";
 constexpr char kToolbarRecentRoomsLabel[] = ICON_MD_HISTORY;
-constexpr char kToolbarViewOptionsLabel[] = ICON_MD_VISIBILITY;
+constexpr char kToolbarViewOptionsLabel[] = "Display";
+constexpr char kToolbarSaveContentLabel[] = "Save content";
 constexpr char kToolbarModeRoomLabel[] = "Room";
 constexpr char kToolbarModeConnectedLabel[] = "Overview";
 constexpr char kToolbarOverflowLabel[] = ICON_MD_MORE_HORIZ;
@@ -80,6 +82,8 @@ struct ToolbarVisibility {
   bool apply_room = false;
   bool dungeon_map = false;
   bool view_options = false;
+  bool tools = false;
+  bool save_content = false;
   bool panel_mode = false;
   bool overflow = false;
 };
@@ -146,17 +150,17 @@ bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
   return pressed;
 }
 
-void DrawViewOptionsContents(DungeonCanvasViewer* viewer) {
-  if (!viewer) {
+void DrawViewOptionsContents(const DungeonWorkbenchToolbarParams& p) {
+  if (!p.primary_viewer) {
     return;
   }
 
-  DrawDungeonOverlayControls(*viewer);
+  DrawDungeonOverlayControls(*p.primary_viewer);
 }
 
-void DrawViewOptionsButton(DungeonCanvasViewer* viewer,
+void DrawViewOptionsButton(const DungeonWorkbenchToolbarParams& p,
                            const ToolbarLayout& layout) {
-  if (!viewer) {
+  if (!p.primary_viewer) {
     return;
   }
 
@@ -169,7 +173,22 @@ void DrawViewOptionsButton(DungeonCanvasViewer* viewer,
   }
 
   if (ImGui::BeginPopup(kToolbarPopupIdViewOptions)) {
-    DrawViewOptionsContents(viewer);
+    DrawViewOptionsContents(p);
+    ImGui::EndPopup();
+  }
+}
+
+void DrawSaveContentButton(const DungeonWorkbenchToolbarParams& p,
+                           const ToolbarLayout& layout) {
+  const float button_width = workbench::CalcIconButtonWidth(
+      kToolbarSaveContentLabel, layout.button_size);
+  if (DrawToolbarActionButton("SaveContentButton", kToolbarSaveContentLabel,
+                              ImVec2(button_width, layout.button_size),
+                              "Choose which edited room content is saved")) {
+    ImGui::OpenPopup(kToolbarPopupIdSaveContent);
+  }
+  if (ImGui::BeginPopup(kToolbarPopupIdSaveContent)) {
+    p.draw_save_content();
     ImGui::EndPopup();
   }
 }
@@ -441,8 +460,16 @@ float ToolbarRightActionsWidth(const DungeonWorkbenchToolbarParams& p,
     append(workbench::CalcIconButtonWidth(kToolbarViewOptionsLabel,
                                           layout.button_size));
   }
+  if (visibility.tools) {
+    append(workbench::CalcIconButtonWidth("Tools", layout.button_size));
+  }
+  if (visibility.save_content) {
+    append(workbench::CalcIconButtonWidth(kToolbarSaveContentLabel,
+                                          layout.button_size));
+  }
   if (visibility.panel_mode && p.set_workflow_mode) {
-    append(layout.button_size);
+    append(
+        workbench::CalcIconButtonWidth(ICON_MD_VIEW_QUILT, layout.button_size));
   }
   if (visibility.overflow) {
     append(workbench::CalcIconButtonWidth(kToolbarOverflowLabel,
@@ -490,10 +517,13 @@ float ToolbarEstimatedWidth(const DungeonWorkbenchToolbarParams& p,
                 kToolbarActionGap);
   }
   if (visibility.apply_room) {
-    append_left(layout.button_size, kToolbarActionGap);
+    append_left(
+        workbench::CalcIconButtonWidth(ICON_MD_SAVE, layout.button_size),
+        kToolbarActionGap);
   }
   if (visibility.dungeon_map) {
-    append_left(layout.button_size, kToolbarActionGap);
+    append_left(workbench::CalcIconButtonWidth(ICON_MD_MAP, layout.button_size),
+                kToolbarActionGap);
   }
   if (visibility.compare) {
     append_left(workbench::CalcIconButtonWidth(kToolbarStartCompareLabel,
@@ -516,6 +546,8 @@ ToolbarVisibility ResolveToolbarVisibility(
       p.on_save_room && p.current_room_id && *p.current_room_id >= 0;
   visibility.dungeon_map = p.on_request_dungeon_map != nullptr;
   visibility.view_options = p.primary_viewer != nullptr;
+  visibility.tools = p.draw_tools != nullptr;
+  visibility.save_content = p.draw_save_content != nullptr;
   visibility.panel_mode = p.set_workflow_mode != nullptr;
 
   constexpr float kSafetyMargin = 4.0f;
@@ -540,6 +572,8 @@ ToolbarVisibility ResolveToolbarVisibility(
   // Entrance/layer controls remain available in the overflow on narrow panes.
   if (collapse(visibility.dungeon_map))
     return visibility;
+  if (collapse(visibility.save_content))
+    return visibility;
   if (collapse(visibility.apply_room))
     return visibility;
   if (collapse(visibility.panel_mode))
@@ -553,6 +587,8 @@ ToolbarVisibility ResolveToolbarVisibility(
   if (collapse(visibility.entrance))
     return visibility;
   if (collapse(visibility.layers))
+    return visibility;
+  if (collapse(visibility.tools))
     return visibility;
   if (collapse(visibility.pane_toggles))
     return visibility;
@@ -645,10 +681,18 @@ bool DrawToolbarOverflowMenu(const DungeonWorkbenchToolbarParams& p,
 
   if (!visibility.view_options && p.primary_viewer) {
     ImGui::Separator();
-    if (ImGui::BeginMenu(ICON_MD_VISIBILITY " Canvas View")) {
-      DrawViewOptionsContents(p.primary_viewer);
+    if (ImGui::BeginMenu("Display")) {
+      DrawViewOptionsContents(p);
       ImGui::EndMenu();
     }
+  }
+  if (!visibility.tools && p.draw_tools) {
+    p.draw_tools();
+  }
+  if (!visibility.save_content && p.draw_save_content &&
+      ImGui::BeginMenu(kToolbarSaveContentLabel)) {
+    p.draw_save_content();
+    ImGui::EndMenu();
   }
   if (!visibility.panel_mode && p.set_workflow_mode) {
     if (ImGui::MenuItem(ICON_MD_VIEW_QUILT " Window Workflow")) {
@@ -770,7 +814,21 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
 
     bool drew_right_action = false;
     if (visibility.view_options) {
-      DrawViewOptionsButton(p.primary_viewer, layout);
+      DrawViewOptionsButton(p, layout);
+      drew_right_action = true;
+    }
+    if (visibility.tools) {
+      if (drew_right_action) {
+        ImGui::SameLine(0.0f, kToolbarActionGap);
+      }
+      p.draw_tools();
+      drew_right_action = true;
+    }
+    if (visibility.save_content) {
+      if (drew_right_action) {
+        ImGui::SameLine(0.0f, kToolbarActionGap);
+      }
+      DrawSaveContentButton(p, layout);
       drew_right_action = true;
     }
     if (visibility.panel_mode) {

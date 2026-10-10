@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_room_property_controls.h"
 #include "app/editor/dungeon/inspectors/dungeon_destination_editor.h"
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
 #include "app/gui/automation/widget_id_registry.h"
@@ -108,7 +109,10 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
     ImGui::LogToBuffer();
     // Logging must not auto-open collapsed sections and mask default UI state.
     ImGui::GetCurrentContext()->LogDepthToExpand = 0;
-    if (show_destinations_) {
+    if (show_compact_properties_) {
+      DrawDungeonRoomPropertyFields(viewer_, rooms_[room_id_], room_id_,
+                                    RoomPropertyLayout::kCompact);
+    } else if (show_destinations_) {
       DrawDungeonDestinationEditor(viewer_);
       EXPECT_LE(ImGui::GetCurrentWindow()->DC.CursorMaxPos.x,
                 ImGui::GetCurrentWindow()->WorkRect.Max.x + 1);
@@ -143,7 +147,8 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
          gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
       if ((path.starts_with(show_tag_panel_ ? "Dungeon/RoomTags/"
                                             : "Dungeon/Workbench/") ||
-           path.starts_with("Dungeon/Destinations/")) &&
+           path.starts_with("Dungeon/Destinations/") ||
+           path.starts_with("Dungeon/RoomProperties/")) &&
           widget.label == normalized) {
         return widget;
       }
@@ -208,6 +213,7 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
   bool simulate_product_refresh_ = false;
   bool show_tag_panel_ = false;
   bool show_destinations_ = false;
+  bool show_compact_properties_ = false;
   bool persist_collapsed_sections_ = false;
   bool compact_ = false;
   float width_ = 320;
@@ -272,7 +278,7 @@ TEST_F(DungeonRoomMetadataUiTest,
         EXPECT_NE(logged_text_.find("Cart shutter (disabled)"),
                   std::string::npos);
         EXPECT_EQ(logged_text_.find("Wrong session"), std::string::npos);
-        EXPECT_NE(logged_text_.find("Pits deal damage"), std::string::npos);
+        EXPECT_NE(logged_text_.find("Pit damage"), std::string::npos);
         EXPECT_FALSE(Widget("Route"));
         EXPECT_EQ(logged_text_.find("Room matches ROM buffer"),
                   std::string::npos);
@@ -363,16 +369,13 @@ TEST_F(DungeonRoomMetadataUiTest,
           ASSERT_TRUE(previous);
           EXPECT_FLOAT_EQ(previous->bounds.min_y, widget->bounds.min_y);
           constexpr const char* right_labels[] = {"Blockset", "Floor 2",
-                                                  "Sprites"};
+                                                  "Spriteset"};
           EXPECT_GE(widget->bounds.min_x - previous->bounds.max_x,
                     ImGui::CalcTextSize(right_labels[i / 2]).x);
         }
       }
       RecordProperty(prefix, metrics.str());
-      // The useful form precedes its expandable explanations.
-      const auto details = Widget("RoomDetails");
-      ASSERT_TRUE(details);
-      EXPECT_GE(details->bounds.min_y, destination->bounds.max_y);
+      EXPECT_FALSE(Widget("RoomDetails"));
       EXPECT_EQ(logged_text_.find("Room matches ROM buffer"),
                 std::string::npos);
     }
@@ -424,7 +427,7 @@ TEST_F(DungeonRoomMetadataUiTest, InspectPitActionUsesExistingMembershipSwap) {
   DrawFrame();
   EXPECT_FALSE(
       content_.GetPitDamageControlRectsForTesting().replace_current.visible);
-  Click("PitDamageDetails");
+  Click("PitDamageEnabled");
   DrawFrame();
   const auto rect =
       content_.GetPitDamageControlRectsForTesting().replace_current;
@@ -438,13 +441,13 @@ TEST_F(DungeonRoomMetadataUiTest, InspectPitActionUsesExistingMembershipSwap) {
   EXPECT_TRUE(pit_table_.Contains(1));
   EXPECT_TRUE(pit_table_.dirty());
   EXPECT_TRUE(edits_.empty());
-  Click("PitDamageDetails");
   DrawFrame();
+  EXPECT_FALSE(Widget("PitDamageDetails"));
   EXPECT_FALSE(
       content_.GetPitDamageControlRectsForTesting().add_current.visible);
   EXPECT_FALSE(
       content_.GetPitDamageControlRectsForTesting().replace_current.visible);
-  EXPECT_NE(logged_text_.find("Pending pit table change"), std::string::npos);
+  EXPECT_NE(logged_text_.find("Pending pit damage change"), std::string::npos);
 }
 
 TEST_F(DungeonRoomMetadataUiTest,
@@ -478,15 +481,51 @@ TEST_F(DungeonRoomMetadataUiTest, DirectRoomPropertiesRespectReadOnly) {
   EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
 }
 
-TEST_F(DungeonRoomMetadataUiTest, RoutineRoomStatusRequiresExplicitDetails) {
+TEST_F(DungeonRoomMetadataUiTest, RoutineRoomStatusDoesNotAddASection) {
   DrawFrame();
   DrawFrame();
   EXPECT_EQ(logged_text_.find("Room matches ROM buffer"), std::string::npos);
-  Click("RoomDetails");
+  EXPECT_FALSE(Widget("RoomDetails"));
+  rooms_[0].set_floor1(1);
   DrawFrame();
-  EXPECT_NE(logged_text_.find("Room matches ROM buffer"), std::string::npos);
+  EXPECT_EQ(logged_text_.find("Room matches ROM buffer"), std::string::npos);
+  EXPECT_FALSE(Widget("RoomDetails"));
   EXPECT_TRUE(edits_.empty());
-  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
+}
+
+TEST_F(DungeonRoomMetadataUiTest, SharedCompactFieldsUseValidatedEdits) {
+  show_compact_properties_ = true;
+  width_ = 260;
+  Type("BS", "03");
+  EXPECT_TRUE(edits_.empty());
+  Enter();
+  ASSERT_EQ(edits_.size(), 1u);
+  EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kBlockset);
+  EXPECT_EQ(rooms_[0].blockset(), 3);
+  EXPECT_EQ(rooms_[1].blockset(), 0);
+
+  viewer_.SetHeaderReadOnly(true);
+  DrawFrame();
+  for (const char* field : {"BS", "Pal", "Lyr", "SS"}) {
+    const auto widget = Widget(field);
+    ASSERT_TRUE(widget) << field;
+    EXPECT_FALSE(widget->enabled) << field;
+    EXPECT_GE(widget->bounds.min_x, 20);
+    EXPECT_LE(widget->bounds.max_x, 20 + width_);
+  }
+}
+
+TEST_F(DungeonRoomMetadataUiTest, SharedCompactPendingEditKeepsRoomIdentity) {
+  show_compact_properties_ = true;
+  Type("BS", "03");
+  ASSERT_TRUE(edits_.empty());
+  room_id_ = 1;
+  viewer_.RefreshRomBackedState(nullptr, nullptr, &rooms_, room_id_);
+  DrawFrame();
+  Enter();
+  EXPECT_TRUE(edits_.empty());
+  EXPECT_EQ(rooms_[0].blockset(), 0);
+  EXPECT_EQ(rooms_[1].blockset(), 0);
 }
 
 TEST_F(DungeonRoomMetadataUiTest, NumericEditCommitsOnceThroughTypedBoundary) {

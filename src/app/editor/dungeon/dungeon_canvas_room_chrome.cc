@@ -2,6 +2,8 @@
 #include "dungeon_canvas_viewer.h"
 #include "util/i18n/tr.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <optional>
 #include <string>
 
@@ -10,9 +12,11 @@
 #include "app/editor/dungeon/dungeon_overlay_controls.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_edit.h"
+#include "app/editor/dungeon/dungeon_room_property_controls.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 #include "app/gui/animation/animator.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
@@ -24,8 +28,222 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze::editor {
+
+namespace {
+
+const char* GetBg2ModeName(int value) {
+  static constexpr const char* kNames[] = {
+      "Off",      "Parallax", "Dark",        "On top",   "Translucent",
+      "Addition", "Normal",   "Transparent", "Dark room"};
+  constexpr int kNameCount = sizeof(kNames) / sizeof(kNames[0]);
+  return (value >= 0 && value < kNameCount) ? kNames[value] : "Unknown";
+}
+
+const char* GetCollisionName(int value) {
+  static constexpr const char* kNames[] = {"One", "Both", "Both + Scroll",
+                                           "Moving Floor", "Moving Water"};
+  constexpr int kNameCount = sizeof(kNames) / sizeof(kNames[0]);
+  return (value >= 0 && value < kNameCount) ? kNames[value] : "Unknown";
+}
+
+}  // namespace
+
+void DrawDungeonRoomPropertyFields(DungeonCanvasViewer& viewer,
+                                   zelda3::Room& room, int room_id,
+                                   RoomPropertyLayout layout) {
+  auto* rooms = viewer.rooms();
+  if (!rooms || room_id < 0 || room_id >= static_cast<int>(rooms->size()))
+    return;
+  const bool compact = layout == RoomPropertyLayout::kCompact;
+  const ImGuiID error_id =
+      ImGui::GetID(absl::StrFormat("RoomMetadataError/%d", room_id).c_str());
+  // Combo selections run inside a popup window. Keep errors in the host pane.
+  auto* inspector_storage = ImGui::GetStateStorage();
+  const gui::InputScalarTargetIdentity identity{
+      reinterpret_cast<uintptr_t>(rooms), static_cast<uint64_t>(room_id)};
+  auto apply = [&](RoomMetadataField field, int value, int index = 0) {
+    const auto status = viewer.EditRoomMetadata(
+        room_id, {.field = field, .value = value, .index = index});
+    inspector_storage->SetBool(error_id, !status.ok());
+  };
+  auto begin_properties = [](const char* id, float label_width = 104.0f) {
+    if (!ImGui::BeginTable(
+            id, 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+      return false;
+    }
+    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
+                            label_width);
+    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+    return true;
+  };
+  auto property_row = [](const char* label) {
+    // Advance by one label/value pair; four-column tables pair short fields.
+    ImGui::TableNextColumn();
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(label);
+    ImGui::TableNextColumn();
+    ImGui::SetNextItemWidth(-1);
+  };
+  auto draw_hex = [&](const char* label, const char* id, int value,
+                      int max_value, RoomMetadataField field, int index = 0) {
+    property_row(label);
+    auto target = identity;
+    target.element = static_cast<uint64_t>(field);
+    target.component = static_cast<uint64_t>(index);
+    if (gui::InputScalarDeferred(
+            id, ImGuiDataType_S32, &value, max_value > 0xFF ? "%03X" : "%02X",
+            ImGuiInputTextFlags_CharsHexadecimal, target)) {
+      apply(field, value, index);
+    }
+    {
+      gui::AutoWidgetScope automation_scope(compact ? "Dungeon/RoomProperties"
+                                                    : "Dungeon/Workbench");
+      gui::AutoRegisterLastItem("input_hex", id + 2, label);
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      const char* description = label;
+      if (field == RoomMetadataField::kSpriteset)
+        description = "Sprite graphics set";
+      else if (field == RoomMetadataField::kFloor1)
+        description = "Background 1 floor pattern";
+      else if (field == RoomMetadataField::kFloor2)
+        description = "Background 2 floor pattern";
+      ImGui::SetTooltip("%s (hex 00-%X). Enter or leave the field to apply.",
+                        description, max_value);
+    }
+  };
+  auto draw_choice = [&](const char* label, const char* id, int value,
+                         int count, RoomMetadataField field, auto name) {
+    property_row(label);
+    const std::string preview = name(value);
+    const bool open = ImGui::BeginCombo(id, preview.c_str());
+    {
+      gui::AutoWidgetScope automation_scope(compact ? "Dungeon/RoomProperties"
+                                                    : "Dungeon/Workbench");
+      gui::AutoRegisterLastItem("combo", id + 2, label);
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip("%s: %s", label, preview.c_str());
+    }
+    if (open) {
+      for (int option = 0; option < count; ++option) {
+        const auto option_label =
+            absl::StrFormat("%02X  %s", option, name(option));
+        if (ImGui::Selectable(option_label.c_str(), value == option)) {
+          apply(field, option);
+        }
+        {
+          gui::AutoWidgetScope automation_scope(
+              compact ? "Dungeon/RoomProperties" : "Dungeon/Workbench");
+          gui::AutoRegisterLastItem("selectable",
+                                    absl::StrFormat("%s/%d", id + 2, option));
+        }
+        if (value == option) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+  };
+
+  ImGui::BeginDisabled(viewer.header_read_only() ||
+                       !viewer.IsObjectInteractionEnabled());
+  if (compact) {
+    if (ImGui::BeginTable("##CompactRoomGraphics", 4,
+                          ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("Property 1", ImGuiTableColumnFlags_WidthFixed,
+                              ImGui::CalcTextSize("Palette").x);
+      ImGui::TableSetupColumn("Value 1", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Property 2", ImGuiTableColumnFlags_WidthFixed,
+                              ImGui::CalcTextSize("Spriteset").x);
+      ImGui::TableSetupColumn("Value 2", ImGuiTableColumnFlags_WidthStretch);
+      draw_hex("Layout", "##Lyr", room.layout_id(), 0x07,
+               RoomMetadataField::kLayout);
+      draw_hex("Blockset", "##BS", room.blockset(), 0x51,
+               RoomMetadataField::kBlockset);
+      draw_hex("Palette", "##Pal", room.palette(), 0x47,
+               RoomMetadataField::kPalette);
+      draw_hex("Spriteset", "##SS", room.spriteset(),
+               zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
+      ImGui::EndTable();
+    }
+    ImGui::EndDisabled();
+    if (inspector_storage->GetBool(error_id))
+      ImGui::TextWrapped(
+          "Edit not applied. Hover the field for its supported range.");
+    return;
+  }
+  if (begin_properties("##WorkbenchRoomTags", 42.0f)) {
+    const auto tag_name = [&](int value) {
+      return dungeon_project_labels::GetRoomTagLabel(viewer.project(), value);
+    };
+    for (int index = 0; index < 2; ++index) {
+      const int tag = index == 0 ? room.tag1() : room.tag2();
+      draw_choice(
+          index == 0 ? "Tag 1" : "Tag 2",
+          index == 0 ? "##RoomHeaderTag1" : "##RoomHeaderTag2", tag, 0x40,
+          index == 0 ? RoomMetadataField::kTag1 : RoomMetadataField::kTag2,
+          tag_name);
+    }
+    ImGui::EndTable();
+  }
+
+  if (inspector_storage->GetBool(error_id)) {
+    ImGui::TextWrapped(
+        "Edit not applied. Check that this room is editable and the value "
+        "is within the field's supported range. Hover the field for its "
+        "range.");
+  }
+
+  ImGui::SeparatorText("Room properties");
+  if (ImGui::BeginTable(
+          "##WorkbenchRoomGraphics", 4,
+          ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Property 1", ImGuiTableColumnFlags_WidthFixed,
+                            std::max(ImGui::CalcTextSize("Floor 1").x,
+                                     ImGui::CalcTextSize("Palette").x));
+    ImGui::TableSetupColumn("Value 1", ImGuiTableColumnFlags_WidthStretch,
+                            1.0f);
+    ImGui::TableSetupColumn("Property 2", ImGuiTableColumnFlags_WidthFixed,
+                            std::max(ImGui::CalcTextSize("Floor 2").x,
+                                     ImGui::CalcTextSize("Spriteset").x));
+    ImGui::TableSetupColumn("Value 2", ImGuiTableColumnFlags_WidthStretch,
+                            1.0f);
+    draw_hex("Layout", "##RoomHeaderLayout", room.layout_id(), 0x07,
+             RoomMetadataField::kLayout);
+    draw_hex("Blockset", "##RoomHeaderBlockset", room.blockset(), 0x51,
+             RoomMetadataField::kBlockset);
+    draw_hex("Floor 1", "##RoomHeaderFloor1", room.floor1(), 0x0F,
+             RoomMetadataField::kFloor1);
+    draw_hex("Floor 2", "##RoomHeaderFloor2", room.floor2(), 0x0F,
+             RoomMetadataField::kFloor2);
+    draw_hex("Palette", "##RoomHeaderPalette", room.palette(), 0x47,
+             RoomMetadataField::kPalette);
+    draw_hex("Spriteset", "##RoomHeaderSpriteset", room.spriteset(),
+             zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
+    ImGui::EndTable();
+  }
+  if (begin_properties(
+          "##WorkbenchRoomHeader",
+          std::max(68.0f, ImGui::CalcTextSize("Layer 2 type").x))) {
+    draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
+             RoomMetadataField::kMessage);
+    draw_choice("Layer 2 type", "##RoomHeaderBg2", static_cast<int>(room.bg2()),
+                9, RoomMetadataField::kBg2, GetBg2ModeName);
+    draw_choice("Layer 2 mode", "##RoomHeaderEffect", room.effect(), 8,
+                RoomMetadataField::kEffect, [](int value) -> std::string {
+                  return value >= 0 && value < 8 ? zelda3::RoomEffect[value]
+                                                 : "Unknown";
+                });
+    draw_choice("Collision", "##RoomHeaderCollision", room.collision(), 5,
+                RoomMetadataField::kCollision, GetCollisionName);
+    ImGui::EndTable();
+  }
+  ImGui::EndDisabled();
+}
 
 void DungeonCanvasViewer::DisplayObjectInfo(const gui::CanvasRuntime& rt,
                                             const zelda3::RoomObject& object,
@@ -242,78 +460,8 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   ImGui::SameLine();
   DrawRecentRoomBreadcrumbs(room_id);
 
-  const ImGuiID error_id =
-      ImGui::GetID(absl::StrFormat("RoomMetadataError/%d", room_id).c_str());
-  auto apply = [&](RoomMetadataField field, int value) {
-    const auto status =
-        EditRoomMetadata(room_id, {.field = field, .value = value});
-    ImGui::GetStateStorage()->SetBool(error_id, !status.ok());
-  };
-  auto hex_input = [&](const char* label, const char* icon, int* val,
-                       uint8_t max, const char* tooltip) {
-    ImGui::TextDisabled("%s", icon);
-    ImGui::SameLine(0, 2);
-
-    const std::string anim_id = std::string(label) + "_Flash";
-    const ImVec4 flash_color = gui::GetAnimator().AnimateColor(
-        "##RoomProps", anim_id, ImVec4(0, 0, 0, 0), 8.0f);
-
-    if (flash_color.w > 0.01f) {
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, flash_color);
-    }
-
-    ImGui::SetNextItemWidth(40.f);
-    const bool changed = gui::InputScalarDeferred(
-        label, ImGuiDataType_S32, val, "%02X",
-        ImGuiInputTextFlags_CharsHexadecimal,
-        {reinterpret_cast<uintptr_t>(rooms_), static_cast<uint64_t>(room_id)});
-
-    if (flash_color.w > 0.01f) {
-      ImGui::PopStyleColor();
-    }
-
-    gui::ValueChangeFlash(changed, anim_id.c_str());
-
-    if (changed) {
-      return true;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s (hex 00-%02X)", tooltip, max);
-    }
-    return false;
-  };
-
-  int bs = room.blockset();
-  if (hex_input("##BS", ICON_MD_VIEW_MODULE, &bs, 81, "Blockset")) {
-    apply(RoomMetadataField::kBlockset, bs);
-  }
-  ImGui::SameLine(0, 2);
-  ImGui::TextDisabled(
-      "(%s)", DungeonRoomSelector::GetBlocksetGroupName(room.blockset()));
-  ImGui::SameLine();
-
-  int pal = room.palette();
-  if (hex_input("##Pal", ICON_MD_PALETTE, &pal, 71, "Palette")) {
-    apply(RoomMetadataField::kPalette, pal);
-  }
-  ImGui::SameLine();
-
-  int lyr = room.layout_id();
-  if (hex_input("##Lyr", ICON_MD_GRID_VIEW, &lyr, 7, "Layout")) {
-    apply(RoomMetadataField::kLayout, lyr);
-  }
-  ImGui::SameLine();
-
-  int ss = room.spriteset();
-  if (hex_input("##SS", ICON_MD_PEST_CONTROL, &ss, zelda3::kMaxDungeonSpriteset,
-                "Spriteset")) {
-    apply(RoomMetadataField::kSpriteset, ss);
-  }
-  if (ImGui::GetStateStorage()->GetBool(error_id)) {
-    ImGui::TextWrapped(
-        "Edit not applied. Check that this room is editable and the value is "
-        "within the field's supported range. Hover the field for its range.");
-  }
+  DrawDungeonRoomPropertyFields(*this, room, room_id,
+                                RoomPropertyLayout::kCompact);
 
   if (show_room_details_) {
     ImGui::TextDisabled(tr("Floor: %d | Effect: %d | Tag1: %d | Tag2: %d"),

@@ -4,7 +4,6 @@
 #include <stdexcept>
 
 #include "app/gui/automation/widget_auto_register.h"
-#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "util/i18n/tr.h"
 
@@ -37,37 +36,37 @@ GetDungeonOverlayControlSpecs() {
 
 float DungeonLayerControlsWidth() {
   return ImGui::CalcTextSize("BG1").x + ImGui::CalcTextSize("BG2").x +
-         ImGui::CalcTextSize(tr("Sprites")).x +
-         ImGui::GetStyle().FramePadding.x * 6.0f +
+         ImGui::CalcTextSize(tr("Sprites")).x + ImGui::GetFrameHeight() * 3.0f +
+         ImGui::GetStyle().ItemInnerSpacing.x * 3.0f +
          ImGui::GetStyle().ItemSpacing.x * 2.0f;
 }
 
 void DrawDungeonLayerControls(DungeonCanvasViewer& viewer, int room_id,
                               float height) {
+  (void)height;
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms)
     return;
   ImGui::PushID("DungeonLayers");
   gui::AutoWidgetScope scope("Dungeon/Layers");
-  const auto toggle = [&](const char* label, bool enabled,
+  const auto toggle = [&](const char* label, bool* enabled,
                           const char* tooltip) {
-    const float width =
-        ImGui::CalcTextSize(label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
-    const bool changed =
-        gui::ToggleButton(label, enabled, ImVec2(width, height));
-    gui::AutoRegisterLastItem("button", label);
+    const bool changed = ImGui::Checkbox(label, enabled);
+    gui::AutoRegisterLastItem("checkbox", label);
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("%s", tooltip);
     return changed;
   };
-  if (toggle("BG1", viewer.IsBG1Visible(room_id), "Show main background layer"))
-    viewer.SetBG1Visible(room_id, !viewer.IsBG1Visible(room_id));
+  bool bg1 = viewer.IsBG1Visible(room_id);
+  if (toggle("BG1", &bg1, "Show BG1"))
+    viewer.SetBG1Visible(room_id, bg1);
   ImGui::SameLine();
-  if (toggle("BG2", viewer.IsBG2Visible(room_id),
-             "Show lower background layer"))
-    viewer.SetBG2Visible(room_id, !viewer.IsBG2Visible(room_id));
+  bool bg2 = viewer.IsBG2Visible(room_id);
+  if (toggle("BG2", &bg2, "Show BG2"))
+    viewer.SetBG2Visible(room_id, bg2);
   ImGui::SameLine();
-  if (toggle(tr("Sprites"), viewer.AreSpritesVisible(), "Show room sprites"))
-    viewer.SetSpritesVisible(!viewer.AreSpritesVisible());
+  bool sprites = viewer.AreSpritesVisible();
+  if (toggle(tr("Sprites"), &sprites, "Show room sprites"))
+    viewer.SetSpritesVisible(sprites);
   ImGui::PopID();
 }
 

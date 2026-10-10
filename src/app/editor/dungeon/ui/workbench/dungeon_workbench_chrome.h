@@ -27,9 +27,11 @@ inline float CalcIconButtonWidth(const char* icon, float button_height) {
 
   const ImGuiStyle& style = ImGui::GetStyle();
   const float text_width = ImGui::CalcTextSize(icon).x;
-  const float padding = std::max(2.0f, style.FramePadding.x);
+  // Pane headers use at least four pixels of horizontal frame padding.
+  const float frame_padding = std::max(4.0f, style.FramePadding.x);
+  const float padding = std::max(2.0f, frame_padding);
   const float needed_width =
-      std::ceil(text_width + (style.FramePadding.x * 2.0f) + padding);
+      std::ceil(text_width + (frame_padding * 2.0f) + padding);
   return std::max(button_height, needed_width);
 }
 
@@ -96,8 +98,8 @@ inline bool DrawHeaderIconAction(const char* id, const char* icon,
                                  bool active = false) {
   ImGui::PushID(id);
   const bool pressed = gui::TransparentIconButton(
-      icon, ImVec2(button_size, button_size), tooltip, active,
-      ImVec4(0, 0, 0, 0), "dungeon_workbench", id);
+      icon, ImVec2(CalcIconButtonWidth(icon, button_size), button_size),
+      tooltip, active, ImVec4(0, 0, 0, 0), "dungeon_workbench", id);
   ImGui::PopID();
   return pressed;
 }

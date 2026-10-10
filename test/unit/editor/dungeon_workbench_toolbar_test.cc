@@ -7,6 +7,7 @@
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
@@ -138,6 +139,12 @@ ToolbarGeometry DrawWorstCaseToolbarGeometry(const char* child_id, float width,
   params.on_save_room = [](int) {
   };
   params.on_request_dungeon_map = []() {
+  };
+  params.draw_tools = []() {
+    ImGui::Button("Tools");
+  };
+  params.draw_save_content = []() {
+    ImGui::TextUnformatted("Room content");
   };
   params.draw_entrance_context = [](float width) {
     ImGui::SetNextItemWidth(width);
@@ -587,9 +594,26 @@ TEST_F(DungeonWorkbenchToolbarTest, CompareAndLayersUseDirectActions) {
   };
   frame();
   frame();
+  for (const char* label : {"BG1", "BG2", "Sprites"}) {
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label == label) {
+        found = true;
+        EXPECT_EQ(widget.type, "checkbox") << label;
+      }
+    }
+    EXPECT_TRUE(found) << label;
+  }
   const bool bg1 = viewer.IsBG1Visible(room);
   click("BG1");
   EXPECT_EQ(viewer.IsBG1Visible(room), !bg1);
+  const bool bg2 = viewer.IsBG2Visible(room);
+  click("BG2");
+  EXPECT_EQ(viewer.IsBG2Visible(room), !bg2);
+  const bool sprites = viewer.AreSpritesVisible();
+  click("Sprites");
+  EXPECT_EQ(viewer.AreSpritesVisible(), !sprites);
   click("CompareMenuButton");
   EXPECT_TRUE(split);
   EXPECT_EQ(compare, previous);
@@ -699,6 +723,71 @@ TEST_F(DungeonWorkbenchToolbarTest, ViewOptionsExposeCrumbleFloorControl) {
     }
   }
   EXPECT_TRUE(found);
+  gui::WidgetIdRegistry::Instance().Clear();
+}
+
+TEST_F(DungeonWorkbenchToolbarTest,
+       HeaderActionsReserveTheirVisibleGlyphWidth) {
+  constexpr float height = 22.0f;
+  const char* glyph = "Wide icon";
+  workbench::DrawHeaderIconAction("WideHeaderAction", glyph, height, "Move");
+  const float width = ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x;
+  EXPECT_GE(width, ImGui::CalcTextSize(glyph).x +
+                       ImGui::GetStyle().FramePadding.x * 2.0f);
+  EXPECT_FLOAT_EQ(width, workbench::CalcIconButtonWidth(glyph, height));
+  EXPECT_GT(width, height);
+}
+
+TEST_F(DungeonWorkbenchToolbarTest, SaveContentOpensOnlyFromToolbarMenu) {
+  DungeonWorkbenchLayoutState layout;
+  DungeonCanvasViewer viewer;
+  int room = 0x89, compare = -1;
+  bool split = false;
+  int save_choices_drawn = 0;
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &room;
+  params.compare_room_id = &compare;
+  params.split_view_enabled = &split;
+  params.primary_viewer = &viewer;
+  params.draw_tools = []() {
+    ImGui::Button("Tools");
+  };
+  params.draw_save_content = [&]() {
+    ++save_choices_drawn;
+    ImGui::TextUnformatted("Room objects");
+  };
+  const auto frame = [&]() {
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1100, 400), ImGuiCond_Always);
+    ImGui::Begin("ToolbarHost");
+    gui::WidgetIdRegistry::Instance().Clear();
+    DungeonWorkbenchToolbar::Draw(params);
+  };
+  frame();
+  frame();
+  EXPECT_EQ(save_choices_drawn, 0);
+  ImVec2 center;
+  bool found = false;
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (widget.label == "SaveContentButton" && widget.bounds.valid) {
+      found = true;
+      center = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                      (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+    }
+  }
+  ASSERT_TRUE(found);
+  ImGui::GetIO().AddMousePosEvent(center.x, center.y);
+  frame();
+  ImGui::GetIO().AddMouseButtonEvent(0, true);
+  frame();
+  ImGui::GetIO().AddMouseButtonEvent(0, false);
+  frame();
+  EXPECT_GT(save_choices_drawn, 0);
   gui::WidgetIdRegistry::Instance().Clear();
 }
 }  // namespace
