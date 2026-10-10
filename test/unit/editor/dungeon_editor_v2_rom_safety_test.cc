@@ -8,6 +8,9 @@
 #include <utility>
 #include <vector>
 
+#include "absl/strings/str_format.h"
+#include "app/editor/shell/feedback/toast_manager.h"
+#include "app/gfx/resource/arena.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "gmock/gmock.h"
@@ -25,6 +28,16 @@
 #include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::editor {
+
+class DungeonPotPlacementTestPeer {
+ public:
+  static DungeonCanvasViewer* Viewer(DungeonEditorV2& editor, int room_id) {
+    auto* viewer = editor.GetViewerForRoom(room_id);
+    viewer->RefreshRomBackedState(editor.rom_, nullptr, &editor.rooms_,
+                                  room_id);
+    return viewer;
+  }
+};
 
 namespace {
 
@@ -698,6 +711,228 @@ TEST(DungeonEditorV2RomSafetyTest,
   EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
   EXPECT_EQ(rom.vector(), before);
   EXPECT_TRUE(room.pot_items_dirty());
+}
+
+class DungeonPotPlacementTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ImGui::CreateContext();
+    ImGui::GetIO().IniFilename = nullptr;
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    SetupSharedRoomObjectPointers(rom_);
+    SetupSharedSpritePointers(rom_);
+    SetupHeaderPointers(rom_);
+    const auto header = static_cast<uint16_t>(PcToSnes(kRoom0HeaderPc));
+    for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+      ASSERT_TRUE(rom_.WriteWord(kHeaderTablePc + room_id * 2, header).ok());
+    }
+    for (int layout : zelda3::kRoomLayoutPointers) {
+      ASSERT_TRUE(rom_.WriteWord(SnesToPc(layout), 0xFFFF).ok());
+    }
+    ConfigureMinimalDungeonSave();
+    core::FeatureFlags::get().dungeon.kSaveObjects = false;
+  }
+
+  void TearDown() override {
+    editor_.reset();
+    gfx::Arena::Get().ClearTextureQueue();
+    ImGui::DestroyContext();
+  }
+
+  void UseRepackPool(int bytes) {
+    project_ = MakeProjectWithManifest(absl::StrFormat(R"json(
+{
+  "manifest_version": 3,
+  "dungeon_stream_regions": {
+    "pot_items": {
+      "pointer_table": "0x01DB69", "pointer_count": 296,
+      "pointer_encoding": "bank16", "pointer_bank": "0x01",
+      "strategy": "repack_all",
+      "data_regions": [{"start": "0x01E000", "end": "0x01E140"}],
+      "allocation_regions": [{"start": "0x01E100", "end": "0x%06X"}]
+    }
+  }
+}
+)json",
+                                                       0x01E100 + bytes)
+                                           .c_str());
+  }
+
+  void Open(bool with_project = false) {
+    editor_ = std::make_unique<DungeonEditorV2>(&rom_);
+    EditorDependencies dependencies;
+    dependencies.rom = &rom_;
+    dependencies.project = with_project ? &project_ : nullptr;
+    dependencies.toast_manager = &toasts_;
+    editor_->SetDependencies(dependencies);
+    auto& room = editor_->rooms()[0];
+    room.SetLoaded(true);
+    room.LoadPotItems();
+    viewer_ = DungeonPotPlacementTestPeer::Viewer(*editor_, 0);
+  }
+
+  ItemInteractionHandler& Handler() {
+    return viewer_->object_interaction().entity_coordinator().item_handler();
+  }
+
+  void Place() {
+    Handler().SetItemId(6);
+    Handler().BeginPlacement();
+    EXPECT_TRUE(Handler().HandleClick(80, 96));
+  }
+
+  size_t MaterializedCount() const {
+    size_t count = 0;
+    editor_->rooms().ForEachMaterialized(
+        [&](int, const zelda3::Room&) { ++count; });
+    return count;
+  }
+
+  DungeonSaveFlagsGuard flags_guard_;
+  Rom rom_;
+  project::YazeProject project_;
+  std::unique_ptr<DungeonEditorV2> editor_;
+  DungeonCanvasViewer* viewer_ = nullptr;
+  ToastManager toasts_;
+};
+
+TEST_F(DungeonPotPlacementTest,
+       RepackRefusesBeforeHistoryThenPlacementSavesAndReloads) {
+  SetupSharedPotItemTable(rom_);
+  UseRepackPool(6);  // A 5-byte item stream plus retained 2-byte empty stream.
+  Open(true);
+  const auto before = rom_.vector();
+  const auto count = MaterializedCount();
+  Place();
+  EXPECT_EQ(Handler().mutation_status().code(),
+            absl::StatusCode::kResourceExhausted);
+  EXPECT_TRUE(editor_->rooms()[0].GetPotItems().empty());
+  EXPECT_FALSE(editor_->rooms()[0].pot_items_dirty());
+  EXPECT_FALSE(editor_->CanUndo());
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_EQ(MaterializedCount(), count);
+  EXPECT_FALSE(core::FeatureFlags::get().dungeon.kSavePotItems);
+  ASSERT_FALSE(toasts_.GetHistory().empty());
+  EXPECT_EQ(toasts_.GetHistory().front().type, ToastType::kWarning);
+  EXPECT_EQ(toasts_.GetHistory().front().message,
+            absl::StrFormat("Edit not applied: %s",
+                            Handler().mutation_status().message()));
+
+  UseRepackPool(0x40);
+  Place();
+  ASSERT_TRUE(Handler().mutation_status().ok());
+  ASSERT_EQ(editor_->rooms()[0].GetPotItems().size(), 1u);
+  EXPECT_TRUE(editor_->CanUndo());
+  EXPECT_EQ(rom_.vector(), before);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(editor_->rooms()[0].GetPotItems().empty());
+  ASSERT_TRUE(editor_->Redo().ok());
+  ASSERT_EQ(editor_->rooms()[0].GetPotItems().size(), 1u);
+  core::FeatureFlags::get().dungeon.kSavePotItems = true;
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  EXPECT_FALSE(editor_->rooms()[0].pot_items_dirty());
+  Rom fresh;
+  ASSERT_TRUE(fresh.LoadFromData(rom_.vector()).ok());
+  zelda3::Room reloaded(0, &fresh);
+  reloaded.LoadPotItems();
+  ASSERT_EQ(reloaded.GetPotItems().size(), 1u);
+  EXPECT_EQ(reloaded.GetPotItems().front().item, 6);
+  EXPECT_EQ(reloaded.GetPotItems().front().GetPixelX(), 80);
+  EXPECT_EQ(reloaded.GetPotItems().front().GetPixelY(), 96);
+}
+
+TEST_F(DungeonPotPlacementTest, RepackIncludesOtherPendingUnloadedPotRooms) {
+  SetupSharedPotItemTable(rom_);
+  UseRepackPool(10);
+  Open(true);
+  auto& pending = editor_->rooms()[1];
+  pending.GetPotItems().push_back({0, 8});
+  pending.MarkPotItemsDirty();
+  ASSERT_FALSE(pending.IsLoaded());
+  const auto before = rom_.vector();
+  Place();  // Two different 5-byte streams plus the retained empty stream.
+  EXPECT_EQ(Handler().mutation_status().code(),
+            absl::StatusCode::kResourceExhausted);
+  EXPECT_TRUE(editor_->rooms()[0].GetPotItems().empty());
+  EXPECT_FALSE(editor_->rooms()[0].pot_items_dirty());
+  EXPECT_TRUE(pending.pot_items_dirty());
+  EXPECT_EQ(pending.GetPotItems().front().item, 8);
+  EXPECT_FALSE(pending.IsLoaded());
+  EXPECT_FALSE(editor_->CanUndo());
+  EXPECT_EQ(rom_.vector(), before);
+  pending.GetPotItems().clear();
+  Place();
+  EXPECT_TRUE(Handler().mutation_status().ok());
+  EXPECT_EQ(editor_->rooms()[0].GetPotItems().size(), 1u);
+  EXPECT_TRUE(pending.pot_items_dirty());
+  EXPECT_FALSE(pending.IsLoaded());
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_F(DungeonPotPlacementTest, SharedPhysicalStreamRefusesBeforeMutation) {
+  SetupSharedPotItemTable(rom_);
+  Open();
+  const auto before = rom_.vector();
+  Place();
+  EXPECT_EQ(Handler().mutation_status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(Handler().mutation_status().message().find("shared"),
+            absl::string_view::npos);
+  EXPECT_TRUE(editor_->rooms()[0].GetPotItems().empty());
+  EXPECT_FALSE(editor_->rooms()[0].pot_items_dirty());
+  EXPECT_FALSE(editor_->CanUndo());
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_F(DungeonPotPlacementTest, ProtectedPotWriteRefusesBeforeMutation) {
+  SetupPotItemTable(rom_);
+  project_ = MakeProjectWithManifest(R"json({
+    "manifest_version": 3,
+    "protected_regions": {"total_hooks": 1, "regions": [{
+      "start": "0x018000", "end": "0x018005", "size": 5,
+      "hook_count": 1, "module": "PotGuard"
+    }]}
+  })json");
+  Open(true);
+  const auto before = rom_.vector();
+  Place();
+  EXPECT_EQ(Handler().mutation_status().code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_TRUE(editor_->rooms()[0].GetPotItems().empty());
+  EXPECT_FALSE(editor_->rooms()[0].pot_items_dirty());
+  EXPECT_FALSE(editor_->CanUndo());
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_F(DungeonPotPlacementTest,
+       PhysicalBoundaryAllowsExactFitAndRefusesGrowth) {
+  SetupPotItemTable(rom_);
+  Open();
+  auto& room = editor_->rooms()[0];
+  for (int i = 0; i < 9; ++i) {
+    room.GetPotItems().push_back({static_cast<uint16_t>(i * 2), 1});
+  }
+  const auto before = rom_.vector();
+  Place();  // 10*3+2 bytes exactly fill the 32-byte physical stream.
+  ASSERT_TRUE(Handler().mutation_status().ok());
+  ASSERT_EQ(room.GetPotItems().size(), 10u);
+  EXPECT_TRUE(room.pot_items_dirty());
+  Place();
+  EXPECT_EQ(Handler().mutation_status().code(),
+            absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(room.GetPotItems().size(), 10u);
+  EXPECT_TRUE(room.pot_items_dirty());
+  EXPECT_EQ(rom_.vector(), before);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room.GetPotItems().size(), 9u);
+  EXPECT_FALSE(editor_->CanUndo());
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room.GetPotItems().size(), 10u);
+  core::FeatureFlags::get().dungeon.kSavePotItems = true;
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  zelda3::Room reloaded(0, &rom_);
+  reloaded.LoadPotItems();
+  EXPECT_EQ(reloaded.GetPotItems().size(), 10u);
 }
 
 TEST(DungeonEditorV2RomSafetyTest,

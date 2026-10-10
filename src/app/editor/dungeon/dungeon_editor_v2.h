@@ -341,6 +341,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorEntityUndoTestPeer;
   friend class DungeonRoomEditsTestPeer;
   friend class DungeonSelectionEditsTestPeer;
+  friend class DungeonPotPlacementTestPeer;
   friend class DungeonConnectionEditsTestPeer;
   friend class DungeonRoomTransferTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
@@ -693,6 +694,8 @@ class DungeonEditorV2 : public Editor {
       int room_id, const DungeonSelectionEditState& candidate, uint8_t domains);
   absl::Status PreflightSpriteMutation(
       int room_id, const std::vector<zelda3::Sprite>& sprites);
+  absl::Status PreflightPotItemPlacement(
+      int room_id, const std::vector<zelda3::PotItem>& items);
   absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
   PlanPendingRoomStreamRanges(
       const std::vector<DungeonSelectionEditPlan>& candidates) const;
