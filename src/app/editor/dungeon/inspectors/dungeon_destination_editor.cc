@@ -127,6 +127,11 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
                        room->has_custom_collision());
   const bool inspect = ImGui::Button("Find selected stair slot", ImVec2(-1, 0));
   gui::AutoRegisterLastItem("button", "FindStairSlot");
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "Select a staircase object to find its header slot. Editing a "
+        "destination does not place a stair or create a return link.");
+  }
   ImGui::EndDisabled();
   if (inspect) {
     // Explicit inspection avoids replaying the room on every ImGui frame.
@@ -181,16 +186,14 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
   const bool editable =
       !viewer.header_read_only() && viewer.IsObjectInteractionEnabled();
   int navigate_to = -1;
-  ImGui::TextWrapped(
-      room_id >= 0x100 ? "Room bytes are hex; destinations stay on page 1xx."
-                       : "Room bytes are hex; destinations stay on page 0xx.");
   constexpr const char* planes[] = {"Upper BG1", "Lower BG1", "Lower BG2"};
   if (ImGui::BeginTable(
           "##DestinationRows", 4,
           ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
     ImGui::TableSetupColumn("Route", ImGuiTableColumnFlags_WidthFixed, 49.0f);
     ImGui::TableSetupColumn("Room", ImGuiTableColumnFlags_WidthFixed, 38.0f);
-    ImGui::TableSetupColumn("Arrival", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Arrival", ImGuiTableColumnFlags_WidthStretch,
+                            1.0f);
     ImGui::TableSetupColumn("##Open", ImGuiTableColumnFlags_WidthFixed, 22.0f);
     ImGui::TableHeadersRow();
     for (int row = 0; row < 5; ++row) {
@@ -234,6 +237,11 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
           destination = requested;
       }
       gui::AutoRegisterLastItem("input_hex", absl::StrFormat("Room/%d", row));
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip(
+            "Destination room byte (hex 00-FF); stays on page %s.",
+            room_id >= 0x100 ? "1xx" : "0xx");
+      }
       ImGui::TableNextColumn();
       const auto plane_label = plane >= 0 && plane < 3
                                    ? std::string(planes[plane])
@@ -271,9 +279,6 @@ void DrawDungeonDestinationEditor(DungeonCanvasViewer& viewer) {
     }
     ImGui::EndTable();
   }
-  ImGui::TextWrapped(
-      "Stairs are header slots; a destination does not prove a placed stair. "
-      "Editing does not create a return link.");
   if (storage->GetBool(error_key, false)) {
     ImGui::TextWrapped(
         "Destination edit rejected. Use room 00–FF and a supported arrival "

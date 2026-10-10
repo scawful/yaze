@@ -58,8 +58,14 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
           ? dungeon_project_labels::GetRoomLabel(viewer.project(), room_id)
           : std::string("None");
 
+  bool room_dirty = false;
+  if (auto* rooms = viewer.rooms(); rooms && room_id >= 0) {
+    if (const auto* room = rooms->GetIfMaterialized(room_id)) {
+      room_dirty = room->HasUnsavedChanges();
+    }
+  }
+
   // Room badge: hex ID + copy button (only for valid room IDs).
-  workbench::DrawInspectorSectionHeader(ICON_MD_CASTLE " Room Summary");
   if (room_id >= 0) {
     ImGui::AlignTextToFramePadding();
     ImGui::Text(tr("Room 0x%03X"), room_id);
@@ -71,6 +77,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(tr("Copy room ID (0x%03X) to clipboard"), room_id);
+    }
+    if (room_dirty) {
+      ImGui::SameLine();
+      ImGui::TextColored(theme.status_warning, "Unsaved");
     }
 
     if (auto* rooms = viewer.rooms();
@@ -114,19 +124,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     }
   } else {
     ImGui::TextUnformatted(tr("Room: None"));
-  }
-
-  bool room_dirty = false;
-  if (auto* rooms = viewer.rooms(); rooms && room_id >= 0) {
-    if (const auto* room = rooms->GetIfMaterialized(room_id)) {
-      room_dirty = room->HasUnsavedChanges();
-    }
-  }
-  if (room_dirty) {
-    ImGui::TextColored(theme.status_warning,
-                       ICON_MD_EDIT " Pending room changes");
-  } else if (room_id >= 0) {
-    ImGui::TextDisabled(ICON_MD_CHECK " Room matches ROM buffer");
   }
 
   // Dungeon group context: prefer ROM entrance-based lookup (accurate for
@@ -187,11 +184,12 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       }
       ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
                               label_width);
-      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch,
+                              1.0f);
       return true;
     };
     auto property_row = [](const char* label) {
-      ImGui::TableNextRow();
+      // Advance by one label/value pair; four-column tables pair short fields.
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
       ImGui::TextUnformatted(label);
@@ -213,9 +211,16 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
         gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
         gui::AutoRegisterLastItem("input_hex", id + 2, label);
       }
-      if (ImGui::IsItemHovered()) {
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        const char* description = label;
+        if (field == RoomMetadataField::kSpriteset)
+          description = "Sprite graphics set";
+        else if (field == RoomMetadataField::kFloor1)
+          description = "Background 1 floor pattern";
+        else if (field == RoomMetadataField::kFloor2)
+          description = "Background 2 floor pattern";
         ImGui::SetTooltip("%s (hex 00-%X). Enter or leave the field to apply.",
-                          label, max_value);
+                          description, max_value);
       }
     };
     auto draw_choice = [&](const char* label, const char* id, int value,
@@ -226,6 +231,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       {
         gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
         gui::AutoRegisterLastItem("combo", id + 2, label);
+      }
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip("%s: %s", label, preview.c_str());
       }
       if (open) {
         for (int option = 0; option < count; ++option) {
@@ -247,7 +255,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       }
     };
 
-    workbench::DrawInspectorSectionHeader("Room tags");
     if (begin_properties("##WorkbenchRoomTags", 42.0f)) {
       const auto tag_name = [&](int value) {
         return dungeon_project_labels::GetRoomTagLabel(viewer.project(), value);
@@ -261,12 +268,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
             index == 0 ? "##RoomHeaderTag1" : "##RoomHeaderTag2", tag, 0x40,
             index == 0 ? RoomMetadataField::kTag1 : RoomMetadataField::kTag2,
             tag_name);
-        // Long project labels must stay readable without opening the selector.
-        const auto label = tag_name(tag);
-        if (ImGui::CalcTextSize(label.c_str()).x + 40.0f >
-            ImGui::GetContentRegionAvail().x) {
-          ImGui::TextWrapped("%s", label.c_str());
-        }
       }
       ImGui::EndDisabled();
       ImGui::EndTable();
@@ -279,28 +280,38 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
           "range.");
     }
 
-    workbench::DrawInspectorSectionHeader("Pit behavior");
-    DrawPitDamageControls(room_id);
-    workbench::DrawInspectorSectionHeader("Destinations");
-    DrawDungeonDestinationEditor(viewer);
-    if (viewer.current_room_id() != room_id)
-      return;
-
-    if (workbench::BeginInspectorSection(ICON_MD_TUNE " Room Properties",
-                                         false) &&
-        begin_properties("##WorkbenchRoomHeader")) {
+    workbench::DrawInspectorSectionHeader("Room properties");
+    ImGui::BeginDisabled(viewer.header_read_only() ||
+                         !viewer.IsObjectInteractionEnabled());
+    if (ImGui::BeginTable(
+            "##WorkbenchRoomGraphics", 4,
+            ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("Property 1", ImGuiTableColumnFlags_WidthFixed,
+                              std::max(ImGui::CalcTextSize("Floor 1").x,
+                                       ImGui::CalcTextSize("Palette").x));
+      ImGui::TableSetupColumn("Value 1", ImGuiTableColumnFlags_WidthStretch,
+                              1.0f);
+      ImGui::TableSetupColumn("Property 2", ImGuiTableColumnFlags_WidthFixed,
+                              std::max(ImGui::CalcTextSize("Floor 2").x,
+                                       ImGui::CalcTextSize("Blockset").x));
+      ImGui::TableSetupColumn("Value 2", ImGuiTableColumnFlags_WidthStretch,
+                              1.0f);
       draw_hex("Layout", "##RoomHeaderLayout", room.layout_id(), 0x07,
                RoomMetadataField::kLayout);
       draw_hex("Blockset", "##RoomHeaderBlockset", room.blockset(), 0x51,
                RoomMetadataField::kBlockset);
-      draw_hex("BG1 floor", "##RoomHeaderFloor1", room.floor1(), 0x0F,
+      draw_hex("Floor 1", "##RoomHeaderFloor1", room.floor1(), 0x0F,
                RoomMetadataField::kFloor1);
-      draw_hex("BG2 floor", "##RoomHeaderFloor2", room.floor2(), 0x0F,
+      draw_hex("Floor 2", "##RoomHeaderFloor2", room.floor2(), 0x0F,
                RoomMetadataField::kFloor2);
       draw_hex("Palette", "##RoomHeaderPalette", room.palette(), 0x47,
                RoomMetadataField::kPalette);
-      draw_hex("Sprite graphics", "##RoomHeaderSpriteset", room.spriteset(),
+      draw_hex("Sprites", "##RoomHeaderSpriteset", room.spriteset(),
                zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
+      ImGui::EndTable();
+    }
+    if (begin_properties("##WorkbenchRoomHeader",
+                         std::max(68.0f, ImGui::CalcTextSize("Collision").x))) {
       draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
                RoomMetadataField::kMessage);
       draw_choice("BG2 mode", "##RoomHeaderBg2", static_cast<int>(room.bg2()),
@@ -313,6 +324,23 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       draw_choice("Collision", "##RoomHeaderCollision", room.collision(), 5,
                   RoomMetadataField::kCollision, GetCollisionName);
       ImGui::EndTable();
+    }
+    ImGui::EndDisabled();
+
+    DrawPitDamageControls(room_id);
+    workbench::DrawInspectorSectionHeader("Destinations");
+    DrawDungeonDestinationEditor(viewer);
+    if (viewer.current_room_id() != room_id)
+      return;
+
+    const bool details_open = ImGui::CollapsingHeader("Details##RoomDetails");
+    {
+      gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+      gui::AutoRegisterLastItem("collapsing_header", "RoomDetails");
+    }
+    if (details_open) {
+      ImGui::TextDisabled(room_dirty ? "Pending room changes"
+                                     : "Room matches ROM buffer");
     }
 
     if (workbench::BeginInspectorSection(ICON_MD_INVENTORY_2 " Chest contents",

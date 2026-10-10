@@ -2,9 +2,13 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <deque>
 #include <functional>
 #include <optional>
+#include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -23,6 +27,12 @@
 
 namespace yaze::editor {
 namespace {
+
+constexpr std::array<const char*, 10> kRoomPropertyFields = {
+    "RoomHeaderLayout",   "RoomHeaderBlockset", "RoomHeaderFloor1",
+    "RoomHeaderFloor2",   "RoomHeaderPalette",  "RoomHeaderSpriteset",
+    "RoomHeaderMessage",  "RoomHeaderBg2",      "RoomHeaderEffect",
+    "RoomHeaderCollision"};
 
 class DungeonRoomMetadataUiTest : public ::testing::Test {
  protected:
@@ -90,6 +100,10 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width_, height_), ImGuiCond_Always);
+    if (requested_scroll_) {
+      ImGui::SetNextWindowScroll(ImVec2(-1, *requested_scroll_));
+      requested_scroll_.reset();
+    }
     ImGui::Begin("MetadataHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
     ImGui::LogToBuffer();
     // Logging must not auto-open collapsed sections and mask default UI state.
@@ -101,14 +115,12 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
     } else if (show_tag_panel_) {
       tag_panel_.Draw(nullptr);
     } else {
-      if (open_secondary_properties_) {
-        ImGui::GetStateStorage()->SetInt(
-            ImGui::GetID(ICON_MD_TUNE " Room Properties"), 1);
-      }
       if (persist_collapsed_sections_) {
-        for (const char* label : {ICON_MD_TUNE " Room Properties",
-                                  ICON_MD_ALT_ROUTE " Destinations",
-                                  ICON_MD_WARNING " Pit Damage", "Room tags"}) {
+        for (const char* label :
+             {ICON_MD_TUNE " Room Properties",
+              ICON_MD_ALT_ROUTE " Destinations", ICON_MD_WARNING " Pit Damage",
+              "Room tags", "Details##RoomDetails",
+              "Details##PitDamageDetails"}) {
           ImGui::GetStateStorage()->SetInt(ImGui::GetID(label), 0);
         }
       }
@@ -117,6 +129,10 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
     }
     logged_text_ = ImGui::GetCurrentContext()->LogBuffer.c_str();
     ImGui::LogFinish();
+    const auto* host = ImGui::GetCurrentWindow();
+    form_height_ = host->DC.CursorMaxPos.y - host->DC.CursorStartPos.y;
+    rendered_hex_width_ =
+        ImGui::CalcTextSize("FF").x + 2 * ImGui::GetStyle().FramePadding.x;
     ImGui::End();
     ImGui::Render();
   }
@@ -135,7 +151,29 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
     return std::nullopt;
   }
 
+  void ScrollTo(float value) {
+    requested_scroll_ = value;
+    DrawFrame();
+    DrawFrame();
+  }
+
+  void Reveal(const char* label) {
+    if (const auto widget = Widget(label); widget && widget->visible) {
+      return;
+    }
+    const auto* host = ImGui::FindWindowByName("MetadataHost");
+    ASSERT_NE(host, nullptr);
+    const float maximum = host->ScrollMax.y;
+    for (float position = 0; position < maximum + 200; position += 200) {
+      ScrollTo(std::min(position, maximum));
+      if (const auto widget = Widget(label); widget && widget->visible) {
+        return;
+      }
+    }
+  }
+
   void Click(const char* label) {
+    Reveal(label);
     const auto widget = Widget(label);
     ASSERT_TRUE(widget.has_value()) << label;
     ASSERT_TRUE(widget->visible) << label;
@@ -150,11 +188,6 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
   }
 
   void Type(const char* field, const char* value) {
-    if (std::string(field).starts_with("RoomHeader") &&
-        !std::string(field).starts_with("RoomHeaderTag")) {
-      open_secondary_properties_ = true;
-      height_ = 1300;
-    }
     DrawFrame();
     DrawFrame();
     Click(field);
@@ -175,11 +208,13 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
   bool simulate_product_refresh_ = false;
   bool show_tag_panel_ = false;
   bool show_destinations_ = false;
-  bool open_secondary_properties_ = false;
   bool persist_collapsed_sections_ = false;
   bool compact_ = false;
   float width_ = 320;
   float height_ = 600;
+  float form_height_ = 0;
+  float rendered_hex_width_ = 0;
+  std::optional<float> requested_scroll_;
   project::YazeProject project_;
   zelda3::ResourceLabelProvider old_labels_;
   zelda3::PitDamageTable pit_table_;
@@ -232,40 +267,60 @@ TEST_F(DungeonRoomMetadataUiTest,
         persist_collapsed_sections_ = collapsed;
         SCOPED_TRACE(::testing::Message() << width << " compact=" << compact
                                           << " collapsed=" << collapsed);
-        DrawFrame();
-        DrawFrame();
+        ScrollTo(0);
         EXPECT_NE(logged_text_.find("Weekend Crumble"), std::string::npos);
         EXPECT_NE(logged_text_.find("Cart shutter (disabled)"),
                   std::string::npos);
         EXPECT_EQ(logged_text_.find("Wrong session"), std::string::npos);
         EXPECT_NE(logged_text_.find("Pits deal damage"), std::string::npos);
         EXPECT_FALSE(Widget("Route"));
-        EXPECT_FALSE(Widget("RoomHeaderFloor1"));
-        std::vector<std::string> fields = {"RoomHeaderTag1", "RoomHeaderTag2"};
+        EXPECT_EQ(logged_text_.find("Room matches ROM buffer"),
+                  std::string::npos);
+        EXPECT_EQ(logged_text_.find("Move damage to room"), std::string::npos);
+        EXPECT_EQ(logged_text_.find("Apply with Pits scope enabled"),
+                  std::string::npos);
+        EXPECT_FALSE(content_.GetPitDamageControlRectsForTesting()
+                         .replace_current.visible);
+        std::vector<std::string> fields(kRoomPropertyFields.begin(),
+                                        kRoomPropertyFields.end());
+        fields.insert(fields.end(), {"RoomHeaderTag1", "RoomHeaderTag2"});
         for (int route = 0; route < 5; ++route) {
           fields.push_back("Room/" + std::to_string(route));
           fields.push_back("Plane/" + std::to_string(route));
           fields.push_back("Open/" + std::to_string(route));
         }
-        for (const auto& field : fields) {
-          const auto widget = Widget(field.c_str());
-          ASSERT_TRUE(widget) << field;
-          EXPECT_TRUE(widget->visible) << field;
-          EXPECT_TRUE(widget->enabled) << field;
-          EXPECT_GE(widget->bounds.min_x, 20) << field;
-          EXPECT_LE(widget->bounds.max_x, 20 + width_) << field;
-          EXPECT_GE(widget->bounds.min_y, 20) << field;
-          EXPECT_LE(widget->bounds.max_y, 20 + height_) << field;
+        // All controls are in the normal scroll flow. No section is opened to
+        // discover them, including when old collapsed settings are restored.
+        std::set<std::string> visible_fields;
+        const auto* host = ImGui::FindWindowByName("MetadataHost");
+        ASSERT_NE(host, nullptr);
+        const float maximum = host->ScrollMax.y;
+        for (float position = 0; position < maximum + 200; position += 200) {
+          ScrollTo(std::min(position, maximum));
+          for (const auto& field : fields) {
+            const auto widget = Widget(field.c_str());
+            if (!widget)
+              continue;
+            EXPECT_TRUE(widget->enabled) << field;
+            EXPECT_GE(widget->bounds.min_x, 20) << field;
+            EXPECT_LE(widget->bounds.max_x, 20 + width_) << field;
+            if (widget->visible && widget->bounds.min_y >= 40 &&
+                widget->bounds.max_y <= 20 + height_ - 8) {
+              visible_fields.insert(field);
+            }
+          }
+          EXPECT_FALSE(content_.GetPitDamageControlRectsForTesting()
+                           .replace_current.visible);
+          EXPECT_EQ(logged_text_.find("Room matches ROM buffer"),
+                    std::string::npos);
         }
-        const auto rect =
-            content_.GetPitDamageControlRectsForTesting().replace_current;
-        EXPECT_TRUE(rect.visible);
-        EXPECT_LE(rect.max_y, 20 + height_);
+        for (const auto& field : fields)
+          EXPECT_TRUE(visible_fields.contains(field)) << field;
       }
     }
   }
   project_.resource_labels.clear();
-  DrawFrame();
+  ScrollTo(0);
   EXPECT_NE(logged_text_.find("Crumble Floor"), std::string::npos);
   viewer_.SetProject(nullptr);
   DrawFrame();
@@ -275,6 +330,53 @@ TEST_F(DungeonRoomMetadataUiTest,
   EXPECT_TRUE(edits_.empty());
   EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
   EXPECT_FALSE(pit_table_.dirty());
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       DirectFormGeometryAtLaptopWidthsAndFontSizes) {
+  for (const float font_size : {13.0f, 16.0f}) {
+    ImGui::GetIO().FontGlobalScale = font_size / 13.0f;
+    for (const float width : {260.0f, 320.0f}) {
+      width_ = width;
+      ScrollTo(0);
+      const auto prefix = "width_" + std::to_string(static_cast<int>(width)) +
+                          "_font_" +
+                          std::to_string(static_cast<int>(font_size));
+      SCOPED_TRACE(prefix);
+      std::ostringstream metrics;
+      metrics << "content_height=" << form_height_;
+      const auto destination = Widget("Open/4");
+      ASSERT_TRUE(destination);
+      metrics << " last_destination_bottom=" << destination->bounds.max_y - 20;
+      metrics << " minimum_hex_width=" << rendered_hex_width_;
+      for (size_t i = 0; i < 6; ++i) {
+        const auto widget = Widget(kRoomPropertyFields[i]);
+        ASSERT_TRUE(widget) << kRoomPropertyFields[i];
+        EXPECT_TRUE(widget->visible) << kRoomPropertyFields[i];
+        const float input_width = widget->bounds.max_x - widget->bounds.min_x;
+        metrics << " " << kRoomPropertyFields[i] << "=" << input_width;
+        EXPECT_GE(input_width, rendered_hex_width_) << kRoomPropertyFields[i];
+        EXPECT_GE(widget->bounds.min_x, 20);
+        EXPECT_LE(widget->bounds.max_x, 20 + width_);
+        if (i % 2 == 1) {
+          const auto previous = Widget(kRoomPropertyFields[i - 1]);
+          ASSERT_TRUE(previous);
+          EXPECT_FLOAT_EQ(previous->bounds.min_y, widget->bounds.min_y);
+          constexpr const char* right_labels[] = {"Blockset", "Floor 2",
+                                                  "Sprites"};
+          EXPECT_GE(widget->bounds.min_x - previous->bounds.max_x,
+                    ImGui::CalcTextSize(right_labels[i / 2]).x);
+        }
+      }
+      RecordProperty(prefix, metrics.str());
+      // The useful form precedes its expandable explanations.
+      const auto details = Widget("RoomDetails");
+      ASSERT_TRUE(details);
+      EXPECT_GE(details->bounds.min_y, destination->bounds.max_y);
+      EXPECT_EQ(logged_text_.find("Room matches ROM buffer"),
+                std::string::npos);
+    }
+  }
 }
 
 TEST_F(DungeonRoomMetadataUiTest, BothVisibleTagSelectorsUseTypedEditBoundary) {
@@ -320,6 +422,10 @@ TEST_F(DungeonRoomMetadataUiTest,
 TEST_F(DungeonRoomMetadataUiTest, InspectPitActionUsesExistingMembershipSwap) {
   DrawFrame();
   DrawFrame();
+  EXPECT_FALSE(
+      content_.GetPitDamageControlRectsForTesting().replace_current.visible);
+  Click("PitDamageDetails");
+  DrawFrame();
   const auto rect =
       content_.GetPitDamageControlRectsForTesting().replace_current;
   ASSERT_TRUE(rect.visible);
@@ -332,6 +438,55 @@ TEST_F(DungeonRoomMetadataUiTest, InspectPitActionUsesExistingMembershipSwap) {
   EXPECT_TRUE(pit_table_.Contains(1));
   EXPECT_TRUE(pit_table_.dirty());
   EXPECT_TRUE(edits_.empty());
+  Click("PitDamageDetails");
+  DrawFrame();
+  EXPECT_FALSE(
+      content_.GetPitDamageControlRectsForTesting().add_current.visible);
+  EXPECT_FALSE(
+      content_.GetPitDamageControlRectsForTesting().replace_current.visible);
+  EXPECT_NE(logged_text_.find("Pending pit table change"), std::string::npos);
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       PairedRoomPropertiesKeepIndependentEditTargets) {
+  width_ = 260;
+  Type("RoomHeaderFloor1", "0B");
+  Enter();
+  Type("RoomHeaderFloor2", "0C");
+  Enter();
+  ASSERT_EQ(edits_.size(), 2u);
+  EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kFloor1);
+  EXPECT_EQ(edits_[1].request.field, RoomMetadataField::kFloor2);
+  EXPECT_EQ(rooms_[0].floor1(), 0x0B);
+  EXPECT_EQ(rooms_[0].floor2(), 0x0C);
+  EXPECT_EQ(rooms_[1].floor1(), 0);
+  EXPECT_EQ(rooms_[1].floor2(), 0);
+}
+
+TEST_F(DungeonRoomMetadataUiTest, DirectRoomPropertiesRespectReadOnly) {
+  viewer_.SetHeaderReadOnly(true);
+  DrawFrame();
+  DrawFrame();
+  for (const auto* field : kRoomPropertyFields) {
+    Reveal(field);
+    const auto widget = Widget(field);
+    ASSERT_TRUE(widget) << field;
+    EXPECT_TRUE(widget->visible) << field;
+    EXPECT_FALSE(widget->enabled) << field;
+  }
+  EXPECT_TRUE(edits_.empty());
+  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
+}
+
+TEST_F(DungeonRoomMetadataUiTest, RoutineRoomStatusRequiresExplicitDetails) {
+  DrawFrame();
+  DrawFrame();
+  EXPECT_EQ(logged_text_.find("Room matches ROM buffer"), std::string::npos);
+  Click("RoomDetails");
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Room matches ROM buffer"), std::string::npos);
+  EXPECT_TRUE(edits_.empty());
+  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
 }
 
 TEST_F(DungeonRoomMetadataUiTest, NumericEditCommitsOnceThroughTypedBoundary) {
@@ -423,8 +578,6 @@ TEST_F(DungeonRoomMetadataUiTest,
 }
 
 TEST_F(DungeonRoomMetadataUiTest, NamedBg2ChoiceUsesMetadataBoundary) {
-  open_secondary_properties_ = true;
-  height_ = 1300;
   DrawFrame();
   DrawFrame();
   Click("RoomHeaderBg2");

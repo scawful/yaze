@@ -154,6 +154,7 @@ class DungeonWorkbenchPitDamageUiTest : public ::testing::Test {
   }
 
   void DrawPitDamageFrame(DungeonWorkbenchContent& content, int room_id) {
+    gui::WidgetIdRegistry::Instance().Clear();
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(640.0f, 480.0f);
     io.DeltaTime = 1.0f / 60.0f;
@@ -169,6 +170,25 @@ class DungeonWorkbenchPitDamageUiTest : public ::testing::Test {
     ImGui::Render();
   }
 
+  void ClickPitDetails(DungeonWorkbenchContent& content, int room_id) {
+    const auto label =
+        gui::WidgetIdRegistry::NormalizeLabel("PitDamageDetails");
+    std::optional<DungeonWorkbenchTestRect> details;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (path.starts_with("Dungeon/Workbench/") && widget.label == label) {
+        ASSERT_TRUE(widget.visible);
+        ASSERT_TRUE(widget.enabled);
+        details = DungeonWorkbenchTestRect{
+            widget.visible, widget.bounds.min_x, widget.bounds.min_y,
+            widget.bounds.max_x, widget.bounds.max_y};
+        break;
+      }
+    }
+    ASSERT_TRUE(details.has_value());
+    ClickRect(content, room_id, *details);
+  }
+
   void ClickRect(DungeonWorkbenchContent& content, int room_id,
                  const DungeonWorkbenchTestRect& rect) {
     const float center_x = (rect.min_x + rect.max_x) * 0.5f;
@@ -176,6 +196,8 @@ class DungeonWorkbenchPitDamageUiTest : public ::testing::Test {
 
     ImGuiIO& io = ImGui::GetIO();
     io.AddMousePosEvent(center_x, center_y);
+    // Resolve the hovered window before pressing, as native pointer input does.
+    DrawPitDamageFrame(content, room_id);
     io.AddMouseButtonEvent(0, true);
     DrawPitDamageFrame(content, room_id);
 
@@ -1657,6 +1679,10 @@ TEST_F(DungeonWorkbenchPitDamageUiTest,
   auto table = MakePitDamageTable({0x001, 0x010});
   content.SetPitDamageTableProvider([&table]() { return &table; });
 
+  DrawPitDamageFrame(content, current_room_id);
+  EXPECT_FALSE(
+      content.GetPitDamageControlRectsForTesting().add_current.visible);
+  ClickPitDetails(content, current_room_id);
   DrawPitDamageFrame(content, current_room_id);
   const auto add_rect =
       content.GetPitDamageControlRectsForTesting().add_current;
