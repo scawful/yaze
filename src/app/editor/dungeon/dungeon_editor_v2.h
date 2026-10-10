@@ -54,6 +54,7 @@ class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
 class DungeonEditorV2EntranceCameraTestPeer;
+class DungeonEditorEntrancePropertiesTestPeer;
 class DungeonEditorV2RegularEntranceTestPeer;
 class DungeonEditorV2ReloadTestPeer;
 class DungeonEditorV2ShortcutTestPeer;
@@ -345,6 +346,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2EntranceCameraTestPeer;
+  friend class DungeonEditorEntrancePropertiesTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
   friend class AuthoringSaveWorkflowTestPeer;
@@ -418,6 +420,20 @@ class DungeonEditorV2 : public Editor {
   absl::Status RestoreEntranceCameraState(
       int slot_index, const DungeonEntranceCameraState& state);
   void RefreshEntranceCameraOverlays();
+  void ConfigureEntrancePropertyEditCallbacks(DungeonEntrancesPanel* panel);
+  void RecordEntrancePropertyEdit(int slot_index,
+                                  const zelda3::RoomEntrance& before,
+                                  const zelda3::RoomEntrance& after,
+                                  std::shared_ptr<const int> gesture);
+  void RecordSpawnPropertyEdit(int slot_index,
+                               const zelda3::DungeonSpawnPoint& before,
+                               const zelda3::DungeonSpawnPoint& after,
+                               std::shared_ptr<const int> gesture);
+  absl::Status RestoreEntranceProperties(int slot_index,
+                                         const zelda3::RoomEntrance& entrance);
+  absl::Status RestoreSpawnProperties(int slot_index,
+                                      const zelda3::DungeonSpawnPoint& spawn);
+  void RefreshEntranceDirtyState(int slot_index);
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
   void ConfigureMinecartProjectCallbacks();
   absl::Status ApplyMinecartTrackEdit(const MinecartTrack& before,
@@ -485,6 +501,7 @@ class DungeonEditorV2 : public Editor {
     bool has_palette_transaction = false;
   };
   std::optional<SaveTransactionSnapshot> save_transaction_snapshot_;
+  uint64_t entrance_property_save_generation_ = 0;
 
   std::optional<int> room_canvas_delete_shortcut_frame_;
 

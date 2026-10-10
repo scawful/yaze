@@ -841,6 +841,14 @@ TEST(DungeonEntranceCameraTest, EditorRepairIsOneUndoableDirtyTransition) {
                                  /*player_y=*/0x0290);
   before.trigger_x -= 8;
   before.dirty = false;
+  // The clean pre-repair state must also be the ROM baseline. Undo computes
+  // dirty state from the current bytes, including after a later save.
+  zelda3::RoomEntrance baseline(&rom, 0, false);
+  baseline.room_ = static_cast<int16_t>(before.room_id);
+  baseline.x_position_ = before.player_x;
+  baseline.y_position_ = before.player_y;
+  ApplyDungeonEntranceCameraState(before, &baseline);
+  ASSERT_TRUE(baseline.Save(&rom, 0).ok());
   DungeonEditorV2EntranceCameraTestPeer::SetRegularEntrance(editor, kSlot,
                                                             before);
 
@@ -885,7 +893,7 @@ TEST(DungeonEntranceCameraTest, SpawnRepairMarksOnlyDedicatedSpawnRecord) {
   spawn.camera_trigger_y = derived.trigger_y;
   spawn.camera_scroll_boundaries = derived.boundaries;
   spawn.quadrant = derived.quadrant;
-  spawn.ClearDirty();
+  ASSERT_TRUE(spawn.Save(&rom, kSlot).ok());
   DungeonEditorV2EntranceCameraTestPeer::SetSpawnPoint(editor, kSlot,
                                                        std::move(spawn));
 

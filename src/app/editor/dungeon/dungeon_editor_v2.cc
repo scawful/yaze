@@ -988,10 +988,7 @@ void DungeonEditorV2::Initialize() {
         },
         [this]() { return automatic_entrance_preview_; },
         [this](int slot) { SetGraphicsPreviewEntrance(slot); });
-    entrances_panel->SetCameraTools(
-        [this](int slot_index) { return GetEntranceCameraState(slot_index); },
-        [this](int slot_index) { return RepairEntranceCamera(slot_index); },
-        [this]() { RefreshEntranceCameraOverlays(); });
+    ConfigureEntrancePropertyEditCallbacks(entrances_panel.get());
     entrance_navigator_panel_ = entrances_panel.get();
     window_manager->RegisterWindowContent(std::move(entrances_panel));
   }
