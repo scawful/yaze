@@ -402,6 +402,78 @@ TEST_F(DungeonRoomMetadataUiTest, BothVisibleTagSelectorsUseTypedEditBoundary) {
 }
 
 TEST_F(DungeonRoomMetadataUiTest,
+       NamedChoicesUseFullWidthAtNarrowWidthsAndKeepWideRowsCompact) {
+  for (const float font_size : {13.0f, 16.0f}) {
+    ImGui::GetIO().FontGlobalScale = font_size / 13.0f;
+    for (const float width : {260.0f, 320.0f, 500.0f}) {
+      width_ = width;
+      ScrollTo(0);
+      const auto* host = ImGui::FindWindowByName("MetadataHost");
+      ASSERT_NE(host, nullptr);
+      const float available = host->WorkRect.GetWidth();
+      const bool stacked = available < ImGui::GetFontSize() * 25.0f;
+      for (const char* field :
+           {"RoomHeaderTag1", "RoomHeaderTag2", "RoomHeaderBg2",
+            "RoomHeaderEffect", "RoomHeaderCollision"}) {
+        Reveal(field);
+        const auto widget = Widget(field);
+        ASSERT_TRUE(widget) << field;
+        EXPECT_TRUE(widget->visible) << field;
+        EXPECT_GE(widget->bounds.min_x, host->WorkRect.Min.x - 1) << field;
+        EXPECT_LE(widget->bounds.max_x, host->WorkRect.Max.x + 1) << field;
+        const float field_width = widget->bounds.max_x - widget->bounds.min_x;
+        if (stacked)
+          EXPECT_GE(field_width, available - 2) << field;
+        else
+          EXPECT_LT(field_width, available - ImGui::CalcTextSize("Tag 1").x);
+      }
+    }
+  }
+  EXPECT_TRUE(edits_.empty());
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       NameOnlyChoicesKeepDuplicateTagIdentityAndDistinctLayerModes) {
+  viewer_.SetProject(&project_);
+  project_.resource_labels["room_tag"]["1"] = "Shared behavior";
+  project_.resource_labels["room_tag"]["2"] = "Shared behavior";
+  DrawFrame();
+  DrawFrame();
+  Click("RoomHeaderTag1");
+  DrawFrame();
+  const auto first = Widget("RoomHeaderTag1/1");
+  const auto second = Widget("RoomHeaderTag1/2");
+  ASSERT_TRUE(first);
+  ASSERT_TRUE(second);
+  EXPECT_NE(first->imgui_id, second->imgui_id);
+  EXPECT_NE(first->bounds.min_y, second->bounds.min_y);
+  EXPECT_EQ(logged_text_.find("01  Shared behavior"), std::string::npos);
+  Click("RoomHeaderTag1/2");
+  ASSERT_EQ(edits_.size(), 1u);
+  EXPECT_EQ(edits_.back().request.field, RoomMetadataField::kTag1);
+  EXPECT_EQ(edits_.back().request.value, 2);
+  EXPECT_EQ(rooms_[0].tag1(), 2);
+
+  Click("RoomHeaderEffect");
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("One"), std::string::npos);
+  EXPECT_EQ(logged_text_.find("01  One"), std::string::npos);
+  Click("RoomHeaderEffect/1");
+  ASSERT_EQ(edits_.size(), 2u);
+  EXPECT_EQ(edits_.back().request.field, RoomMetadataField::kEffect);
+  EXPECT_EQ(rooms_[0].effect(), 1);
+  Click("RoomHeaderEffect");
+  // Reopening restores the popup position on its next layout frame.
+  DrawFrame();
+  DrawFrame();
+  Click("RoomHeaderEffect/0");
+  ASSERT_EQ(edits_.size(), 3u);
+  EXPECT_EQ(edits_.back().request.value, 0);
+  EXPECT_EQ(rooms_[0].effect(), 0);
+  EXPECT_EQ(rooms_[1].effect(), 0);
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
        VisibleTagSelectorsRespectReadOnlyAndRejection) {
   reject_ = true;
   DrawFrame();

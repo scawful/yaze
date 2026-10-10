@@ -1284,7 +1284,7 @@ void DungeonWorkbenchContent::SetAllSaveFlags(bool value) {
 
 void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
   auto& flags = core::FeatureFlags::get().dungeon;
-  ImGui::TextUnformatted(tr("Content to save"));
+  ImGui::TextUnformatted(tr("Room content to apply"));
   constexpr ImGuiTableFlags kFlags =
       ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
   if (ImGui::BeginTable("##WorkbenchSaveContentFlags", 2, kFlags,
@@ -1332,17 +1332,20 @@ void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
   }
 
   ImGui::Separator();
+  const auto apply_room_label =
+      absl::StrFormat(ICON_MD_SAVE " Apply room 0x%03X", room_id);
   if (on_save_room_ && room_id >= 0 &&
-      workbench::DrawActionButton(ICON_MD_SAVE " Apply Current Room",
-                                  ImVec2(-1, 0))) {
+      workbench::DrawActionButton(apply_room_label.c_str(), ImVec2(-1, 0))) {
     on_save_room_(room_id);
   }
   if (on_save_all_rooms_ &&
-      workbench::DrawActionButton(ICON_MD_SAVE_ALT " Apply Loaded Rooms",
+      workbench::DrawActionButton(ICON_MD_SAVE_ALT " Apply all loaded rooms",
                                   ImVec2(-1, 0))) {
     on_save_all_rooms_();
   }
-  ImGui::TextDisabled(tr("File > Save ROM writes changes to disk."));
+  ImGui::TextWrapped(
+      tr("Apply uses the checked content. File > Save ROM "
+         "writes the applied changes to disk."));
 }
 
 void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
@@ -1882,7 +1885,7 @@ void DungeonWorkbenchContent::DrawInspectorToolPicker() {
       WorkbenchTool::RoomTags,      WorkbenchTool::CustomCollision,
       WorkbenchTool::WaterFill,     WorkbenchTool::MinecartTracks,
       WorkbenchTool::ObjectCoverage};
-  const bool pressed = ImGui::Button("Tools");
+  const bool pressed = ImGui::Button("Room tools");
   {
     gui::AutoWidgetScope scope("Dungeon/Workbench");
     gui::AutoRegisterLastItem("button", "tool_picker",

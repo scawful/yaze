@@ -461,7 +461,7 @@ float ToolbarRightActionsWidth(const DungeonWorkbenchToolbarParams& p,
                                           layout.button_size));
   }
   if (visibility.tools) {
-    append(workbench::CalcIconButtonWidth("Tools", layout.button_size));
+    append(workbench::CalcIconButtonWidth("Room tools", layout.button_size));
   }
   if (visibility.save_content) {
     append(workbench::CalcIconButtonWidth(kToolbarSaveContentLabel,
