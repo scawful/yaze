@@ -25,6 +25,7 @@
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "yaze.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace editor {
@@ -316,6 +317,27 @@ void PopupManager::DrawRomInfoPopup() {
   Text(tr("ROM Hash: %s"), editor_manager_->GetCurrentRomHash().empty()
                                ? "(unknown)"
                                : editor_manager_->GetCurrentRomHash().c_str());
+
+  const auto profile = zelda3::DetectOverworldRomProfile(*current_rom);
+  const auto& layout = profile.lyra_layout;
+  if (layout.presence != rom::LyraLayoutPresence::kAbsent) {
+    Separator();
+    TextUnformatted("Overworld Format: Lyra descriptor");
+    Text("ROM Format Revision: %u", layout.revision);
+    Text("Area Capacity: %u", layout.capacity);
+    Text("Active Areas: %u", layout.active_count);
+    TextUnformatted(layout.presence == rom::LyraLayoutPresence::kValid
+                        ? "Validation: valid"
+                        : "Validation: invalid");
+    TextUnformatted("Write Support: inspection only");
+    if (!layout.error.empty()) {
+      TextWrapped("Reason: %s", layout.error.c_str());
+    }
+  } else if (profile.layout_kind ==
+             zelda3::OverworldRomProfile::LayoutKind::kOlderTailEa) {
+    Separator();
+    TextUnformatted("Overworld Format: older $EA tail-map expansion");
+  }
 
   auto* project = editor_manager_->GetCurrentProject();
   if (project && project->project_opened()) {

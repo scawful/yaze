@@ -221,6 +221,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
 
   Rom* rom() const { return rom_; }
+  bool is_lyra_preview() const { return overworld_.is_lyra_preview(); }
+  // A Lyra preview retains pointers and caches derived from one ROM image.
+  // Session replacement must be checked before the manager mutates the ROM.
+  absl::Status CheckRomReplacement(const Rom& replacement) const;
+  bool overlay_preview_enabled() const { return show_overlay_preview_; }
 
   /// @brief Clamp a possibly stale world/map selection back into a valid
   /// overworld range.
@@ -228,7 +233,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Set the current map for editing (also updates world)
   void set_current_map(int map_id) {
-    if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps) {
+    if (map_id >= 0 && map_id < overworld_.inspected_map_count()) {
       // Finalize any pending paint operation before switching maps
       FinalizePaintOperation();
       current_map_ = map_id;
@@ -394,6 +399,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// Select @p map_id (switching world if needed) and center it; the context
   /// menu's Related Maps entries.
   void JumpToMap(int map_id);
+  // Navigate to an inspected Tile16 without changing ROM or edit history.
+  void LocateOverworldTile(int map_id, int world_x, int world_y);
   void SwitchToWorld(int world);
   // View requests; applied when the canvas child begins (safe anywhere).
   void ZoomIn();
@@ -427,17 +434,29 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Drawing is delegated to OverworldCanvasRenderer.
 
   absl::Status DrawAreaGraphics() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: area graphics editing unavailable");
+      return absl::OkStatus();
+    }
     NormalizeCurrentSelectionState();
     if (!canvas_renderer_)
       return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawAreaGraphics();
   }
   absl::Status DrawTile16Selector() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: Tile16 editing unavailable");
+      return absl::OkStatus();
+    }
     if (!canvas_renderer_)
       return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawTile16Selector();
   }
   void DrawMapProperties() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: map properties editing unavailable");
+      return;
+    }
     NormalizeCurrentSelectionState();
     if (canvas_renderer_)
       canvas_renderer_->DrawMapProperties();
@@ -452,11 +471,19 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   absl::Status DrawScratchSpace();
   void DrawTile8Selector() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: Tile8 editing unavailable");
+      return;
+    }
     if (canvas_renderer_)
       canvas_renderer_->DrawTile8Selector();
   }
   absl::Status UpdateGfxGroupEditor();
   void DrawV3Settings() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: overworld settings unavailable");
+      return;
+    }
     NormalizeCurrentSelectionState();
     if (canvas_renderer_)
       canvas_renderer_->DrawV3Settings();
@@ -487,6 +514,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
  private:
   friend class AuthoringSaveWorkflowTestPeer;
 
+  // Identifies the exact descriptor image bound to this model. The session
+  // reload path may restore those bytes after a refused ROM replacement.
+  std::string lyra_loaded_rom_sha1_;
   std::string graphics_preview_config_path_;
   // ===========================================================================
   // Entity Interaction System
@@ -792,7 +822,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gfx::Bitmap tile16_blockset_bmp_;
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount> maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
   std::vector<gfx::Bitmap> sprite_previews_;
 

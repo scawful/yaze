@@ -59,6 +59,14 @@ TEST(OverworldEditorStateTest, NormalizeMapSelectionRealignsWorldToValidMap) {
   EXPECT_EQ(current_map, 0x81);
 }
 
+TEST(OverworldEditorStateTest, NullRomSaveReturnsFailedPrecondition) {
+  OverworldEditor editor(nullptr);
+
+  const auto status = editor.Save();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+}
+
 TEST(OverworldEditorStateTest, UnloadedContextSnapshotIsStillInformative) {
   OverworldEditor editor(nullptr);
   const EditorContextSnapshot snapshot = editor.BuildContextSnapshot();

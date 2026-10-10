@@ -432,9 +432,15 @@ absl::Status ProjectManager::RestoreSnapshot(const std::string& name,
   }
 
   // Apply edits
+  if (auto status = rom->CheckLayoutWritable(); !status.ok()) {
+    return status;
+  }
   for (const auto& edit : snapshot.edits) {
     for (size_t i = 0; i < edit.new_value.size(); ++i) {
-      rom->WriteByte(edit.address + i, edit.new_value[i]);
+      if (auto status = rom->WriteByte(edit.address + i, edit.new_value[i]);
+          !status.ok()) {
+        return status;
+      }
     }
   }
 

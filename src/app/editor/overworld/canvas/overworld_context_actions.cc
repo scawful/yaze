@@ -13,6 +13,9 @@ bool OverworldCanvasRenderer::PrepareContextMenu(
     const ImVec2& screen_position) {
   auto& canvas = editor_->ow_map_canvas_;
   canvas.ClearContextMenuItems();
+  if (editor_->overworld_.is_lyra_preview()) {
+    return false;
+  }
   // Select tool: plain right-click. Paint tools: right-click samples, so
   // only Shift+right-click opens the menu.
   const bool menu_gesture =

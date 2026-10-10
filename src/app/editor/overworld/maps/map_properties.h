@@ -46,7 +46,7 @@ class MapPropertiesSystem {
 
   explicit MapPropertiesSystem(
       zelda3::Overworld* overworld, Rom* rom,
-      std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr,
+      std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp = nullptr,
       gui::Canvas* canvas = nullptr, int* game_state = nullptr)
       : overworld_(overworld),
         rom_(rom),
@@ -210,7 +210,7 @@ class MapPropertiesSystem {
 
   zelda3::Overworld* overworld_;
   Rom* rom_;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp_;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp_;
   gui::Canvas* canvas_;
   int* game_state_;
   int local_game_state_ = 0;

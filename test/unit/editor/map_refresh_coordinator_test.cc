@@ -60,7 +60,7 @@ class MapRefreshCoordinatorTest : public ::testing::Test {
   Rom rom_;
   std::unique_ptr<zelda3::Overworld> overworld_;
 
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_{};
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount> maps_bmp_{};
   gfx::Tilemap tile16_blockset_{};
   gfx::Bitmap current_gfx_bmp_;
   gfx::BitmapTable current_graphics_set_;

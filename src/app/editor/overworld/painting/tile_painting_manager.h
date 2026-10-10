@@ -25,7 +25,7 @@ class Tile16Editor;
 struct TilePaintingDependencies {
   gui::Canvas* ow_map_canvas = nullptr;
   zelda3::Overworld* overworld = nullptr;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp = nullptr;
   gfx::Tilemap* tile16_blockset = nullptr;
   int* current_tile16 = nullptr;
   std::vector<int>* selected_tile16_ids = nullptr;

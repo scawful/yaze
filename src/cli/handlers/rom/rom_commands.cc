@@ -8,6 +8,7 @@
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
 #include "util/macro.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace cli {
@@ -115,7 +116,7 @@ absl::Status RomWriteCommandHandler::Execute(
   }
 
   for (size_t i = 0; i < bytes.size(); ++i) {
-    rom->WriteByte(address + i, bytes[i]);
+    RETURN_IF_ERROR(rom->WriteByte(address + i, bytes[i]));
   }
 
   std::string hex_data;
@@ -150,6 +151,36 @@ absl::Status RomInfoCommandHandler::Execute(
   formatter.AddField("file_size",
                      absl::StrFormat("0x%X", rom->size() + header_size));
 
+  const auto profile = zelda3::DetectOverworldRomProfile(*rom);
+  const auto& layout = profile.lyra_layout;
+  const char* format_name = "legacy";
+  if (profile.layout_kind ==
+      zelda3::OverworldRomProfile::LayoutKind::kOlderTailEa) {
+    format_name = "older_tail_ea";
+  } else if (profile.layout_kind ==
+             zelda3::OverworldRomProfile::LayoutKind::kLyraOffline) {
+    format_name = "lyra_descriptor";
+  }
+  formatter.AddField("overworld_format", format_name);
+  formatter.AddField(
+      "overworld_format_valid",
+      layout.presence != yaze::rom::LyraLayoutPresence::kInvalid);
+  formatter.AddField("overworld_format_revision", layout.revision);
+  const int area_capacity =
+      layout.presence == yaze::rom::LyraLayoutPresence::kAbsent
+          ? profile.editable_map_count
+          : layout.capacity;
+  const int active_areas =
+      layout.presence == yaze::rom::LyraLayoutPresence::kAbsent
+          ? profile.editable_map_count
+          : layout.active_count;
+  formatter.AddField("overworld_area_capacity", area_capacity);
+  formatter.AddField("overworld_active_areas", active_areas);
+  formatter.AddField("overworld_write_supported", layout.write_supported);
+  if (!layout.error.empty()) {
+    formatter.AddField("overworld_format_error", layout.error);
+  }
+
   return absl::OkStatus();
 }
 
@@ -180,6 +211,16 @@ absl::Status RomValidateCommandHandler::Execute(
     all_ok = false;
   }
 
+  const auto layout = rom->InspectLyraLayout();
+  if (layout.presence != yaze::rom::LyraLayoutPresence::kAbsent) {
+    const bool layout_valid =
+        layout.presence == yaze::rom::LyraLayoutPresence::kValid;
+    all_ok = all_ok && layout_valid;
+    validation_results.push_back(layout_valid ? "lyra_descriptor: PASSED"
+                                              : "lyra_descriptor: FAILED (" +
+                                                    layout.error + ")");
+  }
+
   formatter.AddField("validation_passed", all_ok);
   std::string results_str;
   for (const auto& result : validation_results) {
@@ -189,7 +230,10 @@ absl::Status RomValidateCommandHandler::Execute(
   }
   formatter.AddField("results", results_str);
 
-  return absl::OkStatus();
+  return layout.presence == yaze::rom::LyraLayoutPresence::kInvalid
+             ? absl::FailedPreconditionError(
+                   "Invalid Lyra overworld ROM layout: " + layout.error)
+             : absl::OkStatus();
 }
 
 absl::Status RomDiffCommandHandler::Execute(

@@ -80,10 +80,24 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   if (!editor_) {
     return;
   }
+  const bool lyra_preview = editor_->overworld_.is_lyra_preview();
+  if (lyra_preview) {
+    ImGui::TextUnformatted(
+        "Lyra ROM rev1: 192 stored / 160 active / read-only");
+    ImGui::SameLine();
+    ImGui::TextDisabled("Sprite lists and area overlays unavailable");
+    int map_id = editor_->current_map_;
+    ImGui::SetNextItemWidth(210.0f);
+    if (ImGui::SliderInt("Inspect map", &map_id, 0x80, 0xBF, "0x%02X")) {
+      editor_->JumpToMap(map_id);
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("Sea cells are stored, not active gameplay maps");
+  }
 
   // Keep appearance edits beside the canvas, using the same undo/refresh path
   // as the full Map Properties panel.
-  if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
+  if (!lyra_preview && editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
       editor_->overworld_.is_loaded() && editor_->toolbar_) {
     editor_->toolbar_->shortcuts = editor_->dependencies_.shortcut_manager;
     editor_->toolbar_->Draw(
@@ -108,7 +122,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // Keep rendering an open menu even after entity hover changes. Paint modes
   // keep right-click for sampling; Shift+right-click opens the menu there
   // (PrepareContextMenu vetoes a plain right-click).
-  const bool show_context_menu = true;
+  const bool show_context_menu = !lyra_preview;
 
   // Configure canvas frame options
   gui::CanvasFrameOptions frame_opts;
@@ -116,7 +130,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   frame_opts.draw_grid = true;
   frame_opts.draw_context_menu = show_context_menu;
   frame_opts.draw_overlay = true;
-  frame_opts.render_popups = true;
+  frame_opts.render_popups = !lyra_preview;
   frame_opts.use_child_window = false;  // CRITICAL: Canvas has own pan logic
 
   // Wrap in child window for scrollbars. The navigation manager owns all
@@ -147,6 +161,12 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   if (editor_->overworld_.is_loaded()) {
     // Draw the 64 overworld map bitmaps
     DrawOverworldMaps();
+    if (lyra_preview) {
+      editor_->status_ = editor_->CheckForCurrentMap();
+      gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
+      ImGui::EndChild();
+      return;
+    }
 
     // Draw all entities using the new CanvasRuntime-based methods
     if (editor_->entity_renderer_ && editor_->show_entities_) {
@@ -377,7 +397,7 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
 
     // Bounds checking to prevent crashes
     if (world_index < 0 ||
-        world_index >= static_cast<int>(editor_->maps_bmp_.size())) {
+        world_index >= editor_->overworld_.inspected_map_count()) {
       continue;  // Skip invalid map index
     }
 

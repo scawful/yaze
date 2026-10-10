@@ -42,7 +42,7 @@ class Tile16Editor;
 struct MapRefreshContext {
   Rom* rom = nullptr;
   zelda3::Overworld* overworld = nullptr;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp = nullptr;
   gfx::Tilemap* tile16_blockset = nullptr;
   gfx::Bitmap* current_gfx_bmp = nullptr;
   gfx::BitmapTable* current_graphics_set = nullptr;

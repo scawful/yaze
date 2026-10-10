@@ -41,7 +41,7 @@ void OverworldMapTextureCoordinator::ProcessDeferredTextures() {
   constexpr int kMaxRefreshesPerFrame = 2;
 
   const auto try_refresh_map = [&](int map_index) {
-    if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps ||
+    if (map_index < 0 || map_index >= ctx_.overworld->inspected_map_count() ||
         refresh_count >= kMaxRefreshesPerFrame) {
       return;
     }
@@ -56,7 +56,8 @@ void OverworldMapTextureCoordinator::ProcessDeferredTextures() {
 
   const int current_world = std::clamp(*ctx_.current_world, 0, 2);
   const int world_start = current_world * 0x40;
-  const int world_end = std::min(world_start + 0x40, zelda3::kNumOverworldMaps);
+  const int world_end =
+      std::min(world_start + 0x40, ctx_.overworld->inspected_map_count());
   for (int map_index = world_start;
        map_index < world_end && refresh_count < kMaxRefreshesPerFrame;
        ++map_index) {
@@ -69,7 +70,7 @@ void OverworldMapTextureCoordinator::ProcessDeferredTextures() {
 
 void OverworldMapTextureCoordinator::EnsureMapTexture(int map_index) {
   if (!HasTextureContext(ctx_) || map_index < 0 ||
-      map_index >= zelda3::kNumOverworldMaps) {
+      map_index >= ctx_.overworld->inspected_map_count()) {
     return;
   }
 
@@ -126,8 +127,9 @@ void OverworldMapTextureCoordinator::PrimeWorldMaps(
 
   const int clamped_world = std::clamp(world, 0, 2);
   const int world_start = clamped_world * 0x40;
-  const int world_end = std::min(world_start + 0x40, zelda3::kNumOverworldMaps);
-  if (world_start >= zelda3::kNumOverworldMaps) {
+  const int world_end =
+      std::min(world_start + 0x40, ctx_.overworld->inspected_map_count());
+  if (world_start >= ctx_.overworld->inspected_map_count()) {
     return;
   }
 
