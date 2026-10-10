@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdio>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
@@ -63,6 +64,20 @@ class DungeonEntrancesPanel : public WindowContent {
   using CameraStateProvider =
       std::function<std::optional<DungeonEntranceCameraState>(int)>;
   using CameraRepairCallback = std::function<absl::Status(int)>;
+  using EntrancePropertyEditCallback = std::function<void(
+      int, const zelda3::RoomEntrance&, const zelda3::RoomEntrance&)>;
+  using SpawnPropertyEditCallback = std::function<void(
+      int, const zelda3::DungeonSpawnPoint&, const zelda3::DungeonSpawnPoint&)>;
+
+  void SetPropertyEditCallbacks(EntrancePropertyEditCallback entrance_callback,
+                                SpawnPropertyEditCallback spawn_callback) {
+    entrance_property_edit_callback_ = std::move(entrance_callback);
+    spawn_property_edit_callback_ = std::move(spawn_callback);
+  }
+
+  std::shared_ptr<const int> property_edit_gesture() const {
+    return property_edit_gesture_;
+  }
 
   void SetCameraTools(CameraStateProvider state_provider,
                       CameraRepairCallback repair_callback,
@@ -324,6 +339,7 @@ class DungeonEntrancesPanel : public WindowContent {
         camera_repair_error_ = std::string(status.message());
       }
     }
+    gui::AutoRegisterLastItem("button", "ApplyCameraRepair");
     ImGui::EndDisabled();
     ImGui::SameLine();
     if (ImGui::Button("Cancel")) {
@@ -376,16 +392,21 @@ class DungeonEntrancesPanel : public WindowContent {
       camera_repair_error_.clear();
       ImGui::OpenPopup("Camera Repair Preview##DungeonEntrance");
     }
+    gui::AutoRegisterLastItem("button", "PreviewCameraRepair");
     ImGui::EndDisabled();
     DrawCameraRepairPreview();
   }
 
   void DrawSelectedProperties() {
+    ObservePropertyEditGesture();
+    gui::AutoWidgetScope scope("Dungeon/Entrances");
+    ImGui::PushID(*current_entrance_id_);
     if (*current_entrance_id_ < zelda3::kNumDungeonSpawnPoints) {
       DrawSpawnPointProperties(*current_entrance_id_);
     } else {
       DrawRegularEntranceProperties(*current_entrance_id_);
     }
+    ImGui::PopID();
   }
 
   bool DrawCameraBoundaries(const char* table_id,
@@ -468,6 +489,7 @@ class DungeonEntrancesPanel : public WindowContent {
 
   void DrawSpawnPointProperties(int slot_index) {
     auto& spawn = (*spawn_points_)[slot_index];
+    const auto before = spawn;
     const bool properties_editable =
         CanEditDungeonSpawnPoint(slot_index, spawn);
     bool changed = false;
@@ -481,10 +503,12 @@ class DungeonEntrancesPanel : public WindowContent {
 
     changed |= gui::InputHexWord("Entrance ID", &spawn.entrance_id);
     changed |= gui::InputHexWord("Room ID", &spawn.room_id);
+    RegisterPropertyInput("Room ID", "SpawnRoomId");
     ImGui::SameLine();
     changed |= gui::InputHexByte("Dungeon ID", &spawn.dungeon_id, 50.f, true);
 
     changed |= gui::InputHexByte("Main GFX", &spawn.main_gfx, 50.f, true);
+    RegisterPropertyInput("Main GFX", "SpawnMainGfx");
     ImGui::SameLine();
     changed |= gui::InputHexByte("Song", &spawn.song, 50.f, true);
     ImGui::SameLine();
@@ -493,20 +517,29 @@ class DungeonEntrancesPanel : public WindowContent {
     ImGui::Separator();
 
     changed |= gui::InputHexWord("Player X", &spawn.x_coordinate);
+    RegisterPropertyInput("Player X", "SpawnPlayerX");
     ImGui::SameLine();
     changed |= gui::InputHexWord("Player Y", &spawn.y_coordinate);
+    RegisterPropertyInput("Player Y", "SpawnPlayerY");
 
     changed |= gui::InputHexWord("Overworld Door Tilemap",
                                  &spawn.overworld_door_tilemap, 70.f, true);
     ImGui::EndDisabled();
 
+    CommitSpawnPropertyEdit(slot_index, before, changed);
     DrawCameraSafety(slot_index);
 
-    if (ImGui::CollapsingHeader("Advanced camera data")) {
+    const auto camera_before = spawn;
+    changed = false;
+    const bool camera_open = ImGui::CollapsingHeader("Advanced camera data");
+    gui::AutoRegisterLastItem("header", "AdvancedCameraData");
+    if (camera_open) {
       ImGui::BeginDisabled(!properties_editable);
       changed |= gui::InputHexWord("Camera Trigger X", &spawn.camera_trigger_x);
+      RegisterPropertyInput("Camera Trigger X", "SpawnCameraTriggerX");
       ImGui::SameLine();
       changed |= gui::InputHexWord("Camera Trigger Y", &spawn.camera_trigger_y);
+      RegisterPropertyInput("Camera Trigger Y", "SpawnCameraTriggerY");
 
       changed |=
           gui::InputHexWord("Horizontal Scroll", &spawn.horizontal_scroll);
@@ -534,14 +567,12 @@ class DungeonEntrancesPanel : public WindowContent {
       ImGui::EndDisabled();
     }
 
-    MarkDungeonSpawnPointDirtyIfEditable(slot_index, spawn, changed);
-    if (changed && camera_data_changed_callback_) {
-      camera_data_changed_callback_();
-    }
+    CommitSpawnPropertyEdit(slot_index, camera_before, changed);
   }
 
   void DrawRegularEntranceProperties(int slot_index) {
     auto& entrance = (*entrances_)[slot_index];
+    const auto before = entrance;
     const bool properties_editable =
         CanEditDungeonEntrance(slot_index, entrance);
     bool changed = false;
@@ -549,11 +580,13 @@ class DungeonEntrancesPanel : public WindowContent {
     ImGui::Text(tr("Entrance ID: %04X"), entrance.entrance_id_);
     ImGui::BeginDisabled(!properties_editable);
     changed |= gui::InputHexWord("Room ID", &entrance.room_);
+    RegisterPropertyInput("Room ID", "RegularRoomId");
     ImGui::SameLine();
     changed |=
         gui::InputHexByte("Dungeon ID", &entrance.dungeon_id_, 50.f, true);
 
     changed |= gui::InputHexByte("Blockset", &entrance.blockset_, 50.f, true);
+    RegisterPropertyInput("Blockset", "RegularBlockset");
     ImGui::SameLine();
     changed |= gui::InputHexByte("Music", &entrance.music_, 50.f, true);
     ImGui::SameLine();
@@ -562,21 +595,30 @@ class DungeonEntrancesPanel : public WindowContent {
     ImGui::Separator();
 
     changed |= gui::InputHexWord("Player X   ", &entrance.x_position_);
+    RegisterPropertyInput("Player X   ", "RegularPlayerX");
     ImGui::SameLine();
     changed |= gui::InputHexWord("Player Y   ", &entrance.y_position_);
+    RegisterPropertyInput("Player Y   ", "RegularPlayerY");
 
     changed |= gui::InputHexWord("Exit", &entrance.exit_, 50.f, true);
     ImGui::EndDisabled();
 
+    CommitEntrancePropertyEdit(slot_index, before, changed);
     DrawCameraSafety(slot_index);
 
-    if (ImGui::CollapsingHeader("Advanced camera data")) {
+    const auto camera_before = entrance;
+    changed = false;
+    const bool camera_open = ImGui::CollapsingHeader("Advanced camera data");
+    gui::AutoRegisterLastItem("header", "AdvancedCameraData");
+    if (camera_open) {
       ImGui::BeginDisabled(!properties_editable);
       changed |=
           gui::InputHexWord("Camera Trigger X", &entrance.camera_trigger_x_);
+      RegisterPropertyInput("Camera Trigger X", "RegularCameraTriggerX");
       ImGui::SameLine();
       changed |=
           gui::InputHexWord("Camera Trigger Y", &entrance.camera_trigger_y_);
+      RegisterPropertyInput("Camera Trigger Y", "RegularCameraTriggerY");
 
       changed |= gui::InputHexWord("Scroll X", &entrance.camera_x_);
       ImGui::SameLine();
@@ -594,11 +636,43 @@ class DungeonEntrancesPanel : public WindowContent {
       ImGui::EndDisabled();
     }
 
-    MarkDungeonEntranceDirtyIfEditable(slot_index, entrance, changed);
-    if (changed && camera_data_changed_callback_) {
+    CommitEntrancePropertyEdit(slot_index, camera_before, changed);
+  }
+
+  void CommitEntrancePropertyEdit(int slot_index,
+                                  const zelda3::RoomEntrance& before,
+                                  bool changed) {
+    auto& entrance = (*entrances_)[slot_index];
+    if (!MarkDungeonEntranceDirtyIfEditable(slot_index, entrance, changed)) {
+      return;
+    }
+    if (entrance_property_edit_callback_) {
+      ObservePropertyEditGesture();
+      entrance_property_edit_callback_(slot_index, before, entrance);
+    }
+    if (camera_data_changed_callback_) {
       camera_data_changed_callback_();
     }
   }
+
+  void CommitSpawnPropertyEdit(int slot_index,
+                               const zelda3::DungeonSpawnPoint& before,
+                               bool changed) {
+    auto& spawn = (*spawn_points_)[slot_index];
+    if (!MarkDungeonSpawnPointDirtyIfEditable(slot_index, spawn, changed)) {
+      return;
+    }
+    if (spawn_property_edit_callback_) {
+      ObservePropertyEditGesture();
+      spawn_property_edit_callback_(slot_index, before, spawn);
+    }
+    if (camera_data_changed_callback_) {
+      camera_data_changed_callback_();
+    }
+  }
+
+  void ObservePropertyEditGesture();
+  void RegisterPropertyInput(const char* field_label, const char* widget_label);
 
   std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>*
       entrances_ = nullptr;
@@ -611,6 +685,10 @@ class DungeonEntrancesPanel : public WindowContent {
   std::function<void(int)> select_preview_;
   CameraStateProvider camera_state_provider_;
   CameraRepairCallback camera_repair_callback_;
+  EntrancePropertyEditCallback entrance_property_edit_callback_;
+  SpawnPropertyEditCallback spawn_property_edit_callback_;
+  ImGuiID property_edit_active_id_ = 0;
+  std::shared_ptr<const int> property_edit_gesture_;
   std::function<void()> camera_data_changed_callback_;
   std::optional<DungeonEntranceCameraState> camera_repair_preview_;
   int camera_repair_slot_ = -1;

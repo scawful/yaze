@@ -527,6 +527,9 @@ void DungeonEditorV2::RollbackSaveTransaction() {
 }
 
 void DungeonEditorV2::CommitSaveTransaction() {
+  if (save_transaction_snapshot_.has_value()) {
+    ++entrance_property_save_generation_;
+  }
   if (save_transaction_snapshot_.has_value() &&
       save_transaction_snapshot_->has_palette_transaction) {
     gfx::PaletteManager::Get().CommitSaveTransaction();
