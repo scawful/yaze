@@ -450,6 +450,30 @@ absl::Status ValidateCustomCollisionManifestConflicts(
 
 }  // namespace
 
+absl::Status DungeonEditorV2::PreflightPotItemPlacement(
+    int room_id, const std::vector<zelda3::PotItem>& items) {
+  const auto* room = rooms_.GetIfLoaded(room_id);
+  if (!rom_ || !rom_->is_loaded() || !room || room->rom() != rom_) {
+    return absl::FailedPreconditionError("Pot-item room is not loaded");
+  }
+  // Pot streams share one save operation. Include pending edits in other rooms
+  // so an individually small placement cannot overcommit the repack pool.
+  // Only detached rooms can have their dirty flags cleared by this dry run.
+  Rom scratch(*rom_);
+  DungeonRoomStore staged(&scratch);
+  rooms_.ForEachMaterialized([&](int id, const zelda3::Room& source) {
+    if (id != room_id && !source.pot_items_dirty()) {
+      return;
+    }
+    auto& candidate = staged[id];
+    candidate.GetPotItems() = id == room_id ? items : source.GetPotItems();
+    candidate.MarkPotItemsDirty();
+  });
+  RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
+      dependencies_.project, &scratch, staged, "pot-item placement", nullptr));
+  return SaveAllPotItemsForProject(dependencies_.project, &scratch, staged);
+}
+
 absl::Status DungeonEditorV2::BeginSaveTransaction() {
   if (save_transaction_snapshot_.has_value()) {
     return absl::FailedPreconditionError(

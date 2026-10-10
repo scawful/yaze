@@ -1101,6 +1101,66 @@ TEST_F(ItemInteractionHandlerTest, PlacementOutsideRoomDoesNotMutateOrAppend) {
   EXPECT_EQ(invalidate_count_, 0);
 }
 
+TEST_F(ItemInteractionHandlerTest,
+       PlacementStorageRejectionPreservesItemsAndCanRetry) {
+  AddItems(1);
+  int errors = 0;
+  bool reject = true;
+  handler_.SetItemPlacementPreflight(
+      [&](int room_id, const std::vector<zelda3::PotItem>& candidate) {
+        EXPECT_EQ(room_id, 0);
+        EXPECT_EQ(candidate.size(), 2u);
+        EXPECT_EQ(candidate.back().GetPixelX(), 80);
+        EXPECT_EQ(candidate.back().GetPixelY(), 96);
+        EXPECT_EQ(candidate.back().item, 6);
+        return reject ? absl::ResourceExhaustedError("Pot storage is full")
+                      : absl::OkStatus();
+      });
+  handler_.SetMutationErrorCallback([&](const absl::Status& status) {
+    ++errors;
+    EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  });
+  handler_.SetItemId(6);
+  handler_.BeginPlacement();
+  EXPECT_TRUE(handler_.HandleClick(80, 96));
+  EXPECT_EQ(handler_.mutation_status().code(),
+            absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(errors, 1);
+  EXPECT_EQ(rooms_[0].GetPotItems().size(), 1u);
+  EXPECT_FALSE(rooms_[0].pot_items_dirty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_TRUE(handler_.IsPlacementActive());
+
+  reject = false;
+  EXPECT_TRUE(handler_.HandleClick(80, 96));
+  EXPECT_TRUE(handler_.mutation_status().ok());
+  EXPECT_EQ(errors, 1);
+  EXPECT_EQ(rooms_[0].GetPotItems().size(), 2u);
+  EXPECT_TRUE(rooms_[0].pot_items_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+TEST_F(ItemInteractionHandlerTest,
+       PlacementRejectsRoomChangeDuringPreflightWithoutMutation) {
+  handler_.SetItemPlacementPreflight(
+      [&](int, const std::vector<zelda3::PotItem>&) {
+        ctx_.current_room_id = 1;
+        return absl::OkStatus();
+      });
+  handler_.BeginPlacement();
+  EXPECT_TRUE(handler_.HandleClick(80, 96));
+  EXPECT_EQ(handler_.mutation_status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(rooms_[0].GetPotItems().empty());
+  EXPECT_TRUE(rooms_[1].GetPotItems().empty());
+  EXPECT_FALSE(rooms_[0].pot_items_dirty());
+  EXPECT_FALSE(rooms_[1].pot_items_dirty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
 TEST_F(ItemInteractionHandlerTest, DragReleaseClampsToRoomAndMarksMutation) {
   rooms_[0].GetPotItems().push_back(zelda3::PotItem{0, 0x42});
   ASSERT_TRUE(handler_.HandleClick(0, 0));
