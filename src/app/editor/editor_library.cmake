@@ -86,6 +86,7 @@ set(
   app/editor/dungeon/workspace/room_graphics_content.cc
   app/editor/dungeon/workspace/room_matrix_census.cc
   app/editor/editor_manager.cc
+  app/editor/editor_manager_project_io.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/gfx_group_editor_main.cc
   app/editor/graphics/graphics_editor.cc
