@@ -7,6 +7,17 @@ namespace yaze::editor {
 
 class DungeonWorkbenchContentTestPeer {
  public:
+  static void DrawCanvasPane(DungeonWorkbenchContent& content,
+                             DungeonCanvasViewer& viewer, float width,
+                             float height) {
+    content.DrawCanvasPane(width, height, &viewer);
+  }
+  static void SetCompare(DungeonWorkbenchContent& content, bool enabled,
+                         int room_id = 1) {
+    content.split_view_enabled_ = enabled;
+    content.compare_room_id_ = room_id;
+    content.layout_state_.sync_split_view = false;
+  }
   static void DrawNavigator(DungeonWorkbenchContent& content, float width,
                             float height) {
     content.DrawSidebarPane(width, height, 22, false);

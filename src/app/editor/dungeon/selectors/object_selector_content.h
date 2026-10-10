@@ -27,8 +27,8 @@ class ToastManager;
  * @brief Browse and place dungeon objects
  *
  * This content owns object browsing and placement. Selection editing lives in
- * ObjectEditorContent so the selector can stay focused on choosing assets and
- * initiating placement.
+ * the active DungeonCanvasViewer so the selector can stay focused on choosing
+ * assets and initiating placement.
  *
  * Features:
  * - Object browser with graphical previews

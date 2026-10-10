@@ -70,25 +70,6 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   }
 
   if (hovered) {
-    if (pointer_within_room && ImGui::IsWindowHovered() &&
-        (io.MouseWheel != 0 || io.MouseWheelH != 0)) {
-      // A selected catalog object also owns its placement preview. Wheel input
-      // never edits an arbitrary object merely because the pointer covers it.
-      if (selection_.HasSelection() ||
-          entity_coordinator_.IsPlacementActive()) {
-        entity_coordinator_.HandleMouseWheel(ObjectResizeWheelDelta(io));
-      } else {
-        const ImVec2 scroll = canvas_->scrolling();
-        constexpr float kWheelPanPixels = 24.0f;
-        canvas_->set_scrolling(
-            ImVec2(scroll.x + io.MouseWheelH * kWheelPanPixels,
-                   scroll.y + io.MouseWheel * kWheelPanPixels));
-      }
-      // One gesture has one owner; the parent pane must not also scroll.
-      io.MouseWheel = 0;
-      io.MouseWheelH = 0;
-      return;
-    }
     HandleLayerKeyboardShortcuts();
     if (HandleKeyboardNudge()) {
       return;
@@ -927,6 +908,8 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
 void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled,
                                                     zelda3::DoorType type) {
   if (enabled) {
+    // Dispatch follows handler state; the previous placement must end too.
+    CancelPlacement();
     mode_manager_.SetMode(InteractionMode::PlaceDoor);
     entity_coordinator_.door_handler().SetDoorType(type);
     entity_coordinator_.door_handler().BeginPlacement();
@@ -944,6 +927,8 @@ void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled,
 void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled,
                                                       uint8_t sprite_id) {
   if (enabled) {
+    // Dispatch follows handler state; the previous placement must end too.
+    CancelPlacement();
     mode_manager_.SetMode(InteractionMode::PlaceSprite);
     entity_coordinator_.sprite_handler().SetSpriteId(sprite_id);
     entity_coordinator_.sprite_handler().BeginPlacement();
@@ -961,6 +946,8 @@ void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled,
 void DungeonObjectInteraction::SetItemPlacementMode(bool enabled,
                                                     uint8_t item_id) {
   if (enabled) {
+    // Dispatch follows handler state; the previous placement must end too.
+    CancelPlacement();
     mode_manager_.SetMode(InteractionMode::PlaceItem);
     entity_coordinator_.item_handler().SetItemId(item_id);
     entity_coordinator_.item_handler().BeginPlacement();

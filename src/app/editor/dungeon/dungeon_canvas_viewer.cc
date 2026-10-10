@@ -376,7 +376,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   PruneConnectedRoomCompositeOutputs();
 
   ImGui::BeginGroup();
-  const auto frame_opts = BuildRoomCanvasFrameOptions();
   SyncCanvasConfigFromViewerState();
   zelda3::Room* active_room = PrepareActiveRoomForCanvasFrame(room_id);
   if (header_visible_)
@@ -422,6 +421,18 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   PopulateCanvasContextMenu(room_id);
 
+  // Workbench, Standalone, and Compare share one fixed viewport. Content pan
+  // belongs to the canvas, never to a second ImGui scrollbar around its bitmap.
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  const bool viewport_visible = ImGui::BeginChild(
+      "##DungeonRoomViewport", ImVec2(0, 0), false,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+  ImGui::PopStyleVar();
+  if (!viewport_visible) {
+    ImGui::EndChild();
+    return;
+  }
+  const auto frame_opts = BuildRoomCanvasFrameOptions();
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
   const bool pointer_pressed = ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
                                ImGui::IsMouseClicked(ImGuiMouseButton_Right) ||
@@ -430,7 +441,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                                 ImGui::GetFrameCount());
   SyncCanvasCaptureRegion(canvas_rt);
   ConsumePendingCanvasScroll(canvas_rt);
-  canvas_rt.scrolling = canvas_.scrolling();
+  object_interaction_.SetCurrentRoom(rooms_, room_id);
+  HandleRoomCanvasNavigation(canvas_rt);
 
   touch_handler_.ProcessForCanvas(canvas_rt.canvas_p0, canvas_rt.canvas_sz,
                                   canvas_rt.hovered);
@@ -448,6 +460,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   DrawCoordinateOverlayHud(room_id);
 
   gui::EndCanvas(canvas_, canvas_rt, frame_opts);
+  ImGui::EndChild();
   SyncViewerStateFromCanvasConfig();
   DrawDungeonRoomTransferPopup(*this);
 }

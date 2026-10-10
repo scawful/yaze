@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -17,8 +18,10 @@
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
 #include "app/editor/dungeon/ui_constants.h"
+#include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
@@ -26,8 +29,10 @@
 #include "app/gui/core/icons.h"
 #include "core/features.h"
 #include "core/project.h"
+#include "dungeon_workbench_test_peer.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/game_data.h"
 
@@ -91,6 +96,10 @@ class DungeonMapPanelTestPeer {
 
 class DungeonCanvasViewerTestPeer {
  public:
+  static const gfx::Bitmap& PrimaryComposite(
+      const DungeonCanvasViewer& viewer) {
+    return viewer.primary_composite_output_.bitmap();
+  }
   static void PrepareConnectedRoom(DungeonCanvasViewer& viewer, int room_id) {
     viewer.PrepareConnectedRoomCompositeBitmap(room_id);
   }
@@ -459,6 +468,563 @@ struct ScopedImGuiContext {
     }
   }
 };
+
+// Exercise wheel routing through the real host hierarchy. A direct interaction
+// call after NewFrame cannot detect ImGui scrolling an ancestor first.
+class DungeonCanvasWheelRoutingTest : public ::testing::Test {
+ protected:
+  enum class Host { Workbench, Compare, Standalone };
+  struct Snapshot {
+    ImRect viewport;
+    ImRect canvas_bounds;
+    ImRect bitmap;
+    ImVec2 pan;
+    ImVec2 remaining_wheel;
+    std::vector<std::pair<std::string, ImVec2>> ancestor_scrolls;
+  };
+
+  void SetUp() override {
+    old_custom_objects_ = core::FeatureFlags::get().kEnableCustomObjects;
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+    imgui_ = std::make_unique<ScopedImGuiContext>();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.ConfigInputTrickleEventQueue = false;
+    io.DeltaTime = 1.0f / 60.0f;
+    unsigned char* pixels;
+    int w, h;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &w, &h);
+    gfx::Arena::Get().ClearTextureQueue();
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    const int layout = SnesToPc(zelda3::kRoomLayoutPointers.front());
+    ASSERT_TRUE(rom_.WriteWord(layout, 0xFFFF).ok());
+    ASSERT_TRUE(rom_.WriteWord(zelda3::kRoomsSpritePointer, 0x8000).ok());
+    ASSERT_TRUE(rom_.WriteVector(0x49000, {0x00, 0xFF}).ok());
+    ASSERT_TRUE(rom_.WriteWord(0xFF00, 0xFFFF).ok());
+    data_.graphics_buffer.assign(zelda3::kNumGfxSheets * 4096, 0);
+    data_.palette_groups.dungeon_main.AddPalette(gfx::SnesPalette(
+        std::vector<gfx::SnesColor>(90, gfx::SnesColor(64, 96, 128))));
+    data_.palette_groups.hud.AddPalette(gfx::SnesPalette(
+        std::vector<gfx::SnesColor>(32, gfx::SnesColor(0, 0, 0))));
+    for (int id : {0, 1}) {
+      ASSERT_TRUE(rom_.WriteWord(0x48000 + id * 2, 0x9000).ok());
+      ASSERT_TRUE(
+          rom_.WriteWord(zelda3::kRoomItemsPointers + id * 2, 0xFF00).ok());
+      auto& room = rooms_[id];
+      room.SetLoaded(true);
+      room.SetTileObjects({zelda3::RoomObject(0x01, 5, 5, 3, 0)});
+      room.LoadSprites();
+      room.LoadPotItems();
+      room.ClearSaveDirtyState();
+    }
+    primary_ = std::make_unique<DungeonCanvasViewer>();
+    compare_ = std::make_unique<DungeonCanvasViewer>();
+    for (auto* viewer : {primary_.get(), compare_.get()}) {
+      const int room = viewer == primary_.get() ? 0 : 1;
+      viewer->RefreshRomBackedState(&rom_, &data_, &rooms_, room);
+      viewer->SetHeaderVisible(false);
+      viewer->SetHeaderHiddenMetadataHudVisible(false);
+      viewer->set_show_coordinate_overlay(false);
+      viewer->set_show_grid(false);
+      viewer->SetSpritesVisible(false);
+      viewer->SetPotItemsVisible(false);
+    }
+    compare_->SetObjectInteractionEnabled(false);
+    room_selector_.SetGameData(&data_);
+    room_selector_.set_rooms(&rooms_);
+    content_ = std::make_unique<DungeonWorkbenchContent>(
+        &room_selector_, &room_id_, [](int) {}, [](int, RoomSelectionIntent) {},
+        [](int) {}, [] {}, [this] { return primary_.get(); },
+        [this](int) { return compare_.get(); },
+        [this]() -> const std::deque<int>& { return recent_; }, [](int) {},
+        [](bool) {}, &rom_);
+  }
+
+  void TearDown() override {
+    content_.reset();
+    primary_.reset();
+    compare_.reset();
+    rooms_.Clear();
+    gfx::Arena::Get().ClearTextureQueue();
+    core::FeatureFlags::get().kEnableCustomObjects = old_custom_objects_;
+    imgui_.reset();
+  }
+
+  Snapshot Capture(DungeonCanvasViewer& viewer) {
+    Snapshot result;
+    const auto& canvas = viewer.canvas();
+    auto* draw_list = canvas.draw_list();
+    EXPECT_NE(draw_list, nullptr);
+    if (!draw_list)
+      return result;
+    auto* owner = ImGui::FindWindowByName(draw_list->_OwnerName);
+    EXPECT_NE(owner, nullptr);
+    if (!owner)
+      return result;
+    result.viewport = owner->InnerClipRect;
+    result.pan = canvas.scrolling();
+    const auto& composite =
+        DungeonCanvasViewerTestPeer::PrimaryComposite(viewer);
+    EXPECT_EQ(composite.width(), 512);
+    EXPECT_EQ(composite.height(), 512);
+    EXPECT_NE(composite.surface(), nullptr);
+    const auto origin = canvas.zero_point();
+    result.canvas_bounds = ImRect(
+        origin,
+        ImVec2(origin.x + canvas.canvas_size().x * canvas.global_scale(),
+               origin.y + canvas.canvas_size().y * canvas.global_scale()));
+    const float size = 512 * canvas.global_scale();
+    result.bitmap = ImRect(
+        ImVec2(origin.x + result.pan.x, origin.y + result.pan.y),
+        ImVec2(origin.x + result.pan.x + size, origin.y + result.pan.y + size));
+    for (auto* window = owner; window; window = window->ParentWindow)
+      result.ancestor_scrolls.emplace_back(window->Name, window->Scroll);
+    result.remaining_wheel =
+        ImVec2(ImGui::GetIO().MouseWheelH, ImGui::GetIO().MouseWheel);
+    return result;
+  }
+
+  Snapshot Frame(DungeonCanvasViewer* target = nullptr) {
+    if (!target)
+      target = primary_.get();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(host_size_, ImGuiCond_Always);
+    ImGui::Begin("CanvasWheelHost", nullptr, host_flags_);
+    if (host_ == Host::Standalone)
+      primary_->Draw(room_id_);
+    else if (product_host_)
+      content_->Draw(nullptr);
+    else
+      DungeonWorkbenchContentTestPeer::DrawCanvasPane(*content_, *primary_, 760,
+                                                      460);
+    Snapshot result = Capture(*target);
+    // A scrollable ancestor makes accidental wheel propagation observable even
+    // when the canvas itself happens to fit at the selected scale.
+    if (synthetic_overflow_)
+      ImGui::Dummy(synthetic_content_size_);
+    if (after_canvas_)
+      after_canvas_();
+    ImGui::End();
+    ImGui::Render();
+    return result;
+  }
+
+  void SetHost(Host host, float scale = 2.0f) {
+    host_ = host;
+    DungeonWorkbenchContentTestPeer::SetCompare(*content_,
+                                                host == Host::Compare);
+    primary_->SetHeaderVisible(host == Host::Standalone);
+    for (auto* viewer : {primary_.get(), compare_.get()}) {
+      viewer->canvas().set_global_scale(scale);
+      viewer->canvas().set_scrolling(ImVec2(-40, -40));
+    }
+    Frame();
+    Frame();
+  }
+
+  Snapshot Wheel(DungeonCanvasViewer& viewer, ImVec2 point, float x, float y,
+                 bool shift = false) {
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(point.x, point.y);
+    io.AddKeyEvent(ImGuiMod_Shift, shift);
+    Frame(&viewer);
+    Frame(&viewer);
+    io.AddMouseWheelEvent(x, y);
+    const auto event = Frame(&viewer);
+    io.AddKeyEvent(ImGuiMod_Shift, false);
+    Frame(&viewer);
+    return event;
+  }
+
+  Snapshot EnterWithWheel(DungeonCanvasViewer& viewer, float x, float y) {
+    auto& io = ImGui::GetIO();
+    // Establish an outside pointer and release prior-frame item ownership.
+    // There is deliberately no hovered frame between entry and this wheel.
+    io.AddMousePosEvent(1000, 740);
+    Frame(&viewer);
+    const auto before = Frame(&viewer);
+    const auto point = before.viewport.GetCenter();
+    io.AddMousePosEvent(point.x, point.y);
+    io.AddMouseWheelEvent(x, y);
+    return Frame(&viewer);
+  }
+
+  void ExpectViewportFits(const Snapshot& frame) {
+    EXPECT_GE(frame.canvas_bounds.Min.x, frame.viewport.Min.x - 1);
+    EXPECT_GE(frame.canvas_bounds.Min.y, frame.viewport.Min.y - 1);
+    EXPECT_LE(frame.canvas_bounds.Max.x, frame.viewport.Max.x + 1);
+    EXPECT_LE(frame.canvas_bounds.Max.y, frame.viewport.Max.y + 1);
+  }
+
+  void ExpectAttached(const Snapshot& frame) {
+    EXPECT_GT(frame.viewport.GetWidth(), 0);
+    EXPECT_GT(frame.viewport.GetHeight(), 0);
+    EXPECT_GT(frame.bitmap.Max.x, frame.viewport.Min.x);
+    EXPECT_GT(frame.bitmap.Max.y, frame.viewport.Min.y);
+    EXPECT_LT(frame.bitmap.Min.x, frame.viewport.Max.x);
+    EXPECT_LT(frame.bitmap.Min.y, frame.viewport.Max.y);
+    for (const auto& [name, scroll] : frame.ancestor_scrolls) {
+      EXPECT_FLOAT_EQ(scroll.x, 0) << name;
+      EXPECT_FLOAT_EQ(scroll.y, 0) << name;
+    }
+    EXPECT_FLOAT_EQ(frame.remaining_wheel.x, 0);
+    EXPECT_FLOAT_EQ(frame.remaining_wheel.y, 0);
+  }
+
+  bool old_custom_objects_ = false;
+  std::unique_ptr<ScopedImGuiContext> imgui_;
+  Rom rom_;
+  zelda3::GameData data_;
+  DungeonRoomStore rooms_{&rom_, &data_};
+  DungeonRoomSelector room_selector_{&rom_};
+  std::unique_ptr<DungeonCanvasViewer> primary_, compare_;
+  int room_id_ = 0;
+  std::deque<int> recent_{0, 1};
+  std::unique_ptr<DungeonWorkbenchContent> content_;
+  Host host_ = Host::Workbench;
+  ImVec2 host_size_{900, 660};
+  ImGuiWindowFlags host_flags_ = ImGuiWindowFlags_NoSavedSettings;
+  ImVec2 synthetic_content_size_{0, 800};
+  bool product_host_ = false;
+  bool synthetic_overflow_ = true;
+  std::function<void()> after_canvas_;
+};
+
+TEST_F(DungeonCanvasWheelRoutingTest, UnselectedWheelStaysBoundedInEveryHost) {
+  for (Host host : {Host::Workbench, Host::Compare, Host::Standalone}) {
+    SCOPED_TRACE(static_cast<int>(host));
+    SetHost(host);
+    std::vector<DungeonCanvasViewer*> targets{primary_.get()};
+    if (host == Host::Compare)
+      targets.push_back(compare_.get());
+    for (auto* target : targets) {
+      const auto before = Frame(target);
+      const auto point = before.viewport.GetCenter();
+      const auto other_before = Frame(
+          target == primary_.get() && host == Host::Compare ? compare_.get()
+                                                            : primary_.get());
+      const auto modest = Wheel(*target, point, -1, -1);
+      ExpectAttached(modest);
+      EXPECT_LT(modest.pan.x, before.pan.x);
+      EXPECT_LT(modest.pan.y, before.pan.y);
+      for (const ImVec2 delta : {ImVec2(-1000, -1000), ImVec2(1000, 1000),
+                                 ImVec2(-1000, 0), ImVec2(1000, 0)}) {
+        ExpectAttached(Wheel(*target, point, delta.x, delta.y));
+        ExpectAttached(Frame(target));
+      }
+      EXPECT_EQ(
+          rooms_[target == primary_.get() ? 0 : 1].GetTileObjects()[0].size_,
+          3);
+      if (host == Host::Compare) {
+        auto* other =
+            target == primary_.get() ? compare_.get() : primary_.get();
+        const auto after = Frame(other);
+        // Separate compare viewports never pan each other.
+        EXPECT_FLOAT_EQ(after.pan.x, other_before.pan.x);
+        EXPECT_FLOAT_EQ(after.pan.y, other_before.pan.y);
+      }
+    }
+  }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest, BlankViewportMarginOwnsTrackpadWheel) {
+  for (Host host : {Host::Workbench, Host::Compare, Host::Standalone}) {
+    SCOPED_TRACE(static_cast<int>(host));
+    SetHost(host, 0.5f);
+    primary_->canvas().set_scrolling(ImVec2(0, 0));
+    const auto before = Frame();
+    const ImVec2 margin(before.viewport.Max.x - 8, before.viewport.Max.y - 8);
+    ASSERT_FALSE(before.bitmap.Contains(margin));
+    ExpectAttached(Wheel(*primary_, margin, -1, -1));
+    ExpectAttached(Frame());
+  }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       SelectedAndPlacementWheelResizeWithoutPan) {
+  for (Host host : {Host::Workbench, Host::Compare, Host::Standalone}) {
+    SCOPED_TRACE(static_cast<int>(host));
+    SetHost(host);
+    rooms_[0].GetTileObjects()[0].size_ = 3;
+    auto& interaction = primary_->object_interaction();
+    interaction.SetSelectedObjects({0});
+    const auto before = Frame();
+    const auto after = Wheel(*primary_, before.viewport.GetCenter(), 0, 1);
+    ExpectAttached(after);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 4);
+    EXPECT_FLOAT_EQ(after.pan.x, before.pan.x);
+    EXPECT_FLOAT_EQ(after.pan.y, before.pan.y);
+    const auto shifted =
+        Wheel(*primary_, before.viewport.GetCenter(), 1, 0, true);
+    ExpectAttached(shifted);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 5);
+    EXPECT_FLOAT_EQ(shifted.pan.x, before.pan.x);
+    EXPECT_FLOAT_EQ(shifted.pan.y, before.pan.y);
+    interaction.ClearSelection();
+    primary_->SetPreviewObject(zelda3::RoomObject(0x01, 0, 0, 3, 0));
+    const auto preview = Wheel(*primary_, before.viewport.GetCenter(), 0, 1);
+    ExpectAttached(preview);
+    ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
+    EXPECT_EQ(interaction.GetPlacementPreview()->size_, 4);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 5);
+    EXPECT_FLOAT_EQ(preview.pan.x, before.pan.x);
+    EXPECT_FLOAT_EQ(preview.pan.y, before.pan.y);
+    interaction.CancelPlacement();
+  }
+}
+
+// This intentionally tests arbitrary scrollable embedding separately from the
+// real product host below: a synthetic ancestor must not be mistaken for a
+// native Workbench sizing failure.
+TEST_F(DungeonCanvasWheelRoutingTest,
+       FirstEntryWheelDoesNotScrollSyntheticAncestor) {
+  SetHost(Host::Workbench);
+  auto* host = ImGui::FindWindowByName("CanvasWheelHost");
+  ASSERT_NE(host, nullptr);
+  ASSERT_GT(host->ScrollMax.y, 0);
+  const auto before = Frame();
+  const auto event = EnterWithWheel(*primary_, 0, -1);
+  ExpectAttached(event);
+  EXPECT_LT(event.pan.y, before.pan.y);
+  ExpectAttached(Frame());
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       WheelOutsideViewportStillScrollsSyntheticAncestor) {
+  SetHost(Host::Workbench);
+  auto* host = ImGui::FindWindowByName("CanvasWheelHost");
+  ASSERT_NE(host, nullptr);
+  ASSERT_GT(host->ScrollMax.y, 0);
+  const auto before = Frame();
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(before.viewport.GetCenter().x,
+                      before.viewport.GetCenter().y);
+  Frame();
+  Frame();
+  const ImVec2 outside(host->InnerRect.Max.x - 24,
+                       before.viewport.GetCenter().y);
+  ASSERT_FALSE(before.viewport.Contains(outside));
+  ASSERT_TRUE(host->InnerRect.Contains(outside));
+  io.AddMousePosEvent(outside.x, outside.y);
+  // Release ordinary previous-frame item ownership before checking the hook's
+  // outside-viewport behavior. First-entry ownership is tested separately.
+  Frame();
+  Frame();
+  ASSERT_EQ(ImGui::GetCurrentContext()->HoveredWindow, host);
+  io.AddMouseWheelEvent(0, -1);
+  const auto event = Frame();
+  EXPECT_GT(host->Scroll.y, 0);
+  EXPECT_FLOAT_EQ(event.pan.x, before.pan.x);
+  EXPECT_FLOAT_EQ(event.pan.y, before.pan.y);
+  const float native_scroll = host->Scroll.y;
+  Frame();
+  EXPECT_FLOAT_EQ(host->Scroll.y, native_scroll);
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       FirstEntryWheelPreservesUnrelatedNativeScrollTarget) {
+  host_flags_ |= ImGuiWindowFlags_HorizontalScrollbar;
+  synthetic_content_size_ = ImVec2(1400, 800);
+  SetHost(Host::Workbench);
+  auto* host = ImGui::FindWindowByName("CanvasWheelHost");
+  ASSERT_NE(host, nullptr);
+  ASSERT_GT(host->ScrollMax.x, 0);
+  ASSERT_GT(host->ScrollMax.y, 64);
+  auto& io = ImGui::GetIO();
+  io.ConfigMacOSXBehaviors = false;  // Exercise ImGui's Shift/Y-to-X mapping.
+  for (int mode : {0, 1, 2}) {
+    SCOPED_TRACE(mode);  // Native X, Shift+Y, diagonal with dominant X.
+    io.AddKeyEvent(ImGuiMod_Shift, false);
+    io.AddMousePosEvent(1000, 740);
+    ImGui::SetScrollX(host, 0);
+    ImGui::SetScrollY(host, 0);
+    Frame();
+    const auto before = Frame();
+    const auto point = before.viewport.GetCenter();
+    // This intentional Y target must survive cancellation of native X wheel.
+    ImGui::SetScrollY(host, 64);
+    io.AddKeyEvent(ImGuiMod_Shift, mode == 1);
+    io.AddMousePosEvent(point.x, point.y);
+    const ImVec2 wheel = mode == 0   ? ImVec2(-1, 0)
+                         : mode == 1 ? ImVec2(0, -1)
+                                     : ImVec2(-4, -1);
+    io.AddMouseWheelEvent(wheel.x, wheel.y);
+    const auto event = Frame();
+    EXPECT_EQ(ImGui::GetCurrentContext()->WheelingWindowScrolledFrame,
+              ImGui::GetFrameCount());
+    EXPECT_FLOAT_EQ(host->Scroll.x, 0);
+    EXPECT_FLOAT_EQ(host->Scroll.y, 64);
+    EXPECT_FLOAT_EQ(event.remaining_wheel.x, 0);
+    EXPECT_FLOAT_EQ(event.remaining_wheel.y, 0);
+    EXPECT_FLOAT_EQ(event.pan.x, before.pan.x + wheel.x * 24);
+    EXPECT_FLOAT_EQ(event.pan.y, before.pan.y + wheel.y * 24);
+    io.AddKeyEvent(ImGuiMod_Shift, false);
+    Frame();
+    EXPECT_FLOAT_EQ(host->Scroll.x, 0);
+    EXPECT_FLOAT_EQ(host->Scroll.y, 64);
+  }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest, ProductHostsFitWithoutSyntheticOverflow) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  for (Host kind : {Host::Workbench, Host::Compare, Host::Standalone}) {
+    SCOPED_TRACE(static_cast<int>(kind));
+    SetHost(kind);
+    auto* host = ImGui::FindWindowByName("CanvasWheelHost");
+    ASSERT_NE(host, nullptr);
+    EXPECT_FLOAT_EQ(host->ScrollMax.x, 0);
+    EXPECT_FLOAT_EQ(host->ScrollMax.y, 0);
+    std::vector<DungeonCanvasViewer*> targets{primary_.get()};
+    if (kind == Host::Compare)
+      targets.push_back(compare_.get());
+    for (auto* target : targets) {
+      ExpectViewportFits(Frame(target));
+      ExpectAttached(EnterWithWheel(*target, 0, -1));
+      ExpectAttached(Frame(target));
+    }
+  }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest, ShortProductCompareUsesVisibleViewport) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  host_size_ = ImVec2(900, 260);
+  SetHost(Host::Compare);
+  for (auto* target : {primary_.get(), compare_.get()}) {
+    const auto before = Frame(target);
+    ASSERT_GT(before.viewport.GetHeight(), 0);
+    ASSERT_LT(before.viewport.GetHeight(), 200);
+    ExpectViewportFits(before);
+    const auto bottom = Wheel(*target, before.viewport.GetCenter(), 0, -1000);
+    ExpectAttached(bottom);
+    ExpectViewportFits(bottom);
+    // The last room pixel must be reachable at the visible bottom, even when
+    // the split host is shorter than the old 200-pixel minimum child height.
+    EXPECT_NEAR(bottom.bitmap.Max.y, bottom.viewport.Max.y, 1);
+    const auto top = Wheel(*target, before.viewport.GetCenter(), 0, 1000);
+    ExpectAttached(top);
+    EXPECT_NEAR(top.bitmap.Min.y, top.canvas_bounds.Min.y, 1);
+  }
+}
+
+TEST_F(DungeonCanvasWheelRoutingTest,
+       ZoomToFitUsesRenderedViewportFromAnotherWindow) {
+  product_host_ = true;
+  synthetic_overflow_ = false;
+  SetHost(Host::Workbench);
+  const auto before = Frame();
+  const auto expected = gui::ComputeZoomToFit(
+      ImVec2(512, 512), before.canvas_bounds.GetSize(), 0);
+  ASSERT_GT(expected.scale, 0.25f);
+  ImVec2 popup_available;
+  after_canvas_ = [&] {
+    ImGui::SetNextWindowPos(ImVec2(900, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(120, 100), ImGuiCond_Always);
+    ImGui::Begin("UnrelatedFitContext", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    popup_available = ImGui::GetContentRegionAvail();
+    primary_->canvas().SetZoomToFit(
+        DungeonCanvasViewerTestPeer::PrimaryComposite(*primary_));
+    ImGui::End();
+  };
+  Frame();
+  after_canvas_ = {};
+  EXPECT_LT(popup_available.y, before.canvas_bounds.GetHeight());
+  const auto& canvas = primary_->canvas();
+  EXPECT_FLOAT_EQ(canvas.global_scale(), expected.scale);
+  EXPECT_FLOAT_EQ(canvas.scrolling().x, expected.scroll.x);
+  EXPECT_FLOAT_EQ(canvas.scrolling().y, expected.scroll.y);
+  EXPECT_FLOAT_EQ(canvas.GetConfig().scrolling.x, expected.scroll.x);
+  EXPECT_FLOAT_EQ(canvas.GetConfig().scrolling.y, expected.scroll.y);
+  const auto fitted = Frame();
+  ExpectAttached(fitted);
+  ExpectViewportFits(fitted);
+  EXPECT_NEAR(fitted.bitmap.GetCenter().x, fitted.canvas_bounds.GetCenter().x,
+              1);
+  EXPECT_NEAR(fitted.bitmap.GetCenter().y, fitted.canvas_bounds.GetCenter().y,
+              1);
+  EXPECT_GE(fitted.bitmap.Min.x, fitted.viewport.Min.x - 1);
+  EXPECT_GE(fitted.bitmap.Min.y, fitted.viewport.Min.y - 1);
+  EXPECT_LE(fitted.bitmap.Max.x, fitted.viewport.Max.x + 1);
+  EXPECT_LE(fitted.bitmap.Max.y, fitted.viewport.Max.y + 1);
+}
+
+TEST(DungeonCanvasFitTest, LegacyCanvasFitsHostFromPopupWithoutZoomGrowth) {
+  ScopedImGuiContext imgui;
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0, font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+  gui::Canvas canvas;
+  canvas.Init("LegacyOversizedCanvas", ImVec2(1024, 512));
+  canvas.set_global_scale(2.0f);
+  gfx::Bitmap bitmap(1024, 512, 8, std::vector<uint8_t>(1024 * 512, 0));
+  ASSERT_TRUE(bitmap.is_active());
+  ImVec2 visible_size;
+  ImVec2 popup_size;
+  const auto draw_frame = [&](bool fit) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(640, 360), ImGuiCond_Always);
+    ImGui::Begin("LegacyCanvasHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoScrollbar |
+                     ImGuiWindowFlags_NoScrollWithMouse);
+    const auto origin = ImGui::GetCursorScreenPos();
+    const auto available = ImGui::GetContentRegionAvail();
+    ImRect visible(origin,
+                   ImVec2(origin.x + available.x, origin.y + available.y));
+    visible.ClipWith(ImGui::GetCurrentWindow()->InnerClipRect);
+    visible_size = visible.GetSize();
+    // No optional fixed viewport: the canvas item uses oversized content.
+    canvas.DrawBackground(ImVec2(1024, 512));
+    if (fit) {
+      ImGui::OpenPopup("UnrelatedLegacyFitPopup");
+      ImGui::SetNextWindowPos(ImVec2(700, 20), ImGuiCond_Always);
+      ImGui::SetNextWindowSize(ImVec2(120, 100), ImGuiCond_Always);
+      const bool opened = ImGui::BeginPopup("UnrelatedLegacyFitPopup");
+      EXPECT_TRUE(opened);
+      if (opened) {
+        popup_size = ImGui::GetContentRegionAvail();
+        canvas.SetZoomToFit(bitmap);
+        ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+      }
+    }
+    ImGui::End();
+    ImGui::Render();
+  };
+  draw_frame(false);
+  draw_frame(false);
+  ASSERT_LT(visible_size.x, 1024);
+  ASSERT_LT(visible_size.y, 512);
+  const float expected = std::min(visible_size.x / 1024, visible_size.y / 512);
+  ASSERT_GT(expected, 0.25f);
+  for (int iteration = 0; iteration < 3; ++iteration) {
+    SCOPED_TRACE(iteration);
+    draw_frame(true);
+    EXPECT_LT(popup_size.x, visible_size.x);
+    EXPECT_LT(popup_size.y, visible_size.y);
+    EXPECT_FLOAT_EQ(canvas.GetGlobalScale(), expected);
+    EXPECT_FLOAT_EQ(canvas.GetConfig().global_scale, expected);
+    const ImVec2 centered((visible_size.x - 1024 * expected) * 0.5f,
+                          (visible_size.y - 512 * expected) * 0.5f);
+    EXPECT_FLOAT_EQ(canvas.scrolling().x, centered.x);
+    EXPECT_FLOAT_EQ(canvas.scrolling().y, centered.y);
+    EXPECT_FLOAT_EQ(canvas.GetConfig().scrolling.x, centered.x);
+    EXPECT_FLOAT_EQ(canvas.GetConfig().scrolling.y, centered.y);
+    // These existing commands read the legacy scale: both scale paths must
+    // agree after Fit, and a zoom-in/out round trip must preserve that fit.
+    canvas.ZoomIn();
+    EXPECT_NEAR(canvas.GetGlobalScale(), expected + 0.25f, 0.00001f);
+    canvas.ZoomOut();
+    EXPECT_NEAR(canvas.GetGlobalScale(), expected, 0.00001f);
+  }
+}
 
 size_t FindLabelIndex(const std::vector<std::string>& labels,
                       const std::string& label) {

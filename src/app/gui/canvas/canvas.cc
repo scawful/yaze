@@ -1,3 +1,5 @@
+#include "imgui/imgui_internal.h"
+
 #include "canvas.h"
 #include "util/i18n/tr.h"
 
@@ -19,6 +21,85 @@
 #include "imgui/imgui.h"
 
 namespace yaze::gui {
+
+namespace {
+
+const ImGuiID kViewportWheelOwner = ImHashStr("yaze.canvas.viewport-wheel");
+
+void PreventViewportWheelPropagation(ImGuiContext* ctx, ImGuiContextHook*) {
+  auto* hovered = ctx->HoveredWindow;
+  auto* scrolled = ctx->WheelingWindow;
+  if (!hovered || !scrolled ||
+      ctx->WheelingWindowScrolledFrame != ctx->FrameCount ||
+      hovered->StateStorage.GetInt(kViewportWheelOwner, -2) !=
+          ctx->FrameCount - 1) {
+    return;
+  }
+  const auto& storage = hovered->StateStorage;
+  const ImRect viewport(storage.GetFloat(kViewportWheelOwner + 1),
+                        storage.GetFloat(kViewportWheelOwner + 2),
+                        storage.GetFloat(kViewportWheelOwner + 3),
+                        storage.GetFloat(kViewportWheelOwner + 4));
+  if (!viewport.Contains(ctx->IO.MousePos)) {
+    return;
+  }
+  auto* ancestor = hovered;
+  while (ancestor && ancestor != scrolled) {
+    ancestor = ancestor->ParentWindow;
+  }
+  if (!ancestor) {
+    return;
+  }
+
+  // Pointer entry and wheel can arrive together, before SetItemKeyOwner has
+  // seen a hovered frame. NewFrame has queued native scrolling, but Begin has
+  // not applied it yet. Cancel only the wheel axes; keep other scroll requests.
+  const ImVec2 wheel = ctx->IO.MouseWheelRequestAxisSwap
+                           ? ImVec2(ctx->IO.MouseWheel, 0)
+                           : ImVec2(ctx->IO.MouseWheelH, ctx->IO.MouseWheel);
+  bool scroll_x = wheel.x != 0 && scrolled->ScrollMax.x != 0;
+  bool scroll_y = wheel.y != 0 && scrolled->ScrollMax.y != 0;
+  // ImGui resolves a diagonal gesture to one native axis. Do not cancel a
+  // programmatic request on the other axis merely because IO has both deltas.
+  if (scroll_x && scroll_y) {
+    if (ctx->WheelingAxisAvg.x > ctx->WheelingAxisAvg.y)
+      scroll_y = false;
+    else
+      scroll_x = false;
+  }
+  if (scroll_x)
+    scrolled->ScrollTarget.x = FLT_MAX;
+  if (scroll_y)
+    scrolled->ScrollTarget.y = FLT_MAX;
+  ctx->WheelingWindow = nullptr;
+  ctx->WheelingWindowReleaseTimer = 0;
+}
+
+void RegisterViewportWheelOwner(const ImRect& bounds) {
+  auto* ctx = ImGui::GetCurrentContext();
+  auto* window = ImGui::GetCurrentWindow();
+  ImRect visible = bounds;
+  visible.ClipWith(window->InnerClipRect);
+  auto& storage = window->StateStorage;
+  storage.SetInt(kViewportWheelOwner, ctx->FrameCount);
+  storage.SetFloat(kViewportWheelOwner + 1, visible.Min.x);
+  storage.SetFloat(kViewportWheelOwner + 2, visible.Min.y);
+  storage.SetFloat(kViewportWheelOwner + 3, visible.Max.x);
+  storage.SetFloat(kViewportWheelOwner + 4, visible.Max.y);
+  for (const auto& hook : ctx->Hooks) {
+    if (hook.Owner == kViewportWheelOwner)
+      return;
+  }
+  // Context-owned, with no Canvas pointers: closed views expire after a frame,
+  // and destroying an ImGui context also removes its hook.
+  ImGuiContextHook hook;
+  hook.Owner = kViewportWheelOwner;
+  hook.Type = ImGuiContextHookType_NewFramePost;
+  hook.Callback = PreventViewportWheelPropagation;
+  ImGui::AddContextHook(ctx, &hook);
+}
+
+}  // namespace
 
 // Define constructors and destructor in .cc to avoid incomplete type issues
 // with unique_ptr
@@ -564,7 +645,7 @@ void Canvas::Begin(const CanvasFrameOptions& options) {
     SetCustomGridStep(options.grid_step.value());
   }
 
-  DrawBackground(options.canvas_size);
+  DrawBackground(options.canvas_size, options.viewport_size);
   gui::EndPadding();
 
   if (options.draw_context_menu) {
@@ -615,12 +696,34 @@ void Canvas::UpdateInfoGrid(ImVec2 bg_size, float grid_size, int label_id) {
   DrawOverlay();
 }
 
-void Canvas::DrawBackground(ImVec2 canvas_size) {
+void Canvas::DrawBackground(ImVec2 canvas_size,
+                            std::optional<ImVec2> viewport_size) {
   draw_list_ = GetWindowDrawList();
 
-  // Phase 1: Calculate geometry using new helper
-  state_.geometry = CalculateCanvasGeometry(
-      config_, canvas_size, GetCursorScreenPos(), GetContentRegionAvail());
+  // Capture the visible host before drawing an oversized content item or
+  // entering a popup. Legacy canvases still scale their content bounds.
+  const ImVec2 cursor = GetCursorScreenPos();
+  const ImVec2 available = GetContentRegionAvail();
+  ImRect visible_host(cursor,
+                      ImVec2(cursor.x + available.x, cursor.y + available.y));
+  visible_host.ClipWith(ImGui::GetCurrentWindow()->InnerClipRect);
+  state_.geometry =
+      CalculateCanvasGeometry(config_, canvas_size, cursor, available);
+  state_.geometry.viewport_size =
+      viewport_size.value_or(ImVec2(std::max(1.0f, visible_host.GetWidth()),
+                                    std::max(1.0f, visible_host.GetHeight())));
+
+  if (viewport_size) {
+    // Preserve the legacy logical-size convention while fixing the hit area
+    // and clipping bounds in screen pixels. Bitmap drawing uses its own size.
+    const ImVec2 visible(std::max(1.0f, viewport_size->x),
+                         std::max(1.0f, viewport_size->y));
+    const float scale = std::max(0.01f, global_scale_);
+    state_.geometry.canvas_sz = ImVec2(visible.x / scale, visible.y / scale);
+    state_.geometry.scaled_size = visible;
+    state_.geometry.canvas_p1 = ImVec2(state_.geometry.canvas_p0.x + visible.x,
+                                       state_.geometry.canvas_p0.y + visible.y);
+  }
 
   SyncLegacyGeometryFromState();
 
@@ -634,6 +737,15 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
 
   ImGui::InvisibleButton(canvas_id_.c_str(), state_.geometry.scaled_size,
                          kMouseFlags);
+
+  if (viewport_size) {
+    // Ownership is registered on hover, before next frame's native window
+    // scrolling. Clearing IO wheel deltas in the editor alone is too late.
+    ImGui::SetItemKeyOwner(ImGuiKey_MouseWheelX);
+    ImGui::SetItemKeyOwner(ImGuiKey_MouseWheelY);
+    RegisterViewportWheelOwner(
+        ImRect(state_.geometry.canvas_p0, state_.geometry.canvas_p1));
+  }
 
   // CRITICAL FIX: Always update hover mouse position when hovering over canvas
   // This fixes the regression where CheckForCurrentMap() couldn't track hover
@@ -900,19 +1012,17 @@ void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
   if (!bitmap.is_active())
     return;
 
-  ImVec2 available = ImGui::GetContentRegionAvail();
-  float scale_x = available.x / bitmap.width();
-  float scale_y = available.y / bitmap.height();
-  config_.global_scale = std::min(scale_x, scale_y);
-
-  // Ensure minimum readable scale
-  if (config_.global_scale < 0.25f)
-    config_.global_scale = 0.25f;
-
-  global_scale_ = config_.global_scale;  // Legacy compatibility
-
-  // Center the view
-  scrolling_ = ImVec2(0, 0);
+  // Menu callbacks run inside a popup. Its available space is unrelated to the
+  // viewport that opened it. Only fall back before the canvas's first frame.
+  ImVec2 available = state_.geometry.viewport_size;
+  if (available.x <= 0 || available.y <= 0)
+    available = ImGui::GetContentRegionAvail();
+  const auto fit =
+      ComputeZoomToFit(ImVec2(bitmap.width(), bitmap.height()), available, 0);
+  const float scale = std::max(0.25f, fit.scale);
+  set_global_scale(scale);
+  set_scrolling(ImVec2((available.x - bitmap.width() * scale) * 0.5f,
+                       (available.y - bitmap.height() * scale) * 0.5f));
 }
 
 void Canvas::ResetView() {

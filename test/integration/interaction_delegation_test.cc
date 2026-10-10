@@ -13,7 +13,6 @@
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_object_interaction.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
-#include "app/editor/dungeon/inspectors/object_editor_content.h"
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
 #include "app/editor/dungeon/interaction/tile_object_handler.h"
 #include "app/editor/dungeon/object_selection.h"
@@ -389,37 +388,6 @@ TEST_F(InteractionDelegationTest, MixedSelectionCannotUseThirdObjectStream) {
   EXPECT_FALSE(interaction_.SendSelectedToLayer(2));
   EXPECT_EQ(CurrentRoom().GetTileObjects()[0].GetLayerValue(), 0);
   EXPECT_EQ(CurrentRoom().GetTileObjects()[block_index].GetLayerValue(), 0);
-}
-
-TEST_F(InteractionDelegationTest,
-       SelectionInspectorBridgeFollowsReorderedObjectStream) {
-  CurrentRoom().AddTileObject(zelda3::RoomObject{0x21, 24, 24, 0x00, 1});
-  interaction_.SetSelectedObjects({0});
-
-  zelda3::DungeonObjectEditor object_editor(/*rom=*/nullptr);
-  object_editor.SetExternalRoom(&CurrentRoom());
-  ASSERT_TRUE(object_editor.AddToSelection(0).ok());
-  interaction_.SetSelectionChangeCallback([&]() {
-    const auto canvas_indices = interaction_.GetSelectedObjectIndices();
-    ASSERT_TRUE(object_editor.ClearSelection().ok());
-    for (size_t index : canvas_indices) {
-      ASSERT_TRUE(object_editor.AddToSelection(index).ok());
-    }
-  });
-  ASSERT_TRUE(object_editor.ChangeObjectLayer(0, /*new_layer=*/1).ok());
-
-  ASSERT_EQ(object_editor.GetSelection().selected_objects.size(), 1u);
-  const size_t moved_index = object_editor.GetSelection().selected_objects[0];
-  ASSERT_NE(moved_index, 0u);
-  EXPECT_EQ(interaction_.GetSelectedObjectIndices(), std::vector<size_t>({0}));
-
-  EXPECT_TRUE(SyncObjectEditorSelectionToCanvas(
-      interaction_, object_editor.GetSelection().selected_objects));
-  EXPECT_EQ(interaction_.GetSelectedObjectIndices(),
-            object_editor.GetSelection().selected_objects);
-  EXPECT_EQ(CurrentRoom().GetTileObject(moved_index).id_, 0x55);
-  EXPECT_FALSE(SyncObjectEditorSelectionToCanvas(
-      interaction_, object_editor.GetSelection().selected_objects));
 }
 
 // =============================================================================

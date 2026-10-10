@@ -40,7 +40,7 @@ CanvasRuntime BeginCanvas(Canvas& canvas, const CanvasFrameOptions& options) {
   CanvasRuntime runtime;
   runtime.draw_list = canvas.draw_list();
   runtime.canvas_p0 = canvas.zero_point();
-  runtime.canvas_sz = canvas.canvas_size();
+  runtime.canvas_sz = options.viewport_size.value_or(canvas.canvas_size());
   runtime.scrolling = canvas.scrolling();
   runtime.hovered = canvas.IsMouseHovering();
   runtime.grid_step = options.grid_step.value_or(canvas.GetGridStep());

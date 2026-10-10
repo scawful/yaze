@@ -1031,6 +1031,7 @@ class DungeonCanvasViewer {
   void DrawCoordinateOverlayHud(int room_id);
   bool ValidateRoomCanvasRequest(int room_id);
   gui::CanvasFrameOptions BuildRoomCanvasFrameOptions() const;
+  void HandleRoomCanvasNavigation(gui::CanvasRuntime& canvas_rt);
   void SyncCanvasConfigFromViewerState();
   void SyncViewerStateFromCanvasConfig();
   void RefreshActiveRoomCanvasState(zelda3::Room& room, int room_id);
