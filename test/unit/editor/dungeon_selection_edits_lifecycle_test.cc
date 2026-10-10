@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_selection_edit.h"
-#include "app/editor/dungeon/inspectors/object_editor_content.h"
 #include "app/gfx/resource/arena.h"
 #include "core/features.h"
 #include "core/project.h"
@@ -269,26 +268,40 @@ TEST_P(DungeonSelectionEditsLifecycleTest,
 }
 
 TEST_P(DungeonSelectionEditsLifecycleTest,
-       ObjectInspectorDeletePreservesMixedEntitiesAndUndoesChestTogether) {
-  SelectMixed(true);
-  const auto before = CaptureDungeonSelectionEditState(*room_);
-  const auto entities = coordinator().SelectedEntitiesForEdit();
-  ObjectEditorContent inspector;
-  inspector.SetCanvasViewer(viewer_);
-  inspector.DeleteSelectedObjects();
-  EXPECT_TRUE(room_->GetTileObjects().empty());
-  EXPECT_TRUE(room_->GetChests().empty());
-  EXPECT_EQ(room_->GetDoors().size(), before.doors.size());
-  EXPECT_EQ(room_->GetSprites().size(), before.sprites.size());
-  EXPECT_EQ(room_->GetPotItems().size(), before.items.size());
-  EXPECT_EQ(coordinator().SelectedEntitiesForEdit(), entities);
-  EXPECT_EQ(UndoDepth(), 1u);
-  const auto status = editor_->Undo();
-  EXPECT_TRUE(status.ok()) << status;
-  ExpectRoomData(*room_, before);
-  // The local inspector owns these callbacks only until this test returns.
-  interaction().SetSelectionChangeCallback({});
-  interaction().SetEntityChangedCallback({});
+       BracketCycleUsesActiveRoomSelectionWithoutMutatingOrReplacingCallbacks) {
+  int selection_changes = 0;
+  interaction().SetSelectionChangeCallback([&] { ++selection_changes; });
+  const auto original = CaptureDungeonSelectionEditState(*room_);
+  const auto original_dirty = DirtyFields(*room_);
+  const size_t original_undo_depth = UndoDepth();
+
+  interaction().SetSelectedObjects({});
+  const int before = selection_changes;
+  ASSERT_TRUE(editor_->CycleObjectSelection(1));  // Right bracket.
+  EXPECT_EQ(interaction().GetSelectedObjectIndices(), (std::vector<size_t>{1}));
+  EXPECT_GT(selection_changes, before);
+  ASSERT_TRUE(editor_->CycleObjectSelection(1));
+  EXPECT_EQ(interaction().GetSelectedObjectIndices(), (std::vector<size_t>{0}));
+  ASSERT_TRUE(editor_->CycleObjectSelection(-1));  // Left bracket wraps.
+  EXPECT_EQ(interaction().GetSelectedObjectIndices(), (std::vector<size_t>{1}));
+  EXPECT_FALSE(editor_->CycleObjectSelection(0));
+  EXPECT_EQ(UndoDepth(), original_undo_depth);
+  EXPECT_EQ(DirtyFields(*room_), original_dirty);
+  ExpectRoomData(*room_, original);
+
+  auto& other_room = editor_->rooms()[1];
+  other_room.SetTileObjects({zelda3::RoomObject(0x02, 4, 5, 0, 0)});
+  other_room.ClearSaveDirtyState();
+  auto* other_viewer = DungeonSelectionEditsTestPeer::Viewer(*editor_, 1);
+  ASSERT_NE(other_viewer, nullptr);
+  ASSERT_TRUE(editor_->CycleObjectSelection(1));
+  EXPECT_EQ(other_viewer->object_interaction().GetSelectedObjectIndices(),
+            (std::vector<size_t>{0}));
+  // Workbench reuses one viewer; standalone keeps the original room viewer.
+  EXPECT_EQ(interaction().GetSelectedObjectIndices(),
+            (std::vector<size_t>{GetParam() ? 0u : 1u}));
+  EXPECT_EQ(UndoDepth(), original_undo_depth);
+  EXPECT_FALSE(other_room.HasUnsavedChanges());
 }
 
 TEST_P(DungeonSelectionEditsLifecycleTest,

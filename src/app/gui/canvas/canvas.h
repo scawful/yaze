@@ -181,7 +181,8 @@ class Canvas {
   // it, but can be controlled by the user. This is the low-level frame setup;
   // prefer gui::BeginCanvas(..., CanvasFrameOptions) when you need child
   // windows, optional grid step, and matching EndCanvas.
-  void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
+  void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0),
+                      std::optional<ImVec2> viewport_size = std::nullopt);
 
   // Context Menu refers to what happens when the right mouse button is pressed
   // This routine also handles the scrolling for the canvas.

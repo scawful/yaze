@@ -936,8 +936,9 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
 
 void DungeonWorkbenchContent::DrawCanvasPane(
     float width, float height, DungeonCanvasViewer* primary_viewer) {
-  const bool canvas_open = ImGui::BeginChild("##DungeonWorkbenchCanvas",
-                                             ImVec2(width, height), false);
+  const bool canvas_open = ImGui::BeginChild(
+      "##DungeonWorkbenchCanvas", ImVec2(width, height), false,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
   if (canvas_open) {
     if (primary_viewer) {
       // Reserve a fixed strip at the bottom for the status bar so neither
@@ -952,7 +953,8 @@ void DungeonWorkbenchContent::DrawCanvasPane(
           ImGui::GetStyle().ItemSpacing.y;
 
       const bool connected_mode = layout_state_.show_connected_canvas_view;
-      ImGuiWindowFlags body_flags = 0;
+      ImGuiWindowFlags body_flags =
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
       if (connected_mode) {
         // Body child owns the connected-mode scroll container; matrix no
         // longer nests its own BeginChild for scrolling.
@@ -961,8 +963,8 @@ void DungeonWorkbenchContent::DrawCanvasPane(
         const float scale = primary_viewer->ConnectedCanvasScale();
         ImGui::SetNextWindowContentSize(
             ImVec2(content_size.x * scale, content_size.y * scale));
-        body_flags |= ImGuiWindowFlags_HorizontalScrollbar |
-                      ImGuiWindowFlags_NoScrollWithMouse;
+        body_flags = ImGuiWindowFlags_HorizontalScrollbar |
+                     ImGuiWindowFlags_NoScrollWithMouse;
       }
       const bool body_open = ImGui::BeginChild(
           "##DungeonCanvasBody", ImVec2(0.0f, -status_bar_reserved), false,
@@ -1149,7 +1151,8 @@ void DungeonWorkbenchContent::DrawSplitView(
           .c_str());
   ImGui::Separator();
   const bool split_active_open = gui::LayoutHelpers::BeginContentChild(
-      "##SplitActive", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
+      "##SplitActive", ImVec2(1.0f, 1.0f), false,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
   if (split_active_open) {
     primary_viewer.DrawDungeonCanvas(*current_room_id_);
   }
@@ -1166,7 +1169,8 @@ void DungeonWorkbenchContent::DrawSplitView(
           .c_str());
   ImGui::Separator();
   const bool split_compare_open = gui::LayoutHelpers::BeginContentChild(
-      "##SplitCompare", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
+      "##SplitCompare", ImVec2(1.0f, 1.0f), false,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
   if (split_compare_open) {
     if (compare_viewer) {
       if (layout_state_.sync_split_view) {

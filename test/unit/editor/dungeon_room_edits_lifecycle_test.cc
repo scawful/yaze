@@ -930,6 +930,117 @@ TEST_P(DungeonRoomEditsLifecycleTest, RejectedChestPlacementKeepsPendingDrag) {
   EXPECT_EQ(room_->GetChests().size(), 2u);
 }
 
+TEST_P(DungeonRoomEditsLifecycleTest,
+       PlacementSwitchesDispatchOnlyLatestToolAndPreserveUndo) {
+  SeedChestObjects();
+  auto& interaction = viewer_->object_interaction();
+  auto& coordinator = interaction.entity_coordinator();
+  ASSERT_TRUE(viewer_->EditRoomMetadata(0, {RoomMetadataField::kTag1, 3}).ok());
+  const auto metadata = room_->CaptureMetadataSnapshot();
+  const auto rom_before = rom_.vector();
+  const auto original_object_count = room_->GetTileObjects().size();
+  const auto original_door_count = room_->GetDoors().size();
+  const auto original_sprite_count = room_->GetSprites().size();
+  const auto original_item_count = room_->GetPotItems().size();
+  const auto original_chest_count = room_->GetChests().size();
+
+  const std::array tools{
+      InteractionMode::PlaceDoor, InteractionMode::PlaceSprite,
+      InteractionMode::PlaceItem, InteractionMode::PlaceObject};
+  const auto set_placement = [&](InteractionMode tool, bool enabled) {
+    switch (tool) {
+      case InteractionMode::PlaceDoor:
+        interaction.SetDoorPlacementMode(enabled, zelda3::DoorType::NormalDoor);
+        break;
+      case InteractionMode::PlaceSprite:
+        interaction.SetSpritePlacementMode(enabled, 0x09);
+        break;
+      case InteractionMode::PlaceItem:
+        interaction.SetItemPlacementMode(enabled, 0x03);
+        break;
+      case InteractionMode::PlaceObject:
+        interaction.SetPreviewObject(zelda3::RoomObject(0, 0, 0, 0, 0),
+                                     enabled);
+        break;
+      default:
+        ADD_FAILURE() << "Unexpected placement tool";
+    }
+  };
+  const auto expect_counts = [&](InteractionMode target, bool placed) {
+    EXPECT_EQ(room_->GetTileObjects().size(),
+              original_object_count +
+                  (placed && target == InteractionMode::PlaceObject));
+    EXPECT_EQ(
+        room_->GetDoors().size(),
+        original_door_count + (placed && target == InteractionMode::PlaceDoor));
+    EXPECT_EQ(room_->GetSprites().size(),
+              original_sprite_count +
+                  (placed && target == InteractionMode::PlaceSprite));
+    EXPECT_EQ(
+        room_->GetPotItems().size(),
+        original_item_count + (placed && target == InteractionMode::PlaceItem));
+    EXPECT_EQ(room_->GetChests().size(), original_chest_count);
+    EXPECT_EQ(room_->CaptureMetadataSnapshot(), metadata);
+    EXPECT_EQ(rom_.vector(), rom_before);
+  };
+
+  for (const auto previous : tools) {
+    for (const auto target : tools) {
+      if (previous == target)
+        continue;
+      SCOPED_TRACE(::testing::Message()
+                   << "placement " << static_cast<int>(previous) << " -> "
+                   << static_cast<int>(target));
+      set_placement(previous, true);
+      set_placement(target, true);
+      EXPECT_EQ(interaction.mode_manager().GetMode(), target);
+      EXPECT_EQ(coordinator.door_handler().IsPlacementActive(),
+                target == InteractionMode::PlaceDoor);
+      EXPECT_EQ(coordinator.sprite_handler().IsPlacementActive(),
+                target == InteractionMode::PlaceSprite);
+      EXPECT_EQ(coordinator.item_handler().IsPlacementActive(),
+                target == InteractionMode::PlaceItem);
+      EXPECT_EQ(coordinator.tile_handler().IsPlacementActive(),
+                target == InteractionMode::PlaceObject);
+      EXPECT_EQ(UndoDepth(), 1u);
+      expect_counts(target, false);
+
+      // This point is a valid north-wall door position and is also valid for
+      // every other placement type. Exercise the same dispatcher as the canvas.
+      ASSERT_TRUE(coordinator.HandleClick(128, 16));
+      interaction.HandleMouseRelease();
+      expect_counts(target, true);
+      EXPECT_EQ(UndoDepth(), 2u);
+      if (target == InteractionMode::PlaceSprite &&
+          room_->GetSprites().size() > original_sprite_count) {
+        EXPECT_EQ(room_->GetSprites().back().id(), 0x09);
+        EXPECT_EQ(room_->GetSprites().back().x(), 8);
+        EXPECT_EQ(room_->GetSprites().back().y(), 1);
+      }
+
+      // Leaving the new tool must not revive an older handler. In particular,
+      // Sprite -> Door used to place a second sprite after Door was canceled.
+      set_placement(target, false);
+      EXPECT_FALSE(coordinator.IsPlacementActive());
+      EXPECT_FALSE(coordinator.HandleClick(400, 400));
+      interaction.HandleMouseRelease();
+      expect_counts(target, true);
+      EXPECT_EQ(UndoDepth(), 2u);
+
+      auto status = editor_->Undo();
+      ASSERT_TRUE(status.ok()) << status;
+      expect_counts(target, false);
+      EXPECT_EQ(UndoDepth(), 1u);
+      status = editor_->Redo();
+      ASSERT_TRUE(status.ok()) << status;
+      expect_counts(target, true);
+      status = editor_->Undo();
+      ASSERT_TRUE(status.ok()) << status;
+      expect_counts(target, false);
+    }
+  }
+}
+
 INSTANTIATE_TEST_SUITE_P(ViewerModes, DungeonRoomEditsLifecycleTest,
                          ::testing::Bool());
 }  // namespace

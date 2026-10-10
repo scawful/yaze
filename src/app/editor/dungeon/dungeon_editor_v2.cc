@@ -29,7 +29,6 @@
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
-#include "app/editor/dungeon/inspectors/object_editor_content.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
@@ -389,10 +388,6 @@ void DungeonEditorV2::PrepareForSessionTeardown() {
   if (object_selector_panel_) {
     object_selector_panel_->DetachRuntimeContext();
     object_selector_panel_ = nullptr;
-  }
-  if (object_editor_content_) {
-    object_editor_content_->SetCanvasViewer(nullptr);
-    object_editor_content_ = nullptr;
   }
   if (door_editor_panel_) {
     door_editor_panel_->SetCanvasViewer(nullptr);
@@ -1092,8 +1087,6 @@ absl::Status DungeonEditorV2::Load() {
   auto object_selector = std::make_unique<ObjectSelectorContent>(
       rom_, nullptr, dungeon_editor_system_->GetObjectEditor(),
       dependencies_.toast_manager);
-  auto object_editor = std::make_unique<ObjectEditorContent>(
-      dungeon_editor_system_->GetObjectEditor());
 
   // Wire up object change callback to trigger room re-rendering
   dungeon_editor_system_->GetObjectEditor()->SetObjectChangedCallback(
@@ -1119,7 +1112,6 @@ absl::Status DungeonEditorV2::Load() {
 
   // Keep raw pointers for later access
   object_selector_panel_ = object_selector.get();
-  object_editor_content_ = object_editor.get();
 
   auto jump_to_reciprocal_door = [this](int neighbor_room_id,
                                         size_t door_index) {
@@ -1137,9 +1129,6 @@ absl::Status DungeonEditorV2::Load() {
           .SelectDoor(door_index);
     }
   };
-  object_editor->SetJumpToReciprocalDoorCallback(jump_to_reciprocal_door);
-  owned_object_editor_content_ = std::move(object_editor);
-
   auto door_editor = std::make_unique<DoorEditorContent>();
   door_editor->SetRooms(&rooms_);
   door_editor->SetOpenSelectionInspectorCallback(
@@ -1617,6 +1606,38 @@ bool DungeonEditorV2::CycleRoomSelection(int direction) {
   const int next_index =
       (current_index + (direction > 0 ? 1 : -1) + count) % count;
   OnRoomSelected(active_rooms_[next_index]);
+  return true;
+}
+
+bool DungeonEditorV2::CycleObjectSelection(int direction) {
+  if (direction == 0 || !IsValidRoomId(current_room_id_)) {
+    return false;
+  }
+  const auto* room = rooms_.GetIfLoaded(current_room_id_);
+  if (!room || room->GetTileObjects().empty()) {
+    return false;
+  }
+  auto* viewer = GetViewerForRoom(current_room_id_);
+  if (!viewer || viewer->rooms() != &rooms_ ||
+      viewer->current_room_id() != current_room_id_ ||
+      !viewer->IsObjectInteractionEnabled() || viewer->header_read_only()) {
+    return false;
+  }
+  auto& interaction = viewer->object_interaction();
+  const auto* context =
+      interaction.entity_coordinator().tile_handler().context();
+  if (!context || context->current_room_id != current_room_id_) {
+    return false;
+  }
+  const auto selected = interaction.GetSelectedObjectIndices();
+  const auto& objects = room->GetTileObjects();
+  const size_t count = objects.size();
+  const size_t current = selected.empty() ? 0 : selected.front();
+  const size_t next =
+      ((current < count ? current : 0) + (direction > 0 ? 1 : count - 1)) %
+      count;
+  interaction.SetSelectedObjects({next});
+  viewer->ScrollToTile(objects[next].x_, objects[next].y_);
   return true;
 }
 
@@ -3020,12 +3041,6 @@ void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
         [this]() { return GetViewerForRoom(current_room_id_); });
     object_selector_panel_->SetCurrentRoom(room_id);
     object_selector_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
-  }
-  if (object_editor_content_) {
-    object_editor_content_->SetCanvasViewerProvider(
-        [this]() { return GetViewerForRoom(current_room_id_); });
-    object_editor_content_->SetCurrentRoom(room_id);
-    object_editor_content_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
   if (door_editor_panel_) {
     door_editor_panel_->SetCanvasViewerProvider(

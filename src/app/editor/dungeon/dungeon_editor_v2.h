@@ -33,7 +33,6 @@
 #include "dungeon_undo_actions.h"
 #include "imgui/imgui.h"
 #include "inspectors/door_editor_content.h"
-#include "inspectors/object_editor_content.h"
 #include "rom/rom.h"
 #include "selectors/object_selector_content.h"
 #include "util/lru_cache.h"
@@ -263,6 +262,8 @@ class DungeonEditorV2 : public Editor {
   bool CanHandleDungeonNavigationShortcut() const;
   bool NavigateToAdjacentRoom(DungeonRoomNavigationDirection direction);
   bool CycleRoomSelection(int direction);
+  // Select the next or previous room object in the active editable canvas.
+  bool CycleObjectSelection(int direction);
 
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
@@ -324,9 +325,6 @@ class DungeonEditorV2 : public Editor {
   }
   ObjectSelectorContent* object_editor_panel() const {
     return object_selector_panel_;
-  }
-  ObjectEditorContent* object_editor_content() const {
-    return object_editor_content_;
   }
   DoorEditorContent* door_editor_panel() const { return door_editor_panel_; }
 
@@ -534,7 +532,6 @@ class DungeonEditorV2 : public Editor {
   // standalone entries remain discoverable, but one content instance has only
   // one active presentation owner at a time.
   ObjectSelectorContent* object_selector_panel_ = nullptr;
-  ObjectEditorContent* object_editor_content_ = nullptr;
   DoorEditorContent* door_editor_panel_ = nullptr;
   RoomGraphicsContent* room_graphics_panel_ = nullptr;
   std::function<const zelda3::Overworld*()> room_graphics_overworld_provider_;
@@ -549,10 +546,8 @@ class DungeonEditorV2 : public Editor {
   ObjectTileEditorPanel* object_tile_editor_panel_ = nullptr;
   OverlayManagerPanel* overlay_manager_panel_ = nullptr;
 
-  // Object editor is retained as the non-window backend for inspector actions.
-  // Other owned_* fields are fallbacks for tests without WorkspaceWindowManager.
+  // Owned content fields are fallbacks for tests without WorkspaceWindowManager.
   std::unique_ptr<ObjectSelectorContent> owned_object_selector_panel_;
-  std::unique_ptr<ObjectEditorContent> owned_object_editor_content_;
   std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;
   std::unique_ptr<RoomTagEditorPanel> owned_room_tag_editor_panel_;
   std::unique_ptr<ObjectCoveragePanel> owned_object_coverage_panel_;

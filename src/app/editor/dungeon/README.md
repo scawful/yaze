@@ -28,12 +28,38 @@ graph TD
     Interaction -.-> System[DungeonEditorSystem]
 
     SelectorContent --> ObjSelector[DungeonObjectSelector]
-    EditorContent[ObjectEditorContent] --> Interaction
 
     Loader --> RomData[zelda3::Room]
 ```
 
 ## Key Components
+
+### Shared authoring ownership
+
+Workbench and standalone windows are presentation hosts, not separate editors.
+Keep behavior in the shared owner below rather than copying it into each host.
+
+| Responsibility | Owner |
+|---|---|
+| Room navigation and session binding | `DungeonEditorV2` |
+| Room image, viewport, pan bounds, wheel routing | `DungeonCanvasViewer`, especially `dungeon_canvas_room_frame.cc` |
+| Selected objects/entities and placement | `DungeonObjectInteraction` and its existing entity handlers |
+| Room metadata and selection edits | `EditRoomMetadata` and the existing selection-edit transactions |
+| Workbench panes and standalone window layout | `workspace/` and `ui/window/` |
+
+The room canvas uses a fixed screen-pixel viewport around scaled 512×512 content.
+It claims wheel input before ImGui can scroll an enclosing window. Wheel input
+pans when no object is selected; a selected object or placement preview uses
+the existing resize handler. Compare uses the same viewport without edit access.
+Do not add a second pan offset or wheel handler to a presentation host.
+
+Placement entry points must cancel the previous handler before activating the
+next one. Selection shortcuts operate on the active viewer; the retired
+`ObjectEditorContent` adapter must not be recreated to store another selection.
+
+Regression coverage: `DungeonCanvasWheelRoutingTest`,
+`DungeonRoomEditsLifecycleTest`, and `DungeonSelectionEditsLifecycleTest` exercise
+both hosts. Use these real authoring paths when changing input or ownership.
 
 ### Core Editor
 *   **`dungeon_editor_v2.cc/h`**: The main entry point. Initializes the `WorkspaceWindowManager`, manages the `Rom` context, and instantiates the various window contents. It maintains the list of active (open) rooms (`room_viewers_`).
@@ -51,7 +77,6 @@ graph TD
 ### Object Management
 *   **`dungeon_object_selector.cc/h`**: The UI component for browsing the object library and choosing objects to place.
 *   **`selectors/object_selector_content.cc/h`**: The browse/place window content for dungeon objects. It keeps selection editing out of the selector and synchronizes placement with the active `DungeonCanvasViewer`.
-*   **`inspectors/object_editor_content.cc/h`**: The selected-object inspector for single-selection and multi-selection room object editing.
 *   **`ui/window/object_tile_editor_panel.{h,cc}`**: Visual 8x8 tile-composition editor for dungeon objects. It captures layouts through `zelda3::ObjectTileEditor`, keeps preview and atlas bitmaps in sync with the active palette, re-renders the room after apply, and is covered by focused panel/backend tests.
 
 ### UI Components (WindowContents)

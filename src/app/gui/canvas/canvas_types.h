@@ -54,6 +54,9 @@ struct CanvasRuntime {
 
 struct CanvasFrameOptions {
   ImVec2 canvas_size = ImVec2(0, 0);
+  // Optional fixed viewport in screen pixels. The content still uses
+  // canvas_size/global_scale, but zooming cannot enlarge the host item.
+  std::optional<ImVec2> viewport_size;
   bool draw_context_menu = true;
   bool draw_grid = true;
   std::optional<float> grid_step;
