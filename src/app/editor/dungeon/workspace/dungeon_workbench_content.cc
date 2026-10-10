@@ -634,7 +634,7 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
             ImGui::OpenPopup("##WorkbenchSidebarQuickActions");
           }
           if (ImGui::BeginPopup("##WorkbenchSidebarQuickActions")) {
-            if (ImGui::MenuItem(ICON_MD_VIEW_QUILT " Stitched Rooms")) {
+            if (ImGui::MenuItem(ICON_MD_VIEW_QUILT " Dungeon overview")) {
               ShowConnectedGraph();
             }
             if (ImGui::MenuItem(ICON_MD_MAP " Dungeon Map")) {

@@ -593,6 +593,12 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
       if (graph.room_mask[static_cast<size_t>(room_id)]) {
         continue;
       }
+      // Project registry entries can name rooms that have never been opened.
+      // Materialize their ROM data before placing them in the preview graph;
+      // otherwise the renderer sees a default Room with ID zero.
+      if (!EnsureRoomLoadedForConnectedView(room_id)) {
+        continue;
+      }
       const std::pair<int, int> placement =
           registry_placement_for(room_id).value_or(
               FindConnectedTransportPlacement(

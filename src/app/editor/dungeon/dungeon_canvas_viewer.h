@@ -713,8 +713,8 @@ class DungeonCanvasViewer {
     return object_interaction_enabled_;
   }
 
-  // Make the room header controls non-interactive while still allowing canvas
-  // pan/zoom (useful for split/compare views).
+  // Make the room header controls non-interactive while retaining centered
+  // canvas zoom (useful for split/compare views).
   void SetHeaderReadOnly(bool read_only) { header_read_only_ = read_only; }
   bool header_read_only() const { return header_read_only_; }
 
@@ -1031,6 +1031,7 @@ class DungeonCanvasViewer {
   void DrawCoordinateOverlayHud(int room_id);
   bool ValidateRoomCanvasRequest(int room_id);
   gui::CanvasFrameOptions BuildRoomCanvasFrameOptions() const;
+  void UpdateRoomCanvasViewport(ImVec2 viewport_size);
   void HandleRoomCanvasNavigation(gui::CanvasRuntime& canvas_rt);
   void SyncCanvasConfigFromViewerState();
   void SyncViewerStateFromCanvasConfig();
@@ -1068,6 +1069,8 @@ class DungeonCanvasViewer {
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
+  bool room_viewport_auto_fit_ = true;
+  float room_viewport_last_scale_ = -1.0f;
   gui::Canvas connected_canvas_{"##DungeonConnectedCanvas",
                                 ImVec2(0x200, 0x200)};
   // ObjectRenderer removed - use ObjectDrawer for rendering (production system)

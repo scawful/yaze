@@ -606,13 +606,13 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareConnectedRoomCompositeBitmap(
     int room_id) {
   // Resolve Auto for each neighbor without changing the primary room's context.
   // Manual mode returns the same pinned entrance for every room.
-  if (rooms_) {
-    if (auto* room = rooms_->TryEnsureRoom(room_id)) {
-      room->SetRenderEntranceBlockset(entrance_blockset_resolver_
-                                          ? entrance_blockset_resolver_(room_id)
-                                          : current_entrance_blockset_);
-    }
+  auto* room = EnsureRoomLoadedForConnectedView(room_id);
+  if (!room) {
+    return nullptr;
   }
+  room->SetRenderEntranceBlockset(entrance_blockset_resolver_
+                                      ? entrance_blockset_resolver_(room_id)
+                                      : current_entrance_blockset_);
   auto& entry = connected_composite_outputs_[room_id];
   if (!entry.output) {
     entry.output = std::make_unique<RoomCompositeOutput>();

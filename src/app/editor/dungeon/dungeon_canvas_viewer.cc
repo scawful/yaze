@@ -421,8 +421,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   PopulateCanvasContextMenu(room_id);
 
-  // Workbench, Standalone, and Compare share one fixed viewport. Content pan
-  // belongs to the canvas, never to a second ImGui scrollbar around its bitmap.
+  // Workbench, Standalone, and Compare share one fitted, centered viewport.
+  // Free navigation belongs to Overview, not an ImGui bitmap scrollbar.
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   const bool viewport_visible = ImGui::BeginChild(
       "##DungeonRoomViewport", ImVec2(0, 0), false,
@@ -433,6 +433,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     return;
   }
   const auto frame_opts = BuildRoomCanvasFrameOptions();
+  UpdateRoomCanvasViewport(*frame_opts.viewport_size);
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
   const bool pointer_pressed = ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
                                ImGui::IsMouseClicked(ImGuiMouseButton_Right) ||

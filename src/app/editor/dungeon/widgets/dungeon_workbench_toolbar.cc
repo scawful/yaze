@@ -51,7 +51,8 @@ constexpr char kToolbarPopupIdOverflow[] = "##WorkbenchToolbarOverflow";
 constexpr char kToolbarStartCompareLabel[] = "Compare";
 constexpr char kToolbarRecentRoomsLabel[] = ICON_MD_HISTORY;
 constexpr char kToolbarViewOptionsLabel[] = ICON_MD_VISIBILITY;
-constexpr char kToolbarModeConnectedLabel[] = ICON_MD_VIEW_QUILT;
+constexpr char kToolbarModeRoomLabel[] = "Room";
+constexpr char kToolbarModeConnectedLabel[] = "Overview";
 constexpr char kToolbarOverflowLabel[] = ICON_MD_MORE_HORIZ;
 constexpr char kToolbarRoomSearchHint[] = "Type to filter rooms...";
 constexpr char kToolbarPanelWorkflowTooltip[] =
@@ -173,23 +174,36 @@ void DrawViewOptionsButton(DungeonCanvasViewer* viewer,
   }
 }
 
-void DrawCanvasModeSelector(DungeonWorkbenchLayoutState* layout,
-                            const ToolbarLayout& toolbar_layout) {
-  if (!layout) {
-    return;
-  }
+float CanvasModeSelectorWidth(const ToolbarLayout& layout) {
+  return workbench::CalcIconButtonWidth(kToolbarModeRoomLabel,
+                                        layout.button_size) +
+         kToolbarActionGap +
+         workbench::CalcIconButtonWidth(kToolbarModeConnectedLabel,
+                                        layout.button_size);
+}
 
-  const float mode_height = toolbar_layout.button_size;
-  const float connected_width =
-      workbench::CalcIconButtonWidth(kToolbarModeConnectedLabel, mode_height);
-  if (DrawToolbarActionButton("CanvasModeConnected", kToolbarModeConnectedLabel,
-                              ImVec2(connected_width, mode_height),
-                              layout->show_connected_canvas_view
-                                  ? "Return to single-room canvas"
-                                  : "Stitched Rooms: browse the current room "
-                                    "and its neighbors as one canvas",
-                              layout->show_connected_canvas_view)) {
-    layout->show_connected_canvas_view = !layout->show_connected_canvas_view;
+void DrawCanvasModeSelector(const DungeonWorkbenchToolbarParams& p,
+                            const ToolbarLayout& toolbar_layout) {
+  const float height = toolbar_layout.button_size;
+  if (DrawToolbarActionButton(
+          "CanvasModeRoom", kToolbarModeRoomLabel,
+          ImVec2(workbench::CalcIconButtonWidth(kToolbarModeRoomLabel, height),
+                 height),
+          "Edit the current room",
+          !p.layout->show_connected_canvas_view && !*p.split_view_enabled)) {
+    p.layout->show_connected_canvas_view = false;
+    *p.split_view_enabled = false;
+  }
+  ImGui::SameLine(0.0f, kToolbarActionGap);
+  if (DrawToolbarActionButton(
+          "CanvasModeConnected", kToolbarModeConnectedLabel,
+          ImVec2(workbench::CalcIconButtonWidth(kToolbarModeConnectedLabel,
+                                                height),
+                 height),
+          "Dungeon overview: click a room preview to edit it",
+          p.layout->show_connected_canvas_view)) {
+    p.layout->show_connected_canvas_view = true;
+    *p.split_view_enabled = false;
   }
 }
 
@@ -461,6 +475,9 @@ float ToolbarEstimatedWidth(const DungeonWorkbenchToolbarParams& p,
       4.0f * ImGui::GetFrameHeight() + 4.0f * ImGui::GetStyle().ItemSpacing.x +
       ImGui::CalcTextSize("00000").x + ImGui::GetStyle().FramePadding.x * 2.0f;
   append_left(navigation_width, kToolbarClusterGap);
+  if (visibility.stitched_rooms) {
+    append_left(CanvasModeSelectorWidth(layout), kToolbarClusterGap);
+  }
 
   if (visibility.entrance)
     append_left(kEntranceWidth, kToolbarClusterGap);
@@ -477,11 +494,6 @@ float ToolbarEstimatedWidth(const DungeonWorkbenchToolbarParams& p,
   }
   if (visibility.dungeon_map) {
     append_left(layout.button_size, kToolbarActionGap);
-  }
-  if (visibility.stitched_rooms) {
-    append_left(workbench::CalcIconButtonWidth(kToolbarModeConnectedLabel,
-                                               layout.button_size),
-                kToolbarClusterGap);
   }
   if (visibility.compare) {
     append_left(workbench::CalcIconButtonWidth(kToolbarStartCompareLabel,
@@ -524,8 +536,8 @@ ToolbarVisibility ResolveToolbarVisibility(
     return fits();
   };
 
-  // Collapse infrequent or duplicated actions first. Pane toggles go last;
-  // at ultra-compact widths NESW navigation remains the only inline cluster.
+  // Keep the explicit view choice beside room navigation at laptop widths.
+  // Entrance/layer controls remain available in the overflow on narrow panes.
   if (collapse(visibility.dungeon_map))
     return visibility;
   if (collapse(visibility.apply_room))
@@ -538,13 +550,13 @@ ToolbarVisibility ResolveToolbarVisibility(
     return visibility;
   if (collapse(visibility.view_options))
     return visibility;
-  if (collapse(visibility.stitched_rooms))
+  if (collapse(visibility.entrance))
+    return visibility;
+  if (collapse(visibility.layers))
     return visibility;
   if (collapse(visibility.pane_toggles))
     return visibility;
-  if (collapse(visibility.entrance))
-    return visibility;
-  collapse(visibility.layers);
+  collapse(visibility.stitched_rooms);
   return visibility;
 }
 
@@ -599,10 +611,16 @@ bool DrawToolbarOverflowMenu(const DungeonWorkbenchToolbarParams& p,
     }
   }
   if (!visibility.stitched_rooms) {
-    if (ImGui::MenuItem(ICON_MD_VIEW_QUILT " Stitched Rooms", nullptr,
+    if (ImGui::MenuItem(
+            "Room view", nullptr,
+            !p.layout->show_connected_canvas_view && !*p.split_view_enabled)) {
+      p.layout->show_connected_canvas_view = false;
+      *p.split_view_enabled = false;
+    }
+    if (ImGui::MenuItem("Dungeon overview", nullptr,
                         p.layout->show_connected_canvas_view)) {
-      p.layout->show_connected_canvas_view =
-          !p.layout->show_connected_canvas_view;
+      p.layout->show_connected_canvas_view = true;
+      *p.split_view_enabled = false;
     }
   }
   if (!visibility.compare) {
@@ -699,6 +717,10 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   }
   DungeonRoomNavWidget::Draw("WorkbenchNav", *p.current_room_id,
                              p.on_room_selected);
+  if (visibility.stitched_rooms) {
+    ImGui::SameLine(0.0f, kToolbarClusterGap);
+    DrawCanvasModeSelector(p, layout);
+  }
 
   if (visibility.entrance) {
     ImGui::SameLine(0.0f, kToolbarClusterGap);
@@ -731,11 +753,6 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
                                         "Open the Dungeon Map popup")) {
       p.on_request_dungeon_map();
     }
-  }
-
-  if (visibility.stitched_rooms) {
-    ImGui::SameLine(0.0f, kToolbarClusterGap);
-    DrawCanvasModeSelector(p.layout, layout);
   }
 
   if (visibility.compare) {
