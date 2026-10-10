@@ -175,9 +175,9 @@ class DungeonWorkbenchPitDamageUiTest : public ::testing::Test {
     ImGui::Render();
   }
 
-  void ClickPitDetails(DungeonWorkbenchContent& content, int room_id) {
-    const auto label =
-        gui::WidgetIdRegistry::NormalizeLabel("PitDamageDetails");
+  void ClickPitControl(DungeonWorkbenchContent& content, int room_id,
+                       const char* control) {
+    const auto label = gui::WidgetIdRegistry::NormalizeLabel(control);
     std::optional<DungeonWorkbenchTestRect> details;
     for (const auto& [path, widget] :
          gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
@@ -327,6 +327,12 @@ TEST(DungeonWorkbenchNavigatorUiTest,
       const auto choice = widget(kind);
       ASSERT_TRUE(choice.has_value()) << kind;
       EXPECT_TRUE(choice->visible) << kind;
+      EXPECT_EQ(choice->type, "button") << kind;
+      const char* text = kind + std::string("Place ").size();
+      EXPECT_GE(
+          choice->bounds.max_x - choice->bounds.min_x,
+          ImGui::CalcTextSize(text).x + ImGui::GetStyle().FramePadding.x * 2)
+          << kind;
       EXPECT_LT(choice->bounds.max_x, 20 + host_width + 20) << kind;
       click(kind);
       EXPECT_FALSE(content.IsToolInspectorActiveForTesting());
@@ -804,6 +810,8 @@ class DungeonWorkbenchResetUiTest : public DungeonWorkbenchObjectSizeUiTest {
     ImGui::Begin("ResetHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
     ImGui::LogToBuffer();
     ImGui::GetCurrentContext()->LogDepthToExpand = 0;
+    if (show_tools_toolbar_)
+      DungeonWorkbenchContentTestPeer::DrawToolsToolbar(content_);
     if (standalone_content_)
       standalone_content_->Draw(nullptr);
     else if (show_standalone_sprites_)
@@ -852,6 +860,7 @@ class DungeonWorkbenchResetUiTest : public DungeonWorkbenchObjectSizeUiTest {
   DoorEditorContent doors_;
   ItemEditorPanel items_{&room_id_, &rooms_, &viewer_};
   WindowContent* standalone_content_ = nullptr;
+  bool show_tools_toolbar_ = false;
   FakeWorkbenchToolContent palette_{"dungeon.palette_editor"};
   MinecartTrackEditorPanel tracks_;
   DungeonWorkbenchContent content_{
@@ -1166,6 +1175,8 @@ TEST_F(DungeonWorkbenchResetUiTest,
 }
 
 TEST_F(DungeonWorkbenchResetUiTest, ToolsMenuAndBackReleaseRailEditing) {
+  width_ = 720;
+  show_tools_toolbar_ = true;
   // Opening the real tool audits materialized rooms through their lazy object
   // and sprite loaders. SetLoaded alone does not initialize those domains.
   Rom rom;
@@ -2070,7 +2081,7 @@ TEST_F(DungeonWorkbenchPitDamageUiTest,
   DrawPitDamageFrame(content, current_room_id);
   EXPECT_FALSE(
       content.GetPitDamageControlRectsForTesting().add_current.visible);
-  ClickPitDetails(content, current_room_id);
+  ClickPitControl(content, current_room_id, "PitDamageEnabled");
   DrawPitDamageFrame(content, current_room_id);
   const auto add_rect =
       content.GetPitDamageControlRectsForTesting().add_current;
@@ -2086,6 +2097,10 @@ TEST_F(DungeonWorkbenchPitDamageUiTest,
 
   table.ClearDirty();
   DrawPitDamageFrame(content, current_room_id);
+  EXPECT_FALSE(
+      content.GetPitDamageControlRectsForTesting().replace_current.visible);
+  ClickPitControl(content, current_room_id, "PitDamageEnabled");
+  DrawPitDamageFrame(content, current_room_id);
   const auto replace_rect =
       content.GetPitDamageControlRectsForTesting().replace_current;
   ASSERT_TRUE(replace_rect.visible);
@@ -2097,6 +2112,60 @@ TEST_F(DungeonWorkbenchPitDamageUiTest,
   EXPECT_TRUE(table.Contains(0x000));
   EXPECT_TRUE(table.Contains(0x010));
   EXPECT_TRUE(table.dirty());
+}
+
+TEST_F(DungeonWorkbenchPitDamageUiTest,
+       CheckboxCancelLeavesPitDamageMembershipUntouched) {
+  int current_room_id = 0x020;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+  auto table = MakePitDamageTable({0x001, 0x010});
+  content.SetPitDamageTableProvider([&table]() { return &table; });
+
+  DrawPitDamageFrame(content, current_room_id);
+  ClickPitControl(content, current_room_id, "PitDamageEnabled");
+  DrawPitDamageFrame(content, current_room_id);
+  EXPECT_TRUE(content.GetPitDamageControlRectsForTesting().add_current.visible);
+  EXPECT_FALSE(table.Contains(current_room_id));
+  EXPECT_FALSE(table.dirty());
+  ClickPitControl(content, current_room_id, "PitDamageCancel");
+  DrawPitDamageFrame(content, current_room_id);
+  EXPECT_FALSE(
+      content.GetPitDamageControlRectsForTesting().add_current.visible);
+  EXPECT_TRUE(table.Contains(0x001));
+  EXPECT_TRUE(table.Contains(0x010));
+  EXPECT_FALSE(table.Contains(current_room_id));
+  EXPECT_FALSE(table.dirty());
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    EXPECT_NE(widget.label, "PitDamageDetails");
+  }
+}
+
+TEST_F(DungeonWorkbenchPitDamageUiTest,
+       RoomChangeDiscardsPendingPitDamageChoice) {
+  int current_room_id = 0x020;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+  auto table = MakePitDamageTable({0x001, 0x010});
+  content.SetPitDamageTableProvider([&table]() { return &table; });
+
+  DrawPitDamageFrame(content, current_room_id);
+  ClickPitControl(content, current_room_id, "PitDamageEnabled");
+  DrawPitDamageFrame(content, current_room_id);
+  ASSERT_TRUE(content.GetPitDamageControlRectsForTesting().add_current.visible);
+  ASSERT_FALSE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+
+  current_room_id = 0x030;
+  DrawPitDamageFrame(content, current_room_id);
+  EXPECT_TRUE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+  EXPECT_FALSE(
+      content.GetPitDamageControlRectsForTesting().add_current.visible);
+  EXPECT_TRUE(table.Contains(0x001));
+  EXPECT_TRUE(table.Contains(0x010));
+  EXPECT_FALSE(table.Contains(0x020));
+  EXPECT_FALSE(table.Contains(0x030));
+  EXPECT_FALSE(table.dirty());
 }
 
 TEST(DungeonWorkbenchProjectLabelsTest,

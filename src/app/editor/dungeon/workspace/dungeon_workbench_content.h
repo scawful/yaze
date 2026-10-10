@@ -273,7 +273,6 @@ class DungeonWorkbenchContent : public WindowContent {
   const char* GetWorkbenchToolUnavailableMessage(WorkbenchTool tool) const;
   void DrawApplyScopeControls(int room_id);
   void DrawPitDamageControls(int room_id);
-  void DrawLayerCompositingControls(DungeonCanvasViewer& viewer, int room_id);
   void DrawDungeonMapPopup(DungeonCanvasViewer& viewer);
   void DrawProposalPreviewWindow(DungeonCanvasViewer& viewer);
   DungeonMapPanel* GetEmbeddedDungeonMap(DungeonCanvasViewer& viewer);
@@ -344,6 +343,7 @@ class DungeonWorkbenchContent : public WindowContent {
   float proposal_scale_ = 1.0f;
   uint16_t pit_damage_replacement_room_id_ = 0;
   uint16_t pit_damage_victim_room_id_ = 0;
+  int pit_damage_chooser_room_id_ = -1;
   std::string pit_damage_status_message_;
   bool pit_damage_status_error_ = false;
   DungeonWorkbenchPitDamageControlRects pit_damage_control_rects_{};
