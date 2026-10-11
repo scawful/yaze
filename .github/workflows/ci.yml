@@ -431,8 +431,9 @@ jobs:
       # Exclude the nightly-only labels (see the header of this file). In
       # particular, performance benchmarks assert hard timing ceilings that are
       # meaningless under ASan instrumentation; they run in nightly.yml instead.
-      # Correctness suites (stable/unit/integration/quick) still run under ASan.
-      run: ctest --output-on-failure --label-exclude "benchmark|gui|experimental|rom_dependent"
+      # Correctness suites still run under ASan through stable entries.
+      # Quick binaries repeat cases already registered under stable.
+      run: ctest --output-on-failure --label-exclude "benchmark|gui|experimental|rom_dependent|quick"
 
   z3ed-agent-test:
     name: "z3ed Agent"
