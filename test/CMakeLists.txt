@@ -880,6 +880,9 @@ if(YAZE_BUILD_TESTS)
     yaze_add_test_suite(yaze_test_rom_dependent "rom_dependent" OFF ${ROM_DEPENDENT_TEST_SOURCES})
     if(TARGET overworld_golden_data_extractor)
       add_dependencies(yaze_test_rom_dependent overworld_golden_data_extractor)
+      target_compile_definitions(yaze_test_rom_dependent PRIVATE
+        YAZE_OVERWORLD_GOLDEN_DATA_EXTRACTOR_PATH="$<TARGET_FILE:overworld_golden_data_extractor>"
+      )
     endif()
     target_compile_definitions(yaze_test_rom_dependent PRIVATE
       YAZE_ENABLE_ROM_TESTS=1
