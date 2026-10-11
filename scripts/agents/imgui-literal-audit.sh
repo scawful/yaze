@@ -19,7 +19,7 @@ fi
 CHECKS=(
   "ImVec4(|417"
   "IM_COL32(|133"
-  "ImGui::PushStyleColor|14"
+  "ImGui::PushStyleColor|13"
 )
 
 count_pattern() {

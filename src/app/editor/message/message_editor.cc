@@ -33,6 +33,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/empty_state.h"
 #include "imgui.h"
@@ -1848,13 +1849,14 @@ void MessageEditor::DrawExpandedMessageSettings() {
   const ImVec4 capacity_color = (usage_ratio < 0.75f)   ? gui::GetSuccessColor()
                                 : (usage_ratio < 0.90f) ? gui::GetWarningColor()
                                                         : gui::GetErrorColor();
-  ImGui::PushStyleColor(ImGuiCol_PlotHistogram, capacity_color);
-  char capacity_label[64];
-  std::snprintf(capacity_label, sizeof(capacity_label), "%d / %d bytes", used,
-                capacity);
-  ImGui::ProgressBar(std::clamp(usage_ratio, 0.0f, 1.0f), ImVec2(-1, 0),
-                     capacity_label);
-  ImGui::PopStyleColor();
+  {
+    gui::StyleColorGuard capacity_style(ImGuiCol_PlotHistogram, capacity_color);
+    char capacity_label[64];
+    std::snprintf(capacity_label, sizeof(capacity_label), "%d / %d bytes", used,
+                  capacity);
+    ImGui::ProgressBar(std::clamp(usage_ratio, 0.0f, 1.0f), ImVec2(-1, 0),
+                       capacity_label);
+  }
   ImGui::TextDisabled(tr("%d bytes free"), remaining);
 
   if (ImGui::Button(tr("Add New Message"))) {
