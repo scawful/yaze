@@ -88,6 +88,7 @@ set(
   app/editor/editor_manager.cc
   app/editor/editor_manager_frame.cc
   app/editor/editor_manager_project_io.cc
+  app/editor/editor_manager_sessions.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/gfx_group_editor_main.cc
   app/editor/graphics/graphics_editor.cc

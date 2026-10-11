@@ -829,6 +829,7 @@
 		E3BE45CA2E90AA0C0075AC22 /* message_preview.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45C82E90AA0C0075AC22 /* message_preview.cc */; };
 		E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958B2C68379B008DD1E7 /* editor_manager.cc */; };
 		CFD730F7E8EF46D580F6B0A1 /* editor_manager_frame.cc in Sources */ = {isa = PBXBuildFile; fileRef = CEEF14A2859E4D578B6CC420 /* editor_manager_frame.cc */; };
+		23511B6A235140A2801ABA70 /* editor_manager_sessions.cc in Sources */ = {isa = PBXBuildFile; fileRef = C2CE2BB9246F452CB9EF7B3D /* editor_manager_sessions.cc */; };
 		E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */; };
 /* End PBXBuildFile section */
 
@@ -2600,6 +2601,7 @@
 		E3BE45C82E90AA0C0075AC22 /* message_preview.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = message_preview.cc; sourceTree = "<group>"; };
 		E3BE958B2C68379B008DD1E7 /* editor_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager.cc; sourceTree = "<group>"; };
 		CEEF14A2859E4D578B6CC420 /* editor_manager_frame.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager_frame.cc; sourceTree = "<group>"; };
+		C2CE2BB9246F452CB9EF7B3D /* editor_manager_sessions.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager_sessions.cc; sourceTree = "<group>"; };
 		E3BE958C2C68379B008DD1E7 /* editor_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = editor_manager.h; sourceTree = "<group>"; };
 		E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = overworld_editor.h; sourceTree = "<group>"; };
 		E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = overworld_editor.cc; sourceTree = "<group>"; };
@@ -2883,6 +2885,7 @@
 				E38A97F62C6C4CE3005FB662 /* system */,
 				E3BE958B2C68379B008DD1E7 /* editor_manager.cc */,
 				CEEF14A2859E4D578B6CC420 /* editor_manager_frame.cc */,
+				C2CE2BB9246F452CB9EF7B3D /* editor_manager_sessions.cc */,
 				E3BE958C2C68379B008DD1E7 /* editor_manager.h */,
 				E3A5CEE82CF61F3100259DE8 /* editor.h */,
 			);
@@ -5714,6 +5717,7 @@
 				E318E1B72C5A4FC200091322 /* cord_analysis.cc in Sources */,
 				E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */,
 				CFD730F7E8EF46D580F6B0A1 /* editor_manager_frame.cc in Sources */,
+				23511B6A235140A2801ABA70 /* editor_manager_sessions.cc in Sources */,
 				E318D96D2C59C08300091322 /* object_renderer.cc in Sources */,
 				E318DFFD2C5A4FBF00091322 /* stacktrace_emscripten-inl.inc in Sources */,
 				E318E0072C5A4FBF00091322 /* stacktrace_win32-inl.inc in Sources */,
