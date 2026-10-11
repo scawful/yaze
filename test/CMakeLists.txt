@@ -253,576 +253,9 @@ if(YAZE_BUILD_TESTS)
     endif()
   endfunction()
 
-  # --- Stable Test Suites (Valid Contracts) ---
-  # Note: stable tests are split into unit + integration so you can run:
-  #   ctest --test-dir build/presets/mac-ai-fast -L unit
-  #   ctest --test-dir build/presets/mac-ai-fast -L integration
-  # without running everything (still included in `-L stable`).
-  set(STABLE_UNIT_TEST_SOURCES
-    # Unit Tests
-    unit/core/hex_test.cc
-    unit/core/hack_manifest_test.cc
-    unit/core/gfx_sheet_policy_adapter_test.cc
-    unit/core/graphics_sheet_labels_test.cc
-    unit/core/oracle_progression_test.cc
-    unit/core/oracle_progression_loader_test.cc
-    unit/core/oracle_menu_registry_test.cc
-    unit/core/story_event_graph_test.cc
-    unit/core/story_event_graph_query_test.cc
-    unit/core/rom_hash_test.cc
-    unit/rom/lyra_layout_descriptor_test.cc
-    unit/core/oracle_rom_fixture_test.cc
-    unit/core/terrain_catalog_test.cc
-    unit/core/project_paths_test.cc
-    unit/core/project_file_passthrough_test.cc
-    unit/core/project_atlas_settings_test.cc
-    unit/core/project_bundle_test.cc
-    unit/core/project_bundle_path_test.cc
-    unit/core/source_artifact_publisher_test.cc
-    unit/util/lru_cache_test.cc
-    unit/util/bps_test.cc
-    unit/util/indexed_png_test.cc
-    unit/util/i18n_test.cc
-    unit/util/hex_test.cc
-    unit/util/log_test.cc
-    unit/deps/dependency_smoke_test.cc
-    unit/cli/resource_catalog_test.cc
-    unit/cli/tile16_proposal_generator_test.cc
-    unit/cli/command_registry_test.cc
-    unit/cli/rom_doctor_water_fill_test.cc
-    unit/cli/overworld_doctor_tile16_test.cc
-    unit/cli/overworld_allocation_commands_test.cc
-    unit/cli/graphics_doctor_test.cc
-    unit/cli/rom_header_size_test.cc
-    unit/cli/dungeon_object_validate_test.cc
-    unit/cli/dungeon_collision_json_commands_test.cc
-    unit/cli/dungeon_render_commands_test.cc
-    unit/cli/overworld_agent_commands_test.cc
-    unit/cli/overworld_tile_commands_test.cc
-    unit/cli/dungeon_edit_commands_test.cc
-    unit/cli/dungeon_track_collision_commands_test.cc
-    unit/cli/dungeon_spawn_report_commands_test.cc
-    unit/cli/dungeon_room_destination_high_byte_test.cc
-    unit/cli/dungeon_room_census_commands_test.cc
-    unit/cli/dungeon_graph_links_test.cc
-    unit/cli/atlas_render_commands_test.cc
-    unit/cli/dungeon_stream_plan_commands_test.cc
-    unit/cli/editor_completion_command_handlers_test.cc
-    unit/cli/dungeon_minecart_audit_test.cc
-    unit/cli/dungeon_oracle_preflight_test.cc
-    unit/cli/oracle_smoke_check_test.cc
-    unit/cli/oracle_menu_commands_test.cc
-    unit/cli/message_commands_policy_test.cc
-    unit/cli/palette_commands_test.cc
-    unit/cli/project_bundle_verify_test.cc
-    unit/cli/project_bundle_archive_test.cc
-    unit/rom/rom_diff_test.cc
-    unit/rom/rom_test.cc
-    unit/rom/rom_copier_header_test.cc
-    unit/rom/fresh_rom_fixture_output_test.cc
-    unit/rom/write_fence_test.cc
-    unit/emu/emulator_test.cc
-    unit/emu/cpu_flags_test.cc
-    unit/emu/snes_io_reset_test.cc
-    unit/emu/mesen_socket_client_test.cc
-    unit/emu/input_backend_test.cc
-    unit/emu/step_controller_test.cc
-    unit/emu/spc700_reset_test.cc
-    unit/emu/apu_dsp_test.cc
-    unit/emu/apu_ipl_handshake_test.cc
-    unit/emu/disassembler_test.cc
-    unit/emu/memory_rom_mapping_test.cc
-    unit/diggable_tiles_test.cc
-    unit/core/asm_patch_test.cc
-    unit/core/tail_expansion_guard_test.cc
-    unit/gfx/snes_tile_test.cc
-    unit/gfx/compression_test.cc
-    unit/gfx/hyrule_magic_compress_test.cc
-    unit/gfx/snes_palette_test.cc
-    unit/gfx/usdasm_palette_loading_test.cc
-    unit/gfx/bpp_conversion_test.cc
-    unit/gfx/sheet_role_palette_table_test.cc
-    unit/cli/graphics_context_command_test.cc
-    unit/gfx/arena_retirement_test.cc
-    unit/gfx/bitmap_color_test.cc
-    unit/palette_json_test.cc
-    unit/snes_color_test.cc
-    unit/gui/tile_selector_widget_test.cc
-    unit/gui/canvas_automation_api_test.cc
-    unit/gui/canvas_context_menu_role_test.cc
-    unit/gui/item_context_menu_test.cc
-    unit/gui/canvas_coordinate_sync_test.cc
-    unit/gui/canvas_zoom_anchor_test.cc
-    unit/gui/window_clamp_test.cc
-    unit/gui/panel_window_test.cc
-    unit/gui/empty_state_test.cc
-    unit/gui/animator_test.cc
-    unit/gui/property_inspector_test.cc
-    unit/gui/resize_handles_test.cc
-    unit/gui/font_picker_test.cc
-    unit/gui/icon_browser_test.cc
-    unit/editor/layout/dock_tree_test.cc
-    unit/editor/layout/dock_tree_json_test.cc
-    unit/editor/layout/dock_tree_renderer_test.cc
-    unit/editor/layout/dock_tree_hit_test_test.cc
-    unit/editor/layout/drop_zone_suggester_test.cc
-    unit/editor/layout/layout_manager_dock_tree_test.cc
-    unit/editor/layout/panel_palette_test.cc
-    unit/editor/layout/tree_undo_stack_test.cc
-    unit/editor/layout/layout_designer_panel_replace_tree_test.cc
-    unit/editor/user_settings_named_layouts_test.cc
-    unit/editor/user_settings_test_isolation_test.cc
-    unit/editor/message/message_data_test.cc
-    unit/editor/message/message_id_resolver_test.cc
-    unit/editor/message/message_list_query_test.cc
-    unit/editor/message/message_expanded_write_test.cc
-    unit/editor/message/message_source_publish_guard_test.cc
-    unit/editor/message/message_source_sync_test.cc
-    unit/editor/oracle_validation_view_model_test.cc
-    unit/editor/hack_workflow_backend_factory_test.cc
-    unit/editor/rom_file_manager_test.cc
-    unit/editor/project_manager_validator_test.cc
-    unit/editor/panel_system_test.cc
-    unit/editor/workspace_window_manager_policy_test.cc
-    unit/editor/panel_admission_test.cc
-    unit/editor/workspace_floating_window_test.cc
-    unit/editor/background_command_task_test.cc
-    unit/editor/content_registry_workflow_history_test.cc
-    unit/editor/command_palette_workflow_test.cc
-    unit/editor/command_palette_search_test.cc
-    unit/editor/workflow_activity_widgets_test.cc
-    unit/editor/layout_manager_persistence_test.cc
-    unit/editor/right_drawer_manager_test.cc
-    unit/editor/status_bar_context_test.cc
-    unit/editor/undo_manager_test.cc
-    unit/editor/sprite_editor_undo_test.cc
-    unit/editor/sprite_editor_preview_test.cc
-    unit/editor/sprite_spriteset_preview_test.cc
-    unit/editor/sprite_authoring_test.cc
-    unit/editor/sprite_behavior_test.cc
-    unit/editor/sprite_catalog_session_test.cc
-    unit/zelda3/dungeon_map_serialization_test.cc
-    unit/editor/screen_editor_undo_test.cc
-    unit/editor/dungeon_undo_actions_test.cc
-    unit/editor/dungeon_room_edit_test.cc
-    unit/editor/dungeon_selection_edit_test.cc
-    unit/editor/dungeon_connection_edit_test.cc
-    unit/editor/dungeon_room_transfer_test.cc
-    unit/editor/dungeon_selection_edits_lifecycle_test.cc
-    unit/editor/dungeon_connection_edits_lifecycle_test.cc
-    unit/editor/dungeon_room_transfer_lifecycle_test.cc
-    unit/editor/dungeon_room_metadata_ui_test.cc
-    unit/editor/dungeon_room_edits_lifecycle_test.cc
-    unit/editor/dungeon_chest_editor_test.cc
-    unit/editor/dungeon_connection_editor_test.cc
-    unit/editor/dungeon_room_document_file_test.cc
-    unit/editor/dungeon_room_transfer_editor_test.cc
-    unit/editor/assembly_editor_symbol_jump_test.cc
-    unit/editor/editor_activator_test.cc
-    unit/editor/editor_manager_test.cc
-    unit/editor/story_event_graph_navigation_test.cc
-    unit/editor/ui_coordinator_workflow_test.cc
-    unit/editor/welcome_screen_test.cc
-    unit/editor/dashboard_panel_test.cc
-    unit/editor/editor_manager_project_actions_test.cc
-    unit/editor/popup_manager_test.cc
-    unit/editor/authoring_save_workflow_test.cc
-    unit/editor/cutscene_camera_panel_test.cc
-    unit/editor/collision_source_pairing_test.cc
-    unit/editor/editor_manager_rom_write_policy_test.cc
-    unit/editor/editor_manager_write_conflict_test.cc
-    unit/editor/menu_orchestrator_helpers_test.cc
-    unit/editor/editor_manager_oracle_rom_safety_test.cc
-    unit/editor/oracle_hack_workflow_backend_test.cc
-    unit/editor/editor_set_test.cc
-    unit/editor/paint_util_test.cc
-    unit/editor/dungeon_canvas_transform_test.cc
-    unit/editor/map_properties_context_menu_test.cc
-    unit/editor/dungeon_layout_defaults_test.cc
-    unit/editor/dungeon_selection_snapshot_test.cc
-    unit/editor/layout_presets_test.cc
-    unit/editor/graphics_editor_window_ids_test.cc
-    unit/editor/graphics_workspace_layout_test.cc
-    unit/editor/gfx_group_workspace_state_test.cc
-    unit/editor/gfx_group_editor_render_test.cc
-    unit/editor/sheet_png_transfer_test.cc
-    unit/editor/pixel_clipboard_test.cc
-    unit/editor/graphics_sheet_sync_test.cc
-    unit/editor/graphics_usage_preview_test.cc
-    unit/editor/overworld_graphics_context_test.cc
-    unit/editor/sprite_graphics_context_test.cc
-    unit/editor/screen_graphics_context_test.cc
-    unit/editor/palette_controls_panel_layout_test.cc
-    unit/editor/user_settings_layout_defaults_test.cc
-    unit/editor/emulator_runtime_policy_test.cc
-    unit/editor/overworld_map_status_test.cc
-    unit/editor/sidebar_sort_test.cc
-    unit/editor/activity_bar_actions_registry_test.cc
-    unit/editor/theme_persistence_test.cc
-    unit/editor/settings_panel_test.cc
-    unit/editor/theme_style_snapshot_test.cc
-    unit/editor/theme_generator_test.cc
-    unit/editor/overworld_entity_marker_color_test.cc
-    unit/editor/editor_registry_test.cc
-    unit/editor/shortcut_manager_test.cc
-    unit/editor/shortcut_group_test.cc
-    unit/editor/shortcut_configurator_test.cc
-    unit/editor/shortcut_arbitration_test.cc
-    unit/editor/window_sidebar_test.cc
-    unit/editor/dungeon_canvas_viewer_navigation_test.cc
-    unit/editor/dungeon_workbench_content_test.cc
-    unit/editor/dungeon_issue_report_storage_test.cc
-    unit/editor/object_coverage_model_test.cc
-    unit/editor/object_coverage_panel_test.cc
-    unit/editor/dungeon_usage_tracker_test.cc
-    unit/editor/dungeon_entrance_edit_policy_test.cc
-    unit/editor/dungeon_render_context_camera_test.cc
-    unit/editor/dungeon_editor_v2_rom_safety_test.cc
-    unit/editor/dungeon_editor_palette_refresh_test.cc
-    unit/editor/dungeon_palette_source_test.cc
-    unit/editor/crumble_floor_test.cc
-    unit/editor/dungeon_overlay_controls_test.cc
-    unit/editor/dungeon_object_selector_palette_test.cc
-    unit/editor/room_graphics_content_test.cc
-    unit/editor/dungeon_workbench_toolbar_test.cc
-    unit/editor/object_tile_editor_panel_test.cc
-    unit/editor/dungeon_proposal_overlay_test.cc
-    unit/editor/minecart_track_source_test.cc
-    unit/editor/minecart_track_editor_panel_test.cc
-    unit/editor/toast_dedup_test.cc
-    unit/editor/feature_hint_manager_test.cc
-    unit/editor/tile_painting_manager_test.cc
-    unit/zelda3/overworld_graphics_preview_test.cc
-    unit/editor/overworld_undo_actions_test.cc
-    unit/editor/tile16_document_history_test.cc
-    unit/editor/tile16_editor_action_state_test.cc
-    unit/editor/tile16_editor_shortcuts_test.cc
-    unit/editor/tile8_source_interaction_test.cc
-    unit/editor/overworld_item_operations_test.cc
-    unit/editor/overworld_editor_state_test.cc
-    unit/editor/overworld_map_metadata_test.cc
-    unit/editor/overworld_property_edit_test.cc
-    unit/editor/canvas_navigation_manager_test.cc
-    unit/editor/map_refresh_coordinator_test.cc
-    unit/zelda3/overworld_sprite_io_test.cc
-    unit/zelda3/cutscene_shot_test.cc
-    unit/zelda3/gfx_group_persistence_test.cc
-    unit/zelda3/gfx_sheet_inventory_test.cc
-    unit/zelda3/menu_tilemap_test.cc
-    unit/zelda3/gfx_sheet_png_test.cc
-    unit/zelda3/gfx_sheet_storage_test.cc
-    unit/zelda3/graphics_sheet_store_test.cc
-    unit/zelda3/graphics_sheet_revision_refresh_test.cc
-    unit/zelda3/sprite_sheet_slots_test.cc
-    unit/zelda3/overworld_test.cc
-    unit/zelda3/overworld_regression_test.cc
-    unit/zelda3/overworld_build_rom_test.cc
-    unit/zelda3/overworld_area_render_test.cc
-    unit/zelda3/overworld_default_gfx_group_test.cc
-    unit/zelda3/overworld_version_helper_test.cc
-    unit/zelda3/overworld_allocation_test.cc
-    unit/zelda3/special_entrance_inspector_test.cc
-    unit/zelda3/zelda3_version_test.cc
-    unit/zelda3/tile16_metadata_test.cc
-    unit/zelda3/tile16_stamp_test.cc
-    unit/zelda3/tile16_renderer_test.cc
-    unit/zelda3/tile16_usage_index_test.cc
-    unit/zelda3/resource_labels_test.cc
-    unit/zelda3/sprite_render_preview_test.cc
-    unit/zelda3/sprite_catalog_test.cc
-    unit/zelda3/object_parser_test.cc
-    unit/zelda3/object_parser_structs_test.cc
-    unit/zelda3/sprite_builder_test.cc
-    unit/zelda3/sprite_value_init_test.cc
-    unit/zelda3/music_parser_test.cc
-    unit/zelda3/dungeon_component_unit_test.cc
-    unit/zelda3/dungeon/chest_edit_test.cc
-    unit/zelda3/dungeon/dungeon_limits_test.cc
-    unit/zelda3/dungeon/draw_routine_symbology_test.cc
-    unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
-    unit/zelda3/dungeon/game_tilemap_comparison_test.cc
-    unit/zelda3/dungeon/room_collision_test.cc
-    unit/zelda3/dungeon/room_layer_registers_test.cc
-    unit/zelda3/dungeon/room_limit_regression_test.cc
-    unit/zelda3/dungeon/dungeon_validator_test.cc
-    unit/zelda3/dungeon/door_position_test.cc
-    unit/zelda3/dungeon/dungeon_block_codec_test.cc
-    unit/zelda3/dungeon/dungeon_torch_codec_test.cc
-    unit/zelda3/dungeon/room_object_encoding_test.cc
-    unit/zelda3/dungeon/room_object_set_id_test.cc
-    unit/zelda3/custom_object_test.cc
-    unit/zelda3/dungeon/dungeon_tile_patterns_test.cc
-    unit/zelda3/dungeon/room_manipulation_test.cc
-    unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
-    unit/zelda3/dungeon/pot_item_position_test.cc
-    unit/zelda3/dungeon/dungeon_save_test.cc
-    unit/zelda3/dungeon/dungeon_editor_system_test.cc
-    unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
-    unit/zelda3/dungeon/room_census_test.cc
-    unit/zelda3/atlas/atlas_annotations_test.cc
-    unit/zelda3/atlas/dungeon_atlas_synthetic_test.cc
-    unit/zelda3/atlas/dungeon_atlas_oracle_golden_test.cc
-    unit/zelda3/dungeon/room_census_oracle_rom_test.cc
-    unit/zelda3/dungeon/sprite_relocation_test.cc
-    unit/zelda3/dungeon/bpp_conversion_test.cc
-    unit/zelda3/dungeon/dimension_cross_validation_test.cc
-    unit/zelda3/dungeon/dimension_service_test.cc
-    unit/zelda3/dungeon/object_dimensions_test.cc
-    unit/zelda3/dungeon/object_geometry_test.cc
-    unit/zelda3/dungeon/track_collision_generator_test.cc
-    unit/zelda3/dungeon/object_layer_semantics_test.cc
-    unit/zelda3/dungeon/room_layer_manager_test.cc
-    unit/zelda3/dungeon/water_fill_zone_test.cc
-    unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
-    unit/zelda3/dungeon/custom_collision_json_test.cc
-    unit/zelda3/dungeon/oracle_rom_safety_preflight_test.cc
-    unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
-    unit/zelda3/dungeon/room_water_fill_state_test.cc
-    unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
-    unit/zelda3/dungeon/draw_routine_mapping_test.cc
-    unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
-    unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
-    unit/zelda3/dungeon/object_tile_editor_test.cc
-    unit/zelda3/dungeon/room_graphics_palette_test.cc
-    unit/zelda3/dungeon/room_graphics_sheet_override_test.cc
-    unit/zelda3/dungeon/room_header_palette_test.cc
-    unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
-    unit/zelda3/dungeon/object_draw_code_test.cc
-    unit/zelda3/dungeon/game_parity_gate_test.cc
-    unit/zelda3/dungeon/custom_object_room_render_test.cc
-    unit/zelda3/dungeon/room_object_rom_parity_test.cc
-    unit/dungeon_object_drawer_test.cc
-    unit/object_selection_test.cc
-    unit/editor/tile_object_handler_test.cc
-    unit/editor/sprite_door_handler_test.cc
-    unit/editor/interaction_coordinator_test.cc
-    # Platform Tests
-    platform/sdl3_audio_backend_test.cc
-    platform/window_backend_test.cc
-    platform/wasm_async_guard_test.cc
-    platform/native_menu_bridge_test.cc
-    ../src/app/platform/native_menu_bridge.cc
-    ../src/cli/service/resources/resource_catalog.cc
-    cli/service/resources/command_context_test.cc
-    cli/service/resources/command_handler_test.cc
-  )
-  set(STABLE_INTEGRATION_TEST_SOURCES
-    # Integration Tests
-    integration/asar_integration_test.cc
-    integration/dungeon_editor_test.cc
-    integration/dungeon_editor_v2_test.cc
-    integration/overworld_editor_test.cc
-    integration/editor/tile16_editor_test.cc
-    integration/zelda3/overworld_integration_test.cc
-    integration/zelda3/dungeon_editor_system_integration_test.cc
-    integration/zelda3/room_integration_test.cc
-    integration/zelda3/dungeon_object_inventory_rom_test.cc
-    integration/zelda3/dungeon_game_tilemap_parity_test.cc
-    integration/zelda3/dungeon_game_state_parity_test.cc
-    integration/zelda3/room_default_entrance_rom_test.cc
-    integration/zelda3/object_draw_code_rom_test.cc
-    integration/zelda3/dungeon_edit_save_fixture_test.cc
-    integration/zelda3/dungeon/pit_damage_table_test.cc
-    integration/zelda3/dungeon_save_region_test.cc
-    integration/zelda3/dungeon_pot_repack_oos_integration_test.cc
-    integration/zelda3/dungeon_object_rendering_tests.cc
-    # NOTE: dungeon_object_rom_validation_test.cc is intentionally NOT listed
-    # here. It is registered exclusively into yaze_test_rom_dependent below
-    # because every test in the file gates on TestRomManager::GetTestRomPath()
-    # in SetUp() and skips without a vanilla ROM. Linking it into
-    # yaze_test_integration as well caused two specific tests
-    # (DrawRoutineMapping_AllType1ObjectsHaveRoutines, ObjectDimensions_
-    # MatchesROMTileCount) to segfault/abort under that binary's static-init
-    # order while passing cleanly from yaze_test_rom_dependent. Single
-    # registration keeps the ROM-backed signal trustworthy.
-    integration/zelda3/dungeon_room_render_parity_test.cc
-    integration/zelda3/dungeon_room_regression_fixtures_test.cc
-    integration/zelda3/dungeon_palette_test.cc
-    integration/zelda3/dungeon_staircase_slot_parity_test.cc
-    integration/zelda3/minecart_audit_integration_test.cc
-    integration/zelda3/oracle_workflow_integration_test.cc
-    integration/zelda3/oracle_smoke_check_integration_test.cc
-    integration/zelda3/message_test.cc
-    integration/palette_manager_test.cc
-    integration/object_selection_integration_test.cc
-    integration/interaction_delegation_test.cc
-  )
-  # rom_debug_agent.cc is only compiled with YAZE_ENABLE_REMOTE_AUTOMATION, and
-  # its header pulls in app/service/emulator_service_impl.h, which needs the
-  # gRPC headers. Registering it unconditionally breaks presets built without
-  # them.
-  if(YAZE_ENABLE_REMOTE_AUTOMATION AND YAZE_ENABLE_GRPC)
-    list(APPEND STABLE_UNIT_TEST_SOURCES
-      unit/cli/rom_debug_agent_test.cc
-      unit/emu/emulator_service_screenshot_test.cc
-    )
-  endif()
-
-  if(YAZE_ENABLE_AGENT_CLI)
-    list(APPEND STABLE_UNIT_TEST_SOURCES
-      unit/cli/conversational_agent_service_test.cc
-      unit/cli/ai_config_utils_test.cc
-      unit/cli/ai_service_factory_test.cc
-      unit/cli/model_registry_test.cc
-      unit/cli/tool_dispatcher_test.cc
-      unit/cli/tool_schema_builder_test.cc
-      unit/cli/http_api_handlers_test.cc
-      unit/cli/api_handlers_test.cc
-      unit/cli/vision_action_refiner_test.cc
-      unit/tools/build_tool_test.cc
-      unit/tools/filesystem_tool_test.cc
-      unit/tools/memory_inspector_tool_test.cc
-      unit/tools/visual_analysis_tool_test.cc
-      unit/tools/project_tool_test.cc
-      unit/tools/project_graph_tool_test.cc
-      unit/tools/code_gen_tool_test.cc
-      # agent tool_dispatcher integration test requires agent backend symbols.
-      # Only the "Windows Agent (Full Stack)" CI job configures an agent-enabled
-      # preset (ci-windows-ai), and that job runs with
-      # `if: github.event_name != 'pull_request'`, so this suite is exercised
-      # after merge rather than on pull requests.
-      integration/agent/tool_dispatcher_test.cc
-    )
-  else()
-    message(STATUS "Skipping agent CLI/tool tests (YAZE_ENABLE_AGENT_CLI=OFF)")
-  endif()
-
-  if(YAZE_BUILD_AGENT_UI)
-    list(APPEND STABLE_UNIT_TEST_SOURCES
-      unit/editor/agent_chat_test.cc
-    )
-  else()
-    message(STATUS "Skipping agent UI tests (YAZE_BUILD_AGENT_UI=OFF)")
-  endif()
-
-  if(YAZE_ENABLE_ASAR)
-    list(APPEND STABLE_UNIT_TEST_SOURCES
-      unit/core/asar_wrapper_test.cc
-      unit/core/asar_compiler_test.cc
-    )
-  else()
-    message(STATUS "Skipping Asar-dependent tests (YAZE_ENABLE_ASAR=OFF)")
-  endif()
-
-  if(YAZE_ENABLE_Z3DK AND YAZE_Z3DK_FOUND)
-    list(APPEND STABLE_UNIT_TEST_SOURCES
-      unit/core/z3dk_smoke_test.cc
-      unit/core/z3dk_wrapper_test.cc
-      unit/core/z3dk_lint_test.cc
-    )
-    list(APPEND STABLE_INTEGRATION_TEST_SOURCES
-      integration/z3dk_patch_manager_integration_test.cc
-    )
-
-    # Regression: cmake/dependencies/z3dk.cmake must FATAL_ERROR when
-    # YAZE_ENABLE_Z3DK=ON and no z3dk source tree is reachable. If that
-    # guard gets weakened to a warning, mac-ai-z3dk builds would silently
-    # ship with no assembler backend. This test spawns a child cmake
-    # configure against a fixture project with Z3DK_SRC_DIR pointed at a
-    # non-existent path and asserts both non-zero exit and the expected
-    # error message.
-    # Use the legacy (positional) add_test form: it does not emit the
-    # Ninja Multi-Config if(CTEST_CONFIGURATION_TYPE ...) guard that the
-    # NAME form does. This test invokes a config-independent cmake -P
-    # script, so we want it to show up in `ctest --preset mac-ai-z3dk-unit`
-    # without needing -C Debug on every invocation.
-    add_test(Z3dkMissingCheckoutFailsFast
-      "${CMAKE_COMMAND}"
-      "-DYAZE_ROOT=${CMAKE_SOURCE_DIR}"
-      "-DFIXTURE_BIN_DIR=${CMAKE_BINARY_DIR}/_z3dk_missing_checkout_fixture"
-      -P "${CMAKE_SOURCE_DIR}/test/cmake/z3dk_missing_checkout_driver.cmake"
-    )
-    set_tests_properties(Z3dkMissingCheckoutFailsFast PROPERTIES
-      LABELS "stable;unit;cmake"
-    )
-  endif()
-
-  if(YAZE_ENABLE_GRPC)
-    list(APPEND STABLE_INTEGRATION_TEST_SOURCES
-      integration/grpc_server_smoke_test.cc
-      integration/imgui_test_harness_logic_test.cc
-      integration/screenshot_utils_test.cc
-    )
-  else()
-    message(STATUS "Skipping gRPC integration tests (YAZE_ENABLE_GRPC=OFF)")
-  endif()
-
-  yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
-  target_compile_definitions(yaze_test_unit PRIVATE
-    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
-  )
-  add_test(
-    NAME TestRunnerDiscoveryContract
-    COMMAND ${CMAKE_COMMAND}
-      "-DTEST_EXECUTABLE=$<TARGET_FILE:yaze_test_unit>"
-      -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_runner_discovery.cmake"
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  )
-  set_tests_properties(TestRunnerDiscoveryContract PROPERTIES
-    LABELS "stable;unit"
-    TIMEOUT 45
-  )
-  yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
-  if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)
-    # Match the encoder's compiled capability, not sibling-directory visibility
-    # of the imported PNG target. Find it locally only when the encoder uses it.
-    get_target_property(_YAZE_SCREENSHOT_ENCODER_DEFINITIONS
-      yaze_grpc_support COMPILE_DEFINITIONS)
-    if("YAZE_SCREENSHOT_HAS_PNG=1" IN_LIST _YAZE_SCREENSHOT_ENCODER_DEFINITIONS)
-      if(NOT TARGET PNG::PNG)
-        find_package(PNG QUIET)
-      endif()
-      if(NOT TARGET PNG::PNG)
-        message(FATAL_ERROR "PNG-enabled screenshot tests require PNG::PNG")
-      endif()
-      target_link_libraries(yaze_test_integration PRIVATE PNG::PNG)
-      target_compile_definitions(yaze_test_integration PRIVATE
-        YAZE_SCREENSHOT_TEST_HAS_PNG=1
-      )
-    endif()
-  endif()
-  target_compile_definitions(yaze_test_integration PRIVATE
-    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
-  )
-  if(YAZE_ENABLE_ROM_TESTS)
-    target_compile_definitions(yaze_test_integration PRIVATE
-      YAZE_ENABLE_ROM_TESTS=1
-    )
-    if(YAZE_TEST_ROM_PATH)
-      target_compile_definitions(yaze_test_integration PRIVATE
-        YAZE_TEST_ROM_PATH="${YAZE_TEST_ROM_PATH}"
-      )
-    endif()
-    if(YAZE_TEST_ROM_VANILLA_PATH)
-      target_compile_definitions(yaze_test_integration PRIVATE
-        YAZE_TEST_ROM_VANILLA_PATH="${YAZE_TEST_ROM_VANILLA_PATH}"
-      )
-    endif()
-    if(YAZE_TEST_ROM_US_PATH)
-      target_compile_definitions(yaze_test_integration PRIVATE
-        YAZE_TEST_ROM_US_PATH="${YAZE_TEST_ROM_US_PATH}"
-      )
-    endif()
-    if(YAZE_TEST_ROM_JP_PATH)
-      target_compile_definitions(yaze_test_integration PRIVATE
-        YAZE_TEST_ROM_JP_PATH="${YAZE_TEST_ROM_JP_PATH}"
-      )
-    endif()
-    if(YAZE_TEST_ROM_EU_PATH)
-      target_compile_definitions(yaze_test_integration PRIVATE
-        YAZE_TEST_ROM_EU_PATH="${YAZE_TEST_ROM_EU_PATH}"
-      )
-    endif()
-    if(YAZE_TEST_ROM_EXPANDED_PATH)
-      target_compile_definitions(yaze_test_integration PRIVATE
-        YAZE_TEST_ROM_EXPANDED_PATH="${YAZE_TEST_ROM_EXPANDED_PATH}"
-      )
-    endif()
-  endif()
-
-  # --- Quick Test Suites (Fast Iteration) ---
-  # These suites are intentionally NOT labeled "stable" to avoid duplicate runs
-  # when running `ctest -L stable`. Use `ctest -L quick` for fast feedback.
+  # Shared quick subsets are declared once and reused by the stable suites.
+  # Keep the conditional Asar extension beside the quick registrations below;
+  # stable owns its Asar sources through its existing conditional block.
   set(QUICK_UNIT_CORE_TEST_SOURCES
     unit/core/hack_manifest_test.cc
     unit/core/gfx_sheet_policy_adapter_test.cc
@@ -990,6 +423,423 @@ if(YAZE_BUILD_TESTS)
   set(QUICK_INTEGRATION_TEST_SOURCES
     integration/zelda3/dungeon_save_region_test.cc
   )
+
+  # --- Stable Test Suites (Valid Contracts) ---
+  # Note: stable tests are split into unit + integration so you can run:
+  #   ctest --test-dir build/presets/mac-ai-fast -L unit
+  #   ctest --test-dir build/presets/mac-ai-fast -L integration
+  # without running everything (still included in `-L stable`).
+  set(STABLE_UNIT_TEST_SOURCES
+    # Unit Tests
+    unit/core/hex_test.cc
+    unit/core/graphics_sheet_labels_test.cc
+    unit/core/oracle_menu_registry_test.cc
+    unit/core/story_event_graph_query_test.cc
+    unit/core/rom_hash_test.cc
+    unit/rom/lyra_layout_descriptor_test.cc
+    unit/core/oracle_rom_fixture_test.cc
+    unit/core/project_file_passthrough_test.cc
+    unit/core/project_atlas_settings_test.cc
+    unit/util/lru_cache_test.cc
+    unit/util/bps_test.cc
+    unit/util/indexed_png_test.cc
+    unit/util/i18n_test.cc
+    unit/util/hex_test.cc
+    unit/util/log_test.cc
+    unit/deps/dependency_smoke_test.cc
+    unit/cli/resource_catalog_test.cc
+    unit/cli/tile16_proposal_generator_test.cc
+    unit/cli/command_registry_test.cc
+    unit/cli/rom_doctor_water_fill_test.cc
+    unit/cli/overworld_doctor_tile16_test.cc
+    unit/cli/overworld_allocation_commands_test.cc
+    unit/cli/graphics_doctor_test.cc
+    unit/cli/rom_header_size_test.cc
+    unit/cli/overworld_agent_commands_test.cc
+    unit/cli/overworld_tile_commands_test.cc
+    unit/cli/dungeon_room_destination_high_byte_test.cc
+    unit/cli/dungeon_room_census_commands_test.cc
+    unit/cli/dungeon_graph_links_test.cc
+    unit/cli/atlas_render_commands_test.cc
+    unit/cli/dungeon_minecart_audit_test.cc
+    unit/cli/dungeon_oracle_preflight_test.cc
+    unit/cli/oracle_smoke_check_test.cc
+    unit/cli/oracle_menu_commands_test.cc
+    unit/cli/palette_commands_test.cc
+    unit/cli/project_bundle_verify_test.cc
+    unit/cli/project_bundle_archive_test.cc
+    unit/rom/rom_test.cc
+    unit/rom/rom_copier_header_test.cc
+    unit/rom/fresh_rom_fixture_output_test.cc
+    unit/emu/input_backend_test.cc
+    unit/emu/step_controller_test.cc
+    unit/emu/spc700_reset_test.cc
+    unit/emu/apu_dsp_test.cc
+    unit/emu/apu_ipl_handshake_test.cc
+    unit/emu/disassembler_test.cc
+    unit/emu/memory_rom_mapping_test.cc
+    unit/diggable_tiles_test.cc
+    unit/core/asm_patch_test.cc
+    unit/core/tail_expansion_guard_test.cc
+    unit/gfx/snes_tile_test.cc
+    unit/gfx/compression_test.cc
+    unit/gfx/hyrule_magic_compress_test.cc
+    unit/gfx/snes_palette_test.cc
+    unit/gfx/usdasm_palette_loading_test.cc
+    unit/gfx/bpp_conversion_test.cc
+    unit/cli/graphics_context_command_test.cc
+    unit/palette_json_test.cc
+    unit/snes_color_test.cc
+    unit/gui/tile_selector_widget_test.cc
+    unit/gui/canvas_automation_api_test.cc
+    unit/gui/canvas_coordinate_sync_test.cc
+    unit/gui/canvas_zoom_anchor_test.cc
+    unit/gui/window_clamp_test.cc
+    unit/gui/panel_window_test.cc
+    unit/gui/animator_test.cc
+    unit/editor/message/message_data_test.cc
+    unit/editor/message/message_id_resolver_test.cc
+    unit/editor/oracle_validation_view_model_test.cc
+    unit/editor/hack_workflow_backend_factory_test.cc
+    unit/editor/rom_file_manager_test.cc
+    unit/editor/panel_system_test.cc
+    unit/editor/workspace_window_manager_policy_test.cc
+    unit/editor/workspace_floating_window_test.cc
+    unit/editor/workflow_activity_widgets_test.cc
+    unit/editor/layout_manager_persistence_test.cc
+    unit/editor/right_drawer_manager_test.cc
+    unit/editor/status_bar_context_test.cc
+    unit/editor/sprite_editor_undo_test.cc
+    unit/editor/sprite_spriteset_preview_test.cc
+    unit/zelda3/dungeon_map_serialization_test.cc
+    unit/editor/screen_editor_undo_test.cc
+    unit/editor/dashboard_panel_test.cc
+    unit/editor/authoring_save_workflow_test.cc
+    unit/editor/oracle_hack_workflow_backend_test.cc
+    unit/editor/dungeon_canvas_transform_test.cc
+    unit/editor/map_properties_context_menu_test.cc
+    unit/editor/layout_presets_test.cc
+    unit/editor/graphics_editor_window_ids_test.cc
+    unit/editor/graphics_workspace_layout_test.cc
+    unit/editor/gfx_group_workspace_state_test.cc
+    unit/editor/shortcut_manager_test.cc
+    unit/editor/shortcut_group_test.cc
+    unit/editor/shortcut_configurator_test.cc
+    unit/editor/window_sidebar_test.cc
+    unit/editor/dungeon_issue_report_storage_test.cc
+    unit/editor/object_coverage_model_test.cc
+    unit/editor/dungeon_usage_tracker_test.cc
+    unit/editor/dungeon_entrance_edit_policy_test.cc
+    unit/editor/crumble_floor_test.cc
+    unit/editor/dungeon_overlay_controls_test.cc
+    unit/editor/toast_dedup_test.cc
+    unit/editor/feature_hint_manager_test.cc
+    unit/editor/tile16_editor_action_state_test.cc
+    unit/editor/tile8_source_interaction_test.cc
+    unit/editor/overworld_item_operations_test.cc
+    unit/editor/overworld_editor_state_test.cc
+    unit/zelda3/overworld_sprite_io_test.cc
+    unit/zelda3/cutscene_shot_test.cc
+    unit/zelda3/gfx_group_persistence_test.cc
+    unit/zelda3/gfx_sheet_inventory_test.cc
+    unit/zelda3/menu_tilemap_test.cc
+    unit/zelda3/gfx_sheet_png_test.cc
+    unit/zelda3/gfx_sheet_storage_test.cc
+    unit/zelda3/graphics_sheet_store_test.cc
+    unit/zelda3/graphics_sheet_revision_refresh_test.cc
+    unit/zelda3/sprite_sheet_slots_test.cc
+    unit/zelda3/overworld_test.cc
+    unit/zelda3/overworld_regression_test.cc
+    unit/zelda3/overworld_build_rom_test.cc
+    unit/zelda3/overworld_area_render_test.cc
+    unit/zelda3/overworld_default_gfx_group_test.cc
+    unit/zelda3/overworld_version_helper_test.cc
+    unit/zelda3/overworld_allocation_test.cc
+    unit/zelda3/special_entrance_inspector_test.cc
+    unit/zelda3/zelda3_version_test.cc
+    unit/zelda3/tile16_metadata_test.cc
+    unit/zelda3/tile16_stamp_test.cc
+    unit/zelda3/tile16_renderer_test.cc
+    unit/zelda3/tile16_usage_index_test.cc
+    unit/zelda3/object_parser_test.cc
+    unit/zelda3/object_parser_structs_test.cc
+    unit/zelda3/sprite_builder_test.cc
+    unit/zelda3/sprite_value_init_test.cc
+    unit/zelda3/music_parser_test.cc
+    unit/zelda3/dungeon_component_unit_test.cc
+    unit/zelda3/dungeon/draw_routine_symbology_test.cc
+    unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
+    unit/zelda3/dungeon/game_tilemap_comparison_test.cc
+    unit/zelda3/dungeon/room_collision_test.cc
+    unit/zelda3/dungeon/room_layer_registers_test.cc
+    unit/zelda3/dungeon/room_limit_regression_test.cc
+    unit/zelda3/dungeon/door_position_test.cc
+    unit/zelda3/dungeon/room_object_encoding_test.cc
+    unit/zelda3/custom_object_test.cc
+    unit/zelda3/dungeon/dungeon_tile_patterns_test.cc
+    unit/zelda3/dungeon/room_manipulation_test.cc
+    unit/zelda3/dungeon/pot_item_position_test.cc
+    unit/zelda3/dungeon/dungeon_save_test.cc
+    unit/zelda3/dungeon/dungeon_editor_system_test.cc
+    unit/zelda3/dungeon/room_census_test.cc
+    unit/zelda3/atlas/atlas_annotations_test.cc
+    unit/zelda3/atlas/dungeon_atlas_synthetic_test.cc
+    unit/zelda3/atlas/dungeon_atlas_oracle_golden_test.cc
+    unit/zelda3/dungeon/room_census_oracle_rom_test.cc
+    unit/zelda3/dungeon/sprite_relocation_test.cc
+    unit/zelda3/dungeon/bpp_conversion_test.cc
+    unit/zelda3/dungeon/dimension_cross_validation_test.cc
+    unit/zelda3/dungeon/dimension_service_test.cc
+    unit/zelda3/dungeon/object_dimensions_test.cc
+    unit/zelda3/dungeon/object_geometry_test.cc
+    unit/zelda3/dungeon/track_collision_generator_test.cc
+    unit/zelda3/dungeon/room_layer_manager_test.cc
+    unit/zelda3/dungeon/draw_routine_mapping_test.cc
+    unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
+    unit/zelda3/dungeon/object_tile_editor_test.cc
+    unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
+    unit/zelda3/dungeon/object_draw_code_test.cc
+    unit/zelda3/dungeon/game_parity_gate_test.cc
+    unit/zelda3/dungeon/custom_object_room_render_test.cc
+    unit/zelda3/dungeon/room_object_rom_parity_test.cc
+    unit/dungeon_object_drawer_test.cc
+    unit/object_selection_test.cc
+    unit/editor/tile_object_handler_test.cc
+    unit/editor/sprite_door_handler_test.cc
+    unit/editor/interaction_coordinator_test.cc
+    # Platform Tests
+    platform/sdl3_audio_backend_test.cc
+    platform/window_backend_test.cc
+    platform/wasm_async_guard_test.cc
+    platform/native_menu_bridge_test.cc
+    ../src/app/platform/native_menu_bridge.cc
+    ../src/cli/service/resources/resource_catalog.cc
+    cli/service/resources/command_context_test.cc
+    cli/service/resources/command_handler_test.cc
+  )
+  set(STABLE_INTEGRATION_TEST_SOURCES
+    # Integration Tests
+    integration/asar_integration_test.cc
+    integration/dungeon_editor_test.cc
+    integration/dungeon_editor_v2_test.cc
+    integration/overworld_editor_test.cc
+    integration/editor/tile16_editor_test.cc
+    integration/zelda3/overworld_integration_test.cc
+    integration/zelda3/dungeon_editor_system_integration_test.cc
+    integration/zelda3/room_integration_test.cc
+    integration/zelda3/dungeon_object_inventory_rom_test.cc
+    integration/zelda3/dungeon_game_tilemap_parity_test.cc
+    integration/zelda3/dungeon_game_state_parity_test.cc
+    integration/zelda3/room_default_entrance_rom_test.cc
+    integration/zelda3/object_draw_code_rom_test.cc
+    integration/zelda3/dungeon_edit_save_fixture_test.cc
+    integration/zelda3/dungeon/pit_damage_table_test.cc
+    integration/zelda3/dungeon_pot_repack_oos_integration_test.cc
+    integration/zelda3/dungeon_object_rendering_tests.cc
+    # NOTE: dungeon_object_rom_validation_test.cc is intentionally NOT listed
+    # here. It is registered exclusively into yaze_test_rom_dependent below
+    # because every test in the file gates on TestRomManager::GetTestRomPath()
+    # in SetUp() and skips without a vanilla ROM. Linking it into
+    # yaze_test_integration as well caused two specific tests
+    # (DrawRoutineMapping_AllType1ObjectsHaveRoutines, ObjectDimensions_
+    # MatchesROMTileCount) to segfault/abort under that binary's static-init
+    # order while passing cleanly from yaze_test_rom_dependent. Single
+    # registration keeps the ROM-backed signal trustworthy.
+    integration/zelda3/dungeon_room_render_parity_test.cc
+    integration/zelda3/dungeon_room_regression_fixtures_test.cc
+    integration/zelda3/dungeon_palette_test.cc
+    integration/zelda3/dungeon_staircase_slot_parity_test.cc
+    integration/zelda3/minecart_audit_integration_test.cc
+    integration/zelda3/oracle_workflow_integration_test.cc
+    integration/zelda3/oracle_smoke_check_integration_test.cc
+    integration/zelda3/message_test.cc
+    integration/palette_manager_test.cc
+    integration/object_selection_integration_test.cc
+    integration/interaction_delegation_test.cc
+  )
+  # rom_debug_agent.cc is only compiled with YAZE_ENABLE_REMOTE_AUTOMATION, and
+  # its header pulls in app/service/emulator_service_impl.h, which needs the
+  # gRPC headers. Registering it unconditionally breaks presets built without
+  # them.
+  if(YAZE_ENABLE_REMOTE_AUTOMATION AND YAZE_ENABLE_GRPC)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/cli/rom_debug_agent_test.cc
+      unit/emu/emulator_service_screenshot_test.cc
+    )
+  endif()
+
+  if(YAZE_ENABLE_AGENT_CLI)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/cli/conversational_agent_service_test.cc
+      unit/cli/ai_config_utils_test.cc
+      unit/cli/ai_service_factory_test.cc
+      unit/cli/model_registry_test.cc
+      unit/cli/tool_dispatcher_test.cc
+      unit/cli/tool_schema_builder_test.cc
+      unit/cli/http_api_handlers_test.cc
+      unit/cli/api_handlers_test.cc
+      unit/cli/vision_action_refiner_test.cc
+      unit/tools/build_tool_test.cc
+      unit/tools/filesystem_tool_test.cc
+      unit/tools/memory_inspector_tool_test.cc
+      unit/tools/visual_analysis_tool_test.cc
+      unit/tools/project_tool_test.cc
+      unit/tools/project_graph_tool_test.cc
+      unit/tools/code_gen_tool_test.cc
+      # agent tool_dispatcher integration test requires agent backend symbols.
+      # Only the "Windows Agent (Full Stack)" CI job configures an agent-enabled
+      # preset (ci-windows-ai), and that job runs with
+      # `if: github.event_name != 'pull_request'`, so this suite is exercised
+      # after merge rather than on pull requests.
+      integration/agent/tool_dispatcher_test.cc
+    )
+  else()
+    message(STATUS "Skipping agent CLI/tool tests (YAZE_ENABLE_AGENT_CLI=OFF)")
+  endif()
+
+  if(YAZE_BUILD_AGENT_UI)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/editor/agent_chat_test.cc
+    )
+  else()
+    message(STATUS "Skipping agent UI tests (YAZE_BUILD_AGENT_UI=OFF)")
+  endif()
+
+  if(YAZE_ENABLE_ASAR)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/core/asar_wrapper_test.cc
+      unit/core/asar_compiler_test.cc
+    )
+  else()
+    message(STATUS "Skipping Asar-dependent tests (YAZE_ENABLE_ASAR=OFF)")
+  endif()
+
+  if(YAZE_ENABLE_Z3DK AND YAZE_Z3DK_FOUND)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/core/z3dk_smoke_test.cc
+      unit/core/z3dk_wrapper_test.cc
+      unit/core/z3dk_lint_test.cc
+    )
+    list(APPEND STABLE_INTEGRATION_TEST_SOURCES
+      integration/z3dk_patch_manager_integration_test.cc
+    )
+
+    # Regression: cmake/dependencies/z3dk.cmake must FATAL_ERROR when
+    # YAZE_ENABLE_Z3DK=ON and no z3dk source tree is reachable. If that
+    # guard gets weakened to a warning, mac-ai-z3dk builds would silently
+    # ship with no assembler backend. This test spawns a child cmake
+    # configure against a fixture project with Z3DK_SRC_DIR pointed at a
+    # non-existent path and asserts both non-zero exit and the expected
+    # error message.
+    # Use the legacy (positional) add_test form: it does not emit the
+    # Ninja Multi-Config if(CTEST_CONFIGURATION_TYPE ...) guard that the
+    # NAME form does. This test invokes a config-independent cmake -P
+    # script, so we want it to show up in `ctest --preset mac-ai-z3dk-unit`
+    # without needing -C Debug on every invocation.
+    add_test(Z3dkMissingCheckoutFailsFast
+      "${CMAKE_COMMAND}"
+      "-DYAZE_ROOT=${CMAKE_SOURCE_DIR}"
+      "-DFIXTURE_BIN_DIR=${CMAKE_BINARY_DIR}/_z3dk_missing_checkout_fixture"
+      -P "${CMAKE_SOURCE_DIR}/test/cmake/z3dk_missing_checkout_driver.cmake"
+    )
+    set_tests_properties(Z3dkMissingCheckoutFailsFast PROPERTIES
+      LABELS "stable;unit;cmake"
+    )
+  endif()
+
+  if(YAZE_ENABLE_GRPC)
+    list(APPEND STABLE_INTEGRATION_TEST_SOURCES
+      integration/grpc_server_smoke_test.cc
+      integration/imgui_test_harness_logic_test.cc
+      integration/screenshot_utils_test.cc
+    )
+  else()
+    message(STATUS "Skipping gRPC integration tests (YAZE_ENABLE_GRPC=OFF)")
+  endif()
+
+  list(APPEND STABLE_UNIT_TEST_SOURCES
+    ${QUICK_UNIT_CORE_TEST_SOURCES}
+    ${QUICK_UNIT_EDITOR_TEST_SOURCES}
+  )
+  list(APPEND STABLE_INTEGRATION_TEST_SOURCES ${QUICK_INTEGRATION_TEST_SOURCES})
+
+  yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  target_compile_definitions(yaze_test_unit PRIVATE
+    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
+  )
+  add_test(
+    NAME TestRunnerDiscoveryContract
+    COMMAND ${CMAKE_COMMAND}
+      "-DTEST_EXECUTABLE=$<TARGET_FILE:yaze_test_unit>"
+      -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_runner_discovery.cmake"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(TestRunnerDiscoveryContract PROPERTIES
+    LABELS "stable;unit"
+    TIMEOUT 45
+  )
+  yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
+  if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)
+    # Match the encoder's compiled capability, not sibling-directory visibility
+    # of the imported PNG target. Find it locally only when the encoder uses it.
+    get_target_property(_YAZE_SCREENSHOT_ENCODER_DEFINITIONS
+      yaze_grpc_support COMPILE_DEFINITIONS)
+    if("YAZE_SCREENSHOT_HAS_PNG=1" IN_LIST _YAZE_SCREENSHOT_ENCODER_DEFINITIONS)
+      if(NOT TARGET PNG::PNG)
+        find_package(PNG QUIET)
+      endif()
+      if(NOT TARGET PNG::PNG)
+        message(FATAL_ERROR "PNG-enabled screenshot tests require PNG::PNG")
+      endif()
+      target_link_libraries(yaze_test_integration PRIVATE PNG::PNG)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_SCREENSHOT_TEST_HAS_PNG=1
+      )
+    endif()
+  endif()
+  target_compile_definitions(yaze_test_integration PRIVATE
+    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
+  )
+  if(YAZE_ENABLE_ROM_TESTS)
+    target_compile_definitions(yaze_test_integration PRIVATE
+      YAZE_ENABLE_ROM_TESTS=1
+    )
+    if(YAZE_TEST_ROM_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_PATH="${YAZE_TEST_ROM_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_VANILLA_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_VANILLA_PATH="${YAZE_TEST_ROM_VANILLA_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_US_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_US_PATH="${YAZE_TEST_ROM_US_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_JP_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_JP_PATH="${YAZE_TEST_ROM_JP_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_EU_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_EU_PATH="${YAZE_TEST_ROM_EU_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_EXPANDED_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_EXPANDED_PATH="${YAZE_TEST_ROM_EXPANDED_PATH}"
+      )
+    endif()
+  endif()
+
+  # --- Quick Test Suites (Fast Iteration) ---
+  # These binaries reuse the subsets declared above. They are intentionally
+  # not labeled "stable": `ctest -L stable` excludes the quick copies.
+  # Keep per-case discovery and prefixed names for isolated quick filtering.
   if(YAZE_ENABLE_ASAR)
     list(APPEND QUICK_UNIT_CORE_TEST_SOURCES
       unit/core/asar_wrapper_test.cc

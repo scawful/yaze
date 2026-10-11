@@ -409,27 +409,5 @@ TEST_F(HeadlessAudioDebugTest, ApuMasterRatioIsCorrect) {
       << "APU/Master clock ratio is incorrect";
 }
 
-// =============================================================================
-// Diagnostic Output Tests
-// =============================================================================
-
-TEST_F(HeadlessAudioDebugTest, GenerateTimingReport) {
-  // Generate a comprehensive timing report for debugging
-  constexpr int kTestDurationSeconds = 10;
-
-  AudioTimingMetrics metrics = CollectMetrics(kTestDurationSeconds);
-
-  std::string report = metrics.ToString();
-
-  // Write to stdout for immediate visibility
-  std::cout << "\n" << report << std::endl;
-
-  // Also write to file
-  LogMetricsToFile(metrics, "/tmp/audio_timing_report.txt");
-
-  // This test always passes - it's for generating debug output
-  SUCCEED() << "Timing report generated";
-}
-
 }  // namespace test
 }  // namespace yaze
