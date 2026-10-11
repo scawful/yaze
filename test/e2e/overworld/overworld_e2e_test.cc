@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -24,7 +25,7 @@ namespace test {
  *
  * This test suite validates the complete overworld editing workflow:
  * 1. Load vanilla ROM and extract golden data
- * 2. Apply ZSCustomOverworld ASM patches
+ * 2. Load a real ZSCustomOverworld v3 fixture
  * 3. Make various edits to overworld data
  * 4. Validate edits are correctly saved and loaded
  * 5. Compare before/after states using golden data
@@ -283,22 +284,59 @@ TEST_F(OverworldE2ETest, LoadVanillaOverworldData) {
   EXPECT_EQ(sprites.size(), 3);
 }
 
-// Test 3: Apply ZSCustomOverworld v3 ASM and validate changes
+// Test 3: Validate settings persistence on a real ZSCustomOverworld v3 fixture.
+// Keep the registered name; this does not test vanilla-to-v3 ASM conversion.
 TEST_F(OverworldE2ETest, ApplyZSCustomOverworldV3) {
   std::unique_ptr<Rom> rom = std::make_unique<Rom>();
   ASSERT_OK(rom->LoadFromFile(vanilla_test_path_));
 
-  // Apply ZSCustomOverworld v3 ASM
-  // This would typically be done through the editor, but we can simulate it
+  ASSERT_TRUE(TestRomManager::HasRom(RomRole::kExpanded))
+      << "Set YAZE_TEST_ROM_EXPANDED to a real ZSCustomOverworld v3 ROM";
+  ASSERT_OK(rom->LoadFromFile(TestRomManager::GetRomPath(RomRole::kExpanded)));
+  auto fixture_version = rom->ReadByte(0x140145);
+  ASSERT_TRUE(fixture_version.ok());
+  ASSERT_EQ(*fixture_version, 0x03);
+
+  // Prove the source already loads with populated expanded tables, before any
+  // marker writes. A version byte on zero-padded vanilla data is insufficient.
+  zelda3::Overworld original_overworld(rom.get());
+  ASSERT_OK(original_overworld.Load(rom.get()));
+  ASSERT_TRUE(original_overworld.expanded_tile16());
+  ASSERT_TRUE(original_overworld.expanded_tile32());
+  ASSERT_EQ(original_overworld.tiles16().size(), 4096);
+  ASSERT_EQ(original_overworld.tiles32_unique().size(), 17728);
+  ASSERT_GE(rom->size(), zelda3::kMap16TilesExpanded + 4096 * 8);
+  ASSERT_TRUE(std::any_of(rom->data() + zelda3::kMap16TilesExpanded,
+                          rom->data() + zelda3::kMap16TilesExpanded + 4096 * 8,
+                          [](uint8_t byte) { return byte != 0; }));
+  const uint32_t tile32_addresses[] = {
+      original_overworld.version_constants().kMap32TileTL,
+      zelda3::kMap32TileTRExpanded, zelda3::kMap32TileBLExpanded,
+      zelda3::kMap32TileBRExpanded};
+  for (uint32_t address : tile32_addresses) {
+    SCOPED_TRACE(address);
+    ASSERT_GE(rom->size(), address + zelda3::kMap32TileCountExpanded);
+    ASSERT_TRUE(
+        std::any_of(rom->data() + address,
+                    rom->data() + address + zelda3::kMap32TileCountExpanded,
+                    [](uint8_t byte) { return byte != 0; }));
+  }
+
+  // Save only to the disposable test path. Capture the full payload before
+  // editing so a reload must preserve the actual tables and unrelated bytes.
+  std::vector<uint8_t> expected(rom->begin(), rom->end());
+  expected[0x140145] = 0x03;
+  std::fill(expected.begin() + 0x140146, expected.begin() + 0x14014C, 0x01);
   ASSERT_OK(rom->WriteByte(0x140145, 0x03));  // Set ASM version to v3
 
-  // Enable v3 features
-  ASSERT_OK(rom->WriteByte(0x140146, 0x01));  // Enable main palettes
-  ASSERT_OK(rom->WriteByte(0x140147, 0x01));  // Enable area-specific BG
-  ASSERT_OK(rom->WriteByte(0x140148, 0x01));  // Enable subscreen overlay
-  ASSERT_OK(rom->WriteByte(0x140149, 0x01));  // Enable animated GFX
-  ASSERT_OK(rom->WriteByte(0x14014A, 0x01));  // Enable custom tile GFX groups
-  ASSERT_OK(rom->WriteByte(0x14014B, 0x01));  // Enable mosaic
+  // Retain the six original byte-persistence probes. These addresses are not
+  // six feature flags in the v3 schema; some belong to its settings tables.
+  ASSERT_OK(rom->WriteByte(0x140146, 0x01));
+  ASSERT_OK(rom->WriteByte(0x140147, 0x01));
+  ASSERT_OK(rom->WriteByte(0x140148, 0x01));
+  ASSERT_OK(rom->WriteByte(0x140149, 0x01));
+  ASSERT_OK(rom->WriteByte(0x14014A, 0x01));
+  ASSERT_OK(rom->WriteByte(0x14014B, 0x01));
 
   // Save the modified ROM
   ASSERT_OK(rom->SaveToFile(Rom::SaveSettings{.filename = edited_test_path_}));
@@ -312,7 +350,7 @@ TEST_F(OverworldE2ETest, ApplyZSCustomOverworldV3) {
   ASSERT_TRUE(asm_version.ok());
   EXPECT_EQ(*asm_version, 0x03);
 
-  // Validate feature flags
+  // Validate the original six persistence probes.
   auto main_palettes = reloaded_rom->ReadByte(0x140146);
   auto area_bg = reloaded_rom->ReadByte(0x140147);
   auto subscreen_overlay = reloaded_rom->ReadByte(0x140148);
@@ -342,6 +380,10 @@ TEST_F(OverworldE2ETest, ApplyZSCustomOverworldV3) {
   // v3 should have expanded features available
   EXPECT_TRUE(overworld.expanded_tile16());
   EXPECT_TRUE(overworld.expanded_tile32());
+  EXPECT_EQ(overworld.tiles16(), original_overworld.tiles16());
+  EXPECT_EQ(overworld.tiles32_unique(), original_overworld.tiles32_unique());
+  EXPECT_EQ(std::vector<uint8_t>(reloaded_rom->begin(), reloaded_rom->end()),
+            expected);
 }
 
 // Test 4: Make overworld edits and validate persistence
