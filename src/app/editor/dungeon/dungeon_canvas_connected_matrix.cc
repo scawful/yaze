@@ -18,6 +18,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -387,14 +388,19 @@ ConnectedCanvasControlActions DrawConnectedCanvasControls(
       ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
       ImGuiWindowFlags_AlwaysAutoResize;
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.76f));
-  ImGui::PushStyleColor(ImGuiCol_Border,
-                        gui::ConvertColorToImVec4(theme.accent));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.0f, 4.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 2.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5.0f, 4.0f));
+  ImVec4 controls_bg = gui::ConvertColorToImVec4(theme.editor_background);
+  controls_bg.w = 0.76f;
+  const gui::StyleColorGuard controls_colors({
+      {ImGuiCol_WindowBg, controls_bg},
+      {ImGuiCol_Border, gui::ConvertColorToImVec4(theme.accent)},
+  });
+  const gui::StyleVarGuard controls_vars({
+      {ImGuiStyleVar_WindowRounding, 4.0f},
+      {ImGuiStyleVar_WindowBorderSize, 1.0f},
+      {ImGuiStyleVar_WindowPadding, ImVec2(6.0f, 4.0f)},
+      {ImGuiStyleVar_FramePadding, ImVec2(5.0f, 2.0f)},
+      {ImGuiStyleVar_ItemSpacing, ImVec2(5.0f, 4.0f)},
+  });
 
   if (ImGui::Begin(kConnectedCanvasControlsId, nullptr, flags)) {
     actions.hovered =
@@ -423,8 +429,6 @@ ConnectedCanvasControlActions DrawConnectedCanvasControls(
   }
   ImGui::End();
 
-  ImGui::PopStyleVar(5);
-  ImGui::PopStyleColor(2);
   return actions;
 }
 
@@ -457,13 +461,17 @@ ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav |
       ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings;
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.78f));
-  ImGui::PushStyleColor(ImGuiCol_Border,
-                        gui::ConvertColorToImVec4(theme.selection_primary));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
-                      ImVec2(inner_padding, inner_padding));
+  ImVec4 overview_bg = gui::ConvertColorToImVec4(theme.editor_background);
+  overview_bg.w = 0.78f;
+  const gui::StyleColorGuard overview_colors({
+      {ImGuiCol_WindowBg, overview_bg},
+      {ImGuiCol_Border, gui::ConvertColorToImVec4(theme.selection_primary)},
+  });
+  const gui::StyleVarGuard overview_vars({
+      {ImGuiStyleVar_WindowRounding, 4.0f},
+      {ImGuiStyleVar_WindowBorderSize, 1.0f},
+      {ImGuiStyleVar_WindowPadding, ImVec2(inner_padding, inner_padding)},
+  });
 
   if (ImGui::Begin(kConnectedCanvasOverviewId, nullptr, flags)) {
     actions.hovered =
@@ -476,7 +484,10 @@ ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
     const ImVec2 map_max = ImGui::GetItemRectMax();
     auto* draw_list = ImGui::GetWindowDrawList();
 
-    draw_list->AddRectFilled(map_min, map_max, IM_COL32(12, 16, 14, 230), 4.0f);
+    ImVec4 map_fill = gui::ConvertColorToImVec4(theme.editor_background);
+    map_fill.w = 230.0f / 255.0f;
+    draw_list->AddRectFilled(map_min, map_max, ImGui::GetColorU32(map_fill),
+                             4.0f);
     draw_list->AddRect(map_min, map_max,
                        ImGui::GetColorU32(theme.selection_primary), 4.0f);
 
@@ -563,9 +574,12 @@ ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
                     WithAlpha(AgentUI::GetTheme().status_warning, 0.52f))
               : GetConnectedFloorColor(AgentUI::GetTheme(), connected_graph,
                                        room_id, 0.52f);
+      ImVec4 dim_outline = gui::ConvertColorToImVec4(theme.editor_background);
+      dim_outline.w = 220.0f / 255.0f;
       const ImU32 outline = is_center || is_highlighted
-                                ? IM_COL32(255, 255, 255, 255)
-                                : IM_COL32(30, 38, 32, 220);
+                                ? ImGui::GetColorU32(gui::ConvertColorToImVec4(
+                                      theme.text_primary))
+                                : ImGui::GetColorU32(dim_outline);
       draw_list->AddRectFilled(room_min, room_max, fill, 1.5f);
       draw_list->AddRect(room_min, room_max, outline, 1.5f);
     }
@@ -675,8 +689,6 @@ ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
   }
   ImGui::End();
 
-  ImGui::PopStyleVar(3);
-  ImGui::PopStyleColor(2);
   return actions;
 }
 

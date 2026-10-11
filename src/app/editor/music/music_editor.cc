@@ -28,6 +28,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
@@ -1154,35 +1155,22 @@ void MusicEditor::DrawToolset() {
   if (!can_play)
     ImGui::BeginDisabled();
 
-  // Transport: Play/Pause with visual state indication
-  const ImVec4 paused_color = gui::GetWarningColor();
-
   if (state.is_playing && !state.is_paused) {
-    gui::StyleColorGuard btn_guard(ImGuiCol_Button,
-                                   gui::GetSuccessButtonColors().button);
-    if (ImGui::Button(ICON_MD_PAUSE "##Pause"))
+    if (gui::ThemedIconButton(ICON_MD_PAUSE, tr("Pause (Space)"), ImVec2(0, 0),
+                              true))
       music_player_->Pause();
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(tr("Pause (Space)"));
   } else if (state.is_paused) {
-    gui::StyleColorGuard btn_guard(ImGuiCol_Button,
-                                   gui::GetWarningButtonColors().button);
-    if (ImGui::Button(ICON_MD_PLAY_ARROW "##Resume"))
+    if (gui::ThemedIconButton(ICON_MD_PLAY_ARROW, tr("Resume (Space)"),
+                              ImVec2(0, 0), true))
       music_player_->Resume();
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(tr("Resume (Space)"));
   } else {
-    if (ImGui::Button(ICON_MD_PLAY_ARROW "##Play"))
+    if (gui::ThemedIconButton(ICON_MD_PLAY_ARROW, tr("Play (Space)")))
       music_player_->PlaySong(current_song_index_);
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(tr("Play (Space)"));
   }
 
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_STOP "##Stop"))
+  if (gui::ThemedIconButton(ICON_MD_STOP, tr("Stop (Escape)")))
     music_player_->Stop();
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip(tr("Stop (Escape)"));
 
   if (!can_play)
     ImGui::EndDisabled();
@@ -1199,6 +1187,7 @@ void MusicEditor::DrawToolset() {
                          ICON_MD_GRAPHIC_EQ);
       ImGui::SameLine();
     } else if (state.is_paused) {
+      const ImVec4 paused_color = gui::GetWarningColor();
       ImGui::TextColored(paused_color, ICON_MD_PAUSE_CIRCLE);
       ImGui::SameLine();
     }

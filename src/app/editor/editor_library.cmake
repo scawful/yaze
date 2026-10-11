@@ -111,9 +111,6 @@ set(
   app/editor/sprite/sprite_graphics_context.cc
   app/editor/graphics/usage_preview.cc
   app/editor/graphics/ui/usage/usage_preview_view.cc
-  app/editor/graphics/ui/research/polyhedral_editor_view.cc
-  app/editor/graphics/ui/research/prototype_research_view.cc
-  app/editor/graphics/ui/sprite/link_sprite_view.cc
   app/editor/hack/workflow/hack_workflow_backend_factory.cc
   app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
   app/editor/hack/workflow/project_workflow_output_panel.cc
