@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
@@ -1226,11 +1227,10 @@ void ObjectTileEditorPanel::DrawActionBar(bool* p_open) {
     }
 
     ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Text, status_color);
+    gui::StyleColorGuard status_text(ImGuiCol_Text, status_color);
     ImGui::PushTextWrapPos(0.0f);
     ImGui::TextUnformatted(action_status_message_.c_str());
     ImGui::PopTextWrapPos();
-    ImGui::PopStyleColor();
   }
 }
 

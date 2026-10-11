@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
@@ -85,15 +86,17 @@ void UsageStatisticsCard::DrawUsageGrid() {
             break;
         }
 
-        ImGui::PushStyleColor(ImGuiCol_Button, area_color);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                              ImVec4(area_color.x + 0.1f, area_color.y + 0.1f,
-                                     area_color.z + 0.1f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, area_color);
+        const ImVec4 area_hover(area_color.x + 0.1f, area_color.y + 0.1f,
+                                area_color.z + 0.1f, 1.0f);
         const std::string button_id =
             absl::StrFormat("%02X##usage_map_%d", map_id, map_id);
-        ImGui::Button(button_id.c_str(), ImVec2(34.0f, 0.0f));
-        ImGui::PopStyleColor(3);
+        {
+          gui::StyleColorGuard area_colors(
+              {{ImGuiCol_Button, area_color},
+               {ImGuiCol_ButtonHovered, area_hover},
+               {ImGuiCol_ButtonActive, area_color}});
+          ImGui::Button(button_id.c_str(), ImVec2(34.0f, 0.0f));
+        }
 
         if (ImGui::IsItemHovered()) {
           ImGui::BeginTooltip();
