@@ -14,6 +14,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/core/color.h"
+#include "app/gui/core/style_guard.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -531,10 +532,10 @@ void MenuTilemapEditorUI::DrawSourceBar(Rom* rom, zelda3::GameData* game_data,
 
   const auto& theme = AgentUI::GetTheme();
   if (!source_status_.empty()) {
-    ImGui::PushStyleColor(ImGuiCol_Text, sources_ready_ ? theme.status_success
-                                                        : theme.text_error_red);
+    gui::StyleColorGuard status_color(
+        ImGuiCol_Text,
+        sources_ready_ ? theme.status_success : theme.text_error_red);
     ImGui::TextWrapped("%s", source_status_.c_str());
-    ImGui::PopStyleColor();
   }
 }
 

@@ -13,6 +13,7 @@
 #include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/style_guard.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/door_position.h"
@@ -302,11 +303,11 @@ void DrawDungeonPotItemSaveNotice() {
   if (core::FeatureFlags::get().dungeon.kSavePotItems) {
     return;
   }
-  ImGui::PushStyleColor(ImGuiCol_Text, AgentUI::GetTheme().status_warning);
+  gui::StyleColorGuard notice_color(ImGuiCol_Text,
+                                    AgentUI::GetTheme().status_warning);
   ImGui::TextWrapped(
       "Pot-item saving is off. Enable Save Pot Items in File > Save Scope > "
       "Dungeon before saving.");
-  ImGui::PopStyleColor();
 }
 
 void DrawDungeonEntityInspector(

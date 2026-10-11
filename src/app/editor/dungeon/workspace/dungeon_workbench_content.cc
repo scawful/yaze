@@ -436,9 +436,9 @@ void DungeonWorkbenchContent::DrawProposalPreviewWindow(
     (void)LoadProposalOverlay(proposal_path_);
   }
   if (!proposal_error_.empty()) {
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.45f, 0.4f, 1.0f));
+    gui::StyleColorGuard error_color(ImGuiCol_Text,
+                                     ImVec4(1.0f, 0.45f, 0.4f, 1.0f));
     ImGui::TextWrapped("%s", proposal_error_.c_str());
-    ImGui::PopStyleColor();
   }
 
   if (!proposal_overlay_.has_value()) {
@@ -2000,9 +2000,10 @@ bool DungeonWorkbenchContent::DrawObjectPlacementInspector(
   const auto& theme = AgentUI::GetTheme();
   ImGui::PushID("PlacementInspector");
   workbench::DrawInspectorSectionHeader(ICON_MD_ADD_CIRCLE " Placing object");
-  ImGui::PushStyleColor(ImGuiCol_Text, theme.text_primary);
-  ImGui::TextWrapped("%s", zelda3::GetObjectName(object.id_).c_str());
-  ImGui::PopStyleColor();
+  {
+    gui::StyleColorGuard name_color(ImGuiCol_Text, theme.text_primary);
+    ImGui::TextWrapped("%s", zelda3::GetObjectName(object.id_).c_str());
+  }
   ImGui::TextDisabled("0x%03X", object.id_);
 
   constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_BordersInnerV |

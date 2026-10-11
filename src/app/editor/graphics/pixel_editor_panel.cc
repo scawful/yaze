@@ -33,9 +33,10 @@ namespace {
 // glyph bounds, not the text line box, while retaining ordinary button input,
 // navigation, IDs, and disabled styling. This is for one-glyph controls only.
 bool PixelIconButton(const char* label, float button_size) {
-  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 0));
-  const bool pressed = ImGui::Button(label, ImVec2(button_size, button_size));
-  ImGui::PopStyleColor();
+  const bool pressed = [&] {
+    gui::StyleColorGuard transparent_text(ImGuiCol_Text, ImVec4(0, 0, 0, 0));
+    return ImGui::Button(label, ImVec2(button_size, button_size));
+  }();
   if (!ImGui::IsItemVisible())
     return pressed;
 
