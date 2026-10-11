@@ -22,6 +22,7 @@
 #include "app/editor/dungeon/ui/reporting/dungeon_issue_report_storage.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #ifdef YAZE_WITH_GRPC
@@ -995,10 +996,11 @@ void DungeonCanvasViewer::DrawIssueReportStatusMessage() const {
   const ImVec2 size(std::max(ImGui::GetContentRegionAvail().x, 1.0f),
                     ImGui::GetTextLineHeight());
   const ImVec2 end(start.x + size.x, start.y + size.y);
-  ImGui::PushStyleColor(ImGuiCol_Text, color);
-  ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), start, end, end.x,
-                            visible_line.c_str(), nullptr, nullptr);
-  ImGui::PopStyleColor();
+  {
+    gui::StyleColorGuard status_color(ImGuiCol_Text, color);
+    ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), start, end, end.x,
+                              visible_line.c_str(), nullptr, nullptr);
+  }
   ImGui::Dummy(size);
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
