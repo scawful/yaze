@@ -15,6 +15,25 @@
 
 namespace yaze {
 namespace test {
+namespace {
+
+// This oracle covers headerless, power-of-two LoROM images only. Uneven ROMs
+// require SNES mirroring rules, so never silently apply a plain sum to them.
+bool HasValidPowerOfTwoLoRomChecksum(const std::vector<uint8_t>& bytes) {
+  if (bytes.size() < 0x8000 || (bytes.size() & (bytes.size() - 1)) != 0) {
+    return false;
+  }
+  const uint16_t complement = bytes[0x7FDC] | (bytes[0x7FDD] << 8);
+  const uint16_t checksum = bytes[0x7FDE] | (bytes[0x7FDF] << 8);
+  uint32_t sum = 0;
+  for (uint8_t byte : bytes) {
+    sum += byte;
+  }
+  return (complement ^ checksum) == 0xFFFF &&
+         checksum == static_cast<uint16_t>(sum);
+}
+
+}  // namespace
 
 /**
  * @brief E2E Test Suite for Multi-ROM Version Validation
@@ -49,7 +68,7 @@ class RomVersionTest : public MultiVersionEditorSaveTest {
 
   VersionAddresses GetVersionAddresses(zelda3_version version) {
     VersionAddresses addrs;
-    
+
     switch (version) {
       case JP:
         addrs.overworld_gfx_ptr1 = 0x0885A3;
@@ -75,7 +94,7 @@ class RomVersionTest : public MultiVersionEditorSaveTest {
         addrs.compressed_map_ptr = 0x02FFE1;
         break;
     }
-    
+
     return addrs;
   }
 };
@@ -88,23 +107,33 @@ TEST_F(RomVersionTest, DetectVersion_Default) {
   auto version_info = DetectRomVersion(*rom);
 
   // Should detect a valid version
-  EXPECT_TRUE(version_info.version == JP ||
-              version_info.version == US ||
+  EXPECT_TRUE(version_info.version == JP || version_info.version == US ||
               version_info.version == RANDO)
       << "Should detect a valid ROM version";
 
   // Log detected version for debugging
   std::string version_name;
   switch (version_info.version) {
-    case JP: version_name = "JP"; break;
-    case US: version_name = "US"; break;
-    case RANDO: version_name = "RANDO"; break;
-    default: version_name = "Unknown"; break;
+    case JP:
+      version_name = "JP";
+      break;
+    case US:
+      version_name = "US";
+      break;
+    case RANDO:
+      version_name = "RANDO";
+      break;
+    default:
+      version_name = "Unknown";
+      break;
   }
 
   std::cout << "Detected ROM version: " << version_name << std::endl;
-  std::cout << "ZSCustomOverworld: " << (version_info.zscustom_version == 0xFF ? 
-      "vanilla" : std::to_string(version_info.zscustom_version)) << std::endl;
+  std::cout << "ZSCustomOverworld: "
+            << (version_info.zscustom_version == 0xFF
+                    ? "vanilla"
+                    : std::to_string(version_info.zscustom_version))
+            << std::endl;
 }
 
 // Test 2: US ROM save/load cycle
@@ -113,7 +142,7 @@ TEST_F(RomVersionTest, UsRom_SaveLoadCycle) {
     // Try to use the default test ROM
     std::unique_ptr<Rom> rom;
     ASSERT_OK(LoadAndVerifyRom(test_rom_path_, rom));
-    
+
     auto version_info = DetectRomVersion(*rom);
     if (version_info.version != US) {
       GTEST_SKIP() << "US ROM not available";
@@ -121,11 +150,11 @@ TEST_F(RomVersionTest, UsRom_SaveLoadCycle) {
   }
 
   std::string rom_path = HasUsRom() ? us_rom_path_ : test_rom_path_;
-  
+
   // Copy ROM for testing
   std::string test_path = "test_us_rom.sfc";
   std::filesystem::copy_file(rom_path, test_path,
-      std::filesystem::copy_options::overwrite_existing);
+                             std::filesystem::copy_options::overwrite_existing);
 
   // Load ROM
   std::unique_ptr<Rom> rom;
@@ -155,7 +184,7 @@ TEST_F(RomVersionTest, UsRom_SaveLoadCycle) {
   zelda3::Overworld reloaded_ow(reloaded.get());
   ASSERT_OK(reloaded_ow.Load(reloaded.get()));
 
-  EXPECT_EQ(reloaded_ow.overworld_map(0)->area_graphics(), 
+  EXPECT_EQ(reloaded_ow.overworld_map(0)->area_graphics(),
             (original_gfx + 1) % 256)
       << "US ROM modification should persist";
 
@@ -206,8 +235,7 @@ TEST_F(RomVersionTest, GameData_LoadsCorrectly) {
       << "Dungeon main palettes should load";
 
   // Verify version was detected
-  EXPECT_TRUE(game_data.version == JP ||
-              game_data.version == US ||
+  EXPECT_TRUE(game_data.version == JP || game_data.version == US ||
               game_data.version == RANDO);
 }
 
@@ -219,7 +247,7 @@ TEST_F(RomVersionTest, VanillaRom_Identification) {
   auto version_info = DetectRomVersion(*rom);
 
   // Check if ROM is vanilla (no ZSCustomOverworld)
-  bool is_vanilla = (version_info.zscustom_version == 0xFF || 
+  bool is_vanilla = (version_info.zscustom_version == 0xFF ||
                      version_info.zscustom_version == 0x00);
 
   if (is_vanilla) {
@@ -256,7 +284,7 @@ TEST_F(RomVersionTest, RomHeader_Validation) {
   auto rom_type = rom->ReadByte(0x7FD6);
   ASSERT_TRUE(rom_type.ok());
   // Type 0x02 = ROM + SRAM, common for ALTTP
-  
+
   // Check ROM size byte (at 0x7FD7)
   auto rom_size = rom->ReadByte(0x7FD7);
   ASSERT_TRUE(rom_size.ok());
@@ -300,16 +328,21 @@ TEST_F(RomVersionTest, Checksum_AfterModification) {
   // Verify checksum and complement are inverses
   EXPECT_EQ((*checksum_comp ^ *checksum) & 0xFFFF, 0xFFFF)
       << "Checksum and complement should be inverses";
+  ASSERT_TRUE(HasValidPowerOfTwoLoRomChecksum(rom->vector()));
 
-  // Modify ROM
-  ASSERT_OK(rom->WriteByte(0x1000, 0xAB));
+  // Build the expected bytes independently before exercising WriteByte/Save.
+  auto expected = rom->vector();
+  expected[0x1000] ^= 0x01;
+  ASSERT_OK(rom->WriteByte(0x1000, expected[0x1000]));
 
   // Save ROM
   ASSERT_OK(SaveRomToFile(rom.get(), test_rom_path_));
 
-  // Reload and verify checksum was updated
+  // SaveToFile preserves the supplied bytes; it does not repair checksums.
   std::unique_ptr<Rom> reloaded;
   ASSERT_OK(LoadAndVerifyRom(test_rom_path_, reloaded));
+  EXPECT_EQ(reloaded->vector(), expected)
+      << "Saving must preserve the edit and every unrelated ROM byte";
 
   auto new_checksum_comp = reloaded->ReadWord(0x7FDC);
   auto new_checksum = reloaded->ReadWord(0x7FDE);
@@ -317,22 +350,59 @@ TEST_F(RomVersionTest, Checksum_AfterModification) {
   ASSERT_TRUE(new_checksum_comp.ok());
   ASSERT_TRUE(new_checksum.ok());
 
-  // Checksum should still be valid (complement relationship)
-  // Note: yaze may or may not update checksums on save
-  if ((*new_checksum_comp ^ *new_checksum) == 0xFFFF) {
-    // Checksum was updated correctly
-    SUCCEED();
-  } else {
-    // Checksum wasn't updated - this might be intentional
-    std::cout << "Note: ROM checksum not updated after modification" << std::endl;
-  }
+  EXPECT_EQ(*new_checksum_comp, *checksum_comp);
+  EXPECT_EQ(*new_checksum, *checksum);
+  EXPECT_EQ((*new_checksum_comp ^ *new_checksum) & 0xFFFF, 0xFFFF);
+  EXPECT_FALSE(HasValidPowerOfTwoLoRomChecksum(reloaded->vector()))
+      << "A preserved inverse pair must not hide a stale payload checksum";
+}
+
+TEST_F(RomVersionTest, Checksum_RejectsCorruptedData) {
+  std::unique_ptr<Rom> rom;
+  ASSERT_OK(LoadAndVerifyRom(test_rom_path_, rom));
+  const auto original = rom->vector();
+  ASSERT_TRUE(HasValidPowerOfTwoLoRomChecksum(original));
+
+  auto corrupted = original;
+  corrupted[0x7FDC] ^= 0x01;
+  EXPECT_FALSE(HasValidPowerOfTwoLoRomChecksum(corrupted))
+      << "A broken complement must fail";
+
+  corrupted = original;
+  corrupted[0x7FDC] ^= 0x01;
+  corrupted[0x7FDE] ^= 0x01;
+  EXPECT_EQ((corrupted[0x7FDC] | (corrupted[0x7FDD] << 8)) ^
+                (corrupted[0x7FDE] | (corrupted[0x7FDF] << 8)),
+            0xFFFF);
+  EXPECT_FALSE(HasValidPowerOfTwoLoRomChecksum(corrupted))
+      << "A wrong checksum must fail even with a matching complement";
+
+  corrupted = original;
+  corrupted[0x1000] ^= 0x01;
+  EXPECT_FALSE(HasValidPowerOfTwoLoRomChecksum(corrupted))
+      << "Payload corruption must fail even with the original inverse pair";
+}
+
+TEST(RomChecksumValidationTest, RejectsUnsupportedSizes) {
+  // Known checksum of an otherwise zero-filled 32 KiB image: the four inverse
+  // header bytes sum to 0x01FE, independent of the validation helper.
+  std::vector<uint8_t> bytes(0x8000, 0);
+  bytes[0x7FDC] = 0x01;
+  bytes[0x7FDD] = 0xFE;
+  bytes[0x7FDE] = 0xFE;
+  bytes[0x7FDF] = 0x01;
+  ASSERT_TRUE(HasValidPowerOfTwoLoRomChecksum(bytes));
+  EXPECT_FALSE(HasValidPowerOfTwoLoRomChecksum({}));
+  EXPECT_FALSE(HasValidPowerOfTwoLoRomChecksum(std::vector<uint8_t>(0x4000)));
+  bytes.push_back(0);
+  EXPECT_FALSE(HasValidPowerOfTwoLoRomChecksum(bytes));
 }
 
 // Test 9: Multiple save/load cycles stability
 TEST_F(RomVersionTest, MultipleCycles_Stability) {
   const int num_cycles = 5;
   std::unique_ptr<Rom> rom;
-  
+
   for (int cycle = 0; cycle < num_cycles; ++cycle) {
     ASSERT_OK(LoadAndVerifyRom(test_rom_path_, rom))
         << "Failed on load cycle " << cycle;

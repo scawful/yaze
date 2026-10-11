@@ -1,9 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
+
+#ifdef _WIN32
+#include <process.h>
+#endif
 
 #include "rom/rom.h"
 #include "test_utils.h"
@@ -38,8 +43,7 @@ class OverworldE2ETest : public ::testing::Test {
   }
 
   void SetUp() override {
-    YAZE_SKIP_IF_ROM_MISSING(
-        yaze::test::RomRole::kVanilla, "OverworldE2ETest");
+    YAZE_SKIP_IF_ROM_MISSING(yaze::test::RomRole::kVanilla, "OverworldE2ETest");
     vanilla_rom_path_ =
         yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
 
@@ -47,6 +51,8 @@ class OverworldE2ETest : public ::testing::Test {
     vanilla_test_path_ = "test_vanilla_e2e.sfc";
     edited_test_path_ = "test_edited_e2e.sfc";
     golden_data_path_ = "golden_data_e2e.h";
+    validation_rom_path_ = "validation_e2e.sfc";
+    validation_data_path_ = "validation_golden_e2e.h";
 
     // Copy vanilla ROM for testing
     std::filesystem::copy_file(
@@ -57,7 +63,8 @@ class OverworldE2ETest : public ::testing::Test {
   void TearDown() override {
     // Clean up test files
     std::vector<std::string> test_files = {
-        vanilla_test_path_, edited_test_path_, golden_data_path_};
+        vanilla_test_path_, edited_test_path_, golden_data_path_,
+        validation_rom_path_, validation_data_path_};
 
     for (const auto& file : test_files) {
       if (std::filesystem::exists(file)) {
@@ -70,6 +77,9 @@ class OverworldE2ETest : public ::testing::Test {
   absl::Status ExtractGoldenData(const std::string& rom_path,
                                  const std::string& output_path) {
     const std::vector<std::filesystem::path> candidates = {
+#ifdef YAZE_OVERWORLD_GOLDEN_DATA_EXTRACTOR_PATH
+        YAZE_OVERWORLD_GOLDEN_DATA_EXTRACTOR_PATH,
+#endif
         "overworld_golden_data_extractor",
         "bin/overworld_golden_data_extractor",
         "bin/Debug/overworld_golden_data_extractor",
@@ -79,7 +89,7 @@ class OverworldE2ETest : public ::testing::Test {
     std::string extractor_path;
     for (const auto& candidate : candidates) {
       if (std::filesystem::exists(candidate)) {
-        extractor_path = candidate.string();
+        extractor_path = std::filesystem::absolute(candidate).string();
         break;
       }
     }
@@ -90,9 +100,26 @@ class OverworldE2ETest : public ::testing::Test {
     }
 
     // Run the golden data extractor
-    std::string command =
-        extractor_path + " " + rom_path + " " + output_path;
+#ifdef _WIN32
+    // _spawnv joins argv into a Windows command line; file paths need quotes.
+    const std::string quoted_rom = "\"" + rom_path + "\"";
+    const std::string quoted_output = "\"" + output_path + "\"";
+    const char* arguments[] = {"overworld_golden_data_extractor",
+                               quoted_rom.c_str(), quoted_output.c_str(),
+                               nullptr};
+    const auto result = _spawnv(_P_WAIT, extractor_path.c_str(), arguments);
+#else
+    const auto quote = [](const std::string& argument) {
+      std::string quoted = "'";
+      for (char character : argument) {
+        quoted += character == '\'' ? "'\\''" : std::string(1, character);
+      }
+      return quoted + "'";
+    };
+    std::string command = quote(extractor_path) + " " + quote(rom_path) + " " +
+                          quote(output_path);
     int result = system(command.c_str());
+#endif
 
     if (result != 0) {
       return absl::InternalError("Failed to extract golden data");
@@ -101,30 +128,56 @@ class OverworldE2ETest : public ::testing::Test {
     return absl::OkStatus();
   }
 
-  // Helper to validate ROM against golden data
+  static absl::StatusOr<std::string> ReadGoldenData(const std::string& path) {
+    std::ifstream input(path);
+    if (!input.is_open()) {
+      return absl::NotFoundError("Golden data not readable: " + path);
+    }
+    std::string data;
+    std::string line;
+    while (std::getline(input, line)) {
+      // Only provenance is variable; all extracted values remain comparable.
+      if (line.rfind("// YAZE Overworld Golden Data - Generated from: ", 0) ==
+              0 ||
+          line.rfind("// Generated on: ", 0) == 0) {
+        continue;
+      }
+      data += line + "\n";
+    }
+    if (input.bad() || data.empty()) {
+      return absl::DataLossError("Golden data empty or unreadable: " + path);
+    }
+    return data;
+  }
+
   bool ValidateROMAgainstGoldenData(Rom& rom,
-                                    const std::string& /* golden_data_path */) {
-    // This would load the generated golden data header and compare values
-    // For now, we'll do basic validation
-
-    // Check basic ROM properties
-    if (rom.title().empty())
+                                    const std::string& golden_data_path) {
+    if (rom.title().empty() || rom.size() < 1024 * 1024 ||
+        !rom.ReadByte(0x140145).ok()) {
       return false;
-    if (rom.size() < 1024 * 1024)
-      return false;  // At least 1MB
-
-    // Check ASM version
-    auto asm_version = rom.ReadByte(0x140145);
-    if (!asm_version.ok())
+    }
+    auto expected = ReadGoldenData(golden_data_path);
+    if (!expected.ok()) {
       return false;
-
-    return true;
+    }
+    Rom::SaveSettings settings;
+    settings.filename = validation_rom_path_;
+    settings.backup = false;
+    settings.save_new = false;
+    if (!rom.SaveToFile(settings).ok() ||
+        !ExtractGoldenData(validation_rom_path_, validation_data_path_).ok()) {
+      return false;
+    }
+    auto actual = ReadGoldenData(validation_data_path_);
+    return actual.ok() && *actual == *expected;
   }
 
   std::string vanilla_rom_path_;
   std::string vanilla_test_path_;
   std::string edited_test_path_;
   std::string golden_data_path_;
+  std::string validation_rom_path_;
+  std::string validation_data_path_;
 };
 
 // Test 1: Extract golden data from vanilla ROM
@@ -140,6 +193,53 @@ TEST_F(OverworldE2ETest, ExtractVanillaGoldenData) {
 
   // Validate ROM against golden data
   EXPECT_TRUE(ValidateROMAgainstGoldenData(*rom, golden_data_path_));
+}
+
+TEST_F(OverworldE2ETest, GoldenDataRejectsInvalidReferences) {
+  Rom rom;
+  ASSERT_OK(rom.LoadFromFile(vanilla_test_path_));
+  ASSERT_OK(ExtractGoldenData(vanilla_test_path_, golden_data_path_));
+  ASSERT_TRUE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+  auto reference = ReadGoldenData(golden_data_path_);
+  ASSERT_OK(reference.status());
+
+  auto corrupted = *reference;
+  const auto array = corrupted.find("kGoldenMapAreaGraphics = {{");
+  ASSERT_NE(array, std::string::npos);
+  const auto value = corrupted.find("0x", array);
+  ASSERT_NE(value, std::string::npos);
+  ASSERT_LT(value + 3, corrupted.size());
+  corrupted[value + 3] = corrupted[value + 3] == '0' ? '1' : '0';
+  for (const auto& invalid :
+       {std::string(), reference->substr(0, reference->size() / 2),
+        corrupted}) {
+    {
+      std::ofstream output(golden_data_path_, std::ios::trunc);
+      output << invalid;
+      ASSERT_TRUE(output.good());
+    }
+    EXPECT_FALSE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+  }
+  ASSERT_TRUE(std::filesystem::remove(golden_data_path_));
+  EXPECT_FALSE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+}
+
+TEST_F(OverworldE2ETest, GoldenDataRejectsChangedROM) {
+  Rom rom;
+  ASSERT_OK(rom.LoadFromFile(vanilla_test_path_));
+  ASSERT_OK(ExtractGoldenData(vanilla_test_path_, golden_data_path_));
+  ASSERT_TRUE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+  // Neither edit changes ROM title, size or ASM version: the old check missed
+  // both. The captured palette and music samples must detect them.
+  for (uint32_t address : {0x7D1C, 0x14303}) {
+    SCOPED_TRACE(address);
+    auto original = rom.ReadByte(address);
+    ASSERT_OK(original.status());
+    ASSERT_OK(rom.WriteByte(address, *original ^ 0x01));
+    EXPECT_FALSE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+    ASSERT_OK(rom.WriteByte(address, *original));
+    EXPECT_TRUE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+  }
 }
 
 // Test 2: Load and validate vanilla overworld data
@@ -349,6 +449,7 @@ TEST_F(OverworldE2ETest, BeforeAfterValidation) {
   // Load vanilla ROM and make some changes
   std::unique_ptr<Rom> vanilla_rom = std::make_unique<Rom>();
   ASSERT_OK(vanilla_rom->LoadFromFile(vanilla_test_path_));
+  ASSERT_TRUE(ValidateROMAgainstGoldenData(*vanilla_rom, golden_data_path_));
 
   // Store some original values for comparison
   auto original_asm_version = vanilla_rom->ReadByte(0x140145);
@@ -377,6 +478,7 @@ TEST_F(OverworldE2ETest, BeforeAfterValidation) {
   // Reload and validate changes
   std::unique_ptr<Rom> modified_rom = std::make_unique<Rom>();
   ASSERT_OK(modified_rom->LoadFromFile(edited_test_path_));
+  EXPECT_FALSE(ValidateROMAgainstGoldenData(*modified_rom, golden_data_path_));
 
   auto modified_asm_version = modified_rom->ReadByte(0x140145);
   auto modified_graphics_0 = modified_rom->ReadByte(0x7C9C);
