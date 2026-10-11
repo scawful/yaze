@@ -18,6 +18,7 @@
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_snapping.h"
 #include "app/gui/core/agent_theme.h"
+#include "app/gui/core/style_guard.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -1086,11 +1087,12 @@ void InteractionCoordinator::DrawSelectionCycleHud() {
       ImVec2(cycle_hud_screen_pos_.x + 14.0f, cycle_hud_screen_pos_.y + 14.0f),
       ImGuiCond_Always);
   ImGui::SetNextWindowBgAlpha(bg.w);
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, bg);
-  ImGui::PushStyleColor(ImGuiCol_Border, border);
-  ImGui::PushStyleColor(ImGuiCol_Text, text);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 6.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+  gui::StyleColorGuard hud_colors({{ImGuiCol_WindowBg, bg},
+                                   {ImGuiCol_Border, border},
+                                   {ImGuiCol_Text, text}});
+  gui::StyleVarGuard hud_vars(
+      {{ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 6.0f)},
+       {ImGuiStyleVar_WindowRounding, 4.0f}});
   constexpr ImGuiWindowFlags kFlags =
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings |
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav |
@@ -1107,8 +1109,6 @@ void InteractionCoordinator::DrawSelectionCycleHud() {
     }
   }
   ImGui::End();
-  ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor(3);
 }
 
 void InteractionCoordinator::DrawMultiEntitySelectionHighlights() {
