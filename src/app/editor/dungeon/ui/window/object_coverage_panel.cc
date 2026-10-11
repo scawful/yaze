@@ -7,6 +7,7 @@
 #include <cstring>
 #include <fstream>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -503,11 +505,10 @@ void ObjectCoveragePanel::DrawSummary() {
   }
 
   if (!status_message_.empty()) {
-    ImGui::PushStyleColor(ImGuiCol_Text, status_is_error_
-                                             ? gui::GetErrorColor()
-                                             : gui::GetInfoColor());
+    gui::StyleColorGuard status_color(ImGuiCol_Text, status_is_error_
+                                                         ? gui::GetErrorColor()
+                                                         : gui::GetInfoColor());
     ImGui::TextWrapped("%s", status_message_.c_str());
-    ImGui::PopStyleColor();
   }
   if (!evidence_path_.empty() && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", evidence_path_.string().c_str());
@@ -541,9 +542,8 @@ void ObjectCoveragePanel::DrawAutomaticCheck() {
   }
 
   if (!manifest_error_.empty()) {
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetErrorColor());
+    gui::StyleColorGuard error_color(ImGuiCol_Text, gui::GetErrorColor());
     ImGui::TextWrapped("%s", manifest_error_.c_str());
-    ImGui::PopStyleColor();
   } else if (manifest_) {
     ImGui::TextWrapped(tr("%zu rooms captured from the game for this ROM."),
                        manifest_->captured_rooms.size());
@@ -827,11 +827,12 @@ void ObjectCoveragePanel::DrawDetails() {
 
   ImGui::Text("%s  %s", FormatObjectId(object_id).c_str(),
               zelda3::GetObjectName(object_id).c_str());
-  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetDisabledColor());
-  ImGui::TextWrapped("%s: %s | %s", tr("Routine"),
-                     routine != nullptr ? routine->name.c_str() : "-",
-                     symbology.family.c_str());
-  ImGui::PopStyleColor();
+  {
+    gui::StyleColorGuard routine_color(ImGuiCol_Text, gui::GetDisabledColor());
+    ImGui::TextWrapped("%s: %s | %s", tr("Routine"),
+                       routine != nullptr ? routine->name.c_str() : "-",
+                       symbology.family.c_str());
+  }
 
   if (auto it = custom_code_.find(object_id); it != custom_code_.end()) {
     const auto& custom = it->second;
@@ -839,7 +840,7 @@ void ObjectCoveragePanel::DrawDetails() {
         custom.module.empty()
             ? absl::StrFormat("$%06X", custom.address)
             : absl::StrFormat("$%06X (%s)", custom.address, custom.module);
-    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetWarningColor());
+    gui::StyleColorGuard warning_color(ImGuiCol_Text, gui::GetWarningColor());
     ImGui::TextWrapped(
         custom.replaced
             ? tr(ICON_MD_CODE " Your ROM replaces this object's draw routine "
@@ -850,7 +851,6 @@ void ObjectCoveragePanel::DrawDetails() {
                               "at %s. A mismatch with the game may come from "
                               "that patch, not from yaze."),
         where.c_str());
-    ImGui::PopStyleColor();
   }
 
   const int group = ReleaseFocusGroupFor(object_id);
@@ -862,13 +862,14 @@ void ObjectCoveragePanel::DrawDetails() {
   }
 
   if (const auto* summary = auto_results_.Summary(object_id)) {
+    std::optional<gui::StyleColorGuard> comparison_color;
     if (summary->placements_different == 0) {
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetSuccessColor());
+      comparison_color.emplace(ImGuiCol_Text, gui::GetSuccessColor());
       ImGui::TextWrapped(
           tr(ICON_MD_CHECK " Matches the game in all %d checked placements"),
           summary->placements_checked);
     } else {
-      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetErrorColor());
+      comparison_color.emplace(ImGuiCol_Text, gui::GetErrorColor());
       const std::string what =
           zelda3::DescribeTileWordDifference(summary->difference_bits);
       ImGui::TextWrapped(
@@ -877,7 +878,6 @@ void ObjectCoveragePanel::DrawDetails() {
           summary->placements_different, summary->placements_checked,
           what.c_str());
     }
-    ImGui::PopStyleColor();
   }
 
   DrawVerdictEditor(object_id);
@@ -898,14 +898,12 @@ void ObjectCoveragePanel::DrawVerdictEditor(int object_id) {
                      verdict_right_edge);
     }
     first_verdict = false;
+    std::optional<gui::StyleColorGuard> verdict_color;
     if (is_current) {
-      ImGui::PushStyleColor(ImGuiCol_Button, StateColor(state));
+      verdict_color.emplace(ImGuiCol_Button, StateColor(state));
     }
     if (ImGui::Button(ObjectEvidenceStateLabel(state))) {
       SetVerdict(object_id, state);
-    }
-    if (is_current) {
-      ImGui::PopStyleColor();
     }
   }
 
