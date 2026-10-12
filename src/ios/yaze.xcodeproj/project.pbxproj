@@ -58,7 +58,9 @@
 		E318D9172C59C08300091322 /* screen_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8692C59C08300091322 /* screen_editor.cc */; };
 		E318D9182C59C08300091322 /* screen_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8692C59C08300091322 /* screen_editor.cc */; };
 		E318D91D2C59C08300091322 /* message_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8702C59C08300091322 /* message_editor.cc */; };
+		09F857D2BB527DACDF0DB8EB /* message_editor_font.cc in Sources */ = {isa = PBXBuildFile; fileRef = 049A34A0C5609B6E0C9A0AF2 /* message_editor_font.cc */; };
 		E318D91E2C59C08300091322 /* message_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8702C59C08300091322 /* message_editor.cc */; };
+		B7ED8073E26DE8C963459F32 /* message_editor_font.cc in Sources */ = {isa = PBXBuildFile; fileRef = 049A34A0C5609B6E0C9A0AF2 /* message_editor_font.cc */; };
 		E318D91F2C59C08300091322 /* music_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8732C59C08300091322 /* music_editor.cc */; };
 		E318D9202C59C08300091322 /* music_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8732C59C08300091322 /* music_editor.cc */; };
 		E318D9212C59C08300091322 /* entity.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8762C59C08300091322 /* entity.cc */; };
@@ -1002,6 +1004,7 @@
 		E318D86A2C59C08300091322 /* screen_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = screen_editor.h; sourceTree = "<group>"; };
 		E318D86E2C59C08300091322 /* message_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = message_data.h; sourceTree = "<group>"; };
 		E318D8702C59C08300091322 /* message_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = message_editor.cc; sourceTree = "<group>"; };
+		049A34A0C5609B6E0C9A0AF2 /* message_editor_font.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = message_editor_font.cc; sourceTree = "<group>"; };
 		E318D8712C59C08300091322 /* message_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = message_editor.h; sourceTree = "<group>"; };
 		E318D8732C59C08300091322 /* music_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = music_editor.cc; sourceTree = "<group>"; };
 		E318D8742C59C08300091322 /* music_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = music_editor.h; sourceTree = "<group>"; };
@@ -2829,6 +2832,7 @@
 				E384E2D52C76C6C800147029 /* message_data.cc */,
 				E318D86E2C59C08300091322 /* message_data.h */,
 				E318D8702C59C08300091322 /* message_editor.cc */,
+				049A34A0C5609B6E0C9A0AF2 /* message_editor_font.cc */,
 				E318D8712C59C08300091322 /* message_editor.h */,
 			);
 			path = message;
@@ -5822,6 +5826,7 @@
 				E318E21D2C5A4FC200091322 /* mutex.cc in Sources */,
 				E318E7B72C5A548C00091322 /* pngread.c in Sources */,
 				E318D91D2C59C08300091322 /* message_editor.cc in Sources */,
+				09F857D2BB527DACDF0DB8EB /* message_editor_font.cc in Sources */,
 				E318E7CB2C5A548C00091322 /* pngwutil.c in Sources */,
 				E318E1872C5A4FC100091322 /* cordz_sample_token.cc in Sources */,
 				E318DF4D2C5A4FBE00091322 /* spinlock_akaros.inc in Sources */,
@@ -5917,6 +5922,7 @@
 				95413E18FB9F4DDF9CE960C2 /* metal_renderer.mm in Sources */,
 				E318DF3A2C5A4FBE00091322 /* endian_test.cc in Sources */,
 				E318D91E2C59C08300091322 /* message_editor.cc in Sources */,
+				B7ED8073E26DE8C963459F32 /* message_editor_font.cc in Sources */,
 				E318E7042C5A4FC900091322 /* clock_test.cc in Sources */,
 				E318E0D02C5A4FC000091322 /* nanobenchmark_test.cc in Sources */,
 				E318E0FE2C5A4FC000091322 /* bernoulli_distribution_test.cc in Sources */,
