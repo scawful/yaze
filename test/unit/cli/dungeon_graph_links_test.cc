@@ -5,6 +5,8 @@
 // doors and the column-15 neighbor wrap.
 
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <set>
 #include <string>
 #include <vector>
@@ -12,11 +14,13 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include "cli/handlers/game/dungeon_census_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_graph_commands.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "test_utils/expanded_entrance_fixture.h"
+#include "unique_temp_path.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_census.h"
@@ -242,6 +246,98 @@ TEST_F(DungeonGraphLinksTest, HeaderByteZeroIsRoomZeroWhenUsed) {
   // Default header: byte 0 and nothing uses it.
   const auto unused = Run(handler, {"--room=0x007"}, "dungeon_graph");
   EXPECT_TRUE(unused.at("edges").empty());
+}
+
+class DungeonGraphWarpTagTest : public DungeonGraphLinksTest {
+ protected:
+  void SetUp() override {
+    auto data = BuildGraphTestRom();
+    data[0x078000 + 0x07 * 2] = 0x04;
+    data[0x078000 + 0x07 * 2 + 1] = 0x01;
+    auto header = Header(0x24, {0x09, 0x0A, 0x0B, 0x0C});
+    header[zelda3::test::kTestHeaderTag1] = 0x3A;
+    SetTestRoom(data, 0x104, kStreamPc + 0x200,
+                TestRoomStream({TestObjectBytes(0xFCA, 10, 10)}), 0x9150,
+                header);
+    ASSERT_TRUE(rom_.LoadFromData(data).ok());
+    project_ = yaze::test::UniqueTempPath("graph_warp_tag");
+    std::filesystem::create_directories(project_ / "Docs/Dev/Planning");
+    std::ofstream(project_ / "Docs/Dev/Planning/dungeons.json")
+        << R"({"dungeons":[{"id":"D1","name":"Test dungeon",
+                              "rooms":[{"id":"0x104"}]}]})";
+  }
+
+  void TearDown() override {
+    if (!project_.empty()) {
+      std::error_code ec;
+      std::filesystem::remove_all(project_, ec);
+    }
+  }
+  std::filesystem::path project_;
+};
+
+TEST_F(DungeonGraphWarpTagTest, ActiveOverrideMatchesCensusAndDiscovery) {
+  for (bool enabled : {true, false}) {
+    SCOPED_TRACE(enabled);
+    {
+      std::ofstream file(project_ / "hack_manifest.json");
+      ASSERT_TRUE(file.is_open());
+      file << nlohmann::json({{"room_tags",
+                               {{"tags",
+                                 {{{"tag_id", "0x3A"},
+                                   {"name", "WarpTag"},
+                                   {"enabled", enabled}}}}}}})
+                  .dump();
+      ASSERT_TRUE(file.good());
+    }
+    const std::string project = "--project=" + project_.string();
+    handlers::DungeonGraphCommandHandler graph_handler;
+    const auto graph =
+        Run(graph_handler, {"--room=0x104", project}, "dungeon_graph");
+    ASSERT_EQ(graph.at("edges").size(), 5u);
+    int quadrant_links = 0;
+    bool found_raw = false;
+    for (const auto& edge : graph.at("edges")) {
+      quadrant_links += edge.at("kind") == "warp_tag";
+      if (edge.at("to") == "0x124") {
+        found_raw = true;
+        EXPECT_EQ(edge.at("strong"), !enabled);
+        EXPECT_EQ(edge.at("kind"), enabled ? "header_only" : "holewarp");
+        if (enabled) {
+          EXPECT_NE(edge.at("detail").get<std::string>().find("overridden"),
+                    std::string::npos);
+        }
+      }
+    }
+    EXPECT_TRUE(found_raw);
+    EXPECT_EQ(quadrant_links, enabled ? 4 : 0);
+
+    handlers::DungeonDiscoverCommandHandler discover;
+    const auto discovery =
+        Run(discover, {"--entrance=0x07", "--depth=1", project}, "discovery");
+    EXPECT_EQ(discovery.at("rooms_discovered"), enabled ? 5 : 2);
+    bool raw_discovered = false;
+    for (const auto& room : discovery.at("discovered_rooms")) {
+      raw_discovered |= room.at("room_id") == "0x124";
+    }
+    EXPECT_EQ(raw_discovered, !enabled);
+
+    handlers::DungeonRoomCensusCommandHandler census_handler;
+    std::string output;
+    ASSERT_TRUE(
+        census_handler
+            .Run({"--room=0x124", "--format=json", project}, &rom_, &output)
+            .ok());
+    auto census = nlohmann::json::parse(output);
+    if (!census.contains("rooms")) {
+      ASSERT_EQ(census.size(), 1u);
+      census = census.begin().value();
+    }
+    ASSERT_EQ(census.at("rooms").size(), 1u);
+    const auto& raw_room = census.at("rooms").at(0);
+    EXPECT_EQ(raw_room.at("reached"), !enabled);
+    EXPECT_EQ(raw_room.at("status"), enabled ? "free" : "in_use");
+  }
 }
 
 TEST_F(DungeonGraphLinksTest, OutOfRangeDestinationsAreNotRooms) {
