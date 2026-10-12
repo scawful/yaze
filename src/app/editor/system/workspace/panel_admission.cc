@@ -29,6 +29,10 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
     {"overworld.properties",
      "Current default: selected-map properties in the Overworld Default "
      "preset."},
+    {"overworld.area_graphics",
+     "Reviewed Overworld default: selected-area graphics beside the map; "
+     "shares the right-bottom dock with map properties instead of covering "
+     "the canvas with a bottom strip."},
 
     // Dungeon
     {"dungeon.workbench",

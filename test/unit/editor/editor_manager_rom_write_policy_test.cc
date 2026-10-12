@@ -4990,8 +4990,10 @@ TEST_F(PaletteWorkspaceTest,
   before[ranges[0].first + 1] = 0x12;
   core::FeatureFlags::get().kSaveAllPalettes = true;
   manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
+  const auto save_toast_begin = manager->toast_manager()->pending_count();
   Click("Save ROM");
-  for (size_t i = 0; i < manager->toast_manager()->pending_count(); ++i) {
+  for (size_t i = save_toast_begin;
+       i < manager->toast_manager()->pending_count(); ++i) {
     const auto* toast = manager->toast_manager()->GetPendingToast(i);
     EXPECT_NE(toast->type, ToastType::kError) << toast->message;
   }

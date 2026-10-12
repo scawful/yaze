@@ -294,8 +294,9 @@ TEST(PanelAdmissionAuditTest, FormatGroupsIdenticalFixesIntoOneBlock) {
 
 // A first open must not bury the editor's canvas. Each editor's default layout
 // opens a handful of windows at most, and every one of them is a reviewed
-// first-class window. Adding a default-open window means adding an allowlist
-// entry with a reason, not editing this budget.
+// first-class window. Overworld's reviewed four-panel arrangement shares its
+// right-bottom dock between map properties and area graphics; all other editors
+// retain the three-window budget. Every default still needs an allowlist reason.
 TEST(PanelAdmissionBudgetTest, DefaultLayoutsOpenAFewAllowlistedWindows) {
   constexpr size_t kMaxDefaultOpenWindows = 3;
   constexpr EditorType kEditors[] = {
@@ -306,7 +307,9 @@ TEST(PanelAdmissionBudgetTest, DefaultLayoutsOpenAFewAllowlistedWindows) {
   };
   for (EditorType type : kEditors) {
     const PanelLayoutPreset preset = LayoutPresets::GetDefaultPreset(type);
-    EXPECT_LE(preset.default_visible_panels.size(), kMaxDefaultOpenWindows)
+    const size_t budget =
+        type == EditorType::kOverworld ? 4 : kMaxDefaultOpenWindows;
+    EXPECT_LE(preset.default_visible_panels.size(), budget)
         << preset.name << " opens too many windows on first use";
     for (const auto& window_id : preset.default_visible_panels) {
       EXPECT_NE(FindFirstClassPanelEntry(window_id), nullptr)

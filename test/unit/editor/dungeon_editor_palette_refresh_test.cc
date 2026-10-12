@@ -963,6 +963,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   game_data_.room_blockset_ids[4] = {11, 12, 13, 14};
   DungeonRoomStore rooms(&rom_, &game_data_);
   auto& room = rooms[1];
+  room.SetLoaded(true);
   room.SetTileObjects({});
   room.SetBlockset(4);
   room.SetRenderEntranceBlockset(1);
@@ -1538,6 +1539,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
        ConnectedRoomCompositePruningKeepsOneFrameGrace) {
   DungeonRoomStore rooms(&rom_, &game_data_);
   for (int room_id : {0, 1}) {
+    rooms[room_id].SetLoaded(true);
     rooms[room_id].SetTileObjects({});
     rooms[room_id].SetLayerMerging(zelda3::LayerMerge01);
   }
