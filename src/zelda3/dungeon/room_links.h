@@ -33,8 +33,12 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <stop_token>
 #include <string>
 #include <vector>
+
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 
 namespace yaze {
 class Rom;
@@ -177,9 +181,10 @@ bool IsWarpTileAttribute(uint8_t attribute);
 // sprites (LoadRoomFromRom + LoadSprites). Draws the room's layout and
 // objects without graphics to find pit and warp tiles. `pit_table` may be
 // null (no room counts as a pit-damage room).
-RoomLinkFacts CollectRoomLinkFacts(
+absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
     Rom* rom, const Room& room, const PitDamageTable* pit_table,
-    const CustomObjectRenderSnapshot* custom_objects = nullptr);
+    const CustomObjectRenderSnapshot* custom_objects = nullptr,
+    std::stop_token stop_token = {});
 
 // Loads rooms on demand and keeps their link facts.
 class RoomLinkFactsCache {
@@ -192,11 +197,15 @@ class RoomLinkFactsCache {
   // nullptr when `room_id` is not a room.
   const RoomLinkFacts* Get(int room_id);
   RoomLinkFactsLookup AsLookup();
+  // First load/scan failure, including a room reached indirectly by AsLookup.
+  // Callers must check this before publishing a graph built with the lookup.
+  const absl::Status& status() const { return status_; }
 
  private:
   Rom* rom_;
   std::unique_ptr<PitDamageTable> pit_table_;  // null when unreadable
   std::vector<std::optional<RoomLinkFacts>> facts_;
+  absl::Status status_;
 };
 
 }  // namespace zelda3

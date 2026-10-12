@@ -232,9 +232,11 @@ absl::StatusOr<RoomCensusInput> CollectRoomCensusInput(
     Room room = LoadRoomFromRom(rom, room_id);
     room.LoadSprites();
     RoomCensusRoomFacts& facts = input.rooms[room_id];
-    static_cast<RoomLinkFacts&>(facts) =
+    ASSIGN_OR_RETURN(
+        auto links,
         CollectRoomLinkFacts(rom, room, has_pit_table ? &pit_table : nullptr,
-                             options.custom_objects);
+                             options.custom_objects, options.stop_token));
+    static_cast<RoomLinkFacts&>(facts) = std::move(links);
     facts.sprite_count = static_cast<int>(room.GetSprites().size());
     facts.chest_count = static_cast<int>(room.GetChests().size());
     for (const auto& object : room.GetTileObjects()) {

@@ -16,11 +16,14 @@
 #include "core/features.h"
 #include "core/rom_settings.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "unique_temp_path.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_census_vanilla_fingerprints.h"
+#include "zelda3/dungeon/room_layout.h"
 #include "zelda3/overworld/overworld_entrance.h"
 
 namespace yaze::zelda3 {
@@ -485,6 +488,187 @@ class RoomCensusSyntheticRomTest : public ::testing::Test {
  protected:
   std::vector<uint8_t> data_ = test::BuildRoomCensusTestRom();
 };
+
+class RoomLayoutBoundsTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ASSERT_TRUE(rom_.LoadFromData(test::BuildRoomCensusTestRom()).ok());
+  }
+  int Start(int id) const { return SnesToPc(kRoomLayoutPointers[id]); }
+  int End(int id) const {
+    return SnesToPc(id + 1 < static_cast<int>(kRoomLayoutPointers.size())
+                        ? kRoomLayoutPointers[id + 1]
+                        : kRoomLayoutDataEnd);
+  }
+  void ClearStream(int id) {
+    std::fill(rom_.mutable_data() + Start(id), rom_.mutable_data() + End(id),
+              0);
+  }
+  void WriteOneObject() {
+    const auto bytes = test::TestObjectBytes(0xA4, 8, 8);
+    std::copy(bytes.begin(), bytes.end(), rom_.mutable_data() + Start(0));
+    rom_.mutable_data()[Start(0) + 3] = 0xFF;
+    rom_.mutable_data()[Start(0) + 4] = 0xFF;
+  }
+  Rom rom_;
+};
+
+TEST_F(RoomLayoutBoundsTest, AcceptsTerminatorInFinalTwoBytesOfEveryFixedSpan) {
+  for (int id = 0; id < static_cast<int>(kRoomLayoutPointers.size()); ++id) {
+    ClearStream(id);
+    rom_.mutable_data()[End(id) - 2] = 0xFF;
+    rom_.mutable_data()[End(id) - 1] = 0xFF;
+    RoomLayout layout(&rom_);
+    ASSERT_TRUE(layout.LoadLayout(id).ok()) << id;
+    EXPECT_EQ(layout.GetObjects().size(), (End(id) - Start(id) - 2) / 3) << id;
+  }
+}
+
+TEST_F(RoomLayoutBoundsTest, NeverBorrowsTerminatorFromNextLayoutOrWaterData) {
+  for (int id = 0; id < static_cast<int>(kRoomLayoutPointers.size()); ++id) {
+    ClearStream(id);
+    rom_.mutable_data()[End(id)] = 0xFF;
+    rom_.mutable_data()[End(id) + 1] = 0xFF;
+    RoomLayout layout(&rom_);
+    EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(id))) << id;
+    EXPECT_TRUE(layout.GetObjects().empty()) << id;
+  }
+}
+
+TEST_F(RoomLayoutBoundsTest, RejectsEofWithoutTerminator) {
+  auto data = test::BuildRoomCensusTestRom();
+  data.resize(Start(0) + 6);
+  std::fill(data.begin() + Start(0), data.end(), 0);
+  ASSERT_TRUE(rom_.LoadFromData(data).ok());
+  RoomLayout layout(&rom_);
+  EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(0)));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, RejectsTruncatedObject) {
+  auto data = test::BuildRoomCensusTestRom();
+  data.resize(Start(0) + 2);
+  data[Start(0)] = data[Start(0) + 1] = 0;
+  ASSERT_TRUE(rom_.LoadFromData(data).ok());
+  RoomLayout layout(&rom_);
+  EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(0)));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, RejectsTruncatedTerminator) {
+  auto data = test::BuildRoomCensusTestRom();
+  data.resize(Start(0) + 1);
+  data[Start(0)] = 0xFF;
+  ASSERT_TRUE(rom_.LoadFromData(data).ok());
+  RoomLayout layout(&rom_);
+  EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(0)));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, AcceptsTwoByteTerminatorAtEof) {
+  auto data = test::BuildRoomCensusTestRom();
+  data.resize(Start(0) + 2);
+  ASSERT_TRUE(rom_.LoadFromData(data).ok());
+  RoomLayout layout(&rom_);
+  EXPECT_TRUE(layout.LoadLayout(0).ok());
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, FailedReloadClearsPreviouslyDecodedObjects) {
+  WriteOneObject();
+  RoomLayout layout(&rom_);
+  ASSERT_TRUE(layout.LoadLayout(0).ok());
+  ASSERT_EQ(layout.GetObjects().size(), 1u);
+  ClearStream(0);
+  EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(0)));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, CancelledReloadClearsPreviouslyDecodedObjects) {
+  WriteOneObject();
+  RoomLayout layout(&rom_);
+  ASSERT_TRUE(layout.LoadLayout(0).ok());
+  ASSERT_EQ(layout.GetObjects().size(), 1u);
+  std::stop_source stop;
+  stop.request_stop();
+  EXPECT_TRUE(absl::IsCancelled(layout.LoadLayout(0, stop.get_token())));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomCensusSyntheticRomTest, MalformedLayoutDiscardsPartialCensusFacts) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  int visited = 0;
+  RoomCensusOptions options;
+  options.room_visitor = [&](int id, const Room&) {
+    ++visited;
+    if (id == 0) {
+      auto bytes = rom.mutable_data();
+      std::fill(bytes + SnesToPc(kRoomLayoutPointers[0]),
+                bytes + SnesToPc(kRoomLayoutPointers[1]), 0);
+    }
+  };
+  const auto result = ComputeRoomCensus(&rom, options);
+  EXPECT_TRUE(absl::IsDataLoss(result.status())) << result.status();
+  EXPECT_EQ(visited, 1);
+}
+
+TEST_F(RoomCensusSyntheticRomTest, CancellationDuringTileScanDiscardsFacts) {
+  // The synthetic header table shares $01:8000 with object tile pointers.
+  // Give it its own space so the pit can load tiles and enter the real draw.
+  constexpr int header_table = 0x071000;
+  std::copy_n(data_.begin() + SnesToPc(test::kTestHeaderTableSnes),
+              kRoomCensusRoomCount * 2, data_.begin() + header_table);
+  const uint32_t header_snes = PcToSnes(header_table);
+  for (int i = 0; i < 3; ++i) {
+    data_[kRoomHeaderPointer + i] = (header_snes >> (i * 8)) & 0xFF;
+  }
+  data_[kRoomObjectSubtype1 + 0xA4 * 2] = 0;
+  data_[kRoomObjectSubtype1 + 0xA4 * 2 + 1] = 0;
+  const int start = SnesToPc(kRoomLayoutPointers[0]);
+  const auto bytes = test::TestObjectBytes(0xA4, 8, 8);
+  std::copy(bytes.begin(), bytes.end(), data_.begin() + start);
+  data_[start + 3] = data_[start + 4] = 0xFF;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+
+  RoomLayout layout(&rom);
+  ASSERT_TRUE(layout.LoadLayout(0).ok());
+  ASSERT_EQ(layout.GetObjects().size(), 1u);
+  ASSERT_EQ(layout.GetObjects()[0].id_, 0xA4);
+  ASSERT_EQ(layout.GetObjects()[0].GetTileCount(), 24);
+
+  auto& registry = DrawRoutineRegistry::Get();
+  // This serial test overrides one existing routine only inside the test
+  // process, then restores it. Cancellation is requested by the real draw,
+  // after entry into the collector: no sleeps or scheduler timing assumptions.
+  auto* routine = const_cast<DrawRoutineInfo*>(
+      registry.GetRoutineInfo(registry.GetRoutineIdForObject(0xA4, false)));
+  ASSERT_NE(routine, nullptr);
+  struct Restore {
+    DrawRoutineInfo* routine;
+    DrawRoutineFn function;
+    ~Restore() { routine->function = std::move(function); }
+  } restore{routine, routine->function};
+  std::stop_source stop;
+  int drawn = 0, visited = 0;
+  routine->function = [&, original = restore.function](const DrawContext& ctx) {
+    original(ctx);
+    ++drawn;
+    stop.request_stop();
+  };
+  const auto frozen = CustomObjectManager::Get().CaptureRenderSnapshot(false);
+  RoomCensusOptions options;
+  options.custom_objects = &frozen;
+  options.stop_token = stop.get_token();
+  options.room_visitor = [&](int, const Room&) {
+    ++visited;
+  };
+  const auto result = ComputeRoomCensus(&rom, options);
+  EXPECT_TRUE(absl::IsCancelled(result.status())) << result.status();
+  EXPECT_EQ(drawn, 1);
+  EXPECT_EQ(visited, 0);
+}
 
 TEST_F(RoomCensusSyntheticRomTest, PreCancelledScanDoesNotReadRomOrVisitRooms) {
   std::stop_source source;

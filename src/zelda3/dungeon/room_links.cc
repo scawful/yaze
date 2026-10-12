@@ -8,6 +8,7 @@
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "rom/rom.h"
+#include "util/macro.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -122,9 +123,10 @@ struct DrawnTiles {
 // ComputeObjectTileOwners does, and looks up each drawn tile in the
 // blockset's TILEATTR ($7EFE00). Later draws replace earlier ones, as in the
 // game's tilemaps. Undrawn tiles are ignored.
-DrawnTiles ScanDrawnTiles(Rom* rom, const Room& room,
-                          const std::vector<RoomObject>& layout_objects,
-                          const CustomObjectRenderSnapshot* custom_objects) {
+absl::StatusOr<DrawnTiles> ScanDrawnTiles(
+    Rom* rom, const Room& room, const std::vector<RoomObject>& layout_objects,
+    const CustomObjectRenderSnapshot* custom_objects,
+    std::stop_token stop_token) {
   DrawnTiles result;
   std::vector<int> bg1(kRoomTilemapWords, -1);
   std::vector<int> bg2(kRoomTilemapWords, -1);
@@ -136,14 +138,22 @@ DrawnTiles ScanDrawnTiles(Rom* rom, const Room& room,
   gfx::BackgroundBuffer buffer1(512, 512);
   gfx::BackgroundBuffer buffer2(512, 512);
   gfx::PaletteGroup palette_group;
-  auto draw = [&](RoomObject object, RoomObject::LayerType layer) {
+  auto draw = [&](RoomObject object,
+                  RoomObject::LayerType layer) -> absl::Status {
+    if (stop_token.stop_requested()) {
+      return absl::CancelledError("Room link scan cancelled");
+    }
     object.SetRom(rom);
     object.layer_ = layer;
     trace.clear();
-    if (!drawer.DrawObject(object, buffer1, buffer2, palette_group).ok()) {
-      return;
+    RETURN_IF_ERROR(drawer.DrawObject(object, buffer1, buffer2, palette_group));
+    if (stop_token.stop_requested()) {
+      return absl::CancelledError("Room link scan cancelled");
     }
     for (const auto& tile : trace) {
+      if (stop_token.stop_requested()) {
+        return absl::CancelledError("Room link scan cancelled");
+      }
       if (tile.x_tile < 0 || tile.y_tile < 0 ||
           tile.x_tile >= kRoomTilemapSize || tile.y_tile >= kRoomTilemapSize) {
         continue;
@@ -154,14 +164,18 @@ DrawnTiles ScanDrawnTiles(Rom* rom, const Room& room,
       (lower ? bg2 : bg1)[position] = tile.tile_id & 0x3FF;
       (lower ? bg2_owner : bg1_owner)[position] = object.id_;
     }
+    return absl::OkStatus();
   };
   // The layout draws first, into the upper tilemap (RoomLayout::Draw).
   for (const auto& object : layout_objects) {
-    draw(object, RoomObject::LayerType::BG1);
+    RETURN_IF_ERROR(draw(object, RoomObject::LayerType::BG1));
   }
   const auto& objects = room.GetTileObjects();
   for (int list = 0; list < 3; ++list) {
     for (const auto& object : objects) {
+      if (stop_token.stop_requested()) {
+        return absl::CancelledError("Room link scan cancelled");
+      }
       if (!IsEncodedStreamObject(object)) {
         continue;
       }
@@ -169,8 +183,8 @@ DrawnTiles ScanDrawnTiles(Rom* rom, const Room& room,
       if (list_index != list) {
         continue;
       }
-      draw(object,
-           MapRoomObjectListIndexToDrawLayer(static_cast<uint8_t>(list)));
+      RETURN_IF_ERROR(draw(object, MapRoomObjectListIndexToDrawLayer(
+                                       static_cast<uint8_t>(list))));
     }
   }
   const auto table = LoadUnderworldTileAttributeTable(*rom, room.blockset());
@@ -178,6 +192,9 @@ DrawnTiles ScanDrawnTiles(Rom* rom, const Room& room,
     const auto& words = layer == 0 ? bg1 : bg2;
     const auto& owners = layer == 0 ? bg1_owner : bg2_owner;
     for (size_t position = 0; position < words.size(); ++position) {
+      if (stop_token.stop_requested()) {
+        return absl::CancelledError("Room link scan cancelled");
+      }
       const int tile = words[position];
       if (tile < 0 || tile >= static_cast<int>(kTileAttributeTableSize)) {
         continue;
@@ -343,9 +360,13 @@ bool IsWarpTileAttribute(uint8_t attribute) {
   return attribute == 0x4B;
 }
 
-RoomLinkFacts CollectRoomLinkFacts(
+absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
     Rom* rom, const Room& room, const PitDamageTable* pit_table,
-    const CustomObjectRenderSnapshot* custom_objects) {
+    const CustomObjectRenderSnapshot* custom_objects,
+    std::stop_token stop_token) {
+  if (stop_token.stop_requested()) {
+    return absl::CancelledError("Room link scan cancelled");
+  }
   RoomLinkFacts facts;
   facts.room_id = room.id();
   facts.blockset = room.blockset();
@@ -361,9 +382,8 @@ RoomLinkFacts CollectRoomLinkFacts(
   facts.has_hole_tag = IsHoleRoomTag(facts.tag1) || IsHoleRoomTag(facts.tag2);
 
   RoomLayout layout(rom);
-  const bool layout_ok = layout.LoadLayout(room.layout_id()).ok();
-  const std::vector<RoomObject> no_objects;
-  const auto& layout_objects = layout_ok ? layout.GetObjects() : no_objects;
+  RETURN_IF_ERROR(layout.LoadLayout(room.layout_id(), stop_token));
+  const auto& layout_objects = layout.GetObjects();
 
   bool has_stairs = false;
   for (const auto& object : layout_objects) {
@@ -385,8 +405,9 @@ RoomLinkFacts CollectRoomLinkFacts(
     }
   }
   if (rom != nullptr && rom->is_loaded()) {
-    const DrawnTiles drawn =
-        ScanDrawnTiles(rom, room, layout_objects, custom_objects);
+    ASSIGN_OR_RETURN(
+        const DrawnTiles drawn,
+        ScanDrawnTiles(rom, room, layout_objects, custom_objects, stop_token));
     if (drawn.pit && !facts.has_pits) {
       facts.pits_only_in_braziers = !drawn.pit_outside_braziers;
     }
@@ -410,12 +431,10 @@ RoomLinkFacts CollectRoomLinkFacts(
   // `dungeon-describe-room --include-staircase-resolution`.
   if (has_stairs && rom != nullptr) {
     auto collision_input = MakeRoomCollisionInput(room);
-    if (layout_ok) {
-      collision_input.objects.insert(collision_input.objects.begin(),
-                                     layout_objects.begin(),
-                                     layout_objects.end());
-    }
-    const size_t prefix_size = layout_ok ? layout_objects.size() : 0;
+    collision_input.objects.insert(collision_input.objects.begin(),
+                                   layout_objects.begin(),
+                                   layout_objects.end());
+    const size_t prefix_size = layout_objects.size();
     const auto resolutions =
         ResolveVanillaStaircaseSlots(*rom, collision_input);
     int placement_index = 0;
@@ -458,6 +477,9 @@ RoomLinkFacts CollectRoomLinkFacts(
       fact.role = RoomDoorRole::kTeleport;
     }
     facts.doors.push_back(fact);
+  }
+  if (stop_token.stop_requested()) {
+    return absl::CancelledError("Room link scan cancelled");
   }
   return facts;
 }
@@ -654,14 +676,20 @@ RoomLinkFactsCache::RoomLinkFactsCache(Rom* rom)
 RoomLinkFactsCache::~RoomLinkFactsCache() = default;
 
 const RoomLinkFacts* RoomLinkFactsCache::Get(int room_id) {
-  if (!IsDungeonRoomId(room_id) || rom_ == nullptr || !rom_->is_loaded()) {
+  if (!status_.ok() || !IsDungeonRoomId(room_id) || rom_ == nullptr ||
+      !rom_->is_loaded()) {
     return nullptr;
   }
   auto& slot = facts_[room_id];
   if (!slot.has_value()) {
     Room room = LoadRoomFromRom(rom_, room_id);
     room.LoadSprites();
-    slot = CollectRoomLinkFacts(rom_, room, pit_table_.get());
+    auto collected = CollectRoomLinkFacts(rom_, room, pit_table_.get());
+    if (!collected.ok()) {
+      status_ = collected.status();
+      return nullptr;
+    }
+    slot = std::move(*collected);
   }
   return &*slot;
 }
