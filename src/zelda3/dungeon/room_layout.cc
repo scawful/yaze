@@ -31,7 +31,7 @@ absl::StatusOr<int> RoomLayout::GetLayoutAddress(int layout_id) const {
   return pc_addr;
 }
 
-absl::Status RoomLayout::LoadLayout(int layout_id, std::stop_token stop_token) {
+absl::Status RoomLayout::LoadLayout(int layout_id, util::StopToken stop_token) {
   objects_.clear();
   if (stop_token.stop_requested()) {
     return absl::CancelledError("Room layout load cancelled");

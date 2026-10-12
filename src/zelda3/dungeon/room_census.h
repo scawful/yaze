@@ -33,11 +33,11 @@
 #include <functional>
 #include <optional>
 #include <set>
-#include <stop_token>
 #include <string>
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "util/stop_token.h"
 #include "zelda3/dungeon/room_links.h"
 
 namespace yaze {
@@ -162,7 +162,7 @@ struct RoomCensus {
 struct RoomCensusOptions {
   // Cancellation discards all partial facts. Background owners request stop
   // before invalidating or joining the job; synchronous callers need no token.
-  std::stop_token stop_token;
+  util::StopToken stop_token;
   // Background callers must capture on the owner thread and retain this
   // snapshot for the entire call. Null keeps synchronous live-editor behavior.
   const CustomObjectRenderSnapshot* custom_objects = nullptr;
@@ -210,7 +210,7 @@ float RoomFingerprintSimilarity(const std::vector<uint16_t>& a,
 
 // Fingerprints of every room in `rom`, for generating the built-in table.
 absl::StatusOr<std::vector<std::vector<uint16_t>>> ComputeRoomFingerprints(
-    Rom* rom, std::stop_token stop_token = {});
+    Rom* rom, util::StopToken stop_token = {});
 
 }  // namespace zelda3
 }  // namespace yaze

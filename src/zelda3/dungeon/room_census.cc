@@ -141,7 +141,7 @@ float RoomFingerprintSimilarity(const std::vector<uint16_t>& a,
 }
 
 absl::StatusOr<std::vector<std::vector<uint16_t>>> ComputeRoomFingerprints(
-    Rom* rom, std::stop_token stop_token) {
+    Rom* rom, util::StopToken stop_token) {
   if (stop_token.stop_requested()) {
     return absl::CancelledError("Room census cancelled");
   }

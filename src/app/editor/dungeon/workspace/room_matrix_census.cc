@@ -107,7 +107,7 @@ void RoomMatrixCensusOverlay::StartComputation(Rom* rom) {
       warp_tags = zelda3::RoomCensusWarpTagsFromManifest(*manifest);
     }
   }
-  stop_source_ = std::stop_source{};
+  stop_source_ = util::StopSource{};
   pending_ = std::async(
       std::launch::async,
       [rom_copy, owners = std::move(owners), warp_tags = std::move(warp_tags),

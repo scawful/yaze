@@ -33,12 +33,12 @@
 #include <memory>
 #include <optional>
 #include <set>
-#include <stop_token>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "util/stop_token.h"
 
 namespace yaze {
 class Rom;
@@ -195,7 +195,7 @@ bool IsWarpTileAttribute(uint8_t attribute);
 absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
     Rom* rom, const Room& room, const PitDamageTable* pit_table,
     const CustomObjectRenderSnapshot* custom_objects = nullptr,
-    std::stop_token stop_token = {});
+    util::StopToken stop_token = {});
 
 // Loads rooms on demand and keeps their link facts.
 class RoomLinkFactsCache {

@@ -11,6 +11,7 @@
 #include <functional>
 #include <future>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -34,11 +35,11 @@ class RoomMatrixCensusTestPeer {
     return overlay.DrawChip(id, label, ImVec4(0.3f, 0.6f, 0.8f, 1.0f), outline,
                             false, first);
   }
-  static std::stop_token NewToken(RoomMatrixCensusOverlay& overlay) {
-    overlay.stop_source_ = std::stop_source{};
+  static util::StopToken NewToken(RoomMatrixCensusOverlay& overlay) {
+    overlay.stop_source_ = util::StopSource{};
     return overlay.stop_source_.get_token();
   }
-  static std::stop_token Token(RoomMatrixCensusOverlay& overlay) {
+  static util::StopToken Token(RoomMatrixCensusOverlay& overlay) {
     return overlay.stop_source_.get_token();
   }
   static void SetPending(
@@ -62,11 +63,11 @@ class RoomMatrixCensusTestPeer {
 
 class DungeonEditorV2EntranceCameraTestPeer {
  public:
-  static std::stop_token NewToken(DungeonEditorV2& editor) {
-    editor.dungeon_render_context_census_stop_ = std::stop_source{};
+  static util::StopToken NewToken(DungeonEditorV2& editor) {
+    editor.dungeon_render_context_census_stop_ = util::StopSource{};
     return editor.dungeon_render_context_census_stop_.get_token();
   }
-  static std::stop_token Token(DungeonEditorV2& editor) {
+  static util::StopToken Token(DungeonEditorV2& editor) {
     return editor.dungeon_render_context_census_stop_.get_token();
   }
   static void SetPending(
@@ -383,7 +384,7 @@ DungeonEntranceCameraState StateFromDerived(int room_id, uint16_t player_x,
 // bounds a broken test; success depends on the stop signal, not elapsed time.
 class WaitingCensusJob {
  public:
-  explicit WaitingCensusJob(std::stop_token token,
+  explicit WaitingCensusJob(util::StopToken token,
                             bool return_success = false) {
     std::promise<void> started_promise;
     auto started = started_promise.get_future();
@@ -392,12 +393,14 @@ class WaitingCensusJob {
         [observed = observed_stop_, token, return_success,
          started_promise = std::move(
              started_promise)]() mutable -> absl::StatusOr<zelda3::RoomCensus> {
-          std::promise<void> stopped;
-          auto stopped_future = stopped.get_future();
-          std::stop_callback notify(token, [&] { stopped.set_value(); });
           started_promise.set_value();
-          *observed = stopped_future.wait_for(std::chrono::seconds(10)) ==
-                      std::future_status::ready;
+          const auto deadline =
+              std::chrono::steady_clock::now() + std::chrono::seconds(10);
+          while (!token.stop_requested() &&
+                 std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+          }
+          *observed = token.stop_requested();
           if (return_success) {
             return MakeCensus({{4}});
           }
@@ -542,7 +545,7 @@ TEST(DungeonRenderContextTest, PendingCensusDiscardsReplacedRomAndProject) {
   EXPECT_EQ(DungeonEditorV2EntranceCameraTestPeer::Census(editor), nullptr);
 
   const auto old_token = DungeonEditorV2EntranceCameraTestPeer::Token(editor);
-  ASSERT_TRUE(old_token.stop_possible());
+  ASSERT_TRUE(old_token.has_stop_state());
   Rom replacement;
   // Original room 0 reaches 4; replacement reaches 6.
   data[SnesToPc(0x019010) + zelda3::test::kTestHeaderHolewarp] = 6;
@@ -617,7 +620,7 @@ TEST(RoomMatrixCensusTest, ReplacedRomDiscardsPendingResult) {
   overlay.SetEnabled(true);
   overlay.Update(original.get());
   const auto old_token = RoomMatrixCensusTestPeer::Token(overlay);
-  ASSERT_TRUE(old_token.stop_possible());
+  ASSERT_TRUE(old_token.has_stop_state());
   ASSERT_TRUE(overlay.computing());
   ASSERT_TRUE(RoomMatrixCensusTestPeer::WaitForPending(overlay));
 

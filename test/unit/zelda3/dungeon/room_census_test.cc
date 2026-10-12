@@ -33,6 +33,44 @@ namespace {
 using ::testing::ElementsAre;
 using ::testing::HasSubstr;
 
+TEST(StopTokenTest, EmptyTokenAndUnstoppableSourceIgnoreStopRequests) {
+  EXPECT_FALSE(util::StopToken{}.stop_requested());
+  util::StopSource source(util::kNoStopState);
+  EXPECT_FALSE(source.request_stop());
+  EXPECT_FALSE(source.get_token().stop_requested());
+}
+
+TEST(StopTokenTest, CopiesShareOneStopRequest) {
+  util::StopSource source;
+  auto source_copy = source;
+  auto token = source.get_token();
+  auto token_copy = token;
+  EXPECT_FALSE(token.stop_requested());
+  EXPECT_TRUE(source_copy.request_stop());
+  EXPECT_TRUE(token.stop_requested());
+  EXPECT_TRUE(token_copy.stop_requested());
+  EXPECT_FALSE(source.request_stop());
+}
+
+TEST(StopTokenTest, TokenRetainsStopStateAfterSourceDestruction) {
+  util::StopToken token;
+  {
+    util::StopSource source;
+    token = source.get_token();
+    ASSERT_TRUE(source.request_stop());
+  }
+  EXPECT_TRUE(token.stop_requested());
+}
+
+TEST(StopTokenTest, ReplacingSourceDoesNotStopPreviousJob) {
+  util::StopSource source;
+  const auto previous_token = source.get_token();
+  source = util::StopSource{};
+  EXPECT_TRUE(source.request_stop());
+  EXPECT_FALSE(previous_token.stop_requested());
+  EXPECT_TRUE(source.get_token().stop_requested());
+}
+
 constexpr int kNorth = 0;
 constexpr int kSouth = 1;
 constexpr int kEast = 3;
@@ -695,7 +733,7 @@ TEST_F(RoomLayoutBoundsTest, CancelledReloadClearsPreviouslyDecodedObjects) {
   RoomLayout layout(&rom_);
   ASSERT_TRUE(layout.LoadLayout(0).ok());
   ASSERT_EQ(layout.GetObjects().size(), 1u);
-  std::stop_source stop;
+  util::StopSource stop;
   stop.request_stop();
   EXPECT_TRUE(absl::IsCancelled(layout.LoadLayout(0, stop.get_token())));
   EXPECT_TRUE(layout.GetObjects().empty());
@@ -756,7 +794,7 @@ TEST_F(RoomCensusSyntheticRomTest, CancellationDuringTileScanDiscardsFacts) {
     DrawRoutineFn function;
     ~Restore() { routine->function = std::move(function); }
   } restore{routine, routine->function};
-  std::stop_source stop;
+  util::StopSource stop;
   int drawn = 0, visited = 0;
   routine->function = [&, original = restore.function](const DrawContext& ctx) {
     original(ctx);
@@ -777,7 +815,7 @@ TEST_F(RoomCensusSyntheticRomTest, CancellationDuringTileScanDiscardsFacts) {
 }
 
 TEST_F(RoomCensusSyntheticRomTest, PreCancelledScanDoesNotReadRomOrVisitRooms) {
-  std::stop_source source;
+  util::StopSource source;
   source.request_stop();
   RoomCensusOptions options;
   options.stop_token = source.get_token();
@@ -797,7 +835,7 @@ TEST_F(RoomCensusSyntheticRomTest,
   ASSERT_TRUE(rom.LoadFromData(data_).ok());
   const auto frozen = CustomObjectManager::Get().CaptureRenderSnapshot(false);
   const core::RomAddressOverrides addresses;
-  std::stop_source source;
+  util::StopSource source;
   std::promise<void> entered, resume;
   auto entered_future = entered.get_future();
   auto resume_future = resume.get_future();
@@ -829,7 +867,7 @@ TEST_F(RoomCensusSyntheticRomTest,
        CancellationAfterLastRoomDiscardsPartialFacts) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(data_).ok());
-  std::stop_source source;
+  util::StopSource source;
   RoomCensusOptions options;
   options.stop_token = source.get_token();
   int visited = 0;

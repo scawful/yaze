@@ -6,11 +6,11 @@
 #include <memory>
 #include <optional>
 #include <set>
-#include <stop_token>
 #include <string>
 
 #include "absl/status/statusor.h"
 #include "imgui/imgui.h"
+#include "util/stop_token.h"
 #include "zelda3/dungeon/room_census.h"
 
 namespace yaze {
@@ -110,7 +110,7 @@ class RoomMatrixCensusOverlay {
   std::optional<zelda3::RoomCensus> census_;
   std::string error_;
   std::future<absl::StatusOr<zelda3::RoomCensus>> pending_;
-  std::stop_source stop_source_{std::nostopstate};
+  util::StopSource stop_source_{util::kNoStopState};
   std::set<int> largest_block_;
 
   bool filter_free_ = false;
