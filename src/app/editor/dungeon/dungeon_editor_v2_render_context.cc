@@ -100,7 +100,7 @@ const zelda3::RoomCensus* DungeonEditorV2::GetDungeonRenderContextCensus()
   core::HackManifest manifest = dependencies_.project->hack_manifest;
   dungeon_render_context_pending_generation_ =
       dungeon_render_context_census_generation_;
-  dungeon_render_context_census_stop_ = std::stop_source{};
+  dungeon_render_context_census_stop_ = util::StopSource{};
   dungeon_render_context_census_pending_ = std::async(
       std::launch::async,
       [rom_copy, project_registry = std::move(project_registry),

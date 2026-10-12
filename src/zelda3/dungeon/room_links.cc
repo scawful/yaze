@@ -126,7 +126,7 @@ struct DrawnTiles {
 absl::StatusOr<DrawnTiles> ScanDrawnTiles(
     Rom* rom, const Room& room, const std::vector<RoomObject>& layout_objects,
     const CustomObjectRenderSnapshot* custom_objects,
-    std::stop_token stop_token) {
+    util::StopToken stop_token) {
   DrawnTiles result;
   std::vector<int> bg1(kRoomTilemapWords, -1);
   std::vector<int> bg2(kRoomTilemapWords, -1);
@@ -363,7 +363,7 @@ bool IsWarpTileAttribute(uint8_t attribute) {
 absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
     Rom* rom, const Room& room, const PitDamageTable* pit_table,
     const CustomObjectRenderSnapshot* custom_objects,
-    std::stop_token stop_token) {
+    util::StopToken stop_token) {
   if (stop_token.stop_requested()) {
     return absl::CancelledError("Room link scan cancelled");
   }
