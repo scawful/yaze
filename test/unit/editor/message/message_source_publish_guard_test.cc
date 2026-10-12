@@ -334,7 +334,7 @@ TEST(MessageProjectSourceLoadTest,
             ComputeMessageSourceSha256(source_before));
   EXPECT_FALSE(MessageEditorPublishGuardTestPeer::BundleStatusError(*editor));
   EXPECT_NE(MessageEditorPublishGuardTestPeer::BundleStatus(*editor).find(
-                "Dialogue/custom-canonical.json"),
+                fs::canonical(fixture.canonical).lexically_normal().string()),
             std::string::npos);
   EXPECT_FALSE(MessageEditorPublishGuardTestPeer::ExpandedDirty(*editor));
   EXPECT_FALSE(MessageEditorPublishGuardTestPeer::VanillaDirty(*editor));

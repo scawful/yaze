@@ -71,7 +71,7 @@ TEST(DungeonTilePatternsTest, PublishingWordsPreservesAssertions) {
       "org $009E3A\ndw $0890,$0896\n"
       "assert pc() == $009E3E, \"Top wall size\"\n";
   {
-    std::ofstream file(path);
+    std::ofstream file(path, std::ios::binary);
     file << source;
   }
   const auto parsed = LoadDungeonTilePatterns(path.string());
