@@ -19,6 +19,10 @@ inputs:
     description: 'Maximum parallel build jobs'
     required: false
     default: '4'
+  cache-suffix:
+    description: 'Inserted after "build" in the Windows cache key. Set when targets is a subset so a partial tree cannot restore over the full build cache.'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -35,9 +39,9 @@ runs:
       uses: actions/cache@v4
       with:
         path: build/presets/${{ inputs.preset }}
-        key: build-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-${{ hashFiles('cmake/dependencies.lock') }}
+        key: build${{ inputs.cache-suffix }}-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-${{ hashFiles('cmake/dependencies.lock') }}
         restore-keys: |
-          build-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-
+          build${{ inputs.cache-suffix }}-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-
 
     - name: Configure project
       shell: bash
