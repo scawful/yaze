@@ -1130,6 +1130,7 @@
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_BUILD_QUICK_TESTS": "OFF",
         "YAZE_PREFER_SYSTEM_GRPC": "ON"
       },
       "displayName": "CI Build - Linux",
@@ -1149,6 +1150,7 @@
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_BUILD_QUICK_TESTS": "OFF",
         "YAZE_PREFER_SYSTEM_GRPC": "ON"
       },
       "displayName": "CI Build - macOS",
@@ -1167,7 +1169,8 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_BUILD_QUICK_TESTS": "OFF"
       },
       "displayName": "CI Build - Windows",
       "name": "ci-windows",
@@ -1185,7 +1188,8 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI_RUNTIME": "ON"
+        "YAZE_ENABLE_AI_RUNTIME": "ON",
+        "YAZE_BUILD_QUICK_TESTS": "OFF"
       },
       "displayName": "CI Build - Windows (Agent)",
       "name": "ci-windows-ai",

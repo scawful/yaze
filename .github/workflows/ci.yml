@@ -1,7 +1,11 @@
 name: CI/CD Pipeline
 
 # Test Strategy:
-# - PR/Push: Run lean test set (stable tests + smoke tests) for fast feedback
+# - PR/Push: Run lean test set (stable tests + Linux GUI smoke) for fast feedback.
+#   The test job compiles only those binaries: yaze_test_unit,
+#   yaze_test_integration, z3ed, and on Linux yaze_test_gui. CI presets also
+#   leave the quick binaries unconfigured. Benchmark and GUI binaries stay in
+#   the default build for local use and nightly.
 # - Nightly: Run comprehensive suite including ROM-dependent, experimental, benchmarks
 # - See .github/workflows/nightly.yml for extended test coverage
 #
@@ -96,10 +100,10 @@ jobs:
   build:
     name: "Build - ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
-    # Skipped on pull requests: the test job builds the same OS, preset, build
-    # type and default target, then runs the tests, so this job only repeated
-    # its compile (about 91 runner-minutes per PR). It still runs on push, where
-    # it uploads the Windows artifact and feeds windows-agent.
+    # Skipped on pull requests. The test job compiles the stable binaries for
+    # this OS and preset, then runs them. This job still builds the default
+    # target on push so the Windows artifact includes the app and the suites
+    # the PR job does not compile.
     if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
@@ -175,14 +179,18 @@ jobs:
             os: ubuntu-22.04
             platform: linux
             preset: ci-linux
+            # Linux smoke runs yaze_test_gui directly. z3ed_self_test is stable.
+            test_targets: yaze_test_unit yaze_test_integration yaze_test_gui z3ed
           - name: "macOS 14"
             os: macos-14
             platform: macos
             preset: ci-macos
+            test_targets: yaze_test_unit yaze_test_integration z3ed
           - name: "Windows 2022 (Core)"
             os: windows-2022
             platform: windows
             preset: ci-windows
+            test_targets: yaze_test_unit yaze_test_integration z3ed
 
     steps:
       - name: Checkout code
@@ -216,6 +224,9 @@ jobs:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
           build-type: ${{ env.BUILD_TYPE }}
+          targets: ${{ matrix.test_targets }}
+          # Separate from the push build job's full-tree Windows cache.
+          cache-suffix: -tests
 
       - name: Run stable tests only
         uses: ./.github/actions/run-tests
@@ -289,6 +300,8 @@ jobs:
           platform: windows
           preset: ci-windows-ai
           build-type: ${{ env.BUILD_TYPE }}
+          targets: yaze_test_unit yaze_test_integration z3ed
+          cache-suffix: -tests
 
       - name: Run stable tests only (agent stack)
         uses: ./.github/actions/run-tests

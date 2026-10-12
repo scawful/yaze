@@ -28,6 +28,10 @@ if(YAZE_BUILD_TESTS)
   # benchmark) always use per-case discovery.
   option(YAZE_TEST_PER_CASE
     "Register one ctest entry per gtest case instead of per-suite shards" OFF)
+  # Quick binaries recompile sources that are already linked into the stable
+  # suites. CI presets turn this off; build a quick target by name locally.
+  option(YAZE_BUILD_QUICK_TESTS
+    "Build quick test binaries that duplicate stable suite sources" ON)
   # Shard counts: yaze_test_unit does about 130 s of Debug work on an M-series
   # Mac, so 10 shards average about 13 s. The heaviest fixture
   # (DungeonRoomCensusCommandTest, about 20 s) sets the floor for one shard.
@@ -878,14 +882,20 @@ if(YAZE_BUILD_TESTS)
   # These binaries reuse the subsets declared above. They are intentionally
   # not labeled "stable": `ctest -L stable` excludes the quick copies.
   # Keep per-case discovery and prefixed names for isolated quick filtering.
-  if(YAZE_ENABLE_ASAR)
-    list(APPEND QUICK_UNIT_CORE_TEST_SOURCES
-      unit/core/asar_wrapper_test.cc
-    )
+  # CI leaves them unconfigured (YAZE_BUILD_QUICK_TESTS=OFF) because the
+  # stable binaries already compile these sources.
+  if(YAZE_BUILD_QUICK_TESTS)
+    if(YAZE_ENABLE_ASAR)
+      list(APPEND QUICK_UNIT_CORE_TEST_SOURCES
+        unit/core/asar_wrapper_test.cc
+      )
+    endif()
+    yaze_add_test_suite(yaze_test_quick_unit_core "quick;fast_unit;fast_unit_core" OFF ${QUICK_UNIT_CORE_TEST_SOURCES})
+    yaze_add_test_suite(yaze_test_quick_unit_editor "quick;fast_unit;fast_unit_editor" OFF ${QUICK_UNIT_EDITOR_TEST_SOURCES})
+    yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
+  else()
+    message(STATUS "Skipping quick test binaries (YAZE_BUILD_QUICK_TESTS=OFF)")
   endif()
-  yaze_add_test_suite(yaze_test_quick_unit_core "quick;fast_unit;fast_unit_core" OFF ${QUICK_UNIT_CORE_TEST_SOURCES})
-  yaze_add_test_suite(yaze_test_quick_unit_editor "quick;fast_unit;fast_unit_editor" OFF ${QUICK_UNIT_EDITOR_TEST_SOURCES})
-  yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
 
   # --- ROM Dependent Test Suite ---
   if(YAZE_ENABLE_ROM_TESTS)
