@@ -183,6 +183,7 @@ TEST(DungeonAtlasSyntheticTest, WarpTagSlotsReplaceTheRawWarpTileTarget) {
   const auto atlas = BuildDungeonAtlas(input, {});
   const auto& links = atlas.rooms[0x10].links_out;
   EXPECT_EQ(FindLink(links, LinkKind::kWarpTiles), nullptr);
+  EXPECT_FALSE(atlas.rooms[0x20].reached);
   EXPECT_EQ(std::count_if(links.begin(), links.end(),
                           [](const auto& link) {
                             return link.kind == LinkKind::kWarpTag;
@@ -261,8 +262,15 @@ TEST(DungeonAtlasSyntheticTest, SharedHoleCauseKeepsTagAndSpritePrecedence) {
   EXPECT_EQ(tag->to, 0x20);
   EXPECT_EQ(FindLink(atlas.rooms[0x10].links_out, LinkKind::kPit), nullptr);
 
-  // Redefining the tag removes only its hole cause, not the sprite's floor.
+  // An active project warp tag replaces the sprite's raw destination too.
   input.census.warp_tag_ids = {0x22};
+  atlas = BuildDungeonAtlas(input, {});
+  EXPECT_EQ(FindLink(atlas.rooms[0x10].links_out, LinkKind::kPit), nullptr);
+  EXPECT_FALSE(atlas.rooms[0x20].reached);
+
+  // With no tag override, the sprite remains a live floor-drop source.
+  facts.tag1 = 0;
+  facts.has_hole_tag = false;
   atlas = BuildDungeonAtlas(input, {});
   const auto* pit = FindLink(atlas.rooms[0x10].links_out, LinkKind::kPit);
   ASSERT_NE(pit, nullptr);
@@ -283,11 +291,31 @@ TEST(DungeonAtlasSyntheticTest, OnlyActiveHoleSourcesWarnAboutInvalidTargets) {
   auto atlas = BuildDungeonAtlas(input, {});
   EXPECT_THAT(atlas.warnings,
               ::testing::Not(::testing::Contains(HasSubstr("holewarp"))));
+  facts.tag1 = 0;
+  facts.has_hole_tag = false;
   facts.has_pits = true;
   atlas = BuildDungeonAtlas(input, {});
   EXPECT_THAT(atlas.warnings,
               ::testing::Contains(HasSubstr("holewarp points past $127")));
   EXPECT_EQ(FindLink(atlas.rooms[0x104].links_out, LinkKind::kPit), nullptr);
+}
+
+TEST(DungeonAtlasSyntheticTest, WarpTagDoesNotReachTheUnusedRawPitRoom) {
+  auto input = EmptyInput();
+  AddEntrance(&input, 0x01, 0x10, 0x04, 0x00);
+  auto& facts = input.census.rooms[0x10];
+  facts.tag2 = 0x3A;
+  facts.has_pits = true;
+  facts.holewarp_byte = 0x30;
+  facts.stair_bytes = {0x20, 0x21, 0x22, 0x23};
+  input.census.warp_tag_ids = {0x3A};
+  const auto atlas = BuildDungeonAtlas(input, {});
+  EXPECT_EQ(FindLink(atlas.rooms[0x10].links_out, LinkKind::kPit), nullptr);
+  EXPECT_FALSE(atlas.rooms[0x30].reached);
+  EXPECT_EQ(atlas.rooms[0x30].status, RoomStatus::kFree);
+  for (int target = 0x20; target <= 0x23; ++target) {
+    EXPECT_TRUE(atlas.rooms[target].reached);
+  }
 }
 
 TEST(DungeonAtlasSyntheticTest, HeaderTargetsKeepTheHighByte) {

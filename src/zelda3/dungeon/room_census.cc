@@ -185,6 +185,9 @@ std::set<uint8_t> RoomCensusWarpTagsFromManifest(
     const core::HackManifest& manifest) {
   std::set<uint8_t> tags;
   for (const auto& tag : manifest.room_tags()) {
+    if (!tag.enabled) {
+      continue;
+    }
     std::string lowered = tag.name;
     std::transform(lowered.begin(), lowered.end(), lowered.begin(),
                    [](unsigned char c) { return std::tolower(c); });

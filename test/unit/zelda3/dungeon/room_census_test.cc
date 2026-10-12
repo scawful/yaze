@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 #include "core/features.h"
+#include "core/hack_manifest.h"
 #include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -205,6 +206,111 @@ TEST_F(RoomCensusTest, WarpTagUsesHeaderStairSlots) {
   EXPECT_TRUE(census.rooms[0x09].reached);
   EXPECT_TRUE(census.rooms[0x00].reached);
   EXPECT_TRUE(census.rooms[0x6A].reached);
+}
+
+TEST_F(RoomCensusTest, WarpTagOverridesEveryRawHolewarpCause) {
+  for (int tag_slot = 0; tag_slot < 2; ++tag_slot) {
+    for (int cause = 0; cause < 4; ++cause) {
+      for (bool damage_only : {false, true}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "tag slot " << tag_slot << ", cause " << cause
+                     << ", damage only " << damage_only);
+        auto input = input_;
+        auto& facts = input.rooms[0x10];
+        (tag_slot == 0 ? facts.tag1 : facts.tag2) = 0x3A;
+        facts.stair_bytes = {0x20, 0x21, 0x22, 0x23};
+        facts.holewarp_byte = 0x30;
+        facts.in_pit_damage_table = damage_only;
+        facts.has_warp_tiles = cause == 0;
+        facts.has_pits = cause == 1;
+        if (cause == 2) {
+          facts.hole_sprite = "Ganon's falling floor (sprite 0xD6)";
+        } else if (cause == 3) {
+          (tag_slot == 0 ? facts.tag2 : facts.tag1) = 0x22;
+          facts.has_hole_tag = true;
+        }
+        input.warp_tag_ids = {0x3A};
+        const auto census = BuildRoomCensus(input);
+        EXPECT_FALSE(census.rooms[0x30].reached);
+        EXPECT_EQ(census.rooms[0x30].owner_index, -1);
+        EXPECT_TRUE(HasReason(census.rooms[0x30], "overridden by warp tag"));
+        for (int target = 0x20; target <= 0x23; ++target) {
+          EXPECT_TRUE(census.rooms[target].reached);
+          EXPECT_GE(census.rooms[target].owner_index, 0);
+        }
+        const RoomLinkFactsLookup lookup =
+            [&](int room) -> const RoomLinkFacts* {
+          return IsDungeonRoomId(room) ? &input.rooms[room] : nullptr;
+        };
+        const auto links = CollectRoomLinks(0x10, lookup, input.warp_tag_ids);
+        ASSERT_EQ(links.size(), 5u);
+        const auto& raw = links.back();
+        EXPECT_EQ(raw.kind, RoomReferenceKind::kHeaderOnly);
+        EXPECT_EQ(raw.to, 0x30);
+        EXPECT_FALSE(raw.strong);
+        EXPECT_FALSE(raw.owner_ok);
+        EXPECT_EQ(raw.holewarp_cause, RoomHolewarpCause::kNone);
+      }
+    }
+  }
+}
+
+TEST_F(RoomCensusTest, WarpTagRetainsHighPageStairsAndActiveZeroSlots) {
+  AddEntrance(input_, 0x61, 0x110, kRoomCensusInteriorDungeonId);
+  auto& facts = input_.rooms[0x110];
+  facts.tag2 = 0x45;
+  facts.has_warp_tiles = true;
+  facts.stair_bytes = {0x00, 0x1D, 0x20, 0x27};
+  facts.stair_slot_used[0] = true;
+  input_.warp_tag_ids = {0x45};
+  const RoomLinkFactsLookup lookup = [&](int room) -> const RoomLinkFacts* {
+    return IsDungeonRoomId(room) ? &input_.rooms[room] : nullptr;
+  };
+  for (uint8_t raw_byte : {0x00, 0xFF}) {
+    SCOPED_TRACE(static_cast<int>(raw_byte));
+    facts.holewarp_byte = raw_byte;
+    const auto links = CollectRoomLinks(0x110, lookup, input_.warp_tag_ids);
+    ASSERT_EQ(links.size(), raw_byte == 0 ? 4u : 5u);
+    EXPECT_EQ(links[0].kind, RoomReferenceKind::kStair);
+    EXPECT_EQ(links[0].to, 0x100);
+    EXPECT_TRUE(links[0].strong);
+    for (int slot = 1; slot < 4; ++slot) {
+      EXPECT_EQ(links[slot].kind, RoomReferenceKind::kWarpTag);
+      EXPECT_TRUE(links[slot].strong);
+    }
+    if (raw_byte != 0) {
+      EXPECT_EQ(links.back().kind, RoomReferenceKind::kHeaderOnly);
+      EXPECT_EQ(links.back().raw_to, 0x1FF);
+      EXPECT_EQ(links.back().to, -1);
+      EXPECT_FALSE(links.back().strong);
+    }
+    const auto census = BuildRoomCensus(input_);
+    for (int target : {0x100, 0x11D, 0x120, 0x127}) {
+      EXPECT_TRUE(census.rooms[target].reached);
+    }
+  }
+}
+
+TEST_F(RoomCensusTest, DisabledManifestWarpTagKeepsTheVanillaDestination) {
+  core::HackManifest manifest;
+  ASSERT_TRUE(manifest
+                  .LoadFromString(R"({"room_tags":{"tags":[
+    {"tag_id":"0x3A","name":"WarpTag","enabled":false},
+    {"tag_id":"0x45","name":"WaRp_TaG","enabled":true},
+    {"tag_id":"0x46","name":"WarpTag Alternate"},
+    {"tag_id":"0x47","name":"WaterGate","enabled":true}
+  ]}})")
+                  .ok());
+  input_.warp_tag_ids = RoomCensusWarpTagsFromManifest(manifest);
+  EXPECT_THAT(input_.warp_tag_ids, ElementsAre(0x45, 0x46));
+  input_.rooms[0x10].tag1 = 0x3A;
+  input_.rooms[0x10].has_hole_tag = true;
+  input_.rooms[0x10].has_warp_tiles = true;
+  input_.rooms[0x10].holewarp_byte = 0x30;
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x30].reached);
+  EXPECT_GE(census.rooms[0x30].owner_index, 0);
+  EXPECT_TRUE(HasReason(census.rooms[0x30], "warp tiles in 0x10"));
 }
 
 TEST_F(RoomCensusTest, DerivedOwnersUseDungeonIdsAndInteriors) {

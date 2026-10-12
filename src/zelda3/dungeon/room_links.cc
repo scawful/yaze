@@ -621,6 +621,21 @@ std::vector<RoomLink> CollectRoomLinks(int room_id,
   }
 
   // ---- Holewarp -----------------------------------------------------------
+  if (warp_tag) {
+    // The project tag replaces the live holewarp with its quadrant stair
+    // slot, regardless of which floor source triggers the warp. Preserve an
+    // unused nonzero header byte for inspection without traversing it.
+    if (f.holewarp_byte != 0) {
+      RoomLink header =
+          make(RoomReferenceKind::kHeaderOnly,
+               ResolveHeaderDestinationRoom(room_id, f.holewarp_byte));
+      header.detail = absl::StrFormat(
+          "header holewarp of %s (overridden by warp tag quadrant slots)",
+          RoomHex(room_id));
+      links.push_back(std::move(header));
+    }
+    return links;
+  }
   RoomLink hole = make(RoomReferenceKind::kHolewarp,
                        ResolveHeaderDestinationRoom(room_id, f.holewarp_byte));
   hole.owner_ok = same_blockset(hole.to);
