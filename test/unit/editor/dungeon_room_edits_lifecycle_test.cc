@@ -932,6 +932,17 @@ TEST_P(DungeonRoomEditsLifecycleTest, RejectedChestPlacementKeepsPendingDrag) {
 
 TEST_P(DungeonRoomEditsLifecycleTest,
        PlacementSwitchesDispatchOnlyLatestToolAndPreserveUndo) {
+  // Pot placement validates storage even when saving that domain is disabled.
+  // Room 1 supplies the physical boundary for room 0's private empty stream.
+  constexpr int kPotPc = 0x008000;
+  ASSERT_TRUE(
+      rom_.WriteWord(zelda3::kRoomItemsPointers, PcToSnes(kPotPc) & 0xFFFF)
+          .ok());
+  ASSERT_TRUE(rom_.WriteWord(zelda3::kRoomItemsPointers + 2,
+                             PcToSnes(kPotPc + 0x100) & 0xFFFF)
+                  .ok());
+  ASSERT_TRUE(rom_.WriteWord(kPotPc, 0xFFFF).ok());
+  ASSERT_TRUE(rom_.WriteWord(kPotPc + 0x100, 0xFFFF).ok());
   SeedChestObjects();
   auto& interaction = viewer_->object_interaction();
   auto& coordinator = interaction.entity_coordinator();
@@ -1008,6 +1019,10 @@ TEST_P(DungeonRoomEditsLifecycleTest,
       // This point is a valid north-wall door position and is also valid for
       // every other placement type. Exercise the same dispatcher as the canvas.
       ASSERT_TRUE(coordinator.HandleClick(128, 16));
+      if (target == InteractionMode::PlaceItem) {
+        ASSERT_TRUE(coordinator.item_handler().mutation_status().ok())
+            << coordinator.item_handler().mutation_status();
+      }
       interaction.HandleMouseRelease();
       expect_counts(target, true);
       EXPECT_EQ(UndoDepth(), 2u);

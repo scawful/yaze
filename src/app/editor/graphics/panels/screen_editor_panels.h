@@ -97,7 +97,7 @@ class MenuTilemapPanel : public EditorPanel {
   // Description below), without adding a row to the cross-editor window
   // browser.
   WindowPresentationPolicy GetPresentationPolicy() const override {
-    return WindowPresentationPolicy::EmbeddedTool();
+    return WindowPresentationPolicy::EmbeddedTool().WithHost("Screen editor");
   }
 
   // Named workflow + reason (the "why does this panel exist" the #262

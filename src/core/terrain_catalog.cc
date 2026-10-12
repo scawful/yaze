@@ -79,9 +79,14 @@ std::vector<nlohmann::json> TerrainCatalog::Resolve(
   std::vector<nlohmann::json> result;
   for (const auto& entry : document_["entries"]) {
     for (const auto& binding : entry["bindings"]) {
-      if (binding["adapter"] == adapter && binding["tile_id"] == tile_id &&
-          binding["definition_fingerprint"] == definition &&
-          binding["profile_fingerprint"] == profile) {
+      if (std::string_view(binding["adapter"].get_ref<const std::string&>()) ==
+              adapter &&
+          binding["tile_id"] == tile_id &&
+          std::string_view(binding["definition_fingerprint"]
+                               .get_ref<const std::string&>()) == definition &&
+          std::string_view(
+              binding["profile_fingerprint"].get_ref<const std::string&>()) ==
+              profile) {
         result.push_back(entry);
         break;
       }

@@ -1,6 +1,11 @@
 # This file defines the yaze test suites and configures test discovery with labels.
 
 if(YAZE_BUILD_TESTS)
+  # TEST_FILTER keeps phased source acceptance out of ROM-free test discovery.
+  # Application-only builds retain the project's existing CMake minimum.
+  if(CMAKE_VERSION VERSION_LESS "3.22")
+    message(FATAL_ERROR "Yaze tests require CMake 3.22 or newer for filtered discovery")
+  endif()
 
   # --- CTest registration: shards (default) or one entry per gtest case ---
   #
@@ -42,14 +47,15 @@ if(YAZE_BUILD_TESTS)
   # Registers <suite_name>_shard_0..N-1. The entries are written to a
   # per-configuration CTest include file (like gtest_discover_tests), so they
   # resolve without `-C <config>`, falling back to the default build config.
-  function(yaze_add_test_shards suite_name label shard_count)
+  function(yaze_add_test_shards suite_name label shard_count gtest_filter)
     set(_content "")
     math(EXPR _last_shard "${shard_count} - 1")
     foreach(_shard RANGE 0 ${_last_shard})
       set(_test "${suite_name}_shard_${_shard}")
       string(APPEND _content
         "add_test([==[${_test}]==] [==[$<TARGET_FILE:${suite_name}>]==]"
-        " [==[--shard=${_shard}/${shard_count}]==])\n"
+        " [==[--shard=${_shard}/${shard_count}]==]"
+        " [==[--gtest_filter=${gtest_filter}]==])\n"
         "set_tests_properties([==[${_test}]==] PROPERTIES\n"
         "  LABELS [==[${label}]==]\n"
         "  WORKING_DIRECTORY [==[${CMAKE_BINARY_DIR}]==]\n"
@@ -199,10 +205,40 @@ if(YAZE_BUILD_TESTS)
       endif()
     endif()
 
+    set(_default_gtest_filter "*")
+    if(suite_name STREQUAL "yaze_test_unit" OR
+       suite_name STREQUAL "yaze_test_quick_unit_editor")
+      # These two cases publish into an isolated Oracle source copy, require
+      # an intervening build, and then reopen that build. They remain compiled
+      # and directly runnable, but are not ROM-free stable or quick tests.
+      set(_default_gtest_filter "*-OracleExpandedSourceAcceptance.*")
+    endif()
+    if(suite_name STREQUAL "yaze_test_unit")
+      # Run these phases separately with YAZE_ORACLE_ACCEPTANCE_ROOT set:
+      # 1. ctest -L oracle_source_publish --output-on-failure
+      # 2. Build Roms/oos168x.sfc in that isolated Oracle source copy.
+      # 3. ctest -L oracle_source_reopen --output-on-failure
+      # The combined acceptance label alone does not perform step 2 and is
+      # not an automated end-to-end run.
+      foreach(_phase_case IN ITEMS
+          "publish|ChangedPublishWritesOnlyTheEditedLine"
+          "reopen|ReopenedBuiltBankContainsTheEditedLine")
+        string(REPLACE "|" ";" _phase_case_parts "${_phase_case}")
+        list(GET _phase_case_parts 0 _phase)
+        list(GET _phase_case_parts 1 _case)
+        set(_test "OracleExpandedSourceAcceptance.${_case}")
+        add_test(NAME "${_test}" COMMAND $<TARGET_FILE:${suite_name}>
+          "--gtest_filter=${_test}")
+        set_tests_properties("${_test}" PROPERTIES
+          LABELS "oracle_source_acceptance;oracle_source_${_phase}"
+          WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+      endforeach()
+    endif()
+
     if(NOT is_gui_test AND NOT YAZE_TEST_PER_CASE
        AND DEFINED YAZE_TEST_SHARDS_${suite_name})
       yaze_add_test_shards(${suite_name} "${label}"
-        ${YAZE_TEST_SHARDS_${suite_name}})
+        ${YAZE_TEST_SHARDS_${suite_name}} "${_default_gtest_filter}")
       return()
     endif()
 
@@ -233,6 +269,7 @@ if(YAZE_BUILD_TESTS)
     endif()
     if(WIN32)
       set(_gtest_discover_args
+        TEST_FILTER "${_default_gtest_filter}"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DISCOVERY_TIMEOUT 60
         PROPERTIES LABELS "${_suite_labels}"
@@ -243,6 +280,7 @@ if(YAZE_BUILD_TESTS)
       gtest_discover_tests(${suite_name} ${_gtest_discover_args})
     else()
       set(_gtest_discover_args
+        TEST_FILTER "${_default_gtest_filter}"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         PROPERTIES LABELS "${_suite_labels}"
       )

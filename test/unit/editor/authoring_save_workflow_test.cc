@@ -425,7 +425,7 @@ std::vector<uint8_t> ReadFile(const std::filesystem::path& path) {
 
 void ReplaceAssignment(std::string* text, std::string_view key,
                        std::string_view value) {
-  const std::string prefix = absl::StrCat(key, "=");
+  const std::string prefix = std::string(key) + "=";
   const auto pos = text->find(prefix);
   ASSERT_NE(pos, std::string::npos) << prefix;
   const auto end = text->find('\n', pos);

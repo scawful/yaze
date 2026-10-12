@@ -1248,6 +1248,8 @@ TEST_F(TileObjectHandlerTest,
 
 TEST_F(TileObjectHandlerTest,
        CanvasWheelPansWithoutSelectionAndResizesSelection) {
+  // Keep the historical case name for test inventory. Room view now stays
+  // fixed; the viewer owns wheel routing and calls this explicit resize API.
   AddTestObjects({CreateTestObject(5, 5, 3, 0x01)});
   DungeonObjectInteraction interaction(canvas_.get());
   interaction.SetContext(ctx_);
@@ -1263,6 +1265,9 @@ TEST_F(TileObjectHandlerTest,
         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse);
     canvas_->DrawBackground(ImVec2(512, 512));
     interaction.HandleCanvasMouseInput();
+    if (canvas_->IsMouseHovering()) {
+      interaction.HandleScrollWheelResize();
+    }
     ImGui::End();
     ImGui::Render();
   };
@@ -1274,7 +1279,7 @@ TEST_F(TileObjectHandlerTest,
   frame();
   EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 3);
   EXPECT_FALSE(rooms_[0].object_stream_dirty());
-  EXPECT_GT(canvas_->scrolling().y, initial.y);
+  EXPECT_EQ(canvas_->scrolling().y, initial.y);
   EXPECT_EQ(io.MouseWheel, 0);
   interaction.SetSelectedObjects({0});
   const auto selected_scroll = canvas_->scrolling();
@@ -1421,6 +1426,8 @@ TEST_F(TileObjectHandlerTest,
     draw_canvas();
     EXPECT_TRUE(canvas_->IsMouseHovering());
     interaction.HandleCanvasMouseInput();
+    // Room navigation owns wheel input; exercise its resize delegate directly.
+    interaction.HandleScrollWheelResize();
     EXPECT_EQ(interaction.entity_coordinator()
                   .tile_handler()
                   .GetPreviewObject()
