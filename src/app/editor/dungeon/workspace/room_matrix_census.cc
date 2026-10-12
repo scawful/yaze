@@ -14,6 +14,7 @@
 #include "core/features.h"
 #include "core/hack_manifest.h"
 #include "core/rom_settings.h"
+#include "imgui/imgui_internal.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
@@ -191,7 +192,7 @@ void RoomMatrixCensusOverlay::WrapBeforeItem(float item_width, bool first) {
   }
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float right =
-      ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
   if (ImGui::GetItemRectMax().x + spacing + item_width <= right) {
     ImGui::SameLine();
   }
@@ -205,18 +206,23 @@ bool RoomMatrixCensusOverlay::DrawChip(const char* id,
   const float swatch_size = ImGui::GetTextLineHeight() - 2.0f;
   const float pad_x = style.FramePadding.x;
   const float pad_y = 2.0f;
-  const float line_width = std::max(40.0f, ImGui::GetContentRegionAvail().x);
-
-  // Shorten the label until the chip fits on an empty line: never clip.
-  std::string label = label_in;
-  auto chip_width = [&](const std::string& text) {
-    return pad_x * 2 + swatch_size + style.ItemInnerSpacing.x +
-           ImGui::CalcTextSize(text.c_str()).x;
-  };
-  while (label.size() > 4 && chip_width(label) > line_width) {
-    label = label.substr(0, label.size() - 4) + "...";
+  const auto* window = ImGui::GetCurrentWindow();
+  const float right =
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+  // Match ItemSize's next-row origin, including indentation and columns.
+  // Remaining space on the current row must not shorten the next chip.
+  const float left =
+      window->Pos.x + window->DC.Indent.x + window->DC.ColumnsOffset.x;
+  const float line_width = std::max(0.0f, right - left);
+  if (line_width == 0.0f) {
+    return false;
   }
-  const ImVec2 size(chip_width(label), ImGui::GetTextLineHeight() + pad_y * 2);
+  const ImVec2 text_size =
+      ImGui::CalcTextSize(label_in.data(), label_in.data() + label_in.size());
+  const float natural_width =
+      pad_x * 2 + swatch_size + style.ItemInnerSpacing.x + text_size.x;
+  const ImVec2 size(std::min(natural_width, line_width),
+                    ImGui::GetTextLineHeight() + pad_y * 2);
 
   WrapBeforeItem(size.x, first);
   const ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -226,6 +232,7 @@ bool RoomMatrixCensusOverlay::DrawChip(const char* id,
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   const ImVec2 max(pos.x + size.x, pos.y + size.y);
+  draw_list->PushClipRect(pos, max, true);
   ImVec4 bg = style.Colors[active    ? ImGuiCol_ButtonActive
                            : hovered ? ImGuiCol_ButtonHovered
                                      : ImGuiCol_FrameBg];
@@ -234,8 +241,12 @@ bool RoomMatrixCensusOverlay::DrawChip(const char* id,
     draw_list->AddRect(pos, max, ImGui::GetColorU32(ImGuiCol_Text), 4.0f, 0,
                        1.5f);
   }
-  const ImVec2 swatch_min(pos.x + pad_x, pos.y + (size.y - swatch_size) * 0.5f);
-  const ImVec2 swatch_max(swatch_min.x + swatch_size,
+  const float fitted_pad = std::min(pad_x, size.x * 0.5f);
+  const float fitted_swatch =
+      std::min(swatch_size, std::max(0.0f, size.x - fitted_pad * 2));
+  const ImVec2 swatch_min(pos.x + fitted_pad,
+                          pos.y + (size.y - swatch_size) * 0.5f);
+  const ImVec2 swatch_max(swatch_min.x + fitted_swatch,
                           swatch_min.y + swatch_size);
   if (outline_only) {
     draw_list->AddRectFilled(swatch_min, swatch_max,
@@ -246,10 +257,19 @@ bool RoomMatrixCensusOverlay::DrawChip(const char* id,
     draw_list->AddRectFilled(swatch_min, swatch_max,
                              ImGui::ColorConvertFloat4ToU32(swatch), 2.0f);
   }
-  draw_list->AddText(
-      ImVec2(swatch_max.x + style.ItemInnerSpacing.x, pos.y + pad_y),
-      ImGui::GetColorU32(ImGuiCol_Text), label.c_str());
-  if (hovered && label != label_in) {
+  const ImVec2 text_min(
+      std::min(max.x, swatch_max.x + style.ItemInnerSpacing.x), pos.y + pad_y);
+  const ImVec2 text_max(std::max(text_min.x, max.x - fitted_pad),
+                        pos.y + size.y - pad_y);
+  if (text_min.x < text_max.x) {
+    // ImGui fits the ellipsis at UTF-8 character boundaries; keep the original
+    // label intact for logging and the hover tooltip.
+    ImGui::RenderTextEllipsis(draw_list, text_min, text_max, text_max.x,
+                              label_in.data(),
+                              label_in.data() + label_in.size(), &text_size);
+  }
+  draw_list->PopClipRect();
+  if (hovered && natural_width > size.x) {
     ImGui::SetTooltip("%s", label_in.c_str());
   }
   return clicked;

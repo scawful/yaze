@@ -8,13 +8,16 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <future>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "app/gui/automation/widget_id_registry.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
+#include "imgui/imgui_internal.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
@@ -25,6 +28,12 @@ namespace yaze::editor {
 
 class RoomMatrixCensusTestPeer {
  public:
+  static bool DrawChip(RoomMatrixCensusOverlay& overlay, const char* id,
+                       const std::string& label, bool first,
+                       bool outline = false) {
+    return overlay.DrawChip(id, label, ImVec4(0.3f, 0.6f, 0.8f, 1.0f), outline,
+                            false, first);
+  }
   static std::stop_token NewToken(RoomMatrixCensusOverlay& overlay) {
     overlay.stop_source_ = std::stop_source{};
     return overlay.stop_source_.get_token();
@@ -155,6 +164,184 @@ class DungeonEditorV2EntranceCameraTestPeer {
 };
 
 namespace {
+
+class RoomMatrixCensusChipTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_context_ = ImGui::GetCurrentContext();
+    context_ = ImGui::CreateContext();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(900, 600);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.Fonts->AddFontDefault();
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    io.AddMousePosEvent(-1000, -1000);
+    ImGui::GetStyle().WindowMinSize = ImVec2(1, 1);
+  }
+
+  void TearDown() override {
+    ImGui::DestroyContext(context_);
+    ImGui::SetCurrentContext(previous_context_);
+    gui::WidgetIdRegistry::Instance().Clear();
+  }
+
+  void DrawFrame(const std::function<void()>& draw) {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(
+        ImVec2(content_width_ + ImGui::GetStyle().WindowPadding.x * 2, 200),
+        ImGuiCond_Always);
+    ImGui::Begin("CensusChipHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoTitleBar |
+                     ImGuiWindowFlags_NoScrollbar);
+    content_right_ =
+        ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+    ImGui::LogToBuffer();
+    draw();
+    logged_text_ = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
+    ImGui::End();
+    ImGui::Render();
+    EXPECT_EQ(context_->ColorStack.Size, 0);
+    EXPECT_EQ(context_->StyleVarStack.Size, 0);
+  }
+
+  float NaturalWidth(const std::string& label) const {
+    const auto& style = ImGui::GetStyle();
+    return style.FramePadding.x * 2 + ImGui::GetTextLineHeight() - 2 +
+           style.ItemInnerSpacing.x + ImGui::CalcTextSize(label.c_str()).x;
+  }
+
+  RoomMatrixCensusOverlay overlay_;
+  ImGuiContext* previous_context_ = nullptr;
+  ImGuiContext* context_ = nullptr;
+  float content_width_ = 180;
+  float content_right_ = 0;
+  std::string logged_text_;
+};
+
+TEST_F(RoomMatrixCensusChipTest, NarrowRowsBoundHitboxAndDrawClip) {
+  for (float width : {1.0f, 4.0f, 16.0f, 32.0f, 80.0f, 180.0f}) {
+    content_width_ = width;
+    for (bool outline : {false, true}) {
+      DrawFrame([&] {
+        auto* draw = ImGui::GetWindowDrawList();
+        const int first_index = draw->IdxBuffer.Size;
+        EXPECT_FALSE(RoomMatrixCensusTestPeer::DrawChip(
+            overlay_, "##chip_owner_0", "Dungeon ownership (128)", true,
+            outline));
+        const ImVec2 min = ImGui::GetItemRectMin();
+        const ImVec2 max = ImGui::GetItemRectMax();
+        EXPECT_GT(max.x, min.x);
+        EXPECT_LE(max.x, content_right_ + 0.01f);
+        EXPECT_LE(max.x - min.x, width + 0.01f);
+        int index = 0;
+        bool saw_chip = false;
+        for (const auto& command : draw->CmdBuffer) {
+          if (index + static_cast<int>(command.ElemCount) > first_index &&
+              command.ElemCount != 0) {
+            saw_chip = true;
+            EXPECT_GE(command.ClipRect.x, min.x - 0.01f);
+            EXPECT_GE(command.ClipRect.y, min.y - 0.01f);
+            EXPECT_LE(command.ClipRect.z, max.x + 0.01f);
+            EXPECT_LE(command.ClipRect.w, max.y + 0.01f);
+          }
+          index += static_cast<int>(command.ElemCount);
+        }
+        EXPECT_TRUE(saw_chip);
+      });
+    }
+  }
+}
+
+TEST_F(RoomMatrixCensusChipTest, NoEmptyRowSpaceProducesNoHitbox) {
+  content_width_ = 0;
+  DrawFrame([&] {
+    const int vertices = ImGui::GetWindowDrawList()->VtxBuffer.Size;
+    EXPECT_FALSE(RoomMatrixCensusTestPeer::DrawChip(overlay_, "##chip_free",
+                                                    "Free (12)", true));
+    EXPECT_EQ(ImGui::GetWindowDrawList()->VtxBuffer.Size, vertices);
+    EXPECT_TRUE(gui::WidgetIdRegistry::Instance().GetAllWidgets().empty());
+  });
+}
+
+TEST_F(RoomMatrixCensusChipTest, WrapUsesFullEmptyRowWidth) {
+  content_width_ = 160;
+  DrawFrame([&] {
+    RoomMatrixCensusTestPeer::DrawChip(overlay_, "##chip_free", "Free", true);
+    const ImVec2 first_max = ImGui::GetItemRectMax();
+    const std::string second_label = "Reclaimable (12)";
+    ASSERT_LT(NaturalWidth(second_label), content_width_);
+    RoomMatrixCensusTestPeer::DrawChip(overlay_, "##chip_reclaimable",
+                                       second_label, false);
+    const ImVec2 min = ImGui::GetItemRectMin();
+    const ImVec2 max = ImGui::GetItemRectMax();
+    EXPECT_GT(min.y, first_max.y);
+    EXPECT_NEAR(max.x - min.x, NaturalWidth(second_label), 0.01f);
+    EXPECT_LE(max.x, content_right_ + 0.01f);
+  });
+}
+
+TEST_F(RoomMatrixCensusChipTest, IndentedRowKeepsChipWithinContentBounds) {
+  content_width_ = 80;
+  DrawFrame([&] {
+    ImGui::Indent(20);
+    const float row_left = ImGui::GetCursorScreenPos().x;
+    RoomMatrixCensusTestPeer::DrawChip(overlay_, "##chip_owner_0",
+                                       "Long dungeon owner (128)", true);
+    EXPECT_NEAR(ImGui::GetItemRectMin().x, row_left, 0.01f);
+    EXPECT_LE(ImGui::GetItemRectMax().x, content_right_ + 0.01f);
+    ImGui::Unindent(20);
+  });
+}
+
+TEST_F(RoomMatrixCensusChipTest,
+       Utf8EllipsisRetainsFullTooltipAndClickIdentity) {
+  content_width_ = 64;
+  const std::string label = "Café 洞窟 (128)";
+  ImVec2 min, max;
+  ImGuiID expected_id = 0;
+  int clicks = 0;
+  const auto draw = [&] {
+    expected_id = ImGui::GetID("##chip_owner_0");
+    if (RoomMatrixCensusTestPeer::DrawChip(overlay_, "##chip_owner_0", label,
+                                           true)) {
+      ++clicks;
+      overlay_.ToggleOwnerFilter(0);
+    }
+    // Tooltip drawing must retain the chip as the last item.
+    EXPECT_EQ(ImGui::GetItemID(), expected_id);
+    min = ImGui::GetItemRectMin();
+    max = ImGui::GetItemRectMax();
+  };
+  DrawFrame(draw);
+  DrawFrame(draw);
+  EXPECT_NE(logged_text_.find(label), std::string::npos);
+  const auto widgets = gui::WidgetIdRegistry::Instance().GetAllWidgets();
+  ASSERT_EQ(widgets.size(), 1);
+  EXPECT_EQ(widgets.begin()->second.imgui_id, expected_id);
+  EXPECT_EQ(widgets.begin()->second.label,
+            gui::WidgetIdRegistry::NormalizeLabel("Census chip chip_owner_0"));
+
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent((min.x + max.x) / 2, (min.y + max.y) / 2);
+  DrawFrame(draw);
+  // The full UTF-8 label is rendered once for logging and again in the tooltip.
+  const auto first = logged_text_.find(label);
+  ASSERT_NE(first, std::string::npos);
+  EXPECT_NE(logged_text_.find(label, first + label.size()), std::string::npos);
+  io.AddMouseButtonEvent(0, true);
+  DrawFrame(draw);
+  io.AddMouseButtonEvent(0, false);
+  DrawFrame(draw);
+  EXPECT_EQ(clicks, 1);
+  EXPECT_TRUE(overlay_.HasActiveChips());
+}
 
 zelda3::RoomCensus MakeCensus(
     const std::vector<std::vector<int>>& owner_rooms) {
