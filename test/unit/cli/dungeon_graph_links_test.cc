@@ -4,6 +4,7 @@
 // ZScream entrance tables, header byte 0, out-of-range room IDs, teleport
 // doors and the column-15 neighbor wrap.
 
+#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>
@@ -14,8 +15,10 @@
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_graph_commands.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "test_utils/expanded_entrance_fixture.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_links.h"
@@ -265,6 +268,45 @@ TEST_F(DungeonGraphLinksTest, OutOfRangeDestinationsAreNotRooms) {
   ASSERT_TRUE(census.ok());
   EXPECT_EQ(static_cast<int>(census->rooms.size()),
             zelda3::kRoomCensusRoomCount);
+}
+
+TEST_F(DungeonGraphLinksTest, AllGraphCommandsRejectMalformedLayouts) {
+  auto data = rom_.mutable_data();
+  std::fill(data + SnesToPc(zelda3::kRoomLayoutPointers[0]),
+            data + SnesToPc(zelda3::kRoomLayoutPointers[1]), 0);
+  handlers::DungeonGraphCommandHandler graph;
+  handlers::DungeonDiscoverCommandHandler discover;
+  handlers::DungeonRoomGraphCommandHandler room_graph;
+  std::string output;
+  EXPECT_TRUE(absl::IsDataLoss(graph.Run({"--room=0x020"}, &rom_, &output)));
+  EXPECT_TRUE(
+      absl::IsDataLoss(discover.Run({"--entrance=0x05"}, &rom_, &output)));
+  EXPECT_TRUE(
+      absl::IsDataLoss(room_graph.Run({"--entrance=0x05"}, &rom_, &output)));
+}
+
+TEST_F(DungeonGraphLinksTest, IndirectMalformedRoomDoesNotBecomeAWeakLink) {
+  auto data = rom_.mutable_data();
+  constexpr int stream = zelda3::test::kTestObjectDataPc + 0x2000;
+  auto bytes = TestRoomStream({});
+  bytes[1] = 1 << 2;  // Room 0x033 uses layout 1, reached by 0x020's teleport.
+  SetTestRoom(rom_.mutable_vector(), 0x033, stream, bytes, 0x9800, {});
+  std::fill(data + SnesToPc(zelda3::kRoomLayoutPointers[1]),
+            data + SnesToPc(zelda3::kRoomLayoutPointers[2]), 0);
+  zelda3::RoomLinkFactsCache cache(&rom_);
+  ASSERT_NE(cache.Get(0x020), nullptr);
+  EXPECT_TRUE(cache.status().ok());
+  (void)zelda3::CollectRoomLinks(0x020, cache.AsLookup(), {});
+  EXPECT_TRUE(absl::IsDataLoss(cache.status()));
+  handlers::DungeonGraphCommandHandler graph;
+  handlers::DungeonDiscoverCommandHandler discover;
+  handlers::DungeonRoomGraphCommandHandler room_graph;
+  std::string output;
+  EXPECT_TRUE(absl::IsDataLoss(graph.Run({"--room=0x020"}, &rom_, &output)));
+  EXPECT_TRUE(
+      absl::IsDataLoss(discover.Run({"--entrance=0x05"}, &rom_, &output)));
+  EXPECT_TRUE(
+      absl::IsDataLoss(room_graph.Run({"--entrance=0x05"}, &rom_, &output)));
 }
 
 }  // namespace

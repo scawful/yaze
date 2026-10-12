@@ -200,6 +200,10 @@ static const std::array<int, 8> kRoomLayoutPointers = {
     0x04F0A8, 0x04F0EC, 0x04F148, 0x04F1A4,
 };
 
+// Exclusive end of LayoutData_07; WaterOverlayData starts here (USDASM bank04).
+// The fixed layouts occupy successive spans beginning at the pointers above.
+inline constexpr int kRoomLayoutDataEnd = 0x04F1CD;
+
 }  // namespace zelda3
 }  // namespace yaze
 

@@ -13,6 +13,7 @@
 #include "cli/handlers/game/dungeon_graph_commands.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "unit/zelda3/dungeon/room_census_test_rom.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_header_destination.h"
@@ -31,7 +32,8 @@ static_assert(zelda3::EncodeHeaderDestinationRoom(0x119, 0x01D) == -1);
 // with the given holewarp and stair bytes.
 std::vector<uint8_t> BuildRomWithHeader(int room_id, uint8_t holewarp,
                                         std::array<uint8_t, 4> stairs) {
-  std::vector<uint8_t> data(0x200000, 0);
+  // Keep the header-only assertions on valid, terminated room/layout streams.
+  auto data = zelda3::test::BuildRoomCensusTestRom();
   constexpr uint32_t kHeaderTableSnes = 0x018000;
   constexpr uint8_t kHeaderBank = 0x01;
   constexpr uint16_t kHeaderWordAddr = 0x9000;

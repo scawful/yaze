@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_DUNGEON_ROOM_LAYOUT_H
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_LAYOUT_H
 
+#include <stop_token>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -20,7 +21,9 @@ class RoomLayout {
 
   void SetRom(Rom* rom) { rom_ = rom; }
 
-  absl::Status LoadLayout(int layout_id);
+  // Reject unterminated/truncated fixed-layout streams. Failed or cancelled
+  // loads leave no decoded objects, including after a prior successful load.
+  absl::Status LoadLayout(int layout_id, std::stop_token stop_token = {});
 
   // Render the layout objects into the provided buffers
   absl::Status Draw(int room_id, const uint8_t* gfx_data,

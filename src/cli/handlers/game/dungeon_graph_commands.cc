@@ -241,6 +241,7 @@ absl::Status DungeonGraphCommandHandler::Execute(
     nodes.push_back(node);
   }
 
+  RETURN_IF_ERROR(cache.status());
   formatter.BeginObject("dungeon_graph");
 
   // Nodes: all rooms when filtering by room, otherwise connected ones.
@@ -464,6 +465,7 @@ absl::Status DungeonDiscoverCommandHandler::Execute(
     }
   }
 
+  RETURN_IF_ERROR(cache.status());
   formatter.BeginObject("discovery");
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
   formatter.AddField("entrance_table", EntranceTableName(start->expanded));
@@ -646,6 +648,7 @@ absl::Status DungeonRoomGraphCommandHandler::Execute(
     }
   }
 
+  RETURN_IF_ERROR(cache.status());
   formatter.BeginObject("room_graph");
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
   formatter.AddField("entrance_table", EntranceTableName(start->expanded));
