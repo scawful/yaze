@@ -503,91 +503,87 @@ DungeonAtlas BuildDungeonAtlas(const DungeonAtlasInput& input,
   }
 
   // ---- Links out ---------------------------------------------------------
+  const RoomLinkFactsLookup lookup = [&](int id) -> const RoomLinkFacts* {
+    return IsDungeonRoomId(id) ? &facts[id] : nullptr;
+  };
   for (int r = 0; r < kRooms; ++r) {
     const RoomCensusRoomFacts& f = facts[r];
     DungeonAtlasRoom& room = atlas.rooms[r];
-
-    // Stairs: header slots a stair object uses (census replay).
     std::vector<int> stair_targets;
-    for (int slot = 0; slot < 4; ++slot) {
-      if (!f.stair_slot_used[slot]) {
-        continue;
-      }
-      const int target = ResolveHeaderDestinationRoom(r, f.stair_bytes[slot]);
-      if (target >= kRooms) {
-        atlas.warnings.push_back(absl::StrFormat(
-            "room %s stair slot %d points past $127 (%s); dropped", RoomHex(r),
-            slot + 1, RoomHex(target)));
-        continue;
-      }
-      if (target == r || std::find(stair_targets.begin(), stair_targets.end(),
-                                   target) != stair_targets.end()) {
-        continue;
-      }
-      stair_targets.push_back(target);
+    bool has_warp_tag_links = false;
+    for (const auto& source :
+         CollectRoomLinks(r, lookup, input.census.warp_tag_ids)) {
       AtlasLink link;
-      link.kind = LinkKind::kStair;
       link.from = r;
-      link.to = target;
-      link.index = slot + 1;
-      if (f.stair_slot_estimated[slot]) {
-        link.note = "slot by placement order";
+      link.to = source.to;
+      if (source.kind == RoomReferenceKind::kStair ||
+          source.kind == RoomReferenceKind::kWarpTag) {
+        const bool stair = source.kind == RoomReferenceKind::kStair;
+        if (source.to < 0) {
+          atlas.warnings.push_back(absl::StrFormat(
+              "room %s %s slot %d points past $127 (%s); dropped", RoomHex(r),
+              stair ? "stair" : "warp tag", source.slot + 1,
+              RoomHex(source.raw_to)));
+          continue;
+        }
+        if (stair) {
+          if (source.to == r ||
+              std::find(stair_targets.begin(), stair_targets.end(),
+                        source.to) != stair_targets.end()) {
+            continue;
+          }
+          stair_targets.push_back(source.to);
+          link.kind = LinkKind::kStair;
+          if (f.stair_slot_estimated[source.slot]) {
+            link.note = "slot by placement order";
+          }
+        } else {
+          link.kind = LinkKind::kWarpTag;
+          has_warp_tag_links = true;
+        }
+        link.index = source.slot + 1;
+      } else if (source.kind == RoomReferenceKind::kHolewarp) {
+        if (source.to < 0) {
+          atlas.warnings.push_back(
+              absl::StrFormat("room %s holewarp points past $127 (%s); dropped",
+                              RoomHex(r), RoomHex(source.raw_to)));
+          continue;
+        }
+        if (source.to == r) {
+          continue;
+        }
+        if (!source.strong) {
+          link.kind = LinkKind::kPitDamage;
+        } else {
+          switch (source.holewarp_cause) {
+            case RoomHolewarpCause::kWarpTiles:
+              // A warp tag replaces the raw holewarp destination with its
+              // quadrant slot. Keep the existing Atlas presentation of those
+              // slots instead of also showing the overwritten raw target.
+              if (has_warp_tag_links) {
+                continue;
+              }
+              link.kind = LinkKind::kWarpTiles;
+              break;
+            case RoomHolewarpCause::kTag:
+              link.kind = LinkKind::kTagPit;
+              break;
+            case RoomHolewarpCause::kSprite:
+              link.note = f.hole_sprite;
+              [[fallthrough]];
+            case RoomHolewarpCause::kPits:
+              link.kind = LinkKind::kPit;
+              break;
+            case RoomHolewarpCause::kNone:
+              continue;
+          }
+        }
+      } else {
+        // Atlas retains its ordinary-door presentation and ignores unused
+        // header bytes; only shared active header/hole links become pills.
+        continue;
       }
       room.links_out.push_back(std::move(link));
-    }
-
-    // Warp tag: header stair slots no stair object uses.
-    const bool warp_tag = input.census.warp_tag_ids.contains(f.tag1) ||
-                          input.census.warp_tag_ids.contains(f.tag2);
-    bool has_warp_tag_links = false;
-    if (warp_tag) {
-      for (int slot = 0; slot < 4; ++slot) {
-        if (f.stair_slot_used[slot]) {
-          continue;
-        }
-        const int target = ResolveHeaderDestinationRoom(r, f.stair_bytes[slot]);
-        if (target >= kRooms) {
-          atlas.warnings.push_back(absl::StrFormat(
-              "room %s warp tag slot %d points past $127 (%s); dropped",
-              RoomHex(r), slot + 1, RoomHex(target)));
-          continue;
-        }
-        AtlasLink link;
-        link.kind = LinkKind::kWarpTag;
-        link.from = r;
-        link.to = target;
-        link.index = slot + 1;
-        room.links_out.push_back(std::move(link));
-        has_warp_tag_links = true;
-      }
-    }
-
-    // Holewarp: same cause order as the census.
-    const int hole = ResolveHeaderDestinationRoom(r, f.holewarp_byte);
-    const bool hole_used = f.has_warp_tiles || f.has_pits || f.has_hole_tag;
-    if (hole_used && hole >= kRooms) {
-      atlas.warnings.push_back(
-          absl::StrFormat("room %s holewarp points past $127 (%s); dropped",
-                          RoomHex(r), RoomHex(hole)));
-    } else if (hole_used && hole != r) {
-      AtlasLink link;
-      link.from = r;
-      link.to = hole;
-      bool add = true;
-      if (f.has_warp_tiles) {
-        link.kind = LinkKind::kWarpTiles;
-        // With a warp tag the tiles warp through the tag's slots.
-        add = !has_warp_tag_links;
-      } else if (f.has_pits && !f.in_pit_damage_table) {
-        link.kind = LinkKind::kPit;
-      } else if (f.has_pits) {
-        link.kind = LinkKind::kPitDamage;
-      } else {
-        link.kind = LinkKind::kTagPit;
-      }
-      if (add) {
-        room.links_out.push_back(std::move(link));
-      }
     }
   }
 

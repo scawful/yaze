@@ -627,18 +627,23 @@ std::vector<RoomLink> CollectRoomLinks(int room_id,
   const int hole_tag = LiveHoleTag(f, warp_tag_ids);
   std::string hole_source;
   if (f.has_pits) {
+    hole.holewarp_cause = RoomHolewarpCause::kPits;
     hole_source = f.pits_only_in_braziers
                       ? "large-brazier pits (entered by falling from the "
                         "room above)"
                       : "pits";
   } else if (hole_tag > 0) {
+    hole.holewarp_cause = RoomHolewarpCause::kTag;
     hole_source = absl::StrFormat("tag-driven holes (tag 0x%02X)", hole_tag);
   } else if (hole_tag == 0) {
+    hole.holewarp_cause = RoomHolewarpCause::kTag;
     hole_source = "tag-driven holes";
   } else if (!f.hole_sprite.empty()) {
+    hole.holewarp_cause = RoomHolewarpCause::kSprite;
     hole_source = f.hole_sprite;
   }
   if (f.has_warp_tiles) {
+    hole.holewarp_cause = RoomHolewarpCause::kWarpTiles;
     hole.strong = true;
     hole.detail = absl::StrFormat("warp tiles in %s", RoomHex(room_id));
   } else if (!hole_source.empty() && !f.in_pit_damage_table) {
