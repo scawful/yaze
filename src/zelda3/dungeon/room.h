@@ -574,11 +574,22 @@ class Room {
     return custom_collision_.tiles[y * 64 + x];
   }
 
+  bool HasCollisionOverride(int x, int y) const {
+    return x >= 0 && x < 64 && y >= 0 && y < 64 &&
+           custom_collision_.HasOverride(y * 64 + x);
+  }
+
   void SetCollisionTile(int x, int y, uint8_t tile) {
     if (x < 0 || x >= 64 || y < 0 || y >= 64)
       return;
-    custom_collision_.tiles[y * 64 + x] = tile;
-    custom_collision_.has_data = true;
+    custom_collision_.SetOverride(y * 64 + x, tile);
+    custom_collision_dirty_ = true;
+  }
+
+  void ClearCollisionTile(int x, int y) {
+    if (x < 0 || x >= 64 || y < 0 || y >= 64)
+      return;
+    custom_collision_.ClearOverride(y * 64 + x);
     custom_collision_dirty_ = true;
   }
 

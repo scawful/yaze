@@ -915,6 +915,13 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
     }
   }
   formatter.AddField("nonzero_tiles", nonzero_count);
+  int override_count = 0;
+  for (size_t offset = 0; offset < map.tiles.size(); ++offset) {
+    if (map.HasOverride(offset)) {
+      ++override_count;
+    }
+  }
+  formatter.AddField("override_tiles", override_count);
 
   formatter.BeginArray("tiles");
   int match_count = 0;
@@ -942,6 +949,7 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
         formatter.AddField("x", x);
         formatter.AddField("y", y);
         formatter.AddHexField("tile", tile, 2);
+        formatter.AddField("override_present", map.HasOverride(y * 64 + x));
         formatter.EndObject();
         ++match_count;
       }
@@ -1004,7 +1012,7 @@ absl::Status DungeonExportCustomCollisionJsonCommandHandler::ExecuteWithContext(
       for (int offset = 0; offset < kCollisionGridSize * kCollisionGridSize;
            ++offset) {
         const uint8_t tile = map.tiles[static_cast<size_t>(offset)];
-        if (tile == 0) {
+        if (!map.HasOverride(static_cast<size_t>(offset))) {
           continue;
         }
         entry.tiles.push_back(zelda3::CustomCollisionTileEntry{
@@ -1136,11 +1144,7 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
         if (offset < 0 || offset >= kCollisionGridSize * kCollisionGridSize) {
           continue;
         }
-        if (tile.value == 0) {
-          continue;
-        }
-        desired.tiles[static_cast<size_t>(offset)] = tile.value;
-        desired.has_data = true;
+        desired.SetOverride(static_cast<size_t>(offset), tile.value);
       }
 
       if (desired.has_data) {
@@ -1151,8 +1155,7 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
 
       ASSIGN_OR_RETURN(const auto current,
                        zelda3::LoadCustomCollisionMap(rom, imported.room_id));
-      if (current.has_data == desired.has_data &&
-          current.tiles == desired.tiles) {
+      if (current == desired) {
         ++unchanged_rooms;
         continue;
       }
@@ -1175,8 +1178,7 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
           continue;
         }
         auto& room = rooms[room_id];
-        room.custom_collision().tiles.fill(0);
-        room.custom_collision().has_data = false;
+        room.custom_collision() = {};
         room.MarkCustomCollisionDirty();
         ++cleared_rooms;
         ++changed_rooms;

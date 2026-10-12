@@ -14,7 +14,7 @@ namespace {
 
 bool SameCollision(const zelda3::CustomCollisionMap& a,
                    const zelda3::CustomCollisionMap& b) {
-  return a.has_data == b.has_data && a.tiles == b.tiles;
+  return a == b;
 }
 
 bool SameWater(const zelda3::WaterFillZoneMap& a,
@@ -170,9 +170,7 @@ absl::Status ValidateDomains(const DungeonRoomDocument& document,
     }
   }
   if ((domains & kTransferCollision) && !document.collision.has_data &&
-      std::any_of(document.collision.tiles.begin(),
-                  document.collision.tiles.end(),
-                  [](uint8_t value) { return value != 0; })) {
+      document.collision.HasOverrides()) {
     return absl::InvalidArgumentError("Collision tiles require has_data=true");
   }
   if (domains & kTransferWater) {

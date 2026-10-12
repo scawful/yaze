@@ -400,7 +400,7 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
   for (int y = 0; y < kGridSize; ++y) {
     for (int x = 0; x < kGridSize; ++x) {
       uint8_t tile = map.tiles[y * kGridSize + x];
-      if (tile == 0)
+      if (!map.HasOverride(y * kGridSize + x))
         continue;
       uint16_t offset = static_cast<uint16_t>(y * kGridSize + x);
       encoded.push_back(offset & 0xFF);

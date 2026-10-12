@@ -14,6 +14,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/dungeon_rendering_helpers.h"
 #include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
@@ -59,6 +60,12 @@ class DungeonEditorV2MinecartTrackTestPeer {
       const std::vector<zelda3::TrackCollisionResult>& preview,
       const zelda3::GeneratorOptions& options = {}) {
     return editor.ApplyMinecartCollisionBatch(preview, options);
+  }
+  static void BeginCollisionEdit(DungeonEditorV2& editor, int room) {
+    editor.BeginCollisionUndoSnapshot(room);
+  }
+  static void FinishCollisionEdit(DungeonEditorV2& editor, int room) {
+    editor.FinalizeCollisionUndoAction(room);
   }
 };
 
@@ -2309,8 +2316,9 @@ TEST(MinecartCollisionStampTest, EraseRailBehaviorPreservesOtherCollision) {
   before.has_data = true;
   for (int y = 34; y < 36; ++y)
     for (int x = 14; x < 16; ++x)
-      before.tiles[y * 64 + x] = 0xB8;
+      before.SetOverride(y * 64 + x, 0xB8);
   before.tiles[2] = 0x08;
+  before.SetOverride(3, 0);
   const auto erased = PreviewMinecartCollisionStamp(before, {14, 34, 2, 0});
   ASSERT_TRUE(erased.ok()) << erased.status();
   auto expected = before;
@@ -2318,7 +2326,13 @@ TEST(MinecartCollisionStampTest, EraseRailBehaviorPreservesOtherCollision) {
     for (int x = 14; x < 16; ++x)
       expected.tiles[y * 64 + x] = 0;
   EXPECT_EQ(erased->tiles, expected.tiles);
+  for (int y = 34; y < 36; ++y)
+    for (int x = 14; x < 16; ++x)
+      EXPECT_FALSE(erased->HasOverride(y * 64 + x));
+  EXPECT_TRUE(erased->HasOverride(3));
   EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {2, 0, 1, 0}).ok());
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {3, 0, 1, 0}).ok());
+  EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {3, 0, 1, 0xB1}).ok());
   EXPECT_FALSE(PreviewMinecartCollisionStamp(before, {1, 0, 2, 0}).ok());
   EXPECT_EQ(before.tiles[34 * 64 + 14], 0xB8);
   EXPECT_TRUE(PreviewMinecartCollisionStamp(before, {0, 0, 1, 0}).ok());
@@ -2327,6 +2341,55 @@ TEST(MinecartCollisionStampTest, EraseRailBehaviorPreservesOtherCollision) {
   ASSERT_TRUE(no_op.ok());
   EXPECT_EQ(no_op->tiles, empty.tiles);
   EXPECT_FALSE(no_op->has_data);
+}
+
+TEST(MinecartCollisionStampTest, PresenceOnlyFloorEditKeepsUndoAndRedo) {
+  ScopedImGuiContext imgui;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonEditorV2 editor(&rom);
+  auto& room = editor.rooms()[0];
+  room = zelda3::Room(0, &rom);
+  room.SetCollisionTile(1, 1, 0x08);
+  room.ClearCustomCollisionDirty();
+  const auto before = room.custom_collision();
+  const auto rom_before = rom.vector();
+  DungeonEditorV2MinecartTrackTestPeer::BeginCollisionEdit(editor, 0);
+  room.SetCollisionTile(2, 1, 0);
+  DungeonEditorV2MinecartTrackTestPeer::FinishCollisionEdit(editor, 0);
+  ASSERT_EQ(before.tiles, room.custom_collision().tiles);
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 1u);
+  EXPECT_TRUE(room.HasCollisionOverride(2, 1));
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_EQ(room.custom_collision(), before);
+  EXPECT_FALSE(room.HasCollisionOverride(2, 1));
+  ASSERT_TRUE(editor.Redo().ok());
+  EXPECT_TRUE(room.HasCollisionOverride(2, 1));
+  EXPECT_TRUE(room.HasCollisionOverride(1, 1));
+  EXPECT_EQ(room.GetCollisionTile(1, 1), 0x08);
+  EXPECT_EQ(rom.vector(), rom_before);
+}
+
+TEST(MinecartCollisionStampTest, GenericOverlayDrawsFloorButNotUnsetCells) {
+  ScopedImGuiContext imgui;
+  ImGui::GetIO().DisplaySize = ImVec2(800, 600);
+  ImGui::GetIO().IniFilename = nullptr;
+  zelda3::Room room(0, nullptr);
+  room.custom_collision().has_data = true;
+  ImGui::NewFrame();
+  ImGui::SetNextWindowSize(ImVec2(400, 400));
+  ImGui::Begin("FloorOverlayHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+  auto* draw = ImGui::GetWindowDrawList();
+  const int before = draw->VtxBuffer.Size;
+  DungeonRenderingHelpers::DrawCustomCollisionOverlay(draw, ImVec2(100, 100),
+                                                      1.0f, room);
+  EXPECT_EQ(draw->VtxBuffer.Size, before);
+  room.SetCollisionTile(1, 1, 0);
+  DungeonRenderingHelpers::DrawCustomCollisionOverlay(draw, ImVec2(100, 100),
+                                                      1.0f, room);
+  EXPECT_GT(draw->VtxBuffer.Size, before);
+  ImGui::End();
+  ImGui::Render();
 }
 
 TEST(MinecartCollisionStampTest, StaleStampRefusedWithoutMutationOrUndo) {

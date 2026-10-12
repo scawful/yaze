@@ -771,8 +771,7 @@ void DungeonEditorV2::FinalizeCollisionUndoAction(int room_id) {
     return;
 
   auto after = rooms_[room_id].custom_collision();
-  if (pending_collision_undo_.before.has_data == after.has_data &&
-      pending_collision_undo_.before.tiles == after.tiles) {
+  if (pending_collision_undo_.before == after) {
     pending_collision_undo_.room_id = -1;
     pending_collision_undo_.before = {};
     return;
@@ -808,13 +807,12 @@ void DungeonEditorV2::RestoreRoomCustomCollision(
 namespace {
 
 bool HasAnyCustomCollision(const zelda3::CustomCollisionMap& map) {
-  return map.has_data || std::any_of(map.tiles.begin(), map.tiles.end(),
-                                     [](uint8_t tile) { return tile != 0; });
+  return map.has_data || map.HasOverrides();
 }
 
 bool CollisionMapsEqual(const zelda3::CustomCollisionMap& lhs,
                         const zelda3::CustomCollisionMap& rhs) {
-  return lhs.has_data == rhs.has_data && lhs.tiles == rhs.tiles;
+  return lhs == rhs;
 }
 
 struct CollisionRollbackEntry {

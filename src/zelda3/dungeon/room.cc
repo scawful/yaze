@@ -3903,15 +3903,8 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
       continue;
     }
 
-    // Treat an all-zero map as disabled to avoid wasting space.
-    bool any = false;
-    for (uint8_t v : room->custom_collision().tiles) {
-      if (v != 0) {
-        any = true;
-        break;
-      }
-    }
-    if (!any) {
+    // A floor-only map is populated; only absent overrides disable the room.
+    if (!room->custom_collision().HasOverrides()) {
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));

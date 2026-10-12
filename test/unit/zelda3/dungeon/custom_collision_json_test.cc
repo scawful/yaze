@@ -28,7 +28,7 @@ TEST(CustomCollisionJsonTest, JsonDumpThenLoadRoundTrip) {
     CustomCollisionRoomEntry r;
     r.room_id = 0x25;
     r.tiles.push_back(CustomCollisionTileEntry{0, 0x02});
-    r.tiles.push_back(CustomCollisionTileEntry{42, 0x00});  // dropped on dump
+    r.tiles.push_back(CustomCollisionTileEntry{42, 0x00});  // explicit floor
     r.tiles.push_back(CustomCollisionTileEntry{1, 0x0E});
     rooms.push_back(std::move(r));
   }
@@ -42,11 +42,13 @@ TEST(CustomCollisionJsonTest, JsonDumpThenLoadRoundTrip) {
   ASSERT_EQ(loaded.size(), 2u);
 
   EXPECT_EQ(loaded[0].room_id, 0x25);
-  ASSERT_EQ(loaded[0].tiles.size(), 2u);
+  ASSERT_EQ(loaded[0].tiles.size(), 3u);
   EXPECT_EQ(loaded[0].tiles[0].offset, 0u);
   EXPECT_EQ(loaded[0].tiles[0].value, 0x02u);
   EXPECT_EQ(loaded[0].tiles[1].offset, 1u);
   EXPECT_EQ(loaded[0].tiles[1].value, 0x0Eu);
+  EXPECT_EQ(loaded[0].tiles[2].offset, 42u);
+  EXPECT_EQ(loaded[0].tiles[2].value, 0x00u);
 
   EXPECT_EQ(loaded[1].room_id, 0x27);
   ASSERT_EQ(loaded[1].tiles.size(), 2u);
@@ -54,6 +56,23 @@ TEST(CustomCollisionJsonTest, JsonDumpThenLoadRoundTrip) {
   EXPECT_EQ(loaded[1].tiles[0].value, 0x09u);
   EXPECT_EQ(loaded[1].tiles[1].offset, 4095u);
   EXPECT_EQ(loaded[1].tiles[1].value, 0x1Bu);
+}
+
+TEST(CustomCollisionJsonTest, FloorOnlyRoomsRemainInCanonicalDump) {
+  CustomCollisionRoomEntry room;
+  room.room_id = 0x83;
+  room.tiles = {{494, 0x00}, {495, 0x08}, {495, 0x00}};
+  auto dumped = DumpCustomCollisionRoomsToJsonString({room});
+  ASSERT_TRUE(dumped.ok()) << dumped.status();
+  auto loaded = LoadCustomCollisionRoomsFromJsonString(*dumped);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ(loaded->size(), 1u);
+  EXPECT_EQ((*loaded)[0].room_id, 0x83);
+  ASSERT_EQ((*loaded)[0].tiles.size(), 2u);
+  EXPECT_EQ((*loaded)[0].tiles[0].offset, 494);
+  EXPECT_EQ((*loaded)[0].tiles[0].value, 0x00);
+  EXPECT_EQ((*loaded)[0].tiles[1].offset, 495);
+  EXPECT_EQ((*loaded)[0].tiles[1].value, 0x00);
 }
 
 TEST(CustomCollisionJsonTest, JsonLoadRejectsDuplicateRoom) {
@@ -104,4 +123,3 @@ TEST(CustomCollisionJsonTest, JsonHelpersReturnUnimplementedWhenJsonDisabled) {
 }  // namespace
 }  // namespace zelda3
 }  // namespace yaze
-

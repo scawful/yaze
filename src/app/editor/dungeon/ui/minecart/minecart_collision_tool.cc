@@ -30,7 +30,7 @@ absl::StatusOr<zelda3::CustomCollisionMap> PreviewMinecartCollisionStamp(
   for (int y = stamp.y; y < stamp.y + stamp.size; ++y) {
     for (int x = stamp.x; x < stamp.x + stamp.size; ++x) {
       const auto old = before.tiles[y * 64 + x];
-      if (old != 0 && !IsRail(old)) {
+      if (before.HasOverride(y * 64 + x) && !IsRail(old)) {
         return absl::FailedPreconditionError(
             "Other collision occupies this cell; use the collision inspector");
       }
@@ -39,7 +39,12 @@ absl::StatusOr<zelda3::CustomCollisionMap> PreviewMinecartCollisionStamp(
         return absl::FailedPreconditionError(
             "Stop or switch protected; choose the matching behavior tool");
       }
-      after.tiles[y * 64 + x] = stamp.value;
+      if (stamp.value == 0) {
+        // The rail tool's erase stamp removes an override, not floor physics.
+        after.ClearOverride(y * 64 + x);
+      } else {
+        after.SetOverride(y * 64 + x, stamp.value);
+      }
     }
   }
   after.has_data = before.has_data || stamp.value != 0;

@@ -174,8 +174,9 @@ void DungeonObjectInteraction::UpdateCollisionPainting(
                 lx, ly, state.paint_brush_radius,
                 /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
                 [&](int bx, int by) {
-                  if (room.GetCollisionTile(bx, by) ==
-                      state.paint_collision_value) {
+                  if (room.HasCollisionOverride(bx, by) &&
+                      room.GetCollisionTile(bx, by) ==
+                          state.paint_collision_value) {
                     return;
                   }
                   ensure_mutation();

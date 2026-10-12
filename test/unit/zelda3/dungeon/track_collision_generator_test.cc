@@ -367,5 +367,30 @@ TEST(TrackCollisionGeneratorTest,
   EXPECT_EQ(replacement_loaded_or->tiles, replacement.tiles);
 }
 
+TEST(TrackCollisionGeneratorTest, ExplicitFloorAndClearRoundTrip) {
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(std::vector<uint8_t>(kCustomCollisionDataEnd, 0x00))
+          .ok());
+  CustomCollisionMap map;
+  map.SetOverride(494, 0x00);
+  map.SetOverride(495, 0xFF);
+  ASSERT_TRUE(WriteTrackCollision(&rom, 0x83, map).ok());
+  auto loaded = LoadCustomCollisionMap(&rom, 0x83);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(*loaded, map);
+  EXPECT_TRUE(loaded->HasOverride(494));
+  EXPECT_FALSE(loaded->HasOverride(493));
+
+  map.ClearOverride(494);
+  ASSERT_TRUE(WriteTrackCollision(&rom, 0x83, map).ok());
+  loaded = LoadCustomCollisionMap(&rom, 0x83);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(*loaded, map);
+  EXPECT_FALSE(loaded->HasOverride(494));
+  EXPECT_TRUE(loaded->HasOverride(495));
+  EXPECT_EQ(loaded->tiles[495], 0xFF);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3

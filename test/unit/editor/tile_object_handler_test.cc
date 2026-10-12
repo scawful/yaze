@@ -1291,6 +1291,50 @@ TEST_F(TileObjectHandlerTest,
   EXPECT_EQ(io.MouseWheel, 0);
 }
 
+TEST_F(TileObjectHandlerTest,
+       PaintFloorCreatesOverrideAndRepeatedStrokeIsNoop) {
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  interaction.mode_manager().SetMode(InteractionMode::PaintCollision);
+  interaction.mode_manager().GetModeState().paint_collision_value = 0;
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent(100, 100);
+  const auto frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700, 650), ImGuiCond_Always);
+    ImGui::Begin("CollisionFloorHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    canvas_->DrawBackground(ImVec2(512, 512));
+    interaction.HandleCanvasMouseInput();
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  const auto stroke = [&]() {
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+  };
+  stroke();
+  EXPECT_TRUE(rooms_[0].custom_collision().has_data);
+  EXPECT_EQ(rooms_[0].custom_collision().overrides.count(), 1u);
+  EXPECT_TRUE(rooms_[0].custom_collision_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  // Painting invalidates the preview and release commits the stroke.
+  EXPECT_EQ(invalidate_count_, 2);
+  EXPECT_EQ(interaction.last_invalidation_domain(),
+            MutationDomain::kCustomCollision);
+  rooms_[0].ClearCustomCollisionDirty();
+  stroke();
+  EXPECT_FALSE(rooms_[0].custom_collision_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 2);
+}
+
 TEST_F(TileObjectHandlerTest, CanvasPlacementDigitsIgnoreModifiedChords) {
   AddTestObjects({CreateTestObject(5, 5)});
   DungeonObjectInteraction interaction(canvas_.get());
