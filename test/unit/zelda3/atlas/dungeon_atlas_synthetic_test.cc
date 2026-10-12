@@ -145,6 +145,151 @@ const AtlasLink* FindLink(const std::vector<AtlasLink>& links, LinkKind kind) {
   return nullptr;
 }
 
+TEST(DungeonAtlasSyntheticTest, RedefinedHoleTagDoesNotInventARoute) {
+  DungeonAtlasInput input = EmptyInput();
+  AddEntrance(&input, 0x01, 0x10, 0x04, 0x00);
+  input.census.warp_tag_ids = {0x3A};
+  auto& facts = input.census.rooms[0x10];
+  facts.tag1 = 0x3A;
+  facts.has_hole_tag = true;
+  facts.holewarp_byte = 0x20;
+
+  auto atlas = BuildDungeonAtlas(input, {});
+  EXPECT_EQ(FindLink(atlas.rooms[0x10].links_out, LinkKind::kTagPit), nullptr);
+  EXPECT_FALSE(atlas.rooms[0x20].reached);
+  EXPECT_EQ(atlas.rooms[0x20].status, RoomStatus::kFree);
+
+  // Ordinary pits remain live without a project tag override.
+  facts.tag1 = 0;
+  facts.has_hole_tag = false;
+  facts.has_pits = true;
+  atlas = BuildDungeonAtlas(input, {});
+  const auto* pit = FindLink(atlas.rooms[0x10].links_out, LinkKind::kPit);
+  ASSERT_NE(pit, nullptr);
+  EXPECT_EQ(pit->to, 0x20);
+  EXPECT_TRUE(atlas.rooms[0x20].reached);
+}
+
+TEST(DungeonAtlasSyntheticTest, WarpTagSlotsReplaceTheRawWarpTileTarget) {
+  DungeonAtlasInput input = EmptyInput();
+  AddEntrance(&input, 0x01, 0x10, 0x04, 0x00);
+  input.census.warp_tag_ids = {0x3A};
+  auto& facts = input.census.rooms[0x10];
+  facts.tag1 = 0x3A;
+  facts.has_warp_tiles = true;
+  facts.holewarp_byte = 0x20;
+  facts.stair_bytes = {0x30, 0x31, 0x32, 0x33};
+
+  const auto atlas = BuildDungeonAtlas(input, {});
+  const auto& links = atlas.rooms[0x10].links_out;
+  EXPECT_EQ(FindLink(links, LinkKind::kWarpTiles), nullptr);
+  EXPECT_EQ(std::count_if(links.begin(), links.end(),
+                          [](const auto& link) {
+                            return link.kind == LinkKind::kWarpTag;
+                          }),
+            4);
+
+  // Without the tag override, the warp tile keeps its header destination.
+  facts.tag1 = 0;
+  const auto plain = BuildDungeonAtlas(input, {});
+  const auto* warp =
+      FindLink(plain.rooms[0x10].links_out, LinkKind::kWarpTiles);
+  ASSERT_NE(warp, nullptr);
+  EXPECT_EQ(warp->to, 0x20);
+  EXPECT_EQ(FindLink(plain.rooms[0x10].links_out, LinkKind::kWarpTag), nullptr);
+}
+
+TEST(DungeonAtlasSyntheticTest, DamageOnlyHoleSourcesDoNotClaimTraversal) {
+  for (int cause = 0; cause < 3; ++cause) {
+    DungeonAtlasInput input = EmptyInput();
+    AddEntrance(&input, 0x01, 0x10, 0x04, 0x00);
+    auto& facts = input.census.rooms[0x10];
+    facts.has_pits = cause == 0;
+    facts.has_hole_tag = cause == 1;
+    facts.hole_sprite = cause == 2 ? "Falling-floor overlord" : "";
+    facts.holewarp_byte = 0x20;
+    facts.in_pit_damage_table = true;
+
+    auto atlas = BuildDungeonAtlas(input, {});
+    const auto* damage =
+        FindLink(atlas.rooms[0x10].links_out, LinkKind::kPitDamage);
+    ASSERT_NE(damage, nullptr) << cause;
+    EXPECT_EQ(damage->to, 0x20) << cause;
+    EXPECT_FALSE(atlas.rooms[0x20].reached) << cause;
+
+    // Warp tiles remain a route even in a damage-and-respawn room.
+    facts.has_warp_tiles = true;
+    atlas = BuildDungeonAtlas(input, {});
+    const auto* warp =
+        FindLink(atlas.rooms[0x10].links_out, LinkKind::kWarpTiles);
+    ASSERT_NE(warp, nullptr) << cause;
+    EXPECT_EQ(warp->to, 0x20) << cause;
+    EXPECT_TRUE(atlas.rooms[0x20].reached) << cause;
+    EXPECT_EQ(FindLink(atlas.rooms[0x10].links_out, LinkKind::kPitDamage),
+              nullptr)
+        << cause;
+  }
+}
+
+TEST(DungeonAtlasSyntheticTest, FallingFloorSpriteShowsItsPitDestination) {
+  DungeonAtlasInput input = EmptyInput();
+  AddEntrance(&input, 0x01, 0x10, 0x04, 0x00);
+  auto& facts = input.census.rooms[0x10];
+  facts.hole_sprite = "Falling-floor overlord";
+  facts.holewarp_byte = 0x20;
+
+  const auto atlas = BuildDungeonAtlas(input, {});
+  const auto* pit = FindLink(atlas.rooms[0x10].links_out, LinkKind::kPit);
+  ASSERT_NE(pit, nullptr);
+  EXPECT_EQ(pit->to, 0x20);
+  EXPECT_EQ(pit->note, facts.hole_sprite);
+  EXPECT_TRUE(atlas.rooms[0x20].reached);
+}
+
+TEST(DungeonAtlasSyntheticTest, SharedHoleCauseKeepsTagAndSpritePrecedence) {
+  DungeonAtlasInput input = EmptyInput();
+  AddEntrance(&input, 0x01, 0x10, 0x04, 0x00);
+  auto& facts = input.census.rooms[0x10];
+  facts.has_hole_tag = true;
+  facts.tag1 = 0x22;
+  facts.hole_sprite = "Falling-floor overlord";
+  facts.holewarp_byte = 0x20;
+
+  auto atlas = BuildDungeonAtlas(input, {});
+  const auto* tag = FindLink(atlas.rooms[0x10].links_out, LinkKind::kTagPit);
+  ASSERT_NE(tag, nullptr);
+  EXPECT_EQ(tag->to, 0x20);
+  EXPECT_EQ(FindLink(atlas.rooms[0x10].links_out, LinkKind::kPit), nullptr);
+
+  // Redefining the tag removes only its hole cause, not the sprite's floor.
+  input.census.warp_tag_ids = {0x22};
+  atlas = BuildDungeonAtlas(input, {});
+  const auto* pit = FindLink(atlas.rooms[0x10].links_out, LinkKind::kPit);
+  ASSERT_NE(pit, nullptr);
+  EXPECT_EQ(pit->to, 0x20);
+  EXPECT_EQ(pit->note, facts.hole_sprite);
+  EXPECT_EQ(FindLink(atlas.rooms[0x10].links_out, LinkKind::kTagPit), nullptr);
+}
+
+TEST(DungeonAtlasSyntheticTest, OnlyActiveHoleSourcesWarnAboutInvalidTargets) {
+  DungeonAtlasInput input = EmptyInput();
+  AddEntrance(&input, 0x01, 0x104, 0x04, 0x00);
+  auto& facts = input.census.rooms[0x104];
+  facts.tag1 = 0x3A;
+  facts.has_hole_tag = true;
+  facts.holewarp_byte = 0x40;
+  input.census.warp_tag_ids = {0x3A};
+
+  auto atlas = BuildDungeonAtlas(input, {});
+  EXPECT_THAT(atlas.warnings,
+              ::testing::Not(::testing::Contains(HasSubstr("holewarp"))));
+  facts.has_pits = true;
+  atlas = BuildDungeonAtlas(input, {});
+  EXPECT_THAT(atlas.warnings,
+              ::testing::Contains(HasSubstr("holewarp points past $127")));
+  EXPECT_EQ(FindLink(atlas.rooms[0x104].links_out, LinkKind::kPit), nullptr);
+}
+
 TEST(DungeonAtlasSyntheticTest, HeaderTargetsKeepTheHighByte) {
   DungeonAtlasInput input = EmptyInput();
   AddEntrance(&input, 0x10, 0x104, 0x04, 0x20);

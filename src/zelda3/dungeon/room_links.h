@@ -119,6 +119,16 @@ struct RoomLinkFacts {
   std::vector<Door> doors;  // Every door except layer/dungeon swap markers.
 };
 
+// Cause chosen by the shared holewarp rules; presentation must not infer it
+// again from raw tags (a project may redefine a vanilla hole tag).
+enum class RoomHolewarpCause : uint8_t {
+  kNone,
+  kPits,
+  kWarpTiles,
+  kTag,
+  kSprite,
+};
+
 struct RoomLink {
   int from = -1;
   int to = -1;      // 0x000-0x127, or -1 when the destination is not a room.
@@ -130,6 +140,7 @@ struct RoomLink {
   bool strong = false;    // The game can take it.
   bool owner_ok = false;  // Same area: may carry dungeon ownership.
   std::string detail;
+  RoomHolewarpCause holewarp_cause = RoomHolewarpCause::kNone;
 };
 
 // Facts of a room, or nullptr when `room_id` is not a room or not known.
