@@ -76,6 +76,65 @@ TEST(DungeonRoomTransferTest, JsonRoundTripPreservesSpecialFieldsAndRawValues) {
   EXPECT_EQ(parsed->contents.objects[0].rom(), nullptr);
 }
 
+TEST(DungeonRoomTransferTest,
+     JsonRoundTripKeepsFloorPresenceAndAcceptsLegacyDocuments) {
+  auto document = Document();
+  document.collision.SetOverride(73, 0);
+  const auto serialized = SerializeDungeonRoomDocument(document);
+  ASSERT_TRUE(serialized.ok()) << serialized.status();
+  auto json = Json::parse(*serialized);
+  EXPECT_EQ(json.at("collision").at("overrides"), Json::array({73}));
+  const auto parsed = ParseDungeonRoomDocument(*serialized);
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  EXPECT_EQ(parsed->collision, document.collision);
+  EXPECT_TRUE(parsed->collision.HasOverride(73));
+  EXPECT_FALSE(parsed->collision.HasOverride(74));
+
+  json["collision"].erase("overrides");
+  const auto legacy = ParseDungeonRoomDocument(json.dump());
+  ASSERT_TRUE(legacy.ok()) << legacy.status();
+  EXPECT_TRUE(legacy->collision.HasOverride(72));
+  EXPECT_FALSE(legacy->collision.HasOverride(73));
+  EXPECT_EQ(legacy->collision.tiles, document.collision.tiles);
+}
+
+TEST(DungeonRoomTransferTest, PresenceOnlyTransferChangesAndRestoresFloor) {
+  zelda3::Room target(7, nullptr);
+  target.SetCollisionTile(8, 1, 0xFE);
+  target.ClearCustomCollisionDirty();
+  const auto before = CaptureDungeonRoomDocument(target);
+  auto document = before;
+  document.collision.SetOverride(73, 0);
+  ASSERT_EQ(document.collision.tiles, before.collision.tiles);
+  const auto plan =
+      PlanDungeonRoomTransfer(target, document, {kTransferCollision});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(plan->changed());
+  ApplyDungeonRoomDocument(target, plan->after);
+  EXPECT_TRUE(target.custom_collision_dirty());
+  EXPECT_TRUE(target.HasCollisionOverride(9, 1));
+  EXPECT_EQ(target.GetCollisionTile(9, 1), 0);
+  const auto repeated =
+      PlanDungeonRoomTransfer(target, document, {kTransferCollision});
+  ASSERT_TRUE(repeated.ok()) << repeated.status();
+  EXPECT_FALSE(repeated->changed());
+  ApplyDungeonRoomDocument(target, plan->before);
+  EXPECT_FALSE(target.HasCollisionOverride(9, 1));
+  EXPECT_EQ(target.custom_collision(), before.collision);
+}
+
+TEST(DungeonRoomTransferTest, RejectsMalformedCollisionPresenceOffsets) {
+  for (const Json& overrides :
+       {Json::array({-1}), Json::array({4096}), Json::array({1.0}),
+        Json::array({true}), Json::array({"1"}), Json::array({73, 73}),
+        Json::object()}) {
+    auto json = DocumentJson();
+    json["collision"]["overrides"] = overrides;
+    EXPECT_FALSE(ParseDungeonRoomDocument(json.dump()).ok())
+        << overrides.dump();
+  }
+}
+
 TEST(DungeonRoomTransferTest, PortableJsonIgnoresCommittedBlockSlotNumbers) {
   auto first = Document();
   auto second = first;

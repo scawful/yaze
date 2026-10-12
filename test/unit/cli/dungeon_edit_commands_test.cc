@@ -1,4 +1,5 @@
 #include "cli/handlers/game/dungeon_edit_commands.h"
+#include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 
 #include <array>
@@ -250,6 +251,16 @@ void InitializeRoomHeaderRom(Rom* rom) {
   }
   rom->mutable_data()[kSyntheticPotTerminatorPc] = 0xFF;
   rom->mutable_data()[kSyntheticPotTerminatorPc + 1] = 0xFF;
+  rom->set_dirty(false);
+}
+
+void InitializeCollisionEditRom(Rom* rom) {
+  InitializeRoomHeaderRom(rom);
+  rom->Expand(0x200000);
+  std::vector<zelda3::Room> rooms;
+  rooms.emplace_back(1, rom);
+  rooms[0].SetCollisionTile(3, 4, 0xB9);
+  ASSERT_TRUE(zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms)).ok());
   rom->set_dirty(false);
 }
 
@@ -1727,6 +1738,137 @@ TEST(DungeonEditCommandsTest, SetCollisionTileRejectsMalformedTileTuple) {
       &output);
 
   ExpectInvalidArgument(status, "Invalid tile spec");
+}
+
+TEST(DungeonEditCommandsTest,
+     CollisionFloorPreviewReportsPresenceWithoutChangingRomOrDisk) {
+  Rom rom;
+  InitializeCollisionEditRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  handlers::DungeonSetCollisionTileCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(handler
+                  .Run({"--room=0x00", "--tiles=10,5,0x00", "--format=json"},
+                       &rom, &output)
+                  .ok());
+  const auto result = ExpectRomFailedClosed(output, rom, baseline);
+  const auto& report = result.at("Set Collision Tiles");
+  EXPECT_EQ(report.at("mode"), "dry-run");
+  ASSERT_EQ(report.at("changes").size(), 1u);
+  EXPECT_EQ(report.at("changes")[0].at("old_tile"), "0x00");
+  EXPECT_EQ(report.at("changes")[0].at("new_tile"), "0x00");
+  EXPECT_FALSE(report.at("changes")[0].at("old_override_present"));
+  EXPECT_TRUE(report.at("changes")[0].at("new_override_present"));
+}
+
+TEST(DungeonEditCommandsTest,
+     CollisionFloorWriteReopensWithAbsentNeighborAndUnrelatedRoomIntact) {
+  for (const bool mixed : {false, true}) {
+    SCOPED_TRACE(mixed);
+    Rom rom;
+    InitializeCollisionEditRom(&rom);
+    ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+    WriteRomFile(rom, cleanup.rom_path);
+    rom.set_filename(cleanup.rom_path.string());
+    const auto before = rom.vector();
+    const auto other = zelda3::LoadCustomCollisionMap(&rom, 1);
+    ASSERT_TRUE(other.ok()) << other.status();
+    handlers::DungeonSetCollisionTileCommandHandler handler;
+    std::string output;
+    ASSERT_TRUE(
+        handler
+            .Run({"--room=0x00",
+                  mixed ? "--tiles=10,5,0x00;11,5,0xB7" : "--tiles=10,5,0x00",
+                  "--write", "--format=json"},
+                 &rom, &output)
+            .ok());
+    EXPECT_EQ(nlohmann::json::parse(output)
+                  .at("Set Collision Tiles")
+                  .at("save_status"),
+              "saved");
+
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+    const auto map = zelda3::LoadCustomCollisionMap(&reopened, 0);
+    ASSERT_TRUE(map.ok()) << map.status();
+    ASSERT_TRUE(map->has_data);
+    EXPECT_TRUE(map->HasOverride(5 * 64 + 10));
+    EXPECT_EQ(map->tiles[5 * 64 + 10], 0);
+    EXPECT_FALSE(map->HasOverride(5 * 64 + 12));
+    EXPECT_EQ(map->tiles[5 * 64 + 12], 0);
+    EXPECT_EQ(map->HasOverride(5 * 64 + 11), mixed);
+    const auto other_after = zelda3::LoadCustomCollisionMap(&reopened, 1);
+    ASSERT_TRUE(other_after.ok()) << other_after.status();
+    EXPECT_EQ(*other_after, *other);
+    EXPECT_EQ(rom.vector(), reopened.vector());
+
+    // Only room 0's pointer and its newly allocated sparse stream may change.
+    const int pointer_pc = zelda3::kCustomCollisionRoomPointers;
+    const uint32_t pointer = reopened.data()[pointer_pc] |
+                             (reopened.data()[pointer_pc + 1] << 8) |
+                             (reopened.data()[pointer_pc + 2] << 16);
+    const int data_pc = SnesToPc(pointer);
+    const int stream_bytes = mixed ? 10 : 7;
+    ASSERT_GE(data_pc, zelda3::kCustomCollisionDataPosition);
+    ASSERT_LE(data_pc + stream_bytes, zelda3::kCustomCollisionDataSoftEnd);
+    ASSERT_EQ(reopened.size(), before.size());
+    for (size_t pc = 0; pc < before.size(); ++pc) {
+      if (before[pc] != reopened.data()[pc]) {
+        EXPECT_TRUE((pc >= static_cast<size_t>(pointer_pc) &&
+                     pc < static_cast<size_t>(pointer_pc + 3)) ||
+                    (pc >= static_cast<size_t>(data_pc) &&
+                     pc < static_cast<size_t>(data_pc + stream_bytes)))
+            << "Unexpected write at PC " << pc;
+      }
+    }
+    const auto backups = FindBackupArtifacts(cleanup.rom_path);
+    ASSERT_EQ(backups.size(), 1u);
+    EXPECT_EQ(ReadFile(backups.front()), before);
+
+    handlers::DungeonListCustomCollisionCommandHandler list;
+    ASSERT_TRUE(
+        list.Run({"--room=0x00", "--all", "--format=json"}, &reopened, &output)
+            .ok());
+    const auto readback =
+        nlohmann::json::parse(output).at("Dungeon Custom Collision");
+    EXPECT_EQ(readback.at("override_tiles"), mixed ? 2 : 1);
+    EXPECT_EQ(readback.at("nonzero_tiles"), mixed ? 1 : 0);
+    ASSERT_EQ(readback.at("tiles").size(), 4096u);
+    EXPECT_TRUE(readback.at("tiles")[5 * 64 + 10].at("override_present"));
+    EXPECT_FALSE(readback.at("tiles")[5 * 64 + 12].at("override_present"));
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     CollisionFloorSaveFailureRollsBackAndKeepsBackup) {
+  Rom rom;
+  InitializeCollisionEditRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+  yaze::test::ScopedRomStagingFailure fault;
+  handlers::DungeonSetCollisionTileCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x00", "--tiles=10,5,0x00", "--write", "--format=json"}, &rom,
+      &output);
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_TRUE(nlohmann::json::parse(output)
+                  .at("Set Collision Tiles")
+                  .contains("save_error"));
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(rom.size(), baseline.size);
+  EXPECT_EQ(rom.filename(), baseline.filename);
+  EXPECT_EQ(rom.dirty(), baseline.dirty);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  const auto backups = FindBackupArtifacts(cleanup.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), baseline.disk_bytes);
 }
 
 TEST(DungeonEditCommandsTest,

@@ -2486,10 +2486,11 @@ absl::Status DungeonSetCollisionTileCommandHandler::Execute(
   formatter.AddField("tile_count", static_cast<int>(specs.size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
-  // Apply each tile change
+  // Every tuple sets an explicit override; 00 is floor, not removal.
   formatter.BeginArray("changes");
   for (const auto& spec : specs) {
     uint8_t old_value = room.GetCollisionTile(spec.x, spec.y);
+    const bool old_override_present = room.HasCollisionOverride(spec.x, spec.y);
     room.SetCollisionTile(spec.x, spec.y, static_cast<uint8_t>(spec.tile));
 
     formatter.BeginObject();
@@ -2497,6 +2498,9 @@ absl::Status DungeonSetCollisionTileCommandHandler::Execute(
     formatter.AddField("y", spec.y);
     formatter.AddHexField("old_tile", old_value, 2);
     formatter.AddHexField("new_tile", spec.tile, 2);
+    formatter.AddField("old_override_present", old_override_present);
+    formatter.AddField("new_override_present",
+                       room.HasCollisionOverride(spec.x, spec.y));
     formatter.EndObject();
   }
   formatter.EndArray();
