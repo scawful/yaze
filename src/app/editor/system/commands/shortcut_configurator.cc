@@ -597,26 +597,17 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               dungeon_editor->OpenWindow(DungeonEditorV2::kRoomGraphicsId);
             } else if (id == "dungeon.open_palette") {
               dungeon_editor->OpenWindow(DungeonEditorV2::kPaletteEditorId);
-            } else {
-              auto* obj_selector = dungeon_editor->object_editor_panel();
-              auto* obj_editor = dungeon_editor->object_editor_content();
-              if (!obj_selector || !obj_editor)
-                return;
-              if (id == "dungeon.object.select_tool") {
-                // Unified mode: cancel placement to switch to selection
-                obj_selector->CancelPlacement();
-              } else if (id == "dungeon.object.place_tool") {
-                // Unified mode: handled by object selector click
-                // No-op (mode is controlled by selecting an object)
-              } else if (id == "dungeon.object.delete_tool") {
-                dungeon_editor->QueueRoomCanvasDeleteShortcut();
-              } else if (id == "dungeon.object.next_object") {
-                obj_editor->CycleObjectSelection(1);
-              } else if (id == "dungeon.object.prev_object") {
-                obj_editor->CycleObjectSelection(-1);
-              } else if (id == "dungeon.object.delete") {
-                dungeon_editor->QueueRoomCanvasDeleteShortcut();
-              }
+            } else if (id == "dungeon.object.select_tool") {
+              // Unified mode: cancel placement to switch to selection.
+              if (auto* selector = dungeon_editor->object_editor_panel())
+                selector->CancelPlacement();
+            } else if (id == "dungeon.object.next_object") {
+              (void)dungeon_editor->CycleObjectSelection(1);
+            } else if (id == "dungeon.object.prev_object") {
+              (void)dungeon_editor->CycleObjectSelection(-1);
+            } else if (id == "dungeon.object.delete_tool" ||
+                       id == "dungeon.object.delete") {
+              dungeon_editor->QueueRoomCanvasDeleteShortcut();
             }
           },
           EditorType::kDungeon);

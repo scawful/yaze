@@ -31,6 +31,9 @@ class LayoutDesignerPanel : public WindowContent {
   // migration in user_settings.cc which force-pins this panel so "Show"
   // is sufficient from any editor.
   std::string GetEditorCategory() const override { return "Settings"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
 
   WindowLifecycle GetWindowLifecycle() const override {
     return WindowLifecycle::CrossEditor;

@@ -170,11 +170,14 @@ OverworldMapMetadata BuildOverworldMapMetadata(
     const zelda3::Overworld& overworld, const Rom* rom,
     const project::YazeProject* project, int map_id, int game_state) {
   OverworldMapMetadata metadata;
-  metadata.map_id = std::clamp(map_id, 0, zelda3::kNumOverworldMaps - 1);
+  metadata.map_id = std::clamp(map_id, 0, overworld.inspected_map_count() - 1);
   metadata.world = std::clamp(metadata.map_id / 0x40, 0, 2);
   metadata.world_label = WorldLabelForMap(metadata.map_id);
   metadata.map_id_label = absl::StrFormat("0x%02X", metadata.map_id);
-  metadata.version_label = VersionLabelForRom(rom);
+  metadata.version_label =
+      overworld.is_lyra_preview()
+          ? "Lyra OW rev1: 192 stored / 160 active / read-only"
+          : VersionLabelForRom(rom);
 
   metadata.map_name = zelda3::GetResourceLabels().GetLabel(
       zelda3::ResourceType::kOverworldMap, metadata.map_id);
@@ -186,6 +189,10 @@ OverworldMapMetadata BuildOverworldMapMetadata(
   metadata.map_title =
       absl::StrFormat("%s | %s %s", metadata.world_label, metadata.map_id_label,
                       metadata.map_name);
+  if (overworld.is_lyra_preview() &&
+      metadata.map_id >= zelda3::kNumOverworldMaps) {
+    metadata.map_title += " (stored, inactive)";
+  }
 
   const zelda3::OverworldMap* map = overworld.overworld_map(metadata.map_id);
   if (!map) {

@@ -196,16 +196,22 @@ absl::Status DungeonRoomLoader::LoadRoomEntrances(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
+  // Validate before publishing any entries, including the spawn navigation
+  // views, so a malformed expansion cannot leave a partially replaced array.
+  RETURN_IF_ERROR(zelda3::ResolveEntranceLayout(rom_->vector()).status());
+  auto loaded = entrances;
   // Load entrances
   for (int i = 0; i < zelda3::kNumDungeonSpawnPoints; ++i) {
-    entrances[i] = zelda3::RoomEntrance(rom_, i, true);
+    loaded[i] = zelda3::RoomEntrance(rom_, i, true);
+    RETURN_IF_ERROR(loaded[i].load_status());
   }
 
   for (int i = 0; i < zelda3::kNumRegularDungeonEntrances; ++i) {
-    entrances[i + zelda3::kNumDungeonSpawnPoints] =
+    loaded[i + zelda3::kNumDungeonSpawnPoints] =
         zelda3::RoomEntrance(rom_, i, false);
+    RETURN_IF_ERROR(loaded[i + zelda3::kNumDungeonSpawnPoints].load_status());
   }
-
+  entrances = std::move(loaded);
   return absl::OkStatus();
 }
 

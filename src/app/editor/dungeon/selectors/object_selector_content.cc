@@ -124,6 +124,11 @@ void ObjectSelectorContent::Draw(bool* p_open) {
   DrawContent(true);
 }
 
+bool ObjectSelectorContent::DrawMinecartPalette() {
+  ResolveCanvasViewer();
+  return object_selector_.DrawMinecartPalette();
+}
+
 void ObjectSelectorContent::DrawInWorkbench() {
   DrawContent(false);
 }
@@ -177,6 +182,10 @@ void ObjectSelectorContent::DrawContent(bool show_placement_summary) {
         case SpriteInteractionHandler::PlacementBlockReason::kInvalidRoom:
           SetPlacementError("Invalid room target - sprite placement blocked");
           break;
+        case SpriteInteractionHandler::PlacementBlockReason::kStorageValidation:
+          SetPlacementError(
+              std::string(sprite_handler.mutation_status().message()));
+          break;
         case SpriteInteractionHandler::PlacementBlockReason::kNone:
         default:
           SetPlacementError("Sprite placement blocked");
@@ -198,6 +207,10 @@ void ObjectSelectorContent::DrawContent(bool show_placement_summary) {
           break;
         case DoorInteractionHandler::PlacementBlockReason::kInvalidRoom:
           SetPlacementError("Invalid room target - door placement blocked");
+          break;
+        case DoorInteractionHandler::PlacementBlockReason::kStorageValidation:
+          SetPlacementError(
+              std::string(door_handler.mutation_status().message()));
           break;
         case DoorInteractionHandler::PlacementBlockReason::kNone:
         default:

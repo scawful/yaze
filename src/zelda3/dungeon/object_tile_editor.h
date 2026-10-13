@@ -124,6 +124,7 @@ struct ObjectTileLayout {
   // by source_provenance + per-cell source_ref, never by this base address.
   int tile_data_address = -1;
   std::optional<ObjectTileSourceProvenance> source_provenance;
+  std::shared_ptr<const DungeonTilePatterns> pattern_source;
   bool is_custom = false;
   int custom_subtype = -1;
   std::string custom_filename;
@@ -164,6 +165,7 @@ class ObjectTileWritePlan {
   ObjectTileWritePlan& operator=(const ObjectTileWritePlan&) = default;
   ObjectTileWritePlan& operator=(ObjectTileWritePlan&&) noexcept = default;
 
+  bool writes_pattern_source() const { return pattern_source_ != nullptr; }
   const std::vector<Write>& writes() const { return writes_; }
   const std::vector<WordPrecondition>& preconditions() const {
     return preconditions_;
@@ -177,6 +179,7 @@ class ObjectTileWritePlan {
 
   ObjectTileWritePlan() = default;
 
+  std::shared_ptr<const DungeonTilePatterns> pattern_source_;
   std::vector<Write> writes_;
   // Includes the pointer descriptor and every captured source word. Apply
   // rechecks these immediately before opening the transaction.
@@ -209,8 +212,8 @@ class ObjectTileEditor {
       uint8_t object_size);
 
   // Capture a standard object with exact ROM source provenance. The initial
-  // fail-closed allowlist is intentionally limited to the two audited fixed
-  // 2x2 subtype-2 objects (0x11F and 0x120).
+  // source maps cover straight walls, 4x4 corners and fixed 2x2 objects.
+  // Repeating walls capture one source unit, independent of placed length.
   absl::StatusOr<ObjectTileLayout> CaptureEditableObjectLayout(
       int16_t object_id, const Room& room, const gfx::PaletteGroup& palette);
 

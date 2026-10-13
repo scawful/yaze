@@ -12,37 +12,38 @@
 #include "app/gfx/util/compression.h"
 #include "rom/rom.h"
 #include "test_utils.h"
-#include "zelda3/game_data.h"
-#include "zelda3/game_data.h"
 #include "testing.h"
+#include "unique_temp_path.h"
 #include "zelda.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace test {
 
 /**
- * @brief E2E Test Suite for Graphics Editor Save Operations
+ * Codec round trip for one graphics sheet. This is not GraphicsEditor::Save.
  *
- * Validates the complete graphics editing workflow:
- * 1. Load ROM and graphics sheets
- * 2. Modify pixel data in sheets
- * 3. Save changes (8BPP→SNES indexed + LC-LZ2 compression)
- * 4. Reload ROM and verify edits persisted
- * 5. Verify no data corruption occurred
+ * SaveSheetToRom below encodes, compresses, and writes bytes itself. It does
+ * not call GraphicsEditor::PrepareGraphicsSave, WriteGfxSheet, the project
+ * write policy, relocation, or rollback. Product save acceptance lives in
+ * GraphicsSaveStoplossTest (editor_manager_rom_write_policy_test.cc).
+ *
+ * These cases check that a private 8bpp → SNES → LC-LZ2 path can be reloaded
+ * by the game-data loader. They do not qualify Save As.
  */
-class GraphicsEditorSaveTest : public ::testing::Test {
+class GraphicsSheetCodecRoundTripTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    YAZE_SKIP_IF_ROM_MISSING(
-        yaze::test::RomRole::kVanilla, "GraphicsEditorSaveTest");
+    YAZE_SKIP_IF_ROM_MISSING(yaze::test::RomRole::kVanilla,
+                             "GraphicsSheetCodecRoundTripTest");
     vanilla_rom_path_ =
         yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
 
-    // Create test ROM copies
-    test_rom_path_ = "test_graphics_edit.sfc";
-    backup_rom_path_ = "test_graphics_backup.sfc";
+    // ctest may run every case in a separate process; a local counter alone
+    // repeats the same filenames across those processes.
+    test_rom_path_ = UniqueTempPath("yaze-gfx-codec", ".sfc").string();
+    backup_rom_path_ = UniqueTempPath("yaze-gfx-codec-backup", ".sfc").string();
 
-    // Copy vanilla ROM for testing
     std::filesystem::copy_file(
         vanilla_rom_path_, test_rom_path_,
         std::filesystem::copy_options::overwrite_existing);
@@ -70,7 +71,8 @@ class GraphicsEditorSaveTest : public ::testing::Test {
 
   static uint8_t NextPixelValue(uint16_t sheet_id, uint8_t current,
                                 uint8_t delta = 1) {
-    const uint8_t max_colors = static_cast<uint8_t>(1u << GetSheetBpp(sheet_id));
+    const uint8_t max_colors =
+        static_cast<uint8_t>(1u << GetSheetBpp(sheet_id));
     return static_cast<uint8_t>((current + delta) % max_colors);
   }
 
@@ -101,7 +103,7 @@ class GraphicsEditorSaveTest : public ::testing::Test {
     return absl::OkStatus();
   }
 
-  // Helper to save modified sheets to ROM (mirrors GraphicsEditor::Save())
+  // Private codec writer. Not GraphicsEditor::Save.
   static absl::Status SaveSheetToRom(Rom& rom, uint16_t sheet_id) {
     if (sheet_id >= zelda3::kNumGfxSheets) {
       return absl::InvalidArgumentError("Sheet ID out of range");
@@ -132,9 +134,8 @@ class GraphicsEditorSaveTest : public ::testing::Test {
     }
     const auto& vc = vc_it->second;
     uint32_t offset = zelda3::GetGraphicsAddress(
-        rom.data(), static_cast<uint8_t>(sheet_id),
-        vc.kOverworldGfxPtr1, vc.kOverworldGfxPtr2,
-        vc.kOverworldGfxPtr3, rom.size());
+        rom.data(), static_cast<uint8_t>(sheet_id), vc.kOverworldGfxPtr1,
+        vc.kOverworldGfxPtr2, vc.kOverworldGfxPtr3, rom.size());
 
     // Convert 8BPP bitmap data to SNES planar format
     auto snes_tile_data = gfx::IndexedToSnesSheet(sheet.vector(), bpp);
@@ -156,8 +157,7 @@ class GraphicsEditorSaveTest : public ::testing::Test {
     if (base_data.size() < snes_tile_data.size()) {
       base_data.resize(snes_tile_data.size(), 0);
     }
-    std::copy(snes_tile_data.begin(), snes_tile_data.end(),
-              base_data.begin());
+    std::copy(snes_tile_data.begin(), snes_tile_data.end(), base_data.begin());
 
     std::vector<uint8_t> final_data;
     if (compressed) {
@@ -186,7 +186,7 @@ class GraphicsEditorSaveTest : public ::testing::Test {
 };
 
 // Test 1: Single sheet edit, save, and reload verification
-TEST_F(GraphicsEditorSaveTest, SingleSheetEdit_SaveAndReload) {
+TEST_F(GraphicsSheetCodecRoundTripTest, SingleSheetEdit_SaveAndReload) {
   std::unique_ptr<Rom> rom;
   ASSERT_OK(LoadAndVerifyROM(vanilla_rom_path_, rom));
 
@@ -229,7 +229,7 @@ TEST_F(GraphicsEditorSaveTest, SingleSheetEdit_SaveAndReload) {
 }
 
 // Test 2: Multiple sheet edits save atomically
-TEST_F(GraphicsEditorSaveTest, MultipleSheetEdit_Atomicity) {
+TEST_F(GraphicsSheetCodecRoundTripTest, MultipleSheetEdit_Atomicity) {
   std::unique_ptr<Rom> rom;
   ASSERT_OK(LoadAndVerifyROM(vanilla_rom_path_, rom));
   ASSERT_OK(LoadGraphicsFromRom(*rom));
@@ -245,8 +245,8 @@ TEST_F(GraphicsEditorSaveTest, MultipleSheetEdit_Atomicity) {
     auto& sheet = sheets[test_sheets[i]];
     if (sheet.is_active()) {
       uint8_t original_pixel = sheet.GetPixel(0, 0);
-      uint8_t new_pixel =
-          NextPixelValue(test_sheets[i], original_pixel, static_cast<uint8_t>(i + 1));
+      uint8_t new_pixel = NextPixelValue(test_sheets[i], original_pixel,
+                                         static_cast<uint8_t>(i + 1));
       sheet.WriteToPixel(0, 0, new_pixel);
       test_values.push_back(new_pixel);
     } else {
@@ -279,7 +279,7 @@ TEST_F(GraphicsEditorSaveTest, MultipleSheetEdit_Atomicity) {
 }
 
 // Test 3: Compression integrity for LC-LZ2 compressed sheets
-TEST_F(GraphicsEditorSaveTest, CompressionIntegrity_LZ2Sheets) {
+TEST_F(GraphicsSheetCodecRoundTripTest, CompressionIntegrity_LZ2Sheets) {
   std::unique_ptr<Rom> rom;
   ASSERT_OK(LoadAndVerifyROM(vanilla_rom_path_, rom));
   ASSERT_OK(LoadGraphicsFromRom(*rom));
@@ -322,7 +322,8 @@ TEST_F(GraphicsEditorSaveTest, CompressionIntegrity_LZ2Sheets) {
   // Verify surrounding pixels weren't corrupted
   for (int y = 0; y < 8; y++) {
     for (int x = 0; x < 8; x++) {
-      if (x == 4 && y == 4) continue;  // Skip modified pixel
+      if (x == 4 && y == 4)
+        continue;  // Skip modified pixel
       int idx = y * 8 + x;
       EXPECT_EQ(reloaded_sheet.GetPixel(x, y), original_region[idx])
           << "Pixel at (" << x << "," << y << ") should not be corrupted";
@@ -331,7 +332,7 @@ TEST_F(GraphicsEditorSaveTest, CompressionIntegrity_LZ2Sheets) {
 }
 
 // Test 4: Uncompressed sheets (115-126) save correctly
-TEST_F(GraphicsEditorSaveTest, UncompressedSheets_SaveCorrectly) {
+TEST_F(GraphicsSheetCodecRoundTripTest, UncompressedSheets_SaveCorrectly) {
   std::unique_ptr<Rom> rom;
   ASSERT_OK(LoadAndVerifyROM(vanilla_rom_path_, rom));
   ASSERT_OK(LoadGraphicsFromRom(*rom));
@@ -364,7 +365,7 @@ TEST_F(GraphicsEditorSaveTest, UncompressedSheets_SaveCorrectly) {
 }
 
 // Test 5: Save without corrupting adjacent sheet data
-TEST_F(GraphicsEditorSaveTest, SaveWithoutCorruption_AdjacentData) {
+TEST_F(GraphicsSheetCodecRoundTripTest, SaveWithoutCorruption_AdjacentData) {
   std::unique_ptr<Rom> rom;
   ASSERT_OK(LoadAndVerifyROM(vanilla_rom_path_, rom));
   ASSERT_OK(LoadGraphicsFromRom(*rom));
@@ -411,7 +412,7 @@ TEST_F(GraphicsEditorSaveTest, SaveWithoutCorruption_AdjacentData) {
 }
 
 // Test 6: Round-trip with no modifications preserves data
-TEST_F(GraphicsEditorSaveTest, RoundTrip_NoModifications) {
+TEST_F(GraphicsSheetCodecRoundTripTest, RoundTrip_NoModifications) {
   std::unique_ptr<Rom> rom;
   ASSERT_OK(LoadAndVerifyROM(vanilla_rom_path_, rom));
   ASSERT_OK(LoadGraphicsFromRom(*rom));

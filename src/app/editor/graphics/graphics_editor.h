@@ -82,6 +82,30 @@ class GraphicsEditor : public Editor {
     }
   }
 
+  void SetMainGraphicsUsageCallback(
+      GfxGroupEditor::MainUsageCallback callback) {
+    main_graphics_usage_ = std::move(callback);
+    if (gfx_group_panel_)
+      gfx_group_panel_->SetMainUsageCallback(main_graphics_usage_);
+  }
+  void SetRoomsetGraphicsUsageCallback(
+      GfxGroupEditor::RoomsetUsageCallback callback) {
+    roomset_graphics_usage_ = std::move(callback);
+    if (gfx_group_panel_)
+      gfx_group_panel_->SetRoomsetUsageCallback(roomset_graphics_usage_);
+  }
+  void SetRoomUsageProvider(usage_preview::LiveRoomProvider provider) {
+    room_usage_provider_ = std::move(provider);
+    if (usage_preview_view_)
+      usage_preview_view_->SetLiveRoomProvider(room_usage_provider_);
+  }
+  void PrepareForSessionTeardown() override {
+    if (gfx_group_panel_)
+      gfx_group_panel_->DetachRuntimeContext();
+    SetRoomUsageProvider({});
+    main_graphics_usage_ = {};
+    roomset_graphics_usage_ = {};
+  }
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override;
@@ -101,12 +125,28 @@ class GraphicsEditor : public Editor {
   absl::Status Redo() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   void ContributeStatus(StatusBar* status_bar) override;
+  EditorContextSnapshot BuildContextSnapshot() const override;
 
-  bool HasPendingGraphicsChanges() const { return state_.HasUnsavedChanges(); }
+  bool HasPendingGraphicsChanges() const {
+    return state_.HasUnsavedChanges() || state_.selection.is_floating ||
+           (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke());
+  }
 
   // Coordinated ROM save: Save() clears the modified-sheet set, so a failed
   // save elsewhere must put it back (the ROM bytes are restored separately).
   absl::Status BeginSaveTransaction() override {
+    // A floating paste has visible pixels but no committed sheet diff. Do not
+    // report it saved or choose its placement on the user's behalf.
+    if (state_.selection.is_floating)
+      return absl::FailedPreconditionError(
+          "Commit or cancel the floating paste in Graphics before saving "
+          "(Enter to commit, Esc to cancel)");
+    if (pixel_editor_panel_) {
+      pixel_editor_panel_->FinishReleasedGesture();
+      if (pixel_editor_panel_->HasActiveStroke())
+        return absl::FailedPreconditionError(
+            "Finish the pixel stroke before saving");
+    }
     save_transaction_modified_sheets_ = state_.modified_sheets;
     return absl::OkStatus();
   }
@@ -122,6 +162,10 @@ class GraphicsEditor : public Editor {
 
   // Set the ROM pointer (propagates to panels that cache `Rom*`.)
   void set_rom(Rom* rom) {
+    if (rom_ != rom) {
+      state_.ClearSourceContext();
+      state_.preview_palettes.clear();
+    }
     rom_ = rom;
     if (sheet_browser_panel_) {
       sheet_browser_panel_->SetDataSources(
@@ -130,9 +174,6 @@ class GraphicsEditor : public Editor {
     }
     if (pixel_editor_panel_) {
       pixel_editor_panel_->SetRom(rom);
-    }
-    if (palette_controls_panel_) {
-      palette_controls_panel_->SetRom(rom);
     }
     if (link_sprite_panel_) {
       link_sprite_panel_->SetRom(rom);
@@ -160,9 +201,6 @@ class GraphicsEditor : public Editor {
           rom_, game_data,
           [this]() -> const project::YazeProject* { return project(); });
     }
-    if (palette_controls_panel_) {
-      palette_controls_panel_->SetGameData(game_data);
-    }
     if (gfx_group_panel_) {
       gfx_group_panel_->SetGameData(game_data);
     }
@@ -183,6 +221,13 @@ class GraphicsEditor : public Editor {
   void ToggleGrid();
   void PrevSheet();
   void SelectSheet(uint16_t sheet_id);
+  void FinishPixelGesture();
+  // Opens only Pixel Editor and Usage Preview, retaining the source editor's
+  // resolved colors and live preview for this ROM session.
+  absl::Status OpenInContext(GraphicsEditContext context);
+  // Callable command only; the existing controls own its future UI entry point.
+  absl::Status ReorderSourcePalette(const std::vector<size_t>& targets,
+                                    const std::array<uint8_t, 8>& permutation);
   void HighlightTile(uint16_t sheet_id, uint16_t tile_index,
                      const std::string& label = "", double duration_secs = 3.0);
 
@@ -205,6 +250,7 @@ class GraphicsEditor : public Editor {
       verify_written_sheet_ = VerifyWrittenSheetPixels;
 
   friend class GraphicsEditorSaveStoplossTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
 
   // Applies `edit` to the active project (the copy that is saved) and to this
   // session's project snapshot, then marks the project dirty. Fails when no
@@ -220,8 +266,11 @@ class GraphicsEditor : public Editor {
   std::unique_ptr<PaletteControlsPanel> palette_controls_panel_;
   std::unique_ptr<LinkSpritePanel> link_sprite_panel_;
   std::unique_ptr<GfxGroupEditor> gfx_group_panel_;
+  GfxGroupEditor::MainUsageCallback main_graphics_usage_;
+  GfxGroupEditor::RoomsetUsageCallback roomset_graphics_usage_;
   std::unique_ptr<PalettesetEditorPanel> paletteset_panel_;
   std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
+  usage_preview::LiveRoomProvider room_usage_provider_;
   std::unique_ptr<UsagePreviewView> usage_preview_view_;
 
   // --- Prototype Viewer (Super Donkey / Dev Format Imports) ---

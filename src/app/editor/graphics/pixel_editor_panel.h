@@ -1,11 +1,13 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_PIXEL_EDITOR_PANEL_H
 #define YAZE_APP_EDITOR_GRAPHICS_PIXEL_EDITOR_PANEL_H
 
+#include <functional>
 #include <optional>
 
 #include "absl/status/status.h"
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/graphics/graphics_editor_state.h"
+#include "app/editor/graphics/palette_reorder_control.h"
 #include "app/editor/graphics/pixel_clipboard.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/core/bitmap.h"
@@ -49,6 +51,17 @@ class PixelEditorPanel : public WindowContent {
   void Initialize();
 
   void SetRom(Rom* rom) { rom_ = rom; }
+  // The Graphics owner supplies its existing Usage Preview; no second renderer.
+  void SetSourcePreviewCallback(std::function<void()> draw) {
+    draw_source_preview_ = std::move(draw);
+  }
+  void ShowSourcePreview() { show_source_preview_ = true; }
+  // Visibility belongs to the workspace manager, including saved layouts.
+  void SetSheetBrowserCallbacks(std::function<bool()> visible,
+                                std::function<void(bool)> set_visible) {
+    sheet_browser_visible_ = std::move(visible);
+    set_sheet_browser_visible_ = std::move(set_visible);
+  }
 
   /**
    * @brief Draw the pixel editor UI (WindowContent interface)
@@ -67,7 +80,37 @@ class PixelEditorPanel : public WindowContent {
   void CutToSystemClipboard();
   void PasteFromSystemClipboard();
 
+  bool HasActiveStroke() const { return stroke_.has_value(); }
+  // Explicit navigation commits the current gesture before its target changes.
+  void FinishGesture();
+  // A hidden panel may miss the release frame; button-up still finishes it.
+  void FinishReleasedGesture();
+  void SetHistoryCallbacks(std::function<absl::Status()> undo,
+                           std::function<absl::Status()> redo) {
+    undo_ = std::move(undo);
+    redo_ = std::move(redo);
+  }
+  void SetPaletteReorderCallback(PaletteReorderControl::Apply apply) {
+    apply_palette_reorder_ = std::move(apply);
+  }
+
  private:
+  std::function<absl::Status()> undo_;
+  std::function<absl::Status()> redo_;
+  std::string history_error_;
+  PixelTool gesture_tool_ = PixelTool::kPencil;
+  PaletteReorderControl palette_reorder_;
+  PaletteReorderControl::Apply apply_palette_reorder_;
+  void DrawSourceContext();
+  // A palette-only display copy. Pixel tools still write the session store.
+  gfx::Bitmap& DisplaySheet();
+  gfx::SnesPalette DisplayPalette() const;
+  gfx::Bitmap context_sheet_;
+  bool fit_canvas_requested_ = false;
+  bool show_source_preview_ = true;
+  std::function<void()> draw_source_preview_;
+  std::function<bool()> sheet_browser_visible_;
+  std::function<void(bool)> set_sheet_browser_visible_;
   /**
    * @brief Draw the toolbar with tool selection
    */
@@ -233,6 +276,7 @@ class PixelEditorPanel : public WindowContent {
   void DrawTileHighlight(const gfx::Bitmap& sheet);
 
   friend class PixelEditorPanelTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
 
   GraphicsEditorState* state_;
   Rom* rom_;

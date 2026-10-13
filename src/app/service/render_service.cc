@@ -553,14 +553,6 @@ absl::StatusOr<std::vector<uint8_t>> RenderService::BitmapToRgba(
   const int src_w = bitmap.width();
   const int src_h = bitmap.height();
 
-  // Get the palette from the surface.
-  SDL_Palette* pal = platform::GetSurfacePalette(surface);
-
-  const uint8_t* indexed = bitmap.data();
-  if (!indexed) {
-    return absl::InternalError("Bitmap has no pixel data");
-  }
-
   // Allocate RGBA output at target size.
   std::vector<uint8_t> rgba(static_cast<size_t>(out_w) * out_h * 4, 0xFF);
 
@@ -571,20 +563,13 @@ absl::StatusOr<std::vector<uint8_t>> RenderService::BitmapToRgba(
       const int sx = ox * src_w / out_w;
       if (sx >= src_w || sy >= src_h)
         continue;
-      const uint8_t idx = indexed[sy * src_w + sx];
-
-      uint8_t r = 0, g = 0, b = 0;
-      if (pal && static_cast<int>(idx) < pal->ncolors) {
-        r = pal->colors[idx].r;
-        g = pal->colors[idx].g;
-        b = pal->colors[idx].b;
-      }
+      const SDL_Color color = bitmap.ReadColor(sx, sy);
 
       const size_t base = static_cast<size_t>((oy * out_w + ox) * 4);
-      rgba[base + 0] = r;
-      rgba[base + 1] = g;
-      rgba[base + 2] = b;
-      rgba[base + 3] = 255;
+      rgba[base + 0] = color.r;
+      rgba[base + 1] = color.g;
+      rgba[base + 2] = color.b;
+      rgba[base + 3] = color.a;
     }
   }
 

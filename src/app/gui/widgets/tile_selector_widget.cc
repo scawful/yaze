@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "absl/strings/str_format.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
 
@@ -374,6 +375,35 @@ TileSelectorWidget::JumpToTileResult TileSelectorWidget::JumpToTileFromInput(
 }
 
 bool TileSelectorWidget::DrawFilterBar() {
+  ImGui::PushID(widget_id_.c_str());
+  const bool compact = ImGui::GetContentRegionAvail().x < 115.0f;
+  const char* label =
+      compact ? (filter_range_active_ ? ICON_MD_FILTER_ALT "*" : ICON_MD_SEARCH)
+              : (filter_range_active_ ? "Find / Filter*" : "Find / Filter");
+  if (ImGui::Button(label)) {
+    ImGui::OpenPopup("TileLookup");
+  }
+  WidgetIdRegistry::Instance().RegisterWidget(widget_id_ + "/button:Lookup",
+                                              "button", ImGui::GetItemID());
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Jump to a tile ID or filter a range%s",
+                      filter_range_active_ ? " (range filter active)" : "");
+  }
+  bool jumped = false;
+  ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f, 0.0f),
+                                      ImVec2(380.0f, 500.0f));
+  if (ImGui::BeginPopup("TileLookup")) {
+    jumped = DrawFilterControls();
+    if (jumped) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+  ImGui::PopID();
+  return jumped;
+}
+
+bool TileSelectorWidget::DrawFilterControls() {
   bool jumped = false;
   const int max_tile_id = GetMaxTileId();
   const float available_width =
@@ -387,8 +417,7 @@ bool TileSelectorWidget::DrawFilterBar() {
           ? std::clamp((available_width - 110.0f) * 0.5f, 56.0f, 88.0f)
           : 64.0f;
 
-  constexpr ImGuiInputTextFlags kHexFlags =
-      ImGuiInputTextFlags_CharsHexadecimal |
+  constexpr ImGuiInputTextFlags kInputFlags =
       ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
 
   ImGui::PushID(widget_id_.c_str());
@@ -400,7 +429,7 @@ bool TileSelectorWidget::DrawFilterBar() {
 
   ImGui::SetNextItemWidth(jump_input_width);
   if (ImGui::InputText("##TileFilterID", filter_buf_, sizeof(filter_buf_),
-                       kHexFlags)) {
+                       kInputFlags)) {
     switch (JumpToTileFromInput(filter_buf_)) {
       case JumpToTileResult::kSuccess:
         jumped = true;
@@ -410,6 +439,8 @@ bool TileSelectorWidget::DrawFilterBar() {
         break;
     }
   }
+  WidgetIdRegistry::Instance().RegisterWidget(widget_id_ + "/input:TileID",
+                                              "input", ImGui::GetItemID());
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
         tr("Enter tile ID and press Enter:\n"
@@ -420,17 +451,10 @@ bool TileSelectorWidget::DrawFilterBar() {
   ImGui::SameLine();
   ImGui::TextDisabled(tr("/ 0x%03X"), max_tile_id);
 
-  // Compact: the next item starts its own line (NewLine here would add an
-  // empty row, since the previous item did not end with SameLine).
-  if (!compact_layout) {
-    if (last_jump_result_ == JumpToTileResult::kInvalidFormat) {
-      ImGui::SameLine(0, 8.0f);
-      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), tr("Invalid hex ID"));
-    } else if (last_jump_result_ == JumpToTileResult::kOutOfRange) {
-      ImGui::SameLine(0, 8.0f);
-      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                         tr("Out of range (max: 0x%03X)"), max_tile_id);
-    }
+  if (last_jump_result_ == JumpToTileResult::kInvalidFormat) {
+    ImGui::TextUnformatted(tr("Invalid tile ID (hex or d:decimal)"));
+  } else if (last_jump_result_ == JumpToTileResult::kOutOfRange) {
+    ImGui::Text(tr("Out of range (max: 0x%03X)"), max_tile_id);
   }
 
   // Range filter inputs
@@ -444,9 +468,11 @@ bool TileSelectorWidget::DrawFilterBar() {
   bool range_changed = false;
   ImGui::SetNextItemWidth(range_input_width);
   if (ImGui::InputText("##RangeMin", filter_min_buf_, sizeof(filter_min_buf_),
-                       kHexFlags)) {
+                       kInputFlags)) {
     range_changed = true;
   }
+  WidgetIdRegistry::Instance().RegisterWidget(widget_id_ + "/input:RangeMin",
+                                              "input", ImGui::GetItemID());
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
         tr("Min tile ID. Press Enter to apply.\n"
@@ -458,9 +484,11 @@ bool TileSelectorWidget::DrawFilterBar() {
   ImGui::SameLine();
   ImGui::SetNextItemWidth(range_input_width);
   if (ImGui::InputText("##RangeMax", filter_max_buf_, sizeof(filter_max_buf_),
-                       kHexFlags)) {
+                       kInputFlags)) {
     range_changed = true;
   }
+  WidgetIdRegistry::Instance().RegisterWidget(widget_id_ + "/input:RangeMax",
+                                              "input", ImGui::GetItemID());
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
         tr("Max tile ID. Press Enter to apply.\n"

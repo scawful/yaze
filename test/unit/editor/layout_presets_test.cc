@@ -21,6 +21,8 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
                             LayoutPresets::Panels::kOverworldCanvas));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kOverworldTile16Selector));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kOverworldAreaGraphics));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
                              LayoutPresets::Panels::kOverworldTile16Editor));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
@@ -39,6 +41,13 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
   ASSERT_NE(selector_pos, preset.panel_positions.end());
   EXPECT_EQ(selector_pos->second, DockPosition::RightTop);
 
+  auto area_graphics_pos = preset.panel_positions.find(
+      LayoutPresets::Panels::kOverworldAreaGraphics);
+  ASSERT_NE(area_graphics_pos, preset.panel_positions.end());
+  EXPECT_EQ(area_graphics_pos->second, DockPosition::RightBottom);
+  EXPECT_FALSE(ContainsPanel(preset.optional_panels,
+                             LayoutPresets::Panels::kOverworldAreaGraphics));
+
   auto editor_pos = preset.panel_positions.find(
       LayoutPresets::Panels::kOverworldTile16Editor);
   ASSERT_NE(editor_pos, preset.panel_positions.end());
@@ -54,10 +63,17 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
   auto item_list_pos =
       preset.panel_positions.find(LayoutPresets::Panels::kOverworldItemList);
   ASSERT_NE(item_list_pos, preset.panel_positions.end());
-  EXPECT_EQ(item_list_pos->second, DockPosition::Bottom);
+  EXPECT_EQ(item_list_pos->second, DockPosition::RightBottom);
 
   EXPECT_TRUE(ContainsPanel(preset.optional_panels,
                             LayoutPresets::Panels::kOverworldDebug));
+
+  for (const auto& panel_id : preset.default_visible_panels) {
+    auto position = preset.panel_positions.find(panel_id);
+    ASSERT_NE(position, preset.panel_positions.end()) << panel_id;
+    EXPECT_NE(position->second, DockPosition::Bottom) << panel_id;
+    EXPECT_NE(position->second, DockPosition::Top) << panel_id;
+  }
 }
 
 TEST(LayoutPresetsTest, Tile16EditorHasUsableFirstUseSizeButIsOptional) {

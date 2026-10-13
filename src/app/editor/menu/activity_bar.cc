@@ -138,6 +138,7 @@ void ActivityBar::Render(
     const std::unordered_set<std::string>& active_editor_categories,
     std::function<bool()> has_rom, std::function<bool()> is_rom_dirty,
     std::function<int()> pending_dungeon_rooms) {
+  window_sidebar_.DrawContextDetailsWindow(session_id);
   if (!window_manager_.IsSidebarVisible())
     return;
 
@@ -279,9 +280,9 @@ void ActivityBar::DrawActivityBarStrip(
       ImVec2(bar_width, viewport_height),
       {.bg = gui::ConvertColorToImVec4(theme.surface),
        .border = gui::ConvertColorToImVec4(theme.text_disabled),
-       .padding = {0.0f, 8.0f},
-       .spacing = {0.0f, 8.0f},
-       .border_size = 1.0f},
+       .padding = {0.0f, 6.0f},
+       .spacing = {0.0f, 4.0f},
+       .border_size = 0.0f},
       kExtraFlags);
 
   if (bar) {

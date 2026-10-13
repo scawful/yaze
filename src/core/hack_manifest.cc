@@ -1539,7 +1539,8 @@ absl::Status HackManifest::LoadProjectRegistry(const std::string& code_folder) {
         Json root = Json::parse(buffer.str());
         // Parse all type sections (room, sprite, item, entrance, etc.)
         const std::vector<std::string> label_types = {
-            "room", "sprite", "item", "entrance", "overworld_map", "music"};
+            "room",     "sprite",        "item", "item_receipt",
+            "entrance", "overworld_map", "music"};
         for (const auto& type_key : label_types) {
           if (root.contains(type_key) && root[type_key].is_object()) {
             for (const auto& [key, value] : root[type_key].items()) {

@@ -11,6 +11,7 @@ set(YAZE_ROM_LIB_SOURCES
   rom.cc
   rom_diff.cc
   rom_diagnostics.cc
+  lyra_layout_descriptor.cc
   hm_support.cc
 )
 

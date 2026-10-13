@@ -174,19 +174,25 @@ void DrawCanvasText(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
 
 void DrawCanvasOutline(ImDrawList* draw_list, ImVec2 canvas_p0,
                        ImVec2 scrolling, int x, int y, int w, int h,
-                       uint32_t color) {
-  ImVec2 origin(canvas_p0.x + scrolling.x + x, canvas_p0.y + scrolling.y + y);
-  ImVec2 size(canvas_p0.x + scrolling.x + x + w,
-              canvas_p0.y + scrolling.y + y + h);
+                       uint32_t color, float global_scale) {
+  const float scale = global_scale > 0.0f ? global_scale : 1.0f;
+  const float scaled_x = static_cast<float>(x) * scale;
+  const float scaled_y = static_cast<float>(y) * scale;
+  const float scaled_w = static_cast<float>(w) * scale;
+  const float scaled_h = static_cast<float>(h) * scale;
+  ImVec2 origin(canvas_p0.x + scrolling.x + scaled_x,
+                canvas_p0.y + scrolling.y + scaled_y);
+  ImVec2 size(origin.x + scaled_w, origin.y + scaled_h);
   draw_list->AddRect(origin, size, color, 0, 0, 1.5f);
 }
 
 void DrawCanvasOutlineWithColor(ImDrawList* draw_list, ImVec2 canvas_p0,
                                 ImVec2 scrolling, int x, int y, int w, int h,
-                                ImVec4 color) {
+                                ImVec4 color, float global_scale) {
   uint32_t color_u32 =
       IM_COL32(color.x * 255, color.y * 255, color.z * 255, color.w * 255);
-  DrawCanvasOutline(draw_list, canvas_p0, scrolling, x, y, w, h, color_u32);
+  DrawCanvasOutline(draw_list, canvas_p0, scrolling, x, y, w, h, color_u32,
+                    global_scale);
 }
 
 // Grid utility functions

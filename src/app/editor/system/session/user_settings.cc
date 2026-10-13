@@ -5,11 +5,13 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <string_view>
 #include <system_error>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/layout/layout_designer/dock_tree.h"
 #include "app/editor/layout/layout_designer/dock_tree_json.h"
+#include "app/editor/system/workspace/panel_visibility.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -35,17 +37,6 @@ absl::Status EnsureParentDirectory(const std::filesystem::path& path) {
     return absl::OkStatus();
   }
   return util::PlatformPaths::EnsureDirectoryExists(parent);
-}
-
-bool IsTransientPanelVisibilityId(const std::string& panel_id) {
-  constexpr char kRoomPanelPrefix[] = "dungeon.room_";
-  constexpr size_t kRoomPanelPrefixLength = 13;
-  if (panel_id.rfind(kRoomPanelPrefix, 0) != 0 ||
-      panel_id.size() <= kRoomPanelPrefixLength) {
-    return false;
-  }
-  return std::all_of(panel_id.begin() + kRoomPanelPrefixLength, panel_id.end(),
-                     [](char ch) { return ch >= '0' && ch <= '9'; });
 }
 
 void EraseTransientPanelVisibility(
@@ -115,6 +106,54 @@ void ApplyDungeonPanelAdmissionDefaults(
   }
   for (const char* panel_id : kDungeonDemotedUtilityPanels) {
     (*panel_state)[panel_id] = false;
+  }
+}
+
+// Windows the panel admission policy moved out of the window browser
+// (Diagnostic or EmbeddedTool). Each is still openable from its declared host
+// and the command palette. Revision 26 closes their persisted live visibility
+// so they stop reopening from an old session; pins, saved layouts, and named
+// layouts are explicit user customizations and are left alone.
+struct DemotedWindow {
+  const char* category;
+  const char* window_id;
+};
+
+constexpr DemotedWindow kRevision26DemotedWindows[] = {
+    // Agent developer tooling: opened from Tools > Hack Workflows.
+    {"Agent", "agent.mesen_debug"},
+    {"Agent", "agent.mesen_screenshot"},
+    {"Agent", "agent.oracle_states"},
+    {"Agent", "agent.feature_flags"},
+    {"Agent", "agent.manifest"},
+    {"Agent", "agent.sram_viewer"},
+    // Oracle validation and inspection tooling: opened from Tools > Hack
+    // Workflows.
+    {"Agent", "oracle.validation"},
+    {"Agent", "oracle.menu_inspector"},
+    // Graphics research importer: opened from the welcome screen.
+    {"Graphics", "graphics.prototype_viewer"},
+    // Stub: draws nothing yet.
+    {"Screen", "screen.naming_screen"},
+    // Placeholder: shows "Coming Soon".
+    {"Emulator", "emulator.save_states"},
+};
+
+void CloseDemotedWindowVisibility(
+    std::unordered_map<std::string, std::unordered_map<std::string, bool>>*
+        visibility_state) {
+  if (!visibility_state) {
+    return;
+  }
+  for (const DemotedWindow& window : kRevision26DemotedWindows) {
+    auto category_it = visibility_state->find(window.category);
+    if (category_it == visibility_state->end()) {
+      continue;
+    }
+    auto window_it = category_it->second.find(window.window_id);
+    if (window_it != category_it->second.end()) {
+      window_it->second = false;
+    }
   }
 }
 
@@ -243,6 +282,15 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->restore_last_session = (val == "1");
     } else if (key == "prefer_hmagic_sprite_names") {
       prefs->prefer_hmagic_sprite_names = (val == "1");
+    } else if (key == "feature_hints_enabled") {
+      prefs->feature_hints_enabled = (val == "1");
+    } else if (constexpr std::string_view kDismissedHintPrefix =
+                   "dismissed_feature_hint.";
+               key.rfind(kDismissedHintPrefix, 0) == 0) {
+      const std::string hint_id = key.substr(kDismissedHintPrefix.size());
+      if (!hint_id.empty() && val == "1") {
+        prefs->dismissed_feature_hints.insert(hint_id);
+      }
     } else if (key == "welcome_triforce_alpha") {
       prefs->welcome_triforce_alpha =
           to_float(val, prefs->welcome_triforce_alpha);
@@ -437,6 +485,15 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "restore_last_session=" << (prefs.restore_last_session ? 1 : 0) << "\n";
   ss << "prefer_hmagic_sprite_names="
      << (prefs.prefer_hmagic_sprite_names ? 1 : 0) << "\n";
+  ss << "feature_hints_enabled=" << (prefs.feature_hints_enabled ? 1 : 0)
+     << "\n";
+  std::vector<std::string> dismissed_hints(
+      prefs.dismissed_feature_hints.begin(),
+      prefs.dismissed_feature_hints.end());
+  std::sort(dismissed_hints.begin(), dismissed_hints.end());
+  for (const auto& hint_id : dismissed_hints) {
+    ss << "dismissed_feature_hint." << hint_id << "=1\n";
+  }
   ss << "welcome_triforce_alpha=" << prefs.welcome_triforce_alpha << "\n";
   ss << "welcome_triforce_speed=" << prefs.welcome_triforce_speed << "\n";
   ss << "welcome_triforce_size=" << prefs.welcome_triforce_size << "\n";
@@ -837,6 +894,21 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         "welcome_mouse_repel_enabled", prefs->welcome_mouse_repel_enabled);
   }
 
+  if (root.contains("onboarding")) {
+    const auto& onboarding = root["onboarding"];
+    prefs->feature_hints_enabled =
+        onboarding.value("feature_hints_enabled", prefs->feature_hints_enabled);
+    if (onboarding.contains("dismissed_feature_hints") &&
+        onboarding["dismissed_feature_hints"].is_array()) {
+      prefs->dismissed_feature_hints.clear();
+      for (const auto& item : onboarding["dismissed_feature_hints"]) {
+        if (item.is_string()) {
+          prefs->dismissed_feature_hints.insert(item.get<std::string>());
+        }
+      }
+    }
+  }
+
   if (root.contains("appearance")) {
     const auto& appearance = root["appearance"];
     prefs->reduced_motion =
@@ -1132,6 +1204,20 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"welcome_particles_enabled", prefs.welcome_particles_enabled},
       {"welcome_mouse_repel_enabled", prefs.welcome_mouse_repel_enabled},
   };
+
+  {
+    auto set_to_sorted_vec = [](const std::unordered_set<std::string>& s)
+        -> std::vector<std::string> {
+      std::vector<std::string> v(s.begin(), s.end());
+      std::sort(v.begin(), v.end());
+      return v;
+    };
+    root["onboarding"] = {
+        {"feature_hints_enabled", prefs.feature_hints_enabled},
+        {"dismissed_feature_hints",
+         set_to_sorted_vec(prefs.dismissed_feature_hints)},
+    };
+  }
 
   root["appearance"] = {
       {"reduced_motion", prefs.reduced_motion},
@@ -1748,6 +1834,81 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
       ApplyDungeonPanelAdmissionDefaults(&dungeon_it->second);
     }
     prefs_.panel_layout_defaults_revision = 25;
+    applied = true;
+  }
+
+  // Revision 26: panel admission demotions (see kRevision26DemotedWindows).
+  // Only persisted live visibility changes; the windows stay reachable from
+  // their hosts and the command palette.
+  if (prefs_.panel_layout_defaults_revision < 26 && target_revision >= 26) {
+    CloseDemotedWindowVisibility(&prefs_.panel_visibility_state);
+    prefs_.panel_layout_defaults_revision = 26;
+    applied = true;
+  }
+
+  // Revision 27: overworld area graphics opens in the right column. The
+  // workspace reset that follows this revision rebuilds the dock so a saved
+  // bottom strip does not keep covering the maps.
+  if (prefs_.panel_layout_defaults_revision < 27 && target_revision >= 27) {
+    if (auto overworld_it = prefs_.panel_visibility_state.find("Overworld");
+        overworld_it != prefs_.panel_visibility_state.end()) {
+      overworld_it->second["overworld.area_graphics"] = true;
+      overworld_it->second["overworld.tile16_selector"] = true;
+    }
+    prefs_.panel_layout_defaults_revision = 27;
+    applied = true;
+  }
+
+  // Revision 28: host Objects/Entrance above the room matrix on the right.
+  // This changes only the pane side; named layouts, pins, and workspace docks
+  // survive. The user's subsequent side-swap choice remains authoritative.
+  if (prefs_.panel_layout_defaults_revision < 28 && target_revision >= 28) {
+    prefs_.dungeon_inspector_side = "left";
+    prefs_.panel_layout_defaults_revision = 28;
+    applied = true;
+  }
+
+  // Revision 29: the Workbench owns navigation; an old live visibility
+  // snapshot must not steal its embedded matrix or entrance selector. Explicit
+  // named layouts and pins remain available for standalone workflows.
+  if (prefs_.panel_layout_defaults_revision < 29 && target_revision >= 29) {
+    auto close_unpinned = [this](const char* category, const char* id) {
+      auto it = prefs_.panel_visibility_state.find(category);
+      if (it == prefs_.panel_visibility_state.end())
+        return;
+      const auto pin = prefs_.pinned_panels.find(id);
+      if (pin == prefs_.pinned_panels.end() || !pin->second) {
+        it->second[id] = false;
+      }
+    };
+    auto dungeon = prefs_.panel_visibility_state.find("Dungeon");
+    if (dungeon != prefs_.panel_visibility_state.end() &&
+        dungeon->second["dungeon.workbench"]) {
+      close_unpinned("Dungeon", "dungeon.room_matrix");
+      close_unpinned("Dungeon", "dungeon.room_selector");
+      close_unpinned("Dungeon", "dungeon.entrance_list");
+      close_unpinned("Dungeon", "dungeon.entrance_properties");
+    }
+    close_unpinned("Graphics", "graphics.link_sprite_editor");
+    close_unpinned("Overworld", "overworld.cutscene_camera");
+    prefs_.panel_layout_defaults_revision = 29;
+    applied = true;
+  }
+
+  // Revision 30 consolidates ordinary Palette navigation in one workspace.
+  // Preserve explicit comparison pins and named layouts; migrate only live state.
+  if (prefs_.panel_layout_defaults_revision < 30 && target_revision >= 30) {
+    auto palettes = prefs_.panel_visibility_state.find("Palette");
+    if (palettes != prefs_.panel_visibility_state.end()) {
+      for (auto& [id, visible] : palettes->second) {
+        const auto pin = prefs_.pinned_panels.find(id);
+        if (id != "palette.control_panel" &&
+            (pin == prefs_.pinned_panels.end() || !pin->second))
+          visible = false;
+      }
+      palettes->second["palette.control_panel"] = true;
+    }
+    prefs_.panel_layout_defaults_revision = 30;
     applied = true;
   }
 

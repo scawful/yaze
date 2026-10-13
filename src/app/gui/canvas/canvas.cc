@@ -1,3 +1,5 @@
+#include "imgui/imgui_internal.h"
+
 #include "canvas.h"
 #include "util/i18n/tr.h"
 
@@ -19,6 +21,85 @@
 #include "imgui/imgui.h"
 
 namespace yaze::gui {
+
+namespace {
+
+const ImGuiID kViewportWheelOwner = ImHashStr("yaze.canvas.viewport-wheel");
+
+void PreventViewportWheelPropagation(ImGuiContext* ctx, ImGuiContextHook*) {
+  auto* hovered = ctx->HoveredWindow;
+  auto* scrolled = ctx->WheelingWindow;
+  if (!hovered || !scrolled ||
+      ctx->WheelingWindowScrolledFrame != ctx->FrameCount ||
+      hovered->StateStorage.GetInt(kViewportWheelOwner, -2) !=
+          ctx->FrameCount - 1) {
+    return;
+  }
+  const auto& storage = hovered->StateStorage;
+  const ImRect viewport(storage.GetFloat(kViewportWheelOwner + 1),
+                        storage.GetFloat(kViewportWheelOwner + 2),
+                        storage.GetFloat(kViewportWheelOwner + 3),
+                        storage.GetFloat(kViewportWheelOwner + 4));
+  if (!viewport.Contains(ctx->IO.MousePos)) {
+    return;
+  }
+  auto* ancestor = hovered;
+  while (ancestor && ancestor != scrolled) {
+    ancestor = ancestor->ParentWindow;
+  }
+  if (!ancestor) {
+    return;
+  }
+
+  // Pointer entry and wheel can arrive together, before SetItemKeyOwner has
+  // seen a hovered frame. NewFrame has queued native scrolling, but Begin has
+  // not applied it yet. Cancel only the wheel axes; keep other scroll requests.
+  const ImVec2 wheel = ctx->IO.MouseWheelRequestAxisSwap
+                           ? ImVec2(ctx->IO.MouseWheel, 0)
+                           : ImVec2(ctx->IO.MouseWheelH, ctx->IO.MouseWheel);
+  bool scroll_x = wheel.x != 0 && scrolled->ScrollMax.x != 0;
+  bool scroll_y = wheel.y != 0 && scrolled->ScrollMax.y != 0;
+  // ImGui resolves a diagonal gesture to one native axis. Do not cancel a
+  // programmatic request on the other axis merely because IO has both deltas.
+  if (scroll_x && scroll_y) {
+    if (ctx->WheelingAxisAvg.x > ctx->WheelingAxisAvg.y)
+      scroll_y = false;
+    else
+      scroll_x = false;
+  }
+  if (scroll_x)
+    scrolled->ScrollTarget.x = FLT_MAX;
+  if (scroll_y)
+    scrolled->ScrollTarget.y = FLT_MAX;
+  ctx->WheelingWindow = nullptr;
+  ctx->WheelingWindowReleaseTimer = 0;
+}
+
+void RegisterViewportWheelOwner(const ImRect& bounds) {
+  auto* ctx = ImGui::GetCurrentContext();
+  auto* window = ImGui::GetCurrentWindow();
+  ImRect visible = bounds;
+  visible.ClipWith(window->InnerClipRect);
+  auto& storage = window->StateStorage;
+  storage.SetInt(kViewportWheelOwner, ctx->FrameCount);
+  storage.SetFloat(kViewportWheelOwner + 1, visible.Min.x);
+  storage.SetFloat(kViewportWheelOwner + 2, visible.Min.y);
+  storage.SetFloat(kViewportWheelOwner + 3, visible.Max.x);
+  storage.SetFloat(kViewportWheelOwner + 4, visible.Max.y);
+  for (const auto& hook : ctx->Hooks) {
+    if (hook.Owner == kViewportWheelOwner)
+      return;
+  }
+  // Context-owned, with no Canvas pointers: closed views expire after a frame,
+  // and destroying an ImGui context also removes its hook.
+  ImGuiContextHook hook;
+  hook.Owner = kViewportWheelOwner;
+  hook.Type = ImGuiContextHookType_NewFramePost;
+  hook.Callback = PreventViewportWheelPropagation;
+  ImGui::AddContextHook(ctx, &hook);
+}
+
+}  // namespace
 
 // Define constructors and destructor in .cc to avoid incomplete type issues
 // with unique_ptr
@@ -226,7 +307,10 @@ void Canvas::ZoomIn() {
 
 void Canvas::ZoomOut() {
   float old_scale = global_scale_;
-  global_scale_ -= 0.25f;
+  // Fit can produce a scale below the normal zoom floor. Preserve that scale
+  // rather than zooming in when the user requests Zoom Out.
+  const float min_scale = old_scale > 0.0f ? std::min(old_scale, 0.25f) : 0.25f;
+  global_scale_ = std::max(min_scale, old_scale - 0.25f);
   config_.global_scale = global_scale_;
 
   // Publish zoom changed event
@@ -363,6 +447,8 @@ void Canvas::SetGameData(zelda3::GameData* game_data) {
 }
 
 void Canvas::ShowPaletteEditor() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;  // Composite colors are derived.
   if (bitmap_) {
     auto& ext = EnsureExtensions();
     ext.InitializePaletteEditor();
@@ -375,6 +461,8 @@ void Canvas::ShowPaletteEditor() {
 }
 
 void Canvas::ShowColorAnalysis() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;  // Composite colors are derived.
   if (bitmap_) {
     auto& ext = EnsureExtensions();
     ext.InitializePaletteEditor();
@@ -385,7 +473,8 @@ void Canvas::ShowColorAnalysis() {
 }
 
 bool Canvas::ApplyROMPalette(int group_index, int palette_index) {
-  if (bitmap_ && extensions_ && extensions_->palette_editor) {
+  if (bitmap_ && bitmap_->IsIndexed() && extensions_ &&
+      extensions_->palette_editor) {
     return extensions_->palette_editor->ApplyROMPalette(bitmap_, group_index,
                                                         palette_index);
   }
@@ -559,7 +648,7 @@ void Canvas::Begin(const CanvasFrameOptions& options) {
     SetCustomGridStep(options.grid_step.value());
   }
 
-  DrawBackground(options.canvas_size);
+  DrawBackground(options.canvas_size, options.viewport_size);
   gui::EndPadding();
 
   if (options.draw_context_menu) {
@@ -610,12 +699,34 @@ void Canvas::UpdateInfoGrid(ImVec2 bg_size, float grid_size, int label_id) {
   DrawOverlay();
 }
 
-void Canvas::DrawBackground(ImVec2 canvas_size) {
+void Canvas::DrawBackground(ImVec2 canvas_size,
+                            std::optional<ImVec2> viewport_size) {
   draw_list_ = GetWindowDrawList();
 
-  // Phase 1: Calculate geometry using new helper
-  state_.geometry = CalculateCanvasGeometry(
-      config_, canvas_size, GetCursorScreenPos(), GetContentRegionAvail());
+  // Capture the visible host before drawing an oversized content item or
+  // entering a popup. Legacy canvases still scale their content bounds.
+  const ImVec2 cursor = GetCursorScreenPos();
+  const ImVec2 available = GetContentRegionAvail();
+  ImRect visible_host(cursor,
+                      ImVec2(cursor.x + available.x, cursor.y + available.y));
+  visible_host.ClipWith(ImGui::GetCurrentWindow()->InnerClipRect);
+  state_.geometry =
+      CalculateCanvasGeometry(config_, canvas_size, cursor, available);
+  state_.geometry.viewport_size =
+      viewport_size.value_or(ImVec2(std::max(1.0f, visible_host.GetWidth()),
+                                    std::max(1.0f, visible_host.GetHeight())));
+
+  if (viewport_size) {
+    // Preserve the legacy logical-size convention while fixing the hit area
+    // and clipping bounds in screen pixels. Bitmap drawing uses its own size.
+    const ImVec2 visible(std::max(1.0f, viewport_size->x),
+                         std::max(1.0f, viewport_size->y));
+    const float scale = std::max(0.01f, global_scale_);
+    state_.geometry.canvas_sz = ImVec2(visible.x / scale, visible.y / scale);
+    state_.geometry.scaled_size = visible;
+    state_.geometry.canvas_p1 = ImVec2(state_.geometry.canvas_p0.x + visible.x,
+                                       state_.geometry.canvas_p0.y + visible.y);
+  }
 
   SyncLegacyGeometryFromState();
 
@@ -629,6 +740,15 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
 
   ImGui::InvisibleButton(canvas_id_.c_str(), state_.geometry.scaled_size,
                          kMouseFlags);
+
+  if (viewport_size) {
+    // Ownership is registered on hover, before next frame's native window
+    // scrolling. Clearing IO wheel deltas in the editor alone is too late.
+    ImGui::SetItemKeyOwner(ImGuiKey_MouseWheelX);
+    ImGui::SetItemKeyOwner(ImGuiKey_MouseWheelY);
+    RegisterViewportWheelOwner(
+        ImRect(state_.geometry.canvas_p0, state_.geometry.canvas_p1));
+  }
 
   // CRITICAL FIX: Always update hover mouse position when hovering over canvas
   // This fixes the regression where CheckForCurrentMap() couldn't track hover
@@ -895,19 +1015,17 @@ void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
   if (!bitmap.is_active())
     return;
 
-  ImVec2 available = ImGui::GetContentRegionAvail();
-  float scale_x = available.x / bitmap.width();
-  float scale_y = available.y / bitmap.height();
-  config_.global_scale = std::min(scale_x, scale_y);
-
-  // Ensure minimum readable scale
-  if (config_.global_scale < 0.25f)
-    config_.global_scale = 0.25f;
-
-  global_scale_ = config_.global_scale;  // Legacy compatibility
-
-  // Center the view
-  scrolling_ = ImVec2(0, 0);
+  // Menu callbacks run inside a popup. Its available space is unrelated to the
+  // viewport that opened it. Only fall back before the canvas's first frame.
+  ImVec2 available = state_.geometry.viewport_size;
+  if (available.x <= 0 || available.y <= 0)
+    available = ImGui::GetContentRegionAvail();
+  const auto fit =
+      ComputeZoomToFit(ImVec2(bitmap.width(), bitmap.height()), available, 0);
+  const float scale = std::max(0.25f, fit.scale);
+  set_global_scale(scale);
+  set_scrolling(ImVec2((available.x - bitmap.width() * scale) * 0.5f,
+                       (available.y - bitmap.height() * scale) * 0.5f));
 }
 
 void Canvas::ResetView() {
@@ -979,7 +1097,9 @@ bool Canvas::DrawTilePainter(const Bitmap& bitmap, int size, float scale) {
     draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                          ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
                          ImVec2(origin.x + paint_pos.x + scaled_size,
-                                origin.y + paint_pos.y + scaled_size));
+                                origin.y + paint_pos.y + scaled_size),
+                         ImVec2(0, 0), ImVec2(1, 1),
+                         ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   }
 
   if (IsMouseClicked(ImGuiMouseButton_Left) &&
@@ -1230,23 +1350,28 @@ void Canvas::DrawBitmapTable(const BitmapTable& gfx_bin) {
     }
     draw_list_->AddImage((ImTextureID)(intptr_t)value->texture(),
                          ImVec2(canvas_p0_.x + 2, top_left_y),
-                         ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset));
+                         ImVec2(canvas_p0_.x + 0x100, canvas_p0_.y + offset),
+                         ImVec2(0, 0), ImVec2(1, 1),
+                         ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   }
 }
 
 void Canvas::DrawOutline(int x, int y, int w, int h) {
+  const float scale = global_scale() > 0.0f ? global_scale() : 1.0f;
   CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h,
-                                 IM_COL32(255, 255, 255, 200));
+                                 IM_COL32(255, 255, 255, 200), scale);
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
+  const float scale = global_scale() > 0.0f ? global_scale() : 1.0f;
   CanvasUtils::DrawCanvasOutlineWithColor(draw_list_, canvas_p0_, scrolling_, x,
-                                          y, w, h, color);
+                                          y, w, h, color, scale);
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
+  const float scale = global_scale() > 0.0f ? global_scale() : 1.0f;
   CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h,
-                                 color);
+                                 color, scale);
 }
 
 void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
@@ -1360,7 +1485,7 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
                 (ImTextureID)(intptr_t)tilemap.atlas.texture(),
                 ImVec2(screen_x, screen_y),
                 ImVec2(screen_x + screen_w, screen_y + screen_h), uv0, uv1,
-                alpha_color);
+                ImGui::GetColorU32(alpha_color));
           }
         }
       }
@@ -1844,6 +1969,8 @@ void Canvas::ShowScalingControls() {
 
 // BPP format management methods
 void Canvas::ShowBppFormatSelector() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;  // Composite colors are derived.
   auto& ext = EnsureExtensions();
   ext.InitializeBppUI(canvas_id_);
 
@@ -1855,6 +1982,8 @@ void Canvas::ShowBppFormatSelector() {
 }
 
 void Canvas::ShowBppAnalysis() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;
   auto& ext = EnsureExtensions();
   ext.InitializeBppUI(canvas_id_);
 
@@ -1864,6 +1993,8 @@ void Canvas::ShowBppAnalysis() {
 }
 
 void Canvas::ShowBppConversionDialog() {
+  if (bitmap_ && !bitmap_->IsIndexed())
+    return;
   auto& ext = EnsureExtensions();
   if (!ext.bpp_conversion_dialog) {
     ext.bpp_conversion_dialog = std::make_unique<gui::BppConversionDialog>(
@@ -1884,7 +2015,7 @@ void Canvas::ShowBppConversionDialog() {
 }
 
 bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
-  if (!bitmap_)
+  if (!bitmap_ || !bitmap_->IsIndexed())
     return false;
 
   gfx::BppFormat current_format = GetCurrentBppFormat();
@@ -1938,7 +2069,8 @@ void Canvas::AddImageAt(ImTextureID texture, ImVec2 local_top_left,
                     canvas_p0_.y + local_top_left.y * global_scale_);
   ImVec2 screen_end(screen_pos.x + size.x * global_scale_,
                     screen_pos.y + size.y * global_scale_);
-  draw_list_->AddImage(texture, screen_pos, screen_end);
+  draw_list_->AddImage(texture, screen_pos, screen_end, ImVec2(0, 0),
+                       ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 }
 
 void Canvas::AddRectFilledAt(ImVec2 local_top_left, ImVec2 size,

@@ -84,69 +84,6 @@ class OverworldRegressionTest : public ::testing::Test {
   }
 };
 
-TEST_F(OverworldRegressionTest, VanillaRomUsesFetchLargeMaps) {
-  // Set version to Vanilla (0xFF)
-  // This causes the bug: 0xFF >= 3 is true, so it calls AssignMapSizes
-  // instead of FetchLargeMaps.
-  (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
-
-  // We need to bypass the full Load() because it does too much (decompression etc)
-  // that requires valid ROM data. We just want to test the logic in Phase 4.
-  // However, Overworld::Load is monolithic.
-  // We can try to call Load() and expect it to fail on decompression, BUT
-  // Phase 4 happens BEFORE Phase 5 (Data Loading) but AFTER Phase 2 (Decompression).
-  //
-  // Wait, looking at overworld.cc:
-  // Phase 1: Tile Assembly
-  // Phase 2: Map Decompression
-  // Phase 3: Map Object Creation
-  // Phase 4: Map Configuration (The logic we want to test)
-  // Phase 5: Data Loading
-  //
-  // Decompression will likely fail or crash with empty data.
-  //
-  // Alternative: We can manually trigger the logic if we can access the maps.
-  // But overworld_maps_ is private.
-  //
-  // Let's look at Overworld public API.
-  // GetMap(int index) returns OverworldMap&.
-
-  // To properly test this without mocking the entire ROM, we might need to
-  // rely on the fact that we can inspect the maps AFTER Load.
-  // But Load will fail.
-
-  // Actually, let's look at Overworld::Load again.
-  // It calls DecompressAllMapTilesParallel().
-  // This reads pointers and decompresses. With 0x00 data, pointers are 0.
-  // It tries to decompress from 0. 0x00 is not valid compressed data?
-  // HyruleMagicDecompress might fail or return empty.
-
-  // If we can't run Load(), we can't easily test this integration.
-  // However, we can modify the test to just check the logic if we could.
-
-  // Let's try to run Load() and see if it crashes. If it does, we'll need a better plan.
-  // But for now, let's assume we can at least reach Phase 4.
-  // Actually, Phase 2 comes before Phase 4.
-
-  // Maybe we can just instantiate Overworld (which we did) and then manually
-  // call the private methods if we use a friend test or similar?
-  // No, that's messy.
-
-  // Let's look at what FetchLargeMaps does.
-  // It sets map 129 to Large.
-
-  // If we can't run Load, we can't verify the fix easily with a unit test
-  // unless we mock the internal methods or make them protected/virtual.
-
-  // WAIT! I can use the `OverworldVersionHelper` unit tests to verify the *helper* logic,
-  // and then manually verify the integration.
-  // OR, I can create a test that mocks the ROM data enough for Decompression to "pass" (return empty).
-  // 0xFF is the terminator for Hyrule Magic compression? No, it's more complex.
-
-  // Let's stick to testing the OverworldVersionHelper first, as that's the core of the fix.
-  // Then I will apply the fix in overworld.cc.
-}
-
 TEST_F(OverworldRegressionTest, VersionHelperLogic) {
   // This test verifies the logic we WANT to implement.
 
@@ -325,16 +262,43 @@ TEST_F(OverworldRegressionTest, SaveDiggableTiles_V2Rom_SkipsWrite) {
   EXPECT_EQ((*rom_)[kOverworldCustomDiggableTilesEnabled], original_byte);
 }
 
-TEST_F(OverworldRegressionTest, SaveDiggableTiles_V3Rom_Writes) {
-  // Set version to v3 (supports diggable tiles)
+// On v3 ROMs the diggable addresses hold ZSCustomOverworld data: a settings
+// byte at 0x140149 (Oracle of Secrets keeps its bridge color there) and the
+// default GFX groups + expanded parent table at 0x140980-0x1409BF.
+TEST_F(OverworldRegressionTest, SaveDiggableTiles_V3Rom_KeepsZsTables) {
   (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+  (*rom_)[kOverworldCustomDiggableTilesEnabled] = 0x69;
+  for (int i = 0; i < kDiggableTilesBitfieldSize; ++i) {
+    (*rom_)[kOverworldCustomDiggableTilesArray + i] =
+        static_cast<uint8_t>(0x3A + i);
+  }
+  overworld_->mutable_diggable_tiles()->SetDiggable(0x034, true);
 
-  // Call save - should write for v3+
-  auto status = overworld_->SaveDiggableTiles();
-  ASSERT_TRUE(status.ok());
+  // Twice: the old code wrote 0xFF on the first save, then read 0xFF back as
+  // "disabled" and wrote vanilla bits over the GFX groups on the second.
+  ASSERT_TRUE(overworld_->SaveDiggableTiles().ok());
+  ASSERT_TRUE(overworld_->LoadDiggableTiles().ok());
+  ASSERT_TRUE(overworld_->SaveDiggableTiles().ok());
 
-  // Verify enable flag WAS set to 0xFF
-  EXPECT_EQ((*rom_)[kOverworldCustomDiggableTilesEnabled], 0xFF);
+  EXPECT_EQ((*rom_)[kOverworldCustomDiggableTilesEnabled], 0x69);
+  for (int i = 0; i < kDiggableTilesBitfieldSize; ++i) {
+    EXPECT_EQ((*rom_)[kOverworldCustomDiggableTilesArray + i],
+              static_cast<uint8_t>(0x3A + i))
+        << "byte " << i;
+  }
+}
+
+TEST_F(OverworldRegressionTest, LoadDiggableTiles_V3Rom_UsesVanillaDefaults) {
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+  (*rom_)[kOverworldCustomDiggableTilesEnabled] = 0x69;
+  for (int i = 0; i < kDiggableTilesBitfieldSize; ++i) {
+    (*rom_)[kOverworldCustomDiggableTilesArray + i] = 0xFF;
+  }
+
+  ASSERT_TRUE(overworld_->LoadDiggableTiles().ok());
+
+  EXPECT_EQ(overworld_->diggable_tiles().GetDiggableCount(),
+            kNumVanillaDiggableTiles);
 }
 
 TEST_F(OverworldRegressionTest, SupportsCustomBGColors_VersionMatrix) {

@@ -1,0 +1,77 @@
+{
+  "_about": "Exact, explained differences between Dungeon Atlas shared room-link rules and the pinned b28 Oracle room_data.py reference. The golden binds id, field, oracle value and yaze value, and rejects unexpected differences or stale entries. October 12: nine differences in three rooms from the archived Oracle script omitting sprite-caused floor drops. Warp-tag quadrant destinations retain their existing presentation. The original 296-room/203-edge reference and all assertions remain unchanged.",
+  "diffs": [
+    {
+      "id": "0x1F",
+      "field": "pit_to",
+      "oracle": null,
+      "yaze": "0x1E",
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4D715 is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0x1F -> 0x1E strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link."
+    },
+    {
+      "id": "0x1F",
+      "field": "pit_to_cross",
+      "oracle": false,
+      "yaze": true,
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4D715 is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0x1F -> 0x1E strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link."
+    },
+    {
+      "id": "0x1F",
+      "field": "pits",
+      "oracle": false,
+      "yaze": true,
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4D715 is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0x1F -> 0x1E strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link."
+    },
+    {
+      "id": "0xE9",
+      "field": "pit_to",
+      "oracle": null,
+      "yaze": "0xFA",
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4E6DC is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0xE9 -> 0xFA strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link."
+    },
+    {
+      "id": "0xE9",
+      "field": "pit_to_cross",
+      "oracle": false,
+      "yaze": true,
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4E6DC is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0xE9 -> 0xFA strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link."
+    },
+    {
+      "id": "0xE9",
+      "field": "pits",
+      "oracle": false,
+      "yaze": true,
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4E6DC is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0xE9 -> 0xFA strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link."
+    },
+    {
+      "id": "0xF7",
+      "field": "pit_to",
+      "oracle": null,
+      "yaze": "0x00",
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4E7D7 is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0xF7 -> 0x00 strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link. This is a potential link if the room is loaded; 0xF7 remains free/unreached, not a current playable-route claim."
+    },
+    {
+      "id": "0xF7",
+      "field": "pit_to_cross",
+      "oracle": false,
+      "yaze": true,
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4E7D7 is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0xF7 -> 0x00 strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link. This is a potential link if the room is loaded; 0xF7 remains free/unreached, not a current playable-route claim."
+    },
+    {
+      "id": "0xF7",
+      "field": "pits",
+      "oracle": false,
+      "yaze": true,
+      "class": "oracle-heuristic",
+      "reason": "The pinned b28 sprite stream at PC 0x4E7D7 is 00 05 17 D6 FF: ordinary sprite 0xD6 (Ganon falling floor), not an overlord. The existing shared classifier makes holewarp 0xF7 -> 0x00 strong. The archived room_data.py lines 151-158 omit this sprite cause from its pit-detail filter. Atlas presents it as a pit link; the golden derives pits and cross-area flags from that link. This is a potential link if the room is loaded; 0xF7 remains free/unreached, not a current playable-route claim."
+    }
+  ]
+}

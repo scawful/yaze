@@ -416,6 +416,7 @@
       "displayName": "AI Tests (macOS)",
       "name": "mac-ai",
       "configurePreset": "mac-ai",
+      "configuration": "Debug",
       "filter": {
         "include": {
           "label": "^stable$"
@@ -428,12 +429,13 @@
       "execution": {
         "jobs": 4
       },
-      "description": "Run stable tests against the mac-ai build"
+      "description": "Run the stable tests CI runs (label ^stable$, Debug) against the mac-ai build"
     },
     {
       "displayName": "Unit Tests (macOS)",
       "name": "mac-ai-unit",
       "configurePreset": "mac-ai",
+      "configuration": "Debug",
       "filter": {
         "include": {
           "label": "^unit$"
@@ -452,6 +454,7 @@
       "displayName": "Unit Tests (macOS + z3dk)",
       "name": "mac-ai-z3dk-unit",
       "configurePreset": "mac-ai-z3dk",
+      "configuration": "Debug",
       "filter": {
         "include": {
           "label": "^unit$"
@@ -470,6 +473,7 @@
       "displayName": "Integration Tests (macOS)",
       "name": "mac-ai-integration",
       "configurePreset": "mac-ai",
+      "configuration": "Debug",
       "filter": {
         "include": {
           "label": "^integration$"
@@ -1126,6 +1130,7 @@
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_BUILD_QUICK_TESTS": "OFF",
         "YAZE_PREFER_SYSTEM_GRPC": "ON"
       },
       "displayName": "CI Build - Linux",
@@ -1145,6 +1150,7 @@
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
         "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_BUILD_QUICK_TESTS": "OFF",
         "YAZE_PREFER_SYSTEM_GRPC": "ON"
       },
       "displayName": "CI Build - macOS",
@@ -1163,7 +1169,8 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI_RUNTIME": "OFF"
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_BUILD_QUICK_TESTS": "OFF"
       },
       "displayName": "CI Build - Windows",
       "name": "ci-windows",
@@ -1181,7 +1188,8 @@
         "YAZE_ENABLE_REMOTE_AUTOMATION": "ON",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
         "YAZE_ENABLE_JSON": "ON",
-        "YAZE_ENABLE_AI_RUNTIME": "ON"
+        "YAZE_ENABLE_AI_RUNTIME": "ON",
+        "YAZE_BUILD_QUICK_TESTS": "OFF"
       },
       "displayName": "CI Build - Windows (Agent)",
       "name": "ci-windows-ai",

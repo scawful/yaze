@@ -55,6 +55,9 @@ class StoryEventGraphPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Story Event Graph"; }
   std::string GetIcon() const override { return ICON_MD_ACCOUNT_TREE; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Planning"; }
   std::string GetWorkflowDescription() const override {
     return "Inspect narrative and progression dependencies for the active "

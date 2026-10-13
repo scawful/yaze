@@ -4,10 +4,13 @@
 // (or hide ones it can).
 
 #include <algorithm>
+#include <atomic>
 #include <cstdint>
 #include <set>
+#include <thread>
 #include <vector>
 
+#include "core/features.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
@@ -50,6 +53,52 @@ TEST(DrawRoutineRegistryIdsTest, CoversAllThreeSubtypes) {
   EXPECT_EQ(listed.count(0x100), 1u);  // Subtype 2 corner
   EXPECT_EQ(listed.count(0x12D), 1u);  // Subtype 2 stairs
   EXPECT_EQ(listed.count(0xFD6), 1u);  // Subtype 3 bar corner
+}
+
+TEST(DrawRoutineRegistryIdsTest, RefreshDoesNotMutateConcurrentReadTables) {
+  auto& registry = DrawRoutineRegistry::Get();
+  const auto inventory = registry.GetMappedObjectIds();
+  const auto* routine = registry.GetRoutineInfo(20);
+  ASSERT_NE(routine, nullptr);
+  const bool previous = core::FeatureFlags::get().kEnableCustomObjects;
+  std::atomic<bool> stop{false};
+  std::atomic<bool> mismatch{false};
+  std::atomic<int> reads{0};
+  std::atomic<int> started{0};
+  auto reader = [&] {
+    started.fetch_add(1, std::memory_order_release);
+    while (!stop.load(std::memory_order_acquire)) {
+      const int custom = registry.GetRoutineIdForObject(0x31);
+      if (registry.GetRoutineIdForObject(0x00) != 0 ||
+          registry.GetRoutineIdForObject(0x21) != 20 ||
+          (custom != DrawRoutineIds::kNothing &&
+           custom != DrawRoutineIds::kCustomObject) ||
+          registry.GetRoutineInfo(20) != routine ||
+          registry.GetMappedObjectIds() != inventory) {
+        mismatch.store(true, std::memory_order_release);
+      }
+      reads.fetch_add(1, std::memory_order_relaxed);
+    }
+  };
+  std::thread first(reader);
+  std::thread second(reader);
+  while (started.load(std::memory_order_acquire) != 2 ||
+         reads.load(std::memory_order_relaxed) < 2) {
+    std::this_thread::yield();
+  }
+  for (int i = 0; i < 1000; ++i) {
+    core::FeatureFlags::get().kEnableCustomObjects = (i & 1) != 0;
+    registry.RefreshFeatureFlagMappings();
+    if ((i & 7) == 0)
+      std::this_thread::yield();
+  }
+  stop.store(true, std::memory_order_release);
+  first.join();
+  second.join();
+  core::FeatureFlags::get().kEnableCustomObjects = previous;
+  registry.RefreshFeatureFlagMappings();
+  EXPECT_GT(reads.load(), 0);
+  EXPECT_FALSE(mismatch.load());
 }
 
 }  // namespace

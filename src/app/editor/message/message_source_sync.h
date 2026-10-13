@@ -5,11 +5,25 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "absl/status/statusor.h"
+#include "app/editor/message/message_data.h"
 #include "core/project.h"
 
 namespace yaze::editor {
+
+// A validated, complete source bank read without touching ROM bytes or generated
+// output. IDs in messages remain bank-local; first_expanded_id is the display base.
+struct MessageSourceSnapshot {
+  std::filesystem::path canonical_bundle_path;
+  std::string source_sha256;
+  int first_expanded_id = 0;
+  std::vector<MessageData> messages;
+};
+
+absl::StatusOr<MessageSourceSnapshot> LoadMessageSource(
+    const project::YazeProject& project);
 
 struct MessageSourceSyncOptions {
   // Source synchronization is a dry-run unless this is explicitly enabled.
@@ -39,6 +53,14 @@ struct MessageSourceSyncResult {
 
 // Compute the lowercase SHA-256 used by canonical source/include provenance.
 std::string ComputeMessageSourceSha256(std::string_view content);
+
+// ROM writes of the expanded bank stay refused. The durable copy is the
+// canonical bundle; the generated include is produced by source sync.
+inline constexpr char kOracleExpandedRomWriteRefusal[] =
+    "Oracle of Secrets expanded messages are owned by ASM. No message "
+    "bytes were written. Publish Data/dialogue/expanded_messages.json through "
+    "Yaze source sync, which regenerates Core/Generated/expanded_messages.asm, "
+    "then rebuild Oracle of Secrets and reopen the rebuilt ROM.";
 
 // Merge a validated expanded-message subset into the complete canonical
 // project bundle and render its deterministic, no-org Asar include.

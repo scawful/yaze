@@ -9,6 +9,7 @@
 #include "absl/status/statusor.h"
 #include "rom/rom.h"
 #include "util/indexed_png.h"
+#include "zelda3/dungeon/room_default_entrance.h"
 
 namespace yaze::zelda3 {
 
@@ -30,8 +31,9 @@ using SheetPalette = std::array<SheetColor, 8>;
 
 SheetPalette GrayscaleSheetPalette();
 
-/// Background CGRAM row `row` (0-7) of dungeon room `room`: colors 0-7 of the
-/// row, the colors a 3bpp tile with that tile palette shows in the room.
+/// Explicit LEFT half (colors 0-7) of a room's background CGRAM row. This
+/// legacy palette selection does not resolve a sheet's loaded slot. Use
+/// ResolveRoomSheetPalette for colors matching a room background slot.
 absl::StatusOr<SheetPalette> RoomBackgroundSheetPalette(Rom& rom,
                                                         GameData& data,
                                                         int room, int row);
@@ -85,12 +87,31 @@ struct RoomBackgroundSet {
 RoomBackgroundSet ResolveRoomBackgroundSet(const GameData& data, int room,
                                            uint8_t header_blockset);
 
+// Read-only palette context for one 3bpp background sheet as loaded through
+// the room's default entrance. Inferred defaults are recorded, not treated
+// as proof of the entrance used during gameplay. Slot 7's animation overlay
+// is not baked into the exported source sheet.
+struct RoomSheetPaletteContext {
+  RoomBackgroundSet background;
+  RoomMainBlocksetResolution main;
+  RoomDefaultEntrance entrance;
+  int slot = 0;
+  int row = 0;
+  int palette_offset = 0;
+  std::array<uint8_t, 8> cgram_indices{};
+  SheetPalette colors{};
+};
+
+absl::StatusOr<RoomSheetPaletteContext> ResolveRoomSheetPalette(
+    Rom& rom, GameData& data, int room, int slot, int row);
+
 /// All 296 rooms' background sets (header bytes read from the ROM).
 std::vector<RoomBackgroundSet> ResolveAllRoomBackgroundSets(
     const Rom& rom, const GameData& data);
 
 /// One 128x256 indexed PNG: the room's 8 background sheets stacked in slot
-/// order (slot n at y = 32 * n). 2bpp slots are left blank.
+/// order (slot n at y = 32 * n). 2bpp slots are left blank. This legacy
+/// interchange applies ONE palette to every slot, not each slot's room colors.
 absl::StatusOr<std::vector<uint8_t>> ExportRoomBackgroundPng(
     const Rom& rom, const RoomBackgroundSet& set, const SheetPalette& palette);
 

@@ -80,10 +80,24 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   if (!editor_) {
     return;
   }
+  const bool lyra_preview = editor_->overworld_.is_lyra_preview();
+  if (lyra_preview) {
+    ImGui::TextUnformatted(
+        "Lyra ROM rev1: 192 stored / 160 active / read-only");
+    ImGui::SameLine();
+    ImGui::TextDisabled("Sprite lists and area overlays unavailable");
+    int map_id = editor_->current_map_;
+    ImGui::SetNextItemWidth(210.0f);
+    if (ImGui::SliderInt("Inspect map", &map_id, 0x80, 0xBF, "0x%02X")) {
+      editor_->JumpToMap(map_id);
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("Sea cells are stored, not active gameplay maps");
+  }
 
-  // Toolbar: world, map, tools, entity focus, view and panels. Per-map
-  // fields live in the Map Properties panel only.
-  if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
+  // Keep appearance edits beside the canvas, using the same undo/refresh path
+  // as the full Map Properties panel.
+  if (!lyra_preview && editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
       editor_->overworld_.is_loaded() && editor_->toolbar_) {
     editor_->toolbar_->shortcuts = editor_->dependencies_.shortcut_manager;
     editor_->toolbar_->Draw(
@@ -91,7 +105,13 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->current_map_lock_, editor_->current_mode,
         editor_->entity_edit_mode_, editor_->dependencies_.window_manager,
         editor_->rom_, &editor_->overworld_, editor_->dependencies_.project,
-        editor_->game_state_);
+        editor_->game_state_, [this]() {
+          if (editor_->sidebar_) {
+            editor_->sidebar_->DrawQuickProperties(
+                editor_->current_map_, editor_->current_map_lock_,
+                editor_->dependencies_.project, /*compact=*/true);
+          }
+        });
     editor_->NormalizeCurrentSelectionState();
   }
 
@@ -102,7 +122,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // Keep rendering an open menu even after entity hover changes. Paint modes
   // keep right-click for sampling; Shift+right-click opens the menu there
   // (PrepareContextMenu vetoes a plain right-click).
-  const bool show_context_menu = true;
+  const bool show_context_menu = !lyra_preview;
 
   // Configure canvas frame options
   gui::CanvasFrameOptions frame_opts;
@@ -110,7 +130,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   frame_opts.draw_grid = true;
   frame_opts.draw_context_menu = show_context_menu;
   frame_opts.draw_overlay = true;
-  frame_opts.render_popups = true;
+  frame_opts.render_popups = !lyra_preview;
   frame_opts.use_child_window = false;  // CRITICAL: Canvas has own pan logic
 
   // Wrap in child window for scrollbars. The navigation manager owns all
@@ -141,6 +161,12 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   if (editor_->overworld_.is_loaded()) {
     // Draw the 64 overworld map bitmaps
     DrawOverworldMaps();
+    if (lyra_preview) {
+      editor_->status_ = editor_->CheckForCurrentMap();
+      gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
+      ImGui::EndChild();
+      return;
+    }
 
     // Draw all entities using the new CanvasRuntime-based methods
     if (editor_->entity_renderer_ && editor_->show_entities_) {
@@ -173,7 +199,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
 
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---
     if (editor_->current_mode == EditingMode::MOUSE &&
-        editor_->entity_renderer_) {
+        editor_->TryPlaceArmedItem()) {
+      // The click placed the item chosen from Insert Item.
+    } else if (editor_->current_mode == EditingMode::MOUSE &&
+               editor_->entity_renderer_) {
       auto hovered_entity = editor_->entity_renderer_->hovered_entity();
 
       // 1. Initiate drag
@@ -251,6 +280,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // End canvas frame - draws grid/overlay based on frame_opts
   gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
   ImGui::EndChild();
+  editor_->DrawItemInsertPopup();
 }
 
 // =============================================================================
@@ -321,7 +351,7 @@ OverworldCanvasRenderer::EnsureOverlayLayer(int map_index) {
       entry.bitmap_serial = map->bitmap_serial();
       entry.background = layer->background;
       if (!entry.bitmap.is_active()) {
-        entry.bitmap.Create(kOverworldMapSize, kOverworldMapSize, 0x80,
+        entry.bitmap.Create(kOverworldMapSize, kOverworldMapSize, 8,
                             layer->pixels);
       } else {
         entry.bitmap.set_data(layer->pixels);
@@ -367,7 +397,7 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
 
     // Bounds checking to prevent crashes
     if (world_index < 0 ||
-        world_index >= static_cast<int>(editor_->maps_bmp_.size())) {
+        world_index >= editor_->overworld_.inspected_map_count()) {
       continue;  // Skip invalid map index
     }
 
@@ -496,6 +526,16 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     open_tile16_editor(editor_->blockset_selector_->GetSelectedTileID());
   };
   editor_->blockset_canvas_.AddContextMenuItem(edit_tile_item);
+  auto graphics_item = edit_tile_item;
+  graphics_item.label = "Edit Graphics...";
+  graphics_item.icon = ICON_MD_IMAGE;
+  graphics_item.callback = [this]() {
+    if (editor_->blockset_selector_) {
+      editor_->status_ = editor_->OpenGraphicsForTile16Quadrant(
+          editor_->blockset_selector_->GetSelectedTileID(), 0);
+    }
+  };
+  editor_->blockset_canvas_.AddContextMenuItem(std::move(graphics_item));
   editor_->blockset_canvas_.AddContextMenuItem(
       editor_->blockset_selector_->CopyTileIdMenuItem());
 
@@ -507,15 +547,16 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   const gui::AdaptiveSheetLayout selector_layout =
       gui::ResolveAdaptiveSheetLayout(
           selector_available_width, 16 * kTile16SelectorColumns, 16 * tile_rows,
-          tile16_scale_mode_, 0.35f, 4.0f,
+          tile16_scale_mode_, 0.25f, 4.0f,
           gui::TileSelectorWidget::CurrentScrollbarSize());
   editor_->blockset_selector_->SetDisplayScale(selector_layout.display_scale);
   ImGui::SameLine();
   ImGui::TextDisabled("%.2fx", selector_layout.display_scale);
 
-  // Filter bar sits directly in the panel; only the grid scrolls. The grid
-  // child fills the panel width (the panel's preferred width is grid +
+  // Tile lookup and filtering share the scale row; only the grid scrolls.
+  // The child fills the panel width (the panel's preferred width is grid +
   // scrollbar), has no padding or border, and never scrolls horizontally.
+  ImGui::SameLine();
   if (editor_->blockset_selector_->DrawFilterBar()) {
     editor_->RequestTile16Selection(
         editor_->blockset_selector_->GetSelectedTileID());
@@ -578,8 +619,8 @@ void OverworldCanvasRenderer::DrawTile8Selector() {
       canvas_rt.draw_list->AddImage(
           (ImTextureID)(intptr_t)texture,
           ImVec2(canvas_rt.canvas_p0.x + 2, top_left_y),
-          ImVec2(canvas_rt.canvas_p0.x + 0x100,
-                 canvas_rt.canvas_p0.y + offset));
+          ImVec2(canvas_rt.canvas_p0.x + 0x100, canvas_rt.canvas_p0.y + offset),
+          ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
       key++;
     }
   }

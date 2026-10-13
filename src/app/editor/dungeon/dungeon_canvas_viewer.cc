@@ -1,4 +1,5 @@
 #include "dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 
 #include <algorithm>
 #include <vector>
@@ -145,6 +146,7 @@ void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
 
 void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
   if (project_ != project) {
+    crumble_floor_view_.Reset();
     InvalidateExternalSpriteResources();
   }
   project_ = project;
@@ -310,6 +312,7 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
                                                 int room_id) {
   // Refresh can replace Room values in place while all backing pointers stay
   // identical. Discard presentation stamps before those replacements occur.
+  minecart_canvas_tool_.Cancel();
   ResetRoomCompositeOutputs();
   connection_editor_state_ = {};
   room_transfer_state_ = {};
@@ -373,10 +376,22 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   PruneConnectedRoomCompositeOutputs();
 
   ImGui::BeginGroup();
-  const auto frame_opts = BuildRoomCanvasFrameOptions();
   SyncCanvasConfigFromViewerState();
   zelda3::Room* active_room = PrepareActiveRoomForCanvasFrame(room_id);
-  DrawCompactLayerToggles(room_id);
+  if (header_visible_)
+    DrawCompactLayerToggles(room_id);
+  if (header_visible_ && minecart_track_panel_ && object_interaction_enabled_) {
+    bool tracks = minecart_track_panel_->canvas_editing();
+    if (ImGui::Checkbox("Tracks##canvas_tracks", &tracks)) {
+      object_interaction_.HandleMouseRelease();
+      object_interaction_.CancelPlacement();
+      object_interaction_.mode_manager().CancelCurrentMode();
+      minecart_track_panel_->set_canvas_editing(tracks);
+      if (tracks)
+        crumble_floor_view_.Stop();
+      minecart_canvas_tool_.Cancel();
+    }
+  }
   ImGui::EndGroup();
 
   // BeginCanvas renders context-menu callbacks before the room draw pass. Bind
@@ -386,8 +401,39 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     PrepareRoomCompositeBitmap(room_id);
   }
 
+  if (show_crumble_floor_ && active_room != nullptr) {
+    crumble_floor_view_.Sync(rom_, project_, *active_room);
+    const bool was_rehearsing = crumble_floor_view_.rehearsing();
+    crumble_floor_view_.DrawControls(object_interaction_enabled_);
+    if (!was_rehearsing && crumble_floor_view_.rehearsing()) {
+      object_interaction_.HandleMouseRelease();
+      object_interaction_.CancelPlacement();
+      object_interaction_.mode_manager().CancelCurrentMode();
+      object_interaction_.ClearSelection();
+      object_interaction_.entity_coordinator().ClearAllEntitySelections();
+      minecart_canvas_tool_.Cancel();
+      if (minecart_track_panel_) {
+        minecart_track_panel_->set_canvas_editing(false);
+        minecart_track_panel_->set_collision_stamping(false);
+      }
+    }
+  }
+
   PopulateCanvasContextMenu(room_id);
 
+  // Workbench, Standalone, and Compare share one fitted, centered viewport.
+  // Free navigation belongs to Overview, not an ImGui bitmap scrollbar.
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  const bool viewport_visible = ImGui::BeginChild(
+      "##DungeonRoomViewport", ImVec2(0, 0), false,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+  ImGui::PopStyleVar();
+  if (!viewport_visible) {
+    ImGui::EndChild();
+    return;
+  }
+  const auto frame_opts = BuildRoomCanvasFrameOptions();
+  UpdateRoomCanvasViewport(*frame_opts.viewport_size);
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
   const bool pointer_pressed = ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
                                ImGui::IsMouseClicked(ImGuiMouseButton_Right) ||
@@ -396,7 +442,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                                 ImGui::GetFrameCount());
   SyncCanvasCaptureRegion(canvas_rt);
   ConsumePendingCanvasScroll(canvas_rt);
-  canvas_rt.scrolling = canvas_.scrolling();
+  object_interaction_.SetCurrentRoom(rooms_, room_id);
+  HandleRoomCanvasNavigation(canvas_rt);
 
   touch_handler_.ProcessForCanvas(canvas_rt.canvas_p0, canvas_rt.canvas_sz,
                                   canvas_rt.hovered);
@@ -414,6 +461,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   DrawCoordinateOverlayHud(room_id);
 
   gui::EndCanvas(canvas_, canvas_rt, frame_opts);
+  ImGui::EndChild();
   SyncViewerStateFromCanvasConfig();
   DrawDungeonRoomTransferPopup(*this);
 }
@@ -429,7 +477,8 @@ void DungeonCanvasViewer::UpdateRoomCanvasShortcutFocus(bool hovered,
 
 bool DungeonCanvasViewer::HasRoomCanvasShortcutFocusForFrame(
     int frame_index) const {
-  return object_interaction_enabled_ && room_canvas_shortcut_focus_ &&
+  return object_interaction_enabled_ && !crumble_floor_view_.rehearsing() &&
+         room_canvas_shortcut_focus_ &&
          room_canvas_last_draw_frame_ == frame_index;
 }
 

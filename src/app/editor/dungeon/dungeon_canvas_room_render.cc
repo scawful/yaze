@@ -1,9 +1,12 @@
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "dungeon_canvas_viewer.h"
 
 #include <algorithm>
 #include <cstdio>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
@@ -92,44 +95,42 @@ void DungeonCanvasViewer::ConsumePendingCanvasScroll(
 }
 
 void DungeonCanvasViewer::DrawHeaderHiddenMetadataHud(int room_id) {
+  // Room tags are edited in Inspect; they must not cover canvas objects.
   if (header_visible_ || !show_header_hidden_metadata_hud_) {
     return;
   }
+  const auto* room = rooms_ ? rooms_->GetIfLoaded(room_id) : nullptr;
+  if (!room) {
+    return;
+  }
 
-  const auto& label = zelda3::GetRoomLabel(room_id);
+  const auto label = dungeon_project_labels::GetRoomLabel(project_, room_id);
   char text1[160];
   snprintf(text1, sizeof(text1), "[%03X] %s", room_id, label.c_str());
 
-  char text2[96] = {};
-  bool show_meta = false;
-  if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size())) {
-    if (const auto* room = rooms_->TryEnsureRoom(room_id)) {
-      if (!object_interaction_enabled_) {
-        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X  RO",
-                 room->blockset(), room->palette(), room->layout_id(),
-                 room->spriteset());
-      } else {
-        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X",
-                 room->blockset(), room->palette(), room->layout_id(),
-                 room->spriteset());
-      }
-      show_meta = true;
-    }
-  } else if (!object_interaction_enabled_) {
-    snprintf(text2, sizeof(text2), "Read-only");
-    show_meta = true;
-  }
-
+  const auto metadata =
+      absl::StrFormat("B:%02X P:%02X L:%02X S:%02X%s", room->blockset(),
+                      room->palette(), room->layout_id(), room->spriteset(),
+                      object_interaction_enabled_ ? "" : " RO");
   const float pad = 10.0f;
   const ImVec2 hud_pos(canvas_.zero_point().x + pad,
                        canvas_.zero_point().y + pad);
-  const ImVec2 hud_size(0, 0);
+  const float content_width = std::max(ImGui::CalcTextSize(text1).x,
+                                       ImGui::CalcTextSize(metadata.c_str()).x);
+  const float width = std::min(
+      {560.0f, canvas_.canvas_size().x - pad * 2, content_width + 16.0f});
+  if (width <= 16.0f) {
+    return;
+  }
+  const ImVec2 hud_size(width, 0);
+  // A window ID must distinguish the editable and comparison viewers.
+  const auto hud_id = absl::StrFormat("##MetadataHUD_%p", this);
 
-  gui::DrawCanvasHUD("##MetadataHUD", hud_pos, hud_size, [&]() {
-    ImGui::TextUnformatted(text1);
-    if (show_meta) {
-      ImGui::TextDisabled("%s", text2);
-    }
+  gui::DrawCanvasHUD(hud_id.c_str(), hud_pos, hud_size, [&]() {
+    ImGui::TextWrapped("%s", text1);
+    ImGui::PushTextWrapPos(0);
+    ImGui::TextDisabled("%s", metadata.c_str());
+    ImGui::PopTextWrapPos();
   });
 }
 
@@ -210,6 +211,74 @@ void DungeonCanvasViewer::HandleRoomCanvasDropTargets(zelda3::Room& room,
   }
 }
 
+bool DungeonCanvasViewer::DrawMinecartCanvas(const gui::CanvasRuntime& rt,
+                                             zelda3::Room& room, int room_id) {
+  if (!minecart_track_panel_) {
+    minecart_canvas_tool_.Cancel();
+    return false;
+  }
+  auto* panel = minecart_track_panel_;
+  if ((panel->canvas_editing() || panel->collision_stamping()) &&
+      minecart_owned_input_ && object_interaction_enabled_ &&
+      !object_interaction_.mode_manager().IsSelectMode()) {
+    // Choosing another placement/paint tool ends cart editing immediately.
+    panel->set_canvas_editing(false);
+    panel->set_collision_stamping(false);
+  }
+  const bool owns_input =
+      (panel->canvas_editing() || panel->collision_stamping()) &&
+      object_interaction_enabled_;
+  if (owns_input && !minecart_owned_input_) {
+    object_interaction_.HandleMouseRelease();
+    object_interaction_.CancelPlacement();
+    object_interaction_.mode_manager().CancelCurrentMode();
+    object_interaction_.ClearSelection();
+    object_interaction_.entity_coordinator().ClearAllEntitySelections();
+  }
+  minecart_owned_input_ = owns_input;
+  if (object_interaction_enabled_)
+    panel->SetActiveRoom(room_id);
+  if (panel->collision_stamping() && object_interaction_enabled_) {
+    minecart_canvas_tool_.Cancel();
+    if (room_canvas_shortcut_focus_ && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+      panel->set_collision_stamping(false);
+      return true;
+    }
+    show_custom_collision_overlay_ = true;
+    minecart_collision_tool_.Draw(
+        rt, room.custom_collision(), room_id, panel->collision_stamp_value(),
+        panel->collision_stamp_size(), panel->collision_stamp_callback());
+    return true;
+  }
+  const MinecartCanvasBinding binding{
+      .tracks = panel->GetTracks(),
+      .selected = panel->selected_track(),
+      .picking = panel->GetPickingTrackIndex(),
+      .revision = panel->canvas_revision(),
+      .enabled = panel->canvas_editing(),
+      .select = [panel](int id) { panel->SelectTrack(id); },
+      .move =
+          [panel](const MinecartTrack& before, const MinecartTrack& after) {
+            return panel->MoveCartStart(before, after);
+          },
+      .cancel_pick = [panel]() { panel->CancelPick(); }};
+  return minecart_canvas_tool_.Draw(rt, room, room_id,
+                                    object_interaction_enabled_,
+                                    room_canvas_shortcut_focus_, binding);
+}
+
+bool DungeonCanvasViewer::DrawCrumbleCanvas(const gui::CanvasRuntime& rt) {
+  if (!object_interaction_.mode_manager().IsSelectMode() ||
+      (minecart_track_panel_ &&
+       (minecart_track_panel_->canvas_editing() ||
+        minecart_track_panel_->collision_stamping()))) {
+    crumble_floor_view_.Stop();
+  }
+  return show_crumble_floor_ &&
+         crumble_floor_view_.DrawCanvas(rt, object_interaction_enabled_,
+                                        room_canvas_shortcut_focus_);
+}
+
 void DungeonCanvasViewer::DrawRoomCanvasContent(
     const gui::CanvasRuntime& canvas_rt, zelda3::Room& room, int room_id) {
   PrepareRoomStateForCanvas(room, room_id);
@@ -225,7 +294,10 @@ void DungeonCanvasViewer::DrawRoomCanvasContent(
 
   RenderEntityOverlay(canvas_rt, room);
 
-  if (object_interaction_enabled_) {
+  const bool crumble_owns_input = DrawCrumbleCanvas(canvas_rt);
+  const bool tool_owns_input =
+      crumble_owns_input || DrawMinecartCanvas(canvas_rt, room, room_id);
+  if (object_interaction_enabled_ && !tool_owns_input) {
     object_interaction_.HandleCanvasMouseInput();
     object_interaction_.CheckForObjectSelection();
     object_interaction_.DrawSelectionHighlights();
@@ -257,7 +329,9 @@ void DungeonCanvasViewer::DrawRoomCanvasContent(
     HandleTouchLongPressContextMenu(canvas_rt, room);
   }
 
-  HandleRoomCanvasDropTargets(room, room_id);
+  if (object_interaction_enabled_ && !tool_owns_input) {
+    HandleRoomCanvasDropTargets(room, room_id);
+  }
 }
 
 }  // namespace yaze::editor

@@ -1,0 +1,117 @@
+# Slate Gray Theme
+# Professional neutral dark theme inspired by standard IDE charcoal/slate surfaces
+name=Slate Gray
+description=Neutral slate and charcoal dark theme with modern blue accents
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors
+primary=56,189,248,255          # Sky blue
+secondary=148,163,184,255       # Slate gray
+accent=56,189,248,255           # Sky blue accent
+background=24,24,27,255         # Zinc dark
+surface=34,34,38,255            # Slightly lighter slate surface
+
+# Status colors
+error=248,113,113,255
+warning=251,191,36,255
+success=74,222,128,255
+info=56,189,248,255
+
+# Text colors
+text_primary=244,244,245,255
+text_secondary=161,161,170,255
+text_disabled=113,113,122,255
+
+# Window colors
+window_bg=24,24,27,250
+child_bg=34,34,38,255
+popup_bg=30,30,34,255
+
+# Interactive elements
+button=46,46,51,255
+button_hovered=63,63,70,255
+button_active=56,189,248,200
+frame_bg=28,28,32,255
+frame_bg_hovered=39,39,44,255
+frame_bg_active=50,50,56,255
+
+# Navigation
+header=46,46,51,255
+header_hovered=63,63,70,255
+header_active=56,189,248,160
+tab=34,34,38,255
+tab_hovered=50,50,56,255
+tab_active=56,189,248,200
+menu_bar_bg=30,30,34,255
+title_bg=30,30,34,255
+title_bg_active=46,46,51,255
+title_bg_collapsed=24,24,27,200
+
+# Borders and separators
+border=55,55,63,255
+border_shadow=0,0,0,0
+separator=55,55,63,255
+separator_hovered=82,82,91,255
+separator_active=56,189,248,255
+
+# Scrollbars
+scrollbar_bg=24,24,27,255
+scrollbar_grab=46,46,51,255
+scrollbar_grab_hovered=71,71,79,255
+scrollbar_grab_active=56,189,248,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=56,189,248,153
+resize_grip_active=56,189,248,230
+
+# Controls
+check_mark=56,189,248,255
+slider_grab=56,189,248,255
+slider_grab_active=125,211,252,255
+
+# Tables
+table_header_bg=38,38,44,255
+table_border_strong=55,55,63,255
+table_border_light=42,42,48,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,7
+
+# Links
+text_link=56,189,248,255
+
+# Navigation and special
+input_text_cursor=255,255,255,255
+nav_cursor=56,189,248,255
+nav_windowing_highlight=56,189,248,200
+nav_windowing_dim_bg=0,0,0,160
+modal_window_dim_bg=0,0,0,180
+text_selected_bg=56,189,248,100
+drag_drop_target=56,189,248,220
+
+# Docking
+docking_preview=56,189,248,180
+docking_empty_bg=30,30,34,255
+
+# Tree lines
+tree_lines=82,82,91,200
+
+# Tab variations
+tab_dimmed=28,28,32,255
+tab_dimmed_selected=46,46,51,255
+tab_dimmed_selected_overline=56,189,248,255
+tab_selected_overline=56,189,248,255
+
+[style]
+window_rounding=4.0
+frame_rounding=4.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=1.0
+frame_border_size=1.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

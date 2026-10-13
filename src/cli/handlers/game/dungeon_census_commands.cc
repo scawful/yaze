@@ -12,6 +12,7 @@
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"
+#include "util/macro.h"
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_census_vanilla_fingerprints.h"
 #include "zelda3/resource_labels.h"
@@ -38,18 +39,29 @@ class ScopedLabelManifestRestore {
   const core::HackManifest* previous_ = nullptr;
 };
 
-// --project accepts the project's code folder (with Docs/Dev/Planning/
-// dungeons.json and Roms/hack_manifest.json) or a .yaze project file.
-absl::StatusOr<fs::path> ResolveCodeFolder(const std::string& project_arg) {
-  const fs::path path(project_arg);
-  std::error_code ec;
-  if (fs::is_directory(path, ec)) {
-    return path;
+absl::Status LoadProjectFolder(const fs::path& folder,
+                               core::HackManifest* manifest) {
+  // Manifest first: LoadFromFile resets the registry.
+  for (const fs::path candidate : {folder / "Roms" / "hack_manifest.json",
+                                   folder / "hack_manifest.json"}) {
+    std::error_code ec;
+    if (fs::exists(candidate, ec)) {
+      auto status = manifest->LoadFromFile(candidate.string());
+      if (!status.ok()) {
+        return status;
+      }
+      break;
+    }
   }
-  if (!fs::exists(path, ec)) {
-    return absl::NotFoundError(
-        absl::StrFormat("--project path does not exist: %s", project_arg));
-  }
+  return manifest->LoadProjectRegistry(folder.string());
+}
+
+// A .yaze (or .yazeproj) file goes through YazeProject::Open, which looks for
+// the registry in code_folder, then beside the hack manifest, then beside the
+// project file. Oracle's project has code_folder=Core while the registry is
+// <repo>/Docs/Dev/Planning/, so only the fallbacks find it.
+absl::Status LoadProjectFile(const std::string& project_arg,
+                             core::HackManifest* manifest) {
   project::YazeProject project;
   absl::Status status;
   {
@@ -64,30 +76,38 @@ absl::StatusOr<fs::path> ResolveCodeFolder(const std::string& project_arg) {
   if (!status.ok()) {
     return status;
   }
-  if (project.code_folder.empty()) {
-    return absl::FailedPreconditionError(
-        absl::StrFormat("Project '%s' has no code folder; pass the folder with "
-                        "Docs/Dev/Planning/dungeons.json instead",
-                        project_arg));
-  }
-  return fs::path(project.GetAbsolutePath(project.code_folder));
+  *manifest = project.hack_manifest;
+  return absl::OkStatus();
 }
 
-absl::Status LoadProjectData(const fs::path& code_folder,
+// --project accepts the project's folder (with Docs/Dev/Planning/
+// dungeons.json and Roms/hack_manifest.json) or a .yaze project file. Either
+// way the registry must load: without it the census silently derives owners
+// from entrances and reports different counts.
+absl::Status LoadProjectData(const std::string& project_arg,
                              core::HackManifest* manifest) {
-  // Manifest first: LoadFromFile resets the registry.
-  for (const fs::path candidate : {code_folder / "Roms" / "hack_manifest.json",
-                                   code_folder / "hack_manifest.json"}) {
-    std::error_code ec;
-    if (fs::exists(candidate, ec)) {
-      auto status = manifest->LoadFromFile(candidate.string());
-      if (!status.ok()) {
-        return status;
-      }
-      break;
-    }
+  const fs::path path(project_arg);
+  std::error_code ec;
+  if (!fs::exists(path, ec)) {
+    return absl::NotFoundError(
+        absl::StrFormat("--project path does not exist: %s", project_arg));
   }
-  return manifest->LoadProjectRegistry(code_folder.string());
+  const bool is_folder =
+      fs::is_directory(path, ec) && path.extension() != ".yazeproj";
+  RETURN_IF_ERROR(is_folder ? LoadProjectFolder(path, manifest)
+                            : LoadProjectFile(project_arg, manifest));
+  if (manifest->project_registry().dungeons.empty()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "--project %s: no dungeon registry found (Docs/Dev/Planning/"
+        "dungeons.json under %s). Owners would fall back to entrance dungeon "
+        "IDs; pass the folder that holds Docs/Dev/Planning/dungeons.json, or "
+        "drop --project for a ROM-only census",
+        project_arg,
+        is_folder ? "that folder"
+                  : "the project's code_folder, the hack manifest's folder "
+                    "or the project file's folder"));
+  }
+  return absl::OkStatus();
 }
 
 std::string Hex(int room_id) {
@@ -136,6 +156,11 @@ std::string FormatTable(const zelda3::RoomCensus& census,
 
 }  // namespace
 
+absl::Status LoadRoomCensusProject(const std::string& project_arg,
+                                   core::HackManifest* manifest) {
+  return LoadProjectData(project_arg, manifest);
+}
+
 absl::Status DungeonRoomCensusCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
   if (auto status = parser.GetString("status"); status.has_value()) {
@@ -176,11 +201,8 @@ absl::Status DungeonRoomCensusCommandHandler::Execute(
   zelda3::RoomCensusOptions options;
   core::HackManifest manifest;
   if (auto project_arg = parser.GetString("project"); project_arg.has_value()) {
-    auto code_folder = ResolveCodeFolder(*project_arg);
-    if (!code_folder.ok()) {
-      return code_folder.status();
-    }
-    if (auto status = LoadProjectData(*code_folder, &manifest); !status.ok()) {
+    if (auto status = LoadRoomCensusProject(*project_arg, &manifest);
+        !status.ok()) {
       return status;
     }
     options.project = &manifest.project_registry();

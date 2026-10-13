@@ -13,6 +13,7 @@
 #include "core/asar_wrapper.h"
 #include "rom/rom.h"
 #include "util/platform_paths.h"
+#include "zelda3/overworld/overworld_allocation.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -280,6 +281,12 @@ absl::Status ApplyTailExpansion(Rom* rom, bool dry_run, bool verbose) {
           "Tail map expansion requires ZSCustomOverworld v3 or later. "
           "Apply ZSCustomOverworld v3 first.");
     }
+  }
+
+  // Refuse when the compatibility check (overworld-allocation --tail-check)
+  // says the patch would break this ROM.
+  if (auto guard = zelda3::TailMapExpansionApplyGuard(*rom); !guard.ok()) {
+    return guard;
   }
 
   if (dry_run) {
@@ -599,6 +606,11 @@ absl::Status OverworldDoctorCommandHandler::Execute(
           std::cout << "    - Expand from 160 to 192 map entries\n";
           std::cout << "    - Write marker byte 0xEA at $28:A3FF\n";
           std::cout << "    - Add blank map data at $30:8000\n";
+          if (auto guard = zelda3::TailMapExpansionApplyGuard(*rom);
+              !guard.ok()) {
+            std::cout << "  A real run would refuse:\n"
+                      << guard.message() << "\n";
+          }
         }
         std::cout << "\nNo changes made (dry run).\n";
       }
@@ -627,6 +639,9 @@ absl::Status OverworldDoctorCommandHandler::Execute(
         }
         formatter.AddField("tail_expansion_error",
                            std::string(status.message()));
+        if (absl::IsFailedPrecondition(status)) {
+          return status;  // Refused: fail the command.
+        }
         // Continue with diagnostics, don't fail the whole command
       }
     }

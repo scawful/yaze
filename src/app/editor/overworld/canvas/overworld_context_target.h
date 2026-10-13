@@ -19,7 +19,7 @@ struct OverworldContextTarget {
   ImVec2 world_position{};
   int tile16_id = -1;
 
-  bool valid() const {
+  bool valid(int map_count = zelda3::kNumOverworldMaps) const {
     if (world < 0 || world > 2 || game_state < 0 || game_state > 2 ||
         !std::isfinite(world_position.x) || !std::isfinite(world_position.y) ||
         world_position.x < 0 || world_position.x >= 4096 ||
@@ -29,9 +29,9 @@ struct OverworldContextTarget {
     const int physical_map = world * 64 +
                              static_cast<int>(world_position.x) / 512 +
                              (static_cast<int>(world_position.y) / 512) * 8;
-    return map_id == physical_map && map_id < zelda3::kNumOverworldMaps &&
+    return map_id == physical_map && map_id < map_count &&
            parent_map_id >= world * 64 && parent_map_id < (world + 1) * 64 &&
-           parent_map_id < zelda3::kNumOverworldMaps;
+           parent_map_id < map_count;
   }
 };
 
@@ -39,7 +39,7 @@ struct OverworldContextTarget {
 // The caller adds the model's parent map and Tile16 ID to the returned value.
 inline std::optional<OverworldContextTarget> ResolveOverworldContextTarget(
     int world, int game_state, ImVec2 screen_position, ImVec2 canvas_origin,
-    ImVec2 scrolling, float scale) {
+    ImVec2 scrolling, float scale, int map_count = zelda3::kNumOverworldMaps) {
   if (!std::isfinite(scale) || scale <= 0) {
     return std::nullopt;
   }
@@ -57,7 +57,7 @@ inline std::optional<OverworldContextTarget> ResolveOverworldContextTarget(
   target.map_id = world * 64 + static_cast<int>(pos.x) / 512 +
                   (static_cast<int>(pos.y) / 512) * 8;
   target.parent_map_id = target.map_id;
-  return target.valid() ? std::make_optional(target) : std::nullopt;
+  return target.valid(map_count) ? std::make_optional(target) : std::nullopt;
 }
 
 }  // namespace yaze::editor

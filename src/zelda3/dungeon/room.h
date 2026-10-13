@@ -17,6 +17,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
+#include "zelda3/graphics/resolved_graphics_context.h"
 
 #include "app/gfx/render/background_buffer.h"
 #include "rom/rom.h"
@@ -25,6 +26,7 @@
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room_header_destination.h"
 #include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/dungeon/room_layout.h"
@@ -42,7 +44,8 @@ struct DungeonStreamLayout;
 
 std::vector<SDL_Color> BuildDungeonRenderPalette(
     const gfx::SnesPalette& dungeon_palette,
-    const gfx::SnesPalette* hud_palette = nullptr);
+    const gfx::SnesPalette* hud_palette = nullptr,
+    PaletteAddressMap* addresses = nullptr, int palette_id = 0);
 
 // Builds the same eight CGRAM rows as BuildDungeonRenderPalette, but keeps
 // them grouped for tools whose tile renderer indexes colors as
@@ -286,6 +289,8 @@ class Room {
 
   void LoadRoomGraphics(
       std::optional<uint8_t> entrance_blockset = std::nullopt);
+  friend ResolvedGraphicsContext DescribeDungeonGraphicsContext(
+      const Room& room, const GraphicsContextIdentity& identity);
   void CopyRoomGraphicsToBuffer();
   // LoadGraphicsSheetsIntoArena() removed - per-room graphics instead
   void RenderRoomGraphics();
@@ -569,11 +574,22 @@ class Room {
     return custom_collision_.tiles[y * 64 + x];
   }
 
+  bool HasCollisionOverride(int x, int y) const {
+    return x >= 0 && x < 64 && y >= 0 && y < 64 &&
+           custom_collision_.HasOverride(y * 64 + x);
+  }
+
   void SetCollisionTile(int x, int y, uint8_t tile) {
     if (x < 0 || x >= 64 || y < 0 || y >= 64)
       return;
-    custom_collision_.tiles[y * 64 + x] = tile;
-    custom_collision_.has_data = true;
+    custom_collision_.SetOverride(y * 64 + x, tile);
+    custom_collision_dirty_ = true;
+  }
+
+  void ClearCollisionTile(int x, int y) {
+    if (x < 0 || x >= 64 || y < 0 || y >= 64)
+      return;
+    custom_collision_.ClearOverride(y * 64 + x);
     custom_collision_dirty_ = true;
   }
 
@@ -998,6 +1014,7 @@ class Room {
   // Room header property accessors
   uint8_t blockset() const { return blockset_; }
   uint8_t render_entrance_blockset() const { return render_entrance_blockset_; }
+  uint8_t resolved_main_blockset() const { return resolved_main_blockset_; }
   uint8_t spriteset() const { return spriteset_; }
   uint8_t palette() const { return palette_; }
 
@@ -1044,10 +1061,19 @@ class Room {
 
   // Object saving (Phase 1, Task 1.3)
   absl::Status SaveObjects(const DungeonStreamLayout* layout = nullptr);
+  // Read-only save plans expose half-open PC ranges for the same direct or
+  // copy-on-write writes as the matching Save method. Clean streams return {}.
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetObjectSaveWriteRanges(const DungeonStreamLayout* layout = nullptr) const;
   absl::Status SaveObjectStreamHeader(
       const DungeonStreamLayout* layout = nullptr);
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetObjectStreamHeaderSaveWriteRanges(
+      const DungeonStreamLayout* layout = nullptr) const;
   std::vector<uint8_t> EncodeObjects() const;
   absl::Status SaveSprites(const DungeonStreamLayout* layout = nullptr);
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  GetSpriteSaveWriteRanges(const DungeonStreamLayout* layout = nullptr) const;
   std::vector<uint8_t> EncodeSprites() const;
   absl::Status SaveRoomHeader();
 
@@ -1058,7 +1084,12 @@ class Room {
   auto mutable_rom() { return rom_; }
   void SetRom(Rom* rom) { rom_ = rom; }
   auto game_data() { return game_data_; }
-  void SetGameData(GameData* data) { game_data_ = data; }
+  const GameData* game_data() const { return game_data_; }
+  void SetGameData(GameData* data) {
+    if (game_data_ != data)
+      rendered_palette_addresses_ = {};
+    game_data_ = data;
+  }
 
   /// Sheet pixels to use instead of GameData::graphics_buffer for the given
   /// sheet ids (8bpp, 4096 bytes each, the graphics_buffer layout). Lets a
@@ -1101,9 +1132,14 @@ class Room {
   const gfx::SnesPalette& rendered_dungeon_palette() const {
     return rendered_dungeon_palette_;
   }
+  const PaletteAddressMap& rendered_palette_addresses() const {
+    return rendered_palette_addresses_;
+  }
   const std::vector<SDL_Color>& rendered_palette() const {
     return rendered_palette_;
   }
+  // Palette-half expansion applied to nonzero raw 3bpp background pixels.
+  int BackgroundPaletteOffset(int slot) const;
 
   // Per-room background buffers (not shared via arena!)
   auto& bg1_buffer() { return bg1_buffer_; }
@@ -1130,6 +1166,20 @@ class Room {
   const DungeonState* GetDungeonState() const { return dungeon_state_.get(); }
 
  private:
+  struct StreamSavePlan {
+    std::vector<std::pair<uint32_t, std::vector<uint8_t>>> direct_writes;
+    std::optional<std::pair<uint32_t, uint32_t>> direct_long_write;
+    std::optional<DungeonStreamWritePlan> relocation;
+
+    std::vector<std::pair<uint32_t, uint32_t>> write_ranges() const;
+  };
+  absl::StatusOr<StreamSavePlan> PlanObjectSave(
+      const DungeonStreamLayout* layout) const;
+  absl::StatusOr<StreamSavePlan> PlanSpriteSave(
+      const DungeonStreamLayout* layout) const;
+  absl::StatusOr<StreamSavePlan> PlanObjectStreamHeaderSave(
+      const DungeonStreamLayout* layout) const;
+  absl::Status ApplyStreamSavePlan(const StreamSavePlan& plan);
   Rom* rom_;
   GameData* game_data_ = nullptr;
 
@@ -1147,6 +1197,7 @@ class Room {
   uint64_t composite_source_revision_ = 0;
   gfx::SnesPalette rendered_dungeon_palette_;
   std::vector<SDL_Color> rendered_palette_;
+  PaletteAddressMap rendered_palette_addresses_{};
 
   // Each room has its OWN background buffers and bitmaps
   // Each room has its OWN background buffers and bitmaps
@@ -1284,6 +1335,11 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id);
 absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms);
 absl::Status SaveAllTorches(Rom* rom, int room_count,
                             const std::function<const Room*(int)>& room_lookup);
+// Validate and describe the exact torch writes without changing ROM or rooms.
+// Returns no ranges when the merged table already matches the source ROM.
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetTorchSaveWriteRanges(const Rom* rom, int room_count,
+                        const std::function<const Room*(int)>& room_lookup);
 
 // Preserve pit count/pointer and table bytes, or encode an explicitly supplied
 // dirty RoomsWithPitDamage table through the overload below.
@@ -1306,6 +1362,11 @@ absl::Status SaveAllBlocks(Rom* rom);
 // 4 bytes per entry).
 absl::Status SaveAllBlocks(Rom* rom, int room_count,
                            const std::function<const Room*(int)>& room_lookup);
+// Validate and describe the room-aware block serializer's exact write spans
+// without changing ROM bytes, dirty flags, or block load-order identities.
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetBlockSaveWriteRanges(const Rom* rom, int room_count,
+                        const std::function<const Room*(int)>& room_lookup);
 
 // Save custom collision maps for any rooms marked dirty.
 //

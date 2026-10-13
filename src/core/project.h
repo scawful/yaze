@@ -122,6 +122,80 @@ struct GraphicsSheetSettings {
   }
 };
 
+/**
+ * @brief Atlas map views (`[atlas]`).
+ *
+ * Paths are kept as written in the project file (normally relative to it);
+ * use YazeProject::AtlasAnnotationPaths() and AtlasSymbolsPath() to resolve
+ * them. Values are not validated here: the Atlas loader reports a bad
+ * `defaults` value or a missing file when it runs, and the project still
+ * opens.
+ */
+struct AtlasSettings {
+  // Annotation files, merged in order (yaze.atlas/1 or the Oracle of Secrets
+  // room/overworld files). `annotations=a.json,b.json`.
+  std::vector<std::string> annotations;
+  // "vanilla" (built-in vanilla names and colors) or "none".
+  std::string defaults = "vanilla";
+  // Optional .sym for symbol links. Empty: the .sym next to the ROM, then
+  // [files] symbols_filename.
+  std::string symbols;
+  // Folder for the editor's Export buttons. Empty: the project folder.
+  std::string export_folder;
+  // The loaded file had an [atlas] section; save writes it back even when
+  // every value is the default.
+  bool section_present = false;
+
+  bool IsDefault() const {
+    return annotations.empty() && defaults == "vanilla" && symbols.empty() &&
+           export_folder.empty();
+  }
+  bool operator==(const AtlasSettings& other) const {
+    return annotations == other.annotations && defaults == other.defaults &&
+           symbols == other.symbols && export_folder == other.export_folder;
+  }
+};
+
+/**
+ * @brief Lines of a `.yaze` file that this build does not model.
+ *
+ * ParseFromString records them and SerializeToString writes them back, so a
+ * project file written by a newer build, another tool or by hand survives a
+ * save by this build:
+ * - sections this build does not know: verbatim, in file order, after the
+ *   known sections;
+ * - keys this build does not know inside a known section: verbatim, in file
+ *   order, at the end of that section;
+ * - comments: before the key they preceded in the file, else at the end of
+ *   their section.
+ * Blank lines and the generated header and footer comments are not kept.
+ */
+struct ProjectFilePassthrough {
+  struct Line {
+    enum class Kind : uint8_t { kComment, kKnownKey, kUnknownLine };
+    Kind kind = Kind::kComment;
+    std::string key;   // kKnownKey and kUnknownLine (empty without '=').
+    std::string text;  // The line as written, without its line ending.
+  };
+  struct Section {
+    std::string name;    // Without brackets. "" = before the first section.
+    bool known = false;  // A section this build parses.
+    std::vector<Line> lines;
+  };
+  std::vector<Section> sections;  // File order, one entry per section name.
+
+  bool empty() const {
+    for (const auto& section : sections) {
+      for (const auto& line : section.lines) {
+        if (line.kind != Line::Kind::kKnownKey) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+};
+
 enum class RomRole { kBase, kDev, kPatched, kRelease };
 enum class RomWritePolicy { kAllow, kWarn, kBlock };
 
@@ -212,6 +286,10 @@ struct YazeProject {
   // Overworld cutscene camera/actor shots ([files] cutscene_shots). Empty:
   // the Cutscene Camera window is read-only and offers Copy JSON.
   std::string cutscene_shots;
+  // Optional read-only raw DMA graphics preview manifest, relative to project.
+  std::string overworld_graphics_preview;
+  // Read-only literal ASM tile patterns for the standard dungeon renderer.
+  std::string dungeon_tile_patterns;
   // Tracked custom collision source kept in step with the ROM on every save
   // ([files] custom_collision_json). Empty: collision lives only in the ROM.
   std::string custom_collision_json;
@@ -224,6 +302,9 @@ struct YazeProject {
   std::string sprite_source_root;
   std::vector<SpriteAssetBinding> sprite_assets;
 
+  // Optional game-independent terrain labels, stored outside the ROM.
+  std::string terrain_catalog_file;
+
   // Optional custom object file mapping (object_id -> filenames per subtype).
   std::unordered_map<int, std::vector<std::string>> custom_object_files;
 
@@ -232,6 +313,7 @@ struct YazeProject {
   WorkspaceSettings workspace_settings;
   DungeonOverlaySettings dungeon_overlay;
   GraphicsSheetSettings graphics_sheets;
+  AtlasSettings atlas;
   core::RomAddressOverrides rom_address_overrides;
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       resource_labels;
@@ -305,6 +387,10 @@ struct YazeProject {
     std::string last_saved_at;
   } music_persistence;
 
+  // Unknown sections, unknown keys and comments from the loaded .yaze file,
+  // written back on save (see ProjectFilePassthrough).
+  ProjectFilePassthrough file_passthrough;
+
   // Bundle resolution
   // Walk up the path hierarchy to find the first ancestor directory whose
   // filename ends with ".yazeproj". If `path` itself is a .yazeproj directory,
@@ -373,6 +459,9 @@ struct YazeProject {
   std::string GetDisplayName() const;
   std::string GetRelativePath(const std::string& absolute_path) const;
   std::string GetAbsolutePath(const std::string& relative_path) const;
+  // [atlas] annotations / symbols resolved against the project file.
+  std::vector<std::string> AtlasAnnotationPaths() const;
+  std::string AtlasSymbolsPath() const;
   bool IsEmpty() const;
   std::string MakeStorageKey(absl::string_view suffix) const;
 

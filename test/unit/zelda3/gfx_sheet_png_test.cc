@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "app/gfx/types/snes_tile.h"
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
 #include "core/project.h"
 #include "nlohmann/json.hpp"
@@ -482,6 +483,211 @@ TEST(RoomBackgroundPngRomTest, ResolverMatchesRoomLoadRoomGraphics) {
   EXPECT_NE(dry.value("rooms_affected", "").find("088"), std::string::npos);
   std::filesystem::remove(png_path);
 }
+
+TEST(GfxSheetPngCommandTest, ExportRefusesAliasedPngAndMetadataBeforeWriting) {
+  auto fixture = BuildGfxSheetTestRom();
+  fixture.bytes[0x7FD9] = 1;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(fixture.bytes).ok());
+  const auto path = UniqueTempPath("aliased_export", ".png");
+  cli::GfxExportCommandHandler exporter;
+  absl::Status status;
+  RunCommand(
+      exporter,
+      {"--sheet=0x12", "--png=" + path.string(), "--json=" + path.string()},
+      rom, &status);
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_FALSE(std::filesystem::exists(path));
+  EXPECT_EQ(rom.vector(), fixture.bytes);
+}
+
+class RoomSheetPaletteRomTest : public ::testing::TestWithParam<const char*> {
+ protected:
+  void SetUp() override {
+    const char* path = std::getenv(GetParam());
+    if (path == nullptr || !std::filesystem::exists(path)) {
+      GTEST_SKIP() << "Set " << GetParam() << " to a disposable ROM";
+    }
+    ASSERT_TRUE(rom_.LoadFromFile(path).ok());
+    zelda3::LoadOptions options;
+    options.expand_rom = false;
+    ASSERT_TRUE(zelda3::LoadGameData(rom_, data_, options).ok());
+    directory_ = UniqueTempPath("room_palette", "");
+    ASSERT_TRUE(std::filesystem::create_directory(directory_));
+  }
+  void TearDown() override {
+    if (!directory_.empty())
+      std::filesystem::remove_all(directory_);
+  }
+  Rom rom_;
+  zelda3::GameData data_;
+  std::filesystem::path directory_;
+};
+
+TEST_P(RoomSheetPaletteRomTest,
+       ExportColorsMatchRenderedRoomsAndKeepRawIndices) {
+  const auto before = rom_.vector();
+  // Cave / adjacent cave / mine / alternate palette: compare the actual
+  // prepared renderer's palette, not a second hand-written palette formula.
+  for (int room_id : {0xE6, 0xE7, 0x89, 0x04}) {
+    auto room = zelda3::LoadRoomFromRom(&rom_, room_id);
+    room.SetGameData(&data_);
+    room.PrepareForRender();
+    for (int slot = 0; slot < 8; ++slot) {
+      for (int row : {1, 2, 5}) {
+        SCOPED_TRACE(::testing::Message()
+                     << room_id << ":" << slot << ":" << row);
+        auto context =
+            zelda3::ResolveRoomSheetPalette(rom_, data_, room_id, slot, row);
+        ASSERT_TRUE(context.ok()) << context.status();
+        ASSERT_EQ(context->background.sheets[slot], room.blocks()[slot]);
+        ASSERT_EQ(context->palette_offset, room.BackgroundPaletteOffset(slot));
+        for (int index = 0; index < 8; ++index) {
+          const int column =
+              index == 0 ? 0 : index + room.BackgroundPaletteOffset(slot);
+          const auto rgb = room.rendered_palette()[row * 16 + column];
+          EXPECT_EQ(context->colors[index],
+                    (zelda3::SheetColor{rgb.r, rgb.g, rgb.b}));
+          EXPECT_EQ(context->cgram_indices[index], row * 16 + column);
+        }
+        const uint16_t sheet = context->background.sheets[slot];
+        if (zelda3::GetGfxSheetStorageKind(sheet) ==
+            zelda3::GfxSheetStorageKind::kCompressed2bpp)
+          continue;
+        const auto raw = zelda3::ReadGfxSheetData(rom_, sheet);
+        ASSERT_TRUE(raw.ok()) << raw.status();
+        auto png = zelda3::ExportSheetBlocksPng(*raw, context->colors);
+        ASSERT_TRUE(png.ok()) << png.status();
+        const auto image = Decode(*png);
+        EXPECT_EQ(image.indices, gfx::SnesTo8bppSheet(*raw, 3));
+        EXPECT_EQ(image.palette[0][3], 0);
+        for (int index = 1; index < 8; ++index) {
+          EXPECT_EQ(image.palette[index],
+                    (std::array<uint8_t, 4>{context->colors[index][0],
+                                            context->colors[index][1],
+                                            context->colors[index][2], 255}));
+        }
+        auto imported =
+            zelda3::ImportSheetBlocksPng(*raw, image, 0, context->colors);
+        ASSERT_TRUE(imported.ok()) << imported.status();
+        EXPECT_EQ(imported->snes_3bpp, *raw);
+      }
+    }
+  }
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_P(RoomSheetPaletteRomTest, GroupSwitchChangesHalfAndRecordsFallback) {
+  // Controlled entrance changes exercise both loader modes on real palettes.
+  constexpr std::array<int, 8> uw = {8, 8, 8, 8, 0, 0, 0, 0};
+  constexpr std::array<int, 8> ow = {8, 0, 0, 8, 8, 8, 0, 0};
+  for (uint8_t main : {0x00, 0x20}) {
+    data_.room_default_entrances[5] = {
+        1, main, zelda3::RoomEntranceSource::kNeighbour, 4};
+    for (int slot = 0; slot < 8; ++slot) {
+      auto context = zelda3::ResolveRoomSheetPalette(rom_, data_, 5, slot, 2);
+      ASSERT_TRUE(context.ok()) << context.status();
+      EXPECT_EQ(context->palette_offset, (main == 0 ? uw : ow)[slot]);
+      EXPECT_EQ(context->main.source,
+                zelda3::RoomMainBlocksetSource::kInferredDefault);
+      EXPECT_EQ(context->entrance.via_room, 4);
+    }
+  }
+  data_.room_default_entrances[5].main_blockset = 0xFF;
+  auto fallback = zelda3::ResolveRoomSheetPalette(rom_, data_, 5, 2, 2);
+  ASSERT_TRUE(fallback.ok());
+  EXPECT_EQ(fallback->main.source,
+            zelda3::RoomMainBlocksetSource::kHeaderFallback);
+  EXPECT_EQ(fallback->entrance.entrance_id, -1);
+  for (const auto [slot, row] : {std::pair{-1, 2}, {8, 2}, {2, -1}, {2, 8}}) {
+    EXPECT_FALSE(
+        zelda3::ResolveRoomSheetPalette(rom_, data_, 5, slot, row).ok());
+  }
+}
+
+TEST_P(RoomSheetPaletteRomTest, CliContextExportImportReopenAndBundle) {
+  const auto before = rom_.vector();
+  const auto context = zelda3::ResolveRoomSheetPalette(rom_, data_, 0xE6, 2, 2);
+  ASSERT_TRUE(context.ok()) << context.status();
+  const int sheet = context->background.sheets[2];
+  const std::string sheet_arg = "--sheet=" + std::to_string(sheet);
+  const std::string spec = "--palette=room-slot:0xE6:2:2";
+  const auto png_path = directory_ / "sheet.png";
+  const auto json_path = directory_ / "sheet.json";
+  const auto output = directory_ / "reopened.sfc";
+  cli::GfxExportCommandHandler exporter;
+  const auto result = RunCommand(exporter,
+                                 {sheet_arg, spec, "--png=" + png_path.string(),
+                                  "--json=" + json_path.string()},
+                                 rom_);
+  ASSERT_TRUE(result.contains("room_context")) << result.dump();
+  EXPECT_EQ(result["room_context"]["palette_half"], "right");
+  EXPECT_EQ(result["room_context"]["raw_index_to_cgram"][6], 46);
+  const auto sidecar_bytes = util::ReadBinaryFile(json_path.string());
+  ASSERT_TRUE(sidecar_bytes.ok());
+  const auto sidecar =
+      nlohmann::json::parse(sidecar_bytes->begin(), sidecar_bytes->end());
+  EXPECT_EQ(sidecar["room_context"], result["room_context"]);
+  auto image = Decode(*util::ReadBinaryFile(png_path.string()));
+  const auto original = zelda3::ReadGfxSheetData(rom_, sheet);
+  ASSERT_TRUE(original.ok());
+  // Exercise the real writer and a fresh ROM read, without changing a pixel.
+  cli::GfxImportCommandHandler importer;
+  auto imported = RunCommand(importer,
+                             {sheet_arg, spec, "--png=" + png_path.string(),
+                              "--write", "--out=" + output.string()},
+                             rom_);
+  EXPECT_EQ(imported.value("rom_bytes_changed", -1), 0) << imported.dump();
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(output.string()).ok());
+  EXPECT_EQ(*zelda3::ReadGfxSheetData(reopened, sheet), *original);
+
+  // CLI per-slot bundle colors and raw bytes must agree with the same room.
+  cli::GfxRoomExportCommandHandler room_exporter;
+  const auto bundle = directory_ / "bundle";
+  const auto bundle_result = RunCommand(
+      room_exporter, {"--room=0xE6", "--row=2", "--out-dir=" + bundle.string()},
+      rom_);
+  ASSERT_TRUE(bundle_result.contains("manifest")) << bundle_result.dump();
+  ASSERT_EQ(bundle_result["manifest"]["slots"].size(), 8);
+  for (const auto& entry : bundle_result["manifest"]["slots"]) {
+    if (entry["status"] != "exported")
+      continue;
+    const auto path = bundle / entry["png"].get<std::string>();
+    const auto decoded = Decode(*util::ReadBinaryFile(path.string()));
+    const auto raw = zelda3::ReadGfxSheetData(rom_, entry["sheet"].get<int>());
+    ASSERT_TRUE(raw.ok());
+    EXPECT_EQ(decoded.indices, gfx::SnesTo8bppSheet(*raw, 3));
+    for (int i = 0; i < 8; ++i) {
+      EXPECT_EQ(decoded.palette[i][0], entry["colors_rgb"][i][0]);
+      EXPECT_EQ(decoded.palette[i][1], entry["colors_rgb"][i][1]);
+      EXPECT_EQ(decoded.palette[i][2], entry["colors_rgb"][i][2]);
+    }
+  }
+  absl::Status refused;
+  RunCommand(room_exporter, {"--room=0xE6", "--out-dir=" + bundle.string()},
+             rom_, &refused);
+  EXPECT_FALSE(refused.ok());
+  EXPECT_TRUE(std::filesystem::exists(bundle / "manifest.json"));
+  RunCommand(exporter,
+             {"--sheet=" + std::to_string((sheet + 1) % 100), spec,
+              "--png=" + (directory_ / "wrong.png").string()},
+             rom_, &refused);
+  EXPECT_EQ(refused.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_FALSE(std::filesystem::exists(directory_ / "wrong.png"));
+  // Existing explicit left-half behavior remains available.
+  const auto legacy =
+      RunCommand(exporter,
+                 {sheet_arg, "--palette=room-bg:0xE6:2",
+                  "--png=" + (directory_ / "left.png").string()},
+                 rom_);
+  EXPECT_FALSE(legacy.contains("room_context"));
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+INSTANTIATE_TEST_SUITE_P(OracleAndVanilla, RoomSheetPaletteRomTest,
+                         ::testing::Values("YAZE_TEST_ROM_OOS",
+                                           "YAZE_TEST_ROM_VANILLA"));
 
 }  // namespace
 }  // namespace yaze::test

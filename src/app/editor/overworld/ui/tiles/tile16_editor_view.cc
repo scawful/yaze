@@ -17,6 +17,10 @@ void Tile16EditorView::Draw(bool* p_open) {
     gui::DrawEmptyState(gui::EmptyNoRom());
     return;
   }
+  if (ctx.editor->is_lyra_preview()) {
+    ImGui::TextDisabled("Lyra preview: Tile16 editing unavailable");
+    return;
+  }
 
   // Log a failure once per distinct message; this runs every frame.
   static std::string last_error;

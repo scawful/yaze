@@ -16,6 +16,38 @@
 namespace yaze::editor {
 namespace {
 
+TEST(TileBrushPreviewTest, CrossingQuadrantKeepsTextureExtentAndPixelStride) {
+  gfx::Arena::Get().ClearTextureQueue();
+  const TileBrush brush{2, 2, {1, 2, 3, 4}};
+  std::vector<uint8_t> atlas(128 * 16);
+  for (int y = 0; y < 16; ++y) {
+    for (int x = 0; x < 128; ++x)
+      atlas[y * 128 + x] = x / 16;
+  }
+  gfx::Bitmap preview;
+  const gfx::SnesPalette palette(std::vector<uint16_t>{0, 1, 2, 3, 4});
+  const auto crossing = BuildMapBrushPreview(brush, 31, 31, 0, 0, atlas);
+  SyncMapBrushPreview(crossing, palette, preview);
+  const int texture_width = preview.width();
+  const int texture_height = preview.height();
+  // An uploaded SDL texture cannot change dimensions through UpdateTexture.
+  int texture_tag = 0;
+  preview.set_texture(&texture_tag);
+  gfx::Arena::Get().ClearTextureQueue();
+  const auto inside = BuildMapBrushPreview(brush, 30, 30, 0, 0, atlas);
+  SyncMapBrushPreview(inside, palette, preview);
+  EXPECT_EQ(preview.width(), texture_width);
+  EXPECT_EQ(preview.height(), texture_height);
+  for (int y = 0; y < 32; ++y) {
+    for (int x = 0; x < 32; ++x) {
+      EXPECT_EQ(preview.vector()[y * preview.width() + x],
+                brush.at(x / 16, y / 16));
+    }
+  }
+  preview.set_texture(nullptr);
+  gfx::Arena::Get().ClearTextureQueue();
+}
+
 TEST(TileBrushPreviewTest, CrossingFourMapsUsesEachDestinationGraphicsGroup) {
   const TileBrush brush{2, 2, {1, 2, 3, 4}};
   for (int my = 0; my < 2; ++my) {
@@ -222,7 +254,7 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
     blockset_.atlas.Create(80, 16, 8, atlas_pixels);
     ASSERT_TRUE(blockset_.atlas.is_active());
     maps_ =
-        std::make_unique<std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>>();
+        std::make_unique<std::array<gfx::Bitmap, zelda3::kExpandedMapCount>>();
     initial_pixels_.assign(512 * 512, 0);
     InitializeMapBitmap(0);
 
@@ -250,6 +282,18 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
       refreshed_maps_.push_back(map);
     };
     callbacks.scroll_blockset_to_current_tile = [] {
+    };
+    callbacks.request_tile16_selection = [this](int tile_id) {
+      current_tile_ = tile_id;
+    };
+    select_map_hook_ = [this](int map) {
+      current_map_ = map;
+    };
+    callbacks.select_map_for_editing = [this](int map) {
+      selected_maps_.push_back(map);
+      if (select_map_hook_) {
+        select_map_hook_(map);
+      }
     };
     manager_ = std::make_unique<TilePaintingManager>(deps, callbacks);
 
@@ -389,13 +433,15 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
   gui::Canvas canvas_;
   Rom rom_;
   std::unique_ptr<zelda3::Overworld> overworld_;
-  std::unique_ptr<std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>> maps_;
+  std::unique_ptr<std::array<gfx::Bitmap, zelda3::kExpandedMapCount>> maps_;
   gfx::Tilemap blockset_{};
   zelda3::OverworldMapTiles initial_tiles_;
   std::vector<uint8_t> initial_pixels_;
   std::vector<int> selected_ids_;
   std::vector<std::array<int, 5>> undo_points_;
   std::vector<int> refreshed_maps_;
+  std::vector<int> selected_maps_;
+  std::function<void(int)> select_map_hook_;
   int current_tile_ = 2;
   int current_map_ = 0;
   int current_world_ = 0;
@@ -404,6 +450,49 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
   int refresh_count_ = 0;
   std::unique_ptr<TilePaintingManager> manager_;
 };
+
+TEST_F(TilePaintingManagerGestureTest,
+       DragonShipQuadrantsPickCaptureAndPasteAtZoomAndPan) {
+  for (float scale : {0.5f, 1.0f, 2.0f}) {
+    SCOPED_TRACE(scale);
+    canvas_.ClearSelection();
+    auto& world = overworld_->mutable_map_tiles()->light_world;
+    for (int y = 0; y < 2; ++y) {
+      for (int x = 0; x < 2; ++x)
+        world[31 + x][223 + y] = 1 + x + y * 2;
+    }
+    SetView(scale, ImVec2(464, 3536));
+    current_map_ = 0x30;
+    for (int y = 0; y < 2; ++y) {
+      for (int x = 0; x < 2; ++x) {
+        Frame(AtWorld(504 + x * 16, 3576 + y * 16), false, false,
+              [&] { EXPECT_TRUE(manager_->PickTile16FromHoveredCanvas()); });
+        EXPECT_EQ(current_tile_, 1 + x + y * 2);
+      }
+    }
+    Frame(AtWorld(504, 3576));
+    Frame(AtWorld(504, 3576), false, true);
+    Frame(AtWorld(520, 3592), false, true);
+    Frame(AtWorld(520, 3592));
+    ASSERT_NE(manager_->selection_brush(), nullptr);
+    const TileBrush captured = *manager_->selection_brush();
+    EXPECT_EQ(captured.tile_ids, (std::vector<int>{1, 2, 3, 4}));
+    Frame(AtWorld(536, 3608));
+    ExpectPreview(528, 3600, 544, 3616);
+    EXPECT_EQ(manager_->selection_brush()->tile_ids, captured.tile_ids);
+    for (int y = 225; y <= 226; ++y) {
+      for (int x = 33; x <= 34; ++x)
+        world[x][y] = 0;
+    }
+    Frame(AtWorld(536, 3608), false, false,
+          [&] { EXPECT_TRUE(manager_->PasteBrush(captured).ok()); });
+    for (int y = 0; y < 2; ++y) {
+      for (int x = 0; x < 2; ++x)
+        EXPECT_EQ(world[33 + x][225 + y], captured.at(x, y));
+    }
+    EXPECT_EQ(current_map_, 0x39);
+  }
+}
 
 TEST_F(TilePaintingManagerGestureTest,
        OutsideClickAndDragLeaveActiveBrushUntouched) {
@@ -784,6 +873,23 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_EQ(refreshed_maps_, (std::vector<int>{0, 1, 8, 9}));
   EXPECT_EQ(finalize_count_, 1);
   EXPECT_TRUE(rom_.dirty());
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       PasteDelegatesMapSelectionWithoutWritingCurrentMap) {
+  InitializeMapBitmap(0x31);
+  SetView(1.0f, ImVec2(512, 3072));
+  current_map_ = 0x30;
+  selected_maps_.clear();
+  select_map_hook_ = [](int) {
+  };
+
+  const auto status = PasteAt(AtWorld(520, 3080), TileBrush{1, 1, {7}});
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(selected_maps_, (std::vector<int>{0x31}));
+  EXPECT_EQ(current_map_, 0x30);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[32][192], 7);
 }
 
 TEST_F(TilePaintingManagerGestureTest,

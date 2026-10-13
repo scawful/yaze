@@ -1,6 +1,10 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_SPRITE_INTERACTION_HANDLER_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_SPRITE_INTERACTION_HANDLER_H_
 
+#include <functional>
+#include <utility>
+#include <vector>
+
 #include "absl/status/status.h"
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
 #include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
@@ -21,6 +25,7 @@ class SpriteInteractionHandler : public BaseEntityHandler {
     kNone = 0,
     kInvalidRoom,
     kSpriteLimit,
+    kStorageValidation,
   };
 
   // ========================================================================
@@ -91,6 +96,18 @@ class SpriteInteractionHandler : public BaseEntityHandler {
   bool UpdateSprite(size_t index, uint8_t id, int x, int y, int subtype,
                     int layer, int key_drop);
 
+  // Preflight is read-only and runs before history or room data changes.
+  using SpriteMutationPreflight =
+      std::function<absl::Status(int, const std::vector<zelda3::Sprite>&)>;
+  void SetSpriteMutationPreflight(SpriteMutationPreflight callback) {
+    sprite_mutation_preflight_ = std::move(callback);
+  }
+  const absl::Status& mutation_status() const { return mutation_status_; }
+  void SetMutationErrorCallback(
+      std::function<void(const absl::Status&)> callback) {
+    mutation_error_callback_ = std::move(callback);
+  }
+
   /// True if the most recent PlaceSpriteAtPosition was blocked.
   bool was_placement_blocked() const {
     return placement_block_reason_ != PlacementBlockReason::kNone;
@@ -114,6 +131,12 @@ class SpriteInteractionHandler : public BaseEntityHandler {
   bool is_dragging_ = false;
   ImVec2 drag_start_pos_;
   ImVec2 drag_current_pos_;
+
+  SpriteMutationPreflight sprite_mutation_preflight_;
+  std::function<void(const absl::Status&)> mutation_error_callback_;
+  absl::Status mutation_status_ = absl::OkStatus();
+
+  bool PreflightSprites(const std::vector<zelda3::Sprite>& candidate);
 
   /**
    * @brief Place sprite at position

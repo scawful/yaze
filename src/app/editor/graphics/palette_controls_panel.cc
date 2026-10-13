@@ -1,94 +1,182 @@
 #include "app/editor/graphics/palette_controls_panel.h"
-#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <string>
-#include <string_view>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/graphics/graphics_palette_preview.h"
 #include "app/editor/graphics/palette_controls_panel_internal.h"
 #include "app/gfx/resource/arena.h"
-#include "app/gfx/types/snes_palette.h"
-#include "app/gui/core/icons.h"
-#include "app/gui/core/layout_helpers.h"
-#include "app/gui/core/style.h"
-#include "app/gui/core/style_guard.h"
+#include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
+#include "util/i18n/tr.h"
+#include "zelda3/game_data.h"
 
-namespace yaze {
-namespace editor {
-
-using gfx::kPaletteGroupAddressesKeys;
-using internal::GetPaletteRowCount;
-using internal::GetPaletteRowLayout;
-using internal::PaletteRowLayout;
-
+namespace yaze::editor {
 namespace {
-bool ComputePaletteSlice(std::string_view group_name,
-                         const gfx::SnesPalette& palette, int row_index,
-                         size_t& out_offset, int& out_length) {
-  if (palette.empty()) {
-    return false;
+
+struct PreviewGroup {
+  const char* name;
+  const char* label;
+};
+constexpr PreviewGroup kGroups[] = {{"ow_main", "Overworld"},
+                                    {"ow_aux", "Overworld auxiliary"},
+                                    {"ow_animated", "Overworld animated"},
+                                    {"hud", "HUD"},
+                                    {"global_sprites", "Global sprites"},
+                                    {"armors", "Link"},
+                                    {"swords", "Swords"},
+                                    {"shields", "Shields"},
+                                    {"sprites_aux1", "Sprites"},
+                                    {"sprites_aux2", "Sprites auxiliary 2"},
+                                    {"sprites_aux3", "Sprites auxiliary 3"},
+                                    {"dungeon_main", "Dungeon"},
+                                    {"grass", "Grass"},
+                                    {"3d_object", "3D objects"},
+                                    {"ow_mini_map", "Overworld map"}};
+
+const char* GroupLabel(const std::string& name) {
+  for (const auto& group : kGroups) {
+    if (name == group.name)
+      return group.label;
   }
-
-  const auto layout = GetPaletteRowLayout(group_name, palette.size());
-  const int max_rows =
-      GetPaletteRowCount(palette.size(), layout.colors_per_row);
-  const int clamped_row = std::clamp(row_index, 0, std::max(0, max_rows - 1));
-  const int row_offset = clamped_row * layout.colors_per_row;
-  const size_t offset = static_cast<size_t>(
-      row_offset + (layout.has_explicit_transparent ? 1 : 0));
-  int length =
-      layout.colors_per_row - (layout.has_explicit_transparent ? 1 : 0);
-  length = std::clamp(length, 1, 15);
-
-  if (offset >= palette.size()) {
-    return false;
-  }
-
-  if (offset + length > palette.size()) {
-    length = static_cast<int>(palette.size() - offset);
-  }
-
-  out_offset = offset;
-  out_length = length;
-  return out_length > 0;
+  return name.c_str();
 }
+
+bool CanPreview(const GraphicsEditorState& state) {
+  return state.game_data &&
+         gfx::Arena::Get().gfx_sheets_owner() == state.game_data;
+}
+
+void Choose(GraphicsEditorState& state,
+            std::optional<GraphicsPaletteSelection> selection) {
+  SetGraphicsPreviewPalette(state, state.current_sheet_id, selection)
+      .IgnoreError();
+}
+
 }  // namespace
 
-void PaletteControlsPanel::Initialize() {
-  // Initialize with default palette group
-  state_->palette_group_index = 0;
-  state_->palette_index = 0;
-  state_->sub_palette_index = 0;
-  state_->apply_palette_to_sheet = [this](uint16_t sheet_id) {
-    ApplyPaletteToSheet(sheet_id);
+void DrawGraphicsPreviewPaletteSelector(GraphicsEditorState& state,
+                                        GraphicsPaletteSelectorLayout layout) {
+  const bool inline_controls = layout == GraphicsPaletteSelectorLayout::kInline;
+  const float font = ImGui::GetFontSize();
+  const float right =
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+  const auto next_control = [inline_controls, right](float width) {
+    if (inline_controls &&
+        ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + width <=
+            right) {
+      ImGui::SameLine();
+    }
+    ImGui::SetNextItemWidth(inline_controls ? width : -1);
   };
+  const auto* selected = state.PreviewPalette(state.current_sheet_id);
+  const std::string selected_group = selected ? selected->group : "";
+  const char* label =
+      selected ? GroupLabel(selected->group) : tr("Loaded colors");
+  if (!inline_controls)
+    ImGui::TextUnformatted(tr("Preview palette"));
+  ImGui::BeginDisabled(!CanPreview(state));
+  ImGui::SetNextItemWidth(inline_controls ? 11 * font : -1);
+  const bool open = ImGui::BeginCombo("##PreviewPalette", label);
+  gui::AutoRegisterLastItem("combo", "Preview palette");
+  if (open) {
+    if (ImGui::Selectable(tr("Loaded colors"), !selected))
+      Choose(state, std::nullopt);
+    gui::AutoRegisterLastItem("selectable", "Loaded colors");
+    for (const auto& group : kGroups) {
+      const auto* palettes =
+          state.game_data
+              ? state.game_data->palette_groups.get_group(group.name)
+              : nullptr;
+      if (!palettes || palettes->empty())
+        continue;
+      if (ImGui::Selectable(tr(group.label), selected_group == group.name)) {
+        Choose(state, GraphicsPaletteSelection{group.name});
+      }
+      gui::AutoRegisterLastItem(
+          "selectable", absl::StrFormat("Preview group %s", group.name));
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::EndDisabled();
+  // A choice above can erase or replace the selected entry.
+  selected = state.PreviewPalette(state.current_sheet_id);
+  if (!selected || !CanPreview(state))
+    return;
+  auto choice = *selected;
+  const auto resolved = ResolveGraphicsPreviewPalette(*state.game_data, choice);
+  if (!resolved.ok()) {
+    ImGui::TextWrapped("%s",
+                       tr("Preview unavailable; choose another palette."));
+    return;
+  }
+  if (resolved->palette_count > 1) {
+    int index = choice.palette;
+    next_control(6 * font);
+    if (ImGui::InputInt("##PreviewPaletteIndex", &index)) {
+      choice.palette = std::clamp(index, 0, resolved->palette_count - 1);
+      choice.row = 0;
+      Choose(state, choice);
+    }
+    // InputInt's step buttons form a group with ID zero while idle. Register
+    // the visible group explicitly so automation can discover it before focus.
+    const auto min = ImGui::GetItemRectMin();
+    const auto max = ImGui::GetItemRectMax();
+    gui::WidgetIdRegistry::WidgetMetadata metadata;
+    metadata.label = "Preview palette index";
+    metadata.visible = ImGui::IsItemVisible();
+    metadata.bounds = {min.x, min.y, max.x, max.y, true};
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "input:preview_palette_index", "input",
+        ImGui::GetID("##PreviewPaletteIndex"), "", metadata);
+    HOVER_HINT(
+        "Palette index in the selected group; changes only this preview");
+  }
+  if (resolved->row_count > 1) {
+    const auto row_label = absl::StrFormat("%s %d/%d", tr("Row"),
+                                           choice.row + 1, resolved->row_count);
+    next_control(
+        ImGui::CalcTextSize(row_label.c_str()).x +
+        2 * (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemSpacing.x));
+    ImGui::BeginGroup();
+    ImGui::BeginDisabled(choice.row == 0);
+    const bool previous = ImGui::ArrowButton("##RowDown", ImGuiDir_Left);
+    gui::AutoRegisterLastItem("button", "Previous palette row");
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::TextUnformatted(row_label.c_str());
+    ImGui::SameLine();
+    ImGui::BeginDisabled(choice.row + 1 >= resolved->row_count);
+    const bool next = ImGui::ArrowButton("##RowUp", ImGuiDir_Right);
+    gui::AutoRegisterLastItem("button", "Next palette row");
+    ImGui::EndDisabled();
+    if (previous || next) {
+      choice.row += next ? 1 : -1;
+      Choose(state, choice);
+    }
+    ImGui::EndGroup();
+  }
 }
 
 void PaletteControlsPanel::Draw(bool* p_open) {
-  // WindowContent interface - delegate to existing Update() logic
-  if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextDisabled(tr("Load a ROM to manage palettes"));
-    return;
-  }
-
-  DrawPresets();
-  ImGui::Separator();
-  DrawPaletteGroupSelector();
-  ImGui::Separator();
-  DrawPaletteDisplay();
-  ImGui::Separator();
-  DrawApplyButtons();
+  Update().IgnoreError();
 }
 
 absl::Status PaletteControlsPanel::Update() {
-  if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextDisabled(tr("Load a ROM to manage palettes"));
+  if (!CanPreview(*state_)) {
+    ImGui::TextDisabled(tr("Load this ROM's graphics to preview palettes"));
     return absl::OkStatus();
   }
-
+  if (state_->SourceTarget()) {
+    ImGui::TextWrapped("%s", tr("The source editor controls these colors."));
+    if (ImGui::Button(tr("Use manual palette")))
+      state_->ClearSourceContext();
+    else
+      return absl::OkStatus();
+  }
   DrawPresets();
   ImGui::Separator();
   DrawPaletteGroupSelector();
@@ -96,306 +184,93 @@ absl::Status PaletteControlsPanel::Update() {
   DrawPaletteDisplay();
   ImGui::Separator();
   DrawApplyButtons();
-
   return absl::OkStatus();
 }
 
 void PaletteControlsPanel::DrawPresets() {
-  gui::TextWithSeparators("Quick Presets");
-
-  if (ImGui::Button(ICON_MD_LANDSCAPE " Overworld")) {
-    state_->palette_group_index = 0;  // Dungeon Main (used for overworld too)
-    state_->palette_index = 0;
-    state_->refresh_graphics = true;
+  constexpr PreviewGroup presets[] = {{"ow_main", "Overworld"},
+                                      {"dungeon_main", "Dungeon"},
+                                      {"sprites_aux1", "Sprites"},
+                                      {"armors", "Link"},
+                                      {"hud", "HUD"}};
+  for (size_t i = 0; i < std::size(presets); ++i) {
+    if (i != 0 && i != 3)
+      ImGui::SameLine();
+    const auto& preset = presets[i];
+    const auto* group =
+        state_->game_data->palette_groups.get_group(preset.name);
+    ImGui::BeginDisabled(!group || group->empty());
+    if (ImGui::Button(tr(preset.label))) {
+      Choose(*state_, GraphicsPaletteSelection{preset.name});
+    }
+    gui::AutoRegisterLastItem("button",
+                              absl::StrFormat("%s preview", preset.label));
+    ImGui::EndDisabled();
+    HOVER_HINT("Apply this palette to the current sheet preview");
   }
-  HOVER_HINT("Standard overworld palette");
-
-  ImGui::SameLine();
-
-  if (ImGui::Button(ICON_MD_CASTLE " Dungeon")) {
-    state_->palette_group_index = 0;  // Dungeon Main
-    state_->palette_index = 1;
-    state_->refresh_graphics = true;
-  }
-  HOVER_HINT("Standard dungeon palette");
-
-  ImGui::SameLine();
-
-  if (ImGui::Button(ICON_MD_PERSON " Sprites")) {
-    state_->palette_group_index = 4;  // Sprites Aux1
-    state_->palette_index = 0;
-    state_->refresh_graphics = true;
-  }
-  HOVER_HINT("Sprite/enemy palette");
-
-  if (ImGui::Button(ICON_MD_ACCOUNT_BOX " Link")) {
-    state_->palette_group_index = 3;  // Sprite Aux3 (Link's palettes)
-    state_->palette_index = 0;
-    state_->refresh_graphics = true;
-  }
-  HOVER_HINT("Link's palette");
-
-  ImGui::SameLine();
-
-  if (ImGui::Button(ICON_MD_MENU " HUD")) {
-    state_->palette_group_index = 6;  // HUD palettes
-    state_->palette_index = 0;
-    state_->refresh_graphics = true;
-  }
-  HOVER_HINT("HUD/menu palette");
 }
 
 void PaletteControlsPanel::DrawPaletteGroupSelector() {
-  gui::TextWithSeparators("Palette Selection");
-
-  // Palette group combo
-  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
-  if (ImGui::Combo(tr("Group"),
-                   reinterpret_cast<int*>(&state_->palette_group_index),
-                   kPaletteGroupAddressesKeys,
-                   IM_ARRAYSIZE(kPaletteGroupAddressesKeys))) {
-    state_->refresh_graphics = true;
-  }
-
-  // Palette index within group
-  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth() * 0.75f);
-  int palette_idx = static_cast<int>(state_->palette_index);
-  if (ImGui::InputInt(tr("Palette"), &palette_idx)) {
-    state_->palette_index = static_cast<uint64_t>(std::max(0, palette_idx));
-    state_->refresh_graphics = true;
-  }
-  HOVER_HINT("Palette index within the group");
-
-  // Sub-palette index (for multi-row palettes)
-  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth() * 0.75f);
-  int sub_idx = static_cast<int>(state_->sub_palette_index);
-  if (ImGui::InputInt(tr("Sub-Palette"), &sub_idx)) {
-    state_->sub_palette_index = static_cast<uint64_t>(std::max(0, sub_idx));
-    state_->refresh_graphics = true;
-  }
-  HOVER_HINT("Sub-palette row (0-7 for SNES 128-color palettes)");
+  DrawGraphicsPreviewPaletteSelector(*state_);
 }
 
 void PaletteControlsPanel::DrawPaletteDisplay() {
-  gui::TextWithSeparators("Current Palette");
-
-  // Get the current palette from GameData
-  if (!game_data_)
-    return;
-  auto palette_group_result = game_data_->palette_groups.get_group(
-      kPaletteGroupAddressesKeys[state_->palette_group_index]);
-  if (!palette_group_result) {
-    ImGui::TextDisabled(tr("Invalid palette group"));
+  const auto* selected = state_->PreviewPalette(state_->current_sheet_id);
+  if (!selected) {
+    ImGui::TextWrapped("%s", tr("Showing this sheet's loaded colors. Choose a "
+                                "group to preview another palette."));
     return;
   }
-
-  auto palette_group = *palette_group_result;
-  if (state_->palette_index >= palette_group.size()) {
-    ImGui::TextDisabled(tr("Invalid palette index"));
+  const auto resolved =
+      ResolveGraphicsPreviewPalette(*state_->game_data, *selected);
+  if (!resolved.ok())
     return;
-  }
-
-  auto palette = palette_group.palette(state_->palette_index);
-
-  auto palette_group_name =
-      std::string_view(kPaletteGroupAddressesKeys[state_->palette_group_index]);
-  auto layout = GetPaletteRowLayout(palette_group_name, palette.size());
-
-  int colors_per_row = layout.colors_per_row;
-  int total_colors = static_cast<int>(palette.size());
-  int num_rows = GetPaletteRowCount(palette.size(), colors_per_row);
-  if (state_->sub_palette_index >= static_cast<uint64_t>(num_rows)) {
-    state_->sub_palette_index = 0;
-  }
-
-  for (int row = 0; row < num_rows; row++) {
-    for (int col = 0; col < colors_per_row; col++) {
-      int idx = row * colors_per_row + col;
-      if (idx >= total_colors)
-        break;
-
-      if (col > 0)
-        ImGui::SameLine();
-
-      auto& color = palette[idx];
-      ImVec4 im_color(color.rgb().x / 255.0f, color.rgb().y / 255.0f,
-                      color.rgb().z / 255.0f, 1.0f);
-
-      // Highlight current sub-palette row
-      bool in_sub_palette =
-          (row == static_cast<int>(state_->sub_palette_index));
-      std::optional<gui::StyleVarGuard> pal_border_var;
-      std::optional<gui::StyleColorGuard> pal_border_color;
-      if (in_sub_palette) {
-        pal_border_var.emplace(ImGuiStyleVar_FrameBorderSize, 2.0f);
-        pal_border_color.emplace(ImGuiCol_Border, gui::GetWarningColor());
-      }
-
-      std::string id = absl::StrFormat("##PalColor%d", idx);
-      if (ImGui::ColorButton(id.c_str(), im_color,
-                             ImGuiColorEditFlags_NoTooltip, ImVec2(18, 18))) {
-        // Clicking a color in a row selects that sub-palette
-        state_->sub_palette_index = static_cast<uint64_t>(row);
-        state_->refresh_graphics = true;
-      }
-
-      pal_border_color.reset();
-      pal_border_var.reset();
-
-      if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::Text(tr("Index: %d (Row %d, Col %d)"), idx, row, col);
-        ImGui::Text(tr("SNES: $%04X"), color.snes());
-        ImGui::Text(tr("RGB: %d, %d, %d"), static_cast<int>(color.rgb().x),
-                    static_cast<int>(color.rgb().y),
-                    static_cast<int>(color.rgb().z));
-        ImGui::EndTooltip();
-      }
-    }
-  }
-
-  // Row selection buttons
-  ImGui::Text(tr("Sub-palette Row:"));
-  for (int i = 0; i < std::min(8, num_rows); i++) {
-    if (i > 0)
+  auto choice = *selected;
+  const auto& palette =
+      state_->game_data->palette_groups.get_group(choice.group)
+          ->palette_ref(choice.palette);
+  const auto layout =
+      internal::GetPaletteRowLayout(choice.group, palette.size());
+  ImGui::TextDisabled(tr("Preview only; source colors are unchanged"));
+  for (size_t i = 0; i < palette.size(); ++i) {
+    if (i % layout.colors_per_row != 0)
       ImGui::SameLine();
-    bool selected = (state_->sub_palette_index == static_cast<uint64_t>(i));
-    {
-      std::optional<gui::StyleColorGuard> sel_guard;
-      if (selected) {
-        sel_guard.emplace(ImGuiCol_Button, gui::GetSelectedColor());
-      }
-      if (ImGui::SmallButton(absl::StrFormat("%d", i).c_str())) {
-        state_->sub_palette_index = static_cast<uint64_t>(i);
-        state_->refresh_graphics = true;
-      }
+    ImGui::PushID(static_cast<int>(i));
+    if (ImGui::ColorButton("##PaletteColor",
+                           gui::ConvertSnesColorToImVec4(palette[i]),
+                           ImGuiColorEditFlags_NoTooltip, ImVec2(18, 18))) {
+      choice.row = static_cast<int>(i) / layout.colors_per_row;
+      Choose(*state_, choice);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          tr("Row %d, slot %d: $%04X. Click to preview this row."),
+          static_cast<int>(i) / layout.colors_per_row + 1,
+          static_cast<int>(i) % layout.colors_per_row, palette[i].snes());
+    }
+    ImGui::PopID();
   }
 }
 
 void PaletteControlsPanel::DrawApplyButtons() {
-  gui::TextWithSeparators("Apply Palette");
-
-  // Apply to current sheet
-  bool no_sheets = state_->open_sheets.empty();
-  ImGui::BeginDisabled(no_sheets);
-  if (ImGui::Button(ICON_MD_BRUSH " Apply to Current Sheet")) {
-    ApplyPaletteToSheet(state_->current_sheet_id);
-  }
-  ImGui::EndDisabled();
-  if (no_sheets && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip(tr("Open a graphics sheet first"));
-  } else {
-    HOVER_HINT("Apply palette to the currently selected sheet");
-  }
-
-  ImGui::SameLine();
-
-  // Apply to all sheets
-  if (ImGui::Button(ICON_MD_FORMAT_PAINT " Apply to All Sheets")) {
-    ApplyPaletteToAllSheets();
-  }
-  HOVER_HINT("Apply palette to all active graphics sheets");
-
-  // Apply to selected sheets (multi-select)
-  if (!state_->selected_sheets.empty()) {
-    if (ImGui::Button(absl::StrFormat(ICON_MD_CHECKLIST
-                                      " Apply to %zu Selected",
-                                      state_->selected_sheets.size())
-                          .c_str())) {
-      for (uint16_t sheet_id : state_->selected_sheets) {
-        ApplyPaletteToSheet(sheet_id);
-      }
-    }
-    HOVER_HINT("Apply palette to all selected sheets in browser");
-  }
-
-  // Refresh button
-  ImGui::Separator();
-  if (ImGui::Button(ICON_MD_REFRESH " Refresh Graphics")) {
-    state_->refresh_graphics = true;
-    if (!state_->open_sheets.empty()) {
-      ApplyPaletteToSheet(state_->current_sheet_id);
+  if (ImGui::Button(tr("Restore loaded colors")))
+    Choose(*state_, std::nullopt);
+  gui::AutoRegisterLastItem("button", "Restore loaded colors");
+  const auto* selected = state_->PreviewPalette(state_->current_sheet_id);
+  if (!selected)
+    return;
+  const auto choice = *selected;
+  if (!state_->selected_sheets.empty() &&
+      ImGui::Button(tr("Preview on selected sheets"))) {
+    for (uint16_t sheet : state_->selected_sheets) {
+      SetGraphicsPreviewPalette(*state_, sheet, choice).IgnoreError();
     }
   }
-  HOVER_HINT("Force refresh of current sheet graphics");
-}
-
-void PaletteControlsPanel::ApplyPaletteToSheet(uint16_t sheet_id) {
-  if (!rom_ || !rom_->is_loaded() || !game_data_)
-    return;
-
-  auto palette_group_name =
-      std::string_view(kPaletteGroupAddressesKeys[state_->palette_group_index]);
-  auto palette_group_result =
-      game_data_->palette_groups.get_group(std::string(palette_group_name));
-  if (!palette_group_result)
-    return;
-
-  auto palette_group = *palette_group_result;
-  if (state_->palette_index >= palette_group.size())
-    return;
-
-  auto palette = palette_group.palette(state_->palette_index);
-  if (palette.empty()) {
-    return;
-  }
-
-  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
-  if (sheet.is_active() && sheet.surface()) {
-    size_t palette_offset = 0;
-    int palette_length = 0;
-    if (ComputePaletteSlice(palette_group_name, palette,
-                            static_cast<int>(state_->sub_palette_index),
-                            palette_offset, palette_length)) {
-      sheet.SetPaletteWithTransparent(palette, palette_offset, palette_length);
-    } else {
-      sheet.SetPaletteWithTransparent(
-          palette, 0, std::min(7, static_cast<int>(palette.size())));
-    }
-    gfx::Arena::Get().NotifySheetModified(sheet_id);
-  }
-}
-
-void PaletteControlsPanel::ApplyPaletteToAllSheets() {
-  if (!rom_ || !rom_->is_loaded() || !game_data_)
-    return;
-
-  auto palette_group_name =
-      std::string_view(kPaletteGroupAddressesKeys[state_->palette_group_index]);
-  auto palette_group_result =
-      game_data_->palette_groups.get_group(std::string(palette_group_name));
-  if (!palette_group_result)
-    return;
-
-  auto palette_group = *palette_group_result;
-  if (state_->palette_index >= palette_group.size())
-    return;
-
-  auto palette = palette_group.palette(state_->palette_index);
-  if (palette.empty()) {
-    return;
-  }
-  size_t palette_offset = 0;
-  int palette_length = 0;
-  const bool has_slice = ComputePaletteSlice(
-      palette_group_name, palette, static_cast<int>(state_->sub_palette_index),
-      palette_offset, palette_length);
-
-  for (int i = 0; i < zelda3::kNumGfxSheets; i++) {
-    auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->data()[i];
-    if (sheet.is_active() && sheet.surface()) {
-      if (has_slice) {
-        sheet.SetPaletteWithTransparent(palette, palette_offset,
-                                        palette_length);
-      } else {
-        sheet.SetPaletteWithTransparent(
-            palette, 0, std::min(7, static_cast<int>(palette.size())));
-      }
-      gfx::Arena::Get().NotifySheetModified(i);
+  if (ImGui::Button(tr("Preview on all sheets"))) {
+    for (uint16_t sheet = 0; sheet < zelda3::kNumGfxSheets; ++sheet) {
+      SetGraphicsPreviewPalette(*state_, sheet, choice).IgnoreError();
     }
   }
 }
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor

@@ -106,124 +106,142 @@ void WindowSidebar::DrawEditorContext(size_t session_id,
     return;
   }
 
-  const bool was_collapsed =
-      user_settings_ &&
-      user_settings_->prefs().sidebar_context_collapsed.contains(category);
-  if (user_settings_) {
-    ImGui::SetNextItemOpen(!was_collapsed, ImGuiCond_Always);
+  ImGui::PushID(category.c_str());
+  ImGui::SeparatorText(tr("Context"));
+  if (!snapshot.title.empty())
+    ImGui::TextWrapped("%s", snapshot.title.c_str());
+  if (snapshot.experiment.experimental) {
+    const std::string label =
+        "Experimental · " + snapshot.experiment.save_posture;
+    gui::ColoredText(label.c_str(), gui::GetWarningVec4());
   }
-  const std::string header = absl::StrFormat(
-      "%s Editor Context##editor_context_%s", ICON_MD_INFO, category.c_str());
-  const bool expanded = ImGui::CollapsingHeader(
-      header.c_str(), user_settings_ ? ImGuiTreeNodeFlags_None
-                                     : ImGuiTreeNodeFlags_DefaultOpen);
-  if (ImGui::IsItemToggledOpen() && user_settings_) {
-    if (expanded) {
-      user_settings_->prefs().sidebar_context_collapsed.erase(category);
-    } else {
-      user_settings_->prefs().sidebar_context_collapsed.insert(category);
-    }
-    (void)user_settings_->Save();
+  if (snapshot.has_pending_changes)
+    gui::ColoredText(snapshot.pending_label.empty()
+                         ? "Pending changes"
+                         : snapshot.pending_label.c_str(),
+                     gui::GetWarningVec4());
+  for (const auto& diagnostic : snapshot.diagnostics) {
+    if (diagnostic.severity == EditorContextDiagnosticSeverity::kInfo)
+      continue;
+    ImGui::TextWrapped("%s", diagnostic.message.c_str());
   }
-  if (!expanded) {
+  if (ImGui::Button(tr("Context details")))
+    context_details_category_ = category;
+  ImGui::PopID();
+}
+
+void WindowSidebar::DrawContextDetailsWindow(size_t session_id) {
+  if (context_details_category_.empty())
+    return;
+  const EditorContextSnapshot snapshot =
+      context_provider_ ? context_provider_(context_details_category_)
+                        : EditorContextSnapshot{};
+  if (!HasRenderableContext(snapshot)) {
+    context_details_category_.clear();
     return;
   }
+  bool open = true;
+  ImGui::SetNextWindowSize(ImVec2(520, 480), ImGuiCond_FirstUseEver);
+  const std::string title =
+      context_details_category_ + " Context###EditorContextDetails";
+  if (ImGui::Begin(title.c_str(), &open))
+    DrawEditorContextDetails(session_id, snapshot);
+  ImGui::End();
+  if (!open)
+    context_details_category_.clear();
+}
 
-  const bool body_open =
-      ImGui::BeginChild("##EditorContextBody", ImVec2(0.0f, 0.0f), false);
-  if (body_open) {
-    if (!snapshot.title.empty()) {
-      ImGui::TextWrapped("%s", snapshot.title.c_str());
-    }
-    if (!snapshot.subtitle.empty()) {
-      ImGui::TextDisabled("%s", snapshot.subtitle.c_str());
-    }
-    if (snapshot.experiment.experimental) {
-      const std::string experiment_label = absl::StrFormat(
-          "Experimental · %s", snapshot.experiment.save_posture);
-      gui::ColoredText(experiment_label.c_str(),
-                       snapshot.experiment.acknowledged
-                           ? gui::GetTextSecondaryVec4()
-                           : gui::GetWarningVec4());
-    }
-    if (snapshot.has_pending_changes) {
-      gui::ColoredText(snapshot.pending_label.empty()
-                           ? ICON_MD_EDIT " Pending changes"
-                           : snapshot.pending_label.c_str(),
-                       gui::GetWarningVec4());
-    }
+void WindowSidebar::DrawEditorContextDetails(
+    size_t session_id, const EditorContextSnapshot& snapshot) {
+  if (!snapshot.title.empty()) {
+    ImGui::TextWrapped("%s", snapshot.title.c_str());
+  }
+  if (!snapshot.subtitle.empty()) {
+    ImGui::TextDisabled("%s", snapshot.subtitle.c_str());
+  }
+  if (snapshot.experiment.experimental) {
+    const std::string experiment_label =
+        absl::StrFormat("Experimental · %s", snapshot.experiment.save_posture);
+    gui::ColoredText(experiment_label.c_str(), snapshot.experiment.acknowledged
+                                                   ? gui::GetTextSecondaryVec4()
+                                                   : gui::GetWarningVec4());
+  }
+  if (snapshot.has_pending_changes) {
+    gui::ColoredText(snapshot.pending_label.empty()
+                         ? ICON_MD_EDIT " Pending changes"
+                         : snapshot.pending_label.c_str(),
+                     gui::GetWarningVec4());
+  }
 
-    const auto draw_values = [](const char* table_id,
-                                const std::vector<EditorContextValue>& values) {
-      if (values.empty()) {
-        return;
+  const auto draw_values = [](const char* table_id,
+                              const std::vector<EditorContextValue>& values) {
+    if (values.empty()) {
+      return;
+    }
+    if (ImGui::BeginTable(
+            table_id, 2,
+            ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_PadOuterX)) {
+      ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+      for (const EditorContextValue& value : values) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextDisabled("%s", value.label.c_str());
+        ImGui::TableNextColumn();
+        ImGui::TextWrapped("%s", value.value.c_str());
       }
-      if (ImGui::BeginTable(
-              table_id, 2,
-              ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_PadOuterX)) {
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-        for (const EditorContextValue& value : values) {
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::TextDisabled("%s", value.label.c_str());
-          ImGui::TableNextColumn();
-          ImGui::TextWrapped("%s", value.value.c_str());
-        }
-        ImGui::EndTable();
-      }
-    };
-
-    if (!snapshot.metadata.empty()) {
-      ImGui::SeparatorText(tr("Metadata"));
-      draw_values("##ContextMetadata", snapshot.metadata);
+      ImGui::EndTable();
     }
-    if (!snapshot.counts.empty()) {
-      ImGui::SeparatorText(tr("Contents"));
-      draw_values("##ContextCounts", snapshot.counts);
-    }
+  };
 
-    if (!snapshot.diagnostics.empty()) {
-      ImGui::SeparatorText(tr("Attention"));
-      ImGui::PushTextWrapPos(0.0f);
-      for (const EditorContextDiagnostic& diagnostic : snapshot.diagnostics) {
-        switch (diagnostic.severity) {
-          case EditorContextDiagnosticSeverity::kError:
-            gui::ColoredTextF(gui::GetErrorVec4(), "%s %s", ICON_MD_ERROR,
-                              diagnostic.message.c_str());
-            break;
-          case EditorContextDiagnosticSeverity::kWarning:
-            gui::ColoredTextF(gui::GetWarningVec4(), "%s %s", ICON_MD_WARNING,
-                              diagnostic.message.c_str());
-            break;
-          case EditorContextDiagnosticSeverity::kInfo:
-          default:
-            gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s %s",
-                              ICON_MD_INFO, diagnostic.message.c_str());
-            break;
-        }
-      }
-      ImGui::PopTextWrapPos();
-    }
+  if (!snapshot.metadata.empty()) {
+    ImGui::SeparatorText(tr("Metadata"));
+    draw_values("##ContextMetadata", snapshot.metadata);
+  }
+  if (!snapshot.counts.empty()) {
+    ImGui::SeparatorText(tr("Contents"));
+    draw_values("##ContextCounts", snapshot.counts);
+  }
 
-    if (!snapshot.actions.empty()) {
-      ImGui::SeparatorText(tr("Quick Actions"));
-      for (const EditorContextAction& action : snapshot.actions) {
-        ImGui::PushID(action.id.c_str());
-        ImGui::BeginDisabled(!action.enabled);
-        if (ImGui::Button(action.label.c_str(), ImVec2(-1.0f, 0.0f))) {
-          DispatchContextAction(session_id, action);
-        }
-        if (!action.enabled && !action.disabled_reason.empty() &&
-            ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-          ImGui::SetTooltip("%s", action.disabled_reason.c_str());
-        }
-        ImGui::EndDisabled();
-        ImGui::PopID();
+  if (!snapshot.diagnostics.empty()) {
+    ImGui::SeparatorText(tr("Attention"));
+    ImGui::PushTextWrapPos(0.0f);
+    for (const EditorContextDiagnostic& diagnostic : snapshot.diagnostics) {
+      switch (diagnostic.severity) {
+        case EditorContextDiagnosticSeverity::kError:
+          gui::ColoredTextF(gui::GetErrorVec4(), "%s %s", ICON_MD_ERROR,
+                            diagnostic.message.c_str());
+          break;
+        case EditorContextDiagnosticSeverity::kWarning:
+          gui::ColoredTextF(gui::GetWarningVec4(), "%s %s", ICON_MD_WARNING,
+                            diagnostic.message.c_str());
+          break;
+        case EditorContextDiagnosticSeverity::kInfo:
+        default:
+          gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s %s", ICON_MD_INFO,
+                            diagnostic.message.c_str());
+          break;
       }
+    }
+    ImGui::PopTextWrapPos();
+  }
+
+  if (!snapshot.actions.empty()) {
+    ImGui::SeparatorText(tr("Quick Actions"));
+    for (const EditorContextAction& action : snapshot.actions) {
+      ImGui::PushID(action.id.c_str());
+      ImGui::BeginDisabled(!action.enabled);
+      if (ImGui::Button(action.label.c_str(), ImVec2(-1.0f, 0.0f))) {
+        DispatchContextAction(session_id, action);
+      }
+      if (!action.enabled && !action.disabled_reason.empty() &&
+          ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip("%s", action.disabled_reason.c_str());
+      }
+      ImGui::EndDisabled();
+      ImGui::PopID();
     }
   }
-  ImGui::EndChild();
 }
 
 bool WindowSidebar::MatchesWindowSearch(const std::string& query,
@@ -295,7 +313,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
       ImVec2(viewport->WorkPos.x + bar_width, viewport->WorkPos.y + top_inset),
       ImVec2(panel_width, panel_height),
       {.bg = gui::ConvertColorToImVec4(theme.surface),
-       .padding = {8.0f, 8.0f},
+       .padding = {10.0f, 10.0f},
        .border_size = 1.0f,
        .rounding = 0.0f},
       ImGuiWindowFlags_NoFocusOnAppearing);
@@ -740,27 +758,12 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   const EditorContextSnapshot context_snapshot =
       context_provider_ ? context_provider_(category) : EditorContextSnapshot{};
   const bool has_context = HasRenderableContext(context_snapshot);
-  const bool context_expanded =
-      has_context &&
-      (!user_settings_ ||
-       !user_settings_->prefs().sidebar_context_collapsed.contains(category));
-  const float available_content_height = ImGui::GetContentRegionAvail().y;
-  const float context_header_height =
-      has_context ? ImGui::GetFrameHeight() + ImGui::GetStyle().ItemSpacing.y
-                  : 0.0f;
-  const float context_body_height =
-      context_expanded
-          ? std::clamp(available_content_height * 0.38f, 160.0f, 280.0f)
-          : 0.0f;
-  const float reserved_context_height =
-      context_header_height + context_body_height;
-  const float window_list_height =
-      std::max(gui::UIConfig::kContentMinHeightList,
-               available_content_height - reserved_context_height);
-
-  const bool window_content_open = ImGui::BeginChild(
-      "##WindowContent", ImVec2(0.0f, window_list_height), false);
+  if (disable_windows)
+    ImGui::EndDisabled();
+  const bool window_content_open =
+      ImGui::BeginChild("##WindowContent", ImVec2(0.0f, 0.0f), false);
   if (window_content_open) {
+    ImGui::BeginDisabled(disable_windows);
     for (const std::string& section_name : section_order) {
       auto it = sections.find(section_name);
       if (it == sections.end() || it->second.empty()) {
@@ -776,29 +779,17 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
         continue;
       }
 
-      ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
-      if (section_name == "Core") {
-        flags |= ImGuiTreeNodeFlags_DefaultOpen;
-      }
-
-      const std::string header = absl::StrFormat(
-          "%s##sidebar_section_%s", section_name.c_str(), section_name.c_str());
-      if (ImGui::CollapsingHeader(header.c_str(), flags)) {
-        for (const auto& window : it->second) {
-          draw_window_row(window);
-        }
-      }
+      // Flat sections: the sidebar already provides search and one scroll
+      // surface. A saved closed header must not hide an editing tool.
+      ImGui::SeparatorText(section_name.c_str());
+      for (const auto& window : it->second)
+        draw_window_row(window);
     }
-  }
-  ImGui::EndChild();
-
-  if (disable_windows) {
     ImGui::EndDisabled();
   }
-
-  if (has_context) {
+  if (window_content_open && has_context)
     DrawEditorContext(session_id, category, context_snapshot);
-  }
+  ImGui::EndChild();
 
   const float handle_width = 6.0f;
   const ImVec2 panel_pos = ImGui::GetWindowPos();

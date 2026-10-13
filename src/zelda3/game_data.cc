@@ -214,6 +214,8 @@ absl::Status LoadPalettes(const Rom& rom, GameData& data) {
 }
 
 absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
+  data.gfx_groups_loaded = false;
+  data.gfx_main_group_address = 0;
   if (kVersionConstantsMap.find(data.version) == kVersionConstantsMap.end()) {
     return absl::FailedPreconditionError("Unsupported ROM version");
   }
@@ -221,47 +223,43 @@ absl::Status LoadGfxGroups(Rom& rom, GameData& data) {
   auto version_constants = kVersionConstantsMap.at(data.version);
 
   // Load Main Blocksets
-  auto main_ptr_res = rom.ReadWord(kGfxGroupsPointer);
-  if (main_ptr_res.ok()) {
-    uint32_t main_ptr = SnesToPc(*main_ptr_res);
-    for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
-      for (int j = 0; j < 8; j++) {
-        auto val = rom.ReadByte(main_ptr + (i * 8) + j);
-        if (val.ok())
-          data.main_blockset_ids[i][j] = *val;
-      }
+  ASSIGN_OR_RETURN(auto main_ptr, rom.ReadWord(kGfxGroupsPointer));
+  const uint32_t main_pc = SnesToPc(main_ptr);
+  for (uint32_t i = 0; i < kNumMainBlocksets; i++) {
+    for (int j = 0; j < 8; j++) {
+      ASSIGN_OR_RETURN(data.main_blockset_ids[i][j],
+                       rom.ReadByte(main_pc + (i * 8) + j));
     }
   }
 
   // Load Room Blocksets
   for (uint32_t i = 0; i < kNumRoomBlocksets; i++) {
     for (int j = 0; j < 4; j++) {
-      auto val = rom.ReadByte(kEntranceGfxGroup + (i * 4) + j);
-      if (val.ok())
-        data.room_blockset_ids[i][j] = *val;
+      ASSIGN_OR_RETURN(data.room_blockset_ids[i][j],
+                       rom.ReadByte(kEntranceGfxGroup + (i * 4) + j));
     }
   }
 
   // Load Sprite Blocksets
   for (uint32_t i = 0; i < kNumSpritesets; i++) {
     for (int j = 0; j < 4; j++) {
-      auto val =
-          rom.ReadByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j);
-      if (val.ok())
-        data.spriteset_ids[i][j] = *val;
+      ASSIGN_OR_RETURN(
+          data.spriteset_ids[i][j],
+          rom.ReadByte(version_constants.kSpriteBlocksetPointer + (i * 4) + j));
     }
   }
 
   // Load Palette Sets
   for (uint32_t i = 0; i < kNumPalettesets; i++) {
     for (int j = 0; j < 4; j++) {
-      auto val =
-          rom.ReadByte(version_constants.kDungeonPalettesGroups + (i * 4) + j);
-      if (val.ok())
-        data.paletteset_ids[i][j] = *val;
+      ASSIGN_OR_RETURN(
+          data.paletteset_ids[i][j],
+          rom.ReadByte(version_constants.kDungeonPalettesGroups + (i * 4) + j));
     }
   }
 
+  data.gfx_main_group_address = main_pc;
+  data.gfx_groups_loaded = true;
   return absl::OkStatus();
 }
 

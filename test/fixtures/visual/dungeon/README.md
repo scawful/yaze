@@ -338,3 +338,46 @@ they do **not** replace Mesen ROI baselines for these families.
 Suggested next captures: additional door types (key/shutter/bombable/exploding)
 in door-heavy rooms, then state-labeled `0xD8`/`0xDA` captures. Long rails in
 `0x007` are covered.
+
+## Room `0x016` water, animation frame zero (2026-09-30)
+
+Fixture: `vanilla_room_016_mesen_water_frame0_32x32.png`.
+SHA256 `1799626931f178d2fdbafa9a2c82b855cae4d6ec9fd2ed7d4efa0f5c2c7a1645`.
+Mesen executable SHA256 `8be66675b8625d709e4b03c5a1f7065b52ce9233e0f791f86d87cec54a7bee17`.
+ROM: canonical US first1MiB SHA1 `6d4f10a8b10e10dbe624cb23cf03b88bb8252973`,
+zero-padded to2MiB SHA1 `93fb2bd3e19c96c50f124f1dd02144bca7f0af78`.
+
+Use `scripts/agents/capture-game-room-tilemaps.py --rooms 0x016 --full`
+on an owned headless emulator and this ROM. Auto entrance selects `0x25`,
+main graphics group `0x08`; transient room-override PAR codes are
+`02C85D16` and `02C85E00`. The script loads module05 and waits for settled07/00.
+This is controlled rendering evidence, not an organic gameplay route.
+
+Pause the room. Freeze animation frame zero using these little-endian writes:
+`$7EC00D=FF 7F` (timer), `$7EC00F=00 00` (frame offset),
+`$7E0ADC=80 A6` (DMA source). The ROM selects animated sheet `0x5D`;
+NMI copies the frame from WRAM `$7EA680` to VRAM byte address `$7600`.
+For the isolated water layer, set `$7E001C=01`, `$7E001D=00`,
+`$7E0099=00`, `$7E009A=00`; fixture health/max were set to24.
+Advance four frames and pause. The recorded run first advanced four frames
+with main designation02, then four with01; the long timer kept the same frame.
+
+Hardware BG1 displays the water from WRAM `$7E4000`; Yaze calls that the
+BG2 object buffer. Tiles `0x1B0/0x1B1` use palette7. Mesen screenshot crop
+`(32,96,32,32)` corresponds to Yaze room crop `(160,369,32,32)`:
+scroll `(128,272)` plus the first displayed scanline. This interior water
+region has no overlapping objects, so it matches the normal Yaze composite.
+All1024 RGBA pixels matched, zero tolerance. A one-line-wrong crop differs
+in224 pixels, confirming the recorded vertical alignment matters.
+
+`Room016WaterFrameZeroMatchesIndependentMesenBaseline` verifies both tile IDs,
+palette bits and the independent image. This covers only frame zero in this
+region: moving-water compositing, later frames, and flood/drain states remain
+separate qualifications. No production rendering code was changed.
+The adjacent historical counterfactual was repaired on September 30: its
+whole-room checksum also included pot-item editor markers, whose positions
+were corrected by 804b32eea. Reconstructing the old marker coordinates restores
+the exact old checksum 16184705480853915451; the test keeps that assertion.
+The current-sheet comparison uses corrected marker coordinates on both sides.
+The three affected normal-rendering fixtures were refreshed only after
+reversing the coordinate correction reproduced every prior golden exactly.

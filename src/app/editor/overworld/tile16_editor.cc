@@ -109,6 +109,16 @@ absl::Status Tile16Editor::UpdateAsPanel() {
   SameLine();
   TextDisabled(tr("Right-click for more options"));
 
+  if (Button("Edit Graphics")) {
+    graphics_open_status_ = OpenGraphicsForActiveQuadrant();
+  }
+  SameLine();
+  TextDisabled("Start at quadrant %d", session_.active_quadrant() + 1);
+  if (!graphics_open_status_.ok()) {
+    ImGui::TextWrapped("Graphics edit unavailable: %s",
+                       graphics_open_status_.message().data());
+  }
+
   // Context menu
   DrawContextMenu();
 
@@ -191,7 +201,10 @@ absl::Status Tile16Editor::UpdateBlockset() {
 }
 
 void Tile16Editor::HandleKeyboardShortcuts() {
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+  // Child windows of this panel only. RootAndChildWindows is true whenever
+  // the overworld map canvas (a sibling under the same root) is focused, so
+  // Command+Z was consumed as a Tile16 undo while hovering the map.
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) &&
       !ImGui::IsAnyItemActive()) {
     const ImGuiIO& io = ImGui::GetIO();
 #if defined(__APPLE__)

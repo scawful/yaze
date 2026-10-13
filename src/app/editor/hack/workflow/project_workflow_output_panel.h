@@ -15,6 +15,9 @@ class ProjectWorkflowOutputPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Workflow Output"; }
   std::string GetIcon() const override { return ICON_MD_TERMINAL; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   WindowScope GetScope() const override { return WindowScope::kGlobal; }
   std::string GetWorkflowGroup() const override { return "Build & Run"; }
   std::string GetWorkflowDescription() const override {

@@ -30,6 +30,7 @@
 #include "app/editor/session_types.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/shell/coordinator/workspace_manager.h"
+#include "app/editor/shell/feedback/feature_hint_manager.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/shell/windows/dashboard_panel.h"
@@ -151,6 +152,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   }
   StatusBar* status_bar() { return &status_bar_; }
   ToastManager* toast_manager() { return &toast_manager_; }
+  FeatureHintManager* feature_hint_manager() { return &feature_hint_manager_; }
   PopupManager* popup_manager() { return popup_manager_.get(); }
   // Native (macOS) menu mirrors these bindings; see native_menu_bridge.h.
   ShortcutManager* shortcut_manager() { return &shortcut_manager_; }
@@ -373,6 +375,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::vector<std::string> ListLayoutSnapshots() const;
 
   void ResetCurrentEditorLayout();
+  bool HasPreviousEditorLayout() const;
+  void RestorePreviousEditorLayout();
 
   // Helper methods
   std::string GenerateUniqueEditorTitle(EditorType type,
@@ -552,6 +556,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // default editor, or show the editor picker, in that order.
   void ShowPostLoadSurface();
   void SetupDialogCallbacks();
+  void MaybeEmitZScreamRomLoadHints();
   void SetupSidebarCallbacks();
   void InitializeShortcutSystem();
   void ProcessInput();
@@ -649,6 +654,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   SharedClipboard shared_clipboard_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;
+  FeatureHintManager feature_hint_manager_;
   MenuBuilder menu_builder_;
   ShortcutManager shortcut_manager_;
   UserSettings user_settings_;
@@ -676,7 +682,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   emu::input::InputConfig BuildInputConfigFromSettings() const;
   void PersistInputConfig(const emu::input::InputConfig& config);
-  void UpdateCurrentRomHash();
+  void CaptureCurrentRomIdentity(bool preserve_editing_source = false);
+  void RestoreCurrentRomIdentity();
   void ApplyDefaultBackupPolicy();
   void CaptureRuntimeFeatureFlags();
   void CaptureActiveProjectEditingState();
@@ -711,7 +718,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                                       const std::string& detail,
                                       ProjectWorkflowState state) const;
   absl::StatusOr<std::string> RunProjectBuildCommand();
-  absl::StatusOr<std::string> ResolveProjectBuildCommand() const;
+  absl::StatusOr<std::string> ResolveProjectBuildCommand();
   absl::StatusOr<std::string> ResolveProjectRunTarget() const;
   absl::Status CheckRomWritePolicy(
       const std::optional<std::string>& target_filename = std::nullopt);

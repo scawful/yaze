@@ -100,6 +100,8 @@ class PaletteGroupPanel : public WindowContent {
    * @brief Draw the card's ImGui UI
    */
   void Draw(bool* p_open) override;
+  // Same editing surface, without a second save/undo toolbar.
+  void DrawEmbedded();
 
   // WindowContent Implementation
   std::string GetId() const override { return "palette." + group_name_; }
@@ -108,6 +110,10 @@ class PaletteGroupPanel : public WindowContent {
     return ICON_MD_PALETTE;
   }  // Default, override in derived
   std::string GetEditorCategory() const override { return "Palette"; }
+  // Optional comparison windows reuse the main workspace editing controls.
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override {
     return 50;
   }  // Default, override in derived
@@ -168,7 +174,7 @@ class PaletteGroupPanel : public WindowContent {
   bool IsColorModified(int palette_index, int color_index) const;
 
   int GetSelectedPaletteIndex() const { return selected_palette_; }
-  void SetSelectedPaletteIndex(int index) { selected_palette_ = index; }
+  void SetSelectedPaletteIndex(int index);
 
   int GetSelectedColorIndex() const { return selected_color_; }
   void SetSelectedColorIndex(int index) { selected_color_ = index; }
@@ -198,7 +204,8 @@ class PaletteGroupPanel : public WindowContent {
   /**
    * @brief Draw the palette grid specific to this palette type
    */
-  virtual void DrawPaletteGrid() = 0;
+  void DrawPaletteGrid();
+  void DrawContent(bool embedded);
 
   /**
    * @brief Get the number of colors per row for grid layout
@@ -284,9 +291,13 @@ class PaletteGroupPanel : public WindowContent {
   bool show_ = false;                              // Visibility flag
 
   // Selection state
-  int selected_palette_ = 0;      // Currently selected palette index
-  int selected_color_ = -1;       // Currently selected color (-1 = none)
-  gfx::SnesColor editing_color_;  // Color being edited in picker
+  int selected_palette_ = 0;  // Currently selected palette index
+  int selected_color_ = -1;   // Currently selected color (-1 = none)
+
+  // Widget identity keeps an optional comparison window from ending the
+  // workspace picker gesture when both render this panel in the same frame.
+  ImGuiID active_picker_ = 0;
+  bool picker_cancelled_ = false;
 
   // Settings
   bool show_snes_format_ = true;  // Show SNES $xxxx format in info
@@ -317,7 +328,6 @@ class OverworldMainPalettePanel : public PaletteGroupPanel {
   gfx::PaletteGroup* GetPaletteGroup() override;
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
-  void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
   // WindowContent Overrides
@@ -344,7 +354,6 @@ class OverworldAnimatedPalettePanel : public PaletteGroupPanel {
   gfx::PaletteGroup* GetPaletteGroup() override;
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
-  void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
   // WindowContent Overrides
@@ -371,7 +380,6 @@ class DungeonMainPalettePanel : public PaletteGroupPanel {
   gfx::PaletteGroup* GetPaletteGroup() override;
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
-  void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 15; }
 
   // WindowContent Overrides
@@ -400,7 +408,6 @@ class SpritePalettePanel : public PaletteGroupPanel {
   gfx::PaletteGroup* GetPaletteGroup() override;
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
-  void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 15; }
   void DrawCustomPanels() override;  // Show VRAM info
 
@@ -429,7 +436,6 @@ class SpritesAux1PalettePanel : public PaletteGroupPanel {
   gfx::PaletteGroup* GetPaletteGroup() override;
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
-  void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
   // WindowContent Overrides
@@ -457,7 +463,6 @@ class SpritesAux2PalettePanel : public PaletteGroupPanel {
   gfx::PaletteGroup* GetPaletteGroup() override;
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
-  void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
   // WindowContent Overrides
@@ -485,7 +490,6 @@ class SpritesAux3PalettePanel : public PaletteGroupPanel {
   gfx::PaletteGroup* GetPaletteGroup() override;
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
-  void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
   // WindowContent Overrides
@@ -512,7 +516,6 @@ class EquipmentPalettePanel : public PaletteGroupPanel {
   gfx::PaletteGroup* GetPaletteGroup() override;
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
-  void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 15; }
 
   // WindowContent Overrides

@@ -301,6 +301,91 @@ TEST(DungeonCollisionJsonCommandsTest, CustomCollisionImportExportRoundTrip) {
 }
 
 TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionFloorRoundTripKeepsOmissionAndEmptyRoomRemoval) {
+  ScopedTempDirectory temp("explicit_floor");
+  const auto in_path = temp.path() / "floor.json";
+  const auto out_path = temp.path() / "export.json";
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SeedCustomCollisionRooms(&rom, {0x27});
+  const auto unrelated = zelda3::LoadCustomCollisionMap(&rom, 0x27);
+  ASSERT_TRUE(unrelated.ok()) << unrelated.status();
+  const auto before = rom.vector();
+  const bool dirty_before = rom.dirty();
+  WriteFile(in_path, R"({"version":1,"rooms":[
+    {"room_id":37,"tiles":[[65,0],[66,183]]}]})");
+  handlers::DungeonImportCustomCollisionJsonCommandHandler importer;
+  std::string output;
+  ASSERT_TRUE(importer
+                  .Run({"--in", in_path.string(), "--dry-run", "--format=json"},
+                       &rom, &output)
+                  .ok());
+  const auto preview =
+      nlohmann::json::parse(output).at("Custom Collision Import");
+  EXPECT_EQ(preview.at("populated_rooms"), 1);
+  EXPECT_EQ(preview.at("cleared_rooms"), 0);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+
+  ASSERT_TRUE(
+      importer
+          .Run({"--in", in_path.string(), "--mock-rom", "--format=json"}, &rom,
+               &output)
+          .ok());
+  const auto floor = zelda3::LoadCustomCollisionMap(&rom, 0x25);
+  ASSERT_TRUE(floor.ok()) << floor.status();
+  EXPECT_TRUE(floor->HasOverride(65));
+  EXPECT_EQ(floor->tiles[65], 0);
+  EXPECT_FALSE(floor->HasOverride(67));
+  handlers::DungeonExportCustomCollisionJsonCommandHandler exporter;
+  ASSERT_TRUE(
+      exporter
+          .Run({"--room=0x25", "--out", out_path.string(), "--format=json"},
+               &rom, &output)
+          .ok());
+  const auto exported =
+      zelda3::LoadCustomCollisionRoomsFromJsonString(ReadFile(out_path));
+  ASSERT_TRUE(exported.ok()) << exported.status();
+  ASSERT_EQ(exported->size(), 1u);
+  ASSERT_EQ((*exported)[0].tiles.size(), 2u);
+  EXPECT_EQ((*exported)[0].tiles[0].offset, 65);
+  EXPECT_EQ((*exported)[0].tiles[0].value, 0);
+  EXPECT_EQ((*exported)[0].tiles[1].offset, 66);
+  EXPECT_EQ((*exported)[0].tiles[1].value, 183);
+
+  // A replacement omits the floor coordinate to remove it, retaining the rail.
+  WriteFile(in_path, R"({"version":1,"rooms":[
+    {"room_id":37,"tiles":[[66,183]]}]})");
+  ASSERT_TRUE(
+      importer
+          .Run({"--in", in_path.string(), "--mock-rom", "--format=json"}, &rom,
+               &output)
+          .ok());
+  const auto omitted = zelda3::LoadCustomCollisionMap(&rom, 0x25);
+  ASSERT_TRUE(omitted.ok()) << omitted.status();
+  EXPECT_FALSE(omitted->HasOverride(65));
+  EXPECT_TRUE(omitted->HasOverride(66));
+
+  WriteFile(in_path, R"({"version":1,"rooms":[{"room_id":37,"tiles":[]}]})");
+  ASSERT_TRUE(
+      importer
+          .Run({"--in", in_path.string(), "--mock-rom", "--format=json"}, &rom,
+               &output)
+          .ok());
+  EXPECT_EQ(nlohmann::json::parse(output)
+                .at("Custom Collision Import")
+                .at("cleared_rooms"),
+            1);
+  const auto cleared = zelda3::LoadCustomCollisionMap(&rom, 0x25);
+  ASSERT_TRUE(cleared.ok()) << cleared.status();
+  EXPECT_FALSE(cleared->has_data);
+  EXPECT_FALSE(cleared->HasOverrides());
+  const auto unrelated_after = zelda3::LoadCustomCollisionMap(&rom, 0x27);
+  ASSERT_TRUE(unrelated_after.ok()) << unrelated_after.status();
+  EXPECT_EQ(*unrelated_after, *unrelated);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
      CustomCollisionImportFailsWithoutExpandedCollisionRegion) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0x00)).ok());

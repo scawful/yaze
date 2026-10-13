@@ -111,8 +111,16 @@ class DungeonObjectSelector {
   // AssetBrowser-style object selection
   void DrawObjectAssetBrowser(float minimum_grid_height = 1.0f);
 
+  // Rail palette shares the room-context thumbnail cache and placement path.
+  bool DrawMinecartPalette();
+
   // Programmatic selection
   void SelectObject(int obj_id, int subtype = -1);
+
+  void SetEditObjectTilesCallback(
+      std::function<absl::Status(int, const zelda3::RoomObject&)> callback) {
+    edit_object_tiles_callback_ = std::move(callback);
+  }
 
   // Fixed-slot custom-object management actions.
   void SetTileEditorPanel(ObjectTileEditorPanel* panel) {
@@ -159,6 +167,7 @@ class DungeonObjectSelector {
   };
 
   bool MatchesObjectFilter(int obj_id, int filter_type);
+  bool MatchesRoomUsage(int obj_id) const;
   bool MatchesObjectSearch(int obj_id, const std::string& name,
                            int subtype = -1) const;
   void CalculateObjectDimensions(const zelda3::RoomObject& object, int& width,
@@ -179,6 +188,9 @@ class DungeonObjectSelector {
   int custom_asset_subtype_ = 0;
 
   // References for custom-object management.
+  std::function<absl::Status(int, const zelda3::RoomObject&)>
+      edit_object_tiles_callback_;
+  void DrawObjectContextMenu(int object_id, int subtype = -1);
   ObjectTileEditorPanel* tile_editor_panel_ = nullptr;
   std::function<bool()> open_tile_editor_window_callback_;
   std::function<bool()> open_minecart_editor_window_callback_;
@@ -214,7 +226,8 @@ class DungeonObjectSelector {
   // UI state for object browser filter
   int object_type_filter_ = 0;
   int object_stream_filter_ = 0;  // 0=All, 1=Type1, 2=Type2, 3=Type3
-  int object_grid_density_ = 0;   // 0=Compact, 1=Medium, 2=Large
+  bool used_here_only_ = false;
+  int object_grid_density_ = 0;  // 0=Compact, 1=Medium, 2=Large
   char object_search_buffer_[64] = {0};
 
   // Registry initialization flag

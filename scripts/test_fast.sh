@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Fast local sanity checks for quick iteration.
 #
-# Default: run a small, high-signal subset of stable unit + integration tests
-# via `ctest -R` (test-name regex).
+# Default: run a small, high-signal subset of stable unit + integration tests.
+# The subset is a regex on gtest names (Suite.Case). Stable suites are
+# registered with ctest as shards, not one entry per case, so the regex is
+# matched against the test binary's own case list and run as one process.
 #
 # Full stable suite remains available via `--full` (ctest -L stable).
 
@@ -137,12 +139,14 @@ Usage: $0 [options]
 Fast loop (default):
   - configures (cmake preset)
   - builds yaze_test_unit + yaze_test_integration
-  - runs a curated subset via ctest name regex (-R)
+  - runs a curated subset: gtest cases whose Suite.Case name matches a regex,
+    run directly from the test binaries (--gtest_filter)
 
 Options:
   --quick                 Run the quick labeled suites (fastest; builds smaller targets).
   --full                  Run full stable suite via ctest (-L stable).
-  --list                  List matching tests and exit (ctest -N).
+  --list                  List matching tests and exit (fast mode: gtest names;
+                           --quick/--full: ctest -N).
   --unit-only              Only run the unit subset.
   --integration-only       Only run the integration subset.
   --no-configure           Skip cmake configure step.
@@ -151,10 +155,12 @@ Options:
   --build-dir <path>       Build directory (default: build_ai).
   --config <cfg>           Multi-config build config (Debug/RelWithDebInfo/Release). Default: Debug.
   --jobs <n>               Parallel build/test jobs (default: 4).
-  --filter <regex>         Extra ctest -R filter. In fast mode, overrides the
-                           unit/integration regex subsets.
-  --unit-regex <regex>     Unit test-name regex passed to ctest -R.
-  --integration-regex <regex> Integration test-name regex passed to ctest -R.
+  --filter <regex>         In fast mode, a gtest-name regex that overrides the
+                           unit/integration subsets. With --quick/--full, a
+                           ctest -R filter on ctest entry names (stable entries
+                           are shards such as yaze_test_unit_shard_3).
+  --unit-regex <regex>     Unit gtest-name regex (Suite.Case).
+  --integration-regex <regex> Integration gtest-name regex (Suite.Case).
   --unit-filter <regex>    Alias for --unit-regex.
   --integration-filter <regex> Alias for --integration-regex.
   -h, --help               Show this help.
@@ -340,30 +346,84 @@ if [[ "$MODE" == "quick" ]]; then
   exit 0
 fi
 
-if [[ "$RUN_UNIT" == "1" ]]; then
-  echo -e "${YELLOW}→${NC} Unit subset (ctest -R):"
-  echo "  $UNIT_REGEX"
+# Stable suites are ctest shards (one entry per slice of a binary), so a
+# gtest-name regex cannot select cases through ctest -R. Match the regex
+# against the binary's own case list and run the matches in one process, from
+# the build directory like ctest does.
+find_test_binary() {
+  local name="$1"
+  local candidate
+  for candidate in "$BUILD_DIR/bin/$CONFIG/$name" "$BUILD_DIR/bin/$name"; do
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+gtest_filter_for_regex() {
+  local binary="$1"
+  local regex="$2"
+  local python_cmd
+  python_cmd="$(command -v python3 || command -v python || true)"
+  if [[ -z "$python_cmd" ]]; then
+    echo -e "${RED}✗${NC} Python is required to match gtest names." >&2
+    exit 1
+  fi
+  "$binary" --gtest_list_tests | "$python_cmd" -c '
+import re
+import sys
+
+pattern = re.compile(sys.argv[1])
+suite = ""
+names = []
+for line in sys.stdin:
+    entry = line.split("#")[0].rstrip()
+    if not entry:
+        continue
+    if not line.startswith(" "):
+        suite = entry.strip()
+    elif pattern.search(suite + entry.strip()):
+        names.append(suite + entry.strip())
+print(":".join(names))
+' "$regex"
+}
+
+run_gtest_subset() {
+  local label="$1"
+  local binary_name="$2"
+  local regex="$3"
+  local binary filter
+
+  echo -e "${YELLOW}→${NC} ${label} subset (${binary_name}, gtest names matching):"
+  echo "  $regex"
+  if ! binary="$(find_test_binary "$binary_name")"; then
+    echo -e "${RED}✗${NC} ${label}: ${binary_name} not found under $BUILD_DIR/bin" >&2
+    exit 1
+  fi
+  filter="$(gtest_filter_for_regex "$binary" "$regex")"
+  if [[ -z "$filter" ]]; then
+    echo -e "${RED}✗${NC} ${label} subset: no tests matched selection." >&2
+    echo "Regex is matched against Suite.Case names from:" >&2
+    echo "  $binary --gtest_list_tests" >&2
+    exit 2
+  fi
   if [[ "$LIST_ONLY" == "1" ]]; then
-    ctest "${ctest_common[@]}" -N -R "$UNIT_REGEX"
+    tr ':' '\n' <<<"$filter"
   else
-    ensure_ctest_nonempty_or_die "Unit subset" -R "$UNIT_REGEX"
-    ctest "${ctest_common[@]}" -R "$UNIT_REGEX"
-    echo -e "${GREEN}✓${NC} Unit subset ok"
+    (cd "$BUILD_DIR" && "$binary" --gtest_filter="$filter")
+    echo -e "${GREEN}✓${NC} ${label} subset ok"
   fi
   echo ""
+}
+
+if [[ "$RUN_UNIT" == "1" ]]; then
+  run_gtest_subset "Unit" yaze_test_unit "$UNIT_REGEX"
 fi
 
 if [[ "$RUN_INTEGRATION" == "1" ]]; then
-  echo -e "${YELLOW}→${NC} Integration subset (ctest -R):"
-  echo "  $INTEGRATION_REGEX"
-  if [[ "$LIST_ONLY" == "1" ]]; then
-    ctest "${ctest_common[@]}" -N -R "$INTEGRATION_REGEX"
-  else
-    ensure_ctest_nonempty_or_die "Integration subset" -R "$INTEGRATION_REGEX"
-    ctest "${ctest_common[@]}" -R "$INTEGRATION_REGEX"
-    echo -e "${GREEN}✓${NC} Integration subset ok"
-  fi
-  echo ""
+  run_gtest_subset "Integration" yaze_test_integration "$INTEGRATION_REGEX"
 fi
 
 if [[ "$LIST_ONLY" == "1" ]]; then

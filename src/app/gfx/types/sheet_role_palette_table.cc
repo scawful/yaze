@@ -36,11 +36,13 @@ SheetRole RoleForBlocksetSlot(int slot_index) {
 }
 
 SheetRole RoleForRoomsetSlot(int slot_index) {
-  // Roomsets override blockset slots 4..7.
+  // Room::LoadRoomGraphics writes entry i into blocks_[3 + i].
+  // OverworldMap::LoadAreaGraphicsBlocksets writes it into
+  // static_graphics_[3 + i]. Slot 7 is the animated sheet, not a roomset.
   if (slot_index < 0 || slot_index > 3) {
     return SheetRole::kUnclassified;
   }
-  return RoleForBlocksetSlot(slot_index + 4);
+  return RoleForBlocksetSlot(slot_index + 3);
 }
 
 SheetRole RoleForSpritesetSlot(int slot_index) {

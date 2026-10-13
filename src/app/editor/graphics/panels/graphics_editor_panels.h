@@ -28,6 +28,9 @@ class GraphicsSheetBrowserPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Sheet Browser"; }
   std::string GetIcon() const override { return ICON_MD_VIEW_LIST; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 10; }
   bool IsVisibleByDefault() const override { return true; }
   float GetPreferredWidth() const override { return 350.0f; }
@@ -56,6 +59,9 @@ class GraphicsPixelEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Pixel Editor"; }
   std::string GetIcon() const override { return ICON_MD_DRAW; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::CoreWorkspace();
+  }
   int GetPriority() const override { return 20; }
   bool IsVisibleByDefault() const override { return true; }
   float GetPreferredWidth() const override { return 800.0f; }
@@ -84,6 +90,9 @@ class GraphicsPaletteControlsPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Palette Controls"; }
   std::string GetIcon() const override { return ICON_MD_PALETTE; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 30; }
   float GetPreferredWidth() const override { return 300.0f; }
 
@@ -111,6 +120,9 @@ class GraphicsLinkSpritePanel : public WindowContent {
   std::string GetDisplayName() const override { return "Link Sprite Editor"; }
   std::string GetIcon() const override { return ICON_MD_PERSON; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 35; }
   float GetPreferredWidth() const override { return 600.0f; }
 
@@ -138,6 +150,9 @@ class GraphicsPolyhedralPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Polyhedral Editor"; }
   std::string GetIcon() const override { return ICON_MD_VIEW_IN_AR; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 38; }
   float GetPreferredWidth() const override { return 600.0f; }
 
@@ -165,6 +180,9 @@ class GraphicsGfxGroupPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Graphics Groups"; }
   std::string GetIcon() const override { return ICON_MD_VIEW_MODULE; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 39; }
   float GetPreferredWidth() const override { return 500.0f; }
 
@@ -192,6 +210,10 @@ class GraphicsPrototypeViewerPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Prototype Research"; }
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Welcome screen Prototype Research action");
+  }
   int GetPriority() const override { return 50; }
   float GetPreferredWidth() const override { return 800.0f; }
 
@@ -219,6 +241,9 @@ class GraphicsPalettesetPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Palettesets"; }
   std::string GetIcon() const override { return ICON_MD_COLOR_LENS; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 45; }
   float GetPreferredWidth() const override { return 500.0f; }
 
@@ -247,6 +272,9 @@ class GraphicsUsagePreviewPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Usage Preview"; }
   std::string GetIcon() const override { return ICON_MD_PREVIEW; }
   std::string GetEditorCategory() const override { return "Graphics"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 25; }
   float GetPreferredWidth() const override { return 420.0f; }
 

@@ -1,5 +1,6 @@
 #include "dungeon_map.h"
 
+#include <algorithm>
 #include <fstream>
 #include <vector>
 
@@ -11,6 +12,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/platform/window.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "zelda3/game_data.h"
@@ -77,94 +79,184 @@ absl::StatusOr<std::vector<DungeonMap>> LoadDungeonMaps(
   return dungeon_maps;
 }
 
-absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
-  int pos = kDungeonMapDataStart;
-
-  for (int d = 0; d < kNumDungeons; d++) {
-    if (d >= static_cast<int>(dungeon_maps.size())) {
-      break;
+absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
+    const std::vector<DungeonMap>& dungeon_maps, size_t rom_size,
+    bool relocated_tile16) {
+  // Repacking a prefix would overwrite streams owned by omitted maps.
+  if (dungeon_maps.size() != kNumDungeons) {
+    return absl::InvalidArgumentError(
+        "A full set of 14 dungeon maps is required");
+  }
+  std::array<uint16_t, kNumDungeons> boss_floors;
+  boss_floors.fill(0xFFFF);
+  for (size_t d = 0; d < dungeon_maps.size(); ++d) {
+    const auto& map = dungeon_maps[d];
+    const size_t count = map.nbr_of_floor + map.nbr_of_basement;
+    if (map.nbr_of_floor > 0x0F || map.nbr_of_basement > 0x0F ||
+        map.floor_rooms.size() != count || map.floor_gfx.size() != count) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid floor dimensions for dungeon %d", d));
     }
-
-    auto& map = dungeon_maps[d];
-    const int total_floors = map.nbr_of_floor + map.nbr_of_basement;
-
-    uint16_t floors = (map.nbr_of_floor << 4) | map.nbr_of_basement;
-    RETURN_IF_ERROR(rom.WriteWord(kDungeonMapFloors + (d * 2), floors));
-    RETURN_IF_ERROR(
-        rom.WriteWord(kDungeonMapBossRooms + (d * 2), map.boss_room));
-
-    const bool has_boss = map.boss_room != 0x000F && map.boss_room != 0xFFFF;
-    bool search_boss = has_boss;
-    if (!has_boss) {
-      RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossFloors + (d * 2), 0xFFFF));
-    }
-
-    RETURN_IF_ERROR(
-        rom.WriteWord(kDungeonMapRoomsPtr + (d * 2), PcToSnes(pos)));
-
-    bool restart = false;
-    for (int f = 0; f < total_floors; f++) {
-      for (int r = 0; r < kNumRooms; r++) {
-        if (search_boss && map.floor_rooms[f][r] == map.boss_room) {
-          RETURN_IF_ERROR(rom.WriteWord(kDungeonMapBossFloors + (d * 2), f));
-          search_boss = false;
-        }
-
-        if (pos >= kDungeonMapDataReservedStart &&
-            pos <= kDungeonMapDataReservedEnd) {
-          pos = kDungeonMapDataReservedEnd + 1;
-          restart = true;
-          break;
-        }
-
-        RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_rooms[f][r]));
-        pos++;
-      }
-      if (restart)
-        break;
-    }
-
-    if (restart) {
-      d--;
+    if (map.boss_room == 0x000F || map.boss_room == 0xFFFF)
       continue;
+    if (map.boss_room > 0xFF) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Boss room cannot fit a map cell for dungeon %d", d));
     }
-
-    RETURN_IF_ERROR(rom.WriteWord(kDungeonMapGfxPtr + (d * 2), PcToSnes(pos)));
-    for (int f = 0; f < total_floors; f++) {
-      for (int r = 0; r < kNumRooms; r++) {
-        if (map.floor_rooms[f][r] != 0x0F) {
-          if (pos >= kDungeonMapDataReservedStart &&
-              pos <= kDungeonMapDataReservedEnd) {
-            pos = kDungeonMapDataReservedEnd + 1;
-            RETURN_IF_ERROR(
-                rom.WriteWord(kDungeonMapGfxPtr + (d * 2), PcToSnes(pos)));
-            restart = true;
-            break;
-          }
-
-          RETURN_IF_ERROR(rom.WriteByte(pos, map.floor_gfx[f][r]));
-          pos++;
-        }
+    for (size_t f = 0; f < count; ++f) {
+      const auto& rooms = map.floor_rooms[f];
+      if (std::find(rooms.begin(), rooms.end(), map.boss_room) != rooms.end()) {
+        // The game uses a signed LOW byte, but FF in the HIGH byte means no
+        // boss. In particular B1 must be 00FF, never sign-extended to FFFF.
+        boss_floors[d] =
+            static_cast<uint8_t>(static_cast<int>(f) - map.nbr_of_basement);
+        break;  // Preserve the existing first-occurrence selection.
       }
-      if (restart)
-        break;
     }
-
-    if (pos >= kDungeonMapDataLimit) {
-      return absl::OutOfRangeError("Dungeon map data exceeds reserved space");
-    }
-
-    if (restart) {
-      d--;
-      continue;
-    }
-
-    if (search_boss) {
+    if (boss_floors[d] == 0xFFFF) {
       return absl::NotFoundError(
           absl::StrFormat("Boss room not found for dungeon %d", d));
     }
   }
 
+  DungeonMapWritePlan plan;
+  // The room pointer/floor block AND the GFX pointer block are fixed owners.
+  // A stream must fit contiguously in one remaining interval; loaders cannot
+  // skip a table in the middle of a room or graphics stream.
+  constexpr std::array<std::pair<int, int>, 3> regions = {{
+      {kDungeonMapDataStart, kDungeonMapDataReservedStart},
+      {kDungeonMapDataReservedEnd + 1, kDungeonMapGfxPtr},
+      {kDungeonMapGfxPtr + 2 * kNumDungeons, kDungeonMapDataLimit},
+  }};
+  int cursor =
+      relocated_tile16 ? kDungeonMapDataStart : kDungeonMapDataReservedEnd + 1;
+  auto allocate = [&](std::vector<uint8_t> bytes) -> absl::StatusOr<uint16_t> {
+    // Empty streams have a valid bank0A pointer but consume no storage.
+    int start = relocated_tile16 ? kDungeonMapDataStart
+                                 : kDungeonMapDataReservedEnd + 1;
+    if (!bytes.empty()) {
+      bool found = false;
+      for (const auto& [begin, end] : regions) {
+        start = std::max(cursor, begin);
+        if (start < end && bytes.size() <= static_cast<size_t>(end - start)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        return absl::OutOfRangeError(
+            "Dungeon map streams exceed safe capacity");
+      }
+    }
+    const int snes = PcToSnes(start);
+    const int last =
+        start + static_cast<int>(bytes.empty() ? 0 : bytes.size() - 1);
+    if ((snes >> 16) != 0x0A || (snes & 0xFFFF) < 0x8000 ||
+        (PcToSnes(last) >> 16) != 0x0A ||
+        static_cast<size_t>(last) >= rom_size) {
+      return absl::OutOfRangeError(
+          "Dungeon map stream violates ROM/bank bounds");
+    }
+    if (!bytes.empty()) {
+      cursor = start + bytes.size();
+      plan.writes.push_back({start, std::move(bytes)});
+    }
+    return static_cast<uint16_t>(snes);
+  };
+  auto word = [&](int address, uint16_t value) {
+    plan.writes.push_back(
+        {address,
+         {static_cast<uint8_t>(value), static_cast<uint8_t>(value >> 8)}});
+  };
+  std::array<std::vector<uint8_t>, kNumDungeons> room_streams, gfx_streams;
+  std::array<uint16_t, kNumDungeons> room_pointers, gfx_pointers;
+  for (int d = 0; d < kNumDungeons; ++d) {
+    const auto& map = dungeon_maps[d];
+    for (size_t f = 0; f < map.floor_rooms.size(); ++f) {
+      for (int r = 0; r < kNumRooms; ++r) {
+        room_streams[d].push_back(map.floor_rooms[f][r]);
+        if (map.floor_rooms[f][r] != 0x0F)
+          gfx_streams[d].push_back(map.floor_gfx[f][r]);
+      }
+    }
+  }
+  // Vanilla fills the room-data interval before its separate graphics interval.
+  // Keep that ordering so interleaving cannot fragment an otherwise valid fit.
+  for (int d = 0; d < kNumDungeons; ++d) {
+    ASSIGN_OR_RETURN(room_pointers[d], allocate(std::move(room_streams[d])));
+  }
+  for (int d = 0; d < kNumDungeons; ++d) {
+    ASSIGN_OR_RETURN(gfx_pointers[d], allocate(std::move(gfx_streams[d])));
+  }
+  for (int d = 0; d < kNumDungeons; ++d) {
+    const auto& map = dungeon_maps[d];
+    word(kDungeonMapRoomsPtr + 2 * d, room_pointers[d]);
+    word(kDungeonMapGfxPtr + 2 * d, gfx_pointers[d]);
+    word(kDungeonMapFloors + 2 * d,
+         (map.nbr_of_floor << 4) | map.nbr_of_basement);
+    word(kDungeonMapBossRooms + 2 * d, map.boss_room);
+    word(kDungeonMapBossFloors + 2 * d, boss_floors[d]);
+  }
+  // Validate the complete output, including fixed tables, without touching ROM.
+  std::vector<std::pair<int, int>> extents;
+  for (const auto& write : plan.writes) {
+    const int end = write.pc_address + write.data.size();
+    if (write.pc_address < 0 || static_cast<size_t>(end) > rom_size ||
+        (PcToSnes(write.pc_address) >> 16) != 0x0A ||
+        (PcToSnes(end - 1) >> 16) != 0x0A) {
+      return absl::OutOfRangeError(
+          "Dungeon map write violates ROM/bank bounds");
+    }
+    extents.emplace_back(write.pc_address, end);
+  }
+  std::sort(extents.begin(), extents.end());
+  for (size_t i = 1; i < extents.size(); ++i) {
+    if (extents[i].first < extents[i - 1].second)
+      return absl::InternalError("Overlapping dungeon map write plan");
+  }
+  return plan;
+}
+
+absl::StatusOr<DungeonMapWritePlan> BuildDungeonMapWritePlan(
+    Rom& rom, const std::vector<DungeonMap>& dungeon_maps) {
+  ASSIGN_OR_RETURN(auto marker, rom.ReadByte(kDungeonMapExpCheck));
+  if (marker != 0xB9 && marker != 0x20) {
+    return absl::FailedPreconditionError(
+        "Unsupported dungeon map Tile16 layout");
+  }
+  const bool relocated_tile16 = marker == 0x20;
+  const int tile16 = GetDungeonMapTile16Expanded();
+  const int64_t tile16_end =
+      static_cast<int64_t>(tile16) + kNumDungeonMapTile16 * 8;
+  if (relocated_tile16) {
+    if (tile16 < 0 || tile16_end > rom.size() ||
+        (tile16 < kDungeonMapDataLimit && tile16_end > kDungeonMapDataStart)) {
+      return absl::FailedPreconditionError(
+          "Invalid relocated dungeon map Tile16 extent");
+    }
+  }
+  ASSIGN_OR_RETURN(auto plan, BuildDungeonMapWritePlan(dungeon_maps, rom.size(),
+                                                       relocated_tile16));
+  if (relocated_tile16) {
+    for (const auto& write : plan.writes) {
+      const int64_t write_end = static_cast<int64_t>(write.pc_address) +
+                                static_cast<int64_t>(write.data.size());
+      if ((write.pc_address < tile16_end) && (write_end > tile16)) {
+        return absl::FailedPreconditionError(
+            "Dungeon map write overlaps relocated Tile16 artwork");
+      }
+    }
+  }
+  return plan;
+}
+
+absl::Status SaveDungeonMaps(Rom& rom, std::vector<DungeonMap>& dungeon_maps) {
+  ASSIGN_OR_RETURN(auto plan, BuildDungeonMapWritePlan(rom, dungeon_maps));
+  ScopedRomTransaction transaction(rom);
+  for (const auto& write : plan.writes) {
+    RETURN_IF_ERROR(rom.WriteVector(write.pc_address, write.data));
+  }
+  transaction.Commit();
   return absl::OkStatus();
 }
 

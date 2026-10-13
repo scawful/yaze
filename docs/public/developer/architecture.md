@@ -91,7 +91,7 @@ These patterns, established during the Overworld Editor refactoring, should be a
 **Principle**: Decompose large, monolithic editor classes into smaller, single-responsibility modules.
 
 -   **Rendering**: All drawing logic should be extracted into dedicated `*Renderer` classes (e.g., `OverworldEntityRenderer`). The main editor class should delegate drawing calls, not implement them.
--   **UI Composition**: New editor UI work should favor focused `WindowContent` surfaces and feature-oriented modules, not growth of `panels/` directories or new `*_panel` files.
+-   **UI Composition**: New editor UI work should favor focused `WindowContent` surfaces and feature-oriented modules, not growth of `panels/` directories or new `*_panel` files. Every window declares a `WindowPresentationPolicy` (core surface, embedded tool, optional pop-out, or diagnostic); a new window is admitted as a first-class surface only when no existing inspector, tool tab, or context-menu popup can host it.
 -   **Interaction**: Canvas interaction logic (mouse handling, editing modes) should be separated from the main editor class to simplify state management.
 
 **Benefit**: Smaller, focused modules are easier to test, debug, and maintain. The main editor class becomes a coordinator, which is a much cleaner architecture.

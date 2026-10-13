@@ -119,7 +119,7 @@ absl::Status MutateAndSaveRomWithBackup(Rom* rom,
   return absl::OkStatus();
 }
 
-struct ObjectSaveManifestContext {
+struct StreamSaveManifestContext {
   core::HackManifest manifest;
   zelda3::DungeonStreamLayout allocator_layout;
   // A standalone --manifest is a safety capability, not permission to ignore
@@ -128,36 +128,122 @@ struct ObjectSaveManifestContext {
   project::RomWritePolicy write_policy = project::RomWritePolicy::kBlock;
 };
 
-absl::StatusOr<std::optional<ObjectSaveManifestContext>>
-LoadObjectSaveManifestContext(const resources::ArgumentParser& parser) {
+absl::StatusOr<std::optional<StreamSaveManifestContext>>
+LoadStreamSaveManifestContext(const resources::ArgumentParser& parser,
+                              core::DungeonStreamType stream_type) {
   const auto manifest_path = parser.GetString("manifest");
   if (!manifest_path.has_value()) {
     return std::nullopt;
   }
 
-  ObjectSaveManifestContext context;
+  StreamSaveManifestContext context;
   RETURN_IF_ERROR(context.manifest.LoadFromFile(*manifest_path));
   const core::DungeonStreamLayout* manifest_layout =
-      context.manifest.GetDungeonStreamLayout(
-          core::DungeonStreamType::kObjects);
+      context.manifest.GetDungeonStreamLayout(stream_type);
+  const char* stream_name =
+      stream_type == core::DungeonStreamType::kSprites ? "sprites" : "objects";
   if (manifest_layout == nullptr) {
-    return absl::FailedPreconditionError(
-        "Manifest does not define dungeon_stream_regions.objects");
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Manifest does not define dungeon_stream_regions.%s", stream_name));
   }
   if (manifest_layout->strategy != core::DungeonWriteStrategy::kCopyOnWrite) {
-    return absl::FailedPreconditionError(
-        "dungeon_stream_regions.objects must use copy_on_write");
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "dungeon_stream_regions.%s must use copy_on_write", stream_name));
   }
 
-  ASSIGN_OR_RETURN(context.allocator_layout,
-                   core::ToDungeonStreamAllocatorLayout(
-                       core::DungeonStreamType::kObjects, *manifest_layout));
-  return std::optional<ObjectSaveManifestContext>(std::move(context));
+  ASSIGN_OR_RETURN(
+      context.allocator_layout,
+      core::ToDungeonStreamAllocatorLayout(stream_type, *manifest_layout));
+  return std::optional<StreamSaveManifestContext>(std::move(context));
+}
+
+struct SpriteSavePreview {
+  uint32_t source_data_pc = 0;
+  uint32_t planned_data_pc = 0;
+  std::vector<std::pair<uint32_t, uint32_t>> write_ranges;
+};
+
+absl::Status ValidateSpriteEncoding(int id, int x, int y, int subtype,
+                                    int layer) {
+  // The low subtype bits select the engine's overlord record format. Only
+  // IDs 01-1A represent overlords; a cart with track/subtype 7 is not a cart.
+  if ((subtype & 0x07) == 0x07 && (id == 0 || id > 0x1A)) {
+    return absl::InvalidArgumentError(
+        "Subtype low bits 7 encode an overlord; only IDs 0x01-0x1A are valid");
+  }
+  if ((y | ((subtype & 0x18) << 2) | (layer << 7)) == 0xFF) {
+    return absl::InvalidArgumentError(
+        "Sprite encoding is the end of the sprite list (0xFF)");
+  }
+  if (id == 0xE4 && x == 0 && (y == 29 || y == 30) && subtype == 24 &&
+      layer == 1) {
+    return absl::InvalidArgumentError(
+        "This E4 position/subtype/layer encodes a hidden key marker; use "
+        "the owning sprite's Key drop property");
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<SpriteSavePreview> PreflightSpriteSave(
+    const Rom& source_rom, int room_id, const zelda3::Room& pending_room,
+    const StreamSaveManifestContext* manifest_context) {
+  const auto* layout = manifest_context != nullptr
+                           ? &manifest_context->allocator_layout
+                           : nullptr;
+  SpriteSavePreview preview;
+  ASSIGN_OR_RETURN(const auto source,
+                   zelda3::ReadDungeonSpriteStream(source_rom, room_id));
+  preview.source_data_pc = source.data_pc;
+  ASSIGN_OR_RETURN(preview.write_ranges,
+                   pending_room.GetSpriteSaveWriteRanges(layout));
+  // Check exactly the selected plan's payload and pointer writes, rather than
+  // assuming that any apparently empty bytes belong to the allocator.
+  if (manifest_context != nullptr &&
+      !manifest_context->manifest.AnalyzePcWriteRanges(preview.write_ranges)
+           .empty()) {
+    return absl::PermissionDeniedError("Write conflict with Hack Manifest");
+  }
+
+  Rom scratch_rom;
+  Rom::LoadOptions options;
+  options.strip_header = false;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(scratch_rom.LoadFromData(source_rom.vector(), options));
+  zelda3::Room scratch_room =
+      zelda3::LoadRoomHeaderFromRom(&scratch_rom, room_id);
+  scratch_room.GetSprites() = pending_room.GetSprites();
+  scratch_room.MarkSpritesDirty();
+  RETURN_IF_ERROR(scratch_room.SaveSprites(layout));
+  ASSIGN_OR_RETURN(const auto saved,
+                   zelda3::ReadDungeonSpriteStream(scratch_rom, room_id));
+  preview.planned_data_pc = saved.data_pc;
+
+  // A syntactically valid stream can still fold a marker into another sprite.
+  // Reload through the editor's decoder before declaring placement saveable.
+  scratch_room.LoadSprites();
+  const auto& expected = pending_room.GetSprites();
+  const auto& reopened = scratch_room.GetSprites();
+  if (reopened.size() != expected.size()) {
+    return absl::FailedPreconditionError(
+        "Sprite placement does not survive save/reopen");
+  }
+  for (size_t i = 0; i < expected.size(); ++i) {
+    if (reopened[i].id() != expected[i].id() ||
+        reopened[i].x() != expected[i].x() ||
+        reopened[i].y() != expected[i].y() ||
+        reopened[i].subtype() != expected[i].subtype() ||
+        reopened[i].layer() != expected[i].layer() ||
+        reopened[i].key_drop() != expected[i].key_drop()) {
+      return absl::FailedPreconditionError(
+          "Sprite placement does not survive save/reopen");
+    }
+  }
+  return preview;
 }
 
 absl::Status ValidateObjectSaveManifestConflicts(
     const Rom& source_rom, int room_id, const zelda3::Room& pending_room,
-    const ObjectSaveManifestContext& context) {
+    const StreamSaveManifestContext& context) {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
 
   // Match DungeonEditorV2's conservative object-save prediction: validate the
@@ -223,7 +309,7 @@ absl::Status ValidateObjectSaveManifestConflicts(
 absl::Status PreflightObjectSave(
     const Rom& source_rom, int room_id, const zelda3::RoomObject& object,
     const zelda3::Room& pending_room,
-    const ObjectSaveManifestContext* manifest_context) {
+    const StreamSaveManifestContext* manifest_context) {
   if (manifest_context != nullptr) {
     RETURN_IF_ERROR(ValidateObjectSaveManifestConflicts(
         source_rom, room_id, pending_room, *manifest_context));
@@ -248,7 +334,7 @@ absl::Status PreflightObjectSave(
 absl::Status PreflightObjectRemoval(
     const Rom& source_rom, int room_id, int object_vector_index,
     const zelda3::Room& pending_room,
-    const ObjectSaveManifestContext* manifest_context) {
+    const StreamSaveManifestContext* manifest_context) {
   if (manifest_context != nullptr) {
     RETURN_IF_ERROR(ValidateObjectSaveManifestConflicts(
         source_rom, room_id, pending_room, *manifest_context));
@@ -681,7 +767,7 @@ struct DoorTypeTarget {
 
 absl::StatusOr<DoorTypeTarget> ResolveDoorTypeTarget(
     Rom* rom, int room_id, int x, int y,
-    const ObjectSaveManifestContext& manifest_context) {
+    const StreamSaveManifestContext& manifest_context) {
   if (manifest_context.allocator_layout.pointer_encoding !=
       zelda3::DungeonPointerEncoding::kLong24) {
     return absl::FailedPreconditionError(
@@ -1192,6 +1278,15 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
     return absl::InvalidArgumentError("Layer must be 0 or 1");
   }
 
+  RETURN_IF_ERROR(ValidateSpriteEncoding(sprite_id, x, y, subtype, layer));
+  std::optional<StreamSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(
+      manifest_context,
+      LoadStreamSaveManifestContext(parser, core::DungeonStreamType::kSprites));
+  const auto* layout = manifest_context.has_value()
+                           ? &manifest_context->allocator_layout
+                           : nullptr;
+
   // Load room and its sprites
   zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
   room.LoadSprites();
@@ -1218,9 +1313,42 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
                      static_cast<int>(room.GetSprites().size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
+  if (const auto manifest_path = parser.GetString("manifest");
+      manifest_path.has_value()) {
+    formatter.AddField("manifest", *manifest_path);
+    formatter.AddField("manifest_write_policy", "block");
+  }
+  formatter.AddField("allocator_capability",
+                     layout != nullptr ? "copy_on_write" : "none");
+  const auto preview = PreflightSpriteSave(
+      *rom, room_id, room,
+      manifest_context.has_value() ? &*manifest_context : nullptr);
+  if (!preview.ok()) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error",
+                       std::string(preview.status().message()));
+    formatter.EndObject();
+    return preview.status();
+  }
+  formatter.AddField("preflight_status", "passed");
+  formatter.AddField("storage_strategy",
+                     preview->source_data_pc == preview->planned_data_pc
+                         ? "in_place"
+                         : "relocate");
+  formatter.AddHexField("source_data_pc", preview->source_data_pc, 6);
+  formatter.AddHexField("planned_data_pc", preview->planned_data_pc, 6);
+  formatter.BeginArray("write_ranges");
+  for (const auto& [begin, end] : preview->write_ranges) {
+    formatter.BeginObject();
+    formatter.AddHexField("begin", begin, 6);
+    formatter.AddHexField("end", end, 6);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
   if (do_write) {
     auto save_status = MutateAndSaveRomWithBackup(
-        rom, formatter, [&room]() { return room.SaveSprites(); });
+        rom, formatter, [&room, layout]() { return room.SaveSprites(layout); });
     if (!save_status.ok()) {
       formatter.EndObject();
       return save_status;
@@ -1431,8 +1559,10 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
         object_id, canonical_size));
   }
 
-  std::optional<ObjectSaveManifestContext> manifest_context;
-  ASSIGN_OR_RETURN(manifest_context, LoadObjectSaveManifestContext(parser));
+  std::optional<StreamSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(
+      manifest_context,
+      LoadStreamSaveManifestContext(parser, core::DungeonStreamType::kObjects));
   const zelda3::DungeonStreamLayout* layout =
       manifest_context.has_value() ? &manifest_context->allocator_layout
                                    : nullptr;
@@ -1551,8 +1681,10 @@ absl::Status DungeonRemoveObjectCommandHandler::Execute(
     return absl::InvalidArgumentError("Expected layer must be 0, 1, or 2");
   }
 
-  std::optional<ObjectSaveManifestContext> manifest_context;
-  ASSIGN_OR_RETURN(manifest_context, LoadObjectSaveManifestContext(parser));
+  std::optional<StreamSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(
+      manifest_context,
+      LoadStreamSaveManifestContext(parser, core::DungeonStreamType::kObjects));
   const zelda3::DungeonStreamLayout* layout =
       manifest_context.has_value() ? &manifest_context->allocator_layout
                                    : nullptr;
@@ -1916,8 +2048,10 @@ absl::Status DungeonSetDoorTypeCommandHandler::Execute(
   RETURN_IF_ERROR(ValidateDoorType(new_type, "type"));
   RETURN_IF_ERROR(ValidateDoorType(expected_type, "expect-type"));
 
-  std::optional<ObjectSaveManifestContext> manifest_context;
-  ASSIGN_OR_RETURN(manifest_context, LoadObjectSaveManifestContext(parser));
+  std::optional<StreamSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(
+      manifest_context,
+      LoadStreamSaveManifestContext(parser, core::DungeonStreamType::kObjects));
   if (!manifest_context.has_value()) {
     return absl::FailedPreconditionError(
         "--manifest is required for dungeon-set-door-type");
@@ -2352,10 +2486,11 @@ absl::Status DungeonSetCollisionTileCommandHandler::Execute(
   formatter.AddField("tile_count", static_cast<int>(specs.size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
-  // Apply each tile change
+  // Every tuple sets an explicit override; 00 is floor, not removal.
   formatter.BeginArray("changes");
   for (const auto& spec : specs) {
     uint8_t old_value = room.GetCollisionTile(spec.x, spec.y);
+    const bool old_override_present = room.HasCollisionOverride(spec.x, spec.y);
     room.SetCollisionTile(spec.x, spec.y, static_cast<uint8_t>(spec.tile));
 
     formatter.BeginObject();
@@ -2363,6 +2498,9 @@ absl::Status DungeonSetCollisionTileCommandHandler::Execute(
     formatter.AddField("y", spec.y);
     formatter.AddHexField("old_tile", old_value, 2);
     formatter.AddHexField("new_tile", spec.tile, 2);
+    formatter.AddField("old_override_present", old_override_present);
+    formatter.AddField("new_override_present",
+                       room.HasCollisionOverride(spec.x, spec.y));
     formatter.EndObject();
   }
   formatter.EndArray();

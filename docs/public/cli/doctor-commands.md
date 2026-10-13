@@ -8,6 +8,7 @@ The doctor command suite provides diagnostic and repair tools for ROM data integ
 |---------|-------------|
 | `overworld-doctor` | Diagnose/repair overworld data (tile16, pointers, ZSCustom features) |
 | `overworld-validate` | Validate map32 pointers and decompression |
+| `overworld-allocation` | Map area IDs $00-$BF and check TailMapExpansion.asm (read-only) |
 | `dungeon-doctor` | Diagnose dungeon room data (objects, sprites, chests) |
 | `rom-doctor` | Validate ROM file integrity (header, checksums, expansions) |
 | `rom-compare` | Compare two ROMs for differences |
@@ -43,6 +44,47 @@ z3ed overworld-doctor --rom zelda3.sfc --format json
 - Expanded pointer tables (tail map support)
 - Tile16 layout (vanilla or expanded). The doctor does not judge tile16 entries: every 16-bit value is a legal tile word, so damage cannot be told apart from edits. Compare against a backup with `rom-compare` instead.
 - Map pointer validity for all 160+ maps
+
+## overworld-allocation
+
+Read-only map of overworld area IDs `$00-$BF`, with an optional check of
+what `assets/patches/Overworld/TailMapExpansion.asm` would do to the ROM.
+
+```bash
+z3ed overworld-allocation --rom zelda3.sfc
+z3ed overworld-allocation --rom oos168x.sfc --tail-check \
+  --project Oracle-of-Secrets.yaze --symbols oos168x.sym
+z3ed overworld-allocation --rom oos168x.sfc --tail-check --format json
+```
+
+Per area ID it reports:
+- world (`$00` light, `$40` dark, `$80` special) and used or free. An ID is
+  used when its map has more than one unique tile32, it belongs to a
+  large/wide/tall area, entrances, holes, exits or sprites reference it, or
+  it is a subscreen overlay source (table entry or ID named in code).
+- parent and area size as the game reads them.
+- map pointer source and validity: both streams end in `$FF` and decode to
+  256 bytes. `=$XX` marks an ID that shares another ID's pointers.
+- the per-area tables that do not cover the ID. The table list names what a
+  read past each table's last entry returns (a missed table reads its
+  neighbour).
+
+The summary counts used and free IDs for light, dark, special (`$80-$9F`)
+and special_tail (`$A0-$BF`), and splits free IDs by whether a valid map
+pointer exists.
+
+`--tail-check` adds the patch marker, the target regions (`$28:A3FF`,
+`$28:A400`, `$28:A640`, `$30:8000`, `$30:9000`) with non-zero byte counts,
+the blank map streams decoded as the game would read them, the 8 map-loader
+operands the patch rewrites, the free bytes between ZS code and `$28:A3FF`,
+and a verdict: `safe`, `unsafe` or `already_applied`. Each blocker is tagged
+`rom`, `patch` or `yaze`; `rom_compatible` is true when no `rom` blocker
+exists. `--project` adds area names and hack-manifest ownership (an
+`asm_owned`, `asm_expansion` or hook address blocks the patch). `--symbols`
+names the code at each target.
+
+`overworld-doctor --apply-tail-expansion` and Settings > ASM Patches >
+Apply refuse the patch when the verdict is `unsafe`.
 
 ## dungeon-doctor
 

@@ -1,10 +1,16 @@
 set(
   YAZE_APP_ZELDA3_SRC
+  zelda3/atlas/atlas_annotations.cc
+  zelda3/atlas/atlas_defaults.cc
+  zelda3/atlas/atlas_json.cc
+  zelda3/atlas/dungeon_atlas.cc
+  zelda3/atlas/dungeon_door_edges.cc
   zelda3/common.cc
   zelda3/cutscene/cutscene_shot.cc
   zelda3/dungeon/chest_edit.cc
   zelda3/dungeon/custom_collision.cc
   zelda3/dungeon/custom_object.cc
+  zelda3/dungeon/dungeon_tile_patterns.cc
   zelda3/dungeon/dimension_service.cc
   zelda3/dungeon/door_position.cc
   zelda3/dungeon/draw_routines/corner_routines.cc
@@ -39,12 +45,14 @@ set(
   zelda3/dungeon/room_collision.cc
   zelda3/dungeon/room_layer_manager.cc
   zelda3/dungeon/room_layout.cc
+  zelda3/dungeon/room_links.cc
   zelda3/dungeon/room_object.cc
   zelda3/dungeon/track_collision_generator.cc
   zelda3/dungeon/water_fill_zone.cc
   zelda3/formats/offsets.cc
   zelda3/game_data.cc
   zelda3/gfx_sheet_inventory.cc
+  zelda3/graphics/resolved_graphics_context.cc
   zelda3/gfx_sheet_png.cc
   zelda3/gfx_sheet_storage.cc
   zelda3/graphics_sheet_store.cc
@@ -58,6 +66,7 @@ set(
   zelda3/overworld/diggable_tiles_patch.cc
   zelda3/overworld/overworld_sprite_io.cc
   zelda3/overworld/overworld.cc
+  zelda3/overworld/overworld_allocation.cc
   zelda3/overworld/overworld_entrance.cc
   zelda3/overworld/overworld_exit.cc
   zelda3/overworld/overworld_item.cc
@@ -71,6 +80,8 @@ set(
   zelda3/resource_labels.cc
   zelda3/screen/dungeon_map.cc
   zelda3/screen/inventory.cc
+  zelda3/screen/menu_tilemap.cc
+  zelda3/screen/menu_tilemap_sources.cc
   zelda3/screen/overworld_map_screen.cc
   zelda3/screen/title_screen.cc
   zelda3/sprite/sprite.cc

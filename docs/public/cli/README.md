@@ -10,7 +10,7 @@ The `z3ed` command-line tool provides ROM inspection, validation, AI-assisted ed
 
 Validate and repair ROM data integrity.
 
-- [Doctor Commands](doctor-commands.md) - `rom-doctor`, `dungeon-doctor`, `overworld-doctor`, `rom-compare`
+- [Doctor Commands](doctor-commands.md) - `rom-doctor`, `dungeon-doctor`, `overworld-doctor`, `overworld-allocation`, `rom-compare`
 
 ### Test Infrastructure
 

@@ -93,6 +93,7 @@ class RoomLayerManager {
     game_registers_applied_ = false;
     lower_tilemap_on_main_ = false;
     upper_tilemap_blended_ = false;
+    cgadsub_ = 0;
     show_hidden_layers_ = false;
     layers_merged_ = false;
     current_merge_type_id_ = 0;
@@ -119,6 +120,7 @@ class RoomLayerManager {
     game_hides_lower_tilemap_ = !registers.LowerTilemapShown();
     lower_tilemap_on_main_ = registers.TilemapsShareMainScreen();
     upper_tilemap_blended_ = registers.UpperTilemapBlended();
+    cgadsub_ = registers.cgadsub;
   }
   // Opaque upper-tilemap pixels always cover the lower tilemap: it is only on
   // the sub screen and the upper tilemap does not blend with it.
@@ -371,6 +373,7 @@ class RoomLayerManager {
     mix(game_registers_applied_ ? 1u : 0u);
     mix(lower_tilemap_on_main_ ? 1u : 0u);
     mix(upper_tilemap_blended_ ? 1u : 0u);
+    mix(cgadsub_);
     mix(show_hidden_layers_ ? 1u : 0u);
     mix(layers_merged_ ? 1u : 0u);
     mix(current_merge_type_id_);
@@ -611,6 +614,7 @@ class RoomLayerManager {
   bool game_registers_applied_ = false;
   bool lower_tilemap_on_main_ = false;
   bool upper_tilemap_blended_ = false;
+  uint8_t cgadsub_ = 0;
   bool show_hidden_layers_ = false;
 
   // Merge state tracking

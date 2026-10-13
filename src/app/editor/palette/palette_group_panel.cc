@@ -1,6 +1,8 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "palette_group_panel.h"
 #include "util/i18n/tr.h"
 
+#include <algorithm>
 #include <cctype>
 #include <chrono>
 #include <string>
@@ -14,11 +16,13 @@
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/json.h"
 
 namespace yaze {
@@ -143,62 +147,106 @@ PaletteGroupPanel::PaletteGroupPanel(const std::string& group_name,
 }
 
 void PaletteGroupPanel::Draw(bool* p_open) {
-  if (!IsManagedSession()) {
-    ImGui::TextDisabled(
-        tr("Palette controls are unavailable for an inactive ROM session."));
+  DrawContent(false);
+}
+
+void PaletteGroupPanel::DrawEmbedded() {
+  DrawContent(true);
+}
+
+void PaletteGroupPanel::SetSelectedPaletteIndex(int index) {
+  const auto* group = GetPaletteGroup();
+  selected_palette_ =
+      group && group->size() > 0
+          ? std::clamp(index, 0, static_cast<int>(group->size()) - 1)
+          : 0;
+  selected_color_ = -1;
+}
+
+void PaletteGroupPanel::DrawContent(bool embedded) {
+  if (!IsManagedSession() || !rom_ || !rom_->is_loaded())
     return;
+  if (!embedded)
+    DrawToolbar();
+  DrawPaletteSelector();
+  bool batch_requested = false;
+  if (embedded) {
+    ImGui::SameLine();
+    if (ThemedIconButton(ICON_MD_MORE_HORIZ, "Selected palette tools"))
+      ImGui::OpenPopup("SelectedPaletteTools");
+    if (ImGui::BeginPopup("SelectedPaletteTools")) {
+      if (ImGui::MenuItem(tr("Copy colors")))
+        ExportToClipboard();
+      if (ImGui::MenuItem(tr("Paste colors"))) {
+        auto result = ImportFromClipboard();
+        if (!result.ok() && toast_manager_)
+          toast_manager_->Show(std::string(result.message()),
+                               ToastType::kError);
+      }
+      if (ImGui::MenuItem(tr("Batch operations...")))
+        batch_requested = true;
+      ImGui::EndPopup();
+    }
   }
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
-  }
-
-  // PaletteManager handles initialization of original palettes
-  // No need for local snapshot management anymore
-
-  // Main card window
-  // Note: Window management is handled by WorkspaceWindowManager/WindowContent
-
-  DrawToolbar();
   ImGui::Separator();
-
-  // Two-column layout: Grid on left, picker on right
-  if (ImGui::BeginTable(
-          "##PalettePanelLayout", 2,
-          ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
-    ImGui::TableSetupColumn("Grid", ImGuiTableColumnFlags_WidthStretch, 0.6f);
-    ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch, 0.4f);
-
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-
-    // Left: Palette selector + grid
-    DrawPaletteSelector();
-    ImGui::Separator();
+  const bool columns =
+      ImGui::GetContentRegionAvail().x >= ImGui::GetFontSize() * 44;
+  const auto draw_grid = [this]() {
     DrawPaletteGrid();
-
-    ImGui::TableNextColumn();
-
-    // Right: Color picker + info
+    ImGui::Spacing();
+    if (ImGui::CollapsingHeader(tr("Details"))) {
+      DrawMetadataInfo();
+      DrawCustomPanels();
+    }
+  };
+  const auto draw_picker = [this]() {
     if (selected_color_ >= 0) {
       DrawColorPicker();
-      ImGui::Separator();
-      DrawColorInfo();
-      ImGui::Separator();
-      DrawMetadataInfo();
+      if (ImGui::CollapsingHeader(tr("Color values")))
+        DrawColorInfo();
     } else {
       ImGui::TextDisabled(tr("Select a color to edit"));
-      ImGui::Separator();
-      DrawMetadataInfo();
     }
-
-    // Custom panels from derived classes
-    DrawCustomPanels();
-
+  };
+  if (columns &&
+      ImGui::BeginTable("PaletteContent", 2, ImGuiTableFlags_Resizable)) {
+    ImGui::TableSetupColumn("Colors", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+    ImGui::TableSetupColumn("Edit", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+    ImGui::TableNextColumn();
+    draw_grid();
+    ImGui::TableNextColumn();
+    draw_picker();
     ImGui::EndTable();
+  } else if (!columns) {
+    draw_grid();
+    ImGui::Spacing();
+    draw_picker();
   }
-
-  // Batch operations popup
+  if (batch_requested)
+    ImGui::OpenPopup("BatchOperations");
   DrawBatchOperationsPopup();
+}
+
+void PaletteGroupPanel::DrawPaletteGrid() {
+  auto* palette = GetMutablePalette(selected_palette_);
+  if (!palette)
+    return;
+  const int columns = GetColorsPerRow();
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float cell = std::clamp(
+      (ImGui::GetContentRegionAvail().x - (columns - 1) * spacing) / columns,
+      12.0f, ImGui::GetFrameHeight() * 1.35f);
+  for (int i = 0; i < palette->size(); ++i) {
+    ImGui::PushID(i);
+    if (gui::PaletteColorButton("##color", (*palette)[i], i == selected_color_,
+                                IsColorModified(selected_palette_, i),
+                                ImVec2(cell, cell)))
+      selected_color_ = i;
+    gui::AutoRegisterLastItem("button", absl::StrFormat("Palette color %d", i));
+    ImGui::PopID();
+    if ((i + 1) % columns && i + 1 < palette->size())
+      ImGui::SameLine();
+  }
 }
 
 void PaletteGroupPanel::DrawToolbar() {
@@ -207,7 +255,8 @@ void PaletteGroupPanel::DrawToolbar() {
 
   // Save button (primary action)
   ImGui::BeginDisabled(!has_changes);
-  if (PrimaryButton(absl::StrFormat("%s Save to ROM", ICON_MD_SAVE).c_str())) {
+  if (PrimaryButton(
+          absl::StrFormat("%s Apply to buffer", ICON_MD_SAVE).c_str())) {
     auto status = SaveToRom();
     if (!status.ok()) {
       if (toast_manager_) {
@@ -220,7 +269,7 @@ void PaletteGroupPanel::DrawToolbar() {
   ImGui::EndDisabled();
   if (!has_changes &&
       ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip(tr("No palette changes to save"));
+    ImGui::SetTooltip(tr("No palette changes to apply"));
   }
 
   ImGui::SameLine();
@@ -364,19 +413,83 @@ void PaletteGroupPanel::DrawColorPicker() {
 
   SectionHeader("Color Editor");
 
-  auto& color = (*palette)[selected_color_];
+  if (selected_color_ >= palette->size())
+    return;
   auto original = GetOriginalColor(selected_palette_, selected_color_);
 
-  // Color picker with hue wheel
-  ImVec4 col = ConvertSnesColorToImVec4(editing_color_);
-  if (ImGui::ColorPicker4("##picker", &col.x,
-                          ImGuiColorEditFlags_NoAlpha |
-                              ImGuiColorEditFlags_PickerHueWheel |
-                              ImGuiColorEditFlags_DisplayRGB |
-                              ImGuiColorEditFlags_DisplayHSV)) {
-    editing_color_ = ConvertImVec4ToSnesColor(col);
-    SetColor(selected_palette_, selected_color_, editing_color_);
+  auto& manager = gfx::PaletteManager::Get();
+  const ImGuiID picker_id = ImGui::GetID("##picker");
+  if (active_picker_ == picker_id &&
+      ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
+    manager.CancelColorEdit(picker_id);
+    picker_cancelled_ = true;
   }
+
+  // Read current model state so Undo/Redo and comparison windows stay in sync.
+  ImGui::SetNextItemWidth(
+      std::min(ImGui::GetContentRegionAvail().x, ImGui::GetFontSize() * 19));
+  ImVec4 col = ConvertSnesColorToImVec4((*palette)[selected_color_]);
+  ImGui::BeginDisabled(picker_cancelled_ && active_picker_ == picker_id);
+  const bool changed = ImGui::ColorPicker4(
+      "##picker", &col.x,
+      ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_PickerHueWheel |
+          ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHSV);
+  const bool active = ImGui::IsItemActive();
+  // ColorPicker is a group with ID zero while idle; register its actual bounds
+  // with our stable ID so automation can discover it before starting a drag.
+  gui::WidgetIdRegistry::WidgetMetadata picker_metadata;
+  picker_metadata.label = "Palette color picker";
+  picker_metadata.window_name = ImGui::GetCurrentWindow()->Name;
+  picker_metadata.visible = ImGui::IsItemVisible();
+  picker_metadata.enabled = !picker_cancelled_;
+  const auto min = ImGui::GetItemRectMin();
+  const auto max = ImGui::GetItemRectMax();
+  picker_metadata.bounds = {min.x, min.y, max.x, max.y, true};
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      absl::StrCat("Palette/picker:", picker_id), "color", picker_id,
+      "Drag to preview; release commits one Undo step; Escape cancels",
+      picker_metadata);
+  ImGui::EndDisabled();
+  if (!picker_cancelled_) {
+    if (active &&
+        (active_picker_ != picker_id || !manager.HasColorEdit(picker_id))) {
+      const auto status = manager.BeginColorEdit(group_name_, selected_palette_,
+                                                 selected_color_, picker_id);
+      if (status.ok()) {
+        active_picker_ = picker_id;
+      }
+    }
+    if (changed) {
+      SetColor(selected_palette_, selected_color_,
+               ConvertImVec4ToSnesColor(col));
+    }
+    if (!active && active_picker_ == picker_id) {
+      manager.CommitColorEdit(picker_id);
+      active_picker_ = 0;
+    }
+  } else if (active_picker_ == picker_id && !ImGui::IsMouseDown(0)) {
+    // Keep a held mouse from starting another edit immediately after Escape.
+    picker_cancelled_ = false;
+    active_picker_ = 0;
+  }
+  col = ConvertSnesColorToImVec4((*palette)[selected_color_]);
+
+  char snes[5];
+  absl::SNPrintF(snes, sizeof(snes), "%04X",
+                 (*palette)[selected_color_].snes());
+  ImGui::SetNextItemWidth(ImGui::GetFontSize() * 7);
+  if (ImGui::InputText("SNES", snes, sizeof(snes),
+                       ImGuiInputTextFlags_CharsHexadecimal |
+                           ImGuiInputTextFlags_EnterReturnsTrue)) {
+    const auto parsed = ParseSnesHexToken(snes);
+    if (parsed.ok()) {
+      SetColor(selected_palette_, selected_color_, gfx::SnesColor(*parsed));
+    } else if (toast_manager_) {
+      toast_manager_->Show(std::string(parsed.status().message()),
+                           ToastType::kError);
+    }
+  }
+  gui::AutoRegisterLastItem("input", "SNES color");
 
   // Current vs Original comparison
   ImGui::Separator();
@@ -386,7 +499,7 @@ void PaletteGroupPanel::DrawColorPicker() {
                      ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
                      ImVec2(60, 40));
 
-  LayoutHelpers::HelpMarker("Current color being edited");
+  gui::AutoRegisterLastItem("color", "Current palette color");
 
   ImGui::SameLine();
 
@@ -396,13 +509,14 @@ void PaletteGroupPanel::DrawColorPicker() {
           ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
           ImVec2(60, 40))) {
     // Click to restore original
-    editing_color_ = original;
     SetColor(selected_palette_, selected_color_, original);
   }
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(tr("Click to restore original color"));
   }
+
+  gui::AutoRegisterLastItem("button", "Restore original palette color");
 
   // Reset button
   ImGui::BeginDisabled(!IsColorModified(selected_palette_, selected_color_));
@@ -419,7 +533,11 @@ void PaletteGroupPanel::DrawColorInfo() {
 
   SectionHeader("Color Information");
 
-  auto col = editing_color_.rgb();
+  const auto* palette = GetMutablePalette(selected_palette_);
+  if (!palette || selected_color_ >= palette->size())
+    return;
+  const auto color = (*palette)[selected_color_];
+  auto col = color.rgb();
   int r = static_cast<int>(col.x);
   int g = static_cast<int>(col.y);
   int b = static_cast<int>(col.z);
@@ -432,10 +550,9 @@ void PaletteGroupPanel::DrawColorInfo() {
 
   // SNES BGR555 value
   if (show_snes_format_) {
-    ImGui::Text(tr("SNES BGR555: $%04X"), editing_color_.snes());
+    ImGui::Text(tr("SNES BGR555: $%04X"), color.snes());
     if (ImGui::IsItemClicked()) {
-      ImGui::SetClipboardText(
-          absl::StrFormat("$%04X", editing_color_.snes()).c_str());
+      ImGui::SetClipboardText(absl::StrFormat("$%04X", color.snes()).c_str());
     }
   }
 
@@ -701,8 +818,8 @@ gfx::SnesPalette* PaletteGroupPanel::GetMutablePalette(int index) {
 gfx::SnesColor PaletteGroupPanel::GetOriginalColor(int palette_index,
                                                    int color_index) const {
   // Get original color from PaletteManager's snapshots
-  return gfx::PaletteManager::Get().GetColor(group_name_, palette_index,
-                                             color_index);
+  return gfx::PaletteManager::Get().GetOriginalColor(group_name_, palette_index,
+                                                     color_index);
 }
 
 bool PaletteGroupPanel::IsManagedSession() const {
@@ -872,13 +989,6 @@ absl::Status PaletteGroupPanel::ImportFromJson(const std::string& json) {
   }
   manager.EndBatch();
 
-  if (selected_palette_ >= 0 && selected_palette_ < palette_group->size()) {
-    const auto& palette = palette_group->palette_ref(selected_palette_);
-    if (selected_color_ >= 0 && selected_color_ < palette.size()) {
-      editing_color_ = palette[selected_color_];
-    }
-  }
-
   return absl::OkStatus();
 #endif
 }
@@ -943,10 +1053,6 @@ absl::Status PaletteGroupPanel::ImportFromClipboard() {
   }
   manager.EndBatch();
 
-  if (selected_color_ >= 0 && selected_color_ < palette->size()) {
-    editing_color_ = (*palette)[selected_color_];
-  }
-
   return absl::OkStatus();
 }
 
@@ -1002,36 +1108,6 @@ const gfx::PaletteGroup* OverworldMainPalettePanel::GetPaletteGroup() const {
       ->palette_groups.get_group("ow_main");
 }
 
-void OverworldMainPalettePanel::DrawPaletteGrid() {
-  auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
-
-  const float button_size = 32.0f;
-  const int colors_per_row = GetColorsPerRow();
-
-  for (int i = 0; i < palette->size(); i++) {
-    bool is_selected = (i == selected_color_);
-    bool is_modified = IsColorModified(selected_palette_, i);
-
-    ImGui::PushID(i);
-
-    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                      (*palette)[i], is_selected, is_modified,
-                                      ImVec2(button_size, button_size))) {
-      selected_color_ = i;
-      editing_color_ = (*palette)[i];
-    }
-
-    ImGui::PopID();
-
-    // Wrap to next row
-    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
-      ImGui::SameLine();
-    }
-  }
-}
-
 // ========== Overworld Animated Palette Panel ==========
 
 const PaletteGroupMetadata OverworldAnimatedPalettePanel::metadata_ =
@@ -1079,35 +1155,6 @@ const gfx::PaletteGroup* OverworldAnimatedPalettePanel::GetPaletteGroup()
     return nullptr;
   return const_cast<zelda3::GameData*>(game_data_)
       ->palette_groups.get_group("ow_animated");
-}
-
-void OverworldAnimatedPalettePanel::DrawPaletteGrid() {
-  auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
-
-  const float button_size = 32.0f;
-  const int colors_per_row = GetColorsPerRow();
-
-  for (int i = 0; i < palette->size(); i++) {
-    bool is_selected = (i == selected_color_);
-    bool is_modified = IsColorModified(selected_palette_, i);
-
-    ImGui::PushID(i);
-
-    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                      (*palette)[i], is_selected, is_modified,
-                                      ImVec2(button_size, button_size))) {
-      selected_color_ = i;
-      editing_color_ = (*palette)[i];
-    }
-
-    ImGui::PopID();
-
-    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
-      ImGui::SameLine();
-    }
-  }
 }
 
 // ========== Dungeon Main Palette Panel ==========
@@ -1164,35 +1211,6 @@ const gfx::PaletteGroup* DungeonMainPalettePanel::GetPaletteGroup() const {
       ->palette_groups.get_group("dungeon_main");
 }
 
-void DungeonMainPalettePanel::DrawPaletteGrid() {
-  auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
-
-  const float button_size = 28.0f;
-  const int colors_per_row = GetColorsPerRow();
-
-  for (int i = 0; i < palette->size(); i++) {
-    bool is_selected = (i == selected_color_);
-    bool is_modified = IsColorModified(selected_palette_, i);
-
-    ImGui::PushID(i);
-
-    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                      (*palette)[i], is_selected, is_modified,
-                                      ImVec2(button_size, button_size))) {
-      selected_color_ = i;
-      editing_color_ = (*palette)[i];
-    }
-
-    ImGui::PopID();
-
-    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
-      ImGui::SameLine();
-    }
-  }
-}
-
 // ========== Sprite Palette Panel ==========
 
 const PaletteGroupMetadata SpritePalettePanel::metadata_ =
@@ -1242,35 +1260,6 @@ const gfx::PaletteGroup* SpritePalettePanel::GetPaletteGroup() const {
     return nullptr;
   return const_cast<zelda3::GameData*>(game_data_)
       ->palette_groups.get_group("global_sprites");
-}
-
-void SpritePalettePanel::DrawPaletteGrid() {
-  auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
-
-  const float button_size = 28.0f;
-  const int colors_per_row = GetColorsPerRow();
-
-  for (int i = 0; i < palette->size(); i++) {
-    bool is_selected = (i == selected_color_);
-    bool is_modified = IsColorModified(selected_palette_, i);
-
-    ImGui::PushID(i);
-
-    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                      (*palette)[i], is_selected, is_modified,
-                                      ImVec2(button_size, button_size))) {
-      selected_color_ = i;
-      editing_color_ = (*palette)[i];
-    }
-
-    ImGui::PopID();
-
-    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
-      ImGui::SameLine();
-    }
-  }
 }
 
 void SpritePalettePanel::DrawCustomPanels() {
@@ -1330,35 +1319,6 @@ const gfx::PaletteGroup* EquipmentPalettePanel::GetPaletteGroup() const {
       ->palette_groups.get_group("armors");
 }
 
-void EquipmentPalettePanel::DrawPaletteGrid() {
-  auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
-
-  const float button_size = 32.0f;
-  const int colors_per_row = GetColorsPerRow();
-
-  for (int i = 0; i < palette->size(); i++) {
-    bool is_selected = (i == selected_color_);
-    bool is_modified = IsColorModified(selected_palette_, i);
-
-    ImGui::PushID(i);
-
-    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                      (*palette)[i], is_selected, is_modified,
-                                      ImVec2(button_size, button_size))) {
-      selected_color_ = i;
-      editing_color_ = (*palette)[i];
-    }
-
-    ImGui::PopID();
-
-    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
-      ImGui::SameLine();
-    }
-  }
-}
-
 // ========== Sprites Aux1 Palette Panel ==========
 
 const PaletteGroupMetadata SpritesAux1PalettePanel::metadata_ =
@@ -1403,35 +1363,6 @@ const gfx::PaletteGroup* SpritesAux1PalettePanel::GetPaletteGroup() const {
     return nullptr;
   return const_cast<zelda3::GameData*>(game_data_)
       ->palette_groups.get_group("sprites_aux1");
-}
-
-void SpritesAux1PalettePanel::DrawPaletteGrid() {
-  auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
-
-  const float button_size = 32.0f;
-  const int colors_per_row = GetColorsPerRow();
-
-  for (int i = 0; i < palette->size(); i++) {
-    bool is_selected = (i == selected_color_);
-    bool is_modified = IsColorModified(selected_palette_, i);
-
-    ImGui::PushID(i);
-
-    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                      (*palette)[i], is_selected, is_modified,
-                                      ImVec2(button_size, button_size))) {
-      selected_color_ = i;
-      editing_color_ = (*palette)[i];
-    }
-
-    ImGui::PopID();
-
-    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
-      ImGui::SameLine();
-    }
-  }
 }
 
 // ========== Sprites Aux2 Palette Panel ==========
@@ -1480,35 +1411,6 @@ const gfx::PaletteGroup* SpritesAux2PalettePanel::GetPaletteGroup() const {
       ->palette_groups.get_group("sprites_aux2");
 }
 
-void SpritesAux2PalettePanel::DrawPaletteGrid() {
-  auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
-
-  const float button_size = 32.0f;
-  const int colors_per_row = GetColorsPerRow();
-
-  for (int i = 0; i < palette->size(); i++) {
-    bool is_selected = (i == selected_color_);
-    bool is_modified = IsColorModified(selected_palette_, i);
-
-    ImGui::PushID(i);
-
-    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                      (*palette)[i], is_selected, is_modified,
-                                      ImVec2(button_size, button_size))) {
-      selected_color_ = i;
-      editing_color_ = (*palette)[i];
-    }
-
-    ImGui::PopID();
-
-    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
-      ImGui::SameLine();
-    }
-  }
-}
-
 // ========== Sprites Aux3 Palette Panel ==========
 
 const PaletteGroupMetadata SpritesAux3PalettePanel::metadata_ =
@@ -1553,52 +1455,6 @@ const gfx::PaletteGroup* SpritesAux3PalettePanel::GetPaletteGroup() const {
     return nullptr;
   return const_cast<zelda3::GameData*>(game_data_)
       ->palette_groups.get_group("sprites_aux3");
-}
-
-void SpritesAux3PalettePanel::DrawPaletteGrid() {
-  auto* palette = GetMutablePalette(selected_palette_);
-  if (!palette)
-    return;
-
-  const float button_size = 32.0f;
-  const int colors_per_row = GetColorsPerRow();
-
-  for (int i = 0; i < palette->size(); i++) {
-    bool is_selected = (i == selected_color_);
-    bool is_modified = IsColorModified(selected_palette_, i);
-
-    ImGui::PushID(i);
-
-    // Draw transparent color indicator for index 0
-    if (i == 0) {
-      ImGui::BeginGroup();
-      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                        (*palette)[i], is_selected, is_modified,
-                                        ImVec2(button_size, button_size))) {
-        selected_color_ = i;
-        editing_color_ = (*palette)[i];
-      }
-      // Draw "T" for transparent
-      ImVec2 pos = ImGui::GetItemRectMin();
-      ImGui::GetWindowDrawList()->AddText(
-          ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
-          IM_COL32(255, 255, 255, 200), "T");
-      ImGui::EndGroup();
-    } else {
-      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                                        (*palette)[i], is_selected, is_modified,
-                                        ImVec2(button_size, button_size))) {
-        selected_color_ = i;
-        editing_color_ = (*palette)[i];
-      }
-    }
-
-    ImGui::PopID();
-
-    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
-      ImGui::SameLine();
-    }
-  }
 }
 
 }  // namespace editor

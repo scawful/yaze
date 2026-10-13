@@ -157,7 +157,9 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
   draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                       ImVec2(geometry.canvas_p0.x, geometry.canvas_p0.y),
                       ImVec2(geometry.canvas_p0.x + (bitmap.width() * scale),
-                             geometry.canvas_p0.y + (bitmap.height() * scale)));
+                             geometry.canvas_p0.y + (bitmap.height() * scale)),
+                      ImVec2(0, 0), ImVec2(1, 1),
+                      ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   // NOTE: Canvas border is drawn once by RenderCanvasBackground().
   // Do NOT draw border here - this function is called per-bitmap, which would
   // cause N stacked border rectangles (e.g., 64 in overworld editor).
@@ -187,7 +189,8 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                  rendered_size.x,
              geometry.canvas_p0.y + y_offset + geometry.scrolling.y +
                  rendered_size.y),
-      ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
+      ImVec2(0, 0), ImVec2(1, 1),
+      ImGui::GetColorU32(IM_COL32(255, 255, 255, alpha)));
 }
 
 void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
@@ -207,7 +210,8 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
              geometry.canvas_p0.y + dest_pos.y + dest_size.y),
       ImVec2(src_pos.x / bitmap.width(), src_pos.y / bitmap.height()),
       ImVec2((src_pos.x + src_size.x) / bitmap.width(),
-             (src_pos.y + src_size.y) / bitmap.height()));
+             (src_pos.y + src_size.y) / bitmap.height()),
+      ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 }
 
 void RenderBitmapGroup(ImDrawList* draw_list, const CanvasGeometry& geometry,
@@ -282,7 +286,7 @@ void RenderBitmapGroup(ImDrawList* draw_list, const CanvasGeometry& geometry,
           draw_list->AddImage((ImTextureID)(intptr_t)tilemap.atlas.texture(),
                               ImVec2(screen_x, screen_y),
                               ImVec2(screen_x + screen_w, screen_y + screen_h),
-                              uv0, uv1, alpha_color);
+                              uv0, uv1, ImGui::GetColorU32(alpha_color));
         }
       }
     }

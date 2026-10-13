@@ -3,21 +3,73 @@
 #include "zelda3/dungeon/room_census.h"
 
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <future>
 #include <string>
 #include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "core/features.h"
+#include "core/hack_manifest.h"
+#include "core/rom_settings.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
+#include "unique_temp_path.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_census_vanilla_fingerprints.h"
+#include "zelda3/dungeon/room_layout.h"
+#include "zelda3/overworld/overworld_entrance.h"
 
 namespace yaze::zelda3 {
 namespace {
 
 using ::testing::ElementsAre;
 using ::testing::HasSubstr;
+
+TEST(StopTokenTest, EmptyTokenAndUnstoppableSourceIgnoreStopRequests) {
+  EXPECT_FALSE(util::StopToken{}.stop_requested());
+  util::StopSource source(util::kNoStopState);
+  EXPECT_FALSE(source.request_stop());
+  EXPECT_FALSE(source.get_token().stop_requested());
+}
+
+TEST(StopTokenTest, CopiesShareOneStopRequest) {
+  util::StopSource source;
+  auto source_copy = source;
+  auto token = source.get_token();
+  auto token_copy = token;
+  EXPECT_FALSE(token.stop_requested());
+  EXPECT_TRUE(source_copy.request_stop());
+  EXPECT_TRUE(token.stop_requested());
+  EXPECT_TRUE(token_copy.stop_requested());
+  EXPECT_FALSE(source.request_stop());
+}
+
+TEST(StopTokenTest, TokenRetainsStopStateAfterSourceDestruction) {
+  util::StopToken token;
+  {
+    util::StopSource source;
+    token = source.get_token();
+    ASSERT_TRUE(source.request_stop());
+  }
+  EXPECT_TRUE(token.stop_requested());
+}
+
+TEST(StopTokenTest, ReplacingSourceDoesNotStopPreviousJob) {
+  util::StopSource source;
+  const auto previous_token = source.get_token();
+  source = util::StopSource{};
+  EXPECT_TRUE(source.request_stop());
+  EXPECT_FALSE(previous_token.stop_requested());
+  EXPECT_TRUE(source.get_token().stop_requested());
+}
 
 constexpr int kNorth = 0;
 constexpr int kSouth = 1;
@@ -194,6 +246,111 @@ TEST_F(RoomCensusTest, WarpTagUsesHeaderStairSlots) {
   EXPECT_TRUE(census.rooms[0x6A].reached);
 }
 
+TEST_F(RoomCensusTest, WarpTagOverridesEveryRawHolewarpCause) {
+  for (int tag_slot = 0; tag_slot < 2; ++tag_slot) {
+    for (int cause = 0; cause < 4; ++cause) {
+      for (bool damage_only : {false, true}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "tag slot " << tag_slot << ", cause " << cause
+                     << ", damage only " << damage_only);
+        auto input = input_;
+        auto& facts = input.rooms[0x10];
+        (tag_slot == 0 ? facts.tag1 : facts.tag2) = 0x3A;
+        facts.stair_bytes = {0x20, 0x21, 0x22, 0x23};
+        facts.holewarp_byte = 0x30;
+        facts.in_pit_damage_table = damage_only;
+        facts.has_warp_tiles = cause == 0;
+        facts.has_pits = cause == 1;
+        if (cause == 2) {
+          facts.hole_sprite = "Ganon's falling floor (sprite 0xD6)";
+        } else if (cause == 3) {
+          (tag_slot == 0 ? facts.tag2 : facts.tag1) = 0x22;
+          facts.has_hole_tag = true;
+        }
+        input.warp_tag_ids = {0x3A};
+        const auto census = BuildRoomCensus(input);
+        EXPECT_FALSE(census.rooms[0x30].reached);
+        EXPECT_EQ(census.rooms[0x30].owner_index, -1);
+        EXPECT_TRUE(HasReason(census.rooms[0x30], "overridden by warp tag"));
+        for (int target = 0x20; target <= 0x23; ++target) {
+          EXPECT_TRUE(census.rooms[target].reached);
+          EXPECT_GE(census.rooms[target].owner_index, 0);
+        }
+        const RoomLinkFactsLookup lookup =
+            [&](int room) -> const RoomLinkFacts* {
+          return IsDungeonRoomId(room) ? &input.rooms[room] : nullptr;
+        };
+        const auto links = CollectRoomLinks(0x10, lookup, input.warp_tag_ids);
+        ASSERT_EQ(links.size(), 5u);
+        const auto& raw = links.back();
+        EXPECT_EQ(raw.kind, RoomReferenceKind::kHeaderOnly);
+        EXPECT_EQ(raw.to, 0x30);
+        EXPECT_FALSE(raw.strong);
+        EXPECT_FALSE(raw.owner_ok);
+        EXPECT_EQ(raw.holewarp_cause, RoomHolewarpCause::kNone);
+      }
+    }
+  }
+}
+
+TEST_F(RoomCensusTest, WarpTagRetainsHighPageStairsAndActiveZeroSlots) {
+  AddEntrance(input_, 0x61, 0x110, kRoomCensusInteriorDungeonId);
+  auto& facts = input_.rooms[0x110];
+  facts.tag2 = 0x45;
+  facts.has_warp_tiles = true;
+  facts.stair_bytes = {0x00, 0x1D, 0x20, 0x27};
+  facts.stair_slot_used[0] = true;
+  input_.warp_tag_ids = {0x45};
+  const RoomLinkFactsLookup lookup = [&](int room) -> const RoomLinkFacts* {
+    return IsDungeonRoomId(room) ? &input_.rooms[room] : nullptr;
+  };
+  for (uint8_t raw_byte : {0x00, 0xFF}) {
+    SCOPED_TRACE(static_cast<int>(raw_byte));
+    facts.holewarp_byte = raw_byte;
+    const auto links = CollectRoomLinks(0x110, lookup, input_.warp_tag_ids);
+    ASSERT_EQ(links.size(), raw_byte == 0 ? 4u : 5u);
+    EXPECT_EQ(links[0].kind, RoomReferenceKind::kStair);
+    EXPECT_EQ(links[0].to, 0x100);
+    EXPECT_TRUE(links[0].strong);
+    for (int slot = 1; slot < 4; ++slot) {
+      EXPECT_EQ(links[slot].kind, RoomReferenceKind::kWarpTag);
+      EXPECT_TRUE(links[slot].strong);
+    }
+    if (raw_byte != 0) {
+      EXPECT_EQ(links.back().kind, RoomReferenceKind::kHeaderOnly);
+      EXPECT_EQ(links.back().raw_to, 0x1FF);
+      EXPECT_EQ(links.back().to, -1);
+      EXPECT_FALSE(links.back().strong);
+    }
+    const auto census = BuildRoomCensus(input_);
+    for (int target : {0x100, 0x11D, 0x120, 0x127}) {
+      EXPECT_TRUE(census.rooms[target].reached);
+    }
+  }
+}
+
+TEST_F(RoomCensusTest, DisabledManifestWarpTagKeepsTheVanillaDestination) {
+  core::HackManifest manifest;
+  ASSERT_TRUE(manifest
+                  .LoadFromString(R"({"room_tags":{"tags":[
+    {"tag_id":"0x3A","name":"WarpTag","enabled":false},
+    {"tag_id":"0x45","name":"WaRp_TaG","enabled":true},
+    {"tag_id":"0x46","name":"WarpTag Alternate"},
+    {"tag_id":"0x47","name":"WaterGate","enabled":true}
+  ]}})")
+                  .ok());
+  input_.warp_tag_ids = RoomCensusWarpTagsFromManifest(manifest);
+  EXPECT_THAT(input_.warp_tag_ids, ElementsAre(0x45, 0x46));
+  input_.rooms[0x10].tag1 = 0x3A;
+  input_.rooms[0x10].has_hole_tag = true;
+  input_.rooms[0x10].has_warp_tiles = true;
+  input_.rooms[0x10].holewarp_byte = 0x30;
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x30].reached);
+  EXPECT_GE(census.rooms[0x30].owner_index, 0);
+  EXPECT_TRUE(HasReason(census.rooms[0x30], "warp tiles in 0x10"));
+}
+
 TEST_F(RoomCensusTest, DerivedOwnersUseDungeonIdsAndInteriors) {
   // Mostly-vanilla ROM: vanilla dungeon names.
   for (auto& room : input_.rooms) {
@@ -231,7 +388,10 @@ TEST_F(RoomCensusTest, ProjectOwnersWinAndUnreachedListedRoomsStayInUse) {
   EXPECT_TRUE(HasReason(census.rooms[0x4C], "listed in project dungeon FOS"));
 }
 
-TEST_F(RoomCensusTest, PauseMapEvidenceOnlyWithoutProject) {
+// Review finding: the census reached different rooms with and without a
+// project. Pause-map evidence now counts either way; the project only names
+// owners.
+TEST_F(RoomCensusTest, PauseMapEvidenceDoesNotDependOnProject) {
   for (auto& room : input_.rooms) {
     room.vanilla_similarity = 1.0f;
   }
@@ -245,9 +405,158 @@ TEST_F(RoomCensusTest, PauseMapEvidenceOnlyWithoutProject) {
 
   input_.project_owners.push_back({"D1", "Mushroom Grotto", {0x10}});
   census = BuildRoomCensus(input_);
-  EXPECT_FALSE(census.rooms[0x44].reached);
-  EXPECT_EQ(census.rooms[0x44].status, RoomCensusStatus::kReclaimable);
-  EXPECT_TRUE(HasReason(census.rooms[0x44], "project ownership takes"));
+  EXPECT_TRUE(census.rooms[0x44].reached);
+  EXPECT_EQ(census.rooms[0x44].status, RoomCensusStatus::kInUse);
+  EXPECT_TRUE(
+      HasReason(census.rooms[0x44], "on the pause map of dungeon ID 0x04"));
+  EXPECT_EQ(census.owners[census.rooms[0x44].owner_index].name,
+            "Dungeon ID 0x04 (not in project)");
+}
+
+// Review finding: rooms reached only through runtime holes were
+// reclaimable. Every fall runs DetermineConsequencesOfFalling ($07:94AA):
+// RoomsWithPitDamage rooms take a heart, all others use the holewarp.
+TEST_F(RoomCensusTest, TagDrivenHolesUseTheHolewarp) {
+  input_.rooms[0x10].tag1 = 0x21;  // Holes_0
+  input_.rooms[0x10].has_hole_tag = true;
+  input_.rooms[0x10].holewarp_byte = 0x20;
+  input_.rooms[0x20].vanilla_similarity = 1.0f;
+  auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x20].reached);
+  EXPECT_EQ(census.rooms[0x20].status, RoomCensusStatus::kInUse);
+  EXPECT_TRUE(
+      HasReason(census.rooms[0x20], "tag-driven holes (tag 0x21) in 0x10"));
+
+  input_.rooms[0x10].in_pit_damage_table = true;
+  census = BuildRoomCensus(input_);
+  EXPECT_FALSE(census.rooms[0x20].reached);
+  EXPECT_EQ(census.rooms[0x20].status, RoomCensusStatus::kReclaimable);
+  EXPECT_TRUE(HasReason(census.rooms[0x20], "RoomsWithPitDamage"));
+}
+
+TEST_F(RoomCensusTest, WarpTagIsNotAHoleTag) {
+  // Oracle redefines tag 0x3A (vanilla Holes_8) as WarpTag.
+  input_.rooms[0x10].tag1 = 0x3A;
+  input_.rooms[0x10].has_hole_tag = true;
+  input_.rooms[0x10].holewarp_byte = 0x20;
+  input_.rooms[0x20].object_count = 0;
+  auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x20].reached);  // Vanilla meaning: holes.
+
+  input_.warp_tag_ids.insert(0x3A);
+  census = BuildRoomCensus(input_);
+  EXPECT_FALSE(census.rooms[0x20].reached);
+  EXPECT_EQ(census.rooms[0x20].status, RoomCensusStatus::kFree);
+}
+
+TEST_F(RoomCensusTest, FallingFloorSpritesUseTheHolewarp) {
+  // Vanilla 0x00: Ganon's phase 3 drops the floor into 0x10.
+  input_.rooms[0x10].hole_sprite = "Ganon's falling floor (sprite 0xD6)";
+  input_.rooms[0x10].holewarp_byte = 0x20;
+  input_.rooms[0x20].vanilla_similarity = 1.0f;
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x20].reached);
+  EXPECT_TRUE(HasReason(census.rooms[0x20], "Ganon's falling floor"));
+}
+
+TEST_F(RoomCensusTest, BrazierPitsAreNamed) {
+  input_.rooms[0x10].has_pits = true;
+  input_.rooms[0x10].pits_only_in_braziers = true;
+  input_.rooms[0x10].holewarp_byte = 0x20;
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x20].reached);
+  EXPECT_TRUE(HasReason(census.rooms[0x20],
+                        "large-brazier pits (entered by falling from the "
+                        "room above) in 0x10"));
+}
+
+TEST_F(RoomCensusTest, TeleportDoorUsesStairSlot) {
+  // Type 0x46 on the east wall loads stair slot 4 ($7EC004).
+  RoomLinkFacts::Door door{kEast, 30, /*outer=*/true};
+  door.role = RoomDoorRole::kTeleport;
+  input_.rooms[0x10].doors.push_back(door);
+  input_.rooms[0x10].stair_bytes[3] = 0x93;
+  input_.rooms[0x93].vanilla_similarity = 1.0f;
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x93].reached);
+  EXPECT_TRUE(HasReason(census.rooms[0x93],
+                        "teleport door from 0x10 (east wall, stair slot 4)"));
+  // Not the grid neighbor.
+  EXPECT_FALSE(census.rooms[0x11].reached);
+}
+
+// Review finding: the room right of column 15 is not the next row's
+// column 0.
+TEST_F(RoomCensusTest, NeighborDoorsDoNotWrapRows) {
+  // 0x2F (column 15) east door, 0x30 (next row, column 0) west door: the
+  // old graph NeighborRoomId paired them.
+  AddEntrance(input_, 0x05, 0x2F, 0x04);
+  AddDoor(input_, 0x2F, kEast, 30);
+  AddDoor(input_, 0x30, kWest, 30);
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x2F].reached);
+  EXPECT_FALSE(census.rooms[0x30].reached);
+  EXPECT_EQ(DungeonNeighborRoom(0x0F, kEast), -1);
+  EXPECT_EQ(DungeonNeighborRoom(0x1F, kEast), -1);
+  EXPECT_EQ(DungeonNeighborRoom(0x10, kWest), -1);
+  EXPECT_EQ(DungeonNeighborRoom(0xF5, kSouth), -1);   // page 0 bottom row
+  EXPECT_EQ(DungeonNeighborRoom(0x105, kNorth), -1);  // page 1 top row
+  EXPECT_EQ(DungeonNeighborRoom(0x127, kEast), -1);   // 0x128 is not a room
+  EXPECT_EQ(DungeonNeighborRoom(0x0E, kEast), 0x0F);
+  EXPECT_EQ(DungeonNeighborRoom(0x15, kNorth), 0x05);
+}
+
+// Review finding: room_census.cc indexed facts[target] before checking the
+// range. A page-1 stair byte 0x28 resolves to 0x128, one past the last room
+// (the closest out-of-bounds read, which ASan reports); 0xFF resolves to
+// 0x1FF.
+TEST_F(RoomCensusTest, OutOfRangeHeaderDestinationsAreIgnored) {
+  AddEntrance(input_, 0x61, 0x110, kRoomCensusInteriorDungeonId);
+  input_.rooms[0x110].stair_bytes = {0x28, 0xFF, 0x28, 0x28};
+  input_.rooms[0x110].stair_slot_used = {true, true, false, false};
+  input_.warp_tag_ids.insert(0x3A);
+  input_.rooms[0x110].tag1 = 0x3A;  // slots 3-4 as warp tag quadrants
+  RoomLinkFacts::Door door{kEast, 30, /*outer=*/true};
+  door.role = RoomDoorRole::kTeleport;
+  input_.rooms[0x110].doors.push_back(door);
+  input_.rooms[0x110].has_pits = true;
+  input_.rooms[0x110].holewarp_byte = 0x30;  // 0x130
+  const auto census = BuildRoomCensus(input_);
+  EXPECT_TRUE(census.rooms[0x110].reached);
+  EXPECT_EQ(static_cast<int>(census.rooms.size()), kRoomCensusRoomCount);
+
+  const RoomLinkFactsLookup lookup = [&](int room) -> const RoomLinkFacts* {
+    return IsDungeonRoomId(room) ? &input_.rooms[room] : nullptr;
+  };
+  const auto links = CollectRoomLinks(0x110, lookup, input_.warp_tag_ids);
+  int out_of_range = 0;
+  for (const auto& link : links) {
+    if (link.raw_to >= kRoomCensusRoomCount) {
+      EXPECT_EQ(link.to, -1) << link.detail;
+      ++out_of_range;
+    }
+  }
+  EXPECT_EQ(out_of_range, 6);  // 2 stairs, 2 warp tag slots, teleport, holes
+  EXPECT_EQ(CheckedHeaderDestinationRoom(0x110, 0x28), -1);
+  EXPECT_EQ(CheckedHeaderDestinationRoom(0x110, 0x27), 0x127);
+}
+
+// Review finding: the census used byte 0 as room $x00 only when something
+// uses it, the graph commands never did. Now both use CollectRoomLinks.
+TEST_F(RoomCensusTest, HeaderByteZeroIsRoomZeroOnlyWhenUsed) {
+  const RoomLinkFactsLookup lookup = [&](int room) -> const RoomLinkFacts* {
+    return IsDungeonRoomId(room) ? &input_.rooms[room] : nullptr;
+  };
+  input_.rooms[0x104].stair_slot_used[1] = true;  // byte 0 -> 0x100
+  input_.rooms[0x104].has_warp_tiles = true;      // holewarp byte 0 -> 0x100
+  auto links = CollectRoomLinks(0x104, lookup);
+  ASSERT_EQ(links.size(), 2u);
+  for (const auto& link : links) {
+    EXPECT_EQ(link.to, 0x100);
+    EXPECT_TRUE(link.strong);
+  }
+  // Unused zero bytes are no reference at all.
+  EXPECT_TRUE(CollectRoomLinks(0x105, lookup).empty());
 }
 
 // Review finding: the stair reciprocity check indexed facts[target] before
@@ -323,6 +632,377 @@ class RoomCensusSyntheticRomTest : public ::testing::Test {
  protected:
   std::vector<uint8_t> data_ = test::BuildRoomCensusTestRom();
 };
+
+class RoomLayoutBoundsTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ASSERT_TRUE(rom_.LoadFromData(test::BuildRoomCensusTestRom()).ok());
+  }
+  int Start(int id) const { return SnesToPc(kRoomLayoutPointers[id]); }
+  int End(int id) const {
+    return SnesToPc(id + 1 < static_cast<int>(kRoomLayoutPointers.size())
+                        ? kRoomLayoutPointers[id + 1]
+                        : kRoomLayoutDataEnd);
+  }
+  void ClearStream(int id) {
+    std::fill(rom_.mutable_data() + Start(id), rom_.mutable_data() + End(id),
+              0);
+  }
+  void WriteOneObject() {
+    const auto bytes = test::TestObjectBytes(0xA4, 8, 8);
+    std::copy(bytes.begin(), bytes.end(), rom_.mutable_data() + Start(0));
+    rom_.mutable_data()[Start(0) + 3] = 0xFF;
+    rom_.mutable_data()[Start(0) + 4] = 0xFF;
+  }
+  Rom rom_;
+};
+
+TEST_F(RoomLayoutBoundsTest, AcceptsTerminatorInFinalTwoBytesOfEveryFixedSpan) {
+  for (int id = 0; id < static_cast<int>(kRoomLayoutPointers.size()); ++id) {
+    ClearStream(id);
+    rom_.mutable_data()[End(id) - 2] = 0xFF;
+    rom_.mutable_data()[End(id) - 1] = 0xFF;
+    RoomLayout layout(&rom_);
+    ASSERT_TRUE(layout.LoadLayout(id).ok()) << id;
+    EXPECT_EQ(layout.GetObjects().size(), (End(id) - Start(id) - 2) / 3) << id;
+  }
+}
+
+TEST_F(RoomLayoutBoundsTest, NeverBorrowsTerminatorFromNextLayoutOrWaterData) {
+  for (int id = 0; id < static_cast<int>(kRoomLayoutPointers.size()); ++id) {
+    ClearStream(id);
+    rom_.mutable_data()[End(id)] = 0xFF;
+    rom_.mutable_data()[End(id) + 1] = 0xFF;
+    RoomLayout layout(&rom_);
+    EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(id))) << id;
+    EXPECT_TRUE(layout.GetObjects().empty()) << id;
+  }
+}
+
+TEST_F(RoomLayoutBoundsTest, RejectsEofWithoutTerminator) {
+  auto data = test::BuildRoomCensusTestRom();
+  data.resize(Start(0) + 6);
+  std::fill(data.begin() + Start(0), data.end(), 0);
+  ASSERT_TRUE(rom_.LoadFromData(data).ok());
+  RoomLayout layout(&rom_);
+  EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(0)));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, RejectsTruncatedObject) {
+  auto data = test::BuildRoomCensusTestRom();
+  data.resize(Start(0) + 2);
+  data[Start(0)] = data[Start(0) + 1] = 0;
+  ASSERT_TRUE(rom_.LoadFromData(data).ok());
+  RoomLayout layout(&rom_);
+  EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(0)));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, RejectsTruncatedTerminator) {
+  auto data = test::BuildRoomCensusTestRom();
+  data.resize(Start(0) + 1);
+  data[Start(0)] = 0xFF;
+  ASSERT_TRUE(rom_.LoadFromData(data).ok());
+  RoomLayout layout(&rom_);
+  EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(0)));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, AcceptsTwoByteTerminatorAtEof) {
+  auto data = test::BuildRoomCensusTestRom();
+  data.resize(Start(0) + 2);
+  ASSERT_TRUE(rom_.LoadFromData(data).ok());
+  RoomLayout layout(&rom_);
+  EXPECT_TRUE(layout.LoadLayout(0).ok());
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, FailedReloadClearsPreviouslyDecodedObjects) {
+  WriteOneObject();
+  RoomLayout layout(&rom_);
+  ASSERT_TRUE(layout.LoadLayout(0).ok());
+  ASSERT_EQ(layout.GetObjects().size(), 1u);
+  ClearStream(0);
+  EXPECT_TRUE(absl::IsDataLoss(layout.LoadLayout(0)));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomLayoutBoundsTest, CancelledReloadClearsPreviouslyDecodedObjects) {
+  WriteOneObject();
+  RoomLayout layout(&rom_);
+  ASSERT_TRUE(layout.LoadLayout(0).ok());
+  ASSERT_EQ(layout.GetObjects().size(), 1u);
+  util::StopSource stop;
+  stop.request_stop();
+  EXPECT_TRUE(absl::IsCancelled(layout.LoadLayout(0, stop.get_token())));
+  EXPECT_TRUE(layout.GetObjects().empty());
+}
+
+TEST_F(RoomCensusSyntheticRomTest, MalformedLayoutDiscardsPartialCensusFacts) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  int visited = 0;
+  RoomCensusOptions options;
+  options.room_visitor = [&](int id, const Room&) {
+    ++visited;
+    if (id == 0) {
+      auto bytes = rom.mutable_data();
+      std::fill(bytes + SnesToPc(kRoomLayoutPointers[0]),
+                bytes + SnesToPc(kRoomLayoutPointers[1]), 0);
+    }
+  };
+  const auto result = ComputeRoomCensus(&rom, options);
+  EXPECT_TRUE(absl::IsDataLoss(result.status())) << result.status();
+  EXPECT_EQ(visited, 1);
+}
+
+TEST_F(RoomCensusSyntheticRomTest, CancellationDuringTileScanDiscardsFacts) {
+  // The synthetic header table shares $01:8000 with object tile pointers.
+  // Give it its own space so the pit can load tiles and enter the real draw.
+  constexpr int header_table = 0x071000;
+  std::copy_n(data_.begin() + SnesToPc(test::kTestHeaderTableSnes),
+              kRoomCensusRoomCount * 2, data_.begin() + header_table);
+  const uint32_t header_snes = PcToSnes(header_table);
+  for (int i = 0; i < 3; ++i) {
+    data_[kRoomHeaderPointer + i] = (header_snes >> (i * 8)) & 0xFF;
+  }
+  data_[kRoomObjectSubtype1 + 0xA4 * 2] = 0;
+  data_[kRoomObjectSubtype1 + 0xA4 * 2 + 1] = 0;
+  const int start = SnesToPc(kRoomLayoutPointers[0]);
+  const auto bytes = test::TestObjectBytes(0xA4, 8, 8);
+  std::copy(bytes.begin(), bytes.end(), data_.begin() + start);
+  data_[start + 3] = data_[start + 4] = 0xFF;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+
+  RoomLayout layout(&rom);
+  ASSERT_TRUE(layout.LoadLayout(0).ok());
+  ASSERT_EQ(layout.GetObjects().size(), 1u);
+  ASSERT_EQ(layout.GetObjects()[0].id_, 0xA4);
+  ASSERT_EQ(layout.GetObjects()[0].GetTileCount(), 24);
+
+  auto& registry = DrawRoutineRegistry::Get();
+  // This serial test overrides one existing routine only inside the test
+  // process, then restores it. Cancellation is requested by the real draw,
+  // after entry into the collector: no sleeps or scheduler timing assumptions.
+  auto* routine = const_cast<DrawRoutineInfo*>(
+      registry.GetRoutineInfo(registry.GetRoutineIdForObject(0xA4, false)));
+  ASSERT_NE(routine, nullptr);
+  struct Restore {
+    DrawRoutineInfo* routine;
+    DrawRoutineFn function;
+    ~Restore() { routine->function = std::move(function); }
+  } restore{routine, routine->function};
+  util::StopSource stop;
+  int drawn = 0, visited = 0;
+  routine->function = [&, original = restore.function](const DrawContext& ctx) {
+    original(ctx);
+    ++drawn;
+    stop.request_stop();
+  };
+  const auto frozen = CustomObjectManager::Get().CaptureRenderSnapshot(false);
+  RoomCensusOptions options;
+  options.custom_objects = &frozen;
+  options.stop_token = stop.get_token();
+  options.room_visitor = [&](int, const Room&) {
+    ++visited;
+  };
+  const auto result = ComputeRoomCensus(&rom, options);
+  EXPECT_TRUE(absl::IsCancelled(result.status())) << result.status();
+  EXPECT_EQ(drawn, 1);
+  EXPECT_EQ(visited, 0);
+}
+
+TEST_F(RoomCensusSyntheticRomTest, PreCancelledScanDoesNotReadRomOrVisitRooms) {
+  util::StopSource source;
+  source.request_stop();
+  RoomCensusOptions options;
+  options.stop_token = source.get_token();
+  options.room_visitor = [](int, const Room&) {
+    ADD_FAILURE();
+  };
+  EXPECT_TRUE(
+      absl::IsCancelled(CollectRoomCensusInput(nullptr, options).status()));
+  EXPECT_TRUE(absl::IsCancelled(ComputeRoomCensus(nullptr, options).status()));
+  EXPECT_TRUE(absl::IsCancelled(
+      ComputeRoomFingerprints(nullptr, source.get_token()).status()));
+}
+
+TEST_F(RoomCensusSyntheticRomTest,
+       CancellationBetweenRoomsDiscardsPartialFacts) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  const auto frozen = CustomObjectManager::Get().CaptureRenderSnapshot(false);
+  const core::RomAddressOverrides addresses;
+  util::StopSource source;
+  std::promise<void> entered, resume;
+  auto entered_future = entered.get_future();
+  auto resume_future = resume.get_future();
+  int visited = 0;
+  auto pending = std::async(std::launch::async, [&] {
+    RoomCensusOptions options;
+    options.stop_token = source.get_token();
+    options.custom_objects = &frozen;
+    options.address_overrides = &addresses;
+    options.room_visitor = [&](int room_id, const Room&) {
+      ++visited;
+      if (room_id == 0) {
+        entered.set_value();
+        resume_future.wait();
+      }
+    };
+    return ComputeRoomCensus(&rom, options);
+  });
+  const auto started = entered_future.wait_for(std::chrono::seconds(10));
+  source.request_stop();
+  resume.set_value();  // Release even if the handshake failed.
+  const auto result = pending.get();
+  ASSERT_EQ(started, std::future_status::ready);
+  EXPECT_TRUE(absl::IsCancelled(result.status())) << result.status();
+  EXPECT_EQ(visited, 1);
+}
+
+TEST_F(RoomCensusSyntheticRomTest,
+       CancellationAfterLastRoomDiscardsPartialFacts) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  util::StopSource source;
+  RoomCensusOptions options;
+  options.stop_token = source.get_token();
+  int visited = 0;
+  options.room_visitor = [&](int room_id, const Room&) {
+    ++visited;
+    if (room_id == kRoomCensusRoomCount - 1) {
+      source.request_stop();
+    }
+  };
+  const auto result = ComputeRoomCensus(&rom, options);
+  EXPECT_TRUE(absl::IsCancelled(result.status())) << result.status();
+  EXPECT_EQ(visited, kRoomCensusRoomCount);
+}
+
+// Hold the real collector after room 0, then change live session state before
+// it draws custom objects in rooms 1 and 2. No sleeps or scheduling assumptions.
+TEST_F(RoomCensusSyntheticRomTest, FrozenAssetsSurviveConcurrentSessionChange) {
+  auto& manager = CustomObjectManager::Get();
+  const auto previous = manager.SnapshotState();
+  const bool previous_enabled = core::FeatureFlags::get().kEnableCustomObjects;
+  const auto root = ::yaze::test::UniqueTempPath("census_assets");
+  struct Restore {
+    CustomObjectManager::State state;
+    bool enabled;
+    std::filesystem::path root;
+    ~Restore() {
+      CustomObjectManager::Get().RestoreState(state);
+      core::FeatureFlags::get().kEnableCustomObjects = enabled;
+      DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+      std::filesystem::remove_all(root);
+    }
+  } restore{previous, previous_enabled, root};
+  ASSERT_TRUE(std::filesystem::create_directories(root));
+  const std::vector<uint8_t> pit = {1, 0, 0x40, 0, 0, 0};
+  const std::vector<uint8_t> warp = {1, 0, 0x41, 0, 0, 0};
+  for (const auto& [name, bytes] :
+       std::vector<std::pair<std::string, std::vector<uint8_t>>>{
+           {"pit.bin", pit}, {"warp.bin", warp}}) {
+    std::ofstream file(root / name, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  }
+  manager.Initialize(root.string());
+  manager.SetObjectFileMap(
+      {{0x31, {"pit.bin"}}, {0x32, {"warp.bin"}}, {0x54, {}}});
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  const auto frozen = manager.CaptureRenderSnapshot(true);
+  const auto disabled = manager.CaptureRenderSnapshot(false);
+  const core::RomAddressOverrides addresses;
+
+  for (int room : {1, 2}) {
+    test::SetTestRoom(data_, room, test::kTestObjectDataPc + room * 0x200,
+                      test::TestRoomStream({test::TestObjectBytes(
+                          room == 1 ? 0x31 : 0x32, 8, 8)}),
+                      0x9040 + room * 0x10, {});
+  }
+  data_[0x071659 + 0x40] = 0x20;  // TILEATTR: pit.
+  data_[0x071659 + 0x41] = 0x4B;  // TILEATTR: warp.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  std::promise<void> entered, resume;
+  auto entered_future = entered.get_future();
+  auto resume_future = resume.get_future();
+  auto scan = std::async(std::launch::async, [&] {
+    RoomCensusOptions options;
+    options.custom_objects = &frozen;
+    options.address_overrides = &addresses;
+    options.room_visitor = [&](int id, const Room&) {
+      if (id == 0) {
+        entered.set_value();
+        resume_future.wait();
+      }
+    };
+    return CollectRoomCensusInput(&rom, options);
+  });
+  const auto entered_status = entered_future.wait_for(std::chrono::seconds(10));
+  // Always release the worker, even if the handshake failed.
+  if (entered_status == std::future_status::ready) {
+    manager.RestoreState({});
+    std::filesystem::remove_all(root);
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+  resume.set_value();
+  ASSERT_EQ(entered_status, std::future_status::ready);
+  auto input = scan.get();
+  ASSERT_TRUE(input.ok()) << input.status();
+  EXPECT_TRUE(input->rooms[1].has_pits);
+  EXPECT_TRUE(input->rooms[2].has_warp_tiles);
+  EXPECT_FALSE(input->rooms[1].has_warp_tiles);
+
+  // An explicitly disabled job must remain vanilla when the live flag is on.
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  RoomCensusOptions options;
+  options.custom_objects = &disabled;
+  options.address_overrides = &addresses;
+  auto vanilla = CollectRoomCensusInput(&rom, options);
+  ASSERT_TRUE(vanilla.ok()) << vanilla.status();
+  EXPECT_FALSE(vanilla->rooms[1].has_pits);
+  EXPECT_FALSE(vanilla->rooms[2].has_warp_tiles);
+}
+
+TEST_F(RoomCensusSyntheticRomTest, ExpandedEntranceAddressesAreJobOwned) {
+  auto previous = core::RomSettings::Get().address_overrides();
+  struct Restore {
+    core::RomAddressOverrides addresses;
+    ~Restore() { core::RomSettings::Get().SetAddressOverrides(addresses); }
+  } restore{previous};
+  data_[0x140145] = 3;  // ZSCustomOverworld v3.
+  const core::RomAddressOverrides addresses{
+      {{core::RomAddressKey::kOverworldEntranceFlagExpanded, 0x180000},
+       {core::RomAddressKey::kOverworldEntranceMapExpanded, 0x181000},
+       {core::RomAddressKey::kOverworldEntrancePosExpanded, 0x182000},
+       {core::RomAddressKey::kOverworldEntranceIdExpanded, 0x183000}}};
+  std::fill(data_.begin() + 0x182000, data_.begin() + 0x182200, 0xFF);
+  data_[0x182000] = data_[0x182001] = 0;
+  data_[0x181000] = 0x27;
+  data_[0x183000] = 7;
+  core::RomSettings::Get().ClearOverrides();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data_).ok());
+  RoomCensusOptions options;
+  options.address_overrides = &addresses;
+  auto input = CollectRoomCensusInput(&rom, options);
+  ASSERT_TRUE(input.ok()) << input.status();
+  std::vector<int> placed;
+  for (const auto& entrance : input->entrances) {
+    if (entrance.kind == RoomReferenceKind::kEntrance) {
+      placed.push_back(entrance.entrance_id);
+      EXPECT_EQ(entrance.ow_map, 0x27);
+    }
+  }
+  EXPECT_THAT(placed, ElementsAre(7));
+}
 
 TEST_F(RoomCensusSyntheticRomTest, ReadsWarpsEntrancesAndHighByte) {
   Rom rom;

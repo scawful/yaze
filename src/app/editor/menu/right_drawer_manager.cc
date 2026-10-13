@@ -961,7 +961,7 @@ void RightDrawerManager::Draw() {
                           {.bg = panel_bg,
                            .border = panel_border,
                            .padding = ImVec2(0.0f, 0.0f),
-                           .border_size = 1.0f},
+                           .border_size = 0.0f},
                           nullptr, panel_flags);
   if (panel) {
     const char* panel_title = GetPanelTypeName(draw_panel);
@@ -1162,32 +1162,19 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
   const float padding =
       gui::ScaledSize(gui::UIConfig::kPanelPaddingLarge, 0.0f).x;
 
-  // Header background - slightly elevated surface
+  // Keep the header on the drawer surface; the navigation divider supplies
+  // separation without another outlined region around the title.
   ImVec2 header_min = ImGui::GetCursorScreenPos();
-  ImVec2 header_max = ImVec2(header_min.x + ImGui::GetWindowWidth(),
-                             header_min.y + header_height);
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  draw_list->AddRectFilled(
-      header_min, header_max,
-      ImGui::GetColorU32(gui::GetSurfaceContainerHighVec4()));
-  draw_list->AddLine(ImVec2(header_min.x, header_max.y),
-                     ImVec2(header_max.x, header_max.y),
-                     ImGui::GetColorU32(gui::GetOutlineVec4()), 1.0f);
-
-  // Icon chip with semi-transparent primary background
+  // Match the title's text color rather than introducing a separate accent.
   const float icon_chip_size = gui::ScaledSize(24.0f, 0.0f).x;
   const float chip_y = header_min.y + (header_height - icon_chip_size) * 0.5f;
   ImVec2 chip_min(header_min.x + padding, chip_y);
-  ImVec2 chip_max(chip_min.x + icon_chip_size, chip_min.y + icon_chip_size);
-  ImVec4 chip_bg = gui::GetPrimaryVec4();
-  chip_bg.w = 0.16f;
-  draw_list->AddRectFilled(chip_min, chip_max, ImGui::GetColorU32(chip_bg),
-                           4.0f);
   const ImVec2 icon_sz = ImGui::CalcTextSize(icon);
   draw_list->AddText(ImVec2(chip_min.x + (icon_chip_size - icon_sz.x) * 0.5f,
                             chip_min.y + (icon_chip_size - icon_sz.y) * 0.5f),
-                     ImGui::GetColorU32(gui::GetPrimaryVec4()), icon);
+                     ImGui::GetColorU32(gui::GetTextPrimaryVec4()), icon);
 
   // Reserve fixed chrome width so title truncation stays stable as badges /
   // panel actions appear. Layout (right → left): close, then panel actions.
@@ -1406,17 +1393,15 @@ void RightDrawerManager::DrawDrawerNavStrip(PanelType current_panel) {
     }
     const bool hovered = ImGui::IsItemHovered();
 
-    if (is_active) {
-      draw_list->AddRectFilled(
-          tab_rect_min, tab_rect_max,
-          ImGui::GetColorU32(gui::GetSurfaceContainerHighestVec4()), 4.0f);
-      draw_list->AddLine(ImVec2(tab_rect_min.x + 3.0f, tab_rect_max.y - 1.0f),
-                         ImVec2(tab_rect_max.x - 3.0f, tab_rect_max.y - 1.0f),
-                         ImGui::GetColorU32(gui::GetPrimaryVec4()), 2.0f);
-    } else if (hovered) {
+    if (hovered) {
       draw_list->AddRectFilled(
           tab_rect_min, tab_rect_max,
           ImGui::GetColorU32(gui::GetSurfaceContainerHighVec4()), 4.0f);
+    }
+    if (is_active) {
+      draw_list->AddLine(ImVec2(tab_rect_min.x + 3.0f, tab_rect_max.y - 1.0f),
+                         ImVec2(tab_rect_max.x - 3.0f, tab_rect_max.y - 1.0f),
+                         ImGui::GetColorU32(gui::GetPrimaryVec4()), 2.0f);
     }
 
     const std::string tab_label =
@@ -1425,9 +1410,9 @@ void RightDrawerManager::DrawDrawerNavStrip(PanelType current_panel) {
     const ImVec2 label_size = ImGui::CalcTextSize(tab_label.c_str());
     const ImVec2 label_pos(tab_rect_min.x + (tab_w - label_size.x) * 0.5f,
                            tab_rect_min.y + (tab_h - label_size.y) * 0.5f);
-    const ImVec4 icon_col = is_active ? gui::GetPrimaryVec4()
-                                      : (hovered ? gui::GetTextPrimaryVec4()
-                                                 : gui::GetTextSecondaryVec4());
+    const ImVec4 icon_col = (is_active || hovered)
+                                ? gui::GetTextPrimaryVec4()
+                                : gui::GetTextSecondaryVec4();
     draw_list->AddText(label_pos, ImGui::GetColorU32(icon_col),
                        tab_label.c_str());
 
@@ -1861,7 +1846,8 @@ void RightDrawerManager::DrawEditorSpecificShortcuts() {
     case EditorType::kOverworld:
       DrawPanelLabel("Overworld");
       ImGui::Indent(8.0f);
-      DrawPanelValue("1-3", "Switch World (LW/DW/SP)");
+      DrawPanelValue("1 / 2 / 3", "Select / Paint / Entrances");
+      DrawPanelValue("Alt+1 / Alt+2 / Alt+3", "Switch World (LW/DW/SP)");
       DrawPanelValue("Arrow Keys", "Navigate Maps");
       DrawPanelValue("E", "Entity Mode");
       DrawPanelValue("T", "Tile Mode");

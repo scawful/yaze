@@ -95,6 +95,14 @@ class SettingsPanel : public Editor {
     open_minecart_tracks_callback_ = std::move(callback);
   }
 
+  // Resolve the active project and its save-policy identity at draw time.
+  void SetProjectContextProvider(
+      std::function<project::YazeProject*()> project_provider,
+      std::function<std::string()> hash_provider) {
+    project_provider_ = std::move(project_provider);
+    rom_hash_provider_ = std::move(hash_provider);
+  }
+
   // Main draw entry point
   void Draw();
 
@@ -151,6 +159,8 @@ class SettingsPanel : public Editor {
   WorkspaceWindowManager* window_manager_ = nullptr;
   ShortcutManager* shortcut_manager_ = nullptr;
   StatusBar* status_bar_ = nullptr;
+  std::function<project::YazeProject*()> project_provider_;
+  std::function<std::string()> rom_hash_provider_;
   Rom* rom_ = nullptr;
   project::YazeProject* project_ = nullptr;  // Project reference
 

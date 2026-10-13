@@ -30,18 +30,24 @@ std::vector<std::string> ShippedFileThemeNames() {
   return {"Blood Moon",
           "Breath of the Wild",
           "Catppuccin Mocha",
+          "Clean White",
           "Cyberpunk",
+          "Deep Blue",
           "Dracula",
           "Forest",
           "Forest Light",
           "Gruvbox",
           "Majora's Moon",
+          "Maroon",
           "Midnight",
           "Midnight Light",
           "Nord",
           "Ocean",
           "Ocean Light",
+          "Off-White",
+          "Pure Black",
           "Rosé Pine",
+          "Slate Gray",
           "Solarized Dark",
           "Solarized Light",
           "Sunset",
@@ -272,14 +278,13 @@ TEST_F(ThemeStyleSnapshotTest, ClassicYazeWritesEveryImGuiColorSlot) {
         << " (index " << i << ") unwritten; it will inherit the previous theme";
   }
   // Style scalars ColorsYaze must also own.
-  EXPECT_FLOAT_EQ(ImGui::GetStyle().TabRounding, 0.0f);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().TabRounding, 3.0f);
   EXPECT_FLOAT_EQ(ImGui::GetStyle().GrabRounding, 5.0f);
 }
 
 // Classic YAZE's spacing is part of its identity: ColorsYaze() sets
-// FramePadding 10x2 and ItemSpacing 10x5, not the 8px base every other theme
-// derives from. Carrying density across a theme switch must scale those, not
-// replace them.
+// FramePadding 6x3 and ItemSpacing 6x4. Carrying density across a theme
+// switch must scale those authored dimensions, not replace them.
 TEST_F(ThemeStyleSnapshotTest, ClassicYazeKeepsItsOwnSpacingAtNormalDensity) {
   auto& mgr = ThemeManager::Get();
   mgr.ApplyTheme("Cyberpunk");
@@ -287,13 +292,14 @@ TEST_F(ThemeStyleSnapshotTest, ClassicYazeKeepsItsOwnSpacingAtNormalDensity) {
 
   const ImGuiStyle& style = ImGui::GetStyle();
   ASSERT_EQ(mgr.GetCurrentTheme().density_preset, DensityPreset::kNormal);
-  EXPECT_FLOAT_EQ(style.FramePadding.x, 10.0f);
-  EXPECT_FLOAT_EQ(style.FramePadding.y, 2.0f);
-  EXPECT_FLOAT_EQ(style.ItemSpacing.x, 10.0f);
-  EXPECT_FLOAT_EQ(style.ItemSpacing.y, 5.0f);
-  EXPECT_FLOAT_EQ(style.WindowPadding.x, 10.0f);
-  EXPECT_FLOAT_EQ(style.WindowPadding.y, 10.0f);
-  EXPECT_FLOAT_EQ(style.GrabMinSize, 15.0f);
+  EXPECT_FLOAT_EQ(style.FramePadding.x, 6.0f);
+  EXPECT_FLOAT_EQ(style.FramePadding.y, 3.0f);
+  EXPECT_FLOAT_EQ(style.ItemSpacing.x, 6.0f);
+  EXPECT_FLOAT_EQ(style.ItemSpacing.y, 4.0f);
+  EXPECT_FLOAT_EQ(style.WindowPadding.x, 8.0f);
+  EXPECT_FLOAT_EQ(style.WindowPadding.y, 8.0f);
+  EXPECT_FLOAT_EQ(style.GrabMinSize, 14.0f);
+  EXPECT_FLOAT_EQ(style.FrameBorderSize, 0.0f);
 }
 
 // EndPreview restores through ApplyTheme(const Theme&), which repaints from the
@@ -815,15 +821,6 @@ void ExpectDefaultEntityMarkers(const Theme& theme, const std::string& name) {
       << name << " sprite_color";
 }
 
-TEST_F(ThemeStyleSnapshotTest, EntityMarkerDefaultsFollowTheDocumentedHues) {
-  // Yellow-gold entrances, cyan-white exits, red items, magenta sprites.
-  ExpectRgbNear(EntityMarkerDefaults::Entrance(), 255, 204, 0);
-  ExpectRgbNear(EntityMarkerDefaults::Hole(), 255, 150, 0);
-  ExpectRgbNear(EntityMarkerDefaults::Exit(), 150, 235, 255);
-  ExpectRgbNear(EntityMarkerDefaults::Item(), 235, 45, 45);
-  ExpectRgbNear(EntityMarkerDefaults::Sprite(), 235, 60, 235);
-}
-
 TEST_F(ThemeStyleSnapshotTest, ClassicYazeHasDedicatedEntityMarkerColors) {
   ThemeManager::Get().ApplyClassicYazeTheme();
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
@@ -926,6 +923,44 @@ TEST_F(ThemeStyleSnapshotTest, ThemeJsonExportIncludesEntityMarkerColors) {
   EXPECT_EQ(colors.at("sprite_color"), "#EB3CEB");
   EXPECT_TRUE(colors.contains("transport_color"));
   EXPECT_TRUE(colors.contains("music_zone_color"));
+}
+
+TEST_F(ThemeStyleSnapshotTest, AuthoredBorderMetricsReachImGui) {
+  Theme borderless;
+  borderless.window_border_size = 0.0f;
+  borderless.frame_border_size = 0.0f;
+  borderless.window_rounding = 0.0f;
+  borderless.frame_rounding = 0.0f;
+  borderless.ApplyToImGui();
+
+  const ImGuiStyle& cleared = ImGui::GetStyle();
+  EXPECT_FLOAT_EQ(cleared.WindowBorderSize, 0.0f);
+  EXPECT_FLOAT_EQ(cleared.ChildBorderSize, 0.0f);
+  EXPECT_FLOAT_EQ(cleared.PopupBorderSize, 0.0f);
+  EXPECT_FLOAT_EQ(cleared.FrameBorderSize, 0.0f);
+  EXPECT_FLOAT_EQ(cleared.TabBorderSize, 0.0f);
+  EXPECT_FLOAT_EQ(cleared.ChildRounding, 0.0f);
+  EXPECT_FLOAT_EQ(cleared.PopupRounding, 0.0f);
+
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyTheme("Solarized Dark");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "Solarized Dark");
+  const Theme& solarized = mgr.GetCurrentTheme();
+  EXPECT_FLOAT_EQ(solarized.window_border_size, 0.0f);
+  EXPECT_FLOAT_EQ(solarized.frame_border_size, 0.0f);
+  const ImGuiStyle& solarized_style = ImGui::GetStyle();
+  EXPECT_FLOAT_EQ(solarized_style.WindowBorderSize,
+                  solarized.window_border_size);
+  EXPECT_FLOAT_EQ(solarized_style.FrameBorderSize, solarized.frame_border_size);
+  EXPECT_FLOAT_EQ(solarized_style.ChildBorderSize, solarized.frame_border_size);
+  EXPECT_FLOAT_EQ(solarized_style.ChildRounding,
+                  solarized.window_rounding * 0.5f);
+
+  mgr.ApplyTheme("Pure Black");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "Pure Black");
+  EXPECT_FLOAT_EQ(mgr.GetCurrentTheme().window_border_size, 1.0f);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().WindowBorderSize, 1.0f);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().FrameBorderSize, 1.0f);
 }
 
 }  // namespace

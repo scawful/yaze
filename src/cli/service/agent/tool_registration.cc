@@ -280,9 +280,12 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
                               "Get entrance info",
                               "overworld-get-entrance --entrance=<hex>", {},
                               true, false, OverworldGetEntranceCommandHandler)
-  REGISTER_BUILTIN_AGENT_TOOL("overworld-tile-stats", "overworld",
-                              "Get tile statistics", "overworld-tile-stats", {},
-                              true, false, OverworldTileStatsCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "overworld-tile-stats", "overworld",
+      "Count tile16 usage per screen, per world and per tile16 id",
+      "overworld-tile-stats [--map=<hex>] [--world=<light|dark|special>] "
+      "[--tile=<hex>] [--top=<n>]",
+      {}, true, false, OverworldTileStatsCommandHandler)
 
   // Message & Dialogue commands
   REGISTER_BUILTIN_AGENT_TOOL("message-list", "message", "List messages",

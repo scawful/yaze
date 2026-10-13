@@ -307,30 +307,33 @@ You must follow this exact two-step process to avoid errors.
   },
   {
     "name": "overworld-tile-stats",
-    "description": "Analyze usage statistics for a specific tile16 ID across the overworld. Shows how many times a tile appears, where it's used, and on which maps. Useful for understanding tile distribution, finding patterns, or analyzing terrain composition. Can be scoped to a specific map or world.",
+    "description": "Count tile16 usage from the overworld grids: per-screen totals, unique tiles and most placed tile, per-world totals, and a most-placed-first tile16 list. With tile, also reports that tile's total and per-screen counts (use overworld-find-tile for positions). Can be scoped to one screen or world.",
     "usage_examples": [
       "How many times is tile 0x02E used?",
-      "Where does tile 0x14C appear in the Light World?",
-      "Analyze tile usage for tile 0x020 on map 0",
+      "Which screens use tile 0x14C in the Light World?",
+      "What are the most common tiles on map 0x86?",
       "Show me statistics for water tiles"
     ],
     "parameters": {
       "type": "object",
       "properties": {
-        "tile_id": {
+        "tile": {
           "type": "string",
-          "description": "Tile16 ID to analyze (0x0000-0xFFFF, hex or decimal). Common tiles: 0x02E=tree, 0x020=grass, 0x14C=water."
+          "description": "Optional: tile16 ID in hex (0x0000-0xFFFF). Common tiles: 0x02E=tree, 0x020=grass, 0x14C=water."
         },
         "map": {
           "type": "string",
-          "description": "Optional: limit analysis to specific map ID (0x00-0x9F)."
+          "description": "Optional: limit analysis to one screen ID in hex (0x00-0x9F)."
         },
         "world": {
           "type": "string",
-          "description": "Optional: limit analysis to specific world (0=light, 1=dark, 2=special)."
+          "description": "Optional: limit analysis to one world (light, dark or special)."
+        },
+        "top": {
+          "type": "integer",
+          "description": "Optional: number of tile_counts entries to list (default 32, 0 = all)."
         }
-      },
-      "required": ["tile_id"]
+      }
     }
   }
 ]

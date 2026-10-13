@@ -233,6 +233,47 @@ void E2ETest_SettingsDrawerWithRom(ImGuiTestContext* ctx) {
   CloseDrawers(ctx, drawers);
 }
 
+void E2ETest_SettingsDrawerMainMenus(ImGuiTestContext* ctx) {
+  Controller* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  yaze::test::gui::LoadRomInTest(ctx,
+                                 yaze::test::TestRomManager::GetTestRomPath());
+  IM_CHECK(controller->GetCurrentRom() != nullptr);
+  IM_CHECK(controller->GetCurrentRom()->is_loaded());
+  auto* manager = controller->editor_manager();
+  manager->SwitchToEditor(yaze::editor::EditorType::kOverworld, true);
+  ctx->Yield(20);
+  auto* drawers = GetDrawers(controller);
+  IM_CHECK(drawers != nullptr);
+  drawers->OpenDrawer(DrawerType::kSettings);
+  CheckSettingsDrawerShown(ctx, drawers, "Menu input regression");
+  for (const char* name :
+       {"File", "Edit", "View", "Windows", "Tools", "Help"}) {
+    ctx->PopupCloseAll();
+    const auto search = ctx->ItemInfo("//##RightPanel/**/##SettingsSearch");
+    IM_CHECK(search.ID != 0);
+    ctx->MouseMoveToPos(search.RectFull.GetCenter());
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->Yield(2);
+    IM_CHECK_EQ(ctx->UiContext->ActiveId, search.ID);
+    ctx->SetRef("DockSpaceWindow");
+    const auto item = ctx->ItemInfo((std::string("##MenuBar/") + name).c_str());
+    IM_CHECK(item.ID != 0);
+    // ItemClick focuses its host; raw coordinates must work without that help.
+    ctx->MouseMoveToPos(item.RectFull.GetCenter());
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->Yield(4);
+    const std::string popup_name = std::string(name) + "###Menu_00";
+    ImGuiWindow* popup = ImGui::FindWindowByName(popup_name.c_str());
+    ctx->LogInfo("Menu %s open=%d drawer=%d", name,
+                 popup && popup->Active && !popup->Hidden,
+                 static_cast<int>(drawers->GetActiveDrawer()));
+    IM_CHECK(popup != nullptr && popup->Active && !popup->Hidden);
+    IM_CHECK_EQ(drawers->GetActiveDrawer(), DrawerType::kSettings);
+  }
+  CloseDrawers(ctx, drawers);
+}
+
 namespace yaze {
 namespace test {
 namespace e2e {
@@ -251,6 +292,7 @@ void RegisterSettingsDrawerTests(ImGuiTestEngine* engine,
       {"PaletteToggle", E2ETest_SettingsDrawerFromPaletteToggle},
       // Loads a ROM, so it runs last.
       {"WithRom", E2ETest_SettingsDrawerWithRom},
+      {"MainMenusWithSettings", E2ETest_SettingsDrawerMainMenus},
   };
   for (const Entry& e : kEntries) {
     ImGuiTest* t = IM_REGISTER_TEST(engine, "SettingsDrawerSmoke", e.name);

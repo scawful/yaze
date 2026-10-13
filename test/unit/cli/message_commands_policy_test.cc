@@ -25,6 +25,7 @@ namespace {
 
 namespace fs = std::filesystem;
 using ::testing::HasSubstr;
+using ::testing::Not;
 
 class ScopedTempDir {
  public:
@@ -237,7 +238,12 @@ TEST(MessageCommandsPolicyTest,
                   &rom, &output);
 
   EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << output;
-  EXPECT_THAT(std::string(status.message()), HasSubstr("Core/message.asm"));
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Data/dialogue/expanded_messages.json"));
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Core/Generated/expanded_messages.asm"));
+  EXPECT_THAT(std::string(status.message()),
+              Not(HasSubstr("edit Core/message.asm")));
   EXPECT_THAT(std::string(status.message()),
               HasSubstr("rebuild Oracle of Secrets"));
   EXPECT_EQ(rom.vector(), before);

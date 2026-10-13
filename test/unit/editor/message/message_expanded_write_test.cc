@@ -445,7 +445,13 @@ TEST(MessageEditorSavePlanTest,
   const auto status = editor.Save();
 
   EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
-  EXPECT_NE(std::string(status.message()).find("Core/message.asm"),
+  EXPECT_NE(std::string(status.message())
+                .find("Data/dialogue/expanded_messages.json"),
+            std::string::npos);
+  EXPECT_NE(std::string(status.message())
+                .find("Core/Generated/expanded_messages.asm"),
+            std::string::npos);
+  EXPECT_EQ(std::string(status.message()).find("Core/message.asm"),
             std::string::npos);
   EXPECT_NE(std::string(status.message()).find("rebuild Oracle of Secrets"),
             std::string::npos);

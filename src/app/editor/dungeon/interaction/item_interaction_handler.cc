@@ -15,6 +15,7 @@
 namespace yaze::editor {
 
 void ItemInteractionHandler::BeginPlacement() {
+  mutation_status_ = absl::OkStatus();
   item_placement_mode_ = true;
   ClearSelection();
 }
@@ -354,7 +355,30 @@ bool ItemInteractionHandler::UpdateItem(size_t index, uint8_t type, int pixel_x,
   return true;
 }
 
+bool ItemInteractionHandler::PreflightPlacement(
+    const std::vector<zelda3::PotItem>& candidate) {
+  if (!item_placement_preflight_) {
+    return true;
+  }
+  const auto* source_context = ctx_;
+  const int room_id = ctx_->current_room_id;
+  const auto* source_room = GetCurrentRoom();
+  mutation_status_ = item_placement_preflight_(room_id, candidate);
+  if (mutation_status_.ok() &&
+      (ctx_ != source_context || !HasValidContext() ||
+       ctx_->current_room_id != room_id || GetCurrentRoom() != source_room)) {
+    mutation_status_ = absl::FailedPreconditionError(
+        "Pot-item room changed during placement preflight; repeat the "
+        "placement");
+  }
+  if (!mutation_status_.ok() && mutation_error_callback_) {
+    mutation_error_callback_(mutation_status_);
+  }
+  return mutation_status_.ok();
+}
+
 void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
+  mutation_status_ = absl::OkStatus();
   if (!HasValidContext())
     return;
 
@@ -367,13 +391,18 @@ void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
                                     std::clamp(canvas_y, 0, 511) / 8 * 8);
   if (!encoded)
     return;
-  ctx_->NotifyMutation(MutationDomain::kItems);
   zelda3::PotItem new_item;
   new_item.position = *encoded;
   new_item.item = preview_item_id_;
 
-  // Add item to room
-  room->GetPotItems().push_back(new_item);
+  auto candidate = room->GetPotItems();
+  candidate.push_back(new_item);
+  if (!PreflightPlacement(candidate)) {
+    return;
+  }
+  room = GetCurrentRoom();
+  ctx_->NotifyMutation(MutationDomain::kItems);
+  room->GetPotItems() = std::move(candidate);
   room->MarkPotItemsDirty();
 
   ctx_->NotifyInvalidateCache(MutationDomain::kItems);

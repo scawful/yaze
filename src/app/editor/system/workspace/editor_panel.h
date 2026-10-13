@@ -61,6 +61,17 @@ enum class WindowScope { kSession, kGlobal };
  * how users discover the same content. Keeping those concerns separate lets an
  * embedded tool remain available to context actions and the command palette
  * without automatically adding another row to every window browser.
+ *
+ * Pick the role by asking where a user should meet the content first:
+ * - kCoreWorkspace: the editor's primary work surface (canvas, main editor).
+ *   Visible by default. Needs an entry in FirstClassPanelAllowlist().
+ * - kEmbeddedTool: a tool that acts on the primary surface's selection or
+ *   context. It belongs in another surface (inspector section, tool tab,
+ *   canvas context-menu popup) and is not listed in the window browser.
+ * - kOptionalPopOut: a genuinely standalone window a user may choose to open
+ *   or dock (reference browsers, catalogs). Listed, hidden by default.
+ * - kDiagnostic: developer, validation, or debug tooling. Not listed;
+ *   reachable from the command palette and named host menus.
  */
 enum class WindowPresentationRole : uint8_t {
   kCoreWorkspace,
@@ -74,6 +85,20 @@ enum class WindowDefaultHost : uint8_t {
   kEmbedded,
 };
 
+inline const char* WindowPresentationRoleName(WindowPresentationRole role) {
+  switch (role) {
+    case WindowPresentationRole::kCoreWorkspace:
+      return "CoreWorkspace";
+    case WindowPresentationRole::kEmbeddedTool:
+      return "EmbeddedTool";
+    case WindowPresentationRole::kOptionalPopOut:
+      return "OptionalPopOut";
+    case WindowPresentationRole::kDiagnostic:
+      return "Diagnostic";
+  }
+  return "Unknown";
+}
+
 struct WindowPresentationPolicy {
   WindowPresentationRole role = WindowPresentationRole::kOptionalPopOut;
   WindowDefaultHost default_host = WindowDefaultHost::kWorkspace;
@@ -82,12 +107,31 @@ struct WindowPresentationPolicy {
   std::string required_capability;
   std::function<bool()> capability_condition;
 
+  /// True only when a panel author chose a role on purpose. The named factory
+  /// functions below set it; a default-constructed policy keeps the historical
+  /// listed pop-out behavior but is reported by the panel admission audit
+  /// (see panel_admission.h), which fails the unit tests.
+  bool declared = false;
+
+  /// The surface that hosts this content or triggers it, in a few words (for
+  /// example "Dungeon Workbench inspector" or "Command palette"). Required for
+  /// kEmbeddedTool and kDiagnostic so every demoted window names where users
+  /// find it instead.
+  std::string host;
+
   bool IsAdmitted() const {
     return !capability_condition || capability_condition();
   }
 
+  /// Returns a copy that names the hosting surface.
+  [[nodiscard]] WindowPresentationPolicy WithHost(std::string host_name) const {
+    WindowPresentationPolicy copy = *this;
+    copy.host = std::move(host_name);
+    return copy;
+  }
+
   static WindowPresentationPolicy CoreWorkspace() {
-    return {.role = WindowPresentationRole::kCoreWorkspace};
+    return {.role = WindowPresentationRole::kCoreWorkspace, .declared = true};
   }
 
   static WindowPresentationPolicy EmbeddedTool(
@@ -98,11 +142,12 @@ struct WindowPresentationPolicy {
         .list_in_window_browser = false,
         .allow_popout = true,
         .required_capability = std::move(capability),
+        .declared = true,
     };
   }
 
   static WindowPresentationPolicy OptionalPopOut() {
-    return {.role = WindowPresentationRole::kOptionalPopOut};
+    return {.role = WindowPresentationRole::kOptionalPopOut, .declared = true};
   }
 
   static WindowPresentationPolicy Diagnostic() {
@@ -111,6 +156,7 @@ struct WindowPresentationPolicy {
         .default_host = WindowDefaultHost::kEmbedded,
         .list_in_window_browser = false,
         .allow_popout = true,
+        .declared = true,
     };
   }
 };
@@ -290,11 +336,16 @@ class WindowContent {
   /**
    * @brief How this content is hosted and advertised by workspace chrome.
    *
-   * Optional pop-out preserves historical behavior for existing panels. New
-   * embedded and diagnostic tools should override this explicitly.
+   * Every panel must override this and return one of the named policies
+   * (CoreWorkspace, EmbeddedTool, OptionalPopOut, Diagnostic). The base
+   * implementation returns an undeclared policy that keeps the historical
+   * listed pop-out behavior, but the panel admission audit
+   * (test/unit/editor/panel_admission_test.cc) fails until the panel chooses.
+   * See docs/internal/architecture/editor-ui-module-pattern.md, "Panel
+   * admission".
    */
   virtual WindowPresentationPolicy GetPresentationPolicy() const {
-    return WindowPresentationPolicy::OptionalPopOut();
+    return WindowPresentationPolicy();
   }
 
   /**

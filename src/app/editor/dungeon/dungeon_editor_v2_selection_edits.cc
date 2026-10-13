@@ -1,9 +1,14 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
+#include <algorithm>
 #include <memory>
+#include <set>
 #include <utility>
 
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
+#include "core/dungeon_stream_layout_adapter.h"
+#include "core/features.h"
 #include "util/macro.h"
 
 namespace yaze::editor {
@@ -46,6 +51,191 @@ class DungeonSelectionAction final : public UndoAction {
 
 }  // namespace
 
+absl::Status DungeonEditorV2::PreflightDoorMutation(
+    int room_id, const std::vector<zelda3::Room::Door>& doors) {
+  const auto* room = rooms_.GetIfLoaded(room_id);
+  if (!room || room->rom() != rom_) {
+    return absl::FailedPreconditionError("Door room is not loaded");
+  }
+  auto candidate = CaptureDungeonSelectionEditState(*room);
+  candidate.doors = doors;
+  return PreflightStreamMutation(room_id, candidate, kSelectionDoors);
+}
+
+absl::Status DungeonEditorV2::PreflightSpriteMutation(
+    int room_id, const std::vector<zelda3::Sprite>& sprites) {
+  const auto* room = rooms_.GetIfLoaded(room_id);
+  if (!room || room->rom() != rom_) {
+    return absl::FailedPreconditionError("Sprite room is not loaded");
+  }
+  auto candidate = CaptureDungeonSelectionEditState(*room);
+  candidate.sprites.clear();
+  for (const auto& sprite : sprites) {
+    candidate.sprites.push_back({sprite.id(), sprite.x(), sprite.y(),
+                                 sprite.subtype(), sprite.layer(),
+                                 sprite.key_drop(), sprite.deleted()});
+  }
+  return PreflightStreamMutation(room_id, candidate, kSelectionSprites);
+}
+
+absl::Status DungeonEditorV2::PreflightStreamMutation(
+    int room_id, const DungeonSelectionEditState& candidate, uint8_t domains) {
+  const auto* original = rooms_.GetIfLoaded(room_id);
+  if (!original || original->rom() != rom_) {
+    return absl::FailedPreconditionError("Stream room is not loaded");
+  }
+  constexpr uint8_t streams =
+      kSelectionObjects | kSelectionDoors | kSelectionSprites;
+  if (!(domains & streams)) {
+    return absl::OkStatus();
+  }
+  // Compare encoded bytes: torches and blocks live outside the object stream,
+  // while doors and hidden sprite key records contribute to its true size.
+  zelda3::Room probe(room_id, rom_);
+  ApplyDungeonSelectionEditState(
+      probe, CaptureDungeonSelectionEditState(*original), streams);
+  ApplyDungeonSelectionEditState(probe, candidate, domains & streams);
+  const bool objects_changed =
+      (domains & (kSelectionObjects | kSelectionDoors)) &&
+      probe.EncodeObjects() != original->EncodeObjects();
+  const bool sprites_changed =
+      (domains & kSelectionSprites) &&
+      probe.EncodeSprites() != original->EncodeSprites();
+  if (!objects_changed && !sprites_changed) {
+    return absl::OkStatus();
+  }
+
+  uint8_t changed = objects_changed ? kSelectionObjects | kSelectionDoors : 0;
+  if (sprites_changed)
+    changed |= kSelectionSprites;
+  DungeonSelectionEditPlan edit;
+  edit.room_id = room_id;
+  edit.after = candidate;
+  edit.domains = changed;
+  ASSIGN_OR_RETURN(auto ranges, PlanPendingRoomStreamRanges({edit}));
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+        dependencies_.project->hack_manifest,
+        dependencies_.project->rom_metadata.write_policy, ranges,
+        "dungeon stream authoring", "DungeonEditorV2", nullptr));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+DungeonEditorV2::PlanPendingRoomStreamRanges(
+    const std::vector<DungeonSelectionEditPlan>& candidates) const {
+  uint8_t domains = 0;
+  std::set<int> candidate_rooms;
+  for (const auto& candidate : candidates) {
+    if (!candidate.domains)
+      continue;
+    const auto* room = rooms_.GetIfLoaded(candidate.room_id);
+    if (!room || room->rom() != rom_ ||
+        !candidate_rooms.insert(candidate.room_id).second) {
+      return absl::FailedPreconditionError(
+          "Stream candidates must identify distinct loaded rooms");
+    }
+    domains |= candidate.domains;
+  }
+  constexpr uint8_t streams =
+      kSelectionObjects | kSelectionDoors | kSelectionSprites;
+  const auto& flags = core::FeatureFlags::get().dungeon;
+  const bool objects_enabled =
+      flags.kSaveObjects || (domains & (kSelectionObjects | kSelectionDoors));
+  const bool sprites_enabled =
+      flags.kSaveSprites || (domains & kSelectionSprites);
+  bool objects_pending = domains & (kSelectionObjects | kSelectionDoors);
+  bool sprites_pending = domains & kSelectionSprites;
+  rooms_.ForEachLoaded([&](int, const zelda3::Room& room) {
+    objects_pending |= objects_enabled && (room.object_stream_dirty() ||
+                                           room.object_stream_header_dirty());
+    sprites_pending |= sprites_enabled && room.sprites_dirty();
+  });
+  std::vector<std::pair<uint32_t, uint32_t>> writes;
+  if (!objects_pending && !sprites_pending)
+    return writes;
+  if (!rom_ || !rom_->is_loaded())
+    return absl::FailedPreconditionError("ROM is not loaded");
+  std::optional<zelda3::DungeonStreamLayout> object_layout, sprite_layout;
+  const auto* project = dependencies_.project;
+  const auto load_layout = [&](core::DungeonStreamType type, bool pending,
+                               auto* result) -> absl::Status {
+    if (!pending || !project || !project->hack_manifest.loaded())
+      return absl::OkStatus();
+    const auto* layout = project->hack_manifest.GetDungeonStreamLayout(type);
+    if (layout &&
+        layout->strategy == core::DungeonWriteStrategy::kCopyOnWrite) {
+      ASSIGN_OR_RETURN(*result,
+                       core::ToDungeonStreamAllocatorLayout(type, *layout));
+    }
+    return absl::OkStatus();
+  };
+  RETURN_IF_ERROR(load_layout(core::DungeonStreamType::kObjects,
+                              objects_pending, &object_layout));
+  RETURN_IF_ERROR(load_layout(core::DungeonStreamType::kSprites,
+                              sprites_pending, &sprite_layout));
+  const auto append = [&](const auto& ranges) {
+    writes.insert(writes.end(), ranges.begin(), ranges.end());
+  };
+  // Save visits loaded rooms in ascending order. Simulate every pending stream
+  // in that same order so object/header and sprite relocations share the actual
+  // remaining space. Detached authored state never loads graphics or touches Undo.
+  Rom scratch(*rom_);
+  absl::Status status;
+  rooms_.ForEachLoaded([&](int id, const zelda3::Room& source) {
+    if (!status.ok())
+      return;
+    const auto check_room = [&]() -> absl::Status {
+      auto dirty = source.CaptureSaveDirtySnapshot();
+      const auto candidate = std::find_if(
+          candidates.begin(), candidates.end(), [id](const auto& edit) {
+            return edit.room_id == id && edit.domains;
+          });
+      const bool has_candidate = candidate != candidates.end();
+      if (has_candidate) {
+        dirty.object_stream |=
+            (candidate->domains & (kSelectionObjects | kSelectionDoors)) != 0;
+        dirty.sprites |= (candidate->domains & kSelectionSprites) != 0;
+      }
+      if (!(objects_enabled &&
+            (dirty.object_stream || dirty.object_stream_header)) &&
+          !(sprites_enabled && dirty.sprites))
+        return absl::OkStatus();
+      zelda3::Room staged(id, &scratch);
+      staged.RestoreMetadataSnapshot(source.CaptureMetadataSnapshot());
+      ApplyDungeonSelectionEditState(
+          staged, CaptureDungeonSelectionEditState(source), streams);
+      if (has_candidate)
+        ApplyDungeonSelectionEditState(staged, candidate->after,
+                                       candidate->domains);
+      staged.RestoreSaveDirtySnapshot(dirty);
+      const auto* objects = object_layout ? &*object_layout : nullptr;
+      const auto* sprites = sprite_layout ? &*sprite_layout : nullptr;
+      if (objects_enabled && dirty.object_stream) {
+        ASSIGN_OR_RETURN(auto ranges, staged.GetObjectSaveWriteRanges(objects));
+        append(ranges);
+        RETURN_IF_ERROR(staged.SaveObjects(objects));
+      }
+      if (objects_enabled && dirty.object_stream_header) {
+        ASSIGN_OR_RETURN(auto ranges,
+                         staged.GetObjectStreamHeaderSaveWriteRanges(objects));
+        append(ranges);
+        RETURN_IF_ERROR(staged.SaveObjectStreamHeader(objects));
+      }
+      if (sprites_enabled && dirty.sprites) {
+        ASSIGN_OR_RETURN(auto ranges, staged.GetSpriteSaveWriteRanges(sprites));
+        append(ranges);
+        RETURN_IF_ERROR(staged.SaveSprites(sprites));
+      }
+      return absl::OkStatus();
+    };
+    status = check_room();
+  });
+  RETURN_IF_ERROR(status);
+  return writes;
+}
+
 absl::Status DungeonEditorV2::CommitSelectionEdit(
     const DungeonSelectionEditPlan& plan, bool continuous) {
   auto* room = rooms_.GetIfLoaded(plan.room_id);
@@ -57,8 +247,10 @@ absl::Status DungeonEditorV2::CommitSelectionEdit(
   }
   if (plan.domains & kSelectionObjects) {
     RETURN_IF_ERROR(PreflightObjectMutation(plan.room_id, plan.after.objects,
-                                            plan.after.chests));
+                                            plan.after.chests, false));
   }
+  RETURN_IF_ERROR(
+      PreflightStreamMutation(plan.room_id, plan.after, plan.domains));
   if (continuous && pending_selection_undo_.plan &&
       pending_selection_undo_.plan->room_id != plan.room_id) {
     return absl::FailedPreconditionError(

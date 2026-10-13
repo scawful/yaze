@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -16,27 +17,40 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/application.h"
+#include "app/editor/core/content_registry.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/events/core_events.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/graphics_palette_preview.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/graphics/sheet_png_transfer.h"
+#include "app/editor/layout/layout_presets.h"
+#include "app/editor/palette/palette_editor.h"
+#include "app/editor/session_types.h"
+#include "app/editor/system/session/rom_lifecycle_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/gui/automation/widget_id_registry.h"
+#include "app/gui/core/color.h"
+#include "app/platform/sdl_compat.h"
 #include "core/features.h"
 #include "editor_test_support.h"
 #include "framework/mock_renderer.h"
+#include "framework/rom_save_fault.h"
 #include "gmock/gmock.h"
+#include "imgui/imgui_internal.h"
 #include "rom/snes.h"
 #include "testing.h"
 #include "unit/zelda3/gfx_sheet_test_rom.h"
 #include "util/indexed_png.h"
+#include "util/rom_hash.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/gfx_sheet_png.h"
@@ -79,6 +93,19 @@ class GraphicsEditorSaveStoplossTestPeer {
     gfx::Arena::Get().set_gfx_sheets_owner(data);
     AttachSheetStore(editor->state_, data);
   }
+  static absl::Status PaintPixel(GraphicsEditor* editor, uint8_t value) {
+    auto& state = editor->state_;
+    const auto pixels = state.game_data->sheet_store.Sheet(0);
+    std::vector<uint8_t> before(pixels.begin(), pixels.end());
+    auto after = before;
+    after[0] = value;
+    auto status = CommitSheetPixels(state, 0, after);
+    if (!status.ok())
+      return status;
+    editor->undo_manager_.Push(std::make_unique<GraphicsPixelEditAction>(
+        &state, MakeSheetPixelDiff(0, before, after), "Session pixel"));
+    return absl::OkStatus();
+  }
   // Runs the real read-back check against pixels with one index changed, so
   // every sheet the save writes fails verification.
   static void ForceVerificationMismatch(GraphicsEditor* editor) {
@@ -98,6 +125,38 @@ class GraphicsEditorSaveStoplossTestPeer {
 
 class ScreenEditorSaveStoplossTestPeer {
  public:
+  static void EditLoadedBossRoom(ScreenEditor* editor, uint16_t room) {
+    ASSERT_FALSE(editor->dungeon_maps_.empty());
+    editor->SaveDungeonMapUndoState("Edit loaded dungeon boss room");
+    editor->dungeon_maps_[0].boss_room = room;
+    editor->CommitDungeonMapUndo();
+  }
+  static uint16_t LoadedBossRoom(const ScreenEditor* editor) {
+    return editor->dungeon_maps_.at(0).boss_room;
+  }
+  static uint8_t LoadedFirstMapRoom(const ScreenEditor* editor) {
+    return editor->dungeon_maps_.at(0).floor_rooms.at(0).at(0);
+  }
+  static void EditLoadedFirstMapRoom(ScreenEditor* editor, uint8_t room) {
+    ASSERT_TRUE(editor->IsRomBackedStateValid());
+    ASSERT_EQ(editor->dungeon_maps_.size(), zelda3::kNumDungeons);
+    ASSERT_EQ(editor->dungeon_maps_[0].floor_rooms.size(), 1u);
+    editor->selected_dungeon = 0;
+    editor->floor_number = 0;
+    editor->SaveDungeonMapUndoState("Edit loaded dungeon map room");
+    editor->dungeon_maps_[0].floor_rooms[0][0] = room;
+    editor->dungeon_maps_[0].floor_gfx[0][0] = 0;
+    editor->CommitDungeonMapUndo();
+  }
+  static void StartUnfinishedDungeonMapEdit(ScreenEditor* editor) {
+    editor->selected_dungeon = 0;
+    editor->SaveDungeonMapUndoState("Unfinished dungeon map edit");
+  }
+  static void CancelUnfinishedDungeonMapEdit(ScreenEditor* editor) {
+    editor->has_pending_dungeon_undo_ = false;
+    editor->pending_dungeon_desc_.clear();
+  }
+
   struct BitmapOwners {
     zelda3::Inventory* inventory = nullptr;
     gfx::Bitmap* inventory_bitmap = nullptr;
@@ -588,6 +647,31 @@ void WriteScreenModelTestRom(const std::filesystem::path& path,
   ASSERT_TRUE(out.good());
 }
 
+void WriteAdmissibleScreenMapTestRom(const std::filesystem::path& path,
+                                     const std::string& title) {
+  WriteScreenModelTestRom(path, title);
+  // The expanded map layout reads Tile16 at PC 0x109010, beyond 1 MiB.
+  std::filesystem::resize_file(path, 2 * 1024 * 1024);
+  WriteByteAt(path, zelda3::kDungeonMapExpCheck, 0x20);
+  // One real floor with one room; all fourteen maps have a valid no-boss
+  // sentinel. The remaining thirteen maps intentionally have zero floors.
+  for (int dungeon = 0; dungeon < zelda3::kNumDungeons; ++dungeon) {
+    WriteWordAt(path, zelda3::kDungeonMapBossRooms + dungeon * 2, 0xFFFF);
+  }
+  WriteByteAt(path, zelda3::kDungeonMapFloors, 0x10);
+  const uint16_t room_ptr =
+      static_cast<uint16_t>(PcToSnes(zelda3::kDungeonMapDataStart));
+  const uint16_t gfx_ptr = static_cast<uint16_t>(
+      PcToSnes(zelda3::kDungeonMapDataStart + zelda3::kNumRooms));
+  WriteWordAt(path, zelda3::kDungeonMapRoomsPtr, room_ptr);
+  WriteWordAt(path, zelda3::kDungeonMapGfxPtr, gfx_ptr);
+  WriteByteAt(path, zelda3::kDungeonMapDataStart, 0x01);
+  for (int room = 1; room < zelda3::kNumRooms; ++room) {
+    WriteByteAt(path, zelda3::kDungeonMapDataStart + room, 0x0F);
+  }
+  WriteByteAt(path, zelda3::kDungeonMapDataStart + zelda3::kNumRooms, 0x00);
+}
+
 void WriteTooSmallForAssetsTestRom(const std::filesystem::path& path) {
   std::vector<uint8_t> rom_data(512 * 1024, 0x00);
   const std::string title = "INVALID ASSET ROM";
@@ -698,6 +782,162 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldExits = false;
   o.kSaveOverworldItems = false;
   o.kSaveOverworldProperties = false;
+}
+
+class RomLifecycleRebindPolicyTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    root_ = MakeTempFilePath("yaze_rebind_policy");
+    std::filesystem::create_directories(root_ / "Roms");
+    std::filesystem::create_directories(root_ / "Other");
+    development_ = root_ / "Roms" / "dev.sfc";
+    alternate_ = root_ / "Other" / "dev.sfc";
+    output_ = root_ / "Roms" / "devx.sfc";
+    for (const auto& path : {development_, alternate_, output_}) {
+      WriteTestRom(path);
+    }
+    ASSERT_OK(rom_.LoadFromFile(development_.string()));
+    project_.name = "Rebind Policy";
+    project_.filepath = (root_ / "project.yaze").string();
+    project_.rom_filename = development_.string();
+    project_.build_target = output_.string();
+    project_.rom_metadata.expected_hash = "unchanged expectation";
+    lifecycle_.SetProjectContext(&project_);
+  }
+
+  void TearDown() override {
+    std::error_code ec;
+    std::filesystem::remove_all(root_, ec);
+  }
+
+  void LoadManifest() {
+    ASSERT_OK(project_.hack_manifest.LoadFromString(R"json({
+      "manifest_version": 2,
+      "hack_name": "Rebind Policy",
+      "build_pipeline": {
+        "dev_rom": "Roms/dev.sfc",
+        "patched_rom": "Roms/devx.sfc"
+      }
+    })json"));
+  }
+
+  std::filesystem::path root_, development_, alternate_, output_;
+  project::YazeProject project_;
+  Rom rom_;
+  RomLifecycleManager lifecycle_;
+};
+
+TEST_F(RomLifecycleRebindPolicyTest, NoFixedManifestRetainsGenericRebind) {
+  rom_.set_filename(alternate_.string());
+  for (const auto policy :
+       {project::RomWritePolicy::kBlock, project::RomWritePolicy::kWarn,
+        project::RomWritePolicy::kAllow}) {
+    project_.rom_metadata.write_policy = policy;
+    EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+  }
+  ASSERT_OK(project_.hack_manifest.LoadFromString(
+      R"json({"manifest_version":2,"hack_name":"No fixed development ROM"})json"));
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+}
+
+TEST_F(RomLifecycleRebindPolicyTest, GuardedManifestRequiresExactBackingFile) {
+  LoadManifest();
+  for (const auto policy :
+       {project::RomWritePolicy::kBlock, project::RomWritePolicy::kWarn}) {
+    project_.rom_metadata.write_policy = policy;
+    rom_.set_filename(development_.string());
+    EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+    // Same basename and byte-identical content are not the same backing file.
+    rom_.set_filename(alternate_.string());
+    const auto status = lifecycle_.CheckRomRebindPolicy(&rom_);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_NE(status.message().find("Project source binding"),
+              absl::string_view::npos);
+    EXPECT_NE(status.message().find(development_.string()),
+              absl::string_view::npos);
+    EXPECT_NE(status.message().find(alternate_.string()),
+              absl::string_view::npos);
+    EXPECT_FALSE(lifecycle_.IsRomWriteConfirmPending());
+    EXPECT_EQ(project_.rom_filename, development_.string());
+    EXPECT_EQ(project_.rom_metadata.expected_hash, "unchanged expectation");
+  }
+}
+
+TEST_F(RomLifecycleRebindPolicyTest, GuardedManifestAcceptsEquivalentAliases) {
+  LoadManifest();
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  rom_.set_filename((root_ / "Roms" / "." / "dev.sfc").string());
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+
+  const auto hard_alias = root_ / "hard-alias.sfc";
+  std::filesystem::create_hard_link(development_, hard_alias);
+  rom_.set_filename(hard_alias.string());
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+#ifndef _WIN32
+  const auto symlink_alias = root_ / "symlink-alias.sfc";
+  std::filesystem::create_symlink(development_, symlink_alias);
+  rom_.set_filename(symlink_alias.string());
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+#endif
+}
+
+#ifndef _WIN32
+TEST_F(RomLifecycleRebindPolicyTest,
+       ManifestSymlinkKeepsCanonicalBindingWritable) {
+  const auto manifest_alias = root_ / "Roms" / "manifest-dev-alias.sfc";
+  std::filesystem::create_symlink(development_, manifest_alias);
+  ASSERT_OK(project_.hack_manifest.LoadFromString(R"json({
+    "manifest_version": 2,
+    "hack_name": "Rebind Policy",
+    "build_pipeline": {
+      "dev_rom": "Roms/manifest-dev-alias.sfc",
+      "patched_rom": "Roms/devx.sfc"
+    }
+  })json"));
+  // Swap binds the accepted alias to the canonical development-ROM path.
+  rom_.set_filename(std::filesystem::canonical(manifest_alias).string());
+  project_.rom_filename = rom_.filename();
+  RomSession session(std::move(rom_));
+  ASSERT_TRUE(session.rom_baseline.has_value());
+  lifecycle_.ActivateRomIdentity(&session);
+  ASSERT_FALSE(lifecycle_.current_rom_hash().empty());
+  const std::string expected_hash =
+      lifecycle_.current_rom_hash() == "00000000" ? "ffffffff" : "00000000";
+  project_.rom_metadata.expected_hash = expected_hash;
+  ASSERT_EQ(session.rom_baseline->hashes.Match(expected_hash),
+            util::RomHashMatch::kMismatch);
+
+  for (const auto policy :
+       {project::RomWritePolicy::kBlock, project::RomWritePolicy::kWarn}) {
+    project_.rom_metadata.write_policy = policy;
+    EXPECT_OK(lifecycle_.CheckRomRebindPolicy(&session.rom));
+    EXPECT_OK(lifecycle_.CheckRomWritePolicy(&session.rom));
+    EXPECT_FALSE(lifecycle_.IsRomHashMismatch());
+    EXPECT_FALSE(lifecycle_.IsRomWriteConfirmPending());
+  }
+  EXPECT_EQ(project_.rom_metadata.expected_hash, expected_hash);
+  EXPECT_EQ(project_.hack_manifest.build_pipeline().dev_rom,
+            "Roms/manifest-dev-alias.sfc");
+}
+#endif
+
+TEST_F(RomLifecycleRebindPolicyTest,
+       OutputProtectionAndAllowPolicyAreUnchanged) {
+  LoadManifest();
+  rom_.set_filename(output_.string());
+  for (const auto policy :
+       {project::RomWritePolicy::kBlock, project::RomWritePolicy::kWarn}) {
+    project_.rom_metadata.write_policy = policy;
+    const auto status = lifecycle_.CheckRomRebindPolicy(&rom_);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_NE(status.message().find("build output"), absl::string_view::npos);
+  }
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+  rom_.set_filename(alternate_.string());
+  EXPECT_TRUE(lifecycle_.CheckRomRebindPolicy(&rom_).ok());
+  EXPECT_EQ(project_.rom_metadata.expected_hash, "unchanged expectation");
 }
 
 TEST(EditorManagerBackingFileIdentityTest,
@@ -1928,6 +2168,7 @@ TEST(EditorManagerRomWritePolicyTest, SaveRomAsRefreshesLifecycleHashAndPath) {
   project->rom_filename = source_path.string();
   project->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
   project->rom_metadata.expected_hash = manager->GetCurrentRomHash();
+  const std::string expected_hash = project->rom_metadata.expected_hash;
   EXPECT_FALSE(manager->IsRomHashMismatch());
 
   Rom* rom = manager->GetCurrentRom();
@@ -1936,7 +2177,15 @@ TEST(EditorManagerRomWritePolicyTest, SaveRomAsRefreshesLifecycleHashAndPath) {
   ASSERT_OK(manager->SaveRomAs(target_path.string()));
 
   EXPECT_EQ(rom->filename(), target_path.string());
-  EXPECT_TRUE(manager->IsRomHashMismatch());
+  // Our Save As retains the canonical editing-source exemption, while the
+  // baseline hash follows committed bytes and the project expectation stays put.
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  EXPECT_NE(manager->GetCurrentRomHash(), expected_hash);
+  EXPECT_EQ(project->rom_metadata.expected_hash, expected_hash);
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(target_path.string()));
+  EXPECT_EQ(manager->GetCurrentRomHash(),
+            util::ComputeRomHash(reopened.data(), reopened.size()));
 }
 
 TEST(EditorManagerRomWritePolicyTest,
@@ -1990,7 +2239,7 @@ TEST(EditorManagerRomWritePolicyTest,
 }
 
 TEST(EditorManagerRomWritePolicyTest,
-     CancellingLaterPromptConsumesHashConfirmationBypass) {
+     EnabledPotScopeWithoutEditsDoesNotAddUnloadedRoomPrompt) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -2025,18 +2274,10 @@ TEST(EditorManagerRomWritePolicyTest,
 
   EXPECT_TRUE(absl::IsCancelled(manager->SaveRomAs(target_path.string())));
   manager->ConfirmRomWrite();
-  EXPECT_TRUE(absl::IsCancelled(manager->ResumePendingRomSave()));
-  EXPECT_TRUE(manager->HasPendingPotItemSaveConfirmation());
-
-  manager->ResolvePotItemSaveConfirmation(
-      EditorManager::PotItemSaveDecision::kCancel);
-  core::FeatureFlags::get().dungeon.kSavePotItems = false;
-
-  const auto retry = manager->SaveRom();
-  EXPECT_TRUE(absl::IsCancelled(retry)) << retry;
-  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  ASSERT_OK(manager->ResumePendingRomSave());
+  EXPECT_FALSE(manager->HasPendingPotItemSaveConfirmation());
   EXPECT_EQ(ReadByteAt(source_path, 0x1234), 0x00);
-  EXPECT_FALSE(std::filesystem::exists(target_path));
+  EXPECT_EQ(ReadByteAt(target_path, 0x1234), 0xA5);
 }
 
 TEST(EditorManagerRomWritePolicyTest,
@@ -2549,10 +2790,15 @@ void ExpectRelocatedSheetSurvivesSave(EditorManager* manager, uint16_t sheet_id,
   sheet.set_data(edited);
   GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, sheet_id);
 
-  std::ifstream before_in(rom_path, std::ios::binary);
-  const std::vector<uint8_t> disk_before(
-      (std::istreambuf_iterator<char>(before_in)),
-      std::istreambuf_iterator<char>());
+  // Close the read handle before manager->SaveRom() replaces rom_path below:
+  // on Windows an open handle without FILE_SHARE_DELETE blocks the atomic
+  // move of the saved ROM into place.
+  std::vector<uint8_t> disk_before;
+  {
+    std::ifstream before_in(rom_path, std::ios::binary);
+    disk_before.assign((std::istreambuf_iterator<char>(before_in)),
+                       std::istreambuf_iterator<char>());
+  }
   auto plan = graphics->PlanGraphicsSave();
   ASSERT_TRUE(plan.ok()) << plan.status();
   ASSERT_EQ(plan->size(), 1u);
@@ -2973,6 +3219,8 @@ TEST(ScreenSaveStoplossTest,
                                               : "full replacement");
     manager->SetAssetLoadMode(mode);
     WriteScreenModelTestRom(rom_path, "AFTER SCREEN RELOAD");
+    // This successful-save fixture uses the supported vanilla Tile16 layout.
+    WriteByteAt(rom_path, zelda3::kDungeonMapExpCheck, 0xB9);
     WriteByteAt(rom_path, zelda3::kDungeonMapFloors, kReplacementFloorByte);
     for (int dungeon = 0; dungeon < zelda3::kNumDungeons; ++dungeon) {
       WriteWordAt(rom_path, zelda3::kDungeonMapBossRooms + (dungeon * 2),
@@ -3011,7 +3259,7 @@ TEST(ScreenSaveStoplossTest,
 }
 
 TEST(ScreenSaveStoplossTest,
-     FailedRomReplacementRefreshesLoadedScreenAfterRollback) {
+     FailedRomReplacementPreservesLoadedScreenAfterAssetFailure) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -3042,8 +3290,8 @@ TEST(ScreenSaveStoplossTest,
       ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0;
   Rom* const rom_before = manager->GetCurrentRom();
 
-  // This ROM passes the 512 KiB file gate but cannot load palettes,
-  // forcing ReplaceActiveSessionRom through its in-place rollback path.
+  // This ROM passes the 512 KiB file gate but cannot load palettes. A failed
+  // replacement must leave the loaded screen usable, including bitmap owners.
   WriteTooSmallForAssetsTestRom(rom_path);
   const auto reload_status = manager->ReloadProjectRom();
   EXPECT_EQ(reload_status.code(), absl::StatusCode::kOutOfRange)
@@ -3166,7 +3414,9 @@ TEST(ScreenSaveStoplossTest,
     EXPECT_EQ(autosave_status.code(), absl::StatusCode::kFailedPrecondition)
         << autosave_status;
     EXPECT_NE(std::string(autosave_status.message())
-                  .find("Screen Editor edits are pending"),
+                  .find(domain == PendingDomain::kDungeonMap
+                            ? "ROM-backed state is invalid"
+                            : "unsupported domains"),
               std::string::npos);
 
     auto* session = manager->session_coordinator()->GetActiveRomSession();
@@ -3188,12 +3438,14 @@ TEST(ScreenSaveStoplossTest,
 
       EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition)
           << save_status;
-      EXPECT_NE(std::string(save_status.message())
-                    .find("Screen Editor edits are pending"),
-                std::string::npos);
-      EXPECT_NE(std::string(save_status.message())
-                    .find(screen_scope_enabled ? "enabled" : "disabled"),
-                std::string::npos);
+      const std::string save_message(save_status.message());
+      if (domain == PendingDomain::kDungeonMap) {
+        // This peer marks a map pending without loading valid ROM-backed
+        // Screen assets. Enabling map writes must not admit that model.
+        EXPECT_NE(save_message.find("ROM-backed state"), std::string::npos);
+      } else {
+        EXPECT_NE(save_message.find("unsupported domains"), std::string::npos);
+      }
       EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), 0x00);
       ASSERT_TRUE(rom->ReadByte(kPcOffset).ok());
       EXPECT_EQ(*rom->ReadByte(kPcOffset), kPendingRomByte);
@@ -3218,6 +3470,220 @@ TEST(ScreenSaveStoplossTest, DirectEditorSaveFailsClosedForEveryDomain) {
     const auto status = editor.Save();
     EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
   }
+}
+
+class ScreenMapSaveAdmissionTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    root_ = MakeTempFilePath("yaze_screen_map_save_admission");
+    ASSERT_TRUE(std::filesystem::create_directories(root_));
+    source_ = root_ / "source.sfc";
+    const auto project_path = root_ / "source.yaze";
+    WriteAdmissibleScreenMapTestRom(source_, "MAP SAVE ADMISSION");
+    WriteTestProject(project_path, source_);
+    manager_ = std::make_unique<EditorManager>();
+    InitializeWithIsolatedSettings(*manager_, &renderer_);
+    manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager_->user_settings().prefs().backup_before_save = false;
+    ASSERT_OK(manager_->OpenRomOrProject(project_path.string()));
+    DisableRomWritesForTest();
+    core::FeatureFlags::get().kSaveDungeonMaps = true;
+    auto* project = manager_->GetCurrentProject();
+    ASSERT_NE(project, nullptr);
+    project->workspace_settings.backup_on_save = false;
+    project->rom_metadata.expected_hash.clear();
+    project->feature_flags = core::FeatureFlags::get();
+    auto* session = manager_->session_coordinator()->GetActiveRomSession();
+    ASSERT_NE(session, nullptr);
+    session->feature_flags = core::FeatureFlags::get();
+    ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kScreen));
+    screen_ = manager_->GetCurrentEditorSet()->GetScreenEditor();
+    ASSERT_NE(screen_, nullptr);
+    ASSERT_TRUE(screen_->IsRomBackedStateValid());
+    ASSERT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen_), 14u);
+    ASSERT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(screen_),
+              0x01);
+  }
+
+  void TearDown() override {
+    manager_.reset();
+    std::error_code ec;
+    std::filesystem::remove_all(root_, ec);
+  }
+
+  void EditFirstRoom() {
+    ScreenEditorSaveStoplossTestPeer::EditLoadedFirstMapRoom(screen_, 0x02);
+    ASSERT_TRUE(screen_->HasPendingDungeonMapChanges());
+    ASSERT_TRUE(screen_->CanUndo());
+  }
+
+  FeatureFlagsGuard flags_;
+  ScopedImGuiContext imgui_;
+  gfx::NullRenderer renderer_;
+  std::unique_ptr<EditorManager> manager_;
+  std::filesystem::path root_;
+  std::filesystem::path source_;
+  ScreenEditor* screen_ = nullptr;
+};
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       MapOnlySaveAsReopensAndUndoAfterCommitCanBeSavedAgain) {
+  EditFirstRoom();
+  const auto source_hash = util::ComputeFileSha1Hex(source_.string());
+  const auto destination = root_ / "saved.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_EQ(util::ComputeFileSha1Hex(source_.string()), source_hash);
+  EXPECT_EQ(ReadByteAt(destination, zelda3::kDungeonMapDataStart), 0x02);
+  EXPECT_FALSE(screen_->HasPendingDungeonMapChanges());
+  ASSERT_TRUE(screen_->CanUndo());
+  ASSERT_OK(screen_->Undo());
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(screen_),
+            0x01);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  ASSERT_OK(screen_->Redo());
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(screen_),
+            0x02);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_FALSE(screen_->HasPendingDungeonMapChanges());
+
+  manager_.reset();
+  auto reopened = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kScreen));
+  auto* fresh_screen = reopened->GetCurrentEditorSet()->GetScreenEditor();
+  ASSERT_NE(fresh_screen, nullptr);
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(fresh_screen),
+            0x02);
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       DirectSaveKeepsMapPendingUntilCoordinatedFileCommit) {
+  EditFirstRoom();
+  ASSERT_OK(screen_->Save());
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x01);
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x02);
+  EXPECT_FALSE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       FailedFileCommitPreservesMapModelHistoryAndPendingForRetry) {
+  EditFirstRoom();
+  const auto memory_before = manager_->GetCurrentRom()->vector();
+  {
+    test::ScopedRomStagingFailure fault;
+    const auto failed = manager_->SaveRom();
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x01);
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), memory_before);
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedFirstMapRoom(screen_),
+            0x02);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x02);
+  EXPECT_FALSE(screen_->HasPendingDungeonMapChanges());
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       DisabledMixedAndUnfinishedMapEditsAreRefusedBeforeWriting) {
+  EditFirstRoom();
+  core::FeatureFlags::get().kSaveDungeonMaps = false;
+  const auto disabled = manager_->SaveRom();
+  EXPECT_EQ(disabled.code(), absl::StatusCode::kFailedPrecondition) << disabled;
+  EXPECT_NE(disabled.message().find("disabled"), absl::string_view::npos);
+  core::FeatureFlags::get().kSaveDungeonMaps = true;
+
+  ScreenEditorSaveStoplossTestPeer::MarkDungeonMapTile16Modified(screen_);
+  const auto mixed = manager_->SaveRom();
+  EXPECT_EQ(mixed.code(), absl::StatusCode::kFailedPrecondition) << mixed;
+  EXPECT_NE(mixed.message().find("unsupported domains"),
+            absl::string_view::npos);
+  ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(screen_);
+  ScreenEditorSaveStoplossTestPeer::EditLoadedFirstMapRoom(screen_, 0x03);
+  ScreenEditorSaveStoplossTestPeer::StartUnfinishedDungeonMapEdit(screen_);
+  const auto unfinished = manager_->SaveRom();
+  EXPECT_EQ(unfinished.code(), absl::StatusCode::kFailedPrecondition)
+      << unfinished;
+  EXPECT_NE(unfinished.message().find("Finish the current"),
+            absl::string_view::npos);
+  ScreenEditorSaveStoplossTestPeer::CancelUnfinishedDungeonMapEdit(screen_);
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x01);
+  EXPECT_TRUE(screen_->CanUndo());
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       ChangedRomRefusesAndManagerRestoresGameDataOwner) {
+  EditFirstRoom();
+  auto* original_rom = manager_->GetCurrentRom();
+  auto* original_data = manager_->GetCurrentGameData();
+  const auto memory_before = original_rom->vector();
+  const auto source_hash = util::ComputeFileSha1Hex(source_.string());
+  Rom other_rom;
+  ASSERT_OK(other_rom.LoadFromFile(source_.string()));
+  screen_->set_rom(&other_rom);
+  const auto wrong_rom = manager_->SaveRom();
+  EXPECT_EQ(wrong_rom.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(wrong_rom.message().find("current ROM session"),
+            absl::string_view::npos);
+  screen_->set_rom(original_rom);
+  zelda3::GameData other_data;
+  screen_->SetGameData(&other_data);
+  const auto wrong_data = screen_->Save();
+  EXPECT_EQ(wrong_data.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(wrong_data.message().find("current ROM session"),
+            absl::string_view::npos);
+  EXPECT_EQ(original_rom->vector(), memory_before);
+  EXPECT_EQ(util::ComputeFileSha1Hex(source_.string()), source_hash);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+  // Project-save preparation rebinds the active session's dependencies before
+  // Screen Editor preflight, repairing the stale GameData pointer above.
+  ASSERT_OK(manager_->SaveRom());
+  EXPECT_EQ(screen_->game_data(), original_data);
+  EXPECT_FALSE(screen_->HasPendingScreenChanges());
+}
+
+TEST_F(ScreenMapSaveAdmissionTest,
+       ManifestConflictBlocksMapSaveWithAndWithoutBackingFile) {
+  EditFirstRoom();
+  auto* project = manager_->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  ASSERT_OK(project->hack_manifest.LoadFromString(R"json({
+    "manifest_version": 3,
+    "protected_regions": {"regions": [
+      {"start": "0x0AF039", "end": "0x0AF03A", "module": "Map hook"}
+    ]}
+  })json"));
+  const auto blocked = manager_->SaveRom();
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kCancelled) << blocked;
+  EXPECT_FALSE(manager_->pending_write_conflicts().empty());
+  EXPECT_EQ(ReadByteAt(source_, zelda3::kDungeonMapDataStart), 0x01);
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
+
+  // With the original ROM file absent, diffing cannot identify changed
+  // bytes. The preflight map plan must still protect the same ASM-owned cell.
+  manager_->ClearPendingWriteConflicts();
+  ASSERT_TRUE(std::filesystem::remove(source_));
+  const auto destination = root_ / "blocked-without-source.sfc";
+  const auto fallback_blocked = manager_->SaveRomAs(destination.string());
+  EXPECT_EQ(fallback_blocked.code(), absl::StatusCode::kCancelled)
+      << fallback_blocked;
+  EXPECT_FALSE(manager_->pending_write_conflicts().empty());
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  EXPECT_TRUE(screen_->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(screen_->CanUndo());
 }
 
 TEST(ScreenSaveStoplossTest,
@@ -3487,6 +3953,1136 @@ TEST(EditorManagerFileLifecycleTest, RevertCleanRomPicksUpDiskChanges) {
   ASSERT_TRUE(reverted->ReadByte(0x2000).ok());
   EXPECT_EQ(*reverted->ReadByte(0x2000), 0x5A);
   EXPECT_FALSE(reverted->dirty());
+}
+
+// These exercise the product lifecycle with strict hash gating. Serializer
+// opt-outs isolate raw-byte edits; the screen-model test retains its existing
+// save refusal. Every file and project context belongs to this fixture.
+class SessionRomIdentityTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    root = MakeTempFilePath("yaze_session_identity");
+    ASSERT_TRUE(std::filesystem::create_directories(root));
+    a = root / "A.sfc";
+    b = root / "B.sfc";
+    WriteScreenModelTestRom(a, "IDENTITY A");
+    WriteScreenModelTestRom(b, "IDENTITY B");
+    manager = std::make_unique<EditorManager>();
+    InitializeWithIsolatedSettings(*manager, &renderer);
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    manager->user_settings().prefs().backup_before_save = false;
+    ASSERT_OK(manager->OpenRomOrProject(a.string()));
+    StrictProject();
+    ASSERT_OK(manager->OpenRomOrProject(b.string()));
+    StrictProject();
+    Switch(0);
+  }
+
+  void TearDown() override {
+    manager.reset();
+    std::error_code ec;
+    std::filesystem::remove_all(root, ec);
+  }
+
+  void StrictProject() {
+    DisableRomWritesForTest();
+    core::FeatureFlags::get().kSaveAllPalettes = false;
+    core::FeatureFlags::get().kSaveGfxGroups = false;
+    auto* project = manager->GetCurrentProject();
+    project->name = "Strict identity";
+    project->filepath =
+        (root /
+         ("strict-" + std::to_string(manager->GetCurrentSessionId()) + ".yaze"))
+            .string();
+    // Explicitly avoid the editable-target exemption.
+    project->rom_filename = (root / "different-edit-target.sfc").string();
+    project->workspace_settings.backup_on_save = false;
+    project->feature_flags = core::FeatureFlags::get();
+    project->rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+    project->rom_metadata.expected_hash = manager->GetCurrentRomHash();
+    ASSERT_FALSE(manager->IsRomHashMismatch());
+  }
+
+  void Switch(size_t index) {
+    manager->SwitchToSession(index);
+    if (manager->HasPendingUnsavedSessionAction()) {
+      EXPECT_EQ(manager->GetPendingUnsavedSessionActionContinueLabel(),
+                "Switch Without Saving");
+      manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+    }
+    ASSERT_EQ(manager->GetCurrentSessionIndex(), index);
+  }
+
+  RomSession* Session() {
+    return manager->session_coordinator()->GetActiveRomSession();
+  }
+
+  void ExpectBaseline(const RomBaselineIdentity& baseline) {
+    ASSERT_TRUE(Session()->rom_baseline.has_value());
+    const auto& actual = *Session()->rom_baseline;
+    EXPECT_EQ(actual.normalized_path, baseline.normalized_path);
+    EXPECT_EQ(actual.editing_source_path, baseline.editing_source_path);
+    EXPECT_EQ(actual.hashes.crc32, baseline.hashes.crc32);
+    EXPECT_EQ(actual.hashes.legacy_crc32, baseline.hashes.legacy_crc32);
+    EXPECT_EQ(actual.hashes.sha1, baseline.hashes.sha1);
+    EXPECT_EQ(manager->GetCurrentRomHash(), baseline.hashes.crc32);
+  }
+
+  void CheckFailedRevertPreservesScreenModelAndUndo() {
+
+    ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kScreen));
+    auto* screen = manager->GetCurrentEditorSet()->GetScreenEditor();
+    ASSERT_NE(screen, nullptr);
+    const auto baseline = *Session()->rom_baseline;
+    const auto raw = manager->GetCurrentRom()->vector();
+    const uint16_t before =
+        ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen);
+    ASSERT_NE(before, 0x0123);
+    ScreenEditorSaveStoplossTestPeer::EditLoadedBossRoom(screen, 0x0123);
+    ASSERT_TRUE(screen->HasPendingScreenChanges());
+    ASSERT_TRUE(screen->CanUndo());
+    const auto undo_description = screen->GetUndoDescription();
+    EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
+
+    WriteTooSmallForAssetsTestRom(a);
+    const auto disk_hash = util::ComputeFileSha1Hex(a.string());
+    ASSERT_OK(manager->RevertRomToSaved());
+    ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+    manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+    EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+    const auto* toast = manager->toast_manager()->GetPendingToast(
+        manager->toast_manager()->pending_count() - 1);
+    ASSERT_NE(toast, nullptr);
+    EXPECT_EQ(toast->type, ToastType::kError);
+    EXPECT_NE(toast->message.find("Revert failed:"), std::string::npos);
+    EXPECT_NE(toast->message.find("palette"), std::string::npos);
+    ExpectBaseline(baseline);
+    EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
+    EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), disk_hash);
+    EXPECT_EQ(manager->GetCurrentEditorSet()->GetScreenEditor(), screen);
+    EXPECT_TRUE(screen->HasPendingScreenChanges());
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), 0x0123);
+    EXPECT_EQ(screen->GetUndoDescription(), undo_description);
+    ASSERT_TRUE(screen->CanUndo());
+    ASSERT_OK(screen->Undo());
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), before);
+    ASSERT_OK(screen->Redo());
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), 0x0123);
+  }
+
+  FeatureFlagsGuard flags;
+  ScopedImGuiContext imgui;
+  gfx::NullRenderer renderer;
+  std::unique_ptr<EditorManager> manager;
+  std::filesystem::path root, a, b;
+};
+
+TEST_F(SessionRomIdentityTest, SwitchedRawEditSavesAndFreshReopens) {
+  const auto baseline = *Session()->rom_baseline;
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto bytes = manager->GetCurrentRom()->vector();
+  Switch(1);
+  Switch(0);
+  ExpectBaseline(baseline);
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  ASSERT_OK(manager->SaveRom());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(a.string()));
+  EXPECT_EQ(reopened.vector(), bytes);
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+  EXPECT_EQ(manager->GetCurrentRomHash(),
+            util::ComputeRomHash(reopened.data(), reopened.size()));
+  EXPECT_EQ(Session()->rom_baseline->normalized_path, a.string());
+  EXPECT_EQ(manager->GetCurrentProject()->rom_metadata.expected_hash,
+            baseline.hashes.crc32);
+}
+
+TEST_F(SessionRomIdentityTest, SwitchedRawEditSaveAsRebindsOnlyAfterCommit) {
+  const auto baseline = *Session()->rom_baseline;
+  const auto source_hash = util::ComputeFileSha1Hex(a.string());
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto bytes = manager->GetCurrentRom()->vector();
+  Switch(1);
+  Switch(0);
+  ExpectBaseline(baseline);
+  const auto destination = root / "saved.sfc";
+  ASSERT_OK(manager->SaveRomAs(destination.string()));
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(destination.string()));
+  EXPECT_EQ(reopened.vector(), bytes);
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), source_hash);
+  const auto committed = *Session()->rom_baseline;
+  EXPECT_EQ(committed.normalized_path, destination.string());
+  EXPECT_EQ(committed.hashes.crc32,
+            util::ComputeRomHash(reopened.data(), reopened.size()));
+  EXPECT_EQ(manager->GetCurrentProject()->rom_metadata.expected_hash,
+            baseline.hashes.crc32);
+  // The committed identity must survive another edit/activation unchanged.
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1235, 0x72));
+  Switch(1);
+  Switch(0);
+  ExpectBaseline(committed);
+}
+
+TEST_F(SessionRomIdentityTest,
+       EditableSaveAsRetainsSourceAcrossFailureSwitchAndRepeatedSaves) {
+  auto* project = manager->GetCurrentProject();
+  project->rom_filename = a.string();
+  project->build_target = (root / "patched.sfc").string();
+  const auto expected_hash = project->rom_metadata.expected_hash;
+  const auto project_path = project->filepath;
+  const auto source_hash = util::ComputeFileSha1Hex(a.string());
+  const auto first = root / "first.sfc";
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  ASSERT_OK(manager->SaveRomAs(first.string()));
+  const auto committed = *Session()->rom_baseline;
+  EXPECT_EQ(committed.normalized_path, first.string());
+  EXPECT_EQ(committed.editing_source_path, a.string());
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1235, 0x72));
+  const auto pending = manager->GetCurrentRom()->vector();
+  const auto first_hash = util::ComputeFileSha1Hex(first.string());
+  const auto second = root / "second.sfc";
+  {
+    test::ScopedRomStagingFailure fault;
+    const auto failed = manager->SaveRomAs(second.string());
+    EXPECT_FALSE(failed.ok());
+    EXPECT_NE(failed.message().find("staging failure injected for testing"),
+              absl::string_view::npos)
+        << failed;
+  }
+  ExpectBaseline(committed);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), pending);
+  EXPECT_TRUE(manager->GetCurrentRom()->dirty());
+  EXPECT_FALSE(std::filesystem::exists(second));
+  EXPECT_EQ(util::ComputeFileSha1Hex(first.string()), first_hash);
+  Switch(1);
+  EXPECT_EQ(Session()->rom_baseline->editing_source_path, b.string());
+  Switch(0);
+  ExpectBaseline(committed);
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  ASSERT_OK(manager->SaveRomAs(second.string()));
+  EXPECT_EQ(Session()->rom_baseline->editing_source_path, a.string());
+  EXPECT_EQ(Session()->rom_baseline->normalized_path, second.string());
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1236, 0x31));
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_EQ(ReadByteAt(second, 0x1236), 0x31);
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), source_hash);
+  EXPECT_EQ(project->rom_metadata.expected_hash, expected_hash);
+  EXPECT_EQ(project->filepath, project_path);
+
+  // The session's own Save As does not authorize writing a build output.
+  const auto saved = *Session()->rom_baseline;
+  const auto blocked = manager->SaveRomAs(project->build_target);
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kPermissionDenied) << blocked;
+  EXPECT_NE(blocked.message().find("build output"), absl::string_view::npos);
+  EXPECT_FALSE(std::filesystem::exists(project->build_target));
+  ExpectBaseline(saved);
+  // Changing the configured editable target also removes this exemption.
+  project->rom_filename = (root / "different-edit-target.sfc").string();
+  EXPECT_TRUE(manager->IsRomHashMismatch());
+  EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kPermissionDenied);
+  ExpectBaseline(saved);
+}
+
+TEST_F(SessionRomIdentityTest,
+       HashMatchedForeignSaveDoesNotAcquireEditableSource) {
+  // StrictProject deliberately configures a different editable target. A hash
+  // match permits the first save but must not turn it into a trusted lineage.
+  const auto expected_hash =
+      manager->GetCurrentProject()->rom_metadata.expected_hash;
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto first = root / "foreign-copy.sfc";
+  ASSERT_OK(manager->SaveRomAs(first.string()));
+  EXPECT_TRUE(manager->IsRomHashMismatch());
+  const auto saved = *Session()->rom_baseline;
+  const auto disk_hash = util::ComputeFileSha1Hex(first.string());
+  const auto second = root / "refused-copy.sfc";
+  EXPECT_EQ(manager->SaveRomAs(second.string()).code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_FALSE(std::filesystem::exists(second));
+  EXPECT_EQ(util::ComputeFileSha1Hex(first.string()), disk_hash);
+  ExpectBaseline(saved);
+  EXPECT_EQ(manager->GetCurrentProject()->rom_metadata.expected_hash,
+            expected_hash);
+}
+
+TEST_F(SessionRomIdentityTest, ReloadingSavedCopyResetsEditableSource) {
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  manager->GetCurrentProject()->rom_filename = a.string();
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto destination = root / "saved-copy.sfc";
+  ASSERT_OK(manager->SaveRomAs(destination.string()));
+  EXPECT_EQ(Session()->rom_baseline->editing_source_path, a.string());
+  const auto saved = *Session()->rom_baseline;
+  // Failed external replacement preserves our own committed lineage.
+  WriteTooSmallForAssetsTestRom(destination);
+  EXPECT_FALSE(manager->RevertRomToSaved().ok());
+  ExpectBaseline(saved);
+  // Once different disk bytes are loaded successfully, their source is the
+  // replacement file, not the original editable target.
+  WriteScreenModelTestRom(destination, "EXTERNAL REPLACEMENT");
+  ASSERT_OK(manager->RevertRomToSaved());
+  EXPECT_EQ(Session()->rom_baseline->editing_source_path, destination.string());
+  EXPECT_TRUE(manager->IsRomHashMismatch());
+  EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kPermissionDenied);
+}
+
+TEST_F(SessionRomIdentityTest, TwoDirtySessionsKeepTheirOwnPolicyAndIdentity) {
+  auto* a_rom = manager->GetCurrentRom();
+  const auto a_baseline = *Session()->rom_baseline;
+  ASSERT_OK(a_rom->WriteByte(0x1234, 0xA5));
+  Switch(1);
+  auto* b_rom = manager->GetCurrentRom();
+  const auto b_baseline = *Session()->rom_baseline;
+  ASSERT_NE(a_baseline.hashes.crc32, b_baseline.hashes.crc32);
+  ASSERT_OK(b_rom->WriteByte(0x1234, 0x72));
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    Switch(0);
+    ExpectBaseline(a_baseline);
+    EXPECT_FALSE(manager->IsRomHashMismatch());
+    EXPECT_TRUE(a_rom->dirty());
+    EXPECT_EQ(a_rom->vector()[0x1234], 0xA5);
+    Switch(1);
+    ExpectBaseline(b_baseline);
+    EXPECT_FALSE(manager->IsRomHashMismatch());
+    EXPECT_TRUE(b_rom->dirty());
+    EXPECT_EQ(b_rom->vector()[0x1234], 0x72);
+  }
+  // The pointer-selection entry point is activation too, including same ROM.
+  ASSERT_OK(manager->SetCurrentRom(a_rom));
+  ExpectBaseline(a_baseline);
+  ASSERT_OK(manager->SetCurrentRom(a_rom));
+  ExpectBaseline(a_baseline);
+  // The frame loop visits both sessions through transient activation.
+  ImGui::NewFrame();
+  manager->session_coordinator()->UpdateSessions();
+  ImGui::Render();
+  EXPECT_EQ(manager->GetCurrentRom(), a_rom);
+  ExpectBaseline(a_baseline);
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  EXPECT_EQ(ReadByteAt(a, 0x1234), 0);
+  EXPECT_EQ(ReadByteAt(b, 0x1234), 0);
+}
+
+TEST_F(SessionRomIdentityTest, FailedSaveAsKeepsBaselineAndPendingRawBytes) {
+  const auto baseline = *Session()->rom_baseline;
+  const auto disk_hash = util::ComputeFileSha1Hex(a.string());
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto bytes = manager->GetCurrentRom()->vector();
+  Switch(1);
+  Switch(0);
+  const auto parent_file = root / "not-a-directory";
+  std::ofstream(parent_file) << "PRESERVE";
+  const auto destination_hash = util::ComputeFileSha1Hex(parent_file.string());
+  const auto status = manager->SaveRomAs((parent_file / "fail.sfc").string());
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_NE(
+      std::string(status.message()).find("Could not create temp ROM file"),
+      std::string::npos)
+      << status;
+  ExpectBaseline(baseline);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+  EXPECT_TRUE(manager->GetCurrentRom()->dirty());
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), a.string());
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), disk_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(parent_file.string()), destination_hash);
+}
+
+TEST_F(SessionRomIdentityTest, FailedRevertRestoresDirtyBytesAndPriorBaseline) {
+  ASSERT_OK(manager->EnsureGameDataLoaded());
+  const auto baseline = *Session()->rom_baseline;
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto bytes = manager->GetCurrentRom()->vector();
+  const auto id = manager->GetCurrentSessionId();
+  // Pass file loading, then fail shared-asset validation on the palette table.
+  WriteTooSmallForAssetsTestRom(a);
+  const auto external_disk_hash = util::ComputeFileSha1Hex(a.string());
+  ASSERT_OK(manager->RevertRomToSaved());
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  const auto* toast = manager->toast_manager()->GetPendingToast(
+      manager->toast_manager()->pending_count() - 1);
+  ASSERT_NE(toast, nullptr);
+  EXPECT_EQ(toast->type, ToastType::kError);
+  EXPECT_NE(toast->message.find("Revert failed:"), std::string::npos);
+  EXPECT_NE(toast->message.find("palette"), std::string::npos);
+  EXPECT_EQ(manager->GetCurrentSessionId(), id);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+  EXPECT_TRUE(manager->GetCurrentRom()->dirty());
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), a.string());
+  EXPECT_TRUE(Session()->game_data_loaded);
+  ExpectBaseline(baseline);
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), external_disk_hash);
+  Switch(1);
+  Switch(0);
+  ExpectBaseline(baseline);
+}
+
+TEST_F(SessionRomIdentityTest, FailedRevertPreservesScreenModelAndUndo) {
+  CheckFailedRevertPreservesScreenModelAndUndo();
+}
+
+TEST_F(SessionRomIdentityTest,
+       FailedFullLoadRevertPreservesScreenModelAndUndo) {
+  manager->SetAssetLoadMode(AssetLoadMode::kFull);
+  CheckFailedRevertPreservesScreenModelAndUndo();
+}
+
+TEST_F(SessionRomIdentityTest,
+       SuccessfulRevertAndSwapCaptureReplacementIdentity) {
+  const auto baseline = *Session()->rom_baseline;
+  WriteByteAt(a, 0x2000, 0x5A);
+  ASSERT_OK(manager->RevertRomToSaved());
+  EXPECT_NE(manager->GetCurrentRomHash(), baseline.hashes.crc32);
+  EXPECT_EQ(manager->GetCurrentRomHash(),
+            util::ComputeRomHash(manager->GetCurrentRom()->data(),
+                                 manager->GetCurrentRom()->size()));
+  const auto replacement = *Session()->rom_baseline;
+  EXPECT_EQ(replacement.normalized_path, a.string());
+  EXPECT_EQ(replacement.editing_source_path, a.string());
+  Switch(1);
+  Switch(0);
+  ExpectBaseline(replacement);
+  // Capturing does not silently rewrite the project's expected hash.
+  EXPECT_EQ(manager->GetCurrentProject()->rom_metadata.expected_hash,
+            baseline.hashes.crc32);
+
+  const auto replacement_file = root / "replacement.sfc";
+  WriteScreenModelTestRom(replacement_file, "REBOUND IDENTITY");
+  const auto source_hash = util::ComputeFileSha1Hex(a.string());
+  ASSERT_OK(manager->SwapProjectRom(replacement_file.string()));
+  const auto rebound = *Session()->rom_baseline;
+  EXPECT_EQ(rebound.normalized_path, replacement_file.string());
+  EXPECT_EQ(rebound.editing_source_path, replacement_file.string());
+  EXPECT_EQ(rebound.hashes.crc32,
+            util::ComputeRomHash(manager->GetCurrentRom()->data(),
+                                 manager->GetCurrentRom()->size()));
+  EXPECT_NE(rebound.hashes.crc32, replacement.hashes.crc32);
+  EXPECT_EQ(manager->GetCurrentProject()->rom_metadata.expected_hash,
+            baseline.hashes.crc32);
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), source_hash);
+  Switch(1);
+  Switch(0);
+  ExpectBaseline(rebound);
+}
+
+TEST_F(SessionRomIdentityTest,
+       CloseToDirtySurvivorAndEmptyDuplicateClearIdentity) {
+  const auto baseline = *Session()->rom_baseline;
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  Switch(1);
+  manager->CloseCurrentSession();
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  ExpectBaseline(baseline);
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  manager->DuplicateCurrentSession();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  EXPECT_FALSE(Session()->rom.is_loaded());
+  EXPECT_FALSE(Session()->rom_baseline.has_value());
+  EXPECT_TRUE(manager->GetCurrentRomHash().empty());
+  manager->CloseCurrentSession();
+  ExpectBaseline(baseline);
+  manager->CloseRom();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_EQ(manager->GetCurrentRom(), nullptr);
+  EXPECT_TRUE(manager->GetCurrentRomHash().empty());
+  manager->CreateNewSession();
+  ASSERT_NE(Session(), nullptr);
+  EXPECT_FALSE(Session()->rom_baseline.has_value());
+  EXPECT_TRUE(manager->GetCurrentRomHash().empty());
+}
+
+TEST_F(SessionRomIdentityTest,
+       ModelOnlyEditAndUndoSurviveSwitchAndSaveRefusal) {
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kScreen));
+  auto* screen = manager->GetCurrentEditorSet()->GetScreenEditor();
+  ASSERT_NE(screen, nullptr);
+  const auto baseline = *Session()->rom_baseline;
+  const auto raw = manager->GetCurrentRom()->vector();
+  const uint16_t before =
+      ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen);
+  ASSERT_NE(before, 0x0123);
+  ScreenEditorSaveStoplossTestPeer::EditLoadedBossRoom(screen, 0x0123);
+  ASSERT_TRUE(screen->HasPendingScreenChanges());
+  ASSERT_TRUE(screen->CanUndo());
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
+  core::FeatureFlags::get().kSaveDungeonMaps = true;
+  Switch(1);
+  Switch(0);
+  EXPECT_EQ(manager->GetCurrentEditorSet()->GetScreenEditor(), screen);
+  ExpectBaseline(baseline);
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), 0x0123);
+  ASSERT_OK(screen->Undo());
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), before);
+  ASSERT_OK(screen->Redo());
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), 0x0123);
+  const auto undo_description = screen->GetUndoDescription();
+  // This identity fixture has an unsupported map-layout marker. The failed
+  // product save must preserve its edited model and history after switching.
+  const auto destination = root / "model-refused.sfc";
+  const auto source_hash = util::ComputeFileSha1Hex(a.string());
+  const auto failed = manager->SaveRomAs(destination.string());
+  EXPECT_EQ(failed.code(), absl::StatusCode::kFailedPrecondition) << failed;
+  EXPECT_NE(std::string(failed.message()).find("Unsupported dungeon map"),
+            std::string::npos);
+  ExpectBaseline(baseline);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), raw);
+  EXPECT_TRUE(screen->HasPendingScreenChanges());
+  EXPECT_TRUE(screen->CanUndo());
+  EXPECT_EQ(screen->GetUndoDescription(), undo_description);
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LoadedBossRoom(screen), 0x0123);
+  EXPECT_FALSE(std::filesystem::exists(destination));
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), source_hash);
+  EXPECT_EQ(Session()->rom_baseline->normalized_path, a.string());
+  EXPECT_EQ(manager->GetCurrentProject()->rom_metadata.expected_hash,
+            baseline.hashes.crc32);
+}
+
+// Real coordinator activation with loaded ROMs, not manual Arena owner changes.
+class GraphicsSessionActivationTest : public SessionRomIdentityTest {
+ protected:
+  void SetUp() override {
+    SessionRomIdentityTest::SetUp();
+    for (size_t i = 0; i < 2; ++i) {
+      Switch(i);
+      ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+      sessions[i] = Session();
+      graphics[i] = manager->GetCurrentEditorSet()->GetEditorAs<GraphicsEditor>(
+          EditorType::kGraphics);
+      ASSERT_NE(graphics[i], nullptr);
+      ASSERT_TRUE(Session()->game_data.sheet_store.HasSheet(0));
+      // Distinct fixture colors make cross-session contamination observable.
+      Session()->game_data.palette_groups.overworld_main.SetColor(
+          0, 0, gfx::SnesColor(uint16_t(i == 0 ? 0x001F : 0x03E0)));
+      *graphics[i]->active() = false;
+    }
+    Switch(0);
+  }
+
+  GraphicsEditorState& State(size_t i) {
+    return GraphicsEditorSaveStoplossTestPeer::State(graphics[i]);
+  }
+  RomSession* sessions[2]{};
+  GraphicsEditor* graphics[2]{};
+};
+
+TEST_F(GraphicsSessionActivationTest, SwitchPreservesPixelsPaletteAndUndo) {
+  auto& arena = gfx::Arena::Get();
+  ASSERT_EQ(arena.gfx_sheets_owner(), &sessions[0]->game_data);
+  auto* sheet_a = arena.mutable_gfx_sheet(0);
+  const auto original_a = sheet_a->vector();
+  const auto rom_a = sessions[0]->rom.vector();
+  const auto rom_b = sessions[1]->rom.vector();
+  const auto baseline = *sessions[0]->rom_baseline;
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics[0], 3));
+  ASSERT_OK(SetGraphicsPreviewPalette(State(0), 0,
+                                      GraphicsPaletteSelection{"ow_main"}));
+  Switch(1);
+  ASSERT_EQ(arena.gfx_sheets_owner(), &sessions[1]->game_data);
+  auto* sheet_b = arena.mutable_gfx_sheet(0);
+  EXPECT_NE(sheet_a, sheet_b);
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics[1], 5));
+  ASSERT_OK(SetGraphicsPreviewPalette(State(1), 0,
+                                      GraphicsPaletteSelection{"ow_main"}));
+  for (int repeat = 0; repeat < 3; ++repeat) {
+    Switch(0);
+    EXPECT_EQ(arena.mutable_gfx_sheet(0), sheet_a);
+    EXPECT_EQ(sheet_a->vector()[0], 3);
+    const auto* colors = platform::GetSurfacePalette(sheet_a->surface());
+    ASSERT_NE(colors, nullptr);
+    EXPECT_EQ(colors->colors[1].r, 255);
+    EXPECT_EQ(colors->colors[1].g, 0);
+    ASSERT_NE(State(0).PreviewPalette(0), nullptr);
+    EXPECT_EQ(State(0).PreviewPalette(0)->group, "ow_main");
+    ExpectBaseline(baseline);
+    ASSERT_OK(graphics[0]->Undo());
+    EXPECT_EQ(sheet_a->vector(), original_a);
+    ASSERT_OK(graphics[0]->Redo());
+    EXPECT_EQ(sheet_a->vector()[0], 3);
+    Switch(1);
+    EXPECT_EQ(arena.mutable_gfx_sheet(0), sheet_b);
+    EXPECT_EQ(sheet_b->vector()[0], 5);
+    colors = platform::GetSurfacePalette(sheet_b->surface());
+    ASSERT_NE(colors, nullptr);
+    EXPECT_EQ(colors->colors[1].g, 255);
+    EXPECT_EQ(colors->colors[1].r, 0);
+    EXPECT_TRUE(graphics[1]->CanUndo());
+  }
+  EXPECT_EQ(sessions[0]->game_data.sheet_store.Sheet(0)[0], 3);
+  EXPECT_EQ(sessions[1]->game_data.sheet_store.Sheet(0)[0], 5);
+  EXPECT_TRUE(graphics[0]->HasPendingGraphicsChanges());
+  EXPECT_TRUE(graphics[1]->HasPendingGraphicsChanges());
+  EXPECT_EQ(sessions[0]->rom.vector(), rom_a);
+  EXPECT_EQ(sessions[1]->rom.vector(), rom_b);
+}
+
+TEST_F(GraphicsSessionActivationTest, FrameSwitchesAndCloseKeepCacheOwnership) {
+  auto& arena = gfx::Arena::Get();
+  auto* sheet_a = arena.mutable_gfx_sheet(0);
+  Switch(1);
+  auto* sheet_b = arena.mutable_gfx_sheet(0);
+  ASSERT_NE(sheet_a, sheet_b);
+  // Both queued commands must still address their own live bitmap after the
+  // real frame loop visits B and restores A.
+  arena.ClearTextureQueue();
+  arena.NotifySheetModified(0);
+  Switch(0);
+  arena.NotifySheetModified(0);
+  auto* events = ContentRegistry::Context::event_bus();
+  ASSERT_NE(events, nullptr);
+  std::vector<size_t> visits;
+  const auto observer = events->Subscribe<SessionSwitchedEvent>(
+      [&](const SessionSwitchedEvent& event) {
+        if (!event.transient)
+          return;
+        visits.push_back(event.new_index);
+        EXPECT_EQ(arena.gfx_sheets_owner(), &event.session->game_data);
+        EXPECT_EQ(arena.mutable_gfx_sheet(0),
+                  event.new_index == 0 ? sheet_a : sheet_b);
+      });
+  ImGui::NewFrame();
+  manager->session_coordinator()->UpdateSessions();
+  ImGui::Render();
+  events->Unsubscribe(observer);
+  EXPECT_EQ(visits, (std::vector<size_t>{1, 0}));
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0);
+  EXPECT_EQ(arena.gfx_sheets_owner(), &sessions[0]->game_data);
+  EXPECT_EQ(arena.mutable_gfx_sheet(0), sheet_a);
+  EXPECT_TRUE(arena.HasPendingTextureCommand(
+      gfx::Arena::TextureCommandType::CREATE, sheet_a));
+  EXPECT_TRUE(arena.HasPendingTextureCommand(
+      gfx::Arena::TextureCommandType::CREATE, sheet_b));
+  manager->session_coordinator()->CloseSessionAllowingEmpty(1);
+  EXPECT_EQ(arena.gfx_sheets_owner(), &sessions[0]->game_data);
+  EXPECT_EQ(arena.texture_command_queue_size(), 1);
+  manager->session_coordinator()->CloseSessionAllowingEmpty(0);
+  EXPECT_EQ(arena.gfx_sheets_owner(), nullptr);
+  EXPECT_EQ(arena.texture_command_queue_size(), 0);
+}
+
+TEST_F(GraphicsSessionActivationTest, QueuedUploadsKeepBothSessionsAlive) {
+  class RecordingRenderer : public gfx::NullRenderer {
+   public:
+    gfx::TextureHandle CreateTexture(int, int) override {
+      return reinterpret_cast<gfx::TextureHandle>(++next);
+    }
+    void UpdateTexture(gfx::TextureHandle texture,
+                       const gfx::Bitmap& bitmap) override {
+      uploads[texture] = bitmap.vector()[0];
+    }
+    void DestroyTexture(gfx::TextureHandle texture) override {
+      destroyed.push_back(texture);
+    }
+    uintptr_t next = 0;
+    std::map<gfx::TextureHandle, uint8_t> uploads;
+    std::vector<gfx::TextureHandle> destroyed;
+  } recorder;
+  auto& arena = gfx::Arena::Get();
+  // Limit this renderer trace to our two explicitly requested sheets.
+  arena.ClearTextureQueue();
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics[0], 3));
+  auto* sheet_a = arena.mutable_gfx_sheet(0);
+  Switch(1);
+  ASSERT_OK(GraphicsEditorSaveStoplossTestPeer::PaintPixel(graphics[1], 5));
+  auto* sheet_b = arena.mutable_gfx_sheet(0);
+  Switch(0);
+  arena.ProcessTextureQueue(&recorder);
+  const auto texture_a = sheet_a->texture();
+  const auto texture_b = sheet_b->texture();
+  EXPECT_NE(texture_a, nullptr);
+  EXPECT_NE(texture_b, nullptr);
+  EXPECT_NE(texture_a, texture_b);
+  EXPECT_EQ(recorder.uploads[texture_a], 3);
+  EXPECT_EQ(recorder.uploads[texture_b], 5);
+  EXPECT_TRUE(recorder.destroyed.empty());
+  Switch(1);
+  EXPECT_EQ(arena.mutable_gfx_sheet(0)->texture(), texture_b);
+  Switch(0);
+  EXPECT_EQ(arena.mutable_gfx_sheet(0)->texture(), texture_a);
+  manager->session_coordinator()->CloseSessionAllowingEmpty(1);
+  // Texture retirement is deferred until the frame has finished drawing.
+  EXPECT_TRUE(recorder.destroyed.empty());
+  arena.DrainRetiredBitmaps(&recorder);
+  EXPECT_EQ(recorder.destroyed, (std::vector<gfx::TextureHandle>{texture_b}));
+  manager->session_coordinator()->CloseSessionAllowingEmpty(0);
+  arena.DrainRetiredBitmaps(&recorder);
+  EXPECT_EQ(recorder.destroyed,
+            (std::vector<gfx::TextureHandle>{texture_b, texture_a}));
+  EXPECT_EQ(arena.gfx_sheets_owner(), nullptr);
+}
+
+// Exercise the registered workspace and real ImGui inputs on disposable ROMs.
+class PaletteWorkspaceTest : public SessionRomIdentityTest {
+ protected:
+  void SetUp() override {
+    SessionRomIdentityTest::SetUp();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(1440, 1000);
+    io.DeltaTime = 1.0f / 60;
+    io.ConfigInputTrickleEventQueue = false;
+    ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+    palette = manager->GetCurrentEditorSet()->GetEditorAs<PaletteEditor>(
+        EditorType::kPalette);
+    ASSERT_NE(palette, nullptr);
+    workspace =
+        manager->window_manager().GetWindowContent(0, "palette.control_panel");
+    ASSERT_NE(workspace, nullptr);
+    // Ordinary navigation should not open comparison windows.
+    for (const char* id :
+         {"palette.ow_main", "palette.ow_animated", "palette.dungeon_main"})
+      manager->window_manager().CloseWindow(0, id);
+    Frame();
+    Frame();
+  }
+  void TearDown() override {
+    gui::WidgetIdRegistry::Instance().Clear();
+    SessionRomIdentityTest::TearDown();
+  }
+  void Frame(float width = 1000) {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    if (visit_sessions_)
+      manager->session_coordinator()->UpdateSessions();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, 820), ImGuiCond_Always);
+    ImGui::Begin("PaletteWorkspaceTestHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    workspace->Draw(nullptr);
+    ImGui::End();
+    ImGui::Render();
+  }
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> Widget(const char* name) {
+    for (const auto& [path, item] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets())
+      if (item.label == gui::WidgetIdRegistry::NormalizeLabel(name))
+        return item;
+    return std::nullopt;
+  }
+  void Click(const char* name, float width = 1000) {
+    const auto item = Widget(name);
+    ASSERT_TRUE(item) << name;
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((item->bounds.min_x + item->bounds.max_x) / 2,
+                        (item->bounds.min_y + item->bounds.max_y) / 2);
+    Frame(width);
+    io.AddMouseButtonEvent(0, true);
+    Frame(width);
+    io.AddMouseButtonEvent(0, false);
+    Frame(width);
+    Frame(width);
+  }
+  void EnterColor(const char* value) {
+    Click("SNES color");
+    auto& io = ImGui::GetIO();
+    // AddKeyEvent takes physical modifiers; ImGui swaps Command internally.
+    const ImGuiKey command =
+        io.ConfigMacOSXBehaviors ? ImGuiMod_Super : ImGuiMod_Ctrl;
+    io.AddKeyEvent(command, true);
+    io.AddKeyEvent(ImGuiKey_A, true);
+    Frame();
+    io.AddKeyEvent(ImGuiKey_A, false);
+    io.AddKeyEvent(command, false);
+    Frame();
+    io.AddInputCharactersUTF8(value);
+    Frame();
+    io.AddKeyEvent(ImGuiKey_Enter, true);
+    Frame();
+    io.AddKeyEvent(ImGuiKey_Enter, false);
+    Frame();
+    Frame();
+  }
+  // Hit the rendered hue wheel, then move it across multiple actual frames.
+  void MoveOnWheel(float angle) {
+    const auto item = Widget("Palette color picker");
+    ASSERT_TRUE(item);
+    const float width = ImGui::GetFontSize() * 19;
+    const float bar = ImGui::GetFrameHeight();
+    const float size = width - bar - ImGui::GetStyle().ItemInnerSpacing.x;
+    const ImVec2 center(item->bounds.min_x + (size + bar) * 0.5f,
+                        item->bounds.min_y + size * 0.5f);
+    ImGui::GetIO().AddMousePosEvent(center.x + size * 0.46f * std::cos(angle),
+                                    center.y + size * 0.46f * std::sin(angle));
+    Frame();
+  }
+  void StartWheelDrag() {
+    MoveOnWheel(0.5f);
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    Frame();
+  }
+  void ReleaseWheel() {
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    Frame();
+    Frame();
+  }
+  std::optional<ImU32> SwatchColor(const char* name) {
+    auto item = Widget(name);
+    if (!item)
+      return std::nullopt;
+    auto* window = ImGui::FindWindowByName(item->window_name.c_str());
+    if (!window)
+      return std::nullopt;
+    const ImVec2 point(item->bounds.min_x + 7, item->bounds.min_y + 7);
+    const auto& draw = *window->DrawList;
+    std::optional<ImU32> result;
+    for (const auto& cmd : draw.CmdBuffer) {
+      for (unsigned i = 0; i + 2 < cmd.ElemCount; i += 3) {
+        const auto& a =
+            draw.VtxBuffer[cmd.VtxOffset + draw.IdxBuffer[cmd.IdxOffset + i]];
+        const auto& b = draw.VtxBuffer[cmd.VtxOffset +
+                                       draw.IdxBuffer[cmd.IdxOffset + i + 1]];
+        const auto& c = draw.VtxBuffer[cmd.VtxOffset +
+                                       draw.IdxBuffer[cmd.IdxOffset + i + 2]];
+        if (a.col == b.col && b.col == c.col &&
+            ImTriangleContainsPoint(a.pos, b.pos, c.pos, point))
+          result = a.col;
+      }
+    }
+    return result;
+  }
+  bool visit_sessions_ = false;
+  PaletteEditor* palette = nullptr;
+  WindowContent* workspace = nullptr;
+};
+
+TEST_F(PaletteWorkspaceTest, NavigationFitsAndDoesNotMultiplyWindows) {
+  const auto before = manager->GetCurrentRom()->vector();
+  Click("Dungeon Main");
+  EXPECT_FALSE(
+      manager->window_manager().IsWindowOpen(0, "palette.dungeon_main"));
+  auto* panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(panel, nullptr);
+  for (float width : {720.f, 1000.f, 1280.f}) {
+    Frame(width);
+    Frame(width);
+    Click("Palette color 14", width);
+    EXPECT_EQ(panel->GetSelectedColorIndex(), 14);
+    auto cell = Widget("Palette color 14");
+    ASSERT_TRUE(cell);
+    EXPECT_LT(cell->bounds.max_x, width + 10);
+    for (auto* win : ImGui::GetCurrentContext()->Windows)
+      if (win->Active && std::string(win->Name).find(
+                             "PaletteWorkspaceTestHost") != std::string::npos)
+        EXPECT_LE(win->ScrollMax.x, 0.f) << win->Name;
+  }
+  palette->JumpToPalette("dungeon_main", 2);
+  Frame();
+  Frame();
+  EXPECT_EQ(panel->GetSelectedPaletteIndex(), 2);
+  EXPECT_EQ(panel->GetSelectedColorIndex(), -1);
+  EXPECT_FALSE(
+      manager->window_manager().IsWindowOpen(0, "palette.dungeon_main"));
+  Click("Open comparison window");
+  EXPECT_TRUE(
+      manager->window_manager().IsWindowOpen(0, "palette.dungeon_main"));
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), before);
+  const auto preset = LayoutPresets::GetDefaultPreset(EditorType::kPalette);
+  EXPECT_EQ(preset.default_visible_panels,
+            (std::vector<std::string>{"palette.control_panel"}));
+}
+
+TEST_F(PaletteWorkspaceTest, ColorInputUndoAndOriginalUseTheSameModel) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  auto& pm = gfx::PaletteManager::Get();
+  const auto original = pm.GetColor("dungeon_main", 0, 3);
+  const auto bytes = manager->GetCurrentRom()->vector();
+  EnterColor("001F");
+  ASSERT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  EXPECT_EQ(pm.GetOriginalColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_EQ(SwatchColor("Current palette color"),
+            ImGui::GetColorU32(
+                gui::ConvertSnesColorToImVec4(gfx::SnesColor(0x001F))));
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_EQ(SwatchColor("Current palette color"),
+            ImGui::GetColorU32(gui::ConvertSnesColorToImVec4(original)));
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  Click("Restore original palette color");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+  EnterColor("FFFF");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+}
+
+TEST_F(PaletteWorkspaceTest, WheelDragCommitsOneUndoAndKeepsLiveColors) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("001F");
+  auto& pm = gfx::PaletteManager::Get();
+  pm.ClearHistory();
+  const auto bytes = manager->GetCurrentRom()->vector();
+  const auto start = pm.GetColor("dungeon_main", 0, 3).snes();
+  const auto revision = pm.ColorRevision(&Session()->game_data);
+  StartWheelDrag();
+  ASSERT_TRUE(pm.HasColorEdit());
+  // Render the normal picker in those same frames, retaining ImGui's active ID.
+  visit_sessions_ = true;
+  Frame();
+  EXPECT_TRUE(pm.HasColorEdit());
+  EXPECT_EQ(pm.GetUndoStackSize(), 0);
+  for (float angle : {1.f, 1.5f, 2.f}) {
+    MoveOnWheel(angle);
+    EXPECT_EQ(pm.GetUndoStackSize(), 0);
+    EXPECT_EQ(SwatchColor("Current palette color"),
+              ImGui::GetColorU32(gui::ConvertSnesColorToImVec4(
+                  pm.GetColor("dungeon_main", 0, 3))));
+  }
+  const auto end = pm.GetColor("dungeon_main", 0, 3).snes();
+  ASSERT_NE(end, start);
+  EXPECT_GT(pm.ColorRevision(&Session()->game_data), revision + 1);
+  ReleaseWheel();
+  EXPECT_FALSE(pm.HasColorEdit());
+  EXPECT_EQ(pm.GetUndoStackSize(), 1);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), start);
+  EXPECT_EQ(pm.GetUndoStackSize(), 0);
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), end);
+  StartWheelDrag();
+  MoveOnWheel(4.f);
+  ReleaseWheel();
+  EXPECT_EQ(pm.GetUndoStackSize(), 2);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), end);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+}
+
+TEST_F(PaletteWorkspaceTest,
+       EscapeCancelsHeldDragAndPreservesRedoAndDirtyState) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("001F");
+  EnterColor("03E0");
+  Click("Undo palette edit");
+  auto& pm = gfx::PaletteManager::Get();
+  const auto bytes = manager->GetCurrentRom()->vector();
+  const auto undo = pm.GetUndoStackSize();
+  const auto redo = pm.GetRedoStackSize();
+  const auto dirty = pm.GetModifiedColorCount();
+  ASSERT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  StartWheelDrag();
+  MoveOnWheel(2.f);
+  ASSERT_NE(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, true);
+  Frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_Escape, false);
+  MoveOnWheel(4.f);  // Still held: must not start a replacement gesture.
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  EXPECT_FALSE(pm.HasColorEdit());
+  ReleaseWheel();
+  EXPECT_EQ(pm.GetUndoStackSize(), undo);
+  EXPECT_EQ(pm.GetRedoStackSize(), redo);
+  EXPECT_EQ(pm.GetModifiedColorCount(), dirty);
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x03E0);
+  // Cancellation must not leave the picker disabled on its next use.
+  StartWheelDrag();
+  MoveOnWheel(4.f);
+  ReleaseWheel();
+  EXPECT_EQ(pm.GetUndoStackSize(), undo + 2);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+}
+
+TEST_F(PaletteWorkspaceTest,
+       UnchangedGesturePreservesRedoAndCancelRestoresClean) {
+  auto& pm = gfx::PaletteManager::Get();
+  const auto original = pm.GetColor("dungeon_main", 0, 3);
+  ASSERT_OK(pm.SetColor("dungeon_main", 0, 3, gfx::SnesColor(0x1234)));
+  pm.Undo();
+  ASSERT_FALSE(pm.HasUnsavedChanges());
+  ASSERT_TRUE(pm.CanRedo());
+  ASSERT_OK(pm.BeginColorEdit("dungeon_main", 0, 3));
+  ASSERT_OK(pm.SetColor("dungeon_main", 0, 3, gfx::SnesColor(0x03E0)));
+  ASSERT_OK(pm.SetColor("dungeon_main", 0, 3, original));
+  pm.CommitColorEdit();
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  EXPECT_EQ(pm.GetUndoStackSize(), 0);
+  EXPECT_EQ(pm.GetRedoStackSize(), 1);
+  ASSERT_OK(pm.BeginColorEdit("dungeon_main", 0, 3, 17));
+  ASSERT_OK(pm.SetColor("dungeon_main", 0, 3, gfx::SnesColor(0x001F)));
+  pm.CommitColorEdit(18);
+  pm.CancelColorEdit(18);
+  EXPECT_TRUE(pm.HasColorEdit(17));
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  pm.CancelColorEdit(17);
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original.snes());
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  EXPECT_EQ(pm.GetUndoStackSize(), 0);
+  EXPECT_EQ(pm.GetRedoStackSize(), 1);
+}
+
+TEST_F(PaletteWorkspaceTest, SessionSwitchCommitsOnlyTheOwningGesture) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("001F");
+  auto& pm = gfx::PaletteManager::Get();
+  pm.ClearHistory();
+  StartWheelDrag();
+  MoveOnWheel(2.f);
+  const auto end = pm.GetColor("dungeon_main", 0, 3).snes();
+  Switch(1);
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  EXPECT_FALSE(pm.HasColorEdit());
+  EXPECT_FALSE(pm.CanUndo());
+  pm.CancelColorEdit();
+  Switch(0);
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), end);
+  EXPECT_EQ(pm.GetUndoStackSize(), 1);
+  ReleaseWheel();
+  pm.Undo();
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+}
+
+TEST_F(PaletteWorkspaceTest, SavingDuringGestureCommitsOneStepAndReopensColor) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("001F");
+  auto& pm = gfx::PaletteManager::Get();
+  pm.ClearHistory();
+  StartWheelDrag();
+  MoveOnWheel(2.f);
+  const auto end = pm.GetColor("dungeon_main", 0, 3).snes();
+  ASSERT_TRUE(pm.HasColorEdit());
+  core::FeatureFlags::get().kSaveAllPalettes = true;
+  manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
+  const auto destination = root / "gesture-save.sfc";
+  ASSERT_OK(manager->SaveRomAs(destination.string()));
+  EXPECT_FALSE(pm.HasColorEdit());
+  EXPECT_EQ(pm.GetUndoStackSize(), 1);
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  ReleaseWheel();
+  EXPECT_EQ(pm.GetUndoStackSize(), 1);
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(destination.string()));
+  gfx::PaletteGroupMap groups;
+  ASSERT_OK(gfx::LoadAllPalettes(reopened.vector(), groups));
+  EXPECT_EQ(groups.dungeon_main.palette_ref(0)[3].snes(), end);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x001F);
+  EXPECT_TRUE(pm.HasUnsavedChanges());
+}
+
+TEST_F(PaletteWorkspaceTest,
+       SaveButtonCommitsAndFreshPaletteLoaderReadsTheEdit) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("1234");
+  auto& pm = gfx::PaletteManager::Get();
+  ASSERT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
+  auto before = manager->GetCurrentRom()->vector();
+  const auto ranges = pm.GetModifiedColorWriteRanges();
+  ASSERT_EQ(ranges.size(), 1);
+  ASSERT_EQ(ranges[0].second - ranges[0].first, 2);
+  before[ranges[0].first] = 0x34;
+  before[ranges[0].first + 1] = 0x12;
+  core::FeatureFlags::get().kSaveAllPalettes = true;
+  manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
+  const auto save_toast_begin = manager->toast_manager()->pending_count();
+  Click("Save ROM");
+  for (size_t i = save_toast_begin;
+       i < manager->toast_manager()->pending_count(); ++i) {
+    const auto* toast = manager->toast_manager()->GetPendingToast(i);
+    EXPECT_NE(toast->type, ToastType::kError) << toast->message;
+  }
+  ASSERT_FALSE(pm.HasUnsavedChanges());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(a.string()));
+  EXPECT_EQ(reopened.vector(), before);
+  gfx::PaletteGroupMap groups;
+  ASSERT_OK(gfx::LoadAllPalettes(reopened.vector(), groups));
+  EXPECT_EQ(groups.dungeon_main.palette_ref(0)[3].snes(), 0x1234);
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+}
+
+TEST_F(PaletteWorkspaceTest, DiscardConfirmationCancelPreservesPendingEdit) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("1234");
+  Click("Palette tools");
+  Click("Discard palette changes");
+  ASSERT_TRUE(Widget("Cancel discard"));
+  Click("Cancel discard");
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 3).snes(),
+            0x1234);
+  EXPECT_TRUE(palette->CanUndo());
+}
+
+TEST_F(PaletteWorkspaceTest, DisabledSavePreservesColorAndDisk) {
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  EnterColor("1234");
+  const auto disk_hash = util::ComputeFileSha1Hex(a.string());
+  const auto bytes = manager->GetCurrentRom()->vector();
+  Click("Save ROM");
+  bool refusal_shown = false;
+  for (size_t i = 0; i < manager->toast_manager()->pending_count(); ++i) {
+    const auto* toast = manager->toast_manager()->GetPendingToast(i);
+    refusal_shown |=
+        toast->type == ToastType::kError &&
+        toast->message.find("palette saving is disabled") != std::string::npos;
+  }
+  EXPECT_TRUE(refusal_shown);
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), disk_hash);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges());
+  EXPECT_TRUE(palette->CanUndo());
+}
+
+TEST_F(PaletteWorkspaceTest, FailedFileWriteRestoresBaselineAndAllowsRetry) {
+  auto* dungeon_before =
+      manager->GetCurrentEditorSet()->GetExistingEditor(EditorType::kDungeon);
+  Click("Dungeon Main");
+  Click("Palette color 3");
+  auto& pm = gfx::PaletteManager::Get();
+  const auto original = pm.GetOriginalColor("dungeon_main", 0, 3).snes();
+  EnterColor("1234");
+  const auto disk_hash = util::ComputeFileSha1Hex(a.string());
+  const auto bytes = manager->GetCurrentRom()->vector();
+  const auto baseline = *Session()->rom_baseline;
+  // Force the new Palette transaction, not Dungeon's existing palette path.
+  core::FeatureFlags::get().kSaveAllPalettes = true;
+  manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
+  const auto parent_file = root / "not-a-directory";
+  std::ofstream(parent_file) << "PRESERVE";
+  const auto status = manager->SaveRomAs((parent_file / "fail.sfc").string());
+  EXPECT_NE(
+      std::string(status.message()).find("Could not create temp ROM file"),
+      std::string::npos)
+      << status;
+  EXPECT_EQ(util::ComputeFileSha1Hex(a.string()), disk_hash);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), bytes);
+  ExpectBaseline(baseline);
+  EXPECT_TRUE(pm.HasUnsavedChanges());
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
+  EXPECT_EQ(pm.GetOriginalColor("dungeon_main", 0, 3).snes(), original);
+  Click("Undo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), original);
+  Click("Redo palette edit");
+  EXPECT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
+  Click("Save ROM");
+  EXPECT_FALSE(pm.HasUnsavedChanges());
+  EXPECT_EQ(
+      manager->GetCurrentEditorSet()->GetExistingEditor(EditorType::kDungeon),
+      dungeon_before);
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(a.string()));
+  gfx::PaletteGroupMap groups;
+  ASSERT_OK(gfx::LoadAllPalettes(reopened.vector(), groups));
+  EXPECT_EQ(groups.dungeon_main.palette_ref(0)[3].snes(), 0x1234);
 }
 
 }  // namespace

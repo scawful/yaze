@@ -4,10 +4,13 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
 
+#include "app/editor/graphics/graphics_edit_context.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
@@ -75,6 +78,13 @@ struct TileHighlight {
   }
 };
 
+// A display choice, never an authored palette or a graphics-save operation.
+struct GraphicsPaletteSelection {
+  std::string group;
+  int palette = 0;
+  int row = 0;
+};
+
 /**
  * @brief Shared state between GraphicsEditor panel components
  *
@@ -93,7 +103,6 @@ class GraphicsEditorState {
   // --- Editing State ---
   PixelTool current_tool = PixelTool::kPencil;
   uint8_t current_color_index = 1;  // Palette index (0 = transparent)
-  ImVec4 current_color;             // RGBA for display
   uint8_t brush_size = 1;           // 1-8 pixel brush
   bool fill_contiguous = true;      // Fill tool: contiguous only
 
@@ -110,11 +119,14 @@ class GraphicsEditorState {
   bool show_transparency_grid = true;   // Checkerboard for transparent pixels
   bool show_pixel_info_tooltip = true;  // Tooltip with pixel info on hover
 
-  // --- Palette State ---
-  uint64_t palette_group_index = 0;
-  uint64_t palette_index = 0;
-  uint64_t sub_palette_index = 0;
-  bool refresh_graphics = false;
+  // No entry means the sheet's loaded colors. This editor state belongs to one
+  // session; choices survive sheet/session navigation, not a ROM replacement.
+  std::map<uint16_t, GraphicsPaletteSelection> preview_palettes;
+
+  const GraphicsPaletteSelection* PreviewPalette(uint16_t sheet) const {
+    const auto found = preview_palettes.find(sheet);
+    return found == preview_palettes.end() ? nullptr : &found->second;
+  }
 
   // --- Selection State ---
   PixelSelection selection;
@@ -129,17 +141,47 @@ class GraphicsEditorState {
   // The session whose GraphicsSheetStore holds the pixels; pixel writes go
   // there, and the Arena's bitmaps are display copies.
   zelda3::GameData* game_data = nullptr;
+  std::optional<GraphicsEditContext> source_context;
+  uint64_t source_context_revision = 0;
+  // Set once when navigating to an existing pixel-editor tab.
+  std::optional<uint16_t> requested_sheet_tab;
+
+  const GraphicsEditTarget* SourceTarget() const {
+    if (!source_context || source_context->owner != game_data ||
+        source_context->selected_target >= source_context->targets.size()) {
+      return nullptr;
+    }
+    const auto& target =
+        source_context->targets[source_context->selected_target];
+    return target.sheet_id == current_sheet_id ? &target : nullptr;
+  }
+
+  void SelectSourceTarget(size_t index) {
+    if (!source_context || index >= source_context->targets.size()) {
+      return;
+    }
+    if (on_before_sheet_selected)
+      on_before_sheet_selected();
+    source_context->selected_target = index;
+    const auto& target = source_context->targets[index];
+    SelectSheet(target.sheet_id);
+    requested_sheet_tab = target.sheet_id;
+    current_color_index = 0;
+    HighlightTile(target.sheet_id, target.tile_index, target.label, 8.0);
+  }
+
+  void ClearSourceContext() {
+    source_context.reset();
+    ++source_context_revision;
+  }
   // Store revision each Arena sheet was last refreshed from.
   std::array<uint64_t, 223> arena_revisions{};
 
   // --- Callbacks for cross-panel communication ---
+  std::function<void()> on_before_sheet_selected;
   std::function<void(uint16_t)> on_sheet_selected;
-  std::function<void()> on_palette_changed;
   std::function<void()> on_tool_changed;
   std::function<void(uint16_t)> on_sheet_modified;
-  // Applies the selected palette group, palette and row to a sheet. Set by
-  // the Palette Controls panel so other panels can re-apply a row.
-  std::function<void(uint16_t)> apply_palette_to_sheet;
 
   // --- Methods ---
 
@@ -176,6 +218,8 @@ class GraphicsEditorState {
    * @brief Select a sheet for editing
    */
   void SelectSheet(uint16_t sheet_id) {
+    if (sheet_id != current_sheet_id && on_before_sheet_selected)
+      on_before_sheet_selected();
     current_sheet_id = sheet_id;
     open_sheets.insert(sheet_id);
     if (on_sheet_selected) {

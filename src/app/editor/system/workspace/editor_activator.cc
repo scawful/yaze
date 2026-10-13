@@ -374,8 +374,9 @@ void EditorActivator::JumpToOverworldMap(int map_id) {
   // Switch to overworld editor
   SwitchToEditor(EditorType::kOverworld);
 
-  // Set the current map in the overworld editor
-  editor_set->GetOverworldEditor()->set_current_map(map_id);
+  // Use the editor's navigation path so graphics, viewport and hover-follow
+  // state agree with the requested map, including startup --map requests.
+  editor_set->GetOverworldEditor()->JumpToMap(map_id);
 }
 
 void EditorActivator::JumpToMessage(int message_id) {

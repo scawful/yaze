@@ -1071,6 +1071,51 @@ TEST_F(DungeonRoomRegressionFixturesTest,
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest,
+       Room016WaterFrameZeroMatchesIndependentMesenBaseline) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize ||
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize) !=
+          kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baseline requires the canonical US ROM data.";
+  }
+  Room room = LoadRoomFromRom(&rom_, 0x016);
+  room.SetGameData(&game_data_);
+  ASSERT_EQ(room.blockset(), 0x08);
+  room.LoadSprites();
+  room.RenderRoomGraphics();
+
+  // Hardware BG1 exposes these water objects from the game's $7E4000 map;
+  // Yaze stores them in its BG2 object buffer. The interior ROI has no
+  // overlapping objects, so the normal editor composite must match too.
+  for (int y = 46; y <= 50; ++y) {
+    for (int x = 20; x < 24; ++x) {
+      const auto word = room.object_bg2_buffer().GetTileAt(x, y);
+      EXPECT_EQ(word & 0x3FF, x % 2 == 0 ? 0x1B0 : 0x1B1);
+      EXPECT_EQ((word >> 10) & 7, 7);
+    }
+  }
+  RoomLayerManager layers;
+  const auto& composite = room.GetCompositeBitmap(layers);
+  ASSERT_TRUE(composite.is_active());
+  ASSERT_NE(composite.surface(), nullptr);
+  ASSERT_GE(composite.width(), 192);
+  ASSERT_GE(composite.height(), 401);
+  // Mesen (32,96) + scroll (128,272) + first displayed scanline = (160,369).
+  const auto actual = CaptureRgbaRegion(composite, 160, 369, 32, 32);
+  const auto path = std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" /
+                    "dungeon" / "vanilla_room_016_mesen_water_frame0_32x32.png";
+  const auto expected = ::yaze::test::VisualDiffEngine::LoadPng(path.string());
+  ASSERT_TRUE(expected.ok()) << expected.status();
+  ASSERT_EQ(expected->width, 32);
+  ASSERT_EQ(expected->height, 32);
+  EXPECT_EQ(actual.data, expected->data)
+      << "Water frame zero must match all 1024 independent Mesen RGBA pixels.";
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
        Room076WestDoorRoiMatchesIndependentMesenBaseline) {
 #if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
   GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
@@ -1404,13 +1449,42 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   }
   EXPECT_GT(changed_pixels, 0u);
 
+  // The whole-room golden also predates 804b32eea's pot-position fix.
+  // Reconstruct its editor markers separately; they are BG1 annotations,
+  // unrelated to the animated BG2 sheet. Production rooms retain the correct
+  // tilemap-offset decoder. No ROM bytes or renderer behavior are changed.
+  Room historical = LoadRoomFromRom(&rom_, kRoomId);
+  ASSERT_FALSE(historical.GetPotItems().empty());
+  for (auto& item : historical.GetPotItems()) {
+    const int old_x = ((item.position & 0xFF) / 2) * 8;
+    const int old_y = (item.position >> 8) * 16;
+    const auto encoded = EncodePotItemPosition(old_x, old_y, item.position);
+    if (encoded.has_value()) {
+      item.position = *encoded;
+    } else {
+      // The old decoder placed these markers outside the 512x512 bitmap.
+      item.item = 0;
+    }
+  }
+  render(historical, legacy_data);
+  const auto& historical_bg1 = historical.object_bg1_buffer().bitmap();
+  EXPECT_EQ(Fnv1a64(historical_bg1.data(), historical_bg1.size()),
+            10182215693742640491ull);
+  RoomLayerManager historical_layers;
+  historical_layers.ApplyLayerMerging(historical.layer_merging());
+  historical_layers.ApplyRoomEffect(historical.effect());
+  const auto& historical_composite =
+      historical.GetCompositeBitmap(historical_layers);
+  ASSERT_TRUE(historical_composite.is_active());
+  EXPECT_EQ(Fnv1a64(historical_composite.data(), historical_composite.size()),
+            16184705480853915451ull);
+
+  // Both sides below use today's pot coordinates, isolating the water change.
   RoomLayerManager old_layers;
   old_layers.ApplyLayerMerging(legacy.layer_merging());
   old_layers.ApplyRoomEffect(legacy.effect());
   const auto& old_composite = legacy.GetCompositeBitmap(old_layers);
   ASSERT_TRUE(old_composite.is_active());
-  EXPECT_EQ(Fnv1a64(old_composite.data(), old_composite.size()),
-            16184705480853915451ull);
   EXPECT_EQ(CountNonBackdropPixels(old_composite), 231372);
   RoomLayerManager new_layers;
   new_layers.ApplyLayerMerging(corrected.layer_merging());

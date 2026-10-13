@@ -8,6 +8,7 @@
 #include <initializer_list>
 
 #include "absl/status/status.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
@@ -24,6 +25,7 @@
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "yaze.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace editor {
@@ -100,6 +102,10 @@ void PopupManager::Initialize() {
                                      [this]() { DrawContributingPopup(); }};
   popups_[PopupID::kWhatsNew] = {PopupID::kWhatsNew, PopupType::kHelp, false,
                                  false, [this]() { DrawWhatsNewPopup(); }};
+  popups_[PopupID::kComingFromZScream] = {
+      PopupID::kComingFromZScream, PopupType::kHelp, false,
+      true,  // Resizable — concept map is longer than a short tip
+      [this]() { DrawComingFromZScreamPopup(); }};
 
   // Settings
   popups_[PopupID::kDisplaySettings] = {
@@ -189,6 +195,9 @@ void PopupManager::Show(const char* name) {
   auto it = popups_.find(name_str);
   if (it != popups_.end()) {
     if (!it->second.is_visible) {
+      if (name_str == PopupID::kSaveAs) {
+        ResetSaveAsState();
+      }
       it->second.shown_order = next_shown_order_++;
     }
     it->second.is_visible = true;
@@ -213,6 +222,9 @@ void PopupManager::Hide(const char* name) {
   auto it = popups_.find(name_str);
   if (it != popups_.end()) {
     it->second.is_visible = false;
+    if (name_str == PopupID::kSaveAs) {
+      ResetSaveAsState();
+    }
     CloseCurrentPopup();
   }
 }
@@ -306,6 +318,27 @@ void PopupManager::DrawRomInfoPopup() {
                                ? "(unknown)"
                                : editor_manager_->GetCurrentRomHash().c_str());
 
+  const auto profile = zelda3::DetectOverworldRomProfile(*current_rom);
+  const auto& layout = profile.lyra_layout;
+  if (layout.presence != rom::LyraLayoutPresence::kAbsent) {
+    Separator();
+    TextUnformatted("Overworld Format: Lyra descriptor");
+    Text("ROM Format Revision: %u", layout.revision);
+    Text("Area Capacity: %u", layout.capacity);
+    Text("Active Areas: %u", layout.active_count);
+    TextUnformatted(layout.presence == rom::LyraLayoutPresence::kValid
+                        ? "Validation: valid"
+                        : "Validation: invalid");
+    TextUnformatted("Write Support: inspection only");
+    if (!layout.error.empty()) {
+      TextWrapped("Reason: %s", layout.error.c_str());
+    }
+  } else if (profile.layout_kind ==
+             zelda3::OverworldRomProfile::LayoutKind::kOlderTailEa) {
+    Separator();
+    TextUnformatted("Overworld Format: older $EA tail-map expansion");
+  }
+
   auto* project = editor_manager_->GetCurrentProject();
   if (project && project->project_opened()) {
     Separator();
@@ -331,52 +364,123 @@ void PopupManager::DrawRomInfoPopup() {
   }
 }
 
+void PopupManager::ResetSaveAsState() {
+  save_as_ = {};
+}
+
 void PopupManager::DrawSaveAsPopup() {
   using namespace ImGui;
+  namespace fs = std::filesystem;
+
+  auto register_widget = [](const char* name, const char* type) {
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        std::string("SaveAs/") + type + ":" + name, type, GetItemID());
+  };
+  auto* rom = editor_manager_ ? editor_manager_->GetCurrentRom() : nullptr;
+  if (!rom || !rom->is_loaded()) {
+    TextUnformatted(tr("No ROM loaded."));
+    if (Button(tr("Close"))) {
+      Hide(PopupID::kSaveAs);
+    }
+    return;
+  }
+
+  const auto session_id = editor_manager_->GetCurrentSessionId();
+  if (!save_as_.initialized || save_as_.source_path != rom->filename() ||
+      save_as_.session_id != session_id) {
+    ResetSaveAsState();
+    save_as_.initialized = true;
+    save_as_.source_path = rom->filename();
+    save_as_.session_id = session_id;
+    std::error_code ec;
+    auto source = fs::absolute(fs::path(rom->filename()), ec);
+    if (ec || rom->filename().empty()) {
+      save_as_.error =
+          tr("The current ROM has no usable folder. Choose Browse.");
+    } else {
+      save_as_.folder = source.parent_path().string();
+    }
+    auto extension = source.extension().string();
+    const auto lower_extension = absl::AsciiStrToLower(extension);
+    if (lower_extension != ".sfc" && lower_extension != ".smc") {
+      extension = ".sfc";
+    }
+    const auto stem =
+        source.stem().empty() ? std::string("rom") : source.stem().string();
+    save_as_.filename = stem + "-copy" + extension;
+    for (int copy = 2;
+         !save_as_.folder.empty() &&
+         fs::exists(fs::path(save_as_.folder) / save_as_.filename, ec);
+         ++copy) {
+      save_as_.filename = stem + "-copy-" + std::to_string(copy) + extension;
+    }
+  }
 
   Text(tr("%s Save ROM to new location"), ICON_MD_SAVE_AS);
   Separator();
-
-  static std::string save_as_filename = "";
-  if (editor_manager_->GetCurrentRom() && save_as_filename.empty()) {
-    save_as_filename = editor_manager_->GetCurrentRom()->title();
+  TextUnformatted(tr("Folder:"));
+  PushTextWrapPos(GetCursorPosX() + 480.0f);
+  TextUnformatted(save_as_.folder.c_str());
+  PopTextWrapPos();
+  SetNextItemWidth(360.0f);
+  InputText(tr("Filename"), &save_as_.filename);
+  register_widget("Filename", "input");
+  if (!save_as_.error.empty()) {
+    TextWrapped("%s", save_as_.error.c_str());
   }
-
-  InputText(tr("Filename"), &save_as_filename);
   Separator();
 
-  if (Button(absl::StrFormat("%s Browse...", ICON_MD_FOLDER_OPEN).c_str(),
-             ::yaze::gui::kDefaultModalSize)) {
-    auto file_path =
-        util::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "sfc");
-    if (!file_path.empty()) {
-      save_as_filename = file_path;
+  const bool browse = Button(
+      absl::StrFormat("%s Browse folder...", ICON_MD_FOLDER_OPEN).c_str(),
+      ::yaze::gui::kDefaultModalSize);
+  register_widget("Browse", "button");
+  if (browse) {
+    auto selected = util::FileDialogWrapper::ShowOpenFolderDialog();
+    if (!selected.empty()) {
+      std::error_code ec;
+      const auto destination = fs::absolute(fs::path(selected), ec);
+      if (!ec) {
+        save_as_.folder = destination.string();
+        save_as_.error.clear();
+      }
     }
   }
 
   SameLine();
-  if (Button(absl::StrFormat("%s Save", ICON_MD_SAVE).c_str(),
-             ::yaze::gui::kDefaultModalSize)) {
-    if (!save_as_filename.empty()) {
-      // Ensure proper file extension
-      std::string final_filename = save_as_filename;
-      if (final_filename.find(".sfc") == std::string::npos &&
-          final_filename.find(".smc") == std::string::npos) {
-        final_filename += ".sfc";
+  const bool save = Button(absl::StrFormat("%s Save", ICON_MD_SAVE).c_str(),
+                           ::yaze::gui::kDefaultModalSize);
+  register_widget("Save", "button");
+  if (save) {
+    fs::path filename(save_as_.filename);
+    if (filename.empty() || filename == "." || filename == ".." ||
+        filename.has_parent_path() || save_as_.folder.empty()) {
+      save_as_.error =
+          tr("Enter a filename only. Use Browse to choose a different folder.");
+    } else {
+      const auto extension =
+          absl::AsciiStrToLower(filename.extension().string());
+      if (extension != ".sfc" && extension != ".smc") {
+        filename += ".sfc";
       }
-
-      auto status = editor_manager_->SaveRomAs(final_filename);
+      // SaveRomAs owns the complete destination across any confirmation popup.
+      const auto destination = (fs::path(save_as_.folder) / filename).string();
+      const auto status = editor_manager_->SaveRomAs(destination);
       if (status.ok()) {
-        save_as_filename = "";
         Hide(PopupID::kSaveAs);
+        return;
+      }
+      if (!absl::IsCancelled(status)) {
+        save_as_.error = std::string(status.message());
       }
     }
   }
 
   SameLine();
-  if (Button(absl::StrFormat("%s Cancel", ICON_MD_CANCEL).c_str(),
-             ::yaze::gui::kDefaultModalSize)) {
-    save_as_filename = "";
+  const bool cancel =
+      Button(absl::StrFormat("%s Cancel", ICON_MD_CANCEL).c_str(),
+             ::yaze::gui::kDefaultModalSize);
+  register_widget("Cancel", "button");
+  if (cancel || IsKeyPressed(ImGuiKey_Escape)) {
     Hide(PopupID::kSaveAs);
   }
 }
@@ -387,7 +491,8 @@ void PopupManager::DrawSaveScopePopup() {
   Text(tr("%s Save Scope"), ICON_MD_SAVE);
   Separator();
   TextWrapped(
-      tr("Controls which data is written during File > Save ROM. "
+      tr("Controls which data is written during File > Save ROM. Dungeon "
+         "choices also control Apply Room. "
          "Changes apply immediately."));
   Separator();
 
@@ -422,6 +527,13 @@ void PopupManager::DrawSaveScopePopup() {
     Checkbox(tr("Save Chests"), &core::FeatureFlags::get().dungeon.kSaveChests);
     Checkbox(tr("Save Pot Items"),
              &core::FeatureFlags::get().dungeon.kSavePotItems);
+    if (IsItemHovered()) {
+      SetTooltip(
+          tr("Enable to save pending pot item edits, then retry Save "
+             "or Apply Room. No project reopen is needed."));
+    }
+    Checkbox(tr("Save Entrances"),
+             &core::FeatureFlags::get().dungeon.kSaveEntrances);
     Checkbox(tr("Save Palettes"),
              &core::FeatureFlags::get().dungeon.kSavePalettes);
   }
@@ -874,6 +986,7 @@ void PopupManager::DrawGettingStartedPopup() {
   TextWrapped(tr("General Tips:"));
   BulletText(tr("Open a clean ROM and save a backup before editing"));
   BulletText(tr("Use Help (F1) for context-aware guidance and shortcuts"));
+  BulletText(tr("Coming from ZScream? Open Help → Coming from ZScream"));
   BulletText(tr(
       "Configure AI providers (Ollama/Gemini/OpenAI/Anthropic) in Settings > "
       "Agent"));
@@ -1027,6 +1140,84 @@ void PopupManager::DrawWhatsNewPopup() {
 
   if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kWhatsNew);
+  }
+}
+
+void PopupManager::DrawComingFromZScreamPopup() {
+  TextWrapped(tr("Coming from ZScream?"));
+  TextWrapped(tr(
+      "yaze covers the same Zelda 3 editing surfaces with a modern workspace, "
+      "projects, and CLI. Use this map to find familiar tools."));
+  Spacing();
+
+  if (CollapsingHeader(absl::StrFormat("%s Editors", ICON_MD_APPS).c_str(),
+                       ImGuiTreeNodeFlags_DefaultOpen)) {
+    BulletText(tr("Overworld Editor ≈ ZScream overworld map canvas + tile16"));
+    BulletText(
+        tr("Dungeon Editor ≈ underworld rooms (objects, sprites, properties)"));
+    BulletText(tr("Graphics / Sprite Editors ≈ GFX + sprite drawing"));
+    BulletText(tr("Palette Editor ≈ palette groups and edits"));
+    BulletText(tr("Message Editor ≈ dialogue / text"));
+    BulletText(
+        tr("Screen Editor → Overworld Map ≈ pause-menu map art "
+           "(not the playable overworld)"));
+  }
+
+  if (CollapsingHeader(
+          absl::StrFormat("%s Layout & navigation", ICON_MD_DASHBOARD).c_str(),
+          ImGuiTreeNodeFlags_DefaultOpen)) {
+    BulletText(
+        tr("Left activity bar opens editor categories (like ZScream "
+           "tool tabs)"));
+    BulletText(
+        tr("Dungeon workbench defaults to ZScream-style: selectors "
+           "left, inspector right"));
+    BulletText(tr("Ctrl+Shift+P opens the command palette for any action"));
+    BulletText(
+        tr("F1 / Help drawer shows context shortcuts for the active "
+           "editor"));
+  }
+
+  if (CollapsingHeader(
+          absl::StrFormat("%s Projects & ROM files", ICON_MD_FOLDER).c_str(),
+          ImGuiTreeNodeFlags_DefaultOpen)) {
+    BulletText(
+        tr(".yaze / .yazeproj track ROM path, flags, and workspace "
+           "settings"));
+    BulletText(
+        tr(".zsproj can be opened when present — same Open ROM / "
+           "Project flow"));
+    BulletText(
+        tr("Always keep a clean backup; Backup Before Save is on by "
+           "default"));
+    BulletText(
+        tr("ZSO / ZSCustomOverworld versions are detected from the ROM "
+           "(vanilla, v1, v2, v3)"));
+  }
+
+  if (CollapsingHeader(
+          absl::StrFormat("%s Overworld specifics", ICON_MD_LANDSCAPE).c_str(),
+          ImGuiTreeNodeFlags_DefaultOpen)) {
+    BulletText(tr("Tile16 selector / workbench ≈ ZScream tile picker + paint"));
+    BulletText(
+        tr("Map Properties gates ZSO fields (area size, BG colors, "
+           "animated GFX) by detected version"));
+    BulletText(tr("Screen Editor → Overworld Map is pause-menu art only"));
+  }
+
+  if (CollapsingHeader(absl::StrFormat("%s Saving", ICON_MD_SAVE).c_str())) {
+    BulletText(tr("File → Save Scope chooses ROM, project, or both"));
+    BulletText(tr("Autosave can be tuned under Settings → Editor Behavior"));
+    BulletText(tr("ROM Backups lists timestamped copies for restore"));
+  }
+
+  Spacing();
+  TextWrapped(tr(
+      "Tip: first-run toasts point at this guide once per tip. Reset tips in "
+      "Settings → Editor Behavior if you want them again."));
+
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
+    Hide(PopupID::kComingFromZScream);
   }
 }
 
@@ -1493,7 +1684,10 @@ void PopupManager::DrawRomWriteConfirmPopup() {
       "or release ROM if it is not the intended editable project ROM."));
 
   Spacing();
-  if (Button(tr("Save anyway"), ImVec2(0, 0))) {
+  const bool save_anyway = Button(tr("Save anyway"), ImVec2(0, 0));
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      "RomWriteConfirm/button:Save anyway", "button", GetItemID());
+  if (save_anyway) {
     editor_manager_->ConfirmRomWrite();
     Hide(PopupID::kRomWriteConfirm);
     auto status = editor_manager_->ResumePendingRomSave();

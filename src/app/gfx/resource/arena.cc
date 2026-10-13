@@ -262,26 +262,20 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
           // Log detailed surface state for debugging
           zelda3::PaletteDebugger::Get().LogSurfaceState(
               "Arena::ProcessTextureQueue (CREATE)", surf);
-          zelda3::PaletteDebugger::Get().LogTextureCreation(
-              "Arena::ProcessTextureQueue", has_palette, color_count);
+          if (command.bitmap->IsIndexed()) {
+            zelda3::PaletteDebugger::Get().LogTextureCreation(
+                "Arena::ProcessTextureQueue", has_palette, color_count);
+          }
 
           // WARNING: Creating texture without proper palette will produce wrong
           // colors
-          if (!has_palette) {
+          if (command.bitmap->IsIndexed() && !has_palette) {
             LOG_WARN("Arena",
                      "Creating texture from surface WITHOUT palette - "
                      "colors will be incorrect!");
             zelda3::PaletteDebugger::Get().LogPaletteApplication(
                 "Arena::ProcessTextureQueue", 0, false,
                 "Surface has NO palette");
-          } else if (color_count < 90) {
-            LOG_WARN("Arena",
-                     "Creating texture with only %d palette colors (expected "
-                     "90 for dungeon)",
-                     color_count);
-            zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                "Arena::ProcessTextureQueue", 0, false,
-                absl::StrFormat("Low color count: %d", color_count));
           }
 
           zelda3::PaletteDebugger::Get().LogPaletteApplication(
@@ -461,7 +455,9 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
   }
 
   // Create new surface if none available in pool
-  Uint32 sdl_format = GetSnesPixelFormat(format);
+  // Bitmap callers already resolved BitmapFormat to an SDL pixel format.
+  // Converting that numeric SDL value again silently falls back to INDEX8.
+  const Uint32 sdl_format = static_cast<Uint32>(format);
   SDL_Surface* surface =
       platform::CreateSurface(width, height, depth, sdl_format);
 
@@ -523,6 +519,16 @@ void Arena::Shutdown() {
   renderer_ = nullptr;
 }
 
+void Arena::BindGraphicsSheets(GraphicsSheets* sheets, const void* owner) {
+  auto* next = sheets ? sheets : &gfx_sheets_;
+  if (active_gfx_sheets_ != next) {
+    // LRU entries are sheet indices in the active storage, not global IDs.
+    ClearSheetCache();
+    active_gfx_sheets_ = next;
+  }
+  gfx_sheets_owner_ = sheets ? owner : nullptr;
+}
+
 void Arena::NotifySheetModified(int sheet_index) {
   if (sheet_index < 0 || sheet_index >= 223) {
     LOG_WARN("Arena", "Invalid sheet index %d, ignoring notification",
@@ -530,7 +536,7 @@ void Arena::NotifySheetModified(int sheet_index) {
     return;
   }
 
-  auto& sheet = gfx_sheets_[sheet_index];
+  auto& sheet = gfx_sheets()[sheet_index];
   if (!sheet.is_active() || !sheet.surface()) {
     LOG_DEBUG("Arena",
               "Sheet %d not active or no surface, skipping notification",
@@ -611,7 +617,7 @@ Bitmap* Arena::GetSheetWithCache(int sheet_index) {
     return nullptr;
   }
 
-  auto& sheet = gfx_sheets_[sheet_index];
+  auto& sheet = gfx_sheets()[sheet_index];
 
   // Check if sheet already has texture (cache hit)
   bool had_texture = sheet.texture() != nullptr;
@@ -663,7 +669,7 @@ size_t Arena::EvictLRUSheets(size_t count) {
   // Evict from back of list (least recently used)
   while (!sheet_lru_list_.empty() && evicted < target_evictions) {
     int sheet_index = sheet_lru_list_.back();
-    auto& sheet = gfx_sheets_[sheet_index];
+    auto& sheet = gfx_sheets()[sheet_index];
 
     // Destroy texture if it exists
     if (sheet.texture()) {

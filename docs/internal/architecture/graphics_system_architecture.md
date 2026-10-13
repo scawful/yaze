@@ -1,7 +1,7 @@
 # Graphics System Architecture
 
 **Status**: Active
-**Last Updated**: 2026-04-19
+**Last Updated**: 2026-10-03
 **Related Code**: `src/app/gfx/`, `src/app/editor/graphics/`
 
 This document outlines the architecture of the graphics system in YAZE,
@@ -44,10 +44,75 @@ Represents a single graphics sheet or image optimized for SNES ROM editing.
 *   **Tile Extraction**: Provides methods like `Get8x8Tile()`, `Get16x16Tile()` for SNES tile operations
 
 **Important Synchronization Rules**:
+*   Authored pixels belong to `GameData::sheet_store`. Graphics edits use
+    `graphics_sheet_sync.*` and stroke transactions; Arena bitmaps are display
+    copies. The bitmap operations below are rendering/cache operations, not
+    independent authoring paths.
 *   Never modify `SDL_Texture` directly - always modify the `Bitmap` data
 *   Use `set_data()` for bulk updates to keep CPU and GPU in sync
 *   Use `WriteToPixel()` for single-pixel modifications
 *   Call `UpdateTexture()` to sync changes to GPU
+*   `Bitmap::palette()` preserves the source palette bank. It is not the
+    displayed row after `SetPaletteWithTransparent()`. Manual pixel tools read
+    the SDL surface palette; source-bound tools use `GraphicsEditTarget::palette`.
+    `PixelEditorPanel::DisplayPalette()` provides this choice for swatches,
+    pixel inspection and clipboard colors without changing source palette data.
+
+Manual palette preview uses `graphics_palette_preview.*`. Each Graphics editor
+keeps a named group, palette index and row per sheet in
+`GraphicsEditorState::preview_palettes`. No entry means **Loaded colors**, taken
+from that session's loaded bitmap. Do not infer a group from RGB equality or use
+numeric group ordering. The Pixel Editor and Palette Controls share one selector.
+Selections apply immediately to the owning Arena display copy and refresh when
+the source palette changes. They do not mutate sheet-store pixels, ROM palettes,
+authoring dirty state or undo history. Reloading or replacing the ROM clears
+these temporary choices. A source-bound `GraphicsEditContext` controls its colors
+until the user explicitly chooses **Use manual palette**.
+
+Palette edits, Undo/Redo, reset and discard publish through the existing
+`PaletteManager` → Arena notification path. `ColorRevision(GameData*)` names the
+session's in-memory color state; it is separate from sheet-store revisions and
+save checkpoints. Consumers must scope callbacks to the owning GameData.
+Overworld refreshes resolved palettes on materialized maps (including cached
+other worlds) without rebuilding authored tile grids; Dungeon uses its existing
+palette-user invalidation. Do not require Save or a manual Apply to preview a
+supported PaletteManager edit.
+
+The Palette workspace's continuous picker interaction uses
+`PaletteManager::BeginColorEdit`, `SetColor`, and `CommitColorEdit`. Each preview
+still publishes immediately; release records one first/final-color Undo step.
+`CancelColorEdit` restores the gesture's starting color and dirty state without
+clearing Redo. Do not use BeginBatch/EndBatch for live gestures: that API defers
+notifications. Explicit session navigation completes a gesture, but transient
+frame activation must not. Saves and history actions finish pending gestures
+before operating. Equivalent SNES words and net-zero gestures add no history.
+
+Dungeon and Overworld `GraphicsEditContext::refresh_palettes` callbacks reuse
+source loaders when the color revision changes. `UpdateGraphicsContextPalettes`
+checks all target identities before replacing any color. A changed sheet/tile
+assignment reports a stale source rather than redirecting pending pixel edits.
+Selection, floating paste, sheet revisions and pixel Undo are retained. Overworld
+source assignments remain captured at entry; changing those requires reopening
+Edit Graphics. Sprite/Screen captured source contexts are not upgraded by this
+callback path yet. Manual **Loaded colors** remains the load-time snapshot.
+Usage Preview watches color revisions separately from pixel changes, and generic
+Room/Sprite/Tile16 contexts reload their palette caches. New resolvers should
+supply the same callback rather than creating another palette owner.
+
+`RomSession` owns a lazily allocated display-sheet array. Both eager and lazy
+asset loads populate it from loaded bitmaps and `GameData::sheet_store`.
+`HandleSessionSwitched` selects it through `Arena::BindGraphicsSheets`, including
+transient visits during `SessionCoordinator::UpdateSessions`. Bitmap addresses
+and textures stay stable while another session draws; queued uploads therefore
+retain the correct session's pixels. Switching does not reload assets, overwrite
+pending edits, or clear preview choices and undo history.
+
+Closing/resetting the owning session retires its bitmaps through Arena before
+freeing the array. Queued bitmap references are removed immediately; textures
+are destroyed through the existing frame-end retirement path. The active sheet
+LRU is cleared on a binding change. Use `BindGraphicsSheets` for session storage;
+`set_gfx_sheets_owner` is a legacy standalone/test marker and does not select an
+array. The preview setter still rejects a mismatched owner.
 
 ### 3. Graphics Workspaces (`src/app/editor/graphics/`)
 
@@ -63,19 +128,31 @@ The graphics domain is split between two editors:
 `WindowContent` shells from [`graphics_editor_panels.h`](../../../src/app/editor/graphics/panels/graphics_editor_panels.h)
 that forward into `*_panel` / `GfxGroupEditor` / `PolyhedralEditorPanel`
 implementations. `ScreenEditor` registers its screen surfaces the same way.
-Parallel `graphics/ui/**` `*_view` sources exist for incremental migration; new
-work should follow [`editor-ui-module-pattern.md`](./editor-ui-module-pattern.md)
+The unregistered `SheetBrowserView`, `PixelEditorView`, `PaletteControlsView`,
+and `PalettesetEditorView` implementations were removed. Extend the live
+`SheetBrowserPanel`, `PixelEditorPanel`, `PaletteControlsPanel`, and
+`PalettesetEditorPanel`; do not recreate parallel editing paths. New work should follow [`editor-ui-module-pattern.md`](./editor-ui-module-pattern.md)
 and prefer [`graphics/ui/shared/graphics_window_context.h`](../../../src/app/editor/graphics/ui/shared/graphics_window_context.h)
 over ad-hoc `ContentRegistry` downcasts when a `GraphicsEditor` pointer is needed.
+
+**Palette workspace:** `palette.control_panel` hosts group navigation and the
+existing `PaletteGroupPanel::DrawEmbedded()` controls. Ordinary navigation uses
+`PaletteEditor::JumpToPalette()`; opening a comparison window is explicit. Extend
+the shared grid and picker rather than adding a second color model or copying a
+grid into another group. Current colors come from the session's `PaletteManager`;
+original colors come from its loaded/committed snapshot.
+
+The workspace's **Save ROM** action routes through `EditorManager`. Pending
+palettes participate in the file-save transaction even when Dungeon has never
+opened. If Dungeon already serialized them, Palette does not start a second
+transaction. Both existing palette-save settings remain supported; disabling
+both refuses a save with pending palette edits. **Apply to buffer** in an optional
+comparison window only updates ROM memory. It does not report disk persistence.
 
 #### Graphics UI module layout (migration + screen descriptors)
 
 ```text
 src/app/editor/graphics/ui/
-  browser/sheet_browser_view.{h,cc}
-  editing/pixel_editor_view.{h,cc}
-  palette/palette_controls_view.{h,cc}
-  palette/paletteset_editor_view.{h,cc}
   research/prototype_research_view.{h,cc}
   research/polyhedral_editor_view.{h,cc}
   screen/screen_editor_views.h
@@ -87,9 +164,9 @@ src/app/editor/graphics/ui/
 
 | Module | Primary role |
 |--------|--------------|
-| `browser/` | Sheet selection and navigation |
-| `editing/` | Pixel editing for in-ROM graphics sheets |
-| `palette/` | Palette controls and palette-set editing |
+| `sheet_browser_panel.*` | Live sheet selection and navigation |
+| `pixel_editor_panel.*` | Live pixel editing through the session sheet store |
+| `palette_controls_panel.*`, `paletteset_editor_panel.*` | Live palette preview controls and palette-set editing |
 | `research/` | Prototype asset decode (CGX/SCR/COL/BIN/OBJ, Super Donkey, etc.) **and** ROM polyhedral table editing (`PolyhedralEditorPanel` / `graphics.polyhedral`) |
 | `screen/` | `ScreenEditor` window descriptors and shortcuts |
 | `sprite/` | Link sprite preview and animation inspection |
@@ -103,6 +180,20 @@ host keeps its **own** `GfxGroupEditor` object (separate `gui::Canvas` stacks), 
 per [`EditorSet`](../../../src/app/editor/session_types.h) (injected via
 `EditorDependencies::gfx_group_workspace`). A short per-surface host hint remains
 at the top of each widget.
+
+#### Pixel Editor layout
+
+Keep drawing tools in one frame-height row and indexed colors above the canvas.
+`DrawGraphicsPreviewPaletteSelector` shares the same selection/preview owner in
+its stacked Palette Controls and inline Pixel Editor presentations. Inline
+controls may wrap at narrow widths; do not reintroduce a permanent color sidebar
+or another palette cache. Optional comparison windows remain independent.
+
+Zoom controls stay visible in the footer. **Fit** is an explicit, one-shot integer
+zoom, computed after the sheet tabs establish the available canvas area. Apply
+its scroll reset before opening the canvas child so the new zoom and pan appear
+in the same frame. Window resizing does not implicitly refit. Internal canvas
+layout changes keep existing window IDs and do not reset saved dock layouts.
 
 #### Persistent workspace IDs
 

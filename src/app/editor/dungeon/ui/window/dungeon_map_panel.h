@@ -126,6 +126,10 @@ class DungeonMapPanel : public WindowContent {
         ImVec2(static_cast<float>(grid_x), static_cast<float>(grid_y));
   }
 
+  void SetRenderContextCallback(std::function<void(int)> callback) {
+    prepare_render_context_ = std::move(callback);
+  }
+
   void SetRooms(DungeonRoomStore* rooms) {
     if (rooms_ != rooms) {
       room_composite_outputs_.clear();
@@ -191,11 +195,15 @@ class DungeonMapPanel : public WindowContent {
     canvas_width = std::max(canvas_width, 200.0f);
     canvas_height = std::max(canvas_height, 200.0f);
 
-    ImVec2 available = ImGui::GetContentRegionAvail();
-    const float available_width = std::max(160.0f, available.x);
-    const float available_height = std::max(160.0f, available.y - 40.0f);
-    ImVec2 canvas_size(std::min(available_width, canvas_width),
-                       std::min(available_height, canvas_height));
+    const ImVec2 available = ImGui::GetContentRegionAvail();
+    const float footer = ImGui::GetTextLineHeightWithSpacing();
+    if (!ImGui::BeginChild("##DungeonMapCanvas",
+                           ImVec2(0, std::max(1.0f, available.y - footer)),
+                           false, ImGuiWindowFlags_HorizontalScrollbar)) {
+      ImGui::EndChild();
+      return;
+    }
+    const ImVec2 canvas_size(canvas_width, canvas_height);
 
     // Begin canvas area
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
@@ -302,6 +310,8 @@ class DungeonMapPanel : public WindowContent {
       if (rooms_) {
         auto* loaded_room = rooms_->GetIfLoaded(room_id);
         if (loaded_room != nullptr) {
+          if (prepare_render_context_)
+            prepare_render_context_(room_id);
           auto& output = room_composite_outputs_[room_id];
           if (!output) {
             output = std::make_unique<RoomCompositeOutput>();
@@ -313,7 +323,8 @@ class DungeonMapPanel : public WindowContent {
           if (preview_bitmap.is_active() && preview_bitmap.texture() != 0) {
             // Draw room thumbnail
             draw_list->AddImage((ImTextureID)(intptr_t)preview_bitmap.texture(),
-                                room_min, room_max);
+                                room_min, room_max, ImVec2(0, 0), ImVec2(1, 1),
+                                ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
           } else {
             // Placeholder for loaded but no texture
             draw_list->AddRectFilled(
@@ -429,8 +440,11 @@ class DungeonMapPanel : public WindowContent {
       }
     }
 
-    // Advance past canvas
+    // Invisible room buttons moved the cursor. Reserve the grid from its
+    // original origin, rather than adding its extent after the last room.
+    ImGui::SetCursorScreenPos(canvas_pos);
     ImGui::Dummy(canvas_size);
+    ImGui::EndChild();
 
     // Status bar
     ImGui::TextDisabled(tr("%zu rooms in view"), dungeon_room_ids_.size());
@@ -495,6 +509,8 @@ class DungeonMapPanel : public WindowContent {
   void DrawRegistrySelector() {
     const auto& dungeons = hack_manifest_->project_registry().dungeons;
 
+    ImGui::SetNextItemWidth(
+        std::max(100.0f, ImGui::GetContentRegionAvail().x - 220.0f));
     if (ImGui::BeginCombo("##DungeonRegistry", current_dungeon_name_.c_str())) {
       for (size_t i = 0; i < dungeons.size(); i++) {
         const auto& dungeon = dungeons[i];
@@ -535,10 +551,13 @@ class DungeonMapPanel : public WindowContent {
         {"Ganon's Tower", 0x0C, 16}, {"Hyrule Castle", 0x01, 12},
     };
 
-    if (ImGui::BeginCombo("##DungeonPreset",
-                          selected_preset_ >= 0
-                              ? kPresets[selected_preset_].name
-                              : "Select Dungeon...")) {
+    ImGui::SetNextItemWidth(
+        std::max(100.0f, ImGui::GetContentRegionAvail().x - 220.0f));
+    if (ImGui::BeginCombo(
+            "##DungeonPreset",
+            selected_preset_ >= 0 && selected_preset_ < IM_ARRAYSIZE(kPresets)
+                ? kPresets[selected_preset_].name
+                : "Select Dungeon...")) {
       for (int i = 0; i < IM_ARRAYSIZE(kPresets); i++) {
         if (ImGui::Selectable(kPresets[i].name, selected_preset_ == i)) {
           selected_preset_ = i;
@@ -610,6 +629,7 @@ class DungeonMapPanel : public WindowContent {
   int* current_room_id_ = nullptr;
   ImVector<int>* active_rooms_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
+  std::function<void(int)> prepare_render_context_;
   std::function<void(int)> on_room_selected_;
   std::function<void(int, RoomSelectionIntent)> on_room_intent_;
 

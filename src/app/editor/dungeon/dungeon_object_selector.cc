@@ -19,6 +19,7 @@
 // Project headers
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
@@ -173,22 +174,14 @@ bool IsMinecartGraphicsRuntimeSlot(int object_id, int subtype) {
 
 std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
   static constexpr std::array<const char*, 16> kObject31Names = {
-      "Track horizontal",
-      "Track vertical",
-      "Track corner top-left",
-      "Track corner top-right",
-      "Track corner bottom-left",
-      "Track corner bottom-right",
-      "Floor track vertical",
-      "Floor track horizontal",
-      "Floor track corner top-left",
-      "Floor track corner top-right",
-      "Floor track corner bottom-left",
-      "Floor track corner bottom-right",
-      "Floor track any direction",
-      "Sword House wall object",
-      "Track any direction",
-      "Small statue",
+      "Pit track horizontal",           "Pit track vertical",
+      "Pit track corner top-left",      "Pit track corner top-right",
+      "Pit track corner bottom-left",   "Pit track corner bottom-right",
+      "Floor track vertical",           "Floor track horizontal",
+      "Floor track corner top-left",    "Floor track corner top-right",
+      "Floor track corner bottom-left", "Floor track corner bottom-right",
+      "Floor track any direction",      "Sword House wall object",
+      "Pit track any direction",        "Small statue",
   };
   static constexpr std::array<const char*, 3> kObject32Names = {
       "Ice furnace",
@@ -317,7 +310,77 @@ void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
   }
 }
 
+bool DungeonObjectSelector::DrawMinecartPalette() {
+  SynchronizeCustomObjectGeneration();
+  if (!core::FeatureFlags::get().kEnableCustomObjects) {
+    ImGui::TextDisabled("This project has no custom rail assets.");
+    return false;
+  }
+  const auto layout = ResolveDungeonObjectSelectorGridLayout(
+      ImGui::GetContentRegionAvail().x, 64.0f, ImGui::GetStyle().ItemSpacing.x);
+  bool chosen = false;
+  ImGui::PushID("MinecartRailPalette");
+  // Keep the complete catalog visible, with the same shape order in both
+  // families. These are artwork choices; behavior is edited separately.
+  static constexpr std::array<std::array<int, 7>, 2> kFamilies = {
+      {{7, 6, 8, 9, 10, 11, 12}, {0, 1, 2, 3, 4, 5, 14}}};
+  for (size_t family = 0; family < kFamilies.size(); ++family) {
+    ImGui::TextDisabled("%s",
+                        family == 0 ? "Floor-style rails" : "Pit-style rails");
+    int column = 0;
+    for (int subtype : kFamilies[family]) {
+      if (column)
+        ImGui::SameLine();
+      const auto status = GetCustomObjectAssetStatus(0x31, subtype);
+      const auto name = GetDungeonCustomObjectSlotName(0x31, subtype);
+      const auto label = absl::StrFormat("##Rail%d", subtype);
+      ImGui::BeginDisabled(!status.ok());
+      if (ImGui::Selectable(label.c_str(),
+                            object_loaded_ && preview_object_.id_ == 0x31 &&
+                                preview_object_.size_ == subtype,
+                            0, ImVec2(layout.item_size, layout.item_size))) {
+        SelectObject(0x31, subtype);
+        chosen = true;
+      }
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("Rail%d", subtype));
+      ImGui::EndDisabled();
+      const auto top = ImGui::GetItemRectMin();
+      auto obj = MakePreviewObject(0x31);
+      obj.size_ = subtype;
+      const bool rendered =
+          status.ok() && ImGui::IsItemVisible() &&
+          DrawObjectPreview(obj, ImVec2(top.x + 3, top.y + 3),
+                            ImVec2(layout.item_size - 6, layout.item_size - 6));
+      if (!rendered) {
+        ImGui::GetWindowDrawList()->AddText(
+            top, ImGui::GetColorU32(ImGuiCol_TextDisabled),
+            status.ok() ? "Preview..." : "Missing");
+      }
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(status.ok()
+                                   ? "Click, then place on the room canvas."
+                                   : std::string(status.message()).c_str());
+        if (status.ok() && family == 0) {
+          ImGui::TextUnformatted(
+              "Uses fixed floor tiles; check the room's graphics and palette.");
+        }
+        ImGui::EndTooltip();
+      }
+      column = (column + 1) % layout.columns;
+    }
+  }
+  ImGui::PopID();
+  return chosen;
+}
+
 void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
+  if (browser_mode_ == BrowserMode::kObjects &&
+      !custom_object_action_error_.empty()) {
+    ImGui::TextWrapped("%s", custom_object_action_error_.c_str());
+  }
   const auto& theme = AgentUI::GetTheme();
 
   // Object ranges supported by the room-object stream codec.
@@ -390,12 +453,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
     const bool stack_filters = toolbar_width < 230.0f;
     const float filter_row_width =
         std::max(1.0f, toolbar_width - more_width - control_spacing);
+    const float used_width = ImGui::GetFrameHeight() +
+                             ImGui::CalcTextSize("Used here").x +
+                             style.ItemInnerSpacing.x;
     const float category_width =
-        stack_filters ? toolbar_width : filter_row_width * 0.56f;
-    const float stream_width =
-        stack_filters ? filter_row_width
-                      : std::max(1.0f, filter_row_width - category_width -
-                                           control_spacing);
+        stack_filters
+            ? toolbar_width
+            : std::max(1.0f, filter_row_width - used_width - control_spacing);
 
     ImGui::SetNextItemWidth(category_width);
     ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
@@ -408,9 +472,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
     if (!stack_filters) {
       ImGui::SameLine(0.0f, control_spacing);
     }
-    ImGui::SetNextItemWidth(stream_width);
-    ImGui::Combo("##ObjectStreamFilter", &object_stream_filter_, kStreamLabels,
-                 IM_ARRAYSIZE(kStreamLabels));
+    ImGui::Checkbox("Used here", &used_here_only_);
     ImGui::SameLine(0.0f, control_spacing);
     if (ImGui::Button(kMoreLabel, ImVec2(more_width, 0.0f))) {
       ImGui::OpenPopup("##ObjectSelectorOptionsPopup");
@@ -418,12 +480,17 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
     if (ImGui::BeginPopup("##ObjectSelectorOptionsPopup")) {
       const bool has_filters = object_search_buffer_[0] != '\0' ||
                                object_type_filter_ != 0 ||
-                               object_stream_filter_ != 0;
+                               object_stream_filter_ != 0 || used_here_only_;
       if (ImGui::MenuItem(tr("Clear filters"), nullptr, false, has_filters)) {
         object_search_buffer_[0] = '\0';
         object_type_filter_ = 0;
         object_stream_filter_ = 0;
+        used_here_only_ = false;
       }
+
+      ImGui::SetNextItemWidth(130.0f);
+      ImGui::Combo("Object stream", &object_stream_filter_, kStreamLabels,
+                   IM_ARRAYSIZE(kStreamLabels));
 
       ImGui::SeparatorText(tr("Display"));
       ImGui::Checkbox(tr("Show thumbnails"), &enable_object_previews_);
@@ -487,6 +554,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
         if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
           continue;
         }
+        if (!MatchesRoomUsage(obj_id))
+          continue;
         if (!MatchesDungeonObjectStreamFilter(obj_id, object_stream_filter_)) {
           continue;
         }
@@ -520,6 +589,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
           sym = zelda3::GetSymbologyForObject(static_cast<int16_t>(obj_id));
         }
         ImVec2 button_pos = ImGui::GetItemRectMin();
+        DrawObjectContextMenu(obj_id);
         gui::BeginRoomObjectDragSource(
             static_cast<uint16_t>(obj_id), current_room_id_, 0, 0,
             zelda3::DefaultRoomObjectSizeForPlacement(obj_id));
@@ -718,6 +788,48 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
   ImGui::EndChild();
 }
 
+void DungeonObjectSelector::DrawObjectContextMenu(int object_id, int subtype) {
+  if (!ImGui::BeginPopupContextItem("##ObjectActions"))
+    return;
+  const bool supported =
+      subtype >= 0
+          ? GetCustomObjectAssetStatus(object_id, subtype).ok()
+          : zelda3::ObjectTileEditor::IsEditableStandardObject(object_id);
+  const bool has_context = rooms_ && rooms_->GetIfLoaded(current_room_id_);
+  const bool can_edit =
+      supported && has_context &&
+      (subtype >= 0 ? tile_editor_panel_ != nullptr
+                    : static_cast<bool>(edit_object_tiles_callback_));
+  if (ImGui::MenuItem("Edit tiles...", nullptr, false, can_edit)) {
+    const auto status =
+        subtype >= 0 ? OpenExistingCustomObjectEditor(object_id, subtype,
+                                                      current_room_id_)
+                     : edit_object_tiles_callback_(
+                           current_room_id_, MakePreviewObject(object_id));
+    custom_object_action_error_ =
+        status.ok() ? "" : std::string(status.message());
+  }
+  if (!supported && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "Tile editing is available for straight walls, 4x4 corners, "
+        "fixed 2x2 objects and custom assets. This layout is not supported "
+        "yet.");
+  }
+  ImGui::EndPopup();
+}
+
+bool DungeonObjectSelector::MatchesRoomUsage(int obj_id) const {
+  if (!used_here_only_)
+    return true;
+  const auto* room = rooms_ ? rooms_->GetIfLoaded(current_room_id_) : nullptr;
+  if (!room)
+    return false;
+  const auto& objects = room->GetTileObjects();
+  return std::any_of(
+      objects.begin(), objects.end(),
+      [obj_id](const auto& object) { return object.id_ == obj_id; });
+}
+
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
   constexpr std::array<const char*, 6> kCategories = {
       "Walls", "Floors", "Chests", "Doors", "Decorations", "Stairs"};
@@ -862,6 +974,7 @@ void DungeonObjectSelector::SynchronizeCustomObjectGeneration() {
 }
 
 void DungeonObjectSelector::DetachRuntimeContext() {
+  edit_object_tiles_callback_ = {};
   rom_ = nullptr;
   game_data_ = nullptr;
   rooms_ = nullptr;
@@ -1099,7 +1212,9 @@ bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
   const ImVec2 image_bottom_right(image_top_left.x + fit.width,
                                   image_top_left.y + fit.height);
   ImGui::GetWindowDrawList()->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
-                                       image_top_left, image_bottom_right);
+                                       image_top_left, image_bottom_right,
+                                       ImVec2(0, 0), ImVec2(1, 1),
+                                       ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   return true;
 }
 
@@ -1287,6 +1402,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
         }
         const bool item_visible = ImGui::IsItemVisible();
         ImVec2 button_pos = ImGui::GetItemRectMin();
+        DrawObjectContextMenu(obj_id, subtype);
         if (asset_ready && rooms_ != nullptr &&
             rooms_->GetIfLoaded(current_room_id_) != nullptr) {
           gui::BeginRoomObjectDragSource(

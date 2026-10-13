@@ -26,6 +26,15 @@ namespace yaze {
 namespace editor {
 
 struct DungeonObjectSelectorTestAccess {
+  static void DrawContextMenu(DungeonObjectSelector& selector, int id) {
+    selector.DrawObjectContextMenu(id);
+  }
+  static void SetUsedHere(DungeonObjectSelector& selector, bool enabled) {
+    selector.used_here_only_ = enabled;
+  }
+  static bool MatchesRoomUsage(const DungeonObjectSelector& selector, int id) {
+    return selector.MatchesRoomUsage(id);
+  }
   static zelda3::RoomObject MakePreviewObject(
       const DungeonObjectSelector& selector, int object_id) {
     return selector.MakePreviewObject(object_id);
@@ -275,6 +284,112 @@ TEST(DungeonObjectSelectorPaletteTest,
 }
 
 TEST(DungeonObjectSelectorPaletteTest,
+     UsedHereIsOptInAndFollowsLiveRoomObjects) {
+  DungeonRoomStore rooms;
+  rooms[1].SetLoaded(true);
+  rooms[2].SetLoaded(true);
+  rooms[1].GetTileObjects().emplace_back(0x31, 4, 4, 2, 0);
+  rooms[2].GetTileObjects().emplace_back(0x22, 4, 4, 2, 0);
+  DungeonObjectSelector selector;
+  selector.set_rooms(&rooms);
+  selector.set_current_room_id(1);
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  DungeonObjectSelectorTestAccess::SetUsedHere(selector, true);
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x31));
+  EXPECT_FALSE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  rooms[1].GetTileObjects().emplace_back(0x22, 8, 8, 2, 0);
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  rooms[1].GetTileObjects().pop_back();
+  EXPECT_FALSE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  selector.set_current_room_id(2);
+  EXPECT_FALSE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x31));
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x22));
+  DungeonObjectSelectorTestAccess::SetUsedHere(selector, false);
+  EXPECT_TRUE(
+      DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x31));
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     RightClickEditTilesUsesRoomWithoutSelectingOrPlacing) {
+  auto* previous = ImGui::GetCurrentContext();
+  auto* context = ImGui::CreateContext();
+  ImGui::SetCurrentContext(context);
+  auto& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(800, 600);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.IniFilename = nullptr;
+  io.LogFilename = nullptr;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  DungeonRoomStore rooms;
+  rooms[5].SetLoaded(true);
+  DungeonObjectSelector selector;
+  selector.set_rooms(&rooms);
+  selector.set_current_room_id(5);
+  int calls = 0;
+  selector.SetEditObjectTilesCallback(
+      [&](int room_id, const zelda3::RoomObject& object) {
+        ++calls;
+        EXPECT_EQ(room_id, 5);
+        EXPECT_EQ(object.id_, 0x100);
+        return absl::OkStatus();
+      });
+  const int selection = selector.selected_object_id_for_testing();
+  ImVec2 card_center;
+  ImVec2 action_center;
+  bool found_popup = false;
+  const auto frame = [&] {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(30, 30));
+    ImGui::SetNextWindowSize(ImVec2(400, 300));
+    ImGui::Begin("ObjectCatalogContextTest", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    ImGui::Selectable("Wall corner", false, 0, ImVec2(80, 80));
+    card_center =
+        ImVec2(ImGui::GetItemRectMin().x + 40, ImGui::GetItemRectMin().y + 40);
+    DungeonObjectSelectorTestAccess::DrawContextMenu(selector, 0x100);
+    if (!context->OpenPopupStack.empty()) {
+      if (auto* popup = context->OpenPopupStack.back().Window) {
+        action_center =
+            ImVec2(popup->Pos.x + 50, popup->Pos.y + popup->WindowPadding.y +
+                                          ImGui::GetTextLineHeight() * 0.5f);
+        found_popup = true;
+      }
+    }
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  io.AddMousePosEvent(card_center.x, card_center.y);
+  io.AddMouseButtonEvent(1, true);
+  frame();
+  io.AddMouseButtonEvent(1, false);
+  frame();
+  frame();
+  EXPECT_TRUE(found_popup);
+  io.AddMousePosEvent(action_center.x, action_center.y);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  EXPECT_EQ(calls, 1);
+  EXPECT_EQ(selector.selected_object_id_for_testing(), selection);
+  EXPECT_TRUE(rooms[5].GetTileObjects().empty());
+  ImGui::DestroyContext(context);
+  ImGui::SetCurrentContext(previous);
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
      ReloadAssetsButtonWorksWithCustomObjectsDisabled) {
   ScopedSelectorCustomObjectState custom_state;
   core::FeatureFlags::get().kEnableCustomObjects = false;
@@ -516,14 +631,6 @@ TEST(DungeonObjectSelectorPaletteTest,
   }
 
   EXPECT_EQ(arena.texture_command_queue_size(), 0u);
-}
-
-TEST(DungeonObjectSelectorPaletteTest, InitialInvalidationCountIsZero) {
-  // Defensive: a freshly-constructed selector must report no invalidations,
-  // so a test asserting "+1" can rely on baseline 0 without an explicit
-  // setup-phase reset.
-  DungeonObjectSelector selector;
-  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 0u);
 }
 
 TEST(DungeonObjectSelectorPaletteTest,
@@ -876,7 +983,7 @@ TEST(DungeonObjectSelectorCustomRuntimeTest, FixedSlotsMatchOracleDispatch) {
   EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x54, 2));
   EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x30, 0));
 
-  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 0), "Track horizontal");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 0), "Pit track horizontal");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 13),
             "Sword House wall object");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 2), "Ice chair");

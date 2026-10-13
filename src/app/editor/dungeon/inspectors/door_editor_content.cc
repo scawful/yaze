@@ -170,15 +170,51 @@ void DoorEditorContent::OnClose() {
   CancelPlacement();
 }
 
-void DoorEditorContent::Draw(bool* p_open) {
-  (void)p_open;
+void DoorEditorContent::Draw(bool* /*p_open*/) {
+  DrawContent(true);
+}
+
+void DoorEditorContent::DrawInWorkbench() {
+  DrawContent(false);
+}
+
+bool DoorEditorContent::HasMatchingViewer() const {
+  if (!canvas_viewer_ || !rooms_ || canvas_viewer_->rooms() != rooms_ ||
+      current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size()) ||
+      canvas_viewer_->current_room_id() != current_room_id_) {
+    return false;
+  }
+  const auto* context = canvas_viewer_->object_interaction()
+                            .entity_coordinator()
+                            .tile_handler()
+                            .context();
+  return context && context->current_room_id == current_room_id_;
+}
+
+bool DoorEditorContent::CanEditRoom() const {
+  return HasMatchingViewer() && canvas_viewer_->IsObjectInteractionEnabled() &&
+         !canvas_viewer_->header_read_only();
+}
+
+void DoorEditorContent::DrawContent(bool show_room_doors) {
   ResolveCanvasViewer();
+  const bool can_edit = CanEditRoom();
+  door_placement_mode_ =
+      HasMatchingViewer() &&
+      canvas_viewer_->object_interaction().IsDoorPlacementActive();
+  if (door_placement_mode_) {
+    selected_door_type_ = canvas_viewer_->object_interaction()
+                              .entity_coordinator()
+                              .door_handler()
+                              .GetDoorType();
+  }
   gui::AutoWidgetScope automation_scope("Dungeon/DoorEditor");
 
   const auto& theme = AgentUI::GetTheme();
   static constexpr auto kDoorTypes = zelda3::GetPlaceableDoorTypes();
 
-  if (ResolveCanvasViewer() &&
+  if (show_room_doors && HasMatchingViewer() &&
       canvas_viewer_->object_interaction().HasEntitySelection() &&
       canvas_viewer_->object_interaction().GetSelectedEntity().type ==
           EntityType::Door) {
@@ -191,9 +227,7 @@ void DoorEditorContent::Draw(bool* p_open) {
   }
 
   gui::SectionHeader(ICON_MD_DOOR_FRONT, "Door Styles", theme.text_info);
-  ImGui::TextColored(theme.text_secondary_gray,
-                     tr("Select a door style, then click a wall in the room "
-                        "canvas to place it."));
+  ImGui::TextWrapped("Select a door style, then click a wall to place it.");
 
   if (door_placement_mode_) {
     ImGui::TextColored(
@@ -208,16 +242,20 @@ void DoorEditorContent::Draw(bool* p_open) {
   constexpr float kDoorCardHeight = 48.0f;
   constexpr float kDoorCardSpacing = 6.0f;
   constexpr float kMinDoorCardWidth = 92.0f;
+
+  const float grid_height =
+      show_room_doors ? 150.0f
+                      : std::max(1.0f, ImGui::GetContentRegionAvail().y);
+  ImGui::BeginChild("##DoorTypeGrid", ImVec2(0, grid_height), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  ImGui::BeginDisabled(!can_edit);
   const float panel_width = ImGui::GetContentRegionAvail().x;
   const int items_per_row =
-      std::max(2, static_cast<int>((panel_width + kDoorCardSpacing) /
+      std::max(1, static_cast<int>((panel_width + kDoorCardSpacing) /
                                    (kMinDoorCardWidth + kDoorCardSpacing)));
   const float card_width = std::max(
       kMinDoorCardWidth,
       (panel_width - (items_per_row - 1) * kDoorCardSpacing) / items_per_row);
-
-  ImGui::BeginChild("##DoorTypeGrid", ImVec2(0, 150), true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
   int col = 0;
   for (size_t i = 0; i < kDoorTypes.size(); ++i) {
@@ -246,7 +284,11 @@ void DoorEditorContent::Draw(bool* p_open) {
     const std::string label =
         absl::StrFormat("%s %02X\n%s", DoorTypeIcon(door_type), type_val,
                         ShortDoorTypeLabel(door_type).c_str());
-    if (ImGui::Button(label.c_str(), ImVec2(card_width, kDoorCardHeight))) {
+    const bool picked =
+        ImGui::Button(label.c_str(), ImVec2(card_width, kDoorCardHeight));
+    gui::AutoRegisterLastItem("button",
+                              absl::StrFormat("place_door_%02X", type_val));
+    if (picked && can_edit) {
       selected_door_type_ = door_type;
       door_placement_mode_ = true;
       if (ResolveCanvasViewer()) {
@@ -271,15 +313,17 @@ void DoorEditorContent::Draw(bool* p_open) {
     ImGui::PopID();
     col++;
     if (col < items_per_row && i < kDoorTypes.size() - 1) {
-      ImGui::SameLine();
+      ImGui::SameLine(0, kDoorCardSpacing);
     } else {
       col = 0;
     }
   }
 
+  ImGui::EndDisabled();
   ImGui::EndChild();
 
-  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296) {
+  if (!show_room_doors || !rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
     return;
   }
 
@@ -295,7 +339,7 @@ void DoorEditorContent::Draw(bool* p_open) {
   }
 
   int selected_door_index = -1;
-  if (ResolveCanvasViewer() &&
+  if (HasMatchingViewer() &&
       canvas_viewer_->object_interaction().HasEntitySelection()) {
     const auto selected_entity =
         canvas_viewer_->object_interaction().GetSelectedEntity();
@@ -306,6 +350,7 @@ void DoorEditorContent::Draw(bool* p_open) {
 
   if (selected_door_index >= 0 &&
       selected_door_index < static_cast<int>(doors.size())) {
+    ImGui::BeginDisabled(!can_edit);
     uint8_t raw_type = static_cast<uint8_t>(doors[selected_door_index].type);
     ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(tr("Selected raw type"));
@@ -319,7 +364,8 @@ void DoorEditorContent::Draw(bool* p_open) {
          static_cast<uint64_t>(selected_door_index)});
     gui::AutoRegisterLastItem("input_scalar", "selected_door_raw_type",
                               "Selected door raw type byte");
-    if (type_changed && canvas_viewer_) {
+    ImGui::EndDisabled();
+    if (type_changed && can_edit) {
       canvas_viewer_->object_interaction()
           .entity_coordinator()
           .door_handler()
@@ -342,7 +388,7 @@ void DoorEditorContent::Draw(bool* p_open) {
     gui::AutoRegisterLastItem("selectable", absl::StrFormat("door_row_%zu", i),
                               "Select a door in the current dungeon room");
     if (row_selected) {
-      if (canvas_viewer_) {
+      if (HasMatchingViewer()) {
         canvas_viewer_->object_interaction().SelectEntity(EntityType::Door, i);
       }
     }

@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/panels/screen_editor_panels.h"
+#include "app/editor/graphics/screen_menu_tilemap_editor.h"
 #include "app/editor/graphics/screen_undo_actions.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -52,8 +53,31 @@ class ScreenEditor : public Editor {
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  // Pure preflight, also used before any coordinated serializer runs. Only
+  // pending map records are admitted; a clean editor produces no writes.
+  absl::StatusOr<zelda3::DungeonMapWritePlan> PrepareDungeonMapSave() const;
+  absl::Status BeginSaveTransaction() override;
+  void RollbackSaveTransaction() override;
+  void CommitSaveTransaction() override;
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+
+  // Cheap contribution: just the currently-open menu tilemap file name and
+  // dirty state, appended to the base Screen category snapshot. Skips
+  // entirely (falls through to Editor::BuildContextSnapshot()) when no
+  // tilemap is loaded, so this never does I/O or ROM work.
+  EditorContextSnapshot BuildContextSnapshot() const override;
+
+  // Test-only hook (see MenuTilemapEditorUI::LoadFileForTesting): loads a
+  // tilemap file directly, bypassing the native "Open..." file dialog that
+  // ImGuiTestEngine can't drive.
+  absl::Status LoadMenuTilemapForTesting(const std::string& path) {
+    return menu_tilemap_ui_.LoadFileForTesting(path);
+  }
+  bool IsMenuTilemapDirtyForTesting() const { return menu_tilemap_ui_.dirty(); }
+  bool IsMenuTilemapLoadedForTesting() const {
+    return menu_tilemap_ui_.loaded();
+  }
 
   bool HasPendingDungeonMapChanges() const {
     return pending_dungeon_map_changes_;
@@ -76,11 +100,17 @@ class ScreenEditor : public Editor {
   void InvalidateRomBackedState();
   absl::Status RefreshRomBackedState();
   bool IsRomBackedStateValid() const { return rom_backed_state_valid_; }
+  // Opens the selected ROM-backed Dungeon Map / Tiles Gfx tile in Graphics.
+  // BIN graphics and unavailable same-session sheets fail without navigation.
+  absl::Status OpenDungeonMapTileGraphics();
 
   std::vector<zelda3::DungeonMap> dungeon_maps_;
 
  private:
   friend class ScreenEditorSaveStoplossTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
+  friend class ScreenGraphicsContextTestPeer;
+  friend class ScreenFloorMutationTestPeer;
 
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
@@ -88,6 +118,7 @@ class ScreenEditor : public Editor {
 
   void DrawInventoryMenuEditor();
   void DrawInventoryItemIcons();
+  void DrawMenuTilemapEditor();
   void DrawToolset();
   void DrawDungeonMapToolset();
   void DrawInventoryToolset();
@@ -105,12 +136,15 @@ class ScreenEditor : public Editor {
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
   void DrawDungeonMapsRoomGfx();
+  void RefreshDungeonMapGraphicsFromSession();
 
   void LoadBinaryGfx();
   gfx::Bitmap* GetOrCreateSheet(int index);
   void RefreshTileCacheForReload(gfx::Tilemap& tilemap);
   bool HasValidDungeonSelection() const;
   bool HasValidDungeonFloorSelection(int floor) const;
+
+  absl::Status ChangeDungeonMapFloorCount(bool basement, bool add);
 
   // Undo/redo helpers
   ScreenSnapshot CaptureDungeonMapSnapshot() const;
@@ -145,6 +179,7 @@ class ScreenEditor : public Editor {
   int selected_tile8_ = 0;
   int selected_dungeon = 0;
   int floor_number = 1;
+  bool select_floor_tab_ = true;
 
   bool copy_button_pressed = false;
   bool paste_button_pressed = false;
@@ -177,6 +212,7 @@ class ScreenEditor : public Editor {
   std::unique_ptr<zelda3::Inventory> inventory_ =
       std::make_unique<zelda3::Inventory>();
   bool inventory_loaded_ = false;
+  MenuTilemapEditorUI menu_tilemap_ui_;
   zelda3::TitleScreen title_screen_;
   zelda3::OverworldMapScreen ow_map_screen_;
 
@@ -209,6 +245,10 @@ class ScreenEditor : public Editor {
   bool pending_overworld_map_changes_ = false;
   bool pending_overworld_map_palette_changes_ = false;
   bool rom_backed_state_valid_ = false;
+  Rom* loaded_rom_ = nullptr;
+  zelda3::GameData* loaded_game_data_ = nullptr;
+  bool map_save_transaction_active_ = false;
+  bool map_save_serialized_ = false;
   ScreenSnapshot pending_dungeon_before_;
   ScreenSnapshot pending_tile16_before_;
   std::string pending_dungeon_desc_;

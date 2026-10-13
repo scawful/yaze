@@ -242,15 +242,13 @@ TEST(DungeonObjectValidateTest, AllSizesUsesOnlyFixedSubtypeLegalSizes) {
   };
 
   for (const auto& test_case : {
-           TestCase{"--object=0x100", "yaze_dungeon_type2_size_trace_test.json",
-                    0},
-           TestCase{"--object=0xF83", "yaze_dungeon_type3_size_trace_test.json",
-                    12},
+           TestCase{"--object=0x100", "yaze_dungeon_type2_size_trace_test", 0},
+           TestCase{"--object=0xF83", "yaze_dungeon_type3_size_trace_test", 12},
        }) {
     SCOPED_TRACE(test_case.object_arg);
     DungeonObjectValidateCommandHandler handler;
     const auto trace_path =
-        std::filesystem::temp_directory_path() / test_case.trace_name;
+        ::yaze::test::UniqueTempPath(test_case.trace_name, ".json");
     std::filesystem::remove(trace_path);
 
     std::string output;
@@ -321,9 +319,10 @@ TEST(DungeonObjectValidateTest, AllStatesTracksExpectedEmptyBranches) {
        }) {
     SCOPED_TRACE(test_case.object_arg);
     DungeonObjectValidateCommandHandler handler;
-    const auto trace_path = std::filesystem::temp_directory_path() /
-                            (std::string("yaze_dungeon_expected_empty_") +
-                             test_case.label + "_trace_test.json");
+    const auto trace_path = ::yaze::test::UniqueTempPath(
+        std::string("yaze_dungeon_expected_empty_") + test_case.label +
+            "_trace_test",
+        ".json");
     std::filesystem::remove(trace_path);
 
     std::vector<std::string> args{"--mock-rom", test_case.object_arg};

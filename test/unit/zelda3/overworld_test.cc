@@ -10,6 +10,14 @@
 namespace yaze {
 namespace zelda3 {
 
+TEST(OverworldSaveTest, NullRomReturnsFailedPrecondition) {
+  auto overworld = std::make_unique<Overworld>(nullptr);
+
+  const auto status = overworld->Save(nullptr);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+}
+
 class OverworldTest : public ::testing::Test {
  protected:
   void SetUp() override {

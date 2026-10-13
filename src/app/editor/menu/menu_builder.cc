@@ -135,25 +135,21 @@ void MenuBuilder::Draw() {
     // Don't add icons to top-level menus as they get cut off
     std::string menu_label = tr(menu.label.c_str());
 
+    const bool open = ImGui::BeginMenu(menu_label.c_str());
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        std::string("MainMenu/menu:") + menu.label, "menu", ImGui::GetItemID());
+    if (!open)
+      continue;
     if (menu.is_custom) {
-      // Custom menu with callback for dynamic content
-      if (ImGui::BeginMenu(menu_label.c_str())) {
-        if (menu.custom_draw) {
-          menu.custom_draw();
-        }
-        ImGui::EndMenu();
-      }
+      if (menu.custom_draw)
+        menu.custom_draw();
     } else {
-      // Standard menu with predefined items
-      if (ImGui::BeginMenu(menu_label.c_str())) {
-        submenu_stack_.clear();  // Reset submenu stack for each top-level menu
-        skip_depth_ = 0;         // Reset skip depth
-        for (const auto& item : menu.items) {
-          DrawMenuItem(item);
-        }
-        ImGui::EndMenu();
-      }
+      submenu_stack_.clear();
+      skip_depth_ = 0;
+      for (const auto& item : menu.items)
+        DrawMenuItem(item);
     }
+    ImGui::EndMenu();
   }
 }
 

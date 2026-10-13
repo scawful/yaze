@@ -39,36 +39,51 @@ constexpr int kMapsPerRow = 8;
 
 std::string GetWorldName(int world) {
   switch (world) {
-    case 0: return "light";
-    case 1: return "dark";
-    case 2: return "special";
-    default: return "unknown";
+    case 0:
+      return "light";
+    case 1:
+      return "dark";
+    case 2:
+      return "special";
+    default:
+      return "unknown";
   }
 }
 
 std::string GetAreaSizeName(zelda3::AreaSizeEnum size) {
   switch (size) {
-    case zelda3::AreaSizeEnum::SmallArea: return "small";
-    case zelda3::AreaSizeEnum::LargeArea: return "large";
-    case zelda3::AreaSizeEnum::WideArea: return "wide";
-    case zelda3::AreaSizeEnum::TallArea: return "tall";
-    default: return "small";
+    case zelda3::AreaSizeEnum::SmallArea:
+      return "small";
+    case zelda3::AreaSizeEnum::LargeArea:
+      return "large";
+    case zelda3::AreaSizeEnum::WideArea:
+      return "wide";
+    case zelda3::AreaSizeEnum::TallArea:
+      return "tall";
+    default:
+      return "small";
   }
 }
 
 int WorldFromMapId(int map_id) {
-  if (map_id >= kSpecialWorldOffset) return 2;
-  if (map_id >= kDarkWorldOffset) return 1;
+  if (map_id >= kSpecialWorldOffset)
+    return 2;
+  if (map_id >= kDarkWorldOffset)
+    return 1;
   return 0;
 }
 
 int LocalIndexFromMapId(int map_id) {
   int world = WorldFromMapId(map_id);
   switch (world) {
-    case 0: return map_id;
-    case 1: return map_id - kDarkWorldOffset;
-    case 2: return map_id - kSpecialWorldOffset;
-    default: return map_id;
+    case 0:
+      return map_id;
+    case 1:
+      return map_id - kDarkWorldOffset;
+    case 2:
+      return map_id - kSpecialWorldOffset;
+    default:
+      return map_id;
   }
 }
 
@@ -80,10 +95,18 @@ std::string GetDefaultAreaName(int map_id) {
 
   std::string world_name;
   switch (world) {
-    case 0: world_name = "Light World"; break;
-    case 1: world_name = "Dark World"; break;
-    case 2: world_name = "Special Area"; break;
-    default: world_name = "Unknown"; break;
+    case 0:
+      world_name = "Light World";
+      break;
+    case 1:
+      world_name = "Dark World";
+      break;
+    case 2:
+      world_name = "Special Area";
+      break;
+    default:
+      world_name = "Unknown";
+      break;
   }
 
   return absl::StrFormat("%s (%d,%d)", world_name, grid_x, grid_y);
@@ -114,9 +137,8 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
     } else if (w == "special" || w == "2") {
       world_filter = 2;
     } else if (w != "all") {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Invalid world: ", w,
-                       ". Use: light, dark, special, or all"));
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Invalid world: ", w, ". Use: light, dark, special, or all"));
     }
   }
 
@@ -137,7 +159,8 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
     }
 
     const auto* map = overworld.overworld_map(map_id);
-    if (map == nullptr) continue;
+    if (map == nullptr)
+      continue;
 
     int local = LocalIndexFromMapId(map_id);
     int grid_x = local % kMapsPerRow;
@@ -186,10 +209,12 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
   // Read north transition targets
   for (int map_id = 0; map_id < zelda3::kNumOverworldMaps; ++map_id) {
     int world = WorldFromMapId(map_id);
-    if (world_filter.has_value() && world != *world_filter) continue;
+    if (world_filter.has_value() && world != *world_filter)
+      continue;
 
     // North transitions
-    ASSIGN_OR_RETURN(auto north_target,
+    ASSIGN_OR_RETURN(
+        auto north_target,
         rom->ReadWord(zelda3::kTransitionTargetNorth + map_id * 2));
     int north_area = north_target & 0xFF;
 
@@ -222,7 +247,7 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
 
     // West transitions
     ASSIGN_OR_RETURN(auto west_target,
-        rom->ReadWord(zelda3::kTransitionTargetWest + map_id * 2));
+                     rom->ReadWord(zelda3::kTransitionTargetWest + map_id * 2));
     int west_area = west_target & 0xFF;
 
     if (west_area != map_id && west_area < zelda3::kNumOverworldMaps) {
@@ -253,14 +278,17 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
   // Also add implicit connections for adjacent areas
   for (int map_id = 0; map_id < zelda3::kNumOverworldMaps; ++map_id) {
     int world = WorldFromMapId(map_id);
-    if (world_filter.has_value() && world != *world_filter) continue;
+    if (world_filter.has_value() && world != *world_filter)
+      continue;
 
     int local = LocalIndexFromMapId(map_id);
     int grid_x = local % kMapsPerRow;
     int grid_y = local / kMapsPerRow;
 
     // Get world offset for neighbor calculation
-    int world_offset = (world == 0) ? 0 : (world == 1) ? kDarkWorldOffset : kSpecialWorldOffset;
+    int world_offset = (world == 0)   ? 0
+                       : (world == 1) ? kDarkWorldOffset
+                                      : kSpecialWorldOffset;
     int maps_in_world = (world == 2) ? 32 : 64;
 
     // East neighbor
@@ -311,16 +339,20 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
 
   // Collect entrance information
   std::vector<EntranceInfo> entrances;
+  ASSIGN_OR_RETURN(auto entrance_layout,
+                   zelda3::ResolveEntranceLayout(rom->vector()));
 
   const auto& ow_entrances = overworld.entrances();
   for (size_t i = 0; i < ow_entrances.size(); ++i) {
     const auto& entrance = ow_entrances[i];
-    if (entrance.deleted) continue;
+    if (entrance.deleted)
+      continue;
 
     int area_id = entrance.map_id_ & 0xFF;
     int world = WorldFromMapId(area_id);
 
-    if (world_filter.has_value() && world != *world_filter) continue;
+    if (world_filter.has_value() && world != *world_filter)
+      continue;
 
     EntranceInfo info;
     info.id = static_cast<int>(i);
@@ -338,12 +370,17 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
       info.name = absl::StrFormat("Entrance %d", entrance.entrance_id_);
     }
 
-    // Read destination room ID from ROM
-    // kEntranceRoom is 2 bytes per entrance
+    // Resolve the same active table as the dungeon model. Do not activate
+    // expanded IDs outside the editor's existing regular entrance count.
     uint8_t entrance_id = entrance.entrance_id_;
-    ASSIGN_OR_RETURN(auto room_id,
-        rom->ReadWord(zelda3::kEntranceRoom + entrance_id * 2));
-    info.dest_room_id = room_id;
+    if (entrance_id < zelda3::kNumRegularDungeonEntrances) {
+      ASSIGN_OR_RETURN(auto room_id,
+                       rom->ReadWord(entrance_layout.address(
+                           zelda3::EntranceField::kRoom, entrance_id)));
+      info.dest_room_id = room_id;
+    } else {
+      info.dest_room_id = -1;
+    }
 
     entrances.push_back(info);
   }
@@ -356,7 +393,8 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
     int area_id = hole.map_id_ & 0xFF;
     int world = WorldFromMapId(area_id);
 
-    if (world_filter.has_value() && world != *world_filter) continue;
+    if (world_filter.has_value() && world != *world_filter)
+      continue;
 
     EntranceInfo info;
     info.id = static_cast<int>(ow_entrances.size() + i);
@@ -369,15 +407,20 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
         sizeof(zelda3::kEntranceNames) / sizeof(zelda3::kEntranceNames[0]);
     if (hole.entrance_id_ < kNumEntranceLabels) {
       info.name = absl::StrFormat("%s (Hole)",
-          zelda3::kEntranceNames[hole.entrance_id_]);
+                                  zelda3::kEntranceNames[hole.entrance_id_]);
     } else {
       info.name = absl::StrFormat("Hole %d", hole.entrance_id_);
     }
 
     uint8_t entrance_id = hole.entrance_id_;
-    ASSIGN_OR_RETURN(auto room_id,
-        rom->ReadWord(zelda3::kEntranceRoom + entrance_id * 2));
-    info.dest_room_id = room_id;
+    if (entrance_id < zelda3::kNumRegularDungeonEntrances) {
+      ASSIGN_OR_RETURN(auto room_id,
+                       rom->ReadWord(entrance_layout.address(
+                           zelda3::EntranceField::kRoom, entrance_id)));
+      info.dest_room_id = room_id;
+    } else {
+      info.dest_room_id = -1;
+    }
 
     entrances.push_back(info);
   }
@@ -391,7 +434,8 @@ absl::Status OverworldExportGraphCommandHandler::Execute(
       int area_id = exit.map_id_ & 0xFF;
       int world = WorldFromMapId(area_id);
 
-      if (world_filter.has_value() && world != *world_filter) continue;
+      if (world_filter.has_value() && world != *world_filter)
+        continue;
 
       ExitInfo info;
       info.room_id = exit.room_id_;

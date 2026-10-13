@@ -276,7 +276,7 @@ void DungeonRenderingHelpers::DrawCustomCollisionOverlay(
   for (int y = 0; y < 64; ++y) {
     for (int x = 0; x < 64; ++x) {
       uint8_t tile = custom.tiles[static_cast<size_t>(y * 64 + x)];
-      if (tile == 0)
+      if (!custom.HasOverride(static_cast<size_t>(y * 64 + x)))
         continue;
 
       const float px = static_cast<float>(x * 8) * scale;

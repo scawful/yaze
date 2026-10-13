@@ -47,66 +47,14 @@ EXCLUSION_LIST: dict[str, str] = {
     # ---------------------------------------------------------------------------
     # yaze_test.cc is the gtest main entry point included by all suites.
     "yaze_test.cc": "gtest main entry point; compiled into every suite target",
-    # yaze_test_ci.cc is an alternate CI main that is built separately.
-    "yaze_test_ci.cc": "alternate CI entry point; not a standalone suite",
     # app_instance_stub.cc satisfies Application::Instance() for non-GUI tests.
     "app_instance_stub.cc": "shared link stub, not a test suite",
     # gui_test_utils.cc is helper code compiled into the GUI suite only.
     "gui_test_utils.cc": "GUI test helper compiled into yaze_test_gui",
-    # test_editor.cc provides shared test helper stubs, not a test suite itself.
-    "test_editor.cc": "shared test helper (test_editor.h), not a suite",
-    # test_conversation_minimal.cc is an ad-hoc manual probe, not a suite.
-    "test_conversation_minimal.cc": "manual probe only; no gtest harness",
-    # standalone/test_sdl3_audio_compile.cc is a manual compile probe, not gtest.
-    "standalone/test_sdl3_audio_compile.cc": (
-        "manual SDL3 compile probe; not a gtest suite"
-    ),
-
-    # ---------------------------------------------------------------------------
-    # WASM / Emscripten-only -- cannot be compiled in native build
-    # ---------------------------------------------------------------------------
-    # browser_ai_test.cc uses Emscripten fetch/socket APIs, native-incompatible.
-    "browser_ai_test.cc": "WASM/browser-only; compiled by the Emscripten build",
-    # wasm_message_queue_test.cc is fully guarded by #ifdef __EMSCRIPTEN__.
-    "integration/wasm_message_queue_test.cc": "WASM-only; guarded by #ifdef __EMSCRIPTEN__",
-    # wasm_error_handler_test.cc is fully guarded by #ifdef __EMSCRIPTEN__.
-    "platform/wasm_error_handler_test.cc": "WASM-only; guarded by #ifdef __EMSCRIPTEN__",
-    # wasm_patch_export_test.cc tests APIs that only exist under Emscripten.
-    "unit/wasm_patch_export_test.cc": "WASM-only; tests Emscripten-export API",
-
-    # ---------------------------------------------------------------------------
-    # DEPRECATED -- coverage superseded by other tests
-    # ---------------------------------------------------------------------------
-    # dungeon_rendering_test.cc deprecated Nov 2025; replaced by
-    # dungeon_object_rendering_tests.cc with proper TestRomManager fixtures.
-    "integration/zelda3/dungeon_rendering_test.cc": (
-        "DEPRECATED Nov 2025; replaced by integration/zelda3/"
-        "dungeon_object_rendering_tests.cc"
-    ),
-    # object_rendering_test.cc deprecated Nov 2025; replaced by the same suite.
-    "unit/zelda3/dungeon/object_rendering_test.cc": (
-        "DEPRECATED Nov 2025; replaced by integration/zelda3/"
-        "dungeon_object_rendering_tests.cc"
-    ),
-    # e2e dungeon object rendering suite is deprecated for DungeonEditorV2.
-    "e2e/dungeon_object_rendering_e2e_tests.cc": (
-        "DEPRECATED Nov 2025; replaced by e2e/dungeon_editor_smoke_test.cc and "
-        "integration/zelda3/dungeon_object_rendering_tests.cc"
-    ),
-    # Alternate/WIP ObjectDrawer suite kept on disk but not wired into CMake.
-    "integration/zelda3/dungeon_object_rendering_tests_new.cc": (
-        "Unwired WIP duplicate of dungeon_object_rendering_tests.cc"
-    ),
-
-    # ---------------------------------------------------------------------------
-    # Legacy / removed -- explicitly retired from the build
-    # ---------------------------------------------------------------------------
-    # editor_integration_test.cc was removed from the build because it depends
-    # on Controller which has circular dependencies. Replacement: use the GUI
-    # suite (yaze_test_gui) via the ImGui Test Engine.
-    "integration/editor/editor_integration_test.cc": (
-        "Legacy Controller dependency; retired -- use yaze_test_gui instead"
-    ),
+    # The orphan WASM, deprecated rendering, legacy Controller and manual-probe
+    # sources that used to be listed here were deleted in the 2026-09-27 test
+    # debloat (docs/internal/testing/debloat-phase1-log.md). Nothing built
+    # them. Add a new entry only with a reason, and prefer deleting dead tests.
 }
 
 

@@ -82,7 +82,7 @@ void PopulateDungeonRenderPaletteRows(const gfx::SnesPalette& dungeon_palette,
   if (hud_palette != nullptr) {
     const size_t hud_count = std::min<size_t>(hud_palette->size(), 32);
     for (size_t i = 0; i < hud_count; ++i) {
-      write_color(static_cast<int>(i), (*hud_palette)[i]);
+      write_color(static_cast<int>(i), (*hud_palette)[i], -1);
     }
   }
 
@@ -99,7 +99,8 @@ void PopulateDungeonRenderPaletteRows(const gfx::SnesPalette& dungeon_palette,
         return;
       }
       const int dst_index = sdl_bank * kIndicesPerSdlBank + color + 1;
-      write_color(dst_index, dungeon_palette[rom_index]);
+      write_color(dst_index, dungeon_palette[rom_index],
+                  static_cast<int>(rom_index));
     }
   }
 }
@@ -136,13 +137,20 @@ void CopyPaletteToCgram(const gfx::SnesPalette* source, size_t source_offset,
 
 std::vector<SDL_Color> BuildDungeonRenderPalette(
     const gfx::SnesPalette& dungeon_palette,
-    const gfx::SnesPalette* hud_palette) {
+    const gfx::SnesPalette* hud_palette, PaletteAddressMap* addresses,
+    int palette_id) {
+  if (addresses)
+    *addresses = {};
   std::vector<SDL_Color> colors(256, {0, 0, 0, 0});
   PopulateDungeonRenderPaletteRows(
       dungeon_palette, hud_palette,
-      [&](int dst_index, const gfx::SnesColor& color) {
+      [&](int dst_index, const gfx::SnesColor& color, int source_index) {
         if (dst_index < 0 || dst_index >= static_cast<int>(colors.size())) {
           return;
+        }
+        if (addresses && source_index >= 0 && dst_index < 128) {
+          (*addresses)[dst_index] = PaletteColorAddress{
+              PaletteAddressGroup::kDungeonMain, palette_id, source_index};
         }
         const ImVec4 rgb = color.rgb();
         colors[dst_index] = {static_cast<Uint8>(rgb.x),
@@ -170,7 +178,7 @@ gfx::PaletteGroup BuildDungeonRenderPaletteGroup(
 
   PopulateDungeonRenderPaletteRows(
       dungeon_palette, hud_palette,
-      [&group](int dst_index, const gfx::SnesColor& color) {
+      [&group](int dst_index, const gfx::SnesColor& color, int) {
         if (dst_index < 0 || dst_index >= kRenderPaletteRows * kColorsPerRow) {
           return;
         }
@@ -250,7 +258,7 @@ void LoadDungeonRenderPaletteToCgram(std::span<uint16_t> cgram,
                                      const gfx::SnesPalette* hud_palette) {
   PopulateDungeonRenderPaletteRows(
       dungeon_palette, hud_palette,
-      [&](int dst_index, const gfx::SnesColor& color) {
+      [&](int dst_index, const gfx::SnesColor& color, int) {
         if (dst_index < 0 || dst_index >= static_cast<int>(cgram.size())) {
           return;
         }
@@ -548,10 +556,9 @@ int MeasureSpriteStreamSize(const std::vector<uint8_t>& rom_data,
   return std::max(0, cursor - sprite_address);
 }
 
-absl::Status RelocateDungeonStream(Rom* rom, int room_id,
-                                   DungeonStreamKind expected_kind,
-                                   const DungeonStreamLayout& layout,
-                                   std::vector<uint8_t> encoded_stream) {
+absl::StatusOr<DungeonStreamWritePlan> PlanRelocateDungeonStream(
+    const Rom& rom, int room_id, DungeonStreamKind expected_kind,
+    const DungeonStreamLayout& layout, std::vector<uint8_t> encoded_stream) {
   if (layout.kind != expected_kind) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Room %d relocation layout has the wrong dungeon stream kind",
@@ -559,12 +566,12 @@ absl::Status RelocateDungeonStream(Rom* rom, int room_id,
   }
 
   ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
-                   InventoryDungeonStreams(*rom, layout));
+                   InventoryDungeonStreams(rom, layout));
   ASSIGN_OR_RETURN(
       const DungeonStreamWritePlan plan,
       PlanDungeonStreamWrites(inventory, {{static_cast<uint32_t>(room_id),
                                            std::move(encoded_stream)}}));
-  return ApplyDungeonStreamWritePlan(rom, plan);
+  return plan;
 }
 
 absl::StatusOr<bool> DungeonStreamRequiresCopyOnWrite(
@@ -953,25 +960,14 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   const auto& sprite_gfx = game_data_->spriteset_ids;
   const uint8_t requested_main_blockset =
       entrance_blockset.value_or(render_entrance_blockset_);
-  uint8_t main_blockset = 0;
   // The game takes the main blockset ($0AA1) from the entrance the dungeon
   // was entered through, never from the room header. Without an explicit
   // entrance, use the room's dungeon default (room_default_entrance.h); the
   // header byte ($0AA2, the room's secondary set) is the last resort.
-  const uint8_t dungeon_main_blockset =
-      room_id_ >= 0 && room_id_ < static_cast<int>(
-                                      game_data_->room_default_entrances.size())
-          ? game_data_->room_default_entrances[room_id_].main_blockset
-          : 0xFF;
-  if (requested_main_blockset != 0xFF &&
-      requested_main_blockset < game_data_->main_blockset_ids.size()) {
-    main_blockset = requested_main_blockset;
-  } else if (dungeon_main_blockset != 0xFF &&
-             dungeon_main_blockset < game_data_->main_blockset_ids.size()) {
-    main_blockset = dungeon_main_blockset;
-  } else if (blockset_ < game_data_->main_blockset_ids.size()) {
-    main_blockset = blockset_;
-  } else {
+  const auto resolution = ResolveRoomMainBlockset(
+      room_id_, blockset_, requested_main_blockset, *game_data_);
+  const uint8_t main_blockset = resolution.main_blockset;
+  if (resolution.source == RoomMainBlocksetSource::kZeroFallback) {
     LOG_WARN("Room",
              "Room %d: invalid main fallback blockset %d; using main group 0",
              room_id_, blockset_);
@@ -1064,6 +1060,14 @@ void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
     SetRenderEntranceBlockset(*entrance_blockset);
   }
   EnsureObjectsLoaded();
+  // Graphics-group editors can change shared assignments without a room edit.
+  // Resolve IDs before checking pixel revisions so all previews stay current.
+  const auto previous_blocks = blocks_;
+  const auto previous_main = resolved_main_blockset_;
+  LoadRoomGraphics();
+  if (blocks_ != previous_blocks || resolved_main_blockset_ != previous_main) {
+    MarkGraphicsDirty();
+  }
   // An unsaved graphics edit to a sheet this room shows.
   if (SourceSheetsChanged()) {
     MarkGraphicsDirty();
@@ -1076,6 +1080,27 @@ void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
       !bg2_bmp.is_active() || bg2_bmp.width() == 0) {
     RenderRoomGraphics();
   }
+}
+
+int Room::BackgroundPaletteOffset(int block) const {
+  // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
+  // The engine expands 3BPP graphics to 4BPP in two modes:
+  // - Left palette: plane3 = 0 (pixel values 0-7).
+  // - Right palette: plane3 = OR(planes0..2), so non-zero pixels get bit3=1
+  //   (pixel values 1-7 become 9-15; 0 remains 0/transparent).
+  //
+  // For background graphics sets, the game selects Left/Right based on the
+  // active main graphics group ($0AA1) and the slot index ($0F).
+  // InitializeTilesets starts $0F at 7 for destination block 0 and decrements
+  // it through destination block 7, so the runtime slot is 7 - block. For UW
+  // groups (< $20), runtime slots 4-7 use Right; for OW groups (>= $20), the
+  // Right runtime slots are {2,3,4,7}.
+  const uint8_t active_main_blockset =
+      resolved_main_blockset_ != 0xFF
+          ? resolved_main_blockset_
+          : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
+                                               : blockset_);
+  return DungeonBackgroundPaletteOffset(active_main_blockset, block);
 }
 
 void Room::CopyRoomGraphicsToBuffer() {
@@ -1104,35 +1129,6 @@ void Room::CopyRoomGraphicsToBuffer() {
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
   source_sheet_revisions_.clear();
 
-  // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
-  // The engine expands 3BPP graphics to 4BPP in two modes:
-  // - Left palette: plane3 = 0 (pixel values 0-7).
-  // - Right palette: plane3 = OR(planes0..2), so non-zero pixels get bit3=1
-  //   (pixel values 1-7 become 9-15; 0 remains 0/transparent).
-  //
-  // For background graphics sets, the game selects Left/Right based on the
-  // active main graphics group ($0AA1) and the slot index ($0F).
-  // InitializeTilesets starts $0F at 7 for destination block 0 and decrements
-  // it through destination block 7, so the runtime slot is 7 - block. For UW
-  // groups (< $20), runtime slots 4-7 use Right; for OW groups (>= $20), the
-  // Right runtime slots are {2,3,4,7}.
-  const uint8_t active_main_blockset =
-      resolved_main_blockset_ != 0xFF
-          ? resolved_main_blockset_
-          : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
-                                               : blockset_);
-  auto is_right_palette_background_slot = [&](int block) -> bool {
-    if (block < 0 || block >= 8) {
-      return false;
-    }
-    const int runtime_slot = 7 - block;
-    if (active_main_blockset < 0x20) {
-      return runtime_slot >= 4;
-    }
-    return (runtime_slot == 2 || runtime_slot == 3 || runtime_slot == 4 ||
-            runtime_slot == 7);
-  };
-
   // Process each of the 16 graphics blocks
   for (int block = 0; block < 16; block++) {
     int sheet_id = blocks_[block];
@@ -1160,7 +1156,7 @@ void Room::CopyRoomGraphicsToBuffer() {
 
       // Only background blocks (0-7) participate in Left/Right palette
       // expansion. Sprite sheets are handled separately by the game.
-      const bool right_pal = is_right_palette_background_slot(block);
+      const bool right_pal = BackgroundPaletteOffset(block) == 8;
       if (!right_pal) {
         memcpy(dst, src, 4096);
       } else {
@@ -1421,8 +1417,8 @@ void Room::RenderRoomGraphics() {
     //
     // Drawing formula (see ObjectDrawer): final_color = pixel + (pal * 16).
     // Where pal is the 3-bit tile palette field (0-7) and pixel is 1-15.
-    const auto render_palette =
-        BuildDungeonRenderPalette(bg1_palette, hud_palette);
+    const auto render_palette = BuildDungeonRenderPalette(
+        bg1_palette, hud_palette, &rendered_palette_addresses_, palette_id);
 
     // Retain this room's palette context. The active presentation publishes it
     // atomically with its bitmap; auxiliary room renders must not replace the
@@ -2293,21 +2289,62 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
+std::vector<std::pair<uint32_t, uint32_t>> Room::StreamSavePlan::write_ranges()
+    const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  const auto add = [&](uint32_t address, size_t size) {
+    ranges.emplace_back(address, address + static_cast<uint32_t>(size));
+  };
+  for (const auto& [address, bytes] : direct_writes) {
+    add(address, bytes.size());
+  }
+  if (direct_long_write.has_value()) {
+    add(direct_long_write->first, 3);
+  }
+  if (relocation.has_value()) {
+    for (const auto& write : relocation->payload_writes) {
+      add(write.address, write.bytes.size());
+    }
+    for (const auto& write : relocation->pointer_writes) {
+      add(write.address, write.bytes.size());
+    }
+    for (const auto& write : relocation->auxiliary_pointer_writes) {
+      add(write.address, write.bytes.size());
+    }
+  }
+  return ranges;
+}
+
+absl::Status Room::ApplyStreamSavePlan(const StreamSavePlan& plan) {
+  if (plan.relocation.has_value()) {
+    return ApplyDungeonStreamWritePlan(rom_, *plan.relocation);
+  }
+  for (const auto& [address, bytes] : plan.direct_writes) {
+    RETURN_IF_ERROR(rom_->WriteVector(address, bytes));
+  }
+  if (plan.direct_long_write.has_value()) {
+    RETURN_IF_ERROR(rom_->WriteLong(plan.direct_long_write->first,
+                                    plan.direct_long_write->second));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectSave(
+    const DungeonStreamLayout* layout) const {
+  StreamSavePlan plan;
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
   if (!object_stream_dirty()) {
-    return absl::OkStatus();
+    return plan;
   }
-
   for (const auto& object : tile_objects_) {
     if (UsesRoomObjectStream(object)) {
       RETURN_IF_ERROR(ValidateRoomObjectStreamEntryForSave(object));
     }
   }
 
-  const auto& rom_data = rom()->vector();
+  const auto& rom_data = rom_->vector();
   ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
                    GetObjectStreamInfo(rom_data, room_id_));
   const auto encoded_bytes = EncodeObjects();
@@ -2318,7 +2355,38 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
                          *rom_, room_id_, DungeonStreamKind::kObject, *layout,
                          encoded_bytes.size() + 2u));
   }
-  const auto relocate = [&]() -> absl::Status {
+  const int write_pos = stream_info.address + 2;
+  const int door_list_offset = static_cast<int>(encoded_bytes.size()) -
+                               static_cast<int>(doors_.size()) * 2 - 2;
+  if (door_list_offset < 0) {
+    return absl::FailedPreconditionError("Invalid encoded door list offset");
+  }
+  const int door_pointer_slot = kDoorPointers + (room_id_ * 3);
+  if (door_pointer_slot < 0 ||
+      door_pointer_slot + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Door pointer slot is out of range");
+  }
+  ASSIGN_OR_RETURN(const uint32_t source_door_pointer,
+                   rom_->ReadLong(door_pointer_slot));
+  // Preserve the source slow/fast bank mirror when updating the door pointer.
+  uint32_t encoded_door_pointer = PcToSnes(write_pos + door_list_offset);
+  encoded_door_pointer |= source_door_pointer & 0x800000u;
+
+  // Undo can restore the original payload while leaving the stream dirty.
+  // Compare the complete bounded stream, not a prefix, and require the runtime
+  // door pointer to agree before treating this as an allocation-free no-op.
+  // Layout validation above still applies even when no bytes need writing.
+  if (source_door_pointer == encoded_door_pointer) {
+    const auto source = ReadDungeonObjectStream(*rom_, room_id_);
+    if (source.ok() &&
+        source->data_pc == static_cast<uint32_t>(stream_info.address) &&
+        source->encoded_stream.size() == encoded_bytes.size() + 2u &&
+        std::equal(encoded_bytes.begin(), encoded_bytes.end(),
+                   source->encoded_stream.begin() + 2)) {
+      return plan;
+    }
+  }
+  const auto relocate = [&]() -> absl::StatusOr<StreamSavePlan> {
     if (stream_info.address + 2 > static_cast<int>(rom_data.size())) {
       return absl::OutOfRangeError("Object stream header is out of range");
     }
@@ -2326,11 +2394,12 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
                                         rom_data[stream_info.address + 1]};
     replacement.insert(replacement.end(), encoded_bytes.begin(),
                        encoded_bytes.end());
-    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
-                                          DungeonStreamKind::kObject, *layout,
-                                          std::move(replacement)));
-    ClearObjectStreamDirty();
-    return absl::OkStatus();
+    ASSIGN_OR_RETURN(
+        auto relocation,
+        PlanRelocateDungeonStream(*rom_, room_id_, DungeonStreamKind::kObject,
+                                  *layout, std::move(replacement)));
+    plan.relocation = std::move(relocation);
+    return plan;
   };
   if (stream_info.shared || requires_copy_on_write) {
     if (layout != nullptr) {
@@ -2348,14 +2417,7 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
         "Room %d object stream has no safe physical boundary", room_id_));
   }
 
-  // Skip graphics/layout header (2 bytes)
-  const int write_pos = stream_info.address + 2;
-
-  // Encode all objects
   const int available_payload_size = stream_info.capacity() - 2;
-
-  // Validate against the nearest greater physical pointer, not the next room
-  // ID. Pointer tables are not ordered by room ID in vanilla or expanded ROMs.
   if (encoded_bytes.size() > static_cast<size_t>(available_payload_size)) {
     if (layout != nullptr) {
       return relocate();
@@ -2365,42 +2427,35 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
         static_cast<int>(encoded_bytes.size()), available_payload_size));
   }
 
-  const int door_list_offset = static_cast<int>(encoded_bytes.size()) -
-                               static_cast<int>(doors_.size()) * 2 - 2;
-  if (door_list_offset < 0) {
-    return absl::FailedPreconditionError("Invalid encoded door list offset");
+  plan.direct_writes.emplace_back(write_pos, encoded_bytes);
+  plan.direct_long_write = std::make_pair(
+      static_cast<uint32_t>(door_pointer_slot), encoded_door_pointer);
+  return plan;
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+Room::GetObjectSaveWriteRanges(const DungeonStreamLayout* layout) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanObjectSave(layout));
+  return plan.write_ranges();
+}
+
+absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanObjectSave(layout));
+  RETURN_IF_ERROR(ApplyStreamSavePlan(plan));
+  if (object_stream_dirty()) {
+    ClearObjectStreamDirty();
   }
-  const int door_pointer_slot = kDoorPointers + (room_id_ * 3);
-  if (door_pointer_slot < 0 ||
-      door_pointer_slot + 2 >= static_cast<int>(rom_data.size())) {
-    return absl::OutOfRangeError("Door pointer slot is out of range");
-  }
-  const int door_pointer_pc = write_pos + door_list_offset;
-  ASSIGN_OR_RETURN(const uint32_t source_door_pointer,
-                   rom_->ReadLong(door_pointer_slot));
-
-  // Write encoded bytes to ROM (includes 0xF0 0xFF + door list)
-  RETURN_IF_ERROR(rom_->WriteVector(write_pos, encoded_bytes));
-
-  // Write door pointer: first byte after 0xF0 0xFF (per ZScreamDungeon
-  // Save.cs). Preserve the source pointer's slow/fast ROM bank mirror; both
-  // encodings address the same bytes, but normalizing an unchanged pointer
-  // creates an unrelated ROM diff.
-  uint32_t encoded_door_pointer = PcToSnes(door_pointer_pc);
-  encoded_door_pointer |= source_door_pointer & 0x800000u;
-  RETURN_IF_ERROR(rom_->WriteLong(door_pointer_slot, encoded_door_pointer));
-
-  ClearObjectStreamDirty();
-
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
+absl::StatusOr<Room::StreamSavePlan> Room::PlanObjectStreamHeaderSave(
+    const DungeonStreamLayout* layout) const {
+  StreamSavePlan plan;
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
   if (!object_stream_header_dirty()) {
-    return absl::OkStatus();
+    return plan;
   }
   if (floor1_graphics_ > 0x0F || floor2_graphics_ > 0x0F) {
     return absl::InvalidArgumentError(
@@ -2470,6 +2525,14 @@ absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
         requires_copy_on_write || layout_requires_copy_on_write;
   }
 
+  std::vector<uint8_t> header = {rom_data[stream_info.address],
+                                 rom_data[stream_info.address + 1]};
+  RETURN_IF_ERROR(patch_header(&header));
+  if (header[0] == rom_data[stream_info.address] &&
+      header[1] == rom_data[stream_info.address + 1]) {
+    return plan;
+  }
+
   if (requires_copy_on_write) {
     if (layout == nullptr) {
       return absl::FailedPreconditionError(absl::StrFormat(
@@ -2478,30 +2541,47 @@ absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
           room_id_, stream_info.address));
     }
     RETURN_IF_ERROR(patch_header(&replacement));
-    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
-                                          DungeonStreamKind::kObject, *layout,
-                                          std::move(replacement)));
-    ClearObjectStreamHeaderDirty();
-    return absl::OkStatus();
+    ASSIGN_OR_RETURN(
+        auto relocation,
+        PlanRelocateDungeonStream(*rom_, room_id_, DungeonStreamKind::kObject,
+                                  *layout, std::move(replacement)));
+    plan.relocation = std::move(relocation);
+    return plan;
   }
 
-  std::vector<uint8_t> header = {rom_data[stream_info.address],
-                                 rom_data[stream_info.address + 1]};
-  RETURN_IF_ERROR(patch_header(&header));
-  RETURN_IF_ERROR(rom_->WriteVector(stream_info.address, std::move(header)));
-  ClearObjectStreamHeaderDirty();
+  plan.direct_writes.emplace_back(stream_info.address, std::move(header));
+  return plan;
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+Room::GetObjectStreamHeaderSaveWriteRanges(
+    const DungeonStreamLayout* layout) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan,
+                   PlanObjectStreamHeaderSave(layout));
+  return plan.write_ranges();
+}
+
+absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan,
+                   PlanObjectStreamHeaderSave(layout));
+  RETURN_IF_ERROR(ApplyStreamSavePlan(plan));
+  if (object_stream_header_dirty()) {
+    ClearObjectStreamHeaderDirty();
+  }
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
+absl::StatusOr<Room::StreamSavePlan> Room::PlanSpriteSave(
+    const DungeonStreamLayout* layout) const {
+  StreamSavePlan plan;
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
   if (!sprites_dirty()) {
-    return absl::OkStatus();
+    return plan;
   }
 
-  const auto& rom_data = rom()->vector();
+  const auto& rom_data = rom_->vector();
   if (room_id_ < 0 || room_id_ >= kNumberOfRooms) {
     return absl::OutOfRangeError("Room ID out of range");
   }
@@ -2516,15 +2596,33 @@ absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
                          *rom_, room_id_, DungeonStreamKind::kSprite, *layout,
                          encoded_bytes.size() + 1u));
   }
-  const auto relocate = [&]() -> absl::Status {
+  // Undo can restore a stream byte-for-byte while leaving its dirty bit set.
+  // A no-op needs neither a new allocation nor an in-place write. Parse the
+  // complete live stream first so a matching prefix in a longer or malformed
+  // stream cannot be mistaken for an unchanged payload.
+  const uint64_t source_payload_address =
+      static_cast<uint64_t>(stream_info.address) + 1u;
+  if (source_payload_address <= rom_data.size() &&
+      encoded_bytes.size() <= rom_data.size() - source_payload_address) {
+    const auto source = ReadDungeonSpriteStream(*rom_, room_id_);
+    if (source.ok() &&
+        source->data_pc == static_cast<uint32_t>(stream_info.address) &&
+        source->encoded_stream.size() == encoded_bytes.size() + 1u &&
+        std::equal(encoded_bytes.begin(), encoded_bytes.end(),
+                   source->encoded_stream.begin() + 1)) {
+      return plan;
+    }
+  }
+  const auto relocate = [&]() -> absl::StatusOr<StreamSavePlan> {
     std::vector<uint8_t> replacement = {rom_data[stream_info.address]};
     replacement.insert(replacement.end(), encoded_bytes.begin(),
                        encoded_bytes.end());
-    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
-                                          DungeonStreamKind::kSprite, *layout,
-                                          std::move(replacement)));
-    ClearSpritesDirty();
-    return absl::OkStatus();
+    ASSIGN_OR_RETURN(
+        auto relocation,
+        PlanRelocateDungeonStream(*rom_, room_id_, DungeonStreamKind::kSprite,
+                                  *layout, std::move(replacement)));
+    plan.relocation = std::move(relocation);
+    return plan;
   };
   if (stream_info.shared || requires_copy_on_write) {
     if (layout != nullptr) {
@@ -2561,8 +2659,22 @@ absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
         available_payload_size));
   }
 
-  RETURN_IF_ERROR(rom_->WriteVector(payload_address, encoded_bytes));
-  ClearSpritesDirty();
+  plan.direct_writes.emplace_back(payload_address, encoded_bytes);
+  return plan;
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+Room::GetSpriteSaveWriteRanges(const DungeonStreamLayout* layout) const {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanSpriteSave(layout));
+  return plan.write_ranges();
+}
+
+absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
+  ASSIGN_OR_RETURN(const StreamSavePlan plan, PlanSpriteSave(layout));
+  RETURN_IF_ERROR(ApplyStreamSavePlan(plan));
+  if (sprites_dirty()) {
+    ClearSpritesDirty();
+  }
   return absl::OkStatus();
 }
 
@@ -3078,23 +3190,42 @@ absl::Status ValidateLightableTorchForSave(const RoomObject& object,
 
 }  // namespace
 
+namespace {
+
+struct TorchSavePlan {
+  std::vector<uint8_t> bytes;
+  int room_limit = 0;
+  bool any_owned_room = false;
+  bool needs_write = false;
+};
+
 template <typename RoomLookup>
-absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
-                                RoomLookup&& room_lookup) {
+absl::StatusOr<TorchSavePlan> BuildTorchSavePlan(const Rom* rom, int room_count,
+                                                 RoomLookup&& room_lookup) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
   const auto& rom_data = rom->vector();
+  if (kTorchesLengthPointer < 0 ||
+      kTorchesLengthPointer + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Torch length pointer is out of range");
+  }
   int existing_count = (rom_data[kTorchesLengthPointer + 1] << 8) |
                        rom_data[kTorchesLengthPointer];
   if (existing_count > kTorchesMaxSize) {
     existing_count = kTorchesMaxSize;
   }
+  if (kTorchData < 0 ||
+      static_cast<uint64_t>(kTorchData) + existing_count > rom_data.size()) {
+    return absl::OutOfRangeError("Torch data is out of range");
+  }
   auto rom_segments = ParseRomTorchSegments(rom_data, existing_count);
 
-  std::vector<uint8_t> bytes;
-  const int room_limit = std::min(room_count, kNumberOfRooms);
+  TorchSavePlan plan;
+  auto& bytes = plan.bytes;
+  const int room_limit = std::clamp(room_count, 0, kNumberOfRooms);
+  plan.room_limit = room_limit;
   std::vector<bool> owned_rooms(room_limit, false);
   std::vector<bool> seen_original_room(room_limit, false);
   std::vector<bool> emitted_owned_room(room_limit, false);
@@ -3118,8 +3249,9 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
   }
 
   if (!any_owned_room) {
-    return absl::OkStatus();
+    return plan;
   }
+  plan.any_owned_room = true;
 
   for (const auto& segment : rom_segments) {
     if (segment.room_id < room_limit) {
@@ -3149,27 +3281,33 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
         absl::StrFormat("Torch data too large: %d bytes (max %d)", bytes.size(),
                         kTorchesMaxSize));
   }
+  if (static_cast<uint64_t>(kTorchData) + bytes.size() > rom_data.size()) {
+    return absl::OutOfRangeError("Torch save data is out of range");
+  }
 
   const uint16_t current_len =
       static_cast<uint16_t>(rom_data[kTorchesLengthPointer]) |
       (static_cast<uint16_t>(rom_data[kTorchesLengthPointer + 1]) << 8);
-  if (current_len == bytes.size() &&
-      kTorchData + static_cast<int>(bytes.size()) <=
-          static_cast<int>(rom_data.size()) &&
-      std::equal(bytes.begin(), bytes.end(), rom_data.begin() + kTorchData)) {
-    for (int room_id = 0; room_id < room_limit; ++room_id) {
-      if (const Room* room = room_lookup(room_id);
-          room != nullptr && room->torches_dirty()) {
-        const_cast<Room*>(room)->ClearTorchesDirty();
-      }
-    }
+  plan.needs_write =
+      current_len != bytes.size() ||
+      !std::equal(bytes.begin(), bytes.end(), rom_data.begin() + kTorchData);
+  return plan;
+}
+
+template <typename RoomLookup>
+absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
+                                RoomLookup&& room_lookup) {
+  ASSIGN_OR_RETURN(auto plan, BuildTorchSavePlan(rom, room_count, room_lookup));
+  if (!plan.any_owned_room) {
     return absl::OkStatus();
   }
 
-  RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
-                                 static_cast<uint16_t>(bytes.size())));
-  RETURN_IF_ERROR(rom->WriteVector(kTorchData, bytes));
-  for (int room_id = 0; room_id < room_limit; ++room_id) {
+  if (plan.needs_write) {
+    RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
+                                   static_cast<uint16_t>(plan.bytes.size())));
+    RETURN_IF_ERROR(rom->WriteVector(kTorchData, plan.bytes));
+  }
+  for (int room_id = 0; room_id < plan.room_limit; ++room_id) {
     if (const Room* room = room_lookup(room_id);
         room != nullptr && room->torches_dirty()) {
       const_cast<Room*>(room)->ClearTorchesDirty();
@@ -3177,6 +3315,8 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
   }
   return absl::OkStatus();
 }
+
+}  // namespace
 
 absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
   return SaveAllTorchesImpl(rom, static_cast<int>(rooms.size()),
@@ -3187,6 +3327,19 @@ absl::Status SaveAllTorches(
     Rom* rom, int room_count,
     const std::function<const Room*(int)>& room_lookup) {
   return SaveAllTorchesImpl(rom, room_count, room_lookup);
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetTorchSaveWriteRanges(const Rom* rom, int room_count,
+                        const std::function<const Room*(int)>& room_lookup) {
+  ASSIGN_OR_RETURN(const auto plan,
+                   BuildTorchSavePlan(rom, room_count, room_lookup));
+  if (!plan.needs_write) {
+    return std::vector<std::pair<uint32_t, uint32_t>>{};
+  }
+  return std::vector<std::pair<uint32_t, uint32_t>>{
+      {kTorchesLengthPointer, kTorchesLengthPointer + 2},
+      {kTorchData, kTorchData + static_cast<uint32_t>(plan.bytes.size())}};
 }
 
 // Region preservation for `RoomsWithPitDamage` when no edited table is supplied.
@@ -3410,8 +3563,23 @@ absl::Status SaveAllBlocks(Rom* rom) {
   return absl::OkStatus();
 }
 
-absl::Status SaveAllBlocks(Rom* rom, int room_count,
-                           const std::function<const Room*(int)>& room_lookup) {
+namespace {
+
+struct BlockWriteDestination {
+  int pc;
+  int output_offset;
+  int length;
+};
+
+struct BlockSavePlan {
+  std::vector<uint8_t> bytes;
+  std::vector<BlockWriteDestination> destinations;
+  std::vector<std::pair<const RoomObject*, int>> load_order_updates;
+};
+
+absl::StatusOr<BlockSavePlan> BuildBlockSavePlan(
+    const Rom* rom, int room_count,
+    const std::function<const Room*(int)>& room_lookup) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -3597,12 +3765,8 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   const int total_bytes = static_cast<int>(output.size());
   RETURN_IF_ERROR(
       PreflightBlocksPayloadDestinations(destination_pcs, total_bytes));
-  struct BlockWriteDestination {
-    int pc;
-    int output_offset;
-    int length;
-  };
-  std::vector<BlockWriteDestination> write_destinations;
+  BlockSavePlan plan;
+  auto& write_destinations = plan.destinations;
   write_destinations.reserve(4);
   for (int r = 0; r < 4; ++r) {
     const int off = r * kBlocksRegionSize;
@@ -3612,24 +3776,35 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     write_destinations.push_back({destination_pcs[r], off, len});
   }
 
+  plan.bytes = std::move(output);
+  plan.load_order_updates = std::move(load_order_updates);
+  return plan;
+}
+
+}  // namespace
+
+absl::Status SaveAllBlocks(Rom* rom, int room_count,
+                           const std::function<const Room*(int)>& room_lookup) {
+  ASSIGN_OR_RETURN(auto plan, BuildBlockSavePlan(rom, room_count, room_lookup));
+
   // Write each prevalidated region. We do not relocate the data — the four
   // operand slots keep pointing at their existing SNES addresses.
-  for (const auto& destination : write_destinations) {
+  for (const auto& destination : plan.destinations) {
     std::vector<uint8_t> chunk(
-        output.begin() + destination.output_offset,
-        output.begin() + destination.output_offset + destination.length);
+        plan.bytes.begin() + destination.output_offset,
+        plan.bytes.begin() + destination.output_offset + destination.length);
     RETURN_IF_ERROR(rom->WriteVector(destination.pc, chunk));
   }
 
   RETURN_IF_ERROR(
-      rom->WriteWord(kBlocksLength, static_cast<uint16_t>(total_bytes)));
+      rom->WriteWord(kBlocksLength, static_cast<uint16_t>(plan.bytes.size())));
 
   // Deleting an entry compacts every following slot. Rebase each loaded
   // object's identity to its committed output slot so a later no-op save does
   // not try to replace the stale pre-compaction slot and silently drop it.
   // This metadata stays untouched until every ROM write succeeds, matching
   // the dirty-state failure contract below.
-  for (const auto& [object, load_order] : load_order_updates) {
+  for (const auto& [object, load_order] : plan.load_order_updates) {
     const_cast<RoomObject*>(object)->set_block_load_order(load_order);
   }
   for (int room_id = 0; room_id < room_count; ++room_id) {
@@ -3639,6 +3814,20 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     }
   }
   return absl::OkStatus();
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetBlockSaveWriteRanges(const Rom* rom, int room_count,
+                        const std::function<const Room*(int)>& room_lookup) {
+  ASSIGN_OR_RETURN(const auto plan,
+                   BuildBlockSavePlan(rom, room_count, room_lookup));
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  ranges.reserve(plan.destinations.size() + 1);
+  for (const auto& destination : plan.destinations) {
+    ranges.emplace_back(destination.pc, destination.pc + destination.length);
+  }
+  ranges.emplace_back(kBlocksLength, kBlocksLength + 2);
+  return ranges;
 }
 
 template <typename RoomLookup>
@@ -3714,15 +3903,8 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
       continue;
     }
 
-    // Treat an all-zero map as disabled to avoid wasting space.
-    bool any = false;
-    for (uint8_t v : room->custom_collision().tiles) {
-      if (v != 0) {
-        any = true;
-        break;
-      }
-    }
-    if (!any) {
+    // A floor-only map is populated; only absent overrides disable the room.
+    if (!room->custom_collision().HasOverrides()) {
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
@@ -4321,7 +4503,7 @@ absl::Status SaveAllPotItems(Rom* rom, int room_count,
 }
 
 void Room::LoadBlocks() {
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Read blocks length
   int blocks_count =

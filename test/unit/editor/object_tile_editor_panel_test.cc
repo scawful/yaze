@@ -1191,6 +1191,100 @@ class ObjectTileEditorPreviewLifetimeTest : public ::testing::Test {
 };
 
 TEST_F(ObjectTileEditorPreviewLifetimeTest,
+       FirstOpenUploadsBothPreviewsAndRefreshReusesTextures) {
+  ScopedImGuiContext imgui_context;
+  ImGui::GetIO().Fonts->SetTexID((ImTextureID)0x4321);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(4096, 5);
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
+  rooms[0].SetGameData(&game_data);
+  rooms[0].mutable_blocks().fill(0);
+  rooms[0].CopyRoomGraphicsToBuffer();
+  ObjectTileEditorPanel panel(&renderer_, &rom);
+  ASSERT_TRUE(panel.OpenForObject(kEditableStandardObjectId, 0, &rooms).ok());
+
+  const auto draw = [&panel]() {
+    bool open = true;
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(900, 650));
+    ImGui::Begin("ObjectTileTextureUploadHost");
+    panel.Draw(&open);
+    ImGui::End();
+    ImGui::Render();
+    EXPECT_TRUE(open);
+  };
+  const auto owners = ObjectTileEditorPanelTestAccess::PreviewOwners(panel);
+  // Tables can skip their contents on the initial layout frame.
+  draw();
+  draw();
+  for (const auto* owner : owners) {
+    EXPECT_EQ(owner->texture(), nullptr);
+    ASSERT_TRUE(arena_.HasPendingTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, owner));
+  }
+  EXPECT_CALL(renderer_, CreateTexture(16, 16))
+      .WillOnce(::testing::Return(&texture_storage_[0]));
+  EXPECT_CALL(renderer_, CreateTexture(128, 512))
+      .WillOnce(::testing::Return(&texture_storage_[1]));
+  const auto verify_upload = [](gfx::TextureHandle, const gfx::Bitmap& bitmap) {
+    ASSERT_NE(bitmap.surface(), nullptr);
+    EXPECT_TRUE(
+        std::any_of(bitmap.vector().begin(), bitmap.vector().end(),
+                    [](uint8_t pixel) { return pixel != 0 && pixel != 255; }));
+    const auto* pixels = static_cast<const uint8_t*>(bitmap.surface()->pixels);
+    for (int row = 0; row < bitmap.height(); ++row) {
+      EXPECT_TRUE(std::equal(bitmap.data() + row * bitmap.width(),
+                             bitmap.data() + (row + 1) * bitmap.width(),
+                             pixels + row * bitmap.surface()->pitch));
+    }
+  };
+  EXPECT_CALL(renderer_,
+              UpdateTexture(&texture_storage_[0], ::testing::Ref(*owners[0])))
+      .WillOnce(verify_upload);
+  EXPECT_CALL(renderer_,
+              UpdateTexture(&texture_storage_[1], ::testing::Ref(*owners[1])))
+      .WillOnce(verify_upload);
+  arena_.ProcessTextureQueue(&renderer_);
+  ASSERT_EQ(owners[0]->texture(), &texture_storage_[0]);
+  ASSERT_EQ(owners[1]->texture(), &texture_storage_[1]);
+  ::testing::Mock::VerifyAndClearExpectations(&renderer_);
+
+  // The following frame must actually submit both textures to ImGui.
+  draw();
+  std::array<bool, 2> submitted{};
+  const ImDrawData* draw_data = ImGui::GetDrawData();
+  ASSERT_NE(draw_data, nullptr);
+  for (const ImDrawList* list : draw_data->CmdLists) {
+    for (const ImDrawCmd& command : list->CmdBuffer) {
+      for (size_t i = 0; i < owners.size(); ++i) {
+        submitted[i] |=
+            command.GetTexID() == (ImTextureID)(intptr_t)owners[i]->texture();
+      }
+    }
+  }
+  EXPECT_TRUE(submitted[0]);
+  EXPECT_TRUE(submitted[1]);
+
+  panel.SetCurrentPaletteGroup(gfx::PaletteGroup());
+  draw();
+  EXPECT_CALL(renderer_, CreateTexture).Times(0);
+  EXPECT_CALL(renderer_,
+              UpdateTexture(&texture_storage_[0], ::testing::Ref(*owners[0])))
+      .WillOnce(verify_upload);
+  EXPECT_CALL(renderer_,
+              UpdateTexture(&texture_storage_[1], ::testing::Ref(*owners[1])))
+      .WillOnce(verify_upload);
+  arena_.ProcessTextureQueue(&renderer_);
+  ::testing::Mock::VerifyAndClearExpectations(&renderer_);
+  panel.Close();
+  ExpectDeferredDestruction();
+}
+
+TEST_F(ObjectTileEditorPreviewLifetimeTest,
        CloseCancelsPendingCommandsAndRetiresBothPreviewOwners) {
   Rom rom;
   const size_t initial_surfaces = ActiveSurfaces();

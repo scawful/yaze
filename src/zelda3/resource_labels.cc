@@ -117,6 +117,17 @@ std::string LookupProjectLabel(const ResourceLabelProvider::LabelMap& labels,
   return "";
 }
 
+std::string LookupProjectReceiptLabel(
+    uint8_t id, const ResourceLabelProvider::ProjectLabels* project_labels) {
+  if (project_labels) {
+    const auto it = project_labels->find("item_receipt");
+    if (it != project_labels->end()) {
+      return LookupProjectLabel(it->second, id);
+    }
+  }
+  return "";
+}
+
 std::string LookupProjectRegistryRoomLabel(const core::HackManifest* manifest,
                                            int id) {
   // The project registry can be loaded independently of a hack manifest in
@@ -448,7 +459,7 @@ bool ResourceLabelProvider::ParseZScreamLine(const std::string& line,
     resource_type = "room";
     has_hex_prefix = false;  // Format: just "Room Name" by line order
   } else if (section == "Chests Items") {
-    resource_type = "item";
+    resource_type = "item_receipt";
     has_hex_prefix = true;  // Format: "00 Fighter sword and shield"
   } else if (section == "Tags Names") {
     resource_type = "room_tag";
@@ -516,12 +527,16 @@ std::string ResourceLabelProvider::ExportToZScreamFormat() const {
     output << label << "\n";
   }
 
-  // Export items
+  // ZScream chest IDs index the receipt table, not the generic item catalog.
   output << "\n[Chests Items]\n";
-  int item_count = GetResourceCount(ResourceType::kItem);
-  for (int i = 0; i < item_count; ++i) {
-    std::string label = GetLabel(ResourceType::kItem, i);
-    output << absl::StrFormat("%02X %s\n", i, label);
+  for (int i = 0; i <= 0xFF; ++i) {
+    const auto id = static_cast<uint8_t>(i);
+    if (i >= static_cast<int>(Zelda3Labels::GetItemReceiptNames().size()) &&
+        LookupProjectReceiptLabel(id, project_labels_).empty()) {
+      continue;
+    }
+    output << absl::StrFormat("%02X %s\n", i,
+                              GetItemReceiptLabel(id, project_labels_));
   }
 
   // Export room tags
@@ -611,21 +626,33 @@ absl::Status ResourceLabelProvider::ImportOracleSpriteRegistry(
   return absl::OkStatus();
 }
 
-std::string GetItemReceiptLabel(uint8_t id) {
-  auto& labels = GetResourceLabels();
-  if (labels.HasProjectLabel(ResourceType::kItem, id))
-    return labels.GetLabel(ResourceType::kItem, id);
+std::string GetItemReceiptLabel(
+    uint8_t id, const ResourceLabelProvider::ProjectLabels* project_labels) {
+  if (const auto label = LookupProjectReceiptLabel(id, project_labels);
+      !label.empty()) {
+    return label;
+  }
   const auto& names = Zelda3Labels::GetItemReceiptNames();
   if (id < names.size())
     return names[id];
   return absl::StrFormat("Unknown item %02X", id);
 }
 
-const char* GetItemReceiptLabelSource(uint8_t id) {
-  if (GetResourceLabels().HasProjectLabel(ResourceType::kItem, id))
+const char* GetItemReceiptLabelSource(
+    uint8_t id, const ResourceLabelProvider::ProjectLabels* project_labels) {
+  if (!LookupProjectReceiptLabel(id, project_labels).empty())
     return "project";
   return id < Zelda3Labels::GetItemReceiptNames().size() ? "vanilla_receipt"
                                                          : "unknown";
+}
+
+std::string GetItemReceiptLabel(uint8_t id) {
+  return GetItemReceiptLabel(id, GetResourceLabels().GetAllProjectLabels());
+}
+
+const char* GetItemReceiptLabelSource(uint8_t id) {
+  return GetItemReceiptLabelSource(id,
+                                   GetResourceLabels().GetAllProjectLabels());
 }
 
 }  // namespace zelda3

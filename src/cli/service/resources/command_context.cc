@@ -255,7 +255,19 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
     zelda3::CustomObjectManager::Get().Initialize("");
   }
 
+  zelda3::CustomObjectManager::Get().SetTilePatternsSource(
+      active_project.dungeon_tile_patterns.empty()
+          ? ""
+          : active_project.GetAbsolutePath(
+                active_project.dungeon_tile_patterns));
   project_runtime_applied_ = true;
+  // Do not render a partial preview when an explicitly configured source is
+  // invalid. Restore immediately so a retry cannot skip the failed load.
+  const auto patterns = zelda3::CustomObjectManager::Get().GetTilePatterns();
+  if (!patterns.ok()) {
+    RestoreProjectRuntimeContext();
+    return patterns.status();
+  }
   return absl::OkStatus();
 }
 
@@ -650,7 +662,7 @@ std::string OutputFormatter::EscapeJson(const std::string& str) const {
         result += "\\t";
         break;
       default:
-        if (c < 0x20) {
+        if (static_cast<unsigned char>(c) < 0x20) {
           result += absl::StrFormat("\\u%04x", static_cast<int>(c));
         } else {
           result += c;

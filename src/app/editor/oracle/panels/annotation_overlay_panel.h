@@ -57,6 +57,9 @@ class AnnotationOverlayPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Annotations"; }
   std::string GetIcon() const override { return ICON_MD_NOTES; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   std::string GetWorkflowGroup() const override { return "Planning"; }
   std::string GetWorkflowDescription() const override {
     return "Review and edit room-level project annotations";

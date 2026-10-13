@@ -77,7 +77,7 @@ class TileSelectorWidget {
   /// after ClearContextMenuItems(), so nothing accumulates across frames.
   CanvasMenuItem CopyTileIdMenuItem() const;
 
-  /// Draw a compact filter/search bar above the tile grid. Returns true if
+  /// Draw a lookup/filter popup button beside the grid controls. Returns true if
   /// the user jumped to a tile (selection + scroll triggered).
   bool DrawFilterBar();
 
@@ -99,6 +99,7 @@ class TileSelectorWidget {
   void ClearRangeFilter();
 
  private:
+  bool DrawFilterControls();
   RenderResult HandleInteraction(int tile_display_size);
   int ResolveTileAtCursor(int tile_display_size) const;
   void DrawHighlight(int tile_display_size) const;

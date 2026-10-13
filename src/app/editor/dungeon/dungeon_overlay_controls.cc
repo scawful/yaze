@@ -3,11 +3,16 @@
 #include <array>
 #include <stdexcept>
 
+#include "app/gui/automation/widget_auto_register.h"
+#include "imgui/imgui.h"
+#include "util/i18n/tr.h"
+
 namespace yaze::editor {
 
 namespace {
 
-constexpr std::array<DungeonOverlayControlSpec, 11> kOverlaySpecs = {{
+constexpr std::array<DungeonOverlayControlSpec, 13> kOverlaySpecs = {{
+    {DungeonOverlayControlId::kChestContents, "Chest contents"},
     {DungeonOverlayControlId::kGrid, "Grid (8x8)"},
     {DungeonOverlayControlId::kObjectBounds, "Object Bounds"},
     {DungeonOverlayControlId::kHoverCoordinates, "Hover Coordinates"},
@@ -19,18 +24,72 @@ constexpr std::array<DungeonOverlayControlSpec, 11> kOverlaySpecs = {{
     {DungeonOverlayControlId::kTrackGaps, "Track Gaps"},
     {DungeonOverlayControlId::kTrackRoutes, "Track Routes"},
     {DungeonOverlayControlId::kCustomObjects, "Custom Objects (Oracle)"},
+    {DungeonOverlayControlId::kCrumbleFloor, "Crumble Floor (Oracle)"},
 }};
 
 }  // namespace
 
-const std::array<DungeonOverlayControlSpec, 11>&
+const std::array<DungeonOverlayControlSpec, 13>&
 GetDungeonOverlayControlSpecs() {
   return kOverlaySpecs;
+}
+
+float DungeonLayerControlsWidth() {
+  return ImGui::CalcTextSize("BG1").x + ImGui::CalcTextSize("BG2").x +
+         ImGui::CalcTextSize(tr("Sprites")).x + ImGui::GetFrameHeight() * 3.0f +
+         ImGui::GetStyle().ItemInnerSpacing.x * 3.0f +
+         ImGui::GetStyle().ItemSpacing.x * 2.0f;
+}
+
+void DrawDungeonLayerControls(DungeonCanvasViewer& viewer, int room_id,
+                              float height) {
+  (void)height;
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms)
+    return;
+  ImGui::PushID("DungeonLayers");
+  gui::AutoWidgetScope scope("Dungeon/Layers");
+  const auto toggle = [&](const char* label, bool* enabled,
+                          const char* tooltip) {
+    const bool changed = ImGui::Checkbox(label, enabled);
+    gui::AutoRegisterLastItem("checkbox", label);
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("%s", tooltip);
+    return changed;
+  };
+  bool bg1 = viewer.IsBG1Visible(room_id);
+  if (toggle("BG1", &bg1, "Show BG1"))
+    viewer.SetBG1Visible(room_id, bg1);
+  ImGui::SameLine();
+  bool bg2 = viewer.IsBG2Visible(room_id);
+  if (toggle("BG2", &bg2, "Show BG2"))
+    viewer.SetBG2Visible(room_id, bg2);
+  ImGui::SameLine();
+  bool sprites = viewer.AreSpritesVisible();
+  if (toggle(tr("Sprites"), &sprites, "Show room sprites"))
+    viewer.SetSpritesVisible(sprites);
+  ImGui::PopID();
+}
+
+void DrawDungeonOverlayControls(DungeonCanvasViewer& viewer) {
+  gui::AutoWidgetScope scope("Dungeon/ViewOptions");
+  for (const auto& spec : GetDungeonOverlayControlSpecs()) {
+    if (spec.id == DungeonOverlayControlId::kTrackCollision)
+      ImGui::SeparatorText(tr("Authoring"));
+    bool enabled = GetDungeonOverlayControlEnabled(viewer, spec.id);
+    if (ImGui::Checkbox(tr(spec.label), &enabled))
+      SetDungeonOverlayControlEnabled(viewer, spec.id, enabled);
+    gui::AutoRegisterLastItem("checkbox", spec.label);
+  }
+  bool pots = viewer.ArePotItemsVisible();
+  if (ImGui::Checkbox(tr("Pot items"), &pots))
+    viewer.SetPotItemsVisible(pots);
 }
 
 bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,
                                      DungeonOverlayControlId id) {
   switch (id) {
+    case DungeonOverlayControlId::kChestContents:
+      return viewer.AreChestContentsVisible();
     case DungeonOverlayControlId::kGrid:
       return viewer.show_grid();
     case DungeonOverlayControlId::kObjectBounds:
@@ -51,6 +110,8 @@ bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,
       return viewer.show_track_gap_overlay();
     case DungeonOverlayControlId::kTrackRoutes:
       return viewer.show_track_route_overlay();
+    case DungeonOverlayControlId::kCrumbleFloor:
+      return viewer.show_crumble_floor();
     case DungeonOverlayControlId::kCustomObjects:
       return viewer.show_custom_objects_overlay();
   }
@@ -61,6 +122,9 @@ bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,
 void SetDungeonOverlayControlEnabled(DungeonCanvasViewer& viewer,
                                      DungeonOverlayControlId id, bool enabled) {
   switch (id) {
+    case DungeonOverlayControlId::kChestContents:
+      viewer.SetChestContentsVisible(enabled);
+      return;
     case DungeonOverlayControlId::kGrid:
       viewer.set_show_grid(enabled);
       return;
@@ -90,6 +154,9 @@ void SetDungeonOverlayControlEnabled(DungeonCanvasViewer& viewer,
       return;
     case DungeonOverlayControlId::kTrackRoutes:
       viewer.set_show_track_route_overlay(enabled);
+      return;
+    case DungeonOverlayControlId::kCrumbleFloor:
+      viewer.set_show_crumble_floor(enabled);
       return;
     case DungeonOverlayControlId::kCustomObjects:
       viewer.set_show_custom_objects_overlay(enabled);

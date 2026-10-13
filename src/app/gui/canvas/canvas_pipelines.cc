@@ -40,7 +40,7 @@ CanvasRuntime BeginCanvas(Canvas& canvas, const CanvasFrameOptions& options) {
   CanvasRuntime runtime;
   runtime.draw_list = canvas.draw_list();
   runtime.canvas_p0 = canvas.zero_point();
-  runtime.canvas_sz = canvas.canvas_size();
+  runtime.canvas_sz = options.viewport_size.value_or(canvas.canvas_size());
   runtime.scrolling = canvas.scrolling();
   runtime.hovered = canvas.IsMouseHovering();
   runtime.grid_step = options.grid_step.value_or(canvas.GetGridStep());
@@ -116,7 +116,8 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
             (ImTextureID)(intptr_t)value->texture(),
             ImVec2(canvas.zero_point().x + 2, top_left_y),
             ImVec2(canvas.zero_point().x + 0x100,
-                   canvas.zero_point().y + offset));
+                   canvas.zero_point().y + offset),
+            ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
       }
     }
     canvas.DrawTileSelector(tile_size);

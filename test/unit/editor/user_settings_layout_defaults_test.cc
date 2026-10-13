@@ -6,6 +6,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
+#include "panel_demotions.h"
 
 namespace yaze::editor {
 
@@ -154,7 +155,7 @@ TEST(UserSettingsLayoutDefaultsTest,
       prefs.panel_visibility_state["Overworld"]["overworld.tile16_editor"]);
   EXPECT_FALSE(
       prefs.panel_visibility_state["Overworld"]["overworld.tile8_selector"]);
-  EXPECT_FALSE(
+  EXPECT_TRUE(
       prefs.panel_visibility_state["Overworld"]["overworld.area_graphics"]);
   EXPECT_FALSE(
       prefs.panel_visibility_state["Overworld"]["overworld.item_list"]);
@@ -532,8 +533,8 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.named_layouts["custom"] =
       R"({"schema_version":2,"name":"custom","root":{"id":1,"type":"leaf","active_tab_index":0,"panels":[{"panel_id":"dungeon.object_coverage"}]}})";
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  // Target revision 25 exactly: later revisions have their own tests.
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(25));
 
   EXPECT_EQ(prefs.panel_layout_defaults_revision, 25);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
@@ -546,13 +547,35 @@ TEST(UserSettingsLayoutDefaultsTest,
             std::string::npos);
 }
 
-// Default ctor seeds "right". Setter normalizes unrecognized values back to
+TEST(UserSettingsLayoutDefaultsTest,
+     Revision28MovesNavigatorWithoutResettingLayout) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+  prefs.panel_layout_defaults_revision = 27;
+  prefs.dungeon_inspector_side = "right";
+  prefs.pinned_panels["dungeon.room_matrix"] = true;
+  prefs.saved_layouts["mine"]["dungeon.workbench"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.canvas"] = true;
+  const auto pins = prefs.pinned_panels;
+  const auto layouts = prefs.saved_layouts;
+  const auto visibility = prefs.panel_visibility_state;
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(28));
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "left");
+  EXPECT_EQ(prefs.pinned_panels, pins);
+  EXPECT_EQ(prefs.saved_layouts, layouts);
+  EXPECT_EQ(prefs.panel_visibility_state, visibility);
+  settings.SetDungeonInspectorSide("right");
+  EXPECT_FALSE(settings.ApplyPanelLayoutDefaultsRevision(28));
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "right");
+}
+
+// Default ctor puts the navigator on the right. Setter normalizes unknowns to
 // "right" so callers can switch on the result without a sentinel.
 TEST(UserSettingsLayoutDefaultsTest,
      DungeonInspectorSideDefaultsAndNormalizes) {
   UserSettings settings;
-  EXPECT_EQ(settings.prefs().dungeon_inspector_side, "right");
-  EXPECT_EQ(settings.GetDungeonInspectorSide(), "right");
+  EXPECT_EQ(settings.prefs().dungeon_inspector_side, "left");
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "left");
 
   settings.SetDungeonInspectorSide("left");
   EXPECT_EQ(settings.prefs().dungeon_inspector_side, "left");
@@ -653,4 +676,127 @@ TEST(UserSettingsLayoutDefaultsTest,
             std::string::npos);
 }
 
+// Revision 26 closes the persisted visibility of windows the panel admission
+// policy moved out of the window browser, and touches nothing else: pins, saved
+// layouts, named layouts, and other windows are the user's.
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentySixClosesDemotedWindowsAndKeepsCustomizations) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 25;
+  for (const auto& demoted : admission::kDemotedWindows) {
+    prefs.panel_visibility_state[demoted.category][demoted.window_id] = true;
+    prefs.pinned_panels[demoted.window_id] = true;
+    prefs.saved_layouts["mine"][demoted.window_id] = true;
+  }
+  prefs.panel_visibility_state["Agent"]["agent.chat"] = true;
+  const std::string named_layout = R"({"panels":["agent.mesen_debug"]})";
+  prefs.named_layouts["favorite"] = named_layout;
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(26));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 26);
+
+  for (const auto& demoted : admission::kDemotedWindows) {
+    EXPECT_FALSE(
+        prefs.panel_visibility_state.at(demoted.category).at(demoted.window_id))
+        << demoted.window_id;
+    EXPECT_TRUE(prefs.pinned_panels.at(demoted.window_id))
+        << demoted.window_id << " pin must survive";
+    EXPECT_TRUE(prefs.saved_layouts.at("mine").at(demoted.window_id))
+        << demoted.window_id << " saved layout must survive";
+  }
+  EXPECT_TRUE(prefs.panel_visibility_state.at("Agent").at("agent.chat"));
+  EXPECT_EQ(prefs.named_layouts.at("favorite"), named_layout);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentySixDoesNotCreateVisibilityEntries) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 25;
+  prefs.panel_visibility_state["Agent"]["agent.chat"] = true;
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(26));
+
+  EXPECT_EQ(prefs.panel_visibility_state.size(), 1U);
+  EXPECT_EQ(prefs.panel_visibility_state.at("Agent").size(), 1U);
+  EXPECT_TRUE(prefs.panel_visibility_state.at("Agent").at("agent.chat"));
+}
+
+}  // namespace yaze::editor
+
+namespace yaze::editor {
+TEST(UserSettingsLayoutDefaultsTest,
+     Revision29KeepsNamedLayoutsAndPinsClosesLiveDuplicates) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+  prefs.panel_layout_defaults_revision = 28;
+  prefs.panel_visibility_state["Dungeon"] = {
+      {"dungeon.workbench", true},
+      {"dungeon.room_matrix", true},
+      {"dungeon.entrance_properties", true},
+      {"dungeon.object_selector", true}};
+  prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"] =
+      true;
+  prefs.panel_visibility_state["Overworld"]["overworld.cutscene_camera"] = true;
+  prefs.saved_layouts["My layout"] = prefs.panel_visibility_state["Dungeon"];
+  const auto saved = prefs.saved_layouts;
+  prefs.pinned_panels["dungeon.object_selector"] = true;
+  ASSERT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(29));
+  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.entrance_properties"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
+  EXPECT_TRUE(prefs.pinned_panels["dungeon.object_selector"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Overworld"]["overworld.cutscene_camera"]);
+  EXPECT_EQ(prefs.saved_layouts, saved);
+  EXPECT_FALSE(settings.ApplyPanelLayoutDefaultsRevision(29));
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     Revision29RetainsStandaloneWorkflowAndPinnedNavigation) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+  prefs.panel_layout_defaults_revision = 28;
+  prefs.panel_visibility_state["Dungeon"] = {
+      {"dungeon.workbench", false},
+      {"dungeon.room_matrix", true},
+      {"dungeon.entrance_properties", true}};
+  prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"] =
+      true;
+  prefs.pinned_panels["graphics.link_sprite_editor"] = true;
+  settings.ApplyPanelLayoutDefaultsRevision(29);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.entrance_properties"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Graphics"]["graphics.link_sprite_editor"]);
+}
+}  // namespace yaze::editor
+
+namespace yaze::editor {
+TEST(UserSettingsLayoutDefaultsTest,
+     Revision30ConsolidatesPaletteRetainsPinsAndSavedLayouts) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+  prefs.panel_layout_defaults_revision = 29;
+  prefs.panel_visibility_state["Palette"] = {{"palette.ow_main", true},
+                                             {"palette.dungeon_main", true}};
+  prefs.pinned_panels["palette.dungeon_main"] = true;
+  prefs.saved_layouts["Comparison"] = prefs.panel_visibility_state["Palette"];
+  const auto saved = prefs.saved_layouts;
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(30));
+  EXPECT_TRUE(prefs.panel_visibility_state["Palette"]["palette.control_panel"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Palette"]["palette.ow_main"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Palette"]["palette.dungeon_main"]);
+  EXPECT_EQ(prefs.saved_layouts, saved);
+  EXPECT_FALSE(settings.ApplyPanelLayoutDefaultsRevision(30));
+}
 }  // namespace yaze::editor

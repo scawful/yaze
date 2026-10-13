@@ -177,7 +177,7 @@ Passing one row does not imply the rows below it pass. In particular, synthetic 
 | USDASM-backed focused tests | Pass for audited doors, thin edges/corners, diagonal walls/ceilings, straight and spiral stairs, conditional caps, and Floor 1/Floor 2 copies | The asserted behavior follows named `bank_01.asm` routines rather than an older Yaze snapshot. |
 | ROM parser + drawer tests | Pass for existing vanilla fixtures; Floor 1/Floor 2 copy coverage is included | Real room bytes, header fields, tile words, and renderer placement agree for those cases. |
 | Room fingerprint goldens | Pass at their recorded revision | Full-room output did not drift from Yaze's own stored baseline. This is not independent emulator truth. |
-| Independent Mesen RGBA ROIs | Partial | Exact ROIs cover Sanctuary wall/carpet, bombable floor states, TableRock `0xDD`, BigHole `0xA4`, rails `0x5F`/`0x8A`, and one west `NormalDoorLower`. Other door families, diagonal families, and stateful water paths remain open. |
+| Independent Mesen RGBA ROIs | Partial | Exact ROIs cover Sanctuary wall/carpet, bombable floor states, TableRock `0xDD`, BigHole `0xA4`, rails `0x5F`/`0x8A`, one west `NormalDoorLower`, and room `0x016` water frame zero (1024 exact RGBA pixels, September 30). Other door families, diagonal families, and stateful water paths remain open. |
 | `z3ed dungeon-object-validate` | Pass at the last recorded canonical-ROM audit | Measured bounds and registered dimensions agree across the audited object/size/state cases; it does not prove pixels or runtime effects. |
 
 Run the maintained ladder with
@@ -280,3 +280,13 @@ matching emulator or known-good editor ROI.
 The room canvas context menu exposes `Capture Issue` for room rendering, room palette, or the current selection. Opening or closing the dialog does not create a log entry. `Copy Report` and `Copy Diagnostics` only copy; `Save to Issue Log` is the explicit persistence action. Raw diagnostics and local file paths are collapsed by default.
 
 Historical implementation notes live in `docs/internal/plans/dungeon-object-rendering-parity-2026-04.md`; this file is the active behavior and evidence contract.
+
+September 30 continuation: the independent room 0x016 water-frame-zero ROI passes
+alongside seven existing Mesen image cases. This does not qualify the full
+animation. The historical full-composite failure was traced to 804b32eea's
+pot-item coordinate correction: reversing only that decoder restores all five
+previous room fingerprints. The water counterfactual now explicitly recreates
+the old editor-marker coordinates and retains the original BG1/composite
+checksums. Its current water comparison uses the corrected coordinates.
+Normal-rendering goldens for rooms 0x050/0x016/0x004 include the traced marker fix;
+all other fields are unchanged. These remain editor self-fingerprints.

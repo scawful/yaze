@@ -184,12 +184,21 @@ absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items) {
   }
 
   // Update pointer table metadata to the expanded location used by ZScream
-  RETURN_IF_ERROR(rom->WriteLong(zelda3::overworldItemsAddress,
-                                 PcToSnes(zelda3::kOverworldItemsPointersNew)));
-  RETURN_IF_ERROR(rom->WriteByte(
-      zelda3::overworldItemsAddressBank,
-      static_cast<uint8_t>(
-          (PcToSnes(zelda3::kOverworldItemsStartDataNew) >> 16) & 0xFF)));
+  ASSIGN_OR_RETURN(auto stored_pointer,
+                   rom->ReadLong(zelda3::overworldItemsAddress));
+  if (SnesToPc(stored_pointer) != zelda3::kOverworldItemsPointersNew) {
+    RETURN_IF_ERROR(
+        rom->WriteLong(zelda3::overworldItemsAddress,
+                       PcToSnes(zelda3::kOverworldItemsPointersNew)));
+  }
+  ASSIGN_OR_RETURN(auto stored_bank,
+                   rom->ReadByte(zelda3::overworldItemsAddressBank));
+  const uint8_t data_bank =
+      (PcToSnes(zelda3::kOverworldItemsStartDataNew) >> 16) & 0xFF;
+  if ((stored_bank & 0x7F) != (data_bank & 0x7F)) {
+    RETURN_IF_ERROR(
+        rom->WriteByte(zelda3::overworldItemsAddressBank, data_bank));
+  }
 
   // Clear pointer table (write zero) to avoid stale values when pointer count
   // shrinks

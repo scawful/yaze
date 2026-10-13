@@ -1,9 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
+
+#ifdef _WIN32
+#include <process.h>
+#endif
 
 #include "rom/rom.h"
 #include "test_utils.h"
@@ -19,7 +25,7 @@ namespace test {
  *
  * This test suite validates the complete overworld editing workflow:
  * 1. Load vanilla ROM and extract golden data
- * 2. Apply ZSCustomOverworld ASM patches
+ * 2. Load a real ZSCustomOverworld v3 fixture
  * 3. Make various edits to overworld data
  * 4. Validate edits are correctly saved and loaded
  * 5. Compare before/after states using golden data
@@ -38,8 +44,7 @@ class OverworldE2ETest : public ::testing::Test {
   }
 
   void SetUp() override {
-    YAZE_SKIP_IF_ROM_MISSING(
-        yaze::test::RomRole::kVanilla, "OverworldE2ETest");
+    YAZE_SKIP_IF_ROM_MISSING(yaze::test::RomRole::kVanilla, "OverworldE2ETest");
     vanilla_rom_path_ =
         yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
 
@@ -47,6 +52,8 @@ class OverworldE2ETest : public ::testing::Test {
     vanilla_test_path_ = "test_vanilla_e2e.sfc";
     edited_test_path_ = "test_edited_e2e.sfc";
     golden_data_path_ = "golden_data_e2e.h";
+    validation_rom_path_ = "validation_e2e.sfc";
+    validation_data_path_ = "validation_golden_e2e.h";
 
     // Copy vanilla ROM for testing
     std::filesystem::copy_file(
@@ -57,7 +64,8 @@ class OverworldE2ETest : public ::testing::Test {
   void TearDown() override {
     // Clean up test files
     std::vector<std::string> test_files = {
-        vanilla_test_path_, edited_test_path_, golden_data_path_};
+        vanilla_test_path_, edited_test_path_, golden_data_path_,
+        validation_rom_path_, validation_data_path_};
 
     for (const auto& file : test_files) {
       if (std::filesystem::exists(file)) {
@@ -70,6 +78,9 @@ class OverworldE2ETest : public ::testing::Test {
   absl::Status ExtractGoldenData(const std::string& rom_path,
                                  const std::string& output_path) {
     const std::vector<std::filesystem::path> candidates = {
+#ifdef YAZE_OVERWORLD_GOLDEN_DATA_EXTRACTOR_PATH
+        YAZE_OVERWORLD_GOLDEN_DATA_EXTRACTOR_PATH,
+#endif
         "overworld_golden_data_extractor",
         "bin/overworld_golden_data_extractor",
         "bin/Debug/overworld_golden_data_extractor",
@@ -79,7 +90,7 @@ class OverworldE2ETest : public ::testing::Test {
     std::string extractor_path;
     for (const auto& candidate : candidates) {
       if (std::filesystem::exists(candidate)) {
-        extractor_path = candidate.string();
+        extractor_path = std::filesystem::absolute(candidate).string();
         break;
       }
     }
@@ -90,9 +101,26 @@ class OverworldE2ETest : public ::testing::Test {
     }
 
     // Run the golden data extractor
-    std::string command =
-        extractor_path + " " + rom_path + " " + output_path;
+#ifdef _WIN32
+    // _spawnv joins argv into a Windows command line; file paths need quotes.
+    const std::string quoted_rom = "\"" + rom_path + "\"";
+    const std::string quoted_output = "\"" + output_path + "\"";
+    const char* arguments[] = {"overworld_golden_data_extractor",
+                               quoted_rom.c_str(), quoted_output.c_str(),
+                               nullptr};
+    const auto result = _spawnv(_P_WAIT, extractor_path.c_str(), arguments);
+#else
+    const auto quote = [](const std::string& argument) {
+      std::string quoted = "'";
+      for (char character : argument) {
+        quoted += character == '\'' ? "'\\''" : std::string(1, character);
+      }
+      return quoted + "'";
+    };
+    std::string command = quote(extractor_path) + " " + quote(rom_path) + " " +
+                          quote(output_path);
     int result = system(command.c_str());
+#endif
 
     if (result != 0) {
       return absl::InternalError("Failed to extract golden data");
@@ -101,30 +129,56 @@ class OverworldE2ETest : public ::testing::Test {
     return absl::OkStatus();
   }
 
-  // Helper to validate ROM against golden data
+  static absl::StatusOr<std::string> ReadGoldenData(const std::string& path) {
+    std::ifstream input(path);
+    if (!input.is_open()) {
+      return absl::NotFoundError("Golden data not readable: " + path);
+    }
+    std::string data;
+    std::string line;
+    while (std::getline(input, line)) {
+      // Only provenance is variable; all extracted values remain comparable.
+      if (line.rfind("// YAZE Overworld Golden Data - Generated from: ", 0) ==
+              0 ||
+          line.rfind("// Generated on: ", 0) == 0) {
+        continue;
+      }
+      data += line + "\n";
+    }
+    if (input.bad() || data.empty()) {
+      return absl::DataLossError("Golden data empty or unreadable: " + path);
+    }
+    return data;
+  }
+
   bool ValidateROMAgainstGoldenData(Rom& rom,
-                                    const std::string& /* golden_data_path */) {
-    // This would load the generated golden data header and compare values
-    // For now, we'll do basic validation
-
-    // Check basic ROM properties
-    if (rom.title().empty())
+                                    const std::string& golden_data_path) {
+    if (rom.title().empty() || rom.size() < 1024 * 1024 ||
+        !rom.ReadByte(0x140145).ok()) {
       return false;
-    if (rom.size() < 1024 * 1024)
-      return false;  // At least 1MB
-
-    // Check ASM version
-    auto asm_version = rom.ReadByte(0x140145);
-    if (!asm_version.ok())
+    }
+    auto expected = ReadGoldenData(golden_data_path);
+    if (!expected.ok()) {
       return false;
-
-    return true;
+    }
+    Rom::SaveSettings settings;
+    settings.filename = validation_rom_path_;
+    settings.backup = false;
+    settings.save_new = false;
+    if (!rom.SaveToFile(settings).ok() ||
+        !ExtractGoldenData(validation_rom_path_, validation_data_path_).ok()) {
+      return false;
+    }
+    auto actual = ReadGoldenData(validation_data_path_);
+    return actual.ok() && *actual == *expected;
   }
 
   std::string vanilla_rom_path_;
   std::string vanilla_test_path_;
   std::string edited_test_path_;
   std::string golden_data_path_;
+  std::string validation_rom_path_;
+  std::string validation_data_path_;
 };
 
 // Test 1: Extract golden data from vanilla ROM
@@ -140,6 +194,53 @@ TEST_F(OverworldE2ETest, ExtractVanillaGoldenData) {
 
   // Validate ROM against golden data
   EXPECT_TRUE(ValidateROMAgainstGoldenData(*rom, golden_data_path_));
+}
+
+TEST_F(OverworldE2ETest, GoldenDataRejectsInvalidReferences) {
+  Rom rom;
+  ASSERT_OK(rom.LoadFromFile(vanilla_test_path_));
+  ASSERT_OK(ExtractGoldenData(vanilla_test_path_, golden_data_path_));
+  ASSERT_TRUE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+  auto reference = ReadGoldenData(golden_data_path_);
+  ASSERT_OK(reference.status());
+
+  auto corrupted = *reference;
+  const auto array = corrupted.find("kGoldenMapAreaGraphics = {{");
+  ASSERT_NE(array, std::string::npos);
+  const auto value = corrupted.find("0x", array);
+  ASSERT_NE(value, std::string::npos);
+  ASSERT_LT(value + 3, corrupted.size());
+  corrupted[value + 3] = corrupted[value + 3] == '0' ? '1' : '0';
+  for (const auto& invalid :
+       {std::string(), reference->substr(0, reference->size() / 2),
+        corrupted}) {
+    {
+      std::ofstream output(golden_data_path_, std::ios::trunc);
+      output << invalid;
+      ASSERT_TRUE(output.good());
+    }
+    EXPECT_FALSE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+  }
+  ASSERT_TRUE(std::filesystem::remove(golden_data_path_));
+  EXPECT_FALSE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+}
+
+TEST_F(OverworldE2ETest, GoldenDataRejectsChangedROM) {
+  Rom rom;
+  ASSERT_OK(rom.LoadFromFile(vanilla_test_path_));
+  ASSERT_OK(ExtractGoldenData(vanilla_test_path_, golden_data_path_));
+  ASSERT_TRUE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+  // Neither edit changes ROM title, size or ASM version: the old check missed
+  // both. The captured palette and music samples must detect them.
+  for (uint32_t address : {0x7D1C, 0x14303}) {
+    SCOPED_TRACE(address);
+    auto original = rom.ReadByte(address);
+    ASSERT_OK(original.status());
+    ASSERT_OK(rom.WriteByte(address, *original ^ 0x01));
+    EXPECT_FALSE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+    ASSERT_OK(rom.WriteByte(address, *original));
+    EXPECT_TRUE(ValidateROMAgainstGoldenData(rom, golden_data_path_));
+  }
 }
 
 // Test 2: Load and validate vanilla overworld data
@@ -183,22 +284,59 @@ TEST_F(OverworldE2ETest, LoadVanillaOverworldData) {
   EXPECT_EQ(sprites.size(), 3);
 }
 
-// Test 3: Apply ZSCustomOverworld v3 ASM and validate changes
+// Test 3: Validate settings persistence on a real ZSCustomOverworld v3 fixture.
+// Keep the registered name; this does not test vanilla-to-v3 ASM conversion.
 TEST_F(OverworldE2ETest, ApplyZSCustomOverworldV3) {
   std::unique_ptr<Rom> rom = std::make_unique<Rom>();
   ASSERT_OK(rom->LoadFromFile(vanilla_test_path_));
 
-  // Apply ZSCustomOverworld v3 ASM
-  // This would typically be done through the editor, but we can simulate it
+  ASSERT_TRUE(TestRomManager::HasRom(RomRole::kExpanded))
+      << "Set YAZE_TEST_ROM_EXPANDED to a real ZSCustomOverworld v3 ROM";
+  ASSERT_OK(rom->LoadFromFile(TestRomManager::GetRomPath(RomRole::kExpanded)));
+  auto fixture_version = rom->ReadByte(0x140145);
+  ASSERT_TRUE(fixture_version.ok());
+  ASSERT_EQ(*fixture_version, 0x03);
+
+  // Prove the source already loads with populated expanded tables, before any
+  // marker writes. A version byte on zero-padded vanilla data is insufficient.
+  zelda3::Overworld original_overworld(rom.get());
+  ASSERT_OK(original_overworld.Load(rom.get()));
+  ASSERT_TRUE(original_overworld.expanded_tile16());
+  ASSERT_TRUE(original_overworld.expanded_tile32());
+  ASSERT_EQ(original_overworld.tiles16().size(), 4096);
+  ASSERT_EQ(original_overworld.tiles32_unique().size(), 17728);
+  ASSERT_GE(rom->size(), zelda3::kMap16TilesExpanded + 4096 * 8);
+  ASSERT_TRUE(std::any_of(rom->data() + zelda3::kMap16TilesExpanded,
+                          rom->data() + zelda3::kMap16TilesExpanded + 4096 * 8,
+                          [](uint8_t byte) { return byte != 0; }));
+  const uint32_t tile32_addresses[] = {
+      original_overworld.version_constants().kMap32TileTL,
+      zelda3::kMap32TileTRExpanded, zelda3::kMap32TileBLExpanded,
+      zelda3::kMap32TileBRExpanded};
+  for (uint32_t address : tile32_addresses) {
+    SCOPED_TRACE(address);
+    ASSERT_GE(rom->size(), address + zelda3::kMap32TileCountExpanded);
+    ASSERT_TRUE(
+        std::any_of(rom->data() + address,
+                    rom->data() + address + zelda3::kMap32TileCountExpanded,
+                    [](uint8_t byte) { return byte != 0; }));
+  }
+
+  // Save only to the disposable test path. Capture the full payload before
+  // editing so a reload must preserve the actual tables and unrelated bytes.
+  std::vector<uint8_t> expected(rom->begin(), rom->end());
+  expected[0x140145] = 0x03;
+  std::fill(expected.begin() + 0x140146, expected.begin() + 0x14014C, 0x01);
   ASSERT_OK(rom->WriteByte(0x140145, 0x03));  // Set ASM version to v3
 
-  // Enable v3 features
-  ASSERT_OK(rom->WriteByte(0x140146, 0x01));  // Enable main palettes
-  ASSERT_OK(rom->WriteByte(0x140147, 0x01));  // Enable area-specific BG
-  ASSERT_OK(rom->WriteByte(0x140148, 0x01));  // Enable subscreen overlay
-  ASSERT_OK(rom->WriteByte(0x140149, 0x01));  // Enable animated GFX
-  ASSERT_OK(rom->WriteByte(0x14014A, 0x01));  // Enable custom tile GFX groups
-  ASSERT_OK(rom->WriteByte(0x14014B, 0x01));  // Enable mosaic
+  // Retain the six original byte-persistence probes. These addresses are not
+  // six feature flags in the v3 schema; some belong to its settings tables.
+  ASSERT_OK(rom->WriteByte(0x140146, 0x01));
+  ASSERT_OK(rom->WriteByte(0x140147, 0x01));
+  ASSERT_OK(rom->WriteByte(0x140148, 0x01));
+  ASSERT_OK(rom->WriteByte(0x140149, 0x01));
+  ASSERT_OK(rom->WriteByte(0x14014A, 0x01));
+  ASSERT_OK(rom->WriteByte(0x14014B, 0x01));
 
   // Save the modified ROM
   ASSERT_OK(rom->SaveToFile(Rom::SaveSettings{.filename = edited_test_path_}));
@@ -212,7 +350,7 @@ TEST_F(OverworldE2ETest, ApplyZSCustomOverworldV3) {
   ASSERT_TRUE(asm_version.ok());
   EXPECT_EQ(*asm_version, 0x03);
 
-  // Validate feature flags
+  // Validate the original six persistence probes.
   auto main_palettes = reloaded_rom->ReadByte(0x140146);
   auto area_bg = reloaded_rom->ReadByte(0x140147);
   auto subscreen_overlay = reloaded_rom->ReadByte(0x140148);
@@ -242,6 +380,10 @@ TEST_F(OverworldE2ETest, ApplyZSCustomOverworldV3) {
   // v3 should have expanded features available
   EXPECT_TRUE(overworld.expanded_tile16());
   EXPECT_TRUE(overworld.expanded_tile32());
+  EXPECT_EQ(overworld.tiles16(), original_overworld.tiles16());
+  EXPECT_EQ(overworld.tiles32_unique(), original_overworld.tiles32_unique());
+  EXPECT_EQ(std::vector<uint8_t>(reloaded_rom->begin(), reloaded_rom->end()),
+            expected);
 }
 
 // Test 4: Make overworld edits and validate persistence
@@ -349,6 +491,7 @@ TEST_F(OverworldE2ETest, BeforeAfterValidation) {
   // Load vanilla ROM and make some changes
   std::unique_ptr<Rom> vanilla_rom = std::make_unique<Rom>();
   ASSERT_OK(vanilla_rom->LoadFromFile(vanilla_test_path_));
+  ASSERT_TRUE(ValidateROMAgainstGoldenData(*vanilla_rom, golden_data_path_));
 
   // Store some original values for comparison
   auto original_asm_version = vanilla_rom->ReadByte(0x140145);
@@ -377,6 +520,7 @@ TEST_F(OverworldE2ETest, BeforeAfterValidation) {
   // Reload and validate changes
   std::unique_ptr<Rom> modified_rom = std::make_unique<Rom>();
   ASSERT_OK(modified_rom->LoadFromFile(edited_test_path_));
+  EXPECT_FALSE(ValidateROMAgainstGoldenData(*modified_rom, golden_data_path_));
 
   auto modified_asm_version = modified_rom->ReadByte(0x140145);
   auto modified_graphics_0 = modified_rom->ReadByte(0x7C9C);

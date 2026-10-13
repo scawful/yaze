@@ -8,6 +8,7 @@
 #include "absl/status/statusor.h"
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/dungeon_tile_patterns.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -103,7 +104,8 @@ struct ObjectTileReadRange {
  */
 class ObjectParser {
  public:
-  explicit ObjectParser(Rom* rom) : rom_(rom) {}
+  explicit ObjectParser(Rom* rom, const DungeonTilePatterns* patterns = nullptr)
+      : rom_(rom), patterns_(patterns) {}
 
   /**
    * @brief Parse object data directly from ROM
@@ -224,6 +226,7 @@ class ObjectParser {
   int ResolveTileCountForObject(int16_t object_id) const;
 
   Rom* rom_;
+  const DungeonTilePatterns* patterns_ = nullptr;
   std::vector<ObjectTileReadRange>* tile_read_range_collector_ = nullptr;
 };
 

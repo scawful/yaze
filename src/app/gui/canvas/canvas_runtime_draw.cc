@@ -143,7 +143,7 @@ void DrawOutline(const CanvasRuntime& rt, int x, int y, int w, int h,
   if (!rt.draw_list)
     return;
   CanvasUtils::DrawCanvasOutline(rt.draw_list, rt.canvas_p0, rt.scrolling, x, y,
-                                 w, h, color);
+                                 w, h, color, rt.scale);
 }
 
 bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap,
@@ -189,7 +189,7 @@ bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap,
             ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
             ImVec2(origin.x + paint_pos.x + scaled_size,
                    origin.y + paint_pos.y + scaled_size),
-            uv0, uv1);
+            uv0, uv1, ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
       }
     }
   }

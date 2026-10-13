@@ -176,14 +176,6 @@ class RightDrawerManager {
   void CyclePanel(int direction) {
     CycleDrawer(direction);
   }
-  [[deprecated("Use CycleToNextDrawer() instead.")]]
-  void CycleToNextPanel() {
-    CycleToNextDrawer();
-  }
-  [[deprecated("Use CycleToPreviousDrawer() instead.")]]
-  void CycleToPreviousPanel() {
-    CycleToPreviousDrawer();
-  }
 
   /**
    * @brief Snap transient animations when host visibility changes.
@@ -251,10 +243,6 @@ class RightDrawerManager {
    * @brief Reset all drawer widths to their defaults
    */
   void ResetDrawerWidths();
-  [[deprecated("Use ResetDrawerWidths() instead.")]]
-  void ResetPanelWidths() {
-    ResetDrawerWidths();
-  }
 
   /**
    * @brief Get the default width for a specific drawer type
@@ -264,11 +252,6 @@ class RightDrawerManager {
    */
   static float GetDefaultDrawerWidth(DrawerType type,
                                      EditorType editor = EditorType::kUnknown);
-  [[deprecated("Use GetDefaultDrawerWidth() instead.")]]
-  static float GetDefaultPanelWidth(PanelType type,
-                                    EditorType editor = EditorType::kUnknown) {
-    return GetDefaultDrawerWidth(type, editor);
-  }
 
   struct PanelSizeLimits {
     float min_width = 280.0f;
@@ -291,23 +274,9 @@ class RightDrawerManager {
   std::unordered_map<std::string, float> SerializeDrawerWidths() const;
   void RestoreDrawerWidths(
       const std::unordered_map<std::string, float>& widths);
-  [[deprecated("Use SerializeDrawerWidths() instead.")]]
-  std::unordered_map<std::string, float> SerializePanelWidths() const {
-    return SerializeDrawerWidths();
-  }
-  [[deprecated("Use RestoreDrawerWidths() instead.")]]
-  void RestorePanelWidths(
-      const std::unordered_map<std::string, float>& widths) {
-    RestoreDrawerWidths(widths);
-  }
 
   void SetDrawerWidthChangedCallback(
       std::function<void(DrawerType, float)> callback) {
-    on_panel_width_changed_ = std::move(callback);
-  }
-  [[deprecated("Use SetDrawerWidthChangedCallback() instead.")]]
-  void SetPanelWidthChangedCallback(
-      std::function<void(PanelType, float)> callback) {
     on_panel_width_changed_ = std::move(callback);
   }
 
@@ -327,10 +296,6 @@ class RightDrawerManager {
   bool DrawSidebarToggleButton();
   [[deprecated("Use DrawSidebarToggleButton() instead.")]]
   bool DrawDrawerToggleButtons() {
-    return DrawSidebarToggleButton();
-  }
-  [[deprecated("Use DrawSidebarToggleButton() instead.")]]
-  bool DrawPanelToggleButtons() {
     return DrawSidebarToggleButton();
   }
 

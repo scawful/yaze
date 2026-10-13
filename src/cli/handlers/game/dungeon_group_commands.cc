@@ -27,7 +27,7 @@ constexpr int kDungeonsStartRooms = 0x7939;  // Start room per dungeon
 constexpr int kDungeonsEndRooms = 0x792D;    // End room per dungeon (unused)
 constexpr int kDungeonsBossRooms = 0x10954;  // Boss room per dungeon
 constexpr int kNumberOfDungeons = 14;        // Vanilla dungeons
-constexpr int kNumberOfEntrances = 0x84;     // Total entrances
+constexpr int kNumberOfEntrances = zelda3::kNumRegularDungeonEntrances;
 
 // Dungeon names (vanilla + common custom slots)
 const std::vector<std::string> kDungeonNames = {
@@ -127,6 +127,7 @@ absl::Status DungeonGroupCommandHandler::Execute(
   for (int entrance_id = 0; entrance_id < kNumberOfEntrances; ++entrance_id) {
     zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id),
                                   false);
+    RETURN_IF_ERROR(entrance.load_status());
 
     int dungeon_id = entrance.dungeon_id_;
     int room_id = entrance.room_;

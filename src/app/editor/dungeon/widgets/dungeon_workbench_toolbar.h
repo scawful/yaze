@@ -29,6 +29,9 @@ struct DungeonWorkbenchToolbarParams {
   std::function<void(bool)> set_workflow_mode;
   std::function<void(int)> on_save_room;
   std::function<void()> on_request_dungeon_map;
+  std::function<void(float)> draw_entrance_context;
+  std::function<void()> draw_tools;
+  std::function<void()> draw_save_content;
 
   char* compare_search_buf = nullptr;
   size_t compare_search_buf_size = 0;

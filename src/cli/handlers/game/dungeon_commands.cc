@@ -423,6 +423,10 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
       const auto encoded = object.EncodeObjectToBytes();
       formatter.BeginObject();
       formatter.AddHexField("object_id", static_cast<uint16_t>(object.id_), 3);
+      formatter.AddField("entity_kind", "room_object");
+      formatter.AddField("name", zelda3::GetObjectName(object.id_));
+      formatter.AddField("name_source", "vanilla_object_catalog");
+      formatter.AddField("coordinate_space", "room_tile8");
       formatter.AddField("subtype", zelda3::RoomObject::DetermineObjectType(
                                         encoded.b1, encoded.b3));
       formatter.AddField("x", static_cast<int>(object.x()));
@@ -441,6 +445,7 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
     const auto& door = doors[index];
     formatter.BeginObject();
     formatter.AddField("index", static_cast<int>(index));
+    formatter.AddField("entity_kind", "door");
     formatter.AddField("position", door.position);
     formatter.AddField("direction", std::string(door.GetDirectionName()));
     formatter.AddField("type", std::string(door.GetTypeName()));
@@ -448,6 +453,14 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
     auto [tx, ty] = door.GetTileCoords();
     formatter.AddField("tile_x", tx);
     formatter.AddField("tile_y", ty);
+    const auto [px, py, width, height] = door.GetBounds();
+    formatter.BeginObject("bounds_px");
+    formatter.AddField("x", px);
+    formatter.AddField("y", py);
+    formatter.AddField("width", width);
+    formatter.AddField("height", height);
+    formatter.AddField("coordinate_space", "room_pixels");
+    formatter.EndObject();
     formatter.EndObject();
   }
   formatter.EndArray();
@@ -657,7 +670,11 @@ absl::Status DungeonGetEntranceCommandHandler::Execute(
     return WriteDungeonSpawnPointReport(rom, entrance_id, formatter, "");
   }
 
+  if (entrance_id < 0 || entrance_id >= zelda3::kNumRegularDungeonEntrances) {
+    return absl::OutOfRangeError("Regular dungeon entrance ID is out of range");
+  }
   zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id), false);
+  RETURN_IF_ERROR(entrance.load_status());
 
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
   formatter.AddField("is_spawn_point", is_spawn_point);

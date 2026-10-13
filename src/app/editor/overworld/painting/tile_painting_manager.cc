@@ -165,8 +165,15 @@ void TilePaintingManager::PaintPattern(const TileBrush& brush,
     single_paint_pending_ = true;
   }
   if (IsValidTile(anchor)) {
-    *deps_.current_map = MapIndexForGridPosition(
+    const int anchor_map = MapIndexForGridPosition(
         *deps_.current_world, anchor.x / kTilesPerMap, anchor.y / kTilesPerMap);
+    // A direct write changes the selected map without refreshing its Tile16
+    // palette and ignores the pin. The editor callback does both.
+    if (callbacks_.select_map_for_editing) {
+      callbacks_.select_map_for_editing(anchor_map);
+    } else {
+      *deps_.current_map = anchor_map;
+    }
   }
   for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
     if (changed_maps[map]) {
@@ -380,19 +387,7 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
       if (piece.pixels.empty())
         continue;
       auto& preview = map_brush_previews_[map_id];
-      const bool pixels_changed = preview.width() != piece.width ||
-                                  preview.height() != piece.height ||
-                                  preview.vector() != piece.pixels;
-      const bool palette_changed =
-          !(preview.palette() == map->current_palette());
-      if (pixels_changed)
-        preview.Create(piece.width, piece.height, 8, piece.pixels);
-      if (pixels_changed || palette_changed)
-        preview.SetPalette(map->current_palette());
-      if (!preview.texture())
-        preview.CreateTexture();
-      else if (pixels_changed || palette_changed)
-        preview.UpdateTexture();
+      SyncMapBrushPreview(piece, map->current_palette(), preview);
       has_piece[map_id] = true;
     }
   }
@@ -436,7 +431,7 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
                        uv0.y + 16.0f / atlas.height());
       draw->AddImage((ImTextureID)(intptr_t)atlas.texture(), start,
                      ImVec2(start.x + size, start.y + size), uv0, uv1,
-                     IM_COL32(255, 255, 255, alpha));
+                     ImGui::GetColorU32(IM_COL32(255, 255, 255, alpha)));
     }
   }
   draw->PopClipRect();

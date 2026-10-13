@@ -10,6 +10,7 @@
 
 #include "absl/status/statusor.h"
 #include "imgui/imgui.h"
+#include "util/stop_token.h"
 #include "zelda3/dungeon/room_census.h"
 
 namespace yaze {
@@ -37,15 +38,27 @@ class RoomMatrixCensusOverlay {
 
   void SetManifestProvider(ManifestProvider provider) {
     manifest_provider_ = std::move(provider);
+    Invalidate();
   }
 
   bool enabled() const { return enabled_; }
-  void SetEnabled(bool enabled) { enabled_ = enabled; }
+  void SetEnabled(bool enabled) {
+    enabled_ = enabled;
+    if (!enabled && pending_.valid()) {
+      Invalidate();
+    }
+  }
 
   // Starts a computation when enabled and the ROM changed; polls a running
   // one. Call once per frame before drawing.
   void Update(Rom* rom);
-  void Invalidate() { stale_ = true; }
+  void Invalidate() {
+    stop_source_.request_stop();
+    stale_ = true;
+    census_.reset();
+    largest_block_.clear();
+    error_.clear();
+  }
 
   // Toggle, status line, summary, and wrapping legend/filter chips.
   void DrawControls(Rom* rom);
@@ -80,6 +93,7 @@ class RoomMatrixCensusOverlay {
   static ImVec4 OwnerColor(int owner_index, bool interior);
 
  private:
+  friend class RoomMatrixCensusTestPeer;
   void StartComputation(Rom* rom);
   // Places the next chip on this line or wraps; returns false when it wraps.
   static void WrapBeforeItem(float item_width, bool first);
@@ -90,9 +104,13 @@ class RoomMatrixCensusOverlay {
   bool enabled_ = false;
   bool stale_ = true;
   const Rom* computed_for_ = nullptr;
+  uint64_t observed_asset_generation_ = 0;
+  uint64_t observed_rom_revision_ = 0;
+  bool observed_custom_enabled_ = false;
   std::optional<zelda3::RoomCensus> census_;
   std::string error_;
   std::future<absl::StatusOr<zelda3::RoomCensus>> pending_;
+  util::StopSource stop_source_{util::kNoStopState};
   std::set<int> largest_block_;
 
   bool filter_free_ = false;

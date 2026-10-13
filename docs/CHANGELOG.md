@@ -4,6 +4,19 @@ High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
 ## 0.8.0 (in development)
+- Dungeon pot-item edits now use the normal sparse save path without loading
+  every room. Disabled pot saving reports the existing Save Scope control and
+  preserves the edit for retry; untouched room streams remain unchanged.
+- Build Project checks live unsaved project/ROM work and the selected source
+  before launching. A failed working-directory change no longer runs a build
+  command in the wrong folder.
+- Fixed white overworld map and overlay textures caused by an incorrect indexed
+  bitmap depth. First-load and recreation coverage now checks rendered colors.
+- Dungeon-map layout records now join normal Save/Save As with enabled Save
+  Dungeon Maps scope, transaction rollback, retained Undo/Redo, protected
+  pointer/artwork ranges, and signed basement boss-floor encoding. Floor
+  buttons update the full model and restore the visible floor on Undo/Redo.
+  Tile16 artwork, title-screen and overworld pause-map saves remain blocked.
 - Dungeon Editor completion milestone. See
   `docs/internal/plans/release-ladder-0x-2026.md` for scope. Release date,
   final merge SHA, and packaged-candidate evidence are pending.

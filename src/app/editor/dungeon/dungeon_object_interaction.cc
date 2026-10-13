@@ -35,7 +35,7 @@ float ObjectResizeWheelDelta(const ImGuiIO& io) {
 }  // namespace
 
 void DungeonObjectInteraction::HandleCanvasMouseInput() {
-  const ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO& io = ImGui::GetIO();
   const bool hovered = canvas_->IsMouseHovering();
   const bool mouse_left_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
   const bool mouse_left_released =
@@ -70,10 +70,6 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   }
 
   if (hovered) {
-    if (pointer_within_room &&
-        entity_coordinator_.HandleMouseWheel(ObjectResizeWheelDelta(io))) {
-      return;
-    }
     HandleLayerKeyboardShortcuts();
     if (HandleKeyboardNudge()) {
       return;
@@ -178,8 +174,9 @@ void DungeonObjectInteraction::UpdateCollisionPainting(
                 lx, ly, state.paint_brush_radius,
                 /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
                 [&](int bx, int by) {
-                  if (room.GetCollisionTile(bx, by) ==
-                      state.paint_collision_value) {
+                  if (room.HasCollisionOverride(bx, by) &&
+                      room.GetCollisionTile(bx, by) ==
+                          state.paint_collision_value) {
                     return;
                   }
                   ensure_mutation();
@@ -716,7 +713,7 @@ absl::Status DungeonObjectInteraction::HandleCopySelected() {
     return entity_coordinator_.ReportSelectionEditStatus(copied.status());
   }
   // Only replace the clipboard after the complete selection is copyable.
-  selection_clipboard_ = std::move(*copied);
+  clipboard() = std::move(*copied);
   return entity_coordinator_.ReportSelectionEditStatus(absl::OkStatus());
 }
 
@@ -748,19 +745,20 @@ absl::Status DungeonObjectInteraction::HandlePasteAt(int pixel_x, int pixel_y) {
   request.kind = DungeonSelectionEditKind::kPaste;
   request.objects = selection_.GetSelectedIndices();
   request.entities = entity_coordinator_.SelectedEntitiesForEdit();
-  request.clipboard = &selection_clipboard_;
-  request.delta_x_pixels = pixel_x - selection_clipboard_.origin_pixel_x;
-  request.delta_y_pixels = pixel_y - selection_clipboard_.origin_pixel_y;
+  auto& copied = clipboard();
+  request.clipboard = &copied;
+  request.delta_x_pixels = pixel_x - copied.origin_pixel_x;
+  request.delta_y_pixels = pixel_y - copied.origin_pixel_y;
   return entity_coordinator_.CommitSelectionEdit(request);
 }
 
 absl::Status DungeonObjectInteraction::HandlePasteObjects() {
   if (!HasClipboardData())
     return absl::OkStatus();
-  int target_x = selection_clipboard_.origin_pixel_x;
-  int target_y = selection_clipboard_.origin_pixel_y;
-  const int step = !selection_clipboard_.sprites.empty() ||
-                           !selection_clipboard_.items.empty()
+  const auto& copied = clipboard();
+  int target_x = copied.origin_pixel_x;
+  int target_y = copied.origin_pixel_y;
+  const int step = !copied.sprites.empty() || !copied.items.empty()
                        ? dungeon_coords::kSpriteTileSize
                        : dungeon_coords::kTileSize;
   if (canvas_ && ImGui::GetCurrentContext()) {
@@ -777,7 +775,7 @@ absl::Status DungeonObjectInteraction::HandlePasteObjects() {
   }
   // With no canvas target, doors retain their exact source wall slots.
   // An automatic diagonal offset cannot represent a valid wall destination.
-  const int fallback_offset = selection_clipboard_.doors.empty() ? step : 0;
+  const int fallback_offset = copied.doors.empty() ? step : 0;
   return HandlePasteAt(target_x + fallback_offset, target_y + fallback_offset);
 }
 
@@ -873,20 +871,22 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
   if (ImGui::IsAnyItemActive())
     return;
 
-  // Check for stored placement shortcuts (1, 2, 3 keys). The third room
-  // object stream is intentionally unavailable to torches/pushable blocks.
-  if (ImGui::IsKeyPressed(ImGuiKey_1)) {
-    SendSelectedToLayer(0);  // Primary stream / upper layer (BG1)
-  } else if (ImGui::IsKeyPressed(ImGuiKey_2)) {
-    SendSelectedToLayer(1);  // BG2 overlay / lower layer (BG2)
-  } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
-    SendSelectedToLayer(2);  // BG1 overlay stream
+  // Modified digits belong to editor/window shortcuts, not object placement.
+  // The third room stream is unavailable to torches/pushable blocks.
+  const auto& io = ImGui::GetIO();
+  if (io.KeyMods == ImGuiMod_None) {
+    if (ImGui::IsKeyPressed(ImGuiKey_1)) {
+      SendSelectedToLayer(0);  // Primary stream / upper layer (BG1)
+    } else if (ImGui::IsKeyPressed(ImGuiKey_2)) {
+      SendSelectedToLayer(1);  // BG2 overlay / lower layer (BG2)
+    } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
+      SendSelectedToLayer(2);  // BG1 overlay stream
+    }
   }
 
   // Object ordering shortcuts
   // Ctrl+Shift+] = Bring to Front, Ctrl+Shift+[ = Send to Back
   // Ctrl+] = Bring Forward, Ctrl+[ = Send Backward
-  auto& io = ImGui::GetIO();
   if (io.KeyCtrl && io.KeyShift) {
     if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
       SendSelectedToFront();
@@ -909,6 +909,8 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
 void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled,
                                                     zelda3::DoorType type) {
   if (enabled) {
+    // Dispatch follows handler state; the previous placement must end too.
+    CancelPlacement();
     mode_manager_.SetMode(InteractionMode::PlaceDoor);
     entity_coordinator_.door_handler().SetDoorType(type);
     entity_coordinator_.door_handler().BeginPlacement();
@@ -926,6 +928,8 @@ void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled,
 void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled,
                                                       uint8_t sprite_id) {
   if (enabled) {
+    // Dispatch follows handler state; the previous placement must end too.
+    CancelPlacement();
     mode_manager_.SetMode(InteractionMode::PlaceSprite);
     entity_coordinator_.sprite_handler().SetSpriteId(sprite_id);
     entity_coordinator_.sprite_handler().BeginPlacement();
@@ -943,6 +947,8 @@ void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled,
 void DungeonObjectInteraction::SetItemPlacementMode(bool enabled,
                                                     uint8_t item_id) {
   if (enabled) {
+    // Dispatch follows handler state; the previous placement must end too.
+    CancelPlacement();
     mode_manager_.SetMode(InteractionMode::PlaceItem);
     entity_coordinator_.item_handler().SetItemId(item_id);
     entity_coordinator_.item_handler().BeginPlacement();

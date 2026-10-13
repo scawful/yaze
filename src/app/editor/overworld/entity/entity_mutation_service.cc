@@ -12,7 +12,8 @@ EntityMutationService::EntityMutationService(zelda3::Overworld& overworld)
     : overworld_(overworld) {}
 
 EntityMutationService::MutationResult EntityMutationService::InsertEntity(
-    const std::string& type, const OverworldContextTarget& target) {
+    const std::string& type, const OverworldContextTarget& target,
+    uint8_t item_id) {
   MutationResult result;
   const auto* map = overworld_.overworld_map(target.map_id);
   if (!target.valid() || !map || !overworld_.is_loaded() ||
@@ -24,11 +25,12 @@ EntityMutationService::MutationResult EntityMutationService::InsertEntity(
     return result;
   }
   return InsertEntity(type, target.world_position, target.map_id,
-                      target.game_state);
+                      target.game_state, item_id);
 }
 
 EntityMutationService::MutationResult EntityMutationService::InsertEntity(
-    const std::string& type, ImVec2 pos, int map_id, int game_state) {
+    const std::string& type, ImVec2 pos, int map_id, int game_state,
+    uint8_t item_id) {
   MutationResult result;
 
   if (type == "entrance") {
@@ -59,7 +61,7 @@ EntityMutationService::MutationResult EntityMutationService::InsertEntity(
           "Cannot insert exit: " + std::string(res.status().message());
     }
   } else if (type == "item") {
-    auto res = editor::InsertItem(&overworld_, pos, map_id, 0x00);
+    auto res = editor::InsertItem(&overworld_, pos, map_id, item_id);
     if (res.ok()) {
       result.entity = *res;
     } else {

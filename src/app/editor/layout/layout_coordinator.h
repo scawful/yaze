@@ -117,6 +117,9 @@ class LayoutCoordinator {
    * @param session_id Current session ID
    */
   void ResetCurrentEditorLayout(EditorType editor_type, size_t session_id);
+  static std::string DefaultLayoutBackupName(EditorType type);
+  bool HasPreviousEditorLayout(EditorType type) const;
+  bool RestorePreviousEditorLayout(EditorType type);
 
   // ==========================================================================
   // Layout Rebuild Handling

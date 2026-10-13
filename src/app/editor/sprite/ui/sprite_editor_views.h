@@ -18,6 +18,9 @@ class SpriteCatalogPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Sprite Catalog"; }
   std::string GetIcon() const override { return ICON_MD_SMART_TOY; }
   std::string GetEditorCategory() const override { return "Sprite"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 15; }
   bool IsVisibleByDefault() const override { return false; }
   float GetPreferredWidth() const override { return 900.0f; }
@@ -51,6 +54,9 @@ class VanillaSpriteEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Vanilla Sprites"; }
   std::string GetIcon() const override { return ICON_MD_SMART_TOY; }
   std::string GetEditorCategory() const override { return "Sprite"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::CoreWorkspace();
+  }
   int GetPriority() const override { return 10; }
   bool IsVisibleByDefault() const override { return true; }
   float GetPreferredWidth() const override { return 900.0f; }
@@ -82,6 +88,9 @@ class CustomSpriteEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Custom Sprites"; }
   std::string GetIcon() const override { return ICON_MD_ADD_CIRCLE; }
   std::string GetEditorCategory() const override { return "Sprite"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 20; }
   float GetPreferredWidth() const override { return 1000.0f; }
 

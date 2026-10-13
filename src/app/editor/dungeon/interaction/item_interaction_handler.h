@@ -1,6 +1,10 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_ITEM_INTERACTION_HANDLER_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_ITEM_INTERACTION_HANDLER_H_
 
+#include <functional>
+#include <utility>
+
+#include "absl/status/status.h"
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
 #include "zelda3/dungeon/room.h"
 
@@ -86,7 +90,23 @@ class ItemInteractionHandler : public BaseEntityHandler {
   // Pot-item positions use 8-pixel steps; edits preserve layer/control flags.
   bool UpdateItem(size_t index, uint8_t type, int pixel_x, int pixel_y);
 
+  using ItemPlacementPreflight = std::function<absl::Status(
+      int room_id, const std::vector<zelda3::PotItem>& candidate)>;
+  void SetItemPlacementPreflight(ItemPlacementPreflight preflight) {
+    item_placement_preflight_ = std::move(preflight);
+  }
+  void SetMutationErrorCallback(
+      std::function<void(const absl::Status&)> callback) {
+    mutation_error_callback_ = std::move(callback);
+  }
+  const absl::Status& mutation_status() const { return mutation_status_; }
+
  private:
+  ItemPlacementPreflight item_placement_preflight_;
+  std::function<void(const absl::Status&)> mutation_error_callback_;
+  absl::Status mutation_status_ = absl::OkStatus();
+  bool PreflightPlacement(const std::vector<zelda3::PotItem>& candidate);
+
   // Placement state
   bool item_placement_mode_ = false;
   uint8_t preview_item_id_ = 0;

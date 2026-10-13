@@ -9,12 +9,16 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor_internal.h"
+#include "app/editor/graphics/screen_graphics_context.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
@@ -83,6 +87,12 @@ void ScreenEditor::Initialize() {
        .priority = 50,
        .enabled_condition = [this]() { return rom()->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
+  // "screen.menu_tilemap" is registered below via RegisterWindowContent()
+  // only (no RegisterPanel() literal): as an EmbeddedTool (see
+  // MenuTilemapPanel::GetPresentationPolicy()), its full WindowDescriptor
+  // -- including presentation/workflow/shortcut/size metadata -- is
+  // derived from the panel's own virtual overrides (the post-#262
+  // admission-policy pattern), not hand-duplicated here.
 
   // Register WindowContent implementations
   window_manager->RegisterWindowContent(std::make_unique<DungeonMapsPanel>(
@@ -96,6 +106,9 @@ void ScreenEditor::Initialize() {
       [this]() { DrawTitleScreenEditor(); }));
   window_manager->RegisterWindowContent(std::make_unique<NamingScreenPanel>(
       [this]() { DrawNamingScreenEditor(); }));
+  window_manager->RegisterWindowContent(std::make_unique<MenuTilemapPanel>(
+      [this]() { DrawMenuTilemapEditor(); },
+      [this]() { return rom() && rom()->is_loaded(); }));
 
   // Show title screen by default
   window_manager->OpenWindow("screen.title_screen");
@@ -123,11 +136,15 @@ absl::Status ScreenEditor::Load() {
   // Recreate sheet contents in place. Arena commands retain Bitmap*, so the
   // unique_ptr owners must remain stable across reloads.
   for (int i = 0; i < 4; i++) {
-    const auto& source = gfx::Arena::Get().gfx_sheets()[212 + i];
+    const auto pixels = game_data()->sheet_store.Sheet(212 + i);
+    if (pixels.size() != 128 * 32) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Screen Dungeon Map sheet %d is unavailable in this ROM session",
+          212 + i));
+    }
     auto* sheet = GetOrCreateSheet(i);
-    sheet->Create(source.width(), source.height(), source.depth(),
-                  source.vector());
-    sheet->metadata() = source.metadata();
+    sheet->Create(128, 32, 8,
+                  std::vector<uint8_t>(pixels.begin(), pixels.end()));
     sheet->SetPalette(
         *game_data()->palette_groups.dungeon_main.mutable_palette(3));
     gfx::Arena::Get().QueueTextureCommand(
@@ -170,28 +187,154 @@ absl::Status ScreenEditor::Load() {
                                         &tile8_tilemap_.atlas);
   RefreshTileCacheForReload(tile16_blockset_);
   RefreshTileCacheForReload(tile8_tilemap_);
+  loaded_rom_ = rom_;
+  loaded_game_data_ = game_data();
   rom_backed_state_valid_ = true;
   return absl::OkStatus();
 }
 
-absl::Status ScreenEditor::Save() {
+void ScreenEditor::RefreshDungeonMapGraphicsFromSession() {
+  // Rebuild only the source-dependent bitmaps. Keep floor layouts, Tile16
+  // composition words, undo history, and pending save flags in memory.
+  if (!rom_backed_state_valid_ || binary_gfx_loaded_ || !game_data()) {
+    return;
+  }
+  std::vector<uint8_t> atlas_pixels(128 * 128);
+  for (int slot = 0; slot < 4; ++slot) {
+    const auto pixels = game_data()->sheet_store.Sheet(212 + slot);
+    if (pixels.size() != 128 * 32) {
+      return;
+    }
+    std::copy(pixels.begin(), pixels.end(),
+              atlas_pixels.begin() + slot * 128 * 32);
+    auto* sheet = GetOrCreateSheet(slot);
+    sheet->Create(128, 32, 8,
+                  std::vector<uint8_t>(pixels.begin(), pixels.end()));
+    sheet->SetPalette(
+        *game_data()->palette_groups.dungeon_main.mutable_palette(3));
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, sheet);
+  }
+  tile8_tilemap_.atlas.Create(128, 128, 8, atlas_pixels);
+  tile8_tilemap_.atlas.SetPalette(
+      *game_data()->palette_groups.dungeon_main.mutable_palette(3));
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &tile8_tilemap_.atlas);
+  RefreshTileCacheForReload(tile8_tilemap_);
+
+  // Recompose from the current in-memory Tile16 words, not the ROM table: an
+  // unsaved Tile16 edit must survive the return from Graphics.
+  for (size_t tile_id = 0; tile_id < tile16_blockset_.tile_info.size();
+       ++tile_id) {
+    const auto info = tile16_blockset_.tile_info[tile_id];
+    gfx::ModifyTile16(tile16_blockset_, game_data()->graphics_buffer, info[0],
+                      info[1], info[2], info[3], 212,
+                      static_cast<int>(tile_id));
+  }
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &tile16_blockset_.atlas);
+  RefreshTileCacheForReload(tile16_blockset_);
+}
+
+absl::Status ScreenEditor::OpenDungeonMapTileGraphics() {
+  if (!rom_backed_state_valid_ || !rom_ || !rom_->is_loaded() || !game_data()) {
+    return absl::FailedPreconditionError(
+        "Screen Dungeon Map graphics are not loaded");
+  }
+  auto context = MakeDungeonMapTilesGfxEditContext(game_data(), selected_tile8_,
+                                                   binary_gfx_loaded_);
+  if (!context.ok()) {
+    return context.status();
+  }
+  auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (manager == nullptr) {
+    return absl::FailedPreconditionError("Editor manager is unavailable");
+  }
+  auto* editor_set = manager->GetCurrentEditorSet();
+  if (editor_set == nullptr || editor_set->GetGraphicsEditor() == nullptr) {
+    return absl::FailedPreconditionError("Graphics editor is unavailable");
+  }
+  context->return_to_source = [this, manager] {
+    RefreshDungeonMapGraphicsFromSession();
+    manager->SwitchToEditor(EditorType::kScreen, true);
+    if (dependencies_.window_manager) {
+      dependencies_.window_manager->OpenWindow("screen.dungeon_maps");
+    }
+  };
+  RETURN_IF_ERROR(manager->EnsureEditorAssetsLoaded(EditorType::kGraphics));
+  RETURN_IF_ERROR(
+      editor_set->GetGraphicsEditor()->OpenInContext(std::move(*context)));
+  manager->SwitchToEditor(EditorType::kGraphics, true);
+  return absl::OkStatus();
+}
+
+absl::StatusOr<zelda3::DungeonMapWritePlan>
+ScreenEditor::PrepareDungeonMapSave() const {
+  if (HasPendingDungeonMapTile16Changes() || HasPendingTitleScreenChanges() ||
+      HasPendingOverworldMapChanges()) {
+    return absl::FailedPreconditionError(
+        "Save blocked: Screen Editor edits are pending in unsupported domains. "
+        "Dungeon-map Tile16 artwork, title-screen, and overworld pause-map "
+        "writes remain disabled; undo or discard those edits before saving.");
+  }
   if (!rom_backed_state_valid_) {
     return absl::FailedPreconditionError(
         "Screen Editor ROM-backed state is invalid; reload Screen assets "
         "before saving");
   }
-  if (HasPendingScreenChanges()) {
+  if (has_pending_dungeon_undo_ || has_pending_tile16_undo_) {
     return absl::FailedPreconditionError(
-        "Screen Editor edits cannot all participate safely in the coordinated "
-        "ROM save; title-screen and pause-map ROM writes remain disabled until "
-        "write/reopen/readback verification exists, so discard the pending "
-        "edits before saving the ROM");
+        "Finish the current Screen Editor edit before saving");
   }
-  if (core::FeatureFlags::get().kSaveDungeonMaps) {
-    RETURN_IF_ERROR(zelda3::SaveDungeonMaps(*rom(), dungeon_maps_));
+  if (!HasPendingDungeonMapChanges()) {
+    return zelda3::DungeonMapWritePlan{};
   }
-  // Title-screen and pause-map controls remain fail-closed until their writers
-  // have write/reopen/readback coverage.
+  if (!core::FeatureFlags::get().kSaveDungeonMaps) {
+    return absl::FailedPreconditionError(
+        "Save blocked: Screen Editor edits are pending, but Save Dungeon "
+        "Maps is disabled. Enable it or undo the map edits before saving.");
+  }
+  if (!rom_ || !rom_->is_loaded() || loaded_rom_ != rom_ || !game_data() ||
+      loaded_game_data_ != game_data()) {
+    return absl::FailedPreconditionError(
+        "Dungeon maps do not belong to the current ROM session; reload "
+        "Screen assets before saving");
+  }
+  return zelda3::BuildDungeonMapWritePlan(*rom_, dungeon_maps_);
+}
+
+absl::Status ScreenEditor::BeginSaveTransaction() {
+  if (map_save_transaction_active_) {
+    return absl::FailedPreconditionError("Screen save is already in progress");
+  }
+  map_save_transaction_active_ = true;
+  map_save_serialized_ = false;
+  return absl::OkStatus();
+}
+
+void ScreenEditor::RollbackSaveTransaction() {
+  // Save never mutates the model, history, or pending flags. The enclosing ROM
+  // transaction restores bytes; there is no editor state to reconstruct.
+  map_save_transaction_active_ = false;
+  map_save_serialized_ = false;
+}
+
+void ScreenEditor::CommitSaveTransaction() {
+  if (map_save_transaction_active_ && map_save_serialized_) {
+    pending_dungeon_map_changes_ = false;
+  }
+  RollbackSaveTransaction();
+}
+
+absl::Status ScreenEditor::Save() {
+  ASSIGN_OR_RETURN(auto plan, PrepareDungeonMapSave());
+  if (plan.writes.empty()) {
+    return absl::OkStatus();
+  }
+  RETURN_IF_ERROR(zelda3::SaveDungeonMaps(*rom_, dungeon_maps_));
+  // A direct Save writes only the in-memory ROM. Only the outer file-save
+  // commit may mark the editor clean; Undo/Redo remain available after it.
+  map_save_serialized_ = map_save_transaction_active_;
   return absl::OkStatus();
 }
 
@@ -499,6 +642,7 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
 }
 
 void ScreenEditor::DrawDungeonMapsTabs() {
+  gui::AutoWidgetScope widget_scope("Screen/DungeonMap");
   if (!rom_backed_state_valid_ || !HasValidDungeonSelection()) {
     ImGui::TextWrapped(tr("No valid dungeon map is loaded."));
     return;
@@ -521,6 +665,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     selected_room = 0;
   }
   if (gui::BeginThemedTabBar("##DungeonMapTabs")) {
+    const int requested_floor = floor_number;
     for (int i = 0; i < floor_count; i++) {
       int basement_num = current_dungeon.nbr_of_basement - i;
       std::string tab_name = absl::StrFormat("Basement %d", basement_num);
@@ -528,12 +673,16 @@ void ScreenEditor::DrawDungeonMapsTabs() {
         tab_name = absl::StrFormat("Floor %d",
                                    i - current_dungeon.nbr_of_basement + 1);
       }
-      if (ImGui::BeginTabItem(tab_name.data())) {
+      const auto flags = select_floor_tab_ && i == requested_floor
+                             ? ImGuiTabItemFlags_SetSelected
+                             : ImGuiTabItemFlags_None;
+      if (ImGui::BeginTabItem(tab_name.data(), nullptr, flags)) {
         DrawDungeonMapScreen(i);
         ImGui::EndTabItem();
       }
     }
     gui::EndThemedTabBar();
+    select_floor_tab_ = false;
   }
 
   {
@@ -541,6 +690,9 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     if (gui::InputHexByte(
             "Selected Room",
             &current_dungeon.floor_rooms[floor_number].at(selected_room))) {
+      dungeon_map_labels_[selected_dungeon][floor_number][selected_room] =
+          util::HexByte(
+              current_dungeon.floor_rooms[floor_number][selected_room]);
       auto after = CaptureDungeonMapSnapshot();
       undo_manager_.Push(std::make_unique<ScreenEditAction>(
           room_before, after,
@@ -564,43 +716,26 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
   const auto button_size = ImVec2(130, 0);
 
-  if (ImGui::Button(tr("Add Floor"), button_size) &&
-      current_dungeon.nbr_of_floor < 8) {
-    SaveDungeonMapUndoState("Add floor");
-    current_dungeon.nbr_of_floor++;
-    dungeon_map_labels_[selected_dungeon].emplace_back();
-    CommitDungeonMapUndo();
+  if (gui::AutoButton(tr("Add Floor"), button_size)) {
+    status_ = ChangeDungeonMapFloorCount(/*basement=*/false, /*add=*/true);
   }
   ImGui::SameLine();
-  if (ImGui::Button(tr("Remove Floor"), button_size) &&
-      current_dungeon.nbr_of_floor > 0) {
-    SaveDungeonMapUndoState("Remove floor");
-    current_dungeon.nbr_of_floor--;
-    dungeon_map_labels_[selected_dungeon].pop_back();
-    CommitDungeonMapUndo();
+  if (gui::AutoButton(tr("Remove Floor"), button_size)) {
+    status_ = ChangeDungeonMapFloorCount(/*basement=*/false, /*add=*/false);
   }
-
-  if (ImGui::Button(tr("Add Basement"), button_size) &&
-      current_dungeon.nbr_of_basement < 8) {
-    SaveDungeonMapUndoState("Add basement");
-    current_dungeon.nbr_of_basement++;
-    dungeon_map_labels_[selected_dungeon].emplace_back();
-    CommitDungeonMapUndo();
+  if (gui::AutoButton(tr("Add Basement"), button_size)) {
+    status_ = ChangeDungeonMapFloorCount(/*basement=*/true, /*add=*/true);
   }
   ImGui::SameLine();
-  if (ImGui::Button(tr("Remove Basement"), button_size) &&
-      current_dungeon.nbr_of_basement > 0) {
-    SaveDungeonMapUndoState("Remove basement");
-    current_dungeon.nbr_of_basement--;
-    dungeon_map_labels_[selected_dungeon].pop_back();
-    CommitDungeonMapUndo();
+  if (gui::AutoButton(tr("Remove Basement"), button_size)) {
+    status_ = ChangeDungeonMapFloorCount(/*basement=*/true, /*add=*/false);
   }
 
-  if (ImGui::Button(tr("Copy Floor"), button_size)) {
+  if (gui::AutoButton(tr("Copy Floor"), button_size)) {
     copy_button_pressed = true;
   }
   ImGui::SameLine();
-  if (ImGui::Button(tr("Paste Floor"), button_size)) {
+  if (gui::AutoButton(tr("Paste Floor"), button_size)) {
     paste_button_pressed = true;
   }
 }
@@ -880,15 +1015,32 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     tilemap_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
     tilemap_canvas_.DrawBackground();
     tilemap_canvas_.DrawContextMenu();
-    if (tilemap_canvas_.DrawTileSelector(16.f)) {
-      // Get the tile8 ID to use for the tile16 drawing above
-      selected_tile8_ = tilemap_canvas_.GetTileIdFromMousePos();
+    tilemap_canvas_.DrawTileSelector(16);
+    if (tilemap_canvas_.IsMouseHovering() &&
+        ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+        !tilemap_canvas_.points().empty()) {
+      // Four 128x32 sheets are displayed at 2x: 16 tiles per row, 16 rows.
+      // Canvas::GetTileIdFromMousePos uses the unscaled 8px grid here, so it
+      // would select a different tile than the visible 16px highlight.
+      const auto point = tilemap_canvas_.points().front();
+      const int x = static_cast<int>(point.x) / 16;
+      const int y = static_cast<int>(point.y) / 16;
+      if (x >= 0 && x < 16 && y >= 0 && y < 16) {
+        selected_tile8_ = x + y * 16;
+      }
     }
     tilemap_canvas_.DrawBitmapTable(sheets_);
     tilemap_canvas_.DrawGrid();
     tilemap_canvas_.DrawOverlay();
 
     ImGui::Text(tr("Selected tile8: %d"), selected_tile8_);
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Edit selected graphics tile"))) {
+      status_ = OpenDungeonMapTileGraphics();
+    }
+    if (!status_.ok()) {
+      ImGui::TextWrapped("%s", std::string(status_.message()).c_str());
+    }
     ImGui::Separator();
     ImGui::Text(tr("For use with custom inserted graphics assembly patches."));
     if (ImGui::Button(tr("Load GFX from BIN file")))
@@ -1217,6 +1369,25 @@ void ScreenEditor::DrawTitleScreenBlocksetSelector() {
 
 void ScreenEditor::DrawNamingScreenEditor() {}
 
+void ScreenEditor::DrawMenuTilemapEditor() {
+  menu_tilemap_ui_.Draw(rom(), game_data(), project(), &undo_manager_);
+}
+
+EditorContextSnapshot ScreenEditor::BuildContextSnapshot() const {
+  EditorContextSnapshot snapshot = Editor::BuildContextSnapshot();
+  if (menu_tilemap_ui_.loaded()) {
+    snapshot.metadata.push_back(
+        {.id = "menu_tilemap_file",
+         .label = "Menu tilemap",
+         .value = util::GetFileName(menu_tilemap_ui_.current_path())});
+    if (menu_tilemap_ui_.dirty()) {
+      snapshot.has_pending_changes = true;
+      snapshot.pending_label = "Menu tilemap has unsaved edits";
+    }
+  }
+  return snapshot;
+}
+
 void ScreenEditor::DrawOverworldMapEditor() {
   if (!rom_backed_state_valid_) {
     ImGui::TextWrapped(
@@ -1437,10 +1608,69 @@ void ScreenEditor::DrawDungeonMapToolset() {
 // Undo/redo helpers
 // ---------------------------------------------------------------------------
 
+absl::Status ScreenEditor::ChangeDungeonMapFloorCount(bool basement, bool add) {
+  if (!rom_backed_state_valid_ || !HasValidDungeonSelection() ||
+      has_pending_dungeon_undo_ || has_pending_tile16_undo_) {
+    return absl::FailedPreconditionError("Dungeon map edit is unavailable");
+  }
+  auto& map = dungeon_maps_[selected_dungeon];
+  auto& labels = dungeon_map_labels_[selected_dungeon];
+  const size_t total = map.nbr_of_basement + map.nbr_of_floor;
+  const int count = basement ? map.nbr_of_basement : map.nbr_of_floor;
+  if (map.floor_rooms.size() != total || map.floor_gfx.size() != total ||
+      labels.size() != total) {
+    return absl::InvalidArgumentError(
+        "Dungeon map floor vectors are inconsistent");
+  }
+  if ((add && count >= 8) || (!add && (count == 0 || total <= 1))) {
+    return absl::FailedPreconditionError(
+        "Keep at least one map floor and at most eight floors of each type");
+  }
+  const size_t index = basement ? 0 : (add ? total : total - 1);
+  if (!add && map.boss_room != 0x000F && map.boss_room != 0xFFFF) {
+    const auto& rooms = map.floor_rooms[index];
+    if (std::find(rooms.begin(), rooms.end(), map.boss_room) != rooms.end()) {
+      return absl::FailedPreconditionError(
+          "Move or clear the boss before removing its map floor");
+    }
+  }
+  // All refusal paths precede history/model changes. Basement insertion/removal
+  // acts on the deepest row; upper floors act on the last row.
+  SaveDungeonMapUndoState(
+      add ? (basement ? "Add basement" : "Add floor")
+          : (basement ? "Remove basement" : "Remove floor"));
+  if (add) {
+    std::array<uint8_t, zelda3::kNumRooms> rooms, graphics;
+    std::array<std::string, zelda3::kNumRooms> row_labels;
+    rooms.fill(0x0F);
+    graphics.fill(0xFF);
+    row_labels.fill(util::HexByte(0x0F));
+    map.floor_rooms.insert(map.floor_rooms.begin() + index, rooms);
+    map.floor_gfx.insert(map.floor_gfx.begin() + index, graphics);
+    labels.insert(labels.begin() + index, row_labels);
+    if (basement && total > 0)
+      ++floor_number;
+  } else {
+    map.floor_rooms.erase(map.floor_rooms.begin() + index);
+    map.floor_gfx.erase(map.floor_gfx.begin() + index);
+    labels.erase(labels.begin() + index);
+    if (basement)
+      --floor_number;
+  }
+  auto& changed_count = basement ? map.nbr_of_basement : map.nbr_of_floor;
+  changed_count += add ? 1 : -1;
+  floor_number =
+      std::clamp(floor_number, 0, static_cast<int>(map.floor_rooms.size()) - 1);
+  select_floor_tab_ = true;
+  CommitDungeonMapUndo();
+  return absl::OkStatus();
+}
+
 ScreenSnapshot ScreenEditor::CaptureDungeonMapSnapshot() const {
   ScreenSnapshot snap;
   snap.edit_type = ScreenEditType::kDungeonMap;
   snap.dungeon_map.dungeon_index = selected_dungeon;
+  snap.dungeon_map.floor_index = floor_number;
   if (selected_dungeon >= 0 &&
       selected_dungeon < static_cast<int>(dungeon_maps_.size())) {
     snap.dungeon_map.map_data = dungeon_maps_[selected_dungeon];
@@ -1503,6 +1733,12 @@ void ScreenEditor::RestoreFromSnapshot(const ScreenSnapshot& snapshot) {
         dungeon_maps_[idx] = snapshot.dungeon_map.map_data;
         dungeon_map_labels_[idx] = snapshot.dungeon_map.labels;
         selected_dungeon = idx;
+        floor_number = std::clamp(
+            snapshot.dungeon_map.floor_index, 0,
+            std::max(
+                0,
+                static_cast<int>(dungeon_maps_[idx].floor_rooms.size()) - 1));
+        select_floor_tab_ = true;
         MarkDungeonMapModified();
       }
       break;
@@ -1586,6 +1822,10 @@ bool ScreenEditor::HasValidDungeonFloorSelection(int floor) const {
 
 void ScreenEditor::ResetRomBackedStateForLoad() {
   rom_backed_state_valid_ = false;
+  loaded_rom_ = nullptr;
+  loaded_game_data_ = nullptr;
+  RollbackSaveTransaction();
+  select_floor_tab_ = true;
   dungeon_maps_.clear();
   for (auto& labels : dungeon_map_labels_) {
     labels.clear();

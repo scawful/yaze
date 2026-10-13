@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
+#include <future>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -12,6 +15,7 @@
 #include "core/source_artifact_publisher.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "unique_temp_path.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -75,20 +79,31 @@ absl::StatusOr<OracleRuntimeReplay> ReplayOracleCustomObject(
   }
 }
 
+// Restores the process-global CustomObjectManager when the fixture is
+// destroyed, including when SetUp or the test body stops on a fatal assertion.
+struct ScopedCustomObjectManagerState {
+  std::optional<uint64_t> previous_context_id =
+      CustomObjectManager::Get().active_runtime_context_id();
+  CustomObjectManager::State previous =
+      CustomObjectManager::Get().SnapshotState();
+  ~ScopedCustomObjectManagerState() {
+    auto& manager = CustomObjectManager::Get();
+    if (previous_context_id.has_value()) {
+      manager.ActivateRuntimeContext(*previous_context_id, previous);
+    } else {
+      manager.ActivateStandaloneContext();
+      manager.RestoreState(previous);
+    }
+  }
+};
+
 class CustomObjectManagerTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    previous_state_ = CustomObjectManager::Get().SnapshotState();
-    // Use a unique temp directory per test invocation to avoid parallel ctest
-    // teardown races across independently spawned gtest processes.
-    const auto nonce =
-        std::chrono::steady_clock::now().time_since_epoch().count();
-    temp_dir_ = std::filesystem::temp_directory_path() /
-                ("yaze_custom_obj_test_" +
-                 std::to_string(static_cast<long long>(nonce)));
-
-    std::error_code cleanup_error;
-    std::filesystem::remove_all(temp_dir_, cleanup_error);
+    // ctest -j runs every case in its own process. UniqueTempPath adds the
+    // test name and a counter to the clock stamp, so no two processes share
+    // (and remove_all) a root.
+    temp_dir_ = ::yaze::test::UniqueTempPath("yaze_custom_obj_test");
     ASSERT_TRUE(std::filesystem::create_directories(temp_dir_ /
                                                     "Sprites/Objects/Data"));
 
@@ -98,7 +113,6 @@ class CustomObjectManagerTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    CustomObjectManager::Get().RestoreState(previous_state_);
     std::error_code cleanup_error;
     std::filesystem::remove_all(temp_dir_, cleanup_error);
   }
@@ -116,8 +130,8 @@ class CustomObjectManagerTest : public ::testing::Test {
             std::istreambuf_iterator<char>()};
   }
 
+  ScopedCustomObjectManagerState restore_manager_state_;
   std::filesystem::path temp_dir_;
-  CustomObjectManager::State previous_state_;
 };
 
 TEST_F(CustomObjectManagerTest, LoadSimpleObject) {
@@ -156,6 +170,148 @@ TEST_F(CustomObjectManagerTest, LoadSimpleObject) {
   EXPECT_EQ(obj->tiles[1].rel_x, 1);
   EXPECT_EQ(obj->tiles[1].rel_y, 0);
   EXPECT_EQ(obj->tiles[1].tile_data, 0x2841);
+}
+
+TEST_F(CustomObjectManagerTest, RenderSnapshotDeepCopiesDecodedAssets) {
+  WriteBinaryFile("snapshot.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+  auto& manager = CustomObjectManager::Get();
+  manager.SetObjectFileMap({{0x31, {"snapshot.bin"}}});
+
+  auto snapshot = manager.CaptureRenderSnapshot(true);
+  auto frozen = snapshot.GetObject(0x31, 0);
+  ASSERT_TRUE(frozen.ok()) << frozen.status();
+  ASSERT_EQ((*frozen)->tiles.size(), 1u);
+  EXPECT_EQ((*frozen)->tiles[0].tile_data, 0x2840);
+
+  auto live = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(live.ok()) << live.status();
+  EXPECT_NE(frozen->get(), live->get());
+  (*live)->tiles[0].tile_data = 0x2BAD;
+  WriteBinaryFile("snapshot.bin", {0x01, 0x00, 0x41, 0x28, 0x00, 0x00});
+  manager.ReloadAll();
+  auto reloaded = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(reloaded.ok()) << reloaded.status();
+  EXPECT_EQ((*reloaded)->tiles[0].tile_data, 0x2841);
+  EXPECT_EQ((*frozen)->tiles[0].tile_data, 0x2840);
+  std::error_code remove_error;
+  std::filesystem::remove(temp_dir_ / "snapshot.bin", remove_error);
+  ASSERT_FALSE(remove_error) << remove_error.message();
+  auto still_frozen = snapshot.GetObject(0x31, 0);
+  ASSERT_TRUE(still_frozen.ok()) << still_frozen.status();
+  EXPECT_EQ((*still_frozen)->tiles[0].tile_data, 0x2840);
+}
+
+TEST_F(CustomObjectManagerTest, DisabledRenderSnapshotFreezesMode) {
+  WriteBinaryFile("disabled.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+  auto& manager = CustomObjectManager::Get();
+  manager.SetObjectFileMap({{0x31, {"disabled.bin"}}});
+
+  const auto disabled = manager.CaptureRenderSnapshot(false);
+  const auto enabled = manager.CaptureRenderSnapshot(true);
+  EXPECT_FALSE(disabled.enabled());
+  EXPECT_TRUE(enabled.enabled());
+  EXPECT_TRUE(absl::IsNotFound(disabled.GetObject(0x31, 0).status()));
+  EXPECT_TRUE(enabled.GetObject(0x31, 0).ok());
+}
+
+TEST_F(CustomObjectManagerTest, RenderSnapshotFreezesFailuresAndEmptyAssets) {
+  WriteBinaryFile("empty.bin", {0x00, 0x00});
+  auto& manager = CustomObjectManager::Get();
+  manager.SetObjectFileMap({{0x31, {"missing.bin", "empty.bin"}}});
+
+  const auto snapshot = manager.CaptureRenderSnapshot(true);
+  const auto missing = snapshot.GetObject(0x31, 0);
+  ASSERT_FALSE(missing.ok());
+  const auto empty = snapshot.GetObject(0x31, 1);
+  ASSERT_TRUE(empty.ok()) << empty.status();
+  ASSERT_NE(*empty, nullptr);
+  EXPECT_TRUE((*empty)->IsEmpty());
+
+  WriteBinaryFile("missing.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+  EXPECT_EQ(manager.GetObjectInternal(0x31, 0).status(), missing.status());
+  manager.ReloadAll();
+  EXPECT_TRUE(manager.GetObjectInternal(0x31, 0).ok());
+  EXPECT_EQ(snapshot.GetObject(0x31, 0).status(), missing.status());
+  auto still_empty = snapshot.GetObject(0x31, 1);
+  ASSERT_TRUE(still_empty.ok()) << still_empty.status();
+  EXPECT_TRUE((*still_empty)->IsEmpty());
+}
+
+TEST_F(CustomObjectManagerTest,
+       RenderSnapshotPreservesRuntimeCapacityAndConfiguredFamilies) {
+  WriteBinaryFile("slot.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+  auto& manager = CustomObjectManager::Get();
+  manager.SetObjectFileMap(
+      {{0x31, std::vector<std::string>(17, "slot.bin")}, {0xD1, {"slot.bin"}}});
+
+  const auto snapshot = manager.CaptureRenderSnapshot(true);
+  EXPECT_TRUE(snapshot.GetObject(0x31, 15).ok());
+  EXPECT_TRUE(absl::IsOutOfRange(snapshot.GetObject(0x31, 16).status()));
+  auto arbitrary = snapshot.GetObject(0xD1, 0);
+  ASSERT_TRUE(arbitrary.ok()) << arbitrary.status();
+  EXPECT_EQ((*arbitrary)->tiles[0].tile_data, 0x2840);
+  EXPECT_TRUE(absl::IsOutOfRange(snapshot.GetObject(0xD1, 1).status()));
+}
+
+TEST_F(CustomObjectManagerTest,
+       RenderSnapshotsRemainIndependentAfterSessionRemoval) {
+  constexpr uint64_t kContextA = 0x434F444558000001ULL;
+  constexpr uint64_t kContextB = 0x434F444558000002ULL;
+  auto& manager = CustomObjectManager::Get();
+  ASSERT_NE(manager.active_runtime_context_id(), kContextA);
+  ASSERT_NE(manager.active_runtime_context_id(), kContextB);
+  struct RemoveTestContexts {
+    CustomObjectManager& manager;
+    uint64_t context_a;
+    uint64_t context_b;
+    ~RemoveTestContexts() {
+      manager.RemoveRuntimeContext(context_a);
+      manager.RemoveRuntimeContext(context_b);
+    }
+  } cleanup{manager, kContextA, kContextB};
+
+  WriteBinaryFile("session_a.bin", {0x01, 0x00, 0x11, 0x20, 0x00, 0x00});
+  WriteBinaryFile("session_b.bin", {0x01, 0x00, 0x22, 0x30, 0x00, 0x00});
+  const CustomObjectManager::State state_a{
+      .base_path = temp_dir_.string(),
+      .custom_file_map = {{0x31, {"session_a.bin"}},
+                          {0x54, {"session_a.bin"}}}};
+  const CustomObjectManager::State state_b{
+      .base_path = temp_dir_.string(),
+      .custom_file_map = {{0x31, {"session_b.bin"}},
+                          {0x54, {"session_b.bin"}}}};
+
+  manager.ActivateRuntimeContext(kContextA, state_a);
+  const auto snapshot_a = manager.CaptureRenderSnapshot(true);
+  manager.ActivateRuntimeContext(kContextB, state_b);
+  const auto snapshot_b = manager.CaptureRenderSnapshot(true);
+  manager.RemoveRuntimeContext(kContextA);
+  manager.RemoveRuntimeContext(kContextB);
+
+  const auto read_words = [](const CustomObjectRenderSnapshot& snapshot)
+      -> absl::StatusOr<std::array<uint16_t, 2>> {
+    auto object = snapshot.GetObject(0x31, 0);
+    if (!object.ok())
+      return object.status();
+    auto body = snapshot.GetObject(0x54, 0);
+    if (!body.ok())
+      return body.status();
+    if ((*object)->tiles.empty() || (*body)->tiles.empty()) {
+      return absl::DataLossError("Snapshot lost a custom object tile");
+    }
+    return std::array<uint16_t, 2>{(*object)->tiles[0].tile_data,
+                                   (*body)->tiles[0].tile_data};
+  };
+  auto worker_a =
+      std::async(std::launch::async, read_words, std::cref(snapshot_a));
+  auto worker_b =
+      std::async(std::launch::async, read_words, std::cref(snapshot_b));
+  const auto words_a = worker_a.get();
+  const auto words_b = worker_b.get();
+  ASSERT_TRUE(words_a.ok()) << words_a.status();
+  ASSERT_TRUE(words_b.ok()) << words_b.status();
+  EXPECT_EQ(*words_a, (std::array<uint16_t, 2>{0x2011, 0x2011}));
+  EXPECT_EQ(*words_b, (std::array<uint16_t, 2>{0x3022, 0x3022}));
 }
 
 TEST(CustomObjectCodecTest, DenseThirtyTwoTileRowUsesRuntimeCountZeroEncoding) {

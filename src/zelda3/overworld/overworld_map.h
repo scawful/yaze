@@ -9,11 +9,14 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/rom_settings.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
+#include "zelda3/graphics/resolved_graphics_context.h"
+#include "zelda3/overworld/graphics_preview.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze {
@@ -169,6 +172,33 @@ struct AreaRenderProperties {
   uint8_t animated_gfx = 0;
   std::array<uint8_t, 8> custom_gfx_ids = {};
   uint16_t subscreen_overlay = 0x00FF;
+  uint16_t area_specific_bg_color = 0;
+};
+
+/// Source of slots 3-6 for roomset impact reporting. Custom v3 background
+/// groups replace all eight slots, including $FF world-default entries.
+enum class OverworldRoomsetSource {
+  kSharedSessionGroup,
+  kCustomTileGroups,
+  kIndependentRomGroup,
+};
+
+enum class OverworldMainSlotSource {
+  kSharedSessionGroup,
+  kIndependentRomGroup,
+  kAreaOverride,
+  kCustomTileGroups,
+};
+
+struct OverworldMainSlotProvenance {
+  int main_group_id = 0;
+  uint8_t main_sheet = 0;
+  uint8_t effective_sheet = 0;
+  OverworldMainSlotSource source =
+      OverworldMainSlotSource::kIndependentRomGroup;
+  // Overworld slot 7 retains the main/area sheet in the bottom half; its top
+  // half is replaced with animated tiles when the map is rendered.
+  bool bottom_half_only = false;
 };
 
 /// Overworld screen whose tilemap the game shows as BG1 for a subscreen
@@ -206,8 +236,24 @@ class OverworldMap : public gfx::GfxContext {
  public:
   OverworldMap() = default;
   OverworldMap(int index, Rom* rom, GameData* game_data = nullptr);
+  static absl::StatusOr<OverworldMap> CreateLyraPreview(
+      int index, Rom* rom, GameData* game_data,
+      const rom::LyraLayoutInspection* layout);
 
-  void SetGameData(GameData* game_data) { game_data_ = game_data; }
+  void SetGraphicsPreview(const AreaGraphicsPreview& preview) {
+    if (graphics_preview_ == preview)
+      return;
+    graphics_preview_ = preview;
+    built_ = false;
+  }
+  bool HasGraphicsPreview() const { return !graphics_preview_.empty(); }
+
+  const GameData* game_data() const { return game_data_; }
+  void SetGameData(GameData* game_data) {
+    if (game_data_ != game_data)
+      palette_addresses_ = {};
+    game_data_ = game_data;
+  }
 
   /// Sheet pixels to use instead of GameData::graphics_buffer when
   /// BuildTileset() runs (8bpp, 4096 bytes per sheet). Lets a preview show
@@ -218,9 +264,8 @@ class OverworldMap : public gfx::GfxContext {
     graphics_sheet_overrides_ = std::move(overrides);
   }
 
-  /// True when a sheet BuildTileset() read from GameData's sheet store has a
-  /// newer store revision than that build (an unsaved graphics edit). Maps
-  /// never built from the store, and override sheets, report false.
+  /// True when resolved sheet assignments or source pixel revisions changed
+  /// since BuildTileset(). Maps never built from the store report false.
   bool SourceSheetsChanged() const;
 
   absl::Status BuildMap(int count, int game_state, int world,
@@ -238,6 +283,8 @@ class OverworldMap : public gfx::GfxContext {
       const std::vector<uint8_t>* cached_tile16_blockset = nullptr);
 
   void LoadAreaGraphics();
+  friend ResolvedGraphicsContext DescribeOverworldGraphicsContext(
+      const OverworldMap& map, const GraphicsContextIdentity& identity);
   absl::Status LoadPalette();
   absl::Status LoadOverlay();
   absl::Status LoadVanillaOverlayData();
@@ -269,6 +316,7 @@ class OverworldMap : public gfx::GfxContext {
    */
   void UseCachedTileset(const std::vector<uint8_t>& cached_gfx) {
     current_gfx_ = cached_gfx;
+    ApplyGraphicsPreview(graphics_preview_, current_gfx_);
     // Overworld::BuildMapWithTilesetCache only hands out an entry whose
     // recorded sheet revisions match the store, so these pixels are current.
     RecordSourceSheetRevisions();
@@ -288,11 +336,20 @@ class OverworldMap : public gfx::GfxContext {
   auto parent() const { return parent_; }
   int index() const { return index_; }
   auto mutable_mosaic() { return &mosaic_; }
-  auto mutable_current_palette() { return &current_palette_; }
+  auto mutable_current_palette() {
+    // A display/project override has not declared a writable model source.
+    palette_addresses_ = {};
+    return &current_palette_;
+  }
+  const PaletteAddressMap& palette_addresses() const {
+    return palette_addresses_;
+  }
 
   void SetNotBuilt() { built_ = false; }
 
   auto area_graphics() const { return area_graphics_; }
+  OverworldRoomsetSource roomset_source() const;
+  OverworldMainSlotProvenance MainSlotProvenance(int slot) const;
   auto area_palette() const { return area_palette_; }
   auto sprite_graphics(int i) const { return sprite_graphics_[i]; }
   auto sprite_palette(int i) const { return sprite_palette_[i]; }
@@ -309,6 +366,22 @@ class OverworldMap : public gfx::GfxContext {
   auto area_specific_bg_color() const { return area_specific_bg_color_; }
   void set_area_specific_bg_color(uint16_t color) {
     area_specific_bg_color_ = color;
+  }
+
+  // Standard metadata is loaded through the area parent for editing/rendering.
+  // Preserve the screen's original raw slot until that model value is edited.
+  // Keeping both values also restores the original bytes after Save/Undo/Save.
+  uint8_t area_graphics_for_save() const {
+    return AreaInfoForSave(0, area_graphics_);
+  }
+  uint8_t area_palette_for_save() const {
+    return AreaInfoForSave(1, area_palette_);
+  }
+  uint8_t sprite_graphics_for_save(int state) const {
+    return AreaInfoForSave(2 + state, sprite_graphics_[state]);
+  }
+  uint8_t sprite_palette_for_save(int state) const {
+    return AreaInfoForSave(5 + state, sprite_palette_[state]);
   }
 
   auto subscreen_overlay() const { return subscreen_overlay_; }
@@ -438,16 +511,30 @@ class OverworldMap : public gfx::GfxContext {
   }
 
  private:
-  OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent);
+  OverworldMap(int index, Rom* rom, GameData* game_data, bool seed_area_parent,
+               bool skip_legacy_data = false);
+  absl::Status LoadLyraPreviewProperties();
   void CopyAnimatedSheetIntoSlot7();
   void LoadAreaInfo();
+  void CaptureAreaInfoBaseline();
+  uint8_t AreaInfoForSave(size_t field, uint8_t value) const {
+    return area_info_baseline_valid_ && parent_ == loaded_area_info_parent_ &&
+                   value == loaded_area_info_[field]
+               ? raw_area_info_[field]
+               : value;
+  }
   void LoadCustomOverworldData();
   void SetupCustomTileset(uint8_t asm_version);
 
   void LoadMainBlocksetId();
-  void LoadSpritesBlocksets();
-  void LoadMainBlocksets();
-  void LoadAreaGraphicsBlocksets();
+  int ComputeMainBlocksetId() const;
+  bool UsesSessionMainGraphicsGroup() const;
+  bool UsesSessionAreaGraphicsGroup() const;
+  bool UsesSessionSpriteGraphicsGroup() const;
+  std::array<uint8_t, 8> ResolveMainGraphicsGroup() const;
+  std::array<uint8_t, 4> ResolveAreaGraphicsGroup() const;
+  std::array<uint8_t, 4> ResolveSpriteGraphicsGroup() const;
+  std::array<uint8_t, 16> ResolveStaticGraphics() const;
   void LoadDeathMountainGFX();
   uint8_t ComputeWorldBasedMainPalette() const;
 
@@ -455,7 +542,8 @@ class OverworldMap : public gfx::GfxContext {
                              const uint8_t* all_gfx);
   absl::StatusOr<gfx::SnesPalette> GetPalette(const gfx::PaletteGroup& group,
                                               int index, int previous_index,
-                                              int limit);
+                                              int limit,
+                                              int* resolved_index = nullptr);
 
   // Helper to get version constants from game_data or default to US
   zelda3_version_pointers version_constants() const {
@@ -463,8 +551,9 @@ class OverworldMap : public gfx::GfxContext {
                                               : zelda3_version::US);
   }
 
-  Rom* rom_;
+  Rom* rom_ = nullptr;
   GameData* game_data_ = nullptr;
+  const rom::LyraLayoutInspection* descriptor_layout_ = nullptr;
 
   bool built_ = false;
   bool large_map_ = false;
@@ -490,6 +579,10 @@ class OverworldMap : public gfx::GfxContext {
   uint8_t animated_sheet_ = 0;  // Sheet for the top half of slot 7
   uint64_t bitmap_serial_ = 0;
   std::optional<AreaRenderProperties> inherited_area_;
+  std::array<uint8_t, 8> loaded_area_info_{};
+  std::array<uint8_t, 8> raw_area_info_{};
+  int loaded_area_info_parent_ = -1;
+  bool area_info_baseline_valid_ = false;
 
   std::array<uint8_t, 8> custom_gfx_ids_ = {};
   std::array<uint8_t, 3> sprite_graphics_;
@@ -510,11 +603,14 @@ class OverworldMap : public gfx::GfxContext {
 
   OverworldMapTiles map_tiles_;
   gfx::SnesPalette current_palette_;
+  PaletteAddressMap palette_addresses_{};
   std::map<uint16_t, std::vector<uint8_t>> graphics_sheet_overrides_;
+  AreaGraphicsPreview graphics_preview_;
   // Store revision of each static_graphics_ slot at the last BuildTileset();
   // 0 for slots not read from the store.
   static constexpr int kNumSourceSheets = 17;  // 16 slots + animated sheet
   std::array<uint64_t, kNumSourceSheets> source_sheet_revisions_{};
+  bool source_assignments_recorded_ = false;
   uint16_t SourceSheetForRevision(int i) const;
   void RecordSourceSheetRevisions();
 };

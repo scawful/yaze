@@ -79,6 +79,29 @@ std::string MakeGuardedSource(int room_prefix = 4, int room_enabled = 28,
          MakeGuardedSection(".TrackStartingY", 0x2100);
 }
 
+constexpr std::array<std::string_view, 3> kTableLabels = {
+    ".TrackStartingRooms", ".TrackStartingX", ".TrackStartingY"};
+constexpr std::array<std::string_view, 3> kTableTrailers = {
+    "  .TrackStartingRoomsEnd\r\n"
+    "  assert .TrackStartingRoomsEnd-.TrackStartingRooms == $20*2, "
+    "\"Minecart Rooms table must contain 32 words\" ; keep check\r\n",
+    "  .TrackStartingXEnd\r\n"
+    "  assert .TrackStartingXEnd-.TrackStartingX == $20*2, "
+    "\"Minecart X table must contain 32 words\" ; keep check\r\n",
+    "  .TrackStartingYEnd\r\n"
+    "  assert .TrackStartingYEnd-.TrackStartingY == $20*2, "
+    "\"Minecart Y table must contain 32 words\" ; keep check\r\n"};
+
+std::string WithSizeAssertionTrailers(std::string source) {
+  // Insert backward so the original section offsets remain valid.
+  for (int section = 2; section >= 0; --section) {
+    const size_t after =
+        section == 2 ? source.size() : source.find(kTableLabels[section + 1]);
+    source.insert(after, kTableTrailers[section]);
+  }
+  return source;
+}
+
 bool IsWithinSpan(size_t offset, const MinecartTrackSourceTokenSpan& span) {
   return offset >= span.offset && offset < span.offset + span.length;
 }
@@ -144,6 +167,117 @@ TEST(MinecartTrackSourceTest,
   auto reparsed_or = MinecartTrackSourceDocument::Parse(*rendered_or);
   ASSERT_TRUE(reparsed_or.ok()) << reparsed_or.status();
   EXPECT_EQ(reparsed_or->tracks(), edited);
+}
+
+TEST(MinecartTrackSourceTest,
+     SizeAssertionTrailersPreserveNonTokenBytesThroughRender) {
+  for (const bool guarded : {false, true}) {
+    const std::string source = WithSizeAssertionTrailers(
+        guarded ? MakeGuardedSource() : MakeFlatSource());
+    SCOPED_TRACE(guarded ? "guarded" : "flat");
+    auto document_or = MinecartTrackSourceDocument::Parse(source);
+    ASSERT_TRUE(document_or.ok()) << document_or.status();
+    ASSERT_EQ(document_or->guarded(), guarded);
+
+    auto edited = document_or->tracks();
+    edited[10].room_id = 0x0089;
+    edited[10].start_x = 0x12A0;
+    edited[10].start_y = 0x1110;
+    auto rendered_or = document_or->Render(edited);
+    ASSERT_TRUE(rendered_or.ok()) << rendered_or.status();
+    ASSERT_EQ(rendered_or->size(), source.size());
+    const std::array<MinecartTrackSourceTokenSpan, 3> changed_spans = {
+        document_or->editable_token_spans()[0][10],
+        document_or->editable_token_spans()[1][10],
+        document_or->editable_token_spans()[2][10]};
+    for (size_t offset = 0; offset < source.size(); ++offset) {
+      if (source[offset] == (*rendered_or)[offset])
+        continue;
+      EXPECT_TRUE(std::any_of(
+          changed_spans.begin(), changed_spans.end(),
+          [&](const auto& span) { return IsWithinSpan(offset, span); }))
+          << "Unexpected byte change at offset " << offset;
+    }
+    for (const auto trailer : kTableTrailers)
+      EXPECT_NE(rendered_or->find(trailer), std::string::npos);
+    auto reparsed_or = MinecartTrackSourceDocument::Parse(*rendered_or);
+    ASSERT_TRUE(reparsed_or.ok()) << reparsed_or.status();
+    EXPECT_EQ(reparsed_or->tracks(), edited);
+  }
+}
+
+TEST(MinecartTrackSourceTest, SizeAssertionDiagnosticMayChange) {
+  std::string source = WithSizeAssertionTrailers(MakeGuardedSource());
+  const auto old_message =
+      source.find("Minecart Rooms table must contain 32 words");
+  ASSERT_NE(old_message, std::string::npos);
+  source.replace(
+      old_message,
+      std::string_view("Minecart Rooms table must contain 32 words").size(),
+      "Room table still has 32 words");
+  auto document_or = MinecartTrackSourceDocument::Parse(source);
+  ASSERT_TRUE(document_or.ok()) << document_or.status();
+  auto edited = document_or->tracks();
+  edited[10].start_x = 0x12A0;
+  const auto rendered_or = document_or->Render(edited);
+  ASSERT_TRUE(rendered_or.ok()) << rendered_or.status();
+  EXPECT_NE(rendered_or->find("Room table still has 32 words"),
+            std::string::npos);
+  EXPECT_EQ(
+      rendered_or->substr(0, rendered_or->find("  .TrackStartingRoomsEnd")),
+      source.substr(0, source.find("  .TrackStartingRoomsEnd")));
+}
+
+TEST(MinecartTrackSourceTest, RejectsMalformedSizeAssertionTrailers) {
+  const std::string valid = WithSizeAssertionTrailers(MakeGuardedSource());
+  std::vector<std::string> invalid;
+  auto without_assertion = valid;
+  const auto room_assert = without_assertion.find(
+      "  assert .TrackStartingRoomsEnd-.TrackStartingRooms");
+  ASSERT_NE(room_assert, std::string::npos);
+  without_assertion.erase(
+      room_assert, without_assertion.find('\n', room_assert) - room_assert + 1);
+  invalid.push_back(std::move(without_assertion));
+
+  auto wrong_size = valid;
+  const auto size = wrong_size.find("== $20*2");
+  ASSERT_NE(size, std::string::npos);
+  wrong_size.replace(size, 8, "== $1F*2");
+  invalid.push_back(std::move(wrong_size));
+
+  auto duplicate_end = valid;
+  duplicate_end.insert(duplicate_end.find("  .TrackStartingXEnd"),
+                       "  .TrackStartingRoomsEnd\n");
+  invalid.push_back(std::move(duplicate_end));
+
+  auto emitting_after_check = valid;
+  emitting_after_check.insert(emitting_after_check.find("  .TrackStartingX"),
+                              "  dw $0000\n");
+  invalid.push_back(std::move(emitting_after_check));
+
+  auto assertion_without_end = MakeFlatSource();
+  assertion_without_end +=
+      "assert .TrackStartingYEnd-.TrackStartingY == $20*2, "
+      "\"Minecart Y table must contain 32 words\"\n";
+  invalid.push_back(std::move(assertion_without_end));
+
+  auto unquoted_message = valid;
+  const auto quote = unquoted_message.find("\"Minecart Rooms table");
+  ASSERT_NE(quote, std::string::npos);
+  unquoted_message.erase(quote, 1);
+  invalid.push_back(std::move(unquoted_message));
+
+  auto extra_statement = valid;
+  extra_statement.replace(
+      extra_statement.find("\"Minecart Rooms table must contain 32 words\""),
+      std::string_view("\"Minecart Rooms table must contain 32 words\"").size(),
+      "\"Rooms count\", $00");
+  invalid.push_back(std::move(extra_statement));
+
+  for (const auto& source : invalid) {
+    SCOPED_TRACE(source);
+    EXPECT_FALSE(MinecartTrackSourceDocument::Parse(source).ok());
+  }
 }
 
 TEST(MinecartTrackSourceTest, RejectsMalformedCountsTokensAndLayouts) {

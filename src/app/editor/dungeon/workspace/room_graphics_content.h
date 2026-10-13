@@ -3,6 +3,8 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
+#include <map>
 #include <string>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -16,6 +18,7 @@
 #include "app/gui/layout/adaptive_sheet_layout.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/gfx_sheet_inventory.h"
 
 namespace yaze {
 namespace editor {
@@ -56,6 +59,18 @@ class RoomGraphicsContent : public WindowContent {
     palette_dirty_ = true;
   }
 
+  using AssignmentCallback = std::function<absl::Status(int, int, int)>;
+  void SetAssignmentCallback(AssignmentCallback callback) {
+    assignment_callback_ = std::move(callback);
+  }
+  using UsageCallback =
+      std::function<absl::StatusOr<zelda3::RoomsetUsageReport>(int)>;
+  void SetUsageCallback(UsageCallback callback) {
+    usage_callback_ = std::move(callback);
+  }
+  // Workspace content can outlive its session during terminal teardown.
+  void DetachRuntimeContext();
+
   // ==========================================================================
   // WindowContent Identity
   // ==========================================================================
@@ -90,6 +105,10 @@ class RoomGraphicsContent : public WindowContent {
   };
 
   void RefreshSheetPreviews(const zelda3::Room& room);
+  void DrawAssignmentControls(const zelda3::Room& room);
+  void DrawAssignmentPicker(const zelda3::Room& room);
+  void DrawSharedUsage(int roomset);
+  void ClearPickerPreviews();
 
   int* current_room_id_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
@@ -102,6 +121,16 @@ class RoomGraphicsContent : public WindowContent {
   uint64_t preview_graphics_revision_ = 0;
   bool preview_cache_valid_ = false;
   bool show_source_trace_ = false;
+  bool runtime_detached_ = false;
+  int selected_slot_ = 3;
+  int selection_room_ = -1;
+  int selection_group_ = -1;
+  int pending_sheet_ = -1;
+  bool show_picker_ = false;
+  std::string assignment_error_;
+  AssignmentCallback assignment_callback_;
+  UsageCallback usage_callback_;
+  std::map<int, gfx::Bitmap> picker_previews_;
   gui::AdaptiveSheetScaleMode sheet_scale_mode_ =
       gui::AdaptiveSheetScaleMode::kFit;
 

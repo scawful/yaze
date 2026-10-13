@@ -10,12 +10,14 @@
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"
+#include "util/rom_hash.h"
 
 namespace yaze::editor {
 
 class SessionCoordinator;
 class ToastManager;
 class PopupManager;
+struct RomSession;
 
 /**
  * @class RomLifecycleManager
@@ -63,17 +65,25 @@ class RomLifecycleManager {
   // ROM Hash & Write Policy
   // =========================================================================
 
-  /// Recompute the hash of the current ROM.
-  void UpdateCurrentRomHash(Rom* rom);
+  /// Restore a session's captured baseline, or clear identity for no/empty ROM.
+  /// Never hashes mutable ROM bytes during activation.
+  void ActivateRomIdentity(const RomSession* session);
 
   /// Get the cached ROM hash string.
-  const std::string& current_rom_hash() const { return current_rom_hash_; }
+  const std::string& current_rom_hash() const {
+    return current_rom_identity_.crc32;
+  }
 
   /// Check whether the ROM hash mismatches the project's expected hash.
   bool IsRomHashMismatch() const;
 
   /// Validate that the loaded ROM is a safe project target to open/edit.
   absl::Status CheckRomOpenPolicy(Rom* rom);
+
+  /// Validate a project ROM rebind before changing its descriptor or models.
+  /// Guarded projects with a fixed manifest development ROM retain that exact
+  /// backing file; changing rom_filename cannot change the manifest contract.
+  absl::Status CheckRomRebindPolicy(Rom* rom);
 
   /// Enforce project write policy; may set pending_rom_write_confirm.
   absl::Status CheckRomWritePolicy(
@@ -173,6 +183,8 @@ class RomLifecycleManager {
                                 int keep_daily_days);
 
  private:
+  bool HasEditableSource(const std::string& source_path) const;
+
   // Dependencies (non-owning pointers)
   RomFileManager* rom_file_manager_ = nullptr;
   SessionCoordinator* session_coordinator_ = nullptr;
@@ -180,9 +192,10 @@ class RomLifecycleManager {
   PopupManager* popup_manager_ = nullptr;
   const project::YazeProject* project_ = nullptr;
 
-  // ROM hash state
-  std::string current_rom_hash_;
+  // Active view of the session-owned baseline; replaced on every activation.
+  util::RomIdentityHashes current_rom_identity_;
   std::string current_rom_path_;
+  std::string current_rom_editing_source_path_;
 
   // Write confirmation state machine
   bool pending_rom_write_confirm_ = false;

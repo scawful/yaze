@@ -973,8 +973,8 @@ void AssemblyEditor::DrawFileBrowser() {
 
   // Open folder button if no folder loaded
   if (current_folder_.name.empty()) {
-    if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Folder",
-                      ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+    if (gui::ThemedButton(ICON_MD_FOLDER_OPEN " Open Folder",
+                          ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
       current_folder_ = LoadFolder(FileDialogWrapper::ShowOpenFolderDialog());
     }
     ImGui::Spacing();
@@ -983,8 +983,7 @@ void AssemblyEditor::DrawFileBrowser() {
   }
 
   // Folder path display
-  ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s",
-                     current_folder_.name.c_str());
+  ImGui::TextDisabled("%s", current_folder_.name.c_str());
   ImGui::Separator();
 
   // File tree
@@ -1038,7 +1037,7 @@ void AssemblyEditor::DrawBuildOutput() {
   bool has_active_file = HasActiveFile();
   bool has_rom = (rom_ && rom_->is_loaded());
 
-  if (ImGui::Button(ICON_MD_CHECK_CIRCLE " Validate", ImVec2(120, 0))) {
+  if (gui::ThemedButton(ICON_MD_CHECK_CIRCLE " Validate", ImVec2(120, 0))) {
     if (has_active_file) {
       auto status = ValidateCurrentFile();
       if (status.ok() && dependencies_.toast_manager) {
@@ -1050,7 +1049,7 @@ void AssemblyEditor::DrawBuildOutput() {
   ImGui::SameLine();
   bool apply_disabled = !has_rom || !has_active_file;
   ImGui::BeginDisabled(apply_disabled);
-  if (ImGui::Button(ICON_MD_BUILD " Apply to ROM", ImVec2(140, 0))) {
+  if (gui::PrimaryButton(ICON_MD_BUILD " Apply to ROM", ImVec2(140, 0))) {
     auto status = ApplyPatchToRom();
     if (status.ok() && dependencies_.toast_manager) {
       dependencies_.toast_manager->Show("Patch applied!", ToastType::kSuccess);
@@ -1103,13 +1102,11 @@ void AssemblyEditor::DrawBuildOutput() {
     } else {
       // Legacy flat-string fallback (vanilla Asar without structured output).
       for (const auto& error : last_errors_) {
-        gui::StyleColorGuard err_guard(ImGuiCol_Text,
-                                       ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+        gui::StyleColorGuard err_guard(ImGuiCol_Text, gui::GetErrorColor());
         ImGui::TextWrapped("%s %s", ICON_MD_ERROR, error.c_str());
       }
       for (const auto& warning : last_warnings_) {
-        gui::StyleColorGuard warn_guard(ImGuiCol_Text,
-                                        ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
+        gui::StyleColorGuard warn_guard(ImGuiCol_Text, gui::GetWarningColor());
         ImGui::TextWrapped("%s %s", ICON_MD_WARNING, warning.c_str());
       }
       if (last_errors_.empty() && last_warnings_.empty()) {
@@ -1562,7 +1559,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
   const auto task_snapshot = z3disasm_task_.GetSnapshot();
   const bool can_generate = !rom_path.empty();
   ImGui::BeginDisabled(!can_generate || task_snapshot.running);
-  if (ImGui::Button(ICON_MD_REFRESH " Generate / Refresh Banks")) {
+  if (gui::ThemedButton(ICON_MD_REFRESH " Generate / Refresh Banks")) {
     auto status = GenerateZ3Disassembly();
     if (!status.ok()) {
       z3disasm_status_ = std::string(status.message());
@@ -1574,7 +1571,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
   ImGui::EndDisabled();
   if (task_snapshot.running) {
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CANCEL " Cancel")) {
+    if (gui::ThemedButton(ICON_MD_CANCEL " Cancel")) {
       z3disasm_task_.Cancel();
     }
   }
@@ -1771,7 +1768,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
   ImGui::SetNextItemWidth(220.0f);
   ImGui::InputText(tr("Address or Symbol"), &disasm_query_);
   ImGui::SameLine();
-  if (ImGui::Button(tr("Go"))) {
+  if (gui::PrimaryButton(tr("Go"))) {
     auto status = NavigateDisassemblyQuery();
     if (!status.ok()) {
       disasm_status_ = std::string(status.message());
@@ -1862,7 +1859,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
       ImGui::TableSetColumnIndex(1);
       if (auto label_it = symbols_by_address.find(instruction.address);
           label_it != symbols_by_address.end()) {
-        ImGui::TextColored(ImVec4(0.75f, 0.85f, 1.0f, 1.0f),
+        ImGui::TextColored(gui::GetAccentColor(),
                            "%s:", label_it->second.c_str());
       }
       ImGui::TextWrapped("%s", instruction.full_text.c_str());
@@ -1889,34 +1886,31 @@ void AssemblyEditor::DrawDisassemblyContent() {
 void AssemblyEditor::DrawToolbarContent() {
   float button_size = 32.0f;
 
-  if (ImGui::Button(ICON_MD_FOLDER_OPEN, ImVec2(button_size, button_size))) {
+  if (gui::ThemedIconButton(ICON_MD_FOLDER_OPEN, tr("Open Folder"),
+                            ImVec2(button_size, button_size))) {
     auto folder = FileDialogWrapper::ShowOpenFolderDialog();
     if (!folder.empty()) {
       current_folder_ = LoadFolder(folder);
     }
   }
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip(tr("Open Folder"));
 
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_FILE_OPEN, ImVec2(button_size, button_size))) {
+  if (gui::ThemedIconButton(ICON_MD_FILE_OPEN, tr("Open File"),
+                            ImVec2(button_size, button_size))) {
     auto filename = FileDialogWrapper::ShowOpenFileDialog();
     if (!filename.empty()) {
       ChangeActiveFile(filename);
     }
   }
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip(tr("Open File"));
 
   ImGui::SameLine();
   bool can_save = HasActiveFile();
   ImGui::BeginDisabled(!can_save);
-  if (ImGui::Button(ICON_MD_SAVE, ImVec2(button_size, button_size))) {
+  if (gui::ThemedIconButton(ICON_MD_SAVE, tr("Save File"),
+                            ImVec2(button_size, button_size))) {
     Save();
   }
   ImGui::EndDisabled();
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip(tr("Save File"));
 
   ImGui::SameLine();
   ImGui::Text("|");  // Visual separator
@@ -1924,22 +1918,20 @@ void AssemblyEditor::DrawToolbarContent() {
 
   // Build actions
   ImGui::BeginDisabled(!can_save);
-  if (ImGui::Button(ICON_MD_CHECK_CIRCLE, ImVec2(button_size, button_size))) {
+  if (gui::ThemedIconButton(ICON_MD_CHECK_CIRCLE, tr("Validate (Ctrl+B)"),
+                            ImVec2(button_size, button_size))) {
     ValidateCurrentFile();
   }
   ImGui::EndDisabled();
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip(tr("Validate (Ctrl+B)"));
 
   ImGui::SameLine();
   bool can_apply = can_save && rom_ && rom_->is_loaded();
   ImGui::BeginDisabled(!can_apply);
-  if (ImGui::Button(ICON_MD_BUILD, ImVec2(button_size, button_size))) {
+  if (gui::ThemedIconButton(ICON_MD_BUILD, tr("Apply to ROM (Ctrl+Shift+B)"),
+                            ImVec2(button_size, button_size))) {
     ApplyPatchToRom();
   }
   ImGui::EndDisabled();
-  if (ImGui::IsItemHovered())
-    ImGui::SetTooltip(tr("Apply to ROM (Ctrl+Shift+B)"));
 }
 
 void AssemblyEditor::DrawFileTabView() {
@@ -2677,7 +2669,7 @@ void AssemblyEditor::DrawAssembleMenu() {
       static char message[256] = "";
       ImGui::InputText(tr("Message"), message, sizeof(message));
 
-      if (ImGui::Button(tr("Create"), ImVec2(120, 0))) {
+      if (gui::PrimaryButton(tr("Create"), ImVec2(120, 0))) {
         auto result = dependencies_.version_manager->CreateSnapshot(message);
         if (result.ok() && result->success) {
           if (dependencies_.toast_manager) {
@@ -2698,7 +2690,7 @@ void AssemblyEditor::DrawAssembleMenu() {
         message[0] = '\0';  // Reset
       }
       ImGui::SameLine();
-      if (ImGui::Button(tr("Cancel"), ImVec2(120, 0))) {
+      if (gui::ThemedButton(tr("Cancel"), ImVec2(120, 0))) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();

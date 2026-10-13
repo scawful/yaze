@@ -1,0 +1,117 @@
+# Off-White Theme
+# Gentle warm linen / paper off-white theme with warm neutrals and amber accents
+name=Off-White
+description=Warm paper and linen off-white theme for easy reading and reduced glare
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors
+primary=184,93,25,255           # Terracotta / amber
+secondary=45,106,79,255         # Forest green
+accent=184,93,25,255            # Terracotta accent
+background=247,244,237,255      # Soft warm linen
+surface=239,235,225,255         # Slightly darker parchment surface
+
+# Status colors
+error=217,83,79,255
+warning=224,142,40,255
+success=45,138,86,255
+info=58,110,165,255
+
+# Text colors
+text_primary=44,38,34,255       # Deep charcoal brown
+text_secondary=107,100,92,255   # Warm muted gray
+text_disabled=168,160,150,255   # Soft cream gray
+
+# Window colors
+window_bg=247,244,237,255
+child_bg=239,235,225,255
+popup_bg=247,244,237,255
+
+# Interactive elements
+button=226,220,208,255
+button_hovered=213,205,191,255
+button_active=184,93,25,180
+frame_bg=253,251,247,255
+frame_bg_hovered=239,235,225,255
+frame_bg_active=226,220,208,255
+
+# Navigation
+header=226,220,208,255
+header_hovered=213,205,191,255
+header_active=184,93,25,150
+tab=226,220,208,255
+tab_hovered=213,205,191,255
+tab_active=247,244,237,255
+menu_bar_bg=239,235,225,255
+title_bg=239,235,225,255
+title_bg_active=226,220,208,255
+title_bg_collapsed=239,235,225,200
+
+# Borders and separators
+border=214,208,194,255
+border_shadow=0,0,0,0
+separator=214,208,194,255
+separator_hovered=158,150,140,255
+separator_active=184,93,25,255
+
+# Scrollbars
+scrollbar_bg=239,235,225,255
+scrollbar_grab=200,192,178,255
+scrollbar_grab_hovered=158,150,140,255
+scrollbar_grab_active=184,93,25,255
+
+# Resize grips
+resize_grip=0,0,0,26
+resize_grip_hovered=184,93,25,153
+resize_grip_active=184,93,25,230
+
+# Controls
+check_mark=184,93,25,255
+slider_grab=184,93,25,255
+slider_grab_active=217,119,45,255
+
+# Tables
+table_header_bg=226,220,208,255
+table_border_strong=214,208,194,255
+table_border_light=230,225,215,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=0,0,0,7
+
+# Links
+text_link=184,93,25,255
+
+# Navigation and special
+input_text_cursor=44,38,34,255
+nav_cursor=184,93,25,255
+nav_windowing_highlight=184,93,25,180
+nav_windowing_dim_bg=0,0,0,50
+modal_window_dim_bg=0,0,0,70
+text_selected_bg=184,93,25,70
+drag_drop_target=184,93,25,200
+
+# Docking
+docking_preview=184,93,25,150
+docking_empty_bg=239,235,225,255
+
+# Tree lines
+tree_lines=168,160,150,200
+
+# Tab variations
+tab_dimmed=233,228,218,255
+tab_dimmed_selected=247,244,237,255
+tab_dimmed_selected_overline=184,93,25,255
+tab_selected_overline=184,93,25,255
+
+[style]
+window_rounding=4.0
+frame_rounding=4.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=1.0
+frame_border_size=1.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

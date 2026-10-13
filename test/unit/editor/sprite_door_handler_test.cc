@@ -11,6 +11,7 @@
 #include <array>
 #include <limits>
 #include <optional>
+#include <vector>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
 namespace yaze::editor {
@@ -287,6 +288,18 @@ class DoorInteractionHandlerTest : public ::testing::Test {
     const auto [byte1, byte2] =
         zelda3::DoorPositionManager::EncodeDoorBytes(position, type, direction);
     rooms_[room_id].AddDoor(zelda3::Room::Door::FromRomBytes(byte1, byte2));
+  }
+
+  std::vector<std::array<uint8_t, 5>> CaptureDoorRecords() const {
+    std::vector<std::array<uint8_t, 5>> records;
+    if (const auto* room = rooms_.GetIfMaterialized(0)) {
+      for (const auto& door : room->GetDoors()) {
+        records.push_back({door.position, static_cast<uint8_t>(door.type),
+                           static_cast<uint8_t>(door.direction), door.byte1,
+                           door.byte2});
+      }
+    }
+    return records;
   }
 
   std::unique_ptr<gui::Canvas> canvas_;
@@ -864,6 +877,175 @@ TEST_F(DoorInteractionHandlerTest, DeleteAllClearsDoorsAndFiresCallbacks) {
   EXPECT_EQ(invalidate_count_, invalidations_before + 1);
 }
 
+TEST_F(DoorInteractionHandlerTest,
+       StorageRejectionPreservesPlacementAndRetryPublishesOnce) {
+  AddLoadedDoor(0, 0, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::North);
+  rooms_[0].ClearSaveDirtyState();
+  const auto before = CaptureDoorRecords();
+  const auto rejected = absl::ResourceExhaustedError("No free door storage");
+  bool allow_edit = false;
+  int preflight_count = 0;
+  int error_count = 0;
+  handler_.SetDoorMutationPreflight(
+      [&](int room_id, const std::vector<zelda3::Room::Door>& candidate) {
+        ++preflight_count;
+        EXPECT_EQ(room_id, 0);
+        EXPECT_EQ(candidate.size(), 2u);
+        EXPECT_EQ(CaptureDoorRecords(), before);
+        EXPECT_EQ(mutation_count_, 0);
+        EXPECT_FALSE(rooms_[0].object_stream_dirty());
+        return allow_edit ? absl::OkStatus() : rejected;
+      });
+  handler_.SetMutationErrorCallback([&](const absl::Status& status) {
+    EXPECT_EQ(status, rejected);
+    ++error_count;
+  });
+  handler_.SetDoorType(zelda3::DoorType::NormalDoorLower);
+  handler_.BeginPlacement();
+  const auto [x, y] = zelda3::DoorPositionManager::PositionToPixelCoords(
+      1, zelda3::DoorDirection::North);
+
+  ASSERT_TRUE(handler_.HandleClick(x, y));
+  EXPECT_EQ(handler_.placement_block_reason(),
+            DoorInteractionHandler::PlacementBlockReason::kStorageValidation);
+  EXPECT_EQ(handler_.mutation_status(), rejected);
+  EXPECT_EQ(CaptureDoorRecords(), before);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_FALSE(handler_.HasSelection());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_EQ(entity_changed_count_, 0);
+  EXPECT_EQ(preflight_count, 1);
+  EXPECT_EQ(error_count, 1);
+
+  allow_edit = true;
+  ASSERT_TRUE(handler_.HandleClick(x, y));
+  EXPECT_FALSE(handler_.was_placement_blocked());
+  EXPECT_TRUE(handler_.mutation_status().ok());
+  ASSERT_EQ(rooms_[0].GetDoors().size(), 2u);
+  const auto& added = rooms_[0].GetDoors().back();
+  EXPECT_EQ(added.position, 1);
+  EXPECT_EQ(added.type, zelda3::DoorType::NormalDoorLower);
+  EXPECT_EQ(added.direction, zelda3::DoorDirection::North);
+  const auto [byte1, byte2] = added.EncodeBytes();
+  EXPECT_EQ(added.byte1, byte1);
+  EXPECT_EQ(added.byte2, byte2);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+  EXPECT_EQ(entity_changed_count_, 0);
+  EXPECT_EQ(preflight_count, 2);
+  EXPECT_EQ(error_count, 1);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       StorageRejectionPreservesPropertiesNudgeAndDeleteSelection) {
+  AddLoadedDoor(0, 0, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::North);
+  AddLoadedDoor(0, 2, zelda3::DoorType::SmallKeyDoor,
+                zelda3::DoorDirection::North);
+  rooms_[0].ClearSaveDirtyState();
+  rooms_[0].MarkSpritesDirty();  // Retain another domain's pending work.
+  handler_.SelectDoor(0);
+  const auto before = CaptureDoorRecords();
+  const int selected_notifications = entity_changed_count_;
+  const auto rejected = absl::ResourceExhaustedError("No free door storage");
+  int preflight_count = 0;
+  int error_count = 0;
+  handler_.SetDoorMutationPreflight(
+      [&](int, const std::vector<zelda3::Room::Door>&) {
+        ++preflight_count;
+        return rejected;
+      });
+  handler_.SetMutationErrorCallback([&](const absl::Status& status) {
+    EXPECT_EQ(status, rejected);
+    ++error_count;
+  });
+  const auto expect_rejected = [&](const char* operation, const auto& edit) {
+    SCOPED_TRACE(operation);
+    const int attempts_before = preflight_count;
+    edit();
+    EXPECT_EQ(preflight_count, attempts_before + 1);
+    EXPECT_EQ(error_count, preflight_count);
+    EXPECT_EQ(handler_.mutation_status(), rejected);
+    EXPECT_EQ(CaptureDoorRecords(), before);
+    EXPECT_EQ(handler_.GetSelectedIndex(), 0u);
+    EXPECT_FALSE(rooms_[0].object_stream_dirty());
+    EXPECT_TRUE(rooms_[0].sprites_dirty());
+    EXPECT_EQ(mutation_count_, 0);
+    EXPECT_EQ(invalidate_count_, 0);
+    EXPECT_EQ(entity_changed_count_, selected_notifications);
+  };
+
+  expect_rejected("property edit", [&] {
+    EXPECT_FALSE(handler_.UpdateDoor(0, zelda3::DoorType::CurtainDoor,
+                                     zelda3::DoorDirection::North, 1));
+  });
+  expect_rejected("lower-layer type", [&] {
+    EXPECT_FALSE(handler_.MutateDoorType(0, zelda3::DoorType::NormalDoorLower));
+  });
+  expect_rejected("nudge", [&] { EXPECT_FALSE(handler_.NudgeSelected(1, 0)); });
+  expect_rejected("delete selected", [&] { handler_.DeleteSelected(); });
+  expect_rejected("delete all", [&] { handler_.DeleteAll(); });
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       StorageRejectionOnDragReleaseKeepsOriginalDoorAndSelection) {
+  AddLoadedDoor(0, 0, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::North);
+  rooms_[0].ClearSaveDirtyState();
+  const auto before = CaptureDoorRecords();
+  const auto rejected = absl::ResourceExhaustedError("No free door storage");
+  int preflight_count = 0;
+  int error_count = 0;
+  handler_.SetDoorMutationPreflight(
+      [&](int room_id, const std::vector<zelda3::Room::Door>& candidate) {
+        ++preflight_count;
+        EXPECT_EQ(room_id, 0);
+        EXPECT_EQ(candidate.size(), 1u);
+        if (!candidate.empty()) {
+          EXPECT_EQ(candidate.front().position, 1);
+        }
+        EXPECT_EQ(CaptureDoorRecords(), before);
+        EXPECT_EQ(mutation_count_, 0);
+        return rejected;
+      });
+  handler_.SetMutationErrorCallback([&](const absl::Status& status) {
+    EXPECT_EQ(status, rejected);
+    ++error_count;
+  });
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  const auto [source_x, source_y] = rooms_[0].GetDoors()[0].GetPixelCoords();
+  const int grab_x = door_x + door_w / 2;
+  const int grab_y = door_y + door_h / 2;
+  ASSERT_TRUE(handler_.HandleClick(grab_x, grab_y));
+  const int selected_notifications = entity_changed_count_;
+  const auto [target_x, target_y] =
+      zelda3::DoorPositionManager::PositionToPixelCoords(
+          1, zelda3::DoorDirection::North);
+  handler_.HandleDrag(ImVec2(static_cast<float>(target_x + grab_x - source_x),
+                             static_cast<float>(target_y + grab_y - source_y)),
+                      ImVec2(0.0f, 0.0f));
+  EXPECT_EQ(CaptureDoorRecords(), before);
+  EXPECT_EQ(preflight_count, 0);
+  handler_.HandleRelease();
+
+  EXPECT_EQ(handler_.mutation_status(), rejected);
+  EXPECT_EQ(CaptureDoorRecords(), before);
+  EXPECT_EQ(handler_.GetSelectedIndex(), 0u);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_EQ(entity_changed_count_, selected_notifications);
+  EXPECT_EQ(preflight_count, 1);
+  EXPECT_EQ(error_count, 1);
+  handler_.HandleRelease();
+  EXPECT_EQ(preflight_count, 1);
+  EXPECT_EQ(error_count, 1);
+}
+
 class ItemInteractionHandlerTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -915,6 +1097,66 @@ TEST_F(ItemInteractionHandlerTest, PlacementOutsideRoomDoesNotMutateOrAppend) {
   EXPECT_TRUE(handler_.HandleClick(80, dungeon_coords::kRoomPixelHeight));
 
   EXPECT_TRUE(rooms_[0].GetPotItems().empty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(ItemInteractionHandlerTest,
+       PlacementStorageRejectionPreservesItemsAndCanRetry) {
+  AddItems(1);
+  int errors = 0;
+  bool reject = true;
+  handler_.SetItemPlacementPreflight(
+      [&](int room_id, const std::vector<zelda3::PotItem>& candidate) {
+        EXPECT_EQ(room_id, 0);
+        EXPECT_EQ(candidate.size(), 2u);
+        EXPECT_EQ(candidate.back().GetPixelX(), 80);
+        EXPECT_EQ(candidate.back().GetPixelY(), 96);
+        EXPECT_EQ(candidate.back().item, 6);
+        return reject ? absl::ResourceExhaustedError("Pot storage is full")
+                      : absl::OkStatus();
+      });
+  handler_.SetMutationErrorCallback([&](const absl::Status& status) {
+    ++errors;
+    EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  });
+  handler_.SetItemId(6);
+  handler_.BeginPlacement();
+  EXPECT_TRUE(handler_.HandleClick(80, 96));
+  EXPECT_EQ(handler_.mutation_status().code(),
+            absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(errors, 1);
+  EXPECT_EQ(rooms_[0].GetPotItems().size(), 1u);
+  EXPECT_FALSE(rooms_[0].pot_items_dirty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_TRUE(handler_.IsPlacementActive());
+
+  reject = false;
+  EXPECT_TRUE(handler_.HandleClick(80, 96));
+  EXPECT_TRUE(handler_.mutation_status().ok());
+  EXPECT_EQ(errors, 1);
+  EXPECT_EQ(rooms_[0].GetPotItems().size(), 2u);
+  EXPECT_TRUE(rooms_[0].pot_items_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+TEST_F(ItemInteractionHandlerTest,
+       PlacementRejectsRoomChangeDuringPreflightWithoutMutation) {
+  handler_.SetItemPlacementPreflight(
+      [&](int, const std::vector<zelda3::PotItem>&) {
+        ctx_.current_room_id = 1;
+        return absl::OkStatus();
+      });
+  handler_.BeginPlacement();
+  EXPECT_TRUE(handler_.HandleClick(80, 96));
+  EXPECT_EQ(handler_.mutation_status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(rooms_[0].GetPotItems().empty());
+  EXPECT_TRUE(rooms_[1].GetPotItems().empty());
+  EXPECT_FALSE(rooms_[0].pot_items_dirty());
+  EXPECT_FALSE(rooms_[1].pot_items_dirty());
   EXPECT_EQ(mutation_count_, 0);
   EXPECT_EQ(invalidate_count_, 0);
 }
