@@ -2847,6 +2847,16 @@ bool Room::ValidateObject(const RoomObject& object) const {
 
 void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
                                 int& nbr_of_staircase) {
+  // The public C staircase record borrows its label. Keep destination labels
+  // alive independently of Room copies, moves, reloads, and destruction.
+  static const auto kStaircaseLabels = [] {
+    std::array<std::string, 256> labels;
+    for (size_t room = 0; room < labels.size(); ++room) {
+      labels[room] = absl::StrCat("To ", room);
+    }
+    return labels;
+  }();
+
   // Handle staircase objects
   for (short stair : kStairsObjects) {
     if (stair == oid) {
@@ -2855,7 +2865,7 @@ void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
                                          tile_objects_.back().options());
         z3_staircases_.push_back(
             {posX, posY,
-             absl::StrCat("To ", staircase_rooms_[nbr_of_staircase]).data()});
+             kStaircaseLabels[staircase_rooms_[nbr_of_staircase]].c_str()});
         nbr_of_staircase++;
       } else {
         tile_objects_.back().set_options(ObjectOption::Stairs |
