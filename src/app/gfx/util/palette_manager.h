@@ -116,6 +116,9 @@ class PaletteManager {
    */
   void ActivateSession(zelda3::GameData* game_data);
 
+  // In-memory color changes, independent of sheet pixels and file-save state.
+  uint64_t ColorRevision(const zelda3::GameData* game_data) const;
+
   /**
    * @brief Check whether this exact GameData is the active palette session.
    *
@@ -162,6 +165,15 @@ class PaletteManager {
   absl::Status SetColor(const std::string& group_name, int palette_index,
                         int color_index, const SnesColor& new_color);
 
+  // A command in another editor owns history for these changes. Preflights
+  // expected colors and defers notifications until the participant succeeds.
+  // On failure restores palette values and tracking; the participant must
+  // restore its own state before returning an error. Does not push/clear history.
+  absl::Status ApplyExternalChanges(
+      const zelda3::GameData* owner,
+      const std::vector<PaletteColorChange>& changes,
+      const std::function<absl::Status()>& participant);
+
   /**
    * @brief Reset a single color to its original ROM value
    */
@@ -172,6 +184,16 @@ class PaletteManager {
    * @brief Reset an entire palette to original ROM values
    */
   absl::Status ResetPalette(const std::string& group_name, int palette_index);
+
+  // Live single-color interaction. SetColor still publishes every preview;
+  // commit records only its first/final colors. Cancel preserves Undo/Redo.
+  // Explicit navigation or another operation commits the interaction. A nonzero
+  // caller ID prevents another visible picker from ending this gesture.
+  absl::Status BeginColorEdit(const std::string& group_name, int palette_index,
+                              int color_index, uint64_t caller_id = 0);
+  void CommitColorEdit(uint64_t caller_id = 0);
+  void CancelColorEdit(uint64_t caller_id = 0);
+  bool HasColorEdit(uint64_t caller_id = 0) const;
 
   // ========== Dirty Tracking ==========
 
@@ -291,12 +313,14 @@ class PaletteManager {
   void Redo();
 
   /**
-   * @brief Check if undo is available
+   * @brief Check if the complete undo entry matches current colors.
+   * Conflicting history is retained, but unavailable until values match again.
    */
   bool CanUndo() const;
 
   /**
-   * @brief Check if redo is available
+   * @brief Check if the complete redo entry matches current colors.
+   * Conflicting history is retained, but unavailable until values match again.
    */
   bool CanRedo() const;
 
@@ -332,6 +356,8 @@ class PaletteManager {
 
   /**
    * @brief Begin a batch operation (groups multiple changes into one undo step)
+   * @note A batch groups history and notifications; it does not roll back
+   *       earlier successful SetColor calls if a later call fails.
    * @note Must be paired with EndBatch()
    */
   void BeginBatch();
@@ -346,6 +372,10 @@ class PaletteManager {
    */
   bool InBatch() const;
 
+  // Original value used by ResetColor and the before/after comparison UI.
+  SnesColor GetOriginalColor(const std::string& group_name, int palette_index,
+                             int color_index) const;
+
  private:
   PaletteManager() = default;
   ~PaletteManager() = default;
@@ -356,11 +386,15 @@ class PaletteManager {
   /// Helper: Get const palette group
   const PaletteGroup* GetGroup(const std::string& group_name) const;
 
-  /// Helper: Get original color from snapshot
-  SnesColor GetOriginalColor(const std::string& group_name, int palette_index,
-                             int color_index) const;
+  /// Helper: Record one undo step (a gesture or an entire batch).
+  void RecordChanges(std::vector<PaletteColorChange> changes);
 
-  /// Helper: Record a change for undo
+  // Simulate the complete entry in replay order before changing any color or
+  // history. Repeated-slot changes compare against staged intermediate values.
+  bool CanReplayHistory(const std::vector<PaletteColorChange>& changes,
+                        bool redo) const;
+
+  /// Helper: Record a single-color undo step.
   void RecordChange(const PaletteColorChange& change);
 
   /// Helper: Notify all listeners of an event
@@ -383,14 +417,17 @@ class PaletteManager {
 
   struct SessionState {
     bool initialized = false;
+    uint64_t color_revision = 0;
     std::unordered_map<std::string, std::vector<SnesPalette>> original_palettes;
     std::unordered_map<std::string, std::unordered_set<int>> modified_palettes;
     std::unordered_map<std::string,
                        std::unordered_map<int, std::unordered_set<int>>>
         modified_colors;
     std::optional<SaveTransactionSnapshot> save_transaction_snapshot;
-    std::deque<PaletteColorChange> undo_stack;
-    std::deque<PaletteColorChange> redo_stack;
+    std::deque<std::vector<PaletteColorChange>> undo_stack;
+    std::deque<std::vector<PaletteColorChange>> redo_stack;
+    std::optional<PaletteColorChange> color_edit;
+    uint64_t color_edit_caller = 0;
     int batch_depth = 0;
     std::vector<PaletteColorChange> batch_changes;
   };

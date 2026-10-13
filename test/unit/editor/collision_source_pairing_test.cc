@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
@@ -141,6 +142,34 @@ TEST_F(CollisionSourcePairingTest, JsonEditedOutsideYazeIsRefused) {
   EXPECT_EQ(ReadFile(json_path_), *edited);
   EXPECT_EQ(ReadFile(rom_path_), rom_before);
   EXPECT_TRUE(rom_.dirty());
+}
+
+TEST_F(CollisionSourcePairingTest, RebindPreflightAcceptsMatchingSourceAlias) {
+  const auto source_before = ReadFile(json_path_);
+  const auto rom_before = ReadFile(rom_path_);
+  const auto alias = json_path_.parent_path() / "." / json_path_.filename();
+
+  EXPECT_TRUE(ValidateRomCollisionSourceBinding(&rom_, alias).ok());
+
+  EXPECT_EQ(ReadFile(json_path_), source_before);
+  EXPECT_EQ(ReadFile(rom_path_), rom_before);
+}
+
+TEST_F(CollisionSourcePairingTest,
+       RebindPreflightRefusesMissingOrInvalidSource) {
+  const auto rom_before = ReadFile(rom_path_);
+  fs::remove(json_path_);
+  auto status = ValidateRomCollisionSourceBinding(&rom_, json_path_);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(std::string(status.message()).find(json_path_.string()),
+            std::string::npos);
+  EXPECT_FALSE(fs::exists(json_path_));
+
+  WriteFile(json_path_, "invalid source");
+  status = ValidateRomCollisionSourceBinding(&rom_, json_path_);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_EQ(ReadFile(json_path_), "invalid source");
+  EXPECT_EQ(ReadFile(rom_path_), rom_before);
 }
 
 TEST_F(CollisionSourcePairingTest, FailedJsonWriteLeavesBothFilesUnchanged) {
@@ -287,15 +316,146 @@ TEST(CollisionSourcePairingOracleTest,
     EXPECT_NE(ReadFile(json_path), json_before) << "JSON was not updated";
     EXPECT_EQ(validate(), 0) << "saved ROM and JSON must match";
 
-    // Save As writes only the new file; the tracked JSON stays as it is.
+    // Matching collision is necessary but does not override a manifest's
+    // fixed development-ROM binding. Refuse the copy before changing state.
     const std::string json_after_save = ReadFile(json_path);
+    const std::string original_after_save = ReadFile(rom_path);
+    const auto bound_copy = root / "Roms" / "bound-copy.sfc";
+    ASSERT_TRUE(manager->SaveRomAs(bound_copy.string()).ok());
+    const auto descriptor_path = root / "Oracle-of-Secrets.yaze";
+    const auto descriptor_before_copy_swap = ReadFile(descriptor_path);
+    const auto copy_session_id = manager->GetCurrentSessionId();
+    const auto compatible_copy_bytes = rom->vector();
+    manager->MarkCurrentProjectDirty();
+    const auto incompatible_binding =
+        manager->SwapProjectRom(bound_copy.string());
+    EXPECT_TRUE(absl::IsFailedPrecondition(incompatible_binding))
+        << incompatible_binding;
+    EXPECT_NE(std::string(incompatible_binding.message())
+                  .find("Project source binding"),
+              std::string::npos);
+    EXPECT_NE(
+        std::string(incompatible_binding.message()).find(rom_path.string()),
+        std::string::npos);
+    EXPECT_EQ(manager->GetCurrentRom(), rom);
+    EXPECT_EQ(rom->vector(), compatible_copy_bytes);
+    EXPECT_EQ(rom->filename(), bound_copy.string());
+    EXPECT_FALSE(rom->dirty());
+    EXPECT_EQ(manager->GetCurrentSessionId(), copy_session_id);
+    EXPECT_TRUE(manager->IsCurrentProjectDirty());
+    EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+        manager->GetCurrentProject()->rom_filename, rom_path.string()));
+    EXPECT_EQ(ReadFile(descriptor_path), descriptor_before_copy_swap);
+    EXPECT_EQ(ReadFile(json_path), json_after_save);
+    EXPECT_EQ(ReadFile(rom_path), original_after_save);
+    EXPECT_EQ(ReadFile(bound_copy), original_after_save);
+
+    // Return through an actual alias to the manifest's development ROM. The
+    // binding must normalize before Save so an atomic write cannot replace the
+    // alias as a separate file, and fresh reopen retains the writable source.
+    const auto development_alias = root / "Roms" / "development-alias.sfc";
+#ifndef _WIN32
+    fs::create_symlink(rom_path, development_alias);
+#else
+    fs::create_hard_link(rom_path, development_alias);
+#endif
+    const auto restore_binding =
+        manager->SwapProjectRom(development_alias.string());
+    ASSERT_TRUE(restore_binding.ok()) << restore_binding;
+    EXPECT_EQ(manager->GetCurrentRom()->filename(),
+              fs::canonical(rom_path).string());
+    EXPECT_EQ(manager->GetCurrentProject()->rom_filename,
+              fs::canonical(rom_path).string());
+    const auto rebound_save = manager->SaveRom();
+    ASSERT_TRUE(rebound_save.ok()) << rebound_save;
+#ifndef _WIN32
+    EXPECT_TRUE(fs::is_symlink(development_alias));
+    EXPECT_TRUE(fs::equivalent(development_alias, rom_path));
+#endif
+
+    // Reopen the descriptor through a fresh manager to prove the successful
+    // binding survives disk, rather than inspecting only the in-memory path.
+    manager.reset();
+    manager = std::make_unique<EditorManager>();
+    ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+    manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+    ASSERT_TRUE(
+        manager->OpenRomOrProject((root / "Oracle-of-Secrets.yaze").string())
+            .ok());
+    EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+        manager->GetCurrentRom()->filename(), rom_path.string()));
+    EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+        manager->GetCurrentRom()->filename(), rom_path.string()));
+    EXPECT_NE(manager->GetCurrentRom()->filename(), development_alias.string());
+    const auto reopened_save = manager->SaveRom();
+    ASSERT_TRUE(reopened_save.ok()) << reopened_save;
+    rom = manager->GetCurrentRom();
+    ASSERT_NE(rom, nullptr);
+
+    // Direct Save As after another collision edit still writes only the copy.
+    // Swap must refuse it before changing the descriptor or live session.
+    ASSERT_TRUE(manager->EnsureEditorAssetsLoaded(EditorType::kDungeon).ok());
+    auto* dungeon = manager->GetCurrentEditorSet()->GetDungeonEditor();
+    ASSERT_NE(dungeon, nullptr);
+    dungeon->add_room(0x89);
+    auto& room = dungeon->rooms()[0x89];
     map->tiles[0] = map->tiles[0] == 0xB0 ? 0xB1 : 0xB0;
-    ASSERT_TRUE(zelda3::WriteTrackCollision(rom, 0x89, *map).ok());
-    rom->set_dirty(true);
-    const auto save_as =
-        manager->SaveRomAs((root / "Roms" / "practice-copy.sfc").string());
+    room.SetCollisionTile(0, 0, map->tiles[0]);
+    ASSERT_TRUE(dungeon
+                    ->EditRoomMetadata(0x89, {RoomMetadataField::kMessage,
+                                              (room.message_id() + 1) % 0x1000})
+                    .ok());
+    ASSERT_TRUE(dungeon->CanUndo());
+    const auto divergent_copy = root / "Roms" / "practice-copy.sfc";
+    const auto save_as = manager->SaveRomAs(divergent_copy.string());
     ASSERT_TRUE(save_as.ok()) << save_as;
     EXPECT_EQ(ReadFile(json_path), json_after_save);
+
+    const auto descriptor_before_swap = ReadFile(descriptor_path);
+    const auto copy_before_swap = ReadFile(divergent_copy);
+    const auto session_id = manager->GetCurrentSessionId();
+    const auto live_bytes = rom->vector();
+    const auto undo_count = dungeon->undo_manager().UndoStackSize();
+    const auto undo_description = dungeon->GetUndoDescription();
+    manager->MarkCurrentProjectDirty();
+    const auto refused = manager->SwapProjectRom(divergent_copy.string());
+    EXPECT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
+    EXPECT_NE(std::string(refused.message()).find("Swap ROM does not publish"),
+              std::string::npos);
+    EXPECT_NE(std::string(refused.message()).find(divergent_copy.string()),
+              std::string::npos);
+    EXPECT_NE(std::string(refused.message()).find(json_path.string()),
+              std::string::npos);
+    EXPECT_EQ(manager->GetCurrentRom(), rom);
+    EXPECT_EQ(manager->GetCurrentRom()->vector(), live_bytes);
+    EXPECT_EQ(manager->GetCurrentRom()->filename(), divergent_copy.string());
+    EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+    EXPECT_EQ(manager->GetCurrentSessionId(), session_id);
+    EXPECT_EQ(dungeon->undo_manager().UndoStackSize(), undo_count);
+    EXPECT_EQ(dungeon->GetUndoDescription(), undo_description);
+    EXPECT_TRUE(dungeon->CanUndo());
+    EXPECT_TRUE(manager->IsCurrentProjectDirty());
+    EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+        manager->GetCurrentProject()->rom_filename, rom_path.string()));
+    EXPECT_EQ(ReadFile(descriptor_path), descriptor_before_swap);
+    EXPECT_EQ(ReadFile(divergent_copy), copy_before_swap);
+    EXPECT_EQ(ReadFile(json_path), json_after_save);
+    EXPECT_EQ(ReadFile(rom_path), original_after_save);
+
+    // Missing/invalid configured source also refuses a matching replacement,
+    // without creating source files or partly switching the active session.
+    fs::remove(json_path);
+    EXPECT_TRUE(
+        absl::IsFailedPrecondition(manager->SwapProjectRom(rom_path.string())));
+    EXPECT_FALSE(fs::exists(json_path));
+    WriteFile(json_path, "invalid source");
+    EXPECT_TRUE(
+        absl::IsFailedPrecondition(manager->SwapProjectRom(rom_path.string())));
+    EXPECT_EQ(ReadFile(json_path), "invalid source");
+    EXPECT_EQ(ReadFile(descriptor_path), descriptor_before_swap);
+    EXPECT_EQ(manager->GetCurrentRom()->filename(), divergent_copy.string());
+    EXPECT_TRUE(manager->IsCurrentProjectDirty());
+    WriteFile(json_path, json_after_save);
   }
   ImGui::DestroyContext(imgui);
   core::FeatureFlags::get() = flags_before;

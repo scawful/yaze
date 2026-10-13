@@ -35,12 +35,9 @@ struct OverworldPanelIds {
   static constexpr const char* kDebugWindow = "overworld.debug";
 };
 
-/// Canvas toolbar: navigation, tools and view only.
-///
-/// Per-map data (graphics, palettes, message, music, area size) is edited in
-/// the Map Properties panel; the toolbar just opens it. Groups keep a fixed
-/// order; when the canvas is too narrow the view group folds into a "More"
-/// menu with hysteresis so items never flicker in and out.
+/// Canvas navigation, labeled drawing tools, view controls and editing windows.
+/// One row at every dock width; narrow docks expose tools through overflow.
+/// Graphics, palette and story preview remain directly on the canvas bar.
 class OverworldToolbar {
  public:
   OverworldToolbar() = default;
@@ -49,14 +46,16 @@ class OverworldToolbar {
             EditingMode& current_mode, EntityEditMode& entity_edit_mode,
             WorkspaceWindowManager* window_manager, Rom* rom,
             zelda3::Overworld* overworld, project::YazeProject* project,
-            int game_state);
+            int game_state, const std::function<void()>& draw_appearance = {});
 
   /// Used for shortcut hints in tooltips (GetDisplayString).
   ShortcutManager* shortcuts = nullptr;
 
   std::function<void(int)> on_world_changed;
+  std::function<void(int)> on_story_changed;
   std::function<void(EditingMode)> on_set_mode;
   std::function<void(EntityEditMode)> on_set_entity_mode;
+  std::function<void()> on_insert_item;
   std::function<void()> on_open_map_properties;
 
   // View
@@ -80,10 +79,6 @@ class OverworldToolbar {
   std::string WithHint(const char* text, const char* shortcut_name) const;
 
   void DrawViewControls(bool in_menu);
-
-  // Hysteresis for folding the view group into the overflow menu.
-  bool compact_ = false;
-  float full_width_ = 0.0f;
 };
 
 }  // namespace yaze::editor

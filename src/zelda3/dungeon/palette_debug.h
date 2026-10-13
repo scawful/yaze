@@ -25,8 +25,8 @@ struct PaletteDebugEvent {
 
 // Color comparison for debugging
 struct ColorComparison {
-  int x, y;                                    // Position sampled
-  uint8_t palette_index;                       // Palette index at position
+  int x, y;           // Position sampled
+  int palette_index;  // Source index, or -1 for an RGBA composite
   uint8_t actual_r, actual_g, actual_b;        // Actual rendered color
   uint8_t expected_r, expected_g, expected_b;  // Expected from palette
   bool matches;                                // Do they match?

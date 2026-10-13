@@ -134,15 +134,13 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
       if (idx > 0)
         ImGui::SameLine();
       bool selected = (entity_type_filter_ == values[idx]);
+      std::optional<gui::StyleColorGuard> selected_guard;
       if (selected) {
-        ImGui::PushStyleColor(ImGuiCol_Button,
-                              ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+        selected_guard.emplace(ImGuiCol_Button,
+                               ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
       }
       if (ImGui::SmallButton(labels[idx])) {
         entity_type_filter_ = values[idx];
-      }
-      if (selected) {
-        ImGui::PopStyleColor();
       }
     }
   }

@@ -99,17 +99,19 @@ current layout is documented in `docs/internal/gui/context-menus.md`
 pin, related maps), map-properties copy/paste, Insert, and a View submenu
 that mirrors the toolbar toggles.
 
-Where things live (each per-map value is shown and edited in one place):
+Where things live (quick appearance fields share the full property edit path):
 
 | Surface | Contents |
 |---------|----------|
-| Toolbar (`ui/navigation/overworld_toolbar.cc`) | World LW/DW/SW, map id (click: Map Properties) + pin, tool (Select/Brush/Fill), entity focus (Entrances/Exits/Items/Sprites), view (grid, entities, overlay preview, zoom, fit, center), windows menu, Map Properties toggle |
+| Toolbar (`ui/navigation/overworld_toolbar.cc`) | World LW/DW/SW, map id + pin, labeled Select/Paint/Fill, entity menu, View menu, Windows, Properties, Choose Tile16, Edit Tile16, Graphics groups |
+| Canvas appearance row (`OverworldSidebar::DrawQuickProperties`) | Target parent area and follow/pinned status, area graphics, area palette, main palette when supported; immediate refresh and the same undo path as Map Properties |
 | Map Properties panel (`ui/navigation/overworld_sidebar.cc`) | Game state, area size, message, area/sprite/animated graphics, custom tile sheets, area/main/sprite palettes, background color, music, visual effects, mosaic; right-click a value to rename its project label |
 | Canvas context menu | Quick per-map actions only |
 
-The view group folds into a "More" menu when the canvas is narrow (with
-hysteresis so it does not flicker). Tooltips show live ShortcutManager
-bindings via `GetDisplayString`.
+Toolbar groups and appearance fields wrap in narrow docks. Secondary display
+controls live in the labeled View menu. Tooltips show live ShortcutManager
+bindings via `GetDisplayString`. Appearance widget IDs include the target area
+so an active input cannot carry a typed value to a different area during cursor-follow.
 
 Gestures (Select tool unless noted): left-drag empty map or middle-drag pans;
 drag an entity to move it (item moves are undoable); double-click a map opens

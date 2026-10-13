@@ -32,10 +32,10 @@
 #include "dungeon_undo_actions.h"
 #include "imgui/imgui.h"
 #include "inspectors/door_editor_content.h"
-#include "inspectors/object_editor_content.h"
 #include "rom/rom.h"
 #include "selectors/object_selector_content.h"
 #include "util/lru_cache.h"
+#include "util/stop_token.h"
 #include "workspace/room_graphics_content.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
@@ -54,12 +54,15 @@ class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
 class DungeonEditorV2EntranceCameraTestPeer;
+class DungeonEditorEntrancePropertiesTestPeer;
 class DungeonEditorV2RegularEntranceTestPeer;
 class DungeonEditorV2ReloadTestPeer;
 class DungeonEditorV2ShortcutTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
 class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
+struct MinecartCollisionStamp;
+struct MinecartTrack;
 class ObjectCoveragePanel;
 class ObjectTileEditorPanel;
 class OverlayManagerPanel;
@@ -120,6 +123,10 @@ class DungeonEditorV2 : public Editor {
   explicit DungeonEditorV2(Rom* rom = nullptr);
 
   ~DungeonEditorV2() override;
+  // Visit loaded models using the dungeon canvas's entrance resolver.
+  void VisitGraphicsUsageRooms(
+      const std::function<void(int, zelda3::Room&, const std::string&, bool,
+                               int)>& visitor);
   void PrepareForSessionTeardown() override;
 
   void SetGameData(zelda3::GameData* game_data) override {
@@ -165,6 +172,10 @@ class DungeonEditorV2 : public Editor {
     return undo_manager_.CanUndo() || HasPendingUndoSnapshot();
   }
   absl::Status Save() override;
+  // Reject excluded model edits before any writer runs. Apply Room narrows
+  // room-local streams; shared tables still include all pending room records.
+  absl::Status ValidateSaveScope(int only_room = -1,
+                                 bool room_data_only = false) const;
   absl::Status BeginSaveTransaction() override;
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
@@ -181,6 +192,16 @@ class DungeonEditorV2 : public Editor {
       const DungeonRoomTransferOptions& options);
   absl::Status ApplyRoomTransfer(const DungeonRoomTransferPlan& plan);
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
+  // Shared roomset assignment (background slots 3-6); zero inherits main.
+  absl::Status EditRoomGraphicsSheet(int room_id, int slot, int sheet_id);
+  // The owning EditorSet supplies an existing model only; usage queries must
+  // not create another editor or read another ROM session's window context.
+  void SetRoomGraphicsOverworldProvider(
+      std::function<const zelda3::Overworld*()> provider) {
+    room_graphics_overworld_provider_ = std::move(provider);
+  }
+  absl::StatusOr<zelda3::RoomsetUsageReport> GetRoomGraphicsUsage(
+      int roomset) const;
   absl::Status EditRoomMetadataBatch(
       const std::vector<RoomMetadataRequest>& requests);
   absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
@@ -192,6 +213,8 @@ class DungeonEditorV2 : public Editor {
   bool HasPendingRoomChanges() const;
   // All dungeon save domains plus unapplied editor-local work.
   bool HasPendingDungeonChanges() const;
+  // Track source must be published separately from the ROM save domains.
+  bool HasUnpublishedMinecartTrackChanges() const;
   bool HasPendingProjectDraftChanges() const;
   absl::Status PrepareProjectSave();
   bool CurrentRoomHasPendingChanges() const;
@@ -212,8 +235,12 @@ class DungeonEditorV2 : public Editor {
 
     // Propagate ROM to all rooms
     rooms_.SetRom(rom);
-    // Reset viewers on ROM change
+    // Reset viewers and copied room data on ROM change.
     if (rom_changed) {
+      selection_clipboard_ = {};
+      automatic_entrance_preview_ = true;
+      current_entrance_id_ = zelda3::kNumDungeonSpawnPoints;
+      room_selector_.set_current_entrance_id(current_entrance_id_);
       rooms_.Clear();
       room_viewers_.Clear();
       workbench_viewer_.reset();
@@ -236,6 +263,8 @@ class DungeonEditorV2 : public Editor {
   bool CanHandleDungeonNavigationShortcut() const;
   bool NavigateToAdjacentRoom(DungeonRoomNavigationDirection direction);
   bool CycleRoomSelection(int direction);
+  // Select the next or previous room object in the active editable canvas.
+  bool CycleObjectSelection(int direction);
 
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
@@ -298,9 +327,6 @@ class DungeonEditorV2 : public Editor {
   ObjectSelectorContent* object_editor_panel() const {
     return object_selector_panel_;
   }
-  ObjectEditorContent* object_editor_content() const {
-    return object_editor_content_;
-  }
   DoorEditorContent* door_editor_panel() const { return door_editor_panel_; }
 
   /**
@@ -315,13 +341,17 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorEntityUndoTestPeer;
   friend class DungeonRoomEditsTestPeer;
   friend class DungeonSelectionEditsTestPeer;
+  friend class DungeonPotPlacementTestPeer;
   friend class DungeonConnectionEditsTestPeer;
   friend class DungeonRoomTransferTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2EntranceCameraTestPeer;
+  friend class DungeonEditorEntrancePropertiesTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
+  friend class DungeonPaletteSourceTestPeer;
   friend class DungeonEditorV2ShortcutTestPeer;
   friend class DungeonEditorV2SpawnPointTestPeer;
   friend class DungeonEditorV2SpawnRejectionTestPeer;
@@ -367,6 +397,7 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<ObjectCoveragePanel> CreateObjectCoveragePanel();
   void FocusObjectCoverage(int room_id, const zelda3::RoomObject& object);
   void OnEntranceSelected(int entrance_id);
+  void SetGraphicsPreviewEntrance(int entrance_id);
   int ResolveEntranceRoomId(int entrance_id) const;
 
   // Sync all sub-panels to the current room configuration
@@ -390,8 +421,25 @@ class DungeonEditorV2 : public Editor {
   absl::Status RestoreEntranceCameraState(
       int slot_index, const DungeonEntranceCameraState& state);
   void RefreshEntranceCameraOverlays();
+  void ConfigureEntrancePropertyEditCallbacks(DungeonEntrancesPanel* panel);
+  void RecordEntrancePropertyEdit(int slot_index,
+                                  const zelda3::RoomEntrance& before,
+                                  const zelda3::RoomEntrance& after,
+                                  std::shared_ptr<const int> gesture);
+  void RecordSpawnPropertyEdit(int slot_index,
+                               const zelda3::DungeonSpawnPoint& before,
+                               const zelda3::DungeonSpawnPoint& after,
+                               std::shared_ptr<const int> gesture);
+  absl::Status RestoreEntranceProperties(int slot_index,
+                                         const zelda3::RoomEntrance& entrance);
+  absl::Status RestoreSpawnProperties(int slot_index,
+                                      const zelda3::DungeonSpawnPoint& spawn);
+  void RefreshEntranceDirtyState(int slot_index);
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
   void ConfigureMinecartProjectCallbacks();
+  absl::Status ApplyMinecartTrackEdit(const MinecartTrack& before,
+                                      const MinecartTrack& after,
+                                      bool move_cart);
   void SynchronizeCustomObjectAssets();
 
   // Show or create a standalone room panel
@@ -409,10 +457,14 @@ class DungeonEditorV2 : public Editor {
 
   // Helper to get or create a viewer for a specific room
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
+  // An explicitly open room panel keeps its own viewer even while the
+  // Workbench is the active workflow (for example, a pinned room panel).
+  DungeonCanvasViewer* GetStandaloneViewerForRoom(int room_id);
   DungeonCanvasViewer* GetWorkbenchViewer();
   DungeonCanvasViewer* GetWorkbenchCompareViewer(int room_id);
-  void RefreshWorkbenchViewerRuntimeContext(DungeonCanvasViewer* viewer,
-                                            int room_id);
+  void RefreshViewerRuntimeContext(DungeonCanvasViewer* viewer, int room_id,
+                                   bool rebind_project = false);
+  void ConfigureEditableViewer(DungeonCanvasViewer* viewer);
   bool ConsumeRoomCanvasDeleteShortcut(DungeonCanvasViewer& viewer);
   void ExpireStaleRoomCanvasDeleteShortcut();
   void TouchViewerLru(int room_id);
@@ -433,6 +485,9 @@ class DungeonEditorV2 : public Editor {
   mutable std::optional<zelda3::RoomCensus> dungeon_render_context_census_;
   mutable std::future<absl::StatusOr<zelda3::RoomCensus>>
       dungeon_render_context_census_pending_;
+  mutable util::StopSource dungeon_render_context_census_stop_{
+      util::kNoStopState};
+  bool dungeon_render_context_census_shutdown_ = false;
   mutable bool dungeon_render_context_census_attempted_ = false;
   mutable uint64_t dungeon_render_context_census_generation_ = 0;
   mutable uint64_t dungeon_render_context_pending_generation_ = 0;
@@ -447,11 +502,14 @@ class DungeonEditorV2 : public Editor {
     bool has_palette_transaction = false;
   };
   std::optional<SaveTransactionSnapshot> save_transaction_snapshot_;
+  uint64_t entrance_property_save_generation_ = 0;
 
   std::optional<int> room_canvas_delete_shortcut_frame_;
 
   // Current selection state
-  int current_entrance_id_ = 0;
+  // Combined slots begin with spawn points; regular Entrance 00 follows them.
+  int current_entrance_id_ = zelda3::kNumDungeonSpawnPoints;
+  bool automatic_entrance_preview_ = true;
 
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
@@ -478,6 +536,8 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
   static constexpr int kMaxCachedViewers = 20;
+  // Shared by this editor's room panels, never by other ROM sessions.
+  DungeonSelectionClipboard selection_clipboard_;
   util::LruCache<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_{
       kMaxCachedViewers};
   std::unique_ptr<DungeonCanvasViewer> workbench_viewer_;
@@ -490,9 +550,9 @@ class DungeonEditorV2 : public Editor {
   // standalone entries remain discoverable, but one content instance has only
   // one active presentation owner at a time.
   ObjectSelectorContent* object_selector_panel_ = nullptr;
-  ObjectEditorContent* object_editor_content_ = nullptr;
   DoorEditorContent* door_editor_panel_ = nullptr;
   RoomGraphicsContent* room_graphics_panel_ = nullptr;
+  std::function<const zelda3::Overworld*()> room_graphics_overworld_provider_;
   PaletteEditorContent* palette_editor_panel_ = nullptr;
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
   class ItemEditorPanel* item_editor_panel_ = nullptr;
@@ -504,10 +564,8 @@ class DungeonEditorV2 : public Editor {
   ObjectTileEditorPanel* object_tile_editor_panel_ = nullptr;
   OverlayManagerPanel* overlay_manager_panel_ = nullptr;
 
-  // Object editor is retained as the non-window backend for inspector actions.
-  // Other owned_* fields are fallbacks for tests without WorkspaceWindowManager.
+  // Owned content fields are fallbacks for tests without WorkspaceWindowManager.
   std::unique_ptr<ObjectSelectorContent> owned_object_selector_panel_;
-  std::unique_ptr<ObjectEditorContent> owned_object_editor_content_;
   std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;
   std::unique_ptr<RoomTagEditorPanel> owned_room_tag_editor_panel_;
   std::unique_ptr<ObjectCoveragePanel> owned_object_coverage_panel_;
@@ -631,7 +689,18 @@ class DungeonEditorV2 : public Editor {
       const std::vector<chest_data>& chests);
   absl::Status PreflightObjectMutation(
       int room_id, const std::vector<zelda3::RoomObject>& objects,
-      const std::vector<chest_data>& chests);
+      const std::vector<chest_data>& chests, bool check_streams = true);
+  absl::Status PreflightStreamMutation(
+      int room_id, const DungeonSelectionEditState& candidate, uint8_t domains);
+  absl::Status PreflightSpriteMutation(
+      int room_id, const std::vector<zelda3::Sprite>& sprites);
+  absl::Status PreflightPotItemPlacement(
+      int room_id, const std::vector<zelda3::PotItem>& items);
+  absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+  PlanPendingRoomStreamRanges(
+      const std::vector<DungeonSelectionEditPlan>& candidates) const;
+  absl::Status PreflightDoorMutation(
+      int room_id, const std::vector<zelda3::Room::Door>& doors);
   absl::Status ApplyChestObjectEdit(
       int room_id, const std::vector<zelda3::RoomObject>& objects,
       const std::vector<chest_data>& chests,
@@ -670,6 +739,9 @@ class DungeonEditorV2 : public Editor {
   void FinalizeCollisionUndoAction(int room_id);
   void RestoreRoomCustomCollision(int room_id,
                                   const zelda3::CustomCollisionMap& map);
+  absl::Status ApplyMinecartCollisionStamp(
+      int room_id, const zelda3::CustomCollisionMap& expected,
+      const MinecartCollisionStamp& stamp);
   absl::Status ApplyMinecartCollisionBatch(
       const std::vector<zelda3::TrackCollisionResult>& preview,
       const zelda3::GeneratorOptions& options);

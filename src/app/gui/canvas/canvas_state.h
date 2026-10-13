@@ -22,13 +22,16 @@ struct CanvasGeometry {
   ImVec2 canvas_sz;    // Actual canvas size (unscaled)
   ImVec2 scaled_size;  // Size after applying global_scale
   ImVec2 scrolling;    // Current scroll offset
+  // Visible host size in screen pixels, independent of content size and zoom.
+  ImVec2 viewport_size;
 
   CanvasGeometry()
       : canvas_p0(0, 0),
         canvas_p1(0, 0),
         canvas_sz(0, 0),
         scaled_size(0, 0),
-        scrolling(0, 0) {}
+        scrolling(0, 0),
+        viewport_size(0, 0) {}
 };
 
 /**

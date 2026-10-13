@@ -1,5 +1,7 @@
 // Related header
 #include "graphics_editor.h"
+#include "app/editor/graphics/graphics_palette_preview.h"
+#include "app/editor/graphics/palette_pixel_command.h"
 #include "util/i18n/tr.h"
 
 // C++ standard library headers
@@ -19,6 +21,7 @@
 // Project headers
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/panels/graphics_editor_panels.h"
+#include "app/editor/graphics/resolved_graphics_context_view.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
@@ -92,13 +95,37 @@ void GraphicsEditor::Initialize() {
       });
   pixel_editor_panel_ =
       std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
-  palette_controls_panel_ =
-      std::make_unique<PaletteControlsPanel>(&state_, rom_);
+  state_.on_before_sheet_selected = [this] {
+    FinishPixelGesture();
+  };
+  pixel_editor_panel_->SetHistoryCallbacks([this] { return Undo(); },
+                                           [this] { return Redo(); });
+  pixel_editor_panel_->SetPaletteReorderCallback(
+      [this](const std::vector<size_t>& targets,
+             const PalettePermutation& permutation) {
+        return ReorderSourcePalette(targets, permutation);
+      });
+  pixel_editor_panel_->SetSheetBrowserCallbacks(
+      [this]() {
+        return dependencies_.window_manager->IsWindowOpen(
+            "graphics.sheet_browser_v2");
+      },
+      [this](bool visible) {
+        auto* workspace = dependencies_.window_manager;
+        if (visible)
+          workspace->OpenWindow("graphics.sheet_browser_v2");
+        else
+          workspace->CloseWindow("graphics.sheet_browser_v2");
+      });
+  palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
   gfx_group_panel_->SetWorkspaceState(dependencies_.gfx_group_workspace);
   gfx_group_panel_->SetRom(rom_);
   gfx_group_panel_->SetGameData(game_data_);
+  gfx_group_panel_->SetUndoManager(&undo_manager_);
+  gfx_group_panel_->SetMainUsageCallback(main_graphics_usage_);
+  gfx_group_panel_->SetRoomsetUsageCallback(roomset_graphics_usage_);
   gfx_group_panel_->SetHostSurfaceHint(
       "Gfx Groups: blockset/roomset/spriteset selection syncs with the "
       "Overworld "
@@ -113,10 +140,12 @@ void GraphicsEditor::Initialize() {
   usage_preview_view_ = std::make_unique<UsagePreviewView>(&state_);
   usage_preview_view_->SetRom(rom_);
   usage_preview_view_->SetGameData(game_data_);
+  usage_preview_view_->SetLiveRoomProvider(room_usage_provider_);
+  pixel_editor_panel_->SetSourcePreviewCallback(
+      [this]() { usage_preview_view_->DrawSourcePreview(); });
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
-  palette_controls_panel_->Initialize();
   link_sprite_panel_->Initialize();
 
   // Register panels using WindowContent system with callbacks
@@ -190,6 +219,10 @@ void GraphicsEditor::Initialize() {
 
 absl::Status GraphicsEditor::Load() {
   gfx::ScopedTimer timer("GraphicsEditor::Load");
+  if (usage_preview_view_)
+    usage_preview_view_->Reset();
+  state_.ClearSourceContext();
+  state_.preview_palettes.clear();
 
   // Initialize all graphics sheets with appropriate palettes from ROM
   // This ensures textures are created for editing
@@ -279,6 +312,41 @@ void GraphicsEditor::ContributeStatus(StatusBar* status_bar) {
   }
 }
 
+EditorContextSnapshot GraphicsEditor::BuildContextSnapshot() const {
+  EditorContextSnapshot snapshot;
+  snapshot.category = "Graphics";
+  snapshot.semantic_owner =
+      absl::StrFormat("graphics.sheet.%02X", state_.current_sheet_id);
+  snapshot.title = absl::StrFormat("Sheet %02X", state_.current_sheet_id);
+  snapshot.has_pending_changes = state_.HasUnsavedChanges();
+  if (state_.source_context) {
+    snapshot.subtitle = state_.source_context->label;
+    AppendResolvedGraphicsContext(snapshot, state_.source_context->resolved);
+    snapshot.metadata.push_back(
+        {"gfx.source_capture", "Source mapping",
+         "Captured when opened; preview uses live pixels"});
+  }
+  if (const auto* target = state_.SourceTarget()) {
+    snapshot.metadata.push_back(
+        {"gfx.selected_tile", "Source tile", target->label});
+    std::string colors;
+    for (size_t i = 0; i < target->palette.size(); ++i) {
+      if (i != 0)
+        colors += " ";
+      colors += absl::StrFormat("%04X", target->palette[i].snes());
+    }
+    snapshot.metadata.push_back(
+        {"gfx.raw_palette", "Raw index colors (SNES)", colors});
+  }
+  if (state_.game_data != nullptr) {
+    snapshot.metadata.push_back(
+        {"gfx.current_sheet_revision", "Current sheet revision",
+         std::to_string(
+             state_.game_data->sheet_store.Revision(state_.current_sheet_id))});
+  }
+  return snapshot;
+}
+
 absl::Status GraphicsEditor::EditProject(
     const std::function<void(project::YazeProject&)>& edit) {
   auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
@@ -360,6 +428,13 @@ GraphicsEditor::PrepareGraphicsSave() {
 }
 
 absl::Status GraphicsEditor::Save() {
+  if (state_.selection.is_floating)
+    return absl::FailedPreconditionError(
+        "Commit or cancel the floating paste in Graphics before saving "
+        "(Enter to commit, Esc to cancel)");
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError(
+        "Finish the pixel stroke before saving");
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -486,6 +561,7 @@ absl::Status GraphicsEditor::Update() {
 
   // Show store changes (undo, redo, imports) in the Arena's display copies.
   SyncArenaFromStore(state_);
+  RefreshGraphicsPreviewPalettes(state_);
 
   // Keyboard shortcuts (tools, zoom, grid, sheet navigation) are registered
   // in shortcut_configurator.cc, scoped to EditorType::kGraphics.
@@ -495,10 +571,18 @@ absl::Status GraphicsEditor::Update() {
 }
 
 absl::Status GraphicsEditor::Undo() {
+  if (pixel_editor_panel_)
+    pixel_editor_panel_->FinishReleasedGesture();
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError("Finish the pixel stroke before Undo");
   return undo_manager_.Undo();
 }
 
 absl::Status GraphicsEditor::Redo() {
+  if (pixel_editor_panel_)
+    pixel_editor_panel_->FinishReleasedGesture();
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError("Finish the pixel stroke before Redo");
   return undo_manager_.Redo();
 }
 
@@ -980,11 +1064,65 @@ absl::Status GraphicsEditor::Paste() {
   return absl::OkStatus();
 }
 
+void GraphicsEditor::FinishPixelGesture() {
+  if (pixel_editor_panel_)
+    pixel_editor_panel_->FinishGesture();
+}
+
 void GraphicsEditor::SelectSheet(uint16_t sheet_id) {
   if (sheet_id >= zelda3::kNumGfxSheets) {
     return;
   }
   state_.SelectSheet(sheet_id);
+  state_.requested_sheet_tab = sheet_id;
+}
+
+absl::Status GraphicsEditor::OpenInContext(GraphicsEditContext context) {
+  if (context.owner == nullptr || context.owner != state_.game_data) {
+    return absl::FailedPreconditionError(
+        "Graphics context belongs to a different ROM session");
+  }
+  if (context.targets.empty()) {
+    return absl::InvalidArgumentError("Graphics context has no editable tiles");
+  }
+  for (const auto& target : context.targets) {
+    if (target.sheet_id >= zelda3::kNumGfxSheets || target.tile_index >= 64 ||
+        target.palette.size() != 8 ||
+        zelda3::GetGfxSheetStorageKind(target.sheet_id) ==
+            zelda3::GfxSheetStorageKind::kCompressed2bpp ||
+        !state_.game_data->sheet_store.HasSheet(target.sheet_id)) {
+      return absl::InvalidArgumentError(
+          "Graphics context needs loaded 3bpp sheets and eight indexed colors");
+    }
+  }
+  if (state_.selection.is_floating) {
+    return absl::FailedPreconditionError(
+        "Commit or cancel the floating paste before opening another source");
+  }
+  FinishPixelGesture();
+  state_.selection.Clear();
+  state_.source_context = std::move(context);
+  ++state_.source_context_revision;
+  state_.SelectSourceTarget(0);
+  if (pixel_editor_panel_)
+    pixel_editor_panel_->ShowSourcePreview();
+  if (dependencies_.window_manager) {
+    dependencies_.window_manager->OpenWindow("graphics.pixel_editor");
+    // Source preview is embedded. Deliberately opened comparison windows keep
+    // their visibility, pins and layout; entering Graphics adds no pop-out.
+  }
+  return absl::OkStatus();
+}
+
+absl::Status GraphicsEditor::ReorderSourcePalette(
+    const std::vector<size_t>& targets,
+    const std::array<uint8_t, 8>& permutation) {
+  if (pixel_editor_panel_ && pixel_editor_panel_->HasActiveStroke())
+    return absl::FailedPreconditionError("Finish the pixel stroke first");
+  RETURN_IF_ERROR(ApplyPalettePixelPermutation(state_, undo_manager_, targets,
+                                               permutation));
+  RefreshGraphicsPreviewPalettes(state_);
+  return absl::OkStatus();
 }
 
 void GraphicsEditor::HighlightTile(uint16_t sheet_id, uint16_t tile_index,

@@ -15,7 +15,7 @@ namespace yaze::editor {
 
 struct MapTextureContext {
   zelda3::Overworld* overworld = nullptr;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp = nullptr;
   gfx::IRenderer* renderer = nullptr;
 
   int* current_world = nullptr;

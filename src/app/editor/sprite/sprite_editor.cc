@@ -8,14 +8,19 @@
 #include <cstring>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/sprite/sprite_authoring.h"
 #include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/sprite_editor_internal.h"
+#include "app/editor/sprite/sprite_graphics_context.h"
 #include "app/editor/sprite/sprite_undo_actions.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/util/palette_manager.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
@@ -90,6 +95,18 @@ void SpriteEditor::Initialize() {
 
 absl::Status SpriteEditor::Load() {
   gfx::ScopedTimer timer("SpriteEditor::Load");
+  sheets_loaded_ = rom_ && rom_->is_loaded() && game_data();
+  gfx_buffer_loaded_ = false;
+  vanilla_preview_needs_update_ = true;
+  preview_needs_update_ = true;
+  room_palette_cache_.reset();
+  if (sheets_loaded_ && !current_custom_sprite()) {
+    const auto slots = zelda3::SpriteSheetSlots(
+        game_data()->spriteset_ids[preview_spriteset_],
+        zelda3::IsUnderworldSpriteset(preview_spriteset_));
+    std::copy(slots.begin(), slots.end(), current_sheets_);
+  }
+  SelectVanillaSprite(current_sprite_id_);
   (void)ReloadSpriteCatalog();
   asset_load_status_ = ReloadProjectSpriteAssets();
   return absl::OkStatus();
@@ -140,14 +157,12 @@ void SpriteEditor::HandleEditorShortcuts() {
   // Sprite navigation
   if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
     if (current_sprite_id_ > 0) {
-      current_sprite_id_--;
-      vanilla_preview_needs_update_ = true;
+      SelectVanillaSprite(current_sprite_id_ - 1);
     }
   }
   if (ImGui::GetIO().KeyCtrl &&
       ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
-    current_sprite_id_++;
-    vanilla_preview_needs_update_ = true;
+    SelectVanillaSprite(current_sprite_id_ + 1);
   }
 }
 
@@ -172,7 +187,25 @@ void SpriteEditor::DrawToolset() {
 // Vanilla Sprite Editor
 // ============================================================
 
+void SpriteEditor::SelectVanillaSprite(int sprite_id) {
+  if (sprite_id < 0 || sprite_id >= 256)
+    return;
+  current_sprite_id_ = sprite_id;
+  vanilla_preview_needs_update_ = true;
+  pending_sprite_tab_ = sprite_id;
+  if (!active_sprites_.contains(sprite_id))
+    active_sprites_.push_back(sprite_id);
+}
+
+const zelda3::SpriteOamLayout* SpriteEditor::CurrentPreviewLayout() const {
+  const auto id = static_cast<uint8_t>(current_sprite_id_);
+  const auto* override = zelda3::SpriteOamRegistry::GetPreviewOverride(
+      id, project() ? project()->hack_manifest.hack_name() : "");
+  return override ? override : zelda3::SpriteOamRegistry::GetLayout(id);
+}
+
 void SpriteEditor::DrawVanillaSpriteEditor() {
+  gui::AutoWidgetScope sprite_scope("Sprite/Vanilla");
   if (ImGui::BeginTable("##SpriteCanvasTable", 3, ImGuiTableFlags_Resizable,
                         ImVec2(0, 0))) {
     TableSetupColumn("Sprites List", ImGuiTableColumnFlags_WidthFixed, 256);
@@ -186,28 +219,37 @@ void SpriteEditor::DrawVanillaSpriteEditor() {
     DrawSpritesList();
 
     TableNextColumn();
-    static int next_tab_id = 0;
-
+    if (active_sprites_.empty()) {
+      ImGui::TextWrapped("Select a sprite from the list to open its preview.");
+    }
     if (gui::BeginThemedTabBar("SpriteTabBar", kSpriteTabBarFlags)) {
       if (ImGui::TabItemButton(ICON_MD_ADD, kSpriteTabFlags)) {
-        if (std::find(active_sprites_.begin(), active_sprites_.end(),
-                      current_sprite_id_) != active_sprites_.end()) {
-          next_tab_id++;
-        }
-        active_sprites_.push_back(next_tab_id++);
+        SelectVanillaSprite((current_sprite_id_ + 1) % 256);
       }
 
       for (int n = 0; n < active_sprites_.Size;) {
         bool open = true;
 
-        if (active_sprites_[n] > sizeof(zelda3::kSpriteDefaultNames) / 4) {
+        const int sprite_id = active_sprites_[n];
+        if (sprite_id < 0 || sprite_id >= 256) {
           active_sprites_.erase(active_sprites_.Data + n);
           continue;
         }
 
-        if (ImGui::BeginTabItem(
-                zelda3::kSpriteDefaultNames[active_sprites_[n]].data(), &open,
-                ImGuiTabItemFlags_None)) {
+        const auto label =
+            absl::StrFormat("%02X %s###SpriteTab%02X", sprite_id,
+                            zelda3::kSpriteDefaultNames[sprite_id], sprite_id);
+        const auto flags = pending_sprite_tab_ == sprite_id
+                               ? ImGuiTabItemFlags_SetSelected
+                               : ImGuiTabItemFlags_None;
+        const bool selected = ImGui::BeginTabItem(label.c_str(), &open, flags);
+        gui::AutoRegisterLastItem("tab",
+                                  absl::StrFormat("SpriteTab%02X", sprite_id));
+        if (selected) {
+          if (current_sprite_id_ != sprite_id) {
+            current_sprite_id_ = sprite_id;
+            vanilla_preview_needs_update_ = true;
+          }
           DrawSpriteCanvas();
           ImGui::EndTabItem();
         }
@@ -219,6 +261,7 @@ void SpriteEditor::DrawVanillaSpriteEditor() {
       }
 
       gui::EndThemedTabBar();
+      pending_sprite_tab_ = -1;
     }
 
     TableNextColumn();
@@ -235,33 +278,47 @@ void SpriteEditor::DrawSpriteCanvas() {
     sprite_canvas_.DrawBackground();
     sprite_canvas_.DrawContextMenu();
 
-    // Render vanilla sprite if layout exists
-    if (current_sprite_id_ >= 0) {
-      const auto* layout = zelda3::SpriteOamRegistry::GetLayout(
-          static_cast<uint8_t>(current_sprite_id_));
-      if (layout) {
-        // Vanilla preview must not replace the custom editor's sheet selection.
-        std::array<uint8_t, 8> custom_sheets;
-        std::copy_n(current_sheets_, 8, custom_sheets.begin());
-        LoadSheetsForSprite(layout->required_sheets);
-        RenderVanillaSprite(*layout);
-
-        // Draw the preview bitmap centered on canvas
-        if (vanilla_preview_bitmap_.is_active()) {
+    // Static layouts are preview references, not a complete game renderer.
+    const auto* layout = CurrentPreviewLayout();
+    ImGui::SetCursorPos(ImVec2(10, 10));
+    ImGui::TextColored(gui::GetWarningColor(), "Experimental static preview");
+    if (!layout) {
+      ImGui::TextWrapped(
+          "No static OAM layout for sprite $%02X. Open or import a ZSM in "
+          "Custom Sprites to preview authored frames.",
+          current_sprite_id_);
+    } else if (layout->graphics_resource) {
+      ImGui::TextWrapped(
+          "%s ($%02X) requires external graphics (%s). This editor does not "
+          "yet preview that graphics source.",
+          layout->name, layout->sprite_id, layout->graphics_resource);
+    } else {
+      RenderVanillaSprite(*layout);
+      if (!graphics_binding_status_.ok() || !palette_binding_status_.ok()) {
+        const auto& error = !graphics_binding_status_.ok()
+                                ? graphics_binding_status_
+                                : palette_binding_status_;
+        ImGui::TextWrapped("Preview unavailable: %s",
+                           std::string(error.message()).c_str());
+      } else {
+        if (vanilla_preview_bitmap_.is_active())
           sprite_canvas_.DrawBitmap(vanilla_preview_bitmap_, 64, 64, 2.0f);
-        }
-
-        // Show sprite info
-        ImGui::SetCursorPos(ImVec2(10, 10));
         Text(tr("Sprite: %s (0x%02X)"), layout->name, layout->sprite_id);
         Text(tr("Tiles: %zu"), layout->tiles.size());
+        if (std::none_of(vanilla_preview_bitmap_.vector().begin(),
+                         vanilla_preview_bitmap_.vector().end(),
+                         [](uint8_t pixel) { return (pixel & 0x0F) != 0; })) {
+          ImGui::TextWrapped(
+              "The selected sheets contain no visible pixels for this layout. "
+              "Choose the sprite's spriteset or graphics sheets.");
+        }
         if (ImGui::Button(tr("Edit preview copy"))) {
           CreateNewZSprite();
           auto& copy = custom_sprites_.back();
           copy.sprName = std::string(layout->name) + " (preview copy)";
           copy.editor.Frames[0] = sprite_authoring::CopyVanillaLayout(*layout);
-          std::copy_n(current_sheets_, 8, custom_sheets.begin());
-          custom_sprite_bindings_.back().sheets = custom_sheets;
+          std::copy_n(current_sheets_, 8,
+                      custom_sprite_bindings_.back().sheets.begin());
           if (dependencies_.window_manager) {
             auto visible = dependencies_.window_manager->GetVisibleWindowIds(
                 dependencies_.session_id);
@@ -270,25 +327,14 @@ void SpriteEditor::DrawSpriteCanvas() {
                 dependencies_.session_id, visible);
           }
         }
-        ImGui::TextDisabled(
-            "Static layout copy; save as ZSM in Custom Sprites.");
-        if (!std::equal(custom_sheets.begin(), custom_sheets.end(),
-                        current_sheets_)) {
-          std::copy(custom_sheets.begin(), custom_sheets.end(),
-                    current_sheets_);
-          gfx_buffer_loaded_ = false;
-          preview_needs_update_ = true;
-        }
-        gfx_buffer_loaded_ = false;
-        preview_needs_update_ = true;
       }
+      ImGui::TextWrapped(
+          "Uses the selected sheets and palette. Animation, behavior, and "
+          "runtime graphics changes are not simulated.");
     }
 
     sprite_canvas_.DrawGrid();
     sprite_canvas_.DrawOverlay();
-
-    ImGui::TextDisabled(
-        "Use Edit preview copy to author frames and animations.");
   }
   ImGui::EndChild();
 }
@@ -312,6 +358,83 @@ void SpriteEditor::ApplySpritesetToSheets(int spriteset) {
     MarkSpriteMutated();
   }
   CommitUndoTransaction();
+}
+
+absl::Status SpriteEditor::OpenSelectedOamGraphics() {
+  const auto* sprite = current_custom_sprite();
+  if (!sprite || current_frame_ < 0 ||
+      current_frame_ >= static_cast<int>(sprite->editor.Frames.size())) {
+    return absl::FailedPreconditionError("Select a sprite frame");
+  }
+  if (!rom_ || !rom_->is_loaded() || !game_data()) {
+    return absl::FailedPreconditionError(
+        "Load a ROM before editing sprite pixels");
+  }
+  if (!gfx_buffer_loaded_)
+    LoadSpriteGraphicsBuffer();
+  LoadSpritePalettes();
+  if (!graphics_binding_status_.ok())
+    return graphics_binding_status_;
+  if (!palette_binding_status_.ok())
+    return palette_binding_status_;
+  std::array<uint8_t, 8> slots;
+  std::copy_n(current_sheets_, 8, slots.begin());
+  const auto frame = sprite->editor.Frames[current_frame_];
+  const auto palettes = sprite_palettes_;
+  const std::string source =
+      preview_use_room_palette_
+          ? absl::StrFormat("room %03X CGRAM rows 8-15; sprite slots %02X",
+                            preview_room_, preview_spriteset_)
+          : (current_sprite_binding()
+                 ? absl::StrFormat(
+                       "sprite asset binding; preview spriteset %02X",
+                       preview_spriteset_)
+                 : absl::StrFormat("preview spriteset %02X",
+                                   preview_spriteset_));
+  auto context = sprite_graphics_context::Make(
+      frame, current_frame_, selected_tile_index_, slots, palettes, game_data(),
+      sprite->sprName, source);
+  if (!context.ok())
+    return context.status();
+  const auto* owner = game_data();
+  context->render_preview = [frame, slots, palettes, owner]() {
+    return sprite_graphics_context::RenderCapturedFrame(frame, slots, palettes,
+                                                        owner);
+  };
+  auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (!manager)
+    return absl::FailedPreconditionError("Editor manager unavailable");
+  const int sprite_index = current_custom_sprite_index_;
+  const int frame_index = current_frame_;
+  const int tile_index = selected_tile_index_;
+  context->return_to_source = [this, manager, sprite_index, frame_index,
+                               tile_index]() {
+    if (sprite_index >= 0 &&
+        sprite_index < static_cast<int>(custom_sprites_.size())) {
+      current_custom_sprite_index_ = sprite_index;
+      if (frame_index <
+          static_cast<int>(
+              custom_sprites_[sprite_index].editor.Frames.size())) {
+        current_frame_ = frame_index;
+        selected_tile_index_ = tile_index;
+      }
+      preview_needs_update_ = true;
+      gfx_buffer_loaded_ = false;
+    }
+    manager->SwitchToEditor(EditorType::kSprite, true);
+  };
+  auto* editor_set = manager->GetCurrentEditorSet();
+  if (!editor_set || !editor_set->GetGraphicsEditor()) {
+    return absl::FailedPreconditionError("Graphics editor unavailable");
+  }
+  auto status = manager->EnsureEditorAssetsLoaded(EditorType::kGraphics);
+  if (!status.ok())
+    return status;
+  status = editor_set->GetGraphicsEditor()->OpenInContext(std::move(*context));
+  if (!status.ok())
+    return status;
+  manager->SwitchToEditor(EditorType::kGraphics, true);
+  return absl::OkStatus();
 }
 
 void SpriteEditor::DrawSpritesetPicker() {
@@ -519,13 +642,7 @@ void SpriteEditor::DrawSpritesList() {
           current_sprite_id_ == i, "Sprite Names", util::HexByte(i),
           zelda3::kSpriteDefaultNames[i].data());
       if (ImGui::IsItemClicked()) {
-        if (current_sprite_id_ != i) {
-          current_sprite_id_ = i;
-          vanilla_preview_needs_update_ = true;
-        }
-        if (!active_sprites_.contains(i)) {
-          active_sprites_.push_back(i);
-        }
+        SelectVanillaSprite(i);
       }
       i++;
     }
@@ -598,7 +715,12 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
 
   // Sprite list
   Text(tr("Loaded Sprites:"));
-  if (ImGui::BeginChild("SpriteList", ImVec2(0, 100), true)) {
+  const float avail_y = std::max(0.0f, ImGui::GetContentRegionAvail().y);
+  const float metadata_reserve = std::min(160.0f, avail_y * 0.45f);
+  const float list_budget = std::max(0.0f, avail_y - metadata_reserve);
+  const float preferred_list = std::clamp(avail_y * 0.35f, 180.0f, 280.0f);
+  const float list_height = std::min(preferred_list, list_budget);
+  if (ImGui::BeginChild("SpriteList", ImVec2(0, list_height), true)) {
     for (size_t i = 0; i < custom_sprites_.size(); i++) {
       std::string label = custom_sprites_[i].sprName.empty()
                               ? "Unnamed Sprite"
@@ -1215,6 +1337,14 @@ void SpriteEditor::DrawFrameEditor() {
         preview_needs_update_ = true;
       }
 
+      if (ImGui::Button(tr("Edit selected OAM pixels"))) {
+        graphics_context_status_ = OpenSelectedOamGraphics();
+      }
+      if (!graphics_context_status_.ok()) {
+        ImGui::TextWrapped(
+            "%s", std::string(graphics_context_status_.message()).c_str());
+      }
+
       if (ImGui::Button(tr("Duplicate Tile"))) {
         const auto copy = tile;
         frame.Tiles.push_back(copy);
@@ -1316,6 +1446,39 @@ void SpriteEditor::DrawUserRoutinesPanel() {
 // Graphics Pipeline
 // ============================================================
 
+void SpriteEditor::RefreshSpritePreviewGraphics(bool use_asset_binding) {
+  const bool owner_changed = preview_graphics_owner_ != game_data();
+  const auto palette_revision =
+      gfx::PaletteManager::Get().ColorRevision(game_data());
+  if (owner_changed || preview_palette_revision_ != palette_revision) {
+    room_palette_cache_.reset();
+    preview_palette_revision_ = palette_revision;
+    vanilla_preview_needs_update_ = true;
+    preview_needs_update_ = true;
+  }
+  bool changed = !gfx_buffer_loaded_ || owner_changed;
+  for (int slot = 0; slot < 8; ++slot) {
+    const auto revision =
+        game_data() ? game_data()->sheet_store.Revision(current_sheets_[slot])
+                    : 0;
+    changed |= loaded_preview_sheets_[slot] != current_sheets_[slot] ||
+               loaded_preview_revisions_[slot] != revision;
+  }
+  if (changed) {
+    LoadSpriteGraphicsBuffer();
+    preview_graphics_owner_ = game_data();
+    for (int slot = 0; slot < 8; ++slot) {
+      loaded_preview_sheets_[slot] = current_sheets_[slot];
+      loaded_preview_revisions_[slot] =
+          game_data() ? game_data()->sheet_store.Revision(current_sheets_[slot])
+                      : 0;
+    }
+    vanilla_preview_needs_update_ = true;
+    preview_needs_update_ = true;
+  }
+  LoadSpritePalettes(use_asset_binding);
+}
+
 void SpriteEditor::LoadSpriteGraphicsBuffer() {
   // Combine selected sheets (current_sheets_[0-7]) into single 8BPP buffer
   // Layout: 16 tiles per row, 8 rows per sheet, 8 sheets total = 64 tile rows
@@ -1332,18 +1495,14 @@ void SpriteEditor::LoadSpriteGraphicsBuffer() {
 
   for (int sheet_idx = 0; sheet_idx < 8; sheet_idx++) {
     uint8_t sheet_id = current_sheets_[sheet_idx];
-    if (sheet_id >= gfx::Arena::Get().gfx_sheets().size()) {
-      graphics_binding_status_ = absl::OutOfRangeError(
-          "Sprite graphics sheet unavailable in loaded ROM");
+    if (game_data() == nullptr ||
+        !game_data()->sheet_store.HasSheet(sheet_id)) {
+      graphics_binding_status_ = absl::FailedPreconditionError(absl::StrFormat(
+          "Graphics sheet $%02X in slot %d is unavailable in this ROM session",
+          sheet_id, sheet_idx));
       continue;
     }
-
-    auto& sheet = gfx::Arena::Get().gfx_sheets().at(sheet_id);
-    if (!sheet.is_active() || sheet.size() == 0) {
-      graphics_binding_status_ = absl::FailedPreconditionError(
-          "Sprite graphics sheet has not been loaded");
-      continue;
-    }
+    const auto sheet = game_data()->sheet_store.Sheet(sheet_id);
 
     // Copy sheet data to buffer at appropriate offset
     // Each sheet occupies 8 tile rows (8 * 8 scanlines = 64 scanlines)
@@ -1376,7 +1535,10 @@ void SpriteEditor::LoadSpritePalettes(bool use_asset_binding) {
   // sprite palettes. More accurate rendering would require looking up
   // which aux palette group each sprite type uses.
 
-  if (!rom_ || !rom_->is_loaded()) {
+  if (!rom_ || !rom_->is_loaded() || !game_data()) {
+    sprite_palettes_.clear();
+    palette_binding_status_ = absl::FailedPreconditionError(
+        "Load ROM graphics and palettes before previewing sprites");
     return;
   }
 
@@ -1384,8 +1546,6 @@ void SpriteEditor::LoadSpritePalettes(bool use_asset_binding) {
   sprite_palettes_.clear();
 
   // Add global sprite palettes (typically 2 palettes, 16 colors each)
-  if (!game_data())
-    return;
   const auto& global = game_data()->palette_groups.global_sprites;
   const auto& aux1 = game_data()->palette_groups.sprites_aux1;
   const auto& aux2 = game_data()->palette_groups.sprites_aux2;
@@ -1394,6 +1554,11 @@ void SpriteEditor::LoadSpritePalettes(bool use_asset_binding) {
       internal::DefaultSpritePreviewPalettes(global, aux1, aux2, aux3);
 
   palette_binding_status_ = absl::OkStatus();
+  if (global.empty() && aux1.empty() && aux2.empty() && aux3.empty() &&
+      !preview_use_room_palette_) {
+    palette_binding_status_ = absl::FailedPreconditionError(
+        "Sprite palette colors are unavailable in this ROM session");
+  }
   if (const auto* binding =
           use_asset_binding ? current_sprite_binding() : nullptr) {
     auto palettes = sprite_authoring::BindPaletteRows(
@@ -1418,28 +1583,9 @@ void SpriteEditor::LoadSpritePalettes(bool use_asset_binding) {
   sprite_drawer_.SetPalettes(&sprite_palettes_);
 }
 
-void SpriteEditor::LoadSheetsForSprite(const std::array<uint8_t, 4>& sheets) {
-  // Load the required sheets for a vanilla sprite
-  bool changed = false;
-  for (int i = 0; i < 4; i++) {
-    if (sheets[i] != 0 && current_sheets_[i] != sheets[i]) {
-      current_sheets_[i] = sheets[i];
-      changed = true;
-    }
-  }
-
-  if (changed) {
-    gfx_buffer_loaded_ = false;
-    vanilla_preview_needs_update_ = true;
-  }
-}
-
 void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
   // Ensure graphics buffer is loaded
-  if (!gfx_buffer_loaded_ && sheets_loaded_) {
-    LoadSpriteGraphicsBuffer();
-    LoadSpritePalettes(false);
-  }
+  RefreshSpritePreviewGraphics(false);
 
   // Initialize vanilla preview bitmap if needed. The helper also queues a
   // CREATE texture command so canvas_rendering doesn't silently skip the
@@ -1458,9 +1604,11 @@ void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
   int origin_x = 64;
   int origin_y = 64;
 
-  sprite_drawer_.DrawFrame(vanilla_preview_bitmap_,
-                           sprite_authoring::CopyVanillaLayout(layout),
-                           origin_x, origin_y);
+  if (graphics_binding_status_.ok() && palette_binding_status_.ok()) {
+    sprite_drawer_.DrawFrame(vanilla_preview_bitmap_,
+                             sprite_authoring::CopyVanillaLayout(layout),
+                             origin_x, origin_y);
+  }
 
   // Build combined 128-color palette (8 sub-palettes × 16 colors)
   // and apply to bitmap for proper color rendering
@@ -1507,10 +1655,7 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
   auto& frame = sprite.editor.Frames[frame_index];
 
   // Ensure graphics buffer is loaded
-  if (!gfx_buffer_loaded_ && sheets_loaded_) {
-    LoadSpriteGraphicsBuffer();
-    LoadSpritePalettes();
-  }
+  RefreshSpritePreviewGraphics(true);
 
   // The sprite_canvas_ displays a post-render composite (pixels come from
   // SpriteDrawer, not direct user paint). Declaring the role lets future
@@ -1598,6 +1743,18 @@ void SpriteEditor::DrawZSpriteOnCanvas() {
     if (current_custom_sprite_index_ >= 0 &&
         current_custom_sprite_index_ < (int)custom_sprites_.size()) {
       RenderZSpriteFrame(current_frame_);
+      if (!graphics_binding_status_.ok() || !palette_binding_status_.ok()) {
+        ImGui::SetCursorPos(ImVec2(10, 34));
+        const auto& error = !graphics_binding_status_.ok()
+                                ? graphics_binding_status_
+                                : palette_binding_status_;
+        ImGui::TextWrapped("Preview unavailable: %s",
+                           std::string(error.message()).c_str());
+      }
+    } else {
+      ImGui::SetCursorPos(ImVec2(10, 10));
+      ImGui::TextWrapped(
+          "Open a ZSM or import a draw copy to preview its frames.");
     }
 
     sprite_canvas_.DrawGrid();

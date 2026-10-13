@@ -1,3 +1,4 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "app/editor/graphics/pixel_editor_panel.h"
 #include "util/i18n/tr.h"
 
@@ -9,18 +10,66 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/graphics/graphics_sheet_sync.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
+#include "app/editor/graphics/palette_controls_panel.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/image_clipboard.h"
 
 namespace yaze {
 namespace editor {
+namespace {
+
+// Material icons are merged with a text-baseline offset. Center their visible
+// glyph bounds, not the text line box, while retaining ordinary button input,
+// navigation, IDs, and disabled styling. This is for one-glyph controls only.
+bool PixelIconButton(const char* label, float button_size) {
+  const bool pressed = [&] {
+    gui::StyleColorGuard transparent_text(ImGuiCol_Text, ImVec4(0, 0, 0, 0));
+    return ImGui::Button(label, ImVec2(button_size, button_size));
+  }();
+  if (!ImGui::IsItemVisible())
+    return pressed;
+
+  unsigned int codepoint = 0;
+  ImTextCharFromUtf8(&codepoint, label, nullptr);
+  auto* baked = ImGui::GetFontBaked();
+  const auto* glyph = baked->FindGlyph(static_cast<ImWchar>(codepoint));
+  if (!glyph || !glyph->Visible)
+    return pressed;
+
+  const float font_scale = ImGui::GetFontSize() / baked->Size;
+  const float width = (glyph->X1 - glyph->X0) * font_scale;
+  const float height = (glyph->Y1 - glyph->Y0) * font_scale;
+  if (width <= 0 || height <= 0)
+    return pressed;
+  const ImVec2 min = ImGui::GetItemRectMin();
+  const ImVec2 max = ImGui::GetItemRectMax();
+  // Keep the existing compact frame size; fit oversized glyphs inside it.
+  const float inset = ImGui::GetFontSize() / 8.0f;
+  const float available = std::max(1.0f, button_size - 2 * inset);
+  const float fit = std::min({1.0f, available / width, available / height});
+  const ImVec2 glyph_size(width * fit, height * fit);
+  const ImVec2 glyph_min((min.x + max.x - glyph_size.x) * 0.5f,
+                         (min.y + max.y - glyph_size.y) * 0.5f);
+  ImGui::GetWindowDrawList()->AddImage(
+      ImGui::GetFont()->OwnerAtlas->TexRef, glyph_min,
+      ImVec2(glyph_min.x + glyph_size.x, glyph_min.y + glyph_size.y),
+      ImVec2(glyph->U0, glyph->V0), ImVec2(glyph->U1, glyph->V1),
+      ImGui::GetColorU32(ImGuiCol_Text));
+  return pressed;
+}
+
+}  // namespace
 
 void PixelEditorPanel::Initialize() {
   // Canvas is initialized via member initializer list
@@ -33,84 +82,321 @@ void PixelEditorPanel::Draw(bool* p_open) {
 
 absl::Status PixelEditorPanel::Update() {
   HandleFloatingPasteKeys();
+  DrawSourceContext();
 
-  // Top toolbar
+  // Match every control to the current font/frame size. Mixing toolbar icon
+  // presets and normal buttons made Undo taller than the drawing tools.
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                      ImVec2(4, ImGui::GetStyle().ItemSpacing.y));
+  if (sheet_browser_visible_ && set_sheet_browser_visible_) {
+    const bool visible = sheet_browser_visible_();
+    std::optional<gui::StyleColorGuard> selected;
+    if (visible)
+      selected.emplace(ImGuiCol_Button, gui::GetPrimaryVec4());
+    if (ImGui::Button(tr("Sheets")))
+      set_sheet_browser_visible_(!visible);
+    gui::AutoRegisterLastItem("button", "Toggle Sheet Browser");
+    HOVER_HINT(visible ? "Hide Sheet Browser to expand the canvas"
+                       : "Show Sheet Browser in its previous position");
+    ImGui::SameLine();
+  }
   DrawToolbar();
   ImGui::SameLine();
-  DrawViewControls();
-  DrawClipboardControls();
-
-  ImGui::Separator();
-
-  constexpr float kColorPickerWidth = 200.0f;
-  constexpr float kStatusBarHeight = 24.0f;
-
-  // Main content area with canvas and side panels
-  ImGui::BeginChild("##PixelEditorContent", ImVec2(0, -kStatusBarHeight),
-                    false);
-
-  // Color picker on the left
-  ImGui::BeginChild("##ColorPickerSide", ImVec2(kColorPickerWidth, 0), true);
-  DrawColorPicker();
-  ImGui::Separator();
-  DrawMiniMap();
-  ImGui::EndChild();
-
+  const float button_size = ImGui::GetFrameHeight();
+  if (PixelIconButton(ICON_MD_TUNE "##ViewOptions", button_size)) {
+    ImGui::OpenPopup("View options");
+  }
+  gui::AutoRegisterLastItem("button", "View options");
+  HOVER_HINT("Display overlays and sheet overview");
+  if (ImGui::BeginPopup("View options")) {
+    DrawViewControls();
+    ImGui::EndPopup();
+  }
   ImGui::SameLine();
+  if (PixelIconButton(ICON_MD_MORE_HORIZ "##PixelEditOptions", button_size)) {
+    ImGui::OpenPopup("Edit options");
+  }
+  gui::AutoRegisterLastItem("button", "Edit options");
+  HOVER_HINT("Copy and paste a PNG");
+  if (ImGui::BeginPopup("Edit options")) {
+    DrawClipboardControls();
+    ImGui::EndPopup();
+  }
+  ImGui::PopStyleVar();
+  if (state_->selection.is_floating) {
+    DrawClipboardControls();
+  }
 
-  // Main canvas
-  ImGui::BeginChild("##CanvasArea", ImVec2(0, 0), true,
+  DrawColorPicker();
+
+  const float status_height =
+      ImGui::GetFrameHeightWithSpacing() + ImGui::GetStyle().ItemSpacing.y + 1;
+  ImGui::BeginChild("##PixelEditorContent", ImVec2(0, -status_height), false);
+  const ImVec2 available = ImGui::GetContentRegionAvail();
+  const float font = ImGui::GetFontSize();
+  const bool preview = show_source_preview_ && draw_source_preview_ &&
+                       state_->source_context &&
+                       state_->source_context->owner == state_->game_data &&
+                       state_->source_context->render_preview;
+  const bool beside = preview && available.x >= 48 * font;
+  const float preview_width =
+      std::clamp(available.x * 0.30f, 14 * font, 22 * font);
+  const float preview_height = std::min(available.y * 0.38f, 18 * font);
+  const float gap = ImGui::GetStyle().ItemSpacing.x;
+  const ImVec2 canvas_size(
+      beside ? std::max(1.0f, available.x - preview_width - gap) : 0,
+      preview && !beside ? std::max(1.0f, available.y - preview_height -
+                                              ImGui::GetStyle().ItemSpacing.y)
+                         : 0);
+  if (fit_canvas_requested_) {
+    ImGui::SetNextWindowScroll(ImVec2(0, 0));
+  }
+  ImGui::BeginChild("##CanvasArea", canvas_size, false,
                     ImGuiWindowFlags_HorizontalScrollbar);
   DrawCanvas();
   ImGui::EndChild();
-
+  if (preview) {
+    if (beside)
+      ImGui::SameLine();
+    ImGui::BeginChild(
+        "##SourceUsagePreview",
+        beside ? ImVec2(preview_width, 0) : ImVec2(0, preview_height), false);
+    draw_source_preview_();
+    ImGui::EndChild();
+  }
   ImGui::EndChild();
 
+  FinishReleasedGesture();
   // Status bar
   DrawStatusBar();
 
   return absl::OkStatus();
 }
 
-void PixelEditorPanel::DrawToolbar() {
-  // Tool selection buttons
-  auto tool_button = [this](PixelTool tool, const char* icon,
-                            const char* tooltip) {
-    bool is_selected = state_->current_tool == tool;
-    std::optional<gui::StyleColorGuard> sel_guard;
-    if (is_selected) {
-      sel_guard.emplace(ImGuiCol_Button, gui::GetPrimaryVec4());
-    }
-    if (ImGui::Button(icon)) {
-      state_->SetTool(tool);
-    }
-    sel_guard.reset();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", tooltip);
-    }
+gfx::SnesPalette PixelEditorPanel::DisplayPalette() const {
+  if (const auto* target = state_->SourceTarget()) {
+    return target->palette;
+  }
+  const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
+  const auto* palette = platform::GetSurfacePalette(sheet.surface());
+  if (!palette) {
+    return {};
+  }
+
+  // Bitmap::palette() retains the full source bank. Manual row selection
+  // applies a slice to the surface, inserting transparent index zero. Pixel
+  // tools and PNG transfer must use those displayed three-bit indices.
+  std::vector<gfx::SnesColor> colors;
+  const int count = std::min(8, palette->ncolors);
+  colors.reserve(count);
+  for (int i = 0; i < count; ++i) {
+    const auto& color = palette->colors[i];
+    colors.emplace_back(color.r, color.g, color.b);
+    colors.back().set_transparent(i == 0);
+  }
+  return gfx::SnesPalette(colors);
+}
+
+gfx::Bitmap& PixelEditorPanel::DisplaySheet() {
+  auto& sheet =
+      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  if (state_->SourceTarget() == nullptr || !sheet.is_active()) {
+    return sheet;
+  }
+  bool changed = !context_sheet_.is_active();
+  if (!context_sheet_.is_active()) {
+    context_sheet_.Create(sheet.width(), sheet.height(), 8, sheet.vector());
+  } else if (context_sheet_.vector() != sheet.vector()) {
+    context_sheet_.set_data(sheet.vector());
+    changed = true;
+  }
+  const auto& palette = DisplayPalette();
+  const auto& old = context_sheet_.palette();
+  bool palette_changed = old.size() != palette.size();
+  for (size_t i = 0; !palette_changed && i < palette.size(); ++i) {
+    palette_changed = old[i].snes() != palette[i].snes();
+  }
+  if (palette_changed) {
+    context_sheet_.SetPaletteWithTransparent(palette, 1, 7);
+  }
+  if (changed || palette_changed || !context_sheet_.texture()) {
+    gfx::Arena::Get().QueueTextureCommand(
+        context_sheet_.texture() ? gfx::Arena::TextureCommandType::UPDATE
+                                 : gfx::Arena::TextureCommandType::CREATE,
+        &context_sheet_);
+  }
+  return context_sheet_;
+}
+
+void PixelEditorPanel::DrawSourceContext() {
+  if (!state_->source_context ||
+      state_->source_context->owner != state_->game_data) {
+    return;
+  }
+  auto& context = *state_->source_context;
+  ImGui::BeginDisabled(!context.return_to_source);
+  const bool return_to_source = ImGui::SmallButton(tr("Return to source"));
+  gui::AutoRegisterLastItem("button", "Return to source");
+  ImGui::EndDisabled();
+  if (return_to_source) {
+    // Copy before invoking: navigation may replace editor state.
+    auto navigate = context.return_to_source;
+    FinishGesture();
+    navigate();
+    return;
+  }
+  if (draw_source_preview_ && context.render_preview) {
     ImGui::SameLine();
-  };
-
-  tool_button(PixelTool::kSelect, ICON_MD_SELECT_ALL, "Select (M)");
-  tool_button(PixelTool::kHand, ICON_MD_PAN_TOOL,
-              "Hand: drag to pan (H; middle mouse pans with any tool)");
-  tool_button(PixelTool::kPencil, ICON_MD_DRAW, "Pencil (B)");
-  tool_button(PixelTool::kBrush, ICON_MD_BRUSH, "Brush (P)");
-  tool_button(PixelTool::kEraser, ICON_MD_AUTO_FIX_HIGH, "Eraser (E)");
-  tool_button(PixelTool::kFill, ICON_MD_FORMAT_COLOR_FILL, "Fill (G)");
-  tool_button(PixelTool::kLine, ICON_MD_HORIZONTAL_RULE, "Line (L)");
-  tool_button(PixelTool::kRectangle, ICON_MD_CROP_SQUARE, "Rectangle (R)");
-  tool_button(PixelTool::kEyedropper, ICON_MD_COLORIZE, "Eyedropper (I)");
-
+    ImGui::Checkbox(tr("Preview"), &show_source_preview_);
+    gui::AutoRegisterLastItem("checkbox", "Show source preview");
+  }
   ImGui::SameLine();
-  ImGui::Text("|");
+  if (ImGui::SmallButton(ICON_MD_INFO_OUTLINE "##SourceDetails")) {
+    ImGui::OpenPopup("Source details");
+  }
+  gui::AutoRegisterLastItem("button", "Source details");
+  HOVER_HINT("Source, drawing pattern and palette details");
+  if (ImGui::BeginPopup("Source details")) {
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 28 * ImGui::GetFontSize());
+    ImGui::TextWrapped("%s", context.label.c_str());
+    if (!context.drawing_description.empty()) {
+      ImGui::TextWrapped(tr("Drawing: %s"),
+                         context.drawing_description.c_str());
+    }
+    if (const auto* target = state_->SourceTarget();
+        target && target->source_orientation_mask != 0) {
+      ImGui::TextWrapped(tr("Pattern orientations: %s"),
+                         target->SourceOrientationLabel().c_str());
+      ImGui::TextWrapped("%s",
+                         tr("Paint the unflipped source; all uses of this "
+                            "sheet share its pixels."));
+    }
+    if (!context.limitation.empty()) {
+      ImGui::TextWrapped("%s", context.limitation.c_str());
+    }
+    ImGui::PopTextWrapPos();
+    ImGui::Separator();
+    ImGui::BeginDisabled(state_->selection.is_floating);
+    const bool manual = ImGui::SmallButton(tr("Use manual palette"));
+    gui::AutoRegisterLastItem("button", "Use manual palette");
+    ImGui::EndDisabled();
+    if (manual)
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+    if (manual) {
+      state_->ClearSourceContext();
+      return;
+    }
+  }
+  ImGui::SameLine();
+  const ImVec2 label_pos = ImGui::GetCursorScreenPos();
+  const ImVec2 label_size(std::max(1.0f, ImGui::GetContentRegionAvail().x),
+                          ImGui::GetFrameHeight());
+  const ImVec2 text_pos(label_pos.x,
+                        label_pos.y + ImGui::GetStyle().FramePadding.y);
+  const bool clipped =
+      ImGui::CalcTextSize(context.label.c_str()).x > label_size.x;
+  const float ellipsis_width = clipped ? ImGui::CalcTextSize("...").x : 0;
+  const float text_right =
+      label_pos.x + std::max(0.0f, label_size.x - ellipsis_width);
+  auto* draw = ImGui::GetWindowDrawList();
+  draw->PushClipRect(label_pos, ImVec2(text_right, label_pos.y + label_size.y),
+                     true);
+  draw->AddText(text_pos, ImGui::GetColorU32(ImGuiCol_Text),
+                context.label.c_str());
+  draw->PopClipRect();
+  if (clipped && label_size.x >= ellipsis_width) {
+    draw->AddText(ImVec2(text_right, text_pos.y),
+                  ImGui::GetColorU32(ImGuiCol_Text), "...");
+  }
+  ImGui::Dummy(label_size);
+  if (ImGui::IsItemHovered())
+    ImGui::SetTooltip("%s", context.label.c_str());
+
+  if (!context.palette_error.empty()) {
+    ImGui::TextWrapped(tr("Source colors could not refresh: %s"),
+                       context.palette_error.c_str());
+  }
+  if (context.targets.empty())
+    return;
+  const auto& target = context.targets[context.selected_target];
+  ImGui::BeginDisabled(state_->selection.is_floating);
+  ImGui::SetNextItemWidth(-1);
+  const bool open = ImGui::BeginCombo("##SourceTile", target.label.c_str());
+  gui::AutoRegisterLastItem("combo", "Source tile");
+  if (open) {
+    for (size_t i = 0; i < context.targets.size(); ++i) {
+      ImGui::PushID(static_cast<int>(i));
+      if (ImGui::Selectable(context.targets[i].label.c_str(),
+                            i == context.selected_target)) {
+        state_->SelectSourceTarget(i);
+      }
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("Source tile %zu", i));
+      ImGui::PopID();
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::EndDisabled();
+}
+
+void PixelEditorPanel::DrawToolbar() {
+  struct Tool {
+    PixelTool tool;
+    const char* icon;
+    const char* label;
+  };
+  const Tool tools[] = {
+      {PixelTool::kSelect, ICON_MD_SELECT_ALL, "Select (M)"},
+      {PixelTool::kHand, ICON_MD_PAN_TOOL, "Hand (H)"},
+      {PixelTool::kPencil, ICON_MD_DRAW, "Pencil (B)"},
+      {PixelTool::kBrush, ICON_MD_BRUSH, "Brush (P)"},
+      {PixelTool::kEraser, ICON_MD_AUTO_FIX_HIGH, "Eraser (E)"},
+      {PixelTool::kFill, ICON_MD_FORMAT_COLOR_FILL, "Fill (G)"},
+      {PixelTool::kLine, ICON_MD_HORIZONTAL_RULE, "Line (L)"},
+      {PixelTool::kRectangle, ICON_MD_CROP_SQUARE, "Rectangle (R)"},
+      {PixelTool::kEyedropper, ICON_MD_COLORIZE, "Eyedropper (I)"},
+  };
+  const float button_size = ImGui::GetFrameHeight();
+  const bool uses_brush = state_->current_tool == PixelTool::kPencil ||
+                          state_->current_tool == PixelTool::kBrush ||
+                          state_->current_tool == PixelTool::kEraser;
+  // Nine tools, Undo/Redo, View and Edit. Only collapse on genuinely narrow
+  // detached panels; normal laptop workspaces keep the drawing tools visible.
+  const float toolbar_width =
+      13 * button_size + 12 * ImGui::GetStyle().ItemSpacing.x +
+      (uses_brush ? 60 + ImGui::GetStyle().ItemSpacing.x : 0);
+  if (ImGui::GetContentRegionAvail().x < toolbar_width) {
+    ImGui::SetNextItemWidth(125);
+    if (ImGui::BeginCombo("##PixelTool", state_->GetToolName())) {
+      for (const auto& tool : tools) {
+        if (ImGui::Selectable(tool.label, state_->current_tool == tool.tool)) {
+          state_->SetTool(tool.tool);
+        }
+      }
+      ImGui::EndCombo();
+    }
+  } else {
+    for (const auto& tool : tools) {
+      std::optional<gui::StyleColorGuard> selected;
+      if (state_->current_tool == tool.tool) {
+        selected.emplace(ImGuiCol_Button, gui::GetPrimaryVec4());
+      }
+      if (PixelIconButton(tool.icon, button_size)) {
+        state_->SetTool(tool.tool);
+      }
+      gui::AutoRegisterLastItem("button", tool.label);
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", tool.label);
+      if (&tool != &tools[8])
+        ImGui::SameLine();
+    }
+  }
   ImGui::SameLine();
 
   // Brush size for pencil/brush/eraser
-  if (state_->current_tool == PixelTool::kPencil ||
-      state_->current_tool == PixelTool::kBrush ||
-      state_->current_tool == PixelTool::kEraser) {
-    ImGui::SetNextItemWidth(80);
+  if (uses_brush) {
+    ImGui::SetNextItemWidth(60);
     int brush = state_->brush_size;
     if (ImGui::SliderInt("##BrushSize", &brush, 1, 8, "%d px")) {
       state_->brush_size = static_cast<uint8_t>(brush);
@@ -120,70 +406,39 @@ void PixelEditorPanel::DrawToolbar() {
   }
 
   // Undo/Redo buttons
-  ImGui::Text("|");
-  ImGui::SameLine();
-
-  ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanUndo());
-  if (gui::ToolbarIconButton(ICON_MD_UNDO, "Undo (Cmd/Ctrl+Z)") &&
-      undo_manager_) {
-    undo_manager_->Undo().IgnoreError();
+  ImGui::BeginDisabled(HasActiveStroke() || !undo_manager_ ||
+                       !undo_manager_->CanUndo());
+  if (PixelIconButton(ICON_MD_UNDO, button_size) && undo_manager_) {
+    const auto status = undo_ ? undo_() : undo_manager_->Undo();
+    history_error_ = status.ok() ? "" : std::string(status.message());
   }
+  gui::AutoRegisterLastItem("button", "Undo pixels");
+  HOVER_HINT("Undo (Cmd/Ctrl+Z)");
   ImGui::EndDisabled();
 
   ImGui::SameLine();
 
-  ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanRedo());
-  if (gui::ToolbarIconButton(ICON_MD_REDO, "Redo (Cmd/Ctrl+Shift+Z)") &&
-      undo_manager_) {
-    undo_manager_->Redo().IgnoreError();
+  ImGui::BeginDisabled(HasActiveStroke() || !undo_manager_ ||
+                       !undo_manager_->CanRedo());
+  if (PixelIconButton(ICON_MD_REDO, button_size) && undo_manager_) {
+    const auto status = redo_ ? redo_() : undo_manager_->Redo();
+    history_error_ = status.ok() ? "" : std::string(status.message());
   }
+  gui::AutoRegisterLastItem("button", "Redo pixels");
+  HOVER_HINT("Redo (Cmd/Ctrl+Shift+Z)");
   ImGui::EndDisabled();
 }
 
 void PixelEditorPanel::DrawViewControls() {
-  // Zoom controls
-  if (gui::ToolbarIconButton(ICON_MD_ZOOM_OUT, "Zoom out (-)")) {
-    state_->ZoomOut();
+  ImGui::Checkbox(tr("Pixel grid (6x zoom)"), &state_->show_pixel_grid);
+  ImGui::Checkbox(tr("8x8 tile grid"), &state_->show_grid);
+  ImGui::Checkbox(tr("16x16 block grid"), &state_->show_tile_boundaries);
+  ImGui::Checkbox(tr("Cursor crosshair"), &state_->show_cursor_crosshair);
+  ImGui::Checkbox(tr("Brush preview"), &state_->show_brush_preview);
+  ImGui::Checkbox(tr("Transparency grid"), &state_->show_transparency_grid);
+  if (ImGui::CollapsingHeader(tr("Sheet overview"))) {
+    DrawMiniMap();
   }
-  ImGui::SameLine();
-
-  ImGui::SetNextItemWidth(100);
-  float zoom = state_->zoom_level;
-  if (ImGui::SliderFloat("##Zoom", &zoom, 1.0f, 16.0f, "%.0fx")) {
-    state_->SetZoom(zoom);
-  }
-  ImGui::SameLine();
-
-  if (gui::ToolbarIconButton(ICON_MD_ZOOM_IN, "Zoom in (+)")) {
-    state_->ZoomIn();
-  }
-
-  ImGui::SameLine();
-  ImGui::Text("|");
-  ImGui::SameLine();
-
-  // View overlay toggles
-  ImGui::Checkbox(ICON_MD_GRID_4X4 "##pixelgrid", &state_->show_pixel_grid);
-  HOVER_HINT("Pixel grid (from 6x zoom)");
-  ImGui::SameLine();
-  ImGui::Checkbox(ICON_MD_GRID_ON " 8##grid8", &state_->show_grid);
-  HOVER_HINT("8x8 tile grid (Cmd/Ctrl+G)");
-  ImGui::SameLine();
-  ImGui::Checkbox(ICON_MD_GRID_VIEW " 16##grid16",
-                  &state_->show_tile_boundaries);
-  HOVER_HINT("16x16 block grid");
-  ImGui::SameLine();
-
-  ImGui::Checkbox(ICON_MD_ADD, &state_->show_cursor_crosshair);
-  HOVER_HINT("Toggle cursor crosshair");
-  ImGui::SameLine();
-
-  ImGui::Checkbox(ICON_MD_BRUSH, &state_->show_brush_preview);
-  HOVER_HINT("Toggle brush preview");
-  ImGui::SameLine();
-
-  ImGui::Checkbox(ICON_MD_TEXTURE, &state_->show_transparency_grid);
-  HOVER_HINT("Toggle transparency grid");
 }
 
 void PixelEditorPanel::DrawCanvas() {
@@ -212,17 +467,32 @@ void PixelEditorPanel::DrawCanvas() {
         tab_label += "*";
       }
 
-      if (ImGui::BeginTabItem(tab_label.c_str(), &open)) {
+      const bool requested = state_->requested_sheet_tab == sheet_id;
+      if (ImGui::BeginTabItem(tab_label.c_str(), &open,
+                              requested ? ImGuiTabItemFlags_SetSelected : 0)) {
+        if (state_->current_sheet_id != sheet_id)
+          FinishGesture();
         state_->current_sheet_id = sheet_id;
+        if (requested) {
+          state_->requested_sheet_tab.reset();
+        }
 
         // Get the current sheet bitmap
-        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(
-            state_->current_sheet_id);
+        auto& sheet = DisplaySheet();
 
         if (!sheet.is_active()) {
           ImGui::TextDisabled(tr("Sheet %02X is not active"), sheet_id);
           ImGui::EndTabItem();
           continue;
+        }
+
+        if (fit_canvas_requested_) {
+          // Fit once, after the sheet tabs establish the actual canvas space.
+          // Resizing the window must not silently change an artist's zoom.
+          const ImVec2 available = ImGui::GetContentRegionAvail();
+          state_->SetZoom(std::floor(std::min(available.x / sheet.width(),
+                                              available.y / sheet.height())));
+          fit_canvas_requested_ = false;
         }
 
         // Calculate canvas size based on zoom
@@ -242,7 +512,9 @@ void PixelEditorPanel::DrawCanvas() {
           canvas_.draw_list()->AddImage(
               (ImTextureID)(intptr_t)sheet.texture(), canvas_.zero_point(),
               ImVec2(canvas_.zero_point().x + canvas_width,
-                     canvas_.zero_point().y + canvas_height));
+                     canvas_.zero_point().y + canvas_height),
+              ImVec2(0, 0), ImVec2(1, 1),
+              ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
         }
 
         // Draw grid if enabled
@@ -262,11 +534,13 @@ void PixelEditorPanel::DrawCanvas() {
               PixelToScreen(state_->selection.x + state_->selection.width,
                             state_->selection.y + state_->selection.height);
           canvas_.draw_list()->AddRect(
-              sel_min, sel_max, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+              sel_min, sel_max, ImGui::GetColorU32(IM_COL32(255, 255, 0, 255)),
+              0.0f, 0, 2.0f);
 
           // Marching ants effect (simplified)
-          canvas_.draw_list()->AddRect(sel_min, sel_max, IM_COL32(0, 0, 0, 128),
-                                       0.0f, 0, 1.0f);
+          canvas_.draw_list()->AddRect(
+              sel_min, sel_max, ImGui::GetColorU32(IM_COL32(0, 0, 0, 128)),
+              0.0f, 0, 1.0f);
         }
 
         DrawFloatingPaste();
@@ -279,11 +553,13 @@ void PixelEditorPanel::DrawCanvas() {
                                      static_cast<int>(preview_end_.y));
 
           if (state_->current_tool == PixelTool::kLine) {
-            canvas_.draw_list()->AddLine(start, end, IM_COL32(255, 255, 0, 200),
-                                         2.0f);
+            canvas_.draw_list()->AddLine(
+                start, end, ImGui::GetColorU32(IM_COL32(255, 255, 0, 200)),
+                2.0f);
           } else if (state_->current_tool == PixelTool::kRectangle) {
-            canvas_.draw_list()->AddRect(start, end, IM_COL32(255, 255, 0, 200),
-                                         0.0f, 0, 2.0f);
+            canvas_.draw_list()->AddRect(
+                start, end, ImGui::GetColorU32(IM_COL32(255, 255, 0, 200)),
+                0.0f, 0, 2.0f);
           }
         }
 
@@ -329,8 +605,8 @@ void PixelEditorPanel::DrawCanvas() {
 void PixelEditorPanel::DrawTransparencyGrid(float canvas_width,
                                             float canvas_height) {
   const float cell_size = 8.0f;  // Checkerboard cell size
-  const ImU32 color1 = IM_COL32(180, 180, 180, 255);
-  const ImU32 color2 = IM_COL32(220, 220, 220, 255);
+  const ImU32 color1 = ImGui::GetColorU32(IM_COL32(180, 180, 180, 255));
+  const ImU32 color2 = ImGui::GetColorU32(IM_COL32(220, 220, 220, 255));
 
   ImVec2 origin = canvas_.zero_point();
   int cols = static_cast<int>(canvas_width / cell_size) + 1;
@@ -356,21 +632,22 @@ void PixelEditorPanel::DrawCursorCrosshair() {
   ImVec2 v_start(cursor_screen.x + pixel_size / 2, canvas_.zero_point().y);
   ImVec2 v_end(cursor_screen.x + pixel_size / 2,
                canvas_.zero_point().y + canvas_.canvas_size().y);
-  canvas_.draw_list()->AddLine(v_start, v_end, IM_COL32(255, 100, 100, 100),
-                               1.0f);
+  canvas_.draw_list()->AddLine(
+      v_start, v_end, ImGui::GetColorU32(IM_COL32(255, 100, 100, 100)), 1.0f);
 
   // Horizontal line through cursor pixel
   ImVec2 h_start(canvas_.zero_point().x, cursor_screen.y + pixel_size / 2);
   ImVec2 h_end(canvas_.zero_point().x + canvas_.canvas_size().x,
                cursor_screen.y + pixel_size / 2);
-  canvas_.draw_list()->AddLine(h_start, h_end, IM_COL32(255, 100, 100, 100),
-                               1.0f);
+  canvas_.draw_list()->AddLine(
+      h_start, h_end, ImGui::GetColorU32(IM_COL32(255, 100, 100, 100)), 1.0f);
 
   // Highlight current pixel with a bright outline
   ImVec2 pixel_min = cursor_screen;
   ImVec2 pixel_max(cursor_screen.x + pixel_size, cursor_screen.y + pixel_size);
   canvas_.draw_list()->AddRect(pixel_min, pixel_max,
-                               IM_COL32(255, 255, 255, 200), 0.0f, 0, 2.0f);
+                               ImGui::GetColorU32(IM_COL32(255, 255, 255, 200)),
+                               0.0f, 0, 2.0f);
 }
 
 void PixelEditorPanel::DrawBrushPreview() {
@@ -387,14 +664,14 @@ void PixelEditorPanel::DrawBrushPreview() {
 
   // Fill with semi-transparent color preview
   ImU32 preview_color = (state_->current_tool == PixelTool::kEraser)
-                            ? IM_COL32(255, 0, 0, 50)
-                            : IM_COL32(0, 255, 0, 50);
+                            ? ImGui::GetColorU32(IM_COL32(255, 0, 0, 50))
+                            : ImGui::GetColorU32(IM_COL32(0, 255, 0, 50));
   canvas_.draw_list()->AddRectFilled(brush_min, brush_max, preview_color);
 
   // Outline
   ImU32 outline_color = (state_->current_tool == PixelTool::kEraser)
-                            ? IM_COL32(255, 100, 100, 200)
-                            : IM_COL32(100, 255, 100, 200);
+                            ? ImGui::GetColorU32(IM_COL32(255, 100, 100, 200))
+                            : ImGui::GetColorU32(IM_COL32(100, 255, 100, 200));
   canvas_.draw_list()->AddRect(brush_min, brush_max, outline_color, 0.0f, 0,
                                1.0f);
 }
@@ -406,7 +683,7 @@ void PixelEditorPanel::DrawPixelInfoTooltip(const gfx::Bitmap& sheet) {
   }
 
   uint8_t color_index = sheet.GetPixel(cursor_x_, cursor_y_);
-  auto palette = sheet.palette();
+  const auto& palette = DisplayPalette();
 
   ImGui::BeginTooltip();
   ImGui::Text(tr("Pos: %d, %d"), cursor_x_, cursor_y_);
@@ -479,49 +756,62 @@ void PixelEditorPanel::DrawTileHighlight(const gfx::Bitmap& sheet) {
 }
 
 void PixelEditorPanel::DrawColorPicker() {
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                      ImVec2(4, ImGui::GetStyle().ItemSpacing.y));
+  const float right =
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+  ImGui::BeginGroup();
   DrawPaletteRowPicker();
-  ImGui::Text(tr("Colors"));
-
+  ImGui::EndGroup();
+  const float swatch_size = ImGui::GetFrameHeight();
+  const float swatch_width =
+      9 * swatch_size + 9 * ImGui::GetStyle().ItemSpacing.x;
+  if (ImGui::GetItemRectMax().x + swatch_width +
+          ImGui::GetStyle().ItemSpacing.x <=
+      right) {
+    ImGui::SameLine();
+  }
+  ImGui::BeginGroup();
   if (state_->open_sheets.empty()) {
     ImGui::TextDisabled(tr("No sheet"));
+    ImGui::EndGroup();
+    ImGui::PopStyleVar();
     return;
   }
 
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
-  auto palette = sheet.palette();
+  const auto& palette = DisplayPalette();
 
-  // Draw palette colors in 4x4 grid (16 colors)
-  for (int i = 0; i < static_cast<int>(palette.size()) && i < 16; i++) {
-    if (i > 0 && i % 4 == 0) {
-      // New row
-    } else if (i > 0) {
+  // Selection is an index, not a cached RGB value. Resolve it again when the
+  // sheet, palette row, or source context changes. Index zero stays transparent.
+  const auto display_color = [&palette](int index) {
+    ImVec4 color = gui::ConvertSnesColorToImVec4(palette[index]);
+    color.w = index == 0 ? 0.0f : 1.0f;
+    return color;
+  };
+  constexpr auto kSwatchFlags = ImGuiColorEditFlags_NoTooltip |
+                                ImGuiColorEditFlags_NoBorder |
+                                ImGuiColorEditFlags_AlphaPreview;
+
+  // Sheet editing is indexed 3bpp; rendered 4bpp expansion is not authored.
+  for (int i = 0; i < static_cast<int>(palette.size()) && i < 8; i++) {
+    if (i > 0) {
       ImGui::SameLine();
     }
 
-    ImVec4 color(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
-                 palette[i].rgb().z / 255.0f, 1.0f);
-
-    bool is_selected = state_->current_color_index == i;
-    std::optional<gui::StyleVarGuard> border_var;
-    std::optional<gui::StyleColorGuard> border_color;
-    if (is_selected) {
-      border_var.emplace(ImGuiStyleVar_FrameBorderSize, 2.0f);
-      border_color.emplace(ImGuiCol_Border, gui::GetWarningColor());
-    }
-
     std::string id = absl::StrFormat("##Color%d", i);
-    if (ImGui::ColorButton(
-            id.c_str(), color,
-            ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoBorder,
-            ImVec2(24, 24))) {
+    if (ImGui::ColorButton(id.c_str(), display_color(i), kSwatchFlags,
+                           ImVec2(swatch_size, swatch_size))) {
       state_->current_color_index = static_cast<uint8_t>(i);
-      state_->current_color = color;
     }
+    gui::AutoRegisterLastItem("color", absl::StrFormat("Palette index %d", i));
 
-    if (is_selected) {
-      border_color.reset();
-      border_var.reset();
+    if (state_->current_color_index == i) {
+      const auto min = ImGui::GetItemRectMin();
+      const auto max = ImGui::GetItemRectMax();
+      ImGui::GetWindowDrawList()->AddRect(
+          ImVec2(min.x - 1, min.y - 1), ImVec2(max.x + 1, max.y + 1),
+          ImGui::GetColorU32(gui::GetSelectedColor()),
+          ImGui::GetStyle().FrameRounding, 0, 1.5f);
     }
 
     if (ImGui::IsItemHovered()) {
@@ -538,26 +828,35 @@ void PixelEditorPanel::DrawColorPicker() {
     }
   }
 
-  ImGui::Separator();
-
-  // Current color preview
-  ImGui::Text(tr("Current:"));
-  ImGui::ColorButton("##CurrentColor", state_->current_color,
-                     ImGuiColorEditFlags_NoTooltip, ImVec2(40, 40));
-  ImGui::SameLine();
-  ImGui::Text(tr("Index: %d"), state_->current_color_index);
+  // Keep the foreground swatch adjacent to the indexed colors.
+  ImGui::SameLine(0, ImGui::GetStyle().ItemSpacing.x * 2);
+  const int index = state_->current_color_index;
+  if (index >= 8 || index >= palette.size()) {
+    ImGui::TextDisabled("?");
+    HOVER_HINT("Selected palette index is unavailable");
+    ImGui::EndGroup();
+    ImGui::PopStyleVar();
+    return;
+  }
+  ImGui::ColorButton("##CurrentColor", display_color(index), kSwatchFlags,
+                     ImVec2(swatch_size, swatch_size));
+  gui::AutoRegisterLastItem("color", "Current color");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(tr("Current color: %d%s"), index,
+                      index == 0 ? tr(" (transparent)") : "");
+  }
+  ImGui::EndGroup();
+  ImGui::PopStyleVar();
+  palette_reorder_.Draw(*state_, apply_palette_reorder_, HasActiveStroke());
 }
 
 void PixelEditorPanel::DrawMiniMap() {
-  ImGui::Text(tr("Navigator"));
-
   if (state_->open_sheets.empty()) {
     ImGui::TextDisabled(tr("No sheet"));
     return;
   }
 
-  auto& sheet =
-      gfx::Arena::Get().mutable_gfx_sheets()->at(state_->current_sheet_id);
+  auto& sheet = DisplaySheet();
   if (!sheet.texture())
     return;
 
@@ -570,7 +869,8 @@ void PixelEditorPanel::DrawMiniMap() {
 
   ImGui::GetWindowDrawList()->AddImage(
       (ImTextureID)(intptr_t)sheet.texture(), pos,
-      ImVec2(pos.x + mini_width, pos.y + mini_height));
+      ImVec2(pos.x + mini_width, pos.y + mini_height), ImVec2(0, 0),
+      ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 
   // Draw viewport rectangle
   // TODO: Calculate actual viewport bounds based on scroll position
@@ -580,52 +880,68 @@ void PixelEditorPanel::DrawMiniMap() {
 
 void PixelEditorPanel::DrawStatusBar() {
   ImGui::Separator();
-
-  // Tool name
-  ImGui::Text("%s", state_->GetToolName());
-  ImGui::SameLine();
-
-  // Cursor position
-  if (cursor_in_canvas_) {
-    ImGui::Text(tr("Pos: %d, %d"), cursor_x_, cursor_y_);
-    ImGui::SameLine();
-
-    // Tile coordinates, the tile's index in the sheet, and the color there
-    int tile_x = cursor_x_ / 8;
-    int tile_y = cursor_y_ / 8;
-    ImGui::Text(tr("Tile: %d, %d (#%d)"), tile_x, tile_y, tile_y * 16 + tile_x);
-    ImGui::SameLine();
-    const auto& sheet =
-        gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
-    if (sheet.is_active() && cursor_x_ < sheet.width() &&
-        cursor_y_ < sheet.height()) {
-      ImGui::Text(tr("Color: %d"), sheet.GetPixel(cursor_x_, cursor_y_));
-      ImGui::SameLine();
-    }
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                      ImVec2(4, ImGui::GetStyle().ItemSpacing.y));
+  const float button_size = ImGui::GetFrameHeight();
+  if (PixelIconButton(ICON_MD_ZOOM_OUT, button_size)) {
+    state_->ZoomOut();
   }
-  ImGui::Text(tr("Brush color: %d"), state_->current_color_index);
+  gui::AutoRegisterLastItem("button", "Zoom out");
+  HOVER_HINT("Zoom out (-)");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(ImGui::CalcTextSize("16x").x + button_size + 8);
+  if (ImGui::BeginCombo("##PixelZoom",
+                        absl::StrFormat("%.0fx", state_->zoom_level).c_str())) {
+    for (int zoom = 1; zoom <= 16; ++zoom) {
+      if (ImGui::Selectable(absl::StrFormat("%dx", zoom).c_str(),
+                            state_->zoom_level == zoom)) {
+        state_->SetZoom(zoom);
+      }
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::SameLine();
+  if (PixelIconButton(ICON_MD_ZOOM_IN, button_size)) {
+    state_->ZoomIn();
+  }
+  gui::AutoRegisterLastItem("button", "Zoom in");
+  HOVER_HINT("Zoom in (+)");
+  ImGui::SameLine();
+  if (ImGui::Button(tr("Fit"))) {
+    fit_canvas_requested_ = true;
+  }
+  gui::AutoRegisterLastItem("button", "Fit sheet");
+  HOVER_HINT("Fit this sheet at an integer zoom and reset panning");
   ImGui::SameLine();
 
-  // Sheet info
-  ImGui::Text(tr("Sheet: %02X"), state_->current_sheet_id);
-  ImGui::SameLine();
-
+  std::string status = absl::StrFormat(
+      "%s | %02X | %s %d", state_->GetToolName(), state_->current_sheet_id,
+      tr("Color"), state_->current_color_index);
+  if (cursor_in_canvas_) {
+    absl::StrAppendFormat(&status, " | %d,%d | %s %d", cursor_x_, cursor_y_,
+                          tr("Tile"), cursor_y_ / 8 * 16 + cursor_x_ / 8);
+  }
   if (state_->tile_highlight.active &&
       state_->tile_highlight.sheet_id == state_->current_sheet_id) {
-    ImGui::TextColored(gui::GetWarningColor(), tr("Focus: %d"),
-                       state_->tile_highlight.tile_index);
-    ImGui::SameLine();
+    absl::StrAppendFormat(&status, " | %s %d", tr("Focus"),
+                          state_->tile_highlight.tile_index);
   }
-
-  // Modified indicator
-  if (state_->modified_sheets.count(state_->current_sheet_id) > 0) {
-    ImGui::TextColored(gui::GetModifiedColor(), tr("(Modified)"));
+  if (state_->modified_sheets.contains(state_->current_sheet_id)) {
+    status += tr(" | Modified");
   }
-
-  // Zoom level
-  ImGui::SameLine();
-  ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 80);
-  ImGui::Text(tr("Zoom: %.0fx"), state_->zoom_level);
+  if (!history_error_.empty())
+    status += " | " + history_error_;
+  // Long cursor/source metadata must not push view controls off a small panel.
+  ImGui::BeginChild(
+      "##PixelStatus", ImVec2(0, button_size), false,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(status.c_str());
+  if (ImGui::IsWindowHovered()) {
+    ImGui::SetTooltip("%s", status.c_str());
+  }
+  ImGui::EndChild();
+  ImGui::PopStyleVar();
 }
 
 void PixelEditorPanel::HandleCanvasInput() {
@@ -655,6 +971,7 @@ void PixelEditorPanel::HandleCanvasInput() {
   // Mouse button handling
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     is_drawing_ = true;
+    gesture_tool_ = state_->current_tool;
     tool_start_pixel_ =
         ImVec2(static_cast<float>(cursor_x_), static_cast<float>(cursor_y_));
     last_mouse_pixel_ = tool_start_pixel_;
@@ -716,10 +1033,27 @@ void PixelEditorPanel::HandleCanvasInput() {
         ImVec2(static_cast<float>(cursor_x_), static_cast<float>(cursor_y_));
   }
 
-  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && is_drawing_) {
-    is_drawing_ = false;
+  if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && is_drawing_)
+    FinishGesture();
+}
 
-    switch (state_->current_tool) {
+void PixelEditorPanel::FinishReleasedGesture() {
+  if (is_drawing_ && !ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    // The canvas release path already handles the current endpoint. This is
+    // the outside/hidden-panel fallback, so retain the last valid drag point.
+    cursor_x_ = static_cast<int>(last_mouse_pixel_.x);
+    cursor_y_ = static_cast<int>(last_mouse_pixel_.y);
+    FinishGesture();
+  }
+}
+
+void PixelEditorPanel::FinishGesture() {
+  if ((is_drawing_ || stroke_) && ActiveSheetStore(*state_) == nullptr)
+    return;
+  if (is_drawing_) {
+    // Use the last point inside the canvas, never the control released over.
+    // Explicit sheet navigation calls this before changing the selected sheet.
+    switch (gesture_tool_) {
       case PixelTool::kLine:
         DrawLine(static_cast<int>(tool_start_pixel_.x),
                  static_cast<int>(tool_start_pixel_.y), cursor_x_, cursor_y_);
@@ -735,12 +1069,10 @@ void PixelEditorPanel::HandleCanvasInput() {
       default:
         break;
     }
-
-    // One store revision and one undo step for the whole stroke
-    EndStroke();
-
-    show_tool_preview_ = false;
   }
+  is_drawing_ = false;
+  show_tool_preview_ = false;
+  EndStroke();
 }
 
 void PixelEditorPanel::ApplyPencil(int x, int y) {
@@ -838,15 +1170,6 @@ void PixelEditorPanel::ApplyEyedropper(int x, int y) {
 
   if (x >= 0 && x < sheet.width() && y >= 0 && y < sheet.height()) {
     state_->current_color_index = sheet.GetPixel(x, y);
-
-    // Update current color display
-    auto palette = sheet.palette();
-    if (state_->current_color_index < palette.size()) {
-      auto& color = palette[state_->current_color_index];
-      state_->current_color =
-          ImVec4(color.rgb().x / 255.0f, color.rgb().y / 255.0f,
-                 color.rgb().z / 255.0f, 1.0f);
-    }
   }
 }
 
@@ -960,7 +1283,7 @@ void PixelEditorPanel::EndSelection() {
       }
     }
 
-    state_->selection.palette = sheet.palette();
+    state_->selection.palette = DisplayPalette();
   }
 }
 
@@ -1098,7 +1421,7 @@ void PixelEditorPanel::DrawPixelGrids(float canvas_width, float canvas_height) {
     }
   };
   if (state_->show_pixel_grid && zoom >= 6.0f) {
-    lines(zoom, IM_COL32(255, 255, 255, 28), 1.0f);
+    lines(zoom, ImGui::GetColorU32(IM_COL32(255, 255, 255, 28)), 1.0f);
   }
   if (state_->show_tile_boundaries) {
     lines(16.0f * zoom, ImGui::GetColorU32(gui::GetInfoColor()), 1.5f);
@@ -1106,38 +1429,19 @@ void PixelEditorPanel::DrawPixelGrids(float canvas_width, float canvas_height) {
 }
 
 void PixelEditorPanel::DrawPaletteRowPicker() {
-  ImGui::TextUnformatted(tr("Palette row"));
-  int row = static_cast<int>(state_->sub_palette_index);
-  const bool can_apply = static_cast<bool>(state_->apply_palette_to_sheet) &&
-                         !state_->open_sheets.empty();
-  ImGui::BeginDisabled(!can_apply);
-  if (ImGui::ArrowButton("##RowDown", ImGuiDir_Left) && row > 0) {
-    --row;
+  if (state_->SourceTarget()) {
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextDisabled("%s", tr("Source colors"));
+    HOVER_HINT("Colors resolved by the source editor");
+    return;
   }
-  ImGui::SameLine();
-  ImGui::Text("%d", row);
-  ImGui::SameLine();
-  if (ImGui::ArrowButton("##RowUp", ImGuiDir_Right) && row < 7) {
-    ++row;
-  }
-  ImGui::EndDisabled();
-  HOVER_HINT(
-      "Row of the palette chosen in Palette Controls; applied to this "
-      "sheet at once");
-  if (row != static_cast<int>(state_->sub_palette_index) && can_apply) {
-    state_->sub_palette_index = static_cast<uint64_t>(row);
-    state_->apply_palette_to_sheet(state_->current_sheet_id);
-  }
-  ImGui::TextDisabled(tr("group %d, palette %d"),
-                      static_cast<int>(state_->palette_group_index),
-                      static_cast<int>(state_->palette_index));
-  ImGui::Separator();
+  DrawGraphicsPreviewPaletteSelector(*state_,
+                                     GraphicsPaletteSelectorLayout::kInline);
 }
 
 SheetColors PixelEditorPanel::CurrentSheetColors() const {
   SheetColors colors{};
-  const auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
-  const auto& palette = sheet.palette();
+  const auto& palette = DisplayPalette();
   for (size_t i = 0; i < colors.size(); ++i) {
     if (i < palette.size()) {
       const ImVec4 rgb = palette[i].rgb();  // 0-255 components
@@ -1424,7 +1728,8 @@ void PixelEditorPanel::DrawFloatingPaste() {
       const ImVec2 p0 = PixelToScreen(selection.x + dx, selection.y + dy);
       const ImVec2 p1 =
           PixelToScreen(selection.x + dx + 1, selection.y + dy + 1);
-      draw_list->AddRectFilled(p0, p1, IM_COL32(rgb[0], rgb[1], rgb[2], 230));
+      draw_list->AddRectFilled(
+          p0, p1, ImGui::GetColorU32(IM_COL32(rgb[0], rgb[1], rgb[2], 230)));
     }
   }
   draw_list->AddRect(PixelToScreen(selection.x, selection.y),

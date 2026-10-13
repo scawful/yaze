@@ -16,6 +16,10 @@ namespace yaze::editor {
 
 class OracleValidationPanel : public WindowContent {
  public:
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::Diagnostic().WithHost(
+        "Tools > Hack Workflows > Validation");
+  }
   ~OracleValidationPanel() override;
 
   std::string GetId() const override;

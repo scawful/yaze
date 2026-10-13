@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include "miniz.h"
 #include "nlohmann/json.hpp"
+#include "unique_temp_path.h"
 
 namespace yaze::cli {
 namespace {
@@ -27,9 +28,7 @@ using json = nlohmann::json;
 struct ScopedTempDir {
   fs::path path;
   ScopedTempDir() {
-    path = fs::temp_directory_path() / ("yaze_pba_test_" +
-           std::to_string(std::hash<std::string>{}(
-               std::to_string(reinterpret_cast<uintptr_t>(this)))));
+    path = ::yaze::test::UniqueTempPath("yaze_pba_test");
     fs::create_directories(path);
   }
   ~ScopedTempDir() {
@@ -48,8 +47,7 @@ void CreateBundle(const fs::path& bundle_dir) {
     file << "[project]\nname=ArchiveTest\n\n[files]\nrom_filename=rom\n";
   }
   {
-    std::ofstream file(bundle_dir / "rom",
-                       std::ios::out | std::ios::binary);
+    std::ofstream file(bundle_dir / "rom", std::ios::out | std::ios::binary);
     std::vector<char> rom_data(0x8000, 0);
     file.write(rom_data.data(), static_cast<std::streamsize>(rom_data.size()));
   }
@@ -67,8 +65,8 @@ void CreateBundle(const fs::path& bundle_dir) {
 TEST(ProjectBundlePackTest, MissingProjectArgFails) {
   handlers::ProjectBundlePackCommandHandler handler;
   std::string out;
-  auto status = handler.Run({"--out=/tmp/x.zip", "--format=json"},
-                            nullptr, &out);
+  auto status =
+      handler.Run({"--out=/tmp/x.zip", "--format=json"}, nullptr, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
 }
@@ -76,8 +74,8 @@ TEST(ProjectBundlePackTest, MissingProjectArgFails) {
 TEST(ProjectBundlePackTest, MissingOutArgFails) {
   handlers::ProjectBundlePackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--project=/tmp/x.yazeproj", "--format=json"}, nullptr, &out);
+  auto status = handler.Run({"--project=/tmp/x.yazeproj", "--format=json"},
+                            nullptr, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
 }
@@ -89,10 +87,10 @@ TEST(ProjectBundlePackTest, NonYazeprojExtensionFails) {
 
   handlers::ProjectBundlePackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--project=" + bad.string(), "--out=" + (tmp.path / "out.zip").string(),
-       "--format=json"},
-      nullptr, &out);
+  auto status =
+      handler.Run({"--project=" + bad.string(),
+                   "--out=" + (tmp.path / "out.zip").string(), "--format=json"},
+                  nullptr, &out);
   EXPECT_FALSE(status.ok());
 }
 
@@ -100,8 +98,7 @@ TEST(ProjectBundlePackTest, NonexistentProjectFails) {
   handlers::ProjectBundlePackCommandHandler handler;
   std::string out;
   auto status = handler.Run(
-      {"--project=/tmp/nope.yazeproj", "--out=/tmp/nope.zip",
-       "--format=json"},
+      {"--project=/tmp/nope.yazeproj", "--out=/tmp/nope.zip", "--format=json"},
       nullptr, &out);
   EXPECT_FALSE(status.ok());
 }
@@ -111,14 +108,16 @@ TEST(ProjectBundlePackTest, OutputExistsWithoutOverwriteFails) {
   fs::path bundle = tmp.path / "Test.yazeproj";
   CreateBundle(bundle);
   fs::path zip_out = tmp.path / "out.zip";
-  { std::ofstream touch(zip_out); touch << "x"; }
+  {
+    std::ofstream touch(zip_out);
+    touch << "x";
+  }
 
   handlers::ProjectBundlePackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--project=" + bundle.string(), "--out=" + zip_out.string(),
-       "--format=json"},
-      nullptr, &out);
+  auto status = handler.Run({"--project=" + bundle.string(),
+                             "--out=" + zip_out.string(), "--format=json"},
+                            nullptr, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists);
 }
@@ -135,10 +134,9 @@ TEST(ProjectBundlePackTest, PacksValidBundle) {
 
   handlers::ProjectBundlePackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--project=" + bundle.string(), "--out=" + zip_out.string(),
-       "--format=json"},
-      nullptr, &out);
+  auto status = handler.Run({"--project=" + bundle.string(),
+                             "--out=" + zip_out.string(), "--format=json"},
+                            nullptr, &out);
   EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
 
   auto doc = json::parse(out, nullptr, false);
@@ -156,8 +154,7 @@ TEST(ProjectBundlePackTest, PacksValidBundle) {
 TEST(ProjectBundleUnpackTest, MissingArchiveArgFails) {
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
-  auto status = handler.Run({"--out=/tmp/x", "--format=json"},
-                            nullptr, &out);
+  auto status = handler.Run({"--out=/tmp/x", "--format=json"}, nullptr, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
 }
@@ -165,8 +162,8 @@ TEST(ProjectBundleUnpackTest, MissingArchiveArgFails) {
 TEST(ProjectBundleUnpackTest, MissingOutArgFails) {
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
-  auto status = handler.Run({"--archive=/tmp/x.zip", "--format=json"},
-                            nullptr, &out);
+  auto status =
+      handler.Run({"--archive=/tmp/x.zip", "--format=json"}, nullptr, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
 }
@@ -192,12 +189,12 @@ TEST(ProjectBundleUnpackTest, RejectsPathTraversal) {
   {
     mz_zip_archive zip;
     std::memset(&zip, 0, sizeof(zip));
-    ASSERT_TRUE(mz_zip_writer_init_file(&zip, malicious_zip.string().c_str(),
-                                         0));
+    ASSERT_TRUE(
+        mz_zip_writer_init_file(&zip, malicious_zip.string().c_str(), 0));
     const char* payload = "malicious content";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "../evil.txt", payload,
-                                       std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }
@@ -206,10 +203,9 @@ TEST(ProjectBundleUnpackTest, RejectsPathTraversal) {
   fs::path unpack_dir = tmp.path / "unpack_target";
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--archive=" + malicious_zip.string(),
-       "--out=" + unpack_dir.string(), "--format=json"},
-      nullptr, &out);
+  auto status = handler.Run({"--archive=" + malicious_zip.string(),
+                             "--out=" + unpack_dir.string(), "--format=json"},
+                            nullptr, &out);
 
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
@@ -227,12 +223,11 @@ TEST(ProjectBundleUnpackTest, RejectsNestedTraversal) {
   {
     mz_zip_archive zip;
     std::memset(&zip, 0, sizeof(zip));
-    ASSERT_TRUE(mz_zip_writer_init_file(&zip,
-                                         nested_zip.string().c_str(), 0));
+    ASSERT_TRUE(mz_zip_writer_init_file(&zip, nested_zip.string().c_str(), 0));
     const char* payload = "escaped";
-    ASSERT_TRUE(mz_zip_writer_add_mem(
-        &zip, "bundle/../../../escaped.txt", payload, std::strlen(payload),
-        MZ_DEFAULT_COMPRESSION));
+    ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "bundle/../../../escaped.txt",
+                                      payload, std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }
@@ -240,10 +235,9 @@ TEST(ProjectBundleUnpackTest, RejectsNestedTraversal) {
   fs::path unpack_dir = tmp.path / "unpack_nested";
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--archive=" + nested_zip.string(),
-       "--out=" + unpack_dir.string(), "--format=json"},
-      nullptr, &out);
+  auto status = handler.Run({"--archive=" + nested_zip.string(),
+                             "--out=" + unpack_dir.string(), "--format=json"},
+                            nullptr, &out);
 
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
@@ -259,8 +253,7 @@ TEST(ProjectBundleUnpackTest, TraversalAfterValidEntryCleansUpByDefault) {
   {
     mz_zip_archive zip;
     std::memset(&zip, 0, sizeof(zip));
-    ASSERT_TRUE(
-        mz_zip_writer_init_file(&zip, mixed_zip.string().c_str(), 0));
+    ASSERT_TRUE(mz_zip_writer_init_file(&zip, mixed_zip.string().c_str(), 0));
     const char* payload = "ok";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "good.txt", payload,
                                       std::strlen(payload),
@@ -275,10 +268,9 @@ TEST(ProjectBundleUnpackTest, TraversalAfterValidEntryCleansUpByDefault) {
   fs::path unpack_dir = tmp.path / "unpack_mixed";
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--archive=" + mixed_zip.string(),
-       "--out=" + unpack_dir.string(), "--format=json"},
-      nullptr, &out);
+  auto status = handler.Run({"--archive=" + mixed_zip.string(),
+                             "--out=" + unpack_dir.string(), "--format=json"},
+                            nullptr, &out);
 
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
@@ -289,15 +281,15 @@ TEST(ProjectBundleUnpackTest, TraversalAfterValidEntryCleansUpByDefault) {
   EXPECT_FALSE(fs::exists(unpack_dir));
 }
 
-TEST(ProjectBundleUnpackTest, TraversalAfterValidEntryKeepPartialPreservesOutput) {
+TEST(ProjectBundleUnpackTest,
+     TraversalAfterValidEntryKeepPartialPreservesOutput) {
   ScopedTempDir tmp;
 
   fs::path mixed_zip = tmp.path / "mixed_keep.zip";
   {
     mz_zip_archive zip;
     std::memset(&zip, 0, sizeof(zip));
-    ASSERT_TRUE(
-        mz_zip_writer_init_file(&zip, mixed_zip.string().c_str(), 0));
+    ASSERT_TRUE(mz_zip_writer_init_file(&zip, mixed_zip.string().c_str(), 0));
     const char* payload = "ok";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "good.txt", payload,
                                       std::strlen(payload),
@@ -313,8 +305,7 @@ TEST(ProjectBundleUnpackTest, TraversalAfterValidEntryKeepPartialPreservesOutput
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
   auto status = handler.Run(
-      {"--archive=" + mixed_zip.string(),
-       "--out=" + unpack_dir.string(),
+      {"--archive=" + mixed_zip.string(), "--out=" + unpack_dir.string(),
        "--keep-partial-output", "--format=json"},
       nullptr, &out);
 
@@ -338,8 +329,8 @@ TEST(ProjectBundleUnpackTest, NonBundleZipFails) {
     ASSERT_TRUE(mz_zip_writer_init_file(&zip, plain_zip.string().c_str(), 0));
     const char* payload = "just a text file";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "foo.txt", payload,
-                                       std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }
@@ -347,10 +338,9 @@ TEST(ProjectBundleUnpackTest, NonBundleZipFails) {
   fs::path unpack_dir = tmp.path / "unpack_plain";
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--archive=" + plain_zip.string(),
-       "--out=" + unpack_dir.string(), "--format=json"},
-      nullptr, &out);
+  auto status = handler.Run({"--archive=" + plain_zip.string(),
+                             "--out=" + unpack_dir.string(), "--format=json"},
+                            nullptr, &out);
 
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
@@ -376,10 +366,9 @@ TEST(ProjectBundleArchiveTest, RoundTripPackUnpackVerify) {
   {
     handlers::ProjectBundlePackCommandHandler handler;
     std::string out;
-    auto status = handler.Run(
-        {"--project=" + bundle.string(), "--out=" + zip_out.string(),
-         "--format=json"},
-        nullptr, &out);
+    auto status = handler.Run({"--project=" + bundle.string(),
+                               "--out=" + zip_out.string(), "--format=json"},
+                              nullptr, &out);
     ASSERT_TRUE(status.ok()) << "Pack failed: " << status.message();
     ASSERT_TRUE(fs::exists(zip_out));
   }
@@ -388,12 +377,11 @@ TEST(ProjectBundleArchiveTest, RoundTripPackUnpackVerify) {
   {
     handlers::ProjectBundleUnpackCommandHandler handler;
     std::string out;
-    auto status = handler.Run(
-        {"--archive=" + zip_out.string(), "--out=" + unpack_dir.string(),
-         "--format=json"},
-        nullptr, &out);
-    ASSERT_TRUE(status.ok()) << "Unpack failed: " << status.message()
-                             << "\n" << out;
+    auto status = handler.Run({"--archive=" + zip_out.string(),
+                               "--out=" + unpack_dir.string(), "--format=json"},
+                              nullptr, &out);
+    ASSERT_TRUE(status.ok()) << "Unpack failed: " << status.message() << "\n"
+                             << out;
 
     auto doc = json::parse(out, nullptr, false);
     ASSERT_FALSE(doc.is_discarded());
@@ -410,11 +398,11 @@ TEST(ProjectBundleArchiveTest, RoundTripPackUnpackVerify) {
 
     handlers::ProjectBundleVerifyCommandHandler handler;
     std::string out;
-    auto status = handler.Run(
-        {"--project=" + unpacked_bundle.string(), "--format=json"},
-        nullptr, &out);
-    EXPECT_TRUE(status.ok()) << "Verify failed: " << status.message()
-                             << "\n" << out;
+    auto status =
+        handler.Run({"--project=" + unpacked_bundle.string(), "--format=json"},
+                    nullptr, &out);
+    EXPECT_TRUE(status.ok()) << "Verify failed: " << status.message() << "\n"
+                             << out;
 
     auto doc = json::parse(out, nullptr, false);
     ASSERT_FALSE(doc.is_discarded());
@@ -443,10 +431,9 @@ TEST(ProjectBundlePackTest, OverwriteAllowsReplace) {
   {
     handlers::ProjectBundlePackCommandHandler handler;
     std::string out;
-    handler.Run(
-        {"--project=" + bundle.string(), "--out=" + zip_out.string(),
-         "--format=json"},
-        nullptr, &out);
+    handler.Run({"--project=" + bundle.string(), "--out=" + zip_out.string(),
+                 "--format=json"},
+                nullptr, &out);
   }
 
   // Second pack with --overwrite
@@ -473,10 +460,9 @@ TEST(ProjectBundlePackTest, ZipEntryNamesUseForwardSlashes) {
 
   handlers::ProjectBundlePackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--project=" + bundle.string(), "--out=" + zip_out.string(),
-       "--format=json"},
-      nullptr, &out);
+  auto status = handler.Run({"--project=" + bundle.string(),
+                             "--out=" + zip_out.string(), "--format=json"},
+                            nullptr, &out);
   ASSERT_TRUE(status.ok()) << status.message();
 
   // Read zip and verify all entry names use forward slashes only
@@ -489,8 +475,8 @@ TEST(ProjectBundlePackTest, ZipEntryNamesUseForwardSlashes) {
 
   for (int idx = 0; idx < num_files; ++idx) {
     mz_zip_archive_file_stat file_stat;
-    ASSERT_TRUE(mz_zip_reader_file_stat(&zip, static_cast<mz_uint>(idx),
-                                         &file_stat));
+    ASSERT_TRUE(
+        mz_zip_reader_file_stat(&zip, static_cast<mz_uint>(idx), &file_stat));
     std::string entry_name(file_stat.m_filename);
     EXPECT_EQ(entry_name.find('\\'), std::string::npos)
         << "Backslash in zip entry: " << entry_name;
@@ -514,7 +500,8 @@ TEST(ProjectBundleUnpackTest, OverwriteClearsStaleFiles) {
     handlers::ProjectBundlePackCommandHandler handler;
     std::string out;
     handler.Run({"--project=" + bundle.string(), "--out=" + zip_out.string(),
-                 "--format=json"}, nullptr, &out);
+                 "--format=json"},
+                nullptr, &out);
   }
   {
     handlers::ProjectBundleUnpackCommandHandler handler;
@@ -526,7 +513,10 @@ TEST(ProjectBundleUnpackTest, OverwriteClearsStaleFiles) {
 
   // Plant a stale file in the unpacked output
   fs::path stale_file = unpack_dir / "Stale.yazeproj" / "STALE_FILE.txt";
-  { std::ofstream stale(stale_file); stale << "should be removed"; }
+  {
+    std::ofstream stale(stale_file);
+    stale << "should be removed";
+  }
   ASSERT_TRUE(fs::exists(stale_file));
 
   // Unpack again with --overwrite
@@ -564,8 +554,8 @@ TEST(ProjectBundleUnpackTest, NonBundleZipCleansUpByDefault) {
     ASSERT_TRUE(mz_zip_writer_init_file(&zip, plain_zip.string().c_str(), 0));
     const char* payload = "plain file";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "just_a_file.txt", payload,
-                                       std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }
@@ -573,10 +563,9 @@ TEST(ProjectBundleUnpackTest, NonBundleZipCleansUpByDefault) {
   fs::path unpack_dir = tmp.path / "unpack_partial";
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
-  auto status = handler.Run(
-      {"--archive=" + plain_zip.string(),
-       "--out=" + unpack_dir.string(), "--format=json"},
-      nullptr, &out);
+  auto status = handler.Run({"--archive=" + plain_zip.string(),
+                             "--out=" + unpack_dir.string(), "--format=json"},
+                            nullptr, &out);
 
   // Should fail (not a bundle)
   EXPECT_FALSE(status.ok());
@@ -604,8 +593,8 @@ TEST(ProjectBundleUnpackTest, KeepPartialOutputPreservesFilesOnFailure) {
     ASSERT_TRUE(mz_zip_writer_init_file(&zip, plain_zip.string().c_str(), 0));
     const char* payload = "debug content";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "debug.txt", payload,
-                                       std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }
@@ -614,8 +603,7 @@ TEST(ProjectBundleUnpackTest, KeepPartialOutputPreservesFilesOnFailure) {
   handlers::ProjectBundleUnpackCommandHandler handler;
   std::string out;
   auto status = handler.Run(
-      {"--archive=" + plain_zip.string(),
-       "--out=" + unpack_dir.string(),
+      {"--archive=" + plain_zip.string(), "--out=" + unpack_dir.string(),
        "--keep-partial-output", "--format=json"},
       nullptr, &out);
 
@@ -648,7 +636,8 @@ TEST(ProjectBundleUnpackTest, DryRunDoesNotCreateFiles) {
     handlers::ProjectBundlePackCommandHandler handler;
     std::string out;
     handler.Run({"--project=" + bundle.string(), "--out=" + zip_out.string(),
-                 "--format=json"}, nullptr, &out);
+                 "--format=json"},
+                nullptr, &out);
   }
 
   // Unpack with --dry-run
@@ -690,10 +679,9 @@ TEST(ProjectBundleUnpackTest, DryRunOverwriteDoesNotDeleteExistingOutput) {
   {
     handlers::ProjectBundlePackCommandHandler handler;
     std::string out;
-    auto status = handler.Run(
-        {"--project=" + bundle.string(), "--out=" + zip_out.string(),
-         "--format=json"},
-        nullptr, &out);
+    auto status = handler.Run({"--project=" + bundle.string(),
+                               "--out=" + zip_out.string(), "--format=json"},
+                              nullptr, &out);
     ASSERT_TRUE(status.ok()) << status.message() << "\n" << out;
   }
 
@@ -722,8 +710,8 @@ TEST(ProjectBundleUnpackTest, DryRunAllowsDoubleDotInsideFilenameComponent) {
     std::memset(&zip, 0, sizeof(zip));
     ASSERT_TRUE(mz_zip_writer_init_file(&zip, zip_path.string().c_str(), 0));
     const char* payload = "x";
-    ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "Good.yazeproj/project.yaze", payload,
-                                      std::strlen(payload),
+    ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "Good.yazeproj/project.yaze",
+                                      payload, std::strlen(payload),
                                       MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "Good.yazeproj/a..b.txt", payload,
                                       std::strlen(payload),
@@ -756,8 +744,8 @@ TEST(ProjectBundleUnpackTest, DryRunDetectsTraversal) {
     ASSERT_TRUE(mz_zip_writer_init_file(&zip, evil_zip.string().c_str(), 0));
     const char* payload = "bad";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "../escape.txt", payload,
-                                       std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }
@@ -787,8 +775,8 @@ TEST(ProjectBundleUnpackTest, DryRunNonBundleReportsFail) {
     ASSERT_TRUE(mz_zip_writer_init_file(&zip, plain_zip.string().c_str(), 0));
     const char* payload = "just text";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "readme.txt", payload,
-                                       std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }
@@ -821,11 +809,11 @@ TEST(ProjectBundleUnpackTest, DryRunMixedRootsReportsFail) {
     ASSERT_TRUE(mz_zip_writer_init_file(&zip, mixed_zip.string().c_str(), 0));
     const char* payload = "x";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "A.yazeproj/project.yaze", payload,
-                                       std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "B.yazeproj/rom", payload,
-                                       std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }
@@ -855,12 +843,11 @@ TEST(ProjectBundleUnpackTest, DryRunMissingProjectYazeReportsFail) {
   {
     mz_zip_archive zip;
     std::memset(&zip, 0, sizeof(zip));
-    ASSERT_TRUE(
-        mz_zip_writer_init_file(&zip, no_proj_zip.string().c_str(), 0));
+    ASSERT_TRUE(mz_zip_writer_init_file(&zip, no_proj_zip.string().c_str(), 0));
     const char* payload = "x";
     ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "NoProj.yazeproj/readme.txt",
-                                       payload, std::strlen(payload),
-                                       MZ_DEFAULT_COMPRESSION));
+                                      payload, std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
     ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
     mz_zip_writer_end(&zip);
   }

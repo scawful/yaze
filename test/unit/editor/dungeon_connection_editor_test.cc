@@ -318,6 +318,31 @@ TEST_F(DungeonConnectionEditorTest, ReadOnlyViewCanInspectAndOpenTarget) {
   EXPECT_NE(logged_text_.find("This view is read-only"), std::string::npos);
 }
 
+TEST_F(DungeonConnectionEditorTest,
+       SharedInspectorReadOnlyDoorCanOpenReturnWithoutApplying) {
+  rooms_[0x01].GetDoors().push_back(
+      MakeDoor(6, Type::NormalDoor, Direction::South));
+  viewer_.object_interaction().SelectEntity(EntityType::Door, 0);
+  viewer_.SetHeaderReadOnly(true);
+  shared_inspector_ = true;
+  int jumped_room = -1;
+  size_t jumped_index = 100;
+  jump_ = [&](int room_id, size_t index) {
+    jumped_room = room_id;
+    jumped_index = index;
+  };
+  Prepare();
+  ASSERT_TRUE(Widget("ConnectionApply"));
+  EXPECT_FALSE(Widget("ConnectionApply")->enabled);
+  ASSERT_TRUE(Widget("ConnectionOpenTarget"));
+  EXPECT_TRUE(Widget("ConnectionOpenTarget")->enabled);
+  Click("ConnectionOpenTarget");
+  EXPECT_EQ(jumped_room, 0x01);
+  EXPECT_EQ(jumped_index, 0);
+  EXPECT_EQ(attempts_, 0);
+  EXPECT_EQ(changes_, 0);
+}
+
 TEST_F(DungeonConnectionEditorTest, ExistingReturnUsesSuppliedSelectionJump) {
   rooms_[0x01].GetDoors() = {MakeDoor(8, Type::NormalDoor, Direction::South),
                              MakeDoor(6, Type::NormalDoor, Direction::South)};

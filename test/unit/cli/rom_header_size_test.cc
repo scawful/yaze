@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "cli/handlers/rom/mock_rom.h"
+#include "cli/handlers/rom/rom_commands.h"
 #include "cli/handlers/tools/rom_doctor_commands.h"
 #include "rom/rom.h"
 
@@ -62,6 +63,32 @@ TEST(RomHeaderSizeTest, RomDoctorReportsZeroForOutOfRangeSizeCodes) {
   const std::string out = RunDoctorJson(&rom);
   EXPECT_EQ(JsonIntField(out, "rom_size_header"), 0) << out;
   EXPECT_EQ(JsonIntField(out, "sram_size"), 0) << out;
+}
+
+TEST(RomHeaderSizeTest, RomInfoReportsCopierHeader) {
+  // 0x200-byte copier header in front of a 1 MB image.
+  std::vector<uint8_t> file(0x100200, 0x00);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(file).ok());
+  ASSERT_TRUE(rom.has_copier_header());
+
+  handlers::RomInfoCommandHandler handler;
+  std::string out;
+  ASSERT_TRUE(handler.Run({"--format=json"}, &rom, &out).ok()) << out;
+  EXPECT_NE(out.find("\"copier_header\": true"), std::string::npos) << out;
+  EXPECT_EQ(JsonIntField(out, "copier_header_size"), 0x200) << out;
+  EXPECT_EQ(JsonIntField(out, "size_bytes"), 0x100000) << out;
+  EXPECT_NE(out.find("\"file_size\": \"0x100200\""), std::string::npos) << out;
+  EXPECT_NE(out.find("\"copier_header_detection\": \"size_alignment\""),
+            std::string::npos)
+      << out;
+
+  Rom plain;
+  ASSERT_TRUE(plain.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  out.clear();
+  ASSERT_TRUE(handler.Run({"--format=json"}, &plain, &out).ok()) << out;
+  EXPECT_NE(out.find("\"copier_header\": false"), std::string::npos) << out;
+  EXPECT_EQ(JsonIntField(out, "copier_header_size"), 0) << out;
 }
 
 }  // namespace

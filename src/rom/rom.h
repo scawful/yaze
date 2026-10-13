@@ -13,6 +13,7 @@
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/project.h"
+#include "rom/lyra_layout_descriptor.h"
 #include "rom/rom_diagnostics.h"
 
 namespace yaze {
@@ -20,6 +21,26 @@ namespace yaze {
 namespace rom {
 class WriteFence;
 }  // namespace rom
+
+/// Size of the SMC/SWC copier header that some ROM dumps start with.
+inline constexpr size_t kCopierHeaderSize = 0x200;
+
+/// Why a copier header was recognized at the start of a ROM file.
+enum class CopierHeaderReason {
+  kNone,
+  // File size % 0x8000 == 0x200: the standard copier-header layout.
+  kSizeAlignment,
+  // Nonstandard file size (neither a 32 KB multiple nor one plus 0x200), but
+  // the SNES internal header is valid only 0x200 bytes into the file.
+  // LYRA-v038b.smc (0x10083B bytes) is this case.
+  kInternalHeaderOffset,
+};
+
+/// Returns how a copier header was recognized in `data`, or kNone. A file
+/// whose SNES internal header is valid only without skipping 0x200 bytes is
+/// never treated as headered.
+CopierHeaderReason DetectCopierHeader(const uint8_t* data, size_t size);
+const char* CopierHeaderReasonName(CopierHeaderReason reason);
 
 /**
  * @brief The Rom class is used to load, save, and modify Rom data.
@@ -39,6 +60,8 @@ class Rom {
   };
 
   struct LoadOptions {
+    // Detect a copier header (DetectCopierHeader) and keep it out of the ROM
+    // data. The stripped bytes are kept and SaveToFile writes them back.
     bool strip_header = true;
     bool load_resource_labels = true;
 
@@ -58,6 +81,9 @@ class Rom {
       const std::vector<uint8_t>& data,
       const LoadOptions& options = LoadOptions::Defaults());
 
+  // Writes the ROM data. A ROM loaded with a copier header is written with
+  // that header in front (in place or to a new file), so a save never
+  // silently drops the header and an unedited round trip is byte-identical.
   absl::Status SaveToFile(const SaveSettings& settings);
   // Test seam: while set, SaveToFile fails when creating its staging file,
   // after any backup is written and before the destination is replaced.
@@ -75,6 +101,9 @@ class Rom {
   void Close() {
     const bool had_data = !rom_data_.empty();
     rom_data_.clear();
+    copier_header_.clear();
+    copier_header_reason_ = CopierHeaderReason::kNone;
+    lyra_attributed_at_load_ = false;
     size_ = 0;
     if (had_data) {
       AdvanceObjectTileRevision();
@@ -179,6 +208,19 @@ class Rom {
   auto set_filename(std::string_view name) { filename_ = name; }
   auto short_name() const { return short_name_; }
 
+  // Copier header stripped at load (empty when the file had none). size()
+  // and data() never include it.
+  bool has_copier_header() const { return !copier_header_.empty(); }
+  const std::vector<uint8_t>& copier_header() const { return copier_header_; }
+  CopierHeaderReason copier_header_reason() const {
+    return copier_header_reason_;
+  }
+
+  // The parsed result is derived from this ROM's current bytes. Attribution
+  // captured at load prevents a damaged/erased signature from enabling saves.
+  rom::LyraLayoutInspection InspectLyraLayout() const;
+  absl::Status CheckLayoutWritable() const;
+
   // Resource labels are generic enough to keep here
   project::ResourceLabelManager* resource_label() {
     return &resource_label_manager_;
@@ -208,6 +250,11 @@ class Rom {
 
   // Full contiguous rom space
   std::vector<uint8_t> rom_data_;
+
+  // Copier header bytes removed from the front of the file at load.
+  std::vector<uint8_t> copier_header_;
+  CopierHeaderReason copier_header_reason_ = CopierHeaderReason::kNone;
+  bool lyra_attributed_at_load_ = false;
 
   // Label manager for unique resource names.
   project::ResourceLabelManager resource_label_manager_;

@@ -23,6 +23,22 @@ namespace zelda3 {
 
 namespace {
 
+absl::Status CheckPatternSourceReadOnly(int64_t begin, int64_t end) {
+  const auto patterns = CustomObjectManager::Get().GetTilePatterns();
+  if (!patterns.ok())
+    return patterns.status();
+  if (*patterns && begin >= 0) {
+    const auto it =
+        (*patterns)->words.lower_bound(static_cast<uint32_t>(begin));
+    if (it != (*patterns)->words.end() && it->first < end) {
+      return absl::FailedPreconditionError(
+          "Object tile words are supplied by a pattern source; reopen the "
+          "object tile editor to edit the source file");
+    }
+  }
+  return absl::OkStatus();
+}
+
 constexpr int kPaletteBankSize = 16;
 
 gfx::SnesPalette BuildPaddedPaletteBank(const gfx::SnesPalette& source) {
@@ -58,8 +74,53 @@ int ResolvePaletteIndex(const gfx::PaletteGroup& palette, int requested) {
   return 0;
 }
 
-constexpr std::array<int16_t, 2> kEditableStandardObjectIds = {0x11F, 0x120};
-constexpr size_t kFixed2x2SourceWordCount = 4;
+struct EditableShape {
+  int width;
+  int height;
+  bool row_major;
+  uint8_t capture_size;
+  size_t word_count() const { return static_cast<size_t>(width * height); }
+};
+
+std::optional<EditableShape> ShapeForObject(int16_t id) {
+  // Bank 01: Nx4 consumes columns; 4xN consumes rows. Size 1 gives
+  // exactly one repeating wall unit (size 0 means 26 units).
+  if (id == 0x01 || id == 0x02)
+    return EditableShape{2, 4, false, 1};
+  if (id == 0x61 || id == 0x62)
+    return EditableShape{4, 2, true, 1};
+  if (id == 0x03 || id == 0x04)
+    return EditableShape{2, 4, false, 0};
+  if (id == 0x63 || id == 0x64)
+    return EditableShape{4, 2, true, 0};
+  if (id >= 0x100 && id <= 0x107)
+    return EditableShape{4, 4, false, 0};
+  if (id == 0x11F || id == 0x120)
+    return EditableShape{2, 2, false, 0};
+  return std::nullopt;
+}
+
+uint32_t DescriptorForObject(int16_t id) {
+  return id < 0x100 ? kRoomObjectSubtype1 + id * 2
+                    : kRoomObjectSubtype2 + (id - 0x100) * 2;
+}
+
+absl::Status ValidatePatternContext(const DungeonTilePatterns& expected) {
+  const auto active = CustomObjectManager::Get().GetTilePatterns();
+  if (!active.ok())
+    return active.status();
+  if (!*active || (*active)->source_path != expected.source_path) {
+    return absl::AbortedError("Object pattern source changed with the project");
+  }
+  auto current = LoadDungeonTilePatterns(expected.source_path);
+  if (!current.ok())
+    return current.status();
+  if (current->source_text != expected.source_text) {
+    return absl::AbortedError("Object pattern source changed after capture");
+  }
+  return absl::OkStatus();
+}
+
 // The subtype tile-descriptor and routine-pointer tables are contiguous from
 // the first Type-1 descriptor through the two 128-word Type-3 tables. None of
 // this metadata is tile data, so an audited object source must never alias it.
@@ -76,16 +137,16 @@ bool WordRangesOverlap(int64_t lhs_address, int64_t rhs_address) {
                        rhs_address + 2);
 }
 
-absl::StatusOr<size_t> ResolveFixed2x2SourceWordIndex(
-    const ObjectTileLayout::Cell& cell) {
-  if (cell.rel_x < 0 || cell.rel_x > 1 || cell.rel_y < 0 || cell.rel_y > 1) {
+absl::StatusOr<size_t> ResolveSourceWordIndex(
+    const ObjectTileLayout::Cell& cell, const EditableShape& shape) {
+  if (cell.rel_x < 0 || cell.rel_x >= shape.width || cell.rel_y < 0 ||
+      cell.rel_y >= shape.height) {
     return absl::FailedPreconditionError(
-        "Editable object cell is outside the audited 2x2 layout");
+        "Editable object cell is outside the audited layout");
   }
-
-  // RoomDraw_Single2x2 consumes its four source words in column-major order:
-  // visual grid [0 2; 1 3].
-  return static_cast<size_t>(cell.rel_x * 2 + cell.rel_y);
+  return static_cast<size_t>(shape.row_major
+                                 ? cell.rel_y * shape.width + cell.rel_x
+                                 : cell.rel_x * shape.height + cell.rel_y);
 }
 
 }  // namespace
@@ -329,9 +390,7 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
 }
 
 bool ObjectTileEditor::IsEditableStandardObject(int16_t object_id) {
-  return std::find(kEditableStandardObjectIds.begin(),
-                   kEditableStandardObjectIds.end(),
-                   object_id) != kEditableStandardObjectIds.end();
+  return ShapeForObject(object_id).has_value();
 }
 
 absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
@@ -344,8 +403,8 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  const uint32_t descriptor_pc_address =
-      static_cast<uint32_t>(kRoomObjectSubtype2 + (object_id - 0x100) * 2);
+  const auto shape = *ShapeForObject(object_id);
+  const uint32_t descriptor_pc_address = DescriptorForObject(object_id);
   auto descriptor_or = rom_->ReadWord(static_cast<int>(descriptor_pc_address));
   if (!descriptor_or.ok()) {
     return descriptor_or.status();
@@ -354,14 +413,14 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
   const int64_t source_address =
       static_cast<int64_t>(kRoomObjectTileAddress) + descriptor_word;
   if (source_address < 0 ||
-      source_address + static_cast<int64_t>(kFixed2x2SourceWordCount * 2) >
+      source_address + static_cast<int64_t>(shape.word_count() * 2) >
           static_cast<int64_t>(rom_->size()) ||
       source_address > std::numeric_limits<int>::max()) {
     return absl::OutOfRangeError(
         "Editable object tile source is outside the loaded ROM");
   }
   const int64_t source_end =
-      source_address + static_cast<int64_t>(kFixed2x2SourceWordCount * 2);
+      source_address + static_cast<int64_t>(shape.word_count() * 2);
   if (RangesOverlap(source_address, source_end, kObjectMetadataStart,
                     kObjectMetadataEnd)) {
     return absl::FailedPreconditionError(
@@ -369,7 +428,25 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
         "metadata");
   }
 
-  auto layout_or = CaptureObjectLayout(object_id, room, palette);
+  auto patterns = CustomObjectManager::Get().GetTilePatterns();
+  if (!patterns.ok())
+    return patterns.status();
+  std::shared_ptr<const DungeonTilePatterns> pattern_source;
+  if (*patterns) {
+    size_t covered = 0;
+    for (int64_t pc = source_address; pc < source_end; pc += 2) {
+      covered += (*patterns)->words.count(static_cast<uint32_t>(pc));
+    }
+    if (covered != 0 && covered != shape.word_count()) {
+      return absl::FailedPreconditionError(
+          "Object mixes ROM and source-file tiles; edit its complete source "
+          "pattern first");
+    }
+    if (covered)
+      pattern_source = *patterns;
+  }
+  auto layout_or =
+      CaptureObjectLayout(object_id, room, palette, shape.capture_size);
   if (!layout_or.ok()) {
     return layout_or.status();
   }
@@ -379,28 +456,31 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
         "Custom objects do not use standard ROM source provenance");
   }
   if (layout.object_id != object_id ||
-      layout.cells.size() != kFixed2x2SourceWordCount ||
-      layout.bounds_width != 2 || layout.bounds_height != 2) {
+      layout.cells.size() != shape.word_count() ||
+      layout.bounds_width != shape.width ||
+      layout.bounds_height != shape.height) {
     return absl::FailedPreconditionError(
-        "Object draw does not match the audited fixed 2x2 layout");
+        "Object draw does not match the audited source layout");
   }
 
   ObjectTileSourceSpan span;
   span.pc_address = static_cast<uint32_t>(source_address);
-  span.expected_words.reserve(kFixed2x2SourceWordCount);
-  for (size_t word_index = 0; word_index < kFixed2x2SourceWordCount;
-       ++word_index) {
+  span.expected_words.reserve(shape.word_count());
+  for (size_t word_index = 0; word_index < shape.word_count(); ++word_index) {
     auto word_or =
         rom_->ReadWord(static_cast<int>(span.pc_address + word_index * 2));
     if (!word_or.ok()) {
       return word_or.status();
     }
-    span.expected_words.push_back(*word_or);
+    span.expected_words.push_back(
+        pattern_source
+            ? pattern_source->words.at(span.pc_address + word_index * 2)
+            : *word_or);
   }
 
-  std::array<bool, kFixed2x2SourceWordCount> mapped_words{};
+  std::vector<bool> mapped_words(shape.word_count(), false);
   for (auto& cell : layout.cells) {
-    auto source_word_index_or = ResolveFixed2x2SourceWordIndex(cell);
+    auto source_word_index_or = ResolveSourceWordIndex(cell, shape);
     if (!source_word_index_or.ok()) {
       return source_word_index_or.status();
     }
@@ -427,6 +507,7 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
   provenance.descriptor_pc_address = descriptor_pc_address;
   provenance.expected_descriptor_word = descriptor_word;
   provenance.spans.push_back(std::move(span));
+  layout.pattern_source = std::move(pattern_source);
   layout.tile_data_address = static_cast<int>(source_address);
   layout.source_provenance = std::move(provenance);
   return layout;
@@ -477,6 +558,8 @@ absl::Status ObjectTileEditor::RenderLayoutToBitmap(
     drawer.DrawTileToBitmap(bitmap, preview_tile, px, py, room_gfx_buffer);
   }
 
+  // DrawTileToBitmap writes the CPU vector; texture uploads read the surface.
+  bitmap.UpdateSurfacePixels();
   return absl::OkStatus();
 }
 
@@ -531,6 +614,7 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(
     drawer.DrawTileToBitmap(atlas, info, px, py, room_gfx_buffer);
   }
 
+  atlas.UpdateSurfacePixels();
   return absl::OkStatus();
 }
 
@@ -608,20 +692,20 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
         "Standard object tile editing is not supported for this object");
   }
 
+  const auto shape = *ShapeForObject(layout.object_id);
   const auto& provenance = *layout.source_provenance;
   if (provenance.object_id != layout.object_id) {
     return absl::FailedPreconditionError(
         "Object tile source provenance does not match the layout object");
   }
-  const uint32_t expected_descriptor_address = static_cast<uint32_t>(
-      kRoomObjectSubtype2 + (layout.object_id - 0x100) * 2);
+  const uint32_t expected_descriptor_address =
+      DescriptorForObject(layout.object_id);
   if (provenance.descriptor_pc_address != expected_descriptor_address) {
     return absl::FailedPreconditionError(
         "Object tile source descriptor address does not match the object");
   }
   if (provenance.spans.size() != 1 ||
-      provenance.spans.front().expected_words.size() !=
-          kFixed2x2SourceWordCount) {
+      provenance.spans.front().expected_words.size() != shape.word_count()) {
     return absl::FailedPreconditionError(
         "Object tile source provenance does not match the audited source map");
   }
@@ -670,6 +754,12 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
         "metadata");
   }
 
+  if (layout.pattern_source) {
+    RETURN_IF_ERROR(ValidatePatternContext(*layout.pattern_source));
+    plan.pattern_source_ = layout.pattern_source;
+  } else {
+    RETURN_IF_ERROR(CheckPatternSourceReadOnly(span_start, span_end));
+  }
   std::vector<int> precondition_addresses;
   const int descriptor_address =
       static_cast<int>(provenance.descriptor_pc_address);
@@ -688,6 +778,14 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
     }
     precondition_addresses.push_back(address);
     auto current_word_or = rom_->ReadWord(address);
+    if (plan.pattern_source_) {
+      const auto source_word = plan.pattern_source_->words.find(address);
+      if (source_word == plan.pattern_source_->words.end()) {
+        return absl::FailedPreconditionError(
+            "Object source pattern is incomplete");
+      }
+      current_word_or = source_word->second;
+    }
     if (!current_word_or.ok()) {
       return current_word_or.status();
     }
@@ -698,10 +796,11 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
     plan.preconditions_.push_back({address, span.expected_words[word_index]});
   }
 
-  if (layout.cells.size() != kFixed2x2SourceWordCount ||
-      layout.bounds_width != 2 || layout.bounds_height != 2) {
+  if (layout.cells.size() != shape.word_count() ||
+      layout.bounds_width != shape.width ||
+      layout.bounds_height != shape.height) {
     return absl::FailedPreconditionError(
-        "Object tile layout does not match the audited fixed 2x2 shape");
+        "Object tile layout does not match the audited shape");
   }
 
   std::unordered_set<int> resolved_addresses;
@@ -721,7 +820,7 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
           "Object tile source word reference is out of bounds");
     }
 
-    auto expected_source_index_or = ResolveFixed2x2SourceWordIndex(cell);
+    auto expected_source_index_or = ResolveSourceWordIndex(cell, shape);
     if (!expected_source_index_or.ok()) {
       return expected_source_index_or.status();
     }
@@ -786,6 +885,32 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
 
   const int64_t rom_size = static_cast<int64_t>(rom_->size());
   std::unordered_map<int, uint16_t> precondition_words;
+  if (plan.pattern_source_) {
+    RETURN_IF_ERROR(ValidatePatternContext(*plan.pattern_source_));
+    for (const auto& precondition : plan.preconditions_) {
+      const auto source_word =
+          plan.pattern_source_->words.find(precondition.address);
+      if (source_word != plan.pattern_source_->words.end()) {
+        if (source_word->second != precondition.expected_word) {
+          return absl::AbortedError("Pattern source precondition changed");
+        }
+      } else {
+        const auto word = rom_->ReadWord(precondition.address);
+        if (!word.ok())
+          return word.status();
+        if (*word != precondition.expected_word) {
+          return absl::AbortedError("Object descriptor changed after capture");
+        }
+      }
+    }
+    std::map<uint32_t, uint16_t> replacements;
+    for (const auto& write : plan.writes_)
+      replacements.emplace(write.address, write.word);
+    RETURN_IF_ERROR(
+        PublishDungeonTilePatterns(*plan.pattern_source_, replacements));
+    CustomObjectManager::Get().ReloadAll();
+    return absl::OkStatus();
+  }
   std::vector<int> precondition_addresses;
   for (const auto& precondition : plan.preconditions_) {
     const int64_t address = static_cast<int64_t>(precondition.address);
@@ -793,6 +918,7 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
       return absl::OutOfRangeError(
           "Object tile precondition is outside the loaded ROM");
     }
+    RETURN_IF_ERROR(CheckPatternSourceReadOnly(address, address + 2));
     if (std::any_of(precondition_addresses.begin(),
                     precondition_addresses.end(), [&](int existing_address) {
                       return WordRangesOverlap(existing_address,

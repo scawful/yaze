@@ -15,6 +15,7 @@ namespace yaze {
 namespace zelda3 {
 
 // Forward declarations
+class CustomObjectRenderSnapshot;
 class DungeonState;
 struct RoomObject;
 
@@ -37,6 +38,8 @@ struct DrawContext {
   const gfx::BackgroundBuffer* target_layout_bg =
       nullptr;         // Matching layout owner for logical tilemap reads
   int room_tag2 = -1;  // Room header tag2 ($AF); -1 when not drawing a room
+
+  const CustomObjectRenderSnapshot* custom_objects = nullptr;
 
   // Canvas dimensions
   static constexpr int kMaxTilesX = 64;

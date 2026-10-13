@@ -8,6 +8,7 @@
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "rom/rom.h"
+#include "util/stop_token.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -20,7 +21,9 @@ class RoomLayout {
 
   void SetRom(Rom* rom) { rom_ = rom; }
 
-  absl::Status LoadLayout(int layout_id);
+  // Reject unterminated/truncated fixed-layout streams. Failed or cancelled
+  // loads leave no decoded objects, including after a prior successful load.
+  absl::Status LoadLayout(int layout_id, util::StopToken stop_token = {});
 
   // Render the layout objects into the provided buffers
   absl::Status Draw(int room_id, const uint8_t* gfx_data,

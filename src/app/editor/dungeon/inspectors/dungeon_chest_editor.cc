@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
@@ -10,6 +11,7 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
+#include "core/project.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/dungeon_limits.h"
@@ -21,9 +23,9 @@
 namespace yaze::editor {
 namespace {
 
-std::string ItemPreview(uint8_t item_id) {
+std::string ItemPreview(uint8_t item_id, const project::YazeProject* project) {
   return absl::StrFormat("%02X  %s", item_id,
-                         GetDungeonChestItemLabel(item_id));
+                         GetDungeonChestItemLabel(item_id, project));
 }
 
 void ApplyEdit(DungeonCanvasViewer& viewer, DungeonChestEditorState& state,
@@ -124,9 +126,9 @@ void DrawItemChoice(int room_id, size_t index, const chest_data chest,
                     DungeonChestEditorState& state) {
   ImGui::TextUnformatted("Reward");
   ImGui::SetNextItemWidth(-1);
-  const bool open =
-      ImGui::BeginCombo("##ChestReward", ItemPreview(chest.id).c_str(),
-                        ImGuiComboFlags_HeightLarge);
+  const bool open = ImGui::BeginCombo(
+      "##ChestReward", ItemPreview(chest.id, viewer.project()).c_str(),
+      ImGuiComboFlags_HeightLarge);
   gui::AutoRegisterLastItem("combo", "ChestReward");
   if (!open) {
     return;
@@ -145,7 +147,8 @@ void DrawItemChoice(int room_id, size_t index, const chest_data chest,
     if (search_changed) {
       ImGui::SetScrollY(0);
     }
-    auto& labels = zelda3::GetResourceLabels();
+    const auto* labels =
+        viewer.project() ? &viewer.project()->resource_labels : nullptr;
     bool has_matches = false;
     for (int id = 0; id <= 0xFF; ++id) {
       // Retain any existing unknown value and explicitly named hack items, but
@@ -153,10 +156,12 @@ void DrawItemChoice(int room_id, size_t index, const chest_data chest,
       if (id >= static_cast<int>(
                     zelda3::Zelda3Labels::GetItemReceiptNames().size()) &&
           id != chest.id &&
-          !labels.HasProjectLabel(zelda3::ResourceType::kItem, id)) {
+          std::string_view(zelda3::GetItemReceiptLabelSource(
+              static_cast<uint8_t>(id), labels)) != "project") {
         continue;
       }
-      const std::string label = ItemPreview(static_cast<uint8_t>(id));
+      const std::string label =
+          ItemPreview(static_cast<uint8_t>(id), viewer.project());
       if (!absl::StrContains(absl::AsciiStrToLower(label), search)) {
         continue;
       }
@@ -186,6 +191,12 @@ void DrawItemChoice(int room_id, size_t index, const chest_data chest,
 
 std::string GetDungeonChestItemLabel(uint8_t item_id) {
   return zelda3::GetItemReceiptLabel(item_id);
+}
+
+std::string GetDungeonChestItemLabel(uint8_t item_id,
+                                     const project::YazeProject* project) {
+  return zelda3::GetItemReceiptLabel(
+      item_id, project ? &project->resource_labels : nullptr);
 }
 
 void DrawDungeonChestEditor(int room_id, zelda3::Room& room,
@@ -258,15 +269,15 @@ void DrawDungeonChestEditor(int room_id, zelda3::Room& room,
   state.selected_index =
       std::clamp(state.selected_index, 0, static_cast<int>(chests.size()) - 1);
   ImGui::SetNextItemWidth(-1);
-  const std::string current =
-      absl::StrFormat("Chest %d · %s", state.selected_index + 1,
-                      ItemPreview(chests[state.selected_index].id));
+  const std::string current = absl::StrFormat(
+      "Chest %d · %s", state.selected_index + 1,
+      ItemPreview(chests[state.selected_index].id, viewer.project()));
   const bool open = ImGui::BeginCombo("##ChestRecord", current.c_str());
   gui::AutoRegisterLastItem("combo", "ChestRecord");
   if (open) {
     for (size_t i = 0; i < chests.size(); ++i) {
-      const std::string label =
-          absl::StrFormat("Chest %zu · %s", i + 1, ItemPreview(chests[i].id));
+      const std::string label = absl::StrFormat(
+          "Chest %zu · %s", i + 1, ItemPreview(chests[i].id, viewer.project()));
       if (ImGui::Selectable(label.c_str(), state.selected_index == i)) {
         state.selected_index = static_cast<int>(i);
         state.search.fill(0);

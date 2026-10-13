@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -13,6 +14,7 @@
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
+#include "zelda3/dungeon/entrance_layout.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -21,9 +23,10 @@ namespace zelda3 {
 constexpr int kEntranceRoom = 0x14813;
 
 // 8 bytes per room, HU, FU, HD, FD, HL, FL, HR, FR
-constexpr int kEntranceScrollEdge = 0x1491D;      // 0x14681
-constexpr int kEntranceYScroll = 0x14D45;         // 0x14AA9 2 bytes each room
-constexpr int kEntranceXScroll = 0x14E4F;         // 0x14BB3 2 bytes
+constexpr int kEntranceScrollEdge = 0x1491D;  // 0x14681
+// Game loader: $02D9AB -> vertical $E8/$E6; $02D9B8 -> horizontal $E2/$E0.
+constexpr int kEntranceYScroll = 0x14E4F;         // 2 bytes each entrance
+constexpr int kEntranceXScroll = 0x14D45;         // 2 bytes each entrance
 constexpr int kEntranceYPosition = 0x14F59;       // 0x14CBD 2bytes
 constexpr int kEntranceXPosition = 0x15063;       // 0x14DC7 2bytes
 constexpr int kEntranceCameraYTrigger = 0x1516D;  // 0x14ED1 2bytes
@@ -47,42 +50,28 @@ using DungeonEntranceWriteRange = std::pair<uint32_t, uint32_t>;
 // eight scalar bytes, and one eight-byte camera-boundary record. Keep this
 // layout shared by save validation, manifest preflight, and write prediction so
 // those safety surfaces cannot drift apart.
-constexpr std::array<std::pair<uint32_t, uint32_t>, 17>
-    kRegularDungeonEntranceTableLayout = {{
-        {kEntranceRoom, 2},
-        {kEntranceScrollEdge, 8},
-        {kEntranceYScroll, 2},
-        {kEntranceXScroll, 2},
-        {kEntranceYPosition, 2},
-        {kEntranceXPosition, 2},
-        {kEntranceCameraYTrigger, 2},
-        {kEntranceCameraXTrigger, 2},
-        {kEntranceBlockset, 1},
-        {kEntranceFloor, 1},
-        {kEntranceDungeon, 1},
-        {kEntranceDoor, 1},
-        {kEntranceLadderBG, 1},
-        {kEntrancescrolling, 1},
-        {kEntranceScrollQuadrant, 1},
-        {kEntranceExit, 2},
-        {kEntranceMusic, 1},
-    }};
-
 inline std::vector<DungeonEntranceWriteRange> RegularDungeonEntranceWriteRanges(
-    int entrance_id) {
+    const EntranceLayout& layout, int entrance_id) {
   if (entrance_id < 0 || entrance_id >= kNumRegularDungeonEntrances) {
     return {};
   }
-
   std::vector<DungeonEntranceWriteRange> ranges;
-  ranges.reserve(kRegularDungeonEntranceTableLayout.size());
-  for (const auto& [table_pc, record_width] :
-       kRegularDungeonEntranceTableLayout) {
+  ranges.reserve(layout.tables.size());
+  for (const auto& [table_pc, record_width] : layout.tables) {
     const uint32_t begin =
         table_pc + static_cast<uint32_t>(entrance_id) * record_width;
     ranges.emplace_back(begin, begin + record_width);
   }
   return ranges;
+}
+
+inline absl::StatusOr<std::vector<DungeonEntranceWriteRange>>
+RegularDungeonEntranceWriteRanges(const Rom& rom, int entrance_id) {
+  ASSIGN_OR_RETURN(auto layout, ResolveEntranceLayout(rom.vector()));
+  if (entrance_id < 0 || entrance_id >= kNumRegularDungeonEntrances) {
+    return absl::OutOfRangeError("Regular dungeon entrance ID is out of range");
+  }
+  return RegularDungeonEntranceWriteRanges(layout, entrance_id);
 }
 
 class RoomEntrance;
@@ -133,12 +122,19 @@ class RoomEntrance {
   RoomEntrance() = default;
   RoomEntrance(Rom* rom, uint8_t entrance_id, bool is_spawn_point = false)
       : entrance_id_(entrance_id), is_spawn_point_(is_spawn_point) {
+    if (rom == nullptr || !rom->is_loaded()) {
+      load_status_ = absl::FailedPreconditionError("ROM not loaded");
+      room_ = -1;
+      return;
+    }
     if (is_spawn_point) {
       // This combined array remains a read-only navigation view for existing
       // UI code. Authoritative spawn persistence uses DungeonSpawnPoint, which
       // has distinct door-tilemap and entrance-ID fields.
       auto loaded_spawn = DungeonSpawnPoint::Load(*rom, entrance_id);
       if (!loaded_spawn.ok()) {
+        load_status_ = loaded_spawn.status();
+        room_ = -1;
         return;
       }
       const DungeonSpawnPoint& spawn = *loaded_spawn;
@@ -169,57 +165,111 @@ class RoomEntrance {
       return;
     }
 
+    const auto layout = ResolveEntranceLayout(rom->vector());
+    if (!layout.ok() || entrance_id >= kNumRegularDungeonEntrances) {
+      load_status_ = !layout.ok()
+                         ? layout.status()
+                         : absl::OutOfRangeError(
+                               "Regular dungeon entrance ID is out of range");
+      room_ = -1;
+      blockset_ = 0xFF;
+      return;
+    }
+    loaded_layout_kind_ = layout->kind;
+
     room_ = static_cast<short>(
-        (rom->data()[kEntranceRoom + (entrance_id * 2) + 1] << 8) +
-        rom->data()[kEntranceRoom + (entrance_id * 2)]);
+        (rom->data()[layout->table(EntranceField::kRoom) + (entrance_id * 2) +
+                     1]
+         << 8) +
+        rom->data()[layout->table(EntranceField::kRoom) + (entrance_id * 2)]);
     y_position_ = static_cast<uint16_t>(
-        (rom->data()[kEntranceYPosition + (entrance_id * 2) + 1] << 8) +
-        rom->data()[kEntranceYPosition + (entrance_id * 2)]);
+        (rom->data()[layout->table(EntranceField::kYPosition) +
+                     (entrance_id * 2) + 1]
+         << 8) +
+        rom->data()[layout->table(EntranceField::kYPosition) +
+                    (entrance_id * 2)]);
     x_position_ = static_cast<uint16_t>(
-        (rom->data()[kEntranceXPosition + (entrance_id * 2) + 1] << 8) +
-        rom->data()[kEntranceXPosition + (entrance_id * 2)]);
+        (rom->data()[layout->table(EntranceField::kXPosition) +
+                     (entrance_id * 2) + 1]
+         << 8) +
+        rom->data()[layout->table(EntranceField::kXPosition) +
+                    (entrance_id * 2)]);
     camera_x_ = static_cast<uint16_t>(
-        (rom->data()[kEntranceXScroll + (entrance_id * 2) + 1] << 8) +
-        rom->data()[kEntranceXScroll + (entrance_id * 2)]);
+        (rom->data()[layout->table(EntranceField::kXScroll) +
+                     (entrance_id * 2) + 1]
+         << 8) +
+        rom->data()[layout->table(EntranceField::kXScroll) +
+                    (entrance_id * 2)]);
     camera_y_ = static_cast<uint16_t>(
-        (rom->data()[kEntranceYScroll + (entrance_id * 2) + 1] << 8) +
-        rom->data()[kEntranceYScroll + (entrance_id * 2)]);
+        (rom->data()[layout->table(EntranceField::kYScroll) +
+                     (entrance_id * 2) + 1]
+         << 8) +
+        rom->data()[layout->table(EntranceField::kYScroll) +
+                    (entrance_id * 2)]);
     camera_trigger_y_ = static_cast<uint16_t>(
-        (rom->data()[(kEntranceCameraYTrigger + (entrance_id * 2)) + 1] << 8) +
-        rom->data()[kEntranceCameraYTrigger + (entrance_id * 2)]);
+        (rom->data()[(layout->table(EntranceField::kCameraYTrigger) +
+                      (entrance_id * 2)) +
+                     1]
+         << 8) +
+        rom->data()[layout->table(EntranceField::kCameraYTrigger) +
+                    (entrance_id * 2)]);
     camera_trigger_x_ = static_cast<uint16_t>(
-        (rom->data()[(kEntranceCameraXTrigger + (entrance_id * 2)) + 1] << 8) +
-        rom->data()[kEntranceCameraXTrigger + (entrance_id * 2)]);
-    blockset_ = rom->data()[kEntranceBlockset + entrance_id];
-    music_ = rom->data()[kEntranceMusic + entrance_id];
-    dungeon_id_ = rom->data()[kEntranceDungeon + entrance_id];
-    floor_ = rom->data()[kEntranceFloor + entrance_id];
-    door_ = rom->data()[kEntranceDoor + entrance_id];
-    ladder_bg_ = rom->data()[kEntranceLadderBG + entrance_id];
-    scrolling_ = rom->data()[kEntrancescrolling + entrance_id];
-    scroll_quadrant_ = rom->data()[kEntranceScrollQuadrant + entrance_id];
+        (rom->data()[(layout->table(EntranceField::kCameraXTrigger) +
+                      (entrance_id * 2)) +
+                     1]
+         << 8) +
+        rom->data()[layout->table(EntranceField::kCameraXTrigger) +
+                    (entrance_id * 2)]);
+    blockset_ =
+        rom->data()[layout->table(EntranceField::kBlockset) + entrance_id];
+    music_ = rom->data()[layout->table(EntranceField::kMusic) + entrance_id];
+    dungeon_id_ =
+        rom->data()[layout->table(EntranceField::kDungeon) + entrance_id];
+    floor_ = rom->data()[layout->table(EntranceField::kFloor) + entrance_id];
+    door_ = rom->data()[layout->table(EntranceField::kDoor) + entrance_id];
+    ladder_bg_ =
+        rom->data()[layout->table(EntranceField::kLadderBG) + entrance_id];
+    scrolling_ =
+        rom->data()[layout->table(EntranceField::kScrolling) + entrance_id];
+    scroll_quadrant_ =
+        rom->data()[layout->table(EntranceField::kScrollQuadrant) +
+                    entrance_id];
     exit_ = static_cast<short>(
-        (rom->data()[kEntranceExit + (entrance_id * 2) + 1] << 8) +
-        rom->data()[kEntranceExit + (entrance_id * 2)]);
+        (rom->data()[layout->table(EntranceField::kExit) + (entrance_id * 2) +
+                     1]
+         << 8) +
+        rom->data()[layout->table(EntranceField::kExit) + (entrance_id * 2)]);
 
     camera_boundary_qn_ =
-        rom->data()[kEntranceScrollEdge + 0 + (entrance_id * 8)];
+        rom->data()[layout->table(EntranceField::kScrollEdge) + 0 +
+                    (entrance_id * 8)];
     camera_boundary_fn_ =
-        rom->data()[kEntranceScrollEdge + 1 + (entrance_id * 8)];
+        rom->data()[layout->table(EntranceField::kScrollEdge) + 1 +
+                    (entrance_id * 8)];
     camera_boundary_qs_ =
-        rom->data()[kEntranceScrollEdge + 2 + (entrance_id * 8)];
+        rom->data()[layout->table(EntranceField::kScrollEdge) + 2 +
+                    (entrance_id * 8)];
     camera_boundary_fs_ =
-        rom->data()[kEntranceScrollEdge + 3 + (entrance_id * 8)];
+        rom->data()[layout->table(EntranceField::kScrollEdge) + 3 +
+                    (entrance_id * 8)];
     camera_boundary_qw_ =
-        rom->data()[kEntranceScrollEdge + 4 + (entrance_id * 8)];
+        rom->data()[layout->table(EntranceField::kScrollEdge) + 4 +
+                    (entrance_id * 8)];
     camera_boundary_fw_ =
-        rom->data()[kEntranceScrollEdge + 5 + (entrance_id * 8)];
+        rom->data()[layout->table(EntranceField::kScrollEdge) + 5 +
+                    (entrance_id * 8)];
     camera_boundary_qe_ =
-        rom->data()[kEntranceScrollEdge + 6 + (entrance_id * 8)];
+        rom->data()[layout->table(EntranceField::kScrollEdge) + 6 +
+                    (entrance_id * 8)];
     camera_boundary_fe_ =
-        rom->data()[kEntranceScrollEdge + 7 + (entrance_id * 8)];
+        rom->data()[layout->table(EntranceField::kScrollEdge) + 7 +
+                    (entrance_id * 8)];
   }
 
+  const absl::Status& load_status() const { return load_status_; }
+  std::optional<EntranceLayoutKind> loaded_layout_kind() const {
+    return loaded_layout_kind_;
+  }
   bool dirty() const { return dirty_; }
   void MarkDirty() { dirty_ = true; }
   void ClearDirty() { dirty_ = false; }
@@ -241,52 +291,77 @@ class RoomEntrance {
     // preflight: reject model/ID mismatches before the first regular write.
     RETURN_IF_ERROR(
         ValidateRegularDungeonEntranceForSave(*rom, *this, entrance_id));
-    RETURN_IF_ERROR(rom->WriteShort(kEntranceRoom + (entrance_id * 2), room_));
+    ASSIGN_OR_RETURN(auto resolved_layout,
+                     ResolveEntranceLayout(rom->vector()));
+    const auto* layout = &resolved_layout;
+    RETURN_IF_ERROR(rom->WriteShort(
+        layout->table(EntranceField::kRoom) + (entrance_id * 2), room_));
+    RETURN_IF_ERROR(rom->WriteShort(
+        layout->table(EntranceField::kYPosition) + (entrance_id * 2),
+        y_position_));
+    RETURN_IF_ERROR(rom->WriteShort(
+        layout->table(EntranceField::kXPosition) + (entrance_id * 2),
+        x_position_));
+    RETURN_IF_ERROR(rom->WriteShort(
+        layout->table(EntranceField::kYScroll) + (entrance_id * 2), camera_y_));
+    RETURN_IF_ERROR(rom->WriteShort(
+        layout->table(EntranceField::kXScroll) + (entrance_id * 2), camera_x_));
+    RETURN_IF_ERROR(rom->WriteShort(
+        layout->table(EntranceField::kCameraXTrigger) + (entrance_id * 2),
+        camera_trigger_x_));
+    RETURN_IF_ERROR(rom->WriteShort(
+        layout->table(EntranceField::kCameraYTrigger) + (entrance_id * 2),
+        camera_trigger_y_));
+    RETURN_IF_ERROR(rom->WriteShort(
+        layout->table(EntranceField::kExit) + (entrance_id * 2), exit_));
     RETURN_IF_ERROR(
-        rom->WriteShort(kEntranceYPosition + (entrance_id * 2), y_position_));
+        rom->WriteByte(layout->table(EntranceField::kBlockset) + entrance_id,
+                       (uint8_t)(blockset_ & 0xFF)));
     RETURN_IF_ERROR(
-        rom->WriteShort(kEntranceXPosition + (entrance_id * 2), x_position_));
+        rom->WriteByte(layout->table(EntranceField::kMusic) + entrance_id,
+                       (uint8_t)(music_ & 0xFF)));
     RETURN_IF_ERROR(
-        rom->WriteShort(kEntranceYScroll + (entrance_id * 2), camera_y_));
+        rom->WriteByte(layout->table(EntranceField::kDungeon) + entrance_id,
+                       (uint8_t)(dungeon_id_ & 0xFF)));
     RETURN_IF_ERROR(
-        rom->WriteShort(kEntranceXScroll + (entrance_id * 2), camera_x_));
-    RETURN_IF_ERROR(rom->WriteShort(kEntranceCameraXTrigger + (entrance_id * 2),
-                                    camera_trigger_x_));
-    RETURN_IF_ERROR(rom->WriteShort(kEntranceCameraYTrigger + (entrance_id * 2),
-                                    camera_trigger_y_));
-    RETURN_IF_ERROR(rom->WriteShort(kEntranceExit + (entrance_id * 2), exit_));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceBlockset + entrance_id,
-                                   (uint8_t)(blockset_ & 0xFF)));
+        rom->WriteByte(layout->table(EntranceField::kDoor) + entrance_id,
+                       (uint8_t)(door_ & 0xFF)));
     RETURN_IF_ERROR(
-        rom->WriteByte(kEntranceMusic + entrance_id, (uint8_t)(music_ & 0xFF)));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceDungeon + entrance_id,
-                                   (uint8_t)(dungeon_id_ & 0xFF)));
+        rom->WriteByte(layout->table(EntranceField::kFloor) + entrance_id,
+                       (uint8_t)(floor_ & 0xFF)));
     RETURN_IF_ERROR(
-        rom->WriteByte(kEntranceDoor + entrance_id, (uint8_t)(door_ & 0xFF)));
+        rom->WriteByte(layout->table(EntranceField::kLadderBG) + entrance_id,
+                       (uint8_t)(ladder_bg_ & 0xFF)));
     RETURN_IF_ERROR(
-        rom->WriteByte(kEntranceFloor + entrance_id, (uint8_t)(floor_ & 0xFF)));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceLadderBG + entrance_id,
-                                   (uint8_t)(ladder_bg_ & 0xFF)));
-    RETURN_IF_ERROR(rom->WriteByte(kEntrancescrolling + entrance_id,
-                                   (uint8_t)(scrolling_ & 0xFF)));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollQuadrant + entrance_id,
-                                   (uint8_t)(scroll_quadrant_ & 0xFF)));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 0 + (entrance_id * 8),
-                                   camera_boundary_qn_));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 1 + (entrance_id * 8),
-                                   camera_boundary_fn_));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 2 + (entrance_id * 8),
-                                   camera_boundary_qs_));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 3 + (entrance_id * 8),
-                                   camera_boundary_fs_));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 4 + (entrance_id * 8),
-                                   camera_boundary_qw_));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 5 + (entrance_id * 8),
-                                   camera_boundary_fw_));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 6 + (entrance_id * 8),
-                                   camera_boundary_qe_));
-    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 7 + (entrance_id * 8),
-                                   camera_boundary_fe_));
+        rom->WriteByte(layout->table(EntranceField::kScrolling) + entrance_id,
+                       (uint8_t)(scrolling_ & 0xFF)));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollQuadrant) + entrance_id,
+        (uint8_t)(scroll_quadrant_ & 0xFF)));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollEdge) + 0 + (entrance_id * 8),
+        camera_boundary_qn_));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollEdge) + 1 + (entrance_id * 8),
+        camera_boundary_fn_));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollEdge) + 2 + (entrance_id * 8),
+        camera_boundary_qs_));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollEdge) + 3 + (entrance_id * 8),
+        camera_boundary_fs_));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollEdge) + 4 + (entrance_id * 8),
+        camera_boundary_qw_));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollEdge) + 5 + (entrance_id * 8),
+        camera_boundary_fw_));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollEdge) + 6 + (entrance_id * 8),
+        camera_boundary_qe_));
+    RETURN_IF_ERROR(rom->WriteByte(
+        layout->table(EntranceField::kScrollEdge) + 7 + (entrance_id * 8),
+        camera_boundary_fe_));
     ClearDirty();
     return absl::OkStatus();
   }
@@ -320,13 +395,17 @@ class RoomEntrance {
   uint8_t camera_boundary_fe_ = 0;
 
  private:
+  absl::Status load_status_;
+  std::optional<EntranceLayoutKind> loaded_layout_kind_;
   bool dirty_ = false;
   bool is_spawn_point_ = false;
 };
 
-inline std::vector<DungeonEntranceWriteRange>
+inline absl::StatusOr<std::vector<DungeonEntranceWriteRange>>
 CollectDirtyRegularDungeonEntranceWriteRanges(
+    const Rom& rom,
     const std::array<RoomEntrance, kNumDungeonEntranceSlots>& entrances) {
+  ASSIGN_OR_RETURN(auto layout, ResolveEntranceLayout(rom.vector()));
   std::vector<DungeonEntranceWriteRange> ranges;
   for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
        ++entrance_id) {
@@ -334,7 +413,8 @@ CollectDirtyRegularDungeonEntranceWriteRanges(
     if (!entrance.dirty()) {
       continue;
     }
-    auto entrance_ranges = RegularDungeonEntranceWriteRanges(entrance_id);
+    auto entrance_ranges =
+        RegularDungeonEntranceWriteRanges(layout, entrance_id);
     ranges.insert(ranges.end(), entrance_ranges.begin(), entrance_ranges.end());
   }
   return ranges;
@@ -358,6 +438,13 @@ inline absl::Status ValidateRegularDungeonEntranceForSave(
         "save ID 0x%02X",
         static_cast<int>(entrance.entrance_id_), entrance_id));
   }
+  RETURN_IF_ERROR(entrance.load_status());
+  ASSIGN_OR_RETURN(auto layout, ResolveEntranceLayout(rom.vector()));
+  if (entrance.loaded_layout_kind().has_value() &&
+      *entrance.loaded_layout_kind() != layout.kind) {
+    return absl::FailedPreconditionError(
+        "Dungeon entrance layout changed since load; reload entrances");
+  }
   if (entrance.room_ < 0 || entrance.room_ >= kNumberOfRooms) {
     return absl::OutOfRangeError(absl::StrFormat(
         "Regular dungeon entrance 0x%02X room ID %d is outside [0, %d)",
@@ -365,7 +452,7 @@ inline absl::Status ValidateRegularDungeonEntranceForSave(
   }
 
   for (const auto& [begin, end] :
-       RegularDungeonEntranceWriteRanges(entrance_id)) {
+       RegularDungeonEntranceWriteRanges(layout, entrance_id)) {
     if (end > rom.size()) {
       return absl::FailedPreconditionError(absl::StrFormat(
           "Regular dungeon entrance 0x%02X write range "
@@ -380,6 +467,7 @@ inline absl::Status ValidateRegularDungeonEntrancesForSave(
     const Rom& rom,
     const std::array<RoomEntrance, kNumDungeonEntranceSlots>& entrances,
     bool dirty_only = true) {
+  RETURN_IF_ERROR(ResolveEntranceLayout(rom.vector()).status());
   for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
        ++entrance_id) {
     const auto& entrance = entrances[kNumDungeonSpawnPoints + entrance_id];

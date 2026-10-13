@@ -10,6 +10,35 @@
 
 namespace yaze::editor::dungeon_project_labels {
 
+// Keep labels attached to the viewer's project, including while another ROM
+// session owns the global label provider. The legacy provider setter accepts a
+// mutable map; these local lookups only call its const query methods.
+inline zelda3::ResourceLabelProvider LabelsForProject(
+    const project::YazeProject* project) {
+  zelda3::ResourceLabelProvider labels;
+  if (project) {
+    labels.SetProjectLabels(
+        const_cast<zelda3::ResourceLabelProvider::ProjectLabels*>(
+            &project->resource_labels));
+    labels.SetHackManifest(&project->hack_manifest);
+  }
+  return labels;
+}
+
+inline std::string GetRoomTagLabel(const project::YazeProject* project,
+                                   int id) {
+  const auto labels = LabelsForProject(project);
+  std::string label = labels.GetLabel(zelda3::ResourceType::kRoomTag, id);
+  if (project) {
+    const auto tag =
+        project->hack_manifest.GetRoomTag(static_cast<uint8_t>(id));
+    if (tag && !tag->enabled) {
+      label += " (disabled)";
+    }
+  }
+  return label;
+}
+
 inline const core::DungeonEntry* FindDungeonForRoom(
     const project::YazeProject* project, int room_id,
     size_t* dungeon_index = nullptr) {

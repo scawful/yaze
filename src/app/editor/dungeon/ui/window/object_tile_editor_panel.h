@@ -140,6 +140,7 @@ class ObjectTileEditorPanel : public WindowContent {
 
   // State
   friend struct ObjectTileEditorPanelTestAccess;
+  friend class AuthoringSaveWorkflowTestPeer;
   std::unique_ptr<zelda3::ObjectTileEditor> tile_editor_;
   zelda3::ObjectTileLayout current_layout_;
   int selected_cell_index_ = -1;

@@ -22,8 +22,8 @@ namespace yaze::editor {
  * edited: a room that loads it, a sprite animation drawn from it, and the
  * tile16s that use the selected 8x8 tile.
  *
- * Renders from the Arena sheets (unsaved pixel edits) through
- * usage_preview's renderers; nothing is written to the ROM or GameData.
+ * Renders from the session's sheet store (unsaved pixel edits) through
+ * usage_preview's renderers, or the source editor's live context.
  * Re-renders at most 10 times a second while pixels change, and once more
  * when the stroke ends.
  */
@@ -35,23 +35,36 @@ class UsagePreviewView {
   void SetGameData(zelda3::GameData* game_data);
   void SetHackName(std::string hack_name) { hack_name_ = std::move(hack_name); }
 
+  void SetLiveRoomProvider(usage_preview::LiveRoomProvider provider) {
+    live_rooms_provider_ = std::move(provider);
+    InvalidateTables();
+  }
+  void Reset() { InvalidateTables(); }
   void Draw();
+  // Both the inline view and Source tab use the same cache and renderer.
+  void DrawSourcePreview(bool show_controls = true);
 
   static constexpr double kMinRenderInterval = 0.1;  // 10 renders/s
 
  private:
+  friend class UsagePreviewViewTestPeer;
+  friend class AuthoringSaveWorkflowTestPeer;
   enum class Mode { kRoom, kSprite, kTile16 };
 
   void EnsureTables();
+  void RefreshRoomContexts();
   void DrawRoomContext(bool render_now);
   void DrawSpriteContext(bool render_now, float delta);
   void DrawTile16Context(bool render_now);
-  // Hash of the current sheet's and the modified sheets' Arena pixels.
-  uint64_t HashWatchedSheets() const;
+  void DrawSharedUses();
+  absl::Status ScanSharedUses(const usage_preview::LiveRoomContexts& rooms);
+  uint64_t SharedUsesHash(const usage_preview::LiveRoomContexts& rooms) const;
+  // Hash of the current, source-context, and modified session sheet pixels.
+  uint64_t HashWatchedSheets(bool include_room_context) const;
   usage_preview::SheetPixels Snapshot() const;
-  void ShowImage(gfx::Bitmap& bitmap, const usage_preview::IndexedImage& image);
+  void ShowImage(gfx::Bitmap& bitmap, const usage_preview::PreviewImage& image);
   void DrawBitmapFit(gfx::Bitmap& bitmap, const std::vector<SDL_Rect>& rects,
-                     float max_scale);
+                     float max_scale, bool fit_height = false);
   int SelectedTileIndex() const;
   void InvalidateTables();
 
@@ -73,6 +86,13 @@ class UsagePreviewView {
   std::map<int, std::array<uint8_t, 16>> room_blocks_;
   std::map<int, zelda3::RoomGfxInfo> room_gfx_;
   std::optional<std::map<int, zelda3::OverworldAreaGfxInfo>> areas_;
+
+  usage_preview::LiveRoomProvider live_rooms_provider_;
+  usage_preview::LiveRoomContexts live_rooms_;
+  std::map<int, std::array<uint8_t, 16>> fallback_room_blocks_;
+  std::map<int, uint64_t> live_room_revisions_;
+  uint64_t group_hash_ = 0;
+  int current_live_room_ = -1;
 
   // Room context.
   usage_preview::RoomUsagePreview room_preview_;
@@ -104,6 +124,27 @@ class UsagePreviewView {
   std::vector<int> tile16s_;
   std::vector<SDL_Rect> tile16_highlights_;
   gfx::Bitmap tile16_bitmap_;
+  uint64_t source_context_revision_ = 0;
+  uint64_t palette_revision_ = 0;
+  uint64_t sprite_palette_revision_ = 0;
+  gfx::Bitmap source_bitmap_;
+  uint64_t rendered_source_revision_ = 0;
+  uint64_t source_palette_revision_ = 0;
+  uint64_t source_hash_ = 0;
+  double source_render_time_ = -1.0;
+  bool source_dirty_ = true;
+  std::string source_status_;
+
+  // Explicit loaded-room census. No background/full-ROM scan while drawing.
+  bool shared_whole_pattern_ = true;
+  bool shared_scan_ready_ = false;
+  uint64_t shared_scan_hash_ = 0;
+  std::string shared_scan_status_;
+  std::vector<GraphicsEditTarget> shared_targets_;
+  std::vector<usage_preview::LoadedRoomSourceUses> shared_uses_;
+  usage_preview::RoomUsagePreview shared_room_preview_;
+  int shared_preview_room_ = -1;
+  size_t shared_preview_object_ = 0;
 };
 
 }  // namespace yaze::editor

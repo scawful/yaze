@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_ENTITY_ENTITY_MUTATION_SERVICE_H
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_ENTITY_MUTATION_SERVICE_H
 
+#include <cstdint>
 #include <string>
 
 #include "absl/status/status.h"
@@ -43,9 +44,10 @@ class EntityMutationService {
    * @brief Dispatches entity insertion based on type string.
    */
   MutationResult InsertEntity(const std::string& type, ImVec2 pos, int map_id,
-                              int game_state);
+                              int game_state, uint8_t item_id = 0);
   MutationResult InsertEntity(const std::string& type,
-                              const OverworldContextTarget& target);
+                              const OverworldContextTarget& target,
+                              uint8_t item_id = 0);
 
   MutationResult DeleteItem(const zelda3::OverworldItem& item_identity);
   MutationResult DeleteSprite(zelda3::Sprite* sprite, int game_state);

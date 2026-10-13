@@ -166,12 +166,6 @@ TEST_F(PaletteJsonTest, ImportRejectsNonStringGroup) {
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
 }
 
-#else
-
-TEST_F(PaletteJsonTest, JsonSupportDisabled) {
-  GTEST_SKIP() << "JSON support is disabled";
-}
-
 #endif
 
 }  // namespace

@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -11,6 +12,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/graphics/graphics_edit_context.h"
+#include "app/editor/graphics/graphics_preview_image.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
@@ -42,31 +45,21 @@ constexpr size_t kSheetBytes = 4096;  // 128x32 8bpp sheet
 /// Sheet id -> 4096 8bpp pixels (the GameData::graphics_buffer layout).
 using SheetPixels = std::map<uint16_t, std::vector<uint8_t>>;
 
-/// Copies the Arena sheets in `ids` (where the pixel editor writes). Sheets
+/// Compatibility reader for Arena display copies, not authoritative pixels.
+/// Copies sheets in `ids`. Sheets
 /// that are not loaded or not 128x32 8bpp are left out. Returns nothing when
 /// the Arena holds another ROM's sheets (its owner is not `game_data`).
+[[deprecated("Use SnapshotSessionSheets; Arena is a display cache")]]
 SheetPixels SnapshotArenaSheets(const std::set<uint16_t>& ids,
                                 const zelda3::GameData* game_data);
 
-/// An 8bpp image with its own 256-color table. Index 0 is transparent when
-/// `index0_transparent` is set (sprites, tile16s).
-struct IndexedImage {
-  int width = 0;
-  int height = 0;
-  std::vector<uint8_t> pixels;
-  std::array<SDL_Color, 256> colors{};
-  bool index0_transparent = false;
-
-  bool empty() const { return width <= 0 || height <= 0; }
-  /// RGBA8 rows; transparent pixels get alpha 0.
-  std::vector<uint8_t> ToRgba() const;
-  /// Number of pixels whose index differs from `other` (sizes must match;
-  /// returns -1 when they do not).
-  int CountDifferentPixels(const IndexedImage& other) const;
-};
+// Preferred preview source: this ROM session's authoritative raw pixels.
+// Independent of whichever session currently occupies the global Arena.
+SheetPixels SnapshotSessionSheets(const std::set<uint16_t>& ids,
+                                  const zelda3::GameData* game_data);
 
 /// Copies a palettized Bitmap (for example a room composite).
-IndexedImage SnapshotBitmap(const gfx::Bitmap& bitmap);
+PreviewImage SnapshotBitmap(const gfx::Bitmap& bitmap);
 
 // ---------------------------------------------------------------------------
 // Room context
@@ -85,31 +78,95 @@ std::vector<int> RoomsUsingSheet(
     const std::map<int, std::array<uint8_t, 16>>& room_blocks, uint16_t sheet,
     bool include_sprites);
 
+// Ephemeral pointers, resolved by the owning session before each view update.
+struct LiveRoomContext {
+  zelda3::Room* room = nullptr;
+  std::string provenance;
+  bool current = false;
+  int entrance_slot = -1;
+};
+using LiveRoomContexts = std::map<int, LiveRoomContext>;
+using LiveRoomProvider = std::function<LiveRoomContexts()>;
+std::string RoomContextLabel(const LiveRoomContext* live);
+
+struct RoomTileReference {
+  size_t object_index = 0;
+  uint16_t object_id = 0;
+  uint16_t tile_word = 0;
+  uint16_t sheet = 0;
+  int slot = 0;
+  // Loader-owned source addresses, not displayed palette-row identity.
+  std::array<std::optional<zelda3::PaletteColorAddress>, 8> palette_colors{};
+};
+
+struct SourceObjectUse {
+  size_t object_index = 0;
+  uint16_t object_id = 0;
+  bool shares_pixels = false;
+  bool shares_palette = false;
+  std::vector<RoomTileReference> references;
+};
+
+// Potential consumers of the selected source. Pixel identity is sheet + local
+// tile; palette identity is the loader-owned group/index/color address. A match
+// does not promise a visible change (raw indices and occlusion also matter).
+std::vector<SourceObjectUse> FindSourceObjectUses(
+    const std::vector<RoomTileReference>& references,
+    const std::vector<GraphicsEditTarget>& targets,
+    const zelda3::GameData* owner);
+
 class RoomUsagePreview {
  public:
   /// Loads `room_id` on first use (or when it changes) and renders it with
   /// `sheets` swapped in. `objects_only` hides the floor and layout layers.
   absl::Status Render(Rom* rom, zelda3::GameData* game_data, int room_id,
-                      const SheetPixels& sheets, bool objects_only);
+                      const SheetPixels& sheets, bool objects_only,
+                      zelda3::Room* live_room = nullptr);
+
+  const std::vector<RoomTileReference>& tile_references() const {
+    return tile_references_;
+  }
+  size_t unknown_objects() const { return unknown_objects_; }
 
   int room_id() const { return room_id_; }
   const gfx::Bitmap& bitmap() const { return composite_; }
   gfx::Bitmap& mutable_bitmap() { return composite_; }
-  IndexedImage Snapshot() const { return SnapshotBitmap(composite_); }
+  PreviewImage Snapshot() const { return SnapshotBitmap(composite_); }
 
   /// Room graphics blocks (0-7 background, 8-15 sprites) of the loaded room.
   std::array<uint8_t, 16> blocks() const;
   /// Pixel rectangles of objects that draw at least one 8x8 tile from
   /// `sheet` (background blocks only).
   std::vector<SDL_Rect> ObjectRectsUsingSheet(uint16_t sheet) const;
+  std::vector<SDL_Rect> ObjectRectsForObject(size_t index) const;
+  // Explicit loaded-room scan; never loads another room from ROM or creates a
+  // composite image. Rendering caches may refresh, authoring state is retained.
+  absl::Status TraceLoadedRoom(Rom* rom, zelda3::GameData* game_data,
+                               zelda3::Room* room);
   /// Clears the loaded room so the next Render() reloads it from the ROM.
   void Reset();
 
  private:
+  void CaptureUsage(const zelda3::Room& room);
   std::unique_ptr<zelda3::Room> room_;
+  std::array<uint8_t, 16> blocks_{};
+  std::vector<RoomTileReference> tile_references_;
+  std::map<size_t, SDL_Rect> object_rects_;
+  size_t unknown_objects_ = 0;
   int room_id_ = -1;
   gfx::Bitmap composite_;
 };
+
+struct LoadedRoomSourceUses {
+  int room_id = -1;
+  std::vector<SourceObjectUse> objects;
+  size_t unknown_objects = 0;
+  std::string error;
+};
+
+std::vector<LoadedRoomSourceUses> FindLoadedRoomSourceUses(
+    Rom* rom, zelda3::GameData* game_data, const LiveRoomContexts& rooms,
+    const std::vector<GraphicsEditTarget>& targets);
 
 // ---------------------------------------------------------------------------
 // Sprite context
@@ -139,7 +196,7 @@ class SpriteUsagePreview {
   bool Advance(float seconds);
 
   /// Draws the current frame with `sheets` (edited pixels) over the ROM's.
-  IndexedImage RenderFrame(const SheetPixels& sheets) const;
+  PreviewImage RenderFrame(const SheetPixels& sheets) const;
 
   const std::array<uint8_t, 8>& slots() const { return slots_; }
   bool UsesSheet(uint16_t sheet) const;
@@ -176,7 +233,7 @@ class Tile16UsagePreview {
   /// Draws `tile16s` in rows of 8 (16x16 each) with `sheets` swapped in.
   /// Quadrants that use `sheet`/`tile_index` are listed in `highlights` as
   /// pixel rectangles.
-  IndexedImage Render(const SheetPixels& sheets,
+  PreviewImage Render(const SheetPixels& sheets,
                       const std::vector<int>& tile16s, uint16_t sheet,
                       int tile_index,
                       std::vector<SDL_Rect>* highlights = nullptr);

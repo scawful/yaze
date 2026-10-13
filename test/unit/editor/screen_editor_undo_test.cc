@@ -5,9 +5,130 @@
 #include <gtest/gtest.h>
 
 #include "app/editor/core/undo_manager.h"
+#include "app/editor/graphics/screen_editor.h"
 
 namespace yaze::editor {
+class ScreenFloorMutationTestPeer {
+ public:
+  static void Seed(ScreenEditor& editor, bool boss = false) {
+    std::vector<std::array<uint8_t, zelda3::kNumRooms>> rooms(2), graphics(2);
+    rooms[0].fill(0x22);
+    rooms[1].fill(0x33);
+    graphics[0].fill(0x42);
+    graphics[1].fill(0x43);
+    editor.dungeon_maps_.emplace_back(boss ? 0x22 : 0xFFFF, 1, 1, rooms,
+                                      graphics);
+    editor.dungeon_map_labels_[0].resize(2);
+    editor.dungeon_map_labels_[0][0].fill("22");
+    editor.dungeon_map_labels_[0][1].fill("33");
+    editor.rom_backed_state_valid_ = true;
+    editor.selected_dungeon = 0;
+    editor.floor_number = 1;
+  }
+  static absl::Status Change(ScreenEditor& editor, bool basement, bool add) {
+    return editor.ChangeDungeonMapFloorCount(basement, add);
+  }
+  static ScreenSnapshot Snapshot(const ScreenEditor& editor) {
+    return editor.CaptureDungeonMapSnapshot();
+  }
+  static bool CanUndo(const ScreenEditor& editor) {
+    return editor.undo_manager_.CanUndo();
+  }
+  static int Floor(const ScreenEditor& editor) { return editor.floor_number; }
+};
 namespace {
+
+TEST(ScreenFloorMutationTest, BasementInsertionAndRemovalPreserveRowsAndUndo) {
+  ScreenEditor editor;
+  ScreenFloorMutationTestPeer::Seed(editor, true);
+  const auto before = ScreenFloorMutationTestPeer::Snapshot(editor);
+  ASSERT_TRUE(ScreenFloorMutationTestPeer::Change(editor, true, true).ok());
+  const auto added = ScreenFloorMutationTestPeer::Snapshot(editor);
+  EXPECT_EQ(added.dungeon_map.map_data.nbr_of_basement, 2);
+  EXPECT_EQ(added.dungeon_map.map_data.floor_rooms.size(), 3u);
+  EXPECT_EQ(added.dungeon_map.map_data.floor_rooms[0][0], 0x0F);
+  EXPECT_EQ(added.dungeon_map.map_data.floor_gfx[0][0], 0xFF);
+  EXPECT_EQ(added.dungeon_map.labels[0][0], "$0F");
+  EXPECT_EQ(added.dungeon_map.map_data.floor_rooms[1],
+            before.dungeon_map.map_data.floor_rooms[0]);
+  EXPECT_EQ(added.dungeon_map.map_data.floor_gfx[2],
+            before.dungeon_map.map_data.floor_gfx[1]);
+  EXPECT_EQ(added.dungeon_map.labels[1], before.dungeon_map.labels[0]);
+  EXPECT_EQ(ScreenFloorMutationTestPeer::Floor(editor), 2);
+  ASSERT_TRUE(editor.Undo().ok());
+  auto undone = ScreenFloorMutationTestPeer::Snapshot(editor);
+  EXPECT_EQ(undone.dungeon_map.map_data.floor_rooms,
+            before.dungeon_map.map_data.floor_rooms);
+  EXPECT_EQ(undone.dungeon_map.labels, before.dungeon_map.labels);
+  EXPECT_EQ(ScreenFloorMutationTestPeer::Floor(editor), 1);
+  ASSERT_TRUE(editor.Redo().ok());
+  EXPECT_EQ(ScreenFloorMutationTestPeer::Floor(editor), 2);
+  // Remove the new empty deepest row, not the boss-bearing B1 row.
+  ASSERT_TRUE(ScreenFloorMutationTestPeer::Change(editor, true, false).ok());
+  auto removed = ScreenFloorMutationTestPeer::Snapshot(editor);
+  EXPECT_EQ(removed.dungeon_map.map_data.floor_rooms,
+            before.dungeon_map.map_data.floor_rooms);
+  EXPECT_EQ(removed.dungeon_map.map_data.floor_gfx,
+            before.dungeon_map.map_data.floor_gfx);
+  EXPECT_EQ(removed.dungeon_map.labels, before.dungeon_map.labels);
+  EXPECT_EQ(removed.dungeon_map.map_data.boss_room, 0x22);
+  EXPECT_TRUE(editor.HasPendingDungeonMapChanges());
+  EXPECT_FALSE(editor.HasPendingDungeonMapTile16Changes());
+}
+
+TEST(ScreenFloorMutationTest, UpperFloorUsesTailAndRestoresSelection) {
+  ScreenEditor editor;
+  ScreenFloorMutationTestPeer::Seed(editor);
+  ASSERT_TRUE(ScreenFloorMutationTestPeer::Change(editor, false, true).ok());
+  EXPECT_EQ(editor.dungeon_maps_[0].nbr_of_floor, 2);
+  EXPECT_EQ(editor.dungeon_maps_[0].floor_rooms[0][0], 0x22);
+  EXPECT_EQ(editor.dungeon_maps_[0].floor_rooms[1][0], 0x33);
+  EXPECT_EQ(editor.dungeon_maps_[0].floor_rooms[2][0], 0x0F);
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_EQ(editor.dungeon_maps_[0].floor_rooms.size(), 2u);
+  ASSERT_TRUE(editor.Redo().ok());
+  ASSERT_TRUE(ScreenFloorMutationTestPeer::Change(editor, false, false).ok());
+  EXPECT_EQ(editor.dungeon_maps_[0].floor_rooms.size(), 2u);
+  ASSERT_TRUE(ScreenFloorMutationTestPeer::Change(editor, false, false).ok());
+  EXPECT_EQ(ScreenFloorMutationTestPeer::Floor(editor), 0);
+  EXPECT_EQ(editor.dungeon_maps_[0].floor_rooms[0][0], 0x22);
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_EQ(ScreenFloorMutationTestPeer::Floor(editor), 1);
+  EXPECT_EQ(editor.dungeon_maps_[0].floor_rooms[1][0], 0x33);
+}
+
+TEST(ScreenFloorMutationTest, BossRemovalRefusesWithoutDirtyOrHistoryChanges) {
+  for (bool basement : {false, true}) {
+    ScreenEditor editor;
+    ScreenFloorMutationTestPeer::Seed(editor, true);
+    editor.dungeon_maps_[0].boss_room = basement ? 0x22 : 0x33;
+    const auto before = ScreenFloorMutationTestPeer::Snapshot(editor);
+    EXPECT_FALSE(
+        ScreenFloorMutationTestPeer::Change(editor, basement, false).ok());
+    const auto after = ScreenFloorMutationTestPeer::Snapshot(editor);
+    EXPECT_EQ(after.dungeon_map.map_data.floor_rooms,
+              before.dungeon_map.map_data.floor_rooms);
+    EXPECT_EQ(after.dungeon_map.map_data.floor_gfx,
+              before.dungeon_map.map_data.floor_gfx);
+    EXPECT_EQ(after.dungeon_map.labels, before.dungeon_map.labels);
+    EXPECT_EQ(after.dungeon_map.floor_index, before.dungeon_map.floor_index);
+    EXPECT_FALSE(ScreenFloorMutationTestPeer::CanUndo(editor));
+    EXPECT_FALSE(editor.HasPendingScreenChanges());
+  }
+}
+
+TEST(ScreenFloorMutationTest, InvalidShapeAndLastFloorRemovalRefuse) {
+  ScreenEditor editor;
+  ScreenFloorMutationTestPeer::Seed(editor);
+  editor.dungeon_maps_[0].floor_gfx.pop_back();
+  EXPECT_FALSE(ScreenFloorMutationTestPeer::Change(editor, true, true).ok());
+  EXPECT_FALSE(ScreenFloorMutationTestPeer::CanUndo(editor));
+  EXPECT_FALSE(editor.HasPendingScreenChanges());
+  editor.dungeon_maps_[0].floor_gfx.push_back({});
+  ASSERT_TRUE(ScreenFloorMutationTestPeer::Change(editor, false, false).ok());
+  EXPECT_FALSE(ScreenFloorMutationTestPeer::Change(editor, true, false).ok());
+  EXPECT_EQ(editor.dungeon_maps_[0].floor_rooms.size(), 1u);
+}
 
 // ---------------------------------------------------------------------------
 // ScreenEditAction unit tests (no ImGui / ROM dependency)

@@ -118,6 +118,89 @@ TEST_F(ResourceLabelsTest, ConvenienceFunctionsWork) {
   EXPECT_EQ(GetRoomTagLabel(0x40), "TestTag");
 }
 
+TEST_F(ResourceLabelsTest, ReceiptNamesIgnoreGenericItemLabels) {
+  project_labels_["item"]["0x25"] = "Blue Potion";
+  project_labels_["item"]["0xE0"] = "Generic High Item";
+  EXPECT_EQ(GetItemLabel(0x25), "Blue Potion");
+  EXPECT_EQ(GetItemReceiptLabel(0x25), "Compass");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0x25), "vanilla_receipt");
+  EXPECT_EQ(GetItemReceiptLabel(0xE0), "Unknown item E0");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0xE0), "unknown");
+}
+
+TEST_F(ResourceLabelsTest, ReceiptLabelsUseDedicatedNamespaceAndKeyPriority) {
+  project_labels_["item"]["37"] = "Blue Potion";
+  project_labels_["item_receipt"]["0x25"] = "Big chest key";
+  EXPECT_EQ(GetItemReceiptLabel(0x25), "Big chest key");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0x25), "project");
+  project_labels_["item_receipt"]["37"] = "Decimal Receipt";
+  EXPECT_EQ(GetItemReceiptLabel(0x25), "Decimal Receipt");
+  project_labels_["item_receipt"]["0xE0"] = "Custom Treasure";
+  EXPECT_EQ(GetItemReceiptLabel(0xE0), "Custom Treasure");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0xE0), "project");
+  project_labels_["item_receipt"]["37"].clear();
+  project_labels_["item_receipt"]["0x25"].clear();
+  EXPECT_EQ(GetItemReceiptLabel(0x25), "Compass");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0x25), "vanilla_receipt");
+}
+
+TEST_F(ResourceLabelsTest, ExplicitReceiptContextDoesNotLeakAcrossSessions) {
+  project_labels_["item_receipt"]["37"] = "Global session";
+  ResourceLabelProvider::ProjectLabels first, second;
+  first["item_receipt"]["37"] = "First session";
+  second["item"]["37"] = "Blue Potion";
+  second["item_receipt"]["0xF0"] = "Second session treasure";
+  EXPECT_EQ(GetItemReceiptLabel(0x25, &first), "First session");
+  EXPECT_EQ(GetItemReceiptLabel(0x25, &second), "Compass");
+  EXPECT_EQ(GetItemReceiptLabel(0xF0, &second), "Second session treasure");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0xF0, &second), "project");
+  EXPECT_EQ(GetItemReceiptLabel(0xF0, &first), "Unknown item F0");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0xF0, &first), "unknown");
+  EXPECT_EQ(GetItemReceiptLabel(0x25, nullptr), "Compass");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0x25, nullptr), "vanilla_receipt");
+  EXPECT_EQ(GetItemReceiptLabel(0xFF, nullptr), "Unknown item FF");
+  EXPECT_STREQ(GetItemReceiptLabelSource(0xFF, nullptr), "unknown");
+  EXPECT_EQ(GetItemReceiptLabel(0x25), "Global session");
+}
+
+TEST_F(ResourceLabelsTest, ZScreamChestNamesRoundTripInReceiptNamespace) {
+  project_labels_["item_receipt"]["37"] = "Global session";
+  ResourceLabelProvider::ProjectLabels imported;
+  imported["item"]["37"] = "Blue Potion";
+  imported["item"]["225"] = "Generic High Item";
+  ResourceLabelProvider provider;
+  provider.SetProjectLabels(&imported);
+  ASSERT_TRUE(provider
+                  .ImportFromZScreamFormat(
+                      "[Chests Items]\n25 Big chest key\nE0 Custom Treasure\n")
+                  .ok());
+  EXPECT_EQ(imported.at("item_receipt").at("37"), "Big chest key");
+  EXPECT_EQ(imported.at("item_receipt").at("224"), "Custom Treasure");
+  EXPECT_EQ(imported.at("item").at("37"), "Blue Potion");
+  const auto exported = provider.ExportToZScreamFormat();
+  EXPECT_NE(exported.find("25 Big chest key\n"), std::string::npos);
+  EXPECT_NE(exported.find("24 Small Key\n"), std::string::npos);
+  EXPECT_NE(exported.find("E0 Custom Treasure\n"), std::string::npos);
+  EXPECT_EQ(exported.find("E1 Generic High Item"), std::string::npos);
+  EXPECT_EQ(exported.find("25 Global session"), std::string::npos);
+  ResourceLabelProvider::ProjectLabels round_trip;
+  ResourceLabelProvider reader;
+  reader.SetProjectLabels(&round_trip);
+  ASSERT_TRUE(reader.ImportFromZScreamFormat(exported).ok());
+  EXPECT_EQ(GetItemReceiptLabel(0x25, &round_trip), "Big chest key");
+  EXPECT_EQ(GetItemReceiptLabel(0xE0, &round_trip), "Custom Treasure");
+  EXPECT_FALSE(round_trip.contains("item"));
+}
+
+TEST_F(ResourceLabelsTest, ZScreamDefaultChestNamesUseReceiptCatalog) {
+  const auto exported = GetResourceLabels().ExportToZScreamFormat();
+  EXPECT_NE(exported.find("00 Fighter Sword\n"), std::string::npos);
+  EXPECT_NE(exported.find("25 Compass\n"), std::string::npos);
+  EXPECT_NE(exported.find("32 Big Key\n"), std::string::npos);
+  EXPECT_NE(exported.find("33 Map\n"), std::string::npos);
+  EXPECT_EQ(exported.find("25 Blue Potion\n"), std::string::npos);
+}
+
 TEST_F(ResourceLabelsTest, RoomObjectLabelsUseCanonicalDungeonNames) {
   const auto& type1 = Zelda3Labels::GetType1RoomObjectNames();
   ASSERT_GT(type1.size(), 0xD6u);

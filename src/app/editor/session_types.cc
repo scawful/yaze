@@ -3,6 +3,7 @@
 #include "zelda3/game_data.h"
 
 #include <algorithm>
+#include <filesystem>
 
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
@@ -19,6 +20,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/version_manager.h"
 
@@ -147,6 +149,63 @@ Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
   }
   if (game_data_ != nullptr) {
     editor->SetGameData(game_data_);
+  }
+  if (auto* dungeon = dynamic_cast<DungeonEditorV2*>(editor.get())) {
+    dungeon->SetRoomGraphicsOverworldProvider(
+        [this]() { return GetOverworldData(); });
+  }
+  auto main_usage =
+      [this](int group,
+             int slot) -> absl::StatusOr<zelda3::MainGroupUsageReport> {
+    if (!rom_ || !game_data_ || session_teardown_prepared_) {
+      return absl::FailedPreconditionError("No loaded graphics session");
+    }
+    auto rooms = zelda3::CollectRoomGfx(*rom_);
+    std::map<int, uint8_t> explicit_main;
+    if (const auto* dungeon = dynamic_cast<const DungeonEditorV2*>(
+            GetExistingEditor(EditorType::kDungeon))) {
+      dungeon->rooms().ForEachLoaded([&](int id, const zelda3::Room& room) {
+        rooms[id] = {room.blockset(), room.spriteset()};
+        explicit_main[id] = room.render_entrance_blockset();
+      });
+    }
+    return zelda3::DescribeMainGroupUsage(*rom_, *game_data_, group, slot,
+                                          rooms, explicit_main,
+                                          GetOverworldData());
+  };
+  auto roomset_usage =
+      [this](int group) -> absl::StatusOr<zelda3::RoomsetUsageReport> {
+    if (!rom_ || !game_data_ || session_teardown_prepared_)
+      return absl::FailedPreconditionError("No loaded graphics session");
+    if (const auto* dungeon = dynamic_cast<const DungeonEditorV2*>(
+            GetExistingEditor(EditorType::kDungeon)))
+      return dungeon->GetRoomGraphicsUsage(group);
+    return zelda3::DescribeRoomsetUsage(*rom_, *game_data_, group,
+                                        zelda3::CollectRoomGfx(*rom_),
+                                        GetOverworldData());
+  };
+  if (auto* graphics = dynamic_cast<GraphicsEditor*>(editor.get())) {
+    graphics->SetRoomUsageProvider([this]() {
+      usage_preview::LiveRoomContexts contexts;
+      if (session_teardown_prepared_ || !rom_ || !game_data_)
+        return contexts;
+      if (auto* dungeon = static_cast<DungeonEditorV2*>(
+              GetExistingEditor(EditorType::kDungeon))) {
+        dungeon->VisitGraphicsUsageRooms([&](int id, zelda3::Room& room,
+                                             const std::string& provenance,
+                                             bool current, int entrance_slot) {
+          contexts.emplace(id, usage_preview::LiveRoomContext{
+                                   &room, provenance, current, entrance_slot});
+        });
+      }
+      return contexts;
+    });
+    graphics->SetMainGraphicsUsageCallback(main_usage);
+    graphics->SetRoomsetGraphicsUsageCallback(roomset_usage);
+  }
+  if (auto* overworld = dynamic_cast<OverworldEditor*>(editor.get())) {
+    overworld->SetMainGraphicsUsageCallback(main_usage);
+    overworld->SetRoomsetGraphicsUsageCallback(roomset_usage);
   }
   if (type == EditorType::kSettings && user_settings_ != nullptr) {
     if (auto* settings_panel = static_cast<SettingsPanel*>(editor.get())) {
@@ -348,9 +407,58 @@ RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id,
       editors(&rom, &game_data, user_settings, session_id, editor_registry) {
   filepath = rom.filename();
   feature_flags = core::FeatureFlags::Flags{};
+  CaptureRomIdentity();
+}
+
+void RomSession::CaptureRomIdentity(bool preserve_editing_source) {
+  if (!rom.is_loaded()) {
+    rom_baseline.reset();
+    return;
+  }
+  auto path = std::filesystem::path(rom.filename()).lexically_normal();
+  path.make_preferred();
+  const std::string editing_source = preserve_editing_source && rom_baseline
+                                         ? rom_baseline->editing_source_path
+                                         : path.string();
+  rom_baseline = RomBaselineIdentity{
+      util::ComputeRomIdentityHashes(rom.data(), rom.size()), path.string(),
+      editing_source};
+}
+
+void RomSession::ReloadGraphicsDisplay() {
+  ResetGraphicsDisplay();
+  graphics_display_ =
+      std::make_unique<std::array<gfx::Bitmap, zelda3::kNumGfxSheets>>(
+          game_data.gfx_bitmaps);
+  // Rehydration always reads the authoring store, including unsaved pixels.
+  for (uint16_t i = 0; i < graphics_display_->size(); ++i) {
+    auto& bitmap = graphics_display_->at(i);
+    if (!bitmap.is_active() || !game_data.sheet_store.HasSheet(i))
+      continue;
+    const auto pixels = game_data.sheet_store.Sheet(i);
+    bitmap.set_data(std::vector<uint8_t>(pixels.begin(), pixels.end()));
+  }
+  ActivateGraphicsDisplay();
+}
+
+void RomSession::ActivateGraphicsDisplay() {
+  gfx::Arena::Get().BindGraphicsSheets(graphics_display_.get(), &game_data);
+}
+
+void RomSession::ResetGraphicsDisplay() {
+  auto& arena = gfx::Arena::Get();
+  if (arena.gfx_sheets_owner() == &game_data) {
+    arena.BindGraphicsSheets(nullptr, nullptr);
+  }
+  if (graphics_display_) {
+    for (auto& bitmap : *graphics_display_)
+      arena.RetireBitmap(bitmap);
+    graphics_display_.reset();
+  }
 }
 
 RomSession::~RomSession() {
+  ResetGraphicsDisplay();
   gfx::PaletteManager::Get().ReleaseSession(&game_data);
 }
 

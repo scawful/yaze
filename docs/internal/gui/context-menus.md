@@ -31,6 +31,22 @@ gui::ItemContextMenu(nullptr, [&]() {
   `ImGui::BeginPopupContextItem()`.
 - Inside an existing `BeginPopup*` block, call `gui::RenderMenuItems(items)`.
 
+## Hosting a tool from a context menu
+
+A tool that acts on the canvas selection does not need its own default window.
+Register the window as `WindowPresentationPolicy::EmbeddedTool().WithHost(
+"Canvas context menu > <Item>")` and add a menu item whose callback opens it:
+
+```cpp
+items.emplace_back("Edit Tile16...", ICON_MD_GRID_ON, [&]() {
+  window_manager->OpenWindow(session_id, "overworld.tile16_editor");
+});
+```
+
+`EmbeddedTool` windows are not listed in the window browser, stay openable from
+the command palette, and may still pop out. See "Panel admission" in
+[editor-ui-module-pattern.md](../architecture/editor-ui-module-pattern.md#panel-admission).
+
 ## Destructive items
 
 Set `destructive = true` (or use `MenuItemSpec::Destructive`) for actions that
@@ -110,14 +126,14 @@ Brush/Fill: Shift+right-click (a plain right-click samples the Tile16 and
 selects the map). Right-clicking an entity opens the entity menu instead.
 
 ```text
-[map]  0x00 | Light World | Lost Woods          (disabled header)
-[grid] Tile16 0x0E3 | (26, 30)                   (disabled header)
+[map]  Map 0x00                               (disabled header)
+[grid] Tile16 0x0E3                           (disabled header)
 -----------------------------------------------
 Sample Tile16                            I
 Edit Tile16...
 -----------------------------------------------
 Select This Map        (hidden when this map's area is current)
-Map Properties...                        Double-click
+Map Properties...
 Pin Map  [checked when pinned]           Ctrl+L
 Related Maps  >  Area parent / Same area screens, Other world screen
 -----------------------------------------------
@@ -133,6 +149,10 @@ View    >  Grid, Entities, Overlay Preview (checked, same state as the
   the map under the cursor is already current).
 - Related Maps selects the map, switches world when needed and centers it
   (`OverworldEditor::JumpToMap`).
+- Hover the map header for its world/name, and the Tile16 header for tile
+  coordinates. Keep this metadata out of labels: menu rows share a label
+  column, so a long name widens every action. The Map Properties tooltip
+  contains the double-click hint; the shortcut column stays for key chords.
 - Map/Pin/Select act on the clicked map, not the hovered or selected one.
 - Not in the menu, by design: Transport (no insert path), Select All Matching
   Tiles (no API), and rows that duplicated the Map Properties panel (custom

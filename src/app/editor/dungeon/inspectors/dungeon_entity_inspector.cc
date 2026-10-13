@@ -6,11 +6,15 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
 #include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/style_guard.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/sprite/sprite.h"
@@ -106,6 +110,8 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
   ImGui::TextWrapped("Door #%zu · %s", index,
                      std::string(zelda3::GetDoorTypeName(door.type)).c_str());
   bool changed = false;
+  ImGui::BeginDisabled(viewer.header_read_only() ||
+                       !viewer.IsObjectInteractionEnabled());
   if (BeginProperties()) {
     if (BeginChoice("Type", "DoorType",
                     std::string(zelda3::GetDoorTypeName(door.type)).c_str())) {
@@ -155,6 +161,7 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
     }
     ImGui::EndTable();
   }
+  ImGui::EndDisabled();
   if (changed) {
     viewer.object_interaction().entity_coordinator().door_handler().UpdateDoor(
         index, door.type, door.direction, door.position);
@@ -175,8 +182,10 @@ void DrawSprite(DungeonCanvasViewer& viewer, size_t index,
   // Read fields before committing below; do not copy the sprite's graphics
   // buffers every frame or retain references across the mutation callback.
   const auto& sprite = sprites[index];
-  ImGui::TextWrapped("Sprite #%zu · %02X %s", index, sprite.id(),
-                     zelda3::ResolveSpriteName(sprite.id()));
+  const auto labels =
+      dungeon_project_labels::LabelsForProject(viewer.project());
+  const auto name = labels.GetLabel(zelda3::ResourceType::kSprite, sprite.id());
+  ImGui::TextWrapped("Sprite #%zu · %02X %s", index, sprite.id(), name.c_str());
   if (sprite.IsOverlord()) {
     ImGui::TextDisabled("Overlord");
   }
@@ -251,6 +260,7 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
   const char* name =
       type < kPotItemNames.size() ? kPotItemNames[type] : "Unknown";
   ImGui::TextWrapped("Pot item #%zu · %02X %s", index, type, name);
+  DrawDungeonPotItemSaveNotice();
   bool changed = false;
   bool position_changed = false;
   if (BeginProperties()) {
@@ -289,6 +299,17 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
 
 }  // namespace
 
+void DrawDungeonPotItemSaveNotice() {
+  if (core::FeatureFlags::get().dungeon.kSavePotItems) {
+    return;
+  }
+  gui::StyleColorGuard notice_color(ImGuiCol_Text,
+                                    AgentUI::GetTheme().status_warning);
+  ImGui::TextWrapped(
+      "Pot-item saving is off. Enable Save Pot Items in File > Save Scope > "
+      "Dungeon before saving.");
+}
+
 void DrawDungeonEntityInspector(
     DungeonCanvasViewer& viewer,
     const std::function<void(int, size_t)>& jump_to_reciprocal) {
@@ -326,10 +347,16 @@ void DrawDungeonEntityInspector(
       DrawDoor(viewer, entity.index, jump_to_reciprocal);
       break;
     case EntityType::Sprite:
+      ImGui::BeginDisabled(viewer.header_read_only() ||
+                           !viewer.IsObjectInteractionEnabled());
       DrawSprite(viewer, entity.index, identity);
+      ImGui::EndDisabled();
       break;
     case EntityType::Item:
+      ImGui::BeginDisabled(viewer.header_read_only() ||
+                           !viewer.IsObjectInteractionEnabled());
       DrawItem(viewer, entity.index, identity);
+      ImGui::EndDisabled();
       break;
     default:
       break;

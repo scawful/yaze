@@ -14,8 +14,10 @@
 #include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/layout_helpers.h"
+#include "core/project.h"
 #include "dungeon_canvas_viewer.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -27,6 +29,18 @@
 namespace yaze::editor {
 
 namespace {
+
+bool ShowEntityLabel(const gui::CanvasRuntime& rt, int x, int y, int width,
+                     int height, bool selected) {
+  if (selected)
+    return true;
+  if (!rt.hovered || !ImGui::IsWindowHovered())
+    return false;
+  const ImVec2 min(rt.canvas_p0.x + rt.scrolling.x + x * rt.scale,
+                   rt.canvas_p0.y + rt.scrolling.y + y * rt.scale);
+  return ImGui::IsMouseHoveringRect(
+      min, ImVec2(min.x + width * rt.scale, min.y + height * rt.scale));
+}
 
 bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
                              const std::vector<uint8_t>& preview,
@@ -131,7 +145,11 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
   const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
                                                room_gfx.size());
 
-  for (const auto& sprite : room.GetSprites()) {
+  const auto& selected =
+      object_interaction_.entity_coordinator().GetSelectedEntities();
+  const auto& sprites = room.GetSprites();
+  for (size_t index = 0; index < sprites.size(); ++index) {
+    const auto& sprite = sprites[index];
     const int canvas_x = sprite.x() * 16;
     const int canvas_y = sprite.y() * 16;
 
@@ -170,10 +188,17 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
           rt, preview->pixels, preview_bounds, canvas_x + preview_bounds.x,
           canvas_y + preview_bounds.y, sprite_colors);
 
-      if (drew_preview) {
+      const bool show_label = ShowEntityLabel(
+          rt, canvas_x, canvas_y, entity_size, entity_size,
+          std::any_of(selected.begin(), selected.end(),
+                      [index](const auto& entity) {
+                        return entity.type == EntityType::Sprite &&
+                               entity.index == index;
+                      }));
+      if (drew_preview && show_label) {
         gui::DrawOutline(rt, canvas_x, canvas_y, entity_size, entity_size,
                          ImGui::GetColorU32(sprite_color));
-      } else {
+      } else if (!drew_preview) {
         gui::DrawRect(rt, canvas_x, canvas_y, entity_size, entity_size,
                       sprite_color);
       }
@@ -190,7 +215,8 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
             absl::StrFormat("%02X %s", sprite.id(), full_name.c_str());
       }
 
-      gui::DrawText(rt, sprite_text, canvas_x, canvas_y);
+      if (show_label)
+        gui::DrawText(rt, sprite_text, canvas_x, canvas_y);
     }
   }
 }
@@ -216,7 +242,10 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
   constexpr size_t kPotItemNameCount =
       sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
 
-  for (const auto& pot_item : pot_items) {
+  const auto& selected =
+      object_interaction_.entity_coordinator().GetSelectedEntities();
+  for (size_t index = 0; index < pot_items.size(); ++index) {
+    const auto& pot_item = pot_items[index];
     const int pixel_x = pot_item.GetPixelX();
     const int pixel_y = pot_item.GetPixelY();
     auto [canvas_x, canvas_y] =
@@ -250,15 +279,88 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
 
       std::string item_text =
           absl::StrFormat("%02X %s", pot_item.item, item_name.c_str());
-      gui::DrawText(rt, item_text, canvas_x, canvas_y - 10);
+      if (ShowEntityLabel(rt, canvas_x, canvas_y, entity_size, entity_size,
+                          std::any_of(selected.begin(), selected.end(),
+                                      [index](const auto& entity) {
+                                        return entity.type ==
+                                                   EntityType::Item &&
+                                               entity.index == index;
+                                      }))) {
+        gui::DrawText(rt, item_text, canvas_x, canvas_y - 10);
+      }
     }
   }
+}
+
+void DungeonCanvasViewer::RenderChestContents(const gui::CanvasRuntime& rt,
+                                              const zelda3::Room& room) {
+  if (!entity_visibility_.show_chests || !rt.draw_list ||
+      !room.AreChestsLoaded() || rt.canvas_sz.x <= 16.0f) {
+    return;
+  }
+  const auto& objects = room.GetTileObjects();
+  const auto& chests = room.GetChests();
+  // Residual records and mismatched small/big objects must not be presented as
+  // a confident reward association. The chest inspector explains the mismatch.
+  if (chests.empty() ||
+      !zelda3::ValidateChestObjectMapping(objects, chests).ok()) {
+    return;
+  }
+
+  const DungeonCanvasTransform transform(rt.canvas_p0, rt.scrolling, rt.scale);
+  const ImVec2 canvas_max(rt.canvas_p0.x + rt.canvas_sz.x,
+                          rt.canvas_p0.y + rt.canvas_sz.y);
+  const auto& theme = AgentUI::GetTheme();
+  const float padding = 4.0f;
+  const float wrap_width = std::min(180.0f, rt.canvas_sz.x - padding * 4);
+  rt.draw_list->PushClipRect(rt.canvas_p0, canvas_max, true);
+  for (size_t i = 0; i < objects.size(); ++i) {
+    const auto chest_index = zelda3::ChestIndexForObject(objects, i);
+    if (!chest_index) {
+      continue;
+    }
+    const auto& object = objects[i];
+    const float chest_width = object.id_ == 0xFB1 ? 32.0f : 16.0f;
+    const ImVec2 chest_min = transform.RoomPixelsToScreen(
+        ImVec2(object.x_ * 8.0f, object.y_ * 8.0f));
+    const ImVec2 chest_max = transform.RoomPixelsToScreen(
+        ImVec2(object.x_ * 8.0f + chest_width,
+               object.y_ * 8.0f + (object.id_ == 0xFB1 ? 24.0f : 16.0f)));
+    if (chest_max.x < rt.canvas_p0.x || chest_min.x > canvas_max.x ||
+        chest_max.y < rt.canvas_p0.y || chest_min.y > canvas_max.y) {
+      continue;
+    }
+    const auto item_id = chests[*chest_index].id;
+    const std::string text = absl::StrFormat(
+        "$%02X %s", item_id,
+        zelda3::GetItemReceiptLabel(
+            item_id, project_ ? &project_->resource_labels : nullptr));
+    const ImVec2 text_size =
+        ImGui::CalcTextSize(text.c_str(), nullptr, false, wrap_width);
+    const float width = text_size.x + padding * 2;
+    const float height = text_size.y + padding * 2;
+    const ImVec2 min(
+        std::clamp((chest_min.x + chest_max.x - width) * 0.5f, rt.canvas_p0.x,
+                   std::max(rt.canvas_p0.x, canvas_max.x - width)),
+        std::max(rt.canvas_p0.y, chest_min.y - height - 3.0f));
+    const ImVec2 max(min.x + width, min.y + height);
+    rt.draw_list->AddRectFilled(min, max, IM_COL32(0, 0, 0, 200), 3.0f);
+    rt.draw_list->AddRect(min, max, ImGui::GetColorU32(theme.item_color), 3.0f);
+    rt.draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize(),
+                          ImVec2(min.x + padding, min.y + padding),
+                          ImGui::GetColorU32(ImGuiCol_Text), text.c_str(),
+                          nullptr, wrap_width);
+    // Draw-list annotations have no ImGui item and cannot take a placement,
+    // selection, drag, or pan gesture away from the room canvas.
+  }
+  rt.draw_list->PopClipRect();
 }
 
 void DungeonCanvasViewer::RenderEntityOverlay(const gui::CanvasRuntime& rt,
                                               const zelda3::Room& room) {
   RenderSprites(rt, room);
   RenderPotItems(rt, room);
+  RenderChestContents(rt, room);
 }
 
 void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
@@ -443,8 +545,9 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
 
 const DungeonRenderingHelpers::CollisionOverlayCache&
 DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
+  const auto* working = rooms_ ? rooms_->GetIfLoaded(room_id) : nullptr;
   auto it = collision_overlay_cache_.find(room_id);
-  if (it != collision_overlay_cache_.end()) {
+  if (!working && it != collision_overlay_cache_.end()) {
     return it->second;
   }
 
@@ -456,7 +559,12 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
     return collision_overlay_cache_.at(room_id);
   }
 
-  auto map_or = zelda3::LoadCustomCollisionMap(rom_, room_id);
+  // A loaded room is the authoring source of truth. Rebuild its small overlay
+  // from the model so edits, Undo and save-dirty clearing cannot leave ROM-era
+  // pixels cached. Unloaded rooms still use the ROM-backed cache.
+  auto map_or = working ? absl::StatusOr<zelda3::CustomCollisionMap>(
+                              working->custom_collision())
+                        : zelda3::LoadCustomCollisionMap(rom_, room_id);
   if (!map_or.ok()) {
     collision_overlay_cache_.emplace(room_id, cache);
     return collision_overlay_cache_.at(room_id);
@@ -468,9 +576,10 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
     for (int y = 0; y < 64; ++y) {
       for (int x = 0; x < 64; ++x) {
         const uint8_t tile = map.tiles[static_cast<size_t>(y * 64 + x)];
-        if (tile < 256 && (track_collision_config_.track_tiles[tile] ||
-                           track_collision_config_.stop_tiles[tile] ||
-                           track_collision_config_.switch_tiles[tile])) {
+        if (map.HasOverride(static_cast<size_t>(y * 64 + x)) && tile < 256 &&
+            (track_collision_config_.track_tiles[tile] ||
+             track_collision_config_.stop_tiles[tile] ||
+             track_collision_config_.switch_tiles[tile])) {
           cache.entries.push_back(
               DungeonRenderingHelpers::CollisionOverlayEntry{
                   static_cast<uint8_t>(x), static_cast<uint8_t>(y), tile});
@@ -479,7 +588,7 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
     }
   }
 
-  collision_overlay_cache_.emplace(room_id, std::move(cache));
+  collision_overlay_cache_.insert_or_assign(room_id, std::move(cache));
   return collision_overlay_cache_.at(room_id);
 }
 
@@ -496,6 +605,15 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
 
 gfx::Bitmap* DungeonCanvasViewer::PrepareConnectedRoomCompositeBitmap(
     int room_id) {
+  // Resolve Auto for each neighbor without changing the primary room's context.
+  // Manual mode returns the same pinned entrance for every room.
+  auto* room = EnsureRoomLoadedForConnectedView(room_id);
+  if (!room) {
+    return nullptr;
+  }
+  room->SetRenderEntranceBlockset(entrance_blockset_resolver_
+                                      ? entrance_blockset_resolver_(room_id)
+                                      : current_entrance_blockset_);
   auto& entry = connected_composite_outputs_[room_id];
   if (!entry.output) {
     entry.output = std::make_unique<RoomCompositeOutput>();

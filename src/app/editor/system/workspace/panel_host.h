@@ -32,8 +32,9 @@ struct WindowDefinition {
   WindowScope scope = WindowScope::kSession;
   WindowLifecycle window_lifecycle = WindowLifecycle::EditorBound;
   WindowContextScope context_scope = WindowContextScope::kNone;
-  WindowPresentationPolicy presentation =
-      WindowPresentationPolicy::OptionalPopOut();
+  // Leave undeclared only in code the admission audit does not cover; every
+  // shipped window names a policy (see panel_admission.h).
+  WindowPresentationPolicy presentation;
   std::vector<std::string> legacy_ids;
   std::function<void()> on_show;
   std::function<void()> on_hide;

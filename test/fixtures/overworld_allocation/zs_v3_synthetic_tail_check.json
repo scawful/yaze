@@ -1,0 +1,338 @@
+{
+  "catalogue": "zscustom_v3",
+  "tail_marker_present": false,
+  "summary": [
+    {
+      "world": "light",
+      "range": "$00-$3F",
+      "used": 64,
+      "free": 0,
+      "free_with_map_data": 0,
+      "free_without_map_data": 0
+    },
+    {
+      "world": "dark",
+      "range": "$40-$7F",
+      "used": 64,
+      "free": 0,
+      "free_with_map_data": 0,
+      "free_without_map_data": 0
+    },
+    {
+      "world": "special",
+      "range": "$80-$9F",
+      "used": 16,
+      "free": 16,
+      "free_with_map_data": 16,
+      "free_without_map_data": 0
+    },
+    {
+      "world": "special_tail",
+      "range": "$A0-$BF",
+      "used": 0,
+      "free": 32,
+      "free_with_map_data": 0,
+      "free_without_map_data": 32
+    }
+  ],
+  "tables_stopping_before_tail": [
+    "map32_high",
+    "map32_low",
+    "pool_parent",
+    "area_gfx",
+    "pool_bg_color",
+    "pool_main_palette",
+    "pool_mosaic",
+    "pool_animated_gfx",
+    "pool_subscreen_overlay",
+    "pool_tile_gfx_groups",
+    "sw_sprite_gfx",
+    "sw_entry_gfx",
+    "pool_by_screen_1",
+    "pool_by_screen_2",
+    "pool_by_screen_3",
+    "pool_by_screen_4",
+    "pool_trans_pos_y",
+    "pool_trans_pos_x",
+    "pool_trans_target_north",
+    "pool_trans_target_west",
+    "pool_sprites_phase_0",
+    "pool_sprites_phase_1",
+    "pool_sprites_phase_2",
+    "pool_sign_message",
+    "music_dw_sw",
+    "bomb_doors",
+    "hidden_items",
+    "area_flags"
+  ],
+  "tail_check": {
+    "verdict": "unsafe",
+    "rom_compatible": true,
+    "asm_version": "0x03",
+    "marker": {
+      "address": "$28:A3FF",
+      "value": "0x00",
+      "present": false
+    },
+    "regions": [
+      {
+        "id": "marker",
+        "label": "Detection marker",
+        "address": "$28:A3FF",
+        "pc": "0x1423FF",
+        "length": 1,
+        "in_rom": true,
+        "nonzero_bytes": 0,
+        "first_bytes": "00"
+      },
+      {
+        "id": "high_table",
+        "label": "Map32 pointers, high (192 entries)",
+        "address": "$28:A400",
+        "pc": "0x142400",
+        "length": 576,
+        "in_rom": true,
+        "nonzero_bytes": 0,
+        "first_bytes": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      },
+      {
+        "id": "low_table",
+        "label": "Map32 pointers, low (192 entries)",
+        "address": "$28:A640",
+        "pc": "0x142640",
+        "length": 576,
+        "in_rom": true,
+        "nonzero_bytes": 0,
+        "first_bytes": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      },
+      {
+        "id": "blank_high",
+        "label": "Blank map stream, high bytes",
+        "address": "$30:8000",
+        "pc": "0x180000",
+        "length": 188,
+        "in_rom": true,
+        "nonzero_bytes": 0,
+        "first_bytes": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      },
+      {
+        "id": "blank_low",
+        "label": "Blank map stream, low bytes",
+        "address": "$30:9000",
+        "pc": "0x181000",
+        "length": 4,
+        "in_rom": true,
+        "nonzero_bytes": 0,
+        "first_bytes": "00 00 00 00"
+      }
+    ],
+    "blank_streams": [
+      {
+        "id": "blank_high",
+        "address": "$30:8000",
+        "stream_bytes": 188,
+        "terminated": false,
+        "terminated_within_stream": false,
+        "decoded_bytes": 16385,
+        "consumed_bytes": 32770,
+        "stopped_at": "$31:8002",
+        "error": "decoded more than 16384 bytes without $FF",
+        "valid": false
+      },
+      {
+        "id": "blank_low",
+        "address": "$30:9000",
+        "stream_bytes": 4,
+        "terminated": false,
+        "terminated_within_stream": false,
+        "decoded_bytes": 16385,
+        "consumed_bytes": 32770,
+        "stopped_at": "$31:9002",
+        "error": "decoded more than 16384 bytes without $FF",
+        "valid": false
+      }
+    ],
+    "operands": [
+      {
+        "address": "$02:F59E",
+        "pc": "0x01759E",
+        "opcode": "0xBF",
+        "current": "$02:F94D",
+        "vanilla": "$02:F94D",
+        "patched": "$28:A400",
+        "state": "vanilla"
+      },
+      {
+        "address": "$02:F5A4",
+        "pc": "0x0175A4",
+        "opcode": "0xBF",
+        "current": "$02:F94E",
+        "vanilla": "$02:F94E",
+        "patched": "$28:A401",
+        "state": "vanilla"
+      },
+      {
+        "address": "$02:F5C9",
+        "pc": "0x0175C9",
+        "opcode": "0xBF",
+        "current": "$02:FB2D",
+        "vanilla": "$02:FB2D",
+        "patched": "$28:A640",
+        "state": "vanilla"
+      },
+      {
+        "address": "$02:F5CF",
+        "pc": "0x0175CF",
+        "opcode": "0xBF",
+        "current": "$02:FB2E",
+        "vanilla": "$02:FB2E",
+        "patched": "$28:A641",
+        "state": "vanilla"
+      },
+      {
+        "address": "$02:F7E4",
+        "pc": "0x0177E4",
+        "opcode": "0xBF",
+        "current": "$02:F94D",
+        "vanilla": "$02:F94D",
+        "patched": "$28:A400",
+        "state": "vanilla"
+      },
+      {
+        "address": "$02:F7EA",
+        "pc": "0x0177EA",
+        "opcode": "0xBF",
+        "current": "$02:F94E",
+        "vanilla": "$02:F94E",
+        "patched": "$28:A401",
+        "state": "vanilla"
+      },
+      {
+        "address": "$02:F80F",
+        "pc": "0x01780F",
+        "opcode": "0xBF",
+        "current": "$02:FB2D",
+        "vanilla": "$02:FB2D",
+        "patched": "$28:A640",
+        "state": "vanilla"
+      },
+      {
+        "address": "$02:F815",
+        "pc": "0x017815",
+        "opcode": "0xBF",
+        "current": "$02:FB2E",
+        "vanilla": "$02:FB2E",
+        "patched": "$28:A641",
+        "state": "vanilla"
+      }
+    ],
+    "zs_code_end": "$28:9950",
+    "free_bytes_before_marker": 2734,
+    "tables_stopping_before_tail": [
+      "map32_high",
+      "map32_low",
+      "pool_parent",
+      "area_gfx",
+      "pool_bg_color",
+      "pool_main_palette",
+      "pool_mosaic",
+      "pool_animated_gfx",
+      "pool_subscreen_overlay",
+      "pool_tile_gfx_groups",
+      "sw_sprite_gfx",
+      "sw_entry_gfx",
+      "pool_by_screen_1",
+      "pool_by_screen_2",
+      "pool_by_screen_3",
+      "pool_by_screen_4",
+      "pool_trans_pos_y",
+      "pool_trans_pos_x",
+      "pool_trans_target_north",
+      "pool_trans_target_west",
+      "pool_sprites_phase_0",
+      "pool_sprites_phase_1",
+      "pool_sprites_phase_2",
+      "pool_sign_message",
+      "music_dw_sw",
+      "bomb_doors",
+      "hidden_items",
+      "area_flags"
+    ],
+    "blockers": [
+      {
+        "scope": "patch",
+        "id": "blank_stream_invalid",
+        "message": "blank map stream at $30:8000 is 188 bytes with no $FF terminator; decoding reads past it and stops at $31:8002 after 16385 decoded bytes (decoded more than 16384 bytes without $FF)"
+      },
+      {
+        "scope": "patch",
+        "id": "blank_stream_invalid",
+        "message": "blank map stream at $30:9000 is 4 bytes with no $FF terminator; decoding reads past it and stops at $31:9002 after 16385 decoded bytes (decoded more than 16384 bytes without $FF)"
+      },
+      {
+        "scope": "patch",
+        "id": "tail_tables_missing",
+        "message": "the patch extends only the map32 pointers; 26 other per-area tables stop before $A0, so a tail area reads the data after each of them (pool_parent, area_gfx, pool_bg_color, pool_main_palette, pool_mosaic, pool_animated_gfx, pool_subscreen_overlay, pool_tile_gfx_groups, sw_sprite_gfx, sw_entry_gfx, pool_by_screen_1, pool_by_screen_2, pool_by_screen_3, pool_by_screen_4, pool_trans_pos_y, pool_trans_pos_x, pool_trans_target_north, pool_trans_target_west, pool_sprites_phase_0, pool_sprites_phase_1, pool_sprites_phase_2, pool_sign_message, music_dw_sw, bomb_doors, hidden_items, area_flags)"
+      },
+      {
+        "scope": "yaze",
+        "id": "pointer_save_desync",
+        "message": "after the patch the game reads map pointers from $28:A400/$28:A640, but yaze's overworld save writes 0x1794D/0x17B2D, so the next save leaves maps $00-$9F stale in game"
+      }
+    ],
+    "warnings": [
+      {
+        "scope": "yaze",
+        "id": "tail_maps_not_editable",
+        "message": "yaze loads and saves 160 maps ($00-$9F); maps $A0-$BF cannot be edited"
+      }
+    ]
+  },
+  "area_A0": {
+    "id": "0xA0",
+    "world": "special",
+    "used": false,
+    "evidence": [],
+    "parent": null,
+    "parent_read_past_table": "0x00",
+    "size": "small",
+    "map": {
+      "source": "none",
+      "valid": false
+    },
+    "entrances": 0,
+    "holes": 0,
+    "exits": 0,
+    "sprites": 0,
+    "uncovered_tables": [
+      "map32_high",
+      "map32_low",
+      "pool_parent",
+      "area_gfx",
+      "pool_bg_color",
+      "pool_main_palette",
+      "pool_mosaic",
+      "pool_animated_gfx",
+      "pool_subscreen_overlay",
+      "pool_tile_gfx_groups",
+      "sw_sprite_gfx",
+      "sw_entry_gfx",
+      "pool_by_screen_1",
+      "pool_by_screen_2",
+      "pool_by_screen_3",
+      "pool_by_screen_4",
+      "pool_trans_pos_y",
+      "pool_trans_pos_x",
+      "pool_trans_target_north",
+      "pool_trans_target_west",
+      "pool_sprites_phase_0",
+      "pool_sprites_phase_1",
+      "pool_sprites_phase_2",
+      "pool_sign_message",
+      "music_dw_sw",
+      "bomb_doors",
+      "hidden_items",
+      "area_flags"
+    ]
+  }
+}

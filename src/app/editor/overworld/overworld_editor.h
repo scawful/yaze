@@ -142,6 +142,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
     gfx_group_editor_.SetRom(rom);
+    gfx_group_editor_.SetUndoManager(&undo_manager_);
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are
     // ready
   }
@@ -151,6 +152,17 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     dependencies_ = deps;
   }
   ~OverworldEditor() override;
+  void SetMainGraphicsUsageCallback(
+      GfxGroupEditor::MainUsageCallback callback) {
+    gfx_group_editor_.SetMainUsageCallback(std::move(callback));
+  }
+  void SetRoomsetGraphicsUsageCallback(
+      GfxGroupEditor::RoomsetUsageCallback callback) {
+    gfx_group_editor_.SetRoomsetUsageCallback(std::move(callback));
+  }
+  void PrepareForSessionTeardown() override {
+    gfx_group_editor_.DetachRuntimeContext();
+  }
 
   void SetDependencies(const EditorDependencies& deps) override {
     Editor::SetDependencies(deps);
@@ -178,6 +190,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  absl::Status BeginSaveTransaction() override;
+  void RollbackSaveTransaction() override;
+  void CommitSaveTransaction() override;
   absl::Status Clear() override;
   void ContributeStatus(StatusBar* status_bar) override;
   EditorContextSnapshot BuildContextSnapshot() const override;
@@ -206,6 +221,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
 
   Rom* rom() const { return rom_; }
+  bool is_lyra_preview() const { return overworld_.is_lyra_preview(); }
+  // A Lyra preview retains pointers and caches derived from one ROM image.
+  // Session replacement must be checked before the manager mutates the ROM.
+  absl::Status CheckRomReplacement(const Rom& replacement) const;
+  bool overlay_preview_enabled() const { return show_overlay_preview_; }
 
   /// @brief Clamp a possibly stale world/map selection back into a valid
   /// overworld range.
@@ -213,7 +233,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Set the current map for editing (also updates world)
   void set_current_map(int map_id) {
-    if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps) {
+    if (map_id >= 0 && map_id < overworld_.inspected_map_count()) {
       // Finalize any pending paint operation before switching maps
       FinalizePaintOperation();
       current_map_ = map_id;
@@ -233,6 +253,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
   int current_tile16_id() const { return current_tile16_; }
+  // Opens a Tile16's editable quadrants, focused on the requested quadrant.
+  // The selected map at invocation supplies the sheet and palette context.
+  absl::Status OpenGraphicsForTile16Quadrant(int tile16_id, int quadrant);
+  // Uses the map/tile captured by the context menu, not the hovered or pinned
+  // map. The clicked quadrant is focused first.
+  absl::Status OpenGraphicsForContextTile16(
+      const OverworldContextTarget& target);
   const TilePaintingManager* tile_painting() const {
     return tile_painting_.get();
   }
@@ -256,6 +283,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    * assembling the OverworldMap Bitmap objects.
    */
   absl::Status LoadGraphics();
+  absl::Status SyncProjectGraphicsPreview(bool force = false);
 
   // ===========================================================================
   // Entity Interaction API
@@ -294,6 +322,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   gui::Canvas& ow_map_canvas() { return ow_map_canvas_; }
   int game_state() const { return game_state_; }
+  // Preview only; does not rewrite story progression or entity placements.
+  void SetPreviewStoryState(int state);
 
   // ===========================================================================
   // Entity System - Insertion and Editing
@@ -306,6 +336,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// @param entity_type Type: "entrance", "hole", "exit", "item", "sprite"
   void HandleEntityInsertion(const std::string& entity_type,
                              const OverworldContextTarget& target);
+  /// Insert Item opens the item catalog. A context-menu target places the
+  /// chosen item there; otherwise the next map click places it.
+  void RequestItemInsertPopup(
+      const std::optional<OverworldContextTarget>& target);
+  void DrawItemInsertPopup();
+  bool TryPlaceArmedItem();
 
   /// @brief Handle tile16 editing from context menu (MOUSE mode)
   /// Opens the Tile16 captured at menu-open through the pending-edit guard.
@@ -363,6 +399,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// Select @p map_id (switching world if needed) and center it; the context
   /// menu's Related Maps entries.
   void JumpToMap(int map_id);
+  // Navigate to an inspected Tile16 without changing ROM or edit history.
+  void LocateOverworldTile(int map_id, int world_x, int world_y);
   void SwitchToWorld(int world);
   // View requests; applied when the canvas child begins (safe anywhere).
   void ZoomIn();
@@ -396,17 +434,29 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Drawing is delegated to OverworldCanvasRenderer.
 
   absl::Status DrawAreaGraphics() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: area graphics editing unavailable");
+      return absl::OkStatus();
+    }
     NormalizeCurrentSelectionState();
     if (!canvas_renderer_)
       return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawAreaGraphics();
   }
   absl::Status DrawTile16Selector() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: Tile16 editing unavailable");
+      return absl::OkStatus();
+    }
     if (!canvas_renderer_)
       return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawTile16Selector();
   }
   void DrawMapProperties() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: map properties editing unavailable");
+      return;
+    }
     NormalizeCurrentSelectionState();
     if (canvas_renderer_)
       canvas_renderer_->DrawMapProperties();
@@ -421,11 +471,19 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   absl::Status DrawScratchSpace();
   void DrawTile8Selector() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: Tile8 editing unavailable");
+      return;
+    }
     if (canvas_renderer_)
       canvas_renderer_->DrawTile8Selector();
   }
   absl::Status UpdateGfxGroupEditor();
   void DrawV3Settings() {
+    if (is_lyra_preview()) {
+      ImGui::TextDisabled("Lyra preview: overworld settings unavailable");
+      return;
+    }
     NormalizeCurrentSelectionState();
     if (canvas_renderer_)
       canvas_renderer_->DrawV3Settings();
@@ -454,6 +512,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawOverworldCanvas();
 
  private:
+  friend class AuthoringSaveWorkflowTestPeer;
+
+  // Identifies the exact descriptor image bound to this model. The session
+  // reload path may restore those bytes after a refused ROM replacement.
+  std::string lyra_loaded_rom_sha1_;
+  std::string graphics_preview_config_path_;
   // ===========================================================================
   // Entity Interaction System
   // ===========================================================================
@@ -490,15 +554,15 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     if (map_refresh_)
       map_refresh_->RefreshChildMapOnDemand(map_index);
   }
-  absl::Status RefreshMapPalette() {
+  absl::Status RefreshMapPalette(int map_id = -1) {
     if (map_refresh_)
-      return map_refresh_->RefreshMapPalette();
+      return map_refresh_->RefreshMapPalette(map_id);
     return absl::FailedPreconditionError(
         "MapRefreshCoordinator not initialized");
   }
-  void RefreshMapProperties() {
+  void RefreshMapProperties(int map_id = -1) {
     if (map_refresh_)
-      map_refresh_->RefreshMapProperties();
+      map_refresh_->RefreshMapProperties(map_id);
   }
   absl::Status RefreshTile16Blockset() {
     if (map_refresh_)
@@ -758,7 +822,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gfx::Bitmap tile16_blockset_bmp_;
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount> maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
   std::vector<gfx::Bitmap> sprite_previews_;
 
@@ -767,6 +831,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
 
   zelda3::Overworld overworld_{rom_};
+  bool map_tile_save_transaction_open_ = false;
   zelda3::OverworldBlockset refresh_blockset_;
 
   // ===========================================================================
@@ -788,6 +853,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Deferred entity insertion (needed for popup flow from context menu)
   std::optional<OverworldEntityInsertionRequest> pending_entity_insertion_;
+  std::optional<OverworldContextTarget> item_insert_target_;
+  bool item_insert_popup_requested_ = false;
+  bool item_placement_armed_ = false;
+  uint8_t armed_item_id_ = 0;
   std::string insert_error_;
 
   // ===========================================================================

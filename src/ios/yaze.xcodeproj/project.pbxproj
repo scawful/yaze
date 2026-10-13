@@ -58,7 +58,9 @@
 		E318D9172C59C08300091322 /* screen_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8692C59C08300091322 /* screen_editor.cc */; };
 		E318D9182C59C08300091322 /* screen_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8692C59C08300091322 /* screen_editor.cc */; };
 		E318D91D2C59C08300091322 /* message_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8702C59C08300091322 /* message_editor.cc */; };
+		09F857D2BB527DACDF0DB8EB /* message_editor_font.cc in Sources */ = {isa = PBXBuildFile; fileRef = 049A34A0C5609B6E0C9A0AF2 /* message_editor_font.cc */; };
 		E318D91E2C59C08300091322 /* message_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8702C59C08300091322 /* message_editor.cc */; };
+		B7ED8073E26DE8C963459F32 /* message_editor_font.cc in Sources */ = {isa = PBXBuildFile; fileRef = 049A34A0C5609B6E0C9A0AF2 /* message_editor_font.cc */; };
 		E318D91F2C59C08300091322 /* music_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8732C59C08300091322 /* music_editor.cc */; };
 		E318D9202C59C08300091322 /* music_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8732C59C08300091322 /* music_editor.cc */; };
 		E318D9212C59C08300091322 /* entity.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8762C59C08300091322 /* entity.cc */; };
@@ -828,6 +830,8 @@
 		E3BE45C92E90AA0C0075AC22 /* message_preview.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45C82E90AA0C0075AC22 /* message_preview.cc */; };
 		E3BE45CA2E90AA0C0075AC22 /* message_preview.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45C82E90AA0C0075AC22 /* message_preview.cc */; };
 		E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958B2C68379B008DD1E7 /* editor_manager.cc */; };
+		CFD730F7E8EF46D580F6B0A1 /* editor_manager_frame.cc in Sources */ = {isa = PBXBuildFile; fileRef = CEEF14A2859E4D578B6CC420 /* editor_manager_frame.cc */; };
+		23511B6A235140A2801ABA70 /* editor_manager_sessions.cc in Sources */ = {isa = PBXBuildFile; fileRef = C2CE2BB9246F452CB9EF7B3D /* editor_manager_sessions.cc */; };
 		E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */; };
 /* End PBXBuildFile section */
 
@@ -946,12 +950,12 @@
 /* Begin PBXFileReference section */
 		05318E0E274C397200A8DE2E /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		07A82ED62139413C0078D120 /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../../yaze/ext/imgui/imgui_internal.h; sourceTree = "<group>"; };
-		07A82ED72139413C0078D120 /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_widgets.cpp; path = $(SRCROOT)/../../ext/imgui/imgui_widgets.cpp; sourceTree = "<absolute>"; };
+		07A82ED72139413C0078D120 /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_widgets.cpp; path = "$(SRCROOT)/../../ext/imgui/imgui_widgets.cpp"; sourceTree = "<absolute>"; };
 		104B9B65C53C4E71B4C15762 /* ios_platform_state.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ios_platform_state.mm; path = ../app/platform/ios/ios_platform_state.mm; sourceTree = SOURCE_ROOT; };
 		2DD3040220B14DA7AE5C9126 /* metal_renderer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = metal_renderer.mm; path = ../app/gfx/backend/metal_renderer.mm; sourceTree = SOURCE_ROOT; };
 		33E38666249F4B68BD81E8FD /* ios_host.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ios_host.h; path = ../app/platform/ios/ios_host.h; sourceTree = SOURCE_ROOT; };
 		4CBB29F4B39241868684DD52 /* ios_host.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ios_host.mm; path = ../app/platform/ios/ios_host.mm; sourceTree = SOURCE_ROOT; };
-		5079822D257677DB0038A28D /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = $(SRCROOT)/../../ext/imgui/imgui_tables.cpp; sourceTree = "<absolute>"; };
+		5079822D257677DB0038A28D /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = "$(SRCROOT)/../../ext/imgui/imgui_tables.cpp"; sourceTree = "<absolute>"; };
 		75242C7D5025428685194503 /* ios_platform_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ios_platform_state.h; path = ../app/platform/ios/ios_platform_state.h; sourceTree = SOURCE_ROOT; };
 		8307E7C420E9F9C900473790 /* yaze.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = yaze.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8307E7DA20E9F9C900473790 /* yaze.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = yaze.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -969,9 +973,9 @@
 		83BBE9EA20EB471700295997 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		83BBE9EB20EB471700295997 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		83BBE9EE20EB471C00295997 /* ModelIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ModelIO.framework; path = System/Library/Frameworks/ModelIO.framework; sourceTree = SDKROOT; };
-		83BBEA0120EB54E700295997 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = $(SRCROOT)/../../ext/imgui/imgui_draw.cpp; sourceTree = "<absolute>"; };
-		83BBEA0220EB54E700295997 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = $(SRCROOT)/../../ext/imgui/imgui_demo.cpp; sourceTree = "<absolute>"; };
-		83BBEA0320EB54E700295997 /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = $(SRCROOT)/../../ext/imgui/imgui.cpp; sourceTree = "<absolute>"; };
+		83BBEA0120EB54E700295997 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = "$(SRCROOT)/../../ext/imgui/imgui_draw.cpp"; sourceTree = "<absolute>"; };
+		83BBEA0220EB54E700295997 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_demo.cpp; path = "$(SRCROOT)/../../ext/imgui/imgui_demo.cpp"; sourceTree = "<absolute>"; };
+		83BBEA0320EB54E700295997 /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = "$(SRCROOT)/../../ext/imgui/imgui.cpp"; sourceTree = "<absolute>"; };
 		83BBEA0420EB54E700295997 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imconfig.h; sourceTree = "<group>"; };
 		C655B969EA0646E8AC97C6FA /* metal_renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = metal_renderer.h; path = ../app/gfx/backend/metal_renderer.h; sourceTree = SOURCE_ROOT; };
 		D329B1DE46A74E5783838504 /* ios_window_backend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ios_window_backend.h; path = ../app/platform/ios/ios_window_backend.h; sourceTree = SOURCE_ROOT; };
@@ -1000,6 +1004,7 @@
 		E318D86A2C59C08300091322 /* screen_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = screen_editor.h; sourceTree = "<group>"; };
 		E318D86E2C59C08300091322 /* message_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = message_data.h; sourceTree = "<group>"; };
 		E318D8702C59C08300091322 /* message_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = message_editor.cc; sourceTree = "<group>"; };
+		049A34A0C5609B6E0C9A0AF2 /* message_editor_font.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = message_editor_font.cc; sourceTree = "<group>"; };
 		E318D8712C59C08300091322 /* message_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = message_editor.h; sourceTree = "<group>"; };
 		E318D8732C59C08300091322 /* music_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = music_editor.cc; sourceTree = "<group>"; };
 		E318D8742C59C08300091322 /* music_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = music_editor.h; sourceTree = "<group>"; };
@@ -2587,7 +2592,6 @@
 		E3BE45A52E90A9D70075AC22 /* dungeon_usage_tracker.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_usage_tracker.cc; sourceTree = "<group>"; };
 		E3BE45B62E90A9E80075AC22 /* agent_chat_widget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = agent_chat_widget.h; sourceTree = "<group>"; };
 		E3BE45B72E90A9E80075AC22 /* agent_chat_widget.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = agent_chat_widget.cc; sourceTree = "<group>"; };
-		E3BE45B82E90A9E80075AC22 /* history_manager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = history_manager.h; sourceTree = "<group>"; };
 		E3BE45B92E90A9E80075AC22 /* popup_manager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ../ui/popup_manager.h; sourceTree = "<group>"; };
 		E3BE45BA2E90A9E80075AC22 /* popup_manager.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ../ui/popup_manager.cc; sourceTree = "<group>"; };
 		E3BE45BB2E90A9E80075AC22 /* proposal_drawer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = proposal_drawer.h; sourceTree = "<group>"; };
@@ -2599,6 +2603,8 @@
 		E3BE45C72E90AA0C0075AC22 /* message_preview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = message_preview.h; sourceTree = "<group>"; };
 		E3BE45C82E90AA0C0075AC22 /* message_preview.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = message_preview.cc; sourceTree = "<group>"; };
 		E3BE958B2C68379B008DD1E7 /* editor_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager.cc; sourceTree = "<group>"; };
+		CEEF14A2859E4D578B6CC420 /* editor_manager_frame.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager_frame.cc; sourceTree = "<group>"; };
+		C2CE2BB9246F452CB9EF7B3D /* editor_manager_sessions.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager_sessions.cc; sourceTree = "<group>"; };
 		E3BE958C2C68379B008DD1E7 /* editor_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = editor_manager.h; sourceTree = "<group>"; };
 		E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = overworld_editor.h; sourceTree = "<group>"; };
 		E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = overworld_editor.cc; sourceTree = "<group>"; };
@@ -2826,6 +2832,7 @@
 				E384E2D52C76C6C800147029 /* message_data.cc */,
 				E318D86E2C59C08300091322 /* message_data.h */,
 				E318D8702C59C08300091322 /* message_editor.cc */,
+				049A34A0C5609B6E0C9A0AF2 /* message_editor_font.cc */,
 				E318D8712C59C08300091322 /* message_editor.h */,
 			);
 			path = message;
@@ -2881,6 +2888,8 @@
 				E318D87D2C59C08300091322 /* sprite */,
 				E38A97F62C6C4CE3005FB662 /* system */,
 				E3BE958B2C68379B008DD1E7 /* editor_manager.cc */,
+				CEEF14A2859E4D578B6CC420 /* editor_manager_frame.cc */,
+				C2CE2BB9246F452CB9EF7B3D /* editor_manager_sessions.cc */,
 				E3BE958C2C68379B008DD1E7 /* editor_manager.h */,
 				E3A5CEE82CF61F3100259DE8 /* editor.h */,
 			);
@@ -5273,7 +5282,6 @@
 			children = (
 				E3BE45B62E90A9E80075AC22 /* agent_chat_widget.h */,
 				E3BE45B72E90A9E80075AC22 /* agent_chat_widget.cc */,
-				E3BE45B82E90A9E80075AC22 /* history_manager.h */,
 				E3BE45B92E90A9E80075AC22 /* popup_manager.h */,
 				E3BE45BA2E90A9E80075AC22 /* popup_manager.cc */,
 				E3BE45BB2E90A9E80075AC22 /* proposal_drawer.h */,
@@ -5712,6 +5720,8 @@
 				E318E2352C5A4FC300091322 /* time_zone_libc.cc in Sources */,
 				E318E1B72C5A4FC200091322 /* cord_analysis.cc in Sources */,
 				E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */,
+				CFD730F7E8EF46D580F6B0A1 /* editor_manager_frame.cc in Sources */,
+				23511B6A235140A2801ABA70 /* editor_manager_sessions.cc in Sources */,
 				E318D96D2C59C08300091322 /* object_renderer.cc in Sources */,
 				E318DFFD2C5A4FBF00091322 /* stacktrace_emscripten-inl.inc in Sources */,
 				E318E0072C5A4FBF00091322 /* stacktrace_win32-inl.inc in Sources */,
@@ -5816,6 +5826,7 @@
 				E318E21D2C5A4FC200091322 /* mutex.cc in Sources */,
 				E318E7B72C5A548C00091322 /* pngread.c in Sources */,
 				E318D91D2C59C08300091322 /* message_editor.cc in Sources */,
+				09F857D2BB527DACDF0DB8EB /* message_editor_font.cc in Sources */,
 				E318E7CB2C5A548C00091322 /* pngwutil.c in Sources */,
 				E318E1872C5A4FC100091322 /* cordz_sample_token.cc in Sources */,
 				E318DF4D2C5A4FBE00091322 /* spinlock_akaros.inc in Sources */,
@@ -5911,6 +5922,7 @@
 				95413E18FB9F4DDF9CE960C2 /* metal_renderer.mm in Sources */,
 				E318DF3A2C5A4FBE00091322 /* endian_test.cc in Sources */,
 				E318D91E2C59C08300091322 /* message_editor.cc in Sources */,
+				B7ED8073E26DE8C963459F32 /* message_editor_font.cc in Sources */,
 				E318E7042C5A4FC900091322 /* clock_test.cc in Sources */,
 				E318E0D02C5A4FC000091322 /* nanobenchmark_test.cc in Sources */,
 				E318E0FE2C5A4FC000091322 /* bernoulli_distribution_test.cc in Sources */,

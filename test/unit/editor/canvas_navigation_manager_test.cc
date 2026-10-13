@@ -8,6 +8,7 @@
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze::editor {
 namespace {
@@ -331,6 +332,41 @@ TEST_F(CanvasNavigationManagerTest, ScrollBlocksetCanvasToCurrentTileNoWidget) {
   // blockset_selector_ is nullptr (default) -- should not crash.
   ASSERT_EQ(blockset_selector_, nullptr);
   manager_.ScrollBlocksetCanvasToCurrentTile();
+}
+
+TEST_F(CanvasNavigationManagerTest, StartupCenterWaitsForMeasuredViewport) {
+  ImGuiContext* context = ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(800, 600);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+  manager_.CenterOnMap(0x39);
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(600, 500));
+    ImGui::Begin("Startup map navigation");
+    manager_.BeginCanvasViewport();
+    ImGui::BeginChild("Map viewport", ImVec2(320, 240), false,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    manager_.EndCanvasViewport(false);
+    ImGui::Dummy(ImVec2(4096, 4096));
+    if (frame == 2) {
+      const auto* window = ImGui::GetCurrentWindow();
+      EXPECT_NEAR(window->Scroll.x + window->InnerRect.GetWidth() * 0.5f,
+                  768.0f, 1.0f);
+      EXPECT_NEAR(window->Scroll.y + window->InnerRect.GetHeight() * 0.5f,
+                  3840.0f, 1.0f);
+    }
+    ImGui::EndChild();
+    ImGui::End();
+    ImGui::Render();
+  }
+  ImGui::DestroyContext(context);
 }
 
 // ===========================================================================

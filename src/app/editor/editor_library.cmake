@@ -28,6 +28,7 @@ set(
   app/editor/dungeon/dungeon_editor_v2_selection_edits.cc
   app/editor/dungeon/dungeon_editor_v2_connection_edits.cc
   app/editor/dungeon/dungeon_editor_v2_render_context.cc
+  app/editor/dungeon/dungeon_editor_v2_context.cc
   app/editor/dungeon/dungeon_editor_v2_room_transfer.cc
   app/editor/dungeon/dungeon_room_edit.cc
   app/editor/dungeon/dungeon_selection_edit.cc
@@ -52,7 +53,6 @@ set(
   app/editor/dungeon/inspectors/dungeon_connection_editor.cc
   app/editor/dungeon/inspectors/dungeon_room_transfer_editor.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
-  app/editor/dungeon/inspectors/object_editor_content.cc
   app/editor/dungeon/interaction/door_interaction_handler.cc
   app/editor/dungeon/interaction/interaction_coordinator.cc
   app/editor/dungeon/interaction/interaction_mode.cc
@@ -60,6 +60,12 @@ set(
   app/editor/dungeon/interaction/sprite_interaction_handler.cc
   app/editor/dungeon/interaction/tile_object_handler.cc
   app/editor/dungeon/dungeon_proposal_overlay.cc
+  app/editor/dungeon/dungeon_editor_v2_minecart.cc
+  app/editor/dungeon/ui/crumble/crumble_floor_model.cc
+  app/editor/dungeon/ui/crumble/crumble_floor_view.cc
+  app/editor/dungeon/ui/minecart/minecart_canvas_tool.cc
+  app/editor/dungeon/ui/minecart/minecart_collision_tool.cc
+  app/editor/dungeon/ui/minecart/minecart_rail_tools.cc
   app/editor/dungeon/minecart_track_source.cc
   app/editor/dungeon/object_selection.cc
   app/editor/dungeon/selectors/object_selector_content.cc
@@ -80,7 +86,11 @@ set(
   app/editor/dungeon/workspace/room_graphics_content.cc
   app/editor/dungeon/workspace/room_matrix_census.cc
   app/editor/editor_manager.cc
+  app/editor/editor_manager_frame.cc
+  app/editor/editor_manager_project_io.cc
+  app/editor/editor_manager_sessions.cc
   app/editor/graphics/gfx_group_editor.cc
+  app/editor/graphics/gfx_group_editor_main.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/link_sprite_panel.cc
   app/editor/graphics/palette_controls_panel.cc
@@ -88,20 +98,21 @@ set(
   app/editor/graphics/pixel_editor_panel.cc
   app/editor/graphics/polyhedral_editor_panel.cc
   app/editor/graphics/screen_editor.cc
+  app/editor/graphics/screen_menu_tilemap_editor.cc
   app/editor/graphics/sheet_browser_panel.cc
   app/editor/graphics/sheet_png_transfer.cc
   app/editor/graphics/pixel_clipboard.cc
   app/editor/graphics/graphics_save_plan.cc
   app/editor/graphics/graphics_sheet_sync.cc
+  app/editor/graphics/graphics_palette_preview.cc
+  app/editor/graphics/graphics_edit_context.cc
+  app/editor/graphics/palette_pixel_command.cc
+  app/editor/graphics/palette_reorder_control.cc
+  app/editor/graphics/screen_graphics_context.cc
+  app/editor/overworld/overworld_graphics_context.cc
+  app/editor/sprite/sprite_graphics_context.cc
   app/editor/graphics/usage_preview.cc
   app/editor/graphics/ui/usage/usage_preview_view.cc
-  app/editor/graphics/ui/browser/sheet_browser_view.cc
-  app/editor/graphics/ui/editing/pixel_editor_view.cc
-  app/editor/graphics/ui/palette/palette_controls_view.cc
-  app/editor/graphics/ui/palette/paletteset_editor_view.cc
-  app/editor/graphics/ui/research/polyhedral_editor_view.cc
-  app/editor/graphics/ui/research/prototype_research_view.cc
-  app/editor/graphics/ui/sprite/link_sprite_view.cc
   app/editor/hack/workflow/hack_workflow_backend_factory.cc
   app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
   app/editor/hack/workflow/project_workflow_output_panel.cc
@@ -119,6 +130,7 @@ set(
   app/editor/menu/window_sidebar.cc
   app/editor/message/message_data.cc
   app/editor/message/message_editor.cc
+  app/editor/message/message_editor_font.cc
   app/editor/message/message_preview.cc
   app/editor/message/message_source_sync.cc
   app/editor/music/instrument_editor_view.cc
@@ -187,6 +199,7 @@ set(
   app/editor/shell/dialogs/editor_selection_dialog.cc
   app/editor/shell/dialogs/new_project_dialog.cc
   app/editor/shell/dialogs/rom_load_options_dialog.cc
+  app/editor/shell/feedback/feature_hint_manager.cc
   app/editor/shell/feedback/popup_manager.cc
   app/editor/shell/windows/about_panel.cc
   app/editor/shell/windows/dashboard_panel.cc
@@ -226,6 +239,7 @@ set(
   app/editor/system/workspace/workspace_window_manager_state.cc
   app/editor/system/workspace/workspace_window_manager_support.cc
   app/editor/system/workspace/file_browser.cc
+  app/editor/system/workspace/panel_admission.cc
   app/editor/system/workspace/proposal_drawer.cc
 )
 

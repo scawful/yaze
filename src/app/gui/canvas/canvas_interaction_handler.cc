@@ -87,7 +87,9 @@ bool CanvasInteractionHandler::DrawTilePainter(
     draw_list->AddImage(reinterpret_cast<ImTextureID>(bitmap.texture()),
                         ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
                         ImVec2(origin.x + paint_pos.x + scaled_size,
-                               origin.y + paint_pos.y + scaled_size));
+                               origin.y + paint_pos.y + scaled_size),
+                        ImVec2(0, 0), ImVec2(1, 1),
+                        ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   }
 
   // Check for paint action
@@ -151,7 +153,7 @@ bool CanvasInteractionHandler::DrawTilemapPainter(
             ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
             ImVec2(origin.x + paint_pos.x + scaled_size,
                    origin.y + paint_pos.y + scaled_size),
-            uv0, uv1);
+            uv0, uv1, ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
       }
     }
   }

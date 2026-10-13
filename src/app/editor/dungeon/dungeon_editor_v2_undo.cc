@@ -20,7 +20,6 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
-#include "app/editor/dungeon/inspectors/object_editor_content.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
@@ -69,21 +68,107 @@
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/water_fill_zone.h"
+#include "zelda3/gfx_sheet_storage.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
+
+namespace {
+
+class RoomGraphicsSheetAction final : public UndoAction {
+ public:
+  using Apply = std::function<absl::Status(uint8_t, uint8_t)>;
+  RoomGraphicsSheetAction(int group, int slot, uint8_t before, uint8_t after,
+                          Apply apply)
+      : group_(group),
+        slot_(slot),
+        before_(before),
+        after_(after),
+        apply_(std::move(apply)) {}
+  absl::Status Undo() override { return apply_(after_, before_); }
+  absl::Status Redo() override { return apply_(before_, after_); }
+  std::string Description() const override {
+    return absl::StrFormat("Room graphics group %02X slot %d", group_, slot_);
+  }
+  size_t MemoryUsage() const override { return sizeof(*this); }
+
+ private:
+  int group_;
+  int slot_;
+  uint8_t before_;
+  uint8_t after_;
+  Apply apply_;
+};
+
+}  // namespace
+
+absl::Status DungeonEditorV2::EditRoomGraphicsSheet(int room_id, int slot,
+                                                    int sheet_id) {
+  if (!game_data_ || !rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("No loaded graphics session");
+  }
+  auto* room = rooms_.GetIfMaterialized(room_id);
+  if (!room || slot < 3 || slot > 6 || sheet_id < 0 ||
+      sheet_id >= zelda3::GraphicsSheetStore::kSheetCount) {
+    return absl::InvalidArgumentError("Choose a roomset slot (3-6) and sheet");
+  }
+  if (sheet_id != 0 && (!game_data_->sheet_store.HasSheet(sheet_id) ||
+                        zelda3::GetGfxSheetStorageKind(sheet_id) ==
+                            zelda3::GfxSheetStorageKind::kCompressed2bpp)) {
+    return absl::InvalidArgumentError(
+        "Room backgrounds require a loaded 3bpp sheet");
+  }
+  const int group = room->blockset();
+  if (group >= static_cast<int>(game_data_->room_blockset_ids.size())) {
+    return absl::OutOfRangeError("Room graphics group is unavailable");
+  }
+  const uint8_t before = game_data_->room_blockset_ids[group][slot - 3];
+  const auto after = static_cast<uint8_t>(sheet_id);
+  if (before == after) {
+    return absl::OkStatus();
+  }
+  FinalizePendingUndoActions();
+  auto apply = [this, owner = game_data_, source_rom = rom_, group, slot](
+                   uint8_t expected, uint8_t value) -> absl::Status {
+    if (game_data_ != owner || rom_ != source_rom) {
+      return absl::FailedPreconditionError(
+          "Graphics assignment belongs to another session");
+    }
+    auto& assigned = game_data_->room_blockset_ids[group][slot - 3];
+    if (assigned != expected) {
+      return absl::FailedPreconditionError(
+          "Graphics assignment changed elsewhere; Undo was not applied");
+    }
+    assigned = value;
+    rooms_.ForEachMaterialized([group](int, zelda3::Room& affected) {
+      if (affected.blockset() == group) {
+        affected.MarkGraphicsDirty();
+      }
+    });
+    rom_->set_dirty(true);
+    return absl::OkStatus();
+  };
+  RETURN_IF_ERROR(apply(before, after));
+  undo_manager_.Push(std::make_unique<RoomGraphicsSheetAction>(
+      group, slot, before, after, std::move(apply)));
+  return absl::OkStatus();
+}
 
 void DungeonEditorV2::FinalizePendingUndoActions() {
   // Closing history alone leaves a handler's drag/paint gesture running, so its
   // next movement could bypass the before-snapshot. End gestures first.
   room_viewers_.ForEach([](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
-    if (viewer)
+    if (viewer) {
+      viewer->CancelMinecartGesture();
       viewer->object_interaction().HandleMouseRelease();
+    }
   });
   for (auto* viewer :
        {workbench_viewer_.get(), workbench_compare_viewer_.get()}) {
-    if (viewer)
+    if (viewer) {
+      viewer->CancelMinecartGesture();
       viewer->object_interaction().HandleMouseRelease();
+    }
   }
   if (pending_undo_.room_id >= 0) {
     FinalizeUndoAction(pending_undo_.room_id);
@@ -211,6 +296,8 @@ std::vector<SelectedEntity> ValidEntitySelection(
 }  // namespace
 
 void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
+  viewer->object_interaction().SetSharedSelectionClipboard(
+      &selection_clipboard_);
   viewer->SetRoomTransferCallbacks(
       [this](int id) { return ExportRoomDocument(id); },
       [this](int target, int source, const std::string& json,
@@ -277,18 +364,15 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
       .entity_coordinator()
       .tile_handler()
       .SetObjectMutationPreflight(
-          [this, viewer](int room_id,
-                         const std::vector<zelda3::RoomObject>& objects,
-                         const std::vector<chest_data>& chests) {
-            const auto status =
-                PreflightObjectMutation(room_id, objects, chests);
-            if (status.ok()) {
-              // Preserve rejected gestures, but finish an accepted command's
-              // preceding drag before the handler captures its next snapshot.
-              viewer->object_interaction().HandleMouseRelease();
-            }
-            return status;
+          [this](int room_id, const std::vector<zelda3::RoomObject>& objects,
+                 const std::vector<chest_data>& chests) {
+            return PreflightObjectMutation(room_id, objects, chests);
           });
+  viewer->object_interaction()
+      .entity_coordinator()
+      .tile_handler()
+      .SetBeforeObjectCommandCallback(
+          [this]() { FinalizePendingUndoActions(); });
   viewer->object_interaction()
       .entity_coordinator()
       .tile_handler()
@@ -299,6 +383,45 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
               ToastType::kWarning, 4.0f);
         }
       });
+  auto& door_handler =
+      viewer->object_interaction().entity_coordinator().door_handler();
+  door_handler.SetDoorMutationPreflight(
+      [this](int id, const std::vector<zelda3::Room::Door>& doors) {
+        return PreflightDoorMutation(id, doors);
+      });
+  door_handler.SetMutationErrorCallback([this](const absl::Status& status) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Edit not applied: %s", status.message()),
+          ToastType::kWarning, 4.0f);
+    }
+  });
+  auto& sprite_handler =
+      viewer->object_interaction().entity_coordinator().sprite_handler();
+  sprite_handler.SetSpriteMutationPreflight(
+      [this](int id, const std::vector<zelda3::Sprite>& sprites) {
+        return PreflightSpriteMutation(id, sprites);
+      });
+  sprite_handler.SetMutationErrorCallback([this](const absl::Status& status) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Edit not applied: %s", status.message()),
+          ToastType::kWarning, 4.0f);
+    }
+  });
+  auto& item_handler =
+      viewer->object_interaction().entity_coordinator().item_handler();
+  item_handler.SetItemPlacementPreflight(
+      [this](int id, const std::vector<zelda3::PotItem>& items) {
+        return PreflightPotItemPlacement(id, items);
+      });
+  item_handler.SetMutationErrorCallback([this](const absl::Status& status) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Edit not applied: %s", status.message()),
+          ToastType::kWarning, 4.0f);
+    }
+  });
   // The interaction context is the mutation source of truth. A retained viewer
   // can change rooms, so do not capture the room ID from its creation time.
   viewer->object_interaction().SetMutationCallback([this, viewer]() {
@@ -648,8 +771,7 @@ void DungeonEditorV2::FinalizeCollisionUndoAction(int room_id) {
     return;
 
   auto after = rooms_[room_id].custom_collision();
-  if (pending_collision_undo_.before.has_data == after.has_data &&
-      pending_collision_undo_.before.tiles == after.tiles) {
+  if (pending_collision_undo_.before == after) {
     pending_collision_undo_.room_id = -1;
     pending_collision_undo_.before = {};
     return;
@@ -685,13 +807,12 @@ void DungeonEditorV2::RestoreRoomCustomCollision(
 namespace {
 
 bool HasAnyCustomCollision(const zelda3::CustomCollisionMap& map) {
-  return map.has_data || std::any_of(map.tiles.begin(), map.tiles.end(),
-                                     [](uint8_t tile) { return tile != 0; });
+  return map.has_data || map.HasOverrides();
 }
 
 bool CollisionMapsEqual(const zelda3::CustomCollisionMap& lhs,
                         const zelda3::CustomCollisionMap& rhs) {
-  return lhs.has_data == rhs.has_data && lhs.tiles == rhs.tiles;
+  return lhs == rhs;
 }
 
 struct CollisionRollbackEntry {
@@ -727,6 +848,46 @@ class CollisionBatchRollback {
 };
 
 }  // namespace
+
+absl::Status DungeonEditorV2::ApplyMinecartCollisionStamp(
+    int room_id, const zelda3::CustomCollisionMap& expected,
+    const MinecartCollisionStamp& stamp) {
+  auto* room = rooms_.GetIfMaterialized(room_id);
+  if (!room || !rom_ ||
+      !zelda3::HasCustomCollisionWriteSupport(rom_->vector().size())) {
+    return absl::FailedPreconditionError(
+        "Load a room with expanded collision support");
+  }
+  if (!CollisionMapsEqual(room->custom_collision(), expected)) {
+    return absl::FailedPreconditionError(
+        "Collision changed; preview the stamp again");
+  }
+  ASSIGN_OR_RETURN(auto after, PreviewMinecartCollisionStamp(expected, stamp));
+  if (CollisionMapsEqual(expected, after))
+    return absl::OkStatus();
+  // Finalizing another tool may invalidate overlays, so keep value snapshots.
+  const auto before = expected;
+  FinalizePendingUndoActions();
+  auto action = std::make_unique<DungeonCustomCollisionAction>(
+      room_id, before, after,
+      [this](int rid, const zelda3::CustomCollisionMap& map) {
+        RestoreRoomCustomCollision(rid, map);
+      });
+  CollisionBatchRollback rollback(
+      {{room, before, room->custom_collision_dirty()}});
+  room->custom_collision() = after;
+  room->MarkCustomCollisionDirty();
+  try {
+    undo_manager_.Push(std::move(action));
+  } catch (const std::exception& error) {
+    return absl::InternalError(
+        absl::StrFormat("Could not record rail undo: %s", error.what()));
+  }
+  rollback.Commit();
+  if (minecart_track_editor_panel_)
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  return absl::OkStatus();
+}
 
 absl::Status DungeonEditorV2::ApplyMinecartCollisionBatch(
     const std::vector<zelda3::TrackCollisionResult>& preview,

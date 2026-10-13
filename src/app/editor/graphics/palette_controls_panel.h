@@ -5,11 +5,15 @@
 #include "app/editor/graphics/graphics_editor_state.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
-#include "rom/rom.h"
-#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
+
+// Shared by the pixel strip and the existing Palette Controls panel.
+enum class GraphicsPaletteSelectorLayout { kStacked, kInline };
+void DrawGraphicsPreviewPaletteSelector(
+    GraphicsEditorState& state, GraphicsPaletteSelectorLayout layout =
+                                    GraphicsPaletteSelectorLayout::kStacked);
 
 /**
  * @brief Panel for managing palettes applied to graphics sheets
@@ -19,13 +23,7 @@ namespace editor {
  */
 class PaletteControlsPanel : public WindowContent {
  public:
-  explicit PaletteControlsPanel(GraphicsEditorState* state, Rom* rom,
-                                zelda3::GameData* game_data = nullptr)
-      : state_(state), rom_(rom), game_data_(game_data) {}
-
-  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
-
-  void SetRom(Rom* rom) { rom_ = rom; }
+  explicit PaletteControlsPanel(GraphicsEditorState* state) : state_(state) {}
 
   // ==========================================================================
   // WindowContent Identity
@@ -40,11 +38,6 @@ class PaletteControlsPanel : public WindowContent {
   // ==========================================================================
   // WindowContent Lifecycle
   // ==========================================================================
-
-  /**
-   * @brief Initialize the panel
-   */
-  void Initialize();
 
   /**
    * @brief Draw the palette controls UI (WindowContent interface)
@@ -78,19 +71,7 @@ class PaletteControlsPanel : public WindowContent {
    */
   void DrawApplyButtons();
 
-  /**
-   * @brief Apply current palette to specified sheet
-   */
-  void ApplyPaletteToSheet(uint16_t sheet_id);
-
-  /**
-   * @brief Apply current palette to all active sheets
-   */
-  void ApplyPaletteToAllSheets();
-
   GraphicsEditorState* state_;
-  Rom* rom_;
-  zelda3::GameData* game_data_ = nullptr;
 };
 
 }  // namespace editor

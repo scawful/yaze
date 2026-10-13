@@ -8,7 +8,7 @@ namespace yaze::editor {
 
 TEST(DungeonOverlayControlsTest, SpecsAreUniqueAndNamed) {
   const auto& specs = GetDungeonOverlayControlSpecs();
-  EXPECT_EQ(specs.size(), 11u);
+  EXPECT_EQ(specs.size(), 13u);
 
   std::set<int> seen_ids;
   std::set<std::string> seen_labels;

@@ -1,10 +1,103 @@
 # This file defines the yaze test suites and configures test discovery with labels.
 
 if(YAZE_BUILD_TESTS)
+  # TEST_FILTER keeps phased source acceptance out of ROM-free test discovery.
+  # Application-only builds retain the project's existing CMake minimum.
+  if(CMAKE_VERSION VERSION_LESS "3.22")
+    message(FATAL_ERROR "Yaze tests require CMake 3.22 or newer for filtered discovery")
+  endif()
+
+  # --- CTest registration: shards (default) or one entry per gtest case ---
+  #
+  # Starting a test process costs about 0.3 s, and most cases do under 1 ms of
+  # work. One ctest entry per case (gtest_discover_tests) spent about 92% of the
+  # local -j4 wall time on process startup, so the suites listed below are
+  # registered as a few shard entries, <suite>_shard_<i>, instead. Each shard
+  # runs the same binary with --shard=<i>/<N>, keeps the suite's labels, and
+  # names every failing case in its output ("[  FAILED  ] Suite.Case").
+  # test/yaze_test.cc gives each shard whole fixtures, not every Nth case like
+  # GTEST_TOTAL_SHARDS: sibling cases that share a fixed temp or settings path
+  # then run one after another in one process, never in two concurrent shards.
+  #
+  # Run one case by name with the binary itself:
+  #   build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='Suite.Case'
+  # Re-run one shard exactly as ctest does (same cases, same order):
+  #   build/presets/mac-ai/bin/Debug/yaze_test_unit --shard=3/10
+  # YAZE_TEST_PER_CASE=ON restores one ctest entry per case (ctest -R Suite.Case)
+  # for isolation checks. Suites not listed here (GUI, quick, ROM, experimental,
+  # benchmark) always use per-case discovery.
+  option(YAZE_TEST_PER_CASE
+    "Register one ctest entry per gtest case instead of per-suite shards" OFF)
+  # Quick binaries recompile sources that are already linked into the stable
+  # suites. CI presets turn this off; build a quick target by name locally.
+  option(YAZE_BUILD_QUICK_TESTS
+    "Build quick test binaries that duplicate stable suite sources" ON)
+  # Shard counts: yaze_test_unit does about 130 s of Debug work on an M-series
+  # Mac, so 10 shards average about 13 s. The heaviest fixture
+  # (DungeonRoomCensusCommandTest, about 20 s) sets the floor for one shard.
+  set(YAZE_TEST_SHARDS_yaze_test_unit 10)
+  set(YAZE_TEST_SHARDS_yaze_test_integration 1)
+  # A shard runs hundreds of cases. Under `taskpolicy -b` (efficiency cores,
+  # about 5x slower) the heaviest unit shard takes about 180 s, so allow 600 s.
+  # CI's `--timeout 300` applies only to entries without their own TIMEOUT.
+  set(YAZE_TEST_SHARD_TIMEOUT 600)
+  # A unit shard prints about 300 KB. ctest stores at most 300 KB of a failed
+  # test's output (JUnit XML, LastTest.log) and keeps the head, which would
+  # drop gtest's closing "[  FAILED  ]" summary. --output-on-failure on the
+  # console is not truncated either way.
+  file(WRITE "${CMAKE_BINARY_DIR}/CTestCustom.cmake"
+    "set(CTEST_CUSTOM_MAXIMUM_FAILED_TEST_OUTPUT_SIZE 8388608)\n")
+
+  # Registers <suite_name>_shard_0..N-1. The entries are written to a
+  # per-configuration CTest include file (like gtest_discover_tests), so they
+  # resolve without `-C <config>`, falling back to the default build config.
+  function(yaze_add_test_shards suite_name label shard_count gtest_filter)
+    set(_content "")
+    math(EXPR _last_shard "${shard_count} - 1")
+    foreach(_shard RANGE 0 ${_last_shard})
+      set(_test "${suite_name}_shard_${_shard}")
+      string(APPEND _content
+        "add_test([==[${_test}]==] [==[$<TARGET_FILE:${suite_name}>]==]"
+        " [==[--shard=${_shard}/${shard_count}]==]"
+        " [==[--gtest_filter=${gtest_filter}]==])\n"
+        "set_tests_properties([==[${_test}]==] PROPERTIES\n"
+        "  LABELS [==[${label}]==]\n"
+        "  WORKING_DIRECTORY [==[${CMAKE_BINARY_DIR}]==]\n"
+        "  TIMEOUT ${YAZE_TEST_SHARD_TIMEOUT})\n")
+    endforeach()
+
+    set(_base "${CMAKE_CURRENT_BINARY_DIR}/${suite_name}_shards")
+    get_property(_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    if(_multi_config)
+      file(GENERATE OUTPUT "${_base}-$<CONFIG>.cmake" CONTENT "${_content}")
+      if(CMAKE_DEFAULT_BUILD_TYPE)
+        set(_default_config "${CMAKE_DEFAULT_BUILD_TYPE}")
+      else()
+        list(GET CMAKE_CONFIGURATION_TYPES 0 _default_config)
+      endif()
+      set(_include "string(TOLOWER \"\${CTEST_CONFIGURATION_TYPE}\" _yaze_config)\n")
+      string(APPEND _include
+        "if(_yaze_config STREQUAL \"\")\n"
+        "  include([==[${_base}-${_default_config}.cmake]==])\n")
+      foreach(_config IN LISTS CMAKE_CONFIGURATION_TYPES)
+        string(TOLOWER "${_config}" _config_lower)
+        string(APPEND _include
+          "elseif(_yaze_config STREQUAL [==[${_config_lower}]==])\n"
+          "  include([==[${_base}-${_config}.cmake]==])\n")
+      endforeach()
+      string(APPEND _include "endif()\n")
+      file(WRITE "${_base}_include.cmake" "${_include}")
+    else()
+      file(GENERATE OUTPUT "${_base}_include.cmake" CONTENT "${_content}")
+    endif()
+    set_property(DIRECTORY APPEND PROPERTY TEST_INCLUDE_FILES
+      "${_base}_include.cmake")
+  endfunction()
 
   # Helper function to create and configure a test executable for a suite of tests.
-  # This function adds the executable, links common dependencies, discovers the
-  # tests using gtest_discover_tests, and assigns a label to all discovered tests.
+  # This function adds the executable, links common dependencies, and registers
+  # the tests with CTest (shards or per-case discovery, see above) under the
+  # given labels.
   function(yaze_add_test_suite suite_name label is_gui_test)
     set(sources ${ARGN})
     
@@ -116,6 +209,43 @@ if(YAZE_BUILD_TESTS)
       endif()
     endif()
 
+    set(_default_gtest_filter "*")
+    if(suite_name STREQUAL "yaze_test_unit" OR
+       suite_name STREQUAL "yaze_test_quick_unit_editor")
+      # These two cases publish into an isolated Oracle source copy, require
+      # an intervening build, and then reopen that build. They remain compiled
+      # and directly runnable, but are not ROM-free stable or quick tests.
+      set(_default_gtest_filter "*-OracleExpandedSourceAcceptance.*")
+    endif()
+    if(suite_name STREQUAL "yaze_test_unit")
+      # Run these phases separately with YAZE_ORACLE_ACCEPTANCE_ROOT set:
+      # 1. ctest -L oracle_source_publish --output-on-failure
+      # 2. Build Roms/oos168x.sfc in that isolated Oracle source copy.
+      # 3. ctest -L oracle_source_reopen --output-on-failure
+      # The combined acceptance label alone does not perform step 2 and is
+      # not an automated end-to-end run.
+      foreach(_phase_case IN ITEMS
+          "publish|ChangedPublishWritesOnlyTheEditedLine"
+          "reopen|ReopenedBuiltBankContainsTheEditedLine")
+        string(REPLACE "|" ";" _phase_case_parts "${_phase_case}")
+        list(GET _phase_case_parts 0 _phase)
+        list(GET _phase_case_parts 1 _case)
+        set(_test "OracleExpandedSourceAcceptance.${_case}")
+        add_test(NAME "${_test}" COMMAND $<TARGET_FILE:${suite_name}>
+          "--gtest_filter=${_test}")
+        set_tests_properties("${_test}" PROPERTIES
+          LABELS "oracle_source_acceptance;oracle_source_${_phase}"
+          WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+      endforeach()
+    endif()
+
+    if(NOT is_gui_test AND NOT YAZE_TEST_PER_CASE
+       AND DEFINED YAZE_TEST_SHARDS_${suite_name})
+      yaze_add_test_shards(${suite_name} "${label}"
+        ${YAZE_TEST_SHARDS_${suite_name}} "${_default_gtest_filter}")
+      return()
+    endif()
+
     include(GoogleTest)
     # gtest_discover_tests forwards PROPERTIES through a post-build discovery
     # script as a semicolon-delimited list of tokens (prop/value pairs). If the
@@ -143,6 +273,7 @@ if(YAZE_BUILD_TESTS)
     endif()
     if(WIN32)
       set(_gtest_discover_args
+        TEST_FILTER "${_default_gtest_filter}"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DISCOVERY_TIMEOUT 60
         PROPERTIES LABELS "${_suite_labels}"
@@ -153,6 +284,7 @@ if(YAZE_BUILD_TESTS)
       gtest_discover_tests(${suite_name} ${_gtest_discover_args})
     else()
       set(_gtest_discover_args
+        TEST_FILTER "${_default_gtest_filter}"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         PROPERTIES LABELS "${_suite_labels}"
       )
@@ -163,99 +295,128 @@ if(YAZE_BUILD_TESTS)
     endif()
   endfunction()
 
-  # --- Stable Test Suites (Valid Contracts) ---
-  # Note: stable tests are split into unit + integration so you can run:
-  #   ctest --test-dir build/presets/mac-ai-fast -L unit
-  #   ctest --test-dir build/presets/mac-ai-fast -L integration
-  # without running everything (still included in `-L stable`).
-  set(STABLE_UNIT_TEST_SOURCES
-    # Unit Tests
-    unit/core/hex_test.cc
+  # Shared quick subsets are declared once and reused by the stable suites.
+  # Keep the conditional Asar extension beside the quick registrations below;
+  # stable owns its Asar sources through its existing conditional block.
+  set(QUICK_UNIT_CORE_TEST_SOURCES
     unit/core/hack_manifest_test.cc
     unit/core/gfx_sheet_policy_adapter_test.cc
-    unit/core/graphics_sheet_labels_test.cc
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
-    unit/core/oracle_menu_registry_test.cc
     unit/core/story_event_graph_test.cc
-    unit/core/story_event_graph_query_test.cc
-    unit/core/rom_hash_test.cc
-    unit/core/oracle_rom_fixture_test.cc
-    unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
+    unit/core/terrain_catalog_test.cc
+    unit/core/project_paths_test.cc
     unit/core/project_bundle_path_test.cc
     unit/core/source_artifact_publisher_test.cc
-    unit/util/lru_cache_test.cc
-    unit/util/bps_test.cc
-    unit/util/indexed_png_test.cc
-    unit/util/i18n_test.cc
-    unit/util/hex_test.cc
-    unit/util/log_test.cc
-    unit/deps/dependency_smoke_test.cc
-    unit/cli/resource_catalog_test.cc
-    unit/cli/tile16_proposal_generator_test.cc
-    unit/cli/command_registry_test.cc
-    unit/cli/rom_doctor_water_fill_test.cc
-    unit/cli/overworld_doctor_tile16_test.cc
-    unit/cli/graphics_doctor_test.cc
-    unit/cli/rom_header_size_test.cc
-    unit/cli/dungeon_object_validate_test.cc
-    unit/cli/dungeon_collision_json_commands_test.cc
-    unit/cli/dungeon_render_commands_test.cc
-    unit/cli/overworld_agent_commands_test.cc
-    unit/cli/overworld_tile_commands_test.cc
-    unit/cli/dungeon_edit_commands_test.cc
-    unit/cli/dungeon_track_collision_commands_test.cc
-    unit/cli/dungeon_spawn_report_commands_test.cc
-    unit/cli/dungeon_room_destination_high_byte_test.cc
-    unit/cli/dungeon_room_census_commands_test.cc
-    unit/cli/dungeon_stream_plan_commands_test.cc
-    unit/cli/editor_completion_command_handlers_test.cc
-    unit/cli/dungeon_minecart_audit_test.cc
-    unit/cli/dungeon_oracle_preflight_test.cc
-    unit/cli/oracle_smoke_check_test.cc
-    unit/cli/oracle_menu_commands_test.cc
-    unit/cli/message_commands_policy_test.cc
-    unit/cli/palette_commands_test.cc
-    unit/cli/project_bundle_verify_test.cc
-    unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_diff_test.cc
-    unit/rom/rom_test.cc
-    unit/rom/fresh_rom_fixture_output_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
     unit/emu/cpu_flags_test.cc
     unit/emu/snes_io_reset_test.cc
     unit/emu/mesen_socket_client_test.cc
-    unit/emu/input_backend_test.cc
-    unit/emu/step_controller_test.cc
-    unit/emu/spc700_reset_test.cc
-    unit/emu/apu_dsp_test.cc
-    unit/emu/apu_ipl_handshake_test.cc
-    unit/emu/disassembler_test.cc
-    unit/emu/memory_rom_mapping_test.cc
-    unit/diggable_tiles_test.cc
-    unit/core/asm_patch_test.cc
-    unit/gfx/snes_tile_test.cc
-    unit/gfx/compression_test.cc
-    unit/gfx/hyrule_magic_compress_test.cc
-    unit/gfx/snes_palette_test.cc
-    unit/gfx/usdasm_palette_loading_test.cc
-    unit/gfx/bpp_conversion_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
     unit/gfx/arena_retirement_test.cc
-    unit/palette_json_test.cc
-    unit/snes_color_test.cc
-    unit/gui/tile_selector_widget_test.cc
-    unit/gui/canvas_automation_api_test.cc
+    unit/gfx/bitmap_color_test.cc
     unit/gui/canvas_context_menu_role_test.cc
     unit/gui/item_context_menu_test.cc
-    unit/gui/canvas_coordinate_sync_test.cc
-    unit/gui/canvas_zoom_anchor_test.cc
-    unit/gui/window_clamp_test.cc
-    unit/gui/panel_window_test.cc
-    unit/gui/empty_state_test.cc
-    unit/gui/animator_test.cc
+    unit/zelda3/resource_labels_test.cc
+    unit/zelda3/sprite_render_preview_test.cc
+    unit/zelda3/sprite_catalog_test.cc
+    unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
+    unit/cli/dungeon_spawn_report_commands_test.cc
+    unit/cli/dungeon_stream_plan_commands_test.cc
+    unit/cli/message_commands_policy_test.cc
+  )
+  set(QUICK_UNIT_EDITOR_TEST_SOURCES
+    unit/editor/dungeon_editor_v2_rom_safety_test.cc
+    unit/editor/assembly_editor_symbol_jump_test.cc
+    unit/editor/editor_activator_test.cc
+    unit/editor/story_event_graph_navigation_test.cc
+    unit/editor/message/message_list_query_test.cc
+    unit/editor/message/message_expanded_write_test.cc
+    unit/editor/message/message_source_publish_guard_test.cc
+    unit/editor/message/message_source_sync_test.cc
+    unit/editor/undo_manager_test.cc
+    unit/editor/background_command_task_test.cc
+    unit/editor/content_registry_workflow_history_test.cc
+    unit/editor/command_palette_workflow_test.cc
+    unit/editor/command_palette_search_test.cc
+    unit/editor/dungeon_undo_actions_test.cc
+    unit/editor/dungeon_room_edit_test.cc
+    unit/editor/dungeon_selection_edit_test.cc
+    unit/editor/dungeon_connection_edit_test.cc
+    unit/editor/dungeon_room_transfer_test.cc
+    unit/editor/dungeon_selection_edits_lifecycle_test.cc
+    unit/editor/dungeon_connection_edits_lifecycle_test.cc
+    unit/editor/dungeon_room_transfer_lifecycle_test.cc
+    unit/editor/dungeon_room_metadata_ui_test.cc
+    unit/editor/dungeon_room_edits_lifecycle_test.cc
+    unit/editor/dungeon_chest_editor_test.cc
+    unit/editor/dungeon_connection_editor_test.cc
+    unit/editor/dungeon_room_document_file_test.cc
+    unit/editor/dungeon_room_transfer_editor_test.cc
+    unit/editor/editor_registry_test.cc
+    unit/editor/sidebar_sort_test.cc
+    unit/editor/activity_bar_actions_registry_test.cc
+    unit/editor/theme_persistence_test.cc
+    unit/editor/settings_panel_test.cc
+    unit/editor/shortcut_arbitration_test.cc
+    unit/editor/theme_style_snapshot_test.cc
+    unit/editor/theme_generator_test.cc
+    unit/editor/overworld_entity_marker_color_test.cc
+    unit/editor/panel_admission_test.cc
+    unit/editor/editor_manager_test.cc
+    unit/editor/ui_coordinator_workflow_test.cc
+    unit/editor/welcome_screen_test.cc
+    unit/editor/editor_manager_project_actions_test.cc
+    unit/editor/popup_manager_test.cc
+    unit/editor/cutscene_camera_panel_test.cc
+    unit/editor/collision_source_pairing_test.cc
+    unit/editor/editor_manager_rom_write_policy_test.cc
+    unit/editor/menu_orchestrator_helpers_test.cc
+    unit/editor/editor_manager_write_conflict_test.cc
+    unit/editor/editor_manager_oracle_rom_safety_test.cc
+    unit/editor/editor_set_test.cc
+    unit/editor/paint_util_test.cc
+    unit/editor/dungeon_layout_defaults_test.cc
+    unit/editor/dungeon_selection_snapshot_test.cc
+    unit/editor/dungeon_render_context_camera_test.cc
+    unit/editor/dungeon_canvas_viewer_navigation_test.cc
+    unit/editor/dungeon_editor_palette_refresh_test.cc
+    unit/editor/dungeon_palette_source_test.cc
+    unit/editor/dungeon_object_selector_palette_test.cc
+    unit/editor/room_graphics_content_test.cc
+    unit/editor/dungeon_workbench_toolbar_test.cc
+    unit/editor/dungeon_workbench_content_test.cc
+    unit/editor/object_tile_editor_panel_test.cc
+    unit/editor/object_coverage_panel_test.cc
+    unit/editor/dungeon_proposal_overlay_test.cc
+    unit/editor/minecart_track_source_test.cc
+    unit/editor/minecart_track_editor_panel_test.cc
+    unit/editor/project_manager_validator_test.cc
+    unit/editor/tile_painting_manager_test.cc
+    unit/zelda3/overworld_graphics_preview_test.cc
+    unit/editor/overworld_undo_actions_test.cc
+    unit/editor/tile16_document_history_test.cc
+    unit/editor/tile16_editor_shortcuts_test.cc
+    unit/editor/canvas_navigation_manager_test.cc
+    unit/editor/map_refresh_coordinator_test.cc
+    unit/editor/overworld_map_metadata_test.cc
+    unit/editor/overworld_property_edit_test.cc
+    unit/editor/gfx_group_editor_render_test.cc
+    unit/editor/sheet_png_transfer_test.cc
+    unit/editor/pixel_clipboard_test.cc
+    unit/editor/graphics_sheet_sync_test.cc
+    unit/editor/graphics_usage_preview_test.cc
+    unit/editor/overworld_graphics_context_test.cc
+    unit/editor/sprite_graphics_context_test.cc
+    unit/editor/screen_graphics_context_test.cc
+    unit/editor/palette_controls_panel_layout_test.cc
+    unit/editor/sprite_editor_preview_test.cc
+    unit/editor/sprite_authoring_test.cc
+    unit/editor/sprite_behavior_test.cc
+    unit/editor/sprite_catalog_session_test.cc
     unit/gui/property_inspector_test.cc
     unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
@@ -272,128 +433,158 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/layout_designer_panel_replace_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
     unit/editor/user_settings_test_isolation_test.cc
+    unit/editor/user_settings_layout_defaults_test.cc
+    unit/editor/emulator_runtime_policy_test.cc
+    unit/editor/overworld_map_status_test.cc
+    unit/cli/dungeon_object_validate_test.cc
+    unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_render_commands_test.cc
+    unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/dungeon_track_collision_commands_test.cc
+    unit/cli/editor_completion_command_handlers_test.cc
+    unit/zelda3/dungeon/water_fill_zone_test.cc
+    unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
+    unit/zelda3/dungeon/custom_collision_json_test.cc
+    unit/zelda3/dungeon/oracle_rom_safety_preflight_test.cc
+    unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
+    unit/zelda3/dungeon/room_water_fill_state_test.cc
+    unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
+    unit/zelda3/dungeon/chest_edit_test.cc
+    unit/zelda3/dungeon/room_object_set_id_test.cc
+    unit/zelda3/dungeon/dungeon_limits_test.cc
+    unit/zelda3/dungeon/dungeon_block_codec_test.cc
+    unit/zelda3/dungeon/dungeon_torch_codec_test.cc
+    unit/zelda3/dungeon/dungeon_validator_test.cc
+    unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
+    unit/zelda3/dungeon/object_layer_semantics_test.cc
+    unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
+    unit/zelda3/dungeon/room_graphics_palette_test.cc
+    unit/zelda3/dungeon/room_graphics_sheet_override_test.cc
+    unit/zelda3/dungeon/room_header_palette_test.cc
+  )
+  set(QUICK_INTEGRATION_TEST_SOURCES
+    integration/zelda3/dungeon_save_region_test.cc
+  )
+
+  # --- Stable Test Suites (Valid Contracts) ---
+  # Note: stable tests are split into unit + integration so you can run:
+  #   ctest --test-dir build/presets/mac-ai-fast -L unit
+  #   ctest --test-dir build/presets/mac-ai-fast -L integration
+  # without running everything (still included in `-L stable`).
+  set(STABLE_UNIT_TEST_SOURCES
+    # Unit Tests
+    unit/core/hex_test.cc
+    unit/core/graphics_sheet_labels_test.cc
+    unit/core/oracle_menu_registry_test.cc
+    unit/core/story_event_graph_query_test.cc
+    unit/core/rom_hash_test.cc
+    unit/rom/lyra_layout_descriptor_test.cc
+    unit/core/oracle_rom_fixture_test.cc
+    unit/core/project_file_passthrough_test.cc
+    unit/core/project_atlas_settings_test.cc
+    unit/util/lru_cache_test.cc
+    unit/util/bps_test.cc
+    unit/util/indexed_png_test.cc
+    unit/util/i18n_test.cc
+    unit/util/hex_test.cc
+    unit/util/log_test.cc
+    unit/deps/dependency_smoke_test.cc
+    unit/cli/resource_catalog_test.cc
+    unit/cli/tile16_proposal_generator_test.cc
+    unit/cli/command_registry_test.cc
+    unit/cli/rom_doctor_water_fill_test.cc
+    unit/cli/overworld_doctor_tile16_test.cc
+    unit/cli/overworld_allocation_commands_test.cc
+    unit/cli/graphics_doctor_test.cc
+    unit/cli/rom_header_size_test.cc
+    unit/cli/overworld_agent_commands_test.cc
+    unit/cli/overworld_tile_commands_test.cc
+    unit/cli/dungeon_room_destination_high_byte_test.cc
+    unit/cli/dungeon_room_census_commands_test.cc
+    unit/cli/dungeon_graph_links_test.cc
+    unit/cli/atlas_render_commands_test.cc
+    unit/cli/dungeon_minecart_audit_test.cc
+    unit/cli/dungeon_oracle_preflight_test.cc
+    unit/cli/oracle_smoke_check_test.cc
+    unit/cli/oracle_menu_commands_test.cc
+    unit/cli/palette_commands_test.cc
+    unit/cli/project_bundle_verify_test.cc
+    unit/cli/project_bundle_archive_test.cc
+    unit/rom/rom_test.cc
+    unit/rom/rom_copier_header_test.cc
+    unit/rom/fresh_rom_fixture_output_test.cc
+    unit/emu/input_backend_test.cc
+    unit/emu/step_controller_test.cc
+    unit/emu/spc700_reset_test.cc
+    unit/emu/apu_dsp_test.cc
+    unit/emu/apu_ipl_handshake_test.cc
+    unit/emu/disassembler_test.cc
+    unit/emu/memory_rom_mapping_test.cc
+    unit/diggable_tiles_test.cc
+    unit/core/asm_patch_test.cc
+    unit/core/tail_expansion_guard_test.cc
+    unit/gfx/snes_tile_test.cc
+    unit/gfx/compression_test.cc
+    unit/gfx/hyrule_magic_compress_test.cc
+    unit/gfx/snes_palette_test.cc
+    unit/gfx/usdasm_palette_loading_test.cc
+    unit/gfx/bpp_conversion_test.cc
+    unit/cli/graphics_context_command_test.cc
+    unit/palette_json_test.cc
+    unit/snes_color_test.cc
+    unit/gui/tile_selector_widget_test.cc
+    unit/gui/canvas_automation_api_test.cc
+    unit/gui/canvas_coordinate_sync_test.cc
+    unit/gui/canvas_zoom_anchor_test.cc
+    unit/gui/window_clamp_test.cc
+    unit/gui/panel_window_test.cc
+    unit/gui/animator_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
-    unit/editor/message/message_expanded_write_test.cc
-    unit/editor/message/message_source_sync_test.cc
     unit/editor/oracle_validation_view_model_test.cc
     unit/editor/hack_workflow_backend_factory_test.cc
     unit/editor/rom_file_manager_test.cc
-    unit/editor/project_manager_validator_test.cc
     unit/editor/panel_system_test.cc
     unit/editor/workspace_window_manager_policy_test.cc
     unit/editor/workspace_floating_window_test.cc
-    unit/editor/background_command_task_test.cc
-    unit/editor/content_registry_workflow_history_test.cc
-    unit/editor/command_palette_workflow_test.cc
-    unit/editor/command_palette_search_test.cc
     unit/editor/workflow_activity_widgets_test.cc
     unit/editor/layout_manager_persistence_test.cc
     unit/editor/right_drawer_manager_test.cc
     unit/editor/status_bar_context_test.cc
-    unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
-    unit/editor/sprite_editor_preview_test.cc
     unit/editor/sprite_spriteset_preview_test.cc
-    unit/editor/sprite_authoring_test.cc
-    unit/editor/sprite_behavior_test.cc
-    unit/editor/sprite_catalog_session_test.cc
+    unit/zelda3/dungeon_map_serialization_test.cc
     unit/editor/screen_editor_undo_test.cc
-    unit/editor/dungeon_undo_actions_test.cc
-    unit/editor/dungeon_room_edit_test.cc
-    unit/editor/dungeon_selection_edit_test.cc
-    unit/editor/dungeon_connection_edit_test.cc
-    unit/editor/dungeon_room_transfer_test.cc
-    unit/editor/dungeon_selection_edits_lifecycle_test.cc
-    unit/editor/dungeon_connection_edits_lifecycle_test.cc
-    unit/editor/dungeon_room_transfer_lifecycle_test.cc
-    unit/editor/dungeon_room_metadata_ui_test.cc
-    unit/editor/dungeon_room_edits_lifecycle_test.cc
-    unit/editor/dungeon_chest_editor_test.cc
-    unit/editor/dungeon_connection_editor_test.cc
-    unit/editor/dungeon_room_document_file_test.cc
-    unit/editor/dungeon_room_transfer_editor_test.cc
-    unit/editor/assembly_editor_symbol_jump_test.cc
-    unit/editor/editor_activator_test.cc
-    unit/editor/editor_manager_test.cc
-    unit/editor/story_event_graph_navigation_test.cc
-    unit/editor/ui_coordinator_workflow_test.cc
-    unit/editor/welcome_screen_test.cc
     unit/editor/dashboard_panel_test.cc
-    unit/editor/editor_manager_project_actions_test.cc
-    unit/editor/popup_manager_test.cc
-    unit/editor/cutscene_camera_panel_test.cc
-    unit/editor/collision_source_pairing_test.cc
-    unit/editor/editor_manager_rom_write_policy_test.cc
-    unit/editor/menu_orchestrator_helpers_test.cc
-    unit/editor/editor_manager_oracle_rom_safety_test.cc
+    unit/editor/authoring_save_workflow_test.cc
     unit/editor/oracle_hack_workflow_backend_test.cc
-    unit/editor/editor_set_test.cc
-    unit/editor/paint_util_test.cc
     unit/editor/dungeon_canvas_transform_test.cc
     unit/editor/map_properties_context_menu_test.cc
-    unit/editor/dungeon_layout_defaults_test.cc
-    unit/editor/dungeon_selection_snapshot_test.cc
     unit/editor/layout_presets_test.cc
     unit/editor/graphics_editor_window_ids_test.cc
+    unit/editor/graphics_workspace_layout_test.cc
     unit/editor/gfx_group_workspace_state_test.cc
-    unit/editor/gfx_group_editor_render_test.cc
-    unit/editor/sheet_png_transfer_test.cc
-    unit/editor/pixel_clipboard_test.cc
-    unit/editor/graphics_sheet_sync_test.cc
-    unit/editor/graphics_usage_preview_test.cc
-    unit/editor/palette_controls_panel_layout_test.cc
-    unit/editor/user_settings_layout_defaults_test.cc
-    unit/editor/emulator_runtime_policy_test.cc
-    unit/editor/overworld_map_status_test.cc
-    unit/editor/sidebar_sort_test.cc
-    unit/editor/activity_bar_actions_registry_test.cc
-    unit/editor/theme_persistence_test.cc
-    unit/editor/settings_panel_test.cc
-    unit/editor/theme_style_snapshot_test.cc
-    unit/editor/theme_generator_test.cc
-    unit/editor/overworld_entity_marker_color_test.cc
-    unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
     unit/editor/shortcut_group_test.cc
     unit/editor/shortcut_configurator_test.cc
-    unit/editor/shortcut_arbitration_test.cc
     unit/editor/window_sidebar_test.cc
-    unit/editor/dungeon_canvas_viewer_navigation_test.cc
-    unit/editor/dungeon_workbench_content_test.cc
     unit/editor/dungeon_issue_report_storage_test.cc
     unit/editor/object_coverage_model_test.cc
-    unit/editor/object_coverage_panel_test.cc
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_entrance_edit_policy_test.cc
-    unit/editor/dungeon_render_context_camera_test.cc
-    unit/editor/dungeon_editor_v2_rom_safety_test.cc
-    unit/editor/dungeon_editor_palette_refresh_test.cc
+    unit/editor/crumble_floor_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
-    unit/editor/dungeon_object_selector_palette_test.cc
-    unit/editor/room_graphics_content_test.cc
-    unit/editor/dungeon_workbench_toolbar_test.cc
-    unit/editor/object_tile_editor_panel_test.cc
-    unit/editor/dungeon_proposal_overlay_test.cc
-    unit/editor/minecart_track_source_test.cc
-    unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/toast_dedup_test.cc
-    unit/editor/tile_painting_manager_test.cc
-    unit/editor/overworld_undo_actions_test.cc
-    unit/editor/tile16_document_history_test.cc
+    unit/editor/feature_hint_manager_test.cc
     unit/editor/tile16_editor_action_state_test.cc
-    unit/editor/tile16_editor_shortcuts_test.cc
     unit/editor/tile8_source_interaction_test.cc
     unit/editor/overworld_item_operations_test.cc
     unit/editor/overworld_editor_state_test.cc
-    unit/editor/overworld_map_metadata_test.cc
-    unit/editor/overworld_property_edit_test.cc
-    unit/editor/canvas_navigation_manager_test.cc
-    unit/editor/map_refresh_coordinator_test.cc
     unit/zelda3/overworld_sprite_io_test.cc
     unit/zelda3/cutscene_shot_test.cc
     unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
+    unit/zelda3/menu_tilemap_test.cc
     unit/zelda3/gfx_sheet_png_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
     unit/zelda3/graphics_sheet_store_test.cc
@@ -403,43 +594,39 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/overworld_regression_test.cc
     unit/zelda3/overworld_build_rom_test.cc
     unit/zelda3/overworld_area_render_test.cc
+    unit/zelda3/overworld_default_gfx_group_test.cc
     unit/zelda3/overworld_version_helper_test.cc
+    unit/zelda3/overworld_allocation_test.cc
+    unit/zelda3/special_entrance_inspector_test.cc
     unit/zelda3/zelda3_version_test.cc
     unit/zelda3/tile16_metadata_test.cc
     unit/zelda3/tile16_stamp_test.cc
     unit/zelda3/tile16_renderer_test.cc
     unit/zelda3/tile16_usage_index_test.cc
-    unit/zelda3/resource_labels_test.cc
-    unit/zelda3/sprite_render_preview_test.cc
-    unit/zelda3/sprite_catalog_test.cc
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc
     unit/zelda3/sprite_value_init_test.cc
     unit/zelda3/music_parser_test.cc
     unit/zelda3/dungeon_component_unit_test.cc
-    unit/zelda3/dungeon/chest_edit_test.cc
-    unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/draw_routine_symbology_test.cc
     unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
     unit/zelda3/dungeon/game_tilemap_comparison_test.cc
     unit/zelda3/dungeon/room_collision_test.cc
     unit/zelda3/dungeon/room_layer_registers_test.cc
     unit/zelda3/dungeon/room_limit_regression_test.cc
-    unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
-    unit/zelda3/dungeon/dungeon_block_codec_test.cc
-    unit/zelda3/dungeon/dungeon_torch_codec_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
-    unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/custom_object_test.cc
+    unit/zelda3/dungeon/dungeon_tile_patterns_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
-    unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
     unit/zelda3/dungeon/pot_item_position_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/dungeon_editor_system_test.cc
-    unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
     unit/zelda3/dungeon/room_census_test.cc
+    unit/zelda3/atlas/atlas_annotations_test.cc
+    unit/zelda3/atlas/dungeon_atlas_synthetic_test.cc
+    unit/zelda3/atlas/dungeon_atlas_oracle_golden_test.cc
     unit/zelda3/dungeon/room_census_oracle_rom_test.cc
     unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
@@ -448,22 +635,10 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_dimensions_test.cc
     unit/zelda3/dungeon/object_geometry_test.cc
     unit/zelda3/dungeon/track_collision_generator_test.cc
-    unit/zelda3/dungeon/object_layer_semantics_test.cc
     unit/zelda3/dungeon/room_layer_manager_test.cc
-    unit/zelda3/dungeon/water_fill_zone_test.cc
-    unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
-    unit/zelda3/dungeon/custom_collision_json_test.cc
-    unit/zelda3/dungeon/oracle_rom_safety_preflight_test.cc
-    unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
-    unit/zelda3/dungeon/room_water_fill_state_test.cc
-    unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
     unit/zelda3/dungeon/draw_routine_mapping_test.cc
-    unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
     unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
     unit/zelda3/dungeon/object_tile_editor_test.cc
-    unit/zelda3/dungeon/room_graphics_palette_test.cc
-    unit/zelda3/dungeon/room_graphics_sheet_override_test.cc
-    unit/zelda3/dungeon/room_header_palette_test.cc
     unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
     unit/zelda3/dungeon/object_draw_code_test.cc
     unit/zelda3/dungeon/game_parity_gate_test.cc
@@ -491,7 +666,6 @@ if(YAZE_BUILD_TESTS)
     integration/dungeon_editor_v2_test.cc
     integration/overworld_editor_test.cc
     integration/editor/tile16_editor_test.cc
-    # NOTE: editor_integration_test.cc removed - legacy code with Controller dependency
     integration/zelda3/overworld_integration_test.cc
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
@@ -502,7 +676,6 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/object_draw_code_rom_test.cc
     integration/zelda3/dungeon_edit_save_fixture_test.cc
     integration/zelda3/dungeon/pit_damage_table_test.cc
-    integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_pot_repack_oos_integration_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
     # NOTE: dungeon_object_rom_validation_test.cc is intentionally NOT listed
@@ -517,12 +690,10 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_room_render_parity_test.cc
     integration/zelda3/dungeon_room_regression_fixtures_test.cc
     integration/zelda3/dungeon_palette_test.cc
-    integration/zelda3/dungeon_room_test.cc
     integration/zelda3/dungeon_staircase_slot_parity_test.cc
     integration/zelda3/minecart_audit_integration_test.cc
     integration/zelda3/oracle_workflow_integration_test.cc
     integration/zelda3/oracle_smoke_check_integration_test.cc
-    integration/zelda3/sprite_position_test.cc
     integration/zelda3/message_test.cc
     integration/palette_manager_test.cc
     integration/object_selection_integration_test.cc
@@ -628,6 +799,12 @@ if(YAZE_BUILD_TESTS)
     message(STATUS "Skipping gRPC integration tests (YAZE_ENABLE_GRPC=OFF)")
   endif()
 
+  list(APPEND STABLE_UNIT_TEST_SOURCES
+    ${QUICK_UNIT_CORE_TEST_SOURCES}
+    ${QUICK_UNIT_EDITOR_TEST_SOURCES}
+  )
+  list(APPEND STABLE_INTEGRATION_TEST_SOURCES ${QUICK_INTEGRATION_TEST_SOURCES})
+
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
   target_compile_definitions(yaze_test_unit PRIVATE
     YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
@@ -702,173 +879,23 @@ if(YAZE_BUILD_TESTS)
   endif()
 
   # --- Quick Test Suites (Fast Iteration) ---
-  # These suites are intentionally NOT labeled "stable" to avoid duplicate runs
-  # when running `ctest -L stable`. Use `ctest -L quick` for fast feedback.
-  set(QUICK_UNIT_CORE_TEST_SOURCES
-    unit/core/hack_manifest_test.cc
-    unit/core/gfx_sheet_policy_adapter_test.cc
-    unit/core/oracle_progression_test.cc
-    unit/core/oracle_progression_loader_test.cc
-    unit/core/story_event_graph_test.cc
-    unit/core/project_bundle_test.cc
-    unit/core/project_paths_test.cc
-    unit/core/project_bundle_path_test.cc
-    unit/core/source_artifact_publisher_test.cc
-    unit/rom/rom_diff_test.cc
-    unit/rom/write_fence_test.cc
-    unit/emu/emulator_test.cc
-    unit/emu/cpu_flags_test.cc
-    unit/emu/snes_io_reset_test.cc
-    unit/emu/mesen_socket_client_test.cc
-    unit/gfx/sheet_role_palette_table_test.cc
-    unit/gfx/arena_retirement_test.cc
-    unit/gui/canvas_context_menu_role_test.cc
-    unit/gui/item_context_menu_test.cc
-    unit/zelda3/resource_labels_test.cc
-    unit/zelda3/sprite_render_preview_test.cc
-    unit/zelda3/sprite_catalog_test.cc
-    unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
-    unit/cli/dungeon_spawn_report_commands_test.cc
-    unit/cli/dungeon_stream_plan_commands_test.cc
-    unit/cli/message_commands_policy_test.cc
-  )
-  set(QUICK_UNIT_EDITOR_TEST_SOURCES
-    unit/editor/dungeon_editor_v2_rom_safety_test.cc
-    unit/editor/assembly_editor_symbol_jump_test.cc
-    unit/editor/editor_activator_test.cc
-    unit/editor/story_event_graph_navigation_test.cc
-    unit/editor/message/message_expanded_write_test.cc
-    unit/editor/message/message_source_sync_test.cc
-    unit/editor/undo_manager_test.cc
-    unit/editor/background_command_task_test.cc
-    unit/editor/content_registry_workflow_history_test.cc
-    unit/editor/command_palette_workflow_test.cc
-    unit/editor/command_palette_search_test.cc
-    unit/editor/dungeon_undo_actions_test.cc
-    unit/editor/dungeon_room_edit_test.cc
-    unit/editor/dungeon_selection_edit_test.cc
-    unit/editor/dungeon_connection_edit_test.cc
-    unit/editor/dungeon_room_transfer_test.cc
-    unit/editor/dungeon_selection_edits_lifecycle_test.cc
-    unit/editor/dungeon_connection_edits_lifecycle_test.cc
-    unit/editor/dungeon_room_transfer_lifecycle_test.cc
-    unit/editor/dungeon_room_metadata_ui_test.cc
-    unit/editor/dungeon_room_edits_lifecycle_test.cc
-    unit/editor/dungeon_chest_editor_test.cc
-    unit/editor/dungeon_connection_editor_test.cc
-    unit/editor/dungeon_room_document_file_test.cc
-    unit/editor/dungeon_room_transfer_editor_test.cc
-    unit/editor/editor_registry_test.cc
-    unit/editor/sidebar_sort_test.cc
-    unit/editor/activity_bar_actions_registry_test.cc
-    unit/editor/theme_persistence_test.cc
-    unit/editor/settings_panel_test.cc
-    unit/editor/shortcut_arbitration_test.cc
-    unit/editor/theme_style_snapshot_test.cc
-    unit/editor/theme_generator_test.cc
-    unit/editor/overworld_entity_marker_color_test.cc
-    unit/editor/editor_manager_test.cc
-    unit/editor/ui_coordinator_workflow_test.cc
-    unit/editor/welcome_screen_test.cc
-    unit/editor/editor_manager_project_actions_test.cc
-    unit/editor/popup_manager_test.cc
-    unit/editor/cutscene_camera_panel_test.cc
-    unit/editor/collision_source_pairing_test.cc
-    unit/editor/editor_manager_rom_write_policy_test.cc
-    unit/editor/menu_orchestrator_helpers_test.cc
-    unit/editor/editor_manager_write_conflict_test.cc
-    unit/editor/editor_manager_oracle_rom_safety_test.cc
-    unit/editor/editor_set_test.cc
-    unit/editor/paint_util_test.cc
-    unit/editor/dungeon_layout_defaults_test.cc
-    unit/editor/dungeon_selection_snapshot_test.cc
-    unit/editor/dungeon_render_context_camera_test.cc
-    unit/editor/dungeon_canvas_viewer_navigation_test.cc
-    unit/editor/dungeon_editor_palette_refresh_test.cc
-    unit/editor/dungeon_object_selector_palette_test.cc
-    unit/editor/room_graphics_content_test.cc
-    unit/editor/dungeon_workbench_toolbar_test.cc
-    unit/editor/dungeon_workbench_content_test.cc
-    unit/editor/object_tile_editor_panel_test.cc
-    unit/editor/object_coverage_panel_test.cc
-    unit/editor/dungeon_proposal_overlay_test.cc
-    unit/editor/minecart_track_source_test.cc
-    unit/editor/minecart_track_editor_panel_test.cc
-    unit/editor/project_manager_validator_test.cc
-    unit/editor/tile_painting_manager_test.cc
-    unit/editor/overworld_undo_actions_test.cc
-    unit/editor/tile16_document_history_test.cc
-    unit/editor/tile16_editor_shortcuts_test.cc
-    unit/editor/canvas_navigation_manager_test.cc
-    unit/editor/map_refresh_coordinator_test.cc
-    unit/editor/overworld_map_metadata_test.cc
-    unit/editor/overworld_property_edit_test.cc
-    unit/editor/gfx_group_editor_render_test.cc
-    unit/editor/sheet_png_transfer_test.cc
-    unit/editor/pixel_clipboard_test.cc
-    unit/editor/graphics_sheet_sync_test.cc
-    unit/editor/graphics_usage_preview_test.cc
-    unit/editor/palette_controls_panel_layout_test.cc
-    unit/editor/sprite_editor_preview_test.cc
-    unit/editor/sprite_authoring_test.cc
-    unit/editor/sprite_behavior_test.cc
-    unit/editor/sprite_catalog_session_test.cc
-    unit/gui/property_inspector_test.cc
-    unit/gui/empty_state_test.cc
-    unit/gui/resize_handles_test.cc
-    unit/gui/font_picker_test.cc
-    unit/gui/icon_browser_test.cc
-    unit/editor/layout/dock_tree_test.cc
-    unit/editor/layout/dock_tree_json_test.cc
-    unit/editor/layout/dock_tree_renderer_test.cc
-    unit/editor/layout/dock_tree_hit_test_test.cc
-    unit/editor/layout/drop_zone_suggester_test.cc
-    unit/editor/layout/layout_manager_dock_tree_test.cc
-    unit/editor/layout/panel_palette_test.cc
-    unit/editor/layout/tree_undo_stack_test.cc
-    unit/editor/layout/layout_designer_panel_replace_tree_test.cc
-    unit/editor/user_settings_named_layouts_test.cc
-    unit/editor/user_settings_test_isolation_test.cc
-    unit/editor/user_settings_layout_defaults_test.cc
-    unit/editor/emulator_runtime_policy_test.cc
-    unit/editor/overworld_map_status_test.cc
-    unit/cli/dungeon_object_validate_test.cc
-    unit/cli/dungeon_collision_json_commands_test.cc
-    unit/cli/dungeon_render_commands_test.cc
-    unit/cli/dungeon_edit_commands_test.cc
-    unit/cli/dungeon_track_collision_commands_test.cc
-    unit/cli/editor_completion_command_handlers_test.cc
-    unit/zelda3/dungeon/water_fill_zone_test.cc
-    unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
-    unit/zelda3/dungeon/custom_collision_json_test.cc
-    unit/zelda3/dungeon/oracle_rom_safety_preflight_test.cc
-    unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
-    unit/zelda3/dungeon/room_water_fill_state_test.cc
-    unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
-    unit/zelda3/dungeon/chest_edit_test.cc
-    unit/zelda3/dungeon/room_object_set_id_test.cc
-    unit/zelda3/dungeon/dungeon_limits_test.cc
-    unit/zelda3/dungeon/dungeon_block_codec_test.cc
-    unit/zelda3/dungeon/dungeon_torch_codec_test.cc
-    unit/zelda3/dungeon/dungeon_validator_test.cc
-    unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
-    unit/zelda3/dungeon/object_layer_semantics_test.cc
-    unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
-    unit/zelda3/dungeon/room_graphics_palette_test.cc
-    unit/zelda3/dungeon/room_graphics_sheet_override_test.cc
-    unit/zelda3/dungeon/room_header_palette_test.cc
-  )
-  set(QUICK_INTEGRATION_TEST_SOURCES
-    integration/zelda3/dungeon_save_region_test.cc
-  )
-  if(YAZE_ENABLE_ASAR)
-    list(APPEND QUICK_UNIT_CORE_TEST_SOURCES
-      unit/core/asar_wrapper_test.cc
-    )
+  # These binaries reuse the subsets declared above. They are intentionally
+  # not labeled "stable": `ctest -L stable` excludes the quick copies.
+  # Keep per-case discovery and prefixed names for isolated quick filtering.
+  # CI leaves them unconfigured (YAZE_BUILD_QUICK_TESTS=OFF) because the
+  # stable binaries already compile these sources.
+  if(YAZE_BUILD_QUICK_TESTS)
+    if(YAZE_ENABLE_ASAR)
+      list(APPEND QUICK_UNIT_CORE_TEST_SOURCES
+        unit/core/asar_wrapper_test.cc
+      )
+    endif()
+    yaze_add_test_suite(yaze_test_quick_unit_core "quick;fast_unit;fast_unit_core" OFF ${QUICK_UNIT_CORE_TEST_SOURCES})
+    yaze_add_test_suite(yaze_test_quick_unit_editor "quick;fast_unit;fast_unit_editor" OFF ${QUICK_UNIT_EDITOR_TEST_SOURCES})
+    yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
+  else()
+    message(STATUS "Skipping quick test binaries (YAZE_BUILD_QUICK_TESTS=OFF)")
   endif()
-  yaze_add_test_suite(yaze_test_quick_unit_core "quick;fast_unit;fast_unit_core" OFF ${QUICK_UNIT_CORE_TEST_SOURCES})
-  yaze_add_test_suite(yaze_test_quick_unit_editor "quick;fast_unit;fast_unit_editor" OFF ${QUICK_UNIT_EDITOR_TEST_SOURCES})
-  yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
 
   # --- ROM Dependent Test Suite ---
   if(YAZE_ENABLE_ROM_TESTS)
@@ -901,6 +928,9 @@ if(YAZE_BUILD_TESTS)
     yaze_add_test_suite(yaze_test_rom_dependent "rom_dependent" OFF ${ROM_DEPENDENT_TEST_SOURCES})
     if(TARGET overworld_golden_data_extractor)
       add_dependencies(yaze_test_rom_dependent overworld_golden_data_extractor)
+      target_compile_definitions(yaze_test_rom_dependent PRIVATE
+        YAZE_OVERWORLD_GOLDEN_DATA_EXTRACTOR_PATH="$<TARGET_FILE:overworld_golden_data_extractor>"
+      )
     endif()
     target_compile_definitions(yaze_test_rom_dependent PRIVATE
       YAZE_ENABLE_ROM_TESTS=1
@@ -945,6 +975,7 @@ if(YAZE_BUILD_TESTS)
     e2e/controller_window_close_test.cc
     e2e/dead_click_regression_test.cc
     e2e/settings_drawer_test.cc
+    e2e/menu_tilemap_editor_test.cc
     e2e/room_matrix_census_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
@@ -958,8 +989,6 @@ if(YAZE_BUILD_TESTS)
     # AI Multimodal Testing Framework
     e2e/ai_multimodal_test.cc
     e2e/emulator_stepping_test.cc
-    # ImGui Test Engine feature demos
-    e2e/imgui_test_engine_demo.cc
   )
 
   if(YAZE_ENABLE_AI_RUNTIME)
@@ -1011,6 +1040,20 @@ if(YAZE_BUILD_TESTS)
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
   set_tests_properties(gui_settings_drawer_smoke PROPERTIES
+    LABELS "gui_smoke;gui"
+    TIMEOUT 300
+  )
+
+  # Menu Tilemap (2bpp) panel: load a synthetic tilemap, real-click-paint a
+  # cell, undo, save via Ctrl/Cmd+S, verify the saved bytes match the
+  # pristine original. Needs a test ROM (YAZE_TEST_ROM_VANILLA) to open the
+  # Screen editor; skipped without one.
+  add_test(
+      NAME gui_menu_tilemap_editor_smoke
+      COMMAND $<TARGET_FILE:yaze_test_gui> --ui --fast MenuTilemapEditorSmoke
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(gui_menu_tilemap_editor_smoke PROPERTIES
     LABELS "gui_smoke;gui"
     TIMEOUT 300
   )

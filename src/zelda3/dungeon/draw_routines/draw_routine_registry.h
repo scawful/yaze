@@ -1,6 +1,7 @@
 #ifndef YAZE_ZELDA3_DUNGEON_DRAW_ROUTINES_DRAW_ROUTINE_REGISTRY_H
 #define YAZE_ZELDA3_DUNGEON_DRAW_ROUTINES_DRAW_ROUTINE_REGISTRY_H
 
+#include <atomic>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -197,11 +198,18 @@ class DrawRoutineRegistry {
  public:
   static DrawRoutineRegistry& Get();
 
-  // Initialize the registry - must be called once at startup
+  // Compatibility entry point. Get() constructs the immutable tables once.
+  [[deprecated(
+      "Get() initializes the registry; use RefreshFeatureFlagMappings() "
+      "only after settings change")]]
   void Initialize();
 
-  // Rebuild object->routine mapping after runtime feature-flag changes.
+  // Publish the current custom-object routing flag without rebuilding maps.
   void RefreshFeatureFlagMappings();
+
+  bool CustomObjectsEnabled() const {
+    return custom_objects_enabled_.load(std::memory_order_acquire);
+  }
 
   // Look up routine info by ID
   const DrawRoutineInfo* GetRoutineInfo(int routine_id) const;
@@ -220,22 +228,26 @@ class DrawRoutineRegistry {
 
   // Look up draw routine ID for an object ID. Returns -1 if unmapped.
   int GetRoutineIdForObject(int16_t object_id) const;
+  // Explicit routing for a frozen background job; does not read global mode.
+  int GetRoutineIdForObject(int16_t object_id,
+                            bool custom_objects_enabled) const;
 
   // Every object ID with a routine mapping, ascending. This is the supported
   // object inventory; callers should use it instead of hard-coding the
-  // 0x00-0xF7 / 0x100-0x13F / 0xF80-0xFFF ranges. The result follows the
-  // current feature flags, like GetRoutineIdForObject().
+  // 0x00-0xF7 / 0x100-0x13F / 0xF80-0xFFF ranges. The inventory remains stable
+  // across custom-object flag changes; IDs 0x31, 0x32 and 0x54 switch between
+  // Nothing and CustomObject.
   std::vector<int16_t> GetMappedObjectIds() const;
 
  private:
-  DrawRoutineRegistry() = default;
+  DrawRoutineRegistry();
   void BuildRegistry();
   void BuildObjectMapping();
 
   std::vector<DrawRoutineInfo> routines_;
   std::unordered_map<int, const DrawRoutineInfo*> routine_map_;
   std::unordered_map<int16_t, int> object_to_routine_map_;
-  bool initialized_ = false;
+  std::atomic<bool> custom_objects_enabled_{false};
 };
 
 }  // namespace zelda3

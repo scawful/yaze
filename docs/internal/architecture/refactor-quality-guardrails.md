@@ -34,6 +34,10 @@ scope; cleanup supports that work rather than becoming a parallel rewrite.
   allowed. A name change alone does not improve responsibility boundaries.
 - Legacy `panels/` code may remain temporarily, but migration should move
   touched features toward `ui/<feature>/...` or another feature-oriented home.
+- Every `WindowContent` declares a `WindowPresentationPolicy`. A new window is
+  admitted as a first-class surface only when it has a named primary workflow
+  and no existing inspector, tool tab, or context-menu popup can host it; see
+  "Panel admission" in [editor-ui-module-pattern.md](editor-ui-module-pattern.md#panel-admission).
 
 ### 3. Domain mutations live in services
 
@@ -234,6 +238,9 @@ these rules. It currently blocks:
   script's allowed paths (including the existing `ui/window/` home)
 - new concrete editor downcasts
 - mega-file growth in already-bloated editor `.cc` files
+- a registered `WindowContent` class that declares no presentation policy
+  (`scripts/audit_panel_policies.py`; the rule is in
+  [editor-ui-module-pattern.md](editor-ui-module-pattern.md#panel-admission))
 
 The script does **not** verify mutation ownership, flag documentation, ImGui
 stack balance, save safety, or interaction parity. Those are review and focused

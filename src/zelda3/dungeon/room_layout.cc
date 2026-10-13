@@ -1,5 +1,8 @@
 #include "room_layout.h"
 
+#include <algorithm>
+#include <utility>
+
 #include "absl/strings/str_format.h"
 #include "rom/snes.h"
 #include "util/log.h"
@@ -21,15 +24,18 @@ absl::StatusOr<int> RoomLayout::GetLayoutAddress(int layout_id) const {
 
   uint32_t snes_addr = kRoomLayoutPointers[layout_id];
   int pc_addr = SnesToPc(static_cast<int>(snes_addr));
-  if (pc_addr < 0 || pc_addr >= static_cast<int>(rom_->size())) {
+  if (pc_addr < 0 || pc_addr >= static_cast<int>(rom_->vector().size())) {
     return absl::OutOfRangeError(
         absl::StrFormat("Layout pointer %d out of range", layout_id));
   }
   return pc_addr;
 }
 
-absl::Status RoomLayout::LoadLayout(int layout_id) {
+absl::Status RoomLayout::LoadLayout(int layout_id, util::StopToken stop_token) {
   objects_.clear();
+  if (stop_token.stop_requested()) {
+    return absl::CancelledError("Room layout load cancelled");
+  }
 
   auto addr_result = GetLayoutAddress(layout_id);
   if (!addr_result.ok()) {
@@ -37,14 +43,27 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
   }
 
   int pos = addr_result.value();
+  const int next = layout_id + 1 < static_cast<int>(kRoomLayoutPointers.size())
+                       ? kRoomLayoutPointers[layout_id + 1]
+                       : kRoomLayoutDataEnd;
+  const int end = std::min(static_cast<int>(SnesToPc(next)),
+                           static_cast<int>(rom_->vector().size()));
   const auto& rom_data = rom_->data();
   int layer = 0;
+  std::vector<RoomObject> decoded;
 
   LOG_DEBUG("RoomLayout", "Loading layout %d from PC address 0x%05X", layout_id,
             pos);
 
   int obj_index = 0;
-  while (pos + 2 < static_cast<int>(rom_->size())) {
+  while (pos < end) {
+    if (stop_token.stop_requested()) {
+      return absl::CancelledError("Room layout load cancelled");
+    }
+    if (end - pos < 2) {
+      return absl::DataLossError(absl::StrFormat(
+          "Layout %d has a truncated terminator at PC 0x%05X", layout_id, pos));
+    }
     uint8_t b1 = rom_data[pos];
     uint8_t b2 = rom_data[pos + 1];
 
@@ -53,11 +72,13 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
       LOG_DEBUG("RoomLayout",
                 "Layout %d terminated at pos=0x%05X after %d objects",
                 layout_id, pos, obj_index);
-      break;
+      objects_ = std::move(decoded);
+      return absl::OkStatus();
     }
 
-    if (pos + 2 >= static_cast<int>(rom_->size())) {
-      break;
+    if (end - pos < 3) {
+      return absl::DataLossError(absl::StrFormat(
+          "Layout %d has a truncated object at PC 0x%05X", layout_id, pos));
     }
 
     uint8_t b3 = rom_data[pos + 2];
@@ -68,7 +89,10 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
 
     obj.SetRom(rom_);
     obj.EnsureTilesLoaded();
-    objects_.push_back(obj);
+    if (stop_token.stop_requested()) {
+      return absl::CancelledError("Room layout load cancelled");
+    }
+    decoded.push_back(obj);
 
     LOG_DEBUG("RoomLayout",
               "Layout %d obj[%d]: bytes=[%02X,%02X,%02X] -> id=0x%03X x=%d "
@@ -78,10 +102,8 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
     obj_index++;
   }
 
-  LOG_DEBUG("RoomLayout", "Layout %d loaded with %zu objects", layout_id,
-            objects_.size());
-
-  return absl::OkStatus();
+  return absl::DataLossError(absl::StrFormat(
+      "Layout %d has no FF FF terminator within its fixed stream", layout_id));
 }
 
 absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,

@@ -11,20 +11,24 @@ they do not establish current end-to-end or release qualification.
 
 Release date, final merge SHA, and packaged-candidate evidence are pending.
 
+- Fixed white overworld map and subscreen overlay textures. Their indexed
+  bitmaps now declare 8-bit depth, restoring palette application and pixel row
+  copying. A windowless SDL regression checks first-load and recreated map
+  textures against the model's pixel colors.
+
 ### Upgrading from 0.7.2
 Every item below was checked against the `v0.7.2` tag and current `master`: the
 behaviour is on master, was absent or different in 0.7.2, and a user, script,
 or project will notice it.
 
 #### Saves that used to succeed now stop with an error
-- **Pending editor changes block saves.** A ROM save stops while Graphics Editor
-  sheet edits or Screen Editor edits (dungeon maps, dungeon-map Tile16, title
-  screen, and the **Overworld Map** pause-menu world map) are pending, even when
-  the Save Graphics Sheets or Save Dungeon Maps flag is on. 0.7.2 reported
-  success without those edits: its Save Graphics Sheets path was a stub that
-  wrote nothing even with the flag on, it wrote dungeon maps only when Save
-  Dungeon Maps was on, and it never included Tile16, title-screen, or pause-map
-  edits in a ROM save. Dungeon **Save** and **Apply Room** also stop while the
+- **Save scope must cover pending edits.** Supported Graphics sheet edits and
+  dungeon-map layout records participate in coordinated ROM Save/Save As when
+  their corresponding save scope is enabled. Dungeon-map Tile16 artwork,
+  title-screen, and **Overworld Map** pause-menu edits remain blocked even if
+  Save Dungeon Maps is enabled. Mixed supported/unsupported edits also block
+  saving. The older 0.7.2 path could report success without persisting every
+  pending editor domain. Dungeon **Save** and **Apply Room** also stop while the
   Object Tile Editor has unapplied edits ("Apply or explicitly discard Object
   Tile Editor changes before using Save or Apply Room") or the Minecart Track
   Editor has unpublished drafts. That editor's **Save Tracks** button is now

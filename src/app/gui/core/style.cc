@@ -34,27 +34,28 @@ void ColorsYaze() {
   ImGuiStyle* style = &ImGui::GetStyle();
   ImVec4* colors = style->Colors;
 
-  style->WindowPadding = ImVec2(10.f, 10.f);
-  style->FramePadding = ImVec2(10.f, 2.f);
-  style->CellPadding = ImVec2(4.f, 5.f);
-  style->ItemSpacing = ImVec2(10.f, 5.f);
-  style->ItemInnerSpacing = ImVec2(5.f, 5.f);
+  style->WindowPadding = ImVec2(8.f, 8.f);
+  style->FramePadding = ImVec2(6.f, 3.f);
+  style->CellPadding = ImVec2(6.f, 4.f);
+  style->ItemSpacing = ImVec2(6.f, 4.f);
+  style->ItemInnerSpacing = ImVec2(6.f, 4.f);
   style->TouchExtraPadding = ImVec2(0.f, 0.f);
   style->IndentSpacing = 20.f;
   style->ScrollbarSize = 14.f;
-  style->GrabMinSize = 15.f;
+  style->GrabMinSize = 14.f;
 
-  style->WindowBorderSize = 0.f;
-  style->ChildBorderSize = 1.f;
+  style->WindowBorderSize = 1.f;
+  style->ChildBorderSize = 0.f;
   style->PopupBorderSize = 1.f;
   style->FrameBorderSize = 0.f;
   style->TabBorderSize = 0.f;
 
-  style->WindowRounding = 0.f;
-  style->ChildRounding = 0.f;
-  style->FrameRounding = 5.f;
-  style->PopupRounding = 0.f;
-  style->ScrollbarRounding = 5.f;
+  style->WindowRounding = 2.f;
+  style->ChildRounding = 3.f;
+  style->FrameRounding = 4.f;
+  style->PopupRounding = 4.f;
+  style->ScrollbarRounding = 4.f;
+  style->TabRounding = 3.f;
 
   auto alttpDarkGreen = ImVec4(0.18f, 0.26f, 0.18f, 1.0f);
   auto alttpMidGreen = ImVec4(0.28f, 0.36f, 0.28f, 1.0f);
@@ -146,7 +147,6 @@ void ColorsYaze() {
   colors[ImGuiCol_DragDropTargetBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
   colors[ImGuiCol_UnsavedMarker] = colors[ImGuiCol_Text];
   style->GrabRounding = 5.f;
-  style->TabRounding = 0.f;
 }
 
 void DrawBitmapViewer(const std::vector<gfx::Bitmap>& bitmaps, float scale,

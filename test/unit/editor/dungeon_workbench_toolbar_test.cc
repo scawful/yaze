@@ -7,7 +7,9 @@
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -99,7 +101,8 @@ ToolbarGeometry DrawToolbarForHistoryGeometry(
 ToolbarGeometry DrawWorstCaseToolbarGeometry(const char* child_id, float width,
                                              DungeonCanvasViewer* viewer,
                                              bool open_overflow = false,
-                                             bool compare_active = false) {
+                                             bool compare_active = false,
+                                             bool open_view = false) {
   const bool child_open = ImGui::BeginChild(
       child_id, ImVec2(width, 96.0f), false,
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -137,9 +140,22 @@ ToolbarGeometry DrawWorstCaseToolbarGeometry(const char* child_id, float width,
   };
   params.on_request_dungeon_map = []() {
   };
+  params.draw_tools = []() {
+    ImGui::Button("Tools");
+  };
+  params.draw_save_content = []() {
+    ImGui::TextUnformatted("Room content");
+  };
+  params.draw_entrance_context = [](float width) {
+    ImGui::SetNextItemWidth(width);
+    if (ImGui::BeginCombo("##TestEntrance", "Auto: Goron Mines"))
+      ImGui::EndCombo();
+  };
   params.compare_search_buf = compare_search;
   params.compare_search_buf_size = sizeof(compare_search);
 
+  if (open_view)
+    ImGui::OpenPopup("##WorkbenchViewOptions");
   if (open_overflow) {
     ImGui::OpenPopup("##WorkbenchToolbarOverflow");
   }
@@ -521,5 +537,258 @@ TEST_F(DungeonWorkbenchToolbarTest,
   EXPECT_EQ(context->CurrentWindowStack.Size, window_stack_before);
 }
 
+}  // namespace
+}  // namespace yaze::editor
+
+namespace yaze::editor {
+namespace {
+TEST_F(DungeonWorkbenchToolbarTest, CompareAndLayersUseDirectActions) {
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0x10].SetLoaded(true);
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+  DungeonWorkbenchLayoutState layout;
+  int room = 0x10, previous = 0x11, compare = -1;
+  bool split = false;
+  char search[32] = {};
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &room;
+  params.previous_room_id = &previous;
+  params.compare_room_id = &compare;
+  params.split_view_enabled = &split;
+  params.primary_viewer = &viewer;
+  params.compare_search_buf = search;
+  params.compare_search_buf_size = sizeof(search);
+  const auto frame = [&] {
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1100, 400), ImGuiCond_Always);
+    ImGui::Begin("ToolbarHost");
+    gui::WidgetIdRegistry::Instance().Clear();
+    DungeonWorkbenchToolbar::Draw(params);
+  };
+  const auto click = [&](const char* name) {
+    bool found = false;
+    ImVec2 center;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label == name && widget.bounds.valid) {
+        found = true;
+        center = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                        (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+      }
+    }
+    ASSERT_TRUE(found) << name;
+    ImGui::GetIO().AddMousePosEvent(center.x, center.y);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    frame();
+  };
+  frame();
+  frame();
+  for (const char* label : {"BG1", "BG2", "Sprites"}) {
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label == label) {
+        found = true;
+        EXPECT_EQ(widget.type, "checkbox") << label;
+      }
+    }
+    EXPECT_TRUE(found) << label;
+  }
+  const bool bg1 = viewer.IsBG1Visible(room);
+  click("BG1");
+  EXPECT_EQ(viewer.IsBG1Visible(room), !bg1);
+  const bool bg2 = viewer.IsBG2Visible(room);
+  click("BG2");
+  EXPECT_EQ(viewer.IsBG2Visible(room), !bg2);
+  const bool sprites = viewer.AreSpritesVisible();
+  click("Sprites");
+  EXPECT_EQ(viewer.AreSpritesVisible(), !sprites);
+  click("CompareMenuButton");
+  EXPECT_TRUE(split);
+  EXPECT_EQ(compare, previous);
+  EXPECT_TRUE(ImGui::GetCurrentContext()->OpenPopupStack.empty());
+  click("CompareMenuButton");
+  EXPECT_EQ(ImGui::GetCurrentContext()->OpenPopupStack.Size, 1);
+  bool list_found = false;
+  for (auto* window : ImGui::GetCurrentContext()->Windows)
+    if (window->Active && std::string(window->Name).find("CompareSearchList") !=
+                              std::string::npos)
+      list_found = true;
+  EXPECT_TRUE(list_found);
+  gui::WidgetIdRegistry::Instance().Clear();
+}
+
+TEST_F(DungeonWorkbenchToolbarTest,
+       RoomAndOverviewChoicesStayVisibleAndLeaveCompareAtLaptopWidths) {
+  DungeonWorkbenchLayoutState layout;
+  int room = 0x89, compare = 0x98;
+  bool split = true;
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &room;
+  params.compare_room_id = &compare;
+  params.split_view_enabled = &split;
+  params.draw_entrance_context = [](float width) {
+    ImGui::SetNextItemWidth(width);
+    if (ImGui::BeginCombo("##ModeEntrance", "Auto: Goron Mines"))
+      ImGui::EndCombo();
+  };
+  params.on_save_room = [](int) {
+  };
+  params.on_request_dungeon_map = [] {
+  };
+  params.set_workflow_mode = [](bool) {
+  };
+  float width = 720.0f;
+  const auto frame = [&] {
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, 180), ImGuiCond_Always);
+    ImGui::Begin("ToolbarHost");
+    gui::WidgetIdRegistry::Instance().Clear();
+    DungeonWorkbenchToolbar::Draw(params);
+    EXPECT_LE(
+        ImGui::GetCurrentWindow()->DC.CursorMaxPos.x,
+        ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x + 0.5f);
+  };
+  const auto click = [&](const char* id) {
+    ImVec2 center;
+    bool found = false;
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (widget.label == id && widget.bounds.valid) {
+        found = true;
+        center = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                        (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+      }
+    }
+    ASSERT_TRUE(found) << id;
+    ImGui::GetIO().AddMousePosEvent(center.x, center.y);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    frame();
+  };
+  for (const float pane_width : {720.0f, 1100.0f}) {
+    width = pane_width;
+    split = true;
+    frame();
+    frame();
+    click("CanvasModeConnected");
+    EXPECT_TRUE(layout.show_connected_canvas_view);
+    EXPECT_FALSE(split);
+    EXPECT_EQ(room, 0x89);
+    // Clicking the selected view is idempotent, not an ambiguous toggle.
+    click("CanvasModeConnected");
+    EXPECT_TRUE(layout.show_connected_canvas_view);
+    click("CanvasModeRoom");
+    EXPECT_FALSE(layout.show_connected_canvas_view);
+    EXPECT_FALSE(split);
+    EXPECT_EQ(room, 0x89);
+    EXPECT_EQ(compare, 0x98);
+    split = true;
+    frame();
+    click("CanvasModeRoom");
+    EXPECT_FALSE(layout.show_connected_canvas_view);
+    EXPECT_FALSE(split);
+  }
+  gui::WidgetIdRegistry::Instance().Clear();
+}
+
+TEST_F(DungeonWorkbenchToolbarTest, ViewOptionsExposeCrumbleFloorControl) {
+  gui::WidgetIdRegistry::Instance().Clear();
+  DungeonCanvasViewer viewer;
+  DrawWorstCaseToolbarGeometry("##CrumbleToolbar", 1100.0f, &viewer, false,
+                               false, true);
+  bool found = false;
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (widget.label == "Crumble Floor (Oracle)") {
+      found = true;
+      EXPECT_TRUE(widget.enabled);
+    }
+  }
+  EXPECT_TRUE(found);
+  gui::WidgetIdRegistry::Instance().Clear();
+}
+
+TEST_F(DungeonWorkbenchToolbarTest,
+       HeaderActionsReserveTheirVisibleGlyphWidth) {
+  constexpr float height = 22.0f;
+  const char* glyph = "Wide icon";
+  workbench::DrawHeaderIconAction("WideHeaderAction", glyph, height, "Move");
+  const float width = ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x;
+  EXPECT_GE(width, ImGui::CalcTextSize(glyph).x +
+                       ImGui::GetStyle().FramePadding.x * 2.0f);
+  EXPECT_FLOAT_EQ(width, workbench::CalcIconButtonWidth(glyph, height));
+  EXPECT_GT(width, height);
+}
+
+TEST_F(DungeonWorkbenchToolbarTest, SaveContentOpensOnlyFromToolbarMenu) {
+  DungeonWorkbenchLayoutState layout;
+  DungeonCanvasViewer viewer;
+  int room = 0x89, compare = -1;
+  bool split = false;
+  int save_choices_drawn = 0;
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &room;
+  params.compare_room_id = &compare;
+  params.split_view_enabled = &split;
+  params.primary_viewer = &viewer;
+  params.draw_tools = []() {
+    ImGui::Button("Tools");
+  };
+  params.draw_save_content = [&]() {
+    ++save_choices_drawn;
+    ImGui::TextUnformatted("Room objects");
+  };
+  const auto frame = [&]() {
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1100, 400), ImGuiCond_Always);
+    ImGui::Begin("ToolbarHost");
+    gui::WidgetIdRegistry::Instance().Clear();
+    DungeonWorkbenchToolbar::Draw(params);
+  };
+  frame();
+  frame();
+  EXPECT_EQ(save_choices_drawn, 0);
+  ImVec2 center;
+  bool found = false;
+  for (const auto& [path, widget] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (widget.label == "SaveContentButton" && widget.bounds.valid) {
+      found = true;
+      center = ImVec2((widget.bounds.min_x + widget.bounds.max_x) * 0.5f,
+                      (widget.bounds.min_y + widget.bounds.max_y) * 0.5f);
+    }
+  }
+  ASSERT_TRUE(found);
+  ImGui::GetIO().AddMousePosEvent(center.x, center.y);
+  frame();
+  ImGui::GetIO().AddMouseButtonEvent(0, true);
+  frame();
+  ImGui::GetIO().AddMouseButtonEvent(0, false);
+  frame();
+  EXPECT_GT(save_choices_drawn, 0);
+  gui::WidgetIdRegistry::Instance().Clear();
+}
 }  // namespace
 }  // namespace yaze::editor

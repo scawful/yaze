@@ -38,9 +38,12 @@
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
 
-// Room-based plans must follow canvas.h's ImGui math-operator configuration.
+// Room-based plans and tools must follow canvas.h's ImGui math configuration.
 #include "app/editor/dungeon/dungeon_connection_edit.h"
 #include "app/editor/dungeon/dungeon_room_transfer.h"
+#include "app/editor/dungeon/ui/crumble/crumble_floor_view.h"
+#include "app/editor/dungeon/ui/minecart/minecart_canvas_tool.h"
+#include "app/editor/dungeon/ui/minecart/minecart_collision_tool.h"
 
 namespace yaze {
 namespace editor {
@@ -293,6 +296,7 @@ class DungeonCanvasViewer {
                                        float scale) const;
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
+  void CancelMinecartGesture() { minecart_canvas_tool_.Cancel(); }
   void TriggerChangePing();
   using MetadataEditCallback =
       std::function<absl::Status(int, const RoomMetadataEdit&)>;
@@ -396,6 +400,7 @@ class DungeonCanvasViewer {
 
   void SetContext(EditorContext ctx) {
     if (rom_ != ctx.rom || game_data_ != ctx.game_data) {
+      crumble_floor_view_.Reset();
       ResetRoomCompositeOutputs();
     }
     rom_ = ctx.rom;
@@ -406,6 +411,7 @@ class DungeonCanvasViewer {
   }
   EditorContext context() const { return {rom_, game_data_}; }
   void SetRom(Rom* rom) {
+    crumble_floor_view_.Reset();
     if (rom_ != rom) {
       ResetRoomCompositeOutputs();
     }
@@ -486,6 +492,11 @@ class DungeonCanvasViewer {
   int current_entrance_id() const { return current_entrance_id_; }
   uint8_t current_entrance_blockset() const {
     return current_entrance_blockset_;
+  }
+  // Auto may assign different graphics to rooms in a connected preview.
+  // The editor owns inference; standalone viewers retain their fixed context.
+  void SetEntranceBlocksetResolver(std::function<uint8_t(int)> resolver) {
+    entrance_blockset_resolver_ = std::move(resolver);
   }
   void SetEntranceCameraOverlay(int entrance_slot,
                                 const DungeonEntranceCameraState& state) {
@@ -608,6 +619,12 @@ class DungeonCanvasViewer {
   void set_show_texture_debug(bool show) { show_texture_debug_ = show; }
   bool show_layer_info() const { return show_layer_info_; }
   void set_show_layer_info(bool show) { show_layer_info_ = show; }
+  bool show_crumble_floor() const { return show_crumble_floor_; }
+  void set_show_crumble_floor(bool show) {
+    show_crumble_floor_ = show;
+    if (!show)
+      crumble_floor_view_.Stop();
+  }
   bool show_minecart_tracks() const { return show_minecart_tracks_; }
   void set_show_minecart_tracks(bool show) { show_minecart_tracks_ = show; }
   bool show_track_collision_legend() const {
@@ -696,8 +713,8 @@ class DungeonCanvasViewer {
     return object_interaction_enabled_;
   }
 
-  // Make the room header controls non-interactive while still allowing canvas
-  // pan/zoom (useful for split/compare views).
+  // Make the room header controls non-interactive while retaining centered
+  // canvas zoom (useful for split/compare views).
   void SetHeaderReadOnly(bool read_only) { header_read_only_ = read_only; }
   bool header_read_only() const { return header_read_only_; }
 
@@ -874,6 +891,12 @@ class DungeonCanvasViewer {
     entity_visibility_.show_pot_items = visible;
   }
   bool ArePotItemsVisible() const { return entity_visibility_.show_pot_items; }
+  void SetChestContentsVisible(bool visible) {
+    entity_visibility_.show_chests = visible;
+  }
+  bool AreChestContentsVisible() const {
+    return entity_visibility_.show_chests;
+  }
 
   struct ConnectedRoomGraphData {
     struct RoomPlacement {
@@ -909,6 +932,7 @@ class DungeonCanvasViewer {
 
  private:
   friend class DungeonCanvasViewerTestPeer;
+  friend class DungeonCanvasMinecartTestPeer;
   friend class DungeonRoomTransferEditorTestPeer;
   friend class DungeonRoomEditsTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
@@ -941,7 +965,6 @@ class DungeonCanvasViewer {
   void AddInteractionContextMenuItems(int room_id);
   void AddLoadedRoomContextMenuItems(int room_id);
   gui::CanvasMenuItem BuildInsertContextMenu();
-  gui::CanvasMenuItem BuildSelectionContextMenu(int room_id);
   std::vector<gui::CanvasMenuItem> BuildSelectionContextMenuItems(int room_id);
   std::vector<gui::CanvasMenuItem> BuildSelectionContextMenuItems(
       int room_id, std::optional<zelda3::RoomObject> context_object);
@@ -979,6 +1002,8 @@ class DungeonCanvasViewer {
   void DrawIssueReportStatusMessage() const;
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
+  void RenderChestContents(const gui::CanvasRuntime& rt,
+                           const zelda3::Room& room);
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
                            const zelda3::Room& room);
 
@@ -1006,6 +1031,8 @@ class DungeonCanvasViewer {
   void DrawCoordinateOverlayHud(int room_id);
   bool ValidateRoomCanvasRequest(int room_id);
   gui::CanvasFrameOptions BuildRoomCanvasFrameOptions() const;
+  void UpdateRoomCanvasViewport(ImVec2 viewport_size);
+  void HandleRoomCanvasNavigation(gui::CanvasRuntime& canvas_rt);
   void SyncCanvasConfigFromViewerState();
   void SyncViewerStateFromCanvasConfig();
   void RefreshActiveRoomCanvasState(zelda3::Room& room, int room_id);
@@ -1042,6 +1069,8 @@ class DungeonCanvasViewer {
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
+  bool room_viewport_auto_fit_ = true;
+  float room_viewport_last_scale_ = -1.0f;
   gui::Canvas connected_canvas_{"##DungeonConnectedCanvas",
                                 ImVec2(0x200, 0x200)};
   // ObjectRenderer removed - use ObjectDrawer for rendering (production system)
@@ -1059,6 +1088,7 @@ class DungeonCanvasViewer {
   std::vector<int> recently_visited_rooms_;
   int current_entrance_id_ = -1;
   uint8_t current_entrance_blockset_ = 0xFF;
+  std::function<uint8_t(int)> entrance_blockset_resolver_;
   int camera_overlay_entrance_slot_ = -1;
   std::optional<DungeonEntranceCameraState> entrance_camera_overlay_;
   // Used by overworld editor for double-click entrance → open dungeon room
@@ -1125,6 +1155,15 @@ class DungeonCanvasViewer {
   std::function<void(int)> save_room_callback_;
   std::function<void(int, const zelda3::RoomObject&)> edit_graphics_callback_;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
+  MinecartCanvasTool minecart_canvas_tool_;
+  MinecartCollisionTool minecart_collision_tool_;
+  bool minecart_owned_input_ = false;
+  friend class DungeonCanvasCrumbleTestPeer;
+  bool DrawCrumbleCanvas(const gui::CanvasRuntime& rt);
+  bool DrawMinecartCanvas(const gui::CanvasRuntime& rt, zelda3::Room& room,
+                          int room_id);
+  bool show_crumble_floor_ = false;
+  CrumbleFloorView crumble_floor_view_;
   bool show_minecart_tracks_ = false;
   bool is_pinned_ = false;
   std::function<void(bool)> pin_callback_;
@@ -1215,7 +1254,7 @@ class DungeonCanvasViewer {
   struct EntityVisibility {
     bool show_sprites = true;    // Show sprite entities
     bool show_pot_items = true;  // Show pot item entities
-    bool show_chests = true;     // Show chest entities (future)
+    bool show_chests = true;  // Show chest receipt labels above chest objects
   };
   EntityVisibility entity_visibility_;
 

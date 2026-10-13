@@ -118,7 +118,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
           uint8_t tile = data[cursor++];
           int idx = row_offset + col;
           if (idx >= 0 && idx < kCollisionMapWidth * kCollisionMapHeight) {
-            result.tiles[static_cast<size_t>(idx)] = tile;
+            result.SetOverride(static_cast<size_t>(idx), tile);
           }
         }
       }
@@ -129,7 +129,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
       uint8_t tile = data[cursor++];
       int idx = static_cast<int>(offset);
       if (idx >= 0 && idx < kCollisionMapWidth * kCollisionMapHeight) {
-        result.tiles[static_cast<size_t>(idx)] = tile;
+        result.SetOverride(static_cast<size_t>(idx), tile);
       }
     }
   }
@@ -167,8 +167,8 @@ absl::StatusOr<std::string> DumpCustomCollisionRoomsToJsonString(
       continue;
     }
 
-    // Normalize offsets: keep last value for each offset and write in ascending
-    // order. Drop value=0 for compactness (0 is treated as "unset" by the editor).
+    // Normalize offsets: keep the last value, including explicit floor 0,
+    // for each offset and write in ascending order.
     std::unordered_map<int, int> tile_map;
     tile_map.reserve(r.tiles.size());
     for (const auto& t : r.tiles) {
@@ -181,9 +181,6 @@ absl::StatusOr<std::string> DumpCustomCollisionRoomsToJsonString(
     std::vector<std::pair<int, int>> tiles;
     tiles.reserve(tile_map.size());
     for (const auto& [off, val] : tile_map) {
-      if (val == 0) {
-        continue;
-      }
       tiles.emplace_back(off, val);
     }
     if (tiles.empty()) {
@@ -376,7 +373,7 @@ absl::StatusOr<std::string> DumpCustomCollisionSourceFromRom(Rom* rom) {
     CustomCollisionRoomEntry entry;
     entry.room_id = room_id;
     for (size_t offset = 0; offset < map->tiles.size(); ++offset) {
-      if (map->tiles[offset] != 0) {
+      if (map->HasOverride(offset)) {
         entry.tiles.push_back(CustomCollisionTileEntry{
             static_cast<uint16_t>(offset), map->tiles[offset]});
       }

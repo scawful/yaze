@@ -1,0 +1,117 @@
+# Maroon Theme
+# Rich deep burgundy/maroon theme with crimson and rose accents
+name=Maroon
+description=Deep maroon and burgundy dark theme with rich crimson accents
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors
+primary=230,57,70,255           # Crimson rose
+secondary=193,18,31,255         # Deep red
+accent=255,77,109,255           # Bright rose pink
+background=26,10,14,255         # Deep dark maroon
+surface=40,16,23,255            # Slightly lighter burgundy surface
+
+# Status colors
+error=255,77,109,255
+warning=251,191,36,255
+success=52,211,153,255
+info=96,165,250,255
+
+# Text colors
+text_primary=253,242,244,255
+text_secondary=207,162,173,255
+text_disabled=140,105,115,255
+
+# Window colors
+window_bg=26,10,14,250
+child_bg=40,16,23,255
+popup_bg=32,12,18,255
+
+# Interactive elements
+button=61,24,35,255
+button_hovered=92,36,53,255
+button_active=230,57,70,200
+frame_bg=32,12,18,255
+frame_bg_hovered=55,20,30,255
+frame_bg_active=75,28,42,255
+
+# Navigation
+header=61,24,35,255
+header_hovered=92,36,53,255
+header_active=230,57,70,160
+tab=40,16,23,255
+tab_hovered=75,28,42,255
+tab_active=230,57,70,200
+menu_bar_bg=32,12,18,255
+title_bg=32,12,18,255
+title_bg_active=55,20,30,255
+title_bg_collapsed=26,10,14,200
+
+# Borders and separators
+border=82,32,48,255
+border_shadow=0,0,0,0
+separator=82,32,48,255
+separator_hovered=130,50,75,255
+separator_active=230,57,70,255
+
+# Scrollbars
+scrollbar_bg=26,10,14,255
+scrollbar_grab=61,24,35,255
+scrollbar_grab_hovered=92,36,53,255
+scrollbar_grab_active=230,57,70,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=230,57,70,153
+resize_grip_active=230,57,70,230
+
+# Controls
+check_mark=230,57,70,255
+slider_grab=230,57,70,255
+slider_grab_active=255,77,109,255
+
+# Tables
+table_header_bg=48,18,28,255
+table_border_strong=82,32,48,255
+table_border_light=55,20,30,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,8
+
+# Links
+text_link=255,77,109,255
+
+# Navigation and special
+input_text_cursor=255,255,255,255
+nav_cursor=230,57,70,255
+nav_windowing_highlight=230,57,70,200
+nav_windowing_dim_bg=0,0,0,160
+modal_window_dim_bg=0,0,0,180
+text_selected_bg=230,57,70,100
+drag_drop_target=230,57,70,220
+
+# Docking
+docking_preview=230,57,70,180
+docking_empty_bg=32,12,18,255
+
+# Tree lines
+tree_lines=130,50,75,200
+
+# Tab variations
+tab_dimmed=32,12,18,255
+tab_dimmed_selected=61,24,35,255
+tab_dimmed_selected_overline=230,57,70,255
+tab_selected_overline=230,57,70,255
+
+[style]
+window_rounding=4.0
+frame_rounding=4.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=1.0
+frame_border_size=1.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

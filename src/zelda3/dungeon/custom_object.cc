@@ -552,6 +552,7 @@ uint64_t CustomObjectManager::NextAssetGeneration() {
 void CustomObjectManager::InvalidateCaches() {
   auto& context = ActiveContext();
   context.cache.clear();
+  context.tile_patterns.reset();
   context.asset_generation = NextAssetGeneration();
   ObjectGeometry::Get().ClearCache();
 }
@@ -580,6 +581,31 @@ void CustomObjectManager::ClearObjectFileMap() {
   InvalidateCaches();
 }
 
+void CustomObjectManager::SetTilePatternsSource(const std::string& path) {
+  ActiveContext().state.dungeon_tile_patterns = path;
+  InvalidateCaches();
+}
+
+absl::StatusOr<std::shared_ptr<const DungeonTilePatterns>>
+CustomObjectManager::GetTilePatterns() {
+  auto& context = ActiveContext();
+  if (!context.tile_patterns.has_value()) {
+    if (context.state.dungeon_tile_patterns.empty()) {
+      context.tile_patterns = std::shared_ptr<const DungeonTilePatterns>{};
+    } else {
+      auto source =
+          LoadDungeonTilePatterns(context.state.dungeon_tile_patterns);
+      if (source.ok()) {
+        context.tile_patterns =
+            std::make_shared<const DungeonTilePatterns>(std::move(*source));
+      } else {
+        context.tile_patterns = source.status();
+      }
+    }
+  }
+  return *context.tile_patterns;
+}
+
 bool CustomObjectManager::HasCustomFileMap() const {
   return !ActiveContext().state.custom_file_map.empty();
 }
@@ -591,6 +617,7 @@ void CustomObjectManager::ActivateRuntimeContext(uint64_t context_id,
   if (inserted || context.state != state) {
     context.state = state;
     context.cache.clear();
+    context.tile_patterns.reset();
     context.asset_generation = NextAssetGeneration();
     ObjectGeometry::Get().ClearCache();
   }
@@ -662,6 +689,49 @@ CustomObjectManager::GetObjectInternal(int object_id, int subtype) {
   }
 
   return LoadObject((*list)[subtype]);
+}
+
+absl::StatusOr<std::shared_ptr<const CustomObject>>
+CustomObjectRenderSnapshot::GetObject(int object_id, int subtype) const {
+  const auto family = objects_.find(object_id);
+  if (family == objects_.end()) {
+    return absl::NotFoundError("Object ID not mapped to custom object");
+  }
+  if (subtype < 0 || subtype >= static_cast<int>(family->second.size())) {
+    return absl::OutOfRangeError("Subtype index out of range");
+  }
+  return family->second[subtype];
+}
+
+CustomObjectRenderSnapshot CustomObjectManager::CaptureRenderSnapshot(
+    bool enabled) {
+  CustomObjectRenderSnapshot snapshot;
+  snapshot.enabled_ = enabled;
+  snapshot.tile_patterns_ = GetTilePatterns();
+  if (!enabled) {
+    return snapshot;
+  }
+  std::unordered_set<int> families(RuntimeObjectIds().begin(),
+                                   RuntimeObjectIds().end());
+  for (const auto& [id, files] : ActiveContext().state.custom_file_map) {
+    families.insert(id);
+  }
+  for (int id : families) {
+    auto& objects = snapshot.objects_[id];
+    const int count = GetSubtypeCount(id);
+    objects.reserve(count);
+    for (int subtype = 0; subtype < count; ++subtype) {
+      auto object = GetObjectInternal(id, subtype);
+      if (!object.ok()) {
+        objects.emplace_back(object.status());
+      } else if (*object) {
+        objects.emplace_back(std::make_shared<const CustomObject>(**object));
+      } else {
+        objects.emplace_back(absl::NotFoundError("Custom object is null"));
+      }
+    }
+  }
+  return snapshot;
 }
 
 int CustomObjectManager::GetSubtypeCount(int object_id) const {

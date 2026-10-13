@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <filesystem>
+#include <string>
 #include <thread>
 
 #include "absl/strings/str_cat.h"
@@ -45,6 +47,28 @@ TEST(BackgroundCommandTaskTest, StreamsOutputWhileRunning) {
   EXPECT_TRUE(final_snapshot.finished);
   EXPECT_FALSE(final_snapshot.running);
   EXPECT_NE(final_snapshot.output.find("second"), std::string::npos);
+}
+
+TEST(BackgroundCommandTaskTest, MissingWorkingDirectoryDoesNotRunCommand) {
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto directory = std::filesystem::temp_directory_path() /
+                         ("yaze_bg_missing_cwd_" + std::to_string(nonce));
+  const auto marker = directory.parent_path() /
+                      ("yaze_bg_unexpected_marker_" + std::to_string(nonce));
+  ASSERT_FALSE(std::filesystem::exists(directory));
+  ASSERT_FALSE(std::filesystem::exists(marker));
+
+  BackgroundCommandTask task;
+  ASSERT_TRUE(task.Start("printf 'unexpected' > '" + marker.string() + "'",
+                         directory.string())
+                  .ok());
+  const auto status = task.Wait();
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(task.GetSnapshot().output.find("Cannot enter command working "
+                                           "directory"),
+            std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(marker));
 }
 
 // The command runs through a login shell ("sh -lc"), so the host's startup

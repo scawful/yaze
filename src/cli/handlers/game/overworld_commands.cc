@@ -1,5 +1,6 @@
 #include "cli/handlers/game/overworld_commands.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -15,6 +16,7 @@
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_item.h"
+#include "zelda3/overworld/special_entrance_inspector.h"
 #include "zelda3/zelda3_labels.h"
 
 namespace yaze {
@@ -228,6 +230,51 @@ absl::Status ApplyTileEdit(Rom& rom, zelda3::Overworld& overworld,
 }
 
 }  // namespace
+
+absl::Status OverworldInspectSpecialEntrancesCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  ASSIGN_OR_RETURN(const int map_id, ParseMapIdArg(parser, "map"));
+  zelda3::Overworld overworld(rom);
+  RETURN_IF_ERROR(overworld.Load(rom));
+  const auto inspection =
+      zelda3::InspectSpecialEntrances(*rom, overworld, map_id);
+  formatter.BeginObject("Special Entrances");
+  formatter.AddField("available", inspection.available);
+  formatter.AddField("provenance", inspection.provenance);
+  formatter.AddField("limitation", inspection.limitation);
+  formatter.AddField("overlay_may_replace_tiles",
+                     inspection.overlay_may_replace_tiles);
+  formatter.AddHexField("map_id", map_id, 2);
+  formatter.AddHexField("parent_area", inspection.parent_area, 2);
+  formatter.AddField("match_count",
+                     static_cast<int>(inspection.matches.size()));
+  formatter.BeginArray("matches");
+  for (const auto& match : inspection.matches) {
+    const auto& row = inspection.rows[match.row_index];
+    formatter.BeginObject();
+    formatter.AddHexField("screen_id", match.screen_id, 2);
+    formatter.AddHexField("source_area", match.parent_area, 2);
+    formatter.AddField("tile_x", match.tile_x);
+    formatter.AddField("tile_y", match.tile_y);
+    formatter.AddField("world_x", match.world_x);
+    formatter.AddField("world_y", match.world_y);
+    formatter.AddHexField("map16_id", match.tile16_id, 3);
+    formatter.AddHexField("first_word", match.first_word, 4);
+    formatter.AddHexField("masked_trigger", match.masked_trigger, 3);
+    formatter.AddHexField("destination_marker", row.destination_marker, 4);
+    formatter.AddHexField("arrival_direction", row.direction, 4);
+    if (row.destination_area >= 0) {
+      formatter.AddHexField("destination_area", row.destination_area, 2);
+    } else {
+      formatter.AddField("destination_area", "unresolved");
+    }
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  formatter.EndObject();
+  return absl::OkStatus();
+}
 
 absl::Status OverworldGetTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
@@ -793,33 +840,117 @@ absl::Status OverworldGetEntranceCommandHandler::Execute(
 absl::Status OverworldTileStatsCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  auto screen_id_str = parser.GetString("screen").value_or("all");
-
-  // Load the Overworld from ROM
-  zelda3::Overworld overworld(rom);
-  auto ow_status = overworld.Load(rom);
-  if (!ow_status.ok()) {
-    return ow_status;
+  overworld::TileUsageQuery query;
+  const bool has_screen = parser.GetString("screen").has_value();
+  const bool has_map = parser.GetString("map").has_value();
+  if (has_screen || has_map) {
+    ASSIGN_OR_RETURN(const int map_id,
+                     ParseMapIdArg(parser, has_screen ? "screen" : "map"));
+    if (has_screen && has_map) {
+      ASSIGN_OR_RETURN(const int other, ParseMapIdArg(parser, "map"));
+      if (other != map_id) {
+        return absl::InvalidArgumentError(
+            "--screen and --map name different screens; pass one");
+      }
+    }
+    query.map_id = map_id;
+  }
+  if (auto world = parser.GetString("world"); world.has_value()) {
+    ASSIGN_OR_RETURN(const int world_id,
+                     overworld::ParseWorldSpecifier(*world));
+    query.world = world_id;
+  }
+  if (parser.GetString("tile").has_value()) {
+    ASSIGN_OR_RETURN(const int tile_id, ParseTileIdArg(parser));
+    query.tile_id = static_cast<uint16_t>(tile_id);
+  }
+  int top = 32;
+  if (parser.GetString("top").has_value()) {
+    auto top_or = parser.GetInt("top");
+    if (!top_or.ok() || *top_or < 0) {
+      return absl::InvalidArgumentError(
+          "--top must be a non-negative count (0 lists every tile)");
+    }
+    top = *top_or;
   }
 
-  // TODO: Implement comprehensive tile statistics
-  // The AnalyzeTileUsage helper requires a specific tile_id,
-  // so we need a different approach to gather overall tile statistics.
-  // This could involve:
-  // 1. Iterating through all tiles in the overworld maps
-  // 2. Building a frequency map of tile usage
-  // 3. Computing statistics like unique tiles, most common tiles, etc.
+  zelda3::Overworld overworld(rom);
+  RETURN_IF_ERROR(overworld.Load(rom));
+  ASSIGN_OR_RETURN(const auto summary,
+                   overworld::CollectTileUsage(overworld, query));
 
   formatter.BeginObject("Overworld Tile Statistics");
-  formatter.AddField("screen_filter", screen_id_str);
-  formatter.AddField("status", "partial_implementation");
-  formatter.AddField("message",
-                     "Comprehensive tile statistics not yet implemented. "
-                     "Use overworld-find-tile for specific tile analysis.");
-  formatter.AddField("total_tiles", 0);
-  formatter.AddField("unique_tiles", 0);
+  formatter.AddField("screen_filter",
+                     query.map_id.has_value()
+                         ? absl::StrFormat("0x%02X", *query.map_id)
+                         : std::string("all"));
+  formatter.AddField("world_filter", query.world.has_value()
+                                         ? overworld::WorldName(*query.world)
+                                         : std::string("all"));
+  formatter.AddField("screens_scanned", summary.screens_scanned);
+  formatter.AddField("total_tiles", summary.total_tiles);
+  formatter.AddField("unique_tiles", static_cast<int>(summary.tiles.size()));
 
+  if (query.tile_id.has_value()) {
+    int count = 0;
+    int screens = 0;
+    for (const auto& usage : summary.tiles) {
+      if (usage.tile_id == *query.tile_id) {
+        count = usage.count;
+        screens = usage.screens;
+        break;
+      }
+    }
+    formatter.BeginObject("tile");
+    formatter.AddField("tile_id", absl::StrFormat("0x%04X", *query.tile_id));
+    formatter.AddField("count", count);
+    formatter.AddField("screens", screens);
+    formatter.EndObject();
+  }
+
+  formatter.BeginArray("worlds");
+  for (const auto& world : summary.worlds) {
+    formatter.BeginObject();
+    formatter.AddField("world", overworld::WorldName(world.world));
+    formatter.AddField("screens", world.screens);
+    formatter.AddField("total_tiles", world.total_tiles);
+    formatter.AddField("unique_tiles", world.unique_tiles);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  // Per screen: each 32x32 block of the world grid (child screens of a
+  // multi-screen area are listed separately with their parent_area).
+  formatter.BeginArray("screens");
+  for (const auto& screen : summary.screens) {
+    formatter.BeginObject();
+    formatter.AddField("map_id", absl::StrFormat("0x%02X", screen.map_id));
+    formatter.AddField("world", overworld::WorldName(screen.world));
+    formatter.AddField("parent_area",
+                       absl::StrFormat("0x%02X", screen.parent_map));
+    formatter.AddField("total_tiles", screen.total_tiles);
+    formatter.AddField("unique_tiles", screen.unique_tiles);
+    formatter.AddField("top_tile", absl::StrFormat("0x%04X", screen.top_tile));
+    formatter.AddField("top_tile_count", screen.top_tile_count);
+    if (query.tile_id.has_value()) {
+      formatter.AddField("tile_count", screen.tile_count);
+    }
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  const size_t shown = top == 0 ? summary.tiles.size()
+                                : std::min<size_t>(summary.tiles.size(), top);
+  formatter.AddField("tile_counts_shown", static_cast<int>(shown));
   formatter.BeginArray("tile_counts");
+  for (size_t i = 0; i < shown; ++i) {
+    const auto& usage = summary.tiles[i];
+    formatter.BeginObject();
+    formatter.AddField("tile_id", absl::StrFormat("0x%04X", usage.tile_id));
+    formatter.AddField("count", usage.count);
+    formatter.AddField("screens", usage.screens);
+    formatter.EndObject();
+  }
   formatter.EndArray();
   formatter.EndObject();
 

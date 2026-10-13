@@ -1,6 +1,8 @@
 # Editor readiness and feature coverage
 
-Last reviewed: 2026-09-23 for the v0.8.0 development line.
+Last reviewed: 2026-09-23 for the v0.8.0 development line. Overworld sprite,
+Graphics sheet and Palette save implementation status refreshed from
+consolidated `bd9f0497a` on 2026-10-05; other dated evidence remains unchanged.
 
 This is the public capability and persistence ledger. The
 [editor capability parity plan](../../internal/plans/editor-capability-parity-plan.md)
@@ -130,13 +132,13 @@ used for promotion.
 | Reciprocal normal-door connections | **Candidate** at `be973563f`; verification above | Shared endpoint preview and Create Return Door / Update Pair; exact outer slots and adjacency; guarded target load retaining project WaterFill data; one batch Undo/Redo preserving other domains | Stairs, pits, special door families, internal seams, and arbitrary destinations are outside this slice. Save-time allocation, full application disk persistence, runtime traversal, human UX, CI, and packaged qualification remain. |
 | Authored-room clone/import | **Candidate** at `bb185d1ae`; DA-4 is **Partial** | Versioned clipboard/native-file JSON and same-project clone; explicit object/chest/special metadata, door, sprite, pot-item, property, collision, and water domains; preserved destinations by default; detached save preflight and one undo action | Project-file/asset compatibility and portable resource packing remain. Numeric references require compatible assets. Application disk transaction/reopen, runtime, human UX, CI, and packaged acceptance remain separate. |
 | Overworld map/entrance/exit/item/property editing | **Partial** | Domain-specific save methods called by `OverworldEditor::Save()` when their flags are enabled | Entity undo and full application acceptance need completion. Save support must be checked per domain and ROM layout. |
-| Overworld sprite persistence | **Missing** | Editing and three game-state collections exist | The application save path does not call a sprite serializer. Do not report sprite edits as saved because Save ROM succeeds. |
+| Overworld sprite persistence | **Partial**; writer implemented at consolidated `bd9f0497a` | `Overworld::PrepareSpriteSave` plans three state tables; `OverworldEditor::Save` checks capacity/manifest and applies the plan transactionally | Complete entity undo and application Save As/reopen/runtime qualification for every advertised state and ROM layout. Unloaded or unsupported map/state ownership and positions outside the 16-pixel grid refuse saving. |
 | Message | **Partial** | Transactional save of valid parsed text through coordinated save when enabled | GUI-to-disk reopen and runtime acceptance for the advertised ROM profile. |
-| Palette | **Partial** | Palette **Save to ROM** commits the model to the shared ROM buffer; **File > Save ROM** writes disk | Two-step workflow remains. JSON import/export is Implemented when JSON support is enabled. |
+| Palette | **Partial**; coordinated saving implemented at consolidated `bd9f0497a` | Pending PaletteManager colors join File Save/Save As when Save All Palettes or Save Dungeon Palettes is enabled; session history and live previews remain in memory until save | Paired palette-slot/pixel remapping is available through source Edit Graphics for supported static 3bpp dungeon/Overworld targets; one Graphics Undo and disposable Oracle Save As/reopen are covered. Other palettes/profiles and runtime appearance remain to qualify. JSON import/export is implemented when JSON support is enabled. |
 | Assembly | **Partial** | **Save File** writes active ASM source; Asar patch application is a separate ROM operation | Source reopen/dirty-close and separately fenced patch-application qualification. |
 | Sprite | **Partial** | Custom `.zsm` editing/saving; vanilla sprite viewing | Qualify `.zsm` roundtrip and complete/disable incomplete vanilla controls. Dungeon sprite placement is a separate workflow. |
 | Settings | **Implemented** for configuration-file persistence | Settings/layouts save outside the ROM | Panel-to-restart acceptance is separate from ROM capability and release proof. |
-| Graphics pixel-sheet persistence | **Blocked** | Pixel editing, undo, import surfaces, and a writer implementation exist | Pending sheet edits block coordinated Save ROM. Compression/allocation/write safety and readback must be established before enabling it. |
+| Graphics pixel-sheet persistence | **Partial**; guarded 3bpp writer implemented at consolidated `bd9f0497a` | Session pixels, Undo, PNG exchange and coordinated `GraphicsEditor::Save` with preflight, approved allocation, rollback and decoded readback | Requires `save_graphics_sheet`; other formats and full runtime/native qualification remain open. Disabling the flag refuses pending pixel edits; enabling it does not override sheet ownership, reserved-sheet policy, pixel-index limits, or approved free-space requirements. |
 | Graphics groups and polyhedral editing | **Partial** | Existing registered editors and model operations | Audit and qualify their specific persistence paths; do not list the tools as missing or assume pixel-sheet proof covers them. |
 | Screen | **Blocked** for coordinated save with any pending domain | Dungeon-map, Tile16, title-screen, and pause-map models; partial inventory UI | All pending Screen domains block central save. Direct title/pause ROM writers also fail closed. Naming screen is empty; credits/ending screen authoring needs a targeted audit. |
 | Music | **Partial**; instrument/sample saving **Missing** | Tracker/piano roll, playback, song serialization, separate editor save path | Not in coordinated Save ROM. `SaveInstruments` and `SaveSamples` return Unimplemented; WAV import is a placeholder; event clipboard is incomplete. |
@@ -147,21 +149,24 @@ used for promotion.
 ## What coordinated Save ROM currently covers
 
 [`EditorManager::SaveRom()`](../../../src/app/editor/editor_manager.cc) is the
-application persistence boundary. Before serializers mutate the ROM, it rejects
-pending Graphics sheet edits and **all** pending Screen edits. For eligible
-loaded editors it then coordinates Screen's allowed unchanged-state path,
-Dungeon, Overworld, and enabled Message serialization, followed by ROM safety
-checks, conflict handling, backup policy, and the disk write.
+application persistence boundary. The source refresh at consolidated
+`bd9f0497a` (2026-10-05) replaces the earlier blanket Graphics/Palette exclusions.
+Before serializers mutate the ROM, it rejects pending Graphics, Palette or
+graphics-group edits when their save setting is disabled, and **all** pending
+Screen edits. Eligible loaded editors then serialize Dungeon, Overworld,
+Palette, enabled Graphics and Message data inside the coordinated transaction,
+followed by ROM safety checks, conflict handling, backup policy, and disk write.
 
 Important exceptions:
 
 - [`OverworldEditor::Save()`](../../../src/app/editor/overworld/overworld_editor.cc)
   covers maps, entrances, exits, items, and enabled properties/music/custom
-  overworld data. It omits overworld sprites.
-- Palette must commit its model through **Save to ROM** before the disk save.
+  overworld data. Its planned sprite writes also run when map saving is disabled.
+- Palette model changes join the disk-save transaction; **Save to ROM** is no
+  longer a required preliminary step.
 - A dungeon-map writer existing in `ScreenEditor::Save()` does not bypass the
-  central pending-Screen block. Neither enabling `kSaveDungeonMaps` nor
-  `kSaveGraphicsSheet` establishes safe general persistence.
+  central pending-Screen block. Enabling `kSaveDungeonMaps` does not bypass it;
+  enabling `kSaveGraphicsSheet` authorizes only the guarded sheet writer.
 - [`ScreenEditor::SaveTitleScreenToRom()` and `SaveOverworldMapToRom()`](../../../src/app/editor/graphics/screen_editor.cc)
   return errors until their readback requirements are met. A custom-map export
   is a separate file workflow, not a ROM save.
@@ -185,7 +190,7 @@ Important exceptions:
 | 94 new passing metadata/chest cases at `aeb0b1200` | [`dungeon_room_edit_test.cc`](../../../test/unit/editor/dungeon_room_edit_test.cc), [`dungeon_room_edits_lifecycle_test.cc`](../../../test/unit/editor/dungeon_room_edits_lifecycle_test.cc), [`dungeon_room_metadata_ui_test.cc`](../../../test/unit/editor/dungeon_room_metadata_ui_test.cc), [`dungeon_chest_editor_test.cc`](../../../test/unit/editor/dungeon_chest_editor_test.cc) |
 | Compound chest candidate verification surface | [`chest_edit_test.cc`](../../../test/unit/zelda3/dungeon/chest_edit_test.cc), [`tile_object_handler_test.cc`](../../../test/unit/editor/tile_object_handler_test.cc), [`dungeon_room_edits_lifecycle_test.cc`](../../../test/unit/editor/dungeon_room_edits_lifecycle_test.cc), [`dungeon_chest_editor_test.cc`](../../../test/unit/editor/dungeon_chest_editor_test.cc); exact commands and artifacts in the [handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md#chest-authoring-verification-commands) |
 | Overworld paste/paint undo | [`OverworldEditor` undo and clipboard paths](../../../src/app/editor/overworld/overworld_editor.cc) |
-| Persistent overworld scratch space | [`LoadScratchPad`, `SaveScratchPad`, `FlushScratchPadIfDirty`](../../../src/app/editor/overworld/scratch_space.cc) |
+| Persistent overworld scratch space | [`LoadScratchPad`, `SaveScratchPad`, `FlushScratchPadIfDirty`](../../../src/app/editor/overworld/ui/tiles/scratch_space.cc) |
 | Palette JSON exchange | [`PaletteGroupPanel::ExportToJson()` / `ImportFromJson()`](../../../src/app/editor/palette/palette_group_panel.cc) |
 | Graphics groups | [`OverworldEditor::UpdateGfxGroupEditor()`](../../../src/app/editor/overworld/overworld_editor.cc) |
 | Existing polyhedral editor | [`PolyhedralEditorPanel`](../../../src/app/editor/graphics/polyhedral_editor_panel.cc) |

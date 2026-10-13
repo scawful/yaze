@@ -147,6 +147,17 @@ class ResourceWindowContent : public WindowContent {
   }
 
   /**
+   * @brief Resource windows open on demand, so they are optional pop-outs
+   *
+   * A room, song, or sheet window exists because the user asked to open that
+   * resource; it is never a default surface. Subclasses that embed the
+   * resource in another host override this.
+   */
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
+
+  /**
    * @brief Whether multiple instances of this resource type can be open
    * @return true to allow multiple (default), false for singleton behavior
    */

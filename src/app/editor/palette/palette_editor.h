@@ -102,6 +102,9 @@ class PaletteEditor : public Editor {
   bool CanCopy() const override { return false; }
   bool CanPaste() const override { return false; }
   absl::Status Save() override;
+  absl::Status BeginSaveTransaction() override;
+  void RollbackSaveTransaction() override;
+  void CommitSaveTransaction() override;
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
@@ -119,7 +122,6 @@ class PaletteEditor : public Editor {
   void JumpToPalette(const std::string& group_name, int palette_index);
 
  private:
-  void DrawToolset();
   void DrawControlPanel();
   void DrawQuickAccessPanel();
   void DrawCustomPalettePanel();
@@ -130,7 +132,8 @@ class PaletteEditor : public Editor {
   void DrawCategorizedPaletteList();
   void DrawSearchBar();
   bool PassesSearchFilter(const std::string& group_name) const;
-  bool* GetShowFlagForGroup(const std::string& group_name);
+  PaletteGroupPanel* GetPanelForGroup(const std::string& group_name);
+  std::string selected_group_ = "ow_main";
 
   // Legacy methods (for backward compatibility if needed)
   void DrawQuickAccessTab();

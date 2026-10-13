@@ -32,6 +32,8 @@ namespace editor {
 class MapPropertiesSystem {
  public:
   // Callback types for refresh operations
+  using RefreshMapCallback = std::function<void(int)>;
+  using RefreshMapPaletteCallback = std::function<absl::Status(int)>;
   using RefreshCallback = std::function<void()>;
   using RefreshPaletteCallback = std::function<absl::Status()>;
   using ForceRefreshGraphicsCallback = std::function<void(int)>;
@@ -44,7 +46,7 @@ class MapPropertiesSystem {
 
   explicit MapPropertiesSystem(
       zelda3::Overworld* overworld, Rom* rom,
-      std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr,
+      std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp = nullptr,
       gui::Canvas* canvas = nullptr, int* game_state = nullptr)
       : overworld_(overworld),
         rom_(rom),
@@ -54,9 +56,9 @@ class MapPropertiesSystem {
 
   // Set callbacks for refresh operations
   void SetRefreshCallbacks(
-      RefreshCallback refresh_map_properties,
+      RefreshMapCallback refresh_map_properties,
       RefreshCallback refresh_overworld_map,
-      RefreshPaletteCallback refresh_map_palette,
+      RefreshMapPaletteCallback refresh_map_palette,
       RefreshPaletteCallback refresh_tile16_blockset = nullptr,
       ForceRefreshGraphicsCallback force_refresh_graphics = nullptr) {
     refresh_map_properties_ = std::move(refresh_map_properties);
@@ -82,6 +84,11 @@ class MapPropertiesSystem {
   void SetTile16SampleCallback(
       std::function<bool(const OverworldContextTarget&)> callback) {
     sample_tile16_callback_ = std::move(callback);
+  }
+
+  void SetTile16GraphicsCallback(
+      std::function<void(const OverworldContextTarget&)> callback) {
+    edit_graphics_callback_ = std::move(callback);
   }
 
   void SetMapSelectionCallback(std::function<void(int, bool)> callback) {
@@ -177,9 +184,9 @@ class MapPropertiesSystem {
       const OverworldPropertyEdit& edit) const;
 
   // Utility methods - now call the callbacks
-  void RefreshMapProperties();
+  void RefreshMapProperties(int map_id);
   void RefreshOverworldMap();
-  absl::Status RefreshMapPalette();
+  absl::Status RefreshMapPalette(int map_id);
   absl::Status RefreshTile16Blockset();
   void ForceRefreshGraphics(int map_index);
 
@@ -203,15 +210,15 @@ class MapPropertiesSystem {
 
   zelda3::Overworld* overworld_;
   Rom* rom_;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp_;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp_;
   gui::Canvas* canvas_;
   int* game_state_;
   int local_game_state_ = 0;
 
   // Callbacks for refresh operations
-  RefreshCallback refresh_map_properties_;
+  RefreshMapCallback refresh_map_properties_;
   RefreshCallback refresh_overworld_map_;
-  RefreshPaletteCallback refresh_map_palette_;
+  RefreshMapPaletteCallback refresh_map_palette_;
   RefreshPaletteCallback refresh_tile16_blockset_;
   ForceRefreshGraphicsCallback force_refresh_graphics_;
 
@@ -222,6 +229,7 @@ class MapPropertiesSystem {
   // Callback for tile16 editing from context menu
   std::function<void(const OverworldContextTarget&)> edit_tile16_callback_;
   std::function<bool(const OverworldContextTarget&)> sample_tile16_callback_;
+  std::function<void(const OverworldContextTarget&)> edit_graphics_callback_;
 
   std::function<void()> open_map_properties_callback_;
   std::function<void()> zoom_fit_callback_;

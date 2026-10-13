@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include "app/editor/menu/menu_builder.h"
+#include "app/editor/shell/windows/settings_panel.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
@@ -90,6 +93,81 @@ class RightDrawerManagerTest : public ::testing::Test {
     DrawNavFrame(manager);
   }
 };
+
+TEST_F(RightDrawerManagerTest, MainMenusAndCanvasPopupWorkWithSettingsOpen) {
+  RightDrawerManager manager;
+  UserSettings settings;
+  SettingsPanel panel;
+  panel.SetUserSettings(&settings);
+  manager.SetSettingsPanel(&panel);
+  manager.OpenDrawer(RightDrawerManager::DrawerType::kSettings);
+  int activated = 0;
+  ImRect trigger, action;
+  int menu_index = 0;
+  bool canvas = false;
+  const char* names[] = {"File", "Edit", "View", "Windows", "Tools", "Help"};
+  const auto frame = [&]() {
+    ImGui::NewFrame();
+    if (ImGui::BeginMainMenuBar()) {
+      for (int i = 0; i < 6; ++i) {
+        const bool opened = ImGui::BeginMenu(names[i]);
+        if (!canvas && i == menu_index)
+          trigger = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+        if (opened) {
+          if (ImGui::MenuItem("Test action"))
+            ++activated;
+          action = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+          ImGui::EndMenu();
+        }
+      }
+      ImGui::EndMainMenuBar();
+    }
+    ImGui::SetNextWindowPos(ImVec2(40, 80));
+    ImGui::SetNextWindowSize(ImVec2(600, 500));
+    ImGui::Begin("Canvas popup host");
+    if (ImGui::Button("Canvas options"))
+      ImGui::OpenPopup("Options");
+    if (canvas)
+      trigger = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+    if (ImGui::BeginPopup("Options")) {
+      if (ImGui::MenuItem("Test action"))
+        ++activated;
+      action = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+      ImGui::EndPopup();
+    }
+    ImGui::End();
+    manager.Draw();
+    ImGui::Render();
+  };
+  const auto click = [&](ImRect rect) {
+    const auto center = rect.GetCenter();
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(center.x, center.y);
+    frame();
+    io.AddMouseButtonEvent(0, true);
+    frame();
+    io.AddMouseButtonEvent(0, false);
+    frame();
+    frame();
+  };
+  for (int i = 0; i < 30; ++i)
+    frame();
+  for (menu_index = 0; menu_index < 6; ++menu_index) {
+    frame();
+    click(trigger);
+    ASSERT_FALSE(GImGui->OpenPopupStack.empty()) << names[menu_index];
+    click(action);
+    EXPECT_EQ(activated, menu_index + 1);
+  }
+  canvas = true;
+  frame();
+  click(trigger);
+  ASSERT_FALSE(GImGui->OpenPopupStack.empty());
+  click(action);
+  EXPECT_EQ(activated, 7);
+  EXPECT_EQ(manager.GetActiveDrawer(),
+            RightDrawerManager::DrawerType::kSettings);
+}
 
 TEST_F(RightDrawerManagerTest, CyclePanelNoopWhenNoPanelIsActive) {
   RightDrawerManager manager;

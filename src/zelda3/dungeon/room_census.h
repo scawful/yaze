@@ -6,13 +6,15 @@
 //
 // Definitions (from the Oracle room census, 2026-09-26):
 // - A room is REACHED when a breadth-first search from the placed overworld
-//   entrances, overworld holes and spawn points gets to it over strong edges:
-//   mutual doors, stair objects (resolved to their header slot), pits (only in
-//   rooms not listed in RoomsWithPitDamage) and warp tiles (holewarp), and
-//   project warp tags (header stair slots). Doorless walk-off edges are not
-//   modeled; instead, when no project ownership is given, a non-empty room
-//   drawn on the pause map of a dungeon that is itself reached counts as
-//   reached.
+//   entrances, overworld holes and spawn points gets to it over strong room
+//   links (room_links.h, shared with the z3ed graph commands): mutual doors,
+//   teleport doors, stair objects (resolved to their header slot), project
+//   warp tags, warp tiles, and the holewarp of a room with pits, pit tiles,
+//   tag-driven holes or falling-floor sprites that is not listed in
+//   RoomsWithPitDamage. Doorless walk-off edges are not modeled; instead a
+//   non-empty room drawn on the pause map of a dungeon that is itself reached
+//   counts as reached. Reachability does not depend on project ownership:
+//   the project only names owners and keeps its listed rooms in use.
 // - EMPTY: 0 room objects, or 1 object and at most 1 sprite.
 // - FREE: not reached, not listed by the project, and empty.
 // - RECLAIMABLE: not reached, not listed by the project, not empty, and its
@@ -28,23 +30,29 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <set>
 #include <string>
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "util/stop_token.h"
+#include "zelda3/dungeon/room_links.h"
 
 namespace yaze {
 class Rom;
 namespace core {
 struct ProjectRegistry;
+struct RomAddressOverrides;
 class HackManifest;
 }  // namespace core
 
 namespace zelda3 {
 
-inline constexpr int kRoomCensusRoomCount = 0x128;
+class Room;
+
+inline constexpr int kRoomCensusRoomCount = kDungeonRoomCount;
 inline constexpr float kReclaimableVanillaSimilarity = 0.90f;
 // At least a third of the objects still vanilla. Oracle 0x30 (Agahnim tower
 // chamber with an Oracle stair, 38%) qualifies; 0x11A (rebuilt interior, 25%)
@@ -54,20 +62,6 @@ inline constexpr int kRoomCensusInteriorDungeonId = 0xFF;
 
 enum class RoomCensusStatus : uint8_t { kInUse, kFree, kReclaimable };
 
-enum class RoomReferenceKind : uint8_t {
-  kEntrance,          // Overworld entrance placed on a map.
-  kHole,              // Overworld hole placed on a map.
-  kSpawn,             // Spawn point (save/start location).
-  kUnplacedEntrance,  // Entrance table row with no overworld placement.
-  kDoor,              // Door from an adjacent room.
-  kStair,             // Stair object resolved to a header slot.
-  kHolewarp,          // Pits or warp tiles using the header holewarp.
-  kWarpTag,           // Project warp tag using header stair slots.
-  kHeaderOnly,        // Header byte points here but nothing uses it.
-  kProjectListing,    // Listed in the project's dungeon registry.
-  kDungeonMap,        // Drawn on a dungeon's pause map (bank $0A room grids).
-};
-
 struct RoomReference {
   RoomReferenceKind kind = RoomReferenceKind::kEntrance;
   bool strong = false;  // Counts for reachability.
@@ -76,30 +70,12 @@ struct RoomReference {
   std::string detail;  // Human-readable description.
 };
 
-// Per-room facts read from the ROM. Plain data so tests can build them.
-struct RoomCensusRoomFacts {
-  int room_id = 0;
+// Per-room facts read from the ROM: the link facts (room_links.h) plus the
+// room's content. Plain data so tests can build them.
+struct RoomCensusRoomFacts : RoomLinkFacts {
   int object_count = 0;  // Encoded room-stream objects.
   int sprite_count = 0;
   int chest_count = 0;
-  uint8_t blockset = 0;
-  uint8_t tag1 = 0;
-  uint8_t tag2 = 0;
-  bool has_pits = false;        // Pit objects or custom-collision pit tiles.
-  bool has_warp_tiles = false;  // Warp tile objects or custom-collision tiles.
-  bool has_hole_tag = false;    // Tag-driven holes only (weak).
-  bool in_pit_damage_table = false;
-  uint8_t holewarp_byte = 0;
-  std::array<uint8_t, 4> stair_bytes{};
-  // Header slots used by stair objects in this room.
-  std::array<bool, 4> stair_slot_used{};
-  std::array<bool, 4> stair_slot_estimated{};  // Placement order, not replay.
-  struct Door {
-    int direction = 0;  // zelda3::DoorDirection value.
-    int along = 0;      // Tile coordinate along the wall.
-    bool outer = false;
-  };
-  std::vector<Door> doors;  // Room-connection doors only.
   // Similarity of the room's objects to the vanilla room's objects, 0..1,
   // or negative when no vanilla baseline is available.
   float vanilla_similarity = -1.0f;
@@ -111,6 +87,7 @@ struct RoomCensusEntranceFact {
   int dungeon_id = kRoomCensusInteriorDungeonId;
   RoomReferenceKind kind = RoomReferenceKind::kEntrance;
   std::string placement;  // e.g. "OW 0x0B"
+  int ow_map = -1;        // Overworld map of the placement, -1 = none.
 };
 
 struct RoomCensusOwnerGroup {
@@ -183,10 +160,21 @@ struct RoomCensus {
 };
 
 struct RoomCensusOptions {
+  // Cancellation discards all partial facts. Background owners request stop
+  // before invalidating or joining the job; synchronous callers need no token.
+  util::StopToken stop_token;
+  // Background callers must capture on the owner thread and retain this
+  // snapshot for the entire call. Null keeps synchronous live-editor behavior.
+  const CustomObjectRenderSnapshot* custom_objects = nullptr;
+  const core::RomAddressOverrides* address_overrides = nullptr;
   const core::ProjectRegistry* project = nullptr;
   const core::HackManifest* manifest = nullptr;  // Warp tags.
   // Optional vanilla ROM used instead of the built-in fingerprints.
   Rom* vanilla_rom = nullptr;
+  // Optional: called once per room with the room as the census loaded it
+  // (objects, doors, chests, pot items and sprites), so callers such as the
+  // Atlas read extra facts without loading all 296 rooms a second time.
+  std::function<void(int room_id, const Room& room)> room_visitor;
 };
 
 // Reads everything the census needs from `rom`.
@@ -209,7 +197,6 @@ std::set<uint8_t> RoomCensusWarpTagsFromManifest(
     const core::HackManifest& manifest);
 
 const char* RoomCensusStatusName(RoomCensusStatus status);
-const char* RoomReferenceKindName(RoomReferenceKind kind);
 
 // "Row 9: 0x93-0x96 + 0xA0/0xA6/0xB0, 7 rooms"
 std::string FormatRoomBlockSummary(const std::vector<int>& rooms);
@@ -223,7 +210,7 @@ float RoomFingerprintSimilarity(const std::vector<uint16_t>& a,
 
 // Fingerprints of every room in `rom`, for generating the built-in table.
 absl::StatusOr<std::vector<std::vector<uint16_t>>> ComputeRoomFingerprints(
-    Rom* rom);
+    Rom* rom, util::StopToken stop_token = {});
 
 }  // namespace zelda3
 }  // namespace yaze

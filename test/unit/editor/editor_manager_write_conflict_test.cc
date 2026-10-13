@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -12,6 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_group_panel.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/types/snes_color.h"
@@ -91,6 +93,11 @@ std::filesystem::path MakeTempFilePath(const std::string& basename) {
       std::chrono::high_resolution_clock::now().time_since_epoch().count());
   return std::filesystem::temp_directory_path() /
          (basename + "_" + std::to_string(nonce));
+}
+
+std::vector<uint8_t> ReadBytes(const std::filesystem::path& path) {
+  std::ifstream in(path, std::ios::binary);
+  return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
 }
 
 uint8_t ReadByteAt(const std::filesystem::path& path, std::streamoff offset) {
@@ -243,6 +250,133 @@ void SetupSharedPotItemTable(std::vector<uint8_t>* data) {
   (*data)[kSharedStreamPc + 1] = 0xFF;
 }
 
+TEST(EditorManagerWriteConflictTest,
+     LyraInspectionOnlyRefusesSaveAndSaveAsBeforeSerialization) {
+  const char* fixture_dir = std::getenv("YAZE_LYRA_FIXTURE_DIR");
+  if (fixture_dir == nullptr)
+    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+  gfx::NullRenderer renderer;
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, &renderer);
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source = MakeTempFilePath("yaze_lyra_inspection.sfc");
+  const auto legacy_source = MakeTempFilePath("yaze_lyra_legacy_session.sfc");
+  const auto destination = MakeTempFilePath("yaze_lyra_destination.sfc");
+  ScopedFileCleanup source_cleanup{source};
+  ScopedFileCleanup legacy_cleanup{legacy_source};
+  ScopedFileCleanup destination_cleanup{destination};
+  std::filesystem::copy_file(
+      std::filesystem::path(fixture_dir) / "OFFLINE_ONLY.bin", source);
+  std::filesystem::copy_file(
+      std::filesystem::path(fixture_dir) / "legacy_160_input.bin",
+      legacy_source);
+  const std::vector<uint8_t> destination_bytes(64, 0xA5);
+  {
+    std::ofstream out(destination, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(destination_bytes.data()),
+              destination_bytes.size());
+  }
+  const auto source_bytes = ReadBytes(source);
+  ASSERT_OK(manager->OpenRomOrProject(source.string()));
+  ASSERT_OK(manager->OpenRomOrProject(legacy_source.string()));
+  EXPECT_EQ(manager->GetCurrentRom()->InspectLyraLayout().presence,
+            yaze::rom::LyraLayoutPresence::kAbsent);
+  EXPECT_TRUE(manager->GetCurrentRom()->CheckLayoutWritable().ok());
+  manager->SwitchToSession(0);
+  DisableRomWritesForTest();  // In particular, overworld serialization is off.
+  ASSERT_NE(manager->GetCurrentProject(), nullptr);
+  manager->GetCurrentProject()->rom_metadata.write_policy =
+      project::RomWritePolicy::kAllow;  // Project policy cannot authorize Lyra.
+  auto* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_EQ(rom->InspectLyraLayout().presence,
+            yaze::rom::LyraLayoutPresence::kValid);
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto& room = dungeon->rooms()[0];
+  room = zelda3::LoadRoomHeaderFromRom(rom, 0);
+  room.SetLoaded(true);
+  room.SetTileObjects({});
+  room.LoadChests();
+  room.ClearSaveDirtyState();
+  const int new_tag = static_cast<int>(room.tag1()) == 1 ? 2 : 1;
+  ASSERT_OK(dungeon->EditRoomMetadata(0, {RoomMetadataField::kTag1, new_tag}));
+  ASSERT_TRUE(dungeon->CanUndo());
+  rom->set_dirty(true);
+  const auto in_memory = rom->vector();
+  const auto bound_filename = rom->filename();
+  const auto session_index = manager->GetCurrentSessionIndex();
+  const std::string undo_before = dungeon->GetUndoDescription();
+
+  const auto save_as = manager->SaveRomAs(destination.string());
+  EXPECT_EQ(save_as.code(), absl::StatusCode::kFailedPrecondition) << save_as;
+  EXPECT_NE(std::string(save_as.message()).find("inspection-only"),
+            std::string::npos);
+  const auto save = manager->SaveRom();
+  EXPECT_EQ(save.code(), absl::StatusCode::kFailedPrecondition) << save;
+  EXPECT_EQ(rom->vector(), in_memory);
+  EXPECT_TRUE(rom->dirty());
+  EXPECT_EQ(rom->filename(), bound_filename);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), session_index);
+  EXPECT_TRUE(dungeon->CanUndo());
+  EXPECT_EQ(dungeon->GetUndoDescription(), undo_before);
+  EXPECT_EQ(static_cast<int>(room.tag1()), new_tag);
+  EXPECT_EQ(ReadBytes(source), source_bytes);
+  EXPECT_EQ(ReadBytes(destination), destination_bytes);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     LyraCanvasReplacementFailureRestoresBoundSession) {
+  const char* fixture_dir = std::getenv("YAZE_LYRA_FIXTURE_DIR");
+  if (fixture_dir == nullptr)
+    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+  gfx::NullRenderer renderer;
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, &renderer);
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source = MakeTempFilePath("yaze_lyra_canvas_replacement.sfc");
+  ScopedFileCleanup cleanup{source};
+  std::filesystem::copy_file(
+      std::filesystem::path(fixture_dir) / "LYRA_PREVIEW_A0_A1.bin", source);
+  ASSERT_OK(manager->OpenRomOrProject(source.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_TRUE(editor->is_lyra_preview());
+  editor->JumpToMap(0xA1);
+  ASSERT_EQ(editor->current_map_id(), 0xA1);
+  const auto before = manager->GetCurrentRom()->vector();
+  const auto session_index = manager->GetCurrentSessionIndex();
+
+  auto changed_disk = ReadBytes(source);
+  ASSERT_EQ(changed_disk.size(), before.size());
+  changed_disk[0x100] ^= 1;
+  {
+    std::ofstream out(source, std::ios::binary | std::ios::trunc);
+    out.write(reinterpret_cast<const char*>(changed_disk.data()),
+              static_cast<std::streamsize>(changed_disk.size()));
+  }
+  const auto refused = manager->RevertRomToSaved();
+  EXPECT_EQ(refused.code(), absl::StatusCode::kFailedPrecondition) << refused;
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), session_index);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), before);
+  EXPECT_EQ(editor->current_map_id(), 0xA1);
+  EXPECT_TRUE(editor->is_lyra_preview());
+  EXPECT_TRUE(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld).ok());
+  EXPECT_FALSE(manager->GetCurrentRom()->CheckLayoutWritable().ok());
+}
+
 TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
   FeatureFlagsGuard guard;
 
@@ -326,17 +460,22 @@ TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
   ASSERT_FALSE(direct_conflicts.empty());
   EXPECT_EQ(direct_conflicts[0].address, snes_addr);
 
-  // Mirror EditorManager's preferred disk-vs-memory diff path.
-  std::ifstream disk_file(rom->filename(), std::ios::binary);
-  ASSERT_TRUE(disk_file.is_open());
-  disk_file.seekg(0, std::ios::end);
-  const std::streampos disk_end = disk_file.tellg();
-  ASSERT_GE(disk_end, 0);
-  std::vector<uint8_t> disk_data(static_cast<size_t>(disk_end));
-  disk_file.seekg(0, std::ios::beg);
-  disk_file.read(reinterpret_cast<char*>(disk_data.data()),
-                 static_cast<std::streamsize>(disk_data.size()));
-  ASSERT_TRUE(disk_file.good());
+  // Mirror EditorManager's preferred disk-vs-memory diff path. Close the read
+  // handle before manager->SaveRom() below: on Windows an open handle without
+  // FILE_SHARE_DELETE blocks the atomic move of the saved ROM into place.
+  std::vector<uint8_t> disk_data;
+  {
+    std::ifstream disk_file(rom->filename(), std::ios::binary);
+    ASSERT_TRUE(disk_file.is_open());
+    disk_file.seekg(0, std::ios::end);
+    const std::streampos disk_end = disk_file.tellg();
+    ASSERT_GE(disk_end, 0);
+    disk_data.resize(static_cast<size_t>(disk_end));
+    disk_file.seekg(0, std::ios::beg);
+    disk_file.read(reinterpret_cast<char*>(disk_data.data()),
+                   static_cast<std::streamsize>(disk_data.size()));
+    ASSERT_TRUE(disk_file.good());
+  }
 
   // Sanity check: on-disk byte is still the original value before SaveRom().
   EXPECT_EQ(disk_data[kPcOffset], original);
@@ -711,31 +850,18 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_NE(rom, nullptr);
   const auto before_save = rom->vector();
 
-  const auto paused = manager->SaveRom();
-  EXPECT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
-  ASSERT_TRUE(manager->HasPendingPotItemSaveConfirmation());
-
-  // The first save snapshots the mutable manager project into the stable
-  // session-owned editor context before pausing for pot-item confirmation.
+  // Sparse pot saves need no load-all prompt. Missing disk evidence must still
+  // use the declared repack range and reject its protected allocation.
+  std::error_code remove_error;
+  ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
+  ASSERT_FALSE(remove_error) << remove_error.message();
+  const auto blocked = manager->SaveRom();
+  EXPECT_FALSE(blocked.ok());
+  EXPECT_FALSE(manager->HasPendingPotItemSaveConfirmation());
   const auto predicted_ranges = dungeon->CollectWriteRanges();
   EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
                       std::pair<uint32_t, uint32_t>{0x00E100, 0x00E140}),
             predicted_ranges.end());
-  EXPECT_NE(
-      std::find(predicted_ranges.begin(), predicted_ranges.end(),
-                std::pair<uint32_t, uint32_t>{
-                    zelda3::kRoomItemsPointers,
-                    zelda3::kRoomItemsPointers + zelda3::kNumberOfRooms * 2}),
-      predicted_ranges.end());
-
-  std::error_code remove_error;
-  ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
-  ASSERT_FALSE(remove_error) << remove_error.message();
-  ASSERT_FALSE(std::filesystem::exists(rom_path));
-
-  manager->ResolvePotItemSaveConfirmation(
-      EditorManager::PotItemSaveDecision::kSaveWithPotItems);
-
   ASSERT_FALSE(manager->pending_write_conflicts().empty());
   EXPECT_EQ(manager->pending_write_conflicts()[0].address, 0x01E100u);
   EXPECT_EQ(rom->vector(), before_save);
@@ -1822,7 +1948,12 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_TRUE(gfx::PaletteManager::Get()
                   .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x1111))
                   .ok());
-  ASSERT_OK(manager->SaveRom());
+  // Refuse before writing a file that would omit the pending palette edits.
+  const auto save_status = manager->SaveRom();
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(
+      std::string(save_status.message()).find("palette saving is disabled"),
+      std::string::npos);
   ASSERT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
 
   manager->SwitchToSession(1);

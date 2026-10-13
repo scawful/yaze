@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_ENTITY_WORKBENCH_H
 
 #include <functional>
+#include <optional>
 #include <string>
 
 #include "app/editor/system/editor_panel.h"
@@ -10,6 +11,7 @@
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
+#include "zelda3/overworld/special_entrance_inspector.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -65,6 +67,10 @@ class OverworldEntityWorkbench : public WindowContent {
       "##OverworldEntityContextMenu";
 
   zelda3::GameEntity* editing_entity_ = nullptr;
+  std::optional<zelda3::SpecialEntranceInspection> special_entrances_;
+  const Rom* inspected_rom_ = nullptr;
+  const uint8_t* inspected_rom_data_ = nullptr;
+  std::string inspected_filename_;
 };
 
 }  // namespace editor

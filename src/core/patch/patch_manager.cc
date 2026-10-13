@@ -5,10 +5,12 @@
 #include <fstream>
 #include <sstream>
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "core/asar_wrapper.h"
 #include "rom/rom.h"
+#include "zelda3/overworld/overworld_allocation.h"
 #ifdef YAZE_WITH_Z3DK
 #include "core/z3dk_wrapper.h"
 #endif
@@ -127,6 +129,17 @@ absl::Status PatchManager::ApplyEnabledPatches(Rom* rom) {
   int enabled_count = GetEnabledPatchCount();
   if (enabled_count == 0) {
     return absl::OkStatus();  // Nothing to apply
+  }
+
+  // TailMapExpansion.asm overwrites fixed addresses; refuse it when the
+  // compatibility check (z3ed overworld-allocation --tail-check) says unsafe.
+  for (const auto& patch : patches_) {
+    if (patch->enabled() &&
+        absl::EqualsIgnoreCase(patch->filename(), "TailMapExpansion.asm")) {
+      if (auto guard = zelda3::TailMapExpansionApplyGuard(*rom); !guard.ok()) {
+        return guard;
+      }
+    }
   }
 
   // Generate temporary combined patch file

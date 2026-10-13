@@ -89,6 +89,7 @@ void DoorInteractionHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
 }
 
 void DoorInteractionHandler::HandleRelease() {
+  mutation_status_ = absl::OkStatus();
   if (!is_dragging_ || !selected_door_index_.has_value()) {
     is_dragging_ = false;
     return;
@@ -100,8 +101,7 @@ void DoorInteractionHandler::HandleRelease() {
     return;
   }
 
-  auto& doors = room->GetDoors();
-  if (*selected_door_index_ >= doors.size()) {
+  if (*selected_door_index_ >= room->GetDoors().size()) {
     is_dragging_ = false;
     return;
   }
@@ -125,9 +125,9 @@ void DoorInteractionHandler::HandleRelease() {
         drag_x, drag_y, direction);
 
     if (zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
-      auto& door = doors[*selected_door_index_];
+      auto candidate = room->GetDoors();
+      auto& door = candidate[*selected_door_index_];
       if (door.position != position || door.direction != direction) {
-        ctx_->NotifyMutation(MutationDomain::kDoors);
         door.position = position;
         door.direction = direction;
 
@@ -136,6 +136,13 @@ void DoorInteractionHandler::HandleRelease() {
         door.byte1 = b1;
         door.byte2 = b2;
 
+        if (!PreflightDoors(candidate)) {
+          is_dragging_ = false;
+          return;
+        }
+        room = GetCurrentRoom();
+        ctx_->NotifyMutation(MutationDomain::kDoors);
+        room->GetDoors() = std::move(candidate);
         room->MarkObjectStreamDirty();
         ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
       }
@@ -559,7 +566,30 @@ void DoorInteractionHandler::ClearSelection() {
   is_dragging_ = false;
 }
 
+bool DoorInteractionHandler::PreflightDoors(
+    const std::vector<zelda3::Room::Door>& candidate) {
+  mutation_status_ = absl::OkStatus();
+  if (!door_mutation_preflight_) {
+    return true;
+  }
+  const auto* source_context = ctx_;
+  const int room_id = ctx_->current_room_id;
+  const auto* source_room = GetCurrentRoom();
+  mutation_status_ = door_mutation_preflight_(room_id, candidate);
+  if (mutation_status_.ok() &&
+      (ctx_ != source_context || !HasValidContext() ||
+       ctx_->current_room_id != room_id || GetCurrentRoom() != source_room)) {
+    mutation_status_ = absl::FailedPreconditionError(
+        "Door room changed during edit preflight; repeat the edit");
+  }
+  if (!mutation_status_.ok() && mutation_error_callback_) {
+    mutation_error_callback_(mutation_status_);
+  }
+  return mutation_status_.ok();
+}
+
 void DoorInteractionHandler::DeleteSelected() {
+  mutation_status_ = absl::OkStatus();
   if (!selected_door_index_.has_value() || !HasValidContext())
     return;
 
@@ -567,12 +597,18 @@ void DoorInteractionHandler::DeleteSelected() {
   if (!room)
     return;
 
-  auto& doors = room->GetDoors();
-  if (*selected_door_index_ >= doors.size())
+  auto candidate = room->GetDoors();
+  if (*selected_door_index_ >= candidate.size())
     return;
 
+  candidate.erase(candidate.begin() +
+                  static_cast<ptrdiff_t>(*selected_door_index_));
+  if (!PreflightDoors(candidate)) {
+    return;
+  }
+  room = GetCurrentRoom();
   ctx_->NotifyMutation(MutationDomain::kDoors);
-  doors.erase(doors.begin() + static_cast<ptrdiff_t>(*selected_door_index_));
+  room->GetDoors() = std::move(candidate);
   room->MarkObjectStreamDirty();
   ClearSelection();
   ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
@@ -580,6 +616,7 @@ void DoorInteractionHandler::DeleteSelected() {
 }
 
 void DoorInteractionHandler::DeleteAll() {
+  mutation_status_ = absl::OkStatus();
   if (!HasValidContext()) {
     return;
   }
@@ -589,6 +626,10 @@ void DoorInteractionHandler::DeleteAll() {
     return;
   }
 
+  if (!PreflightDoors({})) {
+    return;
+  }
+  room = GetCurrentRoom();
   ctx_->NotifyMutation(MutationDomain::kDoors);
   room->GetDoors().clear();
   room->MarkObjectStreamDirty();
@@ -598,6 +639,7 @@ void DoorInteractionHandler::DeleteAll() {
 }
 
 bool DoorInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
+  mutation_status_ = absl::OkStatus();
   if (!selected_door_index_.has_value() || !HasValidContext()) {
     return false;
   }
@@ -607,12 +649,12 @@ bool DoorInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
     return false;
   }
 
-  auto& doors = room->GetDoors();
-  if (*selected_door_index_ >= doors.size()) {
+  auto candidate = room->GetDoors();
+  if (*selected_door_index_ >= candidate.size()) {
     return false;
   }
 
-  auto& door = doors[*selected_door_index_];
+  auto& door = candidate[*selected_door_index_];
   int position_delta = 0;
   switch (door.direction) {
     case zelda3::DoorDirection::North:
@@ -638,11 +680,16 @@ bool DoorInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
     return false;
   }
 
-  ctx_->NotifyMutation(MutationDomain::kDoors);
   door.position = static_cast<uint8_t>(next_position);
   auto [b1, b2] = door.EncodeBytes();
   door.byte1 = b1;
   door.byte2 = b2;
+  if (!PreflightDoors(candidate)) {
+    return false;
+  }
+  room = GetCurrentRoom();
+  ctx_->NotifyMutation(MutationDomain::kDoors);
+  room->GetDoors() = std::move(candidate);
   room->MarkObjectStreamDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ctx_->NotifyEntityChanged();
@@ -651,6 +698,7 @@ bool DoorInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
 
 bool DoorInteractionHandler::MutateDoorType(size_t index,
                                             zelda3::DoorType new_type) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetCurrentRoom();
   if (!room || index >= room->GetDoors().size()) {
     return false;
@@ -662,6 +710,7 @@ bool DoorInteractionHandler::MutateDoorType(size_t index,
 bool DoorInteractionHandler::UpdateDoor(size_t index, zelda3::DoorType type,
                                         zelda3::DoorDirection direction,
                                         uint8_t position) {
+  mutation_status_ = absl::OkStatus();
   if (!HasValidContext()) {
     return false;
   }
@@ -675,18 +724,24 @@ bool DoorInteractionHandler::UpdateDoor(size_t index, zelda3::DoorType type,
   if (!room || index >= room->GetDoors().size()) {
     return false;
   }
-  auto& door = room->GetDoors()[index];
+  auto candidate = room->GetDoors();
+  auto& door = candidate[index];
   if (door.type == type && door.direction == direction &&
       door.position == position) {
     return false;
   }
-  ctx_->NotifyMutation(MutationDomain::kDoors);
   door.type = type;
   door.direction = direction;
   door.position = position;
   const auto [b1, b2] = door.EncodeBytes();
   door.byte1 = b1;
   door.byte2 = b2;
+  if (!PreflightDoors(candidate)) {
+    return false;
+  }
+  room = GetCurrentRoom();
+  ctx_->NotifyMutation(MutationDomain::kDoors);
+  room->GetDoors() = std::move(candidate);
   room->MarkObjectStreamDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ctx_->NotifyEntityChanged();
@@ -695,6 +750,7 @@ bool DoorInteractionHandler::UpdateDoor(size_t index, zelda3::DoorType type,
 
 void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
                                                         int canvas_y) {
+  mutation_status_ = absl::OkStatus();
   if (!HasValidContext()) {
     placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
     return;
@@ -733,8 +789,6 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
 
   placement_block_reason_ = PlacementBlockReason::kNone;
 
-  ctx_->NotifyMutation(MutationDomain::kDoors);
-
   // Create the door
   zelda3::Room::Door new_door;
   new_door.position = position;
@@ -745,6 +799,15 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
   auto [byte1, byte2] = new_door.EncodeBytes();
   new_door.byte1 = byte1;
   new_door.byte2 = byte2;
+
+  auto candidate = room->GetDoors();
+  candidate.push_back(new_door);
+  if (!PreflightDoors(candidate)) {
+    placement_block_reason_ = PlacementBlockReason::kStorageValidation;
+    return;
+  }
+  room = GetCurrentRoom();
+  ctx_->NotifyMutation(MutationDomain::kDoors);
 
   // Add door to room
   room->AddDoor(new_door);

@@ -20,7 +20,7 @@ class DungeonPlaceSpriteCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const override {
     return "dungeon-place-sprite --room <hex> --id <hex> --x <int> --y <int> "
-           "[--subtype <int>] [--layer <0|1>] "
+           "[--subtype <int>] [--layer <0|1>] [--manifest <path>] "
            "[--write] [--format <json|text>]";
   }
 

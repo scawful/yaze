@@ -167,11 +167,21 @@ absl::StatusOr<std::string> SerializeDungeonRoomDocument(
            {"pot_items", Json::array()},
            {"collision",
             {{"has_data", document.collision.has_data},
-             {"tiles", document.collision.tiles}}},
+             {"tiles", document.collision.tiles},
+             {"overrides", Json::array()}}},
            {"water",
             {{"has_data", document.water.has_data},
              {"sram_bit_mask", document.water.sram_bit_mask},
              {"tiles", document.water.tiles}}}};
+    // Nonzero collision bytes already imply an override in legacy v1 files.
+    // This optional field records explicit floor offsets that bytes alone lose.
+    for (size_t offset = 0; offset < document.collision.tiles.size();
+         ++offset) {
+      if (document.collision.tiles[offset] == 0 &&
+          document.collision.HasOverride(offset)) {
+        j["collision"]["overrides"].push_back(offset);
+      }
+    }
     for (const auto& o : document.contents.objects) {
       j["objects"].push_back(
           {{"id", o.id_},
@@ -305,9 +315,23 @@ absl::StatusOr<DungeonRoomDocument> ParseDungeonRoomDocument(
            static_cast<uint8_t>(Integer(i.at("item"), 0, 255))});
     }
     const auto& collision = j.at("collision");
-    Keys(collision, {"has_data", "tiles"});
+    if (collision.contains("overrides")) {
+      Keys(collision, {"has_data", "tiles", "overrides"});
+    } else {
+      Keys(collision, {"has_data", "tiles"});
+    }
     document.collision.has_data = Boolean(collision.at("has_data"));
     document.collision.tiles = ByteArray<4096>(collision.at("tiles"));
+    if (collision.contains("overrides")) {
+      std::set<int> seen;
+      for (const auto& value : Array(collision.at("overrides"), 4096)) {
+        const int offset = Integer(value, 0, 4095);
+        if (!seen.insert(offset).second) {
+          throw std::invalid_argument("Duplicate collision override offset");
+        }
+        document.collision.overrides.set(static_cast<size_t>(offset));
+      }
+    }
     const auto& water = j.at("water");
     Keys(water, {"has_data", "sram_bit_mask", "tiles"});
     document.water.has_data = Boolean(water.at("has_data"));

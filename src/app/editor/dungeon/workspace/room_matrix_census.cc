@@ -11,8 +11,13 @@
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
+#include "core/features.h"
 #include "core/hack_manifest.h"
+#include "core/rom_settings.h"
+#include "imgui/imgui_internal.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
 namespace yaze::editor {
 
@@ -70,7 +75,9 @@ ImVec4 OrphanColor() {
 }  // namespace
 
 RoomMatrixCensusOverlay::RoomMatrixCensusOverlay() = default;
-RoomMatrixCensusOverlay::~RoomMatrixCensusOverlay() = default;
+RoomMatrixCensusOverlay::~RoomMatrixCensusOverlay() {
+  stop_source_.request_stop();
+}
 
 ImVec4 RoomMatrixCensusOverlay::OwnerColor(int owner_index, bool interior) {
   if (interior) {
@@ -85,6 +92,11 @@ ImVec4 RoomMatrixCensusOverlay::OwnerColor(int owner_index, bool interior) {
 void RoomMatrixCensusOverlay::StartComputation(Rom* rom) {
   // Work on a copy so edits and saves on the live ROM never race the
   // background read. Project data is copied too.
+  (void)zelda3::DrawRoutineRegistry::Get();
+  auto custom_objects =
+      zelda3::CustomObjectManager::Get().CaptureRenderSnapshot(
+          core::FeatureFlags::get().kEnableCustomObjects);
+  auto addresses = core::RomSettings::Get().address_overrides();
   auto rom_copy = std::make_shared<Rom>(*rom);
   std::vector<zelda3::RoomCensusOwnerGroup> owners;
   std::set<uint8_t> warp_tags;
@@ -95,25 +107,56 @@ void RoomMatrixCensusOverlay::StartComputation(Rom* rom) {
       warp_tags = zelda3::RoomCensusWarpTagsFromManifest(*manifest);
     }
   }
+  stop_source_ = util::StopSource{};
   pending_ = std::async(
       std::launch::async,
-      [rom_copy, owners = std::move(owners), warp_tags = std::move(warp_tags)]()
-          -> absl::StatusOr<zelda3::RoomCensus> {
-        auto input = zelda3::CollectRoomCensusInput(rom_copy.get());
+      [rom_copy, owners = std::move(owners), warp_tags = std::move(warp_tags),
+       custom_objects = std::move(custom_objects),
+       addresses = std::move(addresses),
+       stop_token =
+           stop_source_.get_token()]() -> absl::StatusOr<zelda3::RoomCensus> {
+        zelda3::RoomCensusOptions options;
+        options.stop_token = stop_token;
+        options.custom_objects = &custom_objects;
+        options.address_overrides = &addresses;
+        auto input = zelda3::CollectRoomCensusInput(rom_copy.get(), options);
         if (!input.ok()) {
           return input.status();
         }
         input->project_owners = owners;
         input->warp_tag_ids = warp_tags;
-        return zelda3::BuildRoomCensus(*input);
+        if (stop_token.stop_requested()) {
+          return absl::CancelledError("Room census cancelled");
+        }
+        auto census = zelda3::BuildRoomCensus(*input);
+        if (stop_token.stop_requested()) {
+          return absl::CancelledError("Room census cancelled");
+        }
+        return census;
       });
 }
 
 void RoomMatrixCensusOverlay::Update(Rom* rom) {
+  const auto generation = zelda3::CustomObjectManager::Get().asset_generation();
+  const bool custom_enabled = core::FeatureFlags::get().kEnableCustomObjects;
+  const uint64_t rom_revision =
+      rom != nullptr ? rom->object_tile_revision() : 0;
+  if (computed_for_ != rom || observed_rom_revision_ != rom_revision ||
+      observed_asset_generation_ != generation ||
+      observed_custom_enabled_ != custom_enabled) {
+    Invalidate();
+    observed_asset_generation_ = generation;
+    observed_rom_revision_ = rom_revision;
+    observed_custom_enabled_ = custom_enabled;
+  }
   if (pending_.valid() &&
       pending_.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
     auto result = pending_.get();
-    if (result.ok()) {
+    if (stale_) {
+      // The worker owns safe inputs, but its result no longer describes this
+      // ROM/project. Drain it before starting a replacement below.
+      census_.reset();
+    } else if (result.ok()) {
       census_ = std::move(result).value();
       error_.clear();
       largest_block_.clear();
@@ -149,7 +192,7 @@ void RoomMatrixCensusOverlay::WrapBeforeItem(float item_width, bool first) {
   }
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float right =
-      ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
   if (ImGui::GetItemRectMax().x + spacing + item_width <= right) {
     ImGui::SameLine();
   }
@@ -163,18 +206,23 @@ bool RoomMatrixCensusOverlay::DrawChip(const char* id,
   const float swatch_size = ImGui::GetTextLineHeight() - 2.0f;
   const float pad_x = style.FramePadding.x;
   const float pad_y = 2.0f;
-  const float line_width = std::max(40.0f, ImGui::GetContentRegionAvail().x);
-
-  // Shorten the label until the chip fits on an empty line: never clip.
-  std::string label = label_in;
-  auto chip_width = [&](const std::string& text) {
-    return pad_x * 2 + swatch_size + style.ItemInnerSpacing.x +
-           ImGui::CalcTextSize(text.c_str()).x;
-  };
-  while (label.size() > 4 && chip_width(label) > line_width) {
-    label = label.substr(0, label.size() - 4) + "...";
+  const auto* window = ImGui::GetCurrentWindow();
+  const float right =
+      ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+  // Match ItemSize's next-row origin, including indentation and columns.
+  // Remaining space on the current row must not shorten the next chip.
+  const float left =
+      window->Pos.x + window->DC.Indent.x + window->DC.ColumnsOffset.x;
+  const float line_width = std::max(0.0f, right - left);
+  if (line_width == 0.0f) {
+    return false;
   }
-  const ImVec2 size(chip_width(label), ImGui::GetTextLineHeight() + pad_y * 2);
+  const ImVec2 text_size =
+      ImGui::CalcTextSize(label_in.data(), label_in.data() + label_in.size());
+  const float natural_width =
+      pad_x * 2 + swatch_size + style.ItemInnerSpacing.x + text_size.x;
+  const ImVec2 size(std::min(natural_width, line_width),
+                    ImGui::GetTextLineHeight() + pad_y * 2);
 
   WrapBeforeItem(size.x, first);
   const ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -184,6 +232,7 @@ bool RoomMatrixCensusOverlay::DrawChip(const char* id,
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   const ImVec2 max(pos.x + size.x, pos.y + size.y);
+  draw_list->PushClipRect(pos, max, true);
   ImVec4 bg = style.Colors[active    ? ImGuiCol_ButtonActive
                            : hovered ? ImGuiCol_ButtonHovered
                                      : ImGuiCol_FrameBg];
@@ -192,8 +241,12 @@ bool RoomMatrixCensusOverlay::DrawChip(const char* id,
     draw_list->AddRect(pos, max, ImGui::GetColorU32(ImGuiCol_Text), 4.0f, 0,
                        1.5f);
   }
-  const ImVec2 swatch_min(pos.x + pad_x, pos.y + (size.y - swatch_size) * 0.5f);
-  const ImVec2 swatch_max(swatch_min.x + swatch_size,
+  const float fitted_pad = std::min(pad_x, size.x * 0.5f);
+  const float fitted_swatch =
+      std::min(swatch_size, std::max(0.0f, size.x - fitted_pad * 2));
+  const ImVec2 swatch_min(pos.x + fitted_pad,
+                          pos.y + (size.y - swatch_size) * 0.5f);
+  const ImVec2 swatch_max(swatch_min.x + fitted_swatch,
                           swatch_min.y + swatch_size);
   if (outline_only) {
     draw_list->AddRectFilled(swatch_min, swatch_max,
@@ -204,10 +257,19 @@ bool RoomMatrixCensusOverlay::DrawChip(const char* id,
     draw_list->AddRectFilled(swatch_min, swatch_max,
                              ImGui::ColorConvertFloat4ToU32(swatch), 2.0f);
   }
-  draw_list->AddText(
-      ImVec2(swatch_max.x + style.ItemInnerSpacing.x, pos.y + pad_y),
-      ImGui::GetColorU32(ImGuiCol_Text), label.c_str());
-  if (hovered && label != label_in) {
+  const ImVec2 text_min(
+      std::min(max.x, swatch_max.x + style.ItemInnerSpacing.x), pos.y + pad_y);
+  const ImVec2 text_max(std::max(text_min.x, max.x - fitted_pad),
+                        pos.y + size.y - pad_y);
+  if (text_min.x < text_max.x) {
+    // ImGui fits the ellipsis at UTF-8 character boundaries; keep the original
+    // label intact for logging and the hover tooltip.
+    ImGui::RenderTextEllipsis(draw_list, text_min, text_max, text_max.x,
+                              label_in.data(),
+                              label_in.data() + label_in.size(), &text_size);
+  }
+  draw_list->PopClipRect();
+  if (hovered && natural_width > size.x) {
     ImGui::SetTooltip("%s", label_in.c_str());
   }
   return clicked;
@@ -223,7 +285,7 @@ void RoomMatrixCensusOverlay::DrawControls(Rom* rom) {
   ImGui::PushID("RoomMatrixCensus");
   bool on = enabled_;
   if (ImGui::Checkbox("Census overlay", &on)) {
-    enabled_ = on;
+    SetEnabled(on);
     Update(rom);
   }
   gui::AutoRegisterLastItem("checkbox", "Census overlay");

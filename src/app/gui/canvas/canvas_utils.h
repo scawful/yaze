@@ -159,10 +159,11 @@ void DrawCanvasText(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
                     const std::string& text, int x, int y, float global_scale);
 void DrawCanvasOutline(ImDrawList* draw_list, ImVec2 canvas_p0,
                        ImVec2 scrolling, int x, int y, int w, int h,
-                       uint32_t color = IM_COL32(255, 255, 255, 200));
+                       uint32_t color = IM_COL32(255, 255, 255, 200),
+                       float global_scale = 1.0f);
 void DrawCanvasOutlineWithColor(ImDrawList* draw_list, ImVec2 canvas_p0,
                                 ImVec2 scrolling, int x, int y, int w, int h,
-                                ImVec4 color);
+                                ImVec4 color, float global_scale = 1.0f);
 
 // Grid utility functions
 void DrawCanvasGridLines(ImDrawList* draw_list, ImVec2 canvas_p0,

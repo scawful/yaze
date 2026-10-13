@@ -191,7 +191,8 @@ void DungeonCanvasViewer::DrawProposalPreview(
 
     if (bitmaps[i] && bitmaps[i]->texture()) {
       draw_list->AddImage((ImTextureID)(intptr_t)bitmaps[i]->texture(),
-                          room_min, room_max);
+                          room_min, room_max, ImVec2(0, 0), ImVec2(1, 1),
+                          ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
     } else {
       draw_list->AddRectFilled(room_min, room_max, IM_COL32(40, 40, 48, 255));
       draw_list->AddText(ImVec2(room_min.x + 8, room_min.y + 8),

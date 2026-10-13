@@ -143,7 +143,7 @@ class ResourceLabelProvider {
    * Parses sections:
    * - [Sprites Names] -> sprite labels
    * - [Rooms Names] -> room labels
-   * - [Chests Items] -> item labels
+   * - [Chests Items] -> item_receipt labels
    * - [Tags Names] -> room_tag labels
    */
   absl::Status ImportFromZScreamFormat(const std::string& content);
@@ -236,8 +236,15 @@ inline std::string GetItemLabel(int id) {
   return GetResourceLabels().GetLabel(ResourceType::kItem, id);
 }
 
-// Chest/item-receipt IDs. Project item labels override the vanilla reference;
-// a vanilla fallback does not establish the meaning of a patched receipt handler.
+// Chest/item-receipt IDs use the separate "item_receipt" project-label namespace.
+// Generic "item" labels have a different ID domain and are never used here.
+// A vanilla fallback does not establish the meaning of a patched receipt handler.
+// Explicit context (including nullptr) never consults the global provider.
+std::string GetItemReceiptLabel(
+    uint8_t id, const ResourceLabelProvider::ProjectLabels* project_labels);
+const char* GetItemReceiptLabelSource(
+    uint8_t id, const ResourceLabelProvider::ProjectLabels* project_labels);
+// Compatibility helpers for callers that use the active global project.
 std::string GetItemReceiptLabel(uint8_t id);
 const char* GetItemReceiptLabelSource(uint8_t id);
 

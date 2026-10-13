@@ -326,8 +326,14 @@ TEST_F(SpriteCatalogSessionTest, BrowseAndReloadDoNotModifyRomOrSource) {
 
 TEST_F(SpriteCatalogSessionTest, ProjectPathsRoundTripAndAbsentSettingsReset) {
   ASSERT_TRUE(project_.Save().ok());
-  std::ifstream original(project_.filepath);
-  const std::string serialized(std::istreambuf_iterator<char>(original), {});
+  // Close the read handle before `restored.Save()` writes the same path
+  // below: on Windows an open handle without FILE_SHARE_DELETE blocks the
+  // atomic replace that a later save to project_.filepath performs.
+  std::string serialized;
+  {
+    std::ifstream original(project_.filepath);
+    serialized.assign(std::istreambuf_iterator<char>(original), {});
+  }
   project::YazeProject restored;
   ASSERT_TRUE(restored.LoadFromString(serialized, project_.filepath).ok());
   EXPECT_EQ(restored.sprite_catalog_file, (root_ / "catalog.json").string());

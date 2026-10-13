@@ -20,6 +20,7 @@
 #include "core/features.h"
 #include "core/project.h"
 #include "rom/rom.h"
+#include "util/rom_hash.h"
 #include "zelda3/game_data.h"
 
 namespace yaze::core {
@@ -162,6 +163,13 @@ class EditorSet {
   std::unique_ptr<GfxGroupWorkspaceState> gfx_group_workspace_;
 };
 
+struct RomBaselineIdentity {
+  util::RomIdentityHashes hashes;
+  std::string normalized_path;
+  // Retained across our own saves, reset when loading/replacing ROM bytes.
+  std::string editing_source_path;
+};
+
 /**
  * @struct RomSession
  * @brief Represents a single session, containing a ROM and its associated
@@ -169,7 +177,19 @@ class EditorSet {
  */
 struct RomSession {
   Rom rom;
+  // Identity of loaded/committed bytes, independent of pending raw/model edits.
+  // Empty sessions have no baseline. Session activation must never capture it.
+  std::optional<RomBaselineIdentity> rom_baseline;
+  void CaptureRomIdentity(bool preserve_editing_source = false);
+
   zelda3::GameData game_data;
+  // Display copies have stable addresses across user and per-frame activation.
+  // Authored pixels remain in game_data.sheet_store; loaded palette colors stay
+  // in game_data.gfx_bitmaps. Allocate only after graphics are loaded.
+  void ReloadGraphicsDisplay();
+  void ActivateGraphicsDisplay();
+  void ResetGraphicsDisplay();
+
   EditorSet editors;
   std::string custom_name;  // User-defined session name
   std::string filepath;     // ROM filepath for duplicate detection
@@ -203,6 +223,11 @@ struct RomSession {
                       EditorRegistry* editor_registry = nullptr);
   ~RomSession();
 
+ private:
+  std::unique_ptr<std::array<gfx::Bitmap, zelda3::kNumGfxSheets>>
+      graphics_display_;
+
+ public:
   size_t session_id() const { return editors.session_id(); }
 
   // Get display name (custom name or ROM title)

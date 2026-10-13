@@ -270,6 +270,9 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
 constexpr int kNumMapsPerWorld = 0x40;
 
 struct OverworldRomProfile {
+  enum class LayoutKind { kLegacy, kOlderTailEa, kLyraOffline };
+  LayoutKind layout_kind = LayoutKind::kLegacy;
+  rom::LyraLayoutInspection lyra_layout;
   uint8_t asm_version = 0xFF;
   OverworldVersion version = OverworldVersion::kVanilla;
   bool is_vanilla = true;
@@ -312,6 +315,7 @@ inline bool IsSpecialTailMapExpansionEnabled(const Rom& rom) {
 
 inline OverworldRomProfile DetectOverworldRomProfile(const Rom& rom) {
   OverworldRomProfile profile;
+  profile.lyra_layout = rom.InspectLyraLayout();
   profile.asm_version = OverworldVersionHelper::GetAsmVersion(rom);
   profile.version = OverworldVersionHelper::GetVersion(rom);
   profile.is_vanilla = profile.version == OverworldVersion::kVanilla;
@@ -336,6 +340,13 @@ inline OverworldRomProfile DetectOverworldRomProfile(const Rom& rom) {
   profile.has_expanded_entrances = !profile.is_vanilla && entrance_flag != 0xB8;
   profile.has_tail_map_expansion =
       profile.supports_area_enum && IsSpecialTailMapExpansionEnabled(rom);
+  if (profile.lyra_layout.presence != yaze::rom::LyraLayoutPresence::kAbsent) {
+    profile.layout_kind = OverworldRomProfile::LayoutKind::kLyraOffline;
+    // The 192-record descriptor is not the older editable $EA tail format.
+    profile.has_tail_map_expansion = false;
+  } else if (profile.has_tail_map_expansion) {
+    profile.layout_kind = OverworldRomProfile::LayoutKind::kOlderTailEa;
+  }
   profile.editable_map_count =
       profile.has_tail_map_expansion ? kExpandedMapCount : kNumOverworldMaps;
   return profile;
@@ -413,6 +424,16 @@ class Overworld {
 
   /// @brief Load all overworld data from ROM
   absl::Status Load(Rom* rom);
+  // Explicit descriptor terrain path. The normal model loader remains
+  // legacy-only; the editor admits this path only to its read-only canvas.
+  absl::Status LoadLyraTerrainPreview(Rom* rom);
+  bool is_lyra_preview() const {
+    return descriptor_layout_.presence == rom::LyraLayoutPresence::kValid;
+  }
+  int inspected_map_count() const {
+    return is_lyra_preview() ? descriptor_layout_.capacity : kNumOverworldMaps;
+  }
+  bool descriptor_sprite_display_available() const { return false; }
 
   /// @brief Load overworld map tile data
   absl::Status LoadOverworldMaps();
@@ -450,6 +471,7 @@ class Overworld {
    * parent's values. Call before rebuilding a map's graphics or palette.
    */
   void SyncAreaProperties(int map_index);
+  void SetGraphicsPreview(OverworldGraphicsPreview preview);
 
   /// Subscreen overlay layer for one screen, in that screen's palette.
   struct SubscreenOverlayLayer {
@@ -511,6 +533,13 @@ class Overworld {
 
   /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
+
+  // Map-grid identity for skipping recompression. SaveOverworldMaps stages the
+  // grids it serialized; the editor save transaction publishes that stage only
+  // after the ROM transaction and disk write both commit.
+  void StageSavedMapTiles();
+  void CommitSavedMapTiles();
+  void RollbackSavedMapTiles();
 
   /// @brief Save large map parent/sibling relationships
   absl::Status SaveLargeMaps();
@@ -669,6 +698,10 @@ class Overworld {
       sprites.clear();
     }
     sprite_maps_loaded_ = {};
+    built_map_lru_.clear();
+    tileset_cache_.clear();
+    descriptor_layout_ = {};
+    loaded_map_tiles_valid_ = false;
     tiles16_.clear();
     tiles32_.clear();
     tiles32_unique_.clear();
@@ -775,6 +808,8 @@ class Overworld {
   int current_world() const { return current_world_; }
   void set_current_map(int i) { current_map_ = i; }
   void set_current_world(int world) { current_world_ = world; }
+  // Select the state for future builds; editor refresh owns bitmap invalidation.
+  void set_game_state(int state);
   uint16_t GetTile(int x, int y) const {
     if (current_world_ == 0) {
       return map_tiles_.light_world[x][y];
@@ -830,6 +865,8 @@ class Overworld {
                         std::vector<uint8_t>& bytes2, int i, int sx, int sy,
                         int& ttpos);
   absl::Status DecompressAllMapTilesParallel();
+  absl::Status BuildLyraTerrainPreview(Rom* rom,
+                                       rom::LyraLayoutInspection layout);
 
   Rom* rom_;
   GameData* game_data_ = nullptr;
@@ -847,6 +884,17 @@ class Overworld {
   OverworldVersion cached_version_ = OverworldVersion::kVanilla;
 
   OverworldMapTiles map_tiles_;
+  rom::LyraLayoutInspection descriptor_layout_;
+  // Grids last published by a committed save, or captured at load. Recompressing
+  // maps rewrites pointer tables that overlap Oracle overworld ASM hooks, and
+  // resaving tile32 reorders expanded definitions. An unchanged grid leaves
+  // both on disk. The staged copy is not this identity: a failed save rolls
+  // the ROM back and must not treat the unsaved edit as already written.
+  OverworldMapTiles loaded_map_tiles_;
+  bool loaded_map_tiles_valid_ = false;
+  OverworldMapTiles staged_map_tiles_;
+  bool staged_map_tiles_valid_ = false;
+  bool MapTilesUnchanged() const;
 
   // Thread safety for parallel operations
   mutable std::mutex map_tiles_mutex_;
@@ -882,6 +930,7 @@ class Overworld {
   absl::Status BuildMapWithTilesetCache(int map_index, int world_type);
 
   std::vector<OverworldMap> overworld_maps_;
+  OverworldGraphicsPreview graphics_preview_;
   std::vector<OverworldEntrance> all_entrances_;
   std::vector<OverworldEntrance> all_holes_;
   std::vector<OverworldExit> all_exits_;

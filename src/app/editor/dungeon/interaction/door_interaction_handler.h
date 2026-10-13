@@ -1,8 +1,12 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_DOOR_INTERACTION_HANDLER_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_DOOR_INTERACTION_HANDLER_H_
 
+#include <functional>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include "absl/status/status.h"
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/door_types.h"
@@ -24,6 +28,7 @@ class DoorInteractionHandler : public BaseEntityHandler {
     kInvalidRoom,
     kDoorLimit,
     kInvalidPosition,
+    kStorageValidation,
   };
   enum class GhostCapacityState {
     kNormal = 0,
@@ -115,6 +120,18 @@ class DoorInteractionHandler : public BaseEntityHandler {
   bool UpdateDoor(size_t index, zelda3::DoorType type,
                   zelda3::DoorDirection direction, uint8_t position);
 
+  // Preflight is read-only and runs before history or room data changes.
+  using DoorMutationPreflight =
+      std::function<absl::Status(int, const std::vector<zelda3::Room::Door>&)>;
+  void SetDoorMutationPreflight(DoorMutationPreflight callback) {
+    door_mutation_preflight_ = std::move(callback);
+  }
+  const absl::Status& mutation_status() const { return mutation_status_; }
+  void SetMutationErrorCallback(
+      std::function<void(const absl::Status&)> callback) {
+    mutation_error_callback_ = std::move(callback);
+  }
+
   /// True if the most recent PlaceDoorAtSnappedPosition was blocked.
   bool was_placement_blocked() const {
     return placement_block_reason_ != PlacementBlockReason::kNone;
@@ -155,6 +172,12 @@ class DoorInteractionHandler : public BaseEntityHandler {
   // doors can extend several tiles above/left of that anchor, so preserving
   // this offset keeps the encoded position stable regardless of grab point.
   ImVec2 drag_grab_offset_from_anchor_ = ImVec2(0.0f, 0.0f);
+
+  DoorMutationPreflight door_mutation_preflight_;
+  std::function<void(const absl::Status&)> mutation_error_callback_;
+  absl::Status mutation_status_ = absl::OkStatus();
+
+  bool PreflightDoors(const std::vector<zelda3::Room::Door>& candidate);
 
   /**
    * @brief Place door at snapped position

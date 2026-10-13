@@ -5,14 +5,20 @@
 #include <ios>
 #include <vector>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
+
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+#include "miniz/miniz.h"
+#undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 
 namespace yaze::util {
 
 namespace {
 
-// CRC32 lookup table (polynomial 0xEDB88320).
-constexpr uint32_t kCrc32Table[256] = {
+// Historical defective table. Preserve these exact values only for verifying
+// already-persisted project hashes; standard CRC32 uses bundled miniz below.
+constexpr uint32_t kLegacyCrc32Table[256] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
     0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
     0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
@@ -57,18 +63,50 @@ constexpr uint32_t kCrc32Table[256] = {
     0x54c65941, 0x23c3b9d7, 0xb364a7ae, 0xc4632738, 0x5d6a1682, 0x2a6d0614,
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d};
 
-}  // namespace
-
-uint32_t CalculateCrc32(const uint8_t* data, size_t size) {
+uint32_t CalculateLegacyCrc32(const uint8_t* data, size_t size) {
   uint32_t crc = 0xFFFFFFFF;
   for (size_t i = 0; i < size; ++i) {
-    crc = kCrc32Table[(crc ^ data[i]) & 0xFF] ^ (crc >> 8);
+    crc = kLegacyCrc32Table[(crc ^ data[i]) & 0xFF] ^ (crc >> 8);
   }
   return crc ^ 0xFFFFFFFF;
 }
 
+}  // namespace
+
+uint32_t CalculateCrc32(const uint8_t* data, size_t size) {
+  return mz_crc32(MZ_CRC32_INIT, data, size);
+}
+
 std::string ComputeRomHash(const uint8_t* data, size_t size) {
   return absl::StrFormat("%08x", CalculateCrc32(data, size));
+}
+
+RomIdentityHashes ComputeRomIdentityHashes(const uint8_t* data, size_t size) {
+  return {ComputeRomHash(data, size),
+          absl::StrFormat("%08x", CalculateLegacyCrc32(data, size)),
+          ComputeSha1Hex(data, size)};
+}
+
+RomHashMatch RomIdentityHashes::Match(std::string_view expected) const {
+  const auto trimmed = absl::StripAsciiWhitespace(
+      absl::string_view(expected.data(), expected.size()));
+  std::string normalized = absl::AsciiStrToLower(trimmed);
+  if (normalized.compare(0, 2, "0x") == 0) {
+    normalized.erase(0, 2);
+  }
+  if (normalized.find_first_not_of("0123456789abcdef") != std::string::npos) {
+    return RomHashMatch::kMismatch;
+  }
+  if (normalized.size() == 40) {
+    return normalized == sha1 ? RomHashMatch::kSha1 : RomHashMatch::kMismatch;
+  }
+  if (normalized.size() == 8) {
+    if (normalized == crc32)
+      return RomHashMatch::kCrc32;
+    if (normalized == legacy_crc32)
+      return RomHashMatch::kLegacyCrc32;
+  }
+  return RomHashMatch::kMismatch;
 }
 
 // ---------------------------------------------------------------------------
@@ -96,9 +134,9 @@ void Sha1ProcessBlock(Sha1State& state, const uint8_t block[64]) {
   uint32_t w[80];
   for (int i = 0; i < 16; ++i) {
     w[i] = (static_cast<uint32_t>(block[i * 4]) << 24) |
-            (static_cast<uint32_t>(block[i * 4 + 1]) << 16) |
-            (static_cast<uint32_t>(block[i * 4 + 2]) << 8) |
-            (static_cast<uint32_t>(block[i * 4 + 3]));
+           (static_cast<uint32_t>(block[i * 4 + 1]) << 16) |
+           (static_cast<uint32_t>(block[i * 4 + 2]) << 8) |
+           (static_cast<uint32_t>(block[i * 4 + 3]));
   }
   for (int i = 16; i < 80; ++i) {
     w[i] = LeftRotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);

@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "cli/handlers/game/atlas_commands.h"
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_census_commands.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
@@ -21,8 +22,11 @@
 #include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/game/overworld_render_commands.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
+#include "cli/handlers/game/terrain_catalog_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_inventory_commands.h"
 #include "cli/handlers/graphics/gfx_sheet_png_commands.h"
+#include "cli/handlers/graphics/gfx_tilemap_render_command.h"
+#include "cli/handlers/graphics/graphics_context_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
@@ -39,6 +43,7 @@
 #include "cli/handlers/tools/gui_commands.h"
 #include "cli/handlers/tools/hex_inspector_commands.h"
 #include "cli/handlers/tools/message_doctor_commands.h"
+#include "cli/handlers/tools/overworld_allocation_commands.h"
 #include "cli/handlers/tools/overworld_doctor_commands.h"
 #include "cli/handlers/tools/overworld_validate_commands.h"
 #include "cli/handlers/tools/resource_commands.h"
@@ -145,6 +150,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomGraphCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomCensusCommandHandler>());
+  handlers.push_back(std::make_unique<AtlasRenderCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
@@ -168,8 +174,12 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonSetPotItemCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetCollisionTileCommandHandler>());
 
+  handlers.push_back(std::make_unique<OverworldTerrainCatalogCommandHandler>());
+
   // Overworld inspection
   handlers.push_back(std::make_unique<OverworldGetTileCommandHandler>());
+  handlers.push_back(
+      std::make_unique<OverworldInspectSpecialEntrancesCommandHandler>());
   handlers.push_back(std::make_unique<OverworldSetTileCommandHandler>());
   handlers.push_back(std::make_unique<OverworldFindTileCommandHandler>());
   handlers.push_back(std::make_unique<OverworldDescribeMapCommandHandler>());
@@ -236,6 +246,7 @@ CreateCliCommandHandlers() {
   // Validation and repair tools (doctor suite)
   handlers.push_back(std::make_unique<OverworldValidateCommandHandler>());
   handlers.push_back(std::make_unique<OverworldDoctorCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldAllocationCommandHandler>());
   handlers.push_back(std::make_unique<DungeonDoctorCommandHandler>());
   handlers.push_back(std::make_unique<DungeonObjectValidateCommandHandler>());
   handlers.push_back(std::make_unique<RomDoctorCommandHandler>());
@@ -243,10 +254,12 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<SpriteDoctorCommandHandler>());
   handlers.push_back(std::make_unique<GraphicsDoctorCommandHandler>());
   handlers.push_back(std::make_unique<GfxSheetInventoryCommandHandler>());
+  handlers.push_back(std::make_unique<GraphicsContextCommandHandler>());
   handlers.push_back(std::make_unique<GfxExportCommandHandler>());
   handlers.push_back(std::make_unique<GfxImportCommandHandler>());
   handlers.push_back(std::make_unique<GfxRoomExportCommandHandler>());
   handlers.push_back(std::make_unique<GfxRoomImportCommandHandler>());
+  handlers.push_back(std::make_unique<GfxTilemapRenderCommandHandler>());
   handlers.push_back(std::make_unique<RomCompareCommandHandler>());
 
   return handlers;

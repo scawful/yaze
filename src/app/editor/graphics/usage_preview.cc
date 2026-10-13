@@ -10,6 +10,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/platform/sdl_compat.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/sprite/sprite.h"
@@ -33,6 +34,21 @@ void CopySheet(const std::vector<uint8_t>& sheet, std::vector<uint8_t>& dst,
 
 }  // namespace
 
+SheetPixels SnapshotSessionSheets(const std::set<uint16_t>& ids,
+                                  const zelda3::GameData* game_data) {
+  SheetPixels out;
+  if (game_data == nullptr) {
+    return out;
+  }
+  for (uint16_t id : ids) {
+    const auto pixels = game_data->sheet_store.Sheet(id);
+    if (!pixels.empty()) {
+      out[id] = std::vector<uint8_t>(pixels.begin(), pixels.end());
+    }
+  }
+  return out;
+}
+
 SheetPixels SnapshotArenaSheets(const std::set<uint16_t>& ids,
                                 const zelda3::GameData* game_data) {
   SheetPixels out;
@@ -55,8 +71,15 @@ SheetPixels SnapshotArenaSheets(const std::set<uint16_t>& ids,
   return out;
 }
 
-std::vector<uint8_t> IndexedImage::ToRgba() const {
+std::vector<uint8_t> PreviewImage::ToRgba() const {
+  if (empty())
+    return {};
   std::vector<uint8_t> rgba(static_cast<size_t>(width) * height * 4, 0);
+  if (format == Format::kRgba) {
+    std::copy_n(pixels.begin(), std::min(pixels.size(), rgba.size()),
+                rgba.begin());
+    return rgba;
+  }
   for (size_t i = 0; i < pixels.size() && i * 4 + 3 < rgba.size(); ++i) {
     const uint8_t index = pixels[i];
     if (index0_transparent && index == 0) {
@@ -66,36 +89,46 @@ std::vector<uint8_t> IndexedImage::ToRgba() const {
     rgba[i * 4 + 0] = c.r;
     rgba[i * 4 + 1] = c.g;
     rgba[i * 4 + 2] = c.b;
-    rgba[i * 4 + 3] = 255;
+    rgba[i * 4 + 3] = c.a;
   }
   return rgba;
 }
 
-int IndexedImage::CountDifferentPixels(const IndexedImage& other) const {
-  if (width != other.width || height != other.height ||
-      pixels.size() != other.pixels.size()) {
+int PreviewImage::CountDifferentPixels(const PreviewImage& other) const {
+  if (width != other.width || height != other.height)
     return -1;
-  }
+  const auto a = ToRgba();
+  const auto b = other.ToRgba();
   int count = 0;
-  for (size_t i = 0; i < pixels.size(); ++i) {
-    count += pixels[i] != other.pixels[i] ? 1 : 0;
+  for (size_t i = 0; i < a.size(); i += 4) {
+    count += !std::equal(a.begin() + i, a.begin() + i + 4, b.begin() + i);
   }
   return count;
 }
 
-IndexedImage SnapshotBitmap(const gfx::Bitmap& bitmap) {
-  IndexedImage image;
+PreviewImage SnapshotBitmap(const gfx::Bitmap& bitmap) {
+  PreviewImage image;
   if (!bitmap.is_active() || bitmap.width() <= 0 || bitmap.height() <= 0) {
     return image;
   }
   image.width = bitmap.width();
   image.height = bitmap.height();
   image.pixels = bitmap.vector();
-  image.pixels.resize(static_cast<size_t>(image.width) * image.height, 0);
+  image.format = bitmap.IsIndexed() ? PreviewImage::Format::kIndexed
+                                    : PreviewImage::Format::kRgba;
+  image.pixels.resize(static_cast<size_t>(image.width) * image.height *
+                          (bitmap.IsIndexed() ? 1 : 4),
+                      0);
   if (SDL_Palette* palette = platform::GetSurfacePalette(bitmap.surface())) {
     for (int i = 0; i < palette->ncolors && i < 256; ++i) {
       image.colors[i] = palette->colors[i];
     }
+  }
+  Uint32 color_key;
+  if (bitmap.IsIndexed() &&
+      SDL_GetColorKey(bitmap.surface(), &color_key) == 0 &&
+      color_key < image.colors.size()) {
+    image.colors[color_key].a = 0;
   }
   return image;
 }
@@ -138,88 +171,213 @@ std::vector<int> RoomsUsingSheet(
   return rooms;
 }
 
+std::string RoomContextLabel(const LiveRoomContext* live) {
+  if (!live)
+    return "ROM · Default entrance";
+  if (live->entrance_slot < 0)
+    return "Live · Default entrance";
+  return absl::StrFormat("Live · Entrance $%02X", live->entrance_slot);
+}
+
+std::vector<SourceObjectUse> FindSourceObjectUses(
+    const std::vector<RoomTileReference>& references,
+    const std::vector<GraphicsEditTarget>& targets,
+    const zelda3::GameData* owner) {
+  std::map<size_t, SourceObjectUse> matches;
+  for (const auto& reference : references) {
+    bool pixels = false;
+    bool palette = false;
+    for (const auto& target : targets) {
+      pixels |= target.sheet_id == reference.sheet &&
+                target.tile_index == (reference.tile_word & 0x3F);
+      if (!owner || !target.writable_palette ||
+          target.writable_palette->owner != owner)
+        continue;
+      for (size_t raw = 1; raw < reference.palette_colors.size(); ++raw) {
+        if (!reference.palette_colors[raw])
+          continue;
+        for (size_t source = 1; source < 8; ++source) {
+          palette |= target.writable_palette->colors[source] &&
+                     reference.palette_colors[raw] ==
+                         target.writable_palette->colors[source];
+        }
+      }
+    }
+    if (!pixels && !palette)
+      continue;
+    auto& match = matches[reference.object_index];
+    match.object_index = reference.object_index;
+    match.object_id = reference.object_id;
+    match.shares_pixels |= pixels;
+    match.shares_palette |= palette;
+    match.references.push_back(reference);
+  }
+  std::vector<SourceObjectUse> out;
+  for (auto& [index, match] : matches)
+    out.push_back(std::move(match));
+  return out;
+}
+
+absl::Status RoomUsagePreview::TraceLoadedRoom(Rom* rom,
+                                               zelda3::GameData* game_data,
+                                               zelda3::Room* room) {
+  if (!rom || !rom->is_loaded() || !game_data || !room || room->rom() != rom ||
+      room->game_data() != game_data || !room->IsLoaded()) {
+    return absl::FailedPreconditionError("Room usage session mismatch");
+  }
+  room->PrepareForRender();
+  CaptureUsage(*room);
+  return absl::OkStatus();
+}
+
+std::vector<LoadedRoomSourceUses> FindLoadedRoomSourceUses(
+    Rom* rom, zelda3::GameData* game_data, const LiveRoomContexts& rooms,
+    const std::vector<GraphicsEditTarget>& targets) {
+  std::vector<LoadedRoomSourceUses> out;
+  RoomUsagePreview trace;
+  for (const auto& [id, context] : rooms) {
+    LoadedRoomSourceUses result;
+    result.room_id = id;
+    const auto status =
+        context.room && context.room->id() == id
+            ? trace.TraceLoadedRoom(rom, game_data, context.room)
+            : absl::FailedPreconditionError("Room ID mismatch");
+    if (!status.ok()) {
+      result.error = std::string(status.message());
+    } else {
+      result.objects =
+          FindSourceObjectUses(trace.tile_references(), targets, game_data);
+      result.unknown_objects = trace.unknown_objects();
+    }
+    out.push_back(std::move(result));
+  }
+  return out;
+}
+
 absl::Status RoomUsagePreview::Render(Rom* rom, zelda3::GameData* game_data,
                                       int room_id, const SheetPixels& sheets,
-                                      bool objects_only) {
-  if (rom == nullptr || !rom->is_loaded() || game_data == nullptr) {
+                                      bool objects_only,
+                                      zelda3::Room* live_room) {
+  room_id_ = -1;
+  if (!rom || !rom->is_loaded() || !game_data) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Invalid room 0x%03X", room_id));
+    return absl::InvalidArgumentError("Invalid room ID");
   }
-  if (!room_ || room_id_ != room_id) {
-    room_ =
-        std::make_unique<zelda3::Room>(zelda3::LoadRoomFromRom(rom, room_id));
-    room_->SetGameData(game_data);
-    room_->LoadRoomGraphics();
-    room_id_ = room_id;
+  if (live_room &&
+      (live_room->rom() != rom || live_room->game_data() != game_data ||
+       live_room->id() != room_id || !live_room->IsLoaded())) {
+    return absl::FailedPreconditionError("Room usage session mismatch");
   }
-  // Only the sheets this room loads matter; others would just cost copies.
-  SheetPixels used;
-  for (const uint8_t block : room_->blocks()) {
-    if (const auto it = sheets.find(block); it != sheets.end()) {
-      used.emplace(block, it->second);
+  zelda3::Room* rendered = live_room;
+  if (!rendered) {
+    if (!room_ || room_->id() != room_id || room_->rom() != rom ||
+        room_->game_data() != game_data) {
+      room_ =
+          std::make_unique<zelda3::Room>(zelda3::LoadRoomFromRom(rom, room_id));
+      room_->SetGameData(game_data);
     }
+    room_->SetGraphicsSheetOverrides(sheets);
+    rendered = room_.get();
+  } else {
+    // The session store includes a live stroke before its revision commits.
+    // Do not install overrides or copy the live room into a second model.
+    rendered->MarkGraphicsDirty();
   }
-  room_->SetGraphicsSheetOverrides(std::move(used));
-  room_->RenderRoomGraphics();
-
+  rendered->PrepareForRender();
+  room_id_ = room_id;
   zelda3::RoomLayerManager layers;
-  layers.ApplyLayerMerging(room_->layer_merging());
-  layers.ApplyRoomEffect(room_->effect());
-  layers.ApplyGameLayerRegisters(room_->GameLayerRegisters());
+  layers.ApplyLayerMerging(rendered->layer_merging());
+  layers.ApplyRoomEffect(rendered->effect());
+  layers.ApplyGameLayerRegisters(rendered->GameLayerRegisters());
   if (objects_only) {
     layers.SetLayerVisible(zelda3::LayerType::BG1_Layout, false);
     layers.SetLayerVisible(zelda3::LayerType::BG2_Layout, false);
   }
-  room_->RenderComposite(layers, composite_);
+  rendered->RenderComposite(layers, composite_);
   if (!composite_.is_active() || composite_.width() <= 0) {
     return absl::InternalError("Room composite is empty after render");
   }
+  CaptureUsage(*rendered);
   return absl::OkStatus();
 }
 
 std::array<uint8_t, 16> RoomUsagePreview::blocks() const {
-  std::array<uint8_t, 16> out{};
-  if (room_) {
-    const auto& blocks = room_->blocks();
-    std::copy_n(blocks.begin(), 16, out.begin());
+  return blocks_;
+}
+
+void RoomUsagePreview::CaptureUsage(const zelda3::Room& room) {
+  std::copy_n(room.blocks().begin(), 16, blocks_.begin());
+  tile_references_.clear();
+  object_rects_.clear();
+  const auto maps = zelda3::ComposeYazeRoomTilemaps(room);
+  const auto& objects = room.GetTileObjects();
+  const auto owners =
+      zelda3::ComputeObjectTileOwners(room.rom(), room.id(), objects, maps);
+  std::set<size_t> attributed;
+  std::set<std::pair<size_t, uint16_t>> seen;
+  for (int layer = 0; layer < 2; ++layer) {
+    const auto& words = layer == 0 ? maps.bg1 : maps.bg2;
+    const auto& indices = layer == 0 ? owners.bg1 : owners.bg2;
+    for (size_t i = 0; i < indices.size(); ++i) {
+      const int index = indices[i];
+      if (index < 0 || index >= static_cast<int>(objects.size()))
+        continue;
+      const uint16_t word = words[i];
+      const int tile = word & 0x3FF;
+      // Animated/composite slots have no single raw sheet attribution here.
+      if (tile >= 512 || (tile >= 0x1B0 && tile < 0x1D0))
+        continue;
+      attributed.insert(index);
+      if (!seen.emplace(index, word).second)
+        continue;
+      const auto& object = objects[index];
+      tile_references_.push_back(
+          {static_cast<size_t>(index), static_cast<uint16_t>(object.id_), word,
+           blocks_[tile / kTilesPerSheet], tile / kTilesPerSheet});
+      auto& reference = tile_references_.back();
+      const int half = room.BackgroundPaletteOffset(reference.slot);
+      const int row = (word >> 10) & 7;
+      for (int raw = 1; raw < 8; ++raw) {
+        reference.palette_colors[raw] =
+            room.rendered_palette_addresses()[row * 16 + half + raw];
+      }
+      const auto [x, y, w, h] =
+          zelda3::DimensionService::Get().GetSelectionBoundsPixels(object);
+      object_rects_[index] = {x, y, w, h};
+    }
   }
-  return out;
+  // No attributable final tile may mean occlusion or untraced/custom drawing.
+  // It never establishes that an object does not use a sheet.
+  unknown_objects_ = objects.size() - attributed.size();
 }
 
 std::vector<SDL_Rect> RoomUsagePreview::ObjectRectsUsingSheet(
     uint16_t sheet) const {
   std::vector<SDL_Rect> rects;
-  if (!room_) {
-    return rects;
-  }
-  const auto blocks = this->blocks();
-  for (const auto& object : room_->GetTileObjects()) {
-    auto tiles = object.GetTiles();
-    if (!tiles.ok()) {
-      continue;
-    }
-    const bool uses_sheet =
-        std::any_of(tiles->begin(), tiles->end(), [&](const gfx::TileInfo& t) {
-          const int block = t.id_ / kTilesPerSheet;
-          return block < 8 && blocks[block] == sheet;
-        });
-    if (!uses_sheet) {
-      continue;
-    }
-    // Same absolute pixel footprint the dungeon editor selects.
-    const auto [x, y, w, h] =
-        zelda3::DimensionService::Get().GetSelectionBoundsPixels(object);
-    rects.push_back({x, y, w, h});
+  std::set<size_t> seen;
+  for (const auto& use : tile_references_) {
+    if (use.sheet == sheet && seen.insert(use.object_index).second)
+      rects.push_back(object_rects_.at(use.object_index));
   }
   return rects;
+}
+
+std::vector<SDL_Rect> RoomUsagePreview::ObjectRectsForObject(
+    size_t index) const {
+  const auto found = object_rects_.find(index);
+  return found == object_rects_.end() ? std::vector<SDL_Rect>{}
+                                      : std::vector<SDL_Rect>{found->second};
 }
 
 void RoomUsagePreview::Reset() {
   room_.reset();
   room_id_ = -1;
+  blocks_ = {};
+  tile_references_.clear();
+  object_rects_.clear();
+  unknown_objects_ = 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -322,8 +480,8 @@ std::vector<uint8_t> SpriteUsagePreview::SheetOrRom(const SheetPixels& sheets,
   return {};
 }
 
-IndexedImage SpriteUsagePreview::RenderFrame(const SheetPixels& sheets) const {
-  IndexedImage image;
+PreviewImage SpriteUsagePreview::RenderFrame(const SheetPixels& sheets) const {
+  PreviewImage image;
   image.colors = colors_;
   image.index0_transparent = true;
   if (game_data_ == nullptr) {
@@ -450,11 +608,11 @@ std::vector<int> Tile16UsagePreview::Tile16sUsingTile(uint16_t sheet,
   return result;
 }
 
-IndexedImage Tile16UsagePreview::Render(const SheetPixels& sheets,
+PreviewImage Tile16UsagePreview::Render(const SheetPixels& sheets,
                                         const std::vector<int>& tile16s,
                                         uint16_t sheet, int tile_index,
                                         std::vector<SDL_Rect>* highlights) {
-  IndexedImage image;
+  PreviewImage image;
   image.index0_transparent = false;
   if (!map_ || tile16s.empty()) {
     return image;

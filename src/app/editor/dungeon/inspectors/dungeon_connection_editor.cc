@@ -129,7 +129,8 @@ void DrawDungeonConnectionEditor(
 
   const bool normal = source.type == zelda3::DoorType::NormalDoor ||
                       source.type == zelda3::DoorType::NormalDoorLower;
-  ImGui::BeginDisabled(viewer.header_read_only() || !normal);
+  ImGui::BeginDisabled(viewer.header_read_only() ||
+                       !viewer.IsObjectInteractionEnabled() || !normal);
   ImGui::TextUnformatted("Pair layer");
   ImGui::SetNextItemWidth(-1);
   const bool lower = state.layer == DungeonConnectionLayer::kLower;
@@ -176,7 +177,9 @@ void DrawDungeonConnectionEditor(
     if (viewer.header_read_only()) {
       ImGui::TextWrapped("This view is read-only.");
     }
-    ImGui::BeginDisabled(viewer.header_read_only() || !plan.changed());
+    ImGui::BeginDisabled(viewer.header_read_only() ||
+                         !viewer.IsObjectInteractionEnabled() ||
+                         !plan.changed());
     const bool apply = ImGui::Button(
         plan.creates_return ? "Create Return Door" : "Update Pair",
         ImVec2(-1, 0));

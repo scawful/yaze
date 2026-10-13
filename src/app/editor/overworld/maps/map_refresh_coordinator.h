@@ -3,6 +3,7 @@
 
 #include <array>
 #include <functional>
+#include <string>
 
 #include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
@@ -41,7 +42,7 @@ class Tile16Editor;
 struct MapRefreshContext {
   Rom* rom = nullptr;
   zelda3::Overworld* overworld = nullptr;
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr;
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount>* maps_bmp = nullptr;
   gfx::Tilemap* tile16_blockset = nullptr;
   gfx::Bitmap* current_gfx_bmp = nullptr;
   gfx::BitmapTable* current_graphics_set = nullptr;
@@ -77,6 +78,10 @@ class MapRefreshCoordinator {
   /// Shared Tile16 definitions affect maps in every world, including hidden maps.
   void InvalidateTile16Definitions();
 
+  // Color-only refresh of materialized maps, including cached other worlds.
+  // Unbuilt maps resolve current GameData colors when they are first built.
+  absl::Status RefreshPaletteUsers(const std::string& group, int palette_index);
+
   /// @brief Refresh a child map's graphics pipeline (legacy full rebuild)
   void RefreshChildMap(int map_index);
 
@@ -93,7 +98,8 @@ class MapRefreshCoordinator {
   void RefreshMultiAreaMapsSafely(int map_index, zelda3::OverworldMap* map);
 
   /// @brief Refresh map palette after palette property changes
-  absl::Status RefreshMapPalette();
+  // Explicit targets let undo refresh an area without changing selection.
+  absl::Status RefreshMapPalette(int map_id = -1);
 
   /// @brief Force refresh graphics for a specific map
   void ForceRefreshGraphics(int map_index);
@@ -102,7 +108,7 @@ class MapRefreshCoordinator {
   void RefreshSiblingMapGraphics(int map_index, bool include_self = false);
 
   /// @brief Refresh map properties (copy parent properties to siblings)
-  void RefreshMapProperties();
+  void RefreshMapProperties(int map_id = -1);
 
   /// @brief Refresh the tile16 blockset after graphics/palette changes
   absl::Status RefreshTile16Blockset();

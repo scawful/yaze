@@ -47,6 +47,9 @@ constexpr ImGuiTableFlags kSpriteTableFlags =
  * Supports both vanilla ROM sprites and custom ZSM format sprites.
  */
 class SpriteEditor : public Editor {
+  friend class AuthoringSaveWorkflowTestPeer;
+  friend struct SpriteEditorPreviewTestPeer;
+
  public:
   explicit SpriteEditor(Rom* rom = nullptr) : rom_(rom) {
     type_ = EditorType::kSprite;
@@ -140,6 +143,8 @@ class SpriteEditor : public Editor {
   // ============================================================
   // Vanilla Sprite Editor Methods
   // ============================================================
+  void SelectVanillaSprite(int sprite_id);
+  const zelda3::SpriteOamLayout* CurrentPreviewLayout() const;
   void DrawVanillaSpriteEditor();
   void DrawSpritesList();
   void DrawSpriteCanvas();
@@ -180,10 +185,10 @@ class SpriteEditor : public Editor {
   void DrawZSpriteOnCanvas();
 
   // Graphics pipeline
+  void RefreshSpritePreviewGraphics(bool use_asset_binding);
   void LoadSpriteGraphicsBuffer();
   void LoadSpritePalettes(bool use_asset_binding = true);
   void RenderVanillaSprite(const zelda3::SpriteOamLayout& layout);
-  void LoadSheetsForSprite(const std::array<uint8_t, 4>& sheets);
 
   // ============================================================
   // Undo/Redo Helpers
@@ -199,7 +204,8 @@ class SpriteEditor : public Editor {
   // ============================================================
   ImVector<int> active_sprites_;
   int current_sprite_id_ = 0;
-  uint8_t current_sheets_[8] = {0x00, 0x0A, 0x06, 0x07, 0x00, 0x00, 0x00, 0x00};
+  int pending_sprite_tab_ = -1;
+  uint8_t current_sheets_[8] = {0x73, 0x74, 0x79, 0x7A, 0x73, 0x73, 0x73, 0x73};
   bool sheets_loaded_ = false;
 
   // OAM Configuration for vanilla sprites
@@ -248,6 +254,10 @@ class SpriteEditor : public Editor {
   std::vector<uint8_t> sprite_gfx_buffer_;  // 8BPP combined sheets buffer
   gfx::PaletteGroup sprite_palettes_;       // Loaded sprite palettes
   bool gfx_buffer_loaded_ = false;
+  const zelda3::GameData* preview_graphics_owner_ = nullptr;
+  std::array<uint8_t, 8> loaded_preview_sheets_{};
+  std::array<uint64_t, 8> loaded_preview_revisions_{};
+  uint64_t preview_palette_revision_ = 0;
 
   // ============================================================
   // Spriteset-aware preview
@@ -257,6 +267,8 @@ class SpriteEditor : public Editor {
   void DrawSpritesetPicker();
   void ApplySpritesetToSheets(int spriteset);
   void DrawFrameTileWarnings();
+  absl::Status OpenSelectedOamGraphics();
+  absl::Status graphics_context_status_;
   int preview_spriteset_ = 0;
   uint16_t preview_room_ = 0;
   bool preview_use_room_palette_ = false;

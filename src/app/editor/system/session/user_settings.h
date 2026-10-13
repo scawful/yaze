@@ -59,6 +59,11 @@ class UserSettings {
     bool restore_last_session = true;
     bool prefer_hmagic_sprite_names = true;
 
+    // One-shot feature tips (FeatureHintManager). Dismissed ids persist so
+    // ZScream/HM migrant tips do not re-fire after the user has seen them.
+    bool feature_hints_enabled = true;
+    std::unordered_set<std::string> dismissed_feature_hints;
+
     // Welcome screen animation preferences. Match the defaults hard-coded in
     // WelcomeScreen so first-run behavior is unchanged.
     float welcome_triforce_alpha = 1.0f;
@@ -163,12 +168,12 @@ class UserSettings {
     bool show_experimental_editors = false;
 
     // Dungeon workbench layout: which side of the workbench window the
-    // inspector pane occupies. "right" (default) places selectors on the left
-    // and inspector on the right (Layout C / ZScream-style); "left" mirrors it.
+    // inspector pane occupies. "left" (default) places object/entrance tools
+    // above the room matrix on the right; "right" mirrors that arrangement.
     // Read by dungeon_workbench_content at draw time. Persisted as a string so
     // a future "top" / "bottom" / "floating" extension does not require a
     // migration of existing settings files.
-    std::string dungeon_inspector_side = "right";
+    std::string dungeon_inspector_side = "left";
 
     // Panel Visibility State (per editor type)
     // Maps editor_type_name -> (panel_id -> visible)
@@ -209,10 +214,12 @@ class UserSettings {
   // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 25;
-  // Revisions through 21 changed whole-workspace arrangements. Later revisions
-  // are targeted preference migrations and must preserve the live ImGui layout.
-  static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 21;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 30;
+  // Revisions through 21, and 27, changed whole-workspace arrangements.
+  // Revision 27 rebuilds once so the overworld map keeps its height: Tile16
+  // and area graphics share the right column, and nothing starts on the bottom.
+  // Revisions 22-26 and 28-30 are targeted preference migrations.
+  static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 27;
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }

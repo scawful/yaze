@@ -1,3 +1,4 @@
+#include "app/editor/graphics/graphics_edit_context.h"
 #include "app/editor/graphics/usage_preview.h"
 
 #include <gtest/gtest.h>
@@ -7,11 +8,14 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/gfx/resource/arena.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite_sheet_slots.h"
@@ -19,9 +23,9 @@
 namespace yaze::editor::usage_preview {
 namespace {
 
-// 32-bit BMP of an IndexedImage, for offscreen evidence captures
+// 32-bit BMP of a PreviewImage, for offscreen evidence captures
 // (YAZE_USAGE_PREVIEW_DUMP_DIR). BMP needs no image library.
-void DumpBmp(const IndexedImage& image, const std::string& name) {
+void DumpBmp(const PreviewImage& image, const std::string& name) {
   const char* dir = std::getenv("YAZE_USAGE_PREVIEW_DUMP_DIR");
   if (dir == nullptr || image.empty()) {
     return;
@@ -75,6 +79,10 @@ struct SyntheticGame {
 
 TEST(GraphicsUsagePreviewTest, ZsmFrameDrawsEditedSheetPixels) {
   SyntheticGame game(0);
+  // A visible-color assertion needs a resolved palette, not just changed
+  // indices. The former fixture supplied no colors at all.
+  game.game_data.palette_groups.sprites_aux1.AddPalette(
+      gfx::SnesPalette(std::vector<uint16_t>{0, 1, 2, 3, 4, 0x001F, 6, 7}));
   SpriteUsagePreview preview;
   ASSERT_TRUE(preview.Configure(&game.rom, &game.game_data, 0x50, -1).ok());
   // Slot 4 holds the spriteset's first value + 0x73.
@@ -95,13 +103,13 @@ TEST(GraphicsUsagePreviewTest, ZsmFrameDrawsEditedSheetPixels) {
   zsm.animations.emplace_back(0, 0, 1, "idle");
   preview.SetZsm(zsm, 0);
 
-  const IndexedImage before = preview.RenderFrame({});
+  const PreviewImage before = preview.RenderFrame({});
   ASSERT_FALSE(before.empty());
   EXPECT_TRUE(before.index0_transparent);
 
   std::vector<uint8_t> edited(kSheetBytes, 0);
   edited[0] = 5;  // tile 0, pixel (0,0)
-  const IndexedImage after = preview.RenderFrame({{sheet, edited}});
+  const PreviewImage after = preview.RenderFrame({{sheet, edited}});
   EXPECT_EQ(after.CountDifferentPixels(before), 1);
   // OAM palette 2 lands on CGRAM row 10.
   bool found = false;
@@ -128,6 +136,14 @@ TEST(GraphicsUsagePreviewTest, ZsmAnimationAdvancesAtGameSpeed) {
   EXPECT_EQ(preview.frame(), 0);
 }
 
+TEST(GraphicsUsagePreviewTest, RoomContextLabelUsesHexAndExplicitFallback) {
+  EXPECT_EQ(RoomContextLabel(nullptr), "ROM · Default entrance");
+  LiveRoomContext live;
+  EXPECT_EQ(RoomContextLabel(&live), "Live · Default entrance");
+  live.entrance_slot = 0x2A;
+  EXPECT_EQ(RoomContextLabel(&live), "Live · Entrance $2A");
+}
+
 TEST(GraphicsUsagePreviewTest, RoomsUsingSheetMatchesBlocks) {
   std::map<int, std::array<uint8_t, 16>> blocks;
   blocks[1] = {};
@@ -139,8 +155,34 @@ TEST(GraphicsUsagePreviewTest, RoomsUsingSheetMatchesBlocks) {
   EXPECT_EQ(RoomsUsingSheet(blocks, 0x20, true), std::vector<int>({1, 2}));
 }
 
-TEST(GraphicsUsagePreviewTest, IndexedImageRgbaKeepsTransparency) {
-  IndexedImage image;
+TEST(GraphicsUsagePreviewTest, DisplayDiffIncludesPaletteEditsAndMixedFormats) {
+  PreviewImage indexed;
+  indexed.width = 2;
+  indexed.height = 1;
+  indexed.pixels = {1, 2};
+  indexed.colors[1] = {17, 34, 51, 255};
+  indexed.colors[2] = {68, 85, 102, 0};
+  auto recolored = indexed;
+  recolored.colors[1].g = 50;
+  EXPECT_EQ(indexed.CountDifferentPixels(recolored), 1);
+  PreviewImage rgba;
+  rgba.width = 2;
+  rgba.height = 1;
+  rgba.format = PreviewImage::Format::kRgba;
+  rgba.pixels = indexed.ToRgba();
+  EXPECT_EQ(indexed.CountDifferentPixels(rgba), 0);
+  rgba.pixels[2] = 123;
+  EXPECT_EQ(indexed.CountDifferentPixels(rgba), 1);
+  gfx::Bitmap bitmap(2, 1, 32, rgba.pixels);
+  const auto snapshot = SnapshotBitmap(bitmap);
+  EXPECT_EQ(snapshot.format, PreviewImage::Format::kRgba);
+  EXPECT_EQ(snapshot.ToRgba(), rgba.pixels);
+  EXPECT_EQ(snapshot.ToRgba()[7], 0);
+  gfx::Arena::Get().RetireBitmap(bitmap);
+}
+
+TEST(GraphicsUsagePreviewTest, PreviewImageRgbaKeepsTransparency) {
+  PreviewImage image;
   image.width = 2;
   image.height = 1;
   image.pixels = {0, 1};
@@ -178,7 +220,93 @@ TEST(GraphicsUsagePreviewTest, ArenaSnapshotCopiesSheetsForOwnerOnly) {
   arena.set_gfx_sheets_owner(saved_owner);
 }
 
+TEST(GraphicsUsagePreviewTest, SessionSnapshotIgnoresAnotherRomsArena) {
+  SyntheticGame first(1);
+  SyntheticGame second(6);
+  auto& arena = gfx::Arena::Get();
+  const auto* old_owner = arena.gfx_sheets_owner();
+  arena.set_gfx_sheets_owner(&second.game_data);
+  const auto snapshot = SnapshotSessionSheets({0, 222, 999}, &first.game_data);
+  EXPECT_EQ(snapshot.size(), 2u);
+  EXPECT_EQ(snapshot.at(0), std::vector<uint8_t>(kSheetBytes, 1));
+  EXPECT_EQ(snapshot.at(222), std::vector<uint8_t>(kSheetBytes, 1));
+  EXPECT_TRUE(SnapshotSessionSheets({0}, nullptr).empty());
+  arena.set_gfx_sheets_owner(old_owner);
+}
+
 // --- Oracle ROM copy (YAZE_TEST_ROM_OOS) ---------------------------------
+
+TEST(GraphicsUsagePreviewTest, SharedUsesMatchPhysicalTilesAndPaletteSources) {
+  SyntheticGame game(0);
+  const zelda3::PaletteColorAddress shared{
+      zelda3::PaletteAddressGroup::kDungeonMain, 3, 17};
+  GraphicsEditTarget target;
+  target.sheet_id = 0x12;
+  target.tile_index = 9;
+  target.writable_palette = GraphicsPaletteAddressing{};
+  target.writable_palette->owner = &game.game_data;
+  target.writable_palette->row = 3;
+  target.writable_palette->colors[1] = shared;
+  std::vector<RoomTileReference> references = {
+      // Same physical tile in a different VRAM slot, row and orientation.
+      {0, 0x100, static_cast<uint16_t>(0xC000 | (5 << 10) | (4 * 64 + 9)), 0x12,
+       4},
+      // Same VRAM tile number is not the same source sheet.
+      {1, 0x100, static_cast<uint16_t>((3 << 10) | 9), 0x13, 0},
+      // Another tile and row can consume the same palette source address.
+      {2, 0x101, static_cast<uint16_t>((2 << 10) | 8), 0x15, 0},
+      {3, 0x102, static_cast<uint16_t>((3 << 10) | 8), 0x15, 0},
+  };
+  references[2].palette_colors[7] = shared;
+  references[3].palette_colors[1] = zelda3::PaletteColorAddress{
+      zelda3::PaletteAddressGroup::kDungeonMain, 4, 17};
+  references[1].palette_colors[0] =
+      shared;  // Transparency is not a source use.
+  const auto matches =
+      FindSourceObjectUses(references, {target}, &game.game_data);
+  ASSERT_EQ(matches.size(), 2u);
+  EXPECT_EQ(matches[0].object_index, 0u);
+  EXPECT_TRUE(matches[0].shares_pixels);
+  EXPECT_FALSE(matches[0].shares_palette);
+  EXPECT_EQ(matches[1].object_index, 2u);
+  EXPECT_FALSE(matches[1].shares_pixels);
+  EXPECT_TRUE(matches[1].shares_palette);
+
+  zelda3::GameData foreign;
+  const auto foreign_matches =
+      FindSourceObjectUses(references, {target}, &foreign);
+  ASSERT_EQ(foreign_matches.size(), 1u);
+  EXPECT_TRUE(foreign_matches.front().shares_pixels);
+  EXPECT_FALSE(foreign_matches.front().shares_palette);
+}
+
+TEST(GraphicsUsagePreviewTest, SharedUsesGroupByPlacementAndRetainBothReasons) {
+  SyntheticGame game(0);
+  GraphicsEditTarget pixels;
+  pixels.sheet_id = 0x11;
+  pixels.tile_index = 1;
+  GraphicsEditTarget palette;
+  palette.sheet_id = 0x12;
+  palette.tile_index = 2;
+  palette.writable_palette = GraphicsPaletteAddressing{};
+  palette.writable_palette->owner = &game.game_data;
+  palette.writable_palette->colors[1] = zelda3::PaletteColorAddress{
+      zelda3::PaletteAddressGroup::kDungeonMain, 0, 0};
+  std::vector<RoomTileReference> references = {
+      {0, 0x101, 1, 0x11, 0}, {0, 0x101, 3, 0x13, 0}, {1, 0x101, 1, 0x11, 0}};
+  references[1].palette_colors[2] = palette.writable_palette->colors[1];
+  const auto tile_only =
+      FindSourceObjectUses(references, {pixels}, &game.game_data);
+  ASSERT_EQ(tile_only.size(), 2u);
+  EXPECT_FALSE(tile_only.front().shares_palette);
+  const auto pattern =
+      FindSourceObjectUses(references, {pixels, palette}, &game.game_data);
+  ASSERT_EQ(pattern.size(), 2u);
+  EXPECT_TRUE(pattern.front().shares_pixels);
+  EXPECT_TRUE(pattern.front().shares_palette);
+  EXPECT_EQ(pattern.front().references.size(), 2u);
+  EXPECT_EQ(pattern.back().object_index, 1u);
+}
 
 class GraphicsUsagePreviewRomTest : public ::testing::Test {
  protected:
@@ -201,14 +329,374 @@ class GraphicsUsagePreviewRomTest : public ::testing::Test {
   zelda3::GameData game_data_;
 };
 
+TEST_F(GraphicsUsagePreviewRomTest,
+       WritableDungeonPaletteFollowsLoaderRowsAndSelectors) {
+  auto& custom = zelda3::CustomObjectManager::Get();
+  const auto saved = custom.SnapshotState();
+  const absl::Cleanup restore = [&] {
+    custom.RestoreState(saved);
+  };
+  custom.SetTilePatternsSource("");
+  auto room = zelda3::LoadRoomFromRom(&rom_, 5);
+  room.SetGameData(&game_data_);
+  room.SetPalette(0);
+  const int first_id = room.ResolveDungeonPaletteId();
+  int alternate = -1;
+  for (int selector = 1;
+       selector < static_cast<int>(game_data_.paletteset_ids.size());
+       ++selector) {
+    room.SetPalette(selector);
+    if (room.ResolveDungeonPaletteId() != first_id) {
+      alternate = selector;
+      break;
+    }
+  }
+  ASSERT_GE(alternate, 0)
+      << "Fixture has no alternate dungeon palette selector";
+  room.PrepareForRender();
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  auto object = room.GetTileObjects().front();
+  object.EnsureTilesLoaded();
+  object.mutable_tiles().clear();
+  for (int row = 0; row < 8; ++row) {
+    for (int slot : {0, 1, 4})
+      object.mutable_tiles().emplace_back(slot * 64 + 1, row, false, false,
+                                          false);
+  }
+  for (int selector : {0, alternate}) {
+    room.SetPalette(selector);
+    for (uint8_t main : {0x00, 0x20}) {
+      room.PrepareForRender(main);
+      auto context = MakeDungeonGraphicsEditContext(room, object, &game_data_);
+      ASSERT_TRUE(context.ok()) << context.status();
+      ASSERT_EQ(context->targets.size(), 24u);
+      int index = 0;
+      for (int row = 0; row < 8; ++row) {
+        for (int slot : {0, 1, 4}) {
+          const auto& target = context->targets[index++];
+          if (row < 2) {
+            EXPECT_FALSE(target.writable_palette);
+            EXPECT_NE(target.palette_address_limitation.find("HUD"),
+                      std::string::npos);
+            continue;
+          }
+          ASSERT_TRUE(target.writable_palette)
+              << target.palette_address_limitation;
+          EXPECT_TRUE(
+              ValidateGraphicsPaletteAddressing(target, &game_data_).ok());
+          const auto& binding = *target.writable_palette;
+          EXPECT_FALSE(binding.colors[0]);
+          EXPECT_EQ(binding.row, row);
+          EXPECT_EQ(binding.half_offset, room.BackgroundPaletteOffset(slot));
+          for (int raw = 1; raw < 8; ++raw) {
+            ASSERT_TRUE(binding.colors[raw]);
+            const auto& address = *binding.colors[raw];
+            EXPECT_EQ(address.group, zelda3::PaletteAddressGroup::kDungeonMain);
+            EXPECT_EQ(address.palette_index, room.ResolveDungeonPaletteId());
+            EXPECT_EQ(address.color_index,
+                      (row - 2) * 15 + binding.half_offset + raw - 1);
+            auto read = zelda3::ReadPaletteColor(game_data_, address);
+            ASSERT_TRUE(read.ok());
+            EXPECT_EQ(read->snes(), target.palette[raw].snes());
+          }
+        }
+      }
+    }
+  }
+  zelda3::GameData foreign;
+  EXPECT_EQ(
+      MakeDungeonGraphicsEditContext(room, object, &foreign).status().code(),
+      absl::StatusCode::kFailedPrecondition);
+}
+
+TEST(GraphicsUsagePreviewTest,
+     WritablePaletteRefreshIsSessionBoundAndPreservesZero) {
+  zelda3::GameData owner;
+  for (int palette = 0; palette < 2; ++palette) {
+    std::vector<uint16_t> words;
+    for (int color = 0; color < 90; ++color)
+      words.push_back(static_cast<uint16_t>(color + palette * 128));
+    owner.palette_groups.dungeon_main.AddPalette(gfx::SnesPalette(words));
+  }
+  auto resolve = [&](int index) {
+    zelda3::PaletteAddressMap addresses{};
+    const auto colors = zelda3::BuildDungeonRenderPalette(
+        owner.palette_groups.dungeon_main.palette_ref(index), nullptr,
+        &addresses, index);
+    GraphicsEditTarget target;
+    std::vector<gfx::SnesColor> palette;
+    palette.emplace_back(uint16_t{0});
+    for (int raw = 1; raw < 8; ++raw) {
+      const auto color = colors[2 * 16 + 8 + raw];
+      palette.emplace_back(color.r, color.g, color.b);
+    }
+    target.palette = gfx::SnesPalette(palette);
+    ResolveGraphicsPaletteAddressing(target, &owner, addresses, 2, 8);
+    return target;
+  };
+  GraphicsEditContext context;
+  context.owner = &owner;
+  context.targets.push_back(resolve(0));
+  ASSERT_TRUE(context.targets[0].writable_palette);
+  auto refreshed = context;
+  refreshed.targets[0] = resolve(1);
+  ASSERT_TRUE(UpdateGraphicsContextPalettes(context, refreshed).ok());
+  EXPECT_EQ(context.targets[0].writable_palette->colors[1]->palette_index, 1);
+  EXPECT_FALSE(context.targets[0].writable_palette->colors[0]);
+  auto bad = refreshed;
+  bad.targets[0].writable_palette->colors[0] =
+      *bad.targets[0].writable_palette->colors[1];
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  EXPECT_FALSE(context.targets[0].writable_palette->colors[0]);
+  zelda3::GameData foreign;
+  bad = refreshed;
+  bad.owner = &foreign;
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  EXPECT_FALSE(
+      ValidateGraphicsPaletteAddressing(refreshed.targets[0], &foreign).ok());
+  bad = refreshed;
+  bad.targets[0].writable_palette->owner = &foreign;
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  bad = refreshed;
+  bad.targets[0].writable_palette->row = 0;
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  bad = refreshed;
+  bad.targets[0].writable_palette->colors[7].reset();
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  EXPECT_FALSE(zelda3::ReadPaletteColor(
+                   owner, {zelda3::PaletteAddressGroup::kDungeonMain, -1, 0})
+                   .ok());
+  EXPECT_FALSE(zelda3::ReadPaletteColor(
+                   owner, {zelda3::PaletteAddressGroup::kDungeonMain, 0, 90})
+                   .ok());
+  bad = refreshed;
+  bad.targets[0].palette[1] = gfx::SnesColor(uint16_t{0x7FFF});
+  EXPECT_FALSE(UpdateGraphicsContextPalettes(context, bad).ok());
+  EXPECT_EQ(context.targets[0].palette[1].snes(),
+            refreshed.targets[0].palette[1].snes());
+  // Refreshing to an explicitly unbound display source clears old addresses.
+  refreshed.targets[0].writable_palette.reset();
+  refreshed.targets[0].palette_address_limitation = "Project display override";
+  ASSERT_TRUE(UpdateGraphicsContextPalettes(context, refreshed).ok());
+  EXPECT_FALSE(context.targets[0].writable_palette);
+}
+
+TEST_F(GraphicsUsagePreviewRomTest, SourceColorsFollowLoadedEntranceSlots) {
+  auto room = zelda3::LoadRoomFromRom(&rom_, 5);
+  room.SetGameData(&game_data_);
+  room.PrepareForRender();
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  auto object = room.GetTileObjects().front();
+  object.EnsureTilesLoaded();
+  // Tile cache overrides let this object exercise both halves of every slot.
+  object.mutable_tiles().clear();
+  for (int slot = 0; slot < 8; ++slot) {
+    object.mutable_tiles().emplace_back(slot * 64, 2, false, false, false);
+  }
+  // One animated tile is omitted; normal tiles remain available.
+  object.mutable_tiles().emplace_back(0x1B0, 2, false, false, false);
+  for (uint8_t main : {0x00, 0x20}) {
+    room.PrepareForRender(main);
+    const auto context =
+        MakeDungeonGraphicsEditContext(room, object, &game_data_);
+    ASSERT_TRUE(context.ok()) << context.status();
+    // Slot 7's first tile ($1C0) is animated too.
+    ASSERT_EQ(context->targets.size(), 7u);
+    EXPECT_FALSE(context->limitation.empty());
+    for (int slot = 0; slot < 7; ++slot) {
+      const auto& target = context->targets[slot];
+      EXPECT_EQ(target.sheet_id, room.blocks()[slot]);
+      ASSERT_EQ(target.palette.size(), 8u);
+      for (int pixel = 0; pixel < 8; ++pixel) {
+        const int offset = pixel == 0 ? 0 : room.BackgroundPaletteOffset(slot);
+        const auto color = room.rendered_palette()[2 * 16 + offset + pixel];
+        EXPECT_EQ(target.palette[pixel].snes(),
+                  gfx::SnesColor(color.r, color.g, color.b).snes());
+      }
+    }
+    EXPECT_EQ(room.BackgroundPaletteOffset(1), main < 0x20 ? 8 : 0);
+    EXPECT_EQ(room.BackgroundPaletteOffset(4), main < 0x20 ? 0 : 8);
+  }
+}
+
+TEST_F(GraphicsUsagePreviewRomTest,
+       ObjectPatternKeepsAllOrientationsAndPaletteVariants) {
+  auto& manager = zelda3::CustomObjectManager::Get();
+  const auto saved = manager.SnapshotState();
+  const absl::Cleanup restore = [&] {
+    manager.RestoreState(saved);
+  };
+  manager.SetTilePatternsSource("");
+
+  auto room = zelda3::LoadRoomFromRom(&rom_, 0xE6);
+  room.SetGameData(&game_data_);
+  room.PrepareForRender();
+  ASSERT_FALSE(room.GetTileObjects().empty());
+  auto object = room.GetTileObjects().front();
+  object.EnsureTilesLoaded();
+  object.id_ = 0x019;  // Inner diagonal draws to both backgrounds.
+  object.layer_ = zelda3::RoomObject::LayerType::BG2;
+  object.all_bgs_ = false;
+  object.mutable_tiles().clear();
+  for (int orientation = 0; orientation < 4; ++orientation) {
+    object.mutable_tiles().emplace_back(0x049, 2, orientation & 2,
+                                        orientation & 1, false);
+  }
+  // Repeated uses must not produce duplicate editing targets. A distinct
+  // palette row still needs its own target, even on the same source tile.
+  object.mutable_tiles().emplace_back(0x049, 2, false, true, false);
+  object.mutable_tiles().emplace_back(0x049, 3, false, true, false);
+  auto context = MakeDungeonGraphicsEditContext(room, object, &game_data_);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(context->drawing_description, "Both BGs (full)");
+  ASSERT_EQ(context->targets.size(), 2u);
+  const auto& first = context->targets[0];
+  const auto& second = context->targets[1];
+  EXPECT_EQ(first.source_orientation_mask, 0x0F);
+  EXPECT_EQ(first.SourceOrientationLabel(),
+            "Unflipped, Horizontal, Vertical, Horizontal + vertical");
+  EXPECT_EQ(second.source_orientation_mask, 0x02);
+  EXPECT_EQ(second.SourceOrientationLabel(), "Horizontal");
+  EXPECT_EQ(first.sheet_id, second.sheet_id);
+  EXPECT_EQ(first.tile_index, second.tile_index);
+  EXPECT_NE(first.label, second.label);
+  for (size_t row = 2; row <= 3; ++row) {
+    const auto& palette = context->targets[row - 2].palette;
+    for (int pixel = 0; pixel < 8; ++pixel) {
+      const int half = pixel == 0 ? 0 : room.BackgroundPaletteOffset(1);
+      const auto color = room.rendered_palette()[row * 16 + half + pixel];
+      EXPECT_EQ(palette[pixel].snes(),
+                gfx::SnesColor(color.r, color.g, color.b).snes());
+    }
+  }
+
+  object.id_ = 0x000;  // Ordinary placement on BG2.
+  object.all_bgs_ = false;
+  context = MakeDungeonGraphicsEditContext(room, object, &game_data_);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(context->drawing_description, "BG2 (stored placement)");
+  object.id_ = 0xFA6;  // Stairs split their drawing between BG1 and BG2.
+  context = MakeDungeonGraphicsEditContext(room, object, &game_data_);
+  ASSERT_TRUE(context.ok()) << context.status();
+  EXPECT_EQ(context->drawing_description, "Mixed BG1/BG2");
+  EXPECT_EQ(GraphicsEditTarget{}.SourceOrientationLabel(), "");
+}
+
 // D1 (Mushroom Grotto) entrance room 0x4A: edit one pixel of a background
 // sheet an object draws from; the room preview must change and the shared
 // graphics buffer must not.
+TEST_F(GraphicsUsagePreviewRomTest, RoomContextOwnershipAndFallback) {
+  constexpr int kRoom = 0x89;
+  RoomUsagePreview preview;
+  ASSERT_TRUE(preview.Render(&rom_, &game_data_, kRoom, {}, false).ok());
+  const auto original_blocks = preview.blocks();
+  const auto original_image = preview.Snapshot();
+  auto live = zelda3::LoadRoomFromRom(&rom_, kRoom);
+  live.SetGameData(&game_data_);
+  live.SetBlockset(live.blockset() == 1 ? 2 : 1);
+  ASSERT_TRUE(preview.Render(&rom_, &game_data_, kRoom, {}, false, &live).ok());
+  EXPECT_EQ(preview.blocks(), live.blocks());
+  EXPECT_NE(preview.blocks(), original_blocks);
+  EXPECT_GT(preview.Snapshot().CountDifferentPixels(original_image), 0);
+  std::set<size_t> attributed;
+  for (const auto& use : preview.tile_references()) {
+    ASSERT_LT(use.object_index, live.GetTileObjects().size());
+    ASSERT_GE(use.slot, 0);
+    ASSERT_LT(use.slot, 8);
+    EXPECT_EQ(use.sheet, live.blocks()[use.slot]);
+    EXPECT_EQ(use.slot, (use.tile_word & 0x3FF) / 64);
+    attributed.insert(use.object_index);
+  }
+  EXPECT_EQ(preview.unknown_objects(),
+            live.GetTileObjects().size() - attributed.size());
+  ASSERT_TRUE(preview.Render(&rom_, &game_data_, kRoom, {}, false).ok());
+  EXPECT_EQ(preview.blocks(), original_blocks);
+  EXPECT_EQ(preview.Snapshot().CountDifferentPixels(original_image), 0);
+
+  Rom other_rom;
+  ASSERT_TRUE(other_rom.LoadFromData(rom_.vector()).ok());
+  zelda3::GameData other_data;
+  ASSERT_TRUE(zelda3::LoadGameData(other_rom, other_data).ok());
+  const auto rejected =
+      preview.Render(&other_rom, &other_data, kRoom, {}, false, &live);
+  EXPECT_EQ(rejected.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(preview.room_id(), -1);
+  ASSERT_TRUE(preview.Render(&other_rom, &other_data, kRoom, {}, false).ok());
+  EXPECT_EQ(preview.blocks(), original_blocks);
+  EXPECT_EQ(preview.Snapshot().CountDifferentPixels(original_image), 0);
+  preview.Reset();
+  EXPECT_TRUE(preview.tile_references().empty());
+  EXPECT_EQ(preview.unknown_objects(), 0);
+}
+
+TEST_F(GraphicsUsagePreviewRomTest,
+       SharedUsesScanOnlyLoadedSessionRoomsAndFollowUnsavedAssignments) {
+  auto room = zelda3::LoadRoomFromRom(&rom_, 0x89);
+  room.SetGameData(&game_data_);
+  RoomUsagePreview trace;
+  ASSERT_TRUE(trace.TraceLoadedRoom(&rom_, &game_data_, &room).ok());
+  ASSERT_FALSE(trace.tile_references().empty());
+  const auto original_references = trace.tile_references();
+  const auto reference = trace.tile_references().front();
+  GraphicsEditTarget target;
+  target.sheet_id = reference.sheet;
+  target.tile_index = reference.tile_word & 0x3F;
+  const auto original_rom = rom_.vector();
+  const auto original_pixels = game_data_.graphics_buffer;
+  room.MarkHeaderDirty();
+  auto scanned =
+      FindLoadedRoomSourceUses(&rom_, &game_data_, {{0x89, {&room}}}, {target});
+  ASSERT_EQ(scanned.size(), 1u);
+  EXPECT_EQ(scanned[0].room_id, 0x89);
+  EXPECT_TRUE(scanned[0].error.empty());
+  EXPECT_FALSE(scanned[0].objects.empty());
+  EXPECT_TRUE(room.header_dirty());
+  EXPECT_EQ(rom_.vector(), original_rom);
+  EXPECT_EQ(game_data_.graphics_buffer, original_pixels);
+
+  // Change the unsaved main blockset and find a traced slot it changes. The
+  // same VRAM tile must resolve to the replacement sheet.
+  std::optional<RoomTileReference> changed_reference;
+  for (int main = 0;
+       main < static_cast<int>(game_data_.main_blockset_ids.size()); ++main) {
+    room.SetBlockset(main);
+    room.LoadRoomGraphics();
+    for (const auto& use : original_references) {
+      if (room.blocks()[use.slot] != use.sheet) {
+        changed_reference = use;
+        break;
+      }
+    }
+    if (changed_reference)
+      break;
+  }
+  ASSERT_TRUE(changed_reference.has_value());
+  ASSERT_TRUE(trace.TraceLoadedRoom(&rom_, &game_data_, &room).ok());
+  const auto updated = std::find_if(
+      trace.tile_references().begin(), trace.tile_references().end(),
+      [&](const auto& use) {
+        return use.object_index == changed_reference->object_index &&
+               use.tile_word == changed_reference->tile_word;
+      });
+  ASSERT_NE(updated, trace.tile_references().end());
+  EXPECT_EQ(updated->sheet, room.blocks()[changed_reference->slot]);
+  EXPECT_NE(updated->sheet, changed_reference->sheet);
+
+  zelda3::GameData foreign;
+  const auto refused = FindLoadedRoomSourceUses(
+      &rom_, &foreign, {{0x89, {&room}}, {0x88, {nullptr}}}, {target});
+  ASSERT_EQ(refused.size(), 2u);
+  for (const auto& result : refused) {
+    EXPECT_FALSE(result.error.empty());
+    EXPECT_TRUE(result.objects.empty());
+  }
+}
+
 TEST_F(GraphicsUsagePreviewRomTest, D1RoomPreviewShowsOnePixelEdit) {
   constexpr int kRoom = 0x4A;
   RoomUsagePreview preview;
   ASSERT_TRUE(preview.Render(&rom_, &game_data_, kRoom, {}, false).ok());
-  const IndexedImage before = preview.Snapshot();
+  const PreviewImage before = preview.Snapshot();
   DumpBmp(before, "room_4a_before");
 
   // Pick the first background sheet with an object drawing from it, and the
@@ -254,7 +742,7 @@ TEST_F(GraphicsUsagePreviewRomTest, D1RoomPreviewShowsOnePixelEdit) {
 
   ASSERT_TRUE(
       preview.Render(&rom_, &game_data_, kRoom, {{sheet, edited}}, false).ok());
-  const IndexedImage after = preview.Snapshot();
+  const PreviewImage after = preview.Snapshot();
   DumpBmp(after, "room_4a_after");
   const int changed = after.CountDifferentPixels(before);
   std::cout << "room 0x4A sheet 0x" << std::hex << sheet << " tile 0x"
@@ -294,7 +782,7 @@ TEST_F(GraphicsUsagePreviewRomTest, StalfosPreviewShowsOnePixelEdit) {
   ASSERT_TRUE(
       preview.Configure(&rom_, &game_data_, spriteset, stalfos_room).ok());
   preview.SetVanillaSprite(0xA7);
-  const IndexedImage before = preview.RenderFrame({});
+  const PreviewImage before = preview.RenderFrame({});
   ASSERT_FALSE(before.empty());
   DumpBmp(before, "stalfos_before");
 
@@ -305,7 +793,7 @@ TEST_F(GraphicsUsagePreviewRomTest, StalfosPreviewShowsOnePixelEdit) {
   const int px = 6 * 8 + 4;
   const int py = 4;
   edited[py * 128 + px] = edited[py * 128 + px] == 3 ? 5 : 3;
-  const IndexedImage after = preview.RenderFrame({{sheet, edited}});
+  const PreviewImage after = preview.RenderFrame({{sheet, edited}});
   DumpBmp(after, "stalfos_after");
   const int changed = after.CountDifferentPixels(before);
   std::cout << "stalfos room 0x" << std::hex << stalfos_room << " spriteset 0x"
@@ -337,7 +825,7 @@ TEST_F(GraphicsUsagePreviewRomTest, Tile16PreviewShowsOnePixelEdit) {
   }
   ASSERT_GE(tile, 0);
   std::vector<SDL_Rect> highlights;
-  const IndexedImage before =
+  const PreviewImage before =
       preview.Render({}, tile16s, sheet, tile, &highlights);
   ASSERT_FALSE(before.empty());
   EXPECT_FALSE(highlights.empty());
@@ -347,7 +835,7 @@ TEST_F(GraphicsUsagePreviewRomTest, Tile16PreviewShowsOnePixelEdit) {
   const int px = (tile % 16) * 8 + 2;
   const int py = (tile / 16) * 8 + 2;
   edited[py * 128 + px] = edited[py * 128 + px] == 6 ? 2 : 6;
-  const IndexedImage after =
+  const PreviewImage after =
       preview.Render({{sheet, edited}}, tile16s, sheet, tile);
   DumpBmp(after, "tile16_after");
   std::cout << "area 0x00 sheet 0x" << std::hex << sheet << " tile 0x" << tile

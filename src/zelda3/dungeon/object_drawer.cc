@@ -19,6 +19,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_parser.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -116,8 +117,12 @@ void PromoteTilePriorityOnOwners(gfx::BackgroundBuffer& object_owner,
 }  // namespace
 
 ObjectDrawer::ObjectDrawer(Rom* rom, int room_id,
-                           const uint8_t* room_gfx_buffer)
-    : rom_(rom), room_id_(room_id), room_gfx_buffer_(room_gfx_buffer) {
+                           const uint8_t* room_gfx_buffer,
+                           const CustomObjectRenderSnapshot* custom_objects)
+    : custom_objects_(custom_objects),
+      rom_(rom),
+      room_id_(room_id),
+      room_gfx_buffer_(room_gfx_buffer) {
   InitializeDrawRoutines();
 }
 
@@ -235,6 +240,7 @@ void ObjectDrawer::DrawUsingRegistryRoutine(
       .secondary_bg = registry_secondary_bg_,
       .target_layout_bg = registry_primary_layout_bg_,
       .room_tag2 = room_tag2_,
+      .custom_objects = custom_objects_,
   };
   info->function(ctx);
 
@@ -297,7 +303,12 @@ absl::Status ObjectDrawer::DrawObject(
 
   // Check for custom object override first (guarded by feature flag).
   // We check this BEFORE routine lookup to allow overriding vanilla objects.
-  if (HasActiveCustomObjectOverride(object)) {
+  const bool custom_override =
+      custom_objects_ != nullptr
+          ? custom_objects_->enabled() &&
+                custom_objects_->GetObject(object.id_, object.size_ & 0x1F).ok()
+          : HasActiveCustomObjectOverride(object);
+  if (custom_override) {
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
 
@@ -359,6 +370,22 @@ absl::Status ObjectDrawer::DrawObject(
 
   std::array<gfx::TileInfo, 8> room_floor_tiles;
   std::span<const gfx::TileInfo> render_tiles = mutable_obj.tiles();
+  // Keep source patterns out of the RoomObject cache and ROM save path. Worker
+  // draws use their immutable snapshot rather than the active session.
+  auto patterns = custom_objects_ != nullptr
+                      ? custom_objects_->tile_patterns()
+                      : CustomObjectManager::Get().GetTilePatterns();
+  if (!patterns.ok())
+    return patterns.status();
+  std::vector<gfx::TileInfo> source_tiles;
+  if (*patterns) {
+    ObjectParser parser(rom_, patterns->get());
+    auto parsed = parser.ParseObject(object.id_);
+    if (!parsed.ok())
+      return parsed.status();
+    source_tiles = std::move(*parsed);
+    render_tiles = source_tiles;
+  }
   if (has_room_floor_graphics_ &&
       (object.id_ == 0x00C4 || object.id_ == 0x00DB)) {
     const uint8_t floor_graphics =
@@ -1664,7 +1691,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
 
 int ObjectDrawer::GetDrawRoutineId(int16_t object_id) const {
   // Delegate to the unified registry for the canonical mapping
-  return DrawRoutineRegistry::Get().GetRoutineIdForObject(object_id);
+  const auto& registry = DrawRoutineRegistry::Get();
+  return custom_objects_ != nullptr ? registry.GetRoutineIdForObject(
+                                          object_id, custom_objects_->enabled())
+                                    : registry.GetRoutineIdForObject(object_id);
 }
 
 // ============================================================================
@@ -3449,19 +3479,16 @@ void yaze::zelda3::ObjectDrawer::DrawCustomObject(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     [[maybe_unused]] std::span<const gfx::TileInfo> tiles,
     [[maybe_unused]] const DungeonState* state) {
-  // CustomObjectManager should be initialized by DungeonEditorV2 with the
-  // project's custom_objects_folder path before any objects are drawn
-  auto& manager = CustomObjectManager::Get();
-
-  int subtype = obj.size_ & 0x1F;
-  const std::string filename = manager.ResolveFilename(obj.id_, subtype);
-  auto result = manager.GetObjectInternal(obj.id_, subtype);
+  const int subtype = obj.size_ & 0x1F;
+  absl::StatusOr<std::shared_ptr<const CustomObject>> result =
+      custom_objects_ != nullptr
+          ? custom_objects_->GetObject(obj.id_, subtype)
+          : absl::StatusOr<std::shared_ptr<const CustomObject>>(
+                CustomObjectManager::Get().GetObjectInternal(obj.id_, subtype));
   if (!result.ok()) {
     DrawMissingCustomObjectPlaceholder(bg, obj.x_, obj.y_);
-    LOG_DEBUG("ObjectDrawer",
-              "Custom object 0x%03X subtype %d (%s) not found: %s", obj.id_,
-              subtype, filename.empty() ? "<unmapped>" : filename.c_str(),
-              result.status().message().data());
+    LOG_DEBUG("ObjectDrawer", "Custom object 0x%03X subtype %d not found: %s",
+              obj.id_, subtype, result.status().message().data());
     return;
   }
 

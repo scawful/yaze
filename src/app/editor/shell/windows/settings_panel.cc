@@ -1,4 +1,6 @@
 #include "app/editor/shell/windows/settings_panel.h"
+
+#include "app/gui/automation/widget_id_registry.h"
 #include "util/i18n/tr.h"
 
 #include <algorithm>
@@ -288,6 +290,9 @@ absl::Status SettingsPanel::RequestOpenMinecartTracks() {
 }
 
 void SettingsPanel::Draw() {
+  if (project_provider_) {
+    project_ = project_provider_();
+  }
   if (!user_settings_) {
     ImGui::TextDisabled(tr("Settings not available"));
     return;
@@ -298,6 +303,8 @@ void SettingsPanel::Draw() {
   ImGui::InputTextWithHint("##SettingsSearch",
                            ICON_MD_SEARCH " Search settings",
                            settings_search_.data(), settings_search_.size());
+  gui::WidgetIdRegistry::Instance().RegisterWidget("Settings/input:Search",
+                                                   "input", ImGui::GetItemID());
 
   const auto categories =
       FilterCategories(active_scope_, settings_search_.data());
@@ -331,7 +338,6 @@ void SettingsPanel::Draw() {
   }
 
   DrawCategoryNavigation(categories, true);
-  ImGui::Separator();
   DrawCategoryContent(active_category_);
 }
 
@@ -342,7 +348,11 @@ void SettingsPanel::DrawScopeTabs() {
   for (const Scope scope :
        {Scope::kApplication, Scope::kWorkspace, Scope::kProject}) {
     const bool selected = active_scope_ == scope;
-    if (ImGui::BeginTabItem(ScopeLabel(scope))) {
+    const bool tab_open = ImGui::BeginTabItem(ScopeLabel(scope));
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        std::string("Settings/tab:") + ScopeLabel(scope), "tab",
+        ImGui::GetItemID());
+    if (tab_open) {
       if (!selected) {
         active_scope_ = scope;
         active_category_.clear();
@@ -542,18 +552,19 @@ void SettingsPanel::DrawProjectSettings() {
     project_->Save();
   }
 
-  static std::string cached_rom_hash;
-  static std::string cached_rom_path;
   if (rom_ && rom_->is_loaded()) {
-    if (cached_rom_path != rom_->filename()) {
-      cached_rom_path = rom_->filename();
-      cached_rom_hash = util::ComputeRomHash(rom_->data(), rom_->size());
-    }
-    ImGui::Text(tr("Current ROM Hash: %s"), cached_rom_hash.empty()
-                                                ? "(unknown)"
-                                                : cached_rom_hash.c_str());
-    if (ImGui::Button(tr("Use Current ROM Hash"))) {
-      project_->rom_metadata.expected_hash = cached_rom_hash;
+    // Use the identity checked by save policy, not a separately cached hash of
+    // the editor's mutable ROM buffer (which may already contain edits).
+    const auto current_hash =
+        rom_hash_provider_ ? rom_hash_provider_()
+                           : util::ComputeRomHash(rom_->data(), rom_->size());
+    ImGui::Text(tr("Current ROM Hash: %s"),
+                current_hash.empty() ? "(unknown)" : current_hash.c_str());
+    const bool use_hash = ImGui::Button(tr("Use Current ROM Hash"));
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Settings/button:Use Current ROM Hash", "button", ImGui::GetItemID());
+    if (use_hash && !current_hash.empty()) {
+      project_->rom_metadata.expected_hash = current_hash;
       project_->Save();
     }
   } else {
@@ -1310,6 +1321,20 @@ void SettingsPanel::DrawEditorBehavior() {
     ImGui::SetTooltip(
         tr("From the next launch: no welcome screen, no editor picker, and "
            "the local test server starts on port 50052 (builds with gRPC)."));
+  }
+
+  ImGui::Spacing();
+  ImGui::Text(tr("%s Onboarding Tips"), ICON_MD_LIGHTBULB);
+  ImGui::Separator();
+  if (ImGui::Checkbox(tr("Show feature tips (ZScream migration, etc.)"),
+                      &user_settings_->prefs().feature_hints_enabled)) {
+    user_settings_->Save();
+  }
+  ImGui::TextDisabled(tr("%zu tip(s) already dismissed"),
+                      user_settings_->prefs().dismissed_feature_hints.size());
+  if (ImGui::Button(tr("Reset dismissed tips"))) {
+    user_settings_->prefs().dismissed_feature_hints.clear();
+    user_settings_->Save();
   }
 }
 

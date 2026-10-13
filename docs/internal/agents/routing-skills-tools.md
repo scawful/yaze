@@ -24,6 +24,11 @@ Notes:
   [the capability plan](../plans/editor-capability-parity-plan.md) before
   selecting a work package. Current source overrides dated skill examples;
   repository presets keep the default build parallelism at four workers.
+- Adding or changing an editor window (`WindowContent`, `REGISTER_PANEL`,
+  `RegisterWindowContent`) loads "Panel admission" in
+  [editor-ui-module-pattern.md](../architecture/editor-ui-module-pattern.md#panel-admission)
+  first: every window declares a `WindowPresentationPolicy`, and
+  `scripts/audit_panel_policies.py` plus `panel_admission_test` fail without one.
 - If a skill is unavailable in the active session, continue with direct CLI workflows.
 - Do not preload unrelated skills “just in case”.
 - For SpriteEditor, sprite catalog, subtype, or custom sprite migration work, read

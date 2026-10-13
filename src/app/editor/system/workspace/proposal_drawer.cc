@@ -1,6 +1,7 @@
 #include "app/editor/system/workspace/proposal_drawer.h"
 #include "util/i18n/tr.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -46,7 +47,12 @@ void ProposalDrawer::DrawContent() {
   ImGui::Separator();
 
   // Split view: proposal list on top, details on bottom
-  float list_height = ImGui::GetContentRegionAvail().y * 0.4f;
+  const float avail_y = std::max(0.0f, ImGui::GetContentRegionAvail().y);
+  const float detail_reserve =
+      selected_proposal_ ? std::min(120.0f, avail_y * 0.4f) : 0.0f;
+  const float list_budget = std::max(0.0f, avail_y - detail_reserve);
+  const float preferred_list = std::clamp(avail_y * 0.45f, 180.0f, 320.0f);
+  const float list_height = std::min(preferred_list, list_budget);
 
   ImGui::BeginChild("ProposalListEmbed", ImVec2(0, list_height), true);
   DrawProposalList();

@@ -84,8 +84,9 @@ class TileObjectHandler : public BaseEntityHandler {
 
   /**
    * @brief Move a set of objects by a tile delta.
+   * @return True only when an encodable batch changed the room.
    */
-  void MoveObjects(int room_id, const std::vector<size_t>& indices, int delta_x,
+  bool MoveObjects(int room_id, const std::vector<size_t>& indices, int delta_x,
                    int delta_y, bool notify_mutation = true);
 
   /**
@@ -137,6 +138,11 @@ class TileObjectHandler : public BaseEntityHandler {
                                  const std::vector<chest_data>&)>;
   void SetObjectMutationPreflight(ObjectMutationPreflight callback) {
     object_mutation_preflight_ = std::move(callback);
+  }
+  // Runs only after a discrete command passes preflight, before publishing it.
+  // Continuous drag increments must not finish their own gesture.
+  void SetBeforeObjectCommandCallback(std::function<void()> callback) {
+    before_object_command_callback_ = std::move(callback);
   }
   const absl::Status& mutation_status() const { return mutation_status_; }
   void SetMutationErrorCallback(
@@ -235,7 +241,7 @@ class TileObjectHandler : public BaseEntityHandler {
  private:
   // Placement state
   bool object_placement_mode_ = false;
-  PlacementPolicy placement_policy_ = PlacementPolicy::kRepeat;
+  PlacementPolicy placement_policy_ = PlacementPolicy::kOnce;
   std::function<void(const zelda3::RoomObject&)> placement_callback_;
   PlacementBlockReason placement_block_reason_ = PlacementBlockReason::kNone;
   zelda3::RoomObject preview_object_{-1, 0, 0, 0};
@@ -251,6 +257,7 @@ class TileObjectHandler : public BaseEntityHandler {
   absl::Status clipboard_status_;
   absl::Status mutation_status_;
   ObjectMutationPreflight object_mutation_preflight_;
+  std::function<void()> before_object_command_callback_;
   std::function<void(const absl::Status&)> mutation_error_callback_;
   bool RejectMutation(absl::Status status);
 
@@ -270,6 +277,7 @@ class TileObjectHandler : public BaseEntityHandler {
   int drag_last_dy_ = 0;
   bool drag_has_duplicated_ = false;
   bool drag_mutation_started_ = false;
+  std::optional<std::pair<int, int>> drag_rejected_delta_;
 
   ImVec2 ApplyDragModifiers(const ImVec2& delta) const;
   void DrawSmartGuides(const std::vector<zelda3::RoomObject>& objects) const;

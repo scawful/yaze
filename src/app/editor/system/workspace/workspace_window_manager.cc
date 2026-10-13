@@ -663,6 +663,17 @@ void WorkspaceWindowManager::RegisterWindowContent(
     instance_id = MakeWindowId(active_session_, panel_id, panel->GetScope());
   }
 
+  // An editor may pre-register a descriptor that names no presentation policy
+  // and then register the content that does. The content's declared policy
+  // fills the gap; a descriptor that already declared one keeps it.
+  if (descriptor_preexisting && presentation.declared) {
+    if (auto descriptor_it = cards_.find(instance_id);
+        descriptor_it != cards_.end() &&
+        !descriptor_it->second.presentation.declared) {
+      descriptor_it->second.presentation = presentation;
+    }
+  }
+
   // Descriptors created here must not capture the first content instance.
   // Resolve IsEnabled through the owning slot so same-session reloads can
   // replace content without leaving a dangling callback. Descriptors that an
@@ -1551,8 +1562,10 @@ void WorkspaceWindowManager::ResetToDefaults(size_t session_id,
     return;
   }
 
-  // Hide all cards in this category first
-  HideAllWindowsInCategory(session_id, category);
+  // Publish every close so the next editor switch cannot restore stale prefs.
+  for (const auto& window : GetWindowsInCategory(session_id, category)) {
+    CloseWindow(session_id, window.card_id);
+  }
 
   // Get default cards from LayoutPresets
   auto default_panels = LayoutPresets::GetDefaultPanels(editor_type);

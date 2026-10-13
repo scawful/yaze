@@ -1,0 +1,255 @@
+Overworld allocation: <memory> (1048576 bytes)
+Layout: ASM version 0xFF, vanilla tables; TailMapExpansion marker absent
+
+Summary
+  world         range     used  free  free+map free-no-map
+  light         $00-$3F     64     0         0           0
+  dark          $40-$7F     64     0         0           0
+  special       $80-$9F     15    17        17           0
+  special_tail  $A0-$BF      0    32         0          32
+
+Per-area tables (a read past the last entry returns the data after the table)
+  table                    location            bytes  covers   read for past the end
+  map32_high               $02:F94D 0x01794D       3  $00-$9F  $00-$BF  Map32 pointers (low bytes) at $02:FB2D
+  map32_low                $02:FB2D 0x017B2D       3  $00-$9F  $00-$BF  code (LoadSubscreenOverlay) at $02:FD0D
+  area_size                $02:F88D 0x01788D       1  $00-$BF  $00-$BF  Map32 pointers (high bytes) at $02:F94D
+  parent                   $02:A5EC 0x0125EC       1  $00-$7F  $00-$BF  OverworldScreenTilemapChange at $02:A62C
+  area_gfx                 $00:FC9C 0x007C9C       1  $00-$7F  $00-$BF  the area palette table at $00:FD1C
+  area_palette             $00:FD1C 0x007D1C       1  $00-$87  $00-$BF  code (ResetStarTileGraphics) at $00:FDA4
+  sw_sprite_gfx            $02:E811 0x016811       1  $80-$8F  $80-$BF  special-world area GFX at $02:E821
+  sw_entry_gfx             $02:E821 0x016821       1  $80-$8F  $80-$BF  palette_prop_a at $02:E831
+  sw_palette_a             $02:E831 0x016831       1  $80-$8F  $80-$BF  palette_prop_b at $02:E841
+  sw_palette_b             $02:E841 0x016841       1  $80-$8F  $80-$BF  code (LoadSpecialOverworld) at $02:E851
+  sign_message             $07:F51D 0x03F51D       2  $00-$8F  $00-$BF  data after the table at $07:F63D
+  music_lw                 $02:C303 0x014303       1  $00-$3F  $00-$3F  the next game state's copy (+$40)
+  music_dw_sw              $02:C403 0x014403       1  $40-$9F  $40-$BF  code (AdjustOverworldAmbiance) at $02:C463
+  hidden_items             $1B:C2F9 0x0DC2F9       2  $00-$7F  $00-$BF  hidden item data
+  area_flags               $7E:F280 RAM            1  $00-$7F  $00-$BF  $7E:F300+, save data past the 0x80-byte area block
+  13 of 15 tables are read for $A0 but stop before it.
+
+Areas (map: data/blank/=dup/invalid/none; miss = tables read for the ID that have no entry for it)
+  id   world   used parent size  map     tile32  ent hole exit  spr miss  evidence
+  $00  light   yes  $00    large data      256    0    0    0    0    0  map data (256 unique tile32); large area, parent $00
+  $01  light   yes  $00    large =$00      256    0    0    0    0    0  map data (256 unique tile32); large area, parent $00
+  $02  light   yes  $02    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $03  light   yes  $03    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $04  light   yes  $04    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $05  light   yes  $05    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $06  light   yes  $06    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $07  light   yes  $07    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $08  light   yes  $00    large =$00      256    0    0    0    0    0  map data (256 unique tile32); large area, parent $00
+  $09  light   yes  $00    large =$00      256    0    0    0    0    0  map data (256 unique tile32); large area, parent $00
+  $0A  light   yes  $0A    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $0B  light   yes  $0B    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $0C  light   yes  $0C    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $0D  light   yes  $0D    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $0E  light   yes  $0E    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $0F  light   yes  $0F    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $10  light   yes  $10    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $11  light   yes  $11    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $12  light   yes  $12    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $13  light   yes  $13    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $14  light   yes  $14    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $15  light   yes  $15    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $16  light   yes  $16    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $17  light   yes  $17    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $18  light   yes  $18    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $19  light   yes  $19    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $1A  light   yes  $1A    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $1B  light   yes  $1B    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $1C  light   yes  $1C    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $1D  light   yes  $1D    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $1E  light   yes  $1E    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $1F  light   yes  $1F    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $20  light   yes  $20    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $21  light   yes  $21    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $22  light   yes  $22    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $23  light   yes  $23    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $24  light   yes  $24    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $25  light   yes  $25    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $26  light   yes  $26    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $27  light   yes  $27    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $28  light   yes  $28    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $29  light   yes  $29    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $2A  light   yes  $2A    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $2B  light   yes  $2B    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $2C  light   yes  $2C    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $2D  light   yes  $2D    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $2E  light   yes  $2E    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $2F  light   yes  $2F    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $30  light   yes  $30    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $31  light   yes  $31    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $32  light   yes  $32    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $33  light   yes  $33    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $34  light   yes  $34    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $35  light   yes  $35    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $36  light   yes  $36    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $37  light   yes  $37    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $38  light   yes  $38    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $39  light   yes  $39    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $3A  light   yes  $3A    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $3B  light   yes  $3B    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $3C  light   yes  $3C    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $3D  light   yes  $3D    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $3E  light   yes  $3E    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $3F  light   yes  $3F    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $40  dark    yes  $40    large =$00      256    0    0    0    0    0  map data (256 unique tile32); large area, parent $40
+  $41  dark    yes  $40    large =$00      256    0    0    0    0    0  map data (256 unique tile32); large area, parent $40
+  $42  dark    yes  $42    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $43  dark    yes  $43    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $44  dark    yes  $44    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $45  dark    yes  $45    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $46  dark    yes  $46    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $47  dark    yes  $47    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $48  dark    yes  $40    large =$00      256    0    0    0    0    0  map data (256 unique tile32); large area, parent $40
+  $49  dark    yes  $40    large =$00      256    0    0    0    0    0  map data (256 unique tile32); large area, parent $40
+  $4A  dark    yes  $4A    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $4B  dark    yes  $4B    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $4C  dark    yes  $4C    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $4D  dark    yes  $4D    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $4E  dark    yes  $4E    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $4F  dark    yes  $4F    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $50  dark    yes  $50    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $51  dark    yes  $51    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $52  dark    yes  $52    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $53  dark    yes  $53    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $54  dark    yes  $54    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $55  dark    yes  $55    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $56  dark    yes  $56    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $57  dark    yes  $57    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $58  dark    yes  $58    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $59  dark    yes  $59    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $5A  dark    yes  $5A    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $5B  dark    yes  $5B    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $5C  dark    yes  $5C    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $5D  dark    yes  $5D    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $5E  dark    yes  $5E    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $5F  dark    yes  $5F    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $60  dark    yes  $60    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $61  dark    yes  $61    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $62  dark    yes  $62    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $63  dark    yes  $63    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $64  dark    yes  $64    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $65  dark    yes  $65    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $66  dark    yes  $66    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $67  dark    yes  $67    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $68  dark    yes  $68    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $69  dark    yes  $69    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $6A  dark    yes  $6A    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $6B  dark    yes  $6B    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $6C  dark    yes  $6C    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $6D  dark    yes  $6D    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $6E  dark    yes  $6E    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $6F  dark    yes  $6F    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $70  dark    yes  $70    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $71  dark    yes  $71    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $72  dark    yes  $72    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $73  dark    yes  $73    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $74  dark    yes  $74    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $75  dark    yes  $75    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $76  dark    yes  $76    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $77  dark    yes  $77    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $78  dark    yes  $78    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $79  dark    yes  $79    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $7A  dark    yes  $7A    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $7B  dark    yes  $7B    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $7C  dark    yes  $7C    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $7D  dark    yes  $7D    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $7E  dark    yes  $7E    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $7F  dark    yes  $7F    small =$00      256    0    0    0    0    0  map data (256 unique tile32)
+  $80  special yes  $80    small =$00      256    0    0    1    0    4  map data (256 unique tile32); 1 exit
+  $81  special yes  $81    large =$00      256    1    0    0    0    4  map data (256 unique tile32); large area, parent $81; 1 entrance
+  $82  special yes  $81    large =$00      256    0    0    0    0    4  map data (256 unique tile32); large area, parent $81
+  $83  special no   $83    small blank       1    0    0    0    0    4  -
+  $84  special no   $84    small =$83        1    0    0    0    0    4  -
+  $85  special no   $85    small =$83        1    0    0    0    0    4  -
+  $86  special no   $86    small =$83        1    0    0    0    0    4  -
+  $87  special no   $87    small =$83        1    0    0    0    0    4  -
+  $88  special yes  $88    small =$00      256    0    0    0    0    5  map data (256 unique tile32)
+  $89  special yes  $81    large =$00      256    0    0    0    0    5  map data (256 unique tile32); large area, parent $81
+  $8A  special yes  $81    large =$00      256    0    0    0    0    5  map data (256 unique tile32); large area, parent $81
+  $8B  special no   $8B    small =$83        1    0    0    0    0    5  -
+  $8C  special no   $8C    small =$83        1    0    0    0    0    5  -
+  $8D  special no   $8D    small =$83        1    0    0    0    0    5  -
+  $8E  special no   $8E    small =$83        1    0    0    0    0    5  -
+  $8F  special no   $8F    small =$83        1    0    0    0    0    5  -
+  $90  special no   $90    small =$83        1    0    0    0    0   10  -
+  $91  special no   $91    small =$83        1    0    0    0    0   10  -
+  $92  special no   $92    small =$83        1    0    0    0    0   10  -
+  $93  special yes  $93    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $94  special yes  $94    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $95  special yes  $95    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $96  special yes  $96    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $97  special yes  $97    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $98  special no   $98    small =$83        1    0    0    0    0   10  -
+  $99  special no   $99    small =$83        1    0    0    0    0   10  -
+  $9A  special no   $9A    small =$83        1    0    0    0    0   10  -
+  $9B  special no   $9B    small =$83        1    0    0    0    0   10  -
+  $9C  special yes  $9C    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $9D  special yes  $9D    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $9E  special yes  $9E    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $9F  special yes  $9F    small =$83        1    0    0    0    0   10  overlay ID named in code
+  $A0  special no   --     small none        -    0    0    0    0   13  -
+  $A1  special no   --     small none        -    0    0    0    0   13  -
+  $A2  special no   --     small none        -    0    0    0    0   13  -
+  $A3  special no   --     small none        -    0    0    0    0   13  -
+  $A4  special no   --     small none        -    0    0    0    0   13  -
+  $A5  special no   --     small none        -    0    0    0    0   13  -
+  $A6  special no   --     small none        -    0    0    0    0   13  -
+  $A7  special no   --     small none        -    0    0    0    0   13  -
+  $A8  special no   --     small none        -    0    0    0    0   13  -
+  $A9  special no   --     small none        -    0    0    0    0   13  -
+  $AA  special no   --     small none        -    0    0    0    0   13  -
+  $AB  special no   --     small none        -    0    0    0    0   13  -
+  $AC  special no   --     small none        -    0    0    0    0   13  -
+  $AD  special no   --     small none        -    0    0    0    0   13  -
+  $AE  special no   --     small none        -    0    0    0    0   13  -
+  $AF  special no   --     small none        -    0    0    0    0   13  -
+  $B0  special no   --     small none        -    0    0    0    0   13  -
+  $B1  special no   --     small none        -    0    0    0    0   13  -
+  $B2  special no   --     small none        -    0    0    0    0   13  -
+  $B3  special no   --     small none        -    0    0    0    0   13  -
+  $B4  special no   --     small none        -    0    0    0    0   13  -
+  $B5  special no   --     small none        -    0    0    0    0   13  -
+  $B6  special no   --     small none        -    0    0    0    0   13  -
+  $B7  special no   --     small none        -    0    0    0    0   13  -
+  $B8  special no   --     small none        -    0    0    0    0   13  -
+  $B9  special no   --     small none        -    0    0    0    0   13  -
+  $BA  special no   --     small none        -    0    0    0    0   13  -
+  $BB  special no   --     small none        -    0    0    0    0   13  -
+  $BC  special no   --     small none        -    0    0    0    0   13  -
+  $BD  special no   --     small none        -    0    0    0    0   13  -
+  $BE  special no   --     small none        -    0    0    0    0   13  -
+  $BF  special no   --     small none        -    0    0    0    0   13  -
+
+TailMapExpansion check (assets/patches/Overworld/TailMapExpansion.asm)
+  Verdict: unsafe (ROM compatible: no)
+  Marker $28:A3FF: 0x00 (absent)
+  ZS code end: not found (not a ZS v3 ROM)
+  Target regions:
+    marker     $28:A3FF  PC 0x1423FF    1 B  past end  non-zero   0  []
+    high_table $28:A400  PC 0x142400  576 B  past end  non-zero   0  []
+    low_table  $28:A640  PC 0x142640  576 B  past end  non-zero   0  []
+    blank_high $30:8000  PC 0x180000  188 B  past end  non-zero   0  []
+    blank_low  $30:9000  PC 0x181000    4 B  past end  non-zero   0  []
+  Blank streams (decoded as the game would read them after the patch):
+    blank_high $30:8000  188 B written  $FF in stream: no   decoded 94 B, stopped at $30:80BC  INVALID
+    blank_low  $30:9000    4 B written  $FF in stream: no   decoded 2 B, stopped at $30:9004  INVALID
+  Patched operands (LDA.l table,X):
+    $02:F59E  PC 0x01759E  opcode 0xBF  now $02:F94D  vanilla $02:F94D  patch $28:A400  vanilla
+    $02:F5A4  PC 0x0175A4  opcode 0xBF  now $02:F94E  vanilla $02:F94E  patch $28:A401  vanilla
+    $02:F5C9  PC 0x0175C9  opcode 0xBF  now $02:FB2D  vanilla $02:FB2D  patch $28:A640  vanilla
+    $02:F5CF  PC 0x0175CF  opcode 0xBF  now $02:FB2E  vanilla $02:FB2E  patch $28:A641  vanilla
+    $02:F7E4  PC 0x0177E4  opcode 0xBF  now $02:F94D  vanilla $02:F94D  patch $28:A400  vanilla
+    $02:F7EA  PC 0x0177EA  opcode 0xBF  now $02:F94E  vanilla $02:F94E  patch $28:A401  vanilla
+    $02:F80F  PC 0x01780F  opcode 0xBF  now $02:FB2D  vanilla $02:FB2D  patch $28:A640  vanilla
+    $02:F815  PC 0x017815  opcode 0xBF  now $02:FB2E  vanilla $02:FB2E  patch $28:A641  vanilla
+  Blockers:
+    [rom] zscustom_v3_required: ZSCustomOverworld v3 is required; this ROM reports ASM version 0xFF at $28:8145
+    [patch] blank_stream_invalid: blank map stream at $30:8000 is 188 bytes with no $FF terminator; decoding reads past it and stops at $30:80BC after 94 decoded bytes (ran past the end of the data before $FF)
+    [patch] blank_stream_invalid: blank map stream at $30:9000 is 4 bytes with no $FF terminator; decoding reads past it and stops at $30:9004 after 2 decoded bytes (ran past the end of the data before $FF)
+    [patch] tail_tables_missing: the patch extends only the map32 pointers; 11 other per-area tables stop before $A0, so a tail area reads the data after each of them (parent, area_gfx, area_palette, sw_sprite_gfx, sw_entry_gfx, sw_palette_a, sw_palette_b, sign_message, music_dw_sw, hidden_items, area_flags)
+    [yaze] pointer_save_desync: after the patch the game reads map pointers from $28:A400/$28:A640, but yaze's overworld save writes 0x1794D/0x17B2D, so the next save leaves maps $00-$9F stale in game
+  Warnings:
+    [rom] rom_too_small: the ROM is 1048576 bytes; the patch writes up to PC 0x181004, so asar would expand it
+    [yaze] tail_maps_not_editable: yaze loads and saves 160 maps ($00-$9F); maps $A0-$BF cannot be edited

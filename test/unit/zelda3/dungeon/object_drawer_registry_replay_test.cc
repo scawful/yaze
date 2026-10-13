@@ -53,9 +53,11 @@ struct ScopedCustomObjectsFlag {
   explicit ScopedCustomObjectsFlag(bool enabled) {
     prev = core::FeatureFlags::get().kEnableCustomObjects;
     core::FeatureFlags::get().kEnableCustomObjects = enabled;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
   ~ScopedCustomObjectsFlag() {
     core::FeatureFlags::get().kEnableCustomObjects = prev;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 };
 

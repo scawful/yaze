@@ -33,6 +33,9 @@ class MusicInstrumentEditorPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Instrument Editor"; }
   std::string GetIcon() const override { return ICON_MD_SPEAKER; }
   std::string GetEditorCategory() const override { return "Music"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::OptionalPopOut();
+  }
   int GetPriority() const override { return 20; }
 
   // ==========================================================================

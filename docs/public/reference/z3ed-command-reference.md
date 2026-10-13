@@ -82,6 +82,18 @@ z3ed rom info --rom <file>
 z3ed rom info --rom zelda3.sfc
 ```
 
+**Copier headers:** z3ed and yaze strip a 512-byte copier (SMC/SWC) header
+when the file size is a 32 KB multiple plus `0x200`, or when the size is
+nonstandard and the SNES internal header is valid only `0x200` bytes into the
+file (for example `LYRA-v038b.smc`, `0x10083B` bytes). A file whose internal
+header is valid in place is never stripped. `rom info` reports
+`copier_header`, `copier_header_size`, `copier_header_detection`
+(`size_alignment`, `internal_header_offset`, or `none`) and `file_size`;
+`size`/`size_bytes` and all ROM offsets exclude the header. Every save writes
+the header back in front of the data, so an in-place save (or Save As) keeps
+the file's layout, and saving an unedited ROM reproduces the file byte for
+byte.
+
 ### `z3ed rom diff`
 Compare two ROM files.
 
@@ -162,6 +174,7 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-get-entrance --entrance <hex> [--spawn]`
 - `entrance-info --entrance <hex> [--spawn]`
 - `dungeon-export-room --room <hex> --output <file>`
+- `dungeon-place-sprite --room <hex> --id <hex> --x <int> --y <int> [--subtype <int>] [--layer <0|1>] [--manifest <path>] [--write]`
 - `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
 - `dungeon-remove-object --room <hex> --index <int> --expect-id <hex> --expect-x <int> --expect-y <int> --expect-size <int> --expect-layer <0|1|2> [--manifest <path>] [--write]`
 - `dungeon-set-door-type --room <hex> --x <int> --y <int> --type <hex> --expect-type <hex> --manifest <path> [--write]`
@@ -175,6 +188,20 @@ writing. Replaying an exact source reports zero `changed_rooms` and
 `write_status`/`save_status` as `not-needed`; it does not create a backup or
 save the active ROM after comparison. `--sandbox` still materializes its copy
 before the comparison.
+
+`dungeon-place-sprite` is a dry-run unless `--write` is supplied. Both modes
+plan the actual sprite save and reload its result on a detached ROM. A shared
+or full stream requires a manifest defining `dungeon_stream_regions.sprites`
+with `copy_on_write` and allocator-owned space. Protected payload and pointer
+writes are blocked. The result reports `storage_strategy`, the source and
+planned stream PC offsets, and exact half-open `write_ranges`. Write mode uses
+a required backup and rolls back the caller's ROM if saving fails.
+
+Sprite subtype values whose low three bits are 7 select the overlord format;
+they require an overlord ID (`0x01`-`0x1A`). In particular, an `0xA3` cart with
+subtype 7, 15, 23, or 31 is refused. Sprite-list terminators and hidden key
+markers are also refused as ordinary placements. This validation does not
+renumber cart tracks or change the game engine.
 
 `dungeon-place-object` is a dry-run unless `--write` is supplied. Both modes
 execute the same immutable capacity preflight. In-place edits can proceed
@@ -273,7 +300,7 @@ object stream. Without the flag, the legacy output and count are unchanged.
 - `overworld-list-sprites [--screen <hex>] [--phase <0|1|2>]`
 - `overworld-list-items --map <hex>`
 - `overworld-get-entrance --entrance <hex>`
-- `overworld-tile-stats --map <hex>`
+- `overworld-tile-stats [--map <hex>] [--world <light|dark|special>] [--tile <hex>] [--top <n>]`
 - `overworld-render --screen <hex> --out <file.png> [--overlays <list>] [--phase <0|1|2>] [--scale <float>]`
 - `overworld-add-sprite --screen <hex> --phase <0|1|2> --id <hex> --x <tile> --y <tile> [--replace-index <n>] [--write]`
 - `overworld-move-sprite --screen <hex> --phase <0|1|2> --index <n> --x <tile> --y <tile> [--expect-id <hex>] [--write]`
@@ -294,6 +321,17 @@ and `--map 0x40 --x 40` name the same tile. Output reports the resolved
 `parent_area`, the `screen` holding the tile with `screen_x`/`screen_y`
 (0-31), and `world_x`/`world_y` (editor canvas tile). `overworld-find-tile`
 matches carry the same `x`/`y`, so they can be passed straight back.
+
+`overworld-tile-stats` counts tile16 placements in the loaded world grids.
+Each screen is one 32x32 block of 1024 tiles, so a multi-screen area appears
+as its screens, each with its `parent_area`. Output: `screens_scanned`,
+`total_tiles`, `unique_tiles`; `worlds` (screens, total and unique tiles per
+world); `screens` (unique tiles and the most placed `top_tile` per screen);
+and `tile_counts`, most placed first, with the number of `screens` using each
+tile (`--top`, default 32; `0` lists every tile). `--map` (or `--screen`)
+limits the scan to one screen and `--world` to one world. `--tile` adds a
+`tile` total and a `tile_count` per screen; use `overworld-find-tile` for
+positions.
 
 `overworld-set-tile` is dry-run by default. Both modes rebuild the tile32 table
 and compressed screens exactly as the editor's overworld save does (tile16

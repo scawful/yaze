@@ -174,7 +174,8 @@ class Arena {
    * @brief Get reference to all graphics sheets
    * @return Reference to array of 223 Bitmap objects
    */
-  std::array<gfx::Bitmap, 223>& gfx_sheets() { return gfx_sheets_; }
+  using GraphicsSheets = std::array<gfx::Bitmap, 223>;
+  GraphicsSheets& gfx_sheets() { return *active_gfx_sheets_; }
 
   /**
    * @brief Get a specific graphics sheet by index
@@ -184,7 +185,7 @@ class Arena {
   auto gfx_sheet(int i) {
     if (i < 0 || i >= 223)
       return gfx::Bitmap{};
-    return gfx_sheets_[i];
+    return gfx_sheets()[i];
   }
 
   /**
@@ -195,18 +196,22 @@ class Arena {
   auto mutable_gfx_sheet(int i) {
     if (i < 0 || i >= 223)
       return static_cast<gfx::Bitmap*>(nullptr);
-    return &gfx_sheets_[i];
+    return &gfx_sheets()[i];
   }
 
   /**
    * @brief Get mutable reference to all graphics sheets
    * @return Pointer to mutable array of 223 Bitmap objects
    */
-  auto mutable_gfx_sheets() { return &gfx_sheets_; }
+  auto mutable_gfx_sheets() { return active_gfx_sheets_; }
 
-  // The GameData whose sheets gfx_sheets() holds. Sessions share one Arena
-  // and only a ROM load refills it, so after a session switch the sheets can
-  // belong to another open ROM. Set wherever the sheets are loaded.
+  // Select stable session-owned display storage. The caller retains it through
+  // rendering and retires its bitmaps before destruction. Null selects the
+  // standalone storage; switching never copies pixels or replaces textures.
+  void BindGraphicsSheets(GraphicsSheets* sheets, const void* owner);
+
+  // Legacy standalone/test ownership marker. Session code must bind storage
+  // and ownership together through BindGraphicsSheets().
   void set_gfx_sheets_owner(const void* owner) { gfx_sheets_owner_ = owner; }
   const void* gfx_sheets_owner() const { return gfx_sheets_owner_; }
 
@@ -370,7 +375,8 @@ class Arena {
   std::array<uint16_t, kTotalTiles> layer1_buffer_;
   std::array<uint16_t, kTotalTiles> layer2_buffer_;
 
-  std::array<gfx::Bitmap, 223> gfx_sheets_;
+  GraphicsSheets gfx_sheets_;
+  GraphicsSheets* active_gfx_sheets_ = &gfx_sheets_;
   const void* gfx_sheets_owner_ = nullptr;
 
   std::unordered_map<TextureHandle,

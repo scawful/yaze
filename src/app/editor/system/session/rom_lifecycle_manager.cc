@@ -10,9 +10,11 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/session_types.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
+#include "app/editor/system/session/session_coordinator.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"
@@ -22,17 +24,6 @@
 namespace yaze::editor {
 
 namespace {
-
-std::string NormalizeHash(std::string value) {
-  absl::AsciiStrToLower(&value);
-  if (absl::StartsWith(value, "0x")) {
-    value = value.substr(2);
-  }
-  value.erase(std::remove_if(value.begin(), value.end(),
-                             [](unsigned char c) { return std::isspace(c); }),
-              value.end());
-  return value;
-}
 
 std::string NormalizePath(std::string value) {
   if (value.empty()) {
@@ -78,8 +69,11 @@ std::string GetEditableProjectRomPath(const project::YazeProject* project) {
   }
   if (project->hack_manifest.loaded() &&
       !project->hack_manifest.build_pipeline().dev_rom.empty()) {
-    return NormalizePath(project->GetAbsolutePath(
+    const std::string development_rom = NormalizePath(project->GetAbsolutePath(
         project->hack_manifest.build_pipeline().dev_rom));
+    std::error_code ec;
+    const auto canonical_rom = std::filesystem::canonical(development_rom, ec);
+    return ec ? development_rom : NormalizePath(canonical_rom.string());
   }
   return NormalizePath(project->GetAbsolutePath(project->rom_filename));
 }
@@ -148,14 +142,29 @@ void RomLifecycleManager::Initialize(Dependencies deps) {
 // ROM Hash & Write Policy
 // =============================================================================
 
-void RomLifecycleManager::UpdateCurrentRomHash(Rom* rom) {
-  if (!rom || !rom->is_loaded()) {
-    current_rom_hash_.clear();
+void RomLifecycleManager::ActivateRomIdentity(const RomSession* session) {
+  if (!session || !session->rom.is_loaded() || !session->rom_baseline) {
+    current_rom_identity_ = {};
     current_rom_path_.clear();
+    current_rom_editing_source_path_.clear();
     return;
   }
-  current_rom_hash_ = util::ComputeRomHash(rom->data(), rom->size());
-  current_rom_path_ = NormalizePath(rom->filename());
+  current_rom_identity_ = session->rom_baseline->hashes;
+  current_rom_path_ = session->rom_baseline->normalized_path;
+  current_rom_editing_source_path_ = session->rom_baseline->editing_source_path;
+}
+
+bool RomLifecycleManager::HasEditableSource(
+    const std::string& source_path) const {
+  // Save As must retain the editing-target exemption only for this session's
+  // own descendants. A hash-matched foreign ROM does not acquire it by saving.
+  if (current_rom_path_.empty() ||
+      NormalizePath(source_path) != current_rom_path_) {
+    return false;
+  }
+  const auto source =
+      GetRomTargetInfo(project_, current_rom_editing_source_path_);
+  return source.matches_editable_target && !source.matches_build_output;
 }
 
 bool RomLifecycleManager::IsRomHashMismatch() const {
@@ -163,16 +172,17 @@ bool RomLifecycleManager::IsRomHashMismatch() const {
     return false;
   }
   const auto target_info = GetRomTargetInfo(project_, current_rom_path_);
-  if (target_info.matches_editable_target &&
+  if ((target_info.matches_editable_target ||
+       HasEditableSource(current_rom_path_)) &&
       !target_info.matches_build_output) {
     return false;
   }
-  const auto expected = NormalizeHash(project_->rom_metadata.expected_hash);
-  const auto actual = NormalizeHash(current_rom_hash_);
-  if (expected.empty() || actual.empty()) {
+  const std::string expected(
+      absl::StripAsciiWhitespace(project_->rom_metadata.expected_hash));
+  if (expected.empty() || current_rom_identity_.crc32.empty()) {
     return false;
   }
-  return expected != actual;
+  return current_rom_identity_.Match(expected) == util::RomHashMatch::kMismatch;
 }
 
 absl::Status RomLifecycleManager::CheckRomOpenPolicy(Rom* rom) {
@@ -206,6 +216,32 @@ absl::Status RomLifecycleManager::CheckRomOpenPolicy(Rom* rom) {
       target_info.loaded_path.empty() ? rom->filename()
                                       : target_info.loaded_path,
       editable_target));
+}
+
+absl::Status RomLifecycleManager::CheckRomRebindPolicy(Rom* rom) {
+  const auto open_status = CheckRomOpenPolicy(rom);
+  if (!open_status.ok()) {
+    return open_status;
+  }
+  if (!project_ || !project_->project_opened() || !rom || !rom->is_loaded() ||
+      project_->rom_metadata.write_policy == project::RomWritePolicy::kAllow ||
+      !project_->hack_manifest.loaded() ||
+      project_->hack_manifest.build_pipeline().dev_rom.empty()) {
+    return absl::OkStatus();
+  }
+
+  const std::string development_rom = project_->GetAbsolutePath(
+      project_->hack_manifest.build_pipeline().dev_rom);
+  if (!SessionCoordinator::PathsReferToSameBackingFile(rom->filename(),
+                                                       development_rom)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Project source binding requires the manifest development ROM %s; "
+        "cannot swap to %s. Keep editing the development ROM with Save ROM, "
+        "then use Build Project. Save As copies do not change this source "
+        "binding. The copy and project binding were kept.",
+        development_rom, rom->filename()));
+  }
+  return absl::OkStatus();
 }
 
 absl::Status RomLifecycleManager::CheckRomWritePolicy(
@@ -243,15 +279,16 @@ absl::Status RomLifecycleManager::CheckRomWritePolicy(
         GetEditableTargetPath(target_info)));
   }
 
-  if (source_info.matches_editable_target &&
+  if ((source_info.matches_editable_target || HasEditableSource(source_path)) &&
       !source_info.matches_build_output) {
     return absl::OkStatus();
   }
 
-  const auto expected = NormalizeHash(project_->rom_metadata.expected_hash);
-  const auto actual = NormalizeHash(current_rom_hash_);
+  const std::string expected(
+      absl::StripAsciiWhitespace(project_->rom_metadata.expected_hash));
 
-  if (expected.empty() || actual.empty() || expected == actual) {
+  if (expected.empty() || current_rom_identity_.crc32.empty() ||
+      current_rom_identity_.Match(expected) != util::RomHashMatch::kMismatch) {
     return absl::OkStatus();
   }
 

@@ -252,7 +252,30 @@ void SpriteInteractionHandler::ClearSelection() {
   is_dragging_ = false;
 }
 
+bool SpriteInteractionHandler::PreflightSprites(
+    const std::vector<zelda3::Sprite>& candidate) {
+  mutation_status_ = absl::OkStatus();
+  if (!sprite_mutation_preflight_) {
+    return true;
+  }
+  const auto* source_context = ctx_;
+  const int room_id = ctx_->current_room_id;
+  const auto* source_room = GetCurrentRoom();
+  mutation_status_ = sprite_mutation_preflight_(room_id, candidate);
+  if (mutation_status_.ok() &&
+      (ctx_ != source_context || !HasValidContext() ||
+       ctx_->current_room_id != room_id || GetCurrentRoom() != source_room)) {
+    mutation_status_ = absl::FailedPreconditionError(
+        "Sprite room changed during edit preflight; repeat the edit");
+  }
+  if (!mutation_status_.ok() && mutation_error_callback_) {
+    mutation_error_callback_(mutation_status_);
+  }
+  return mutation_status_.ok();
+}
+
 void SpriteInteractionHandler::DeleteSelected() {
+  mutation_status_ = absl::OkStatus();
   if (!selected_sprite_index_.has_value() || !HasValidContext())
     return;
 
@@ -260,13 +283,18 @@ void SpriteInteractionHandler::DeleteSelected() {
   if (!room)
     return;
 
-  auto& sprites = room->GetSprites();
-  if (*selected_sprite_index_ >= sprites.size())
+  auto candidate = room->GetSprites();
+  if (*selected_sprite_index_ >= candidate.size())
     return;
 
+  candidate.erase(candidate.begin() +
+                  static_cast<ptrdiff_t>(*selected_sprite_index_));
+  if (!PreflightSprites(candidate)) {
+    return;
+  }
+  room = GetCurrentRoom();
   ctx_->NotifyMutation(MutationDomain::kSprites);
-  sprites.erase(sprites.begin() +
-                static_cast<ptrdiff_t>(*selected_sprite_index_));
+  room->GetSprites() = std::move(candidate);
   room->MarkSpritesDirty();
   ClearSelection();
   ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
@@ -274,6 +302,7 @@ void SpriteInteractionHandler::DeleteSelected() {
 }
 
 void SpriteInteractionHandler::DeleteAll() {
+  mutation_status_ = absl::OkStatus();
   if (!HasValidContext()) {
     return;
   }
@@ -283,6 +312,10 @@ void SpriteInteractionHandler::DeleteAll() {
     return;
   }
 
+  if (!PreflightSprites({})) {
+    return;
+  }
+  room = GetCurrentRoom();
   ctx_->NotifyMutation(MutationDomain::kSprites);
   room->GetSprites().clear();
   room->MarkSpritesDirty();
@@ -292,6 +325,7 @@ void SpriteInteractionHandler::DeleteAll() {
 }
 
 bool SpriteInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
+  mutation_status_ = absl::OkStatus();
   if (!selected_sprite_index_.has_value() || !HasValidContext()) {
     return false;
   }
@@ -350,6 +384,7 @@ absl::Status SpriteInteractionHandler::ValidateSpriteProperties(
 bool SpriteInteractionHandler::UpdateSprite(size_t index, uint8_t id, int x,
                                             int y, int subtype, int layer,
                                             int key_drop) {
+  mutation_status_ = absl::OkStatus();
   if (!HasValidContext() ||
       !ValidateSpriteProperties(id, x, y, subtype, layer, key_drop).ok()) {
     return false;
@@ -358,7 +393,7 @@ bool SpriteInteractionHandler::UpdateSprite(size_t index, uint8_t id, int x,
   if (!room || index >= room->GetSprites().size()) {
     return false;
   }
-  auto& sprite = room->GetSprites()[index];
+  const auto sprite = room->GetSprites()[index];
   if (sprite.id() == id && sprite.x() == x && sprite.y() == y &&
       sprite.subtype() == subtype && sprite.layer() == layer &&
       sprite.key_drop() == key_drop) {
@@ -371,8 +406,14 @@ bool SpriteInteractionHandler::UpdateSprite(size_t index, uint8_t id, int x,
                          static_cast<uint8_t>(layer));
   updated.set_key_drop(key_drop);
   updated.set_deleted(sprite.deleted());
+  auto candidate = room->GetSprites();
+  candidate[index] = std::move(updated);
+  if (!PreflightSprites(candidate)) {
+    return false;
+  }
+  room = GetCurrentRoom();
   ctx_->NotifyMutation(MutationDomain::kSprites);
-  sprite = std::move(updated);
+  room->GetSprites() = std::move(candidate);
   room->MarkSpritesDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ctx_->NotifyEntityChanged();
@@ -381,6 +422,7 @@ bool SpriteInteractionHandler::UpdateSprite(size_t index, uint8_t id, int x,
 
 void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
                                                      int canvas_y) {
+  mutation_status_ = absl::OkStatus();
   if (!HasValidContext()) {
     placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
     return;
@@ -406,14 +448,20 @@ void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
   sprite_x = std::clamp(sprite_x, 0, dungeon_coords::kSpriteGridMax);
   sprite_y = std::clamp(sprite_y, 0, dungeon_coords::kSpriteGridMax);
 
-  ctx_->NotifyMutation(MutationDomain::kSprites);
-
   // Create the sprite
   zelda3::Sprite new_sprite(preview_sprite_id_, static_cast<uint8_t>(sprite_x),
                             static_cast<uint8_t>(sprite_y), 0, 0);
+  auto candidate = room->GetSprites();
+  candidate.push_back(std::move(new_sprite));
+  if (!PreflightSprites(candidate)) {
+    placement_block_reason_ = PlacementBlockReason::kStorageValidation;
+    return;
+  }
+  room = GetCurrentRoom();
+  ctx_->NotifyMutation(MutationDomain::kSprites);
 
   // Add sprite to room
-  room->GetSprites().push_back(new_sprite);
+  room->GetSprites() = std::move(candidate);
   room->MarkSpritesDirty();
   TriggerSuccessToast();
 

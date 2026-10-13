@@ -42,6 +42,9 @@ class MusicPianoRollPanel : public WindowContent {
   std::string GetDisplayName() const override { return "Piano Roll"; }
   std::string GetIcon() const override { return ICON_MD_PIANO; }
   std::string GetEditorCategory() const override { return "Music"; }
+  WindowPresentationPolicy GetPresentationPolicy() const override {
+    return WindowPresentationPolicy::CoreWorkspace();
+  }
   int GetPriority() const override { return 15; }
 
   // ==========================================================================

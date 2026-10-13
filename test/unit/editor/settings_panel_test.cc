@@ -229,13 +229,18 @@ TEST(SettingsPanelTest, MinecartNavigationFailsClosedAndReportsReason) {
 TEST(SettingsPanelTest, DisplayDensityKeepsClassicYazePaintedByColorsYaze) {
   ScopedImGuiContext imgui;
   auto& themes = gui::ThemeManager::Get();
-  const std::string saved = themes.GetCurrentThemeName();
-  themes.ApplyClassicYazeTheme();
+  // ThemeManager is a process-wide singleton. Earlier cases in the same
+  // process (welcome-screen and theme density tests) can leave it on Compact
+  // or Comfortable, and ApplyClassicYazeTheme() carries the current density
+  // forward. Pin Normal so the 6px baseline holds in any order, and restore
+  // the whole theme (density included) afterwards, not only its name.
+  const gui::Theme saved = themes.GetCurrentTheme();
+  themes.ApplyClassicYazeTheme(gui::DensityPreset::kNormal);
 
   // Assert on spacing, not colour: ApplyTheme starts a lerp that leaves the
   // colour array at its START values until frames run, so a colour check here
   // passes under both routes and proves nothing.
-  ASSERT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 10.0f);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 6.0f);
 
   SettingsPanel panel;
   SettingsPanelTestPeer::ApplyDisplayDensity(panel,
@@ -244,12 +249,11 @@ TEST(SettingsPanelTest, DisplayDensityKeepsClassicYazePaintedByColorsYaze) {
   EXPECT_EQ(themes.GetCurrentThemeName(), "Classic YAZE");
   EXPECT_EQ(themes.GetCurrentTheme().density_preset,
             gui::DensityPreset::kCompact);
-  // ColorsYaze's own FramePadding.x of 10 scaled by Compact's 0.75. Routing
-  // through ApplyTheme instead would rebuild from the shared 8px base and
-  // land on 3.0, discarding Classic's identity metrics.
-  EXPECT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 7.5f);
+  // ColorsYaze's authored 6px padding scales by Compact's 0.75. Rebuilding
+  // from a default Theme instead would discard Classic's identity metrics.
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 4.5f);
 
-  themes.ApplyTheme(saved);
+  themes.ReapplyTheme(saved);
 }
 
 TEST(SettingsPanelTest,

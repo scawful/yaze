@@ -118,11 +118,16 @@ void CutsceneCameraPanel::Save() {
     status_is_error_ = true;
     return;
   }
-  // Refuse to overwrite edits made outside yaze since the last load.
-  std::ifstream in(*path, std::ios::binary);
+  // Refuse to overwrite edits made outside yaze since the last load. Read
+  // and close the handle before any write below: on Windows an open handle
+  // without FILE_SHARE_DELETE blocks the atomic replace that follows,
+  // failing every save after the first with "Access is denied".
   std::optional<std::string> on_disk;
-  if (in) {
-    on_disk = std::string((std::istreambuf_iterator<char>(in)), {});
+  {
+    std::ifstream in(*path, std::ios::binary);
+    if (in) {
+      on_disk = std::string((std::istreambuf_iterator<char>(in)), {});
+    }
   }
   if (on_disk != loaded_bytes_) {
     status_ = absl::StrFormat(
@@ -427,7 +432,9 @@ void CutsceneCameraPanel::DrawCanvas(zelda3::CutsceneShot& shot) {
         const ImVec2 p0(origin.x + dx * 512 * scale,
                         origin.y + dy * 512 * scale);
         draw->AddImage((ImTextureID)(intptr_t)bitmap->texture(), p0,
-                       ImVec2(p0.x + 512 * scale, p0.y + 512 * scale));
+                       ImVec2(p0.x + 512 * scale, p0.y + 512 * scale),
+                       ImVec2(0, 0), ImVec2(1, 1),
+                       ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
         drew_map = true;
       }
     }

@@ -120,6 +120,38 @@ normal reporting flow. Screenshot capture keeps the action buttons in place.
 Long status messages stay on one line; hover over the status to read the full
 message, including any error details.
 
+### Previewing source-authored wall patterns
+
+When a project assembles standard dungeon object patterns from a separate data
+file, the editor can preview those tile words while keeping the base ROM as the
+edit target. Add the source path to the project's existing `[files]` section:
+
+```ini
+dungeon_tile_patterns=Dungeons/house_walls.asm
+```
+
+Paths resolve relative to the project. **Room Graphics** shows the source, the
+number of tile words, and any load error. After changing the file, choose
+**Reload Pattern Source** to refresh room objects, layouts, and thumbnails.
+Each open project and background room scan retains its own source context.
+The preview works independently of the custom `.bin` object feature flag.
+
+This reader accepts comments, labels, `lorom`, literal `org $00xxxx` addresses,
+and literal `dw $xxxx, ...` lists in the bank-00 object-data range. It rejects
+includes, expressions, conditionals, instructions, and overlapping declarations.
+It does not execute ASM or replace draw routines. Door routines and other
+special renderers that read literal ROM addresses directly are outside this
+preview path.
+
+ROM Save and Save As retain the ROM's original pattern bytes. Object Tile Editor
+refuses ROM composition writes that overlap source-owned patterns; edit the
+source file instead. Ordinary room placement and graphics-sheet editing retain
+their existing save paths. To test the source changes in-game, build the game
+normally and use its assembled ROM in the emulator.
+
+`z3ed dungeon-render --project-context=/path/to/project.yaze` uses the same
+preview. Without a configured source, rendering continues to use ROM patterns.
+
 ### Saving
 
 - **File > Save ROM** persists dungeon data in this order: dungeon maps (when **Save Dungeon Maps** is enabled), then per-room **objects**, **sprites**, **room headers** (14-byte header + message IDs), **door pointers** (with `0xF0 0xFF` marker), then **palettes**, **torches**, **pits**, **blocks**, **chests**, **pot items**, and dirty **entrance/spawn-point metadata**. No need to save from the Dungeon Editor separately for ROM file writes.

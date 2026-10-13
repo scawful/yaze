@@ -256,7 +256,7 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
   // DEBUG: Log wall objects 0x61/0x62 and ceiling 0xC0 to verify tile data
   bool is_debug_object = (object_id == 0x61 || object_id == 0x62 ||
                           object_id == 0xC0 || object_id == 0xC2);
-  static int debug_count = 0;
+  thread_local int debug_count = 0;
   if (debug_count < 10 || is_debug_object) {
     LOG_DEBUG("ObjectParser",
               "ParseSubtype1: obj=0x%02X%s tile_ptr=0x%04X (SNES $01:%04X)",
@@ -540,7 +540,7 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
   tiles.reserve(tile_count);
 
   // DEBUG: Log first tile read
-  static int debug_read_count = 0;
+  thread_local int debug_read_count = 0;
   bool should_log = (debug_read_count < 3);
 
   for (int i = 0; i < tile_count; i++) {
@@ -550,6 +550,11 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
     uint16_t tile_word =
         rom_->data()[tile_offset] | (rom_->data()[tile_offset + 1] << 8);
 
+    if (patterns_ != nullptr) {
+      const auto it = patterns_->words.find(static_cast<uint32_t>(tile_offset));
+      if (it != patterns_->words.end())
+        tile_word = it->second;
+    }
     auto tile_info = gfx::WordToTileInfo(tile_word);
     tiles.push_back(tile_info);
 

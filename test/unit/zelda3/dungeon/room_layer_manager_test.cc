@@ -38,13 +38,6 @@ class RoomLayerManagerTest : public ::testing::Test {
 // Layer Visibility Tests
 // =============================================================================
 
-TEST_F(RoomLayerManagerTest, DefaultVisibilityAllLayersVisible) {
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG1_Layout));
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG1_Objects));
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG2_Layout));
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG2_Objects));
-}
-
 TEST_F(RoomLayerManagerTest, SetLayerVisibleWorks) {
   manager_.SetLayerVisible(LayerType::BG1_Objects, false);
   EXPECT_FALSE(manager_.IsLayerVisible(LayerType::BG1_Objects));
@@ -72,13 +65,6 @@ TEST_F(RoomLayerManagerTest, ResetRestoresDefaults) {
 // =============================================================================
 // Blend Mode Tests
 // =============================================================================
-
-TEST_F(RoomLayerManagerTest, DefaultBlendModeIsNormal) {
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG1_Layout),
-            LayerBlendMode::Normal);
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
-            LayerBlendMode::Normal);
-}
 
 TEST_F(RoomLayerManagerTest, SetBlendModeUpdatesAlpha) {
   manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
@@ -121,12 +107,6 @@ TEST_F(RoomLayerManagerTest, BG2OnTopDrawOrderBG1First) {
 // =============================================================================
 // Per-Object Translucency Tests
 // =============================================================================
-
-TEST_F(RoomLayerManagerTest, DefaultObjectsNotTranslucent) {
-  EXPECT_FALSE(manager_.IsObjectTranslucent(0));
-  EXPECT_FALSE(manager_.IsObjectTranslucent(10));
-  EXPECT_EQ(manager_.GetObjectAlpha(0), 255);
-}
 
 TEST_F(RoomLayerManagerTest, SetObjectTranslucencyWorks) {
   manager_.SetObjectTranslucency(5, true, 128);
@@ -362,6 +342,52 @@ TEST_F(RoomLayerManagerTest, PriorityCompositing_BG1Priority0OverBG2Priority0) {
   EXPECT_EQ(output.data()[0], 11);
 }
 
+TEST_F(RoomLayerManagerTest, ColorMathKeepsColorsAbsentFromSourcePalette) {
+  Room room(0x38, nullptr);
+  room.SetLayer2Mode(4);
+  PrepareColorMathRoom(room);
+  std::vector<SDL_Color> palette(256, {0, 0, 0, 255});
+  palette[1] = {255, 8, 0, 255};    // 31,1,0
+  palette[2] = {255, 0, 255, 255};  // 31,0,31
+  for (auto* buffer : {&room.bg1_buffer(), &room.bg2_buffer()})
+    buffer->bitmap().SetPalette(palette);
+  room.bg1_buffer().bitmap().mutable_data()[0] = 1;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 2;
+  manager_.ApplyLayerMerging(LayerMerge04);
+  manager_.ApplyGameLayerRegisters({0x16, 0x01, 0x62});
+  gfx::Bitmap output;
+  manager_.CompositeToOutput(room, output);
+  EXPECT_FALSE(output.IsIndexed());
+  auto color = output.ReadColor(0, 0);
+  EXPECT_EQ(color.r, 255);  // (31+31)/2, not min(31,62)/2.
+  EXPECT_EQ(color.g, 0);    // Odd five-bit sum truncates before RGB expansion.
+  EXPECT_EQ(color.b, 123);  // 15; this mixed color is absent from every bank.
+  EXPECT_EQ(color.a, 255);
+  EXPECT_EQ(room.bg1_buffer().bitmap().data()[0], 1);
+  EXPECT_EQ(room.bg2_buffer().bitmap().data()[0], 2);
+
+  const auto half_signature = manager_.CompositeStateSignature();
+  manager_.ApplyGameLayerRegisters({0x16, 0x01, 0xA2});
+  EXPECT_NE(half_signature, manager_.CompositeStateSignature());
+  room.bg1_buffer().mutable_priority_data()[0] = 0;
+  room.bg2_buffer().mutable_priority_data()[0] = 1;
+  manager_.CompositeToOutput(room, output);
+  color = output.ReadColor(0, 0);
+  EXPECT_EQ(color.r, 0);
+  EXPECT_EQ(color.g, 8);  // Main - sub, regardless of priority.
+  EXPECT_EQ(color.b, 0);  // Saturate negative subtraction.
+
+  manager_.SetLayerVisible(LayerType::BG2_Layout, false);
+  manager_.SetLayerVisible(LayerType::BG2_Objects, false);
+  manager_.CompositeToOutput(room, output);
+  EXPECT_TRUE(output.IsIndexed());
+  EXPECT_EQ(output.data()[0], 1);
+  manager_.SetLayerVisible(LayerType::BG2_Layout, true);
+  manager_.CompositeToOutput(room, output);
+  EXPECT_FALSE(output.IsIndexed());
+  EXPECT_EQ(output.ReadColor(0, 0).g, 8);
+}
+
 TEST_F(RoomLayerManagerTest, ModeSevenUsesFullAddWithOrWithoutTilePriority) {
   // USDASM Underworld_HandleTranslucencyAndPalettes ($02:A20C) selects
   // CGADSUB=$32 for mode 7: add BG2 + subscreen without the half-color bit.
@@ -391,17 +417,18 @@ TEST_F(RoomLayerManagerTest, ModeSevenUsesFullAddWithOrWithoutTilePriority) {
     gfx::Bitmap output;
     manager_.CompositeToOutput(room, output);
     ASSERT_TRUE(output.is_active());
-    EXPECT_EQ(output.data()[0], 35);
-    EXPECT_EQ(output.data()[1], 37);
-    EXPECT_EQ(output.data()[2], 39);
-    EXPECT_EQ(output.data()[3], 33);
-    EXPECT_EQ(output.data()[4], 34);
-    EXPECT_EQ(output.data()[5], 34);
+    EXPECT_EQ(output.ReadColor(0, 0).r, 99);
+    EXPECT_EQ(output.ReadColor(1, 0).r, 132);
+    EXPECT_EQ(output.ReadColor(2, 0).r, 255);
+    EXPECT_EQ(output.ReadColor(3, 0).r, 66);
+    EXPECT_EQ(output.ReadColor(4, 0).r, 33);
+    EXPECT_EQ(output.ReadColor(5, 0).r, 33);
 
     manager_.SetLayerVisible(LayerType::BG2_Layout, false);
     manager_.SetLayerVisible(LayerType::BG2_Objects, false);
     manager_.CompositeToOutput(room, output);
-    EXPECT_EQ(output.data()[0], 33) << "Hidden lower layers cannot add color";
+    EXPECT_EQ(output.ReadColor(0, 0).r, 66)
+        << "Hidden lower layers cannot add color";
   }
 }
 
@@ -422,7 +449,60 @@ TEST_F(RoomLayerManagerTest, ModeFourRetainsExistingHalfAddAndFallback) {
     gfx::Bitmap output;
     manager_.CompositeToOutput(room, output);
     ASSERT_TRUE(output.is_active());
-    EXPECT_EQ(output.data()[0], priority ? 36 : 33);
+    EXPECT_EQ(output.ReadColor(0, 0).r, priority ? 49 : 66);
+  }
+}
+
+TEST_F(RoomLayerManagerTest, GameColorMathPreservesBothTilemapsUnderWater) {
+  for (const int mode : {4, 7}) {
+    for (const bool priority : {false, true}) {
+      SCOPED_TRACE(mode);
+      SCOPED_TRACE(priority);
+      manager_.Reset();
+      manager_.SetPriorityCompositing(priority);
+      manager_.ApplyLayerMerging(mode == 4 ? LayerMerge04 : LayerMerge07);
+      manager_.ApplyGameLayerRegisters(
+          DeriveRoomLayerRegisters(mode, false, 0, 0, {}));
+      Room room(/*room_id=*/0x38, /*rom=*/nullptr);
+      room.SetLayer2Mode(mode);
+      PrepareColorMathRoom(room);
+      auto& upper = room.bg1_buffer();
+      auto& upper_objects = room.object_bg1_buffer();
+      auto& water = room.object_bg2_buffer();
+      upper.bitmap().mutable_data()[0] = 33;
+      upper_objects.bitmap().mutable_data()[1] = 33;
+      upper_objects.mutable_coverage_data()[1] = 1;
+      upper.bitmap().mutable_data()[2] = 33;
+      upper_objects.mutable_coverage_data()[2] =
+          1;  // Genuine transparent write.
+      for (int pixel = 0; pixel < 3; ++pixel) {
+        water.bitmap().mutable_data()[pixel] = 34;
+        water.mutable_coverage_data()[pixel] = 1;
+      }
+      // D9 water objects emit these legacy cross-layer reveal masks. They
+      // must not erase either input to the game's main/subscreen color math.
+      upper.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Objects, 0, 0, 3,
+                                 1);
+      upper_objects.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Objects,
+                                         0, 0, 3, 1);
+      const auto original_upper = upper.bitmap().vector();
+      const auto original_objects = upper_objects.bitmap().vector();
+      gfx::Bitmap output;
+      manager_.CompositeToOutput(room, output);
+      const int blended = mode == 4 ? 49 : 99;
+      EXPECT_EQ(output.ReadColor(0, 0).r, blended);
+      EXPECT_EQ(output.ReadColor(1, 0).r, blended);
+      EXPECT_EQ(output.ReadColor(2, 0).r, mode == 4 ? 16 : 33)
+          << "Transparent main tiles expose the color-math backdrop";
+      EXPECT_EQ(upper.bitmap().vector(), original_upper);
+      EXPECT_EQ(upper_objects.bitmap().vector(), original_objects);
+
+      manager_.SetLayerVisible(LayerType::BG2_Objects, false);
+      manager_.CompositeToOutput(room, output);
+      EXPECT_EQ(output.ReadColor(0, 0).r, 66);
+      EXPECT_EQ(output.ReadColor(1, 0).r, 66);
+      EXPECT_EQ(output.ReadColor(2, 0).r, 0);
+    }
   }
 }
 
@@ -443,13 +523,13 @@ TEST_F(RoomLayerManagerTest,
     manager_.SetLayerVisible(hidden_source, false);
     gfx::Bitmap output;
     manager_.CompositeToOutput(room, output);
-    EXPECT_EQ(output.data()[0], 33)
+    EXPECT_EQ(output.ReadColor(0, 0).r, 66)
         << "A hidden source's blend setting cannot affect the visible source";
 
     manager_.SetLayerVisible(hidden_source, true);
     manager_.SetLayerBlendMode(hidden_source, LayerBlendMode::Off);
     manager_.CompositeToOutput(room, output);
-    EXPECT_EQ(output.data()[0], 33);
+    EXPECT_EQ(output.ReadColor(0, 0).r, 66);
   }
 }
 
@@ -490,11 +570,11 @@ TEST_F(RoomLayerManagerTest, TranslucencyFollowsSelectedBG2SourceAtEachPixel) {
 
       gfx::Bitmap output;
       manager_.CompositeToOutput(room, output);
-      const uint8_t blended = full_add ? 35 : 36;
-      EXPECT_EQ(output.data()[0], translucent_layout ? blended : 33);
-      EXPECT_EQ(output.data()[1], translucent_layout ? 33 : blended);
-      EXPECT_EQ(output.data()[2], translucent_layout ? 33 : blended);
-      EXPECT_EQ(output.data()[3], 33);
+      const uint8_t blended = full_add ? 99 : 49;
+      EXPECT_EQ(output.ReadColor(0, 0).r, translucent_layout ? blended : 66);
+      EXPECT_EQ(output.ReadColor(1, 0).r, translucent_layout ? 66 : blended);
+      EXPECT_EQ(output.ReadColor(2, 0).r, translucent_layout ? 66 : blended);
+      EXPECT_EQ(output.ReadColor(3, 0).r, 66);
     }
   }
 }

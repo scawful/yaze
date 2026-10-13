@@ -284,7 +284,8 @@ TilePaintEvent HandleTilePaintWithPreview(const CanvasGeometry& geometry,
     draw_list->AddImage(
         reinterpret_cast<ImTextureID>(bitmap.texture()),
         ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
-        ImVec2(origin.x + paint_pos_end.x, origin.y + paint_pos_end.y));
+        ImVec2(origin.x + paint_pos_end.x, origin.y + paint_pos_end.y),
+        ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
   }
 
   // Check for paint action

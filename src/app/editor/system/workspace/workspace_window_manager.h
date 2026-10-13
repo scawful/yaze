@@ -66,9 +66,9 @@ struct WindowDescriptor {
   WindowContextScope context_scope = WindowContextScope::kNone;
 
   // Product admission/hosting policy. This does not affect registration or
-  // command-palette reachability.
-  WindowPresentationPolicy presentation =
-      WindowPresentationPolicy::OptionalPopOut();
+  // command-palette reachability. Undeclared (default) behaves as a listed
+  // optional pop-out and is reported by the admission audit.
+  WindowPresentationPolicy presentation;
 
   WindowScope scope = WindowScope::kSession;
   enum class ShortcutScope {
@@ -342,27 +342,6 @@ class WorkspaceWindowManager {
   void HideAllWindowsInCategory(size_t session_id, const std::string& category);
   void ShowOnlyWindow(size_t session_id, const std::string& base_window_id);
 
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowAllWindowsInSession() instead.")
-  void ShowAllPanelsInSession(size_t session_id) {
-    ShowAllWindowsInSession(session_id);
-  }
-  YAZE_CARD_SHIM_DEPRECATED("Use HideAllWindowsInSession() instead.")
-  void HideAllPanelsInSession(size_t session_id) {
-    HideAllWindowsInSession(session_id);
-  }
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowAllWindowsInCategory() instead.")
-  void ShowAllPanelsInCategory(size_t session_id, const std::string& category) {
-    ShowAllWindowsInCategory(session_id, category);
-  }
-  YAZE_CARD_SHIM_DEPRECATED("Use HideAllWindowsInCategory() instead.")
-  void HideAllPanelsInCategory(size_t session_id, const std::string& category) {
-    HideAllWindowsInCategory(session_id, category);
-  }
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowOnlyWindow() instead.")
-  void ShowOnlyPanel(size_t session_id, const std::string& base_card_id) {
-    ShowOnlyWindow(session_id, base_card_id);
-  }
-
   // ============================================================================
   // Query Methods
   // ============================================================================
@@ -518,10 +497,6 @@ class WorkspaceWindowManager {
     browser_state_.on_sidebar_width_changed = std::move(cb);
   }
 
-  YAZE_CARD_SHIM_DEPRECATED("Use GetWindowBrowserCategoryWidth() instead.")
-  float GetPanelBrowserCategoryWidth() const {
-    return browser_state_.window_browser_category_width;
-  }
   float GetWindowBrowserCategoryWidth() const {
     return browser_state_.window_browser_category_width;
   }
@@ -593,9 +568,6 @@ class WorkspaceWindowManager {
   }
 
   bool IsSidebarVisible() const { return browser_state_.sidebar_visible; }
-
-  YAZE_CARD_SHIM_DEPRECATED("Use ToggleSidebarExpanded() instead.")
-  void ToggleWindowImplExpanded() { ToggleSidebarExpanded(); }
 
   void ToggleSidebarExpanded() {
     browser_state_.sidebar_expanded = !browser_state_.sidebar_expanded;
@@ -712,10 +684,6 @@ class WorkspaceWindowManager {
       event_bus_->Publish(UIActionRequestEvent::OpenRom());
     }
   }
-  YAZE_CARD_SHIM_DEPRECATED("Use TriggerWindowClicked() instead.")
-  void TriggerPanelClicked(const std::string& category) {
-    TriggerWindowClicked(category);
-  }
   void TriggerWindowClicked(const std::string& category) {
     if (browser_state_.on_window_clicked)
       browser_state_.on_window_clicked(category);
@@ -783,14 +751,8 @@ class WorkspaceWindowManager {
   // Statistics
   // ============================================================================
 
-  YAZE_CARD_SHIM_DEPRECATED("Use GetWindowCount() instead.")
-  size_t GetPanelCount() const { return registry_state_.descriptors.size(); }
   size_t GetWindowCount() const { return registry_state_.descriptors.size(); }
   size_t GetVisibleWindowCount(size_t session_id) const;
-  YAZE_CARD_SHIM_DEPRECATED("Use GetVisibleWindowCount() instead.")
-  size_t GetVisiblePanelCount(size_t session_id) const {
-    return GetVisibleWindowCount(session_id);
-  }
   size_t GetSessionCount() const { return session_state_.session_count; }
 
   // ============================================================================
@@ -800,15 +762,6 @@ class WorkspaceWindowManager {
   std::string MakeWindowId(size_t session_id, const std::string& base_id) const;
   std::string MakeWindowId(size_t session_id, const std::string& base_id,
                            WindowScope scope) const;
-  YAZE_CARD_SHIM_DEPRECATED("Use MakeWindowId() instead.")
-  std::string MakePanelId(size_t session_id, const std::string& base_id) const {
-    return MakeWindowId(session_id, base_id);
-  }
-  YAZE_CARD_SHIM_DEPRECATED("Use MakeWindowId() instead.")
-  std::string MakePanelId(size_t session_id, const std::string& base_id,
-                          WindowScope scope) const {
-    return MakeWindowId(session_id, base_id, scope);
-  }
   bool ShouldPrefixPanels() const { return session_count_ > 1; }
 
   // ============================================================================
@@ -842,10 +795,6 @@ class WorkspaceWindowManager {
   void HideAllWindowsInCategory(const std::string& category) {
     HideAllWindowsInCategory(active_session_, category);
   }
-  YAZE_CARD_SHIM_DEPRECATED("Use HideAllWindowsInCategory() instead.")
-  void HideAllPanelsInCategory(const std::string& category) {
-    HideAllWindowsInCategory(active_session_, category);
-  }
   std::string GetActiveCategory() const {
     return browser_state_.active_category;
   }
@@ -858,10 +807,6 @@ class WorkspaceWindowManager {
     }
   }
   void ShowAllWindowsInCategory(const std::string& category) {
-    ShowAllWindowsInCategory(active_session_, category);
-  }
-  YAZE_CARD_SHIM_DEPRECATED("Use ShowAllWindowsInCategory() instead.")
-  void ShowAllPanelsInCategory(const std::string& category) {
     ShowAllWindowsInCategory(active_session_, category);
   }
   bool* GetWindowVisibilityFlag(const std::string& base_window_id) {

@@ -79,17 +79,27 @@ either artifact. It never writes the ROM.
 
 ## Editor UI
 
-*   **Message List**: Displays all messages with ID and preview.
-*   **Editor**: Multiline text input. Buttons to insert commands/special chars.
-*   **Preview**: Live rendering of the message box as it would appear in-game.
-*   **Dictionary**: Read-only view of dictionary entries.
+*   **Message List**: Filterable table (text, ID, or address) with a vanilla/expanded bank filter. The current row stays selected, and Alt+Up/Down moves through the visible rows.
+*   **Editor**: Header with ID, bank, address, and size. Multiline text with a drag split above the live preview. Parse and line-width diagnostics sit between them.
+*   **Find & Replace**: Persistent bar opened from the editor or Edit → Find. Find Next/Previous walk the catalog, Replace All still validates the whole batch before writing, and Find All filters the list.
+*   **Reference**: The loaded text stays beside the draft. Accept makes the draft the new reference for that message.
+*   **Tools**: Commands, symbols, and dictionary entries are tabs. Clicking a row inserts the token at the caret. Optimize compresses the current message with dictionary tokens.
+*   **Font Atlas**: Dialogue font plus expanded-bank load, capacity, and add-message controls.
+*   **Status bar**: Current message, byte size, line count, filter count, and unsaved/parse-error mode.
 
 ## Limitations
 
 *   **Hardcoded Limits**: The text block sizes are fixed for vanilla.
-*   **Translation**: No specific tooling for side-by-side translation.
-*   **GUI source save**: The source-sync service is currently CLI/backend only;
-    the Message Editor GUI is not yet wired to publish ASM-owned source.
+*   **Translation**: The editor compares against the text loaded in this
+    session. It does not load a second ROM or language pack.
+*   **GUI source save**: Expanded dialogue can be previewed and published to
+    `messages.source` from the font panel. Preview is bound to the canonical
+    bundle SHA captured when that bundle was loaded and to the exact draft
+    that was previewed. A disk change before preview, or a draft or disk
+    change after preview, rejects publication. A successful publish clears
+    only the expanded source-draft flag. Vanilla, font, and other ROM dirty
+    state stay in place, and `write_policy=block` still refuses expanded ROM
+    writes. The refusal points at the canonical bundle and generated include.
 *   **Filesystem metadata**: Source publication and rollback preserve exact file
     contents and existing POSIX mode bits, not ownership, ACLs, extended
     attributes/flags, or target-specific Windows attributes/DACLs. Source

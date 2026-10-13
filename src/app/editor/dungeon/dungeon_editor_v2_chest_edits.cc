@@ -47,6 +47,40 @@ std::optional<size_t> ObjectForChest(const zelda3::Room& room, size_t chest) {
   return std::nullopt;
 }
 
+// Compare only the table-backed records, in authored order. Ordinary object
+// changes must not re-plan unrelated global tables or load unopened rooms.
+bool SameSpecialObjects(const std::vector<zelda3::RoomObject>& before,
+                        const std::vector<zelda3::RoomObject>& after,
+                        zelda3::ObjectOption option) {
+  const auto matches = [option](const auto& object) {
+    return (object.options() & option) != zelda3::ObjectOption::Nothing;
+  };
+  auto a = before.begin();
+  auto b = after.begin();
+  while (true) {
+    a = std::find_if(a, before.end(), matches);
+    b = std::find_if(b, after.end(), matches);
+    if (a == before.end() || b == after.end()) {
+      return a == before.end() && b == after.end();
+    }
+    if (a->x() != b->x() || a->y() != b->y() ||
+        a->GetLayerValue() != b->GetLayerValue()) {
+      return false;
+    }
+    if (option == zelda3::ObjectOption::Torch) {
+      if (a->lit_ != b->lit_ ||
+          a->torch_reserved_bit() != b->torch_reserved_bit()) {
+        return false;
+      }
+    } else if (a->block_behavior_layer() != b->block_behavior_layer() ||
+               a->block_load_order() != b->block_load_order()) {
+      return false;
+    }
+    ++a;
+    ++b;
+  }
+}
+
 std::vector<std::optional<size_t>> ObjectOrigins(size_t count) {
   std::vector<std::optional<size_t>> origins(count);
   for (size_t i = 0; i < count; ++i)
@@ -130,7 +164,7 @@ absl::Status DungeonEditorV2::DeleteChest(int room_id, size_t index) {
 
 absl::Status DungeonEditorV2::PreflightObjectMutation(
     int room_id, const std::vector<zelda3::RoomObject>& objects,
-    const std::vector<chest_data>& chests) {
+    const std::vector<chest_data>& chests, bool check_streams) {
   const auto* room = rooms_.GetIfLoaded(room_id);
   if (!room || room->rom() != rom_) {
     return absl::FailedPreconditionError("Room objects are not loaded");
@@ -138,6 +172,61 @@ absl::Status DungeonEditorV2::PreflightObjectMutation(
   if (objects.size() > zelda3::kMaxTileObjects &&
       objects.size() > room->GetTileObjects().size()) {
     return absl::ResourceExhaustedError("Room object limit reached");
+  }
+  const bool torches_changed = !SameSpecialObjects(
+      room->GetTileObjects(), objects, zelda3::ObjectOption::Torch);
+  const bool blocks_changed = !SameSpecialObjects(
+      room->GetTileObjects(), objects, zelda3::ObjectOption::Block);
+  if (torches_changed && !room->AreTorchesLoaded()) {
+    return absl::FailedPreconditionError(
+        "Load the room's torch table before editing torches");
+  }
+  if (torches_changed || blocks_changed) {
+    // Rooms own graphics resources and cannot be copied. Materialize only the
+    // small block table to establish ownership, then replace it with authored
+    // candidates (including pending block-slot identities). No graphics load.
+    zelda3::Room staged(room_id, rom_);
+    if (blocks_changed) {
+      if (!room->AreBlocksLoaded()) {
+        return absl::FailedPreconditionError(
+            "Load the room's block table before editing pushable blocks");
+      }
+      staged.LoadBlocks();
+    }
+    staged.SetTileObjects(objects);
+    if (torches_changed)
+      staged.MarkTorchesDirty();
+    if (blocks_changed)
+      staged.MarkBlocksDirty();
+    const auto lookup = [&](int id) -> const zelda3::Room* {
+      return id == room_id ? &staged : rooms_.GetIfMaterialized(id);
+    };
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    if (torches_changed) {
+      ASSIGN_OR_RETURN(auto torch_ranges,
+                       zelda3::GetTorchSaveWriteRanges(
+                           rom_, static_cast<int>(rooms_.size()), lookup));
+      ranges.insert(ranges.end(), torch_ranges.begin(), torch_ranges.end());
+    }
+    if (blocks_changed) {
+      ASSIGN_OR_RETURN(auto block_ranges,
+                       zelda3::GetBlockSaveWriteRanges(
+                           rom_, static_cast<int>(rooms_.size()), lookup));
+      ranges.insert(ranges.end(), block_ranges.begin(), block_ranges.end());
+    }
+    if (dependencies_.project &&
+        dependencies_.project->hack_manifest.loaded()) {
+      RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+          dependencies_.project->hack_manifest,
+          dependencies_.project->rom_metadata.write_policy, ranges,
+          "special object authoring", "DungeonEditorV2", nullptr));
+    }
+  }
+  if (check_streams) {
+    auto candidate = CaptureDungeonSelectionEditState(*room);
+    candidate.objects = objects;
+    RETURN_IF_ERROR(
+        PreflightStreamMutation(room_id, candidate, kSelectionObjects));
   }
   const auto& original = room->GetChests();
   if (original.size() == chests.size() &&

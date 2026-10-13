@@ -1,6 +1,8 @@
 # Yaze capability assessment
 
-Last reviewed: 2026-09-23 for the v0.8.0 development line.
+Last reviewed: 2026-09-23 for the v0.8.0 development line; OW-1/GF-1
+implementation status refreshed from consolidated source `bd9f0497a` on
+2026-10-05. This is not packaged-release qualification.
 
 The target is complete ALttP authoring workflows covering the capabilities of
 Hyrule Magic and ZScream: **create or edit → preview → undo/redo → save → reopen
@@ -116,11 +118,11 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | Author reciprocal normal-door connections | **Candidate** at `be973563f`; verification above | Shared endpoint diagram, upper/lower choice, explicit Create Return Door / Update Pair, strict target loading with WaterFill retention, stale-preview rejection, and atomic pair Undo/Redo. | Ordinary outer normal doors only; stairs, pits, special types, runtime traversal, and application save/reopen remain. Stream allocation remains Save-time. |
 | Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557`, metadata at `aeb0b1200`, paired chests at `478206247`, mixed selections at `eac49e2bd`, and the normal-door pair candidate extend the original audit. | Remaining authoring domains, connection families, complete room operations, and exact-candidate qualification keep DA-1 and DA-2 open. |
 | Clone/import authored room data | **Candidate** at `bb185d1ae`; DA-4 remains **Partial** | `yaze.room` v1; Clone/Copy Room JSON/Import JSON; seven selectable domains, Core defaults; count/policy preview, detached capacity/write-policy preflight, source/target stale checks, and one Undo/Redo. Objects retain chest rewards and special metadata; properties include pit target plane. | Numeric asset IDs only; target destinations preserved unless explicitly included. Project-file/asset compatibility, portable resources, application disk/runtime, and packaged acceptance remain. |
-| Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
-| Edit graphics and graphics groups | **Candidate** for 3bpp pixel-sheet persistence (2bpp sheets are read-only); other workflows **Partial** | Pixel editing and undo through a per-session sheet store (`2d8e5acaa`); PNG export and import with a preview (`4a1a90a99`); LC-LZ2 write-back in place or relocated into the hack manifest's `graphics_sheet_regions`, with rollback; save preflight and read-back verification (`830915bbb`); graphics-group tools, import surfaces, and polyhedral editing. Source, Focused, and ROM evidence on vanilla and Oracle base ROM copies. | Runtime check of a saved sheet in game, live-window acceptance, and CI. Graphics saves stay off until `save_graphics_sheet` is enabled. |
+| Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites. `Overworld::PrepareSpriteSave` and `Overworld::SaveSprites` plan/write sprites for three states; `OverworldEditor::Save` applies the plan in its ROM transaction, including when map saving is disabled. | Unify entity undo; qualify application Save As/reopen and game behavior for each supported state. Unloaded or unsupported map/state ownership and positions outside the 16-pixel grid refuse saving. |
+| Edit graphics and graphics groups | **Candidate** for guarded 3bpp pixel-sheet persistence (2bpp sheets are read-only); other workflows **Partial** | Pixel editing and undo through a per-session sheet store (`2d8e5acaa`); PNG export and import with a preview (`4a1a90a99`); `GraphicsEditor::Save` participates in coordinated save when `save_graphics_sheet` is enabled, writing LC-LZ2 in place or into manifest-approved `graphics_sheet_regions` with batch rollback and decoded readback (`830915bbb`); graphics-group tools and polyhedral editing. Prior Source, Focused, and ROM evidence used vanilla and Oracle base ROM copies. | The selected combined-candidate authoring checks passed (see the dated increment in the parity plan); runtime saved-sheet behavior, native window, CI, and remaining asset-exchange formats remain open. Pending sheet edits block coordinated save when the flag is disabled; enabling it does not override sheet ownership, reserved-sheet policy, pixel-index limits, or approved free-space requirements. |
 | Edit screens and maps | **Blocked** for coordinated save with pending Screen edits | Dungeon-map, title, pause-map, and Tile16 editing surfaces; partial inventory UI | Complete and qualify each writer; naming-screen implementation is empty. Credits/ending screen authoring was not found in the reviewed surface and needs a specific audit. |
 | Edit messages | **Partial** as a full application workflow | Parsing, preview, search, bundle/source workflows, transactional writer | GUI-to-disk save/reopen and runtime acceptance for named ROM profiles. |
-| Edit palettes | **Partial** as a coordinated workflow | Broad palette groups, preview, undo, JSON exchange, explicit ROM-buffer commit | Integrate with coordinated save or qualify and clearly retain the two-step procedure. JSON exchange is already implemented when enabled. |
+| Edit palettes | **Partial**; coordinated saving implemented | Broad palette groups, live context preview, per-session undo, JSON exchange, and palette serialization inside File Save/Save As when Save All Palettes or Save Dungeon Palettes is enabled | Paired source-palette/pixel remapping is implemented for loader-addressed static 3bpp dungeon/Overworld targets, with one Graphics Undo and disposable Oracle Save As/reopen checks. Qualify other advertised palettes/profiles and runtime appearance. Disabled palette saving refuses pending edits. |
 | Edit music, instruments, and samples | **Partial**; instrument/sample persistence **Missing** | Tracker, piano roll, playback, and song serialization | Complete instrument/sample writers, real WAV/BRR import, event clipboard, and application save integration. The sample import button currently produces placeholder data. |
 | Author custom dungeon systems | **Partial** | Project mappings, tile workshop, Oracle collision/water tools, custom assets, source publication | Complete authoring and validation across mappings, source build, collision, visuals, and game behavior. A successful ROM save does not prove a source patch reached the game. |
 | Edit global game properties and supported expansions | **Partial**, comparison audit required | Several relevant properties and expanded overworld formats exist | Enumerate the reference editors' settings and layout versions, map them to Yaze, and qualify each supported variant instead of assuming full compatibility. |
@@ -135,10 +137,12 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
    chest, normal-door pair, and authored-room transfer operations. DA-4
    project-file/asset compatibility and DA-3 stairs/pits with verified engine
    rules are separate follow-ups; the entire packages remain partial.
-2. **Complete overworld entity persistence.** Add the missing sprite writer and
-   state handling before describing all entity editing as durable.
-3. **Complete graphics and screens by data domain.** Keep unsafe writers blocked
-   while compression, allocation, transactional writes, and readback are built.
+2. **Complete overworld entity persistence.** Qualify the existing three-state
+   sprite writer through application save/reopen and runtime, then complete
+   entity undo before describing the whole workflow as durable.
+3. **Complete graphics and screens by data domain.** Qualify the guarded 3bpp
+   sheet writer on the combined candidate and finish remaining formats; keep
+   unsupported Screen writes blocked.
 4. **Complete audio and remaining reference workflows.** Instruments, samples,
    clipboard, naming/credits/ending, global properties, and expansion coverage
    need explicit implementation and acceptance records.
@@ -173,10 +177,12 @@ expected-difference baselines; unexplained new differences fail acceptance.
 ## Choosing a workflow today
 
 Use the [readiness matrix](feature-coverage-report.md) to choose a bounded edit
-on a copied ROM. Dungeon, overworld maps/entrances/exits/items, and messages have
-save implementations; their whole-editor status is still Partial. Overworld
-sprite edits are not in the save path. Palette currently requires **Save to
-ROM**, then **File > Save ROM**. Pending Screen edits block that coordinated
+on a copied ROM. Dungeon, overworld maps/entrances/exits/items/sprites, and messages
+have save implementations; their whole-editor status is still Partial. Overworld
+sprite edits use the editor's planned writer; verify the exact ROM profile and
+saved state on a copy. Palette edits join **File > Save ROM** and **Save As**
+when Save All Palettes or Save Dungeon Palettes is enabled; the old two-step
+**Save to ROM** procedure is no longer required. Pending Screen edits block that coordinated
 save; pending Graphics edits block it unless graphics sheet saves are enabled
 (the `save_graphics_sheet` feature flag, per project). Music song operations
 use a separate path and do not establish

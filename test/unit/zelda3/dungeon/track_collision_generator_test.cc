@@ -216,6 +216,49 @@ TEST(TrackCollisionGeneratorTest, LegacyWidthHeightDoesNotChangeOutput) {
   EXPECT_EQ(res_a.collision_map.tiles, res_b.collision_map.tiles);
 }
 
+TEST(TrackCollisionGeneratorTest, TJunctionsMatchOracleClosedSideAndRoundTrip) {
+  // Independent contract from minecart.asm CheckForPlayerInput:
+  // $BB disallows up, $BC down, $BD right, $BE left. Names denote the
+  // closed side, not the open stem. Use one-cell configured rail objects
+  // to exercise generation from actual neighboring placements.
+  struct Junction {
+    int closed_dx;
+    int closed_dy;
+    uint8_t expected;
+  };
+  constexpr Junction cases[] = {
+      {0, -1, 0xBB}, {0, 1, 0xBC}, {1, 0, 0xBD}, {-1, 0, 0xBE}};
+  constexpr std::pair<int, int> directions[] = {
+      {0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+  ScopedCustomObjectsFlag custom_objects(/*enabled=*/false);
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(std::vector<uint8_t>(kCustomCollisionDataEnd, 0)).ok());
+  GeneratorOptions options;
+  options.track_object_id = 0x35;
+  for (const auto& junction : cases) {
+    SCOPED_TRACE(static_cast<int>(junction.expected));
+    Room room;
+    room.AddTileObject(RoomObject(0x35, 20, 20, 0, 0));
+    for (const auto& [dx, dy] : directions) {
+      if (dx != junction.closed_dx || dy != junction.closed_dy)
+        room.AddTileObject(RoomObject(0x35, 20 + dx, 20 + dy, 0, 0));
+    }
+    const auto generated = GenerateTrackCollision(&room, options);
+    ASSERT_TRUE(generated.ok()) << generated.status();
+    ASSERT_EQ(generated->tiles_generated, 4);
+    EXPECT_EQ(generated->collision_map.tiles[20 * 64 + 20], junction.expected);
+    EXPECT_EQ(
+        generated->collision_map
+            .tiles[(20 + junction.closed_dy) * 64 + 20 + junction.closed_dx],
+        0);
+    ASSERT_TRUE(WriteTrackCollision(&rom, 0x89, generated->collision_map).ok());
+    const auto reopened = LoadCustomCollisionMap(&rom, 0x89);
+    ASSERT_TRUE(reopened.ok()) << reopened.status();
+    EXPECT_EQ(reopened->tiles, generated->collision_map.tiles);
+  }
+}
+
 TEST(TrackCollisionGeneratorTest,
      WriteReusesUniqueCurrentBlobWhenReplacementFits) {
   Rom rom;
@@ -322,6 +365,31 @@ TEST(TrackCollisionGeneratorTest,
   auto replacement_loaded_or = LoadCustomCollisionMap(&rom, 0x25);
   ASSERT_TRUE(replacement_loaded_or.ok()) << replacement_loaded_or.status();
   EXPECT_EQ(replacement_loaded_or->tiles, replacement.tiles);
+}
+
+TEST(TrackCollisionGeneratorTest, ExplicitFloorAndClearRoundTrip) {
+  Rom rom;
+  ASSERT_TRUE(
+      rom.LoadFromData(std::vector<uint8_t>(kCustomCollisionDataEnd, 0x00))
+          .ok());
+  CustomCollisionMap map;
+  map.SetOverride(494, 0x00);
+  map.SetOverride(495, 0xFF);
+  ASSERT_TRUE(WriteTrackCollision(&rom, 0x83, map).ok());
+  auto loaded = LoadCustomCollisionMap(&rom, 0x83);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(*loaded, map);
+  EXPECT_TRUE(loaded->HasOverride(494));
+  EXPECT_FALSE(loaded->HasOverride(493));
+
+  map.ClearOverride(494);
+  ASSERT_TRUE(WriteTrackCollision(&rom, 0x83, map).ok());
+  loaded = LoadCustomCollisionMap(&rom, 0x83);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(*loaded, map);
+  EXPECT_FALSE(loaded->HasOverride(494));
+  EXPECT_TRUE(loaded->HasOverride(495));
+  EXPECT_EQ(loaded->tiles[495], 0xFF);
 }
 
 }  // namespace

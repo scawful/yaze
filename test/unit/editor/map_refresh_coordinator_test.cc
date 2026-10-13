@@ -1,10 +1,13 @@
 #include "app/editor/overworld/maps/map_refresh_coordinator.h"
+#include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/maps/map_texture_coordinator.h"
+#include "app/editor/overworld/overworld_undo_actions.h"
 
 #include <array>
 #include <memory>
 
 #include "absl/status/status.h"
+#include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
@@ -57,7 +60,7 @@ class MapRefreshCoordinatorTest : public ::testing::Test {
   Rom rom_;
   std::unique_ptr<zelda3::Overworld> overworld_;
 
-  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_{};
+  std::array<gfx::Bitmap, zelda3::kExpandedMapCount> maps_bmp_{};
   gfx::Tilemap tile16_blockset_{};
   gfx::Bitmap current_gfx_bmp_;
   gfx::BitmapTable current_graphics_set_;
@@ -87,6 +90,77 @@ class MapRefreshCoordinatorTest : public ::testing::Test {
     tiles->special_world.assign(0x200, std::vector<uint16_t>(0x200, 0));
   }
 };
+
+TEST_F(MapRefreshCoordinatorTest, ChildSelectionRefreshesFromEditedParent) {
+  ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rom_[zelda3::OverworldCustomASMHasBeenApplied] = 3;
+  PopulateSingleMapForRefresh(0x39);
+  for (int child : {0x30, 0x31, 0x38, 0x39}) {
+    overworld_->mutable_overworld_map(child)->SetAsLargeMap(
+        0x30, (child - 0x30) / 8 * 2 + (child - 0x30) % 8);
+    overworld_->mutable_overworld_map(child)->set_area_palette(0x0E);
+    overworld_->mutable_overworld_map(child)->set_area_graphics(0x10);
+  }
+  auto* parent = overworld_->mutable_overworld_map(0x30);
+  parent->set_area_palette(0x1C);
+  parent->set_area_graphics(0x38);
+  current_map_ = 0x31;
+  coordinator_->RefreshMapProperties();
+  for (int child : {0x30, 0x31, 0x38, 0x39}) {
+    EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x1C) << child;
+    EXPECT_EQ(overworld_->overworld_map(child)->area_graphics(), 0x38) << child;
+  }
+}
+
+TEST_F(MapRefreshCoordinatorTest,
+       PaletteUndoRefreshesOriginalAreaAfterNavigation) {
+  ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rom_[zelda3::OverworldCustomASMHasBeenApplied] = 3;
+  PopulateSingleMapForRefresh(0x39);
+  for (int child : {0x30, 0x31, 0x38, 0x39}) {
+    auto* map = overworld_->mutable_overworld_map(child);
+    map->SetAsLargeMap(0x30, (child - 0x30) / 8 * 2 + (child - 0x30) % 8);
+    map->set_area_palette(0x0E);
+  }
+  auto* unrelated = overworld_->mutable_overworld_map(0x00);
+  unrelated->SetAsSmallMap(0x00);
+  unrelated->set_area_palette(0x05);
+  MapPropertiesSystem properties(overworld_.get(), &rom_);
+  std::vector<int> palette_targets;
+  properties.SetRefreshCallbacks(
+      [this](int map_id) { coordinator_->RefreshMapProperties(map_id); },
+      nullptr,
+      [&](int map_id) {
+        palette_targets.push_back(map_id);
+        return absl::OkStatus();
+      });
+  const OverworldPropertyEdit before{0x31, OverworldPropertyField::kAreaPalette,
+                                     0, 0x0E};
+  auto after = before;
+  after.value = 0x1C;
+  current_map_ = 0x31;
+  ASSERT_TRUE(properties.ApplyPropertyEditDirect(after).ok());
+  for (int child : {0x30, 0x31, 0x38, 0x39})
+    EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x1C);
+  OverworldMapPropertyEditAction action(
+      before, after,
+      [&](const OverworldPropertyEdit& edit) {
+        return properties.ApplyPropertyEditDirect(edit);
+      },
+      "Palette");
+  current_map_ = 0x00;
+  ASSERT_TRUE(action.Undo().ok());
+  for (int child : {0x30, 0x31, 0x38, 0x39})
+    EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x0E) << child;
+  EXPECT_EQ(unrelated->area_palette(), 0x05);
+  EXPECT_EQ(current_map_, 0x00);
+  ASSERT_TRUE(action.Redo().ok());
+  for (int child : {0x30, 0x31, 0x38, 0x39})
+    EXPECT_EQ(overworld_->overworld_map(child)->area_palette(), 0x1C) << child;
+  EXPECT_EQ(unrelated->area_palette(), 0x05);
+  EXPECT_EQ(current_map_, 0x00);
+  EXPECT_EQ(palette_targets, (std::vector<int>{0x30, 0x30, 0x30}));
+}
 
 // ===========================================================================
 // ForceRefreshGraphics
@@ -126,22 +200,6 @@ TEST_F(MapRefreshCoordinatorTest, ForceRefreshGraphicsBoundaryIndex159Works) {
 }
 
 // ===========================================================================
-// RefreshOverworldMapOnDemand -- bounds checking
-// ===========================================================================
-
-TEST_F(MapRefreshCoordinatorTest,
-       RefreshOverworldMapOnDemandNegativeIndexNoCrash) {
-  coordinator_->RefreshOverworldMapOnDemand(-1);
-  // Negative index is rejected silently.
-}
-
-TEST_F(MapRefreshCoordinatorTest,
-       RefreshOverworldMapOnDemandExcessiveIndexNoCrash) {
-  coordinator_->RefreshOverworldMapOnDemand(zelda3::kNumOverworldMaps);
-  // Out-of-bounds index is rejected silently.
-}
-
-// ===========================================================================
 // RefreshOverworldMapOnDemand -- deferred path
 // ===========================================================================
 
@@ -172,6 +230,8 @@ TEST_F(MapRefreshCoordinatorTest,
 
   // Should not crash even though Overworld has no loaded maps.
   coordinator_->RefreshOverworldMapOnDemand(5);
+  // Only the deferred path marks the bitmap modified.
+  EXPECT_FALSE(maps_bmp_[5].modified());
 }
 
 TEST_F(MapRefreshCoordinatorTest,
@@ -183,8 +243,9 @@ TEST_F(MapRefreshCoordinatorTest,
   maps_bmp_[10].set_modified(false);
 
   coordinator_->RefreshOverworldMapOnDemand(10);
-  // Should not crash. The non-deferred path enters RefreshChildMapOnDemand
-  // which checks needs_graphics_rebuild (false) and skips heavy work.
+  // The non-deferred path enters RefreshChildMapOnDemand, which returns early
+  // without loaded maps. Only the deferred path marks the bitmap modified.
+  EXPECT_FALSE(maps_bmp_[10].modified());
 }
 
 // ===========================================================================
@@ -214,20 +275,8 @@ TEST_F(MapRefreshCoordinatorTest,
 }
 
 // ===========================================================================
-// RefreshOverworldMap delegates to RefreshOverworldMapOnDemand
+// RefreshMapPalette and RefreshChildMapOnDemand
 // ===========================================================================
-
-TEST_F(MapRefreshCoordinatorTest, RefreshOverworldMapDelegatesToOnDemand) {
-  // RefreshOverworldMap() calls RefreshOverworldMapOnDemand(*ctx_.current_map).
-  // With current_map=5 and current_world=0, map 5 is both the current map
-  // and in the current world, so it takes the non-deferred path into
-  // RefreshChildMapOnDemand. With no loaded Overworld maps, the null-check
-  // in RefreshChildMapOnDemand returns early -- verify no crash.
-  current_world_ = 0;
-  current_map_ = 5;
-  coordinator_->RefreshOverworldMap();
-  // Just verify no crash. The deferred path is tested separately.
-}
 
 TEST_F(MapRefreshCoordinatorTest,
        RefreshMapPaletteFailsWhenCurrentMapIsNotLoaded) {
@@ -264,16 +313,13 @@ TEST_F(MapRefreshCoordinatorTest,
 
   EXPECT_EQ(map->game_state(), 2);
   EXPECT_EQ(map->static_graphics(12), 0x20 + 0x73);
-}
 
-// ===========================================================================
-// UpdateBlocksetWithPendingTileChanges -- early returns
-// ===========================================================================
-
-TEST_F(MapRefreshCoordinatorTest, UpdateBlocksetNotLoadedReturnsImmediately) {
-  map_blockset_loaded_ = false;
-  // Should not crash -- exits immediately.
-  coordinator_->UpdateBlocksetWithPendingTileChanges();
+  // A later on-demand rebuild must keep the coordinator's selected state.
+  // Previously the model's default state 0 silently restored spriteset 1.
+  overworld_->InvalidateMapCache(0);
+  ASSERT_TRUE(overworld_->EnsureMapBuilt(0).ok());
+  EXPECT_EQ(map->game_state(), 2);
+  EXPECT_EQ(map->static_graphics(12), 0x20 + 0x73);
 }
 
 // Exercise the real model -> editor bitmap -> refresh boundary. A built map's
@@ -330,6 +376,71 @@ class OverworldPaintRefreshTest : public MapRefreshCoordinatorTest {
 };
 
 TEST_F(OverworldPaintRefreshTest,
+       FreshMapTexturePreservesIndexedPixelsAndColors) {
+  auto* map = overworld_->mutable_overworld_map(0);
+  for (int y = 0; y < 32; ++y) {
+    for (int x = 0; x < 32; ++x) {
+      overworld_->GetMapTiles(0)[x][y] = (x + y) % 2;
+    }
+  }
+  ASSERT_TRUE(map->BuildBitmap(overworld_->GetMapTiles(0)).ok());
+  *map->mutable_current_palette() =
+      gfx::SnesPalette(std::vector<gfx::SnesColor>(256));
+  (*map->mutable_current_palette())[0] = gfx::SnesColor(248, 0, 0);
+  (*map->mutable_current_palette())[16] = gfx::SnesColor(0, 0, 248);
+
+  // Exercise first display and recreation, not a pre-created test bitmap.
+  for (int pass = 0; pass < 2; ++pass) {
+    SCOPED_TRACE(pass);
+    textures_->ResetMapBitmaps();
+    textures_->EnsureMapTexture(0);
+    auto& bitmap = maps_bmp_[0];
+    ASSERT_TRUE(bitmap.is_active());
+    EXPECT_EQ(bitmap.depth(), 8);
+    EXPECT_TRUE(bitmap.IsIndexed());
+    EXPECT_TRUE(bitmap.ValidateDataSurfaceSync());
+
+    // Use the production SDL upload and a windowless software renderer. Checking
+    // the indexed model alone misses palette/row-stride errors at this boundary.
+    std::unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)> target(
+        SDL_CreateRGBSurfaceWithFormat(0, 512, 512, 32, SDL_PIXELFORMAT_RGBA32),
+        SDL_FreeSurface);
+    ASSERT_NE(target, nullptr) << SDL_GetError();
+    std::unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> renderer(
+        SDL_CreateSoftwareRenderer(target.get()), SDL_DestroyRenderer);
+    ASSERT_NE(renderer, nullptr) << SDL_GetError();
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture(
+        SDL_CreateTexture(renderer.get(), SDL_PIXELFORMAT_RGBA8888,
+                          SDL_TEXTUREACCESS_STREAMING, 512, 512),
+        SDL_DestroyTexture);
+    ASSERT_NE(texture, nullptr) << SDL_GetError();
+    gfx::SDL2Renderer uploader;
+    uploader.UpdateTexture(texture.get(), bitmap);
+    ASSERT_EQ(SDL_RenderCopy(renderer.get(), texture.get(), nullptr, nullptr),
+              0)
+        << SDL_GetError();
+    std::vector<uint8_t> rendered(512 * 512 * 4);
+    ASSERT_EQ(
+        SDL_RenderReadPixels(renderer.get(), nullptr, SDL_PIXELFORMAT_RGBA32,
+                             rendered.data(), 512 * 4),
+        0)
+        << SDL_GetError();
+    size_t mismatched_pixels = 0;
+    for (size_t i = 0; i < map->bitmap_data().size(); ++i) {
+      const auto color = map->current_palette()[map->bitmap_data()[i]].rgb();
+      if (rendered[i * 4] != static_cast<uint8_t>(color.x) ||
+          rendered[i * 4 + 1] != static_cast<uint8_t>(color.y) ||
+          rendered[i * 4 + 2] != static_cast<uint8_t>(color.z) ||
+          rendered[i * 4 + 3] != 255) {
+        ++mismatched_pixels;
+      }
+    }
+    EXPECT_EQ(mismatched_pixels, 0u);
+    gfx::Arena::Get().ClearTextureQueue();
+  }
+}
+
+TEST_F(OverworldPaintRefreshTest,
        EnsureTexturePreservesPaintUntilModelRefresh) {
   overworld_->GetMapTiles(0)[0][0] = 1;
   maps_bmp_[0].WriteToPixel(0, 0x10);
@@ -375,6 +486,31 @@ TEST_F(OverworldPaintRefreshTest, RebuiltModelStillSynchronizesCleanBitmap) {
   EXPECT_EQ(overworld_->overworld_map(0)->bitmap_data()[0], 0x10);
   EXPECT_EQ(maps_bmp_[0].vector()[0], 0x10);
   EXPECT_FALSE(maps_bmp_[0].modified());
+}
+
+TEST_F(OverworldPaintRefreshTest, GraphicsPreviewSurvivesEditRefreshAndClears) {
+  zelda3::PreviewTile8 pixels{};
+  pixels.fill(13);
+  overworld_->SetGraphicsPreview({{0, {{0, pixels}}}});
+  coordinator_->InvalidateTile16Definitions();
+  coordinator_->RefreshOverworldMapOnDemand(0);
+  ASSERT_TRUE(status_.ok()) << status_;
+  EXPECT_EQ(maps_bmp_[0].vector()[0], 13);
+
+  // Exercise the same invalidation/rebuild used after definition undo/redo.
+  for (int tile : {1, 0, 1}) {
+    overworld_->GetMapTiles(0)[0][0] = tile;
+    coordinator_->InvalidateTile16Definitions();
+    coordinator_->RefreshOverworldMapOnDemand(0);
+    ASSERT_TRUE(status_.ok()) << status_;
+    EXPECT_EQ(maps_bmp_[0].vector()[0], 13 + tile * 16);
+    EXPECT_EQ(overworld_->overworld_map(0)->current_graphics()[0], 13);
+  }
+  overworld_->SetGraphicsPreview({});
+  coordinator_->InvalidateTile16Definitions();
+  coordinator_->RefreshOverworldMapOnDemand(0);
+  EXPECT_EQ(maps_bmp_[0].vector()[0], 16);
+  EXPECT_EQ(overworld_->overworld_map(0)->current_graphics()[0], 0);
 }
 
 }  // namespace

@@ -86,6 +86,51 @@ std::string WithCrLf(const std::string& content) {
 
 }  // namespace
 
+TEST(ProjectPathsTest, TerrainCatalogPathSurvivesSaveAndResetsOnNextProject) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_terrain_project"));
+  const auto project_file = temp.path() / "Terrain.yaze";
+  const auto catalog_file = temp.path() / "terrain.json";
+  WriteTextFile(catalog_file, "{}");
+  YazeProject project;
+  project.name = "Terrain";
+  project.filepath = project_file.string();
+  project.terrain_catalog_file = catalog_file.string();
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_NE(
+      ReadTextFile(project_file).find("terrain_catalog_file=terrain.json"),
+      std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_EQ(reopened.terrain_catalog_file, catalog_file.string());
+  ASSERT_TRUE(reopened
+                  .LoadFromString("[project]\nname=Other\n",
+                                  (temp.path() / "Other.yaze").string())
+                  .ok());
+  EXPECT_TRUE(reopened.terrain_catalog_file.empty());
+}
+
+TEST(ProjectPathsTest, DungeonPatternPathSurvivesSaveAndResetsOnNextProject) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_dungeon_patterns_project"));
+  const auto project_file = temp.path() / "Patterns.yaze";
+  const auto patterns_file = temp.path() / "walls.asm";
+  WriteTextFile(patterns_file, "org $009E3A\ndw $4890\n");
+  YazeProject project;
+  project.name = "Patterns";
+  project.filepath = project_file.string();
+  project.dungeon_tile_patterns = patterns_file.string();
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_NE(ReadTextFile(project_file).find("dungeon_tile_patterns=walls.asm"),
+            std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_EQ(reopened.dungeon_tile_patterns, patterns_file.string());
+  ASSERT_TRUE(reopened
+                  .LoadFromString("[project]\nname=Other\n",
+                                  (temp.path() / "Other.yaze").string())
+                  .ok());
+  EXPECT_TRUE(reopened.dungeon_tile_patterns.empty());
+}
+
 TEST(ProjectPathsTest, OpenNormalizesRelativePathsToAbsolute) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_paths"));
 
@@ -582,6 +627,52 @@ hack_manifest_file=manifests/broken.json
   EXPECT_FALSE(validation.ok());
   EXPECT_NE(validation.message().find("Hack manifest file failed to load"),
             std::string::npos);
+}
+
+// Regression (2026-09-28): Open() does not make these keys absolute, and the
+// serializer passed the relative value straight to GetRelativePath, which
+// resolves it against the process working directory. Saving from any other
+// directory rewrote Oracle's custom_collision_json=Data/dungeons/... into a
+// path relative to the working directory.
+TEST(ProjectPathsTest, RelativeFileKeysSurviveSaveFromAnotherDirectory) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_relative_keys"));
+  ScopedTempDir elsewhere(MakeUniqueTempDir("yaze_project_relative_cwd"));
+  const auto project_file = temp.path() / "Oracle.yaze";
+  WriteTextFile(project_file,
+                R"(
+[project]
+name=Relative Keys
+
+[files]
+custom_collision_json=Data/dungeons/custom_collision.json
+cutscene_shots=Data/cutscenes/shots.json
+
+[agent_settings]
+custom_system_prompt=.gemini/yaze_agent_prompt.md
+)");
+
+  {
+    ScopedCurrentPath current_path(elsewhere.path());
+    YazeProject project;
+    ASSERT_TRUE(project.Open(project_file.string()).ok());
+    EXPECT_EQ(project.GetAbsolutePath(project.custom_collision_json),
+              (temp.path() / "Data" / "dungeons" / "custom_collision.json")
+                  .lexically_normal()
+                  .make_preferred()
+                  .string());
+    ASSERT_TRUE(project.Save().ok());
+  }
+  const auto saved = ReadTextFile(project_file);
+  EXPECT_NE(
+      saved.find("custom_collision_json=Data/dungeons/custom_collision.json\n"),
+      std::string::npos)
+      << saved;
+  EXPECT_NE(saved.find("cutscene_shots=Data/cutscenes/shots.json\n"),
+            std::string::npos)
+      << saved;
+  EXPECT_NE(saved.find("custom_system_prompt=.gemini/yaze_agent_prompt.md\n"),
+            std::string::npos)
+      << saved;
 }
 
 }  // namespace yaze::project

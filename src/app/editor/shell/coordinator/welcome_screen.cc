@@ -1401,6 +1401,17 @@ void WelcomeScreen::DrawFooterBar() {
     ImGui::SetTooltip("%s", tr("Open the release notes in your browser"));
   }
 
+  if (coming_from_zscream_callback_) {
+    ImGui::SameLine(0.0f, style.ItemSpacing.x);
+    if (ImGui::SmallButton(ICON_MD_COMPARE_ARROWS " ZScream guide")) {
+      coming_from_zscream_callback_();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "%s", tr("Map familiar ZScream tools to yaze editors and projects"));
+    }
+  }
+
   const std::string close_label =
       absl::StrFormat("%s Don't show again", ICON_MD_CLOSE);
   const float close_width =

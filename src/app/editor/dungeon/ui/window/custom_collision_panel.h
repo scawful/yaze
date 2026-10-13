@@ -260,9 +260,8 @@ class CustomCollisionPanel : public WindowContent {
       ImGui::Separator();
       ImGui::BeginDisabled(!collision_save_supported);
       if (ImGui::Button(tr("Clear All Custom Collision"))) {
-        room.custom_collision().tiles.fill(0);
         // Clearing should remove the override (room falls back to vanilla).
-        room.custom_collision().has_data = false;
+        room.custom_collision() = {};
         room.MarkCustomCollisionDirty();
         viewer_->set_show_custom_collision_overlay(false);
       }
@@ -283,14 +282,14 @@ class CustomCollisionPanel : public WindowContent {
     for (int rid = 0; rid < static_cast<int>(rooms.size()); ++rid) {
       const auto& room = rooms[rid];
 
-      // Export only rooms with any non-zero override tiles.
+      // Export explicit overrides, including floor (00), without inherited cells.
       bool any = false;
       zelda3::CustomCollisionRoomEntry entry;
       entry.room_id = rid;
-      const auto& map = room.custom_collision().tiles;
-      for (size_t off = 0; off < map.size(); ++off) {
-        const uint8_t val = map[off];
-        if (val == 0) {
+      const auto& map = room.custom_collision();
+      for (size_t off = 0; off < map.tiles.size(); ++off) {
+        const uint8_t val = map.tiles[off];
+        if (!map.HasOverride(off)) {
           continue;
         }
         any = true;
@@ -310,18 +309,13 @@ class CustomCollisionPanel : public WindowContent {
     if (room == nullptr) {
       return;
     }
-    room->custom_collision().tiles.fill(0);
-    bool any = false;
+    room->custom_collision() = {};
     for (const auto& t : entry.tiles) {
       if (t.offset >= room->custom_collision().tiles.size()) {
         continue;
       }
-      room->custom_collision().tiles[t.offset] = t.value;
-      if (t.value != 0) {
-        any = true;
-      }
+      room->custom_collision().SetOverride(t.offset, t.value);
     }
-    room->custom_collision().has_data = any;
     room->MarkCustomCollisionDirty();
   }
 

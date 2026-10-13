@@ -246,9 +246,13 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
   }
 
   if (use_area_specific_bg_color) {
-    // Get current color
-    uint16_t current_color =
-        overworld_->overworld_map(current_map)->area_specific_bg_color();
+    // The edit targets the area parent; display that same persistent value.
+    const int property_map = EffectivePropertyMapId(overworld_, current_map);
+    const auto* map = overworld_->overworld_map(property_map);
+    if (!map) {
+      return;
+    }
+    uint16_t current_color = map->area_specific_bg_color();
     gfx::SnesColor snes_color(current_color);
 
     // Convert to ImVec4 for color picker
@@ -409,17 +413,24 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   };
 
   // --- Header: where the click landed -------------------------------------
+  // Menu rows share a label column. Keep metadata in tooltips so long map
+  // names cannot widen every action and its shortcut column.
   auto title = gui::CanvasMenuItem::Disabled(
-      valid_map ? describe(map_id) : std::string("Outside Overworld"));
+      valid_map ? absl::StrFormat("Map 0x%02X", map_id) : "Outside Overworld");
+  if (valid_map) {
+    title.tooltip = describe(map_id);
+  }
   add(std::move(title), ICON_MD_MAP, !(valid_map && target.tile16_id >= 0));
   if (valid_map && target.tile16_id >= 0) {
     const int tile_x =
         static_cast<int>(target.world_position.x / kTile16Size) % 32;
     const int tile_y =
         static_cast<int>(target.world_position.y / kTile16Size) % 32;
-    add(gui::CanvasMenuItem::Disabled(absl::StrFormat(
-            "Tile16 0x%03X | (%d, %d)", target.tile16_id, tile_x, tile_y)),
-        ICON_MD_GRID_ON, true);
+    auto tile = gui::CanvasMenuItem::Disabled(
+        absl::StrFormat("Tile16 0x%03X", target.tile16_id));
+    tile.tooltip =
+        absl::StrFormat("Tile coordinates: (%d, %d)", tile_x, tile_y);
+    add(std::move(tile), ICON_MD_GRID_ON, true);
   }
 
   // --- Tile ------------------------------------------------------------------
@@ -444,7 +455,19 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
           [this, has_tile]() {
             return bool(edit_tile16_callback_) && has_tile;
           }),
-      ICON_MD_GRID_VIEW, true);
+      ICON_MD_GRID_VIEW);
+  add(gui::CanvasMenuItem::Conditional(
+          "Edit Graphics...",
+          [this, target]() {
+            if (edit_graphics_callback_ && target.valid() &&
+                target.tile16_id >= 0) {
+              edit_graphics_callback_(target);
+            }
+          },
+          [this, has_tile]() {
+            return bool(edit_graphics_callback_) && has_tile;
+          }),
+      ICON_MD_IMAGE, true);
 
   // --- Map -------------------------------------------------------------------
   auto select_item = gui::CanvasMenuItem::Conditional(
@@ -485,7 +508,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
         return valid_map && bool(map_selection_callback_) &&
                bool(open_map_properties_callback_);
       });
-  properties_item.shortcut = "Double-click";
+  properties_item.tooltip = "Double-click the map to open properties.";
   add(std::move(properties_item), ICON_MD_TUNE);
 
   auto pin_item = gui::CanvasMenuItem::Conditional(
@@ -613,11 +636,14 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       {ICON_MD_DOOR_BACK, "Exit", "exit"},
       {ICON_MD_GRASS, "Item", "item"},
       {ICON_MD_PEST_CONTROL_RODENT, "Sprite", "sprite"}};
-  for (const auto& [icon, label, type] : entity_types) {
-    insert_menu.subitems.emplace_back(label, icon, [this, target, type]() {
-      if (entity_insert_callback_ && target.valid())
-        entity_insert_callback_(type, target);
-    });
+  // Not a structured binding: lambdas can't capture those before Clang 16.
+  for (const EntityType& entity : entity_types) {
+    const char* type = entity.type;
+    insert_menu.subitems.emplace_back(
+        entity.label, entity.icon, [this, target, type]() {
+          if (entity_insert_callback_ && target.valid())
+            entity_insert_callback_(type, target);
+        });
   }
   add(std::move(insert_menu), ICON_MD_ADD_LOCATION);
 
@@ -785,7 +811,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
     }
     case OverworldPropertyField::kAreaGraphics:
       map->set_area_graphics(static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       if (maps_bmp_) {
         (*maps_bmp_)[map_id].set_modified(true);
       }
@@ -797,31 +823,31 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       break;
     case OverworldPropertyField::kAreaPalette:
       map->set_area_palette(static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
-      RefreshMapPalette();
+      RefreshMapProperties(map_id);
+      RefreshMapPalette(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kMainPalette:
       map->set_main_palette(static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
-      RefreshMapPalette();
+      RefreshMapProperties(map_id);
+      RefreshMapPalette(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSpriteGraphics:
       map->set_sprite_graphics(game_state, static_cast<uint8_t>(edit.value));
       ForceRefreshGraphics(map_id);
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSpritePalette:
       map->set_sprite_palette(game_state, static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kAnimatedGraphics:
       map->set_animated_gfx(static_cast<uint8_t>(edit.value));
       ForceRefreshGraphics(map_id);
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshTile16Blockset();
       RefreshOverworldMap();
       break;
@@ -832,14 +858,14 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       map->LoadAreaGraphics();
       ForceRefreshGraphics(map_id);
       RefreshSiblingMapGraphics(map_id);
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshTile16Blockset();
       RefreshOverworldMap();
       break;
     }
     case OverworldPropertyField::kMessageId:
       map->set_message_id(static_cast<uint16_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kMusic: {
@@ -847,17 +873,17 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       *map->mutable_area_music(music_state) = static_cast<uint8_t>(edit.value);
       WriteRomByteIfValid(rom_, MusicRomAddressForMapState(map_id, music_state),
                           static_cast<uint8_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       break;
     }
     case OverworldPropertyField::kMosaic:
       *map->mutable_mosaic() = edit.value != 0;
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kMosaicExpanded:
       map->set_mosaic_expanded(std::clamp(edit.index, 0, 3), edit.value != 0);
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kAreaSpecificBgColor:
@@ -865,7 +891,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       WriteRomWordIfValid(
           rom_, zelda3::OverworldCustomAreaSpecificBGPalette + (map_id * 2),
           static_cast<uint16_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
     case OverworldPropertyField::kSubscreenOverlay:
@@ -873,7 +899,7 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
       WriteRomWordIfValid(
           rom_, zelda3::OverworldCustomSubscreenOverlayArray + (map_id * 2),
           static_cast<uint16_t>(edit.value));
-      RefreshMapProperties();
+      RefreshMapProperties(map_id);
       RefreshOverworldMap();
       break;
   }
@@ -882,9 +908,9 @@ absl::Status MapPropertiesSystem::ApplyPropertyEditDirect(
   return absl::OkStatus();
 }
 
-void MapPropertiesSystem::RefreshMapProperties() {
+void MapPropertiesSystem::RefreshMapProperties(int map_id) {
   if (refresh_map_properties_) {
-    refresh_map_properties_();
+    refresh_map_properties_(map_id);
   }
 }
 
@@ -894,9 +920,9 @@ void MapPropertiesSystem::RefreshOverworldMap() {
   }
 }
 
-absl::Status MapPropertiesSystem::RefreshMapPalette() {
+absl::Status MapPropertiesSystem::RefreshMapPalette(int map_id) {
   if (refresh_map_palette_) {
-    return refresh_map_palette_();
+    return refresh_map_palette_(map_id);
   }
   return absl::OkStatus();
 }
@@ -1067,7 +1093,7 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
       (ImTextureID)(intptr_t)overlay_bitmap.texture(), ImVec2(map_x, map_y),
       ImVec2(map_x + kOverworldMapSize * scale,
              map_y + kOverworldMapSize * scale),
-      ImVec2(0, 0), ImVec2(1, 1), overlay_color);
+      ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(overlay_color));
 }
 
 }  // namespace editor

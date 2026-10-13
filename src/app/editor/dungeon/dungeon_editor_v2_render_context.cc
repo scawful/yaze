@@ -4,8 +4,13 @@
 #include <memory>
 #include <utility>
 
+#include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/dungeon/workspace/room_matrix_content.h"
 #include "core/project.h"
+#include "core/rom_settings.h"
 #include "util/log.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
@@ -39,6 +44,9 @@ DungeonEditorV2::BuildDungeonRenderEntranceCandidates() const {
 
 const zelda3::RoomCensus* DungeonEditorV2::GetDungeonRenderContextCensus()
     const {
+  if (dungeon_render_context_census_shutdown_) {
+    return nullptr;
+  }
   if (dungeon_render_context_census_pending_.valid()) {
     if (dungeon_render_context_census_pending_.wait_for(
             std::chrono::seconds(0)) != std::future_status::ready) {
@@ -78,25 +86,44 @@ const zelda3::RoomCensus* DungeonEditorV2::GetDungeonRenderContextCensus()
     return nullptr;
   }
 
+  // Capture while this session owns the runtime context. The worker must not
+  // consult another session's assets or settings after a tab switch/teardown.
+  // Registry construction reads the initial feature mode on this thread.
+  (void)zelda3::DrawRoutineRegistry::Get();
+  auto custom_objects =
+      zelda3::CustomObjectManager::Get().CaptureRenderSnapshot(
+          core::FeatureFlags::get().kEnableCustomObjects);
+  auto addresses = core::RomSettings::Get().address_overrides();
   auto rom_copy = std::make_shared<Rom>(*rom_);
   core::ProjectRegistry project_registry =
       dependencies_.project->hack_manifest.project_registry();
   core::HackManifest manifest = dependencies_.project->hack_manifest;
   dungeon_render_context_pending_generation_ =
       dungeon_render_context_census_generation_;
-  dungeon_render_context_census_pending_ =
-      std::async(std::launch::async,
-                 [rom_copy, project_registry = std::move(project_registry),
-                  manifest = std::move(manifest)]() mutable {
-                   zelda3::RoomCensusOptions options;
-                   options.project = &project_registry;
-                   options.manifest = &manifest;
-                   return zelda3::ComputeRoomCensus(rom_copy.get(), options);
-                 });
+  dungeon_render_context_census_stop_ = util::StopSource{};
+  dungeon_render_context_census_pending_ = std::async(
+      std::launch::async,
+      [rom_copy, project_registry = std::move(project_registry),
+       manifest = std::move(manifest),
+       custom_objects = std::move(custom_objects),
+       addresses = std::move(addresses),
+       stop_token = dungeon_render_context_census_stop_.get_token()]() mutable {
+        zelda3::RoomCensusOptions options;
+        options.stop_token = stop_token;
+        options.project = &project_registry;
+        options.manifest = &manifest;
+        options.custom_objects = &custom_objects;
+        options.address_overrides = &addresses;
+        return zelda3::ComputeRoomCensus(rom_copy.get(), options);
+      });
   return nullptr;
 }
 
 void DungeonEditorV2::InvalidateDungeonRenderContextCensus() {
+  dungeon_render_context_census_stop_.request_stop();
+  if (room_matrix_panel_) {
+    room_matrix_panel_->census_overlay().Invalidate();
+  }
   dungeon_render_context_census_.reset();
   dungeon_render_context_census_attempted_ = false;
   ++dungeon_render_context_census_generation_;
@@ -115,9 +142,21 @@ DungeonRenderContext DungeonEditorV2::ResolveDungeonRenderContextForRoom(
     }
   }
   const auto candidates = BuildDungeonRenderEntranceCandidates();
+  zelda3::RoomDefaultEntrance default_entrance;
+  if (game_data_ != nullptr && room_id >= 0 &&
+      room_id < static_cast<int>(game_data_->room_default_entrances.size())) {
+    default_entrance = game_data_->room_default_entrances[room_id];
+    if (default_entrance.main_blockset >=
+        game_data_->main_blockset_ids.size()) {
+      default_entrance = {};
+    }
+  }
+  const auto* dungeon = dungeon_project_labels::FindDungeonForRoom(
+      dependencies_.project, room_id);
   return ResolveDungeonRenderContext(
-      room_id, current_entrance_id_, room_header_blockset,
-      GetDungeonRenderContextCensus(), candidates);
+      room_id, automatic_entrance_preview_ ? -1 : current_entrance_id_,
+      room_header_blockset, dungeon ? nullptr : GetDungeonRenderContextCensus(),
+      candidates, default_entrance, dungeon);
 }
 
 }  // namespace yaze::editor
