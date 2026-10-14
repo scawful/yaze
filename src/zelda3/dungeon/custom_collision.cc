@@ -117,7 +117,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
           }
           uint8_t tile = data[cursor++];
           int idx = row_offset + col;
-          if (idx >= 0 && idx < kCollisionMapWidth * kCollisionMapHeight) {
+          if (idx < kCollisionMapTiles) {
             result.SetOverride(static_cast<size_t>(idx), tile);
           }
         }
@@ -128,7 +128,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
       }
       uint8_t tile = data[cursor++];
       int idx = static_cast<int>(offset);
-      if (idx >= 0 && idx < kCollisionMapWidth * kCollisionMapHeight) {
+      if (idx < kCollisionMapTiles) {
         result.SetOverride(static_cast<size_t>(idx), tile);
       }
     }
