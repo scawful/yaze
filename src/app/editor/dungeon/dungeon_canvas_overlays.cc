@@ -576,7 +576,7 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
     for (int y = 0; y < 64; ++y) {
       for (int x = 0; x < 64; ++x) {
         const uint8_t tile = map.tiles[static_cast<size_t>(y * 64 + x)];
-        if (map.HasOverride(static_cast<size_t>(y * 64 + x)) && tile < 256 &&
+        if (map.HasOverride(static_cast<size_t>(y * 64 + x)) &&
             (track_collision_config_.track_tiles[tile] ||
              track_collision_config_.stop_tiles[tile] ||
              track_collision_config_.switch_tiles[tile])) {
