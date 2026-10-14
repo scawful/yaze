@@ -1140,11 +1140,10 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
       zelda3::CustomCollisionMap desired;
 
       for (const auto& tile : imported.tiles) {
-        const int offset = static_cast<int>(tile.offset);
-        if (offset < 0 || offset >= kCollisionGridSize * kCollisionGridSize) {
+        if (tile.offset >= kCollisionGridSize * kCollisionGridSize) {
           continue;
         }
-        desired.SetOverride(static_cast<size_t>(offset), tile.value);
+        desired.SetOverride(tile.offset, tile.value);
       }
 
       if (desired.has_data) {
