@@ -1432,7 +1432,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       for (const auto& result : collision_preview_) {
         preview_tiles += result.tiles_generated;
       }
-      ImGui::Text(ICON_MD_PREVIEW " Preview: %d rooms, %d collision tiles",
+      ImGui::Text(ICON_MD_PREVIEW " Preview: %zu rooms, %d collision tiles",
                   collision_preview_.size(), preview_tiles);
       if (!collision_batch_apply_callback_) {
         ImGui::BeginDisabled();
@@ -1455,7 +1455,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
 
       if (ImGui::BeginPopupModal("Confirm Minecart Collision Apply", nullptr,
                                  ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text(tr("Apply generated collision to %d rooms?"),
+        ImGui::Text(tr("Apply generated collision to %zu rooms?"),
                     collision_preview_.size());
         ImGui::TextDisabled(tr("%d collision tiles will be added."),
                             preview_tiles);
