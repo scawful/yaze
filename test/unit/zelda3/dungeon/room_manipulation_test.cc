@@ -38,6 +38,28 @@ TEST_F(RoomManipulationTest, AddObject) {
   EXPECT_EQ(objects[0].y(), 20);
 }
 
+TEST_F(RoomManipulationTest, StaircaseLabelsSurviveOtherRoomsAndRecordCopies) {
+  std::vector<staircase> retained_stairs;
+  for (int destination = 0; destination <= 0xFF; ++destination) {
+    Room room(0, rom_.get());
+    room.SetStaircaseRoom(0, static_cast<uint8_t>(destination));
+    ASSERT_TRUE(room.AddObject(RoomObject(0x12D, 10, 20, 0, 0)).ok());
+    int staircase_count = 0;
+    room.HandleSpecialObjects(0x12D, 10, 20, staircase_count);
+    ASSERT_EQ(staircase_count, 1);
+    ASSERT_EQ(room.GetStairs().size(), 1);
+    retained_stairs.push_back(room.GetStairs().front());
+  }
+
+  // Read after every generating Room has died and all other labels were made.
+  for (int destination = 0; destination <= 0xFF; ++destination) {
+    const auto& stair = retained_stairs[destination];
+    EXPECT_STREQ(stair.label, ("To " + std::to_string(destination)).c_str());
+    EXPECT_EQ(stair.id, 10);
+    EXPECT_EQ(stair.room, 20);
+  }
+}
+
 TEST_F(RoomManipulationTest, AddInvalidObject) {
   // Invalid X position (> 63)
   RoomObject obj(0x10, 100, 20, 3, 0);
