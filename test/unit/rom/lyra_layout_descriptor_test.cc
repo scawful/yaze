@@ -16,6 +16,7 @@
 #include "app/editor/system/session/collision_source_pairing.h"
 #include "app/editor/system/session/rom_file_manager.h"
 #include "cli/handlers/rom/rom_commands.h"
+#include "fixtures/lyra/synthetic_fixture_data.h"
 #include "framework/headless_editor_test.h"
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz/miniz.h"
@@ -33,6 +34,21 @@ namespace yaze {
 namespace {
 
 std::vector<uint8_t> ReadBytes(const std::filesystem::path& path) {
+  // Only bare fixture names use the built-in synthetic corpus. An explicitly
+  // configured fixture directory must still exist and contain its own data.
+  if (!path.has_parent_path()) {
+    const auto fixture = test::lyra::FindFixture(path.string());
+    if (fixture.data != nullptr) {
+      std::vector<uint8_t> bytes(fixture.image_size);
+      mz_ulong size = static_cast<mz_ulong>(bytes.size());
+      if (mz_uncompress(bytes.data(), &size, fixture.data,
+                        static_cast<mz_ulong>(fixture.size)) != MZ_OK ||
+          size != bytes.size()) {
+        return {};
+      }
+      return bytes;
+    }
+  }
   std::ifstream in(path, std::ios::binary);
   return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
 }
@@ -84,11 +100,14 @@ TEST(LyraLayoutDescriptorTest, ShortAndUnrelatedImagesAreNotAttributed) {
 
 TEST(LyraLayoutDescriptorTest, PortableVectorsPreserveProductCompatibility) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
-  std::ifstream in(dir / "editor_cases.json");
-  ASSERT_TRUE(in.good());
-  const auto cases = nlohmann::json::parse(in)["cases"];
+  nlohmann::json cases;
+  if (dir.empty()) {
+    cases = nlohmann::json::parse(test::lyra::kCases)["cases"];
+  } else {
+    std::ifstream in(dir / "editor_cases.json");
+    ASSERT_TRUE(in.good());
+    cases = nlohmann::json::parse(in)["cases"];
+  }
   ASSERT_EQ(cases.size(), 16u);
   for (const auto& item : cases) {
     const std::string name = item["name"];
@@ -148,8 +167,6 @@ TEST(LyraLayoutDescriptorTest, PortableVectorsPreserveProductCompatibility) {
 
 TEST(LyraLayoutDescriptorTest, HeaderedImageAndTwoSessionsKeepSavePolicy) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
   const auto offline = ReadBytes(dir / "OFFLINE_ONLY.bin");
   const auto legacy = ReadBytes(dir / "legacy_160_input.bin");
   ASSERT_FALSE(offline.empty());
@@ -197,6 +214,28 @@ TEST(LyraLayoutDescriptorTest, HeaderedImageAndTwoSessionsKeepSavePolicy) {
             rom::LyraLayoutPresence::kInvalid);
   EXPECT_FALSE(lyra.CheckLayoutWritable().ok());
   EXPECT_TRUE(ordinary.CheckLayoutWritable().ok());
+}
+
+TEST(LyraLayoutDescriptorTest, SyntheticTerrainVectorsNeedNoGameGraphics) {
+  const auto bytes = ReadBytes("LYRA_PREVIEW_A0_A1.bin");
+  ASSERT_FALSE(bytes.empty());
+  const auto layout = rom::InspectLyraLayout(bytes.data(), bytes.size());
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+  EXPECT_EQ(layout.capacity, 192);
+  EXPECT_EQ(layout.active_count, 160);
+  EXPECT_FALSE(layout.write_supported);
+  const auto a0 = rom::LyraMapTile32(layout, bytes.data(), bytes.size(), 0xA0);
+  const auto a1 = rom::LyraMapTile32(layout, bytes.data(), bytes.size(), 0xA1);
+  ASSERT_TRUE(a0.has_value());
+  ASSERT_TRUE(a1.has_value());
+  EXPECT_NE(*a0, *a1);
+  EXPECT_EQ((*a0)[7 * 16 + 15], 0x2103);
+  EXPECT_EQ((*a1)[7 * 16], 0x2103);
+  EXPECT_EQ((*a1)[7 * 16 + 8], 0x20B2);
+  EXPECT_FALSE(rom::LyraMapTile32(layout, bytes.data(), bytes.size(), 0xC0));
+  Rom lyra;
+  ASSERT_TRUE(lyra.LoadFromData(bytes).ok());
+  EXPECT_FALSE(lyra.CheckLayoutWritable().ok());
 }
 
 TEST(LyraLayoutDescriptorTest, InactiveA0A1TerrainUsesDescriptorRenderPath) {
@@ -410,8 +449,6 @@ TEST_F(LyraCanvasPreviewTest, LegacyCanvasRequiresFreshSessionForLyra) {
 
 TEST(LyraLayoutDescriptorTest, ResealedSemanticCorruptionAndIdentityFail) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
   const auto original_bytes = ReadBytes(dir / "OFFLINE_ONLY.bin");
   const auto original =
       rom::InspectLyraLayout(original_bytes.data(), original_bytes.size());
@@ -469,8 +506,6 @@ TEST(LyraLayoutDescriptorTest, ResealedSemanticCorruptionAndIdentityFail) {
 
 TEST(LyraLayoutDescriptorTest, InvalidDescriptorFailsCliValidation) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
   cli::handlers::RomValidateCommandHandler validate;
   std::string output;
   for (const char* filename : {"OFFLINE_ONLY.bin", "legacy_160_input.bin"}) {
@@ -503,8 +538,6 @@ TEST(LyraLayoutDescriptorTest, InvalidDescriptorFailsCliValidation) {
 
 TEST(LyraLayoutDescriptorTest, PairedSourceAndBackupsRefuseBeforeWrites) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
   const auto root = test::UniqueTempPath("lyra_paired_refusal");
   std::filesystem::create_directories(root);
   struct Cleanup {
@@ -529,7 +562,7 @@ TEST(LyraLayoutDescriptorTest, PairedSourceAndBackupsRefuseBeforeWrites) {
   const std::vector<uint8_t> changed_bytes(disk_source->begin(),
                                            disk_source->end());
   WriteBytes(changed_json, changed_bytes);
-  // Room $25 has a single-tile collision stream in the frozen fixture. Change
+  // Room $25 has a single-tile collision stream in both fixture corpora. Change
   // one tile in memory while the sidecar remains coherent with the disk ROM.
   constexpr int kRoom = 0x25;
   const int pointer_offset = zelda3::kCustomCollisionRoomPointers + kRoom * 3;
