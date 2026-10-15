@@ -43,7 +43,10 @@ def directory():
 
 
 def reseal(image):
-    for i, (_, _, pc, count, stride) in enumerate(directory()):
+    entries = directory()
+    if struct.unpack_from("<H", image, DESCRIPTOR + 18)[0] == 36:
+        entries.append((203, 4, 0x132000, 2, 512))
+    for i, (_, _, pc, count, stride) in enumerate(entries):
         struct.pack_into("<I", image, DESCRIPTOR + 32 + 16 * i + 12,
                          zlib.crc32(image[pc:pc + count * stride]))
     struct.pack_into("<I", image, DESCRIPTOR + 28, 0)
@@ -97,6 +100,28 @@ def make_image(preview=False):
     return bytes(image)
 
 
+def make_writable_image():
+    image = bytearray(make_image(True))
+    HEADER.pack_into(image, DESCRIPTOR, b"OOSOW192", 2, 32, 608, 192, 160,
+                     36, 0x3C, 3, 384, len(image), 0)
+    ENTRY.pack_into(image, DESCRIPTOR + 32 + 35 * 16, 203, 4,
+                    pc_snes(0x132000), 2, 512, 0)
+    tiles = pattern(0xA0)
+    for index, pc, values in ((19, 0x132000, [v >> 8 for v in tiles]),
+                              (20, 0x132200, [v & 0xFF for v in tiles])):
+        image[pc:pc + 259] = b"\xe0\xff" + bytes(values) + b"\xff"
+        pointer = directory()[index][2] + 0xA0 * 3
+        image[pointer:pointer + 3] = pc_snes(pc).to_bytes(3, "little")
+    # Original synthetic definitions make model mutations observable without
+    # copying graphics or collision data from any game ROM.
+    for tile, tile16 in ((0x2103, 1), (0x20B2, 2)):
+        position = tile // 4 * 6 + tile % 4
+        for base in (0x18000, 0x20000, 0x1F0000, 0x1F8000):
+            image[base + position] = tile16
+    reseal(image)
+    return bytes(image)
+
+
 def changes(before, after):
     patches = []
     i = 0
@@ -117,7 +142,8 @@ def fixtures():
     legacy[DESCRIPTOR:DESCRIPTOR + 1024] = bytes(1024)
     images = {"OFFLINE_ONLY.bin": offline,
               "LYRA_PREVIEW_A0_A1.bin": make_image(True),
-              "legacy_160_input.bin": bytes(legacy)}
+              "legacy_160_input.bin": bytes(legacy),
+              "LYRA_WRITABLE_A0.bin": make_writable_image()}
     cases = []
 
     def case(name, base="OFFLINE_ONLY.bin", patches=(), expected="reject",
@@ -201,6 +227,11 @@ def self_test():
         for i, (_, _, pc, count, stride) in enumerate(directory()):
             crc = struct.unpack_from("<I", descriptor, 32 + 16 * i + 12)[0]
             assert zlib.crc32(image[pc:pc + count * stride]) == crc
+        if name == "LYRA_WRITABLE_A0.bin":
+            assert struct.unpack_from("<H", descriptor, 8)[0] == 2
+            assert struct.unpack_from("<H", descriptor, 18)[0] == 36
+            assert zlib.crc32(image[0x132000:0x132400]) == struct.unpack_from(
+                "<I", descriptor, 32 + 35 * 16 + 12)[0]
     for case in manifest["cases"]:
         data = bytearray(images[case["base"]])
         for patch in case["patches"]:

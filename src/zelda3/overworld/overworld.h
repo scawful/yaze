@@ -434,6 +434,13 @@ class Overworld {
     return is_lyra_preview() ? descriptor_layout_.capacity : kNumOverworldMaps;
   }
   bool descriptor_sprite_display_available() const { return false; }
+  bool lyra_a0_terrain_writable() const {
+    return is_lyra_preview() && descriptor_layout_.a0_terrain_write_supported;
+  }
+  const std::array<uint16_t, 256>& lyra_a0_tiles() const {
+    return lyra_a0_tiles_;
+  }
+  absl::Status SetLyraA0Tile32(int x, int y, uint16_t tile);
 
   /// @brief Load overworld map tile data
   absl::Status LoadOverworldMaps();
@@ -885,6 +892,7 @@ class Overworld {
 
   OverworldMapTiles map_tiles_;
   rom::LyraLayoutInspection descriptor_layout_;
+  std::array<uint16_t, 256> lyra_a0_tiles_{};
   // Grids last published by a committed save, or captured at load. Recompressing
   // maps rewrites pointer tables that overlap Oracle overworld ASM hooks, and
   // resaving tile32 reorders expanded definitions. An unchanged grid leaves

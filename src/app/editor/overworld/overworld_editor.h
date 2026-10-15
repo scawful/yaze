@@ -222,6 +222,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   Rom* rom() const { return rom_; }
   bool is_lyra_preview() const { return overworld_.is_lyra_preview(); }
+  bool lyra_a0_terrain_writable() const {
+    return overworld_.lyra_a0_terrain_writable();
+  }
+  absl::Status PaintLyraA0Terrain(int map_id, int x, int y, uint16_t tile);
+  absl::Status SaveLyraA0TerrainAs(const std::string& filename);
   // A Lyra preview retains pointers and caches derived from one ROM image.
   // Session replacement must be checked before the manager mutates the ROM.
   absl::Status CheckRomReplacement(const Rom& replacement) const;
@@ -517,6 +522,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Identifies the exact descriptor image bound to this model. The session
   // reload path may restore those bytes after a refused ROM replacement.
   std::string lyra_loaded_rom_sha1_;
+  int lyra_terrain_brush_ = 0x2103;
   std::string graphics_preview_config_path_;
   // ===========================================================================
   // Entity Interaction System

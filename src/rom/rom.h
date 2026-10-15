@@ -1,6 +1,7 @@
 #ifndef YAZE_ROM_ROM_H
 #define YAZE_ROM_ROM_H
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -85,6 +86,10 @@ class Rom {
   // that header in front (in place or to a new file), so a save never
   // silently drops the header and an unedited round trip is byte-identical.
   absl::Status SaveToFile(const SaveSettings& settings);
+  // The only Lyra writer: dedicated A0 terrain, exact loaded-image guard,
+  // atomic Save As to a different backing file. Generic writes stay refused.
+  absl::Status SaveLyraA0TerrainAs(const std::array<uint16_t, 256>& tiles,
+                                   const std::string& filename);
   // Test seam: while set, SaveToFile fails when creating its staging file,
   // after any backup is written and before the destination is replaced.
   static void SetStagingFailureForTesting(bool fail);
@@ -104,6 +109,7 @@ class Rom {
     copier_header_.clear();
     copier_header_reason_ = CopierHeaderReason::kNone;
     lyra_attributed_at_load_ = false;
+    lyra_terrain_baseline_.clear();
     size_ = 0;
     if (had_data) {
       AdvanceObjectTileRevision();
@@ -236,6 +242,8 @@ class Rom {
   size_t write_fence_depth() const { return write_fence_stack_.size(); }
 
  private:
+  absl::Status SaveToFileUnchecked(const SaveSettings& settings);
+  void CaptureLyraTerrainBaseline();
   // Size of the ROM data.
   unsigned long size_ = 0;
 
@@ -250,6 +258,9 @@ class Rom {
 
   // Full contiguous rom space
   std::vector<uint8_t> rom_data_;
+  // Held only for the explicit revision-2 terrain capability. Direct mutable
+  // access must not smuggle unrelated bytes through the dedicated Save As.
+  std::vector<uint8_t> lyra_terrain_baseline_;
 
   // Copier header bytes removed from the front of the file at load.
   std::vector<uint8_t> copier_header_;
