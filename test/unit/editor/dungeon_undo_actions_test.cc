@@ -14,7 +14,7 @@
 #include "core/features.h"
 #include "imgui/imgui.h"
 #include "rom/snes.h"
-#include "test/unique_temp_path.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 
