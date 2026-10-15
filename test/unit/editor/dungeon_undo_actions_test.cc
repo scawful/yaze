@@ -880,10 +880,11 @@ TEST_P(DungeonWaterFillPanelTest, MaskSaveUndoSaveReopensOriginalZone) {
     std::error_code error;
     std::filesystem::remove(path, error);
   };
-  ASSERT_TRUE(
-      rom_.SaveToFile({.save_new = true, .filename = path.string()}).ok());
+  const auto disk_save = rom_.SaveToFile({.filename = path.string()});
+  ASSERT_TRUE(disk_save.ok()) << disk_save;
   Rom reopened;
-  ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+  const auto disk_load = reopened.LoadFromFile(path.string());
+  ASSERT_TRUE(disk_load.ok()) << disk_load;
   const auto zones = zelda3::LoadWaterFillTable(&reopened);
   ASSERT_TRUE(zones.ok()) << zones.status();
   ASSERT_EQ(zones->size(), 2u);
