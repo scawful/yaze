@@ -8,11 +8,15 @@
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/ui/window/water_fill_panel.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
 #include "rom/snes.h"
+#include "test/unique_temp_path.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::editor {
 
@@ -653,6 +657,248 @@ TEST_P(DungeonEntityUndoLifecycleTest,
   EXPECT_EQ(room_->GetSprites()[0].x(), 4);
   EXPECT_EQ(room_->GetSprites()[0].y(), 30);
 }
+
+class DungeonWaterFillPanelTest : public DungeonEntityUndoLifecycleTest {
+ protected:
+  void SetUp() override {
+    DungeonEntityUndoLifecycleTest::SetUp();
+    previous_flags_ = core::FeatureFlags::get().dungeon;
+    auto& flags = core::FeatureFlags::get().dungeon;
+    flags.kSaveObjects = flags.kSaveSprites = flags.kSaveChests = false;
+    flags.kSavePotItems = flags.kSaveRoomHeaders = flags.kSaveTorches = false;
+    flags.kSavePits = flags.kSaveBlocks = flags.kSaveCollision = false;
+    flags.kSaveWaterFillZones = true;
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(1000, 1000);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.Fonts->AddFontDefault();
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    io.AddMousePosEvent(-1000, -1000);
+    panel_ = std::make_unique<WaterFillPanel>(viewer_,
+                                              &viewer_->object_interaction());
+    room_->SetWaterFillTile(3, 2, true);
+    room_->SetWaterFillTile(4, 2, true);
+    room_->SetWaterFillTile(4, 3, true);
+    room_->set_water_fill_sram_bit_mask(0x02);
+    room_->ClearWaterFillDirty();
+    auto& other = editor_->rooms()[1];
+    other.SetWaterFillTile(9, 8, true);
+    other.set_water_fill_sram_bit_mask(0x08);
+    other.ClearWaterFillDirty();
+    ASSERT_TRUE(zelda3::WriteWaterFillTable(
+                    &rom_, {{0, 0x02, {131, 132, 196}}, {1, 0x08, {521}}})
+                    .ok());
+  }
+
+  void TearDown() override {
+    panel_.reset();
+    gui::WidgetIdRegistry::Instance().Clear();
+    core::FeatureFlags::get().dungeon = previous_flags_;
+    DungeonEntityUndoLifecycleTest::TearDown();
+  }
+
+  void DrawFrame() {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(800, 950), ImGuiCond_Always);
+    ImGui::Begin("WaterFillHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    panel_->Draw(nullptr);
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> Widget(const char* label) {
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (path.starts_with("Dungeon/WaterFill/") && widget.label == label)
+        return widget;
+    }
+    return std::nullopt;
+  }
+
+  void Click(const char* label) {
+    const auto widget = Widget(label);
+    ASSERT_TRUE(widget.has_value()) << label;
+    ASSERT_TRUE(widget->bounds.valid) << label;
+    ASSERT_TRUE(widget->enabled) << label;
+    ASSERT_TRUE(widget->visible) << label;
+    const auto bounds = widget->bounds;
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((bounds.min_x + bounds.max_x) / 2,
+                        (bounds.min_y + bounds.max_y) / 2);
+    DrawFrame();
+    io.AddMouseButtonEvent(0, true);
+    DrawFrame();
+    io.AddMouseButtonEvent(0, false);
+    DrawFrame();
+    DrawFrame();
+  }
+
+  void ExpectOriginalZone() {
+    EXPECT_EQ(room_->WaterFillTileCount(), 3);
+    EXPECT_TRUE(room_->GetWaterFillTile(3, 2));
+    EXPECT_TRUE(room_->GetWaterFillTile(4, 2));
+    EXPECT_TRUE(room_->GetWaterFillTile(4, 3));
+    EXPECT_EQ(room_->water_fill_sram_bit_mask(), 0x02);
+  }
+
+  void ExpectOtherRoomUnchanged() {
+    const auto& other = editor_->rooms()[1];
+    EXPECT_EQ(other.WaterFillTileCount(), 1);
+    EXPECT_TRUE(other.GetWaterFillTile(9, 8));
+    EXPECT_EQ(other.water_fill_sram_bit_mask(), 0x08);
+    EXPECT_FALSE(other.water_fill_dirty());
+  }
+
+  decltype(core::FeatureFlags::get().dungeon) previous_flags_;
+  std::unique_ptr<WaterFillPanel> panel_;
+};
+
+TEST_P(DungeonWaterFillPanelTest, ClearUndoRedoRestoresTilesAndMask) {
+  DrawFrame();
+  DrawFrame();
+  Click("WaterFillClear");
+  ASSERT_EQ(room_->WaterFillTileCount(), 0);
+  EXPECT_EQ(room_->water_fill_sram_bit_mask(), 0);
+  ASSERT_EQ(UndoDepth(), 1u);
+  // Saving and navigating after the action must not redirect Undo or leave the
+  // restored zone clean, so the next Save includes it.
+  room_->ClearWaterFillDirty();
+  DungeonEditorEntityUndoTestPeer::Viewer(*editor_, 1);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ExpectOriginalZone();
+  EXPECT_TRUE(room_->water_fill_dirty());
+  ExpectOtherRoomUnchanged();
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->WaterFillTileCount(), 0);
+  EXPECT_EQ(room_->water_fill_sram_bit_mask(), 0);
+  ExpectOtherRoomUnchanged();
+}
+
+TEST_P(DungeonWaterFillPanelTest, MaskUndoRedoPreservesZoneTiles) {
+  DrawFrame();
+  DrawFrame();
+  Click("WaterFillMask");
+  Click("WaterFillMask04");
+  ASSERT_EQ(room_->water_fill_sram_bit_mask(), 0x04);
+  EXPECT_EQ(room_->WaterFillTileCount(), 3);
+  ASSERT_EQ(UndoDepth(), 1u);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ExpectOriginalZone();
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->water_fill_sram_bit_mask(), 0x04);
+  EXPECT_EQ(room_->WaterFillTileCount(), 3);
+  ExpectOtherRoomUnchanged();
+}
+
+TEST_P(DungeonWaterFillPanelTest, SameMaskAndEmptyClearDoNotCreateHistory) {
+  DrawFrame();
+  DrawFrame();
+  Click("WaterFillMask");
+  Click("WaterFillMask02");
+  EXPECT_EQ(UndoDepth(), 0u);
+  EXPECT_FALSE(room_->water_fill_dirty());
+  room_->ClearWaterFillZone();
+  room_->ClearWaterFillDirty();
+  Click("WaterFillClear");
+  EXPECT_EQ(UndoDepth(), 0u);
+  EXPECT_FALSE(room_->water_fill_dirty());
+}
+
+TEST_P(DungeonWaterFillPanelTest, DisabledSavingPreventsPanelEdits) {
+  core::FeatureFlags::get().dungeon.kSaveWaterFillZones = false;
+  DrawFrame();
+  DrawFrame();
+  const auto clear = Widget("WaterFillClear");
+  const auto mask = Widget("WaterFillMask");
+  ASSERT_TRUE(clear.has_value());
+  ASSERT_TRUE(mask.has_value());
+  EXPECT_FALSE(clear->enabled);
+  EXPECT_FALSE(mask->enabled);
+  ExpectOriginalZone();
+  EXPECT_EQ(UndoDepth(), 0u);
+  EXPECT_FALSE(room_->water_fill_dirty());
+}
+
+TEST_P(DungeonWaterFillPanelTest, MismatchedInteractionPreventsPanelEdits) {
+  DungeonCanvasViewer other_viewer(&rom_);
+  other_viewer.RefreshRomBackedState(&rom_, nullptr, &editor_->rooms(), 1);
+  panel_->SetInteraction(&other_viewer.object_interaction());
+  DrawFrame();
+  DrawFrame();
+  const auto clear = Widget("WaterFillClear");
+  const auto mask = Widget("WaterFillMask");
+  ASSERT_TRUE(clear.has_value());
+  ASSERT_TRUE(mask.has_value());
+  EXPECT_FALSE(clear->enabled);
+  EXPECT_FALSE(mask->enabled);
+  ExpectOriginalZone();
+  ExpectOtherRoomUnchanged();
+  EXPECT_EQ(UndoDepth(), 0u);
+}
+
+TEST_P(DungeonWaterFillPanelTest, MaskSaveUndoSaveReopensOriginalZone) {
+  const auto original = rom_.vector();
+  DrawFrame();
+  DrawFrame();
+  Click("WaterFillMask");
+  Click("WaterFillMask04");
+  ASSERT_EQ(room_->water_fill_sram_bit_mask(), 0x04);
+  ASSERT_EQ(UndoDepth(), 1u);
+  const auto saved = editor_->Save();
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_FALSE(room_->water_fill_dirty());
+  const auto changed_zones = zelda3::LoadWaterFillTable(&rom_);
+  ASSERT_TRUE(changed_zones.ok()) << changed_zones.status();
+  ASSERT_EQ(changed_zones->size(), 2u);
+  EXPECT_EQ((*changed_zones)[0].room_id, 0);
+  EXPECT_EQ((*changed_zones)[0].sram_bit_mask, 0x04);
+  EXPECT_EQ((*changed_zones)[0].fill_offsets,
+            (std::vector<uint16_t>{131, 132, 196}));
+  EXPECT_EQ((*changed_zones)[1].room_id, 1);
+  EXPECT_EQ((*changed_zones)[1].sram_bit_mask, 0x08);
+  EXPECT_EQ((*changed_zones)[1].fill_offsets, (std::vector<uint16_t>{521}));
+  ASSERT_EQ(rom_.vector().size(), original.size());
+  for (size_t address = 0; address < original.size(); ++address) {
+    if (address < zelda3::kWaterFillTableStart ||
+        address >= zelda3::kWaterFillTableEnd) {
+      ASSERT_EQ(rom_.vector()[address], original[address]) << address;
+    }
+  }
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_TRUE(room_->water_fill_dirty());
+  const auto restored = editor_->Save();
+  ASSERT_TRUE(restored.ok()) << restored;
+  EXPECT_EQ(rom_.vector(), original);
+
+  const auto path = yaze::test::UniqueTempPath("water-fill-panel", ".sfc");
+  absl::Cleanup remove_file = [&] {
+    std::error_code error;
+    std::filesystem::remove(path, error);
+  };
+  ASSERT_TRUE(
+      rom_.SaveToFile({.save_new = true, .filename = path.string()}).ok());
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(path.string()).ok());
+  const auto zones = zelda3::LoadWaterFillTable(&reopened);
+  ASSERT_TRUE(zones.ok()) << zones.status();
+  ASSERT_EQ(zones->size(), 2u);
+  EXPECT_EQ((*zones)[0].room_id, 0);
+  EXPECT_EQ((*zones)[0].sram_bit_mask, 0x02);
+  EXPECT_EQ((*zones)[0].fill_offsets, (std::vector<uint16_t>{131, 132, 196}));
+  EXPECT_EQ((*zones)[1].room_id, 1);
+  EXPECT_EQ((*zones)[1].sram_bit_mask, 0x08);
+  EXPECT_EQ((*zones)[1].fill_offsets, (std::vector<uint16_t>{521}));
+}
+
+INSTANTIATE_TEST_SUITE_P(ViewerModes, DungeonWaterFillPanelTest,
+                         ::testing::Bool(), [](const auto& param) {
+                           return param.param ? "Workbench" : "Standalone";
+                         });
 
 INSTANTIATE_TEST_SUITE_P(ViewerModes, DungeonEntityUndoLifecycleTest,
                          ::testing::Bool(), [](const auto& param) {

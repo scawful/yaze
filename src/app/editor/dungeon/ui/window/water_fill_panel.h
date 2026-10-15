@@ -17,6 +17,7 @@
 #include "app/editor/dungeon/dungeon_object_interaction.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "core/features.h"
 #include "util/file_util.h"
@@ -53,6 +54,7 @@ class WaterFillPanel : public WindowContent {
     }
 
     auto* rooms = viewer_->rooms();
+    gui::AutoWidgetScope widget_scope("Dungeon/WaterFill");
     const int room_id = viewer_->current_room_id();
     const bool room_id_valid =
         (room_id >= 0 && room_id < static_cast<int>(rooms->size()));
@@ -272,13 +274,18 @@ class WaterFillPanel : public WindowContent {
       std::string preview =
           (mask == 0) ? "Auto (0x00)" : absl::StrFormat("0x%02X", mask);
       ImGui::BeginDisabled(!reserved_region_present || !save_enabled);
-      if (ImGui::BeginCombo(tr("SRAM Bit Mask ($7EF411)"), preview.c_str())) {
+      const bool mask_open =
+          ImGui::BeginCombo(tr("SRAM Bit Mask ($7EF411)"), preview.c_str());
+      gui::AutoRegisterLastItem("combo", "WaterFillMask");
+      if (mask_open) {
         auto option = [&](const char* label, uint8_t val) {
           const bool selected = (mask == val);
           if (ImGui::Selectable(label, selected)) {
             room.set_water_fill_sram_bit_mask(val);
             mask = val;
           }
+          gui::AutoRegisterLastItem("selectable",
+                                    absl::StrFormat("WaterFillMask%02X", val));
         };
 
         option("Auto (0x00)", 0x00);
@@ -298,6 +305,7 @@ class WaterFillPanel : public WindowContent {
       if (ImGui::Button(tr("Clear Water Fill Zone"))) {
         room.ClearWaterFillZone();
       }
+      gui::AutoRegisterLastItem("button", "WaterFillClear");
       ImGui::EndDisabled();
 
       ImGui::TextWrapped(
