@@ -323,7 +323,7 @@ TEST_F(LyraA0EditorTest, EditorMutationUndoSaveAsAndFreshReopenPreserveRom) {
   });
   auto manager = std::make_unique<editor::EditorManager>();
   test::InitializeWithIsolatedSettings(*manager, renderer_.get());
-  manager->SetAssetLoadMode(editor::AssetLoadMode::kLazy);
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
   auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
   ASSERT_NE(editor, nullptr);
@@ -393,7 +393,7 @@ TEST_F(LyraA0EditorTest, OwnedPilotEditorSaveAsArtifact) {
   ASSERT_FALSE(original.empty());
   auto manager = std::make_unique<editor::EditorManager>();
   test::InitializeWithIsolatedSettings(*manager, renderer_.get());
-  manager->SetAssetLoadMode(editor::AssetLoadMode::kLazy);
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
   auto* loaded_rom = manager->GetCurrentRom();
   ASSERT_FALSE(loaded_rom->has_copier_header());
