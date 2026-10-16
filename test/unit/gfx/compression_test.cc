@@ -306,21 +306,6 @@ TEST(LC_LZ2_CompressionTest, LengthBorderCompression) {
 }
 
 TEST(LC_LZ2_CompressionTest, CompressionExtendedWordCopy) {
-  // ROM rom;
-  // uint8_t buffer[3000];
-  // for (unsigned int i = 0; i < 3000; i += 2) {
-  //   buffer[i] = 0x05;
-  //   buffer[i + 1] = 0x06;
-  // }
-  // uint8_t hightlength_word_1050[] = {
-  //     0b11101011, 0xFF, 0x05, 0x06, BUILD_HEADER(0x02, 0x1A), 0x05, 0x06,
-  //     0xFF};
-
-  // // "Extended word copy"
-  // auto comp_result = ExpectCompressOk(rom, buffer, 1050);
-  // EXPECT_THAT(hightlength_word_1050, ElementsAreArray(comp_result.data(),
-  // 8));
-
   std::vector<uint8_t> buffer(3000, 0);
   std::fill_n(buffer.begin(), 3000, 0x05);
   for (unsigned int i = 0; i < 3000; i += 2) {
