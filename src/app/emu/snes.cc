@@ -283,14 +283,6 @@ void Snes::HandleInput() {
   // Bit 0: B, 1: Y, 2: Select, 3: Start, 4: Up, 5: Down, 6: Left, 7: Right, 8: A, 9: X, 10: L, 11: R
   uint16_t latched1 = input1.current_state_;
   uint16_t latched2 = input2.current_state_;
-  // if (input1.previous_state_ != input1.current_state_) {
-  //   LOG_DEBUG("HandleInput: P1 state 0x%04X -> 0x%04X", input1.previous_state_,
-  //             input1.current_state_);
-  // }
-  // if (input2.previous_state_ != input2.current_state_) {
-  //   LOG_DEBUG("HandleInput: P2 state 0x%04X -> 0x%04X", input2.previous_state_,
-  //             input2.current_state_);
-  // }
   for (int i = 0; i < 16; i++) {
     // Read bit i from current state (0 for bits >= 12)
     uint8_t val1 = (latched1 >> i) & 1;
