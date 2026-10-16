@@ -13,14 +13,13 @@ graph TD
     Editor --> Contents[Window Contents]
 
     subgraph "Dungeon Window Contents"
-        Contents --> RoomPanel[DungeonRoomPanel]
         Contents --> SelectorContent[ObjectSelectorContent]
         Contents --> GraphicsContent[RoomGraphicsContent]
         Contents --> MatrixContent[RoomMatrixContent]
         Contents --> EntranceContent[DungeonEntrancesPanel]
     end
 
-    RoomPanel --> Viewer[DungeonCanvasViewer]
+    Editor --> Viewer[DungeonCanvasViewer]
     Viewer --> Canvas[gui::Canvas]
     Viewer --> Interaction[DungeonObjectInteraction]
 
@@ -89,7 +88,6 @@ both hosts. Use these real authoring paths when changing input or ownership.
 
 ### UI Components (WindowContents)
 Located across role-based folders under `src/app/editor/dungeon/`:
-*   **`ui/window/dungeon_room_panel.h`**: Container for a `DungeonCanvasViewer` representing a single open room.
 *   **`workspace/room_matrix_content.h`**: A visual 16x19 grid for quick room navigation.
 *   **`workspace/room_graphics_content.h`**: Displays the graphics blockset (tiles) used by the current room.
 *   **`ui/window/dungeon_entrances_panel.h`**: Editor for dungeon entrance properties (positions, camera triggers).
