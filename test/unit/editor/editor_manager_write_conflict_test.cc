@@ -13,8 +13,10 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/menu/menu_builder.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_group_panel.h"
+#include "app/editor/ui/project_management_panel.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
@@ -35,6 +37,32 @@
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
+
+class ProjectUiTestPeer {
+ public:
+  static void ExpectProjectCommandsEnabled(const MenuBuilder& builder,
+                                           bool expected) {
+    const auto file =
+        std::find_if(builder.menus_.begin(), builder.menus_.end(),
+                     [](const auto& menu) { return menu.label == "File"; });
+    ASSERT_NE(file, builder.menus_.end());
+    for (const auto* label :
+         {"Save Project", "Save Project As...", "Project Management..."}) {
+      const auto item = std::find_if(
+          file->items.begin(), file->items.end(),
+          [label](const auto& item) { return item.label == label; });
+      ASSERT_NE(item, file->items.end()) << label;
+      ASSERT_TRUE(item->enabled) << label;
+      EXPECT_EQ(item->enabled(), expected) << label;
+    }
+  }
+
+  static const project::YazeProject* PanelProject(
+      const ProjectManagementPanel& panel) {
+    return panel.project_;
+  }
+};
+
 namespace {
 
 struct FeatureFlagsGuard {
@@ -1197,6 +1225,24 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_EQ(manager->GetCurrentProject()->filepath, project_path.string());
   ASSERT_EQ(manager->GetCurrentProject()->palette_catalog_file,
             (project_root / "project-only-catalog.json").string());
+  // Build the production menu before inspecting its live enabled callbacks.
+  ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+  ImGui::NewFrame();
+  ImGui::SetNextWindowSize(ImVec2(800, 600));
+  ImGui::Begin("Project menu regression", nullptr,
+               ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings);
+  manager->DrawMainMenuBar();
+  ImGui::End();
+  ImGui::Render();
+  ProjectUiTestPeer::ExpectProjectCommandsEnabled(manager->menu_builder(),
+                                                  true);
+  manager->ShowProjectManagement();
+  manager->ShowProjectFileEditor();
+  ASSERT_EQ(manager->project_file_editor()->filepath(), project_path.string());
+  ASSERT_TRUE(manager->project_file_editor()->is_active());
+  ASSERT_EQ(
+      ProjectUiTestPeer::PanelProject(*manager->project_management_panel()),
+      manager->GetCurrentProject());
 
   manager->CloseRom();
   ASSERT_FALSE(manager->HasPendingUnsavedSessionAction());
@@ -1204,6 +1250,15 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_EQ(manager->GetCurrentRom(), nullptr);
   EXPECT_FALSE(
       manager->IsCurrentProjectContextOwnedBySession(closed_session_id));
+  // Check before another open can mask a missing null-session cleanup.
+  EXPECT_TRUE(manager->project_file_editor()->filepath().empty());
+  EXPECT_FALSE(manager->project_file_editor()->IsInitialized());
+  EXPECT_FALSE(manager->project_file_editor()->is_active());
+  EXPECT_EQ(
+      ProjectUiTestPeer::PanelProject(*manager->project_management_panel()),
+      nullptr);
+  ProjectUiTestPeer::ExpectProjectCommandsEnabled(manager->menu_builder(),
+                                                  false);
 
   ASSERT_OK(manager->OpenRomOrProject(raw_rom.string()));
   ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
@@ -1227,6 +1282,25 @@ TEST(EditorManagerWriteConflictTest,
   EXPECT_TRUE(raw_session->project_context->filepath.empty());
   EXPECT_TRUE(raw_session->project_context->rom_filename.empty());
   EXPECT_TRUE(raw_session->project_context->palette_catalog_file.empty());
+  ProjectUiTestPeer::ExpectProjectCommandsEnabled(manager->menu_builder(),
+                                                  false);
+
+  const auto project_b =
+      CreateProjectFile("closed_project_b", "Project B", project_rom,
+                        project::WorkspaceSettings{}, project_root);
+  ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
+  ProjectUiTestPeer::ExpectProjectCommandsEnabled(manager->menu_builder(),
+                                                  true);
+  manager->SwitchToSession(0);
+  ProjectUiTestPeer::ExpectProjectCommandsEnabled(manager->menu_builder(),
+                                                  false);
+  manager->SwitchToSession(1);
+  ProjectUiTestPeer::ExpectProjectCommandsEnabled(manager->menu_builder(),
+                                                  true);
+  manager->CloseRom();
+  ASSERT_FALSE(manager->HasPendingUnsavedSessionAction());
+  ProjectUiTestPeer::ExpectProjectCommandsEnabled(manager->menu_builder(),
+                                                  false);
 }
 
 TEST(EditorManagerWriteConflictTest,

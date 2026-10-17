@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "absl/cleanup/cleanup.h"
@@ -15,6 +16,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/util/palette_manager.h"
+#include "core/palette_catalog.h"
 #include "editor_test_support.h"
 #include "testing.h"
 
@@ -111,6 +113,77 @@ ProjectFileEditorState MakeModifiedProjectDraft(ProjectFileEditor* editor,
   state.active = true;
   editor->RestoreState(state, project);
   return state;
+}
+
+TEST(EditorManagerProjectActionsTest,
+     SaveProjectAsWarnsWhenPaletteCatalogLeavesNewProjectFolder) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_catalog_save_as"));
+  const auto original_folder = temp_dir.path / "original";
+  const auto sibling_folder = temp_dir.path / "sibling";
+  const auto child_folder = original_folder / "child";
+  std::filesystem::create_directories(sibling_folder);
+  std::filesystem::create_directories(child_folder);
+  const auto rom_path = original_folder / "source.sfc";
+  const auto project_path = original_folder / "source.yaze";
+  const auto catalog_path = original_folder / "catalog.json";
+  WriteRomFile(rom_path);
+  WriteProjectFile(project_path, "Catalog Save As", rom_path);
+  const std::string catalog = R"({"schema_version":1,"game_id":"oracle",
+"entries":[{"key":"sprites","name":"Sprites","group":"global_sprites",
+"index":0,"world":"light_world","use":"mixed","description":"Sprites",
+"provenance":"test","ownership":"rom","usages":[]}]})";
+  std::ofstream(catalog_path) << catalog;
+  {
+    project::YazeProject project;
+    ASSERT_OK(project.Open(project_path.string()));
+    project.palette_catalog_file = catalog_path.string();
+    ASSERT_OK(project.Save());
+  }
+  const auto original_descriptor = ReadFile(project_path);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_TRUE(core::PaletteCatalog::LoadForProject(
+                  project_path.string(),
+                  manager->GetCurrentProject()->palette_catalog_file)
+                  .ok());
+
+  const std::vector<std::pair<std::filesystem::path, bool>> destinations = {
+      {original_folder / "same-folder.yaze", false},
+      {sibling_folder / "sibling.yaze", true},
+      {child_folder / "child.yaze", true},
+      {temp_dir.path / "ancestor.yaze", false}};
+  for (const auto& [destination, expect_warning] : destinations) {
+    SCOPED_TRACE(destination.string());
+    const auto toast_begin = manager->toast_manager()->pending_count();
+    ASSERT_OK(manager->SaveProjectAs(destination.string()));
+    bool warned = false;
+    for (size_t i = toast_begin; i < manager->toast_manager()->pending_count();
+         ++i) {
+      const auto* toast = manager->toast_manager()->GetPendingToast(i);
+      ASSERT_NE(toast, nullptr);
+      if (toast->type == ToastType::kWarning &&
+          toast->message.find("palette catalog") != std::string::npos) {
+        warned = true;
+        EXPECT_NE(toast->message.find("Copy the catalog"), std::string::npos);
+        EXPECT_NE(toast->message.find("palette_catalog_file"),
+                  std::string::npos);
+      }
+    }
+    EXPECT_EQ(warned, expect_warning);
+    project::YazeProject reopened;
+    ASSERT_OK(reopened.Open(destination.string()));
+    EXPECT_EQ(core::PaletteCatalog::LoadForProject(
+                  reopened.filepath, reopened.palette_catalog_file)
+                  .ok(),
+              !expect_warning);
+    EXPECT_EQ(ReadFile(catalog_path), catalog);
+    EXPECT_EQ(ReadFile(project_path), original_descriptor);
+  }
 }
 
 TEST(EditorManagerProjectActionsTest,
