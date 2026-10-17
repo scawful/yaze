@@ -1160,6 +1160,76 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
+     RawRomOpenedAfterClosingLastProjectGetsNeutralSessionContext) {
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto project_rom =
+      CreateMinimalRomFile("yaze_closed_project_a.sfc", "CLOSED PROJECT A");
+  const auto raw_rom =
+      CreateMinimalRomFile("yaze_after_close_raw.sfc", "AFTER CLOSE RAW");
+  const auto project_root = MakeTempFilePath("yaze_closed_project_root");
+  ScopedFileCleanup cleanup_project_rom{project_rom};
+  ScopedFileCleanup cleanup_raw_rom{raw_rom};
+  ScopedDirectoryCleanup cleanup_project_root{project_root};
+  ASSERT_TRUE(std::filesystem::create_directories(project_root));
+  const auto project_path = CreateProjectFile(
+      "closed_project", "Closed Project Must Not Leak", project_rom,
+      project::WorkspaceSettings{}, project_root);
+  {
+    project::YazeProject project;
+    ASSERT_OK(project.Open(project_path.string()));
+    project.palette_catalog_file = "project-only-catalog.json";
+    ASSERT_OK(project.Save());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  const size_t closed_session_id = manager->GetCurrentSessionId();
+  ASSERT_TRUE(
+      manager->IsCurrentProjectContextOwnedBySession(closed_session_id));
+  ASSERT_EQ(manager->GetCurrentProject()->filepath, project_path.string());
+  ASSERT_EQ(manager->GetCurrentProject()->palette_catalog_file,
+            "project-only-catalog.json");
+
+  manager->CloseRom();
+  ASSERT_FALSE(manager->HasPendingUnsavedSessionAction());
+  ASSERT_EQ(manager->GetActiveSessionCount(), 0u);
+  ASSERT_EQ(manager->GetCurrentRom(), nullptr);
+  EXPECT_FALSE(
+      manager->IsCurrentProjectContextOwnedBySession(closed_session_id));
+
+  ASSERT_OK(manager->OpenRomOrProject(raw_rom.string()));
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  auto* raw_session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(raw_session, nullptr);
+  ASSERT_TRUE(raw_session->project_context.has_value());
+  EXPECT_NE(raw_session->session_id(), closed_session_id);
+  EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
+      raw_session->rom.filename(), raw_rom.string()));
+  EXPECT_TRUE(manager->IsCurrentProjectContextOwnedBySession(
+      raw_session->session_id()));
+
+  const auto* current_project = manager->GetCurrentProject();
+  EXPECT_FALSE(current_project->project_opened());
+  EXPECT_TRUE(current_project->name.empty());
+  EXPECT_TRUE(current_project->filepath.empty());
+  EXPECT_TRUE(current_project->rom_filename.empty());
+  EXPECT_TRUE(current_project->palette_catalog_file.empty());
+  EXPECT_FALSE(raw_session->project_context->project_opened());
+  EXPECT_TRUE(raw_session->project_context->name.empty());
+  EXPECT_TRUE(raw_session->project_context->filepath.empty());
+  EXPECT_TRUE(raw_session->project_context->rom_filename.empty());
+  EXPECT_TRUE(raw_session->project_context->palette_catalog_file.empty());
+}
+
+TEST(EditorManagerWriteConflictTest,
      ProjectWorkspaceSettingsStayIsolatedAcrossSessionSave) {
   ScopedImGuiContext imgui;
 
