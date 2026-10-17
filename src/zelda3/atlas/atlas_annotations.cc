@@ -85,7 +85,7 @@ class DocReader {
       }
       const bool known =
           std::any_of(allowed.begin(), allowed.end(),
-                      [&](const char* name) { return key == name; });
+                      [&key = key](const char* name) { return key == name; });
       if (!known) {
         std::vector<std::string> names(allowed.begin(), allowed.end());
         return Error(Child(ptr, key),
