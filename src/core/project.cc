@@ -1,4 +1,5 @@
 #include "core/project.h"
+#include "core/project_sections.h"
 #include "core/sprite_asset_json.h"
 
 #include <algorithm>
@@ -975,6 +976,10 @@ std::string MergeProjectFilePassthrough(
   return out.str();
 }
 }  // namespace
+
+bool IsKnownProjectFileSection(absl::string_view name) {
+  return IsKnownProjectSection(name);
+}
 
 absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   std::ostringstream file;
