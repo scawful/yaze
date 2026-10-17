@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_PALETTE_EDITOR_H
 
 #include <deque>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -11,6 +12,7 @@
 
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
+#include "core/palette_catalog.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 
@@ -121,8 +123,16 @@ class PaletteEditor : public Editor {
    */
   void JumpToPalette(const std::string& group_name, int palette_index);
 
+  absl::Status ReloadPaletteCatalog();
+  const core::PaletteCatalog* palette_catalog() const {
+    return palette_catalog_ ? &*palette_catalog_ : nullptr;
+  }
+  const absl::Status& palette_catalog_status() const { return catalog_status_; }
+
  private:
   void DrawControlPanel();
+  void DrawPaletteCatalog();
+  void RefreshPaletteCatalogIfChanged();
   void DrawQuickAccessPanel();
   void DrawCustomPalettePanel();
   void RefreshPanelReferences();
@@ -134,6 +144,17 @@ class PaletteEditor : public Editor {
   bool PassesSearchFilter(const std::string& group_name) const;
   PaletteGroupPanel* GetPanelForGroup(const std::string& group_name);
   std::string selected_group_ = "ow_main";
+
+  std::optional<core::PaletteCatalog> palette_catalog_;
+  absl::Status catalog_status_;
+  const project::YazeProject* catalog_project_ = nullptr;
+  std::string catalog_path_;
+  std::string catalog_project_file_;
+  size_t catalog_session_id_ = static_cast<size_t>(-1);
+  char catalog_query_[256] = {};
+  int catalog_world_ = 0;
+  int catalog_use_ = 0;
+  bool show_catalog_ = false;
 
   // Legacy methods (for backward compatibility if needed)
   void DrawQuickAccessTab();

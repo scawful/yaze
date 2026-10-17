@@ -1027,6 +1027,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "output_folder=" << GetRelativePath(output_folder) << "\n";
   file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder)
        << "\n";
+  file << "palette_catalog_file="
+       << GetRelativePath(GetAbsolutePath(palette_catalog_file)) << "\n";
   file << "terrain_catalog_file="
        << GetRelativePath(GetAbsolutePath(terrain_catalog_file)) << "\n";
   file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
@@ -1349,6 +1351,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   sprite_source_root.clear();
   sprite_assets.clear();
   terrain_catalog_file.clear();
+  palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   file_passthrough = ProjectFilePassthrough{};
   atlas = AtlasSettings{};
@@ -1446,6 +1449,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         output_folder = value;
       else if (key == "custom_objects_folder")
         custom_objects_folder = value;
+      else if (key == "palette_catalog_file")
+        palette_catalog_file = value;
       else if (key == "terrain_catalog_file")
         terrain_catalog_file = value;
       else if (key == "hack_manifest_file")
@@ -2040,6 +2045,7 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&overworld_graphics_preview);
   normalize(&dungeon_tile_patterns);
   normalize(&terrain_catalog_file);
+  normalize(&palette_catalog_file);
   for (auto& asset : sprite_assets)
     normalize(&asset.zsm_path);
   normalize(&output_folder);
@@ -2411,6 +2417,7 @@ void YazeProject::InitializeDefaults() {
   sprite_source_root.clear();
   sprite_assets.clear();
   terrain_catalog_file.clear();
+  palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
   if (metadata.project_id.empty()) {
     metadata.project_id = GenerateProjectId();
@@ -3050,6 +3057,7 @@ void YazeProject::InitializeResourceLabelProvider() {
 
 absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
   terrain_catalog_file.clear();
+  palette_catalog_file.clear();
   dungeon_tile_patterns.clear();
 #ifdef __EMSCRIPTEN__
   return absl::UnimplementedError(
@@ -3106,6 +3114,8 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
       if (proj.contains("dungeon_tile_patterns"))
         dungeon_tile_patterns =
             proj["dungeon_tile_patterns"].get<std::string>();
+      if (proj.contains("palette_catalog_file"))
+        palette_catalog_file = proj["palette_catalog_file"].get<std::string>();
       if (proj.contains("terrain_catalog_file"))
         terrain_catalog_file = proj["terrain_catalog_file"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
@@ -3394,6 +3404,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["symbols_filename"] = symbols_filename;
   proj["dungeon_tile_patterns"] =
       GetRelativePath(GetAbsolutePath(dungeon_tile_patterns));
+  proj["palette_catalog_file"] =
+      GetRelativePath(GetAbsolutePath(palette_catalog_file));
   proj["terrain_catalog_file"] =
       GetRelativePath(GetAbsolutePath(terrain_catalog_file));
   proj["hack_manifest_file"] = hack_manifest_file;

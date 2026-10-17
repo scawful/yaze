@@ -305,6 +305,9 @@ struct YazeProject {
   // Optional game-independent terrain labels, stored outside the ROM.
   std::string terrain_catalog_file;
 
+  // Optional read-only palette names, contextual sprite uses and provenance.
+  std::string palette_catalog_file;
+
   // Optional custom object file mapping (object_id -> filenames per subtype).
   std::unordered_map<int, std::vector<std::string>> custom_object_files;
 
