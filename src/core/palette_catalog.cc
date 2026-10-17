@@ -124,13 +124,16 @@ absl::StatusOr<PaletteCatalog> PaletteCatalog::Parse(std::string_view text) {
 absl::StatusOr<PaletteCatalog> PaletteCatalog::LoadForProject(
     const std::string& project_file, const std::string& catalog_file) {
   namespace fs = std::filesystem;
+  const fs::path configured(catalog_file);
+  // Descriptor loading normalizes to native absolute paths, including Windows
+  // drive paths. These must still pass canonical project containment below.
   if (project_file.empty() || catalog_file.empty() ||
-      catalog_file.find('\\') != std::string::npos ||
-      catalog_file.find(':') != std::string::npos ||
-      catalog_file.find('\0') != std::string::npos)
+      catalog_file.find('\0') != std::string::npos ||
+      (!configured.is_absolute() &&
+       (catalog_file.find('\\') != std::string::npos ||
+        catalog_file.find(':') != std::string::npos)))
     return absl::InvalidArgumentError(
         "Catalog requires a project-relative path");
-  const fs::path configured(catalog_file);
   for (const auto& part : configured)
     if (part == "..")
       return absl::InvalidArgumentError("Catalog path contains traversal");
