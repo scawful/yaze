@@ -138,8 +138,10 @@ TEST(PaletteCatalogTest, AcceptsNativeAbsolutePathsAndContainsResolvedCatalog) {
     EXPECT_FALSE(PaletteCatalog::LoadForProject(project, "escape.json").ok());
   EXPECT_FALSE(
       PaletteCatalog::LoadForProject(project, "C:\\outside.json").ok());
-  std::ifstream stream(catalog);
-  EXPECT_EQ(std::string(std::istreambuf_iterator<char>(stream), {}), text);
+  {
+    std::ifstream stream(catalog);
+    EXPECT_EQ(std::string(std::istreambuf_iterator<char>(stream), {}), text);
+  }
   fs::remove_all(root);
 }
 }  // namespace
