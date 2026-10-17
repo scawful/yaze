@@ -1,6 +1,7 @@
 #ifndef YAZE_CORE_PALETTE_CATALOG_H_
 #define YAZE_CORE_PALETTE_CATALOG_H_
 
+#include <filesystem>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -39,6 +40,9 @@ class PaletteCatalog {
   static absl::StatusOr<PaletteCatalog> Parse(std::string_view text);
   // Catalogs must resolve within the descriptor's directory, including symlinks.
   static absl::StatusOr<PaletteCatalog> LoadForProject(
+      const std::string& project_file, const std::string& catalog_file);
+  // Resolve without parsing, using the same containment rules as the loader.
+  static absl::StatusOr<std::filesystem::path> ResolvePathForProject(
       const std::string& project_file, const std::string& catalog_file);
   const std::vector<PaletteCatalogEntry>& entries() const { return entries_; }
   std::vector<const PaletteCatalogEntry*> Filter(

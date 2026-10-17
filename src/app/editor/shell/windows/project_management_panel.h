@@ -30,6 +30,8 @@ class ToastManager;
  * - Quick access to project configuration
  */
 class ProjectManagementPanel {
+  friend class ProjectUiTestPeer;
+
  public:
   ProjectManagementPanel() = default;
 

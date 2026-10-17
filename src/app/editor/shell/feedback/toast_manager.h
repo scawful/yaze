@@ -30,6 +30,7 @@ struct Toast {
   /// Optional button label (empty = message-only toast).
   std::string action_label;
   std::function<void()> on_action;
+  std::chrono::steady_clock::time_point last_tick;
 };
 
 /**
@@ -44,6 +45,11 @@ struct NotificationEntry {
 
 class ToastManager {
  public:
+  using Clock = std::chrono::steady_clock;
+
+  explicit ToastManager(std::function<Clock::time_point()> now = Clock::now)
+      : now_(std::move(now)) {}
+
   static constexpr size_t kMaxHistorySize = 50;
   // Suppress duplicate (same message+type) toasts within this window.
   static constexpr float kDedupCooldownSeconds = 1.0f;
@@ -52,7 +58,7 @@ class ToastManager {
             float ttl_seconds = 3.0f, std::string action_label = {},
             std::function<void()> on_action = nullptr) {
     // Dedup: skip if same message+type was shown within the cooldown window.
-    auto now = std::chrono::steady_clock::now();
+    const auto now = now_();
     if (message == last_shown_message_ && type == last_shown_type_) {
       auto elapsed = std::chrono::duration<float>(now - last_shown_time_);
       if (elapsed.count() < kDedupCooldownSeconds) {
@@ -65,7 +71,7 @@ class ToastManager {
     last_shown_time_ = now;
 
     toasts_.push_back({message, type, ttl_seconds, std::move(action_label),
-                       std::move(on_action)});
+                       std::move(on_action), now});
 
     // Also add to notification history
     NotificationEntry entry;
@@ -100,6 +106,7 @@ class ToastManager {
       return;
     ImGuiIO& io = ImGui::GetIO();
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    const auto now = now_();
 
     // Position toasts from the top-right, below menu bar
     ImVec2 pos(io.DisplaySize.x - 16.f, 48.f);
@@ -180,9 +187,12 @@ class ToastManager {
         continue;
       }
 
-      // Decrease TTL (pause while hovered so users can reach the action)
+      // Frame DeltaTime can include a modal dialog before this toast existed.
+      const auto elapsed = std::chrono::duration<float>(now - t.last_tick);
+      t.last_tick = now;
+      // Decrease TTL (pause while hovered so users can reach the action).
       if (!hovered) {
-        t.ttl_seconds -= io.DeltaTime;
+        t.ttl_seconds -= elapsed.count();
       }
       if (t.ttl_seconds <= 0.f) {
         it = toasts_.erase(it);
@@ -218,6 +228,7 @@ class ToastManager {
   void ClearHistory() { notification_history_.clear(); }
 
  private:
+  std::function<Clock::time_point()> now_;
   std::deque<Toast> toasts_;
   std::deque<NotificationEntry> notification_history_;
 
