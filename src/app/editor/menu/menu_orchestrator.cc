@@ -1828,8 +1828,10 @@ bool MenuOrchestrator::CanSaveRom() const {
 }
 
 bool MenuOrchestrator::CanSaveProject() const {
-  // Project actions use EditorManager's active session context.
-  return HasProjectFile();
+  // A closed or pending session may leave a descriptor without owning it.
+  return HasProjectFile() &&
+         editor_manager_->IsCurrentProjectContextOwnedBySession(
+             editor_manager_->GetCurrentSessionId());
 }
 
 bool MenuOrchestrator::HasActiveRom() const {
