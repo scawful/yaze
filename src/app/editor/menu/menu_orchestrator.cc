@@ -1828,7 +1828,8 @@ bool MenuOrchestrator::CanSaveRom() const {
 }
 
 bool MenuOrchestrator::CanSaveProject() const {
-  return project_manager_.HasActiveProject();
+  // Project actions use EditorManager's active session context.
+  return HasProjectFile();
 }
 
 bool MenuOrchestrator::HasActiveRom() const {
