@@ -109,6 +109,29 @@ TEST(ProjectPathsTest, TerrainCatalogPathSurvivesSaveAndResetsOnNextProject) {
   EXPECT_TRUE(reopened.terrain_catalog_file.empty());
 }
 
+TEST(ProjectPathsTest, PaletteCatalogPathSurvivesSaveAndResetsOnNextProject) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_palette_project"));
+  const auto project_file = temp.path() / "Oracle.yaze";
+  const auto catalog_file = temp.path() / "palette.json";
+  WriteTextFile(catalog_file, "{}");
+  YazeProject project;
+  project.name = "Oracle";
+  project.filepath = project_file.string();
+  project.palette_catalog_file = catalog_file.string();
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_NE(
+      ReadTextFile(project_file).find("palette_catalog_file=palette.json"),
+      std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_EQ(reopened.palette_catalog_file, catalog_file.string());
+  ASSERT_TRUE(reopened
+                  .LoadFromString("[project]\nname=Other\n",
+                                  (temp.path() / "Other.yaze").string())
+                  .ok());
+  EXPECT_TRUE(reopened.palette_catalog_file.empty());
+}
+
 TEST(ProjectPathsTest, DungeonPatternPathSurvivesSaveAndResetsOnNextProject) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_dungeon_patterns_project"));
   const auto project_file = temp.path() / "Patterns.yaze";

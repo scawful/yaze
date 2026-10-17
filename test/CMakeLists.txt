@@ -306,6 +306,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_test.cc
     unit/core/project_bundle_test.cc
     unit/core/terrain_catalog_test.cc
+    unit/core/palette_catalog_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_path_test.cc
     unit/core/source_artifact_publisher_test.cc
@@ -413,6 +414,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sprite_graphics_context_test.cc
     unit/editor/screen_graphics_context_test.cc
     unit/editor/palette_controls_panel_layout_test.cc
+    unit/editor/palette_catalog_session_test.cc
     unit/editor/sprite_editor_preview_test.cc
     unit/editor/sprite_authoring_test.cc
     unit/editor/sprite_behavior_test.cc

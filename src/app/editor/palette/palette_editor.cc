@@ -25,6 +25,7 @@
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "core/project.h"
 #include "imgui/imgui.h"
 
 #include <cstring>
@@ -526,6 +527,7 @@ class CustomPalettePanel : public WindowContent {
 
 void PaletteEditor::SetDependencies(const EditorDependencies& deps) {
   Editor::SetDependencies(deps);
+  RefreshPaletteCatalogIfChanged();
   ApplyPanelDependencies();
 }
 
@@ -1098,6 +1100,7 @@ void PaletteEditor::DrawControlPanel() {
     return;
   }
   RefreshPanelReferences();
+  RefreshPaletteCatalogIfChanged();
   const size_t modified_count = manager.GetModifiedColorCount();
   const bool pending = manager.HasUnsavedChanges() || (rom_ && rom_->dirty());
   ImGui::BeginDisabled(!pending || !dependencies_.window_manager);
@@ -1168,6 +1171,17 @@ void PaletteEditor::DrawControlPanel() {
     ImGui::TextDisabled(pending ? tr("ROM has unsaved changes")
                                 : tr("No pending palette edits"));
   ImGui::Separator();
+
+  if (ImGui::RadioButton(tr("Palettes"), !show_catalog_))
+    show_catalog_ = false;
+  ImGui::SameLine();
+  if (ImGui::RadioButton(tr("Catalog"), show_catalog_))
+    show_catalog_ = true;
+  ImGui::Separator();
+  if (show_catalog_) {
+    DrawPaletteCatalog();
+    return;
+  }
 
   const float nav_width =
       std::clamp(ImGui::GetContentRegionAvail().x * 0.22f,

@@ -27,6 +27,7 @@ set(YAZE_CORE_LIB_SOURCES
   oracle_progression_loader.cc
   project.cc
   terrain_catalog.cc
+  palette_catalog.cc
   story_event_graph.cc
   story_event_graph_query.cc
   version_manager.cc

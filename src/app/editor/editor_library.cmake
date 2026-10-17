@@ -187,6 +187,7 @@ set(
   app/editor/overworld/ui/tiles/tile16_selector_view.cc
   app/editor/overworld/ui/tiles/tile8_selector_view.cc
   app/editor/palette/palette_editor.cc
+  app/editor/palette/palette_editor_catalog.cc
   app/editor/palette/palette_group_panel.cc
   app/editor/palette/palette_utility.cc
   app/editor/registry/content_registry.cc
