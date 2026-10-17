@@ -110,7 +110,7 @@ TEST(PaletteCatalogTest, BoundsInputSize) {
   EXPECT_FALSE(PaletteCatalog::Parse("not JSON").ok());
 }
 
-TEST(PaletteCatalogTest, ContainsResolvedPathsAndNeverChangesCatalogFiles) {
+TEST(PaletteCatalogTest, AcceptsNativeAbsolutePathsAndContainsResolvedCatalog) {
   namespace fs = std::filesystem;
   const auto root =
       fs::temp_directory_path() /
@@ -123,14 +123,19 @@ TEST(PaletteCatalogTest, ContainsResolvedPathsAndNeverChangesCatalogFiles) {
   std::ofstream(catalog) << text;
   const auto project = (root / "project/game.yaze").string();
   EXPECT_TRUE(PaletteCatalog::LoadForProject(project, "catalog.json").ok());
+  // The normalized descriptor uses /... on POSIX and C:\... on Windows.
+  ASSERT_TRUE(fs::path(catalog.string()).is_absolute());
   EXPECT_TRUE(PaletteCatalog::LoadForProject(project, catalog.string()).ok());
   EXPECT_FALSE(PaletteCatalog::LoadForProject(project, "../catalog.json").ok());
   std::ofstream(root / "outside.json") << text;
   EXPECT_FALSE(
       PaletteCatalog::LoadForProject(project, (root / "outside.json").string())
           .ok());
-  fs::create_symlink(root / "outside.json", root / "project/escape.json");
-  EXPECT_FALSE(PaletteCatalog::LoadForProject(project, "escape.json").ok());
+  std::error_code symlink_error;
+  fs::create_symlink(root / "outside.json", root / "project/escape.json",
+                     symlink_error);
+  if (!symlink_error)
+    EXPECT_FALSE(PaletteCatalog::LoadForProject(project, "escape.json").ok());
   EXPECT_FALSE(
       PaletteCatalog::LoadForProject(project, "C:\\outside.json").ok());
   std::ifstream stream(catalog);
