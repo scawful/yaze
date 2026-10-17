@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -389,18 +390,100 @@ class AuthoringSaveWorkflowTestPeer {
 
 namespace {
 
-constexpr const char* kSharedRom =
-    "/Users/scawful/src/hobby/oracle-of-secrets/Roms/oos168.sfc";
-constexpr const char* kSharedProject =
-    "/Users/scawful/src/hobby/oracle-of-secrets/Oracle-of-Secrets.yaze";
-constexpr const char* kSharedManifest =
-    "/Users/scawful/src/hobby/oracle-of-secrets/Roms/hack_manifest.json";
-constexpr const char* kSharedCollision =
-    "/Users/scawful/src/hobby/oracle-of-secrets/Data/dungeons/"
-    "custom_collision.json";
-constexpr const char* kSharedTrackSource =
-    "/Users/scawful/src/hobby/oracle-of-secrets/Sprites/Objects/data/"
-    "minecart_tracks.asm";
+constexpr const char* kAuthoringFixtureRootEnv =
+    "YAZE_TEST_AUTHORING_ORACLE_ROOT";
+
+struct AuthoringFixturePaths {
+  std::string rom;
+  std::string vanilla;
+  std::string project;
+  std::string manifest;
+  std::string collision;
+  std::string tracks;
+};
+
+absl::StatusOr<AuthoringFixturePaths> ResolveAuthoringFixturePaths(
+    const char* root_override) {
+  if (root_override != nullptr && *root_override == '\0') {
+    return absl::InvalidArgumentError(
+        absl::StrCat(kAuthoringFixtureRootEnv, " must not be empty"));
+  }
+  const std::filesystem::path root =
+      root_override != nullptr ? root_override
+                               : "/Users/scawful/src/hobby/oracle-of-secrets";
+  AuthoringFixturePaths paths{
+      (root / "Roms/oos168.sfc").string(),
+      (root / "Roms/alttp_vanilla.sfc").string(),
+      (root / "Oracle-of-Secrets.yaze").string(),
+      (root / "Roms/hack_manifest.json").string(),
+      (root / "Data/dungeons/custom_collision.json").string(),
+      (root / "Sprites/Objects/data/minecart_tracks.asm").string()};
+  std::vector<std::string> required = {paths.rom, paths.project, paths.manifest,
+                                       paths.collision};
+  if (root_override != nullptr) {
+    required.push_back(paths.vanilla);
+  }
+  for (const auto& path : required) {
+    std::error_code error;
+    if (!std::filesystem::is_regular_file(path, error)) {
+      return absl::NotFoundError(
+          absl::StrCat("Oracle authoring fixture file is unavailable: ", path));
+    }
+  }
+  return paths;
+}
+
+TEST(AuthoringFixtureSelectionTest, ExplicitEmptyRootIsRefused) {
+  const auto result = ResolveAuthoringFixturePaths("");
+  ASSERT_TRUE(absl::IsInvalidArgument(result.status()));
+  EXPECT_NE(result.status().message().find(kAuthoringFixtureRootEnv),
+            absl::string_view::npos);
+}
+
+TEST(AuthoringFixtureSelectionTest, ExplicitMissingRootDoesNotFallBack) {
+  const auto root = test::UniqueTempPath("yaze-missing-authoring-fixture");
+  const auto result = ResolveAuthoringFixturePaths(root.string().c_str());
+  ASSERT_TRUE(absl::IsNotFound(result.status()));
+  EXPECT_NE(result.status().message().find(root.string()),
+            absl::string_view::npos);
+  EXPECT_FALSE(std::filesystem::exists(root));
+}
+
+TEST(AuthoringFixtureSelectionTest, ExplicitBundleRequiresEveryFile) {
+  const auto root = test::UniqueTempPath("yaze-selected-authoring-fixture");
+  auto cleanup = absl::MakeCleanup([&] {
+    std::error_code error;
+    std::filesystem::remove_all(root, error);
+  });
+  const std::vector<std::filesystem::path> files = {
+      root / "Roms/oos168.sfc", root / "Oracle-of-Secrets.yaze",
+      root / "Roms/hack_manifest.json",
+      root / "Data/dungeons/custom_collision.json",
+      root / "Roms/alttp_vanilla.sfc"};
+  for (const auto& path : files) {
+    std::filesystem::create_directories(path.parent_path());
+    std::ofstream output(path);
+    ASSERT_TRUE(output.good());
+  }
+  auto selected = ResolveAuthoringFixturePaths(root.string().c_str());
+  ASSERT_OK(selected.status());
+  EXPECT_EQ(selected->rom, files[0].string());
+  EXPECT_EQ(selected->project, files[1].string());
+  EXPECT_EQ(selected->manifest, files[2].string());
+  EXPECT_EQ(selected->collision, files[3].string());
+  EXPECT_EQ(selected->vanilla, files[4].string());
+  EXPECT_EQ(selected->tracks,
+            (root / "Sprites/Objects/data/minecart_tracks.asm").string());
+  for (const auto& path : files) {
+    std::filesystem::remove(path);
+    const auto incomplete = ResolveAuthoringFixturePaths(root.string().c_str());
+    ASSERT_TRUE(absl::IsNotFound(incomplete.status()));
+    EXPECT_NE(incomplete.status().message().find(path.string()),
+              absl::string_view::npos);
+    std::ofstream output(path);
+    ASSERT_TRUE(output.good());
+  }
+}
 constexpr int kOverworldMap = 48;
 constexpr int kDungeonRoom = 5;
 
@@ -496,12 +579,19 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
     // NullRenderer cannot fulfill texture uploads. Do not retry work whose
     // Bitmap owners belonged to a previous application fixture.
     gfx::Arena::Get().ClearTextureQueue();
-    if (!std::filesystem::exists(kSharedRom) ||
-        !std::filesystem::exists(kSharedProject) ||
-        !std::filesystem::exists(kSharedManifest) ||
-        !std::filesystem::exists(kSharedCollision)) {
-      GTEST_SKIP() << "Oracle base ROM/project fixture is not available";
+    const char* fixture_root = std::getenv(kAuthoringFixtureRootEnv);
+    const auto paths = ResolveAuthoringFixturePaths(fixture_root);
+    if (!paths.ok()) {
+      if (fixture_root != nullptr) {
+        FAIL() << paths.status();
+      }
+      GTEST_SKIP() << paths.status();
     }
+    kSharedRom = paths->rom;
+    kSharedProject = paths->project;
+    kSharedManifest = paths->manifest;
+    kSharedCollision = paths->collision;
+    kSharedTrackSource = paths->tracks;
   }
 
   void TearDown() override {
@@ -619,6 +709,14 @@ class AuthoringSaveWorkflowTest : public ::testing::Test {
   void AddGoronSessionEdits(GoronSessionEdits* expected);
   void VerifyGoronSessionEdits(Rom& rom, const GoronSessionEdits& expected);
   void QualifyMinecartBuildRecovery(bool move_cart);
+
+  // Resolve the whole bundle once per fixture, including preservation checks
+  // and source assets. An explicit root never falls back to the live checkout.
+  std::string kSharedRom;
+  std::string kSharedProject;
+  std::string kSharedManifest;
+  std::string kSharedCollision;
+  std::string kSharedTrackSource;
 
   void QualifySourcePixelRoundTrip(const DisposableOracleProject& fixture) {
     auto* graphics = manager_->GetCurrentEditorSet()->GetGraphicsEditor();
@@ -4797,6 +4895,11 @@ TEST_F(AuthoringSaveWorkflowTest,
 }
 
 std::filesystem::path ResolveOracleEditRom() {
+  if (const char* root = std::getenv(kAuthoringFixtureRootEnv)) {
+    const auto paths = ResolveAuthoringFixturePaths(root);
+    return paths.ok() ? std::filesystem::path(paths->rom)
+                      : std::filesystem::path();
+  }
   const std::string discovered = test::FindOracleRomFixture();
   if (discovered.empty()) {
     return {};
@@ -4812,6 +4915,14 @@ std::filesystem::path ResolveOracleEditRom() {
     return {};
   }
   return path;
+}
+
+std::string ResolveVanillaEditRom() {
+  if (const char* root = std::getenv(kAuthoringFixtureRootEnv)) {
+    const auto paths = ResolveAuthoringFixturePaths(root);
+    return paths.ok() ? paths->vanilla : std::string();
+  }
+  return test::TestRomManager::GetRomPath(test::RomRole::kVanilla);
 }
 
 OverworldEditor* LoadedOverworld(EditorManager* manager) {
@@ -5380,8 +5491,7 @@ TEST_F(AuthoringSaveWorkflowTest,
 }
 
 TEST_F(AuthoringSaveWorkflowTest, TileEditSurvivesLateSaveFailureRetryAndUndo) {
-  const std::string vanilla =
-      test::TestRomManager::GetRomPath(test::RomRole::kVanilla);
+  const std::string vanilla = ResolveVanillaEditRom();
   ASSERT_FALSE(vanilla.empty())
       << test::TestRomManager::GetRomRoleHint(test::RomRole::kVanilla);
   const std::string vanilla_hash = util::ComputeFileSha1Hex(vanilla);
