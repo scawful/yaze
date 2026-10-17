@@ -86,6 +86,7 @@
 #include "app/platform/timing.h"
 #include "app/testing/test_manager.h"
 #include "core/features.h"
+#include "core/palette_catalog.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
 #include "editor/core/content_registry.h"
@@ -3681,8 +3682,21 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
     manager.AddFile(file_path);
     manager.Save();
 
-    toast_manager_.Show(absl::StrFormat("Project saved as: %s", file_path),
-                        editor::ToastType::kSuccess);
+    const auto catalog_path = core::PaletteCatalog::ResolvePathForProject(
+        file_path, current_project_.palette_catalog_file);
+    if (!current_project_.palette_catalog_file.empty() &&
+        absl::IsInvalidArgument(catalog_path.status())) {
+      toast_manager_.Show(
+          absl::StrFormat(
+              "Project saved as: %s. Its palette catalog cannot load from this "
+              "folder. Copy the catalog into the new project folder, then "
+              "update palette_catalog_file in Edit Project File.",
+              file_path),
+          editor::ToastType::kWarning, 10.0f);
+    } else {
+      toast_manager_.Show(absl::StrFormat("Project saved as: %s", file_path),
+                          editor::ToastType::kSuccess);
+    }
   } else {
     // Restore old filepath on failure
     current_project_.filepath = old_filepath;

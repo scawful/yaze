@@ -32,6 +32,8 @@ namespace editor {
  *     .EndMenu();
  */
 class MenuBuilder {
+  friend class ProjectUiTestPeer;
+
  public:
   using Callback = std::function<void()>;
   using EnabledCheck = std::function<bool()>;

@@ -121,7 +121,7 @@ absl::StatusOr<PaletteCatalog> PaletteCatalog::Parse(std::string_view text) {
   }
 }
 
-absl::StatusOr<PaletteCatalog> PaletteCatalog::LoadForProject(
+absl::StatusOr<std::filesystem::path> PaletteCatalog::ResolvePathForProject(
     const std::string& project_file, const std::string& catalog_file) {
   namespace fs = std::filesystem;
   const fs::path configured(catalog_file);
@@ -148,7 +148,15 @@ absl::StatusOr<PaletteCatalog> PaletteCatalog::LoadForProject(
       std::mismatch(root.begin(), root.end(), path.begin(), path.end());
   if (mismatch.first != root.end())
     return absl::InvalidArgumentError("Catalog path escapes the project");
-  std::ifstream stream(path, std::ios::binary);
+  return path;
+}
+
+absl::StatusOr<PaletteCatalog> PaletteCatalog::LoadForProject(
+    const std::string& project_file, const std::string& catalog_file) {
+  const auto path = ResolvePathForProject(project_file, catalog_file);
+  if (!path.ok())
+    return path.status();
+  std::ifstream stream(*path, std::ios::binary);
   if (!stream)
     return absl::NotFoundError("Cannot read palette catalog");
   std::string text(kMaxBytes + 1, '\0');
