@@ -11,11 +11,16 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/cleanup/cleanup.h"
+#include "app/editor/editor_manager.h"
 #include "app/editor/overworld/canvas/overworld_context_target.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/system/session/collision_source_pairing.h"
 #include "app/editor/system/session/rom_file_manager.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "cli/handlers/rom/rom_commands.h"
+#include "editor_test_support.h"
+#include "fixtures/lyra/synthetic_fixture_data.h"
 #include "framework/headless_editor_test.h"
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz/miniz.h"
@@ -33,6 +38,21 @@ namespace yaze {
 namespace {
 
 std::vector<uint8_t> ReadBytes(const std::filesystem::path& path) {
+  // Only bare fixture names use the built-in synthetic corpus. An explicitly
+  // configured fixture directory must still exist and contain its own data.
+  if (!path.has_parent_path()) {
+    const auto fixture = test::lyra::FindFixture(path.string());
+    if (fixture.data != nullptr) {
+      std::vector<uint8_t> bytes(fixture.image_size);
+      mz_ulong size = static_cast<mz_ulong>(bytes.size());
+      if (mz_uncompress(bytes.data(), &size, fixture.data,
+                        static_cast<mz_ulong>(fixture.size)) != MZ_OK ||
+          size != bytes.size()) {
+        return {};
+      }
+      return bytes;
+    }
+  }
   std::ifstream in(path, std::ios::binary);
   return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
 }
@@ -72,6 +92,388 @@ void Reseal(std::vector<uint8_t>* bytes,
         mz_crc32(MZ_CRC32_INIT, bytes->data() + kDescriptorPc, 1024));
 }
 
+std::array<uint16_t, 256> DecodePilotLiterals(
+    const std::vector<uint8_t>& bytes) {
+  std::array<uint16_t, 256> tiles{};
+  // Independent byte-level oracle for this writer's literal-only encoding.
+  // Do not call the production descriptor decoder for persisted terrain proof.
+  for (size_t pc : {size_t{0x132000}, size_t{0x132200}}) {
+    EXPECT_EQ(bytes[pc], 0xE0);
+    EXPECT_EQ(bytes[pc + 1], 0xFF);
+    EXPECT_EQ(bytes[pc + 258], 0xFF);
+  }
+  for (size_t i = 0; i < tiles.size(); ++i) {
+    tiles[i] = (bytes[0x132002 + i] << 8) | bytes[0x132202 + i];
+  }
+  return tiles;
+}
+
+bool PilotWriteOwns(size_t pc) {
+  return (pc >= 0x132000 && pc < 0x132103) ||
+         (pc >= 0x132200 && pc < 0x132303) ||
+         (pc >= 0x14701C && pc < 0x147020) ||
+         (pc >= 0x14724C && pc < 0x147250) || (pc >= 0x14725C && pc < 0x147260);
+}
+
+TEST(LyraA0TerrainTest, Revision2CapabilityDoesNotEnableGenericWrites) {
+  auto bytes = ReadBytes("LYRA_WRITABLE_A0.bin");
+  const auto offline = rom::InspectLyraLayout(bytes.data(), bytes.size());
+  ASSERT_EQ(offline.presence, rom::LyraLayoutPresence::kValid) << offline.error;
+  EXPECT_TRUE(offline.a0_terrain_write_supported);
+  EXPECT_TRUE(offline.offline_only);
+  EXPECT_FALSE(offline.write_supported);
+  ASSERT_EQ(offline.entries.size(), 36u);
+  EXPECT_EQ(offline.entries.back().pc_address, 0x132000u);
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(bytes).ok());
+  EXPECT_FALSE(loaded.CheckLayoutWritable().ok());
+  EXPECT_FALSE(loaded.WriteByte(0x100, 1).ok());
+  EXPECT_FALSE(loaded.WriteWord(0x132002, 1).ok());
+  EXPECT_FALSE(loaded.SaveToFile({}).ok());
+
+  bytes[0x147015] = 2;
+  bytes[0x147010] = 161;
+  bytes[offline.entries[28].pc_address + 0xA0] = 0;
+  Reseal(&bytes, offline);
+  const auto runtime = rom::InspectLyraLayout(bytes.data(), bytes.size());
+  ASSERT_EQ(runtime.presence, rom::LyraLayoutPresence::kValid) << runtime.error;
+  EXPECT_FALSE(runtime.offline_only);
+  EXPECT_FALSE(runtime.a0_terrain_write_supported);
+  EXPECT_FALSE(runtime.write_supported);
+  EXPECT_FALSE(
+      rom::SerializeLyraA0Terrain(bytes, DecodePilotLiterals(bytes)).ok());
+  for (const auto [flags, active] : {std::pair{2, 160}, std::pair{3, 161},
+                                     std::pair{7, 161}, std::pair{3, 192}}) {
+    auto invalid = bytes;
+    invalid[0x147015] = flags;
+    invalid[0x147010] = active;
+    Reseal(&invalid, offline);
+    EXPECT_EQ(rom::InspectLyraLayout(invalid.data(), invalid.size()).presence,
+              rom::LyraLayoutPresence::kInvalid);
+  }
+}
+
+TEST(LyraA0TerrainTest, RejectsSlotAliasesConsumedOverlapsAndOverflow) {
+  const auto bytes = ReadBytes("LYRA_WRITABLE_A0.bin");
+  const auto layout = rom::InspectLyraLayout(bytes.data(), bytes.size());
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid);
+  auto invalid = bytes;
+  // A legacy stream starts before the reservation but consumes its first bytes.
+  const size_t start = 0x131F00;
+  invalid[start] = 0xE0;
+  invalid[start + 1] = 0xFF;
+  std::fill_n(invalid.begin() + start + 2, 256, 0);
+  invalid[start + 258] = 0xFF;
+  const size_t pointer = layout.entries[19].pc_address;
+  const uint32_t snes = 0x269F00;
+  for (int i = 0; i < 3; ++i)
+    invalid[pointer + i] = static_cast<uint8_t>(snes >> (8 * i));
+  Reseal(&invalid, layout);
+  auto checked = rom::InspectLyraLayout(invalid.data(), invalid.size());
+  EXPECT_EQ(checked.presence, rom::LyraLayoutPresence::kInvalid);
+  EXPECT_NE(checked.error.find("overlaps another map"), std::string::npos);
+
+  invalid = bytes;
+  // Both A0 halves must point to their own exact slot, without aliasing.
+  const size_t low_pointer = layout.entries[20].pc_address + 0xA0 * 3;
+  std::copy_n(bytes.begin() + layout.entries[19].pc_address + 0xA0 * 3, 3,
+              invalid.begin() + low_pointer);
+  Reseal(&invalid, layout);
+  EXPECT_EQ(rom::InspectLyraLayout(invalid.data(), invalid.size()).presence,
+            rom::LyraLayoutPresence::kInvalid);
+
+  invalid = bytes;
+  for (size_t i = 0; i < 256; ++i) {
+    invalid[0x132000 + i * 2] = 0;  // 256 one-byte literal commands.
+    invalid[0x132001 + i * 2] = 0x21;
+  }
+  invalid[0x132200] =
+      0xFF;  // Consumed extent is 513, beyond the 512-byte slot.
+  Reseal(&invalid, layout);
+  checked = rom::InspectLyraLayout(invalid.data(), invalid.size());
+  EXPECT_EQ(checked.presence, rom::LyraLayoutPresence::kInvalid);
+  EXPECT_NE(checked.error.find("dedicated slot"), std::string::npos);
+
+  invalid = bytes;
+  invalid[0x147020 + 35 * 16 + 10] = 1;  // 513-byte stride.
+  Reseal(&invalid, layout);
+  EXPECT_EQ(rom::InspectLyraLayout(invalid.data(), invalid.size()).presence,
+            rom::LyraLayoutPresence::kInvalid);
+}
+
+TEST(LyraA0TerrainTest, AtomicSaveAsGuardsSourceSnapshotAndEntryAnchors) {
+  const auto bytes = ReadBytes("LYRA_WRITABLE_A0.bin");
+  const auto source = test::UniqueTempPath("lyra_a0_source", ".sfc");
+  const auto target = test::UniqueTempPath("lyra_a0_target", ".sfc");
+  WriteBytes(source, bytes);
+  WriteBytes(target, bytes);
+  const auto cleanup = absl::MakeCleanup([&] {
+    std::filesystem::remove(source);
+    std::filesystem::remove(target);
+    for (const auto& entry :
+         std::filesystem::directory_iterator(target.parent_path())) {
+      if (entry.path().string().starts_with(target.string() + "_backup_"))
+        std::filesystem::remove(entry.path());
+    }
+  });
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromFile(source.string()).ok());
+  auto tiles = DecodePilotLiterals(bytes);
+  tiles[5 * 16 + 5] = 0x20B2;
+  loaded.set_dirty(true);
+  EXPECT_FALSE(loaded.SaveLyraA0TerrainAs(tiles, source.string()).ok());
+  loaded.mutable_vector()[0x100] ^= 1;
+  EXPECT_FALSE(loaded.SaveLyraA0TerrainAs(tiles, target.string()).ok());
+  EXPECT_EQ(ReadBytes(target), bytes);
+  loaded.mutable_vector()[0x100] ^= 1;
+  auto blocked = tiles;
+  blocked[7 * 16 + 7] = 0x20B2;
+  EXPECT_FALSE(loaded.SaveLyraA0TerrainAs(blocked, target.string()).ok());
+  EXPECT_EQ(ReadBytes(target), bytes);
+  Rom::SetStagingFailureForTesting(true);
+  const auto reset_staging =
+      absl::MakeCleanup([] { Rom::SetStagingFailureForTesting(false); });
+  EXPECT_FALSE(loaded.SaveLyraA0TerrainAs(tiles, target.string()).ok());
+  EXPECT_EQ(loaded.vector(), bytes);
+  EXPECT_EQ(loaded.filename(), source.string());
+  EXPECT_TRUE(loaded.dirty());
+  EXPECT_EQ(ReadBytes(source), bytes);
+  EXPECT_EQ(ReadBytes(target), bytes);
+}
+
+class LyraA0EditorTest : public test::HeadlessEditorTest {};
+
+TEST_F(LyraA0EditorTest, CanvasBrushTargetsA0AndRefusesA1) {
+  Rom loaded;
+  ASSERT_TRUE(loaded.LoadFromData(ReadBytes("LYRA_WRITABLE_A0.bin")).ok());
+  editor::EditorDependencies deps;
+  deps.rom = &loaded;
+  deps.renderer = renderer_.get();
+  deps.window_manager = window_manager_.get();
+  auto editor = std::make_unique<editor::OverworldEditor>(&loaded, deps);
+  editor->SetGameData(nullptr);
+  editor->Initialize();
+  ASSERT_TRUE(editor->Load().ok());
+  editor->ow_map_canvas().set_global_scale(1.0f);
+  auto frame = [&] {
+    ImGui::EndFrame();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1200, 900), ImGuiCond_Always);
+    ImGui::Begin("Lyra pilot canvas", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove);
+    gui::WidgetIdRegistry::Instance().Clear();
+    editor->DrawOverworldCanvas();
+    ImGui::End();
+  };
+  auto click = [&](ImVec2 point) {
+    ImGui::GetIO().AddMousePosEvent(point.x, point.y);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    frame();
+  };
+  frame();
+  frame();
+  editor->JumpToMap(0xA0);
+  frame();
+  frame();
+  const auto radio = gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+      "OverworldLyra/radio:BlockingBorder");
+  ASSERT_TRUE(radio.has_value());
+  ASSERT_TRUE(radio->bounds.valid);
+  click(ImVec2((radio->bounds.min_x + radio->bounds.max_x) / 2,
+               (radio->bounds.min_y + radio->bounds.max_y) / 2));
+  const auto initial = editor->overworld().lyra_a0_tiles();
+  const auto canvas_point = [&](int map, int x, int y) {
+    const auto& canvas = editor->ow_map_canvas();
+    const auto origin = canvas.zero_point();
+    const auto scroll = canvas.scrolling();
+    const float scale = canvas.global_scale();
+    return ImVec2(
+        origin.x + scroll.x + ((map & 7) * 512 + x * 32 + 16) * scale,
+        origin.y + scroll.y + (((map & 63) / 8) * 512 + y * 32 + 16) * scale);
+  };
+  click(canvas_point(0xA0, 5, 5));
+  auto expected = initial;
+  expected[5 * 16 + 5] = 0x20B2;
+  ASSERT_EQ(editor->overworld().lyra_a0_tiles(), expected);
+  ASSERT_TRUE(editor->Undo().ok());
+  EXPECT_EQ(editor->overworld().lyra_a0_tiles(), initial);
+  ASSERT_TRUE(editor->Redo().ok());
+  EXPECT_EQ(editor->overworld().lyra_a0_tiles(), expected);
+  const auto world_before_a1 = editor->overworld().GetMapTiles(2);
+  click(canvas_point(0xA1, 5, 5));
+  EXPECT_EQ(editor->overworld().GetMapTiles(2), world_before_a1);
+  EXPECT_EQ(editor->overworld().lyra_a0_tiles(), expected);
+  ASSERT_TRUE(editor->Undo().ok());
+  EXPECT_EQ(editor->overworld().lyra_a0_tiles(), initial);
+  EXPECT_FALSE(editor->Undo().ok());  // A1 click did not add history.
+}
+
+TEST_F(LyraA0EditorTest, EditorMutationUndoSaveAsAndFreshReopenPreserveRom) {
+  const auto original = ReadBytes("LYRA_WRITABLE_A0.bin");
+  const auto source = test::UniqueTempPath("lyra_a0_editor_source", ".sfc");
+  const auto target = test::UniqueTempPath("lyra_a0_editor_saved", ".sfc");
+  WriteBytes(source, original);
+  const auto cleanup = absl::MakeCleanup([&] {
+    std::filesystem::remove(source);
+    std::filesystem::remove(target);
+  });
+  auto manager = std::make_unique<editor::EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+  auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+  ASSERT_NE(editor, nullptr);
+  // Synthetic graphics intentionally stay blank; this tests real editor/model
+  // mutations and coordinated Save As, not art or runtime acceptance.
+  editor->SetGameData(nullptr);
+  editor->Initialize();
+  ASSERT_TRUE(editor->Load().ok());
+  ASSERT_TRUE(editor->lyra_a0_terrain_writable());
+  const auto initial_tiles = editor->overworld().lyra_a0_tiles();
+  ASSERT_EQ(initial_tiles[5 * 16 + 5], 0x2103);
+  EXPECT_EQ(editor->overworld().GetMapTiles(2)[10][138], 1);
+  EXPECT_FALSE(editor->PaintLyraA0Terrain(0xA1, 5, 5, 0x20B2).ok());
+  EXPECT_FALSE(editor->PaintLyraA0Terrain(0xC0, 5, 5, 0x20B2).ok());
+  EXPECT_FALSE(editor->PaintLyraA0Terrain(0xA0, 7, 7, 0x20B2).ok());
+  EXPECT_FALSE(editor->PaintLyraA0Terrain(0xA0, 5, 5, 0x7FFF).ok());
+  EXPECT_TRUE(editor->GetUndoDescription().empty());
+  ASSERT_TRUE(editor->PaintLyraA0Terrain(0xA0, 5, 5, 0x2103).ok());
+  EXPECT_TRUE(editor->GetUndoDescription().empty());
+  ASSERT_TRUE(editor->PaintLyraA0Terrain(0xA0, 5, 5, 0x20B2).ok());
+  EXPECT_EQ(editor->overworld().GetMapTiles(2)[10][138], 2);
+  EXPECT_TRUE(manager->GetCurrentRom()->dirty());
+  ASSERT_TRUE(editor->Undo().ok());
+  EXPECT_EQ(editor->overworld().lyra_a0_tiles(), initial_tiles);
+  EXPECT_EQ(editor->overworld().GetMapTiles(2)[10][138], 1);
+  ASSERT_TRUE(editor->Redo().ok());
+  EXPECT_EQ(editor->overworld().GetMapTiles(2)[10][138], 2);
+  const auto expected_tiles = editor->overworld().lyra_a0_tiles();
+  EXPECT_FALSE(editor->Save().ok());
+  EXPECT_FALSE(manager->SaveRom().ok());
+  const auto saved = manager->SaveRomAs(target.string());
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_EQ(ReadBytes(source), original);
+  const auto persisted = ReadBytes(target);
+  ASSERT_EQ(persisted.size(), original.size());
+  EXPECT_NE(persisted, original);
+  EXPECT_EQ(DecodePilotLiterals(persisted), expected_tiles);
+  for (size_t pc = 0; pc < original.size(); ++pc) {
+    if (!PilotWriteOwns(pc))
+      ASSERT_EQ(persisted[pc], original[pc]) << "Unowned PC " << std::hex << pc;
+  }
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+  manager.reset();  // Destroy the entire saving editor session before reopen.
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+  auto fresh = std::make_unique<editor::OverworldEditor>(&reopened);
+  fresh->Initialize();
+  ASSERT_TRUE(fresh->Load().ok());
+  EXPECT_EQ(fresh->overworld().lyra_a0_tiles(), expected_tiles);
+  EXPECT_EQ(fresh->overworld().GetMapTiles(2)[10][138], 2);
+  EXPECT_FALSE(fresh->Undo().ok());
+  EXPECT_FALSE(reopened.CheckLayoutWritable().ok());
+}
+
+TEST_F(LyraA0EditorTest, OwnedPilotEditorSaveAsArtifact) {
+  const char* input_path = std::getenv("YAZE_LYRA_PILOT_INPUT");
+  const char* output_path = std::getenv("YAZE_LYRA_PILOT_OUTPUT");
+  if (input_path == nullptr || output_path == nullptr) {
+    GTEST_SKIP()
+        << "Requires explicit owned offline pilot input and new output paths";
+  }
+  const std::filesystem::path source(input_path);
+  const std::filesystem::path target(output_path);
+  ASSERT_FALSE(std::filesystem::exists(target));
+  ASSERT_FALSE(std::filesystem::exists(target.string() + ".json"));
+  const auto original = ReadBytes(source);
+  ASSERT_FALSE(original.empty());
+  auto manager = std::make_unique<editor::EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer_.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_TRUE(manager->OpenRomOrProject(source.string()).ok());
+  auto* loaded_rom = manager->GetCurrentRom();
+  ASSERT_FALSE(loaded_rom->has_copier_header());
+  ASSERT_TRUE(loaded_rom->InspectLyraLayout().a0_terrain_write_supported);
+  auto* game_data = manager->GetCurrentGameData();
+  ASSERT_NE(game_data, nullptr);
+  const auto assets = zelda3::LoadGameData(*loaded_rom, *game_data);
+  ASSERT_TRUE(assets.ok()) << assets;
+  auto* editor = manager->GetCurrentEditorSet()->GetOverworldEditor();
+  ASSERT_NE(editor, nullptr);
+  editor->SetGameData(game_data);
+  editor->Initialize();
+  ASSERT_TRUE(editor->Load().ok());
+  editor->SelectMapForEditing(0xA0, false);
+  ASSERT_TRUE(editor->map_bitmap(0xA0).is_active());
+  const auto initial_tiles = editor->overworld().lyra_a0_tiles();
+  ASSERT_EQ(initial_tiles[5 * 16 + 5], 0x2103);
+  std::vector<uint8_t> before_pixels(
+      editor->map_bitmap(0xA0).data(),
+      editor->map_bitmap(0xA0).data() + 512 * 512);
+  ASSERT_TRUE(editor->PaintLyraA0Terrain(0xA0, 5, 5, 0x20B2).ok());
+  std::vector<uint8_t> authored_pixels(
+      editor->map_bitmap(0xA0).data(),
+      editor->map_bitmap(0xA0).data() + 512 * 512);
+  EXPECT_NE(authored_pixels, before_pixels);
+  ASSERT_TRUE(editor->Undo().ok());
+  EXPECT_EQ(editor->overworld().lyra_a0_tiles(), initial_tiles);
+  EXPECT_EQ(std::memcmp(editor->map_bitmap(0xA0).data(), before_pixels.data(),
+                        before_pixels.size()),
+            0);
+  ASSERT_TRUE(editor->Redo().ok());
+  const auto expected_tiles = editor->overworld().lyra_a0_tiles();
+  EXPECT_EQ(expected_tiles[5 * 16 + 5], 0x20B2);
+  EXPECT_EQ(std::memcmp(editor->map_bitmap(0xA0).data(), authored_pixels.data(),
+                        authored_pixels.size()),
+            0);
+  const auto save = manager->SaveRomAs(target.string());
+  ASSERT_TRUE(save.ok()) << save;
+  EXPECT_EQ(ReadBytes(source), original);
+  const auto persisted = ReadBytes(target);
+  ASSERT_EQ(persisted.size(), original.size());
+  EXPECT_EQ(DecodePilotLiterals(persisted), expected_tiles);
+  size_t changed_bytes = 0;
+  for (size_t pc = 0; pc < original.size(); ++pc) {
+    if (!PilotWriteOwns(pc))
+      ASSERT_EQ(persisted[pc], original[pc]) << "Unowned PC " << std::hex << pc;
+    changed_bytes += original[pc] != persisted[pc];
+  }
+  ASSERT_GT(changed_bytes, 0u);
+  manager.reset();
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(target.string()).ok());
+  auto fresh_data = std::make_unique<zelda3::GameData>(&reopened);
+  ASSERT_TRUE(zelda3::LoadGameData(reopened, *fresh_data).ok());
+  auto fresh = std::make_unique<editor::OverworldEditor>(&reopened);
+  fresh->SetGameData(fresh_data.get());
+  fresh->Initialize();
+  ASSERT_TRUE(fresh->Load().ok());
+  fresh->SelectMapForEditing(0xA0, false);
+  EXPECT_EQ(fresh->overworld().lyra_a0_tiles(), expected_tiles);
+  EXPECT_EQ(std::memcmp(fresh->map_bitmap(0xA0).data(), authored_pixels.data(),
+                        authored_pixels.size()),
+            0);
+  EXPECT_FALSE(fresh->Undo().ok());
+  const nlohmann::json receipt = {{"input_path", source.string()},
+                                  {"output_path", target.string()},
+                                  {"map", 0xA0},
+                                  {"tile32_x", 5},
+                                  {"tile32_y", 5},
+                                  {"before_tile32", 0x2103},
+                                  {"after_tile32", 0x20B2},
+                                  {"changed_bytes", changed_bytes},
+                                  {"unowned_bytes_preserved", true},
+                                  {"runtime_verified", false}};
+  std::ofstream out(target.string() + ".json");
+  ASSERT_TRUE(out.good());
+  out << receipt.dump(2) << '\n';
+  ASSERT_TRUE(out.good());
+}
+
 TEST(LyraLayoutDescriptorTest, ShortAndUnrelatedImagesAreNotAttributed) {
   std::vector<uint8_t> short_rom(0x100000, 0x77);
   EXPECT_EQ(rom::InspectLyraLayout(short_rom.data(), short_rom.size()).presence,
@@ -84,11 +486,14 @@ TEST(LyraLayoutDescriptorTest, ShortAndUnrelatedImagesAreNotAttributed) {
 
 TEST(LyraLayoutDescriptorTest, PortableVectorsPreserveProductCompatibility) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
-  std::ifstream in(dir / "editor_cases.json");
-  ASSERT_TRUE(in.good());
-  const auto cases = nlohmann::json::parse(in)["cases"];
+  nlohmann::json cases;
+  if (dir.empty()) {
+    cases = nlohmann::json::parse(test::lyra::kCases)["cases"];
+  } else {
+    std::ifstream in(dir / "editor_cases.json");
+    ASSERT_TRUE(in.good());
+    cases = nlohmann::json::parse(in)["cases"];
+  }
   ASSERT_EQ(cases.size(), 16u);
   for (const auto& item : cases) {
     const std::string name = item["name"];
@@ -148,8 +553,6 @@ TEST(LyraLayoutDescriptorTest, PortableVectorsPreserveProductCompatibility) {
 
 TEST(LyraLayoutDescriptorTest, HeaderedImageAndTwoSessionsKeepSavePolicy) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
   const auto offline = ReadBytes(dir / "OFFLINE_ONLY.bin");
   const auto legacy = ReadBytes(dir / "legacy_160_input.bin");
   ASSERT_FALSE(offline.empty());
@@ -197,6 +600,28 @@ TEST(LyraLayoutDescriptorTest, HeaderedImageAndTwoSessionsKeepSavePolicy) {
             rom::LyraLayoutPresence::kInvalid);
   EXPECT_FALSE(lyra.CheckLayoutWritable().ok());
   EXPECT_TRUE(ordinary.CheckLayoutWritable().ok());
+}
+
+TEST(LyraLayoutDescriptorTest, SyntheticTerrainVectorsNeedNoGameGraphics) {
+  const auto bytes = ReadBytes("LYRA_PREVIEW_A0_A1.bin");
+  ASSERT_FALSE(bytes.empty());
+  const auto layout = rom::InspectLyraLayout(bytes.data(), bytes.size());
+  ASSERT_EQ(layout.presence, rom::LyraLayoutPresence::kValid) << layout.error;
+  EXPECT_EQ(layout.capacity, 192);
+  EXPECT_EQ(layout.active_count, 160);
+  EXPECT_FALSE(layout.write_supported);
+  const auto a0 = rom::LyraMapTile32(layout, bytes.data(), bytes.size(), 0xA0);
+  const auto a1 = rom::LyraMapTile32(layout, bytes.data(), bytes.size(), 0xA1);
+  ASSERT_TRUE(a0.has_value());
+  ASSERT_TRUE(a1.has_value());
+  EXPECT_NE(*a0, *a1);
+  EXPECT_EQ((*a0)[7 * 16 + 15], 0x2103);
+  EXPECT_EQ((*a1)[7 * 16], 0x2103);
+  EXPECT_EQ((*a1)[7 * 16 + 8], 0x20B2);
+  EXPECT_FALSE(rom::LyraMapTile32(layout, bytes.data(), bytes.size(), 0xC0));
+  Rom lyra;
+  ASSERT_TRUE(lyra.LoadFromData(bytes).ok());
+  EXPECT_FALSE(lyra.CheckLayoutWritable().ok());
 }
 
 TEST(LyraLayoutDescriptorTest, InactiveA0A1TerrainUsesDescriptorRenderPath) {
@@ -410,8 +835,6 @@ TEST_F(LyraCanvasPreviewTest, LegacyCanvasRequiresFreshSessionForLyra) {
 
 TEST(LyraLayoutDescriptorTest, ResealedSemanticCorruptionAndIdentityFail) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
   const auto original_bytes = ReadBytes(dir / "OFFLINE_ONLY.bin");
   const auto original =
       rom::InspectLyraLayout(original_bytes.data(), original_bytes.size());
@@ -469,8 +892,6 @@ TEST(LyraLayoutDescriptorTest, ResealedSemanticCorruptionAndIdentityFail) {
 
 TEST(LyraLayoutDescriptorTest, InvalidDescriptorFailsCliValidation) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
   cli::handlers::RomValidateCommandHandler validate;
   std::string output;
   for (const char* filename : {"OFFLINE_ONLY.bin", "legacy_160_input.bin"}) {
@@ -503,8 +924,6 @@ TEST(LyraLayoutDescriptorTest, InvalidDescriptorFailsCliValidation) {
 
 TEST(LyraLayoutDescriptorTest, PairedSourceAndBackupsRefuseBeforeWrites) {
   const auto dir = FixtureDir();
-  if (dir.empty())
-    GTEST_SKIP() << "Set YAZE_LYRA_FIXTURE_DIR";
   const auto root = test::UniqueTempPath("lyra_paired_refusal");
   std::filesystem::create_directories(root);
   struct Cleanup {
@@ -529,7 +948,7 @@ TEST(LyraLayoutDescriptorTest, PairedSourceAndBackupsRefuseBeforeWrites) {
   const std::vector<uint8_t> changed_bytes(disk_source->begin(),
                                            disk_source->end());
   WriteBytes(changed_json, changed_bytes);
-  // Room $25 has a single-tile collision stream in the frozen fixture. Change
+  // Room $25 has a single-tile collision stream in both fixture corpora. Change
   // one tile in memory while the sidecar remains coherent with the disk ROM.
   constexpr int kRoom = 0x25;
   const int pointer_offset = zelda3::kCustomCollisionRoomPointers + kRoom * 3;

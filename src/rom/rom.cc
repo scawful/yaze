@@ -433,8 +433,10 @@ absl::Status Rom::CheckLayoutWritable() const {
   }
   return absl::FailedPreconditionError(
       layout.presence == rom::LyraLayoutPresence::kValid
-          ? "Lyra overworld ROM layout revision 1 is inspection-only; save "
-            "refused"
+          ? (layout.a0_terrain_write_supported
+                 ? "Lyra A0 terrain requires dedicated Save As; generic save "
+                   "refused"
+                 : "Lyra overworld ROM layout is inspection-only; save refused")
           : absl::StrCat("Invalid Lyra overworld ROM layout: ", layout.error,
                          "; save refused"));
 }
@@ -445,6 +447,7 @@ Rom::Rom(const Rom& other)
       filename_(other.filename_),
       short_name_(other.short_name_),
       rom_data_(other.rom_data_),
+      lyra_terrain_baseline_(other.lyra_terrain_baseline_),
       copier_header_(other.copier_header_),
       copier_header_reason_(other.copier_header_reason_),
       lyra_attributed_at_load_(other.lyra_attributed_at_load_),
@@ -466,6 +469,7 @@ Rom& Rom::operator=(const Rom& other) {
   filename_ = other.filename_;
   short_name_ = other.short_name_;
   rom_data_ = other.rom_data_;
+  lyra_terrain_baseline_ = other.lyra_terrain_baseline_;
   copier_header_ = other.copier_header_;
   copier_header_reason_ = other.copier_header_reason_;
   lyra_attributed_at_load_ = other.lyra_attributed_at_load_;
@@ -567,6 +571,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   lyra_attributed_at_load_ =
       rom::InspectLyraLayout(rom_data_.data(), rom_data_.size()).presence !=
       rom::LyraLayoutPresence::kAbsent;
+  CaptureLyraTerrainBaseline();
 
   if (options.load_resource_labels) {
     resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
@@ -621,6 +626,7 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
   lyra_attributed_at_load_ =
       rom::InspectLyraLayout(rom_data_.data(), rom_data_.size()).presence !=
       rom::LyraLayoutPresence::kAbsent;
+  CaptureLyraTerrainBaseline();
 
   // Parse SNES Header for Title
   if (rom_data_.size() >= 0x8000) {
@@ -645,8 +651,65 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
   return absl::OkStatus();
 }
 
+void Rom::CaptureLyraTerrainBaseline() {
+  lyra_terrain_baseline_.clear();
+  const auto layout = InspectLyraLayout();
+  if (layout.presence == rom::LyraLayoutPresence::kValid &&
+      layout.a0_terrain_write_supported) {
+    lyra_terrain_baseline_ = rom_data_;
+  }
+}
+
+absl::Status Rom::SaveLyraA0TerrainAs(const std::array<uint16_t, 256>& tiles,
+                                      const std::string& filename) {
+#ifdef __EMSCRIPTEN__
+  return absl::UnimplementedError(
+      "Lyra terrain Save As requires native storage");
+#else
+  if (filename.empty() || lyra_terrain_baseline_.empty() ||
+      rom_data_ != lyra_terrain_baseline_ || !write_fence_stack_.empty()) {
+    return absl::FailedPreconditionError(
+        "Lyra terrain Save As requires the unchanged loaded ROM snapshot");
+  }
+  std::error_code path_ec;
+  const auto target = std::filesystem::weakly_canonical(filename, path_ec);
+  if (path_ec) {
+    return absl::InvalidArgumentError("Cannot resolve Lyra Save As target");
+  }
+  if (!filename_.empty()) {
+    const auto source = std::filesystem::weakly_canonical(filename_, path_ec);
+    if (path_ec) {
+      return absl::InvalidArgumentError("Cannot resolve Lyra source ROM path");
+    }
+    const bool equivalent =
+        std::filesystem::equivalent(source, target, path_ec);
+    if (source == target || (!path_ec && equivalent)) {
+      return absl::FailedPreconditionError(
+          "Lyra terrain requires Save As to a different backing file");
+    }
+  }
+  ASSIGN_OR_RETURN(auto staged,
+                   rom::SerializeLyraA0Terrain(lyra_terrain_baseline_, tiles));
+  Rom candidate(*this);
+  candidate.rom_data_ = std::move(staged);
+  SaveSettings settings;
+  settings.filename = filename;
+  settings.require_backup = true;
+  RETURN_IF_ERROR(candidate.SaveToFileUnchecked(settings));
+  candidate.filename_ = filename;
+  candidate.short_name_ = std::filesystem::path(filename).filename().string();
+  candidate.CaptureLyraTerrainBaseline();
+  *this = candidate;
+  return absl::OkStatus();
+#endif
+}
+
 absl::Status Rom::SaveToFile(const SaveSettings& settings) {
   RETURN_IF_ERROR(CheckLayoutWritable());
+  return SaveToFileUnchecked(settings);
+}
+
+absl::Status Rom::SaveToFileUnchecked(const SaveSettings& settings) {
   if (rom_data_.empty()) {
     return absl::InternalError("ROM data is empty.");
   }

@@ -279,6 +279,9 @@ absl::Status Overworld::BuildLyraTerrainPreview(
       return absl::FailedPreconditionError(
           absl::StrFormat("Lyra map %02X stream is invalid", map_index));
     }
+    if (map_index == 0xA0) {
+      lyra_a0_tiles_ = *tiles;
+    }
     const int local = map_index & 0x3F;
     const int sx = local % 8;
     const int sy = local / 8;
@@ -304,6 +307,28 @@ absl::Status Overworld::BuildLyraTerrainPreview(
   loaded_map_tiles_ = map_tiles_;
   loaded_map_tiles_valid_ = true;
   is_loaded_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::SetLyraA0Tile32(int x, int y, uint16_t tile) {
+  if (!lyra_a0_terrain_writable()) {
+    return absl::FailedPreconditionError("Lyra A0 terrain is read-only");
+  }
+  if (x < 0 || x >= 16 || y < 0 || y >= 16 ||
+      (tile != 0x2103 && tile != 0x20B2) || tile >= tiles32_unique_.size()) {
+    return absl::InvalidArgumentError("Unsupported Lyra A0 terrain edit");
+  }
+  if ((x == 7 || x == 8) && (y == 7 || y == 8) && tile != 0x2103) {
+    return absl::FailedPreconditionError(
+        "Lyra A0 entry and return anchors must remain walkable");
+  }
+  if (lyra_a0_tiles_[y * 16 + x] == tile) {
+    return absl::OkStatus();
+  }
+  // Reuse one existing Tile32 definition; never rebuild shared definitions.
+  AssignWorldTiles(x, y, 0, 4, tile, map_tiles_.special_world);
+  lyra_a0_tiles_[y * 16 + x] = tile;
+  overworld_maps_[0xA0].SetNotBuilt();
   return absl::OkStatus();
 }
 

@@ -520,7 +520,15 @@ absl::Status EditorManager::SaveRomInternal(
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
-  RETURN_IF_ERROR(current_rom->CheckLayoutWritable());
+  const auto lyra_layout = current_rom->InspectLyraLayout();
+  const bool lyra_terrain_save =
+      lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
+      lyra_layout.a0_terrain_write_supported;
+  if (!lyra_terrain_save) {
+    RETURN_IF_ERROR(current_rom->CheckLayoutWritable());
+  } else if (!save_as_filename.has_value()) {
+    return absl::FailedPreconditionError("Lyra A0 terrain requires Save As");
+  }
   if (save_as_filename.has_value() && save_as_filename->empty()) {
     return absl::InvalidArgumentError("No filename provided for save as");
   }
@@ -612,6 +620,39 @@ absl::Status EditorManager::SaveRomInternal(
   }
 
   RETURN_IF_ERROR(CheckRomWritePolicy(save_as_filename));
+
+  if (lyra_terrain_save) {
+    // This capability never enlists generic editor serializers. Refuse known
+    // pending model domains rather than silently omit their edits.
+    auto* dungeon = static_cast<DungeonEditorV2*>(
+        current_editor_set->GetExistingEditor(EditorType::kDungeon));
+    if (pending_palettes || pending_gfx_groups ||
+        current_editor_set->HasPendingGraphicsChanges() ||
+        current_editor_set->HasPendingScreenChanges() ||
+        (dungeon && dungeon->HasPendingDungeonChanges())) {
+      return absl::FailedPreconditionError(
+          "Lyra Save As supports only A0 terrain; unrelated edits are pending");
+    }
+    auto* overworld = static_cast<OverworldEditor*>(
+        current_editor_set->GetExistingEditor(EditorType::kOverworld));
+    if (!overworld || !overworld->lyra_a0_terrain_writable()) {
+      return absl::FailedPreconditionError(
+          "Open Lyra A0 terrain before Save As");
+    }
+    RETURN_IF_ERROR(overworld->SaveLyraA0TerrainAs(*save_as_filename));
+    CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      session->filepath = *save_as_filename;
+      session->backup_restore_pending = false;
+    }
+    rom_lifecycle_.CancelRomWriteConfirm();
+    auto& recent = project::RecentFilesManager::GetInstance();
+    recent.AddFile(*save_as_filename);
+    recent.Save();
+    if (popup_manager_)
+      popup_manager_->Hide(PopupID::kSaveAs);
+    return absl::OkStatus();
+  }
 
   // Pot streams are saved sparsely: unchanged/unloaded rooms are inventoried
   // from ROM by the serializer. No load-all confirmation is necessary.

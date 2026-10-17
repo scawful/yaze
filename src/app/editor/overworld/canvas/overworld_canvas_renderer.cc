@@ -1,5 +1,6 @@
 // Related header
 #include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
+#include "app/editor/overworld/canvas/overworld_context_target.h"
 #include "util/i18n/tr.h"
 
 #ifndef IM_PI
@@ -29,6 +30,7 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
@@ -81,9 +83,12 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     return;
   }
   const bool lyra_preview = editor_->overworld_.is_lyra_preview();
+  const bool lyra_writable = editor_->lyra_a0_terrain_writable();
   if (lyra_preview) {
-    ImGui::TextUnformatted(
-        "Lyra ROM rev1: 192 stored / 160 active / read-only");
+    const auto layout = editor_->rom_->InspectLyraLayout();
+    ImGui::Text("Lyra ROM rev%d: %d stored / %d active / %s", layout.revision,
+                layout.capacity, layout.active_count,
+                lyra_writable ? "A0 terrain Save As" : "read-only");
     ImGui::SameLine();
     ImGui::TextDisabled("Sprite lists and area overlays unavailable");
     int map_id = editor_->current_map_;
@@ -92,7 +97,24 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->JumpToMap(map_id);
     }
     ImGui::SameLine();
-    ImGui::TextDisabled("Sea cells are stored, not active gameplay maps");
+    ImGui::TextDisabled(
+        layout.offline_only
+            ? "Offline map data; gameplay requires an Oracle build"
+            : "Runtime-declared map data; inspection only");
+    if (lyra_writable) {
+      ImGui::RadioButton("Walkable floor", &editor_->lyra_terrain_brush_,
+                         0x2103);
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          "OverworldLyra/radio:WalkableFloor", "radio", ImGui::GetItemID());
+      ImGui::SameLine();
+      ImGui::RadioButton("Blocking border", &editor_->lyra_terrain_brush_,
+                         0x20B2);
+      gui::WidgetIdRegistry::Instance().RegisterWidget(
+          "OverworldLyra/radio:BlockingBorder", "radio", ImGui::GetItemID());
+      ImGui::SameLine();
+      ImGui::TextDisabled(
+          "Click A0 terrain. Center entry/return cells stay walkable.");
+    }
   }
 
   // Keep appearance edits beside the canvas, using the same undo/refresh path
@@ -163,6 +185,20 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     DrawOverworldMaps();
     if (lyra_preview) {
       editor_->status_ = editor_->CheckForCurrentMap();
+      if (lyra_writable && canvas_rt.hovered &&
+          ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        const auto target = ResolveOverworldContextTarget(
+            editor_->current_world_, editor_->game_state_, ImGui::GetMousePos(),
+            canvas_rt.canvas_p0, canvas_rt.scrolling, canvas_rt.scale,
+            zelda3::kExpandedMapCount);
+        if (target && target->map_id == 0xA0) {
+          editor_->status_ = editor_->PaintLyraA0Terrain(
+              target->map_id,
+              static_cast<int>(target->world_position.x) % 512 / 32,
+              static_cast<int>(target->world_position.y) % 512 / 32,
+              static_cast<uint16_t>(editor_->lyra_terrain_brush_));
+        }
+      }
       gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
       ImGui::EndChild();
       return;

@@ -101,6 +101,22 @@ namespace yaze::editor {
 
 namespace {
 
+class LyraTerrainPaintAction final : public UndoAction {
+ public:
+  LyraTerrainPaintAction(uint16_t before, uint16_t after,
+                         std::function<absl::Status(uint16_t)> apply)
+      : before_(before), after_(after), apply_(std::move(apply)) {}
+  absl::Status Undo() override { return apply_(before_); }
+  absl::Status Redo() override { return apply_(after_); }
+  std::string Description() const override { return "Paint Lyra A0 terrain"; }
+  size_t MemoryUsage() const override { return sizeof(*this); }
+
+ private:
+  uint16_t before_;
+  uint16_t after_;
+  std::function<absl::Status(uint16_t)> apply_;
+};
+
 bool ItemIdentityMatchesForUndo(const zelda3::OverworldItem& lhs,
                                 const zelda3::OverworldItem& rhs) {
   return lhs.id_ == rhs.id_ && lhs.room_map_id_ == rhs.room_map_id_ &&
@@ -1412,6 +1428,53 @@ absl::Status OverworldEditor::Save() {
   return absl::OkStatus();
 }
 
+absl::Status OverworldEditor::PaintLyraA0Terrain(int map_id, int x, int y,
+                                                 uint16_t tile) {
+  if (map_id != 0xA0 || !lyra_a0_terrain_writable() || x < 0 || x >= 16 ||
+      y < 0 || y >= 16) {
+    return absl::FailedPreconditionError("Only Lyra A0 terrain is writable");
+  }
+  const uint16_t before = overworld_.lyra_a0_tiles()[y * 16 + x];
+  auto apply = [this, x, y](uint16_t value) -> absl::Status {
+    RETURN_IF_ERROR(overworld_.SetLyraA0Tile32(x, y, value));
+    maps_bmp_[0xA0].set_modified(true);
+    EnsureMapTexture(0xA0);
+    rom_->set_dirty(true);
+    return absl::OkStatus();
+  };
+  // Validate even no-op requests; unsupported brushes never create history.
+  RETURN_IF_ERROR(overworld_.SetLyraA0Tile32(x, y, tile));
+  if (before == tile) {
+    return absl::OkStatus();
+  }
+  RETURN_IF_ERROR(apply(tile));
+  undo_manager_.Push(
+      std::make_unique<LyraTerrainPaintAction>(before, tile, std::move(apply)));
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::SaveLyraA0TerrainAs(const std::string& filename) {
+  if (!rom_ || !lyra_a0_terrain_writable()) {
+    return absl::FailedPreconditionError("Lyra A0 terrain writer unavailable");
+  }
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    const std::vector<std::pair<uint32_t, uint32_t>> ranges = {
+        {rom::kLyraA0HighStreamPc, rom::kLyraA0HighStreamPc + 259},
+        {rom::kLyraA0LowStreamPc, rom::kLyraA0LowStreamPc + 259},
+        {0x14701C, 0x147020},
+        {0x14724C, 0x147250},
+        {0x14725C, 0x147260}};
+    RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+        dependencies_.project->hack_manifest,
+        dependencies_.project->rom_metadata.write_policy, ranges,
+        "Lyra A0 terrain", "OverworldEditor", dependencies_.toast_manager));
+  }
+  RETURN_IF_ERROR(
+      rom_->SaveLyraA0TerrainAs(overworld_.lyra_a0_tiles(), filename));
+  lyra_loaded_rom_sha1_ = util::ComputeSha1Hex(rom_->data(), rom_->size());
+  return absl::OkStatus();
+}
+
 // ============================================================================
 // Undo/Redo System Implementation
 // ============================================================================
@@ -1635,7 +1698,7 @@ absl::Status OverworldEditor::RenameProjectResourceLabelWithUndo(
 }
 
 absl::Status OverworldEditor::Undo() {
-  if (is_lyra_preview()) {
+  if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
   // Finalize any pending paint operation first
@@ -1644,7 +1707,7 @@ absl::Status OverworldEditor::Undo() {
 }
 
 absl::Status OverworldEditor::Redo() {
-  if (is_lyra_preview()) {
+  if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
   FinalizePaintOperation();

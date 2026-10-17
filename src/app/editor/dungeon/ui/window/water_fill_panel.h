@@ -17,6 +17,7 @@
 #include "app/editor/dungeon/dungeon_object_interaction.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "core/features.h"
 #include "util/file_util.h"
@@ -53,6 +54,7 @@ class WaterFillPanel : public WindowContent {
     }
 
     auto* rooms = viewer_->rooms();
+    gui::AutoWidgetScope widget_scope("Dungeon/WaterFill");
     const int room_id = viewer_->current_room_id();
     const bool room_id_valid =
         (room_id >= 0 && room_id < static_cast<int>(rooms->size()));
@@ -271,14 +273,22 @@ class WaterFillPanel : public WindowContent {
       uint8_t mask = room.water_fill_sram_bit_mask();
       std::string preview =
           (mask == 0) ? "Auto (0x00)" : absl::StrFormat("0x%02X", mask);
-      ImGui::BeginDisabled(!reserved_region_present || !save_enabled);
-      if (ImGui::BeginCombo(tr("SRAM Bit Mask ($7EF411)"), preview.c_str())) {
+      ImGui::BeginDisabled(!reserved_region_present || !save_enabled ||
+                           !RoomEditContext(room_id));
+      const bool mask_open =
+          ImGui::BeginCombo(tr("SRAM Bit Mask ($7EF411)"), preview.c_str());
+      gui::AutoRegisterLastItem("combo", "WaterFillMask");
+      if (mask_open) {
         auto option = [&](const char* label, uint8_t val) {
           const bool selected = (mask == val);
-          if (ImGui::Selectable(label, selected)) {
-            room.set_water_fill_sram_bit_mask(val);
+          if (ImGui::Selectable(label, selected) && mask != val) {
+            EditRoomWaterFill(room_id, [val](zelda3::Room& edited) {
+              edited.set_water_fill_sram_bit_mask(val);
+            });
             mask = val;
           }
+          gui::AutoRegisterLastItem("selectable",
+                                    absl::StrFormat("WaterFillMask%02X", val));
         };
 
         option("Auto (0x00)", 0x00);
@@ -295,9 +305,13 @@ class WaterFillPanel : public WindowContent {
       }
 
       ImGui::Separator();
-      if (ImGui::Button(tr("Clear Water Fill Zone"))) {
-        room.ClearWaterFillZone();
+      if (ImGui::Button(tr("Clear Water Fill Zone")) &&
+          (room.WaterFillTileCount() != 0 ||
+           room.water_fill_sram_bit_mask() != 0)) {
+        EditRoomWaterFill(
+            room_id, [](zelda3::Room& edited) { edited.ClearWaterFillZone(); });
       }
+      gui::AutoRegisterLastItem("button", "WaterFillClear");
       ImGui::EndDisabled();
 
       ImGui::TextWrapped(
@@ -438,6 +452,31 @@ class WaterFillPanel : public WindowContent {
   }
 
  private:
+  const InteractionContext* RoomEditContext(int room_id) const {
+    if (!viewer_ || !interaction_ || !viewer_->rooms())
+      return nullptr;
+    const auto* context =
+        interaction_->entity_coordinator().tile_handler().context();
+    if (!context || context->rooms != viewer_->rooms() ||
+        context->rom != viewer_->rom() || context->current_room_id != room_id ||
+        !context->on_mutation || !context->on_invalidate_cache) {
+      return nullptr;
+    }
+    return context;
+  }
+
+  template <typename Edit>
+  void EditRoomWaterFill(int room_id, Edit edit) {
+    const auto* context = RoomEditContext(room_id);
+    if (!context)
+      return;
+    // A panel command is separate from any pending canvas paint stroke.
+    interaction_->HandleMouseRelease();
+    context->NotifyMutation(MutationDomain::kWaterFill);
+    edit((*viewer_->rooms())[room_id]);
+    context->NotifyInvalidateCache(MutationDomain::kWaterFill);
+  }
+
   static std::vector<zelda3::WaterFillZoneEntry> CollectZones(
       const DungeonRoomStore& rooms) {
     std::vector<zelda3::WaterFillZoneEntry> zones;
