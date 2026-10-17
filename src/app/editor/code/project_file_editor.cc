@@ -12,6 +12,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "core/project.h"
+#include "core/project_sections.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/macro.h"
@@ -497,17 +498,9 @@ void ProjectFileEditor::ValidateContent() {
     if (trimmed[0] == '[' && trimmed[trimmed.size() - 1] == ']') {
       current_section = trimmed.substr(1, trimmed.size() - 2);
 
-      // Validate known sections
-      if (current_section != "project" && current_section != "files" &&
-          current_section != "feature_flags" &&
-          current_section != "workspace" &&
-          current_section != "workspace_settings" && current_section != "rom" &&
-          current_section != "rom_addresses" &&
-          current_section != "custom_objects" &&
-          current_section != "dungeon_overlay" && current_section != "build" &&
-          current_section != "agent_settings" && current_section != "music" &&
-          current_section != "keybindings" &&
-          current_section != "editor_visibility") {
+      // Keep the legacy editor alias while sharing the parser's section list.
+      if (!project::IsKnownProjectFileSection(current_section) &&
+          current_section != "workspace_settings") {
         validation_errors_.push_back(absl::StrFormat(
             "Line %d: Unknown section [%s]", line_num, current_section));
       }
