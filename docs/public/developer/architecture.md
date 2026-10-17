@@ -76,7 +76,7 @@ flowchart TD
 - **Agent UI**: Chat panels, tool execution, and multimodal test harnesses.
 ## Density Reduction Opportunities
 
-- **Quarantine legacy ROM code**: `src/rom/rom_old.*` can move to a legacy target or be removed if unused.
+- **Legacy ROM code**: the unbuilt `src/rom/rom_old.*` was removed on 2026-10-16.
 - **Make WIP editors optional**: Gate agent UI and music editor behind build flags.
 - **Split editor system**: `yaze_editor_system_{panels,session,shortcuts}` targets now isolate editor system components.
 - **De-duplicate editor panels**: Consolidate shared panel patterns across dungeon/overworld/screen.
