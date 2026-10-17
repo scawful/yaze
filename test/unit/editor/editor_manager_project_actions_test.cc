@@ -662,6 +662,69 @@ TEST(EditorManagerProjectActionsTest, ProjectFileSaveIsByteStable) {
 }
 
 TEST(EditorManagerProjectActionsTest,
+     ProjectFileValidationAcceptsSerializedProject) {
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_validation"));
+  const auto project_path = temp_dir.path / "serialized.yaze";
+  project::YazeProject project;
+  project.name = "Serialized Project";
+  ASSERT_OK(project.SaveAs(project_path.string()));
+  ASSERT_NE(ReadFile(project_path).find("[sprite_assets]"), std::string::npos);
+
+  ProjectFileEditor editor;
+  ASSERT_OK(editor.LoadFile(project_path.string()));
+  EXPECT_TRUE(editor.CaptureState().validation_errors.empty())
+      << ::testing::PrintToString(editor.CaptureState().validation_errors);
+  EXPECT_FALSE(editor.IsModified());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ProjectFileValidationAcceptsSerializedOptionalSections) {
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_optional_validation"));
+  const auto project_path = temp_dir.path / "optional.yaze";
+  project::YazeProject project;
+  project.name = "Optional Sections";
+  project.graphics_sheets.reserved_sheets = {0x73};
+  project.atlas.section_present = true;
+  project.zscream_project_file = "original.zsproj";
+  project.resource_labels["sprite"]["0x01"] = "Test Sprite";
+  ASSERT_OK(project.SaveAs(project_path.string()));
+  const std::string serialized = ReadFile(project_path);
+  for (const auto* section : {"[graphics_sheets]", "[atlas]",
+                              "[zscream_compatibility]", "[labels_sprite]"}) {
+    ASSERT_NE(serialized.find(section), std::string::npos) << section;
+  }
+
+  ProjectFileEditor editor;
+  ASSERT_OK(editor.LoadFile(project_path.string()));
+  EXPECT_TRUE(editor.CaptureState().validation_errors.empty())
+      << ::testing::PrintToString(editor.CaptureState().validation_errors);
+  EXPECT_EQ(editor.CaptureState().text, serialized);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ProjectFileValidationRetainsUnknownAndMalformedDiagnostics) {
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_validation_errors"));
+  const auto project_path = temp_dir.path / "invalid.yaze";
+  const std::string original =
+      "[workspace_settings]\nshow_grid=true\n[unknown_extension]\n"
+      "enabled=true\nmissing_equals\n";
+  {
+    std::ofstream out(project_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out << original;
+    ASSERT_TRUE(out.good());
+  }
+
+  ProjectFileEditor editor;
+  ASSERT_OK(editor.LoadFile(project_path.string()));
+  const std::vector<std::string> expected = {
+      "Line 3: Unknown section [unknown_extension]",
+      "Line 5: Invalid format, expected key=value"};
+  EXPECT_EQ(editor.CaptureState().validation_errors, expected);
+  EXPECT_EQ(editor.CaptureState().text, original);
+}
+
+TEST(EditorManagerProjectActionsTest,
      ProjectFileSaveAsRejectsExistingUnrelatedDescriptor) {
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_file_save_as_collision"));
   const auto project_path = temp_dir.path / "existing.yaze";
