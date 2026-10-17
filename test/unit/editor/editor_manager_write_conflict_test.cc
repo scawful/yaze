@@ -1196,7 +1196,7 @@ TEST(EditorManagerWriteConflictTest,
       manager->IsCurrentProjectContextOwnedBySession(closed_session_id));
   ASSERT_EQ(manager->GetCurrentProject()->filepath, project_path.string());
   ASSERT_EQ(manager->GetCurrentProject()->palette_catalog_file,
-            "project-only-catalog.json");
+            (project_root / "project-only-catalog.json").string());
 
   manager->CloseRom();
   ASSERT_FALSE(manager->HasPendingUnsavedSessionAction());
