@@ -116,6 +116,9 @@ WindowPresentationPolicy WorkbenchTool(std::string capability = std::string()) {
 
 void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
   Editor::SetDependencies(deps);
+  room_selector_.SetProject(deps.project);
+  if (entrance_navigator_panel_)
+    entrance_navigator_panel_->SetProject(deps.project);
   // Dependency rebinding is the project-reload boundary even when the project
   // object is reused in place with a newly loaded manifest.
   InvalidateDungeonRenderContextCensus();
@@ -982,6 +985,7 @@ void DungeonEditorV2::Initialize() {
     auto entrances_panel = std::make_unique<DungeonEntrancesPanel>(
         &entrances_, &spawn_points_, &current_entrance_id_,
         [this](int entrance_id) { OnEntranceSelected(entrance_id); });
+    entrances_panel->SetProject(dependencies_.project);
     entrances_panel->SetGraphicsPreview(
         [this]() {
           return ResolveDungeonRenderContextForRoom(current_room_id_);

@@ -97,6 +97,19 @@ inline std::string GetDungeonNameForRoom(const project::YazeProject* project,
   return dungeon ? FormatDungeonName(*dungeon) : std::string();
 }
 
+// Entrance IDs name vanilla locations only in vanilla ROMs. Associate a
+// project entrance through its live target room, not its raw dungeon byte or
+// a process-global label belonging to another session.
+inline std::string GetEntranceLabel(const project::YazeProject* project,
+                                    int entrance_id, int room_id) {
+  if (const auto* dungeon = FindDungeonForRoom(project, room_id)) {
+    return FormatDungeonName(*dungeon);
+  }
+  return project ? LabelsForProject(project).GetLabel(
+                       zelda3::ResourceType::kEntrance, entrance_id)
+                 : zelda3::GetEntranceLabel(entrance_id);
+}
+
 inline std::string GetRoomFloorLabel(const project::YazeProject* project,
                                      int room_id) {
   if (const core::DungeonRoom* room = FindDungeonRoom(project, room_id);
