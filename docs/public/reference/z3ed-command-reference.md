@@ -160,6 +160,15 @@ z3ed rom-generate-golden --rom_file zelda3.sfc --golden_file golden.sfc
 These commands operate directly on ROM data (no GUI required).
 
 ### Dungeon Commands
+
+Sprite names: with `--project-context <project.yaze>`, `dungeon-list-sprites`,
+`dungeon-describe-room`, `overworld-list-sprites`, `sprite-list` and
+`sprite-properties` print the project's name for a reused sprite slot.
+Project names come from `[labels_sprite]` in the project file or, for Oracle
+of Secrets, `Docs/Dev/Planning/oracle_resource_labels.json`. JSON rows carry
+`name`, `name_source` (`project` or `vanilla`) and, for renamed slots,
+`vanilla_name`; `sprite-list` prints `0x52: Collectible (vanilla: ZoraKing)`.
+
 - `dungeon-describe-room --room <hex> [--include-objects]`
 - `dungeon-list-sprites --room <hex>`
 - `dungeon-list-objects --room <hex>`
