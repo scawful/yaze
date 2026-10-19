@@ -941,7 +941,7 @@ TEST_F(RomLifecycleRebindPolicyTest,
 }
 
 TEST(EditorManagerBackingFileIdentityTest,
-     RawRomOpenRejectsLexicalAliasOfActiveBackingFile) {
+     RawRomOpenActivatesLexicalAliasOfActiveBackingFile) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -958,19 +958,22 @@ TEST(EditorManagerBackingFileIdentityTest,
   ASSERT_TRUE(std::filesystem::create_directory(alias_dir));
 
   ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* const active_rom = manager->GetCurrentRom();
+  ASSERT_OK(active_rom->WriteByte(0x100, 0xA5));
   const auto alias_path = alias_dir / ".." / rom_path.filename();
   const auto status = manager->OpenRomOrProject(alias_path.string());
 
-  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists) << status;
-  EXPECT_NE(std::string(status.message()).find("already open"),
-            std::string::npos);
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
   EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
-  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  ASSERT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(active_rom->vector()[0x100], 0xA5);
+  EXPECT_TRUE(active_rom->dirty());
   EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_path.string());
 }
 
 TEST(EditorManagerBackingFileIdentityTest,
-     RawRomOpenRejectsEquivalentHardLinkOfActiveBackingFile) {
+     RawRomOpenActivatesEquivalentHardLinkOfActiveBackingFile) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -992,9 +995,11 @@ TEST(EditorManagerBackingFileIdentityTest,
   }
 
   ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* const active_rom = manager->GetCurrentRom();
   const auto status = manager->OpenRomOrProject(hard_link_path.string());
 
-  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists) << status;
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
 }
 

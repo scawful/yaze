@@ -3133,6 +3133,30 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
   state["pid"] = pid;
   state["project_path"] = current_project_.filepath;
   state["session_id"] = GetCurrentSessionId();
+  state["session_count"] =
+      session_coordinator_ ? session_coordinator_->GetTotalSessionCount() : 0;
+  state["sessions"] = json::array();
+  if (session_coordinator_) {
+    for (size_t i = 0; i < session_coordinator_->GetTotalSessionCount(); ++i) {
+      auto* session =
+          static_cast<RomSession*>(session_coordinator_->GetSession(i));
+      const auto* project =
+          IsCurrentProjectContextOwnedBySession(session->session_id())
+              ? &current_project_
+          : session->project_context.has_value() ? &*session->project_context
+                                                 : nullptr;
+      json item = {{"session_id", session->session_id()},
+                   {"active", i == GetCurrentSessionIndex()},
+                   {"loaded", session->rom.is_loaded()},
+                   {"project_path", project ? project->filepath : ""},
+                   {"rom_dirty", session->rom.dirty()},
+                   {"unsaved", SessionHasPendingUnsavedWork(i)}};
+      item["rom_path"] = session->rom.is_loaded()
+                             ? json(session->rom.filename())
+                             : json(nullptr);
+      state["sessions"].push_back(std::move(item));
+    }
+  }
   state["unsaved"] = HasAnySessionPendingUnsavedWork();
   state["unsaved_detail"] = DescribeAllPendingUnsavedWork();
   state["pending_action"] = HasPendingUnsavedSessionAction();
@@ -3169,7 +3193,55 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
 #endif
 }
 
+bool EditorManager::ActivateExistingSessionForOpen(
+    const std::string& filename) {
+  if (!session_coordinator_ || filename.empty() ||
+      pending_project_open_transition_ ||
+      project_manager_.IsPendingRomSelection()) {
+    return false;
+  }
+  const bool is_project = absl::EndsWith(filename, ".yaze") ||
+                          absl::EndsWith(filename, ".zsproj") ||
+                          absl::EndsWith(filename, ".yazeproj");
+  const size_t count = session_coordinator_->GetTotalSessionCount();
+  // Prefer the active owner if an older app left duplicate sessions behind.
+  for (size_t step = 0; step < count; ++step) {
+    const size_t index = (GetCurrentSessionIndex() + step) % count;
+    auto* session =
+        static_cast<RomSession*>(session_coordinator_->GetSession(index));
+    if (!session || !session->rom.is_loaded()) {
+      continue;
+    }
+    bool matches = false;
+    if (is_project) {
+      const auto* project =
+          IsCurrentProjectContextOwnedBySession(session->session_id())
+              ? &current_project_
+          : session->project_context.has_value() ? &*session->project_context
+                                                 : nullptr;
+      matches = project && project->project_opened() &&
+                SessionCoordinator::PathsReferToSameBackingFile(
+                    filename, project->filepath);
+    } else {
+      matches = SessionCoordinator::PathsReferToSameBackingFile(
+                    filename, session->filepath) ||
+                SessionCoordinator::PathsReferToSameBackingFile(
+                    filename, session->rom.filename());
+    }
+    if (matches) {
+      // Reuse the loaded buffers and editor drafts. Switching away from another
+      // dirty session still follows the ordinary unsaved-work guard.
+      SwitchToSession(index);
+      return true;
+    }
+  }
+  return false;
+}
+
 absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
+  if (ActivateExistingSessionForOpen(filename)) {
+    return absl::OkStatus();
+  }
   if (!MaybeGuardPendingSessionAction(
           {PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath,
            GetCurrentSessionId(), SIZE_MAX, filename})) {
@@ -3185,6 +3257,9 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
            filename.c_str());
   if (filename.empty()) {
     LOG_INFO("EditorManager", "Empty filename provided, skipping load.");
+    return absl::OkStatus();
+  }
+  if (ActivateExistingSessionForOpen(filename)) {
     return absl::OkStatus();
   }
 
@@ -3487,6 +3562,9 @@ absl::Status EditorManager::OpenProjectInternal() {
   auto open_project_from_path =
       [this](const std::string& file_path) -> absl::Status {
     if (file_path.empty()) {
+      return absl::OkStatus();
+    }
+    if (ActivateExistingSessionForOpen(file_path)) {
       return absl::OkStatus();
     }
 

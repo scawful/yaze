@@ -419,6 +419,9 @@ absl::Status EditorManager::LoadRomInternal() {
     if (file_name.empty()) {
       return absl::OkStatus();
     }
+    if (ActivateExistingSessionForOpen(file_name)) {
+      return absl::OkStatus();
+    }
 
     // Check if this is a project file - route to project loading
     if (absl::EndsWith(file_name, ".yaze") ||

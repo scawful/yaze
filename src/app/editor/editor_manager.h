@@ -736,6 +736,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status StartPendingRomSave(
       const std::optional<std::string>& save_as_filename);
   absl::Status LoadRomInternal();
+  bool ActivateExistingSessionForOpen(const std::string& filename);
   absl::Status OpenRomOrProjectInternal(const std::string& filename,
                                         bool allow_dialogs = true);
   absl::Status OpenProjectInternal();

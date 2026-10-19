@@ -120,6 +120,133 @@ ProjectFileEditorState MakeModifiedProjectDraft(ProjectFileEditor* editor,
 }
 
 TEST(EditorManagerProjectActionsTest,
+     ReopenActiveProjectAliasPreservesDirtyRomAndProjectDraft) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_reopen_project"));
+  const auto rom = directory.path / "game.sfc";
+  const auto project = directory.path / "project.yaze";
+  const auto alias = directory.path / "alias.yaze";
+  WriteRomFile(rom);
+  WriteProjectFile(project, "Original", rom);
+  std::filesystem::create_symlink(project, alias);
+  ASSERT_OK(manager->OpenRomOrProject(project.string()));
+  auto* original_rom = manager->GetCurrentRom();
+  const auto original_id = manager->GetCurrentSessionId();
+  ASSERT_OK(original_rom->WriteByte(0x100, 0xA5));
+  manager->GetCurrentProject()->name = "Unsaved Settings";
+  manager->MarkCurrentProjectDirty();
+  manager->ShowProjectFileEditor();
+  const auto draft = MakeModifiedProjectDraft(
+      manager->project_file_editor(), manager->GetCurrentProject(),
+      ProjectFileContents("Unsaved Text", rom));
+
+  ASSERT_OK(manager->OpenRomOrProject(alias.string()));
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), original_id);
+  EXPECT_EQ(manager->GetCurrentRom(), original_rom);
+  EXPECT_EQ(original_rom->vector()[0x100], 0xA5);
+  EXPECT_TRUE(original_rom->dirty());
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Unsaved Settings");
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  EXPECT_EQ(manager->project_file_editor()->CaptureState().text, draft.text);
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  const auto status = nlohmann::json::parse(
+      manager->ExecuteEditorControl(R"({"command":"status"})"));
+  const auto& state = status["state"];
+  EXPECT_EQ(state["session_count"], 1);
+  ASSERT_EQ(state["sessions"].size(), 1u);
+  EXPECT_EQ(state["sessions"][0]["session_id"], original_id);
+  EXPECT_EQ(state["sessions"][0]["project_path"], project.string());
+  EXPECT_EQ(state["sessions"][0]["rom_path"], rom.string());
+  EXPECT_EQ(state["sessions"][0]["rom_dirty"], true);
+  EXPECT_EQ(state["sessions"][0]["unsaved"], true);
+  EXPECT_EQ(state["sessions"][0]["active"], true);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ReopenInactiveProjectActivatesOwnerAndKeepsDistinctProjects) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_reopen_inactive_project"));
+  const auto rom_a = directory.path / "a.sfc";
+  const auto rom_b = directory.path / "b.sfc";
+  const auto project_a = directory.path / "a.yaze";
+  const auto project_b = directory.path / "b.yaze";
+  const auto project_c = directory.path / "different_project_same_rom.yaze";
+  WriteRomFile(rom_a, "ROM A");
+  WriteRomFile(rom_b, "ROM B");
+  WriteProjectFile(project_a, "Project A", rom_a);
+  WriteProjectFile(project_b, "Project B", rom_b);
+  WriteProjectFile(project_c, "Project C", rom_a);
+  ASSERT_OK(manager->OpenRomOrProject(project_a.string()));
+  auto* original_a = manager->GetCurrentRom();
+  const auto id_a = manager->GetCurrentSessionId();
+  ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
+  const auto id_b = manager->GetCurrentSessionId();
+  ASSERT_NE(id_a, id_b);
+  ASSERT_OK(original_a->WriteByte(0x100, 0xA5));
+
+  ASSERT_OK(manager->OpenRomOrProject(project_a.string()));
+  EXPECT_EQ(manager->GetCurrentSessionId(), id_a);
+  EXPECT_EQ(manager->GetCurrentRom(), original_a);
+  EXPECT_EQ(original_a->vector()[0x100], 0xA5);
+  EXPECT_TRUE(original_a->dirty());
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Project A");
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+
+  ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
+  EXPECT_EQ(manager->GetCurrentSessionId(), id_a);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_EQ(manager->GetCurrentSessionId(), id_b);
+  EXPECT_TRUE(original_a->dirty());
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Project B");
+  const auto conflict = manager->OpenRomOrProject(project_c.string());
+  EXPECT_EQ(conflict.code(), absl::StatusCode::kAlreadyExists);
+  EXPECT_EQ(manager->GetCurrentSessionId(), id_b);
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Project B");
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ExplicitStartupProjectOpensOnlyOneSessionWithRestorePreference) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ScopedTempDir directory(MakeTempDir("yaze_explicit_startup_project"));
+  const auto rom = directory.path / "explicit.sfc";
+  const auto project = directory.path / "explicit.yaze";
+  const auto previous_rom = directory.path / "previous.sfc";
+  const auto previous_project = directory.path / "previous.yaze";
+  WriteRomFile(rom);
+  WriteRomFile(previous_rom);
+  WriteProjectFile(project, "Explicit", rom);
+  WriteProjectFile(previous_project, "Previous", previous_rom);
+  manager->user_settings().SetSettingsFilePathForTesting(
+      (directory.path / "settings.json").string());
+  auto& preferences = manager->user_settings().prefs();
+  preferences.restore_last_session = true;
+  preferences.last_rom_path = previous_rom.string();
+  preferences.last_project_path = previous_project.string();
+  ASSERT_OK(manager->user_settings().Save());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->Initialize(renderer.get(), project.string());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, project.string());
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), rom.string());
+  EXPECT_TRUE(manager->user_settings().prefs().restore_last_session);
+}
+
+TEST(EditorManagerProjectActionsTest,
      SaveProjectAsWarnsWhenPaletteCatalogLeavesNewProjectFolder) {
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
