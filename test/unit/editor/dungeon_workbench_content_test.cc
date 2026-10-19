@@ -2381,10 +2381,10 @@ TEST(DungeonRoomStoreCollisionTest,
   // Room 0x00 pointer must remain untouched; Room 0x65 pointer must be written.
   const int ptr_00 = zelda3::kCustomCollisionRoomPointers;
   const int ptr_65 = zelda3::kCustomCollisionRoomPointers + (0x65 * 3);
-  EXPECT_EQ(rom.data()[ptr_00] | rom.data()[ptr_00 + 1] | rom.data()[ptr_00 + 2],
-            0);
-  EXPECT_NE(rom.data()[ptr_65] | rom.data()[ptr_65 + 1] | rom.data()[ptr_65 + 2],
-            0);
+  EXPECT_EQ(
+      rom.data()[ptr_00] | rom.data()[ptr_00 + 1] | rom.data()[ptr_00 + 2], 0);
+  EXPECT_NE(
+      rom.data()[ptr_65] | rom.data()[ptr_65 + 1] | rom.data()[ptr_65 + 2], 0);
 
   // In a fresh store where room 0x65 is NOT materialized in memory and room
   // 0x74 has an in-memory edit, CollectRoomEntries must export both rooms
@@ -2396,7 +2396,8 @@ TEST(DungeonRoomStoreCollisionTest,
       &fresh_store[0x74]);
   EXPECT_EQ(fresh_store.GetIfMaterialized(0x65), nullptr);
 
-  const auto exported_or = CustomCollisionPanel::CollectRoomEntries(fresh_store);
+  const auto exported_or =
+      CustomCollisionPanel::CollectRoomEntries(fresh_store);
   ASSERT_TRUE(exported_or.ok()) << exported_or.status();
   const auto& exported = *exported_or;
   EXPECT_EQ(fresh_store.GetIfMaterialized(0x65), nullptr);
@@ -2582,6 +2583,7 @@ TEST_F(DungeonWorkbenchResetUiTest,
   EXPECT_FALSE(Find("collision_tile_type")->enabled);
 
   Click("quick_collision_floor_00");
+  Frame();
   EXPECT_FALSE(mode_mgr.GetModeState().paint_collision_erase);
   EXPECT_EQ(mode_mgr.GetModeState().paint_collision_value, 0x00);
   EXPECT_TRUE(Find("collision_tile_type")->enabled);
@@ -2685,10 +2687,9 @@ TEST_F(
   // 4. Save to disposable ROM and reopen into a fresh store to prove explicit
   // floor 0x00 override and multi-room import persist across save/reopen.
   ASSERT_TRUE(
-      zelda3::SaveAllCollision(&rom, static_cast<int>(editor.rooms().size()),
-                               [&](int rid) {
-                                 return editor.rooms().GetIfMaterialized(rid);
-                               })
+      zelda3::SaveAllCollision(
+          &rom, static_cast<int>(editor.rooms().size()),
+          [&](int rid) { return editor.rooms().GetIfMaterialized(rid); })
           .ok());
   Rom reopened_rom;
   ASSERT_TRUE(reopened_rom.LoadFromData(rom.vector()).ok());

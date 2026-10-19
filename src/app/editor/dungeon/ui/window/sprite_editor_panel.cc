@@ -8,6 +8,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/dungeon/dungeon_rendering_helpers.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/gui/automation/widget_auto_register.h"
@@ -17,6 +18,7 @@
 #include "util/i18n/tr.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/sprite/sprite.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze {
 namespace editor {
@@ -123,6 +125,48 @@ void SpriteEditorPanel::DrawPlacementControls() {
   }
 }
 
+const SpriteEditorPanel::CachedSpritePreview&
+SpriteEditorPanel::GetOrCreateSpritePreview(int sprite_id,
+                                            const zelda3::Room& room) {
+  if (cached_graphics_revision_ != room.graphics_revision()) {
+    sprite_preview_cache_.clear();
+    cached_graphics_revision_ = room.graphics_revision();
+  }
+  auto it = sprite_preview_cache_.find(sprite_id);
+  if (it != sprite_preview_cache_.end()) {
+    return it->second;
+  }
+
+  CachedSpritePreview cached;
+  zelda3::Sprite sprite;
+  sprite.set_id(static_cast<uint8_t>(sprite_id));
+
+  const std::string_view hack_name =
+      canvas_viewer_ && canvas_viewer_->project() &&
+              canvas_viewer_->project()->hack_manifest.loaded()
+          ? std::string_view(
+                canvas_viewer_->project()->hack_manifest.hack_name())
+          : std::string_view{};
+  const auto* preview_layout =
+      zelda3::SpriteOamRegistry::GetPreviewOverride(sprite_id, hack_name);
+  if (!preview_layout) {
+    preview_layout = zelda3::SpriteOamRegistry::GetLayout(sprite_id);
+  }
+
+  const auto& room_gfx = room.get_gfx_buffer();
+  const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
+                                               room_gfx.size());
+  sprite.RenderPreviewGraphics(room_gfx_span, preview_layout, {});
+  if (sprite.preview_graphics() != nullptr &&
+      !sprite.preview_graphics()->empty()) {
+    cached.pixels = *sprite.preview_graphics();
+    cached.bounds = sprite.preview_bounds();
+  }
+  auto [inserted_it, _] =
+      sprite_preview_cache_.emplace(sprite_id, std::move(cached));
+  return inserted_it->second;
+}
+
 void SpriteEditorPanel::DrawSpriteSelector(bool show_room_sprites) {
   ImGui::SetNextItemWidth(-1);
   ImGui::InputTextWithHint("##Search", "Search sprites by name or hex ID...",
@@ -138,21 +182,57 @@ void SpriteEditorPanel::DrawSpriteSelector(bool show_room_sprites) {
       canvas_viewer_->IsObjectInteractionEnabled() &&
       !canvas_viewer_->header_read_only();
   if (ImGui::BeginChild("##SpriteLibrary", ImVec2(0, list_height), true)) {
+    const auto& theme = AgentUI::GetTheme();
+    auto& room = (*rooms_)[*current_room_id_];
+    const auto sprite_colors = zelda3::BuildDungeonSpriteRenderPalette(
+        room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
     ImGui::BeginDisabled(!can_place);
     for (int id = 0; id < 256; ++id) {
       if (!MatchesFilter(id))
         continue;
       const std::string name = SpriteName(id);
-      const std::string label = absl::StrFormat("%02X  %s", id, name);
       ImGui::PushID(id);
+
+      const float row_height = 28.0f;
+      const ImVec2 p0 = ImGui::GetCursorScreenPos();
+      const bool is_selected = selected_sprite_id_ == id;
       const bool selected =
-          ImGui::Selectable(label.c_str(), selected_sprite_id_ == id);
+          ImGui::Selectable("##row", is_selected, 0, ImVec2(0, row_height));
       gui::AutoRegisterLastItem("selectable",
                                 absl::StrFormat("place_sprite_%02X", id));
       if (selected) {
         selected_sprite_id_ = id;
         canvas_viewer_->object_interaction().SetSpritePlacementMode(true, id);
       }
+
+      const auto& preview = GetOrCreateSpritePreview(id, room);
+      const ImVec2 preview_min(p0.x + 4.0f, p0.y + 2.0f);
+      const ImVec2 preview_max(p0.x + 28.0f, p0.y + 26.0f);
+      bool drew_preview = false;
+      if (preview.bounds.w > 0 && preview.bounds.h > 0 &&
+          !preview.pixels.empty()) {
+        drew_preview = DungeonRenderingHelpers::DrawSpritePreview(
+            draw_list, preview.pixels, preview.bounds, preview_min, preview_max,
+            sprite_colors);
+      }
+      if (!drew_preview) {
+        draw_list->AddRect(preview_min, preview_max,
+                           ImGui::GetColorU32(theme.status_inactive), 2.0f);
+        draw_list->AddText(ImVec2(preview_min.x + 5.0f, preview_min.y + 4.0f),
+                           ImGui::GetColorU32(theme.status_inactive),
+                           ICON_MD_CATEGORY);
+      }
+
+      const std::string label = absl::StrFormat("%02X  %s", id, name);
+      ImGui::LogText("%s\n", label.c_str());
+      draw_list->AddText(
+          ImVec2(p0.x + 34.0f, p0.y + 6.0f),
+          ImGui::GetColorU32(is_selected ? theme.text_primary
+                                         : theme.text_secondary_gray),
+          label.c_str());
+
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s (%02X)\n%s", name.c_str(), id,
                           can_place
@@ -214,6 +294,10 @@ void SpriteEditorPanel::DrawRoomSprites() {
   float available = ImGui::GetContentRegionAvail().y;
   float list_height = std::max(100.0f, available * 0.4f);
 
+  const auto sprite_colors = zelda3::BuildDungeonSpriteRenderPalette(
+      room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
   ImGui::BeginChild("##SpriteList", ImVec2(0, list_height), true);
   for (size_t i = 0; i < sprites.size(); ++i) {
     const auto& sprite = sprites[i];
@@ -221,23 +305,10 @@ void SpriteEditorPanel::DrawRoomSprites() {
 
     ImGui::PushID(static_cast<int>(i));
 
-    // Build display string with indicators
-    std::string label =
-        absl::StrFormat("[%02X] %s", sprite.id(), SpriteName(sprite.id()));
-
-    // Add key drop indicator
-    if (sprite.key_drop() == 1) {
-      label += " " ICON_MD_KEY;  // Small key
-    } else if (sprite.key_drop() == 2) {
-      label += " " ICON_MD_VPN_KEY;  // Big key
-    }
-
-    // Add overlord indicator
-    if (sprite.IsOverlord()) {
-      label += " " ICON_MD_STAR;
-    }
-
-    const bool row_selected = ImGui::Selectable(label.c_str(), is_selected);
+    const float row_height = 24.0f;
+    const ImVec2 p0 = ImGui::GetCursorScreenPos();
+    const bool row_selected =
+        ImGui::Selectable("##row", is_selected, 0, ImVec2(0, row_height));
     gui::AutoRegisterLastItem("selectable",
                               absl::StrFormat("sprite_row_%zu", i),
                               "Select a sprite in the current dungeon room");
@@ -248,10 +319,43 @@ void SpriteEditorPanel::DrawRoomSprites() {
       }
     }
 
-    // Show position on same line
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 80);
-    ImGui::TextColored(theme.text_secondary_gray, tr("(%d,%d) L%d"), sprite.x(),
-                       sprite.y(), sprite.layer());
+    const auto& preview = GetOrCreateSpritePreview(sprite.id(), room);
+    const ImVec2 preview_min(p0.x + 2.0f, p0.y + 1.0f);
+    const ImVec2 preview_max(p0.x + 24.0f, p0.y + 23.0f);
+    if (preview.bounds.w > 0 && preview.bounds.h > 0 &&
+        !preview.pixels.empty()) {
+      DungeonRenderingHelpers::DrawSpritePreview(draw_list, preview.pixels,
+                                                 preview.bounds, preview_min,
+                                                 preview_max, sprite_colors);
+    }
+
+    std::string label =
+        absl::StrFormat("[%02X] %s", sprite.id(), SpriteName(sprite.id()));
+    if (sprite.key_drop() == 1) {
+      label += " " ICON_MD_KEY;
+    } else if (sprite.key_drop() == 2) {
+      label += " " ICON_MD_VPN_KEY;
+    }
+    if (sprite.IsOverlord()) {
+      label += " " ICON_MD_STAR;
+    }
+
+    draw_list->AddText(
+        ImVec2(p0.x + 28.0f, p0.y + 4.0f),
+        ImGui::GetColorU32(is_selected ? theme.text_primary
+                                       : theme.text_secondary_gray),
+        label.c_str());
+
+    std::string pos_text =
+        absl::StrFormat("(%d,%d) L%d", sprite.x(), sprite.y(), sprite.layer());
+    ImVec2 pos_size = ImGui::CalcTextSize(pos_text.c_str());
+    const float right_margin = 8.0f;
+    const float pos_x =
+        std::max(p0.x + 180.0f, p0.x + ImGui::GetContentRegionAvail().x -
+                                    pos_size.x - right_margin);
+    draw_list->AddText(ImVec2(pos_x, p0.y + 4.0f),
+                       ImGui::GetColorU32(theme.text_secondary_gray),
+                       pos_text.c_str());
 
     ImGui::PopID();
   }

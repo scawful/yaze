@@ -1033,10 +1033,9 @@ absl::Status DungeonEditorV2::ApplyCustomCollisionImportBatch(
         !room.has_custom_collision()) {
       auto map_or = zelda3::LoadCustomCollisionMap(rom_, room_id);
       if (!map_or.ok()) {
-        return absl::Status(
-            map_or.status().code(),
-            absl::StrFormat("Room 0x%03X: %s", room_id,
-                            map_or.status().message()));
+        return absl::Status(map_or.status().code(),
+                            absl::StrFormat("Room 0x%03X: %s", room_id,
+                                            map_or.status().message()));
       }
       room.custom_collision() = std::move(*map_or);
     }

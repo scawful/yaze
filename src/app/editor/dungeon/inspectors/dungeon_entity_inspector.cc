@@ -185,7 +185,9 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
     ImGui::EndTable();
   }
   deleted = DrawEntityActionRow(
-      [&]() { viewer.object_interaction().SetDoorPlacementMode(true, door.type); },
+      [&]() {
+        viewer.object_interaction().SetDoorPlacementMode(true, door.type);
+      },
       [&]() {
         (void)viewer.object_interaction()
             .entity_coordinator()

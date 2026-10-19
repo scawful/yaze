@@ -6,11 +6,16 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_rendering_helpers.h"
+#include "app/gfx/render/background_buffer.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
+#include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
 
@@ -197,6 +202,76 @@ bool DoorEditorContent::CanEditRoom() const {
          !canvas_viewer_->header_read_only();
 }
 
+const DoorEditorContent::CachedDoorPreview&
+DoorEditorContent::GetOrCreateDoorPreview(zelda3::DoorType type,
+                                          const zelda3::Room& room) {
+  if (cached_door_graphics_revision_ != room.graphics_revision()) {
+    door_preview_cache_.clear();
+    cached_door_graphics_revision_ = room.graphics_revision();
+  }
+  const int type_key = static_cast<int>(type);
+  auto it = door_preview_cache_.find(type_key);
+  if (it != door_preview_cache_.end()) {
+    return it->second;
+  }
+
+  CachedDoorPreview cached;
+  Rom* rom = canvas_viewer_ ? canvas_viewer_->rom() : nullptr;
+  const auto& gfx_buffer = room.get_gfx_buffer();
+  if (rom && rom->is_loaded() && !gfx_buffer.empty()) {
+    zelda3::ObjectDrawer drawer(rom, current_room_id_, gfx_buffer.data());
+    gfx::BackgroundBuffer bg1(512, 512);
+    gfx::BackgroundBuffer bg2(512, 512);
+    bg1.EnsureBitmapInitialized();
+    bg2.EnsureBitmapInitialized();
+
+    zelda3::ObjectDrawer::DoorDef door_def;
+    door_def.type = type;
+    door_def.direction = zelda3::DoorDirection::North;
+    door_def.position = 0;
+
+    drawer.DrawDoor(door_def, 0, bg1, bg2, nullptr, nullptr, nullptr);
+
+    auto [tile_x, tile_y] = door_def.GetTileCoords();
+    auto dims = door_def.GetDimensions();
+    const int start_x = tile_x * 8;
+    const int start_y = tile_y * 8;
+    const int w = std::max(1, dims.width_tiles * 8);
+    const int h = std::max(1, dims.height_tiles * 8);
+
+    cached.width = w;
+    cached.height = h;
+    cached.pixels.assign(w * h, 255);
+
+    const auto& bg1_bmp = bg1.bitmap();
+    const auto& bg2_bmp = bg2.bitmap();
+    const auto& bg1_data = bg1_bmp.vector();
+    const auto& bg2_data = bg2_bmp.vector();
+
+    for (int y = 0; y < h; ++y) {
+      for (int x = 0; x < w; ++x) {
+        const int bmp_x = start_x + x;
+        const int bmp_y = start_y + y;
+        if (bmp_x >= 0 && bmp_x < 512 && bmp_y >= 0 && bmp_y < 512) {
+          const int idx = bmp_y * 512 + bmp_x;
+          uint8_t px = 255;
+          if (idx < static_cast<int>(bg1_data.size()) && bg1_data[idx] != 255) {
+            px = bg1_data[idx];
+          } else if (idx < static_cast<int>(bg2_data.size()) &&
+                     bg2_data[idx] != 255) {
+            px = bg2_data[idx];
+          }
+          cached.pixels[y * w + x] = px;
+        }
+      }
+    }
+  }
+
+  auto [inserted_it, _] =
+      door_preview_cache_.emplace(type_key, std::move(cached));
+  return inserted_it->second;
+}
+
 void DoorEditorContent::DrawContent(bool show_room_doors) {
   ResolveCanvasViewer();
   const bool can_edit = CanEditRoom();
@@ -213,6 +288,20 @@ void DoorEditorContent::DrawContent(bool show_room_doors) {
 
   const auto& theme = AgentUI::GetTheme();
   static constexpr auto kDoorTypes = zelda3::GetPlaceableDoorTypes();
+
+  const zelda3::Room* active_room =
+      (rooms_ && current_room_id_ >= 0 &&
+       current_room_id_ < static_cast<int>(rooms_->size()))
+          ? &(*rooms_)[current_room_id_]
+          : nullptr;
+
+  std::array<SDL_Color, 256> color_table{};
+  if (active_room) {
+    const auto& pal = active_room->rendered_palette();
+    for (size_t p_idx = 0; p_idx < std::min<size_t>(pal.size(), 256); ++p_idx) {
+      color_table[p_idx] = pal[p_idx];
+    }
+  }
 
   if (show_room_doors && HasMatchingViewer() &&
       canvas_viewer_->object_interaction().HasEntitySelection() &&
@@ -241,7 +330,7 @@ void DoorEditorContent::DrawContent(bool show_room_doors) {
 
   constexpr float kDoorCardHeight = 48.0f;
   constexpr float kDoorCardSpacing = 6.0f;
-  constexpr float kMinDoorCardWidth = 92.0f;
+  constexpr float kMinDoorCardWidth = 94.0f;
 
   const float grid_height =
       show_room_doors ? 150.0f
@@ -257,6 +346,8 @@ void DoorEditorContent::DrawContent(bool show_room_doors) {
       kMinDoorCardWidth,
       (panel_width - (items_per_row - 1) * kDoorCardSpacing) / items_per_row);
 
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
   int col = 0;
   for (size_t i = 0; i < kDoorTypes.size(); ++i) {
     const auto door_type = kDoorTypes[i];
@@ -264,28 +355,15 @@ void DoorEditorContent::DrawContent(bool show_room_doors) {
     const int type_val = static_cast<int>(door_type);
     ImGui::PushID(static_cast<int>(i));
 
-    ImVec4 button_color = DoorTypeAccent(theme, door_type);
-    if (is_selected) {
-      button_color.x = std::min(1.0f, button_color.x + 0.2f);
-      button_color.y = std::min(1.0f, button_color.y + 0.2f);
-      button_color.z = std::min(1.0f, button_color.z + 0.2f);
-    }
+    const ImVec2 card_pos = ImGui::GetCursorScreenPos();
 
     gui::StyleColorGuard btn_colors({
-        {ImGuiCol_Button, button_color},
-        {ImGuiCol_ButtonHovered,
-         ImVec4(button_color.x + 0.1f, button_color.y + 0.1f,
-                button_color.z + 0.1f, 1.0f)},
-        {ImGuiCol_ButtonActive,
-         ImVec4(button_color.x + 0.2f, button_color.y + 0.2f,
-                button_color.z + 0.2f, 1.0f)},
+        {ImGuiCol_Button,
+         is_selected ? theme.selection_pulsing : theme.panel_bg_darker},
     });
 
-    const std::string label =
-        absl::StrFormat("%s %02X\n%s", DoorTypeIcon(door_type), type_val,
-                        ShortDoorTypeLabel(door_type).c_str());
     const bool picked =
-        ImGui::Button(label.c_str(), ImVec2(card_width, kDoorCardHeight));
+        ImGui::Button("##door_card", ImVec2(card_width, kDoorCardHeight));
     gui::AutoRegisterLastItem("button",
                               absl::StrFormat("place_door_%02X", type_val));
     if (picked && can_edit) {
@@ -297,17 +375,48 @@ void DoorEditorContent::DrawContent(bool show_room_doors) {
       }
     }
 
+    const ImVec2 preview_box_min(card_pos.x + 4.0f, card_pos.y + 4.0f);
+    const ImVec2 preview_box_max(card_pos.x + 36.0f,
+                                 card_pos.y + kDoorCardHeight - 4.0f);
+    bool drew = false;
+    if (active_room) {
+      const auto& preview = GetOrCreateDoorPreview(door_type, *active_room);
+      SDL_Rect bounds{0, 0, preview.width, preview.height};
+      if (bounds.w > 0 && bounds.h > 0 && !preview.pixels.empty()) {
+        drew = DungeonRenderingHelpers::DrawSpritePreview(
+            draw_list, preview.pixels, bounds, preview_box_min, preview_box_max,
+            color_table);
+      }
+    }
+    if (!drew) {
+      draw_list->AddRect(preview_box_min, preview_box_max,
+                         ImGui::GetColorU32(theme.status_inactive), 2.0f);
+      draw_list->AddText(
+          ImVec2(preview_box_min.x + 7.0f, preview_box_min.y + 8.0f),
+          ImGui::GetColorU32(theme.status_inactive), DoorTypeIcon(door_type));
+    }
+
+    const std::string id_text = absl::StrFormat("%02X", type_val);
+    const std::string name_text = ShortDoorTypeLabel(door_type);
+    draw_list->AddText(ImVec2(card_pos.x + 40.0f, card_pos.y + 6.0f),
+                       ImGui::GetColorU32(theme.text_info), id_text.c_str());
+    draw_list->AddText(
+        ImVec2(card_pos.x + 40.0f, card_pos.y + 24.0f),
+        ImGui::GetColorU32(is_selected ? theme.text_primary
+                                       : theme.text_secondary_gray),
+        name_text.c_str());
+
+    if (is_selected) {
+      draw_list->AddRect(
+          card_pos,
+          ImVec2(card_pos.x + card_width, card_pos.y + kDoorCardHeight),
+          ImGui::GetColorU32(theme.selection_primary), 4.0f, 0, 2.0f);
+    }
+
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(tr("%s (0x%02X)\nClick to select for placement"),
                         std::string(zelda3::GetDoorTypeName(door_type)).c_str(),
                         type_val);
-    }
-
-    if (is_selected) {
-      ImVec2 min = ImGui::GetItemRectMin();
-      ImVec2 max = ImGui::GetItemRectMax();
-      ImGui::GetWindowDrawList()->AddRect(min, max, IM_COL32(255, 255, 0, 255),
-                                          0.0f, 0, 2.0f);
     }
 
     ImGui::PopID();

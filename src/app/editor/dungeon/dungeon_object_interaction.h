@@ -109,8 +109,8 @@ class DungeonObjectInteraction {
     return static_cast<bool>(interaction_context_.on_collision_batch_import);
   }
   void SetCollisionBatchImportCallback(
-      std::function<absl::Status(
-          const std::vector<zelda3::CustomCollisionRoomEntry>&)>
+      std::function<
+          absl::Status(const std::vector<zelda3::CustomCollisionRoomEntry>&)>
           callback) {
     interaction_context_.on_collision_batch_import = std::move(callback);
     entity_coordinator_.SetContext(&interaction_context_);

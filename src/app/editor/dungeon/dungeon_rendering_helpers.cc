@@ -10,6 +10,8 @@
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/sprite/sprite.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze::editor {
 
@@ -157,6 +159,158 @@ std::pair<int, int> DungeonRenderingHelpers::RoomToCanvasCoordinates(
     int room_x, int room_y) {
   // Return unscaled relative coordinates (8 pixels per tile)
   return {room_x * 8, room_y * 8};
+}
+
+bool DungeonRenderingHelpers::DrawSpritePreview(
+    ImDrawList* draw_list, const std::vector<uint8_t>& preview,
+    const SDL_Rect& bounds, const ImVec2& box_min, const ImVec2& box_max,
+    const std::array<SDL_Color, 256>& color_table) {
+  if (!draw_list || bounds.w <= 0 || bounds.h <= 0) {
+    return false;
+  }
+  const size_t row_stride = static_cast<size_t>(bounds.w);
+  if (static_cast<size_t>(bounds.h) > preview.size() / row_stride) {
+    return false;
+  }
+
+  const float avail_w = box_max.x - box_min.x;
+  const float avail_h = box_max.y - box_min.y;
+  if (avail_w <= 0.0f || avail_h <= 0.0f) {
+    return false;
+  }
+
+  const float scale_x = avail_w / static_cast<float>(bounds.w);
+  const float scale_y = avail_h / static_cast<float>(bounds.h);
+  const float scale = std::min(scale_x, scale_y);
+
+  const float draw_w = bounds.w * scale;
+  const float draw_h = bounds.h * scale;
+  const float origin_x = box_min.x + (avail_w - draw_w) * 0.5f;
+  const float origin_y = box_min.y + (avail_h - draw_h) * 0.5f;
+
+  for (int y = 0; y < bounds.h; ++y) {
+    int x = 0;
+    while (x < bounds.w) {
+      const uint8_t palette_index =
+          preview[static_cast<size_t>(y) * row_stride + x];
+      const SDL_Color& palette_color = color_table[palette_index];
+      if (palette_index == 0 || palette_index == 255 || palette_color.a == 0) {
+        ++x;
+        continue;
+      }
+      const ImU32 color = IM_COL32(palette_color.r, palette_color.g,
+                                   palette_color.b, palette_color.a);
+
+      const int start_x = x;
+      while (x < bounds.w && preview[static_cast<size_t>(y) * row_stride + x] ==
+                                 palette_index) {
+        ++x;
+      }
+
+      const ImVec2 p_min(origin_x + start_x * scale, origin_y + y * scale);
+      const ImVec2 p_max(origin_x + x * scale, origin_y + (y + 1) * scale);
+      draw_list->AddRectFilled(p_min, p_max, color);
+    }
+  }
+  return true;
+}
+
+const zelda3::SpriteOamLayout* DungeonRenderingHelpers::GetPotItemSpriteLayout(
+    uint8_t item_id, uint8_t* out_sprite_id) {
+  const zelda3::SpriteOamLayout* layout = nullptr;
+  uint8_t sprite_id = 0;
+  switch (item_id) {
+    case 1:  // Green Rupee
+      layout = &zelda3::kGreenRupeeLayout;
+      sprite_id = 0xDA;
+      break;
+    case 3:  // Bee
+      layout = &zelda3::kBeeLayout;
+      sprite_id = 0x79;
+      break;
+    case 4:   // Heart (4)
+    case 6:   // Heart
+    case 11:  // Heart
+    case 19:  // Heart
+    case 21:  // Heart
+      layout = &zelda3::kSmallHeartLayout;
+      sprite_id = 0xDE;
+      break;
+    case 5:   // Bomb (4)
+    case 10:  // Bomb (1)
+      layout = &zelda3::kBombLayout;
+      sprite_id = 0xDC;
+      break;
+    case 7:  // Blue Rupee
+      layout = &zelda3::kBlueRupeeLayout;
+      sprite_id = 0xDB;
+      break;
+    case 8:  // Key
+      layout = &zelda3::kKeyLayout;
+      sprite_id = 0xDF;
+      break;
+    case 9:  // Arrow (5)
+      layout = &zelda3::kArrowLayout;
+      sprite_id = 0xE1;
+      break;
+    case 12:  // Small Magic
+      layout = &zelda3::kSmallMagicLayout;
+      sprite_id = 0xE1;
+      break;
+    case 13:  // Large Magic
+      layout = &zelda3::kLargeMagicLayout;
+      sprite_id = 0xE2;
+      break;
+    case 14:  // Cucco
+      layout = &zelda3::kChickenLayout;
+      sprite_id = 0x0B;
+      break;
+    case 15:  // Green Soldier
+      layout = &zelda3::kGreenSoldierLayout;
+      sprite_id = 0x0E;
+      break;
+    case 16:  // Bush Stal
+      layout = &zelda3::kStalfosLayout;
+      sprite_id = 0xA7;
+      break;
+    case 17:  // Blue Soldier
+      layout = &zelda3::kBlueSoldierLayout;
+      sprite_id = 0x0F;
+      break;
+    case 20:  // Fairy
+      layout = &zelda3::kFairyLayout;
+      sprite_id = 0xE3;
+      break;
+    default:
+      break;
+  }
+  if (out_sprite_id != nullptr) {
+    *out_sprite_id = sprite_id;
+  }
+  return layout;
+}
+
+bool DungeonRenderingHelpers::BuildPotItemPreview(
+    uint8_t item_id, const zelda3::Room& room, std::vector<uint8_t>& out_pixels,
+    SDL_Rect& out_bounds) {
+  uint8_t sprite_id = 0;
+  const auto* layout = GetPotItemSpriteLayout(item_id, &sprite_id);
+  if (!layout) {
+    return false;
+  }
+  zelda3::Sprite sprite;
+  sprite.set_id(sprite_id);
+  const auto& room_gfx = room.get_gfx_buffer();
+  const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
+                                               room_gfx.size());
+  sprite.RenderPreviewGraphics(room_gfx_span, layout, {});
+  if (sprite.preview_graphics() != nullptr &&
+      !sprite.preview_graphics()->empty()) {
+    out_pixels = *sprite.preview_graphics();
+    out_bounds = sprite.preview_bounds();
+    return true;
+  }
+  return false;
 }
 
 void DungeonRenderingHelpers::DrawTrackCollisionOverlay(

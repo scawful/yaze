@@ -168,11 +168,17 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
     }
     const auto* host = ImGui::FindWindowByName("MetadataHost");
     ASSERT_NE(host, nullptr);
-    const float maximum = host->ScrollMax.y;
-    for (float position = 0; position < maximum + 200; position += 200) {
-      ScrollTo(std::min(position, maximum));
-      if (const auto widget = Widget(label); widget && widget->visible) {
-        return;
+    for (const auto tab :
+         {DungeonWorkbenchContent::RoomInspectorSubTab::Mechanics,
+          DungeonWorkbenchContent::RoomInspectorSubTab::Warps,
+          DungeonWorkbenchContent::RoomInspectorSubTab::TagsAndChests}) {
+      content_.SetRoomInspectorSubTab(tab);
+      const float maximum = host->ScrollMax.y;
+      for (float position = 0; position < maximum + 200; position += 200) {
+        ScrollTo(std::min(position, maximum));
+        if (const auto widget = Widget(label); widget && widget->visible) {
+          return;
+        }
       }
     }
   }
@@ -273,11 +279,16 @@ TEST_F(DungeonRoomMetadataUiTest,
         persist_collapsed_sections_ = collapsed;
         SCOPED_TRACE(::testing::Message() << width << " compact=" << compact
                                           << " collapsed=" << collapsed);
+        content_.SetRoomInspectorSubTab(
+            DungeonWorkbenchContent::RoomInspectorSubTab::TagsAndChests);
         ScrollTo(0);
         EXPECT_NE(logged_text_.find("Weekend Crumble"), std::string::npos);
         EXPECT_NE(logged_text_.find("Cart shutter (disabled)"),
                   std::string::npos);
         EXPECT_EQ(logged_text_.find("Wrong session"), std::string::npos);
+        content_.SetRoomInspectorSubTab(
+            DungeonWorkbenchContent::RoomInspectorSubTab::Mechanics);
+        ScrollTo(0);
         EXPECT_NE(logged_text_.find("Pit damage"), std::string::npos);
         EXPECT_FALSE(Widget("Route"));
         EXPECT_EQ(logged_text_.find("Room matches ROM buffer"),
@@ -295,30 +306,36 @@ TEST_F(DungeonRoomMetadataUiTest,
           fields.push_back("Plane/" + std::to_string(route));
           fields.push_back("Open/" + std::to_string(route));
         }
-        // All controls are in the normal scroll flow. No section is opened to
+        // All controls are accessible across inspector subtabs. No section is opened to
         // discover them, including when old collapsed settings are restored.
         std::set<std::string> visible_fields;
-        const auto* host = ImGui::FindWindowByName("MetadataHost");
-        ASSERT_NE(host, nullptr);
-        const float maximum = host->ScrollMax.y;
-        for (float position = 0; position < maximum + 200; position += 200) {
-          ScrollTo(std::min(position, maximum));
-          for (const auto& field : fields) {
-            const auto widget = Widget(field.c_str());
-            if (!widget)
-              continue;
-            EXPECT_TRUE(widget->enabled) << field;
-            EXPECT_GE(widget->bounds.min_x, 20) << field;
-            EXPECT_LE(widget->bounds.max_x, 20 + width_) << field;
-            if (widget->visible && widget->bounds.min_y >= 40 &&
-                widget->bounds.max_y <= 20 + height_ - 8) {
-              visible_fields.insert(field);
+        for (const auto tab :
+             {DungeonWorkbenchContent::RoomInspectorSubTab::Mechanics,
+              DungeonWorkbenchContent::RoomInspectorSubTab::Warps,
+              DungeonWorkbenchContent::RoomInspectorSubTab::TagsAndChests}) {
+          content_.SetRoomInspectorSubTab(tab);
+          const auto* host = ImGui::FindWindowByName("MetadataHost");
+          ASSERT_NE(host, nullptr);
+          const float maximum = host->ScrollMax.y;
+          for (float position = 0; position < maximum + 200; position += 200) {
+            ScrollTo(std::min(position, maximum));
+            for (const auto& field : fields) {
+              const auto widget = Widget(field.c_str());
+              if (!widget)
+                continue;
+              EXPECT_TRUE(widget->enabled) << field;
+              EXPECT_GE(widget->bounds.min_x, 20) << field;
+              EXPECT_LE(widget->bounds.max_x, 20 + width_) << field;
+              if (widget->visible && widget->bounds.min_y >= 40 &&
+                  widget->bounds.max_y <= 20 + height_ - 8) {
+                visible_fields.insert(field);
+              }
             }
+            EXPECT_FALSE(content_.GetPitDamageControlRectsForTesting()
+                             .replace_current.visible);
+            EXPECT_EQ(logged_text_.find("Room matches ROM buffer"),
+                      std::string::npos);
           }
-          EXPECT_FALSE(content_.GetPitDamageControlRectsForTesting()
-                           .replace_current.visible);
-          EXPECT_EQ(logged_text_.find("Room matches ROM buffer"),
-                    std::string::npos);
         }
         for (const auto& field : fields)
           EXPECT_TRUE(visible_fields.contains(field)) << field;
@@ -326,6 +343,8 @@ TEST_F(DungeonRoomMetadataUiTest,
     }
   }
   project_.resource_labels.clear();
+  content_.SetRoomInspectorSubTab(
+      DungeonWorkbenchContent::RoomInspectorSubTab::TagsAndChests);
   ScrollTo(0);
   EXPECT_NE(logged_text_.find("Crumble Floor"), std::string::npos);
   viewer_.SetProject(nullptr);
@@ -344,6 +363,8 @@ TEST_F(DungeonRoomMetadataUiTest,
     ImGui::GetIO().FontGlobalScale = font_size / 13.0f;
     for (const float width : {260.0f, 320.0f}) {
       width_ = width;
+      content_.SetRoomInspectorSubTab(
+          DungeonWorkbenchContent::RoomInspectorSubTab::Warps);
       ScrollTo(0);
       const auto prefix = "width_" + std::to_string(static_cast<int>(width)) +
                           "_font_" +

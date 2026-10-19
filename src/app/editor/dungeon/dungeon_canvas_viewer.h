@@ -1172,12 +1172,14 @@ class DungeonCanvasViewer {
   // Room graphics revisions are globally unique. Retain indexed pixels across
   // connected-room draws; presentation (palette, position, zoom) stays live.
   using SpritePreviewKey = std::tuple<uint64_t, uint8_t, int, bool>;
+  using ItemPreviewKey = std::pair<uint64_t, uint8_t>;
   struct CachedSpritePreview {
     std::vector<uint8_t> pixels;
     SDL_Rect bounds{};
   };
   util::LruCache<SpritePreviewKey, CachedSpritePreview> sprite_preview_cache_{
       128};
+  util::LruCache<ItemPreviewKey, CachedSpritePreview> item_preview_cache_{64};
 
   bool show_track_collision_overlay_ = false;
   bool show_track_collision_legend_ = true;
