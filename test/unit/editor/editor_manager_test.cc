@@ -375,7 +375,7 @@ TEST_F(EditorManagerTest, TitleBarClosePersistsVisibilityOnce) {
   io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
   frame();
 
-  EXPECT_FALSE(windows.IsWindowVisible(0, "dungeon.close_test"));
+  EXPECT_FALSE(windows.IsWindowOpen(0, "dungeon.close_test"));
   EXPECT_FALSE(editor_manager_->user_settings()
                    .prefs()
                    .panel_visibility_state.at("Dungeon")
