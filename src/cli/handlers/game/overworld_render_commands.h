@@ -1,11 +1,30 @@
 #ifndef YAZE_SRC_CLI_HANDLERS_GAME_OVERWORLD_RENDER_COMMANDS_H_
 #define YAZE_SRC_CLI_HANDLERS_GAME_OVERWORLD_RENDER_COMMANDS_H_
 
+#include <optional>
+#include <string>
+
+#include "absl/status/statusor.h"
 #include "cli/service/resources/command_handler.h"
+#include "zelda3/overworld/graphics_preview.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+// Raw runtime graphics an overworld render applies before drawing.
+struct OverworldRenderGraphicsPreview {
+  std::string mode;      // project, file, off, none
+  std::string manifest;  // manifest path; empty for off and none
+  zelda3::OverworldGraphicsPreview preview;
+};
+
+// Resolves --graphics-preview. Unset or "on" loads the project's
+// [files] overworld_graphics_preview ("on" fails without one), "off" renders
+// the ROM's graphics only, and any other value is a manifest path.
+absl::StatusOr<OverworldRenderGraphicsPreview>
+ResolveOverworldRenderGraphicsPreview(const project::YazeProject* project,
+                                      const std::optional<std::string>& flag);
 
 // Render the overworld area containing a screen to a PNG file from current
 // ROM data. A child screen of a large/wide/tall area resolves to its parent
@@ -15,10 +34,16 @@ namespace handlers {
 //   overworld-render --screen=<hex> --out=<path.png>
 //       [--overlays=sprites,entrances,exits,holes,items,grid,all]
 //       [--phase=0|1|2] [--scale=<float>] [--area-overlay=on|off]
+//       [--graphics-preview=on|off|<manifest.json>]
 //
 // The area's subscreen overlay (sky, fog, lava, canopy, rain, ...) is
 // composited by default the way the game layers it; --area-overlay=off
 // renders the bare area.
+//
+// With --project-context, graphics a hack DMAs at runtime (the project's
+// [files] overworld_graphics_preview manifest) replace the area's tiles the
+// way the editor canvas shows them; --graphics-preview=off draws the ROM's
+// sheets only.
 class OverworldRenderCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "overworld-render"; }
@@ -28,7 +53,8 @@ class OverworldRenderCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "overworld-render --screen=<hex> --out=<path.png> "
            "[--overlays=sprites,entrances,exits,holes,items,grid,all] "
-           "[--phase=0|1|2] [--scale=<float>] [--area-overlay=on|off]";
+           "[--phase=0|1|2] [--scale=<float>] [--area-overlay=on|off] "
+           "[--graphics-preview=on|off|<manifest.json>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;

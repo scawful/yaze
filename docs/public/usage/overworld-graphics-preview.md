@@ -51,6 +51,22 @@ The map canvas, Tile16 source graphics and blockset, and destination-aware brush
 
 Remove the project setting, or open an ordinary project, to restore the normal graphics. Reopen the project after modifying a manifest or asset in place; this feature does not watch files for changes. The setting is supported by native `.yaze` projects; it is not a ZScream project export or a bundled-asset import feature.
 
+## Command-line renders
+
+`z3ed overworld-render` applies the same manifest when it runs with the project:
+
+```bash
+z3ed overworld-render --rom=<copy.sfc> --project-context=<project.yaze> --screen=0x30 --out=r30.png
+```
+
+The JSON result reports `graphics_preview` (`project`, `file`, `off`, or `none`), the manifest path, and `graphics_preview_applied` (whether the rendered area has a manifest entry). Options:
+
+- `--graphics-preview=off` renders the ROM's graphics sheets only, for comparison.
+- `--graphics-preview=on` fails when the project has no manifest instead of rendering without one.
+- `--graphics-preview=<manifest.json>` uses that manifest with or without a project, for example a scratch copy with a different `parent_map`.
+
+An invalid manifest stops the render with an error naming the manifest.
+
 ## Validation and limits
 
 Assets must exist, match `byte_count` exactly, and contain a nonempty multiple of 32 bytes. Transfers must be aligned to tile boundaries and fit within both VRAM and the configured 1,024-tile background character window. Duplicate parent entries, overlapping transfers within an area, unsupported formats, and malformed manifests are rejected. An invalid replacement configuration clears the previous preview instead of leaving unrelated project graphics active.

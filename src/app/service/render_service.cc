@@ -258,6 +258,9 @@ absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
 
   zelda3::Overworld overworld(rom_, game_data_);
   RETURN_IF_ERROR(overworld.Load(rom_));
+  if (!req.graphics_preview.empty()) {
+    overworld.SetGraphicsPreview(req.graphics_preview);
+  }
 
   const auto* requested = overworld.overworld_map(req.screen_id);
   if (requested == nullptr) {
@@ -302,6 +305,7 @@ absl::StatusOr<OverworldRenderResult> RenderService::RenderOverworldArea(
   result.requested_screen = req.screen_id;
   result.parent_screen = parent;
   result.area_size = area_name;
+  result.graphics_preview = req.graphics_preview.contains(parent);
 
   auto palette_rgb = [](const gfx::SnesPalette& palette, uint8_t idx,
                         uint8_t& r, uint8_t& g, uint8_t& b) {

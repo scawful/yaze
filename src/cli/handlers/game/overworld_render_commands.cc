@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "app/service/render_service.h"
 #include "cli/util/hex_util.h"
+#include "core/overworld_graphics_preview.h"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
@@ -71,6 +72,43 @@ std::optional<std::string> OutputArg(const resources::ArgumentParser& parser) {
 
 }  // namespace
 
+absl::StatusOr<OverworldRenderGraphicsPreview>
+ResolveOverworldRenderGraphicsPreview(const project::YazeProject* project,
+                                      const std::optional<std::string>& flag) {
+  OverworldRenderGraphicsPreview result;
+  const std::string value = flag.value_or("");
+  if (value == "off" || value == "false" || value == "0") {
+    result.mode = "off";
+    return result;
+  }
+  const bool required = value == "on" || value == "true" || value == "1";
+  if (!value.empty() && !required) {
+    result.mode = "file";
+    result.manifest = value;
+  } else if (project != nullptr &&
+             !project->overworld_graphics_preview.empty()) {
+    result.mode = "project";
+    result.manifest =
+        project->GetAbsolutePath(project->overworld_graphics_preview);
+  } else if (required) {
+    return absl::FailedPreconditionError(
+        "--graphics-preview=on needs --project-context with [files] "
+        "overworld_graphics_preview");
+  } else {
+    result.mode = "none";
+    return result;
+  }
+  auto preview = core::LoadOverworldGraphicsPreview(result.manifest);
+  if (!preview.ok()) {
+    return absl::Status(
+        preview.status().code(),
+        absl::StrFormat("--graphics-preview %s: %s", result.manifest,
+                        preview.status().message()));
+  }
+  result.preview = std::move(preview).value();
+  return result;
+}
+
 absl::Status OverworldRenderCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
   RETURN_IF_ERROR(parser.RequireArgs({"screen"}));
@@ -86,6 +124,11 @@ absl::Status OverworldRenderCommandHandler::ValidateArgs(
   }
   if (const auto ao = parser.GetString("area-overlay"); ao.has_value()) {
     RETURN_IF_ERROR(ParseAreaOverlay(*ao).status());
+  }
+  if (const auto gp = parser.GetString("graphics-preview");
+      gp.has_value() && gp->empty()) {
+    return absl::InvalidArgumentError(
+        "--graphics-preview must be on, off, or a manifest path");
   }
   if (const auto phase = parser.GetString("phase"); phase.has_value()) {
     int value = -1;
@@ -138,6 +181,10 @@ absl::Status OverworldRenderCommandHandler::ExecuteWithContext(
   if (auto ao = parser.GetString("area-overlay"); ao.has_value()) {
     ASSIGN_OR_RETURN(req.area_overlay, ParseAreaOverlay(*ao));
   }
+  ASSIGN_OR_RETURN(auto graphics_preview,
+                   ResolveOverworldRenderGraphicsPreview(
+                       project_, parser.GetString("graphics-preview")));
+  req.graphics_preview = std::move(graphics_preview.preview);
 
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -177,6 +224,11 @@ absl::Status OverworldRenderCommandHandler::ExecuteWithContext(
                      result.subscreen_overlay < 0
                          ? std::string("none")
                          : absl::StrFormat("0x%02X", result.subscreen_overlay));
+  formatter.AddField("graphics_preview", graphics_preview.mode);
+  if (!graphics_preview.manifest.empty()) {
+    formatter.AddField("graphics_preview_manifest", graphics_preview.manifest);
+  }
+  formatter.AddField("graphics_preview_applied", result.graphics_preview);
   formatter.BeginArray("screens");
   for (int s : result.screens)
     formatter.AddArrayItem(absl::StrFormat("0x%02X", s));
