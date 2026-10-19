@@ -256,6 +256,8 @@ class DungeonEditorV2 : public Editor {
   // Room management
   void add_room(int room_id);
   void FocusRoom(int room_id);
+  absl::Status LoadProposalForReview(const std::string& path);
+  std::string proposal_review_path() const;
 
   // Agent/Automation controls
   void SelectObject(int obj_id);

@@ -2298,6 +2298,22 @@ void DungeonEditorV2::FocusRoom(int room_id) {
   }
 }
 
+std::string DungeonEditorV2::proposal_review_path() const {
+  return workbench_panel_ ? workbench_panel_->loaded_proposal_path() : "";
+}
+
+absl::Status DungeonEditorV2::LoadProposalForReview(const std::string& path) {
+  if (!workbench_panel_) {
+    return absl::FailedPreconditionError("Dungeon Workbench is not loaded");
+  }
+  if (!workbench_panel_->LoadProposalOverlay(path)) {
+    return absl::InvalidArgumentError(workbench_panel_->proposal_error());
+  }
+  OpenWindow("dungeon.workbench");
+  workbench_panel_->RequestProposalPreview();
+  return absl::OkStatus();
+}
+
 void DungeonEditorV2::SelectObject(int obj_id) {
   if (object_selector_panel_) {
     object_selector_panel_->SelectObject(obj_id);

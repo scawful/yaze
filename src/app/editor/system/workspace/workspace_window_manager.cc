@@ -1045,9 +1045,17 @@ void WorkspaceWindowManager::DrawAllVisiblePanels() {
 
     alpha_guard.reset();
 
-    // Handle visibility change (window closed via X button)
-    if (visibility_flag && !*visibility_flag) {
+    // ImGui's title-bar X and content close actions change the flag directly.
+    // Persist that transition just like CloseWindowImpl, once rather than on
+    // every remaining fade-out frame, so a session switch cannot reopen it.
+    if (is_visible && visibility_flag && !*visibility_flag) {
+      pending_float_window_ids_.erase(prefixed_panel_id);
+      if (descriptor.on_hide) {
+        descriptor.on_hide();
+      }
       panel->OnClose();
+      PublishWindowVisibilityChanged(active_session_, prefixed_panel_id,
+                                     base_panel_id, descriptor.category, false);
     }
   }
 }

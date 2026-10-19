@@ -21,6 +21,7 @@
 #include "testing.h"
 
 #include "imgui/imgui.h"
+#include "nlohmann/json.hpp"
 
 namespace yaze::editor {
 namespace {
@@ -1628,6 +1629,110 @@ TEST(OracleProjectBuildAcceptance, SavedProjectBuildsFromProductCallback) {
   Rom compiled;
   ASSERT_OK(compiled.LoadFromFile(output_path));
   EXPECT_NE(compiled.vector(), manager->GetCurrentRom()->vector());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     EditorControlReportsActualIdentityAndRejectsBadProject) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp_dir(MakeTempDir("yaze_editor_control_identity"));
+  const auto rom = temp_dir.path / "game.sfc";
+  const auto project = temp_dir.path / "game.yaze";
+  WriteRomFile(rom);
+  WriteProjectFile(project, "Control Project", rom);
+  auto opened = nlohmann::json::parse(manager->ExecuteEditorControl(
+      nlohmann::json({{"command", "project.open"}, {"path", project.string()}})
+          .dump()));
+  ASSERT_EQ(opened["status"], "ok") << opened.dump();
+  EXPECT_EQ(opened["state"]["rom_path"], rom.string());
+  EXPECT_EQ(opened["state"]["project_path"], project.string());
+  auto* original_rom = manager->GetCurrentRom();
+  const auto original_session = manager->GetCurrentSessionId();
+  const auto bad_project = temp_dir.path / "missing-rom.yaze";
+  WriteProjectFile(bad_project, "Bad Project", temp_dir.path / "missing.sfc");
+  auto rejected = nlohmann::json::parse(manager->ExecuteEditorControl(
+      nlohmann::json(
+          {{"command", "project.open"}, {"path", bad_project.string()}})
+          .dump()));
+  EXPECT_EQ(rejected["status"], "error");
+  EXPECT_EQ(rejected["state"]["project_path"], project.string());
+  EXPECT_EQ(rejected["state"]["rom_path"], rom.string());
+  EXPECT_EQ(manager->GetCurrentRom(), original_rom);
+  EXPECT_EQ(manager->GetCurrentSessionId(), original_session);
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     EditorControlRejectsDirtyRomWithoutDiscardOrDialog) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp_dir(MakeTempDir("yaze_editor_control_dirty"));
+  const auto rom = temp_dir.path / "game.sfc";
+  WriteRomFile(rom);
+  ASSERT_OK(manager->OpenRomOrProject(rom.string()));
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  const auto before = manager->GetCurrentRom()->vector();
+  auto rejected = nlohmann::json::parse(manager->ExecuteEditorControl(
+      nlohmann::json({{"command", "project.open"},
+                      {"path", (temp_dir.path / "next.yaze").string()}})
+          .dump()));
+  EXPECT_EQ(rejected["http_status"], 409);
+  EXPECT_EQ(rejected["state"]["unsaved"], true);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), before);
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     EditorControlCapturesLiveProjectDraftBeforeGuard) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir temp_dir(MakeTempDir("yaze_editor_control_draft"));
+  const auto rom = temp_dir.path / "game.sfc";
+  const auto project = temp_dir.path / "game.yaze";
+  WriteRomFile(rom);
+  WriteProjectFile(project, "Original", rom);
+  ASSERT_OK(manager->OpenRomOrProject(project.string()));
+  manager->ShowProjectFileEditor();
+  const auto draft = MakeModifiedProjectDraft(
+      manager->project_file_editor(), manager->GetCurrentProject(),
+      ProjectFileContents("Unsaved Draft", rom));
+  auto rejected = nlohmann::json::parse(manager->ExecuteEditorControl(
+      nlohmann::json({{"command", "project.open"},
+                      {"path", (temp_dir.path / "next.yaze").string()}})
+          .dump()));
+  EXPECT_EQ(rejected["http_status"], 409);
+  EXPECT_EQ(rejected["state"]["unsaved"], true);
+  EXPECT_EQ(manager->project_file_editor()->CaptureState().text, draft.text);
+  EXPECT_TRUE(manager->project_file_editor()->CaptureState().modified);
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     EditorControlRejectsMalformedAndOutOfRangeCommands) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  for (const auto* request :
+       {"{", R"({"command":"shell"})",
+        R"({"command":"dungeon.select","room":296})",
+        R"({"command":"dungeon.select","room":-1})",
+        R"({"command":"dungeon.select","room":1.5})",
+        R"({"command":"project.open","path":"relative.yaze"})"}) {
+    const auto response =
+        nlohmann::json::parse(manager->ExecuteEditorControl(request));
+    EXPECT_EQ(response["http_status"], 400) << request;
+    EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  }
 }
 
 }  // namespace

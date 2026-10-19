@@ -2316,5 +2316,28 @@ TEST(DungeonWorkbenchProjectLabelsTest,
   std::filesystem::remove_all(root);
 }
 
+TEST(DungeonWorkbenchContentTest,
+     ProposalIdentityTracksSuccessfulUiAndApiLoadsOnly) {
+  const auto root = MakeTempProjectRoot();
+  std::filesystem::create_directories(root);
+  const auto cleanup =
+      absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const std::string document =
+      R"({"format":"yaze-dungeon-proposal-overlay","version":1,"rooms":[101],"layers":[]})";
+  const auto a = root / "a.json";
+  const auto b = root / "b.json";
+  std::ofstream(a) << document;
+  std::ofstream(b) << document;
+  int room = 101;
+  const std::deque<int> recent;
+  auto workbench = MakeWorkbenchForToolStateTests(room, recent);
+  ASSERT_TRUE(workbench.LoadProposalOverlay(a.string()));
+  EXPECT_EQ(workbench.loaded_proposal_path(), a.string());
+  ASSERT_TRUE(workbench.LoadProposalOverlay(b.string()));
+  EXPECT_EQ(workbench.loaded_proposal_path(), b.string());
+  EXPECT_FALSE(workbench.LoadProposalOverlay((root / "missing.json").string()));
+  EXPECT_EQ(workbench.loaded_proposal_path(), b.string());
+}
+
 }  // namespace
 }  // namespace yaze::editor
