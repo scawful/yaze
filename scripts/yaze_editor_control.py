@@ -5,10 +5,15 @@ Example:
   yaze_editor_control.py --launch project-open /absolute/project.yaze --room 0x65
   yaze_editor_control.py proposal-load /absolute/proposal.json
   yaze_editor_control.py panel-hide dungeon.object_tile_editor
+  yaze_editor_control.py status > /absolute/expected-editor.json
+  yaze_editor_control.py project-rom-swap /absolute/candidate.sfc \
+    --sha256 <candidate-sha256> --expected-state /absolute/expected-editor.json
 
 --launch starts /Applications/yaze.app only if no Yaze process is running.
 An already running app without --editor_control must be restarted deliberately.
-The client never saves, discards, edits ROM data, or closes a running app.
+ROM swap updates the project descriptor only after exact identity and digest
+checks. The client never saves pending edits, discards, edits ROM bytes, or
+closes a running app. A rejected swap is never retried with a refreshed identity.
 """
 import argparse
 import json
@@ -20,6 +25,34 @@ import urllib.error
 import urllib.request
 
 PROTOCOL = "yaze-editor-control/v1"
+
+
+def swap_request(path, sha256, expected_state):
+    """Use a caller-retained status receipt, never a freshly probed identity."""
+    def digest(value):
+        if not isinstance(value, str) or len(value) != 64 or any(
+                char not in "0123456789abcdef" for char in value):
+            raise ValueError("SHA256 must contain 64 lowercase hexadecimal characters")
+        return value
+
+    receipt = json.loads(expected_state.expanduser().read_text())
+    if (not isinstance(receipt, dict) or receipt.get("protocol") != PROTOCOL or
+            receipt.get("status") != "ok" or not isinstance(receipt.get("state"), dict)):
+        raise ValueError("Expected state must be a successful editor status receipt")
+    state = receipt["state"]
+    expected = {key: state.get(key) for key in
+                ("pid", "session_id", "project_path", "rom_path", "rom_sha256")}
+    for key in ("pid", "session_id"):
+        value = expected[key]
+        if type(value) is not int or value < 0 or (key == "pid" and value == 0):
+            raise ValueError(f"Expected state has no valid {key}")
+    for key in ("project_path", "rom_path"):
+        value = expected[key]
+        if not isinstance(value, str) or "\0" in value or not Path(value).is_absolute():
+            raise ValueError(f"Expected state has no absolute {key}")
+    digest(expected["rom_sha256"])
+    return {"command": "project.rom.swap", "path": str(path.expanduser().resolve()),
+            "candidate_sha256": digest(sha256), "expected": expected}
 
 
 def command(port, body, timeout=120):
@@ -92,6 +125,11 @@ def main():
     project = sub.add_parser("project-open")
     project.add_argument("path", type=Path)
     project.add_argument("--room", type=lambda value: int(value, 0))
+    swap = sub.add_parser("project-rom-swap")
+    swap.add_argument("path", type=Path)
+    swap.add_argument("--sha256", required=True)
+    swap.add_argument("--expected-state", type=Path, required=True,
+                      help="Saved status JSON containing the expected editor identity")
     room = sub.add_parser("dungeon-select")
     room.add_argument("room", type=lambda value: int(value, 0))
     proposal = sub.add_parser("proposal-load")
@@ -100,13 +138,18 @@ def main():
     panel.add_argument("panel")
     args = parser.parse_args()
     try:
+        swap_body = (swap_request(args.path, args.sha256, args.expected_state)
+                     if args.action == "project-rom-swap" else None)
         status = connect(args.port, args.launch, args.executable)
         if status.get("status") != "ok":
             print(json.dumps(status, indent=2))
             return 1
+        if swap_body and "project.rom.swap" not in status.get(
+                "capabilities", {}).get("commands", []):
+            raise RuntimeError("This editor does not support guarded project.rom.swap")
         operations = []
         if args.action != "status":
-            body = {"command": args.action.replace("-", ".")}
+            body = swap_body or {"command": args.action.replace("-", ".")}
             if hasattr(args, "path"):
                 body["path"] = str(args.path.expanduser().resolve())
             if args.action == "dungeon-select":

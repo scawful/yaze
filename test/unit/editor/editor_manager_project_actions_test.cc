@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
@@ -14,9 +15,11 @@
 #include "absl/status/status.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/palette_catalog.h"
+#include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
 #include "testing.h"
 
@@ -1733,6 +1736,230 @@ TEST(EditorManagerProjectActionsTest,
     EXPECT_EQ(response["http_status"], 400) << request;
     EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
   }
+}
+
+class EditorControlRomSwapTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ::yaze::test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
+    manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+    WriteRomFile(rom_path_, "CURRENT ROM");
+    WriteRomFile(candidate_path_, "CANDIDATE ROM");
+    WriteProjectFile(project_path_, "Private Project", rom_path_);
+    std::ofstream(project_path_, std::ios::app)
+        << "\n[private_extension]\n# retain this comment\nunknown_key=value\n";
+    ASSERT_OK(manager_->OpenRomOrProject(project_path_.string()));
+    descriptor_before_ = ReadFile(project_path_);
+    rom_before_ = manager_->GetCurrentRom()->vector();
+  }
+
+  nlohmann::json State() {
+    return nlohmann::json::parse(
+        manager_->ExecuteEditorControl(R"({"command":"status"})"))["state"];
+  }
+  nlohmann::json Request() {
+    return {{"command", "project.rom.swap"},
+            {"path", candidate_path_.string()},
+            {"candidate_sha256",
+             core::ComputeSourceArtifactSha256(ReadFile(candidate_path_))},
+            {"expected", State()}};
+  }
+  nlohmann::json Execute(const nlohmann::json& request) {
+    return nlohmann::json::parse(
+        manager_->ExecuteEditorControl(request.dump()));
+  }
+  void ExpectUnchanged() {
+    EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before_);
+    EXPECT_EQ(manager_->GetCurrentRom()->filename(), rom_path_.string());
+    EXPECT_EQ(ReadFile(project_path_), descriptor_before_);
+  }
+
+  ScopedImGuiContext imgui_;
+  ScopedTempDir temp_dir_{MakeTempDir("yaze_editor_control_swap")};
+  const std::filesystem::path rom_path_ = temp_dir_.path / "current.sfc";
+  const std::filesystem::path candidate_path_ =
+      temp_dir_.path / "candidate.sfc";
+  const std::filesystem::path project_path_ = temp_dir_.path / "private.yaze";
+  std::unique_ptr<gfx::NullRenderer> renderer_ =
+      std::make_unique<gfx::NullRenderer>();
+  std::unique_ptr<EditorManager> manager_ = std::make_unique<EditorManager>();
+  std::string descriptor_before_;
+  std::vector<uint8_t> rom_before_;
+};
+
+TEST_F(EditorControlRomSwapTest, RejectsEachStaleIdentityAndMalformedArgument) {
+  const auto request = Request();
+  const std::vector<std::pair<std::string, nlohmann::json>> stale_fields = {
+      {"pid", request["expected"]["pid"].get<int>() + 1},
+      {"session_id", request["expected"]["session_id"].get<size_t>() + 1},
+      {"project_path", (temp_dir_.path / "other.yaze").string()},
+      {"rom_path", candidate_path_.string()},
+      {"rom_sha256", std::string(64, '0')}};
+  for (const auto& [field, value] : stale_fields) {
+    SCOPED_TRACE(field);
+    auto changed = request;
+    changed["expected"][field] = value;
+    const auto rejected = Execute(changed);
+    EXPECT_EQ(rejected["http_status"], 409) << rejected.dump();
+    EXPECT_EQ(rejected["state"], request["expected"]);
+    ExpectUnchanged();
+  }
+  const std::vector<std::pair<std::string, nlohmann::json>> invalid_fields = {
+      {"pid", true},
+      {"session_id", 1.5},
+      {"pid", -1},
+      {"pid", 0},
+      {"project_path", "relative.yaze"},
+      {"rom_path", nullptr},
+      {"rom_sha256", std::string(64, 'A')}};
+  for (const auto& [field, value] : invalid_fields) {
+    SCOPED_TRACE(field);
+    auto changed = request;
+    changed["expected"][field] = value;
+    EXPECT_EQ(Execute(changed)["http_status"], 400);
+    ExpectUnchanged();
+  }
+  for (const auto* field :
+       {"pid", "session_id", "project_path", "rom_path", "rom_sha256"}) {
+    auto changed = request;
+    changed["expected"].erase(field);
+    EXPECT_EQ(Execute(changed)["http_status"], 400) << field;
+  }
+  for (const auto* field : {"expected", "candidate_sha256", "path"}) {
+    auto changed = request;
+    changed.erase(field);
+    EXPECT_EQ(Execute(changed)["http_status"], 400) << field;
+  }
+  auto changed = request;
+  changed["candidate_sha256"] = "bad digest";
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  changed = request;
+  changed["path"] = "relative.sfc";
+  EXPECT_EQ(Execute(changed)["http_status"], 400);
+  ExpectUnchanged();
+  EXPECT_FALSE(manager_->HasPendingUnsavedSessionAction());
+}
+
+TEST_F(EditorControlRomSwapTest, RejectsCandidateChangedAfterReceipt) {
+  const auto request = Request();
+  WriteRomFile(candidate_path_, "CHANGED AFTER RECEIPT");
+  const auto rejected = Execute(request);
+  EXPECT_EQ(rejected["http_status"], 409) << rejected.dump();
+  EXPECT_EQ(rejected["state"], request["expected"]);
+  ExpectUnchanged();
+  // Status describes the loaded bytes even if their backing file has changed.
+  WriteRomFile(rom_path_, "CHANGED ON DISK");
+  EXPECT_EQ(State()["rom_sha256"], request["expected"]["rom_sha256"]);
+}
+
+TEST_F(EditorControlRomSwapTest, SwapsExactBytesAndReopensPreservedProject) {
+  auto request = Request();
+  const auto original_bytes = ReadFile(rom_path_);
+  const auto candidate_bytes = ReadFile(candidate_path_);
+  const auto session_id = manager_->GetCurrentSessionId();
+  // Equivalent canonical identities are allowed; textual differences alone
+  // must not turn a retained identity into a different editor.
+  request["expected"]["project_path"] =
+      (temp_dir_.path / "." / "private.yaze").string();
+  request["expected"]["rom_path"] =
+      (temp_dir_.path / "." / "current.sfc").string();
+  const auto response = Execute(request);
+  ASSERT_EQ(response["status"], "ok") << response.dump();
+  EXPECT_EQ(response["state"]["rom_path"], candidate_path_.string());
+  EXPECT_EQ(response["state"]["rom_sha256"], request["candidate_sha256"]);
+  EXPECT_EQ(response["state"]["session_id"], session_id);
+  EXPECT_EQ(response["state"]["project_path"], project_path_.string());
+  EXPECT_EQ(response["state"]["unsaved"], false);
+  const auto& commands = response["capabilities"]["commands"];
+  EXPECT_NE(std::find(commands.begin(), commands.end(), "project.rom.swap"),
+            commands.end());
+  EXPECT_NE(ReadFile(project_path_).find("unknown_key=value"),
+            std::string::npos);
+  EXPECT_NE(ReadFile(project_path_).find("# retain this comment"),
+            std::string::npos);
+  EXPECT_EQ(ReadFile(rom_path_), original_bytes);
+  EXPECT_EQ(ReadFile(candidate_path_), candidate_bytes);
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager_, renderer_.get());
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(project_path_.string()));
+  EXPECT_EQ(State()["rom_sha256"], request["candidate_sha256"]);
+  EXPECT_EQ(State()["rom_path"], candidate_path_.string());
+}
+
+TEST_F(EditorControlRomSwapTest, RejectsLiveRawDraftAndPendingAction) {
+  const auto request = Request();
+  manager_->ShowProjectFileEditor();
+  const auto draft = MakeModifiedProjectDraft(
+      manager_->project_file_editor(), manager_->GetCurrentProject(),
+      ProjectFileContents("Unsaved Draft", rom_path_));
+  EXPECT_EQ(Execute(request)["http_status"], 409);
+  EXPECT_EQ(manager_->project_file_editor()->CaptureState().text, draft.text);
+  ExpectUnchanged();
+  ASSERT_OK(manager_->OpenRomOrProject(candidate_path_.string()));
+  ASSERT_TRUE(manager_->HasPendingUnsavedSessionAction());
+  auto clean = draft;
+  clean.modified = false;
+  manager_->project_file_editor()->RestoreState(clean,
+                                                manager_->GetCurrentProject());
+  const auto rejected = Execute(request);
+  EXPECT_EQ(rejected["http_status"], 409);
+  EXPECT_EQ(rejected["state"]["pending_action"], true);
+  EXPECT_TRUE(manager_->HasPendingUnsavedSessionAction());
+  ExpectUnchanged();
+}
+
+TEST_F(EditorControlRomSwapTest, RejectsDraftInInactiveSession) {
+  const auto other = temp_dir_.path / "other.sfc";
+  WriteRomFile(other, "OTHER SESSION");
+  ASSERT_OK(manager_->OpenRomOrProject(other.string()));
+  const auto inactive_index = manager_->GetCurrentSessionIndex();
+  manager_->SwitchToSession(0);
+  ASSERT_EQ(manager_->GetCurrentProject()->filepath, project_path_.string());
+  auto* inactive = static_cast<RomSession*>(
+      manager_->session_coordinator()->GetSession(inactive_index));
+  ASSERT_NE(inactive, nullptr);
+  inactive->project_file_editor_state.initialized = true;
+  inactive->project_file_editor_state.modified = true;
+  inactive->project_file_editor_state.text = "retained inactive draft";
+  const auto rejected = Execute(Request());
+  EXPECT_EQ(rejected["http_status"], 409) << rejected.dump();
+  EXPECT_EQ(inactive->project_file_editor_state.text,
+            "retained inactive draft");
+  EXPECT_TRUE(inactive->project_file_editor_state.modified);
+  ExpectUnchanged();
+}
+
+TEST_F(EditorControlRomSwapTest, RejectsLyraDraftThroughRemoteAndGuiPaths) {
+  const char* fixture = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!fixture || !*fixture)
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to the main-project canvas ROM";
+  std::filesystem::copy_file(fixture, rom_path_,
+                             std::filesystem::copy_options::overwrite_existing);
+  ASSERT_OK(manager_->ReloadProjectRom());
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager_->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  const auto before = manager_->GetCurrentRom()->vector();
+  const auto request = Request();
+  ASSERT_OK(editor->lyra_canvas_.Create(manager_->GetCurrentProject(),
+                                        editor->overworld()));
+  ASSERT_TRUE(editor->HasPendingProjectDraftChanges());
+  ASSERT_FALSE(manager_->GetCurrentRom()->dirty());
+  const auto* document = editor->lyra_canvas_.document();
+  EXPECT_EQ(Execute(request)["http_status"], 409);
+  EXPECT_EQ(manager_->SwapProjectRom(candidate_path_.string()).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(manager_->ReloadProjectRom().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(editor->lyra_canvas_.document(), document);
+  EXPECT_TRUE(editor->HasPendingProjectDraftChanges());
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), before);
+  EXPECT_EQ(ReadFile(project_path_), descriptor_before_);
+  EXPECT_FALSE(std::filesystem::exists(
+      manager_->GetCurrentProject()->lyra_terrain_file));
 }
 
 }  // namespace

@@ -482,7 +482,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   // Project management
   absl::Status LoadProjectWithRom(bool allow_dialogs = true);
-  absl::Status SwapProjectRom(const std::string& rom_path);
+  absl::Status SwapProjectRom(
+      const std::string& rom_path,
+      const std::optional<std::string>& expected_sha256 = std::nullopt);
   absl::Status ReloadProjectRom();
   project::YazeProject* GetCurrentProject() { return &current_project_; }
   const project::YazeProject* GetCurrentProject() const {

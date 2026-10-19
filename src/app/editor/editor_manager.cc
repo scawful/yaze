@@ -23,6 +23,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -98,6 +99,7 @@
 #include "core/palette_catalog.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
+#include "core/source_artifact_publisher.h"
 #include "editor/core/content_registry.h"
 #include "editor/core/editor_context.h"
 #include "editor/events/core_events.h"
@@ -2963,6 +2965,18 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
   json response = {{"protocol", "yaze-editor-control/v1"},
                    {"status", "ok"},
                    {"http_status", 200}};
+  response["capabilities"]["commands"] = {"status",           "project.open",
+                                          "project.rom.swap", "dungeon.select",
+                                          "proposal.load",    "panel.hide"};
+#ifdef _WIN32
+  const auto pid = _getpid();
+#else
+  const auto pid = getpid();
+#endif
+  const auto rom_sha256 = [](const Rom& rom) {
+    return core::ComputeSourceArtifactSha256(std::string_view(
+        reinterpret_cast<const char*>(rom.data()), rom.size()));
+  };
   auto fail = [&](int code, const std::string& message) {
     response["status"] = "error";
     response["http_status"] = code;
@@ -3002,6 +3016,62 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
         const auto status = OpenRomOrProjectInternal(path, false);
         if (!status.ok())
           fail(422, std::string(status.message()));
+      }
+    } else if (command == "project.rom.swap") {
+      const auto path = path_argument();
+      const auto hash_argument = [](const json& value) {
+        const auto hash = value.get<std::string>();
+        if (hash.size() != 64 ||
+            !std::all_of(hash.begin(), hash.end(), [](char ch) {
+              return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f');
+            })) {
+          throw std::invalid_argument(
+              "SHA256 must contain 64 lowercase hexadecimal characters");
+        }
+        return hash;
+      };
+      const auto candidate_sha256 = hash_argument(body.at("candidate_sha256"));
+      const auto& expected = body.at("expected");
+      for (const auto* field : {"pid", "session_id"}) {
+        if (!expected.at(field).is_number_integer() || expected.at(field) < 0 ||
+            (std::string_view(field) == "pid" && expected.at(field) == 0)) {
+          throw std::invalid_argument(
+              "expected pid and session_id must be valid nonnegative integers");
+        }
+      }
+      const auto expected_path = [&](const char* field) {
+        const auto value = expected.at(field).get<std::string>();
+        if (value.empty() || value.find('\0') != std::string::npos ||
+            !std::filesystem::path(value).is_absolute()) {
+          throw std::invalid_argument(std::string("expected ") + field +
+                                      " must be an absolute local path");
+        }
+        return value;
+      };
+      const auto project_path = expected_path("project_path");
+      const auto current_rom_path = expected_path("rom_path");
+      const auto current_sha256 = hash_argument(expected.at("rom_sha256"));
+      const auto* rom = GetCurrentRom();
+      if (HasAnySessionPendingUnsavedWork() ||
+          HasPendingUnsavedSessionAction()) {
+        fail(409, "ROM swap blocked by pending work or action: " +
+                      DescribeAllPendingUnsavedWork());
+      } else if (!current_project_.project_opened() || !rom ||
+                 !rom->is_loaded() || expected.at("pid") != pid ||
+                 expected.at("session_id") != GetCurrentSessionId() ||
+                 !SessionCoordinator::PathsReferToSameBackingFile(
+                     project_path, current_project_.filepath) ||
+                 !SessionCoordinator::PathsReferToSameBackingFile(
+                     current_rom_path, rom->filename()) ||
+                 current_sha256 != rom_sha256(*rom)) {
+        fail(409,
+             "ROM swap expected identity does not match the active editor");
+      } else {
+        const auto status = SwapProjectRom(path, candidate_sha256);
+        if (!status.ok()) {
+          fail(absl::IsAborted(status) ? 409 : 422,
+               std::string(status.message()));
+        }
       }
     } else if (command == "dungeon.select" || command == "proposal.load") {
       int room = -1;
@@ -3060,22 +3130,21 @@ std::string EditorManager::ExecuteEditorControl(const std::string& request) {
   }
   // Report the state after completion or rejection, never the requested path.
   json state;
-#ifdef _WIN32
-  state["pid"] = _getpid();
-#else
-  state["pid"] = getpid();
-#endif
+  state["pid"] = pid;
   state["project_path"] = current_project_.filepath;
   state["session_id"] = GetCurrentSessionId();
   state["unsaved"] = HasAnySessionPendingUnsavedWork();
   state["unsaved_detail"] = DescribeAllPendingUnsavedWork();
+  state["pending_action"] = HasPendingUnsavedSessionAction();
   if (auto* rom = GetCurrentRom(); rom && rom->is_loaded()) {
     state["rom_path"] = rom->filename();
     state["rom_title"] = rom->title();
     state["rom_size"] = rom->size();
     state["rom_dirty"] = rom->dirty();
+    state["rom_sha256"] = rom_sha256(*rom);
   } else {
     state["rom_path"] = nullptr;
+    state["rom_sha256"] = nullptr;
   }
   state["room"] = nullptr;
   state["proposal_path"] = nullptr;
@@ -3481,7 +3550,9 @@ absl::Status EditorManager::ValidateProjectRomSelection(
   return absl::OkStatus();
 }
 
-absl::Status EditorManager::SwapProjectRom(const std::string& rom_path) {
+absl::Status EditorManager::SwapProjectRom(
+    const std::string& rom_path,
+    const std::optional<std::string>& expected_sha256) {
   if (rom_path.empty()) {
     return absl::InvalidArgumentError("ROM path cannot be empty");
   }
@@ -3493,9 +3564,10 @@ absl::Status EditorManager::SwapProjectRom(const std::string& rom_path) {
       !current_project_.project_opened()) {
     return absl::FailedPreconditionError("No active project ROM session");
   }
-  if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+  if (SessionHasPendingRomWork(GetCurrentSessionIndex()) ||
+      session->editors.HasPendingProjectDraftChanges()) {
     return absl::FailedPreconditionError(
-        "Save or discard ROM edits before swapping the project ROM");
+        "Save or discard ROM or project edits before swapping the project ROM");
   }
   CaptureActiveProjectEditingState();
   if (session->project_file_editor_state.initialized &&
@@ -3509,6 +3581,15 @@ absl::Status EditorManager::SwapProjectRom(const std::string& rom_path) {
       rom_path, session->session_id()));
   Rom replacement_rom;
   RETURN_IF_ERROR(rom_file_manager_.LoadRom(&replacement_rom, rom_path));
+  // Bind approval to the bytes that will replace the session, not a separate
+  // file read that could change before LoadRom. Reject before descriptor Save.
+  if (expected_sha256 &&
+      *expected_sha256 !=
+          core::ComputeSourceArtifactSha256(std::string_view(
+              reinterpret_cast<const char*>(replacement_rom.data()),
+              replacement_rom.size()))) {
+    return absl::AbortedError("Loaded candidate ROM SHA256 does not match");
+  }
 
   // Save As deliberately leaves the project's collision source untouched.
   // Refuse an incompatible copy before saving the descriptor or rebuilding
@@ -3586,9 +3667,10 @@ absl::Status EditorManager::ReloadProjectRom() {
       current_project_.rom_filename.empty()) {
     return absl::FailedPreconditionError("No active project ROM to reload");
   }
-  if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+  if (SessionHasPendingRomWork(GetCurrentSessionIndex()) ||
+      session->editors.HasPendingProjectDraftChanges()) {
     return absl::FailedPreconditionError(
-        "Save or discard ROM edits before reloading from disk");
+        "Save or discard ROM or project edits before reloading from disk");
   }
 
   RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
@@ -5418,6 +5500,15 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
 
   editor_set->ApplyDependencies(deps);
 
+  if (auto* overworld =
+          editor_set->GetEditorAs<OverworldEditor>(EditorType::kOverworld)) {
+    overworld->SetProjectContextProvider(
+        [this, session_id]() -> project::YazeProject* {
+          return IsCurrentProjectContextOwnedBySession(session_id)
+                     ? &current_project_
+                     : nullptr;
+        });
+  }
   if (auto* settings_panel = editor_set->GetSettingsPanel()) {
     // Settings edit the same active project that CaptureActiveProjectContext
     // persists. Editing the session snapshot directly loses changes when the
