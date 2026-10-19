@@ -98,6 +98,30 @@ TEST_F(CollisionSourcePairingTest, UnchangedCollisionLeavesJsonUntouched) {
   EXPECT_FALSE(rom_.dirty());
 }
 
+TEST_F(CollisionSourcePairingTest,
+       FormattedSourceBindsAndUnchangedSavePreservesItsBytes) {
+  // Reverse both object-key orders, use compact arrays, and add whitespace
+  // after the document: the room and tile data are still the fixture's data.
+  const std::string formatted =
+      "{\"version\": 1, \"rooms\": [\n"
+      " {\"tiles\": [[100, 183]], \"room_id\": \"0x25\"}\n"
+      "]}\n\n";
+  WriteFile(json_path_, formatted);
+  const auto json_time = fs::last_write_time(json_path_);
+  const auto rom_before = ReadFile(rom_path_);
+
+  ASSERT_TRUE(ValidateRomCollisionSourceBinding(&rom_, json_path_).ok());
+  EXPECT_EQ(ReadFile(rom_path_), rom_before);
+  EXPECT_EQ(ReadFile(json_path_), formatted);
+  ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
+  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+
+  EXPECT_EQ(ReadFile(json_path_), formatted);
+  EXPECT_EQ(fs::last_write_time(json_path_), json_time);
+  EXPECT_EQ(static_cast<uint8_t>(ReadFile(rom_path_)[0x100]), 0x42);
+  EXPECT_FALSE(rom_.dirty());
+}
+
 TEST_F(CollisionSourcePairingTest, ChangedCollisionWritesBothFiles) {
   const std::string json_before = ReadFile(json_path_);
   SetCollisionTile(&rom_, 200, 0xB0);
@@ -110,6 +134,23 @@ TEST_F(CollisionSourcePairingTest, ChangedCollisionWritesBothFiles) {
   ASSERT_TRUE(expected.ok());
   EXPECT_EQ(ReadFile(json_path_), *expected);
   EXPECT_NE(ReadFile(json_path_), json_before);
+  EXPECT_FALSE(rom_.dirty());
+}
+
+TEST_F(CollisionSourcePairingTest,
+       ChangedCollisionAcceptsFormattedDiskBaseline) {
+  WriteFile(json_path_,
+            "{\"version\":1,\"rooms\":[{\"tiles\":[[100,183]],"
+            "\"room_id\":\"0x25\"}]}\n");
+  SetCollisionTile(&rom_, 200, 0xB0);
+
+  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+
+  auto expected = zelda3::DumpCustomCollisionSourceFromRom(&rom_);
+  ASSERT_TRUE(expected.ok());
+  EXPECT_EQ(ReadFile(json_path_), *expected);
+  EXPECT_EQ(ReadFile(rom_path_),
+            std::string(rom_.vector().begin(), rom_.vector().end()));
   EXPECT_FALSE(rom_.dirty());
 }
 
@@ -136,12 +177,68 @@ TEST_F(CollisionSourcePairingTest, JsonEditedOutsideYazeIsRefused) {
   SetCollisionTile(&rom_, 200, 0xB0);
   rom_.set_dirty(true);
 
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      ValidateRomCollisionSourceBinding(&rom_, json_path_)));
   const auto status = SaveRomWithCollisionSource(&rom_, json_path_);
 
   EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
   EXPECT_EQ(ReadFile(json_path_), *edited);
   EXPECT_EQ(ReadFile(rom_path_), rom_before);
   EXPECT_TRUE(rom_.dirty());
+}
+
+TEST_F(CollisionSourcePairingTest, RemovedExplicitFloorRefusesSaveAndRebind) {
+  zelda3::CustomCollisionMap map;
+  map.SetOverride(100, 0x00);
+  map.SetOverride(200, 0xB7);
+  ASSERT_TRUE(zelda3::WriteTrackCollision(&rom_, kRoom, map).ok());
+  ASSERT_TRUE(SaveRomWithCollisionSource(&rom_, json_path_).ok());
+  const auto rom_before = ReadFile(rom_path_);
+  // Omitting offset 100 is a real change, even though its override is zero.
+  const std::string removed_floor =
+      "{\"rooms\":[{\"room_id\":\"0x25\",\"tiles\":[[200,183]]}],"
+      "\"version\":1}\n";
+  WriteFile(json_path_, removed_floor);
+  ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      ValidateRomCollisionSourceBinding(&rom_, json_path_)));
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      SaveRomWithCollisionSource(&rom_, json_path_)));
+
+  EXPECT_EQ(ReadFile(json_path_), removed_floor);
+  EXPECT_EQ(ReadFile(rom_path_), rom_before);
+  EXPECT_TRUE(rom_.dirty());
+}
+
+TEST_F(CollisionSourcePairingTest, MalformedSourceRefusesSaveAndRebind) {
+  const auto rom_before = ReadFile(rom_path_);
+  ASSERT_TRUE(rom_.WriteByte(0x100, 0x42).ok());
+  const std::vector<std::string> invalid_sources = {
+      "{",
+      ReadFile(json_path_) + '\0' + "ignored trailing data",
+      // A default JSON parser keeps the last duplicate key and would falsely
+      // equate this ambiguous document with the ROM's canonical version 1.
+      R"({"version":2,"version":1,"rooms":[{"room_id":"0x25","tiles":[[100,183]]}]})",
+      R"({"version":1,"rooms":[{"room_id":"0x25","room_id":"0x25","tiles":[[100,183]]}]})",
+      R"({"version":1.0,"rooms":[{"room_id":"0x25","tiles":[[100,183]]}]})",
+      // The authoring import parser skips non-object room entries and keeps
+      // the last duplicate tile offset. Neither is safe for a binding guard.
+      R"({"version":1,"rooms":[{"room_id":"0x25","tiles":[[100,183]]},42]})",
+      R"({"version":1,"rooms":[{"room_id":"0x25","tiles":[[100,0],[100,183]]}]})",
+  };
+  for (const auto& source : invalid_sources) {
+    SCOPED_TRACE(source);
+    WriteFile(json_path_, source);
+
+    EXPECT_TRUE(absl::IsFailedPrecondition(
+        ValidateRomCollisionSourceBinding(&rom_, json_path_)));
+    EXPECT_TRUE(absl::IsFailedPrecondition(
+        SaveRomWithCollisionSource(&rom_, json_path_)));
+    EXPECT_EQ(ReadFile(json_path_), source);
+    EXPECT_EQ(ReadFile(rom_path_), rom_before);
+    EXPECT_TRUE(rom_.dirty());
+  }
 }
 
 TEST_F(CollisionSourcePairingTest, RebindPreflightAcceptsMatchingSourceAlias) {
