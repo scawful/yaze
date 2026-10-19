@@ -324,36 +324,36 @@ class RoomMatrixContent : public WindowContent {
             }
 
             if (rooms_) {
-              auto* loaded_room = rooms_->GetIfLoaded(room_id);
-              if (loaded_room != nullptr) {
-                // Show palette info
-                ImGui::TextDisabled(tr("Palette: %d | Blockset: %d"),
-                                    loaded_room->palette(),
-                                    loaded_room->blockset());
+              auto* room = rooms_->TryEnsureRoom(room_id);
+              if (room != nullptr) {
+                if (!room->IsLoaded() && rooms_->rom()) {
+                  *room = zelda3::LoadRoomFromRom(rooms_->rom(), room_id);
+                  room->SetGameData(rooms_->game_data());
+                }
+                ImGui::TextDisabled(
+                    "Palette: 0x%02X | Blockset: 0x%02X | Spriteset: 0x%02X",
+                    room->palette(), room->blockset(), room->spriteset());
+                ImGui::TextDisabled(
+                    "Objects: %zu | Sprites: %zu | Doors: %zu | Chests: %zu",
+                    room->GetTileObjects().size(), room->GetSprites().size(),
+                    room->GetDoors().size(), room->GetChests().size());
 
-                // Show thumbnail preview of the room
                 if (prepare_render_context_)
                   prepare_render_context_(room_id);
                 auto& preview_bitmap = PrepareCanonicalRoomComposite(
-                    *loaded_room, tooltip_composite_output_);
+                    *room, tooltip_composite_output_);
                 gfx::EnsureCompositeBitmapTextureQueued(preview_bitmap);
                 gfx::Arena::Get().ProcessTextureQueue(nullptr);
                 if (preview_bitmap.is_active() &&
                     preview_bitmap.texture() != 0) {
                   ImGui::Separator();
-                  // Render at thumbnail size (80x80 from 512x512)
-                  constexpr float kThumbnailSize = 80.0f;
+                  constexpr float kThumbnailSize = 144.0f;
                   ImGui::Image((ImTextureID)(intptr_t)preview_bitmap.texture(),
                                ImVec2(kThumbnailSize, kThumbnailSize));
                 }
               }
             }
 
-            ImGui::Separator();
-            ImGui::TextDisabled(tr("Click to %s"),
-                                (is_open || is_current) ? "focus" : "open");
-            ImGui::TextDisabled(tr("Double-click to open as panel"));
-            ImGui::TextDisabled(tr("Right-click for actions"));
             ImGui::EndTooltip();
           }
         } else {

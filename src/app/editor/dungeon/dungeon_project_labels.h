@@ -119,14 +119,44 @@ inline std::string GetRoomFloorLabel(const project::YazeProject* project,
   return std::string();
 }
 
+inline bool HasCustomRoomLabel(const project::YazeProject* project,
+                               int room_id) {
+  if (!project) {
+    return false;
+  }
+  const auto labels = LabelsForProject(project);
+  return labels.HasProjectLabel(zelda3::ResourceType::kRoom, room_id);
+}
+
+inline void SetRoomLabel(project::YazeProject* project, int room_id,
+                         const std::string& label) {
+  if (!project) {
+    return;
+  }
+  auto labels = LabelsForProject(project);
+  labels.SetProjectLabel(zelda3::ResourceType::kRoom, room_id, label);
+}
+
+inline void ClearRoomLabel(project::YazeProject* project, int room_id) {
+  if (!project) {
+    return;
+  }
+  auto labels = LabelsForProject(project);
+  labels.ClearProjectLabel(zelda3::ResourceType::kRoom, room_id);
+}
+
 inline std::string GetRoomLabel(const project::YazeProject* project,
                                 int room_id) {
+  const auto project_labels = LabelsForProject(project);
+  if (project &&
+      project_labels.HasProjectLabel(zelda3::ResourceType::kRoom, room_id)) {
+    return project_labels.GetLabel(zelda3::ResourceType::kRoom, room_id);
+  }
   if (const core::DungeonRoom* room = FindDungeonRoom(project, room_id);
       room && !room->name.empty()) {
     return room->name;
   }
-  auto& labels = zelda3::GetResourceLabels();
-  return labels.GetLabel(zelda3::ResourceType::kRoom, room_id);
+  return project_labels.GetLabel(zelda3::ResourceType::kRoom, room_id);
 }
 
 }  // namespace yaze::editor::dungeon_project_labels

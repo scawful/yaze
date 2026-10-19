@@ -1128,7 +1128,7 @@ TEST(DungeonObjectSelectorCustomEditorTest,
 
   const absl::Status status =
       DungeonObjectSelectorTestAccess::OpenExistingCustomObjectEditor(
-          selector, /*object_id=*/0x32, /*subtype=*/3, /*room_id=*/1);
+          selector, /*object_id=*/0x32, /*subtype=*/5, /*room_id=*/1);
 
   EXPECT_TRUE(absl::IsOutOfRange(status));
   EXPECT_EQ(open_window_count, 0);

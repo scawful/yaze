@@ -3,6 +3,10 @@
 
 #include <functional>
 #include <string>
+#include <unordered_map>
+#include <vector>
+
+#include <SDL.h>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -50,6 +54,18 @@ class DoorEditorContent : public WindowContent {
   bool CanEditRoom() const;
   DungeonCanvasViewer* ResolveCanvasViewer();
   void CancelPlacement();
+
+  struct CachedDoorPreview {
+    std::vector<uint8_t> pixels;
+    int width = 0;
+    int height = 0;
+  };
+
+  const CachedDoorPreview& GetOrCreateDoorPreview(zelda3::DoorType type,
+                                                  const zelda3::Room& room);
+
+  mutable std::unordered_map<int, CachedDoorPreview> door_preview_cache_;
+  mutable uint64_t cached_door_graphics_revision_ = 0;
 
   DungeonCanvasViewer* canvas_viewer_ = nullptr;
   std::function<DungeonCanvasViewer*()> canvas_viewer_provider_;

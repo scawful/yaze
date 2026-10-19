@@ -53,6 +53,11 @@ class DungeonWorkbenchContentTestPeer {
                                 DungeonCanvasViewer& viewer) {
     content.DrawInspectorShelfRoom(viewer);
   }
+  static void SetRoomInspectorSubTab(
+      DungeonWorkbenchContent& content,
+      DungeonWorkbenchContent::RoomInspectorSubTab tab) {
+    content.SetRoomInspectorSubTab(tab);
+  }
   static void DrawSelectedObjectActions(DungeonWorkbenchContent& content,
                                         DungeonCanvasViewer& viewer,
                                         size_t index) {

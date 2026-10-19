@@ -8,7 +8,13 @@ class Room;
 namespace yaze::editor {
 class DungeonCanvasViewer;
 
-enum class RoomPropertyLayout { kCompact, kFull };
+enum class RoomPropertyLayout {
+  kCompact,
+  kFull,
+  kCoreGraphics,
+  kTags,
+  kMechanics,
+};
 
 // Both hosts edit through the viewer's validated, undoable metadata callback.
 // Navigation and surrounding layout remain owned by each host.

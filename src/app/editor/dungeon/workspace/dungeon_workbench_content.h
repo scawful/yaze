@@ -192,6 +192,14 @@ class DungeonWorkbenchContent : public WindowContent {
     on_primary_canvas_drawn_ = std::move(cb);
   }
 
+  enum class RoomInspectorSubTab : uint8_t { Mechanics, Warps, TagsAndChests };
+  void SetRoomInspectorSubTab(RoomInspectorSubTab tab) {
+    room_inspector_sub_tab_ = tab;
+  }
+  RoomInspectorSubTab room_inspector_sub_tab() const {
+    return room_inspector_sub_tab_;
+  }
+
   // Lightweight state probes for unit tests; production rendering remains
   // driven by the Workbench inspector.
   bool IsToolInspectorActiveForTesting() const;
@@ -318,6 +326,10 @@ class DungeonWorkbenchContent : public WindowContent {
   enum class SidebarMode : uint8_t { Objects, Sprites, Doors, Items };
   SidebarMode sidebar_mode_ = SidebarMode::Objects;
   float navigator_tools_fraction_ = 0.40f;
+  bool show_room_matrix_ = true;
+
+  RoomInspectorSubTab room_inspector_sub_tab_ = RoomInspectorSubTab::Mechanics;
+
   enum class InspectorMode : uint8_t { Inspect, Tools };
   InspectorMode inspector_mode_ = InspectorMode::Inspect;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;

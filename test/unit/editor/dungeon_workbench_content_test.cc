@@ -2684,6 +2684,7 @@ TEST_F(DungeonWorkbenchResetUiTest,
   EXPECT_FALSE(Find("collision_tile_type")->enabled);
 
   Click("quick_collision_floor_00");
+  Frame();
   EXPECT_FALSE(mode_mgr.GetModeState().paint_collision_erase);
   EXPECT_EQ(mode_mgr.GetModeState().paint_collision_value, 0x00);
   // The combo is drawn before Quick Select, so its registered enabled state

@@ -8,12 +8,14 @@
 
 #include "imgui/imgui.h"
 
+#include <SDL.h>
 #include <array>
 #include <bitset>
 
 namespace yaze::zelda3 {
 class Room;
-}
+struct SpriteOamLayout;
+}  // namespace yaze::zelda3
 
 namespace yaze::editor {
 
@@ -44,6 +46,22 @@ class DungeonRenderingHelpers {
                                      ImU32 color);
 
   static std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y);
+
+  // Draws a sprite preview into any ImGui draw list within the given bounding box.
+  static bool DrawSpritePreview(ImDrawList* draw_list,
+                                const std::vector<uint8_t>& preview,
+                                const SDL_Rect& bounds, const ImVec2& box_min,
+                                const ImVec2& box_max,
+                                const std::array<SDL_Color, 256>& color_table);
+
+  // Maps a pot item ID (0..27) to its sprite OAM layout and sprite ID, if one exists.
+  static const zelda3::SpriteOamLayout* GetPotItemSpriteLayout(
+      uint8_t item_id, uint8_t* out_sprite_id = nullptr);
+
+  // Generates rendered sprite pixels and bounds for a pot item in the context of room gfx.
+  static bool BuildPotItemPreview(uint8_t item_id, const zelda3::Room& room,
+                                  std::vector<uint8_t>& out_pixels,
+                                  SDL_Rect& out_bounds);
 
   // Overlay rendering structures
   struct TrackCollisionConfig {
