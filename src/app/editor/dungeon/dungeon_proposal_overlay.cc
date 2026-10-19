@@ -19,12 +19,24 @@ absl::Status Invalid(const std::string& where, const std::string& what) {
       absl::StrFormat("proposal overlay %s: %s", where, what));
 }
 
+absl::StatusOr<int> ParseInteger(const json& value, const std::string& where,
+                                 const char* name, int min, int max) {
+  if (!value.is_number_integer() || value < min || value > max) {
+    return Invalid(where, absl::StrFormat("%s must be an integer in %d..%d",
+                                          name, min, max));
+  }
+  return value.get<int>();
+}
+
 // Accepts 135, "135", "0x87", or "$87".
 absl::StatusOr<int> ParseRoomId(const json& value, const std::string& where,
                                 int max_room_id) {
   int room = -1;
   if (value.is_number_integer()) {
-    room = value.get<int>();
+    auto number = ParseInteger(value, where, "room id", 0, max_room_id);
+    if (!number.ok())
+      return number.status();
+    room = *number;
   } else if (value.is_string()) {
     std::string text = value.get<std::string>();
     int base = 10;
@@ -62,13 +74,13 @@ absl::StatusOr<ProposalTile> ParseTile(const json& value,
       !value[1].is_number_integer()) {
     return Invalid(where, "tile must be [x, y] integers");
   }
-  ProposalTile tile{value[0].get<int>(), value[1].get<int>()};
-  if (tile.x < 0 || tile.x >= kProposalRoomTiles || tile.y < 0 ||
-      tile.y >= kProposalRoomTiles) {
-    return Invalid(where, absl::StrFormat("tile (%d,%d) is outside the room",
-                                          tile.x, tile.y));
-  }
-  return tile;
+  auto x = ParseInteger(value[0], where, "tile x", 0, kProposalRoomTiles - 1);
+  auto y = ParseInteger(value[1], where, "tile y", 0, kProposalRoomTiles - 1);
+  if (!x.ok())
+    return x.status();
+  if (!y.ok())
+    return y.status();
+  return ProposalTile{*x, *y};
 }
 
 std::string OptionalString(const json& object, const char* key) {
@@ -134,7 +146,8 @@ absl::StatusOr<ProposalShape> ParseShape(const json& value,
         return tile.status();
       shape.tiles.push_back(*tile);
     }
-  } else if (type == "marker" || type == "remove") {
+  } else if (type == "marker" || type == "remove" || type == "actor" ||
+             type == "object") {
     shape.type = type == "marker" ? ProposalShapeType::kMarker
                                   : ProposalShapeType::kRemove;
     auto it = value.find("tile");
@@ -145,10 +158,75 @@ absl::StatusOr<ProposalShape> ParseShape(const json& value,
     if (!tile.ok())
       return tile.status();
     shape.tiles = {*tile};
+    if (type == "actor") {
+      shape.type = ProposalShapeType::kActor;
+      const std::string facing = OptionalString(value, "facing");
+      if (facing == "north")
+        shape.facing = ProposalFacing::kNorth;
+      else if (facing == "east")
+        shape.facing = ProposalFacing::kEast;
+      else if (facing == "south")
+        shape.facing = ProposalFacing::kSouth;
+      else if (facing == "west")
+        shape.facing = ProposalFacing::kWest;
+      else
+        return Invalid(where,
+                       "actor needs facing: north, east, south, or west");
+      if (auto offset = value.find("offset"); offset != value.end()) {
+        auto parsed = ParseTile(*offset, where + " offset");
+        if (!parsed.ok())
+          return parsed.status();
+        if (parsed->x >= kProposalTilePixels ||
+            parsed->y >= kProposalTilePixels) {
+          return Invalid(where, "actor offset must be [x, y] pixels in 0..7");
+        }
+        shape.pixel_offset = *parsed;
+      }
+    } else if (type == "object") {
+      shape.type = ProposalShapeType::kObject;
+      auto id = value.find("object_id");
+      if (id == value.end())
+        return Invalid(where, "object needs object_id");
+      // Object IDs use the same decimal/$hex/0xhex notation as room IDs.
+      auto parsed_id = ParseRoomId(*id, where + " object_id", 0xFFF);
+      if (!parsed_id.ok())
+        return parsed_id.status();
+      if (!(*parsed_id <= 0xF7 ||
+            (*parsed_id >= 0x100 && *parsed_id <= 0x13F) ||
+            *parsed_id >= 0xF80)) {
+        return Invalid(where, "object_id is not an encodable dungeon object");
+      }
+      shape.object_id = *parsed_id;
+      for (const char* field : {"size", "list"}) {
+        if (auto entry = value.find(field); entry != value.end()) {
+          const bool is_size = std::string_view(field) == "size";
+          auto number =
+              ParseInteger(*entry, where, field, 0, is_size ? 255 : 2);
+          if (!number.ok())
+            return number.status();
+          (is_size ? shape.object_size : shape.object_list) = *number;
+        }
+      }
+      auto footprint = value.find("footprint");
+      if (footprint == value.end() || !footprint->is_array() ||
+          footprint->size() != 2) {
+        return Invalid(where,
+                       "object needs footprint: [width, height] in tiles");
+      }
+      auto width = ParseInteger((*footprint)[0], where, "footprint width", 1,
+                                kProposalRoomTiles - tile->x);
+      auto height = ParseInteger((*footprint)[1], where, "footprint height", 1,
+                                 kProposalRoomTiles - tile->y);
+      if (!width.ok())
+        return width.status();
+      if (!height.ok())
+        return height.status();
+      shape.footprint = {*width, *height};
+    }
   } else {
     return Invalid(where,
                    absl::StrFormat("unknown shape type \"%s\" (use rect, path, "
-                                   "marker, remove)",
+                                   "marker, remove, actor, object)",
                                    type));
   }
   return shape;
@@ -208,7 +286,7 @@ absl::StatusOr<DungeonProposalOverlay> ParseDungeonProposalOverlay(
   }
   auto version = root.find("version");
   if (version == root.end() || !version->is_number_integer() ||
-      version->get<int>() != kProposalOverlayVersion) {
+      *version != kProposalOverlayVersion) {
     return Invalid("root",
                    absl::StrFormat("unsupported \"version\" (expected %d)",
                                    kProposalOverlayVersion));
@@ -298,6 +376,41 @@ absl::StatusOr<DungeonProposalOverlay> ParseDungeonProposalOverlay(
     }
     overlay.layers.push_back(std::move(layer));
   }
+  if (auto steps = root.find("steps"); steps != root.end()) {
+    if (!steps->is_array())
+      return Invalid("root", "steps must be a list");
+    std::set<std::string> step_ids;
+    for (size_t i = 0; i < steps->size(); ++i) {
+      const auto& entry = (*steps)[i];
+      const std::string where = absl::StrFormat("steps[%d]", i);
+      if (!entry.is_object())
+        return Invalid(where, "must be an object");
+      ProposalStep step;
+      step.id = OptionalString(entry, "id");
+      if (step.id.empty() || !step_ids.insert(step.id).second)
+        return Invalid(where, "step id must be non-empty and unique");
+      step.label = OptionalString(entry, "label");
+      if (step.label.empty())
+        step.label = step.id;
+      step.detail = OptionalString(entry, "detail");
+      auto refs = entry.find("layers");
+      if (refs == entry.end() || !refs->is_array() || refs->empty())
+        return Invalid(where, "layers must be a non-empty list of layer ids");
+      std::set<std::string> referenced;
+      for (const auto& ref : *refs) {
+        if (!ref.is_string())
+          return Invalid(where, "layer reference must be a string");
+        const auto id = ref.get<std::string>();
+        if (!layer_ids.contains(id))
+          return Invalid(where, absl::StrFormat("unknown layer id \"%s\"", id));
+        if (!referenced.insert(id).second)
+          return Invalid(where,
+                         absl::StrFormat("duplicate layer id \"%s\"", id));
+        step.layer_ids.push_back(id);
+      }
+      overlay.steps.push_back(std::move(step));
+    }
+  }
   return overlay;
 }
 
@@ -315,6 +428,26 @@ ProposalPixelRect ProposalTileRectToPixels(ProposalTile a, ProposalTile b) {
 void ProposalTileCenter(ProposalTile tile, float* x, float* y) {
   *x = (tile.x + 0.5f) * kProposalTilePixels;
   *y = (tile.y + 0.5f) * kProposalTilePixels;
+}
+
+ProposalPixelRect ProposalFootprintToPixels(const ProposalShape& shape) {
+  const bool actor = shape.type == ProposalShapeType::kActor;
+  const float x = shape.tiles[0].x * kProposalTilePixels +
+                  (actor ? shape.pixel_offset.x : 0);
+  const float y = shape.tiles[0].y * kProposalTilePixels +
+                  (actor ? shape.pixel_offset.y : 0);
+  return {x, y, x + (actor ? 16 : shape.footprint.x * kProposalTilePixels),
+          y + (actor ? 16 : shape.footprint.y * kProposalTilePixels)};
+}
+
+bool ProposalLayerInStep(const DungeonProposalOverlay& overlay,
+                         std::string_view layer_id, int step) {
+  if (step < 0)
+    return true;
+  if (static_cast<size_t>(step) >= overlay.steps.size())
+    return false;
+  const auto& ids = overlay.steps[step].layer_ids;
+  return std::find(ids.begin(), ids.end(), layer_id) != ids.end();
 }
 
 float ProposalRoomOriginX(int index, float gap_pixels) {
@@ -338,6 +471,11 @@ float ProposalDistanceToSegment(float px, float py, float ax, float ay,
 bool ProposalShapeHitTest(const ProposalShape& shape, float px, float py,
                           float tolerance) {
   switch (shape.type) {
+    case ProposalShapeType::kActor:
+    case ProposalShapeType::kObject: {
+      const auto r = ProposalFootprintToPixels(shape);
+      return px >= r.x0 && px < r.x1 && py >= r.y0 && py < r.y1;
+    }
     case ProposalShapeType::kRect: {
       const auto r = ProposalTileRectToPixels(shape.tiles[0], shape.tiles[1]);
       return px >= r.x0 && px < r.x1 && py >= r.y0 && py < r.y1;
