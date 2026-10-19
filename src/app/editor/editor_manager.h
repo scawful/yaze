@@ -446,6 +446,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status SaveRomAs(const std::string& filename);
   absl::Status ResumePendingRomSave();
   absl::Status OpenRomOrProject(const std::string& filename);
+  // Main-thread semantic automation; returns JSON including actual identity.
+  std::string ExecuteEditorControl(const std::string& request);
   absl::Status CreateNewProject(
       const std::string& template_name = "Basic ROM Hack");
   absl::Status CreateNewProjectFromRom(
@@ -479,7 +481,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status RepairCurrentProject();
 
   // Project management
-  absl::Status LoadProjectWithRom();
+  absl::Status LoadProjectWithRom(bool allow_dialogs = true);
   absl::Status SwapProjectRom(const std::string& rom_path);
   absl::Status ReloadProjectRom();
   project::YazeProject* GetCurrentProject() { return &current_project_; }
@@ -732,7 +734,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status StartPendingRomSave(
       const std::optional<std::string>& save_as_filename);
   absl::Status LoadRomInternal();
-  absl::Status OpenRomOrProjectInternal(const std::string& filename);
+  absl::Status OpenRomOrProjectInternal(const std::string& filename,
+                                        bool allow_dialogs = true);
   absl::Status OpenProjectInternal();
   absl::Status ValidateProjectRomSelection(const std::string& rom_path);
 

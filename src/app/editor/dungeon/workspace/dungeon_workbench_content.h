@@ -154,6 +154,9 @@ class DungeonWorkbenchContent : public WindowContent {
   void RequestProposalPreview();
   // Loads an overlay file; returns false and records the error on failure.
   bool LoadProposalOverlay(const std::string& path);
+  const std::string& loaded_proposal_path() const {
+    return loaded_proposal_path_;
+  }
   const std::optional<DungeonProposalOverlay>& proposal_overlay() const {
     return proposal_overlay_;
   }
@@ -338,6 +341,7 @@ class DungeonWorkbenchContent : public WindowContent {
   char proposal_path_[1024] = {};
   std::optional<DungeonProposalOverlay> proposal_overlay_;
   std::string proposal_error_;
+  std::string loaded_proposal_path_;
   std::vector<char> proposal_layer_visible_;
   bool proposal_show_overlay_ = true;
   float proposal_scale_ = 1.0f;

@@ -21,6 +21,7 @@
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -42,6 +43,14 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "imgui/imgui.h"
+#ifdef YAZE_WITH_JSON
+#include "nlohmann/json.hpp"
+#endif
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 // Project headers
 #include "app/application.h"
@@ -2947,6 +2956,150 @@ absl::Status EditorManager::ResumePendingRomSave() {
   return status;
 }
 
+std::string EditorManager::ExecuteEditorControl(const std::string& request) {
+#ifdef YAZE_WITH_JSON
+  using nlohmann::json;
+  CaptureActiveProjectEditingState();
+  json response = {{"protocol", "yaze-editor-control/v1"},
+                   {"status", "ok"},
+                   {"http_status", 200}};
+  auto fail = [&](int code, const std::string& message) {
+    response["status"] = "error";
+    response["http_status"] = code;
+    response["error"] = message;
+  };
+  try {
+    const auto body = json::parse(request);
+    const std::string command = body.at("command").get<std::string>();
+    response["command"] = command;
+    auto path_argument = [&]() -> std::string {
+      const auto path = body.at("path").get<std::string>();
+      if (path.empty() || path.find('\0') != std::string::npos ||
+          !std::filesystem::path(path).is_absolute()) {
+        throw std::invalid_argument("path must be an absolute local path");
+      }
+      return path;
+    };
+    auto dungeon_editor = [&]() -> DungeonEditorV2* {
+      auto* editors = GetCurrentEditorSet();
+      return editors
+                 ? editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)
+                 : nullptr;
+    };
+    if (command == "status") {
+      // Read-only; usable before a ROM is opened.
+    } else if (command == "project.open") {
+      const auto path = path_argument();
+      const auto extension = std::filesystem::path(path).extension();
+      if (extension != ".yaze" && extension != ".zsproj" &&
+          extension != ".yazeproj") {
+        fail(400, "project.open requires a .yaze, .zsproj or .yazeproj path");
+      } else if (HasAnySessionPendingUnsavedWork() ||
+                 HasPendingUnsavedSessionAction()) {
+        fail(409, "Project switch blocked: " + DescribeAllPendingUnsavedWork());
+      } else if (current_project_.filepath != path) {
+        // No implicit save/discard and no repair/file picker fallback.
+        const auto status = OpenRomOrProjectInternal(path, false);
+        if (!status.ok())
+          fail(422, std::string(status.message()));
+      }
+    } else if (command == "dungeon.select" || command == "proposal.load") {
+      int room = -1;
+      std::string path;
+      if (command == "dungeon.select") {
+        if (!body.at("room").is_number_integer()) {
+          throw std::invalid_argument("room must be an integer from 0 to 295");
+        }
+        room = body.at("room").get<int>();
+        if (room < 0 || room >= 296) {
+          throw std::invalid_argument("room must be an integer from 0 to 295");
+        }
+      } else {
+        path = path_argument();
+      }
+      if (!GetCurrentRom() || !GetCurrentRom()->is_loaded()) {
+        fail(409, "No ROM loaded");
+      } else {
+        const auto loaded = EnsureEditorAssetsLoaded(EditorType::kDungeon);
+        if (!loaded.ok()) {
+          fail(422, std::string(loaded.message()));
+        } else if (auto* dungeon = dungeon_editor()) {
+          SwitchToEditor(EditorType::kDungeon, true);
+          if (command == "dungeon.select") {
+            dungeon->add_room(room);
+            dungeon->FocusRoom(room);
+            if (dungeon->current_room_id() != room) {
+              fail(422, "Dungeon room selection did not complete");
+            }
+          } else {
+            const auto status = dungeon->LoadProposalForReview(path);
+            if (!status.ok())
+              fail(422, std::string(status.message()));
+          }
+        } else {
+          fail(503, "Dungeon editor is unavailable");
+        }
+      }
+    } else if (command == "panel.hide") {
+      const auto id = body.at("panel").get<std::string>();
+      if (!window_manager_.GetWindowDescriptor(GetCurrentSessionId(), id)) {
+        fail(404, "Unknown panel ID for the active session: " + id);
+      } else {
+        window_manager_.CloseWindow(id);
+        response["panel"] = id;
+        response["panel_visible"] = window_manager_.IsWindowOpen(id);
+        if (response["panel_visible"].get<bool>()) {
+          fail(409, "Panel did not close");
+        }
+      }
+    } else {
+      fail(400, "Unknown editor command: " + command);
+    }
+  } catch (const std::exception& error) {
+    fail(400, error.what());
+  }
+  // Report the state after completion or rejection, never the requested path.
+  json state;
+#ifdef _WIN32
+  state["pid"] = _getpid();
+#else
+  state["pid"] = getpid();
+#endif
+  state["project_path"] = current_project_.filepath;
+  state["session_id"] = GetCurrentSessionId();
+  state["unsaved"] = HasAnySessionPendingUnsavedWork();
+  state["unsaved_detail"] = DescribeAllPendingUnsavedWork();
+  if (auto* rom = GetCurrentRom(); rom && rom->is_loaded()) {
+    state["rom_path"] = rom->filename();
+    state["rom_title"] = rom->title();
+    state["rom_size"] = rom->size();
+    state["rom_dirty"] = rom->dirty();
+  } else {
+    state["rom_path"] = nullptr;
+  }
+  state["room"] = nullptr;
+  state["proposal_path"] = nullptr;
+  if (auto* editors = GetCurrentEditorSet()) {
+    if (auto* dungeon =
+            editors->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)) {
+      state["room"] = dungeon->current_room_id();
+      state["proposal_path"] = dungeon->proposal_review_path();
+    }
+  }
+  state["visible_panels"] = json::array();
+  for (const auto& id :
+       window_manager_.GetWindowsInSession(GetCurrentSessionId())) {
+    if (window_manager_.IsWindowOpen(id)) {
+      state["visible_panels"].push_back(id);
+    }
+  }
+  response["state"] = std::move(state);
+  return response.dump();
+#else
+  return R"({"status":"error","http_status":503,"error":"JSON support unavailable"})";
+#endif
+}
+
 absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
   if (!MaybeGuardPendingSessionAction(
           {PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath,
@@ -2958,7 +3111,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 }
 
 absl::Status EditorManager::OpenRomOrProjectInternal(
-    const std::string& filename) {
+    const std::string& filename, bool allow_dialogs) {
   LOG_INFO("EditorManager", "OpenRomOrProject called with: '%s'",
            filename.c_str());
   if (filename.empty()) {
@@ -3004,8 +3157,8 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     SyncLayoutScopeFromCurrentProject();
     RefreshHackWorkflowBackend();
 
-    // Load ROM directly from project - don't prompt user
-    auto project_status = LoadProjectWithRom();
+    // Automation cannot fall back to a file dialog for a missing/invalid ROM.
+    auto project_status = LoadProjectWithRom(allow_dialogs);
     if (!project_status.ok()) {
       RestoreProjectContextAfterFailedOpen(previous_session_id);
     }
