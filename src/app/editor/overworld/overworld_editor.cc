@@ -548,6 +548,10 @@ absl::Status OverworldEditor::Load() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
+  if (lyra_canvas_.dirty()) {
+    return absl::FailedPreconditionError(
+        "Save the Lyra terrain draft before reloading overworld data");
+  }
   const auto lyra = rom_->InspectLyraLayout();
   if (lyra.presence == rom::LyraLayoutPresence::kInvalid) {
     return absl::FailedPreconditionError(

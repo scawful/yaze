@@ -238,14 +238,15 @@ absl::Status LyraTerrainCanvas::BindSource(zelda3::Overworld& overworld,
 
 absl::Status LyraTerrainCanvas::Load(project::YazeProject* project,
                                      zelda3::Overworld& overworld) {
-  if (!project || project->lyra_terrain_file.empty())
-    return absl::OkStatus();
-  const auto path = project->GetAbsolutePath(project->lyra_terrain_file);
-  if (document_ && path == source_path_)
-    return absl::OkStatus();
   if (dirty())
     return absl::FailedPreconditionError(
         "Save the current Lyra terrain draft before replacing it");
+  // ROM replacement can keep the sidecar path while changing its native tile
+  // profile. Retire the old view and validate the full binding on every load.
+  Reset();
+  if (!project || project->lyra_terrain_file.empty())
+    return absl::OkStatus();
+  const auto path = project->GetAbsolutePath(project->lyra_terrain_file);
   RETURN_IF_ERROR(ValidateTarget(path, *project));
   core::LyraTerrainProfile profile;
   RETURN_IF_ERROR(BindSource(overworld, &profile, false));
