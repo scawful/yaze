@@ -196,6 +196,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void CommitSaveTransaction() override;
   absl::Status Clear() override;
   bool HasPendingProjectDraftChanges() const { return lyra_canvas_.dirty(); }
+  void SetProjectContextProvider(
+      std::function<project::YazeProject*()> provider) {
+    project_context_provider_ = std::move(provider);
+  }
   absl::Status PrepareProjectSave();
   void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
   void DrawProjectTerrainCanvas();
@@ -525,6 +529,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawOverworldCanvas();
 
  private:
+  project::YazeProject* TerrainProject() const {
+    return project_context_provider_ ? project_context_provider_()
+                                     : dependencies_.project;
+  }
+  std::function<project::YazeProject*()> project_context_provider_;
   friend class AuthoringSaveWorkflowTestPeer;
 
   // Identifies the exact descriptor image bound to this model. The session

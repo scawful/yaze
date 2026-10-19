@@ -877,7 +877,7 @@ void OverworldEditor::DrawOverworldCanvas() {
 
 absl::Status OverworldEditor::PrepareProjectSave() {
   lyra_canvas_.FinishStroke(undo_manager_);
-  return lyra_canvas_.Save(dependencies_.project, overworld_);
+  return lyra_canvas_.Save(TerrainProject(), overworld_);
 }
 
 void OverworldEditor::DrawProjectTerrainCanvas() {
@@ -889,8 +889,7 @@ void OverworldEditor::DrawProjectTerrainCanvas() {
         "Draw cliffs and shorelines across neighboring Lyra maps. "
         "Terrain is saved with this project.");
     if (ImGui::Button("Open Lyra terrain canvas")) {
-      lyra_canvas_status_ =
-          lyra_canvas_.Create(dependencies_.project, overworld_);
+      lyra_canvas_status_ = lyra_canvas_.Create(TerrainProject(), overworld_);
     }
     return;
   }
