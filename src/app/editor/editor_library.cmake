@@ -70,10 +70,13 @@ set(
   app/editor/dungeon/object_selection.cc
   app/editor/dungeon/selectors/object_selector_content.cc
   app/editor/dungeon/ui/reporting/dungeon_issue_report_storage.cc
+  app/editor/dungeon/ui/window/custom_collision_panel.cc
+  app/editor/dungeon/ui/window/item_editor_panel.cc
   app/editor/dungeon/ui/window/minecart_track_editor_panel.cc
   app/editor/dungeon/ui/window/object_tile_editor_panel.cc
   app/editor/dungeon/ui/window/room_tag_editor_panel.cc
   app/editor/dungeon/ui/window/sprite_editor_panel.cc
+  app/editor/dungeon/ui/window/water_fill_panel.cc
   app/editor/dungeon/ui/window/object_coverage_panel.cc
   app/editor/dungeon/widgets/dungeon_room_nav_widget.cc
   app/editor/dungeon/widgets/dungeon_status_bar.cc

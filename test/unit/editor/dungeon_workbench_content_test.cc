@@ -16,13 +16,16 @@
 #include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
+#include "app/editor/dungeon/ui/window/custom_collision_panel.h"
 #include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/ui/window/item_editor_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/ui/window/sprite_editor_panel.h"
+#include "app/editor/dungeon/ui/window/water_fill_panel.h"
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
@@ -37,11 +40,23 @@
 #include "imgui/imgui_internal.h"
 #include "rom/snes.h"
 #include "test_utils/expanded_entrance_fixture.h"
+#include "util/file_util.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze::editor {
+
+class DungeonCanvasViewerTestPeer {
+ public:
+  static void BindViewer(DungeonEditorV2& editor, Rom* rom,
+                         DungeonCanvasViewer* viewer, int room_id) {
+    editor.SetRom(rom);
+    viewer->RefreshRomBackedState(rom, nullptr, &editor.rooms(), room_id);
+    viewer->object_interaction().SetCurrentRoom(&editor.rooms(), room_id);
+    editor.ConfigureViewerUndoHooks(viewer);
+  }
+};
 
 namespace {
 
@@ -2343,6 +2358,354 @@ TEST(DungeonWorkbenchContentTest,
   EXPECT_EQ(workbench.loaded_proposal_path(), b.string());
   EXPECT_FALSE(workbench.LoadProposalOverlay((root / "missing.json").string()));
   EXPECT_EQ(workbench.loaded_proposal_path(), b.string());
+}
+
+TEST(DungeonRoomStoreCollisionTest,
+     MaterializedRoomsPreserveRoomIdAndExportWithoutMaterializingAllRooms) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  DungeonRoomStore store(&rom);
+  EXPECT_EQ(store.GetIfMaterialized(0x65), nullptr);
+  auto& room_65 = store[0x65];
+  EXPECT_EQ(room_65.id(), 0x65);
+
+  // Author a walkable floor (0x00) override in room 0x65 and save to ROM.
+  room_65.SetCollisionTile(10, 5, 0x00);
+  ASSERT_TRUE(room_65.HasCollisionOverride(10, 5));
+  ASSERT_TRUE(zelda3::SaveAllCollision(
+                  &rom, static_cast<int>(store.size()),
+                  [&](int rid) { return store.GetIfMaterialized(rid); })
+                  .ok());
+
+  // Room 0x00 pointer must remain untouched; Room 0x65 pointer must be written.
+  const int ptr_00 = zelda3::kCustomCollisionRoomPointers;
+  const int ptr_65 = zelda3::kCustomCollisionRoomPointers + (0x65 * 3);
+  EXPECT_EQ(rom.data()[ptr_00] | rom.data()[ptr_00 + 1] | rom.data()[ptr_00 + 2],
+            0);
+  EXPECT_NE(rom.data()[ptr_65] | rom.data()[ptr_65 + 1] | rom.data()[ptr_65 + 2],
+            0);
+
+  // In a fresh store where room 0x65 is NOT materialized in memory and room
+  // 0x74 has an in-memory edit, CollectRoomEntries must export both rooms
+  // without materializing the remaining 295 rooms.
+  DungeonRoomStore fresh_store(&rom);
+  CustomCollisionPanel::ApplyRoomEntry(
+      zelda3::CustomCollisionRoomEntry{
+          0x74, {zelda3::CustomCollisionTileEntry{8 * 64 + 12, 0x08}}},
+      &fresh_store[0x74]);
+  EXPECT_EQ(fresh_store.GetIfMaterialized(0x65), nullptr);
+
+  const auto exported_or = CustomCollisionPanel::CollectRoomEntries(fresh_store);
+  ASSERT_TRUE(exported_or.ok()) << exported_or.status();
+  const auto& exported = *exported_or;
+  EXPECT_EQ(fresh_store.GetIfMaterialized(0x65), nullptr);
+  EXPECT_EQ(fresh_store.GetIfMaterialized(0x00), nullptr);
+  ASSERT_EQ(exported.size(), 2u);
+  EXPECT_EQ(exported[0].room_id, 0x65);
+  ASSERT_EQ(exported[0].tiles.size(), 1u);
+  EXPECT_EQ(exported[0].tiles[0].offset, 5 * 64 + 10);
+  EXPECT_EQ(exported[0].tiles[0].value, 0x00);
+  EXPECT_EQ(exported[1].room_id, 0x74);
+  ASSERT_EQ(exported[1].tiles.size(), 1u);
+  EXPECT_EQ(exported[1].tiles[0].offset, 8 * 64 + 12);
+  EXPECT_EQ(exported[1].tiles[0].value, 0x08);
+
+  // WaterFillPanel::CollectZones must also skip unmaterialized rooms.
+  fresh_store[0x25].SetWaterFillTile(3, 4, true);
+  fresh_store[0x25].set_water_fill_sram_bit_mask(0x04);
+  const auto zones = WaterFillPanel::CollectZones(fresh_store);
+  EXPECT_EQ(fresh_store.GetIfMaterialized(0x00), nullptr);
+  ASSERT_EQ(zones.size(), 1u);
+  EXPECT_EQ(zones[0].room_id, 0x25);
+  EXPECT_EQ(zones[0].sram_bit_mask, 0x04);
+  EXPECT_EQ(zones[0].fill_offsets, std::vector<uint16_t>{4 * 64 + 3});
+}
+
+TEST(DungeonRoomStoreCollisionTest,
+     ExportFailsWhenUnvisitedRoomHasInvalidPointerOrUnterminatedStream) {
+  const auto root = MakeTempProjectRoot();
+  std::filesystem::create_directories(root);
+  const auto cleanup =
+      absl::MakeCleanup([&] { std::filesystem::remove_all(root); });
+  const auto out_path = root / "exported_collision.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  // Seed room 0x65 with valid collision data in ROM.
+  {
+    DungeonRoomStore seed_store(&rom);
+    seed_store[0x65].SetCollisionTile(2, 2, 0x08);
+    ASSERT_TRUE(zelda3::SaveAllCollision(
+                    &rom, static_cast<int>(seed_store.size()),
+                    [&](int rid) { return seed_store.GetIfMaterialized(rid); })
+                    .ok());
+  }
+
+  // Case 1: Unvisited room 0x66 has an out-of-range pointer in the table.
+  const int ptr_66 = zelda3::kCustomCollisionRoomPointers + (0x66 * 3);
+  rom.mutable_data()[ptr_66 + 0] = 0x01;
+  rom.mutable_data()[ptr_66 + 1] = 0x00;
+  rom.mutable_data()[ptr_66 + 2] = 0x00;  // SNES $00:0001 -> invalid LoROM
+
+  DungeonRoomStore store(&rom);
+  DungeonCanvasViewer viewer;
+  CustomCollisionPanel panel(&viewer, &viewer.object_interaction());
+  {
+    std::ofstream sentinel(out_path);
+    sentinel << "SENTINEL_KEEP";
+  }
+
+  const auto bad_ptr_or = CustomCollisionPanel::CollectRoomEntries(store);
+  EXPECT_FALSE(bad_ptr_or.ok());
+  EXPECT_NE(std::string(bad_ptr_or.status().message()).find("Room 0x066"),
+            std::string::npos);
+
+  const auto export_ptr_status =
+      panel.ExportCollisionToFile(store, out_path.string());
+  EXPECT_FALSE(export_ptr_status.ok());
+  EXPECT_NE(panel.last_io_error().find("Room 0x066"), std::string::npos);
+  EXPECT_TRUE(panel.last_io_status().empty());
+  EXPECT_EQ(util::LoadFile(out_path.string()), "SENTINEL_KEEP");
+
+  // Case 2: Unvisited room 0x66 points to an unterminated stream inside the
+  // custom collision data region.
+  const int unterminated_pc = zelda3::kCustomCollisionDataPosition + 0x400;
+  const uint32_t unterminated_snes = PcToSnes(unterminated_pc);
+  rom.mutable_data()[ptr_66 + 0] = unterminated_snes & 0xFF;
+  rom.mutable_data()[ptr_66 + 1] = (unterminated_snes >> 8) & 0xFF;
+  rom.mutable_data()[ptr_66 + 2] = (unterminated_snes >> 16) & 0xFF;
+  std::fill(rom.mutable_data() + unterminated_pc,
+            rom.mutable_data() + zelda3::kCustomCollisionDataSoftEnd, 0x01);
+
+  const auto bad_stream_or = CustomCollisionPanel::CollectRoomEntries(store);
+  EXPECT_FALSE(bad_stream_or.ok());
+  EXPECT_NE(std::string(bad_stream_or.status().message()).find("Room 0x066"),
+            std::string::npos);
+
+  const auto export_stream_status =
+      panel.ExportCollisionToFile(store, out_path.string());
+  EXPECT_FALSE(export_stream_status.ok());
+  EXPECT_NE(panel.last_io_error().find("Room 0x066"), std::string::npos);
+  EXPECT_TRUE(panel.last_io_status().empty());
+  EXPECT_EQ(util::LoadFile(out_path.string()), "SENTINEL_KEEP");
+}
+
+TEST_F(DungeonWorkbenchResetUiTest,
+       EntityInspectorActionsSupportPlaceAnotherAndDelete) {
+  rooms_[0].GetSprites().emplace_back(0x09, 4, 5, 0, 0);
+  rooms_[0].GetDoors().push_back(zelda3::Room::Door::FromRomBytes(0x10, 0x00));
+  rooms_[0].GetPotItems().push_back(zelda3::PotItem{0x0714, 0x09});
+  auto& interaction = viewer_.object_interaction();
+
+  // Read-only guard disables both buttons.
+  interaction.SelectEntity(EntityType::Sprite, 0);
+  viewer_.SetHeaderReadOnly(true);
+  Frame();
+  Frame();
+  ASSERT_TRUE(Find("EntityPlaceAnother").has_value());
+  ASSERT_TRUE(Find("EntityDelete").has_value());
+  EXPECT_FALSE(Find("EntityPlaceAnother")->enabled);
+  EXPECT_FALSE(Find("EntityDelete")->enabled);
+  viewer_.SetHeaderReadOnly(false);
+
+  // 1. Sprite: PlaceAnother -> CancelPlacement -> EntityDelete WITHOUT
+  // reselecting.
+  Frame();
+  Click("EntityPlaceAnother");
+  EXPECT_TRUE(interaction.IsSpritePlacementActive());
+  EXPECT_EQ(interaction.entity_coordinator().sprite_handler().GetSpriteId(),
+            0x09);
+  interaction.CancelPlacement();
+  Frame();
+  Click("EntityDelete");
+  EXPECT_TRUE(rooms_[0].GetSprites().empty());
+  EXPECT_TRUE(rooms_[0].sprites_dirty());
+
+  // 2. Door: PlaceAnother -> CancelPlacement -> EntityDelete WITHOUT
+  // reselecting.
+  interaction.SelectEntity(EntityType::Door, 0);
+  Frame();
+  Frame();
+  Click("EntityPlaceAnother");
+  EXPECT_TRUE(interaction.IsDoorPlacementActive());
+  interaction.CancelPlacement();
+  Frame();
+  Click("EntityDelete");
+  EXPECT_TRUE(rooms_[0].GetDoors().empty());
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+
+  // 3. Pot Item: PlaceAnother -> CancelPlacement -> EntityDelete WITHOUT
+  // reselecting.
+  interaction.SelectEntity(EntityType::Item, 0);
+  Frame();
+  Frame();
+  Click("EntityPlaceAnother");
+  EXPECT_TRUE(interaction.IsItemPlacementActive());
+  interaction.CancelPlacement();
+  Frame();
+  Click("EntityDelete");
+  EXPECT_TRUE(rooms_[0].GetPotItems().empty());
+  EXPECT_TRUE(rooms_[0].pot_items_dirty());
+}
+
+TEST_F(DungeonWorkbenchResetUiTest,
+       CustomCollisionPanelShowsFloorOverrideMetricsAndTogglesEraseMode) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rooms_.SetRom(&rom);
+  viewer_.RefreshRomBackedState(&rom, nullptr, &rooms_, 0);
+  absl::Cleanup cleanup = [&] {
+    standalone_content_ = nullptr;
+    viewer_.RefreshRomBackedState(nullptr, nullptr, &rooms_, 0);
+    rooms_.SetRom(nullptr);
+  };
+
+  rooms_[0].SetCollisionTile(2, 3, 0x00);
+  rooms_[0].SetCollisionTile(4, 5, 0x08);
+  CustomCollisionPanel collision(&viewer_, &viewer_.object_interaction());
+  standalone_content_ = &collision;
+
+  Frame();
+  Frame();
+  EXPECT_NE(text_.find("Override tiles: 2 (1 floor 00)"), std::string::npos);
+
+  Click("collision_paint_mode");
+  auto& mode_mgr = viewer_.object_interaction().mode_manager();
+  ASSERT_EQ(mode_mgr.GetMode(), InteractionMode::PaintCollision);
+  EXPECT_FALSE(mode_mgr.GetModeState().paint_collision_erase);
+
+  Click("collision_erase_override");
+  EXPECT_TRUE(mode_mgr.GetModeState().paint_collision_erase);
+  ASSERT_TRUE(Find("collision_tile_type").has_value());
+  EXPECT_FALSE(Find("collision_tile_type")->enabled);
+
+  Click("quick_collision_floor_00");
+  EXPECT_FALSE(mode_mgr.GetModeState().paint_collision_erase);
+  EXPECT_EQ(mode_mgr.GetModeState().paint_collision_value, 0x00);
+  EXPECT_TRUE(Find("collision_tile_type")->enabled);
+}
+
+TEST_F(
+    DungeonWorkbenchResetUiTest,
+    CustomCollisionPanelEditsAndImportsSupportEditorUndoRedoAndRomPersistence) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  // Seed unvisited room 0x12 with a pre-existing custom collision tile in ROM.
+  {
+    DungeonRoomStore seed_store(&rom);
+    seed_store[0x12].SetCollisionTile(3, 3, 0x1B);
+    ASSERT_TRUE(zelda3::SaveAllCollision(
+                    &rom, static_cast<int>(seed_store.size()),
+                    [&](int rid) { return seed_store.GetIfMaterialized(rid); })
+                    .ok());
+  }
+
+  DungeonEditorV2 editor(&rom);
+  DungeonCanvasViewerTestPeer::BindViewer(editor, &rom, &viewer_, 0);
+  CustomCollisionPanel collision(&viewer_, &viewer_.object_interaction());
+  standalone_content_ = &collision;
+  absl::Cleanup cleanup = [&] {
+    standalone_content_ = nullptr;
+    viewer_.RefreshRomBackedState(nullptr, nullptr, &rooms_, 0);
+  };
+
+  // 1. Enable / Disable Custom Collision enters editor undo/redo history.
+  ASSERT_FALSE(editor.rooms()[0].has_custom_collision());
+  Frame();
+  Frame();
+  Click("toggle_custom_collision");
+  EXPECT_TRUE(editor.rooms()[0].has_custom_collision());
+  ASSERT_TRUE(editor.CanUndo());
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_FALSE(editor.rooms()[0].has_custom_collision());
+  ASSERT_TRUE(editor.Redo().ok());
+  EXPECT_TRUE(editor.rooms()[0].has_custom_collision());
+
+  // 2. Single-room & multi-room JSON import enters atomic undo/redo history.
+  EXPECT_EQ(editor.rooms().GetIfMaterialized(0x12), nullptr);
+  constexpr const char* kImportJson = R"json({
+    "version": 1,
+    "rooms": [
+      {
+        "room_id": "0x00",
+        "tiles": [
+          [260, 0],
+          [325, 8]
+        ]
+      },
+      {
+        "room_id": "0x12",
+        "tiles": [
+          [390, 9]
+        ]
+      }
+    ]
+  })json";
+  ASSERT_TRUE(collision.ImportCollisionJson(kImportJson, "test.json").ok());
+  EXPECT_TRUE(editor.rooms()[0].HasCollisionOverride(4, 4));
+  EXPECT_EQ(editor.rooms()[0].GetCollisionTile(4, 4), 0x00);
+  EXPECT_TRUE(editor.rooms()[0].HasCollisionOverride(5, 5));
+  EXPECT_EQ(editor.rooms()[0].GetCollisionTile(5, 5), 0x08);
+  EXPECT_TRUE(editor.rooms()[0x12].HasCollisionOverride(6, 6));
+  EXPECT_EQ(editor.rooms()[0x12].GetCollisionTile(6, 6), 0x09);
+  EXPECT_FALSE(editor.rooms()[0x12].HasCollisionOverride(3, 3));
+
+  //Undo restores both Room 0x00 and Room 0x12 (including Room 0x12's prior ROM
+  //collision tile) in a single step.
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_FALSE(editor.rooms()[0].HasCollisionOverride(4, 4));
+  EXPECT_FALSE(editor.rooms()[0].HasCollisionOverride(5, 5));
+  EXPECT_TRUE(editor.rooms()[0x12].HasCollisionOverride(3, 3));
+  EXPECT_EQ(editor.rooms()[0x12].GetCollisionTile(3, 3), 0x1B);
+  EXPECT_FALSE(editor.rooms()[0x12].HasCollisionOverride(6, 6));
+
+  // Redo re-applies the multi-room import across both rooms.
+  ASSERT_TRUE(editor.Redo().ok());
+  EXPECT_TRUE(editor.rooms()[0].HasCollisionOverride(4, 4));
+  EXPECT_EQ(editor.rooms()[0].GetCollisionTile(4, 4), 0x00);
+  EXPECT_TRUE(editor.rooms()[0x12].HasCollisionOverride(6, 6));
+  EXPECT_EQ(editor.rooms()[0x12].GetCollisionTile(6, 6), 0x09);
+
+  // 3. Clear All Custom Collision enters editor undo/redo history.
+  Frame();
+  Frame();
+  Click("clear_all_custom_collision");
+  EXPECT_FALSE(editor.rooms()[0].has_custom_collision());
+  EXPECT_FALSE(editor.rooms()[0].HasCollisionOverride(4, 4));
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_TRUE(editor.rooms()[0].has_custom_collision());
+  EXPECT_TRUE(editor.rooms()[0].HasCollisionOverride(4, 4));
+  EXPECT_EQ(editor.rooms()[0].GetCollisionTile(4, 4), 0x00);
+  EXPECT_TRUE(editor.rooms()[0].HasCollisionOverride(5, 5));
+  EXPECT_EQ(editor.rooms()[0].GetCollisionTile(5, 5), 0x08);
+
+  // 4. Save to disposable ROM and reopen into a fresh store to prove explicit
+  // floor 0x00 override and multi-room import persist across save/reopen.
+  ASSERT_TRUE(
+      zelda3::SaveAllCollision(&rom, static_cast<int>(editor.rooms().size()),
+                               [&](int rid) {
+                                 return editor.rooms().GetIfMaterialized(rid);
+                               })
+          .ok());
+  Rom reopened_rom;
+  ASSERT_TRUE(reopened_rom.LoadFromData(rom.vector()).ok());
+  const auto reopened_room0 = zelda3::LoadCustomCollisionMap(&reopened_rom, 0);
+  ASSERT_TRUE(reopened_room0.ok());
+  EXPECT_TRUE(reopened_room0->has_data);
+  EXPECT_TRUE(reopened_room0->HasOverride(4 * 64 + 4));
+  EXPECT_EQ(reopened_room0->tiles[4 * 64 + 4], 0x00);
+  EXPECT_TRUE(reopened_room0->HasOverride(5 * 64 + 5));
+  EXPECT_EQ(reopened_room0->tiles[5 * 64 + 5], 0x08);
+
+  const auto reopened_room12 =
+      zelda3::LoadCustomCollisionMap(&reopened_rom, 0x12);
+  ASSERT_TRUE(reopened_room12.ok());
+  EXPECT_TRUE(reopened_room12->has_data);
+  EXPECT_TRUE(reopened_room12->HasOverride(6 * 64 + 6));
+  EXPECT_EQ(reopened_room12->tiles[6 * 64 + 6], 0x09);
 }
 
 }  // namespace

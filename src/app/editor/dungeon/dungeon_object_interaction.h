@@ -89,6 +89,32 @@ class DungeonObjectInteraction {
   MutationDomain last_invalidation_domain() const {
     return interaction_context_.last_invalidation_domain;
   }
+  void BeginCustomCollisionMutation() {
+    FinishPaintStroke();
+    interaction_context_.NotifyMutation(MutationDomain::kCustomCollision);
+  }
+  void EndCustomCollisionMutation() {
+    interaction_context_.NotifyInvalidateCache(
+        MutationDomain::kCustomCollision);
+  }
+  absl::Status ApplyCustomCollisionImportBatch(
+      const std::vector<zelda3::CustomCollisionRoomEntry>& entries) {
+    FinishPaintStroke();
+    if (interaction_context_.on_collision_batch_import) {
+      return interaction_context_.on_collision_batch_import(entries);
+    }
+    return absl::UnimplementedError("No collision batch import callback");
+  }
+  bool HasCollisionBatchImportCallback() const {
+    return static_cast<bool>(interaction_context_.on_collision_batch_import);
+  }
+  void SetCollisionBatchImportCallback(
+      std::function<absl::Status(
+          const std::vector<zelda3::CustomCollisionRoomEntry>&)>
+          callback) {
+    interaction_context_.on_collision_batch_import = std::move(callback);
+    entity_coordinator_.SetContext(&interaction_context_);
+  }
 
   // Legacy setter - kept for backwards compatibility
   void SetRom(Rom* rom) {

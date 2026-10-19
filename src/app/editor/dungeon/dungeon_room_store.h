@@ -125,10 +125,8 @@ class DungeonRoomStore {
  private:
   zelda3::Room& EnsureRoom(size_t index) const {
     if (!rooms_[index]) {
-      auto room = std::make_unique<zelda3::Room>();
-      room->SetRom(rom_);
-      room->SetGameData(game_data_);
-      rooms_[index] = std::move(room);
+      rooms_[index] = std::make_unique<zelda3::Room>(static_cast<int>(index),
+                                                     rom_, game_data_);
     }
     return *rooms_[index];
   }
