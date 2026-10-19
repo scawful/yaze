@@ -351,7 +351,7 @@ void HandleRenderDungeon(const httplib::Request& req, httplib::Response& res,
     return;
 
   // Parse overlays — comma-separated: collision, sprites, objects, track,
-  // camera, grid, all.
+  // camera, grid, tiletype, all.
   uint32_t overlay_flags = yaze::app::service::RenderOverlay::kNone;
   if (req.has_param("overlays")) {
     std::istringstream ss(req.get_param_value("overlays"));
@@ -372,6 +372,8 @@ void HandleRenderDungeon(const httplib::Request& req, httplib::Response& res,
         overlay_flags |= yaze::app::service::RenderOverlay::kCameraQuads;
       else if (tok == "grid")
         overlay_flags |= yaze::app::service::RenderOverlay::kGrid;
+      else if (tok == "tiletype")
+        overlay_flags |= yaze::app::service::RenderOverlay::kTileTypes;
       else if (tok == "all")
         overlay_flags = yaze::app::service::RenderOverlay::kAll;
     }
