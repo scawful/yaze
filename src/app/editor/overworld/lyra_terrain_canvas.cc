@@ -386,10 +386,7 @@ void LyraTerrainCanvas::Draw(UndoManager& history) {
   ImGui::SetNextItemWidth(140);
   ImGui::SliderFloat("Zoom", &zoom_, 0.15f, 3.0f, "%.2fx");
   ImGui::SameLine();
-  if (ImGui::Button("A0 / A8 / B0")) {
-    pan_ = ImVec2(24, 40);
-    zoom_ = 0.6f;
-  }
+  const bool frame_vertical_maps = ImGui::Button("A0 / A8 / B0");
   ImGui::SameLine();
   ImGui::TextDisabled(
       "8 x 4 maps | 32 x 32 tiles per map | Save Project to keep edits");
@@ -429,6 +426,12 @@ void LyraTerrainCanvas::Draw(UndoManager& history) {
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
   const ImVec2 origin = ImGui::GetCursorScreenPos();
   const ImVec2 size = ImGui::GetContentRegionAvail();
+  if (frame_vertical_maps) {
+    pan_ = ImVec2(24, 40);
+    zoom_ = std::clamp(
+        std::min((size.x - 48) / 512.0f, (size.y - 64) / (3 * 512.0f)), 0.15f,
+        3.0f);
+  }
   ImGui::InvisibleButton("terrain", size,
                          ImGuiButtonFlags_MouseButtonLeft |
                              ImGuiButtonFlags_MouseButtonRight |
