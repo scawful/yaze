@@ -167,6 +167,31 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
         index, door.type, door.direction, door.position);
   }
 
+  ImGui::Spacing();
+  const bool normal_door =
+      (*viewer.rooms())[viewer.current_room_id()].GetDoors()[index].type ==
+      zelda3::DoorType::NormalDoor;
+  ImGui::BeginDisabled(viewer.header_read_only() ||
+                       !viewer.IsObjectInteractionEnabled() || !normal_door);
+  if (ImGui::Button("Complete stone surround", ImVec2(-1, 0))) {
+    viewer.object_interaction().entity_coordinator().CompleteDoorTrim(index);
+  }
+  gui::AutoRegisterLastItem("button", "CompleteDoorTrim");
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "%s", normal_door
+                  ? "Add missing stone trim on the selected side and select it "
+                    "with the door.\n"
+                    "Existing matching trim is reused. One Undo step."
+                  : "Stone surrounds are available for ordinary doors.");
+  }
+  ImGui::EndDisabled();
+  const auto& trim_status =
+      viewer.object_interaction().entity_coordinator().selection_edit_status();
+  if (!trim_status.ok()) {
+    ImGui::TextWrapped("%s", std::string(trim_status.message()).c_str());
+  }
+
   // Re-read accepted room data inside the shared connection controls; the
   // property mutation above can reject its local candidate.
   DrawDungeonConnectionEditor(viewer, index, jump_to_reciprocal);

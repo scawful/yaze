@@ -581,15 +581,43 @@ absl::Status InteractionCoordinator::CommitSelectionEdit(
   if (!planned.ok()) {
     return ReportSelectionEditStatus(planned.status());
   }
-  if (!planned->changed()) {
+  return CommitPlannedSelectionEdit(*planned, continuous);
+}
+
+absl::Status InteractionCoordinator::CompleteDoorTrim(size_t door_index) {
+  FinishSelectionGesture();
+  auto* room = ctx_ ? ctx_->GetCurrentRoom() : nullptr;
+  if (!room) {
+    return ReportSelectionEditStatus(
+        absl::FailedPreconditionError("No room is available for door trim"));
+  }
+  auto plan = PlanDungeonDoorTrim(*room, door_index);
+  if (!plan.ok()) {
+    return ReportSelectionEditStatus(plan.status());
+  }
+  if (ctx_->selection) {
+    plan->before.selected_objects = ctx_->selection->GetSelectedIndices();
+  }
+  plan->before.selected_entities = SelectedEntitiesForEdit();
+  return CommitPlannedSelectionEdit(*plan, false);
+}
+
+absl::Status InteractionCoordinator::CommitPlannedSelectionEdit(
+    const DungeonSelectionEditPlan& plan, bool continuous) {
+  auto* room = ctx_ ? ctx_->GetCurrentRoom() : nullptr;
+  if (!room || room->id() != plan.room_id) {
+    return ReportSelectionEditStatus(
+        absl::FailedPreconditionError("Selection room is no longer available"));
+  }
+  if (!plan.changed() && plan.kind != DungeonSelectionEditKind::kDoorTrim) {
     return ReportSelectionEditStatus(absl::OkStatus());
   }
-  if (ctx_->on_selection_edit) {
-    const auto status = ctx_->on_selection_edit(*planned, continuous);
+  if (plan.changed() && ctx_->on_selection_edit) {
+    const auto status = ctx_->on_selection_edit(plan, continuous);
     if (!status.ok()) {
       return ReportSelectionEditStatus(status);
     }
-  } else {
+  } else if (plan.changed()) {
     // Standalone handlers retain legacy notifications; the editor callback
     // stages global constraints and contributes one shared undo action.
     if (!continuous)
@@ -599,30 +627,30 @@ absl::Status InteractionCoordinator::CommitSelectionEdit(
           std::pair{kSelectionDoors, MutationDomain::kDoors},
           std::pair{kSelectionSprites, MutationDomain::kSprites},
           std::pair{kSelectionItems, MutationDomain::kItems}}) {
-      if (planned->domains & mask)
+      if (plan.domains & mask)
         ctx_->NotifyMutation(domain);
     }
-    ApplyDungeonSelectionEditState(*room, planned->after, planned->domains);
+    ApplyDungeonSelectionEditState(*room, plan.after, plan.domains);
   }
   // A drag keeps its indices and active state. Re-selecting handlers during
   // each increment would end their drag and could recursively finalize undo.
   if (!continuous) {
     if (ctx_->selection) {
       ctx_->selection->ClearSelection();
-      for (const auto index : planned->after.selected_objects) {
+      for (const auto index : plan.after.selected_objects) {
         ctx_->selection->SelectObject(index,
                                       ObjectSelection::SelectionMode::Add);
       }
     }
-    SetSelectedEntities(planned->after.selected_entities);
+    SetSelectedEntities(plan.after.selected_entities);
   }
-  if (!ctx_->on_selection_edit) {
+  if (plan.changed() && !ctx_->on_selection_edit) {
     for (const auto [mask, domain] :
          {std::pair{kSelectionObjects, MutationDomain::kTileObjects},
           std::pair{kSelectionDoors, MutationDomain::kDoors},
           std::pair{kSelectionSprites, MutationDomain::kSprites},
           std::pair{kSelectionItems, MutationDomain::kItems}}) {
-      if (planned->domains & mask)
+      if (plan.domains & mask)
         ctx_->NotifyInvalidateCache(domain);
     }
     ctx_->NotifyEntityChanged();
