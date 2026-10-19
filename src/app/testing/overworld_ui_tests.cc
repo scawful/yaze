@@ -393,6 +393,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
   if (!requested || !*requested ||
       std::getenv("YAZE_LYRA_TERRAIN_REOPEN_PROJECT"))
     return;
+  ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
   ImGuiTest* test = IM_REGISTER_TEST(engine, "lyra_terrain",
                                      "cross_map_stroke_undo_redo_project_save");
   test->TestFunc = [](ImGuiTestContext* ctx) {
@@ -488,7 +489,9 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
 
     // Known product controls establish pan/zoom; coordinates below come from
     // the live terrain item rectangle, not an assumed desktop/window position.
-    ctx->ItemClick("**/A0 \\/ A8 \\/ B0");
+    // Wildcard label search does not honor escaped slashes. The current
+    // reference already names the canvas window, so use its literal path.
+    ctx->ItemClick("A0 \\/ A8 \\/ B0");
     ctx->ItemInputValue("**/Zoom", 0.25f);
     ctx->ItemInputValue("**/Page", 0);
     ctx->Yield(3);
@@ -621,6 +624,7 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
   if (!requested || !*requested ||
       std::getenv("YAZE_LYRA_TERRAIN_ACCEPTANCE_PROJECT"))
     return;
+  ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
   ImGuiTest* test = IM_REGISTER_TEST(engine, "lyra_terrain",
                                      "fresh_process_autoload_saved_terrain");
   test->TestFunc = [](ImGuiTestContext* ctx) {
