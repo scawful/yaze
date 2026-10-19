@@ -422,6 +422,10 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
           ToastType::kWarning, 4.0f);
     }
   });
+  viewer->object_interaction().SetCollisionBatchImportCallback(
+      [this](const std::vector<zelda3::CustomCollisionRoomEntry>& entries) {
+        return ApplyCustomCollisionImportBatch(entries);
+      });
   // The interaction context is the mutation source of truth. A retained viewer
   // can change rooms, so do not capture the room ID from its creation time.
   viewer->object_interaction().SetMutationCallback([this, viewer]() {
@@ -980,6 +984,101 @@ absl::Status DungeonEditorV2::ApplyMinecartCollisionBatch(
   } catch (const std::exception& error) {
     return absl::InternalError(absl::StrFormat(
         "Could not record minecart collision undo: %s", error.what()));
+  }
+  rollback.Commit();
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  }
+
+  for (const auto& snapshot : after) {
+    if (auto* viewer = GetViewerForRoom(snapshot.room_id)) {
+      viewer->TriggerChangePing();
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorV2::ApplyCustomCollisionImportBatch(
+    const std::vector<zelda3::CustomCollisionRoomEntry>& entries) {
+  if (!rom_ || !rom_->is_loaded() ||
+      !zelda3::HasCustomCollisionWriteSupport(rom_->vector().size())) {
+    return absl::FailedPreconditionError(
+        "Load a room with expanded collision support");
+  }
+  FinalizePendingUndoActions();
+
+  std::unordered_set<int> seen_room_ids;
+  for (const auto& entry : entries) {
+    if (!IsValidRoomId(entry.room_id)) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Collision import room 0x%03X is out of range", entry.room_id));
+    }
+    if (!seen_room_ids.insert(entry.room_id).second) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Collision import contains duplicate room 0x%03X", entry.room_id));
+    }
+  }
+
+  std::vector<DungeonCustomCollisionSnapshot> before;
+  std::vector<DungeonCustomCollisionSnapshot> after;
+  std::vector<CollisionRollbackEntry> rollback_entries;
+  before.reserve(entries.size());
+  after.reserve(entries.size());
+  rollback_entries.reserve(entries.size());
+
+  for (const auto& entry : entries) {
+    const int room_id = entry.room_id;
+    zelda3::Room& room = rooms_[room_id];
+    if (!room.IsLoaded() && !room.custom_collision_dirty() &&
+        !room.has_custom_collision()) {
+      auto map_or = zelda3::LoadCustomCollisionMap(rom_, room_id);
+      if (!map_or.ok()) {
+        return absl::Status(map_or.status().code(),
+                            absl::StrFormat("Room 0x%03X: %s", room_id,
+                                            map_or.status().message()));
+      }
+      room.custom_collision() = std::move(*map_or);
+    }
+
+    zelda3::CustomCollisionMap imported_map;
+    for (const auto& tile : entry.tiles) {
+      if (tile.offset >= imported_map.tiles.size()) {
+        continue;
+      }
+      imported_map.SetOverride(tile.offset, tile.value);
+    }
+
+    if (CollisionMapsEqual(room.custom_collision(), imported_map)) {
+      continue;
+    }
+
+    before.push_back({room_id, room.custom_collision()});
+    after.push_back({room_id, imported_map});
+    rollback_entries.push_back(
+        {&room, room.custom_collision(), room.custom_collision_dirty()});
+  }
+
+  if (after.empty()) {
+    return absl::OkStatus();
+  }
+
+  auto action = std::make_unique<DungeonCustomCollisionBatchAction>(
+      before, after,
+      [this](const std::vector<DungeonCustomCollisionSnapshot>& snapshots) {
+        return RestoreRoomCustomCollisionBatch(snapshots);
+      });
+
+  CollisionBatchRollback rollback(std::move(rollback_entries));
+  for (const auto& snapshot : after) {
+    auto& room = rooms_[snapshot.room_id];
+    room.custom_collision() = snapshot.map;
+    room.MarkCustomCollisionDirty();
+  }
+  try {
+    undo_manager_.Push(std::move(action));
+  } catch (const std::exception& error) {
+    return absl::InternalError(absl::StrFormat(
+        "Could not record collision import undo: %s", error.what()));
   }
   rollback.Commit();
   if (minecart_track_editor_panel_) {

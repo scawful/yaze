@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/agent_theme.h"
@@ -232,16 +233,6 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
     return;
   }
 
-  static const char* kPotItemNames[] = {
-      "Nothing",       "Green Rupee", "Rock",         "Bee",        "Health",
-      "Bomb",          "Heart",       "Blue Rupee",   "Key",        "Arrow",
-      "Bomb",          "Heart",       "Magic",        "Full Magic", "Cucco",
-      "Green Soldier", "Bush Stal",   "Blue Soldier", "Landmine",   "Heart",
-      "Fairy",         "Heart",       "Nothing",      "Hole",       "Warp",
-      "Staircase",     "Bombable",    "Switch"};
-  constexpr size_t kPotItemNameCount =
-      sizeof(kPotItemNames) / sizeof(kPotItemNames[0]);
-
   const auto& selected =
       object_interaction_.entity_coordinator().GetSelectedEntities();
   for (size_t index = 0; index < pot_items.size(); ++index) {
@@ -271,8 +262,8 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
                     pot_item_color);
 
       std::string item_name;
-      if (pot_item.item < kPotItemNameCount) {
-        item_name = kPotItemNames[pot_item.item];
+      if (pot_item.item < kDungeonPotItemCount) {
+        item_name = GetDungeonPotItemName(pot_item.item);
       } else {
         item_name = absl::StrFormat("Unk%02X", pot_item.item);
       }

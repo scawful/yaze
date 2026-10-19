@@ -747,6 +747,8 @@ class DungeonEditorV2 : public Editor {
   absl::Status ApplyMinecartCollisionBatch(
       const std::vector<zelda3::TrackCollisionResult>& preview,
       const zelda3::GeneratorOptions& options);
+  absl::Status ApplyCustomCollisionImportBatch(
+      const std::vector<zelda3::CustomCollisionRoomEntry>& entries);
   absl::Status RestoreRoomCustomCollisionBatch(
       const std::vector<DungeonCustomCollisionSnapshot>& snapshots);
 

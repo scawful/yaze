@@ -365,6 +365,24 @@ void InteractionCoordinator::CancelPlacement() {
   sprite_handler_.CancelPlacement();
   item_handler_.CancelPlacement();
   tile_handler_.CancelPlacement();
+  if (selected_entities_.size() == 1) {
+    const auto& selected = selected_entities_.front();
+    switch (selected.type) {
+      case EntityType::Door:
+        door_handler_.SelectDoor(selected.index);
+        break;
+      case EntityType::Sprite:
+        sprite_handler_.SelectSprite(selected.index);
+        break;
+      case EntityType::Item:
+        item_handler_.SelectItem(selected.index);
+        break;
+      case EntityType::Object:
+      case EntityType::None:
+      default:
+        break;
+    }
+  }
 }
 
 std::optional<SelectedEntity> InteractionCoordinator::GetEntityAtPosition(

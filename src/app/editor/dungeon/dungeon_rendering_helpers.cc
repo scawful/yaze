@@ -286,6 +286,9 @@ void DungeonRenderingHelpers::DrawCustomCollisionOverlay(
 
       ImVec4 fill = apply_alpha(theme.panel_border_color, 0.25f);
       switch (tile) {
+        case 0x00:
+          fill = apply_alpha(theme.status_success, 0.28f);
+          break;
         case 0x08:
           fill = apply_alpha(theme.status_active, 0.35f);
           break;
