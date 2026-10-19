@@ -2686,6 +2686,10 @@ TEST_F(DungeonWorkbenchResetUiTest,
   Click("quick_collision_floor_00");
   EXPECT_FALSE(mode_mgr.GetModeState().paint_collision_erase);
   EXPECT_EQ(mode_mgr.GetModeState().paint_collision_value, 0x00);
+  // The combo is drawn before Quick Select, so its registered enabled state
+  // still reflects erase mode during the button's release frame.
+  Frame();
+  ASSERT_TRUE(Find("collision_tile_type").has_value());
   EXPECT_TRUE(Find("collision_tile_type")->enabled);
 }
 
