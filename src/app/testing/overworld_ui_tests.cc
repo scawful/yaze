@@ -529,7 +529,8 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     const ImGuiID brush_button = ImHashStr("tile", 0, brush_seed);
     ctx->ItemClick(brush_button);
     ctx->Yield(2);
-    const auto before = document->maps();
+    const auto before =
+        std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
     const size_t undo_before = overworld->undo_manager().UndoStackSize();
     IM_CHECK(undo_before < overworld->undo_manager().GetMaxStackSize());
 
@@ -549,17 +550,18 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(document->dirty());
     for (int y = kStartY; y <= end_y; ++y)
       IM_CHECK(document->tile(kX, y).value() == brush);
-    const auto painted = document->maps();
+    const auto painted =
+        std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
     ctx->ItemClick("**/Undo##LyraTerrain");
     ctx->Yield(2);
     IM_CHECK(overworld->lyra_canvas_status_.ok());
-    IM_CHECK(document->maps() == before);
+    IM_CHECK(document->maps() == *before);
     IM_CHECK(!document->dirty());
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before);
     ctx->ItemClick("**/Redo##LyraTerrain");
     ctx->Yield(2);
     IM_CHECK(overworld->lyra_canvas_status_.ok());
-    IM_CHECK(document->maps() == painted);
+    IM_CHECK(document->maps() == *painted);
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 1);
 
     ctx->ItemClick("**/Save terrain");
@@ -572,12 +574,12 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(!overworld->HasPendingProjectDraftChanges());
     const auto saved = read_file(source_path);
     IM_CHECK(saved.has_value() && *saved == document->Serialize());
-    auto reopened =
-        core::LyraTerrainDocument::Parse(*saved, document->profile());
-    IM_CHECK(reopened.ok() && reopened->maps() == painted);
-    project::YazeProject reopened_project;
-    IM_CHECK(reopened_project.Open(expected_project.string()).ok());
-    IM_CHECK(fs::canonical(reopened_project.lyra_terrain_file, ec) ==
+    // Parsing is verified by the separate fresh-process autoload test below.
+    // Keep full-map snapshots on the heap: the test-engine coroutine has a
+    // smaller stack than the main UI thread that normally loads terrain.
+    auto reopened_project = std::make_unique<project::YazeProject>();
+    IM_CHECK(reopened_project->Open(expected_project.string()).ok());
+    IM_CHECK(fs::canonical(reopened_project->lyra_terrain_file, ec) ==
                  source_path &&
              !ec);
     IM_CHECK(rom->vector() == rom_before && !rom->dirty());
