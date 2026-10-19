@@ -2539,7 +2539,7 @@ absl::Status Overworld::SaveWideAreaTransitions(
           by_screen3_wide[1] = 0x1800;
           break;
         case 1:  // From right of wide to left of wide
-          by_screen3_wide[0] = 0x07C0;
+          by_screen3_wide[0] = 0x17C0;
           break;
       }
     }

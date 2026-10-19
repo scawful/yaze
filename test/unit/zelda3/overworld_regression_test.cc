@@ -75,6 +75,42 @@ TEST(OverworldAreaTransitionTest,
   expect_word(GetOverworldScreenChange4Expanded() + 0x29 * 2, 0x0FC0);
 }
 
+TEST(OverworldAreaTransitionTest, StaggeredWideAreasKeepDownwardTilemapOrigin) {
+  Rom rom;
+  std::vector<uint8_t> bytes(0x200000, 0);
+  bytes[OverworldCustomASMHasBeenApplied] = 3;
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    bytes[GetOverworldMapParentIdExpanded() + i] = i;
+  }
+  // The right half of $20/$21 is directly above the left half of $29/$2A.
+  for (int parent : {0x20, 0x29}) {
+    for (int map : {parent, parent + 1}) {
+      bytes[kOverworldScreenSize + map] = 2;
+      bytes[GetOverworldMapParentIdExpanded() + map] = parent;
+    }
+  }
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  Overworld overworld(&rom);
+  auto& maps =
+      const_cast<std::vector<OverworldMap>&>(overworld.overworld_maps());
+  maps.reserve(kNumOverworldMaps);
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    maps.emplace_back(i, &rom);
+  }
+  overworld.AssignMapSizes(maps);
+  ASSERT_EQ(maps[0x21].large_index(), 1);
+  ASSERT_TRUE(overworld.SaveLargeMapsExpanded().ok());
+
+  const auto adjustment =
+      rom.ReadWord(GetOverworldScreenChange3Expanded() + 0x29 * 2);
+  ASSERT_TRUE(adjustment.ok()) << adjustment.status();
+  EXPECT_EQ(*adjustment, 0x17C0);
+  // The down-transition consumer masks $84 with $007F before adding this
+  // word. Remove the source's right-half $0040 offset without changing the
+  // normal destination-left $1800 row; $07C0 would select $0800 instead.
+  EXPECT_EQ((0x0040 & 0x007F) + *adjustment, 0x1800);
+}
+
 class OverworldRegressionTest : public ::testing::Test {
  protected:
   void SetUp() override {
