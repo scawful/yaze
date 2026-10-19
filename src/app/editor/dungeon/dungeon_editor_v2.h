@@ -737,6 +737,7 @@ class DungeonEditorV2 : public Editor {
   absl::Status RestoreRoomEntities(int room_id, MutationDomain domain,
                                    const DungeonEntitySnapshot& snapshot);
 
+  void InvalidateConnectedRoomGraphs();
   void BeginCollisionUndoSnapshot(int room_id);
   void FinalizeCollisionUndoAction(int room_id);
   void RestoreRoomCustomCollision(int room_id,

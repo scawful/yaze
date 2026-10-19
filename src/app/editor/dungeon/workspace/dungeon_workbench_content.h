@@ -141,8 +141,10 @@ class DungeonWorkbenchContent : public WindowContent {
     open_keyboard_shortcuts_ = std::move(callback);
   }
   void SetPitDamageTableProvider(
-      std::function<zelda3::PitDamageTable*()> provider) {
+      std::function<zelda3::PitDamageTable*()> provider,
+      std::function<void()> on_change = {}) {
     get_pit_damage_table_ = std::move(provider);
+    on_pit_damage_changed_ = std::move(on_change);
   }
   void FocusRoomInspector();
   void FocusSelectionInspector();
@@ -310,6 +312,7 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<void(DungeonCanvasViewer&)> on_primary_canvas_drawn_;
   std::function<void(int)> prepare_room_render_context_;
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
+  std::function<void()> on_pit_damage_changed_;
   Rom* rom_ = nullptr;
 
   enum class SidebarMode : uint8_t { Objects, Sprites, Doors, Items };

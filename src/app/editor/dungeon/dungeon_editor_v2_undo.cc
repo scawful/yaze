@@ -754,6 +754,22 @@ absl::Status DungeonEditorV2::RestoreRoomObjects(
   return absl::OkStatus();
 }
 
+void DungeonEditorV2::InvalidateConnectedRoomGraphs() {
+  // A transport can target any open graph. Clear existing viewers only;
+  // refreshing derived connections must not create viewers or navigate.
+  room_viewers_.ForEach([](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+    if (viewer) {
+      viewer->InvalidateConnectedRoomGraph();
+    }
+  });
+  for (auto* viewer :
+       {workbench_viewer_.get(), workbench_compare_viewer_.get()}) {
+    if (viewer) {
+      viewer->InvalidateConnectedRoomGraph();
+    }
+  }
+}
+
 void DungeonEditorV2::BeginCollisionUndoSnapshot(int room_id) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
     return;
@@ -787,6 +803,7 @@ void DungeonEditorV2::FinalizeCollisionUndoAction(int room_id) {
         RestoreRoomCustomCollision(rid, map);
       });
   undo_manager_.Push(std::move(action));
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
@@ -803,6 +820,7 @@ void DungeonEditorV2::RestoreRoomCustomCollision(
   auto& room = rooms_[room_id];
   room.custom_collision() = map;
   room.MarkCustomCollisionDirty();
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
@@ -888,6 +906,7 @@ absl::Status DungeonEditorV2::ApplyMinecartCollisionStamp(
         absl::StrFormat("Could not record rail undo: %s", error.what()));
   }
   rollback.Commit();
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_)
     minecart_track_editor_panel_->InvalidateRoomAudit();
   return absl::OkStatus();
@@ -986,6 +1005,7 @@ absl::Status DungeonEditorV2::ApplyMinecartCollisionBatch(
         "Could not record minecart collision undo: %s", error.what()));
   }
   rollback.Commit();
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
@@ -1081,6 +1101,7 @@ absl::Status DungeonEditorV2::ApplyCustomCollisionImportBatch(
         "Could not record collision import undo: %s", error.what()));
   }
   rollback.Commit();
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
@@ -1119,6 +1140,7 @@ absl::Status DungeonEditorV2::RestoreRoomCustomCollisionBatch(
       undo_restore_triggered_ping_ = true;
     }
   }
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }

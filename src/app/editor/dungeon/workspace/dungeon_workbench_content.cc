@@ -1423,6 +1423,9 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
                                 current_room, pit_damage_replacement_room_id_)
               : std::string(status.message());
       if (status.ok()) {
+        if (on_pit_damage_changed_) {
+          on_pit_damage_changed_();
+        }
         pit_damage_chooser_room_id_ = -1;
         ImGui::CloseCurrentPopup();
       }
@@ -1463,6 +1466,9 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
                                 current_room, pit_damage_victim_room_id_)
               : std::string(status.message());
       if (status.ok()) {
+        if (on_pit_damage_changed_) {
+          on_pit_damage_changed_();
+        }
         pit_damage_chooser_room_id_ = -1;
         ImGui::CloseCurrentPopup();
       }

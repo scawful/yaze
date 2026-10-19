@@ -56,6 +56,36 @@ class DungeonCanvasViewerTestPeer {
     editor.ConfigureViewerUndoHooks(viewer);
   }
 
+  static DungeonCanvasViewer& MakeOwnedOverviewViewer(
+      DungeonEditorV2& editor, Rom* rom, zelda3::GameData* game_data,
+      int room_id) {
+    editor.SetRom(rom);
+    editor.SetGameData(game_data);
+    editor.workbench_viewer_ = std::make_unique<DungeonCanvasViewer>();
+    auto& viewer = *editor.workbench_viewer_;
+    viewer.RefreshRomBackedState(rom, game_data, &editor.rooms(), room_id);
+    viewer.object_interaction().SetCurrentRoom(&editor.rooms(), room_id);
+    editor.ConfigureViewerUndoHooks(&viewer);
+    return viewer;
+  }
+
+  static int CachedOverviewRoomCount(DungeonCanvasViewer& viewer, int room_id) {
+    viewer.GetConnectedContentSize(room_id);
+    return viewer.connected_graph_cache_.room_count;
+  }
+
+  static std::function<void()> PitDamageChanged(DungeonEditorV2& editor) {
+    return [&editor]() {
+      editor.InvalidateConnectedRoomGraphs();
+    };
+  }
+
+  static absl::Status ImportCollision(
+      DungeonEditorV2& editor,
+      const std::vector<zelda3::CustomCollisionRoomEntry>& entries) {
+    return editor.ApplyCustomCollisionImportBatch(entries);
+  }
+
   static void OpenRoom(DungeonEditorV2& editor, int room_id) {
     editor.OnRoomSelected(room_id, /*request_focus=*/false);
   }
@@ -2182,12 +2212,33 @@ TEST(DungeonWorkbenchPitDamageTest, RejectsInvalidMembershipSwaps) {
 }
 
 TEST_F(DungeonWorkbenchPitDamageUiTest,
-       ButtonsClickThroughToPitDamageMembershipSwaps) {
+       ButtonsRefreshCachedOverviewAfterPitDamageMembershipSwaps) {
   int current_room_id = 0x020;
   const std::deque<int> recent_rooms;
   auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
-  auto table = MakePitDamageTable({0x001, 0x010});
-  content.SetPitDamageTableProvider([&table]() { return &table; });
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x8000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.pit_damage_table = MakePitDamageTable({0x001, 0x010});
+  auto& table = game_data.pit_damage_table;
+  DungeonEditorV2 editor(&rom);
+  auto& viewer = DungeonCanvasViewerTestPeer::MakeOwnedOverviewViewer(
+      editor, &rom, &game_data, current_room_id);
+  for (int id : {current_room_id, 0x030}) {
+    editor.rooms()[id].SetLoaded(true);
+  }
+  editor.rooms()[current_room_id].SetHolewarp(0x030);
+  ASSERT_TRUE(editor.rooms()[current_room_id]
+                  .AddObject(zelda3::RoomObject(0x0A4, 8, 8, 0, 0))
+                  .ok());
+  content.SetPitDamageTableProvider(
+      [&table]() { return &table; },
+      DungeonCanvasViewerTestPeer::PitDamageChanged(editor));
+  const auto room_count = [&]() {
+    return DungeonCanvasViewerTestPeer::CachedOverviewRoomCount(
+        viewer, current_room_id);
+  };
+  ASSERT_EQ(room_count(), 2);
 
   DrawPitDamageFrame(content, current_room_id);
   EXPECT_FALSE(
@@ -2205,6 +2256,7 @@ TEST_F(DungeonWorkbenchPitDamageUiTest,
   EXPECT_FALSE(table.Contains(0x001));
   EXPECT_TRUE(table.Contains(0x010));
   EXPECT_TRUE(table.dirty());
+  EXPECT_EQ(room_count(), 1);
 
   table.ClearDirty();
   DrawPitDamageFrame(content, current_room_id);
@@ -2220,9 +2272,54 @@ TEST_F(DungeonWorkbenchPitDamageUiTest,
 
   ClickRect(content, current_room_id, replace_rect);
   EXPECT_FALSE(table.Contains(0x020));
+  EXPECT_EQ(room_count(), 2);
   EXPECT_TRUE(table.Contains(0x000));
   EXPECT_TRUE(table.Contains(0x010));
   EXPECT_TRUE(table.dirty());
+}
+
+TEST_F(DungeonWorkbenchPitDamageUiTest,
+       CachedOverviewRefreshesAfterCollisionPaintImportUndoRedo) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(
+      rom.WriteWord(SnesToPc(zelda3::kRoomLayoutPointers.front()), 0xFFFF)
+          .ok());
+  zelda3::GameData game_data;
+  DungeonEditorV2 editor(&rom);
+  constexpr int kRoom = 0x20;
+  auto& viewer = DungeonCanvasViewerTestPeer::MakeOwnedOverviewViewer(
+      editor, &rom, &game_data, kRoom);
+  for (int id : {kRoom, 0x30}) {
+    editor.rooms()[id].SetLoaded(true);
+  }
+  auto& room = editor.rooms()[kRoom];
+  room.SetHolewarp(0x30);
+  const auto room_count = [&]() {
+    return DungeonCanvasViewerTestPeer::CachedOverviewRoomCount(viewer, kRoom);
+  };
+  ASSERT_EQ(room_count(), 1);
+
+  // Exercise the same transaction hooks as a completed collision paint stroke.
+  viewer.object_interaction().BeginCustomCollisionMutation();
+  room.SetCollisionTile(8, 8, 0x4B);
+  viewer.object_interaction().EndCustomCollisionMutation();
+  EXPECT_EQ(room_count(), 2);
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_EQ(room_count(), 1);
+  ASSERT_TRUE(editor.Redo().ok());
+  EXPECT_EQ(room_count(), 2);
+
+  // Import replaces the map atomically; batch undo/redo must refresh the cache.
+  zelda3::CustomCollisionRoomEntry entry;
+  entry.room_id = kRoom;
+  ASSERT_TRUE(
+      DungeonCanvasViewerTestPeer::ImportCollision(editor, {entry}).ok());
+  EXPECT_EQ(room_count(), 1);
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_EQ(room_count(), 2);
+  ASSERT_TRUE(editor.Redo().ok());
+  EXPECT_EQ(room_count(), 1);
 }
 
 TEST_F(DungeonWorkbenchPitDamageUiTest,
