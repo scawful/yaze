@@ -15,6 +15,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace cli {
@@ -274,6 +275,47 @@ TEST_F(CommandContextTest,
       track_it->second,
       ::testing::ElementsAreArray(
           zelda3::CustomObjectManager::DefaultSubtypeFilenamesForObject(0x31)));
+}
+
+TEST_F(CommandContextTest, ProjectContextAppliesAndRestoresSpriteLabels) {
+  project::YazeProject project;
+  ASSERT_TRUE(project.Create("sprite_labels", temp_root_.string()).ok());
+  project.resource_labels["sprite"]["82"] = "Collectible";  // slot $52
+  ASSERT_TRUE(project.Save().ok());
+
+  auto& labels = zelda3::GetResourceLabels();
+  const auto before = labels.SnapshotState();
+  const std::string default_name =
+      labels.GetDefaultLabel(zelda3::ResourceType::kSprite, 0x52);
+  {
+    CommandContext::Config config;
+    config.use_mock_rom = true;
+    config.project_context_path = project.filepath;
+    CommandContext context(config);
+    ASSERT_TRUE(context.GetRom().ok());
+    const auto resolved = zelda3::ResolveSpriteLabel(0x52);
+    EXPECT_EQ(resolved.name, "Collectible");
+    EXPECT_TRUE(resolved.from_project);
+    EXPECT_EQ(resolved.default_name, default_name);
+  }
+  // The provider must not keep pointing into the destroyed project.
+  const auto after = labels.SnapshotState();
+  EXPECT_EQ(after.project_labels, before.project_labels);
+  EXPECT_EQ(after.hack_manifest, before.hack_manifest);
+  EXPECT_EQ(after.prefer_hmagic, before.prefer_hmagic);
+  EXPECT_EQ(zelda3::ResolveSpriteLabel(0x52).name, default_name);
+}
+
+TEST_F(CommandContextTest, InvalidProjectContextRestoresLabelProvider) {
+  auto& labels = zelda3::GetResourceLabels();
+  const auto before = labels.SnapshotState();
+  CommandContext::Config config;
+  config.use_mock_rom = true;
+  config.project_context_path = (temp_root_ / "missing.yaze").string();
+  CommandContext context(config);
+  EXPECT_FALSE(context.GetRom().ok());
+  EXPECT_EQ(labels.SnapshotState().project_labels, before.project_labels);
+  EXPECT_EQ(labels.SnapshotState().hack_manifest, before.hack_manifest);
 }
 
 TEST_F(CommandContextTest, InvalidProjectContextFailsInitialization) {

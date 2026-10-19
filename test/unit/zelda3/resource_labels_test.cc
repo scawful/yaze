@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 #include "unique_temp_path.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/sprite/sprite.h"
 #include "zelda3/zelda3_labels.h"
 
 namespace yaze::zelda3 {
@@ -32,6 +33,35 @@ class ResourceLabelsTest : public ::testing::Test {
     provider.SetProjectLabels(nullptr);
   }
 };
+
+TEST_F(ResourceLabelsTest, ResolveLabelReportsProjectRenameAndDefault) {
+  auto& provider = GetResourceLabels();
+  const std::string default_name =
+      provider.GetDefaultLabel(ResourceType::kSprite, 0x52);
+  ASSERT_FALSE(default_name.empty());
+
+  auto vanilla = provider.ResolveLabel(ResourceType::kSprite, 0x52);
+  EXPECT_FALSE(vanilla.from_project);
+  EXPECT_EQ(vanilla.name, default_name);
+  EXPECT_EQ(vanilla.Display(), default_name);
+
+  // Oracle reuses slot $52 for its Collectible sprite (hex key form).
+  project_labels_["sprite"]["0x52"] = "Collectible";
+  auto renamed = ResolveSpriteLabel(0x52);
+  EXPECT_TRUE(renamed.from_project);
+  EXPECT_EQ(renamed.name, "Collectible");
+  EXPECT_EQ(renamed.default_name, default_name);
+  EXPECT_EQ(renamed.Display(), "Collectible (vanilla: " + default_name + ")");
+  EXPECT_EQ(ResolveSpriteName(0x52), std::string("Collectible"));
+}
+
+TEST_F(ResourceLabelsTest, EmbeddedVanillaLabelsAreNotRenames) {
+  auto& provider = GetResourceLabels();
+  // Projects saved with embedded labels repeat vanilla names verbatim.
+  project_labels_["sprite"]["0"] =
+      provider.GetVanillaLabel(ResourceType::kSprite, 0x00);
+  EXPECT_FALSE(provider.ResolveLabel(ResourceType::kSprite, 0x00).from_project);
+}
 
 TEST_F(ResourceLabelsTest, ResolvesVanillaLabelsByDefault) {
   // Sprite 0 is "Raven" in vanilla ALTTP (US)
