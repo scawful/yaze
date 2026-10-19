@@ -3647,6 +3647,8 @@ absl::Status EditorManager::SaveProject() {
 
   auto status = current_project_.Save();
   if (status.ok()) {
+    if (auto* editors = GetCurrentEditorSet())
+      editors->ProjectSaveCommitted();
     if (project_management_panel_) {
       project_management_panel_->SetProjectDirty(false);
     }
@@ -3819,6 +3821,8 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
 
   auto save_status = current_project_.Save();
   if (save_status.ok()) {
+    if (auto* editors = GetCurrentEditorSet())
+      editors->ProjectSaveCommitted();
     if (project_management_panel_) {
       project_management_panel_->SetProjectDirty(false);
     }

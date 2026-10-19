@@ -84,6 +84,23 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   }
   const bool lyra_preview = editor_->overworld_.is_lyra_preview();
   const bool lyra_writable = editor_->lyra_a0_terrain_writable();
+  if (!lyra_preview && editor_->dependencies_.project &&
+      editor_->dependencies_.project->project_opened()) {
+    if (ImGui::RadioButton("Overworld", !editor_->show_project_lyra_canvas_)) {
+      editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
+      editor_->show_project_lyra_canvas_ = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Lyra terrain",
+                           editor_->show_project_lyra_canvas_)) {
+      editor_->FinalizePaintOperation();
+      editor_->show_project_lyra_canvas_ = true;
+    }
+    if (editor_->show_project_lyra_canvas_) {
+      editor_->DrawProjectTerrainCanvas();
+      return;
+    }
+  }
   if (lyra_preview) {
     const auto layout = editor_->rom_->InspectLyraLayout();
     ImGui::Text("Lyra ROM rev%d: %d stored / %d active / %s", layout.revision,

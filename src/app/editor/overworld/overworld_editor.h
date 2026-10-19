@@ -16,6 +16,7 @@
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/entity/overworld_entity_renderer.h"
+#include "app/editor/overworld/lyra_terrain_canvas.h"
 #include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/maps/map_refresh_coordinator.h"
 #include "app/editor/overworld/maps/map_texture_coordinator.h"
@@ -194,6 +195,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
   absl::Status Clear() override;
+  bool HasPendingProjectDraftChanges() const { return lyra_canvas_.dirty(); }
+  absl::Status PrepareProjectSave();
+  void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
+  void DrawProjectTerrainCanvas();
   void ContributeStatus(StatusBar* status_bar) override;
   EditorContextSnapshot BuildContextSnapshot() const override;
 
@@ -221,6 +226,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
 
   Rom* rom() const { return rom_; }
+  bool show_project_lyra_canvas_ = false;
+  LyraTerrainCanvas lyra_canvas_;
+  absl::Status lyra_canvas_status_;
   bool is_lyra_preview() const { return overworld_.is_lyra_preview(); }
   bool lyra_a0_terrain_writable() const {
     return overworld_.lyra_a0_terrain_writable();

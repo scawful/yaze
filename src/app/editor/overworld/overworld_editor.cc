@@ -652,6 +652,10 @@ absl::Status OverworldEditor::Load() {
 
   all_gfx_loaded_ = true;
 
+  lyra_canvas_status_ = lyra_canvas_.Load(dependencies_.project, overworld_);
+  show_project_lyra_canvas_ = dependencies_.project &&
+                              !dependencies_.project->lyra_terrain_file.empty();
+
   auto scratch_status = LoadScratchPad();
   if (!scratch_status.ok()) {
     LOG_WARN("OverworldEditor", "Failed to load scratch pad: %s",
@@ -869,6 +873,40 @@ void OverworldEditor::DrawOverworldCanvas() {
   if (canvas_renderer_) {
     canvas_renderer_->DrawOverworldCanvas();
   }
+}
+
+absl::Status OverworldEditor::PrepareProjectSave() {
+  lyra_canvas_.FinishStroke(undo_manager_);
+  return lyra_canvas_.Save(dependencies_.project, overworld_);
+}
+
+void OverworldEditor::DrawProjectTerrainCanvas() {
+  if (!lyra_canvas_status_.ok()) {
+    ImGui::TextWrapped("%s", lyra_canvas_status_.ToString().c_str());
+  }
+  if (!lyra_canvas_.loaded()) {
+    ImGui::TextWrapped(
+        "Draw cliffs and shorelines across neighboring Lyra maps. "
+        "Terrain is saved with this project.");
+    if (ImGui::Button("Open Lyra terrain canvas")) {
+      lyra_canvas_status_ =
+          lyra_canvas_.Create(dependencies_.project, overworld_);
+    }
+    return;
+  }
+  if (ImGui::Button("Save terrain")) {
+    auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
+    lyra_canvas_status_ =
+        manager ? manager->SaveProject()
+                : absl::FailedPreconditionError("Project manager unavailable");
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Undo##LyraTerrain"))
+    lyra_canvas_status_ = Undo();
+  ImGui::SameLine();
+  if (ImGui::Button("Redo##LyraTerrain"))
+    lyra_canvas_status_ = Redo();
+  lyra_canvas_.Draw(undo_manager_);
 }
 
 bool OverworldEditor::NormalizeCurrentSelectionState() {
@@ -1698,6 +1736,7 @@ absl::Status OverworldEditor::RenameProjectResourceLabelWithUndo(
 }
 
 absl::Status OverworldEditor::Undo() {
+  lyra_canvas_.FinishStroke(undo_manager_);
   if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
@@ -1707,6 +1746,7 @@ absl::Status OverworldEditor::Undo() {
 }
 
 absl::Status OverworldEditor::Redo() {
+  lyra_canvas_.FinishStroke(undo_manager_);
   if (is_lyra_preview() && !lyra_a0_terrain_writable()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
@@ -2081,6 +2121,8 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
 }
 
 absl::Status OverworldEditor::Clear() {
+  lyra_canvas_.Reset();
+  show_project_lyra_canvas_ = false;
   pending_tile16_selection_after_gfx_.reset();
   lyra_loaded_rom_sha1_.clear();
   if (is_lyra_preview()) {

@@ -105,6 +105,7 @@ class EditorSet {
   void InvalidateScreenRomBackedState();
   bool HasPendingProjectDraftChanges() const;
   absl::Status PrepareProjectSave();
+  void ProjectSaveCommitted();
   zelda3::Overworld* GetOverworldData() const;
 
   // Deprecated named accessors (legacy compatibility)

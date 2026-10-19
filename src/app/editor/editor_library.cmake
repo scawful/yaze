@@ -164,6 +164,10 @@ set(
   app/editor/overworld/maps/overworld_map_metadata.cc
   app/editor/overworld/maps/overworld_property_edit.cc
   app/editor/overworld/overworld_editor.cc
+  app/editor/overworld/lyra_terrain_canvas.cc
+  app/editor/dungeon/ui/window/custom_collision_panel.cc
+  app/editor/dungeon/ui/window/item_editor_panel.cc
+  app/editor/dungeon/ui/window/water_fill_panel.cc
   app/editor/overworld/painting/tile_painting_manager.cc
   app/editor/overworld/panels/area_graphics_panel.cc
   app/editor/overworld/panels/debug_window_panel.cc
