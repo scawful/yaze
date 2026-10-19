@@ -40,6 +40,7 @@
 #include "imgui/imgui_internal.h"
 #include "rom/snes.h"
 #include "test_utils/expanded_entrance_fixture.h"
+#include "util/file_util.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_entrance.h"
