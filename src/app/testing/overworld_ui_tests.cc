@@ -711,7 +711,8 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
                                 editor::EditorType::kOverworld)
                           : nullptr;
       if (overworld && overworld->overworld().is_loaded() &&
-          overworld->lyra_canvas_.loaded())
+          overworld->lyra_canvas_.loaded() &&
+          ctx->ItemExists("**/Lyra terrain"))
         break;
       ctx->Yield(1);
     }
