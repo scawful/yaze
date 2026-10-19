@@ -26,7 +26,7 @@
 #include "app/emu/debug/symbol_provider.h"
 #include "app/startup_flags.h"
 #if !defined(__EMSCRIPTEN__) && defined(YAZE_HTTP_API_ENABLED)
-#include "cli/service/api/http_server.h"
+#include "app/service/editor_http_server.h"
 #endif
 #include "core/features.h"
 #include "util/crash_handler.h"
@@ -399,60 +399,6 @@ bool RunSymbolExportFastPath() {
   return false;
 }
 
-#if !defined(__EMSCRIPTEN__) && defined(YAZE_HTTP_API_ENABLED)
-std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(
-    const yaze::AppConfig& config) {
-  if (!config.enable_api) {
-    return nullptr;
-  }
-
-  auto api_server = std::make_unique<yaze::cli::api::HttpServer>();
-
-  // Wire up symbol provider source
-  api_server->SetSymbolProviderSource(
-      []() -> yaze::emu::debug::SymbolProvider* {
-        auto* manager = yaze::app::GetGlobalEditorManager();
-        if (manager) {
-          return &manager->emulator().symbol_provider();
-        }
-        return nullptr;
-      });
-
-  // Window control endpoints (service mode)
-  api_server->SetWindowActions(
-      []() -> bool {
-        auto* controller = yaze::Application::Instance().GetController();
-        return controller ? (controller->ShowWindow(), true) : false;
-      },
-      []() -> bool {
-        auto* controller = yaze::Application::Instance().GetController();
-        return controller ? (controller->HideWindow(), false)
-                          : false;  // HideWindow returns void usually
-      });
-
-  if (config.editor_control) {
-    api_server->SetEditorControl(
-        [](const std::string& request) -> absl::StatusOr<std::string> {
-          auto* controller = yaze::Application::Instance().GetController();
-          if (!controller) {
-            return absl::UnavailableError("Editor is not ready");
-          }
-          return controller->RequestEditorControl(request);
-        });
-  }
-
-  auto status = api_server->Start(config.api_port, config.editor_control);
-  if (!status.ok()) {
-    LOG_ERROR("Main", "Failed to start API server: %s",
-              std::string(status.message()).c_str());
-    return nullptr;
-  }
-
-  LOG_INFO("Main", "API Server started on port %d", config.api_port);
-  return api_server;
-}
-#endif
-
 // Main Entry Point
 
 int main(int argc, char** argv) {
@@ -553,7 +499,7 @@ int main(int argc, char** argv) {
   yaze::Application::Instance().Initialize(config);
 
 #if defined(YAZE_HTTP_API_ENABLED)
-  api_server = SetupApiServer(config);
+  api_server = yaze::app::SetupEditorHttpServer(config);
 #endif
 
   // Handle symbol loading if requested

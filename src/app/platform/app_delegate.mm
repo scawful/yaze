@@ -15,6 +15,7 @@
 #import "app/platform/native_menu_bridge.h"
 #import "core/project.h"
 #import "util/file_util.h"
+#include "util/log.h"
 #import "app/editor/editor.h"
 #import "rom/rom.h"
 #include <chrono>
@@ -35,6 +36,10 @@
 #elif TARGET_OS_MAC == 1
 /* macOS */
 #import <Cocoa/Cocoa.h>
+
+#if defined(YAZE_HTTP_API_ENABLED)
+#include "app/service/editor_http_server.h"
+#endif
 
 #ifndef YAZE_USE_SDL3
 #include <SDL.h>
@@ -786,6 +791,14 @@ extern "C" int yaze_run_cocoa_app_delegate(const yaze::AppConfig& config) {
   // SDL's event polling works fine with Cocoa in this setup.
 
   auto& app = yaze::Application::Instance();
+#if defined(YAZE_HTTP_API_ENABLED)
+  // Native macOS returns through this loop before main's desktop setup.
+  auto api_server = yaze::app::SetupEditorHttpServer(config);
+#else
+  if (config.enable_api) {
+    LOG_WARN("App", "HTTP API requested but unavailable in this build");
+  }
+#endif
 
   if (app.IsReady()) {
     @autoreleasepool {
@@ -807,6 +820,9 @@ extern "C" int yaze_run_cocoa_app_delegate(const yaze::AppConfig& config) {
     }
   }
 
+#if defined(YAZE_HTTP_API_ENABLED)
+  if (api_server) api_server->Stop();
+#endif
   app.Shutdown();
   return EXIT_SUCCESS;
 }
