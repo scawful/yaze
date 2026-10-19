@@ -1,0 +1,27 @@
+name: ROM Guard
+
+# Fails when any history reachable from the checked-out commit contains a game
+# ROM (.sfc/.smc/.fig/.swc), the ROM blob purged on 2026-10-19, or a pre-purge
+# commit. Git-only; no build. See scripts/check-no-roms.sh.
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rom-guard:
+    name: No ROMs in history
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan history for ROM files and the purged ROM blob
+        run: bash scripts/check-no-roms.sh HEAD

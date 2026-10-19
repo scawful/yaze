@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Pre-push validation script for yaze.
 # Fast-by-default checks with change-aware UI regression coverage.
+# Always runs the ROM guard (scripts/check-no-roms.sh) first; it has no skip flag.
 #
 # Usage:
 #   scripts/pre-push.sh [--skip-tests] [--skip-format] [--skip-build] [--skip-ui-regression] [--build-dir <dir>]
@@ -211,9 +212,27 @@ has_ui_workflow_changes() {
   return 1
 }
 
+run_rom_guard() {
+  print_header "ROM Guard"
+  local guard rc=0
+  guard="$(dirname "${BASH_SOURCE[0]}")/check-no-roms.sh"
+  if [[ -t 0 ]]; then
+    bash "$guard" HEAD || rc=$?
+  else
+    # Called from the git pre-push hook: stdin carries the pushed refs.
+    bash "$guard" --pre-push || rc=$?
+  fi
+  if [[ $rc -ne 0 ]]; then
+    print_err "ROM guard failed. Do not bypass it with --no-verify."
+    exit 5
+  fi
+  print_ok "No ROM files or pre-purge history"
+}
+
 main() {
   print_header "Pre-Push Validation"
   check_git_repo
+  run_rom_guard
 
   if ! check_cmake_configured; then
     exit 4
