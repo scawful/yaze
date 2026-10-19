@@ -44,6 +44,11 @@ struct DungeonObjectSelectorTestAccess {
     selector.browser_mode_ = DungeonObjectSelector::BrowserMode::kCustomAssets;
   }
 
+  static void ShowSingleObject(DungeonObjectSelector& selector) {
+    std::copy_n("0x000", 6, selector.object_search_buffer_);
+    selector.enable_object_previews_ = false;
+  }
+
   static absl::Status OpenExistingCustomObjectEditor(
       DungeonObjectSelector& selector, int16_t object_id, int subtype,
       int room_id) {
@@ -314,6 +319,168 @@ TEST(DungeonObjectSelectorPaletteTest,
   DungeonObjectSelectorTestAccess::SetUsedHere(selector, false);
   EXPECT_TRUE(
       DungeonObjectSelectorTestAccess::MatchesRoomUsage(selector, 0x31));
+}
+
+class DungeonObjectSelectorBrowsingTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_context_ = ImGui::GetCurrentContext();
+    context_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(context_);
+    auto& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1000, 900);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    custom_enabled_ = core::FeatureFlags::get().kEnableCustomObjects;
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+    selector_ = std::make_unique<DungeonObjectSelector>();
+    draw_ = [this] {
+      selector_->DrawObjectAssetBrowser();
+    };
+  }
+
+  void TearDown() override {
+    selector_.reset();
+    core::FeatureFlags::get().kEnableCustomObjects = custom_enabled_;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    ImGui::DestroyContext(context_);
+    ImGui::SetCurrentContext(previous_context_);
+  }
+
+  void Frame() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(30, 30));
+    ImGui::SetNextWindowSize(ImVec2(420, 760));
+    ImGui::Begin("QuietObjectBrowser", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    draw_();
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  bool HoverItem(ImGuiWindow* window, ImGuiID id) {
+    const float x = window->WorkRect.Min.x + 24.0f;
+    const float bottom =
+        std::min(window->WorkRect.Max.y, window->Pos.y + window->Size.y);
+    for (float y = window->WorkRect.Min.y + 4.0f; y < bottom; y += 8.0f) {
+      ImGui::GetIO().AddMousePosEvent(x, y);
+      Frame();
+      if (context_->HoveredId == id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void ExpectNoTooltip() {
+    for (const auto* window : context_->Windows) {
+      EXPECT_FALSE(window->Active &&
+                   (window->Flags & ImGuiWindowFlags_Tooltip));
+    }
+  }
+
+  std::unique_ptr<DungeonObjectSelector> selector_;
+  std::function<void()> draw_;
+  ImGuiContext* context_ = nullptr;
+  ImGuiContext* previous_context_ = nullptr;
+  bool custom_enabled_ = false;
+};
+
+TEST_F(DungeonObjectSelectorBrowsingTest,
+       OrdinaryHoverIsQuietAndKeepsGridFixed) {
+  DungeonObjectSelectorTestAccess::ShowSingleObject(*selector_);
+  int placements = 0;
+  selector_->SetObjectSelectedCallback([&](const auto&) { ++placements; });
+  Frame();
+  Frame();
+  ImGuiWindow* grid = nullptr;
+  for (auto* window : context_->Windows) {
+    if (std::string(window->Name).find("##ObjectGrid") != std::string::npos) {
+      grid = window;
+    }
+  }
+  ASSERT_NE(grid, nullptr);
+  const ImVec2 initial_position = grid->Pos;
+  const ImVec2 initial_size = grid->Size;
+  ASSERT_TRUE(HoverItem(grid, grid->GetID(0)));
+  for (int frame = 0; frame < 45; ++frame) {
+    Frame();
+    ExpectNoTooltip();
+  }
+  EXPECT_EQ(placements, 0);
+  EXPECT_EQ(selector_->selected_object_id_for_testing(), -1);
+  EXPECT_FLOAT_EQ(grid->Pos.y, initial_position.y);
+  EXPECT_FLOAT_EQ(grid->Size.y, initial_size.y);
+
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  Frame();
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  Frame();
+  EXPECT_EQ(placements, 1);
+  EXPECT_EQ(selector_->selected_object_id_for_testing(), 0);
+  ImGui::GetIO().AddMousePosEvent(900, 850);
+  Frame();
+  ExpectNoTooltip();
+  EXPECT_EQ(selector_->selected_object_id_for_testing(), 0);
+  EXPECT_FLOAT_EQ(grid->Pos.y, initial_position.y);
+  EXPECT_FLOAT_EQ(grid->Size.y, initial_size.y);
+}
+
+TEST_F(DungeonObjectSelectorBrowsingTest, CustomCardHoverIsQuiet) {
+  ScopedSelectorCustomObjectState custom;
+  DungeonObjectSelectorTestAccess::ShowCustomAssets(*selector_);
+  Frame();
+  Frame();
+  auto* browser = ImGui::FindWindowByName("QuietObjectBrowser");
+  ASSERT_NE(browser, nullptr);
+  ASSERT_TRUE(HoverItem(browser, browser->GetID(0x31 * 1000)));
+  for (int frame = 0; frame < 45; ++frame) {
+    Frame();
+    ExpectNoTooltip();
+  }
+  EXPECT_EQ(selector_->selected_object_id_for_testing(), -1);
+}
+
+TEST_F(DungeonObjectSelectorBrowsingTest,
+       DetailsRequiresContextActionAndDoesNotPlace) {
+  DungeonRoomStore rooms;
+  rooms[5].SetLoaded(true);
+  selector_->set_rooms(&rooms);
+  selector_->set_current_room_id(5);
+  int placements = 0;
+  selector_->SetObjectSelectedCallback([&](const auto&) { ++placements; });
+  ImVec2 card_center;
+  draw_ = [&] {
+    ImGui::Selectable("Wall corner", false, 0, ImVec2(80, 80));
+    card_center =
+        ImVec2(ImGui::GetItemRectMin().x + 40, ImGui::GetItemRectMin().y + 40);
+    DungeonObjectSelectorTestAccess::DrawContextMenu(*selector_, 0x100);
+  };
+  Frame();
+  Frame();
+  ImGui::GetIO().AddMousePosEvent(card_center.x, card_center.y);
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, true);
+  Frame();
+  ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Right, false);
+  Frame();
+  Frame();
+  ASSERT_EQ(context_->OpenPopupStack.size(), 1);
+  auto* popup = context_->OpenPopupStack.back().Window;
+  ASSERT_NE(popup, nullptr);
+  ASSERT_TRUE(HoverItem(popup, popup->GetID("Details")));
+  for (int frame = 0; frame < 30 && context_->OpenPopupStack.size() < 2;
+       ++frame) {
+    Frame();
+  }
+  ASSERT_EQ(context_->OpenPopupStack.size(), 2);
+  EXPECT_EQ(placements, 0);
+  EXPECT_EQ(selector_->selected_object_id_for_testing(), -1);
+  EXPECT_TRUE(rooms[5].GetTileObjects().empty());
+  ExpectNoTooltip();
 }
 
 TEST(DungeonObjectSelectorPaletteTest,
