@@ -15,6 +15,66 @@
 namespace yaze {
 namespace zelda3 {
 
+TEST(OverworldAreaTransitionTest,
+     LoadedRectangularHalvesPreserveNeighborTransitions) {
+  Rom rom;
+  std::vector<uint8_t> bytes(0x200000, 0);
+  bytes[OverworldCustomASMHasBeenApplied] = 3;
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    bytes[GetOverworldMapParentIdExpanded() + i] = i;
+  }
+  for (int world : {0, 0x40, 0x80}) {
+    const int wide = world + (world == 0x80 ? 0x10 : 0x30);
+    const int tall = world + 0x02;
+    for (int map : {wide, wide + 1}) {
+      bytes[kOverworldScreenSize + map] = 2;
+      bytes[GetOverworldMapParentIdExpanded() + map] = wide;
+    }
+    for (int map : {tall, tall + 8}) {
+      bytes[kOverworldScreenSize + map] = 3;
+      bytes[GetOverworldMapParentIdExpanded() + map] = tall;
+    }
+  }
+  ASSERT_TRUE(rom.LoadFromData(bytes).ok());
+  Overworld overworld(&rom);
+  auto& maps =
+      const_cast<std::vector<OverworldMap>&>(overworld.overworld_maps());
+  maps.reserve(kNumOverworldMaps);
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    maps.emplace_back(i, &rom);
+  }
+  overworld.AssignMapSizes(maps);
+  ASSERT_TRUE(overworld.SaveLargeMapsExpanded().ok());
+
+  const auto expect_word = [&rom](int address, uint16_t expected) {
+    const auto word = rom.ReadWord(address);
+    ASSERT_TRUE(word.ok()) << word.status();
+    EXPECT_EQ(*word, expected) << address;
+  };
+  for (int world : {0, 0x40, 0x80}) {
+    SCOPED_TRACE(world);
+    const int wide = world + (world == 0x80 ? 0x10 : 0x30);
+    const int tall = world + 0x02;
+    EXPECT_EQ(maps[wide].large_index(), 0);
+    EXPECT_EQ(maps[wide + 1].large_index(), 1);
+    EXPECT_EQ(maps[wide + 1].parent(), wide);
+    EXPECT_EQ(maps[wide + 1].area_size(), AreaSizeEnum::WideArea);
+    EXPECT_FALSE(maps[wide + 1].is_large_map());
+    EXPECT_EQ(maps[tall].large_index(), 0);
+    EXPECT_EQ(maps[tall + 8].large_index(), 2);
+    EXPECT_EQ(maps[tall + 8].parent(), tall);
+    EXPECT_EQ(maps[tall + 8].area_size(), AreaSizeEnum::TallArea);
+    EXPECT_FALSE(maps[tall + 8].is_large_map());
+    // Both directions across the right/bottom halves need their offsets.
+    expect_word(GetOverworldScreenChange4Expanded() + (wide - 7) * 2, 0x0FC0);
+    expect_word(GetOverworldScreenChange3Expanded() + (wide + 9) * 2, 0x17C0);
+    expect_word(GetOverworldScreenChange1Expanded() + (tall + 9) * 2, 0xF060);
+    expect_word(GetOverworldScreenChange2Expanded() + (tall + 7) * 2, 0xF040);
+  }
+  // Kalyxo's reported corruption: area $29 above the wide $30/$31 pair.
+  expect_word(GetOverworldScreenChange4Expanded() + 0x29 * 2, 0x0FC0);
+}
+
 class OverworldRegressionTest : public ::testing::Test {
  protected:
   void SetUp() override {

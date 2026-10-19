@@ -478,7 +478,7 @@ void Overworld::AssignMapSizes(std::vector<OverworldMap>& maps) {
           if (i + 1 < static_cast<int>(maps.size())) {
             map_checked[i + 1] = true;
             maps[i + 1].SetParent(i);  // Child points to parent
-            maps[i + 1].SetAreaSize(AreaSizeEnum::WideArea);
+            maps[i + 1].SetAreaSize(AreaSizeEnum::WideArea, 1);
           }
 
           xx++;
@@ -494,7 +494,7 @@ void Overworld::AssignMapSizes(std::vector<OverworldMap>& maps) {
           if (i + 8 < static_cast<int>(maps.size())) {
             map_checked[i + 8] = true;
             maps[i + 8].SetParent(i);  // Child points to parent
-            maps[i + 8].SetAreaSize(AreaSizeEnum::TallArea);
+            maps[i + 8].SetAreaSize(AreaSizeEnum::TallArea, 2);
           }
           break;
       }
@@ -615,14 +615,16 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
     case AreaSizeEnum::WideArea:
       for (int sibling : new_siblings) {
         overworld_maps_[sibling].SetParent(parent_index);
-        overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::WideArea);
+        overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::WideArea,
+                                             sibling == parent_index ? 0 : 1);
       }
       break;
 
     case AreaSizeEnum::TallArea:
       for (int sibling : new_siblings) {
         overworld_maps_[sibling].SetParent(parent_index);
-        overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::TallArea);
+        overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::TallArea,
+                                             sibling == parent_index ? 0 : 2);
       }
       break;
   }
