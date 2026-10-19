@@ -390,7 +390,8 @@ static void RegisterWorldSelectorTests(ImGuiTestEngine* engine) {
 // supplied at process startup, and still refuses an unmarked/wrong project.
 static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
   const char* requested = std::getenv("YAZE_LYRA_TERRAIN_ACCEPTANCE_PROJECT");
-  if (!requested || !*requested)
+  if (!requested || !*requested ||
+      std::getenv("YAZE_LYRA_TERRAIN_REOPEN_PROJECT"))
     return;
   ImGuiTest* test = IM_REGISTER_TEST(engine, "lyra_terrain",
                                      "cross_map_stroke_undo_redo_project_save");
@@ -613,6 +614,176 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
 }
 
+// A separate process opts into this read-only test using the successful native
+// paint receipt. It must observe automatic loading before any canvas UI action.
+static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
+  const char* requested = std::getenv("YAZE_LYRA_TERRAIN_REOPEN_PROJECT");
+  if (!requested || !*requested ||
+      std::getenv("YAZE_LYRA_TERRAIN_ACCEPTANCE_PROJECT"))
+    return;
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "lyra_terrain",
+                                     "fresh_process_autoload_saved_terrain");
+  test->TestFunc = [](ImGuiTestContext* ctx) {
+    namespace fs = std::filesystem;
+    const char* requested = std::getenv("YAZE_LYRA_TERRAIN_REOPEN_PROJECT");
+    const char* prior_receipt = std::getenv("YAZE_LYRA_TERRAIN_REOPEN_RECEIPT");
+    IM_CHECK(requested && *requested && prior_receipt && *prior_receipt);
+    IM_CHECK(fs::path(requested).is_absolute());
+    IM_CHECK(fs::path(prior_receipt).is_absolute());
+    std::error_code ec;
+    const auto expected_project = fs::canonical(requested, ec);
+    IM_CHECK(!ec);
+    const auto project_directory = expected_project.parent_path();
+    const auto receipt_path = fs::canonical(prior_receipt, ec);
+    IM_CHECK(!ec && receipt_path.parent_path() == project_directory);
+    const auto read_file =
+        [](const fs::path& path) -> std::optional<std::string> {
+      std::ifstream file(path, std::ios::binary);
+      if (!file)
+        return std::nullopt;
+      std::string bytes{std::istreambuf_iterator<char>(file), {}};
+      return file.bad() ? std::nullopt
+                        : std::optional<std::string>(std::move(bytes));
+    };
+    const auto prior_bytes = read_file(receipt_path);
+    IM_CHECK(prior_bytes.has_value());
+    const auto prior = nlohmann::json::parse(*prior_bytes, nullptr, false);
+    IM_CHECK(prior.is_object());
+    IM_CHECK(prior.value("result", "") == "PASS");
+    IM_CHECK(prior.value("test", "") ==
+             "lyra_terrain/cross_map_stroke_undo_redo_project_save");
+    IM_CHECK(prior.value("project", "") == expected_project.string());
+    const auto project_before = read_file(expected_project);
+    IM_CHECK(project_before.has_value());
+
+    editor::EditorManager* manager = nullptr;
+    project::YazeProject* current_project = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* controller = Application::Instance().GetController();
+      manager = controller ? controller->editor_manager() : nullptr;
+      current_project = manager ? manager->GetCurrentProject() : nullptr;
+      if (current_project && current_project->project_opened() &&
+          fs::weakly_canonical(current_project->filepath, ec) ==
+              expected_project &&
+          !ec)
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(manager && current_project && current_project->project_opened());
+    IM_CHECK(fs::canonical(current_project->filepath, ec) == expected_project &&
+             !ec);
+    IM_CHECK(current_project->name.find("[Lyra canvas acceptance]") !=
+             std::string::npos);
+    IM_CHECK(!current_project->lyra_terrain_file.empty());
+    const auto source_path = fs::canonical(
+        current_project->GetAbsolutePath(current_project->lyra_terrain_file),
+        ec);
+    IM_CHECK(!ec && source_path.parent_path() == project_directory);
+    IM_CHECK(source_path.string() == prior.value("terrain", ""));
+    const auto source_before = read_file(source_path);
+    IM_CHECK(source_before.has_value());
+    IM_CHECK(core::ComputeSourceArtifactSha256(*source_before) ==
+             prior.value("terrain_sha256", ""));
+    const auto rom_path = fs::canonical(
+        current_project->GetAbsolutePath(current_project->rom_filename), ec);
+    IM_CHECK(!ec && rom_path.parent_path() == project_directory);
+    IM_CHECK(rom_path.filename() == "main-with-d3.sfc");
+    IM_CHECK(rom_path.string() == prior.value("rom", ""));
+    auto* rom = manager->GetCurrentRom();
+    IM_CHECK(rom && rom->is_loaded() && !rom->dirty());
+    IM_CHECK(fs::canonical(rom->filename(), ec) == rom_path && !ec);
+    const auto rom_disk = read_file(rom_path);
+    IM_CHECK(rom_disk.has_value());
+    IM_CHECK(core::ComputeSourceArtifactSha256(*rom_disk) ==
+             prior.value("rom_sha256", ""));
+    const auto rom_bytes = [&]() {
+      return std::string_view(reinterpret_cast<const char*>(rom->data()),
+                              rom->size());
+    };
+    IM_CHECK(core::ComputeSourceArtifactSha256(rom_bytes()) ==
+             prior.value("rom_sha256", ""));
+
+    manager->OpenEditorAndPanelsFromFlags("Overworld", "overworld.canvas");
+    editor::OverworldEditor* overworld = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                                editor::EditorType::kOverworld)
+                          : nullptr;
+      if (overworld && overworld->overworld().is_loaded() &&
+          overworld->lyra_canvas_.loaded())
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(overworld && overworld->overworld().is_loaded());
+    if (!overworld->lyra_canvas_status_.ok()) {
+      IM_ERRORF("Native Lyra autoload failed: %s",
+                overworld->lyra_canvas_status_.ToString().c_str());
+      return;
+    }
+    IM_CHECK(overworld->lyra_canvas_.loaded());
+    const auto* document = overworld->lyra_canvas_.document();
+    IM_CHECK(document && !document->dirty());
+    IM_CHECK(!overworld->HasPendingProjectDraftChanges());
+    IM_CHECK(document->Serialize() == *source_before);
+    IM_CHECK(core::ComputeSourceArtifactSha256(document->Serialize()) ==
+             prior.value("terrain_sha256", ""));
+    const int x = prior.value("paint_x", -1);
+    const int first_y = prior.value("paint_y_start", -1);
+    const int last_y = prior.value("paint_y_end", -1);
+    const int tile = prior.value("tile16", -1);
+    IM_CHECK(x >= 0 && x < core::LyraTerrainDocument::kWidth);
+    IM_CHECK(first_y >= 0 && first_y <= 31 && last_y >= 32 &&
+             last_y < core::LyraTerrainDocument::kHeight);
+    IM_CHECK(tile >= 0 && tile < document->profile().tile_count);
+    for (int y = first_y; y <= last_y; ++y)
+      IM_CHECK(document->tile(x, y).value() == tile);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), 0);
+
+    // Expose the already loaded canvas for the driver's native screenshot.
+    const auto mode = ctx->ItemInfo("**/Lyra terrain");
+    IM_CHECK(mode.ID != 0 && mode.Window != nullptr);
+    ctx->SetRef(mode.Window);
+    ctx->ItemClick(mode.ID);
+    ctx->Yield(3);
+    IM_CHECK(ctx->ItemExists("**/terrain"));
+    IM_CHECK(!overworld->HasPendingProjectDraftChanges());
+    IM_CHECK(read_file(expected_project) == project_before);
+    IM_CHECK(read_file(source_path) == source_before);
+    IM_CHECK(read_file(rom_path) == rom_disk && !rom->dirty());
+    IM_CHECK(core::ComputeSourceArtifactSha256(rom_bytes()) ==
+             prior.value("rom_sha256", ""));
+
+    const auto stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
+    const auto output_path =
+        project_directory /
+        ("lyra-canvas-reopen-pass-" + std::to_string(stamp) + ".json");
+    const nlohmann::json receipt = {
+        {"test", "lyra_terrain/fresh_process_autoload_saved_terrain"},
+        {"result", "PASS"},
+        {"project", expected_project.string()},
+        {"terrain", source_path.string()},
+        {"rom", rom_path.string()},
+        {"prior_receipt", receipt_path.string()},
+        {"autoloaded", true},
+        {"document_clean", true},
+        {"saved_cells_exact", true},
+        {"project_unchanged", true},
+        {"terrain_sha256", prior.at("terrain_sha256")},
+        {"rom_sha256", prior.at("rom_sha256")}};
+    std::ofstream output(output_path, std::ios::binary);
+    IM_CHECK(output.is_open());
+    output << receipt.dump(2) << '\n';
+    output.close();
+    IM_CHECK(!output.fail());
+    ctx->LogInfo("Lyra native reopen PASS; receipt: %s",
+                 output_path.string().c_str());
+  };
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+}
+
 // ============================================================================
 // Public registration entry point
 // ============================================================================
@@ -626,6 +797,7 @@ void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   RegisterCanvasNavigationTests(engine);
   RegisterWorldSelectorTests(engine);
   RegisterLyraTerrainAcceptanceTest(engine);
+  RegisterLyraTerrainReopenTest(engine);
 }
 
 }  // namespace yaze::test
