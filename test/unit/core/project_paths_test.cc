@@ -86,6 +86,33 @@ std::string WithCrLf(const std::string& content) {
 
 }  // namespace
 
+TEST(ProjectPathsTest, LyraTerrainPathIsDistinctAndSurvivesReopen) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_project"));
+  const auto project_file = temp.path() / "Oracle.yaze";
+  const auto terrain_file = temp.path() / "terrain" / "lyra.json";
+  const auto catalog_file = temp.path() / "labels.json";
+  WriteTextFile(terrain_file, "{}");
+  WriteTextFile(catalog_file, "{}");
+  YazeProject project;
+  project.name = "Oracle";
+  project.filepath = project_file.string();
+  project.lyra_terrain_file = terrain_file.string();
+  project.terrain_catalog_file = catalog_file.string();
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_NE(
+      ReadTextFile(project_file).find("lyra_terrain_file=terrain/lyra.json"),
+      std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_EQ(reopened.lyra_terrain_file, terrain_file.string());
+  EXPECT_EQ(reopened.terrain_catalog_file, catalog_file.string());
+  ASSERT_TRUE(reopened
+                  .LoadFromString("[project]\nname=Other\n",
+                                  (temp.path() / "Other.yaze").string())
+                  .ok());
+  EXPECT_TRUE(reopened.lyra_terrain_file.empty());
+}
+
 TEST(ProjectPathsTest, TerrainCatalogPathSurvivesSaveAndResetsOnNextProject) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_terrain_project"));
   const auto project_file = temp.path() / "Terrain.yaze";

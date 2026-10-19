@@ -305,6 +305,9 @@ struct YazeProject {
   // Optional game-independent terrain labels, stored outside the ROM.
   std::string terrain_catalog_file;
 
+  // Optional editable Lyra terrain document, independent of ROM map storage.
+  std::string lyra_terrain_file;
+
   // Optional read-only palette names, contextual sprite uses and provenance.
   std::string palette_catalog_file;
 
