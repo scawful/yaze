@@ -212,6 +212,9 @@ TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
   EXPECT_NE(refused.value("write_status", "").find("free space"),
             std::string::npos)
       << refused.dump(2);
+  EXPECT_NE(refused.value("hint", "").find("--project-context"),
+            std::string::npos)
+      << refused.dump(2);
 
   // A project whose manifest registers the fixture's free space.
   const auto project_dir = UniqueTempPath("gfx_import_project");
@@ -227,6 +230,22 @@ TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
   }
   const std::string project_arg =
       "--project-context=" + (project_dir / "gfx.yaze").string();
+  // --project and --manifest are not read; refusing them keeps a grown sheet
+  // from being reported as having no free space when the manifest has some.
+  for (const std::string& unread :
+       {"--project=" + (project_dir / "gfx.yaze").string(),
+        "--manifest=" + (project_dir / "manifest.json").string()}) {
+    absl::Status unread_status;
+    RunCommand(importer,
+               {"--sheet=0x40", "--png=" + png_path.string(), "--dry-run",
+                unread, "--format=json"},
+               rom, &unread_status);
+    EXPECT_EQ(unread_status.code(), absl::StatusCode::kInvalidArgument)
+        << unread;
+    EXPECT_NE(std::string(unread_status.message()).find("--project-context"),
+              std::string::npos)
+        << unread_status;
+  }
   const auto dry = RunCommand(importer,
                               {"--sheet=0x40", "--png=" + png_path.string(),
                                "--dry-run", project_arg, "--format=json"},
@@ -235,6 +254,8 @@ TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
   EXPECT_EQ(dry.value("changed_tiles", 0), 4);
   EXPECT_EQ(dry.value("mode", ""), "dry-run");
   EXPECT_EQ(dry.value("write_status", ""), "ok");
+  EXPECT_EQ(dry.value("placement", ""), "relocated") << dry.dump(2);
+  EXPECT_FALSE(dry.contains("hint"));
   EXPECT_GT(dry.value("rom_bytes_changed", 0), 0);
   EXPECT_EQ(rom.vector(), fixture.bytes);  // dry run writes nothing
 
