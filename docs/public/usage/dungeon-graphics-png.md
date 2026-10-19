@@ -60,6 +60,13 @@ z3ed gfx-import --rom /path/to/base.sfc --sheet 0x12 \
   --write --out /path/to/edited.sfc
 ```
 
+A sheet whose new art compresses larger than its current stream can move only
+into graphics free space from the project's hack manifest
+(`graphics_sheet_regions.allocation_regions`). Load it with
+`--project-context /path/to/project.yaze`; `gfx-import` and `gfx-room-import`
+refuse `--project` and `--manifest`, which they do not read. Without a project
+context the dry run reports the size refusal and a `hint` field.
+
 `room-slot:<room>:<slot>:<row>` uses destination slots 0–7 (`tile ID / 64`),
 not the reversed runtime upload counter. The command refuses a sheet that the
 requested slot does not load. Numbers are decimal unless prefixed with `0x` or
