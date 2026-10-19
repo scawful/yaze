@@ -1890,7 +1890,13 @@ TEST_F(DungeonWorkbenchObjectSizeUiTest, IcePropsOfferOnlyMappedVariants) {
   Click("combo:selected_object_variant");
   EXPECT_TRUE(Widget("selectable:object_variant_0").has_value());
   EXPECT_TRUE(Widget("selectable:object_variant_2").has_value());
-  EXPECT_FALSE(Widget("selectable:object_variant_3").has_value());
+  for (const char* name :
+       {"selectable:object_variant_3", "selectable:object_variant_4"}) {
+    const auto minish = Widget(name);
+    ASSERT_TRUE(minish.has_value());
+    EXPECT_FALSE(minish->enabled);
+  }
+  EXPECT_FALSE(Widget("selectable:object_variant_5").has_value());
   const auto unmapped = Widget("selectable:object_variant_1");
   ASSERT_TRUE(unmapped.has_value());
   EXPECT_FALSE(unmapped->enabled);

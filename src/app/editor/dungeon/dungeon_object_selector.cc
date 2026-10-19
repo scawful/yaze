@@ -211,10 +211,9 @@ std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
       "Floor track any direction",      "Sword House wall object",
       "Pit track any direction",        "Small statue",
   };
-  static constexpr std::array<const char*, 3> kObject32Names = {
-      "Ice furnace",
-      "Firewood",
-      "Ice chair",
+  static constexpr std::array<const char*, 5> kObject32Names = {
+      "Ice furnace",  "Firewood",         "Ice chair",
+      "Minish stump", "Minish wall hole",
   };
   static constexpr std::array<const char*, 2> kObject54Names = {
       "Kydreeok body",
@@ -1346,7 +1345,8 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
       {0x31, "Tracks + Props (16)",
        "Minecart tile layouts, the Sword House wall object, and a small "
        "statue"},
-      {0x32, "Ice Props (3)", "Furnace, firewood, and chair assets"},
+      {0x32, "Ice + Minish Props (5)",
+       "Furnace, firewood, chair, Minish stump, and Minish wall hole assets"},
       {0x54, "Boss Bodies (2)", "Kydreeok and Manhandla body tilemaps"},
   }};
   const CustomAssetFamily* selected_family = &kFamilies.front();
