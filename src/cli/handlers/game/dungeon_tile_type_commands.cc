@@ -125,8 +125,9 @@ absl::Status DungeonTileTypesCommandHandler::Execute(
 
   int custom_cells = 0;
   if (room.has_custom_collision()) {
-    for (uint8_t value : room.custom_collision().tiles) {
-      custom_cells += value != 0;
+    const auto& custom_collision = room.custom_collision();
+    for (size_t offset = 0; offset < custom_collision.tiles.size(); ++offset) {
+      custom_cells += custom_collision.HasOverride(offset);
     }
   }
 
