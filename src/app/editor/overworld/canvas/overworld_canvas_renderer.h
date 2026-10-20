@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLD_OVERWORLD_CANVAS_RENDERER_H
 
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
 
 #include "absl/status/status.h"
@@ -91,6 +92,7 @@ class OverworldCanvasRenderer {
   // =========================================================================
 
   OverworldEditor* editor_;  ///< Non-owning pointer to the parent editor
+  std::optional<ImVec2> entity_drag_origin_;
   gui::AdaptiveSheetScaleMode tile16_scale_mode_ =
       gui::AdaptiveSheetScaleMode::kFit;
   gui::AdaptiveSheetScaleMode area_graphics_scale_mode_ =

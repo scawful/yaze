@@ -61,6 +61,22 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
   if (ImGui::BeginChild("OverworldSidebar", ImVec2(0, 0), false,
                         ImGuiWindowFlags_None)) {
     ImGui::PushID("OverworldSidebar");
+    if (!overworld_->is_lyra_preview() && project &&
+        !project->lyra_terrain_file.empty() && current_map >= 0xA0 &&
+        current_map < 0xC0) {
+      const auto metadata = BuildOverworldMapMetadata(
+          *overworld_, rom_, project, current_map, game_state);
+      ImGui::TextUnformatted(metadata.map_title.c_str());
+      ImGui::Separator();
+      ImGui::TextUnformatted("32 x 32 Tile16 cells");
+      ImGui::TextUnformatted("Loom Beach graphics and palette");
+      ImGui::TextWrapped(
+          "Use the Tile16 selector to paint terrain across neighboring maps. "
+          "Save Project keeps these terrain edits.");
+      ImGui::PopID();
+      ImGui::EndChild();
+      return;
+    }
     const auto* selected = overworld_->overworld_map(current_map);
     if (!selected) {
       ImGui::TextDisabled(tr("Current map selection is invalid."));

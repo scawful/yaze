@@ -84,23 +84,6 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   }
   const bool lyra_preview = editor_->overworld_.is_lyra_preview();
   const bool lyra_writable = editor_->lyra_a0_terrain_writable();
-  if (!lyra_preview && editor_->dependencies_.project &&
-      editor_->dependencies_.project->project_opened()) {
-    if (ImGui::RadioButton("Overworld", !editor_->show_project_lyra_canvas_)) {
-      editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
-      editor_->show_project_lyra_canvas_ = false;
-    }
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Lyra terrain",
-                           editor_->show_project_lyra_canvas_)) {
-      editor_->FinalizePaintOperation();
-      editor_->show_project_lyra_canvas_ = true;
-    }
-    if (editor_->show_project_lyra_canvas_) {
-      editor_->DrawProjectTerrainCanvas();
-      return;
-    }
-  }
   if (lyra_preview) {
     const auto layout = editor_->rom_->InspectLyraLayout();
     ImGui::Text("Lyra ROM rev%d: %d stored / %d active / %s", layout.revision,
@@ -152,6 +135,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
           }
         });
     editor_->NormalizeCurrentSelectionState();
+  }
+  if (!lyra_preview && editor_->current_world_ == 2 &&
+      !editor_->lyra_canvas_status_.ok()) {
+    ImGui::TextWrapped("%s", editor_->lyra_canvas_status_.ToString().c_str());
   }
 
   // ==========================================================================
@@ -221,6 +208,50 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       return;
     }
 
+    // The lower four Special World rows are project terrain. Navigation uses
+    // the same canvas, while these cells bypass the legacy ROM editing model.
+    editor_->status_ = editor_->CheckForCurrentMap();
+    gui::TileDragPayload tile_drop;
+    if (gui::AcceptTileDrop(&tile_drop)) {
+      editor_->RequestTile16Selection(tile_drop.tile_id);
+      editor_->current_mode = EditingMode::DRAW_TILE;
+      editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+    }
+    const bool project_terrain =
+        editor_->IsProjectTerrainMap(editor_->current_map_) ||
+        editor_->IsProjectTerrainMap(editor_->hovered_map_);
+    if (editor_->current_world_ == 2 && editor_->lyra_canvas_.loaded()) {
+      editor_->lyra_canvas_.DrawSpecialWorld(
+          canvas_rt, editor_->undo_manager_, editor_->current_tile16_,
+          editor_->current_mode == EditingMode::DRAW_TILE,
+          editor_->current_mode == EditingMode::FILL_TILE);
+    } else {
+      editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
+    }
+    if (project_terrain) {
+      editor_->FinalizePaintOperation();
+      // Legacy entities cannot be moved into a project-only terrain screen.
+      // Cancel at the boundary, before its coordinates reach the ROM model.
+      if (editor_->is_dragging_entity_) {
+        if (editor_->dragged_entity_ && entity_drag_origin_) {
+          editor_->dragged_entity_->x_ = entity_drag_origin_->x;
+          editor_->dragged_entity_->y_ = entity_drag_origin_->y;
+        }
+        entity_drag_origin_.reset();
+        editor_->drag_item_snapshot_.reset();
+        editor_->is_dragging_entity_ = false;
+        editor_->dragged_entity_ = nullptr;
+        editor_->dragged_entity_free_movement_ = false;
+      }
+      if (editor_->entity_renderer_)
+        editor_->entity_renderer_->ResetHoveredEntity();
+      if (canvas_rt.hovered)
+        editor_->HandleMapInteraction();
+      gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
+      ImGui::EndChild();
+      return;
+    }
+
     // Draw all entities using the new CanvasRuntime-based methods
     if (editor_->entity_renderer_ && editor_->show_entities_) {
       editor_->entity_renderer_->DrawExits(canvas_rt, editor_->current_world_);
@@ -240,7 +271,6 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
 
     // Always refresh hover preview: when the canvas is not hovered this clears
     // hovered_map_ so the status bar falls back to the selected map.
-    editor_->status_ = editor_->CheckForCurrentMap();
     if (canvas_rt.hovered) {
       editor_->HandleMapInteraction();
     }
@@ -262,6 +292,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       if (!editor_->is_dragging_entity_ && hovered_entity &&
           ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         editor_->dragged_entity_ = hovered_entity;
+        entity_drag_origin_ = ImVec2(hovered_entity->x_, hovered_entity->y_);
         editor_->is_dragging_entity_ = true;
         editor_->drag_item_snapshot_.reset();
         if (hovered_entity->entity_type_ ==
@@ -314,20 +345,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->is_dragging_entity_ = false;
         editor_->dragged_entity_ = nullptr;
         editor_->dragged_entity_free_movement_ = false;
+        entity_drag_origin_.reset();
       }
     }
     // --- END ENTITY DRAG/DROP LOGIC ---
-
-    // --- TILE DROP TARGET ---
-    // Accept tile drops from the blockset selector onto the map canvas.
-    gui::TileDragPayload tile_drop;
-    if (gui::AcceptTileDrop(&tile_drop)) {
-      editor_->RequestTile16Selection(tile_drop.tile_id);
-      if (editor_->current_mode != EditingMode::DRAW_TILE) {
-        editor_->current_mode = EditingMode::DRAW_TILE;
-        editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
-      }
-    }
   }
 
   // End canvas frame - draws grid/overlay based on frame_opts
@@ -627,8 +648,12 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     return absl::OkStatus();
   }
 
-  gfx::Bitmap& atlas = editor_->tile16_blockset_.atlas;
-  bool atlas_ready = editor_->map_blockset_loaded_ && atlas.is_active();
+  const bool project_terrain =
+      editor_->IsProjectTerrainMap(editor_->current_map_);
+  gfx::Bitmap& atlas = project_terrain ? editor_->lyra_canvas_.atlas()
+                                       : editor_->tile16_blockset_.atlas;
+  bool atlas_ready =
+      atlas.is_active() && (project_terrain || editor_->map_blockset_loaded_);
   auto result = editor_->blockset_selector_->Render(atlas, atlas_ready);
 
   if (result.selection_changed) {
@@ -682,15 +707,17 @@ void OverworldCanvasRenderer::DrawTile8Selector() {
 }
 
 absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
+  const int graphics_map = editor_->IsProjectTerrainMap(editor_->current_map_)
+                               ? 0x3A
+                               : editor_->current_map_;
   if (editor_->overworld_.is_loaded()) {
     // Always ensure current map graphics are loaded
-    if (!editor_->current_graphics_set_.contains(editor_->current_map_)) {
-      auto status = editor_->overworld_.EnsureMapBuilt(editor_->current_map_);
+    if (!editor_->current_graphics_set_.contains(graphics_map)) {
+      auto status = editor_->overworld_.EnsureMapBuilt(graphics_map);
       if (!status.ok()) {
         return status;
       }
-      const auto* map =
-          editor_->overworld_.overworld_map(editor_->current_map_);
+      const auto* map = editor_->overworld_.overworld_map(graphics_map);
       if (!map) {
         return absl::FailedPreconditionError(
             "Current overworld map not loaded");
@@ -699,10 +726,10 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
       auto bmp = std::make_unique<gfx::Bitmap>();
       bmp->Create(0x80, kOverworldMapSize, 0x08, map->current_graphics());
       bmp->SetPalette(editor_->palette_);
-      editor_->current_graphics_set_[editor_->current_map_] = std::move(bmp);
+      editor_->current_graphics_set_[graphics_map] = std::move(bmp);
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE,
-          editor_->current_graphics_set_[editor_->current_map_].get());
+          editor_->current_graphics_set_[graphics_map].get());
     }
   }
 
@@ -732,10 +759,10 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
   auto canvas_rt = gui::BeginCanvas(editor_->current_gfx_canvas_, frame_opts);
   gui::EndPadding();
 
-  if (editor_->current_graphics_set_.contains(editor_->current_map_) &&
-      editor_->current_graphics_set_[editor_->current_map_]->is_active()) {
+  if (editor_->current_graphics_set_.contains(graphics_map) &&
+      editor_->current_graphics_set_[graphics_map]->is_active()) {
     editor_->current_gfx_canvas_.DrawBitmap(
-        *editor_->current_graphics_set_[editor_->current_map_], 2, 2,
+        *editor_->current_graphics_set_[graphics_map], 2, 2,
         sheet_layout.display_scale);
   }
   editor_->current_gfx_canvas_.DrawTileSelector(16.0f *
