@@ -128,7 +128,19 @@ void SpriteEditorPanel::DrawPlacementControls() {
 const SpriteEditorPanel::CachedSpritePreview&
 SpriteEditorPanel::GetOrCreateSpritePreview(int sprite_id,
                                             const zelda3::Room& room) {
-  if (cached_graphics_revision_ != room.graphics_revision()) {
+  const project::YazeProject* project =
+      canvas_viewer_ ? canvas_viewer_->project() : nullptr;
+  const std::string_view hack_name =
+      project != nullptr && project->hack_manifest.loaded()
+          ? std::string_view(project->hack_manifest.hack_name())
+          : std::string_view{};
+  const bool resources_changed = sprite_preview_resources_.SetContext(
+      project ? project->filepath : std::string{},
+      project ? project->GetAbsolutePath(project->assets_folder)
+              : std::string{},
+      hack_name);
+  if (resources_changed ||
+      cached_graphics_revision_ != room.graphics_revision()) {
     sprite_preview_cache_.clear();
     cached_graphics_revision_ = room.graphics_revision();
   }
@@ -141,12 +153,6 @@ SpriteEditorPanel::GetOrCreateSpritePreview(int sprite_id,
   zelda3::Sprite sprite;
   sprite.set_id(static_cast<uint8_t>(sprite_id));
 
-  const std::string_view hack_name =
-      canvas_viewer_ && canvas_viewer_->project() &&
-              canvas_viewer_->project()->hack_manifest.loaded()
-          ? std::string_view(
-                canvas_viewer_->project()->hack_manifest.hack_name())
-          : std::string_view{};
   const auto* preview_layout =
       zelda3::SpriteOamRegistry::GetPreviewOverride(sprite_id, hack_name);
   if (!preview_layout) {
@@ -156,7 +162,9 @@ SpriteEditorPanel::GetOrCreateSpritePreview(int sprite_id,
   const auto& room_gfx = room.get_gfx_buffer();
   const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
                                                room_gfx.size());
-  sprite.RenderPreviewGraphics(room_gfx_span, preview_layout, {});
+  sprite.RenderPreviewGraphics(
+      room_gfx_span, preview_layout,
+      sprite_preview_resources_.GetGraphics(preview_layout));
   if (sprite.preview_graphics() != nullptr &&
       !sprite.preview_graphics()->empty()) {
     cached.pixels = *sprite.preview_graphics();
@@ -296,9 +304,8 @@ void SpriteEditorPanel::DrawRoomSprites() {
 
   const auto sprite_colors = zelda3::BuildDungeonSpriteRenderPalette(
       room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
   ImGui::BeginChild("##SpriteList", ImVec2(0, list_height), true);
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
   for (size_t i = 0; i < sprites.size(); ++i) {
     const auto& sprite = sprites[i];
     bool is_selected = (selected_sprite_list_index == static_cast<int>(i));

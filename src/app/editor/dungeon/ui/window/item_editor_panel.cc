@@ -120,7 +120,6 @@ void ItemEditorPanel::DrawItemSelector(bool show_room_items) {
   auto& room = (*rooms_)[*current_room_id_];
   const auto sprite_colors = zelda3::BuildDungeonSpriteRenderPalette(
       room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
   ImGui::Text(ICON_MD_INVENTORY " Select Item:");
 
@@ -143,6 +142,7 @@ void ItemEditorPanel::DrawItemSelector(bool show_room_items) {
 
   ImGui::BeginChild("##ItemGrid", ImVec2(0, grid_height), true,
                     ImGuiWindowFlags_HorizontalScrollbar);
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImGui::BeginDisabled(!can_edit);
 
   int col = 0;
@@ -289,9 +289,8 @@ void ItemEditorPanel::DrawRoomItems() {
   float list_height = std::max(100.0f, ImGui::GetContentRegionAvail().y);
   const auto sprite_colors = zelda3::BuildDungeonSpriteRenderPalette(
       room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
   ImGui::BeginChild("##ItemList", ImVec2(0, list_height), true);
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
   for (size_t i = 0; i < items.size(); ++i) {
     const auto& item = items[i];
 

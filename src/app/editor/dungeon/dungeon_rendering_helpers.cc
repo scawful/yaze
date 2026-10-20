@@ -164,7 +164,7 @@ std::pair<int, int> DungeonRenderingHelpers::RoomToCanvasCoordinates(
 bool DungeonRenderingHelpers::DrawSpritePreview(
     ImDrawList* draw_list, const std::vector<uint8_t>& preview,
     const SDL_Rect& bounds, const ImVec2& box_min, const ImVec2& box_max,
-    const std::array<SDL_Color, 256>& color_table) {
+    const std::array<SDL_Color, 256>& color_table, uint8_t transparent_index) {
   if (!draw_list || bounds.w <= 0 || bounds.h <= 0) {
     return false;
   }
@@ -194,7 +194,7 @@ bool DungeonRenderingHelpers::DrawSpritePreview(
       const uint8_t palette_index =
           preview[static_cast<size_t>(y) * row_stride + x];
       const SDL_Color& palette_color = color_table[palette_index];
-      if (palette_index == 0 || palette_index == 255 || palette_color.a == 0) {
+      if (palette_index == transparent_index || palette_color.a == 0) {
         ++x;
         continue;
       }
@@ -224,10 +224,6 @@ const zelda3::SpriteOamLayout* DungeonRenderingHelpers::GetPotItemSpriteLayout(
       layout = &zelda3::kGreenRupeeLayout;
       sprite_id = 0xDA;
       break;
-    case 3:  // Bee
-      layout = &zelda3::kBeeLayout;
-      sprite_id = 0x79;
-      break;
     case 4:   // Heart (4)
     case 6:   // Heart
     case 11:  // Heart
@@ -236,11 +232,6 @@ const zelda3::SpriteOamLayout* DungeonRenderingHelpers::GetPotItemSpriteLayout(
       layout = &zelda3::kSmallHeartLayout;
       sprite_id = 0xDE;
       break;
-    case 5:   // Bomb (4)
-    case 10:  // Bomb (1)
-      layout = &zelda3::kBombLayout;
-      sprite_id = 0xDC;
-      break;
     case 7:  // Blue Rupee
       layout = &zelda3::kBlueRupeeLayout;
       sprite_id = 0xDB;
@@ -248,10 +239,6 @@ const zelda3::SpriteOamLayout* DungeonRenderingHelpers::GetPotItemSpriteLayout(
     case 8:  // Key
       layout = &zelda3::kKeyLayout;
       sprite_id = 0xDF;
-      break;
-    case 9:  // Arrow (5)
-      layout = &zelda3::kArrowLayout;
-      sprite_id = 0xE1;
       break;
     case 12:  // Small Magic
       layout = &zelda3::kSmallMagicLayout;
@@ -270,16 +257,12 @@ const zelda3::SpriteOamLayout* DungeonRenderingHelpers::GetPotItemSpriteLayout(
       sprite_id = 0x0E;
       break;
     case 16:  // Bush Stal
-      layout = &zelda3::kStalfosLayout;
+      layout = zelda3::SpriteOamRegistry::GetLayout(0xA7);
       sprite_id = 0xA7;
       break;
     case 17:  // Blue Soldier
       layout = &zelda3::kBlueSoldierLayout;
       sprite_id = 0x0F;
-      break;
-    case 20:  // Fairy
-      layout = &zelda3::kFairyLayout;
-      sprite_id = 0xE3;
       break;
     default:
       break;

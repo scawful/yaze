@@ -58,6 +58,13 @@ class DungeonWorkbenchContentTestPeer {
       DungeonWorkbenchContent::RoomInspectorSubTab tab) {
     content.SetRoomInspectorSubTab(tab);
   }
+  static void SetRoomMatrixVisible(DungeonWorkbenchContent& content,
+                                   bool visible) {
+    content.show_room_matrix_ = visible;
+  }
+  static bool IsRoomMatrixVisible(const DungeonWorkbenchContent& content) {
+    return content.show_room_matrix_;
+  }
   static void DrawSelectedObjectActions(DungeonWorkbenchContent& content,
                                         DungeonCanvasViewer& viewer,
                                         size_t index) {

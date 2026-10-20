@@ -321,6 +321,7 @@ void DungeonWorkbenchContent::FocusSelectionInspector() {
 void DungeonWorkbenchContent::FocusRoomMatrix() {
   layout_state_.show_left_sidebar = true;
   sidebar_mode_ = SidebarMode::Objects;
+  show_room_matrix_ = true;
 }
 
 void DungeonWorkbenchContent::FocusEntranceBrowser() {

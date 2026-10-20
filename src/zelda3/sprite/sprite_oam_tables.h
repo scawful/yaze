@@ -240,42 +240,6 @@ inline const SpriteOamLayout kLargeMagicLayout = {
     .tiles = {{0, 0, 0xF6, 6, false, false, false}},
     .required_sheets = {0x52, 0x53, 0x00, 0x00}};
 
-// Sprite ID: 0xDC - Bomb
-inline const SpriteOamLayout kBombLayout = {
-    .sprite_id = 0xDC,
-    .name = "Bomb",
-    .tiles = {{0, 0, 0xEA, 0, false, false, false}},
-    .required_sheets = {0x52, 0x53, 0x00, 0x00}};
-
-// Sprite ID: 0xE1 - Arrow
-inline const SpriteOamLayout kArrowLayout = {
-    .sprite_id = 0xE1,
-    .name = "Arrow",
-    .tiles = {{0, 0, 0xF2, 3, false, false, false}},
-    .required_sheets = {0x52, 0x53, 0x00, 0x00}};
-
-// Sprite ID: 0xE3 - Fairy
-inline const SpriteOamLayout kFairyLayout = {
-    .sprite_id = 0xE3,
-    .name = "Fairy",
-    .tiles = {{0, 0, 0xFA, 0, false, false, false}},
-    .required_sheets = {0x52, 0x53, 0x00, 0x00}};
-
-// Sprite ID: 0x79 - Bee
-inline const SpriteOamLayout kBeeLayout = {
-    .sprite_id = 0x79,
-    .name = "Bee",
-    .tiles = {{0, 0, 0xCC, 3, false, false, false}},
-    .required_sheets = {0x56, 0x57, 0x00, 0x00}};
-
-// Sprite ID: 0xA7 - Stalfos
-inline const SpriteOamLayout kStalfosLayout = {
-    .sprite_id = 0xA7,
-    .name = "Stalfos",
-    .tiles = {{0, 0, 0x106, 1, true, false, false},     // Body
-              {0, -10, 0x100, 1, true, false, false}},  // Head
-    .required_sheets = {0, 0, 0, 0}};
-
 /**
  * @brief Registry of all known sprite OAM layouts
  *

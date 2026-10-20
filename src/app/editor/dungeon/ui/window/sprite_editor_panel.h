@@ -9,6 +9,7 @@
 #include <SDL.h>
 
 #include "app/editor/system/workspace/editor_panel.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -70,6 +71,7 @@ class SpriteEditorPanel : public WindowContent {
 
   mutable std::unordered_map<int, CachedSpritePreview> sprite_preview_cache_;
   mutable uint64_t cached_graphics_revision_ = 0;
+  zelda3::SpritePreviewResourceCache sprite_preview_resources_;
 
   // Selection state
   int selected_sprite_id_ = 0;

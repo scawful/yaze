@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_workbench_state.h"
 #include "app/editor/system/editor_panel.h"
@@ -130,6 +131,14 @@ class DungeonWorkbenchContent : public WindowContent {
   }
   void SetRoomRenderContextCallback(std::function<void(int)> callback) {
     prepare_room_render_context_ = std::move(callback);
+  }
+  // Rename (label set) or reset (nullopt) a room's project name. The owner
+  // writes the authoritative project and marks it dirty; without a callback
+  // the rename control is hidden.
+  using RoomLabelEditCallback =
+      std::function<absl::Status(int, std::optional<std::string>)>;
+  void SetRoomLabelEditCallback(RoomLabelEditCallback callback) {
+    room_label_edit_callback_ = std::move(callback);
   }
   void SetStandaloneToolCallbacks(
       std::function<bool(const std::string&)> is_window_open,
@@ -319,6 +328,9 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<void(bool)> on_inspector_side_changed_;
   std::function<void(DungeonCanvasViewer&)> on_primary_canvas_drawn_;
   std::function<void(int)> prepare_room_render_context_;
+  RoomLabelEditCallback room_label_edit_callback_;
+  char room_rename_buffer_[128] = {};
+  std::string room_rename_error_;
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
   std::function<void()> on_pit_damage_changed_;
   Rom* rom_ = nullptr;

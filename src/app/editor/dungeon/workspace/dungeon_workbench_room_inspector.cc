@@ -66,6 +66,47 @@ const char* GetSpecialLayerName(int layer_value) {
   }
 }
 
+void DrawObjectIndexJump(DungeonCanvasViewer& viewer) {
+  auto* rooms = viewer.rooms();
+  const int room_id = viewer.current_room_id();
+  if (!rooms || room_id < 0 || room_id >= static_cast<int>(rooms->size())) {
+    return;
+  }
+  auto& objects = (*rooms)[room_id].GetTileObjects();
+  if (objects.empty()) {
+    return;
+  }
+
+  auto& interaction = viewer.object_interaction();
+  const auto selected = interaction.GetSelectedObjectIndices();
+  int requested_object_index =
+      selected.size() == 1 ? static_cast<int>(selected.front()) : 0;
+
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(tr("Jump to object"));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(74.0f);
+  bool object_index_changed = false;
+  {
+    gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+    object_index_changed = gui::InputScalarDeferred(
+        "##WorkbenchObjectIndex", ImGuiDataType_S32, &requested_object_index,
+        "%d", 0,
+        {reinterpret_cast<uintptr_t>(rooms), static_cast<uint64_t>(room_id)});
+    gui::AutoRegisterLastItem("input_int", "object_index",
+                              "Select and locate a room object by index");
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(tr("Select object index 0-%zu"), objects.size() - 1);
+  }
+  if (object_index_changed) {
+    const size_t target_index = static_cast<size_t>(std::clamp(
+        requested_object_index, 0, static_cast<int>(objects.size()) - 1));
+    interaction.SetSelectedObjects({target_index});
+    viewer.ScrollToTile(objects[target_index].x(), objects[target_index].y());
+  }
+}
+
 }  // namespace
 
 void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
@@ -88,8 +129,7 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
       gui::AutoWidgetScope scope("Dungeon/Workbench");
       gui::AutoRegisterLastItem("button", "finish_placement");
     }
-  } else if (!placing_object && (interaction.GetSelectionCount() > 0 ||
-                                 interaction.HasEntitySelection())) {
+  } else if (!placing_object) {
     DrawInspectorShelfSelection(viewer);
   }
   ImGui::PopID();
@@ -241,40 +281,8 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
   if (!has_entity && obj_count == 0) {
     workbench::DrawInspectorSectionHeader(ICON_MD_INFO " Selection");
     ImGui::TextDisabled(tr("Click an object or entity to inspect"));
-    if (auto* rooms = viewer.rooms();
-        rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
-      auto& objects = (*rooms)[room_id].GetTileObjects();
-      if (!objects.empty()) {
-        ImGui::Spacing();
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(tr("Jump to object"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(74.0f);
-        int requested_object_index = 0;
-        bool object_index_changed = false;
-        {
-          gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
-          object_index_changed = gui::InputScalarDeferred(
-              "##WorkbenchObjectIndex", ImGuiDataType_S32,
-              &requested_object_index, "%d", 0,
-              {reinterpret_cast<uintptr_t>(rooms),
-               static_cast<uint64_t>(room_id)});
-          gui::AutoRegisterLastItem("input_int", "object_index",
-                                    "Select and locate a room object by index");
-        }
-        if (object_index_changed) {
-          const size_t target_index = static_cast<size_t>(std::clamp(
-              requested_object_index, 0, static_cast<int>(objects.size()) - 1));
-          viewer.object_interaction().SetSelectedObjects({target_index});
-          viewer.ScrollToTile(objects[target_index].x(),
-                              objects[target_index].y());
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(tr("Select object index 0-%zu"),
-                            objects.size() - 1);
-        }
-      }
-    }
+    ImGui::Spacing();
+    DrawObjectIndexJump(viewer);
     return;
   }
 
@@ -286,6 +294,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
     if (obj_count == 1) {
       ImGui::SameLine();
       ImGui::TextDisabled(tr("Focused selection"));
+      DrawObjectIndexJump(viewer);
     }
 
     const auto indices = interaction.GetSelectedObjectIndices();
@@ -623,19 +632,33 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       ImGui::SetTooltip(tr("Copy room ID (0x%03X) to clipboard"), room_id);
     }
 
-    // Rename room for project
-    static char rename_buffer[128] = {0};
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_EDIT "##RenameRoom")) {
-      snprintf(rename_buffer, sizeof(rename_buffer), "%s", room_label.c_str());
-      ImGui::OpenPopup("RenameRoomModal");
+    if (room_label_edit_callback_ && viewer.project() != nullptr) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_EDIT "##RenameRoom")) {
+        snprintf(room_rename_buffer_, sizeof(room_rename_buffer_), "%s",
+                 room_label.c_str());
+        room_rename_error_.clear();
+        ImGui::OpenPopup("RenameRoomModal");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(tr("Rename Room 0x%03X for this project"), room_id);
+      }
+      gui::AutoRegisterLastItem("button", "rename_room_button");
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(tr("Rename Room 0x%03X for this project"), room_id);
-    }
-    gui::AutoRegisterLastItem("button", "rename_room_button");
 
     if (ImGui::BeginPopup("RenameRoomModal")) {
+      const auto apply = [&](std::optional<std::string> label) {
+        const absl::Status status =
+            room_label_edit_callback_
+                ? room_label_edit_callback_(room_id, std::move(label))
+                : absl::FailedPreconditionError("Room names are read-only");
+        if (status.ok()) {
+          ImGui::CloseCurrentPopup();
+        } else {
+          room_rename_error_ = std::string(status.message());
+        }
+      };
+
       ImGui::Text(ICON_MD_EDIT " Rename Room 0x%03X", room_id);
       ImGui::Separator();
       ImGui::Spacing();
@@ -643,30 +666,25 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       ImGui::TextDisabled(tr("Project Room Name:"));
       ImGui::SetNextItemWidth(260.0f);
       const bool enter_pressed = ImGui::InputText(
-          "##RoomNameInput", rename_buffer, sizeof(rename_buffer),
+          "##RoomNameInput", room_rename_buffer_, sizeof(room_rename_buffer_),
           ImGuiInputTextFlags_EnterReturnsTrue);
       gui::AutoRegisterLastItem("input_text", "rename_room_input");
 
       ImGui::Spacing();
+      const bool has_name = room_rename_buffer_[0] != '\0';
+      ImGui::BeginDisabled(!has_name);
       const bool save_clicked = ImGui::Button(ICON_MD_SAVE " Save");
+      ImGui::EndDisabled();
       gui::AutoRegisterLastItem("button", "rename_room_save");
-      if (save_clicked || enter_pressed) {
-        if (viewer.project()) {
-          auto* proj = const_cast<project::YazeProject*>(viewer.project());
-          dungeon_project_labels::SetRoomLabel(proj, room_id, rename_buffer);
-        }
-        ImGui::CloseCurrentPopup();
+      if (has_name && (save_clicked || enter_pressed)) {
+        apply(std::string(room_rename_buffer_));
       }
 
       ImGui::SameLine();
       if (dungeon_project_labels::HasCustomRoomLabel(viewer.project(),
                                                      room_id)) {
         if (ImGui::Button(ICON_MD_RESTORE " Reset")) {
-          if (viewer.project()) {
-            auto* proj = const_cast<project::YazeProject*>(viewer.project());
-            dungeon_project_labels::ClearRoomLabel(proj, room_id);
-          }
-          ImGui::CloseCurrentPopup();
+          apply(std::nullopt);
         }
         gui::AutoRegisterLastItem("button", "rename_room_reset");
         if (ImGui::IsItemHovered()) {
@@ -679,6 +697,11 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
         ImGui::CloseCurrentPopup();
       }
       gui::AutoRegisterLastItem("button", "rename_room_cancel");
+
+      if (!room_rename_error_.empty()) {
+        ImGui::TextColored(theme.status_error, "%s",
+                           room_rename_error_.c_str());
+      }
 
       ImGui::EndPopup();
     }

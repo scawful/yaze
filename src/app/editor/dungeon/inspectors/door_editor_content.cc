@@ -385,7 +385,8 @@ void DoorEditorContent::DrawContent(bool show_room_doors) {
       if (bounds.w > 0 && bounds.h > 0 && !preview.pixels.empty()) {
         drew = DungeonRenderingHelpers::DrawSpritePreview(
             draw_list, preview.pixels, bounds, preview_box_min, preview_box_max,
-            color_table);
+            color_table,
+            DungeonRenderingHelpers::kBackgroundBufferTransparentIndex);
       }
     }
     if (!drew) {

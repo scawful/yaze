@@ -592,6 +592,9 @@ hack_manifest_file=hack_manifest.json
 
 [labels_room]
 37=Thieves' Town
+
+[labels_room_override]
+37=Flooded Hall
 )");
 
   {
@@ -607,6 +610,7 @@ hack_manifest_file=hack_manifest.json
 
     ASSERT_TRUE(project.resource_labels.contains("room"));
     EXPECT_EQ(project.resource_labels["room"]["37"], "Water Grate");
+    EXPECT_EQ(project.resource_labels["room_override"]["37"], "Flooded Hall");
 
     ASSERT_TRUE(project.Save().ok());
   }
@@ -614,6 +618,8 @@ hack_manifest_file=hack_manifest.json
   EXPECT_NE(saved.find("[labels_room]"), std::string::npos);
   EXPECT_NE(saved.find("37=Water Grate"), std::string::npos);
   EXPECT_EQ(saved.find("37=Thieves' Town"), std::string::npos);
+  EXPECT_NE(saved.find("[labels_room_override]"), std::string::npos);
+  EXPECT_NE(saved.find("37=Flooded Hall"), std::string::npos);
 }
 
 TEST(ProjectPathsTest, ExplicitMissingHackManifestDoesNotUseFallback) {

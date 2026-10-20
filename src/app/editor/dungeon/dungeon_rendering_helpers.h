@@ -47,12 +47,17 @@ class DungeonRenderingHelpers {
 
   static std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y);
 
+  // Index 0 is the transparent pixel in sprite previews; BackgroundBuffer
+  // pixels (door previews) use 255 instead and treat index 0 as visible.
+  static constexpr uint8_t kSpritePreviewTransparentIndex = 0;
+  static constexpr uint8_t kBackgroundBufferTransparentIndex = 255;
+
   // Draws a sprite preview into any ImGui draw list within the given bounding box.
-  static bool DrawSpritePreview(ImDrawList* draw_list,
-                                const std::vector<uint8_t>& preview,
-                                const SDL_Rect& bounds, const ImVec2& box_min,
-                                const ImVec2& box_max,
-                                const std::array<SDL_Color, 256>& color_table);
+  static bool DrawSpritePreview(
+      ImDrawList* draw_list, const std::vector<uint8_t>& preview,
+      const SDL_Rect& bounds, const ImVec2& box_min, const ImVec2& box_max,
+      const std::array<SDL_Color, 256>& color_table,
+      uint8_t transparent_index = kSpritePreviewTransparentIndex);
 
   // Maps a pot item ID (0..27) to its sprite OAM layout and sprite ID, if one exists.
   static const zelda3::SpriteOamLayout* GetPotItemSpriteLayout(
