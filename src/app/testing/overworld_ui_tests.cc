@@ -13,6 +13,7 @@
 
 #include "app/application.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
@@ -450,7 +451,9 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
       IM_CHECK(!ec && source.parent_path() == project_directory);
     }
 
-    manager->OpenEditorAndPanelsFromFlags("Overworld", "overworld.canvas");
+    manager->OpenEditorAndPanelsFromFlags(
+        "Overworld", "overworld.canvas,overworld.tile16_selector");
+    auto& widgets = gui::WidgetIdRegistry::Instance();
     editor::OverworldEditor* overworld = nullptr;
     for (int frame = 0; frame < 200; ++frame) {
       auto* editors = manager->GetCurrentEditorSet();
@@ -458,27 +461,28 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
                                 editor::EditorType::kOverworld)
                           : nullptr;
       if (overworld && overworld->overworld().is_loaded() &&
-          ctx->ItemExists("**/Lyra terrain"))
+          overworld->lyra_canvas_.loaded() &&
+          widgets.GetWidgetId("OverworldToolbar/world:2") != 0 &&
+          widgets.GetWidgetId("OwBlocksetSelector/button:Lookup") != 0 &&
+          ctx->ItemExists("**/OwMap"))
         break;
       ctx->Yield(1);
     }
     IM_CHECK(overworld && overworld->overworld().is_loaded());
-    const auto mode = ctx->ItemInfo("**/Lyra terrain");
-    IM_CHECK(mode.ID != 0 && mode.Window != nullptr);
-    ctx->SetRef(mode.Window);
-    ctx->WindowFocus("");
-    ctx->ItemClick(mode.ID);
-    ctx->Yield(3);
-    if (!overworld->lyra_canvas_.loaded()) {
-      ctx->ItemClick("**/Open Lyra terrain canvas");
-      ctx->Yield(5);
-    }
     if (!overworld->lyra_canvas_status_.ok()) {
       IM_ERRORF("Native Loom binding failed: %s",
                 overworld->lyra_canvas_status_.ToString().c_str());
       return;
     }
     IM_CHECK(overworld->lyra_canvas_.loaded());
+    // Project autoload must land on Lyra inside the normal Special World.
+    // Check before the test changes the world, selection, or viewport.
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+    IM_CHECK_EQ(overworld->DisplayedMapCount(), 192);
+    IM_CHECK(!overworld->IsProjectTerrainMap(0x80));
+    IM_CHECK(overworld->IsProjectTerrainMap(0xA0));
+    IM_CHECK(overworld->IsProjectTerrainMap(0xBF));
     const auto* document = overworld->lyra_canvas_.document();
     IM_CHECK(document != nullptr && !document->dirty());
     const auto source_path = fs::weakly_canonical(
@@ -487,29 +491,42 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(!ec && source_path.parent_path() == project_directory);
     IM_CHECK(source_path.extension() == ".json");
 
-    // Known product controls establish pan/zoom; coordinates below come from
-    // the live terrain item rectangle, not an assumed desktop/window position.
-    // Wildcard label search does not honor escaped slashes. The current
-    // reference already names the canvas window, so use its literal path.
-    ctx->ItemClick("A0 \\/ A8 \\/ B0");
-    ctx->ItemInputValue("**/Zoom", 0.25f);
-    ctx->ItemInputValue("**/Page", 0);
-    ctx->Yield(3);
-    auto terrain = ctx->ItemInfo("**/terrain");
-    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+    const auto world =
+        ctx->ItemInfo(widgets.GetWidgetId("OverworldToolbar/world:2"));
+    IM_CHECK(world.ID != 0 && world.Window != nullptr);
+    ctx->SetRef(world.Window);
+    ctx->WindowFocus("");
+    ctx->ItemClick(world.ID);
+    ctx->Yield(2);
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+
+    // Only the viewport setup is programmatic. Brush selection, the stroke,
+    // and undo/redo use the ordinary editor controls. Lyra's first document
+    // row is world Tile16 row 128 (map A0), below the existing SW maps.
     constexpr int kX = 4;
     constexpr int kStartY = 30;
-    constexpr float kCellPixels = 4.0f;  // 16 pixels at the UI-selected 0.25x.
+    constexpr int kLyraWorldY = 128;
+    auto& canvas = overworld->ow_map_canvas();
+    canvas.set_global_scale(0.25f);
+    overworld->LocateOverworldTile(0xA0, kX, kLyraWorldY + 48);
+    ctx->Yield(3);
+    auto terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
     const auto cell_position = [&](int y) {
-      return ImVec2(terrain.RectFull.Min.x + 24 + (kX + 0.5f) * kCellPixels,
-                    terrain.RectFull.Min.y + 40 + (y + 0.5f) * kCellPixels);
+      const auto origin = canvas.zero_point();
+      const auto scrolling = canvas.scrolling();
+      const float cell_pixels = 16.0f * canvas.global_scale();
+      return ImVec2(
+          origin.x + scrolling.x + (kX + 0.5f) * cell_pixels,
+          origin.y + scrolling.y + (kLyraWorldY + y + 0.5f) * cell_pixels);
     };
     const bool reaches_b0 = terrain.RectClipped.Contains(cell_position(65));
     const int end_y = reaches_b0 ? 65 : 33;
     IM_CHECK(terrain.RectClipped.Contains(cell_position(kStartY)));
     IM_CHECK(terrain.RectClipped.Contains(cell_position(end_y)));
 
-    // Select a first-row picker tile different from each boundary probe.
+    // The normal Tile16 selector's lookup popup chooses the brush through
+    // RequestTile16Selection; it must use the Loom atlas for map A0.
     std::array<bool, 8> used{};
     for (const int y : {31, 32, end_y}) {
       const auto tile = document->tile(kX, y);
@@ -517,24 +534,53 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
       if (*tile < used.size())
         used[*tile] = true;
     }
+    const int old_brush = overworld->current_tile16_id();
+    if (old_brush >= 0 && old_brush < static_cast<int>(used.size()))
+      used[old_brush] = true;
     int brush = 0;
     while (brush < static_cast<int>(used.size()) && used[brush])
       ++brush;
     IM_CHECK(brush < 8 &&
              brush < static_cast<int>(document->profile().tile_count));
-    const auto picker = ctx->ItemInfo("**/Page");
-    IM_CHECK(picker.Window != nullptr);
-    const ImGuiID brush_seed =
-        ImHashData(&brush, sizeof(brush), picker.Window->ID);
-    const ImGuiID brush_button = ImHashStr("tile", 0, brush_seed);
-    ctx->ItemClick(brush_button);
+    const auto lookup =
+        ctx->ItemInfo(widgets.GetWidgetId("OwBlocksetSelector/button:Lookup"));
+    IM_CHECK(lookup.ID != 0 && lookup.Window != nullptr);
+    ctx->SetRef(lookup.Window);
+    ctx->WindowFocus("");
+    ctx->ItemClick(lookup.ID);
+    ctx->Yield(2);
+    const ImGuiID tile_input =
+        widgets.GetWidgetId("OwBlocksetSelector/input:TileID");
+    IM_CHECK(tile_input != 0);
+    // The first eight tile IDs have the same decimal and hexadecimal text.
+    ctx->ItemInputValue(tile_input, std::to_string(brush).c_str());
+    ctx->Yield(2);
+    IM_CHECK_EQ(overworld->current_tile16_id(), brush);
+    ctx->SetRef(world.Window);
+    ctx->WindowFocus("");
+    ImGuiID paint = widgets.GetWidgetId("OverworldToolbar/button:Paint");
+    const bool tools_overflow = paint == 0 || !ctx->ItemExists(paint);
+    if (tools_overflow) {
+      const ImGuiID tools =
+          widgets.GetWidgetId("OverworldToolbar/button:Tools");
+      IM_CHECK(tools != 0);
+      ctx->ItemClick(tools);
+      ctx->Yield(2);
+      paint = widgets.GetWidgetId("OverworldToolbar/button:Paint");
+    }
+    IM_CHECK(paint != 0);
+    ctx->ItemClick(paint);
+    if (tools_overflow)
+      ctx->KeyPress(ImGuiKey_Escape);
     ctx->Yield(2);
     const auto before =
         std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
     const size_t undo_before = overworld->undo_manager().UndoStackSize();
     IM_CHECK(undo_before < overworld->undo_manager().GetMaxStackSize());
 
-    terrain = ctx->ItemInfo("**/terrain");
+    terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.RectClipped.Contains(cell_position(kStartY)));
+    IM_CHECK(terrain.RectClipped.Contains(cell_position(end_y)));
     ctx->MouseSetViewport(terrain.Window);
     ctx->MouseMoveToPos(cell_position(kStartY));
     ctx->MouseDown(ImGuiMouseButton_Left);
@@ -552,21 +598,21 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
       IM_CHECK(document->tile(kX, y).value() == brush);
     const auto painted =
         std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
-    ctx->ItemClick("**/Undo##LyraTerrain");
+    IM_CHECK(manager->GetCurrentEditor() == overworld);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
     ctx->Yield(2);
     IM_CHECK(overworld->lyra_canvas_status_.ok());
     IM_CHECK(document->maps() == *before);
     IM_CHECK(!document->dirty());
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before);
-    ctx->ItemClick("**/Redo##LyraTerrain");
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
     ctx->Yield(2);
     IM_CHECK(overworld->lyra_canvas_status_.ok());
     IM_CHECK(document->maps() == *painted);
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 1);
 
-    ctx->ItemClick("**/Save terrain");
+    const auto save_status = manager->SaveProject();
     ctx->Yield(3);
-    const auto save_status = overworld->lyra_canvas_status_;
     if (!save_status.ok()) {
       IM_ERRORF("SaveProject failed: %s", save_status.ToString().c_str());
       return;
@@ -604,6 +650,9 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
         {"paint_y_end", end_y},
         {"tile16", brush},
         {"undo_actions_added", 1},
+        {"surface", "normal_special_overworld"},
+        {"normal_tile16_selector", true},
+        {"displayed_map_count", overworld->DisplayedMapCount()},
         {"a0_a8_crossed", true},
         {"a8_b0_crossed", reaches_b0},
         {"terrain_sha256", core::ComputeSourceArtifactSha256(*saved)},
@@ -717,8 +766,7 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
                                 editor::EditorType::kOverworld)
                           : nullptr;
       if (overworld && overworld->overworld().is_loaded() &&
-          overworld->lyra_canvas_.loaded() &&
-          ctx->ItemExists("**/Lyra terrain"))
+          overworld->lyra_canvas_.loaded() && ctx->ItemExists("**/OwMap"))
         break;
       ctx->Yield(1);
     }
@@ -729,6 +777,14 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
       return;
     }
     IM_CHECK(overworld->lyra_canvas_.loaded());
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+    IM_CHECK_EQ(overworld->DisplayedMapCount(), 192);
+    IM_CHECK(!overworld->IsProjectTerrainMap(0x80));
+    IM_CHECK(overworld->IsProjectTerrainMap(0xA0));
+    IM_CHECK(overworld->IsProjectTerrainMap(0xBF));
+    IM_CHECK(prior.value("surface", "") == "normal_special_overworld");
+    IM_CHECK(prior.value("normal_tile16_selector", false));
     const auto* document = overworld->lyra_canvas_.document();
     IM_CHECK(document && !document->dirty());
     IM_CHECK(!overworld->HasPendingProjectDraftChanges());
@@ -747,13 +803,26 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
       IM_CHECK(document->tile(x, y).value() == tile);
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), 0);
 
-    // Expose the already loaded canvas for the driver's native screenshot.
-    const auto mode = ctx->ItemInfo("**/Lyra terrain");
-    IM_CHECK(mode.ID != 0 && mode.Window != nullptr);
-    ctx->SetRef(mode.Window);
-    ctx->ItemClick(mode.ID);
+    // Fit the one normal SW canvas for the driver's screenshot. Both the
+    // existing map 80 and the project terrain at A0 must be in the same view.
+    const auto terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+    ctx->SetRef(terrain.Window);
+    ctx->WindowFocus("");
+    overworld->ZoomToFit();
     ctx->Yield(3);
-    IM_CHECK(ctx->ItemExists("**/terrain"));
+    const auto fitted = ctx->ItemInfo("**/OwMap");
+    const auto& canvas = overworld->ow_map_canvas();
+    const auto origin = canvas.zero_point();
+    const auto scroll = canvas.scrolling();
+    const float cell_pixels = 16.0f * canvas.global_scale();
+    const auto map_center = [&](int map_row) {
+      return ImVec2(
+          origin.x + scroll.x + 16.0f * cell_pixels,
+          origin.y + scroll.y + (map_row * 32.0f + 16.0f) * cell_pixels);
+    };
+    IM_CHECK(fitted.RectClipped.Contains(map_center(0)));
+    IM_CHECK(fitted.RectClipped.Contains(map_center(4)));
     IM_CHECK(!overworld->HasPendingProjectDraftChanges());
     IM_CHECK(read_file(expected_project) == project_before);
     IM_CHECK(read_file(source_path) == source_before);
@@ -775,6 +844,9 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
         {"rom", rom_path.string()},
         {"prior_receipt", receipt_path.string()},
         {"autoloaded", true},
+        {"surface", "normal_special_overworld"},
+        {"map_80_and_a0_same_canvas", true},
+        {"displayed_map_count", overworld->DisplayedMapCount()},
         {"document_clean", true},
         {"saved_cells_exact", true},
         {"project_unchanged", true},
