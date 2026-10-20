@@ -1,4 +1,3 @@
-#include "zelda3/resource_labels.h"
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -25,6 +24,7 @@
 #include "core/source_artifact_publisher.h"
 #include "editor_test_support.h"
 #include "testing.h"
+#include "zelda3/resource_labels.h"
 
 #include "imgui/imgui.h"
 #include "nlohmann/json.hpp"
