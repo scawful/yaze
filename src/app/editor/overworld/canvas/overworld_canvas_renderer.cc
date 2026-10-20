@@ -713,6 +713,12 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
                       : editor_->tile16_blockset_.atlas;
   bool atlas_ready =
       atlas.is_active() && (project_terrain || editor_->map_blockset_loaded_);
+  // Adaptive tile cells can extend beyond the legacy fixed canvas bounds.
+  // Size this selector's hit area to its displayed grid, including filters.
+  const ImVec2 grid_size = editor_->blockset_selector_->GetGridContentSize();
+  const float canvas_scale = editor_->blockset_canvas_.global_scale();
+  editor_->blockset_canvas_.SetCanvasSize(
+      ImVec2(grid_size.x / canvas_scale, grid_size.y / canvas_scale));
   auto result = editor_->blockset_selector_->Render(atlas, atlas_ready);
 
   if (result.selection_changed) {
