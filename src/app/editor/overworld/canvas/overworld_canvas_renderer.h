@@ -100,6 +100,8 @@ class OverworldCanvasRenderer {
   /// Recounts placements at most twice a second, and never while the mouse is
   /// down or over the grid, so tiles don't move under the cursor.
   void RefreshTile16Order(bool grid_hovered);
+  /// Shows every tile in ID order and forces a recount on the next refresh.
+  void ResetTile16Order();
 
   // =========================================================================
   // Data

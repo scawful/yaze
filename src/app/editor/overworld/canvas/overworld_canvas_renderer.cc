@@ -685,8 +685,16 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     editor_->RequestTile16Selection(
         editor_->blockset_selector_->GetSelectedTileID());
   }
-  DrawTile16ViewControls();
-  RefreshTile16Order(tile16_grid_hovered_);
+  const bool project_terrain =
+      editor_->IsProjectTerrainMap(editor_->current_map_);
+  // Usage counts only cover legacy maps, so project terrain keeps the full
+  // ID-ordered palette instead of a sort/filter that ignores its placements.
+  if (project_terrain) {
+    ResetTile16Order();
+  } else {
+    DrawTile16ViewControls();
+    RefreshTile16Order(tile16_grid_hovered_);
+  }
 
   // Padding is read at BeginChild; pop it right away so the grid's tooltip
   // and context menu keep normal popup padding.
@@ -700,8 +708,6 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     return absl::OkStatus();
   }
 
-  const bool project_terrain =
-      editor_->IsProjectTerrainMap(editor_->current_map_);
   gfx::Bitmap& atlas =
       project_terrain ? editor_->lyra_canvas_.MapAtlas(editor_->current_map_)
                       : editor_->tile16_blockset_.atlas;
@@ -793,9 +799,7 @@ void OverworldCanvasRenderer::RefreshTile16Order(bool grid_hovered) {
     return;
   }
   if (!editor_->overworld_.is_loaded()) {
-    selector->ClearDisplayOrder();
-    tile16_usage_counts_.clear();
-    tile16_order_dirty_ = true;
+    ResetTile16Order();
     return;
   }
 
@@ -838,6 +842,14 @@ void OverworldCanvasRenderer::RefreshTile16Order(bool grid_hovered) {
     selector->SetDisplayOrder(zelda3::BuildTile16DisplayOrder(
         tile16_usage_counts_, tile16_sort_, tile16_hide_unused_));
   }
+}
+
+void OverworldCanvasRenderer::ResetTile16Order() {
+  if (editor_->blockset_selector_) {
+    editor_->blockset_selector_->ClearDisplayOrder();
+  }
+  tile16_usage_counts_.clear();
+  tile16_order_dirty_ = true;
 }
 
 void OverworldCanvasRenderer::DrawTile16ViewControls() {
