@@ -221,6 +221,15 @@ TEST(LyraA0TerrainTest, AtomicSaveAsGuardsSourceSnapshotAndEntryAnchors) {
   auto tiles = DecodePilotLiterals(bytes);
   tiles[5 * 16 + 5] = 0x20B2;
   loaded.set_dirty(true);
+  {
+    ScopedRomReadOnly read_only(loaded);
+    const auto refused = loaded.SaveLyraA0TerrainAs(tiles, target.string());
+    EXPECT_EQ(refused.code(), absl::StatusCode::kPermissionDenied);
+    EXPECT_EQ(loaded.vector(), bytes);
+    EXPECT_EQ(loaded.filename(), source.string());
+    EXPECT_EQ(ReadBytes(source), bytes);
+    EXPECT_EQ(ReadBytes(target), bytes);
+  }
   EXPECT_FALSE(loaded.SaveLyraA0TerrainAs(tiles, source.string()).ok());
   loaded.mutable_vector()[0x100] ^= 1;
   EXPECT_FALSE(loaded.SaveLyraA0TerrainAs(tiles, target.string()).ok());

@@ -666,6 +666,10 @@ void Rom::CaptureLyraTerrainBaseline() {
 
 absl::Status Rom::SaveLyraA0TerrainAs(const std::array<uint16_t, 256>& tiles,
                                       const std::string& filename) {
+  if (read_only_scope_depth_ != 0) {
+    return absl::PermissionDeniedError(
+        "ROM write refused by read_only project policy");
+  }
 #ifdef __EMSCRIPTEN__
   return absl::UnimplementedError(
       "Lyra terrain Save As requires native storage");
