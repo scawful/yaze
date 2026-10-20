@@ -445,18 +445,11 @@ void EditorManager::DrawInterface() {
   if (SessionHasPendingUnsavedWork(session_index)) {
     StatusBarSegmentOptions dirty_opts;
     dirty_opts.tooltip = absl::StrFormat(
-        "%s. Click to save ROM when ROM-buffer work is pending, otherwise open "
-        "the Project drawer.",
-        DescribePendingUnsavedWork(session_index));
-    dirty_opts.on_click = [this, session_index]() {
-      if (SessionHasPendingRomWork(session_index)) {
-        auto status = SaveRom();
-        if (!status.ok()) {
-          toast_manager_.Show(std::string(status.message()), ToastType::kError);
-        }
-      } else if (right_drawer_manager_) {
-        right_drawer_manager_->OpenDrawer(
-            RightDrawerManager::DrawerType::kProject);
+        "%s. Click to save.", DescribePendingUnsavedWork(session_index));
+    dirty_opts.on_click = [this]() {
+      auto status = SaveCurrentSession();
+      if (!absl::IsCancelled(status) && !status.ok()) {
+        toast_manager_.Show(std::string(status.message()), ToastType::kError);
       }
     };
     status_bar_.SetDirtyScope(CompactPendingUnsavedWorkLabel(session_index),

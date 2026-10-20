@@ -64,6 +64,7 @@ set(
   zelda3/music/tracker.cc
   zelda3/overworld/diggable_tiles.cc
   zelda3/overworld/diggable_tiles_patch.cc
+  zelda3/overworld/lyra_terrain_source.cc
   zelda3/overworld/overworld_sprite_io.cc
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_allocation.cc

@@ -1456,4 +1456,15 @@ void EditorManager::MaybeEmitZScreamRomLoadHints() {
   feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamProjects);
 }
 
+absl::Status EditorManager::SaveCurrentSessionAs() {
+  if (current_project_.project_opened()) {
+    return SaveProjectAs();
+  }
+  if (!GetCurrentRom() || !GetCurrentRom()->is_loaded()) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+  popup_manager_.Show(PopupID::kSaveAs);
+  return absl::OkStatus();
+}
+
 }  // namespace yaze::editor

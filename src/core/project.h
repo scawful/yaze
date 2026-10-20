@@ -19,6 +19,9 @@
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
+namespace core {
+class LyraTerrainDocument;
+}
 namespace project {
 
 /**
@@ -418,6 +421,11 @@ struct YazeProject {
   // caller's preflight check.
   absl::Status SaveNew();
   absl::Status SaveAs(const std::string& new_path);
+  // Saves an independent project-owned terrain copy without modifying the
+  // original terrain. Both destination files roll back together on failure.
+  absl::Status SaveAsWithLyraTerrain(
+      const std::string& new_path, const core::LyraTerrainDocument& terrain,
+      const std::optional<std::string>& expected_source_bytes);
   absl::Status ImportZScreamProject(const std::string& zscream_project_path);
   absl::Status ExportForZScream(const std::string& target_path);
 
@@ -474,6 +482,8 @@ struct YazeProject {
 
   // Project state
   bool project_opened() const { return !name.empty() && !filepath.empty(); }
+  // Manifest identity, independent of the project filename or display name.
+  bool IsOracleCompatible() const;
 
   // Hack manifest (ASM integration) reload hook (safe no-op if unset).
   void ReloadHackManifest();

@@ -326,15 +326,15 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   RegisterIfValid(shortcut_manager, "Save", {ImGuiMod_Ctrl, ImGuiKey_S},
                   [editor_manager]() {
                     if (editor_manager) {
-                      editor_manager->SaveRom();
+                      editor_manager->SaveCurrentSession();
                     }
                   });
 
   RegisterIfValid(
       shortcut_manager, "Save As", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_S},
       [editor_manager]() {
-        if (editor_manager && editor_manager->popup_manager()) {
-          editor_manager->popup_manager()->Show(PopupID::kSaveAs);
+        if (editor_manager) {
+          editor_manager->SaveCurrentSessionAs();
         }
       },
       Shortcut::Scope::kGlobal);

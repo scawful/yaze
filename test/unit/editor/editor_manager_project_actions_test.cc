@@ -326,7 +326,38 @@ TEST(EditorManagerProjectActionsTest,
 }
 
 TEST(EditorManagerProjectActionsTest,
-     LyraTerrainFreshProjectCreateSaveAsReopenAndExplicitOpen) {
+     NormalSavePersistsProjectWorkAndRetainsExplicitRomWritePolicy) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_normal_project_save"));
+  const auto rom = directory.path / "private.sfc";
+  const auto descriptor = directory.path / "private.yaze";
+  WriteRomFile(rom);
+  WriteProjectFile(descriptor, "Read-only ROM project", rom);
+  project::YazeProject project;
+  ASSERT_OK(project.Open(descriptor.string()));
+  project.rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
+  ASSERT_OK(project.Save());
+  const auto rom_before = ReadFile(rom);
+  ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
+  const auto descriptor_before = ReadFile(descriptor);
+  ASSERT_OK(manager->SaveCurrentSession());
+  EXPECT_EQ(ReadFile(descriptor), descriptor_before);
+  manager->GetCurrentProject()->metadata.author = "Project edit";
+  manager->MarkCurrentProjectDirty();
+  ASSERT_OK(manager->SaveCurrentSession());
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
+  ASSERT_OK(project.Open(descriptor.string()));
+  EXPECT_EQ(project.metadata.author, "Project edit");
+  EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(ReadFile(rom), rom_before);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     LyraTerrainAutomaticProjectSaveAsReopenAndAdvancedImport) {
   const auto immutable_rom =
       test::TestRomManager::GetRomPath(test::RomRole::kExpanded);
   if (immutable_rom.empty() || !std::filesystem::exists(immutable_rom)) {
@@ -351,6 +382,7 @@ TEST(EditorManagerProjectActionsTest,
   const auto relocated_project = relocated / "saved-as.yaze";
   const auto consumer_project = consumer / "consumer.yaze";
   const auto terrain = primary / "fresh.lyra-terrain.json";
+  const auto relocated_terrain = relocated / "saved-as.lyra-terrain.json";
   const auto replacement = consumer / "replacement.lyra-terrain.json";
   std::filesystem::copy_file(immutable_rom, primary_rom);
   std::filesystem::copy_file(immutable_rom, consumer_rom);
@@ -365,6 +397,13 @@ TEST(EditorManagerProjectActionsTest,
   };
   ASSERT_NO_FATAL_FAILURE(write_project(primary_project, primary_rom));
   ASSERT_NO_FATAL_FAILURE(write_project(consumer_project, consumer_rom));
+  const auto manifest = primary / "hack_manifest.json";
+  std::ofstream(manifest)
+      << R"json({"manifest_version":2,"hack_name":"Oracle of Secrets"})json";
+  project::YazeProject oracle;
+  ASSERT_OK(oracle.Open(primary_project.string()));
+  ASSERT_TRUE(oracle.IsOracleCompatible());
+  ASSERT_OK(oracle.Save());
   const auto initial_descriptor = ReadFile(primary_project);
   const auto initial_flags = core::FeatureFlags::get();
   std::unique_ptr<EditorManager> manager;
@@ -385,9 +424,22 @@ TEST(EditorManagerProjectActionsTest,
     manager->SetAssetLoadMode(AssetLoadMode::kLazy);
     ASSERT_OK(manager->OpenRomOrProject(path.string()));
   };
+  std::ofstream(terrain) << "malformed managed terrain";
+  ASSERT_NO_FATAL_FAILURE(open_fresh_manager(primary_project));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* rejected = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(rejected, nullptr);
+  EXPECT_FALSE(rejected->lyra_canvas_status_.ok());
+  EXPECT_FALSE(rejected->lyra_canvas_.loaded());
+  EXPECT_TRUE(manager->GetCurrentProject()->lyra_terrain_file.empty());
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
+  EXPECT_EQ(ReadFile(terrain), "malformed managed terrain");
+  EXPECT_EQ(ReadFile(primary_project), initial_descriptor);
+  std::filesystem::remove(terrain);
   ASSERT_NO_FATAL_FAILURE(open_fresh_manager(primary_project));
   ASSERT_FALSE(manager->IsCurrentProjectDirty());
-  ASSERT_OK(manager->CreateLyraTerrain());
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
   auto* editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
       EditorType::kOverworld);
   ASSERT_NE(editor, nullptr);
@@ -422,24 +474,68 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_OK(editor->Redo());
   EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), selected_scene);
 
-  ASSERT_OK(manager->SaveProject());
+  // The normal Save command persists project-only work despite ROM writes
+  // being blocked, and never enlists an unnecessary ROM serializer.
+  ASSERT_OK(manager->SaveCurrentSession());
   ASSERT_TRUE(std::filesystem::is_regular_file(terrain));
   EXPECT_FALSE(manager->IsCurrentProjectDirty());
   EXPECT_FALSE(editor->HasPendingProjectDraftChanges());
   const auto terrain_bytes = ReadFile(terrain);
-  const auto saved_descriptor = ReadFile(primary_project);
+  auto saved_descriptor = ReadFile(primary_project);
   project::YazeProject saved;
   ASSERT_OK(saved.Open(primary_project.string()));
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
       saved.GetAbsolutePath(saved.lyra_terrain_file), terrain.string()));
 
+  // A project made before the terrain reference was recorded discovers its
+  // managed file without requiring a separate Open Lyra Terrain operation.
+  std::ofstream(primary_project) << initial_descriptor;
+  ASSERT_NO_FATAL_FAILURE(open_fresh_manager(primary_project));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_TRUE(editor->lyra_canvas_.loaded());
+  EXPECT_EQ(editor->lyra_canvas_.document()->Serialize(), terrain_bytes);
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  ASSERT_OK(manager->SaveCurrentSession());
+  saved_descriptor = ReadFile(primary_project);
+
+  auto save_as_scene = selected_scene;
+  save_as_scene.maps[0].properties.message_id = 0x71;
+  ASSERT_OK(editor->EditProjectMapAuthoring(save_as_scene));
+  save_as_scene = editor->lyra_canvas_.document()->authoring();
+  const auto save_as_bytes = editor->lyra_canvas_.document()->Serialize();
+  const auto* saved_document = editor->lyra_canvas_.document();
+
+  const auto refused_project = relocated / "occupied.yaze";
+  const auto refused_terrain = relocated / "occupied.lyra-terrain.json";
+  std::ofstream(refused_project) << "unrelated project";
+  std::ofstream(refused_terrain) << "unrelated terrain";
+  EXPECT_FALSE(manager->SaveProjectAs(refused_project.string()).ok());
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, primary_project.string());
+  EXPECT_EQ(manager->GetCurrentProject()->lyra_terrain_file, terrain.string());
+  EXPECT_EQ(editor->lyra_canvas_.document(), saved_document);
+  EXPECT_EQ(editor->lyra_canvas_.document()->Serialize(), save_as_bytes);
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  EXPECT_EQ(ReadFile(refused_project), "unrelated project");
+  EXPECT_EQ(ReadFile(refused_terrain), "unrelated terrain");
+  EXPECT_EQ(ReadFile(primary_project), saved_descriptor);
+  EXPECT_EQ(ReadFile(terrain), terrain_bytes);
+
   ASSERT_OK(manager->SaveProjectAs(relocated_project.string()));
   EXPECT_FALSE(manager->IsCurrentProjectDirty());
   EXPECT_EQ(ReadFile(primary_project), saved_descriptor);
   EXPECT_EQ(ReadFile(terrain), terrain_bytes);
+  EXPECT_EQ(ReadFile(relocated_terrain), save_as_bytes);
+  EXPECT_EQ(editor->lyra_canvas_.document(), saved_document);
+  ASSERT_OK(editor->Undo());
+  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), selected_scene);
+  ASSERT_OK(editor->Redo());
+  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), save_as_scene);
   ASSERT_OK(saved.Open(relocated_project.string()));
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
-      saved.GetAbsolutePath(saved.lyra_terrain_file), terrain.string()));
+      saved.GetAbsolutePath(saved.lyra_terrain_file),
+      relocated_terrain.string()));
   EXPECT_TRUE(SessionCoordinator::PathsReferToSameBackingFile(
       saved.GetAbsolutePath(saved.rom_filename), primary_rom.string()));
 
@@ -449,16 +545,22 @@ TEST(EditorManagerProjectActionsTest,
       EditorType::kOverworld);
   ASSERT_NE(editor, nullptr);
   ASSERT_TRUE(editor->lyra_canvas_.loaded());
-  EXPECT_EQ(editor->lyra_canvas_.document()->Serialize(), terrain_bytes);
-  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), selected_scene);
+  EXPECT_EQ(editor->lyra_canvas_.document()->Serialize(), save_as_bytes);
+  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), save_as_scene);
   EXPECT_EQ(editor->current_map_id(), 0xA0);
   EXPECT_FALSE(manager->IsCurrentProjectDirty());
-  ASSERT_OK(manager->OpenLyraTerrainFromPath(terrain.string()));
+  ASSERT_OK(manager->OpenLyraTerrainFromPath(relocated_terrain.string()));
   EXPECT_FALSE(manager->IsCurrentProjectDirty());
   EXPECT_FALSE(editor->HasPendingProjectDraftChanges());
 
   ASSERT_OK(manager->OpenRomOrProject(consumer_project.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
   ASSERT_TRUE(manager->GetCurrentProject()->lyra_terrain_file.empty());
+  editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  EXPECT_FALSE(editor->lyra_canvas_.loaded());
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
   ASSERT_OK(manager->OpenLyraTerrainFromPath(terrain.string()));
   editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
       EditorType::kOverworld);

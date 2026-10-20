@@ -186,7 +186,7 @@ void MenuOrchestrator::AddFileMenuItems() {
   AddRecentFilesSubmenu();
   menu_builder_
       .Item(
-          "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); },
+          "Save", ICON_MD_SAVE, [this]() { OnSaveRom(); },
           GetShortcutForAction("Save").c_str(),
           [this]() { return CanSaveRom(); })
       .Item(
@@ -237,22 +237,20 @@ void MenuOrchestrator::AddFileMenuItems() {
           "Edit Project File...", ICON_MD_DESCRIPTION,
           [this]() { OnShowProjectFileEditor(); }, nullptr,
           [this]() { return HasProjectFile(); })
-      .BeginSubMenu("Lyra Terrain (experimental)", ICON_MD_MAP)
       .Item(
-          "Project draft; saved with project", nullptr, []() {}, nullptr,
-          []() { return false; })
+          "Edit Lyra", ICON_MD_MAP, [this]() { OnCreateLyraTerrain(); },
+          nullptr,
+          [this]() {
+            const auto* project = editor_manager_
+                                      ? editor_manager_->GetCurrentProject()
+                                      : nullptr;
+            return CanSaveProject() && HasActiveRom() && project &&
+                   (project->IsOracleCompatible() ||
+                    !project->lyra_terrain_file.empty());
+          })
+      .BeginSubMenu("Advanced Lyra", ICON_MD_MORE_HORIZ)
       .Item(
-          "Build/runtime unavailable", nullptr, []() {}, nullptr,
-          []() { return false; })
-      .Item(
-          "Replacing terrain resets Overworld undo", nullptr, []() {}, nullptr,
-          []() { return false; })
-      .Item(
-          "Create Lyra Terrain", ICON_MD_CREATE_NEW_FOLDER,
-          [this]() { OnCreateLyraTerrain(); }, nullptr,
-          [this]() { return CanSaveProject() && HasActiveRom(); })
-      .Item(
-          "Open Lyra Terrain...", ICON_MD_FOLDER_OPEN,
+          "Import Lyra Terrain...", ICON_MD_FOLDER_OPEN,
           [this]() { OnOpenLyraTerrain(); }, nullptr,
           [this]() { return CanSaveProject() && HasActiveRom(); })
       .EndMenu()
@@ -1186,22 +1184,29 @@ void MenuOrchestrator::OnOpenRom() {
 }
 
 void MenuOrchestrator::OnSaveRom() {
-  // Delegate to EditorManager's SaveRom which handles editor data saving
+  // Normal Save includes the project's editor drafts as well as ROM work.
   if (editor_manager_) {
-    auto status = editor_manager_->SaveRom();
+    auto status = editor_manager_->SaveCurrentSession();
     if (!status.ok()) {
       if (absl::IsCancelled(status)) {
         return;
       }
       toast_manager_.Show(
-          absl::StrFormat("Failed to save ROM: %s", status.message()),
+          absl::StrFormat("Failed to save: %s", status.message()),
           ToastType::kError);
     }
   }
 }
 
 void MenuOrchestrator::OnSaveRomAs() {
-  popup_manager_.Show(PopupID::kSaveAs);
+  if (editor_manager_) {
+    auto status = editor_manager_->SaveCurrentSessionAs();
+    if (!status.ok() && !absl::IsCancelled(status)) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to save a copy: %s", status.message()),
+          ToastType::kError);
+    }
+  }
 }
 
 void MenuOrchestrator::OnCreateProject() {

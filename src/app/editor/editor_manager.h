@@ -442,6 +442,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   // ROM and Project operations (public for MenuOrchestrator)
   absl::Status LoadRom();
+  // Normal Save includes project drafts. Explicit ROM writes remain SaveRom.
+  absl::Status SaveCurrentSession();
+  absl::Status SaveCurrentSessionAs();
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);
   absl::Status ResumePendingRomSave();
@@ -698,7 +701,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void CaptureRuntimeFeatureFlags();
   void CaptureActiveProjectEditingState();
   void CaptureActiveProjectContext();
-  absl::Status PrepareActiveProjectEditorDraftsForSave();
+  absl::Status PrepareActiveProjectEditorDraftsForSave(
+      bool publish_lyra = true);
   void DetachActiveProjectContext();
   void BindProjectContextToSession(RomSession* session,
                                    const project::YazeProject& project);

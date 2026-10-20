@@ -1160,7 +1160,8 @@ void EditorManager::CaptureActiveProjectEditingState() {
   session->project_file_editor_state = project_file_editor_.CaptureState();
 }
 
-absl::Status EditorManager::PrepareActiveProjectEditorDraftsForSave() {
+absl::Status EditorManager::PrepareActiveProjectEditorDraftsForSave(
+    bool publish_lyra) {
   if (!session_coordinator_) {
     return absl::OkStatus();
   }
@@ -1172,7 +1173,7 @@ absl::Status EditorManager::PrepareActiveProjectEditorDraftsForSave() {
     return absl::FailedPreconditionError(
         "Project editor drafts require their project context to be active");
   }
-  return session->editors.PrepareProjectSave();
+  return session->editors.PrepareProjectSave(publish_lyra);
 }
 
 void EditorManager::DetachActiveProjectContext() {
@@ -2912,6 +2913,27 @@ void EditorManager::FinishPendingRomSaveAttempt(const absl::Status& status) {
   }
 }
 
+absl::Status EditorManager::SaveCurrentSession() {
+  // An established ROM save owns its confirmation and one-shot exemptions.
+  if (pending_rom_save_.has_value()) {
+    return SaveRom();
+  }
+  if (!session_coordinator_ || !session_coordinator_->GetActiveRomSession()) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+  CaptureActiveProjectEditingState();
+  const size_t session_id = GetCurrentSessionId();
+  RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  if (GetCurrentSessionId() != session_id) {
+    return absl::FailedPreconditionError(
+        "The active session changed while saving project work");
+  }
+  if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+    return SaveRom();
+  }
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::SaveRom() {
   // Do not let an autosave or an unrelated Ctrl+S replace a Save As request
   // while one of its confirmation dialogs is still open.
@@ -4031,6 +4053,10 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
         absl::EndsWith(file_path, ".yazeproj"))) {
     file_path += ".yaze";
   }
+  if (SessionCoordinator::PathsReferToSameBackingFile(current_project_.filepath,
+                                                      file_path)) {
+    return SaveProject();
+  }
 
   if (session_coordinator_) {
     if (auto* session = session_coordinator_->GetActiveRomSession();
@@ -4044,14 +4070,35 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
     }
   }
 
-  RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave());
+  OverworldEditor* lyra_editor = nullptr;
+  if (current_project_.IsOracleCompatible() ||
+      !current_project_.lyra_terrain_file.empty()) {
+    RETURN_IF_ERROR(ValidateLyraTerrainProjectContext());
+    RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kOverworld));
+    lyra_editor = GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+        EditorType::kOverworld);
+    if (!lyra_editor || !lyra_editor->lyra_canvas_.loaded()) {
+      return lyra_editor && !lyra_editor->lyra_canvas_status_.ok()
+                 ? lyra_editor->lyra_canvas_status_
+                 : absl::FailedPreconditionError(
+                       "Project Lyra terrain is unavailable");
+    }
+  }
+  // Dungeon property drafts still join the saved descriptor. Lyra publishes
+  // directly into its new owner instead of flushing into the original source.
+  RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave(
+      /*publish_lyra=*/lyra_editor == nullptr));
   CaptureActiveProjectContext();
 
-  // Update project filepath and save
   std::string old_filepath = current_project_.filepath;
-  current_project_.filepath = file_path;
-
-  auto save_status = current_project_.Save();
+  absl::Status save_status;
+  if (lyra_editor) {
+    save_status =
+        lyra_editor->SaveProjectTerrainAs(&current_project_, file_path);
+  } else {
+    current_project_.filepath = file_path;
+    save_status = current_project_.Save();
+  }
   if (save_status.ok()) {
     if (auto* editors = GetCurrentEditorSet())
       editors->ProjectSaveCommitted();

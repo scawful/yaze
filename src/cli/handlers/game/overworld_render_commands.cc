@@ -1,19 +1,27 @@
 #include "cli/handlers/game/overworld_render_commands.h"
 
+#include <array>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "app/service/render_service.h"
 #include "cli/util/hex_util.h"
+#include "core/lyra_terrain_document.h"
 #include "core/overworld_graphics_preview.h"
+#include "core/rom_settings.h"
+#include "core/source_artifact_publisher.h"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/lyra_terrain_source.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace cli {
@@ -22,6 +30,20 @@ namespace handlers {
 namespace {
 
 namespace ow = app::service::OverworldOverlay;
+
+class ScopedLyraRomAddresses {
+ public:
+  explicit ScopedLyraRomAddresses(const core::RomAddressOverrides& project)
+      : saved_(core::RomSettings::Get().address_overrides()) {
+    core::RomSettings::Get().SetAddressOverrides(project);
+  }
+  ~ScopedLyraRomAddresses() {
+    core::RomSettings::Get().SetAddressOverrides(saved_);
+  }
+
+ private:
+  core::RomAddressOverrides saved_;
+};
 
 absl::StatusOr<uint32_t> ParseOverworldOverlays(const std::string& s) {
   uint32_t flags = ow::kNone;
@@ -71,6 +93,148 @@ std::optional<std::string> OutputArg(const resources::ArgumentParser& parser) {
 }
 
 }  // namespace
+
+absl::Status LyraVerifyProjectCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser&,
+    resources::OutputFormatter& formatter) {
+  if (!rom || !rom->is_loaded())
+    return absl::FailedPreconditionError("ROM not loaded");
+  if (!project_ || !project_->project_opened())
+    return absl::FailedPreconditionError(
+        "Lyra build verification requires --project-context");
+  if (project_->lyra_terrain_file.empty())
+    return absl::FailedPreconditionError(
+        "Save the project's Lyra terrain before building");
+
+  const auto source_hash = core::ComputeSourceArtifactSha256(
+      {reinterpret_cast<const char*>(rom->data()), rom->size()});
+  ScopedRomReadOnly read_only(*rom);
+  ScopedLyraRomAddresses addresses(project_->rom_address_overrides);
+
+  const auto terrain_path =
+      project_->GetAbsolutePath(project_->lyra_terrain_file);
+  std::error_code ec;
+  const auto size = std::filesystem::file_size(terrain_path, ec);
+  if (ec || size > 4 * 1024 * 1024)
+    return absl::FailedPreconditionError(
+        "Lyra terrain is missing or exceeds 4 MiB");
+  std::ifstream file(terrain_path, std::ios::binary);
+  if (!file)
+    return absl::PermissionDeniedError("Cannot read Lyra terrain");
+  const std::string text{std::istreambuf_iterator<char>(file), {}};
+  if (file.bad())
+    return absl::DataLossError("Cannot finish reading Lyra terrain");
+
+  zelda3::GameData game_data;
+  zelda3::LoadOptions options;
+  options.expand_rom = false;
+  RETURN_IF_ERROR(zelda3::LoadGameData(*rom, game_data, options));
+  zelda3::Overworld overworld(rom, &game_data);
+  RETURN_IF_ERROR(overworld.Load(rom));
+  core::LyraTerrainProfile profile;
+  RETURN_IF_ERROR(zelda3::BindLyraTerrainSource(overworld, &profile));
+  ASSIGN_OR_RETURN(auto document,
+                   core::LyraTerrainDocument::Parse(text, profile));
+  std::unordered_map<std::string, std::string> native_bindings;
+  std::array<std::array<std::string, 3>, core::LyraTerrainDocument::kMapCount>
+      verified_bindings;
+  for (int i = 0; i < core::LyraTerrainDocument::kMapCount; ++i) {
+    const auto& map = document.authoring().maps[i];
+    for (int state = 0; state < 3; ++state) {
+      const auto key = zelda3::LyraMapAssetKey(map.properties, state);
+      auto found = native_bindings.find(key);
+      if (found == native_bindings.end()) {
+        ASSIGN_OR_RETURN(auto assets, zelda3::ResolveLyraMapAssets(
+                                          overworld, map.properties, state));
+        found = native_bindings.emplace(key, std::move(assets.binding)).first;
+      }
+      const auto& expected = map.asset_bindings[state];
+      if (!expected.empty() && expected != found->second)
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Lyra map $%02X state %d native asset binding changed",
+            core::LyraTerrainDocument::kFirstMap + i, state));
+      // Default properties bind through the verified shared profile. Preserve
+      // their empty representation for the compiler's existing input contract.
+      verified_bindings[i][state] = expected.empty() ? "" : found->second;
+    }
+  }
+
+  if (source_hash !=
+      core::ComputeSourceArtifactSha256(
+          {reinterpret_cast<const char*>(rom->data()), rom->size()}))
+    return absl::DataLossError("Lyra verification changed the source ROM");
+  formatter.AddField("source_rom_sha256", source_hash);
+  formatter.AddField("terrain_sha256", core::ComputeSourceArtifactSha256(text));
+  formatter.AddField("terrain_path", terrain_path);
+  formatter.AddField("map_count", core::LyraTerrainDocument::kMapCount);
+  formatter.AddField("donor_map", 0x3A);
+  formatter.BeginObject("profile");
+  std::ostringstream sheets;
+  sheets << '[';
+  for (size_t i = 0; i < profile.graphics_sheets.size(); ++i) {
+    if (i)
+      sheets << ',';
+    sheets << static_cast<int>(profile.graphics_sheets[i]);
+  }
+  sheets << ']';
+  formatter.AddRawJsonField("graphics_sheets", sheets.str());
+  formatter.AddField("main_palette", profile.main_palette);
+  formatter.AddField("palette_set", profile.palette_set);
+  formatter.AddField("animated_sheet", profile.animated_sheet);
+  formatter.AddField("tile_count", static_cast<int>(profile.tile_count));
+  formatter.AddField("tile16_definition_fingerprint",
+                     profile.tile16_definition_fingerprint);
+  formatter.AddField("graphics_fingerprint", profile.graphics_fingerprint);
+  formatter.AddField("palette_fingerprint", profile.palette_fingerprint);
+  formatter.AddField("animation_fingerprint", profile.animation_fingerprint);
+  formatter.EndObject();
+
+  auto native_99 = *overworld.mutable_overworld_map(0x99);
+  native_99.set_game_state(0);
+  native_99.LoadAreaGraphics();
+  formatter.BeginObject("native_99");
+  std::ostringstream native_sheets;
+  native_sheets << '[';
+  for (int i = 0; i < 8; ++i) {
+    if (i)
+      native_sheets << ',';
+    native_sheets << static_cast<int>(native_99.static_graphics(i));
+  }
+  native_sheets << ']';
+  formatter.AddRawJsonField("graphics_sheets", native_sheets.str());
+  formatter.AddField("main_palette", native_99.render_main_palette());
+  formatter.AddField("palette_set", native_99.area_palette());
+  formatter.AddField("animated_sheet", native_99.animated_sheet());
+  formatter.AddField("backdrop_color", native_99.area_specific_bg_color());
+  formatter.EndObject();
+  std::string bindings = "[";
+  for (int i = 0; i < core::LyraTerrainDocument::kMapCount; ++i) {
+    if (i)
+      bindings += ',';
+    bindings += '[';
+    for (int state = 0; state < 3; ++state) {
+      if (state)
+        bindings += ',';
+      bindings += '"' + verified_bindings[i][state] + '"';
+    }
+    bindings += ']';
+  }
+  formatter.AddRawJsonField("verified_asset_bindings", bindings + "]");
+  std::ostringstream definitions;
+  definitions << '[';
+  const auto native = overworld.tiles32_unique();
+  for (size_t i = 0; i < native.size(); ++i) {
+    if (i)
+      definitions << ',';
+    const auto& tile = native[i];
+    definitions << '[' << tile.tile0_ << ',' << tile.tile1_ << ','
+                << tile.tile2_ << ',' << tile.tile3_ << ']';
+  }
+  definitions << ']';
+  formatter.AddRawJsonField("native_definitions", definitions.str());
+  formatter.AddField("native_tile32_capacity", static_cast<int>(native.size()));
+  return absl::OkStatus();
+}
 
 absl::StatusOr<OverworldRenderGraphicsPreview>
 ResolveOverworldRenderGraphicsPreview(const project::YazeProject* project,

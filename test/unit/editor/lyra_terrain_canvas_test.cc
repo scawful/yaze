@@ -367,6 +367,28 @@ TEST_F(LyraTerrainOpenTest, FailedFreshCreateDoesNotPublishProjectReference) {
   ExpectProtectedFilesUnchanged();
 }
 
+TEST_F(LyraTerrainSourceTest,
+       AutomaticLoadRequiresOracleManifestAndNativeAssets) {
+  LyraTerrainCanvas canvas;
+  zelda3::Overworld overworld;
+  project_.lyra_terrain_file.clear();
+  project_.name = "Oracle of Secrets";
+  EXPECT_TRUE(canvas.Load(&project_, overworld).ok());
+  EXPECT_TRUE(project_.lyra_terrain_file.empty());
+  EXPECT_FALSE(canvas.loaded());
+  ASSERT_TRUE(
+      project_.hack_manifest
+          .LoadFromString(
+              R"json({"manifest_version":2,"hack_name":"Oracle of Secrets"})json")
+          .ok());
+  EXPECT_EQ(canvas.Load(&project_, overworld).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(project_.lyra_terrain_file.empty());
+  EXPECT_FALSE(canvas.loaded());
+  EXPECT_FALSE(canvas.dirty());
+  ExpectProtectedFilesUnchanged();
+}
+
 class LyraPropertyDraftTest : public ::testing::Test {
  protected:
   void SetUp() override {

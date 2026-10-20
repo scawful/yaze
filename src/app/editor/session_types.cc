@@ -349,14 +349,16 @@ bool EditorSet::HasPendingProjectDraftChanges() const {
   return false;
 }
 
-absl::Status EditorSet::PrepareProjectSave() {
+absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     RETURN_IF_ERROR(editor->PrepareProjectSave());
   }
-  if (auto* editor =
-          static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {
-    RETURN_IF_ERROR(editor->PrepareProjectSave());
+  if (publish_lyra) {
+    if (auto* editor =
+            static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {
+      RETURN_IF_ERROR(editor->PrepareProjectSave());
+    }
   }
   return absl::OkStatus();
 }

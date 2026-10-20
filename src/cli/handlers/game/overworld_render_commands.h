@@ -70,6 +70,26 @@ class OverworldRenderCommandHandler : public resources::CommandHandler {
   std::string GetOutputTitle() const override { return "Overworld Render"; }
 };
 
+// Build-time validation of a project's managed terrain against native ROM data.
+// Emits verified inputs for the Oracle compiler without rendering or writing.
+class LyraVerifyProjectCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "lyra-verify-project"; }
+  std::string GetUsage() const override {
+    return "lyra-verify-project --project-context=<project.yaze> "
+           "--rom=<source>";
+  }
+  absl::Status ValidateArgs(const resources::ArgumentParser&) override {
+    return absl::OkStatus();
+  }
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+
+ private:
+  std::string GetDefaultFormat() const override { return "json"; }
+  std::string GetOutputTitle() const override { return "Lyra Project Inputs"; }
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze

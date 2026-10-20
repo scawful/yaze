@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <iterator>
 #include <sstream>
 
 #include "absl/strings/match.h"
@@ -19,6 +20,8 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "app/gui/core/icons.h"
+#include "core/lyra_terrain_document.h"
+#include "core/source_artifact_publisher.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/json.h"
@@ -736,6 +739,126 @@ absl::Status YazeProject::SaveAs(const std::string& new_path) {
   }
 
   return status;
+}
+
+bool YazeProject::IsOracleCompatible() const {
+  return hack_manifest.loaded() &&
+         (hack_manifest.oracle_progression_state().has_value() ||
+          ToLowerCopy(hack_manifest.hack_name()).find("oracle") !=
+              std::string::npos);
+}
+
+absl::Status YazeProject::SaveAsWithLyraTerrain(
+    const std::string& new_path, const core::LyraTerrainDocument& terrain,
+    const std::optional<std::string>& expected_source_bytes) {
+#ifdef __EMSCRIPTEN__
+  return absl::UnimplementedError(
+      "Saving an independent Lyra project copy requires filesystem storage");
+#else
+  namespace fs = std::filesystem;
+  if (!project_opened() || lyra_terrain_file.empty() || new_path.empty()) {
+    return absl::FailedPreconditionError(
+        "An open project and Lyra terrain are required for Save As");
+  }
+  auto read =
+      [](const fs::path& path) -> absl::StatusOr<std::optional<std::string>> {
+    std::error_code ec;
+    if (!fs::exists(path, ec) && !ec) {
+      return std::nullopt;
+    }
+    if (ec || !fs::is_regular_file(path, ec) || ec ||
+        fs::file_size(path, ec) > 16 * 1024 * 1024 || ec) {
+      return absl::FailedPreconditionError(
+          "Project Save As source or destination is not a readable file");
+    }
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream) {
+      return absl::PermissionDeniedError("Cannot read project Save As file");
+    }
+    std::string bytes{std::istreambuf_iterator<char>(stream), {}};
+    if (stream.bad()) {
+      return absl::DataLossError(
+          "Could not finish reading project Save As file");
+    }
+    return std::optional<std::string>(std::move(bytes));
+  };
+
+  auto candidate = *this;
+  // Preserve the original meaning of every relative asset before relocating.
+  candidate.NormalizePathsToAbsolute();
+  std::error_code ec;
+  const fs::path source_project = fs::absolute(candidate.filepath, ec);
+  if (ec) {
+    return absl::InvalidArgumentError("Cannot resolve the source project path");
+  }
+  const fs::path source_terrain = candidate.lyra_terrain_file;
+  const fs::path destination = fs::absolute(new_path, ec).lexically_normal();
+  if (ec) {
+    return absl::InvalidArgumentError(
+        "Cannot resolve the project Save As path");
+  }
+  fs::path destination_terrain = destination;
+  destination_terrain.replace_extension(".lyra-terrain.json");
+  candidate.filepath = destination.string();
+  candidate.lyra_terrain_file = destination_terrain.string();
+
+  const std::vector<fs::path> targets = {destination, destination_terrain};
+  std::vector<fs::path> read_only_targets = {source_project, source_terrain};
+  if (!candidate.rom_filename.empty()) {
+    read_only_targets.push_back(candidate.rom_filename);
+  }
+  ASSIGN_OR_RETURN(
+      auto lock,
+      core::AcquireSourceArtifactPublicationLock(
+          targets, {"Lyra project", "Lyra project files"}, read_only_targets));
+  ASSIGN_OR_RETURN(auto original_project, read(source_project));
+  if (!original_project) {
+    return absl::NotFoundError("The original project file is missing");
+  }
+  ASSIGN_OR_RETURN(auto original_terrain, read(source_terrain));
+  if (original_terrain != expected_source_bytes) {
+    return absl::FailedPreconditionError(
+        "Lyra terrain changed on disk; refusing stale Save As");
+  }
+  ASSIGN_OR_RETURN(auto previous_destination, read(destination));
+  ASSIGN_OR_RETURN(auto previous_terrain, read(destination_terrain));
+  if (previous_terrain) {
+    return absl::AlreadyExistsError(
+        "The destination project already owns Lyra terrain; choose another "
+        "project name");
+  }
+  auto now =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  std::stringstream timestamp;
+  timestamp << std::put_time(std::localtime(&now), "%Y-%m-%d %H:%M:%S");
+  candidate.metadata.last_modified = timestamp.str();
+  if (candidate.music_persistence.storage_key.empty()) {
+    candidate.music_persistence.storage_key = candidate.MakeStorageKey("music");
+  }
+  ASSIGN_OR_RETURN(auto descriptor, candidate.SerializeToString());
+  const std::string terrain_bytes = terrain.Serialize();
+  RETURN_IF_ERROR(core::PublishSourceArtifacts(
+      *lock,
+      {{source_project, original_project, *original_project},
+       {destination, previous_destination, descriptor},
+       {destination_terrain, std::nullopt, terrain_bytes}},
+      core::ComputeSourceArtifactSha256(*original_project),
+      [&]() -> absl::Status {
+        ASSIGN_OR_RETURN(auto source_after, read(source_terrain));
+        if (source_after != expected_source_bytes) {
+          return absl::FailedPreconditionError(
+              "Lyra terrain changed during Save As");
+        }
+        ASSIGN_OR_RETURN(auto saved, read(destination_terrain));
+        if (!saved) {
+          return absl::DataLossError("Saved Lyra terrain is missing");
+        }
+        return core::LyraTerrainDocument::Parse(*saved, terrain.profile())
+            .status();
+      }));
+  *this = std::move(candidate);
+  return absl::OkStatus();
+#endif
 }
 
 std::string YazeProject::MakeStorageKey(absl::string_view suffix) const {

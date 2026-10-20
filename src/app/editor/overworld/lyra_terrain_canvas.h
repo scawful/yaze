@@ -44,6 +44,9 @@ class LyraTerrainCanvas {
                       zelda3::Overworld& overworld);
   absl::Status Save(project::YazeProject* project,
                     zelda3::Overworld& overworld);
+  absl::Status SaveAs(project::YazeProject* project,
+                      const std::string& project_path,
+                      zelda3::Overworld& overworld);
   bool dirty() const;
   void ProjectSaveCommitted() { pending_project_commit_ = false; }
   bool loaded() const { return document_ != nullptr; }
@@ -127,6 +130,8 @@ class LyraTerrainCanvas {
   absl::Status BindSource(zelda3::Overworld& overworld,
                           core::LyraTerrainProfile* profile,
                           gfx::Bitmap* atlas = nullptr);
+  absl::Status ValidateSave(project::YazeProject* project,
+                            zelda3::Overworld& overworld);
   // Called only after document, native profile, and CPU atlas all validate.
   // Texture commands use the committed bitmap's stable member address.
   void InstallDocument(std::shared_ptr<core::LyraTerrainDocument> document,

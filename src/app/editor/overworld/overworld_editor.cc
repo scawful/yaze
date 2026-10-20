@@ -712,7 +712,7 @@ absl::Status OverworldEditor::Load() {
 
   all_gfx_loaded_ = true;
 
-  lyra_canvas_status_ = lyra_canvas_.Load(dependencies_.project, overworld_);
+  lyra_canvas_status_ = lyra_canvas_.Load(TerrainProject(), overworld_);
   if (IsProjectTerrainMap(0xA0)) {
     SelectMapForEditing(0xA0, false);
     hovered_map_ = -1;
@@ -964,6 +964,12 @@ absl::Status OverworldEditor::OpenLyraTerrain(const std::string& path) {
   lyra_canvas_status_ = absl::OkStatus();
   FocusLyraTerrain();
   return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::SaveProjectTerrainAs(
+    project::YazeProject* project, const std::string& project_path) {
+  lyra_canvas_.FinishStroke(undo_manager_);
+  return lyra_canvas_.SaveAs(project, project_path, overworld_);
 }
 
 void OverworldEditor::FocusLyraTerrain() {

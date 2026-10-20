@@ -154,12 +154,10 @@ class EditorManagerMenuHost final : public nm::NativeMenuHost {
           (void)m->OpenProject();
           break;
         case nm::MenuAction::kSave:
-          (void)m->SaveRom();
+          (void)m->SaveCurrentSession();
           break;
         case nm::MenuAction::kSaveAs:
-          if (auto* popups = m->popup_manager()) {
-            popups->Show(yaze::editor::PopupID::kSaveAs);
-          }
+          (void)m->SaveCurrentSessionAs();
           break;
         case nm::MenuAction::kCloseRom:
           m->CloseCurrentSession();
