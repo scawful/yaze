@@ -42,6 +42,26 @@ No extracted Nintendo or ROM-hack artwork is checked in. See
 [the reference guide](../../docs/reference/pixel_art_references.md) for organizing
 local art without putting it in Git.
 
+## Defining a complete dungeon tileset
+
+Use the [dungeon coverage guide](../../docs/reference/dungeon-tileset-coverage.md)
+before expanding a few drawing modules into a full dungeon pack. It defines
+wall/corner variants, floors, doors, stairs, both background maps and stateful
+overlays. The [source inventory checker](INVENTORY.md) joins the renderer's
+object/routine metadata to the
+[24-family Sky profile](profiles/oracle-sky-dungeon-family.json).
+
+These contracts report missing, unmapped and unallocated work explicitly. They
+do not measure a room's actual character use or change the recipe grammar.
+An 8x8 character, a 16x16 drawing module and an engine object payload are
+different units. One 3bpp recipe uses one eight-entry palette; a complete pack
+can use several separately bound recipes and palette banks.
+
+The [object authoring workflow](../../docs/reference/zelda-object-authoring-workflow.md)
+extends this method through semantic prefabs, overworld placement and dungeon
+layout proposals. It identifies existing foundations and the placement/generation
+steps that still need implementation.
+
 ## Recipe version 1
 
 The complete [synthetic example](examples/synthetic.recipe.json) demonstrates

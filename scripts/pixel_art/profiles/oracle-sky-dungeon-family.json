@@ -1,0 +1,1658 @@
+{
+  "schema_version": 1,
+  "kind": "advisory_complete_family_profile",
+  "name": "oracle-sky-dungeon-family",
+  "status": "INCOMPLETE_ART_AND_ENGINE_BINDINGS",
+  "style": {
+    "primary": "ALTTP top-down structure and compact Oracle pixel clusters",
+    "secondary_architecture": "Minish Cap Wind Tribe architecture: warm stone, cream caps and blue geometric accents",
+    "lighting": "Fixed direction; actual object H/V transforms must be reviewed",
+    "scope": "Complete object,wall,corner,layer and palette vocabulary; this advisory profile does not define puzzle mechanics."
+  },
+  "grid": {
+    "character": [
+      8,
+      8
+    ],
+    "draft_module": [
+      16,
+      16
+    ],
+    "engine_composites": "Variable; include32x32,24x32,32x24 andlarger/repeated footprints",
+    "no_automatic_module_to_object_mapping": true
+  },
+  "tile_budget": {
+    "production_max_characters": null,
+    "production_max_unique_characters": null,
+    "status": "UNALLOCATED",
+    "draft_only": {
+      "atlas": [
+        64,
+        32
+      ],
+      "characters": 32,
+      "unique_characters": 24,
+      "bpp": 3,
+      "bytes": 768
+    },
+    "note": "Draft atlas budget is not a ROM/VRAM allocation."
+  },
+  "palette_roles": [
+    "transparent",
+    "deep outline",
+    "warm dark shadow",
+    "mid stone",
+    "warm body",
+    "cream shade",
+    "cream highlight",
+    "blue accent"
+  ],
+  "color_policy": {
+    "no_implicit_quantization": true,
+    "no_implicit_palette_merge": true,
+    "preserve_indices": true,
+    "index_zero_transparent": true,
+    "target_encoding": "RGB555 bit-replicated expansion",
+    "bpp_options": [
+      3,
+      4
+    ],
+    "three_bpp_limit": "8 indices per source set,includingtransparent0",
+    "multiple_palette_banks_supported_by_contract": true,
+    "one_draft_palette_is_pack_wide": false,
+    "recipe_palette_scope": "pixel_art.py accepts one palette per recipe; export separate bound families for different sets. This profile does not extend executable recipe grammar.",
+    "multi_palette_recipe_supported": false
+  },
+  "palette_contract": {
+    "main_palette_shared_between_bgs": true,
+    "main_cgram_rows": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "main_row_opaque_colors": 15,
+    "expansion": {
+      "Left": {
+        "source_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "expanded_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "Right": {
+        "source_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "expanded_indices": [
+          0,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      }
+    },
+    "expansion_selection": "graphics group and loaded slot; not BG number",
+    "production_palette_sets": [],
+    "per_family_bindings": [
+      {
+        "family_id": "F01",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F02",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F03",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F04",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F05",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F06",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F07",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F08",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F09",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F10",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F11",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F12",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F13",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F14",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F15",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F16",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F17",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F18",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F19",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F20",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F21",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F22",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F23",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      },
+      {
+        "family_id": "F24",
+        "status": "UNALLOCATED",
+        "palette_set": null,
+        "main_palette_id": null,
+        "tilemap_bank": null,
+        "sheet_slot": null,
+        "half": null,
+        "index_to_cgram": null
+      }
+    ],
+    "draft_only_palettes": [
+      {
+        "id": "original-sky-v1-draft",
+        "production_binding": null,
+        "rgba": [
+          "#00000000",
+          "#393142FF",
+          "#634242FF",
+          "#A56B42FF",
+          "#CE9C5AFF",
+          "#EFCE8CFF",
+          "#FFEFC6FF",
+          "#3973BDFF"
+        ]
+      }
+    ]
+  },
+  "reference_ids": [
+    "alttp",
+    "oracle",
+    "minish-cap",
+    "allhallows-eve",
+    "parallel-worlds",
+    "a-link-to-the-proto",
+    "alttp-development"
+  ],
+  "reference_policy": "References are catalog roles only; missing image bindings stay missing. No source-image bytes or local asset paths are embedded.",
+  "layer_contract": {
+    "YazeBG1": {
+      "semantic": "upper",
+      "tilemap": "TILEMAPA",
+      "wram": "$7E2000",
+      "hardware_bg": 2
+    },
+    "YazeBG2": {
+      "semantic": "lower",
+      "tilemap": "TILEMAPB",
+      "wram": "$7E4000",
+      "hardware_bg": 1
+    },
+    "stored_list_index_is_not_destination_bg": true,
+    "both_bg_is_engine_routing": true,
+    "object_pass_order_is_separate_from_tile_priority": true,
+    "source_refs": [
+      "S6",
+      "S8",
+      "S10",
+      "S11",
+      "S12"
+    ]
+  },
+  "hardware_tilemap_word": {
+    "character_bits": [
+      0,
+      9
+    ],
+    "palette_bits": [
+      10,
+      12
+    ],
+    "priority_bit": 13,
+    "horizontal_flip_bit": 14,
+    "vertical_flip_bit": 15
+  },
+  "families": [
+    {
+      "id": "F01",
+      "title": "Base floors and patterned fills",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "DRAWN_SAMPLES_ONLY",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "both header-selected floor fields",
+        "plain paving",
+        "alternate/inlaid/special floor patterns",
+        "32x32 floor-chunk composition",
+        "ice/conveyor/invisible/spiked floor art and directional variants"
+      ],
+      "draft_modules": [
+        "floor",
+        "blue-inlay"
+      ],
+      "source_refs": [
+        "S7",
+        "S14",
+        "S33",
+        "S39",
+        "S42"
+      ],
+      "engine_constraints": "Header floor selection and 32x32 chunk patterns are independent from a16x16 art sample."
+    },
+    {
+      "id": "F02",
+      "title": "Cardinal top walls",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "DRAWN_SAMPLES_ONLY",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "north",
+        "south",
+        "west",
+        "east",
+        "straight repeat",
+        "start/end join",
+        "full wall-face depth"
+      ],
+      "draft_modules": [
+        "wall-face",
+        "horizontal-cap"
+      ],
+      "source_refs": [
+        "S14",
+        "S15",
+        "S20",
+        "S21"
+      ],
+      "engine_constraints": "Horizontal repeats can be2x4 characters and vertical repeats4x2; retain direction-specific lighting."
+    },
+    {
+      "id": "F03",
+      "title": "Cardinal bottom walls",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "north",
+        "south",
+        "west",
+        "east",
+        "BothBG structural variants",
+        "full wall-face depth",
+        "top/bottom level transitions"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S14",
+        "S15",
+        "S11",
+        "S20",
+        "S21"
+      ],
+      "engine_constraints": "Top/bottom source labels are structural variants; do not reinterpret them as arbitrary half-height walls."
+    },
+    {
+      "id": "F04",
+      "title": "Wall columns and deep walls",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "DRAWN_SAMPLES_ONLY",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "four cardinal column faces",
+        "four cardinal deep walls",
+        "pilaster endcaps",
+        "column-to-flat-wall joins"
+      ],
+      "draft_modules": [
+        "door-jamb-left"
+      ],
+      "source_refs": [
+        "S14",
+        "S15"
+      ],
+      "engine_constraints": "The one jamb sample does not cover complete repeated columns or deep walls."
+    },
+    {
+      "id": "F05",
+      "title": "Short partitions and wall termination",
+      "requirement_basis": "COVERAGE_REQUIREMENT_ENGINE_BINDING_OPEN",
+      "art_status": "DRAWN_SAMPLES_ONLY",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "full-height-to-short-height join",
+        "short partition sides",
+        "end caps",
+        "inside/outside junction",
+        "height-change shadow"
+      ],
+      "draft_modules": [
+        "horizontal-cap"
+      ],
+      "source_refs": [
+        "S14",
+        "S15",
+        "S23"
+      ],
+      "engine_constraints": "Full/half-height coverage requirement; exact engine object choice remains UNMAPPED. No dedicated HalfWall source label was established."
+    },
+    {
+      "id": "F06",
+      "title": "Top wall inside and outside corners",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "DRAWN_SAMPLES_ONLY",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "four concave orientations",
+        "four convex orientations",
+        "32x32 canonical composite",
+        "joins to both cardinal directions"
+      ],
+      "draft_modules": [
+        "platform-outer-sw-corner",
+        "platform-inner-nw-corner"
+      ],
+      "source_refs": [
+        "S16",
+        "S17"
+      ],
+      "engine_constraints": "Platform corner art samples are not mapped wall-corner objects; no orientation is engine-complete."
+    },
+    {
+      "id": "F07",
+      "title": "Bottom wall inside and outside corners",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "four concave orientations",
+        "four convex orientations",
+        "32x32 canonical composite",
+        "BothBG coverage"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S16",
+        "S17",
+        "S11"
+      ],
+      "engine_constraints": "Column-major16-word corner payloads; short-payload fallbacks do not establish full coverage."
+    },
+    {
+      "id": "F08",
+      "title": "Kinked and deep corners",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "north/south kink variants",
+        "west/east kink variants",
+        "deep concave variants",
+        "deep convex variants",
+        "24x32 and32x24 footprints"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S16",
+        "S17",
+        "S33"
+      ],
+      "engine_constraints": "Weird-corner12-word footprints differ from canonical4x4; preserve original footprint/order."
+    },
+    {
+      "id": "F09",
+      "title": "Diagonal wall faces",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "A/B/C top variants",
+        "A/B/C bottom variants",
+        "four named orientations",
+        "acute/grave slopes",
+        "flat-to-diagonal joins"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S14",
+        "S19"
+      ],
+      "engine_constraints": "Diagonal column depth5characters; size+6 columns; stored-layer and BothBG cases."
+    },
+    {
+      "id": "F10",
+      "title": "Ceilings and diagonal ceiling masks",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "horizontal/vertical ceiling repeats",
+        "large ceiling fill",
+        "all four diagonal ceiling algorithms",
+        "ceiling-to-wall/corner joins",
+        "mask boundary"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S14",
+        "S15",
+        "S18",
+        "S24"
+      ],
+      "engine_constraints": "Triangle side=size+4(range4\u201319); current BottomRight writes upward. A single common-anchor mirror is insufficient."
+    },
+    {
+      "id": "F11",
+      "title": "Door openings, lintels, jambs and state art",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "DRAWN_SAMPLES_ONLY",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "north/south/west/east",
+        "upper/lower",
+        "open/closed",
+        "normal/key/big-key/shutter",
+        "bomb/crack/curtain/exit joins",
+        "special large exits",
+        "priority-only markers"
+      ],
+      "draft_modules": [
+        "door-jamb-left"
+      ],
+      "source_refs": [
+        "S8",
+        "S27",
+        "S28",
+        "S33"
+      ],
+      "engine_constraints": "DoorDef dispatch is separate from regular object inventory. Include state art and priority outside visible raster."
+    },
+    {
+      "id": "F12",
+      "title": "Raised platforms and lower-floor transitions",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "DRAWN_SAMPLES_ONLY",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "four visible edges",
+        "four exterior corners",
+        "four interior corners",
+        "wall-to-platform join",
+        "rail/bridge transition",
+        "chest-platform open/closed joins"
+      ],
+      "draft_modules": [
+        "platform-south-edge",
+        "platform-outer-sw-corner",
+        "platform-inner-nw-corner"
+      ],
+      "source_refs": [
+        "S14",
+        "S15",
+        "S24",
+        "S33",
+        "S41"
+      ],
+      "engine_constraints": "Art height is not the room stream index; runtime collision/elevation has separate metadata."
+    },
+    {
+      "id": "F13",
+      "title": "Stairs and ladders",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "platform stairs",
+        "fat interroom stairs",
+        "spiral up/down upper/lower",
+        "auto merged/multilayer",
+        "straight north/south upper/lower",
+        "swim/water-hop",
+        "north/south ladder",
+        "flank/front priority joins"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S14",
+        "S26",
+        "S24",
+        "S33"
+      ],
+      "engine_constraints": "Spiral4x3chars,auto/straight4x4chars; special routing and priority neighbors are part of footprint."
+    },
+    {
+      "id": "F14",
+      "title": "Pits, voids and pit-edge trims",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "DRAWN_SAMPLES_ONLY",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "north/south/west/east",
+        "edge cap/middle/end",
+        "four inner/outer corners",
+        "diagonal masks",
+        "large holes",
+        "full lower-map reveal",
+        "floor-to-void shadow"
+      ],
+      "draft_modules": [
+        "platform-south-edge",
+        "platform-outer-sw-corner",
+        "platform-inner-nw-corner"
+      ],
+      "source_refs": [
+        "S14",
+        "S15",
+        "S23",
+        "S24",
+        "S33"
+      ],
+      "engine_constraints": "Source-supported reveal masks are separate from transparent pixels and from collision/fall destinations."
+    },
+    {
+      "id": "F15",
+      "title": "Water, banks and flood states",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "water-floor patterns",
+        "four bank directions",
+        "waterfalls/faces",
+        "drained/filled state",
+        "floodgate joins",
+        "water-hop stairs",
+        "state-dependent overlay geometry"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S15",
+        "S25",
+        "S13",
+        "S33"
+      ],
+      "engine_constraints": "HDMA/state/color-math coverage cannot be accepted from a single static stamp."
+    },
+    {
+      "id": "F16",
+      "title": "Rails, bridges, bars and supports",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "horizontal/vertical rails",
+        "thick/long rails",
+        "wall rails",
+        "caps/tees/corners",
+        "prison/bar pieces",
+        "support columns",
+        "bridge-to-floor edge"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S14",
+        "S15",
+        "S23",
+        "S33"
+      ],
+      "engine_constraints": "Conditional caps can depend on existing character IDs. Bridge is a design family to bind to actual selected source objects."
+    },
+    {
+      "id": "F17",
+      "title": "Overlay and foreground occlusion",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "upper-only",
+        "lower-only",
+        "BothBG duplicate",
+        "mixed/fixed routes",
+        "transparent overwrite",
+        "pixel reveal",
+        "rectangular reveal",
+        "low/high priority",
+        "main/subscreen blend",
+        "occlusion over Link/sprites"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S24",
+        "S29",
+        "S30"
+      ],
+      "engine_constraints": "Coverage family, not a dedicated texture sheet. Need full ordered room replay with both layers, then runtime acceptance for sprite/effect behavior."
+    },
+    {
+      "id": "F18",
+      "title": "Moving walls and replacement state",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "west/east motion families",
+        "initial/shifted/replaced floor",
+        "exposed wall/rail/platform joins"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S40"
+      ],
+      "engine_constraints": "Source DrawMovingWallWest/East exists; precise state payload and replacement span must be bound in inventory/replay before drawing."
+    },
+    {
+      "id": "F19",
+      "title": "Interactive room fixtures",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "pot",
+        "pushable block",
+        "unlit/lit torch",
+        "small/big chest open/closed",
+        "key lock",
+        "pressure/fake plate",
+        "pegs",
+        "warp/telepathy tile",
+        "bombable/fake floor",
+        "spike blocks and hazard fixture art"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S9",
+        "S31",
+        "S33",
+        "S42"
+      ],
+      "engine_constraints": "Blocks/torches global-table pass, item/OAM states and room events are not inferred from regular object labels."
+    },
+    {
+      "id": "F20",
+      "title": "Somaria and other track-like paths",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "horizontal/vertical segments",
+        "endpoints",
+        "all corner orientations",
+        "tee/cross/crossover",
+        "state/contrast against floor"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S15",
+        "S33"
+      ],
+      "engine_constraints": "Existing engine path vocabulary only; no new Sky puzzle mechanic or layout authorization follows."
+    },
+    {
+      "id": "F21",
+      "title": "Furniture and room utilities",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "bed",
+        "table/bowl",
+        "shelves/bookcases",
+        "drapes/carpet/trim",
+        "toolrack/furnace/anvil",
+        "tubs/range/bottles",
+        "rocks/statues/columns"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S14",
+        "S15",
+        "S31",
+        "S33"
+      ],
+      "engine_constraints": "Footprints vary well beyond16x16; retain per-routine order/dimensions and collision distinction."
+    },
+    {
+      "id": "F22",
+      "title": "Large facades and special-purpose objects",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "sanctuary wall",
+        "altar",
+        "fortune-teller interior",
+        "prison",
+        "large wall/floor ornaments",
+        "boss shells/goo",
+        "pipes and junctions",
+        "game targets",
+        "directional cannon holes",
+        "small wall holes/shooters",
+        "arrow and special marker tiles"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S10",
+        "S32",
+        "S33"
+      ],
+      "engine_constraints": "Some are fixed BG1 or mixed routes. Every applicable entry needs a redraw, reviewed reuse or explicit scope disposition."
+    },
+    {
+      "id": "F23",
+      "title": "Light, animated and effect overlays",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "window/floor sunlight",
+        "lamp cone",
+        "floor light",
+        "animated graphics frames",
+        "animated palette/state",
+        "dark-room readability"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S3",
+        "S13",
+        "S32",
+        "S33"
+      ],
+      "engine_constraints": "Static exact pixels do not prove animation/color math or live occlusion. Separate effect/animation usage from atlas uniqueness."
+    },
+    {
+      "id": "F24",
+      "title": "Object, stream and tilemap coverage ledger",
+      "requirement_basis": "SOURCE_BACKED_FAMILY_WITH_DESIGN_COMPLETION_REQUIREMENTS",
+      "art_status": "MISSING",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "required_variants": [
+        "all mapped object IDs",
+        "project custom overrides",
+        "all size/state branches in use",
+        "floor/layout/door/global passes",
+        "both physical maps",
+        "overwritten and priority-only writes"
+      ],
+      "draft_modules": [],
+      "source_refs": [
+        "S6",
+        "S8",
+        "S9",
+        "S10",
+        "S34",
+        "S35",
+        "S36",
+        "S38"
+      ],
+      "engine_constraints": "Cross-reference OBJECT_INVENTORY.json; keep raw ordered traces plus contextual disposable-buffer replay, not coalesced preview cells."
+    }
+  ],
+  "draft_modules": [
+    {
+      "id": "floor",
+      "atlas_xy": [
+        0,
+        0
+      ],
+      "size_pixels": [
+        16,
+        16
+      ],
+      "art_status": "DRAWN",
+      "join_status": "UNVERIFIED",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "family_ids": [
+        "F01"
+      ],
+      "limitation": "Repeat is drawn; header floor-pattern and actual character allocation not mapped."
+    },
+    {
+      "id": "wall-face",
+      "atlas_xy": [
+        16,
+        0
+      ],
+      "size_pixels": [
+        16,
+        16
+      ],
+      "art_status": "DRAWN",
+      "join_status": "UNVERIFIED",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "family_ids": [
+        "F02"
+      ],
+      "limitation": "One wall face; no complete cardinal/depth/corner set."
+    },
+    {
+      "id": "horizontal-cap",
+      "atlas_xy": [
+        32,
+        0
+      ],
+      "size_pixels": [
+        16,
+        16
+      ],
+      "art_status": "DRAWN",
+      "join_status": "UNVERIFIED",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "family_ids": [
+        "F02",
+        "F05"
+      ],
+      "limitation": "One isolated cap; vertical/end/height-change joins missing."
+    },
+    {
+      "id": "platform-south-edge",
+      "atlas_xy": [
+        48,
+        0
+      ],
+      "size_pixels": [
+        16,
+        16
+      ],
+      "art_status": "DRAWN",
+      "join_status": "UNVERIFIED",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "family_ids": [
+        "F12",
+        "F14"
+      ],
+      "limitation": "South visual edge only; other directions and pit semantics missing."
+    },
+    {
+      "id": "platform-outer-sw-corner",
+      "atlas_xy": [
+        0,
+        16
+      ],
+      "size_pixels": [
+        16,
+        16
+      ],
+      "art_status": "DRAWN",
+      "join_status": "UNVERIFIED",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "family_ids": [
+        "F06",
+        "F12",
+        "F14"
+      ],
+      "limitation": "Single SW platform-style sample, not canonical32x32 wall corner."
+    },
+    {
+      "id": "platform-inner-nw-corner",
+      "atlas_xy": [
+        16,
+        16
+      ],
+      "size_pixels": [
+        16,
+        16
+      ],
+      "art_status": "DRAWN",
+      "join_status": "UNVERIFIED",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "family_ids": [
+        "F06",
+        "F12",
+        "F14"
+      ],
+      "limitation": "Single NW concave platform sample; matching32x32 wall corner not mapped."
+    },
+    {
+      "id": "door-jamb-left",
+      "atlas_xy": [
+        32,
+        16
+      ],
+      "size_pixels": [
+        16,
+        16
+      ],
+      "art_status": "DRAWN",
+      "join_status": "UNVERIFIED",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "family_ids": [
+        "F04",
+        "F11"
+      ],
+      "limitation": "One pilaster only; lintel/right/south/side/state joins missing."
+    },
+    {
+      "id": "blue-inlay",
+      "atlas_xy": [
+        48,
+        16
+      ],
+      "size_pixels": [
+        16,
+        16
+      ],
+      "art_status": "DRAWN",
+      "join_status": "UNVERIFIED",
+      "engine_status": "UNMAPPED_UNVERIFIED",
+      "family_ids": [
+        "F01"
+      ],
+      "limitation": "Floor marker sample; no gameplay meaning or object binding assigned."
+    }
+  ],
+  "acceptance_gates": [
+    {
+      "id": "A1",
+      "requirement": "Reconcile every regular object in source inventory to a family plus preserve/redraw/explicit scope exclusion; zero silent omissions.",
+      "status": "OPEN"
+    },
+    {
+      "id": "A2",
+      "requirement": "Add floors/layout/doors/global blocks/torches/chest-hole/effect/animation paths outside the regular registry.",
+      "status": "OPEN"
+    },
+    {
+      "id": "A3",
+      "requirement": "Bind exact Oracle graphics group,sheet,character ID,palette bank,Left/Right half and all shared consumers before selecting production storage.",
+      "status": "OPEN"
+    },
+    {
+      "id": "A4",
+      "requirement": "Replay ordered room into disposable logical buffers; preserve raw layers,word bits,write order,priority-only mutations and final effective maps; no source ROM writes.",
+      "status": "OPEN"
+    },
+    {
+      "id": "A5",
+      "requirement": "Review joined cardinal/full-short/corner/diagonal/door/stair/pit/water compositions at native scale with fixed light and readable traversal.",
+      "status": "OPEN"
+    },
+    {
+      "id": "A6",
+      "requirement": "Compare selected actual-room contexts against baseline; runtime later covers dynamic effects,Link/sprite occlusion and gameplay. Current work makes no native claim.",
+      "status": "OPEN"
+    },
+    {
+      "id": "A7",
+      "requirement": "Treat production import,allocation and actual-room validation as separate steps after drawing and coverage review.",
+      "status": "OPEN"
+    }
+  ],
+  "source_roots": {
+    "yaze": {
+      "kind": "repository",
+      "commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+    },
+    "usdasm": {
+      "kind": "independently_bound_reference_checkout",
+      "required_for": "vanilla cross-reference,not profile loading"
+    }
+  },
+  "sources": {
+    "S1": {
+      "root": "yaze",
+      "path": "src/app/gfx/types/snes_tile.h",
+      "lines": [
+        45,
+        75
+      ],
+      "sha256": "db6623d3755df8c41381752d513b071ef6cf90e8b1f271b736f8263dbfde022d",
+      "evidence": "10-bit character ID; palette bits10-12; priority13; H14; V15"
+    },
+    "S2": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room.cc",
+      "lines": [
+        1085,
+        1104
+      ],
+      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "evidence": "3bpp Left/Right palette-half expansion depends on graphics group and slot"
+    },
+    "S3": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room.cc",
+      "lines": [
+        1157,
+        1176
+      ],
+      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "evidence": "nonzero3bpp1-7 expand to9-15 for Right; animated graphics loaded next"
+    },
+    "S4": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room.cc",
+      "lines": [
+        921,
+        950
+      ],
+      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "evidence": "room palette-set indirection and room-header layer settings"
+    },
+    "S5": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room.cc",
+      "lines": [
+        1429,
+        1441
+      ],
+      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "evidence": "same render palette applied to both background/layout/object buffers"
+    },
+    "S6": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room_object.h",
+      "lines": [
+        294,
+        311
+      ],
+      "sha256": "ca763020e105257e1413a606148e4292dd865e4a7218662cbf146febc47e2d29",
+      "evidence": "stored list index separate from drawing layer; primary upper, overlay lower then upper"
+    },
+    "S7": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room.cc",
+      "lines": [
+        1355,
+        1367
+      ],
+      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "evidence": "floors then layout then three streams"
+    },
+    "S8": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room.cc",
+      "lines": [
+        1686,
+        1755
+      ],
+      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "evidence": "three passes, continuing event index; doors and chest-hole overlay separate"
+    },
+    "S9": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room.cc",
+      "lines": [
+        1789,
+        1802
+      ],
+      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "evidence": "pushable-block/torch separate global data and special layer selector"
+    },
+    "S10": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_layer_semantics.h",
+      "lines": [
+        51,
+        130
+      ],
+      "sha256": "1527ee134a84164898edfc1078af874c675987e3bf0ade57e75185ee5a1b7147",
+      "evidence": "registry BothBG, fixed/mixed stair/facade routes, custom override"
+    },
+    "S11": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "lines": [
+        465,
+        529
+      ],
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb",
+      "evidence": "BothBG fanout and special water/stair routing"
+    },
+    "S12": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room_layer_registers.h",
+      "lines": [
+        11,
+        52
+      ],
+      "sha256": "2950596f966f5dccbfa5acc2e5cdbfc7e6f981a576a61a70fdfe4b819b21860f",
+      "evidence": "Yaze/hardware BG naming, priority ties, main/sub color math, load-state limits"
+    },
+    "S13": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room_layer_registers.cc",
+      "lines": [
+        15,
+        68
+      ],
+      "sha256": "5fd45ac77373b21c1abc21ea23bf1ff1d6ad17e07277b5dfceaa2cf787ae4ff1",
+      "evidence": "BGACT/dark/effect/water flags can change visibility and blending"
+    },
+    "S14": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room_object.h",
+      "lines": [
+        318,
+        375
+      ],
+      "sha256": "ca763020e105257e1413a606148e4292dd865e4a7218662cbf146febc47e2d29",
+      "evidence": "north/south top,bottom,deep,column,diagonal/pit/rail/decor names"
+    },
+    "S15": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room_object.h",
+      "lines": [
+        415,
+        454
+      ],
+      "sha256": "ca763020e105257e1413a606148e4292dd865e4a7218662cbf146febc47e2d29",
+      "evidence": "west/east wall families, water edges, drapes, supports, Somaria path"
+    },
+    "S16": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room_object.h",
+      "lines": [
+        569,
+        598
+      ],
+      "sha256": "ca763020e105257e1413a606148e4292dd865e4a7218662cbf146febc47e2d29",
+      "evidence": "top/bottom concave/convex,kinked/deep corners"
+    },
+    "S17": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+      "lines": [
+        114,
+        218
+      ],
+      "sha256": "02378333f55670d6231d23eae79980ec3503eceac1f4461cf0780f2f782915c4",
+      "evidence": "canonical4x4,3x4,4x3 column-major corner payloads; abbreviated fallbacks not vanilla coverage"
+    },
+    "S18": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+      "lines": [
+        67,
+        106
+      ],
+      "sha256": "02378333f55670d6231d23eae79980ec3503eceac1f4461cf0780f2f782915c4",
+      "evidence": "four diagonal ceiling algorithms, side=size+4; anchor names not common-origin mirrors"
+    },
+    "S19": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+      "lines": [
+        12,
+        46
+      ],
+      "sha256": "54cac622c8f3e2b480fa30f309b722ffb84f0740be7c1599b1480791bf732c1d",
+      "evidence": "diagonal walls five-character depth, size+6 columns, acute/grave and BothBG variants"
+    },
+    "S20": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+      "lines": [
+        77,
+        137
+      ],
+      "sha256": "a75059008fd13546dbed21c4fc9db5452cb9467d06a79b4d880a8ba0c1328661",
+      "evidence": "horizontal wall strips2x4 characters, special zero sizes and repeat rules"
+    },
+    "S21": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+      "lines": [
+        77,
+        144
+      ],
+      "sha256": "92b4736d21ec92113b088d4145b10c34c723eb3307a0dd31bd9f02ace7da5a80",
+      "evidence": "vertical wall strips4x2 characters and repeat rules"
+    },
+    "S22": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+      "lines": [
+        178,
+        186
+      ],
+      "sha256": "a75059008fd13546dbed21c4fc9db5452cb9467d06a79b4d880a8ba0c1328661",
+      "evidence": "historical BothBG suffix can be single-layer; use metadata"
+    },
+    "S23": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+      "lines": [
+        294,
+        336
+      ],
+      "sha256": "a75059008fd13546dbed21c4fc9db5452cb9467d06a79b4d880a8ba0c1328661",
+      "evidence": "rail/pit edge caps consult prior tile character IDs"
+    },
+    "S24": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "lines": [
+        540,
+        626
+      ],
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb",
+      "evidence": "stair priority flanks outside raster; ordinary pixel vs true rectangular reveal masks"
+    },
+    "S25": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+      "lines": [
+        1116,
+        1208
+      ],
+      "sha256": "45892da961ce82b11d8a95ac505b2ae7e2b42bc41a681d91900d907d0bffa8fa",
+      "evidence": "water-overlay geometry/state, secondary BG stamp, HDMA/runtime proof limitations"
+    },
+    "S26": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+      "lines": [
+        1238,
+        1298
+      ],
+      "sha256": "45892da961ce82b11d8a95ac505b2ae7e2b42bc41a681d91900d907d0bffa8fa",
+      "evidence": "spiral4x3,auto4x4,mixed straight4x4 stairs and shared front edge"
+    },
+    "S27": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "lines": [
+        1928,
+        2112
+      ],
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb",
+      "evidence": "door priority footprints can exceed raster; priority-only door does not stamp art"
+    },
+    "S28": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "lines": [
+        2115,
+        2160
+      ],
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb",
+      "evidence": "south fancy exit10x8chars and lower-to-upper priority row"
+    },
+    "S29": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "lines": [
+        2959,
+        2999
+      ],
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb",
+      "evidence": "transparent tile write still has full coverage; opaque-only priority"
+    },
+    "S30": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "lines": [
+        3056,
+        3090
+      ],
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb",
+      "evidence": "CGRAM bank*16,zero clears,explicit H/V"
+    },
+    "S31": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+      "lines": [
+        483,
+        553
+      ],
+      "sha256": "45892da961ce82b11d8a95ac505b2ae7e2b42bc41a681d91900d907d0bffa8fa",
+      "evidence": "large furniture,wall decor,bowl,furnace,rock drawing functions"
+    },
+    "S32": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+      "lines": [
+        554,
+        794
+      ],
+      "sha256": "45892da961ce82b11d8a95ac505b2ae7e2b42bc41a681d91900d907d0bffa8fa",
+      "evidence": "large facades,altar,utility,pipes,light,shell,goo,wall-decor/game special routines"
+    },
+    "S33": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room_object.h",
+      "lines": [
+        636,
+        764
+      ],
+      "sha256": "ca763020e105257e1413a606148e4292dd865e4a7218662cbf146febc47e2d29",
+      "evidence": "Somaria endpoints/joins,chests,ladder,pipe,pot,pressureplate,utility/decor/pits/light families"
+    },
+    "S34": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_tile_editor.cc",
+      "lines": [
+        158,
+        199
+      ],
+      "sha256": "cb099ba7ffeead192a18ac0b6e840f820629c9e0c2533b6c738692671d794c2d",
+      "evidence": "FromTraces keeps last cell byx/y without layer"
+    },
+    "S35": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "lines": [
+        2911,
+        2923
+      ],
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb",
+      "evidence": "trace-only returns before logical tilemap write,affecting context-sensitive routines"
+    },
+    "S36": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "lines": [
+        151,
+        169
+      ],
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb",
+      "evidence": "raw trace preserves layer,palette,priority,H/V,character; array order must remain"
+    },
+    "S37": {
+      "root": "yaze",
+      "path": "src/app/editor/graphics/paletteset_editor_panel.cc",
+      "lines": [
+        119,
+        153
+      ],
+      "sha256": "b2a5372847bc6ddad143691287dded525a0dfcc83b5189a30a3f8a18ec93425e",
+      "evidence": "one dungeon-main index; other three slots sprite auxiliary"
+    },
+    "S38": {
+      "root": "usdasm",
+      "path": "bank_01.asm",
+      "lines": [
+        1078,
+        1174
+      ],
+      "sha256": "18fdd57a300718819b3ec613b1782ad113921999c5e353aef629afaa897c98f8",
+      "evidence": "vanilla floor/layout/three-pass/global-block load order"
+    },
+    "S39": {
+      "root": "usdasm",
+      "path": "bank_01.asm",
+      "lines": [
+        1458,
+        1533
+      ],
+      "sha256": "18fdd57a300718819b3ec613b1782ad113921999c5e353aef629afaa897c98f8",
+      "evidence": "floor nibble selectors and32x32 floor chunk painter"
+    },
+    "S40": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+      "lines": [
+        1399,
+        1438
+      ],
+      "sha256": "45892da961ce82b11d8a95ac505b2ae7e2b42bc41a681d91900d907d0bffa8fa",
+      "evidence": "west/east moving-wall state and replacement rendering"
+    },
+    "S41": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+      "lines": [
+        1502,
+        1607
+      ],
+      "sha256": "45892da961ce82b11d8a95ac505b2ae7e2b42bc41a681d91900d907d0bffa8fa",
+      "evidence": "closed/open chest platform and horizontal/vertical wall joins"
+    },
+    "S42": {
+      "root": "yaze",
+      "path": "src/zelda3/dungeon/room_object.h",
+      "lines": [
+        479,
+        550
+      ],
+      "sha256": "ca763020e105257e1413a606148e4292dd865e4a7218662cbf146febc47e2d29",
+      "evidence": "diagonal masks,jump ledges,pegs,invisible/fake fixtures,ice/conveyor/current/spiked floors,moving walls"
+    }
+  },
+  "original_draft_provenance": {
+    "kind": "original_explicit_index_sample_metadata",
+    "raster_assets_distributed": false,
+    "sample_id": "original-sky-family-v1",
+    "coverage": "8 partial 16x16 samples",
+    "sources_sampled": false,
+    "scope": "The sample records drawing direction only; artwork completion and per-object engine bindings remain separate."
+  },
+  "verification_limits": [
+    "No exact Oracle ROM character-usage or shared-consumer audit is part of this profile.",
+    "A registry/routine classification is not contextual room replay or animation coverage.",
+    "Water/effect static drawing models retain independent runtime proof requirements.",
+    "The eight sample modules are partial art,with every engine binding and joined-room result unverified."
+  ],
+  "family_contract": "../contracts/dungeon_object_families.json",
+  "inventory_binding": {
+    "generator": "../dungeon_inventory.py",
+    "source_contract": "../contracts/dungeon_inventory.sources.json",
+    "schema_version": 1,
+    "routine_family_bindings": "../contracts/dungeon_object_families.json",
+    "taxonomy_status": "ACCOUNTED_135_ROUTINES_448_METADATA_440_SERIALIZABLE",
+    "classification_gaps": "16 multipurpose primitives plus 1 external custom routine remain unclassified",
+    "actual_character_usage": "OPEN_UNMEASURED",
+    "production_engine_bindings": "OPEN_UNALLOCATED"
+  }
+}

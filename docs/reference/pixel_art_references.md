@@ -6,6 +6,12 @@ reviewed pixels, crops and explicit color mappings. The
 [Oracle Sky profile](../../scripts/pixel_art/profiles/oracle-sky.example.json)
 describe reference roles. They do not load artwork or train a model.
 
+For a full ALTTP-style dungeon pack, use the
+[dungeon tileset coverage guide](dungeon-tileset-coverage.md) and the expanded
+[Sky family profile](../../scripts/pixel_art/profiles/oracle-sky-dungeon-family.json).
+They track wall/corner/door/stair variants, background routing and unresolved
+engine bindings. The smaller example profile remains a drawing-budget example.
+
 ## Keep the reference roles distinct
 
 | Reference | Role in an Oracle/ALTTP target | Keep distinct |

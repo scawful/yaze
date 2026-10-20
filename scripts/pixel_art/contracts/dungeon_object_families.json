@@ -1,0 +1,3224 @@
+{
+  "schema_version": 1,
+  "kind": "routine_to_style_family_accounting",
+  "status": "TAXONOMY_ACCOUNTED_ART_AND_ENGINE_BINDINGS_OPEN",
+  "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c",
+  "source_files": [
+    {
+      "path": "src/zelda3/dungeon/custom_object.cc",
+      "sha256": "da9d5be34510725df923c402be14894ca2d84871cd5f63827a1a084d5b94cabb"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+      "sha256": "02378333f55670d6231d23eae79980ec3503eceac1f4461cf0780f2f782915c4"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+      "sha256": "54cac622c8f3e2b480fa30f309b722ffb84f0740be7c1599b1480791bf732c1d"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+      "sha256": "92b4736d21ec92113b088d4145b10c34c723eb3307a0dd31bd9f02ace7da5a80"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_registry.cc",
+      "sha256": "b017197f538ddf1c5463ab6c3f13ae9c0c55b5dacc6ac532b337947694559f4d"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_registry.h",
+      "sha256": "d1359790779f5a21a2e509e29fad28602638367d68922961da0151ae53eb1856"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_types.cc",
+      "sha256": "3aa21f4e48b43cfc4ba0f53fab31b06ef066b53aa3501a673ea9efa73ee4c3d9"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_types.h",
+      "sha256": "1cb43622ef59e7843619f786b7bce890649c187a3231906ee2699fb1548e2ac5"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+      "sha256": "a75059008fd13546dbed21c4fc9db5452cb9467d06a79b4d880a8ba0c1328661"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+      "sha256": "45892da961ce82b11d8a95ac505b2ae7e2b42bc41a681d91900d907d0bffa8fa"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_layer_semantics.h",
+      "sha256": "1527ee134a84164898edfc1078af874c675987e3bf0ade57e75185ee5a1b7147"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_parser.cc",
+      "sha256": "e1177b409e1c9ce9e2e4b75a472d29930e53da90cb309e129d487381596c5b5d"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_render_routing.h",
+      "sha256": "ea437ac7a9d19c50e288d14b31ca1d13d2ca811956976753a9d55cffac7cdb06"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_tile_editor.cc",
+      "sha256": "cb099ba7ffeead192a18ac0b6e840f820629c9e0c2533b6c738692671d794c2d"
+    },
+    {
+      "path": "src/zelda3/dungeon/room.cc",
+      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407"
+    },
+    {
+      "path": "src/zelda3/dungeon/room_layer_registers.h",
+      "sha256": "2950596f966f5dccbfa5acc2e5cdbfc7e6f981a576a61a70fdfe4b819b21860f"
+    },
+    {
+      "path": "src/zelda3/dungeon/room_object.cc",
+      "sha256": "3cc91e7d0bd4e4e768822b5900b4ba56ee6f9543805679096c3a84d8d6834253"
+    },
+    {
+      "path": "src/zelda3/dungeon/room_object.h",
+      "sha256": "ca763020e105257e1413a606148e4292dd865e4a7218662cbf146febc47e2d29"
+    }
+  ],
+  "inventory": {
+    "schema_version": 1,
+    "source_contract": "dungeon_inventory.sources.json",
+    "generator": "../dungeon_inventory.py",
+    "join_keys": {
+      "routines": "id -> routine_id",
+      "objects": "routine_id_default / routine_id_custom_enabled -> routine_id"
+    },
+    "source_identity": "Compare source file fingerprints; generated envelope hashes and current Git HEAD can vary without source changes."
+  },
+  "family_profile": "../profiles/oracle-sky-dungeon-family.json",
+  "method": "Explicit taxonomy from pinned source function/registration symbols and source object-name uses. Structural and layer exceptions received targeted code reading. Multi-purpose primitives and external assets retain explicit classification gaps.",
+  "counts": {
+    "registered_routines": 135,
+    "objects_joined": 448,
+    "serializable_objects_joined": 440,
+    "classification_statuses": {
+      "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE": 16,
+      "SOURCE_SEMANTICS": 104,
+      "SOURCE_NAMED_USE": 13,
+      "BASE_NO_DRAW_WITH_POSSIBLE_OVERRIDES": 1,
+      "EXTERNAL_CUSTOM_DATA_UNCLASSIFIED": 1
+    }
+  },
+  "semantics": {
+    "primary_family": "Dominant source semantics or named use only,not a guarantee that every object sharing routine has that art family.",
+    "secondary_family": "Additional known source roles and layer/height context,not a runtime coverage proof.",
+    "unclassified": "Multi-purpose primitives or external assets need per-object payload/context classification; no family guessed.",
+    "no_draw": "Base function only; ObjectDrawer object-specific overrides can still draw or erase.",
+    "source_semantics": "Function or explicit mapped-name semantics support taxonomy only. No claim of executing every routine or classifying each generic payload.",
+    "dispatch_exception_keys": "Union of exception keys from both default and custom-enabled object joins; not solely default route.",
+    "object_joins": "Derive default/custom-enabled object joins from generated inventory; the checker accounts for every object without copying object metadata into this file."
+  },
+  "actual_character_usage": "NOT_MEASURED",
+  "art_engine_completion": "UNMAPPED_UNVERIFIED",
+  "bindings": [
+    {
+      "routine_id": 0,
+      "routine_name": "Rightwards2x2_1to15or32",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic2x2 horizontal repeat serves ceiling and pegs; no single art-family identity.",
+      "source_basis": {
+        "function": "DrawRightwards2x2_1to15or32",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 46
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 805,
+          "end_line": 817
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 1,
+      "routine_name": "Rightwards2x4_1to15or26",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F02",
+      "secondary_family_ids": [
+        "F21"
+      ],
+      "rationale": "Top-wall strips; source name arrays also use these routines for wall flair.",
+      "source_basis": {
+        "function": "DrawRightwards2x4_1to15or26",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 77
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 819,
+          "end_line": 830
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 2,
+      "routine_name": "Rightwards2x4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F03",
+      "secondary_family_ids": [],
+      "rationale": "Bottom-wall strips; BothBG behavior follows metadata/effective dispatch.",
+      "source_basis": {
+        "function": "DrawRightwards2x4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 128
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 832,
+          "end_line": 843
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 3,
+      "routine_name": "Rightwards2x4_1to16_BothBG",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F04",
+      "secondary_family_ids": [],
+      "rationale": "Repeated wall-column layouts, with direction-specific spacing.",
+      "source_basis": {
+        "function": "DrawRightwards2x4_1to16_BothBG",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 178
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 858,
+          "end_line": 869
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 4,
+      "routine_name": "Rightwards2x2_1to16",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic2x2 repeat serves deep walls,pipe path and deep corners.",
+      "source_basis": {
+        "function": "DrawRightwards2x2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 229
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 871,
+          "end_line": 880
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 5,
+      "routine_name": "DiagonalAcute_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F09",
+      "secondary_family_ids": [],
+      "rationale": "Acute/grave diagonal-wall five-character-column algorithms.",
+      "source_basis": {
+        "function": "DrawDiagonalAcute_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+          "line": 33
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+          "line": 53,
+          "end_line": 62
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 6,
+      "routine_name": "DiagonalGrave_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F09",
+      "secondary_family_ids": [],
+      "rationale": "Acute/grave diagonal-wall five-character-column algorithms.",
+      "source_basis": {
+        "function": "DrawDiagonalGrave_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+          "line": 37
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+          "line": 64,
+          "end_line": 73
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 7,
+      "routine_name": "Downwards2x2_1to15or32",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic2x2 vertical repeat serves ceiling and pegs.",
+      "source_basis": {
+        "function": "DrawDownwards2x2_1to15or32",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 46
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 583,
+          "end_line": 591
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 8,
+      "routine_name": "Downwards4x2_1to15or26",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F02",
+      "secondary_family_ids": [
+        "F21"
+      ],
+      "rationale": "Top-wall strips; source name arrays also use these routines for wall flair.",
+      "source_basis": {
+        "function": "DrawDownwards4x2_1to15or26",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 77
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 593,
+          "end_line": 604
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 9,
+      "routine_name": "Downwards4x2_1to16_BothBG",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F03",
+      "secondary_family_ids": [],
+      "rationale": "Bottom-wall strips; BothBG behavior follows metadata/effective dispatch.",
+      "source_basis": {
+        "function": "DrawDownwards4x2_1to16_BothBG",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 119
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 606,
+          "end_line": 614
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 10,
+      "routine_name": "DownwardsDecor4x2spaced4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F04",
+      "secondary_family_ids": [],
+      "rationale": "Repeated wall-column layouts, with direction-specific spacing.",
+      "source_basis": {
+        "function": "DrawDownwardsDecor4x2spaced4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 148
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 616,
+          "end_line": 624
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 11,
+      "routine_name": "Downwards2x2_1to16",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic2x2 vertical repeat serves deep walls and pipe path.",
+      "source_basis": {
+        "function": "DrawDownwards2x2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 182
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 626,
+          "end_line": 633
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 12,
+      "routine_name": "DownwardsHasEdge1x1_1to16_plus3",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawDownwardsHasEdge1x1_1to16_plus3",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 212
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 635,
+          "end_line": 646
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 13,
+      "routine_name": "DownwardsEdge1x1_1to16",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic edge repeat serves pit edge,water edge and rug trim.",
+      "source_basis": {
+        "function": "DrawDownwardsEdge1x1_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 242
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 648,
+          "end_line": 656
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 14,
+      "routine_name": "DownwardsLeftCorners2x1_1to16_plus12",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawDownwardsLeftCorners2x1_1to16_plus12",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 258
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 658,
+          "end_line": 666
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 15,
+      "routine_name": "DownwardsRightCorners2x1_1to16_plus12",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawDownwardsRightCorners2x1_1to16_plus12",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 262
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 668,
+          "end_line": 676
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 16,
+      "routine_name": "Rightwards4x4_1to16",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic4x4 repeat serves carpets,invisible floors,lamp/windows/stairs/ladders/decor/goo; several dispatch overrides.",
+      "source_basis": {
+        "function": "DrawRightwards4x4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 369
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 948,
+          "end_line": 957
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "agahnim_windows",
+        "lamp_cones",
+        "vitreous_goo"
+      ]
+    },
+    {
+      "routine_id": 17,
+      "routine_name": "DiagonalAcute_1to16_BothBG",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F09",
+      "secondary_family_ids": [],
+      "rationale": "Acute/grave diagonal-wall five-character-column algorithms.",
+      "source_basis": {
+        "function": "DrawDiagonalAcute_1to16_BothBG",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+          "line": 41
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+          "line": 75,
+          "end_line": 84
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 18,
+      "routine_name": "DiagonalGrave_1to16_BothBG",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F09",
+      "secondary_family_ids": [],
+      "rationale": "Acute/grave diagonal-wall five-character-column algorithms.",
+      "source_basis": {
+        "function": "DrawDiagonalGrave_1to16_BothBG",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+          "line": 45
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+          "line": 86,
+          "end_line": 95
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 19,
+      "routine_name": "Corner4x4",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F06",
+      "secondary_family_ids": [
+        "F07"
+      ],
+      "rationale": "Canonical4x4 corner helper; no default-mapped objects. Actual top-corner objects map to routine116, not automatically here.",
+      "source_basis": {
+        "function": "DrawCorner4x4",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 114
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 252,
+          "end_line": 262
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 20,
+      "routine_name": "Rightwards1x2_1to16_plus2",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F12"
+      ],
+      "rationale": "Source object is platform stairs; capped horizontal1x2 stepping pattern.",
+      "source_basis": {
+        "function": "DrawRightwards1x2_1to16_plus2",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 257
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 882,
+          "end_line": 891
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 21,
+      "routine_name": "RightwardsHasEdge1x1_1to16_plus3",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawRightwardsHasEdge1x1_1to16_plus3",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 293
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 893,
+          "end_line": 902
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 22,
+      "routine_name": "RightwardsHasEdge1x1_1to16_plus2",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic capped edge repeat serves pit edges,water edges and rug trims; context-sensitive caps.",
+      "source_basis": {
+        "function": "DrawRightwardsHasEdge1x1_1to16_plus2",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 316
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 904,
+          "end_line": 913
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 23,
+      "routine_name": "RightwardsTopCorners1x2_1to16_plus13",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawRightwardsTopCorners1x2_1to16_plus13",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 361
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 926,
+          "end_line": 935
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 24,
+      "routine_name": "RightwardsBottomCorners1x2_1to16_plus13",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawRightwardsBottomCorners1x2_1to16_plus13",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 365
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 937,
+          "end_line": 946
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 25,
+      "routine_name": "Rightwards1x1Solid_1to16_plus3",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Source-mapped carpet trim; generic solid repeat interpreted only for this named use.",
+      "source_basis": {
+        "function": "DrawRightwards1x1Solid_1to16_plus3",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 391
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 959,
+          "end_line": 969
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 26,
+      "routine_name": "DoorSwitcherer",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F11",
+      "secondary_family_ids": [
+        "F22"
+      ],
+      "rationale": "Door-switch/hole-in-wall routine, separate from DoorDef door dispatch.",
+      "source_basis": {
+        "function": "DrawDoorSwitcherer",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 434
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1633,
+          "end_line": 1642
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 27,
+      "routine_name": "RightwardsDecor4x4spaced2_1to16",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Source-mapped drapes with spaced decorative blocks.",
+      "source_basis": {
+        "function": "DrawRightwardsDecor4x4spaced2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 405
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 971,
+          "end_line": 980
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 28,
+      "routine_name": "RightwardsStatue2x3spaced2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawRightwardsStatue2x3spaced2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 426
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 982,
+          "end_line": 991
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 29,
+      "routine_name": "RightwardsPillar2x4spaced4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F04",
+      "secondary_family_ids": [
+        "F19",
+        "F21"
+      ],
+      "rationale": "Pillar geometry; source uses include columns and tall torches, so one routine spans structural/decor/fixture roles.",
+      "source_basis": {
+        "function": "DrawRightwardsPillar2x4spaced4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 448
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 993,
+          "end_line": 1002
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 30,
+      "routine_name": "RightwardsDecor4x3spaced4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawRightwardsDecor4x3spaced4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 470
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1004,
+          "end_line": 1014
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 31,
+      "routine_name": "RightwardsDoubled2x2spaced2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawRightwardsDoubled2x2spaced2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 496
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1016,
+          "end_line": 1025
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 32,
+      "routine_name": "RightwardsDecor2x2spaced12_1to16",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [
+        "F21"
+      ],
+      "rationale": "Source-named supports; generic spaced2x2 payload.",
+      "source_basis": {
+        "function": "DrawRightwardsDecor2x2spaced12_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 521
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1027,
+          "end_line": 1036
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 33,
+      "routine_name": "SomariaLine",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F20",
+      "secondary_family_ids": [],
+      "rationale": "Somaria line/path endpoints and junction semantics or source-named straight paths.",
+      "source_basis": {
+        "function": "DrawSomariaLine",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 452
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1644,
+          "end_line": 1653
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 34,
+      "routine_name": "WaterFace",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [],
+      "rationale": "Water-face helper, registered but not default-mapped; does not prove runtime use.",
+      "source_basis": {
+        "function": "DrawWaterFace",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 464
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1655,
+          "end_line": 1664
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 35,
+      "routine_name": "4x4Corner_BothBG",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F07",
+      "secondary_family_ids": [],
+      "rationale": "Canonical bottom4x4 corners; column-major16words.",
+      "source_basis": {
+        "function": "Draw4x4Corner_BothBG",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 148
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 264,
+          "end_line": 273
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 36,
+      "routine_name": "WeirdCornerBottom_BothBG",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F08",
+      "secondary_family_ids": [],
+      "rationale": "Weird/kinked corner footprints3x4 and4x3 characters.",
+      "source_basis": {
+        "function": "DrawWeirdCornerBottom_BothBG",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 169
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 275,
+          "end_line": 284
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 37,
+      "routine_name": "WeirdCornerTop_BothBG",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F08",
+      "secondary_family_ids": [],
+      "rationale": "Weird/kinked corner footprints3x4 and4x3 characters.",
+      "source_basis": {
+        "function": "DrawWeirdCornerTop_BothBG",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 195
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 286,
+          "end_line": 295
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 38,
+      "routine_name": "Nothing",
+      "classification_status": "BASE_NO_DRAW_WITH_POSSIBLE_OVERRIDES",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Base function DrawNothing. Object-specific wrappers (including0xFF3 full-mask override) can still draw/erase; never classify all objects mapped here as no visible effect.",
+      "source_basis": {
+        "function": "DrawNothing",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 365
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1623,
+          "end_line": 1631
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "custom_asset_override",
+        "full_layer_mask"
+      ]
+    },
+    {
+      "routine_id": 39,
+      "routine_name": "Chest",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [],
+      "rationale": "Chest routine; retains stateful small-chest wrapper. Eight registry entries include six nonserializable aliases and two real stream chest IDs.",
+      "source_basis": {
+        "function": "<inline lambda>",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1610
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1608,
+          "end_line": 1621
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "small_chest_dispatch"
+      ]
+    },
+    {
+      "routine_id": 40,
+      "routine_name": "Rightwards4x2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F01",
+      "secondary_family_ids": [],
+      "rationale": "Floor-tile or repeated super-square floor patterns.",
+      "source_basis": {
+        "function": "DrawRightwards4x2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 551
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1038,
+          "end_line": 1047
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 41,
+      "routine_name": "RightwardsDecor4x2spaced8_1to16",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [
+        "F21"
+      ],
+      "rationale": "Source-named wall torches, including fixture/decor art; no global-table or flame runtime equivalence implied.",
+      "source_basis": {
+        "function": "DrawRightwardsDecor4x2spaced8_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 585
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1049,
+          "end_line": 1058
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 42,
+      "routine_name": "RightwardsCannonHole4x3_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Directional cannon-hole patterns; source-specific wall-hazard art.",
+      "source_basis": {
+        "function": "DrawRightwardsCannonHole4x3_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 618
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1060,
+          "end_line": 1069
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 43,
+      "routine_name": "DownwardsFloor4x4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F01",
+      "secondary_family_ids": [
+        "F21",
+        "F23"
+      ],
+      "rationale": "Downward4x4 floor pattern used by carpet and invisible-floor source objects; effects remain separately verified.",
+      "source_basis": {
+        "function": "DrawDownwardsFloor4x4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 266
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 678,
+          "end_line": 686
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 44,
+      "routine_name": "Downwards1x1Solid_1to16_plus3",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Source-mapped carpet trim; generic solid repeat interpreted only for this named use.",
+      "source_basis": {
+        "function": "DrawDownwards1x1Solid_1to16_plus3",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 284
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 688,
+          "end_line": 696
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 45,
+      "routine_name": "DownwardsDecor4x4spaced2_1to16",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Source-mapped drapes with spaced decorative blocks.",
+      "source_basis": {
+        "function": "DrawDownwardsDecor4x4spaced2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 297
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 698,
+          "end_line": 706
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 46,
+      "routine_name": "DownwardsPillar2x4spaced2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F04",
+      "secondary_family_ids": [
+        "F19",
+        "F21"
+      ],
+      "rationale": "Pillar geometry; source uses include columns and tall torches, so one routine spans structural/decor/fixture roles.",
+      "source_basis": {
+        "function": "DrawDownwardsPillar2x4spaced2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 315
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 708,
+          "end_line": 716
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 47,
+      "routine_name": "DownwardsDecor3x4spaced4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawDownwardsDecor3x4spaced4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 333
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 718,
+          "end_line": 726
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 48,
+      "routine_name": "DownwardsDecor2x2spaced12_1to16",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [
+        "F21"
+      ],
+      "rationale": "Source-named supports; generic spaced2x2 payload.",
+      "source_basis": {
+        "function": "DrawDownwardsDecor2x2spaced12_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 351
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 728,
+          "end_line": 736
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 49,
+      "routine_name": "DownwardsLine1x1_1to16plus1",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F20",
+      "secondary_family_ids": [],
+      "rationale": "Somaria line/path endpoints and junction semantics or source-named straight paths.",
+      "source_basis": {
+        "function": "DrawDownwardsLine1x1_1to16plus1",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 371
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 738,
+          "end_line": 746
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 50,
+      "routine_name": "DownwardsDecor2x4spaced8_1to16",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [
+        "F21"
+      ],
+      "rationale": "Source-named wall torches, including fixture/decor art; no global-table or flame runtime equivalence implied.",
+      "source_basis": {
+        "function": "DrawDownwardsDecor2x4spaced8_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 384
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 748,
+          "end_line": 756
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 51,
+      "routine_name": "RightwardsLine1x1_1to16plus1",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F20",
+      "secondary_family_ids": [],
+      "rationale": "Somaria line/path endpoints and junction semantics or source-named straight paths.",
+      "source_basis": {
+        "function": "DrawRightwardsLine1x1_1to16plus1",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 644
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1071,
+          "end_line": 1080
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 52,
+      "routine_name": "RightwardsBar4x3_1to16",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic bar payload; precise counter/rail material interpretation remains unverified.",
+      "source_basis": {
+        "function": "DrawRightwardsBar4x3_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 657
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1082,
+          "end_line": 1091
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 53,
+      "routine_name": "RightwardsShelf4x4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawRightwardsShelf4x4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 679
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1093,
+          "end_line": 1102
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 54,
+      "routine_name": "RightwardsBigRail1x3_1to16plus5",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawRightwardsBigRail1x3_1to16plus5",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 703
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1104,
+          "end_line": 1113
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 55,
+      "routine_name": "RightwardsBlock2x2spaced2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [],
+      "rationale": "Repeated block/pot/hammer-peg fixture patterns; fake-pressure-plate named use also retained.",
+      "source_basis": {
+        "function": "DrawRightwardsBlock2x2spaced2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 743
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1115,
+          "end_line": 1124
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 56,
+      "routine_name": "4x4BlocksIn4x4SuperSquare",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F10",
+      "secondary_family_ids": [
+        "F14",
+        "F17"
+      ],
+      "rationale": "Large ceiling and lower-map pit-mask uses share super-square block stamping; masking still enforced at object dispatch.",
+      "source_basis": {
+        "function": "Draw4x4BlocksIn4x4SuperSquare",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 910
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1670,
+          "end_line": 1678
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 57,
+      "routine_name": "3x3FloorIn4x4SuperSquare",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F14",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Source-named medium pit/layer masks use3x3floor-in4x4super-square placement; reveal semantics separate.",
+      "source_basis": {
+        "function": "Draw3x3FloorIn4x4SuperSquare",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 952
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1680,
+          "end_line": 1688
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 58,
+      "routine_name": "4x4FloorIn4x4SuperSquare",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic4x4floor filler serves plain floor,water/current,ice,conveyor,spikes and masks; single primary family would hide uses.",
+      "source_basis": {
+        "function": "Draw4x4FloorIn4x4SuperSquare",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 977
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1690,
+          "end_line": 1698
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 59,
+      "routine_name": "4x4FloorOneIn4x4SuperSquare",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F01",
+      "secondary_family_ids": [],
+      "rationale": "Floor-tile or repeated super-square floor patterns.",
+      "source_basis": {
+        "function": "Draw4x4FloorOneIn4x4SuperSquare",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1003
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1700,
+          "end_line": 1708
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "room_floor_source"
+      ]
+    },
+    {
+      "routine_id": 60,
+      "routine_name": "4x4FloorTwoIn4x4SuperSquare",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F01",
+      "secondary_family_ids": [],
+      "rationale": "Floor-tile or repeated super-square floor patterns.",
+      "source_basis": {
+        "function": "Draw4x4FloorTwoIn4x4SuperSquare",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1009
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1710,
+          "end_line": 1718
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "room_floor_source"
+      ]
+    },
+    {
+      "routine_id": 61,
+      "routine_name": "BigHole4x4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F14",
+      "secondary_family_ids": [],
+      "rationale": "Large hole/pit footprint with edge/corner payload.",
+      "source_basis": {
+        "function": "DrawBigHole4x4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1015
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1720,
+          "end_line": 1728
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 62,
+      "routine_name": "Spike2x2In4x4SuperSquare",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [
+        "F22"
+      ],
+      "rationale": "Spike-block repeated footprint; hazard art only, collision not derived.",
+      "source_basis": {
+        "function": "DrawSpike2x2In4x4SuperSquare",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1056
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1730,
+          "end_line": 1738
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 63,
+      "routine_name": "TableRock4x4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawTableRock4x4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1081
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1740,
+          "end_line": 1748
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 64,
+      "routine_name": "WaterOverlay8x8_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "State-dependent flood-water overlay routine with secondary-map/HDMA limitations.",
+      "source_basis": {
+        "function": "DrawWaterOverlay8x8_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1116
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1750,
+          "end_line": 1758
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "special_layer_routing"
+      ]
+    },
+    {
+      "routine_id": 65,
+      "routine_name": "DownwardsDecor3x4spaced2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawDownwardsDecor3x4spaced2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 402
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 758,
+          "end_line": 766
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 66,
+      "routine_name": "DownwardsBigRail3x1_1to16plus5",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawDownwardsBigRail3x1_1to16plus5",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 420
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 768,
+          "end_line": 776
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 67,
+      "routine_name": "DownwardsBlock2x2spaced2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [],
+      "rationale": "Repeated block/pot/hammer-peg fixture patterns; fake-pressure-plate named use also retained.",
+      "source_basis": {
+        "function": "DrawDownwardsBlock2x2spaced2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 477
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 778,
+          "end_line": 786
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 68,
+      "routine_name": "DownwardsCannonHole3x4_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Directional cannon-hole patterns; source-specific wall-hazard art.",
+      "source_basis": {
+        "function": "DrawDownwardsCannonHole3x4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 497
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 788,
+          "end_line": 796
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 69,
+      "routine_name": "DownwardsBar2x5_1to16",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic bar payload; precise counter/rail material interpretation remains unverified.",
+      "source_basis": {
+        "function": "DrawDownwardsBar2x5_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 522
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 798,
+          "end_line": 806
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 70,
+      "routine_name": "DownwardsPots2x2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [],
+      "rationale": "Repeated block/pot/hammer-peg fixture patterns; fake-pressure-plate named use also retained.",
+      "source_basis": {
+        "function": "DrawDownwardsPots2x2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 544
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 808,
+          "end_line": 816
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 71,
+      "routine_name": "DownwardsHammerPegs2x2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [],
+      "rationale": "Repeated block/pot/hammer-peg fixture patterns; fake-pressure-plate named use also retained.",
+      "source_basis": {
+        "function": "DrawDownwardsHammerPegs2x2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 564
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 818,
+          "end_line": 826
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 72,
+      "routine_name": "RightwardsEdge1x1_1to16plus7",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F12",
+      "secondary_family_ids": [],
+      "rationale": "Source-named directional jump ledges; generic edge repeat supports raised/lower transitions.",
+      "source_basis": {
+        "function": "DrawRightwardsEdge1x1_1to16plus7",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 763
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1126,
+          "end_line": 1135
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 73,
+      "routine_name": "RightwardsPots2x2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [],
+      "rationale": "Repeated block/pot/hammer-peg fixture patterns; fake-pressure-plate named use also retained.",
+      "source_basis": {
+        "function": "DrawRightwardsPots2x2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 776
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1137,
+          "end_line": 1146
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 74,
+      "routine_name": "RightwardsHammerPegs2x2_1to16",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [],
+      "rationale": "Repeated block/pot/hammer-peg fixture patterns; fake-pressure-plate named use also retained.",
+      "source_basis": {
+        "function": "DrawRightwardsHammerPegs2x2_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 796
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 1148,
+          "end_line": 1157
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 75,
+      "routine_name": "DiagonalCeilingTopLeft",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F10",
+      "secondary_family_ids": [
+        "F14",
+        "F17"
+      ],
+      "rationale": "Four diagonal-ceiling algorithms; source also maps diagonal layer masks to same routines.",
+      "source_basis": {
+        "function": "DrawDiagonalCeilingTopLeft",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 221
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 297,
+          "end_line": 306
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 76,
+      "routine_name": "DiagonalCeilingBottomLeft",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F10",
+      "secondary_family_ids": [
+        "F14",
+        "F17"
+      ],
+      "rationale": "Four diagonal-ceiling algorithms; source also maps diagonal layer masks to same routines.",
+      "source_basis": {
+        "function": "DrawDiagonalCeilingBottomLeft",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 225
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 308,
+          "end_line": 317
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 77,
+      "routine_name": "DiagonalCeilingTopRight",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F10",
+      "secondary_family_ids": [
+        "F14",
+        "F17"
+      ],
+      "rationale": "Four diagonal-ceiling algorithms; source also maps diagonal layer masks to same routines.",
+      "source_basis": {
+        "function": "DrawDiagonalCeilingTopRight",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 229
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 319,
+          "end_line": 328
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 78,
+      "routine_name": "DiagonalCeilingBottomRight",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F10",
+      "secondary_family_ids": [
+        "F14",
+        "F17"
+      ],
+      "rationale": "Four diagonal-ceiling algorithms; source also maps diagonal layer masks to same routines.",
+      "source_basis": {
+        "function": "DrawDiagonalCeilingBottomRight",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 233
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 330,
+          "end_line": 339
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 79,
+      "routine_name": "ClosedChestPlatform",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F12",
+      "secondary_family_ids": [
+        "F19"
+      ],
+      "rationale": "Closed/open chest-platform composite walls/floors.",
+      "source_basis": {
+        "function": "DrawClosedChestPlatform",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1502
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2265,
+          "end_line": 2273
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 80,
+      "routine_name": "MovingWallWest",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F18",
+      "secondary_family_ids": [
+        "F12"
+      ],
+      "rationale": "Moving-wall west/east state-dependent composite and replacement patterns.",
+      "source_basis": {
+        "function": "DrawMovingWallWest",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1399
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2276,
+          "end_line": 2285
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 81,
+      "routine_name": "MovingWallEast",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F18",
+      "secondary_family_ids": [
+        "F12"
+      ],
+      "rationale": "Moving-wall west/east state-dependent composite and replacement patterns.",
+      "source_basis": {
+        "function": "DrawMovingWallEast",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1416
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2287,
+          "end_line": 2296
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 82,
+      "routine_name": "OpenChestPlatform",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F12",
+      "secondary_family_ids": [
+        "F19"
+      ],
+      "rationale": "Closed/open chest-platform composite walls/floors.",
+      "source_basis": {
+        "function": "DrawOpenChestPlatform",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1556
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2298,
+          "end_line": 2306
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 83,
+      "routine_name": "InterRoomFatStairsUp",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "DrawInterRoomFatStairsUp",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1214
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1761,
+          "end_line": 1770
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 84,
+      "routine_name": "InterRoomFatStairsDownA",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "DrawInterRoomFatStairsDownA",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1226
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1772,
+          "end_line": 1781
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 85,
+      "routine_name": "InterRoomFatStairsDownB",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "DrawInterRoomFatStairsDownB",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1232
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1783,
+          "end_line": 1792
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 86,
+      "routine_name": "AutoStairs",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "DrawAutoStairs",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1254
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1794,
+          "end_line": 1803
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "special_layer_routing"
+      ]
+    },
+    {
+      "routine_id": 87,
+      "routine_name": "StraightInterRoomStairs",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "DrawStraightInterRoomStairs",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1269
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1805,
+          "end_line": 1814
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "special_layer_routing"
+      ]
+    },
+    {
+      "routine_id": 88,
+      "routine_name": "SpiralStairsGoingUpUpper",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "<inline lambda>",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1819
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1817,
+          "end_line": 1827
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 89,
+      "routine_name": "SpiralStairsGoingDownUpper",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "<inline lambda>",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1831
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1829,
+          "end_line": 1839
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 90,
+      "routine_name": "SpiralStairsGoingUpLower",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "<inline lambda>",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1843
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1841,
+          "end_line": 1851
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 91,
+      "routine_name": "SpiralStairsGoingDownLower",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F17"
+      ],
+      "rationale": "Fat/auto/straight/spiral stairs; exact stored/fixed/mixed/priority dispatch must remain attached.",
+      "source_basis": {
+        "function": "<inline lambda>",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1855
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1853,
+          "end_line": 1863
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 92,
+      "routine_name": "BigKeyLock",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [],
+      "rationale": "Big-key-lock primitive; object wrapper may replace it based on room events.",
+      "source_basis": {
+        "function": "DrawBigKeyLock",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1358
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1899,
+          "end_line": 1908
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "big_key_lock_dispatch"
+      ]
+    },
+    {
+      "routine_id": 93,
+      "routine_name": "BombableFloor",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [
+        "F01"
+      ],
+      "rationale": "Bombable-floor routine; stateful floor behavior and art remain separate.",
+      "source_basis": {
+        "function": "DrawBombableFloor",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1367
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1910,
+          "end_line": 1919
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 94,
+      "routine_name": "EmptyWaterFace",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [],
+      "rationale": "Empty/spitting/drenching water faces and waterfall patterns.",
+      "source_basis": {
+        "function": "DrawEmptyWaterFace",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1464
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1922,
+          "end_line": 1931
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 95,
+      "routine_name": "SpittingWaterFace",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [],
+      "rationale": "Empty/spitting/drenching water faces and waterfall patterns.",
+      "source_basis": {
+        "function": "DrawSpittingWaterFace",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1486
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1933,
+          "end_line": 1942
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 96,
+      "routine_name": "DrenchingWaterFace",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [],
+      "rationale": "Empty/spitting/drenching water faces and waterfall patterns.",
+      "source_basis": {
+        "function": "DrawDrenchingWaterFace",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1492
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1944,
+          "end_line": 1953
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 97,
+      "routine_name": "PrisonCell",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [
+        "F22",
+        "F17"
+      ],
+      "rationale": "Prison-cell/bar composite with registered BothBG behavior.",
+      "source_basis": {
+        "function": "DrawPrisonCell",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1305
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1957,
+          "end_line": 1966
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 98,
+      "routine_name": "Bed4x5",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawBed4x5",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 496
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1968,
+          "end_line": 1976
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 99,
+      "routine_name": "Rightwards3x6",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Generic3x6/labelled6x3 decor; art identity needs payload/context binding.",
+      "source_basis": {
+        "function": "DrawRightwards3x6",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 501
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1978,
+          "end_line": 1986
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 100,
+      "routine_name": "Utility6x3",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawUtility6x3",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 507
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1988,
+          "end_line": 1996
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 101,
+      "routine_name": "Utility3x5",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawUtility3x5",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 671
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1998,
+          "end_line": 2006
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 102,
+      "routine_name": "VerticalTurtleRockPipe",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Vertical Turtle Rock pipe routine; pipe vocabulary is special-purpose art.",
+      "source_basis": {
+        "function": "DrawVerticalTurtleRockPipe",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 703
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2008,
+          "end_line": 2016
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 103,
+      "routine_name": "HorizontalTurtleRockPipe",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Horizontal pipe algorithm is also used for bookcase payload.",
+      "source_basis": {
+        "function": "DrawHorizontalTurtleRockPipe",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 712
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2018,
+          "end_line": 2026
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 104,
+      "routine_name": "LightBeam",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F23",
+      "secondary_family_ids": [],
+      "rationale": "Light-beam/big-light/floor-light patterns; FloorLight source use is boss entrance, so door/effect context remains relevant.",
+      "source_basis": {
+        "function": "DrawLightBeamOnFloor",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 717
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2028,
+          "end_line": 2037
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 105,
+      "routine_name": "BigLightBeam",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F23",
+      "secondary_family_ids": [],
+      "rationale": "Light-beam/big-light/floor-light patterns; FloorLight source use is boss entrance, so door/effect context remains relevant.",
+      "source_basis": {
+        "function": "DrawBigLightBeamOnFloor",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 729
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2039,
+          "end_line": 2048
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 106,
+      "routine_name": "BossShell4x4",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawBossShell4x4",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 747
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2061,
+          "end_line": 2069
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "boss_shell_state"
+      ]
+    },
+    {
+      "routine_id": 107,
+      "routine_name": "SolidWallDecor3x4",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawSolidWallDecor3x4",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 768
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2082,
+          "end_line": 2090
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 108,
+      "routine_name": "ArcheryGameTargetDoor",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawArcheryGameTargetDoor",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 773
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2092,
+          "end_line": 2100
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 109,
+      "routine_name": "GanonTriforceFloorDecor",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawGanonTriforceFloorDecor",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 782
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2102,
+          "end_line": 2110
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 110,
+      "routine_name": "Single2x2",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Single2x2 generic raster covers42 source-named uses across fixtures,decor,deep corners,pipes and markers.",
+      "source_basis": {
+        "function": "DrawSingle2x2",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 795
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2112,
+          "end_line": 2121
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 111,
+      "routine_name": "Waterfall47",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [],
+      "rationale": "Empty/spitting/drenching water faces and waterfall patterns.",
+      "source_basis": {
+        "function": "DrawWaterfall47",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 868
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2244,
+          "end_line": 2252
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 112,
+      "routine_name": "Waterfall48",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [],
+      "rationale": "Empty/spitting/drenching water faces and waterfall patterns.",
+      "source_basis": {
+        "function": "DrawWaterfall48",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 884
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2254,
+          "end_line": 2262
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 113,
+      "routine_name": "Single4x4",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Single4x4 generic raster covers fake bombable floor,large decor and bones.",
+      "source_basis": {
+        "function": "DrawSingle4x4",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 811
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2123,
+          "end_line": 2132
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 114,
+      "routine_name": "Single4x3",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Single4x3 generic raster spans chests,cracks,grates,anvil,hole and unused door; big-chest wrapper exists.",
+      "source_basis": {
+        "function": "DrawSingle4x3",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 825
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2134,
+          "end_line": 2143
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "big_chest_dispatch"
+      ]
+    },
+    {
+      "routine_id": 115,
+      "routine_name": "RupeeFloor",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [
+        "F01"
+      ],
+      "rationale": "Rupee-floor collectible arrangement; not a replacement for plain floor paint.",
+      "source_basis": {
+        "function": "DrawRupeeFloor",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 839
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2145,
+          "end_line": 2154
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 116,
+      "routine_name": "Actual4x4",
+      "classification_status": "UNCLASSIFIED_MULTIPURPOSE_PRIMITIVE",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "Actual4x4 generic raster spans canonical top corners,large brazier,statue,plant,fireplace and pit; preserve every source object instead of calling all uses corners.",
+      "source_basis": {
+        "function": "DrawActual4x4",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 863
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2156,
+          "end_line": 2165
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 117,
+      "routine_name": "DownwardsHasEdge1x1_1to16_plus23",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "<inline lambda>",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2312
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2310,
+          "end_line": 2345
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 118,
+      "routine_name": "RightwardsHasEdge1x1_1to16_plus23",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F16",
+      "secondary_family_ids": [],
+      "rationale": "Explicit rail/rail-wall/capped long-rail draw semantics and named uses.",
+      "source_basis": {
+        "function": "DrawRightwardsHasEdge1x1_1to16_plus23",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 339
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 915,
+          "end_line": 924
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 119,
+      "routine_name": "WaterHopStairsA",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F13",
+      "secondary_family_ids": [
+        "F15",
+        "F21"
+      ],
+      "rationale": "Water-hop stairsA algorithm also has source alias Mario portrait; alias art is not established as stair art.",
+      "source_basis": {
+        "function": "DrawWaterHopStairsA",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 135
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1865,
+          "end_line": 1874
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 120,
+      "routine_name": "WaterHopStairsB",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [
+        "F13"
+      ],
+      "rationale": "Water-hop stairsB and dam floodgate include water/stair state context.",
+      "source_basis": {
+        "function": "DrawWaterHopStairsB",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 145
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1876,
+          "end_line": 1885
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 121,
+      "routine_name": "DamFloodGate",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F15",
+      "secondary_family_ids": [
+        "F13"
+      ],
+      "rationale": "Water-hop stairsB and dam floodgate include water/stair state context.",
+      "source_basis": {
+        "function": "DrawDamFloodGate",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 196
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 1887,
+          "end_line": 1896
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "special_layer_routing"
+      ]
+    },
+    {
+      "routine_id": 122,
+      "routine_name": "DownwardsEdge1x1_1to16plus7",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F12",
+      "secondary_family_ids": [],
+      "rationale": "Source-named directional jump ledges; generic edge repeat supports raised/lower transitions.",
+      "source_basis": {
+        "function": "DrawDownwardsEdge1x1_1to16plus7",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 568
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+          "line": 828,
+          "end_line": 836
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 123,
+      "routine_name": "FloorLight",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F23",
+      "secondary_family_ids": [
+        "F11"
+      ],
+      "rationale": "Light-beam/big-light/floor-light patterns; FloorLight source use is boss entrance, so door/effect context remains relevant.",
+      "source_basis": {
+        "function": "DrawFloorLight",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 742
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2050,
+          "end_line": 2059
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 124,
+      "routine_name": "Weird2x4_1to16",
+      "classification_status": "SOURCE_NAMED_USE",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Source-named archery curtains use unusual2x4 repeat; exact art identity comes from object data.",
+      "source_basis": {
+        "function": "DrawRightwards2x4_1to16",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 128
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+          "line": 845,
+          "end_line": 856
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 125,
+      "routine_name": "BigWallDecor",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawBigWallDecor",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 512
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2167,
+          "end_line": 2176
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 126,
+      "routine_name": "TableBowl",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawTableBowl",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 518
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2178,
+          "end_line": 2187
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 127,
+      "routine_name": "SmithyFurnace",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F21",
+      "secondary_family_ids": [],
+      "rationale": "Furniture/decorative primitives and source-named statue/table/chair/bed/shelf/utility uses; no actual character usage inferred.",
+      "source_basis": {
+        "function": "DrawSmithyFurnace",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 527
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2189,
+          "end_line": 2198
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 128,
+      "routine_name": "BigGrayRock",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F19",
+      "secondary_family_ids": [
+        "F21"
+      ],
+      "rationale": "Large gray-rock/liftable-block footprint; interaction and shared material are separate.",
+      "source_basis": {
+        "function": "DrawBigGrayRock",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 536
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2200,
+          "end_line": 2209
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 129,
+      "routine_name": "AgahnimsAltar",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawAgahnimsAltar",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 554
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2211,
+          "end_line": 2220
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "special_layer_routing"
+      ]
+    },
+    {
+      "routine_id": 130,
+      "routine_name": "CustomObject",
+      "classification_status": "EXTERNAL_CUSTOM_DATA_UNCLASSIFIED",
+      "primary_family_id": null,
+      "secondary_family_ids": [],
+      "rationale": "External custom-object words/geometry; feature flag and size-selected asset can preempt built-in dispatch. Needs project-local asset inspection, not a guessed family.",
+      "source_basis": {
+        "function": "CustomDraw",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 371
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2350,
+          "end_line": 2358
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "custom_asset_override"
+      ]
+    },
+    {
+      "routine_id": 131,
+      "routine_name": "FortuneTellerRoom",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawFortuneTellerRoom",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 579
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2222,
+          "end_line": 2231
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "special_layer_routing"
+      ]
+    },
+    {
+      "routine_id": 132,
+      "routine_name": "MagicBatAltar",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawMagicBatAltar",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 661
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2233,
+          "end_line": 2242
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 133,
+      "routine_name": "VitreousGooDamage",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawVitreousGooDamage",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 752
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+          "line": 2071,
+          "end_line": 2080
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": []
+    },
+    {
+      "routine_id": 134,
+      "routine_name": "SanctuaryWall",
+      "classification_status": "SOURCE_SEMANTICS",
+      "primary_family_id": "F22",
+      "secondary_family_ids": [],
+      "rationale": "Explicit shell/wall-decor/game-target/floor-ornament/facade/altar/fortune-teller/magic-bat/goo/sanctuary routines; per-object routes remain separate.",
+      "source_basis": {
+        "function": "DrawSanctuaryWall",
+        "definition": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 13
+        },
+        "registration": {
+          "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+          "line": 241,
+          "end_line": 250
+        },
+        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      },
+      "dispatch_exception_keys": [
+        "special_layer_routing"
+      ]
+    }
+  ],
+  "unresolved": [
+    "16 multipurpose primitives need per-object context; preserve object names and overrides.",
+    "Custom external size-selected assets need inspection and separate family declarations.",
+    "Floor/layout/door/global/state/animation paths are outside routine table and remain required.",
+    "No production palette/sheet/character allocation or actual usage measured."
+  ]
+}
