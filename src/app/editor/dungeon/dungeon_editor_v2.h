@@ -174,6 +174,7 @@ class DungeonEditorV2 : public Editor {
   absl::Status Save() override;
   // Reject excluded model edits before any writer runs. Apply Room narrows
   // room-local streams; shared tables still include all pending room records.
+  // Dirty fixed headers in scope must not share storage with another room.
   absl::Status ValidateSaveScope(int only_room = -1,
                                  bool room_data_only = false) const;
   absl::Status BeginSaveTransaction() override;
@@ -477,6 +478,9 @@ class DungeonEditorV2 : public Editor {
 
   absl::Status SaveRoomData(int room_id);
   absl::Status SaveRoomImpl(int room_id, bool room_data_only);
+  // Fixed 14-byte room headers have no copy-on-write allocator. Refuse an
+  // in-place header write that would also change another room's header.
+  static absl::Status ValidateRoomHeaderOwnership(const Rom& rom, int room_id);
   absl::Status RunWithSaveTransaction(
       const std::function<absl::Status()>& operation);
 
