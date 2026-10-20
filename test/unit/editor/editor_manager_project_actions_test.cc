@@ -18,6 +18,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
@@ -354,6 +355,75 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(project.metadata.author, "Project edit");
   EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kPermissionDenied);
   EXPECT_EQ(ReadFile(rom), rom_before);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     NormalSaveRefusesUnpublishedMessageSourceWithoutWritingRom) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  const auto initial_flags = core::FeatureFlags::get();
+  absl::Cleanup cleanup = [&]() {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+    core::FeatureFlags::get() = initial_flags;
+  };
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ScopedTempDir directory(MakeTempDir("yaze_normal_message_source_save"));
+  const auto rom = directory.path / "private.sfc";
+  const auto descriptor = directory.path / "private.yaze";
+  const auto canonical = directory.path / "messages.json";
+  WriteRomFile(rom);
+  WriteProjectFile(descriptor, "Message source project", rom);
+  std::ofstream(canonical)
+      << R"json({"format":"yaze-message-bundle","version":1,
+    "counts":{"vanilla":0,"expanded":1},
+    "messages":[{"id":0,"bank":"expanded","text":"Alpha"}]})json";
+  std::ofstream(directory.path / "hack_manifest.json") << R"json({
+    "manifest_version":3,"hack_name":"Oracle of Secrets",
+    "messages":{"data_start":"0x2F8026","data_end":"0x2F80FF",
+      "vanilla_count":1,
+      "expanded_range":{"first":"0x18D","last":"0x18D","count":1},
+      "source":{"format":"yaze-message-bundle","version":1,
+        "canonical_bundle_path":"messages.json",
+        "generated_asm_include_path":"expanded_messages.asm"}}})json";
+  project::YazeProject project;
+  ASSERT_OK(project.Open(descriptor.string()));
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  ASSERT_OK(project.Save());
+  ASSERT_OK(manager->OpenRomOrProject(descriptor.string()));
+  auto* message = manager->GetCurrentEditorSet()->GetEditorAs<MessageEditor>(
+      EditorType::kMessage);
+  ASSERT_NE(message, nullptr);
+  ASSERT_OK(message->LoadCanonicalExpandedSource());
+  ASSERT_TRUE(message->OpenMessageById(0x18D));
+  EXPECT_FALSE(message->HasUnpublishedMessageSourceChanges());
+  ASSERT_OK(manager->SaveCurrentSession());
+
+  const auto descriptor_before = ReadFile(descriptor);
+  const auto source_before = ReadFile(canonical);
+  const auto rom_before = ReadFile(rom);
+  message->UpdateCurrentMessageFromText("Alphb");
+  ASSERT_TRUE(message->HasUnpublishedMessageSourceChanges());
+  ASSERT_FALSE(manager->GetCurrentRom()->dirty());
+  manager->GetCurrentProject()->metadata.author = "Pending project edit";
+  manager->MarkCurrentProjectDirty();
+  const auto status = manager->SaveCurrentSession();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("Preview and Publish"),
+            std::string::npos);
+  EXPECT_TRUE(message->HasUnpublishedMessageSourceChanges());
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+  EXPECT_EQ(ReadFile(descriptor), descriptor_before);
+  EXPECT_EQ(ReadFile(canonical), source_before);
+  EXPECT_EQ(ReadFile(rom), rom_before);
+  EXPECT_FALSE(
+      std::filesystem::exists(directory.path / "expanded_messages.asm"));
 }
 
 TEST(EditorManagerProjectActionsTest,

@@ -800,6 +800,10 @@ bool MessageEditor::ExpandedEditsAreSourceOwned() const {
   return HasMessageSourceLayout();
 }
 
+bool MessageEditor::HasUnpublishedMessageSourceChanges() const {
+  return dirty_state_.expanded_messages && ExpandedEditsAreSourceOwned();
+}
+
 std::pair<int, int> MessageEditor::ExpandedInspectionRange() const {
   const int fallback_start = GetExpandedTextDataStart();
   const int fallback_end = GetExpandedTextDataEnd();

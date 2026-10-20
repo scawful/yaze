@@ -67,6 +67,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
+#include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
@@ -2920,6 +2921,13 @@ absl::Status EditorManager::SaveCurrentSession() {
   }
   if (!session_coordinator_ || !session_coordinator_->GetActiveRomSession()) {
     return absl::FailedPreconditionError("No active ROM session");
+  }
+  if (auto* message = static_cast<MessageEditor*>(
+          GetCurrentEditorSet()->GetExistingEditor(EditorType::kMessage));
+      message && message->HasUnpublishedMessageSourceChanges()) {
+    return absl::FailedPreconditionError(
+        "Expanded message source has unpublished edits; use Preview and "
+        "Publish in the Message editor before saving");
   }
   CaptureActiveProjectEditingState();
   const size_t session_id = GetCurrentSessionId();
