@@ -87,6 +87,11 @@ class LyraTerrainCanvas {
   absl::StatusOr<std::unique_ptr<MapAssets>> ResolveMapAssets(
       zelda3::Overworld& overworld, const core::LyraMapProperties& properties,
       int state, bool textures);
+  // Returns `candidate` with the native area parent's graphics selectors only
+  // after every field and Lyra state validates. Never mutates the source map.
+  absl::StatusOr<core::LyraMapProperties> CopyNativeGraphicsSettings(
+      zelda3::Overworld& overworld, int source_map,
+      core::LyraMapProperties candidate);
   absl::Status CheckAssetSources(zelda3::Overworld& overworld);
   absl::Status ValidateMapAssets(zelda3::Overworld& overworld,
                                  const core::LyraAuthoringState& authoring);
@@ -122,6 +127,10 @@ class LyraTerrainCanvas {
   int property_map_ = -1;
   std::optional<core::LyraMapProperties> property_draft_;
   std::optional<core::LyraMapProperties> property_baseline_;
+  int copy_source_map_ = 0x3A;
+  // Cleared whenever the destination map changes.
+  std::string copy_message_;
+  bool copy_failed_ = false;
   int placement_kind_ = 0;
   int placement_type_ = 0;
   int placement_state_ = 0;

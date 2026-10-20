@@ -380,6 +380,113 @@ LyraTerrainCanvas::ResolveMapAssets(zelda3::Overworld& overworld,
   return result;
 }
 
+absl::StatusOr<core::LyraMapProperties>
+LyraTerrainCanvas::CopyNativeGraphicsSettings(
+    zelda3::Overworld& overworld, int source_map,
+    core::LyraMapProperties candidate) {
+  if (!overworld.is_loaded() || overworld.is_lyra_preview() ||
+      !overworld.rom())
+    return absl::FailedPreconditionError(
+        "Open the main project ROM to copy native graphics settings");
+  if (source_map < 0 || source_map >= 0xA0)
+    return absl::InvalidArgumentError("Choose a native source map $00-$9F");
+  const auto* selected = overworld.overworld_map(source_map);
+  if (!selected)
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Native map $%02X is unavailable", source_map));
+  const int parent_id = selected->parent();
+  const auto* parent = parent_id >= 0 && parent_id < 0xA0
+                           ? overworld.overworld_map(parent_id)
+                           : nullptr;
+  if (!parent || parent->parent() != parent_id)
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Native map $%02X has no valid native area parent", source_map));
+  const auto* donor = overworld.overworld_map(0x3A);
+  if (!donor)
+    return absl::FailedPreconditionError("Loom map $3A is unavailable");
+  if (selected->HasGraphicsPreview() || parent->HasGraphicsPreview() ||
+      donor->HasGraphicsPreview())
+    return absl::FailedPreconditionError(
+        "Graphics preview overrides cannot be copied as native settings");
+  const auto* data = parent->game_data();
+  if (!data || data != donor->game_data() || !data->gfx_groups_loaded)
+    return absl::FailedPreconditionError(
+        "Load native graphics before copying graphics settings");
+  // OverworldMap resolves these tables with an unchecked version map lookup.
+  const auto tables = zelda3::kVersionConstantsMap.find(data->version);
+  if (tables == zelda3::kVersionConstantsMap.end() ||
+      tables->second.kOverworldGfxGroups1 == 0 ||
+      tables->second.kOverworldGfxGroups2 == 0 ||
+      tables->second.kOverworldMapPaletteGroup == 0 ||
+      tables->second.kSpriteBlocksetPointer == 0)
+    return absl::FailedPreconditionError(
+        "Native graphics tables are unknown for this ROM version");
+  if (donor->roomset_source() !=
+      zelda3::OverworldRoomsetSource::kCustomTileGroups)
+    return absl::FailedPreconditionError(
+        "Loom map $3A must use custom tile groups to copy graphics settings");
+
+  auto source = *parent;
+  source.ClearInheritedAreaProperties();
+  source.set_game_state(0);
+  source.LoadAreaGraphics();
+  for (int i = 0; i < 8; ++i) {
+    const uint8_t sheet = source.static_graphics(i);
+    if (sheet == 0x00 || sheet == 0xFF)
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Native map $%02X resolves graphics slot %d to $%02X", parent_id, i,
+          sheet));
+    candidate.graphics_sheets[i] = sheet;
+  }
+  candidate.animated_sheet = source.animated_sheet();
+  if (candidate.animated_sheet == 0x00 || candidate.animated_sheet == 0xFF)
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Native map $%02X resolves animation to $%02X",
+                        parent_id, candidate.animated_sheet));
+  candidate.main_palette = source.render_main_palette();
+  candidate.palette_set = source.area_palette();
+  if (candidate.main_palette == 0xFF ||
+      candidate.main_palette >= data->palette_groups.overworld_main.size())
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Native main palette $%02X is unavailable", candidate.main_palette));
+  if (candidate.palette_set > 0xA3)
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Native area palette $%02X is unavailable", candidate.palette_set));
+
+  // LoadPalette replaces $FF entries using parent-1. Only Loom retains the
+  // same context when Lyra reconstructs the settings from its $3A donor.
+  const bool same_palette_context = parent_id == 0x3A;
+  const auto& rom = overworld.rom()->vector();
+  const size_t area_entry = tables->second.kOverworldMapPaletteGroup +
+                            static_cast<size_t>(candidate.palette_set) * 4;
+  if (area_entry + 2 >= rom.size())
+    return absl::OutOfRangeError("Native area palette table is incomplete");
+  for (int i = 0; i < 3; ++i) {
+    if (!same_palette_context && rom[area_entry + i] == 0xFF)
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Native area palette $%02X uses a previous-map fallback",
+          candidate.palette_set));
+  }
+  for (int state = 0; state < 3; ++state) {
+    const uint8_t sprite_palette = source.sprite_palette(state);
+    const size_t sprite_entry = zelda3::kOverworldSpritePaletteGroup +
+                                static_cast<size_t>(sprite_palette) * 2;
+    if (sprite_entry + 1 >= rom.size())
+      return absl::OutOfRangeError("Native sprite palette table is incomplete");
+    if (!same_palette_context &&
+        (rom[sprite_entry] == 0xFF || rom[sprite_entry + 1] == 0xFF))
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Native sprite palette $%02X (State %d) uses a previous-map fallback",
+          sprite_palette, state));
+    candidate.sprite_graphics[state] = source.sprite_graphics(state);
+    candidate.sprite_palettes[state] = sprite_palette;
+  }
+  for (int state = 0; state < 3; ++state)
+    RETURN_IF_ERROR(
+        ResolveMapAssets(overworld, candidate, state, false).status());
+  return candidate;
+}
+
 absl::Status LyraTerrainCanvas::ValidateMapAssets(
     zelda3::Overworld& overworld, const core::LyraAuthoringState& authoring) {
   std::unordered_map<std::string, std::string> bindings;
@@ -838,6 +945,9 @@ void LyraTerrainCanvas::Reset() {
   map_assets_.clear();
   property_draft_.reset();
   property_baseline_.reset();
+  copy_source_map_ = 0x3A;
+  copy_message_.clear();
+  copy_failed_ = false;
   placement_kind_ = placement_type_ = placement_state_ = 0;
   new_sprite_type_ = 0;
   sprite_filter_ = {};

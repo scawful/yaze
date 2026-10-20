@@ -126,6 +126,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       property_map_ = map_id;
       property_draft_ = document_->authoring().maps[map_index].properties;
       property_baseline_ = property_draft_;
+      copy_message_.clear();
+      copy_failed_ = false;
     }
     const auto& live_properties =
         document_->authoring().maps[map_index].properties;
@@ -229,6 +231,42 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
         draft.message_id = std::clamp(value, 0, 65535);
       ImGui::TreePop();
     }
+
+    int copy_source = copy_source_map_;
+    if (ImGui::InputScalar("Native source map", ImGuiDataType_S32,
+                           &copy_source, nullptr, nullptr, "%02X",
+                           ImGuiInputTextFlags_CharsHexadecimal)) {
+      copy_source_map_ = std::clamp(copy_source, 0, 0x9F);
+    }
+    if (const auto* source = overworld.overworld_map(copy_source_map_)) {
+      ImGui::Text("Source $%02X, area parent $%02X", copy_source_map_,
+                  source->parent());
+    }
+    if (ImGui::Button("Copy graphics settings")) {
+      auto copied =
+          CopyNativeGraphicsSettings(overworld, copy_source_map_, draft);
+      copy_failed_ = !copied.ok();
+      if (copied.ok()) {
+        property_draft_ = *std::move(copied);
+        copy_message_ = absl::StrFormat(
+            "Copied $%02X (area parent $%02X) into the $%02X draft",
+            copy_source_map_,
+            overworld.overworld_map(copy_source_map_)->parent(), map_id);
+      } else {
+        copy_message_ = copied.status().ToString();
+      }
+    }
+    ImGui::TextWrapped(
+        "Copies native sheets, palettes, animation and sprite sets. Background "
+        "colors, overlays and runtime graphics are not copied. Apply "
+        "Properties to keep these settings.");
+    if (copy_failed_) {
+      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s",
+                         copy_message_.c_str());
+    } else if (!copy_message_.empty()) {
+      ImGui::TextWrapped("%s", copy_message_.c_str());
+    }
+
     // Apply and Revert buttons
     if (ImGui::Button("Apply Properties")) {
       core::LyraAuthoringState next_state = document_->authoring();
@@ -237,6 +275,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       if (edit_status.ok()) {
         property_draft_ = document_->authoring().maps[map_index].properties;
         property_baseline_ = property_draft_;
+        copy_message_.clear();
+        copy_failed_ = false;
       }
     }
     gui::WidgetIdRegistry::Instance().RegisterWidget(
@@ -244,6 +284,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     ImGui::SameLine();
     if (ImGui::Button("Revert Properties")) {
       property_draft_ = document_->authoring().maps[map_index].properties;
+      copy_message_.clear();
+      copy_failed_ = false;
     }
 
     if (!status_.ok()) {
