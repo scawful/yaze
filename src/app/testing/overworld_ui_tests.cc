@@ -13,6 +13,7 @@
 #include <optional>
 #include <string>
 
+#include "absl/status/status.h"
 #include "app/application.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
@@ -23,6 +24,7 @@
 #include "imgui.h"
 #include "nlohmann/json.hpp"
 #include "zelda3/game_data.h"
+#include "zelda3/resource_labels.h"
 #if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
 #elif __has_include("imgui_te_context.h")
@@ -1081,6 +1083,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
              room_rename);
     IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
              room_rename);
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == room_rename);
     IM_CHECK(manager->IsCurrentProjectDirty());
     IM_CHECK(default_room_label(*current_project) == room_default);
     ctx->ItemClick(rename_button);
@@ -1092,6 +1095,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(!room_labels::HasCustomRoomLabel(current_project, kRenamedRoom));
     IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
              room_default);
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == room_default);
     IM_CHECK(default_room_label(*current_project) == room_default);
     IM_CHECK(submit_room_name(room_rename));
     IM_CHECK(room_labels::HasCustomRoomLabel(current_project, kRenamedRoom));
@@ -1099,6 +1103,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
              room_rename);
     IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
              room_rename);
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == room_rename);
     IM_CHECK(manager->IsCurrentProjectDirty());
     IM_CHECK(default_room_label(*current_project) == room_default);
 
@@ -1150,6 +1155,53 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     const auto receipt_path =
         project_directory /
         ("lyra-canvas-native-pass-" + std::to_string(stamp) + ".json");
+
+    // Inactive session controls are hidden. Exercise their public edit guard
+    // with a retained editor, then restore the saved project for the driver.
+    IM_CHECK(!manager->IsCurrentProjectDirty());
+    const size_t project_session_id = manager->GetCurrentSessionId();
+    const size_t project_session_index = manager->GetCurrentSessionIndex();
+    const auto project_labels = current_project->resource_labels;
+    const auto project_saved_bytes = read_file(expected_project);
+    IM_CHECK(project_saved_bytes.has_value());
+    auto second_rom_path = receipt_path;
+    second_rom_path.replace_extension(".session-b.sfc");
+    // The startup guard confines rom_path and the receipt to the explicitly
+    // named disposable directory. copy_file refuses any existing destination.
+    IM_CHECK(fs::copy_file(rom_path, second_rom_path, fs::copy_options::none, ec));
+    IM_CHECK(!ec && read_file(second_rom_path) == rom_disk_before);
+    IM_CHECK(manager->OpenRomOrProject(second_rom_path.string()).ok());
+    ctx->Yield(3);
+    IM_CHECK(manager->GetCurrentSessionId() != project_session_id);
+    auto* second_project = manager->GetCurrentProject();
+    auto* second_rom = manager->GetCurrentRom();
+    IM_CHECK(second_project && second_rom && !second_rom->dirty());
+    IM_CHECK(!manager->IsCurrentProjectDirty());
+    const auto second_labels = second_project->resource_labels;
+    const auto second_global_label = zelda3::GetRoomLabel(kRenamedRoom);
+    const auto refused =
+        dungeon->ApplyRoomLabelEdit(kRenamedRoom, "Wrong Session");
+    IM_CHECK(absl::IsFailedPrecondition(refused));
+    IM_CHECK(refused.message() ==
+             "Activate this dungeon project before renaming rooms");
+    IM_CHECK(second_project->resource_labels == second_labels);
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == second_global_label);
+    IM_CHECK(!manager->IsCurrentProjectDirty() && !second_rom->dirty());
+    manager->SwitchToSession(project_session_index);
+    ctx->Yield(3);
+    IM_CHECK_EQ(manager->GetCurrentSessionId(), project_session_id);
+    current_project = manager->GetCurrentProject();
+    IM_CHECK(current_project &&
+             current_project->resource_labels == project_labels);
+    IM_CHECK(!manager->IsCurrentProjectDirty());
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == room_rename);
+    IM_CHECK(manager->GetCurrentRom() == rom && !rom->dirty());
+    IM_CHECK(rom->vector() == rom_before);
+    IM_CHECK(read_file(expected_project) == project_saved_bytes);
+    IM_CHECK(read_file(source_path) == saved);
+    IM_CHECK(read_file(rom_path) == rom_disk_before);
+    IM_CHECK(read_file(second_rom_path) == rom_disk_before);
+
     const nlohmann::json receipt = {
         {"test", "lyra_terrain/cross_map_stroke_undo_redo_project_save"},
         {"result", "PASS"},
@@ -1185,6 +1237,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
         {"room_override_label", room_rename},
         {"room_default_label", room_default},
         {"matrix_hover_room", kHoverRoom},
+        {"wrong_session_rename_refused", true},
         {"terrain_sha256", core::ComputeSourceArtifactSha256(*saved)},
         {"rom_sha256", core::ComputeSourceArtifactSha256(*rom_disk_before)}};
     std::ofstream output(receipt_path, std::ios::binary);
@@ -1379,6 +1432,7 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
       IM_CHECK(room_labels::HasCustomRoomLabel(current_project, room));
       IM_CHECK(room_labels::GetRoomLabel(current_project, room) ==
                override_label);
+      IM_CHECK(zelda3::GetRoomLabel(room) == override_label);
       const auto labels = current_project->resource_labels.find("room");
       IM_CHECK(labels != current_project->resource_labels.end());
       const auto default_it = labels->second.find(std::to_string(room));
