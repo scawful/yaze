@@ -181,7 +181,19 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-list-pot-items --room <hex>`
 - `dungeon-set-pot-item --room <hex> --index <int> --expect-position <hex> --expect-item <hex> --item <hex> --manifest <path> [--write]`
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
+- `dungeon-tile-types --room <hex> [--layer upper|lower|both] [--type <hex>] [--no-rows]`
 - `dungeon-set-room-property --room <hex> --property <name> --value <value> [--manifest <path>]`
+
+`dungeon-tile-types` prints the vanilla collision maps the game builds when a
+room loads on a new file: COLMAPA (`$7F2000`, from BG1) and COLMAPB
+(`$7F3000`, from BG2), 64x64 bytes each, from the room's drawn tilemaps and
+its blockset's tile attribute table (`$7EFE00`). Pits are type `0x20`.
+`matches` lists each cell of `--type` (default `0x20`) with the tile word it
+came from. The ZScream custom collision map is not merged in; see
+`custom_collision_cells` and `dungeon-list-custom-collision`. Run it on the
+patched ROM when the patch changes tile types. `dungeon-render
+--overlays=tiletype` paints the same pits (red: upper map, orange: lower map
+only).
 
 `dungeon-import-custom-collision-json` compares decoded room maps before
 writing. Replaying an exact source reports zero `changed_rooms` and

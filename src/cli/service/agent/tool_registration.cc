@@ -5,6 +5,7 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/dungeon_edit_commands.h"
+#include "cli/handlers/game/dungeon_tile_type_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
@@ -212,6 +213,12 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
                               "Get room tiles",
                               "dungeon-get-room-tiles --room=<id>", {}, true,
                               false, DungeonGetRoomTilesCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "dungeon-tile-types", "dungeon",
+      "Vanilla collision tile types ($7F2000/$7F3000); pits are 0x20",
+      "dungeon-tile-types --room=<id> [--layer=upper|lower|both] "
+      "[--type=<hex>] [--no-rows]",
+      {}, true, false, DungeonTileTypesCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL(
       "dungeon-set-room-property", "dungeon", "Set room property",
       "dungeon-set-room-property --room=<id> --key=<key> --value=<val>", {},
