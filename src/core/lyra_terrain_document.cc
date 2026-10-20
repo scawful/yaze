@@ -1,7 +1,9 @@
 #include "core/lyra_terrain_document.h"
 
 #include <algorithm>
+#include <memory>
 #include <set>
+#include <utility>
 
 #include "nlohmann/json.hpp"
 
@@ -80,12 +82,12 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Create(
     return absl::InvalidArgumentError(
         "Lyra fill tile is outside the bound atlas");
   }
-  LyraTerrainDocument document;
-  document.profile_ = profile;
-  for (auto& map : document.maps_)
+  auto document = std::unique_ptr<LyraTerrainDocument>(new LyraTerrainDocument);
+  document->profile_ = profile;
+  for (auto& map : document->maps_)
     map.fill(fill_tile);
-  document.MarkSaved();
-  return document;
+  document->MarkSaved();
+  return std::move(*document);
 }
 
 absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
@@ -154,7 +156,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
     if (!json["maps"].is_array() || json["maps"].size() != kMapCount) {
       return absl::InvalidArgumentError("Lyra terrain requires all 32 maps");
     }
-    auto document = std::move(*created);
+    auto& document = *created;
     std::array<bool, kMapCount> seen{};
     for (const auto& map : json["maps"]) {
       if (!HasKeys(map, {"map_id", "tiles16"}) ||
@@ -182,7 +184,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
       }
     }
     document.MarkSaved();
-    return document;
+    return std::move(document);
   } catch (const Json::exception& error) {
     return absl::InvalidArgumentError(std::string("Invalid Lyra terrain: ") +
                                       error.what());
