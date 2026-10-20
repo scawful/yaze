@@ -1463,7 +1463,7 @@ absl::Status EditorManager::SaveCurrentSessionAs() {
   if (!GetCurrentRom() || !GetCurrentRom()->is_loaded()) {
     return absl::FailedPreconditionError("No active ROM session");
   }
-  popup_manager_.Show(PopupID::kSaveAs);
+  popup_manager_->Show(PopupID::kSaveAs);
   return absl::OkStatus();
 }
 

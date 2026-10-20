@@ -10,6 +10,8 @@
 #import "app/application.h"
 #import "app/editor/shell/coordinator/ui_coordinator.h"
 #import "app/editor/shell/feedback/popup_manager.h"
+#import "app/editor/shell/feedback/toast_manager.h"
+#include "absl/strings/str_format.h"
 #import "app/editor/system/commands/shortcut_manager.h"
 #import "app/editor/system/workspace/workspace_window_manager.h"
 #import "app/platform/native_menu_bridge.h"
@@ -153,12 +155,24 @@ class EditorManagerMenuHost final : public nm::NativeMenuHost {
         case nm::MenuAction::kOpenProject:
           (void)m->OpenProject();
           break;
-        case nm::MenuAction::kSave:
-          (void)m->SaveCurrentSession();
+        case nm::MenuAction::kSave: {
+          const auto status = m->SaveCurrentSession();
+          if (!status.ok() && !absl::IsCancelled(status)) {
+            m->toast_manager()->Show(
+                absl::StrFormat("Failed to save: %s", status.message()),
+                yaze::editor::ToastType::kError);
+          }
           break;
-        case nm::MenuAction::kSaveAs:
-          (void)m->SaveCurrentSessionAs();
+        }
+        case nm::MenuAction::kSaveAs: {
+          const auto status = m->SaveCurrentSessionAs();
+          if (!status.ok() && !absl::IsCancelled(status)) {
+            m->toast_manager()->Show(
+                absl::StrFormat("Failed to save a copy: %s", status.message()),
+                yaze::editor::ToastType::kError);
+          }
           break;
+        }
         case nm::MenuAction::kCloseRom:
           m->CloseCurrentSession();
           break;

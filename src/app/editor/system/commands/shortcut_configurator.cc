@@ -323,18 +323,29 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       },
       Shortcut::Scope::kGlobal);
 
-  RegisterIfValid(shortcut_manager, "Save", {ImGuiMod_Ctrl, ImGuiKey_S},
-                  [editor_manager]() {
-                    if (editor_manager) {
-                      editor_manager->SaveCurrentSession();
-                    }
-                  });
+  RegisterIfValid(
+      shortcut_manager, "Save", {ImGuiMod_Ctrl, ImGuiKey_S},
+      [editor_manager]() {
+        if (editor_manager) {
+          const auto status = editor_manager->SaveCurrentSession();
+          if (!status.ok() && !absl::IsCancelled(status)) {
+            editor_manager->toast_manager()->Show(
+                absl::StrFormat("Failed to save: %s", status.message()),
+                ToastType::kError);
+          }
+        }
+      });
 
   RegisterIfValid(
       shortcut_manager, "Save As", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_S},
       [editor_manager]() {
         if (editor_manager) {
-          editor_manager->SaveCurrentSessionAs();
+          const auto status = editor_manager->SaveCurrentSessionAs();
+          if (!status.ok() && !absl::IsCancelled(status)) {
+            editor_manager->toast_manager()->Show(
+                absl::StrFormat("Failed to save a copy: %s", status.message()),
+                ToastType::kError);
+          }
         }
       },
       Shortcut::Scope::kGlobal);

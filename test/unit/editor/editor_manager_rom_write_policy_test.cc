@@ -29,6 +29,7 @@
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/graphics/sheet_png_transfer.h"
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/session/rom_lifecycle_manager.h"
@@ -2434,7 +2435,7 @@ TEST(GraphicsSaveStoplossTest,
 }
 
 TEST(EditorManagerRomWritePolicyTest,
-     CleanSaveDoesNotMaterializeUnopenedOverworldEditor) {
+     CleanSavePreservesContextBoundUnloadedOverworldEditor) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -2457,7 +2458,13 @@ TEST(EditorManagerRomWritePolicyTest,
   ASSERT_NE(dungeon_editor, nullptr);
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kDungeon),
             dungeon_editor);
-  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld), nullptr);
+  // Project context binding may create the editor without loading its assets.
+  auto* const overworld_editor = static_cast<OverworldEditor*>(
+      editor_set->GetExistingEditor(EditorType::kOverworld));
+  ASSERT_NE(overworld_editor, nullptr);
+  EXPECT_FALSE(overworld_editor->overworld().is_loaded());
+  const auto original_bytes = manager->GetCurrentRom()->vector();
+  const auto original_hash = util::ComputeFileSha1Hex(rom_path.string());
 
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
@@ -2467,7 +2474,11 @@ TEST(EditorManagerRomWritePolicyTest,
   ASSERT_OK(manager->SaveRom());
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kDungeon),
             dungeon_editor);
-  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld), nullptr);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld),
+            overworld_editor);
+  EXPECT_FALSE(overworld_editor->overworld().is_loaded());
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), original_bytes);
+  EXPECT_EQ(util::ComputeFileSha1Hex(rom_path.string()), original_hash);
 }
 
 TEST(GraphicsSaveStoplossTest,

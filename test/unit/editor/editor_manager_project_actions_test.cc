@@ -20,6 +20,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
@@ -415,6 +416,15 @@ TEST(EditorManagerProjectActionsTest,
 
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
   EXPECT_NE(std::string(status.message()).find("Preview and Publish"),
+            std::string::npos);
+  auto* save_shortcut = manager->shortcut_manager()->FindShortcut("Save");
+  ASSERT_NE(save_shortcut, nullptr);
+  ASSERT_TRUE(save_shortcut->callback);
+  save_shortcut->callback();
+  const auto& notifications = manager->toast_manager()->GetHistory();
+  ASSERT_FALSE(notifications.empty());
+  EXPECT_EQ(notifications.front().type, ToastType::kError);
+  EXPECT_NE(notifications.front().message.find("Preview and Publish"),
             std::string::npos);
   EXPECT_TRUE(message->HasUnpublishedMessageSourceChanges());
   EXPECT_TRUE(manager->IsCurrentProjectDirty());
