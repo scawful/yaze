@@ -55,6 +55,7 @@
 
 // Project headers
 #include "app/application.h"
+#include "app/editor/agent/agent_ui_controller.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/graphics_editor.h"
@@ -512,7 +513,7 @@ void EditorManager::ShowAIAgent() {
   // Apply saved agent settings from the current project when opening the Agent
   // UI to respect the user's preferred provider/model.
   // TODO: Implement LoadAgentSettingsFromProject in AgentChat or AgentEditor
-  agent_ui_.ShowAgent();
+  agent_ui_->ShowAgent();
   window_manager_.SetActiveCategory("Agent");
   layout_coordinator_.InitializeEditorLayout(EditorType::kAgent);
   for (const auto& window_id :
@@ -522,12 +523,18 @@ void EditorManager::ShowAIAgent() {
 }
 
 void EditorManager::ShowChatHistory() {
-  agent_ui_.ShowChatHistory();
+  agent_ui_->ShowChatHistory();
+}
+
+AgentEditor* EditorManager::GetAgentEditor() {
+  return agent_ui_->GetAgentEditor();
 }
 #endif
 
 EditorManager::EditorManager()
-    : project_manager_(&toast_manager_), rom_file_manager_(&toast_manager_) {
+    : agent_ui_(std::make_unique<AgentUiController>()),
+      project_manager_(&toast_manager_),
+      rom_file_manager_(&toast_manager_) {
   std::stringstream ss;
   ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
      << YAZE_VERSION_PATCH;
@@ -633,7 +640,7 @@ void EditorManager::InitializeSubsystems() {
   selection_properties_panel_.SetAgentCallbacks(
       [this](const std::string& prompt) {
 #if defined(YAZE_BUILD_AGENT_UI)
-        auto* agent_editor = agent_ui_.GetAgentEditor();
+        auto* agent_editor = agent_ui_->GetAgentEditor();
         if (!agent_editor) {
           return;
         }
@@ -660,7 +667,7 @@ void EditorManager::InitializeSubsystems() {
       right_drawer_manager_->ToggleDrawer(
           RightDrawerManager::DrawerType::kAgentChat);
     } else {
-      agent_ui_.ShowAgent();
+      agent_ui_->ShowAgent();
     }
   });
 
@@ -1706,9 +1713,9 @@ void EditorManager::InitializeServices() {
   project_file_editor_.SetToastManager(&toast_manager_);
 
   // Initialize agent UI (no-op when agent UI is disabled)
-  agent_ui_.Initialize(&toast_manager_, &proposal_drawer_,
-                       right_drawer_manager_.get(), &window_manager_,
-                       &user_settings_);
+  agent_ui_->Initialize(&toast_manager_, &proposal_drawer_,
+                        right_drawer_manager_.get(), &window_manager_,
+                        &user_settings_);
 
   // Note: Unified gRPC Server is started from Application::Initialize()
   // after gRPC infrastructure is properly set up
@@ -1787,7 +1794,7 @@ void EditorManager::InitializeServices() {
           settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
         });
   }
-  agent_ui_.ApplyUserSettingsDefaults();
+  agent_ui_->ApplyUserSettingsDefaults();
   // Apply sprite naming preference globally.
   yaze::zelda3::SetPreferHmagicSpriteNames(
       user_settings_.prefs().prefer_hmagic_sprite_names);
@@ -2375,7 +2382,7 @@ Editor* EditorManager::ResolveEditorForCategory(const std::string& category) {
   switch (type) {
     case EditorType::kAgent:
 #ifdef YAZE_BUILD_AGENT_UI
-      return agent_ui_.GetAgentEditor();
+      return agent_ui_->GetAgentEditor();
 #else
       return nullptr;
 #endif

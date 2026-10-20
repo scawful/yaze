@@ -13,7 +13,6 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "app/editor/agent/agent_ui_controller.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/core/editor_context.h"
@@ -67,6 +66,7 @@ class CanvasAutomationServiceImpl;
 
 namespace yaze::editor {
 class AgentEditor;
+class AgentUiController;
 namespace workflow {
 class HackWorkflowBackend;
 }  // namespace workflow
@@ -430,8 +430,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 #ifdef YAZE_BUILD_AGENT_UI
   void ShowAIAgent();
   void ShowChatHistory();
-  AgentEditor* GetAgentEditor() { return agent_ui_.GetAgentEditor(); }
-  AgentUiController* GetAgentUiController() { return &agent_ui_; }
+  AgentEditor* GetAgentEditor();
+  AgentUiController* GetAgentUiController() { return agent_ui_.get(); }
 #else
   AgentEditor* GetAgentEditor() { return nullptr; }
   AgentUiController* GetAgentUiController() { return nullptr; }
@@ -600,8 +600,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   ProposalDrawer proposal_drawer_;
   bool show_proposal_drawer_ = false;
 
-  // Agent UI (chat + editor), no-op when agent UI is disabled
-  AgentUiController agent_ui_;
+  // Agent UI (chat + editor), no-op when agent UI is disabled. Never null:
+  // allocated in the constructor and never reset.
+  std::unique_ptr<AgentUiController> agent_ui_;
 
   // Project file editor
   ProjectFileEditor project_file_editor_;

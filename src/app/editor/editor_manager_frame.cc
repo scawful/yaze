@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_controller.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/system/emulator_runtime_policy.h"
 #include "app/editor/system/shortcut_manager.h"
@@ -116,7 +117,7 @@ void EditorManager::UpdateEditorState() {
   }
 
   // Update agent editor dashboard
-  status_ = agent_ui_.Update();
+  status_ = agent_ui_->Update();
 
   // Ensure TestManager always has the current ROM
   static Rom* last_test_rom = nullptr;
@@ -165,13 +166,13 @@ void EditorManager::UpdateEditorState() {
 
   // Update ROM context for agent UI
   if (current_rom && current_rom->is_loaded()) {
-    agent_ui_.SetRomContext(current_rom);
-    agent_ui_.SetProjectContext(&current_project_);
+    agent_ui_->SetRomContext(current_rom);
+    agent_ui_->SetProjectContext(&current_project_);
     if (auto* editor_set = GetCurrentEditorSet()) {
-      agent_ui_.SetAsarWrapperContext(editor_set->GetAsarWrapper());
+      agent_ui_->SetAsarWrapperContext(editor_set->GetAsarWrapper());
       // Backend-agnostic symbol feed. Works for ASAR and z3dk alike; tools
       // prefer this pointer over reaching through the wrapper.
-      agent_ui_.SetAssemblySymbolTableContext(
+      agent_ui_->SetAssemblySymbolTableContext(
           &editor_set->GetAssemblySymbols());
     }
   }
@@ -401,9 +402,9 @@ void EditorManager::DrawInterface() {
 
   bool has_agent_info = false;
 #if defined(YAZE_BUILD_AGENT_UI)
-  if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
+  if (auto* agent_editor = agent_ui_->GetAgentEditor()) {
     auto* chat = agent_editor->GetAgentChat();
-    const auto* ctx = agent_ui_.GetContext();
+    const auto* ctx = agent_ui_->GetContext();
     if (ctx) {
       const auto& config = ctx->agent_config();
       bool active = chat && *chat->active();
@@ -597,7 +598,7 @@ void EditorManager::UpdateSystemUIs() {
   proposal_drawer_.SetRom(GetCurrentRom());
 
   // Agent UI popups
-  agent_ui_.DrawPopups();
+  agent_ui_->DrawPopups();
 
   // Resource label management
   if (ui_coordinator_ && ui_coordinator_->IsResourceLabelManagerVisible() &&
