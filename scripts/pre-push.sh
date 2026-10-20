@@ -214,13 +214,19 @@ has_ui_workflow_changes() {
 
 run_rom_guard() {
   print_header "ROM Guard"
-  local guard rc=0
+  local guard refs rc=0
   guard="$(dirname "${BASH_SOURCE[0]}")/check-no-roms.sh"
   if [[ -t 0 ]]; then
     bash "$guard" HEAD || rc=$?
   else
-    # Called from the git pre-push hook: stdin carries the pushed refs.
-    bash "$guard" --pre-push || rc=$?
+    # Git supplies pushed refs, but direct non-interactive calls have empty stdin.
+    # Those calls still need a HEAD scan before any build checks.
+    refs="$(cat)"
+    if [[ -n "$refs" ]]; then
+      printf '%s\n' "$refs" | bash "$guard" --pre-push || rc=$?
+    else
+      bash "$guard" HEAD || rc=$?
+    fi
   fi
   if [[ $rc -ne 0 ]]; then
     print_err "ROM guard failed. Do not bypass it with --no-verify."

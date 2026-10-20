@@ -23,7 +23,7 @@ PURGED_COMMITS=(
   476dd1cd1cc2653f52abb27e93b01db18974fdf6
   e36d81f357d4b5d323cb7f07b3fb38684804cc4f
 )
-ROM_PATTERN='\.(sfc|smc|fig|swc)$'
+ROM_PATTERN='\.([sS][fF][cC]|[sS][mM][cC]|[fF][iI][gG]|[sS][wW][cC])$'
 ZERO=0000000000000000000000000000000000000000
 
 status=0
@@ -31,6 +31,17 @@ status=0
 fail() {
   echo "ROM guard: $*" >&2
   status=1
+}
+
+# Git's -z output preserves paths containing tabs, newlines, or non-ASCII bytes.
+# Escape matched paths only for display; never match Git's quoted display form.
+format_rom_paths() {
+  local path
+  while IFS= read -r -d '' path; do
+    if [[ "$path" =~ $ROM_PATTERN ]]; then
+      printf '%q\n' "$path"
+    fi
+  done
 }
 
 # Fails if <tip> descends from a pre-purge commit.
@@ -54,18 +65,23 @@ check_commits() {
   if git rev-list --objects "$@" | grep "^$PURGED_BLOB" >/dev/null; then
     fail "$name contains the purged ROM blob $PURGED_BLOB."
   fi
-  hits="$(git log --format='commit %h' --name-only --diff-filter=A "$@" |
-    awk '/^commit / { c = $2; next }
-      tolower($0) ~ /\.(sfc|smc|fig|swc)$/ { print "  " c "  " $0 }')"
+  # A renamed ROM may be deleted before the tip. Treat renames as delete/add and
+  # inspect merge diffs so every introduced destination reaches the history scan.
+  if ! hits="$(git log -m --format= --name-only --diff-filter=A --no-renames -z "$@" |
+    format_rom_paths)"; then
+    fail "$name could not scan commit paths."
+  fi
   if [[ -n "$hits" ]]; then
     fail "$name adds ROM files:"
-    echo "$hits" >&2
+    sed 's/^/  /' <<<"$hits" >&2
   fi
 }
 
 check_tree() {
   local name="$1" tip="$2" files
-  files="$(git ls-tree -r --name-only "$tip" | grep -i -E "$ROM_PATTERN" || true)"
+  if ! files="$(git ls-tree -r --name-only -z "$tip" | format_rom_paths)"; then
+    fail "$name could not scan tree paths."
+  fi
   if [[ -n "$files" ]]; then
     fail "$name tracks ROM files:"
     sed 's/^/  /' <<<"$files" >&2
