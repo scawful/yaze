@@ -14,6 +14,8 @@
 #include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
 #include "app/editor/core/content_registry.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/gfx/backend/null_renderer.h"
@@ -1209,6 +1211,61 @@ TEST(EditorManagerProjectActionsTest, AutosavePersistsProjectOnlyWork) {
   project::YazeProject reopened;
   ASSERT_OK(reopened.Open(project_path.string()));
   EXPECT_EQ(reopened.name, "After Autosave");
+}
+
+TEST(EditorManagerProjectActionsTest,
+     DungeonRoomRenameMarksAuthoritativeProjectAndSurvivesSave) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_room_rename"));
+  const auto rom_path = temp_dir.path / "game.sfc";
+  const auto project_path = temp_dir.path / "game.yaze";
+  const auto other_rom = temp_dir.path / "other.sfc";
+  WriteRomFile(rom_path, "ROOM RENAME ROM");
+  WriteRomFile(other_rom, "ROOM RENAME OTHER");
+  WriteProjectFile(project_path, "Room Rename", rom_path);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_FALSE(manager->IsCurrentProjectDirty());
+
+  auto* dungeon = manager->GetCurrentEditorSet()->GetDungeonEditor();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_OK(dungeon->ApplyRoomLabelEdit(0x25, std::string("Flooded Hall")));
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  EXPECT_EQ(
+      dungeon_project_labels::GetRoomLabel(manager->GetCurrentProject(), 0x25),
+      "Flooded Hall");
+
+  // Save Project serializes EditorManager's project, not the session copy.
+  ASSERT_OK(manager->SaveProject());
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
+  {
+    project::YazeProject reopened;
+    ASSERT_OK(reopened.Open(project_path.string()));
+    EXPECT_EQ(dungeon_project_labels::GetRoomLabel(&reopened, 0x25),
+              "Flooded Hall");
+  }
+
+  ASSERT_OK(dungeon->ApplyRoomLabelEdit(0x25, std::nullopt));
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  ASSERT_OK(manager->SaveProject());
+  {
+    project::YazeProject reopened;
+    ASSERT_OK(reopened.Open(project_path.string()));
+    EXPECT_FALSE(dungeon_project_labels::HasCustomRoomLabel(&reopened, 0x25));
+  }
+
+  // A dungeon editor whose session is not active must not edit the project
+  // that another session owns.
+  ASSERT_OK(manager->OpenRomOrProject(other_rom.string()));
+  const auto refused =
+      dungeon->ApplyRoomLabelEdit(0x25, std::string("Wrong Session"));
+  EXPECT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
+  EXPECT_FALSE(dungeon_project_labels::HasCustomRoomLabel(
+      manager->GetCurrentProject(), 0x25));
 }
 
 TEST(EditorManagerProjectActionsTest,
