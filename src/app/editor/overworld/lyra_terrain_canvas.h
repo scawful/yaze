@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/painting/tile_brush.h"
@@ -52,11 +53,46 @@ class LyraTerrainCanvas {
   const gfx::Bitmap& atlas() const { return atlas_; }
   gfx::Bitmap& atlas() { return atlas_; }
   bool stroke_active() const { return stroke_active_; }
+  // All edits share the project's history and atomic sidecar save path.
+  absl::Status EditAuthoring(core::LyraAuthoringState after,
+                             zelda3::Overworld& overworld,
+                             UndoManager& history);
+  absl::Status PrepareMapAssets(zelda3::Overworld& overworld, int state);
+  gfx::Bitmap& MapAtlas(int map_id);
+  gfx::Bitmap* MapGraphics(int map_id);
+  void DrawProperties(int map_id, int& state, zelda3::Overworld& overworld,
+                      UndoManager& history);
+  bool entity_placement_active() const {
+    return document_ && placement_kind_ != 0;
+  }
+  void DrawSpritePreview(const gui::CanvasRuntime& canvas, int map_id,
+                         const core::LyraSpritePlacement& sprite);
+  void DrawEntities(const gui::CanvasRuntime& canvas, int world, int state);
+  void HandleEntityInput(const gui::CanvasRuntime& canvas, int world,
+                         zelda3::Overworld& overworld, UndoManager& history);
 
  private:
+  absl::Status ApplyAuthoring(core::LyraAuthoringState after,
+                              zelda3::Overworld& overworld,
+                              UndoManager& history);
+  struct MapAssets {
+    gfx::Bitmap atlas;
+    gfx::Bitmap graphics;
+    std::string binding;
+    std::unordered_map<int, std::unique_ptr<gfx::Bitmap>> sprites;
+    std::unordered_map<int, SDL_Rect> sprite_bounds;
+    ~MapAssets();
+  };
+  absl::StatusOr<std::unique_ptr<MapAssets>> ResolveMapAssets(
+      zelda3::Overworld& overworld, const core::LyraMapProperties& properties,
+      int state, bool textures);
+  absl::Status CheckAssetSources(zelda3::Overworld& overworld);
+  absl::Status ValidateMapAssets(zelda3::Overworld& overworld,
+                                 const core::LyraAuthoringState& authoring);
   absl::Status BindSource(zelda3::Overworld& overworld,
                           core::LyraTerrainProfile* profile, bool make_atlas);
-  void DrawTile(ImDrawList* draw, int tile, ImVec2 min, float size) const;
+  void DrawTile(ImDrawList* draw, const gfx::Bitmap& atlas, int tile,
+                ImVec2 min, float size) const;
   void PaintStamp(int x, int y);
   void PaintLine(int x, int y);
 
@@ -72,6 +108,24 @@ class LyraTerrainCanvas {
   int pattern_width_ = 0;
   int pattern_height_ = 0;
   absl::Status status_;
+  std::unordered_map<std::string, std::unique_ptr<MapAssets>> map_assets_;
+  std::array<MapAssets*, 32> displayed_assets_{};
+  int asset_state_ = 0;
+  gfx::Bitmap unavailable_atlas_;
+  std::vector<uint8_t> source_rom_, source_graphics_;
+  std::string source_metadata_;
+  absl::Status source_status_;
+  bool assets_valid_ = false;
+  int property_map_ = -1;
+  std::optional<core::LyraMapProperties> property_draft_;
+  std::optional<core::LyraMapProperties> property_baseline_;
+  int placement_kind_ = 0;
+  int placement_type_ = 0;
+  int placement_state_ = 0;
+  uint32_t selected_entity_ = 0;
+  int selected_kind_ = 0;
+  std::optional<core::LyraAuthoringState> drag_before_;
+  int drag_map_ = -1;
 };
 
 }  // namespace yaze::editor

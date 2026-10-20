@@ -336,7 +336,7 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
     callbacks.finalize_project_paint = [this] {
       FinishProjectPaint();
     };
-    callbacks.project_tile_atlas = [this] {
+    callbacks.project_tile_atlas = [this](int) {
       return &blockset_.atlas;
     };
     callbacks.allocated_rows = [this](int world) {

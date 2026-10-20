@@ -217,11 +217,24 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->current_mode = EditingMode::DRAW_TILE;
       editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
     }
+    const bool placing_project_entity =
+        editor_->lyra_canvas_.entity_placement_active();
     const bool project_terrain =
         editor_->IsProjectTerrainMap(editor_->current_map_) ||
         editor_->IsProjectTerrainMap(editor_->hovered_map_);
     if (editor_->current_world_ == 2 && editor_->lyra_canvas_.loaded()) {
+      const auto assets = editor_->lyra_canvas_.PrepareMapAssets(
+          editor_->overworld_, editor_->game_state_);
+      if (!assets.ok())
+        editor_->status_ = assets;
       editor_->lyra_canvas_.DrawSpecialWorld(canvas_rt);
+      if (editor_->show_entities_) {
+        editor_->lyra_canvas_.DrawEntities(canvas_rt, editor_->current_world_,
+                                           editor_->game_state_);
+        editor_->lyra_canvas_.HandleEntityInput(
+            canvas_rt, editor_->current_world_, editor_->overworld_,
+            editor_->undo_manager_);
+      }
       if (editor_->IsProjectTerrainMap(editor_->current_map_)) {
         const int local_map = editor_->current_map_ - 0x80;
         editor_->ow_map_canvas_.DrawOutline(local_map % 8 * kOverworldMapSize,
@@ -232,8 +245,9 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     } else {
       editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
     }
-    const bool tile_tool = editor_->current_mode == EditingMode::DRAW_TILE ||
-                           editor_->current_mode == EditingMode::FILL_TILE;
+    const bool tile_tool = !placing_project_entity &&
+                           (editor_->current_mode == EditingMode::DRAW_TILE ||
+                            editor_->current_mode == EditingMode::FILL_TILE);
     if (!tile_tool && editor_->tile_painting_)
       editor_->tile_painting_->SuspendCanvasGestures();
     if (project_terrain) {
@@ -261,6 +275,14 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       return;
     }
 
+    if (editor_->current_world_ != 2 && editor_->lyra_canvas_.loaded() &&
+        editor_->show_entities_) {
+      editor_->lyra_canvas_.DrawEntities(canvas_rt, editor_->current_world_,
+                                         editor_->game_state_);
+      editor_->lyra_canvas_.HandleEntityInput(
+          canvas_rt, editor_->current_world_, editor_->overworld_,
+          editor_->undo_manager_);
+    }
     // Draw all entities using the new CanvasRuntime-based methods
     if (editor_->entity_renderer_ && editor_->show_entities_) {
       editor_->entity_renderer_->DrawExits(canvas_rt, editor_->current_world_);
@@ -284,11 +306,15 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->HandleMapInteraction();
     }
 
-    if (editor_->current_mode == EditingMode::DRAW_TILE ||
-        editor_->current_mode == EditingMode::FILL_TILE) {
+    if (tile_tool) {
       editor_->CheckForOverworldEdits();
     }
 
+    if (placing_project_entity) {
+      gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
+      ImGui::EndChild();
+      return;
+    }
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---
     if (editor_->current_mode == EditingMode::MOUSE &&
         editor_->TryPlaceArmedItem()) {
@@ -659,8 +685,9 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
 
   const bool project_terrain =
       editor_->IsProjectTerrainMap(editor_->current_map_);
-  gfx::Bitmap& atlas = project_terrain ? editor_->lyra_canvas_.atlas()
-                                       : editor_->tile16_blockset_.atlas;
+  gfx::Bitmap& atlas =
+      project_terrain ? editor_->lyra_canvas_.MapAtlas(editor_->current_map_)
+                      : editor_->tile16_blockset_.atlas;
   bool atlas_ready =
       atlas.is_active() && (project_terrain || editor_->map_blockset_loaded_);
   auto result = editor_->blockset_selector_->Render(atlas, atlas_ready);
@@ -719,7 +746,13 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
   const int graphics_map = editor_->IsProjectTerrainMap(editor_->current_map_)
                                ? 0x3A
                                : editor_->current_map_;
-  if (editor_->overworld_.is_loaded()) {
+  const bool project_graphics =
+      editor_->IsProjectTerrainMap(editor_->current_map_);
+  if (project_graphics) {
+    RETURN_IF_ERROR(editor_->lyra_canvas_.PrepareMapAssets(
+        editor_->overworld_, editor_->game_state_));
+  }
+  if (!project_graphics && editor_->overworld_.is_loaded()) {
     // Always ensure current map graphics are loaded
     if (!editor_->current_graphics_set_.contains(graphics_map)) {
       auto status = editor_->overworld_.EnsureMapBuilt(graphics_map);
@@ -768,8 +801,13 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
   auto canvas_rt = gui::BeginCanvas(editor_->current_gfx_canvas_, frame_opts);
   gui::EndPadding();
 
-  if (editor_->current_graphics_set_.contains(graphics_map) &&
-      editor_->current_graphics_set_[graphics_map]->is_active()) {
+  if (project_graphics &&
+      editor_->lyra_canvas_.MapGraphics(editor_->current_map_)) {
+    editor_->current_gfx_canvas_.DrawBitmap(
+        *editor_->lyra_canvas_.MapGraphics(editor_->current_map_), 2, 2,
+        sheet_layout.display_scale);
+  } else if (editor_->current_graphics_set_.contains(graphics_map) &&
+             editor_->current_graphics_set_[graphics_map]->is_active()) {
     editor_->current_gfx_canvas_.DrawBitmap(
         *editor_->current_graphics_set_[graphics_map], 2, 2,
         sheet_layout.display_scale);
@@ -866,6 +904,14 @@ void OverworldCanvasRenderer::FilterHoveredEntityByMode() {
 }
 
 void OverworldCanvasRenderer::DrawMapProperties() {
+  if (editor_->IsProjectTerrainMap(editor_->current_map_)) {
+    if (ImGui::BeginChild("OverworldSidebar", ImVec2(0, 0), false))
+      editor_->lyra_canvas_.DrawProperties(
+          editor_->current_map_, editor_->game_state_, editor_->overworld_,
+          editor_->undo_manager_);
+    ImGui::EndChild();
+    return;
+  }
   // The Background Color and Visual Effects buttons open the same floating
   // editors the canvas context menu uses (drawn in OverworldEditor::Update).
   if (editor_->sidebar_) {

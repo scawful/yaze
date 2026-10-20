@@ -165,6 +165,7 @@ set(
   app/editor/overworld/maps/overworld_property_edit.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/lyra_terrain_canvas.cc
+  app/editor/overworld/lyra_map_authoring_ui.cc
   app/editor/dungeon/ui/window/custom_collision_panel.cc
   app/editor/dungeon/ui/window/item_editor_panel.cc
   app/editor/dungeon/ui/window/water_fill_panel.cc

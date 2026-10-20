@@ -17,6 +17,7 @@
 #include "core/source_artifact_publisher.h"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
+#include "zelda3/game_data.h"
 #if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
 #elif __has_include("imgui_te_context.h")
@@ -735,6 +736,79 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(document->maps() == *filled);
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
 
+    // Native property controls use the same project history as terrain.
+    overworld->set_current_map(0xA0);
+    manager->OpenEditorAndPanelsFromFlags("Overworld", "overworld.properties");
+    ctx->Yield(5);
+    const auto property_input =
+        widgets.GetWidgetId("LyraMapProperties/input:MainPalette");
+    IM_CHECK(property_input != 0);
+    const auto property_item = ctx->ItemInfo(property_input);
+    IM_CHECK(property_item.Window != nullptr);
+    ctx->SetRef(property_item.Window);
+    ctx->WindowFocus("");
+    const auto authoring_before =
+        std::make_unique<core::LyraAuthoringState>(document->authoring());
+    const int next_palette =
+        document->authoring().maps[0].properties.main_palette == 0 ? 1 : 0;
+    ctx->ItemInputValue(property_input, std::to_string(next_palette).c_str());
+    ctx->ItemClick(widgets.GetWidgetId("LyraMapProperties/button:Apply"));
+    ctx->Yield(3);
+    IM_CHECK_EQ(document->authoring().maps[0].properties.main_palette,
+                next_palette);
+    IM_CHECK(overworld->Undo().ok());
+    IM_CHECK(document->authoring() == *authoring_before);
+    IM_CHECK(overworld->Redo().ok());
+    IM_CHECK_EQ(document->authoring().maps[0].properties.main_palette,
+                next_palette);
+    ctx->Yield(3);
+    const auto sprite_count = document->authoring().maps[0].sprites.size();
+    ctx->ItemClick(widgets.GetWidgetId("LyraMapProperties/button:AddSprite"));
+    ctx->Yield(2);
+    IM_CHECK_EQ(document->authoring().maps[0].sprites.size(), sprite_count + 1);
+    auto authored =
+        std::make_unique<core::LyraAuthoringState>(document->authoring());
+    authored->maps[1].properties.graphics_sheets[0] = 0;
+    authored->maps[1].properties.graphics_sheets[1] = 0xFF;
+    authored->maps[0].doors = {{900001, 9, 10, std::nullopt}};
+    authored->maps[0].exits = {{900002, 0x105, 11, 12, std::nullopt}};
+    authored->flight_points = {
+        {900003, 0xA0, 13, 14, "Lyra test", std::nullopt},
+        {900004, 0x20, 15, 16, "Legacy test", std::nullopt}};
+    const auto edit = overworld->lyra_canvas_.EditAuthoring(
+        *authored, overworld->overworld(), overworld->undo_manager());
+    IM_CHECK(edit.ok());
+    const auto expected_authoring =
+        std::make_unique<core::LyraAuthoringState>(document->authoring());
+    IM_CHECK(overworld->Undo().ok());
+    IM_CHECK(overworld->Redo().ok());
+    IM_CHECK(document->authoring() == *expected_authoring);
+    for (int state = 0; state < 3; ++state)
+      IM_CHECK(overworld->lyra_canvas_
+                   .PrepareMapAssets(overworld->overworld(), state)
+                   .ok());
+    IM_CHECK(overworld->lyra_canvas_.PrepareMapAssets(overworld->overworld(), 0)
+                 .ok());
+    const auto* source_map = overworld->overworld().overworld_map(0x3A);
+    auto normal = *source_map;
+    normal.ClearInheritedAreaProperties();
+    normal.set_main_palette(next_palette);
+    IM_CHECK(normal.LoadPalette().ok());
+    IM_CHECK_EQ(overworld->lyra_canvas_.MapAtlas(0xA0).palette()[33].snes(),
+                normal.current_palette()[33].snes());
+    IM_CHECK_EQ(overworld->lyra_canvas_.MapGraphics(0xA1)->vector()[0],
+                static_cast<uint8_t>(
+                    source_map->game_data()->graphics_buffer[0] + 0x88));
+    auto invalid_authoring =
+        std::make_unique<core::LyraAuthoringState>(document->authoring());
+    invalid_authoring->maps[0].properties.main_palette = 0xFE;
+    IM_CHECK(!overworld->lyra_canvas_
+                  .EditAuthoring(*invalid_authoring, overworld->overworld(),
+                                 overworld->undo_manager())
+                  .ok());
+    IM_CHECK(document->authoring() == *expected_authoring);
+    IM_CHECK(document->maps() == *filled);
+
     const auto save_status = manager->SaveProject();
     ctx->Yield(3);
     if (!save_status.ok()) {
@@ -778,6 +852,8 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
         {"rectangle_stamp", true},
         {"pattern_fill", true},
         {"invalid_brush_refused_atomically", true},
+        {"map_authoring_native", true},
+        {"main_palette", next_palette},
         {"pattern_width", rectangle.width},
         {"pattern_height", rectangle.height},
         {"pattern_tile_ids", rectangle.tile_ids},
@@ -950,6 +1026,22 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
         for (int x = 0; x < 32; ++x)
           IM_CHECK(document->tile(32 + x, 32 + y).value() ==
                    rectangle.at(x % rectangle.width, y % rectangle.height));
+    }
+    if (prior.value("map_authoring_native", false)) {
+      IM_CHECK_EQ(document->authoring().maps[0].properties.main_palette,
+                  prior.at("main_palette").get<int>());
+      IM_CHECK_EQ(document->authoring().maps[1].properties.graphics_sheets[0],
+                  0);
+      IM_CHECK_EQ(document->authoring().maps[1].properties.graphics_sheets[1],
+                  255);
+      IM_CHECK(!document->authoring().maps[0].sprites.empty());
+      IM_CHECK_EQ(document->authoring().maps[0].doors.at(0).id, 900001);
+      IM_CHECK(
+          !document->authoring().maps[0].doors.at(0).entrance_id.has_value());
+      IM_CHECK_EQ(document->authoring().maps[0].exits.at(0).room_id, 0x105);
+      IM_CHECK_EQ(document->authoring().flight_points.size(), 2);
+      IM_CHECK_EQ(document->authoring().flight_points.at(0).map_id, 0xA0);
+      IM_CHECK_EQ(document->authoring().flight_points.at(1).map_id, 0x20);
     }
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), 0);
 

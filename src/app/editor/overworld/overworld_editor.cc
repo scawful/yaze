@@ -277,6 +277,10 @@ void OverworldEditor::Initialize() {
     SetPreviewStoryState(state);
   };
   sidebar_->on_story_changed = toolbar_->on_story_changed;
+  sidebar_->draw_project_tools = [this](int map_id, int& state) {
+    if (lyra_canvas_.loaded())
+      lyra_canvas_.DrawProperties(map_id, state, overworld_, undo_manager_);
+  };
   toolbar_->on_world_changed = [this](int world) {
     SwitchToWorld(world);
   };
@@ -490,8 +494,8 @@ void OverworldEditor::InitTilePaintingManager() {
   callbacks.finalize_project_paint = [this]() {
     lyra_canvas_.FinishStroke(undo_manager_);
   };
-  callbacks.project_tile_atlas = [this]() -> const gfx::Bitmap* {
-    return lyra_canvas_.loaded() ? &lyra_canvas_.atlas() : nullptr;
+  callbacks.project_tile_atlas = [this](int map_id) -> const gfx::Bitmap* {
+    return lyra_canvas_.loaded() ? &lyra_canvas_.MapAtlas(map_id) : nullptr;
   };
   callbacks.allocated_rows = [this](int world) {
     return world == 2 && !lyra_canvas_.loaded() ? 4 : 8;

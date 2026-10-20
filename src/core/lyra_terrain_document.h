@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -13,6 +14,77 @@
 #include "absl/status/statusor.h"
 
 namespace yaze::core {
+
+struct LyraMapProperties {
+  std::array<uint8_t, 8> graphics_sheets = {0x3A, 0x3B, 0x3C, 0x3D,
+                                            0x47, 0x48, 0x3E, 0x5B};
+  uint8_t main_palette = 0;
+  uint8_t palette_set = 1;
+  uint8_t animated_sheet = 0x5B;
+  std::array<int, 3> sprite_graphics = {-1, -1, -1};
+  std::array<int, 3> sprite_palettes = {-1, -1, -1};
+  std::array<uint8_t, 4> music = {0, 0, 0, 0};
+  uint16_t message_id = 0;
+
+  bool operator==(const LyraMapProperties&) const = default;
+};
+
+struct LyraSpritePlacement {
+  uint32_t id = 0;
+  uint8_t sprite_id = 0;
+  int x = 0;
+  int y = 0;
+  int state = 0;
+
+  bool operator==(const LyraSpritePlacement&) const = default;
+};
+
+struct LyraDoorPlacement {
+  uint32_t id = 0;
+  int x = 0;
+  int y = 0;
+  std::optional<int> entrance_id;
+
+  bool operator==(const LyraDoorPlacement&) const = default;
+};
+
+struct LyraExitPlacement {
+  uint32_t id = 0;
+  int room_id = 0;
+  int x = 0;
+  int y = 0;
+  std::optional<int> exit_row;
+
+  bool operator==(const LyraExitPlacement&) const = default;
+};
+
+struct LyraMapAuthoring {
+  LyraMapProperties properties;
+  std::vector<LyraSpritePlacement> sprites;
+  std::vector<LyraDoorPlacement> doors;
+  std::vector<LyraExitPlacement> exits;
+  std::array<std::string, 3> asset_bindings;
+
+  bool operator==(const LyraMapAuthoring&) const = default;
+};
+
+struct LyraFlightPoint {
+  uint32_t id = 0;
+  int map_id = 0;
+  int x = 0;
+  int y = 0;
+  std::string name;
+  std::optional<int> runtime_slot;
+
+  bool operator==(const LyraFlightPoint&) const = default;
+};
+
+struct LyraAuthoringState {
+  std::array<LyraMapAuthoring, 32> maps;
+  std::vector<LyraFlightPoint> flight_points;
+
+  bool operator==(const LyraAuthoringState&) const = default;
+};
 
 // A Tile16 number is meaningful only with the exact definitions and rendered
 // assets from which it was selected. Fingerprints are content-derived by the
@@ -50,7 +122,7 @@ struct LyraTerrainStroke {
 
 class LyraTerrainDocument {
  public:
-  static constexpr int kSchemaVersion = 1;
+  static constexpr int kSchemaVersion = 2;
   static constexpr int kFirstMap = 0xA0;
   static constexpr int kMapCount = 32;
   static constexpr int kColumns = 8;
@@ -70,6 +142,9 @@ class LyraTerrainDocument {
 
   const LyraTerrainProfile& profile() const { return profile_; }
   const Maps& maps() const { return maps_; }
+  const LyraAuthoringState& authoring() const { return authoring_; }
+  absl::Status SetAuthoring(const LyraAuthoringState& before,
+                            const LyraAuthoringState& after);
   absl::StatusOr<uint16_t> tile(int global_x, int global_y) const;
   absl::StatusOr<uint16_t> MapTile(int map_id, int x, int y) const;
 
@@ -81,14 +156,21 @@ class LyraTerrainDocument {
   // Refuses stale or malformed history before changing any cell.
   absl::Status ApplyStroke(const LyraTerrainStroke& stroke, bool undo);
 
-  bool dirty() const { return maps_ != saved_maps_; }
-  void MarkSaved() { saved_maps_ = maps_; }
+  bool dirty() const {
+    return maps_ != saved_maps_ || authoring_ != saved_authoring_;
+  }
+  void MarkSaved() {
+    saved_maps_ = maps_;
+    saved_authoring_ = authoring_;
+  }
 
  private:
   LyraTerrainDocument() = default;
   LyraTerrainProfile profile_;
   Maps maps_{};
   Maps saved_maps_{};
+  LyraAuthoringState authoring_{};
+  LyraAuthoringState saved_authoring_{};
   bool stroke_active_ = false;
   LyraTerrainStroke active_stroke_;
   std::unordered_map<size_t, size_t> active_cells_;

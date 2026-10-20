@@ -500,11 +500,11 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
       const bool project_tile = IsProjectTile(position);
       const bool use_piece = !project_tile && has_piece[map_id];
       const gfx::Bitmap* source_atlas =
-          project_tile
-              ? (callbacks_.project_tile_atlas ? callbacks_.project_tile_atlas()
-                                               : nullptr)
-              : (use_piece ? &map_brush_previews_[map_id]
-                           : &deps_.tile16_blockset->atlas);
+          project_tile ? (callbacks_.project_tile_atlas
+                              ? callbacks_.project_tile_atlas(map_id)
+                              : nullptr)
+                       : (use_piece ? &map_brush_previews_[map_id]
+                                    : &deps_.tile16_blockset->atlas);
       if (!source_atlas)
         continue;
       const auto& atlas = *source_atlas;

@@ -68,7 +68,17 @@ TEST(LyraTerrainDocumentTest, RefusesMalformedSchemaDimensionsMapsAndTiles) {
   const auto original = nlohmann::json::parse(document->Serialize());
   using Mutation = std::function<void(nlohmann::json&)>;
   const std::vector<Mutation> mutations = {
-      [](auto& j) { j["schema_version"] = 2; },
+      [](auto& j) { j["schema_version"] = 3; },
+      [](auto& j) { j["schema_version"] = uint64_t{4294967298}; },
+      [](auto& j) { j["schema_version"] = int64_t{-4294967294}; },
+      [](auto& j) {
+        j["maps"][0]["authoring"]["properties"]["sprite_graphics"][0] =
+            uint64_t{18446744073709551615ULL};
+      },
+      [](auto& j) {
+        j["maps"][0]["authoring"]["properties"]["sprite_palettes"][0] =
+            uint64_t{9223372036854775808ULL};
+      },
       [](auto& j) { j["columns"] = 4; },
       [](auto& j) { j["rows"] = 8; },
       [](auto& j) { j["map_width"] = 16; },
@@ -185,6 +195,220 @@ TEST(LyraTerrainDocumentTest, StaleAndMalformedHistoryAreAtomic) {
   ASSERT_TRUE(document->BeginStroke().ok());
   EXPECT_FALSE(document->ApplyStroke(*stroke, true).ok());
   document->CancelStroke();
+}
+
+TEST(LyraTerrainDocumentTest, Schema1WaterFilledMapsMigrationExact) {
+  // Construct a strict schema 1 JSON string with fill_tile = 5 (water) across all 32 maps.
+  nlohmann::json j;
+  j["schema"] = "yaze.lyra-terrain";
+  j["schema_version"] = 1;
+  j["columns"] = 8;
+  j["rows"] = 4;
+  j["map_width"] = 32;
+  j["map_height"] = 32;
+  j["tile_pixels"] = 16;
+  j["profile"] = {{"graphics_sheets", Profile().graphics_sheets},
+                  {"main_palette", Profile().main_palette},
+                  {"palette_set", Profile().palette_set},
+                  {"animated_sheet", Profile().animated_sheet},
+                  {"tile_count", Profile().tile_count},
+                  {"tile16_definition_fingerprint",
+                   Profile().tile16_definition_fingerprint},
+                  {"graphics_fingerprint", Profile().graphics_fingerprint},
+                  {"palette_fingerprint", Profile().palette_fingerprint},
+                  {"animation_fingerprint", Profile().animation_fingerprint}};
+  j["maps"] = nlohmann::json::array();
+  for (int m = 0; m < 32; ++m) {
+    nlohmann::json rows = nlohmann::json::array();
+    for (int y = 0; y < 32; ++y) {
+      rows.push_back(std::vector<int>(32, 5));
+    }
+    j["maps"].push_back({{"map_id", 0xA0 + m}, {"tiles16", rows}});
+  }
+
+  auto parsed = LyraTerrainDocument::Parse(j.dump(), Profile());
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  EXPECT_FALSE(parsed->dirty());
+
+  // Check that every tile in every map is unchanged (5).
+  for (int m = 0; m < 32; ++m) {
+    for (int y = 0; y < 32; ++y) {
+      for (int x = 0; x < 32; ++x) {
+        EXPECT_EQ(parsed->MapTile(0xA0 + m, x, y).value(), 5);
+      }
+    }
+    // Check that properties migrated to exact defaults.
+    EXPECT_EQ(parsed->authoring().maps[m].properties, LyraMapProperties{});
+    EXPECT_TRUE(parsed->authoring().maps[m].sprites.empty());
+    EXPECT_TRUE(parsed->authoring().maps[m].doors.empty());
+    EXPECT_TRUE(parsed->authoring().maps[m].exits.empty());
+    EXPECT_EQ(parsed->authoring().maps[m].asset_bindings,
+              (std::array<std::string, 3>{"", "", ""}));
+  }
+  EXPECT_TRUE(parsed->authoring().flight_points.empty());
+}
+
+TEST(LyraTerrainDocumentTest, Schema2FullRoundtripWithAuthoringEntities) {
+  auto created = LyraTerrainDocument::Create(Profile(), 1);
+  ASSERT_TRUE(created.ok());
+
+  LyraAuthoringState auth_state = created->authoring();
+  // Map 0: bound fingerprints and non-default properties
+  auth_state.maps[0].asset_bindings = {"bind:defs-1", "bind:gfx-1",
+                                       "bind:pal-1"};
+  auth_state.maps[0].properties.main_palette = 2;
+  auth_state.maps[0].properties.message_id = 0x1234;
+  auth_state.maps[0].properties.sprite_graphics = {0x00, 0xFF, -1};
+  auth_state.maps[0].sprites.push_back({10, 0x15, 5, 6, 1});
+  auth_state.maps[0].doors.push_back({20, 10, 12, 0x50});
+  auth_state.maps[0].exits.push_back({30, 0x100, 15, 16, 0x20});
+
+  // Map 1: entity with nullable fields omitted / empty
+  auth_state.maps[1].doors.push_back({21, 1, 2, std::nullopt});
+  auth_state.maps[1].exits.push_back({31, 10, 3, 4, std::nullopt});
+
+  // Flight points
+  auth_state.flight_points.push_back(
+      {40, 0xA0, 8, 9, "Village Center", std::nullopt});
+  auth_state.flight_points.push_back(
+      {41, 0xBF, 31, 31, "Tail Point", std::nullopt});
+
+  ASSERT_TRUE(created->SetAuthoring(created->authoring(), auth_state).ok());
+  EXPECT_TRUE(created->dirty());
+  created->MarkSaved();
+  EXPECT_FALSE(created->dirty());
+
+  std::string serialized = created->Serialize();
+  auto roundtripped = LyraTerrainDocument::Parse(serialized, Profile());
+  ASSERT_TRUE(roundtripped.ok()) << roundtripped.status();
+  EXPECT_EQ(roundtripped->authoring(), auth_state);
+  EXPECT_FALSE(roundtripped->dirty());
+}
+
+TEST(LyraTerrainDocumentTest, PropertyOnlyDirtySavedUndoViaSetAuthoring) {
+  auto doc = LyraTerrainDocument::Create(Profile(), 0);
+  ASSERT_TRUE(doc.ok());
+  EXPECT_FALSE(doc->dirty());
+
+  const auto baseline = doc->authoring();
+  auto modified = baseline;
+  modified.maps[0].asset_bindings = {"fp:1", "fp:2", "fp:3"};
+  modified.maps[0].properties.message_id = 42;
+
+  // Stale CAS refusal
+  LyraAuthoringState wrong_before = baseline;
+  wrong_before.maps[0].properties.message_id = 999;
+  EXPECT_FALSE(doc->SetAuthoring(wrong_before, modified).ok());
+  EXPECT_FALSE(doc->dirty());
+
+  // Active stroke CAS refusal
+  ASSERT_TRUE(doc->BeginStroke().ok());
+  EXPECT_FALSE(doc->SetAuthoring(baseline, modified).ok());
+  doc->CancelStroke();
+
+  // Valid SetAuthoring
+  ASSERT_TRUE(doc->SetAuthoring(baseline, modified).ok());
+  EXPECT_TRUE(doc->dirty());
+
+  // Save
+  doc->MarkSaved();
+  EXPECT_FALSE(doc->dirty());
+
+  // Undo back to baseline
+  ASSERT_TRUE(doc->SetAuthoring(modified, baseline).ok());
+  EXPECT_TRUE(doc->dirty());
+  ASSERT_TRUE(doc->SetAuthoring(baseline, modified).ok());
+  EXPECT_FALSE(doc->dirty());
+}
+
+TEST(LyraTerrainDocumentTest,
+     RefusesDuplicateIdsPositionsFloatsAndInvalidAuthoring) {
+  auto doc = LyraTerrainDocument::Create(Profile(), 0);
+  ASSERT_TRUE(doc.ok());
+  const auto base = doc->authoring();
+
+  // Duplicate sprite ID
+  {
+    auto bad = base;
+    bad.maps[0].sprites.push_back({1, 0, 0, 0, 0});
+    bad.maps[1].sprites.push_back({1, 0, 1, 1, 0});
+    EXPECT_FALSE(doc->SetAuthoring(base, bad).ok());
+  }
+  // Zero ID
+  {
+    auto bad = base;
+    bad.maps[0].doors.push_back({0, 1, 1, std::nullopt});
+    EXPECT_FALSE(doc->SetAuthoring(base, bad).ok());
+  }
+  // Duplicate doors at same (map, x, y)
+  {
+    auto bad = base;
+    bad.maps[0].doors.push_back({1, 5, 5, std::nullopt});
+    bad.maps[0].doors.push_back({2, 5, 5, std::nullopt});
+    EXPECT_FALSE(doc->SetAuthoring(base, bad).ok());
+  }
+  // Sprite overlapping positions ARE allowed
+  {
+    auto good = base;
+    good.maps[0].sprites.push_back({1, 0, 5, 5, 0});
+    good.maps[0].sprites.push_back({2, 1, 5, 5, 0});
+    EXPECT_TRUE(doc->SetAuthoring(base, good).ok());
+    ASSERT_TRUE(doc->SetAuthoring(good, base).ok());
+  }
+  // Duplicate flight names ARE allowed with unique IDs
+  {
+    auto good = base;
+    good.flight_points.push_back({1, 0xA0, 0, 0, "SameName", std::nullopt});
+    good.flight_points.push_back({2, 0xA1, 0, 0, "SameName", std::nullopt});
+    EXPECT_TRUE(doc->SetAuthoring(base, good).ok());
+    ASSERT_TRUE(doc->SetAuthoring(good, base).ok());
+  }
+  // Non-null runtime_slot in flight point rejected
+  {
+    auto bad = base;
+    bad.flight_points.push_back({1, 0xA0, 0, 0, "Name", 0});
+    EXPECT_FALSE(doc->SetAuthoring(base, bad).ok());
+  }
+  // Empty bindings with non-default properties rejected
+  {
+    auto bad = base;
+    bad.maps[0].asset_bindings = {"", "", ""};
+    bad.maps[0].properties.main_palette = 5;
+    EXPECT_FALSE(doc->SetAuthoring(base, bad).ok());
+  }
+  // Partial empty bindings rejected
+  {
+    auto bad = base;
+    bad.maps[0].asset_bindings = {"bind:1", "", "bind:3"};
+    EXPECT_FALSE(doc->SetAuthoring(base, bad).ok());
+  }
+  // JSON parse mutations: float fields and unknown keys
+  const auto original = nlohmann::json::parse(doc->Serialize());
+  {
+    auto j = original;
+    j["maps"][0]["authoring"]["properties"]["main_palette"] = 1.5;
+    EXPECT_FALSE(LyraTerrainDocument::Parse(j.dump(), Profile()).ok());
+  }
+  {
+    auto j = original;
+    j["maps"][0]["authoring"]["unknown_key"] = 123;
+    EXPECT_FALSE(LyraTerrainDocument::Parse(j.dump(), Profile()).ok());
+  }
+  {
+    auto j = original;
+    j["maps"][0]["authoring"]["sprites"].push_back(
+        {{"id", 1}, {"sprite_id", 0}, {"x", 0.0}, {"y", 0}, {"state", 0}});
+    EXPECT_FALSE(LyraTerrainDocument::Parse(j.dump(), Profile()).ok());
+  }
+  {
+    auto j = original;
+    j["maps"][0]["authoring"]["exits"].push_back({{"id", 1},
+                                                  {"room_id", 0x128},
+                                                  {"x", 0},
+                                                  {"y", 0},
+                                                  {"exit_row", nullptr}});
+    EXPECT_FALSE(LyraTerrainDocument::Parse(j.dump(), Profile()).ok());
+  }
 }
 
 }  // namespace

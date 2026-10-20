@@ -60,7 +60,7 @@ struct TilePaintingCallbacks {
                              int height, bool finalize)>
       paint_project_pattern;
   std::function<void()> finalize_project_paint;
-  std::function<const gfx::Bitmap*()> project_tile_atlas;
+  std::function<const gfx::Bitmap*(int map_id)> project_tile_atlas;
   std::function<int(int world)> allocated_rows;
 };
 

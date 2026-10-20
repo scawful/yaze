@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <set>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
@@ -12,6 +13,7 @@
 #include "core/source_artifact_publisher.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
 namespace {
@@ -100,6 +102,44 @@ class TerrainStrokeAction final : public UndoAction {
   std::shared_ptr<Document> document_;
   core::LyraTerrainStroke stroke_;
 };
+class AuthoringAction final : public UndoAction {
+ public:
+  AuthoringAction(std::shared_ptr<Document> document,
+                  core::LyraAuthoringState before,
+                  core::LyraAuthoringState after)
+      : document_(std::move(document)),
+        before_(std::move(before)),
+        after_(std::move(after)) {}
+  absl::Status Undo() override {
+    return document_->SetAuthoring(after_, before_);
+  }
+  absl::Status Redo() override {
+    return document_->SetAuthoring(before_, after_);
+  }
+  std::string Description() const override {
+    return "Edit Lyra map properties or entities";
+  }
+  size_t MemoryUsage() const override { return sizeof(*this); }
+
+ private:
+  std::shared_ptr<Document> document_;
+  core::LyraAuthoringState before_, after_;
+};
+
+std::string AssetKey(const core::LyraMapProperties& p, int state) {
+  std::string key;
+  for (auto id : p.graphics_sheets)
+    key.push_back(id);
+  key.push_back(p.main_palette);
+  key.push_back(p.palette_set);
+  key.push_back(p.animated_sheet);
+  for (auto id : p.sprite_graphics)
+    AddWord(key, id + 1);
+  for (auto id : p.sprite_palettes)
+    AddWord(key, id + 1);
+  key.push_back(state);
+  return key;
+}
 }  // namespace
 
 absl::StatusOr<std::string> PublishLyraTerrainSource(
@@ -236,6 +276,309 @@ absl::Status LyraTerrainCanvas::BindSource(zelda3::Overworld& overworld,
   return absl::OkStatus();
 }
 
+LyraTerrainCanvas::MapAssets::~MapAssets() {
+  for (auto& [id, bitmap] : sprites)
+    gfx::Arena::Get().RetireBitmap(*bitmap);
+  gfx::Arena::Get().RetireBitmap(atlas);
+  gfx::Arena::Get().RetireBitmap(graphics);
+}
+
+absl::StatusOr<std::unique_ptr<LyraTerrainCanvas::MapAssets>>
+LyraTerrainCanvas::ResolveMapAssets(zelda3::Overworld& overworld,
+                                    const core::LyraMapProperties& p, int state,
+                                    bool textures) {
+  const auto* donor = overworld.overworld_map(0x3A);
+  if (!donor || state < 0 || state > 2 || !donor->game_data())
+    return absl::FailedPreconditionError("Lyra native source is unavailable");
+  const auto& data = *donor->game_data();
+  if (p.main_palette >= data.palette_groups.overworld_main.size() ||
+      p.palette_set > 0xA3 || data.palette_groups.overworld_aux.size() < 20 ||
+      data.palette_groups.overworld_animated.size() < 14 ||
+      data.palette_groups.sprites_aux3.size() < 24 ||
+      data.palette_groups.armors.empty() ||
+      data.palette_groups.armors[0].size() < 15)
+    return absl::OutOfRangeError(
+        "Lyra palette selector or palette source is unavailable");
+  auto source = *donor;
+  source.ClearInheritedAreaProperties();
+  source.set_game_state(state);
+  for (int i = 0; i < 8; ++i)
+    source.set_custom_tileset(i, p.graphics_sheets[i]);
+  source.set_main_palette(p.main_palette);
+  source.set_area_palette(p.palette_set);
+  source.set_animated_gfx(p.animated_sheet);
+  for (int i = 0; i < 3; ++i) {
+    if (p.sprite_graphics[i] >= 0) {
+      if (p.sprite_graphics[i] >= static_cast<int>(data.spriteset_ids.size()))
+        return absl::OutOfRangeError("Lyra sprite set is unavailable");
+      source.set_sprite_graphics(i, p.sprite_graphics[i]);
+    }
+    if (p.sprite_palettes[i] >= 0)
+      source.set_sprite_palette(i, p.sprite_palettes[i]);
+  }
+  const auto sprite_set = source.sprite_graphics(state);
+  if (sprite_set >= data.spriteset_ids.size())
+    return absl::OutOfRangeError("Inherited Lyra sprite set is unavailable");
+  const auto sprites = data.spriteset_ids[sprite_set];
+  for (auto id : sprites) {
+    if (static_cast<int>(id) + 0x73 > 0xFF)
+      return absl::OutOfRangeError(
+          "Lyra sprite set overflows the native graphics sheet range");
+  }
+  source.LoadAreaGraphics();
+  for (int i = 0; i < 16; ++i) {
+    if ((static_cast<size_t>(source.static_graphics(i)) + 1) * 0x1000 >
+        data.graphics_buffer.size())
+      return absl::OutOfRangeError(
+          "Lyra resolved graphics sheet is unavailable");
+  }
+  if ((static_cast<size_t>(source.animated_sheet()) + 1) * 0x1000 >
+      data.graphics_buffer.size())
+    return absl::OutOfRangeError("Lyra animated sheet is unavailable");
+  RETURN_IF_ERROR(source.BuildTileset());
+  // BuildTileset's legacy zero sentinel predates explicit v3 sheet selectors.
+  // Project $00 selects real sheet zero; preserve slot 7's animated top half.
+  for (int slot = 0; slot < 8; ++slot) {
+    if (p.graphics_sheets[slot] != 0)
+      continue;
+    auto* pixels = source.mutable_current_graphics();
+    for (int offset = slot == 7 ? 0x800 : 0; offset < 0x1000; ++offset) {
+      const int bias =
+          (slot == 0 || slot == 3 || slot == 4 || slot == 5) ? 0x88 : 0;
+      (*pixels)[slot * 0x1000 + offset] = data.graphics_buffer[offset] + bias;
+    }
+  }
+  RETURN_IF_ERROR(source.LoadPalette());
+  if (source.current_palette().size() != 256)
+    return absl::FailedPreconditionError("Lyra resolved palette is incomplete");
+  const auto& pixels = source.current_graphics();
+  std::string binding = AssetKey(p, state);
+  binding.append(reinterpret_cast<const char*>(pixels.data()), pixels.size());
+  for (size_t i = 0; i < source.current_palette().size(); ++i)
+    AddWord(binding, source.current_palette()[i].snes());
+  auto result = std::make_unique<MapAssets>();
+  result->binding = core::ComputeSourceArtifactSha256(binding);
+  if (textures) {
+    RETURN_IF_ERROR(source.BuildTiles16Gfx(*overworld.mutable_tiles16(),
+                                           overworld.tiles16().size()));
+    const int height = ((overworld.tiles16().size() + 7) / 8) * 16;
+    const auto& blockset = source.current_tile16_blockset();
+    const size_t bytes = 128 * height;
+    if (blockset.size() < bytes)
+      return absl::FailedPreconditionError("Lyra Tile16 pixels are incomplete");
+    result->atlas.Create(
+        128, height, 8,
+        std::vector<uint8_t>(blockset.begin(), blockset.begin() + bytes));
+    result->atlas.SetPalette(source.current_palette());
+    result->graphics.Create(128, 512, 8, pixels);
+    result->graphics.SetPalette(source.current_palette());
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &result->atlas);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &result->graphics);
+  }
+  return result;
+}
+
+absl::Status LyraTerrainCanvas::ValidateMapAssets(
+    zelda3::Overworld& overworld, const core::LyraAuthoringState& authoring) {
+  std::unordered_map<std::string, std::string> bindings;
+  for (const auto& map : authoring.maps) {
+    for (int state = 0; state < 3; ++state) {
+      const auto key = AssetKey(map.properties, state);
+      if (!bindings.contains(key)) {
+        ASSIGN_OR_RETURN(
+            auto assets,
+            ResolveMapAssets(overworld, map.properties, state, false));
+        bindings.emplace(key, assets->binding);
+      }
+      if (!map.asset_bindings[state].empty() &&
+          map.asset_bindings[state] != bindings.at(key))
+        return absl::FailedPreconditionError(
+            "Lyra map graphics or palette assets changed; draft retained");
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status LyraTerrainCanvas::CheckAssetSources(
+    zelda3::Overworld& overworld) {
+  const auto* donor = overworld.overworld_map(0x3A);
+  if (!document_ || !donor || !donor->game_data() || !overworld.rom())
+    return absl::FailedPreconditionError("Lyra source is unavailable");
+  const auto& data = *donor->game_data();
+  std::string metadata;
+  for (const auto& tile : overworld.tiles16())
+    for (const auto& quadrant : tile.tiles_info)
+      AddWord(metadata, gfx::TileInfoToWord(quadrant));
+  for (const auto* group :
+       {&data.palette_groups.overworld_main, &data.palette_groups.overworld_aux,
+        &data.palette_groups.overworld_animated, &data.palette_groups.hud,
+        &data.palette_groups.global_sprites, &data.palette_groups.armors,
+        &data.palette_groups.sprites_aux1, &data.palette_groups.sprites_aux2,
+        &data.palette_groups.sprites_aux3, &data.palette_groups.grass}) {
+    AddWord(metadata, group->size());
+    for (size_t i = 0; i < group->size(); ++i) {
+      AddWord(metadata, (*group)[i].size());
+      for (const auto& color : (*group)[i])
+        AddWord(metadata, color.snes());
+    }
+  }
+  for (const auto& group : data.main_blockset_ids)
+    for (auto id : group)
+      metadata.push_back(id);
+  for (const auto& group : data.room_blockset_ids)
+    for (auto id : group)
+      metadata.push_back(id);
+  for (const auto& group : data.spriteset_ids)
+    for (auto id : group)
+      metadata.push_back(id);
+  for (int state = 0; state < 3; ++state) {
+    metadata.push_back(donor->sprite_graphics(state));
+    metadata.push_back(donor->sprite_palette(state));
+  }
+  // Byte comparison avoids hashing/rebuilding native atlases every frame.
+  // Snapshot only when a source actually changes; this also catches unsaved edits.
+  if (source_rom_ == overworld.rom()->vector() &&
+      source_graphics_ == data.graphics_buffer && source_metadata_ == metadata)
+    return source_status_;
+  source_rom_ = overworld.rom()->vector();
+  source_graphics_ = data.graphics_buffer;
+  source_metadata_ = std::move(metadata);
+  displayed_assets_.fill(nullptr);
+  map_assets_.clear();
+  assets_valid_ = false;
+  core::LyraTerrainProfile profile;
+  source_status_ = BindSource(overworld, &profile, false);
+  if (!source_status_.ok())
+    return source_status_;
+  if (profile != document_->profile()) {
+    source_status_ = absl::FailedPreconditionError(
+        "Lyra bound native assets changed; reload matching source before "
+        "editing");
+    return source_status_;
+  }
+  source_status_ = ValidateMapAssets(overworld, document_->authoring());
+  return source_status_;
+}
+
+absl::Status LyraTerrainCanvas::PrepareMapAssets(zelda3::Overworld& overworld,
+                                                 int state) {
+  if (!document_)
+    return absl::OkStatus();
+  RETURN_IF_ERROR(CheckAssetSources(overworld));
+  assets_valid_ = false;
+  asset_state_ = std::clamp(state, 0, 2);
+  std::set<std::string> active_keys;
+  for (int i = 0; i < 32; ++i) {
+    const auto& map = document_->authoring().maps[i];
+    const auto key = AssetKey(map.properties, asset_state_);
+    active_keys.insert(key);
+    if (!map_assets_.contains(key)) {
+      ASSIGN_OR_RETURN(auto assets, ResolveMapAssets(overworld, map.properties,
+                                                     asset_state_, true));
+      if (!map.asset_bindings[asset_state_].empty() &&
+          assets->binding != map.asset_bindings[asset_state_])
+        return absl::FailedPreconditionError("Lyra map asset binding changed");
+      map_assets_.emplace(key, std::move(assets));
+    }
+    if (!map.asset_bindings[asset_state_].empty() &&
+        map.asset_bindings[asset_state_] != map_assets_.at(key)->binding)
+      return absl::FailedPreconditionError("Lyra cached map binding changed");
+    displayed_assets_[i] = map_assets_.at(key).get();
+  }
+  assets_valid_ = true;
+  std::erase_if(map_assets_, [&](const auto& item) {
+    return !active_keys.contains(item.first);
+  });
+  return absl::OkStatus();
+}
+
+gfx::Bitmap& LyraTerrainCanvas::MapAtlas(int map_id) {
+  if (!assets_valid_)
+    return unavailable_atlas_;
+  if (map_id >= 0xA0 && map_id < 0xC0 && displayed_assets_[map_id - 0xA0])
+    return displayed_assets_[map_id - 0xA0]->atlas;
+  return atlas_;
+}
+
+gfx::Bitmap* LyraTerrainCanvas::MapGraphics(int map_id) {
+  if (!assets_valid_)
+    return nullptr;
+  if (map_id >= 0xA0 && map_id < 0xC0 && displayed_assets_[map_id - 0xA0])
+    return &displayed_assets_[map_id - 0xA0]->graphics;
+  return nullptr;
+}
+
+void LyraTerrainCanvas::DrawSpritePreview(
+    const gui::CanvasRuntime& canvas, int map_id,
+    const core::LyraSpritePlacement& sprite) {
+  if (map_id < 0xA0 || map_id >= 0xC0 || !canvas.draw_list)
+    return;
+  auto* assets = displayed_assets_[map_id - 0xA0];
+  if (!assets)
+    return;
+  if (!assets->sprites.contains(sprite.sprite_id)) {
+    zelda3::Sprite preview(sprite.sprite_id, 0, 0, 0, 0);
+    preview.RenderPreviewGraphics(assets->graphics.vector());
+    const auto bounds = preview.preview_bounds();
+    if (preview.preview_graphics()->empty() || bounds.w <= 0 || bounds.h <= 0)
+      return;
+    auto bitmap = std::make_unique<gfx::Bitmap>();
+    bitmap->Create(bounds.w, bounds.h, 8, *preview.preview_graphics());
+    bitmap->SetPalette(assets->graphics.palette());
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, bitmap.get());
+    assets->sprites.emplace(sprite.sprite_id, std::move(bitmap));
+    assets->sprite_bounds.emplace(sprite.sprite_id, bounds);
+  }
+  const auto& bitmap = *assets->sprites.at(sprite.sprite_id);
+  if (!bitmap.texture())
+    return;
+  const auto bounds = assets->sprite_bounds.at(sprite.sprite_id);
+  const ImVec2 min(
+      canvas.canvas_p0.x + canvas.scrolling.x +
+          (map_id % 8 * 512 + sprite.x * 16 + bounds.x) * canvas.scale,
+      canvas.canvas_p0.y + canvas.scrolling.y +
+          (map_id % 64 / 8 * 512 + sprite.y * 16 + bounds.y) * canvas.scale);
+  canvas.draw_list->AddImage(
+      (ImTextureID)(intptr_t)bitmap.texture(), min,
+      ImVec2(min.x + bounds.w * canvas.scale, min.y + bounds.h * canvas.scale));
+}
+
+absl::Status LyraTerrainCanvas::EditAuthoring(core::LyraAuthoringState after,
+                                              zelda3::Overworld& overworld,
+                                              UndoManager& history) {
+  status_ = ApplyAuthoring(std::move(after), overworld, history);
+  return status_;
+}
+
+absl::Status LyraTerrainCanvas::ApplyAuthoring(core::LyraAuthoringState after,
+                                               zelda3::Overworld& overworld,
+                                               UndoManager& history) {
+  if (!document_)
+    return absl::FailedPreconditionError("Lyra project is unavailable");
+  FinishStroke(history);
+  RETURN_IF_ERROR(CheckAssetSources(overworld));
+  const auto before = document_->authoring();
+  if (before == after)
+    return absl::OkStatus();
+  for (int i = 0; i < 32; ++i) {
+    if (before.maps[i].properties == after.maps[i].properties)
+      continue;
+    for (int state = 0; state < 3; ++state) {
+      ASSIGN_OR_RETURN(
+          auto assets,
+          ResolveMapAssets(overworld, after.maps[i].properties, state, false));
+      after.maps[i].asset_bindings[state] = assets->binding;
+    }
+  }
+  RETURN_IF_ERROR(document_->SetAuthoring(before, after));
+  history.Push(
+      std::make_unique<AuthoringAction>(document_, before, std::move(after)));
+  return absl::OkStatus();
+}
+
 absl::Status LyraTerrainCanvas::Load(project::YazeProject* project,
                                      zelda3::Overworld& overworld) {
   if (dirty())
@@ -254,6 +597,7 @@ absl::Status LyraTerrainCanvas::Load(project::YazeProject* project,
   if (!bytes)
     return absl::NotFoundError("The project's Lyra terrain file is missing");
   ASSIGN_OR_RETURN(auto document, Document::Parse(*bytes, profile));
+  RETURN_IF_ERROR(ValidateMapAssets(overworld, document.authoring()));
   RETURN_IF_ERROR(BindSource(overworld, &profile, true));
   document_ = std::make_shared<Document>(std::move(document));
   brush_ = {};
@@ -314,6 +658,7 @@ absl::Status LyraTerrainCanvas::Save(project::YazeProject* project,
   if (profile != document_->profile())
     return absl::FailedPreconditionError(
         "Lyra tile definitions or graphics profile changed; draft retained");
+  RETURN_IF_ERROR(ValidateMapAssets(overworld, document_->authoring()));
   ASSIGN_OR_RETURN(auto after,
                    PublishLyraTerrainSource(*project, source_path_,
                                             source_bytes_, *document_));
@@ -343,6 +688,9 @@ absl::Status LyraTerrainCanvas::PaintPattern(const TileBrush& brush, int x,
                                              int y, int width, int height,
                                              bool finalize,
                                              UndoManager& history) {
+  if (!assets_valid_)
+    return absl::FailedPreconditionError(
+        "Lyra map assets are unavailable; terrain retained");
   if (!document_)
     return absl::FailedPreconditionError("Lyra terrain is unavailable");
   if (!brush.valid() || width <= 0 || width > Document::kWidth || height <= 0 ||
@@ -415,12 +763,12 @@ void LyraTerrainCanvas::PaintLine(int x, int y) {
   last_cell_ = ImVec2(x, y);
 }
 
-void LyraTerrainCanvas::DrawTile(ImDrawList* draw, int tile, ImVec2 min,
-                                 float size) const {
-  const float height = atlas_.height();
+void LyraTerrainCanvas::DrawTile(ImDrawList* draw, const gfx::Bitmap& atlas,
+                                 int tile, ImVec2 min, float size) const {
+  const float height = atlas.height();
   const ImVec2 uv0((tile % 8) * 16.0f / 128.0f, (tile / 8) * 16.0f / height);
   const ImVec2 uv1(uv0.x + 16.0f / 128.0f, uv0.y + 16.0f / height);
-  draw->AddImage((ImTextureID)(intptr_t)atlas_.texture(), min,
+  draw->AddImage((ImTextureID)(intptr_t)atlas.texture(), min,
                  ImVec2(min.x + size, min.y + size), uv0, uv1);
 }
 
@@ -460,7 +808,10 @@ void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas) {
   const int y1 = last_cell(clip_max.y, start.y, Document::kHeight);
   for (int y = y0; y < y1; ++y) {
     for (int x = x0; x < x1; ++x) {
-      DrawTile(draw, *document_->tile(x, y),
+      auto& atlas = MapAtlas(0xA0 + (y / 32) * 8 + x / 32);
+      if (!atlas.texture())
+        continue;
+      DrawTile(draw, atlas, *document_->tile(x, y),
                ImVec2(start.x + x * cell, start.y + y * cell), cell);
     }
   }
@@ -469,6 +820,20 @@ void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas) {
 }
 
 void LyraTerrainCanvas::Reset() {
+  source_rom_.clear();
+  source_graphics_.clear();
+  source_metadata_.clear();
+  source_status_ = absl::OkStatus();
+  assets_valid_ = false;
+  displayed_assets_.fill(nullptr);
+  map_assets_.clear();
+  property_draft_.reset();
+  property_baseline_.reset();
+  placement_kind_ = placement_type_ = placement_state_ = 0;
+  selected_entity_ = selected_kind_ = 0;
+  drag_map_ = -1;
+  property_map_ = -1;
+  drag_before_.reset();
   gfx::Arena::Get().RetireBitmap(atlas_);
   brush_ = {};
   if (document_ && stroke_active_)

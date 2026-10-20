@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <memory>
 #include <set>
+#include <unordered_set>
 #include <utility>
 
 #include "nlohmann/json.hpp"
@@ -21,14 +22,28 @@ bool HasKeys(const Json& value, std::initializer_list<const char*> keys) {
   return true;
 }
 
-bool IntegerIn(const Json& value, int low, int high) {
-  return value.is_number_integer() && value >= low && value <= high;
+bool IntegerIn(const Json& value, int64_t low, int64_t high) {
+  if (value.is_number_unsigned()) {
+    const auto number = value.get<uint64_t>();
+    return high >= 0 && number <= static_cast<uint64_t>(high) &&
+           (low <= 0 || number >= static_cast<uint64_t>(low));
+  }
+  if (!value.is_number_integer())
+    return false;
+  const auto number = value.get<int64_t>();
+  return number >= low && number <= high;
 }
 
 bool Fingerprint(const std::string& value) {
   return !value.empty() && value.size() <= 256 &&
          std::none_of(value.begin(), value.end(),
                       [](unsigned char c) { return c <= 0x20 || c == 0x7F; });
+}
+
+bool ValidFlightName(const std::string& value) {
+  return !value.empty() && value.size() <= 80 &&
+         std::none_of(value.begin(), value.end(),
+                      [](unsigned char c) { return c < 0x20 || c == 0x7F; });
 }
 
 bool Coordinates(int map_id, int x, int y) {
@@ -57,6 +72,234 @@ Json ProfileJson(const LyraTerrainProfile& profile) {
       {"palette_fingerprint", profile.palette_fingerprint},
       {"animation_fingerprint", profile.animation_fingerprint}};
 }
+
+Json PropertiesJson(const LyraMapProperties& p) {
+  return {{"graphics_sheets", p.graphics_sheets},
+          {"main_palette", p.main_palette},
+          {"palette_set", p.palette_set},
+          {"animated_sheet", p.animated_sheet},
+          {"sprite_graphics", p.sprite_graphics},
+          {"sprite_palettes", p.sprite_palettes},
+          {"music", p.music},
+          {"message_id", p.message_id}};
+}
+
+Json SpriteJson(const LyraSpritePlacement& s) {
+  return {{"id", s.id},
+          {"sprite_id", s.sprite_id},
+          {"x", s.x},
+          {"y", s.y},
+          {"state", s.state}};
+}
+
+Json DoorJson(const LyraDoorPlacement& d) {
+  Json j = {{"id", d.id}, {"x", d.x}, {"y", d.y}, {"entrance_id", nullptr}};
+  if (d.entrance_id.has_value()) {
+    j["entrance_id"] = *d.entrance_id;
+  }
+  return j;
+}
+
+Json ExitJson(const LyraExitPlacement& e) {
+  Json j = {{"id", e.id},
+            {"room_id", e.room_id},
+            {"x", e.x},
+            {"y", e.y},
+            {"exit_row", nullptr}};
+  if (e.exit_row.has_value()) {
+    j["exit_row"] = *e.exit_row;
+  }
+  return j;
+}
+
+Json AuthoringJson(const LyraMapAuthoring& a) {
+  Json sprites = Json::array();
+  for (const auto& s : a.sprites)
+    sprites.push_back(SpriteJson(s));
+  Json doors = Json::array();
+  for (const auto& d : a.doors)
+    doors.push_back(DoorJson(d));
+  Json exits = Json::array();
+  for (const auto& e : a.exits)
+    exits.push_back(ExitJson(e));
+  Json bindings = Json::array();
+  for (const auto& b : a.asset_bindings)
+    bindings.push_back(b);
+
+  return {{"properties", PropertiesJson(a.properties)},
+          {"sprites", std::move(sprites)},
+          {"doors", std::move(doors)},
+          {"exits", std::move(exits)},
+          {"asset_bindings", std::move(bindings)}};
+}
+
+Json FlightPointJson(const LyraFlightPoint& f) {
+  Json j = {{"id", f.id}, {"map_id", f.map_id}, {"x", f.x},
+            {"y", f.y},   {"name", f.name},     {"runtime_slot", nullptr}};
+  if (f.runtime_slot.has_value()) {
+    j["runtime_slot"] = *f.runtime_slot;
+  }
+  return j;
+}
+
+absl::Status ValidateAuthoringState(const LyraAuthoringState& state) {
+  std::unordered_set<uint32_t> sprite_ids;
+  std::unordered_set<uint32_t> door_ids;
+  std::unordered_set<uint32_t> exit_ids;
+  std::unordered_set<uint32_t> flight_ids;
+
+  const LyraMapProperties default_props;
+
+  for (size_t map_idx = 0; map_idx < state.maps.size(); ++map_idx) {
+    const auto& map_auth = state.maps[map_idx];
+    const auto& props = map_auth.properties;
+
+    // Validate properties
+    for (uint8_t sheet : props.graphics_sheets) {
+      (void)sheet;  // uint8_t is 0..255
+    }
+    for (int g : props.sprite_graphics) {
+      if (g < -1 || g > 255) {
+        return absl::InvalidArgumentError(
+            "Sprite graphics out of range -1..255");
+      }
+    }
+    for (int p : props.sprite_palettes) {
+      if (p < -1 || p > 255) {
+        return absl::InvalidArgumentError(
+            "Sprite palettes out of range -1..255");
+      }
+    }
+
+    // asset_bindings: either all nonempty valid fingerprints OR all empty AND properties exactly default
+    bool all_empty = true;
+    bool all_valid = true;
+    for (const auto& b : map_auth.asset_bindings) {
+      if (!b.empty())
+        all_empty = false;
+      if (!Fingerprint(b))
+        all_valid = false;
+    }
+
+    if (all_empty) {
+      if (props != default_props) {
+        return absl::InvalidArgumentError(
+            "Empty asset bindings require exactly default map properties");
+      }
+    } else if (!all_valid) {
+      return absl::InvalidArgumentError(
+          "Asset bindings must be all valid fingerprints or all empty");
+    }
+
+    // sprites
+    if (map_auth.sprites.size() > 128) {
+      return absl::InvalidArgumentError("Max 128 sprites per map exceeded");
+    }
+    for (const auto& s : map_auth.sprites) {
+      if (s.id == 0) {
+        return absl::InvalidArgumentError("Sprite ID must be nonzero");
+      }
+      if (!sprite_ids.insert(s.id).second) {
+        return absl::InvalidArgumentError(
+            "Duplicate sprite ID across document");
+      }
+      if (s.x < 0 || s.x > 31 || s.y < 0 || s.y > 31) {
+        return absl::InvalidArgumentError(
+            "Sprite coordinates out of range 0..31");
+      }
+      if (s.state < 0 || s.state > 2) {
+        return absl::InvalidArgumentError("Sprite state out of range 0..2");
+      }
+    }
+
+    // doors
+    if (map_auth.doors.size() > 64) {
+      return absl::InvalidArgumentError("Max 64 doors per map exceeded");
+    }
+    std::set<std::pair<int, int>> door_positions;
+    for (const auto& d : map_auth.doors) {
+      if (d.id == 0) {
+        return absl::InvalidArgumentError("Door ID must be nonzero");
+      }
+      if (!door_ids.insert(d.id).second) {
+        return absl::InvalidArgumentError("Duplicate door ID across document");
+      }
+      if (d.x < 0 || d.x > 31 || d.y < 0 || d.y > 31) {
+        return absl::InvalidArgumentError(
+            "Door coordinates out of range 0..31");
+      }
+      if (!door_positions.insert({d.x, d.y}).second) {
+        return absl::InvalidArgumentError(
+            "Duplicate door position at same (map, x, y)");
+      }
+      if (d.entrance_id.has_value()) {
+        if (*d.entrance_id < 0 || *d.entrance_id > 0xFE) {
+          return absl::InvalidArgumentError(
+              "Door entrance_id out of range 0..0xFE");
+        }
+      }
+    }
+
+    // exits
+    if (map_auth.exits.size() > 64) {
+      return absl::InvalidArgumentError("Max 64 exits per map exceeded");
+    }
+    for (const auto& e : map_auth.exits) {
+      if (e.id == 0) {
+        return absl::InvalidArgumentError("Exit ID must be nonzero");
+      }
+      if (!exit_ids.insert(e.id).second) {
+        return absl::InvalidArgumentError("Duplicate exit ID across document");
+      }
+      if (e.room_id < 0 || e.room_id > 0x127) {
+        return absl::InvalidArgumentError(
+            "Exit room_id out of range 0..0x127 (295)");
+      }
+      if (e.x < 0 || e.x > 31 || e.y < 0 || e.y > 31) {
+        return absl::InvalidArgumentError(
+            "Exit coordinates out of range 0..31");
+      }
+      if (e.exit_row.has_value()) {
+        if (*e.exit_row < 0 || *e.exit_row > 0x78) {
+          return absl::InvalidArgumentError(
+              "Exit exit_row out of range 0..0x78");
+        }
+      }
+    }
+  }
+
+  // flight points
+  if (state.flight_points.size() > 64) {
+    return absl::InvalidArgumentError("Max 64 flight points exceeded");
+  }
+  for (const auto& f : state.flight_points) {
+    if (f.id == 0) {
+      return absl::InvalidArgumentError("Flight point ID must be nonzero");
+    }
+    if (!flight_ids.insert(f.id).second) {
+      return absl::InvalidArgumentError(
+          "Duplicate flight point ID across document");
+    }
+    if (f.map_id < 0 || f.map_id > 0xBF) {
+      return absl::InvalidArgumentError(
+          "Flight point map_id out of range 0..0xBF");
+    }
+    if (f.x < 0 || f.x > 31 || f.y < 0 || f.y > 31) {
+      return absl::InvalidArgumentError(
+          "Flight point coordinates out of range 0..31");
+    }
+    if (!ValidFlightName(f.name)) {
+      return absl::InvalidArgumentError("Flight point name invalid");
+    }
+    if (f.runtime_slot.has_value()) {
+      return absl::InvalidArgumentError(
+          "Flight point runtime_slot must be null");
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status LyraTerrainProfile::Validate() const {
@@ -90,13 +333,34 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Create(
   return std::move(*document);
 }
 
+absl::Status LyraTerrainDocument::SetAuthoring(
+    const LyraAuthoringState& before, const LyraAuthoringState& after) {
+  if (stroke_active_) {
+    return absl::FailedPreconditionError(
+        "Cannot update Lyra authoring while a terrain stroke is active");
+  }
+  if (authoring_ != before) {
+    return absl::FailedPreconditionError(
+        "Lyra authoring state is stale or does not match before");
+  }
+  if (before == after) {
+    return absl::OkStatus();
+  }
+  auto status = ValidateAuthoringState(after);
+  if (!status.ok()) {
+    return status;
+  }
+  authoring_ = after;
+  return absl::OkStatus();
+}
+
 absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
     std::string_view text, const LyraTerrainProfile& expected_profile) {
   auto created = Create(expected_profile);
   if (!created.ok())
     return created.status();
-  if (text.size() > 2 * 1024 * 1024) {
-    return absl::InvalidArgumentError("Lyra terrain document exceeds 2 MiB");
+  if (text.size() > 4 * 1024 * 1024) {
+    return absl::InvalidArgumentError("Lyra terrain document exceeds 4 MiB");
   }
   try {
     // Reject repeated object keys instead of silently accepting the last value.
@@ -114,20 +378,43 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
             object_keys.pop_back();
           return true;
         });
-    if (duplicate_key ||
-        !HasKeys(json,
-                 {"schema", "schema_version", "columns", "rows", "map_width",
-                  "map_height", "tile_pixels", "profile", "maps"}) ||
+    if (duplicate_key) {
+      return absl::InvalidArgumentError("Duplicate JSON keys");
+    }
+
+    if (!json.is_object() || !json.contains("schema") ||
         json["schema"] != "yaze.lyra-terrain" ||
-        !IntegerIn(json["schema_version"], kSchemaVersion, kSchemaVersion) ||
-        !IntegerIn(json["columns"], kColumns, kColumns) ||
+        !json.contains("schema_version") ||
+        !IntegerIn(json["schema_version"], 1, kSchemaVersion)) {
+      return absl::InvalidArgumentError("Invalid Lyra terrain schema header");
+    }
+
+    int version = json["schema_version"].get<int>();
+    if (version == 1) {
+      if (!HasKeys(json,
+                   {"schema", "schema_version", "columns", "rows", "map_width",
+                    "map_height", "tile_pixels", "profile", "maps"})) {
+        return absl::InvalidArgumentError(
+            "Malformed Lyra schema 1 header keys");
+      }
+    } else if (version == 2) {
+      if (!HasKeys(json, {"schema", "schema_version", "columns", "rows",
+                          "map_width", "map_height", "tile_pixels", "profile",
+                          "maps", "flight_points"})) {
+        return absl::InvalidArgumentError(
+            "Malformed Lyra schema 2 header keys");
+      }
+    } else {
+      return absl::InvalidArgumentError("Unsupported Lyra schema version");
+    }
+
+    if (!IntegerIn(json["columns"], kColumns, kColumns) ||
         !IntegerIn(json["rows"], kRows, kRows) ||
         !IntegerIn(json["map_width"], kMapSize, kMapSize) ||
         !IntegerIn(json["map_height"], kMapSize, kMapSize) ||
         !IntegerIn(json["tile_pixels"], kTilePixels, kTilePixels)) {
       return absl::InvalidArgumentError(
-          "Lyra terrain requires schema 1, an 8x4 map grid and 32x32 Tile16 "
-          "maps");
+          "Lyra terrain requires an 8x4 map grid and 32x32 Tile16 maps");
     }
     // Exact JSON equality alone treats 1.0 and 1 as equivalent, so validate
     // numeric types before comparing the complete profile binding.
@@ -159,8 +446,18 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
     auto& document = *created;
     std::array<bool, kMapCount> seen{};
     for (const auto& map : json["maps"]) {
-      if (!HasKeys(map, {"map_id", "tiles16"}) ||
-          !IntegerIn(map["map_id"], kFirstMap, kFirstMap + kMapCount - 1) ||
+      if (version == 1) {
+        if (!HasKeys(map, {"map_id", "tiles16"})) {
+          return absl::InvalidArgumentError(
+              "Lyra schema 1 map requires map_id and tiles16");
+        }
+      } else {
+        if (!HasKeys(map, {"map_id", "tiles16", "authoring"})) {
+          return absl::InvalidArgumentError(
+              "Lyra schema 2 map requires map_id, tiles16, and authoring");
+        }
+      }
+      if (!IntegerIn(map["map_id"], kFirstMap, kFirstMap + kMapCount - 1) ||
           !map["tiles16"].is_array() || map["tiles16"].size() != kMapSize) {
         return absl::InvalidArgumentError(
             "Lyra map requires an A0-BF ID and 32 Tile16 rows");
@@ -182,7 +479,170 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
           document.maps_[index][y * kMapSize + x] = row[x].get<uint16_t>();
         }
       }
+
+      if (version == 2) {
+        const auto& auth = map["authoring"];
+        if (!HasKeys(auth, {"properties", "sprites", "doors", "exits",
+                            "asset_bindings"})) {
+          return absl::InvalidArgumentError("Malformed map authoring keys");
+        }
+        // properties
+        const auto& props = auth["properties"];
+        if (!HasKeys(props, {"graphics_sheets", "main_palette", "palette_set",
+                             "animated_sheet", "sprite_graphics",
+                             "sprite_palettes", "music", "message_id"})) {
+          return absl::InvalidArgumentError("Malformed map properties keys");
+        }
+        if (!props["graphics_sheets"].is_array() ||
+            props["graphics_sheets"].size() != 8 ||
+            !IntegerIn(props["main_palette"], 0, 255) ||
+            !IntegerIn(props["palette_set"], 0, 255) ||
+            !IntegerIn(props["animated_sheet"], 0, 255) ||
+            !props["sprite_graphics"].is_array() ||
+            props["sprite_graphics"].size() != 3 ||
+            !props["sprite_palettes"].is_array() ||
+            props["sprite_palettes"].size() != 3 ||
+            !props["music"].is_array() || props["music"].size() != 4 ||
+            !IntegerIn(props["message_id"], 0, 65535)) {
+          return absl::InvalidArgumentError("Malformed map properties values");
+        }
+        LyraMapProperties map_properties;
+        for (int i = 0; i < 8; ++i) {
+          if (!IntegerIn(props["graphics_sheets"][i], 0, 255)) {
+            return absl::InvalidArgumentError(
+                "Invalid graphics sheet in properties");
+          }
+          map_properties.graphics_sheets[i] =
+              props["graphics_sheets"][i].get<uint8_t>();
+        }
+        map_properties.main_palette = props["main_palette"].get<uint8_t>();
+        map_properties.palette_set = props["palette_set"].get<uint8_t>();
+        map_properties.animated_sheet = props["animated_sheet"].get<uint8_t>();
+        for (int i = 0; i < 3; ++i) {
+          if (!IntegerIn(props["sprite_graphics"][i], -1, 255)) {
+            return absl::InvalidArgumentError(
+                "Invalid sprite_graphics in properties");
+          }
+          map_properties.sprite_graphics[i] =
+              props["sprite_graphics"][i].get<int>();
+        }
+        for (int i = 0; i < 3; ++i) {
+          if (!IntegerIn(props["sprite_palettes"][i], -1, 255)) {
+            return absl::InvalidArgumentError(
+                "Invalid sprite_palettes in properties");
+          }
+          map_properties.sprite_palettes[i] =
+              props["sprite_palettes"][i].get<int>();
+        }
+        for (int i = 0; i < 4; ++i) {
+          if (!IntegerIn(props["music"][i], 0, 255)) {
+            return absl::InvalidArgumentError("Invalid music in properties");
+          }
+          map_properties.music[i] = props["music"][i].get<uint8_t>();
+        }
+        map_properties.message_id = props["message_id"].get<uint16_t>();
+        document.authoring_.maps[index].properties = map_properties;
+
+        // sprites
+        if (!auth["sprites"].is_array()) {
+          return absl::InvalidArgumentError("sprites must be an array");
+        }
+        for (const auto& s : auth["sprites"]) {
+          if (!HasKeys(s, {"id", "sprite_id", "x", "y", "state"}) ||
+              !IntegerIn(s["id"], 1, 0xFFFFFFFFULL) ||
+              !IntegerIn(s["sprite_id"], 0, 255) || !IntegerIn(s["x"], 0, 31) ||
+              !IntegerIn(s["y"], 0, 31) || !IntegerIn(s["state"], 0, 2)) {
+            return absl::InvalidArgumentError("Malformed sprite placement");
+          }
+          document.authoring_.maps[index].sprites.push_back(
+              {s["id"].get<uint32_t>(), s["sprite_id"].get<uint8_t>(),
+               s["x"].get<int>(), s["y"].get<int>(), s["state"].get<int>()});
+        }
+
+        // doors
+        if (!auth["doors"].is_array()) {
+          return absl::InvalidArgumentError("doors must be an array");
+        }
+        for (const auto& d : auth["doors"]) {
+          if (!HasKeys(d, {"id", "x", "y", "entrance_id"}) ||
+              !IntegerIn(d["id"], 1, 0xFFFFFFFFULL) ||
+              !IntegerIn(d["x"], 0, 31) || !IntegerIn(d["y"], 0, 31)) {
+            return absl::InvalidArgumentError("Malformed door placement");
+          }
+          std::optional<int> entrance_id;
+          if (!d["entrance_id"].is_null()) {
+            if (!IntegerIn(d["entrance_id"], 0, 0xFE)) {
+              return absl::InvalidArgumentError("Invalid entrance_id");
+            }
+            entrance_id = d["entrance_id"].get<int>();
+          }
+          document.authoring_.maps[index].doors.push_back(
+              {d["id"].get<uint32_t>(), d["x"].get<int>(), d["y"].get<int>(),
+               entrance_id});
+        }
+
+        // exits
+        if (!auth["exits"].is_array()) {
+          return absl::InvalidArgumentError("exits must be an array");
+        }
+        for (const auto& e : auth["exits"]) {
+          if (!HasKeys(e, {"id", "room_id", "x", "y", "exit_row"}) ||
+              !IntegerIn(e["id"], 1, 0xFFFFFFFFULL) ||
+              !IntegerIn(e["room_id"], 0, 0x127) || !IntegerIn(e["x"], 0, 31) ||
+              !IntegerIn(e["y"], 0, 31)) {
+            return absl::InvalidArgumentError("Malformed exit placement");
+          }
+          std::optional<int> exit_row;
+          if (!e["exit_row"].is_null()) {
+            if (!IntegerIn(e["exit_row"], 0, 0x78)) {
+              return absl::InvalidArgumentError("Invalid exit_row");
+            }
+            exit_row = e["exit_row"].get<int>();
+          }
+          document.authoring_.maps[index].exits.push_back(
+              {e["id"].get<uint32_t>(), e["room_id"].get<int>(),
+               e["x"].get<int>(), e["y"].get<int>(), exit_row});
+        }
+
+        // asset_bindings
+        if (!auth["asset_bindings"].is_array() ||
+            auth["asset_bindings"].size() != 3) {
+          return absl::InvalidArgumentError(
+              "asset_bindings must be an array of 3 strings");
+        }
+        for (int i = 0; i < 3; ++i) {
+          if (!auth["asset_bindings"][i].is_string()) {
+            return absl::InvalidArgumentError("asset_bindings must be strings");
+          }
+          document.authoring_.maps[index].asset_bindings[i] =
+              auth["asset_bindings"][i].get<std::string>();
+        }
+      }
     }
+
+    if (version == 2) {
+      if (!json["flight_points"].is_array()) {
+        return absl::InvalidArgumentError("flight_points must be an array");
+      }
+      for (const auto& f : json["flight_points"]) {
+        if (!HasKeys(f, {"id", "map_id", "x", "y", "name", "runtime_slot"}) ||
+            !IntegerIn(f["id"], 1, 0xFFFFFFFFULL) ||
+            !IntegerIn(f["map_id"], 0, 0xBF) || !IntegerIn(f["x"], 0, 31) ||
+            !IntegerIn(f["y"], 0, 31) || !f["name"].is_string() ||
+            !f["runtime_slot"].is_null()) {
+          return absl::InvalidArgumentError("Malformed flight point");
+        }
+        document.authoring_.flight_points.push_back(
+            {f["id"].get<uint32_t>(), f["map_id"].get<int>(), f["x"].get<int>(),
+             f["y"].get<int>(), f["name"].get<std::string>(), std::nullopt});
+      }
+    }
+
+    auto auth_status = ValidateAuthoringState(document.authoring_);
+    if (!auth_status.ok()) {
+      return auth_status;
+    }
+
     document.MarkSaved();
     return std::move(document);
   } catch (const Json::exception& error) {
@@ -197,7 +657,7 @@ std::string LyraTerrainDocument::Serialize() const {
       {"columns", kColumns},           {"rows", kRows},
       {"map_width", kMapSize},         {"map_height", kMapSize},
       {"tile_pixels", kTilePixels},    {"profile", ProfileJson(profile_)},
-      {"maps", Json::array()}};
+      {"maps", Json::array()},         {"flight_points", Json::array()}};
   for (int index = 0; index < kMapCount; ++index) {
     Json rows = Json::array();
     for (int y = 0; y < kMapSize; ++y) {
@@ -205,7 +665,12 @@ std::string LyraTerrainDocument::Serialize() const {
       rows.push_back(std::vector<uint16_t>(first, first + kMapSize));
     }
     json["maps"].push_back(
-        {{"map_id", kFirstMap + index}, {"tiles16", std::move(rows)}});
+        {{"map_id", kFirstMap + index},
+         {"tiles16", std::move(rows)},
+         {"authoring", AuthoringJson(authoring_.maps[index])}});
+  }
+  for (const auto& f : authoring_.flight_points) {
+    json["flight_points"].push_back(FlightPointJson(f));
   }
   return json.dump(2) + "\n";
 }

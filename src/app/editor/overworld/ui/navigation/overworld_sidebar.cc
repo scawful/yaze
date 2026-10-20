@@ -124,6 +124,8 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
       ImGui::Spacing();
       ImGui::TextColored(gui::GetErrorColor(), "%s", edit_error_.c_str());
     }
+    if (draw_project_tools)
+      draw_project_tools(current_map, game_state);
     DrawLabelPopup();
     ImGui::PopID();
   }

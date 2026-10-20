@@ -35,6 +35,7 @@ class OverworldSidebar {
                            bool compact = false);
 
   std::function<void(int)> on_story_changed;
+  std::function<void(int, int&)> draw_project_tools;
 
   /// Renames a project resource label (map names, gfx/palette/music labels)
   /// through the editor so the change is undoable.
