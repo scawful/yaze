@@ -257,7 +257,6 @@ absl::Status LyraTerrainCanvas::Load(project::YazeProject* project,
   RETURN_IF_ERROR(BindSource(overworld, &profile, true));
   document_ = std::make_shared<Document>(std::move(document));
   brush_ = 0;
-  picker_page_ = 0;
   source_path_ = path;
   source_bytes_ = std::move(bytes);
   // Keep the live reference absolute so project Save As can rebase it safely.
@@ -289,7 +288,6 @@ absl::Status LyraTerrainCanvas::Create(project::YazeProject* project,
   RETURN_IF_ERROR(BindSource(overworld, &profile, true));
   document_ = std::make_shared<Document>(std::move(document));
   brush_ = 0;
-  picker_page_ = 0;
   source_path_ = fs::absolute(path).lexically_normal().string();
   source_bytes_.reset();
   project->lyra_terrain_file = source_path_;
@@ -373,142 +371,130 @@ void LyraTerrainCanvas::DrawTile(ImDrawList* draw, int tile, ImVec2 min,
                  ImVec2(min.x + size, min.y + size), uv0, uv1);
 }
 
-void LyraTerrainCanvas::Draw(UndoManager& history) {
-  if (!document_)
-    return;
-  if (stroke_active_ && !ImGui::IsMouseDown(ImGuiMouseButton_Left))
+void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas,
+                                         UndoManager& history,
+                                         int& selected_tile, bool paint_enabled,
+                                         bool fill_enabled) {
+  if (stroke_active_ &&
+      (!ImGui::IsMouseDown(ImGuiMouseButton_Left) || !paint_enabled ||
+       fill_enabled || brush_ != selected_tile)) {
     FinishStroke(history);
-  ImGui::Text("Lyra terrain%s", dirty() ? " *" : "");
-  ImGui::SameLine();
-  ImGui::TextDisabled(
-      "Paint: drag | Eyedropper: right-click | Pan: middle-drag | Zoom: wheel");
-  if (!status_.ok())
-    ImGui::TextWrapped("%s", status_.ToString().c_str());
-  ImGui::SetNextItemWidth(140);
-  ImGui::SliderFloat("Zoom", &zoom_, 0.15f, 3.0f, "%.2fx");
-  ImGui::SameLine();
-  const bool frame_vertical_maps = ImGui::Button("A0 / A8 / B0");
-  ImGui::SameLine();
-  ImGui::TextDisabled(
-      "8 x 4 maps | 32 x 32 tiles per map | Save Project to keep edits");
-  if (!atlas_.texture()) {
-    ImGui::TextUnformatted("Preparing native Tile16 graphics...");
+  }
+  if (!document_ || !canvas.draw_list || !atlas_.texture() ||
+      !std::isfinite(canvas.scale) || canvas.scale <= 0) {
     return;
   }
 
-  ImGui::BeginChild("LyraTilePicker", ImVec2(205, 0), true);
-  const int count = document_->profile().tile_count;
-  const int pages = (count + 127) / 128;
-  ImGui::SetNextItemWidth(170);
-  ImGui::SliderInt("Page", &picker_page_, 0, pages - 1);
-  ImGui::Text("Tile $%04X", brush_);
-  for (int i = picker_page_ * 128;
-       i < std::min(count, (picker_page_ + 1) * 128); ++i) {
-    ImGui::PushID(i);
-    const ImVec2 pos = ImGui::GetCursorScreenPos();
-    if (ImGui::InvisibleButton("tile", ImVec2(22, 22))) {
-      FinishStroke(history);
-      brush_ = i;
-    }
-    DrawTile(ImGui::GetWindowDrawList(), i, pos, 22);
-    if (brush_ == i)
-      ImGui::GetWindowDrawList()->AddRect(pos, ImVec2(pos.x + 22, pos.y + 22),
-                                          IM_COL32(255, 220, 80, 255), 0, 0, 2);
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Tile16 $%04X", i);
-    if ((i % 8) != 7)
-      ImGui::SameLine(0, 1);
-    ImGui::PopID();
+  // The existing special maps occupy world pixels Y=0..2047. Sidecar map A0
+  // begins directly below them; navigation and scrolling remain canvas-owned.
+  constexpr float kWorldYOffset =
+      4 * Document::kMapSize * Document::kTilePixels;
+  const float cell = Document::kTilePixels * canvas.scale;
+  const ImVec2 start(
+      canvas.canvas_p0.x + canvas.scrolling.x,
+      canvas.canvas_p0.y + canvas.scrolling.y + kWorldYOffset * canvas.scale);
+  if (!std::isfinite(start.x) || !std::isfinite(start.y)) {
+    return;
   }
-  ImGui::EndChild();
-  ImGui::SameLine();
-  ImGui::BeginChild(
-      "LyraTerrainViewport", ImVec2(0, 0), true,
-      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-  const ImVec2 origin = ImGui::GetCursorScreenPos();
-  const ImVec2 size = ImGui::GetContentRegionAvail();
-  if (frame_vertical_maps) {
-    pan_ = ImVec2(24, 40);
-    zoom_ = std::clamp(
-        std::min((size.x - 48) / 512.0f, (size.y - 64) / (3 * 512.0f)), 0.15f,
-        3.0f);
-  }
-  ImGui::InvisibleButton("terrain", size,
-                         ImGuiButtonFlags_MouseButtonLeft |
-                             ImGuiButtonFlags_MouseButtonRight |
-                             ImGuiButtonFlags_MouseButtonMiddle);
-  const bool hovered = ImGui::IsItemHovered();
-  auto& io = ImGui::GetIO();
-  if (hovered && !stroke_active_ && io.MouseWheel != 0) {
-    const float old = zoom_;
-    zoom_ = std::clamp(zoom_ * std::pow(1.2f, io.MouseWheel), 0.15f, 3.0f);
-    const ImVec2 local(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-    pan_ = ImVec2(local.x - (local.x - pan_.x) * zoom_ / old,
-                  local.y - (local.y - pan_.y) * zoom_ / old);
-  }
-  if (!stroke_active_ && ImGui::IsItemActive() &&
-      ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
-    pan_.x += io.MouseDelta.x;
-    pan_.y += io.MouseDelta.y;
-  }
-  const float cell = 16 * zoom_;
-  const ImVec2 start(origin.x + pan_.x, origin.y + pan_.y);
-  auto* draw = ImGui::GetWindowDrawList();
-  draw->PushClipRect(origin, ImVec2(origin.x + size.x, origin.y + size.y),
-                     true);
-  const int x0 = std::clamp(static_cast<int>(std::floor(-pan_.x / cell)), 0,
-                            Document::kWidth);
-  const int y0 = std::clamp(static_cast<int>(std::floor(-pan_.y / cell)), 0,
-                            Document::kHeight);
-  const int x1 =
-      std::clamp(static_cast<int>(std::ceil((size.x - pan_.x) / cell)), 0,
-                 Document::kWidth);
-  const int y1 =
-      std::clamp(static_cast<int>(std::ceil((size.y - pan_.y) / cell)), 0,
-                 Document::kHeight);
-  for (int y = y0; y < y1; ++y)
-    for (int x = x0; x < x1; ++x)
+  auto* draw = canvas.draw_list;
+  const ImVec2 clip_min = draw->GetClipRectMin();
+  const ImVec2 clip_max = draw->GetClipRectMax();
+  // Clamp in floating point before converting: the canvas can be far outside
+  // the viewport while panning, and focus loss can supply extreme coordinates.
+  const auto first_cell = [cell](float clip, float origin, int count) {
+    return static_cast<int>(std::clamp(std::floor((clip - origin) / cell), 0.0f,
+                                       static_cast<float>(count)));
+  };
+  const auto last_cell = [cell](float clip, float origin, int count) {
+    return static_cast<int>(std::clamp(std::ceil((clip - origin) / cell), 0.0f,
+                                       static_cast<float>(count)));
+  };
+  const int x0 = first_cell(clip_min.x, start.x, Document::kWidth);
+  const int y0 = first_cell(clip_min.y, start.y, Document::kHeight);
+  const int x1 = last_cell(clip_max.x, start.x, Document::kWidth);
+  const int y1 = last_cell(clip_max.y, start.y, Document::kHeight);
+  for (int y = y0; y < y1; ++y) {
+    for (int x = x0; x < x1; ++x) {
       DrawTile(draw, *document_->tile(x, y),
                ImVec2(start.x + x * cell, start.y + y * cell), cell);
-  for (int row = 0; row < 4; ++row)
-    for (int col = 0; col < 8; ++col) {
-      const ImVec2 a(start.x + col * 32 * cell, start.y + row * 32 * cell);
-      const ImVec2 b(a.x + 32 * cell, a.y + 32 * cell);
+    }
+  }
+  for (int row = 0; row < Document::kRows; ++row) {
+    for (int col = 0; col < Document::kColumns; ++col) {
+      const ImVec2 a(start.x + col * Document::kMapSize * cell,
+                     start.y + row * Document::kMapSize * cell);
+      const ImVec2 b(a.x + Document::kMapSize * cell,
+                     a.y + Document::kMapSize * cell);
+      if (a.x >= clip_max.x || a.y >= clip_max.y || b.x <= clip_min.x ||
+          b.y <= clip_min.y) {
+        continue;
+      }
       draw->AddRect(a, b, IM_COL32(255, 255, 255, 180));
-      const auto label = absl::StrFormat("$%02X", 0xA0 + row * 8 + col);
+      const auto label = absl::StrFormat(
+          "$%02X", Document::kFirstMap + row * Document::kColumns + col);
       draw->AddRectFilled(a, ImVec2(a.x + 39, a.y + 20),
                           IM_COL32(0, 0, 0, 190));
       draw->AddText(ImVec2(a.x + 4, a.y + 2), IM_COL32_WHITE, label.c_str());
     }
-  const int x = static_cast<int>(std::floor((io.MousePos.x - start.x) / cell));
-  const int y = static_cast<int>(std::floor((io.MousePos.y - start.y) / cell));
-  const bool inside =
-      x >= 0 && x < Document::kWidth && y >= 0 && y < Document::kHeight;
-  if (hovered && inside) {
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+  }
+
+  const auto& io = ImGui::GetIO();
+  const float tile_x = (io.MousePos.x - start.x) / cell;
+  const float tile_y = (io.MousePos.y - start.y) / cell;
+  const bool inside = ImGui::IsMousePosValid(&io.MousePos) && tile_x >= 0 &&
+                      tile_x < Document::kWidth && tile_y >= 0 &&
+                      tile_y < Document::kHeight;
+  if (!inside) {
+    // Crossing back into the ROM-backed rows ends this source's gesture. A
+    // later re-entry while still holding the button cannot paint a bridge.
+    FinishStroke(history);
+    return;
+  }
+  if (!canvas.hovered) {
+    last_cell_.reset();
+    return;
+  }
+  const int x = static_cast<int>(std::floor(tile_x));
+  const int y = static_cast<int>(std::floor(tile_y));
+  if ((paint_enabled || fill_enabled) && !io.KeyShift &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    FinishStroke(history);
+    selected_tile = *document_->tile(x, y);
+  }
+  const bool valid_brush =
+      selected_tile >= 0 && selected_tile < document_->profile().tile_count;
+  if ((paint_enabled || fill_enabled) && valid_brush &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    brush_ = selected_tile;
+    status_ = document_->BeginStroke();
+    stroke_active_ = status_.ok();
+    if (stroke_active_ && fill_enabled) {
+      // Match the existing Overworld Fill tool: fill this 32x32 map in one
+      // undo action, without extending the edit into neighboring maps.
+      const int map_x = x / Document::kMapSize * Document::kMapSize;
+      const int map_y = y / Document::kMapSize * Document::kMapSize;
+      for (int dy = 0; dy < Document::kMapSize && status_.ok(); ++dy) {
+        for (int dx = 0; dx < Document::kMapSize && status_.ok(); ++dx) {
+          status_ = document_->Paint(map_x + dx, map_y + dy, brush_);
+        }
+      }
       FinishStroke(history);
-      brush_ = *document_->tile(x, y);
-      picker_page_ = brush_ / 128;
     }
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-      status_ = document_->BeginStroke();
-      stroke_active_ = status_.ok();
-    }
-    if (stroke_active_ && ImGui::IsMouseDown(ImGuiMouseButton_Left))
-      PaintLine(x, y);
+  }
+  if (stroke_active_ && paint_enabled && !fill_enabled &&
+      ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    PaintLine(x, y);
+  }
+  if ((paint_enabled || fill_enabled) && valid_brush) {
     const ImVec2 a(start.x + x * cell, start.y + y * cell);
     draw->AddRect(a, ImVec2(a.x + cell, a.y + cell),
                   IM_COL32(255, 220, 80, 255), 0, 0, 2);
-  } else if (stroke_active_)
-    last_cell_.reset();
-  draw->PopClipRect();
-  ImGui::EndChild();
+  }
 }
 
 void LyraTerrainCanvas::Reset() {
   gfx::Arena::Get().RetireBitmap(atlas_);
   brush_ = 0;
-  picker_page_ = 0;
   if (document_ && stroke_active_)
     document_->CancelStroke();
   document_.reset();

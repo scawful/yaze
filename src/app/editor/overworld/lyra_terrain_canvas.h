@@ -7,6 +7,7 @@
 
 #include "app/editor/core/undo_manager.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gui/canvas/canvas.h"
 #include "core/lyra_terrain_document.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
@@ -38,10 +39,17 @@ class LyraTerrainCanvas {
   bool dirty() const;
   void ProjectSaveCommitted() { pending_project_commit_ = false; }
   bool loaded() const { return document_ != nullptr; }
-  void Draw(UndoManager& history);
+  // Draws the lower four rows of the existing Special World canvas. The
+  // owning editor supplies its normal tile selection and drawing-tool state.
+  void DrawSpecialWorld(const gui::CanvasRuntime& canvas, UndoManager& history,
+                        int& selected_tile, bool paint_enabled,
+                        bool fill_enabled);
   void FinishStroke(UndoManager& history);
   void Reset();
   const core::LyraTerrainDocument* document() const { return document_.get(); }
+  const gfx::Bitmap& atlas() const { return atlas_; }
+  gfx::Bitmap& atlas() { return atlas_; }
+  bool stroke_active() const { return stroke_active_; }
 
  private:
   absl::Status BindSource(zelda3::Overworld& overworld,
@@ -58,9 +66,6 @@ class LyraTerrainCanvas {
   bool stroke_active_ = false;
   std::optional<ImVec2> last_cell_;
   int brush_ = 0;
-  int picker_page_ = 0;
-  float zoom_ = 0.6f;
-  ImVec2 pan_{24, 40};
   absl::Status status_;
 };
 
