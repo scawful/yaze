@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "kind": "yaze-dungeon-inventory-source-contract",
-  "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c",
+  "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2",
   "source_files": [
     {
       "path": "src/zelda3/dungeon/custom_object.cc",
-      "sha256": "da9d5be34510725df923c402be14894ca2d84871cd5f63827a1a084d5b94cabb"
+      "sha256": "b323e04c391ca104c07d23f373464d1159fde59ecea5a0972b1b6a530461fb44"
     },
     {
       "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
@@ -65,7 +65,7 @@
     },
     {
       "path": "src/zelda3/dungeon/room.cc",
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407"
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f"
     },
     {
       "path": "src/zelda3/dungeon/room_layer_registers.h",
@@ -106,7 +106,7 @@
       "count": 3648
     },
     "custom_runtime_families": 3,
-    "custom_default_subtype_slots": 21
+    "custom_default_subtype_slots": 23
   },
   "registry_ranges": [
     [

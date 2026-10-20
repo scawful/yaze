@@ -1201,7 +1201,7 @@
   "source_roots": {
     "yaze": {
       "kind": "repository",
-      "commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+      "commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
     },
     "usdasm": {
       "kind": "independently_bound_reference_checkout",
@@ -1226,7 +1226,7 @@
         1085,
         1104
       ],
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f",
       "evidence": "3bpp Left/Right palette-half expansion depends on graphics group and slot"
     },
     "S3": {
@@ -1236,7 +1236,7 @@
         1157,
         1176
       ],
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f",
       "evidence": "nonzero3bpp1-7 expand to9-15 for Right; animated graphics loaded next"
     },
     "S4": {
@@ -1246,7 +1246,7 @@
         921,
         950
       ],
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f",
       "evidence": "room palette-set indirection and room-header layer settings"
     },
     "S5": {
@@ -1256,7 +1256,7 @@
         1429,
         1441
       ],
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f",
       "evidence": "same render palette applied to both background/layout/object buffers"
     },
     "S6": {
@@ -1276,7 +1276,7 @@
         1355,
         1367
       ],
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f",
       "evidence": "floors then layout then three streams"
     },
     "S8": {
@@ -1286,7 +1286,7 @@
         1686,
         1755
       ],
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f",
       "evidence": "three passes, continuing event index; doors and chest-hole overlay separate"
     },
     "S9": {
@@ -1296,7 +1296,7 @@
         1789,
         1802
       ],
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407",
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f",
       "evidence": "pushable-block/torch separate global data and special layer selector"
     },
     "S10": {

@@ -49,7 +49,7 @@ reported as verified. No private path, ROM hash or reference image is required.
 | Serializable objects | 440 | Subtype1 `0x000..0x0F7` (248), subtype2 `0x100..0x13F` (64), subtype3 `0xF80..0xFFF` (128). |
 | Registry metadata entries | 448 | Includes eight `0x0F8..0x0FF` aliases rejected by the strict save validator. |
 | Registered routines | 135 | IDs `0..134`; every mapped object points to a registered routine. |
-| Default custom families | 3 | `0x31`, `0x32`, `0x54`; 16 + 3 + 2 default asset slots. |
+| Default custom families | 3 | `0x31`, `0x32`, `0x54`; 16 + 5 + 2 default asset slots. |
 | Family vocabulary | 24 | All 135 routines have a source classification or an explicit classification gap. |
 
 `routine_id_default` is a Yaze registry index, not a CPU address. The optional
@@ -102,6 +102,15 @@ the contract deliberately and rerun the focused tests. The source contract's
 baseline commit stays distinct from the generated `checkout_commit`: unrelated
 later commits are allowed if all source fingerprints still match. A copied
 source tree without Git reports `checkout_commit: null`.
+
+The `9a0316176ed5668d12c5135be757f3adc83578c2` source review updates the
+earlier `15e137bc2df7531f677cad407c166d142c7cb33c` pins for two intended
+changes: custom family `0x32` adds default slots 3 (`minish_stump.bin`) and 4
+(`minish_wall_hole.bin`), bringing the custom slot count to 23; `Room::LoadObjects`
+preserves an unsaved imported collision map on its first load. The seven bound
+`room.cc` evidence ranges (`S2`–`S5`, `S7`–`S9`) are byte-identical between
+those commits, so their graphics, palette and layer claims retain the same basis.
+Registry routing, routine classifications and dispatcher annotations are unchanged.
 
 `--family-bindings` checks source fingerprints/provenance against the inventory;
 all 135 unique routine IDs, names and source references; known classification

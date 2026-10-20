@@ -2,11 +2,11 @@
   "schema_version": 1,
   "kind": "routine_to_style_family_accounting",
   "status": "TAXONOMY_ACCOUNTED_ART_AND_ENGINE_BINDINGS_OPEN",
-  "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c",
+  "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2",
   "source_files": [
     {
       "path": "src/zelda3/dungeon/custom_object.cc",
-      "sha256": "da9d5be34510725df923c402be14894ca2d84871cd5f63827a1a084d5b94cabb"
+      "sha256": "b323e04c391ca104c07d23f373464d1159fde59ecea5a0972b1b6a530461fb44"
     },
     {
       "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
@@ -66,7 +66,7 @@
     },
     {
       "path": "src/zelda3/dungeon/room.cc",
-      "sha256": "6e60097ce8646e9230e3a87780583efa20284834d2d9b2db008a0bb360c80407"
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f"
     },
     {
       "path": "src/zelda3/dungeon/room_layer_registers.h",
@@ -135,7 +135,7 @@
           "line": 805,
           "end_line": 817
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -159,7 +159,7 @@
           "line": 819,
           "end_line": 830
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -181,7 +181,7 @@
           "line": 832,
           "end_line": 843
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -203,7 +203,7 @@
           "line": 858,
           "end_line": 869
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -225,7 +225,7 @@
           "line": 871,
           "end_line": 880
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -247,7 +247,7 @@
           "line": 53,
           "end_line": 62
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -269,7 +269,7 @@
           "line": 64,
           "end_line": 73
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -291,7 +291,7 @@
           "line": 583,
           "end_line": 591
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -315,7 +315,7 @@
           "line": 593,
           "end_line": 604
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -337,7 +337,7 @@
           "line": 606,
           "end_line": 614
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -359,7 +359,7 @@
           "line": 616,
           "end_line": 624
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -381,7 +381,7 @@
           "line": 626,
           "end_line": 633
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -403,7 +403,7 @@
           "line": 635,
           "end_line": 646
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -425,7 +425,7 @@
           "line": 648,
           "end_line": 656
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -447,7 +447,7 @@
           "line": 658,
           "end_line": 666
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -469,7 +469,7 @@
           "line": 668,
           "end_line": 676
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -491,7 +491,7 @@
           "line": 948,
           "end_line": 957
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "agahnim_windows",
@@ -517,7 +517,7 @@
           "line": 75,
           "end_line": 84
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -539,7 +539,7 @@
           "line": 86,
           "end_line": 95
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -563,7 +563,7 @@
           "line": 252,
           "end_line": 262
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -587,7 +587,7 @@
           "line": 882,
           "end_line": 891
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -609,7 +609,7 @@
           "line": 893,
           "end_line": 902
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -631,7 +631,7 @@
           "line": 904,
           "end_line": 913
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -653,7 +653,7 @@
           "line": 926,
           "end_line": 935
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -675,7 +675,7 @@
           "line": 937,
           "end_line": 946
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -697,7 +697,7 @@
           "line": 959,
           "end_line": 969
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -721,7 +721,7 @@
           "line": 1633,
           "end_line": 1642
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -743,7 +743,7 @@
           "line": 971,
           "end_line": 980
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -765,7 +765,7 @@
           "line": 982,
           "end_line": 991
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -790,7 +790,7 @@
           "line": 993,
           "end_line": 1002
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -812,7 +812,7 @@
           "line": 1004,
           "end_line": 1014
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -834,7 +834,7 @@
           "line": 1016,
           "end_line": 1025
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -858,7 +858,7 @@
           "line": 1027,
           "end_line": 1036
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -880,7 +880,7 @@
           "line": 1644,
           "end_line": 1653
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -902,7 +902,7 @@
           "line": 1655,
           "end_line": 1664
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -924,7 +924,7 @@
           "line": 264,
           "end_line": 273
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -946,7 +946,7 @@
           "line": 275,
           "end_line": 284
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -968,7 +968,7 @@
           "line": 286,
           "end_line": 295
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -990,7 +990,7 @@
           "line": 1623,
           "end_line": 1631
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "custom_asset_override",
@@ -1015,7 +1015,7 @@
           "line": 1608,
           "end_line": 1621
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "small_chest_dispatch"
@@ -1039,7 +1039,7 @@
           "line": 1038,
           "end_line": 1047
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1063,7 +1063,7 @@
           "line": 1049,
           "end_line": 1058
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1085,7 +1085,7 @@
           "line": 1060,
           "end_line": 1069
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1110,7 +1110,7 @@
           "line": 678,
           "end_line": 686
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1132,7 +1132,7 @@
           "line": 688,
           "end_line": 696
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1154,7 +1154,7 @@
           "line": 698,
           "end_line": 706
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1179,7 +1179,7 @@
           "line": 708,
           "end_line": 716
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1201,7 +1201,7 @@
           "line": 718,
           "end_line": 726
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1225,7 +1225,7 @@
           "line": 728,
           "end_line": 736
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1247,7 +1247,7 @@
           "line": 738,
           "end_line": 746
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1271,7 +1271,7 @@
           "line": 748,
           "end_line": 756
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1293,7 +1293,7 @@
           "line": 1071,
           "end_line": 1080
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1315,7 +1315,7 @@
           "line": 1082,
           "end_line": 1091
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1337,7 +1337,7 @@
           "line": 1093,
           "end_line": 1102
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1359,7 +1359,7 @@
           "line": 1104,
           "end_line": 1113
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1381,7 +1381,7 @@
           "line": 1115,
           "end_line": 1124
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1406,7 +1406,7 @@
           "line": 1670,
           "end_line": 1678
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1430,7 +1430,7 @@
           "line": 1680,
           "end_line": 1688
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1452,7 +1452,7 @@
           "line": 1690,
           "end_line": 1698
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1474,7 +1474,7 @@
           "line": 1700,
           "end_line": 1708
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "room_floor_source"
@@ -1498,7 +1498,7 @@
           "line": 1710,
           "end_line": 1718
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "room_floor_source"
@@ -1522,7 +1522,7 @@
           "line": 1720,
           "end_line": 1728
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1546,7 +1546,7 @@
           "line": 1730,
           "end_line": 1738
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1568,7 +1568,7 @@
           "line": 1740,
           "end_line": 1748
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1592,7 +1592,7 @@
           "line": 1750,
           "end_line": 1758
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "special_layer_routing"
@@ -1616,7 +1616,7 @@
           "line": 758,
           "end_line": 766
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1638,7 +1638,7 @@
           "line": 768,
           "end_line": 776
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1660,7 +1660,7 @@
           "line": 778,
           "end_line": 786
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1682,7 +1682,7 @@
           "line": 788,
           "end_line": 796
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1704,7 +1704,7 @@
           "line": 798,
           "end_line": 806
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1726,7 +1726,7 @@
           "line": 808,
           "end_line": 816
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1748,7 +1748,7 @@
           "line": 818,
           "end_line": 826
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1770,7 +1770,7 @@
           "line": 1126,
           "end_line": 1135
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1792,7 +1792,7 @@
           "line": 1137,
           "end_line": 1146
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1814,7 +1814,7 @@
           "line": 1148,
           "end_line": 1157
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1839,7 +1839,7 @@
           "line": 297,
           "end_line": 306
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1864,7 +1864,7 @@
           "line": 308,
           "end_line": 317
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1889,7 +1889,7 @@
           "line": 319,
           "end_line": 328
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1914,7 +1914,7 @@
           "line": 330,
           "end_line": 339
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1938,7 +1938,7 @@
           "line": 2265,
           "end_line": 2273
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1962,7 +1962,7 @@
           "line": 2276,
           "end_line": 2285
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -1986,7 +1986,7 @@
           "line": 2287,
           "end_line": 2296
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2010,7 +2010,7 @@
           "line": 2298,
           "end_line": 2306
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2034,7 +2034,7 @@
           "line": 1761,
           "end_line": 1770
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2058,7 +2058,7 @@
           "line": 1772,
           "end_line": 1781
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2082,7 +2082,7 @@
           "line": 1783,
           "end_line": 1792
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2106,7 +2106,7 @@
           "line": 1794,
           "end_line": 1803
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "special_layer_routing"
@@ -2132,7 +2132,7 @@
           "line": 1805,
           "end_line": 1814
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "special_layer_routing"
@@ -2158,7 +2158,7 @@
           "line": 1817,
           "end_line": 1827
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2182,7 +2182,7 @@
           "line": 1829,
           "end_line": 1839
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2206,7 +2206,7 @@
           "line": 1841,
           "end_line": 1851
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2230,7 +2230,7 @@
           "line": 1853,
           "end_line": 1863
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2252,7 +2252,7 @@
           "line": 1899,
           "end_line": 1908
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "big_key_lock_dispatch"
@@ -2278,7 +2278,7 @@
           "line": 1910,
           "end_line": 1919
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2300,7 +2300,7 @@
           "line": 1922,
           "end_line": 1931
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2322,7 +2322,7 @@
           "line": 1933,
           "end_line": 1942
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2344,7 +2344,7 @@
           "line": 1944,
           "end_line": 1953
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2369,7 +2369,7 @@
           "line": 1957,
           "end_line": 1966
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2391,7 +2391,7 @@
           "line": 1968,
           "end_line": 1976
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2413,7 +2413,7 @@
           "line": 1978,
           "end_line": 1986
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2435,7 +2435,7 @@
           "line": 1988,
           "end_line": 1996
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2457,7 +2457,7 @@
           "line": 1998,
           "end_line": 2006
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2479,7 +2479,7 @@
           "line": 2008,
           "end_line": 2016
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2501,7 +2501,7 @@
           "line": 2018,
           "end_line": 2026
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2523,7 +2523,7 @@
           "line": 2028,
           "end_line": 2037
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2545,7 +2545,7 @@
           "line": 2039,
           "end_line": 2048
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2567,7 +2567,7 @@
           "line": 2061,
           "end_line": 2069
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "boss_shell_state"
@@ -2591,7 +2591,7 @@
           "line": 2082,
           "end_line": 2090
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2613,7 +2613,7 @@
           "line": 2092,
           "end_line": 2100
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2635,7 +2635,7 @@
           "line": 2102,
           "end_line": 2110
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2657,7 +2657,7 @@
           "line": 2112,
           "end_line": 2121
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2679,7 +2679,7 @@
           "line": 2244,
           "end_line": 2252
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2701,7 +2701,7 @@
           "line": 2254,
           "end_line": 2262
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2723,7 +2723,7 @@
           "line": 2123,
           "end_line": 2132
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2745,7 +2745,7 @@
           "line": 2134,
           "end_line": 2143
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "big_chest_dispatch"
@@ -2771,7 +2771,7 @@
           "line": 2145,
           "end_line": 2154
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2793,7 +2793,7 @@
           "line": 2156,
           "end_line": 2165
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2815,7 +2815,7 @@
           "line": 2310,
           "end_line": 2345
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2837,7 +2837,7 @@
           "line": 915,
           "end_line": 924
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2862,7 +2862,7 @@
           "line": 1865,
           "end_line": 1874
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2886,7 +2886,7 @@
           "line": 1876,
           "end_line": 1885
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2910,7 +2910,7 @@
           "line": 1887,
           "end_line": 1896
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "special_layer_routing"
@@ -2934,7 +2934,7 @@
           "line": 828,
           "end_line": 836
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2958,7 +2958,7 @@
           "line": 2050,
           "end_line": 2059
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -2980,7 +2980,7 @@
           "line": 845,
           "end_line": 856
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -3002,7 +3002,7 @@
           "line": 2167,
           "end_line": 2176
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -3024,7 +3024,7 @@
           "line": 2178,
           "end_line": 2187
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -3046,7 +3046,7 @@
           "line": 2189,
           "end_line": 2198
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -3070,7 +3070,7 @@
           "line": 2200,
           "end_line": 2209
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -3092,7 +3092,7 @@
           "line": 2211,
           "end_line": 2220
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "special_layer_routing"
@@ -3116,7 +3116,7 @@
           "line": 2350,
           "end_line": 2358
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "custom_asset_override"
@@ -3140,7 +3140,7 @@
           "line": 2222,
           "end_line": 2231
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "special_layer_routing"
@@ -3164,7 +3164,7 @@
           "line": 2233,
           "end_line": 2242
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -3186,7 +3186,7 @@
           "line": 2071,
           "end_line": 2080
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": []
     },
@@ -3208,7 +3208,7 @@
           "line": 241,
           "end_line": 250
         },
-        "source_commit": "15e137bc2df7531f677cad407c166d142c7cb33c"
+        "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2"
       },
       "dispatch_exception_keys": [
         "special_layer_routing"

@@ -268,4 +268,3 @@ All eight sample modules retain missing engine mappings and unverified joined
 compositions. The family pack needs more art, complete per-object dispositions,
 measured room usage and allocation. Exact planar export is useful evidence for
 pixel encoding; it does not replace those steps.
-

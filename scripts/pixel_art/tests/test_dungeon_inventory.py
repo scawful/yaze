@@ -104,7 +104,12 @@ class DungeonInventoryTest(unittest.TestCase):
     def test_custom_families_and_layer_semantics(self):
         data = self.inventory
         objects = {obj['id']: obj for obj in data['objects']}
-        self.assertEqual([len(row['default_slots']) for row in data['custom_families']], [16, 3, 2])
+        self.assertEqual([len(row['default_slots']) for row in data['custom_families']], [16, 5, 2])
+        self.assertEqual(data['counts']['custom_default_subtype_slots'], 23)
+        self.assertEqual(data['custom_families'][1]['default_slots'][3:], [
+            {'subtype': 3, 'filename': 'minish_stump.bin'},
+            {'subtype': 4, 'filename': 'minish_wall_hole.bin'},
+        ])
         for oid in (0x31, 0x32, 0x54):
             self.assertEqual((objects[oid]['routine_id_default'], objects[oid]['routine_id_custom_enabled']), (38, 130))
         routines = {row['id']: row for row in data['routines']}
@@ -204,6 +209,12 @@ class DungeonInventoryTest(unittest.TestCase):
     def test_changed_custom_lookup_is_not_silently_reinterpreted(self):
         self.modify(inv.REG, 'object_id == 0x54', 'object_id == 0x55', refresh=True)
         with self.assertRaisesRegex(inv.InventoryError, 'SOURCE_GRAMMAR'):
+            self.build()
+
+    def test_refreshed_pin_does_not_accept_unreviewed_custom_slot(self):
+        self.modify(inv.CUSTOM, '"minish_wall_hole.bin",',
+                    '"minish_wall_hole.bin", "unreviewed.bin",', refresh=True)
+        with self.assertRaisesRegex(inv.InventoryError, 'SOURCE_POPULATION'):
             self.build()
 
     def test_profile_source_range_id_status_and_palette_guards(self):
