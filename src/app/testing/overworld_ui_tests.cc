@@ -4,6 +4,8 @@
 
 #include <array>
 #include <chrono>
+#include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -12,7 +14,10 @@
 #include <string>
 
 #include "app/application.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/source_artifact_publisher.h"
 #include "imgui.h"
@@ -562,6 +567,169 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
       IM_CHECK_EQ(toasts->pending_count(), 0);
       ctx->Yield(2);
     }
+
+    // Registry entries outlive their widgets by 600 frames; only an item
+    // ImGui submitted recently counts as present.
+    const auto visible_widget = [&](const std::string& suffix) -> ImGuiID {
+      const std::string tail = "/" + suffix;
+      for (const auto& path : widgets.FindWidgets("*" + suffix)) {
+        const bool match =
+            path == suffix ||
+            (path.size() > tail.size() &&
+             path.compare(path.size() - tail.size(), tail.size(), tail) == 0);
+        const ImGuiID id = match ? widgets.GetWidgetId(path) : 0;
+        if (id != 0 && ctx->ItemExists(id))
+          return id;
+      }
+      return 0;
+    };
+
+    // A legacy Current area + Hide unused filter must not hide project
+    // terrain tiles, and must return unchanged on the next legacy map. Only
+    // native grid clicks prove which tile a visible cell holds.
+    constexpr int kLegacyMap = 0x3A;
+    const bool selector_was_pinned = overworld->map_pinned();
+    if (!selector_was_pinned)
+      overworld->ToggleMapLock();
+    manager->OpenEditorAndPanelsFromFlags("Overworld",
+                                          "overworld.tile16_selector");
+    ctx->Yield(3);
+    const auto selector_window =
+        manager->window_manager().GetWorkspaceWindowName(
+            manager->GetCurrentSessionId(), "overworld.tile16_selector");
+    ctx->SetRef(selector_window.c_str());
+    ImGuiWindow* selector = ctx->GetWindowByRef("");
+    IM_CHECK(selector != nullptr);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
+    // The grid child has no padding: cell i is drawn after the selector's
+    // x offset, at column i % 8 and row i / 8 of square cells.
+    const std::string grid_prefix = std::string(selector->Name) + "/";
+    const auto tile16_grid = [&]() -> ImGuiWindow* {
+      for (ImGuiWindow* window : ctx->UiContext->Windows) {
+        const std::string name = window->Name;
+        if (window->WasActive && name.rfind(grid_prefix, 0) == 0 &&
+            name.find("/##Tile16Grid") != std::string::npos)
+          return window;
+      }
+      return nullptr;
+    };
+    constexpr int kColumns = editor::kTile16SelectorColumns;
+    float cell = 0.0f;
+    // Returns the native selection after clicking a visible cell, else -1.
+    const auto click_cell = [&](ImGuiWindow* grid, int index) -> int {
+      const ImVec2 pos(grid->Pos.x - grid->Scroll.x +
+                           editor::kTile16SelectorDrawOffsetX +
+                           (index % kColumns + 0.5f) * cell,
+                       grid->Pos.y - grid->Scroll.y +
+                           (index / kColumns + 0.5f) * cell);
+      if (!grid->InnerClipRect.Contains(pos))
+        return -1;
+      ctx->MouseSetViewport(grid);
+      ctx->MouseMoveToPos(pos);
+      ctx->MouseClick(ImGuiMouseButton_Left);
+      // Successive probes can share a screen point; never double-click.
+      ctx->SleepNoSkip(0.5f, 1.0f / 60.0f);
+      return overworld->current_tile16_id();
+    };
+    const auto lookup_tile = [&](int tile) -> bool {
+      const ImGuiID button =
+          widgets.GetWidgetId("OwBlocksetSelector/button:Lookup");
+      if (button == 0)
+        return false;
+      ctx->ItemClick(button);
+      ctx->Yield(2);
+      const ImGuiID input =
+          widgets.GetWidgetId("OwBlocksetSelector/input:TileID");
+      if (input == 0)
+        return false;
+      char hex[8];
+      std::snprintf(hex, sizeof(hex), "%X", tile);
+      ctx->ItemInputValue(input, hex);
+      ctx->Yield(3);
+      return overworld->current_tile16_id() == tile;
+    };
+    // Project terrain grids use full ID order. Lookup centres its tile, so
+    // two lookups 16 rows apart measure the cell size from the scroll delta.
+    const auto check_lyra_grid = [&](int map_id) -> bool {
+      overworld->JumpToMap(map_id);
+      ctx->Yield(3);
+      ImGuiWindow* grid = tile16_grid();
+      if (overworld->current_map_id() != map_id || grid == nullptr)
+        return false;
+      if (cell <= 0.0f) {
+        if (!lookup_tile(0x800))
+          return false;
+        const float top = grid->Scroll.y;
+        if (!lookup_tile(0x880))
+          return false;
+        cell = std::round((grid->Scroll.y - top) / 16.0f);
+        if (cell < 1.0f)
+          return false;
+      }
+      // Lookup alone can select a hidden tile. Click a different ID first,
+      // then the final palette cell, to prove both native hit targets exist.
+      return lookup_tile(0xFFF) && click_cell(grid, 0xFF8) == 0xFF8 &&
+             click_cell(grid, 0xFFF) == 0xFFF;
+    };
+    overworld->JumpToMap(kLegacyMap);
+    ImGuiID scope_button = 0;
+    for (int frame = 0; frame < 120 && scope_button == 0 && !ctx->IsError();
+         ++frame) {
+      ctx->Yield(1);
+      if (overworld->current_map_id() == kLegacyMap)
+        scope_button = visible_widget("button:tile16_usage_scope");
+    }
+    IM_CHECK_EQ(overworld->current_map_id(), kLegacyMap);
+    IM_CHECK(scope_button != 0);
+    ctx->ItemClick(scope_button);
+    ctx->Yield(2);
+    ImGuiWindow* scope_popup = ctx->GetWindowByRef("//$FOCUSED");
+    IM_CHECK(scope_popup != nullptr &&
+             (scope_popup->Flags & ImGuiWindowFlags_Popup) != 0);
+    ctx->SetRef(scope_popup);
+    ctx->ItemClick("Current area");
+    ctx->ItemCheck("Hide unused tiles");
+    IM_CHECK(ctx->ItemIsChecked("Hide unused tiles"));
+    ctx->PopupCloseAll();
+    ctx->Yield(3);
+    const std::string legacy_scope = ctx->ItemInfo(scope_button).DebugLabel;
+    IM_CHECK(legacy_scope.find('*') != std::string::npos);
+
+    for (const int map_id : {0xA0, 0xA1})
+      IM_CHECK(check_lyra_grid(map_id));
+
+    overworld->JumpToMap(kLegacyMap);
+    scope_button = 0;
+    for (int frame = 0; frame < 120 && scope_button == 0 && !ctx->IsError();
+         ++frame) {
+      ctx->Yield(1);
+      if (overworld->current_map_id() == kLegacyMap)
+        scope_button = visible_widget("button:tile16_usage_scope");
+    }
+    IM_CHECK_EQ(overworld->current_map_id(), kLegacyMap);
+    IM_CHECK(scope_button != 0);
+    ctx->Yield(2);
+    IM_CHECK(ctx->ItemInfo(scope_button).DebugLabel == legacy_scope);
+    ctx->ItemClick(scope_button);
+    ctx->Yield(2);
+    scope_popup = ctx->GetWindowByRef("//$FOCUSED");
+    IM_CHECK(scope_popup != nullptr &&
+             (scope_popup->Flags & ImGuiWindowFlags_Popup) != 0);
+    ctx->SetRef(scope_popup);
+    IM_CHECK(ctx->ItemIsChecked("Current area"));
+    IM_CHECK(ctx->ItemIsChecked("Hide unused tiles"));
+    ctx->PopupCloseAll();
+    ctx->Yield(2);
+
+    canvas.set_global_scale(0.25f);
+    overworld->LocateOverworldTile(0xA0, kX, kLyraWorldY + 48);
+    ctx->Yield(3);
+    if (!selector_was_pinned)
+      overworld->ToggleMapLock();
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+
     const auto lookup =
         ctx->ItemInfo(widgets.GetWidgetId("OwBlocksetSelector/button:Lookup"));
     IM_CHECK(lookup.ID != 0 && lookup.Window != nullptr);
@@ -821,6 +989,133 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(document->authoring() == *expected_authoring);
     IM_CHECK(document->maps() == *filled);
 
+    // The workbench rename popup edits the same project this save writes.
+    // The registry must be present so the reopen below re-injects defaults.
+    namespace room_labels = editor::dungeon_project_labels;
+    constexpr int kRenamedRoom = 0x25;
+    constexpr int kHoverRoom = 0x12;
+    const std::string room_rename = "Lyra Native Rename";
+    const std::string room_key = std::to_string(kRenamedRoom);
+    const auto default_room_label = [&](const project::YazeProject& project) {
+      const auto type = project.resource_labels.find("room");
+      if (type == project.resource_labels.end())
+        return std::string();
+      const auto label = type->second.find(room_key);
+      return label == type->second.end() ? std::string() : label->second;
+    };
+    IM_CHECK(current_project->hack_manifest.HasProjectRegistry());
+    const std::string room_default = default_room_label(*current_project);
+    IM_CHECK(!room_default.empty());
+    manager->OpenEditorAndPanelsFromFlags("Dungeon", "dungeon.workbench");
+    const auto workbench_window =
+        manager->window_manager().GetWorkspaceWindowName(
+            manager->GetCurrentSessionId(), "dungeon.workbench");
+    ctx->SetRef(workbench_window.c_str());
+    for (int frame = 0; frame < 120 && ctx->GetWindowByRef("") == nullptr &&
+                        !ctx->IsError();
+         ++frame)
+      ctx->Yield(1);
+    IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
+    editor::DungeonEditorV2* dungeon = nullptr;
+    ImGuiID hover_cell = 0;
+    for (int frame = 0; frame < 600 && !ctx->IsError(); ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      dungeon = editors ? editors->GetEditorAs<editor::DungeonEditorV2>(
+                              editor::EditorType::kDungeon)
+                        : nullptr;
+      if (dungeon && dungeon->IsWorkbenchWorkflowEnabled() &&
+          (hover_cell = visible_widget("button:Room 0x012")) != 0)
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(dungeon != nullptr && hover_cell != 0);
+    dungeon->add_room(kRenamedRoom);
+    ImGuiID rename_button = 0;
+    for (int frame = 0; frame < 200 && rename_button == 0 && !ctx->IsError();
+         ++frame) {
+      ctx->Yield(1);
+      if (dungeon->current_room_id() == kRenamedRoom)
+        rename_button = visible_widget("button:rename_room_button");
+    }
+    IM_CHECK_EQ(dungeon->current_room_id(), kRenamedRoom);
+    IM_CHECK(rename_button != 0);
+    ctx->Yield(3);
+    // Toasts stack over the inspector's top edge; park on the open room's
+    // matrix cell so they can expire.
+    if (toasts->pending_count() != 0) {
+      const ImGuiID park = visible_widget("button:Room 0x025");
+      IM_CHECK(park != 0);
+      ctx->MouseMove(park, ImGuiTestOpFlags_NoCheckHoveredId);
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(15);
+      while (toasts->pending_count() != 0 &&
+             std::chrono::steady_clock::now() < deadline && !ctx->IsError())
+        ctx->Yield(1);
+      IM_CHECK_EQ(toasts->pending_count(), 0);
+      ctx->Yield(2);
+    }
+    const auto visible_popup_widget = [&](const char* suffix) {
+      ImGuiID id = 0;
+      for (int frame = 0; frame < 60 && id == 0 && !ctx->IsError(); ++frame) {
+        ctx->Yield(1);
+        id = visible_widget(suffix);
+      }
+      return id;
+    };
+    // Enter submits through EnterReturnsTrue and closes the popup, so Save is
+    // never clicked afterwards.
+    const auto submit_room_name = [&](const std::string& name) {
+      ctx->ItemClick(rename_button);
+      const ImGuiID input =
+          visible_popup_widget("input_text:rename_room_input");
+      if (input == 0)
+        return false;
+      ctx->ItemInputValue(input, name.c_str());
+      ctx->Yield(2);
+      return !ctx->IsError();
+    };
+    IM_CHECK(submit_room_name(room_rename));
+    IM_CHECK(room_labels::FindRoomOverride(current_project, kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(manager->IsCurrentProjectDirty());
+    IM_CHECK(default_room_label(*current_project) == room_default);
+    ctx->ItemClick(rename_button);
+    const ImGuiID rename_reset =
+        visible_popup_widget("button:rename_room_reset");
+    IM_CHECK(rename_reset != 0);
+    ctx->ItemClick(rename_reset);
+    ctx->Yield(2);
+    IM_CHECK(!room_labels::HasCustomRoomLabel(current_project, kRenamedRoom));
+    IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
+             room_default);
+    IM_CHECK(default_room_label(*current_project) == room_default);
+    IM_CHECK(submit_room_name(room_rename));
+    IM_CHECK(room_labels::HasCustomRoomLabel(current_project, kRenamedRoom));
+    IM_CHECK(room_labels::FindRoomOverride(current_project, kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(manager->IsCurrentProjectDirty());
+    IM_CHECK(default_room_label(*current_project) == room_default);
+
+    // Hovering an unopened room may materialize an empty Room for the render
+    // context, but must not load it or give it pending changes.
+    IM_CHECK(dungeon->rooms().GetIfLoaded(kHoverRoom) == nullptr);
+    hover_cell = visible_widget("button:Room 0x012");
+    IM_CHECK(hover_cell != 0);
+    ctx->MouseMove(hover_cell);
+    ctx->Yield(4);
+    IM_CHECK(dungeon->rooms().GetIfLoaded(kHoverRoom) == nullptr);
+    if (const auto* hovered = dungeon->rooms().GetIfMaterialized(kHoverRoom))
+      IM_CHECK(!hovered->custom_collision_dirty() &&
+               !hovered->HasUnsavedChanges());
+    const auto* renamed_room = dungeon->rooms().GetIfLoaded(kRenamedRoom);
+    IM_CHECK(renamed_room != nullptr && !renamed_room->HasUnsavedChanges());
+
     const auto save_status = manager->SaveProject();
     ctx->Yield(3);
     if (!save_status.ok()) {
@@ -838,6 +1133,12 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(fs::canonical(reopened_project->lyra_terrain_file, ec) ==
                  source_path &&
              !ec);
+    IM_CHECK(reopened_project->hack_manifest.HasProjectRegistry());
+    IM_CHECK(
+        room_labels::HasCustomRoomLabel(reopened_project.get(), kRenamedRoom));
+    IM_CHECK(room_labels::GetRoomLabel(reopened_project.get(), kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(default_room_label(*reopened_project) == room_default);
     IM_CHECK(rom->vector() == rom_before && !rom->dirty());
     IM_CHECK(read_file(rom_path) == rom_disk_before);
 
@@ -876,6 +1177,14 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
         {"displayed_map_count", overworld->DisplayedMapCount()},
         {"a0_a8_crossed", true},
         {"a8_b0_crossed", reaches_b0},
+        {"tile16_selector_filter_preserved", true},
+        {"tile16_legacy_map", kLegacyMap},
+        {"tile16_project_terrain_deep_tile", 0xFFF},
+        {"room_rename_native", true},
+        {"room_label_room", kRenamedRoom},
+        {"room_override_label", room_rename},
+        {"room_default_label", room_default},
+        {"matrix_hover_room", kHoverRoom},
         {"terrain_sha256", core::ComputeSourceArtifactSha256(*saved)},
         {"rom_sha256", core::ComputeSourceArtifactSha256(*rom_disk_before)}};
     std::ofstream output(receipt_path, std::ios::binary);
@@ -1055,6 +1364,27 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
       IM_CHECK_EQ(document->authoring().flight_points.at(0).map_id, 0xA0);
       IM_CHECK_EQ(document->authoring().flight_points.at(1).map_id, 0x20);
     }
+    const bool room_rename_native = prior.value("room_rename_native", false);
+    if (room_rename_native) {
+      namespace room_labels = editor::dungeon_project_labels;
+      const int room = prior.at("room_label_room").get<int>();
+      const auto override_label =
+          prior.at("room_override_label").get<std::string>();
+      const auto default_label =
+          prior.at("room_default_label").get<std::string>();
+      IM_CHECK_EQ(room, 0x25);
+      IM_CHECK_EQ(prior.value("matrix_hover_room", -1), 0x12);
+      IM_CHECK(!override_label.empty() && !default_label.empty());
+      IM_CHECK(current_project->hack_manifest.HasProjectRegistry());
+      IM_CHECK(room_labels::HasCustomRoomLabel(current_project, room));
+      IM_CHECK(room_labels::GetRoomLabel(current_project, room) ==
+               override_label);
+      const auto labels = current_project->resource_labels.find("room");
+      IM_CHECK(labels != current_project->resource_labels.end());
+      const auto default_it = labels->second.find(std::to_string(room));
+      IM_CHECK(default_it != labels->second.end() &&
+               default_it->second == default_label);
+    }
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), 0);
 
     // Fit the one normal SW canvas for the driver's screenshot. Both the
@@ -1104,6 +1434,7 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
         {"document_clean", true},
         {"saved_cells_exact", true},
         {"project_unchanged", true},
+        {"room_override_persisted", room_rename_native},
         {"terrain_sha256", prior.at("terrain_sha256")},
         {"rom_sha256", prior.at("rom_sha256")}};
     std::ofstream output(output_path, std::ios::binary);
