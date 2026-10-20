@@ -38,6 +38,8 @@ struct ObjectTileEditorPanelTestAccess;
  *
  * Standard-object sessions open from the dungeon canvas selection menu.
  * Existing fixed-slot custom assets open from the Custom Assets browser.
+ * Custom sessions may add tiles anywhere in the 64x64 runtime buffer;
+ * standard object shapes stay fixed.
  */
 class ObjectTileEditorPanel : public WindowContent {
  public:
@@ -105,6 +107,12 @@ class ObjectTileEditorPanel : public WindowContent {
   std::string BuildWindowTitle() const;
   void SelectFirstCellIfAvailable();
   absl::Status AddFirstTileToEmptyCustomLayout();
+  absl::Status AddCustomTileAt(int rel_x, int rel_y);
+  absl::Status AppendCustomCell(int rel_x, int rel_y, gfx::TileInfo tile_info);
+  // Custom consumer fingerprints exclude draft geometry, so a structural draft
+  // change must not inherit a confirmation given for the previous draft.
+  void DiscardSourceImpactConfirmation();
+  void SnapshotCustomBaseline();
   void RevertCurrentLayout();
   struct SourceImpactSnapshot {
     int consumer_count = 0;
@@ -121,6 +129,8 @@ class ObjectTileEditorPanel : public WindowContent {
   void RefreshRenderedViewsFromCurrentRoom();
 
   void DrawTileGrid();
+  void DrawTileGridCanvas();
+  void DrawCustomTileAdder();
   void DrawSourceSheet();
   void DrawTileProperties();
   void DrawActionBar(bool* p_open);
@@ -147,6 +157,20 @@ class ObjectTileEditorPanel : public WindowContent {
   int selected_source_tile_ = -1;
   int source_palette_ = 2;
   uint16_t source_attributes_ = 0;
+
+  // Oracle custom objects draw into a 64x64-tile dungeon buffer.
+  static constexpr int kCustomObjectBufferTiles = 64;
+  int add_tile_x_ = 0;
+  int add_tile_y_ = 0;
+
+  // Last opened or published custom layout. Revert restores it exactly,
+  // including removal of tiles added since then.
+  struct CustomLayoutBaseline {
+    std::vector<zelda3::ObjectTileLayout::Cell> cells;
+    int bounds_width = 0;
+    int bounds_height = 0;
+  };
+  std::optional<CustomLayoutBaseline> custom_baseline_;
 
   // Canvases
   gui::Canvas tile_grid_canvas_{"##ObjTileGrid", ImVec2(256, 256)};

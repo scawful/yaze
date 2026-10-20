@@ -10,12 +10,15 @@
 #include "app/gui/core/theme_manager.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace editor {
 
 namespace {
+
+constexpr float kTileGridScale = 4.0f;
 
 void MixFingerprint(uint64_t* fingerprint, uint64_t value) {
   constexpr uint64_t kFnvPrime = 1099511628211ULL;
@@ -66,6 +69,9 @@ void ObjectTileEditorPanel::ResetTransientState() {
   selected_cell_index_ = -1;
   selected_source_tile_ = -1;
   source_attributes_ = 0;
+  add_tile_x_ = 0;
+  add_tile_y_ = 0;
+  custom_baseline_.reset();
   preview_dirty_ = true;
   atlas_dirty_ = true;
   room_graphics_revision_ = 0;
@@ -166,6 +172,7 @@ absl::Status ObjectTileEditorPanel::OpenForCustomObject(
   current_palette_group_ = palette_group;
   current_layout_ = std::move(*layout_or);
   ResetTransientState();
+  SnapshotCustomBaseline();
   is_open_ = true;
   SelectFirstCellIfAvailable();
   return absl::OkStatus();
@@ -238,34 +245,113 @@ absl::Status ObjectTileEditorPanel::AddFirstTileToEmptyCustomLayout() {
         "The custom-object layout already contains tiles");
   }
 
+  return AppendCustomCell(
+      /*rel_x=*/0, /*rel_y=*/0,
+      gfx::TileInfo(/*id=*/0, /*palette=*/2, false, false, false));
+}
+
+absl::Status ObjectTileEditorPanel::AddCustomTileAt(int rel_x, int rel_y) {
+  if (!is_open_ || !current_layout_.is_custom) {
+    return absl::FailedPreconditionError(
+        "Only an open custom-object session can add tiles; standard object "
+        "shapes are fixed");
+  }
+  if (rel_x < 0 || rel_x >= kCustomObjectBufferTiles || rel_y < 0 ||
+      rel_y >= kCustomObjectBufferTiles) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Tile (%d, %d) is outside the %dx%d custom-object buffer; X and Y "
+        "must be 0-%d",
+        rel_x, rel_y, kCustomObjectBufferTiles, kCustomObjectBufferTiles,
+        kCustomObjectBufferTiles - 1));
+  }
+  for (int index = 0; index < static_cast<int>(current_layout_.cells.size());
+       ++index) {
+    const auto& cell = current_layout_.cells[index];
+    if (cell.rel_x == rel_x && cell.rel_y == rel_y) {
+      selected_cell_index_ = index;
+      SyncSourceSelectionFromSelectedCell();
+      return absl::OkStatus();
+    }
+  }
+  if (selected_source_tile_ < 0) {
+    return absl::FailedPreconditionError(
+        "Select a source tile before adding a custom-object tile");
+  }
+
+  const uint16_t word = static_cast<uint16_t>(
+      (source_attributes_ & 0xE000) | ((source_palette_ & 0x07) << 10) |
+      (selected_source_tile_ & 0x3FF));
+  return AppendCustomCell(rel_x, rel_y, gfx::WordToTileInfo(word));
+}
+
+absl::Status ObjectTileEditorPanel::AppendCustomCell(int rel_x, int rel_y,
+                                                     gfx::TileInfo tile_info) {
+  // Validate the complete candidate with the publication codec before the
+  // live layout changes, so a rejected tile leaves the session untouched.
+  zelda3::CustomObject candidate;
+  candidate.tiles.reserve(current_layout_.cells.size() + 1);
+  for (const auto& cell : current_layout_.cells) {
+    candidate.tiles.push_back(
+        {cell.rel_x, cell.rel_y, gfx::TileInfoToWord(cell.tile_info)});
+  }
+  candidate.tiles.push_back({rel_x, rel_y, gfx::TileInfoToWord(tile_info)});
+  const auto encoded_or = zelda3::EncodeCustomObjectBinary(candidate);
+  if (!encoded_or.ok()) {
+    return encoded_or.status();
+  }
+
+  const int new_index = static_cast<int>(current_layout_.cells.size());
   zelda3::ObjectTileLayout::Cell cell;
-  cell.rel_x = 0;
-  cell.rel_y = 0;
-  cell.tile_info = gfx::TileInfo(/*id=*/0, /*palette=*/2, false, false, false);
+  cell.rel_x = rel_x;
+  cell.rel_y = rel_y;
+  cell.tile_info = tile_info;
   cell.original_word = 0;
-  cell.write_index = 0;
+  cell.write_index = new_index;
   cell.modified = true;
   current_layout_.cells.push_back(cell);
-  current_layout_.bounds_width = 1;
-  current_layout_.bounds_height = 1;
-  SelectFirstCellIfAvailable();
+
+  const auto bounds = candidate.GetBoundingBox();
+  current_layout_.bounds_width = bounds.max_x + 1;
+  current_layout_.bounds_height = bounds.max_y + 1;
+  selected_cell_index_ = new_index;
+  SyncSourceSelectionFromSelectedCell();
   preview_dirty_ = true;
   atlas_dirty_ = true;
+  DiscardSourceImpactConfirmation();
   ClearActionStatus();
   return absl::OkStatus();
 }
 
+void ObjectTileEditorPanel::DiscardSourceImpactConfirmation() {
+  show_shared_confirm_ = false;
+  shared_object_count_ = 0;
+  pending_shared_confirmation_.reset();
+  source_impact_display_cache_key_.reset();
+  source_impact_display_cache_result_.reset();
+}
+
+void ObjectTileEditorPanel::SnapshotCustomBaseline() {
+  if (!current_layout_.is_custom) {
+    custom_baseline_.reset();
+    return;
+  }
+  custom_baseline_ = CustomLayoutBaseline{current_layout_.cells,
+                                          current_layout_.bounds_width,
+                                          current_layout_.bounds_height};
+}
+
 void ObjectTileEditorPanel::RevertCurrentLayout() {
-  const bool added_first_tile_to_empty_asset =
-      current_layout_.is_custom &&
-      current_layout_.custom_source_bytes == std::vector<uint8_t>({0, 0}) &&
-      current_layout_.cells.size() == 1 &&
-      current_layout_.cells.front().original_word == 0;
-  if (added_first_tile_to_empty_asset) {
-    current_layout_.cells.clear();
-    current_layout_.bounds_width = 1;
-    current_layout_.bounds_height = 1;
-    SelectFirstCellIfAvailable();
+  if (current_layout_.is_custom && custom_baseline_.has_value()) {
+    current_layout_.cells = custom_baseline_->cells;
+    current_layout_.bounds_width = custom_baseline_->bounds_width;
+    current_layout_.bounds_height = custom_baseline_->bounds_height;
+    if (selected_cell_index_ >=
+        static_cast<int>(current_layout_.cells.size())) {
+      SelectFirstCellIfAvailable();
+    } else {
+      SyncSourceSelectionFromSelectedCell();
+    }
+    DiscardSourceImpactConfirmation();
   } else {
     current_layout_.RevertAll();
     SyncSourceSelectionFromSelectedCell();
@@ -693,7 +779,41 @@ void ObjectTileEditorPanel::DrawTileGrid() {
   ImGui::Text(tr("Object Tiles (%dx%d)"), current_layout_.bounds_width,
               current_layout_.bounds_height);
 
-  constexpr float kScale = 4.0f;
+  if (current_layout_.is_custom) {
+    // Custom patterns can span the full 64x64 buffer (2048px at this scale);
+    // scroll them inside the fixed grid column so every cell stays reachable.
+    constexpr float kMaxCustomGridHeight = 300.0f;
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const float grid_height =
+        current_layout_.bounds_height * 8 * kTileGridScale;
+    const float child_height =
+        std::min(grid_height + style.WindowPadding.y * 2 + style.ScrollbarSize,
+                 kMaxCustomGridHeight);
+    if (ImGui::BeginChild("##CustomTileGridScroll", ImVec2(0, child_height),
+                          true, ImGuiWindowFlags_HorizontalScrollbar)) {
+      DrawTileGridCanvas();
+    }
+    ImGui::EndChild();
+  } else {
+    DrawTileGridCanvas();
+  }
+
+  // Show cell count
+  int modified_count = 0;
+  for (const auto& cell : current_layout_.cells) {
+    if (cell.modified)
+      ++modified_count;
+  }
+  ImGui::Text(tr("%zu tiles, %d modified"), current_layout_.cells.size(),
+              modified_count);
+
+  if (current_layout_.is_custom) {
+    DrawCustomTileAdder();
+  }
+}
+
+void ObjectTileEditorPanel::DrawTileGridCanvas() {
+  constexpr float kScale = kTileGridScale;
   float grid_width = current_layout_.bounds_width * 8 * kScale;
   float grid_height = current_layout_.bounds_height * 8 * kScale;
 
@@ -754,15 +874,32 @@ void ObjectTileEditorPanel::DrawTileGrid() {
       }
     }
   }
+}
 
-  // Show cell count
-  int modified_count = 0;
-  for (const auto& cell : current_layout_.cells) {
-    if (cell.modified)
-      ++modified_count;
+void ObjectTileEditorPanel::DrawCustomTileAdder() {
+  constexpr int kMaxCoordinate = kCustomObjectBufferTiles - 1;
+  ImGui::SetNextItemWidth(90);
+  ImGui::SliderInt(tr("X##AddTileX"), &add_tile_x_, 0, kMaxCoordinate, "%d",
+                   ImGuiSliderFlags_AlwaysClamp);
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(90);
+  ImGui::SliderInt(tr("Y##AddTileY"), &add_tile_y_, 0, kMaxCoordinate, "%d",
+                   ImGuiSliderFlags_AlwaysClamp);
+  if (ImGui::Button(ICON_MD_ADD " Add Tile")) {
+    const absl::Status status = AddCustomTileAt(add_tile_x_, add_tile_y_);
+    if (!status.ok()) {
+      SetActionStatus(ActionStatusTone::kError, std::string(status.message()));
+    }
   }
-  ImGui::Text(tr("%zu tiles, %d modified"), current_layout_.cells.size(),
-              modified_count);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetItemTooltip(
+        "%s", tr("Adds the selected source tile with its palette and "
+                 "flip/priority attributes. An occupied position is "
+                 "selected instead."));
+  }
+  ImGui::TextDisabled(
+      tr("Custom objects draw in a %dx%d tile buffer (X/Y 0-%d)."),
+      kCustomObjectBufferTiles, kCustomObjectBufferTiles, kMaxCoordinate);
 }
 
 void ObjectTileEditorPanel::DrawSourceSheet() {
@@ -1069,6 +1206,9 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
         }
         cell.modified = false;
       }
+    }
+    if (current_layout_.is_custom) {
+      SnapshotCustomBaseline();
     }
 
     RefreshRenderedViewsFromCurrentRoom();
