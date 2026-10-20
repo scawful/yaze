@@ -574,7 +574,7 @@ absl::Status DungeonRoomGraphCommandHandler::Execute(
       continue;
     }
     const auto links = zelda3::CollectRoomLinks(room_id, lookup, *warp_tags);
-    auto visit = [&](int target) {
+    auto visit = [&, depth = depth](int target) {
       if (visited.insert(target).second) {
         to_visit.push({target, depth + 1});
       }
