@@ -549,7 +549,10 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     auto* toasts = manager->toast_manager();
     IM_CHECK(toasts != nullptr);
     if (toasts->pending_count() != 0) {
-      ctx->MouseMoveToVoid();
+      // The dockspace fills the viewport, so there may be no window-free
+      // point. This validated canvas cell is away from the toast stack.
+      ctx->MouseSetViewport(terrain.Window);
+      ctx->MouseMoveToPos(cell_position(kStartY));
       const auto deadline =
           std::chrono::steady_clock::now() + std::chrono::seconds(15);
       while (toasts->pending_count() != 0 &&
