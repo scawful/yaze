@@ -17,6 +17,9 @@ runs:
     - name: Verify nightly suite selection and failure propagation
       shell: bash
       run: python3 scripts/agents/tests/test_nightly_workflow.py
+    - name: Verify test-action inventory and single execution
+      shell: bash
+      run: python3 scripts/agents/tests/test_run_tests_action.py
     - name: Verify VERSION / CHANGELOG hygiene
       shell: bash
       run: bash scripts/dev/release-version-check.sh
