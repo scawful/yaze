@@ -393,7 +393,7 @@ TEST_F(SaveAsPopupTest,
   const auto project_hash = util::ComputeFileSha1Hex(project_path.string());
   // Opening the active project activates its existing session. Preserve its
   // unsaved buffers and identity before exercising a genuine fresh legacy open.
-  const auto session_id = manager_->GetCurrentSessionId();
+  const auto active_session_id = manager_->GetCurrentSessionId();
   const auto source_hash_before_reopen =
       util::ComputeFileSha1Hex(source_.string());
   ASSERT_TRUE(rom->WriteByte(0x120, 0xA5).ok());
@@ -403,7 +403,7 @@ TEST_F(SaveAsPopupTest,
   const auto duplicate = manager_->OpenRomOrProject(project_path.string());
   ASSERT_TRUE(duplicate.ok()) << duplicate;
   EXPECT_EQ(manager_->GetActiveSessionCount(), 1u);
-  EXPECT_EQ(manager_->GetCurrentSessionId(), session_id);
+  EXPECT_EQ(manager_->GetCurrentSessionId(), active_session_id);
   EXPECT_EQ(manager_->GetCurrentRom(), rom);
   EXPECT_EQ(manager_->GetCurrentProject(), project);
   EXPECT_EQ(rom->vector(), pending_bytes);
