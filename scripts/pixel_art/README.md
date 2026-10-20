@@ -1,5 +1,12 @@
 # Explicit pixel-art recipes
 
+For bound semantic Tile16 matrices and deterministic read-only before/after
+reports, use the separate [footprint proposal contract](FOOTPRINTS.md). This
+does not apply maps or replace the existing terrain-label catalog.
+Use the [discovery importer](DISCOVERY.md) to replay suggested source groups,
+repair canonical repeat anchors and retain bound lossless observations. Its
+suggestions do not become reviewed footprints automatically.
+
 Inspect a reference, choose a palette and build small tile families without
 changing their pixels through resampling or automatic color matching. This is a
 reference-guided recipe generator, not a trained style model. The artist supplies

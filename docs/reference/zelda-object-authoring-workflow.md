@@ -5,6 +5,14 @@ exact pixels and the engine's own data model. This document defines the intended
 workflow across art, tile placement, overworlds and dungeon layouts. It is a
 design contract; the end-to-end generator and prefab executor are not implemented.
 
+The first bounded implementation is the offline
+[Tile16 footprint proposal validator](../../scripts/pixel_art/FOOTPRINTS.md).
+It checks explicitly reviewed bindings and sparse cell constraints, then reports
+before/after cells and Tile32 tuples. It does not execute an editor transaction,
+allocate ROM data or establish gameplay behavior. The separate
+[discovery importer](../../scripts/pixel_art/DISCOVERY.md) repairs exact source
+anchors while keeping all imported candidates suggested and placement disabled.
+
 Use the [pixel recipe tool](../../scripts/pixel_art/README.md),
 [terrain catalog](../public/reference/terrain-catalog.md) and
 [dungeon coverage contract](dungeon-tileset-coverage.md) as existing foundations.
