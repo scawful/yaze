@@ -740,6 +740,13 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     overworld->set_current_map(0xA0);
     manager->OpenEditorAndPanelsFromFlags("Overworld", "overworld.properties");
     ctx->Yield(5);
+    const auto properties_window =
+        manager->window_manager().GetWorkspaceWindowName(
+            manager->GetCurrentSessionId(), "overworld.properties");
+    ctx->SetRef(properties_window.c_str());
+    IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
     const auto property_input =
         widgets.GetWidgetId("LyraMapProperties/input:MainPalette");
     IM_CHECK(property_input != 0);
