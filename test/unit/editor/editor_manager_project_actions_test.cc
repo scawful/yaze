@@ -407,6 +407,16 @@ TEST(EditorManagerProjectActionsTest,
   selected_scene.edge_connections.push_back(
       {1, 0x99, 0xA1, core::LyraEdgePassage{15, 16}});
   ASSERT_OK(editor->EditProjectMapAuthoring(selected_scene));
+  // The editor binds changed map properties to native assets. Account only for
+  // these derived fingerprints; every requested and unrelated field stays exact.
+  const auto& bindings =
+      editor->lyra_canvas_.document()->authoring().maps[1].asset_bindings;
+  for (const auto& binding : bindings) {
+    ASSERT_EQ(binding.size(), 64u);
+    ASSERT_EQ(binding.find_first_not_of("0123456789abcdef"), std::string::npos);
+  }
+  selected_scene.maps[1].asset_bindings = bindings;
+  ASSERT_EQ(editor->lyra_canvas_.document()->authoring(), selected_scene);
   ASSERT_OK(editor->Undo());
   EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), initial_authoring);
   ASSERT_OK(editor->Redo());
