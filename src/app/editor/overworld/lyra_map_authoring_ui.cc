@@ -116,7 +116,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     }
 
     gui::WidgetIdRegistry::Instance().RegisterWidget(
-        "LyraMapProperties/input:MainPalette", "input", ImGui::GetItemID());
+        "LyraMapProperties/input:MainPalette", "input",
+        ImGui::GetID("Main palette"));
     // Area palette (uint8_t)
     int area_pal = draft.palette_set;
     if (ImGui::InputInt("Area palette", &area_pal)) {
