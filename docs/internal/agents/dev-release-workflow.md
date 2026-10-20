@@ -93,3 +93,28 @@ For release-related work (version bump, release notes, packaging, sync scripts):
    - Deployment/sync owner
 4. Post validation evidence (commands + pass/fail summary) before marking COMPLETE.
 5. Do not mark release-ready until both hooks and CI checks are green.
+
+## 6. Experimental release candidates
+
+Keep `VERSION` numeric, for example `0.8.0`. Run the Release workflow on the
+candidate branch with version `v0.8.0-experimental.1` and `publish=false` first.
+Add an exact `## v0.8.0-experimental.1` section to `docs/public/release-notes.md`
+listing the included features, supported projects, remaining gaps, and test steps.
+Stable release notes are not used as a fallback for a preview.
+
+The workflow carries `-experimental.1` through `YAZE_VERSION_SUFFIX` to the app,
+archive name, and manifest. Debian control metadata uses `0.8.0~experimental.1`
+so that the final `0.8.0` package is an upgrade. All suffixed tags are prereleases.
+An existing tag must resolve to the tested commit; a new tag targets that commit.
+
+Before publication, qualify the packaged candidate's named editing workflow:
+create/open, edit, undo/redo, save, and fresh reopen. For Oracle, use disposable
+ROM/project copies and qualify the resulting game behavior separately. Lyra
+project drafts do not establish runtime transitions or save support.
+
+Run the build-free release contract checks with:
+
+```bash
+python3 scripts/release/test-release-contracts.py
+python3 scripts/dev/test_oracle_smoke_workflow_contract.py
+```

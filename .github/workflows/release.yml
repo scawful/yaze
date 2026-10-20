@@ -29,46 +29,30 @@ jobs:
     outputs:
       version_tag: ${{ steps.version.outputs.version_tag }}
       version_plain: ${{ steps.version.outputs.version_plain }}
+      version_suffix: ${{ steps.version.outputs.version_suffix }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Resolve and validate release version
         id: version
         shell: bash
+        env:
+          INPUT_VERSION: ${{ env.VERSION }}
         run: |
           set -euo pipefail
-          input_version="${{ env.VERSION }}"
-          if [[ -z "${input_version}" ]]; then
-            echo "VERSION input is empty"
-            exit 1
-          fi
-
-          version_plain="${input_version#v}"
-          version_tag="v${version_plain}"
-
-          if [[ ! "${version_plain}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9]+)*$ ]]; then
-            echo "Invalid release version: ${input_version}"
-            exit 1
-          fi
-
-          repo_version="$(tr -d '[:space:]' < VERSION)"
-          if [[ "${repo_version}" != "${version_plain}" ]]; then
-            echo "VERSION file (${repo_version}) does not match release version (${version_plain})"
-            exit 1
-          fi
-
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            ref_tag="${{ github.ref_name }}"
-            if [[ "${ref_tag}" != "${version_tag}" ]]; then
-              echo "Tag/ref (${ref_tag}) does not match resolved release tag (${version_tag})"
+          bash scripts/release/resolve-version.sh "$INPUT_VERSION" VERSION >> "$GITHUB_OUTPUT"
+          version_tag="v${INPUT_VERSION#v}"
+          if git show-ref --verify --quiet "refs/tags/$version_tag"; then
+            tag_commit="$(git rev-parse "refs/tags/$version_tag^{commit}")"
+            if [[ "$tag_commit" != "$GITHUB_SHA" ]]; then
+              echo "Release tag $version_tag targets $tag_commit, not tested commit $GITHUB_SHA"
               exit 1
             fi
           fi
-
-          echo "version_tag=${version_tag}" >> "$GITHUB_OUTPUT"
-          echo "version_plain=${version_plain}" >> "$GITHUB_OUTPUT"
-          echo "Resolved release: ${version_tag}"
 
       - name: Verify release version/changelog protocol
         run: bash scripts/dev/release-version-check.sh
@@ -86,6 +70,8 @@ jobs:
     name: "Build Release - ${{ matrix.name }}"
     needs: [release-preflight]
     runs-on: ${{ matrix.os }}
+    env:
+      YAZE_VERSION_SUFFIX: ${{ needs.release-preflight.outputs.version_suffix }}
     strategy:
       fail-fast: false
       matrix:
@@ -335,6 +321,8 @@ jobs:
     name: "Test Release - ${{ matrix.name }}"
     needs: [release-preflight, build]
     runs-on: ${{ matrix.os }}
+    env:
+      YAZE_VERSION_SUFFIX: ${{ needs.release-preflight.outputs.version_suffix }}
     strategy:
       fail-fast: false
       matrix:
@@ -404,7 +392,7 @@ jobs:
 
   create-release:
     name: "Create Release"
-    needs: [release-preflight, build, test]  # Tests are informational only in pre-1.0
+    needs: [release-preflight, build, test]
     runs-on: ubuntu-22.04
     if: github.event_name == 'push' || inputs.publish == true
 
@@ -458,11 +446,12 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.release-preflight.outputs.version_tag }}
+          target_commitish: ${{ github.sha }}
           name: "YAZE ${{ needs.release-preflight.outputs.version_tag }}"
           body_path: release-body.md
           files: |
             release-files/*
           draft: false
-          prerelease: ${{ contains(needs.release-preflight.outputs.version_tag, 'alpha') || contains(needs.release-preflight.outputs.version_tag, 'beta') || contains(needs.release-preflight.outputs.version_tag, 'rc') }}
+          prerelease: ${{ needs.release-preflight.outputs.prerelease == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

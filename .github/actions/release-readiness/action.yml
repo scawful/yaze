@@ -8,6 +8,12 @@ description: >
 runs:
   using: composite
   steps:
+    - name: Verify release identity and notes contracts
+      shell: bash
+      run: python3 scripts/release/test-release-contracts.py
+    - name: Verify Oracle smoke workflow contract
+      shell: bash
+      run: python3 scripts/dev/test_oracle_smoke_workflow_contract.py
     - name: Verify VERSION / CHANGELOG hygiene
       shell: bash
       run: bash scripts/dev/release-version-check.sh
