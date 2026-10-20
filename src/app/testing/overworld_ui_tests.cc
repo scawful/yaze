@@ -542,6 +542,22 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
       ++brush;
     IM_CHECK(brush < 8 &&
              brush < static_cast<int>(document->profile().tile_count));
+    // Startup toasts overlap the selector's top-right lookup control. Their
+    // TTL uses steady_clock and pauses on hover, so simulated SleepNoSkip
+    // time cannot expire them. Let the real UI age them without dismissing
+    // notifications or bypassing the ordinary selector interaction.
+    auto* toasts = manager->toast_manager();
+    IM_CHECK(toasts != nullptr);
+    if (toasts->pending_count() != 0) {
+      ctx->MouseMoveToVoid();
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(15);
+      while (toasts->pending_count() != 0 &&
+             std::chrono::steady_clock::now() < deadline && !ctx->IsError())
+        ctx->Yield(1);
+      IM_CHECK_EQ(toasts->pending_count(), 0);
+      ctx->Yield(2);
+    }
     const auto lookup =
         ctx->ItemInfo(widgets.GetWidgetId("OwBlocksetSelector/button:Lookup"));
     IM_CHECK(lookup.ID != 0 && lookup.Window != nullptr);
