@@ -775,8 +775,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     authored->flight_points = {
         {900003, 0xA0, 13, 14, "Lyra test", std::nullopt},
         {900004, 0x20, 15, 16, "Legacy test", std::nullopt}};
-    const auto edit = overworld->lyra_canvas_.EditAuthoring(
-        *authored, overworld->overworld(), overworld->undo_manager());
+    const auto edit = overworld->EditProjectMapAuthoring(*authored);
     IM_CHECK(edit.ok());
     const auto expected_authoring =
         std::make_unique<core::LyraAuthoringState>(document->authoring());
@@ -802,10 +801,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     auto invalid_authoring =
         std::make_unique<core::LyraAuthoringState>(document->authoring());
     invalid_authoring->maps[0].properties.main_palette = 0xFE;
-    IM_CHECK(!overworld->lyra_canvas_
-                  .EditAuthoring(*invalid_authoring, overworld->overworld(),
-                                 overworld->undo_manager())
-                  .ok());
+    IM_CHECK(!overworld->EditProjectMapAuthoring(*invalid_authoring).ok());
     IM_CHECK(document->authoring() == *expected_authoring);
     IM_CHECK(document->maps() == *filled);
 

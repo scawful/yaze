@@ -229,6 +229,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
 
   Rom* rom() const { return rom_; }
+  absl::Status EditProjectMapAuthoring(core::LyraAuthoringState after) {
+    return lyra_canvas_.EditAuthoring(std::move(after), overworld_,
+                                      undo_manager_);
+  }
   LyraTerrainCanvas lyra_canvas_;
   absl::Status lyra_canvas_status_;
   // Project terrain occupies the lower Special World rows without expanding
