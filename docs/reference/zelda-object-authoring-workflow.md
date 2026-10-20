@@ -186,10 +186,18 @@ usage exporter and end-to-end placement transaction need explicit implementation
 and tests. Inspect the current checkout and source APIs before selecting the
 editing backend; other branches may contain newer lifecycle/selection work.
 
-The first milestone is one deterministic, read-only prefab proposal with exact
-source-anchor/profile checks, sparse-mask semantics, Tile32 capacity reporting
-and a before/after preview. Once that passes, bind it to existing undo/save paths.
-Use the same provenance/constraint approach for one architectural dungeon room,
+Start with one usable disposable map through an already qualified project,
+document, painting/history and save/reopen path when one exists. Use reviewed
+existing tiles, preserve the seed's profile and unrelated authoring fields, and
+publish the actual editable artifact with its changed-cell summary. Keep a
+sidecar-only pilot separate from ROM compilation and runtime admission. Scope
+new catalog or executor work from the concrete gaps this pilot exposes.
+
+The first new semantic-tooling milestone is one deterministic, read-only prefab
+proposal with exact source-anchor/profile checks, sparse-mask semantics, Tile32
+capacity reporting and a before/after preview. Bind it to the existing undo/save
+paths after validation; do not create a second editing transaction model. Use
+the same provenance/constraint approach for one architectural dungeon room,
 while retaining the dungeon-specific object representation.
 
 Shared base writes, release staging and project-specific approvals are separate
