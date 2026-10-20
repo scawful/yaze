@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Pre-push validation script for yaze.
 # Fast-by-default checks with change-aware UI regression coverage.
+# Always runs the ROM guard (scripts/check-no-roms.sh) first; it has no skip flag.
 #
 # Usage:
 #   scripts/pre-push.sh [--skip-tests] [--skip-format] [--skip-build] [--skip-ui-regression] [--build-dir <dir>]
@@ -162,24 +163,19 @@ test_filter_selects_tests() {
 
 collect_changed_files() {
   local base=""
-  local committed=()
-  local staged=()
-  local working=()
 
   if git rev-parse --verify '@{upstream}' >/dev/null 2>&1; then
     base="$(git merge-base HEAD '@{upstream}' 2>/dev/null || true)"
   fi
 
   if [[ -n "$base" ]]; then
-    mapfile -t committed < <(git diff --name-only --diff-filter=ACMR "$base"...HEAD)
+    git diff --name-only --diff-filter=ACMR "$base"...HEAD
   elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-    mapfile -t committed < <(git diff --name-only --diff-filter=ACMR HEAD~1...HEAD)
+    git diff --name-only --diff-filter=ACMR HEAD~1...HEAD
   fi
 
-  mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR)
-  mapfile -t working < <(git diff --name-only --diff-filter=ACMR)
-
-  printf '%s\n' "${committed[@]}" "${staged[@]}" "${working[@]}" | sed '/^$/d' | sort -u
+  git diff --cached --name-only --diff-filter=ACMR
+  git diff --name-only --diff-filter=ACMR
 }
 
 has_ui_workflow_changes() {
@@ -211,18 +207,47 @@ has_ui_workflow_changes() {
   return 1
 }
 
+run_rom_guard() {
+  print_header "ROM Guard"
+  local guard refs rc=0
+  guard="$(dirname "${BASH_SOURCE[0]}")/check-no-roms.sh"
+  if [[ -t 0 ]]; then
+    bash "$guard" HEAD || rc=$?
+  else
+    # Git supplies pushed refs, but direct non-interactive calls have empty stdin.
+    # Those calls still need a HEAD scan before any build checks.
+    refs="$(cat)"
+    if [[ -n "$refs" ]]; then
+      printf '%s\n' "$refs" | bash "$guard" --pre-push || rc=$?
+    else
+      bash "$guard" HEAD || rc=$?
+    fi
+  fi
+  if [[ $rc -ne 0 ]]; then
+    print_err "ROM guard failed. Do not bypass it with --no-verify."
+    exit 5
+  fi
+  print_ok "No ROM files or pre-purge history"
+}
+
 main() {
   print_header "Pre-Push Validation"
   check_git_repo
+  run_rom_guard
 
-  if ! check_cmake_configured; then
+  # Formatting and existing test binaries do not need a configured CMake build.
+  if [[ "$SKIP_BUILD" == false ]] && ! check_cmake_configured; then
     exit 4
   fi
 
   local start_time
   start_time="$(date +%s)"
 
-  mapfile -t CHANGED_FILES < <(collect_changed_files | sed '/^$/d' | sort -u)
+  CHANGED_FILES=()
+  local changed_file
+  while IFS= read -r changed_file; do
+    CHANGED_FILES+=("$changed_file")
+  done < <(collect_changed_files | sed '/^$/d' | sort -u)
   print_info "Changed files considered: ${#CHANGED_FILES[@]}"
 
   # ── Step 0: Source & test registration audits (fast, no build required) ──
