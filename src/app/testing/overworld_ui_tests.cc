@@ -726,10 +726,12 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
     ctx->Yield(2);
     IM_CHECK(document->maps() == *filled);
+    editor::UndoManager rejected_history;
     const auto rejected = overworld->lyra_canvas_.PaintPattern(
-        {2, 1, {brush, document->profile().tile_count}}, 0, 0, 2, 1, true,
-        overworld->undo_manager());
+        {2, 1, {brush, static_cast<int>(document->profile().tile_count)}}, 0, 0,
+        2, 1, true, rejected_history);
     IM_CHECK(!rejected.ok());
+    IM_CHECK_EQ(rejected_history.UndoStackSize(), 0);
     IM_CHECK(document->maps() == *filled);
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
 
