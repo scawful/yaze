@@ -443,6 +443,9 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), selected_scene);
   EXPECT_EQ(editor->current_map_id(), 0xA0);
   EXPECT_FALSE(manager->IsCurrentProjectDirty());
+  ASSERT_OK(manager->OpenLyraTerrainFromPath(terrain.string()));
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
+  EXPECT_FALSE(editor->HasPendingProjectDraftChanges());
 
   ASSERT_OK(manager->OpenRomOrProject(consumer_project.string()));
   ASSERT_TRUE(manager->GetCurrentProject()->lyra_terrain_file.empty());
