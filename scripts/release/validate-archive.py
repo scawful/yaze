@@ -266,7 +266,7 @@ def validate_deb_metadata(path, expected_version):
     if package != "yaze":
         errors.append(f"Debian Package must be 'yaze', found '{package}'")
     if expected_version:
-        expected = expected_version.removeprefix("v")
+        expected = expected_version.removeprefix("v").replace("-", "~", 1)
         actual = version.removeprefix("v")
         if actual != expected:
             errors.append(

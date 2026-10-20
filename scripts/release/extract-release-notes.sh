@@ -27,10 +27,13 @@ BEGIN {
 }
 {
   if ($0 ~ /^## v[0-9]+\.[0-9]+\.[0-9]+/) {
-    if (found == 1 && index($0, target) != 1) {
+    heading = $0
+    sub(/[[:space:]]+$/, "", heading)
+    matches = heading == target || index(heading, target " ") == 1 || index(heading, target "\t") == 1
+    if (found == 1 && !matches) {
       exit
     }
-    if (index($0, target) == 1) {
+    if (matches) {
       found = 1
     }
   }

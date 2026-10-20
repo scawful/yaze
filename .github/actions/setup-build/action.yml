@@ -56,19 +56,18 @@ runs:
           brew install cmake
         fi
 
-    - name: Setup build environment (Windows)
+    - name: Setup NASM (Windows)
+      if: inputs.platform == 'windows'
+      uses: ilammy/setup-nasm@72793074d3c8cdda771dba85f6deafe00623038b # v1
+      with:
+        version: '2.16.03'
+        platform: win64
+        from-source: 'false'
+
+    - name: Configure Git (Windows)
       if: inputs.platform == 'windows'
       shell: pwsh
       run: |
-        choco install --no-progress -y nasm ccache
-        if ($env:ChocolateyInstall) {
-          $profilePath = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
-          if (Test-Path $profilePath) {
-            Import-Module $profilePath
-            refreshenv
-          }
-        }
-        # Ensure Git can handle long paths and cached directories when cloning gRPC dependencies
         git config --global core.longpaths true
         git config --global --add safe.directory '*'
 

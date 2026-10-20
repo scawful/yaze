@@ -29,6 +29,7 @@ constexpr uint32_t kObjects = 1 << 2;      // tile object extents
 constexpr uint32_t kTrack = 1 << 3;        // minecart track tiles
 constexpr uint32_t kCameraQuads = 1 << 4;  // camera quadrant boundaries
 constexpr uint32_t kGrid = 1 << 5;         // 8×8 tile grid
+constexpr uint32_t kTileTypes = 1 << 6;    // vanilla pits ($7F2000/$7F3000)
 constexpr uint32_t kAll = ~0u;
 }  // namespace RenderOverlay
 

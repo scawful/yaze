@@ -13,23 +13,7 @@ cmake_policy(SET CMP0091 NEW)
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0077 NEW)
 
-# Enable Objective-C only on macOS where it's actually used
-if(DEFINED ENV{YAZE_VERSION_OVERRIDE})
-    set(YAZE_VERSION $ENV{YAZE_VERSION_OVERRIDE})
-elseif(DEFINED YAZE_VERSION_OVERRIDE)
-     set(YAZE_VERSION ${YAZE_VERSION_OVERRIDE})
-else()
-    set(_yaze_version_file "${CMAKE_SOURCE_DIR}/VERSION")
-    if(EXISTS "${_yaze_version_file}")
-        file(READ "${_yaze_version_file}" YAZE_VERSION)
-        string(STRIP "${YAZE_VERSION}" YAZE_VERSION)
-    else()
-        set(YAZE_VERSION "0.8.0")
-    endif()
-endif()
-if(NOT DEFINED YAZE_VERSION_SUFFIX)
-    set(YAZE_VERSION_SUFFIX "")
-endif()
+include(cmake/version.cmake)
 
 project(yaze VERSION ${YAZE_VERSION}
              DESCRIPTION "Yet Another Zelda3 Editor"

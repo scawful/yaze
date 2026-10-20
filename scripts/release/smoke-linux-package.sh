@@ -133,8 +133,9 @@ if [[ "$install_deb" == true ]]; then
     echo "DEB Package must be 'yaze', found '$deb_package'"
     exit 1
   fi
-  if [[ "${deb_version#v}" != "$expected_version" ]]; then
-    echo "DEB Version mismatch: expected '$expected_version', found '$deb_version'"
+  expected_deb_version="${expected_version/-/~}"
+  if [[ "${deb_version#v}" != "$expected_deb_version" ]]; then
+    echo "DEB Version mismatch: expected '$expected_deb_version', found '$deb_version'"
     exit 1
   fi
 
