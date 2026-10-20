@@ -632,7 +632,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
       };
       ctx->SetRef(selector);
       const auto canvas_item =
-          ctx->ItemInfo("**/OwBlockset", ImGuiTestOpFlags_NoError);
+          ctx->ItemInfo(grid->GetID("OwBlockset"), ImGuiTestOpFlags_NoError);
       const ImRect& full = canvas_item.RectFull;
       const ImRect& clipped = canvas_item.RectClipped;
       ctx->LogInfo(
