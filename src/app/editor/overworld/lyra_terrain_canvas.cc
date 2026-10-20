@@ -445,6 +445,7 @@ absl::Status LyraTerrainCanvas::CheckAssetSources(
   source_rom_ = overworld.rom()->vector();
   source_graphics_ = data.graphics_buffer;
   source_metadata_ = std::move(metadata);
+  validated_authoring_.reset();
   displayed_assets_.fill(nullptr);
   map_assets_.clear();
   assets_valid_ = false;
@@ -458,7 +459,6 @@ absl::Status LyraTerrainCanvas::CheckAssetSources(
         "editing");
     return source_status_;
   }
-  source_status_ = ValidateMapAssets(overworld, document_->authoring());
   return source_status_;
 }
 
@@ -468,6 +468,13 @@ absl::Status LyraTerrainCanvas::PrepareMapAssets(zelda3::Overworld& overworld,
     return absl::OkStatus();
   RETURN_IF_ERROR(CheckAssetSources(overworld));
   assets_valid_ = false;
+  if (!validated_authoring_ ||
+      *validated_authoring_ != document_->authoring()) {
+    authoring_assets_status_ =
+        ValidateMapAssets(overworld, document_->authoring());
+    validated_authoring_ = document_->authoring();
+  }
+  RETURN_IF_ERROR(authoring_assets_status_);
   asset_state_ = std::clamp(state, 0, 2);
   std::set<std::string> active_keys;
   for (int i = 0; i < 32; ++i) {
@@ -823,6 +830,8 @@ void LyraTerrainCanvas::Reset() {
   source_rom_.clear();
   source_graphics_.clear();
   source_metadata_.clear();
+  validated_authoring_.reset();
+  authoring_assets_status_ = absl::OkStatus();
   source_status_ = absl::OkStatus();
   assets_valid_ = false;
   displayed_assets_.fill(nullptr);

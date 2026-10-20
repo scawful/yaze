@@ -115,6 +115,8 @@ class LyraTerrainCanvas {
   std::vector<uint8_t> source_rom_, source_graphics_;
   std::string source_metadata_;
   absl::Status source_status_;
+  absl::Status authoring_assets_status_;
+  std::optional<core::LyraAuthoringState> validated_authoring_;
   bool assets_valid_ = false;
   int property_map_ = -1;
   std::optional<core::LyraMapProperties> property_draft_;

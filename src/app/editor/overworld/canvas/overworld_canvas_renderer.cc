@@ -910,6 +910,8 @@ void OverworldCanvasRenderer::DrawMapProperties() {
           editor_->current_map_, editor_->game_state_, editor_->overworld_,
           editor_->undo_manager_);
     ImGui::EndChild();
+    if (editor_->lyra_canvas_.entity_placement_active())
+      editor_->show_entities_ = true;
     return;
   }
   // The Background Color and Visual Effects buttons open the same floating

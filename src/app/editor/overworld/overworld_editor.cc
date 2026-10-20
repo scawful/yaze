@@ -280,6 +280,8 @@ void OverworldEditor::Initialize() {
   sidebar_->draw_project_tools = [this](int map_id, int& state) {
     if (lyra_canvas_.loaded())
       lyra_canvas_.DrawProperties(map_id, state, overworld_, undo_manager_);
+    if (lyra_canvas_.entity_placement_active())
+      show_entities_ = true;
   };
   toolbar_->on_world_changed = [this](int world) {
     SwitchToWorld(world);

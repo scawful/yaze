@@ -260,9 +260,8 @@ absl::Status ValidateAuthoringState(const LyraAuthoringState& state) {
             "Exit coordinates out of range 0..31");
       }
       if (e.exit_row.has_value()) {
-        if (*e.exit_row < 0 || *e.exit_row > 0x78) {
-          return absl::InvalidArgumentError(
-              "Exit exit_row out of range 0..0x78");
+        if (*e.exit_row < 0 || *e.exit_row > 78) {
+          return absl::InvalidArgumentError("Exit exit_row out of range 0..78");
         }
       }
     }
@@ -594,7 +593,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
           }
           std::optional<int> exit_row;
           if (!e["exit_row"].is_null()) {
-            if (!IntegerIn(e["exit_row"], 0, 0x78)) {
+            if (!IntegerIn(e["exit_row"], 0, 78)) {
               return absl::InvalidArgumentError("Invalid exit_row");
             }
             exit_row = e["exit_row"].get<int>();

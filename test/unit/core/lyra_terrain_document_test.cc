@@ -267,6 +267,9 @@ TEST(LyraTerrainDocumentTest, Schema2FullRoundtripWithAuthoringEntities) {
   auth_state.maps[1].doors.push_back({21, 1, 2, std::nullopt});
   auth_state.maps[1].exits.push_back({31, 10, 3, 4, std::nullopt});
 
+  auth_state.maps[1].properties.main_palette = 1;
+  auth_state.maps[1].asset_bindings = {"neighbor:0", "neighbor:1",
+                                       "neighbor:2"};
   // Flight points
   auth_state.flight_points.push_back(
       {40, 0xA0, 8, 9, "Village Center", std::nullopt});
@@ -283,6 +286,20 @@ TEST(LyraTerrainDocumentTest, Schema2FullRoundtripWithAuthoringEntities) {
   ASSERT_TRUE(roundtripped.ok()) << roundtripped.status();
   EXPECT_EQ(roundtripped->authoring(), auth_state);
   EXPECT_FALSE(roundtripped->dirty());
+}
+
+TEST(LyraTerrainDocumentTest, ExitRowsAreBoundedBy79NativeRows) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  auto valid = doc->authoring();
+  valid.maps[0].exits.push_back({1, 0x105, 0, 0, 78});
+  ASSERT_TRUE(doc->SetAuthoring(doc->authoring(), valid).ok());
+  auto invalid = valid;
+  invalid.maps[0].exits[0].exit_row = 79;
+  EXPECT_FALSE(doc->SetAuthoring(valid, invalid).ok());
+  auto json = nlohmann::json::parse(doc->Serialize());
+  json["maps"][0]["authoring"]["exits"][0]["exit_row"] = 79;
+  EXPECT_FALSE(LyraTerrainDocument::Parse(json.dump(), Profile()).ok());
 }
 
 TEST(LyraTerrainDocumentTest, PropertyOnlyDirtySavedUndoViaSetAuthoring) {

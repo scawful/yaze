@@ -73,6 +73,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     return;
   }
 
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+    placement_kind_ = 0;
   const bool is_lyra = (map_id >= Document::kFirstMap &&
                         map_id < Document::kFirstMap + Document::kMapCount);
 
@@ -246,7 +248,7 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
         ImGui::PushID(static_cast<int>(s.id + 0x100000));
         std::string header_label =
             absl::StrFormat("Sprite #%u (ID: %u, State: %d)", i, s.id, s.state);
-        if (ImGui::CollapsingHeader(header_label.c_str())) {
+        if (ImGui::CollapsingHeader((header_label + "###entity").c_str())) {
           core::LyraAuthoringState next_state = document_->authoring();
           auto& target = next_state.maps[map_index].sprites[i];
           bool changed = false;
@@ -321,7 +323,7 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
         ImGui::PushID(static_cast<int>(d.id + 0x200000));
         std::string header_label =
             absl::StrFormat("Entrance #%u (ID: %u)", i, d.id);
-        if (ImGui::CollapsingHeader(header_label.c_str())) {
+        if (ImGui::CollapsingHeader((header_label + "###entity").c_str())) {
           core::LyraAuthoringState next_state = document_->authoring();
           auto& target = next_state.maps[map_index].doors[i];
           bool changed = false;
@@ -392,7 +394,7 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
         ImGui::PushID(static_cast<int>(e.id + 0x300000));
         std::string header_label =
             absl::StrFormat("Exit #%u (ID: %u)", i, e.id);
-        if (ImGui::CollapsingHeader(header_label.c_str())) {
+        if (ImGui::CollapsingHeader((header_label + "###entity").c_str())) {
           core::LyraAuthoringState next_state = document_->authoring();
           auto& target = next_state.maps[map_index].exits[i];
           bool changed = false;
@@ -482,7 +484,7 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       ImGui::PushID(static_cast<int>(f.id + 0x400000));
       std::string header_label =
           absl::StrFormat("Flight Point #%u (%s)", i, f.name.c_str());
-      if (ImGui::CollapsingHeader(header_label.c_str())) {
+      if (ImGui::CollapsingHeader((header_label + "###entity").c_str())) {
         core::LyraAuthoringState next_state = document_->authoring();
         auto& target = next_state.flight_points[i];
         bool changed = false;
