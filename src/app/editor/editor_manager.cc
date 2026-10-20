@@ -4096,6 +4096,11 @@ absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() {
   if (!current_project_.project_opened()) {
     return absl::FailedPreconditionError("No project open");
   }
+  if (current_project_.rom_metadata.write_policy ==
+      project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "Build Project is disabled by the project's read-only policy");
+  }
 
   // A Build button can run during the panel's Draw() before the frame-end
   // project draft capture. Read the live panel and raw editor state now.

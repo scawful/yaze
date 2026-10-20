@@ -699,6 +699,27 @@ TEST(EditorManagerProjectActionsTest,
 }
 
 TEST(EditorManagerProjectActionsTest,
+     ReadOnlyProjectDisablesSyncAndQueuedBuilds) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  ScopedTempDir dir(MakeTempDir("yaze_readonly_build"));
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "ReadOnlyReference";
+  project->filepath = (dir.path / "project.yaze").string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
+  project->build_script = "must-not-execute";
+  EXPECT_EQ(manager->BuildCurrentProject().code(),
+            absl::StatusCode::kPermissionDenied);
+  manager->QueueBuildCurrentProject();
+  const auto status = ContentRegistry::Context::build_workflow_status();
+  EXPECT_EQ(status.summary, "Build unavailable");
+  EXPECT_NE(status.detail.find("read-only"), std::string::npos);
+}
+
+TEST(EditorManagerProjectActionsTest,
      BuildCurrentProjectUsesProjectBuildScript) {
 #ifdef _WIN32
   GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";

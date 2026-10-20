@@ -197,7 +197,8 @@ struct ProjectFilePassthrough {
 };
 
 enum class RomRole { kBase, kDev, kPatched, kRelease };
-enum class RomWritePolicy { kAllow, kWarn, kBlock };
+// kBlock rejects identity/protected-range conflicts; kReadOnly forbids ROM writes.
+enum class RomWritePolicy { kAllow, kWarn, kBlock, kReadOnly };
 
 struct RomMetadata {
   RomRole role = RomRole::kDev;

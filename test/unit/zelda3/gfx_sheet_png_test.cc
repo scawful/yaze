@@ -290,6 +290,34 @@ TEST(GfxSheetPngCommandTest, DryRunShowsExactChangesAndWriteSavesACopy) {
           << other;
     }
   }
+  // Read-only projects can still inspect a proposed edit, but cannot publish
+  // a fresh ROM even though this path uses WriteBinaryFile rather than SaveToFile.
+  {
+    std::ofstream project_file(project_dir / "gfx.yaze", std::ios::app);
+    project_file << "\n[rom]\nwrite_policy=read_only\n";
+  }
+  const auto readonly_dry =
+      RunCommand(importer,
+                 {"--sheet=0x40", "--png=" + png_path.string(), "--dry-run",
+                  project_arg, "--format=json"},
+                 rom);
+  EXPECT_EQ(readonly_dry.value("mode", ""), "dry-run");
+  const auto readonly_out = project_dir / "refused.sfc";
+  absl::Status readonly_status;
+  RunCommand(importer,
+             {"--sheet=0x40", "--png=" + png_path.string(), "--write",
+              "--out=" + readonly_out.string(), project_arg, "--format=json"},
+             rom, &readonly_status);
+  EXPECT_EQ(readonly_status.code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_FALSE(std::filesystem::exists(readonly_out));
+  cli::GfxRoomImportCommandHandler room_importer;
+  RunCommand(room_importer,
+             {"--room=0", "--png=" + png_path.string(), "--write",
+              "--out=" + readonly_out.string(), project_arg, "--format=json"},
+             rom, &readonly_status);
+  EXPECT_EQ(readonly_status.code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_FALSE(std::filesystem::exists(readonly_out));
+  EXPECT_EQ(rom.vector(), fixture.bytes);
   std::filesystem::remove(png_path);
   std::filesystem::remove(out_path);
   std::filesystem::remove_all(project_dir);

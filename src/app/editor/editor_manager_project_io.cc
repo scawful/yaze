@@ -526,6 +526,10 @@ absl::Status EditorManager::SaveRomInternal(
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
+  if (current_project_.rom_metadata.write_policy ==
+      project::RomWritePolicy::kReadOnly) {
+    RETURN_IF_ERROR(CheckRomWritePolicy(save_as_filename));
+  }
   const auto lyra_layout = current_rom->InspectLyraLayout();
   const bool lyra_terrain_save =
       lyra_layout.presence == rom::LyraLayoutPresence::kValid &&

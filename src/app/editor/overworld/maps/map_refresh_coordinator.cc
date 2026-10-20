@@ -736,9 +736,14 @@ absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
   if (!current_map) {
     return absl::FailedPreconditionError("Current overworld map not loaded");
   }
-  ASSIGN_OR_RETURN(auto collision_types,
-                   ctx_.overworld->GetTile8CollisionTypes(*ctx_.current_map));
-  ctx_.tile16_editor->SetCollisionTypes(collision_types);
+  const auto collision_types =
+      ctx_.overworld->GetTile8CollisionTypes(*ctx_.current_map);
+  if (collision_types.ok()) {
+    ctx_.tile16_editor->SetCollisionTypes(*collision_types);
+  } else {
+    LOG_WARN("MapRefreshCoordinator", "Collision labels unavailable: %s",
+             collision_types.status().ToString().c_str());
+  }
   // Area graphics ids are reused across worlds; refresh even when the id
   // matches so DW/SW base sheets and palettes do not inherit LW state.
   *ctx_.current_blockset = current_map->area_graphics();

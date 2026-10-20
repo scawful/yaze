@@ -203,6 +203,7 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   // 6. Get ROM (loads if needed) - only if command requires it
   Rom* rom = nullptr;
   std::optional<Rom> sandbox_rom;
+  std::optional<ScopedRomReadOnly> read_only_scope;
   bool sandbox_enabled = false;
   CommandInvocationContext invocation_context;
 
@@ -244,6 +245,16 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
       }
       rom = &*sandbox_rom;
       SetRomContext(rom);
+    }
+
+    // Sandbox creation materializes a copy before the active command policy
+    // applies. Guard the active ROM through Execute and any automatic save,
+    // and restore externally supplied ROM state on every return path.
+    const auto* active_project = context.GetProjectContext();
+    if (active_project != nullptr &&
+        active_project->rom_metadata.write_policy ==
+            project::RomWritePolicy::kReadOnly) {
+      read_only_scope.emplace(*rom);
     }
 
     // 7. Ensure labels are loaded if required

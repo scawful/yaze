@@ -427,6 +427,10 @@ rom::LyraLayoutInspection Rom::InspectLyraLayout() const {
 }
 
 absl::Status Rom::CheckLayoutWritable() const {
+  if (read_only_scope_depth_ != 0) {
+    return absl::PermissionDeniedError(
+        "ROM write refused by read_only project policy");
+  }
   const auto layout = InspectLyraLayout();
   if (layout.presence == rom::LyraLayoutPresence::kAbsent) {
     return absl::OkStatus();
@@ -454,8 +458,8 @@ Rom::Rom(const Rom& other)
       resource_label_manager_(other.resource_label_manager_),
       dirty_(other.dirty_),
       object_tile_revision_(other.object_tile_revision_) {
-  // Write fences are non-owning, instance-local transaction state. A new Rom
-  // must never inherit pointers owned by active scopes on `other`.
+  // Write fences and read-only guards are instance-local scope state. A new
+  // Rom must not inherit active scopes on `other`, including dry-run copies.
 }
 
 Rom& Rom::operator=(const Rom& other) {
@@ -476,8 +480,8 @@ Rom& Rom::operator=(const Rom& other) {
   resource_label_manager_ = other.resource_label_manager_;
   dirty_ = other.dirty_;
 
-  // Write fences are non-owning, instance-local transaction state. Preserve
-  // this Rom's active scopes rather than importing pointers owned by `other`.
+  // Preserve this Rom's active write fences and read-only scopes rather than
+  // importing instance-local scope state from `other`.
 
   object_tile_revision_ =
       std::max(previous_revision, other.object_tile_revision_);

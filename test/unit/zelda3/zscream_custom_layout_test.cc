@@ -207,6 +207,25 @@ TEST(ZscreamCustomLayoutTest, MapBackgroundSlotsFollowFullLoadWorldDefaults) {
   EXPECT_EQ(rom.vector(), before);
 }
 
+TEST(ZscreamCustomLayoutTest,
+     ExtendedGraphicsSheetDoesNotReadBeyondCollisionTable) {
+  auto bytes = SyntheticLayout();
+  bytes[OverworldCustomTileGFXGroupEnabled] = 0xFF;
+  bytes[OverworldCustomTileGFXGroupArray + 0x83 * 8 + 1] = 0xA3;
+  bytes[kOverworldMapParentIdExpanded + 0x83] = 0x83;
+  Rom rom = LoadSynthetic(bytes);
+  const auto before = rom.vector();
+  Overworld overworld(&rom);
+  auto& maps =
+      const_cast<std::vector<OverworldMap>&>(overworld.overworld_maps());
+  for (int map_id = 0; map_id < kNumOverworldMaps; ++map_id)
+    maps.emplace_back(map_id, &rom);
+  maps[0x83].LoadAreaGraphics();
+  EXPECT_EQ(overworld.GetTile8CollisionTypes(0x83).status().code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(rom.vector(), before);
+}
+
 TEST(ZscreamCustomLayoutTest, LegacyMapReaderKeepsTheLegacyCollisionTable) {
   auto bytes = SyntheticLayout(0xFF);
   const size_t offset =

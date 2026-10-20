@@ -337,6 +337,13 @@ absl::Status OverworldSetTileCommandHandler::ExecuteWithContext(
         active_path.string()));
   }
 
+  // Preview through the real serializer on an independent image. This keeps
+  // dry runs usable when the active project ROM has a read-only command scope.
+  std::optional<Rom> preview_rom;
+  if (!do_write) {
+    preview_rom.emplace(*rom);
+    rom = &*preview_rom;
+  }
   zelda3::Overworld overworld(rom);
   RETURN_IF_ERROR(overworld.Load(rom));
   ASSIGN_OR_RETURN(const auto location,

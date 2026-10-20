@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -778,6 +779,26 @@ TEST_F(RomTest, ScopedRomTransactionCommitKeepsChanges) {
   ASSERT_TRUE(value.ok());
   EXPECT_EQ(*value, 0xAA);
   EXPECT_TRUE(rom_.dirty());
+}
+
+TEST_F(RomTest, ScopedReadOnlyIsInstanceLocalAcrossCopiesAndAssignments) {
+  ASSERT_TRUE(rom_.LoadFromData(kMockRomData).ok());
+  {
+    ScopedRomReadOnly source_scope(rom_);
+    Rom copy = rom_;
+    EXPECT_TRUE(copy.WriteByte(0, 0xAA).ok());
+    Rom assigned;
+    assigned = rom_;
+    EXPECT_TRUE(assigned.WriteByte(0, 0xBB).ok());
+
+    ScopedRomReadOnly destination_scope(assigned);
+    assigned = copy;
+    EXPECT_TRUE(absl::IsPermissionDenied(assigned.WriteByte(0, 0xCC)));
+    assigned = std::move(copy);
+    EXPECT_TRUE(absl::IsPermissionDenied(assigned.WriteByte(0, 0xDD)));
+    EXPECT_TRUE(absl::IsPermissionDenied(rom_.WriteByte(0, 0xEE)));
+  }
+  EXPECT_TRUE(rom_.WriteByte(0, 0xFF).ok());
 }
 
 }  // namespace test

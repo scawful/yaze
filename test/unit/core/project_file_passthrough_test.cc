@@ -371,7 +371,8 @@ TEST(ProjectFilePassthroughTest,
   const fs::path source = dir.path() / "Imported.yaze";
   const fs::path saved = dir.path() / "Saved.yaze";
   const fs::path legacy = dir.path() / "Legacy.yaze";
-  WriteFile(source, R"({"yaze_project":{"name":"Imported","feature_flags":{
+  WriteFile(source, R"({"yaze_project":{"name":"Imported",
+"rom":{"write_policy":"read_only"},"feature_flags":{
 "kSaveOverworldSprites":false,
 "kEnableSpecialWorldExpansion":true,
 "kSaveWithChangeQueue":true}}})");
@@ -379,6 +380,7 @@ TEST(ProjectFilePassthroughTest,
 
   YazeProject project;
   ASSERT_TRUE(project.Open(source.string()).ok());
+  EXPECT_EQ(project.rom_metadata.write_policy, RomWritePolicy::kReadOnly);
   EXPECT_FALSE(project.feature_flags.overworld.kSaveOverworldSprites);
   EXPECT_TRUE(project.feature_flags.overworld.kEnableSpecialWorldExpansion);
   EXPECT_TRUE(project.feature_flags.kSaveWithChangeQueue);
@@ -386,17 +388,44 @@ TEST(ProjectFilePassthroughTest,
 
   YazeProject reopened;
   ASSERT_TRUE(reopened.Open(saved.string()).ok());
+  EXPECT_EQ(reopened.rom_metadata.write_policy, RomWritePolicy::kReadOnly);
   EXPECT_FALSE(reopened.feature_flags.overworld.kSaveOverworldSprites);
   EXPECT_TRUE(reopened.feature_flags.overworld.kEnableSpecialWorldExpansion);
   EXPECT_TRUE(reopened.feature_flags.kSaveWithChangeQueue);
 
   ASSERT_TRUE(project.Open(legacy.string()).ok());
+  EXPECT_EQ(project.rom_metadata.write_policy, RomWritePolicy::kWarn);
   EXPECT_TRUE(project.feature_flags.overworld.kSaveOverworldSprites);
   EXPECT_FALSE(project.feature_flags.overworld.kEnableSpecialWorldExpansion);
   EXPECT_FALSE(project.feature_flags.kSaveWithChangeQueue);
 #else
   GTEST_SKIP() << "JSON project import support is disabled in this build";
 #endif
+}
+
+TEST(ProjectFilePassthroughTest,
+     ReadOnlyPolicyRoundTripsAndResetsForLegacyFile) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_read_only_policy"));
+  const fs::path source = dir.path() / "ReadOnly.yaze";
+  const fs::path saved = dir.path() / "Saved.yaze";
+  const fs::path legacy = dir.path() / "Legacy.yaze";
+  WriteFile(source,
+            "[project]\nname=ReadOnly\n\n[rom]\nwrite_policy=read_only\n");
+  WriteFile(legacy, "[project]\nname=Legacy\n");
+
+  EXPECT_EQ(ParseRomWritePolicy("read_only"), RomWritePolicy::kReadOnly);
+  EXPECT_EQ(RomWritePolicyToString(RomWritePolicy::kReadOnly), "read_only");
+  YazeProject project;
+  ASSERT_TRUE(project.Open(source.string()).ok());
+  EXPECT_EQ(project.rom_metadata.write_policy, RomWritePolicy::kReadOnly);
+  ASSERT_TRUE(project.SaveAs(saved.string()).ok());
+  EXPECT_THAT(ReadFile(saved), HasSubstr("write_policy=read_only"));
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(saved.string()).ok());
+  EXPECT_EQ(reopened.rom_metadata.write_policy, RomWritePolicy::kReadOnly);
+  ASSERT_TRUE(project.Open(legacy.string()).ok());
+  EXPECT_EQ(project.rom_metadata.write_policy, RomWritePolicy::kWarn);
 }
 
 }  // namespace

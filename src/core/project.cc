@@ -427,6 +427,8 @@ std::string RomWritePolicyToString(RomWritePolicy policy) {
       return "allow";
     case RomWritePolicy::kBlock:
       return "block";
+    case RomWritePolicy::kReadOnly:
+      return "read_only";
     case RomWritePolicy::kWarn:
     default:
       return "warn";
@@ -440,6 +442,9 @@ RomWritePolicy ParseRomWritePolicy(absl::string_view value) {
   }
   if (lower == "block") {
     return RomWritePolicy::kBlock;
+  }
+  if (lower == "read_only") {
+    return RomWritePolicy::kReadOnly;
   }
   return RomWritePolicy::kWarn;
 }
@@ -1363,6 +1368,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         "Project file contains unsupported lone carriage returns");
   }
 
+  rom_metadata.write_policy = RomWritePolicy::kWarn;
   feature_flags.overworld.kSaveOverworldSprites = true;
   feature_flags.overworld.kEnableSpecialWorldExpansion = false;
   feature_flags.kSaveWithChangeQueue = false;
@@ -3087,6 +3093,7 @@ void YazeProject::InitializeResourceLabelProvider() {
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
 
 absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
+  rom_metadata.write_policy = RomWritePolicy::kWarn;
   feature_flags.overworld.kSaveOverworldSprites = true;
   feature_flags.overworld.kEnableSpecialWorldExpansion = false;
   feature_flags.kSaveWithChangeQueue = false;

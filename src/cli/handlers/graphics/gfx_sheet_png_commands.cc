@@ -458,6 +458,12 @@ absl::Status GfxImportCommandHandler::ValidateArgs(
 absl::Status GfxImportCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  if (parser.HasFlag("write") && project_ != nullptr &&
+      project_->rom_metadata.write_policy ==
+          project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "Graphics import is disabled by the project's read-only policy");
+  }
   RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(const uint16_t sheet, ParseSheet(parser));
   ASSIGN_OR_RETURN(const int block, ParseIntArg(parser, "block", 0));
@@ -653,6 +659,12 @@ absl::Status GfxRoomImportCommandHandler::ValidateArgs(
 absl::Status GfxRoomImportCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  if (parser.HasFlag("write") && project_ != nullptr &&
+      project_->rom_metadata.write_policy ==
+          project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "Graphics import is disabled by the project's read-only policy");
+  }
   RETURN_IF_ERROR(RequireUsGfxTables(*rom));
   ASSIGN_OR_RETURN(auto context, LoadRoomContext(*rom, parser));
   const std::string png_path = *parser.GetString("png");

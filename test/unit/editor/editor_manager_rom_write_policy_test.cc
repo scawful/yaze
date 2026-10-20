@@ -828,6 +828,27 @@ class RomLifecycleRebindPolicyTest : public ::testing::Test {
   RomLifecycleManager lifecycle_;
 };
 
+TEST_F(RomLifecycleRebindPolicyTest, ReadOnlyBlocksEditableSourceAndSaveAs) {
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
+  for (bool with_manifest : {false, true}) {
+    if (with_manifest)
+      LoadManifest();
+    // A configured editable source is normally exempt from hash checks.
+    for (const std::string expected :
+         {std::string(), std::string("deadbeef")}) {
+      project_.rom_metadata.expected_hash = expected;
+      lifecycle_.ConfirmRomWrite();
+      EXPECT_EQ(lifecycle_.CheckRomWritePolicy(&rom_).code(),
+                absl::StatusCode::kPermissionDenied);
+      EXPECT_EQ(
+          lifecycle_.CheckRomWritePolicy(&rom_, alternate_.string()).code(),
+          absl::StatusCode::kPermissionDenied);
+      EXPECT_EQ(lifecycle_.CheckRomWritePolicy(&rom_, output_.string()).code(),
+                absl::StatusCode::kPermissionDenied);
+    }
+  }
+}
+
 TEST_F(RomLifecycleRebindPolicyTest, NoFixedManifestRetainsGenericRebind) {
   rom_.set_filename(alternate_.string());
   for (const auto policy :
@@ -1878,6 +1899,40 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_TRUE(active_rom->dirty());
   EXPECT_TRUE(session->backup_restore_pending);
   EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
+}
+
+TEST(EditorManagerRomWritePolicyTest,
+     ReadOnlyBlocksSaveAndSaveAsForConfiguredEditableSource) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const auto path = MakeTempFilePath("yaze_readonly_project.sfc");
+  const auto out = MakeTempFilePath("yaze_readonly_refused.sfc");
+  ScopedFileCleanup cleanup{path};
+  ScopedFileCleanup out_cleanup{out};
+  WriteTestRom(path);
+  const auto size_before = std::filesystem::file_size(path);
+  const auto byte_before = ReadByteAt(path, 0x1234);
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "ReadOnlyReference";
+  project->filepath = (path.parent_path() / "readonly.yaze").string();
+  project->rom_filename = path.string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
+  project->rom_metadata.expected_hash.clear();
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, byte_before ^ 0xFF));
+  EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(manager->SaveRomAs(out.string()).code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_FALSE(std::filesystem::exists(out));
+  EXPECT_EQ(ReadByteAt(path, 0x1234), byte_before);
+  EXPECT_EQ(std::filesystem::file_size(path), size_before);
+  EXPECT_FALSE(manager->IsRomWriteConfirmPending());
 }
 
 TEST(EditorManagerRomWritePolicyTest,

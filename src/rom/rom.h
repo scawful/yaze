@@ -22,6 +22,7 @@ namespace yaze {
 namespace rom {
 class WriteFence;
 }  // namespace rom
+class ScopedRomReadOnly;
 
 /// Size of the SMC/SWC copier header that some ROM dumps start with.
 inline constexpr size_t kCopierHeaderSize = 0x200;
@@ -244,6 +245,13 @@ class Rom {
  private:
   absl::Status SaveToFileUnchecked(const SaveSettings& settings);
   void CaptureLyraTerrainBaseline();
+
+  friend class ScopedRomReadOnly;
+
+  // Instance-local command scopes, like write fences. Copies do not inherit
+  // this state; assignment preserves the destination's active scopes.
+  size_t read_only_scope_depth_ = 0;
+
   // Size of the ROM data.
   unsigned long size_ = 0;
 
@@ -278,6 +286,24 @@ class Rom {
 
   // Active write fences (not owned).
   std::vector<rom::WriteFence*> write_fence_stack_;
+};
+
+// Refuse normal ROM writes and file saves for this instance while the scope is
+// alive. Independent ROM copies remain usable for dry-run simulations.
+class ScopedRomReadOnly {
+ public:
+  explicit ScopedRomReadOnly(Rom& rom) : rom_(rom) {
+    ++rom_.read_only_scope_depth_;
+  }
+  ~ScopedRomReadOnly() { --rom_.read_only_scope_depth_; }
+
+  ScopedRomReadOnly(const ScopedRomReadOnly&) = delete;
+  ScopedRomReadOnly& operator=(const ScopedRomReadOnly&) = delete;
+  ScopedRomReadOnly(ScopedRomReadOnly&&) = delete;
+  ScopedRomReadOnly& operator=(ScopedRomReadOnly&&) = delete;
+
+ private:
+  Rom& rom_;
 };
 
 }  // namespace yaze

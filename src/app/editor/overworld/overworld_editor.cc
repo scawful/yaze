@@ -643,9 +643,13 @@ absl::Status OverworldEditor::Load() {
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
   tile16_editor_.ClearCollisionTypes();
-  ASSIGN_OR_RETURN(auto collision_types,
-                   overworld_.GetTile8CollisionTypes(current_map_));
-  tile16_editor_.SetCollisionTypes(collision_types);
+  const auto collision_types = overworld_.GetTile8CollisionTypes(current_map_);
+  if (collision_types.ok()) {
+    tile16_editor_.SetCollisionTypes(*collision_types);
+  } else {
+    LOG_WARN("OverworldEditor", "Collision labels unavailable: %s",
+             collision_types.status().ToString().c_str());
+  }
 
   // CRITICAL FIX: Initialize tile16 editor with the correct overworld palette
   tile16_editor_.set_palette(palette_);
