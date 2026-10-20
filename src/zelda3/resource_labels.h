@@ -41,6 +41,11 @@ std::string ResourceTypeToString(ResourceType type);
  */
 ResourceType StringToResourceType(const std::string& type_str);
 
+// Project label section for explicit user room renames. Opening an Oracle
+// project re-injects registry defaults into "room", so renames live here and
+// take precedence over registry and "room" labels.
+inline constexpr char kRoomOverrideLabelType[] = "room_override";
+
 /**
  * @class ResourceLabelProvider
  * @brief Unified interface for accessing resource labels with project overrides

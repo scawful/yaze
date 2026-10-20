@@ -1,3 +1,4 @@
+#include "zelda3/resource_labels.h"
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -1266,6 +1267,48 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
   EXPECT_FALSE(dungeon_project_labels::HasCustomRoomLabel(
       manager->GetCurrentProject(), 0x25));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     DungeonRoomRenameAndResetRefreshGlobalRoomLabel) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_room_label_refresh"));
+  const auto rom_path = temp_dir.path / "game.sfc";
+  const auto project_path = temp_dir.path / "game.yaze";
+  const auto other_rom = temp_dir.path / "other.sfc";
+  WriteRomFile(rom_path, "ROOM LABEL REFRESH ROM");
+  WriteRomFile(other_rom, "ROOM LABEL REFRESH OTHER");
+  WriteProjectFile(project_path, "Room Label Refresh", rom_path);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_FALSE(manager->IsCurrentProjectDirty());
+  const std::string default_label = zelda3::GetRoomLabel(0x25);
+  ASSERT_NE(default_label, "Lyra Native Rename");
+
+  auto* dungeon = manager->GetCurrentEditorSet()->GetDungeonEditor();
+  ASSERT_NE(dungeon, nullptr);
+
+  // Matrix captions, search, and navigation read the global provider, so a
+  // rename must be visible there without reopening the project.
+  ASSERT_OK(
+      dungeon->ApplyRoomLabelEdit(0x25, std::string("Lyra Native Rename")));
+  EXPECT_EQ(zelda3::GetRoomLabel(0x25), "Lyra Native Rename");
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+
+  ASSERT_OK(dungeon->ApplyRoomLabelEdit(0x25, std::nullopt));
+  EXPECT_EQ(zelda3::GetRoomLabel(0x25), default_label);
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
+
+  ASSERT_OK(manager->OpenRomOrProject(other_rom.string()));
+  const auto refused =
+      dungeon->ApplyRoomLabelEdit(0x25, std::string("Wrong Session"));
+  EXPECT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
+  EXPECT_NE(zelda3::GetRoomLabel(0x25), "Wrong Session");
 }
 
 TEST(EditorManagerProjectActionsTest,

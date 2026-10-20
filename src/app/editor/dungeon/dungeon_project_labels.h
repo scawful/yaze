@@ -120,9 +120,7 @@ inline std::string GetRoomFloorLabel(const project::YazeProject* project,
 }
 
 // User renames live in their own label section ([labels_room_override]).
-// Opening an Oracle project re-injects registry defaults into "room", so an
-// override stored there would be lost on the next reopen.
-inline constexpr char kRoomOverrideLabelType[] = "room_override";
+using zelda3::kRoomOverrideLabelType;
 
 inline std::string FindRoomOverride(const project::YazeProject* project,
                                     int room_id) {

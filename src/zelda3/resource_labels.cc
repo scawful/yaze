@@ -169,8 +169,17 @@ std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
   // 1. Room names in the project registry are canonical for Oracle project
   // files. Prefer them over merged resource labels so stale legacy
   // oracle_room_labels.json / manually imported labels cannot mask the current
-  // dungeons.json room names.
+  // dungeons.json room names. Explicit user renames outrank the registry.
   if (type == ResourceType::kRoom) {
+    if (project_labels_) {
+      if (auto it = project_labels_->find(kRoomOverrideLabelType);
+          it != project_labels_->end()) {
+        if (std::string override_label = LookupProjectLabel(it->second, id);
+            !override_label.empty()) {
+          return override_label;
+        }
+      }
+    }
     if (std::string registry_label =
             LookupProjectRegistryRoomLabel(hack_manifest_, id);
         !registry_label.empty()) {

@@ -500,6 +500,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   }
   void MarkCurrentProjectDirty();
   bool IsCurrentProjectDirty() const;
+  // Rebuilds the process-wide label provider from the current project; call
+  // after mutating current_project_.resource_labels in place.
+  void RefreshResourceLabelProvider();
   core::VersionManager* GetVersionManager() { return version_manager_; }
 
   // Show project management panel in right sidebar
@@ -573,7 +576,6 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void RefreshHackWorkflowBackend();
 
   void HandleSessionRomLoaded(size_t index, Rom* rom);
-  void RefreshResourceLabelProvider();
 
   // UI action event handler (EventBus subscriber for UIActionRequestEvent)
   void HandleUIActionRequest(UIActionRequestEvent::Action action);

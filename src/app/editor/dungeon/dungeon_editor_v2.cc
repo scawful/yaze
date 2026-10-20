@@ -1727,6 +1727,7 @@ absl::Status DungeonEditorV2::ApplyRoomLabelEdit(
     apply(dependencies_.project);
   }
   editor_manager->MarkCurrentProjectDirty();
+  editor_manager->RefreshResourceLabelProvider();
   return absl::OkStatus();
 }
 

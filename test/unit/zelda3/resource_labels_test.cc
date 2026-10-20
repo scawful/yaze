@@ -1,8 +1,12 @@
 #include "zelda3/resource_labels.h"
 
+#include <filesystem>
+#include <fstream>
 #include <string>
 
+#include "absl/cleanup/cleanup.h"
 #include "gtest/gtest.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/zelda3_labels.h"
 
@@ -99,6 +103,54 @@ TEST_F(ResourceLabelsTest, PrefersDecimalLabelsOverHexFallback) {
 
   EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x33),
             "Decimal Room Label");
+}
+
+TEST_F(ResourceLabelsTest, RoomOverrideOutranksRegistryAndLegacyRoomLabels) {
+  const auto folder = test::UniqueTempPath("room_override_registry");
+  absl::Cleanup cleanup = [&] {
+    std::error_code ec;
+    std::filesystem::remove_all(folder, ec);
+  };
+  const auto planning = folder / "Docs" / "Dev" / "Planning";
+  std::filesystem::create_directories(planning);
+  std::ofstream(planning / "dungeons.json") << R"json({"dungeons":[{
+    "id":"D4","name":"Zora Temple","rooms":[{"id":"0x25","name":"Water Grate"}]
+  }]})json";
+  ASSERT_TRUE(manifest_.LoadProjectRegistry(folder.string()).ok());
+  GetResourceLabels().SetHackManifest(&manifest_);
+  project_labels_["room"]["37"] = "Legacy Room Label";
+  project_labels_["room"]["38"] = "Legacy Only Room";
+
+  // Registry still outranks legacy "room" labels without an override.
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25),
+            "Water Grate");
+
+  project_labels_[kRoomOverrideLabelType]["37"] = "Lyra Native Rename";
+  project_labels_[kRoomOverrideLabelType]["38"] = "Renamed Legacy Room";
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25),
+            "Lyra Native Rename");
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x26),
+            "Renamed Legacy Room");
+  EXPECT_EQ(GetRoomLabel(0x25), "Lyra Native Rename");
+
+  // Resetting the override falls back to the registry, then legacy labels.
+  project_labels_.erase(kRoomOverrideLabelType);
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25),
+            "Water Grate");
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x26),
+            "Legacy Only Room");
+}
+
+TEST_F(ResourceLabelsTest, RoomOverrideOutranksVanillaAndEmptyFallsBack) {
+  const std::string vanilla =
+      GetResourceLabels().GetVanillaLabel(ResourceType::kRoom, 0x25);
+  project_labels_[kRoomOverrideLabelType]["37"] = "Flooded Hall";
+
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25),
+            "Flooded Hall");
+
+  project_labels_[kRoomOverrideLabelType]["37"] = "";
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25), vanilla);
 }
 
 TEST_F(ResourceLabelsTest, ConvenienceFunctionsWork) {
