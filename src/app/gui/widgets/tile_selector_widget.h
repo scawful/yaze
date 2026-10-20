@@ -51,8 +51,12 @@ class TileSelectorWidget {
 
   void AttachCanvas(Canvas* canvas);
   void SetTileCount(int total_tiles);
+  /// Snaps down so each tile cell is a whole number of screen pixels.
   void SetDisplayScale(float display_scale);
   float display_scale() const { return config_.display_scale; }
+  /// On-screen size of one tile; the atlas, grid, highlight and hit testing
+  /// all use this value.
+  float TileCellSize() const;
   void SetTilesPerRow(int tiles_per_row);
   int tiles_per_row() const { return config_.tiles_per_row; }
   void SetSelectedTile(int tile_id);
@@ -100,10 +104,12 @@ class TileSelectorWidget {
 
  private:
   bool DrawFilterControls();
-  RenderResult HandleInteraction(int tile_display_size);
-  int ResolveTileAtCursor(int tile_display_size) const;
-  void DrawHighlight(int tile_display_size) const;
-  void DrawTileIdLabels(int tile_display_size) const;
+  RenderResult HandleInteraction(float tile_display_size);
+  int ResolveTileAtCursor(float tile_display_size) const;
+  ImVec2 GridScreenOrigin() const;
+  void DrawGridLines(float tile_display_size) const;
+  void DrawHighlight(float tile_display_size) const;
+  void DrawTileIdLabels(float tile_display_size) const;
   bool IsValidTileId(int tile_id) const;
   bool IsInFilterRange(int tile_id) const;
 

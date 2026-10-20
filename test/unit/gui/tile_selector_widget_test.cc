@@ -191,6 +191,31 @@ TEST_F(TileSelectorWidgetTest,
   EXPECT_EQ(widget.TileOrigin(25), ImVec2(50.0f, 288.0f));
 }
 
+TEST_F(TileSelectorWidgetTest, FitScaleKeepsDeepRowsOnAtlasTileEdges) {
+  config_.total_tiles = 4096;
+  gui::TileSelectorWidget widget("fit_drift", config_);
+  widget.SetDisplayScale(1.37f);
+
+  EXPECT_FLOAT_EQ(widget.TileCellSize(), 21.0f);
+  EXPECT_FLOAT_EQ(widget.display_scale(), 21.0f / 16.0f);
+
+  // The atlas image is stretched by display_scale, so the last row's tiles
+  // start at row * 16 * display_scale in the scrolled content.
+  const float atlas_row_height = 16.0f * widget.display_scale();
+  const int last_row_tile = 511 * config_.tiles_per_row + 3;
+  EXPECT_FLOAT_EQ(widget.TileOrigin(last_row_tile).y, 511 * atlas_row_height);
+  EXPECT_FLOAT_EQ(widget.TileOrigin(last_row_tile).x,
+                  config_.draw_offset.x + 3 * atlas_row_height);
+  EXPECT_FLOAT_EQ(widget.GetGridContentSize().y, 512 * atlas_row_height);
+
+  // Panels size themselves from the unsnapped config before the widget exists.
+  auto unsnapped = config_;
+  unsnapped.display_scale = 1.37f;
+  EXPECT_FLOAT_EQ(
+      gui::TileSelectorWidget::PreferredViewportWidth(unsnapped, 0.0f),
+      widget.GetGridContentSize().x);
+}
+
 // Test tile count setting
 TEST_F(TileSelectorWidgetTest, SetTileCount) {
   gui::TileSelectorWidget widget("test_widget", config_);
