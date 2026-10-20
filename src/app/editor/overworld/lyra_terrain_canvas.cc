@@ -419,24 +419,8 @@ void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas,
                ImVec2(start.x + x * cell, start.y + y * cell), cell);
     }
   }
-  for (int row = 0; row < Document::kRows; ++row) {
-    for (int col = 0; col < Document::kColumns; ++col) {
-      const ImVec2 a(start.x + col * Document::kMapSize * cell,
-                     start.y + row * Document::kMapSize * cell);
-      const ImVec2 b(a.x + Document::kMapSize * cell,
-                     a.y + Document::kMapSize * cell);
-      if (a.x >= clip_max.x || a.y >= clip_max.y || b.x <= clip_min.x ||
-          b.y <= clip_min.y) {
-        continue;
-      }
-      draw->AddRect(a, b, IM_COL32(255, 255, 255, 180));
-      const auto label = absl::StrFormat(
-          "$%02X", Document::kFirstMap + row * Document::kColumns + col);
-      draw->AddRectFilled(a, ImVec2(a.x + 39, a.y + 20),
-                          IM_COL32(0, 0, 0, 190));
-      draw->AddText(ImVec2(a.x + 4, a.y + 2), IM_COL32_WHITE, label.c_str());
-    }
-  }
+  // The shared Overworld canvas owns the grid and selected-map outline.
+  // Keep project terrain free of an additional always-on map-ID overlay.
 
   const auto& io = ImGui::GetIO();
   const float tile_x = (io.MousePos.x - start.x) / cell;
