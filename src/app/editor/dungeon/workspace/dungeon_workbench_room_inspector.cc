@@ -66,6 +66,47 @@ const char* GetSpecialLayerName(int layer_value) {
   }
 }
 
+void DrawObjectIndexJump(DungeonCanvasViewer& viewer) {
+  auto* rooms = viewer.rooms();
+  const int room_id = viewer.current_room_id();
+  if (!rooms || room_id < 0 || room_id >= static_cast<int>(rooms->size())) {
+    return;
+  }
+  auto& objects = (*rooms)[room_id].GetTileObjects();
+  if (objects.empty()) {
+    return;
+  }
+
+  auto& interaction = viewer.object_interaction();
+  const auto selected = interaction.GetSelectedObjectIndices();
+  int requested_object_index =
+      selected.size() == 1 ? static_cast<int>(selected.front()) : 0;
+
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(tr("Jump to object"));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(74.0f);
+  bool object_index_changed = false;
+  {
+    gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+    object_index_changed = gui::InputScalarDeferred(
+        "##WorkbenchObjectIndex", ImGuiDataType_S32, &requested_object_index,
+        "%d", 0,
+        {reinterpret_cast<uintptr_t>(rooms), static_cast<uint64_t>(room_id)});
+    gui::AutoRegisterLastItem("input_int", "object_index",
+                              "Select and locate a room object by index");
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(tr("Select object index 0-%zu"), objects.size() - 1);
+  }
+  if (object_index_changed) {
+    const size_t target_index = static_cast<size_t>(std::clamp(
+        requested_object_index, 0, static_cast<int>(objects.size()) - 1));
+    interaction.SetSelectedObjects({target_index});
+    viewer.ScrollToTile(objects[target_index].x(), objects[target_index].y());
+  }
+}
+
 }  // namespace
 
 void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
@@ -88,8 +129,7 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
       gui::AutoWidgetScope scope("Dungeon/Workbench");
       gui::AutoRegisterLastItem("button", "finish_placement");
     }
-  } else if (!placing_object && (interaction.GetSelectionCount() > 0 ||
-                                 interaction.HasEntitySelection())) {
+  } else if (!placing_object) {
     DrawInspectorShelfSelection(viewer);
   }
   ImGui::PopID();
@@ -241,6 +281,8 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
   if (!has_entity && obj_count == 0) {
     workbench::DrawInspectorSectionHeader(ICON_MD_INFO " Selection");
     ImGui::TextDisabled(tr("Click an object or entity to inspect"));
+    ImGui::Spacing();
+    DrawObjectIndexJump(viewer);
     return;
   }
 
@@ -252,6 +294,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
     if (obj_count == 1) {
       ImGui::SameLine();
       ImGui::TextDisabled(tr("Focused selection"));
+      DrawObjectIndexJump(viewer);
     }
 
     const auto indices = interaction.GetSelectedObjectIndices();
@@ -575,10 +618,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     }
   }
 
-  // Room badge: hex ID + copy button (only for valid room IDs).
+  // Room header: hex ID + copy button + room and dungeon name unified.
   if (room_id >= 0) {
     ImGui::AlignTextToFramePadding();
-    ImGui::Text(tr("Room 0x%03X"), room_id);
+    ImGui::Text(ICON_MD_CASTLE " Room 0x%03X", room_id);
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CONTENT_COPY "##CopyRoomId")) {
       char buf[16];
@@ -588,61 +631,90 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(tr("Copy room ID (0x%03X) to clipboard"), room_id);
     }
+
+    if (room_label_edit_callback_ && viewer.project() != nullptr) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_EDIT "##RenameRoom")) {
+        snprintf(room_rename_buffer_, sizeof(room_rename_buffer_), "%s",
+                 room_label.c_str());
+        room_rename_error_.clear();
+        ImGui::OpenPopup("RenameRoomModal");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(tr("Rename Room 0x%03X for this project"), room_id);
+      }
+      gui::AutoRegisterLastItem("button", "rename_room_button");
+    }
+
+    if (ImGui::BeginPopup("RenameRoomModal")) {
+      const auto apply = [&](std::optional<std::string> label) {
+        const absl::Status status =
+            room_label_edit_callback_
+                ? room_label_edit_callback_(room_id, std::move(label))
+                : absl::FailedPreconditionError("Room names are read-only");
+        if (status.ok()) {
+          ImGui::CloseCurrentPopup();
+        } else {
+          room_rename_error_ = std::string(status.message());
+        }
+      };
+
+      ImGui::Text(ICON_MD_EDIT " Rename Room 0x%03X", room_id);
+      ImGui::Separator();
+      ImGui::Spacing();
+
+      ImGui::TextDisabled(tr("Project Room Name:"));
+      ImGui::SetNextItemWidth(260.0f);
+      const bool enter_pressed = ImGui::InputText(
+          "##RoomNameInput", room_rename_buffer_, sizeof(room_rename_buffer_),
+          ImGuiInputTextFlags_EnterReturnsTrue);
+      gui::AutoRegisterLastItem("input_text", "rename_room_input");
+
+      ImGui::Spacing();
+      const bool has_name = room_rename_buffer_[0] != '\0';
+      ImGui::BeginDisabled(!has_name);
+      const bool save_clicked = ImGui::Button(ICON_MD_SAVE " Save");
+      ImGui::EndDisabled();
+      gui::AutoRegisterLastItem("button", "rename_room_save");
+      if (has_name && (save_clicked || enter_pressed)) {
+        apply(std::string(room_rename_buffer_));
+      }
+
+      ImGui::SameLine();
+      if (dungeon_project_labels::HasCustomRoomLabel(viewer.project(),
+                                                     room_id)) {
+        if (ImGui::Button(ICON_MD_RESTORE " Reset")) {
+          apply(std::nullopt);
+        }
+        gui::AutoRegisterLastItem("button", "rename_room_reset");
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(tr("Reset to default/registry name"));
+        }
+        ImGui::SameLine();
+      }
+
+      if (ImGui::Button(ICON_MD_CANCEL " Cancel")) {
+        ImGui::CloseCurrentPopup();
+      }
+      gui::AutoRegisterLastItem("button", "rename_room_cancel");
+
+      if (!room_rename_error_.empty()) {
+        ImGui::TextColored(theme.status_error, "%s",
+                           room_rename_error_.c_str());
+      }
+
+      ImGui::EndPopup();
+    }
+
     if (room_dirty) {
       ImGui::SameLine();
       ImGui::TextColored(theme.status_warning, "Unsaved");
     }
 
-    if (auto* rooms = viewer.rooms();
-        rooms && room_id < static_cast<int>(rooms->size())) {
-      auto& objects = (*rooms)[room_id].GetTileObjects();
-      if (!objects.empty()) {
-        const auto selected_indices =
-            viewer.object_interaction().GetSelectedObjectIndices();
-        int requested_object_index =
-            selected_indices.size() == 1
-                ? static_cast<int>(selected_indices.front())
-                : 0;
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(tr("Object"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(74.0f);
-        bool object_index_changed = false;
-        {
-          gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
-          object_index_changed = gui::InputScalarDeferred(
-              "##WorkbenchObjectIndex", ImGuiDataType_S32,
-              &requested_object_index, "%d", 0,
-              {reinterpret_cast<uintptr_t>(rooms),
-               static_cast<uint64_t>(room_id)});
-          gui::AutoRegisterLastItem("input_int", "object_index",
-                                    "Select and locate a room object by index");
-        }
-        if (object_index_changed) {
-          const size_t target_index = static_cast<size_t>(std::clamp(
-              requested_object_index, 0, static_cast<int>(objects.size()) - 1));
-          viewer.object_interaction().SetSelectedObjects({target_index});
-          viewer.ScrollToTile(objects[target_index].x(),
-                              objects[target_index].y());
-          FocusSelectionInspector();
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(tr("Select object index 0-%zu"),
-                            objects.size() - 1);
-        }
-      }
+    // Dungeon group context: prefer ROM entrance-based lookup; fall back to blockset.
+    if (!room_dungeon_cache_built_ && rom_ && rom_->is_loaded()) {
+      BuildRoomDungeonCache();
     }
-  } else {
-    ImGui::TextUnformatted(tr("Room: None"));
-  }
-
-  // Dungeon group context: prefer ROM entrance-based lookup (accurate for
-  // custom Oracle dungeons); fall back to blockset-derived name.
-  if (!room_dungeon_cache_built_ && rom_ && rom_->is_loaded()) {
-    BuildRoomDungeonCache();
-  }
-  ImGui::PushTextWrapPos(0.0f);
-  if (room_id >= 0) {
     std::string project_group_name =
         dungeon_project_labels::GetDungeonNameForRoom(viewer.project(),
                                                       room_id);
@@ -661,55 +733,123 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
             (*rooms)[room_id].blockset());
       }
     }
+    const bool is_custom_name =
+        dungeon_project_labels::HasCustomRoomLabel(viewer.project(), room_id);
+    ImGui::PushTextWrapPos(0.0f);
     if (group_name) {
-      ImGui::TextDisabled(ICON_MD_CASTLE " %s – %s", group_name,
-                          room_label.c_str());
+      ImGui::TextDisabled("%s – %s", group_name, room_label.c_str());
     } else {
       ImGui::TextDisabled("%s", room_label.c_str());
     }
+    if (is_custom_name) {
+      ImGui::SameLine();
+      ImGui::TextColored(theme.text_info, "(custom)");
+    }
+    ImGui::PopTextWrapPos();
   } else {
-    ImGui::TextDisabled("%s", room_label.c_str());
+    ImGui::TextUnformatted(tr("Room: None"));
   }
-  ImGui::PopTextWrapPos();
 
-  // Room properties share the editor's validated metadata edit boundary. Raw
-  // graphics IDs remain available alongside named behavior choices.
+  // Room properties share the editor's validated metadata edit boundary.
   if (auto* rooms = viewer.rooms();
       rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
     auto& room = (*rooms)[room_id];
+
+    // Core layout & graphics 2x3 grid is always visible at the top.
+    ImGui::Spacing();
     DrawDungeonRoomPropertyFields(viewer, room, room_id,
-                                  RoomPropertyLayout::kFull);
+                                  RoomPropertyLayout::kCoreGraphics);
 
-    DrawPitDamageControls(room_id);
-    workbench::DrawInspectorSectionHeader("Destinations");
-    DrawDungeonDestinationEditor(viewer);
-    if (viewer.current_room_id() != room_id)
-      return;
+    // Sub-tabs for secondary room properties.
+    struct SubTabDef {
+      const char* label;
+      RoomInspectorSubTab tab;
+      const char* id;
+    };
+    constexpr SubTabDef kSubTabs[] = {
+        {ICON_MD_TUNE " Mechanics", RoomInspectorSubTab::Mechanics,
+         "tab_mechanics"},
+        {ICON_MD_STAIRS " Warps", RoomInspectorSubTab::Warps, "tab_warps"},
+        {ICON_MD_TAG " Tags/Chests", RoomInspectorSubTab::TagsAndChests,
+         "tab_tags_chests"},
+    };
 
-    if (entrance_navigator_content_) {
-      ImGui::PushID("InspectedEntrance");
-      workbench::DrawInspectorSectionHeader("Entrance");
-      const std::string id = entrance_navigator_content_->GetId();
-      if (is_standalone_tool_open_ && is_standalone_tool_open_(id)) {
-        ImGui::TextDisabled(
-            "Entrance properties are open in a separate window.");
-        if (ImGui::Button("Show entrance window") &&
-            open_and_focus_standalone_tool_)
-          open_and_focus_standalone_tool_(id);
-      } else {
-        ImGui::BeginDisabled(viewer.header_read_only() ||
-                             !viewer.IsObjectInteractionEnabled());
-        entrance_navigator_content_->DrawPropertiesInWorkbench();
-        ImGui::EndDisabled();
+    ImGui::Spacing();
+    const float avail_width = ImGui::GetContentRegionAvail().x;
+    const int tab_cols = avail_width >= 240.0f ? 3 : 2;
+    if (ImGui::BeginTable("##RoomSubTabs", tab_cols,
+                          ImGuiTableFlags_SizingStretchSame |
+                              ImGuiTableFlags_NoPadInnerX |
+                              ImGuiTableFlags_NoPadOuterX)) {
+      for (const auto& tab_def : kSubTabs) {
+        ImGui::TableNextColumn();
+        const bool active = (room_inspector_sub_tab_ == tab_def.tab);
+        gui::StyleColorGuard selected_guard(
+            ImGuiCol_Button,
+            ImGui::GetStyleColorVec4(active ? ImGuiCol_ButtonActive
+                                            : ImGuiCol_Button));
+        if (ImGui::Button(tab_def.label,
+                          ImVec2(ImGui::GetContentRegionAvail().x,
+                                 ImGui::GetFrameHeight()))) {
+          room_inspector_sub_tab_ = tab_def.tab;
+        }
+        gui::AutoRegisterLastItem("button", tab_def.id);
+        if (active) {
+          const ImVec2 min = ImGui::GetItemRectMin();
+          const ImVec2 max = ImGui::GetItemRectMax();
+          ImGui::GetWindowDrawList()->AddLine(
+              ImVec2(min.x, max.y - 1), ImVec2(max.x, max.y - 1),
+              ImGui::GetColorU32(ImGuiCol_CheckMark), 2.0f);
+        }
       }
-      ImGui::PopID();
-      if (viewer.current_room_id() != room_id)
-        return;
+      ImGui::EndTable();
     }
+    ImGui::Separator();
 
-    if (workbench::BeginInspectorSection(ICON_MD_INVENTORY_2 " Chest contents",
-                                         false)) {
-      DrawDungeonChestEditor(room_id, room, viewer);
+    switch (room_inspector_sub_tab_) {
+      case RoomInspectorSubTab::Mechanics: {
+        DrawDungeonRoomPropertyFields(viewer, room, room_id,
+                                      RoomPropertyLayout::kMechanics);
+        DrawPitDamageControls(room_id);
+        break;
+      }
+      case RoomInspectorSubTab::Warps: {
+        workbench::DrawInspectorSectionHeader("Destinations");
+        DrawDungeonDestinationEditor(viewer);
+        if (viewer.current_room_id() != room_id)
+          return;
+
+        if (entrance_navigator_content_) {
+          ImGui::PushID("InspectedEntrance");
+          workbench::DrawInspectorSectionHeader("Entrance");
+          const std::string id = entrance_navigator_content_->GetId();
+          if (is_standalone_tool_open_ && is_standalone_tool_open_(id)) {
+            ImGui::TextDisabled(
+                "Entrance properties are open in a separate window.");
+            if (ImGui::Button("Show entrance window") &&
+                open_and_focus_standalone_tool_)
+              open_and_focus_standalone_tool_(id);
+          } else {
+            ImGui::BeginDisabled(viewer.header_read_only() ||
+                                 !viewer.IsObjectInteractionEnabled());
+            entrance_navigator_content_->DrawPropertiesInWorkbench();
+            ImGui::EndDisabled();
+          }
+          ImGui::PopID();
+          if (viewer.current_room_id() != room_id)
+            return;
+        }
+        break;
+      }
+      case RoomInspectorSubTab::TagsAndChests: {
+        DrawDungeonRoomPropertyFields(viewer, room, room_id,
+                                      RoomPropertyLayout::kTags);
+        ImGui::Spacing();
+        workbench::DrawInspectorSectionHeader(ICON_MD_INVENTORY_2
+                                              " Chest contents");
+        DrawDungeonChestEditor(room_id, room, viewer);
+        break;
+      }
     }
   } else {
     ImGui::TextDisabled(tr("Room properties unavailable"));

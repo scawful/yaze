@@ -79,12 +79,12 @@ void DrawBrowserNameStrip(const BrowserNameStrip& strip,
 float GetObjectGridItemSize(int density) {
   switch (density) {
     case 0:
-      return 54.0f;
+      return 64.0f;
     case 2:
-      return 76.0f;
+      return 112.0f;
     case 1:
     default:
-      return 60.0f;
+      return 84.0f;
   }
 }
 
@@ -464,29 +464,60 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
 
     const float toolbar_width =
         std::max(ImGui::GetContentRegionAvail().x, 1.0f);
-    ImGui::SetNextItemWidth(toolbar_width);
+    const float button_h = ImGui::GetFrameHeight();
+    const bool has_search = object_search_buffer_[0] != '\0';
+    const float size_btn_w = button_h;
+    const float more_btn_w = button_h;
+    const float clear_btn_w = has_search ? button_h : 0.0f;
+    const float search_w =
+        std::max(60.0f, toolbar_width - size_btn_w - more_btn_w - clear_btn_w -
+                            control_spacing * (has_search ? 3.0f : 2.0f));
+
+    ImGui::SetNextItemWidth(search_w);
     ImGui::InputTextWithHint("##ObjectSearch", "Search by name or hex ID...",
                              object_search_buffer_,
                              sizeof(object_search_buffer_));
+    if (has_search) {
+      ImGui::SameLine(0.0f, control_spacing);
+      if (ImGui::Button(ICON_MD_CLOSE "##ClearSearch",
+                        ImVec2(clear_btn_w, 0.0f))) {
+        object_search_buffer_[0] = '\0';
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(tr("Clear search"));
+      }
+    }
+    ImGui::SameLine(0.0f, control_spacing);
+    const char* size_icon = object_grid_density_ == 0
+                                ? "S"
+                                : (object_grid_density_ == 2 ? "L" : "M");
+    if (ImGui::Button(size_icon, ImVec2(size_btn_w, 0.0f))) {
+      object_grid_density_ = (object_grid_density_ + 1) % 3;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(tr("Card size: %s (click to cycle)"),
+                        kObjectGridDensityLabels[object_grid_density_]);
+    }
+    ImGui::SameLine(0.0f, control_spacing);
+    if (ImGui::Button(ICON_MD_TUNE "##ObjectSelectorMore",
+                      ImVec2(more_btn_w, 0.0f))) {
+      ImGui::OpenPopup("##ObjectSelectorOptionsPopup");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(tr("Object selector options"));
+    }
 
     static const char* kFilterLabels[] = {
         "All categories", "Walls", "Floors", "Chests",
         "Doorways",       "Decor", "Stairs"};
     static const char* kStreamLabels[] = {"All streams", "Type 1", "Type 2",
                                           "Type 3"};
-    constexpr const char* kMoreLabel = "More##ObjectSelectorMore";
-    const float more_width = ImGui::CalcTextSize(kMoreLabel, nullptr, true).x +
-                             style.FramePadding.x * 2.0f;
-    const bool stack_filters = toolbar_width < 230.0f;
-    const float filter_row_width =
-        std::max(1.0f, toolbar_width - more_width - control_spacing);
+
     const float used_width = ImGui::GetFrameHeight() +
                              ImGui::CalcTextSize("Used here").x +
                              style.ItemInnerSpacing.x;
     const float category_width =
-        stack_filters
-            ? toolbar_width
-            : std::max(1.0f, filter_row_width - used_width - control_spacing);
+        std::max(1.0f, toolbar_width - used_width - control_spacing);
 
     ImGui::SetNextItemWidth(category_width);
     ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
@@ -496,14 +527,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
           tr("Doorways are tile objects. Use the Door Editor "
              "to place or change room doors."));
     }
-    if (!stack_filters) {
-      ImGui::SameLine(0.0f, control_spacing);
-    }
-    ImGui::Checkbox("Used here", &used_here_only_);
     ImGui::SameLine(0.0f, control_spacing);
-    if (ImGui::Button(kMoreLabel, ImVec2(more_width, 0.0f))) {
-      ImGui::OpenPopup("##ObjectSelectorOptionsPopup");
-    }
+    ImGui::Checkbox("Used here", &used_here_only_);
     if (ImGui::BeginPopup("##ObjectSelectorOptionsPopup")) {
       const bool has_filters = object_search_buffer_[0] != '\0' ||
                                object_type_filter_ != 0 ||

@@ -1003,6 +1003,10 @@ void DungeonEditorV2::Initialize() {
                                           entrance_navigator_panel_);
     workbench_panel_->SetRoomRenderContextCallback(
         [this](int room_id) { ApplyEntranceRenderContext(room_id); });
+    workbench_panel_->SetRoomLabelEditCallback(
+        [this](int room_id, std::optional<std::string> label) {
+          return ApplyRoomLabelEdit(room_id, std::move(label));
+        });
   }
   if (room_matrix_panel_) {
     room_matrix_panel_->SetRenderContextCallback(
@@ -1691,6 +1695,39 @@ bool DungeonEditorV2::HasPendingDungeonChanges() const {
     return true;
   }
   return game_data_ != nullptr && game_data_->pit_damage_table.dirty();
+}
+
+absl::Status DungeonEditorV2::ApplyRoomLabelEdit(
+    int room_id, std::optional<std::string> label) {
+  // Save Project serializes EditorManager's project and then replaces the
+  // session snapshot (dependencies_.project) from it, so the edit must land
+  // in the authoritative project first.
+  auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (editor_manager == nullptr ||
+      !editor_manager->IsCurrentProjectContextOwnedBySession(
+          dependencies_.session_id)) {
+    return absl::FailedPreconditionError(
+        "Activate this dungeon project before renaming rooms");
+  }
+  project::YazeProject* authoritative = editor_manager->GetCurrentProject();
+  if (authoritative == nullptr || !authoritative->project_opened()) {
+    return absl::FailedPreconditionError("Room names require an open project");
+  }
+
+  const auto apply = [&](project::YazeProject* project) {
+    if (label.has_value()) {
+      dungeon_project_labels::SetRoomLabel(project, room_id, *label);
+    } else {
+      dungeon_project_labels::ClearRoomLabel(project, room_id);
+    }
+  };
+  apply(authoritative);
+  if (dependencies_.project != nullptr &&
+      dependencies_.project != authoritative) {
+    apply(dependencies_.project);
+  }
+  editor_manager->MarkCurrentProjectDirty();
+  return absl::OkStatus();
 }
 
 bool DungeonEditorV2::HasPendingProjectDraftChanges() const {

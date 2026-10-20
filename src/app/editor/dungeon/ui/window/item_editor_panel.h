@@ -3,7 +3,11 @@
 
 #include <functional>
 #include <string>
+#include <unordered_map>
 #include <utility>
+#include <vector>
+
+#include <SDL.h>
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
@@ -60,6 +64,17 @@ class ItemEditorPanel : public WindowContent {
   void DrawRoomItems();
   ImVec4 GetItemTypeColor(int item_id, const AgentUITheme& theme) const;
   const char* GetItemTypeIcon(int item_id) const;
+
+  struct CachedItemPreview {
+    std::vector<uint8_t> pixels;
+    SDL_Rect bounds{0, 0, 0, 0};
+  };
+
+  const CachedItemPreview& GetOrCreateItemPreview(uint8_t item_id,
+                                                  const zelda3::Room& room);
+
+  mutable std::unordered_map<uint8_t, CachedItemPreview> item_preview_cache_;
+  mutable uint64_t cached_item_graphics_revision_ = 0;
 
   int* current_room_id_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;

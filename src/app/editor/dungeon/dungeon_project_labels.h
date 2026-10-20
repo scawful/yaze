@@ -119,14 +119,64 @@ inline std::string GetRoomFloorLabel(const project::YazeProject* project,
   return std::string();
 }
 
+// User renames live in their own label section ([labels_room_override]).
+// Opening an Oracle project re-injects registry defaults into "room", so an
+// override stored there would be lost on the next reopen.
+inline constexpr char kRoomOverrideLabelType[] = "room_override";
+
+inline std::string FindRoomOverride(const project::YazeProject* project,
+                                    int room_id) {
+  if (!project) {
+    return std::string();
+  }
+  const auto type_it = project->resource_labels.find(kRoomOverrideLabelType);
+  if (type_it == project->resource_labels.end()) {
+    return std::string();
+  }
+  const auto label_it = type_it->second.find(std::to_string(room_id));
+  return label_it != type_it->second.end() ? label_it->second : std::string();
+}
+
+inline bool HasCustomRoomLabel(const project::YazeProject* project,
+                               int room_id) {
+  return !FindRoomOverride(project, room_id).empty();
+}
+
+inline void SetRoomLabel(project::YazeProject* project, int room_id,
+                         const std::string& label) {
+  if (!project || label.empty()) {
+    return;
+  }
+  project->resource_labels[kRoomOverrideLabelType][std::to_string(room_id)] =
+      label;
+}
+
+inline void ClearRoomLabel(project::YazeProject* project, int room_id) {
+  if (!project) {
+    return;
+  }
+  const auto type_it = project->resource_labels.find(kRoomOverrideLabelType);
+  if (type_it == project->resource_labels.end()) {
+    return;
+  }
+  type_it->second.erase(std::to_string(room_id));
+  if (type_it->second.empty()) {
+    project->resource_labels.erase(type_it);
+  }
+}
+
 inline std::string GetRoomLabel(const project::YazeProject* project,
                                 int room_id) {
+  if (std::string custom = FindRoomOverride(project, room_id);
+      !custom.empty()) {
+    return custom;
+  }
   if (const core::DungeonRoom* room = FindDungeonRoom(project, room_id);
       room && !room->name.empty()) {
     return room->name;
   }
-  auto& labels = zelda3::GetResourceLabels();
-  return labels.GetLabel(zelda3::ResourceType::kRoom, room_id);
+  return LabelsForProject(project).GetLabel(zelda3::ResourceType::kRoom,
+                                            room_id);
 }
 
 }  // namespace yaze::editor::dungeon_project_labels

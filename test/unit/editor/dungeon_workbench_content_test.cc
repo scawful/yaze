@@ -671,6 +671,16 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_STREQ(content.GetSidebarModeIdForTesting(), "objects");
 }
 
+TEST(DungeonWorkbenchContentLayoutTest, FocusRoomMatrixExpandsCollapsedMatrix) {
+  int current_room_id = 0;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+
+  DungeonWorkbenchContentTestPeer::SetRoomMatrixVisible(content, false);
+  content.FocusRoomMatrix();
+  EXPECT_TRUE(DungeonWorkbenchContentTestPeer::IsRoomMatrixVisible(content));
+}
+
 TEST(DungeonWorkbenchContentObjectSizeTest,
      SizeControlsEnableOnlyWhenSelectionContainsEditableObject) {
   const std::vector<zelda3::RoomObject> objects = {
@@ -2435,6 +2445,22 @@ TEST(DungeonWorkbenchProjectLabelsTest,
   zelda3::GetResourceLabels().SetHackManifest(nullptr);
   zelda3::GetResourceLabels().SetProjectLabels(nullptr);
 
+  EXPECT_FALSE(dungeon_project_labels::HasCustomRoomLabel(&project, 0x25));
+  dungeon_project_labels::SetRoomLabel(&project, 0x25, "Flooded Hall");
+  EXPECT_TRUE(dungeon_project_labels::HasCustomRoomLabel(&project, 0x25));
+  EXPECT_EQ(dungeon_project_labels::GetRoomLabel(&project, 0x25),
+            "Flooded Hall");
+  // Reopening an Oracle project rewrites the registry "room" section; the
+  // rename lives in its own section and must keep winning.
+  project.resource_labels["room"]["37"] = "Water Grate";
+  EXPECT_EQ(dungeon_project_labels::GetRoomLabel(&project, 0x25),
+            "Flooded Hall");
+  dungeon_project_labels::ClearRoomLabel(&project, 0x25);
+  EXPECT_FALSE(project.resource_labels.contains(
+      dungeon_project_labels::kRoomOverrideLabelType));
+  EXPECT_EQ(dungeon_project_labels::GetRoomLabel(&project, 0x25),
+            "Water Grate");
+
   std::filesystem::remove_all(root);
 }
 
@@ -2684,6 +2710,7 @@ TEST_F(DungeonWorkbenchResetUiTest,
   EXPECT_FALSE(Find("collision_tile_type")->enabled);
 
   Click("quick_collision_floor_00");
+  Frame();
   EXPECT_FALSE(mode_mgr.GetModeState().paint_collision_erase);
   EXPECT_EQ(mode_mgr.GetModeState().paint_collision_value, 0x00);
   // The combo is drawn before Quick Select, so its registered enabled state
@@ -2783,6 +2810,30 @@ TEST_F(
   EXPECT_FALSE(editor.rooms()[0x12].HasCollisionOverride(3, 3));
   ASSERT_FALSE(editor.rooms()[0x12].IsLoaded());
   ASSERT_TRUE(editor.rooms()[0x12].custom_collision_dirty());
+
+  // Hovering the unopened room in the matrix previews it from a copy; it must
+  // not reload the shared room and drop the pending import.
+  {
+    int matrix_room = 0;
+    ImVector<int> matrix_active;
+    RoomMatrixContent matrix(&matrix_room, &matrix_active, [](int) {});
+    matrix.SetRooms(&editor.rooms());
+    standalone_content_ = &matrix;
+    Frame();
+    const auto cell = Find("Room 0x012");
+    ASSERT_TRUE(cell.has_value());
+    ImGui::GetIO().AddMousePosEvent(
+        (cell->bounds.min_x + cell->bounds.max_x) * 0.5f,
+        (cell->bounds.min_y + cell->bounds.max_y) * 0.5f);
+    Frame();
+    Frame();
+    standalone_content_ = &collision;
+    ImGui::GetIO().AddMousePosEvent(-1.0f, -1.0f);
+  }
+  ASSERT_FALSE(editor.rooms()[0x12].IsLoaded());
+  ASSERT_TRUE(editor.rooms()[0x12].custom_collision_dirty());
+  EXPECT_EQ(editor.rooms()[0x12].GetCollisionTile(6, 6), 0x09);
+  EXPECT_TRUE(editor.rooms()[0x12].HasCollisionOverride(7, 7));
 
   DungeonCanvasViewerTestPeer::OpenRoom(editor, 0x12);
   const auto& imported_room = editor.rooms()[0x12];

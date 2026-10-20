@@ -6,6 +6,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_rendering_helpers.h"
 #include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
@@ -93,9 +94,33 @@ void ItemEditorPanel::DrawPlacementControls() {
   }
 }
 
+const ItemEditorPanel::CachedItemPreview&
+ItemEditorPanel::GetOrCreateItemPreview(uint8_t item_id,
+                                        const zelda3::Room& room) {
+  if (cached_item_graphics_revision_ != room.graphics_revision()) {
+    item_preview_cache_.clear();
+    cached_item_graphics_revision_ = room.graphics_revision();
+  }
+  auto it = item_preview_cache_.find(item_id);
+  if (it != item_preview_cache_.end()) {
+    return it->second;
+  }
+
+  CachedItemPreview cached;
+  DungeonRenderingHelpers::BuildPotItemPreview(item_id, room, cached.pixels,
+                                               cached.bounds);
+  auto [inserted_it, _] =
+      item_preview_cache_.emplace(item_id, std::move(cached));
+  return inserted_it->second;
+}
+
 void ItemEditorPanel::DrawItemSelector(bool show_room_items) {
   const bool can_edit = CanEditRoom();
   const auto& theme = AgentUI::GetTheme();
+  auto& room = (*rooms_)[*current_room_id_];
+  const auto sprite_colors = zelda3::BuildDungeonSpriteRenderPalette(
+      room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
+
   ImGui::Text(ICON_MD_INVENTORY " Select Item:");
 
   // Item grid with responsive sizing
@@ -110,12 +135,14 @@ void ItemEditorPanel::DrawItemSelector(bool show_room_items) {
   // Responsive item size based on panel width
   float panel_width = ImGui::GetContentRegionAvail().x;
   float item_size =
-      std::max(36.0f, std::min(48.0f, (panel_width - 40.0f) / 6.0f));
-  int items_per_row =
-      std::max(1, static_cast<int>(panel_width / (item_size + 8)));
+      std::max(36.0f, std::min(48.0f, (panel_width - 32.0f) / 6.0f));
+  float spacing = 4.0f;
+  int items_per_row = std::max(
+      1, static_cast<int>((panel_width + spacing) / (item_size + spacing)));
 
   ImGui::BeginChild("##ItemGrid", ImVec2(0, grid_height), true,
                     ImGuiWindowFlags_HorizontalScrollbar);
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImGui::BeginDisabled(!can_edit);
 
   int col = 0;
@@ -124,42 +151,58 @@ void ItemEditorPanel::DrawItemSelector(bool show_room_items) {
 
     ImGui::PushID(static_cast<int>(i));
 
-    ImVec4 button_color = GetItemTypeColor(static_cast<int>(i), theme);
+    const ImVec2 p0 = ImGui::GetCursorScreenPos();
     if (is_selected) {
-      button_color.x = std::min(1.0f, button_color.x + 0.2f);
-      button_color.y = std::min(1.0f, button_color.y + 0.2f);
-      button_color.z = std::min(1.0f, button_color.z + 0.2f);
+      ImGui::PushStyleColor(ImGuiCol_Button, theme.dungeon_selection_primary);
     }
-
-    {
-      gui::StyleColorGuard btn_colors({
-          {ImGuiCol_Button, button_color},
-          {ImGuiCol_ButtonHovered,
-           ImVec4(std::min(1.0f, button_color.x + 0.1f),
-                  std::min(1.0f, button_color.y + 0.1f),
-                  std::min(1.0f, button_color.z + 0.1f), 1.0f)},
-          {ImGuiCol_ButtonActive,
-           ImVec4(std::min(1.0f, button_color.x + 0.2f),
-                  std::min(1.0f, button_color.y + 0.2f),
-                  std::min(1.0f, button_color.z + 0.2f), 1.0f)},
-      });
-
-      const char* icon = GetItemTypeIcon(static_cast<int>(i));
-      std::string label =
-          absl::StrFormat("%s\n%02X", icon, static_cast<int>(i));
-      const bool picked =
-          ImGui::Button(label.c_str(), ImVec2(item_size, item_size));
-      gui::AutoRegisterLastItem("button",
-                                absl::StrFormat("place_item_%02X", i));
-      if (picked && can_edit) {
-        selected_item_id_ = static_cast<int>(i);
-        placement_mode_ = true;
-        if (canvas_viewer_) {
-          canvas_viewer_->object_interaction().SetItemPlacementMode(
-              true, static_cast<uint8_t>(i));
-        }
+    const bool picked =
+        ImGui::Button("##item_btn", ImVec2(item_size, item_size));
+    gui::AutoRegisterLastItem("button", absl::StrFormat("place_item_%02X", i));
+    if (is_selected) {
+      ImGui::PopStyleColor();
+    }
+    if (picked && can_edit) {
+      selected_item_id_ = static_cast<int>(i);
+      placement_mode_ = true;
+      if (canvas_viewer_) {
+        canvas_viewer_->object_interaction().SetItemPlacementMode(
+            true, static_cast<uint8_t>(i));
       }
     }
+
+    const auto& preview = GetOrCreateItemPreview(static_cast<uint8_t>(i), room);
+    const ImVec2 preview_min(p0.x + 3.0f, p0.y + 2.0f);
+    const ImVec2 preview_max(p0.x + item_size - 3.0f, p0.y + item_size - 12.0f);
+    bool drew_preview = false;
+    if (preview.bounds.w > 0 && preview.bounds.h > 0 &&
+        !preview.pixels.empty()) {
+      drew_preview = DungeonRenderingHelpers::DrawSpritePreview(
+          draw_list, preview.pixels, preview.bounds, preview_min, preview_max,
+          sprite_colors);
+    }
+    if (!drew_preview) {
+      const char* icon = GetItemTypeIcon(static_cast<int>(i));
+      const ImVec2 icon_size = ImGui::CalcTextSize(icon);
+      draw_list->AddText(
+          ImVec2(preview_min.x +
+                     (preview_max.x - preview_min.x - icon_size.x) * 0.5f,
+                 preview_min.y +
+                     (preview_max.y - preview_min.y - icon_size.y) * 0.5f),
+          ImGui::GetColorU32(theme.text_secondary_gray), icon);
+    }
+
+    const std::string id_text = absl::StrFormat("%02X", i);
+    const ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+    draw_list->AddText(
+        ImVec2(p0.x + (item_size - id_size.x) * 0.5f,
+               p0.y + item_size - id_size.y - 1.0f),
+        ImGui::GetColorU32(is_selected ? theme.text_primary
+                                       : theme.text_secondary_gray),
+        id_text.c_str());
+
+    ImGui::LogText("%s (0x%02X)\n",
+                   GetDungeonPotItemName(static_cast<uint8_t>(i)),
+                   static_cast<int>(i));
 
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(tr("%s (0x%02X)\nClick to select for placement"),
@@ -168,18 +211,18 @@ void ItemEditorPanel::DrawItemSelector(bool show_room_items) {
     }
 
     if (is_selected) {
-      ImVec2 min = ImGui::GetItemRectMin();
-      ImVec2 max = ImGui::GetItemRectMax();
+      ImVec2 min = p0;
+      ImVec2 max = ImVec2(p0.x + item_size, p0.y + item_size);
       ImU32 sel_color =
           ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary);
-      ImGui::GetWindowDrawList()->AddRect(min, max, sel_color, 0.0f, 0, 2.0f);
+      draw_list->AddRect(min, max, sel_color, 2.0f, 0, 2.0f);
     }
 
     ImGui::PopID();
 
     col++;
     if (col < items_per_row) {
-      ImGui::SameLine();
+      ImGui::SameLine(0, spacing);
     } else {
       col = 0;
     }
@@ -244,27 +287,59 @@ void ItemEditorPanel::DrawRoomItems() {
   }
 
   float list_height = std::max(100.0f, ImGui::GetContentRegionAvail().y);
+  const auto sprite_colors = zelda3::BuildDungeonSpriteRenderPalette(
+      room, canvas_viewer_ ? canvas_viewer_->game_data() : nullptr);
   ImGui::BeginChild("##ItemList", ImVec2(0, list_height), true);
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
   for (size_t i = 0; i < items.size(); ++i) {
     const auto& item = items[i];
 
     ImGui::PushID(static_cast<int>(i));
 
-    const char* item_name = GetDungeonPotItemName(item.item);
-
-    const std::string row_label =
-        absl::StrFormat("[%zu] %s (0x%02X)", i, item_name, item.item);
-    const bool row_selected = ImGui::Selectable(
-        row_label.c_str(), selected_item_index == static_cast<int>(i));
+    const float row_height = 24.0f;
+    const ImVec2 p0 = ImGui::GetCursorScreenPos();
+    const bool is_selected = (selected_item_index == static_cast<int>(i));
+    const bool row_selected =
+        ImGui::Selectable("##row", is_selected, 0, ImVec2(0, row_height));
     gui::AutoRegisterLastItem("selectable", absl::StrFormat("item_row_%zu", i),
                               "Select a pot item in the current dungeon room");
-    ImGui::SameLine();
-    ImGui::TextColored(theme.text_secondary_gray, "@ (%d,%d)", item.GetTileX(),
-                       item.GetTileY());
-
     if (row_selected && HasMatchingViewer()) {
       canvas_viewer_->object_interaction().SelectEntity(EntityType::Item, i);
     }
+
+    const auto& preview = GetOrCreateItemPreview(item.item, room);
+    const ImVec2 preview_min(p0.x + 2.0f, p0.y + 1.0f);
+    const ImVec2 preview_max(p0.x + 24.0f, p0.y + 23.0f);
+    bool drew_preview = false;
+    if (preview.bounds.w > 0 && preview.bounds.h > 0 &&
+        !preview.pixels.empty()) {
+      drew_preview = DungeonRenderingHelpers::DrawSpritePreview(
+          draw_list, preview.pixels, preview.bounds, preview_min, preview_max,
+          sprite_colors);
+    }
+    if (!drew_preview) {
+      const char* icon = GetItemTypeIcon(item.item);
+      draw_list->AddText(ImVec2(preview_min.x + 4.0f, preview_min.y + 3.0f),
+                         ImGui::GetColorU32(theme.text_secondary_gray), icon);
+    }
+
+    const char* item_name = GetDungeonPotItemName(item.item);
+    const std::string row_label =
+        absl::StrFormat("[%zu] %s (0x%02X)", i, item_name, item.item);
+    draw_list->AddText(
+        ImVec2(p0.x + 28.0f, p0.y + 4.0f),
+        ImGui::GetColorU32(is_selected ? theme.text_primary
+                                       : theme.text_secondary_gray),
+        row_label.c_str());
+
+    const std::string coords_label =
+        absl::StrFormat("@ (%d,%d)", item.GetTileX(), item.GetTileY());
+    const ImVec2 coords_size = ImGui::CalcTextSize(coords_label.c_str());
+    draw_list->AddText(
+        ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x -
+                   coords_size.x - 4.0f,
+               p0.y + 4.0f),
+        ImGui::GetColorU32(theme.text_secondary_gray), coords_label.c_str());
 
     ImGui::PopID();
   }

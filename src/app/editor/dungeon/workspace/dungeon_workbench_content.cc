@@ -321,6 +321,7 @@ void DungeonWorkbenchContent::FocusSelectionInspector() {
 void DungeonWorkbenchContent::FocusRoomMatrix() {
   layout_state_.show_left_sidebar = true;
   sidebar_mode_ = SidebarMode::Objects;
+  show_room_matrix_ = true;
 }
 
 void DungeonWorkbenchContent::FocusEntranceBrowser() {
@@ -695,8 +696,13 @@ void DungeonWorkbenchContent::DrawSidebarContent() {
   };
   const float available = std::max(1.0f, ImGui::GetContentRegionAvail().y);
   const float separator = 6.0f;
+  const float toggle_bar_height = 24.0f;
   const float upper =
-      std::max(1.0f, (available - separator) * navigator_tools_fraction_);
+      show_room_matrix_
+          ? std::max(1.0f, (available - separator - toggle_bar_height) *
+                               navigator_tools_fraction_)
+          : std::max(1.0f, available - toggle_bar_height - 6.0f);
+
   if (ImGui::BeginChild("##NavigatorTools", ImVec2(0, upper), false)) {
     WindowContent* content = nullptr;
     switch (sidebar_mode_) {
@@ -729,27 +735,55 @@ void DungeonWorkbenchContent::DrawSidebarContent() {
     }
   }
   ImGui::EndChild();
-  const ImVec2 divider = ImGui::GetCursorScreenPos();
-  ImGui::InvisibleButton("##NavigatorSplit", ImVec2(-1, separator));
-  if (ImGui::IsItemHovered() || ImGui::IsItemActive())
-    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
-  if (ImGui::IsItemActive())
-    navigator_tools_fraction_ = std::clamp(
-        navigator_tools_fraction_ + ImGui::GetIO().MouseDelta.y / available,
-        0.20f, 0.65f);
-  ImGui::GetWindowDrawList()->AddLine(
-      ImVec2(divider.x, divider.y + separator * 0.5f),
-      ImVec2(ImGui::GetItemRectMax().x, divider.y + separator * 0.5f),
-      ImGui::GetColorU32(ImGuiCol_Separator));
-  if (ImGui::BeginChild("##NavigatorMatrix", ImVec2(0, 0), false)) {
-    if (!draw_external("dungeon.room_matrix")) {
-      if (room_matrix_content_)
-        room_matrix_content_->Draw(nullptr);
-      else
-        ImGui::TextDisabled("Room Matrix unavailable");
+
+  if (!show_room_matrix_) {
+    ImGui::Spacing();
+    if (ImGui::Button(ICON_MD_GRID_VIEW " Show Room Matrix",
+                      ImVec2(-1, toggle_bar_height))) {
+      show_room_matrix_ = true;
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(tr("Expand the 16x19 dungeon room matrix"));
+    }
+  } else {
+    const ImVec2 divider = ImGui::GetCursorScreenPos();
+    ImGui::InvisibleButton("##NavigatorSplit", ImVec2(-1, separator));
+    if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+    if (ImGui::IsItemHovered() &&
+        ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+      show_room_matrix_ = false;
+    }
+    if (ImGui::IsItemActive())
+      navigator_tools_fraction_ = std::clamp(
+          navigator_tools_fraction_ + ImGui::GetIO().MouseDelta.y / available,
+          0.20f, 0.65f);
+    ImGui::GetWindowDrawList()->AddLine(
+        ImVec2(divider.x, divider.y + separator * 0.5f),
+        ImVec2(ImGui::GetItemRectMax().x, divider.y + separator * 0.5f),
+        ImGui::GetColorU32(ImGuiCol_Separator));
+
+    if (ImGui::BeginChild("##NavigatorMatrix", ImVec2(0, 0), false)) {
+      if (ImGui::SmallButton(ICON_MD_EXPAND_MORE "##CollapseMatrix")) {
+        show_room_matrix_ = false;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            tr("Hide Room Matrix (double-click divider also toggles)"));
+      }
+      ImGui::SameLine();
+      ImGui::TextDisabled(ICON_MD_GRID_VIEW " Room Matrix");
+      ImGui::Separator();
+
+      if (!draw_external("dungeon.room_matrix")) {
+        if (room_matrix_content_)
+          room_matrix_content_->Draw(nullptr);
+        else
+          ImGui::TextDisabled("Room Matrix unavailable");
+      }
+    }
+    ImGui::EndChild();
   }
-  ImGui::EndChild();
   ImGui::PopID();
 }
 

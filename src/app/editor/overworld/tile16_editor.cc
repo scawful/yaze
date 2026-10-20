@@ -164,8 +164,8 @@ absl::Status Tile16Editor::UpdateBlockset() {
 
   // Configure canvas frame options for blockset view
   gui::CanvasFrameOptions frame_opts;
-  frame_opts.draw_grid = true;
-  frame_opts.grid_step = 32.0f;  // Tile16 grid
+  // The selector draws its own grid aligned to its tile cells.
+  frame_opts.draw_grid = false;
   frame_opts.draw_context_menu = true;
   frame_opts.draw_overlay = true;
   frame_opts.render_popups = true;

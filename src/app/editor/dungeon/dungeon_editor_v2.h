@@ -217,6 +217,9 @@ class DungeonEditorV2 : public Editor {
   bool HasUnpublishedMinecartTrackChanges() const;
   bool HasPendingProjectDraftChanges() const;
   absl::Status PrepareProjectSave();
+  // Rename (label) or reset (nullopt) a room's name in the active project.
+  absl::Status ApplyRoomLabelEdit(int room_id,
+                                  std::optional<std::string> label);
   bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
