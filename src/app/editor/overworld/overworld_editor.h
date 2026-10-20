@@ -202,7 +202,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   absl::Status PrepareProjectSave();
   void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
-  void DrawProjectTerrainCanvas();
   void ContributeStatus(StatusBar* status_bar) override;
   EditorContextSnapshot BuildContextSnapshot() const override;
 
@@ -230,9 +229,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
 
   Rom* rom() const { return rom_; }
-  bool show_project_lyra_canvas_ = false;
   LyraTerrainCanvas lyra_canvas_;
   absl::Status lyra_canvas_status_;
+  // Project terrain occupies the lower Special World rows without expanding
+  // the ROM model or materializing legacy maps for those IDs.
+  int DisplayedMapCount() const;
+  bool IsProjectTerrainMap(int map_id) const;
   bool is_lyra_preview() const { return overworld_.is_lyra_preview(); }
   bool lyra_a0_terrain_writable() const {
     return overworld_.lyra_a0_terrain_writable();
@@ -246,13 +248,15 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Clamp a possibly stale world/map selection back into a valid
   /// overworld range.
-  static bool NormalizeMapSelection(int& current_world, int& current_map);
+  static bool NormalizeMapSelection(int& current_world, int& current_map,
+                                    int map_count = zelda3::kNumOverworldMaps);
 
   /// @brief Set the current map for editing (also updates world)
   void set_current_map(int map_id) {
-    if (map_id >= 0 && map_id < overworld_.inspected_map_count()) {
+    if (map_id >= 0 && map_id < DisplayedMapCount()) {
       // Finalize any pending paint operation before switching maps
       FinalizePaintOperation();
+      lyra_canvas_.FinishStroke(undo_manager_);
       current_map_ = map_id;
       current_world_ =
           map_id / 0x40;  // Calculate which world the map belongs to
@@ -261,8 +265,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       } else {
         current_parent_ = current_map_;
       }
-      overworld_.set_current_map(current_map_);
-      overworld_.set_current_world(current_world_);
+      if (!IsProjectTerrainMap(map_id)) {
+        overworld_.set_current_map(current_map_);
+        overworld_.set_current_world(current_world_);
+      }
     }
   }
   void SetCurrentMap(int map_id) { set_current_map(map_id); }
@@ -440,9 +446,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// edits get the unsaved dialog; defers until `Load()` completes otherwise.
   void RequestTile16Selection(int tile_id);
 
-  bool PickTile16FromHoveredCanvas() {
-    return tile_painting_ && tile_painting_->PickTile16FromHoveredCanvas();
-  }
+  bool PickTile16FromHoveredCanvas();
 
   // ===========================================================================
   // WindowContent View Hooks
@@ -562,47 +566,52 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Convenience delegation methods for internal use
   void RefreshChildMap(int map_index) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->RefreshChildMap(map_index);
   }
   void RefreshOverworldMap() {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(current_map_))
       map_refresh_->RefreshOverworldMap();
   }
   void RefreshOverworldMapOnDemand(int map_index) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->RefreshOverworldMapOnDemand(map_index);
   }
   void RefreshChildMapOnDemand(int map_index) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->RefreshChildMapOnDemand(map_index);
   }
   absl::Status RefreshMapPalette(int map_id = -1) {
+    if (IsProjectTerrainMap(map_id < 0 ? current_map_ : map_id))
+      return absl::OkStatus();
     if (map_refresh_)
       return map_refresh_->RefreshMapPalette(map_id);
     return absl::FailedPreconditionError(
         "MapRefreshCoordinator not initialized");
   }
   void RefreshMapProperties(int map_id = -1) {
-    if (map_refresh_)
+    if (map_refresh_ &&
+        !IsProjectTerrainMap(map_id < 0 ? current_map_ : map_id))
       map_refresh_->RefreshMapProperties(map_id);
   }
   absl::Status RefreshTile16Blockset() {
+    if (IsProjectTerrainMap(current_map_))
+      return absl::OkStatus();
     if (map_refresh_)
       return map_refresh_->RefreshTile16Blockset();
     return absl::FailedPreconditionError(
         "MapRefreshCoordinator not initialized");
   }
   void UpdateBlocksetWithPendingTileChanges() {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(current_map_))
       map_refresh_->UpdateBlocksetWithPendingTileChanges();
   }
   void ForceRefreshGraphics(int map_index) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->ForceRefreshGraphics(map_index);
   }
   void RefreshSiblingMapGraphics(int map_index, bool include_self = false) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->RefreshSiblingMapGraphics(map_index, include_self);
   }
 

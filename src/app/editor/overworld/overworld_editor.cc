@@ -168,13 +168,23 @@ OverworldEditor::~OverworldEditor() {
   map_properties_system_.reset();
 }
 
+int OverworldEditor::DisplayedMapCount() const {
+  return IsProjectTerrainMap(0xA0) ? zelda3::kExpandedMapCount
+                                   : overworld_.inspected_map_count();
+}
+
+bool OverworldEditor::IsProjectTerrainMap(int map_id) const {
+  return lyra_canvas_.loaded() && overworld_.is_loaded() &&
+         !overworld_.is_lyra_preview() && map_id >= 0xA0 && map_id < 0xC0;
+}
+
 bool OverworldEditor::NormalizeMapSelection(int& current_world,
-                                            int& current_map) {
+                                            int& current_map, int map_count) {
+  map_count = std::clamp(map_count, 1, zelda3::kExpandedMapCount);
   const int clamped_world = std::clamp(current_world, 0, 2);
   int normalized_map = current_map;
-  if (normalized_map < 0 || normalized_map >= zelda3::kNumOverworldMaps) {
-    normalized_map =
-        std::min(clamped_world * 0x40, zelda3::kNumOverworldMaps - 1);
+  if (normalized_map < 0 || normalized_map >= map_count) {
+    normalized_map = std::min(clamped_world * 0x40, map_count - 1);
   }
 
   const int normalized_world = std::clamp(normalized_map / 0x40, 0, 2);
@@ -482,6 +492,12 @@ void OverworldEditor::InitCanvasNavigationManager() {
   ctx.blockset_selector = &blockset_selector_;
 
   CanvasNavigationCallbacks callbacks;
+  callbacks.displayed_map_count = [this]() {
+    return DisplayedMapCount();
+  };
+  callbacks.is_project_terrain_map = [this](int map_id) {
+    return IsProjectTerrainMap(map_id);
+  };
   callbacks.refresh_overworld_map = [this]() {
     this->RefreshOverworldMap();
   };
@@ -657,8 +673,14 @@ absl::Status OverworldEditor::Load() {
   all_gfx_loaded_ = true;
 
   lyra_canvas_status_ = lyra_canvas_.Load(dependencies_.project, overworld_);
-  show_project_lyra_canvas_ = dependencies_.project &&
-                              !dependencies_.project->lyra_terrain_file.empty();
+  if (IsProjectTerrainMap(0xA0)) {
+    SelectMapForEditing(0xA0, false);
+    hovered_map_ = -1;
+    if (canvas_nav_) {
+      canvas_nav_->SuspendHoverFollowUntilMouseMoves();
+      canvas_nav_->CenterOnMap(0xA0);
+    }
+  }
 
   auto scratch_status = LoadScratchPad();
   if (!scratch_status.ok()) {
@@ -779,7 +801,7 @@ absl::Status OverworldEditor::Update() {
     if (ImGui::Begin(ICON_MD_FORMAT_COLOR_FILL " Background Color",
                      &show_custom_bg_color_editor_)) {
       if (rom_->is_loaded() && overworld_.is_loaded() &&
-          map_properties_system_) {
+          !IsProjectTerrainMap(current_map_) && map_properties_system_) {
         map_properties_system_->DrawCustomBackgroundColorEditor(
             current_map_, show_custom_bg_color_editor_);
       }
@@ -793,7 +815,7 @@ absl::Status OverworldEditor::Update() {
     if (ImGui::Begin(ICON_MD_LAYERS " Visual Effects Editor###OverlayEditor",
                      &show_overlay_editor_)) {
       if (rom_->is_loaded() && overworld_.is_loaded() &&
-          map_properties_system_) {
+          !IsProjectTerrainMap(current_map_) && map_properties_system_) {
         map_properties_system_->DrawOverlayEditor(current_map_,
                                                   show_overlay_editor_);
       }
@@ -884,34 +906,6 @@ absl::Status OverworldEditor::PrepareProjectSave() {
   return lyra_canvas_.Save(TerrainProject(), overworld_);
 }
 
-void OverworldEditor::DrawProjectTerrainCanvas() {
-  if (!lyra_canvas_status_.ok()) {
-    ImGui::TextWrapped("%s", lyra_canvas_status_.ToString().c_str());
-  }
-  if (!lyra_canvas_.loaded()) {
-    ImGui::TextWrapped(
-        "Draw cliffs and shorelines across neighboring Lyra maps. "
-        "Terrain is saved with this project.");
-    if (ImGui::Button("Open Lyra terrain canvas")) {
-      lyra_canvas_status_ = lyra_canvas_.Create(TerrainProject(), overworld_);
-    }
-    return;
-  }
-  if (ImGui::Button("Save terrain")) {
-    auto* manager = static_cast<EditorManager*>(dependencies_.custom_data);
-    lyra_canvas_status_ =
-        manager ? manager->SaveProject()
-                : absl::FailedPreconditionError("Project manager unavailable");
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("Undo##LyraTerrain"))
-    lyra_canvas_status_ = Undo();
-  ImGui::SameLine();
-  if (ImGui::Button("Redo##LyraTerrain"))
-    lyra_canvas_status_ = Redo();
-  lyra_canvas_.Draw(undo_manager_);
-}
-
 bool OverworldEditor::NormalizeCurrentSelectionState() {
   bool changed = false;
   if (overworld_.is_lyra_preview()) {
@@ -922,11 +916,14 @@ bool OverworldEditor::NormalizeCurrentSelectionState() {
     current_map_ = normalized;
     current_world_ = world;
   } else {
-    changed = NormalizeMapSelection(current_world_, current_map_);
+    changed = NormalizeMapSelection(current_world_, current_map_,
+                                    DisplayedMapCount());
   }
 
-  overworld_.set_current_world(current_world_);
-  overworld_.set_current_map(current_map_);
+  if (!IsProjectTerrainMap(current_map_)) {
+    overworld_.set_current_world(current_world_);
+    overworld_.set_current_map(current_map_);
+  }
   if (const auto* map = overworld_.overworld_map(current_map_)) {
     current_parent_ = map->parent();
   } else {
@@ -945,11 +942,12 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
   if (respect_pin && current_map_lock_) {
     return;
   }
-  if (map_id < 0 || map_id >= overworld_.inspected_map_count()) {
+  if (map_id < 0 || map_id >= DisplayedMapCount()) {
     return;
   }
+  const bool project_terrain = IsProjectTerrainMap(map_id);
   const auto* map = overworld_.overworld_map(map_id);
-  if (!map) {
+  if (!project_terrain && !map) {
     return;
   }
   if (overworld_.is_lyra_preview()) {
@@ -974,9 +972,17 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
   if (!tracking_paint) {
     FinalizePaintOperation();
   }
+  if (!tracking_paint || !project_terrain) {
+    lyra_canvas_.FinishStroke(undo_manager_);
+  }
   current_map_ = map_id;
   current_world_ = std::clamp(map_id / 0x40, 0, 2);
-  current_parent_ = map->parent();
+  current_parent_ = project_terrain ? map_id : map->parent();
+  if (project_terrain) {
+    SetCurrentEntity(nullptr);
+    entity_edit_mode_ = EntityEditMode::NONE;
+    return;
+  }
   overworld_.set_current_map(current_map_);
   overworld_.set_current_world(current_world_);
 
@@ -1003,11 +1009,12 @@ void OverworldEditor::PrimeWorldMaps(int world, bool process_texture_queue) {
 
 void OverworldEditor::SwitchToWorld(int world) {
   FinalizePaintOperation();
+  lyra_canvas_.FinishStroke(undo_manager_);
 
   const int clamped_world = std::clamp(world, 0, 2);
   const int local_map = current_map_ & 0x3F;
   const int world_start = clamped_world * 0x40;
-  const int maps_remaining = overworld_.inspected_map_count() - world_start;
+  const int maps_remaining = DisplayedMapCount() - world_start;
   if (maps_remaining <= 0) {
     return;
   }
@@ -1016,6 +1023,9 @@ void OverworldEditor::SwitchToWorld(int world) {
   SelectMapForEditing(world_start + std::min(local_map, maps_remaining - 1),
                       false);
   NormalizeCurrentSelectionState();
+  if (IsProjectTerrainMap(current_map_)) {
+    return;
+  }
   if (overworld_.is_lyra_preview()) {
     PrimeWorldMaps(current_world_);
     return;
@@ -1302,14 +1312,39 @@ bool OverworldEditor::DeleteSelectedItem() {
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
-  tile_painting_->CheckForOverworldEdits();
+  if (tile_painting_ && !IsProjectTerrainMap(current_map_)) {
+    tile_painting_->CheckForOverworldEdits();
+  }
+}
+
+bool OverworldEditor::PickTile16FromHoveredCanvas() {
+  if (!ow_map_canvas_.IsMouseHovering()) {
+    return false;
+  }
+  const auto target = ResolveOverworldContextTarget(
+      current_world_, game_state_, ow_map_canvas_.hover_mouse_pos(),
+      ImVec2(0, 0), ImVec2(0, 0), ow_map_canvas_.global_scale(),
+      DisplayedMapCount());
+  if (target && IsProjectTerrainMap(target->map_id)) {
+    const auto tile = lyra_canvas_.document()->MapTile(
+        target->map_id, static_cast<int>(target->world_position.x) / 16 % 32,
+        static_cast<int>(target->world_position.y) / 16 % 32);
+    if (!tile.ok()) {
+      return false;
+    }
+    lyra_canvas_.FinishStroke(undo_manager_);
+    current_tile16_ = *tile;
+    return true;
+  }
+  return !IsProjectTerrainMap(current_map_) && tile_painting_ &&
+         tile_painting_->PickTile16FromHoveredCanvas();
 }
 
 absl::Status OverworldEditor::Copy() {
   if (!dependencies_.shared_clipboard) {
     return absl::FailedPreconditionError("Clipboard unavailable");
   }
-  if (tile_painting_) {
+  if (tile_painting_ && !IsProjectTerrainMap(current_map_)) {
     if (const auto* brush = tile_painting_->selection_brush()) {
       dependencies_.shared_clipboard->overworld_tile16_ids = brush->tile_ids;
       dependencies_.shared_clipboard->overworld_width = brush->width;
@@ -1330,6 +1365,10 @@ absl::Status OverworldEditor::Copy() {
 }
 
 absl::Status OverworldEditor::Paste() {
+  if (IsProjectTerrainMap(current_map_)) {
+    return absl::FailedPreconditionError(
+        "Use Draw or Fill to place tiles on Lyra terrain");
+  }
   if (is_lyra_preview()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }
@@ -1918,7 +1957,7 @@ const gfx::Bitmap* OverworldEditor::AreaScreenBitmap(int map_id) {
 }
 
 void OverworldEditor::EnsureMapTexture(int map_index) {
-  if (map_texture_)
+  if (map_texture_ && !IsProjectTerrainMap(map_index))
     map_texture_->EnsureMapTexture(map_index);
 }
 
@@ -2125,7 +2164,6 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
 
 absl::Status OverworldEditor::Clear() {
   lyra_canvas_.Reset();
-  show_project_lyra_canvas_ = false;
   pending_tile16_selection_after_gfx_.reset();
   lyra_loaded_rom_sha1_.clear();
   if (is_lyra_preview()) {
@@ -2185,14 +2223,14 @@ void OverworldEditor::ToggleItemListWindow() {
 void OverworldEditor::SelectAdjacentMap(int dx, int dy) {
   const int world = std::clamp(current_world_, 0, 2);
   const int local = current_map_ - world * 0x40;
-  const int rows = world == 2 && !overworld_.is_lyra_preview() ? 4 : 8;
+  const int rows = std::min(64, DisplayedMapCount() - world * 0x40) / 8;
   const int x = local % 8 + dx;
   const int y = local / 8 + dy;
   if (x < 0 || x >= 8 || y < 0 || y >= rows) {
     return;
   }
   const int target = world * 0x40 + y * 8 + x;
-  if (target >= overworld_.inspected_map_count()) {
+  if (target >= DisplayedMapCount()) {
     return;
   }
   SelectMapForEditing(target, /*respect_pin=*/false);
@@ -2205,7 +2243,7 @@ void OverworldEditor::SelectAdjacentMap(int dx, int dy) {
 }
 
 void OverworldEditor::JumpToMap(int map_id) {
-  if (map_id < 0 || map_id >= overworld_.inspected_map_count()) {
+  if (map_id < 0 || map_id >= DisplayedMapCount()) {
     return;
   }
   if (!overworld_.is_loaded()) {
@@ -2236,6 +2274,9 @@ void OverworldEditor::SetEditingMode(EditingMode mode) {
   if (is_lyra_preview()) {
     return;
   }
+  if (mode != current_mode) {
+    lyra_canvas_.FinishStroke(undo_manager_);
+  }
   current_mode = mode;
   entity_edit_mode_ = EntityEditMode::NONE;
   ow_map_canvas_.SetUsageMode(mode == EditingMode::MOUSE
@@ -2244,7 +2285,7 @@ void OverworldEditor::SetEditingMode(EditingMode mode) {
 }
 
 void OverworldEditor::SetEntityEditMode(EntityEditMode mode) {
-  if (is_lyra_preview()) {
+  if (is_lyra_preview() || IsProjectTerrainMap(current_map_)) {
     return;
   }
   entity_edit_mode_ = mode;
