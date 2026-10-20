@@ -73,6 +73,15 @@ const TileBrush* TilePaintingManager::selection_brush() const {
                                                                      : nullptr;
 }
 
+void TilePaintingManager::SuspendCanvasGestures() {
+  if (single_paint_pending_ && callbacks_.finalize_paint_operation) {
+    callbacks_.finalize_paint_operation();
+  }
+  paint_gesture_owned_ = false;
+  single_paint_pending_ = false;
+  selection_gesture_owned_ = false;
+}
+
 void TilePaintingManager::CheckForOverworldEdits() {
   CheckForSelectRectangle();
   auto& canvas = *deps_.ow_map_canvas;

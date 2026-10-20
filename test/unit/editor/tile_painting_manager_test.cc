@@ -321,7 +321,11 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
                  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     canvas_.DrawBackground(ImVec2(256, 256));
-    manager_->CheckForOverworldEdits();
+    if (suspend_canvas_gestures_) {
+      manager_->SuspendCanvasGestures();
+    } else {
+      manager_->CheckForOverworldEdits();
+    }
     if (after_draw) {
       after_draw();
     }
@@ -448,6 +452,7 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
   EditingMode current_mode_ = EditingMode::DRAW_TILE;
   int finalize_count_ = 0;
   int refresh_count_ = 0;
+  bool suspend_canvas_gestures_ = false;
   std::unique_ptr<TilePaintingManager> manager_;
 };
 
@@ -590,6 +595,60 @@ TEST_F(TilePaintingManagerGestureTest, OutsideDragCannotPaintSingleTiles) {
   Frame(At(160, 128), true);
   Frame(At(160, 128));
   ExpectUnchanged();
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       SuspendedLegacyStrokeCannotAuthorizeProjectOriginDrag) {
+  SelectTwoTileBrush();
+  current_world_ = 2;
+  current_map_ = 0x98;
+  InitializeMapBitmap(current_map_);
+  // Show the last ROM-backed row and the first project-terrain row in the
+  // same canvas. Only the production input dispatcher changes at Y=2048.
+  SetView(1.0f, ImVec2(0, 1920));
+  const ImVec2 legacy_start = AtWorld(128, 2000);
+  const ImVec2 project_cell = AtWorld(128, 2080);
+  const ImVec2 legacy_return = AtWorld(160, 2000);
+  Frame(legacy_start);
+  Frame(legacy_start, true);
+  ASSERT_EQ(undo_points_.size(), 2u);
+  ASSERT_EQ(finalize_count_, 0);
+  const auto after_legacy_press =
+      overworld_->mutable_map_tiles()->special_world;
+  const auto pixels_after_legacy_press = (*maps_)[0x98].vector();
+
+  // The legacy handler does not see the release or next press: the lower
+  // Special World rows dispatch those frames to the project terrain owner.
+  suspend_canvas_gestures_ = true;
+  Frame(project_cell, true);
+  EXPECT_EQ(finalize_count_, 1);
+  Frame(project_cell);
+  Frame(project_cell, true);
+  ExpectBrush(2, 1, {1, 2});
+  rom_.ClearDirty();
+
+  suspend_canvas_gestures_ = false;
+  Frame(legacy_return, true);
+  Frame(AtWorld(192, 2000), true);
+  Frame(AtWorld(192, 2000));
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world, after_legacy_press);
+  EXPECT_EQ((*maps_)[0x98].vector(), pixels_after_legacy_press);
+  EXPECT_FALSE(rom_.dirty());
+  EXPECT_EQ(undo_points_.size(), 2u);
+  EXPECT_EQ(finalize_count_, 1);
+  EXPECT_EQ(refresh_count_, 1);
+  ExpectBrush(2, 1, {1, 2});
+
+  // A new press actually owned by the legacy canvas still stamps the saved
+  // brush, proving suspension did not disable editing or erase the pattern.
+  Frame(legacy_return);
+  Frame(legacy_return, true);
+  Frame(legacy_return);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world[10][125], 1);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world[11][125], 2);
+  EXPECT_TRUE(rom_.dirty());
+  EXPECT_EQ(undo_points_.size(), 4u);
+  EXPECT_EQ(finalize_count_, 2);
 }
 
 TEST_F(TilePaintingManagerGestureTest, CanvasSingleTileClickAndDragStillPaint) {

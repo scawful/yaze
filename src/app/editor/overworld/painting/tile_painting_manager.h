@@ -63,6 +63,11 @@ class TilePaintingManager {
   /// @brief Main entry point: check for tile edits (paint, fill, stamp).
   void CheckForOverworldEdits();
 
+  /// Finish legacy painting before another source owns the canvas. Releases
+  /// may occur while that source handles input, so discard gesture ownership
+  /// without discarding an already captured tile brush.
+  void SuspendCanvasGestures();
+
   /// @brief Draw and create the tile16 IDs that are currently selected.
   void CheckForSelectRectangle();
 
