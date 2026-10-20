@@ -14,6 +14,9 @@ runs:
     - name: Verify Oracle smoke workflow contract
       shell: bash
       run: python3 scripts/dev/test_oracle_smoke_workflow_contract.py
+    - name: Verify nightly suite selection and failure propagation
+      shell: bash
+      run: python3 scripts/agents/tests/test_nightly_workflow.py
     - name: Verify VERSION / CHANGELOG hygiene
       shell: bash
       run: bash scripts/dev/release-version-check.sh

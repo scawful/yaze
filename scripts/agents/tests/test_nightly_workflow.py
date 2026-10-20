@@ -14,19 +14,19 @@ import unittest
 ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW = ROOT / ".github/workflows/nightly.yml"
 CASES = {
-    "Run experimental AI tests": ("build_nightly", "^experimental$"),
+    "Run experimental AI tests": ("build_nightly", "^experimental$", "ci-linux"),
     "Run GUI E2E tests (Linux with Xvfb)": (
-        "build/presets/ci-linux", "^(gui|headless_gui)$"
+        "build/presets/ci-linux", "^(gui|headless_gui)$", "ci-linux"
     ),
     "Run GUI E2E tests (macOS)": (
-        "build/presets/ci-linux", "^(gui|headless_gui)$"
+        "build/presets/ci-macos", "^(gui|headless_gui)$", "ci-macos"
     ),
-    "Run benchmarks": ("build_bench", "^benchmark$"),
-    "Run extended integration tests": ("build_extended", "^integration$"),
+    "Run benchmarks": ("build_bench", "^benchmark$", "ci-linux"),
+    "Run extended integration tests": ("build_extended", "^integration$", "ci-linux"),
 }
 
 
-def run_block(name):
+def run_block(name, preset="ci-linux"):
     """Extract only a named literal run block; no YAML dependency is needed."""
     lines = WORKFLOW.read_text().splitlines()
     marker = f"      - name: {name}"
@@ -42,8 +42,21 @@ def run_block(name):
         body.append(line[10:])
     command = "\n".join(body)
     return command.replace("${{ env.BUILD_TYPE }}", "RelWithDebInfo").replace(
-        "${{ matrix.preset }}", "ci-linux"
+        "${{ matrix.preset }}", preset
     )
+
+
+def preset_cache(presets, name):
+    """Resolve inherited cache values in CMake's first-parent-wins order."""
+    preset = presets[name]
+    parents = preset.get("inherits", [])
+    if isinstance(parents, str):
+        parents = [parents]
+    values = {}
+    for parent in reversed(parents):
+        values.update(preset_cache(presets, parent))
+    values.update(preset.get("cacheVariables", {}))
+    return values
 
 
 class NightlyWorkflowTest(unittest.TestCase):
@@ -76,9 +89,9 @@ class NightlyWorkflowTest(unittest.TestCase):
         xvfb.chmod(0o755)
         self.env = dict(os.environ, PATH=f"{tools}:{os.environ['PATH']}")
 
-    def execute(self, name, mode="pass"):
+    def execute(self, name, mode="pass", preset="ci-linux"):
         return subprocess.run(
-            ["bash", "-e", "-o", "pipefail", "-c", run_block(name)],
+            ["bash", "-e", "-o", "pipefail", "-c", run_block(name, preset)],
             cwd=self.root,
             env=dict(self.env, NIGHTLY_FIXTURE_MODE=mode),
             capture_output=True,
@@ -86,9 +99,9 @@ class NightlyWorkflowTest(unittest.TestCase):
         )
 
     def test_all_suites_use_configured_trees_and_publish_real_reports(self):
-        for name, (build_dir, label) in CASES.items():
+        for name, (build_dir, label, preset) in CASES.items():
             with self.subTest(name=name):
-                result = self.execute(name)
+                result = self.execute(name, preset=preset)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 args = json.loads((self.root / "ctest_args.json").read_text())
                 self.assertEqual(args[args.index("--test-dir") + 1], build_dir)
@@ -101,6 +114,46 @@ class NightlyWorkflowTest(unittest.TestCase):
                         args[args.index("--label-exclude") + 1],
                         "^(gui|headless_gui)$",
                     )
+
+    def test_nightly_option_overrides_satisfy_each_presets_dependencies(self):
+        presets = {
+            item["name"]: item
+            for item in json.loads((ROOT / "CMakePresets.json").read_text())[
+                "configurePresets"
+            ]
+        }
+        workflow = WORKFLOW.read_text()
+        experimental = re.search(
+            r"^  experimental-ai-tests:\n(.*?)(?=^  [\w-]+:)",
+            workflow, re.MULTILINE | re.DOTALL,
+        )
+        self.assertIsNotNone(experimental)
+        experimental_presets = re.findall(
+            r"^\s+preset: ([\w-]+)$", experimental.group(1), re.MULTILINE
+        )
+        self.assertEqual(len(experimental_presets), 3)
+        configurations = [
+            ("Configure with AI runtime enabled", preset)
+            for preset in experimental_presets
+        ] + [("Build with full features", "ci-linux")]
+        for name, preset in configurations:
+            with self.subTest(step=name, preset=preset):
+                values = preset_cache(presets, preset)
+                values.update(re.findall(
+                    r"-D([\w]+)(?::[\w]+)?=([^\s\\]+)", run_block(name, preset)
+                ))
+                arguments = [
+                    f"-D{key}={value}"
+                    for key, value in values.items()
+                    if key.startswith("YAZE_")
+                ]
+                result = subprocess.run(
+                    ["cmake", *arguments, "-P", str(ROOT / "cmake/options-simple.cmake")],
+                    cwd=self.root,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_failed_and_empty_suites_fail_the_job(self):
         for name in CASES:
