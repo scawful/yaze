@@ -21,6 +21,10 @@ on:
 env:
   BUILD_TYPE: RelWithDebInfo
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   experimental-ai-tests:
     name: "Experimental AI Tests - ${{ matrix.os }}"
@@ -62,6 +66,7 @@ jobs:
           cmake --preset ${{ matrix.preset }} \
             -B build_nightly \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DYAZE_ENABLE_AI=ON \
             -DYAZE_ENABLE_AI_RUNTIME=ON \
             -DYAZE_ENABLE_GRPC=ON \
             -DYAZE_BUILD_AGENT_UI=ON
@@ -71,36 +76,27 @@ jobs:
           cmake --build build_nightly \
             --config ${{ env.BUILD_TYPE }} \
             --target yaze_test_experimental \
-            --parallel
-
-      - name: Setup Ollama (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          if [ "${{ runner.os }}" = "macOS" ]; then
-            brew install ollama || true
-          else
-            curl -fsSL https://ollama.com/install.sh | sh || true
-          fi
-          ollama serve &
-          sleep 10
-          ollama pull qwen2.5-coder:0.5b || true
-        continue-on-error: true
+            --parallel 4
 
       - name: Run experimental AI tests
         run: |
-          cd build_nightly
-          ctest -L experimental \
+          # GUI cases share the experimental label but belong to another job.
+          ctest --test-dir build_nightly \
+            --build-config ${{ env.BUILD_TYPE }} \
+            --label-regex '^experimental$' \
+            --label-exclude '^(gui|headless_gui)$' \
+            --no-tests=error \
             --output-on-failure \
             --timeout 600 \
-            --output-junit experimental_results.xml
-        continue-on-error: true
+            --output-junit "$PWD/experimental_results.xml"
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: experimental-test-results-${{ matrix.platform }}
-          path: build_nightly/experimental_results.xml
+          path: experimental_results.xml
+          if-no-files-found: error
           retention-days: 30
 
   gui-e2e-tests:
@@ -147,24 +143,29 @@ jobs:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
           build-type: ${{ env.BUILD_TYPE }}
+          targets: yaze_test_gui
 
       - name: Run GUI E2E tests (Linux with Xvfb)
         if: runner.os == 'Linux'
         run: |
-          xvfb-run -a ./build/bin/yaze_test_gui \
-            --e2e \
-            --nogui \
-            --output-junit gui_e2e_results.xml
-        continue-on-error: true
+          xvfb-run -a ctest --test-dir "build/presets/${{ matrix.preset }}" \
+            --build-config ${{ env.BUILD_TYPE }} \
+            --label-regex '^(gui|headless_gui)$' \
+            --no-tests=error \
+            --output-on-failure \
+            --timeout 600 \
+            --output-junit "$PWD/gui_e2e_results.xml"
 
       - name: Run GUI E2E tests (macOS)
         if: runner.os == 'macOS'
         run: |
-          ./build/bin/yaze_test_gui \
-            --e2e \
-            --nogui \
-            --output-junit gui_e2e_results.xml
-        continue-on-error: true
+          ctest --test-dir "build/presets/${{ matrix.preset }}" \
+            --build-config ${{ env.BUILD_TYPE }} \
+            --label-regex '^(gui|headless_gui)$' \
+            --no-tests=error \
+            --output-on-failure \
+            --timeout 600 \
+            --output-junit "$PWD/gui_e2e_results.xml"
 
       - name: Upload test results
         if: always()
@@ -172,6 +173,7 @@ jobs:
         with:
           name: gui-e2e-results-${{ matrix.platform }}
           path: gui_e2e_results.xml
+          if-no-files-found: error
           retention-days: 30
 
   benchmark-tests:
@@ -204,30 +206,27 @@ jobs:
           cmake --build build_bench \
             --config Release \
             --target yaze_test_benchmark \
-            --parallel
+            --parallel 4
 
       - name: Run benchmarks
         run: |
-          ./build_bench/bin/yaze_test_benchmark \
-            --benchmark_format=json \
-            --benchmark_out=benchmark_results.json
-        continue-on-error: true
+          # This target contains GoogleTest benchmarks, not Google Benchmark.
+          ctest --test-dir build_bench \
+            --build-config Release \
+            --label-regex '^benchmark$' \
+            --no-tests=error \
+            --output-on-failure \
+            --timeout 600 \
+            --output-junit "$PWD/benchmark_results.xml"
 
       - name: Upload benchmark results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
-          path: benchmark_results.json
+          path: benchmark_results.xml
+          if-no-files-found: error
           retention-days: 90
-
-      - name: Compare with baseline (if exists)
-        if: ${{ hashFiles('benchmark_baseline.json') != '' }}
-        run: |
-          # Compare current results with baseline
-          # This would use a tool like google/benchmark's compare.py
-          echo "Benchmark comparison would happen here"
-        continue-on-error: true
 
   extended-integration-tests:
     name: "Extended Integration Tests"
@@ -257,34 +256,29 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DYAZE_ENABLE_GRPC=ON \
             -DYAZE_ENABLE_JSON=ON \
-            -DYAZE_ENABLE_HTTP_API=ON \
             -DYAZE_BUILD_AGENT_UI=ON
           cmake --build build_extended \
             --config ${{ env.BUILD_TYPE }} \
-            --parallel
+            --target yaze_test_integration \
+            --parallel 4
 
       - name: Run extended integration tests
         run: |
-          cd build_extended
-          # Run all integration tests with extended timeout
-          ctest -L integration \
+          ctest --test-dir build_extended \
+            --build-config ${{ env.BUILD_TYPE }} \
+            --label-regex '^integration$' \
+            --no-tests=error \
             --output-on-failure \
             --timeout 1200 \
-            --output-junit extended_integration_results.xml
-
-      - name: Run HTTP API tests
-        if: ${{ hashFiles('scripts/agents/test-http-api.sh') != '' }}
-        run: |
-          chmod +x scripts/agents/test-http-api.sh
-          scripts/agents/test-http-api.sh
-        continue-on-error: true
+            --output-junit "$PWD/extended_integration_results.xml"
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: extended-integration-results
-          path: build_extended/extended_integration_results.xml
+          path: extended_integration_results.xml
+          if-no-files-found: error
           retention-days: 30
 
   nightly-summary:
@@ -300,53 +294,27 @@ jobs:
 
     steps:
       - name: Generate summary
+        env:
+          NIGHTLY_RESULTS_JSON: ${{ toJSON(needs) }}
         run: |
-          echo "# Nightly Test Results - $(date +'%Y-%m-%d')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
 
-          # Experimental AI Tests
-          if [ "${{ needs.experimental-ai-tests.result }}" == "success" ]; then
-            echo "✅ **Experimental AI Tests:** Passed" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.experimental-ai-tests.result }}" == "skipped" ]; then
-            echo "⏭️ **Experimental AI Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Experimental AI Tests:** Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # GUI E2E Tests
-          if [ "${{ needs.gui-e2e-tests.result }}" == "success" ]; then
-            echo "✅ **GUI E2E Tests:** Passed" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.gui-e2e-tests.result }}" == "skipped" ]; then
-            echo "⏭️ **GUI E2E Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **GUI E2E Tests:** Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Benchmark Tests
-          if [ "${{ needs.benchmark-tests.result }}" == "success" ]; then
-            echo "✅ **Performance Benchmarks:** Completed" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.benchmark-tests.result }}" == "skipped" ]; then
-            echo "⏭️ **Performance Benchmarks:** Skipped" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Performance Benchmarks:** Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Extended Integration Tests
-          if [ "${{ needs.extended-integration-tests.result }}" == "success" ]; then
-            echo "✅ **Extended Integration Tests:** Passed" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.extended-integration-tests.result }}" == "skipped" ]; then
-            echo "⏭️ **Extended Integration Tests:** Skipped" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Extended Integration Tests:** Failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "*Nightly tests include comprehensive suites not run during PR/push CI.*" >> $GITHUB_STEP_SUMMARY
-
-      - name: Send notification (if configured)
-        if: ${{ failure() && vars.SLACK_WEBHOOK_URL != '' }}
-        run: |
-          # Send notification about nightly test failures
-          echo "Notification would be sent here"
-        continue-on-error: true
+          results = json.loads(os.environ["NIGHTLY_RESULTS_JSON"])
+          names = {
+              "experimental-ai-tests": "Experimental AI Tests",
+              "gui-e2e-tests": "GUI E2E Tests",
+              "benchmark-tests": "Performance Benchmarks",
+              "extended-integration-tests": "Extended Integration Tests",
+          }
+          labels = {"success": "Passed", "skipped": "Skipped"}
+          lines = ["# Nightly Test Results", ""]
+          for job, name in names.items():
+              result = results[job]["result"]
+              lines.append(f"- **{name}:** {labels.get(result, result.title())}")
+          lines += ["", "See each suite's JUnit artifact for failures and skips."]
+          with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a") as summary:
+              summary.write("\n".join(lines) + "\n")
+          PY
