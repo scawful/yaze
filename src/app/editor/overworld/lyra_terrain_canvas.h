@@ -95,6 +95,9 @@ class LyraTerrainCanvas {
   absl::Status ApplyPropertyDraft(int map_index, zelda3::Overworld& overworld,
                                   UndoManager& history);
   void RevertPropertyDraft(int map_index);
+  // Every control edits live authoring directly; no draft outlives a frame.
+  void DrawEdgeConnections(int map_id, zelda3::Overworld& overworld,
+                           UndoManager& history);
   absl::Status ApplyAuthoring(core::LyraAuthoringState after,
                               zelda3::Overworld& overworld,
                               UndoManager& history);

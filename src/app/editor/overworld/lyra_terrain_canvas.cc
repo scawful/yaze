@@ -117,7 +117,7 @@ class AuthoringAction final : public UndoAction {
     return document_->SetAuthoring(before_, after_);
   }
   std::string Description() const override {
-    return "Edit Lyra map properties or entities";
+    return "Edit Lyra map properties, entities or connections";
   }
   size_t MemoryUsage() const override { return sizeof(*this); }
 
@@ -992,6 +992,31 @@ void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas) {
       DrawTile(draw, atlas, *document_->tile(x, y),
                ImVec2(start.x + x * cell, start.y + y * cell), cell);
     }
+  }
+  // One band covers the facing edge row/column of both maps. map_b is always
+  // $A0+, south or east of map_a. Unassigned passages draw no opening.
+  for (const auto& connection : document_->authoring().edge_connections) {
+    if (!connection.passage)
+      continue;
+    const int col = connection.map_b % Document::kColumns;
+    const int row = connection.map_b / Document::kColumns -
+                    Document::kFirstMap / Document::kColumns;
+    const float first = connection.passage->first_tile;
+    const float last = connection.passage->last_tile + 1;
+    const bool vertical =
+        connection.map_b - connection.map_a == Document::kColumns;
+    const float edge = (vertical ? row : col) * Document::kMapSize;
+    const float along = (vertical ? col : row) * Document::kMapSize;
+    const ImVec2 min_tiles = vertical ? ImVec2(along + first, edge - 1)
+                                      : ImVec2(edge - 1, along + first);
+    const ImVec2 max_tiles = vertical ? ImVec2(along + last, edge + 1)
+                                      : ImVec2(edge + 1, along + last);
+    const ImVec2 p_min(start.x + min_tiles.x * cell,
+                       start.y + min_tiles.y * cell);
+    const ImVec2 p_max(start.x + max_tiles.x * cell,
+                       start.y + max_tiles.y * cell);
+    draw->AddRectFilled(p_min, p_max, IM_COL32(255, 140, 40, 110));
+    draw->AddRect(p_min, p_max, IM_COL32(255, 200, 120, 230));
   }
   // The shared Overworld canvas owns the grid and selected-map outline.
   // Keep project terrain free of an additional always-on map-ID overlay.

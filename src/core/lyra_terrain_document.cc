@@ -1,6 +1,7 @@
 #include "core/lyra_terrain_document.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <memory>
 #include <set>
 #include <unordered_set>
@@ -142,11 +143,32 @@ Json FlightPointJson(const LyraFlightPoint& f) {
   return j;
 }
 
+Json EdgeConnectionJson(const LyraEdgeConnection& c) {
+  Json j = {{"id", c.id},
+            {"map_a", c.map_a},
+            {"map_b", c.map_b},
+            {"passage", nullptr}};
+  if (c.passage.has_value()) {
+    j["passage"] = {{"first_tile", c.passage->first_tile},
+                    {"last_tile", c.passage->last_tile}};
+  }
+  return j;
+}
+
+bool EdgeEndpoint(int map_id) {
+  return (map_id >= 0x98 && map_id <= 0x9B) ||
+         (map_id >= LyraTerrainDocument::kFirstMap &&
+          map_id < LyraTerrainDocument::kFirstMap +
+                       LyraTerrainDocument::kMapCount);
+}
+
 absl::Status ValidateAuthoringState(const LyraAuthoringState& state) {
   std::unordered_set<uint32_t> sprite_ids;
   std::unordered_set<uint32_t> door_ids;
   std::unordered_set<uint32_t> exit_ids;
   std::unordered_set<uint32_t> flight_ids;
+  std::unordered_set<uint32_t> edge_ids;
+  std::set<std::pair<int, int>> edge_pairs;
 
   const LyraMapProperties default_props;
 
@@ -296,10 +318,53 @@ absl::Status ValidateAuthoringState(const LyraAuthoringState& state) {
     }
   }
 
+  // edge connections
+  if (state.edge_connections.size() >
+      LyraTerrainDocument::kMaxEdgeConnections) {
+    return absl::InvalidArgumentError("Max 64 edge connections exceeded");
+  }
+  for (const auto& c : state.edge_connections) {
+    if (c.id == 0) {
+      return absl::InvalidArgumentError("Edge connection ID must be nonzero");
+    }
+    if (!edge_ids.insert(c.id).second) {
+      return absl::InvalidArgumentError("Duplicate edge connection ID");
+    }
+    if (!LyraEdgeMapsAdjacent(c.map_a, c.map_b)) {
+      return absl::InvalidArgumentError(
+          "Edge connection maps are not adjacent Lyra edge maps");
+    }
+    if (c.map_a > c.map_b) {
+      return absl::InvalidArgumentError(
+          "Edge connection must store map_a < map_b");
+    }
+    if (!edge_pairs.insert({c.map_a, c.map_b}).second) {
+      return absl::InvalidArgumentError("Duplicate edge connection map pair");
+    }
+    if (c.passage.has_value() &&
+        (c.passage->first_tile < 0 ||
+         c.passage->last_tile >= LyraTerrainDocument::kMapSize ||
+         c.passage->first_tile > c.passage->last_tile)) {
+      return absl::InvalidArgumentError(
+          "Edge passage requires 0 <= first_tile <= last_tile <= 31");
+    }
+  }
+
   return absl::OkStatus();
 }
 
 }  // namespace
+
+bool LyraEdgeMapsAdjacent(int map_a, int map_b) {
+  if (!EdgeEndpoint(map_a) || !EdgeEndpoint(map_b) ||
+      std::max(map_a, map_b) < LyraTerrainDocument::kFirstMap) {
+    return false;
+  }
+  const int difference = std::abs(map_a - map_b);
+  return difference == LyraTerrainDocument::kColumns ||
+         (difference == 1 && map_a / LyraTerrainDocument::kColumns ==
+                                 map_b / LyraTerrainDocument::kColumns);
+}
 
 absl::Status LyraTerrainProfile::Validate() const {
   if (tile_count == 0 || tile_count > 65536 ||
@@ -403,6 +468,13 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
         return absl::InvalidArgumentError(
             "Malformed Lyra schema 2 header keys");
       }
+    } else if (version == 3) {
+      if (!HasKeys(json, {"schema", "schema_version", "columns", "rows",
+                          "map_width", "map_height", "tile_pixels", "profile",
+                          "maps", "flight_points", "edge_connections"})) {
+        return absl::InvalidArgumentError(
+            "Malformed Lyra schema 3 header keys");
+      }
     } else {
       return absl::InvalidArgumentError("Unsupported Lyra schema version");
     }
@@ -453,7 +525,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
       } else {
         if (!HasKeys(map, {"map_id", "tiles16", "authoring"})) {
           return absl::InvalidArgumentError(
-              "Lyra schema 2 map requires map_id, tiles16, and authoring");
+              "Lyra schema 2+ map requires map_id, tiles16, and authoring");
         }
       }
       if (!IntegerIn(map["map_id"], kFirstMap, kFirstMap + kMapCount - 1) ||
@@ -479,7 +551,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
         }
       }
 
-      if (version == 2) {
+      if (version >= 2) {
         const auto& auth = map["authoring"];
         if (!HasKeys(auth, {"properties", "sprites", "doors", "exits",
                             "asset_bindings"})) {
@@ -619,7 +691,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
       }
     }
 
-    if (version == 2) {
+    if (version >= 2) {
       if (!json["flight_points"].is_array()) {
         return absl::InvalidArgumentError("flight_points must be an array");
       }
@@ -634,6 +706,39 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
         document.authoring_.flight_points.push_back(
             {f["id"].get<uint32_t>(), f["map_id"].get<int>(), f["x"].get<int>(),
              f["y"].get<int>(), f["name"].get<std::string>(), std::nullopt});
+      }
+    }
+
+    if (version == 3) {
+      const auto& edges = json["edge_connections"];
+      if (!edges.is_array()) {
+        return absl::InvalidArgumentError("edge_connections must be an array");
+      }
+      if (edges.size() > kMaxEdgeConnections) {
+        return absl::InvalidArgumentError("Max 64 edge connections exceeded");
+      }
+      for (const auto& c : edges) {
+        // Adjacency and order are checked by ValidateAuthoringState below.
+        if (!HasKeys(c, {"id", "map_a", "map_b", "passage"}) ||
+            !IntegerIn(c["id"], 1, 0xFFFFFFFFULL) ||
+            !IntegerIn(c["map_a"], 0, 0xFF) ||
+            !IntegerIn(c["map_b"], 0, 0xFF)) {
+          return absl::InvalidArgumentError("Malformed edge connection");
+        }
+        std::optional<LyraEdgePassage> passage;
+        if (!c["passage"].is_null()) {
+          const auto& p = c["passage"];
+          if (!HasKeys(p, {"first_tile", "last_tile"}) ||
+              !IntegerIn(p["first_tile"], 0, kMapSize - 1) ||
+              !IntegerIn(p["last_tile"], 0, kMapSize - 1)) {
+            return absl::InvalidArgumentError("Malformed edge passage");
+          }
+          passage = LyraEdgePassage{p["first_tile"].get<int>(),
+                                    p["last_tile"].get<int>()};
+        }
+        document.authoring_.edge_connections.push_back(
+            {c["id"].get<uint32_t>(), c["map_a"].get<int>(),
+             c["map_b"].get<int>(), passage});
       }
     }
 
@@ -656,7 +761,8 @@ std::string LyraTerrainDocument::Serialize() const {
       {"columns", kColumns},           {"rows", kRows},
       {"map_width", kMapSize},         {"map_height", kMapSize},
       {"tile_pixels", kTilePixels},    {"profile", ProfileJson(profile_)},
-      {"maps", Json::array()},         {"flight_points", Json::array()}};
+      {"maps", Json::array()},         {"flight_points", Json::array()},
+      {"edge_connections", Json::array()}};
   for (int index = 0; index < kMapCount; ++index) {
     Json rows = Json::array();
     for (int y = 0; y < kMapSize; ++y) {
@@ -670,6 +776,9 @@ std::string LyraTerrainDocument::Serialize() const {
   }
   for (const auto& f : authoring_.flight_points) {
     json["flight_points"].push_back(FlightPointJson(f));
+  }
+  for (const auto& c : authoring_.edge_connections) {
+    json["edge_connections"].push_back(EdgeConnectionJson(c));
   }
   return json.dump(2) + "\n";
 }

@@ -14,6 +14,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "imgui/imgui.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
@@ -66,6 +67,54 @@ uint32_t AllocateFlightPointId(const core::LyraAuthoringState& state) {
     ids.push_back(f.id);
   }
   return AllocateStableId(ids);
+}
+
+uint32_t AllocateEdgeConnectionId(const core::LyraAuthoringState& state) {
+  std::vector<uint32_t> ids;
+  for (const auto& c : state.edge_connections) {
+    ids.push_back(c.id);
+  }
+  return AllocateStableId(ids);
+}
+
+// Edge of `map_id` that faces an adjacent `other`.
+const char* FacingEdge(int map_id, int other) {
+  if (other == map_id - Document::kColumns)
+    return "north";
+  if (other == map_id + Document::kColumns)
+    return "south";
+  return other < map_id ? "west" : "east";
+}
+
+// Lyra maps have no vanilla names; only a project label names them.
+std::string MapName(int map_id) {
+  const auto& labels = zelda3::GetResourceLabels();
+  if (map_id >= Document::kFirstMap &&
+      !labels.HasProjectLabel(zelda3::ResourceType::kOverworldMap, map_id)) {
+    return {};
+  }
+  return labels.GetLabel(zelda3::ResourceType::kOverworldMap, map_id);
+}
+
+std::string NamedMap(int map_id) {
+  const std::string name = MapName(map_id);
+  return name.empty() ? absl::StrFormat("$%02X", map_id)
+                      : absl::StrFormat("$%02X %s", map_id, name);
+}
+
+void DrawEdgeTilePicker(const char* label, int& value, int first, int last) {
+  const std::string preview = std::to_string(value);
+  if (!ImGui::BeginCombo(label, preview.c_str()))
+    return;
+  for (int tile = first; tile <= last; ++tile) {
+    const bool selected = tile == value;
+    const std::string option = std::to_string(tile);
+    if (ImGui::Selectable(option.c_str(), selected))
+      value = tile;
+    if (selected)
+      ImGui::SetItemDefaultFocus();
+  }
+  ImGui::EndCombo();
 }
 
 std::string SpriteTypeLabel(int type) {
@@ -548,8 +597,6 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     ImGui::PopID();
   }
 
-  if (!status_.ok())
-    ImGui::TextWrapped("%s", status_.ToString().c_str());
   // Flight points section for ANY map 0..BF when document is loaded
   if (ImGui::CollapsingHeader("Flight Points",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -637,6 +684,143 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
 
     ImGui::PopID();
   }
+
+  DrawEdgeConnections(map_id, overworld, history);
+  if (!status_.ok())
+    ImGui::TextWrapped("%s", status_.ToString().c_str());
+}
+
+void LyraTerrainCanvas::DrawEdgeConnections(int map_id,
+                                            zelda3::Overworld& overworld,
+                                            UndoManager& history) {
+  const auto& connections = document_->authoring().edge_connections;
+  const auto connected = [&](int other) {
+    return std::any_of(connections.begin(), connections.end(),
+                       [&](const core::LyraEdgeConnection& c) {
+                         return c.map_a == std::min(map_id, other) &&
+                                c.map_b == std::max(map_id, other);
+                       });
+  };
+  bool has_neighbor = false;
+  std::vector<int> open_neighbors;
+  for (const int delta : {-Document::kColumns, Document::kColumns, -1, 1}) {
+    const int other = map_id + delta;
+    if (!core::LyraEdgeMapsAdjacent(map_id, other))
+      continue;
+    has_neighbor = true;
+    if (!connected(other))
+      open_neighbors.push_back(other);
+  }
+  if (!has_neighbor ||
+      !ImGui::CollapsingHeader("Connections", ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+
+  ImGui::PushID("EdgeConnectionsSection");
+  ImGui::PushTextWrapPos(0.0f);
+  ImGui::TextColored(ImVec4(1.0f, 0.9f, 0.2f, 1.0f),
+                     "Saved with project; does not open the route in the game");
+  ImGui::TextDisabled("Tile16 positions 0–31 along the edge");
+
+  const bool full = connections.size() >= Document::kMaxEdgeConnections;
+  const char* preview = full                    ? "Connection limit reached"
+                        : open_neighbors.empty() ? "All neighbors drafted"
+                                                 : "Choose neighbor";
+  ImGui::TextUnformatted("Add connection");
+  ImGui::BeginDisabled(full || open_neighbors.empty());
+  ImGui::SetNextItemWidth(-FLT_MIN);
+  if (ImGui::BeginCombo("##AddConnection", preview)) {
+    for (const int other : open_neighbors) {
+      ImGui::PushID(other);
+      const std::string option = absl::StrFormat(
+          "%s edge: %s", FacingEdge(map_id, other), NamedMap(other));
+      if (ImGui::Selectable(option.c_str())) {
+        core::LyraAuthoringState next_state = document_->authoring();
+        next_state.edge_connections.push_back({
+            .id = AllocateEdgeConnectionId(next_state),
+            .map_a = std::min(map_id, other),
+            .map_b = std::max(map_id, other),
+            .passage = std::nullopt,
+        });
+        (void)EditAuthoring(next_state, overworld, history);
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::EndDisabled();
+  gui::WidgetIdRegistry::Instance().RegisterWidget(
+      "LyraMapProperties/combo:AddConnection", "combo",
+      ImGui::GetID("##AddConnection"));
+
+  bool any = false;
+  for (size_t i = 0; i < connections.size(); ++i) {
+    const auto& connection = connections[i];
+    if (connection.map_a != map_id && connection.map_b != map_id)
+      continue;
+    any = true;
+    ImGui::PushID(static_cast<int>(connection.id));
+    ImGui::Separator();
+    ImGui::Text("$%02X %s ↔ $%02X %s", connection.map_a,
+                FacingEdge(connection.map_a, connection.map_b),
+                connection.map_b,
+                FacingEdge(connection.map_b, connection.map_a));
+    for (const int id : {connection.map_a, connection.map_b}) {
+      if (const std::string name = MapName(id); !name.empty())
+        ImGui::TextDisabled("$%02X: %s", id, name.c_str());
+    }
+
+    core::LyraEdgeConnection edited = connection;
+    bool assigned = edited.passage.has_value();
+    if (ImGui::Checkbox("Assign passage", &assigned)) {
+      edited.passage =
+          assigned ? std::optional<core::LyraEdgePassage>(
+                         core::LyraEdgePassage{0, 0})
+                   : std::nullopt;
+    }
+    if (!edited.passage) {
+      ImGui::TextUnformatted("Passage: unassigned (no opening drafted)");
+    } else {
+      auto& passage = *edited.passage;
+      ImGui::Text("Passage: tiles %d–%d", passage.first_tile,
+                  passage.last_tile);
+      ImGui::TextDisabled("%s; first and last included",
+                          connection.map_b - connection.map_a ==
+                                  Document::kColumns
+                              ? "Columns (left to right)"
+                              : "Rows (top to bottom)");
+      ImGui::PushItemWidth(ImGui::GetFontSize() * 7.0f);
+      DrawEdgeTilePicker("First tile", passage.first_tile, 0,
+                        Document::kMapSize - 1);
+      passage.last_tile = std::max(passage.first_tile, passage.last_tile);
+      DrawEdgeTilePicker("Last tile", passage.last_tile, 0,
+                        Document::kMapSize - 1);
+      passage.first_tile = std::min(passage.first_tile, passage.last_tile);
+      ImGui::PopItemWidth();
+    }
+    if (edited != connection) {
+      core::LyraAuthoringState next_state = document_->authoring();
+      next_state.edge_connections[i] = std::move(edited);
+      (void)EditAuthoring(next_state, overworld, history);
+      ImGui::PopID();
+      break;
+    }
+
+    if (ImGui::Button("Remove connection")) {
+      core::LyraAuthoringState next_state = document_->authoring();
+      next_state.edge_connections.erase(next_state.edge_connections.begin() +
+                                        i);
+      (void)EditAuthoring(next_state, overworld, history);
+      ImGui::PopID();
+      break;
+    }
+    ImGui::PopID();
+  }
+  if (!any)
+    ImGui::TextDisabled("No connections drafted for $%02X.", map_id);
+
+  ImGui::PopTextWrapPos();
+  ImGui::PopID();
 }
 
 void LyraTerrainCanvas::DrawEntities(const gui::CanvasRuntime& canvas,

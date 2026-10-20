@@ -79,9 +79,33 @@ struct LyraFlightPoint {
   bool operator==(const LyraFlightPoint&) const = default;
 };
 
+// Inclusive Tile16 positions 0..31 along the shared edge.
+struct LyraEdgePassage {
+  int first_tile = 0;
+  int last_tile = 0;
+
+  bool operator==(const LyraEdgePassage&) const = default;
+};
+
+// Authoring draft only: nothing here opens a route at runtime. Stored with
+// map_a < map_b. An absent passage is undecided, never the whole edge.
+struct LyraEdgeConnection {
+  uint32_t id = 0;
+  int map_a = 0;
+  int map_b = 0;
+  std::optional<LyraEdgePassage> passage;
+
+  bool operator==(const LyraEdgeConnection&) const = default;
+};
+
+// True when both maps are $98-$9B or $A0-$BF, at least one is $A0+, and they
+// share a cardinal edge in the eight-column grid. Order-insensitive.
+bool LyraEdgeMapsAdjacent(int map_a, int map_b);
+
 struct LyraAuthoringState {
   std::array<LyraMapAuthoring, 32> maps;
   std::vector<LyraFlightPoint> flight_points;
+  std::vector<LyraEdgeConnection> edge_connections;
 
   bool operator==(const LyraAuthoringState&) const = default;
 };
@@ -122,7 +146,8 @@ struct LyraTerrainStroke {
 
 class LyraTerrainDocument {
  public:
-  static constexpr int kSchemaVersion = 2;
+  static constexpr int kSchemaVersion = 3;
+  static constexpr int kMaxEdgeConnections = 64;
   static constexpr int kFirstMap = 0xA0;
   static constexpr int kMapCount = 32;
   static constexpr int kColumns = 8;

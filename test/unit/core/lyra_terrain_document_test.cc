@@ -17,6 +17,12 @@ LyraTerrainProfile Profile() {
   return profile;
 }
 
+nlohmann::json AsSchema2(nlohmann::json j) {
+  j["schema_version"] = 2;
+  j.erase("edge_connections");
+  return j;
+}
+
 TEST(LyraTerrainDocumentTest, OneStrokeCrossesA0A8B0AndUndoReturnsToBaseline) {
   auto created = LyraTerrainDocument::Create(Profile(), 7);
   ASSERT_TRUE(created.ok()) << created.status();
@@ -68,7 +74,9 @@ TEST(LyraTerrainDocumentTest, RefusesMalformedSchemaDimensionsMapsAndTiles) {
   const auto original = nlohmann::json::parse(document->Serialize());
   using Mutation = std::function<void(nlohmann::json&)>;
   const std::vector<Mutation> mutations = {
-      [](auto& j) { j["schema_version"] = 3; },
+      [](auto& j) {
+        j["schema_version"] = LyraTerrainDocument::kSchemaVersion + 1;
+      },
       [](auto& j) { j["schema_version"] = uint64_t{4294967298}; },
       [](auto& j) { j["schema_version"] = int64_t{-4294967294}; },
       [](auto& j) {
@@ -246,6 +254,8 @@ TEST(LyraTerrainDocumentTest, Schema1WaterFilledMapsMigrationExact) {
               (std::array<std::string, 3>{"", "", ""}));
   }
   EXPECT_TRUE(parsed->authoring().flight_points.empty());
+  EXPECT_TRUE(parsed->authoring().edge_connections.empty());
+  EXPECT_EQ(nlohmann::json::parse(parsed->Serialize())["schema_version"], 3);
 }
 
 TEST(LyraTerrainDocumentTest, Schema2FullRoundtripWithAuthoringEntities) {
@@ -286,6 +296,15 @@ TEST(LyraTerrainDocumentTest, Schema2FullRoundtripWithAuthoringEntities) {
   ASSERT_TRUE(roundtripped.ok()) << roundtripped.status();
   EXPECT_EQ(roundtripped->authoring(), auth_state);
   EXPECT_FALSE(roundtripped->dirty());
+
+  // The exact schema 2 shape still opens and migrates to no connections.
+  auto legacy = AsSchema2(nlohmann::json::parse(serialized));
+  auto migrated = LyraTerrainDocument::Parse(legacy.dump(), Profile());
+  ASSERT_TRUE(migrated.ok()) << migrated.status();
+  EXPECT_EQ(migrated->authoring(), auth_state);
+  EXPECT_TRUE(migrated->authoring().edge_connections.empty());
+  EXPECT_FALSE(migrated->dirty());
+  EXPECT_EQ(migrated->Serialize(), serialized);
 }
 
 TEST(LyraTerrainDocumentTest, ExitRowsAreBoundedBy79NativeRows) {
@@ -426,6 +445,289 @@ TEST(LyraTerrainDocumentTest,
                                                   {"exit_row", nullptr}});
     EXPECT_FALSE(LyraTerrainDocument::Parse(j.dump(), Profile()).ok());
   }
+}
+
+LyraAuthoringState WithEdgeConnections(const LyraAuthoringState& base) {
+  auto state = base;
+  state.edge_connections.push_back({1, 0x99, 0xA1, std::nullopt});
+  state.edge_connections.push_back({2, 0xA0, 0xA1, LyraEdgePassage{3, 7}});
+  state.edge_connections.push_back({5, 0xB7, 0xBF, LyraEdgePassage{31, 31}});
+  return state;
+}
+
+TEST(LyraTerrainDocumentTest, EdgeAdjacencyIsNaturalCardinalWithinLyraEdges) {
+  int pairs = 0;
+  for (int a = 0x90; a < 0xC8; ++a) {
+    for (int b = a + 1; b < 0xC8; ++b) {
+      EXPECT_EQ(LyraEdgeMapsAdjacent(a, b), LyraEdgeMapsAdjacent(b, a));
+      pairs += LyraEdgeMapsAdjacent(a, b) ? 1 : 0;
+    }
+  }
+  // 28 east-west and 24 north-south pairs in $A0-$BF, plus $98-$9B south.
+  EXPECT_EQ(pairs, 56);
+  EXPECT_TRUE(LyraEdgeMapsAdjacent(0x9B, 0xA3));
+  EXPECT_FALSE(LyraEdgeMapsAdjacent(0x9C, 0xA4));
+  EXPECT_FALSE(LyraEdgeMapsAdjacent(0x98, 0x99));
+  EXPECT_FALSE(LyraEdgeMapsAdjacent(0xA7, 0xA8));
+  EXPECT_FALSE(LyraEdgeMapsAdjacent(0xA0, 0xA9));
+  EXPECT_FALSE(LyraEdgeMapsAdjacent(0xA0, 0xA0));
+  EXPECT_FALSE(LyraEdgeMapsAdjacent(0xB8, 0xC0));
+}
+
+TEST(LyraTerrainDocumentTest, Schema3RoundtripsAssignedAndUnassignedPassages) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  const auto state = WithEdgeConnections(doc->authoring());
+  ASSERT_TRUE(doc->SetAuthoring(doc->authoring(), state).ok());
+
+  const std::string serialized = doc->Serialize();
+  const auto json = nlohmann::json::parse(serialized);
+  EXPECT_EQ(json["schema_version"], 3);
+  ASSERT_EQ(json["edge_connections"].size(), 3u);
+  EXPECT_EQ(json["edge_connections"][0],
+            nlohmann::json::parse(
+                R"({"id":1,"map_a":153,"map_b":161,"passage":null})"));
+  EXPECT_EQ(json["edge_connections"][1],
+            nlohmann::json::parse(R"({"id":2,"map_a":160,"map_b":161,
+                "passage":{"first_tile":3,"last_tile":7}})"));
+
+  auto reopened = LyraTerrainDocument::Parse(serialized, Profile());
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->authoring(), state);
+  EXPECT_FALSE(reopened->authoring().edge_connections[0].passage.has_value());
+  EXPECT_FALSE(reopened->dirty());
+  EXPECT_EQ(reopened->Serialize(), serialized);
+}
+
+TEST(LyraTerrainDocumentTest, LegacyAndSchema3RootKeysAreExact) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  const auto current = nlohmann::json::parse(doc->Serialize());
+
+  auto legacy_with_edges = current;
+  legacy_with_edges["schema_version"] = 2;
+  EXPECT_EQ(LyraTerrainDocument::Parse(legacy_with_edges.dump(), Profile())
+                .status()
+                .message(),
+            "Malformed Lyra schema 2 header keys");
+
+  auto missing_edges = current;
+  missing_edges.erase("edge_connections");
+  EXPECT_EQ(LyraTerrainDocument::Parse(missing_edges.dump(), Profile())
+                .status()
+                .message(),
+            "Malformed Lyra schema 3 header keys");
+
+  auto legacy = AsSchema2(current);
+  auto migrated = LyraTerrainDocument::Parse(legacy.dump(), Profile());
+  ASSERT_TRUE(migrated.ok()) << migrated.status();
+  EXPECT_TRUE(migrated->authoring().edge_connections.empty());
+}
+
+TEST(LyraTerrainDocumentTest, RefusesMalformedEdgeConnectionJsonExactly) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  ASSERT_TRUE(
+      doc->SetAuthoring(doc->authoring(), WithEdgeConnections(doc->authoring()))
+          .ok());
+  const auto original = nlohmann::json::parse(doc->Serialize());
+  ASSERT_TRUE(LyraTerrainDocument::Parse(original.dump(), Profile()).ok());
+
+  using Json = nlohmann::json;
+  const std::string record = "Malformed edge connection";
+  const std::string passage = "Malformed edge passage";
+  const std::string order =
+      "Edge passage requires 0 <= first_tile <= last_tile <= 31";
+  const std::string adjacency =
+      "Edge connection maps are not adjacent Lyra edge maps";
+  struct Case {
+    std::function<void(Json&)> mutate;
+    std::string message;
+  };
+  const std::vector<Case> cases = {
+      {[](Json& j) { j["edge_connections"][0]["id"] = 0; }, record},
+      {[](Json& j) { j["edge_connections"][0]["id"] = 1.0; }, record},
+      {[](Json& j) { j["edge_connections"][0]["id"] = true; }, record},
+      {[](Json& j) {
+         j["edge_connections"][0]["id"] = uint64_t{4294967296};
+       },
+       record},
+      {[](Json& j) { j["edge_connections"][0]["map_a"] = "$99"; }, record},
+      {[](Json& j) { j["edge_connections"][0]["map_a"] = 153.0; }, record},
+      {[](Json& j) { j["edge_connections"][0]["map_b"] = -161; }, record},
+      {[](Json& j) { j["edge_connections"][0]["extra"] = 1; }, record},
+      {[](Json& j) { j["edge_connections"][0].erase("passage"); }, record},
+      {[](Json& j) { j["edge_connections"][1]["passage"] = Json::object(); },
+       passage},
+      {[](Json& j) {
+         j["edge_connections"][1]["passage"] = Json::array({3, 7});
+       },
+       passage},
+      {[](Json& j) { j["edge_connections"][1]["passage"]["first_tile"] = 3.0; },
+       passage},
+      {[](Json& j) { j["edge_connections"][1]["passage"]["last_tile"] = 32; },
+       passage},
+      {[](Json& j) {
+         j["edge_connections"][1]["passage"]["last_tile"] = false;
+       },
+       passage},
+      {[](Json& j) { j["edge_connections"][1]["passage"]["note"] = "x"; },
+       passage},
+      {[](Json& j) { j["edge_connections"][1]["passage"]["first_tile"] = 8; },
+       order},
+      {[](Json& j) {
+         j["edge_connections"][0]["map_a"] = 0xA1;
+         j["edge_connections"][0]["map_b"] = 0x99;
+       },
+       "Edge connection must store map_a < map_b"},
+      {[](Json& j) { j["edge_connections"][0]["map_b"] = 0x99; }, adjacency},
+      {[](Json& j) {
+         j["edge_connections"][1]["map_a"] = 0xA7;
+         j["edge_connections"][1]["map_b"] = 0xA8;
+       },
+       adjacency},
+      {[](Json& j) {
+         j["edge_connections"][0]["map_a"] = 0x9C;
+         j["edge_connections"][0]["map_b"] = 0xA4;
+       },
+       adjacency},
+      {[](Json& j) {
+         j["edge_connections"][0]["map_a"] = 0x98;
+         j["edge_connections"][0]["map_b"] = 0x99;
+       },
+       adjacency},
+      {[](Json& j) { j["edge_connections"][1]["id"] = 1; },
+       "Duplicate edge connection ID"},
+      {[](Json& j) {
+         j["edge_connections"][1]["map_a"] = 0x99;
+         j["edge_connections"][1]["map_b"] = 0xA1;
+       },
+       "Duplicate edge connection map pair"},
+      {[](Json& j) { j["edge_connections"] = Json::object(); },
+       "edge_connections must be an array"},
+      {[](Json& j) { j["edge_connections"] = nullptr; },
+       "edge_connections must be an array"},
+      {[](Json& j) {
+         for (int i = 0; i < 62; ++i)
+           j["edge_connections"].push_back(j["edge_connections"][0]);
+       },
+       "Max 64 edge connections exceeded"},
+  };
+  for (size_t i = 0; i < cases.size(); ++i) {
+    SCOPED_TRACE(i);
+    auto malformed = original;
+    cases[i].mutate(malformed);
+    const auto parsed = LyraTerrainDocument::Parse(malformed.dump(), Profile());
+    EXPECT_EQ(parsed.status().code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_EQ(parsed.status().message(), cases[i].message);
+  }
+
+  auto duplicate_key = original.dump();
+  const auto record_start = duplicate_key.find("\"edge_connections\":[{");
+  ASSERT_NE(record_start, std::string::npos);
+  duplicate_key.insert(record_start + 21, "\"map_b\":161,");
+  EXPECT_EQ(
+      LyraTerrainDocument::Parse(duplicate_key, Profile()).status().message(),
+      "Duplicate JSON keys");
+}
+
+TEST(LyraTerrainDocumentTest, RefusesInvalidEdgeConnectionsAtomically) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  const auto base = WithEdgeConnections(doc->authoring());
+  ASSERT_TRUE(doc->SetAuthoring(doc->authoring(), base).ok());
+  doc->MarkSaved();
+
+  const std::string adjacency =
+      "Edge connection maps are not adjacent Lyra edge maps";
+  const std::string order =
+      "Edge passage requires 0 <= first_tile <= last_tile <= 31";
+  struct Case {
+    std::function<void(LyraAuthoringState&)> mutate;
+    std::string message;
+  };
+  const std::vector<Case> cases = {
+      {[](auto& s) { s.edge_connections[1].id = 0; },
+       "Edge connection ID must be nonzero"},
+      {[](auto& s) { s.edge_connections[1].id = 1; },
+       "Duplicate edge connection ID"},
+      {[](auto& s) { s.edge_connections[1].map_b = 0xA0; }, adjacency},
+      {[](auto& s) { s.edge_connections.push_back({9, 0xA7, 0xA8, {}}); },
+       adjacency},
+      {[](auto& s) { s.edge_connections.push_back({9, 0x9C, 0xA4, {}}); },
+       adjacency},
+      {[](auto& s) { s.edge_connections.push_back({9, 0x98, 0x99, {}}); },
+       adjacency},
+      {[](auto& s) { s.edge_connections.push_back({9, 0xA0, 0xA9, {}}); },
+       adjacency},
+      {[](auto& s) { s.edge_connections.push_back({9, 0xA8, 0xA0, {}}); },
+       "Edge connection must store map_a < map_b"},
+      {[](auto& s) { s.edge_connections.push_back({9, 0xA0, 0xA1, {}}); },
+       "Duplicate edge connection map pair"},
+      {[](auto& s) { s.edge_connections[1].passage = LyraEdgePassage{5, 4}; },
+       order},
+      {[](auto& s) { s.edge_connections[1].passage = LyraEdgePassage{0, 32}; },
+       order},
+      {[](auto& s) { s.edge_connections[1].passage = LyraEdgePassage{-1, 3}; },
+       order},
+      {[](auto& s) {
+         while (s.edge_connections.size() <= 64)
+           s.edge_connections.push_back(
+               {static_cast<uint32_t>(s.edge_connections.size() + 10), 0xA2,
+                0xA3, std::nullopt});
+       },
+       "Max 64 edge connections exceeded"},
+  };
+  for (size_t i = 0; i < cases.size(); ++i) {
+    SCOPED_TRACE(i);
+    auto bad = base;
+    cases[i].mutate(bad);
+    const auto status = doc->SetAuthoring(base, bad);
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_EQ(status.message(), cases[i].message);
+    EXPECT_EQ(doc->authoring(), base);
+    EXPECT_FALSE(doc->dirty());
+  }
+}
+
+TEST(LyraTerrainDocumentTest, EdgeConnectionHistoryRetainsPairAndDirtyState) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  const auto empty = doc->authoring();
+  ASSERT_TRUE(doc->SetAuthoring(empty, empty).ok());
+  EXPECT_FALSE(doc->dirty());
+
+  auto unassigned = empty;
+  unassigned.edge_connections.push_back({1, 0x9A, 0xA2, std::nullopt});
+  auto assigned = unassigned;
+  assigned.edge_connections[0].passage = LyraEdgePassage{0, 31};
+
+  ASSERT_TRUE(doc->SetAuthoring(empty, unassigned).ok());
+  EXPECT_TRUE(doc->dirty());
+  doc->MarkSaved();
+  ASSERT_TRUE(doc->SetAuthoring(unassigned, assigned).ok());
+  EXPECT_TRUE(doc->dirty());
+
+  // A stale step cannot drop the pair or its passage.
+  EXPECT_EQ(doc->SetAuthoring(unassigned, empty).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(doc->authoring(), assigned);
+
+  // Undo the assignment: the pair remains, undecided, and matches the save.
+  ASSERT_TRUE(doc->SetAuthoring(assigned, unassigned).ok());
+  EXPECT_FALSE(doc->dirty());
+  ASSERT_EQ(doc->authoring().edge_connections.size(), 1u);
+  EXPECT_FALSE(doc->authoring().edge_connections[0].passage.has_value());
+  // Undo the pair, then redo both steps.
+  ASSERT_TRUE(doc->SetAuthoring(unassigned, empty).ok());
+  EXPECT_TRUE(doc->dirty());
+  ASSERT_TRUE(doc->SetAuthoring(empty, unassigned).ok());
+  EXPECT_FALSE(doc->dirty());
+  ASSERT_TRUE(doc->SetAuthoring(unassigned, assigned).ok());
+
+  auto reopened = LyraTerrainDocument::Parse(doc->Serialize(), Profile());
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->authoring(), assigned);
 }
 
 }  // namespace

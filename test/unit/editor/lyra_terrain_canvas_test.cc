@@ -200,6 +200,45 @@ TEST_F(LyraTerrainSourceTest, RefusesChangedReferenceAndRomAlias) {
   ExpectProtectedFilesUnchanged();
 }
 
+TEST_F(LyraTerrainSourceTest, EdgeConnectionSurvivesSaveReopenAndUndo) {
+  auto document = core::LyraTerrainDocument::Create(FixtureProfile());
+  ASSERT_TRUE(document.ok());
+  const auto empty = document->authoring();
+  auto unassigned = empty;
+  unassigned.edge_connections.push_back({1, 0x99, 0xA1, std::nullopt});
+  auto assigned = unassigned;
+  assigned.edge_connections[0].passage = core::LyraEdgePassage{4, 9};
+  ASSERT_TRUE(document->SetAuthoring(empty, unassigned).ok());
+  ASSERT_TRUE(document->SetAuthoring(unassigned, assigned).ok());
+
+  auto published = PublishLyraTerrainSource(project_, source_.string(),
+                                            std::nullopt, *document);
+  ASSERT_TRUE(published.ok()) << published.status();
+  EXPECT_TRUE(document->dirty());
+  ExpectProtectedFilesUnchanged();
+  ASSERT_TRUE(project_.Save().ok());
+  document->MarkSaved();
+
+  auto reopened =
+      core::LyraTerrainDocument::Parse(Read(source_), FixtureProfile());
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->authoring(), assigned);
+  EXPECT_FALSE(reopened->dirty());
+
+  // Undoing the assignment keeps the pair with an undecided passage.
+  ASSERT_TRUE(document->SetAuthoring(assigned, unassigned).ok());
+  EXPECT_TRUE(document->dirty());
+  auto undone = PublishLyraTerrainSource(project_, source_.string(), *published,
+                                         *document);
+  ASSERT_TRUE(undone.ok()) << undone.status();
+  auto undone_reopened =
+      core::LyraTerrainDocument::Parse(*undone, FixtureProfile());
+  ASSERT_TRUE(undone_reopened.ok()) << undone_reopened.status();
+  EXPECT_EQ(undone_reopened->authoring(), unassigned);
+  ASSERT_TRUE(document->SetAuthoring(unassigned, assigned).ok());
+  EXPECT_FALSE(document->dirty());
+}
+
 using Peer = LyraTerrainCanvasTestPeer;
 
 class LyraPropertyDraftTest : public ::testing::Test {
@@ -323,6 +362,23 @@ TEST_F(LyraPropertyDraftTest, ResetClearsEveryDraft) {
   Peer::Install(canvas_, document_);
   EXPECT_TRUE(Peer::PendingMaps(canvas_).empty());
   EXPECT_EQ(Peer::Draft(canvas_, 0), Live(0));
+  EXPECT_FALSE(canvas_.dirty());
+}
+
+TEST_F(LyraPropertyDraftTest, EdgeConnectionEditsLeavePropertyDraftsIntact) {
+  Peer::Draft(canvas_, 0).main_palette = 5;
+  const auto before = document_->authoring();
+  auto connected = before;
+  connected.edge_connections.push_back({1, 0x98, 0xA0, std::nullopt});
+  ASSERT_TRUE(document_->SetAuthoring(before, connected).ok());
+
+  EXPECT_FALSE(Peer::Conflict(canvas_, 0));
+  EXPECT_EQ(Peer::PendingMaps(canvas_), std::vector<int>({0xA0}));
+  EXPECT_EQ(Peer::Draft(canvas_, 0).main_palette, 5);
+  Peer::Revert(canvas_, 0);
+  EXPECT_TRUE(canvas_.dirty());
+
+  ASSERT_TRUE(document_->SetAuthoring(connected, before).ok());
   EXPECT_FALSE(canvas_.dirty());
 }
 
