@@ -3542,9 +3542,8 @@ TEST(ObjectTileEditorPanelTest,
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_add_tile_apply"));
   const auto asset_path = custom_state.dir / "track_LR.bin";
-  ASSERT_NO_FATAL_FAILURE(
-      WriteCustomObjectAsset(asset_path,
-                             zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   DungeonRoomStore rooms(&rom);
@@ -3596,9 +3595,8 @@ TEST(ObjectTileEditorPanelTest,
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_add_tile_conflict"));
   const auto asset_path = custom_state.dir / "track_LR.bin";
-  ASSERT_NO_FATAL_FAILURE(
-      WriteCustomObjectAsset(asset_path,
-                             zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   DungeonRoomStore rooms(&rom);
@@ -3647,9 +3645,8 @@ TEST(ObjectTileEditorPanelTest,
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_add_tile_shared_confirm"));
   const auto asset_path = custom_state.dir / "shared.bin";
-  ASSERT_NO_FATAL_FAILURE(
-      WriteCustomObjectAsset(asset_path,
-                             zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
   zelda3::CustomObjectManager::Get().SetObjectFileMap(
       {{0x31, {"shared.bin", "shared.bin"}}});
   Rom rom;
@@ -3697,9 +3694,8 @@ TEST(ObjectTileEditorPanelTest,
   auto decoded_or =
       zelda3::DecodeCustomObjectBinary(ReadBinaryFile(asset_path));
   ASSERT_TRUE(decoded_or.ok()) << decoded_or.status();
-  EXPECT_EQ(decoded_or->tiles,
-            (std::vector<zelda3::CustomObject::TileMapEntry>{
-                {0, 0, 0x2824}, {1, 0, 0x2824}}));
+  EXPECT_EQ(decoded_or->tiles, (std::vector<zelda3::CustomObject::TileMapEntry>{
+                                   {0, 0, 0x2824}, {1, 0, 0x2824}}));
 }
 
 TEST(ObjectTileEditorPanelTest,
@@ -3707,9 +3703,8 @@ TEST(ObjectTileEditorPanelTest,
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_revert_shared_confirm"));
   const auto asset_path = custom_state.dir / "shared.bin";
-  ASSERT_NO_FATAL_FAILURE(
-      WriteCustomObjectAsset(asset_path,
-                             zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
   zelda3::CustomObjectManager::Get().SetObjectFileMap(
       {{0x31, {"shared.bin", "shared.bin"}}});
   Rom rom;
@@ -3756,8 +3751,8 @@ TEST(ObjectTileEditorPanelTest, StandardObjectSessionRefusesAddTile) {
   const int height_before =
       ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height;
   ASSERT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
-  const auto occupied = std::pair{cells_before.back().rel_x,
-                                  cells_before.back().rel_y};
+  const auto occupied =
+      std::pair{cells_before.back().rel_x, cells_before.back().rel_y};
 
   for (const auto [rel_x, rel_y] : {std::pair{width_before, 0}, occupied}) {
     SCOPED_TRACE(absl::StrFormat("(%d, %d)", rel_x, rel_y));
@@ -3780,8 +3775,9 @@ TEST(ObjectTileEditorPanelTest,
       MakeTempDir("yaze_obj_tile_panel_move_tile_bounds"));
   const auto asset_path = custom_state.dir / "track_LR.bin";
   ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
-      asset_path, zelda3::CustomObject{
-                      .tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}, {2, 1, 0x2C30}}}));
+      asset_path,
+      zelda3::CustomObject{
+          .tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}, {2, 1, 0x2C30}}}));
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   DungeonRoomStore rooms(&rom);
@@ -3923,8 +3919,7 @@ TEST(ObjectTileEditorPanelTest,
 
   for (const int invalid_index : {-1, 2}) {
     SCOPED_TRACE(absl::StrFormat("selected index %d", invalid_index));
-    ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel,
-                                                          invalid_index);
+    ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, invalid_index);
     EXPECT_TRUE(absl::IsFailedPrecondition(
         ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 2,
                                                                   0)));
@@ -3974,9 +3969,8 @@ TEST(ObjectTileEditorPanelTest,
   auto decoded_or =
       zelda3::DecodeCustomObjectBinary(ReadBinaryFile(asset_path));
   ASSERT_TRUE(decoded_or.ok()) << decoded_or.status();
-  EXPECT_EQ(decoded_or->tiles,
-            (std::vector<zelda3::CustomObject::TileMapEntry>{
-                {0, 0, 0x2824}, {2, 0, 0x6820}}));
+  EXPECT_EQ(decoded_or->tiles, (std::vector<zelda3::CustomObject::TileMapEntry>{
+                                   {0, 0, 0x2824}, {2, 0, 0x6820}}));
 
   // The successfully published geometry is now the Revert baseline.
   const auto published_cells = CustomCellStates(panel);
@@ -4153,10 +4147,10 @@ TEST(ObjectTileEditorPanelTest, StandardObjectSessionRefusesMoveTile) {
   const int height_before =
       ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height;
   ASSERT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
-  const auto current = std::pair{cells_before.front().rel_x,
-                                 cells_before.front().rel_y};
-  const auto occupied = std::pair{cells_before.back().rel_x,
-                                  cells_before.back().rel_y};
+  const auto current =
+      std::pair{cells_before.front().rel_x, cells_before.front().rel_y};
+  const auto occupied =
+      std::pair{cells_before.back().rel_x, cells_before.back().rel_y};
 
   for (const auto [rel_x, rel_y] :
        {std::pair{width_before, 0}, current, occupied}) {

@@ -158,8 +158,8 @@ Json EdgeConnectionJson(const LyraEdgeConnection& c) {
 bool EdgeEndpoint(int map_id) {
   return (map_id >= 0x98 && map_id <= 0x9B) ||
          (map_id >= LyraTerrainDocument::kFirstMap &&
-          map_id < LyraTerrainDocument::kFirstMap +
-                       LyraTerrainDocument::kMapCount);
+          map_id <
+              LyraTerrainDocument::kFirstMap + LyraTerrainDocument::kMapCount);
 }
 
 absl::Status ValidateAuthoringState(const LyraAuthoringState& state) {
@@ -756,13 +756,17 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
 }
 
 std::string LyraTerrainDocument::Serialize() const {
-  Json json = {
-      {"schema", "yaze.lyra-terrain"}, {"schema_version", kSchemaVersion},
-      {"columns", kColumns},           {"rows", kRows},
-      {"map_width", kMapSize},         {"map_height", kMapSize},
-      {"tile_pixels", kTilePixels},    {"profile", ProfileJson(profile_)},
-      {"maps", Json::array()},         {"flight_points", Json::array()},
-      {"edge_connections", Json::array()}};
+  Json json = {{"schema", "yaze.lyra-terrain"},
+               {"schema_version", kSchemaVersion},
+               {"columns", kColumns},
+               {"rows", kRows},
+               {"map_width", kMapSize},
+               {"map_height", kMapSize},
+               {"tile_pixels", kTilePixels},
+               {"profile", ProfileJson(profile_)},
+               {"maps", Json::array()},
+               {"flight_points", Json::array()},
+               {"edge_connections", Json::array()}};
   for (int index = 0; index < kMapCount; ++index) {
     Json rows = Json::array();
     for (int y = 0; y < kMapSize; ++y) {

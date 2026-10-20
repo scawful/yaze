@@ -620,11 +620,10 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     float cell = 0.0f;
     // Returns the native selection after clicking a visible cell, else -1.
     const auto click_cell = [&](ImGuiWindow* grid, int index) -> int {
-      const ImVec2 pos(grid->Pos.x - grid->Scroll.x +
-                           editor::kTile16SelectorDrawOffsetX +
-                           (index % kColumns + 0.5f) * cell,
-                       grid->Pos.y - grid->Scroll.y +
-                           (index / kColumns + 0.5f) * cell);
+      const ImVec2 pos(
+          grid->Pos.x - grid->Scroll.x + editor::kTile16SelectorDrawOffsetX +
+              (index % kColumns + 0.5f) * cell,
+          grid->Pos.y - grid->Scroll.y + (index / kColumns + 0.5f) * cell);
       if (!grid->InnerClipRect.Contains(pos))
         return -1;
       const auto name = [](const ImGuiWindow* window) {
@@ -1039,8 +1038,8 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
         manager->window_manager().GetWorkspaceWindowName(
             manager->GetCurrentSessionId(), "dungeon.workbench");
     ctx->SetRef(workbench_window.c_str());
-    for (int frame = 0; frame < 120 && ctx->GetWindowByRef("") == nullptr &&
-                        !ctx->IsError();
+    for (int frame = 0;
+         frame < 120 && ctx->GetWindowByRef("") == nullptr && !ctx->IsError();
          ++frame)
       ctx->Yield(1);
     IM_CHECK(ctx->GetWindowByRef("") != nullptr);
@@ -1194,7 +1193,8 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     second_rom_path.replace_extension(".session-b.sfc");
     // The startup guard confines rom_path and the receipt to the explicitly
     // named disposable directory. copy_file refuses any existing destination.
-    IM_CHECK(fs::copy_file(rom_path, second_rom_path, fs::copy_options::none, ec));
+    IM_CHECK(
+        fs::copy_file(rom_path, second_rom_path, fs::copy_options::none, ec));
     IM_CHECK(!ec && read_file(second_rom_path) == rom_disk_before);
     IM_CHECK(manager->OpenRomOrProject(second_rom_path.string()).ok());
     ctx->Yield(3);

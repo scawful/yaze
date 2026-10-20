@@ -1,4 +1,4 @@
-// Persistence (ROM save) implementation for DungeonEditorV2. Split out of
+// Persistence (ROM and project save) implementation for DungeonEditorV2. Split out of
 // dungeon_editor_v2.cc to keep that translation unit within the editor
 // source-size guardrail. Class declaration lives in dungeon_editor_v2.h.
 
@@ -21,6 +21,7 @@
 #include "absl/types/span.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/dungeon_room_transfer.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
@@ -451,6 +452,40 @@ absl::Status ValidateCustomCollisionManifestConflicts(
 }
 
 }  // namespace
+
+absl::Status DungeonEditorV2::ApplyRoomLabelEdit(
+    int room_id, std::optional<std::string> label) {
+  // Save Project serializes EditorManager's project and then replaces the
+  // session snapshot (dependencies_.project) from it, so the edit must land
+  // in the authoritative project first.
+  auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (editor_manager == nullptr ||
+      !editor_manager->IsCurrentProjectContextOwnedBySession(
+          dependencies_.session_id)) {
+    return absl::FailedPreconditionError(
+        "Activate this dungeon project before renaming rooms");
+  }
+  project::YazeProject* authoritative = editor_manager->GetCurrentProject();
+  if (authoritative == nullptr || !authoritative->project_opened()) {
+    return absl::FailedPreconditionError("Room names require an open project");
+  }
+
+  const auto apply = [&](project::YazeProject* project) {
+    if (label.has_value()) {
+      dungeon_project_labels::SetRoomLabel(project, room_id, *label);
+    } else {
+      dungeon_project_labels::ClearRoomLabel(project, room_id);
+    }
+  };
+  apply(authoritative);
+  if (dependencies_.project != nullptr &&
+      dependencies_.project != authoritative) {
+    apply(dependencies_.project);
+  }
+  editor_manager->MarkCurrentProjectDirty();
+  editor_manager->RefreshResourceLabelProvider();
+  return absl::OkStatus();
+}
 
 absl::Status DungeonEditorV2::PreflightPotItemPlacement(
     int room_id, const std::vector<zelda3::PotItem>& items) {

@@ -548,9 +548,7 @@ TEST(LyraTerrainDocumentTest, RefusesMalformedEdgeConnectionJsonExactly) {
       {[](Json& j) { j["edge_connections"][0]["id"] = 0; }, record},
       {[](Json& j) { j["edge_connections"][0]["id"] = 1.0; }, record},
       {[](Json& j) { j["edge_connections"][0]["id"] = true; }, record},
-      {[](Json& j) {
-         j["edge_connections"][0]["id"] = uint64_t{4294967296};
-       },
+      {[](Json& j) { j["edge_connections"][0]["id"] = uint64_t{4294967296}; },
        record},
       {[](Json& j) { j["edge_connections"][0]["map_a"] = "$99"; }, record},
       {[](Json& j) { j["edge_connections"][0]["map_a"] = 153.0; }, record},

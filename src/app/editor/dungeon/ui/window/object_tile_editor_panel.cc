@@ -278,9 +278,9 @@ absl::Status ObjectTileEditorPanel::AddCustomTileAt(int rel_x, int rel_y) {
         "Select a source tile before adding a custom-object tile");
   }
 
-  const uint16_t word = static_cast<uint16_t>(
-      (source_attributes_ & 0xE000) | ((source_palette_ & 0x07) << 10) |
-      (selected_source_tile_ & 0x3FF));
+  const uint16_t word = static_cast<uint16_t>((source_attributes_ & 0xE000) |
+                                              ((source_palette_ & 0x07) << 10) |
+                                              (selected_source_tile_ & 0x3FF));
   return AppendCustomCell(rel_x, rel_y, gfx::WordToTileInfo(word));
 }
 
@@ -400,9 +400,9 @@ void ObjectTileEditorPanel::SnapshotCustomBaseline() {
     custom_baseline_.reset();
     return;
   }
-  custom_baseline_ = CustomLayoutBaseline{current_layout_.cells,
-                                          current_layout_.bounds_width,
-                                          current_layout_.bounds_height};
+  custom_baseline_ =
+      CustomLayoutBaseline{current_layout_.cells, current_layout_.bounds_width,
+                           current_layout_.bounds_height};
 }
 
 void ObjectTileEditorPanel::RevertCurrentLayout() {
