@@ -737,6 +737,11 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
 
     // Native property controls use the same project history as terrain.
+    // The fill click left the cursor over A9; pin A0 so hover-follow cannot
+    // retarget the properties panel before the native input reaches it.
+    const bool was_pinned = overworld->map_pinned();
+    if (!was_pinned)
+      overworld->ToggleMapLock();
     overworld->set_current_map(0xA0);
     manager->OpenEditorAndPanelsFromFlags("Overworld", "overworld.properties");
     ctx->Yield(5);
@@ -754,6 +759,7 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(property_item.Window != nullptr);
     ctx->SetRef(property_item.Window);
     ctx->WindowFocus("");
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
     const auto authoring_before =
         std::make_unique<core::LyraAuthoringState>(document->authoring());
     const int next_palette =
@@ -773,6 +779,9 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     ctx->ItemClick(widgets.GetWidgetId("LyraMapProperties/button:AddSprite"));
     ctx->Yield(2);
     IM_CHECK_EQ(document->authoring().maps[0].sprites.size(), sprite_count + 1);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+    if (!was_pinned)
+      overworld->ToggleMapLock();
     auto authored =
         std::make_unique<core::LyraAuthoringState>(document->authoring());
     authored->maps[1].properties.graphics_sheets[0] = 0;
