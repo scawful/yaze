@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "style": {
+    "id": "oracle-sky",
+    "purpose": "Advisory drawing profile, not an executable recipe or a trained model.",
+    "primary_reference_ids": ["alttp", "oracle"],
+    "architecture_reference_ids": ["minish-cap"],
+    "comparison_reference_ids": ["allhallows-eve", "parallel-worlds"],
+    "prototype_reference_ids": ["a-link-to-the-proto", "alttp-development"],
+    "projection": "Use the selected ALTTP top-down wall/floor convention.",
+    "pixel_clusters": "Choose Oracle-style compact contours or ALTTP-style clusters per asset; retain that choice across its complete family.",
+    "lighting": "Follow the selected primary crop's light direction and contact shadows; architecture references do not override it.",
+    "family_rule": "Review floor, edge, wall, corner and doorway together before adding decorative detail."
+  },
+  "palette_roles": {
+    "transparent": 0,
+    "void": 1,
+    "outline": 2,
+    "stone_shadow": 3,
+    "stone_mid": 4,
+    "stone_light": 5,
+    "stone_cap": 6,
+    "blue_accent": 7
+  },
+  "grid": {
+    "base_tile_px": [8, 8],
+    "metatile_px": [16, 16],
+    "example_canvas_px": [64, 64],
+    "example_map_metatiles": [4, 4],
+    "preview_scaling": "nearest-neighbor integer scale only"
+  },
+  "tile_budget": {
+    "scope": "Example drawing canvas only; no ROM sheet, VRAM or palette allocation is established.",
+    "max_tiles": 64,
+    "max_unique_tiles": 32,
+    "bpp": 3,
+    "palette_slots": 8,
+    "export_format": "Generic SNES 3bpp example; a separate 4bpp profile may use 16 slots. Neither establishes Oracle import readiness."
+  },
+  "reference_ids": ["alttp", "oracle", "minish-cap", "allhallows-eve", "parallel-worlds", "a-link-to-the-proto", "alttp-development"],
+  "color_policy": {
+    "target_palette": "Declare every target RGBA slot in the executable recipe; these role names do not assign colors. Review a separate palette profile before adding cloud or banner colors beyond this eight-slot family.",
+    "sampling": "Use a pinned source hash and an exact integer crop; explicitly map source RGBA colors or source palette indices.",
+    "duplicate_colors": "Preserve palette-index distinctions even when two slots have identical RGB values.",
+    "transparency": "Assign transparency deliberately; a rip sheet's key color is not automatically transparent.",
+    "conversion": "No implicit quantization, antialiasing, interpolation, palette blending or fuzzy style transfer.",
+    "hardware_palette": "Request palette export separately; the executable validator owns exact supported channel values."
+  }
+}

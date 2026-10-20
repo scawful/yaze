@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "references": [
+    {
+      "id": "alttp",
+      "title": "The Legend of Zelda: A Link to the Past",
+      "kind": "retail-game",
+      "role": "target-style",
+      "status": "LOCAL_BINDING_REQUIRED",
+      "rights": "Nintendo artwork; no image data is distributed with this catalog.",
+      "local_hint": "zelda_3.png",
+      "profile_ids": ["oracle-sky"],
+      "provenance": {"creator": "Nintendo", "source_urls": [], "verification": "Bind a reviewed local image and record its source separately."},
+      "notes": "Primary reference for top-down room perspective, wall faces, occlusion and readable floor boundaries. A collage is not a tile-address map."
+    },
+    {
+      "id": "oracle",
+      "title": "The Legend of Zelda: Oracle of Ages / Oracle of Seasons",
+      "kind": "retail-game",
+      "role": "target-style",
+      "status": "LOCAL_BINDING_REQUIRED",
+      "rights": "Nintendo/Capcom game artwork; preserve the selected ripper's credit locally.",
+      "local_hint": "Game Boy _ GBC - The Legend of Zelda_ Oracle of Seasons - Tilesets - Overworld & Subrosia.png",
+      "profile_ids": ["oracle-sky"],
+      "provenance": {"creator": "Nintendo / Capcom", "source_urls": [], "verification": "Select Ages or Seasons explicitly; do not treat different sheets as one palette."},
+      "notes": "Primary reference for compact contours and deliberate pixel clusters. Keep Ages/Seasons and any source palette variants distinguishable."
+    },
+    {
+      "id": "minish-cap",
+      "title": "The Legend of Zelda: The Minish Cap — Wind Tribe / Wind Shrine",
+      "kind": "retail-game",
+      "role": "architecture",
+      "status": "LOCAL_BINDING_REQUIRED",
+      "rights": "Nintendo/Capcom artwork. The known Wind Tribe sheet credits Moon; retain that provenance.",
+      "local_hint": "Game Boy Advance - The Legend of Zelda_ The Minish Cap - Maps - Home of the Wind Tribe.png",
+      "profile_ids": ["oracle-sky"],
+      "provenance": {"creator": "Nintendo / Capcom; Wind Tribe rip credited to Moon", "source_urls": [], "verification": "Architecture reference only until an exact local crop and mapping are reviewed."},
+      "notes": "Secondary vocabulary: cream caps, warm masonry, geometric blue accents, cloud edges and wind details. Re-author clusters in the chosen primary style; do not average or rescale the source."
+    },
+    {
+      "id": "allhallows-eve",
+      "title": "The Legend of Zelda: Allhallows Eve",
+      "kind": "fan-game",
+      "role": "contrast",
+      "status": "MISSING_REFERENCE",
+      "rights": "No artwork is bundled. A release page or patch does not establish the provenance of a selected image.",
+      "local_hint": "allhallows-eve-reviewed-reference.png",
+      "profile_ids": ["oracle-sky"],
+      "provenance": {"creator": "Letterbomb, Zarby89, Jeimuzu, Jared_Brian_, Scawful", "source_urls": ["https://www.zeldix.net/t2725-the-legend-of-zelda-allhallows-eve-v1-10"], "verification": "Creator release thread identifies this specific ALTTP hack."},
+      "notes": "Use a reviewed scene to compare custom ALTTP material separation and silhouettes. Do not infer a loaded graphic from an installed patch or the title alone."
+    },
+    {
+      "id": "parallel-worlds",
+      "title": "The Legend of Zelda: Parallel Worlds",
+      "kind": "fan-game",
+      "role": "contrast",
+      "status": "MISSING_REFERENCE",
+      "rights": "No artwork is bundled; credit the creator and the selected asset's actual source.",
+      "local_hint": "parallel-worlds-reviewed-reference.png",
+      "profile_ids": ["oracle-sky"],
+      "provenance": {"creator": "Euclid and SePH; later releases include other contributors", "source_urls": ["https://www.zeldix.net/t2295-parallel-worlds-15th-anniversary-celebration", "https://www.zeldix.net/t1373-the-legend-of-zelda-parallel-worlds"], "verification": "SePH's development retrospective and the maintained release thread identify the project."},
+      "notes": "Compare specific custom room or overworld vocabulary after binding an image. Do not substitute Parallel Remodel or Parallel Universes."
+    },
+    {
+      "id": "a-link-to-the-proto",
+      "title": "The Legend of Zelda — A Link To The Proto",
+      "kind": "fan-reconstruction",
+      "role": "prototype-vocabulary",
+      "status": "MISSING_REFERENCE",
+      "rights": "No artwork is bundled; reconstruction and underlying prototype artwork have separate provenance.",
+      "local_hint": "a-link-to-the-proto-reviewed-reference.png",
+      "profile_ids": ["oracle-sky"],
+      "provenance": {"creator": "SePH; prototype graphics credited separately in the project's readme", "source_urls": ["https://www.zeldix.net/t2180-the-legend-of-zelda-a-link-to-the-proto"], "verification": "Creator release thread; a reconstruction, not an authentic dated prototype."},
+      "notes": "Keep reconstruction choices separate from development-material facts. A local IPS/readme is not a loaded image reference."
+    },
+    {
+      "id": "alttp-development",
+      "title": "ALttP development / gigaleak material",
+      "kind": "development-material",
+      "role": "prototype-vocabulary",
+      "status": "LOCAL_BINDING_REQUIRED",
+      "rights": "Keep local development-material files and their provenance outside the repository.",
+      "local_hint": "reviewed-development-crop.png",
+      "profile_ids": ["oracle-sky"],
+      "provenance": {"creator": "Nintendo development material; individual file attribution requires review", "source_urls": [], "verification": "Record the exact local file, interpretation and any reconstruction separately."},
+      "notes": "Different development revisions are distinct references. Do not treat archive labels, reconstructed palettes or composite maps as final-game evidence."
+    }
+  ]
+}
