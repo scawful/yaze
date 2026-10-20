@@ -1302,13 +1302,21 @@ TEST(EditorManagerProjectActionsTest,
 
   ASSERT_OK(dungeon->ApplyRoomLabelEdit(0x25, std::nullopt));
   EXPECT_EQ(zelda3::GetRoomLabel(0x25), default_label);
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
   EXPECT_FALSE(manager->GetCurrentRom()->dirty());
 
+  // Opening another ROM over unsaved project work only queues a prompt.
+  ASSERT_OK(manager->SaveProject());
+  ASSERT_FALSE(manager->IsCurrentProjectDirty());
+  const size_t project_session_id = manager->GetCurrentSessionId();
   ASSERT_OK(manager->OpenRomOrProject(other_rom.string()));
+  ASSERT_NE(manager->GetCurrentSessionId(), project_session_id);
+  const std::string other_session_label = zelda3::GetRoomLabel(0x25);
+
   const auto refused =
       dungeon->ApplyRoomLabelEdit(0x25, std::string("Wrong Session"));
   EXPECT_TRUE(absl::IsFailedPrecondition(refused)) << refused;
-  EXPECT_NE(zelda3::GetRoomLabel(0x25), "Wrong Session");
+  EXPECT_EQ(zelda3::GetRoomLabel(0x25), other_session_label);
 }
 
 TEST(EditorManagerProjectActionsTest,
