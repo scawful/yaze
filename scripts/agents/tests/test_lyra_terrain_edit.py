@@ -17,15 +17,36 @@ SPEC.loader.exec_module(terrain)
 
 
 def fixture(version=1):
-    return {"schema": "yaze.lyra-terrain", "schema_version": version,
-            "columns": 8, "rows": 4, "map_width": 32, "map_height": 32,
-            "tile_pixels": 16, "profile": {"tile_count": 4096,
-                                           "binding": "retain verbatim"},
-            "maps": [{"map_id": map_id,
-                      "tiles16": [[0] * 32 for _ in range(32)],
-                      "authoring": {"future": [1, {"value": "kept"}]}}
-                     for map_id in range(160, 192)],
-            "unknown": {"nested": ["preserved", 4.5]}}
+    """Core-shaped fixture; fingerprints match a synthetic expected profile."""
+    document = {"schema": "yaze.lyra-terrain", "schema_version": version,
+                "columns": 8, "rows": 4, "map_width": 32, "map_height": 32,
+                "tile_pixels": 16,
+                "profile": {"tile_count": 4096,
+                            "graphics_sheets": [58, 59, 60, 61, 71, 72, 62, 91],
+                            "main_palette": 0, "palette_set": 1,
+                            "animated_sheet": 91,
+                            "tile16_definition_fingerprint": "synthetic-tiles",
+                            "graphics_fingerprint": "synthetic-graphics",
+                            "palette_fingerprint": "synthetic-palette",
+                            "animation_fingerprint": "synthetic-animation"},
+                "maps": [{"map_id": map_id,
+                          "tiles16": [[0] * 32 for _ in range(32)]}
+                         for map_id in range(160, 192)]}
+    if version >= 2:
+        document["flight_points"] = []
+        for item in document["maps"]:
+            item["authoring"] = {
+                "properties": {
+                    "graphics_sheets": [58, 59, 60, 61, 71, 72, 62, 91],
+                    "main_palette": 0, "palette_set": 1, "animated_sheet": 91,
+                    "sprite_graphics": [-1, -1, -1],
+                    "sprite_palettes": [-1, -1, -1],
+                    "music": [0, 0, 0, 0], "message_id": 0},
+                "sprites": [], "doors": [], "exits": [],
+                "asset_bindings": ["", "", ""]}
+    if version == 3:
+        document["edge_connections"] = []
+    return document
 
 
 class LyraTerrainEditTest(unittest.TestCase):
@@ -47,6 +68,11 @@ class LyraTerrainEditTest(unittest.TestCase):
     def test_fill_retains_profiles_unknown_fields_and_all_schema_versions(self):
         for version in (1, 2, 3):
             source = fixture(version)
+            # Future fields are retained, not admitted on Yaze's behalf.
+            source["unknown"] = {"nested": ["preserved", 4.5]}
+            source["profile"]["future_binding"] = "retain verbatim"
+            if version >= 2:
+                source["maps"][0]["authoring"]["future"] = [1, {"value": "kept"}]
             result = terrain.edit(source, [
                 {"op": "fill", "map": 161, "rect": [2, 3, 2, 2], "tile": 707}])
             expected = copy.deepcopy(source)
@@ -108,6 +134,35 @@ class LyraTerrainEditTest(unittest.TestCase):
             alias = root / "alias.json"
             alias.symlink_to(document)
             self.assertEqual(self.call(document, operations, alias)[0], 2)
+
+    def test_version_metadata_containers_are_required_before_output(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            document, operations, output = [root / name for name in
+                                            ("in.json", "ops.json", "out.json")]
+            operations.write_text('[]')
+            mutations = [
+                lambda d: d.pop("flight_points"),
+                lambda d: d.pop("edge_connections"),
+                lambda d: d.update(flight_points={}),
+                lambda d: d.update(edge_connections="invalid"),
+                lambda d: d["maps"][0].pop("authoring"),
+                lambda d: d["maps"][0]["authoring"].update(properties=[]),
+                lambda d: d["profile"].pop("graphics_fingerprint")]
+            for name in ("sprites", "doors", "exits", "asset_bindings"):
+                mutations.append(lambda d, key=name:
+                                 d["maps"][0]["authoring"].update({key: "invalid"}))
+            for mutate in mutations:
+                value = fixture(3)
+                mutate(value)
+                document.write_text(json.dumps(value))
+                self.assertEqual(self.call(document, operations, output)[0], 2)
+                self.assertFalse(output.exists())
+            value = fixture(2)
+            value.pop("flight_points")
+            document.write_text(json.dumps(value))
+            self.assertEqual(self.call(document, operations, output)[0], 2)
+            self.assertFalse(output.exists())
 
     def test_duplicate_keys_and_malformed_documents_are_refused(self):
         with tempfile.TemporaryDirectory() as folder:

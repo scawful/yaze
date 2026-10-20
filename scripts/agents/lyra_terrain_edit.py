@@ -7,6 +7,8 @@ Operations are a JSON array, applied in order (all numbers are JSON integers):
    "to_map":161, "at":[destination_x,destination_y]}
 Without --output, only a dry-run summary is printed. --output must be new.
 Profile, authoring and unknown fields are retained as JSON values.
+Validates editable grids and required containers. Yaze remains the authority
+for full graphics-profile and metadata admission.
 """
 
 import argparse
@@ -51,7 +53,10 @@ def validate_document(document):
     require(type(document) is dict
             and document.get("schema") == "yaze.lyra-terrain",
             "Expected a yaze.lyra-terrain document")
-    integer(document.get("schema_version"), 1, 3, "schema_version")
+    version = integer(document.get("schema_version"), 1, 3, "schema_version")
+    for name, minimum in (("flight_points", 2), ("edge_connections", 3)):
+        if version >= minimum:
+            require(type(document.get(name)) is list, f"{name} must be an array")
     for name, value in (("columns", 8), ("rows", 4), ("map_width", 32),
                         ("map_height", 32), ("tile_pixels", 16)):
         require(type(document.get(name)) is int and document[name] == value,
@@ -59,6 +64,17 @@ def validate_document(document):
     profile = document.get("profile")
     require(type(profile) is dict, "Expected a profile object")
     count = integer(profile.get("tile_count"), 1, 65536, "profile.tile_count")
+    sheets = profile.get("graphics_sheets")
+    require(type(sheets) is list and len(sheets) == 8,
+            "profile.graphics_sheets requires 8 entries")
+    for sheet in sheets:
+        integer(sheet, 0, 254, "profile graphics sheet")
+    for name, high in (("main_palette", 255), ("palette_set", 255),
+                       ("animated_sheet", 254)):
+        integer(profile.get(name), 0, high, f"profile.{name}")
+    for name in ("tile16_definition_fingerprint", "graphics_fingerprint",
+                 "palette_fingerprint", "animation_fingerprint"):
+        require(type(profile.get(name)) is str, f"profile.{name} must be a string")
     maps = document.get("maps")
     require(type(maps) is list and len(maps) == 32, "Expected all 32 maps")
     indexed = {}
@@ -66,6 +82,17 @@ def validate_document(document):
         require(type(item) is dict, "Expected map objects")
         map_id = integer(item.get("map_id"), 160, 191, "map_id")
         require(map_id not in indexed, f"Duplicate map_id: {map_id}")
+        if version >= 2:
+            authoring = item.get("authoring")
+            require(type(authoring) is dict, f"Map {map_id} requires authoring")
+            require(type(authoring.get("properties")) is dict,
+                    f"Map {map_id} requires a properties object")
+            for name in ("sprites", "doors", "exits", "asset_bindings"):
+                require(type(authoring.get(name)) is list,
+                        f"Map {map_id} authoring.{name} must be an array")
+            bindings = authoring["asset_bindings"]
+            require(len(bindings) == 3 and all(type(x) is str for x in bindings),
+                    f"Map {map_id} requires 3 string asset bindings")
         grid = item.get("tiles16")
         require(type(grid) is list and len(grid) == 32,
                 f"Map {map_id} requires 32 rows")
