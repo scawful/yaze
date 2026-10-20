@@ -3761,6 +3761,71 @@ absl::Status EditorManager::ReloadProjectRom() {
                                  current_project_.rom_filename);
 }
 
+absl::Status EditorManager::ValidateLyraTerrainProjectContext() const {
+  if (!current_project_.project_opened() || current_project_.filepath.empty()) {
+    return absl::FailedPreconditionError(
+        "Save a Yaze project before creating or opening Lyra terrain");
+  }
+  if (!IsCurrentProjectContextOwnedBySession(GetCurrentSessionId())) {
+    return absl::FailedPreconditionError(
+        "Lyra terrain requires its project session to be active");
+  }
+  auto* rom = GetCurrentRom();
+  if (!rom || !rom->is_loaded() || !GetCurrentEditorSet()) {
+    return absl::FailedPreconditionError(
+        "Load the project's ROM before creating or opening Lyra terrain");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::CreateLyraTerrain() {
+  RETURN_IF_ERROR(ValidateLyraTerrainProjectContext());
+  RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* overworld = GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  if (!overworld) {
+    return absl::NotFoundError("Overworld editor is unavailable");
+  }
+  const auto previous_source = current_project_.lyra_terrain_file;
+  RETURN_IF_ERROR(overworld->CreateLyraTerrain());
+  if (previous_source != current_project_.lyra_terrain_file ||
+      overworld->HasPendingProjectDraftChanges()) {
+    MarkCurrentProjectDirty();
+  }
+  CaptureActiveProjectContext();
+  SwitchToEditor(EditorType::kOverworld, true);
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::OpenLyraTerrain() {
+  RETURN_IF_ERROR(ValidateLyraTerrainProjectContext());
+  util::FileDialogOptions options;
+  options.filters.push_back({"Lyra terrain source", "json"});
+  return OpenLyraTerrainFromPath(
+      util::FileDialogWrapper::ShowOpenFileDialog(options));
+}
+
+absl::Status EditorManager::OpenLyraTerrainFromPath(const std::string& path) {
+  if (path.empty()) {
+    return absl::OkStatus();
+  }
+  RETURN_IF_ERROR(ValidateLyraTerrainProjectContext());
+  RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* overworld = GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  if (!overworld) {
+    return absl::NotFoundError("Overworld editor is unavailable");
+  }
+  const auto previous_source = current_project_.lyra_terrain_file;
+  RETURN_IF_ERROR(overworld->OpenLyraTerrain(path));
+  if (previous_source != current_project_.lyra_terrain_file) {
+    MarkCurrentProjectDirty();
+  }
+  CaptureActiveProjectContext();
+  SwitchToEditor(EditorType::kOverworld, true);
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::SaveProject() {
   CaptureActiveProjectEditingState();
   if (session_coordinator_) {

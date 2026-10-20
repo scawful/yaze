@@ -938,6 +938,35 @@ absl::Status OverworldEditor::PrepareProjectSave() {
   return lyra_canvas_.Save(TerrainProject(), overworld_);
 }
 
+absl::Status OverworldEditor::CreateLyraTerrain() {
+  const auto* previous = lyra_canvas_.document();
+  RETURN_IF_ERROR(lyra_canvas_.Create(TerrainProject(), overworld_));
+  if (previous && previous != lyra_canvas_.document())
+    undo_manager_.Clear();
+  lyra_canvas_status_ = absl::OkStatus();
+  FocusLyraTerrain();
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::OpenLyraTerrain(const std::string& path) {
+  const auto* previous = lyra_canvas_.document();
+  RETURN_IF_ERROR(lyra_canvas_.Open(TerrainProject(), path, overworld_));
+  if (previous && previous != lyra_canvas_.document())
+    undo_manager_.Clear();
+  lyra_canvas_status_ = absl::OkStatus();
+  FocusLyraTerrain();
+  return absl::OkStatus();
+}
+
+void OverworldEditor::FocusLyraTerrain() {
+  SelectMapForEditing(core::LyraTerrainDocument::kFirstMap, false);
+  hovered_map_ = -1;
+  if (canvas_nav_) {
+    canvas_nav_->SuspendHoverFollowUntilMouseMoves();
+    canvas_nav_->CenterOnMap(core::LyraTerrainDocument::kFirstMap);
+  }
+}
+
 bool OverworldEditor::NormalizeCurrentSelectionState() {
   bool changed = false;
   if (overworld_.is_lyra_preview()) {

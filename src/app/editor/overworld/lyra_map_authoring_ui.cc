@@ -119,7 +119,8 @@ void DrawEdgeTilePicker(const char* label, int& value, int first, int last) {
 
 std::string SpriteTypeLabel(int type) {
   // ResolveSpriteName returns thread-local storage reused by the next call.
-  const std::string name = zelda3::ResolveSpriteName(static_cast<uint16_t>(type));
+  const std::string name =
+      zelda3::ResolveSpriteName(static_cast<uint16_t>(type));
   return absl::StrFormat("$%02X %s", type, name);
 }
 
@@ -180,6 +181,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
 
     ImGui::PushID("LyraProperties");
     ImGui::Text("Lyra Map Properties ($%02X)", map_id);
+    ImGui::TextWrapped(
+        "Project draft; saved with project; build/runtime unavailable");
 
     // Game state selector combo 0..2
     const char* state_names[] = {"State 0", "State 1", "State 2"};
@@ -272,8 +275,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     }
 
     int copy_source = copy_source_map_;
-    if (ImGui::InputScalar("Native source map", ImGuiDataType_S32,
-                           &copy_source, nullptr, nullptr, "%02X",
+    if (ImGui::InputScalar("Native source map", ImGuiDataType_S32, &copy_source,
+                           nullptr, nullptr, "%02X",
                            ImGuiInputTextFlags_CharsHexadecimal)) {
       copy_source_map_ = std::clamp(copy_source, 0, 0x9F);
     }
@@ -390,9 +393,9 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       for (size_t i = 0; i < sprites.size(); ++i) {
         const auto& s = sprites[i];
         ImGui::PushID(static_cast<int>(s.id + 0x100000));
-        std::string header_label = absl::StrFormat(
-            "Sprite #%u (ID: %u, State: %d) - %s", i, s.id, s.state,
-            SpriteTypeLabel(s.sprite_id));
+        std::string header_label =
+            absl::StrFormat("Sprite #%u (ID: %u, State: %d) - %s", i, s.id,
+                            s.state, SpriteTypeLabel(s.sprite_id));
         if (ImGui::CollapsingHeader((header_label + "###entity").c_str())) {
           core::LyraAuthoringState next_state = document_->authoring();
           auto& target = next_state.maps[map_index].sprites[i];
@@ -417,7 +420,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
             changed = true;
           }
           int picked_type = target.sprite_id;
-          if (DrawSpriteTypePicker("Sprite type", picked_type, sprite_filter_)) {
+          if (DrawSpriteTypePicker("Sprite type", picked_type,
+                                   sprite_filter_)) {
             target.sprite_id = static_cast<uint8_t>(picked_type);
             changed = true;
           }
@@ -723,7 +727,7 @@ void LyraTerrainCanvas::DrawEdgeConnections(int map_id,
   ImGui::TextDisabled("Tile16 positions 0–31 along the edge");
 
   const bool full = connections.size() >= Document::kMaxEdgeConnections;
-  const char* preview = full                    ? "Connection limit reached"
+  const char* preview = full                     ? "Connection limit reached"
                         : open_neighbors.empty() ? "All neighbors drafted"
                                                  : "Choose neighbor";
   ImGui::TextUnformatted("Add connection");
@@ -773,10 +777,9 @@ void LyraTerrainCanvas::DrawEdgeConnections(int map_id,
     core::LyraEdgeConnection edited = connection;
     bool assigned = edited.passage.has_value();
     if (ImGui::Checkbox("Assign passage", &assigned)) {
-      edited.passage =
-          assigned ? std::optional<core::LyraEdgePassage>(
-                         core::LyraEdgePassage{0, 0})
-                   : std::nullopt;
+      edited.passage = assigned ? std::optional<core::LyraEdgePassage>(
+                                      core::LyraEdgePassage{0, 0})
+                                : std::nullopt;
     }
     if (!edited.passage) {
       ImGui::TextUnformatted("Passage: unassigned (no opening drafted)");
@@ -784,17 +787,17 @@ void LyraTerrainCanvas::DrawEdgeConnections(int map_id,
       auto& passage = *edited.passage;
       ImGui::Text("Passage: tiles %d–%d", passage.first_tile,
                   passage.last_tile);
-      ImGui::TextDisabled("%s; first and last included",
-                          connection.map_b - connection.map_a ==
-                                  Document::kColumns
-                              ? "Columns (left to right)"
-                              : "Rows (top to bottom)");
+      ImGui::TextDisabled(
+          "%s; first and last included",
+          connection.map_b - connection.map_a == Document::kColumns
+              ? "Columns (left to right)"
+              : "Rows (top to bottom)");
       ImGui::PushItemWidth(ImGui::GetFontSize() * 7.0f);
       DrawEdgeTilePicker("First tile", passage.first_tile, 0,
-                        Document::kMapSize - 1);
+                         Document::kMapSize - 1);
       passage.last_tile = std::max(passage.first_tile, passage.last_tile);
       DrawEdgeTilePicker("Last tile", passage.last_tile, 0,
-                        Document::kMapSize - 1);
+                         Document::kMapSize - 1);
       passage.first_tile = std::min(passage.first_tile, passage.last_tile);
       ImGui::PopItemWidth();
     }

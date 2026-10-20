@@ -36,6 +36,10 @@ class LyraTerrainCanvas {
   LyraTerrainCanvas& operator=(const LyraTerrainCanvas&) = delete;
   absl::Status Load(project::YazeProject* project,
                     zelda3::Overworld& overworld);
+  // Validates a selected source through a project copy. A failed replacement
+  // retains the current document, pending properties, and owner reference.
+  absl::Status Open(project::YazeProject* project, const std::string& path,
+                    zelda3::Overworld& overworld);
   absl::Status Create(project::YazeProject* project,
                       zelda3::Overworld& overworld);
   absl::Status Save(project::YazeProject* project,
@@ -121,7 +125,14 @@ class LyraTerrainCanvas {
   absl::Status ValidateMapAssets(zelda3::Overworld& overworld,
                                  const core::LyraAuthoringState& authoring);
   absl::Status BindSource(zelda3::Overworld& overworld,
-                          core::LyraTerrainProfile* profile, bool make_atlas);
+                          core::LyraTerrainProfile* profile,
+                          gfx::Bitmap* atlas = nullptr);
+  // Called only after document, native profile, and CPU atlas all validate.
+  // Texture commands use the committed bitmap's stable member address.
+  void InstallDocument(std::shared_ptr<core::LyraTerrainDocument> document,
+                       gfx::Bitmap atlas, std::string source_path,
+                       std::optional<std::string> source_bytes,
+                       bool unpublished);
   void DrawTile(ImDrawList* draw, const gfx::Bitmap& atlas, int tile,
                 ImVec2 min, float size) const;
   void PaintStamp(int x, int y);

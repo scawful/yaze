@@ -458,6 +458,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       const std::string& project_name,
       const std::string& project_path = std::string());
   absl::Status OpenProject();
+  absl::Status CreateLyraTerrain();
+  absl::Status OpenLyraTerrain();
+  absl::Status OpenLyraTerrainFromPath(const std::string& path);
   absl::Status SaveProject();
   absl::Status SaveProjectAs();
   absl::Status SaveProjectAs(const std::string& filepath);
@@ -742,6 +745,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status OpenRomOrProjectInternal(const std::string& filename,
                                         bool allow_dialogs = true);
   absl::Status OpenProjectInternal();
+  absl::Status ValidateLyraTerrainProjectContext() const;
   absl::Status ValidateProjectRomSelection(const std::string& rom_path);
 
   struct PendingUnsavedSessionAction {

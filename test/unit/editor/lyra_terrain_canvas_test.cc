@@ -17,6 +17,9 @@ class LyraTerrainCanvasTestPeer {
                       std::shared_ptr<core::LyraTerrainDocument> document) {
     canvas.document_ = std::move(document);
   }
+  static void BindSourcePath(LyraTerrainCanvas& canvas, std::string path) {
+    canvas.source_path_ = std::move(path);
+  }
   // The same lookup DrawProperties performs when a Lyra map is selected.
   static core::LyraMapProperties& Draft(LyraTerrainCanvas& canvas,
                                         int map_index) {
@@ -240,6 +243,129 @@ TEST_F(LyraTerrainSourceTest, EdgeConnectionSurvivesSaveReopenAndUndo) {
 }
 
 using Peer = LyraTerrainCanvasTestPeer;
+
+class LyraTerrainOpenTest : public LyraTerrainSourceTest {
+ protected:
+  void SetUp() override {
+    LyraTerrainSourceTest::SetUp();
+    auto document = core::LyraTerrainDocument::Create(FixtureProfile());
+    ASSERT_TRUE(document.ok()) << document.status();
+    document_ =
+        std::make_shared<core::LyraTerrainDocument>(*std::move(document));
+    Peer::Install(canvas_, document_);
+  }
+
+  std::shared_ptr<core::LyraTerrainDocument> document_;
+  LyraTerrainCanvas canvas_;
+  zelda3::Overworld overworld_{nullptr};
+};
+
+TEST_F(LyraTerrainOpenTest,
+       InvalidSelectedSourceRetainsCleanCanvasAndReference) {
+  const auto document_before = document_->Serialize();
+  const auto reference_before = project_.lyra_terrain_file;
+  const auto status = canvas_.Open(
+      &project_, (directory_ / "invalid.txt").string(), overworld_);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(canvas_.document(), document_.get());
+  EXPECT_EQ(canvas_.document()->Serialize(), document_before);
+  EXPECT_EQ(project_.lyra_terrain_file, reference_before);
+  EXPECT_FALSE(canvas_.dirty());
+  ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainOpenTest,
+       NativeBindingFailureRetainsCleanCanvasAndReference) {
+  Write(directory_ / "another.json", document_->Serialize());
+  const auto reference_before = project_.lyra_terrain_file;
+  const auto status = canvas_.Open(
+      &project_, (directory_ / "another.json").string(), overworld_);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(status.message(), "Open the main project ROM to draw Lyra terrain");
+  EXPECT_EQ(canvas_.document(), document_.get());
+  EXPECT_EQ(project_.lyra_terrain_file, reference_before);
+  EXPECT_FALSE(canvas_.dirty());
+  ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainOpenTest, PendingPropertiesRefuseReplacementBeforeLoading) {
+  Peer::Draft(canvas_, 0).main_palette = 5;
+  Peer::Draft(canvas_, 1).message_id = 7;
+  const auto document_before = document_->Serialize();
+  const auto reference_before = project_.lyra_terrain_file;
+  const auto status = canvas_.Open(
+      &project_, (directory_ / "replacement.json").string(), overworld_);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(status.message(),
+            "Save the current Lyra terrain draft before replacing it");
+  EXPECT_EQ(canvas_.document(), document_.get());
+  EXPECT_EQ(canvas_.document()->Serialize(), document_before);
+  EXPECT_EQ(project_.lyra_terrain_file, reference_before);
+  EXPECT_EQ(Peer::PendingMaps(canvas_), std::vector<int>({0xA0, 0xA1}));
+  EXPECT_EQ(Peer::Draft(canvas_, 0).main_palette, 5);
+  EXPECT_EQ(Peer::Draft(canvas_, 1).message_id, 7);
+  EXPECT_TRUE(canvas_.dirty());
+  ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainOpenTest, PaintedDraftRefusesReplacementBeforeLoading) {
+  ASSERT_TRUE(document_->BeginStroke().ok());
+  ASSERT_TRUE(document_->Paint(2, 3, 17).ok());
+  ASSERT_TRUE(document_->EndStroke().ok());
+  const auto document_before = document_->Serialize();
+  const auto reference_before = project_.lyra_terrain_file;
+  const auto status = canvas_.Open(
+      &project_, (directory_ / "replacement.json").string(), overworld_);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(status.message(),
+            "Save the current Lyra terrain draft before replacing it");
+  EXPECT_EQ(canvas_.document(), document_.get());
+  EXPECT_EQ(canvas_.document()->Serialize(), document_before);
+  EXPECT_EQ(project_.lyra_terrain_file, reference_before);
+  EXPECT_TRUE(canvas_.dirty());
+  ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainOpenTest, MissingProjectAndEmptySelectionRetainCanvas) {
+  const auto reference_before = project_.lyra_terrain_file;
+  EXPECT_EQ(canvas_.Open(nullptr, source_.string(), overworld_).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(canvas_.Open(&project_, "", overworld_).code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(canvas_.document(), document_.get());
+  EXPECT_EQ(project_.lyra_terrain_file, reference_before);
+  EXPECT_FALSE(canvas_.dirty());
+  ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainOpenTest, SameSourceCreateRetainsCleanDocument) {
+  Peer::BindSourcePath(canvas_, project_.lyra_terrain_file);
+  const auto reference_before = project_.lyra_terrain_file;
+  const auto status = canvas_.Create(&project_, overworld_);
+
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_EQ(canvas_.document(), document_.get());
+  EXPECT_EQ(project_.lyra_terrain_file, reference_before);
+  EXPECT_FALSE(canvas_.dirty());
+  ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainOpenTest, FailedFreshCreateDoesNotPublishProjectReference) {
+  LyraTerrainCanvas fresh;
+  project_.lyra_terrain_file.clear();
+  const auto status = fresh.Create(&project_, overworld_);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(project_.lyra_terrain_file.empty());
+  EXPECT_FALSE(fresh.loaded());
+  EXPECT_FALSE(fresh.dirty());
+  EXPECT_FALSE(fs::exists(source_));
+  ExpectProtectedFilesUnchanged();
+}
 
 class LyraPropertyDraftTest : public ::testing::Test {
  protected:

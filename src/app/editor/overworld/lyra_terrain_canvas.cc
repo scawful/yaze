@@ -183,7 +183,7 @@ LyraTerrainCanvas::~LyraTerrainCanvas() {
 
 absl::Status LyraTerrainCanvas::BindSource(zelda3::Overworld& overworld,
                                            core::LyraTerrainProfile* profile,
-                                           bool make_atlas) {
+                                           gfx::Bitmap* atlas) {
   if (!overworld.is_loaded() || overworld.is_lyra_preview())
     return absl::FailedPreconditionError(
         "Open the main project ROM to draw Lyra terrain");
@@ -254,7 +254,7 @@ absl::Status LyraTerrainCanvas::BindSource(zelda3::Overworld& overworld,
                    0x1000);
   profile->animation_fingerprint = core::ComputeSourceArtifactSha256(animation);
   RETURN_IF_ERROR(profile->Validate());
-  if (make_atlas) {
+  if (atlas) {
     RETURN_IF_ERROR(source.BuildTiles16Gfx(*overworld.mutable_tiles16(),
                                            profile->tile_count));
     const int height = ((profile->tile_count + 7) / 8) * 16;
@@ -263,15 +263,10 @@ absl::Status LyraTerrainCanvas::BindSource(zelda3::Overworld& overworld,
     if (blockset.size() < atlas_bytes)
       return absl::FailedPreconditionError(
           "Loom Tile16 atlas pixels are incomplete");
-    std::vector<uint8_t> atlas(blockset.begin(),
-                               blockset.begin() + atlas_bytes);
-    gfx::Arena::Get().RetireBitmap(atlas_);
-    atlas_.Create(128, height, 8, atlas);
-    atlas_.SetPalette(source.current_palette());
-    gfx::Arena::Get().QueueTextureCommand(
-        atlas_.texture() ? gfx::Arena::TextureCommandType::UPDATE
-                         : gfx::Arena::TextureCommandType::CREATE,
-        &atlas_);
+    std::vector<uint8_t> pixels(blockset.begin(),
+                                blockset.begin() + atlas_bytes);
+    atlas->Create(128, height, 8, pixels);
+    atlas->SetPalette(source.current_palette());
   }
   return absl::OkStatus();
 }
@@ -384,8 +379,7 @@ absl::StatusOr<core::LyraMapProperties>
 LyraTerrainCanvas::CopyNativeGraphicsSettings(
     zelda3::Overworld& overworld, int source_map,
     core::LyraMapProperties candidate) {
-  if (!overworld.is_loaded() || overworld.is_lyra_preview() ||
-      !overworld.rom())
+  if (!overworld.is_loaded() || overworld.is_lyra_preview() || !overworld.rom())
     return absl::FailedPreconditionError(
         "Open the main project ROM to copy native graphics settings");
   if (source_map < 0 || source_map >= 0xA0)
@@ -433,9 +427,9 @@ LyraTerrainCanvas::CopyNativeGraphicsSettings(
   for (int i = 0; i < 8; ++i) {
     const uint8_t sheet = source.static_graphics(i);
     if (sheet == 0x00 || sheet == 0xFF)
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Native map $%02X resolves graphics slot %d to $%02X", parent_id, i,
-          sheet));
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Native map $%02X resolves graphics slot %d to $%02X",
+                          parent_id, i, sheet));
     candidate.graphics_sheets[i] = sheet;
   }
   candidate.animated_sheet = source.animated_sheet();
@@ -557,7 +551,7 @@ absl::Status LyraTerrainCanvas::CheckAssetSources(
   map_assets_.clear();
   assets_valid_ = false;
   core::LyraTerrainProfile profile;
-  source_status_ = BindSource(overworld, &profile, false);
+  source_status_ = BindSource(overworld, &profile);
   if (!source_status_.ok())
     return source_status_;
   if (profile != document_->profile()) {
@@ -698,28 +692,46 @@ absl::Status LyraTerrainCanvas::Load(project::YazeProject* project,
   if (dirty())
     return absl::FailedPreconditionError(
         "Save the current Lyra terrain draft before replacing it");
-  // ROM replacement can keep the sidecar path while changing its native tile
-  // profile. Retire the old view and validate the full binding on every load.
-  Reset();
-  if (!project || project->lyra_terrain_file.empty())
+  if (!project || project->lyra_terrain_file.empty()) {
+    Reset();
     return absl::OkStatus();
+  }
   const auto path = project->GetAbsolutePath(project->lyra_terrain_file);
   RETURN_IF_ERROR(ValidateTarget(path, *project));
   core::LyraTerrainProfile profile;
-  RETURN_IF_ERROR(BindSource(overworld, &profile, false));
+  RETURN_IF_ERROR(BindSource(overworld, &profile));
   ASSIGN_OR_RETURN(auto bytes, ReadSource(path));
   if (!bytes)
     return absl::NotFoundError("The project's Lyra terrain file is missing");
   ASSIGN_OR_RETURN(auto document, Document::Parse(*bytes, profile));
   RETURN_IF_ERROR(ValidateMapAssets(overworld, document.authoring()));
-  RETURN_IF_ERROR(BindSource(overworld, &profile, true));
-  document_ = std::make_shared<Document>(std::move(document));
-  brush_ = {};
-  source_path_ = path;
-  source_bytes_ = std::move(bytes);
+  // ROM replacement can keep the sidecar path while changing its native tile
+  // profile. Validate all assets in copied maps before retiring the old view.
+  gfx::Bitmap atlas;
+  RETURN_IF_ERROR(BindSource(overworld, &profile, &atlas));
+  InstallDocument(std::make_shared<Document>(std::move(document)),
+                  std::move(atlas), path, std::move(bytes), false);
   // Keep the live reference absolute so project Save As can rebase it safely.
   project->lyra_terrain_file = source_path_;
-  unpublished_ = false;
+  return absl::OkStatus();
+}
+
+absl::Status LyraTerrainCanvas::Open(project::YazeProject* project,
+                                     const std::string& path,
+                                     zelda3::Overworld& overworld) {
+  if (!project || !project->project_opened())
+    return absl::FailedPreconditionError(
+        "Save a Yaze project before opening Lyra terrain");
+  if (path.empty())
+    return absl::InvalidArgumentError("Select a Lyra terrain .json file");
+  auto candidate = *project;
+  candidate.lyra_terrain_file = path;
+  RETURN_IF_ERROR(Load(&candidate, overworld));
+  const bool reference_changed =
+      project->GetAbsolutePath(project->lyra_terrain_file) !=
+      candidate.lyra_terrain_file;
+  project->lyra_terrain_file = candidate.lyra_terrain_file;
+  pending_project_commit_ = reference_changed;
   return absl::OkStatus();
 }
 
@@ -728,29 +740,46 @@ absl::Status LyraTerrainCanvas::Create(project::YazeProject* project,
   if (!project || !project->project_opened())
     return absl::FailedPreconditionError(
         "Save a Yaze project before creating Lyra terrain");
+  if (document_ && !dirty() &&
+      project->GetAbsolutePath(project->lyra_terrain_file) == source_path_)
+    return absl::OkStatus();
   if (!project->lyra_terrain_file.empty())
     return Load(project, overworld);
   if (document_)
     return absl::FailedPreconditionError("Lyra terrain is already loaded");
   core::LyraTerrainProfile profile;
-  RETURN_IF_ERROR(BindSource(overworld, &profile, false));
+  RETURN_IF_ERROR(BindSource(overworld, &profile));
   fs::path path(project->filepath);
   path.replace_extension(".lyra-terrain.json");
   RETURN_IF_ERROR(ValidateTarget(path, *project));
   ASSIGN_OR_RETURN(auto bytes, ReadSource(path));
   if (bytes)
     return absl::AlreadyExistsError(
-        "A Lyra terrain file already exists; add its project reference to open "
-        "it");
+        "A Lyra terrain file already exists; use Open Lyra Terrain to open it");
   ASSIGN_OR_RETURN(auto document, Document::Create(profile));
-  RETURN_IF_ERROR(BindSource(overworld, &profile, true));
-  document_ = std::make_shared<Document>(std::move(document));
-  brush_ = {};
-  source_path_ = fs::absolute(path).lexically_normal().string();
-  source_bytes_.reset();
+  RETURN_IF_ERROR(ValidateMapAssets(overworld, document.authoring()));
+  gfx::Bitmap atlas;
+  RETURN_IF_ERROR(BindSource(overworld, &profile, &atlas));
+  InstallDocument(
+      std::make_shared<Document>(std::move(document)), std::move(atlas),
+      fs::absolute(path).lexically_normal().string(), std::nullopt, true);
   project->lyra_terrain_file = source_path_;
-  unpublished_ = true;
   return absl::OkStatus();
+}
+
+void LyraTerrainCanvas::InstallDocument(std::shared_ptr<Document> document,
+                                        gfx::Bitmap atlas,
+                                        std::string source_path,
+                                        std::optional<std::string> source_bytes,
+                                        bool unpublished) {
+  Reset();
+  document_ = std::move(document);
+  atlas_ = std::move(atlas);
+  source_path_ = std::move(source_path);
+  source_bytes_ = std::move(source_bytes);
+  unpublished_ = unpublished;
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &atlas_);
 }
 
 bool LyraTerrainCanvas::dirty() const {
@@ -832,7 +861,7 @@ absl::Status LyraTerrainCanvas::Save(project::YazeProject* project,
         "Lyra project source changed; draft retained");
   RETURN_IF_ERROR(ValidateTarget(source_path_, *project));
   core::LyraTerrainProfile profile;
-  RETURN_IF_ERROR(BindSource(overworld, &profile, false));
+  RETURN_IF_ERROR(BindSource(overworld, &profile));
   if (profile != document_->profile())
     return absl::FailedPreconditionError(
         "Lyra tile definitions or graphics profile changed; draft retained");

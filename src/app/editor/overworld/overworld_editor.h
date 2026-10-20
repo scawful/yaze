@@ -233,6 +233,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     return lyra_canvas_.EditAuthoring(std::move(after), overworld_,
                                       undo_manager_);
   }
+  // Project ownership is resolved through the session provider. The manager
+  // loads native assets before invoking either explicit lifecycle action.
+  absl::Status CreateLyraTerrain();
+  absl::Status OpenLyraTerrain(const std::string& path);
   LyraTerrainCanvas lyra_canvas_;
   absl::Status lyra_canvas_status_;
   // Project terrain occupies the lower Special World rows without expanding
@@ -537,6 +541,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawOverworldCanvas();
 
  private:
+  void FocusLyraTerrain();
   project::YazeProject* TerrainProject() const {
     return project_context_provider_ ? project_context_provider_()
                                      : dependencies_.project;
