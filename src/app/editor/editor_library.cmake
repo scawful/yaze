@@ -379,7 +379,7 @@ target_link_libraries(yaze_editor PUBLIC
   yaze_editor_system_session
   yaze_editor_system_shortcuts
   yaze_app_core_lib
-  yaze_cli_core
+  yaze_cli_editor_shared
   yaze_rom
   yaze_gfx
   yaze_gui
