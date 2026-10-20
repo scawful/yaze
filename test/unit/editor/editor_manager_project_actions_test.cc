@@ -401,6 +401,17 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_FALSE(std::filesystem::exists(terrain));
   EXPECT_EQ(ReadFile(primary_project), initial_descriptor);
 
+  const auto initial_authoring = editor->lyra_canvas_.document()->authoring();
+  auto selected_scene = initial_authoring;
+  selected_scene.maps[1].properties.message_id = 0x42;
+  selected_scene.edge_connections.push_back(
+      {1, 0x99, 0xA1, core::LyraEdgePassage{15, 16}});
+  ASSERT_OK(editor->EditProjectMapAuthoring(selected_scene));
+  ASSERT_OK(editor->Undo());
+  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), initial_authoring);
+  ASSERT_OK(editor->Redo());
+  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), selected_scene);
+
   ASSERT_OK(manager->SaveProject());
   ASSERT_TRUE(std::filesystem::is_regular_file(terrain));
   EXPECT_FALSE(manager->IsCurrentProjectDirty());
@@ -429,6 +440,7 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_NE(editor, nullptr);
   ASSERT_TRUE(editor->lyra_canvas_.loaded());
   EXPECT_EQ(editor->lyra_canvas_.document()->Serialize(), terrain_bytes);
+  EXPECT_EQ(editor->lyra_canvas_.document()->authoring(), selected_scene);
   EXPECT_EQ(editor->current_map_id(), 0xA0);
   EXPECT_FALSE(manager->IsCurrentProjectDirty());
 
