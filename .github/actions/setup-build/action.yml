@@ -86,6 +86,14 @@ runs:
           }
         }
         $nasm = Get-Command nasm -CommandType Application -ErrorAction SilentlyContinue
+        # NASM's per-user installer does not add its directory to PATH.
+        if (-not $nasm) {
+          $nasmDir = Join-Path $env:LOCALAPPDATA 'bin\NASM'
+          if (Test-Path (Join-Path $nasmDir 'nasm.exe')) {
+            $env:PATH = "$nasmDir;$env:PATH"
+            $nasm = Get-Command nasm -CommandType Application -ErrorAction SilentlyContinue
+          }
+        }
         if (-not $nasm) {
           throw "Chocolatey completed, but nasm is not discoverable after refreshing the environment."
         }
