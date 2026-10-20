@@ -163,24 +163,19 @@ test_filter_selects_tests() {
 
 collect_changed_files() {
   local base=""
-  local committed=()
-  local staged=()
-  local working=()
 
   if git rev-parse --verify '@{upstream}' >/dev/null 2>&1; then
     base="$(git merge-base HEAD '@{upstream}' 2>/dev/null || true)"
   fi
 
   if [[ -n "$base" ]]; then
-    mapfile -t committed < <(git diff --name-only --diff-filter=ACMR "$base"...HEAD)
+    git diff --name-only --diff-filter=ACMR "$base"...HEAD
   elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-    mapfile -t committed < <(git diff --name-only --diff-filter=ACMR HEAD~1...HEAD)
+    git diff --name-only --diff-filter=ACMR HEAD~1...HEAD
   fi
 
-  mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR)
-  mapfile -t working < <(git diff --name-only --diff-filter=ACMR)
-
-  printf '%s\n' "${committed[@]}" "${staged[@]}" "${working[@]}" | sed '/^$/d' | sort -u
+  git diff --cached --name-only --diff-filter=ACMR
+  git diff --name-only --diff-filter=ACMR
 }
 
 has_ui_workflow_changes() {
@@ -240,14 +235,19 @@ main() {
   check_git_repo
   run_rom_guard
 
-  if ! check_cmake_configured; then
+  # Formatting and existing test binaries do not need a configured CMake build.
+  if [[ "$SKIP_BUILD" == false ]] && ! check_cmake_configured; then
     exit 4
   fi
 
   local start_time
   start_time="$(date +%s)"
 
-  mapfile -t CHANGED_FILES < <(collect_changed_files | sed '/^$/d' | sort -u)
+  CHANGED_FILES=()
+  local changed_file
+  while IFS= read -r changed_file; do
+    CHANGED_FILES+=("$changed_file")
+  done < <(collect_changed_files | sed '/^$/d' | sort -u)
   print_info "Changed files considered: ${#CHANGED_FILES[@]}"
 
   # ── Step 0: Source & test registration audits (fast, no build required) ──

@@ -25,3 +25,6 @@ jobs:
 
       - name: Scan history for ROM files and the purged ROM blob
         run: bash scripts/check-no-roms.sh HEAD
+
+      - name: Test ROM guard with text-only Git fixtures
+        run: python3 scripts/test_check_no_roms.py -v

@@ -160,6 +160,35 @@ class RomGuardTest(unittest.TestCase):
         self.assertIn("ROM guard: blocked.", result.stderr)
         self.assertNotIn("Build directory not configured", result.stdout)
 
+    def test_noninteractive_all_skip_needs_no_cmake_configuration(self):
+        # Keep the registration audits active, using tiny passing scripts in this
+        # isolated repository to focus this fixture on pre-push control flow.
+        scripts = self.repo / "scripts"
+        scripts.mkdir()
+        for name in ("build_cleaner.py", "audit_test_registration.py"):
+            (scripts / name).write_text("raise SystemExit(0)\n")
+        env = os.environ.copy()
+        env["YAZE_PREPUSH_BUILD_DIR"] = str(self.repo / "missing-build")
+        result = subprocess.run(
+            [
+                BASH,
+                str(GUARD.with_name("pre-push.sh")),
+                "--skip-build",
+                "--skip-tests",
+                "--skip-format",
+            ],
+            cwd=self.repo,
+            input="",
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("No ROM files or pre-purge history", result.stdout)
+        self.assertIn("CMake source lists: no drift", result.stdout)
+        self.assertIn("Test registration audit self-test passed", result.stdout)
+        self.assertNotIn("Build directory not configured", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
