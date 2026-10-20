@@ -216,6 +216,37 @@ TEST_F(TileSelectorWidgetTest, FitScaleKeepsDeepRowsOnAtlasTileEdges) {
       widget.GetGridContentSize().x);
 }
 
+TEST_F(TileSelectorWidgetTest, DisplayOrderMapsCellsToTiles) {
+  gui::TileSelectorWidget widget("display_order", config_);
+  const float cell = widget.TileCellSize();
+
+  // Invalid and duplicate IDs are dropped; unlisted tiles are hidden.
+  widget.SetDisplayOrder({42, 7, 99, 7, -1, 3});
+  ASSERT_TRUE(widget.has_display_order());
+  EXPECT_EQ(widget.display_order(), (std::vector<int>{42, 7, 3}));
+  EXPECT_EQ(widget.TileAtCell(0), 42);
+  EXPECT_EQ(widget.TileAtCell(2), 3);
+  EXPECT_EQ(widget.TileAtCell(3), -1);
+  EXPECT_EQ(widget.CellOfTile(7), 1);
+  EXPECT_EQ(widget.CellOfTile(0), -1);
+
+  // Geometry follows cells, so the highlight sits where the tile is drawn.
+  EXPECT_FLOAT_EQ(widget.TileOrigin(42).x, config_.draw_offset.x);
+  EXPECT_FLOAT_EQ(widget.TileOrigin(3).x, config_.draw_offset.x + 2 * cell);
+  EXPECT_FLOAT_EQ(widget.TileOrigin(0).x, -1.0f);
+  EXPECT_FLOAT_EQ(widget.GetGridContentSize().y, cell);
+
+  // Shrinking the tile set re-filters the order.
+  widget.SetTileCount(10);
+  EXPECT_EQ(widget.display_order(), (std::vector<int>{7, 3}));
+
+  widget.ClearDisplayOrder();
+  EXPECT_FALSE(widget.has_display_order());
+  EXPECT_EQ(widget.TileAtCell(5), 5);
+  EXPECT_EQ(widget.CellOfTile(9), 9);
+  EXPECT_FLOAT_EQ(widget.GetGridContentSize().y, 2 * cell);
+}
+
 // Test tile count setting
 TEST_F(TileSelectorWidgetTest, SetTileCount) {
   gui::TileSelectorWidget widget("test_widget", config_);

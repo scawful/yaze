@@ -8,11 +8,14 @@
 #endif
 
 // C++ standard library headers
+#include <algorithm>
 #include <memory>
 #include <string>
+#include <vector>
 
 // Third-party library headers
 #include "absl/status/status.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 
@@ -30,6 +33,7 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/drag_drop.h"
@@ -41,6 +45,7 @@
 #include "rom/rom.h"
 #include "util/log.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
 
@@ -577,6 +582,16 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     // Only the selector's own items (Edit Tile16, Copy Tile ID) belong here;
     // the canvas debug/scale items do not apply to a fixed tile grid.
     editor_->blockset_canvas_.SetShowBuiltinContextMenu(false);
+    editor_->blockset_selector_->SetHoverDetailProvider(
+        [this](int tile_id) -> std::string {
+          if (tile_id < 0 ||
+              tile_id >= static_cast<int>(tile16_usage_counts_.size())) {
+            return {};
+          }
+          return absl::StrFormat("Placed %d times (%s)",
+                                 tile16_usage_counts_[tile_id],
+                                 Tile16ScopeLabel());
+        });
   }
 
   editor_->UpdateBlocksetSelectorState();
@@ -644,6 +659,8 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     editor_->RequestTile16Selection(
         editor_->blockset_selector_->GetSelectedTileID());
   }
+  DrawTile16ViewControls();
+  RefreshTile16Order(tile16_grid_hovered_);
 
   // Padding is read at BeginChild; pop it right away so the grid's tooltip
   // and context menu keep normal popup padding.
@@ -677,8 +694,213 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     open_tile16_editor(result.selected_tile);
   }
 
+  tile16_grid_hovered_ = ImGui::IsWindowHovered();
   ImGui::EndChild();
   return absl::OkStatus();
+}
+
+std::string OverworldCanvasRenderer::Tile16ScopeLabel() const {
+  switch (tile16_scope_) {
+    case Tile16UsageScope::kAllMaps:
+      return tr("All maps");
+    case Tile16UsageScope::kCurrentWorld:
+      switch (editor_->current_world_) {
+        case 1:
+          return tr("Dark World");
+        case 2:
+          return tr("Special World");
+        default:
+          return tr("Light World");
+      }
+    case Tile16UsageScope::kCurrentArea:
+      return tr("This area");
+    case Tile16UsageScope::kArea:
+      return absl::StrFormat("%02X %s", tile16_scope_area_,
+                             zelda3::GetOverworldMapLabel(tile16_scope_area_));
+  }
+  return {};
+}
+
+std::vector<int> OverworldCanvasRenderer::Tile16ScopeMaps() const {
+  const auto& maps = editor_->overworld_.overworld_maps();
+  const int map_count = static_cast<int>(maps.size());
+  std::vector<int> map_ids;
+  map_ids.reserve(map_count);
+  switch (tile16_scope_) {
+    case Tile16UsageScope::kAllMaps:
+      for (int id = 0; id < map_count; ++id) {
+        map_ids.push_back(id);
+      }
+      break;
+    case Tile16UsageScope::kCurrentWorld:
+      for (int id = 0; id < map_count; ++id) {
+        if (std::min(id / 0x40, 2) == editor_->current_world_) {
+          map_ids.push_back(id);
+        }
+      }
+      break;
+    case Tile16UsageScope::kCurrentArea:
+    case Tile16UsageScope::kArea: {
+      const int anchor = tile16_scope_ == Tile16UsageScope::kArea
+                             ? tile16_scope_area_
+                             : editor_->current_map_;
+      if (anchor < 0 || anchor >= map_count) {
+        break;
+      }
+      const int parent = maps[anchor].parent();
+      for (int id = 0; id < map_count; ++id) {
+        if (maps[id].parent() == parent) {
+          map_ids.push_back(id);
+        }
+      }
+      break;
+    }
+  }
+  return map_ids;
+}
+
+void OverworldCanvasRenderer::RefreshTile16Order(bool grid_hovered) {
+  constexpr double kRecountIntervalSeconds = 0.5;
+  auto* selector = editor_->blockset_selector_.get();
+  if (selector == nullptr) {
+    return;
+  }
+  if (!editor_->overworld_.is_loaded()) {
+    selector->ClearDisplayOrder();
+    tile16_usage_counts_.clear();
+    tile16_order_dirty_ = true;
+    return;
+  }
+
+  const auto* current_map =
+      editor_->overworld_.overworld_map(editor_->current_map_);
+  const int current_parent =
+      current_map != nullptr ? current_map->parent() : editor_->current_map_;
+  const bool inputs_changed =
+      (tile16_scope_ == Tile16UsageScope::kCurrentWorld &&
+       editor_->current_world_ != tile16_counted_world_) ||
+      (tile16_scope_ == Tile16UsageScope::kCurrentArea &&
+       current_parent != tile16_counted_parent_);
+  const double now = ImGui::GetTime();
+  const bool busy = grid_hovered || ImGui::IsAnyMouseDown();
+  const bool stale = now - tile16_last_count_time_ >= kRecountIntervalSeconds;
+  if (!tile16_order_dirty_ && (busy || (!inputs_changed && !stale))) {
+    return;
+  }
+
+  std::vector<int> counts(zelda3::kNumTile16Individual, 0);
+  for (const int map_id : Tile16ScopeMaps()) {
+    zelda3::AccumulateTile16MapUsage(
+        editor_->overworld_.GetMapTiles(std::min(map_id / 0x40, 2)),
+        map_id % 0x40, &counts);
+  }
+  tile16_last_count_time_ = now;
+  tile16_counted_world_ = editor_->current_world_;
+  tile16_counted_parent_ = current_parent;
+  const bool order_changed =
+      tile16_order_dirty_ || counts != tile16_usage_counts_;
+  tile16_usage_counts_ = std::move(counts);
+  tile16_order_dirty_ = false;
+  if (!order_changed) {
+    return;
+  }
+
+  if (tile16_sort_ == zelda3::Tile16SortMode::kTileId && !tile16_hide_unused_) {
+    selector->ClearDisplayOrder();
+  } else {
+    selector->SetDisplayOrder(zelda3::BuildTile16DisplayOrder(
+        tile16_usage_counts_, tile16_sort_, tile16_hide_unused_));
+  }
+}
+
+void OverworldCanvasRenderer::DrawTile16ViewControls() {
+  constexpr const char* kSortLabels[] = {"Most used", "Tile ID"};
+  int sort = tile16_sort_ == zelda3::Tile16SortMode::kUsage ? 0 : 1;
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled("%s", tr("Sort"));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(gui::ScaledSize(96.0f, 0.0f).x);
+  if (ImGui::Combo("##Tile16Sort", &sort, kSortLabels,
+                   IM_ARRAYSIZE(kSortLabels))) {
+    tile16_sort_ = sort == 0 ? zelda3::Tile16SortMode::kUsage
+                             : zelda3::Tile16SortMode::kTileId;
+    tile16_order_dirty_ = true;
+  }
+  gui::AutoRegisterLastItem("combo", "tile16_sort");
+
+  ImGui::SameLine();
+  std::string scope_label = Tile16ScopeLabel();
+  constexpr size_t kMaxScopeButtonChars = 18;
+  if (scope_label.size() > kMaxScopeButtonChars) {
+    scope_label = scope_label.substr(0, kMaxScopeButtonChars - 3) + "...";
+  }
+  const std::string button_label =
+      absl::StrFormat("%s %s%s###Tile16UsageScopeButton", ICON_MD_FILTER_LIST,
+                      scope_label, tile16_hide_unused_ ? "*" : "");
+  if (ImGui::Button(button_label.c_str())) {
+    ImGui::OpenPopup("Tile16UsageScope");
+  }
+  gui::AutoRegisterLastItem("button", "tile16_usage_scope");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(tr("Maps that usage counts and \"Hide unused\" use"));
+  }
+
+  ImGui::SetNextWindowSizeConstraints(ImVec2(260.0f, 0.0f),
+                                      ImVec2(380.0f, 480.0f));
+  if (ImGui::BeginPopup("Tile16UsageScope")) {
+    ImGui::TextDisabled("%s", tr("Count placements in"));
+    const auto scope_radio = [this](const char* label, Tile16UsageScope scope) {
+      if (ImGui::RadioButton(label, tile16_scope_ == scope)) {
+        tile16_scope_ = scope;
+        tile16_order_dirty_ = true;
+      }
+    };
+    scope_radio(tr("All maps"), Tile16UsageScope::kAllMaps);
+    scope_radio(tr("Current world"), Tile16UsageScope::kCurrentWorld);
+    scope_radio(tr("Current area"), Tile16UsageScope::kCurrentArea);
+    if (ImGui::Checkbox(tr("Hide unused tiles"), &tile16_hide_unused_)) {
+      tile16_order_dirty_ = true;
+    }
+    ImGui::Separator();
+    DrawTile16AreaPicker();
+    ImGui::EndPopup();
+  }
+}
+
+void OverworldCanvasRenderer::DrawTile16AreaPicker() {
+  ImGui::TextDisabled("%s", tr("Area"));
+  ImGui::SetNextItemWidth(-1.0f);
+  ImGui::InputTextWithHint("##Tile16AreaSearch",
+                           tr("Search map names or IDs..."),
+                           tile16_area_search_, sizeof(tile16_area_search_));
+  const std::string needle = absl::AsciiStrToLower(tile16_area_search_);
+
+  if (ImGui::BeginChild("##Tile16AreaList",
+                        ImVec2(0.0f, gui::ScaledSize(0.0f, 200.0f).y),
+                        ImGuiChildFlags_Borders)) {
+    const auto& maps = editor_->overworld_.overworld_maps();
+    for (int id = 0; id < static_cast<int>(maps.size()); ++id) {
+      if (maps[id].parent() != id) {
+        continue;  // One row per area; large areas list only their parent.
+      }
+      const char* world_tag = id < 0x40 ? "LW" : (id < 0x80 ? "DW" : "SW");
+      const std::string row = absl::StrFormat("%s %02X  %s", world_tag, id,
+                                              zelda3::GetOverworldMapLabel(id));
+      if (!needle.empty() &&
+          absl::AsciiStrToLower(row).find(needle) == std::string::npos) {
+        continue;
+      }
+      const bool selected =
+          tile16_scope_ == Tile16UsageScope::kArea && tile16_scope_area_ == id;
+      if (ImGui::Selectable(row.c_str(), selected)) {
+        tile16_scope_ = Tile16UsageScope::kArea;
+        tile16_scope_area_ = id;
+        tile16_order_dirty_ = true;
+        ImGui::CloseCurrentPopup();
+      }
+    }
+  }
+  ImGui::EndChild();
 }
 
 void OverworldCanvasRenderer::DrawTile8Selector() {

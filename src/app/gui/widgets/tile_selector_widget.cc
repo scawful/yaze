@@ -83,7 +83,11 @@ void TileSelectorWidget::AttachCanvas(Canvas* canvas) {
 }
 
 void TileSelectorWidget::SetTileCount(int total_tiles) {
+  const int previous_total = total_tiles_;
   total_tiles_ = std::max(total_tiles, 0);
+  if (display_order_active_ && total_tiles_ != previous_total) {
+    SetDisplayOrder(std::move(display_order_));
+  }
   if (!IsValidTileId(selected_tile_id_)) {
     selected_tile_id_ = 0;
   }
@@ -131,9 +135,47 @@ float GridWidthFor(const TileSelectorWidget::Config& config) {
 
 }  // namespace
 
+void TileSelectorWidget::SetDisplayOrder(std::vector<int> order) {
+  cell_of_tile_.assign(total_tiles_, -1);
+  display_order_.clear();
+  display_order_.reserve(order.size());
+  for (const int tile_id : order) {
+    if (IsValidTileId(tile_id) && cell_of_tile_[tile_id] < 0) {
+      cell_of_tile_[tile_id] = static_cast<int>(display_order_.size());
+      display_order_.push_back(tile_id);
+    }
+  }
+  display_order_active_ = true;
+}
+
+void TileSelectorWidget::ClearDisplayOrder() {
+  display_order_active_ = false;
+  display_order_.clear();
+  cell_of_tile_.clear();
+}
+
+int TileSelectorWidget::CellCount() const {
+  return display_order_active_ ? static_cast<int>(display_order_.size())
+                               : total_tiles_;
+}
+
+int TileSelectorWidget::TileAtCell(int cell) const {
+  if (cell < 0 || cell >= CellCount()) {
+    return -1;
+  }
+  return display_order_active_ ? display_order_[cell] : cell;
+}
+
+int TileSelectorWidget::CellOfTile(int tile_id) const {
+  if (!IsValidTileId(tile_id)) {
+    return -1;
+  }
+  return display_order_active_ ? cell_of_tile_[tile_id] : tile_id;
+}
+
 ImVec2 TileSelectorWidget::GetGridContentSize() const {
   const int num_rows =
-      (total_tiles_ + config_.tiles_per_row - 1) / config_.tiles_per_row;
+      (CellCount() + config_.tiles_per_row - 1) / config_.tiles_per_row;
   return ImVec2(GridWidthFor(config_),
                 num_rows * TileCellSize() + config_.draw_offset.y * 2);
 }
@@ -176,7 +218,7 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
   // Handle pending scroll (deferred from ScrollToTile call outside render
   // context)
   if (pending_scroll_tile_id_ >= 0) {
-    if (IsValidTileId(pending_scroll_tile_id_)) {
+    if (CellOfTile(pending_scroll_tile_id_) >= 0) {
       const ImVec2 target = TileOrigin(pending_scroll_tile_id_);
       if (pending_scroll_use_imgui_) {
         const ImVec2 window_size = ImGui::GetWindowSize();
@@ -196,9 +238,13 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
   canvas_->DrawBackground();
 
   if (atlas_ready && atlas.is_active()) {
-    canvas_->DrawBitmap(atlas, static_cast<int>(config_.draw_offset.x),
-                        static_cast<int>(config_.draw_offset.y),
-                        config_.display_scale);
+    if (display_order_active_) {
+      DrawOrderedTiles(atlas, tile_display_size);
+    } else {
+      canvas_->DrawBitmap(atlas, static_cast<int>(config_.draw_offset.x),
+                          static_cast<int>(config_.draw_offset.y),
+                          config_.display_scale);
+    }
 
     result = HandleInteraction(tile_display_size);
 
@@ -208,6 +254,12 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
       if (IsValidTileId(hovered_tile)) {
         ImGui::BeginTooltip();
         ImGui::Text(tr("Tile %d (0x%03X)"), hovered_tile, hovered_tile);
+        if (hover_detail_) {
+          const std::string detail = hover_detail_(hovered_tile);
+          if (!detail.empty()) {
+            ImGui::TextUnformatted(detail.c_str());
+          }
+        }
 
         // Extract and draw a zoomed preview of the hovered tile
         int tile_col = hovered_tile % config_.tiles_per_row;
@@ -321,7 +373,7 @@ int TileSelectorWidget::ResolveTileAtCursor(float tile_display_size) const {
     return -1;
   }
 
-  return row * config_.tiles_per_row + column;
+  return TileAtCell(row * config_.tiles_per_row + column);
 }
 
 ImVec2 TileSelectorWidget::GridScreenOrigin() const {
@@ -329,6 +381,57 @@ ImVec2 TileSelectorWidget::GridScreenOrigin() const {
   const ImVec2 scroll = canvas_->scrolling();
   return ImVec2(origin.x + scroll.x + config_.draw_offset.x,
                 origin.y + scroll.y + config_.draw_offset.y);
+}
+
+std::pair<int, int> TileSelectorWidget::VisibleRows(
+    float tile_display_size) const {
+  ImDrawList* draw_list = canvas_ ? canvas_->draw_list() : nullptr;
+  if (!draw_list || tile_display_size <= 0.0f || config_.tiles_per_row <= 0) {
+    return {0, 0};
+  }
+  const int num_rows =
+      (CellCount() + config_.tiles_per_row - 1) / config_.tiles_per_row;
+  const float grid_top = GridScreenOrigin().y;
+  const int first_row = std::clamp(
+      static_cast<int>(std::floor((draw_list->GetClipRectMin().y - grid_top) /
+                                  tile_display_size)),
+      0, num_rows);
+  const int last_row = std::clamp(
+      static_cast<int>(std::ceil((draw_list->GetClipRectMax().y - grid_top) /
+                                 tile_display_size)),
+      0, num_rows);
+  return {first_row, last_row};
+}
+
+void TileSelectorWidget::DrawOrderedTiles(gfx::Bitmap& atlas,
+                                          float tile_display_size) const {
+  ImDrawList* draw_list = canvas_ ? canvas_->draw_list() : nullptr;
+  if (!draw_list || atlas.texture() == nullptr || atlas.width() <= 0 ||
+      atlas.height() <= 0 || config_.tile_size <= 0) {
+    return;
+  }
+  const int atlas_columns = std::max(1, atlas.width() / config_.tile_size);
+  const float atlas_w = static_cast<float>(atlas.width());
+  const float atlas_h = static_cast<float>(atlas.height());
+  const ImVec2 grid_min = GridScreenOrigin();
+  const auto [first_row, last_row] = VisibleRows(tile_display_size);
+  const int last_cell = std::min(last_row * config_.tiles_per_row, CellCount());
+  for (int cell = first_row * config_.tiles_per_row; cell < last_cell; ++cell) {
+    const int tile_id = display_order_[cell];
+    const float src_x =
+        static_cast<float>((tile_id % atlas_columns) * config_.tile_size);
+    const float src_y =
+        static_cast<float>((tile_id / atlas_columns) * config_.tile_size);
+    const ImVec2 dst_min(
+        grid_min.x + (cell % config_.tiles_per_row) * tile_display_size,
+        grid_min.y + (cell / config_.tiles_per_row) * tile_display_size);
+    draw_list->AddImage(
+        (ImTextureID)(intptr_t)atlas.texture(), dst_min,
+        ImVec2(dst_min.x + tile_display_size, dst_min.y + tile_display_size),
+        ImVec2(src_x / atlas_w, src_y / atlas_h),
+        ImVec2((src_x + config_.tile_size) / atlas_w,
+               (src_y + config_.tile_size) / atlas_h));
+  }
 }
 
 void TileSelectorWidget::DrawGridLines(float tile_display_size) const {
@@ -339,22 +442,13 @@ void TileSelectorWidget::DrawGridLines(float tile_display_size) const {
   }
 
   const int num_rows =
-      (total_tiles_ + config_.tiles_per_row - 1) / config_.tiles_per_row;
+      (CellCount() + config_.tiles_per_row - 1) / config_.tiles_per_row;
   const ImVec2 grid_min = GridScreenOrigin();
   const ImVec2 grid_max(grid_min.x + config_.tiles_per_row * tile_display_size,
                         grid_min.y + num_rows * tile_display_size);
 
   // Only the rows inside the scrolling child's clip rect are emitted.
-  const ImVec2 clip_min = draw_list->GetClipRectMin();
-  const ImVec2 clip_max = draw_list->GetClipRectMax();
-  const int first_row =
-      std::clamp(static_cast<int>(
-                     std::floor((clip_min.y - grid_min.y) / tile_display_size)),
-                 0, num_rows);
-  const int last_row =
-      std::clamp(static_cast<int>(
-                     std::ceil((clip_max.y - grid_min.y) / tile_display_size)),
-                 0, num_rows);
+  const auto [first_row, last_row] = VisibleRows(tile_display_size);
   if (first_row >= last_row) {
     return;
   }
@@ -375,12 +469,13 @@ void TileSelectorWidget::DrawGridLines(float tile_display_size) const {
 
 void TileSelectorWidget::DrawHighlight(float tile_display_size) const {
   ImDrawList* draw_list = canvas_ ? canvas_->draw_list() : nullptr;
-  if (!draw_list || !IsValidTileId(selected_tile_id_)) {
+  const int cell = CellOfTile(selected_tile_id_);
+  if (!draw_list || cell < 0) {
     return;
   }
 
-  const int column = selected_tile_id_ % config_.tiles_per_row;
-  const int row = selected_tile_id_ / config_.tiles_per_row;
+  const int column = cell % config_.tiles_per_row;
+  const int row = cell / config_.tiles_per_row;
   const ImVec2 grid_min = GridScreenOrigin();
   const ImVec2 tile_min(grid_min.x + column * tile_display_size,
                         grid_min.y + row * tile_display_size);
@@ -407,12 +502,13 @@ void TileSelectorWidget::ScrollToTile(int tile_id, bool use_imgui_scroll) {
 }
 
 ImVec2 TileSelectorWidget::TileOrigin(int tile_id) const {
-  if (!IsValidTileId(tile_id)) {
+  const int cell = CellOfTile(tile_id);
+  if (cell < 0) {
     return ImVec2(-1, -1);
   }
   const float tile_display_size = TileCellSize();
-  const int column = tile_id % config_.tiles_per_row;
-  const int row = tile_id / config_.tiles_per_row;
+  const int column = cell % config_.tiles_per_row;
+  const int row = cell / config_.tiles_per_row;
   return ImVec2(config_.draw_offset.x + column * tile_display_size,
                 config_.draw_offset.y + row * tile_display_size);
 }

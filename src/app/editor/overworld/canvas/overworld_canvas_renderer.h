@@ -3,12 +3,15 @@
 
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/layout/adaptive_sheet_layout.h"
 #include "imgui/imgui.h"
+#include "zelda3/overworld/tile16_usage_index.h"
 
 namespace yaze {
 namespace editor {
@@ -87,6 +90,17 @@ class OverworldCanvasRenderer {
   /// In an entity mode only that entity type responds to hover/drag/menu.
   void FilterHoveredEntityByMode();
 
+  // Tile16 selector ordering: sort by placement count (default) or ID, over
+  // all maps, the current world, the current area, or a named area.
+  enum class Tile16UsageScope { kAllMaps, kCurrentWorld, kCurrentArea, kArea };
+  void DrawTile16ViewControls();
+  void DrawTile16AreaPicker();
+  std::string Tile16ScopeLabel() const;
+  std::vector<int> Tile16ScopeMaps() const;
+  /// Recounts placements at most twice a second, and never while the mouse is
+  /// down or over the grid, so tiles don't move under the cursor.
+  void RefreshTile16Order(bool grid_hovered);
+
   // =========================================================================
   // Data
   // =========================================================================
@@ -97,6 +111,19 @@ class OverworldCanvasRenderer {
       gui::AdaptiveSheetScaleMode::kFit;
   gui::AdaptiveSheetScaleMode area_graphics_scale_mode_ =
       gui::AdaptiveSheetScaleMode::kFit;
+
+  zelda3::Tile16SortMode tile16_sort_ = zelda3::Tile16SortMode::kUsage;
+  Tile16UsageScope tile16_scope_ = Tile16UsageScope::kAllMaps;
+  int tile16_scope_area_ = 0;
+  bool tile16_hide_unused_ = false;
+  bool tile16_order_dirty_ = true;
+  bool tile16_grid_hovered_ = false;
+  double tile16_last_count_time_ = -1.0;
+  // Scope inputs the cached counts were built for.
+  int tile16_counted_world_ = -1;
+  int tile16_counted_parent_ = -1;
+  std::vector<int> tile16_usage_counts_;
+  char tile16_area_search_[64] = {};
 };
 
 }  // namespace editor
