@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_LYRA_TERRAIN_CANVAS_H_
 #define YAZE_APP_EDITOR_OVERWORLD_LYRA_TERRAIN_CANVAS_H_
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>
@@ -124,6 +125,9 @@ class LyraTerrainCanvas {
   int placement_kind_ = 0;
   int placement_type_ = 0;
   int placement_state_ = 0;
+  // Independent of placement_type_, which other placement modes overwrite.
+  int new_sprite_type_ = 0;
+  std::array<char, 64> sprite_filter_{};
   uint32_t selected_entity_ = 0;
   int selected_kind_ = 0;
   std::optional<core::LyraAuthoringState> drag_before_;

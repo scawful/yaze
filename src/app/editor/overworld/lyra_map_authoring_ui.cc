@@ -1,6 +1,8 @@
 #include "app/editor/overworld/lyra_terrain_canvas.h"
 
 #include <algorithm>
+#include <array>
+#include <cfloat>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -8,9 +10,11 @@
 #include <unordered_set>
 #include <vector>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "imgui/imgui.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
 namespace {
@@ -62,6 +66,44 @@ uint32_t AllocateFlightPointId(const core::LyraAuthoringState& state) {
     ids.push_back(f.id);
   }
   return AllocateStableId(ids);
+}
+
+std::string SpriteTypeLabel(int type) {
+  // ResolveSpriteName returns thread-local storage reused by the next call.
+  const std::string name = zelda3::ResolveSpriteName(static_cast<uint16_t>(type));
+  return absl::StrFormat("$%02X %s", type, name);
+}
+
+// Returns true only when the chosen type differs from the incoming one.
+bool DrawSpriteTypePicker(const char* label, int& type,
+                          std::array<char, 64>& filter) {
+  const std::string preview = SpriteTypeLabel(type);
+  if (!ImGui::BeginCombo(label, preview.c_str(), ImGuiComboFlags_HeightLarge)) {
+    return false;
+  }
+  ImGui::SetNextItemWidth(-FLT_MIN);
+  ImGui::InputTextWithHint("##filter", "Search ID or name", filter.data(),
+                           filter.size());
+  const std::string query = absl::AsciiStrToLower(filter.data());
+  bool changed = false;
+  for (int id = 0; id < 256; ++id) {
+    const std::string option = SpriteTypeLabel(id);
+    if (!query.empty() &&
+        absl::AsciiStrToLower(option).find(query) == std::string::npos) {
+      continue;
+    }
+    ImGui::PushID(id);
+    const bool selected = id == type;
+    if (ImGui::Selectable(option.c_str(), selected) && !selected) {
+      type = id;
+      changed = true;
+    }
+    if (selected)
+      ImGui::SetItemDefaultFocus();
+    ImGui::PopID();
+  }
+  ImGui::EndCombo();
+  return changed;
 }
 
 }  // namespace
@@ -222,12 +264,13 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
 
     // Sprites
     if (ImGui::CollapsingHeader("Sprites", ImGuiTreeNodeFlags_DefaultOpen)) {
+      DrawSpriteTypePicker("Sprite type", new_sprite_type_, sprite_filter_);
       if (ImGui::Button("Add sprite")) {
         core::LyraAuthoringState next_state = document_->authoring();
         const uint32_t new_id = AllocateSpriteId(next_state);
         next_state.maps[map_index].sprites.push_back({
             .id = new_id,
-            .sprite_id = 0,
+            .sprite_id = static_cast<uint8_t>(new_sprite_type_),
             .x = 16,
             .y = 16,
             .state = std::clamp(state, 0, 2),
@@ -239,7 +282,7 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       ImGui::SameLine();
       if (ImGui::Button("Place sprite on canvas")) {
         placement_kind_ = 1;
-        placement_type_ = 0;
+        placement_type_ = new_sprite_type_;
         placement_state_ = std::clamp(state, 0, 2);
       }
 
@@ -247,8 +290,9 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       for (size_t i = 0; i < sprites.size(); ++i) {
         const auto& s = sprites[i];
         ImGui::PushID(static_cast<int>(s.id + 0x100000));
-        std::string header_label =
-            absl::StrFormat("Sprite #%u (ID: %u, State: %d)", i, s.id, s.state);
+        std::string header_label = absl::StrFormat(
+            "Sprite #%u (ID: %u, State: %d) - %s", i, s.id, s.state,
+            SpriteTypeLabel(s.sprite_id));
         if (ImGui::CollapsingHeader((header_label + "###entity").c_str())) {
           core::LyraAuthoringState next_state = document_->authoring();
           auto& target = next_state.maps[map_index].sprites[i];
@@ -270,6 +314,11 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
                                  ImGuiInputTextFlags_CharsHexadecimal)) {
             target.sprite_id =
                 static_cast<uint8_t>(std::clamp(spr_type, 0, 255));
+            changed = true;
+          }
+          int picked_type = target.sprite_id;
+          if (DrawSpriteTypePicker("Sprite type", picked_type, sprite_filter_)) {
+            target.sprite_id = static_cast<uint8_t>(picked_type);
             changed = true;
           }
           int spr_st = target.state;

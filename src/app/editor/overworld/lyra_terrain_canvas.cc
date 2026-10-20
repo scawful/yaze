@@ -839,6 +839,8 @@ void LyraTerrainCanvas::Reset() {
   property_draft_.reset();
   property_baseline_.reset();
   placement_kind_ = placement_type_ = placement_state_ = 0;
+  new_sprite_type_ = 0;
+  sprite_filter_ = {};
   selected_entity_ = selected_kind_ = 0;
   drag_map_ = -1;
   property_map_ = -1;
