@@ -897,6 +897,7 @@ TEST(EditorManagerProjectActionsTest,
   flags.overworld.kSaveOverworldExits = false;
   flags.overworld.kSaveOverworldItems = false;
   flags.overworld.kSaveOverworldProperties = false;
+  flags.overworld.kSaveOverworldSprites = false;
   manager->user_settings().prefs().backup_before_save = false;
   ASSERT_OK(manager->SaveRomAs(copy_path.string()));
   ASSERT_TRUE(std::filesystem::exists(copy_path));

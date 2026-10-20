@@ -1069,6 +1069,12 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (feature_flags.overworld.kApplyZSCustomOverworldASM ? "true"
                                                               : "false")
        << "\n";
+  file << "enable_special_world_expansion="
+       << (feature_flags.overworld.kEnableSpecialWorldExpansion ? "true"
+                                                                : "false")
+       << "\n";
+  file << "save_with_change_queue="
+       << (feature_flags.kSaveWithChangeQueue ? "true" : "false") << "\n";
   file << "save_dungeon_maps="
        << (feature_flags.kSaveDungeonMaps ? "true" : "false") << "\n";
   file << "save_overworld_maps="
@@ -1082,6 +1088,9 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << "\n";
   file << "save_overworld_items="
        << (feature_flags.overworld.kSaveOverworldItems ? "true" : "false")
+       << "\n";
+  file << "save_overworld_sprites="
+       << (feature_flags.overworld.kSaveOverworldSprites ? "true" : "false")
        << "\n";
   file << "save_overworld_properties="
        << (feature_flags.overworld.kSaveOverworldProperties ? "true" : "false")
@@ -1354,6 +1363,9 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         "Project file contains unsupported lone carriage returns");
   }
 
+  feature_flags.overworld.kSaveOverworldSprites = true;
+  feature_flags.overworld.kEnableSpecialWorldExpansion = false;
+  feature_flags.kSaveWithChangeQueue = false;
   sprite_catalog_file.clear();
   sprite_source_root.clear();
   sprite_assets.clear();
@@ -1498,6 +1510,10 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.overworld.kLoadCustomOverworld = ParseBool(value);
       else if (key == "apply_zs_custom_overworld_asm")
         feature_flags.overworld.kApplyZSCustomOverworldASM = ParseBool(value);
+      else if (key == "enable_special_world_expansion")
+        feature_flags.overworld.kEnableSpecialWorldExpansion = ParseBool(value);
+      else if (key == "save_with_change_queue")
+        feature_flags.kSaveWithChangeQueue = ParseBool(value);
       else if (key == "save_dungeon_maps")
         feature_flags.kSaveDungeonMaps = ParseBool(value);
       else if (key == "save_overworld_maps")
@@ -1508,6 +1524,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.overworld.kSaveOverworldExits = ParseBool(value);
       else if (key == "save_overworld_items")
         feature_flags.overworld.kSaveOverworldItems = ParseBool(value);
+      else if (key == "save_overworld_sprites")
+        feature_flags.overworld.kSaveOverworldSprites = ParseBool(value);
       else if (key == "save_overworld_properties")
         feature_flags.overworld.kSaveOverworldProperties = ParseBool(value);
       else if (key == "save_dungeon_objects")
@@ -2590,6 +2608,7 @@ ProjectManager::GetProjectTemplates() {
     t.template_project.feature_flags.overworld.kApplyZSCustomOverworldASM =
         false;
     t.template_project.feature_flags.overworld.kSaveOverworldMaps = false;
+    t.template_project.feature_flags.overworld.kSaveOverworldSprites = false;
     t.template_project.feature_flags.kSaveDungeonMaps = false;
     t.template_project.metadata.tags = {"randomizer", "compatible", "minimal"};
     templates.push_back(t);
@@ -3068,6 +3087,9 @@ void YazeProject::InitializeResourceLabelProvider() {
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
 
 absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
+  feature_flags.overworld.kSaveOverworldSprites = true;
+  feature_flags.overworld.kEnableSpecialWorldExpansion = false;
+  feature_flags.kSaveWithChangeQueue = false;
   terrain_catalog_file.clear();
   lyra_terrain_file.clear();
   palette_catalog_file.clear();
@@ -3178,6 +3200,12 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kSaveDungeonMaps"))
           feature_flags.kSaveDungeonMaps =
               flags["kSaveDungeonMaps"].get<bool>();
+        if (flags.contains("kSaveWithChangeQueue"))
+          feature_flags.kSaveWithChangeQueue =
+              flags["kSaveWithChangeQueue"].get<bool>();
+        if (flags.contains("kEnableSpecialWorldExpansion"))
+          feature_flags.overworld.kEnableSpecialWorldExpansion =
+              flags["kEnableSpecialWorldExpansion"].get<bool>();
         if (flags.contains("kSaveOverworldMaps"))
           feature_flags.overworld.kSaveOverworldMaps =
               flags["kSaveOverworldMaps"].get<bool>();
@@ -3190,6 +3218,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kSaveOverworldItems"))
           feature_flags.overworld.kSaveOverworldItems =
               flags["kSaveOverworldItems"].get<bool>();
+        if (flags.contains("kSaveOverworldSprites"))
+          feature_flags.overworld.kSaveOverworldSprites =
+              flags["kSaveOverworldSprites"].get<bool>();
         if (flags.contains("kSaveOverworldProperties"))
           feature_flags.overworld.kSaveOverworldProperties =
               flags["kSaveOverworldProperties"].get<bool>();
@@ -3448,6 +3479,10 @@ absl::Status YazeProject::SaveToJsonFormat() {
   // Feature flags
   // REMOVED: kLogInstructions (deprecated)
   proj["feature_flags"]["kSaveDungeonMaps"] = feature_flags.kSaveDungeonMaps;
+  proj["feature_flags"]["kSaveWithChangeQueue"] =
+      feature_flags.kSaveWithChangeQueue;
+  proj["feature_flags"]["kEnableSpecialWorldExpansion"] =
+      feature_flags.overworld.kEnableSpecialWorldExpansion;
   proj["feature_flags"]["kSaveOverworldMaps"] =
       feature_flags.overworld.kSaveOverworldMaps;
   proj["feature_flags"]["kSaveOverworldEntrances"] =
@@ -3456,6 +3491,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       feature_flags.overworld.kSaveOverworldExits;
   proj["feature_flags"]["kSaveOverworldItems"] =
       feature_flags.overworld.kSaveOverworldItems;
+  proj["feature_flags"]["kSaveOverworldSprites"] =
+      feature_flags.overworld.kSaveOverworldSprites;
   proj["feature_flags"]["kSaveOverworldProperties"] =
       feature_flags.overworld.kSaveOverworldProperties;
   proj["feature_flags"]["kSaveDungeonObjects"] =

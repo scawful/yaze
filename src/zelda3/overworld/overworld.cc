@@ -32,6 +32,7 @@
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
+#include "zelda3/overworld/zscream_custom_layout.h"
 
 namespace yaze::zelda3 {
 
@@ -1376,10 +1377,67 @@ Overworld::BuildSubscreenOverlayLayer(int map_index) {
 }
 
 void Overworld::LoadTileTypes() {
-  for (int i = 0; i < kNumTileTypes; ++i) {
-    all_tiles_types_[i] =
-        rom()->data()[version_constants().kOverworldTilesType + i];
+  all_tiles_types_.fill(0);
+  if (!rom_) {
+    return;
   }
+  const auto layout = zscream::DetectLayout(*rom_);
+  if (layout == zscream::LayoutDialect::kZScreamV5 ||
+      layout == zscream::LayoutDialect::kUnknown) {
+    // There is no global 512-byte collision table for this dialect. Consumers
+    // must request the selected map's resolved sheets; never show vanilla bytes.
+    return;
+  }
+  const size_t offset = version_constants().kOverworldTilesType;
+  if (offset > rom_->vector().size() ||
+      rom_->vector().size() - offset < all_tiles_types_.size()) {
+    return;
+  }
+  std::copy_n(rom_->vector().begin() + offset, all_tiles_types_.size(),
+              all_tiles_types_.begin());
+}
+
+absl::StatusOr<std::array<uint8_t, kNumTileTypes>>
+Overworld::GetTile8CollisionTypes(int map_id) const {
+  if (!rom_) {
+    return absl::FailedPreconditionError("No ROM for collision preview");
+  }
+  if (map_id < 0 || map_id >= inspected_map_count()) {
+    return absl::InvalidArgumentError("Invalid map ID for collision preview");
+  }
+  if (is_lyra_preview()) {
+    return absl::FailedPreconditionError(
+        "Descriptor collision preview is not supported by this reader");
+  }
+  const auto layout = zscream::DetectLayout(*rom_);
+  if (layout == zscream::LayoutDialect::kUnknown) {
+    return absl::FailedPreconditionError(
+        "Unknown ZScream collision layout; no vanilla fallback");
+  }
+  if (layout == zscream::LayoutDialect::kZScreamV5) {
+    RETURN_IF_ERROR(zscream::ValidateSheetCollisionTable(*rom_));
+    const auto* map = overworld_map(map_id);
+    if (!map) {
+      return absl::FailedPreconditionError(
+          "Map must be loaded before resolving per-sheet collisions");
+    }
+    zscream::ResolvedSheetIds sheets{};
+    for (size_t slot = 0; slot < sheets.size(); ++slot) {
+      // Public provenance resolves the same private ResolveStaticGraphics()
+      // slots as the display. Slots 0..7 are BG PriorSheets; 8..15 are sprites.
+      sheets[slot] =
+          map->MainSlotProvenance(static_cast<int>(slot)).effective_sheet;
+    }
+    return zscream::ComposeTile8Collisions(*rom_, sheets);
+  }
+  const size_t offset = version_constants().kOverworldTilesType;
+  if (offset > rom_->vector().size() ||
+      rom_->vector().size() - offset < all_tiles_types_.size()) {
+    return absl::OutOfRangeError("Incomplete legacy collision table");
+  }
+  std::array<uint8_t, kNumTileTypes> types{};
+  std::copy_n(rom_->vector().begin() + offset, types.size(), types.begin());
+  return types;
 }
 
 void Overworld::InvalidateMapCache(int map_index) {
@@ -3448,6 +3506,21 @@ absl::Status Overworld::SaveMapOverlays() {
 }
 
 absl::Status Overworld::SaveOverworldTilesType() {
+  if (!rom_) {
+    return absl::FailedPreconditionError("No ROM for collision save");
+  }
+  const auto layout = zscream::DetectLayout(*rom_);
+  if (layout == zscream::LayoutDialect::kZScreamV5 ||
+      layout == zscream::LayoutDialect::kUnknown) {
+    return absl::FailedPreconditionError(
+        "Legacy collision save is disabled for per-sheet or unknown ZScream "
+        "layouts");
+  }
+  if (static_cast<size_t>(overworldTilesType) > rom_->vector().size() ||
+      rom_->vector().size() - static_cast<size_t>(overworldTilesType) <
+          all_tiles_types_.size()) {
+    return absl::OutOfRangeError("Incomplete legacy collision save range");
+  }
   util::logf("Saving Overworld Tiles Types");
 
   for (int i = 0; i < kNumTileTypes; i++) {

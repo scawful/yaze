@@ -268,7 +268,10 @@ void EditorManager::SetupDialogCallbacks() {
             options.save_overworld_entrances;
         flags.overworld.kSaveOverworldExits = options.save_overworld_exits;
         flags.overworld.kSaveOverworldItems = options.save_overworld_items;
+        flags.overworld.kSaveOverworldSprites = options.save_overworld_sprites;
         flags.overworld.kLoadCustomOverworld = options.enable_custom_overworld;
+        flags.overworld.kEnableSpecialWorldExpansion =
+            options.enable_tail_expansion;
         flags.kSaveDungeonMaps = options.save_dungeon_maps;
         flags.kSaveAllPalettes = options.save_all_palettes;
         flags.kSaveGfxGroups = options.save_gfx_groups;

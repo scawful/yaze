@@ -98,6 +98,9 @@ class FeatureFlags {
       // Save overworld items to the Rom.
       bool kSaveOverworldItems = true;
 
+      // Save overworld sprite placement data to the Rom.
+      bool kSaveOverworldSprites = true;
+
       // Save overworld properties to the Rom.
       bool kSaveOverworldProperties = true;
 
@@ -178,6 +181,8 @@ class FeatureFlags {
               std::to_string(get().overworld.kSaveOverworldExits) + "\n";
     result += "kSaveOverworldItems: " +
               std::to_string(get().overworld.kSaveOverworldItems) + "\n";
+    result += "kSaveOverworldSprites: " +
+              std::to_string(get().overworld.kSaveOverworldSprites) + "\n";
     result += "kSaveOverworldProperties: " +
               std::to_string(get().overworld.kSaveOverworldProperties) + "\n";
     result += "kLoadCustomOverworld: " +

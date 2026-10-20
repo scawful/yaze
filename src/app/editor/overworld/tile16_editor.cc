@@ -32,6 +32,7 @@
 #include "zelda3/overworld/tile16_renderer.h"
 #include "zelda3/overworld/tile16_stamp.h"
 #include "zelda3/overworld/tile16_usage_index.h"
+#include "zelda3/overworld/zscream_custom_layout.h"
 
 namespace yaze {
 namespace editor {
@@ -64,12 +65,7 @@ absl::Status Tile16Editor::Initialize(
     tile8_source_canvas_.InitializePaletteEditor(session_.rom());
   }
 
-  ImVector<std::string> tile16_names;
-  for (int i = 0; i < 0x200; ++i) {
-    std::string str = util::HexByte(all_tiles_types[i]);
-    tile16_names.push_back(str);
-  }
-  *tile8_source_canvas_.mutable_labels(0) = tile16_names;
+  SetCollisionTypes(all_tiles_types);
   *tile8_source_canvas_.custom_labels_enabled() =
       session_.mutable_show_tile_collision_ids();
 
@@ -88,6 +84,28 @@ absl::Status Tile16Editor::Initialize(
   return absl::OkStatus();
 }
 
+void Tile16Editor::SetCollisionTypes(const std::array<uint8_t, 0x200>& types) {
+  session_.SetCollisionTypes(types);
+  ImVector<std::string> labels;
+  labels.reserve(static_cast<int>(types.size()));
+  for (size_t i = 0; i < types.size(); ++i) {
+    collision_label_storage_[i] = util::HexByte(types[i]);
+    labels.push_back(collision_label_storage_[i]);
+  }
+  *tile8_source_canvas_.mutable_labels(0) = labels;
+}
+
+void Tile16Editor::ClearCollisionTypes() {
+  session_.ClearCollisionTypes();
+  ImVector<std::string> labels;
+  labels.reserve(0x200);
+  for (auto& label : collision_label_storage_) {
+    label = "??";
+    labels.push_back(label);
+  }
+  *tile8_source_canvas_.mutable_labels(0) = labels;
+}
+
 absl::Status Tile16Editor::Update() {
   // Legacy MenuBar shell removed — single chrome path is UpdateAsPanel().
   return UpdateAsPanel();
@@ -100,6 +118,16 @@ void Tile16Editor::DrawTile16Editor() {
 absl::Status Tile16Editor::UpdateAsPanel() {
   if (!session_.map_blockset_loaded()) {
     return absl::InvalidArgumentError("Blockset not initialized, open a ROM.");
+  }
+
+  if (session_.show_tile_collision_ids()) {
+    if (!session_.collision_types_valid()) {
+      TextDisabled("Collision labels unavailable for this map/layout.");
+    } else if (session_.rom() &&
+               zelda3::zscream::DetectLayout(*session_.rom()) ==
+                   zelda3::zscream::LayoutDialect::kZScreamV5) {
+      TextDisabled("Collision labels: static full-load sheet preview.");
+    }
   }
 
   // Menu button for context menu

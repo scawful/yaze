@@ -161,6 +161,7 @@ class SaveAsPopupTest : public ::testing::Test {
     flags.overworld.kSaveOverworldExits = false;
     flags.overworld.kSaveOverworldItems = false;
     flags.overworld.kSaveOverworldProperties = false;
+    flags.overworld.kSaveOverworldSprites = false;
     manager_->user_settings().prefs().backup_before_save = false;
     auto* project = manager_->GetCurrentProject();
     project->workspace_settings.backup_on_save = false;

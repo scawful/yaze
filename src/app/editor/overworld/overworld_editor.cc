@@ -642,6 +642,10 @@ absl::Status OverworldEditor::Load() {
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
+  tile16_editor_.ClearCollisionTypes();
+  ASSIGN_OR_RETURN(auto collision_types,
+                   overworld_.GetTile8CollisionTypes(current_map_));
+  tile16_editor_.SetCollisionTypes(collision_types);
 
   // CRITICAL FIX: Initialize tile16 editor with the correct overworld palette
   tile16_editor_.set_palette(palette_);
@@ -1480,8 +1484,13 @@ absl::Status OverworldEditor::Save() {
     return absl::FailedPreconditionError("No ROM for overworld sprites");
   }
   RETURN_IF_ERROR(rom_->CheckLayoutWritable());
-  // Validate sprite capacity before any editor serializer changes ROM bytes.
-  ASSIGN_OR_RETURN(auto sprite_plan, overworld_.PrepareSpriteSave());
+  // A disabled save domain must neither validate nor serialize staged edits.
+  const bool saving_sprites =
+      core::FeatureFlags::get().overworld.kSaveOverworldSprites;
+  zelda3::OverworldSpriteSavePlan sprite_plan;
+  if (saving_sprites) {
+    ASSIGN_OR_RETURN(sprite_plan, overworld_.PrepareSpriteSave());
+  }
   if (!sprite_plan.empty() && dependencies_.project &&
       dependencies_.project->hack_manifest.loaded()) {
     std::vector<std::pair<uint32_t, uint32_t>> ranges;
@@ -1541,7 +1550,9 @@ absl::Status OverworldEditor::Save() {
     RETURN_IF_ERROR(overworld_.SaveMusic());
     RETURN_IF_ERROR(overworld_.SaveCustomOverworldData());
   }
-  RETURN_IF_ERROR(zelda3::ApplyOverworldSpriteSave(*rom_, sprite_plan));
+  if (saving_sprites) {
+    RETURN_IF_ERROR(zelda3::ApplyOverworldSpriteSave(*rom_, sprite_plan));
+  }
   save_transaction.Commit();
   return absl::OkStatus();
 }

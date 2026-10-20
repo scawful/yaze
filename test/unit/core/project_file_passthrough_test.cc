@@ -295,5 +295,109 @@ TEST(ProjectFilePassthroughTest, EmptiedKnownSectionKeepsItsComments) {
   EXPECT_TRUE(reopened.graphics_sheets.empty());
 }
 
+TEST(ProjectFilePassthroughTest, GranularSaveControlsRoundTripBothValues) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_save_controls"));
+  for (bool enabled : {false, true}) {
+    SCOPED_TRACE(enabled);
+    const std::string value = enabled ? "true" : "false";
+    const fs::path source = dir.path() / ("source_" + value + ".yaze");
+    const fs::path saved = dir.path() / ("saved_" + value + ".yaze");
+    WriteFile(source,
+              "[project]\nname=Save Controls\n\n[feature_flags]\n"
+              "save_overworld_sprites=" +
+                  value +
+                  "\n"
+                  "enable_special_world_expansion=" +
+                  value +
+                  "\n"
+                  "save_with_change_queue=" +
+                  value + "\n");
+
+    YazeProject project;
+    ASSERT_TRUE(project.Open(source.string()).ok());
+    EXPECT_EQ(project.feature_flags.overworld.kSaveOverworldSprites, enabled);
+    EXPECT_EQ(project.feature_flags.overworld.kEnableSpecialWorldExpansion,
+              enabled);
+    EXPECT_EQ(project.feature_flags.kSaveWithChangeQueue, enabled);
+    ASSERT_TRUE(project.SaveAs(saved.string()).ok());
+    const std::string serialized = ReadFile(saved);
+    EXPECT_THAT(serialized, HasSubstr("save_overworld_sprites=" + value));
+    EXPECT_THAT(serialized,
+                HasSubstr("enable_special_world_expansion=" + value));
+    EXPECT_THAT(serialized, HasSubstr("save_with_change_queue=" + value));
+
+    YazeProject reopened;
+    ASSERT_TRUE(reopened.Open(saved.string()).ok());
+    EXPECT_EQ(reopened.feature_flags.overworld.kSaveOverworldSprites, enabled);
+    EXPECT_EQ(reopened.feature_flags.overworld.kEnableSpecialWorldExpansion,
+              enabled);
+    EXPECT_EQ(reopened.feature_flags.kSaveWithChangeQueue, enabled);
+  }
+}
+
+TEST(ProjectFilePassthroughTest, MissingGranularSaveControlsKeepDefaults) {
+  ScopedDir dir(yaze::test::UniqueTempPath("project_save_control_defaults"));
+  const fs::path previous = dir.path() / "Previous.yaze";
+  const fs::path source = dir.path() / "Legacy.yaze";
+  WriteFile(previous,
+            "[project]\nname=Previous\n\n[feature_flags]\n"
+            "save_overworld_sprites=false\n"
+            "enable_special_world_expansion=true\n"
+            "save_with_change_queue=true\n");
+  WriteFile(source, "[project]\nname=Legacy\n\n[feature_flags]\n");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(previous.string()).ok());
+  ASSERT_FALSE(project.feature_flags.overworld.kSaveOverworldSprites);
+  ASSERT_TRUE(project.feature_flags.overworld.kEnableSpecialWorldExpansion);
+  ASSERT_TRUE(project.feature_flags.kSaveWithChangeQueue);
+  ASSERT_TRUE(project.Open(source.string()).ok());
+  EXPECT_TRUE(project.feature_flags.overworld.kSaveOverworldSprites);
+  EXPECT_FALSE(project.feature_flags.overworld.kEnableSpecialWorldExpansion);
+  EXPECT_FALSE(project.feature_flags.kSaveWithChangeQueue);
+  ASSERT_TRUE(project.Save().ok());
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(source.string()).ok());
+  EXPECT_TRUE(reopened.feature_flags.overworld.kSaveOverworldSprites);
+  EXPECT_FALSE(reopened.feature_flags.overworld.kEnableSpecialWorldExpansion);
+  EXPECT_FALSE(reopened.feature_flags.kSaveWithChangeQueue);
+}
+
+TEST(ProjectFilePassthroughTest,
+     GranularSaveControlsJsonImportSurvivesNativeSave) {
+#ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+  ScopedDir dir(yaze::test::UniqueTempPath("project_json_save_controls"));
+  const fs::path source = dir.path() / "Imported.yaze";
+  const fs::path saved = dir.path() / "Saved.yaze";
+  const fs::path legacy = dir.path() / "Legacy.yaze";
+  WriteFile(source, R"({"yaze_project":{"name":"Imported","feature_flags":{
+"kSaveOverworldSprites":false,
+"kEnableSpecialWorldExpansion":true,
+"kSaveWithChangeQueue":true}}})");
+  WriteFile(legacy, R"({"yaze_project":{"name":"Legacy"}})");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(source.string()).ok());
+  EXPECT_FALSE(project.feature_flags.overworld.kSaveOverworldSprites);
+  EXPECT_TRUE(project.feature_flags.overworld.kEnableSpecialWorldExpansion);
+  EXPECT_TRUE(project.feature_flags.kSaveWithChangeQueue);
+  ASSERT_TRUE(project.SaveAs(saved.string()).ok());
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(saved.string()).ok());
+  EXPECT_FALSE(reopened.feature_flags.overworld.kSaveOverworldSprites);
+  EXPECT_TRUE(reopened.feature_flags.overworld.kEnableSpecialWorldExpansion);
+  EXPECT_TRUE(reopened.feature_flags.kSaveWithChangeQueue);
+
+  ASSERT_TRUE(project.Open(legacy.string()).ok());
+  EXPECT_TRUE(project.feature_flags.overworld.kSaveOverworldSprites);
+  EXPECT_FALSE(project.feature_flags.overworld.kEnableSpecialWorldExpansion);
+  EXPECT_FALSE(project.feature_flags.kSaveWithChangeQueue);
+#else
+  GTEST_SKIP() << "JSON project import support is disabled in this build";
+#endif
+}
+
 }  // namespace
 }  // namespace yaze::project
