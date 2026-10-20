@@ -86,10 +86,14 @@ runs:
           }
         }
         $nasm = Get-Command nasm -CommandType Application -ErrorAction SilentlyContinue
-        # NASM's per-user installer does not add its directory to PATH.
+        # NASM records the chosen per-user or all-user directory in HKCU,
+        # but does not add it to PATH.
         if (-not $nasm) {
-          $nasmDir = Join-Path $env:LOCALAPPDATA 'bin\NASM'
-          if (Test-Path (Join-Path $nasmDir 'nasm.exe')) {
+          $nasmKey = Get-Item 'HKCU:\Software\nasm' -ErrorAction SilentlyContinue
+          $nasmDir = if ($nasmKey) { $nasmKey.GetValue('') } else {
+            Join-Path $env:LOCALAPPDATA 'bin\NASM'
+          }
+          if ($nasmDir -and (Test-Path (Join-Path $nasmDir 'nasm.exe'))) {
             $env:PATH = "$nasmDir;$env:PATH"
             $nasm = Get-Command nasm -CommandType Application -ErrorAction SilentlyContinue
           }
