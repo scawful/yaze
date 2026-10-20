@@ -225,10 +225,18 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
           canvas_rt, editor_->undo_manager_, editor_->current_tile16_,
           editor_->current_mode == EditingMode::DRAW_TILE,
           editor_->current_mode == EditingMode::FILL_TILE);
+      if (editor_->IsProjectTerrainMap(editor_->current_map_)) {
+        const int local_map = editor_->current_map_ - 0x80;
+        editor_->ow_map_canvas_.DrawOutline(local_map % 8 * kOverworldMapSize,
+                                            local_map / 8 * kOverworldMapSize,
+                                            kOverworldMapSize,
+                                            kOverworldMapSize);
+      }
     } else {
       editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
     }
     if (project_terrain) {
+      editor_->tile_painting_->SuspendCanvasGestures();
       editor_->FinalizePaintOperation();
       // Legacy entities cannot be moved into a project-only terrain screen.
       // Cancel at the boundary, before its coordinates reach the ROM model.
