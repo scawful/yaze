@@ -370,7 +370,8 @@ TEST_F(LyraTerrainOpenTest, FailedFreshCreateDoesNotPublishProjectReference) {
 TEST_F(LyraTerrainSourceTest,
        AutomaticLoadRequiresOracleManifestAndNativeAssets) {
   LyraTerrainCanvas canvas;
-  zelda3::Overworld overworld;
+  Rom unloaded_rom;
+  zelda3::Overworld overworld(&unloaded_rom);
   project_.lyra_terrain_file.clear();
   project_.name = "Oracle of Secrets";
   EXPECT_TRUE(canvas.Load(&project_, overworld).ok());
