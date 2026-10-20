@@ -627,11 +627,37 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
                            (index / kColumns + 0.5f) * cell);
       if (!grid->InnerClipRect.Contains(pos))
         return -1;
+      const auto name = [](const ImGuiWindow* window) {
+        return window != nullptr ? window->Name : "(null)";
+      };
+      ctx->SetRef(selector);
+      const auto canvas_item =
+          ctx->ItemInfo("**/OwBlockset", ImGuiTestOpFlags_NoError);
+      const ImRect& full = canvas_item.RectFull;
+      const ImRect& clipped = canvas_item.RectClipped;
+      ctx->LogInfo(
+          "Tile16 click map=0x%02X selected=0x%03X requested=0x%03X "
+          "cell=%.2f grid=%s pos=(%.1f,%.1f) scroll=(%.1f,%.1f) "
+          "target=(%.1f,%.1f) canvas_id=0x%08X canvas_window=%s "
+          "full=(%.1f,%.1f)-(%.1f,%.1f) clipped=(%.1f,%.1f)-(%.1f,%.1f) "
+          "in_canvas=%d hovered=%s",
+          overworld->current_map_id(), overworld->current_tile16_id(), index,
+          cell, name(grid), grid->Pos.x, grid->Pos.y, grid->Scroll.x,
+          grid->Scroll.y, pos.x, pos.y, canvas_item.ID,
+          name(canvas_item.Window), full.Min.x, full.Min.y, full.Max.x,
+          full.Max.y, clipped.Min.x, clipped.Min.y, clipped.Max.x,
+          clipped.Max.y, canvas_item.ID != 0 && clipped.Contains(pos),
+          name(ctx->UiContext->HoveredWindow));
       ctx->MouseSetViewport(grid);
       ctx->MouseMoveToPos(pos);
+      ctx->LogInfo("Tile16 click moved hovered=%s",
+                   name(ctx->UiContext->HoveredWindow));
       ctx->MouseClick(ImGuiMouseButton_Left);
       // Successive probes can share a screen point; never double-click.
       ctx->SleepNoSkip(0.5f, 1.0f / 60.0f);
+      ctx->LogInfo("Tile16 click requested=0x%03X selected=0x%03X hovered=%s",
+                   index, overworld->current_tile16_id(),
+                   name(ctx->UiContext->HoveredWindow));
       return overworld->current_tile16_id();
     };
     const auto lookup_tile = [&](int tile) -> bool {
