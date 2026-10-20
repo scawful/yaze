@@ -10,6 +10,7 @@
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
+#include "core/lyra_terrain_document.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 
@@ -295,6 +296,52 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
         select_map_hook_(map);
       }
     };
+    callbacks.is_project_tile = [this](int world, int x, int y) {
+      return project_document_ && world == 2 && x >= 0 && x < 256 && y >= 128 &&
+             y < 256;
+    };
+    callbacks.read_project_tile = [this](int, int x, int y) {
+      return project_document_->tile(x, y - 128);
+    };
+    callbacks.paint_project_pattern = [this](const TileBrush& brush, int x,
+                                             int y, int width, int height,
+                                             bool finalize) -> absl::Status {
+      ++project_paint_calls_;
+      if (project_write_error_)
+        return absl::FailedPreconditionError("Fixture project write refused");
+      for (int id : brush.tile_ids) {
+        if (id >= project_document_->profile().tile_count)
+          return absl::OutOfRangeError("Fixture tile is outside project atlas");
+      }
+      if (!project_document_->stroke_active()) {
+        auto status = project_document_->BeginStroke();
+        if (!status.ok())
+          return status;
+      }
+      for (int dy = 0; dy < height; ++dy) {
+        for (int dx = 0; dx < width; ++dx) {
+          if (x + dx < 0 || x + dx >= 256 || y + dy < 128 || y + dy >= 256)
+            continue;
+          auto status = project_document_->Paint(
+              x + dx, y + dy - 128,
+              brush.at(dx % brush.width, dy % brush.height));
+          if (!status.ok())
+            return status;
+        }
+      }
+      if (finalize)
+        FinishProjectPaint();
+      return absl::OkStatus();
+    };
+    callbacks.finalize_project_paint = [this] {
+      FinishProjectPaint();
+    };
+    callbacks.project_tile_atlas = [this] {
+      return &blockset_.atlas;
+    };
+    callbacks.allocated_rows = [this](int world) {
+      return world == 2 && !project_document_ ? 4 : 8;
+    };
     manager_ = std::make_unique<TilePaintingManager>(deps, callbacks);
 
     // Establish the window before delivering input to its canvas item.
@@ -432,6 +479,57 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
     EXPECT_EQ(refresh_count_, 0);
   }
 
+  void EnableProjectTerrain() {
+    core::LyraTerrainProfile profile;
+    profile.tile_count = 5;
+    profile.tile16_definition_fingerprint = "fixture:tiles";
+    profile.graphics_fingerprint = "fixture:gfx";
+    profile.palette_fingerprint = "fixture:palette";
+    profile.animation_fingerprint = "fixture:animation";
+    auto created = core::LyraTerrainDocument::Create(profile);
+    ASSERT_TRUE(created.ok());
+    project_document_ =
+        std::make_unique<core::LyraTerrainDocument>(std::move(*created));
+    current_world_ = 2;
+    current_map_ = 0xA0;
+    SetView(1.0f, ImVec2(0, 2048));
+  }
+
+  void FinishProjectPaint() {
+    if (!project_document_ || !project_document_->stroke_active())
+      return;
+    auto stroke = project_document_->EndStroke();
+    ASSERT_TRUE(stroke.ok());
+    if (!stroke->empty())
+      project_strokes_.push_back(std::move(*stroke));
+  }
+
+  void SelectProjectSeamBrush(float scale) {
+    ASSERT_NE(project_document_, nullptr);
+    ASSERT_TRUE(project_document_->BeginStroke().ok());
+    for (int y = 0; y < 2; ++y) {
+      for (int x = 0; x < 2; ++x) {
+        ASSERT_TRUE(
+            project_document_->Paint(31 + x, 31 + y, y * 2 + x + 1).ok());
+      }
+    }
+    ASSERT_TRUE(project_document_->EndStroke().ok());
+    project_document_->MarkSaved();
+    SetView(scale, ImVec2(448, 2496));
+    const ImVec2 start = AtWorld(31 * 16 + 8, 159 * 16 + 8);
+    const ImVec2 end = AtWorld(32 * 16 + 8, 160 * 16 + 8);
+    Frame(start);
+    Frame(start, false, true);
+    Frame(end, false, true);
+    Frame(end);
+    ASSERT_TRUE(canvas_.select_rect_active());
+    ExpectBrush(2, 2, {1, 2, 3, 4});
+    EXPECT_EQ(selected_ids_, (std::vector<int>{1, 2, 3, 4}));
+    EXPECT_FALSE(project_document_->dirty());
+    EXPECT_TRUE(project_strokes_.empty());
+    ExpectUnchanged();
+  }
+
   ImGuiContext* context_ = nullptr;
   ImVec2 host_size_ = ImVec2(400, 400);
   gui::Canvas canvas_;
@@ -453,6 +551,10 @@ class TilePaintingManagerGestureTest : public ::testing::Test {
   int finalize_count_ = 0;
   int refresh_count_ = 0;
   bool suspend_canvas_gestures_ = false;
+  std::unique_ptr<core::LyraTerrainDocument> project_document_;
+  std::vector<core::LyraTerrainStroke> project_strokes_;
+  int project_paint_calls_ = 0;
+  bool project_write_error_ = false;
   std::unique_ptr<TilePaintingManager> manager_;
 };
 
@@ -496,6 +598,191 @@ TEST_F(TilePaintingManagerGestureTest,
         EXPECT_EQ(world[33 + x][225 + y], captured.at(x, y));
     }
     EXPECT_EQ(current_map_, 0x39);
+  }
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       ProjectRectangleCapturesAndStampsAcrossNeighboringMaps) {
+  EnableProjectTerrain();
+  SelectProjectSeamBrush(1.0f);
+  SetView(1.0f, ImVec2(448, 3008));
+  ClickWorld(504, 3064);
+  ExpectBrush(2, 2, {1, 2, 3, 4});
+  ExpectPreview(496, 3056, 512, 3072);
+  EXPECT_EQ(*project_document_->tile(31, 63), 1);
+  EXPECT_EQ(*project_document_->tile(32, 63), 2);
+  EXPECT_EQ(*project_document_->tile(31, 64), 3);
+  EXPECT_EQ(*project_document_->tile(32, 64), 4);
+  ASSERT_EQ(project_strokes_.size(), 1u);
+  EXPECT_EQ(project_strokes_[0].changes.size(), 4u);
+  EXPECT_TRUE(project_document_->dirty());
+  EXPECT_TRUE(project_document_->ApplyStroke(project_strokes_[0], true).ok());
+  EXPECT_FALSE(project_document_->dirty());
+  EXPECT_TRUE(project_document_->ApplyStroke(project_strokes_[0], false).ok());
+  EXPECT_EQ(*project_document_->tile(32, 64), 4);
+  ExpectUnchanged();
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       ProjectCaptureAndPasteRetainWorldCoordinatesAtEveryZoom) {
+  for (float scale : {0.5f, 1.0f, 2.0f}) {
+    SCOPED_TRACE(scale);
+    canvas_.ClearSelection();
+    project_strokes_.clear();
+    EnableProjectTerrain();
+    SelectProjectSeamBrush(scale);
+    const TileBrush captured = *manager_->selection_brush();
+    SetView(scale, ImVec2(448, 3008));
+    ASSERT_TRUE(PasteAt(AtWorld(504, 3064), captured).ok());
+    EXPECT_EQ(*project_document_->tile(31, 63), 1);
+    EXPECT_EQ(*project_document_->tile(32, 64), 4);
+    ASSERT_EQ(project_strokes_.size(), 1u);
+    EXPECT_EQ(project_strokes_[0].changes.size(), 4u);
+    ExpectBrush(2, 2, {1, 2, 3, 4});
+    ExpectUnchanged();
+  }
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       ProjectFillRepeatsCapturedPatternWithinOneScreen) {
+  EnableProjectTerrain();
+  SelectProjectSeamBrush(1.0f);
+  SetView(1.0f, ImVec2(0, 3072));
+  current_mode_ = EditingMode::FILL_TILE;
+  ClickWorld(8, 3080);
+  for (int y = 64; y < 96; ++y) {
+    for (int x = 0; x < 32; ++x) {
+      EXPECT_EQ(*project_document_->tile(x, y), (y % 2) * 2 + x % 2 + 1);
+    }
+  }
+  EXPECT_EQ(*project_document_->tile(32, 64), 0);
+  EXPECT_EQ(*project_document_->tile(0, 63), 0);
+  EXPECT_EQ(*project_document_->tile(0, 96), 0);
+  ASSERT_EQ(project_strokes_.size(), 1u);
+  EXPECT_EQ(project_strokes_[0].changes.size(), 1024u);
+  EXPECT_TRUE(project_document_->ApplyStroke(project_strokes_[0], true).ok());
+  EXPECT_FALSE(project_document_->dirty());
+  ExpectUnchanged();
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       LegacyCapturedBrushPastesIntoProjectAndClipsAtBF) {
+  SelectFourTileBrush();
+  const TileBrush captured = *manager_->selection_brush();
+  EnableProjectTerrain();
+  SetView(1.0f, ImVec2(3968, 3968));
+  ASSERT_TRUE(PasteAt(AtWorld(4095, 4095), captured).ok());
+  EXPECT_EQ(*project_document_->tile(255, 127), 1);
+  EXPECT_EQ(*project_document_->tile(0, 0), 0);
+  ASSERT_EQ(project_strokes_.size(), 1u);
+  EXPECT_EQ(project_strokes_[0].changes.size(), 1u);
+  ExpectBrush(2, 2, {1, 2, 3, 4});
+  ExpectUnchanged();
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       ProjectPastePropagatesRefusalWithoutFallingBackToRom) {
+  EnableProjectTerrain();
+  project_write_error_ = true;
+  auto status = PasteAt(AtWorld(8, 2056), TileBrush{2, 1, {1, 2}});
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  project_write_error_ = false;
+  status = PasteAt(AtWorld(8, 2056), TileBrush{2, 1, {1, 5}});
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(project_paint_calls_, 2);
+  EXPECT_EQ(*project_document_->tile(0, 0), 0);
+  EXPECT_FALSE(project_document_->dirty());
+  EXPECT_TRUE(project_strokes_.empty());
+  ExpectUnchanged();
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       ProjectAndLegacyGesturesCannotTransferAcrossStorageBoundary) {
+  EnableProjectTerrain();
+  current_map_ = 0x98;
+  InitializeMapBitmap(current_map_);
+  SetView(1.0f, ImVec2(0, 1920));
+  const ImVec2 legacy = AtWorld(8, 2040);
+  const ImVec2 project = AtWorld(8, 2056);
+  Frame(legacy);
+  Frame(legacy, true);
+  ASSERT_EQ(undo_points_.size(), 1u);
+  Frame(project, true);
+  EXPECT_EQ(finalize_count_, 1);
+  EXPECT_EQ(project_paint_calls_, 0);
+  Frame(AtWorld(24, 2040), true);
+  Frame(AtWorld(24, 2040));
+  EXPECT_EQ(undo_points_.size(), 1u);
+
+  const auto legacy_after = overworld_->mutable_map_tiles()->special_world;
+  rom_.ClearDirty();
+  Frame(project);
+  Frame(project, true);
+  Frame(AtWorld(24, 2040), true);
+  ASSERT_EQ(project_strokes_.size(), 1u);
+  Frame(AtWorld(24, 2056), true);
+  Frame(AtWorld(24, 2056));
+  EXPECT_EQ(project_paint_calls_, 1);
+  EXPECT_EQ(*project_document_->tile(0, 0), 2);
+  EXPECT_EQ(*project_document_->tile(1, 0), 0);
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world, legacy_after);
+  EXPECT_EQ(undo_points_.size(), 1u);
+  EXPECT_FALSE(rom_.dirty());
+
+  // Only a fresh press may acquire the project destination again.
+  ClickWorld(24, 2056);
+  EXPECT_EQ(*project_document_->tile(1, 0), 2);
+  EXPECT_EQ(project_strokes_.size(), 2u);
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       LegacyPatternClipsProjectCellsEvenWhenBrushOverlapsBoundary) {
+  EnableProjectTerrain();
+  current_map_ = 0x98;
+  InitializeMapBitmap(current_map_);
+  SetView(1.0f, ImVec2(0, 1920));
+  ASSERT_TRUE(PasteAt(AtWorld(8, 2040), TileBrush{1, 2, {1, 2}}).ok());
+  EXPECT_EQ(overworld_->mutable_map_tiles()->special_world[0][127], 1);
+  EXPECT_EQ(*project_document_->tile(0, 0), 0);
+  EXPECT_EQ(project_paint_calls_, 0);
+  EXPECT_TRUE(project_strokes_.empty());
+  EXPECT_EQ(undo_points_.size(), 1u);
+  EXPECT_EQ(finalize_count_, 1);
+}
+
+TEST_F(TilePaintingManagerGestureTest,
+       ProjectDragDepartureCannotBridgeOnHeldReentry) {
+  for (bool outside_document : {false, true}) {
+    SCOPED_TRACE(outside_document);
+    project_strokes_.clear();
+    project_paint_calls_ = 0;
+    EnableProjectTerrain();
+    SetView(1.0f, ImVec2(3968, 2048));
+    const ImVec2 start = AtWorld(4088, 2056);
+    const ImVec2 reentry = AtWorld(4088, 2088);
+    Frame(start);
+    Frame(start, true);
+    ASSERT_EQ(project_paint_calls_, 1);
+    ASSERT_TRUE(project_document_->stroke_active());
+
+    // Both an occluded/outside canvas and an out-of-document tile inside the
+    // canvas must end interpolation before a distant held reentry.
+    Frame(outside_document ? AtWorld(4104, 2056) : Outside(), true);
+    EXPECT_EQ(canvas_.IsMouseHovering(), outside_document);
+    ASSERT_EQ(project_strokes_.size(), 1u);
+    EXPECT_FALSE(project_document_->stroke_active());
+    Frame(reentry, true);
+    Frame(reentry);
+    EXPECT_EQ(project_paint_calls_, 1);
+    EXPECT_EQ(*project_document_->tile(255, 0), 2);
+    EXPECT_EQ(*project_document_->tile(255, 1), 0);
+    EXPECT_EQ(*project_document_->tile(255, 2), 0);
+
+    Frame(reentry, true);
+    Frame(reentry);
+    EXPECT_EQ(project_strokes_.size(), 2u);
+    EXPECT_EQ(*project_document_->tile(255, 2), 2);
+    ExpectUnchanged();
   }
 }
 

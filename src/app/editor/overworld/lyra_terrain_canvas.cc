@@ -256,7 +256,7 @@ absl::Status LyraTerrainCanvas::Load(project::YazeProject* project,
   ASSIGN_OR_RETURN(auto document, Document::Parse(*bytes, profile));
   RETURN_IF_ERROR(BindSource(overworld, &profile, true));
   document_ = std::make_shared<Document>(std::move(document));
-  brush_ = 0;
+  brush_ = {};
   source_path_ = path;
   source_bytes_ = std::move(bytes);
   // Keep the live reference absolute so project Save As can rebase it safely.
@@ -287,7 +287,7 @@ absl::Status LyraTerrainCanvas::Create(project::YazeProject* project,
   ASSIGN_OR_RETURN(auto document, Document::Create(profile));
   RETURN_IF_ERROR(BindSource(overworld, &profile, true));
   document_ = std::make_shared<Document>(std::move(document));
-  brush_ = 0;
+  brush_ = {};
   source_path_ = fs::absolute(path).lexically_normal().string();
   source_bytes_.reset();
   project->lyra_terrain_file = source_path_;
@@ -339,6 +339,59 @@ void LyraTerrainCanvas::FinishStroke(UndoManager& history) {
         std::make_unique<TerrainStrokeAction>(document_, std::move(*stroke)));
 }
 
+absl::Status LyraTerrainCanvas::PaintPattern(const TileBrush& brush, int x,
+                                             int y, int width, int height,
+                                             bool finalize,
+                                             UndoManager& history) {
+  if (!document_)
+    return absl::FailedPreconditionError("Lyra terrain is unavailable");
+  if (!brush.valid() || width <= 0 || width > Document::kWidth || height <= 0 ||
+      height > 256 || x < 0 || x >= Document::kWidth || y < 0 ||
+      y >= Document::kHeight)
+    return absl::InvalidArgumentError("Invalid Lyra terrain brush footprint");
+  for (const int tile : brush.tile_ids) {
+    if (tile >= document_->profile().tile_count)
+      return absl::InvalidArgumentError(
+          "Brush contains a Tile16 outside the Lyra graphics profile");
+  }
+  // Discrete paste/fill operations and changed brushes each own an undo step.
+  if (stroke_active_ &&
+      (finalize || brush.width != brush_.width ||
+       brush.height != brush_.height || brush.tile_ids != brush_.tile_ids ||
+       width != pattern_width_ || height != pattern_height_))
+    FinishStroke(history);
+  if (!stroke_active_) {
+    RETURN_IF_ERROR(document_->BeginStroke());
+    stroke_active_ = true;
+    brush_ = brush;
+    pattern_width_ = width;
+    pattern_height_ = height;
+    last_cell_.reset();
+  }
+  status_ = absl::OkStatus();
+  PaintLine(x, y);
+  if (!status_.ok()) {
+    document_->CancelStroke();
+    stroke_active_ = false;
+    last_cell_.reset();
+    return status_;
+  }
+  if (finalize)
+    FinishStroke(history);
+  return status_;
+}
+
+void LyraTerrainCanvas::PaintStamp(int x, int y) {
+  for (int dy = 0; dy < pattern_height_ && y + dy < Document::kHeight; ++dy) {
+    for (int dx = 0; dx < pattern_width_ && x + dx < Document::kWidth; ++dx) {
+      status_ = document_->Paint(
+          x + dx, y + dy, brush_.at(dx % brush_.width, dy % brush_.height));
+      if (!status_.ok())
+        return;
+    }
+  }
+}
+
 void LyraTerrainCanvas::PaintLine(int x, int y) {
   int x0 = last_cell_ ? static_cast<int>(last_cell_->x) : x;
   int y0 = last_cell_ ? static_cast<int>(last_cell_->y) : y;
@@ -346,7 +399,7 @@ void LyraTerrainCanvas::PaintLine(int x, int y) {
   const int dy = -std::abs(y - y0), sy = y0 < y ? 1 : -1;
   int error = dx + dy;
   for (;;) {
-    status_ = document_->Paint(x0, y0, brush_);
+    PaintStamp(x0, y0);
     if (!status_.ok() || (x0 == x && y0 == y))
       break;
     const int twice = 2 * error;
@@ -371,15 +424,7 @@ void LyraTerrainCanvas::DrawTile(ImDrawList* draw, int tile, ImVec2 min,
                  ImVec2(min.x + size, min.y + size), uv0, uv1);
 }
 
-void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas,
-                                         UndoManager& history,
-                                         int& selected_tile, bool paint_enabled,
-                                         bool fill_enabled) {
-  if (stroke_active_ &&
-      (!ImGui::IsMouseDown(ImGuiMouseButton_Left) || !paint_enabled ||
-       fill_enabled || brush_ != selected_tile)) {
-    FinishStroke(history);
-  }
+void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas) {
   if (!document_ || !canvas.draw_list || !atlas_.texture() ||
       !std::isfinite(canvas.scale) || canvas.scale <= 0) {
     return;
@@ -421,64 +466,11 @@ void LyraTerrainCanvas::DrawSpecialWorld(const gui::CanvasRuntime& canvas,
   }
   // The shared Overworld canvas owns the grid and selected-map outline.
   // Keep project terrain free of an additional always-on map-ID overlay.
-
-  const auto& io = ImGui::GetIO();
-  const float tile_x = (io.MousePos.x - start.x) / cell;
-  const float tile_y = (io.MousePos.y - start.y) / cell;
-  const bool inside = ImGui::IsMousePosValid(&io.MousePos) && tile_x >= 0 &&
-                      tile_x < Document::kWidth && tile_y >= 0 &&
-                      tile_y < Document::kHeight;
-  if (!inside) {
-    // Crossing back into the ROM-backed rows ends this source's gesture. A
-    // later re-entry while still holding the button cannot paint a bridge.
-    FinishStroke(history);
-    return;
-  }
-  if (!canvas.hovered) {
-    last_cell_.reset();
-    return;
-  }
-  const int x = static_cast<int>(std::floor(tile_x));
-  const int y = static_cast<int>(std::floor(tile_y));
-  if ((paint_enabled || fill_enabled) && !io.KeyShift &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    FinishStroke(history);
-    selected_tile = *document_->tile(x, y);
-  }
-  const bool valid_brush =
-      selected_tile >= 0 && selected_tile < document_->profile().tile_count;
-  if ((paint_enabled || fill_enabled) && valid_brush &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    brush_ = selected_tile;
-    status_ = document_->BeginStroke();
-    stroke_active_ = status_.ok();
-    if (stroke_active_ && fill_enabled) {
-      // Match the existing Overworld Fill tool: fill this 32x32 map in one
-      // undo action, without extending the edit into neighboring maps.
-      const int map_x = x / Document::kMapSize * Document::kMapSize;
-      const int map_y = y / Document::kMapSize * Document::kMapSize;
-      for (int dy = 0; dy < Document::kMapSize && status_.ok(); ++dy) {
-        for (int dx = 0; dx < Document::kMapSize && status_.ok(); ++dx) {
-          status_ = document_->Paint(map_x + dx, map_y + dy, brush_);
-        }
-      }
-      FinishStroke(history);
-    }
-  }
-  if (stroke_active_ && paint_enabled && !fill_enabled &&
-      ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-    PaintLine(x, y);
-  }
-  if ((paint_enabled || fill_enabled) && valid_brush) {
-    const ImVec2 a(start.x + x * cell, start.y + y * cell);
-    draw->AddRect(a, ImVec2(a.x + cell, a.y + cell),
-                  IM_COL32(255, 220, 80, 255), 0, 0, 2);
-  }
 }
 
 void LyraTerrainCanvas::Reset() {
   gfx::Arena::Get().RetireBitmap(atlas_);
-  brush_ = 0;
+  brush_ = {};
   if (document_ && stroke_active_)
     document_->CancelStroke();
   document_.reset();

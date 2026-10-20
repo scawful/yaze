@@ -470,6 +470,32 @@ void OverworldEditor::InitTilePaintingManager() {
     // newly selected map. A same-map stroke does not rebuild the atlas.
     SelectMapForEditing(map_id, true);
   };
+  callbacks.is_project_tile = [this](int world, int x, int y) {
+    return lyra_canvas_.loaded() && world == 2 && x >= 0 && x < 256 &&
+           y >= 128 && y < 256;
+  };
+  callbacks.read_project_tile = [this](int world, int x,
+                                       int y) -> absl::StatusOr<uint16_t> {
+    if (!lyra_canvas_.loaded() || world != 2)
+      return absl::FailedPreconditionError("Lyra terrain is unavailable");
+    return lyra_canvas_.document()->tile(x, y - 128);
+  };
+  callbacks.paint_project_pattern = [this](const TileBrush& brush, int x, int y,
+                                           int width, int height,
+                                           bool finalize) {
+    status_ = lyra_canvas_.PaintPattern(brush, x, y - 128, width, height,
+                                        finalize, undo_manager_);
+    return status_;
+  };
+  callbacks.finalize_project_paint = [this]() {
+    lyra_canvas_.FinishStroke(undo_manager_);
+  };
+  callbacks.project_tile_atlas = [this]() -> const gfx::Bitmap* {
+    return lyra_canvas_.loaded() ? &lyra_canvas_.atlas() : nullptr;
+  };
+  callbacks.allocated_rows = [this](int world) {
+    return world == 2 && !lyra_canvas_.loaded() ? 4 : 8;
+  };
 
   tile_painting_ = std::make_unique<TilePaintingManager>(deps, callbacks);
 }
@@ -1312,39 +1338,20 @@ bool OverworldEditor::DeleteSelectedItem() {
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
-  if (tile_painting_ && !IsProjectTerrainMap(current_map_)) {
+  if (tile_painting_) {
     tile_painting_->CheckForOverworldEdits();
   }
 }
 
 bool OverworldEditor::PickTile16FromHoveredCanvas() {
-  if (!ow_map_canvas_.IsMouseHovering()) {
-    return false;
-  }
-  const auto target = ResolveOverworldContextTarget(
-      current_world_, game_state_, ow_map_canvas_.hover_mouse_pos(),
-      ImVec2(0, 0), ImVec2(0, 0), ow_map_canvas_.global_scale(),
-      DisplayedMapCount());
-  if (target && IsProjectTerrainMap(target->map_id)) {
-    const auto tile = lyra_canvas_.document()->MapTile(
-        target->map_id, static_cast<int>(target->world_position.x) / 16 % 32,
-        static_cast<int>(target->world_position.y) / 16 % 32);
-    if (!tile.ok()) {
-      return false;
-    }
-    lyra_canvas_.FinishStroke(undo_manager_);
-    current_tile16_ = *tile;
-    return true;
-  }
-  return !IsProjectTerrainMap(current_map_) && tile_painting_ &&
-         tile_painting_->PickTile16FromHoveredCanvas();
+  return tile_painting_ && tile_painting_->PickTile16FromHoveredCanvas();
 }
 
 absl::Status OverworldEditor::Copy() {
   if (!dependencies_.shared_clipboard) {
     return absl::FailedPreconditionError("Clipboard unavailable");
   }
-  if (tile_painting_ && !IsProjectTerrainMap(current_map_)) {
+  if (tile_painting_) {
     if (const auto* brush = tile_painting_->selection_brush()) {
       dependencies_.shared_clipboard->overworld_tile16_ids = brush->tile_ids;
       dependencies_.shared_clipboard->overworld_width = brush->width;
@@ -1365,10 +1372,6 @@ absl::Status OverworldEditor::Copy() {
 }
 
 absl::Status OverworldEditor::Paste() {
-  if (IsProjectTerrainMap(current_map_)) {
-    return absl::FailedPreconditionError(
-        "Use Draw or Fill to place tiles on Lyra terrain");
-  }
   if (is_lyra_preview()) {
     return absl::FailedPreconditionError("Lyra preview is read-only");
   }

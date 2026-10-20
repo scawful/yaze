@@ -221,10 +221,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->IsProjectTerrainMap(editor_->current_map_) ||
         editor_->IsProjectTerrainMap(editor_->hovered_map_);
     if (editor_->current_world_ == 2 && editor_->lyra_canvas_.loaded()) {
-      editor_->lyra_canvas_.DrawSpecialWorld(
-          canvas_rt, editor_->undo_manager_, editor_->current_tile16_,
-          editor_->current_mode == EditingMode::DRAW_TILE,
-          editor_->current_mode == EditingMode::FILL_TILE);
+      editor_->lyra_canvas_.DrawSpecialWorld(canvas_rt);
       if (editor_->IsProjectTerrainMap(editor_->current_map_)) {
         const int local_map = editor_->current_map_ - 0x80;
         editor_->ow_map_canvas_.DrawOutline(local_map % 8 * kOverworldMapSize,
@@ -235,9 +232,11 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     } else {
       editor_->lyra_canvas_.FinishStroke(editor_->undo_manager_);
     }
-    if (project_terrain) {
+    const bool tile_tool = editor_->current_mode == EditingMode::DRAW_TILE ||
+                           editor_->current_mode == EditingMode::FILL_TILE;
+    if (!tile_tool && editor_->tile_painting_)
       editor_->tile_painting_->SuspendCanvasGestures();
-      editor_->FinalizePaintOperation();
+    if (project_terrain) {
       // Legacy entities cannot be moved into a project-only terrain screen.
       // Cancel at the boundary, before its coordinates reach the ROM model.
       if (editor_->is_dragging_entity_) {
@@ -255,6 +254,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->entity_renderer_->ResetHoveredEntity();
       if (canvas_rt.hovered)
         editor_->HandleMapInteraction();
+      if (tile_tool)
+        editor_->CheckForOverworldEdits();
       gui::EndCanvas(editor_->ow_map_canvas_, canvas_rt, frame_opts);
       ImGui::EndChild();
       return;

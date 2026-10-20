@@ -15,14 +15,9 @@ namespace {
 
 constexpr int kTilesPerMap = kOverworldMapSize / kTile16Size;
 
-int AllocatedRowsForWorld(int world) {
+int LegacyAllocatedRowsForWorld(int world) {
   const int world_start = std::clamp(world, 0, 2) * 0x40;
   return (std::clamp(zelda3::kNumOverworldMaps - world_start, 0, 0x40) + 7) / 8;
-}
-
-bool IsValidMapGridPosition(int world, int map_x, int map_y) {
-  return world >= 0 && world <= 2 && map_x >= 0 && map_x < 8 && map_y >= 0 &&
-         map_y < AllocatedRowsForWorld(world);
 }
 
 int MapIndexForGridPosition(int world, int map_x, int map_y) {
@@ -57,15 +52,52 @@ TilePaintingManager::TilePosition TilePaintingManager::HoveredTile() const {
           static_cast<int>(std::floor(std::clamp(y, -256.0f, 512.0f)))};
 }
 
-bool TilePaintingManager::IsValidTile(TilePosition position) const {
+int TilePaintingManager::AllocatedRowsForWorld(int world) const {
+  return callbacks_.allocated_rows
+             ? std::clamp(callbacks_.allocated_rows(world), 0, 8)
+             : LegacyAllocatedRowsForWorld(world);
+}
+
+bool TilePaintingManager::IsValidMapGridPosition(int world, int map_x,
+                                                 int map_y) const {
+  return world >= 0 && world <= 2 && map_x >= 0 && map_x < 8 && map_y >= 0 &&
+         map_y < AllocatedRowsForWorld(world);
+}
+
+bool TilePaintingManager::IsProjectTile(TilePosition position) const {
+  return callbacks_.is_project_tile &&
+         callbacks_.is_project_tile(*deps_.current_world, position.x,
+                                    position.y);
+}
+
+absl::StatusOr<uint16_t> TilePaintingManager::ReadTile(
+    TilePosition position) const {
   if (position.x < 0 || position.y < 0 ||
       !IsValidMapGridPosition(*deps_.current_world, position.x / kTilesPerMap,
                               position.y / kTilesPerMap)) {
-    return false;
+    return absl::OutOfRangeError("Tile is outside the displayed world");
+  }
+  if (IsProjectTile(position)) {
+    if (!callbacks_.read_project_tile)
+      return absl::FailedPreconditionError("Project tile reader unavailable");
+    return callbacks_.read_project_tile(*deps_.current_world, position.x,
+                                        position.y);
+  }
+  if (MapIndexForGridPosition(*deps_.current_world, position.x / kTilesPerMap,
+                              position.y / kTilesPerMap) >=
+      zelda3::kNumOverworldMaps) {
+    return absl::OutOfRangeError("Tile is outside the ROM map model");
   }
   const auto& tiles = WorldTiles();
-  return position.x < static_cast<int>(tiles.size()) &&
-         position.y < static_cast<int>(tiles[position.x].size());
+  if (position.x >= static_cast<int>(tiles.size()) ||
+      position.y >= static_cast<int>(tiles[position.x].size())) {
+    return absl::OutOfRangeError("Tile is outside the loaded world");
+  }
+  return tiles[position.x][position.y];
+}
+
+bool TilePaintingManager::IsValidTile(TilePosition position) const {
+  return ReadTile(position).ok();
 }
 
 const TileBrush* TilePaintingManager::selection_brush() const {
@@ -73,30 +105,52 @@ const TileBrush* TilePaintingManager::selection_brush() const {
                                                                      : nullptr;
 }
 
-void TilePaintingManager::SuspendCanvasGestures() {
+void TilePaintingManager::FinalizePendingPaint() {
   if (single_paint_pending_ && callbacks_.finalize_paint_operation) {
     callbacks_.finalize_paint_operation();
   }
-  paint_gesture_owned_ = false;
   single_paint_pending_ = false;
+  if (project_paint_pending_ && callbacks_.finalize_project_paint) {
+    callbacks_.finalize_project_paint();
+  }
+  project_paint_pending_ = false;
+}
+
+void TilePaintingManager::SuspendCanvasGestures() {
+  FinalizePendingPaint();
+  paint_gesture_owned_ = false;
   selection_gesture_owned_ = false;
 }
 
 void TilePaintingManager::CheckForOverworldEdits() {
   CheckForSelectRectangle();
   auto& canvas = *deps_.ow_map_canvas;
-  if (single_paint_pending_ && !ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-    callbacks_.finalize_paint_operation();
-    single_paint_pending_ = false;
+  const auto anchor = HoveredTile();
+  if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    FinalizePendingPaint();
   }
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     paint_gesture_owned_ = canvas.IsMouseHovering() && ImGui::IsItemActive();
+    gesture_project_ = IsProjectTile(anchor);
+    gesture_world_ = *deps_.current_world;
+    gesture_mode_ = *deps_.current_mode;
   } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    paint_gesture_owned_ = false;
+  }
+  if (paint_gesture_owned_ &&
+      (gesture_world_ != *deps_.current_world ||
+       gesture_mode_ != *deps_.current_mode ||
+       (gesture_project_ &&
+        (!canvas.IsMouseHovering() || !IsValidTile(anchor))) ||
+       (canvas.IsMouseHovering() && IsValidTile(anchor) &&
+        gesture_project_ != IsProjectTile(anchor)))) {
+    // A held gesture cannot acquire another storage backend or interpolate a
+    // project stroke across an unobserved gap outside its canvas/document.
+    FinalizePendingPaint();
     paint_gesture_owned_ = false;
   }
   const bool can_paint =
       paint_gesture_owned_ && canvas.IsMouseHovering() && ImGui::IsItemActive();
-  const auto anchor = HoveredTile();
   const auto* selected = selection_brush();
   const TileBrush single{1, 1, {*deps_.current_tile16}};
 
@@ -105,8 +159,8 @@ void TilePaintingManager::CheckForOverworldEdits() {
         IsValidTile(anchor)) {
       const TilePosition screen{anchor.x / kTilesPerMap * kTilesPerMap,
                                 anchor.y / kTilesPerMap * kTilesPerMap};
-      PaintPattern(selected ? *selected : single, screen, kTilesPerMap,
-                   kTilesPerMap);
+      (void)PaintPattern(selected ? *selected : single, screen, kTilesPerMap,
+                         kTilesPerMap);
     }
     return;
   }
@@ -116,7 +170,8 @@ void TilePaintingManager::CheckForOverworldEdits() {
   if (selected) {
     if (can_paint && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
                       ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
-      PaintPattern(*selected, anchor, selected->width, selected->height, false);
+      (void)PaintPattern(*selected, anchor, selected->width, selected->height,
+                         false);
     }
   } else if (single.valid()) {
     // The hovered tile shows the selected Tile16 as the map under the cursor
@@ -133,7 +188,7 @@ void TilePaintingManager::CheckForOverworldEdits() {
     }
     if (can_paint && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
                       ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
-      PaintPattern(single, anchor, 1, 1, false);
+      (void)PaintPattern(single, anchor, 1, 1, false);
     }
   }
 }
@@ -145,15 +200,33 @@ absl::Status TilePaintingManager::PasteBrush(const TileBrush& brush) {
   if (!deps_.ow_map_canvas->IsMouseHovering()) {
     return absl::FailedPreconditionError("Hover the overworld canvas to paste");
   }
-  PaintPattern(brush, HoveredTile(), brush.width, brush.height);
-  return absl::OkStatus();
+  FinalizePendingPaint();
+  return PaintPattern(brush, HoveredTile(), brush.width, brush.height);
 }
 
-void TilePaintingManager::PaintPattern(const TileBrush& brush,
-                                       TilePosition anchor, int width,
-                                       int height, bool finalize) {
+absl::Status TilePaintingManager::PaintPattern(const TileBrush& brush,
+                                               TilePosition anchor, int width,
+                                               int height, bool finalize) {
   if (!brush.valid()) {
-    return;
+    return absl::InvalidArgumentError("Tile pattern is invalid");
+  }
+  if (IsProjectTile(anchor)) {
+    if (!callbacks_.paint_project_pattern)
+      return absl::FailedPreconditionError("Project tile writer unavailable");
+    auto status = callbacks_.paint_project_pattern(brush, anchor.x, anchor.y,
+                                                   width, height, finalize);
+    if (!status.ok()) {
+      FinalizePendingPaint();
+      paint_gesture_owned_ = false;
+      return status;
+    }
+    project_paint_pending_ = !finalize;
+    if (IsValidTile(anchor) && callbacks_.select_map_for_editing) {
+      callbacks_.select_map_for_editing(
+          MapIndexForGridPosition(*deps_.current_world, anchor.x / kTilesPerMap,
+                                  anchor.y / kTilesPerMap));
+    }
+    return absl::OkStatus();
   }
   ChangedMaps changed_maps{};
   for (int y = 0; y < height; ++y) {
@@ -164,7 +237,7 @@ void TilePaintingManager::PaintPattern(const TileBrush& brush,
   }
   if (std::none_of(changed_maps.begin(), changed_maps.end(),
                    [](bool changed) { return changed; })) {
-    return;
+    return absl::OkStatus();
   }
   deps_.rom->set_dirty(true);
   if (finalize) {
@@ -193,11 +266,12 @@ void TilePaintingManager::PaintPattern(const TileBrush& brush,
       callbacks_.refresh_overworld_map_on_demand(map);
     }
   }
+  return absl::OkStatus();
 }
 
 bool TilePaintingManager::PaintTile(TilePosition position, int tile_id,
                                     ChangedMaps& changed_maps) {
-  if (!IsValidTile(position)) {
+  if (IsProjectTile(position) || !IsValidTile(position)) {
     return false;
   }
   auto& old_id = WorldTiles()[position.x][position.y];
@@ -302,11 +376,12 @@ void TilePaintingManager::CaptureSelection() {
   }
   for (int y = top; y <= bottom; ++y) {
     for (int x = left; x <= right; ++x) {
-      if (!IsValidTile({x, y})) {
+      const auto tile = ReadTile({x, y});
+      if (!tile.ok()) {
         canvas.ClearSelection();
         return;
       }
-      captured.tile_ids.push_back(WorldTiles()[x][y]);
+      captured.tile_ids.push_back(*tile);
     }
   }
   brush_ = std::move(captured);
@@ -326,9 +401,10 @@ void TilePaintingManager::CheckForSelectRectangle() {
   canvas.DrawSelectRect(*deps_.current_map, kTile16Size, scale);
   if (canvas.selected_tile_pos().x != -1) {
     const auto source = HoveredTile();
-    if (selection_gesture_owned_ && IsValidTile(source)) {
+    const auto tile = ReadTile(source);
+    if (selection_gesture_owned_ && tile.ok()) {
       // Same path as the I key: keeps staged Tile16 edits guarded.
-      const int tile_id = WorldTiles()[source.x][source.y];
+      const int tile_id = *tile;
       if (callbacks_.request_tile16_selection) {
         callbacks_.request_tile16_selection(tile_id);
       } else {
@@ -383,6 +459,9 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
       if (!IsValidMapGridPosition(world, mx, my))
         continue;
       const int map_id = MapIndexForGridPosition(world, mx, my);
+      if (IsProjectTile({mx * kTilesPerMap, my * kTilesPerMap}) ||
+          map_id >= zelda3::kNumOverworldMaps)
+        continue;
       const auto* map = deps_.overworld->overworld_map(map_id);
       if (!map)
         continue;
@@ -418,18 +497,25 @@ void TilePaintingManager::DrawBrushPreview(const TileBrush& brush,
         continue;
       const int map_id = MapIndexForGridPosition(
           world, position.x / kTilesPerMap, position.y / kTilesPerMap);
-      const auto& atlas = has_piece[map_id] ? map_brush_previews_[map_id]
-                                            : deps_.tile16_blockset->atlas;
+      const bool project_tile = IsProjectTile(position);
+      const bool use_piece = !project_tile && has_piece[map_id];
+      const gfx::Bitmap* source_atlas =
+          project_tile
+              ? (callbacks_.project_tile_atlas ? callbacks_.project_tile_atlas()
+                                               : nullptr)
+              : (use_piece ? &map_brush_previews_[map_id]
+                           : &deps_.tile16_blockset->atlas);
+      if (!source_atlas)
+        continue;
+      const auto& atlas = *source_atlas;
       if (!atlas.is_active() || !atlas.texture() || atlas.width() < 16 ||
           atlas.height() < 16)
         continue;
       const int columns = atlas.width() / 16;
-      const int source_x = has_piece[map_id]
-                               ? (position.x - pieces[map_id].tile_x) * 16
-                               : id % columns * 16;
-      const int source_y = has_piece[map_id]
-                               ? (position.y - pieces[map_id].tile_y) * 16
-                               : id / columns * 16;
+      const int source_x = use_piece ? (position.x - pieces[map_id].tile_x) * 16
+                                     : id % columns * 16;
+      const int source_y = use_piece ? (position.y - pieces[map_id].tile_y) * 16
+                                     : id / columns * 16;
       if (source_y + 16 > atlas.height())
         continue;
       const ImVec2 start(origin.x + position.x * size,
@@ -454,57 +540,11 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
     return false;
   }
 
-  const ImVec2 scaled_position = deps_.ow_map_canvas->hover_mouse_pos();
-  float scale = deps_.ow_map_canvas->global_scale();
-  if (scale <= 0.0f) {
-    scale = 1.0f;
-  }
-  if (scaled_position.x < 0.0f || scaled_position.y < 0.0f) {
+  const auto tile = ReadTile(HoveredTile());
+  if (!tile.ok()) {
     return false;
   }
-
-  const int map_x =
-      static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
-  const int map_y =
-      static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
-  if (!IsValidMapGridPosition(*deps_.current_world, map_x, map_y)) {
-    return false;
-  }
-
-  const int local_tile_x =
-      (static_cast<int>(scaled_position.x / scale) % kOverworldMapSize) /
-      kTile16Size;
-  const int local_tile_y =
-      (static_cast<int>(scaled_position.y / scale) % kOverworldMapSize) /
-      kTile16Size;
-  if (local_tile_x < 0 || local_tile_x >= 32 || local_tile_y < 0 ||
-      local_tile_y >= 32) {
-    return false;
-  }
-
-  const int world_tile_x = map_x * 32 + local_tile_x;
-  const int world_tile_y = map_y * 32 + local_tile_y;
-  if (world_tile_x < 0 || world_tile_x >= 256 || world_tile_y < 0 ||
-      world_tile_y >= 256) {
-    return false;
-  }
-
-  const auto* map_tiles = deps_.overworld->mutable_map_tiles();
-  if (!map_tiles) {
-    return false;
-  }
-  const auto& world_tiles = (*deps_.current_world == 0) ? map_tiles->light_world
-                            : (*deps_.current_world == 1)
-                                ? map_tiles->dark_world
-                                : map_tiles->special_world;
-  if (world_tile_x >= static_cast<int>(world_tiles.size()) ||
-      world_tile_y >= static_cast<int>(world_tiles[world_tile_x].size())) {
-    return false;
-  }
-  const int tile_id = world_tiles[world_tile_x][world_tile_y];
-  if (tile_id < 0) {
-    return false;
-  }
+  const int tile_id = *tile;
 
   if (callbacks_.request_tile16_selection) {
     callbacks_.request_tile16_selection(tile_id);

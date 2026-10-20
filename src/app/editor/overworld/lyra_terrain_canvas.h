@@ -6,6 +6,7 @@
 #include <string>
 
 #include "app/editor/core/undo_manager.h"
+#include "app/editor/overworld/painting/tile_brush.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
 #include "core/lyra_terrain_document.h"
@@ -39,11 +40,12 @@ class LyraTerrainCanvas {
   bool dirty() const;
   void ProjectSaveCommitted() { pending_project_commit_ = false; }
   bool loaded() const { return document_ != nullptr; }
-  // Draws the lower four rows of the existing Special World canvas. The
-  // owning editor supplies its normal tile selection and drawing-tool state.
-  void DrawSpecialWorld(const gui::CanvasRuntime& canvas, UndoManager& history,
-                        int& selected_tile, bool paint_enabled,
-                        bool fill_enabled);
+  // Rendering only. TilePaintingManager owns the shared Overworld gestures.
+  void DrawSpecialWorld(const gui::CanvasRuntime& canvas);
+  // Coordinates are document-relative Tile16 cells; footprints clip at its
+  // edge. The entire brush is validated before any cells are changed.
+  absl::Status PaintPattern(const TileBrush& brush, int x, int y, int width,
+                            int height, bool finalize, UndoManager& history);
   void FinishStroke(UndoManager& history);
   void Reset();
   const core::LyraTerrainDocument* document() const { return document_.get(); }
@@ -55,6 +57,7 @@ class LyraTerrainCanvas {
   absl::Status BindSource(zelda3::Overworld& overworld,
                           core::LyraTerrainProfile* profile, bool make_atlas);
   void DrawTile(ImDrawList* draw, int tile, ImVec2 min, float size) const;
+  void PaintStamp(int x, int y);
   void PaintLine(int x, int y);
 
   std::shared_ptr<core::LyraTerrainDocument> document_;
@@ -65,7 +68,9 @@ class LyraTerrainCanvas {
   bool pending_project_commit_ = false;
   bool stroke_active_ = false;
   std::optional<ImVec2> last_cell_;
-  int brush_ = 0;
+  TileBrush brush_;
+  int pattern_width_ = 0;
+  int pattern_height_ = 0;
   absl::Status status_;
 };
 

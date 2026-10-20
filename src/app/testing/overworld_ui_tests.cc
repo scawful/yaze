@@ -630,6 +630,109 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
     IM_CHECK(document->maps() == *painted);
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 1);
 
+    // Capture a real rectangle across A0/A8, copy it through the editor's
+    // clipboard shortcut, and paste it across the next available map seam.
+    // Four columns at 0.25x exceed ImGui's drag threshold without changing
+    // the viewport; the original painted column makes the pattern nonuniform.
+    const auto xy_position = [&](int x, int y) {
+      const auto origin = canvas.zero_point();
+      const auto scrolling = canvas.scrolling();
+      const float size = 16.0f * canvas.global_scale();
+      return ImVec2(origin.x + scrolling.x + (x + 0.5f) * size,
+                    origin.y + scrolling.y + (kLyraWorldY + y + 0.5f) * size);
+    };
+    editor::TileBrush rectangle{4, 3, {}};
+    for (int y = 31; y <= 33; ++y)
+      for (int x = kX; x < kX + rectangle.width; ++x)
+        rectangle.tile_ids.push_back(document->tile(x, y).value());
+    ctx->MouseMoveToPos(xy_position(kX, 31));
+    ctx->MouseDown(ImGuiMouseButton_Right);
+    ctx->Yield(2);
+    ctx->MouseMoveToPos(xy_position(kX + 3, 33));
+    ctx->Yield(2);
+    ctx->MouseUp(ImGuiMouseButton_Right);
+    ctx->Yield(3);
+    IM_CHECK(overworld->tile_painting()->selection_brush() != nullptr);
+    IM_CHECK_EQ(overworld->tile_painting()->selection_brush()->width, 4);
+    IM_CHECK_EQ(overworld->tile_painting()->selection_brush()->height, 3);
+    IM_CHECK(overworld->tile_painting()->selection_brush()->tile_ids ==
+             rectangle.tile_ids);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_C);
+    ctx->Yield(2);
+    const int paste_y = reaches_b0 ? 63 : 31;
+    IM_CHECK(terrain.RectClipped.Contains(xy_position(11, paste_y + 2)));
+    ctx->MouseMoveToPos(xy_position(8, paste_y));
+    ctx->Yield(2);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_V);
+    ctx->Yield(3);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 2);
+    for (int y = 0; y < rectangle.height; ++y)
+      for (int x = 0; x < rectangle.width; ++x)
+        IM_CHECK(document->tile(8 + x, paste_y + y).value() ==
+                 rectangle.at(x, y));
+    const auto pasted =
+        std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *painted);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *pasted);
+
+    // The same captured rectangle is a brush and a fill pattern. Draw a
+    // stamp, undo it exactly, then fill A9 through the normal toolbar.
+    ctx->MouseMoveToPos(xy_position(16, paste_y));
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->Yield(3);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
+    for (int y = 0; y < rectangle.height; ++y)
+      for (int x = 0; x < rectangle.width; ++x)
+        IM_CHECK(document->tile(16 + x, paste_y + y).value() ==
+                 rectangle.at(x, y));
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *pasted);
+    ImGuiID fill = widgets.GetWidgetId("OverworldToolbar/button:Fill");
+    const bool fill_overflow = fill == 0 || !ctx->ItemExists(fill);
+    if (fill_overflow) {
+      const auto tools = widgets.GetWidgetId("OverworldToolbar/button:Tools");
+      IM_CHECK(tools != 0);
+      ctx->ItemClick(tools);
+      ctx->Yield(2);
+      fill = widgets.GetWidgetId("OverworldToolbar/button:Fill");
+    }
+    IM_CHECK(fill != 0);
+    ctx->ItemClick(fill);
+    if (fill_overflow)
+      ctx->KeyPress(ImGuiKey_Escape);
+    overworld->LocateOverworldTile(0xA9, 48, kLyraWorldY + 48);
+    ctx->Yield(3);
+    terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.RectClipped.Contains(xy_position(48, 48)));
+    ctx->MouseSetViewport(terrain.Window);
+    ctx->MouseMoveToPos(xy_position(48, 48));
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->Yield(3);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x)
+        IM_CHECK(document->tile(32 + x, 32 + y).value() ==
+                 rectangle.at(x % rectangle.width, y % rectangle.height));
+    const auto filled =
+        std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *pasted);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *filled);
+    const auto rejected = overworld->lyra_canvas_.PaintPattern(
+        {2, 1, {brush, document->profile().tile_count}}, 0, 0, 2, 1, true,
+        overworld->undo_manager());
+    IM_CHECK(!rejected.ok());
+    IM_CHECK(document->maps() == *filled);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
+
     const auto save_status = manager->SaveProject();
     ctx->Yield(3);
     if (!save_status.ok()) {
@@ -668,7 +771,16 @@ static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
         {"paint_y_start", kStartY},
         {"paint_y_end", end_y},
         {"tile16", brush},
-        {"undo_actions_added", 1},
+        {"undo_actions_added", 3},
+        {"rectangle_selection_copy_paste", true},
+        {"rectangle_stamp", true},
+        {"pattern_fill", true},
+        {"invalid_brush_refused_atomically", true},
+        {"pattern_width", rectangle.width},
+        {"pattern_height", rectangle.height},
+        {"pattern_tile_ids", rectangle.tile_ids},
+        {"pattern_paste_x", 8},
+        {"pattern_paste_y", paste_y},
         {"surface", "normal_special_overworld"},
         {"normal_tile16_selector", true},
         {"displayed_map_count", overworld->DisplayedMapCount()},
@@ -820,6 +932,23 @@ static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
     IM_CHECK(tile >= 0 && tile < document->profile().tile_count);
     for (int y = first_y; y <= last_y; ++y)
       IM_CHECK(document->tile(x, y).value() == tile);
+    if (prior.value("rectangle_selection_copy_paste", false)) {
+      const editor::TileBrush rectangle{
+          prior.at("pattern_width").get<int>(),
+          prior.at("pattern_height").get<int>(),
+          prior.at("pattern_tile_ids").get<std::vector<int>>()};
+      IM_CHECK(rectangle.valid());
+      const int px = prior.at("pattern_paste_x").get<int>();
+      const int py = prior.at("pattern_paste_y").get<int>();
+      for (int y = 0; y < rectangle.height; ++y)
+        for (int x = 0; x < rectangle.width; ++x)
+          IM_CHECK(document->tile(px + x, py + y).value() ==
+                   rectangle.at(x, y));
+      for (int y = 0; y < 32; ++y)
+        for (int x = 0; x < 32; ++x)
+          IM_CHECK(document->tile(32 + x, 32 + y).value() ==
+                   rectangle.at(x % rectangle.width, y % rectangle.height));
+    }
     IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), 0);
 
     // Fit the one normal SW canvas for the driver's screenshot. Both the

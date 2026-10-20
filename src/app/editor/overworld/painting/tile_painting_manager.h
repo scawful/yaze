@@ -5,6 +5,8 @@
 #include <functional>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/overworld/painting/tile_brush.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
@@ -49,6 +51,17 @@ struct TilePaintingCallbacks {
   /// `SelectMapForEditing`, which honors a pin and refreshes the Tile16
   /// selector palette. Absent callback keeps the direct `current_map` write.
   std::function<void(int map_id)> select_map_for_editing;
+  // Optional project terrain adapter. Coordinates are world Tile16 cells;
+  // project destinations never enter the legacy ROM/bitmap write path.
+  std::function<bool(int world, int x, int y)> is_project_tile;
+  std::function<absl::StatusOr<uint16_t>(int world, int x, int y)>
+      read_project_tile;
+  std::function<absl::Status(const TileBrush&, int x, int y, int width,
+                             int height, bool finalize)>
+      paint_project_pattern;
+  std::function<void()> finalize_project_paint;
+  std::function<const gfx::Bitmap*()> project_tile_atlas;
+  std::function<int(int world)> allocated_rows;
 };
 
 /// @brief Manages tile painting, fill, selection, and eyedropper operations.
@@ -63,8 +76,8 @@ class TilePaintingManager {
   /// @brief Main entry point: check for tile edits (paint, fill, stamp).
   void CheckForOverworldEdits();
 
-  /// Finish legacy painting before another source owns the canvas. Releases
-  /// may occur while that source handles input, so discard gesture ownership
+  /// Finish pending painting before another tool owns the canvas. Releases
+  /// may occur while that tool handles input, so discard gesture ownership
   /// without discarding an already captured tile brush.
   void SuspendCanvasGestures();
 
@@ -105,7 +118,12 @@ class TilePaintingManager {
   using ChangedMaps = std::array<bool, zelda3::kNumOverworldMaps>;
 
   TilePosition HoveredTile() const;
+  int AllocatedRowsForWorld(int world) const;
+  bool IsValidMapGridPosition(int world, int map_x, int map_y) const;
+  bool IsProjectTile(TilePosition position) const;
+  absl::StatusOr<uint16_t> ReadTile(TilePosition position) const;
   bool IsValidTile(TilePosition position) const;
+  void FinalizePendingPaint();
   std::vector<std::vector<uint16_t>>& WorldTiles() const;
   void CaptureSelection();
   // Draws `brush` at `anchor` with each destination map's own graphics and
@@ -115,8 +133,8 @@ class TilePaintingManager {
   // Pixels of `tile_id` as `map_id` draws it (its own tile16 blockset);
   // falls back to the shared blockset when that map has none built.
   std::vector<uint8_t> Tile16PixelsForMap(int map_id, int tile_id) const;
-  void PaintPattern(const TileBrush& brush, TilePosition anchor, int width,
-                    int height, bool finalize = true);
+  absl::Status PaintPattern(const TileBrush& brush, TilePosition anchor,
+                            int width, int height, bool finalize = true);
   bool PaintTile(TilePosition position, int tile_id, ChangedMaps& changed_maps);
   void RenderMapTile(int map_id, TilePosition position,
                      const std::vector<uint8_t>& tile_data);
@@ -125,6 +143,10 @@ class TilePaintingManager {
   TilePaintingCallbacks callbacks_;
   bool paint_gesture_owned_ = false;
   bool single_paint_pending_ = false;
+  bool project_paint_pending_ = false;
+  bool gesture_project_ = false;
+  int gesture_world_ = 0;
+  EditingMode gesture_mode_ = EditingMode::DRAW_TILE;
   bool selection_gesture_owned_ = false;
   TileBrush brush_;
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> map_brush_previews_;
