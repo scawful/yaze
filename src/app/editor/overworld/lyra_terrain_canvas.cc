@@ -754,12 +754,76 @@ absl::Status LyraTerrainCanvas::Create(project::YazeProject* project,
 }
 
 bool LyraTerrainCanvas::dirty() const {
-  return document_ &&
-         (unpublished_ || pending_project_commit_ || document_->dirty());
+  return document_ && (unpublished_ || pending_project_commit_ ||
+                       document_->dirty() || !PendingPropertyMaps().empty());
+}
+
+core::LyraMapProperties& LyraTerrainCanvas::PropertyDraftFor(int map_index) {
+  const auto& live = document_->authoring().maps[map_index].properties;
+  auto& entry = property_drafts_[map_index];
+  if (!entry || entry->draft == entry->baseline || entry->draft == live)
+    entry = PropertyDraft{live, live};
+  return entry->draft;
+}
+
+bool LyraTerrainCanvas::PropertyPending(int map_index) const {
+  const auto& entry = property_drafts_[map_index];
+  return document_ && entry && entry->draft != entry->baseline &&
+         entry->draft != document_->authoring().maps[map_index].properties;
+}
+
+bool LyraTerrainCanvas::PropertyConflict(int map_index) const {
+  return PropertyPending(map_index) &&
+         property_drafts_[map_index]->baseline !=
+             document_->authoring().maps[map_index].properties;
+}
+
+std::vector<int> LyraTerrainCanvas::PendingPropertyMaps() const {
+  std::vector<int> map_ids;
+  for (int i = 0; i < Document::kMapCount; ++i) {
+    if (PropertyPending(i))
+      map_ids.push_back(Document::kFirstMap + i);
+  }
+  return map_ids;
+}
+
+std::string LyraTerrainCanvas::FormatMapIds(const std::vector<int>& map_ids) {
+  std::string text;
+  for (const int map_id : map_ids)
+    absl::StrAppendFormat(&text, "%s$%02X", text.empty() ? "" : ", ", map_id);
+  return text;
+}
+
+absl::Status LyraTerrainCanvas::ApplyPropertyDraft(int map_index,
+                                                   zelda3::Overworld& overworld,
+                                                   UndoManager& history) {
+  if (!document_)
+    return absl::FailedPreconditionError("Lyra project is unavailable");
+  // A whole-map draft would silently replace the newer live fields.
+  if (PropertyConflict(map_index))
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Map $%02X properties changed after these edits began; Revert "
+        "Properties to load the current values, then edit again. Edits "
+        "retained.",
+        Document::kFirstMap + map_index));
+  core::LyraAuthoringState next_state = document_->authoring();
+  next_state.maps[map_index].properties = PropertyDraftFor(map_index);
+  RETURN_IF_ERROR(EditAuthoring(std::move(next_state), overworld, history));
+  RevertPropertyDraft(map_index);
+  return absl::OkStatus();
+}
+
+void LyraTerrainCanvas::RevertPropertyDraft(int map_index) {
+  const auto& live = document_->authoring().maps[map_index].properties;
+  property_drafts_[map_index] = PropertyDraft{live, live};
 }
 
 absl::Status LyraTerrainCanvas::Save(project::YazeProject* project,
                                      zelda3::Overworld& overworld) {
+  if (const auto pending = PendingPropertyMaps(); !pending.empty())
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Apply or Revert Lyra properties for %s %s before saving the project.",
+        pending.size() == 1 ? "map" : "maps", FormatMapIds(pending)));
   if (!dirty())
     return absl::OkStatus();
   if (!project ||
@@ -943,8 +1007,7 @@ void LyraTerrainCanvas::Reset() {
   assets_valid_ = false;
   displayed_assets_.fill(nullptr);
   map_assets_.clear();
-  property_draft_.reset();
-  property_baseline_.reset();
+  property_drafts_.fill(std::nullopt);
   copy_source_map_ = 0x3A;
   copy_message_.clear();
   copy_failed_ = false;

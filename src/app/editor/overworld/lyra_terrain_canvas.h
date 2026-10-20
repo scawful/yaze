@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/painting/tile_brush.h"
@@ -73,6 +74,27 @@ class LyraTerrainCanvas {
                          zelda3::Overworld& overworld, UndoManager& history);
 
  private:
+  friend class LyraTerrainCanvasTestPeer;
+
+  // A map's unapplied property edits. `baseline` is the live value the edits
+  // started from; pending drafts differ from both baseline and current live.
+  struct PropertyDraft {
+    core::LyraMapProperties draft;
+    core::LyraMapProperties baseline;
+  };
+  // Creates or reconciles the entry: clean drafts follow live properties and a
+  // pending draft that now equals live becomes clean.
+  core::LyraMapProperties& PropertyDraftFor(int map_index);
+  bool PropertyPending(int map_index) const;
+  // Live properties changed after a pending draft started.
+  bool PropertyConflict(int map_index) const;
+  std::vector<int> PendingPropertyMaps() const;
+  static std::string FormatMapIds(const std::vector<int>& map_ids);
+  // Refuses a conflicting draft; success and validation failure both leave
+  // other maps untouched.
+  absl::Status ApplyPropertyDraft(int map_index, zelda3::Overworld& overworld,
+                                  UndoManager& history);
+  void RevertPropertyDraft(int map_index);
   absl::Status ApplyAuthoring(core::LyraAuthoringState after,
                               zelda3::Overworld& overworld,
                               UndoManager& history);
@@ -124,9 +146,10 @@ class LyraTerrainCanvas {
   absl::Status authoring_assets_status_;
   std::optional<core::LyraAuthoringState> validated_authoring_;
   bool assets_valid_ = false;
+  // Tracks navigation for transient copy feedback only.
   int property_map_ = -1;
-  std::optional<core::LyraMapProperties> property_draft_;
-  std::optional<core::LyraMapProperties> property_baseline_;
+  std::array<std::optional<PropertyDraft>, core::LyraTerrainDocument::kMapCount>
+      property_drafts_{};
   int copy_source_map_ = 0x3A;
   // Cleared whenever the destination map changes.
   std::string copy_message_;

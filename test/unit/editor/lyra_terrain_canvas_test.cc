@@ -4,10 +4,40 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <memory>
+#include <vector>
 
 #include "gtest/gtest.h"
 
 namespace yaze::editor {
+
+class LyraTerrainCanvasTestPeer {
+ public:
+  static void Install(LyraTerrainCanvas& canvas,
+                      std::shared_ptr<core::LyraTerrainDocument> document) {
+    canvas.document_ = std::move(document);
+  }
+  // The same lookup DrawProperties performs when a Lyra map is selected.
+  static core::LyraMapProperties& Draft(LyraTerrainCanvas& canvas,
+                                        int map_index) {
+    return canvas.PropertyDraftFor(map_index);
+  }
+  static std::vector<int> PendingMaps(const LyraTerrainCanvas& canvas) {
+    return canvas.PendingPropertyMaps();
+  }
+  static bool Conflict(const LyraTerrainCanvas& canvas, int map_index) {
+    return canvas.PropertyConflict(map_index);
+  }
+  static absl::Status Apply(LyraTerrainCanvas& canvas, int map_index,
+                            zelda3::Overworld& overworld,
+                            UndoManager& history) {
+    return canvas.ApplyPropertyDraft(map_index, overworld, history);
+  }
+  static void Revert(LyraTerrainCanvas& canvas, int map_index) {
+    canvas.RevertPropertyDraft(map_index);
+  }
+};
+
 namespace {
 namespace fs = std::filesystem;
 
@@ -168,6 +198,132 @@ TEST_F(LyraTerrainSourceTest, RefusesChangedReferenceAndRomAlias) {
                                         Read(source_), *document)
                    .ok());
   ExpectProtectedFilesUnchanged();
+}
+
+using Peer = LyraTerrainCanvasTestPeer;
+
+class LyraPropertyDraftTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    auto document = core::LyraTerrainDocument::Create(FixtureProfile());
+    ASSERT_TRUE(document.ok()) << document.status();
+    document_ =
+        std::make_shared<core::LyraTerrainDocument>(*std::move(document));
+    Peer::Install(canvas_, document_);
+  }
+
+  // Stands in for Undo/Redo or another authoring edit changing live values.
+  void SetLive(int map_index, const core::LyraMapProperties& properties) {
+    auto after = document_->authoring();
+    after.maps[map_index].properties = properties;
+    after.maps[map_index].asset_bindings = {"binding:0", "binding:1",
+                                            "binding:2"};
+    ASSERT_TRUE(document_->SetAuthoring(document_->authoring(), after).ok());
+  }
+
+  const core::LyraMapProperties& Live(int map_index) const {
+    return document_->authoring().maps[map_index].properties;
+  }
+
+  std::shared_ptr<core::LyraTerrainDocument> document_;
+  LyraTerrainCanvas canvas_;
+  zelda3::Overworld overworld_{nullptr};
+  UndoManager history_;
+};
+
+TEST_F(LyraPropertyDraftTest, MapNavigationRetainsEachPendingDraft) {
+  Peer::Draft(canvas_, 0).main_palette = 5;
+  Peer::Draft(canvas_, 1);
+  EXPECT_EQ(Peer::Draft(canvas_, 0).main_palette, 5);
+  EXPECT_EQ(Peer::PendingMaps(canvas_), std::vector<int>({0xA0}));
+  EXPECT_FALSE(document_->dirty());
+  EXPECT_TRUE(canvas_.dirty());
+
+  Peer::Draft(canvas_, 1).message_id = 7;
+  EXPECT_EQ(Peer::PendingMaps(canvas_), std::vector<int>({0xA0, 0xA1}));
+  Peer::Revert(canvas_, 1);
+  EXPECT_EQ(Peer::PendingMaps(canvas_), std::vector<int>({0xA0}));
+  EXPECT_EQ(Peer::Draft(canvas_, 0).main_palette, 5);
+  EXPECT_EQ(Live(0).main_palette, 0);
+  Peer::Revert(canvas_, 0);
+  EXPECT_FALSE(canvas_.dirty());
+}
+
+TEST_F(LyraPropertyDraftTest, CleanDraftFollowsLiveIncludingUndo) {
+  const auto original = Live(0);
+  EXPECT_EQ(Peer::Draft(canvas_, 0), original);
+  Peer::Draft(canvas_, 2);
+  auto changed = original;
+  changed.palette_set = 3;
+  SetLive(0, changed);
+  SetLive(2, changed);
+  EXPECT_EQ(Peer::Draft(canvas_, 0), changed);
+  SetLive(0, original);
+  EXPECT_EQ(Peer::Draft(canvas_, 0), original);
+  // Map $A2 was not revisited; its stale clean entry is not pending.
+  EXPECT_TRUE(Peer::PendingMaps(canvas_).empty());
+  EXPECT_EQ(Peer::Draft(canvas_, 2), changed);
+}
+
+TEST_F(LyraPropertyDraftTest, ConflictRefusesApplyAndRetainsEverything) {
+  Peer::Draft(canvas_, 0).main_palette = 5;
+  auto newer = Live(0);
+  newer.music[0] = 9;
+  SetLive(0, newer);
+  const auto authoring_before = document_->authoring();
+  ASSERT_TRUE(Peer::Conflict(canvas_, 0));
+
+  const auto status = Peer::Apply(canvas_, 0, overworld_, history_);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(status.message().find("Revert Properties"), std::string::npos);
+  EXPECT_EQ(document_->authoring(), authoring_before);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+  EXPECT_EQ(Peer::Draft(canvas_, 0).main_palette, 5);
+  EXPECT_EQ(Peer::Draft(canvas_, 0).music[0], 0);
+  EXPECT_EQ(Peer::PendingMaps(canvas_), std::vector<int>({0xA0}));
+
+  Peer::Revert(canvas_, 0);
+  EXPECT_EQ(Peer::Draft(canvas_, 0), newer);
+  EXPECT_TRUE(Peer::PendingMaps(canvas_).empty());
+}
+
+TEST_F(LyraPropertyDraftTest, PendingDraftEqualToNewLiveIsClean) {
+  const auto original = Live(0);
+  auto& draft = Peer::Draft(canvas_, 0);
+  draft.main_palette = 5;
+  const auto edited = draft;
+  SetLive(0, edited);
+  EXPECT_TRUE(Peer::PendingMaps(canvas_).empty());
+  EXPECT_FALSE(Peer::Conflict(canvas_, 0));
+  EXPECT_EQ(Peer::Draft(canvas_, 0), edited);
+  SetLive(0, original);
+  EXPECT_EQ(Peer::Draft(canvas_, 0), original);
+}
+
+TEST_F(LyraPropertyDraftTest, SaveRefusesPendingBeforeProjectAccess) {
+  Peer::Draft(canvas_, 0).main_palette = 5;
+  Peer::Draft(canvas_, 3).message_id = 1;
+  const auto status = canvas_.Save(nullptr, overworld_);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(status.message(),
+            "Apply or Revert Lyra properties for maps $A0, $A3 before saving "
+            "the project.");
+  canvas_.ProjectSaveCommitted();
+  EXPECT_TRUE(canvas_.dirty());
+  EXPECT_EQ(Peer::PendingMaps(canvas_), std::vector<int>({0xA0, 0xA3}));
+  EXPECT_FALSE(document_->dirty());
+}
+
+TEST_F(LyraPropertyDraftTest, ResetClearsEveryDraft) {
+  Peer::Draft(canvas_, 0).main_palette = 5;
+  Peer::Draft(canvas_, 5).message_id = 2;
+  canvas_.Reset();
+  EXPECT_FALSE(canvas_.dirty());
+  EXPECT_TRUE(Peer::PendingMaps(canvas_).empty());
+  Peer::Install(canvas_, document_);
+  EXPECT_TRUE(Peer::PendingMaps(canvas_).empty());
+  EXPECT_EQ(Peer::Draft(canvas_, 0), Live(0));
+  EXPECT_FALSE(canvas_.dirty());
 }
 
 }  // namespace

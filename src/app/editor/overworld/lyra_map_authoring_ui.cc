@@ -122,20 +122,12 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
 
   if (is_lyra) {
     const int map_index = map_id - Document::kFirstMap;
-    if (property_map_ != map_id || !property_draft_.has_value()) {
+    if (property_map_ != map_id) {
       property_map_ = map_id;
-      property_draft_ = document_->authoring().maps[map_index].properties;
-      property_baseline_ = property_draft_;
       copy_message_.clear();
       copy_failed_ = false;
     }
-    const auto& live_properties =
-        document_->authoring().maps[map_index].properties;
-    if (property_baseline_ && *property_baseline_ != live_properties) {
-      if (property_draft_ == property_baseline_)
-        property_draft_ = live_properties;
-      property_baseline_ = live_properties;
-    }
+    core::LyraMapProperties& draft = PropertyDraftFor(map_index);
 
     ImGui::PushID("LyraProperties");
     ImGui::Text("Lyra Map Properties ($%02X)", map_id);
@@ -150,8 +142,6 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
     if (ImGui::Combo("Game State", &current_state, state_names, 3)) {
       state = current_state;
     }
-
-    core::LyraMapProperties& draft = *property_draft_;
 
     // Main palette (uint8_t)
     int main_pal = draft.main_palette;
@@ -247,7 +237,7 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
           CopyNativeGraphicsSettings(overworld, copy_source_map_, draft);
       copy_failed_ = !copied.ok();
       if (copied.ok()) {
-        property_draft_ = *std::move(copied);
+        draft = *std::move(copied);
         copy_message_ = absl::StrFormat(
             "Copied $%02X (area parent $%02X) into the $%02X draft",
             copy_source_map_,
@@ -269,12 +259,8 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
 
     // Apply and Revert buttons
     if (ImGui::Button("Apply Properties")) {
-      core::LyraAuthoringState next_state = document_->authoring();
-      next_state.maps[map_index].properties = draft;
-      absl::Status edit_status = EditAuthoring(next_state, overworld, history);
-      if (edit_status.ok()) {
-        property_draft_ = document_->authoring().maps[map_index].properties;
-        property_baseline_ = property_draft_;
+      status_ = ApplyPropertyDraft(map_index, overworld, history);
+      if (status_.ok()) {
         copy_message_.clear();
         copy_failed_ = false;
       }
@@ -283,15 +269,38 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
         "LyraMapProperties/button:Apply", "button", ImGui::GetItemID());
     ImGui::SameLine();
     if (ImGui::Button("Revert Properties")) {
-      property_draft_ = document_->authoring().maps[map_index].properties;
+      RevertPropertyDraft(map_index);
+      status_ = absl::OkStatus();
       copy_message_.clear();
       copy_failed_ = false;
     }
 
-    if (!status_.ok()) {
+    ImGui::PushTextWrapPos(0.0f);
+    if (PropertyConflict(map_index)) {
+      ImGui::TextColored(
+          ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+          "$%02X properties changed after these edits began (for example by "
+          "Undo). Apply is refused; Revert Properties to load the current "
+          "values, then edit again.",
+          map_id);
+    } else if (PropertyPending(map_index)) {
+      ImGui::TextColored(ImVec4(1.0f, 0.9f, 0.2f, 1.0f),
+                         "$%02X has unapplied property edits.", map_id);
+    }
+    std::vector<int> other_pending = PendingPropertyMaps();
+    std::erase(other_pending, map_id);
+    if (!other_pending.empty()) {
+      ImGui::TextWrapped(
+          "Unapplied properties on %s. Visit each map and Apply or Revert "
+          "before saving the project.",
+          FormatMapIds(other_pending).c_str());
+    }
+
+    if (!status_.ok() && !PropertyConflict(map_index)) {
       ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s",
                          status_.ToString().c_str());
     }
+    ImGui::PopTextWrapPos();
 
     ImGui::Separator();
 
