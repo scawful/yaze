@@ -38,7 +38,7 @@ struct ObjectTileEditorPanelTestAccess;
  *
  * Standard-object sessions open from the dungeon canvas selection menu.
  * Existing fixed-slot custom assets open from the Custom Assets browser.
- * Custom sessions may add tiles anywhere in the 64x64 runtime buffer;
+ * Custom sessions may add or move tiles anywhere in the 64x64 runtime buffer;
  * standard object shapes stay fixed.
  */
 class ObjectTileEditorPanel : public WindowContent {
@@ -109,6 +109,8 @@ class ObjectTileEditorPanel : public WindowContent {
   absl::Status AddFirstTileToEmptyCustomLayout();
   absl::Status AddCustomTileAt(int rel_x, int rel_y);
   absl::Status AppendCustomCell(int rel_x, int rel_y, gfx::TileInfo tile_info);
+  // Refuses occupied targets; tiles are never swapped or overwritten.
+  absl::Status MoveSelectedCustomTileTo(int rel_x, int rel_y);
   // Custom consumer fingerprints exclude draft geometry, so a structural draft
   // change must not inherit a confirmation given for the previous draft.
   void DiscardSourceImpactConfirmation();

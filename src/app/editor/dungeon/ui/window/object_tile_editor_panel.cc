@@ -322,6 +322,71 @@ absl::Status ObjectTileEditorPanel::AppendCustomCell(int rel_x, int rel_y,
   return absl::OkStatus();
 }
 
+absl::Status ObjectTileEditorPanel::MoveSelectedCustomTileTo(int rel_x,
+                                                             int rel_y) {
+  if (!is_open_ || !current_layout_.is_custom) {
+    return absl::FailedPreconditionError(
+        "Only an open custom-object session can move tiles; standard object "
+        "shapes are fixed");
+  }
+  if (selected_cell_index_ < 0 ||
+      selected_cell_index_ >= static_cast<int>(current_layout_.cells.size())) {
+    return absl::FailedPreconditionError(
+        "Select a custom-object tile before moving it");
+  }
+  if (rel_x < 0 || rel_x >= kCustomObjectBufferTiles || rel_y < 0 ||
+      rel_y >= kCustomObjectBufferTiles) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Tile (%d, %d) is outside the %dx%d custom-object buffer; X and Y "
+        "must be 0-%d",
+        rel_x, rel_y, kCustomObjectBufferTiles, kCustomObjectBufferTiles,
+        kCustomObjectBufferTiles - 1));
+  }
+  const auto& selected = current_layout_.cells[selected_cell_index_];
+  if (selected.rel_x == rel_x && selected.rel_y == rel_y) {
+    return absl::OkStatus();
+  }
+  for (const auto& cell : current_layout_.cells) {
+    if (cell.rel_x == rel_x && cell.rel_y == rel_y) {
+      return absl::AlreadyExistsError(absl::StrFormat(
+          "Tile (%d, %d) is already occupied; move the selected tile to an "
+          "empty position",
+          rel_x, rel_y));
+    }
+  }
+
+  // Validate the complete candidate with the publication codec before the
+  // live layout changes, so a rejected move leaves the session untouched.
+  zelda3::CustomObject candidate;
+  candidate.tiles.reserve(current_layout_.cells.size());
+  for (int index = 0; index < static_cast<int>(current_layout_.cells.size());
+       ++index) {
+    const auto& cell = current_layout_.cells[index];
+    const bool is_selected = index == selected_cell_index_;
+    candidate.tiles.push_back({is_selected ? rel_x : cell.rel_x,
+                               is_selected ? rel_y : cell.rel_y,
+                               gfx::TileInfoToWord(cell.tile_info)});
+  }
+  const auto encoded_or = zelda3::EncodeCustomObjectBinary(candidate);
+  if (!encoded_or.ok()) {
+    return encoded_or.status();
+  }
+
+  auto& cell = current_layout_.cells[selected_cell_index_];
+  cell.rel_x = rel_x;
+  cell.rel_y = rel_y;
+  cell.modified = true;
+
+  const auto bounds = candidate.GetBoundingBox();
+  current_layout_.bounds_width = bounds.max_x + 1;
+  current_layout_.bounds_height = bounds.max_y + 1;
+  // Moving geometry does not replace the user's current source brush.
+  preview_dirty_ = true;
+  DiscardSourceImpactConfirmation();
+  ClearActionStatus();
+  return absl::OkStatus();
+}
+
 void ObjectTileEditorPanel::DiscardSourceImpactConfirmation() {
   show_shared_confirm_ = false;
   shared_object_count_ = 0;
@@ -878,6 +943,7 @@ void ObjectTileEditorPanel::DrawTileGridCanvas() {
 
 void ObjectTileEditorPanel::DrawCustomTileAdder() {
   constexpr int kMaxCoordinate = kCustomObjectBufferTiles - 1;
+  ImGui::TextUnformatted(tr("Destination (X/Y)"));
   ImGui::SetNextItemWidth(90);
   ImGui::SliderInt(tr("X##AddTileX"), &add_tile_x_, 0, kMaxCoordinate, "%d",
                    ImGuiSliderFlags_AlwaysClamp);
@@ -896,6 +962,19 @@ void ObjectTileEditorPanel::DrawCustomTileAdder() {
         "%s", tr("Adds the selected source tile with its palette and "
                  "flip/priority attributes. An occupied position is "
                  "selected instead."));
+  }
+  if (ImGui::Button(ICON_MD_OPEN_WITH " Move Selected Tile")) {
+    const absl::Status status =
+        MoveSelectedCustomTileTo(add_tile_x_, add_tile_y_);
+    if (!status.ok()) {
+      SetActionStatus(ActionStatusTone::kError, std::string(status.message()));
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetItemTooltip(
+        "%s", tr("Moves the selected tile to X/Y, keeping its tile, palette, "
+                 "and flip/priority attributes. An occupied position is "
+                 "refused; tiles are never swapped or overwritten."));
   }
   ImGui::TextDisabled(
       tr("Custom objects draw in a %dx%d tile buffer (X/Y 0-%d)."),
