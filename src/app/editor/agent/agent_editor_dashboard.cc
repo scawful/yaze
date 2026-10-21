@@ -841,39 +841,42 @@ void AgentEditor::DrawAgentBuilderPanel() {
   ImGui::BulletText("E2E readiness gates automation handoff");
 
   ImGui::Spacing();
-  gui::StyleColorGuard apply_guard(ImGuiCol_Button, theme.accent_color);
-  if (ImGui::Button(ICON_MD_LINK " Apply to Chat", ImVec2(-1, 0))) {
-    auto* service = agent_chat_->GetAgentService();
-    if (service) {
-      cli::agent::ToolDispatcher::ToolPreferences prefs;
-      prefs.allow_mutating_tools =
-          context_ && context_->agent_config().tool_config.allow_mutating_tools;
-      prefs.resources = builder_state_.tools.resources;
-      prefs.dungeon = builder_state_.tools.dungeon;
-      prefs.overworld = builder_state_.tools.overworld;
-      prefs.dialogue = builder_state_.tools.dialogue;
-      prefs.gui = builder_state_.tools.gui;
-      prefs.music = builder_state_.tools.music;
-      prefs.sprite = builder_state_.tools.sprite;
+  {
+    gui::StyleColorGuard apply_guard(ImGuiCol_Button, theme.accent_color);
+    if (ImGui::Button(ICON_MD_LINK " Apply to Chat", ImVec2(-1, 0))) {
+      auto* service = agent_chat_->GetAgentService();
+      if (service) {
+        cli::agent::ToolDispatcher::ToolPreferences prefs;
+        prefs.allow_mutating_tools =
+            context_ &&
+            context_->agent_config().tool_config.allow_mutating_tools;
+        prefs.resources = builder_state_.tools.resources;
+        prefs.dungeon = builder_state_.tools.dungeon;
+        prefs.overworld = builder_state_.tools.overworld;
+        prefs.dialogue = builder_state_.tools.dialogue;
+        prefs.gui = builder_state_.tools.gui;
+        prefs.music = builder_state_.tools.music;
+        prefs.sprite = builder_state_.tools.sprite;
 #ifdef YAZE_WITH_GRPC
-      prefs.emulator = builder_state_.tools.emulator;
+        prefs.emulator = builder_state_.tools.emulator;
 #endif
-      prefs.memory_inspector = builder_state_.tools.memory_inspector;
-      service->SetToolPreferences(prefs);
+        prefs.memory_inspector = builder_state_.tools.memory_inspector;
+        service->SetToolPreferences(prefs);
 
-      auto agent_cfg = service->GetConfig();
-      agent_cfg.max_tool_iterations = current_profile_.max_tool_iterations;
-      agent_cfg.max_retry_attempts = current_profile_.max_retry_attempts;
-      agent_cfg.verbose = current_profile_.verbose;
-      agent_cfg.show_reasoning = current_profile_.show_reasoning;
-      service->SetConfig(agent_cfg);
-    }
+        auto agent_cfg = service->GetConfig();
+        agent_cfg.max_tool_iterations = current_profile_.max_tool_iterations;
+        agent_cfg.max_retry_attempts = current_profile_.max_retry_attempts;
+        agent_cfg.verbose = current_profile_.verbose;
+        agent_cfg.show_reasoning = current_profile_.show_reasoning;
+        service->SetConfig(agent_cfg);
+      }
 
-    agent_chat_->SetLastPlanSummary(builder_state_.persona_notes);
+      agent_chat_->SetLastPlanSummary(builder_state_.persona_notes);
 
-    if (toast_manager_) {
-      toast_manager_->Show("Builder tool plan synced to chat",
-                           ToastType::kSuccess, 2.0f);
+      if (toast_manager_) {
+        toast_manager_->Show("Builder tool plan synced to chat",
+                             ToastType::kSuccess, 2.0f);
+      }
     }
   }
 

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/controller.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/menu/right_drawer_manager.h"
@@ -337,6 +338,42 @@ void E2ETest_RightDrawerSmokeTest(ImGuiTestContext* ctx) {
            nullptr);
 }
 
+#ifdef YAZE_BUILD_AGENT_UI
+void E2ETest_AgentBuilderSmokeTest(ImGuiTestContext* ctx) {
+  auto* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  auto* window_manager = GetWindowManager(controller);
+  IM_CHECK(window_manager != nullptr);
+  auto* ui = controller->editor_manager()->ui_coordinator();
+  IM_CHECK(ui != nullptr);
+
+  const size_t session_id = GetSessionId(controller);
+  const auto visible_before = window_manager->GetVisibleWindowIds(session_id);
+  const std::string category_before = window_manager->GetActiveCategory();
+  const bool welcome_closed_before = ui->IsWelcomeScreenManuallyClosed();
+  const absl::Cleanup restore_visibility = [&] {
+    window_manager->SetVisibleWindows(session_id, visible_before);
+    window_manager->SetActiveCategory(category_before, /*notify=*/false);
+    ui->SetWelcomeScreenManuallyClosed(welcome_closed_before);
+  };
+
+  // Reach the real panel draw without loading a ROM or opening other agents.
+  ui->SetWelcomeScreenManuallyClosed(true);
+  window_manager->SetActiveCategory("Agent", /*notify=*/false);
+  window_manager->SetVisibleWindows(session_id, {});
+  IM_CHECK(OpenWindow(ctx, controller, "agent.builder"));
+  ctx->Yield(5);
+  IM_CHECK(CheckWindow(ctx, controller, "agent.builder"));
+
+  const std::string title =
+      GetWindowTitle(GetWindowDescriptor(controller, "agent.builder"));
+  ctx->WindowCollapse(title.c_str(), false);
+  ctx->Yield(5);
+  ctx->SetRef(title.c_str());
+  IM_CHECK(ctx->ItemExists("**/" ICON_MD_LINK " Apply to Chat"));
+}
+#endif
+
 void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
   auto* controller = GetController(ctx);
   if (!EnsureRomLoaded(ctx, controller)) {
@@ -460,6 +497,14 @@ void RegisterEditorSmokeTests(ImGuiTestEngine* engine, Controller* controller) {
     test->TestFunc = E2ETest_RightDrawerSmokeTest;
     test->UserData = controller;
   }
+
+#ifdef YAZE_BUILD_AGENT_UI
+  {
+    ImGuiTest* test = IM_REGISTER_TEST(engine, "EditorSmoke", "AgentBuilder");
+    test->TestFunc = E2ETest_AgentBuilderSmokeTest;
+    test->UserData = controller;
+  }
+#endif
 
   {
     ImGuiTest* test =
