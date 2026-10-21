@@ -77,6 +77,12 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
      "Current default: registered visible. Its Open Folder and Save buttons "
      "are the only quick actions when no project code folder is set."},
 
+    // Planning
+    {"planning.overview",
+     "Primary planning surface: goal, milestones, route strip and decisions."},
+    {"planning.route",
+     "Route step and item editor; the Overview's route strip selects into it."},
+
     // Shell
     {"dashboard.main", "Editor picker shown at startup and on Ctrl+E."},
 
@@ -89,12 +95,6 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
     {"agent.configuration",
      "Current default: agent provider setup in the Agent preset."},
     {"agent.status", "Current default: agent status in the Agent preset."},
-
-    // Planning
-    {"planning.overview",
-     "Primary planning surface: goal, milestones, route strip and decisions."},
-    {"planning.route",
-     "Route step and item editor; the Overview's route strip selects into it."},
 };
 
 // panel-admission: deferred-begin
