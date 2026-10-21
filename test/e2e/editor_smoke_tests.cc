@@ -17,6 +17,13 @@
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "test_utils.h"
 
+#ifdef YAZE_BUILD_AGENT_UI
+#include "app/editor/agent/agent_chat.h"
+#include "app/editor/agent/agent_ui_controller.h"
+#include "imgui/imgui_internal.h"
+#include "implot.h"
+#endif
+
 namespace {
 
 using yaze::Controller;
@@ -387,6 +394,65 @@ void E2ETest_AgentBuilderSmokeTest(ImGuiTestContext* ctx) {
   IM_CHECK((ctx->ItemInfo(kApplyButton).StatusFlags &
             ImGuiItemStatusFlags_Visible) != 0);
 }
+
+void E2ETest_AgentStatusWithoutPlotContext(ImGuiTestContext* ctx) {
+  auto* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  auto* manager = controller->editor_manager();
+  auto* window_manager = GetWindowManager(controller);
+  IM_CHECK(window_manager != nullptr);
+  auto* ui = manager->ui_coordinator();
+  IM_CHECK(ui != nullptr);
+  auto* agent_editor = manager->GetAgentUiController()->GetAgentEditor();
+  IM_CHECK(agent_editor != nullptr);
+  auto* chat = agent_editor->GetAgentChat();
+  IM_CHECK(chat != nullptr);
+  auto* service = chat->GetAgentService();
+
+  const size_t session_id = GetSessionId(controller);
+  const auto visible_before = window_manager->GetVisibleWindowIds(session_id);
+  const std::string category_before = window_manager->GetActiveCategory();
+  const bool welcome_closed_before = ui->IsWelcomeScreenManuallyClosed();
+  const auto history_before = service->GetHistory();
+  auto* plot_context_before = ImPlot::GetCurrentContext();
+  const absl::Cleanup restore_state = [&] {
+    ImPlot::SetCurrentContext(plot_context_before);
+    service->ReplaceHistory(history_before);
+    window_manager->SetVisibleWindows(session_id, visible_before);
+    window_manager->SetActiveCategory(category_before, /*notify=*/false);
+    ui->SetWelcomeScreenManuallyClosed(welcome_closed_before);
+  };
+
+  // Restored latency history reaches the exact chart branch from the abort.
+  yaze::cli::agent::ChatMessage message;
+  message.sender = yaze::cli::agent::ChatMessage::Sender::kAgent;
+  message.message = "Metrics fixture";
+  message.timestamp = absl::UnixEpoch();
+  message.model_metadata.emplace();
+  message.model_metadata->latency_seconds = 0.25;
+  service->ReplaceHistory({message});
+
+  ui->SetWelcomeScreenManuallyClosed(true);
+  window_manager->SetActiveCategory("Agent", /*notify=*/false);
+  window_manager->SetVisibleWindows(session_id, {});
+  ImPlot::SetCurrentContext(nullptr);
+  IM_CHECK(OpenWindow(ctx, controller, "agent.status"));
+  ctx->Yield(5);
+
+  const auto* descriptor = GetWindowDescriptor(controller, "agent.status");
+  IM_CHECK(descriptor != nullptr);
+  const std::string title =
+      GetWindowTitle(descriptor) + "##" + descriptor->card_id;
+  ctx->WindowCollapse(title.c_str(), false);
+  ctx->WindowResize(title.c_str(), ImVec2(640, 520));
+  ctx->Yield(5);
+  ctx->SetRef(title.c_str());
+  const auto metrics = ctx->WindowInfo("AgentMetricsCard");
+  IM_CHECK(metrics.Window != nullptr);
+  IM_CHECK(!metrics.Window->SkipItems);
+  IM_CHECK(ImPlot::GetCurrentContext() == nullptr);
+  IM_CHECK(service->GetHistory().size() == 1);
+}
 #endif
 
 void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
@@ -517,6 +583,12 @@ void RegisterEditorSmokeTests(ImGuiTestEngine* engine, Controller* controller) {
   {
     ImGuiTest* test = IM_REGISTER_TEST(engine, "EditorSmoke", "AgentBuilder");
     test->TestFunc = E2ETest_AgentBuilderSmokeTest;
+    test->UserData = controller;
+  }
+  {
+    ImGuiTest* test = IM_REGISTER_TEST(engine, "EditorSmoke",
+                                       "AgentStatusWithoutPlotContext");
+    test->TestFunc = E2ETest_AgentStatusWithoutPlotContext;
     test->UserData = controller;
   }
 #endif

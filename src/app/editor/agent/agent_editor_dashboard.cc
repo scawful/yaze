@@ -213,7 +213,9 @@ void AgentEditor::DrawStatusPanel() {
         latencies.erase(latencies.begin(),
                         latencies.end() - static_cast<long>(30));
       }
-      if (!latencies.empty()) {
+      // The optional chart must not assume another panel initialized ImPlot.
+      // Keep text metrics available without taking ownership of its context.
+      if (!latencies.empty() && ImPlot::GetCurrentContext() != nullptr) {
         std::vector<double> xs(latencies.size());
         for (size_t i = 0; i < xs.size(); ++i) {
           xs[i] = static_cast<double>(i);
