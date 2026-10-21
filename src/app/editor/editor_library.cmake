@@ -141,6 +141,7 @@ set(
   app/editor/music/song_browser_view.cc
   app/editor/music/tracker_view.cc
   app/editor/oracle/oracle_hack_workflow_backend.cc
+  app/editor/planning/planning_editor.cc
   app/editor/oracle/panels/annotation_overlay_panel.cc
   app/editor/oracle/panels/menu_inspector_panel.cc
   app/editor/oracle/panels/oracle_validation_panel.cc

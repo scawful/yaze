@@ -484,6 +484,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/oracle_rom_fixture_test.cc
     unit/core/project_file_passthrough_test.cc
     unit/core/project_atlas_settings_test.cc
+    unit/core/project_plan_test.cc
     unit/util/lru_cache_test.cc
     unit/util/bps_test.cc
     unit/util/indexed_png_test.cc

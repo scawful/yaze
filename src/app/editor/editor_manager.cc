@@ -307,7 +307,7 @@ std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name) {
   std::string normalized = std::string(name);
   absl::StripAsciiWhitespace(&normalized);
   const std::string lower = absl::AsciiStrToLower(normalized);
-  for (int i = 0; i < static_cast<int>(EditorType::kSettings) + 1; ++i) {
+  for (int i = 0; i < static_cast<int>(kEditorTypeCount); ++i) {
     const auto type = static_cast<EditorType>(i);
     const std::string name_candidate =
         absl::AsciiStrToLower(EditorRegistry::GetEditorName(type));

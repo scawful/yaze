@@ -300,6 +300,16 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
                                 "agent.builder",       "agent.knowledge"};
       break;
 
+    case EditorType::kPlanning:
+      preset.name = "Planning";
+      preset.description = "Goal, milestones, decisions and the play route";
+      preset.default_visible_panels = {"planning.overview", "planning.route"};
+      preset.panel_positions = {
+          {"planning.overview", DockPosition::Center},
+          {"planning.route", DockPosition::Right},
+      };
+      break;
+
     default:
       preset.name = "Default";
       preset.description = "No specific layout";
@@ -325,6 +335,7 @@ LayoutPresets::GetAllPresets() {
   presets[EditorType::kEmulator] = GetDefaultPreset(EditorType::kEmulator);
   presets[EditorType::kHex] = GetDefaultPreset(EditorType::kHex);
   presets[EditorType::kAgent] = GetDefaultPreset(EditorType::kAgent);
+  presets[EditorType::kPlanning] = GetDefaultPreset(EditorType::kPlanning);
 
   return presets;
 }

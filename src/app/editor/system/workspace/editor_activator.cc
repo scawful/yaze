@@ -99,6 +99,7 @@ void EditorActivator::SwitchToEditor(EditorType editor_type, bool force_visible,
       case EditorType::kMusic:
       case EditorType::kOverworld:
       case EditorType::kPalette:
+      case EditorType::kPlanning:
       case EditorType::kScreen:
       case EditorType::kSprite: {
         const auto status = deps_.ensure_editor_assets_loaded(editor_type);

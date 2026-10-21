@@ -23,7 +23,8 @@ const std::unordered_map<EditorType, std::string>
                                          {EditorType::kEmulator, "Emulator"},
                                          {EditorType::kHex, "Memory"},
                                          {EditorType::kAgent, "Agent"},
-                                         {EditorType::kSettings, "System"}};
+                                         {EditorType::kSettings, "System"},
+                                         {EditorType::kPlanning, "Planning"}};
 
 const std::unordered_map<EditorType, std::string> EditorRegistry::kEditorNames =
     {{EditorType::kDungeon, "Dungeon Editor"},
@@ -38,7 +39,8 @@ const std::unordered_map<EditorType, std::string> EditorRegistry::kEditorNames =
      {EditorType::kEmulator, "Emulator Editor"},
      {EditorType::kHex, "Hex Editor"},
      {EditorType::kAgent, "Agent Editor"},
-     {EditorType::kSettings, "Settings Editor"}};
+     {EditorType::kSettings, "Settings Editor"},
+     {EditorType::kPlanning, "Planning Editor"}};
 
 const std::unordered_map<EditorType, bool> EditorRegistry::kPanelBasedEditors =
     {
@@ -53,8 +55,9 @@ const std::unordered_map<EditorType, bool> EditorRegistry::kPanelBasedEditors =
         {EditorType::kAssembly, true},
         {EditorType::kEmulator, true},
         {EditorType::kHex, true},
-        {EditorType::kAgent, true},     // Agent: Panel-based UI
-        {EditorType::kSettings, false}  // Settings: Sidebar panel
+        {EditorType::kAgent, true},      // Agent: Panel-based UI
+        {EditorType::kSettings, false},  // Settings: Sidebar panel
+        {EditorType::kPlanning, true},
 };
 
 bool EditorRegistry::IsPanelBasedEditor(EditorType type) {
@@ -66,6 +69,7 @@ bool EditorRegistry::UpdateAllowedWithoutLoadedRom(EditorType type) {
   switch (type) {
     case EditorType::kAssembly:
     case EditorType::kGraphics:
+    case EditorType::kPlanning:
       return true;
     default:
       return false;
@@ -147,7 +151,8 @@ std::vector<std::string> EditorRegistry::GetAllEditorCategories() {
       "Assembly",   // Code editing
       "Memory",     // Hex editor (uses "Memory" category for cards)
       "Emulator",   // Game testing
-      "Agent"       // AI Agent
+      "Agent",      // AI Agent
+      "Planning"    // Goals, route and decisions ([planning] sidecar)
   };
 }
 
