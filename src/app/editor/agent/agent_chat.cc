@@ -114,6 +114,7 @@ void AgentChat::Initialize(ToastManager* toast_manager,
 
 void AgentChat::SetRomContext(Rom* rom) {
   rom_ = rom;
+  agent_service_.SetRomContext(rom);
 }
 
 void AgentChat::SetContext(AgentUIContext* context) {

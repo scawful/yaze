@@ -37,6 +37,7 @@ set(
   app/editor/dungeon/dungeon_room_document_file.cc
   app/editor/dungeon/dungeon_room_transfer_json.cc
   app/editor/dungeon/dungeon_editor_v2_object_coverage.cc
+  app/editor/dungeon/dungeon_agent_tools.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
   app/editor/dungeon/dungeon_overlay_controls.cc

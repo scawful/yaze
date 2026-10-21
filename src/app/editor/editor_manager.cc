@@ -159,6 +159,7 @@
 // Conditional agent UI headers
 #ifdef YAZE_BUILD_AGENT_UI
 #include "app/editor/agent/agent_chat.h"
+#include "app/editor/dungeon/dungeon_agent_tools.h"
 #endif
 
 namespace yaze::editor {
@@ -1718,6 +1719,20 @@ void EditorManager::InitializeServices() {
   agent_ui_->Initialize(&toast_manager_, &proposal_drawer_,
                         right_drawer_manager_.get(), &window_manager_,
                         &user_settings_);
+
+#ifdef YAZE_BUILD_AGENT_UI
+  if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
+    if (auto* chat = agent_editor->GetAgentChat()) {
+      chat->GetAgentService()->SetDungeonEditorToolCallback(
+          MakeDungeonEditorToolCallback([this] {
+            auto* editors = GetCurrentEditorSet();
+            return DungeonEditorToolContext{
+                GetCurrentRom(), std::to_string(GetCurrentSessionId()),
+                editors ? editors->GetDungeonEditor() : nullptr};
+          }));
+    }
+  }
+#endif
 
   // Note: Unified gRPC Server is started from Application::Initialize()
   // after gRPC infrastructure is properly set up

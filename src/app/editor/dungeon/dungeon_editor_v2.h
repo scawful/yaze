@@ -51,6 +51,8 @@ namespace editor {
 
 class CustomCollisionPanel;
 class DungeonEntrancesPanel;
+class DungeonEditorV2AgentBatchTestPeer;
+class DungeonAgentToolsTestPeer;
 class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
@@ -357,6 +359,8 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonPotPlacementTestPeer;
   friend class DungeonConnectionEditsTestPeer;
   friend class DungeonRoomTransferTestPeer;
+  friend class DungeonEditorV2AgentBatchTestPeer;
+  friend class DungeonAgentToolsTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2EntranceCameraTestPeer;
