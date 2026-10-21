@@ -5,6 +5,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "app/gfx/resource/arena.h"
@@ -27,6 +28,9 @@ class ProjectGraphicsSourceUiTestPeer {
   }
   static ProjectGraphicsSource* Source(OverworldEditor& editor) {
     return editor.graphics_source_.get();
+  }
+  static void Draw(OverworldEditor& editor) {
+    editor.DrawProjectGraphicsSource();
   }
 };
 
@@ -178,6 +182,40 @@ TEST_F(ProjectGraphicsSourceUiTest,
   EXPECT_FALSE(editor_->HasPendingProjectDraftChanges());
   ASSERT_TRUE(source->Redo().ok());
   EXPECT_TRUE(editor_->HasPendingProjectDraftChanges());
+}
+
+TEST_F(ProjectGraphicsSourceUiTest,
+       ClearClosesRetainedModalBeforeAccessingReleasedSource) {
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1024, 900);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0;
+  int font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+  ASSERT_TRUE(Peer::Open(*editor_).ok());
+  const auto draw_frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::Begin("Project graphics lifecycle fixture");
+    ImGui::PushID("ProjectAssetActions");
+    const bool before = ImGui::IsPopupOpen("Edit Project Graphics");
+    Peer::Draw(*editor_);
+    const bool after = ImGui::IsPopupOpen("Edit Project Graphics");
+    ImGui::PopID();
+    ImGui::End();
+    ImGui::Render();
+    return std::pair<bool, bool>{before, after};
+  };
+  ASSERT_TRUE(draw_frame().second);
+  ASSERT_TRUE(editor_->Clear().ok());
+  EXPECT_EQ(Peer::Source(*editor_), nullptr);
+  const auto after_clear = draw_frame();
+  EXPECT_TRUE(after_clear.first)
+      << "The retained modal must exercise the guard";
+  EXPECT_FALSE(after_clear.second);
+  EXPECT_EQ(Peer::Source(*editor_), nullptr);
+  EXPECT_FALSE(editor_->HasPendingProjectDraftChanges());
 }
 
 TEST_F(ProjectGraphicsSourceUiTest,

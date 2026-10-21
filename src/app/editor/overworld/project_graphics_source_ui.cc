@@ -59,6 +59,13 @@ void OverworldEditor::DrawProjectGraphicsSource() {
       ImGuiCond_Appearing);
   if (!ImGui::BeginPopupModal(kPopup))
     return;
+  // Session teardown can clear the source while ImGui retains the modal's
+  // open flag for this frame.
+  if (!graphics_source_ || !graphics_source_open_) {
+    ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+    return;
+  }
   auto& source = *graphics_source_;
   const auto* owner = TerrainProject();
   const bool bound =
