@@ -445,6 +445,16 @@ RomWritePolicy ParseRomWritePolicy(absl::string_view value) {
 }
 
 // YazeProject Implementation
+YazeProject::~YazeProject() {
+  auto& provider = zelda3::GetResourceLabels();
+  if (provider.hack_manifest() == &hack_manifest) {
+    provider.SetHackManifest(nullptr);
+  }
+  if (provider.GetAllProjectLabels() == &resource_labels) {
+    provider.SetProjectLabels(nullptr);
+  }
+}
+
 absl::Status YazeProject::Create(const std::string& project_name,
                                  const std::string& base_path) {
   name = project_name;

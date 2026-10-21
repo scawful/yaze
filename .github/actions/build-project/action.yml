@@ -34,14 +34,16 @@ runs:
     # source, whose sources are not reset by checkout, so it is kept there and
     # keyed on the dependency lock: an unchanged lock hits exactly, and
     # actions/cache does not save on an exact hit.
+    # The tree's CMakeCache.txt records the absolute NASM path, so the key
+    # names the NASM install from setup-build; change both together.
     - name: Cache build artifacts
       if: inputs.platform == 'windows'
       uses: actions/cache@v4
       with:
         path: build/presets/${{ inputs.preset }}
-        key: build${{ inputs.cache-suffix }}-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-${{ hashFiles('cmake/dependencies.lock') }}
+        key: build${{ inputs.cache-suffix }}-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-nasm-2.16.03-${{ hashFiles('cmake/dependencies.lock') }}
         restore-keys: |
-          build${{ inputs.cache-suffix }}-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-
+          build${{ inputs.cache-suffix }}-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-nasm-2.16.03-
 
     - name: Configure project
       shell: bash

@@ -234,7 +234,7 @@ if(YAZE_BUILD_TESTS)
         add_test(NAME "${_test}" COMMAND $<TARGET_FILE:${suite_name}>
           "--gtest_filter=${_test}")
         set_tests_properties("${_test}" PROPERTIES
-          LABELS "oracle_source_acceptance;oracle_source_${_phase}"
+          LABELS "oracle_source_acceptance;oracle_source_${_phase};rom_dependent"
           WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
       endforeach()
     endif()

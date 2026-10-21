@@ -56,6 +56,7 @@ runs:
           brew install cmake
         fi
 
+    # build-project's Windows build-cache key names this version.
     - name: Setup NASM (Windows)
       if: inputs.platform == 'windows'
       uses: ilammy/setup-nasm@72793074d3c8cdda771dba85f6deafe00623038b # v1
