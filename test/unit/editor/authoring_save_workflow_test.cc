@@ -3112,7 +3112,19 @@ TEST_F(AuthoringSaveWorkflowTest,
   frame();
   EXPECT_EQ(panel->GetTracks().at(kTrack), before);
   EXPECT_EQ(matching_cart(7, 17), 1);
+  // Settle the returning viewport before projecting the next pointer target.
+  frame();
   point(112, 272);
+  const auto& start_canvas = viewer->canvas();
+  const auto start_origin = start_canvas.zero_point();
+  const auto start_scroll = start_canvas.scrolling();
+  const float start_scale = start_canvas.global_scale();
+  ASSERT_GT(start_scale, 0.0f);
+  ASSERT_TRUE(start_canvas.IsMouseHovering());
+  ASSERT_NEAR((io.MousePos.x - start_origin.x - start_scroll.x) / start_scale,
+              120.0f, 1.0f);
+  ASSERT_NEAR((io.MousePos.y - start_origin.y - start_scroll.y) / start_scale,
+              280.0f, 1.0f);
   io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
   frame();
   point(384, 128);
