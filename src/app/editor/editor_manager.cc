@@ -3878,6 +3878,44 @@ absl::Status EditorManager::OpenLyraTerrainFromPath(const std::string& path) {
   return absl::OkStatus();
 }
 
+absl::Status EditorManager::ApplyLyraTerrainProposal() {
+  RETURN_IF_ERROR(ValidateLyraTerrainProjectContext());
+  util::FileDialogOptions options;
+  options.filters.push_back({"Lyra proposal bundle", "json"});
+  return ApplyLyraTerrainProposalFromPath(
+      util::FileDialogWrapper::ShowOpenFileDialog(options));
+}
+
+absl::Status EditorManager::ApplyLyraTerrainProposalFromPath(
+    const std::string& path) {
+  if (path.empty())
+    return absl::OkStatus();
+  RETURN_IF_ERROR(ValidateLyraTerrainProjectContext());
+  std::ifstream file(path, std::ios::binary);
+  if (!file)
+    return absl::NotFoundError("Cannot open Lyra proposal bundle");
+  // Read one bounded snapshot, including one byte to detect oversize input.
+  constexpr size_t kMaximum = 1024 * 1024;
+  std::string bundle(kMaximum + 1, '\0');
+  file.read(bundle.data(), bundle.size());
+  bundle.resize(file.gcount());
+  if (file.bad())
+    return absl::DataLossError("Cannot read Lyra proposal bundle");
+  if (bundle.size() > kMaximum)
+    return absl::InvalidArgumentError("Lyra proposal bundle exceeds 1 MiB");
+  RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* overworld = GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  if (!overworld)
+    return absl::NotFoundError("Overworld editor is unavailable");
+  RETURN_IF_ERROR(overworld->ApplyLyraTerrainProposal(bundle));
+  // Terrain dirty state is derived from the document, so Undo can return to
+  // the saved state without latching a project-file settings change.
+  CaptureActiveProjectContext();
+  SwitchToEditor(EditorType::kOverworld, true);
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::SaveProject() {
   CaptureActiveProjectEditingState();
   if (session_coordinator_) {

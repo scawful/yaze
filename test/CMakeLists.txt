@@ -313,6 +313,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_bundle_test.cc
     unit/core/terrain_catalog_test.cc
     unit/core/lyra_terrain_document_test.cc
+    unit/core/lyra_terrain_proposal_test.cc
     unit/editor/lyra_terrain_canvas_test.cc
     unit/core/palette_catalog_test.cc
     unit/core/project_paths_test.cc
@@ -881,6 +882,7 @@ if(YAZE_BUILD_TESTS)
   # Create/Open/reopen lifecycle through EditorManager.
   set(FOCUS_LYRA_AUTHORING_TEST_SOURCES
     unit/core/lyra_terrain_document_test.cc
+    unit/core/lyra_terrain_proposal_test.cc
     unit/core/project_paths_test.cc
     unit/editor/lyra_terrain_canvas_test.cc
     unit/editor/editor_manager_project_actions_test.cc

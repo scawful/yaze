@@ -206,17 +206,45 @@ def plan(target, prefab, placements):
             "acceptance": "artifact proposal only; editor transaction and runtime unqualified"}
 
 
+def lyra_bundle(target, prefab, placements, map_id):
+    """Package complete read-only inputs for explicit editor admission."""
+    integer(map_id, "Lyra map ID")
+    if not 0xA0 <= map_id <= 0xBF:
+        raise ValueError("Lyra map ID must be 0xA0..0xBF")
+    if not isinstance(placements, list) or not 1 <= len(placements) <= 64:
+        raise ValueError("Lyra bundles require 1..64 placements")
+    result = plan(target, prefab, placements)
+    if (len(target["rows"]) != 32 or len(target["rows"][0]) != 32 or
+            target["binding"]["game_id"] != "oracle-of-secrets" or
+            target["binding"]["adapter_id"] != "lyra-sidecar-v3"):
+        raise ValueError("Lyra bundles require a bound 32x32 Oracle sidecar map")
+    if len(prefab["rows"]) > 32 or len(prefab["rows"][0]) > 32:
+        raise ValueError("Lyra bundle footprints must fit a 32x32 rectangle")
+    if result["capacity"]["inventory_complete"]:
+        raise ValueError("Lyra bundle admission does not support complete Tile32 inventories")
+    return {"schema_version": 1, "kind": "lyra_tile16_proposal_bundle",
+            "map_id": map_id, "target": target, "footprint": prefab,
+            "report": result}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("target", type=Path)
     parser.add_argument("prefab", type=Path)
     parser.add_argument("--at", action="append", required=True, help="anchor x,y in Tile16 units")
     parser.add_argument("--out", type=Path, help="new output file, never overwritten")
+    parser.add_argument("--bundle-map", type=lambda v: int(v, 0),
+                        help="package full inputs for explicit Lyra admission; e.g. 0xA0")
     args = parser.parse_args()
     try:
         positions = [[int(v) for v in s.split(",")] for s in args.at]
-        result = plan(json.loads(args.target.read_text()), json.loads(args.prefab.read_text()), positions)
+        target = json.loads(args.target.read_text())
+        prefab = json.loads(args.prefab.read_text())
+        result = (plan(target, prefab, positions) if args.bundle_map is None else
+                  lyra_bundle(target, prefab, positions, args.bundle_map))
         data = json.dumps(result, indent=2, sort_keys=True) + "\n"
+        if args.bundle_map is not None and len(data.encode("utf-8")) > 1024 * 1024:
+            raise ValueError("Lyra proposal bundle exceeds 1 MiB")
         if args.out:
             with args.out.open("x") as stream:
                 stream.write(data)

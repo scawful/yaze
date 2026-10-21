@@ -966,6 +966,14 @@ absl::Status OverworldEditor::OpenLyraTerrain(const std::string& path) {
   return absl::OkStatus();
 }
 
+absl::Status OverworldEditor::ApplyLyraTerrainProposal(
+    std::string_view bundle) {
+  RETURN_IF_ERROR(lyra_canvas_.ApplyProposal(
+      TerrainProject(), overworld_, current_map_, bundle, undo_manager_));
+  lyra_canvas_status_ = absl::OkStatus();
+  return absl::OkStatus();
+}
+
 absl::Status OverworldEditor::SaveProjectTerrainAs(
     project::YazeProject* project, const std::string& project_path) {
   lyra_canvas_.FinishStroke(undo_manager_);

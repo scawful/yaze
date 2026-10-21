@@ -253,6 +253,10 @@ void MenuOrchestrator::AddFileMenuItems() {
           "Import Lyra Terrain...", ICON_MD_FOLDER_OPEN,
           [this]() { OnOpenLyraTerrain(); }, nullptr,
           [this]() { return CanSaveProject() && HasActiveRom(); })
+      .Item(
+          "Apply Lyra Proposal...", ICON_MD_MAP,
+          [this]() { OnApplyLyraTerrainProposal(); }, nullptr,
+          [this]() { return CanSaveProject() && HasActiveRom(); })
       .EndMenu()
       .Separator();
 
@@ -1250,6 +1254,17 @@ void MenuOrchestrator::OnOpenLyraTerrain() {
     if (!status.ok()) {
       toast_manager_.Show(
           absl::StrFormat("Failed to open Lyra terrain: %s", status.message()),
+          ToastType::kError);
+    }
+  }
+}
+
+void MenuOrchestrator::OnApplyLyraTerrainProposal() {
+  if (editor_manager_) {
+    const auto status = editor_manager_->ApplyLyraTerrainProposal();
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Lyra proposal refused: %s", status.message()),
           ToastType::kError);
     }
   }

@@ -464,6 +464,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status CreateLyraTerrain();
   absl::Status OpenLyraTerrain();
   absl::Status OpenLyraTerrainFromPath(const std::string& path);
+  absl::Status ApplyLyraTerrainProposal();
+  absl::Status ApplyLyraTerrainProposalFromPath(const std::string& path);
   absl::Status SaveProject();
   absl::Status SaveProjectAs();
   absl::Status SaveProjectAs(const std::string& filepath);
