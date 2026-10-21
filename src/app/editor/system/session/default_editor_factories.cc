@@ -11,6 +11,7 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
+#include "app/editor/planning/planning_editor.h"
 #include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
@@ -56,6 +57,9 @@ void RegisterDefaultEditorFactories(EditorRegistry* registry) {
   });
   registry->RegisterFactory(EditorType::kSettings, [](Rom*) {
     return std::make_unique<SettingsPanel>();
+  });
+  registry->RegisterFactory(EditorType::kPlanning, [](Rom*) {
+    return std::make_unique<PlanningEditor>();
   });
 }
 

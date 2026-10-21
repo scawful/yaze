@@ -339,9 +339,9 @@ void ActivityBar::DrawActivityBarStrip(
       bool panel_expanded = window_manager_.IsSidebarExpanded();
       bool has_active_editor = active_editor_categories.count(cat) > 0;
 
-      // Emulator is always available, others require ROM
-      bool category_enabled =
-          rom_loaded || (cat == "Emulator") || (cat == "Agent");
+      // Emulator, Agent and Planning work without a ROM.
+      bool category_enabled = rom_loaded || (cat == "Emulator") ||
+                              (cat == "Agent") || (cat == "Planning");
 
       const EditorType editor_type =
           EditorRegistry::GetEditorTypeFromCategory(cat);

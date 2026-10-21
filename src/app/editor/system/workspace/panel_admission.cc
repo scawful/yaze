@@ -89,6 +89,12 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
     {"agent.configuration",
      "Current default: agent provider setup in the Agent preset."},
     {"agent.status", "Current default: agent status in the Agent preset."},
+
+    // Planning
+    {"planning.overview",
+     "Primary planning surface: goal, milestones, route strip and decisions."},
+    {"planning.route",
+     "Route step and item editor; the Overview's route strip selects into it."},
 };
 
 // panel-admission: deferred-begin
@@ -204,6 +210,7 @@ std::vector<std::string> CollectDefaultVisibleWindowIds(
       EditorType::kPalette,   EditorType::kSprite,  EditorType::kScreen,
       EditorType::kMusic,     EditorType::kMessage, EditorType::kAssembly,
       EditorType::kEmulator,  EditorType::kHex,     EditorType::kAgent,
+      EditorType::kPlanning,
   };
   for (EditorType type : kPresetEditors) {
     for (const auto& window_id : LayoutPresets::GetDefaultPanels(type)) {

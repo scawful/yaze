@@ -222,16 +222,19 @@ enum class EditorType {
   kHex,
   kAgent,
   kSettings,
+  // Values are persisted (recent editors, "switch.<n>" shortcuts): append only.
+  kPlanning,
 };
 
-constexpr std::array<const char*, 14> kEditorNames = {
+constexpr std::array<const char*, 15> kEditorNames = {
     "Unknown", "Assembly",  "Dungeon", "Emulator", "Graphics",
     "Music",   "Overworld", "Palette", "Screen",   "Sprite",
-    "Message", "Hex",       "Agent",   "Settings",
+    "Message", "Hex",       "Agent",   "Settings", "Planning",
 };
 
-constexpr size_t kEditorTypeCount =
-    static_cast<size_t>(EditorType::kSettings) + 1;
+constexpr EditorType kLastEditorType = EditorType::kPlanning;
+constexpr size_t kEditorTypeCount = static_cast<size_t>(kLastEditorType) + 1;
+static_assert(kEditorNames.size() == kEditorTypeCount);
 
 inline size_t EditorTypeIndex(EditorType type) {
   return static_cast<size_t>(type);

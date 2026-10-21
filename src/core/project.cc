@@ -776,6 +776,7 @@ bool IsKnownProjectSection(absl::string_view name) {
                                                  "dungeon_overlay",
                                                  "graphics_sheets",
                                                  "atlas",
+                                                 "planning",
                                                  "rom_addresses",
                                                  "custom_objects",
                                                  "agent_settings",
@@ -1201,6 +1202,11 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
     file << "export_folder=" << atlas.export_folder << "\n\n";
   }
 
+  if (planning.section_present || !planning.IsDefault()) {
+    file << "[planning]\n";
+    file << "file=" << planning.file << "\n\n";
+  }
+
   if (!rom_address_overrides.addresses.empty()) {
     file << "[rom_addresses]\n";
     for (const auto& [key, value] : rom_address_overrides.addresses) {
@@ -1360,6 +1366,7 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
   dungeon_tile_patterns.clear();
   file_passthrough = ProjectFilePassthrough{};
   atlas = AtlasSettings{};
+  planning = PlanningSettings{};
   std::istringstream stream(content);
   std::string line;
   std::string current_section;
@@ -1392,6 +1399,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
       passthrough_section->known = IsKnownProjectSection(current_section);
       if (current_section == "atlas") {
         atlas.section_present = true;
+      } else if (current_section == "planning") {
+        planning.section_present = true;
       }
       continue;
     }
@@ -1605,6 +1614,11 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         atlas.symbols = value;
       else if (key == "export_folder")
         atlas.export_folder = value;
+      else
+        understood = false;
+    } else if (current_section == "planning") {
+      if (key == "file")
+        planning.file = value;
       else
         understood = false;
     } else if (current_section == "rom_addresses") {
@@ -2073,6 +2087,10 @@ std::vector<std::string> YazeProject::AtlasAnnotationPaths() const {
 
 std::string YazeProject::AtlasSymbolsPath() const {
   return GetAbsolutePath(atlas.symbols);
+}
+
+std::string YazeProject::PlanningFilePath() const {
+  return GetAbsolutePath(planning.file);
 }
 
 bool YazeProject::IsEmpty() const {

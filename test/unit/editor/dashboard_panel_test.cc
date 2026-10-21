@@ -46,20 +46,21 @@ TEST(DashboardRecentEditorsTest, RejectsTheUnknownSentinel) {
   EXPECT_EQ(parsed[0], EditorType::kDungeon);
 }
 
-// kSettings is a real editor and the last enumerator. The old upper bound was
-// `type_int < kSettings`, which excluded it: Settings could never become a
-// recent no matter how often it was opened.
+// kSettings is a real editor. The old upper bound was `type_int < kSettings`,
+// which excluded it: Settings could never become a recent no matter how often
+// it was opened.
 TEST(DashboardRecentEditorsTest, AcceptsTheLastEditorType) {
-  const auto parsed = Parse(Line(EditorType::kSettings));
-  ASSERT_EQ(parsed.size(), 1u);
-  EXPECT_EQ(parsed[0], EditorType::kSettings);
+  for (EditorType type : {EditorType::kSettings, kLastEditorType}) {
+    const auto parsed = Parse(Line(type));
+    ASSERT_EQ(parsed.size(), 1u);
+    EXPECT_EQ(parsed[0], type);
+  }
 }
 
 TEST(DashboardRecentEditorsTest, RejectsOutOfRangeValues) {
   const std::string body =
-      "-1\n999\n" +
-      std::to_string(static_cast<int>(EditorType::kSettings) + 1) + "\n" +
-      Line(EditorType::kMusic);
+      "-1\n999\n" + std::to_string(static_cast<int>(kLastEditorType) + 1) +
+      "\n" + Line(EditorType::kMusic);
   const auto parsed = Parse(body);
   ASSERT_EQ(parsed.size(), 1u);
   EXPECT_EQ(parsed[0], EditorType::kMusic);

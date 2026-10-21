@@ -16,6 +16,7 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
+#include "app/editor/planning/planning_editor.h"
 #include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
@@ -73,6 +74,8 @@ EditorSet::EditorSet(Rom* rom, zelda3::GameData* game_data,
                    [this]() { return std::make_unique<MemoryEditor>(rom_); });
   register_factory(EditorType::kSettings,
                    []() { return std::make_unique<SettingsPanel>(); });
+  register_factory(EditorType::kPlanning,
+                   []() { return std::make_unique<PlanningEditor>(); });
 }
 
 EditorSet::~EditorSet() = default;

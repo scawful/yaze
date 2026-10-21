@@ -91,6 +91,8 @@ std::string WorkspaceWindowManager::GetCategoryIcon(
     return ICON_MD_MEMORY;
   if (category == "Agent")
     return ICON_MD_SMART_TOY;
+  if (category == "Planning")
+    return ICON_MD_ROUTE;
   return ICON_MD_FOLDER;  // Default for unknown categories
 }
 
@@ -154,6 +156,10 @@ WorkspaceWindowManager::CategoryTheme WorkspaceWindowManager::GetCategoryTheme(
   if (category == "Agent") {
     // AI purple/violet - intelligent, futuristic
     return {0.60f, 0.40f, 0.95f, 1.0f, 0.60f, 0.40f, 0.95f};
+  }
+  if (category == "Planning") {
+    // Map amber - routes, goals
+    return {0.95f, 0.65f, 0.35f, 1.0f, 0.95f, 0.65f, 0.35f};
   }
 
   // Default - neutral blue

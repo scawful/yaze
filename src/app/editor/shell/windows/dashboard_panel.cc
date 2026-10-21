@@ -173,6 +173,8 @@ ImVec4 GetEditorAccentColor(EditorType type, const gui::Theme& theme) {
       return gui::ConvertColorToImVec4(theme.info);
     case EditorType::kAgent:
       return gui::ConvertColorToImVec4(theme.accent);
+    case EditorType::kPlanning:
+      return gui::ConvertColorToImVec4(theme.warning);
     case EditorType::kSettings:
     case EditorType::kUnknown:
     default:
@@ -221,6 +223,9 @@ DashboardPanel::DashboardPanel(IEditorSwitcher* editor_switcher)
       {"AI Agent", ICON_MD_SMART_TOY,
        "Configure AI agent, collaboration, and automation",
        absl::StrFormat("%s+Shift+A", ctrl), EditorType::kAgent, false, false},
+      {"Planning", ICON_MD_ROUTE,
+       "Plan goals, milestones, the play route and open decisions", "",
+       EditorType::kPlanning, false, false},
   };
 
   LoadRecentEditors();
@@ -670,7 +675,7 @@ std::vector<EditorType> DashboardPanel::ParseRecentEditors(
     // that ApplyDockTree keys on. The old upper bound of `< kSettings` also
     // excluded kSettings itself, which is a real editor.
     if (type_int <= static_cast<int>(EditorType::kUnknown) ||
-        type_int > static_cast<int>(EditorType::kSettings)) {
+        type_int > static_cast<int>(kLastEditorType)) {
       continue;
     }
     const auto type = static_cast<EditorType>(type_int);
