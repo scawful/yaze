@@ -121,3 +121,44 @@ ROM capacity or runtime maps are allocated. Unknown Tile32 capacity remains an
 unresolved ROM-compilation condition. Rejected/no-change proposals leave the
 document and both history stacks unchanged. Suggested mining candidates cannot
 be imported directly as reviewed footprints.
+
+### Export an actual saved project target
+
+`project_proposal.py` closes the gap between a saved `.yaze` project and the
+explicit proposal bundle. It reads the project's ROM and schema-3 sidecar,
+checks the ROM's expected CRC32/SHA1 (including legacy Yaze CRC32), checks the
+expanded Tile16 definition bytes, and requires an exact saved native
+`lyra-verify-project` observation. The observation must match the current ROM,
+sidecar, shared profile and all 96 map/state asset bindings. A caller-provided
+observation is evidence of that native run, not a signature or reviewer approval.
+
+```sh
+python3 -B scripts/pixel_art/project_proposal.py /path/to/project.yaze \
+  --native-receipt /path/to/lyra-verify-project.json --map 0xB3 \
+  --out /path/to/new-target.json
+
+python3 -B scripts/pixel_art/project_proposal.py /path/to/project.yaze \
+  --native-receipt /path/to/lyra-verify-project.json --map 0xB3 \
+  --footprint /path/to/source-bound-reviewed-grove.json --at 21,16 \
+  --out /path/to/new-grove.bundle.json
+```
+
+The native observation is obtained separately using the project's qualified
+CLI: `z3ed lyra-verify-project --project-context=/path/to/project.yaze
+--rom=/path/to/private.sfc --format=json`. Save its JSON stdout, then export.
+The exporter starts no native process, writes only a new JSON file, and refuses
+changed inputs or an existing output. A footprint must already have the exact
+ROM/definition/profile binding. Its IDs are never silently rebound. Use
+`--protect x,y` for explicit cells the proposal must preserve. Complete source
+assemblies should carry substrate clearances and source coordinates in their
+reviewed provenance; the exporter does not infer cliff direction or shoreline
+grammar from tile IDs.
+
+Current editor admission checks the document's shared graphics profile. This
+exporter therefore refuses distinct map graphics and custom sprite profiles,
+including the current jungle, glacier, village and brown shelf maps. These need
+a native per-map binding adapter before bundle admission; removing the guard
+would allow an apparently correct Tile16 number to select different pixels.
+Import remains one normal Undo step through **File > Advanced Lyra > Apply Lyra
+Proposal...**, followed by **Save Project**. Native import acceptance for a
+particular exported assembly and gameplay remain separate checks.
