@@ -124,11 +124,11 @@ Json Block(int x, int y, std::array<int, 4> before, std::array<int, 4> after,
 
 Json Bundle(const LyraTerrainDocument& document, const Spec& spec,
             const Json& occupied, const Json& changes, const Json& touched,
-            int unseen_tuples) {
+            int unseen_tuples, int map_id = kMap) {
   const std::string content_id =
       ComputeSourceArtifactSha256(FootprintCanonical(spec));
   const std::string footprint = FootprintCanonical(spec, content_id);
-  const std::string target = TargetCanonical(document, kMap, spec);
+  const std::string target = TargetCanonical(document, map_id, spec);
   const Json report = {
       {"schema_version", 1},
       {"kind", "read_only_tile16_proposal"},
@@ -155,18 +155,19 @@ Json Bundle(const LyraTerrainDocument& document, const Spec& spec,
        "artifact proposal only; editor transaction and runtime unqualified"}};
   return {{"schema_version", 1},
           {"kind", "lyra_tile16_proposal_bundle"},
-          {"map_id", kMap},
+          {"map_id", map_id},
           {"target", Json::parse(target)},
           {"footprint", Json::parse(footprint)},
           {"report", report}};
 }
 
-Json FourCellBundle(const LyraTerrainDocument& document, const Spec& spec) {
+Json FourCellBundle(const LyraTerrainDocument& document, const Spec& spec,
+                    int map_id = kMap) {
   return Bundle(
       document, spec,
       Occupied({{0, 2, 2, 2}, {0, 3, 2, 3}, {0, 2, 3, 4}, {0, 3, 3, 0}}),
       Changes({{2, 2, 1, 2}, {3, 2, 1, 3}, {2, 3, 1, 4}, {3, 3, 1, 0}}),
-      Json::array({Block(1, 1, {1, 1, 1, 1}, {2, 3, 4, 0})}), 1);
+      Json::array({Block(1, 1, {1, 1, 1, 1}, {2, 3, 4, 0})}), 1, map_id);
 }
 
 Json SparseBundle(const LyraTerrainDocument& document) {
@@ -251,6 +252,53 @@ TEST_F(LyraTerrainProposalTest, AdmitsExactFourCellBatchWithoutMutation) {
   ASSERT_TRUE(document_->ApplyStroke(*stroke, false).ok());
   EXPECT_EQ(document_->MapTile(kMap, 3, 3).value(), 0);
   EXPECT_EQ(document_->MapTile(kMap, 30, 30).value(), 5);
+}
+
+TEST_F(LyraTerrainProposalTest, AdmitsMapA1WithMapLocalChanges) {
+  constexpr int kA1 = 0xA1;
+  constexpr int kSize = LyraTerrainDocument::kMapSize;
+  // A0 sentinel at the same local cell, and an A1-only guard outside changes.
+  Paint(2, 2, 6);
+  Paint(kSize + 30, 30, 7);
+  const Json bundle = FourCellBundle(*document_, Spec{}, kA1);
+  ASSERT_EQ(bundle["map_id"], 161);
+
+  const auto maps =
+      std::make_unique<LyraTerrainDocument::Maps>(document_->maps());
+  const auto stroke =
+      AdmitLyraTerrainProposal(bundle.dump(), *document_, Binding());
+  ASSERT_TRUE(stroke.ok()) << stroke.status();
+  EXPECT_EQ(document_->maps(), *maps);
+  EXPECT_FALSE(document_->dirty());
+  ASSERT_EQ(stroke->changes.size(), 4u);
+  const std::array<std::array<int, 4>, 4> expected = {
+      {{2, 2, 1, 2}, {3, 2, 1, 3}, {2, 3, 1, 4}, {3, 3, 1, 0}}};
+  for (size_t i = 0; i < expected.size(); ++i) {
+    const auto& change = stroke->changes[i];
+    EXPECT_EQ(change.map_id, 161);
+    EXPECT_EQ(change.x, expected[i][0]);
+    EXPECT_EQ(change.y, expected[i][1]);
+    EXPECT_EQ(change.before, expected[i][2]);
+    EXPECT_EQ(change.after, expected[i][3]);
+  }
+
+  // The same A1 target relabeled as A0 is stale against the A0 sentinel.
+  Json relabeled = bundle;
+  relabeled["map_id"] = kMap;
+  ExpectRefused(relabeled.dump(), absl::StatusCode::kFailedPrecondition,
+                "stale");
+
+  ASSERT_TRUE(document_->ApplyStroke(*stroke, false).ok());
+  auto applied = std::make_unique<LyraTerrainDocument::Maps>(*maps);
+  auto& a1 = (*applied)[kA1 - LyraTerrainDocument::kFirstMap];
+  for (const auto& cell : expected)
+    a1[cell[1] * kSize + cell[0]] = static_cast<uint16_t>(cell[3]);
+  EXPECT_EQ(document_->maps(), *applied);
+  EXPECT_EQ(document_->MapTile(kMap, 2, 2).value(), 6);
+  EXPECT_EQ(document_->MapTile(kMap, 30, 30).value(), 5);
+  EXPECT_EQ(document_->MapTile(kA1, 2, 2).value(), 2);
+  EXPECT_EQ(document_->MapTile(kA1, 3, 3).value(), 0);
+  EXPECT_EQ(document_->MapTile(kA1, 30, 30).value(), 7);
 }
 
 TEST_F(LyraTerrainProposalTest, SparseNullSkipsWhileExplicitZeroWrites) {
