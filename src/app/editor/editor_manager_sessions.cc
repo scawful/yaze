@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 
+#include "app/editor/agent/agent_ui_controller.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"

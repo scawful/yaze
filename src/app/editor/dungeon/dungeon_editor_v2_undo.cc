@@ -791,9 +791,11 @@ DungeonEditorV2::ApplyRoomObjectBatch(const zelda3::RoomObjectBatch& batch) {
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %03X is not loaded in the dungeon editor", batch.room_id));
   }
-  if (has_pending_undo_ || pending_undo_.room_id >= 0 ||
-      pending_collision_undo_.room_id >= 0 ||
-      pending_water_fill_undo_.room_id >= 0) {
+  if (room->rom() != rom_) {
+    return absl::FailedPreconditionError(
+        "Room objects belong to a different ROM");
+  }
+  if (has_pending_undo_ || HasPendingUndoSnapshot()) {
     return absl::FailedPreconditionError(
         "A dungeon edit is still in progress; finish it before applying a "
         "batch");
@@ -826,8 +828,6 @@ DungeonEditorV2::ApplyRoomObjectBatch(const zelda3::RoomObjectBatch& batch) {
     }
   }
 
-  const bool allow_track_corner_aliases =
-      zelda3::RoomAllowsTrackCornerAliases(objects);
   std::vector<bool> moved(objects.size(), false);
   for (const zelda3::RoomObjectMove& move : batch.moves) {
     if (move.object_index >= objects.size()) {
@@ -862,10 +862,9 @@ DungeonEditorV2::ApplyRoomObjectBatch(const zelda3::RoomObjectBatch& batch) {
       // The special-table pass always draws these as 2x2, regardless of ID,
       // size, custom mappings, or the dimension table's initialization state.
       width_px = height_px = 16;
-    } else if (zelda3::HasActiveCustomObjectOverride(
-                   candidate, allow_track_corner_aliases)) {
+    } else if (zelda3::HasActiveCustomObjectOverride(candidate)) {
       // ObjectDrawer checks project overrides before builtin routines. Follow
-      // that same room-specific dispatch policy when validating the footprint.
+      // that same object-ID/subtype dispatch when validating the footprint.
       const auto custom_or =
           zelda3::CustomObjectManager::Get().GetObjectInternal(
               candidate.id_, candidate.size_ & 0x1F);
@@ -913,7 +912,13 @@ DungeonEditorV2::ApplyRoomObjectBatch(const zelda3::RoomObjectBatch& batch) {
 
   BeginUndoSnapshot(batch.room_id);
   const std::vector<size_t> selection = pending_undo_.before_selection;
-  RestoreRoomObjects(batch.room_id, updated, selection);
+  const auto restore_status = RestoreRoomObjects(
+      batch.room_id, updated, selection, pending_undo_.before_chests);
+  if (!restore_status.ok()) {
+    pending_undo_ = {};
+    has_pending_undo_ = false;
+    return restore_status;
+  }
   FinalizeUndoAction(batch.room_id);
   return zelda3::RoomObjectBatchResult{changed_object_count};
 }

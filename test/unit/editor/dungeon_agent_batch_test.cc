@@ -58,6 +58,45 @@ class DungeonEditorV2AgentBatchTestPeer {
   static bool HasPendingObjectEdit(const DungeonEditorV2& editor) {
     return editor.has_pending_undo_;
   }
+  static const std::vector<zelda3::RoomObject>& PendingObjects(
+      const DungeonEditorV2& editor) {
+    return editor.pending_undo_.before_objects;
+  }
+  static const std::vector<chest_data>& PendingChests(
+      const DungeonEditorV2& editor) {
+    return editor.pending_undo_.before_chests;
+  }
+
+  static void SetPendingSelectionEdit(DungeonEditorV2& editor,
+                                      DungeonSelectionEditPlan plan) {
+    editor.pending_selection_undo_.dirty_before =
+        editor.rooms_[plan.room_id].CaptureSaveDirtySnapshot();
+    editor.pending_selection_undo_.plan = std::move(plan);
+  }
+  static const std::optional<DungeonSelectionEditPlan>& PendingSelectionEdit(
+      const DungeonEditorV2& editor) {
+    return editor.pending_selection_undo_.plan;
+  }
+  static void ClearPendingSelectionEdit(DungeonEditorV2& editor) {
+    editor.pending_selection_undo_ = {};
+  }
+
+  static void BeginEntityEdit(DungeonEditorV2& editor, int room_id,
+                              MutationDomain domain) {
+    editor.BeginEntityUndoSnapshot(room_id, domain);
+  }
+  static void FinalizeEntityEdit(DungeonEditorV2& editor, int room_id,
+                                 MutationDomain domain) {
+    editor.FinalizeEntityUndoAction(room_id, domain);
+  }
+  static int PendingEntityRoom(const DungeonEditorV2& editor,
+                               MutationDomain domain) {
+    return editor.pending_entity_undo_[EntityIndex(domain)].room_id;
+  }
+  static const DungeonEntitySnapshot& PendingEntities(
+      const DungeonEditorV2& editor, MutationDomain domain) {
+    return editor.pending_entity_undo_[EntityIndex(domain)].before;
+  }
 
   static void BeginCollisionEdit(DungeonEditorV2& editor, int room_id) {
     editor.BeginCollisionUndoSnapshot(room_id);
@@ -77,6 +116,12 @@ class DungeonEditorV2AgentBatchTestPeer {
   }
   static int PendingWaterFillRoom(const DungeonEditorV2& editor) {
     return editor.pending_water_fill_undo_.room_id;
+  }
+
+ private:
+  static size_t EntityIndex(MutationDomain domain) {
+    return static_cast<size_t>(domain) -
+           static_cast<size_t>(MutationDomain::kDoors);
   }
 };
 
@@ -181,12 +226,22 @@ struct RenderFingerprint {
 struct Observation {
   bool composite_dirty = false;
   std::vector<ObjectRecord> objects;
+  std::vector<std::pair<uint8_t, bool>> chests;
   std::vector<size_t> selection;
   size_t undo_size = 0;
   size_t redo_size = 0;
   DirtyFlags dirty;
   RenderFingerprint render;
 };
+
+std::vector<std::pair<uint8_t, bool>> ChestRecords(
+    const std::vector<chest_data>& chests) {
+  std::vector<std::pair<uint8_t, bool>> records;
+  for (const auto& chest : chests) {
+    records.emplace_back(chest.id, chest.size);
+  }
+  return records;
+}
 
 void WriteLongPointer(Rom& rom, int pc, uint32_t snes_address) {
   rom.mutable_data()[pc + 0] = snes_address & 0xFF;
@@ -247,8 +302,6 @@ bool BuiltinFootprintFits(zelda3::RoomObject object, int x_tile, int y_tile) {
 
 constexpr char kWideCustomFile[] = "agent_batch_wide.bin";
 constexpr char kTrackCustomFile[] = "agent_batch_track.bin";
-constexpr int kTrackCornerAliasFileIndex = 2;  // 0x100 -> track_corner_TL
-constexpr int kMinecartTrackSubtypeCount = 16;
 
 // Custom tile offsets only advance forward from the origin, so the widest
 // expressible deviation from the builtin bounds is a positive offset plus a
@@ -458,6 +511,7 @@ class DungeonAgentBatchTest : public ::testing::Test {
     Observation observation;
     observation.composite_dirty = room_->IsCompositeDirty();
     observation.objects = Records(room_->GetTileObjects());
+    observation.chests = ChestRecords(room_->GetChests());
     observation.selection =
         viewer_->object_interaction().GetSelectedObjectIndices();
     observation.undo_size = editor_->undo_manager().UndoStackSize();
@@ -498,6 +552,7 @@ class DungeonAgentBatchTest : public ::testing::Test {
     EXPECT_FALSE(after.composite_dirty)
         << "Room must not be re-rendered or invalidated";
     EXPECT_EQ(after.objects, before.objects);
+    EXPECT_EQ(after.chests, before.chests);
     EXPECT_EQ(after.selection, before.selection);
     EXPECT_EQ(after.undo_size, before.undo_size);
     EXPECT_EQ(after.redo_size, before.redo_size);
@@ -769,8 +824,12 @@ TEST_F(DungeonAgentBatchTest, PendingObjectCollisionOrWaterEditRejectsBatch) {
     SCOPED_TRACE("pending object undo snapshot");
     Peer::BeginObjectEdit(*editor_, kRoomId);
     ASSERT_TRUE(Peer::HasPendingObjectEdit(*editor_));
+    const auto pending_objects = Records(Peer::PendingObjects(*editor_));
+    const auto pending_chests = ChestRecords(Peer::PendingChests(*editor_));
     ExpectRejectedAtomically(CurrentBatch(moves));
     EXPECT_TRUE(Peer::HasPendingObjectEdit(*editor_));
+    EXPECT_EQ(Records(Peer::PendingObjects(*editor_)), pending_objects);
+    EXPECT_EQ(ChestRecords(Peer::PendingChests(*editor_)), pending_chests);
     Peer::FinalizeObjectEdit(*editor_, kRoomId);
     ASSERT_FALSE(Peer::HasPendingObjectEdit(*editor_));
   }
@@ -799,6 +858,121 @@ TEST_F(DungeonAgentBatchTest, PendingObjectCollisionOrWaterEditRejectsBatch) {
   EXPECT_EQ(result->changed_object_count, 1u);
   EXPECT_EQ(editor_->undo_manager().UndoStackSize(), undo_before + 1);
   ExpectRomUnchanged();
+}
+
+TEST_F(DungeonAgentBatchTest,
+       PendingSelectionEditRejectsBatchWithoutChangingSnapshot) {
+  DungeonSelectionEditPlan plan;
+  plan.room_id = kRoomId;
+  plan.kind = DungeonSelectionEditKind::kMove;
+  plan.domains = kSelectionObjects;
+  plan.before = CaptureDungeonSelectionEditState(*room_);
+  plan.before.selected_objects = {0};
+  plan.after = plan.before;
+  plan.after.objects[0].set_x(plan.before.objects[0].x() + 1);
+  plan.after.selected_objects = {2};
+  Peer::SetPendingSelectionEdit(*editor_, plan);
+
+  ExpectRejectedAtomically(CurrentBatch({Move(0, 8, 6)}));
+
+  const auto& pending = Peer::PendingSelectionEdit(*editor_);
+  ASSERT_TRUE(pending.has_value());
+  EXPECT_EQ(pending->room_id, plan.room_id);
+  EXPECT_EQ(pending->kind, plan.kind);
+  EXPECT_EQ(pending->domains, plan.domains);
+  EXPECT_EQ(Records(pending->before.objects), Records(plan.before.objects));
+  EXPECT_EQ(Records(pending->after.objects), Records(plan.after.objects));
+  EXPECT_EQ(pending->before.selected_objects, plan.before.selected_objects);
+  EXPECT_EQ(pending->after.selected_objects, plan.after.selected_objects);
+  EXPECT_FALSE(Peer::HasPendingObjectEdit(*editor_));
+  Peer::ClearPendingSelectionEdit(*editor_);
+
+  const auto applied =
+      editor_->ApplyRoomObjectBatch(CurrentBatch({Move(0, 8, 6)}));
+  ASSERT_TRUE(applied.ok()) << applied.status();
+  EXPECT_EQ(applied->changed_object_count, 1u);
+}
+
+TEST_F(DungeonAgentBatchTest,
+       PendingEntityEditRejectsBatchWithoutChangingSnapshot) {
+  viewer_->object_interaction().SetSelectedObjects({1});
+  for (const auto domain : {MutationDomain::kDoors, MutationDomain::kSprites,
+                            MutationDomain::kItems}) {
+    SCOPED_TRACE(static_cast<int>(domain));
+    Peer::BeginEntityEdit(*editor_, kRoomId, domain);
+    ASSERT_EQ(Peer::PendingEntityRoom(*editor_, domain), kRoomId);
+    ASSERT_EQ(Peer::PendingEntities(*editor_, domain).objects,
+              std::vector<size_t>({1}));
+    const auto before = Peer::PendingEntities(*editor_, domain);
+
+    ExpectRejectedAtomically(CurrentBatch({Move(0, 8, 6)}));
+
+    EXPECT_EQ(Peer::PendingEntityRoom(*editor_, domain), kRoomId);
+    EXPECT_EQ(Peer::PendingEntities(*editor_, domain).objects,
+              std::vector<size_t>({1}));
+    const auto& after = Peer::PendingEntities(*editor_, domain);
+    const auto authored_state = [](const DungeonEntitySnapshot& snapshot) {
+      DungeonSelectionEditState state;
+      state.doors = snapshot.doors;
+      state.sprites = snapshot.sprites;
+      state.items = snapshot.items;
+      return state;
+    };
+    EXPECT_EQ(ChangedDungeonSelectionDomains(authored_state(before),
+                                             authored_state(after)),
+              0);
+    EXPECT_EQ(after.entities, before.entities);
+    EXPECT_FALSE(Peer::HasPendingObjectEdit(*editor_));
+    Peer::FinalizeEntityEdit(*editor_, kRoomId, domain);
+    EXPECT_LT(Peer::PendingEntityRoom(*editor_, domain), 0);
+    EXPECT_FALSE(editor_->undo_manager().CanUndo());
+  }
+}
+
+TEST_F(DungeonAgentBatchTest, ChestsSurviveBatchApplyUndoAndRedo) {
+  room_->GetChests() = {{.id = 0x20, .size = false},
+                        {.id = 0x31, .size = true}};
+  room_->MarkChestsDirty();
+  const auto chests = ChestRecords(room_->GetChests());
+  const auto original = Records(room_->GetTileObjects());
+  const auto result =
+      editor_->ApplyRoomObjectBatch(CurrentBatch({Move(0, 8, 6)}));
+  ASSERT_TRUE(result.ok()) << result.status();
+  EXPECT_EQ(result->changed_object_count, 1u);
+  const auto candidate = Records(room_->GetTileObjects());
+  EXPECT_NE(candidate, original);
+  EXPECT_EQ(ChestRecords(room_->GetChests()), chests);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1u);
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(Records(room_->GetTileObjects()), original);
+  EXPECT_EQ(ChestRecords(room_->GetChests()), chests);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(Records(room_->GetTileObjects()), candidate);
+  EXPECT_EQ(ChestRecords(room_->GetChests()), chests);
+  ExpectRomUnchanged();
+}
+
+TEST_F(DungeonAgentBatchTest,
+       ForeignRomRoomRejectsWithoutCreatingUndoSnapshot) {
+  Rom foreign_rom;
+  ASSERT_TRUE(foreign_rom.LoadFromData(rom_before_).ok());
+  room_->SetRom(&foreign_rom);
+
+  ExpectRejectedAtomically(CurrentBatch({Move(0, 8, 6)}));
+
+  EXPECT_EQ(room_->rom(), &foreign_rom);
+  EXPECT_FALSE(Peer::HasPendingObjectEdit(*editor_));
+  EXPECT_TRUE(Peer::PendingObjects(*editor_).empty());
+  EXPECT_TRUE(Peer::PendingChests(*editor_).empty());
+  EXPECT_TRUE(foreign_rom.vector() == rom_before_);
+  EXPECT_FALSE(foreign_rom.dirty());
+  room_->SetRom(&rom_);
+
+  const auto applied =
+      editor_->ApplyRoomObjectBatch(CurrentBatch({Move(0, 8, 6)}));
+  ASSERT_TRUE(applied.ok()) << applied.status();
+  EXPECT_EQ(applied->changed_object_count, 1u);
 }
 
 TEST_F(DungeonAgentBatchTest, InvalidOrUnloadedRoomRejectsWithoutLoading) {
@@ -942,8 +1116,7 @@ TEST_F(DungeonAgentBatchCustomObjectTest,
 
   ASSERT_NO_FATAL_FAILURE(EnableCustomObjects({{0x34, {kWideCustomFile}}}));
   ASSERT_NO_FATAL_FAILURE(ExpectWideCustomBounds(0x34, builtin.size() & 0x1F));
-  ASSERT_TRUE(zelda3::HasActiveCustomObjectOverride(
-      builtin, /*allow_track_corner_aliases=*/false));
+  ASSERT_TRUE(zelda3::HasActiveCustomObjectOverride(builtin));
   ASSERT_NO_FATAL_FAILURE(ReplaceRoomObjects(room_->GetTileObjects()));
 
   {
@@ -976,70 +1149,63 @@ TEST_F(DungeonAgentBatchCustomObjectTest,
 }
 
 TEST_F(DungeonAgentBatchCustomObjectTest,
-       TrackCornerAliasFootprintFollowsRoomTrackObjects) {
+       MappedWallCornerFootprintUsesCustomBoundsWithoutTrackObjects) {
   const zelda3::RoomObject corner(/*id=*/0x100, /*x=*/10, /*y=*/10,
                                   /*size=*/0, /*layer=*/0);
   ASSERT_TRUE(BuiltinFootprintFits(corner, kWideExactFitX + 1, corner.y()))
       << "The builtin wall-corner bounds must fit at the custom overflow "
          "target";
-
-  std::vector<std::string> track_files(kMinecartTrackSubtypeCount,
-                                       kTrackCustomFile);
-  track_files[kTrackCornerAliasFileIndex] = kWideCustomFile;
-  ASSERT_NO_FATAL_FAILURE(EnableCustomObjects({{0x31, track_files}}));
+  ASSERT_NO_FATAL_FAILURE(EnableCustomObjects({{0x100, {kWideCustomFile}}}));
   ASSERT_NO_FATAL_FAILURE(ExpectWideCustomBounds(0x100, 0));
-  ASSERT_FALSE(zelda3::HasActiveCustomObjectOverride(
-      corner, /*allow_track_corner_aliases=*/false));
-  ASSERT_TRUE(zelda3::HasActiveCustomObjectOverride(
-      corner, /*allow_track_corner_aliases=*/true));
+  ASSERT_TRUE(zelda3::HasActiveCustomObjectOverride(corner));
+  std::vector<zelda3::RoomObject> objects = room_->GetTileObjects();
+  ASSERT_TRUE(
+      std::none_of(objects.begin(), objects.end(),
+                   [](const auto& object) { return object.id_ == 0x31; }));
+  const size_t corner_index = objects.size();
+  objects.push_back(corner);
+  ASSERT_NO_FATAL_FAILURE(ReplaceRoomObjects(objects));
 
-  struct AliasCase {
-    const char* name;
-    std::optional<uint8_t> track_subtype;
-    bool aliases_allowed;
-  };
-  const std::array<AliasCase, 3> cases = {{
-      {"no minecart track object", std::nullopt, false},
-      {"small statue subtype 15 is decoration", uint8_t{15}, false},
-      {"minecart track subtype 0", uint8_t{0}, true},
-  }};
-  const std::vector<zelda3::RoomObject> base_objects = room_->GetTileObjects();
-  for (const auto& alias_case : cases) {
-    SCOPED_TRACE(alias_case.name);
-    std::vector<zelda3::RoomObject> objects = base_objects;
-    if (alias_case.track_subtype.has_value()) {
-      objects.emplace_back(/*id=*/0x31, /*x=*/2, /*y=*/2,
-                           *alias_case.track_subtype, /*layer=*/0);
-    }
-    const size_t corner_index = objects.size();
-    objects.push_back(corner);
-    ASSERT_NO_FATAL_FAILURE(ReplaceRoomObjects(objects));
-    ASSERT_EQ(zelda3::RoomAllowsTrackCornerAliases(room_->GetTileObjects()),
-              alias_case.aliases_allowed);
+  ExpectRejectedAtomically(
+      CurrentBatch({Move(corner_index, kWideExactFitX + 1, corner.y())}));
+  const auto exact = editor_->ApplyRoomObjectBatch(
+      CurrentBatch({Move(corner_index, kWideExactFitX, corner.y())}));
+  ASSERT_TRUE(exact.ok()) << exact.status();
+  EXPECT_EQ(exact->changed_object_count, 1u);
+  EXPECT_EQ(room_->GetTileObjects()[corner_index].x(), kWideExactFitX);
+  EXPECT_EQ(room_->GetTileObjects()[corner_index].id_, 0x100);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1u);
+  ExpectRomUnchanged();
+}
 
-    const auto overflow =
-        CurrentBatch({Move(corner_index, kWideExactFitX + 1, corner.y())});
-    const size_t undo_before = editor_->undo_manager().UndoStackSize();
-    if (alias_case.aliases_allowed) {
-      ExpectRejectedAtomically(overflow);
-      const auto exact = editor_->ApplyRoomObjectBatch(
-          CurrentBatch({Move(corner_index, kWideExactFitX, corner.y())}));
-      ASSERT_TRUE(exact.ok())
-          << "Exact custom fit must be accepted: " << exact.status();
-      EXPECT_EQ(exact->changed_object_count, 1u);
-      EXPECT_EQ(room_->GetTileObjects()[corner_index].x(), kWideExactFitX);
-    } else {
-      const auto builtin = editor_->ApplyRoomObjectBatch(overflow);
-      ASSERT_TRUE(builtin.ok())
-          << "Without a minecart track object the corner keeps its builtin "
-             "bounds: "
-          << builtin.status();
-      EXPECT_EQ(builtin->changed_object_count, 1u);
-      EXPECT_EQ(room_->GetTileObjects()[corner_index].x(), kWideExactFitX + 1);
-    }
-    EXPECT_EQ(room_->GetTileObjects()[corner_index].id_, 0x100);
-    EXPECT_EQ(editor_->undo_manager().UndoStackSize(), undo_before + 1);
-  }
+TEST_F(DungeonAgentBatchCustomObjectTest,
+       TrackFamilyMappingKeepsUnmappedWallCornerBuiltinBounds) {
+  const zelda3::RoomObject corner(/*id=*/0x100, /*x=*/10, /*y=*/10,
+                                  /*size=*/0, /*layer=*/0);
+  ASSERT_TRUE(BuiltinFootprintFits(corner, kWideExactFitX + 1, corner.y()));
+  std::vector<std::string> track_files(
+      zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(0x31),
+      kTrackCustomFile);
+  ASSERT_GT(track_files.size(), 2u);
+  track_files[2] = kWideCustomFile;
+  ASSERT_NO_FATAL_FAILURE(EnableCustomObjects({{0x31, track_files}}));
+  ASSERT_FALSE(zelda3::HasActiveCustomObjectOverride(corner));
+
+  std::vector<zelda3::RoomObject> objects = room_->GetTileObjects();
+  objects.emplace_back(/*id=*/0x31, /*x=*/2, /*y=*/2, /*size=*/0,
+                       /*layer=*/0);
+  ASSERT_TRUE(zelda3::HasActiveCustomObjectOverride(objects.back()));
+  const size_t corner_index = objects.size();
+  objects.push_back(corner);
+  ASSERT_NO_FATAL_FAILURE(ReplaceRoomObjects(objects));
+
+  const auto builtin = editor_->ApplyRoomObjectBatch(
+      CurrentBatch({Move(corner_index, kWideExactFitX + 1, corner.y())}));
+  ASSERT_TRUE(builtin.ok()) << builtin.status();
+  EXPECT_EQ(builtin->changed_object_count, 1u);
+  EXPECT_EQ(room_->GetTileObjects()[corner_index].x(), kWideExactFitX + 1);
+  EXPECT_EQ(room_->GetTileObjects()[corner_index].id_, 0x100);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), 1u);
   ExpectRomUnchanged();
 }
 
