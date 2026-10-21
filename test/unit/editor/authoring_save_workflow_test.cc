@@ -4309,6 +4309,153 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(reopened.EncodeObjects(), authored_stream);
 }
 
+TEST_F(AuthoringSaveWorkflowTest, RoomImportMixedEditsSwitchUndoSaveAsReopens) {
+  constexpr int kOtherRoom = 6;
+  const auto fixture = CopyProject("yaze-mixed-room-import");
+  Open(fixture);
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kUseWorkbench = false;
+  flags.kSaveObjects = flags.kSaveRoomHeaders = flags.kSaveCollision = true;
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetDungeonEditor();
+  ASSERT_NE(dungeon, nullptr);
+  AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kDungeonRoom);
+  ASSERT_OK(dungeon->ExportRoomDocument(kDungeonRoom).status());
+  ASSERT_OK(dungeon->ExportRoomDocument(kOtherRoom).status());
+  ASSERT_OK(manager_->SaveRom());
+  auto* rom = manager_->GetCurrentRom();
+  const auto before = rom->vector();
+  auto& room = dungeon->rooms()[kDungeonRoom];
+  const auto other_before =
+      CaptureDungeonRoomDocument(dungeon->rooms()[kOtherRoom]);
+  std::vector<zelda3::CustomCollisionMap> collisions_before;
+  for (int id = 0; id < zelda3::kNumberOfRooms; ++id) {
+    const auto collision = zelda3::LoadCustomCollisionMap(rom, id);
+    ASSERT_OK(collision.status());
+    collisions_before.push_back(*collision);
+  }
+  std::vector<DungeonRoomDocument> states{CaptureDungeonRoomDocument(room)};
+  auto imported = states.front();
+  ASSERT_FALSE(imported.contents.objects.empty());
+  auto& copied = imported.contents.objects.front();
+  copied.x_ += copied.x_ < 63 ? 1 : -1;
+  const auto json = SerializeDungeonRoomDocument(imported);
+  ASSERT_OK(json.status());
+  const auto import_path = fixture.root / "room.json";
+  {
+    std::ofstream output(import_path);
+    output << *json;
+  }
+  const auto bytes = ReadFile(import_path);
+  const auto plan = dungeon->PreviewRoomTransfer(
+      kDungeonRoom, -1, std::string(bytes.begin(), bytes.end()),
+      {kTransferObjects});
+  ASSERT_OK(plan.status());
+  ASSERT_TRUE(plan->changed());
+  ASSERT_OK(dungeon->ApplyRoomTransfer(*plan));
+  states.push_back(CaptureDungeonRoomDocument(room));
+
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kDungeonRoom);
+  ASSERT_NE(viewer, nullptr);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kDungeonRoom);
+  auto& coordinator = viewer->object_interaction().entity_coordinator();
+  coordinator.tile_handler().MoveObjects(
+      kDungeonRoom, {0}, room.GetTileObjects().front().x_ < 63 ? 1 : -1, 0);
+  ASSERT_OK(coordinator.tile_handler().mutation_status());
+  states.push_back(CaptureDungeonRoomDocument(room));
+  const int tag = room.tag1() == 1 ? 2 : 1;
+  ASSERT_OK(
+      dungeon->EditRoomMetadata(kDungeonRoom, {RoomMetadataField::kTag1, tag}));
+  states.push_back(CaptureDungeonRoomDocument(room));
+  ASSERT_FALSE(room.GetDoors().empty());
+  const auto door = room.GetDoors().front();
+  const auto type = door.type == zelda3::DoorType::NormalDoor
+                        ? zelda3::DoorType::SmallKeyDoor
+                        : zelda3::DoorType::NormalDoor;
+  ASSERT_TRUE(coordinator.door_handler().MutateDoorType(0, type))
+      << coordinator.door_handler().mutation_status();
+  states.push_back(CaptureDungeonRoomDocument(room));
+  auto collision_edit = states.back();
+  collision_edit.collision.SetOverride(2 * 64 + 2, 0x00);
+  collision_edit.collision.SetOverride(2 * 64 + 3, 0x08);
+  const auto collision_json = SerializeDungeonRoomDocument(collision_edit);
+  ASSERT_OK(collision_json.status());
+  const auto collision_plan = dungeon->PreviewRoomTransfer(
+      kDungeonRoom, -1, *collision_json, {kTransferCollision});
+  ASSERT_OK(collision_plan.status());
+  ASSERT_TRUE(collision_plan->changed());
+  ASSERT_OK(dungeon->ApplyRoomTransfer(*collision_plan));
+  states.push_back(CaptureDungeonRoomDocument(room));
+  ASSERT_EQ(states.size(), 6u);
+  for (size_t i = 1; i < states.size(); ++i)
+    ASSERT_FALSE(SameDungeonRoomDocument(states[i - 1], states[i]));
+
+  // Every action must retain its target when another room is active.
+  for (size_t i = states.size() - 1; i > 0; --i) {
+    AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kOtherRoom);
+    ASSERT_OK(dungeon->Undo());
+    EXPECT_TRUE(SameDungeonRoomDocument(CaptureDungeonRoomDocument(room),
+                                        states[i - 1]));
+  }
+  for (size_t i = 1; i < states.size(); ++i) {
+    AuthoringSaveWorkflowTestPeer::SelectDungeonRoom(*dungeon, kOtherRoom);
+    ASSERT_OK(dungeon->Redo());
+    EXPECT_TRUE(
+        SameDungeonRoomDocument(CaptureDungeonRoomDocument(room), states[i]));
+  }
+  EXPECT_TRUE(SameDungeonRoomDocument(
+      CaptureDungeonRoomDocument(dungeon->rooms()[kOtherRoom]), other_before));
+  EXPECT_EQ(rom->vector(), before);
+  const auto ranges =
+      manager_->GetCurrentEditorSet()->CollectDungeonWriteRanges();
+  ASSERT_FALSE(ranges.empty());
+  const auto output = fixture.root / "mixed-room.sfc";
+  ASSERT_OK(manager_->SaveRomAs(output.string()));
+  const auto saved = ReadFile(output);
+  ASSERT_EQ(saved.size(), before.size());
+  for (size_t pc = 0; pc < saved.size(); ++pc) {
+    if (saved[pc] == before[pc] || (pc >= 0x7FDC && pc < 0x7FE0))
+      continue;
+    EXPECT_TRUE(std::any_of(
+        ranges.begin(), ranges.end(),
+        [pc](const auto& r) { return pc >= r.first && pc < r.second; }))
+        << "Unexpected changed PC byte " << pc;
+  }
+  ExpectProtectedRegionsMatch(
+      before, saved,
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+  EXPECT_EQ(ReadFile(fixture.rom), before);
+  manager_.reset();
+  manager_ = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*manager_, &renderer_);
+  manager_->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager_->OpenRomOrProject(output.string()));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  auto fresh = zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kDungeonRoom);
+  ASSERT_OK(manager_->GetCurrentEditorSet()
+                ->GetDungeonEditor()
+                ->ExportRoomDocument(kDungeonRoom)
+                .status());
+  fresh.LoadSprites();
+  EXPECT_TRUE(SameDungeonRoomDocument(CaptureDungeonRoomDocument(fresh),
+                                      states.back()));
+  EXPECT_TRUE(fresh.HasCollisionOverride(2, 2));
+  EXPECT_EQ(fresh.GetCollisionTile(2, 2), 0x00);
+  auto other = zelda3::LoadRoomFromRom(manager_->GetCurrentRom(), kOtherRoom);
+  other.LoadSprites();
+  EXPECT_TRUE(
+      SameDungeonRoomDocument(CaptureDungeonRoomDocument(other), other_before));
+  for (int id = 0; id < zelda3::kNumberOfRooms; ++id) {
+    const auto collision =
+        zelda3::LoadCustomCollisionMap(manager_->GetCurrentRom(), id);
+    ASSERT_OK(collision.status());
+    EXPECT_EQ(*collision, id == kDungeonRoom ? states.back().collision
+                                             : collisions_before[id])
+        << id;
+  }
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
 TEST_F(AuthoringSaveWorkflowTest, DoorAdmissionUndoSaveAsReopens) {
   const auto fixture = CopyProject("yaze-door-admission");
   Open(fixture);
