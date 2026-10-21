@@ -2481,6 +2481,51 @@ TEST(EditorManagerRomWritePolicyTest,
   EXPECT_EQ(util::ComputeFileSha1Hex(rom_path.string()), original_hash);
 }
 
+TEST(EditorManagerRomWritePolicyTest,
+     UnrelatedRomSaveAsSkipsContextBoundUnloadedOverworld) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+  const auto source = MakeTempFilePath("yaze_unrelated_lazy_save_source.sfc");
+  const auto destination =
+      MakeTempFilePath("yaze_unrelated_lazy_save_copy.sfc");
+  ScopedFileCleanup source_cleanup{source};
+  ScopedFileCleanup destination_cleanup{destination};
+  WriteTestRom(source, "UNRELATED LAZY SAVE");
+  const auto source_hash = util::ComputeFileSha1Hex(source.string());
+  ASSERT_OK(manager->OpenRomOrProject(source.string()));
+  DisableRomWritesForTest();
+  // Keep this unrelated save scope enabled. A context-only editor has no
+  // loaded item model to publish, and must not try to read or write it.
+  core::FeatureFlags::get().overworld.kSaveOverworldItems = true;
+  auto* const editors = manager->GetCurrentEditorSet();
+  ASSERT_NE(editors, nullptr);
+  auto* const overworld = static_cast<OverworldEditor*>(
+      editors->GetExistingEditor(EditorType::kOverworld));
+  ASSERT_NE(overworld, nullptr);
+  ASSERT_FALSE(overworld->overworld().is_loaded());
+  auto* const rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x120, 0xA5));
+  const auto edited = rom->vector();
+
+  ASSERT_OK(manager->SaveRomAs(destination.string()));
+
+  EXPECT_EQ(editors->GetExistingEditor(EditorType::kOverworld), overworld);
+  EXPECT_FALSE(overworld->overworld().is_loaded());
+  EXPECT_TRUE(core::FeatureFlags::get().overworld.kSaveOverworldItems);
+  EXPECT_EQ(rom->vector(), edited);
+  EXPECT_FALSE(rom->dirty());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(destination.string()));
+  EXPECT_EQ(reopened.vector(), edited);
+  EXPECT_EQ(util::ComputeFileSha1Hex(source.string()), source_hash);
+}
+
 TEST(GraphicsSaveStoplossTest,
      PendingSheetsBlockOrRollBackBeforeAnythingReachesDisk) {
   FeatureFlagsGuard guard;

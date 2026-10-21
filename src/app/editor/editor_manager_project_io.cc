@@ -730,8 +730,13 @@ absl::Status EditorManager::SaveRomInternal(
   // even though the user never opened or edited that domain.
   RETURN_IF_ERROR(
       save_editor(current_editor_set->GetExistingEditor(EditorType::kDungeon)));
-  RETURN_IF_ERROR(save_editor(
-      current_editor_set->GetExistingEditor(EditorType::kOverworld)));
+  // Project context binding creates an Overworld editor before its model is
+  // loaded. Its empty caches are not ROM edits and must not be serialized.
+  if (auto* overworld = static_cast<OverworldEditor*>(
+          current_editor_set->GetExistingEditor(EditorType::kOverworld));
+      overworld && overworld->overworld().is_loaded()) {
+    RETURN_IF_ERROR(save_editor(overworld));
+  }
 
   // Dungeon may already have serialized palettes under its own transaction.
   // Otherwise enlist the Palette editor in the same file-save transaction.
