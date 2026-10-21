@@ -374,7 +374,18 @@ void E2ETest_AgentBuilderSmokeTest(ImGuiTestContext* ctx) {
   ctx->WindowCollapse(title.c_str(), false);
   ctx->Yield(5);
   ctx->SetRef(title.c_str());
-  IM_CHECK(ctx->ItemExists("**/" ICON_MD_LINK " Apply to Chat"));
+  const auto details = ctx->WindowInfo("AgentBuilderPanel/BuilderDetails");
+  IM_CHECK(details.Window != nullptr);
+  ctx->SetRef(details.Window);
+  constexpr const char* kApplyButton = ICON_MD_LINK " Apply to Chat";
+  // Wildcard label searches do not scroll nested children. Resolve this ID
+  // in its owning window, then expose it through that child's scrollbar.
+  IM_CHECK(ctx->ItemExists(kApplyButton));
+  ctx->ScrollToItemY(kApplyButton);
+  ctx->Yield(5);
+  IM_CHECK(ctx->ItemExists(kApplyButton));
+  IM_CHECK((ctx->ItemInfo(kApplyButton).StatusFlags &
+            ImGuiItemStatusFlags_Visible) != 0);
 }
 #endif
 
