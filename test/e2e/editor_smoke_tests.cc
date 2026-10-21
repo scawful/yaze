@@ -363,10 +363,14 @@ void E2ETest_AgentBuilderSmokeTest(ImGuiTestContext* ctx) {
   window_manager->SetVisibleWindows(session_id, {});
   IM_CHECK(OpenWindow(ctx, controller, "agent.builder"));
   ctx->Yield(5);
-  IM_CHECK(CheckWindow(ctx, controller, "agent.builder"));
 
+  const auto* descriptor = GetWindowDescriptor(controller, "agent.builder");
+  IM_CHECK(descriptor != nullptr);
+  // PanelWindow appends the session-resolved ID to its display label.
   const std::string title =
-      GetWindowTitle(GetWindowDescriptor(controller, "agent.builder"));
+      GetWindowTitle(descriptor) + "##" + descriptor->card_id;
+  IM_CHECK(ctx->WindowInfo(title.c_str(), ImGuiTestOpFlags_NoError).Window !=
+           nullptr);
   ctx->WindowCollapse(title.c_str(), false);
   ctx->Yield(5);
   ctx->SetRef(title.c_str());
