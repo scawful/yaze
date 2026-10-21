@@ -765,6 +765,10 @@ absl::Status LyraTerrainCanvas::ApplyProposal(project::YazeProject* project,
   if (!project)
     return absl::FailedPreconditionError(
         "Lyra proposals require an active project");
+  if (selected_map < Document::kFirstMap ||
+      selected_map >= Document::kFirstMap + Document::kMapCount)
+    return absl::FailedPreconditionError(
+        "Select the proposal's target Lyra map before applying it");
   // Validate ownership, pending property drafts and the current native source.
   // A rejected import must not finish a gesture or change either history stack.
   RETURN_IF_ERROR(ValidateSave(project, overworld));
@@ -784,25 +788,58 @@ absl::Status LyraTerrainCanvas::ApplyProposal(project::YazeProject* project,
       profile.tile16_definition_fingerprint,
       core::ComputeSourceArtifactSha256(profile_json.dump(-1, ' ', true)),
       profile.tile_count};
-  ASSIGN_OR_RETURN(auto stroke,
-                   core::AdmitLyraTerrainProposal(bundle, *document_, binding));
+  const auto& authoring =
+      document_->authoring().maps[selected_map - Document::kFirstMap];
+  std::array<std::string, 3> resolved_bindings;
+  for (int state = 0; state < 3; ++state) {
+    ASSIGN_OR_RETURN(auto assets, zelda3::ResolveLyraMapAssets(
+                                      overworld, authoring.properties, state));
+    if (!authoring.asset_bindings[state].empty() &&
+        authoring.asset_bindings[state] != assets.binding)
+      return absl::FailedPreconditionError(
+          "Lyra proposal map asset binding changed");
+    resolved_bindings[state] = std::move(assets.binding);
+  }
+  ASSIGN_OR_RETURN(auto map_fingerprint,
+                   core::LyraMapProposalProfileFingerprint(
+                       *document_, selected_map, resolved_bindings));
+  const core::LyraTerrainProposalBinding map_binding{
+      binding.game_id,
+      core::kLyraMapAssetProposalAdapterId,
+      binding.rom_sha256,
+      binding.definition_fingerprint,
+      std::move(map_fingerprint),
+      binding.tile_count};
+  ASSIGN_OR_RETURN(auto stroke, core::AdmitLyraTerrainProposal(
+                                    bundle, *document_, binding, map_binding));
   // The editor supplies the selected map independently of the JSON snapshot.
-  const int target_map = nlohmann::json::parse(bundle)["map_id"].get<int>();
+  int target_map = 0;
+  bool per_map = false;
+  try {
+    // Core admission has already validated these fields. Keep the JSON/status
+    // boundary explicit even for this second read of the admitted snapshot.
+    const auto admitted_bundle = nlohmann::json::parse(bundle);
+    target_map = admitted_bundle.at("map_id").get<int>();
+    per_map = admitted_bundle.at("target").at("binding").at("adapter_id") ==
+              core::kLyraMapAssetProposalAdapterId;
+  } catch (const nlohmann::json::exception& error) {
+    return absl::InvalidArgumentError(error.what());
+  }
   if (selected_map != target_map)
     return absl::FailedPreconditionError(
         "Select the proposal's target Lyra map before applying it");
-  if (stroke.empty())
-    return absl::OkStatus();
-  const auto& properties =
-      document_->authoring()
-          .maps[stroke.changes.front().map_id - Document::kFirstMap]
-          .properties;
-  if (properties.graphics_sheets != profile.graphics_sheets ||
-      properties.main_palette != profile.main_palette ||
-      properties.palette_set != profile.palette_set ||
-      properties.animated_sheet != profile.animated_sheet)
+  const auto& properties = authoring.properties;
+  if (!per_map &&
+      (properties.graphics_sheets != profile.graphics_sheets ||
+       properties.main_palette != profile.main_palette ||
+       properties.palette_set != profile.palette_set ||
+       properties.animated_sheet != profile.animated_sheet ||
+       properties.sprite_graphics != std::array<int, 3>{-1, -1, -1} ||
+       properties.sprite_palettes != std::array<int, 3>{-1, -1, -1}))
     return absl::FailedPreconditionError(
         "Proposal target uses a different map graphics profile");
+  if (stroke.empty())
+    return absl::OkStatus();
   auto action = std::make_unique<TerrainStrokeAction>(document_, stroke);
   RETURN_IF_ERROR(document_->ApplyStroke(stroke, false));
   history.Push(std::move(action));

@@ -121,3 +121,66 @@ ROM capacity or runtime maps are allocated. Unknown Tile32 capacity remains an
 unresolved ROM-compilation condition. Rejected/no-change proposals leave the
 document and both history stacks unchanged. Suggested mining candidates cannot
 be imported directly as reviewed footprints.
+
+### Export an actual saved project target
+
+`project_proposal.py` closes the gap between a saved `.yaze` project and the
+explicit proposal bundle. It reads the project's ROM and schema-3 sidecar,
+checks the ROM's expected CRC32/SHA1 (including legacy Yaze CRC32), checks the
+expanded Tile16 definition bytes, and requires an exact saved native
+`lyra-verify-project` observation. The observation must match the current ROM,
+sidecar, shared profile and all 96 map/state asset bindings. A caller-provided
+observation is evidence of that native run, not a signature or reviewer approval.
+
+```sh
+python3 -B scripts/pixel_art/project_proposal.py /path/to/project.yaze \
+  --native-receipt /path/to/lyra-verify-project.json --map 0xB3 \
+  --out /path/to/new-target.json
+
+python3 -B scripts/pixel_art/project_proposal.py /path/to/project.yaze \
+  --native-receipt /path/to/lyra-verify-project.json --map 0xB3 \
+  --footprint /path/to/source-bound-reviewed-grove.json --at 21,16 \
+  --out /path/to/new-grove.bundle.json
+```
+
+The native observation is obtained separately using the project's qualified
+CLI: `z3ed lyra-verify-project --project-context=/path/to/project.yaze
+--rom=/path/to/private.sfc --format=json`. Save its JSON stdout, then export.
+The exporter starts no native process, writes only a new JSON file, and refuses
+changed inputs or an existing output. A footprint must already have the exact
+ROM/definition/profile binding. Its IDs are never silently rebound. Use
+`--protect x,y` for explicit cells the proposal must preserve. Complete source
+assemblies should carry substrate clearances and source coordinates in their
+reviewed provenance; the exporter does not infer cliff direction or shoreline
+grammar from tile IDs.
+
+Shared-profile maps with default sprite arrays retain adapter
+`lyra-sidecar-v3` and the existing shared-profile fingerprint. Distinct map
+graphics or custom sprite arrays automatically select adapter
+`lyra-sidecar-v3-map-assets-v1`. Use `--per-map-assets` to explicitly select it
+for a shared-profile map. The six binding fields remain the same; the new
+`profile_fingerprint` is SHA-256 of this sorted compact ASCII JSON context:
+
+```json
+{"schema_version":1,"kind":"lyra_map_asset_context","map_id":176,
+ "profile":"the complete document profile object",
+ "properties":"the complete map authoring properties object",
+ "asset_bindings":["state-0 resolved SHA-256","state-1 resolved SHA-256",
+                   "state-2 resolved SHA-256"]}
+```
+
+The object values represented above as descriptions are the actual saved
+objects and three native-verified lowercase SHA-256 strings. Empty historical
+bindings cannot use this adapter. The map ID, sprite arrays, music, message ID,
+graphics selectors and all three state hashes participate in the context.
+The native adapter independently resolves all three states before admission
+and checks their hashes against the saved authoring bindings. A refreshed
+native observation is required whenever the ROM or sidecar changes.
+
+A footprint must already match the selected binding, including its map-specific
+fingerprint. The exporter never rewrites a footprint binding or `content_id`;
+moving an assembly to another map requires a separately reviewed bound artifact.
+An older Yaze build without the per-map adapter refuses these new bundles.
+Import remains one normal Undo step through **File > Advanced Lyra > Apply Lyra
+Proposal...**, followed by **Save Project**. Native import acceptance for a
+particular exported assembly and gameplay remain separate checks.

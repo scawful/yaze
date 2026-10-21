@@ -51,6 +51,22 @@ class FootprintProposalTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "32x32"):
             fp.lyra_bundle(target, prefab, [[2, 2]], 0xA0)
 
+    def test_versioned_map_assets_adapter_does_not_rebind_footprints(self):
+        target, prefab = fixture()
+        target["rows"] = [[1] * 32 for _ in range(32)]
+        target["binding"].update(game_id="oracle-of-secrets",
+                                 adapter_id="lyra-sidecar-v3-map-assets-v1")
+        with self.assertRaisesRegex(ValueError, "bindings differ"):
+            fp.lyra_bundle(target, prefab, [[2, 2]], 0xB0)
+        prefab["binding"] = copy.deepcopy(target["binding"])
+        prefab["content_id"] = fp.content_id(prefab)
+        self.assertEqual(fp.lyra_bundle(target, prefab, [[2, 2]], 0xB0)["map_id"], 0xB0)
+        target["binding"]["adapter_id"] = "unknown-adapter"
+        prefab["binding"] = copy.deepcopy(target["binding"])
+        prefab["content_id"] = fp.content_id(prefab)
+        with self.assertRaisesRegex(ValueError, "32x32"):
+            fp.lyra_bundle(target, prefab, [[2, 2]], 0xB0)
+
     def test_sparse_skip_and_explicit_zero_do_not_mutate_inputs(self):
         target, prefab = fixture()
         before = copy.deepcopy((target, prefab))

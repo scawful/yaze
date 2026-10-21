@@ -1,6 +1,7 @@
 #ifndef YAZE_CORE_LYRA_TERRAIN_PROPOSAL_H_
 #define YAZE_CORE_LYRA_TERRAIN_PROPOSAL_H_
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -23,6 +24,16 @@ struct LyraTerrainProposalBinding {
   uint32_t tile_count = 0;
 };
 
+inline constexpr char kLyraMapAssetProposalAdapterId[] =
+    "lyra-sidecar-v3-map-assets-v1";
+
+// Canonical per-map profile identity shared with project_proposal.py. The caller
+// must resolve all three asset bindings from the loaded native source; this
+// pure helper does not make document declarations authoritative.
+absl::StatusOr<std::string> LyraMapProposalProfileFingerprint(
+    const LyraTerrainDocument& document, int map_id,
+    const std::array<std::string, 3>& resolved_asset_bindings);
+
 inline constexpr size_t kMaxLyraTerrainProposalBytes = 1024 * 1024;
 
 // Admits a schema-1 "lyra_tile16_proposal_bundle" whose report must equal the
@@ -34,6 +45,13 @@ inline constexpr size_t kMaxLyraTerrainProposalBytes = 1024 * 1024;
 absl::StatusOr<LyraTerrainStroke> AdmitLyraTerrainProposal(
     std::string_view bundle_json, const LyraTerrainDocument& document,
     const LyraTerrainProposalBinding& actual_binding);
+
+// Adds an explicitly versioned map-assets adapter without changing the legacy
+// shared-profile contract. Both identities are derived by the trusted caller.
+absl::StatusOr<LyraTerrainStroke> AdmitLyraTerrainProposal(
+    std::string_view bundle_json, const LyraTerrainDocument& document,
+    const LyraTerrainProposalBinding& actual_binding,
+    const LyraTerrainProposalBinding& actual_map_binding);
 
 }  // namespace yaze::core
 

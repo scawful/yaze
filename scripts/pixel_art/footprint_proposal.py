@@ -216,7 +216,8 @@ def lyra_bundle(target, prefab, placements, map_id):
     result = plan(target, prefab, placements)
     if (len(target["rows"]) != 32 or len(target["rows"][0]) != 32 or
             target["binding"]["game_id"] != "oracle-of-secrets" or
-            target["binding"]["adapter_id"] != "lyra-sidecar-v3"):
+            target["binding"]["adapter_id"] not in
+            ("lyra-sidecar-v3", "lyra-sidecar-v3-map-assets-v1")):
         raise ValueError("Lyra bundles require a bound 32x32 Oracle sidecar map")
     if len(prefab["rows"]) > 32 or len(prefab["rows"][0]) > 32:
         raise ValueError("Lyra bundle footprints must fit a 32x32 rectangle")
