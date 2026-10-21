@@ -644,11 +644,6 @@ absl::Status Controller::LoadRomForTesting(const std::string& rom_path) {
   return status;
 }
 
-void Controller::RequestScreenshot(const ScreenshotRequest& request) {
-  std::lock_guard<std::mutex> lock(screenshot_mutex_);
-  screenshot_requests_.push(request);
-}
-
 void Controller::ProcessScreenshotRequests() const {
 #ifdef YAZE_WITH_GRPC
   std::queue<ScreenshotRequest> requests;
