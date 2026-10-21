@@ -968,6 +968,8 @@ TEST(DungeonAgentToolsNativeRomTest,
   }
 
   EditorEnvironmentScope environment;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  RecordProperty("workflow", "workbench");
   Rom rom;
   ASSERT_TRUE(rom.LoadFromFile(rom_path).ok()) << rom_path;
   const std::vector<uint8_t> rom_before = rom.vector();
