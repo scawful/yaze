@@ -1721,7 +1721,7 @@ void EditorManager::InitializeServices() {
                         &user_settings_);
 
 #ifdef YAZE_BUILD_AGENT_UI
-  if (auto* agent_editor = agent_ui_.GetAgentEditor()) {
+  if (auto* agent_editor = agent_ui_->GetAgentEditor()) {
     if (auto* chat = agent_editor->GetAgentChat()) {
       chat->GetAgentService()->SetDungeonEditorToolCallback(
           MakeDungeonEditorToolCallback([this] {
