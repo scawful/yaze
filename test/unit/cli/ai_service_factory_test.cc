@@ -157,6 +157,8 @@ TEST(AIServiceFactoryTest, MaxOutputTokensFlowsFromEditorToChatProvider) {
         agent_editor.GetAgentChat()->GetAgentService()->provider_config();
     ASSERT_TRUE(applied.max_output_tokens.has_value());
     EXPECT_EQ(*applied.max_output_tokens, 8192);
+    ASSERT_TRUE(applied.use_function_calling.has_value());
+    EXPECT_TRUE(*applied.use_function_calling);
   }
   std::error_code ec;
   std::filesystem::remove_all(app_data, ec);

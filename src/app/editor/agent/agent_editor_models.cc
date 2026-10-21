@@ -853,6 +853,8 @@ void AgentEditor::ApplyConfig(const AgentConfig& config) {
           cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
       provider_config.verbose = config.verbose;
       provider_config.max_output_tokens = config.max_output_tokens;
+      // Native Agent chat executes registered tools through this service.
+      provider_config.use_function_calling = true;
       provider_config.rom_context = rom_;
       if (rom_ != nullptr) {
         provider_config.rom_path_hint = rom_->filename();

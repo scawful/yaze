@@ -356,7 +356,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     }
     gemini_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
     gemini_config.use_function_calling =
-        absl::GetFlag(FLAGS_use_function_calling);
+        effective_config.use_function_calling.value_or(
+            absl::GetFlag(FLAGS_use_function_calling));
     gemini_config.verbose = effective_config.verbose;
     return FinalizeService(std::make_unique<GeminiAIService>(gemini_config),
                            effective_config);
@@ -379,7 +380,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     }
     anthropic_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
     anthropic_config.use_function_calling =
-        absl::GetFlag(FLAGS_use_function_calling);
+        effective_config.use_function_calling.value_or(
+            absl::GetFlag(FLAGS_use_function_calling));
     anthropic_config.verbose = effective_config.verbose;
     return FinalizeService(
         std::make_unique<AnthropicAIService>(anthropic_config),
@@ -406,7 +408,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     }
     openai_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
     openai_config.use_function_calling =
-        absl::GetFlag(FLAGS_use_function_calling);
+        effective_config.use_function_calling.value_or(
+            absl::GetFlag(FLAGS_use_function_calling));
     openai_config.verbose = effective_config.verbose;
     return FinalizeService(std::make_unique<OpenAIAIService>(openai_config),
                            effective_config);

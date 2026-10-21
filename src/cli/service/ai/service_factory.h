@@ -43,6 +43,8 @@ struct AIServiceConfig {
   Rom* rom_context = nullptr;
   // An explicit UI/request override; absent preserves each provider's default.
   std::optional<int> max_output_tokens;
+  // Native hosts can request tool calling; absent preserves the CLI flag.
+  std::optional<bool> use_function_calling;
   // Enable debug logging.
   bool verbose = false;
 };
