@@ -294,6 +294,7 @@ TEST(AgentChatTest, NativeProtocolHistoryRoundTripsWithoutCredentials) {
   ASSERT_TRUE(AgentChatHistoryCodec::Save(path, snapshot).ok());
   std::ifstream input(path);
   const std::string serialized((std::istreambuf_iterator<char>(input)), {});
+  input.close();
   EXPECT_EQ(serialized.find("offline-gemini-secret"), std::string::npos);
   EXPECT_EQ(serialized.find("offline-anthropic-secret"), std::string::npos);
   EXPECT_EQ(serialized.find("offline-openai-secret"), std::string::npos);
@@ -332,6 +333,7 @@ TEST(AgentChatTest, LegacyHistoryCredentialsRemainReadableButAreNotReexported) {
   std::ifstream input(path);
   nlohmann::json rewritten;
   input >> rewritten;
+  input.close();
   EXPECT_FALSE(rewritten["agent_config"].contains("gemini_api_key"));
   EXPECT_FALSE(rewritten["agent_config"].contains("anthropic_api_key"));
   EXPECT_FALSE(rewritten["agent_config"].contains("openai_api_key"));
