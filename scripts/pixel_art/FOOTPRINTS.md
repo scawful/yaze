@@ -82,10 +82,9 @@ remain separate engine checks. Every report says `writes_enabled:false`.
 
 ## Existing editor connection
 
-The output's occupied cells and exact changes are suitable for a later adapter
-to existing `TileBrush`/`PasteBrush` and document history. This module implements
-no adapter and creates no parallel undo model. Editor application requires its
-own source review, atomic history and disposable save/reopen qualification.
+The planner remains read-only. The explicit Lyra bundle route below connects
+its complete inputs to existing document/history and project-save paths. Sparse
+footprints retain skip cells instead of becoming dense `TileBrush` data.
 Gameplay and custom collision require their separate native evidence.
 
 ```sh
@@ -93,3 +92,32 @@ taskpolicy -b nice -n 10 env PYTHONDONTWRITEBYTECODE=1 \
   python3 -m unittest discover -s scripts/pixel_art/tests \
   -p test_footprint_proposal.py -v
 ```
+
+### Explicit Lyra editor admission
+
+A current Yaze build can admit a complete bundle into the existing Lyra document
+and undo history. Package it without opening an editor or writing a ROM:
+
+```sh
+python3 -B scripts/pixel_art/footprint_proposal.py \
+  /path/to/target.json /path/to/footprint.json --at 2,2 \
+  --bundle-map 0xA0 --out /path/to/new-proposal-bundle.json
+```
+
+This keeps the original target, footprint and read-only report together. The
+explicit map ID is an integer `$A0..$BF`. Select that map in Yaze, then choose
+**File > Advanced Lyra > Apply Lyra Proposal...**. The editor checks the full
+32x32 map, loaded ROM bytes (including any copier header), complete definitions
+and native profile, and recomputes the report before changing cells. Map-specific
+graphics must match the bound profile. Finish any active gesture and Apply or
+Revert pending property drafts first. An admitted batch is one normal Undo step;
+**Save Project** uses the existing atomic sidecar publisher.
+
+Editor admission is bounded to 1 MiB JSON, 32x32 targets and footprints, at most
+64 placements, and integer/string/boolean/null metadata. Duplicate keys, unknown
+schema fields, floats, stale targets and forged reports are refused. Complete
+Tile32 inventories are explicitly unsupported by this sidecar adapter; no IDs,
+ROM capacity or runtime maps are allocated. Unknown Tile32 capacity remains an
+unresolved ROM-compilation condition. Rejected/no-change proposals leave the
+document and both history stacks unchanged. Suggested mining candidates cannot
+be imported directly as reviewed footprints.

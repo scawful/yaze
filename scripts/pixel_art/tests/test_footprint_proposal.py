@@ -26,6 +26,31 @@ def fixture():
 
 
 class FootprintProposalTest(unittest.TestCase):
+    def test_lyra_bundle_retains_complete_inputs_and_read_only_report(self):
+        target, prefab = fixture()
+        target["rows"] = [[1] * 32 for _ in range(32)]
+        target["binding"].update(game_id="oracle-of-secrets", adapter_id="lyra-sidecar-v3")
+        prefab["binding"] = copy.deepcopy(target["binding"])
+        prefab["content_id"] = fp.content_id(prefab)
+        before = copy.deepcopy((target, prefab))
+        result = fp.lyra_bundle(target, prefab, [[2, 2]], 0xA1)
+        self.assertEqual(result["map_id"], 0xA1)
+        self.assertEqual(result["target"], target)
+        self.assertEqual(result["footprint"], prefab)
+        self.assertEqual(result["report"], fp.plan(target, prefab, [[2, 2]]))
+        self.assertFalse(result["report"]["writes_enabled"])
+        self.assertEqual((target, prefab), before)
+        for map_id in (True, 0x9F, 0xC0):
+            with self.assertRaises(ValueError):
+                fp.lyra_bundle(target, prefab, [[2, 2]], map_id)
+        with self.assertRaisesRegex(ValueError, "1..64"):
+            fp.lyra_bundle(target, prefab, [[2, 2]] * 65, 0xA0)
+
+    def test_lyra_bundle_refuses_unbound_or_nonmap_input(self):
+        target, prefab = fixture()
+        with self.assertRaisesRegex(ValueError, "32x32"):
+            fp.lyra_bundle(target, prefab, [[2, 2]], 0xA0)
+
     def test_sparse_skip_and_explicit_zero_do_not_mutate_inputs(self):
         target, prefab = fixture()
         before = copy.deepcopy((target, prefab))

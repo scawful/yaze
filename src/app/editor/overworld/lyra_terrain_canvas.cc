@@ -10,7 +10,9 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
 #include "app/gfx/resource/arena.h"
+#include "core/lyra_terrain_proposal.h"
 #include "core/source_artifact_publisher.h"
+#include "nlohmann/json.hpp"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/lyra_terrain_source.h"
@@ -746,6 +748,65 @@ absl::Status LyraTerrainCanvas::SaveAs(project::YazeProject* project,
   unpublished_ = false;
   pending_project_commit_ = false;
   document_->MarkSaved();
+  return absl::OkStatus();
+}
+
+absl::Status LyraTerrainCanvas::ApplyProposal(project::YazeProject* project,
+                                              zelda3::Overworld& overworld,
+                                              int selected_map,
+                                              std::string_view bundle,
+                                              UndoManager& history) {
+  if (!document_ || !assets_valid_)
+    return absl::FailedPreconditionError(
+        "Open Lyra terrain with valid native assets before applying a "
+        "proposal");
+  if (stroke_active_ || document_->stroke_active())
+    return absl::FailedPreconditionError("Finish the active Lyra stroke first");
+  if (!project)
+    return absl::FailedPreconditionError(
+        "Lyra proposals require an active project");
+  // Validate ownership, pending property drafts and the current native source.
+  // A rejected import must not finish a gesture or change either history stack.
+  RETURN_IF_ERROR(ValidateSave(project, overworld));
+  const auto* rom = overworld.rom();
+  if (!rom || !rom->is_loaded())
+    return absl::FailedPreconditionError("The project ROM is unavailable");
+  std::string rom_bytes(rom->copier_header().begin(),
+                        rom->copier_header().end());
+  rom_bytes.append(reinterpret_cast<const char*>(rom->data()), rom->size());
+  const auto& profile = document_->profile();
+  const auto profile_json =
+      nlohmann::json::parse(document_->Serialize())["profile"];
+  const core::LyraTerrainProposalBinding binding{
+      "oracle-of-secrets",
+      "lyra-sidecar-v3",
+      core::ComputeSourceArtifactSha256(rom_bytes),
+      profile.tile16_definition_fingerprint,
+      core::ComputeSourceArtifactSha256(profile_json.dump(-1, ' ', true)),
+      profile.tile_count};
+  ASSIGN_OR_RETURN(auto stroke,
+                   core::AdmitLyraTerrainProposal(bundle, *document_, binding));
+  // The editor supplies the selected map independently of the JSON snapshot.
+  const int target_map = nlohmann::json::parse(bundle)["map_id"].get<int>();
+  if (selected_map != target_map)
+    return absl::FailedPreconditionError(
+        "Select the proposal's target Lyra map before applying it");
+  if (stroke.empty())
+    return absl::OkStatus();
+  const auto& properties =
+      document_->authoring()
+          .maps[stroke.changes.front().map_id - Document::kFirstMap]
+          .properties;
+  if (properties.graphics_sheets != profile.graphics_sheets ||
+      properties.main_palette != profile.main_palette ||
+      properties.palette_set != profile.palette_set ||
+      properties.animated_sheet != profile.animated_sheet)
+    return absl::FailedPreconditionError(
+        "Proposal target uses a different map graphics profile");
+  auto action = std::make_unique<TerrainStrokeAction>(document_, stroke);
+  RETURN_IF_ERROR(document_->ApplyStroke(stroke, false));
+  history.Push(std::move(action));
+  status_ = absl::OkStatus();
   return absl::OkStatus();
 }
 
