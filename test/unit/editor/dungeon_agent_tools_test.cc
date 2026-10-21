@@ -1085,6 +1085,63 @@ TEST(DungeonAgentToolsNativeRomTest,
   EXPECT_TRUE(rom.vector() == rom_before)
       << "The source ROM bytes must be unchanged";
   EXPECT_FALSE(rom.dirty());
+
+  // Exercise the existing native object serializer on a separate ROM copy.
+  // The tool above still never serializes or saves its source ROM.
+  struct SaveFlagsScope {
+    decltype(core::FeatureFlags::get().dungeon) previous =
+        core::FeatureFlags::get().dungeon;
+    ~SaveFlagsScope() { core::FeatureFlags::get().dungeon = previous; }
+  } save_flags_scope;
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = true;
+  for (bool* flag :
+       {&flags.kSaveSprites, &flags.kSaveRoomHeaders, &flags.kSaveTorches,
+        &flags.kSavePits, &flags.kSaveBlocks, &flags.kSaveCollision,
+        &flags.kSaveWaterFillZones, &flags.kSaveChests, &flags.kSavePotItems,
+        &flags.kSaveEntrances, &flags.kSavePalettes}) {
+    *flag = false;
+  }
+  Rom save_rom;
+  ASSERT_TRUE(save_rom.LoadFromData(rom_before).ok());
+  DungeonEditorV2 save_editor(&save_rom);
+  save_editor.SetGameData(&data);
+  save_editor.add_room(kOracleRoomId);
+  auto* save_room = save_editor.rooms().GetIfLoaded(kOracleRoomId);
+  ASSERT_NE(save_room, nullptr);
+  zelda3::RoomObjectBatch save_batch{
+      kOracleRoomId,
+      zelda3::CaptureRoomObjectGuards(save_room->GetTileObjects()), moves};
+  ASSERT_TRUE(save_editor.ApplyRoomObjectBatch(save_batch).ok());
+  const auto serialized = save_editor.SaveRoom(kOracleRoomId);
+  ASSERT_TRUE(serialized.ok()) << serialized;
+
+  Rom reopened_rom;
+  const char* artifact_directory =
+      std::getenv("YAZE_NATIVE_BATCH_ARTIFACT_DIR");
+  if (artifact_directory && artifact_directory[0]) {
+    Rom::SaveSettings settings;
+    settings.save_new = true;
+    settings.filename =
+        (std::filesystem::path(artifact_directory) / "room25-native-save.sfc")
+            .string();
+    const auto saved = save_rom.SaveToFile(settings);
+    ASSERT_TRUE(saved.ok()) << saved;
+    ASSERT_TRUE(reopened_rom.LoadFromFile(settings.filename).ok());
+    RecordProperty("native_persistence", "file_save_reopen");
+  } else {
+    ASSERT_TRUE(reopened_rom.LoadFromData(save_rom.vector()).ok());
+    RecordProperty("native_persistence", "serialized_buffer_reopen");
+  }
+  DungeonEditorV2 reopened_editor(&reopened_rom);
+  reopened_editor.SetGameData(&data);
+  reopened_editor.add_room(kOracleRoomId);
+  auto* reopened_room = reopened_editor.rooms().GetIfLoaded(kOracleRoomId);
+  ASSERT_NE(reopened_room, nullptr);
+  EXPECT_EQ(Records(reopened_room->GetTileObjects()),
+            Records(candidate_objects));
+  EXPECT_TRUE(CaptureRoomRender(*reopened_room) == candidate);
+  EXPECT_TRUE(rom.vector() == rom_before);
 }
 
 #else  // !YAZE_WITH_JSON
