@@ -64,6 +64,8 @@ class GeminiAIService : public AIService {
       const std::string& image_path, const std::string& prompt);
 
  private:
+  friend class GeminiAIServiceTestPeer;
+
   std::string BuildSystemInstruction();
   absl::StatusOr<AgentResponse> ParseGeminiResponse(
       const std::string& response_body);

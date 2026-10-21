@@ -12,6 +12,10 @@
 #include "absl/status/status.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#if defined(YAZE_AI_RUNTIME_AVAILABLE) && defined(YAZE_WITH_JSON)
+#include "cli/service/ai/gemini_ai_service.h"
+#include "nlohmann/json.hpp"
+#endif
 #ifdef YAZE_BUILD_AGENT_UI
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_editor.h"
@@ -27,7 +31,84 @@ ABSL_DECLARE_FLAG(std::string, openai_base_url);
 ABSL_DECLARE_FLAG(std::string, rom);
 
 namespace yaze::cli {
+
+#if defined(YAZE_AI_RUNTIME_AVAILABLE) && defined(YAZE_WITH_JSON)
+class GeminiAIServiceTestPeer {
+ public:
+  static absl::StatusOr<AgentResponse> Parse(const std::string& response,
+                                             bool native_function_calling) {
+    GeminiConfig config;
+    config.system_instruction = "Offline captured-response parser test";
+    config.use_function_calling = native_function_calling;
+    GeminiAIService service(config);
+    return service.ParseGeminiResponse(response);
+  }
+};
+#endif
+
 namespace {
+
+#if defined(YAZE_AI_RUNTIME_AVAILABLE) && defined(YAZE_WITH_JSON)
+constexpr char kCapturedBasinSummary[] =
+    "22 objects in dungeon room 0x25 (ID 37) were successfully moved two tile "
+    "rows north. The changes were applied to the native editor session with "
+    "ID \"0\", and an undo action was recorded. The ROM was not saved.";
+
+std::string GeminiTextResponse(const std::string& text) {
+  return nlohmann::json{
+      {"candidates",
+       {{{"content", {{"parts", {{{"text", text}}}}, {"role", "model"}}},
+         {"finishReason", "STOP"}}}}}
+      .dump();
+}
+
+TEST(GeminiResponseTest, NativeFunctionCallingAcceptsCapturedPlainTextSummary) {
+  const auto response = GeminiAIServiceTestPeer::Parse(
+      GeminiTextResponse(kCapturedBasinSummary), true);
+  ASSERT_TRUE(response.ok()) << response.status();
+  EXPECT_EQ(response->text_response, kCapturedBasinSummary);
+  EXPECT_TRUE(response->commands.empty());
+  EXPECT_TRUE(response->tool_calls.empty());
+}
+
+TEST(GeminiResponseTest, LegacyJsonModeRejectsPlainTextSummary) {
+  const auto response = GeminiAIServiceTestPeer::Parse(
+      GeminiTextResponse(kCapturedBasinSummary), false);
+  ASSERT_FALSE(response.ok());
+  EXPECT_THAT(response.status().message(),
+              testing::HasSubstr("Expected at least one of"));
+}
+
+TEST(GeminiResponseTest, NativeFunctionCallKeepsArgumentsAlongsidePlainText) {
+  const std::string batch =
+      R"({"session_id":"0","expected_objects":[],"moves":[]})";
+  const nlohmann::json function_part = {
+      {"functionCall",
+       {{"name", "dungeon-edit-apply"},
+        {"args", {{"room", "0x25"}, {"batch", batch}}}}}};
+  const nlohmann::json payload = {
+      {"candidates",
+       {{{"content",
+          {{"parts", {function_part, {{"text", "Batch applied."}}}}}},
+         {"finishReason", "STOP"}}}}};
+  const auto response = GeminiAIServiceTestPeer::Parse(payload.dump(), true);
+  ASSERT_TRUE(response.ok()) << response.status();
+  EXPECT_EQ(response->text_response, "Batch applied.");
+  ASSERT_EQ(response->tool_calls.size(), 1u);
+  EXPECT_EQ(response->tool_calls[0].tool_name, "dungeon-edit-apply");
+  EXPECT_EQ(response->tool_calls[0].args.at("room"), "0x25");
+  EXPECT_EQ(response->tool_calls[0].args.at("batch"), batch);
+  EXPECT_TRUE(response->commands.empty());
+}
+
+TEST(GeminiResponseTest, NativeFunctionCallingRejectsEmptyText) {
+  const auto response =
+      GeminiAIServiceTestPeer::Parse(GeminiTextResponse(" \n\t "), true);
+  ASSERT_FALSE(response.ok());
+  EXPECT_THAT(response.status().message(),
+              testing::HasSubstr("Expected at least one of"));
+}
+#endif
 
 Rom BuildTestRom(std::string_view filename, size_t size_bytes) {
   Rom rom;

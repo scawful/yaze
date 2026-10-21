@@ -708,6 +708,13 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
               }
             }
           }
+        } else if (function_calling_enabled_ && !text_content.empty()) {
+          // Native function calling permits a plain-text final answer after
+          // tools execute. Keep JSON response mode strict below.
+          if (!agent_response.text_response.empty()) {
+            agent_response.text_response += "\n";
+          }
+          agent_response.text_response += text_content;
         } else {
           // If parsing the full object fails, fallback to extracting commands
           // from text
