@@ -683,6 +683,127 @@ TEST(EditorManagerProjectActionsTest,
 }
 
 TEST(EditorManagerProjectActionsTest,
+     LyraAssetRebindAppliesOnlyTheReviewedPlan) {
+  const auto immutable_rom =
+      test::TestRomManager::GetRomPath(test::RomRole::kExpanded);
+  if (immutable_rom.empty() || !std::filesystem::exists(immutable_rom)) {
+    GTEST_SKIP() << test::TestRomManager::GetRomRoleHint(
+        test::RomRole::kExpanded);
+  }
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  ScopedTempDir directory(MakeTempDir("yaze_lyra_rebind_review"));
+  const auto rom = directory.path / "source.sfc";
+  const auto project_path = directory.path / "rebind.yaze";
+  std::filesystem::copy_file(immutable_rom, rom);
+  WriteProjectFile(project_path, "Lyra Rebind Review", rom);
+  {
+    project::YazeProject descriptor;
+    ASSERT_OK(descriptor.Open(project_path.string()));
+    descriptor.feature_flags.overworld.kLoadCustomOverworld = true;
+    descriptor.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+    ASSERT_OK(descriptor.Save());
+  }
+  std::ofstream(directory.path / "hack_manifest.json")
+      << R"json({"manifest_version":2,"hack_name":"Oracle of Secrets"})json";
+  {
+    project::YazeProject oracle;
+    ASSERT_OK(oracle.Open(project_path.string()));
+    ASSERT_TRUE(oracle.IsOracleCompatible());
+    ASSERT_OK(oracle.Save());
+  }
+  const auto initial_flags = core::FeatureFlags::get();
+  auto manager = std::make_unique<EditorManager>();
+  absl::Cleanup cleanup = [&]() {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+    core::FeatureFlags::get() = initial_flags;
+  };
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_TRUE(editor->lyra_canvas_.loaded());
+  ASSERT_OK(manager->SaveCurrentSession());
+  ASSERT_FALSE(editor->HasPendingProjectDraftChanges());
+
+  ASSERT_OK(editor->PreviewLyraAssetRebind());
+  EXPECT_FALSE(editor->lyra_rebind_review().has_value())
+      << "matching native assets must not open a review";
+
+  const auto saved_terrain = editor->lyra_canvas_.document()->Serialize();
+  auto& tiles16 = *editor->overworld().mutable_tiles16();
+  constexpr uint16_t kChangedTile = 0x20;
+  auto& first_quadrant = tiles16[kChangedTile].tiles_info[0];
+  first_quadrant.horizontal_mirror_ = !first_quadrant.horizontal_mirror_;
+  EXPECT_FALSE(
+      editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0).ok());
+
+  ASSERT_OK(editor->PreviewLyraAssetRebind());
+  ASSERT_TRUE(editor->lyra_rebind_review().has_value());
+  const auto& previewed = editor->lyra_rebind_review()->plan;
+  ASSERT_TRUE(previewed.changed_tiles.has_value());
+  EXPECT_EQ(*previewed.changed_tiles, std::vector<uint16_t>{kChangedTile});
+  EXPECT_TRUE(previewed.invalid_cells.empty());
+  EXPECT_NE(previewed.before_profile.tile16_definition_fingerprint,
+            previewed.after_profile.tile16_definition_fingerprint);
+
+  // Cancel leaves the terrain, history and stale-source refusal untouched.
+  editor->CancelLyraAssetRebind();
+  EXPECT_FALSE(editor->lyra_rebind_review().has_value());
+  EXPECT_EQ(editor->lyra_canvas_.document()->Serialize(), saved_terrain);
+  EXPECT_FALSE(editor->HasPendingProjectDraftChanges());
+  EXPECT_FALSE(
+      editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0).ok());
+
+  // A native change after review refuses the reviewed plan and keeps it open.
+  ASSERT_OK(editor->PreviewLyraAssetRebind());
+  auto& later_quadrant = tiles16[kChangedTile + 1].tiles_info[0];
+  later_quadrant.horizontal_mirror_ = !later_quadrant.horizontal_mirror_;
+  EXPECT_FALSE(editor->ApplyLyraAssetRebind().ok());
+  ASSERT_TRUE(editor->lyra_rebind_review().has_value());
+  EXPECT_FALSE(editor->lyra_rebind_review()->status.ok());
+  EXPECT_EQ(editor->lyra_canvas_.document()->Serialize(), saved_terrain);
+  EXPECT_FALSE(editor->HasPendingProjectDraftChanges());
+
+  // The core would accept this plan again once the native data matches the
+  // review, but a refused review stays unusable until it is previewed again.
+  later_quadrant.horizontal_mirror_ = !later_quadrant.horizontal_mirror_;
+  EXPECT_FALSE(editor->ApplyLyraAssetRebind().ok());
+  ASSERT_TRUE(editor->lyra_rebind_review().has_value());
+  EXPECT_FALSE(editor->lyra_rebind_review()->status.ok());
+  EXPECT_EQ(editor->lyra_canvas_.document()->Serialize(), saved_terrain);
+  EXPECT_FALSE(editor->HasPendingProjectDraftChanges());
+
+  ASSERT_OK(editor->PreviewLyraAssetRebind());
+  ASSERT_TRUE(editor->lyra_rebind_review().has_value());
+  EXPECT_OK(editor->lyra_rebind_review()->status);
+  const auto reviewed = editor->lyra_rebind_review()->plan;
+  ASSERT_TRUE(reviewed.changed_tiles.has_value());
+  EXPECT_EQ(*reviewed.changed_tiles, std::vector<uint16_t>{kChangedTile});
+  ASSERT_OK(editor->ApplyLyraAssetRebind());
+  EXPECT_FALSE(editor->lyra_rebind_review().has_value());
+  EXPECT_EQ(editor->lyra_canvas_.document()->profile(), reviewed.after_profile);
+  EXPECT_TRUE(editor->HasPendingProjectDraftChanges());
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+  EXPECT_OK(editor->lyra_canvas_.PrepareMapAssets(editor->overworld(), 0));
+  ASSERT_OK(editor->PreviewLyraAssetRebind());
+  EXPECT_FALSE(editor->lyra_rebind_review().has_value());
+
+  // The rebind is one history operation.
+  ASSERT_OK(editor->Undo());
+  EXPECT_EQ(editor->lyra_canvas_.document()->profile(),
+            reviewed.before_profile);
+  ASSERT_OK(editor->Redo());
+  EXPECT_EQ(editor->lyra_canvas_.document()->profile(), reviewed.after_profile);
+}
+
+TEST(EditorManagerProjectActionsTest,
      ReopenActiveProjectAliasPreservesDirtyRomAndProjectDraft) {
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
