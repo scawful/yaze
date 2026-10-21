@@ -1140,6 +1140,9 @@ TEST(DungeonAgentToolsNativeRomTest,
   reopened_editor.add_room(kOracleRoomId);
   auto* reopened_room = reopened_editor.rooms().GetIfLoaded(kOracleRoomId);
   ASSERT_NE(reopened_room, nullptr);
+  reopened_room->LoadSprites();
+  reopened_room->LoadRoomGraphics();
+  reopened_room->RenderRoomGraphics();
   EXPECT_EQ(Records(reopened_room->GetTileObjects()),
             Records(candidate_objects));
   EXPECT_TRUE(CaptureRoomRender(*reopened_room) == candidate);
