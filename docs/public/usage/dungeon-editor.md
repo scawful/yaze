@@ -154,10 +154,28 @@ preview. Without a configured source, rendering continues to use ROM patterns.
 
 ### Agent batch moves
 
-The native Agent chat can move several objects in an open dungeon room as one
-edit. Enable **Allow editing tools** in Agent configuration before requesting a
-change. Open the target room in the Dungeon editor, then ask the agent to inspect
-the room and move the selected object indices to their new tile coordinates.
+The native Agent chat can inspect an open dungeon room and move several objects
+as one edit. Start with the room open in the Dungeon editor:
+
+1. Open **Agent Chat**. Choose **Settings** to select a provider and model, then
+   choose **Apply connection**. The chat header shows the applied connection.
+2. Leave **Allow editing** off and ask, for example, “Inspect dungeon room 0x25
+   and describe its objects.” The tool result reports the inspected object count;
+   expand its details when you need the full records.
+3. Turn **Allow editing** on before requesting an object move. Specify the room,
+   object indices, and intended tile coordinates or offset. The agent must use a
+   fresh inspection of the current session before applying the batch.
+4. Review the normal dungeon canvas and the tool result. Use ordinary Undo/Redo
+   to review the batch, then **File > Save As** to save a new ROM copy. Reopen that
+   copy to check the persisted room.
+
+**Allow editing** takes effect immediately and enables the selected mutating tool
+categories. It changes the open editor with Undo; saving remains a separate
+action. **Tool categories**, **Advanced parameters**, and **Model presets** stay
+available in Settings. Open **Browse available models** to refresh the provider's
+catalog; a typed model ID also works with a configured compatible endpoint.
+
+For tool integrations, the batch contract is:
 
 The agent uses `dungeon-edit-inspect --room=0x25` to read the current loaded room,
 including unsaved edits. Its response includes a `session_id` and the complete

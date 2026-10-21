@@ -83,12 +83,36 @@ or Anthropic and pick a provider explicitly:
 ```bash
 # OpenAI (https://platform.openai.com/)
 export OPENAI_API_KEY=your_api_key_here
-z3ed agent simple-chat --rom zelda3.sfc --ai_provider=openai --ai_model=gpt-4o-mini
+z3ed agent simple-chat --rom zelda3.sfc --ai_provider=openai --ai_model=gpt-6.1-sol
 
 # Anthropic (https://console.anthropic.com/)
 export ANTHROPIC_API_KEY=your_api_key_here
-z3ed agent simple-chat --rom zelda3.sfc --ai_provider=anthropic --ai_model=claude-3-5-sonnet-latest
+z3ed agent simple-chat --rom zelda3.sfc --ai_provider=anthropic --ai_model=claude-sonnet-5-5
 ```
+
+### Native dungeon authoring
+
+For changes to a room already open in Yaze, use **Agent Chat** rather than a
+standalone CLI session. **Settings** opens the existing connection form. Choose
+the provider and model, then **Apply connection**; the chat header shows the
+applied provider and model. New native profiles suggest Gemini `gemini-3.8-flash`,
+OpenAI `gpt-6.1-sol`, or Anthropic `claude-sonnet-5-5`. Existing saved model choices
+are retained. Use **Browse available models** to refresh the provider catalog or
+enter a model ID directly.
+
+The existing OpenAI-compatible endpoint setting supports local or remote hosts,
+including LM Studio and the AFS Bridge preset. A saved host preset loads the
+connection form; **Apply connection** activates it. It does not register an MCP
+server or grant access to an external agent. Sampling controls, tool categories,
+and model presets are available through collapsed advanced sections.
+
+Start with **Allow editing** off to inspect a room. Enable it explicitly before
+requesting a guarded object move. Tool results show what the editor actually did;
+their details retain the ordered guards and native result. A tool reporting
+**No save performed by this tool** describes that tool action. Use the normal
+editor Undo/Redo and Save/Save As workflow to review and persist the room. See
+[Agent batch moves](../usage/dungeon-editor.md#agent-batch-moves) for the authoring
+steps and the native tool contract.
 
 ### Build Verification
 
