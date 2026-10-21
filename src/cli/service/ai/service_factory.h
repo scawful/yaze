@@ -47,15 +47,6 @@ struct AIServiceConfig {
   bool verbose = false;
 };
 
-// Shared by providers whose native setting names differ (e.g. Ollama's
-// max_tokens). Keep an absent override distinct from an explicit token limit.
-inline void ApplyMaxOutputTokensOverride(const AIServiceConfig& config,
-                                         int& provider_limit) {
-  if (config.max_output_tokens.has_value()) {
-    provider_limit = *config.max_output_tokens;
-  }
-}
-
 // Build service configuration from flags + environment fallbacks.
 AIServiceConfig BuildAIServiceConfigFromFlags();
 

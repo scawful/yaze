@@ -16,12 +16,6 @@
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_editor.h"
 #endif
-#include "cli/service/ai/ollama_ai_service.h"
-#ifdef YAZE_WITH_JSON
-#include "cli/service/ai/anthropic_ai_service.h"
-#include "cli/service/ai/gemini_ai_service.h"
-#include "cli/service/ai/openai_ai_service.h"
-#endif
 #include "rom/rom.h"
 
 ABSL_DECLARE_FLAG(std::string, ai_provider);
@@ -141,45 +135,6 @@ TEST(AIServiceFactoryTest, DetectPromptProfileUsesOracleRomContextFilename) {
   config.rom_context = &rom;
 
   EXPECT_EQ(DetectPromptProfile(config), AgentPromptProfile::kOracleOfSecrets);
-}
-
-TEST(AIServiceFactoryTest, MaxOutputTokensPreservesProviderDefaultsWhenAbsent) {
-  AIServiceConfig config;
-  EXPECT_FALSE(config.max_output_tokens.has_value());
-  OllamaConfig ollama;
-  ApplyMaxOutputTokensOverride(config, ollama.max_tokens);
-  EXPECT_EQ(ollama.max_tokens, 2048);
-#ifdef YAZE_WITH_JSON
-  GeminiConfig gemini;
-  AnthropicConfig anthropic;
-  OpenAIConfig openai;
-  ApplyMaxOutputTokensOverride(config, gemini.max_output_tokens);
-  ApplyMaxOutputTokensOverride(config, anthropic.max_output_tokens);
-  ApplyMaxOutputTokensOverride(config, openai.max_output_tokens);
-  EXPECT_EQ(gemini.max_output_tokens, 2048);
-  EXPECT_EQ(anthropic.max_output_tokens, 4096);
-  EXPECT_EQ(openai.max_output_tokens, 2048);
-#endif
-}
-
-TEST(AIServiceFactoryTest,
-     MaxOutputTokensOverrideReachesProviderNativeSettings) {
-  AIServiceConfig config;
-  config.max_output_tokens = 8192;
-  OllamaConfig ollama;
-  ApplyMaxOutputTokensOverride(config, ollama.max_tokens);
-  EXPECT_EQ(ollama.max_tokens, 8192);
-#ifdef YAZE_WITH_JSON
-  GeminiConfig gemini;
-  AnthropicConfig anthropic;
-  OpenAIConfig openai;
-  ApplyMaxOutputTokensOverride(config, gemini.max_output_tokens);
-  ApplyMaxOutputTokensOverride(config, anthropic.max_output_tokens);
-  ApplyMaxOutputTokensOverride(config, openai.max_output_tokens);
-  EXPECT_EQ(gemini.max_output_tokens, 8192);
-  EXPECT_EQ(anthropic.max_output_tokens, 8192);
-  EXPECT_EQ(openai.max_output_tokens, 8192);
-#endif
 }
 
 #if defined(YAZE_BUILD_AGENT_UI) && defined(YAZE_AI_RUNTIME_AVAILABLE)
