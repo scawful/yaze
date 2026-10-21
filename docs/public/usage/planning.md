@@ -6,7 +6,7 @@ design decisions, and links to notes. It works for vanilla A Link to the Past
 projects and any hack. It does not need a ROM, and it never writes the ROM.
 
 Open it from the activity bar (route icon) or the command palette ("Switch to
-Planning Editor"). Two windows open:
+Planning Editor"). Three windows open:
 
 - **Plan Overview:** the goal and its due date, the current milestone, a route
   strip (click a step to see its note, targets and items), the decision queue
@@ -14,9 +14,33 @@ Planning Editor"). Two windows open:
 - **Route:** the step list (drag to reorder, add, remove), the selected step's
   fields and the item table (name, step, category, status, where, required,
   and the later steps that need it).
+- **Plan Maps:** each world as a grid of its overworld areas, with the
+  plan's markers, notes, sketch lines and regions on top. See below.
 
 `room:` and `map:` targets are buttons: they open the room in the Dungeon
-editor or the map in the Overworld editor. Other targets are shown as text.
+editor or the map in the Overworld editor. `marker:` and `area:` targets
+select the marker in Plan Maps (`area:D1` finds the marker whose code is
+`D1`). Other targets are shown as text.
+
+## Plan Maps
+
+Plan Maps draws a schematic grid, one cell per 512x512 overworld area,
+labelled with the map number; it does not render the overworld itself, so it
+works without a ROM. Use the world buttons to switch worlds and the checkboxes
+to hide markers, notes, regions or lines.
+
+- Click a marker, note or region to edit it in the side panel (label, code,
+  kind, status, room, detail). Drag markers and notes to move them.
+- Double-click empty map to add a note. Right-click for **Add marker here**,
+  **Add region here**, **Open map in Overworld editor**, **Open room** and
+  delete.
+- The marker list filters by label or code; clicking an entry scrolls the map
+  to it. Items listed under `overworld.unplaced.<world>` show as "Not placed
+  yet".
+
+Each entry's `map` is kept when you move it within the same 512x512 area, so a
+map number that names the parent of a large area survives small moves. Moving
+it into another area sets that area's number.
 
 Edits are held in memory until you press **Save plan**. **Reload** discards
 unsaved edits and reads the file again.
@@ -85,7 +109,33 @@ dates contain today.
 Targets are `<kind>:<id>` strings: `room:0x0C`, `map:0x4B`, `area:D1`,
 `step:D4`, `item:bow`, `decision:d1-boss`, `marker:<world>:<id>`.
 
+### Overworld layer
+
+```json
+"overworld": {
+  "worlds": [{"id": "light", "title": "Light World", "base": "0x00", "maps": 64}],
+  "markers": [
+    {"id": "light:m0", "world": "light", "x": 3100, "y": 1650, "map": "0x1E",
+     "kind": "dungeon", "label": "Eastern Palace", "status": "implemented",
+     "code": "D1", "room": "0xC9", "detail": "..."}
+  ],
+  "notes": [{"id": "note-1", "world": "light", "x": 600, "y": 900,
+             "map": "0x09", "text": "...", "created": "2026-10-20T00:36:14Z"}],
+  "lines": [{"id": "line-1", "world": "light", "color": "red",
+             "points": [[162, 3352], [123, 2968]]}],
+  "regions": [{"id": "region-1", "world": "light", "x": 512, "y": 2112,
+               "radius": 256, "label": "Village", "status": "proposed"}]
+}
+```
+
+Positions are world pixels: a world is 8 areas wide and each area is 512x512,
+so a 64-area world spans 4096x4096 and the area under `(x, y)` is
+`base + (y / 512) * 8 + x / 512`. Marker `kind` is one of `dungeon`, `shrine`,
+`place`, `item`, `planned`; marker and region `status` is one of
+`implemented`, `decided`, `draft`, `proposed`, `idea`. Line colors `red`,
+`green`, `blue`, `yellow` and `orange` use the theme's status colors.
+
 Keys and sections the editor does not know are kept when it saves, so other
 tools can store more in the same file (the Oracle of Secrets plan keeps its
-overworld notes, markers and concept boards under `overworld` and
-`concepts`).
+concept boards under `concepts`, and per-marker `icon`/`approx` and
+`overworld.area_plans` survive edits).

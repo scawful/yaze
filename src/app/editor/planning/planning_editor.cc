@@ -12,6 +12,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/events/core_events.h"
+#include "app/editor/planning/planning_widgets.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/workspace/editor_panel.h"
@@ -67,35 +68,8 @@ class PlanningPanel : public WindowContent {
   std::function<void()> draw_;
 };
 
-template <size_t N>
-bool StatusCombo(const char* label, std::string* value,
-                 const char* const (&options)[N]) {
-  bool changed = false;
-  if (ImGui::BeginCombo(label, value->empty() ? "-" : value->c_str())) {
-    for (const char* option : options) {
-      const bool selected = *value == option;
-      if (ImGui::Selectable(option, selected)) {
-        *value = option;
-        changed = true;
-      }
-    }
-    ImGui::EndCombo();
-  }
-  return changed;
-}
-
-ImVec4 StatusColor(const std::string& status) {
-  if (status == "implemented" || status == "done" || status == "decided") {
-    return gui::GetSuccessColor();
-  }
-  if (status == "prototype" || status == "active") {
-    return gui::GetInfoColor();
-  }
-  if (status == "open") {
-    return gui::GetWarningColor();
-  }
-  return gui::GetDisabledColor();
-}
+using planning::StatusColor;
+using planning::StatusCombo;
 
 std::string Today() {
   return absl::FormatTime("%Y-%m-%d", absl::Now(), absl::LocalTimeZone());
@@ -144,6 +118,8 @@ void PlanningEditor::Initialize() {
       [this]() { DrawOverview(); }));
   window_manager->RegisterWindowContent(std::make_unique<PlanningPanel>(
       "planning.route", "Route", ICON_MD_ROUTE, 20, [this]() { DrawRoute(); }));
+  window_manager->RegisterWindowContent(std::make_unique<PlanningPanel>(
+      "planning.maps", "Plan Maps", ICON_MD_MAP, 30, [this]() { DrawMaps(); }));
   panels_registered_ = true;
 }
 
@@ -177,6 +153,8 @@ void PlanningEditor::SyncWithProject() {
   dirty_ = false;
   selected_step_ = -1;
   selected_item_ = -1;
+  map_selection_ = {};
+  map_drag_ = {};
   if (!plan_path_.empty()) {
     (void)Reload();
   }
@@ -192,6 +170,8 @@ absl::Status PlanningEditor::Reload() {
   plan_ = std::move(*loaded);
   load_error_.clear();
   dirty_ = false;
+  map_selection_ = {};
+  map_drag_ = {};
   if (selected_step_ >= static_cast<int>(plan_->route_steps.size())) {
     selected_step_ = -1;
   }
@@ -757,7 +737,11 @@ void PlanningEditor::DrawTargets(const std::vector<std::string>& targets,
     }
     ImGui::PushID(static_cast<int>(i));
     const core::PlanTarget target = core::PlanTarget::Parse(targets[i]);
-    if (target.NumericId() >= 0) {
+    const auto& ow = plan_->overworld;
+    const bool on_map =
+        (target.kind == "marker" && ow.FindMarker(target.id) >= 0) ||
+        (target.kind == "area" && ow.FindMarkerByCode(target.id) >= 0);
+    if (target.NumericId() >= 0 || on_map) {
       if (ImGui::SmallButton(targets[i].c_str())) {
         OpenTarget(targets[i]);
       }
@@ -771,6 +755,19 @@ void PlanningEditor::DrawTargets(const std::vector<std::string>& targets,
 
 void PlanningEditor::OpenTarget(const std::string& text) {
   const core::PlanTarget target = core::PlanTarget::Parse(text);
+  if (plan_ && (target.kind == "marker" || target.kind == "area")) {
+    const auto& ow = plan_->overworld;
+    const int index = target.kind == "marker" ? ow.FindMarker(target.id)
+                                              : ow.FindMarkerByCode(target.id);
+    if (index >= 0) {
+      SelectMarker(index);
+      if (dependencies_.window_manager) {
+        dependencies_.window_manager->OpenWindow(dependencies_.session_id,
+                                                 "planning.maps");
+      }
+    }
+    return;
+  }
   const int id = target.NumericId();
   auto* bus = ContentRegistry::Context::event_bus();
   if (!bus || id < 0) {

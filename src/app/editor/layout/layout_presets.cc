@@ -303,10 +303,12 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
     case EditorType::kPlanning:
       preset.name = "Planning";
       preset.description = "Goal, milestones, decisions and the play route";
-      preset.default_visible_panels = {"planning.overview", "planning.route"};
+      preset.default_visible_panels = {"planning.overview", "planning.route",
+                                       "planning.maps"};
       preset.panel_positions = {
           {"planning.overview", DockPosition::Center},
           {"planning.route", DockPosition::Right},
+          {"planning.maps", DockPosition::Center},
       };
       break;
 

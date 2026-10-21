@@ -185,6 +185,128 @@ TEST(ProjectPlanTest, SaveAndLoadFile) {
       ProjectPlan::LoadFromFile((dir.path() / "missing.json").string()).ok());
 }
 
+constexpr char kOverworldPlan[] = R"({
+  "schema": "yaze.plan/1",
+  "overworld": {
+    "worlds": [
+      {"id": "light", "title": "Light World", "base": "0x00", "maps": 64},
+      {"id": "dark", "title": "Dark World", "base": "0x40", "maps": 64,
+       "tint": "purple"}
+    ],
+    "markers": [
+      {"id": "light:m0", "world": "light", "x": 112, "y": 1040, "map": "0x10",
+       "kind": "dungeon", "label": "Grotto", "status": "implemented",
+       "code": "D1", "room": "0x4A", "approx": true, "icon": "lamp"},
+      {"id": "dark:m0", "world": "dark", "x": 3904.4, "y": 2640.6,
+       "kind": "place", "label": "Fort"}
+    ],
+    "notes": [{"id": "n1", "world": "light", "x": 5, "y": 6, "map": "0x00",
+               "text": "idea", "created": "2026-10-20T00:36:14Z"}],
+    "lines": [{"id": "l1", "world": "light", "color": "red",
+               "points": [[1, 2], [3, 4]], "width": 2}],
+    "regions": [{"id": "r1", "world": "dark", "x": 512, "y": 512,
+                 "radius": 256, "label": "Village", "status": "proposed"}],
+    "area_plans": [],
+    "unplaced": {"dark": ["Wolf Mask"]}
+  }
+})";
+
+TEST(ProjectPlanOverworldTest, ParsesLayers) {
+  auto plan = ProjectPlan::Parse(kOverworldPlan);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  const PlanOverworld& ow = plan->overworld;
+  ASSERT_EQ(ow.worlds.size(), 2u);
+  ASSERT_EQ(ow.markers.size(), 2u);
+  EXPECT_EQ(ow.markers[0].code, "D1");
+  EXPECT_EQ(ow.markers[0].room, "0x4A");
+  EXPECT_EQ(ow.markers[1].x, 3904);
+  EXPECT_EQ(ow.markers[1].y, 2641);
+  ASSERT_EQ(ow.lines.size(), 1u);
+  EXPECT_THAT(ow.lines[0].points,
+              ElementsAre(std::pair(1, 2), std::pair(3, 4)));
+  ASSERT_EQ(ow.regions.size(), 1u);
+  EXPECT_EQ(ow.regions[0].radius, 256);
+  EXPECT_EQ(ow.notes[0].text, "idea");
+  EXPECT_EQ(ow.FindMarker("dark:m0"), 1);
+  EXPECT_EQ(ow.FindMarkerByCode("D1"), 0);
+  EXPECT_EQ(ow.FindMarkerByCode(""), -1);
+  ASSERT_NE(ow.FindWorld("dark"), nullptr);
+  EXPECT_EQ(ow.FindWorld("dark")->BaseMap(), 0x40);
+  EXPECT_EQ(ow.FindWorld("missing"), nullptr);
+}
+
+TEST(ProjectPlanOverworldTest, UnmodeledKeysSurviveRoundTrip) {
+  auto plan = ProjectPlan::Parse(kOverworldPlan);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  plan->overworld.markers[0].x = 600;
+  const std::string saved = plan->Serialize();
+  auto reparsed = ProjectPlan::Parse(saved);
+  ASSERT_TRUE(reparsed.ok()) << reparsed.status();
+  EXPECT_EQ(reparsed->Serialize(), saved);
+
+  const auto json = PlanJson::parse(saved);
+  const auto& ow = json["overworld"];
+  EXPECT_EQ(ow["markers"][0]["x"], 600);
+  EXPECT_EQ(ow["markers"][0]["approx"], true);
+  EXPECT_EQ(ow["markers"][0]["icon"], "lamp");
+  EXPECT_EQ(ow["worlds"][1]["tint"], "purple");
+  EXPECT_EQ(ow["lines"][0]["width"], 2);
+  EXPECT_EQ(ow["lines"][0]["points"][1][0], 3);
+  EXPECT_EQ(ow["unplaced"]["dark"][0], "Wolf Mask");
+  EXPECT_TRUE(ow["area_plans"].is_array());
+}
+
+TEST(ProjectPlanOverworldTest, AbsentSectionIsNotWritten) {
+  auto plan = ProjectPlan::Parse(R"({"schema": "yaze.plan/1"})");
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_TRUE(plan->overworld.empty());
+  EXPECT_FALSE(PlanJson::parse(plan->Serialize()).contains("overworld"));
+}
+
+TEST(ProjectPlanOverworldTest, RejectsBadLayers) {
+  auto bad_points = ProjectPlan::Parse(
+      R"({"schema": "yaze.plan/1",
+          "overworld": {"lines": [{"points": [[1, 2, 3]]}]}})");
+  ASSERT_FALSE(bad_points.ok());
+  EXPECT_THAT(std::string(bad_points.status().message()),
+              HasSubstr("overworld.lines[0]"));
+  EXPECT_FALSE(ProjectPlan::Parse(R"({"schema": "yaze.plan/1",
+          "overworld": {"markers": [{"x": "left"}]}})")
+                   .ok());
+  EXPECT_FALSE(
+      ProjectPlan::Parse(R"({"schema": "yaze.plan/1", "overworld": []})").ok());
+}
+
+TEST(PlanWorldTest, MapAtUsesEightWideGrid) {
+  PlanWorld world;
+  world.base = "0x40";
+  world.maps = 64;
+  EXPECT_EQ(world.MapAt(0, 0), 0x40);
+  EXPECT_EQ(world.MapAt(112, 1040), 0x50);
+  EXPECT_EQ(world.MapAt(3904, 2640), 0x40 + 0x2F);
+  EXPECT_EQ(world.MapAt(4095, 4095), 0x7F);
+  EXPECT_EQ(world.MapAt(4096, 0), -1);
+  EXPECT_EQ(world.MapAt(0, 4096), -1);
+  EXPECT_EQ(world.MapAt(-1, 0), -1);
+  EXPECT_EQ(world.Rows(), 8);
+
+  // 0x1E is the parent of a large area; moving inside one 512x512 cell keeps
+  // it, moving to another cell takes that cell's number.
+  PlanWorld light;
+  EXPECT_EQ(light.MapAfterMove("0x1E", 3800, 1600, 3900, 1700), "0x1E");
+  EXPECT_EQ(light.MapAfterMove("0x1E", 3800, 1600, 3800, 2100), "0x27");
+  EXPECT_EQ(light.MapAfterMove("", 10, 10, 20, 20), "0x00");
+  EXPECT_EQ(light.MapAfterMove("0x00", 10, 10, 5000, 20), "0x00");
+  EXPECT_EQ(FormatPlanId(0x4A), "0x4A");
+  EXPECT_EQ(FormatPlanId(5), "0x05");
+
+  PlanWorld small;
+  small.maps = 12;
+  EXPECT_EQ(small.Rows(), 2);
+  EXPECT_EQ(small.MapAt(3 * kPlanAreaSize, kPlanAreaSize), 11);
+  EXPECT_EQ(small.MapAt(4 * kPlanAreaSize, kPlanAreaSize), -1);
+}
+
 TEST(PlanTargetTest, ParsesKindsAndNumbers) {
   EXPECT_EQ(PlanTarget::Parse("room:0x0C").NumericId(), 0x0C);
   EXPECT_EQ(PlanTarget::Parse("map:75").NumericId(), 75);

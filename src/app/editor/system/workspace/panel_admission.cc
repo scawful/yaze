@@ -82,6 +82,9 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
      "Primary planning surface: goal, milestones, route strip and decisions."},
     {"planning.route",
      "Route step and item editor; the Overview's route strip selects into it."},
+    {"planning.maps",
+     "Overworld plan markers, notes and regions; marker:/area: targets open "
+     "it."},
 
     // Shell
     {"dashboard.main", "Editor picker shown at startup and on Ctrl+E."},
