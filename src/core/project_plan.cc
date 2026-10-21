@@ -371,8 +371,9 @@ absl::StatusOr<ProjectPlan> ProjectPlan::Parse(std::string_view text) {
   auto schema = root.find("schema");
   if (schema == root.end() || !schema->is_string() ||
       schema->get<std::string>() != kProjectPlanSchema) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Plan file must declare \"schema\": \"%s\"", kProjectPlanSchema));
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Plan file must declare \"schema\": \"%s\"",
+                        std::string(kProjectPlanSchema)));
   }
 
   ProjectPlan plan;
