@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLD_LYRA_TERRAIN_CANVAS_H_
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -26,7 +27,8 @@ namespace yaze::editor {
 absl::StatusOr<std::string> PublishLyraTerrainSource(
     const project::YazeProject& project, const std::string& source_path,
     const std::optional<std::string>& source_bytes,
-    const core::LyraTerrainDocument& document);
+    const core::LyraTerrainDocument& document,
+    std::function<absl::Status()> validate_sources = {});
 
 // Project-owned terrain. This view never routes edits through the ROM map model.
 class LyraTerrainCanvas {
@@ -148,8 +150,14 @@ class LyraTerrainCanvas {
   absl::Status BindSource(zelda3::Overworld& overworld,
                           core::LyraTerrainProfile* profile,
                           gfx::Bitmap* atlas = nullptr);
+  // Live checks plus parity with the ROM file a cold reopen would load.
   absl::Status ValidateSave(project::YazeProject* project,
-                            zelda3::Overworld& overworld);
+                            zelda3::Overworld& overworld,
+                            std::string* durable_receipt = nullptr);
+  // Ownership, pending drafts and the live native model only. In-memory edits
+  // such as proposals stay allowed before the ROM is saved.
+  absl::Status ValidateLiveSource(project::YazeProject* project,
+                                  zelda3::Overworld& overworld);
   // Called only after document, native profile, and CPU atlas all validate.
   // Texture commands use the committed bitmap's stable member address.
   void InstallDocument(std::shared_ptr<core::LyraTerrainDocument> document,

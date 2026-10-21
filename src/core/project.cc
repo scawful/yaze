@@ -750,7 +750,8 @@ bool YazeProject::IsOracleCompatible() const {
 
 absl::Status YazeProject::SaveAsWithLyraTerrain(
     const std::string& new_path, const core::LyraTerrainDocument& terrain,
-    const std::optional<std::string>& expected_source_bytes) {
+    const std::optional<std::string>& expected_source_bytes,
+    std::function<absl::Status()> validate_sources) {
 #ifdef __EMSCRIPTEN__
   return absl::UnimplementedError(
       "Saving an independent Lyra project copy requires filesystem storage");
@@ -853,8 +854,10 @@ absl::Status YazeProject::SaveAsWithLyraTerrain(
         if (!saved) {
           return absl::DataLossError("Saved Lyra terrain is missing");
         }
-        return core::LyraTerrainDocument::Parse(*saved, terrain.profile())
-            .status();
+        RETURN_IF_ERROR(
+            core::LyraTerrainDocument::Parse(*saved, terrain.profile())
+                .status());
+        return validate_sources ? validate_sources() : absl::OkStatus();
       }));
   *this = std::move(candidate);
   return absl::OkStatus();

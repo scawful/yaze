@@ -1,14 +1,30 @@
 #include "app/editor/overworld/lyra_terrain_canvas.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <memory>
+#include <set>
+#include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/core/undo_action.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_tile.h"
+#include "core/features.h"
+#include "core/rom_settings.h"
+#include "core/source_artifact_publisher.h"
+#include "fresh_rom_fixture_output.h"
 #include "gtest/gtest.h"
+#include "rom/rom.h"
+#include "testing.h"
+#include "unique_temp_path.h"
+#include "zelda3/game_data.h"
+#include "zelda3/overworld/lyra_terrain_source.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
 
@@ -176,6 +192,50 @@ TEST_F(LyraTerrainSourceTest, RefusesChangedAndDeletedSidecar) {
       absl::StatusCode::kFailedPrecondition);
   EXPECT_FALSE(fs::exists(source_));
   ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainSourceTest, SourceRecheckRollsBackSaveAndSaveAs) {
+  auto document = core::LyraTerrainDocument::Create(FixtureProfile());
+  ASSERT_TRUE(document.ok()) << document.status();
+  auto before = PublishLyraTerrainSource(project_, source_.string(),
+                                         std::nullopt, *document);
+  ASSERT_TRUE(before.ok()) << before.status();
+  ASSERT_TRUE(project_.Save().ok());
+  const auto descriptor_before = Read(project_.filepath);
+  const auto original_path = project_.filepath;
+  ASSERT_TRUE(document->BeginStroke().ok());
+  ASSERT_TRUE(document->Paint(3, 4, 17).ok());
+  ASSERT_TRUE(document->EndStroke().ok());
+  int rechecks = 0;
+  const auto reject_drift = [&]() -> absl::Status {
+    ++rechecks;
+    // Simulate an external source writer while outputs are still protected
+    // by rollback copies. The publisher must not overwrite that input.
+    Write(project_.rom_filename, "external source revision");
+    return absl::FailedPreconditionError("Native source receipt changed");
+  };
+  EXPECT_EQ(PublishLyraTerrainSource(project_, source_.string(), *before,
+                                     *document, reject_drift)
+                .status()
+                .code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(Read(source_), *before);
+  EXPECT_EQ(Read(project_.filepath), descriptor_before);
+  EXPECT_EQ(Read(project_.rom_filename), "external source revision");
+  EXPECT_TRUE(document->dirty());
+  const auto destination = directory_ / "Rejected.yaze";
+  EXPECT_EQ(project_
+                .SaveAsWithLyraTerrain(destination.string(), *document, *before,
+                                       reject_drift)
+                .code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rechecks, 2);
+  EXPECT_FALSE(fs::exists(destination));
+  EXPECT_FALSE(fs::exists(directory_ / "Rejected.lyra-terrain.json"));
+  EXPECT_EQ(project_.filepath, original_path);
+  EXPECT_EQ(Read(source_), *before);
+  EXPECT_EQ(Read(original_path), descriptor_before);
+  EXPECT_TRUE(document->dirty());
 }
 
 TEST_F(LyraTerrainSourceTest,
@@ -632,6 +692,288 @@ TEST_F(LyraPropertyDraftTest, EdgeConnectionEditsLeavePropertyDraftsIntact) {
 
   ASSERT_TRUE(document_->SetAuthoring(connected, before).ok());
   EXPECT_FALSE(canvas_.dirty());
+}
+
+// Opt-in: YAZE_TEST_ROM_OOS names an Oracle ROM that is only ever read. All
+// writes go to fresh private copies under one unique temp directory.
+TEST(LyraTerrainNativeRebindTest,
+     RebindsEditedTile16ThroughHistorySaveAndReopen) {
+  const char* source_env = std::getenv("YAZE_TEST_ROM_OOS");
+  if (source_env == nullptr || !fs::is_regular_file(source_env))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM (read only)";
+  const fs::path source(source_env);
+  const auto source_bytes = Read(source);
+  ASSERT_FALSE(source_bytes.empty());
+  const auto source_sha = core::ComputeSourceArtifactSha256(source_bytes);
+
+  const char* retained_output = std::getenv("YAZE_LYRA_REBIND_ARTIFACT_DIR");
+  const bool retain = retained_output != nullptr && *retained_output != '\0';
+  const auto root = retain ? fs::absolute(retained_output)
+                           : test::UniqueTempPath("yaze_lyra_rebind");
+  ASSERT_TRUE(fs::create_directory(root));
+  const auto previous_addresses = core::RomSettings::Get().address_overrides();
+  const auto previous_flags = core::FeatureFlags::get();
+  absl::Cleanup restore = [&]() {
+    gfx::Arena::Get().ClearTextureQueue();
+    core::RomSettings::Get().SetAddressOverrides(previous_addresses);
+    core::FeatureFlags::get() = previous_flags;
+    std::error_code ec;
+    if (!retain)
+      fs::remove_all(root, ec);
+  };
+  core::RomSettings::Get().ClearOverrides();
+  core::FeatureFlags::get().overworld.kLoadCustomOverworld = true;
+  Rom::LoadOptions rom_options;
+  rom_options.load_resource_labels = false;
+  // Editor defaults; Save validation reloads the ROM file with the same ones.
+  zelda3::LoadOptions data_options;
+  data_options.expand_rom = false;
+
+  const auto base_rom = root / "private-base.sfc";
+  {
+    Rom copy;
+    ASSERT_OK(copy.LoadFromFile(source.string(), rom_options));
+    ASSERT_OK(test::SaveFreshFixtureRom(copy, base_rom));
+  }
+  Rom rom;
+  ASSERT_OK(rom.LoadFromFile(base_rom.string(), rom_options));
+  zelda3::GameData data;
+  ASSERT_OK(zelda3::LoadGameData(rom, data, data_options));
+  zelda3::Overworld overworld(&rom, &data);
+  ASSERT_OK(overworld.Load(&rom));
+
+  project::YazeProject project;
+  project.name = "Lyra native rebind fixture";
+  project.filepath = (root / "Oracle.yaze").string();
+  project.rom_filename = base_rom.string();
+  ASSERT_OK(project.Save());
+  {
+    LyraTerrainCanvas creator;
+    ASSERT_OK(creator.Create(&project, overworld));
+    ASSERT_OK(creator.Save(&project, overworld));
+    ASSERT_OK(project.Save());
+    creator.ProjectSaveCommitted();
+    EXPECT_FALSE(creator.dirty());
+  }
+  const auto sidecar = project.GetAbsolutePath(project.lyra_terrain_file);
+  const auto created_bytes = Read(sidecar);
+
+  UndoManager history;
+  LyraTerrainCanvas canvas;
+  ASSERT_OK(canvas.Load(&project, overworld));
+  ASSERT_OK(canvas.PrepareMapAssets(overworld, 0));
+  const auto* document = canvas.document();
+  ASSERT_NE(document, nullptr);
+  const auto original_profile = document->profile();
+
+  // Real per-map binding plus every metadata kind the rebind must retain.
+  auto authoring = document->authoring();
+  auto& a0 = authoring.maps[0];
+  a0.properties.message_id = 0x42;
+  a0.properties.music = {1, 2, 3, 4};
+  a0.sprites.push_back({1, 0x13, 4, 5, 0});
+  a0.doors.push_back({2, 6, 7, 0x10});
+  a0.exits.push_back({3, 0x104, 8, 9, 0x12});
+  authoring.flight_points.push_back(
+      {4, 0xA0, 10, 11, "Rebind Point", std::nullopt});
+  authoring.edge_connections.push_back(
+      {5, 0x98, 0xA0, core::LyraEdgePassage{3, 6}});
+  ASSERT_OK(canvas.EditAuthoring(authoring, overworld, history));
+  ASSERT_EQ(history.UndoStackSize(), 1u);
+  for (int state = 0; state < 3; ++state) {
+    const auto resolved =
+        zelda3::ResolveLyraMapAssets(overworld, a0.properties, state);
+    ASSERT_TRUE(resolved.ok()) << resolved.status();
+    EXPECT_EQ(document->authoring().maps[0].asset_bindings[state],
+              resolved->binding);
+  }
+
+  constexpr uint16_t kEditedTile = 0x123;
+  ASSERT_LT(kEditedTile, original_profile.tile_count);
+  ASSERT_OK(canvas.PrepareMapAssets(overworld, 0));
+  const TileBrush brush{1, 1, {kEditedTile}};
+  ASSERT_OK(canvas.PaintPattern(brush, 3, 4, 1, 1, true, history));
+  ASSERT_OK(canvas.PaintPattern(brush, 40, 70, 1, 1, true, history));
+  ASSERT_EQ(history.UndoStackSize(), 3u);
+  EXPECT_EQ(document->MapTile(0xA0, 3, 4).value(), kEditedTile);
+  EXPECT_EQ(document->MapTile(0xB1, 8, 6).value(), kEditedTile);
+  const auto maps_before = document->maps();
+  const auto authoring_before = document->authoring();
+
+  // Native in-memory edit of one used definition: flip quadrant 0.
+  auto& tiles16 = *overworld.mutable_tiles16();
+  const gfx::Tile16 original_tile = tiles16[kEditedTile];
+  gfx::TileInfo flipped = original_tile.tile0_;
+  flipped.horizontal_mirror_ = !flipped.horizontal_mirror_;
+  ASSERT_NE(gfx::TileInfoToWord(flipped),
+            gfx::TileInfoToWord(original_tile.tile0_));
+  tiles16[kEditedTile] =
+      gfx::Tile16(flipped, original_tile.tile1_, original_tile.tile2_,
+                  original_tile.tile3_);
+
+  core::LyraTerrainProfile edited_profile;
+  ASSERT_OK(zelda3::BindLyraTerrainSource(overworld, &edited_profile));
+  EXPECT_NE(edited_profile.tile16_definition_fingerprint,
+            original_profile.tile16_definition_fingerprint);
+  EXPECT_EQ(edited_profile.graphics_fingerprint,
+            original_profile.graphics_fingerprint);
+  const auto stale = canvas.PrepareMapAssets(overworld, 0);
+  EXPECT_EQ(stale.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(stale.message().find("rebind"), std::string::npos) << stale;
+  EXPECT_EQ(canvas.Save(&project, overworld).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(Read(sidecar), created_bytes);
+  EXPECT_FALSE(
+      core::LyraTerrainDocument::Parse(created_bytes, edited_profile).ok());
+
+  auto preview = canvas.PreviewAssetRebind(overworld);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_EQ(preview->before_profile, original_profile);
+  EXPECT_EQ(preview->after_profile, edited_profile);
+  EXPECT_EQ(preview->terrain_fingerprint, document->TerrainFingerprint());
+  EXPECT_TRUE(preview->binding_changes.empty());
+  EXPECT_EQ(preview->changed_tiles, std::vector<uint16_t>{kEditedTile});
+  EXPECT_EQ(preview->affected_maps, (std::vector<int>{0xA0, 0xB1}));
+  EXPECT_TRUE(preview->invalid_cells.empty());
+  EXPECT_EQ(document->profile(), original_profile);
+  EXPECT_EQ(history.UndoStackSize(), 3u);
+
+  ASSERT_OK(canvas.ApplyAssetRebind(&project, overworld, *preview, history));
+  EXPECT_EQ(history.UndoStackSize(), 4u);
+  EXPECT_EQ(history.RedoStackSize(), 0u);
+  EXPECT_EQ(document->profile(), edited_profile);
+  EXPECT_EQ(document->maps(), maps_before);
+  EXPECT_EQ(document->authoring(), authoring_before);
+  ASSERT_OK(canvas.PrepareMapAssets(overworld, 0));
+  {
+    core::LyraTerrainProfile atlas_profile;
+    gfx::Bitmap bound_atlas;
+    ASSERT_OK(
+        zelda3::BindLyraTerrainSource(overworld, &atlas_profile, &bound_atlas));
+    EXPECT_EQ(canvas.atlas().vector(), bound_atlas.vector());
+  }
+
+  // Undo restores the old profile, which the edited source refuses again.
+  ASSERT_OK(history.Undo());
+  EXPECT_EQ(document->profile(), original_profile);
+  EXPECT_EQ(document->maps(), maps_before);
+  EXPECT_EQ(document->authoring(), authoring_before);
+  EXPECT_EQ(canvas.PrepareMapAssets(overworld, 0).code(),
+            absl::StatusCode::kFailedPrecondition);
+  ASSERT_OK(history.Redo());
+  EXPECT_EQ(document->profile(), edited_profile);
+  ASSERT_OK(canvas.PrepareMapAssets(overworld, 0));
+  EXPECT_EQ(history.UndoStackSize(), 4u);
+  EXPECT_EQ(history.RedoStackSize(), 0u);
+
+  // The rebind is still memory-only. Neither save path may publish bindings
+  // that a cold reopen of the unchanged ROM file cannot reproduce.
+  const auto project_bytes = Read(project.filepath);
+  const auto root_entries = [&root]() {
+    std::set<std::string> names;
+    for (const auto& entry : fs::directory_iterator(root))
+      names.insert(entry.path().filename().string());
+    return names;
+  };
+  const auto entries_before = root_entries();
+  for (const bool save_as : {false, true}) {
+    const auto refused =
+        save_as ? canvas.SaveAs(&project, (root / "Refused.yaze").string(),
+                                overworld)
+                : canvas.Save(&project, overworld);
+    EXPECT_EQ(refused.code(), absl::StatusCode::kFailedPrecondition) << save_as;
+    EXPECT_NE(refused.message().find("Save ROM before saving the Lyra project"),
+              std::string::npos)
+        << refused;
+    EXPECT_EQ(root_entries(), entries_before);
+    EXPECT_EQ(Read(sidecar), created_bytes);
+    EXPECT_EQ(Read(project.filepath), project_bytes);
+    EXPECT_EQ(project.GetAbsolutePath(project.lyra_terrain_file), sidecar);
+    EXPECT_EQ(canvas.document(), document);
+    EXPECT_TRUE(canvas.dirty());
+    EXPECT_EQ(document->profile(), edited_profile);
+    EXPECT_EQ(document->maps(), maps_before);
+    EXPECT_EQ(document->authoring(), authoring_before);
+    EXPECT_EQ(history.UndoStackSize(), 4u);
+    EXPECT_EQ(history.RedoStackSize(), 0u);
+  }
+  ASSERT_OK(canvas.PrepareMapAssets(overworld, 0));
+
+  // Disclosed fixture patch: persist the same definition word at the table
+  // the loader detected, then write the loaded private ROM file through the
+  // normal ROM save path, as Save ROM does.
+  bool expanded = false;
+  auto base_tiles = zelda3::ReadMap16Tiles(rom, &expanded);
+  ASSERT_TRUE(base_tiles.ok()) << base_tiles.status();
+  const int table =
+      expanded ? zelda3::GetMap16TilesExpanded() : zelda3::kMap16Tiles;
+  ASSERT_OK(
+      rom.WriteWord(table + kEditedTile * 8, gfx::TileInfoToWord(flipped)));
+  auto persisted = zelda3::ReadMap16Tiles(rom);
+  ASSERT_TRUE(persisted.ok()) << persisted.status();
+  ASSERT_EQ(persisted->size(), base_tiles->size());
+  for (size_t tile = 0; tile < persisted->size(); ++tile) {
+    if (tile == kEditedTile)
+      EXPECT_EQ((*persisted)[tile], tiles16[kEditedTile]);
+    else
+      EXPECT_EQ((*persisted)[tile], (*base_tiles)[tile]) << tile;
+  }
+  const auto base_bytes = Read(base_rom);
+  ASSERT_EQ(fs::path(rom.filename()), fs::absolute(base_rom));
+  ASSERT_OK(rom.SaveToFile(Rom::SaveSettings{}));
+  EXPECT_NE(Read(base_rom), base_bytes);
+  // A descriptor pointing at the old source must fail even though the live
+  // ROM filename now names the successfully saved private native revision.
+  project.rom_filename = source.string();
+  EXPECT_EQ(canvas.Save(&project, overworld).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(Read(sidecar), created_bytes);
+  EXPECT_TRUE(canvas.dirty());
+  project.rom_filename = base_rom.string();
+
+  ASSERT_OK(canvas.Save(&project, overworld));
+  ASSERT_OK(project.Save());
+  canvas.ProjectSaveCommitted();
+  EXPECT_FALSE(canvas.dirty());
+  const auto saved_bytes = Read(sidecar);
+  EXPECT_NE(saved_bytes, created_bytes);
+
+  // Independent reopen from the persisted private bytes only.
+  {
+    project::YazeProject reopened;
+    ASSERT_OK(reopened.Open(project.filepath));
+    Rom reopened_rom;
+    ASSERT_OK(reopened_rom.LoadFromFile(
+        reopened.GetAbsolutePath(reopened.rom_filename), rom_options));
+    EXPECT_EQ(reopened_rom.vector(), rom.vector());
+    zelda3::GameData reopened_data;
+    ASSERT_OK(zelda3::LoadGameData(reopened_rom, reopened_data, data_options));
+    zelda3::Overworld reopened_overworld(&reopened_rom, &reopened_data);
+    ASSERT_OK(reopened_overworld.Load(&reopened_rom));
+    EXPECT_EQ(reopened_overworld.tiles16()[kEditedTile], tiles16[kEditedTile]);
+    LyraTerrainCanvas reopened_canvas;
+    ASSERT_OK(reopened_canvas.Load(&reopened, reopened_overworld));
+    ASSERT_OK(reopened_canvas.PrepareMapAssets(reopened_overworld, 0));
+    const auto* restored = reopened_canvas.document();
+    ASSERT_NE(restored, nullptr);
+    EXPECT_EQ(restored->maps(), maps_before);
+    EXPECT_EQ(restored->authoring(), authoring_before);
+    EXPECT_EQ(restored->profile(), edited_profile);
+    EXPECT_FALSE(reopened_canvas.dirty());
+    EXPECT_EQ(reopened_canvas.atlas().vector(), canvas.atlas().vector());
+  }
+
+  // Normal project Save As forks the rebound sidecar.
+  ASSERT_OK(canvas.SaveAs(&project, (root / "Fork.yaze").string(), overworld));
+  const auto forked = core::LyraTerrainDocument::Parse(
+      Read(project.GetAbsolutePath(project.lyra_terrain_file)), edited_profile);
+  ASSERT_TRUE(forked.ok()) << forked.status();
+  EXPECT_EQ(forked->maps(), maps_before);
+  EXPECT_EQ(forked->authoring(), authoring_before);
+  EXPECT_EQ(Read(sidecar), saved_bytes);
+
+  EXPECT_EQ(Read(source), source_bytes);
+  EXPECT_EQ(core::ComputeSourceArtifactSha256(Read(source)), source_sha);
 }
 
 }  // namespace

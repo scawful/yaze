@@ -7,12 +7,16 @@
 #include <iterator>
 #include <set>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
 #include "app/gfx/resource/arena.h"
 #include "core/lyra_terrain_proposal.h"
+#include "core/overworld_graphics_preview.h"
+#include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
+#include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/lyra_terrain_source.h"
@@ -112,6 +116,126 @@ std::vector<uint16_t> ChangedTile16s(std::string_view before,
   return tiles;
 }
 
+class ScopedProjectRomAddresses {
+ public:
+  explicit ScopedProjectRomAddresses(const core::RomAddressOverrides& project)
+      : saved_(core::RomSettings::Get().address_overrides()) {
+    core::RomSettings::Get().SetAddressOverrides(project);
+  }
+  ~ScopedProjectRomAddresses() {
+    core::RomSettings::Get().SetAddressOverrides(saved_);
+  }
+  ScopedProjectRomAddresses(const ScopedProjectRomAddresses&) = delete;
+  ScopedProjectRomAddresses& operator=(const ScopedProjectRomAddresses&) =
+      delete;
+
+ private:
+  core::RomAddressOverrides saved_;
+};
+
+// Rebind and other model-only edits can bind unsaved Tile16, sheet or palette
+// buffers that never reach the ROM buffer, so the dirty flag is not enough. A
+// sidecar may only bind what a cold reopen of this project resolves from disk.
+absl::StatusOr<std::string> CheckDurableSource(
+    const project::YazeProject& project, const Document& document) {
+  constexpr std::string_view kSaveRom =
+      "Save ROM before saving the Lyra project";
+  if (project.rom_filename.empty())
+    return absl::FailedPreconditionError(
+        absl::StrCat(kSaveRom, "; the project has no source ROM file"));
+  const auto rom_path = project.GetAbsolutePath(project.rom_filename);
+  auto unsaved = [&](const absl::Status& status) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        kSaveRom, "; the ROM file does not load: ", status.message()));
+  };
+  // The editor's live ROM uses the same globals; restore them on every path.
+  ScopedProjectRomAddresses addresses(project.rom_address_overrides);
+  Rom rom;
+  Rom::LoadOptions rom_options;
+  rom_options.load_resource_labels = false;
+  if (auto status = rom.LoadFromFile(rom_path, rom_options); !status.ok())
+    return unsaved(status);
+  std::string rom_bytes(rom.copier_header().begin(), rom.copier_header().end());
+  rom_bytes.append(reinterpret_cast<const char*>(rom.data()), rom.size());
+  zelda3::GameData data;
+  zelda3::LoadOptions data_options;
+  data_options.expand_rom = false;
+  if (auto status = zelda3::LoadGameData(rom, data, data_options); !status.ok())
+    return unsaved(status);
+  zelda3::Overworld overworld(&rom, &data);
+  // Same project-owned preview catalog as OverworldEditor's live model.
+  const auto catalog_path =
+      project.overworld_graphics_preview.empty()
+          ? std::string{}
+          : project.GetAbsolutePath(project.overworld_graphics_preview);
+  std::string catalog_bytes;
+  if (!catalog_path.empty()) {
+    ASSIGN_OR_RETURN(auto bytes, ReadSource(catalog_path));
+    if (!bytes)
+      return absl::FailedPreconditionError(
+          "Project graphics catalog is missing");
+    catalog_bytes = std::move(*bytes);
+  }
+  ASSIGN_OR_RETURN(auto preview,
+                   core::LoadOverworldGraphicsPreview(catalog_path));
+  // The ordered decoded preview includes the external resource pixels. Its
+  // identity and the raw catalog pin both catalog revisions and resource edits.
+  std::string preview_bytes;
+  for (const auto& [parent, tiles] : preview) {
+    AddWord(preview_bytes, parent);
+    AddWord(preview_bytes, tiles.size());
+    for (const auto& [tile, pixels] : tiles) {
+      AddWord(preview_bytes, tile);
+      preview_bytes.append(reinterpret_cast<const char*>(pixels.data()),
+                           pixels.size());
+    }
+  }
+  overworld.SetGraphicsPreview(std::move(preview));
+  if (auto status = overworld.Load(&rom); !status.ok())
+    return unsaved(status);
+  core::LyraTerrainProfile profile;
+  if (auto status = zelda3::BindLyraTerrainSource(overworld, &profile);
+      !status.ok())
+    return unsaved(status);
+  if (profile != document.profile())
+    return absl::FailedPreconditionError(
+        absl::StrCat(kSaveRom,
+                     "; native Tile16, graphics or palettes on disk "
+                     "differ from the Lyra binding. Draft retained"));
+  for (int i = 0; i < Document::kMapCount; ++i) {
+    const auto& map = document.authoring().maps[i];
+    for (int state = 0; state < 3; ++state) {
+      auto assets =
+          zelda3::ResolveLyraMapAssets(overworld, map.properties, state);
+      if (!assets.ok())
+        return unsaved(assets.status());
+      const auto& binding = map.asset_bindings[state];
+      if (!binding.empty() && binding != assets->binding)
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "%s; map $%02X state %d assets on disk differ from the Lyra "
+            "binding. Draft retained",
+            kSaveRom, Document::kFirstMap + i, state));
+    }
+  }
+  return core::ComputeSourceArtifactSha256(
+      nlohmann::json::array(
+          {rom_path, core::ComputeSourceArtifactSha256(rom_bytes), catalog_path,
+           core::ComputeSourceArtifactSha256(catalog_bytes),
+           core::ComputeSourceArtifactSha256(preview_bytes)})
+          .dump());
+}
+
+absl::Status RecheckDurableSource(const project::YazeProject& project,
+                                  const Document& document,
+                                  const std::string& expected_receipt) {
+  ASSIGN_OR_RETURN(auto receipt, CheckDurableSource(project, document));
+  if (receipt != expected_receipt)
+    return absl::FailedPreconditionError(
+        "Lyra source ROM or project graphics changed during publication; "
+        "draft retained");
+  return absl::OkStatus();
+}
+
 class TerrainStrokeAction final : public UndoAction {
  public:
   TerrainStrokeAction(std::shared_ptr<Document> document,
@@ -185,7 +309,8 @@ class AssetRebindAction final : public UndoAction {
 absl::StatusOr<std::string> PublishLyraTerrainSource(
     const project::YazeProject& project, const std::string& source_path,
     const std::optional<std::string>& source_bytes,
-    const core::LyraTerrainDocument& document) {
+    const core::LyraTerrainDocument& document,
+    std::function<absl::Status()> validate_sources) {
   if (project.GetAbsolutePath(project.lyra_terrain_file) != source_path)
     return absl::FailedPreconditionError(
         "Lyra project source changed; draft retained");
@@ -212,7 +337,8 @@ absl::StatusOr<std::string> PublishLyraTerrainSource(
         ASSIGN_OR_RETURN(auto saved, ReadSource(source_path));
         if (!saved)
           return absl::DataLossError("Lyra terrain readback is missing");
-        return Document::Parse(*saved, document.profile()).status();
+        RETURN_IF_ERROR(Document::Parse(*saved, document.profile()).status());
+        return validate_sources ? validate_sources() : absl::OkStatus();
       }));
   return after;
 }
@@ -777,7 +903,17 @@ void LyraTerrainCanvas::RevertPropertyDraft(int map_index) {
 }
 
 absl::Status LyraTerrainCanvas::ValidateSave(project::YazeProject* project,
-                                             zelda3::Overworld& overworld) {
+                                             zelda3::Overworld& overworld,
+                                             std::string* durable_receipt) {
+  RETURN_IF_ERROR(ValidateLiveSource(project, overworld));
+  ASSIGN_OR_RETURN(auto receipt, CheckDurableSource(*project, *document_));
+  if (durable_receipt)
+    *durable_receipt = std::move(receipt);
+  return absl::OkStatus();
+}
+
+absl::Status LyraTerrainCanvas::ValidateLiveSource(
+    project::YazeProject* project, zelda3::Overworld& overworld) {
   if (const auto pending = PendingPropertyMaps(); !pending.empty())
     return absl::FailedPreconditionError(absl::StrFormat(
         "Apply or Revert Lyra properties for %s %s before saving the project.",
@@ -799,10 +935,14 @@ absl::Status LyraTerrainCanvas::Save(project::YazeProject* project,
                                      zelda3::Overworld& overworld) {
   if (!dirty())
     return absl::OkStatus();
-  RETURN_IF_ERROR(ValidateSave(project, overworld));
-  ASSIGN_OR_RETURN(auto after,
-                   PublishLyraTerrainSource(*project, source_path_,
-                                            source_bytes_, *document_));
+  std::string durable_receipt;
+  RETURN_IF_ERROR(ValidateSave(project, overworld, &durable_receipt));
+  ASSIGN_OR_RETURN(
+      auto after, PublishLyraTerrainSource(
+                      *project, source_path_, source_bytes_, *document_, [&]() {
+                        return RecheckDurableSource(*project, *document_,
+                                                    durable_receipt);
+                      }));
   source_bytes_ = after;
   unpublished_ = false;
   pending_project_commit_ = true;
@@ -813,9 +953,12 @@ absl::Status LyraTerrainCanvas::Save(project::YazeProject* project,
 absl::Status LyraTerrainCanvas::SaveAs(project::YazeProject* project,
                                        const std::string& project_path,
                                        zelda3::Overworld& overworld) {
-  RETURN_IF_ERROR(ValidateSave(project, overworld));
-  RETURN_IF_ERROR(
-      project->SaveAsWithLyraTerrain(project_path, *document_, source_bytes_));
+  std::string durable_receipt;
+  RETURN_IF_ERROR(ValidateSave(project, overworld, &durable_receipt));
+  RETURN_IF_ERROR(project->SaveAsWithLyraTerrain(
+      project_path, *document_, source_bytes_, [&]() {
+        return RecheckDurableSource(*project, *document_, durable_receipt);
+      }));
   // Retain the document shared by undo actions; only its backing owner moves.
   source_path_ = project->lyra_terrain_file;
   source_bytes_ = document_->Serialize();
@@ -845,7 +988,7 @@ absl::Status LyraTerrainCanvas::ApplyProposal(project::YazeProject* project,
         "Select the proposal's target Lyra map before applying it");
   // Validate ownership, pending property drafts and the current native source.
   // A rejected import must not finish a gesture or change either history stack.
-  RETURN_IF_ERROR(ValidateSave(project, overworld));
+  RETURN_IF_ERROR(ValidateLiveSource(project, overworld));
   const auto* rom = overworld.rom();
   if (!rom || !rom->is_loaded())
     return absl::FailedPreconditionError("The project ROM is unavailable");
