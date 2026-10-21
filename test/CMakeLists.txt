@@ -892,6 +892,11 @@ if(YAZE_BUILD_TESTS)
   yaze_add_focused_test_target(yaze_test_focus_lyra_authoring
     ${FOCUS_LYRA_AUTHORING_TEST_SOURCES})
 
+  # Project graphics reload and selected-world pause-map layout import.
+  yaze_add_focused_test_target(yaze_test_focus_project_resources
+    unit/editor/project_graphics_preview_test.cc
+    unit/zelda3/overworld_map_screen_custom_map_test.cc)
+
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)
     # Match the encoder's compiled capability, not sibling-directory visibility
