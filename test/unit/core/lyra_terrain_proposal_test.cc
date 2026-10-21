@@ -232,11 +232,13 @@ TEST_F(LyraTerrainProposalTest, AdmitsExactFourCellBatchWithoutMutation) {
   const auto authoring_before = document_->authoring();
   auto authoring = authoring_before;
   authoring.maps[0].properties.message_id = 0x42;
-  authoring.maps[3].sprites.push_back({1, 0x10, 64, 80, 0});
-  authoring.flight_points.push_back({2, 0xA8, 100, 200, "Fixture landing", {}});
+  authoring.maps[0].asset_bindings.fill(std::string(64, 'd'));
+  authoring.maps[3].sprites.push_back({1, 0x10, 4, 5, 0});
+  authoring.flight_points.push_back({2, 0xA8, 6, 7, "Fixture landing", {}});
   authoring.edge_connections.push_back(
       {3, 0xA0, 0xA1, LyraEdgePassage{15, 16}});
-  ASSERT_TRUE(document_->SetAuthoring(authoring_before, authoring).ok());
+  const auto authored = document_->SetAuthoring(authoring_before, authoring);
+  ASSERT_TRUE(authored.ok()) << authored;
   document_->MarkSaved();
   const auto maps =
       std::make_unique<LyraTerrainDocument::Maps>(document_->maps());
