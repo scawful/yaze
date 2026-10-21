@@ -3909,8 +3909,8 @@ absl::Status EditorManager::ApplyLyraTerrainProposalFromPath(
   if (!overworld)
     return absl::NotFoundError("Overworld editor is unavailable");
   RETURN_IF_ERROR(overworld->ApplyLyraTerrainProposal(bundle));
-  if (overworld->HasPendingProjectDraftChanges())
-    MarkCurrentProjectDirty();
+  // Terrain dirty state is derived from the document, so Undo can return to
+  // the saved state without latching a project-file settings change.
   CaptureActiveProjectContext();
   SwitchToEditor(EditorType::kOverworld, true);
   return absl::OkStatus();
