@@ -138,8 +138,7 @@ class ScopedProjectRomAddresses {
 // sidecar may only bind what a cold reopen of this project resolves from disk.
 absl::StatusOr<std::string> CheckDurableSource(
     const project::YazeProject& project, const Document& document) {
-  constexpr std::string_view kSaveRom =
-      "Save ROM before saving the Lyra project";
+  constexpr char kSaveRom[] = "Save ROM before saving the Lyra project";
   if (project.rom_filename.empty())
     return absl::FailedPreconditionError(
         absl::StrCat(kSaveRom, "; the project has no source ROM file"));
