@@ -229,6 +229,15 @@ class LyraTerrainProposalTest : public ::testing::Test {
 };
 
 TEST_F(LyraTerrainProposalTest, AdmitsExactFourCellBatchWithoutMutation) {
+  const auto authoring_before = document_->authoring();
+  auto authoring = authoring_before;
+  authoring.maps[0].properties.message_id = 0x42;
+  authoring.maps[3].sprites.push_back({1, 0x10, 64, 80, 0});
+  authoring.flight_points.push_back({2, 0xA8, 100, 200, "Fixture landing", {}});
+  authoring.edge_connections.push_back(
+      {3, 0xA0, 0xA1, LyraEdgePassage{15, 16}});
+  ASSERT_TRUE(document_->SetAuthoring(authoring_before, authoring).ok());
+  document_->MarkSaved();
   const auto maps =
       std::make_unique<LyraTerrainDocument::Maps>(document_->maps());
   const auto stroke = AdmitLyraTerrainProposal(
@@ -252,6 +261,12 @@ TEST_F(LyraTerrainProposalTest, AdmitsExactFourCellBatchWithoutMutation) {
   ASSERT_TRUE(document_->ApplyStroke(*stroke, false).ok());
   EXPECT_EQ(document_->MapTile(kMap, 3, 3).value(), 0);
   EXPECT_EQ(document_->MapTile(kMap, 30, 30).value(), 5);
+  EXPECT_EQ(document_->authoring(), authoring);
+  ASSERT_TRUE(document_->ApplyStroke(*stroke, true).ok());
+  EXPECT_EQ(document_->maps(), *maps);
+  EXPECT_EQ(document_->authoring(), authoring);
+  ASSERT_TRUE(document_->ApplyStroke(*stroke, false).ok());
+  EXPECT_EQ(document_->authoring(), authoring);
 }
 
 TEST_F(LyraTerrainProposalTest, AdmitsMapA1WithMapLocalChanges) {

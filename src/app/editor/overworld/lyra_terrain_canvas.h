@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -57,6 +58,10 @@ class LyraTerrainCanvas {
   absl::Status PaintPattern(const TileBrush& brush, int x, int y, int width,
                             int height, bool finalize, UndoManager& history);
   void FinishStroke(UndoManager& history);
+  // One admitted sparse batch shares normal terrain history and project save.
+  absl::Status ApplyProposal(project::YazeProject* project,
+                             zelda3::Overworld& overworld, int selected_map,
+                             std::string_view bundle, UndoManager& history);
   void Reset();
   const core::LyraTerrainDocument* document() const { return document_.get(); }
   const gfx::Bitmap& atlas() const { return atlas_; }

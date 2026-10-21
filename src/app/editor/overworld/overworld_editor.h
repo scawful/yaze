@@ -237,6 +237,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // loads native assets before invoking either explicit lifecycle action.
   absl::Status CreateLyraTerrain();
   absl::Status OpenLyraTerrain(const std::string& path);
+  absl::Status ApplyLyraTerrainProposal(std::string_view bundle);
   absl::Status SaveProjectTerrainAs(project::YazeProject* project,
                                     const std::string& project_path);
   LyraTerrainCanvas lyra_canvas_;

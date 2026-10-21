@@ -89,6 +89,7 @@ class MenuOrchestrator {
   void OnOpenProject();
   void OnCreateLyraTerrain();
   void OnOpenLyraTerrain();
+  void OnApplyLyraTerrainProposal();
   void OnSaveProject();
   void OnSaveProjectAs();
   void OnShowProjectManagement();
