@@ -285,6 +285,16 @@ absl::Status WriteProjectFileAtomically(absl::string_view target_path,
  * @brief Modern project structure with comprehensive settings consolidation
  */
 struct YazeProject {
+  YazeProject() = default;
+  YazeProject(const YazeProject&) = default;
+  YazeProject(YazeProject&&) = default;
+  YazeProject& operator=(const YazeProject&) = default;
+  YazeProject& operator=(YazeProject&&) = default;
+  // Open() and InitializeResourceLabelProvider() point the process-wide
+  // zelda3::GetResourceLabels() at this project's members; the destructor
+  // releases any binding that still refers to them.
+  ~YazeProject();
+
   // Basic project info
   ProjectMetadata metadata;
   std::string name;
