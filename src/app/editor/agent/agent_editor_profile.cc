@@ -334,7 +334,8 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
     profile.max_retry_attempts = json.value("max_retry_attempts", 3);
     profile.temperature = json.value("temperature", 0.25f);
     profile.top_p = json.value("top_p", 0.95f);
-    profile.max_output_tokens = json.value("max_output_tokens", 2048);
+    profile.max_output_tokens =
+        json.value("max_output_tokens", kDefaultAgentMaxOutputTokens);
     profile.stream_responses = json.value("stream_responses", false);
 
     if (json.contains("tags") && json["tags"].is_array()) {

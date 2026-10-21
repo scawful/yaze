@@ -229,6 +229,38 @@ TEST(AgentChatTest, ProfileLoadAndSelectionCarryAnthropicCredentialToChat) {
                 .anthropic_api_key,
             "offline-profile-key");
 }
+
+#ifndef __EMSCRIPTEN__
+TEST(AgentChatTest, NewNativeProfilesUseRoomBatchBudgetAndKeepLegacyBudget) {
+  ScopedAgentDataDirectory isolated_data;
+  AgentEditor editor;
+  // Exercise the actual editor-to-chat apply path with an unconfigured native
+  // config, rather than checking only the shared initializer.
+  editor.ApplyConfig(AgentEditor::AgentConfig{});
+  auto* service = editor.GetAgentChat()->GetAgentService();
+  ASSERT_TRUE(service->provider_config().max_output_tokens.has_value());
+  EXPECT_EQ(*service->provider_config().max_output_tokens, 8192);
+
+  AgentUIContext context;
+  editor.SetContext(&context);
+  AgentEditor::BotProfile profile;
+  profile.provider = cli::kProviderMock;  // No network or provider request.
+  editor.SetCurrentProfile(profile);
+  ASSERT_TRUE(service->provider_config().max_output_tokens.has_value());
+  EXPECT_EQ(*service->provider_config().max_output_tokens, 8192);
+  EXPECT_EQ(context.agent_config().max_output_tokens, 8192);
+
+  // An explicit saved value remains authoritative when the profile is loaded
+  // after a different budget has been applied.
+  profile.name = "Legacy explicit budget";
+  profile.max_output_tokens = 2048;
+  ASSERT_TRUE(editor.SaveBotProfile(profile).ok());
+  ASSERT_TRUE(editor.LoadBotProfile(profile.name).ok());
+  ASSERT_TRUE(service->provider_config().max_output_tokens.has_value());
+  EXPECT_EQ(*service->provider_config().max_output_tokens, 2048);
+  EXPECT_EQ(context.agent_config().max_output_tokens, 2048);
+}
+#endif
 #endif
 
 TEST(AgentChatTest, NativeProtocolHistoryRoundTripsWithoutCredentials) {

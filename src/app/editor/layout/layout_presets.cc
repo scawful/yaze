@@ -287,7 +287,6 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.description = "AI Agent Configuration and Chat";
       preset.default_visible_panels = {
           "agent.configuration",
-          "agent.status",
           "agent.chat",
       };
       preset.panel_positions = {
@@ -295,9 +294,10 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           {"agent.configuration", DockPosition::Right},
           {"agent.status", DockPosition::Bottom},
       };
-      preset.optional_panels = {"agent.prompt_editor", "agent.profiles",
-                                "agent.history",       "agent.metrics",
-                                "agent.builder",       "agent.knowledge"};
+      preset.optional_panels = {"agent.status",   "agent.prompt_editor",
+                                "agent.profiles", "agent.history",
+                                "agent.metrics",  "agent.builder",
+                                "agent.knowledge"};
       break;
 
     default:
