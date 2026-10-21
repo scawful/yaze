@@ -742,7 +742,10 @@ TEST(LyraTerrainNativeRebindTest, PaletteSaveColdReopenRecoversAndRebindsLyra) {
     GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM (read only)";
   const fs::path source(source_env);
   const auto source_bytes = Read(source);
-  const auto root = test::UniqueTempPath("yaze_lyra_palette_recovery");
+  const char* retained_output = std::getenv("YAZE_PALETTE_REBIND_ARTIFACT_DIR");
+  const bool retain = retained_output != nullptr && *retained_output != '\0';
+  const auto root = retain ? fs::absolute(retained_output)
+                           : test::UniqueTempPath("yaze_lyra_palette_recovery");
   ASSERT_TRUE(fs::create_directory(root));
   const auto previous_addresses = core::RomSettings::Get().address_overrides();
   const auto previous_flags = core::FeatureFlags::get();
@@ -751,7 +754,8 @@ TEST(LyraTerrainNativeRebindTest, PaletteSaveColdReopenRecoversAndRebindsLyra) {
     core::RomSettings::Get().SetAddressOverrides(previous_addresses);
     core::FeatureFlags::get() = previous_flags;
     std::error_code ec;
-    fs::remove_all(root, ec);
+    if (!retain)
+      fs::remove_all(root, ec);
   };
   core::RomSettings::Get().ClearOverrides();
   core::FeatureFlags::get().overworld.kLoadCustomOverworld = true;
@@ -895,8 +899,37 @@ TEST(LyraTerrainNativeRebindTest, PaletteSaveColdReopenRecoversAndRebindsLyra) {
   EXPECT_EQ(final_canvas.document()->maps(), maps_before);
   EXPECT_EQ(final_canvas.document()->authoring(), authoring_before);
   EXPECT_EQ(final_canvas.atlas().palette(), recovery.atlas().palette());
+  ASSERT_EQ(final_canvas.document()->profile().palette_fingerprint,
+            palette_only.palette_fingerprint);
   EXPECT_EQ(Read(base_rom), saved_rom);
   EXPECT_EQ(Read(source), source_bytes);
+  if (retain) {
+    const nlohmann::json receipt = {
+        {"schema", "yaze.palette-write/1"},
+        {"schema_version", 1},
+        {"saved_rom_path", fs::absolute(base_rom).string()},
+        {"saved_rom_sha256", core::ComputeSourceArtifactSha256(saved_rom)},
+        {"readonly_source_path", fs::absolute(source).string()},
+        {"readonly_source_sha256",
+         core::ComputeSourceArtifactSha256(source_bytes)},
+        {"project_path", project.filepath},
+        {"lyra_terrain_path", sidecar},
+        {"copier_header_size", rom.copier_header().size()},
+        {"pc_byte_offsets", native_changes},
+        {"file_byte_offsets", file_changes},
+        {"palette_group", "ow_main"},
+        {"palette_index", palette_index},
+        {"color_index", kColorIndex},
+        {"color_word_before", old_color.snes()},
+        {"color_word_after", changed.snes()},
+        {"palette_fingerprint_before", original_profile.palette_fingerprint},
+        {"palette_fingerprint_saved", palette_only.palette_fingerprint},
+        {"palette_fingerprint_reopened",
+         final_canvas.document()->profile().palette_fingerprint}};
+    const auto receipt_path = root / "PALETTE_WRITE.json";
+    Write(receipt_path, receipt.dump(2) + "\n");
+    RecordProperty("palette_write_receipt", receipt_path.string());
+  }
   RecordProperty("palette_word_address", address);
   RecordProperty("original_palette_word", old_color.snes());
   RecordProperty("saved_palette_word", changed.snes());
@@ -1137,7 +1170,23 @@ TEST(LyraTerrainNativeRebindTest,
     EXPECT_EQ(reopened.document()->authoring(), authoring_before);
     EXPECT_EQ(reopened.document()->profile(), preview->after_profile);
   }
-  EXPECT_EQ(Read(project.filepath), project_bytes);
+  // Explicit project Save refreshes its normal header and metadata timestamp.
+  // Every other descriptor byte must retain its original value.
+  const auto without_save_timestamp = [](std::string descriptor) {
+    for (const std::string prefix : {"# Last Modified: ", "last_modified="}) {
+      const auto field = descriptor.find(prefix);
+      if (field == std::string::npos)
+        continue;
+      const auto value = field + prefix.size();
+      const auto end = descriptor.find('\n', value);
+      descriptor.erase(value, end == std::string::npos
+                                  ? descriptor.size() - value
+                                  : end - value);
+    }
+    return descriptor;
+  };
+  EXPECT_EQ(without_save_timestamp(Read(project.filepath)),
+            without_save_timestamp(project_bytes));
   EXPECT_EQ(Read(source), source_bytes);
 }
 

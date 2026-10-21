@@ -230,10 +230,17 @@ void OverworldEditor::DrawProjectGraphicsSource() {
         show_status(preview.status());
       }
       ImGui::EndDisabled();
-      if (!source.backend_available())
+      if (!source.backend_available()) {
+#if defined(_WIN32) || defined(__EMSCRIPTEN__)
+        ImGui::TextWrapped(
+            "Source publication currently requires a native macOS or Linux "
+            "build with Python 3.");
+#else
         ImGui::TextWrapped(
             "The bound source needs Scripts/Graphics/edit_graphics_source.py "
             "before this draft can be published.");
+#endif
+      }
       if (source.has_preview()) {
         const auto& plan = source.preview_json();
         ImGui::TextWrapped(
