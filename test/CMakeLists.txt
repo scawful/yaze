@@ -272,9 +272,9 @@ if(YAZE_BUILD_TESTS)
       string(REPLACE ";" "\\\\;" _suite_labels "${label}")
     endif()
     # Avoid duplicate CTest names across multiple suites that compile the same
-    # gtest sources (e.g. quick vs stable). Only the quick suites need a prefix.
+    # gtest sources (e.g. focused vs stable). Focused suites need a prefix.
     set(_test_prefix "")
-    if(label MATCHES "(^|;)quick(;|$)")
+    if(label MATCHES "(^|;)(quick|native_batch)(;|$)")
       set(_test_prefix "${suite_name}::")
     endif()
     if(WIN32)
