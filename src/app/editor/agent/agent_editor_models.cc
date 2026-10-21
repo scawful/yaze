@@ -852,6 +852,7 @@ void AgentEditor::ApplyConfig(const AgentConfig& config) {
       provider_config.openai_base_url =
           cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
       provider_config.verbose = config.verbose;
+      provider_config.max_output_tokens = config.max_output_tokens;
       provider_config.rom_context = rom_;
       if (rom_ != nullptr) {
         provider_config.rom_path_hint = rom_->filename();

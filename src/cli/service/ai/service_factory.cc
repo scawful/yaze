@@ -313,6 +313,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
 
   if (provider == kProviderOllama) {
     OllamaConfig ollama_config;
+    ApplyMaxOutputTokensOverride(effective_config, ollama_config.max_tokens);
     ollama_config.base_url = effective_config.ollama_host;
     if (!effective_config.model.empty()) {
       ollama_config.model = effective_config.model;
@@ -342,6 +343,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
           "GEMINI_API_KEY.");
     }
     GeminiConfig gemini_config(effective_config.gemini_api_key);
+    ApplyMaxOutputTokensOverride(effective_config,
+                                 gemini_config.max_output_tokens);
     if (!effective_config.model.empty()) {
       gemini_config.model = effective_config.model;
     }
@@ -362,6 +365,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
           "ANTHROPIC_API_KEY.");
     }
     AnthropicConfig anthropic_config(effective_config.anthropic_api_key);
+    ApplyMaxOutputTokensOverride(effective_config,
+                                 anthropic_config.max_output_tokens);
     if (!effective_config.model.empty()) {
       anthropic_config.model = effective_config.model;
     }
@@ -385,6 +390,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
           "For LMStudio, use --openai_base_url=http://localhost:1234");
     }
     OpenAIConfig openai_config(effective_config.openai_api_key);
+    ApplyMaxOutputTokensOverride(effective_config,
+                                 openai_config.max_output_tokens);
     openai_config.base_url = effective_config.openai_base_url;
     if (!effective_config.model.empty()) {
       openai_config.model = effective_config.model;

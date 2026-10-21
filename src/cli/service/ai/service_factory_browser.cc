@@ -206,6 +206,8 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
   }
 
   BrowserAIConfig browser_config;
+  ApplyMaxOutputTokensOverride(effective_config,
+                               browser_config.max_output_tokens);
   browser_config.provider = effective_config.provider;
   browser_config.model = effective_config.model;
   browser_config.system_instruction =

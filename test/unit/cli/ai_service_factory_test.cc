@@ -1,6 +1,7 @@
 #include "cli/service/ai/service_factory.h"
 
 #include <cstdlib>
+#include <filesystem>
 #include <string>
 
 #include <gmock/gmock.h>
@@ -9,6 +10,18 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
+#ifdef YAZE_BUILD_AGENT_UI
+#include "app/editor/agent/agent_chat.h"
+#include "app/editor/agent/agent_editor.h"
+#endif
+#include "cli/service/ai/ollama_ai_service.h"
+#ifdef YAZE_WITH_JSON
+#include "cli/service/ai/anthropic_ai_service.h"
+#include "cli/service/ai/gemini_ai_service.h"
+#include "cli/service/ai/openai_ai_service.h"
+#endif
 #include "rom/rom.h"
 
 ABSL_DECLARE_FLAG(std::string, ai_provider);
@@ -129,6 +142,71 @@ TEST(AIServiceFactoryTest, DetectPromptProfileUsesOracleRomContextFilename) {
 
   EXPECT_EQ(DetectPromptProfile(config), AgentPromptProfile::kOracleOfSecrets);
 }
+
+TEST(AIServiceFactoryTest, MaxOutputTokensPreservesProviderDefaultsWhenAbsent) {
+  AIServiceConfig config;
+  EXPECT_FALSE(config.max_output_tokens.has_value());
+  OllamaConfig ollama;
+  ApplyMaxOutputTokensOverride(config, ollama.max_tokens);
+  EXPECT_EQ(ollama.max_tokens, 2048);
+#ifdef YAZE_WITH_JSON
+  GeminiConfig gemini;
+  AnthropicConfig anthropic;
+  OpenAIConfig openai;
+  ApplyMaxOutputTokensOverride(config, gemini.max_output_tokens);
+  ApplyMaxOutputTokensOverride(config, anthropic.max_output_tokens);
+  ApplyMaxOutputTokensOverride(config, openai.max_output_tokens);
+  EXPECT_EQ(gemini.max_output_tokens, 2048);
+  EXPECT_EQ(anthropic.max_output_tokens, 4096);
+  EXPECT_EQ(openai.max_output_tokens, 2048);
+#endif
+}
+
+TEST(AIServiceFactoryTest,
+     MaxOutputTokensOverrideReachesProviderNativeSettings) {
+  AIServiceConfig config;
+  config.max_output_tokens = 8192;
+  OllamaConfig ollama;
+  ApplyMaxOutputTokensOverride(config, ollama.max_tokens);
+  EXPECT_EQ(ollama.max_tokens, 8192);
+#ifdef YAZE_WITH_JSON
+  GeminiConfig gemini;
+  AnthropicConfig anthropic;
+  OpenAIConfig openai;
+  ApplyMaxOutputTokensOverride(config, gemini.max_output_tokens);
+  ApplyMaxOutputTokensOverride(config, anthropic.max_output_tokens);
+  ApplyMaxOutputTokensOverride(config, openai.max_output_tokens);
+  EXPECT_EQ(gemini.max_output_tokens, 8192);
+  EXPECT_EQ(anthropic.max_output_tokens, 8192);
+  EXPECT_EQ(openai.max_output_tokens, 8192);
+#endif
+}
+
+#if defined(YAZE_BUILD_AGENT_UI) && defined(YAZE_AI_RUNTIME_AVAILABLE)
+TEST(AIServiceFactoryTest, MaxOutputTokensFlowsFromEditorToChatProvider) {
+  const auto app_data = std::filesystem::temp_directory_path() /
+                        ("yaze-agent-token-limit-" +
+                         std::to_string(absl::ToUnixNanos(absl::Now())));
+  {
+    ScopedEnvVar isolated_app_data("YAZE_APP_DATA_DIR",
+                                   app_data.string().c_str());
+    editor::AgentEditor agent_editor;
+    editor::AgentEditor::AgentConfig config;
+    config.provider = kProviderMock;
+    config.max_output_tokens = 8192;
+    agent_editor.ApplyConfig(config);
+
+    const auto* chat = agent_editor.GetAgentChat();
+    ASSERT_NE(chat, nullptr);
+    const auto& applied =
+        agent_editor.GetAgentChat()->GetAgentService()->provider_config();
+    ASSERT_TRUE(applied.max_output_tokens.has_value());
+    EXPECT_EQ(*applied.max_output_tokens, 8192);
+  }
+  std::error_code ec;
+  std::filesystem::remove_all(app_data, ec);
+}
+#endif
 
 // These tests require AI runtime to be enabled (service_factory.cc vs stub)
 #ifdef YAZE_AI_RUNTIME_AVAILABLE

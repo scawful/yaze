@@ -2,6 +2,7 @@
 #define YAZE_CLI_SERVICE_AI_SERVICE_FACTORY_H_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -40,9 +41,20 @@ struct AIServiceConfig {
   std::string rom_path_hint;
   // Optional loaded ROM for prompt-context and Oracle guide auto-detection.
   Rom* rom_context = nullptr;
+  // An explicit UI/request override; absent preserves each provider's default.
+  std::optional<int> max_output_tokens;
   // Enable debug logging.
   bool verbose = false;
 };
+
+// Shared by providers whose native setting names differ (e.g. Ollama's
+// max_tokens). Keep an absent override distinct from an explicit token limit.
+inline void ApplyMaxOutputTokensOverride(const AIServiceConfig& config,
+                                         int& provider_limit) {
+  if (config.max_output_tokens.has_value()) {
+    provider_limit = *config.max_output_tokens;
+  }
+}
 
 // Build service configuration from flags + environment fallbacks.
 AIServiceConfig BuildAIServiceConfigFromFlags();
