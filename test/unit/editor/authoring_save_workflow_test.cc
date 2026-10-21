@@ -1000,6 +1000,191 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
+TEST_F(AuthoringSaveWorkflowTest,
+       PairedChestRewardAndDungeonMapUndoGuardSaveAsReopen) {
+  const auto fixture = CopyProject("yaze-chest-map-combined-save");
+  Open(fixture);
+  core::FeatureFlags::get().kSaveDungeonMaps = true;
+  auto& dungeon_flags = core::FeatureFlags::get().dungeon;
+  dungeon_flags.kSaveObjects = true;
+  dungeon_flags.kSaveChests = true;
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kScreen));
+  auto* dungeon = manager_->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+      EditorType::kDungeon);
+  auto* screen = manager_->GetCurrentEditorSet()->GetEditorAs<ScreenEditor>(
+      EditorType::kScreen);
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(screen, nullptr);
+  const auto control_path = fixture.root / "control.sfc";
+  ASSERT_OK(manager_->SaveRomAs(control_path.string()));
+  const auto control = ReadFile(control_path);
+  auto* rom = manager_->GetCurrentRom();
+  dungeon->rooms()[kDungeonRoom] = zelda3::LoadRoomFromRom(rom, kDungeonRoom);
+  auto& room = dungeon->rooms()[kDungeonRoom];
+  const auto initial_objects = room.EncodeObjects();
+  const size_t chest_index = room.GetChests().size();
+  auto* viewer = AuthoringSaveWorkflowTestPeer::Viewer(*dungeon, kDungeonRoom);
+  ASSERT_NE(viewer, nullptr);
+  viewer->object_interaction().SetCurrentRoom(&dungeon->rooms(), kDungeonRoom);
+  auto& tile_handler =
+      viewer->object_interaction().entity_coordinator().tile_handler();
+  zelda3::RoomObject chest_object(0xF99, 24, 24, 0x06, 0);
+  ASSERT_TRUE(tile_handler.PlaceObjectAt(kDungeonRoom, chest_object, 24, 24))
+      << tile_handler.mutation_status();
+  ASSERT_OK(tile_handler.mutation_status());
+  ASSERT_EQ(room.GetChests().size(), chest_index + 1);
+  const auto small_chest_objects = room.EncodeObjects();
+  ASSERT_OK(dungeon->EditChest(kDungeonRoom, chest_index, 0xAD, true));
+  const auto expected_objects = room.EncodeObjects();
+  ASSERT_NE(expected_objects, initial_objects);
+  ASSERT_EQ(room.GetChests()[chest_index].id, 0xAD);
+  ASSERT_TRUE(room.GetChests()[chest_index].size);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.EncodeObjects(), small_chest_objects);
+  ASSERT_EQ(room.GetChests().size(), chest_index + 1);
+  EXPECT_EQ(room.GetChests()[chest_index].id, 0x34);
+  EXPECT_FALSE(room.GetChests()[chest_index].size);
+  ASSERT_OK(dungeon->Undo());
+  EXPECT_EQ(room.EncodeObjects(), initial_objects);
+  EXPECT_EQ(room.GetChests().size(), chest_index);
+  ASSERT_OK(dungeon->Redo());
+  ASSERT_OK(dungeon->Redo());
+  EXPECT_EQ(room.EncodeObjects(), expected_objects);
+  ASSERT_EQ(room.GetChests().size(), chest_index + 1);
+  EXPECT_EQ(room.GetChests()[chest_index].id, 0xAD);
+  EXPECT_TRUE(room.GetChests()[chest_index].size);
+
+  AuthoringSaveWorkflowTestPeer::SelectMapFloor(*screen, 0, 0);
+  auto& io = ImGui::GetIO();
+  io.ConfigInputTrickleEventQueue = false;
+  unsigned char* pixels;
+  int width, height;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  const auto frame = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700, 700), ImGuiCond_Always);
+    ImGui::Begin("DungeonMapFloorControls", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    AuthoringSaveWorkflowTestPeer::DrawMapTabs(*screen);
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  frame();
+  const auto map_before = AuthoringSaveWorkflowTestPeer::MapSnapshot(*screen);
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> button;
+  for (const auto& [path, item] :
+       gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+    if (item.label == gui::WidgetIdRegistry::NormalizeLabel("Add Basement"))
+      button = item;
+  }
+  ASSERT_TRUE(button);
+  io.AddMousePosEvent((button->bounds.min_x + button->bounds.max_x) / 2,
+                      (button->bounds.min_y + button->bounds.max_y) / 2);
+  frame();
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+  frame();
+  const auto map_after = AuthoringSaveWorkflowTestPeer::MapSnapshot(*screen);
+  ASSERT_EQ(map_after.dungeon_map.map_data.nbr_of_basement,
+            map_before.dungeon_map.map_data.nbr_of_basement + 1);
+  ASSERT_OK(screen->Undo());
+  EXPECT_EQ(AuthoringSaveWorkflowTestPeer::MapSnapshot(*screen)
+                .dungeon_map.map_data.floor_rooms,
+            map_before.dungeon_map.map_data.floor_rooms);
+  ASSERT_OK(screen->Redo());
+  const auto expected_maps = screen->dungeon_maps_;
+  const auto map_plan = screen->PrepareDungeonMapSave();
+  ASSERT_OK(map_plan.status());
+  ASSERT_FALSE(map_plan->writes.empty());
+  const auto dungeon_ranges =
+      manager_->GetCurrentEditorSet()->CollectDungeonWriteRanges();
+  ASSERT_FALSE(dungeon_ranges.empty());
+
+  dungeon_flags.kSaveChests = false;
+  const auto rom_before_guard = manager_->GetCurrentRom()->vector();
+  const auto guard_path = fixture.root / "split-chest-flag.sfc";
+  const auto guard_status = manager_->SaveRomAs(guard_path.string());
+  EXPECT_FALSE(guard_status.ok());
+  EXPECT_NE(std::string(guard_status.message()).find("chest object and reward"),
+            std::string::npos);
+  EXPECT_FALSE(std::filesystem::exists(guard_path));
+  EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before_guard);
+  EXPECT_EQ(manager_->GetCurrentRom()->filename(), control_path.string());
+  EXPECT_TRUE(screen->HasPendingDungeonMapChanges());
+  EXPECT_TRUE(dungeon->HasPendingDungeonChanges());
+  EXPECT_EQ(room.EncodeObjects(), expected_objects);
+  ASSERT_EQ(room.GetChests().size(), chest_index + 1);
+  EXPECT_EQ(room.GetChests()[chest_index].id, 0xAD);
+  EXPECT_TRUE(room.GetChests()[chest_index].size);
+  dungeon_flags.kSaveChests = true;
+
+  const auto destination = fixture.root / "chest-map-combined.sfc";
+  ASSERT_OK(manager_->SaveRomAs(destination.string()));
+  EXPECT_FALSE(screen->HasPendingScreenChanges());
+  EXPECT_FALSE(dungeon->HasPendingDungeonChanges());
+  const auto saved = ReadFile(destination);
+  ASSERT_EQ(saved.size(), control.size());
+  for (size_t pc = 0; pc < saved.size(); ++pc) {
+    if (saved[pc] == control[pc] || (pc >= 0x7FDC && pc < 0x7FE0))
+      continue;
+    const bool in_map = std::any_of(
+        map_plan->writes.begin(), map_plan->writes.end(),
+        [pc](const auto& write) {
+          return pc >= static_cast<size_t>(write.pc_address) &&
+                 pc < static_cast<size_t>(write.pc_address) + write.data.size();
+        });
+    const bool in_dungeon = std::any_of(
+        dungeon_ranges.begin(), dungeon_ranges.end(), [pc](const auto& range) {
+          return pc >= range.first && pc < range.second;
+        });
+    EXPECT_TRUE(in_map || in_dungeon) << "Unexpected changed PC byte " << pc;
+  }
+  ExpectProtectedRegionsMatch(
+      control, saved,
+      manager_->GetCurrentProject()->hack_manifest.protected_regions());
+
+  auto reopened = std::make_unique<EditorManager>();
+  test::InitializeWithIsolatedSettings(*reopened, &renderer_);
+  reopened->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_OK(reopened->OpenRomOrProject(destination.string()));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_OK(reopened->EnsureEditorAssetsLoaded(EditorType::kScreen));
+  auto reopened_room =
+      zelda3::LoadRoomFromRom(reopened->GetCurrentRom(), kDungeonRoom);
+  EXPECT_EQ(reopened_room.EncodeObjects(), expected_objects);
+  ASSERT_EQ(reopened_room.GetChests().size(), chest_index + 1);
+  EXPECT_EQ(reopened_room.GetChests()[chest_index].id, 0xAD);
+  EXPECT_TRUE(reopened_room.GetChests()[chest_index].size);
+  auto* fresh_screen =
+      reopened->GetCurrentEditorSet()->GetEditorAs<ScreenEditor>(
+          EditorType::kScreen);
+  ASSERT_NE(fresh_screen, nullptr);
+  ASSERT_EQ(fresh_screen->dungeon_maps_.size(), expected_maps.size());
+  for (size_t d = 0; d < expected_maps.size(); ++d) {
+    EXPECT_EQ(fresh_screen->dungeon_maps_[d].floor_rooms,
+              expected_maps[d].floor_rooms);
+    EXPECT_EQ(fresh_screen->dungeon_maps_[d].floor_gfx,
+              expected_maps[d].floor_gfx);
+    EXPECT_EQ(fresh_screen->dungeon_maps_[d].nbr_of_basement,
+              expected_maps[d].nbr_of_basement);
+    EXPECT_EQ(fresh_screen->dungeon_maps_[d].nbr_of_floor,
+              expected_maps[d].nbr_of_floor);
+    EXPECT_EQ(fresh_screen->dungeon_maps_[d].boss_room,
+              expected_maps[d].boss_room);
+  }
+  EXPECT_FALSE(fresh_screen->HasPendingScreenChanges());
+  reopened.reset();
+  EXPECT_EQ(util::ComputeFileSha1Hex(fixture.rom.string()),
+            fixture.source_hash);
+  EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
+}
+
 TEST_F(AuthoringSaveWorkflowTest, ScreenSourcePixelsUndoReturnSaveAsReopen) {
   const auto fixture = CopyProject("yaze-screen-source-pixels");
   Open(fixture);
