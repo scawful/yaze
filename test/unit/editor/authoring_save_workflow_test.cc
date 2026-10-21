@@ -5364,6 +5364,10 @@ TEST_F(AuthoringSaveWorkflowTest,
   Open(fixture);
   auto* overworld = LoadedOverworld(manager_.get());
   ASSERT_NE(overworld, nullptr);
+  // Automatic Lyra admission starts at A0; these controls edit native maps.
+  overworld->SelectMapForEditing(0, false);
+  ASSERT_EQ(overworld->current_map_id(), 0);
+  ASSERT_EQ(overworld->current_world_id(), 0);
   unsigned char* pixels = nullptr;
   int width = 0, height = 0;
   ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -5409,6 +5413,10 @@ TEST_F(AuthoringSaveWorkflowTest,
   Open(fixture);
   auto* overworld = LoadedOverworld(manager_.get());
   ASSERT_NE(overworld, nullptr);
+  // Automatic Lyra admission starts at A0; these controls edit native maps.
+  overworld->SelectMapForEditing(0, false);
+  ASSERT_EQ(overworld->current_map_id(), 0);
+  ASSERT_EQ(overworld->current_world_id(), 0);
   unsigned char* pixels = nullptr;
   int width = 0, height = 0;
   ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
