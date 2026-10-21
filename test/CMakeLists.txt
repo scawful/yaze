@@ -654,6 +654,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_draw_code_test.cc
     unit/zelda3/dungeon/game_parity_gate_test.cc
     unit/zelda3/dungeon/custom_object_room_render_test.cc
+    unit/zelda3/dungeon/room_animated_graphics_test.cc
     unit/zelda3/dungeon/room_object_rom_parity_test.cc
     unit/dungeon_object_drawer_test.cc
     unit/object_selection_test.cc
