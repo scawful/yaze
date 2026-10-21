@@ -281,13 +281,22 @@ class AuthoringAction final : public UndoAction {
 class AssetRebindAction final : public UndoAction {
  public:
   AssetRebindAction(std::shared_ptr<Document> document,
-                    core::LyraAssetRebind rebind)
-      : document_(std::move(document)), rebind_(std::move(rebind)) {}
+                    core::LyraAssetRebind rebind,
+                    std::shared_ptr<absl::Status> recovery_status,
+                    absl::Status before_recovery)
+      : document_(std::move(document)),
+        rebind_(std::move(rebind)),
+        recovery_status_(std::move(recovery_status)),
+        before_recovery_(std::move(before_recovery)) {}
   absl::Status Undo() override {
-    return document_->ApplyAssetRebind(rebind_, true);
+    RETURN_IF_ERROR(document_->ApplyAssetRebind(rebind_, true));
+    *recovery_status_ = before_recovery_;
+    return absl::OkStatus();
   }
   absl::Status Redo() override {
-    return document_->ApplyAssetRebind(rebind_, false);
+    RETURN_IF_ERROR(document_->ApplyAssetRebind(rebind_, false));
+    *recovery_status_ = absl::OkStatus();
+    return absl::OkStatus();
   }
   std::string Description() const override {
     return "Rebind Lyra terrain to native assets";
@@ -302,6 +311,8 @@ class AssetRebindAction final : public UndoAction {
  private:
   std::shared_ptr<Document> document_;
   core::LyraAssetRebind rebind_;
+  std::shared_ptr<absl::Status> recovery_status_;
+  absl::Status before_recovery_;
 };
 
 }  // namespace
@@ -521,6 +532,7 @@ absl::Status LyraTerrainCanvas::ValidateMapAssets(
 
 absl::Status LyraTerrainCanvas::CheckAssetSources(
     zelda3::Overworld& overworld) {
+  RETURN_IF_ERROR(*recovery_status_);
   const auto* donor = overworld.overworld_map(0x3A);
   if (!document_ || !donor || !donor->game_data() || !overworld.rom())
     return absl::FailedPreconditionError("Lyra source is unavailable");
@@ -594,12 +606,28 @@ void LyraTerrainCanvas::ReplaceAtlas(gfx::Bitmap atlas,
                                         &atlas_);
 }
 
+void LyraTerrainCanvas::InvalidateAssetCaches() {
+  assets_valid_ = false;
+  validated_authoring_.reset();
+  authoring_assets_status_ = absl::OkStatus();
+  displayed_assets_.fill(nullptr);
+  map_assets_.clear();
+  // Graphics-preview transfers change resolved pixels without changing ROM,
+  // shared graphics bytes or native selectors. Force the next source check
+  // to bind a fresh profile even when those ordinary snapshots still match.
+  source_rom_.clear();
+  source_graphics_.clear();
+  source_metadata_.clear();
+  source_profile_ = {};
+  source_status_ = absl::OkStatus();
+}
+
 absl::Status LyraTerrainCanvas::PrepareMapAssets(zelda3::Overworld& overworld,
                                                  int state) {
   if (!document_)
     return absl::OkStatus();
-  RETURN_IF_ERROR(CheckAssetSources(overworld));
   assets_valid_ = false;
+  RETURN_IF_ERROR(CheckAssetSources(overworld));
   if (atlas_profile_ != document_->profile()) {
     core::LyraTerrainProfile profile;
     gfx::Bitmap atlas;
@@ -749,15 +777,23 @@ absl::Status LyraTerrainCanvas::Load(project::YazeProject* project,
   ASSIGN_OR_RETURN(auto bytes, ReadSource(path));
   if (!bytes)
     return absl::NotFoundError("The project's Lyra terrain file is missing");
-  ASSIGN_OR_RETURN(auto document, Document::Parse(*bytes, profile));
-  RETURN_IF_ERROR(ValidateMapAssets(overworld, document.authoring()));
+  ASSIGN_OR_RETURN(auto document, Document::ParseForAssetRecovery(*bytes));
+  const auto assets_status = ValidateMapAssets(overworld, document.authoring());
+  const bool recovery = profile != document.profile() || !assets_status.ok();
   // ROM replacement can keep the sidecar path while changing its native tile
   // profile. Validate all assets in copied maps before retiring the old view.
   gfx::Bitmap atlas;
-  RETURN_IF_ERROR(BindSource(overworld, &profile, &atlas));
+  if (!recovery)
+    RETURN_IF_ERROR(BindSource(overworld, &profile, &atlas));
   InstallDocument(std::make_shared<Document>(std::move(document)),
                   std::move(atlas), path, std::move(bytes), false);
-  RecordBoundDefinitions(Tile16Definitions(overworld));
+  if (recovery) {
+    *recovery_status_ = absl::FailedPreconditionError(
+        "Lyra terrain was opened with changed native assets; review the asset "
+        "rebind before editing or saving");
+  } else {
+    RecordBoundDefinitions(Tile16Definitions(overworld));
+  }
   // Keep the live reference absolute so project Save As can rebase it safely.
   project->lyra_terrain_file = source_path_;
   return absl::OkStatus();
@@ -829,12 +865,14 @@ void LyraTerrainCanvas::InstallDocument(std::shared_ptr<Document> document,
   Reset();
   document_ = std::move(document);
   atlas_ = std::move(atlas);
-  atlas_profile_ = document_->profile();
+  if (atlas_.is_active())
+    atlas_profile_ = document_->profile();
   source_path_ = std::move(source_path);
   source_bytes_ = std::move(source_bytes);
   unpublished_ = unpublished;
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
-                                        &atlas_);
+  if (atlas_.is_active())
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &atlas_);
 }
 
 bool LyraTerrainCanvas::dirty() const {
@@ -914,6 +952,7 @@ absl::Status LyraTerrainCanvas::ValidateSave(project::YazeProject* project,
 
 absl::Status LyraTerrainCanvas::ValidateLiveSource(
     project::YazeProject* project, zelda3::Overworld& overworld) {
+  RETURN_IF_ERROR(*recovery_status_);
   if (const auto pending = PendingPropertyMaps(); !pending.empty())
     return absl::FailedPreconditionError(absl::StrFormat(
         "Apply or Revert Lyra properties for %s %s before saving the project.",
@@ -933,6 +972,7 @@ absl::Status LyraTerrainCanvas::ValidateLiveSource(
 
 absl::Status LyraTerrainCanvas::Save(project::YazeProject* project,
                                      zelda3::Overworld& overworld) {
+  RETURN_IF_ERROR(*recovery_status_);
   if (!dirty())
     return absl::OkStatus();
   std::string durable_receipt;
@@ -1111,6 +1151,10 @@ absl::Status LyraTerrainCanvas::ApplyAssetRebind(
       preview.terrain_fingerprint != document_->TerrainFingerprint())
     return absl::FailedPreconditionError(
         "Lyra terrain changed after the rebind preview; preview again");
+  ASSIGN_OR_RETURN(auto source_bytes, ReadSource(source_path_));
+  if (source_bytes != source_bytes_)
+    return absl::FailedPreconditionError(
+        "Lyra terrain changed on disk; reload before rebinding");
   ASSIGN_OR_RETURN(auto current, PreviewAssetRebind(overworld));
   if (current != preview)
     return absl::FailedPreconditionError(
@@ -1123,8 +1167,6 @@ absl::Status LyraTerrainCanvas::ApplyAssetRebind(
         current.invalid_cells.size(), first.map_id, first.x, first.y,
         first.tile));
   }
-  if (current.empty())
-    return absl::OkStatus();
   // Unbound maps resolve through the new shared profile too.
   RETURN_IF_ERROR(ValidateMapAssets(overworld, current.after_authoring));
   core::LyraTerrainProfile profile;
@@ -1133,15 +1175,21 @@ absl::Status LyraTerrainCanvas::ApplyAssetRebind(
   if (profile != current.after_profile)
     return absl::FailedPreconditionError(
         "Lyra native assets changed during the rebind; preview again");
-  RETURN_IF_ERROR(document_->ApplyAssetRebind(current, false));
+  const auto before_recovery = *recovery_status_;
+  // Restoring the exact previously bound sources needs no document migration,
+  // but the explicit review must still rebuild recovery's absent atlas.
+  if (!current.empty())
+    RETURN_IF_ERROR(document_->ApplyAssetRebind(current, false));
+  *recovery_status_ = absl::OkStatus();
   ReplaceAtlas(std::move(atlas), profile);
   RecordBoundDefinitions(Tile16Definitions(overworld));
   validated_authoring_.reset();
   displayed_assets_.fill(nullptr);
   map_assets_.clear();
   assets_valid_ = false;
-  history.Push(
-      std::make_unique<AssetRebindAction>(document_, std::move(current)));
+  if (!current.empty())
+    history.Push(std::make_unique<AssetRebindAction>(
+        document_, std::move(current), recovery_status_, before_recovery));
   status_ = absl::OkStatus();
   return absl::OkStatus();
 }
@@ -1165,6 +1213,7 @@ absl::Status LyraTerrainCanvas::PaintPattern(const TileBrush& brush, int x,
                                              int y, int width, int height,
                                              bool finalize,
                                              UndoManager& history) {
+  RETURN_IF_ERROR(*recovery_status_);
   if (!assets_valid_)
     return absl::FailedPreconditionError(
         "Lyra map assets are unavailable; terrain retained");
@@ -1351,6 +1400,7 @@ void LyraTerrainCanvas::Reset() {
   if (document_ && stroke_active_)
     document_->CancelStroke();
   document_.reset();
+  recovery_status_ = std::make_shared<absl::Status>();
   source_path_.clear();
   source_bytes_.reset();
   unpublished_ = false;

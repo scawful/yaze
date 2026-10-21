@@ -14,11 +14,13 @@
 #include "app/editor/core/undo_action.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
 #include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
 #include "fresh_rom_fixture_output.h"
 #include "gtest/gtest.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "testing.h"
 #include "unique_temp_path.h"
@@ -36,6 +38,12 @@ class LyraTerrainCanvasTestPeer {
   }
   static void BindSourcePath(LyraTerrainCanvas& canvas, std::string path) {
     canvas.source_path_ = std::move(path);
+  }
+  static void RequireRecovery(LyraTerrainCanvas& canvas) {
+    *canvas.recovery_status_ = absl::FailedPreconditionError(
+        "Review the Lyra asset rebind before editing or saving");
+    // Retained cached assets must not bypass a recovery guard restored by Undo.
+    canvas.assets_valid_ = true;
   }
   // The same lookup DrawProperties performs when a Lyra map is selected.
   static core::LyraMapProperties& Draft(LyraTerrainCanvas& canvas,
@@ -327,6 +335,38 @@ class LyraTerrainOpenTest : public LyraTerrainSourceTest {
   LyraTerrainCanvas canvas_;
   zelda3::Overworld overworld_{nullptr};
 };
+
+TEST_F(LyraTerrainOpenTest, RecoveryGuardsCleanSavePaintAndAuthoring) {
+  Peer::RequireRecovery(canvas_);
+  const auto before = document_->Serialize();
+  UndoManager history;
+  history.Push(std::make_unique<NoOpAction>());
+  ASSERT_TRUE(history.Undo().ok());
+  ASSERT_FALSE(canvas_.dirty());
+  ASSERT_TRUE(canvas_.recovery_required());
+  EXPECT_FALSE(canvas_.recovery_reason().empty());
+  EXPECT_EQ(canvas_.Save(&project_, overworld_).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(
+      canvas_.SaveAs(&project_, (directory_ / "Fork.yaze").string(), overworld_)
+          .code(),
+      absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(canvas_.PrepareMapAssets(overworld_, 0).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(
+      canvas_.PaintPattern(TileBrush{1, 1, {3}}, 1, 1, 1, 1, true, history)
+          .code(),
+      absl::StatusCode::kFailedPrecondition);
+  auto authoring = document_->authoring();
+  authoring.maps[0].properties.message_id = 0x42;
+  EXPECT_EQ(canvas_.EditAuthoring(authoring, overworld_, history).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(document_->Serialize(), before);
+  EXPECT_EQ(history.UndoStackSize(), 0u);
+  EXPECT_EQ(history.RedoStackSize(), 1u);
+  EXPECT_FALSE(fs::exists(directory_ / "Fork.yaze"));
+  ExpectProtectedFilesUnchanged();
+}
 
 TEST_F(LyraTerrainOpenTest,
        InvalidSelectedSourceRetainsCleanCanvasAndReference) {
@@ -696,6 +736,411 @@ TEST_F(LyraPropertyDraftTest, EdgeConnectionEditsLeavePropertyDraftsIntact) {
 
 // Opt-in: YAZE_TEST_ROM_OOS names an Oracle ROM that is only ever read. All
 // writes go to fresh private copies under one unique temp directory.
+TEST(LyraTerrainNativeRebindTest, PaletteSaveColdReopenRecoversAndRebindsLyra) {
+  const char* source_env = std::getenv("YAZE_TEST_ROM_OOS");
+  if (source_env == nullptr || !fs::is_regular_file(source_env))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM (read only)";
+  const fs::path source(source_env);
+  const auto source_bytes = Read(source);
+  const auto root = test::UniqueTempPath("yaze_lyra_palette_recovery");
+  ASSERT_TRUE(fs::create_directory(root));
+  const auto previous_addresses = core::RomSettings::Get().address_overrides();
+  const auto previous_flags = core::FeatureFlags::get();
+  absl::Cleanup restore = [&]() {
+    gfx::Arena::Get().ClearTextureQueue();
+    core::RomSettings::Get().SetAddressOverrides(previous_addresses);
+    core::FeatureFlags::get() = previous_flags;
+    std::error_code ec;
+    fs::remove_all(root, ec);
+  };
+  core::RomSettings::Get().ClearOverrides();
+  core::FeatureFlags::get().overworld.kLoadCustomOverworld = true;
+  Rom::LoadOptions rom_options;
+  rom_options.load_resource_labels = false;
+  zelda3::LoadOptions data_options;
+  data_options.expand_rom = false;
+  const auto base_rom = root / "private-base.sfc";
+  {
+    Rom copy;
+    ASSERT_OK(copy.LoadFromFile(source.string(), rom_options));
+    ASSERT_OK(test::SaveFreshFixtureRom(copy, base_rom));
+  }
+  Rom rom;
+  ASSERT_OK(rom.LoadFromFile(base_rom.string(), rom_options));
+  zelda3::GameData data;
+  auto& palettes = gfx::PaletteManager::Get();
+  palettes.ResetForTesting();
+  absl::Cleanup palette_cleanup = [&]() {
+    palettes.ReleaseSession(&data);
+    palettes.ResetForTesting();
+  };
+  ASSERT_OK(zelda3::LoadGameData(rom, data, data_options));
+  zelda3::Overworld overworld(&rom, &data);
+  ASSERT_OK(overworld.Load(&rom));
+  project::YazeProject project;
+  project.name = "Lyra native palette recovery fixture";
+  project.feature_flags = core::FeatureFlags::get();
+  project.filepath = (root / "Oracle.yaze").string();
+  project.rom_filename = base_rom.string();
+  ASSERT_OK(project.Save());
+  LyraTerrainCanvas original;
+  ASSERT_OK(original.Create(&project, overworld));
+  ASSERT_OK(original.Save(&project, overworld));
+  ASSERT_OK(project.Save());
+  original.ProjectSaveCommitted();
+  const auto sidecar = project.GetAbsolutePath(project.lyra_terrain_file);
+  const auto terrain_before = Read(sidecar);
+  const auto original_profile = original.document()->profile();
+  const auto maps_before = original.document()->maps();
+  const auto authoring_before = original.document()->authoring();
+
+  const int palette_index = original_profile.main_palette;
+  constexpr int kColorIndex = 0;
+  palettes.Initialize(&data);
+  ASSERT_TRUE(palettes.IsManaging(&data));
+  EXPECT_EQ(palettes.GetModifiedColorCount(), 0u);
+  const auto old_color =
+      palettes.GetColor("ow_main", palette_index, kColorIndex);
+  // Change both bytes of one valid 15-bit SNES color through the native API.
+  const gfx::SnesColor changed(
+      static_cast<uint16_t>(old_color.snes() ^ 0x0421));
+  const auto address =
+      gfx::GetPaletteAddress("ow_main", palette_index, kColorIndex);
+  ASSERT_EQ(rom.ReadWord(address).value(), old_color.snes());
+  const auto native_before = rom.vector();
+  const auto file_before = Read(base_rom);
+  ASSERT_OK(palettes.SetColor("ow_main", palette_index, kColorIndex, changed));
+  EXPECT_EQ(palettes.GetModifiedColorCount(), 1u);
+  EXPECT_EQ(palettes.GetModifiedGroups(),
+            (std::vector<std::string>{"ow_main"}));
+  const std::vector<std::pair<uint32_t, uint32_t>> expected_ranges = {
+      {address, address + 2}};
+  EXPECT_EQ(palettes.GetModifiedColorWriteRanges(), expected_ranges);
+  EXPECT_EQ(palettes.GetModifiedGroupColorWriteRanges("ow_main"),
+            expected_ranges);
+  EXPECT_EQ(rom.vector(), native_before);
+  ASSERT_OK(palettes.SaveAllToRom());
+  EXPECT_EQ(palettes.GetModifiedColorCount(), 0u);
+  EXPECT_TRUE(palettes.GetModifiedColorWriteRanges().empty());
+  ASSERT_EQ(rom.vector().size(), native_before.size());
+  std::vector<size_t> native_changes;
+  for (size_t i = 0; i < native_before.size(); ++i) {
+    if (native_before[i] != rom.vector()[i])
+      native_changes.push_back(i);
+  }
+  EXPECT_EQ(native_changes, (std::vector<size_t>{address, address + 1}));
+  EXPECT_EQ(rom.ReadWord(address).value(), changed.snes());
+  ASSERT_OK(rom.SaveToFile(Rom::SaveSettings{}));
+  const auto saved_rom = Read(base_rom);
+  ASSERT_EQ(saved_rom.size(), file_before.size());
+  std::vector<size_t> file_changes;
+  for (size_t i = 0; i < file_before.size(); ++i) {
+    if (file_before[i] != saved_rom[i])
+      file_changes.push_back(i);
+  }
+  const size_t file_offset = rom.copier_header().size() + address;
+  EXPECT_EQ(file_changes, (std::vector<size_t>{file_offset, file_offset + 1}));
+  EXPECT_EQ(Read(sidecar), terrain_before);
+
+  // A cold load reads only the saved private ROM, project and stale sidecar.
+  project::YazeProject reopened_project;
+  ASSERT_OK(reopened_project.Open(project.filepath));
+  Rom reopened_rom;
+  ASSERT_OK(reopened_rom.LoadFromFile(base_rom.string(), rom_options));
+  zelda3::GameData reopened_data;
+  ASSERT_OK(zelda3::LoadGameData(reopened_rom, reopened_data, data_options));
+  EXPECT_EQ(
+      reopened_data.palette_groups.overworld_main[palette_index][kColorIndex]
+          .snes(),
+      changed.snes());
+  zelda3::Overworld reopened_overworld(&reopened_rom, &reopened_data);
+  ASSERT_OK(reopened_overworld.Load(&reopened_rom));
+  LyraTerrainCanvas recovery;
+  UndoManager history;
+  ASSERT_OK(recovery.Load(&reopened_project, reopened_overworld));
+  ASSERT_TRUE(recovery.recovery_required());
+  EXPECT_EQ(recovery.document()->maps(), maps_before);
+  EXPECT_EQ(recovery.document()->authoring(), authoring_before);
+  auto preview = recovery.PreviewAssetRebind(reopened_overworld);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_EQ(preview->before_profile, original_profile);
+  EXPECT_NE(preview->after_profile.palette_fingerprint,
+            original_profile.palette_fingerprint);
+  auto palette_only = original_profile;
+  palette_only.palette_fingerprint = preview->after_profile.palette_fingerprint;
+  EXPECT_EQ(preview->after_profile, palette_only);
+  EXPECT_TRUE(preview->invalid_cells.empty());
+  ASSERT_OK(recovery.ApplyAssetRebind(&reopened_project, reopened_overworld,
+                                      *preview, history));
+  ASSERT_OK(recovery.PrepareMapAssets(reopened_overworld, 0));
+  ASSERT_OK(recovery.Save(&reopened_project, reopened_overworld));
+  ASSERT_OK(reopened_project.Save());
+  recovery.ProjectSaveCommitted();
+  EXPECT_FALSE(recovery.recovery_required());
+  EXPECT_FALSE(recovery.dirty());
+
+  project::YazeProject final_project;
+  ASSERT_OK(final_project.Open(reopened_project.filepath));
+  Rom final_rom;
+  ASSERT_OK(final_rom.LoadFromFile(base_rom.string(), rom_options));
+  zelda3::GameData final_data;
+  ASSERT_OK(zelda3::LoadGameData(final_rom, final_data, data_options));
+  zelda3::Overworld final_overworld(&final_rom, &final_data);
+  ASSERT_OK(final_overworld.Load(&final_rom));
+  LyraTerrainCanvas final_canvas;
+  ASSERT_OK(final_canvas.Load(&final_project, final_overworld));
+  ASSERT_OK(final_canvas.PrepareMapAssets(final_overworld, 0));
+  EXPECT_FALSE(final_canvas.recovery_required());
+  EXPECT_EQ(final_canvas.document()->profile(), palette_only);
+  EXPECT_EQ(final_canvas.document()->maps(), maps_before);
+  EXPECT_EQ(final_canvas.document()->authoring(), authoring_before);
+  EXPECT_EQ(final_canvas.atlas().palette(), recovery.atlas().palette());
+  EXPECT_EQ(Read(base_rom), saved_rom);
+  EXPECT_EQ(Read(source), source_bytes);
+  RecordProperty("palette_word_address", address);
+  RecordProperty("original_palette_word", old_color.snes());
+  RecordProperty("saved_palette_word", changed.snes());
+}
+
+TEST(LyraTerrainNativeRebindTest,
+     RecoversStaleBindingsAtOpenThroughHistorySaveAndReopen) {
+  const char* source_env = std::getenv("YAZE_TEST_ROM_OOS");
+  if (source_env == nullptr || !fs::is_regular_file(source_env))
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to an Oracle ROM (read only)";
+  const fs::path source(source_env);
+  const auto source_bytes = Read(source);
+  const auto root = test::UniqueTempPath("yaze_lyra_recovery");
+  ASSERT_TRUE(fs::create_directory(root));
+  const auto previous_addresses = core::RomSettings::Get().address_overrides();
+  const auto previous_flags = core::FeatureFlags::get();
+  absl::Cleanup restore = [&]() {
+    gfx::Arena::Get().ClearTextureQueue();
+    core::RomSettings::Get().SetAddressOverrides(previous_addresses);
+    core::FeatureFlags::get() = previous_flags;
+    std::error_code ec;
+    fs::remove_all(root, ec);
+  };
+  core::RomSettings::Get().ClearOverrides();
+  core::FeatureFlags::get().overworld.kLoadCustomOverworld = true;
+  Rom::LoadOptions rom_options;
+  rom_options.load_resource_labels = false;
+  zelda3::LoadOptions data_options;
+  data_options.expand_rom = false;
+  const auto base_rom = root / "private-base.sfc";
+  {
+    Rom copy;
+    ASSERT_OK(copy.LoadFromFile(source.string(), rom_options));
+    ASSERT_OK(test::SaveFreshFixtureRom(copy, base_rom));
+  }
+  Rom rom;
+  ASSERT_OK(rom.LoadFromFile(base_rom.string(), rom_options));
+  zelda3::GameData data;
+  ASSERT_OK(zelda3::LoadGameData(rom, data, data_options));
+  zelda3::Overworld overworld(&rom, &data);
+  ASSERT_OK(overworld.Load(&rom));
+  project::YazeProject project;
+  project.name = "Lyra stale-at-open recovery fixture";
+  project.feature_flags = core::FeatureFlags::get();
+  project.filepath = (root / "Oracle.yaze").string();
+  project.rom_filename = base_rom.string();
+  ASSERT_OK(project.Save());
+  constexpr uint16_t kEditedTile = 0x123;
+  {
+    LyraTerrainCanvas creator;
+    UndoManager history;
+    ASSERT_OK(creator.Create(&project, overworld));
+    auto authoring = creator.document()->authoring();
+    authoring.maps[0].properties.message_id = 0x42;
+    authoring.maps[0].sprites.push_back({1, 0x13, 4, 5, 0});
+    authoring.edge_connections.push_back(
+        {2, 0x98, 0xA0, core::LyraEdgePassage{3, 6}});
+    ASSERT_OK(creator.EditAuthoring(authoring, overworld, history));
+    ASSERT_OK(creator.PrepareMapAssets(overworld, 0));
+    ASSERT_OK(creator.PaintPattern(TileBrush{1, 1, {kEditedTile}}, 3, 4, 1, 1,
+                                   true, history));
+    ASSERT_OK(creator.Save(&project, overworld));
+    ASSERT_OK(project.Save());
+    creator.ProjectSaveCommitted();
+  }
+  const auto sidecar = project.GetAbsolutePath(project.lyra_terrain_file);
+  const auto authored_bytes = Read(sidecar);
+  const auto project_bytes = Read(project.filepath);
+
+  // Only a per-map binding changed; the shared profile still matches. This
+  // used to fail Load before the user could open the rebind review.
+  auto stale_json = nlohmann::json::parse(authored_bytes);
+  stale_json["maps"][0]["authoring"]["asset_bindings"][1] = "binding:obsolete";
+  const auto stale_bytes = stale_json.dump();
+  Write(sidecar, stale_bytes);
+  {
+    LyraTerrainCanvas recovery;
+    UndoManager history;
+    ASSERT_OK(recovery.Load(&project, overworld));
+    ASSERT_TRUE(recovery.loaded());
+    EXPECT_TRUE(recovery.recovery_required());
+    EXPECT_FALSE(recovery.dirty());
+    const auto before = recovery.document()->Serialize();
+    EXPECT_EQ(recovery.Save(&project, overworld).code(),
+              absl::StatusCode::kFailedPrecondition);
+    auto preview = recovery.PreviewAssetRebind(overworld);
+    ASSERT_TRUE(preview.ok()) << preview.status();
+    EXPECT_FALSE(preview->profile_changed());
+    ASSERT_EQ(preview->binding_changes.size(), 1u);
+    EXPECT_EQ(preview->binding_changes[0].state, 1);
+
+    // Drift after review refuses the rebind before changing history or data.
+    Write(sidecar, stale_bytes + "\n");
+    const auto drift =
+        recovery.ApplyAssetRebind(&project, overworld, *preview, history);
+    EXPECT_EQ(drift.code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_NE(drift.message().find("changed on disk"), std::string::npos);
+    EXPECT_EQ(recovery.document()->Serialize(), before);
+    EXPECT_TRUE(recovery.recovery_required());
+    EXPECT_EQ(history.UndoStackSize(), 0u);
+    Write(sidecar, stale_bytes);
+
+    ASSERT_OK(
+        recovery.ApplyAssetRebind(&project, overworld, *preview, history));
+    EXPECT_FALSE(recovery.recovery_required());
+    ASSERT_OK(recovery.PrepareMapAssets(overworld, 0));
+    ASSERT_OK(history.Undo());
+    EXPECT_TRUE(recovery.recovery_required());
+    EXPECT_EQ(recovery.document()->Serialize(), before);
+    EXPECT_EQ(
+        recovery.PaintPattern(TileBrush{1, 1, {3}}, 1, 1, 1, 1, true, history)
+            .code(),
+        absl::StatusCode::kFailedPrecondition);
+    EXPECT_EQ(recovery.Save(&project, overworld).code(),
+              absl::StatusCode::kFailedPrecondition);
+    EXPECT_EQ(recovery.PrepareMapAssets(overworld, 0).code(),
+              absl::StatusCode::kFailedPrecondition);
+    EXPECT_FALSE(recovery.MapAtlas(0xA0).is_active());
+    ASSERT_OK(history.Redo());
+    EXPECT_FALSE(recovery.recovery_required());
+    ASSERT_OK(recovery.Save(&project, overworld));
+    ASSERT_OK(project.Save());
+    recovery.ProjectSaveCommitted();
+    EXPECT_EQ(Read(sidecar), authored_bytes);
+  }
+
+  // Disclosed native fixture: flip one used Tile16 quadrant in the loaded
+  // model and persist that word only in the private ROM before cold reopen.
+  auto& tiles16 = *overworld.mutable_tiles16();
+  const gfx::Tile16 original_tile = tiles16[kEditedTile];
+  auto flipped = original_tile.tile0_;
+  flipped.horizontal_mirror_ = !flipped.horizontal_mirror_;
+  tiles16[kEditedTile] =
+      gfx::Tile16(flipped, original_tile.tile1_, original_tile.tile2_,
+                  original_tile.tile3_);
+  bool expanded = false;
+  ASSERT_TRUE(zelda3::ReadMap16Tiles(rom, &expanded).ok());
+  const int table =
+      expanded ? zelda3::GetMap16TilesExpanded() : zelda3::kMap16Tiles;
+  ASSERT_OK(
+      rom.WriteWord(table + kEditedTile * 8, gfx::TileInfoToWord(flipped)));
+  ASSERT_OK(rom.SaveToFile(Rom::SaveSettings{}));
+
+  // Load the persisted source independently; no in-memory canvas state helps
+  // identify the original definitions on this path.
+  Rom reopened_rom;
+  ASSERT_OK(reopened_rom.LoadFromFile(base_rom.string(), rom_options));
+  zelda3::GameData reopened_data;
+  ASSERT_OK(zelda3::LoadGameData(reopened_rom, reopened_data, data_options));
+  zelda3::Overworld reopened_overworld(&reopened_rom, &reopened_data);
+  ASSERT_OK(reopened_overworld.Load(&reopened_rom));
+  LyraTerrainCanvas recovery;
+  UndoManager history;
+  ASSERT_OK(recovery.Load(&project, reopened_overworld));
+  ASSERT_TRUE(recovery.recovery_required());
+  const auto* document = recovery.document();
+  const auto maps_before = document->maps();
+  const auto authoring_before = document->authoring();
+  const auto old_profile = document->profile();
+  EXPECT_EQ(document->MapTile(0xA0, 3, 4).value(), kEditedTile);
+  EXPECT_EQ(recovery.PrepareMapAssets(reopened_overworld, 0).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(recovery
+                .SaveAs(&project, (root / "Refused.yaze").string(),
+                        reopened_overworld)
+                .code(),
+            absl::StatusCode::kFailedPrecondition);
+
+  // If the original sources are restored, the no-op review must also rebuild
+  // the atlas omitted by recovery load without adding an empty history step.
+  auto& reopened_tiles = *reopened_overworld.mutable_tiles16();
+  const auto changed_tile = reopened_tiles[kEditedTile];
+  reopened_tiles[kEditedTile] = original_tile;
+  auto matching = recovery.PreviewAssetRebind(reopened_overworld);
+  ASSERT_TRUE(matching.ok()) << matching.status();
+  ASSERT_TRUE(matching->empty());
+  ASSERT_OK(recovery.ApplyAssetRebind(&project, reopened_overworld, *matching,
+                                      history));
+  EXPECT_FALSE(recovery.recovery_required());
+  EXPECT_EQ(history.UndoStackSize(), 0u);
+  EXPECT_TRUE(recovery.atlas().is_active());
+  ASSERT_OK(recovery.PrepareMapAssets(reopened_overworld, 0));
+  EXPECT_TRUE(recovery.MapAtlas(0xA0).is_active());
+  reopened_tiles[kEditedTile] = changed_tile;
+  ASSERT_OK(recovery.Load(&project, reopened_overworld));
+  ASSERT_TRUE(recovery.recovery_required());
+  document = recovery.document();
+
+  // Recovery must not weaken geometry/cell validation or replace a retained
+  // document when a separately selected sidecar is corrupt.
+  for (const bool invalid_cell : {false, true}) {
+    auto malformed = nlohmann::json::parse(authored_bytes);
+    if (invalid_cell)
+      malformed["maps"][0]["tiles16"][0][0] = old_profile.tile_count;
+    else
+      malformed["columns"] = 7;
+    const auto corrupt_path = root / "corrupt.json";
+    Write(corrupt_path, malformed.dump());
+    EXPECT_EQ(recovery.Open(&project, corrupt_path.string(), reopened_overworld)
+                  .code(),
+              absl::StatusCode::kInvalidArgument);
+    EXPECT_EQ(recovery.document(), document);
+    EXPECT_TRUE(recovery.recovery_required());
+    EXPECT_EQ(project.GetAbsolutePath(project.lyra_terrain_file), sidecar);
+  }
+  auto preview = recovery.PreviewAssetRebind(reopened_overworld);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_TRUE(preview->profile_changed());
+  EXPECT_FALSE(preview->changed_tiles.has_value());
+  EXPECT_EQ(preview->affected_maps.size(), 32u);
+  EXPECT_TRUE(preview->invalid_cells.empty());
+  ASSERT_OK(recovery.ApplyAssetRebind(&project, reopened_overworld, *preview,
+                                      history));
+  EXPECT_FALSE(recovery.recovery_required());
+  EXPECT_EQ(document->maps(), maps_before);
+  EXPECT_EQ(document->authoring(), authoring_before);
+  ASSERT_OK(recovery.PrepareMapAssets(reopened_overworld, 0));
+  ASSERT_OK(recovery.Save(&project, reopened_overworld));
+  ASSERT_OK(project.Save());
+  recovery.ProjectSaveCommitted();
+  const auto rebound_bytes = Read(sidecar);
+  EXPECT_NE(rebound_bytes, authored_bytes);
+  ASSERT_OK(history.Undo());
+  EXPECT_TRUE(recovery.recovery_required());
+  EXPECT_EQ(document->profile(), old_profile);
+  EXPECT_EQ(recovery.Save(&project, reopened_overworld).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(Read(sidecar), rebound_bytes);
+  ASSERT_OK(history.Redo());
+  EXPECT_FALSE(recovery.recovery_required());
+  EXPECT_FALSE(recovery.dirty());
+  {
+    LyraTerrainCanvas reopened;
+    ASSERT_OK(reopened.Load(&project, reopened_overworld));
+    EXPECT_FALSE(reopened.recovery_required());
+    ASSERT_OK(reopened.PrepareMapAssets(reopened_overworld, 0));
+    EXPECT_EQ(reopened.document()->maps(), maps_before);
+    EXPECT_EQ(reopened.document()->authoring(), authoring_before);
+    EXPECT_EQ(reopened.document()->profile(), preview->after_profile);
+  }
+  EXPECT_EQ(Read(project.filepath), project_bytes);
+  EXPECT_EQ(Read(source), source_bytes);
+}
+
 TEST(LyraTerrainNativeRebindTest,
      RebindsEditedTile16ThroughHistorySaveAndReopen) {
   const char* source_env = std::getenv("YAZE_TEST_ROM_OOS");
@@ -800,6 +1245,38 @@ TEST(LyraTerrainNativeRebindTest,
   EXPECT_EQ(document->MapTile(0xB1, 8, 6).value(), kEditedTile);
   const auto maps_before = document->maps();
   const auto authoring_before = document->authoring();
+
+  // A committed external preview transfer can change donor pixels without
+  // changing any ROM, shared sheet, palette or selector snapshot.
+  auto* donor = overworld.mutable_overworld_map(0x3A);
+  ASSERT_NE(donor, nullptr);
+  auto donor_copy = *donor;
+  ASSERT_OK(donor_copy.BuildTileset());
+  constexpr uint16_t kPreviewCharacter = 0xC0;
+  constexpr size_t kPreviewPixel =
+      (kPreviewCharacter / 16 * 8) * 128 + (kPreviewCharacter % 16) * 8;
+  zelda3::PreviewTile8 external_pixels;
+  external_pixels.fill((donor_copy.current_graphics()[kPreviewPixel] + 1) & 15);
+  donor->SetGraphicsPreview({{kPreviewCharacter, external_pixels}});
+  canvas.InvalidateAssetCaches();
+  EXPECT_FALSE(canvas.MapAtlas(0xA0).is_active());
+  EXPECT_EQ(canvas.PaintPattern(brush, 1, 1, 1, 1, true, history).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(canvas.PrepareMapAssets(overworld, 0).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_FALSE(canvas.MapAtlas(0xA0).is_active());
+  auto external_preview = canvas.PreviewAssetRebind(overworld);
+  ASSERT_TRUE(external_preview.ok()) << external_preview.status();
+  EXPECT_NE(external_preview->after_profile.graphics_fingerprint,
+            original_profile.graphics_fingerprint);
+  EXPECT_EQ(external_preview->changed_tiles, std::vector<uint16_t>{});
+  EXPECT_EQ(document->maps(), maps_before);
+  EXPECT_EQ(document->authoring(), authoring_before);
+  EXPECT_EQ(history.UndoStackSize(), 3u);
+  donor->SetGraphicsPreview({});
+  canvas.InvalidateAssetCaches();
+  ASSERT_OK(canvas.PrepareMapAssets(overworld, 0));
+  EXPECT_TRUE(canvas.MapAtlas(0xA0).is_active());
 
   // Native in-memory edit of one used definition: flip quadrant 0.
   auto& tiles16 = *overworld.mutable_tiles16();

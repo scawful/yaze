@@ -212,6 +212,12 @@ class LyraTerrainDocument {
       const LyraTerrainProfile& profile, uint16_t fill_tile = 0);
   static absl::StatusOr<LyraTerrainDocument> Parse(
       std::string_view text, const LyraTerrainProfile& expected_profile);
+  // Recovery only: validate all schema, geometry, authoring and cells against
+  // the stored profile without requiring current native assets to match it.
+  // The editor must keep this document read-only until an asset rebind is
+  // reviewed. Normal consumers retain the strict Parse binding check.
+  static absl::StatusOr<LyraTerrainDocument> ParseForAssetRecovery(
+      std::string_view text);
   std::string Serialize() const;
 
   const LyraTerrainProfile& profile() const { return profile_; }
@@ -253,6 +259,8 @@ class LyraTerrainDocument {
   }
 
  private:
+  static absl::StatusOr<LyraTerrainDocument> ParseImpl(
+      std::string_view text, const LyraTerrainProfile* expected_profile);
   LyraTerrainDocument() = default;
   LyraTerrainProfile profile_;
   LyraTerrainProfile saved_profile_;

@@ -164,6 +164,10 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
   if (!document_) {
     return;
   }
+  if (recovery_required()) {
+    ImGui::TextWrapped("%s", recovery_reason().c_str());
+    return;
+  }
 
   if (ImGui::IsKeyPressed(ImGuiKey_Escape))
     placement_kind_ = 0;
@@ -909,6 +913,8 @@ void LyraTerrainCanvas::HandleEntityInput(const gui::CanvasRuntime& canvas,
                                           int world,
                                           zelda3::Overworld& overworld,
                                           UndoManager& history) {
+  if (recovery_required())
+    return;
   if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     placement_kind_ = 0;
   }

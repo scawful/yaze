@@ -409,6 +409,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/tile_painting_manager_test.cc
     unit/zelda3/overworld_graphics_preview_test.cc
     unit/editor/project_graphics_preview_test.cc
+    unit/editor/project_graphics_source_test.cc
+    unit/editor/project_graphics_source_ui_test.cc
     unit/editor/overworld_undo_actions_test.cc
     unit/editor/tile16_document_history_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc
@@ -895,6 +897,8 @@ if(YAZE_BUILD_TESTS)
   # Project graphics reload and selected-world pause-map layout import.
   yaze_add_focused_test_target(yaze_test_focus_project_resources
     unit/editor/project_graphics_preview_test.cc
+    unit/editor/project_graphics_source_test.cc
+    unit/editor/project_graphics_source_ui_test.cc
     unit/zelda3/overworld_map_screen_custom_map_test.cc)
 
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})

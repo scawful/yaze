@@ -112,12 +112,79 @@ TEST(LyraTerrainDocumentTest, RefusesMalformedSchemaDimensionsMapsAndTiles) {
     auto malformed = original;
     mutations[i](malformed);
     EXPECT_FALSE(LyraTerrainDocument::Parse(malformed.dump(), Profile()).ok());
+    EXPECT_FALSE(
+        LyraTerrainDocument::ParseForAssetRecovery(malformed.dump()).ok());
   }
   EXPECT_FALSE(LyraTerrainDocument::Parse("{", Profile()).ok());
   EXPECT_FALSE(LyraTerrainDocument::Parse("null", Profile()).ok());
   auto duplicate_key = document->Serialize();
   duplicate_key.insert(1, "\"columns\":8,");
   EXPECT_FALSE(LyraTerrainDocument::Parse(duplicate_key, Profile()).ok());
+  EXPECT_FALSE(LyraTerrainDocument::ParseForAssetRecovery("{").ok());
+  EXPECT_FALSE(LyraTerrainDocument::ParseForAssetRecovery("null").ok());
+  EXPECT_FALSE(LyraTerrainDocument::ParseForAssetRecovery(duplicate_key).ok());
+}
+
+TEST(LyraTerrainDocumentTest,
+     AssetRecoveryRetainsStoredProfileAndReportsNewAtlasInvalidCells) {
+  auto original = LyraTerrainDocument::Create(Profile(), 7);
+  ASSERT_TRUE(original.ok()) << original.status();
+  ASSERT_TRUE(original->BeginStroke().ok());
+  ASSERT_TRUE(original->Paint(3, 4, 4095).ok());
+  ASSERT_TRUE(original->EndStroke().ok());
+  auto authoring = original->authoring();
+  authoring.maps[0].asset_bindings = {"old:0", "old:1", "old:2"};
+  authoring.maps[0].sprites.push_back({1, 0x13, 4, 5, 0});
+  authoring.edge_connections.push_back({2, 0x98, 0xA0, LyraEdgePassage{3, 6}});
+  ASSERT_TRUE(original->SetAuthoring(original->authoring(), authoring).ok());
+  const auto bytes = original->Serialize();
+  auto current = Profile();
+  current.tile_count = 1024;
+  current.tile16_definition_fingerprint = "definitions:current";
+  EXPECT_EQ(LyraTerrainDocument::Parse(bytes, current).status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  auto recovered = LyraTerrainDocument::ParseForAssetRecovery(bytes);
+  ASSERT_TRUE(recovered.ok()) << recovered.status();
+  EXPECT_EQ(recovered->profile(), original->profile());
+  EXPECT_EQ(recovered->maps(), original->maps());
+  EXPECT_EQ(recovered->authoring(), original->authoring());
+  EXPECT_FALSE(recovered->dirty());
+
+  LyraStateBindings bindings;
+  bindings[0] = {"new:0", "new:1", "new:2"};
+  auto plan = recovered->PlanAssetRebind(current, bindings, std::nullopt);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->invalid_cells,
+            (std::vector<LyraTerrainCell>{{0xA0, 3, 4, 4095}}));
+  EXPECT_EQ(recovered->ApplyAssetRebind(*plan, false).code(),
+            absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(recovered->Serialize(), bytes);
+}
+
+TEST(LyraTerrainDocumentTest, AssetRecoveryRefusesMalformedStoredProfiles) {
+  const auto document = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(document.ok());
+  const auto original = nlohmann::json::parse(document->Serialize());
+  using Mutation = std::function<void(nlohmann::json&)>;
+  const std::vector<Mutation> mutations = {
+      [](auto& j) { j["profile"]["tile_count"] = 0; },
+      [](auto& j) { j["profile"]["tile_count"] = 65537; },
+      [](auto& j) { j["profile"]["graphics_sheets"][0] = 255; },
+      [](auto& j) { j["profile"]["animated_sheet"] = 255; },
+      [](auto& j) { j["profile"]["graphics_fingerprint"] = ""; },
+      [](auto& j) { j["profile"]["palette_fingerprint"] = "invalid binding"; },
+      [](auto& j) { j["profile"]["animation_fingerprint"] = 42; },
+      [](auto& j) { j["profile"]["tile16_definition_fingerprint"] = nullptr; },
+  };
+  for (size_t i = 0; i < mutations.size(); ++i) {
+    SCOPED_TRACE(i);
+    auto malformed = original;
+    mutations[i](malformed);
+    EXPECT_EQ(LyraTerrainDocument::ParseForAssetRecovery(malformed.dump())
+                  .status()
+                  .code(),
+              absl::StatusCode::kInvalidArgument);
+  }
 }
 
 TEST(LyraTerrainDocumentTest, RefusesEveryMismatchedAssetBinding) {

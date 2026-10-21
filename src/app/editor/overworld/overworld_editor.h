@@ -23,6 +23,7 @@
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/painting/tile_painting_manager.h"
 #include "app/editor/overworld/project_graphics_preview.h"
+#include "app/editor/overworld/project_graphics_source.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui/debug/debug_window_card.h"
 #include "app/editor/overworld/ui/debug/usage_statistics_card.h"
@@ -196,7 +197,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
   absl::Status Clear() override;
-  bool HasPendingProjectDraftChanges() const { return lyra_canvas_.dirty(); }
+  bool HasPendingProjectDraftChanges() const {
+    return lyra_canvas_.dirty() ||
+           (graphics_source_ && graphics_source_->any_dirty());
+  }
   void SetProjectContextProvider(
       std::function<project::YazeProject*()> provider) {
     project_context_provider_ = std::move(provider);
@@ -578,6 +582,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   std::function<project::YazeProject*()> project_context_provider_;
   friend class AuthoringSaveWorkflowTestPeer;
+  friend class ProjectGraphicsSourceUiTestPeer;
 
   // Identifies the exact descriptor image bound to this model. The session
   // reload path may restore those bytes after a refused ROM replacement.
@@ -591,6 +596,16 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status StageProjectGraphicsRender(
       const ProjectGraphicsPreviewSource::Replacement& replacement);
   ProjectGraphicsPreviewSource project_graphics_;
+  absl::Status OpenProjectGraphicsSource();
+  void DrawProjectGraphicsSource();
+  std::unique_ptr<ProjectGraphicsSource> graphics_source_;
+  project::YazeProject* graphics_source_project_ = nullptr;
+  bool graphics_source_open_ = false;
+  int graphics_source_tile_ = 0;
+  int graphics_source_index_ = 1;
+  int graphics_source_palette_ = 0;
+  absl::Status graphics_source_status_;
+  std::string graphics_source_message_;
   // Project asset actions for native and Lyra maps, drawn above the map
   // properties because the renderer bypasses the native sidebar on Lyra maps.
   void DrawProjectAssetActions();

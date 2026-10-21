@@ -53,6 +53,15 @@ class LyraTerrainCanvas {
   bool dirty() const;
   void ProjectSaveCommitted() { pending_project_commit_ = false; }
   bool loaded() const { return document_ != nullptr; }
+  // A valid sidecar with stale native bindings stays available for review,
+  // while all authoring and save operations remain blocked. Rebind history
+  // restores this state on Undo and clears it on Redo.
+  bool recovery_required() const {
+    return document_ && !recovery_status_->ok();
+  }
+  std::string recovery_reason() const {
+    return std::string(recovery_status_->message());
+  }
   // Rendering only. TilePaintingManager owns the shared Overworld gestures.
   void DrawSpecialWorld(const gui::CanvasRuntime& canvas);
   // Coordinates are document-relative Tile16 cells; footprints clip at its
@@ -87,6 +96,10 @@ class LyraTerrainCanvas {
                              zelda3::Overworld& overworld,
                              UndoManager& history);
   absl::Status PrepareMapAssets(zelda3::Overworld& overworld, int state);
+  // A committed native graphics reload must hide every cached Lyra drawing
+  // immediately, before the next draw/source check. Keep bound definitions so
+  // the reviewed rebind can still identify changed Tile16 definitions.
+  void InvalidateAssetCaches();
   gfx::Bitmap& MapAtlas(int map_id);
   gfx::Bitmap* MapGraphics(int map_id);
   void DrawProperties(int map_id, int& state, zelda3::Overworld& overworld,
@@ -158,8 +171,9 @@ class LyraTerrainCanvas {
   // such as proposals stay allowed before the ROM is saved.
   absl::Status ValidateLiveSource(project::YazeProject* project,
                                   zelda3::Overworld& overworld);
-  // Called only after document, native profile, and CPU atlas all validate.
-  // Texture commands use the committed bitmap's stable member address.
+  // Called after document validation. A recovery document has no atlas until
+  // rebind review succeeds. Texture commands use the committed bitmap's stable
+  // member address.
   void InstallDocument(std::shared_ptr<core::LyraTerrainDocument> document,
                        gfx::Bitmap atlas, std::string source_path,
                        std::optional<std::string> source_bytes,
@@ -174,6 +188,9 @@ class LyraTerrainCanvas {
   void PaintLine(int x, int y);
 
   std::shared_ptr<core::LyraTerrainDocument> document_;
+  // Shared with rebind actions so retained history never captures this canvas.
+  std::shared_ptr<absl::Status> recovery_status_ =
+      std::make_shared<absl::Status>();
   gfx::Bitmap atlas_;
   core::LyraTerrainProfile atlas_profile_;
   std::string source_path_;

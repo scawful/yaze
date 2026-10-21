@@ -426,9 +426,18 @@ absl::Status LyraTerrainDocument::SetAuthoring(
 
 absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
     std::string_view text, const LyraTerrainProfile& expected_profile) {
-  auto created = Create(expected_profile);
-  if (!created.ok())
-    return created.status();
+  if (auto status = expected_profile.Validate(); !status.ok())
+    return status;
+  return ParseImpl(text, &expected_profile);
+}
+
+absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::ParseForAssetRecovery(
+    std::string_view text) {
+  return ParseImpl(text, nullptr);
+}
+
+absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::ParseImpl(
+    std::string_view text, const LyraTerrainProfile* expected_profile) {
   if (text.size() > 4 * 1024 * 1024) {
     return absl::InvalidArgumentError("Lyra terrain document exceeds 4 MiB");
   }
@@ -513,7 +522,25 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
       if (!IntegerIn(sheet, 0, 254))
         return absl::InvalidArgumentError("Malformed Lyra graphics sheet ID");
     }
-    if (profile != ProfileJson(expected_profile)) {
+    LyraTerrainProfile stored_profile;
+    stored_profile.graphics_sheets =
+        profile["graphics_sheets"].get<std::array<uint8_t, 8>>();
+    stored_profile.main_palette = profile["main_palette"].get<uint8_t>();
+    stored_profile.palette_set = profile["palette_set"].get<uint8_t>();
+    stored_profile.animated_sheet = profile["animated_sheet"].get<uint8_t>();
+    stored_profile.tile_count = profile["tile_count"].get<uint32_t>();
+    stored_profile.tile16_definition_fingerprint =
+        profile["tile16_definition_fingerprint"].get<std::string>();
+    stored_profile.graphics_fingerprint =
+        profile["graphics_fingerprint"].get<std::string>();
+    stored_profile.palette_fingerprint =
+        profile["palette_fingerprint"].get<std::string>();
+    stored_profile.animation_fingerprint =
+        profile["animation_fingerprint"].get<std::string>();
+    auto created = Create(stored_profile);
+    if (!created.ok())
+      return created.status();
+    if (expected_profile && profile != ProfileJson(*expected_profile)) {
       return absl::FailedPreconditionError(
           "Lyra terrain profile does not match the current Tile16 atlas");
     }
@@ -549,7 +576,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
           return absl::InvalidArgumentError("Lyra map rows require 32 tiles");
         }
         for (int x = 0; x < kMapSize; ++x) {
-          if (!IntegerIn(row[x], 0, expected_profile.tile_count - 1)) {
+          if (!IntegerIn(row[x], 0, stored_profile.tile_count - 1)) {
             return absl::InvalidArgumentError(
                 "Lyra tile ID is outside the bound Tile16 atlas");
           }
