@@ -210,28 +210,24 @@ class OverworldGraphicsCatalogTest : public OverworldGraphicsPreviewFileTest {
     bytes[32 + 16] = static_cast<char>(0x80);
     std::ofstream(root / "packed.bin", std::ios::binary)
         .write(bytes.data(), bytes.size());
-    document = {
-      {"schema_version", 2},
-      {"resources",
-       {{"fort.characters",
-         {{"path", "packed.bin"},
-          {"format", "snes4bpp"},
-          {"byte_count", bytes.size()},
-          {"sha256", core::ComputeSourceArtifactSha256(bytes)}}}}},
-      {"profiles",
-       {{"fort",
-         {{"bg_character_base_word", 0x2000},
-          {"transfers",
-           {{{"resource_id", "fort.characters"},
-             {"source_offset", 32},
-             {"byte_count", 32},
-             {"vram_word_address", 0x2C00}},
-            {{"resource_id", "fort.characters"},
-             {"byte_count", 32},
-             {"vram_word_address", 0x2C10}}}}}}}},
-      {"bindings",
-       {{{"parent_maps", {0x30, 0x32}}, {"profile_id", "fort"}},
-        {{"parent_maps", {0x38}}, {"profile_id", "fort"}}}};
+    document = {{"schema_version", 2}};
+    document["resources"]["fort.characters"] = {
+        {"path", "packed.bin"},
+        {"format", "snes4bpp"},
+        {"byte_count", bytes.size()},
+        {"sha256", core::ComputeSourceArtifactSha256(bytes)}};
+    document["profiles"]["fort"] = {{"bg_character_base_word", 0x2000},
+                                    {"transfers",
+                                     {{{"resource_id", "fort.characters"},
+                                       {"source_offset", 32},
+                                       {"byte_count", 32},
+                                       {"vram_word_address", 0x2C00}},
+                                      {{"resource_id", "fort.characters"},
+                                       {"byte_count", 32},
+                                       {"vram_word_address", 0x2C10}}}}};
+    document["bindings"] = nlohmann::json::array(
+        {{{"parent_maps", {0x30, 0x32}}, {"profile_id", "fort"}},
+         {{"parent_maps", {0x38}}, {"profile_id", "fort"}}});
   }
   absl::StatusOr<OverworldGraphicsPreview> Load() {
     Write();
