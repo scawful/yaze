@@ -199,5 +199,180 @@ TEST_F(OverworldGraphicsPreviewFileTest, DuplicateAndOverlappingTransfersFail) {
           .ok());
 }
 
+class OverworldGraphicsCatalogTest : public OverworldGraphicsPreviewFileTest {
+ protected:
+  void SetUp() override {
+    OverworldGraphicsPreviewFileTest::SetUp();
+    // Two distinct characters in one resource. Profiles can use the complete
+    // pack or aligned slices, without maintaining separate character files.
+    bytes.assign(64, '\0');
+    bytes[0] = static_cast<char>(0x80);
+    bytes[32 + 16] = static_cast<char>(0x80);
+    std::ofstream(root / "packed.bin", std::ios::binary)
+        .write(bytes.data(), bytes.size());
+    document = {
+      {"schema_version", 2},
+      {"resources",
+       {{"fort.characters",
+         {{"path", "packed.bin"},
+          {"format", "snes4bpp"},
+          {"byte_count", bytes.size()},
+          {"sha256", core::ComputeSourceArtifactSha256(bytes)}}}}},
+      {"profiles",
+       {{"fort",
+         {{"bg_character_base_word", 0x2000},
+          {"transfers",
+           {{{"resource_id", "fort.characters"},
+             {"source_offset", 32},
+             {"byte_count", 32},
+             {"vram_word_address", 0x2C00}},
+            {{"resource_id", "fort.characters"},
+             {"byte_count", 32},
+             {"vram_word_address", 0x2C10}}}}}}}},
+      {"bindings",
+       {{{"parent_maps", {0x30, 0x32}}, {"profile_id", "fort"}},
+        {{"parent_maps", {0x38}}, {"profile_id", "fort"}}}};
+  }
+  absl::StatusOr<OverworldGraphicsPreview> Load() {
+    Write();
+    return core::LoadOverworldGraphicsPreview((root / "preview.json").string());
+  }
+  std::string bytes;
+};
+
+TEST_F(OverworldGraphicsCatalogTest,
+       SharedProfilesAndPackedSlicesMatchVersionOnePixels) {
+  auto catalog = Load();
+  ASSERT_TRUE(catalog.ok()) << catalog.status();
+  ASSERT_EQ(catalog->size(), 3u);
+  EXPECT_EQ(catalog->at(0x30), catalog->at(0x32));
+  EXPECT_EQ(catalog->at(0x30), catalog->at(0x38));
+  EXPECT_EQ(catalog->at(0x30).at(0xC0)[0], 4);
+  EXPECT_EQ(catalog->at(0x30).at(0xC1)[0], 1);
+  // Version1 remains the same resolved API and can describe identical pixels.
+  std::ofstream(root / "first.bin", std::ios::binary)
+      .write(bytes.data() + 32, 32);
+  std::ofstream(root / "second.bin", std::ios::binary).write(bytes.data(), 32);
+  document = {{"schema_version", 1}, {"areas", nlohmann::json::array()}};
+  for (int parent : {0x30, 0x32, 0x38}) {
+    document["areas"].push_back({{"parent_map", parent},
+                                 {"bg_character_base_word", 0x2000},
+                                 {"transfers",
+                                  {{{"path", "first.bin"},
+                                    {"format", "snes4bpp"},
+                                    {"byte_count", 32},
+                                    {"vram_word_address", 0x2C00}},
+                                   {{"path", "second.bin"},
+                                    {"format", "snes4bpp"},
+                                    {"byte_count", 32},
+                                    {"vram_word_address", 0x2C10}}}}});
+  }
+  auto legacy = Load();
+  ASSERT_TRUE(legacy.ok()) << legacy.status();
+  EXPECT_EQ(*legacy, *catalog);
+}
+
+TEST_F(OverworldGraphicsCatalogTest, ResourceIdentityAndSizesFailClosed) {
+  const auto valid = document;
+  auto& resource = document["resources"]["fort.characters"];
+  for (const auto& bad_hash : std::vector<std::string>{
+           "short", std::string(64, 'g'), std::string(64, '0')}) {
+    resource["sha256"] = bad_hash;
+    EXPECT_FALSE(Load().ok()) << bad_hash;
+  }
+  document = valid;
+  document["resources"]["fort.characters"]["byte_count"] = 32;
+  EXPECT_FALSE(Load().ok());
+  document = valid;
+  document["resources"]["fort.characters"]["format"] = "snes3bpp";
+  EXPECT_FALSE(Load().ok());
+  document = valid;
+  document["resources"]["fort.characters"]["path"] = "missing.bin";
+  EXPECT_FALSE(Load().ok());
+  document = valid;
+  bytes[1] = static_cast<char>(0xFF);  // Same byte count, stale identity.
+  std::ofstream(root / "packed.bin", std::ios::binary)
+      .write(bytes.data(), bytes.size());
+  EXPECT_FALSE(Load().ok());
+}
+
+TEST_F(OverworldGraphicsCatalogTest, RejectsInvalidSlicesAndVramTargets) {
+  const auto valid = document;
+  for (const auto& [field, value] :
+       std::vector<std::pair<std::string, nlohmann::json>>{
+           {"source_offset", -32},
+           {"source_offset", 1},
+           {"source_offset", 64},
+           {"source_offset", 2147483648ULL},
+           {"source_offset", 0.0},
+           {"byte_count", 0},
+           {"byte_count", 31},
+           {"byte_count", 64},
+           {"vram_word_address", 0x2C01},
+           {"vram_word_address", 0x1000},
+           {"vram_word_address", 0x6000}}) {
+    document = valid;
+    document["profiles"]["fort"]["transfers"][0][field] = value;
+    EXPECT_FALSE(Load().ok()) << field << "=" << value;
+  }
+}
+
+TEST_F(OverworldGraphicsCatalogTest,
+       RejectsUnknownReferencesAndDuplicateParents) {
+  const auto valid = document;
+  document["profiles"]["fort"]["transfers"][0]["resource_id"] = "unknown";
+  EXPECT_FALSE(Load().ok());
+  document = valid;
+  document["bindings"][0]["profile_id"] = "unknown";
+  EXPECT_FALSE(Load().ok());
+  for (auto parents :
+       {nlohmann::json::array({0x30, 0x30}), nlohmann::json::array({0x38}),
+        nlohmann::json::array({160}), nlohmann::json::array({-1}),
+        nlohmann::json::array({48.0}), nlohmann::json::array()}) {
+    document = valid;
+    document["bindings"][0]["parent_maps"] = parents;
+    EXPECT_FALSE(Load().ok()) << parents;
+  }
+}
+
+TEST_F(OverworldGraphicsCatalogTest,
+       RejectsOverlappingTransfersAndDuplicateKeys) {
+  document["profiles"]["fort"]["transfers"][1]["vram_word_address"] = 0x2C00;
+  EXPECT_FALSE(Load().ok());
+  const auto path = (root / "preview.json").string();
+  std::ofstream(path)
+      << R"({"schema_version":2,"resources":{"same":{},"same":{}},
+    "profiles":{},"bindings":[]})";
+  auto duplicate = core::LoadOverworldGraphicsPreview(path);
+  EXPECT_FALSE(duplicate.ok());
+  EXPECT_NE(duplicate.status().message().find("Duplicate"), std::string::npos);
+  std::ofstream(path) << R"({"schema_version":2,"resources":{},
+    "profiles":{"same":{},"same":{}},"bindings":[]})";
+  EXPECT_FALSE(core::LoadOverworldGraphicsPreview(path).ok());
+}
+
+TEST_F(OverworldGraphicsCatalogTest, ExistingProjectBindingSurvivesRelocation) {
+  ASSERT_TRUE(Load().ok());
+  const auto path = root / "unified.yaze";
+  std::ofstream(path) << "[project]\nname=Unified\n[files]\n"
+                         "overworld_graphics_preview=preview.json\n";
+  project::YazeProject project;
+  ASSERT_TRUE(project.Open(path.string()).ok());
+  ASSERT_TRUE(project.Save().ok());
+  const auto moved = root / "moved";
+  std::filesystem::create_directory(moved);
+  for (const auto& name : {"unified.yaze", "preview.json", "packed.bin"}) {
+    std::filesystem::copy_file(root / name, moved / name);
+  }
+  project::YazeProject reopened;
+  ASSERT_TRUE(reopened.Open((moved / "unified.yaze").string()).ok());
+  auto result =
+      core::LoadOverworldGraphicsPreview(reopened.overworld_graphics_preview);
+  ASSERT_TRUE(result.ok()) << result.status();
+  EXPECT_EQ(result->at(0x30).at(0xC0)[0], 4);
+  EXPECT_EQ(reopened.overworld_graphics_preview,
+            (moved / "preview.json").string());
+}
+
 }  // namespace
 }  // namespace yaze::zelda3
