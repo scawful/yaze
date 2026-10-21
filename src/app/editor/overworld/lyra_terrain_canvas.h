@@ -62,6 +62,19 @@ class LyraTerrainCanvas {
   absl::Status ApplyProposal(project::YazeProject* project,
                              zelda3::Overworld& overworld, int selected_map,
                              std::string_view bundle, UndoManager& history);
+  // Explicit migration after native Tile16, sheet or palette edits. Preview
+  // resolves the current sources and never changes the document or history.
+  absl::StatusOr<core::LyraAssetRebind> PreviewAssetRebind(
+      zelda3::Overworld& overworld);
+  // Applies `preview` as one history step only when it still equals a fresh
+  // preview of the current document and sources. Document staleness,
+  // including any terrain cell change, is refused before native sources are
+  // read. Proposals admitted against
+  // the previous profile or bindings no longer match the derived identities.
+  absl::Status ApplyAssetRebind(project::YazeProject* project,
+                                zelda3::Overworld& overworld,
+                                const core::LyraAssetRebind& preview,
+                                UndoManager& history);
   void Reset();
   const core::LyraTerrainDocument* document() const { return document_.get(); }
   const gfx::Bitmap& atlas() const { return atlas_; }
@@ -143,6 +156,10 @@ class LyraTerrainCanvas {
                        gfx::Bitmap atlas, std::string source_path,
                        std::optional<std::string> source_bytes,
                        bool unpublished);
+  void ReplaceAtlas(gfx::Bitmap atlas, const core::LyraTerrainProfile& profile);
+  // Records the Tile16 definitions matching the document profile so a later
+  // rebind preview can name the changed definitions.
+  void RecordBoundDefinitions(std::string definitions);
   void DrawTile(ImDrawList* draw, const gfx::Bitmap& atlas, int tile,
                 ImVec2 min, float size) const;
   void PaintStamp(int x, int y);
@@ -150,6 +167,7 @@ class LyraTerrainCanvas {
 
   std::shared_ptr<core::LyraTerrainDocument> document_;
   gfx::Bitmap atlas_;
+  core::LyraTerrainProfile atlas_profile_;
   std::string source_path_;
   std::optional<std::string> source_bytes_;
   bool unpublished_ = false;
@@ -167,6 +185,11 @@ class LyraTerrainCanvas {
   std::vector<uint8_t> source_rom_, source_graphics_;
   std::string source_metadata_;
   absl::Status source_status_;
+  // Profile bound from the snapshot sources. Compared with the document on
+  // every check because rebind Undo/Redo changes the document profile alone.
+  core::LyraTerrainProfile source_profile_;
+  std::string bound_definition_fingerprint_;
+  std::string bound_definitions_;
   absl::Status authoring_assets_status_;
   std::optional<core::LyraAuthoringState> validated_authoring_;
   bool assets_valid_ = false;

@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+#include "app/editor/core/undo_action.h"
 #include "gtest/gtest.h"
 
 namespace yaze::editor {
@@ -67,6 +68,13 @@ std::string Read(const fs::path& path) {
   return {std::istreambuf_iterator<char>(file),
           std::istreambuf_iterator<char>()};
 }
+
+class NoOpAction final : public UndoAction {
+ public:
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
+  std::string Description() const override { return "No-op"; }
+};
 
 class LyraTerrainSourceTest : public ::testing::Test {
  protected:
@@ -364,6 +372,101 @@ TEST_F(LyraTerrainOpenTest, FailedFreshCreateDoesNotPublishProjectReference) {
   EXPECT_FALSE(fresh.loaded());
   EXPECT_FALSE(fresh.dirty());
   EXPECT_FALSE(fs::exists(source_));
+  ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainOpenTest, AssetRebindRequiresDocumentAndNativeSource) {
+  LyraTerrainCanvas empty;
+  EXPECT_EQ(empty.PreviewAssetRebind(overworld_).status().code(),
+            absl::StatusCode::kFailedPrecondition);
+
+  const auto before = document_->Serialize();
+  const auto status = canvas_.PreviewAssetRebind(overworld_).status();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(status.message(), "Open the main project ROM to draw Lyra terrain");
+  EXPECT_EQ(document_->Serialize(), before);
+  EXPECT_FALSE(canvas_.dirty());
+}
+
+TEST_F(LyraTerrainOpenTest, AssetRebindRefusesStalePreviewAndOtherProject) {
+  Peer::BindSourcePath(canvas_, project_.lyra_terrain_file);
+  auto edited = FixtureProfile();
+  edited.tile16_definition_fingerprint = "definitions:edited";
+  auto preview = document_->PlanAssetRebind(edited, core::LyraStateBindings{},
+                                            std::nullopt);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  UndoManager history;
+
+  auto other = project_;
+  other.lyra_terrain_file = (directory_ / "other.json").string();
+  EXPECT_EQ(
+      canvas_.ApplyAssetRebind(&other, overworld_, *preview, history).code(),
+      absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(
+      canvas_.ApplyAssetRebind(nullptr, overworld_, *preview, history).code(),
+      absl::StatusCode::kFailedPrecondition);
+
+  // The native source cannot be resolved, so even a current preview fails
+  // before changing the document.
+  EXPECT_EQ(
+      canvas_.ApplyAssetRebind(&project_, overworld_, *preview, history).code(),
+      absl::StatusCode::kFailedPrecondition);
+
+  auto later = document_->authoring();
+  later.flight_points.push_back({7, 0xA0, 1, 1, "Later", std::nullopt});
+  ASSERT_TRUE(document_->SetAuthoring(document_->authoring(), later).ok());
+  const auto before = document_->Serialize();
+  const auto stale =
+      canvas_.ApplyAssetRebind(&project_, overworld_, *preview, history);
+  EXPECT_EQ(stale.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(stale.message(),
+            "Lyra terrain changed after the rebind preview; preview again");
+  EXPECT_EQ(document_->Serialize(), before);
+  EXPECT_EQ(document_->profile(), FixtureProfile());
+  EXPECT_EQ(history.UndoStackSize(), 0u);
+  ExpectProtectedFilesUnchanged();
+}
+
+TEST_F(LyraTerrainOpenTest, AssetRebindRefusesPaintAfterPreviewAtomically) {
+  Peer::BindSourcePath(canvas_, project_.lyra_terrain_file);
+  auto edited = FixtureProfile();
+  edited.tile16_definition_fingerprint = "definitions:edited";
+  auto preview = document_->PlanAssetRebind(edited, core::LyraStateBindings{},
+                                            std::nullopt);
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  UndoManager history;
+  history.Push(std::make_unique<NoOpAction>());
+  history.Push(std::make_unique<NoOpAction>());
+  ASSERT_TRUE(history.Undo().ok());
+  ASSERT_EQ(history.UndoStackSize(), 1u);
+  ASSERT_EQ(history.RedoStackSize(), 1u);
+
+  ASSERT_TRUE(document_->BeginStroke().ok());
+  ASSERT_TRUE(document_->Paint(5, 5, 17).ok());
+  auto late = document_->EndStroke();
+  ASSERT_TRUE(late.ok()) << late.status();
+  const auto painted = document_->Serialize();
+
+  // Refused from the document alone; native sources are never read.
+  const auto status =
+      canvas_.ApplyAssetRebind(&project_, overworld_, *preview, history);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(status.message(),
+            "Lyra terrain changed after the rebind preview; preview again");
+  EXPECT_EQ(document_->Serialize(), painted);
+  EXPECT_EQ(document_->profile(), FixtureProfile());
+  EXPECT_EQ(history.UndoStackSize(), 1u);
+  EXPECT_EQ(history.RedoStackSize(), 1u);
+
+  // With the paint undone, the preview is current again and Apply proceeds to
+  // the native source, which this fixture cannot resolve.
+  ASSERT_TRUE(document_->ApplyStroke(*late, true).ok());
+  const auto native =
+      canvas_.ApplyAssetRebind(&project_, overworld_, *preview, history);
+  EXPECT_EQ(native.message(), "Open the main project ROM to draw Lyra terrain");
+  EXPECT_EQ(document_->profile(), FixtureProfile());
+  EXPECT_EQ(history.UndoStackSize(), 1u);
+  EXPECT_EQ(history.RedoStackSize(), 1u);
   ExpectProtectedFilesUnchanged();
 }
 

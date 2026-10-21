@@ -129,6 +129,10 @@ struct LyraTerrainProfile {
   absl::Status Validate() const;
 };
 
+// SHA-256 of the canonical profile JSON. This is the shared identity that
+// proposal bundles bind as `profile_fingerprint`.
+std::string LyraTerrainProfileFingerprint(const LyraTerrainProfile& profile);
+
 struct LyraTerrainCellChange {
   int map_id = 0;
   int x = 0;
@@ -142,6 +146,51 @@ struct LyraTerrainCellChange {
 struct LyraTerrainStroke {
   std::vector<LyraTerrainCellChange> changes;
   bool empty() const { return changes.empty(); }
+};
+
+struct LyraTerrainCell {
+  int map_id = 0;
+  int x = 0;
+  int y = 0;
+  uint16_t tile = 0;
+
+  bool operator==(const LyraTerrainCell&) const = default;
+};
+
+struct LyraAssetBindingChange {
+  int map_id = 0;
+  int state = 0;
+  std::string before;
+  std::string after;
+
+  bool operator==(const LyraAssetBindingChange&) const = default;
+};
+
+// Resolved per-map, per-state native asset identities. Unbound maps (empty
+// document bindings) must stay empty; they follow the shared profile.
+using LyraStateBindings = std::array<std::array<std::string, 3>, 32>;
+
+// Reviewed migration of existing terrain onto changed native Tile16, sheet or
+// palette sources. Only the profile and asset bindings change: every cell,
+// property, entity, flight point and edge connection is retained exactly.
+struct LyraAssetRebind {
+  LyraTerrainProfile before_profile;
+  LyraTerrainProfile after_profile;
+  LyraAuthoringState before_authoring;
+  LyraAuthoringState after_authoring;
+  // Exact identity of every terrain cell, unchanged by the rebind itself.
+  std::string terrain_fingerprint;
+  std::vector<LyraAssetBindingChange> binding_changes;
+  // Sorted Tile16 IDs whose definitions changed. nullopt when the previous
+  // definitions are unknown, in which case every map is reported affected.
+  std::optional<std::vector<uint16_t>> changed_tiles;
+  std::vector<int> affected_maps;
+  // Cells whose Tile16 ID is outside the new atlas; the rebind is refused.
+  std::vector<LyraTerrainCell> invalid_cells;
+
+  bool profile_changed() const { return before_profile != after_profile; }
+  bool empty() const { return !profile_changed() && binding_changes.empty(); }
+  bool operator==(const LyraAssetRebind&) const = default;
 };
 
 class LyraTerrainDocument {
@@ -172,6 +221,8 @@ class LyraTerrainDocument {
                             const LyraAuthoringState& after);
   absl::StatusOr<uint16_t> tile(int global_x, int global_y) const;
   absl::StatusOr<uint16_t> MapTile(int map_id, int x, int y) const;
+  // SHA-256 of every cell in map, row, column order (16-bit little endian).
+  std::string TerrainFingerprint() const;
 
   absl::Status BeginStroke();
   absl::Status Paint(int global_x, int global_y, uint16_t tile_id);
@@ -181,17 +232,30 @@ class LyraTerrainDocument {
   // Refuses stale or malformed history before changing any cell.
   absl::Status ApplyStroke(const LyraTerrainStroke& stroke, bool undo);
 
+  // Pure: describes moving this document to `profile` and `bindings`, which
+  // the caller resolves from its current native sources.
+  absl::StatusOr<LyraAssetRebind> PlanAssetRebind(
+      const LyraTerrainProfile& profile, const LyraStateBindings& bindings,
+      std::optional<std::vector<uint16_t>> changed_tiles) const;
+  // Swaps profile and bindings in one step. Refuses stale history (including
+  // any terrain cell change), any other authoring change, and cells outside
+  // the destination atlas.
+  absl::Status ApplyAssetRebind(const LyraAssetRebind& rebind, bool undo);
+
   bool dirty() const {
-    return maps_ != saved_maps_ || authoring_ != saved_authoring_;
+    return maps_ != saved_maps_ || authoring_ != saved_authoring_ ||
+           profile_ != saved_profile_;
   }
   void MarkSaved() {
     saved_maps_ = maps_;
     saved_authoring_ = authoring_;
+    saved_profile_ = profile_;
   }
 
  private:
   LyraTerrainDocument() = default;
   LyraTerrainProfile profile_;
+  LyraTerrainProfile saved_profile_;
   Maps maps_{};
   Maps saved_maps_{};
   LyraAuthoringState authoring_{};

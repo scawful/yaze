@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "core/lyra_terrain_proposal.h"
+#include "core/source_artifact_publisher.h"
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
 
@@ -726,6 +728,314 @@ TEST(LyraTerrainDocumentTest, EdgeConnectionHistoryRetainsPairAndDirtyState) {
   auto reopened = LyraTerrainDocument::Parse(doc->Serialize(), Profile());
   ASSERT_TRUE(reopened.ok()) << reopened.status();
   EXPECT_EQ(reopened->authoring(), assigned);
+}
+
+// Map $A0 is bound with every metadata kind; $A8 holds Tile16 101; others are
+// unbound. The saved baseline is the bound state.
+LyraTerrainDocument BoundDocument() {
+  auto doc = LyraTerrainDocument::Create(Profile(), 7);
+  EXPECT_TRUE(doc.ok()) << doc.status();
+  EXPECT_TRUE(doc->BeginStroke().ok());
+  EXPECT_TRUE(doc->Paint(3, 32, 101).ok());
+  EXPECT_TRUE(doc->Paint(4, 0, 102).ok());
+  EXPECT_TRUE(doc->EndStroke().ok());
+  auto authoring = doc->authoring();
+  auto& map = authoring.maps[0];
+  map.properties.main_palette = 2;
+  map.properties.music = {1, 2, 3, 4};
+  map.asset_bindings = {"old:0", "old:1", "old:2"};
+  map.sprites.push_back({10, 0x15, 5, 6, 1});
+  map.doors.push_back({20, 10, 12, 0x50});
+  map.exits.push_back({30, 0x100, 15, 16, 0x20});
+  authoring.flight_points.push_back({40, 0xA0, 8, 9, "Center", std::nullopt});
+  authoring.edge_connections.push_back({50, 0x98, 0xA0, LyraEdgePassage{2, 5}});
+  EXPECT_TRUE(doc->SetAuthoring(doc->authoring(), authoring).ok());
+  doc->MarkSaved();
+  return *std::move(doc);
+}
+
+LyraStateBindings BoundStates(std::array<std::string, 3> a0) {
+  LyraStateBindings bindings;
+  bindings[0] = std::move(a0);
+  return bindings;
+}
+
+TEST(LyraTerrainDocumentTest,
+     AssetRebindRetainsTerrainAndMetadataThroughSaveReopenAndHistory) {
+  auto doc = BoundDocument();
+  const auto maps_before = doc.maps();
+  const auto authoring_before = doc.authoring();
+  auto edited = Profile();
+  edited.tile16_definition_fingerprint = "definitions:fixture-v2";
+
+  auto plan =
+      doc.PlanAssetRebind(edited, BoundStates({"new:0", "old:1", "new:2"}),
+                          std::vector<uint16_t>{101, 101, 900});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  // Preview is pure.
+  EXPECT_EQ(doc.profile(), Profile());
+  EXPECT_EQ(doc.authoring(), authoring_before);
+  EXPECT_FALSE(doc.dirty());
+  EXPECT_TRUE(plan->profile_changed());
+  EXPECT_EQ(plan->binding_changes,
+            (std::vector<LyraAssetBindingChange>{{0xA0, 0, "old:0", "new:0"},
+                                                 {0xA0, 2, "old:2", "new:2"}}));
+  EXPECT_EQ(plan->changed_tiles, (std::vector<uint16_t>{101, 900}));
+  EXPECT_EQ(plan->affected_maps, (std::vector<int>{0xA0, 0xA8}));
+  EXPECT_TRUE(plan->invalid_cells.empty());
+
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, false).ok());
+  EXPECT_EQ(doc.profile(), edited);
+  EXPECT_EQ(doc.maps(), maps_before);
+  auto retained = doc.authoring();
+  retained.maps[0].asset_bindings = authoring_before.maps[0].asset_bindings;
+  EXPECT_EQ(retained, authoring_before);
+  EXPECT_EQ(doc.authoring().maps[0].asset_bindings,
+            (std::array<std::string, 3>{"new:0", "old:1", "new:2"}));
+  EXPECT_TRUE(doc.dirty());
+
+  // Normal save/reopen binds to the new profile only.
+  const auto saved = doc.Serialize();
+  auto reopened = LyraTerrainDocument::Parse(saved, edited);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->maps(), maps_before);
+  EXPECT_EQ(reopened->authoring(), doc.authoring());
+  EXPECT_EQ(LyraTerrainDocument::Parse(saved, Profile()).status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  doc.MarkSaved();
+  EXPECT_FALSE(doc.dirty());
+
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, true).ok());
+  EXPECT_EQ(doc.profile(), Profile());
+  EXPECT_EQ(doc.authoring(), authoring_before);
+  EXPECT_EQ(doc.maps(), maps_before);
+  EXPECT_TRUE(doc.dirty());
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, false).ok());
+  EXPECT_FALSE(doc.dirty());
+}
+
+TEST(LyraTerrainDocumentTest, ProfileOnlyRebindIsDirtyUntilSaved) {
+  auto doc = BoundDocument();
+  auto edited = Profile();
+  edited.palette_fingerprint = "palette:fixture-v2";
+  auto plan = doc.PlanAssetRebind(
+      edited, BoundStates({"old:0", "old:1", "old:2"}), std::nullopt);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_TRUE(plan->binding_changes.empty());
+  EXPECT_FALSE(plan->empty());
+  // Unchanged definitions report no changed tiles even when unknown.
+  EXPECT_EQ(plan->changed_tiles, std::vector<uint16_t>{});
+  // Shared art affects every unbound map but not bound $A0.
+  ASSERT_EQ(plan->affected_maps.size(), 31u);
+  EXPECT_EQ(plan->affected_maps.front(), 0xA1);
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, false).ok());
+  EXPECT_TRUE(doc.dirty());
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, true).ok());
+  EXPECT_FALSE(doc.dirty());
+}
+
+TEST(LyraTerrainDocumentTest, AssetRebindReportsUnknownDefinitionsAndNoOp) {
+  auto doc = BoundDocument();
+  auto unchanged = doc.PlanAssetRebind(
+      Profile(), BoundStates({"old:0", "old:1", "old:2"}), std::nullopt);
+  ASSERT_TRUE(unchanged.ok()) << unchanged.status();
+  EXPECT_TRUE(unchanged->empty());
+  EXPECT_TRUE(unchanged->affected_maps.empty());
+
+  auto edited = Profile();
+  edited.tile16_definition_fingerprint = "definitions:fixture-v2";
+  auto unknown = doc.PlanAssetRebind(
+      edited, BoundStates({"old:0", "old:1", "old:2"}), std::nullopt);
+  ASSERT_TRUE(unknown.ok()) << unknown.status();
+  EXPECT_FALSE(unknown->changed_tiles.has_value());
+  EXPECT_EQ(unknown->affected_maps.size(),
+            static_cast<size_t>(LyraTerrainDocument::kMapCount));
+}
+
+TEST(LyraTerrainDocumentTest, AssetRebindRefusesInvalidCellsAtomically) {
+  auto doc = BoundDocument();
+  ASSERT_TRUE(doc.BeginStroke().ok());
+  ASSERT_TRUE(doc.Paint(9, 70, 4000).ok());
+  ASSERT_TRUE(doc.EndStroke().ok());
+  const auto serialized = doc.Serialize();
+  auto shrunk = Profile();
+  shrunk.tile_count = 4000;
+  shrunk.tile16_definition_fingerprint = "definitions:fixture-short";
+  auto plan =
+      doc.PlanAssetRebind(shrunk, BoundStates({"old:0", "old:1", "old:2"}),
+                          std::vector<uint16_t>{});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->invalid_cells,
+            (std::vector<LyraTerrainCell>{{0xB0, 9, 6, 4000}}));
+  EXPECT_EQ(plan->affected_maps, (std::vector<int>{0xB0}));
+  EXPECT_EQ(doc.ApplyAssetRebind(*plan, false).code(),
+            absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(doc.Serialize(), serialized);
+  EXPECT_EQ(doc.profile(), Profile());
+}
+
+TEST(LyraTerrainDocumentTest, AssetRebindRefusesStaleAndNonBindingChanges) {
+  auto doc = BoundDocument();
+  const auto serialized = doc.Serialize();
+  auto edited = Profile();
+  edited.graphics_fingerprint = "graphics:fixture-v2";
+
+  // Unbound maps cannot gain bindings, and bound states cannot be dropped.
+  auto bind_unbound = BoundStates({"old:0", "old:1", "old:2"});
+  bind_unbound[1] = {"x:0", "x:1", "x:2"};
+  EXPECT_EQ(
+      doc.PlanAssetRebind(edited, bind_unbound, std::nullopt).status().code(),
+      absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(doc.PlanAssetRebind(edited, BoundStates({"old:0", "", "old:2"}),
+                                std::nullopt)
+                .status()
+                .code(),
+            absl::StatusCode::kInvalidArgument);
+  auto invalid_profile = edited;
+  invalid_profile.palette_fingerprint.clear();
+  EXPECT_FALSE(doc.PlanAssetRebind(invalid_profile,
+                                   BoundStates({"old:0", "old:1", "old:2"}),
+                                   std::nullopt)
+                   .ok());
+
+  auto plan = doc.PlanAssetRebind(
+      edited, BoundStates({"new:0", "old:1", "old:2"}), std::nullopt);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  using Mutation = std::function<void(LyraAssetRebind&)>;
+  const std::vector<Mutation> tampered = {
+      [](auto& r) { r.after_authoring.maps[0].properties.music[0] = 9; },
+      [](auto& r) { r.after_authoring.maps[0].sprites[0].x = 6; },
+      [](auto& r) { r.after_authoring.maps[0].doors.clear(); },
+      [](auto& r) { r.after_authoring.flight_points[0].name = "Moved"; },
+      [](auto& r) { r.after_authoring.edge_connections[0].passage.reset(); },
+      [](auto& r) {
+        r.after_authoring.maps[3].asset_bindings = {"a", "b", "c"};
+      },
+      [](auto& r) { r.after_authoring.maps[0].asset_bindings[1] = ""; },
+      [](auto& r) { r.after_profile.tile_count = 0; },
+      [](auto& r) { r.terrain_fingerprint = "terrain:other"; },
+  };
+  for (size_t i = 0; i < tampered.size(); ++i) {
+    SCOPED_TRACE(i);
+    auto rebind = *plan;
+    tampered[i](rebind);
+    EXPECT_FALSE(doc.ApplyAssetRebind(rebind, false).ok());
+    EXPECT_EQ(doc.Serialize(), serialized);
+  }
+
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, false).ok());
+  EXPECT_EQ(doc.ApplyAssetRebind(*plan, false).code(),
+            absl::StatusCode::kFailedPrecondition);
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, true).ok());
+  EXPECT_EQ(doc.ApplyAssetRebind(*plan, true).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(doc.Serialize(), serialized);
+
+  // A later authoring edit makes the preview stale.
+  auto later = doc.authoring();
+  later.maps[0].properties.message_id = 3;
+  ASSERT_TRUE(doc.SetAuthoring(doc.authoring(), later).ok());
+  EXPECT_EQ(doc.ApplyAssetRebind(*plan, false).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(doc.authoring(), later);
+  EXPECT_EQ(doc.profile(), Profile());
+
+  ASSERT_TRUE(doc.BeginStroke().ok());
+  EXPECT_EQ(
+      doc.PlanAssetRebind(edited, BoundStates({"new:0", "old:1", "old:2"}),
+                          std::nullopt)
+          .status()
+          .code(),
+      absl::StatusCode::kFailedPrecondition);
+  doc.CancelStroke();
+}
+
+TEST(LyraTerrainDocumentTest,
+     AssetRebindRefusesPaintAfterPreviewAndUndoesInStackOrder) {
+  auto doc = BoundDocument();
+  auto edited = Profile();
+  edited.tile16_definition_fingerprint = "definitions:fixture-v2";
+  const auto bindings = BoundStates({"new:0", "old:1", "old:2"});
+  auto plan = doc.PlanAssetRebind(edited, bindings, std::vector<uint16_t>{101});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->terrain_fingerprint, doc.TerrainFingerprint());
+
+  // A completed paint that keeps every summary field identical.
+  ASSERT_TRUE(doc.BeginStroke().ok());
+  ASSERT_TRUE(doc.Paint(5, 40, 101).ok());
+  auto late = doc.EndStroke();
+  ASSERT_TRUE(late.ok()) << late.status();
+  auto fresh =
+      doc.PlanAssetRebind(edited, bindings, std::vector<uint16_t>{101});
+  ASSERT_TRUE(fresh.ok()) << fresh.status();
+  EXPECT_EQ(fresh->affected_maps, plan->affected_maps);
+  EXPECT_EQ(fresh->changed_tiles, plan->changed_tiles);
+  EXPECT_EQ(fresh->binding_changes, plan->binding_changes);
+  EXPECT_EQ(fresh->after_authoring, plan->after_authoring);
+  EXPECT_NE(fresh->terrain_fingerprint, plan->terrain_fingerprint);
+  EXPECT_NE(*fresh, *plan);
+  const auto painted = doc.Serialize();
+  EXPECT_EQ(doc.ApplyAssetRebind(*plan, false).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(doc.Serialize(), painted);
+  EXPECT_EQ(doc.profile(), Profile());
+
+  // Undoing the paint restores the previewed terrain exactly.
+  ASSERT_TRUE(doc.ApplyStroke(*late, true).ok());
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, false).ok());
+  EXPECT_EQ(doc.TerrainFingerprint(), plan->terrain_fingerprint);
+
+  // Normal stack order: paint, undo paint, undo rebind, redo both.
+  ASSERT_TRUE(doc.BeginStroke().ok());
+  ASSERT_TRUE(doc.Paint(6, 6, 300).ok());
+  auto after = doc.EndStroke();
+  ASSERT_TRUE(after.ok()) << after.status();
+  EXPECT_EQ(doc.ApplyAssetRebind(*plan, true).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(doc.profile(), edited);
+  ASSERT_TRUE(doc.ApplyStroke(*after, true).ok());
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, true).ok());
+  EXPECT_EQ(doc.profile(), Profile());
+  EXPECT_EQ(doc.authoring(), plan->before_authoring);
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, false).ok());
+  ASSERT_TRUE(doc.ApplyStroke(*after, false).ok());
+  EXPECT_EQ(doc.MapTile(0xA0, 6, 6).value(), 300);
+}
+
+TEST(LyraTerrainDocumentTest, AssetRebindReplacesProposalIdentities) {
+  auto doc = BoundDocument();
+  const auto sha = [](std::string_view text) {
+    return ComputeSourceArtifactSha256(text);
+  };
+  const std::array<std::string, 3> before_states = {sha("s0"), sha("s1"),
+                                                    sha("s2")};
+  auto authoring = doc.authoring();
+  authoring.maps[0].asset_bindings = before_states;
+  ASSERT_TRUE(doc.SetAuthoring(doc.authoring(), authoring).ok());
+  // Same canonical JSON the editor's shared proposal binding hashes.
+  const auto serialized_profile_digest = [&] {
+    return sha(
+        nlohmann::json::parse(doc.Serialize())["profile"].dump(-1, ' ', true));
+  };
+  const auto shared_before = LyraTerrainProfileFingerprint(doc.profile());
+  EXPECT_EQ(shared_before, serialized_profile_digest());
+  auto map_before = LyraMapProposalProfileFingerprint(doc, 0xA0, before_states);
+  ASSERT_TRUE(map_before.ok()) << map_before.status();
+
+  auto edited = Profile();
+  edited.tile16_definition_fingerprint = "definitions:fixture-v2";
+  const std::array<std::string, 3> after_states = {sha("s0'"), sha("s1"),
+                                                   sha("s2")};
+  auto plan = doc.PlanAssetRebind(edited, BoundStates(after_states),
+                                  std::vector<uint16_t>{});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_TRUE(doc.ApplyAssetRebind(*plan, false).ok());
+  EXPECT_EQ(LyraTerrainProfileFingerprint(doc.profile()),
+            serialized_profile_digest());
+  EXPECT_NE(LyraTerrainProfileFingerprint(doc.profile()), shared_before);
+  auto map_after = LyraMapProposalProfileFingerprint(doc, 0xA0, after_states);
+  ASSERT_TRUE(map_after.ok()) << map_after.status();
+  EXPECT_NE(*map_after, *map_before);
 }
 
 }  // namespace

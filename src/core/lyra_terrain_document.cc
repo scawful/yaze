@@ -7,6 +7,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include "absl/strings/str_format.h"
+#include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
 
 namespace yaze::core {
@@ -378,6 +380,10 @@ absl::Status LyraTerrainProfile::Validate() const {
         "identities, a valid tile count and explicit graphics sheets");
   }
   return absl::OkStatus();
+}
+
+std::string LyraTerrainProfileFingerprint(const LyraTerrainProfile& profile) {
+  return ComputeSourceArtifactSha256(ProfileJson(profile).dump(-1, ' ', true));
 }
 
 absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Create(
@@ -805,6 +811,18 @@ absl::StatusOr<uint16_t> LyraTerrainDocument::MapTile(int map_id, int x,
   return maps_[map_id - kFirstMap][y * kMapSize + x];
 }
 
+std::string LyraTerrainDocument::TerrainFingerprint() const {
+  std::string bytes;
+  bytes.reserve(sizeof(Maps));
+  for (const auto& map : maps_) {
+    for (const uint16_t tile : map) {
+      bytes.push_back(static_cast<char>(tile));
+      bytes.push_back(static_cast<char>(tile >> 8));
+    }
+  }
+  return ComputeSourceArtifactSha256(bytes);
+}
+
 absl::Status LyraTerrainDocument::BeginStroke() {
   if (stroke_active_)
     return absl::FailedPreconditionError("A Lyra stroke is already active");
@@ -884,6 +902,129 @@ absl::Status LyraTerrainDocument::ApplyStroke(const LyraTerrainStroke& stroke,
     maps_[cell.map_id - kFirstMap][cell.y * kMapSize + cell.x] =
         undo ? cell.before : cell.after;
   }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<LyraAssetRebind> LyraTerrainDocument::PlanAssetRebind(
+    const LyraTerrainProfile& profile, const LyraStateBindings& bindings,
+    std::optional<std::vector<uint16_t>> changed_tiles) const {
+  if (stroke_active_)
+    return absl::FailedPreconditionError("Finish the active Lyra stroke first");
+  if (auto status = profile.Validate(); !status.ok())
+    return status;
+  LyraAssetRebind rebind;
+  rebind.before_profile = profile_;
+  rebind.after_profile = profile;
+  rebind.before_authoring = authoring_;
+  rebind.after_authoring = authoring_;
+  rebind.terrain_fingerprint = TerrainFingerprint();
+  const bool definitions_changed = profile.tile_count != profile_.tile_count ||
+                                   profile.tile16_definition_fingerprint !=
+                                       profile_.tile16_definition_fingerprint;
+  if (!definitions_changed) {
+    changed_tiles = std::vector<uint16_t>{};
+  } else if (changed_tiles) {
+    std::sort(changed_tiles->begin(), changed_tiles->end());
+    changed_tiles->erase(
+        std::unique(changed_tiles->begin(), changed_tiles->end()),
+        changed_tiles->end());
+  }
+  std::vector<bool> changed(65536, !changed_tiles.has_value());
+  if (changed_tiles) {
+    for (const uint16_t tile : *changed_tiles)
+      changed[tile] = true;
+  }
+  const bool shared_art_changed =
+      profile.graphics_sheets != profile_.graphics_sheets ||
+      profile.main_palette != profile_.main_palette ||
+      profile.palette_set != profile_.palette_set ||
+      profile.animated_sheet != profile_.animated_sheet ||
+      profile.graphics_fingerprint != profile_.graphics_fingerprint ||
+      profile.palette_fingerprint != profile_.palette_fingerprint ||
+      profile.animation_fingerprint != profile_.animation_fingerprint;
+  for (int index = 0; index < kMapCount; ++index) {
+    const int map_id = kFirstMap + index;
+    auto& map = rebind.after_authoring.maps[index];
+    bool affected = false;
+    for (int state = 0; state < 3; ++state) {
+      auto& binding = map.asset_bindings[state];
+      const auto& resolved = bindings[index][state];
+      if (binding.empty() != resolved.empty())
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Lyra rebind must resolve exactly the bound states of map $%02X",
+            map_id));
+      if (binding == resolved)
+        continue;
+      rebind.binding_changes.push_back({map_id, state, binding, resolved});
+      binding = resolved;
+      affected = true;
+    }
+    if (shared_art_changed && map.asset_bindings[0].empty())
+      affected = true;
+    for (int cell = 0; cell < kMapSize * kMapSize; ++cell) {
+      const uint16_t tile = maps_[index][cell];
+      if (tile >= profile.tile_count) {
+        rebind.invalid_cells.push_back(
+            {map_id, cell % kMapSize, cell / kMapSize, tile});
+        affected = true;
+      }
+      if (definitions_changed && changed[tile])
+        affected = true;
+    }
+    if (affected)
+      rebind.affected_maps.push_back(map_id);
+  }
+  rebind.changed_tiles = std::move(changed_tiles);
+  if (auto status = ValidateAuthoringState(rebind.after_authoring);
+      !status.ok())
+    return status;
+  return rebind;
+}
+
+absl::Status LyraTerrainDocument::ApplyAssetRebind(
+    const LyraAssetRebind& rebind, bool undo) {
+  if (stroke_active_)
+    return absl::FailedPreconditionError("Finish the active Lyra stroke first");
+  const auto& from_profile =
+      undo ? rebind.after_profile : rebind.before_profile;
+  const auto& to_profile = undo ? rebind.before_profile : rebind.after_profile;
+  const auto& from_authoring =
+      undo ? rebind.after_authoring : rebind.before_authoring;
+  const auto& to_authoring =
+      undo ? rebind.before_authoring : rebind.after_authoring;
+  if (profile_ != from_profile || authoring_ != from_authoring ||
+      TerrainFingerprint() != rebind.terrain_fingerprint)
+    return absl::FailedPreconditionError("Lyra asset rebind is stale");
+  if (auto status = to_profile.Validate(); !status.ok())
+    return status;
+  auto retained = to_authoring;
+  for (int index = 0; index < kMapCount; ++index) {
+    const auto& from = from_authoring.maps[index].asset_bindings;
+    const auto& to = to_authoring.maps[index].asset_bindings;
+    for (int state = 0; state < 3; ++state) {
+      if (from[state].empty() != to[state].empty())
+        return absl::InvalidArgumentError(
+            "Lyra asset rebind cannot bind or unbind a map");
+    }
+    retained.maps[index].asset_bindings = from;
+  }
+  if (retained != from_authoring)
+    return absl::InvalidArgumentError(
+        "Lyra asset rebind may change only asset bindings");
+  if (auto status = ValidateAuthoringState(to_authoring); !status.ok())
+    return status;
+  for (int index = 0; index < kMapCount; ++index) {
+    for (int cell = 0; cell < kMapSize * kMapSize; ++cell) {
+      const uint16_t tile = maps_[index][cell];
+      if (tile >= to_profile.tile_count)
+        return absl::OutOfRangeError(absl::StrFormat(
+            "Lyra map $%02X cell (%d,%d) uses Tile16 %d outside the rebound "
+            "atlas",
+            kFirstMap + index, cell % kMapSize, cell / kMapSize, tile));
+    }
+  }
+  profile_ = to_profile;
+  authoring_ = to_authoring;
   return absl::OkStatus();
 }
 
