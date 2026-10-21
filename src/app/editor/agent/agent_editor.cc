@@ -278,6 +278,8 @@ void AgentEditor::SetContext(AgentUIContext* context) {
   context_ = context;
   if (agent_chat_) {
     agent_chat_->SetContext(context_);
+    agent_chat_->SetToolPreferencesChangedCallback(
+        [this]() { ApplyToolPreferencesFromContext(); });
   }
   SyncContextFromProfile();
 }

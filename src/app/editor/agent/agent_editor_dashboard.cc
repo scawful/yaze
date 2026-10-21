@@ -61,13 +61,16 @@ void AgentEditor::DrawConfigurationPanel() {
     return;
   }
 
-  const auto& theme = AgentUI::GetTheme();
-
+  if (agent_chat_) {
+    const auto& applied = agent_chat_->GetAgentService()->provider_config();
+    ImGui::TextWrapped(
+        "Applied connection: %s / %s", applied.provider.c_str(),
+        applied.model.empty() ? "Default model" : applied.model.c_str());
+  }
   if (dependencies_.user_settings) {
     const auto& prefs = dependencies_.user_settings->prefs();
-    if (!prefs.ai_hosts.empty()) {
-      AgentUI::RenderSectionHeader(ICON_MD_STORAGE, "Host Presets",
-                                   theme.accent_color);
+    if (!prefs.ai_hosts.empty() &&
+        ImGui::CollapsingHeader(ICON_MD_STORAGE " Saved host presets")) {
       const auto& hosts = prefs.ai_hosts;
       std::string active_id = current_profile_.host_id.empty()
                                   ? prefs.active_ai_host_id
@@ -99,7 +102,8 @@ void AgentEditor::DrawConfigurationPanel() {
       }
       if (active_index >= 0) {
         const auto& host = hosts[active_index];
-        ImGui::TextDisabled("Active host: %s", host.label.c_str());
+        ImGui::TextDisabled("Selected preset: %s", host.label.c_str());
+        ImGui::TextDisabled("Loads the form. Apply connection to use it.");
         ImGui::TextDisabled("Endpoint: %s", host.base_url.c_str());
         ImGui::TextDisabled("API type: %s", host.api_type.empty()
                                                 ? cli::kProviderOpenAi
@@ -848,22 +852,20 @@ void AgentEditor::DrawAgentBuilderPanel() {
     if (ImGui::Button(ICON_MD_LINK " Apply to Chat", ImVec2(-1, 0))) {
       auto* service = agent_chat_->GetAgentService();
       if (service) {
-        cli::agent::ToolDispatcher::ToolPreferences prefs;
-        prefs.allow_mutating_tools =
-            context_ &&
-            context_->agent_config().tool_config.allow_mutating_tools;
-        prefs.resources = builder_state_.tools.resources;
-        prefs.dungeon = builder_state_.tools.dungeon;
-        prefs.overworld = builder_state_.tools.overworld;
-        prefs.dialogue = builder_state_.tools.dialogue;
-        prefs.gui = builder_state_.tools.gui;
-        prefs.music = builder_state_.tools.music;
-        prefs.sprite = builder_state_.tools.sprite;
-#ifdef YAZE_WITH_GRPC
-        prefs.emulator = builder_state_.tools.emulator;
-#endif
-        prefs.memory_inspector = builder_state_.tools.memory_inspector;
-        service->SetToolPreferences(prefs);
+        if (context_) {
+          auto& tools = context_->agent_config().tool_config;
+          tools.resources = builder_state_.tools.resources;
+          tools.dungeon = builder_state_.tools.dungeon;
+          tools.overworld = builder_state_.tools.overworld;
+          tools.dialogue = builder_state_.tools.dialogue;
+          tools.gui = builder_state_.tools.gui;
+          tools.music = builder_state_.tools.music;
+          tools.sprite = builder_state_.tools.sprite;
+          tools.emulator = builder_state_.tools.emulator;
+          tools.memory_inspector = builder_state_.tools.memory_inspector;
+          ApplyToolPreferencesFromContext();
+          context_->NotifyChanged();
+        }
 
         auto agent_cfg = service->GetConfig();
         agent_cfg.max_tool_iterations = current_profile_.max_tool_iterations;

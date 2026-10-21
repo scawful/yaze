@@ -32,6 +32,16 @@ namespace editor {
 namespace {
 
 constexpr char kDefaultOpenAiBaseUrl[] = "https://api.openai.com";
+// Browser adapters retain their existing defaults until separately qualified.
+#ifdef __EMSCRIPTEN__
+constexpr char kDefaultGeminiModel[] = "gemini-2.5-flash";
+constexpr char kDefaultAnthropicModel[] = "claude-3-5-sonnet-20241022";
+constexpr char kDefaultOpenAiModel[] = "gpt-4o-mini";
+#else
+constexpr char kDefaultGeminiModel[] = "gemini-3.8-flash";
+constexpr char kDefaultAnthropicModel[] = "claude-sonnet-5-5";
+constexpr char kDefaultOpenAiModel[] = "gpt-6.1-sol";
+#endif
 
 std::filesystem::path ExpandUserPath(const std::string& input) {
   if (input.empty()) {
@@ -430,7 +440,7 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
       current_config_.provider = cli::kProviderGemini;
       if (current_profile_.model.empty()) {
         current_profile_.model =
-            env_gemini_model.empty() ? "gemini-2.5-flash" : env_gemini_model;
+            env_gemini_model.empty() ? kDefaultGeminiModel : env_gemini_model;
         current_config_.model = current_profile_.model;
       }
       profile_updated = true;
@@ -447,7 +457,7 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
       current_config_.provider = cli::kProviderAnthropic;
       if (current_profile_.model.empty()) {
         current_profile_.model = env_anthropic_model.empty()
-                                     ? "claude-3-5-sonnet-20241022"
+                                     ? kDefaultAnthropicModel
                                      : env_anthropic_model;
         current_config_.model = current_profile_.model;
       }
@@ -459,7 +469,7 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
         if (!env_openai_model.empty()) {
           current_profile_.model = env_openai_model;
         } else if (!current_profile_.openai_api_key.empty()) {
-          current_profile_.model = "gpt-4o-mini";
+          current_profile_.model = kDefaultOpenAiModel;
         }
         current_config_.model = current_profile_.model;
       }

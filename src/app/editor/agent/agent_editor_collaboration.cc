@@ -276,7 +276,7 @@ absl::Status AgentEditor::SendToGemini(const std::filesystem::path& image_path,
 
   cli::GeminiConfig config;
   config.api_key = api_key;
-  config.model = current_profile_.model.empty() ? "gemini-2.5-flash"
+  config.model = current_profile_.model.empty() ? "gemini-3.8-flash"
                                                 : current_profile_.model;
   config.verbose = current_profile_.verbose;
 
