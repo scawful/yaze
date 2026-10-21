@@ -81,7 +81,6 @@
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "core/asar_wrapper.h"
 #include "core/features.h"
-#include "core/overworld_graphics_preview.h"
 #include "core/project.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
@@ -596,10 +595,15 @@ absl::Status OverworldEditor::Load() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
+  if (graphics_source_ && graphics_source_->any_dirty()) {
+    return absl::FailedPreconditionError(
+        "Publish or discard the project graphics draft before reloading");
+  }
   if (lyra_canvas_.dirty()) {
     return absl::FailedPreconditionError(
         "Save the Lyra terrain draft before reloading overworld data");
   }
+  ResetLyraAssetRebind();
   const auto lyra = rom_->InspectLyraLayout();
   if (lyra.presence == rom::LyraLayoutPresence::kInvalid) {
     return absl::FailedPreconditionError(
@@ -942,6 +946,10 @@ void OverworldEditor::DrawOverworldCanvas() {
 }
 
 absl::Status OverworldEditor::PrepareProjectSave() {
+  if (graphics_source_ && graphics_source_->any_dirty()) {
+    return absl::FailedPreconditionError(
+        "Publish or discard the project graphics draft before Save Project");
+  }
   lyra_canvas_.FinishStroke(undo_manager_);
   return lyra_canvas_.Save(TerrainProject(), overworld_);
 }
@@ -951,6 +959,7 @@ absl::Status OverworldEditor::CreateLyraTerrain() {
   RETURN_IF_ERROR(lyra_canvas_.Create(TerrainProject(), overworld_));
   if (previous && previous != lyra_canvas_.document())
     undo_manager_.Clear();
+  ResetLyraAssetRebind();
   lyra_canvas_status_ = absl::OkStatus();
   FocusLyraTerrain();
   return absl::OkStatus();
@@ -961,6 +970,7 @@ absl::Status OverworldEditor::OpenLyraTerrain(const std::string& path) {
   RETURN_IF_ERROR(lyra_canvas_.Open(TerrainProject(), path, overworld_));
   if (previous && previous != lyra_canvas_.document())
     undo_manager_.Clear();
+  ResetLyraAssetRebind();
   lyra_canvas_status_ = absl::OkStatus();
   FocusLyraTerrain();
   return absl::OkStatus();
@@ -970,14 +980,363 @@ absl::Status OverworldEditor::ApplyLyraTerrainProposal(
     std::string_view bundle) {
   RETURN_IF_ERROR(lyra_canvas_.ApplyProposal(
       TerrainProject(), overworld_, current_map_, bundle, undo_manager_));
+  ResetLyraAssetRebind();
   lyra_canvas_status_ = absl::OkStatus();
   return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::SaveProjectTerrainAs(
     project::YazeProject* project, const std::string& project_path) {
+  if (graphics_source_ && graphics_source_->any_dirty()) {
+    return absl::FailedPreconditionError(
+        "Publish or discard the project graphics draft before Save Project As");
+  }
   lyra_canvas_.FinishStroke(undo_manager_);
-  return lyra_canvas_.SaveAs(project, project_path, overworld_);
+  RETURN_IF_ERROR(lyra_canvas_.SaveAs(project, project_path, overworld_));
+  ResetLyraAssetRebind();
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::PreviewLyraAssetRebind() {
+  lyra_rebind_message_.clear();
+  lyra_rebind_unsaved_ = false;
+  auto plan =
+      lyra_canvas_.loaded()
+          ? lyra_canvas_.PreviewAssetRebind(overworld_)
+          : absl::StatusOr<core::LyraAssetRebind>(
+                absl::FailedPreconditionError("Lyra terrain is unavailable"));
+  if (!plan.ok()) {
+    if (lyra_rebind_)
+      lyra_rebind_->status = plan.status();
+    else
+      lyra_rebind_message_ = std::string(plan.status().message());
+    return plan.status();
+  }
+  if (plan->empty()) {
+    if (lyra_canvas_.recovery_required()) {
+      // The user may have restored the exact original source files after
+      // opening recovery mode. The explicit review acknowledges that match.
+      RETURN_IF_ERROR(lyra_canvas_.ApplyAssetRebind(
+          TerrainProject(), overworld_, *plan, undo_manager_));
+    }
+    lyra_rebind_.reset();
+    lyra_rebind_message_ =
+        "Native assets match this terrain; nothing to rebind";
+    return absl::OkStatus();
+  }
+  std::string changed_tiles;
+  if (plan->changed_tiles) {
+    for (const uint16_t tile : *plan->changed_tiles)
+      changed_tiles += absl::StrFormat("$%03X ", tile);
+  }
+  lyra_rebind_ =
+      LyraRebindReview{std::move(*plan), lyra_canvas_.document(),
+                       TerrainProject(), absl::OkStatus(), changed_tiles};
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::ApplyLyraAssetRebind() {
+  if (!lyra_rebind_)
+    return absl::FailedPreconditionError("Review the Lyra asset rebind first");
+  auto& review = *lyra_rebind_;
+  if (review.document != lyra_canvas_.document() ||
+      review.project != TerrainProject()) {
+    lyra_rebind_.reset();
+    return absl::FailedPreconditionError(
+        "Lyra terrain changed after the rebind preview; preview again");
+  }
+  if (!review.status.ok()) {
+    return absl::FailedPreconditionError(
+        "The reviewed rebind was refused; preview again before applying");
+  }
+  if (review.plan.empty() || !review.plan.invalid_cells.empty()) {
+    review.status = absl::FailedPreconditionError(
+        "The reviewed rebind has no changes or has invalid cells");
+    return review.status;
+  }
+  review.status = lyra_canvas_.ApplyAssetRebind(TerrainProject(), overworld_,
+                                                review.plan, undo_manager_);
+  if (!review.status.ok())
+    return review.status;
+  lyra_rebind_.reset();
+  lyra_rebind_unsaved_ = true;
+  lyra_rebind_message_ =
+      "Rebound Lyra terrain. Save ROM to persist native artwork, palettes or "
+      "Tile16 changes, then Save Project.";
+  return absl::OkStatus();
+}
+
+void OverworldEditor::ResetLyraAssetRebind() {
+  lyra_rebind_.reset();
+  lyra_rebind_message_.clear();
+  lyra_rebind_unsaved_ = false;
+}
+
+void OverworldEditor::DrawProjectAssetActions() {
+  if (lyra_rebind_ && (lyra_rebind_->document != lyra_canvas_.document() ||
+                       lyra_rebind_->project != TerrainProject()))
+    ResetLyraAssetRebind();
+  if (lyra_rebind_unsaved_ && !lyra_canvas_.dirty()) {
+    lyra_rebind_unsaved_ = false;
+    lyra_rebind_message_.clear();
+  }
+  const auto error_text = [](const std::string& text) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetErrorColor());
+    ImGui::TextWrapped("%s", text.c_str());
+    ImGui::PopStyleColor();
+  };
+  ImGui::PushID("ProjectAssetActions");
+  bool drew = false;
+  const bool lyra_map = current_map_ >= core::LyraTerrainDocument::kFirstMap &&
+                        current_map_ < core::LyraTerrainDocument::kFirstMap +
+                                           core::LyraTerrainDocument::kMapCount;
+  if (IsProjectTerrainMap(current_map_)) {
+    if (lyra_canvas_.recovery_required()) {
+      error_text(lyra_canvas_.recovery_reason());
+      ImGui::TextWrapped(
+          "This terrain opened with changed assets. Review Asset Rebind to "
+          "restore editing; the saved terrain stays available for review.");
+    } else {
+      const auto sources =
+          lyra_canvas_.PrepareMapAssets(overworld_, game_state_);
+      if (!sources.ok())
+        error_text(std::string(sources.message()));
+    }
+    if (ImGui::Button(ICON_MD_SYNC " Review Asset Rebind..."))
+      PreviewLyraAssetRebind().IgnoreError();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Compare this terrain's bound native assets with the current ROM "
+          "session. Nothing changes until you apply the reviewed plan.");
+    }
+    if (!lyra_rebind_message_.empty())
+      ImGui::TextWrapped("%s", lyra_rebind_message_.c_str());
+    drew = true;
+  } else if (lyra_map && !lyra_canvas_.loaded() && !lyra_canvas_status_.ok()) {
+    error_text(lyra_canvas_status_.ToString());
+    ImGui::TextWrapped(
+        "The terrain could not be opened. Restore a valid sidecar before "
+        "reviewing its assets.");
+    drew = true;
+  }
+  if (!ProjectGraphicsPath().empty()) {
+    const bool pending_graphics =
+        graphics_source_ && graphics_source_->any_dirty();
+    if (((!is_lyra_preview() && !IsProjectTerrainMap(current_map_)) ||
+         pending_graphics) &&
+        ImGui::Button(pending_graphics
+                          ? ICON_MD_EDIT " Edit Project Graphics... *"
+                          : ICON_MD_EDIT " Edit Project Graphics...")) {
+      graphics_source_status_ = OpenProjectGraphicsSource();
+    }
+    if (!graphics_source_status_.ok() && !graphics_source_open_)
+      error_text(std::string(graphics_source_status_.message()));
+    if (ImGui::Button(ICON_MD_REFRESH " Reload Project Graphics")) {
+      const auto status = ReloadProjectGraphics();
+      if (dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show(
+            status.ok() ? "Project graphics reloaded"
+                        : "Project graphics reload failed: " +
+                              std::string(status.message()),
+            status.ok() ? ToastType::kSuccess : ToastType::kError);
+      }
+      status_.Update(status);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Read the project graphics catalog again. Invalid files keep the "
+          "current graphics.");
+    }
+    drew = true;
+  }
+  DrawProjectGraphicsSource();
+  if (drew)
+    ImGui::Separator();
+
+  constexpr const char* kPopup = "Review Lyra Asset Rebind";
+  if (lyra_rebind_ && !ImGui::IsPopupOpen(kPopup))
+    ImGui::OpenPopup(kPopup);
+  if (ImGui::IsPopupOpen(kPopup)) {
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Appearing,
+                            ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(
+        ImVec2(std::min(760.0f, viewport->WorkSize.x * 0.9f),
+               std::min(560.0f, viewport->WorkSize.y * 0.9f)),
+        ImGuiCond_Appearing);
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(std::min(480.0f, viewport->WorkSize.x * 0.9f),
+               std::min(320.0f, viewport->WorkSize.y * 0.9f)),
+        ImVec2(viewport->WorkSize.x * 0.9f, viewport->WorkSize.y * 0.9f));
+  }
+  if (ImGui::BeginPopupModal(kPopup)) {
+    if (lyra_rebind_)
+      DrawLyraAssetRebindReview(*lyra_rebind_);
+    if (!lyra_rebind_)
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+  }
+  ImGui::PopID();
+}
+
+void OverworldEditor::DrawLyraAssetRebindReview(LyraRebindReview& review) {
+  const auto& plan = review.plan;
+  const auto& before = plan.before_profile;
+  const auto& after = plan.after_profile;
+  const std::string before_identity =
+      core::LyraTerrainProfileFingerprint(before);
+  const std::string after_identity = core::LyraTerrainProfileFingerprint(after);
+  if (!review.status.ok()) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetErrorColor());
+    ImGui::TextWrapped("%s", std::string(review.status.message()).c_str());
+    ImGui::PopStyleColor();
+    ImGui::TextWrapped("Apply is unavailable until Preview Again succeeds.");
+  }
+
+  // Buttons stay below the scrolling details at any modal size.
+  const float footer = ImGui::GetFrameHeightWithSpacing();
+  if (ImGui::BeginChild("Details", ImVec2(0, -footer), true)) {
+    ImGui::TextWrapped(
+        "Rebinding records the current native assets in this terrain. Painted "
+        "Tile16 IDs stay the same; their art follows the native definitions.");
+    ImGui::TextWrapped(
+        "Save native artwork, palette or Tile16 changes with Save ROM before "
+        "Save Project.");
+    const auto identity = [](const std::string& value) {
+      ImGui::TextWrapped("%s", value.c_str());
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Click to copy");
+      if (ImGui::IsItemClicked())
+        ImGui::SetClipboardText(value.c_str());
+    };
+    constexpr ImGuiTableFlags kTableFlags =
+        ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+    const float label_width = ImGui::GetFontSize() * 10.0f;
+    if (ImGui::BeginTable("Profile", 3, kTableFlags)) {
+      ImGui::TableSetupColumn("Bound asset", ImGuiTableColumnFlags_WidthFixed,
+                              label_width);
+      ImGui::TableSetupColumn("Before", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("After", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableHeadersRow();
+      const auto row = [&identity](const char* label, const std::string& was,
+                                   const std::string& now) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextWrapped("%s%s", label, was == now ? "" : " (changed)");
+        ImGui::TableNextColumn();
+        identity(was);
+        ImGui::TableNextColumn();
+        identity(now);
+      };
+      row("Shared profile", before_identity, after_identity);
+      row("Tile16 definitions", before.tile16_definition_fingerprint,
+          after.tile16_definition_fingerprint);
+      row("Graphics", before.graphics_fingerprint, after.graphics_fingerprint);
+      row("Palettes", before.palette_fingerprint, after.palette_fingerprint);
+      row("Animation", before.animation_fingerprint,
+          after.animation_fingerprint);
+      row("Tile16 count", std::to_string(before.tile_count),
+          std::to_string(after.tile_count));
+      ImGui::EndTable();
+    }
+
+    std::string maps;
+    for (const int map_id : plan.affected_maps)
+      maps += absl::StrFormat("$%02X ", map_id);
+    ImGui::TextWrapped("Affected maps (%zu): %s", plan.affected_maps.size(),
+                       maps.empty() ? "none" : maps.c_str());
+    if (plan.binding_changes.empty()) {
+      ImGui::TextWrapped(
+          "No per-state map bindings change. Affected maps use the shared "
+          "profile in all 3 states.");
+    }
+    if (!plan.binding_changes.empty() || plan.profile_changed()) {
+      if (ImGui::BeginTable("Bindings", 4, kTableFlags)) {
+        ImGui::TableSetupColumn("Map", ImGuiTableColumnFlags_WidthFixed,
+                                label_width * 0.5f);
+        ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_WidthFixed,
+                                label_width * 0.5f);
+        ImGui::TableSetupColumn("Before", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("After", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableHeadersRow();
+        for (const auto& change : plan.binding_changes) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("$%02X", change.map_id);
+          ImGui::TableNextColumn();
+          ImGui::Text("%d", change.state);
+          ImGui::TableNextColumn();
+          identity(change.before);
+          ImGui::TableNextColumn();
+          identity(change.after);
+        }
+        if (plan.profile_changed()) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::TextWrapped("Affected");
+          ImGui::TableNextColumn();
+          ImGui::TextWrapped("All 3 (shared profile)");
+          ImGui::TableNextColumn();
+          identity(before_identity);
+          ImGui::TableNextColumn();
+          identity(after_identity);
+        }
+        ImGui::EndTable();
+      }
+    }
+
+    if (!plan.changed_tiles) {
+      ImGui::TextWrapped(
+          "Previous Tile16 definitions are unknown, so every painted Tile16 "
+          "is treated as changed.");
+    } else {
+      ImGui::Text("Changed Tile16 IDs (%zu):", plan.changed_tiles->size());
+      ImGui::TextWrapped("%s", review.changed_tiles.empty()
+                                   ? "none"
+                                   : review.changed_tiles.c_str());
+    }
+
+    if (plan.invalid_cells.empty()) {
+      ImGui::TextUnformatted("Invalid cells: 0");
+    } else {
+      constexpr size_t kExamples = 5;
+      std::string examples;
+      for (size_t i = 0; i < std::min(kExamples, plan.invalid_cells.size());
+           ++i) {
+        const auto& cell = plan.invalid_cells[i];
+        examples += absl::StrFormat("$%02X (%d,%d) Tile16 $%03X; ", cell.map_id,
+                                    cell.x, cell.y, cell.tile);
+      }
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetErrorColor());
+      ImGui::TextWrapped(
+          "Invalid cells: %zu use Tile16 IDs outside the rebound atlas. %s"
+          "Repaint them before applying.",
+          plan.invalid_cells.size(), examples.c_str());
+      ImGui::PopStyleColor();
+    }
+  }
+  ImGui::EndChild();
+
+  ImGui::BeginDisabled(plan.empty() || !plan.invalid_cells.empty() ||
+                       !review.status.ok());
+  if (ImGui::Button(ICON_MD_CHECK " Apply Rebind")) {
+    const auto status = ApplyLyraAssetRebind();
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          status.ok()
+              ? "Rebound Lyra terrain. Save ROM to persist native artwork, "
+                "palettes or Tile16 changes, then Save Project."
+              : "Lyra asset rebind refused: " + std::string(status.message()),
+          status.ok() ? ToastType::kSuccess : ToastType::kError);
+    }
+  }
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_REFRESH " Preview Again"))
+    PreviewLyraAssetRebind().IgnoreError();
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_CLOSE " Cancel"))
+    CancelLyraAssetRebind();
 }
 
 void OverworldEditor::FocusLyraTerrain() {
@@ -1865,27 +2224,123 @@ absl::Status OverworldEditor::Redo() {
 
 // ============================================================================
 
-absl::Status OverworldEditor::SyncProjectGraphicsPreview(bool force) {
-  const auto* owner = dependencies_.project;
-  const std::string path =
-      owner && !owner->overworld_graphics_preview.empty()
-          ? owner->GetAbsolutePath(owner->overworld_graphics_preview)
-          : std::string{};
-  if (!force && path == graphics_preview_config_path_)
+std::string OverworldEditor::ProjectGraphicsPath() const {
+  const auto* owner = TerrainProject();
+  return owner && !owner->overworld_graphics_preview.empty()
+             ? owner->GetAbsolutePath(owner->overworld_graphics_preview)
+             : std::string{};
+}
+
+absl::Status OverworldEditor::RefreshProjectGraphicsMaps(
+    const std::set<int>& parents) {
+  if (parents.empty())
     return absl::OkStatus();
-  graphics_preview_config_path_ = path;
-  // An invalid new config must not leave the previous project's art active.
-  overworld_.SetGraphicsPreview({});
-  auto preview = core::LoadOverworldGraphicsPreview(path);
-  if (preview.ok())
-    overworld_.SetGraphicsPreview(std::move(*preview));
-  if (!force && overworld_.is_loaded()) {
-    for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
-      maps_bmp_[i].set_modified(true);
-    }
-    RETURN_IF_ERROR(RefreshTile16Blockset());
+  bool current_changed = false;
+  for (int id = 0; id < zelda3::kNumOverworldMaps; ++id) {
+    const auto* map = overworld_.overworld_map(id);
+    if (map == nullptr || !parents.contains(map->parent()))
+      continue;
+    ForceRefreshGraphics(id);
+    InvalidateGraphicsCache(id);
+    current_changed |= id == current_map_;
   }
-  return preview.status();
+  if (!current_changed)
+    return absl::OkStatus();
+  // Builds the current map with status before the void bitmap refresh, which
+  // only logs failures and leaves the bitmap marked for another rebuild.
+  RETURN_IF_ERROR(RefreshTile16Blockset());
+  RefreshOverworldMapOnDemand(current_map_);
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::StageProjectGraphicsRender(
+    const ProjectGraphicsPreviewSource::Replacement& replacement) {
+  const auto* live = overworld_.overworld_map(current_map_);
+  if (live == nullptr || IsProjectTerrainMap(current_map_) ||
+      !replacement.changed_parents.contains(live->parent()))
+    return absl::OkStatus();
+  zelda3::OverworldMap staged = *live;
+  const auto tiles = replacement.preview.find(live->parent());
+  staged.SetGraphicsPreview(tiles == replacement.preview.end()
+                                ? zelda3::AreaGraphicsPreview{}
+                                : tiles->second);
+  const int world = zelda3::WorldForOverworldMap(current_map_);
+  auto& tiles16 = *overworld_.mutable_tiles16();
+  return staged.BuildMapWithCache(static_cast<int>(tiles16.size()), game_state_,
+                                  world, tiles16, overworld_.GetMapTiles(world),
+                                  nullptr);
+}
+
+absl::Status OverworldEditor::SyncProjectGraphicsPreview(bool force) {
+  const std::string path = ProjectGraphicsPath();
+  if (!force && path == project_graphics_.path())
+    return absl::OkStatus();
+  std::set<int> changed;
+  const auto status = project_graphics_.Bind(path, overworld_, &changed);
+  const auto* donor = overworld_.overworld_map(0x3A);
+  if (lyra_canvas_.loaded() && donor && changed.contains(donor->parent()))
+    lyra_canvas_.InvalidateAssetCaches();
+  if (!force && overworld_.is_loaded())
+    RETURN_IF_ERROR(RefreshProjectGraphicsMaps(changed));
+  return status;
+}
+
+absl::Status OverworldEditor::ReloadProjectGraphics() {
+  if (!overworld_.is_loaded() || is_lyra_preview()) {
+    return absl::FailedPreconditionError(
+        "Project graphics apply only to a loaded native overworld");
+  }
+  // A different catalog path belongs to another project binding; replace it
+  // without retaining the previous catalog's art.
+  if (ProjectGraphicsPath() != project_graphics_.path())
+    return SyncProjectGraphicsPreview();
+  auto loaded = project_graphics_.LoadReplacement();
+  if (!loaded.ok()) {
+    return absl::Status(loaded.status().code(),
+                        absl::StrFormat("%s; previous graphics retained",
+                                        loaded.status().message()));
+  }
+  auto replacement = std::move(*loaded);
+  if (replacement.changed_parents.empty())
+    return absl::OkStatus();
+  // Lyra fingerprints include map $3A's resolved pixels. Invalidate its
+  // cached source receipt as soon as the donor catalog changes, so painting
+  // and rendering wait for an explicit rebind instead of displaying old art.
+  const auto* donor = overworld_.overworld_map(0x3A);
+  const bool lyra_donor_changed =
+      lyra_canvas_.loaded() && donor &&
+      replacement.changed_parents.contains(donor->parent());
+  if (auto staged = StageProjectGraphicsRender(replacement); !staged.ok()) {
+    return absl::Status(
+        staged.code(),
+        absl::StrFormat("Reloaded project graphics do not render map $%02X: "
+                        "%s; previous graphics retained",
+                        current_map_, staged.message()));
+  }
+  FinalizePaintOperation();
+  lyra_canvas_.FinishStroke(undo_manager_);
+  const auto changed = replacement.changed_parents;
+  ASSIGN_OR_RETURN(auto previous, project_graphics_.Commit(
+                                      std::move(replacement), overworld_));
+  if (lyra_donor_changed)
+    lyra_canvas_.InvalidateAssetCaches();
+  const auto refreshed = RefreshProjectGraphicsMaps(changed);
+  if (refreshed.ok())
+    return refreshed;
+  // Affected maps are already invalidated. Restoring the catalog makes their
+  // rebuilds use the previous art; the old caches and textures are not kept.
+  const auto restored =
+      project_graphics_.Commit(std::move(previous), overworld_);
+  std::string note = "previous graphics restored";
+  if (!restored.ok()) {
+    note = absl::StrFormat("restoring previous graphics failed: %s",
+                           restored.status().message());
+  } else if (const auto redraw = RefreshProjectGraphicsMaps(changed);
+             !redraw.ok()) {
+    note += absl::StrFormat("; redraw failed: %s", redraw.message());
+  }
+  return absl::Status(refreshed.code(),
+                      absl::StrFormat("%s; %s", refreshed.message(), note));
 }
 
 absl::Status OverworldEditor::LoadGraphics() {
@@ -2230,7 +2685,13 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
 }
 
 absl::Status OverworldEditor::Clear() {
+  graphics_source_.reset();
+  graphics_source_project_ = nullptr;
+  graphics_source_open_ = false;
+  graphics_source_status_ = absl::OkStatus();
+  graphics_source_message_.clear();
   lyra_canvas_.Reset();
+  ResetLyraAssetRebind();
   pending_tile16_selection_after_gfx_.reset();
   lyra_loaded_rom_sha1_.clear();
   if (is_lyra_preview()) {

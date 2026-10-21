@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLD_LYRA_TERRAIN_CANVAS_H_
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -26,7 +27,8 @@ namespace yaze::editor {
 absl::StatusOr<std::string> PublishLyraTerrainSource(
     const project::YazeProject& project, const std::string& source_path,
     const std::optional<std::string>& source_bytes,
-    const core::LyraTerrainDocument& document);
+    const core::LyraTerrainDocument& document,
+    std::function<absl::Status()> validate_sources = {});
 
 // Project-owned terrain. This view never routes edits through the ROM map model.
 class LyraTerrainCanvas {
@@ -51,6 +53,15 @@ class LyraTerrainCanvas {
   bool dirty() const;
   void ProjectSaveCommitted() { pending_project_commit_ = false; }
   bool loaded() const { return document_ != nullptr; }
+  // A valid sidecar with stale native bindings stays available for review,
+  // while all authoring and save operations remain blocked. Rebind history
+  // restores this state on Undo and clears it on Redo.
+  bool recovery_required() const {
+    return document_ && !recovery_status_->ok();
+  }
+  std::string recovery_reason() const {
+    return std::string(recovery_status_->message());
+  }
   // Rendering only. TilePaintingManager owns the shared Overworld gestures.
   void DrawSpecialWorld(const gui::CanvasRuntime& canvas);
   // Coordinates are document-relative Tile16 cells; footprints clip at its
@@ -62,6 +73,19 @@ class LyraTerrainCanvas {
   absl::Status ApplyProposal(project::YazeProject* project,
                              zelda3::Overworld& overworld, int selected_map,
                              std::string_view bundle, UndoManager& history);
+  // Explicit migration after native Tile16, sheet or palette edits. Preview
+  // resolves the current sources and never changes the document or history.
+  absl::StatusOr<core::LyraAssetRebind> PreviewAssetRebind(
+      zelda3::Overworld& overworld);
+  // Applies `preview` as one history step only when it still equals a fresh
+  // preview of the current document and sources. Document staleness,
+  // including any terrain cell change, is refused before native sources are
+  // read. Proposals admitted against
+  // the previous profile or bindings no longer match the derived identities.
+  absl::Status ApplyAssetRebind(project::YazeProject* project,
+                                zelda3::Overworld& overworld,
+                                const core::LyraAssetRebind& preview,
+                                UndoManager& history);
   void Reset();
   const core::LyraTerrainDocument* document() const { return document_.get(); }
   const gfx::Bitmap& atlas() const { return atlas_; }
@@ -72,6 +96,10 @@ class LyraTerrainCanvas {
                              zelda3::Overworld& overworld,
                              UndoManager& history);
   absl::Status PrepareMapAssets(zelda3::Overworld& overworld, int state);
+  // A committed native graphics reload must hide every cached Lyra drawing
+  // immediately, before the next draw/source check. Keep bound definitions so
+  // the reviewed rebind can still identify changed Tile16 definitions.
+  void InvalidateAssetCaches();
   gfx::Bitmap& MapAtlas(int map_id);
   gfx::Bitmap* MapGraphics(int map_id);
   void DrawProperties(int map_id, int& state, zelda3::Overworld& overworld,
@@ -135,21 +163,36 @@ class LyraTerrainCanvas {
   absl::Status BindSource(zelda3::Overworld& overworld,
                           core::LyraTerrainProfile* profile,
                           gfx::Bitmap* atlas = nullptr);
+  // Live checks plus parity with the ROM file a cold reopen would load.
   absl::Status ValidateSave(project::YazeProject* project,
-                            zelda3::Overworld& overworld);
-  // Called only after document, native profile, and CPU atlas all validate.
-  // Texture commands use the committed bitmap's stable member address.
+                            zelda3::Overworld& overworld,
+                            std::string* durable_receipt = nullptr);
+  // Ownership, pending drafts and the live native model only. In-memory edits
+  // such as proposals stay allowed before the ROM is saved.
+  absl::Status ValidateLiveSource(project::YazeProject* project,
+                                  zelda3::Overworld& overworld);
+  // Called after document validation. A recovery document has no atlas until
+  // rebind review succeeds. Texture commands use the committed bitmap's stable
+  // member address.
   void InstallDocument(std::shared_ptr<core::LyraTerrainDocument> document,
                        gfx::Bitmap atlas, std::string source_path,
                        std::optional<std::string> source_bytes,
                        bool unpublished);
+  void ReplaceAtlas(gfx::Bitmap atlas, const core::LyraTerrainProfile& profile);
+  // Records the Tile16 definitions matching the document profile so a later
+  // rebind preview can name the changed definitions.
+  void RecordBoundDefinitions(std::string definitions);
   void DrawTile(ImDrawList* draw, const gfx::Bitmap& atlas, int tile,
                 ImVec2 min, float size) const;
   void PaintStamp(int x, int y);
   void PaintLine(int x, int y);
 
   std::shared_ptr<core::LyraTerrainDocument> document_;
+  // Shared with rebind actions so retained history never captures this canvas.
+  std::shared_ptr<absl::Status> recovery_status_ =
+      std::make_shared<absl::Status>();
   gfx::Bitmap atlas_;
+  core::LyraTerrainProfile atlas_profile_;
   std::string source_path_;
   std::optional<std::string> source_bytes_;
   bool unpublished_ = false;
@@ -167,6 +210,11 @@ class LyraTerrainCanvas {
   std::vector<uint8_t> source_rom_, source_graphics_;
   std::string source_metadata_;
   absl::Status source_status_;
+  // Profile bound from the snapshot sources. Compared with the document on
+  // every check because rebind Undo/Redo changes the document profile alone.
+  core::LyraTerrainProfile source_profile_;
+  std::string bound_definition_fingerprint_;
+  std::string bound_definitions_;
   absl::Status authoring_assets_status_;
   std::optional<core::LyraAuthoringState> validated_authoring_;
   bool assets_valid_ = false;

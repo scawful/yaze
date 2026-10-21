@@ -770,6 +770,41 @@ maps, water-fill zones, and pot-item saving disabled; paired palette/pixel
 remapping is not implemented. Native/GPU behavior, game runtime, CI, and full
 packaged-release acceptance remain open. Keep DA-5 and full GF-1 open.
 
+### GF-1 external resource source candidate (2026-10-21)
+
+The isolated `codex/oracle-graphics-source-20261021` candidate adds **Edit
+Project Graphics** to the existing Overworld asset actions. It maps each
+external V2 resource to the project's explicit canonical Oracle source,
+reports shared profile/slice consumers, and edits its 4bpp pixels with
+per-resource Undo/Redo. External content IDs remain separate from native
+sheet IDs. Palettes and Tile16 definitions retain their native ROM writers.
+
+**Review Source Publish** stages a complete source and portable-pack update.
+**Publish Reviewed Source** admits the exact held plan, source identities and
+bytes before updating resource IDs, profile/phase-policy references, generated
+runtime tables, and pack outputs. Existing legacy binaries remain available
+to their ASM consumers. The publisher shares the source-artifact lock
+namespace, validates compiler/readback results, and rolls back handled
+failures. Publication is not crash atomic across all files. Launching this
+Python publisher is currently supported by native macOS/Linux builds.
+
+Parseable Lyra sidecars with changed native asset fingerprints/bindings now
+open read-only for the existing explicit rebind review. Editing and saving
+stay guarded until review applies; Undo restores recovery and Redo releases
+it. Donor catalog changes invalidate cached source/render state. Writable
+source ownership follows the live project rather than its session snapshot,
+and pending pixel drafts block project save/reload until published or
+discarded.
+
+Evidence: the native app build, 82 distinct focused C++ cases and 48 Oracle
+publisher/compiler cases pass with zero skips. Native palette Save/cold reopen
+and actual source publication/reopen pass. One disposable normal Oracle build
+passes all 15 required checks and preserves both edits; the complete generated
+graphics interval is reconstructed, with no unexplained ROM-byte changes.
+GUI interaction, game-rendered pixels, Windows/WASM source publication, and
+broader GF-1 acceptance remain open. Exact candidate/evidence:
+AFS `scratchpad/handoffs/graphics_source_bridge_2026-10-21/WORK.md`.
+
 ### OW-1 and OW-2: overworld entity completion
 
 Inspect `src/app/editor/overworld/entity_operations.cc`,

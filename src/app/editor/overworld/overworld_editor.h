@@ -22,6 +22,8 @@
 #include "app/editor/overworld/maps/map_texture_coordinator.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/painting/tile_painting_manager.h"
+#include "app/editor/overworld/project_graphics_preview.h"
+#include "app/editor/overworld/project_graphics_source.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui/debug/debug_window_card.h"
 #include "app/editor/overworld/ui/debug/usage_statistics_card.h"
@@ -195,7 +197,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
   absl::Status Clear() override;
-  bool HasPendingProjectDraftChanges() const { return lyra_canvas_.dirty(); }
+  bool HasPendingProjectDraftChanges() const {
+    return lyra_canvas_.dirty() ||
+           (graphics_source_ && graphics_source_->any_dirty());
+  }
   void SetProjectContextProvider(
       std::function<project::YazeProject*()> provider) {
     project_context_provider_ = std::move(provider);
@@ -240,6 +245,25 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status ApplyLyraTerrainProposal(std::string_view bundle);
   absl::Status SaveProjectTerrainAs(project::YazeProject* project,
                                     const std::string& project_path);
+  // A reviewed rebind plan, owned by the terrain and project it was
+  // previewed against. Apply passes exactly this plan to the canvas.
+  struct LyraRebindReview {
+    core::LyraAssetRebind plan;
+    const core::LyraTerrainDocument* document = nullptr;
+    project::YazeProject* project = nullptr;
+    // A refusal; the plan cannot be applied until a new preview replaces it.
+    absl::Status status;
+    // Up to 4096 IDs, formatted once per preview rather than per frame.
+    std::string changed_tiles;
+  };
+  // An empty plan clears the review and reports that nothing needs rebinding.
+  absl::Status PreviewLyraAssetRebind();
+  // A refused plan stays under review with its reason.
+  absl::Status ApplyLyraAssetRebind();
+  void CancelLyraAssetRebind() { lyra_rebind_.reset(); }
+  const std::optional<LyraRebindReview>& lyra_rebind_review() const {
+    return lyra_rebind_;
+  }
   LyraTerrainCanvas lyra_canvas_;
   absl::Status lyra_canvas_status_;
   // Project terrain occupies the lower Special World rows without expanding
@@ -318,6 +342,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    */
   absl::Status LoadGraphics();
   absl::Status SyncProjectGraphicsPreview(bool force = false);
+  // Re-reads the project graphics catalog at its current path. An unchanged,
+  // invalid, refused, or current-map-unrenderable catalog returns before any
+  // model, cache, gesture, or history change. If the refresh fails after the
+  // commit, the previous catalog is restored and affected maps rebuild from
+  // it; in-progress paint gestures were already closed into history.
+  absl::Status ReloadProjectGraphics();
 
   // ===========================================================================
   // Entity Interaction API
@@ -490,6 +520,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       return;
     }
     NormalizeCurrentSelectionState();
+    DrawProjectAssetActions();
     if (canvas_renderer_)
       canvas_renderer_->DrawMapProperties();
   }
@@ -551,12 +582,38 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   std::function<project::YazeProject*()> project_context_provider_;
   friend class AuthoringSaveWorkflowTestPeer;
+  friend class ProjectGraphicsSourceUiTestPeer;
 
   // Identifies the exact descriptor image bound to this model. The session
   // reload path may restore those bytes after a refused ROM replacement.
   std::string lyra_loaded_rom_sha1_;
   int lyra_terrain_brush_ = 0x2103;
-  std::string graphics_preview_config_path_;
+  std::string ProjectGraphicsPath() const;
+  // Rebuilds only maps whose parent's applied catalog tiles changed.
+  absl::Status RefreshProjectGraphicsMaps(const std::set<int>& parents);
+  // Builds a copy of the current map against `replacement` without changing
+  // the model, so render failures are found before the catalog is committed.
+  absl::Status StageProjectGraphicsRender(
+      const ProjectGraphicsPreviewSource::Replacement& replacement);
+  ProjectGraphicsPreviewSource project_graphics_;
+  absl::Status OpenProjectGraphicsSource();
+  void DrawProjectGraphicsSource();
+  std::unique_ptr<ProjectGraphicsSource> graphics_source_;
+  project::YazeProject* graphics_source_project_ = nullptr;
+  bool graphics_source_open_ = false;
+  int graphics_source_tile_ = 0;
+  int graphics_source_index_ = 1;
+  int graphics_source_palette_ = 0;
+  absl::Status graphics_source_status_;
+  std::string graphics_source_message_;
+  // Project asset actions for native and Lyra maps, drawn above the map
+  // properties because the renderer bypasses the native sidebar on Lyra maps.
+  void DrawProjectAssetActions();
+  void DrawLyraAssetRebindReview(LyraRebindReview& review);
+  void ResetLyraAssetRebind();
+  std::optional<LyraRebindReview> lyra_rebind_;
+  std::string lyra_rebind_message_;
+  bool lyra_rebind_unsaved_ = false;
   // ===========================================================================
   // Entity Interaction System
   // ===========================================================================

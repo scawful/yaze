@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -808,7 +809,15 @@ TEST_F(AuthoringSaveWorkflowTest, OracleProjectLoadsCanonicalMessagesOnOpen) {
   const auto include_before = ReadFile(fixture.root / include_relative);
   const auto rom_before = ReadFile(fixture.rom);
   const auto source = nlohmann::json::parse(bundle_before);
-  ASSERT_EQ(source.at("messages").size(), 119u);
+  const auto& expected_messages = source.at("messages");
+  ASSERT_TRUE(expected_messages.is_array());
+  ASSERT_FALSE(expected_messages.empty());
+  int max_source_id = -1;
+  for (const auto& message : expected_messages) {
+    const int id = message.at("id").get<int>();
+    ASSERT_GE(id, 0);
+    max_source_id = std::max(max_source_id, id);
+  }
 
   for (const auto mode : {AssetLoadMode::kLazy, AssetLoadMode::kFull}) {
     SCOPED_TRACE(mode == AssetLoadMode::kLazy ? "lazy open" : "preloaded open");
@@ -819,16 +828,22 @@ TEST_F(AuthoringSaveWorkflowTest, OracleProjectLoadsCanonicalMessagesOnOpen) {
     ASSERT_OK(manager_->EnsureEditorAssetsLoaded(EditorType::kMessage));
     auto* messages = manager_->GetCurrentEditorSet()->GetMessageEditor();
     ASSERT_NE(messages, nullptr);
+    const int expanded_base = manager_->GetCurrentProject()
+                                  ->hack_manifest.message_layout()
+                                  .first_expanded_id;
+    ASSERT_GT(expanded_base, 0);
+    ASSERT_LT(max_source_id, std::numeric_limits<int>::max() - expanded_base);
     const auto& expanded =
         AuthoringSaveWorkflowTestPeer::ExpandedMessages(*messages);
-    ASSERT_EQ(expanded.size(), 119u);
+    ASSERT_EQ(expanded.size(), expected_messages.size());
     for (size_t i = 0; i < expanded.size(); ++i) {
-      EXPECT_EQ(expanded[i].ID, source.at("messages")[i].at("id"));
+      const int source_id = expected_messages[i].at("id").get<int>();
+      EXPECT_EQ(expanded[i].ID, source_id);
       EXPECT_EQ(expanded[i].RawString,
-                source.at("messages")[i].at("text").get<std::string>());
-      EXPECT_TRUE(messages->OpenMessageById(0x18D + static_cast<int>(i)));
+                expected_messages[i].at("text").get<std::string>());
+      EXPECT_TRUE(messages->OpenMessageById(expanded_base + source_id));
     }
-    EXPECT_FALSE(messages->OpenMessageById(0x204));
+    EXPECT_FALSE(messages->OpenMessageById(expanded_base + max_source_id + 1));
     EXPECT_FALSE(messages->CanUndo());
     EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
     EXPECT_FALSE(manager_->GetCurrentRom()->dirty());
@@ -1098,6 +1113,25 @@ TEST_F(AuthoringSaveWorkflowTest,
   constexpr int kChild = 0x31;
   const auto* parent = editor->overworld().overworld_map(kParent);
   ASSERT_EQ(editor->overworld().overworld_map(kChild)->parent(), kParent);
+  const auto original_area_size = parent->area_size();
+  const int palette_width =
+      original_area_size == zelda3::AreaSizeEnum::LargeArea ||
+              original_area_size == zelda3::AreaSizeEnum::WideArea
+          ? 2
+          : 1;
+  const int palette_height =
+      original_area_size == zelda3::AreaSizeEnum::LargeArea ||
+              original_area_size == zelda3::AreaSizeEnum::TallArea
+          ? 2
+          : 1;
+  std::vector<int> palette_maps;
+  for (int y = 0; y < palette_height; ++y) {
+    for (int x = 0; x < palette_width; ++x) {
+      const int map = kParent + y * 8 + x;
+      ASSERT_EQ(editor->overworld().overworld_map(map)->parent(), kParent);
+      palette_maps.push_back(map);
+    }
+  }
   const int old_background = parent->area_specific_bg_color();
   const int new_background = old_background ^ 0x0421;
   const int old_message = parent->message_id();
@@ -1149,7 +1183,8 @@ TEST_F(AuthoringSaveWorkflowTest,
   write_word(zelda3::OverworldCustomAreaSpecificBGPalette + 2 * kParent,
              new_background);
   write_word(zelda3::GetOverworldMessagesExpanded() + 2 * kParent, new_message);
-  for (const int map : {0x30, 0x31, 0x38, 0x39}) {
+  // Preserve unrelated lower-area slots when this footprint is Wide, not 2x2.
+  for (const int map : palette_maps) {
     expected.at(zelda3::kOverworldPalettesScreenToSetNew + map) = new_palette;
   }
   const auto pending = manager_->GetCurrentRom()->vector();
@@ -1191,7 +1226,29 @@ TEST_F(AuthoringSaveWorkflowTest,
   EXPECT_EQ(fresh_parent->area_specific_bg_color(), new_background);
   EXPECT_EQ(fresh_parent->message_id(), new_message);
   EXPECT_EQ(fresh_parent->area_palette(), new_palette);
-  EXPECT_EQ(ReadFile(fixture.rom), expected);
+  const auto reopened_bytes = ReadFile(fixture.rom);
+  const size_t common_size = std::min(reopened_bytes.size(), expected.size());
+  const auto first_difference =
+      std::mismatch(reopened_bytes.begin(), reopened_bytes.end(),
+                    expected.begin(), expected.end());
+  const size_t first_offset =
+      std::distance(reopened_bytes.begin(), first_difference.first);
+  size_t differing_bytes =
+      std::max(reopened_bytes.size(), expected.size()) - common_size;
+  for (size_t offset = 0; offset < common_size; ++offset)
+    differing_bytes += reopened_bytes[offset] != expected[offset];
+  const auto byte_at = [](const auto& bytes, size_t offset) {
+    return offset < bytes.size() ? absl::StrFormat("$%02X", bytes[offset])
+                                 : std::string("EOF");
+  };
+  EXPECT_EQ(reopened_bytes, expected)
+      << "after fresh reopen: differing_bytes=" << differing_bytes
+      << ", first_file_offset="
+      << absl::StrFormat("$%06X", static_cast<unsigned>(first_offset))
+      << ", actual=" << byte_at(reopened_bytes, first_offset)
+      << ", expected=" << byte_at(expected, first_offset)
+      << ", actual_size=" << reopened_bytes.size()
+      << ", expected_size=" << expected.size();
   EXPECT_EQ(util::ComputeFileSha1Hex(kSharedRom), fixture.shared_hash);
 }
 
@@ -5743,14 +5800,11 @@ TEST_F(AuthoringSaveWorkflowTest, OracleTallSpecialAreaCanvasSaveReopens) {
 }
 
 TEST_F(AuthoringSaveWorkflowTest, OracleTileEditRetryKeepsHooksOrStaysRefused) {
-  const auto rom = ResolveOracleEditRom();
-  ASSERT_FALSE(rom.empty()) << "Oracle edit ROM was not resolved. Set "
-                               "YAZE_TEST_ROM_OOS to the base ROM.";
-  const auto rom_dir = rom.parent_path();
-  const auto project_root = rom_dir.parent_path();
-  const auto project = project_root / "Oracle-of-Secrets.yaze";
-  const auto manifest = rom_dir / "hack_manifest.json";
-  const auto collision = project_root / "Data/dungeons/custom_collision.json";
+  const std::filesystem::path rom = kSharedRom;
+  ASSERT_FALSE(rom.empty()) << "Oracle authoring fixture ROM was not resolved";
+  const std::filesystem::path project = kSharedProject;
+  const std::filesystem::path manifest = kSharedManifest;
+  const std::filesystem::path collision = kSharedCollision;
   ASSERT_TRUE(std::filesystem::exists(project)) << project;
   ASSERT_TRUE(std::filesystem::exists(manifest)) << manifest;
   ASSERT_TRUE(std::filesystem::exists(collision)) << collision;

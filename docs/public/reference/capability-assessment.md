@@ -127,6 +127,14 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | Author custom dungeon systems | **Partial** | Project mappings, tile workshop, Oracle collision/water tools, custom assets, source publication | Complete authoring and validation across mappings, source build, collision, visuals, and game behavior. A successful ROM save does not prove a source patch reached the game. |
 | Edit global game properties and supported expansions | **Partial**, comparison audit required | Several relevant properties and expanded overworld formats exist | Enumerate the reference editors' settings and layout versions, map them to Yaze, and qualify each supported variant instead of assuming full compatibility. |
 
+The October 21 external-resource graphics candidate adds source-mapped 4bpp
+pixel editing, reviewed source/pack publication, and read-only recovery of
+stale Lyra bindings. Native palettes and Tile16 definitions keep their existing
+ROM save paths. Source publication currently requires native macOS/Linux and
+the Oracle Python publisher; GUI/game-rendered acceptance and Windows/WASM
+publication remain open. See the GF-1 external resource source increment in
+the [capability plan](../../internal/plans/editor-capability-parity-plan.md).
+
 ## Development order
 
 1. **Complete dungeon authoring for 0.8.0.** Establish shared undo transactions,

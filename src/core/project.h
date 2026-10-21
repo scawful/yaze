@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -425,7 +426,8 @@ struct YazeProject {
   // original terrain. Both destination files roll back together on failure.
   absl::Status SaveAsWithLyraTerrain(
       const std::string& new_path, const core::LyraTerrainDocument& terrain,
-      const std::optional<std::string>& expected_source_bytes);
+      const std::optional<std::string>& expected_source_bytes,
+      std::function<absl::Status()> validate_sources = {});
   absl::Status ImportZScreamProject(const std::string& zscream_project_path);
   absl::Status ExportForZScream(const std::string& target_path);
 

@@ -408,6 +408,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/project_manager_validator_test.cc
     unit/editor/tile_painting_manager_test.cc
     unit/zelda3/overworld_graphics_preview_test.cc
+    unit/editor/project_graphics_preview_test.cc
+    unit/editor/project_graphics_source_test.cc
+    unit/editor/project_graphics_source_ui_test.cc
     unit/editor/overworld_undo_actions_test.cc
     unit/editor/tile16_document_history_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc
@@ -597,6 +600,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
     unit/zelda3/menu_tilemap_test.cc
+    unit/zelda3/overworld_map_screen_custom_map_test.cc
     unit/zelda3/gfx_sheet_png_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
     unit/zelda3/graphics_sheet_store_test.cc
@@ -889,6 +893,13 @@ if(YAZE_BUILD_TESTS)
   )
   yaze_add_focused_test_target(yaze_test_focus_lyra_authoring
     ${FOCUS_LYRA_AUTHORING_TEST_SOURCES})
+
+  # Project graphics reload and selected-world pause-map layout import.
+  yaze_add_focused_test_target(yaze_test_focus_project_resources
+    unit/editor/project_graphics_preview_test.cc
+    unit/editor/project_graphics_source_test.cc
+    unit/editor/project_graphics_source_ui_test.cc
+    unit/zelda3/overworld_map_screen_custom_map_test.cc)
 
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)

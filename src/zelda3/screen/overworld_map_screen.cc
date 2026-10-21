@@ -323,8 +323,8 @@ absl::Status OverworldMapScreen::Save(Rom* rom) {
   return absl::OkStatus();
 }
 
-absl::Status OverworldMapScreen::LoadCustomMap(const std::string& file_path) {
-  // Load custom map from external binary file
+absl::Status OverworldMapScreen::LoadCustomMap(const std::string& file_path,
+                                               bool use_dark_world) {
   std::ifstream file(file_path, std::ios::binary | std::ios::ate);
   if (!file.is_open()) {
     return absl::NotFoundError("Could not open custom map file: " + file_path);
@@ -338,15 +338,15 @@ absl::Status OverworldMapScreen::LoadCustomMap(const std::string& file_path) {
 
   file.seekg(0, std::ios::beg);
 
-  // Read into Light World map buffer (could add option for Dark World later)
-  file.read(reinterpret_cast<char*>(lw_map_tiles_.data()), 4096);
-
-  if (!file) {
+  // Stage the whole file so a failed read leaves both worlds untouched.
+  std::array<uint8_t, 64 * 64> staged;
+  file.read(reinterpret_cast<char*>(staged.data()), staged.size());
+  if (!file || file.gcount() != static_cast<std::streamsize>(staged.size())) {
     return absl::InternalError("Failed to read custom map data");
   }
 
-  // Re-render with new data
-  RETURN_IF_ERROR(RenderMapLayer(false));
+  (use_dark_world ? dw_map_tiles_ : lw_map_tiles_) = staged;
+  RETURN_IF_ERROR(RenderMapLayer(use_dark_world));
   gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
                                         &map_bitmap_);
 
