@@ -693,7 +693,7 @@ absl::StatusOr<uint16_t> Overworld::GetTile16ForTile32(
   ASSIGN_OR_RETURN(
       auto arg1, rom()->ReadByte(map32address[dimension] + quadrant + (index)));
   ASSIGN_OR_RETURN(auto arg2,
-                   rom()->ReadWord(map32address[dimension] + (index) +
+                   rom()->ReadByte(map32address[dimension] + (index) +
                                    (quadrant <= 1 ? 4 : 5)));
   return (uint16_t)(arg1 +
                     (((arg2 >> (quadrant % 2 == 0 ? 4 : 0)) & 0x0F) * 256));

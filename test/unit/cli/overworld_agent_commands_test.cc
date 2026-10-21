@@ -114,7 +114,8 @@ TEST(LyraVerifyProjectCommandTest,
   options.expand_rom = false;
   ASSERT_TRUE(zelda3::LoadGameData(rom, data, options).ok());
   auto source = std::make_unique<zelda3::Overworld>(&rom, &data);
-  ASSERT_TRUE(source->Load(&rom).ok());
+  const auto source_status = source->Load(&rom);
+  ASSERT_TRUE(source_status.ok()) << source_status;
   core::LyraTerrainProfile profile;
   ASSERT_TRUE(zelda3::BindLyraTerrainSource(*source, &profile).ok());
   auto document = core::LyraTerrainDocument::Create(profile);
