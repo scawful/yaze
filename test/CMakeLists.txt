@@ -339,6 +339,7 @@ if(YAZE_BUILD_TESTS)
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
+    unit/editor/dungeon_agent_batch_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_activator_test.cc
     unit/editor/story_event_graph_navigation_test.cc
@@ -729,6 +730,8 @@ if(YAZE_BUILD_TESTS)
       unit/cli/ai_service_factory_test.cc
       unit/cli/model_registry_test.cc
       unit/cli/tool_dispatcher_test.cc
+      unit/cli/dungeon_editor_tool_dispatch_test.cc
+      unit/editor/dungeon_agent_tools_test.cc
       unit/cli/tool_schema_builder_test.cc
       unit/cli/http_api_handlers_test.cc
       unit/cli/api_handlers_test.cc
@@ -818,6 +821,14 @@ if(YAZE_BUILD_TESTS)
   list(APPEND STABLE_INTEGRATION_TEST_SOURCES ${QUICK_INTEGRATION_TEST_SOURCES})
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  if(YAZE_ENABLE_AGENT_CLI AND YAZE_ENABLE_JSON)
+    yaze_add_test_suite(yaze_test_native_batch "native_batch;unit" OFF
+      unit/cli/dungeon_editor_tool_dispatch_test.cc
+      unit/editor/dungeon_agent_batch_test.cc
+      unit/editor/dungeon_agent_tools_test.cc
+      unit/cli/tool_schema_builder_test.cc
+      unit/zelda3/dungeon/room_animated_graphics_test.cc)
+  endif()
   target_compile_definitions(yaze_test_unit PRIVATE
     YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
   )

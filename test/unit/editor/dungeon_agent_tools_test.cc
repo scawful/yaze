@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 #include <map>
 #include <memory>
@@ -21,6 +23,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/platform/sdl_compat.h"
 #include "cli/service/agent/tool_dispatcher.h"
 #include "cli/service/ai/common.h"
 #include "core/features.h"
@@ -220,7 +223,35 @@ RenderSnapshot CaptureRoomRender(zelda3::Room& room) {
   AppendBuffer(snapshot, "object_bg1", room.object_bg1_buffer());
   AppendBuffer(snapshot, "object_bg2", room.object_bg2_buffer());
   snapshot.emplace_back("composite.pixels", composite.vector());
+  std::vector<uint8_t> palette_bytes;
+  if (auto* palette = platform::GetSurfacePalette(composite.surface())) {
+    for (int i = 0; i < palette->ncolors; ++i) {
+      const auto& color = palette->colors[i];
+      palette_bytes.insert(palette_bytes.end(),
+                           {color.r, color.g, color.b, color.a});
+    }
+  }
+  snapshot.emplace_back("composite.palette", std::move(palette_bytes));
   return snapshot;
+}
+
+// Optional evidence from the real native render, without another render path.
+void ExportNativeRender(const char* phase, const RenderSnapshot& snapshot) {
+  const char* directory = std::getenv("YAZE_NATIVE_BATCH_ARTIFACT_DIR");
+  if (!directory || !directory[0])
+    return;
+  std::error_code error;
+  std::filesystem::create_directories(directory, error);
+  ASSERT_FALSE(error) << error.message();
+  for (const auto& [name, bytes] : snapshot) {
+    if (name != "composite.pixels" && name != "composite.palette")
+      continue;
+    const auto path = std::filesystem::path(directory) /
+                      (std::string("room25-") + phase + "-" + name + ".bin");
+    std::ofstream output(path, std::ios::binary);
+    output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    ASSERT_TRUE(output.good()) << path;
+  }
 }
 
 const std::vector<uint8_t>& Component(const RenderSnapshot& snapshot,
@@ -975,6 +1006,8 @@ TEST(DungeonAgentToolsNativeRomTest,
   room->RenderRoomGraphics();
   const RenderSnapshot original = CaptureRoomRender(*room);
   ASSERT_EQ(Component(original, "composite.pixels").size(), 512u * 512u);
+  ASSERT_EQ(Component(original, "composite.palette").size(), 256u * 4u);
+  ASSERT_NO_FATAL_FAILURE(ExportNativeRender("original", original));
   ASSERT_FALSE(editor.undo_manager().CanUndo());
 
   int provider_calls = 0;
@@ -1016,6 +1049,13 @@ TEST(DungeonAgentToolsNativeRomTest,
   EXPECT_EQ(editor.undo_manager().UndoStackSize(), 1u);
 
   const RenderSnapshot candidate = CaptureRoomRender(*room);
+  ASSERT_NO_FATAL_FAILURE(ExportNativeRender("candidate", candidate));
+  RecordProperty("changed_object_count", 22);
+  RecordProperty("render_component_count", static_cast<int>(original.size()));
+  RecordProperty("changed_composite_pixels",
+                 static_cast<int>(CountDifferentBytes(
+                     Component(original, "composite.pixels"),
+                     Component(candidate, "composite.pixels"))));
   EXPECT_GT(CountDifferentBytes(Component(original, "composite.pixels"),
                                 Component(candidate, "composite.pixels")),
             0u)
@@ -1025,6 +1065,7 @@ TEST(DungeonAgentToolsNativeRomTest,
   ASSERT_TRUE(editor.Undo().ok());
   EXPECT_EQ(Records(room->GetTileObjects()), Records(original_objects));
   const RenderSnapshot undone = CaptureRoomRender(*room);
+  ASSERT_NO_FATAL_FAILURE(ExportNativeRender("undo", undone));
   for (size_t i = 0; i < original.size(); ++i) {
     EXPECT_TRUE(undone[i] == original[i])
         << original[i].first << " differs after Undo";
@@ -1035,6 +1076,7 @@ TEST(DungeonAgentToolsNativeRomTest,
   ASSERT_TRUE(editor.Redo().ok());
   EXPECT_EQ(Records(room->GetTileObjects()), Records(candidate_objects));
   const RenderSnapshot redone = CaptureRoomRender(*room);
+  ASSERT_NO_FATAL_FAILURE(ExportNativeRender("redo", redone));
   for (size_t i = 0; i < candidate.size(); ++i) {
     EXPECT_TRUE(redone[i] == candidate[i])
         << candidate[i].first << " differs after Redo";
