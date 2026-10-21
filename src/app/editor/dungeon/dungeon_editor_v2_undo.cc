@@ -5,11 +5,13 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <cstdio>
 #include <exception>
 #include <iterator>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -69,6 +71,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_dimensions.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object_batch.h"
 #include "zelda3/dungeon/water_fill_zone.h"
@@ -823,6 +826,8 @@ DungeonEditorV2::ApplyRoomObjectBatch(const zelda3::RoomObjectBatch& batch) {
     }
   }
 
+  const bool allow_track_corner_aliases =
+      zelda3::RoomAllowsTrackCornerAliases(objects);
   std::vector<bool> moved(objects.size(), false);
   for (const zelda3::RoomObjectMove& move : batch.moves) {
     if (move.object_index >= objects.size()) {
@@ -845,9 +850,43 @@ DungeonEditorV2::ApplyRoomObjectBatch(const zelda3::RoomObjectBatch& batch) {
     zelda3::RoomObject candidate = objects[move.object_index];
     candidate.set_x(static_cast<uint8_t>(move.x_tile));
     candidate.set_y(static_cast<uint8_t>(move.y_tile));
-    const auto [x_px, y_px, width_px, height_px] =
-        zelda3::DimensionService::Get().GetSelectionBoundsPixels(candidate);
-    if (x_px < 0 || y_px < 0 ||
+    int64_t x_px = move.x_tile * 8;
+    int64_t y_px = move.y_tile * 8;
+    int64_t width_px = 0;
+    int64_t height_px = 0;
+    const auto options = candidate.options();
+    if ((options & zelda3::ObjectOption::Block) !=
+            zelda3::ObjectOption::Nothing ||
+        (options & zelda3::ObjectOption::Torch) !=
+            zelda3::ObjectOption::Nothing) {
+      // The special-table pass always draws these as 2x2, regardless of ID,
+      // size, custom mappings, or the dimension table's initialization state.
+      width_px = height_px = 16;
+    } else if (zelda3::HasActiveCustomObjectOverride(
+                   candidate, allow_track_corner_aliases)) {
+      // ObjectDrawer checks project overrides before builtin routines. Follow
+      // that same room-specific dispatch policy when validating the footprint.
+      const auto custom_or =
+          zelda3::CustomObjectManager::Get().GetObjectInternal(
+              candidate.id_, candidate.size_ & 0x1F);
+      if (!custom_or.ok()) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Custom object 0x%03X changed during batch validation",
+            candidate.id_));
+      }
+      const auto& custom = custom_or.value();
+      if (custom && !custom->IsEmpty()) {
+        const auto bounds = custom->GetBoundingBox();
+        x_px += static_cast<int64_t>(bounds.min_x) * 8;
+        y_px += static_cast<int64_t>(bounds.min_y) * 8;
+        width_px = static_cast<int64_t>(bounds.width()) * 8;
+        height_px = static_cast<int64_t>(bounds.height()) * 8;
+      }
+    } else {
+      std::tie(x_px, y_px, width_px, height_px) =
+          zelda3::DimensionService::Get().GetSelectionBoundsPixels(candidate);
+    }
+    if (x_px < 0 || y_px < 0 || width_px < 0 || height_px < 0 ||
         x_px + width_px > dungeon_coords::kRoomPixelWidth ||
         y_px + height_px > dungeon_coords::kRoomPixelHeight) {
       return absl::InvalidArgumentError(absl::StrFormat(
