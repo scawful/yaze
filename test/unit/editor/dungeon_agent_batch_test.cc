@@ -2,13 +2,19 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <string>
+#include <system_error>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -23,8 +29,12 @@
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/object_dimensions.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
@@ -224,6 +234,47 @@ int BottomEdgePixels(const zelda3::RoomObject& object) {
 zelda3::RoomObjectMove Move(size_t index, int x_tile, int y_tile) {
   return zelda3::RoomObjectMove{
       .object_index = index, .x_tile = x_tile, .y_tile = y_tile};
+}
+
+bool BuiltinFootprintFits(zelda3::RoomObject object, int x_tile, int y_tile) {
+  object.set_x(static_cast<uint8_t>(x_tile));
+  object.set_y(static_cast<uint8_t>(y_tile));
+  const auto [x, y, width, height] =
+      zelda3::DimensionService::Get().GetSelectionBoundsPixels(object);
+  return x >= 0 && y >= 0 && x + width <= kRoomPixels &&
+         y + height <= kRoomPixels;
+}
+
+constexpr char kWideCustomFile[] = "agent_batch_wide.bin";
+constexpr char kTrackCustomFile[] = "agent_batch_track.bin";
+constexpr int kTrackCornerAliasFileIndex = 2;  // 0x100 -> track_corner_TL
+constexpr int kMinecartTrackSubtypeCount = 16;
+
+// Custom tile offsets only advance forward from the origin, so the widest
+// expressible deviation from the builtin bounds is a positive offset plus a
+// larger body: two rows of six tiles starting two columns right of origin.
+constexpr int kWideOffsetXTiles = 2;
+constexpr int kWideWidthTiles = 6;
+constexpr int kWideHeightTiles = 2;
+constexpr int kWideExactFitX = kRoomTiles - kWideOffsetXTiles - kWideWidthTiles;
+constexpr int kWideExactFitY = kRoomTiles - kWideHeightTiles;
+
+// Custom object stream: little-endian header (count = bits 0..4, jump from the
+// row start = bits 8..15, 128 bytes per row), then `count` tile words.
+std::vector<uint8_t> WideCustomObjectBinary() {
+  std::vector<uint8_t> bytes = {0x00, kWideOffsetXTiles * 2};
+  for (int row = 0; row < kWideHeightTiles; ++row) {
+    bytes.insert(bytes.end(), {kWideWidthTiles, 0x80});
+    for (int tile = 0; tile < kWideWidthTiles; ++tile) {
+      bytes.insert(bytes.end(), {0x00, 0x08});  // tile 0, palette 2
+    }
+  }
+  bytes.insert(bytes.end(), {0x00, 0x00});
+  return bytes;
+}
+
+std::vector<uint8_t> SingleTileCustomObjectBinary() {
+  return {0x01, 0x00, 0x00, 0x08, 0x00, 0x00};
 }
 
 class DungeonAgentBatchTest : public ::testing::Test {
@@ -465,6 +516,29 @@ class DungeonAgentBatchTest : public ::testing::Test {
         << "Batch unexpectedly applied; changed_object_count="
         << result->changed_object_count;
     ExpectUnchangedSince(before);
+  }
+
+  // Rendering lazily loads the dimension table, so it is reset only after the
+  // pre-apply observation and immediately before validation runs.
+  void ExpectRejectedWithColdDimensionTable(
+      const zelda3::RoomObjectBatch& batch) {
+    const Observation before = Observe();
+    ASSERT_FALSE(before.composite_dirty);
+    zelda3::ObjectDimensionTable::Get().Reset();
+    ASSERT_FALSE(zelda3::ObjectDimensionTable::Get().IsLoaded());
+    const auto result = editor_->ApplyRoomObjectBatch(batch);
+    EXPECT_FALSE(result.ok())
+        << "Batch unexpectedly applied; changed_object_count="
+        << result->changed_object_count;
+    ExpectUnchangedSince(before);
+  }
+
+  void ReplaceRoomObjects(std::vector<zelda3::RoomObject> objects) {
+    for (auto& object : objects) {
+      InjectVisibleTiles(object);
+    }
+    room_->SetTileObjects(objects);
+    ASSERT_NO_FATAL_FAILURE(RenderToCleanState());
   }
 
   Rom rom_;
@@ -744,6 +818,229 @@ TEST_F(DungeonAgentBatchTest, InvalidOrUnloadedRoomRejectsWithoutLoading) {
       << "Rejected batches must not materialize or load rooms from ROM";
   EXPECT_FALSE(unloaded.IsLoaded());
   EXPECT_TRUE(unloaded.GetTileObjects().empty());
+}
+
+TEST_F(DungeonAgentBatchTest,
+       TorchAndBlockUseSpecialTwoByTwoFootprintWithColdDimensionTable) {
+  zelda3::RoomObject torch(/*id=*/0x150, /*x=*/10, /*y=*/50, /*size=*/0,
+                           /*layer=*/0);
+  torch.set_options(zelda3::ObjectOption::Torch);
+  zelda3::RoomObject block(/*id=*/0x0E00, /*x=*/40, /*y=*/50, /*size=*/0,
+                           /*layer=*/0);
+  block.set_options(zelda3::ObjectOption::Block);
+  std::vector<zelda3::RoomObject> objects = room_->GetTileObjects();
+  const size_t torch_index = objects.size();
+  objects.push_back(torch);
+  const size_t block_index = objects.size();
+  objects.push_back(block);
+  ASSERT_NO_FATAL_FAILURE(ReplaceRoomObjects(objects));
+
+  for (const size_t index : {torch_index, block_index}) {
+    SCOPED_TRACE(index == torch_index ? "torch 0x150" : "block 0xE00");
+    for (const auto& [x_tile, y_tile] :
+         {std::pair{63, 63}, std::pair{63, 62}, std::pair{62, 63}}) {
+      SCOPED_TRACE(testing::Message()
+                   << "(" << x_tile << ", " << y_tile << ")");
+      ExpectRejectedWithColdDimensionTable(
+          CurrentBatch({Move(index, x_tile, y_tile)}));
+    }
+  }
+
+  const std::vector<zelda3::RoomObject> before_objects =
+      room_->GetTileObjects();
+  const std::vector<zelda3::RoomObjectMove> moves = {Move(torch_index, 62, 62),
+                                                     Move(block_index, 62, 62)};
+  const size_t undo_before = editor_->undo_manager().UndoStackSize();
+  zelda3::ObjectDimensionTable::Get().Reset();
+  ASSERT_FALSE(zelda3::ObjectDimensionTable::Get().IsLoaded());
+
+  const auto result = editor_->ApplyRoomObjectBatch(CurrentBatch(moves));
+
+  ASSERT_TRUE(result.ok()) << result.status();
+  EXPECT_EQ(result->changed_object_count, 2u);
+  EXPECT_EQ(Records(room_->GetTileObjects()),
+            Records(WithMoves(before_objects, moves)))
+      << "Torch/Block options, IDs, sizes and stored lists must be preserved";
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), undo_before + 1);
+  ExpectRomUnchanged();
+}
+
+class DungeonAgentBatchCustomObjectTest : public DungeonAgentBatchTest {
+ protected:
+  void SetUp() override {
+    previous_custom_objects_enabled_ =
+        core::FeatureFlags::get().kEnableCustomObjects;
+    previous_custom_object_state_ =
+        zelda3::CustomObjectManager::Get().SnapshotState();
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    temp_dir_ = std::filesystem::temp_directory_path() /
+                ("yaze_agent_batch_custom_" +
+                 std::to_string(static_cast<long long>(nonce)));
+    ASSERT_TRUE(std::filesystem::create_directories(temp_dir_));
+    DungeonAgentBatchTest::SetUp();
+  }
+
+  void TearDown() override {
+    DungeonAgentBatchTest::TearDown();
+    core::FeatureFlags::get().kEnableCustomObjects =
+        previous_custom_objects_enabled_;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    zelda3::CustomObjectManager::Get().RestoreState(
+        previous_custom_object_state_);
+    std::error_code cleanup_error;
+    std::filesystem::remove_all(temp_dir_, cleanup_error);
+  }
+
+  void WriteCustomObjectFile(const std::string& filename,
+                             const std::vector<uint8_t>& bytes) {
+    std::ofstream file(temp_dir_ / filename, std::ios::binary);
+    ASSERT_TRUE(file.good());
+    file.write(reinterpret_cast<const char*>(bytes.data()),
+               static_cast<std::streamsize>(bytes.size()));
+    ASSERT_TRUE(file.good());
+  }
+
+  void EnableCustomObjects(
+      const std::unordered_map<int, std::vector<std::string>>& file_map) {
+    ASSERT_NO_FATAL_FAILURE(
+        WriteCustomObjectFile(kWideCustomFile, WideCustomObjectBinary()));
+    ASSERT_NO_FATAL_FAILURE(WriteCustomObjectFile(
+        kTrackCustomFile, SingleTileCustomObjectBinary()));
+    core::FeatureFlags::get().kEnableCustomObjects = true;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    auto& manager = zelda3::CustomObjectManager::Get();
+    manager.Initialize(temp_dir_.string());
+    manager.SetObjectFileMap(file_map);
+  }
+
+  void ExpectWideCustomBounds(int object_id, int subtype) {
+    const auto custom = zelda3::CustomObjectManager::Get().GetObjectInternal(
+        object_id, subtype);
+    ASSERT_TRUE(custom.ok()) << custom.status();
+    ASSERT_NE(*custom, nullptr);
+    const auto bounds = (*custom)->GetBoundingBox();
+    ASSERT_EQ(bounds.min_x, kWideOffsetXTiles);
+    ASSERT_EQ(bounds.min_y, 0);
+    ASSERT_EQ(bounds.width(), kWideWidthTiles);
+    ASSERT_EQ(bounds.height(), kWideHeightTiles);
+  }
+
+  bool previous_custom_objects_enabled_ = false;
+  zelda3::CustomObjectManager::State previous_custom_object_state_;
+  std::filesystem::path temp_dir_;
+};
+
+TEST_F(DungeonAgentBatchCustomObjectTest,
+       MappedBuiltinIdFootprintUsesCustomTileBounds) {
+  constexpr size_t kIndex = 1;
+  const zelda3::RoomObject builtin = room_->GetTileObjects()[kIndex];
+  ASSERT_EQ(builtin.id_, 0x34);
+  ASSERT_TRUE(BuiltinFootprintFits(builtin, kWideExactFitX + 1, builtin.y()))
+      << "The builtin bounds alone must accept the custom overflow target";
+  ASSERT_TRUE(BuiltinFootprintFits(builtin, builtin.x(), kWideExactFitY + 1));
+
+  ASSERT_NO_FATAL_FAILURE(EnableCustomObjects({{0x34, {kWideCustomFile}}}));
+  ASSERT_NO_FATAL_FAILURE(ExpectWideCustomBounds(0x34, builtin.size() & 0x1F));
+  ASSERT_TRUE(zelda3::HasActiveCustomObjectOverride(
+      builtin, /*allow_track_corner_aliases=*/false));
+  ASSERT_NO_FATAL_FAILURE(ReplaceRoomObjects(room_->GetTileObjects()));
+
+  {
+    SCOPED_TRACE("custom bounds overflow the right edge by one tile");
+    ExpectRejectedAtomically(
+        CurrentBatch({Move(kIndex, kWideExactFitX + 1, builtin.y())}));
+  }
+  {
+    SCOPED_TRACE("custom bounds overflow the bottom edge by one tile");
+    ExpectRejectedAtomically(
+        CurrentBatch({Move(kIndex, builtin.x(), kWideExactFitY + 1)}));
+  }
+
+  const Observation before = Observe();
+  const auto result = editor_->ApplyRoomObjectBatch(
+      CurrentBatch({Move(kIndex, kWideExactFitX, kWideExactFitY)}));
+
+  ASSERT_TRUE(result.ok()) << "Exact custom fit must be accepted: "
+                           << result.status();
+  EXPECT_EQ(result->changed_object_count, 1u);
+  const auto& moved = room_->GetTileObjects()[kIndex];
+  EXPECT_EQ(moved.id_, builtin.id_);
+  EXPECT_EQ(moved.size(), builtin.size());
+  EXPECT_EQ(moved.GetLayerValue(), builtin.GetLayerValue());
+  EXPECT_EQ(moved.x(), kWideExactFitX);
+  EXPECT_EQ(moved.y(), kWideExactFitY);
+  EXPECT_EQ(editor_->undo_manager().UndoStackSize(), before.undo_size + 1);
+  EXPECT_FALSE(Fingerprint() == before.render);
+  ExpectRomUnchanged();
+}
+
+TEST_F(DungeonAgentBatchCustomObjectTest,
+       TrackCornerAliasFootprintFollowsRoomTrackObjects) {
+  const zelda3::RoomObject corner(/*id=*/0x100, /*x=*/10, /*y=*/10,
+                                  /*size=*/0, /*layer=*/0);
+  ASSERT_TRUE(BuiltinFootprintFits(corner, kWideExactFitX + 1, corner.y()))
+      << "The builtin wall-corner bounds must fit at the custom overflow "
+         "target";
+
+  std::vector<std::string> track_files(kMinecartTrackSubtypeCount,
+                                       kTrackCustomFile);
+  track_files[kTrackCornerAliasFileIndex] = kWideCustomFile;
+  ASSERT_NO_FATAL_FAILURE(EnableCustomObjects({{0x31, track_files}}));
+  ASSERT_NO_FATAL_FAILURE(ExpectWideCustomBounds(0x100, 0));
+  ASSERT_FALSE(zelda3::HasActiveCustomObjectOverride(
+      corner, /*allow_track_corner_aliases=*/false));
+  ASSERT_TRUE(zelda3::HasActiveCustomObjectOverride(
+      corner, /*allow_track_corner_aliases=*/true));
+
+  struct AliasCase {
+    const char* name;
+    std::optional<uint8_t> track_subtype;
+    bool aliases_allowed;
+  };
+  const std::array<AliasCase, 3> cases = {{
+      {"no minecart track object", std::nullopt, false},
+      {"small statue subtype 15 is decoration", uint8_t{15}, false},
+      {"minecart track subtype 0", uint8_t{0}, true},
+  }};
+  const std::vector<zelda3::RoomObject> base_objects = room_->GetTileObjects();
+  for (const auto& alias_case : cases) {
+    SCOPED_TRACE(alias_case.name);
+    std::vector<zelda3::RoomObject> objects = base_objects;
+    if (alias_case.track_subtype.has_value()) {
+      objects.emplace_back(/*id=*/0x31, /*x=*/2, /*y=*/2,
+                           *alias_case.track_subtype, /*layer=*/0);
+    }
+    const size_t corner_index = objects.size();
+    objects.push_back(corner);
+    ASSERT_NO_FATAL_FAILURE(ReplaceRoomObjects(objects));
+    ASSERT_EQ(zelda3::RoomAllowsTrackCornerAliases(room_->GetTileObjects()),
+              alias_case.aliases_allowed);
+
+    const auto overflow =
+        CurrentBatch({Move(corner_index, kWideExactFitX + 1, corner.y())});
+    const size_t undo_before = editor_->undo_manager().UndoStackSize();
+    if (alias_case.aliases_allowed) {
+      ExpectRejectedAtomically(overflow);
+      const auto exact = editor_->ApplyRoomObjectBatch(
+          CurrentBatch({Move(corner_index, kWideExactFitX, corner.y())}));
+      ASSERT_TRUE(exact.ok())
+          << "Exact custom fit must be accepted: " << exact.status();
+      EXPECT_EQ(exact->changed_object_count, 1u);
+      EXPECT_EQ(room_->GetTileObjects()[corner_index].x(), kWideExactFitX);
+    } else {
+      const auto builtin = editor_->ApplyRoomObjectBatch(overflow);
+      ASSERT_TRUE(builtin.ok())
+          << "Without a minecart track object the corner keeps its builtin "
+             "bounds: "
+          << builtin.status();
+      EXPECT_EQ(builtin->changed_object_count, 1u);
+      EXPECT_EQ(room_->GetTileObjects()[corner_index].x(), kWideExactFitX + 1);
+    }
+    EXPECT_EQ(room_->GetTileObjects()[corner_index].id_, 0x100);
+    EXPECT_EQ(editor_->undo_manager().UndoStackSize(), undo_before + 1);
+  }
+  ExpectRomUnchanged();
 }
 
 TEST(DungeonAgentBatchRomStateTest, RejectsWhenRomIsNotLoaded) {
