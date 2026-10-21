@@ -33,7 +33,7 @@ constexpr int64_t kMaxInteger = std::numeric_limits<int64_t>::max();
 
 absl::Status Malformed(std::string_view message) {
   return absl::InvalidArgumentError(
-      absl::StrCat("Lyra proposal refused: ", message));
+      absl::StrCat("Lyra proposal refused: ", std::string(message)));
 }
 
 // Booleans and floats are never integers, matching the planner's type checks.
