@@ -1,6 +1,7 @@
 #include "core/project_plan.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -56,6 +57,19 @@ class Reader {
     *out = it->get<int>();
   }
 
+  // Positions written by other tools may be fractional; they are rounded.
+  void Coord(const PlanJson& obj, const char* key, int* out) {
+    auto it = obj.find(key);
+    if (it == obj.end() || it->is_null()) {
+      return;
+    }
+    if (!it->is_number()) {
+      Fail(key, "a number");
+      return;
+    }
+    *out = static_cast<int>(std::lround(it->get<double>()));
+  }
+
   void Strings(const PlanJson& obj, const char* key,
                std::vector<std::string>* out) {
     auto it = obj.find(key);
@@ -87,6 +101,28 @@ class Reader {
       return kEmpty;
     }
     return *it;
+  }
+
+  // [[x, y], ...]
+  void Points(const PlanJson& obj, const char* key,
+              std::vector<std::pair<int, int>>* out) {
+    auto it = obj.find(key);
+    if (it == obj.end() || it->is_null()) {
+      return;
+    }
+    if (!it->is_array()) {
+      Fail(key, "an array of [x, y] pairs");
+      return;
+    }
+    for (const auto& point : *it) {
+      if (!point.is_array() || point.size() != 2 || !point[0].is_number() ||
+          !point[1].is_number()) {
+        Fail(key, "an array of [x, y] pairs");
+        return;
+      }
+      out->emplace_back(static_cast<int>(std::lround(point[0].get<double>())),
+                        static_cast<int>(std::lround(point[1].get<double>())));
+    }
   }
 
   bool RequireObject(const PlanJson& value, const std::string& where) {
@@ -327,7 +363,271 @@ absl::Status ReadReferences(const PlanJson& root,
   return top.status();
 }
 
+template <typename T, typename ReadEntry>
+absl::Status ReadEntries(const PlanJson& parent, const char* key,
+                         const std::string& context, std::vector<T>* out,
+                         ReadEntry read_entry) {
+  Reader top(context);
+  const PlanJson& list = top.Array(parent, key);
+  for (size_t i = 0; i < list.size() && top.status().ok(); ++i) {
+    Reader reader(absl::StrFormat("%s.%s[%d]", context, key, i));
+    if (!reader.RequireObject(list[i], "entry")) {
+      return reader.status();
+    }
+    T entry;
+    read_entry(reader, list[i], &entry);
+    if (!reader.status().ok()) {
+      return reader.status();
+    }
+    out->push_back(std::move(entry));
+  }
+  return top.status();
+}
+
+absl::Status ReadOverworld(const PlanJson& root, PlanOverworld* ow) {
+  auto it = root.find("overworld");
+  if (it == root.end() || it->is_null()) {
+    return absl::OkStatus();
+  }
+  Reader top("overworld");
+  if (!top.RequireObject(*it, "overworld")) {
+    return top.status();
+  }
+  const PlanJson& section = *it;
+  ow->extra =
+      Extras(section, {"worlds", "markers", "notes", "lines", "regions"});
+
+  auto worlds = ReadEntries(section, "worlds", "overworld", &ow->worlds,
+                            [](Reader& r, const PlanJson& j, PlanWorld* w) {
+                              r.String(j, "id", &w->id);
+                              r.String(j, "title", &w->title);
+                              r.String(j, "base", &w->base);
+                              r.Int(j, "maps", &w->maps);
+                              w->extra =
+                                  Extras(j, {"id", "title", "base", "maps"});
+                            });
+  auto markers = ReadEntries(
+      section, "markers", "overworld", &ow->markers,
+      [](Reader& r, const PlanJson& j, PlanMarker* m) {
+        r.String(j, "id", &m->id);
+        r.String(j, "world", &m->world);
+        r.Coord(j, "x", &m->x);
+        r.Coord(j, "y", &m->y);
+        r.String(j, "map", &m->map);
+        r.String(j, "kind", &m->kind);
+        r.String(j, "label", &m->label);
+        r.String(j, "detail", &m->detail);
+        r.String(j, "status", &m->status);
+        r.String(j, "code", &m->code);
+        r.String(j, "room", &m->room);
+        m->extra = Extras(j, {"id", "world", "x", "y", "map", "kind", "label",
+                              "detail", "status", "code", "room"});
+      });
+  auto notes = ReadEntries(section, "notes", "overworld", &ow->notes,
+                           [](Reader& r, const PlanJson& j, PlanNote* n) {
+                             r.String(j, "id", &n->id);
+                             r.String(j, "world", &n->world);
+                             r.Coord(j, "x", &n->x);
+                             r.Coord(j, "y", &n->y);
+                             r.String(j, "map", &n->map);
+                             r.String(j, "text", &n->text);
+                             r.String(j, "created", &n->created);
+                             n->extra = Extras(j, {"id", "world", "x", "y",
+                                                   "map", "text", "created"});
+                           });
+  auto lines = ReadEntries(section, "lines", "overworld", &ow->lines,
+                           [](Reader& r, const PlanJson& j, PlanLine* l) {
+                             r.String(j, "id", &l->id);
+                             r.String(j, "world", &l->world);
+                             r.String(j, "color", &l->color);
+                             r.Points(j, "points", &l->points);
+                             l->extra =
+                                 Extras(j, {"id", "world", "color", "points"});
+                           });
+  auto regions = ReadEntries(section, "regions", "overworld", &ow->regions,
+                             [](Reader& r, const PlanJson& j, PlanRegion* g) {
+                               r.String(j, "id", &g->id);
+                               r.String(j, "world", &g->world);
+                               r.Coord(j, "x", &g->x);
+                               r.Coord(j, "y", &g->y);
+                               r.Coord(j, "radius", &g->radius);
+                               r.String(j, "label", &g->label);
+                               r.String(j, "detail", &g->detail);
+                               r.String(j, "status", &g->status);
+                               g->extra =
+                                   Extras(j, {"id", "world", "x", "y", "radius",
+                                              "label", "detail", "status"});
+                             });
+  for (const auto& status : {worlds, markers, notes, lines, regions}) {
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  return absl::OkStatus();
+}
+
+PlanJson SerializeOverworld(const PlanOverworld& ow) {
+  PlanJson section = PlanJson::object();
+  PlanJson worlds = PlanJson::array();
+  for (const auto& w : ow.worlds) {
+    PlanJson j = PlanJson::object();
+    PutString(j, "id", w.id);
+    PutString(j, "title", w.title);
+    PutString(j, "base", w.base);
+    j["maps"] = w.maps;
+    PutExtras(j, w.extra);
+    worlds.push_back(std::move(j));
+  }
+  section["worlds"] = std::move(worlds);
+
+  PlanJson markers = PlanJson::array();
+  for (const auto& m : ow.markers) {
+    PlanJson j = PlanJson::object();
+    PutString(j, "id", m.id);
+    PutString(j, "world", m.world);
+    j["x"] = m.x;
+    j["y"] = m.y;
+    PutString(j, "map", m.map);
+    PutString(j, "kind", m.kind);
+    PutString(j, "label", m.label);
+    PutString(j, "detail", m.detail);
+    PutString(j, "status", m.status);
+    PutString(j, "code", m.code);
+    PutString(j, "room", m.room);
+    PutExtras(j, m.extra);
+    markers.push_back(std::move(j));
+  }
+  section["markers"] = std::move(markers);
+
+  PlanJson notes = PlanJson::array();
+  for (const auto& n : ow.notes) {
+    PlanJson j = PlanJson::object();
+    PutString(j, "id", n.id);
+    PutString(j, "world", n.world);
+    j["x"] = n.x;
+    j["y"] = n.y;
+    PutString(j, "map", n.map);
+    PutString(j, "text", n.text);
+    PutString(j, "created", n.created);
+    PutExtras(j, n.extra);
+    notes.push_back(std::move(j));
+  }
+  section["notes"] = std::move(notes);
+
+  PlanJson lines = PlanJson::array();
+  for (const auto& l : ow.lines) {
+    PlanJson j = PlanJson::object();
+    PutString(j, "id", l.id);
+    PutString(j, "world", l.world);
+    PutString(j, "color", l.color);
+    PlanJson points = PlanJson::array();
+    for (const auto& [x, y] : l.points) {
+      points.push_back(PlanJson::array({x, y}));
+    }
+    j["points"] = std::move(points);
+    PutExtras(j, l.extra);
+    lines.push_back(std::move(j));
+  }
+  section["lines"] = std::move(lines);
+
+  PlanJson regions = PlanJson::array();
+  for (const auto& g : ow.regions) {
+    PlanJson j = PlanJson::object();
+    PutString(j, "id", g.id);
+    PutString(j, "world", g.world);
+    j["x"] = g.x;
+    j["y"] = g.y;
+    j["radius"] = g.radius;
+    PutString(j, "label", g.label);
+    PutString(j, "detail", g.detail);
+    PutString(j, "status", g.status);
+    PutExtras(j, g.extra);
+    regions.push_back(std::move(j));
+  }
+  section["regions"] = std::move(regions);
+
+  PutExtras(section, ow.extra);
+  return section;
+}
+
 }  // namespace
+
+int PlanWorld::BaseMap() const {
+  char* end = nullptr;
+  const long value = std::strtol(base.c_str(), &end, 0);
+  if (end == base.c_str() || *end != '\0' || value < 0) {
+    return 0;
+  }
+  return static_cast<int>(value);
+}
+
+int PlanWorld::Rows() const {
+  return std::max(1, (maps + kPlanWorldColumns - 1) / kPlanWorldColumns);
+}
+
+int PlanWorld::MapAt(int x, int y) const {
+  if (x < 0 || y < 0) {
+    return -1;
+  }
+  const int column = x / kPlanAreaSize;
+  const int row = y / kPlanAreaSize;
+  const int index = row * kPlanWorldColumns + column;
+  if (column >= kPlanWorldColumns || index >= maps) {
+    return -1;
+  }
+  return BaseMap() + index;
+}
+
+std::string PlanWorld::MapAfterMove(const std::string& current, int old_x,
+                                    int old_y, int new_x, int new_y) const {
+  const int new_map = MapAt(new_x, new_y);
+  if (new_map < 0) {
+    return current;
+  }
+  if (!current.empty() && MapAt(old_x, old_y) == new_map) {
+    return current;
+  }
+  return FormatPlanId(new_map);
+}
+
+std::string FormatPlanId(int id) {
+  return absl::StrFormat("0x%02X", id);
+}
+
+bool PlanOverworld::empty() const {
+  return worlds.empty() && markers.empty() && notes.empty() && lines.empty() &&
+         regions.empty() && extra.empty();
+}
+
+const PlanWorld* PlanOverworld::FindWorld(std::string_view id) const {
+  for (const auto& world : worlds) {
+    if (world.id == id) {
+      return &world;
+    }
+  }
+  return nullptr;
+}
+
+int PlanOverworld::FindMarker(std::string_view id) const {
+  for (size_t i = 0; i < markers.size(); ++i) {
+    if (markers[i].id == id) {
+      return static_cast<int>(i);
+    }
+  }
+  return -1;
+}
+
+int PlanOverworld::FindMarkerByCode(std::string_view code) const {
+  if (code.empty()) {
+    return -1;
+  }
+  for (size_t i = 0; i < markers.size(); ++i) {
+    if (markers[i].code == code) {
+      return static_cast<int>(i);
+    }
+  }
+  return -1;
+}
 
 PlanTarget PlanTarget::Parse(std::string_view text) {
   PlanTarget target;
@@ -386,13 +686,14 @@ absl::StatusOr<ProjectPlan> ProjectPlan::Parse(std::string_view text) {
   for (auto status :
        {ReadGoal(root, &plan.goal), ReadMilestones(root, &plan.milestones),
         ReadRoute(root, &plan), ReadDecisions(root, &plan.decisions),
-        ReadReferences(root, &plan.references)}) {
+        ReadReferences(root, &plan.references),
+        ReadOverworld(root, &plan.overworld)}) {
     if (!status.ok()) {
       return status;
     }
   }
   plan.extra = Extras(root, {"schema", "title", "about", "goal", "milestones",
-                             "route", "decisions", "references"});
+                             "route", "decisions", "references", "overworld"});
   return plan;
 }
 
@@ -515,6 +816,10 @@ std::string ProjectPlan::Serialize() const {
     references_json.push_back(std::move(j));
   }
   root["references"] = std::move(references_json);
+
+  if (!overworld.empty()) {
+    root["overworld"] = SerializeOverworld(overworld);
+  }
 
   PutExtras(root, extra);
   return root.dump(1) + "\n";

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -17,7 +18,7 @@ namespace yaze::core {
 // docs/public/usage/planning.md. Game-independent: nothing here reads a ROM.
 //
 // Every object keeps the keys this build does not model in `extra`, and the
-// top level keeps unknown sections (for example "overworld" or "concepts"), so
+// top level keeps unknown sections (for example "concepts"), so
 // a plan written by a newer build or another tool survives a save.
 
 using PlanJson = nlohmann::ordered_json;
@@ -103,6 +104,93 @@ struct PlanReference {
   PlanJson extra = PlanJson::object();
 };
 
+// Overworld layer. Positions are world pixels: an overworld area is 512x512
+// and a world is 8 areas wide, so a 64-area world spans 4096x4096.
+inline constexpr int kPlanAreaSize = 512;
+inline constexpr int kPlanWorldColumns = 8;
+
+struct PlanWorld {
+  std::string id;
+  std::string title;
+  std::string base;  // first map number, for example "0x40"
+  int maps = 64;
+  PlanJson extra = PlanJson::object();
+
+  int BaseMap() const;
+  int Rows() const;
+  // Map number under a world-pixel position, or -1 outside the world.
+  int MapAt(int x, int y) const;
+  // The "map" to store after moving an entry from (old_x, old_y) to
+  // (new_x, new_y). Within one 512x512 area the current value is kept, since
+  // it may name the parent of a large area; otherwise the new area's number.
+  std::string MapAfterMove(const std::string& current, int old_x, int old_y,
+                           int new_x, int new_y) const;
+};
+
+// "0x1E" style map and room numbers, as written in plans.
+std::string FormatPlanId(int id);
+
+struct PlanMarker {
+  std::string id;
+  std::string world;
+  int x = 0;
+  int y = 0;
+  std::string map;   // "0x10"; kept in step with x/y by the editor
+  std::string kind;  // dungeon | shrine | place | item | planned
+  std::string label;
+  std::string detail;
+  std::string status;  // implemented | decided | draft | proposed | idea
+  std::string code;    // short label such as "D1", the id of area: targets
+  std::string room;    // dungeon entrance room, for example "0x4A"
+  PlanJson extra = PlanJson::object();
+};
+
+struct PlanNote {
+  std::string id;
+  std::string world;
+  int x = 0;
+  int y = 0;
+  std::string map;
+  std::string text;
+  std::string created;
+  PlanJson extra = PlanJson::object();
+};
+
+struct PlanLine {
+  std::string id;
+  std::string world;
+  std::string color;
+  std::vector<std::pair<int, int>> points;
+  PlanJson extra = PlanJson::object();
+};
+
+struct PlanRegion {
+  std::string id;
+  std::string world;
+  int x = 0;
+  int y = 0;
+  int radius = 0;
+  std::string label;
+  std::string detail;
+  std::string status;
+  PlanJson extra = PlanJson::object();
+};
+
+struct PlanOverworld {
+  std::vector<PlanWorld> worlds;
+  std::vector<PlanMarker> markers;
+  std::vector<PlanNote> notes;
+  std::vector<PlanLine> lines;
+  std::vector<PlanRegion> regions;
+  PlanJson extra = PlanJson::object();
+
+  bool empty() const;
+  const PlanWorld* FindWorld(std::string_view id) const;
+  // Index into markers, or -1.
+  int FindMarker(std::string_view id) const;
+  int FindMarkerByCode(std::string_view code) const;
+};
+
 class ProjectPlan {
  public:
   static ProjectPlan CreateEmpty(std::string title);
@@ -131,6 +219,7 @@ class ProjectPlan {
   PlanJson route_extra = PlanJson::object();
   std::vector<PlanDecision> decisions;
   std::vector<PlanReference> references;
+  PlanOverworld overworld;
   PlanJson extra = PlanJson::object();
 };
 
