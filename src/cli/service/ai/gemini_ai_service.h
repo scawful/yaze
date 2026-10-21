@@ -18,7 +18,7 @@ namespace cli {
 
 struct GeminiConfig {
   std::string api_key;
-  std::string model = "gemini-2.5-flash";  // Default to flash model
+  std::string model = "gemini-3.8-flash";  // Stable text/tool model
   float temperature = 0.7f;
   int max_output_tokens = 2048;
   mutable std::string
@@ -66,6 +66,8 @@ class GeminiAIService : public AIService {
  private:
   friend class GeminiAIServiceTestPeer;
 
+  absl::StatusOr<std::string> BuildRequestBody(
+      const std::vector<agent::ChatMessage>& history);
   std::string BuildSystemInstruction();
   absl::StatusOr<AgentResponse> ParseGeminiResponse(
       const std::string& response_body);

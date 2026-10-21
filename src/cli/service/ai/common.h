@@ -2,6 +2,7 @@
 #define YAZE_SRC_CLI_SERVICE_AI_COMMON_H_
 
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -12,6 +13,26 @@ namespace cli {
 struct ToolCall {
   std::string tool_name;
   std::map<std::string, std::string> args;
+  std::string id;
+};
+
+// Selected assistant response content required to continue native tool calls.
+// Contains response parts only, never request configuration or credentials.
+struct NativeAIContent {
+  std::string provider;
+  std::string model;
+  std::string api;
+  std::string content_json;
+};
+
+struct NativeToolResult {
+  std::string provider;
+  std::string model;
+  std::string api;
+  std::string call_id;
+  std::string tool_name;
+  std::string output;
+  bool is_error = false;
 };
 
 // A structured response from an AI service.
@@ -38,6 +59,7 @@ struct AgentResponse {
 
   // Optional warnings surfaced by the backend (e.g. truncated context).
   std::vector<std::string> warnings;
+  std::optional<NativeAIContent> native_content;
 };
 
 // Represents a model available for use

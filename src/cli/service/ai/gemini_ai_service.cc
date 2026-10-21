@@ -1,5 +1,6 @@
 #include "cli/service/ai/gemini_ai_service.h"
 
+#include <algorithm>
 #include <atomic>
 #include <cstdlib>
 #include <iostream>
@@ -186,28 +187,25 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
   if (config_.api_key.empty()) {
     // Return default known models if API key is missing
     std::vector<ModelInfo> defaults = {
-        {.name = "gemini-3.0-preview",
-         .display_name = "Gemini 3.0 Preview",
+        {.name = "gemini-3.8-flash",
+         .display_name = "Gemini 3.8 Flash",
          .provider = kProviderGemini,
-         .description = "Cutting-edge model, currently in preview"},
-        {.name = "gemini-3.0-flash-preview",
-         .display_name = "Gemini 3.0 Flash Preview",
+         .description = "Suggested stable text/tool model"},
+        {.name = "gemini-3.6-flash",
+         .display_name = "Gemini 3.6 Flash",
          .provider = kProviderGemini,
-         .description = "Fastest preview model"},
-        {.name = "gemini-2.5-pro",
-         .display_name = "Gemini 2.5 Pro",
+         .description = "Stable text/tool model"},
+        {.name = "gemini-3.5-flash-lite",
+         .display_name = "Gemini 3.5 Flash Lite",
          .provider = kProviderGemini,
-         .description = "High intelligence for complex tasks"},
-        {.name = "gemini-2.5-flash",
-         .display_name = "Gemini 2.5 Flash",
-         .provider = kProviderGemini,
-         .description = "Fastest multimodal model"}};
+         .description = "Efficient text/tool model"}};
     return defaults;
   }
 
   try {
     std::string endpoint =
-        "https://generativelanguage.googleapis.com/v1beta/models?key=" +
+        "https://generativelanguage.googleapis.com/v1beta/"
+        "models?pageSize=1000&key=" +
         config_.api_key;
 
     if (config_.verbose) {
@@ -259,15 +257,12 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
 
     if (!models_json.contains("models")) {
       // Return defaults on error
-      std::vector<ModelInfo> defaults = {{.name = "gemini-2.5-flash",
-                                          .display_name = "Gemini 2.0 Flash",
-                                          .provider = kProviderGemini},
-                                         {.name = "gemini-1.5-flash",
-                                          .display_name = "Gemini 1.5 Flash",
-                                          .provider = kProviderGemini},
-                                         {.name = "gemini-1.5-pro",
-                                          .display_name = "Gemini 1.5 Pro",
-                                          .provider = kProviderGemini}};
+      std::vector<ModelInfo> defaults = {
+          {.name = "gemini-3.8-flash",
+           .display_name = "Gemini 3.8 Flash",
+           .provider = kProviderGemini,
+           .description =
+               "Offline suggestion; account availability not checked"}};
       return defaults;
     }
 
@@ -279,8 +274,16 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
         name = name.substr(7);
       }
 
-      // Filter for gemini models
-      if (absl::StartsWith(name, "gemini")) {
+      // Only advertise models supported by this text-generation adapter.
+      const auto methods =
+          m.value("supportedGenerationMethods", std::vector<std::string>{});
+      const bool generates = std::find(methods.begin(), methods.end(),
+                                       "generateContent") != methods.end();
+      const bool specialized =
+          absl::StrContains(name, "embedding") ||
+          absl::StrContains(name, "image") || absl::StrContains(name, "tts") ||
+          absl::StrContains(name, "live") || absl::StrContains(name, "audio");
+      if (absl::StartsWith(name, "gemini") && generates && !specialized) {
         ModelInfo info;
         info.name = name;
         info.display_name = m.value("displayName", name);
@@ -394,6 +397,88 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       {{{agent::ChatMessage::Sender::kUser, prompt, absl::Now()}}});
 }
 
+absl::StatusOr<std::string> GeminiAIService::BuildRequestBody(
+    const std::vector<agent::ChatMessage>& history) {
+#ifndef YAZE_WITH_JSON
+  return absl::UnimplementedError("JSON support required");
+#else
+  nlohmann::json contents = nlohmann::json::array();
+  const size_t start = agent::CompleteTurnHistoryStart(history, 10);
+  for (size_t i = start; i < history.size(); ++i) {
+    const auto& msg = history[i];
+    if (function_calling_enabled_ && msg.native_content &&
+        msg.native_content->provider == kProviderGemini &&
+        msg.native_content->model == config_.model &&
+        msg.native_content->api == "generateContent") {
+      auto content = nlohmann::json::parse(msg.native_content->content_json,
+                                           nullptr, false);
+      if (!content.is_object() || !content.contains("parts")) {
+        return absl::InvalidArgumentError("Invalid Gemini assistant history");
+      }
+      contents.push_back(std::move(content));
+      continue;
+    }
+    if (function_calling_enabled_ && msg.native_tool_result &&
+        msg.native_tool_result->provider == kProviderGemini &&
+        msg.native_tool_result->model == config_.model &&
+        msg.native_tool_result->api == "generateContent") {
+      const auto& result = *msg.native_tool_result;
+      auto output = nlohmann::json::parse(result.output, nullptr, false);
+      if (!output.is_object())
+        output = {{"result", result.output}};
+      if (result.is_error)
+        output = {{"error", result.output}};
+      nlohmann::json response = {{"name", result.tool_name},
+                                 {"response", output}};
+      if (!result.call_id.empty())
+        response["id"] = result.call_id;
+      nlohmann::json part = {{"functionResponse", response}};
+      if (!contents.empty() && contents.back().value("role", "") == "user" &&
+          contents.back()["parts"][0].contains("functionResponse")) {
+        contents.back()["parts"].push_back(std::move(part));
+      } else {
+        contents.push_back({{"role", "user"}, {"parts", {part}}});
+      }
+      continue;
+    }
+    if (msg.message.empty())
+      continue;
+    contents.push_back(
+        {{"role",
+          msg.sender == agent::ChatMessage::Sender::kUser ? "user" : "model"},
+         {"parts", {{{"text", msg.message}}}}});
+  }
+  if (!contents.empty() && contents.back().value("role", "") == "model") {
+    contents.push_back(
+        {{"role", "user"},
+         {"parts", {{{"text", "Please continue or clarify your response."}}}}});
+  }
+  nlohmann::json request_body = {
+      {"system_instruction",
+       {{"parts", {{{"text", config_.system_instruction}}}}}},
+      {"contents", contents},
+      {"generationConfig", {{"maxOutputTokens", config_.max_output_tokens}}}};
+  const bool modern = absl::StartsWith(config_.model, "gemini-3") ||
+                      absl::StartsWith(config_.model, "gemini-4");
+  if (modern) {
+    request_body["generationConfig"]["thinkingConfig"] = {
+        {"thinkingLevel", "LOW"}};
+  } else {
+    request_body["generationConfig"]["temperature"] = config_.temperature;
+  }
+  if (!function_calling_enabled_) {
+    request_body["generationConfig"]["responseMimeType"] = "application/json";
+  } else {
+    auto tools_or = BuildGeminiToolPayload(prompt_builder_);
+    if (!tools_or.ok())
+      return tools_or.status();
+    if (!tools_or->empty())
+      request_body["tools"] = *tools_or;
+  }
+  return request_body.dump();
+#endif
+}
+
 absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     const std::vector<agent::ChatMessage>& history) {
 #ifndef YAZE_WITH_JSON
@@ -428,71 +513,10 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
                 << " messages in history" << std::endl;
     }
 
-    // Build conversation history for multi-turn context
-    // Gemini supports alternating user/model messages for better context
-    nlohmann::json contents = nlohmann::json::array();
-
-    // Add conversation history (up to last 10 messages for context window)
-    int start_idx = std::max(0, static_cast<int>(history.size()) - 10);
-    for (size_t i = start_idx; i < history.size(); ++i) {
-      const auto& msg = history[i];
-      std::string role =
-          (msg.sender == agent::ChatMessage::Sender::kUser) ? "user" : "model";
-
-      nlohmann::json message = {{"role", role},
-                                {"parts", {{{"text", msg.message}}}}};
-      contents.push_back(message);
-    }
-
-    // If the last message is from the model, we need to ensure the conversation
-    // ends with a user message for Gemini
-    if (!history.empty() &&
-        history.back().sender == agent::ChatMessage::Sender::kAgent) {
-      // Add a continuation prompt
-      nlohmann::json user_continuation = {
-          {"role", "user"},
-          {"parts", {{{"text", "Please continue or clarify your response."}}}}};
-      contents.push_back(user_continuation);
-    }
-
-    // Build request with proper Gemini API v1beta format
-    nlohmann::json request_body = {
-        {"system_instruction",
-         {{"parts", {{"text", config_.system_instruction}}}}},
-        {"contents", contents},
-        {"generationConfig",
-         {{"temperature", config_.temperature},
-          {"maxOutputTokens", config_.max_output_tokens}}}};
-
-    if (config_.verbose) {
-      std::cerr << "[DEBUG] Sending " << contents.size()
-                << " conversation turns to Gemini" << std::endl;
-    }
-
-    // Only add responseMimeType if NOT using function calling
-    // (Gemini doesn't support both at the same time)
-    if (!function_calling_enabled_) {
-      request_body["generationConfig"]["responseMimeType"] = "application/json";
-    }
-
-    // Add function calling tools if enabled
-    if (function_calling_enabled_) {
-      auto tools_or = BuildGeminiToolPayload(prompt_builder_);
-      if (!tools_or.ok()) {
-        if (config_.verbose) {
-          std::cerr << "[DEBUG] Function calling schemas unavailable: "
-                    << tools_or.status().message() << std::endl;
-        }
-      } else if (!tools_or->empty()) {
-        if (config_.verbose) {
-          std::string tools_str = tools_or->dump();
-          std::cerr << "[DEBUG] Function calling schemas: "
-                    << tools_str.substr(0, 200) << "..." << std::endl;
-        }
-
-        request_body["tools"] = *tools_or;
-      }
-    }
+    auto request_or = BuildRequestBody(history);
+    if (!request_or.ok())
+      return request_or.status();
+    const std::string& request_body = *request_or;
 
     std::string endpoint =
         "https://generativelanguage.googleapis.com/v1beta/models/" +
@@ -503,7 +527,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     headers.emplace("Content-Type", "application/json");
     headers.emplace("x-goog-api-key", config_.api_key);
     auto resp_or = ios::UrlSessionHttpRequest("POST", endpoint, headers,
-                                              request_body.dump(), 60000);
+                                              request_body, 60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
@@ -516,7 +540,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     // Write request body to temp file
     std::string temp_file = "/tmp/gemini_request.json";
     std::ofstream out(temp_file);
-    out << request_body.dump();
+    out << request_body;
     out.close();
 
     // Use curl to make the request (avoiding httplib SSL issues)
@@ -588,8 +612,13 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     agent_response.latency_seconds =
         absl::ToDoubleSeconds(absl::Now() - request_start);
     agent_response.parameters["prompt_version"] = config_.prompt_version;
-    agent_response.parameters["temperature"] =
-        absl::StrFormat("%.2f", config_.temperature);
+    if (absl::StartsWith(config_.model, "gemini-3") ||
+        absl::StartsWith(config_.model, "gemini-4")) {
+      agent_response.parameters["thinking_level"] = "low";
+    } else {
+      agent_response.parameters["temperature"] =
+          absl::StrFormat("%.2f", config_.temperature);
+    }
     agent_response.parameters["max_output_tokens"] =
         absl::StrFormat("%d", config_.max_output_tokens);
     agent_response.parameters["function_calling"] =
@@ -623,19 +652,38 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
     return absl::InternalError("❌ Failed to parse Gemini response JSON");
   }
 
+  if (response_json.contains("error")) {
+    return absl::InternalError(
+        absl::StrCat("Gemini API error: ",
+                     response_json["error"].value("message", "Unknown error")));
+  }
+
   // Navigate Gemini's response structure
   if (!response_json.contains("candidates") ||
       response_json["candidates"].empty()) {
     return absl::InternalError("❌ No candidates in Gemini response");
   }
 
-  for (const auto& candidate : response_json["candidates"]) {
+  // Execute only the selected candidate, never alternate candidate calls.
+  for (const auto& candidate :
+       nlohmann::json::array({response_json["candidates"][0]})) {
     if (!candidate.contains("content") ||
         !candidate["content"].contains("parts")) {
       continue;
     }
 
+    if (function_calling_enabled_) {
+      agent_response.native_content =
+          NativeAIContent{kProviderGemini, config_.model, "generateContent",
+                          candidate["content"].dump()};
+    }
+    const std::string finish = candidate.value("finishReason", "");
+    if (!finish.empty() && finish != "STOP") {
+      agent_response.warnings.push_back("Gemini finishReason: " + finish);
+    }
     for (const auto& part : candidate["content"]["parts"]) {
+      if (part.value("thought", false))
+        continue;
       if (part.contains("text")) {
         std::string text_content = part["text"].get<std::string>();
 
@@ -694,7 +742,8 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
           }
 
           // Extract tool_calls from the parsed JSON
-          if (parsed_text.contains("tool_calls") &&
+          if (!function_calling_enabled_ &&
+              parsed_text.contains("tool_calls") &&
               parsed_text["tool_calls"].is_array()) {
             for (const auto& call : parsed_text["tool_calls"]) {
               if (call.contains("tool_name") && call["tool_name"].is_string()) {
@@ -738,6 +787,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
         if (call.contains("name") && call["name"].is_string()) {
           ToolCall tool_call;
           tool_call.tool_name = call["name"].get<std::string>();
+          tool_call.id = call.value("id", "");
           if (call.contains("args") && call["args"].is_object()) {
             tool_call.args = ai::DecodeToolCallArguments(call["args"]);
           }
@@ -752,8 +802,9 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
     return absl::InternalError(
         "❌ No valid response extracted from Gemini\n"
         "   Expected at least one of: text_response, commands, or tool_calls\n"
-        "   Raw response: " +
-        response_body);
+        "   finishReason: " +
+        response_json["candidates"][0].value("finishReason", "unknown") +
+        "; check the configured output-token limit.");
   }
 
   return agent_response;

@@ -76,7 +76,24 @@ struct ChatMessage {
   };
   std::optional<SessionMetrics> metrics;
   std::optional<ProposalSummary> proposal;
+  std::optional<NativeAIContent> native_content;
+  std::optional<NativeToolResult> native_tool_result;
 };
+
+// Retain the whole newest user turn when a history limit falls inside native
+// call/result messages. A provider must never receive an orphaned tool result.
+inline size_t CompleteTurnHistoryStart(const std::vector<ChatMessage>& history,
+                                       size_t max_messages) {
+  if (max_messages == 0 || history.size() <= max_messages) {
+    return 0;
+  }
+  size_t start = history.size() - max_messages;
+  while (start > 0 && (history[start].is_internal ||
+                       history[start].sender != ChatMessage::Sender::kUser)) {
+    --start;
+  }
+  return start;
+}
 
 enum class AgentOutputFormat { kFriendly, kCompact, kMarkdown, kJson };
 
@@ -144,6 +161,8 @@ class ConversationalAgentService {
 #endif
 
  private:
+  friend class ConversationalAgentServiceTestPeer;
+
   struct InternalMetrics {
     int user_messages = 0;
     int agent_messages = 0;

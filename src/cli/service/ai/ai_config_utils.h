@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 
 namespace yaze {
@@ -22,6 +23,13 @@ inline std::string NormalizeOpenAiBaseUrl(std::string base) {
     }
   }
   return base;
+}
+
+inline bool IsOfficialOpenAiEndpoint(const std::string& base_url) {
+  const std::string normalized =
+      absl::AsciiStrToLower(NormalizeOpenAiBaseUrl(base_url));
+  return normalized == "https://api.openai.com" ||
+         normalized == "https://api.openai.com:443";
 }
 
 }  // namespace cli

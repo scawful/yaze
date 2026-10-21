@@ -1,5 +1,6 @@
 #include "cli/service/agent/conversational_agent_service.h"
 
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -10,6 +11,13 @@
 #include "rom/rom.h"
 
 namespace yaze::cli::agent {
+class ConversationalAgentServiceTestPeer {
+ public:
+  static void SetAI(ConversationalAgentService& service,
+                    std::unique_ptr<AIService> ai) {
+    service.ai_service_ = std::move(ai);
+  }
+};
 namespace {
 
 Rom BuildTestRom(std::string_view filename, size_t size_bytes) {
@@ -18,6 +26,79 @@ Rom BuildTestRom(std::string_view filename, size_t size_bytes) {
   EXPECT_TRUE(rom.LoadFromData(data).ok());
   rom.set_filename(filename);
   return rom;
+}
+
+class ScriptedNativeProvider : public AIService {
+ public:
+  absl::StatusOr<AgentResponse> GenerateResponse(const std::string&) override {
+    return absl::UnimplementedError("History required");
+  }
+  absl::StatusOr<AgentResponse> GenerateResponse(
+      const std::vector<ChatMessage>& history) override {
+    if (turn_++ == 0) {
+      AgentResponse response;
+      response.native_content =
+          NativeAIContent{"gemini", "gemini-3.8-flash", "generateContent",
+                          "offline-call-parts"};
+      response.tool_calls = {
+          {"dungeon-edit-inspect", {{"room", "0x25"}}, "inspect-success"},
+          {"dungeon-edit-inspect", {{"room", "0x25"}}, "inspect-error"}};
+      return response;
+    }
+    EXPECT_GE(history.size(), 4u);
+    const size_t n = history.size();
+    EXPECT_TRUE(history[n - 3].native_content);
+    EXPECT_TRUE(history[n - 3].is_internal);
+    EXPECT_EQ(history[n - 3].sender, ChatMessage::Sender::kAgent);
+    EXPECT_TRUE(history[n - 2].native_tool_result);
+    EXPECT_TRUE(history[n - 1].native_tool_result);
+    if (history[n - 2].native_tool_result &&
+        history[n - 1].native_tool_result) {
+      EXPECT_EQ(history[n - 2].native_tool_result->call_id, "inspect-success");
+      EXPECT_EQ(history[n - 2].native_tool_result->output, R"({"objects":53})");
+      EXPECT_FALSE(history[n - 2].native_tool_result->is_error);
+      EXPECT_EQ(history[n - 1].native_tool_result->call_id, "inspect-error");
+      EXPECT_TRUE(history[n - 1].native_tool_result->is_error);
+      EXPECT_NE(
+          history[n - 1].native_tool_result->output.find("guard mismatch"),
+          std::string::npos);
+    }
+    AgentResponse response;
+    response.text_response =
+        "Inspection returned one receipt and one guard mismatch. ROM not "
+        "saved.";
+    return response;
+  }
+  std::string GetProviderName() const override { return "scripted-offline"; }
+
+ private:
+  int turn_ = 0;
+};
+
+TEST(ConversationalAgentServiceTest,
+     NativeCallsAndFailuresReachNextProviderTurn) {
+  AgentConfig config;
+  config.max_history_messages = 2;  // Deliberately smaller than the tool group.
+  ConversationalAgentService service(config);
+  ConversationalAgentServiceTestPeer::SetAI(
+      service, std::make_unique<ScriptedNativeProvider>());
+  Rom rom = BuildTestRom("offline-native.sfc", 0x200000);
+  service.SetRomContext(&rom);
+  int calls = 0;
+  service.SetDungeonEditorToolCallback(
+      [&calls](const ToolCall&, Rom*) -> absl::StatusOr<std::string> {
+        if (++calls == 1)
+          return std::string(R"({"objects":53})");
+        return absl::FailedPreconditionError("guard mismatch");
+      });
+  const auto result = service.SendMessage("Inspect this room without saving.");
+  ASSERT_TRUE(result.ok()) << result.status();
+  EXPECT_EQ(calls, 2);
+  EXPECT_NE(result->message.find("guard mismatch"), std::string::npos);
+  const auto& history = service.GetHistory();
+  ASSERT_GE(history.size(), 5u);
+  EXPECT_EQ(history.front().sender, ChatMessage::Sender::kUser);
+  EXPECT_FALSE(history.front().is_internal);
 }
 
 TEST(ConversationalAgentServiceTest, ReplaceHistoryCountsMessagesAndProposals) {

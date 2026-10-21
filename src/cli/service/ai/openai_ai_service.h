@@ -20,7 +20,7 @@ struct OpenAIConfig {
   std::string api_key;
   std::string base_url =
       "https://api.openai.com";       // LMStudio: http://localhost:1234
-  std::string model = "gpt-4o-mini";  // Default to cost-effective model
+  std::string model = "gpt-6.1-sol";  // Official-host text/tool default
   float temperature = 0.7f;
   int max_output_tokens = 2048;
   std::string system_instruction;
@@ -58,9 +58,17 @@ class OpenAIAIService : public AIService {
   std::vector<std::string> GetAvailableTools() const;
 
  private:
+  friend class OpenAIAIServiceTestPeer;
+
+  absl::StatusOr<std::string> BuildRequestBody(
+      const std::vector<agent::ChatMessage>& history);
   std::string BuildSystemInstruction();
   absl::StatusOr<AgentResponse> ParseOpenAIResponse(
       const std::string& response_body);
+
+  absl::StatusOr<std::vector<ModelInfo>> ParseModelList(
+      const std::string& body);
+  bool UsesResponsesApi() const;
 
   bool function_calling_enabled_ = true;
 

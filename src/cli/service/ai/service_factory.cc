@@ -266,7 +266,7 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
       std::cout << "   Found OpenAI API key, using OpenAI\n";
       effective_config.provider = kProviderOpenAi;
       if (effective_config.model.empty()) {
-        effective_config.model = "gpt-4o-mini";
+        effective_config.model = "gpt-6.1-sol";
       }
     } else if (HasOllamaHint(effective_config)) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
@@ -400,6 +400,11 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
       openai_config.max_output_tokens = *effective_config.max_output_tokens;
     }
     openai_config.base_url = effective_config.openai_base_url;
+    if (effective_config.model.empty() &&
+        !IsOfficialOpenAiEndpoint(openai_config.base_url)) {
+      openai_config.model =
+          "gpt-4o-mini";  // Preserve compatible endpoint fallback.
+    }
     if (!effective_config.model.empty()) {
       openai_config.model = effective_config.model;
     }
