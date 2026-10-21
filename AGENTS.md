@@ -2,6 +2,10 @@
 
 Purpose: route agents to the minimum correct context. Not a repo overview.
 
+Operating rules (native windows, coordination, project tracking, installs, user
+issues, Windows): [`docs/internal/agents/operating-rules.md`](docs/internal/agents/operating-rules.md).
+They override older protocol pages.
+
 ## Core Rules
 1. Hierarchical context only — load what the task needs.
 2. Prefer existing scripts/tools; keep edits minimal and task-scoped.

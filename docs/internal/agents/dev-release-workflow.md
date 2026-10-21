@@ -33,6 +33,8 @@ Key defaults:
 - PATH link for CLI: `/usr/local/bin/z3ed`
 
 ## 2. Runtime Sync Rules
+Who may sync, and the pre-sync checks: [operating-rules.md](operating-rules.md) section 4.
+
 `sync` must guarantee:
 - App bundle in `/Applications` is byte-identical to the selected build output.
 - PATH-visible `z3ed` points to the selected binary (symlink + hash verification).
