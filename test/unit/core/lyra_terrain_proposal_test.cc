@@ -179,6 +179,31 @@ Json SparseBundle(const LyraTerrainDocument& document) {
                 Json::array({Block(1, 1, {1, 1, 1, 1}, {2, 1, 0, 3})}), 1);
 }
 
+Json RebindBundle(Json bundle, const LyraTerrainProposalBinding& binding) {
+  const Json identity = {
+      {"game_id", binding.game_id},
+      {"adapter_id", binding.adapter_id},
+      {"rom_sha256", binding.rom_sha256},
+      {"definition_fingerprint", binding.definition_fingerprint},
+      {"profile_fingerprint", binding.profile_fingerprint},
+      {"tile_count", binding.tile_count}};
+  auto digest = [](const Json& value) {
+    return ComputeSourceArtifactSha256(value.dump(-1, ' ', true));
+  };
+  bundle["target"]["binding"] = identity;
+  auto& footprint = bundle["footprint"];
+  footprint["binding"] = identity;
+  footprint.erase("content_id");
+  footprint["content_id"] = digest(footprint);
+  auto& report = bundle["report"];
+  report["binding"] = identity;
+  report["content_id"] = footprint["content_id"];
+  report["target_digest"] = digest(bundle["target"]);
+  report["request_digest"] =
+      digest(Json{{"placements", report["placements"]}, {"prefab", footprint}});
+  return bundle;
+}
+
 class LyraTerrainProposalTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -316,6 +341,108 @@ TEST_F(LyraTerrainProposalTest, AdmitsMapA1WithMapLocalChanges) {
   EXPECT_EQ(document_->MapTile(kA1, 2, 2).value(), 2);
   EXPECT_EQ(document_->MapTile(kA1, 3, 3).value(), 0);
   EXPECT_EQ(document_->MapTile(kA1, 30, 30).value(), 7);
+}
+
+TEST_F(LyraTerrainProposalTest,
+       VersionedMapBindingAndLegacyBindingStaySeparate) {
+  const std::array<std::string, 3> resolved = {
+      std::string(64, 'd'), std::string(64, 'e'), std::string(64, 'f')};
+  const auto fingerprint =
+      LyraMapProposalProfileFingerprint(*document_, 0xB0, resolved);
+  ASSERT_TRUE(fingerprint.ok()) << fingerprint.status();
+  auto map_binding = Binding();
+  map_binding.adapter_id = kLyraMapAssetProposalAdapterId;
+  map_binding.profile_fingerprint = *fingerprint;
+  const auto before = document_->Serialize();
+  const auto bundle =
+      RebindBundle(FourCellBundle(*document_, Spec{}, 0xB0), map_binding);
+  EXPECT_FALSE(
+      AdmitLyraTerrainProposal(bundle.dump(), *document_, Binding()).ok());
+  const auto admitted = AdmitLyraTerrainProposal(bundle.dump(), *document_,
+                                                 Binding(), map_binding);
+  ASSERT_TRUE(admitted.ok()) << admitted.status();
+  ASSERT_EQ(admitted->changes.size(), 4u);
+  EXPECT_EQ(admitted->changes[0].map_id, 0xB0);
+  EXPECT_TRUE(
+      AdmitLyraTerrainProposal(FourCellBundle(*document_, Spec{}).dump(),
+                               *document_, Binding(), map_binding)
+          .ok());
+  auto stale_binding = map_binding;
+  stale_binding.profile_fingerprint[0] =
+      stale_binding.profile_fingerprint[0] == '0' ? '1' : '0';
+  EXPECT_FALSE(AdmitLyraTerrainProposal(bundle.dump(), *document_, Binding(),
+                                        stale_binding)
+                   .ok());
+  EXPECT_EQ(document_->Serialize(), before);
+  EXPECT_FALSE(document_->dirty());
+}
+
+TEST_F(LyraTerrainProposalTest,
+       MapContextBindsAllStatesPropertiesAndMapIdentity) {
+  const std::array<std::string, 3> resolved = {
+      std::string(64, 'd'), std::string(64, 'e'), std::string(64, 'f')};
+  auto original = document_->authoring();
+  original.maps[16].asset_bindings = resolved;
+  ASSERT_TRUE(document_->SetAuthoring(document_->authoring(), original).ok());
+  const auto fingerprint =
+      LyraMapProposalProfileFingerprint(*document_, 0xB0, resolved);
+  ASSERT_TRUE(fingerprint.ok()) << fingerprint.status();
+  const auto other_map =
+      LyraMapProposalProfileFingerprint(*document_, 0xB1, resolved);
+  ASSERT_TRUE(other_map.ok());
+  EXPECT_NE(*fingerprint, *other_map);
+  for (int state = 0; state < 3; ++state) {
+    auto changed = resolved;
+    changed[state][0] = '0';
+    const auto state_fingerprint =
+        LyraMapProposalProfileFingerprint(*document_, 0xB0, changed);
+    ASSERT_TRUE(state_fingerprint.ok());
+    EXPECT_NE(*fingerprint, *state_fingerprint) << state;
+  }
+  const std::vector<std::function<void(LyraMapProperties&)>> mutations = {
+      [](auto& p) { ++p.graphics_sheets[4]; },
+      [](auto& p) { ++p.main_palette; },
+      [](auto& p) { ++p.palette_set; },
+      [](auto& p) { ++p.animated_sheet; },
+      [](auto& p) { p.sprite_graphics[2] = 0; },
+      [](auto& p) { p.sprite_palettes[1] = 0; },
+      [](auto& p) { ++p.music[3]; },
+      [](auto& p) { ++p.message_id; }};
+  for (const auto& mutate : mutations) {
+    auto changed = original;
+    mutate(changed.maps[16].properties);
+    ASSERT_TRUE(document_->SetAuthoring(original, changed).ok());
+    const auto changed_fingerprint =
+        LyraMapProposalProfileFingerprint(*document_, 0xB0, resolved);
+    ASSERT_TRUE(changed_fingerprint.ok());
+    EXPECT_NE(*fingerprint, *changed_fingerprint);
+    ASSERT_TRUE(document_->SetAuthoring(changed, original).ok());
+  }
+  EXPECT_FALSE(
+      LyraMapProposalProfileFingerprint(*document_, 0x9F, resolved).ok());
+  auto unresolved = resolved;
+  unresolved[2].clear();
+  EXPECT_FALSE(
+      LyraMapProposalProfileFingerprint(*document_, 0xB0, unresolved).ok());
+}
+
+TEST(LyraMapProposalFingerprintTest, MatchesSavedProjectExporterGolden) {
+  LyraTerrainProfile profile;
+  profile.tile_count = 4096;
+  profile.tile16_definition_fingerprint =
+      "c35020473aed1b4642cd726cad727b63fff2824ad68cedd7ffb73c7cbd890479";
+  profile.graphics_fingerprint = std::string(64, 'a');
+  profile.palette_fingerprint = std::string(64, 'b');
+  profile.animation_fingerprint = std::string(64, 'c');
+  const auto document = LyraTerrainDocument::Create(profile, 52);
+  ASSERT_TRUE(document.ok());
+  const std::array<std::string, 3> resolved = {
+      std::string(64, 'd'), std::string(64, 'd'), std::string(64, 'd')};
+  const auto fingerprint =
+      LyraMapProposalProfileFingerprint(*document, 0xB3, resolved);
+  ASSERT_TRUE(fingerprint.ok()) << fingerprint.status();
+  EXPECT_EQ(*fingerprint,
+            "d6d39170e3fcb63de263d08e81e8dedb039f79e7615173d27243b922e2bef9db");
 }
 
 TEST_F(LyraTerrainProposalTest, SparseNullSkipsWhileExplicitZeroWrites) {

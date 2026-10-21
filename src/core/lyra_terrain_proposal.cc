@@ -208,7 +208,8 @@ struct Constraint {
 
 absl::StatusOr<LyraTerrainStroke> Admit(
     std::string_view text, const LyraTerrainDocument& document,
-    const LyraTerrainProposalBinding& actual) {
+    const LyraTerrainProposalBinding& actual,
+    const LyraTerrainProposalBinding* actual_map_binding = nullptr) {
   Json bundle;
   if (auto status = ParseBundle(text, &bundle); !status.ok())
     return status;
@@ -250,13 +251,18 @@ absl::StatusOr<LyraTerrainStroke> Admit(
     return footprint_bound.status();
   if (!SameBinding(*bound, *footprint_bound))
     return Malformed("prefab and destination bindings differ");
-  if (!SameBinding(*bound, actual)) {
+  const auto& selected_binding =
+      actual_map_binding && bound->adapter_id == kLyraMapAssetProposalAdapterId
+          ? *actual_map_binding
+          : actual;
+  if (!SameBinding(*bound, selected_binding)) {
     return absl::FailedPreconditionError(
         "Lyra proposal binding does not match the loaded source");
   }
   const auto& profile = document.profile();
-  if (actual.tile_count != profile.tile_count ||
-      actual.definition_fingerprint != profile.tile16_definition_fingerprint) {
+  if (selected_binding.tile_count != profile.tile_count ||
+      selected_binding.definition_fingerprint !=
+          profile.tile16_definition_fingerprint) {
     return absl::FailedPreconditionError(
         "Loaded source binding does not match the Lyra document profile");
   }
@@ -564,6 +570,34 @@ absl::StatusOr<LyraTerrainStroke> Admit(
 
 }  // namespace
 
+absl::StatusOr<std::string> LyraMapProposalProfileFingerprint(
+    const LyraTerrainDocument& document, int map_id,
+    const std::array<std::string, 3>& resolved_asset_bindings) {
+  if (map_id < LyraTerrainDocument::kFirstMap ||
+      map_id >=
+          LyraTerrainDocument::kFirstMap + LyraTerrainDocument::kMapCount) {
+    return Malformed("map asset context requires map_id 0xA0..0xBF");
+  }
+  for (const auto& binding : resolved_asset_bindings) {
+    if (!LowerSha256(binding))
+      return Malformed(
+          "map asset context requires three resolved SHA-256 bindings");
+  }
+  try {
+    const auto snapshot = Json::parse(document.Serialize());
+    const auto& map =
+        snapshot.at("maps").at(map_id - LyraTerrainDocument::kFirstMap);
+    return Digest(Json{{"schema_version", 1},
+                       {"kind", "lyra_map_asset_context"},
+                       {"map_id", map_id},
+                       {"profile", snapshot.at("profile")},
+                       {"properties", map.at("authoring").at("properties")},
+                       {"asset_bindings", resolved_asset_bindings}});
+  } catch (const Json::exception& error) {
+    return Malformed(error.what());
+  }
+}
+
 absl::StatusOr<LyraTerrainStroke> AdmitLyraTerrainProposal(
     std::string_view bundle_json, const LyraTerrainDocument& document,
     const LyraTerrainProposalBinding& actual_binding) {
@@ -573,6 +607,21 @@ absl::StatusOr<LyraTerrainStroke> AdmitLyraTerrainProposal(
   }
   try {
     return Admit(bundle_json, document, actual_binding);
+  } catch (const Json::exception& error) {
+    return Malformed(error.what());
+  }
+}
+
+absl::StatusOr<LyraTerrainStroke> AdmitLyraTerrainProposal(
+    std::string_view bundle_json, const LyraTerrainDocument& document,
+    const LyraTerrainProposalBinding& actual_binding,
+    const LyraTerrainProposalBinding& actual_map_binding) {
+  if (document.stroke_active()) {
+    return absl::FailedPreconditionError(
+        "Finish the active Lyra stroke before admitting a proposal");
+  }
+  try {
+    return Admit(bundle_json, document, actual_binding, &actual_map_binding);
   } catch (const Json::exception& error) {
     return Malformed(error.what());
   }

@@ -3,8 +3,8 @@
 
 The native lyra-verify-project observation is required. It binds the saved
 terrain/profile to actual decoded assets; this script does not guess graphics
-or silently rebind a footprint. Current editor admission supports the document's
-shared profile only. Other map profiles are refused explicitly.
+or silently rebind a footprint. Distinct map graphics or sprite profiles bind
+the map's complete properties and three verified resolved asset hashes.
 """
 
 from __future__ import annotations
@@ -33,6 +33,7 @@ FOOTPRINT_OPTIONAL = {"clearance", "ports", "provenance", "unresolved_behavior"}
 # Oracle's expanded Tile16 table, also independently checked by the native
 # verifier. This adapter deliberately refuses other layouts instead of probing.
 DEFINITIONS_PC = 0x1E8000
+MAP_ASSETS_ADAPTER = "lyra-sidecar-v3-map-assets-v1"
 
 
 def sha(data):
@@ -217,19 +218,36 @@ def snapshot(project_path, observation_path):
     return document, by_id, binding, inputs
 
 
+def map_asset_binding(document, area, shared_binding):
+    """Bind an exact map context after snapshot's 96-binding observation check."""
+    assets = area["authoring"]["asset_bindings"]
+    if (not isinstance(assets, list) or len(assets) != 3 or
+            any(not isinstance(value, str) or len(value) != 64 or
+                any(c not in "0123456789abcdef" for c in value) for value in assets)):
+        raise ValueError("per-map asset bindings require three nonempty lowercase SHA-256 hashes")
+    context = {
+        "schema_version": 1, "kind": "lyra_map_asset_context",
+        "map_id": area["map_id"], "profile": document["profile"],
+        "properties": area["authoring"]["properties"], "asset_bindings": assets,
+    }
+    native_json(context)
+    result = dict(shared_binding, adapter_id=MAP_ASSETS_ADAPTER,
+                  profile_fingerprint=planner.digest(context))
+    planner.binding(result)
+    return result
+
+
 def export(project_path, observation_path, map_id, *, footprint_path=None,
-           placements=None, protected=None):
+           placements=None, protected=None, per_map_assets=False):
     integer(map_id, "Lyra map ID", 0xA0, 0xBF)
     document, areas, binding, inputs = snapshot(project_path, observation_path)
     area = areas[map_id]
     properties = area["authoring"]["properties"]
-    if any(properties.get(key) != document["profile"][key] for key in VISUAL_FIELDS):
-        raise ValueError(
-            f"map ${map_id:02X} uses a distinct graphics profile; current editor proposal "
-            "admission supports only the shared profile")
-    if any(properties.get(key) != [-1, -1, -1]
-           for key in ("sprite_graphics", "sprite_palettes")):
-        raise ValueError("custom sprite profiles require a per-map proposal adapter")
+    if (per_map_assets or
+            any(properties.get(key) != document["profile"][key] for key in VISUAL_FIELDS) or
+            any(properties.get(key) != [-1, -1, -1]
+                for key in ("sprite_graphics", "sprite_palettes"))):
+        binding = map_asset_binding(document, area, binding)
     protected = protected or []
     if len(protected) > 1024:
         raise ValueError("protected exceeds the native list limit")
@@ -292,11 +310,14 @@ def main():
     parser.add_argument("--footprint", type=Path)
     parser.add_argument("--at", type=pair, action="append")
     parser.add_argument("--protect", type=pair, action="append")
+    parser.add_argument("--per-map-assets", action="store_true",
+                        help="bind this map's complete properties and verified state assets")
     parser.add_argument("--out", type=Path, required=True, help="new output file; never replaced")
     args = parser.parse_args()
     try:
         data = export(args.project, args.native_receipt, args.map_id,
-                      footprint_path=args.footprint, placements=args.at, protected=args.protect)
+                      footprint_path=args.footprint, placements=args.at, protected=args.protect,
+                      per_map_assets=args.per_map_assets)
         with args.out.open("x", encoding="utf-8") as stream:
             stream.write(data)
         result = read_json(data)

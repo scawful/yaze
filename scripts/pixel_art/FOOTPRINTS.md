@@ -154,11 +154,33 @@ assemblies should carry substrate clearances and source coordinates in their
 reviewed provenance; the exporter does not infer cliff direction or shoreline
 grammar from tile IDs.
 
-Current editor admission checks the document's shared graphics profile. This
-exporter therefore refuses distinct map graphics and custom sprite profiles,
-including the current jungle, glacier, village and brown shelf maps. These need
-a native per-map binding adapter before bundle admission; removing the guard
-would allow an apparently correct Tile16 number to select different pixels.
+Shared-profile maps with default sprite arrays retain adapter
+`lyra-sidecar-v3` and the existing shared-profile fingerprint. Distinct map
+graphics or custom sprite arrays automatically select adapter
+`lyra-sidecar-v3-map-assets-v1`. Use `--per-map-assets` to explicitly select it
+for a shared-profile map. The six binding fields remain the same; the new
+`profile_fingerprint` is SHA-256 of this sorted compact ASCII JSON context:
+
+```json
+{"schema_version":1,"kind":"lyra_map_asset_context","map_id":176,
+ "profile":"the complete document profile object",
+ "properties":"the complete map authoring properties object",
+ "asset_bindings":["state-0 resolved SHA-256","state-1 resolved SHA-256",
+                   "state-2 resolved SHA-256"]}
+```
+
+The object values represented above as descriptions are the actual saved
+objects and three native-verified lowercase SHA-256 strings. Empty historical
+bindings cannot use this adapter. The map ID, sprite arrays, music, message ID,
+graphics selectors and all three state hashes participate in the context.
+The native adapter independently resolves all three states before admission
+and checks their hashes against the saved authoring bindings. A refreshed
+native observation is required whenever the ROM or sidecar changes.
+
+A footprint must already match the selected binding, including its map-specific
+fingerprint. The exporter never rewrites a footprint binding or `content_id`;
+moving an assembly to another map requires a separately reviewed bound artifact.
+An older Yaze build without the per-map adapter refuses these new bundles.
 Import remains one normal Undo step through **File > Advanced Lyra > Apply Lyra
 Proposal...**, followed by **Save Project**. Native import acceptance for a
 particular exported assembly and gameplay remain separate checks.
