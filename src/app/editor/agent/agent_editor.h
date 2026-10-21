@@ -123,6 +123,7 @@ class AgentEditor : public Editor {
     std::string openai_api_key;
     std::string openai_base_url = "https://api.openai.com";
     std::string system_prompt;
+    bool allow_mutating_tools = false;
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;

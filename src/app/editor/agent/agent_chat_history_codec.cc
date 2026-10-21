@@ -336,6 +336,8 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     }
     if (config_json.contains("tools") && config_json["tools"].is_object()) {
       const auto& tools_json = config_json["tools"];
+      config.tools.allow_mutating_tools =
+          tools_json.value("allow_mutating_tools", false);
       config.tools.resources = tools_json.value("resources", true);
       config.tools.dungeon = tools_json.value("dungeon", true);
       config.tools.overworld = tools_json.value("overworld", true);
@@ -345,7 +347,8 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
       config.tools.music = tools_json.value("music", true);
       config.tools.sprite = tools_json.value("sprite", true);
       config.tools.emulator = tools_json.value("emulator", true);
-      config.tools.memory_inspector = tools_json.value("memory_inspector", true);
+      config.tools.memory_inspector =
+          tools_json.value("memory_inspector", true);
     }
     config.persona_notes = config_json.value("persona_notes", "");
     snapshot.agent_config = config;
@@ -473,6 +476,7 @@ absl::Status AgentChatHistoryCodec::Save(const std::filesystem::path& path,
     config_json["goals"] = config.goals;
 
     Json tools_json;
+    tools_json["allow_mutating_tools"] = config.tools.allow_mutating_tools;
     tools_json["resources"] = config.tools.resources;
     tools_json["dungeon"] = config.tools.dungeon;
     tools_json["overworld"] = config.tools.overworld;

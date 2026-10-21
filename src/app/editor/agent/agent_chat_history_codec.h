@@ -36,6 +36,7 @@ class AgentChatHistoryCodec {
 
   struct AgentConfigSnapshot {
     struct ToolFlags {
+      bool allow_mutating_tools = false;
       bool resources = true;
       bool dungeon = true;
       bool overworld = true;

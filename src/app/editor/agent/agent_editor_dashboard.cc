@@ -846,6 +846,8 @@ void AgentEditor::DrawAgentBuilderPanel() {
     auto* service = agent_chat_->GetAgentService();
     if (service) {
       cli::agent::ToolDispatcher::ToolPreferences prefs;
+      prefs.allow_mutating_tools =
+          context_ && context_->agent_config().tool_config.allow_mutating_tools;
       prefs.resources = builder_state_.tools.resources;
       prefs.dungeon = builder_state_.tools.dungeon;
       prefs.overworld = builder_state_.tools.overworld;

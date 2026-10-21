@@ -921,6 +921,17 @@ void AgentConfigPanel::RenderParameterControls(AgentConfigState& config) {
 
 void AgentConfigPanel::RenderToolingControls(AgentConfigState& config,
                                              const Callbacks& callbacks) {
+  if (ImGui::Checkbox("Allow editing tools",
+                      &config.tool_config.allow_mutating_tools)) {
+    if (callbacks.apply_tool_preferences) {
+      callbacks.apply_tool_preferences();
+    }
+  }
+  ImGui::TextWrapped(
+      "Allow tools that change editor data or application state. Tool "
+      "categories below must also be enabled. Dungeon batch edits update "
+      "the open room with Undo and do not save the ROM.");
+  ImGui::Spacing();
   struct ToolToggleEntry {
     const char* label;
     bool* flag;

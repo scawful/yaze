@@ -155,6 +155,7 @@ struct ModelPreset {
  * @brief Tool enablement configuration
  */
 struct ToolConfig {
+  bool allow_mutating_tools = false;
   bool resources = true;
   bool dungeon = true;
   bool overworld = true;
