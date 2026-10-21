@@ -85,6 +85,25 @@ tools:
         description: "Response format (json or text). Defaults to JSON if omitted."
         required: false
         example: json
+  - name: dungeon-edit-inspect
+    description: "Inspect current unsaved room objects in the loaded native Yaze editor."
+    usage_notes: "Available only inside the running native Yaze app with the room already loaded. Call dungeon-edit-inspect immediately before dungeon-edit-apply; copy its session_id and complete six-field integer object guards in original index order. These tools never save the ROM and have no CLI fallback."
+    arguments:
+      - name: room
+        description: "Numeric room ID in decimal or hexadecimal (for example 37 or 0x25); this room must already be loaded in the active native editor session."
+        required: true
+        example: "0x25"
+  - name: dungeon-edit-apply
+    description: "Apply a guarded room-object move batch in the loaded native Yaze editor as one Undo action."
+    usage_notes: "First inspect the same room with dungeon-edit-inspect. Copy the exact session_id and every expected_objects guard (object_index, object_id, x_tile, y_tile, size, stored_list) without changing their values or order. Pass batch as a JSON-encoded string containing exactly session_id, expected_objects and moves. Each move contains object_index, x_tile and y_tile as JSON integers; destination coordinates must be 0..63 and the full rendered footprint must fit the room. Invalid or stale batches reject atomically. Accepted edits render in the native canvas and normal Undo restores the whole batch. This requires the connected native editor host and mutating-tool authorization; it never saves the ROM and has no CLI fallback."
+    arguments:
+      - name: room
+        description: "Numeric room ID in decimal or hexadecimal (for example 37 or 0x25); this room must already be loaded in the active native editor session."
+        required: true
+        example: "0x25"
+      - name: batch
+        description: "JSON-encoded string with exactly session_id, complete expected_objects from the latest inspect response, and moves. Every guard field is an integer. Each move is {object_index: integer, x_tile: integer 0..63, y_tile: integer 0..63}; use JSON object syntax with quoted field names."
+        required: true
   - name: dungeon-get-palette
     description: "Read-only resolution of a US/OOS room's full 8-bit palette-set ID to its shared global dungeon palette."
     usage_notes: "Use before any dungeon palette edit. Returns the resolved palette index, raw 15-bit colors, addresses, and every affected room; it never mutates the ROM and fails closed on unsupported regional layouts."

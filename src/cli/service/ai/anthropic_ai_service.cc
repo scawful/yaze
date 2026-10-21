@@ -116,6 +116,7 @@ void AnthropicAIService::EnableFunctionCalling(bool enable) {
 std::vector<std::string> AnthropicAIService::GetAvailableTools() const {
   return {"resource-list",        "resource-search",
           "dungeon-list-sprites", "dungeon-describe-room",
+          "dungeon-edit-inspect", "dungeon-edit-apply",
           "overworld-find-tile",  "overworld-describe-map",
           "overworld-list-warps"};
 }
