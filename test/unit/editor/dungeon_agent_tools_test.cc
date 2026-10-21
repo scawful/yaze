@@ -199,7 +199,8 @@ std::vector<uint8_t> RawBytes(const std::vector<T>& values) {
 }
 
 // Byte components of a normal room render: the four room buffers (tile words,
-// pixels, coverage, priority and reveal mask) plus the composite pixels.
+// pixels, coverage, priority and reveal mask) plus the composite's native
+// format and display colors.
 using RenderSnapshot =
     std::vector<std::pair<std::string, std::vector<uint8_t>>>;
 
@@ -223,6 +224,10 @@ RenderSnapshot CaptureRoomRender(zelda3::Room& room) {
   AppendBuffer(snapshot, "object_bg1", room.object_bg1_buffer());
   AppendBuffer(snapshot, "object_bg2", room.object_bg2_buffer());
   snapshot.emplace_back("composite.pixels", composite.vector());
+  snapshot.emplace_back("composite.rgba", composite.ToRgba());
+  snapshot.emplace_back(
+      "composite.depth",
+      std::vector<uint8_t>{static_cast<uint8_t>(composite.depth())});
   std::vector<uint8_t> palette_bytes;
   if (auto* palette = platform::GetSurfacePalette(composite.surface())) {
     for (int i = 0; i < palette->ncolors; ++i) {
@@ -244,7 +249,7 @@ void ExportNativeRender(const char* phase, const RenderSnapshot& snapshot) {
   std::filesystem::create_directories(directory, error);
   ASSERT_FALSE(error) << error.message();
   for (const auto& [name, bytes] : snapshot) {
-    if (name != "composite.pixels" && name != "composite.palette")
+    if (name.rfind("composite.", 0) != 0)
       continue;
     const auto path = std::filesystem::path(directory) /
                       (std::string("room25-") + phase + "-" + name + ".bin");
@@ -261,16 +266,6 @@ const std::vector<uint8_t>& Component(const RenderSnapshot& snapshot,
       std::find_if(snapshot.begin(), snapshot.end(),
                    [&name](const auto& entry) { return entry.first == name; });
   return it == snapshot.end() ? kMissing : it->second;
-}
-
-size_t CountDifferentBytes(const std::vector<uint8_t>& a,
-                           const std::vector<uint8_t>& b) {
-  size_t different =
-      a.size() > b.size() ? a.size() - b.size() : b.size() - a.size();
-  for (size_t i = 0; i < std::min(a.size(), b.size()); ++i) {
-    different += a[i] != b[i] ? 1 : 0;
-  }
-  return different;
 }
 
 void WriteLongPointer(Rom& rom, int pc, uint32_t snes_address) {
@@ -1007,8 +1002,10 @@ TEST(DungeonAgentToolsNativeRomTest,
 
   room->RenderRoomGraphics();
   const RenderSnapshot original = CaptureRoomRender(*room);
-  ASSERT_EQ(Component(original, "composite.pixels").size(), 512u * 512u);
-  ASSERT_EQ(Component(original, "composite.palette").size(), 256u * 4u);
+  ASSERT_EQ(Component(original, "composite.depth"), std::vector<uint8_t>{32});
+  ASSERT_EQ(Component(original, "composite.pixels").size(), 512u * 512u * 4u);
+  ASSERT_EQ(Component(original, "composite.rgba").size(), 512u * 512u * 4u);
+  ASSERT_TRUE(Component(original, "composite.palette").empty());
   ASSERT_NO_FATAL_FAILURE(ExportNativeRender("original", original));
   ASSERT_FALSE(editor.undo_manager().CanUndo());
 
@@ -1054,13 +1051,17 @@ TEST(DungeonAgentToolsNativeRomTest,
   ASSERT_NO_FATAL_FAILURE(ExportNativeRender("candidate", candidate));
   RecordProperty("changed_object_count", 22);
   RecordProperty("render_component_count", static_cast<int>(original.size()));
-  RecordProperty("changed_composite_pixels",
-                 static_cast<int>(CountDifferentBytes(
-                     Component(original, "composite.pixels"),
-                     Component(candidate, "composite.pixels"))));
-  EXPECT_GT(CountDifferentBytes(Component(original, "composite.pixels"),
-                                Component(candidate, "composite.pixels")),
-            0u)
+  const auto& original_rgba = Component(original, "composite.rgba");
+  const auto& candidate_rgba = Component(candidate, "composite.rgba");
+  ASSERT_EQ(candidate_rgba.size(), original_rgba.size());
+  int changed_pixels = 0;
+  for (size_t i = 0; i < original_rgba.size(); i += 4) {
+    changed_pixels +=
+        !std::equal(original_rgba.begin() + i, original_rgba.begin() + i + 4,
+                    candidate_rgba.begin() + i);
+  }
+  RecordProperty("changed_composite_pixels", changed_pixels);
+  EXPECT_GT(changed_pixels, 0)
       << "Moving the basin must change the actual composite";
   EXPECT_FALSE(candidate == original);
 

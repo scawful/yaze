@@ -303,27 +303,27 @@ bool BuiltinFootprintFits(zelda3::RoomObject object, int x_tile, int y_tile) {
 constexpr char kWideCustomFile[] = "agent_batch_wide.bin";
 constexpr char kTrackCustomFile[] = "agent_batch_track.bin";
 
-// Custom tile offsets only advance forward from the origin, so the widest
-// expressible deviation from the builtin bounds is a positive offset plus a
-// larger body: two rows of six tiles starting two columns right of origin.
-constexpr int kWideOffsetXTiles = 2;
-constexpr int kWideWidthTiles = 6;
+// The visible body is six tiles wide and begins two columns right of origin.
+// The strict runtime codec emits an initial zero/no-op tile to reach that
+// offset; GetBoundingBox includes it in the conservative eight-tile bounds.
+constexpr int kWideVisibleOffsetXTiles = 2;
+constexpr int kWideVisibleWidthTiles = 6;
+constexpr int kWideWidthTiles =
+    kWideVisibleOffsetXTiles + kWideVisibleWidthTiles;
 constexpr int kWideHeightTiles = 2;
-constexpr int kWideExactFitX = kRoomTiles - kWideOffsetXTiles - kWideWidthTiles;
+constexpr int kWideExactFitX = kRoomTiles - kWideWidthTiles;
 constexpr int kWideExactFitY = kRoomTiles - kWideHeightTiles;
 
-// Custom object stream: little-endian header (count = bits 0..4, jump from the
-// row start = bits 8..15, 128 bytes per row), then `count` tile words.
-std::vector<uint8_t> WideCustomObjectBinary() {
-  std::vector<uint8_t> bytes = {0x00, kWideOffsetXTiles * 2};
+absl::StatusOr<std::vector<uint8_t>> WideCustomObjectBinary() {
+  zelda3::CustomObject object;
   for (int row = 0; row < kWideHeightTiles; ++row) {
-    bytes.insert(bytes.end(), {kWideWidthTiles, 0x80});
-    for (int tile = 0; tile < kWideWidthTiles; ++tile) {
-      bytes.insert(bytes.end(), {0x00, 0x08});  // tile 0, palette 2
+    for (int tile = 0; tile < kWideVisibleWidthTiles; ++tile) {
+      object.tiles.push_back({.rel_x = kWideVisibleOffsetXTiles + tile,
+                              .rel_y = row,
+                              .tile_data = 0x0800});
     }
   }
-  bytes.insert(bytes.end(), {0x00, 0x00});
-  return bytes;
+  return zelda3::EncodeCustomObjectBinary(object);
 }
 
 std::vector<uint8_t> SingleTileCustomObjectBinary() {
@@ -1077,8 +1077,10 @@ class DungeonAgentBatchCustomObjectTest : public DungeonAgentBatchTest {
 
   void EnableCustomObjects(
       const std::unordered_map<int, std::vector<std::string>>& file_map) {
+    const auto wide_binary = WideCustomObjectBinary();
+    ASSERT_TRUE(wide_binary.ok()) << wide_binary.status();
     ASSERT_NO_FATAL_FAILURE(
-        WriteCustomObjectFile(kWideCustomFile, WideCustomObjectBinary()));
+        WriteCustomObjectFile(kWideCustomFile, *wide_binary));
     ASSERT_NO_FATAL_FAILURE(WriteCustomObjectFile(
         kTrackCustomFile, SingleTileCustomObjectBinary()));
     core::FeatureFlags::get().kEnableCustomObjects = true;
@@ -1094,7 +1096,7 @@ class DungeonAgentBatchCustomObjectTest : public DungeonAgentBatchTest {
     ASSERT_TRUE(custom.ok()) << custom.status();
     ASSERT_NE(*custom, nullptr);
     const auto bounds = (*custom)->GetBoundingBox();
-    ASSERT_EQ(bounds.min_x, kWideOffsetXTiles);
+    ASSERT_EQ(bounds.min_x, 0);
     ASSERT_EQ(bounds.min_y, 0);
     ASSERT_EQ(bounds.width(), kWideWidthTiles);
     ASSERT_EQ(bounds.height(), kWideHeightTiles);
