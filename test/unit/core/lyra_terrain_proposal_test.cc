@@ -261,7 +261,7 @@ TEST_F(LyraTerrainProposalTest, AdmitsMapA1WithMapLocalChanges) {
   Paint(2, 2, 6);
   Paint(kSize + 30, 30, 7);
   const Json bundle = FourCellBundle(*document_, Spec{}, kA1);
-  ASSERT_EQ(bundle["map_id"], 161);
+  ASSERT_EQ(bundle.at("map_id").get<int>(), 161);
 
   const auto maps =
       std::make_unique<LyraTerrainDocument::Maps>(document_->maps());
