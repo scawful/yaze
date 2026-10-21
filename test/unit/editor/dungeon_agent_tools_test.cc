@@ -1123,13 +1123,14 @@ TEST(DungeonAgentToolsNativeRomTest,
       std::getenv("YAZE_NATIVE_BATCH_ARTIFACT_DIR");
   if (artifact_directory && artifact_directory[0]) {
     Rom::SaveSettings settings;
-    settings.save_new = true;
+    settings.save_new = false;
     settings.filename =
         (std::filesystem::path(artifact_directory) / "room25-native-save.sfc")
             .string();
     const auto saved = save_rom.SaveToFile(settings);
     ASSERT_TRUE(saved.ok()) << saved;
-    ASSERT_TRUE(reopened_rom.LoadFromFile(settings.filename).ok());
+    const auto reopened = reopened_rom.LoadFromFile(settings.filename);
+    ASSERT_TRUE(reopened.ok()) << reopened;
     RecordProperty("native_persistence", "file_save_reopen");
   } else {
     ASSERT_TRUE(reopened_rom.LoadFromData(save_rom.vector()).ok());
