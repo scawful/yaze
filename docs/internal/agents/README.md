@@ -3,6 +3,7 @@
 This directory is the index for yaze agent protocol and coordination.
 
 ## Layered Context Model
+- Operating rules (read first): [operating-rules.md](operating-rules.md)
 - Layer 1 router: `AGENTS.md`
 - Layer 2 focused routing:
   - `docs/internal/agents/routing-personas.md`
