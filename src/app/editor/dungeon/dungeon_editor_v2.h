@@ -42,6 +42,7 @@
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room_object_batch.h"
 #include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/game_data.h"
 
@@ -271,6 +272,12 @@ class DungeonEditorV2 : public Editor {
   bool CycleRoomSelection(int direction);
   // Select the next or previous room object in the active editable canvas.
   bool CycleObjectSelection(int direction);
+
+  // Atomically moves objects in an already-loaded room as one undo action.
+  // Every guard must match the current unsaved object list; validation runs
+  // before mutation, and a batch with no effective change records nothing.
+  absl::StatusOr<zelda3::RoomObjectBatchResult> ApplyRoomObjectBatch(
+      const zelda3::RoomObjectBatch& batch);
 
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
