@@ -744,6 +744,7 @@ TEST(LyraTerrainNativeRebindTest,
 
   project::YazeProject project;
   project.name = "Lyra native rebind fixture";
+  project.feature_flags = core::FeatureFlags::get();
   project.filepath = (root / "Oracle.yaze").string();
   project.rom_filename = base_rom.string();
   ASSERT_OK(project.Save());
