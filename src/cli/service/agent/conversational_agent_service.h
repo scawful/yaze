@@ -5,6 +5,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -116,6 +117,10 @@ class ConversationalAgentService {
   absl::Status ConfigureProvider(const AIServiceConfig& config);
   const AIServiceConfig& provider_config() const { return provider_config_; }
   void SetToolPreferences(const ToolDispatcher::ToolPreferences& prefs);
+  void SetDungeonEditorToolCallback(
+      ToolDispatcher::DungeonEditorToolCallback callback) {
+    tool_dispatcher_.SetDungeonEditorToolCallback(std::move(callback));
+  }
 
   ChatMessage::SessionMetrics GetMetrics() const;
 
