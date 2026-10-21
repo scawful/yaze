@@ -1113,6 +1113,25 @@ TEST_F(AuthoringSaveWorkflowTest,
   constexpr int kChild = 0x31;
   const auto* parent = editor->overworld().overworld_map(kParent);
   ASSERT_EQ(editor->overworld().overworld_map(kChild)->parent(), kParent);
+  const auto original_area_size = parent->area_size();
+  const int palette_width =
+      original_area_size == zelda3::AreaSizeEnum::LargeArea ||
+              original_area_size == zelda3::AreaSizeEnum::WideArea
+          ? 2
+          : 1;
+  const int palette_height =
+      original_area_size == zelda3::AreaSizeEnum::LargeArea ||
+              original_area_size == zelda3::AreaSizeEnum::TallArea
+          ? 2
+          : 1;
+  std::vector<int> palette_maps;
+  for (int y = 0; y < palette_height; ++y) {
+    for (int x = 0; x < palette_width; ++x) {
+      const int map = kParent + y * 8 + x;
+      ASSERT_EQ(editor->overworld().overworld_map(map)->parent(), kParent);
+      palette_maps.push_back(map);
+    }
+  }
   const int old_background = parent->area_specific_bg_color();
   const int new_background = old_background ^ 0x0421;
   const int old_message = parent->message_id();
@@ -1164,7 +1183,8 @@ TEST_F(AuthoringSaveWorkflowTest,
   write_word(zelda3::OverworldCustomAreaSpecificBGPalette + 2 * kParent,
              new_background);
   write_word(zelda3::GetOverworldMessagesExpanded() + 2 * kParent, new_message);
-  for (const int map : {0x30, 0x31, 0x38, 0x39}) {
+  // Preserve unrelated lower-area slots when this footprint is Wide, not 2x2.
+  for (const int map : palette_maps) {
     expected.at(zelda3::kOverworldPalettesScreenToSetNew + map) = new_palette;
   }
   const auto pending = manager_->GetCurrentRom()->vector();
@@ -5780,14 +5800,11 @@ TEST_F(AuthoringSaveWorkflowTest, OracleTallSpecialAreaCanvasSaveReopens) {
 }
 
 TEST_F(AuthoringSaveWorkflowTest, OracleTileEditRetryKeepsHooksOrStaysRefused) {
-  const auto rom = ResolveOracleEditRom();
-  ASSERT_FALSE(rom.empty()) << "Oracle edit ROM was not resolved. Set "
-                               "YAZE_TEST_ROM_OOS to the base ROM.";
-  const auto rom_dir = rom.parent_path();
-  const auto project_root = rom_dir.parent_path();
-  const auto project = project_root / "Oracle-of-Secrets.yaze";
-  const auto manifest = rom_dir / "hack_manifest.json";
-  const auto collision = project_root / "Data/dungeons/custom_collision.json";
+  const std::filesystem::path rom = kSharedRom;
+  ASSERT_FALSE(rom.empty()) << "Oracle authoring fixture ROM was not resolved";
+  const std::filesystem::path project = kSharedProject;
+  const std::filesystem::path manifest = kSharedManifest;
+  const std::filesystem::path collision = kSharedCollision;
   ASSERT_TRUE(std::filesystem::exists(project)) << project;
   ASSERT_TRUE(std::filesystem::exists(manifest)) << manifest;
   ASSERT_TRUE(std::filesystem::exists(collision)) << collision;
