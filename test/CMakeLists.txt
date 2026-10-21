@@ -597,6 +597,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/gfx_group_persistence_test.cc
     unit/zelda3/gfx_sheet_inventory_test.cc
     unit/zelda3/menu_tilemap_test.cc
+    unit/zelda3/overworld_map_screen_custom_map_test.cc
     unit/zelda3/gfx_sheet_png_test.cc
     unit/zelda3/gfx_sheet_storage_test.cc
     unit/zelda3/graphics_sheet_store_test.cc

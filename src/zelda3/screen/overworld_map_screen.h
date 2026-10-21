@@ -63,8 +63,11 @@ class OverworldMapScreen {
   /**
    * @brief Load custom map from external binary file
    * @param file_path Path to .bin file containing 64×64 tile indices
+   * @param use_dark_world If true, replace and render DW tiles, otherwise LW
+   *        tiles. The other world is never modified, and neither is on error.
    */
-  absl::Status LoadCustomMap(const std::string& file_path);
+  absl::Status LoadCustomMap(const std::string& file_path,
+                             bool use_dark_world = false);
 
   /**
    * @brief Save map data to external binary file

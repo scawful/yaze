@@ -975,6 +975,16 @@ void ScreenEditor::DrawDungeonMapsEditor() {
         tr("Dungeon-map Tile16 saving is disabled until it can participate in "
            "the coordinated ROM save transaction."));
   }
+  ImGui::TextWrapped(
+      "%s",
+      core::FeatureFlags::get().kSaveDungeonMaps
+          ? tr("Pause-menu Dungeon Map layouts save through Save ROM; Tile16 "
+               "artwork saving remains unavailable. Room layouts are edited in "
+               "Dungeon Editor.")
+          : tr("Save Dungeon Maps is disabled for this project, so Save ROM "
+               "cannot save pause-menu Dungeon Map layouts and pending layout "
+               "edits block Save ROM. Edits here are temporary until it is "
+               "enabled. Room layouts are edited in Dungeon Editor."));
 
   static std::vector<std::string> dungeon_names = {
       "Sewers/Sanctuary",   "Hyrule Castle", "Eastern Palace",
@@ -1453,7 +1463,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
   if (ImGui::Button(tr("Load Custom Map..."))) {
     std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!path.empty()) {
-      status_ = ow_map_screen_.LoadCustomMap(path);
+      status_ = ow_map_screen_.LoadCustomMap(path, ow_show_dark_world_);
       if (!status_.ok()) {
         ImGui::OpenPopup("CustomMapLoadError");
       } else {
@@ -1481,6 +1491,12 @@ void ScreenEditor::DrawOverworldMapEditor() {
       "sprites, use Overworld Editor. Paint flow here: pick an 8x8 tile from "
       "Tileset, then click Map Canvas; use Light/Dark World to choose the "
       "target map."));
+  ImGui::TextWrapped(tr(
+      "Pause-map edits cannot be saved to ROM. Save Custom Map... exports the "
+      "selected world's tile layout only, excluding palette and graphics, as "
+      "a draft file the game does not load. Painting, loading a custom "
+      "map, or changing the palette blocks Save ROM until the active ROM is "
+      "reloaded, which discards these edits."));
   ImGui::Separator();
 
   // Custom map error/success popups
