@@ -445,6 +445,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // Normal Save includes project drafts. Explicit ROM writes remain SaveRom.
   absl::Status SaveCurrentSession();
   absl::Status SaveCurrentSessionAs();
+  // File > Save As > ROM...: the ROM Save As popup, with or without a project.
+  absl::Status ShowSaveRomAs();
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);
   absl::Status ResumePendingRomSave();
@@ -711,6 +713,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   bool RestoreProjectContextForSession(RomSession* session);
   void RestoreProjectEditingStateForSession(RomSession* session);
   absl::Status SaveActiveProjectEditingWork();
+  // The refusals SaveActiveProjectEditingWork returns before writing anything.
+  absl::Status CheckActiveProjectEditingWorkSavable();
   absl::Status PrepareRawProjectFileSave(const std::string& filepath,
                                          const std::string& contents);
   absl::Status CommitRawProjectFileSave(const std::string& filepath,
@@ -802,6 +806,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     std::optional<std::string> save_as_filename;
     size_t session_index = SIZE_MAX;
     Rom* rom = nullptr;
+    // Save wrote the ROM first for a Lyra sidecar; save the project after it.
+    bool then_save_project = false;
   };
   std::optional<PendingRomSave> pending_rom_save_;
 

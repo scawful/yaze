@@ -1465,8 +1465,13 @@ absl::Status EditorManager::SaveCurrentSessionAs() {
   if (current_project_.project_opened()) {
     return SaveProjectAs();
   }
+  return ShowSaveRomAs();
+}
+
+absl::Status EditorManager::ShowSaveRomAs() {
+  // File > Save As > ROM... reaches this with or without an open project.
   if (!GetCurrentRom() || !GetCurrentRom()->is_loaded()) {
-    return absl::FailedPreconditionError("No active ROM session");
+    return absl::FailedPreconditionError("Open a ROM before Save As");
   }
   popup_manager_->Show(PopupID::kSaveAs);
   return absl::OkStatus();

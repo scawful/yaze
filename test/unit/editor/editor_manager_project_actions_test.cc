@@ -23,6 +23,7 @@
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/palette_catalog.h"
 #include "core/source_artifact_publisher.h"
@@ -801,6 +802,103 @@ TEST(EditorManagerProjectActionsTest,
             reviewed.before_profile);
   ASSERT_OK(editor->Redo());
   EXPECT_EQ(editor->lyra_canvas_.document()->profile(), reviewed.after_profile);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     SaveShortcutWritesLyraSidecarAndDirtyRomFirst) {
+  const auto immutable_rom =
+      test::TestRomManager::GetRomPath(test::RomRole::kExpanded);
+  if (immutable_rom.empty() || !std::filesystem::exists(immutable_rom)) {
+    GTEST_SKIP() << test::TestRomManager::GetRomRoleHint(
+        test::RomRole::kExpanded);
+  }
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  ScopedTempDir directory(MakeTempDir("yaze_lyra_rom_first_save"));
+  const auto rom = directory.path / "source.sfc";
+  const auto project_path = directory.path / "rom_first.yaze";
+  std::filesystem::copy_file(immutable_rom, rom);
+  WriteProjectFile(project_path, "Lyra ROM First Save", rom);
+  {
+    project::YazeProject descriptor;
+    ASSERT_OK(descriptor.Open(project_path.string()));
+    descriptor.feature_flags.overworld.kLoadCustomOverworld = true;
+    descriptor.feature_flags.overworld.kSaveOverworldMaps = true;
+    descriptor.rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+    ASSERT_OK(descriptor.Save());
+  }
+  std::ofstream(directory.path / "hack_manifest.json")
+      << R"json({"manifest_version":2,"hack_name":"Oracle of Secrets"})json";
+  const auto initial_flags = core::FeatureFlags::get();
+  auto manager = std::make_unique<EditorManager>();
+  absl::Cleanup cleanup = [&]() {
+    gfx::Arena::Get().ClearTextureQueue();
+    manager.reset();
+    gfx::PaletteManager::Get().ResetForTesting();
+    gfx::Arena::Get().ClearTextureQueue();
+    core::FeatureFlags::get() = initial_flags;
+  };
+  test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kOverworld));
+  auto* editor = manager->GetCurrentEditorSet()->GetEditorAs<OverworldEditor>(
+      EditorType::kOverworld);
+  ASSERT_NE(editor, nullptr);
+  ASSERT_TRUE(editor->lyra_canvas_.loaded());
+  ASSERT_TRUE(editor->HasPendingProjectDraftChanges());
+
+  // Cmd+S alone writes the Lyra sidecar; there is no Save Project step.
+  auto* save_shortcut = manager->shortcut_manager()->FindShortcut("Save");
+  ASSERT_NE(save_shortcut, nullptr);
+  ASSERT_TRUE(save_shortcut->callback);
+  save_shortcut->callback();
+  ASSERT_FALSE(editor->HasPendingProjectDraftChanges());
+  const auto terrain = manager->GetCurrentProject()->GetAbsolutePath(
+      manager->GetCurrentProject()->lyra_terrain_file);
+  ASSERT_TRUE(std::filesystem::exists(terrain));
+  const auto first_terrain = ReadFile(terrain);
+  const auto first_rom = ReadFile(rom);
+
+  auto authoring = editor->lyra_canvas_.document()->authoring();
+  authoring.maps[0].properties.message_id ^= 0x1;
+  ASSERT_OK(editor->EditProjectMapAuthoring(authoring));
+  ASSERT_TRUE(editor->HasPendingProjectDraftChanges());
+  ASSERT_FALSE(manager->GetCurrentRom()->dirty());
+  save_shortcut->callback();
+  EXPECT_FALSE(editor->HasPendingProjectDraftChanges());
+  EXPECT_NE(ReadFile(terrain), first_terrain);
+  EXPECT_EQ(ReadFile(rom), first_rom);
+  for (const auto& toast : manager->toast_manager()->GetHistory()) {
+    EXPECT_NE(toast.type, ToastType::kError) << toast.message;
+  }
+
+  const auto rom_before = ReadFile(rom);
+  const auto terrain_before = ReadFile(terrain);
+
+  // A native Tile16 edit dirties the ROM; the reviewed rebind points the Lyra
+  // draft at that unsaved data. One Save must write both, ROM first.
+  auto& tiles16 = *editor->overworld().mutable_tiles16();
+  const gfx::Tile16 original_tile = tiles16[0x20];
+  gfx::TileInfo flipped = original_tile.tile0_;
+  flipped.horizontal_mirror_ = !flipped.horizontal_mirror_;
+  tiles16[0x20] = gfx::Tile16(flipped, original_tile.tile1_,
+                              original_tile.tile2_, original_tile.tile3_);
+  manager->GetCurrentRom()->set_dirty(true);
+  ASSERT_OK(editor->PreviewLyraAssetRebind());
+  ASSERT_TRUE(editor->lyra_rebind_review().has_value());
+  const auto after_profile = editor->lyra_rebind_review()->plan.after_profile;
+  ASSERT_OK(editor->ApplyLyraAssetRebind());
+  ASSERT_TRUE(editor->HasPendingProjectDraftChanges());
+
+  ASSERT_OK(manager->SaveCurrentSession());
+  EXPECT_NE(ReadFile(rom), rom_before);
+  EXPECT_NE(ReadFile(terrain), terrain_before);
+  EXPECT_EQ(editor->lyra_canvas_.document()->profile(), after_profile);
+  EXPECT_FALSE(editor->HasPendingProjectDraftChanges());
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
+  EXPECT_FALSE(manager->GetCurrentRom()->dirty());
 }
 
 TEST(EditorManagerProjectActionsTest,

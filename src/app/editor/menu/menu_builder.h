@@ -77,6 +77,11 @@ class MenuBuilder {
   MenuBuilder& Separator();
 
   /**
+   * @brief Register the last item with the test harness under a stable id
+   */
+  MenuBuilder& HarnessId(const char* id);
+
+  /**
    * @brief Add a disabled item (grayed out)
    */
   MenuBuilder& DisabledItem(const char* label, const char* icon = nullptr);
@@ -116,6 +121,7 @@ class MenuBuilder {
     Callback callback;
     EnabledCheck enabled;
     EnabledCheck checked;
+    std::string harness_id;
   };
 
   struct Menu {
