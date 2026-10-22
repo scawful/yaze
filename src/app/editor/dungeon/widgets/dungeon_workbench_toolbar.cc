@@ -786,7 +786,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     if (workbench::DrawHeaderIconAction(
             "ApplyRoomToolbar", ICON_MD_SAVE, layout.button_size,
             "Apply this room into the loaded ROM buffer "
-            "(File > Save ROM persists to disk)")) {
+            "(File > Save persists to disk)")) {
       p.on_save_room(*p.current_room_id);
     }
   }

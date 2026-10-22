@@ -16,6 +16,7 @@
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_group_panel.h"
+#include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/ui/project_management_panel.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/types/snes_color.h"
@@ -46,8 +47,7 @@ class ProjectUiTestPeer {
         std::find_if(builder.menus_.begin(), builder.menus_.end(),
                      [](const auto& menu) { return menu.label == "File"; });
     ASSERT_NE(file, builder.menus_.end());
-    for (const auto* label :
-         {"Save Project", "Save Project As...", "Project Management..."}) {
+    for (const auto* label : {"Project...", "Project Management..."}) {
       const auto item = std::find_if(
           file->items.begin(), file->items.end(),
           [label](const auto& item) { return item.label == label; });
@@ -55,6 +55,63 @@ class ProjectUiTestPeer {
       ASSERT_TRUE(item->enabled) << label;
       EXPECT_EQ(item->enabled(), expected) << label;
     }
+  }
+
+  // One line per File menu entry; submenu contents are indented. Open Recent
+  // contents depend on the user's history and are left out.
+  static std::vector<std::string> FileMenuOutline(const MenuBuilder& builder) {
+    std::vector<std::string> outline;
+    const auto file =
+        std::find_if(builder.menus_.begin(), builder.menus_.end(),
+                     [](const auto& menu) { return menu.label == "File"; });
+    if (file == builder.menus_.end()) {
+      return outline;
+    }
+    using Type = MenuBuilder::MenuItem::Type;
+    int depth = 0;
+    int skip_depth = 0;
+    for (const auto& item : file->items) {
+      if (item.type == Type::kSubMenuEnd) {
+        --depth;
+        if (skip_depth > depth) {
+          skip_depth = 0;
+        }
+        continue;
+      }
+      if (skip_depth > 0) {
+        if (item.type == Type::kSubMenuBegin) {
+          ++depth;
+        }
+        continue;
+      }
+      const std::string indent(2 * depth, ' ');
+      if (item.type == Type::kSeparator) {
+        outline.push_back(indent + "---");
+      } else if (item.type == Type::kSubMenuBegin) {
+        outline.push_back(indent + item.label + " >");
+        ++depth;
+        if (item.label == "Open Recent") {
+          skip_depth = depth;
+        }
+      } else {
+        outline.push_back(indent + item.label);
+      }
+    }
+    return outline;
+  }
+
+  static const MenuBuilder::MenuItem* FileItem(const MenuBuilder& builder,
+                                               const char* label) {
+    const auto file =
+        std::find_if(builder.menus_.begin(), builder.menus_.end(),
+                     [](const auto& menu) { return menu.label == "File"; });
+    if (file == builder.menus_.end()) {
+      return nullptr;
+    }
+    const auto item =
+        std::find_if(file->items.begin(), file->items.end(),
+                     [label](const auto& item) { return item.label == label; });
+    return item == file->items.end() ? nullptr : &*item;
   }
 
   static const project::YazeProject* PanelProject(
@@ -1302,6 +1359,117 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_FALSE(manager->HasPendingUnsavedSessionAction());
   ProjectUiTestPeer::ExpectProjectCommandsEnabled(manager->menu_builder(),
                                                   false);
+}
+
+void DrawMainMenuOnce(EditorManager& manager) {
+  ImGui::GetIO().DisplaySize = ImVec2(1280, 720);
+  ImGui::NewFrame();
+  ImGui::SetNextWindowSize(ImVec2(800, 600));
+  ImGui::Begin("File menu regression", nullptr,
+               ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoSavedSettings);
+  manager.DrawMainMenuBar();
+  ImGui::End();
+  ImGui::Render();
+}
+
+TEST(EditorManagerWriteConflictTest, FileMenuHasOneSaveAndAProjectSubmenu) {
+  FeatureFlagsGuard flags_guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  DrawMainMenuOnce(*manager);
+
+  const std::vector<std::string> expected = {
+      "Open...",
+      "Open Recent >",
+      "---",
+      "Save",
+      "Save As >",
+      "  ROM...",
+      "  Project...",
+      "Revert to Saved...",
+      "Close",
+      "---",
+      "Project >",
+      "  New Project",
+      "  Open Project File Only...",
+      "  Project Management...",
+      "  Edit Project File...",
+      "  Lyra Sea >",
+      "    Edit Lyra",
+      "    Import...",
+      "    Apply Proposal...",
+      "  Save Scope...",
+      "Settings",
+      "Quit",
+  };
+  EXPECT_EQ(ProjectUiTestPeer::FileMenuOutline(manager->menu_builder()),
+            expected);
+  EXPECT_EQ(
+      ProjectUiTestPeer::FileItem(manager->menu_builder(), "Save Project"),
+      nullptr);
+  const auto* save =
+      ProjectUiTestPeer::FileItem(manager->menu_builder(), "Save");
+  ASSERT_NE(save, nullptr);
+  EXPECT_EQ(save->harness_id, "Save");
+}
+
+TEST(EditorManagerWriteConflictTest, SaveAsRomShowsRomPopupWithProjectOpen) {
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  ::yaze::test::InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto project_rom =
+      CreateMinimalRomFile("yaze_save_as_route.sfc", "SAVE AS ROUTE");
+  const auto raw_rom =
+      CreateMinimalRomFile("yaze_save_as_route_raw.sfc", "SAVE AS RAW");
+  const auto project_root = MakeTempFilePath("yaze_save_as_route_root");
+  ScopedFileCleanup cleanup_project_rom{project_rom};
+  ScopedFileCleanup cleanup_raw_rom{raw_rom};
+  ScopedDirectoryCleanup cleanup_project_root{project_root};
+  ASSERT_TRUE(std::filesystem::create_directories(project_root));
+  const auto project_path =
+      CreateProjectFile("save_as_route", "Save As Route", project_rom,
+                        project::WorkspaceSettings{}, project_root);
+
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  DrawMainMenuOnce(*manager);
+  const auto* rom_copy =
+      ProjectUiTestPeer::FileItem(manager->menu_builder(), "ROM...");
+  const auto* project_copy =
+      ProjectUiTestPeer::FileItem(manager->menu_builder(), "Project...");
+  ASSERT_NE(rom_copy, nullptr);
+  ASSERT_NE(project_copy, nullptr);
+  ASSERT_TRUE(rom_copy->enabled);
+  ASSERT_TRUE(project_copy->enabled);
+  EXPECT_TRUE(rom_copy->enabled());
+  EXPECT_TRUE(project_copy->enabled());
+
+  // ROM... opens the ROM Save As popup, not the project file dialog.
+  ASSERT_FALSE(manager->popup_manager()->IsVisible(PopupID::kSaveAs));
+  rom_copy->callback();
+  EXPECT_TRUE(manager->popup_manager()->IsVisible(PopupID::kSaveAs));
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, project_path.string());
+  manager->popup_manager()->Hide(PopupID::kSaveAs);
+
+  // Without a project only the ROM target is available.
+  manager->CloseRom();
+  ASSERT_OK(manager->OpenRomOrProject(raw_rom.string()));
+  DrawMainMenuOnce(*manager);
+  rom_copy = ProjectUiTestPeer::FileItem(manager->menu_builder(), "ROM...");
+  project_copy =
+      ProjectUiTestPeer::FileItem(manager->menu_builder(), "Project...");
+  ASSERT_NE(rom_copy, nullptr);
+  ASSERT_NE(project_copy, nullptr);
+  EXPECT_TRUE(rom_copy->enabled());
+  EXPECT_FALSE(project_copy->enabled());
+  rom_copy->callback();
+  EXPECT_TRUE(manager->popup_manager()->IsVisible(PopupID::kSaveAs));
 }
 
 TEST(EditorManagerWriteConflictTest,

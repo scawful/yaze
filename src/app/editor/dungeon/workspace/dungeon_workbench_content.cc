@@ -1344,7 +1344,7 @@ void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
     on_save_all_rooms_();
   }
   ImGui::TextWrapped(
-      tr("Apply uses the checked content. File > Save ROM "
+      tr("Apply uses the checked content. File > Save "
          "writes the applied changes to disk."));
 }
 

@@ -2946,6 +2946,38 @@ absl::Status EditorManager::SaveCurrentSession() {
   }
   CaptureActiveProjectEditingState();
   const size_t session_id = GetCurrentSessionId();
+  // The Lyra sidecar checks its bindings against the ROM on disk, so a dirty
+  // ROM must be written before the sidecar that binds the changed data.
+  auto* overworld = static_cast<OverworldEditor*>(
+      GetCurrentEditorSet()->GetExistingEditor(EditorType::kOverworld));
+  if (overworld && overworld->HasPendingLyraTerrainDraft() &&
+      SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+    // Refuse before the ROM write when the project half cannot follow it.
+    if (overworld->HasPendingGraphicsSourceDraft()) {
+      return absl::FailedPreconditionError(
+          "Publish or discard the project graphics draft before saving");
+    }
+    RETURN_IF_ERROR(CheckActiveProjectEditingWorkSavable());
+    RETURN_IF_ERROR(StartPendingRomSave(std::nullopt));
+    pending_rom_save_->then_save_project = true;
+    auto status = SaveRomInternal(std::nullopt);
+    FinishPendingRomSaveAttempt(status);
+    // A Cancelled save resumes from its dialog and saves the project then.
+    if (absl::IsCancelled(status)) {
+      return status;
+    }
+    if (GetCurrentSessionId() != session_id) {
+      return absl::FailedPreconditionError(
+          "The active session changed while saving the ROM");
+    }
+    if (!status.ok()) {
+      // Still save project work that does not bind the refused ROM data; the
+      // ROM refusal names the next action either way.
+      SaveActiveProjectEditingWork().IgnoreError();
+      return status;
+    }
+    return SaveActiveProjectEditingWork();
+  }
   RETURN_IF_ERROR(SaveActiveProjectEditingWork());
   if (GetCurrentSessionId() != session_id) {
     return absl::FailedPreconditionError(
@@ -3005,8 +3037,12 @@ absl::Status EditorManager::ResumePendingRomSave() {
   }
 
   const auto save_as_filename = pending_rom_save_->save_as_filename;
+  const bool then_save_project = pending_rom_save_->then_save_project;
   auto status = SaveRomInternal(save_as_filename);
   FinishPendingRomSaveAttempt(status);
+  if (status.ok() && then_save_project) {
+    return SaveActiveProjectEditingWork();
+  }
   return status;
 }
 
@@ -4000,16 +4036,13 @@ bool EditorManager::IsCurrentProjectDirty() const {
           session->editors.HasPendingProjectDraftChanges());
 }
 
-absl::Status EditorManager::SaveActiveProjectEditingWork() {
-  if (!session_coordinator_) {
-    return absl::FailedPreconditionError("No session coordinator");
-  }
-  auto* session = session_coordinator_->GetActiveRomSession();
+absl::Status EditorManager::CheckActiveProjectEditingWorkSavable() {
+  auto* session = session_coordinator_
+                      ? session_coordinator_->GetActiveRomSession()
+                      : nullptr;
   if (!session) {
     return absl::FailedPreconditionError("No active ROM session");
   }
-
-  CaptureActiveProjectEditingState();
   const bool project_dirty = session->project_dirty ||
                              session->editors.HasPendingProjectDraftChanges();
   const bool project_file_dirty =
@@ -4022,13 +4055,32 @@ absl::Status EditorManager::SaveActiveProjectEditingWork() {
         "Project settings and raw project file both have unsaved changes; "
         "use raw Save As to preserve the draft, then save project settings");
   }
+  if (project_dirty && (!current_project_.project_opened() ||
+                        current_project_.filepath.empty())) {
+    return absl::FailedPreconditionError(
+        "Project settings have no project file to save");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::SaveActiveProjectEditingWork() {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  CaptureActiveProjectEditingState();
+  RETURN_IF_ERROR(CheckActiveProjectEditingWorkSavable());
+  const bool project_dirty = session->project_dirty ||
+                             session->editors.HasPendingProjectDraftChanges();
+  const bool project_file_dirty =
+      session->project_file_editor_state.initialized &&
+      session->project_file_editor_state.modified;
 
   if (project_dirty) {
-    if (!current_project_.project_opened() ||
-        current_project_.filepath.empty()) {
-      return absl::FailedPreconditionError(
-          "Project settings have no project file to save");
-    }
     RETURN_IF_ERROR(SaveProject());
   }
 

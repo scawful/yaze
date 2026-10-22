@@ -105,6 +105,13 @@ MenuBuilder& MenuBuilder::Separator() {
   return *this;
 }
 
+MenuBuilder& MenuBuilder::HarnessId(const char* id) {
+  if (current_menu_ && !current_menu_->items.empty()) {
+    current_menu_->items.back().harness_id = id;
+  }
+  return *this;
+}
+
 MenuBuilder& MenuBuilder::DisabledItem(const char* label, const char* icon) {
   if (!current_menu_)
     return *this;
@@ -242,8 +249,8 @@ void MenuBuilder::DrawMenuItem(const MenuItem& item) {
 
       const bool activated =
           ImGui::MenuItem(label.c_str(), shortcut_str, checked, enabled);
-      if (item.label == "Save ROM" || item.label == "Quit") {
-        gui::AutoRegisterLastItem("menuitem", item.label,
+      if (!item.harness_id.empty()) {
+        gui::AutoRegisterLastItem("menuitem", item.harness_id,
                                   "Stable file-menu harness action");
       }
       if (activated) {

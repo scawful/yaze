@@ -432,7 +432,7 @@ void PopupManager::DrawSaveAsPopup() {
     }
   }
 
-  Text(tr("%s Save ROM to new location"), ICON_MD_SAVE_AS);
+  Text(tr("%s Save ROM As"), ICON_MD_SAVE_AS);
   Separator();
   TextUnformatted(tr("Folder:"));
   PushTextWrapPos(GetCursorPosX() + 480.0f);
@@ -507,7 +507,7 @@ void PopupManager::DrawSaveScopePopup() {
   Text(tr("%s Save Scope"), ICON_MD_SAVE);
   Separator();
   TextWrapped(
-      tr("Controls which data is written during File > Save ROM. Dungeon "
+      tr("Controls which data is written during File > Save. Dungeon "
          "choices also control Apply Room. "
          "Changes apply immediately."));
   Separator();
