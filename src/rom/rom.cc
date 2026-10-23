@@ -187,6 +187,25 @@ absl::Status CreateRequiredBackup(
   return absl::OkStatus();
 }
 
+// Recognize the forbidden physical variant before any load state changes.
+// Header stripping cannot turn a different file into the approved candidate.
+absl::Status RejectHeaderedPrivateLyraCandidate(
+    const std::vector<uint8_t>& data) {
+  const auto candidate = core::PrivateLyraExactCandidatePersistence();
+  if (data.size() != candidate.image_size + kCopierHeaderSize) {
+    return absl::OkStatus();
+  }
+  const auto body = std::string_view(
+      reinterpret_cast<const char*>(data.data() + kCopierHeaderSize),
+      data.size() - kCopierHeaderSize);
+  if (core::ComputeSourceArtifactSha256(body) ==
+      candidate.candidate_rom_sha256) {
+    return absl::FailedPreconditionError(
+        "Private Lyra candidate requires the exact headerless physical image");
+  }
+  return absl::OkStatus();
+}
+
 // Match the exclusive staging contract used by CLI artifact publication.
 // Keep the name independent of the destination basename so long ROM filenames
 // still fit the filesystem's component limit. Exclusive creation, rather than
@@ -454,6 +473,20 @@ absl::Status Rom::CapturePrivateLyraReservation() {
   const auto contract = core::PrivateLyraExactSaveReservation();
   const auto hash = core::ComputeSourceArtifactSha256(std::string_view(
       reinterpret_cast<const char*>(rom_data_.data()), rom_data_.size()));
+  const auto candidate = core::PrivateLyraExactCandidatePersistence();
+  if (hash == candidate.candidate_rom_sha256) {
+    if (!copier_header_.empty() || rom_data_.size() != candidate.image_size) {
+      return absl::FailedPreconditionError(
+          "Private Lyra candidate must be headerless and exact-size");
+    }
+    // No changed byte is allowed, including metadata outside native terrain.
+    // Keeping the complete image closes the identity under a no-op save/reload.
+    private_lyra_preimages_ = {{0, rom_data_}};
+    private_lyra_fence_ = std::make_shared<rom::WriteFence>();
+    private_lyra_candidate_ = true;
+    private_lyra_attached_ = true;
+    return absl::OkStatus();
+  }
   if (hash != contract.source_rom_sha256)
     return absl::OkStatus();
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
@@ -517,21 +550,34 @@ absl::Status Rom::CapturePrivateLyraReservation() {
 
 absl::Status Rom::AttachLyraPrivateReservation(
     const core::HackManifest& manifest) {
-  if (!manifest.lyra_private_reservation())
+  const auto& source = manifest.lyra_private_reservation();
+  const auto& candidate = manifest.lyra_private_candidate_persistence();
+  if (!source && !candidate)
     return ValidateLyraPrivateReservation();
-  if (!manifest.loaded())
-    return absl::FailedPreconditionError("Private Lyra manifest is not loaded");
-  if (*manifest.lyra_private_reservation() !=
-      core::PrivateLyraExactSaveReservation())
+  if (!manifest.loaded() || (source && candidate)) {
+    return absl::FailedPreconditionError(
+        "Private Lyra manifest image role is invalid");
+  }
+  if (source && *source != core::PrivateLyraExactSaveReservation()) {
     return absl::FailedPreconditionError(
         "Private Lyra reservation contract mismatch");
-  if (private_lyra_attached_)
-    return ValidateLyraPrivateReservation();
-  RETURN_IF_ERROR(CapturePrivateLyraReservation());
+  }
+  if (candidate && *candidate != core::PrivateLyraExactCandidatePersistence()) {
+    return absl::FailedPreconditionError(
+        "Private Lyra candidate contract mismatch");
+  }
   if (!private_lyra_attached_)
+    RETURN_IF_ERROR(CapturePrivateLyraReservation());
+  if (!private_lyra_attached_) {
     return absl::FailedPreconditionError(
         "Private Lyra reservation source ROM hash mismatch");
-  return absl::OkStatus();
+  }
+  // An explicit manifest cannot relabel an already attached image.
+  if (private_lyra_candidate_ != candidate.has_value()) {
+    return absl::FailedPreconditionError(
+        "Private Lyra manifest does not match the attached image role");
+  }
+  return ValidateLyraPrivateReservation();
 }
 
 absl::Status Rom::ValidatePrivateLyraImage(
@@ -549,10 +595,26 @@ absl::Status Rom::ValidatePrivateLyraImage(
           "Private Lyra reservation protected terrain changed; native save "
           "refused");
   }
+  if (private_lyra_candidate_ &&
+      core::ComputeSourceArtifactSha256(std::string_view(
+          reinterpret_cast<const char*>(image.data()), image.size())) !=
+          core::PrivateLyraExactCandidatePersistence().candidate_rom_sha256) {
+    return absl::FailedPreconditionError(
+        "Private Lyra candidate whole-image hash changed");
+  }
   return absl::OkStatus();
 }
 
 absl::Status Rom::ValidateLyraPrivateReservation() const {
+  if (private_lyra_candidate_ && size_ != rom_data_.size()) {
+    return absl::FailedPreconditionError(
+        "Private Lyra candidate size metadata changed");
+  }
+
+  if (private_lyra_candidate_ && !copier_header_.empty()) {
+    return absl::FailedPreconditionError(
+        "Private Lyra candidate copier header is forbidden");
+  }
   return ValidatePrivateLyraImage(rom_data_);
 }
 
@@ -572,6 +634,7 @@ absl::Status Rom::CheckPrivateLyraWrite(uint32_t pc, const uint8_t* bytes,
 
 Rom::Rom(const Rom& other)
     : private_lyra_attached_(other.private_lyra_attached_),
+      private_lyra_candidate_(other.private_lyra_candidate_),
       private_lyra_preimages_(other.private_lyra_preimages_),
       private_lyra_fence_(other.private_lyra_fence_),
       size_(other.size_),
@@ -597,6 +660,7 @@ Rom& Rom::operator=(const Rom& other) {
 
   if (!private_lyra_attached_ && other.private_lyra_attached_) {
     private_lyra_attached_ = true;
+    private_lyra_candidate_ = other.private_lyra_candidate_;
     private_lyra_preimages_ = other.private_lyra_preimages_;
     private_lyra_fence_ = other.private_lyra_fence_;
   }
@@ -635,146 +699,45 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
   }
-
-  // Attached reloads validate and load one bounded snapshot. Never reopen a
-  // second image after validating the first, and commit file identity last.
-  if (private_lyra_attached_) {
-    std::ifstream candidate_file(filename, std::ios::binary | std::ios::ate);
-    if (!candidate_file)
-      return absl::NotFoundError("Could not open ROM: " + filename);
-    const auto length = candidate_file.tellg();
-    if (length < 32768 || length > 16 * 1024 * 1024) {
-      return absl::InvalidArgumentError(
-          "Attached ROM file must be between 32KB and 16MB");
-    }
-    std::vector<uint8_t> candidate(static_cast<size_t>(length));
-    candidate_file.seekg(0, std::ios::beg);
-    if (!candidate_file.read(reinterpret_cast<char*>(candidate.data()),
-                             length)) {
-      return absl::DataLossError(
-          "Could not read complete attached ROM snapshot");
-    }
-    RETURN_IF_ERROR(LoadFromData(candidate, options));
-#ifdef __EMSCRIPTEN__
-    filename_ = filename;
-#else
-    filename_ = std::filesystem::absolute(filename).string();
-#endif
-    short_name_ = filename_.substr(filename_.find_last_of("/\\") + 1);
-    if (options.load_resource_labels) {
-      resource_label_manager_.LoadLabels(
-          absl::StrFormat("%s.labels", filename));
-    }
-    return absl::OkStatus();
+  // A single bounded snapshot feeds preflight and actual parsing for both
+  // fresh and attached instances. Commit file identity only after it succeeds.
+  std::ifstream file(filename, std::ios::binary | std::ios::ate);
+  if (!file)
+    return absl::NotFoundError(
+        absl::StrCat("Could not open ROM file: ", filename));
+  const auto length = file.tellg();
+  if (length < 32768) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "ROM file too small (%zu bytes), minimum is 32KB",
+        static_cast<size_t>(std::max<std::streamoff>(length, 0))));
   }
-
+  if (length > 16 * 1024 * 1024) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("ROM file too large (%zu bytes), maximum is 16MB",
+                        static_cast<size_t>(length)));
+  }
+  std::vector<uint8_t> image;
+  try {
+    image.resize(static_cast<size_t>(length));
+  } catch (const std::bad_alloc&) {
+    return absl::ResourceExhaustedError(
+        absl::StrFormat("Failed to allocate memory for ROM (%zu bytes)",
+                        static_cast<size_t>(length)));
+  }
+  file.seekg(0, std::ios::beg);
+  if (!file.read(reinterpret_cast<char*>(image.data()), length)) {
+    return absl::DataLossError("Could not read complete ROM snapshot");
+  }
+  RETURN_IF_ERROR(LoadFromData(image, options));
 #ifdef __EMSCRIPTEN__
   filename_ = filename;
-  std::ifstream test_file(filename_, std::ios::binary);
-  if (!test_file.is_open()) {
-    return absl::NotFoundError(absl::StrCat(
-        "ROM file does not exist or cannot be opened: ", filename_));
-  }
-  test_file.seekg(0, std::ios::end);
-  size_ = test_file.tellg();
-  test_file.close();
-
-  if (size_ < 32768) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "ROM file too small (%zu bytes), minimum is 32KB", size_));
-  }
 #else
-  if (!std::filesystem::exists(filename)) {
-    return absl::NotFoundError(
-        absl::StrCat("ROM file does not exist: ", filename));
-  }
   filename_ = std::filesystem::absolute(filename).string();
 #endif
   short_name_ = filename_.substr(filename_.find_last_of("/\\") + 1);
-
-  std::ifstream file(filename_, std::ios::binary);
-  if (!file.is_open()) {
-    return absl::NotFoundError(
-        absl::StrCat("Could not open ROM file: ", filename_));
-  }
-
-#ifndef __EMSCRIPTEN__
-  try {
-    size_ = std::filesystem::file_size(filename_);
-    if (size_ < 32768) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "ROM file too small (%zu bytes), minimum is 32KB", size_));
-    }
-  } catch (...) {
-    file.seekg(0, std::ios::end);
-    size_ = file.tellg();
-  }
-#endif
-
-  // ALttP ROMs are <= 4MB (with an SMC header ~4MB+512); reject anything far
-  // larger so a mis-selected file cannot force a huge up-front allocation.
-  constexpr size_t kMaxRomSize = 16 * 1024 * 1024;  // 16 MB
-  if (size_ > kMaxRomSize) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "ROM file too large (%zu bytes), maximum is 16MB", size_));
-  }
-
-  try {
-    rom_data_.resize(size_);
-    file.seekg(0, std::ios::beg);
-    file.read(reinterpret_cast<char*>(rom_data_.data()), size_);
-  } catch (const std::bad_alloc& e) {
-    return absl::ResourceExhaustedError(absl::StrFormat(
-        "Failed to allocate memory for ROM (%zu bytes)", size_));
-  }
-
-  file.close();
-
-  copier_header_.clear();
-  copier_header_reason_ = CopierHeaderReason::kNone;
-  if (options.strip_header) {
-    MaybeStripCopierHeader(rom_data_, copier_header_, copier_header_reason_);
-  }
-  size_ = rom_data_.size();
-
-  lyra_attributed_at_load_ =
-      rom::InspectLyraLayout(rom_data_.data(), rom_data_.size()).presence !=
-      rom::LyraLayoutPresence::kAbsent;
-  CaptureLyraTerrainBaseline();
-
   if (options.load_resource_labels) {
     resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
   }
-
-  // Parse SNES Header for Title
-  if (rom_data_.size() >= 0x8000) {
-    // Check LoROM (0x7FC0) vs HiROM (0xFFC0)
-    // Simple heuristic: Z3 is LoROM
-    size_t header_offset = 0x7FC0;
-    if (rom_data_.size() >= 0x10000) {
-      // Compute checksums to verify?
-      // For now default to LoROM
-    }
-
-    if (header_offset + 21 <= rom_data_.size()) {
-      char buffer[22] = {0};
-      for (int i = 0; i < 21; ++i) {
-        uint8_t c = rom_data_[header_offset + i];
-        buffer[i] = (c >= 32 && c <= 126) ? c : ' ';
-      }
-      title_ = std::string(buffer);
-      // Trim trailing spaces safely
-      auto last_non_space = title_.find_last_not_of(' ');
-      if (last_non_space == std::string::npos) {
-        title_.clear();
-      } else {
-        title_.erase(last_non_space + 1);
-      }
-    }
-  }
-
-  AdvanceObjectTileRevision();
-  RETURN_IF_ERROR(CapturePrivateLyraReservation());
   return absl::OkStatus();
 }
 
@@ -784,6 +747,7 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
   }
+  RETURN_IF_ERROR(RejectHeaderedPrivateLyraCandidate(data));
   if (private_lyra_attached_) {
     auto candidate = data;
     std::vector<uint8_t> header;
@@ -1110,6 +1074,8 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
     RETURN_IF_ERROR(fence->Check(static_cast<uint32_t>(addr), 1, "WriteByte"));
   }
   RETURN_IF_ERROR(CheckPrivateLyraWrite(addr, &value, 1));
+  if (private_lyra_candidate_)
+    return absl::OkStatus();
   const uint8_t old_val = rom_data_[addr];
   rom_data_[addr] = value;
   dirty_ = true;
@@ -1134,6 +1100,8 @@ absl::Status Rom::WriteWord(int addr, uint16_t value) {
                                    static_cast<uint8_t>(value >> 8),
                                    static_cast<uint8_t>(value >> 16)};
   RETURN_IF_ERROR(CheckPrivateLyraWrite(addr, private_bytes, 2));
+  if (private_lyra_candidate_)
+    return absl::OkStatus();
   const uint8_t old0 = rom_data_[addr];
   const uint8_t old1 = rom_data_[addr + 1];
   rom_data_[addr] = (uint8_t)(value & 0xFF);
@@ -1166,6 +1134,8 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
                                    static_cast<uint8_t>(value >> 8),
                                    static_cast<uint8_t>(value >> 16)};
   RETURN_IF_ERROR(CheckPrivateLyraWrite(addr, private_bytes, 3));
+  if (private_lyra_candidate_)
+    return absl::OkStatus();
   const uint8_t old0 = rom_data_[addr];
   const uint8_t old1 = rom_data_[addr + 1];
   const uint8_t old2 = rom_data_[addr + 2];
@@ -1200,6 +1170,8 @@ absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
                                  "WriteVector"));
   }
   RETURN_IF_ERROR(CheckPrivateLyraWrite(addr, data.data(), data.size()));
+  if (private_lyra_candidate_)
+    return absl::OkStatus();
   std::vector<uint8_t> old_data;
   old_data.reserve(data.size());
   for (int i = 0; i < static_cast<int>(data.size()); i++) {

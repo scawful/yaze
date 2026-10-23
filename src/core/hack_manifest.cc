@@ -38,6 +38,14 @@ LyraPrivateReservation PrivateLyraExactSaveReservation() {
   return r;
 }
 
+LyraPrivateCandidatePersistence PrivateLyraExactCandidatePersistence() {
+  return {"44f46bb06f589a39275ff40d35e40a3a5652502a981205eaebb54f4c447a3ee2",
+          "3d7fdb5ded372c09df3981aed2aceff2f6b1a6cfae79616714912f44d60a29cf",
+          "20fee762743170a1b798c91fa0aedac66e2127ad74d4d880c234be04e69a9ba2",
+          "9f20704c5234b4b16746da7f3a6e5f24249c05300cd8139f03fa4eb0f6bdcc7d",
+          0x400000};
+}
+
 std::string AddressOwnershipToString(AddressOwnership ownership) {
   switch (ownership) {
     case AddressOwnership::kVanillaSafe:
@@ -787,6 +795,7 @@ absl::StatusOr<GraphicsSheetLayout> ParseGraphicsSheetLayout(
 void HackManifest::Reset() {
   loaded_ = false;
   lyra_private_reservation_.reset();
+  lyra_private_candidate_persistence_.reset();
   manifest_version_ = 0;
   hack_name_.clear();
   total_hooks_ = 0;
@@ -831,6 +840,38 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
 
   if (!root.is_object()) {
     return absl::InvalidArgumentError("Hack manifest root must be an object");
+  }
+
+  if (root.contains("lyra_private_candidate_persistence")) {
+    if (root.contains("lyra_private_reservation")) {
+      return absl::InvalidArgumentError(
+          "Private Lyra manifest may declare only one image role");
+    }
+    try {
+      const auto& v = root.at("lyra_private_candidate_persistence");
+      const auto expected = PrivateLyraExactCandidatePersistence();
+      if (!v.is_object() || v.size() != 9 ||
+          v.at("kind") != "lyra.private_exact_candidate_persistence.v1" ||
+          v.at("scope") != "private_candidate_only" ||
+          !v.at("production_admission").is_boolean() ||
+          v.at("production_admission") != false ||
+          v.at("save_policy") != "byte_identical_no_op_only" ||
+          v.at("source_rom_sha256") != expected.source_rom_sha256 ||
+          v.at("candidate_rom_sha256") != expected.candidate_rom_sha256 ||
+          v.at("write_plan_sha256") != expected.write_plan_sha256 ||
+          v.at("source_attachment_sha256") !=
+              expected.source_attachment_sha256 ||
+          !v.at("image_size").is_number_integer() ||
+          v.at("image_size").is_boolean() ||
+          v.at("image_size") != expected.image_size) {
+        return absl::InvalidArgumentError(
+            "Private Lyra candidate persistence identity mismatch");
+      }
+      lyra_private_candidate_persistence_ = expected;
+    } catch (const std::exception&) {
+      return absl::InvalidArgumentError(
+          "Malformed private Lyra candidate persistence descriptor");
+    }
   }
 
   if (root.contains("lyra_private_reservation")) {

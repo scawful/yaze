@@ -13,6 +13,7 @@
 #define YAZE_ROM_TRANSACTION_H_
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -173,10 +174,13 @@ class Transaction {
 class ScopedRomTransaction {
  public:
   explicit ScopedRomTransaction(Rom& rom)
-      : rom_(rom),
-        data_(rom.vector()),
-        filename_(rom.filename()),
-        dirty_(rom.dirty()) {}
+      : rom_(rom), filename_(rom.filename()), dirty_(rom.dirty()) {
+    if (rom.is_lyra_private_candidate()) {
+      candidate_snapshot_.emplace(rom);
+    } else {
+      data_ = rom.vector();
+    }
+  }
 
   ScopedRomTransaction(const ScopedRomTransaction&) = delete;
   ScopedRomTransaction& operator=(const ScopedRomTransaction&) = delete;
@@ -193,16 +197,23 @@ class ScopedRomTransaction {
     if (committed_) {
       return;
     }
-    rom_.mutable_vector() = data_;
-    // Keep Rom::size() synchronized if a serializer resized the buffer.
-    rom_.Expand(static_cast<int>(data_.size()));
-    rom_.set_filename(filename_);
-    rom_.set_dirty(dirty_);
+    if (candidate_snapshot_) {
+      // Candidate identity includes the physical header and loaded metadata.
+      // Rom assignment preserves this instance's active write/read-only scopes.
+      rom_ = *candidate_snapshot_;
+    } else {
+      rom_.mutable_vector() = data_;
+      // Keep Rom::size() synchronized if a serializer resized the buffer.
+      rom_.Expand(static_cast<int>(data_.size()));
+      rom_.set_filename(filename_);
+      rom_.set_dirty(dirty_);
+    }
     committed_ = true;
   }
 
  private:
   Rom& rom_;
+  std::optional<Rom> candidate_snapshot_;
   std::vector<uint8_t> data_;
   std::string filename_;
   bool dirty_ = false;
