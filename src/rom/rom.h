@@ -143,6 +143,11 @@ class Rom {
   template <typename... Args>
   absl::Status WriteTransaction(Args... args) {
     absl::Status status;
+    if (private_lyra_candidate_) {
+      // Candidate writes cannot report success after an earlier refused edit.
+      ((status = status.ok() ? WriteHelper(args) : status), ...);
+      return status;
+    }
     ((status = WriteHelper(args)), ...);
     return status;
   }
@@ -236,6 +241,9 @@ class Rom {
   // Sticky, value-owned exact-save reservation. No public detach capability.
   absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);
   bool has_lyra_private_reservation() const { return private_lyra_attached_; }
+  bool is_lyra_private_candidate() const {
+    return private_lyra_attached_ && private_lyra_candidate_;
+  }
   absl::Status ValidateLyraPrivateReservation() const;
 
   // Resource labels are generic enough to keep here
@@ -261,6 +269,7 @@ class Rom {
   absl::Status CheckPrivateLyraWrite(uint32_t pc, const uint8_t* bytes,
                                      size_t size) const;
   bool private_lyra_attached_ = false;
+  bool private_lyra_candidate_ = false;
   std::vector<std::pair<uint32_t, std::vector<uint8_t>>>
       private_lyra_preimages_;
   std::shared_ptr<rom::WriteFence> private_lyra_fence_;

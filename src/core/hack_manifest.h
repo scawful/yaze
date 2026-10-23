@@ -34,6 +34,19 @@ struct LyraPrivateReservation {
 
 LyraPrivateReservation PrivateLyraExactSaveReservation();
 
+// Persistence identity for one approved, already compiled private image. This
+// descriptor declares no producer transfer or allocation capability.
+struct LyraPrivateCandidatePersistence {
+  std::string source_rom_sha256;
+  std::string candidate_rom_sha256;
+  std::string write_plan_sha256;
+  std::string source_attachment_sha256;
+  uint32_t image_size = 0;
+  bool operator==(const LyraPrivateCandidatePersistence&) const = default;
+};
+
+LyraPrivateCandidatePersistence PrivateLyraExactCandidatePersistence();
+
 /**
  * @brief Ownership classification for ROM addresses and banks.
  *
@@ -565,12 +578,19 @@ class HackManifest {
     return lyra_private_reservation_;
   }
 
+  const std::optional<LyraPrivateCandidatePersistence>&
+  lyra_private_candidate_persistence() const {
+    return lyra_private_candidate_persistence_;
+  }
+
  private:
   void Reset();
   [[nodiscard]] const ProtectedRegion* FindProtectedRegion(
       uint32_t address) const;
 
   std::optional<LyraPrivateReservation> lyra_private_reservation_;
+  std::optional<LyraPrivateCandidatePersistence>
+      lyra_private_candidate_persistence_;
   bool loaded_ = false;
   int manifest_version_ = 0;
   std::string hack_name_;
