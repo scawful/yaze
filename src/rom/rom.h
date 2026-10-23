@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <variant>
 #include <vector>
@@ -96,6 +97,10 @@ class Rom {
   static void SetStagingFailureForTesting(bool fail);
 
   void Expand(int size) {
+    // This exact-save transfer cannot be resized by a native producer.
+    if (private_lyra_attached_ &&
+        (size != 0x400000 || rom_data_.size() != 0x400000))
+      return;
     const bool size_changed = rom_data_.size() != static_cast<size_t>(size);
     rom_data_.resize(size);
     size_ = size;
@@ -228,6 +233,11 @@ class Rom {
   rom::LyraLayoutInspection InspectLyraLayout() const;
   absl::Status CheckLayoutWritable() const;
 
+  // Sticky, value-owned exact-save reservation. No public detach capability.
+  absl::Status AttachLyraPrivateReservation(const core::HackManifest& manifest);
+  bool has_lyra_private_reservation() const { return private_lyra_attached_; }
+  absl::Status ValidateLyraPrivateReservation() const;
+
   // Resource labels are generic enough to keep here
   project::ResourceLabelManager* resource_label() {
     return &resource_label_manager_;
@@ -245,6 +255,15 @@ class Rom {
  private:
   absl::Status SaveToFileUnchecked(const SaveSettings& settings);
   void CaptureLyraTerrainBaseline();
+  absl::Status CapturePrivateLyraReservation();
+  absl::Status ValidatePrivateLyraImage(
+      const std::vector<uint8_t>& image) const;
+  absl::Status CheckPrivateLyraWrite(uint32_t pc, const uint8_t* bytes,
+                                     size_t size) const;
+  bool private_lyra_attached_ = false;
+  std::vector<std::pair<uint32_t, std::vector<uint8_t>>>
+      private_lyra_preimages_;
+  std::shared_ptr<rom::WriteFence> private_lyra_fence_;
 
   friend class ScopedRomReadOnly;
 

@@ -558,6 +558,7 @@ class Overworld {
 
   /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
+  absl::Status ValidatePrivateNativeTerrainSave() const;
 
   // Map-grid identity for skipping recompression. SaveOverworldMaps stages the
   // grids it serialized; the editor save transaction publishes that stage only
@@ -917,6 +918,8 @@ class Overworld {
   // resaving tile32 reorders expanded definitions. An unchanged grid leaves
   // both on disk. The staged copy is not this identity: a failed save rolls
   // the ROM back and must not treat the unsaved edit as already written.
+  std::vector<gfx::Tile16> private_loaded_tiles16_;
+  std::vector<uint8_t> private_loaded_overlays_;
   OverworldMapTiles loaded_map_tiles_;
   bool loaded_map_tiles_valid_ = false;
   OverworldMapTiles staged_map_tiles_;
