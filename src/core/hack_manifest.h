@@ -1,6 +1,7 @@
 #ifndef YAZE_CORE_HACK_MANIFEST_H
 #define YAZE_CORE_HACK_MANIFEST_H
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -13,6 +14,25 @@
 #include "core/story_event_graph.h"
 
 namespace yaze::core {
+
+// Private, exact-save producer transfer. Every PC range is half-open.
+// This is deliberately one fixed source contract, not an allocator capability.
+struct LyraPrivateReservation {
+  struct Preimage {
+    std::array<uint32_t, 2> pc{};
+    std::string sha256;
+    bool operator==(const Preimage&) const = default;
+  };
+  std::string source_rom_sha256;
+  std::array<uint32_t, 2> tile32_id_range{};
+  std::array<uint32_t, 2> stream_pc_range{};
+  std::array<uint32_t, 4> dictionary_bases_pc{};
+  std::array<Preimage, 4> packed_preimages{};
+  Preimage stream_preimage;
+  bool operator==(const LyraPrivateReservation&) const = default;
+};
+
+LyraPrivateReservation PrivateLyraExactSaveReservation();
 
 /**
  * @brief Ownership classification for ROM addresses and banks.
@@ -540,11 +560,17 @@ class HackManifest {
   [[nodiscard]] int manifest_version() const { return manifest_version_; }
   [[nodiscard]] int total_hooks() const { return total_hooks_; }
 
+  const std::optional<LyraPrivateReservation>& lyra_private_reservation()
+      const {
+    return lyra_private_reservation_;
+  }
+
  private:
   void Reset();
   [[nodiscard]] const ProtectedRegion* FindProtectedRegion(
       uint32_t address) const;
 
+  std::optional<LyraPrivateReservation> lyra_private_reservation_;
   bool loaded_ = false;
   int manifest_version_ = 0;
   std::string hack_name_;

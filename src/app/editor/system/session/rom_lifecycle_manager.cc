@@ -354,6 +354,8 @@ absl::Status RomLifecycleManager::CheckOracleRomSafetyPreSave(Rom* rom) {
         "Configured hack manifest is missing or malformed: %s", manifest_path));
   }
 
+  RETURN_IF_ERROR(rom->AttachLyraPrivateReservation(project_->hack_manifest));
+
   if (!project_->hack_manifest.loaded() ||
       !project_->hack_manifest.HasProjectRegistry()) {
     return absl::OkStatus();
