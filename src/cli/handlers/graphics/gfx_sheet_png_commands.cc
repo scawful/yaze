@@ -371,6 +371,26 @@ absl::Status RequireUsGfxTables(const Rom& rom) {
   return absl::OkStatus();
 }
 
+// The write policy (graphics free space, reserved sheets, ASM-owned bytes)
+// comes only from --project-context. --project and --manifest look right but
+// were silently ignored, so a grown sheet was refused with "no graphics free
+// space is registered" even though the manifest registers some.
+absl::Status RejectUnreadProjectFlags(const resources::ArgumentParser& parser) {
+  for (const char* flag : {"project", "manifest"}) {
+    if (parser.GetString(flag).has_value()) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "--%s is not read here; pass --project-context <path.yaze> so the "
+          "project's hack manifest (graphics_sheet_regions) sets where a "
+          "grown sheet may move",
+          flag));
+    }
+  }
+  return absl::OkStatus();
+}
+
+constexpr char kNoProjectHint[] =
+    "no --project-context given, so no hack manifest free space was used";
+
 }  // namespace
 
 absl::Status GfxExportCommandHandler::ValidateArgs(
@@ -422,6 +442,7 @@ absl::Status GfxExportCommandHandler::Execute(
 absl::Status GfxImportCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
   RETURN_IF_ERROR(parser.RequireArgs({"sheet", "png"}));
+  RETURN_IF_ERROR(RejectUnreadProjectFlags(parser));
   const bool dry_run = parser.HasFlag("dry-run");
   const bool write = parser.HasFlag("write");
   if (dry_run == write) {
@@ -474,6 +495,9 @@ absl::Status GfxImportCommandHandler::Execute(
   if (!written.ok()) {
     // The preview still stands; say why the write would be refused.
     formatter.AddField("write_status", std::string(written.status().message()));
+    if (project_ == nullptr) {
+      formatter.AddField("hint", kNoProjectHint);
+    }
     if (parser.HasFlag("dry-run")) {
       formatter.AddField("mode", "dry-run");
       return absl::OkStatus();
@@ -613,6 +637,7 @@ absl::Status GfxRoomExportCommandHandler::Execute(
 absl::Status GfxRoomImportCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
   RETURN_IF_ERROR(parser.RequireArgs({"room", "png"}));
+  RETURN_IF_ERROR(RejectUnreadProjectFlags(parser));
   const bool dry_run = parser.HasFlag("dry-run");
   const bool write = parser.HasFlag("write");
   if (dry_run == write) {
@@ -686,6 +711,9 @@ absl::Status GfxRoomImportCommandHandler::Execute(
   formatter.AddRawJsonField("sheets", sheets.dump());
   formatter.AddField("rooms_affected", HexIds(affected_rooms));
   formatter.AddField("write_status", refusal.empty() ? "ok" : refusal);
+  if (!refusal.empty() && project_ == nullptr) {
+    formatter.AddField("hint", kNoProjectHint);
+  }
   const auto rom_diff =
       rom::ComputeDiffRanges(rom->vector(), simulated.vector());
   formatter.AddField("rom_bytes_changed",
