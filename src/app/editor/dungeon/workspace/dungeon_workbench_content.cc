@@ -395,6 +395,7 @@ bool DungeonWorkbenchContent::LoadProposalOverlay(const std::string& path) {
     proposal_layer_visible_.push_back(layer.visible ? 1 : 0);
   }
   proposal_overlay_ = std::move(*overlay);
+  loaded_proposal_path_ = path;
   proposal_error_.clear();
   return true;
 }

@@ -825,7 +825,7 @@ absl::Status EditorManager::SaveRomInternal(
   return save_status;
 }
 
-absl::Status EditorManager::LoadProjectWithRom() {
+absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
   auto pending_selection = std::move(pending_project_rom_selection_);
   pending_project_rom_selection_.reset();
   std::string project_rom_path = pending_selection.has_value()
@@ -845,6 +845,9 @@ absl::Status EditorManager::LoadProjectWithRom() {
 
   // Check if project has a ROM file specified
   if (project_rom_path.empty()) {
+    if (!allow_dialogs) {
+      return absl::FailedPreconditionError("Project has no ROM configured");
+    }
     // No ROM specified - prompt user to select one
     toast_manager_.Show(
         "Project has no ROM file configured. Please select a ROM.",
@@ -947,6 +950,10 @@ absl::Status EditorManager::LoadProjectWithRom() {
   Rom temp_rom;
   auto load_status = rom_file_manager_.LoadRom(&temp_rom, project_rom_path);
   if (!load_status.ok()) {
+    if (!allow_dialogs) {
+      abandon_selected_rom();
+      return load_status;
+    }
     // ROM file not found or invalid - prompt user to select new ROM
     toast_manager_.Show(
         absl::StrFormat("Could not load ROM '%s': %s. Please select a new ROM.",
