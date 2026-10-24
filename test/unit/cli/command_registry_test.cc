@@ -1,10 +1,70 @@
 #include "cli/service/command_registry.h"
 
+#include <memory>
+#include <string>
+#include <utility>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "nlohmann/json.hpp"
+
 namespace yaze::cli {
 namespace {
+
+class SchemaExportTestHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "schema-json-escaping-test"; }
+  std::string GetUsage() const override { return GetName(); }
+  bool RequiresRom() const override { return false; }
+
+ protected:
+  absl::Status ValidateArgs(const resources::ArgumentParser&) override {
+    return absl::OkStatus();
+  }
+  absl::Status Execute(Rom*, const resources::ArgumentParser&,
+                       resources::OutputFormatter&) override {
+    return absl::OkStatus();
+  }
+};
+
+TEST(CommandRegistryTest, ExportFunctionSchemasRoundTripsJsonStrings) {
+  auto& registry = CommandRegistry::Instance();
+  auto handler = std::make_unique<SchemaExportTestHandler>();
+  CommandRegistry::CommandMetadata metadata;
+  metadata.name = handler->GetName();
+  metadata.category = "test\\schemas";
+  metadata.description = "Inspect \"C:\\tools\\z3ed\"";
+  for (int value = 0; value < 0x20; ++value) {
+    metadata.description.push_back(static_cast<char>(value));
+  }
+  metadata.usage = "schema-json-escaping-test --path \"C:\\tools\\z3ed\"";
+  metadata.available_to_agent = true;
+  metadata.requires_rom = false;
+  metadata.requires_grpc = false;
+  metadata.aliases = {"schema\\alias"};
+  metadata.examples = {metadata.usage + "\n\t--format json"};
+  metadata.todo_reference = "todo#schema\\json";
+  registry.Register(std::move(handler), metadata);
+
+  const auto schemas =
+      nlohmann::json::parse(registry.ExportFunctionSchemas(), nullptr, false);
+  ASSERT_FALSE(schemas.is_discarded());
+  ASSERT_TRUE(schemas.contains("commands"));
+  for (const auto& command : schemas["commands"]) {
+    if (command["name"] != metadata.name) {
+      continue;
+    }
+    EXPECT_EQ(command["category"], metadata.category);
+    EXPECT_EQ(command["description"], metadata.description);
+    EXPECT_EQ(command["usage"], metadata.usage);
+    EXPECT_EQ(command["aliases"], metadata.aliases);
+    EXPECT_EQ(command["examples"], metadata.examples);
+    EXPECT_EQ(command["todo_reference"], metadata.todo_reference);
+    return;
+  }
+  FAIL() << "Registered command was not exported";
+}
 
 TEST(CommandRegistryTest, RomCategoryIncludesCoreCommands) {
   auto& registry = CommandRegistry::Instance();
