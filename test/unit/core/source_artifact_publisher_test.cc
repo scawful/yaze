@@ -6,6 +6,7 @@
 #include <fstream>
 #include <future>
 #include <iterator>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -411,6 +412,103 @@ TEST(SourceArtifactPublisherTest, ValidatorFailureRollsBackEveryArtifact) {
   EXPECT_EQ(ReadText(primary), primary_before);
   EXPECT_EQ(ReadText(generated), generated_before);
   ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
+     RollbackPreservesChangedNewSidecarAndRestoresOwnedDescriptor) {
+  for (bool replace_file : {false, true}) {
+    SCOPED_TRACE(replace_file ? "replacement" : "in-place rewrite");
+    ScopedTempDir temp;
+    const fs::path descriptor = temp.path() / "project.yaze";
+    const fs::path plan = temp.path() / "project.plan.json";
+    const std::string descriptor_before = "original descriptor\n";
+    const std::string recovery = "external plan recovery\n";
+    WriteText(descriptor, descriptor_before);
+    auto lock_or = AcquireSourceArtifactPublicationLock({descriptor, plan});
+    ASSERT_TRUE(lock_or.ok()) << lock_or.status();
+
+    const absl::Status status = PublishSourceArtifacts(
+        **lock_or,
+        {{.target = descriptor,
+          .before = descriptor_before,
+          .after = "descriptor with plan\n"},
+         {.target = plan, .before = std::nullopt, .after = "new plan\n"}},
+        ComputeSourceArtifactSha256(descriptor_before), [&] {
+          if (replace_file) {
+            const fs::path replacement = temp.path() / "replacement";
+            WriteText(replacement, recovery);
+            std::error_code error;
+            fs::remove(plan, error);
+            if (error) {
+              return absl::InternalError(error.message());
+            }
+            fs::rename(replacement, plan, error);
+            if (error) {
+              return absl::InternalError(error.message());
+            }
+          } else {
+            WriteText(plan, recovery);
+          }
+          return absl::FailedPreconditionError("readback rejected");
+        });
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kDataLoss) << status;
+    EXPECT_NE(std::string(status.message())
+                  .find("Published file changed before rollback"),
+              std::string::npos);
+    EXPECT_EQ(ReadText(plan), recovery);
+    EXPECT_EQ(ReadText(descriptor), descriptor_before);
+    size_t backups = 0;
+    for (const auto& entry : fs::directory_iterator(temp.path())) {
+      const std::string filename = entry.path().filename().string();
+      EXPECT_EQ(filename.find(".yaze-tmp-"), std::string::npos);
+      if (filename.find(".yaze-backup-") != std::string::npos) {
+        ++backups;
+        EXPECT_EQ(ReadText(entry.path()), descriptor_before);
+      }
+    }
+    EXPECT_EQ(backups, 1);
+  }
+}
+
+TEST(SourceArtifactPublisherTest,
+     RollbackPreservesChangedDescriptorAndRemovesOwnedNewSidecar) {
+  ScopedTempDir temp;
+  const fs::path descriptor = temp.path() / "project.yaze";
+  const fs::path plan = temp.path() / "project.plan.json";
+  const std::string descriptor_before = "original descriptor\n";
+  const std::string recovery = "external descriptor recovery\n";
+  WriteText(descriptor, descriptor_before);
+  auto lock_or = AcquireSourceArtifactPublicationLock({descriptor, plan});
+  ASSERT_TRUE(lock_or.ok()) << lock_or.status();
+
+  const absl::Status status = PublishSourceArtifacts(
+      **lock_or,
+      {{.target = descriptor,
+        .before = descriptor_before,
+        .after = "descriptor with plan\n"},
+       {.target = plan, .before = std::nullopt, .after = "new plan\n"}},
+      ComputeSourceArtifactSha256(descriptor_before), [&] {
+        WriteText(descriptor, recovery);
+        return absl::FailedPreconditionError("readback rejected");
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kDataLoss) << status;
+  EXPECT_NE(std::string(status.message())
+                .find("Published file changed before rollback"),
+            std::string::npos);
+  EXPECT_EQ(ReadText(descriptor), recovery);
+  EXPECT_FALSE(fs::exists(plan));
+  size_t backups = 0;
+  for (const auto& entry : fs::directory_iterator(temp.path())) {
+    const std::string filename = entry.path().filename().string();
+    EXPECT_EQ(filename.find(".yaze-tmp-"), std::string::npos);
+    if (filename.find(".yaze-backup-") != std::string::npos) {
+      ++backups;
+      EXPECT_EQ(ReadText(entry.path()), descriptor_before);
+    }
+  }
+  EXPECT_EQ(backups, 1);
 }
 
 TEST(SourceArtifactPublisherTest,
