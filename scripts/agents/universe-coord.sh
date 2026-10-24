@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Use system Bash on Darwin to avoid Homebrew Bash's blocking heredoc pipes.
+if [[ "${OSTYPE:-}" == darwin* && "${BASH:-}" != /bin/bash ]]; then
+  exec /bin/bash "$0" "$@"
+fi
+
 # universe-coord.sh
 #
 # Local-first, cross-project agent coordination.

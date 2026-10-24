@@ -56,6 +56,8 @@ main() {
 
   export UNIVERSE_DIR="$tmp_universe"
 
+  "$UNIVERSE_COORD" --help > "$tmp_out/direct-help.txt"
+  "$COORD_WRAPPER" --help > "$tmp_out/wrapper-help.txt"
   "$UNIVERSE_COORD" init >/dev/null
 
   local task_id
@@ -95,7 +97,11 @@ main() {
     --limit 1 \
     --dry-run > "$tmp_out/import-wrapper-dry.json"
 
-  "$COORD_WRAPPER" task-add --title "wrapper task" --agent "ai-infra-architect" >/dev/null
+  local wrapper_task
+  wrapper_task="$("$COORD_WRAPPER" task-add --title "wrapper task" --agent "ai-infra-architect")"
+  "$COORD_WRAPPER" task-claim --id "$wrapper_task" --agent "ai-infra-architect" >/dev/null
+  "$COORD_WRAPPER" task-heartbeat --id "$wrapper_task" --agent "ai-infra-architect" --note "wrapper heartbeat" >/dev/null
+  "$COORD_WRAPPER" task-complete --id "$wrapper_task" --agent "ai-infra-architect" >/dev/null
   "$COORD_WRAPPER" task-list --status all --format json > "$tmp_out/wrapper-list.json"
 
   local helper_recent helper_other
@@ -142,6 +148,9 @@ o = pathlib.Path(sys.argv[2])
 state = json.loads((u / "state.json").read_text())
 assert state.get("tasks"), "state has no tasks"
 
+for name in ("direct-help.txt", "wrapper-help.txt"):
+    assert "Usage: universe-coord.sh" in (o / name).read_text(), name
+
 tasks = json.loads((o / "list.json").read_text())
 assert tasks and tasks[0]["status"] == "complete", "task lifecycle status mismatch"
 
@@ -164,6 +173,12 @@ expected_project_key = str(pathlib.Path.cwd()).lstrip("/").replace("/", ":")
 assert any(t.get("project_key", "") == expected_project_key for t in wrapper_tasks), (
     f"wrapper default project key missing (expected {expected_project_key})"
 )
+wrapper_task = next(t for t in wrapper_tasks if t.get("title") == "wrapper task")
+assert wrapper_task["status"] == "complete", "wrapper task did not complete"
+assert [event["type"] for event in wrapper_task["history"]] == [
+    "task_added", "task_claimed", "task_heartbeat", "task_completed"
+], "wrapper task lifecycle events mismatch"
+assert wrapper_task["history"][2]["note"] == "wrapper heartbeat"
 
 generated = (o / "generated.md").read_text()
 assert "Coordination Snapshot (Generated)" in generated
