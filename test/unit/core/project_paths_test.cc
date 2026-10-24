@@ -3,8 +3,11 @@
 
 #include <algorithm>
 #include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -188,6 +191,13 @@ TEST(ProjectPathsTest, LyraSaveAsOwnsUnpublishedTerrainAndPreservesAssetPaths) {
   EXPECT_EQ(ReadTextFile(rom), "private ROM");
   YazeProject reopened;
   ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.metadata.last_modified, project.metadata.last_modified);
+  EXPECT_EQ(reopened.metadata.last_modified.size(), 19U);
+  std::tm parsed_time{};
+  std::istringstream saved_timestamp(reopened.metadata.last_modified);
+  EXPECT_FALSE(
+      (saved_timestamp >> std::get_time(&parsed_time, "%Y-%m-%d %H:%M:%S"))
+          .fail());
   EXPECT_EQ(reopened.lyra_terrain_file, destination_terrain.string());
   EXPECT_EQ(reopened.rom_filename, rom.string());
   EXPECT_EQ(reopened.terrain_catalog_file,

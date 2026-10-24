@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -864,8 +865,17 @@ absl::Status YazeProject::SaveAsWithLyraTerrain(
   }
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  std::tm local_time{};
+#if defined(_WIN32)
+  const bool converted = localtime_s(&local_time, &now) == 0;
+#else
+  const bool converted = localtime_r(&now, &local_time) != nullptr;
+#endif
+  if (!converted) {
+    return absl::InternalError("Could not convert project timestamp");
+  }
   std::stringstream timestamp;
-  timestamp << std::put_time(std::localtime(&now), "%Y-%m-%d %H:%M:%S");
+  timestamp << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S");
   candidate.metadata.last_modified = timestamp.str();
   if (candidate.music_persistence.storage_key.empty()) {
     candidate.music_persistence.storage_key = candidate.MakeStorageKey("music");
