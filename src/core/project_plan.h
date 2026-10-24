@@ -9,6 +9,10 @@
 #include "absl/status/statusor.h"
 #include "nlohmann/json.hpp"
 
+namespace yaze::project {
+struct YazeProject;
+}
+
 namespace yaze::core {
 
 // A project plan: goals, milestones, the intended play route, open design
@@ -107,11 +111,29 @@ class ProjectPlan {
  public:
   static ProjectPlan CreateEmpty(std::string title);
   static absl::StatusOr<ProjectPlan> Parse(std::string_view text);
-  static absl::StatusOr<ProjectPlan> LoadFromFile(const std::string& path);
+  static absl::StatusOr<ProjectPlan> LoadFromFile(
+      const std::string& path, std::string* source = nullptr);
+  // Creates a new sidecar and its project link. Native publication uses one
+  // rollback-protected set; browser projects retain their IndexedDB writer.
+  // An existing destination is never replaced, even when it cannot be parsed.
+  static absl::Status CreateAndLink(project::YazeProject* project,
+                                    const std::string& path);
 
   std::string Serialize() const;
-  // Writes a sibling temporary file, then renames it over `path`.
+  // Exclusively creates a new file. Existing destinations are never replaced.
   absl::Status SaveToFile(const std::string& path) const;
+  // Publishes only if the file still contains the exact loaded source bytes.
+  absl::Status SaveToFile(const std::string& path,
+                          const std::string& expected_source) const;
+
+  absl::Status ValidateIds() const;
+  std::string NewMilestoneId() const;
+  std::string NewStepId() const;
+  std::string NewItemId() const;
+  std::string NewDecisionId() const;
+  // A failed rename leaves IDs and all references untouched.
+  absl::Status RenameStep(std::string_view id, std::string new_id);
+  absl::Status RenameItem(std::string_view id, std::string new_id);
 
   // Index into route_steps, or -1.
   int FindStep(std::string_view id) const;

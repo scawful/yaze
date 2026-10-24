@@ -3644,6 +3644,13 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
         absl::EndsWith(file_path, ".yazeproj"))) {
     file_path += ".yaze";
   }
+  if (auto* editors = GetCurrentEditorSet();
+      editors && editors->HasPendingPlanningProjectDraftChanges() &&
+      !SessionCoordinator::PathsReferToSameBackingFile(
+          current_project_.filepath, file_path)) {
+    return absl::FailedPreconditionError(
+        "Save or discard plan edits before saving the project to another file");
+  }
 
   if (session_coordinator_) {
     if (auto* session = session_coordinator_->GetActiveRomSession();

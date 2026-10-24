@@ -8,6 +8,7 @@
 #include <cerrno>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -293,10 +294,11 @@ std::string BasenameLower(const std::string& path) {
   return ToLowerCopy(std::filesystem::path(path).filename().string());
 }
 
-#ifndef __EMSCRIPTEN__
 uint64_t CurrentProcessIdForProjectSave() {
 #if defined(_WIN32)
   return static_cast<uint64_t>(::GetCurrentProcessId());
+#elif defined(__EMSCRIPTEN__)
+  return 0;
 #else
   return static_cast<uint64_t>(::getpid());
 #endif
@@ -320,6 +322,30 @@ void RemoveProjectSaveTempFile(const std::filesystem::path& temp_path) {
 absl::Status WriteProjectFileAtomicallyImpl(
     const std::filesystem::path& target_path, absl::string_view contents,
     bool replace_existing) {
+#ifdef __EMSCRIPTEN__
+  if (!replace_existing) {
+    // MEMFS/IDBFS do not support hard links. Exclusive fopen keeps the existing
+    // synchronous virtual-filesystem workflow without replacing a destination.
+    FILE* file = std::fopen(target_path.c_str(), "wbx");
+    if (file == nullptr) {
+      if (errno == EEXIST) {
+        return absl::AlreadyExistsError(absl::StrFormat(
+            "Project file already exists: %s", target_path.string()));
+      }
+      return absl::InternalError(absl::StrFormat(
+          "Cannot create project file: %s", target_path.string()));
+    }
+    const bool written = std::fwrite(contents.data(), 1, contents.size(),
+                                     file) == contents.size();
+    const bool closed = std::fclose(file) == 0;
+    if (!written || !closed) {
+      RemoveProjectSaveTempFile(target_path);
+      return absl::InternalError(absl::StrFormat(
+          "Failed to write project file: %s", target_path.string()));
+    }
+    return absl::OkStatus();
+  }
+#endif
   const std::filesystem::path temp_path = MakeProjectSaveTempPath(target_path);
   std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
   if (!file.is_open()) {
@@ -352,6 +378,8 @@ absl::Status WriteProjectFileAtomicallyImpl(
     rename_error = std::error_code(static_cast<int>(::GetLastError()),
                                    std::system_category());
   }
+#elif defined(__EMSCRIPTEN__)
+  std::filesystem::rename(temp_path, target_path, rename_error);
 #else
   if (replace_existing) {
     std::filesystem::rename(temp_path, target_path, rename_error);
@@ -380,10 +408,8 @@ absl::Status WriteProjectFileAtomicallyImpl(
 
   return absl::OkStatus();
 }
-#endif
 }  // namespace
 
-#ifndef __EMSCRIPTEN__
 absl::Status WriteProjectFileAtomically(absl::string_view target_path,
                                         absl::string_view contents,
                                         bool replace_existing) {
@@ -391,7 +417,6 @@ absl::Status WriteProjectFileAtomically(absl::string_view target_path,
       std::filesystem::path(std::string(target_path)), contents,
       replace_existing);
 }
-#endif
 
 std::string RomRoleToString(RomRole role) {
   switch (role) {

@@ -826,6 +826,10 @@ absl::Status EditorManager::SaveRomInternal(
 }
 
 absl::Status EditorManager::LoadProjectWithRom() {
+  const auto replaced_project_session_id =
+      pending_project_open_transition_
+          ? pending_project_open_previous_session_id_
+          : std::nullopt;
   auto pending_selection = std::move(pending_project_rom_selection_);
   pending_project_rom_selection_.reset();
   std::string project_rom_path = pending_selection.has_value()
@@ -1228,6 +1232,14 @@ absl::Status EditorManager::LoadProjectWithRom() {
                                       current_project_.GetDisplayName()),
                       editor::ToastType::kSuccess);
 
+  // Async ROM selection can return before a project opens. Discard only at
+  // completed adoption, and preserve drafts belonging to another session.
+  if (replaced_project_session_id.has_value() &&
+      GetCurrentSessionId() == *replaced_project_session_id) {
+    if (auto* editors = GetCurrentEditorSet()) {
+      editors->DiscardPlanningProjectDraft();
+    }
+  }
   pending_project_open_transition_ = false;
   pending_project_open_previous_session_id_.reset();
   return absl::OkStatus();

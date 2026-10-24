@@ -5,14 +5,90 @@
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
+#include <optional>
+#include <set>
 #include <sstream>
 #include <system_error>
 #include <utility>
 
 #include "absl/strings/str_format.h"
+#include "core/project.h"
+#include "core/source_artifact_publisher.h"
+#include "util/macro.h"
 
 namespace yaze::core {
 namespace {
+
+absl::StatusOr<std::string> ReadSource(const std::string& path) {
+  std::error_code error;
+  const auto status = std::filesystem::status(path, error);
+  if (error == std::errc::no_such_file_or_directory ||
+      (!error && !std::filesystem::exists(status))) {
+    return absl::NotFoundError(
+        absl::StrFormat("File does not exist: %s", path));
+  }
+  if (error || !std::filesystem::is_regular_file(status)) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Not a readable regular file: %s", path));
+  }
+  std::ifstream file(path, std::ios::binary);
+  if (!file.is_open()) {
+    std::error_code error;
+    if (!std::filesystem::exists(path, error) && !error) {
+      return absl::NotFoundError(
+          absl::StrFormat("File does not exist: %s", path));
+    }
+    return absl::PermissionDeniedError(
+        absl::StrFormat("Cannot read file: %s", path));
+  }
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  if (file.bad()) {
+    return absl::DataLossError(
+        absl::StrFormat("Failed to read file: %s", path));
+  }
+  return buffer.str();
+}
+
+template <typename Entry>
+absl::Status ValidateIds(const std::vector<Entry>& entries, const char* kind) {
+  std::set<std::string> ids;
+  for (const auto& entry : entries) {
+    if (entry.id.empty() || !ids.insert(entry.id).second) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s IDs must be nonempty and unique: %s", kind, entry.id));
+    }
+  }
+  return absl::OkStatus();
+}
+
+template <typename Entry>
+std::set<std::string> EntryIds(const std::vector<Entry>& entries) {
+  std::set<std::string> ids;
+  for (const auto& entry : entries) {
+    ids.insert(entry.id);
+  }
+  return ids;
+}
+
+std::string UnusedId(const char* prefix, const std::set<std::string>& ids) {
+  for (size_t number = 1; number <= ids.size() + 1; ++number) {
+    const std::string id = absl::StrFormat("%s%zu", prefix, number);
+    if (!ids.contains(id)) {
+      return id;
+    }
+  }
+  return "";
+}
+
+void RewriteTargets(std::vector<std::string>* targets,
+                    const std::string& before, const std::string& after) {
+  for (auto& target : *targets) {
+    if (target == before) {
+      target = after;
+    }
+  }
+}
 
 class Reader {
  public:
@@ -393,24 +469,79 @@ absl::StatusOr<ProjectPlan> ProjectPlan::Parse(std::string_view text) {
   }
   plan.extra = Extras(root, {"schema", "title", "about", "goal", "milestones",
                              "route", "decisions", "references"});
+  RETURN_IF_ERROR(plan.ValidateIds());
   return plan;
 }
 
-absl::StatusOr<ProjectPlan> ProjectPlan::LoadFromFile(const std::string& path) {
-  std::ifstream file(path, std::ios::binary);
-  if (!file.is_open()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Cannot open plan file: %s", path));
-  }
-  std::stringstream buffer;
-  buffer << file.rdbuf();
-  auto plan = Parse(buffer.str());
+absl::StatusOr<ProjectPlan> ProjectPlan::LoadFromFile(const std::string& path,
+                                                      std::string* source) {
+  ASSIGN_OR_RETURN(auto contents, ReadSource(path));
+  auto plan = Parse(contents);
   if (!plan.ok()) {
     return absl::Status(
         plan.status().code(),
         absl::StrFormat("%s: %s", path, plan.status().message()));
   }
+  if (source != nullptr) {
+    *source = std::move(contents);
+  }
   return plan;
+}
+
+absl::Status ProjectPlan::CreateAndLink(project::YazeProject* project,
+                                        const std::string& path) {
+  if (project == nullptr || project->filepath.empty() || path.empty()) {
+    return absl::InvalidArgumentError(
+        "A project file and new plan path are required");
+  }
+  const auto plan = CreateEmpty(project->name);
+#ifdef __EMSCRIPTEN__
+  RETURN_IF_ERROR(plan.SaveToFile(path));
+  auto updated = *project;
+  updated.planning.file = updated.GetRelativePath(path);
+  updated.planning.section_present = true;
+  const auto status = updated.Save();
+  if (!status.ok()) {
+    const auto current = ReadSource(path);
+    if (!current.ok() || *current != plan.Serialize()) {
+      return absl::DataLossError(absl::StrFormat(
+          "Project save failed (%s); changed plan preserved at %s",
+          status.message(), path));
+    }
+    std::error_code error;
+    if (!std::filesystem::remove(path, error) || error) {
+      return absl::DataLossError(absl::StrFormat(
+          "Project save failed (%s); plan cleanup failed at %s: %s",
+          status.message(), path, error.message()));
+    }
+    return status;
+  }
+#else
+  ASSIGN_OR_RETURN(auto lock, AcquireSourceArtifactPublicationLock(
+                                  {project->filepath, path},
+                                  {"project plan", "project plan"}));
+  ASSIGN_OR_RETURN(auto before, ReadSource(project->filepath));
+  std::error_code error;
+  if (std::filesystem::exists(path, error)) {
+    return absl::AlreadyExistsError(
+        absl::StrFormat("Plan file already exists: %s", path));
+  }
+  if (error) {
+    return absl::FailedPreconditionError(error.message());
+  }
+  auto updated = *project;
+  updated.planning.file = updated.GetRelativePath(path);
+  updated.planning.section_present = true;
+  ASSIGN_OR_RETURN(auto descriptor, updated.SerializeToString());
+  RETURN_IF_ERROR(
+      PublishSourceArtifacts(*lock,
+                             {{project->filepath, before, descriptor},
+                              {path, std::nullopt, plan.Serialize()}},
+                             ComputeSourceArtifactSha256(before),
+                             [&]() { return LoadFromFile(path).status(); }));
+#endif
+  project->planning = std::move(updated.planning);
+  return absl::OkStatus();
 }
 
 std::string ProjectPlan::Serialize() const {
@@ -521,33 +652,166 @@ std::string ProjectPlan::Serialize() const {
 }
 
 absl::Status ProjectPlan::SaveToFile(const std::string& path) const {
-  const std::filesystem::path target(path);
-  std::filesystem::path temp = target;
-  temp += ".tmp";
-  {
-    std::ofstream file(temp, std::ios::binary | std::ios::trunc);
-    if (!file.is_open()) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat("Cannot write plan file: %s", temp.string()));
-    }
-    const std::string text = Serialize();
-    file.write(text.data(), static_cast<std::streamsize>(text.size()));
-    file.close();
-    if (file.fail()) {
-      std::error_code ignored;
-      std::filesystem::remove(temp, ignored);
-      return absl::InternalError(
-          absl::StrFormat("Failed to write plan file: %s", temp.string()));
+  RETURN_IF_ERROR(ValidateIds());
+  return project::WriteProjectFileAtomically(path, Serialize(), false);
+}
+
+absl::Status ProjectPlan::SaveToFile(const std::string& path,
+                                     const std::string& expected_source) const {
+  RETURN_IF_ERROR(ValidateIds());
+#ifdef __EMSCRIPTEN__
+  ASSIGN_OR_RETURN(auto current, ReadSource(path));
+  if (current != expected_source) {
+    return absl::AbortedError("Plan changed since it was loaded");
+  }
+  return project::WriteProjectFileAtomically(path, Serialize(), true);
+#else
+  ASSIGN_OR_RETURN(auto lock, AcquireSourceArtifactPublicationLock(
+                                  {path}, {"project plan", "project plan"}));
+  return PublishSourceArtifacts(*lock, {{path, expected_source, Serialize()}},
+                                ComputeSourceArtifactSha256(expected_source),
+                                [&]() { return LoadFromFile(path).status(); });
+#endif
+}
+
+absl::Status ProjectPlan::ValidateIds() const {
+  RETURN_IF_ERROR(core::ValidateIds(milestones, "Milestone"));
+  RETURN_IF_ERROR(core::ValidateIds(route_steps, "Route step"));
+  RETURN_IF_ERROR(core::ValidateIds(route_items, "Route item"));
+  return core::ValidateIds(decisions, "Decision");
+}
+
+std::string ProjectPlan::NewMilestoneId() const {
+  return UnusedId("m", EntryIds(milestones));
+}
+
+std::string ProjectPlan::NewStepId() const {
+  auto ids = EntryIds(route_steps);
+  for (const auto& item : route_items) {
+    ids.insert(item.step);
+    for (const auto& need : item.needs) {
+      ids.insert(need.step);
     }
   }
-  std::error_code error;
-  std::filesystem::rename(temp, target, error);
-  if (error) {
-    std::error_code ignored;
-    std::filesystem::remove(temp, ignored);
-    return absl::InternalError(absl::StrFormat(
-        "Failed to replace plan file %s: %s", path, error.message()));
+  for (const auto& step : route_steps) {
+    for (const auto& target : step.targets) {
+      const auto parsed = PlanTarget::Parse(target);
+      if (parsed.kind == "step") {
+        ids.insert(parsed.id);
+      }
+    }
   }
+  for (const auto& decision : decisions) {
+    for (const auto& target : decision.targets) {
+      const auto parsed = PlanTarget::Parse(target);
+      if (parsed.kind == "step") {
+        ids.insert(parsed.id);
+      }
+    }
+  }
+  return UnusedId("step-", ids);
+}
+
+std::string ProjectPlan::NewItemId() const {
+  auto ids = EntryIds(route_items);
+  for (const auto& step : route_steps) {
+    for (const auto& target : step.targets) {
+      const auto parsed = PlanTarget::Parse(target);
+      if (parsed.kind == "item") {
+        ids.insert(parsed.id);
+      }
+    }
+  }
+  for (const auto& decision : decisions) {
+    for (const auto& target : decision.targets) {
+      const auto parsed = PlanTarget::Parse(target);
+      if (parsed.kind == "item") {
+        ids.insert(parsed.id);
+      }
+    }
+  }
+  return UnusedId("item-", ids);
+}
+
+std::string ProjectPlan::NewDecisionId() const {
+  auto ids = EntryIds(decisions);
+  for (const auto& step : route_steps) {
+    for (const auto& target : step.targets) {
+      const auto parsed = PlanTarget::Parse(target);
+      if (parsed.kind == "decision") {
+        ids.insert(parsed.id);
+      }
+    }
+  }
+  for (const auto& decision : decisions) {
+    for (const auto& target : decision.targets) {
+      const auto parsed = PlanTarget::Parse(target);
+      if (parsed.kind == "decision") {
+        ids.insert(parsed.id);
+      }
+    }
+  }
+  return UnusedId("decision-", ids);
+}
+
+absl::Status ProjectPlan::RenameStep(std::string_view id, std::string new_id) {
+  RETURN_IF_ERROR(ValidateIds());
+  const int index = FindStep(id);
+  if (index < 0) {
+    return absl::NotFoundError("Route step was not found");
+  }
+  if (new_id.empty()) {
+    return absl::InvalidArgumentError("Route step ID must be nonempty");
+  }
+  if (new_id != id && FindStep(new_id) >= 0) {
+    return absl::AlreadyExistsError(
+        "Route step ID must be nonempty and unique");
+  }
+  for (auto& item : route_items) {
+    if (item.step == id) {
+      item.step = new_id;
+    }
+    for (auto& need : item.needs) {
+      if (need.step == id) {
+        need.step = new_id;
+      }
+    }
+  }
+  for (auto& step : route_steps) {
+    RewriteTargets(&step.targets, "step:" + std::string(id), "step:" + new_id);
+  }
+  for (auto& decision : decisions) {
+    RewriteTargets(&decision.targets, "step:" + std::string(id),
+                   "step:" + new_id);
+  }
+  route_steps[index].id = std::move(new_id);
+  return absl::OkStatus();
+}
+
+absl::Status ProjectPlan::RenameItem(std::string_view id, std::string new_id) {
+  RETURN_IF_ERROR(ValidateIds());
+  auto item = std::find_if(route_items.begin(), route_items.end(),
+                           [&](const auto& value) { return value.id == id; });
+  if (item == route_items.end()) {
+    return absl::NotFoundError("Route item was not found");
+  }
+  if (new_id.empty()) {
+    return absl::InvalidArgumentError("Route item ID must be nonempty");
+  }
+  if (new_id != id &&
+      std::any_of(route_items.begin(), route_items.end(),
+                  [&](const auto& value) { return value.id == new_id; })) {
+    return absl::AlreadyExistsError(
+        "Route item ID must be nonempty and unique");
+  }
+  for (auto& step : route_steps) {
+    RewriteTargets(&step.targets, "item:" + std::string(id), "item:" + new_id);
+  }
+  for (auto& decision : decisions) {
+    RewriteTargets(&decision.targets, "item:" + std::string(id),
+                   "item:" + new_id);
+  }
+  item->id = std::move(new_id);
   return absl::OkStatus();
 }
 

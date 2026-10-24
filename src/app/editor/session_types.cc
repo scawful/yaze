@@ -340,6 +340,9 @@ void EditorSet::InvalidateScreenRomBackedState() {
 }
 
 bool EditorSet::HasPendingProjectDraftChanges() const {
+  if (HasPendingPlanningProjectDraftChanges()) {
+    return true;
+  }
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     return editor->HasPendingProjectDraftChanges();
@@ -347,12 +350,32 @@ bool EditorSet::HasPendingProjectDraftChanges() const {
   return false;
 }
 
+bool EditorSet::HasPendingPlanningProjectDraftChanges() const {
+  auto* editor =
+      static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning));
+  return editor && editor->HasPendingProjectDraftChanges();
+}
+
 absl::Status EditorSet::PrepareProjectSave() {
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
-    return editor->PrepareProjectSave();
+    const auto status = editor->PrepareProjectSave();
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  if (auto* editor =
+          static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning))) {
+    return editor->Save();
   }
   return absl::OkStatus();
+}
+
+void EditorSet::DiscardPlanningProjectDraft() {
+  if (auto* editor =
+          static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning))) {
+    editor->DiscardProjectDraftChanges();
+  }
 }
 
 zelda3::Overworld* EditorSet::GetOverworldData() const {
