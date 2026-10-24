@@ -6,6 +6,7 @@
 #include <fstream>
 #include <future>
 #include <iterator>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -38,6 +39,24 @@ class ScopedTempDir {
 
  private:
   fs::path path_;
+};
+
+class ScopedReadOnlyDirectory {
+ public:
+  explicit ScopedReadOnlyDirectory(const fs::path& path)
+      : path_(path), original_(fs::status(path).permissions()) {
+    fs::permissions(path_, fs::perms::owner_read | fs::perms::owner_exec,
+                    fs::perm_options::replace);
+  }
+
+  ~ScopedReadOnlyDirectory() {
+    std::error_code ec;
+    fs::permissions(path_, original_, fs::perm_options::replace, ec);
+  }
+
+ private:
+  fs::path path_;
+  fs::perms original_;
 };
 
 void WriteText(const fs::path& path, const std::string& content) {
@@ -95,6 +114,102 @@ TEST(SourceArtifactPublisherTest, RejectsHardLinkedTargetAliases) {
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
   EXPECT_NE(std::string(status.message()).find("alias each other"),
             std::string::npos);
+}
+
+TEST(SourceArtifactPublisherTest,
+     IdenticalPrimaryGuardsReadOnlySourceWithoutReplacingItsInode) {
+  ScopedTempDir temp;
+  const auto source = temp.path() / "input" / "source.json";
+  const auto alias = temp.path() / "source-alias.json";
+  const auto output = temp.path() / "output" / "generated.json";
+  WriteText(source, "canonical\n");
+  WriteText(output, "old output\n");
+  std::error_code ec;
+  fs::create_hard_link(source, alias, ec);
+  if (ec) {
+    GTEST_SKIP() << "Hard links are unavailable: " << ec.message();
+  }
+  const ScopedReadOnlyDirectory read_only(source.parent_path());
+  auto lock = AcquireSourceArtifactPublicationLock({output}, {}, {source});
+  ASSERT_TRUE(lock.ok()) << lock.status();
+  const auto status =
+      PublishSourceArtifacts(**lock,
+                             {{source, "canonical\n", "canonical\n"},
+                              {output, "old output\n", "new output\n"}},
+                             ComputeSourceArtifactSha256("canonical\n"));
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(ReadText(source), "canonical\n");
+  EXPECT_TRUE(fs::equivalent(source, alias));
+  EXPECT_EQ(ReadText(output), "new output\n");
+  EXPECT_FALSE(fs::exists(source.parent_path() /
+                          kSourceArtifactPublicationLockBasename));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
+     ReadOnlyInputStillChecksCasAndCannotBePromotedToAnOutput) {
+  ScopedTempDir temp;
+  const auto source = temp.path() / "source.json";
+  const auto output = temp.path() / "output.json";
+  WriteText(source, "canonical\n");
+  WriteText(output, "old output\n");
+  auto lock = AcquireSourceArtifactPublicationLock({output}, {}, {source});
+  ASSERT_TRUE(lock.ok()) << lock.status();
+  auto status =
+      PublishSourceArtifacts(**lock,
+                             {{source, "canonical\n", "replacement\n"},
+                              {output, "old output\n", "new output\n"}},
+                             ComputeSourceArtifactSha256("canonical\n"));
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(ReadText(source), "canonical\n");
+  EXPECT_EQ(ReadText(output), "old output\n");
+  WriteText(source, "external edit\n");
+  status = PublishSourceArtifacts(**lock,
+                                  {{source, "canonical\n", "canonical\n"},
+                                   {output, "old output\n", "new output\n"}},
+                                  ComputeSourceArtifactSha256("canonical\n"));
+  EXPECT_EQ(status.code(), absl::StatusCode::kAborted) << status;
+  EXPECT_EQ(ReadText(source), "external edit\n");
+  EXPECT_EQ(ReadText(output), "old output\n");
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
+     InputChangedDuringReadbackRollsBackOutputsWithoutOverwritingTheInput) {
+  ScopedTempDir temp;
+  const auto source = temp.path() / "source.json";
+  const auto output = temp.path() / "output.json";
+  WriteText(source, "canonical\n");
+  WriteText(output, "old output\n");
+  auto lock = AcquireSourceArtifactPublicationLock({output}, {}, {source});
+  ASSERT_TRUE(lock.ok()) << lock.status();
+  const auto status =
+      PublishSourceArtifacts(**lock,
+                             {{source, "canonical\n", "canonical\n"},
+                              {output, "old output\n", "new output\n"}},
+                             ComputeSourceArtifactSha256("canonical\n"), [&]() {
+                               WriteText(source, "external edit\n");
+                               return absl::OkStatus();
+                             });
+  EXPECT_EQ(status.code(), absl::StatusCode::kAborted) << status;
+  EXPECT_EQ(ReadText(source), "external edit\n");
+  EXPECT_EQ(ReadText(output), "old output\n");
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest, ReadOnlyInputsCannotAliasWritableTargets) {
+  ScopedTempDir temp;
+  const auto target = temp.path() / "source.json";
+  const auto alias = temp.path() / "alias.json";
+  WriteText(target, "canonical\n");
+  std::error_code ec;
+  fs::create_hard_link(target, alias, ec);
+  if (ec) {
+    GTEST_SKIP() << "Hard links are unavailable: " << ec.message();
+  }
+  const auto lock = AcquireSourceArtifactPublicationLock({target}, {}, {alias});
+  EXPECT_EQ(lock.status().code(), absl::StatusCode::kInvalidArgument);
+  ExpectNoPublicationArtifacts(temp.path());
 }
 
 TEST(SourceArtifactPublisherTest,
@@ -297,6 +412,103 @@ TEST(SourceArtifactPublisherTest, ValidatorFailureRollsBackEveryArtifact) {
   EXPECT_EQ(ReadText(primary), primary_before);
   EXPECT_EQ(ReadText(generated), generated_before);
   ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
+     RollbackPreservesChangedNewSidecarAndRestoresOwnedDescriptor) {
+  for (bool replace_file : {false, true}) {
+    SCOPED_TRACE(replace_file ? "replacement" : "in-place rewrite");
+    ScopedTempDir temp;
+    const fs::path descriptor = temp.path() / "project.yaze";
+    const fs::path plan = temp.path() / "project.plan.json";
+    const std::string descriptor_before = "original descriptor\n";
+    const std::string recovery = "external plan recovery\n";
+    WriteText(descriptor, descriptor_before);
+    auto lock_or = AcquireSourceArtifactPublicationLock({descriptor, plan});
+    ASSERT_TRUE(lock_or.ok()) << lock_or.status();
+
+    const absl::Status status = PublishSourceArtifacts(
+        **lock_or,
+        {{.target = descriptor,
+          .before = descriptor_before,
+          .after = "descriptor with plan\n"},
+         {.target = plan, .before = std::nullopt, .after = "new plan\n"}},
+        ComputeSourceArtifactSha256(descriptor_before), [&] {
+          if (replace_file) {
+            const fs::path replacement = temp.path() / "replacement";
+            WriteText(replacement, recovery);
+            std::error_code error;
+            fs::remove(plan, error);
+            if (error) {
+              return absl::InternalError(error.message());
+            }
+            fs::rename(replacement, plan, error);
+            if (error) {
+              return absl::InternalError(error.message());
+            }
+          } else {
+            WriteText(plan, recovery);
+          }
+          return absl::FailedPreconditionError("readback rejected");
+        });
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kDataLoss) << status;
+    EXPECT_NE(std::string(status.message())
+                  .find("Published file changed before rollback"),
+              std::string::npos);
+    EXPECT_EQ(ReadText(plan), recovery);
+    EXPECT_EQ(ReadText(descriptor), descriptor_before);
+    size_t backups = 0;
+    for (const auto& entry : fs::directory_iterator(temp.path())) {
+      const std::string filename = entry.path().filename().string();
+      EXPECT_EQ(filename.find(".yaze-tmp-"), std::string::npos);
+      if (filename.find(".yaze-backup-") != std::string::npos) {
+        ++backups;
+        EXPECT_EQ(ReadText(entry.path()), descriptor_before);
+      }
+    }
+    EXPECT_EQ(backups, 1);
+  }
+}
+
+TEST(SourceArtifactPublisherTest,
+     RollbackPreservesChangedDescriptorAndRemovesOwnedNewSidecar) {
+  ScopedTempDir temp;
+  const fs::path descriptor = temp.path() / "project.yaze";
+  const fs::path plan = temp.path() / "project.plan.json";
+  const std::string descriptor_before = "original descriptor\n";
+  const std::string recovery = "external descriptor recovery\n";
+  WriteText(descriptor, descriptor_before);
+  auto lock_or = AcquireSourceArtifactPublicationLock({descriptor, plan});
+  ASSERT_TRUE(lock_or.ok()) << lock_or.status();
+
+  const absl::Status status = PublishSourceArtifacts(
+      **lock_or,
+      {{.target = descriptor,
+        .before = descriptor_before,
+        .after = "descriptor with plan\n"},
+       {.target = plan, .before = std::nullopt, .after = "new plan\n"}},
+      ComputeSourceArtifactSha256(descriptor_before), [&] {
+        WriteText(descriptor, recovery);
+        return absl::FailedPreconditionError("readback rejected");
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kDataLoss) << status;
+  EXPECT_NE(std::string(status.message())
+                .find("Published file changed before rollback"),
+            std::string::npos);
+  EXPECT_EQ(ReadText(descriptor), recovery);
+  EXPECT_FALSE(fs::exists(plan));
+  size_t backups = 0;
+  for (const auto& entry : fs::directory_iterator(temp.path())) {
+    const std::string filename = entry.path().filename().string();
+    EXPECT_EQ(filename.find(".yaze-tmp-"), std::string::npos);
+    if (filename.find(".yaze-backup-") != std::string::npos) {
+      ++backups;
+      EXPECT_EQ(ReadText(entry.path()), descriptor_before);
+    }
+  }
+  EXPECT_EQ(backups, 1);
 }
 
 TEST(SourceArtifactPublisherTest,

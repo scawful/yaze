@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # protocol-audit.sh
 #
-# Validates the layered agent protocol wiring:
-# - Router markers and references in AGENTS.md
+# Validates the compact agent protocol wiring:
+# - Maintained policy and routing references in AGENTS.md
 # - Persona registry <-> prompt file consistency
 # - Required routing and coordination scripts/docs present
 
@@ -132,6 +132,8 @@ main() {
   require_file "docs/internal/agents/routing-personas.md"
   require_file "docs/internal/agents/routing-skills-tools.md"
   require_file "docs/internal/agents/universe-coordination-spec.md"
+  require_file "docs/internal/agents/operating-rules.md"
+  require_file "docs/internal/architecture/refactor-quality-guardrails.md"
 
   require_exec "scripts/agents/coord"
   require_exec "scripts/agents/coord-heartbeat.sh"
@@ -140,10 +142,9 @@ main() {
   require_exec "scripts/agents/migrate-coordination-board.sh"
   require_exec "scripts/agents/test-universe-coord.sh"
 
-  require_pattern "AGENTS.md" "Layer 1: Protocol Router" "AGENTS layer 1 marker"
-  require_pattern "AGENTS.md" "Layer 2: Focused Persona/Skill Context" "AGENTS layer 2 marker"
-  require_pattern "AGENTS.md" "Layer 3: Maintenance Agent" "AGENTS layer 3 marker"
-  require_pattern "AGENTS.md" "routing-personas.md" "AGENTS references persona routing"
+  require_pattern "AGENTS.md" "~/src/AGENTS[.]md" "AGENTS inherits workspace instructions"
+  require_pattern "AGENTS.md" "docs/internal/agents/operating-rules[.]md" "AGENTS references operating rules"
+  require_pattern "AGENTS.md" "docs/internal/architecture/refactor-quality-guardrails[.]md" "AGENTS references architecture guardrails"
   require_pattern "AGENTS.md" "routing-skills-tools.md" "AGENTS references skills/tools routing"
   require_pattern "AGENTS.md" "scripts/agents/coord" "AGENTS references universe coordination wrapper"
   check_active_doc_board_refs
@@ -203,14 +204,18 @@ import re
 import sys
 
 root = pathlib.Path(".")
-agents_md = root / "AGENTS.md"
+tools_md = root / "docs/internal/agents/routing-skills-tools.md"
 routing_md = root / "docs/internal/agents/routing-personas.md"
+personas_md = root / "docs/internal/agents/personas.md"
 
 errors = []
 
-# Extract task classes from AGENTS.md (lines like "- `ui_ux_editor`")
-agents_text = agents_md.read_text(encoding="utf-8")
-agents_classes = set(re.findall(r"^- `([a-z_]+)`$", agents_text, re.MULTILINE))
+# Task classes live in the focused routing tables, not the compact router.
+tools_text = tools_md.read_text(encoding="utf-8")
+tools_classes = set(re.findall(r"\|\s*`([a-z_]+)`\s*\|", tools_text))
+persona_ids = set(re.findall(
+    r"\|\s*`([A-Za-z0-9_-]+)`\s*\|", personas_md.read_text(encoding="utf-8")
+))
 
 # Extract task classes and primary personas from routing-personas.md table rows
 routing_text = routing_md.read_text(encoding="utf-8")
@@ -219,33 +224,30 @@ routing_rows = re.findall(
     r"\|\s*`([a-z_]+)`\s*\|\s*`([a-z0-9-]+)`\s*\|", routing_text
 )
 routing_classes = set()
-persona_to_classes = {}
 for task_class, persona in routing_rows:
     routing_classes.add(task_class)
-    persona_to_classes.setdefault(persona, set()).add(task_class)
 
-# Check 1: AGENTS.md task classes == routing-personas.md task classes
-missing_in_routing = agents_classes - routing_classes
-missing_in_agents = routing_classes - agents_classes
+# Both focused routing tables must cover the same task classes.
+if not tools_classes or not routing_classes:
+    errors.append("task-class routing tables must not be empty")
+missing_in_routing = tools_classes - routing_classes
+missing_in_tools = routing_classes - tools_classes
 if missing_in_routing:
     errors.append(
-        f"task classes in AGENTS.md but not in routing-personas.md: "
+        f"task classes in routing-skills-tools.md but not in routing-personas.md: "
         f"{sorted(missing_in_routing)}"
     )
-if missing_in_agents:
+if missing_in_tools:
     errors.append(
-        f"task classes in routing-personas.md but not in AGENTS.md: "
-        f"{sorted(missing_in_agents)}"
+        f"task classes in routing-personas.md but not in routing-skills-tools.md: "
+        f"{sorted(missing_in_tools)}"
     )
 
-# Check 2: every persona in routing-personas.md maps to >= 1 task class
-# Extract all persona IDs mentioned in the Primary Persona column
+# Every primary persona must be declared in the maintained registry.
 all_personas_in_routing = set(p for _, p in routing_rows)
 for persona in sorted(all_personas_in_routing):
-    if not persona_to_classes.get(persona):
-        errors.append(
-            f"persona '{persona}' in routing table has no task class mapping"
-        )
+    if persona not in persona_ids:
+        errors.append(f"routing persona not declared in personas.md: {persona}")
 
 if errors:
     for e in errors:
@@ -253,7 +255,7 @@ if errors:
     sys.exit(1)
 
 print(f"OK: task-class mapping consistent "
-      f"({len(agents_classes)} classes, {len(all_personas_in_routing)} personas)")
+      f"({len(tools_classes)} classes, {len(all_personas_in_routing)} personas)")
 PY
 
   # ── Semantic check: no active docs instruct manual board writes ──

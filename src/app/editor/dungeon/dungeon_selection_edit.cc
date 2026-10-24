@@ -439,6 +439,98 @@ absl::StatusOr<DungeonSelectionEditPlan> PlanDungeonSelectionEdit(
   return plan;
 }
 
+absl::StatusOr<DungeonSelectionEditPlan> PlanDungeonDoorTrim(
+    const zelda3::Room& room, size_t door_index) {
+  if (door_index >= room.GetDoors().size()) {
+    return absl::OutOfRangeError("Selected door is no longer available");
+  }
+  const auto& door = room.GetDoors()[door_index];
+  if (static_cast<unsigned>(door.direction) > 3 ||
+      !zelda3::DoorPositionManager::IsValidPosition(door.position,
+                                                    door.direction)) {
+    return absl::InvalidArgumentError(
+        "Selected door has invalid ROM properties");
+  }
+  if (door.type != zelda3::DoorType::NormalDoor) {
+    return absl::InvalidArgumentError(
+        "Stone surround supports normal doors only");
+  }
+  DungeonSelectionEditPlan plan;
+  plan.room_id = room.id();
+  plan.kind = DungeonSelectionEditKind::kDoorTrim;
+  plan.before = CaptureDungeonSelectionEditState(room);
+  plan.before.selected_entities = {{EntityType::Door, door_index}};
+  plan.after = plan.before;
+  const auto [door_x, door_y] =
+      zelda3::DoorPositionManager::PositionToRenderTileCoords(door.position,
+                                                              door.direction);
+  struct TrimTemplate {
+    int id, width, height, dx, dy, step_x, step_y;
+  };
+  // Native single-layer trim. South/East anchors already include their
+  // raster adjustment in PositionToRenderTileCoords; do not add it twice.
+  constexpr TrimTemplate templates[] = {
+      {0x005, 2, 4, -1, -1, 4, 0},  // North
+      {0x006, 2, 4, -1, 0, 4, 0},   // South
+      {0x065, 4, 2, -1, -1, 0, 4},  // West
+      {0x066, 4, 2, 0, -1, 0, 4},   // East
+  };
+  const auto& trim_template = templates[static_cast<unsigned>(door.direction)];
+  for (int side = 0; side < 2; ++side) {
+    const int x = door_x + trim_template.dx + side * trim_template.step_x;
+    const int y = door_y + trim_template.dy + side * trim_template.step_y;
+    if (x < 0 || y < 0 || x + trim_template.width > 64 ||
+        y + trim_template.height > 64) {
+      return absl::OutOfRangeError("Stone surround would leave the room");
+    }
+    std::optional<size_t> existing;
+    for (size_t i = 0; i < plan.before.objects.size(); ++i) {
+      const auto& object = plan.before.objects[i];
+      const bool vertical_piece = object.id_ == 0x005 || object.id_ == 0x006;
+      const bool horizontal_piece = object.id_ == 0x065 || object.id_ == 0x066;
+      if (!vertical_piece && !horizontal_piece)
+        continue;
+      // Check actual native pieces, not their bounding-box gaps. Vertical
+      // pieces repeat rightwards; horizontal pieces repeat downwards.
+      const int width = vertical_piece ? 2 : 4;
+      const int height = vertical_piece ? 4 : 2;
+      bool overlaps = false;
+      for (int repeat = 0; repeat <= (object.size_ & 0x0F); ++repeat) {
+        const int ox = object.x_ + (vertical_piece ? repeat * 6 : 0);
+        const int oy = object.y_ + (horizontal_piece ? repeat * 6 : 0);
+        overlaps |= x < ox + width && x + trim_template.width > ox &&
+                    y < oy + height && y + trim_template.height > oy;
+      }
+      if (!overlaps)
+        continue;
+      const bool exact = object.id_ == trim_template.id && object.x_ == x &&
+                         object.y_ == y && object.size_ == 0 &&
+                         object.GetLayerValue() == 2 &&
+                         zelda3::UsesRoomObjectStream(object);
+      if (!exact || existing.has_value()) {
+        return absl::FailedPreconditionError(
+            "Existing stone trim conflicts with the door surround");
+      }
+      existing = i;
+    }
+    if (existing.has_value()) {
+      plan.after.selected_objects.push_back(*existing);
+      continue;
+    }
+    zelda3::RoomObject trim(trim_template.id, x, y, 0, 2);
+    RETURN_IF_ERROR(zelda3::ValidateRoomObjectStreamEntryForSave(trim));
+    trim.SetRom(room.rom());
+    plan.after.selected_objects.push_back(plan.after.objects.size());
+    plan.after.objects.push_back(std::move(trim));
+  }
+  RETURN_IF_ERROR(CheckGrowth(plan.before.objects.size(),
+                              plan.after.objects.size(),
+                              zelda3::kMaxTileObjects, "Room object"));
+  // No chests are inserted or reordered; preserve all other planes exactly.
+  plan.domains = ChangedDungeonSelectionDomains(plan.before, plan.after);
+  return plan;
+}
+
 void ApplyDungeonSelectionEditState(zelda3::Room& room,
                                     const DungeonSelectionEditState& state,
                                     uint8_t domains) {

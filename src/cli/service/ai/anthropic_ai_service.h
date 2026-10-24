@@ -18,7 +18,7 @@ namespace cli {
 
 struct AnthropicConfig {
   std::string api_key;
-  std::string model = "claude-3-5-sonnet-20241022";  // Default to 3.5 Sonnet
+  std::string model = "claude-sonnet-5-5";  // Stable text/tool model
   float temperature = 0.7f;
   int max_output_tokens = 4096;  // Anthropic supports larger output context
   std::string system_instruction;
@@ -46,7 +46,7 @@ class AnthropicAIService : public AIService {
   // Health check
   absl::Status CheckAvailability();
 
-  // List available models from Anthropic API (simulated, as list endpoint is sparse)
+  // Account model discovery, with offline suggestions when unavailable.
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override;
 
   std::string GetProviderName() const override { return kProviderAnthropic; }
@@ -56,6 +56,10 @@ class AnthropicAIService : public AIService {
   std::vector<std::string> GetAvailableTools() const;
 
  private:
+  friend class AnthropicAIServiceTestPeer;
+
+  absl::StatusOr<std::string> BuildRequestBody(
+      const std::vector<agent::ChatMessage>& history);
   std::string BuildSystemInstruction();
   absl::StatusOr<AgentResponse> ParseAnthropicResponse(
       const std::string& response_body);

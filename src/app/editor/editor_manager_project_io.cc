@@ -268,7 +268,10 @@ void EditorManager::SetupDialogCallbacks() {
             options.save_overworld_entrances;
         flags.overworld.kSaveOverworldExits = options.save_overworld_exits;
         flags.overworld.kSaveOverworldItems = options.save_overworld_items;
+        flags.overworld.kSaveOverworldSprites = options.save_overworld_sprites;
         flags.overworld.kLoadCustomOverworld = options.enable_custom_overworld;
+        flags.overworld.kEnableSpecialWorldExpansion =
+            options.enable_tail_expansion;
         flags.kSaveDungeonMaps = options.save_dungeon_maps;
         flags.kSaveAllPalettes = options.save_all_palettes;
         flags.kSaveGfxGroups = options.save_gfx_groups;
@@ -419,6 +422,9 @@ absl::Status EditorManager::LoadRomInternal() {
     if (file_name.empty()) {
       return absl::OkStatus();
     }
+    if (ActivateExistingSessionForOpen(file_name)) {
+      return absl::OkStatus();
+    }
 
     // Check if this is a project file - route to project loading
     if (absl::EndsWith(file_name, ".yaze") ||
@@ -520,7 +526,19 @@ absl::Status EditorManager::SaveRomInternal(
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
-  RETURN_IF_ERROR(current_rom->CheckLayoutWritable());
+  if (current_project_.rom_metadata.write_policy ==
+      project::RomWritePolicy::kReadOnly) {
+    RETURN_IF_ERROR(CheckRomWritePolicy(save_as_filename));
+  }
+  const auto lyra_layout = current_rom->InspectLyraLayout();
+  const bool lyra_terrain_save =
+      lyra_layout.presence == rom::LyraLayoutPresence::kValid &&
+      lyra_layout.a0_terrain_write_supported;
+  if (!lyra_terrain_save) {
+    RETURN_IF_ERROR(current_rom->CheckLayoutWritable());
+  } else if (!save_as_filename.has_value()) {
+    return absl::FailedPreconditionError("Lyra A0 terrain requires Save As");
+  }
   if (save_as_filename.has_value() && save_as_filename->empty()) {
     return absl::InvalidArgumentError("No filename provided for save as");
   }
@@ -613,6 +631,39 @@ absl::Status EditorManager::SaveRomInternal(
 
   RETURN_IF_ERROR(CheckRomWritePolicy(save_as_filename));
 
+  if (lyra_terrain_save) {
+    // This capability never enlists generic editor serializers. Refuse known
+    // pending model domains rather than silently omit their edits.
+    auto* dungeon = static_cast<DungeonEditorV2*>(
+        current_editor_set->GetExistingEditor(EditorType::kDungeon));
+    if (pending_palettes || pending_gfx_groups ||
+        current_editor_set->HasPendingGraphicsChanges() ||
+        current_editor_set->HasPendingScreenChanges() ||
+        (dungeon && dungeon->HasPendingDungeonChanges())) {
+      return absl::FailedPreconditionError(
+          "Lyra Save As supports only A0 terrain; unrelated edits are pending");
+    }
+    auto* overworld = static_cast<OverworldEditor*>(
+        current_editor_set->GetExistingEditor(EditorType::kOverworld));
+    if (!overworld || !overworld->lyra_a0_terrain_writable()) {
+      return absl::FailedPreconditionError(
+          "Open Lyra A0 terrain before Save As");
+    }
+    RETURN_IF_ERROR(overworld->SaveLyraA0TerrainAs(*save_as_filename));
+    CaptureCurrentRomIdentity(/*preserve_editing_source=*/true);
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      session->filepath = *save_as_filename;
+      session->backup_restore_pending = false;
+    }
+    rom_lifecycle_.CancelRomWriteConfirm();
+    auto& recent = project::RecentFilesManager::GetInstance();
+    recent.AddFile(*save_as_filename);
+    recent.Save();
+    if (popup_manager_)
+      popup_manager_->Hide(PopupID::kSaveAs);
+    return absl::OkStatus();
+  }
+
   // Pot streams are saved sparsely: unchanged/unloaded rooms are inventoried
   // from ROM by the serializer. No load-all confirmation is necessary.
 
@@ -679,8 +730,13 @@ absl::Status EditorManager::SaveRomInternal(
   // even though the user never opened or edited that domain.
   RETURN_IF_ERROR(
       save_editor(current_editor_set->GetExistingEditor(EditorType::kDungeon)));
-  RETURN_IF_ERROR(save_editor(
-      current_editor_set->GetExistingEditor(EditorType::kOverworld)));
+  // Project context binding creates an Overworld editor before its model is
+  // loaded. Its empty caches are not ROM edits and must not be serialized.
+  if (auto* overworld = static_cast<OverworldEditor*>(
+          current_editor_set->GetExistingEditor(EditorType::kOverworld));
+      overworld && overworld->overworld().is_loaded()) {
+    RETURN_IF_ERROR(save_editor(overworld));
+  }
 
   // Dungeon may already have serialized palettes under its own transaction.
   // Otherwise enlist the Palette editor in the same file-save transaction.
@@ -825,7 +881,11 @@ absl::Status EditorManager::SaveRomInternal(
   return save_status;
 }
 
-absl::Status EditorManager::LoadProjectWithRom() {
+absl::Status EditorManager::LoadProjectWithRom(bool allow_dialogs) {
+  const auto replaced_project_session_id =
+      pending_project_open_transition_
+          ? pending_project_open_previous_session_id_
+          : std::nullopt;
   auto pending_selection = std::move(pending_project_rom_selection_);
   pending_project_rom_selection_.reset();
   std::string project_rom_path = pending_selection.has_value()
@@ -845,6 +905,9 @@ absl::Status EditorManager::LoadProjectWithRom() {
 
   // Check if project has a ROM file specified
   if (project_rom_path.empty()) {
+    if (!allow_dialogs) {
+      return absl::FailedPreconditionError("Project has no ROM configured");
+    }
     // No ROM specified - prompt user to select one
     toast_manager_.Show(
         "Project has no ROM file configured. Please select a ROM.",
@@ -947,6 +1010,10 @@ absl::Status EditorManager::LoadProjectWithRom() {
   Rom temp_rom;
   auto load_status = rom_file_manager_.LoadRom(&temp_rom, project_rom_path);
   if (!load_status.ok()) {
+    if (!allow_dialogs) {
+      abandon_selected_rom();
+      return load_status;
+    }
     // ROM file not found or invalid - prompt user to select new ROM
     toast_manager_.Show(
         absl::StrFormat("Could not load ROM '%s': %s. Please select a new ROM.",
@@ -1228,6 +1295,14 @@ absl::Status EditorManager::LoadProjectWithRom() {
                                       current_project_.GetDisplayName()),
                       editor::ToastType::kSuccess);
 
+  // Async ROM selection can return before a project opens. Discard only at
+  // completed adoption, and preserve drafts belonging to another session.
+  if (replaced_project_session_id.has_value() &&
+      GetCurrentSessionId() == *replaced_project_session_id) {
+    if (auto* editors = GetCurrentEditorSet()) {
+      editors->DiscardPlanningProjectDraft();
+    }
+  }
   pending_project_open_transition_ = false;
   pending_project_open_previous_session_id_.reset();
   return absl::OkStatus();
@@ -1396,6 +1471,17 @@ void EditorManager::MaybeEmitZScreamRomLoadHints() {
     }
   }
   feature_hint_manager_.MaybeShow(FeatureHintId::kZScreamProjects);
+}
+
+absl::Status EditorManager::SaveCurrentSessionAs() {
+  if (current_project_.project_opened()) {
+    return SaveProjectAs();
+  }
+  if (!GetCurrentRom() || !GetCurrentRom()->is_loaded()) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+  popup_manager_->Show(PopupID::kSaveAs);
+  return absl::OkStatus();
 }
 
 }  // namespace yaze::editor

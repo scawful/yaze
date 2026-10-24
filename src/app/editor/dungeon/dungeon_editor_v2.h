@@ -42,6 +42,7 @@
 #include "zelda3/dungeon/room_census.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room_object_batch.h"
 #include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/game_data.h"
 
@@ -50,6 +51,8 @@ namespace editor {
 
 class CustomCollisionPanel;
 class DungeonEntrancesPanel;
+class DungeonEditorV2AgentBatchTestPeer;
+class DungeonAgentToolsTestPeer;
 class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
@@ -174,6 +177,7 @@ class DungeonEditorV2 : public Editor {
   absl::Status Save() override;
   // Reject excluded model edits before any writer runs. Apply Room narrows
   // room-local streams; shared tables still include all pending room records.
+  // Dirty fixed headers in scope must not share storage with another room.
   absl::Status ValidateSaveScope(int only_room = -1,
                                  bool room_data_only = false) const;
   absl::Status BeginSaveTransaction() override;
@@ -217,6 +221,9 @@ class DungeonEditorV2 : public Editor {
   bool HasUnpublishedMinecartTrackChanges() const;
   bool HasPendingProjectDraftChanges() const;
   absl::Status PrepareProjectSave();
+  // Rename (label) or reset (nullopt) a room's name in the active project.
+  absl::Status ApplyRoomLabelEdit(int room_id,
+                                  std::optional<std::string> label);
   bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
@@ -256,6 +263,8 @@ class DungeonEditorV2 : public Editor {
   // Room management
   void add_room(int room_id);
   void FocusRoom(int room_id);
+  absl::Status LoadProposalForReview(const std::string& path);
+  std::string proposal_review_path() const;
 
   // Agent/Automation controls
   void SelectObject(int obj_id);
@@ -265,6 +274,12 @@ class DungeonEditorV2 : public Editor {
   bool CycleRoomSelection(int direction);
   // Select the next or previous room object in the active editable canvas.
   bool CycleObjectSelection(int direction);
+
+  // Atomically moves objects in an already-loaded room as one undo action.
+  // Every guard must match the current unsaved object list; validation runs
+  // before mutation, and a batch with no effective change records nothing.
+  absl::StatusOr<zelda3::RoomObjectBatchResult> ApplyRoomObjectBatch(
+      const zelda3::RoomObjectBatch& batch);
 
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
@@ -344,6 +359,8 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonPotPlacementTestPeer;
   friend class DungeonConnectionEditsTestPeer;
   friend class DungeonRoomTransferTestPeer;
+  friend class DungeonEditorV2AgentBatchTestPeer;
+  friend class DungeonAgentToolsTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2EntranceCameraTestPeer;
@@ -472,6 +489,9 @@ class DungeonEditorV2 : public Editor {
 
   absl::Status SaveRoomData(int room_id);
   absl::Status SaveRoomImpl(int room_id, bool room_data_only);
+  // Fixed 14-byte room headers have no copy-on-write allocator. Refuse an
+  // in-place header write that would also change another room's header.
+  static absl::Status ValidateRoomHeaderOwnership(const Rom& rom, int room_id);
   absl::Status RunWithSaveTransaction(
       const std::function<absl::Status()>& operation);
 
@@ -735,6 +755,7 @@ class DungeonEditorV2 : public Editor {
   absl::Status RestoreRoomEntities(int room_id, MutationDomain domain,
                                    const DungeonEntitySnapshot& snapshot);
 
+  void InvalidateConnectedRoomGraphs();
   void BeginCollisionUndoSnapshot(int room_id);
   void FinalizeCollisionUndoAction(int room_id);
   void RestoreRoomCustomCollision(int room_id,
@@ -745,6 +766,8 @@ class DungeonEditorV2 : public Editor {
   absl::Status ApplyMinecartCollisionBatch(
       const std::vector<zelda3::TrackCollisionResult>& preview,
       const zelda3::GeneratorOptions& options);
+  absl::Status ApplyCustomCollisionImportBatch(
+      const std::vector<zelda3::CustomCollisionRoomEntry>& entries);
   absl::Status RestoreRoomCustomCollisionBatch(
       const std::vector<DungeonCustomCollisionSnapshot>& snapshots);
 

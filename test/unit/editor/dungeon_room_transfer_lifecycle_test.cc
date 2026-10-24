@@ -527,6 +527,19 @@ TEST_P(DungeonRoomTransferLifecycleTest,
 }
 
 TEST_P(DungeonRoomTransferLifecycleTest,
+       MalformedHeaderTableDoesNotOfferSharedHeaderRecovery) {
+  Source().SetPalette(2);
+  rom_.mutable_data()[zelda3::kRoomHeaderPointer + 1] = 0x00;
+  const auto plan = Preview({kTransferMetadata});
+  ASSERT_FALSE(plan.ok());
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_FALSE(
+      plan.status().GetPayload(kRoomTransferSharedHeaderPayload).has_value());
+  ExpectRejectedWithoutChanges(
+      [&] { return Preview({kTransferMetadata}).status(); });
+}
+
+TEST_P(DungeonRoomTransferLifecycleTest,
        GlobalChestCapacityIncludesUnopenedRoomsBeforeClone) {
   for (int index = 3; index < zelda3::kChestTableCapacityRecords; ++index) {
     ASSERT_TRUE(rom_.WriteVector(kChestPc + index * 3, {0x50, 0, 0xF0}).ok());

@@ -6,6 +6,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/ascii.h"
@@ -16,12 +17,17 @@
 #endif
 #include "cli/service/agent/tool_registry.h"
 #include "cli/util/terminal_colors.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {
 namespace agent {
 
 namespace {
+
+bool IsDungeonEditorToolName(const std::string& name) {
+  return name == "dungeon-edit-inspect" || name == "dungeon-edit-apply";
+}
 
 bool IsTruthyValue(const std::string& value) {
   const std::string lower = absl::AsciiStrToLower(value);
@@ -213,6 +219,52 @@ absl::StatusOr<std::string> ToolDispatcher::DispatchMetaTool(
       absl::StrCat("Unhandled meta-tool: ", call.tool_name));
 }
 
+void ToolDispatcher::SetDungeonEditorToolCallback(
+    DungeonEditorToolCallback callback) {
+  dungeon_editor_tool_callback_ = std::move(callback);
+}
+
+absl::StatusOr<std::string> ToolDispatcher::DispatchDungeonEditorTool(
+    const ToolDefinition& def, const ToolCall& call) const {
+  if (def.requires_rom && (!rom_context_ || !rom_context_->is_loaded())) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("Tool '", call.tool_name,
+                     "' requires ROM context but none is available"));
+  }
+
+  absl::flat_hash_set<std::string> supported_args(def.required_args.begin(),
+                                                  def.required_args.end());
+  supported_args.insert(def.flag_args.begin(), def.flag_args.end());
+  std::vector<std::string> unsupported;
+  for (const auto& [key, value] : call.args) {
+    if (!supported_args.contains(key)) {
+      unsupported.push_back("--" + key);
+    }
+  }
+  if (!unsupported.empty()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Tool '", call.tool_name,
+        "' does not support arguments: ", absl::StrJoin(unsupported, ", ")));
+  }
+
+  if (!dungeon_editor_tool_callback_) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Tool '", call.tool_name,
+        "' requires the native yaze dungeon editor host, which is not "
+        "connected to this agent session"));
+  }
+
+  auto result = dungeon_editor_tool_callback_(call, rom_context_);
+  if (!result.ok()) {
+    return result.status();
+  }
+  if (result->empty()) {
+    return absl::InternalError(
+        absl::StrCat("Tool '", call.tool_name, "' produced no output"));
+  }
+  return result;
+}
+
 absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
   auto tool_def_or = ToolRegistry::Get().GetToolDefinition(call.tool_name);
   if (!tool_def_or) {
@@ -233,6 +285,10 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
 
   if (tool_def.category == "meta") {
     return DispatchMetaTool(call);
+  }
+
+  if (IsDungeonEditorToolName(call.tool_name)) {
+    return DispatchDungeonEditorTool(tool_def, call);
   }
 
   // Create handler from registry

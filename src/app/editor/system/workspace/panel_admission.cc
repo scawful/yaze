@@ -94,7 +94,6 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
     {"agent.chat", "Primary agent conversation surface."},
     {"agent.configuration",
      "Current default: agent provider setup in the Agent preset."},
-    {"agent.status", "Current default: agent status in the Agent preset."},
 };
 
 // panel-admission: deferred-begin

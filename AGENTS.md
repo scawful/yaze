@@ -1,101 +1,38 @@
-# AGENTS.md (Protocol Router)
+# Yaze agent router
 
-Purpose: route agents to the minimum correct context. Not a repo overview.
+Inherit `~/src/AGENTS.md`; load only task-relevant references.
+Operating rules: `docs/internal/agents/operating-rules.md`.
+If absent in an older checkout, read `git show origin/master:docs/internal/agents/operating-rules.md`.
+They cover native windows, coordination, installs, issue replies and Windows verification.
+AFS quality/tool delivery: `~/.context/projects/oracle-of-secrets/memory/agent_rules.md`.
 
-Operating rules (native windows, coordination, project tracking, installs, user
-issues, Windows): [`docs/internal/agents/operating-rules.md`](docs/internal/agents/operating-rules.md).
-They override older protocol pages.
+## Implementation
+Work in an owned worktree; preserve the shared checkout's dirty work.
+Use Google C++ style, explicit ownership and existing error handling.
+Persistent features join normal dirty/save/discard/close and Undo lifecycles.
+Domain mutation/serialization belongs outside rendering/input UI.
+Architecture boundaries: `docs/internal/architecture/refactor-quality-guardrails.md`.
+Relevant code/tool references: `docs/internal/agents/routing-skills-tools.md`.
+Use a persona reference only when it contributes task-specific knowledge.
 
-## Core Rules
-1. Hierarchical context only — load what the task needs.
-2. Prefer existing scripts/tools; keep edits minimal and task-scoped.
-3. Validate with focused tests/build checks; never claim unverified results.
-4. Escalate ambiguity quickly.
-5. If discoverable via search, do not duplicate it here.
+## Build and proof
+Reuse the worktree's selected preset cache and `scripts/agent_build.sh` for incremental builds.
+If an older helper still takes the native lock for builds, use equivalent preset CMake commands
+under `quiet-build`; builds do not own the native lock. Mac builds/tests use at most four workers.
+Use focused tests while iterating;
+run the selected candidate's required pre-push/CI checks before publishing.
+A green formatter or startup check does not establish behavior/save acceptance.
+Native GUI: read `docs/internal/testing/remote-native-testing.md`;
+register the exact-app rule before launch on a dedicated Space, preserve user apps,
+then quit owned test apps and verify process/window/rule/Space cleanup.
+Follow `~/src/docs/guides/ai-coder/AGENT_STORAGE_HYGIENE.md` after builds/deployments;
+protect active work, ROMs/saves and rollback copies. Its archive gate still applies.
 
-## Layer 1: Protocol Router
-
-### 1) Task Classification
-One dominant surface:
-- `ui_ux_editor`
-- `build_ci_release`
-- `ai_agent_cli`
-- `emu_runtime_debug`
-- `rom_gameplay_data`
-- `testing_harness`
-- `docs_process`
-
-### 2) Persona Selection
-Primary owner from `docs/internal/agents/personas.md` (ids: `imgui-frontend-engineer`,
-`backend-infra-engineer`, `ai-infra-architect`, `snes-emulator-expert`,
-`zelda3-hacking-expert`, `test-infrastructure-expert`, `docs-janitor`).
-
-### 3) Focused Context Loading
-Load only:
-1. The selected persona entry in `docs/internal/agents/personas.md`
-2. `docs/internal/agents/routing-personas.md`
-3. Relevant entries in `docs/internal/agents/routing-skills-tools.md`
-
-### 4) Tool Routing
-- Code/build/test: shell + project scripts
-- Universe coordination: `scripts/agents/coord`
-- Legacy board migration: `scripts/agents/import-coordination-board.sh`,
-  `scripts/agents/migrate-coordination-board.sh`
-
-
-### Remote native testing
-Before launching a native Yaze verification app, read
-[`docs/internal/testing/remote-native-testing.md`](docs/internal/testing/remote-native-testing.md).
-Use a dedicated macOS Space and an exact-app floating rule. Always quit owned
-test apps and verify process/window cleanup before finishing or handing off.
-
-### 5) Essential Repo Facts
-- Build: `cmake --preset mac-ai && cmake --build --preset mac-ai` (agent preset: `build_ai`)
-- Jobs: presets default ≤4 workers; override with `--parallel` / `YAZE_BUILD_JOBS`
-- Tests before push: `ctest --preset mac-ai` (same `^stable$` selection as CI; `mac-ai-unit` is a subset)
-- One test: `build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='Suite.Case'` (ctest entries are shards)
-- Coord SoT: `~/.context/agent-universe/{events.jsonl,state.json}`
-- Snapshot: `docs/internal/agents/coordination-board.generated.md` (legacy board = history only)
-- Status / roadmap / changelog: `docs/internal/status.md`, `docs/internal/roadmap.md`,
-  `docs/CHANGELOG.md`
-- Knowledge base: `~/.context/knowledge/` (`hobby/yaze.md`, `hobby/oracle-of-secrets.md`,
-  `alttp/*`, `snes/*`, `hobby/usdasm.md`, `hobby/mesen2-oos.md`, `hobby/z3dk.md`)
-
-### 5a) Oracle of Secrets
-- `oos<VERSION>.sfc` = edit target; `oos<VERSION>x.sfc` = patched/emulator only
-- `z3ed --write` → base ROM (`oos168.sfc`), never `oos168x.sfc`
-- Handoff: `../oracle-of-secrets/.context/scratchpad/agent_handoff.md`
-
-### 5b) Cloud / ROM-less Sessions
-- Linux cloud agents (Claude Code web, Codex, Cursor): follow
-  `docs/internal/agents/cloud-agents.md` instead of the macOS defaults above.
-- Setup and verification: `scripts/cloud/bootstrap.sh [configure build test]`.
-- No ROMs, local MCP servers, or universe coordination in cloud sessions.
-
-### 6) Dependency Graph
-For editor capability, parity, or milestone work, first read
-`docs/internal/plans/editor-capability-parity-plan.md`. It defines the reference
-baseline, work-package dependencies, and completion evidence. Use its package
-IDs; dated handoffs and archived parity estimates are historical context.
-
-`Task Class` -> `Primary Persona` -> `Focused Context Files` -> `Tools/Scripts` -> `Validation`.
-
-Concretely:
-- `AGENTS.md` -> persona catalog + routing docs -> scripts/tools -> tests/build checks.
-- Coordination state flows through universe events/state; markdown snapshot is derived output only.
-
-## Layer 2: Focused Persona/Skill Context
-Load the smallest subset from `routing-personas.md`, `routing-skills-tools.md`,
-and `personas.md`.
-
-## Layer 3: Maintenance Agent
-Owner: `ai-infra-architect` (+ `docs-janitor`). Keep routing current; run
-`scripts/agents/protocol-audit.sh` and `scripts/agents/test-universe-coord.sh`.
-
-## Coordination Contract
-`scripts/agents/coord task-{add,claim,heartbeat,handoff,complete,list}`;
-snapshot: `scripts/agents/coord task-generate-board --out docs/internal/agents/coordination-board.generated.md`
-
-## Delivery Contract
-What changed · exact validation commands · residual risks / follow-ups.
-Reference: `.context/knowledge/agent-reference.md`, `README.md`, `docs/`.
+## Coordination and delivery
+Use `scripts/agents/coord` for yaze ownership; Oracle inbox/board for cross-project asks.
+Derived coordination boards are snapshots, not another task queue.
+Direction: `docs/internal/roadmap.md`; release facts: `docs/internal/status.md`
+and `docs/CHANGELOG.md`. Multi-PR work uses one linked plan.
+Tooling has an entry point, owner, verification and adoption target; announce ready output
+through AFS and close delivery only after adoption or explicit deferral.
+`oos168.sfc` is Oracle's edit target; `oos168x.sfc` is emulator-only.

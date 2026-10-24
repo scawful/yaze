@@ -58,7 +58,8 @@ class SourceArtifactPublicationLock {
   friend absl::StatusOr<std::unique_ptr<SourceArtifactPublicationLock>>
   AcquireSourceArtifactPublicationLock(
       const std::vector<std::filesystem::path>& targets,
-      const SourceArtifactPublisherLabels& labels);
+      const SourceArtifactPublisherLabels& labels,
+      const std::vector<std::filesystem::path>& read_only_targets);
   friend absl::Status PublishSourceArtifacts(
       const SourceArtifactPublicationLock& lock,
       std::vector<SourceArtifactUpdate> updates,
@@ -76,7 +77,11 @@ absl::Status ValidateSourceArtifactPublicationTargets(
 absl::StatusOr<std::unique_ptr<SourceArtifactPublicationLock>>
 AcquireSourceArtifactPublicationLock(
     const std::vector<std::filesystem::path>& targets,
-    const SourceArtifactPublisherLabels& labels = {});
+    const SourceArtifactPublisherLabels& labels = {},
+    // Protected inputs participate in alias/path checks without requiring a
+    // writable source directory. If published, their before/after must match.
+    // Their bytes remain CAS/readback guards; only output directories lock.
+    const std::vector<std::filesystem::path>& read_only_targets = {});
 
 std::string ComputeSourceArtifactSha256(std::string_view content);
 
@@ -84,9 +89,13 @@ std::string ComputeSourceArtifactSha256(std::string_view content);
 // replacement for each target. The first update is the primary CAS source and
 // must contain its exact preflight bytes. Exact byte readback is always
 // required; an optional domain validator runs before backups are removed so
-// its failure can still roll the set back. This is not crash-atomic across the
+// its failure can still roll the set back. Identical before/after entries are
+// read-only CAS guards: no temporary file, backup or replacement is made, and
+// rollback never overwrites an input changed by another writer. This is not crash-atomic across the
 // complete multi-file set: a process or system crash can interrupt the set
 // between target replacements.
+// A missing secondary target is created without replacing a file that appears
+// after preflight.
 absl::Status PublishSourceArtifacts(
     const SourceArtifactPublicationLock& lock,
     std::vector<SourceArtifactUpdate> updates,

@@ -3,14 +3,15 @@
 
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_state.h"
-#include "cli/service/agent/conversational_agent_service.h"
 #include "app/gui/widgets/text_editor.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
 class Rom;
@@ -41,6 +42,20 @@ class AgentChat {
   void SetPanelOpener(std::function<void(const std::string&)> opener) {
     panel_opener_ = std::move(opener);
   }
+  void SetToolPreferencesChangedCallback(std::function<void()> callback) {
+    tool_preferences_changed_ = std::move(callback);
+  }
+
+  // Presentation of the existing service receipt; never infers an edit from
+  // model prose or changes the conversation sent to the provider.
+  struct ToolResultPresentation {
+    std::string tool_name;
+    std::string summary;
+    std::string details;
+  };
+  static std::optional<ToolResultPresentation> DescribeToolResult(
+      const cli::agent::ChatMessage& message);
+  static std::string SummarizeError(const absl::Status& status);
 
   // Main Draw Loop
   // available_height: 0 = auto-resize to fit container
@@ -81,7 +96,9 @@ class AgentChat {
 
   void UpdateHarnessTelemetry(const AutomationTelemetry& telemetry);
   void SetLastPlanSummary(const std::string& summary);
-  const std::vector<AutomationTelemetry>& GetTelemetryHistory() const { return telemetry_history_; }
+  const std::vector<AutomationTelemetry>& GetTelemetryHistory() const {
+    return telemetry_history_;
+  }
   const std::string& GetLastPlanSummary() const { return last_plan_summary_; }
 
  private:
@@ -92,10 +109,13 @@ class AgentChat {
   void RenderInputBox(float height);
   void RenderMessage(const cli::agent::ChatMessage& msg, int index);
   void RenderThinkingIndicator();
-  void RenderProposalQuickActions(const cli::agent::ChatMessage& msg, int index);
-  void RenderCodeBlock(const std::string& code, const std::string& language, int msg_index);
+  void RenderProposalQuickActions(const cli::agent::ChatMessage& msg,
+                                  int index);
+  void RenderCodeBlock(const std::string& code, const std::string& language,
+                       int msg_index);
   void RenderTableData(const cli::agent::ChatMessage::TableData& table);
   void RenderToolTimeline(const cli::agent::ChatMessage& msg);
+  void RenderToolResult(const ToolResultPresentation& result, int index);
 
   // Helpers
   struct ContentBlock {
@@ -105,7 +125,8 @@ class AgentChat {
     std::string language;
   };
   std::vector<ContentBlock> ParseMessageContent(const std::string& content);
-  void HandleAgentResponse(const absl::StatusOr<cli::agent::ChatMessage>& response);
+  void HandleAgentResponse(
+      const absl::StatusOr<cli::agent::ChatMessage>& response);
   void RefreshConversationList(bool force = false);
   void SelectConversation(const std::filesystem::path& path);
 
@@ -123,6 +144,8 @@ class AgentChat {
   char input_buffer_[4096] = {};
   bool scroll_to_bottom_ = false;
   bool history_loaded_ = false;
+  std::string last_error_summary_;
+  std::string last_error_details_;
 
   struct ConversationEntry {
     std::string title;
@@ -146,6 +169,7 @@ class AgentChat {
   std::vector<AutomationTelemetry> telemetry_history_;
   std::string last_plan_summary_;
   std::function<void(const std::string&)> panel_opener_;
+  std::function<void()> tool_preferences_changed_;
 };
 
 }  // namespace editor

@@ -1823,7 +1823,8 @@ void RightDrawerManager::DrawGlobalShortcuts() {
   DrawPanelLabel("Global");
   ImGui::Indent(8.0f);
   DrawShortcutRow("Open", "Open ROM", absl::StrFormat("%s+O", ctrl));
-  DrawShortcutRow("Save", "Save ROM", absl::StrFormat("%s+S", ctrl));
+  DrawShortcutRow("Save", "Save project and ROM edits",
+                  absl::StrFormat("%s+S", ctrl));
   DrawShortcutRow("Save As", "Save ROM As",
                   absl::StrFormat("%s+Shift+S", ctrl));
   DrawShortcutRow("Undo", "Undo", absl::StrFormat("%s+Z", ctrl));

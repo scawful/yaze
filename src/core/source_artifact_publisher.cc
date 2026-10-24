@@ -60,6 +60,10 @@ struct PublicationArtifact {
   fs::path temp;
   std::optional<fs::path> backup;
   bool published = false;
+
+  bool IsReadOnlyGuard() const {
+    return original_content.has_value() && *original_content == content;
+  }
 };
 
 std::binary_semaphore& SourceArtifactWriteSemaphore() {
@@ -815,13 +819,15 @@ absl::Status SyncParentDirectory(const fs::path& target) {
 }
 
 absl::Status ReplaceFromTemp(const fs::path& temp, const fs::path& target,
-                             bool* replaced = nullptr) {
+                             bool* replaced = nullptr,
+                             bool replace_existing = true) {
   if (replaced != nullptr) {
     *replaced = false;
   }
 #if defined(_WIN32)
-  if (!MoveFileExW(temp.wstring().c_str(), target.wstring().c_str(),
-                   MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+  const DWORD flags = MOVEFILE_WRITE_THROUGH |
+                      (replace_existing ? MOVEFILE_REPLACE_EXISTING : 0);
+  if (!MoveFileExW(temp.wstring().c_str(), target.wstring().c_str(), flags)) {
     const DWORD error = GetLastError();
     return absl::InternalError(absl::StrFormat(
         "Failed to publish %s: %s", target.string(),
@@ -833,13 +839,25 @@ absl::Status ReplaceFromTemp(const fs::path& temp, const fs::path& target,
   }
 #else
   std::error_code rename_ec;
-  fs::rename(temp, target, rename_ec);
+  if (replace_existing) {
+    fs::rename(temp, target, rename_ec);
+  } else {
+    fs::create_hard_link(temp, target, rename_ec);
+  }
   if (rename_ec) {
     return absl::InternalError(absl::StrFormat(
         "Failed to publish %s: %s", target.string(), rename_ec.message()));
   }
   if (replaced != nullptr) {
     *replaced = true;
+  }
+  if (!replace_existing) {
+    fs::remove(temp, rename_ec);
+    if (rename_ec) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to remove published temporary file %s: %s",
+                          temp.string(), rename_ec.message()));
+    }
   }
 #endif
   return SyncParentDirectory(target);
@@ -971,6 +989,20 @@ absl::Status ReturnFailureAfterCleanup(
 }
 
 absl::Status RestoreArtifact(const PublicationArtifact& artifact) {
+  std::error_code status_ec;
+  const auto status = fs::symlink_status(artifact.target, status_ec);
+  if (status_ec || !fs::is_regular_file(status)) {
+    return absl::AbortedError(
+        absl::StrFormat("Published file changed before rollback; preserving %s",
+                        artifact.target.string()));
+  }
+  ASSIGN_OR_RETURN(auto current,
+                   ReadTextFile(artifact.target, "published file"));
+  if (current != artifact.content) {
+    return absl::AbortedError(
+        absl::StrFormat("Published file changed before rollback; preserving %s",
+                        artifact.target.string()));
+  }
   if (artifact.original_content.has_value()) {
     fs::path restore_temp;
     ASSIGN_OR_RETURN(
@@ -1079,6 +1111,9 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
                                 std::string_view expected_source_sha256,
                                 const SourceArtifactPublisherLabels& labels) {
   for (auto& artifact : *artifacts) {
+    if (artifact.IsReadOnlyGuard()) {
+      continue;
+    }
     auto temp_or = WriteExclusiveTemp(artifact.target, artifact.content);
     if (!temp_or.ok()) {
       return ReturnFailureAfterCleanup(artifacts, temp_or.status(), labels);
@@ -1100,9 +1135,13 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
   }
 
   for (auto& artifact : *artifacts) {
+    if (artifact.IsReadOnlyGuard()) {
+      continue;
+    }
     bool replaced = false;
     const absl::Status replace_status =
-        ReplaceFromTemp(artifact.temp, artifact.target, &replaced);
+        ReplaceFromTemp(artifact.temp, artifact.target, &replaced,
+                        artifact.original_content.has_value());
     artifact.published = replaced;
     if (!replace_status.ok()) {
       return RollBackPublication(artifacts, replace_status, labels);
@@ -1138,6 +1177,7 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
 struct SourceArtifactPublicationLock::Impl {
   SourceArtifactPublisherLabels labels;
   std::vector<fs::path> targets;
+  std::vector<fs::path> read_only_targets;
   std::unique_ptr<SourceArtifactWriteLocks> write_locks;
   std::atomic_flag publication_in_progress = ATOMIC_FLAG_INIT;
 };
@@ -1182,25 +1222,38 @@ absl::Status ValidateSourceArtifactPublicationTargets(
 absl::StatusOr<std::unique_ptr<SourceArtifactPublicationLock>>
 AcquireSourceArtifactPublicationLock(
     const std::vector<fs::path>& targets,
-    const SourceArtifactPublisherLabels& labels) {
+    const SourceArtifactPublisherLabels& labels,
+    const std::vector<fs::path>& read_only_targets) {
   if (labels.subject.empty() || labels.published_file.empty()) {
     return absl::InvalidArgumentError(
         "Source artifact diagnostic labels must not be empty");
   }
+  if (targets.empty()) {
+    return absl::InvalidArgumentError(
+        "Source artifact publication requires a writable target");
+  }
+
+  std::vector<fs::path> all_targets = targets;
+  all_targets.insert(all_targets.end(), read_only_targets.begin(),
+                     read_only_targets.end());
 
   std::vector<fs::path> resolved_targets;
   ASSIGN_OR_RETURN(resolved_targets,
-                   PreparePublicationTargets(targets, labels));
+                   PreparePublicationTargets(all_targets, labels));
+  const std::vector<fs::path> resolved_writable(
+      resolved_targets.begin(), resolved_targets.begin() + targets.size());
+  const std::vector<fs::path> resolved_read_only(
+      resolved_targets.begin() + targets.size(), resolved_targets.end());
 
   std::vector<fs::path> lock_paths;
-  ASSIGN_OR_RETURN(lock_paths, PublicationLockPaths(resolved_targets, labels));
+  ASSIGN_OR_RETURN(lock_paths, PublicationLockPaths(resolved_writable, labels));
   std::unique_ptr<SourceArtifactWriteLocks> write_locks;
   ASSIGN_OR_RETURN(write_locks,
                    SourceArtifactWriteLocks::Acquire(lock_paths, labels));
 
   std::vector<fs::path> resolved_after_lock;
   ASSIGN_OR_RETURN(resolved_after_lock,
-                   ResolvePublicationTargets(targets, labels));
+                   ResolvePublicationTargets(all_targets, labels));
   if (resolved_after_lock != resolved_targets) {
     return absl::AbortedError(absl::StrFormat(
         "%s publication target changed while acquiring its lock",
@@ -1210,6 +1263,7 @@ AcquireSourceArtifactPublicationLock(
   auto impl = std::make_unique<SourceArtifactPublicationLock::Impl>();
   impl->labels = labels;
   impl->targets = std::move(resolved_targets);
+  impl->read_only_targets = resolved_read_only;
   impl->write_locks = std::move(write_locks);
   return std::unique_ptr<SourceArtifactPublicationLock>(
       new SourceArtifactPublicationLock(std::move(impl)));
@@ -1258,6 +1312,14 @@ absl::Status PublishSourceArtifacts(
           update.target.string()));
     }
     update.target = *covered;
+    if (std::find(lock.impl_->read_only_targets.begin(),
+                  lock.impl_->read_only_targets.end(),
+                  update.target) != lock.impl_->read_only_targets.end() &&
+        (!update.before.has_value() || *update.before != update.after)) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Read-only publication target cannot change: %s",
+                          update.target.string()));
+    }
     const std::string normalized_target = LowercasePath(resolved_target);
     if (std::find(seen_targets.begin(), seen_targets.end(),
                   normalized_target) != seen_targets.end()) {
@@ -1296,6 +1358,23 @@ absl::Status PublishSourceArtifacts(
     if (!validation_status.ok()) {
       return RollBackPublication(&artifacts, validation_status,
                                  lock.impl_->labels);
+    }
+  }
+
+  // The domain validator can take time (or observe a concurrent source edit).
+  // Recheck inputs after it completes; rollback only our output replacements.
+  for (const auto& artifact : artifacts) {
+    if (!artifact.IsReadOnlyGuard()) {
+      continue;
+    }
+    auto current = ReadTextFile(artifact.target, "read-only publication input");
+    if (!current.ok() || *current != artifact.content) {
+      const auto status = current.ok()
+                              ? absl::AbortedError(absl::StrFormat(
+                                    "Read-only publication input changed: %s",
+                                    artifact.target.string()))
+                              : current.status();
+      return RollBackPublication(&artifacts, status, lock.impl_->labels);
     }
   }
 

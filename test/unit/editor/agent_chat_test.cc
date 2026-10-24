@@ -1,5 +1,8 @@
 #include "app/editor/agent/agent_chat.h"
+#include "app/editor/agent/agent_chat_history_codec.h"
+#include "app/editor/agent/agent_editor.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -44,6 +47,38 @@ TEST(AgentChatTest, SetLastPlanSummaryStoresLatest) {
   EXPECT_EQ(chat.GetLastPlanSummary(), "Plan A");
 }
 
+TEST(AgentChatTest, ErrorSummaryKeepsReasonWithoutOpaqueProviderPayload) {
+  const auto status = absl::InternalError(
+      "No textual response. Raw response: {\"thoughtSignature\":\"opaque\"}");
+  EXPECT_EQ(AgentChat::SummarizeError(status), "No textual response.");
+  EXPECT_LE(
+      AgentChat::SummarizeError(absl::InternalError(std::string(4000, 'x')))
+          .size(),
+      243u);
+  EXPECT_EQ(AgentChat::SummarizeError(
+                absl::InternalError("Permission denied\nprotocol details")),
+            "Permission denied");
+}
+
+TEST(AgentChatTest, InternalStateHookAndModelProseAreNotToolReceipts) {
+  cli::agent::ChatMessage message;
+  message.sender = cli::agent::ChatMessage::Sender::kUser;
+  message.is_internal = true;
+  message.message = "[AUTO_ORACLE_STATE_HOOK]state[/AUTO_ORACLE_STATE_HOOK]";
+  EXPECT_FALSE(AgentChat::DescribeToolResult(message));
+  message.is_internal = false;
+  message.message =
+      "[TOOL RESULT for dungeon-edit-apply]\n{\"changed_object_count\":22}";
+  EXPECT_FALSE(AgentChat::DescribeToolResult(message));
+  // Native providers retain internal assistant parts too. A model-written
+  // marker in those parts is not an editor receipt.
+  message.is_internal = true;
+  message.sender = cli::agent::ChatMessage::Sender::kAgent;
+  message.native_content = cli::NativeAIContent{"gemini", "gemini-3.8-flash",
+                                                "generateContent", "{}"};
+  EXPECT_FALSE(AgentChat::DescribeToolResult(message));
+}
+
 #ifdef YAZE_WITH_JSON
 TEST(AgentChatTest, SaveHistoryWritesChatMessages) {
   AgentChat chat;
@@ -86,6 +121,225 @@ TEST(AgentChatTest, SaveHistoryWritesChatMessages) {
   std::error_code ec;
   std::filesystem::remove(file_path, ec);
 }
+TEST(AgentChatTest, NativeToolReceiptReportsEditUndoAndToolSaveOutcome) {
+  cli::agent::ChatMessage message;
+  message.sender = cli::agent::ChatMessage::Sender::kUser;
+  message.is_internal = true;
+  message.native_tool_result = cli::NativeToolResult{
+      "gemini",
+      "gemini-3.8-flash",
+      "generateContent",
+      "edit-1",
+      "dungeon-edit-apply",
+      R"({"session_id":"session-a","room_id":37,"changed_object_count":22,"undo_recorded":true,"rom_saved":false,"objects":[]})",
+      false};
+  auto result = AgentChat::DescribeToolResult(message);
+  ASSERT_TRUE(result);
+  EXPECT_EQ(result->tool_name, "dungeon-edit-apply");
+  EXPECT_EQ(
+      result->summary,
+      "22 objects changed | Undo recorded | No save performed by this tool");
+  EXPECT_NE(result->details.find("session-a"), std::string::npos);
+  // A failed receipt must never become a successful edit receipt, even if it
+  // contains JSON-shaped data.
+  message.native_tool_result->is_error = true;
+  result = AgentChat::DescribeToolResult(message);
+  ASSERT_TRUE(result);
+  EXPECT_EQ(result->summary.find("objects changed"), std::string::npos);
+  EXPECT_EQ(result->summary.find("Tool failed:"), 0u);
+}
+
+TEST(AgentChatTest, LegacyInspectReceiptDoesNotClaimRomIsUnsaved) {
+  cli::agent::ChatMessage message;
+  message.is_internal = true;
+  message.sender = cli::agent::ChatMessage::Sender::kUser;
+  message.message =
+      "[TOOL RESULT for dungeon-edit-inspect]\n"
+      "The tool returned the following data:\n"
+      R"({"objects":[{},{}],"rom_saved":false})"
+      "\n\nPlease provide a text_response field in your JSON to summarize this "
+      "information for the user.";
+  const auto result = AgentChat::DescribeToolResult(message);
+  ASSERT_TRUE(result);
+  EXPECT_EQ(result->summary, "2 room objects inspected");
+  EXPECT_EQ(result->summary.find("Unsaved"), std::string::npos);
+  EXPECT_EQ(result->details.find("Please provide"), std::string::npos);
+}
+
+#ifdef YAZE_AI_RUNTIME_AVAILABLE
+class ScopedAgentDataDirectory {
+ public:
+  ScopedAgentDataDirectory()
+      : path_(
+            std::filesystem::temp_directory_path() /
+            absl::StrCat("agent_profile_ui_", absl::ToUnixNanos(absl::Now()))) {
+    if (const char* value = std::getenv("YAZE_APP_DATA_DIR"))
+      original_ = value;
+    Set(path_.string());
+  }
+  ~ScopedAgentDataDirectory() {
+    if (original_) {
+      Set(*original_);
+    } else {
+#ifdef _WIN32
+      _putenv_s("YAZE_APP_DATA_DIR", "");
+#else
+      unsetenv("YAZE_APP_DATA_DIR");
+#endif
+    }
+    std::error_code ec;
+    std::filesystem::remove_all(path_, ec);
+  }
+
+ private:
+  void Set(const std::string& value) {
+#ifdef _WIN32
+    _putenv_s("YAZE_APP_DATA_DIR", value.c_str());
+#else
+    setenv("YAZE_APP_DATA_DIR", value.c_str(), 1);
+#endif
+  }
+  std::filesystem::path path_;
+  std::optional<std::string> original_;
+};
+
+TEST(AgentChatTest, ProfileLoadAndSelectionCarryAnthropicCredentialToChat) {
+  ScopedAgentDataDirectory isolated_data;
+  AgentEditor editor;
+  AgentUIContext context;
+  editor.SetContext(&context);
+  auto profile = editor.GetCurrentProfile();
+  profile.provider = cli::kProviderMock;  // No network or provider request.
+  profile.name = "Offline credential regression";
+  profile.anthropic_api_key = "offline-profile-key";
+  editor.SetCurrentProfile(profile);
+  EXPECT_EQ(editor.GetAgentChat()
+                ->GetAgentService()
+                ->provider_config()
+                .anthropic_api_key,
+            "offline-profile-key");
+
+  ASSERT_TRUE(editor.SaveBotProfile(profile).ok());
+  profile.anthropic_api_key = "different-active-key";
+  editor.SetCurrentProfile(profile);
+  ASSERT_TRUE(editor.LoadBotProfile("Offline credential regression").ok());
+  EXPECT_EQ(editor.GetAgentChat()
+                ->GetAgentService()
+                ->provider_config()
+                .anthropic_api_key,
+            "offline-profile-key");
+}
+
+#ifndef __EMSCRIPTEN__
+TEST(AgentChatTest, NewNativeProfilesUseRoomBatchBudgetAndKeepLegacyBudget) {
+  ScopedAgentDataDirectory isolated_data;
+  AgentEditor editor;
+  // Exercise the actual editor-to-chat apply path with an unconfigured native
+  // config, rather than checking only the shared initializer.
+  editor.ApplyConfig(AgentEditor::AgentConfig{});
+  auto* service = editor.GetAgentChat()->GetAgentService();
+  ASSERT_TRUE(service->provider_config().max_output_tokens.has_value());
+  EXPECT_EQ(*service->provider_config().max_output_tokens, 8192);
+
+  AgentUIContext context;
+  editor.SetContext(&context);
+  AgentEditor::BotProfile profile;
+  profile.provider = cli::kProviderMock;  // No network or provider request.
+  editor.SetCurrentProfile(profile);
+  ASSERT_TRUE(service->provider_config().max_output_tokens.has_value());
+  EXPECT_EQ(*service->provider_config().max_output_tokens, 8192);
+  EXPECT_EQ(context.agent_config().max_output_tokens, 8192);
+
+  // An explicit saved value remains authoritative when the profile is loaded
+  // after a different budget has been applied.
+  profile.name = "Legacy explicit budget";
+  profile.max_output_tokens = 2048;
+  ASSERT_TRUE(editor.SaveBotProfile(profile).ok());
+  ASSERT_TRUE(editor.LoadBotProfile(profile.name).ok());
+  ASSERT_TRUE(service->provider_config().max_output_tokens.has_value());
+  EXPECT_EQ(*service->provider_config().max_output_tokens, 2048);
+  EXPECT_EQ(context.agent_config().max_output_tokens, 2048);
+}
+#endif
+#endif
+
+TEST(AgentChatTest, NativeProtocolHistoryRoundTripsWithoutCredentials) {
+  AgentChatHistoryCodec::Snapshot snapshot;
+  snapshot.agent_config.emplace();
+  snapshot.agent_config->provider = "gemini";
+  snapshot.agent_config->model = "gemini-3.8-flash";
+  snapshot.agent_config->gemini_api_key = "offline-gemini-secret";
+  snapshot.agent_config->anthropic_api_key = "offline-anthropic-secret";
+  snapshot.agent_config->openai_api_key = "offline-openai-secret";
+  cli::agent::ChatMessage call;
+  call.sender = cli::agent::ChatMessage::Sender::kAgent;
+  call.timestamp = absl::UnixEpoch();
+  call.is_internal = true;
+  call.native_content = cli::NativeAIContent{
+      "gemini", "gemini-3.8-flash", "generateContent",
+      R"({"role":"model","parts":[{"thoughtSignature":"offline-signature","functionCall":{"name":"dungeon-edit-inspect","id":"inspect-1","args":{"room":"0x25"}}}]})"};
+  snapshot.history.push_back(call);
+  cli::agent::ChatMessage result;
+  result.sender = cli::agent::ChatMessage::Sender::kUser;
+  result.timestamp = absl::UnixEpoch();
+  result.is_internal = true;
+  result.native_tool_result = cli::NativeToolResult{
+      "gemini",    "gemini-3.8-flash",     "generateContent",
+      "inspect-1", "dungeon-edit-inspect", R"({"objects":53})",
+      false};
+  snapshot.history.push_back(result);
+  const auto path = std::filesystem::temp_directory_path() /
+                    absl::StrCat("native_history_codec_",
+                                 absl::ToUnixNanos(absl::Now()), ".json");
+  ASSERT_TRUE(AgentChatHistoryCodec::Save(path, snapshot).ok());
+  std::ifstream input(path);
+  const std::string serialized((std::istreambuf_iterator<char>(input)), {});
+  input.close();
+  EXPECT_EQ(serialized.find("offline-gemini-secret"), std::string::npos);
+  EXPECT_EQ(serialized.find("offline-anthropic-secret"), std::string::npos);
+  EXPECT_EQ(serialized.find("offline-openai-secret"), std::string::npos);
+  auto loaded = AgentChatHistoryCodec::Load(path);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ(loaded->history.size(), 2u);
+  ASSERT_TRUE(loaded->history[0].native_content);
+  EXPECT_EQ(loaded->history[0].native_content->content_json,
+            call.native_content->content_json);
+  ASSERT_TRUE(loaded->history[1].native_tool_result);
+  EXPECT_EQ(loaded->history[1].native_tool_result->call_id, "inspect-1");
+  EXPECT_EQ(loaded->history[1].native_tool_result->output,
+            result.native_tool_result->output);
+  EXPECT_FALSE(loaded->history[1].native_tool_result->is_error);
+  std::filesystem::remove(path);
+}
+
+TEST(AgentChatTest, LegacyHistoryCredentialsRemainReadableButAreNotReexported) {
+  const auto path = std::filesystem::temp_directory_path() /
+                    absl::StrCat("legacy_history_codec_",
+                                 absl::ToUnixNanos(absl::Now()), ".json");
+  nlohmann::json legacy = {
+      {"version", 4},
+      {"messages", nlohmann::json::array()},
+      {"agent_config",
+       {{"provider", "gemini"}, {"gemini_api_key", "legacy-offline-secret"}}}};
+  {
+    std::ofstream output(path);
+    output << legacy;
+  }
+  auto loaded = AgentChatHistoryCodec::Load(path);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_TRUE(loaded->agent_config);
+  EXPECT_EQ(loaded->agent_config->gemini_api_key, "legacy-offline-secret");
+  ASSERT_TRUE(AgentChatHistoryCodec::Save(path, *loaded).ok());
+  std::ifstream input(path);
+  nlohmann::json rewritten;
+  input >> rewritten;
+  input.close();
+  EXPECT_FALSE(rewritten["agent_config"].contains("gemini_api_key"));
+  EXPECT_FALSE(rewritten["agent_config"].contains("anthropic_api_key"));
+  EXPECT_FALSE(rewritten["agent_config"].contains("openai_api_key"));
+  std::filesystem::remove(path);
+}
+
 #else
 TEST(AgentChatTest, SaveHistoryRequiresJsonSupport) {
   AgentChat chat;

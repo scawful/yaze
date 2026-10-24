@@ -184,29 +184,9 @@ assert_missing_binary_help z3ed \
 assert_missing_binary_help yaze_test \
     "cmake --build build_ai --target yaze_test --parallel 4"
 
-run_agent_build() {
-    local jobs_variable="${1:-}"
-    local jobs="${2:-}"
-    : >"$TMP_ROOT/cmake.log"
-    (
-        cd "$TMP_ROOT/repo"
-        unset YAZE_BUILD_JOBS CMAKE_BUILD_PARALLEL_LEVEL
-        if [[ -n "$jobs_variable" ]]; then
-            export "${jobs_variable}=${jobs}"
-        fi
-        PATH="$TMP_ROOT/bin:$PATH" CMAKE_CALL_LOG="$TMP_ROOT/cmake.log" \
-            "$ROOT_DIR/scripts/agent_build.sh" yaze >/dev/null
-    )
-}
-
-run_agent_build
-grep -F -- "--build build_ai --target yaze --parallel 4" "$TMP_ROOT/cmake.log" >/dev/null
-
-run_agent_build YAZE_BUILD_JOBS 7
-grep -F -- "--build build_ai --target yaze --parallel 7" "$TMP_ROOT/cmake.log" >/dev/null
-
-run_agent_build CMAKE_BUILD_PARALLEL_LEVEL 6
-grep -F -- "--build build_ai --target yaze --parallel 6" "$TMP_ROOT/cmake.log" >/dev/null
+# The agent entrypoint uses a quiet two-worker default and refuses >4.
+# Its fake-command tests also cover cache identity and temporary lock lifecycle.
+PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT_DIR/scripts/agents/tests/test_agent_build.py"
 
 run_tests_helper() {
     local jobs="${1:-}"

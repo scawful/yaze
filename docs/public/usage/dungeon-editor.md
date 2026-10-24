@@ -152,6 +152,61 @@ normally and use its assembled ROM in the emulator.
 `z3ed dungeon-render --project-context=/path/to/project.yaze` uses the same
 preview. Without a configured source, rendering continues to use ROM patterns.
 
+### Agent batch moves
+
+The native Agent chat can inspect an open dungeon room and move several objects
+as one edit. Start with the room open in the Dungeon editor:
+
+1. Open **Agent Chat**. Choose **Settings** to select a provider and model, then
+   choose **Apply connection**. The chat header shows the applied connection.
+2. Leave **Allow editing** off and ask, for example, “Inspect dungeon room 0x25
+   and describe its objects.” The tool result reports the inspected object count;
+   expand its details when you need the full records.
+3. Turn **Allow editing** on before requesting an object move. Specify the room,
+   object indices, and intended tile coordinates or offset. The agent must use a
+   fresh inspection of the current session before applying the batch.
+4. Review the normal dungeon canvas and the tool result. Use ordinary Undo/Redo
+   to review the batch, then **File > Save As** to save a new ROM copy. Reopen that
+   copy to check the persisted room.
+
+**Allow editing** takes effect immediately and enables the selected mutating tool
+categories. It changes the open editor with Undo; saving remains a separate
+action. **Tool categories**, **Advanced parameters**, and **Model presets** stay
+available in Settings. Open **Browse available models** to refresh the provider's
+catalog; a typed model ID also works with a configured compatible endpoint.
+
+For tool integrations, the batch contract is:
+
+The agent uses `dungeon-edit-inspect --room=0x25` to read the current loaded room,
+including unsaved edits. Its response includes a `session_id` and the complete
+`objects` array. It passes those back as `session_id` and `expected_objects` in
+`dungeon-edit-apply --room=0x25 --batch=<json>`, together with a `moves` array:
+
+```json
+{
+  "session_id": "<session_id from inspect>",
+  "expected_objects": ["<copy every objects entry from inspect here>"],
+  "moves": [{"object_index": 7, "x_tile": 20, "y_tile": 18}]
+}
+```
+
+Replace the example `expected_objects` placeholder with the complete array of
+object records returned by inspection. Each record contains `object_index`,
+`object_id`, `x_tile`, `y_tile`, `size`, and `stored_list`. Coordinates use 8-pixel
+tiles and must fit the room together with the object's full footprint.
+
+A successful batch redraws the normal dungeon canvas and creates one Undo entry.
+**Cmd/Ctrl+Z** restores the whole batch; Redo reapplies it. A stale inspection,
+changed session, duplicate move, or invalid target rejects the entire batch before
+any object moves. A batch with no effective changes creates no Undo entry.
+Objects retain their IDs, sizes, stored lists, and order. The commands update
+editor state; use the normal Save workflow to persist the result.
+
+These tools require the native loaded editor and its editor thread. A standalone
+CLI agent has no editor callback and reports that requirement instead of saving
+a separate ROM copy. The initial batch operation supports object moves; other
+room properties continue to use the existing editor controls.
+
 ### Saving
 
 - **File > Save ROM** persists dungeon data in this order: dungeon maps (when **Save Dungeon Maps** is enabled), then per-room **objects**, **sprites**, **room headers** (14-byte header + message IDs), **door pointers** (with `0xF0 0xFF` marker), then **palettes**, **torches**, **pits**, **blocks**, **chests**, **pot items**, and dirty **entrance/spawn-point metadata**. No need to save from the Dungeon Editor separately for ROM file writes.

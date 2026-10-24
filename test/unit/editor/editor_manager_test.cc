@@ -13,6 +13,7 @@
 #include "app/platform/null_window_backend.h"
 #include "editor_test_support.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
@@ -20,6 +21,11 @@ namespace editor {
 
 class EditorManagerLayoutTestPeer {
  public:
+  static void SwitchSession(EditorManager* manager, RomSession* session,
+                            bool transient) {
+    manager->HandleSessionSwitched(session->session_id(), session, transient);
+  }
+
   static void RestoreEditorLayoutAfterAssets(EditorManager* manager,
                                              RomSession* session,
                                              EditorType type) {
@@ -28,6 +34,17 @@ class EditorManagerLayoutTestPeer {
 };
 
 namespace {
+
+class CloseTestPanel final : public WindowContent {
+ public:
+  std::string GetId() const override { return "dungeon.close_test"; }
+  std::string GetDisplayName() const override { return "Close Test"; }
+  std::string GetIcon() const override { return ""; }
+  std::string GetEditorCategory() const override { return "Dungeon"; }
+  void Draw(bool*) override {}
+  void OnClose() override { ++close_count; }
+  int close_count = 0;
+};
 
 class EditorManagerTest : public ::testing::Test {
  protected:
@@ -266,6 +283,106 @@ TEST_F(EditorManagerTest,
   ASSERT_TRUE(
       editor_manager_->EnsureEditorAssetsLoaded(EditorType::kAssembly).ok());
   EXPECT_FALSE(*descriptor->visibility_flag);
+}
+
+TEST_F(EditorManagerTest, TransientFrameVisitKeepsClosedWindowHidden) {
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
+  editor_manager_->CreateNewSession();
+  auto* first_session =
+      editor_manager_->session_coordinator()->GetActiveRomSession();
+  editor_manager_->CreateNewSession();
+  auto* second_session =
+      editor_manager_->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(first_session, nullptr);
+  ASSERT_NE(second_session, nullptr);
+  ASSERT_NE(first_session, second_session);
+
+  auto& window_manager = editor_manager_->window_manager();
+  window_manager.SetActiveCategory("Dungeon", /*notify=*/false);
+  bool first_visible = false;
+  bool second_visible = false;
+  WindowDescriptor descriptor{};
+  descriptor.card_id = "dungeon.object_tile_editor";
+  descriptor.display_name = "Object Tile Editor";
+  descriptor.category = "Dungeon";
+  descriptor.visibility_flag = &first_visible;
+  window_manager.RegisterWindow(first_session->session_id(), descriptor);
+  descriptor.visibility_flag = &second_visible;
+  window_manager.RegisterWindow(second_session->session_id(), descriptor);
+  editor_manager_->user_settings()
+      .prefs()
+      .panel_visibility_state["Dungeon"]["dungeon.object_tile_editor"] = true;
+
+  // A multi-ROM draw visits sessions every frame. A stale persisted true must
+  // not overwrite a just-closed or internally dismissed empty editor window.
+  EditorManagerLayoutTestPeer::SwitchSession(editor_manager_.get(),
+                                             first_session,
+                                             /*transient=*/true);
+  EditorManagerLayoutTestPeer::SwitchSession(editor_manager_.get(),
+                                             second_session,
+                                             /*transient=*/true);
+  EXPECT_FALSE(first_visible);
+  EXPECT_FALSE(second_visible);
+
+  // Actual navigation still restores the destination's saved preference.
+  EditorManagerLayoutTestPeer::SwitchSession(editor_manager_.get(),
+                                             second_session,
+                                             /*transient=*/false);
+  EXPECT_FALSE(first_visible);
+  EXPECT_TRUE(second_visible);
+}
+
+TEST_F(EditorManagerTest, TitleBarClosePersistsVisibilityOnce) {
+  ::yaze::test::InitializeWithIsolatedSettings(*editor_manager_,
+                                               renderer_.get());
+  auto& windows = editor_manager_->window_manager();
+  windows.RegisterSession(0);
+  windows.SetActiveSession(0);
+  windows.SetActiveCategory("Dungeon", /*notify=*/false);
+  auto panel = std::make_unique<CloseTestPanel>();
+  auto* panel_ptr = panel.get();
+  windows.RegisterWindowContent(std::move(panel));
+  ASSERT_TRUE(windows.OpenWindow(0, "dungeon.close_test"));
+  ASSERT_TRUE(editor_manager_->user_settings()
+                  .prefs()
+                  .panel_visibility_state.at("Dungeon")
+                  .at("dungeon.close_test"));
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1024, 768);
+  io.DeltaTime = 1.0f / 60.0f;
+  auto frame = [&]() {
+    ImGui::NewFrame();
+    windows.DrawVisibleWindows();
+    ImGui::Render();
+  };
+  frame();
+  const auto* descriptor = windows.GetWindowDescriptor(0, "dungeon.close_test");
+  ASSERT_NE(descriptor, nullptr);
+  const auto name = windows.GetWorkspaceWindowName(*descriptor);
+  auto* window = ImGui::FindWindowByName(name.c_str());
+  ASSERT_NE(window, nullptr);
+  const ImVec2 close_center(window->Pos.x + window->Size.x -
+                                ImGui::GetStyle().FramePadding.x -
+                                ImGui::GetFontSize() * 0.5f,
+                            window->Pos.y + window->TitleBarHeight * 0.5f);
+  io.AddMousePosEvent(close_center.x, close_center.y);
+  frame();
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  frame();
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  frame();
+
+  EXPECT_FALSE(windows.IsWindowOpen(0, "dungeon.close_test"));
+  EXPECT_FALSE(editor_manager_->user_settings()
+                   .prefs()
+                   .panel_visibility_state.at("Dungeon")
+                   .at("dungeon.close_test"));
+  EXPECT_EQ(panel_ptr->close_count, 1);
+  frame();
+  EXPECT_EQ(panel_ptr->close_count, 1);
 }
 
 // Regression: ~EditorManager must clear the static singletons that hold

@@ -200,6 +200,7 @@ TEST_P(OverworldSpriteIoTest, EditorSavePersistsSpritesWithMapSavingDisabled) {
   flags.kSaveOverworldExits = false;
   flags.kSaveOverworldItems = false;
   flags.kSaveOverworldProperties = false;
+  flags.kSaveOverworldSprites = true;
   auto editor = std::make_unique<editor::OverworldEditor>(&rom_);
   auto& world = editor->overworld();
   auto& maps = const_cast<std::vector<OverworldMap>&>(world.overworld_maps());
@@ -219,6 +220,36 @@ TEST_P(OverworldSpriteIoTest, EditorSavePersistsSpritesWithMapSavingDisabled) {
   world.mutable_sprites(0)->clear();
   ASSERT_TRUE(editor->Save().ok());
   EXPECT_EQ(Read(0, 0), OverworldSpriteBytes{0xFF});
+}
+TEST_P(OverworldSpriteIoTest, DisabledSpriteSaveSkipsStagedEditsAndValidation) {
+  const auto saved_flags = core::FeatureFlags::get().overworld;
+  struct RestoreFlags {
+    decltype(saved_flags) flags;
+    ~RestoreFlags() { core::FeatureFlags::get().overworld = flags; }
+  } restore{saved_flags};
+  auto& flags = core::FeatureFlags::get().overworld;
+  flags.kSaveOverworldMaps = false;
+  flags.kSaveOverworldEntrances = false;
+  flags.kSaveOverworldExits = false;
+  flags.kSaveOverworldItems = false;
+  flags.kSaveOverworldProperties = false;
+  flags.kSaveOverworldSprites = false;
+  auto editor = std::make_unique<editor::OverworldEditor>(&rom_);
+  auto& world = editor->overworld();
+  auto& maps = const_cast<std::vector<OverworldMap>&>(world.overworld_maps());
+  maps.emplace_back(0, &rom_);
+  ASSERT_TRUE(world.LoadSpritesFromMap(layout_.tables[0], 1, 0).ok());
+  // Off-grid staged edits normally fail sprite validation. Disabling the
+  // domain must permit an unrelated save and preserve every ROM byte.
+  world.mutable_sprites(0)->emplace_back(std::vector<uint8_t>{}, 0, 0x42, 0, 0,
+                                         8, 0);
+  const auto before = rom_.vector();
+  ASSERT_TRUE(editor->Save().ok());
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_FALSE(rom_.dirty());
+  flags.kSaveOverworldSprites = true;
+  EXPECT_EQ(editor->Save().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(rom_.vector(), before);
 }
 TEST_P(OverworldSpriteIoTest,
        ModelRejectsOffGridAndUnsupportedStateWithoutWriting) {

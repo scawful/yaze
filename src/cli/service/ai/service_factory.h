@@ -2,6 +2,7 @@
 #define YAZE_CLI_SERVICE_AI_SERVICE_FACTORY_H_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -40,6 +41,10 @@ struct AIServiceConfig {
   std::string rom_path_hint;
   // Optional loaded ROM for prompt-context and Oracle guide auto-detection.
   Rom* rom_context = nullptr;
+  // An explicit UI/request override; absent preserves each provider's default.
+  std::optional<int> max_output_tokens;
+  // Native hosts can request tool calling; absent preserves the CLI flag.
+  std::optional<bool> use_function_calling;
   // Enable debug logging.
   bool verbose = false;
 };

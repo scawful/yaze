@@ -44,14 +44,17 @@ class GfxExportCommandHandler : public resources::CommandHandler {
 /**
  * @brief Import an indexed PNG into a sheet at a 16x16 block. --dry-run
  * reports the blocks, tiles and ROM bytes that would change; --write saves
- * the result through the sheet writer to --out (never the input ROM).
+ * the result through the sheet writer to --out (never the input ROM). A sheet
+ * that compresses larger than its current stream can move only into the
+ * free space of the hack manifest loaded by --project-context.
  */
 class GfxImportCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "gfx-import"; }
   std::string GetUsage() const override {
     return "gfx-import --sheet <id> --png <file> [--block <0-15>] "
-           "[--palette ...] (--dry-run | --write --out <rom file>)";
+           "[--palette ...] [--project-context <path.yaze>] "
+           "(--dry-run | --write --out <rom file>)";
   }
   std::string GetDefaultFormat() const override { return "json"; }
   std::string GetOutputTitle() const override { return "Graphics Import"; }
@@ -112,7 +115,8 @@ class GfxRoomImportCommandHandler : public resources::CommandHandler {
   std::string GetName() const override { return "gfx-room-import"; }
   std::string GetUsage() const override {
     return "gfx-room-import --room <id> --png <file> [--row <0-7>] "
-           "[--palette ...] (--dry-run | --write --out <rom file>)";
+           "[--palette ...] [--project-context <path.yaze>] "
+           "(--dry-run | --write --out <rom file>)";
   }
   std::string GetDefaultFormat() const override { return "json"; }
   std::string GetOutputTitle() const override {

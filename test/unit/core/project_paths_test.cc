@@ -1,9 +1,13 @@
+#include "core/lyra_terrain_document.h"
 #include "core/project.h"
 
 #include <algorithm>
 #include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -52,6 +56,27 @@ class ScopedCurrentPath {
   std::filesystem::path original_path_;
 };
 
+class ScopedReadOnlyDirectory {
+ public:
+  explicit ScopedReadOnlyDirectory(const std::filesystem::path& path)
+      : path_(path), original_(std::filesystem::status(path).permissions()) {
+    std::filesystem::permissions(
+        path_,
+        std::filesystem::perms::owner_read | std::filesystem::perms::owner_exec,
+        std::filesystem::perm_options::replace);
+  }
+
+  ~ScopedReadOnlyDirectory() {
+    std::error_code ec;
+    std::filesystem::permissions(path_, original_,
+                                 std::filesystem::perm_options::replace, ec);
+  }
+
+ private:
+  std::filesystem::path path_;
+  std::filesystem::perms original_;
+};
+
 void WriteTextFile(const std::filesystem::path& path, const std::string& data) {
   std::filesystem::create_directories(path.parent_path());
   std::ofstream file(path, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -85,6 +110,214 @@ std::string WithCrLf(const std::string& content) {
 }
 
 }  // namespace
+
+TEST(ProjectPathsTest, LyraTerrainPathIsDistinctAndSurvivesReopen) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_project"));
+  const auto project_file = temp.path() / "Oracle.yaze";
+  const auto terrain_file = temp.path() / "terrain" / "lyra.json";
+  const auto catalog_file = temp.path() / "labels.json";
+  WriteTextFile(terrain_file, "{}");
+  WriteTextFile(catalog_file, "{}");
+  YazeProject project;
+  project.name = "Oracle";
+  project.filepath = project_file.string();
+  project.lyra_terrain_file = terrain_file.string();
+  project.terrain_catalog_file = catalog_file.string();
+  ASSERT_TRUE(project.Save().ok());
+  EXPECT_NE(
+      ReadTextFile(project_file).find("lyra_terrain_file=terrain/lyra.json"),
+      std::string::npos);
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_EQ(reopened.lyra_terrain_file, terrain_file.string());
+  EXPECT_EQ(reopened.terrain_catalog_file, catalog_file.string());
+  ASSERT_TRUE(reopened
+                  .LoadFromString("[project]\nname=Other\n",
+                                  (temp.path() / "Other.yaze").string())
+                  .ok());
+  EXPECT_TRUE(reopened.lyra_terrain_file.empty());
+}
+
+TEST(ProjectPathsTest, OracleIdentityRequiresManifestRatherThanProjectName) {
+  YazeProject project;
+  project.name = "Oracle of Secrets";
+  EXPECT_FALSE(project.IsOracleCompatible());
+  ASSERT_TRUE(
+      project.hack_manifest
+          .LoadFromString(
+              R"json({"manifest_version":2,"hack_name":"Generic Hack"})json")
+          .ok());
+  EXPECT_FALSE(project.IsOracleCompatible());
+  project.hack_manifest.SetOracleProgressionState(
+      core::OracleProgressionState{});
+  EXPECT_TRUE(project.IsOracleCompatible());
+}
+
+TEST(ProjectPathsTest, LyraSaveAsOwnsUnpublishedTerrainAndPreservesAssetPaths) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_save_as"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto original_terrain =
+      original.parent_path() / "Oracle.lyra-terrain.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  const auto destination_terrain =
+      destination.parent_path() / "Saved.lyra-terrain.json";
+  std::filesystem::create_directories(destination.parent_path());
+  const auto rom = original.parent_path() / "private.sfc";
+  WriteTextFile(rom, "private ROM");
+  YazeProject project;
+  project.name = "Oracle";
+  project.filepath = original.string();
+  project.rom_filename = rom.string();
+  ASSERT_TRUE(project.Save().ok());
+  const auto original_bytes = ReadTextFile(original);
+  // Unsaved first-use project state must reach the copy, not the original.
+  project.lyra_terrain_file = original_terrain.string();
+  project.terrain_catalog_file = "labels.json";
+  core::LyraTerrainProfile profile;
+  profile.tile_count = 4096;
+  profile.tile16_definition_fingerprint = "definitions:fixture";
+  profile.graphics_fingerprint = "graphics:fixture";
+  profile.palette_fingerprint = "palette:fixture";
+  profile.animation_fingerprint = "animation:fixture";
+  auto document = core::LyraTerrainDocument::Create(profile, 11);
+  ASSERT_TRUE(document.ok()) << document.status();
+  const auto status = project.SaveAsWithLyraTerrain(destination.string(),
+                                                    *document, std::nullopt);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(project.filepath, destination.string());
+  EXPECT_EQ(project.lyra_terrain_file, destination_terrain.string());
+  EXPECT_EQ(ReadTextFile(original), original_bytes);
+  EXPECT_FALSE(std::filesystem::exists(original_terrain));
+  EXPECT_EQ(ReadTextFile(rom), "private ROM");
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(reopened.metadata.last_modified, project.metadata.last_modified);
+  EXPECT_EQ(reopened.metadata.last_modified.size(), 19U);
+  std::tm parsed_time{};
+  std::istringstream saved_timestamp(reopened.metadata.last_modified);
+  EXPECT_FALSE(
+      (saved_timestamp >> std::get_time(&parsed_time, "%Y-%m-%d %H:%M:%S"))
+          .fail());
+  EXPECT_EQ(reopened.lyra_terrain_file, destination_terrain.string());
+  EXPECT_EQ(reopened.rom_filename, rom.string());
+  EXPECT_EQ(reopened.terrain_catalog_file,
+            (original.parent_path() / "labels.json").string());
+  const auto saved = core::LyraTerrainDocument::Parse(
+      ReadTextFile(destination_terrain), profile);
+  ASSERT_TRUE(saved.ok()) << saved.status();
+  EXPECT_EQ(saved->MapTile(0xBF, 31, 31).value(), 11);
+}
+
+TEST(ProjectPathsTest,
+     LyraSaveAsCopiesFromReadOnlyDirectoryWithoutReplacingOriginalDescriptor) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_save_as_read_only"));
+  const auto original = temp.path() / "original" / "Oracle.yaze";
+  const auto terrain = original.parent_path() / "Oracle.lyra-terrain.json";
+  const auto alias = temp.path() / "original-alias.yaze";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  std::filesystem::create_directories(destination.parent_path());
+  const auto rom = original.parent_path() / "private.sfc";
+  WriteTextFile(rom, "private ROM");
+  YazeProject project;
+  project.name = "Oracle";
+  project.filepath = original.string();
+  project.rom_filename = rom.string();
+  ASSERT_TRUE(project.Save().ok());
+  const auto original_bytes = ReadTextFile(original);
+  std::error_code ec;
+  std::filesystem::create_hard_link(original, alias, ec);
+  if (ec) {
+    GTEST_SKIP() << "Hard links are unavailable: " << ec.message();
+  }
+  project.lyra_terrain_file = terrain.string();
+  core::LyraTerrainProfile profile;
+  profile.tile_count = 4096;
+  profile.tile16_definition_fingerprint = "definitions:fixture";
+  profile.graphics_fingerprint = "graphics:fixture";
+  profile.palette_fingerprint = "palette:fixture";
+  profile.animation_fingerprint = "animation:fixture";
+  auto document = core::LyraTerrainDocument::Create(profile, 11);
+  ASSERT_TRUE(document.ok()) << document.status();
+  const ScopedReadOnlyDirectory read_only(original.parent_path());
+  const auto status = project.SaveAsWithLyraTerrain(destination.string(),
+                                                    *document, std::nullopt);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_TRUE(std::filesystem::equivalent(original, alias));
+  EXPECT_EQ(ReadTextFile(original), original_bytes);
+  EXPECT_EQ(ReadTextFile(alias), original_bytes);
+  EXPECT_FALSE(std::filesystem::exists(terrain));
+  EXPECT_FALSE(std::filesystem::exists(original.parent_path() /
+                                       ".yaze-message-source-sync.lock"));
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(destination.string()).ok());
+  EXPECT_EQ(ReadTextFile(reopened.lyra_terrain_file), document->Serialize());
+}
+
+TEST(ProjectPathsTest, LyraSaveAsRefusesOccupiedAliasedAndStaleSources) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_lyra_save_as_refusal"));
+  const auto original = temp.path() / "Oracle.yaze";
+  const auto terrain = temp.path() / "Oracle.lyra-terrain.json";
+  const auto destination = temp.path() / "copy" / "Saved.yaze";
+  const auto destination_terrain =
+      destination.parent_path() / "Saved.lyra-terrain.json";
+  const auto rom = temp.path() / "private.sfc";
+  WriteTextFile(rom, "private ROM");
+  WriteTextFile(destination, "unrelated project");
+  YazeProject project;
+  project.name = "Oracle";
+  project.filepath = original.string();
+  project.rom_filename = rom.string();
+  project.lyra_terrain_file = terrain.string();
+  ASSERT_TRUE(project.Save().ok());
+  const auto original_bytes = ReadTextFile(original);
+  core::LyraTerrainProfile profile;
+  profile.tile_count = 4096;
+  profile.tile16_definition_fingerprint = "definitions:fixture";
+  profile.graphics_fingerprint = "graphics:fixture";
+  profile.palette_fingerprint = "palette:fixture";
+  profile.animation_fingerprint = "animation:fixture";
+  auto document = core::LyraTerrainDocument::Create(profile, 11);
+  ASSERT_TRUE(document.ok()) << document.status();
+  const auto baseline = document->Serialize();
+  WriteTextFile(terrain, baseline);
+  ASSERT_TRUE(document->BeginStroke().ok());
+  ASSERT_TRUE(document->Paint(3, 4, 23).ok());
+  ASSERT_TRUE(document->EndStroke().ok());
+  const auto draft = document->Serialize();
+  auto expect_refused = [&]() {
+    const auto status = project.SaveAsWithLyraTerrain(destination.string(),
+                                                      *document, baseline);
+    EXPECT_FALSE(status.ok());
+    EXPECT_EQ(project.filepath, original.string());
+    EXPECT_EQ(project.lyra_terrain_file, terrain.string());
+    EXPECT_EQ(ReadTextFile(original), original_bytes);
+    EXPECT_EQ(ReadTextFile(destination), "unrelated project");
+    EXPECT_EQ(ReadTextFile(rom), "private ROM");
+    EXPECT_EQ(document->Serialize(), draft);
+    EXPECT_TRUE(document->dirty());
+  };
+  WriteTextFile(destination_terrain, "unrelated terrain");
+  expect_refused();
+  EXPECT_EQ(ReadTextFile(destination_terrain), "unrelated terrain");
+  std::filesystem::remove(destination_terrain);
+  std::error_code link_error;
+  std::filesystem::create_hard_link(terrain, destination_terrain, link_error);
+  ASSERT_FALSE(link_error) << link_error.message();
+  expect_refused();
+  EXPECT_EQ(ReadTextFile(terrain), baseline);
+  std::filesystem::remove(destination_terrain);
+  WriteTextFile(terrain, "changed outside this editor");
+  expect_refused();
+  EXPECT_FALSE(std::filesystem::exists(destination_terrain));
+  EXPECT_EQ(ReadTextFile(terrain), "changed outside this editor");
+  WriteTextFile(terrain, baseline);
+  const auto status =
+      project.SaveAsWithLyraTerrain(destination.string(), *document, baseline);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(ReadTextFile(terrain), baseline);
+  EXPECT_EQ(ReadTextFile(original), original_bytes);
+  EXPECT_EQ(ReadTextFile(destination_terrain), draft);
+}
 
 TEST(ProjectPathsTest, TerrainCatalogPathSurvivesSaveAndResetsOnNextProject) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_terrain_project"));
@@ -565,6 +798,9 @@ hack_manifest_file=hack_manifest.json
 
 [labels_room]
 37=Thieves' Town
+
+[labels_room_override]
+37=Flooded Hall
 )");
 
   {
@@ -580,6 +816,7 @@ hack_manifest_file=hack_manifest.json
 
     ASSERT_TRUE(project.resource_labels.contains("room"));
     EXPECT_EQ(project.resource_labels["room"]["37"], "Water Grate");
+    EXPECT_EQ(project.resource_labels["room_override"]["37"], "Flooded Hall");
 
     ASSERT_TRUE(project.Save().ok());
   }
@@ -587,6 +824,8 @@ hack_manifest_file=hack_manifest.json
   EXPECT_NE(saved.find("[labels_room]"), std::string::npos);
   EXPECT_NE(saved.find("37=Water Grate"), std::string::npos);
   EXPECT_EQ(saved.find("37=Thieves' Town"), std::string::npos);
+  EXPECT_NE(saved.find("[labels_room_override]"), std::string::npos);
+  EXPECT_NE(saved.find("37=Flooded Hall"), std::string::npos);
 }
 
 TEST(ProjectPathsTest, ExplicitMissingHackManifestDoesNotUseFallback) {

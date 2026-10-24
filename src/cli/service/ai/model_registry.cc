@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "absl/strings/str_cat.h"
+#include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/local_gemini_cli_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/provider_ids.h"
@@ -70,6 +71,10 @@ absl::StatusOr<std::shared_ptr<yaze::cli::AIService>> CreateDiscoveryService(
   if (provider == yaze::cli::kProviderOpenAi) {
     yaze::cli::OpenAIConfig openai_config(config.openai_api_key);
     openai_config.base_url = config.openai_base_url;
+    if (config.model.empty() &&
+        !yaze::cli::IsOfficialOpenAiEndpoint(openai_config.base_url)) {
+      openai_config.model = "gpt-4o-mini";
+    }
     if (!config.model.empty()) {
       openai_config.model = config.model;
     }

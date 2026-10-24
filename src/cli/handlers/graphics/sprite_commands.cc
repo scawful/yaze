@@ -3,6 +3,8 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "cli/util/hex_util.h"
+#include "cli/util/sprite_label_fields.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -24,10 +26,11 @@ absl::Status SpriteListCommandHandler::Execute(
 
   formatter.BeginArray("sprites");
 
-  // Use the sprite names from the sprite system
+  // Project names (--project-context) first, e.g.
+  // "0x52: Collectible (vanilla: ZoraKing)".
   for (int i = 0; i < std::min(limit, 256); i++) {
-    std::string sprite_name = zelda3::kSpriteDefaultNames[i];
-    std::string sprite_entry = absl::StrFormat("0x%02X: %s", i, sprite_name);
+    std::string sprite_entry = absl::StrFormat(
+        "0x%02X: %s", i, zelda3::ResolveSpriteLabel(i).Display());
     formatter.AddArrayItem(sprite_entry);
   }
 
@@ -56,9 +59,7 @@ absl::Status SpritePropertiesCommandHandler::Execute(
   formatter.BeginObject("Sprite Properties");
   formatter.AddHexField("sprite_id", sprite_id, 2);
 
-  // Get sprite name
-  std::string sprite_name = zelda3::kSpriteDefaultNames[sprite_id];
-  formatter.AddField("name", sprite_name);
+  util::AddSpriteNameFields(formatter, sprite_id);
 
   // Add basic sprite properties
   // Note: Full sprite properties would require loading sprite data from ROM
@@ -96,8 +97,7 @@ absl::Status SpritePaletteCommandHandler::Execute(
   formatter.BeginObject("Sprite Palette");
   formatter.AddHexField("sprite_id", sprite_id, 2);
 
-  std::string sprite_name = zelda3::kSpriteDefaultNames[sprite_id];
-  formatter.AddField("name", sprite_name);
+  util::AddSpriteNameFields(formatter, sprite_id);
 
   // Note: Actual palette data would need to be loaded from ROM
   formatter.BeginObject("palette_info");

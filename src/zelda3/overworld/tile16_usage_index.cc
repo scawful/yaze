@@ -1,10 +1,13 @@
 #include "zelda3/overworld/tile16_usage_index.h"
 
+#include <algorithm>
+
 namespace yaze::zelda3 {
 
 namespace {
 
-const gfx::TileInfo& TileInfoForQuadrant(const gfx::Tile16& tile, int quadrant) {
+const gfx::TileInfo& TileInfoForQuadrant(const gfx::Tile16& tile,
+                                         int quadrant) {
   switch (quadrant) {
     case 0:
       return tile.tile0_;
@@ -66,6 +69,48 @@ absl::Status BuildTile8UsageIndex(
     AddTile16ToUsageIndex(*tile_result, tile_id, usage_index);
   }
   return absl::OkStatus();
+}
+
+void AccumulateTile16MapUsage(
+    const std::vector<std::vector<uint16_t>>& world_tiles, int local_map,
+    std::vector<int>* counts) {
+  constexpr int kMapsPerRow = 8;
+  constexpr int kTilesPerMapSide = 32;
+  if (!counts || local_map < 0) {
+    return;
+  }
+  const int x0 = (local_map % kMapsPerRow) * kTilesPerMapSide;
+  const int y0 = (local_map / kMapsPerRow) * kTilesPerMapSide;
+  const int x_end =
+      std::min(x0 + kTilesPerMapSide, static_cast<int>(world_tiles.size()));
+  for (int x = x0; x < x_end; ++x) {
+    const auto& column = world_tiles[x];
+    const int y_end =
+        std::min(y0 + kTilesPerMapSide, static_cast<int>(column.size()));
+    for (int y = y0; y < y_end; ++y) {
+      const uint16_t tile_id = column[y];
+      if (tile_id < counts->size()) {
+        ++(*counts)[tile_id];
+      }
+    }
+  }
+}
+
+std::vector<int> BuildTile16DisplayOrder(const std::vector<int>& counts,
+                                         Tile16SortMode sort_mode,
+                                         bool hide_unused) {
+  std::vector<int> order;
+  order.reserve(counts.size());
+  for (int tile_id = 0; tile_id < static_cast<int>(counts.size()); ++tile_id) {
+    if (!hide_unused || counts[tile_id] > 0) {
+      order.push_back(tile_id);
+    }
+  }
+  if (sort_mode == Tile16SortMode::kUsage) {
+    std::stable_sort(order.begin(), order.end(),
+                     [&counts](int a, int b) { return counts[a] > counts[b]; });
+  }
+  return order;
 }
 
 }  // namespace yaze::zelda3

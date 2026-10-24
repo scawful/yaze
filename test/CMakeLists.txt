@@ -94,11 +94,9 @@ if(YAZE_BUILD_TESTS)
       "${_base}_include.cmake")
   endfunction()
 
-  # Helper function to create and configure a test executable for a suite of tests.
-  # This function adds the executable, links common dependencies, and registers
-  # the tests with CTest (shards or per-case discovery, see above) under the
-  # given labels.
-  function(yaze_add_test_suite suite_name label is_gui_test)
+  # Adds a test executable with the shared entry point, include paths and
+  # link rules. It registers nothing with CTest; see yaze_add_test_suite.
+  function(yaze_add_test_executable suite_name is_gui_test)
     set(sources ${ARGN})
     
     # GUI tests need application.cc + controller.cc (full app context).
@@ -208,6 +206,14 @@ if(YAZE_BUILD_TESTS)
         target_link_options(${suite_name} PRIVATE -Wl,--stack,16777216)
       endif()
     endif()
+  endfunction()
+
+  # Helper function to create and configure a test executable for a suite of tests.
+  # This function adds the executable, links common dependencies, and registers
+  # the tests with CTest (shards or per-case discovery, see above) under the
+  # given labels.
+  function(yaze_add_test_suite suite_name label is_gui_test)
+    yaze_add_test_executable(${suite_name} ${is_gui_test} ${ARGN})
 
     set(_default_gtest_filter "*")
     if(suite_name STREQUAL "yaze_test_unit" OR
@@ -266,9 +272,9 @@ if(YAZE_BUILD_TESTS)
       string(REPLACE ";" "\\\\;" _suite_labels "${label}")
     endif()
     # Avoid duplicate CTest names across multiple suites that compile the same
-    # gtest sources (e.g. quick vs stable). Only the quick suites need a prefix.
+    # gtest sources (e.g. focused vs stable). Focused suites need a prefix.
     set(_test_prefix "")
-    if(label MATCHES "(^|;)quick(;|$)")
+    if(label MATCHES "(^|;)(quick|native_batch)(;|$)")
       set(_test_prefix "${suite_name}::")
     endif()
     if(WIN32)
@@ -306,6 +312,8 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_test.cc
     unit/core/project_bundle_test.cc
     unit/core/terrain_catalog_test.cc
+    unit/core/lyra_terrain_document_test.cc
+    unit/editor/lyra_terrain_canvas_test.cc
     unit/core/palette_catalog_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_path_test.cc
@@ -331,6 +339,7 @@ if(YAZE_BUILD_TESTS)
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
+    unit/editor/dungeon_agent_batch_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_activator_test.cc
     unit/editor/story_event_graph_navigation_test.cc
@@ -485,6 +494,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_file_passthrough_test.cc
     unit/core/project_atlas_settings_test.cc
     unit/core/project_plan_test.cc
+    unit/editor/planning_editor_test.cc
     unit/util/lru_cache_test.cc
     unit/util/bps_test.cc
     unit/util/indexed_png_test.cc
@@ -599,6 +609,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/overworld_area_render_test.cc
     unit/zelda3/overworld_default_gfx_group_test.cc
     unit/zelda3/overworld_version_helper_test.cc
+    unit/zelda3/zscream_custom_layout_test.cc
     unit/zelda3/overworld_allocation_test.cc
     unit/zelda3/special_entrance_inspector_test.cc
     unit/zelda3/zelda3_version_test.cc
@@ -646,6 +657,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_draw_code_test.cc
     unit/zelda3/dungeon/game_parity_gate_test.cc
     unit/zelda3/dungeon/custom_object_room_render_test.cc
+    unit/zelda3/dungeon/room_animated_graphics_test.cc
     unit/zelda3/dungeon/room_object_rom_parity_test.cc
     unit/dungeon_object_drawer_test.cc
     unit/object_selection_test.cc
@@ -720,6 +732,8 @@ if(YAZE_BUILD_TESTS)
       unit/cli/ai_service_factory_test.cc
       unit/cli/model_registry_test.cc
       unit/cli/tool_dispatcher_test.cc
+      unit/cli/dungeon_editor_tool_dispatch_test.cc
+      unit/editor/dungeon_agent_tools_test.cc
       unit/cli/tool_schema_builder_test.cc
       unit/cli/http_api_handlers_test.cc
       unit/cli/api_handlers_test.cc
@@ -809,6 +823,14 @@ if(YAZE_BUILD_TESTS)
   list(APPEND STABLE_INTEGRATION_TEST_SOURCES ${QUICK_INTEGRATION_TEST_SOURCES})
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  if(YAZE_ENABLE_AGENT_CLI AND YAZE_ENABLE_JSON)
+    yaze_add_test_suite(yaze_test_native_batch "native_batch;unit" OFF
+      unit/cli/dungeon_editor_tool_dispatch_test.cc
+      unit/editor/dungeon_agent_batch_test.cc
+      unit/editor/dungeon_agent_tools_test.cc
+      unit/cli/tool_schema_builder_test.cc
+      unit/zelda3/dungeon/room_animated_graphics_test.cc)
+  endif()
   target_compile_definitions(yaze_test_unit PRIVATE
     YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
   )
@@ -823,6 +845,51 @@ if(YAZE_BUILD_TESTS)
     LABELS "stable;unit"
     TIMEOUT 45
   )
+
+  # --- Focused Test Targets (build by name; not part of `all`) ---
+  # Each compiles a few yaze_test_unit sources against the same libraries, so
+  # one area can be checked without compiling every unit test source:
+  #   scripts/agent_build.sh yaze_test_focus_lyra_authoring
+  #   build/presets/mac-ai/bin/Debug/yaze_test_focus_lyra_authoring
+  # Their cases reach CTest and CI only through yaze_test_unit; focused targets
+  # register no CTest entries. Every focused source must stay in
+  # STABLE_UNIT_TEST_SOURCES, verified during configuration.
+  function(yaze_add_focused_test_target target_name)
+    set(_sources ${ARGN})
+    if(NOT _sources)
+      message(FATAL_ERROR "${target_name} has no sources")
+    endif()
+    set(_unique_sources ${_sources})
+    list(REMOVE_DUPLICATES _unique_sources)
+    list(LENGTH _sources _source_count)
+    list(LENGTH _unique_sources _unique_count)
+    if(NOT _source_count EQUAL _unique_count)
+      message(FATAL_ERROR "${target_name} lists a source more than once")
+    endif()
+    foreach(_source IN LISTS _sources)
+      if(NOT _source IN_LIST STABLE_UNIT_TEST_SOURCES)
+        message(FATAL_ERROR
+          "${target_name}: ${_source} is not compiled into yaze_test_unit")
+      endif()
+    endforeach()
+    yaze_add_test_executable(${target_name} OFF ${_sources})
+    set_target_properties(${target_name} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    target_compile_definitions(${target_name} PRIVATE
+      YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
+    )
+  endfunction()
+
+  # Lyra terrain documents and canvas, project file paths, and project
+  # Create/Open/reopen lifecycle through EditorManager.
+  set(FOCUS_LYRA_AUTHORING_TEST_SOURCES
+    unit/core/lyra_terrain_document_test.cc
+    unit/core/project_paths_test.cc
+    unit/editor/lyra_terrain_canvas_test.cc
+    unit/editor/editor_manager_project_actions_test.cc
+  )
+  yaze_add_focused_test_target(yaze_test_focus_lyra_authoring
+    ${FOCUS_LYRA_AUTHORING_TEST_SOURCES})
+
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)
     # Match the encoder's compiled capability, not sibling-directory visibility

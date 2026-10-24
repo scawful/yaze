@@ -2,9 +2,29 @@
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <optional>
 #include <string>
 
+#include "absl/status/status.h"
+#include "app/application.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/ui/ui_constants.h"
+#include "app/gui/automation/widget_id_registry.h"
+#include "core/source_artifact_publisher.h"
 #include "imgui.h"
+#include "nlohmann/json.hpp"
+#include "zelda3/game_data.h"
+#include "zelda3/resource_labels.h"
 #if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
 #elif __has_include("imgui_te_context.h")
@@ -374,6 +394,1140 @@ static void RegisterWorldSelectorTests(ImGuiTestEngine* engine) {
   }
 }
 
+// This test writes only an explicitly named disposable project and its terrain
+// sidecar. It is absent from ordinary UI runs unless the exact project path is
+// supplied at process startup, and still refuses an unmarked/wrong project.
+static void RegisterLyraTerrainAcceptanceTest(ImGuiTestEngine* engine) {
+  const char* requested = std::getenv("YAZE_LYRA_TERRAIN_ACCEPTANCE_PROJECT");
+  if (!requested || !*requested ||
+      std::getenv("YAZE_LYRA_TERRAIN_REOPEN_PROJECT"))
+    return;
+  ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "lyra_terrain",
+                                     "cross_map_stroke_undo_redo_project_save");
+  test->TestFunc = [](ImGuiTestContext* ctx) {
+    namespace fs = std::filesystem;
+    const char* requested = std::getenv("YAZE_LYRA_TERRAIN_ACCEPTANCE_PROJECT");
+    IM_CHECK(requested && *requested);
+    IM_CHECK(fs::path(requested).is_absolute());
+    std::error_code ec;
+    const auto expected_project = fs::canonical(requested, ec);
+    IM_CHECK(!ec);
+
+    editor::EditorManager* manager = nullptr;
+    project::YazeProject* current_project = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* controller = Application::Instance().GetController();
+      manager = controller ? controller->editor_manager() : nullptr;
+      current_project = manager ? manager->GetCurrentProject() : nullptr;
+      if (current_project && current_project->project_opened() &&
+          fs::weakly_canonical(current_project->filepath, ec) ==
+              expected_project &&
+          !ec)
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(manager && current_project && current_project->project_opened());
+    IM_CHECK(fs::canonical(current_project->filepath, ec) == expected_project &&
+             !ec);
+    IM_CHECK(current_project->name.find("[Lyra canvas acceptance]") !=
+             std::string::npos);
+    const auto project_directory = expected_project.parent_path();
+    const auto rom_path = fs::canonical(
+        current_project->GetAbsolutePath(current_project->rom_filename), ec);
+    IM_CHECK(!ec && rom_path.parent_path() == project_directory);
+    IM_CHECK(rom_path.filename() == "main-with-d3.sfc");
+    auto* rom = manager->GetCurrentRom();
+    IM_CHECK(rom && rom->is_loaded() && !rom->dirty());
+    IM_CHECK(fs::canonical(rom->filename(), ec) == rom_path && !ec);
+    const auto rom_before = rom->vector();
+    const auto read_file =
+        [](const fs::path& path) -> std::optional<std::string> {
+      std::ifstream file(path, std::ios::binary);
+      if (!file)
+        return std::nullopt;
+      std::string bytes{std::istreambuf_iterator<char>(file), {}};
+      return file.bad() ? std::nullopt
+                        : std::optional<std::string>(std::move(bytes));
+    };
+    const auto rom_disk_before = read_file(rom_path);
+    IM_CHECK(rom_disk_before.has_value());
+    if (!current_project->lyra_terrain_file.empty()) {
+      const auto source = fs::canonical(
+          current_project->GetAbsolutePath(current_project->lyra_terrain_file),
+          ec);
+      IM_CHECK(!ec && source.parent_path() == project_directory);
+    }
+
+    manager->OpenEditorAndPanelsFromFlags(
+        "Overworld", "overworld.canvas,overworld.tile16_selector");
+    auto& widgets = gui::WidgetIdRegistry::Instance();
+    editor::OverworldEditor* overworld = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                                editor::EditorType::kOverworld)
+                          : nullptr;
+      if (overworld && overworld->overworld().is_loaded() &&
+          overworld->lyra_canvas_.loaded() &&
+          widgets.GetWidgetId("OverworldToolbar/world:2") != 0 &&
+          widgets.GetWidgetId("OwBlocksetSelector/button:Lookup") != 0 &&
+          ctx->ItemExists("**/OwMap"))
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(overworld && overworld->overworld().is_loaded());
+    if (!overworld->lyra_canvas_status_.ok()) {
+      IM_ERRORF("Native Loom binding failed: %s",
+                overworld->lyra_canvas_status_.ToString().c_str());
+      return;
+    }
+    IM_CHECK(overworld->lyra_canvas_.loaded());
+    // Project autoload must land on Lyra inside the normal Special World.
+    // Check before the test changes the world, selection, or viewport.
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+    IM_CHECK_EQ(overworld->DisplayedMapCount(), 192);
+    IM_CHECK(!overworld->IsProjectTerrainMap(0x80));
+    IM_CHECK(overworld->IsProjectTerrainMap(0xA0));
+    IM_CHECK(overworld->IsProjectTerrainMap(0xBF));
+    const auto* document = overworld->lyra_canvas_.document();
+    IM_CHECK(document != nullptr && !document->dirty());
+    const auto source_path = fs::weakly_canonical(
+        current_project->GetAbsolutePath(current_project->lyra_terrain_file),
+        ec);
+    IM_CHECK(!ec && source_path.parent_path() == project_directory);
+    IM_CHECK(source_path.extension() == ".json");
+
+    const auto world =
+        ctx->ItemInfo(widgets.GetWidgetId("OverworldToolbar/world:2"));
+    IM_CHECK(world.ID != 0 && world.Window != nullptr);
+    ctx->SetRef(world.Window);
+    ctx->WindowFocus("");
+    ctx->ItemClick(world.ID);
+    ctx->Yield(2);
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+
+    // Only the viewport setup is programmatic. Brush selection, the stroke,
+    // and undo/redo use the ordinary editor controls. Lyra's first document
+    // row is world Tile16 row 128 (map A0), below the existing SW maps.
+    constexpr int kX = 4;
+    constexpr int kStartY = 30;
+    constexpr int kLyraWorldY = 128;
+    auto& canvas = overworld->ow_map_canvas();
+    canvas.set_global_scale(0.25f);
+    overworld->LocateOverworldTile(0xA0, kX, kLyraWorldY + 48);
+    ctx->Yield(3);
+    auto terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+    const auto cell_position = [&](int y) {
+      const auto origin = canvas.zero_point();
+      const auto scrolling = canvas.scrolling();
+      const float cell_pixels = 16.0f * canvas.global_scale();
+      return ImVec2(
+          origin.x + scrolling.x + (kX + 0.5f) * cell_pixels,
+          origin.y + scrolling.y + (kLyraWorldY + y + 0.5f) * cell_pixels);
+    };
+    const bool reaches_b0 = terrain.RectClipped.Contains(cell_position(65));
+    const int end_y = reaches_b0 ? 65 : 33;
+    IM_CHECK(terrain.RectClipped.Contains(cell_position(kStartY)));
+    IM_CHECK(terrain.RectClipped.Contains(cell_position(end_y)));
+
+    // The normal Tile16 selector's lookup popup chooses the brush through
+    // RequestTile16Selection; it must use the Loom atlas for map A0.
+    std::array<bool, 8> used{};
+    for (const int y : {31, 32, end_y}) {
+      const auto tile = document->tile(kX, y);
+      IM_CHECK(tile.ok());
+      if (*tile < used.size())
+        used[*tile] = true;
+    }
+    const int old_brush = overworld->current_tile16_id();
+    if (old_brush >= 0 && old_brush < static_cast<int>(used.size()))
+      used[old_brush] = true;
+    int brush = 0;
+    while (brush < static_cast<int>(used.size()) && used[brush])
+      ++brush;
+    IM_CHECK(brush < 8 &&
+             brush < static_cast<int>(document->profile().tile_count));
+    // Startup toasts overlap the selector's top-right lookup control. Their
+    // TTL uses steady_clock and pauses on hover, so simulated SleepNoSkip
+    // time cannot expire them. Let the real UI age them without dismissing
+    // notifications or bypassing the ordinary selector interaction.
+    auto* toasts = manager->toast_manager();
+    IM_CHECK(toasts != nullptr);
+    if (toasts->pending_count() != 0) {
+      // The dockspace fills the viewport, so there may be no window-free
+      // point. This validated canvas cell is away from the toast stack.
+      ctx->MouseSetViewport(terrain.Window);
+      ctx->MouseMoveToPos(cell_position(kStartY));
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(15);
+      while (toasts->pending_count() != 0 &&
+             std::chrono::steady_clock::now() < deadline && !ctx->IsError())
+        ctx->Yield(1);
+      IM_CHECK_EQ(toasts->pending_count(), 0);
+      ctx->Yield(2);
+    }
+
+    // Registry entries outlive their widgets by 600 frames; only an item
+    // ImGui submitted recently counts as present.
+    const auto visible_widget = [&](const std::string& suffix) -> ImGuiID {
+      const std::string tail = "/" + suffix;
+      for (const auto& path : widgets.FindWidgets("*" + suffix)) {
+        const bool match =
+            path == suffix ||
+            (path.size() > tail.size() &&
+             path.compare(path.size() - tail.size(), tail.size(), tail) == 0);
+        const ImGuiID id = match ? widgets.GetWidgetId(path) : 0;
+        if (id != 0 && ctx->ItemExists(id))
+          return id;
+      }
+      return 0;
+    };
+
+    // A legacy Current area + Hide unused filter must not hide project
+    // terrain tiles, and must return unchanged on the next legacy map. Only
+    // native grid clicks prove which tile a visible cell holds.
+    constexpr int kLegacyMap = 0x3A;
+    const bool selector_was_pinned = overworld->map_pinned();
+    if (!selector_was_pinned)
+      overworld->ToggleMapLock();
+    manager->OpenEditorAndPanelsFromFlags("Overworld",
+                                          "overworld.tile16_selector");
+    ctx->Yield(3);
+    const auto selector_window =
+        manager->window_manager().GetWorkspaceWindowName(
+            manager->GetCurrentSessionId(), "overworld.tile16_selector");
+    ctx->SetRef(selector_window.c_str());
+    ImGuiWindow* selector = ctx->GetWindowByRef("");
+    IM_CHECK(selector != nullptr);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
+    // The grid child has no padding: cell i is drawn after the selector's
+    // x offset, at column i % 8 and row i / 8 of square cells.
+    const std::string grid_prefix = std::string(selector->Name) + "/";
+    const auto tile16_grid = [&]() -> ImGuiWindow* {
+      for (ImGuiWindow* window : ctx->UiContext->Windows) {
+        const std::string name = window->Name;
+        if (window->WasActive && name.rfind(grid_prefix, 0) == 0 &&
+            name.find("/##Tile16Grid") != std::string::npos)
+          return window;
+      }
+      return nullptr;
+    };
+    constexpr int kColumns = editor::kTile16SelectorColumns;
+    float cell = 0.0f;
+    // Returns the native selection after clicking a visible cell, else -1.
+    const auto click_cell = [&](ImGuiWindow* grid, int index) -> int {
+      const ImVec2 pos(
+          grid->Pos.x - grid->Scroll.x + editor::kTile16SelectorDrawOffsetX +
+              (index % kColumns + 0.5f) * cell,
+          grid->Pos.y - grid->Scroll.y + (index / kColumns + 0.5f) * cell);
+      if (!grid->InnerClipRect.Contains(pos))
+        return -1;
+      const auto name = [](const ImGuiWindow* window) {
+        return window != nullptr ? window->Name : "(null)";
+      };
+      ctx->SetRef(selector);
+      const auto canvas_item =
+          ctx->ItemInfo(grid->GetID("OwBlockset"), ImGuiTestOpFlags_NoError);
+      const ImRect& full = canvas_item.RectFull;
+      const ImRect& clipped = canvas_item.RectClipped;
+      ctx->LogInfo(
+          "Tile16 click map=0x%02X selected=0x%03X requested=0x%03X "
+          "cell=%.2f grid=%s pos=(%.1f,%.1f) scroll=(%.1f,%.1f) "
+          "target=(%.1f,%.1f) canvas_id=0x%08X canvas_window=%s "
+          "full=(%.1f,%.1f)-(%.1f,%.1f) clipped=(%.1f,%.1f)-(%.1f,%.1f) "
+          "in_canvas=%d hovered=%s",
+          overworld->current_map_id(), overworld->current_tile16_id(), index,
+          cell, name(grid), grid->Pos.x, grid->Pos.y, grid->Scroll.x,
+          grid->Scroll.y, pos.x, pos.y, canvas_item.ID,
+          name(canvas_item.Window), full.Min.x, full.Min.y, full.Max.x,
+          full.Max.y, clipped.Min.x, clipped.Min.y, clipped.Max.x,
+          clipped.Max.y, canvas_item.ID != 0 && clipped.Contains(pos),
+          name(ctx->UiContext->HoveredWindow));
+      ctx->MouseSetViewport(grid);
+      ctx->MouseMoveToPos(pos);
+      ctx->LogInfo("Tile16 click moved hovered=%s",
+                   name(ctx->UiContext->HoveredWindow));
+      ctx->MouseClick(ImGuiMouseButton_Left);
+      // Successive probes can share a screen point; never double-click.
+      ctx->SleepNoSkip(0.5f, 1.0f / 60.0f);
+      ctx->LogInfo("Tile16 click requested=0x%03X selected=0x%03X hovered=%s",
+                   index, overworld->current_tile16_id(),
+                   name(ctx->UiContext->HoveredWindow));
+      return overworld->current_tile16_id();
+    };
+    const auto lookup_tile = [&](int tile) -> bool {
+      const ImGuiID button =
+          widgets.GetWidgetId("OwBlocksetSelector/button:Lookup");
+      if (button == 0)
+        return false;
+      ctx->ItemClick(button);
+      ctx->Yield(2);
+      const ImGuiID input =
+          widgets.GetWidgetId("OwBlocksetSelector/input:TileID");
+      if (input == 0)
+        return false;
+      char hex[8];
+      std::snprintf(hex, sizeof(hex), "%X", tile);
+      ctx->ItemInputValue(input, hex);
+      ctx->Yield(3);
+      return overworld->current_tile16_id() == tile;
+    };
+    // Project terrain grids use full ID order. Lookup centres its tile, so
+    // two lookups 16 rows apart measure the cell size from the scroll delta.
+    const auto check_lyra_grid = [&](int map_id) -> bool {
+      overworld->JumpToMap(map_id);
+      ctx->Yield(3);
+      ImGuiWindow* grid = tile16_grid();
+      if (overworld->current_map_id() != map_id || grid == nullptr)
+        return false;
+      if (cell <= 0.0f) {
+        if (!lookup_tile(0x800))
+          return false;
+        const float top = grid->Scroll.y;
+        if (!lookup_tile(0x880))
+          return false;
+        cell = std::round((grid->Scroll.y - top) / 16.0f);
+        if (cell < 1.0f)
+          return false;
+      }
+      // Lookup alone can select a hidden tile. Click a different ID first,
+      // then the final palette cell, to prove both native hit targets exist.
+      return lookup_tile(0xFFF) && click_cell(grid, 0xFF8) == 0xFF8 &&
+             click_cell(grid, 0xFFF) == 0xFFF;
+    };
+    overworld->JumpToMap(kLegacyMap);
+    ImGuiID scope_button = 0;
+    for (int frame = 0; frame < 120 && scope_button == 0 && !ctx->IsError();
+         ++frame) {
+      ctx->Yield(1);
+      if (overworld->current_map_id() == kLegacyMap)
+        scope_button = visible_widget("button:tile16_usage_scope");
+    }
+    IM_CHECK_EQ(overworld->current_map_id(), kLegacyMap);
+    IM_CHECK(scope_button != 0);
+    ctx->ItemClick(scope_button);
+    ctx->Yield(2);
+    ImGuiWindow* scope_popup = ctx->GetWindowByRef("//$FOCUSED");
+    IM_CHECK(scope_popup != nullptr &&
+             (scope_popup->Flags & ImGuiWindowFlags_Popup) != 0);
+    ctx->SetRef(scope_popup);
+    ctx->ItemClick("Current area");
+    ctx->ItemCheck("Hide unused tiles");
+    IM_CHECK(ctx->ItemIsChecked("Hide unused tiles"));
+    ctx->PopupCloseAll();
+    ctx->Yield(3);
+    const std::string legacy_scope = ctx->ItemInfo(scope_button).DebugLabel;
+    IM_CHECK(legacy_scope.find('*') != std::string::npos);
+
+    for (const int map_id : {0xA0, 0xA1})
+      IM_CHECK(check_lyra_grid(map_id));
+
+    overworld->JumpToMap(kLegacyMap);
+    scope_button = 0;
+    for (int frame = 0; frame < 120 && scope_button == 0 && !ctx->IsError();
+         ++frame) {
+      ctx->Yield(1);
+      if (overworld->current_map_id() == kLegacyMap)
+        scope_button = visible_widget("button:tile16_usage_scope");
+    }
+    IM_CHECK_EQ(overworld->current_map_id(), kLegacyMap);
+    IM_CHECK(scope_button != 0);
+    ctx->Yield(2);
+    IM_CHECK(ctx->ItemInfo(scope_button).DebugLabel == legacy_scope);
+    ctx->ItemClick(scope_button);
+    ctx->Yield(2);
+    scope_popup = ctx->GetWindowByRef("//$FOCUSED");
+    IM_CHECK(scope_popup != nullptr &&
+             (scope_popup->Flags & ImGuiWindowFlags_Popup) != 0);
+    ctx->SetRef(scope_popup);
+    IM_CHECK(ctx->ItemIsChecked("Current area"));
+    IM_CHECK(ctx->ItemIsChecked("Hide unused tiles"));
+    ctx->PopupCloseAll();
+    ctx->Yield(2);
+
+    canvas.set_global_scale(0.25f);
+    overworld->LocateOverworldTile(0xA0, kX, kLyraWorldY + 48);
+    ctx->Yield(3);
+    if (!selector_was_pinned)
+      overworld->ToggleMapLock();
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+
+    const auto lookup =
+        ctx->ItemInfo(widgets.GetWidgetId("OwBlocksetSelector/button:Lookup"));
+    IM_CHECK(lookup.ID != 0 && lookup.Window != nullptr);
+    ctx->SetRef(lookup.Window);
+    ctx->WindowFocus("");
+    ctx->ItemClick(lookup.ID);
+    ctx->Yield(2);
+    const ImGuiID tile_input =
+        widgets.GetWidgetId("OwBlocksetSelector/input:TileID");
+    IM_CHECK(tile_input != 0);
+    // The first eight tile IDs have the same decimal and hexadecimal text.
+    ctx->ItemInputValue(tile_input, std::to_string(brush).c_str());
+    ctx->Yield(2);
+    IM_CHECK_EQ(overworld->current_tile16_id(), brush);
+    ctx->SetRef(world.Window);
+    ctx->WindowFocus("");
+    ImGuiID paint = widgets.GetWidgetId("OverworldToolbar/button:Paint");
+    const bool tools_overflow = paint == 0 || !ctx->ItemExists(paint);
+    if (tools_overflow) {
+      const ImGuiID tools =
+          widgets.GetWidgetId("OverworldToolbar/button:Tools");
+      IM_CHECK(tools != 0);
+      ctx->ItemClick(tools);
+      ctx->Yield(2);
+      paint = widgets.GetWidgetId("OverworldToolbar/button:Paint");
+    }
+    IM_CHECK(paint != 0);
+    ctx->ItemClick(paint);
+    if (tools_overflow)
+      ctx->KeyPress(ImGuiKey_Escape);
+    ctx->Yield(2);
+    const auto before =
+        std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
+    const size_t undo_before = overworld->undo_manager().UndoStackSize();
+    IM_CHECK(undo_before < overworld->undo_manager().GetMaxStackSize());
+
+    terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.RectClipped.Contains(cell_position(kStartY)));
+    IM_CHECK(terrain.RectClipped.Contains(cell_position(end_y)));
+    ctx->MouseSetViewport(terrain.Window);
+    ctx->MouseMoveToPos(cell_position(kStartY));
+    ctx->MouseDown(ImGuiMouseButton_Left);
+    ctx->Yield(2);
+    ctx->MouseMoveToPos(cell_position(32));
+    ctx->Yield(2);
+    ctx->MouseMoveToPos(cell_position(end_y));
+    ctx->Yield(2);
+    ctx->MouseUp(ImGuiMouseButton_Left);
+    ctx->Yield(3);
+
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 1);
+    IM_CHECK(document->dirty());
+    for (int y = kStartY; y <= end_y; ++y)
+      IM_CHECK(document->tile(kX, y).value() == brush);
+    const auto painted =
+        std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
+    IM_CHECK(manager->GetCurrentEditor() == overworld);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(overworld->lyra_canvas_status_.ok());
+    IM_CHECK(document->maps() == *before);
+    IM_CHECK(!document->dirty());
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(overworld->lyra_canvas_status_.ok());
+    IM_CHECK(document->maps() == *painted);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 1);
+
+    // Capture a real rectangle across A0/A8, copy it through the editor's
+    // clipboard shortcut, and paste it across the next available map seam.
+    // Four columns at 0.25x exceed ImGui's drag threshold without changing
+    // the viewport; the original painted column makes the pattern nonuniform.
+    const auto xy_position = [&](int x, int y) {
+      const auto origin = canvas.zero_point();
+      const auto scrolling = canvas.scrolling();
+      const float size = 16.0f * canvas.global_scale();
+      return ImVec2(origin.x + scrolling.x + (x + 0.5f) * size,
+                    origin.y + scrolling.y + (kLyraWorldY + y + 0.5f) * size);
+    };
+    editor::TileBrush rectangle{4, 3, {}};
+    for (int y = 31; y <= 33; ++y)
+      for (int x = kX; x < kX + rectangle.width; ++x)
+        rectangle.tile_ids.push_back(document->tile(x, y).value());
+    ctx->MouseMoveToPos(xy_position(kX, 31));
+    ctx->MouseDown(ImGuiMouseButton_Right);
+    ctx->Yield(2);
+    ctx->MouseMoveToPos(xy_position(kX + 3, 33));
+    ctx->Yield(2);
+    ctx->MouseUp(ImGuiMouseButton_Right);
+    ctx->Yield(3);
+    IM_CHECK(overworld->tile_painting()->selection_brush() != nullptr);
+    IM_CHECK_EQ(overworld->tile_painting()->selection_brush()->width, 4);
+    IM_CHECK_EQ(overworld->tile_painting()->selection_brush()->height, 3);
+    IM_CHECK(overworld->tile_painting()->selection_brush()->tile_ids ==
+             rectangle.tile_ids);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_C);
+    ctx->Yield(2);
+    const int paste_y = reaches_b0 ? 63 : 31;
+    IM_CHECK(terrain.RectClipped.Contains(xy_position(11, paste_y + 2)));
+    ctx->MouseMoveToPos(xy_position(8, paste_y));
+    ctx->Yield(2);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_V);
+    ctx->Yield(3);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 2);
+    for (int y = 0; y < rectangle.height; ++y)
+      for (int x = 0; x < rectangle.width; ++x)
+        IM_CHECK(document->tile(8 + x, paste_y + y).value() ==
+                 rectangle.at(x, y));
+    const auto pasted =
+        std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *painted);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *pasted);
+
+    // The same captured rectangle is a brush and a fill pattern. Draw a
+    // stamp, undo it exactly, then fill A9 through the normal toolbar.
+    ctx->MouseMoveToPos(xy_position(16, paste_y));
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->Yield(3);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
+    for (int y = 0; y < rectangle.height; ++y)
+      for (int x = 0; x < rectangle.width; ++x)
+        IM_CHECK(document->tile(16 + x, paste_y + y).value() ==
+                 rectangle.at(x, y));
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *pasted);
+    ImGuiID fill = widgets.GetWidgetId("OverworldToolbar/button:Fill");
+    const bool fill_overflow = fill == 0 || !ctx->ItemExists(fill);
+    if (fill_overflow) {
+      const auto tools = widgets.GetWidgetId("OverworldToolbar/button:Tools");
+      IM_CHECK(tools != 0);
+      ctx->ItemClick(tools);
+      ctx->Yield(2);
+      fill = widgets.GetWidgetId("OverworldToolbar/button:Fill");
+    }
+    IM_CHECK(fill != 0);
+    ctx->ItemClick(fill);
+    if (fill_overflow)
+      ctx->KeyPress(ImGuiKey_Escape);
+    overworld->LocateOverworldTile(0xA9, 48, kLyraWorldY + 48);
+    ctx->Yield(3);
+    terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.RectClipped.Contains(xy_position(48, 48)));
+    ctx->MouseSetViewport(terrain.Window);
+    ctx->MouseMoveToPos(xy_position(48, 48));
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->Yield(3);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
+    for (int y = 0; y < 32; ++y)
+      for (int x = 0; x < 32; ++x)
+        IM_CHECK(document->tile(32 + x, 32 + y).value() ==
+                 rectangle.at(x % rectangle.width, y % rectangle.height));
+    const auto filled =
+        std::make_unique<core::LyraTerrainDocument::Maps>(document->maps());
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *pasted);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Z);
+    ctx->Yield(2);
+    IM_CHECK(document->maps() == *filled);
+    editor::UndoManager rejected_history;
+    const auto rejected = overworld->lyra_canvas_.PaintPattern(
+        {2, 1, {brush, static_cast<int>(document->profile().tile_count)}}, 0, 0,
+        2, 1, true, rejected_history);
+    IM_CHECK(!rejected.ok());
+    IM_CHECK_EQ(rejected_history.UndoStackSize(), 0);
+    IM_CHECK(document->maps() == *filled);
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), undo_before + 3);
+
+    // Native property controls use the same project history as terrain.
+    // The fill click left the cursor over A9; pin A0 so hover-follow cannot
+    // retarget the properties panel before the native input reaches it.
+    const bool was_pinned = overworld->map_pinned();
+    if (!was_pinned)
+      overworld->ToggleMapLock();
+    overworld->set_current_map(0xA0);
+    manager->OpenEditorAndPanelsFromFlags("Overworld", "overworld.properties");
+    ctx->Yield(5);
+    const auto properties_window =
+        manager->window_manager().GetWorkspaceWindowName(
+            manager->GetCurrentSessionId(), "overworld.properties");
+    ctx->SetRef(properties_window.c_str());
+    IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
+    const auto property_input =
+        widgets.GetWidgetId("LyraMapProperties/input:MainPalette");
+    IM_CHECK(property_input != 0);
+    const auto property_item = ctx->ItemInfo(property_input);
+    IM_CHECK(property_item.Window != nullptr);
+    ctx->SetRef(property_item.Window);
+    ctx->WindowFocus("");
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+    const auto authoring_before =
+        std::make_unique<core::LyraAuthoringState>(document->authoring());
+    const int next_palette =
+        document->authoring().maps[0].properties.main_palette == 0 ? 1 : 0;
+    ctx->ItemInputValue(property_input, std::to_string(next_palette).c_str());
+    ctx->ItemClick(widgets.GetWidgetId("LyraMapProperties/button:Apply"));
+    ctx->Yield(3);
+    IM_CHECK_EQ(document->authoring().maps[0].properties.main_palette,
+                next_palette);
+    IM_CHECK(overworld->Undo().ok());
+    IM_CHECK(document->authoring() == *authoring_before);
+    IM_CHECK(overworld->Redo().ok());
+    IM_CHECK_EQ(document->authoring().maps[0].properties.main_palette,
+                next_palette);
+    ctx->Yield(3);
+    const auto sprite_count = document->authoring().maps[0].sprites.size();
+    ctx->ItemClick(widgets.GetWidgetId("LyraMapProperties/button:AddSprite"));
+    ctx->Yield(2);
+    IM_CHECK_EQ(document->authoring().maps[0].sprites.size(), sprite_count + 1);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+    if (!was_pinned)
+      overworld->ToggleMapLock();
+    auto authored =
+        std::make_unique<core::LyraAuthoringState>(document->authoring());
+    authored->maps[1].properties.graphics_sheets[0] = 0;
+    authored->maps[1].properties.graphics_sheets[1] = 0xFF;
+    authored->maps[0].doors = {{900001, 9, 10, std::nullopt}};
+    authored->maps[0].exits = {{900002, 0x105, 11, 12, std::nullopt}};
+    authored->flight_points = {
+        {900003, 0xA0, 13, 14, "Lyra test", std::nullopt},
+        {900004, 0x20, 15, 16, "Legacy test", std::nullopt}};
+    const auto edit = overworld->EditProjectMapAuthoring(*authored);
+    IM_CHECK(edit.ok());
+    const auto expected_authoring =
+        std::make_unique<core::LyraAuthoringState>(document->authoring());
+    IM_CHECK(overworld->Undo().ok());
+    IM_CHECK(overworld->Redo().ok());
+    IM_CHECK(document->authoring() == *expected_authoring);
+    for (int state = 0; state < 3; ++state)
+      IM_CHECK(overworld->lyra_canvas_
+                   .PrepareMapAssets(overworld->overworld(), state)
+                   .ok());
+    IM_CHECK(overworld->lyra_canvas_.PrepareMapAssets(overworld->overworld(), 0)
+                 .ok());
+    const auto* source_map = overworld->overworld().overworld_map(0x3A);
+    auto normal = *source_map;
+    normal.ClearInheritedAreaProperties();
+    normal.set_main_palette(next_palette);
+    IM_CHECK(normal.LoadPalette().ok());
+    IM_CHECK_EQ(overworld->lyra_canvas_.MapAtlas(0xA0).palette()[33].snes(),
+                normal.current_palette()[33].snes());
+    IM_CHECK_EQ(overworld->lyra_canvas_.MapGraphics(0xA1)->vector()[0],
+                static_cast<uint8_t>(
+                    source_map->game_data()->graphics_buffer[0] + 0x88));
+    auto invalid_authoring =
+        std::make_unique<core::LyraAuthoringState>(document->authoring());
+    invalid_authoring->maps[0].properties.main_palette = 0xFE;
+    IM_CHECK(!overworld->EditProjectMapAuthoring(*invalid_authoring).ok());
+    IM_CHECK(document->authoring() == *expected_authoring);
+    IM_CHECK(document->maps() == *filled);
+
+    // The workbench rename popup edits the same project this save writes.
+    // The registry must be present so the reopen below re-injects defaults.
+    namespace room_labels = editor::dungeon_project_labels;
+    constexpr int kRenamedRoom = 0x25;
+    constexpr int kHoverRoom = 0x12;
+    const std::string room_rename = "Lyra Native Rename";
+    const std::string room_key = std::to_string(kRenamedRoom);
+    const auto default_room_label = [&](const project::YazeProject& project) {
+      const auto type = project.resource_labels.find("room");
+      if (type == project.resource_labels.end())
+        return std::string();
+      const auto label = type->second.find(room_key);
+      return label == type->second.end() ? std::string() : label->second;
+    };
+    IM_CHECK(current_project->hack_manifest.HasProjectRegistry());
+    const std::string room_default = default_room_label(*current_project);
+    IM_CHECK(!room_default.empty());
+    manager->OpenEditorAndPanelsFromFlags("Dungeon", "dungeon.workbench");
+    const auto workbench_window =
+        manager->window_manager().GetWorkspaceWindowName(
+            manager->GetCurrentSessionId(), "dungeon.workbench");
+    ctx->SetRef(workbench_window.c_str());
+    for (int frame = 0;
+         frame < 120 && ctx->GetWindowByRef("") == nullptr && !ctx->IsError();
+         ++frame)
+      ctx->Yield(1);
+    IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+    ctx->WindowFocus("");
+    ctx->Yield(2);
+    editor::DungeonEditorV2* dungeon = nullptr;
+    ImGuiID hover_cell = 0;
+    for (int frame = 0; frame < 600 && !ctx->IsError(); ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      dungeon = editors ? editors->GetEditorAs<editor::DungeonEditorV2>(
+                              editor::EditorType::kDungeon)
+                        : nullptr;
+      if (dungeon && dungeon->IsWorkbenchWorkflowEnabled() &&
+          (hover_cell = visible_widget("button:Room 0x012")) != 0)
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(dungeon != nullptr && hover_cell != 0);
+    dungeon->add_room(kRenamedRoom);
+    ImGuiID rename_button = 0;
+    for (int frame = 0; frame < 200 && rename_button == 0 && !ctx->IsError();
+         ++frame) {
+      ctx->Yield(1);
+      if (dungeon->current_room_id() == kRenamedRoom)
+        rename_button = visible_widget("button:rename_room_button");
+    }
+    IM_CHECK_EQ(dungeon->current_room_id(), kRenamedRoom);
+    IM_CHECK(rename_button != 0);
+    ctx->Yield(3);
+    // Toasts stack over the inspector's top edge; park on the open room's
+    // matrix cell so they can expire.
+    if (toasts->pending_count() != 0) {
+      const ImGuiID park = visible_widget("button:Room 0x025");
+      IM_CHECK(park != 0);
+      ctx->MouseMove(park, ImGuiTestOpFlags_NoCheckHoveredId);
+      const auto deadline =
+          std::chrono::steady_clock::now() + std::chrono::seconds(15);
+      while (toasts->pending_count() != 0 &&
+             std::chrono::steady_clock::now() < deadline && !ctx->IsError())
+        ctx->Yield(1);
+      IM_CHECK_EQ(toasts->pending_count(), 0);
+      ctx->Yield(2);
+    }
+    const auto visible_popup_widget = [&](const char* suffix) {
+      ImGuiID id = 0;
+      for (int frame = 0; frame < 60 && id == 0 && !ctx->IsError(); ++frame) {
+        ctx->Yield(1);
+        id = visible_widget(suffix);
+      }
+      return id;
+    };
+    // Enter submits through EnterReturnsTrue and closes the popup, so Save is
+    // never clicked afterwards.
+    const auto submit_room_name = [&](const std::string& name) {
+      ctx->ItemClick(rename_button);
+      const ImGuiID input =
+          visible_popup_widget("input_text:rename_room_input");
+      if (input == 0)
+        return false;
+      ctx->ItemInputValue(input, name.c_str());
+      ctx->Yield(2);
+      return !ctx->IsError();
+    };
+    IM_CHECK(submit_room_name(room_rename));
+    IM_CHECK(room_labels::FindRoomOverride(current_project, kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == room_rename);
+    IM_CHECK(manager->IsCurrentProjectDirty());
+    IM_CHECK(default_room_label(*current_project) == room_default);
+    ctx->ItemClick(rename_button);
+    const ImGuiID rename_reset =
+        visible_popup_widget("button:rename_room_reset");
+    IM_CHECK(rename_reset != 0);
+    ctx->ItemClick(rename_reset);
+    ctx->Yield(2);
+    IM_CHECK(!room_labels::HasCustomRoomLabel(current_project, kRenamedRoom));
+    IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
+             room_default);
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == room_default);
+    IM_CHECK(default_room_label(*current_project) == room_default);
+    IM_CHECK(submit_room_name(room_rename));
+    IM_CHECK(room_labels::HasCustomRoomLabel(current_project, kRenamedRoom));
+    IM_CHECK(room_labels::FindRoomOverride(current_project, kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(room_labels::GetRoomLabel(current_project, kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == room_rename);
+    IM_CHECK(manager->IsCurrentProjectDirty());
+    IM_CHECK(default_room_label(*current_project) == room_default);
+
+    // Hovering an unopened room may materialize an empty Room for the render
+    // context, but must not load it or give it pending changes.
+    IM_CHECK(dungeon->rooms().GetIfLoaded(kHoverRoom) == nullptr);
+    hover_cell = visible_widget("button:Room 0x012");
+    IM_CHECK(hover_cell != 0);
+    ctx->MouseMove(hover_cell);
+    ctx->Yield(4);
+    IM_CHECK(dungeon->rooms().GetIfLoaded(kHoverRoom) == nullptr);
+    if (const auto* hovered = dungeon->rooms().GetIfMaterialized(kHoverRoom))
+      IM_CHECK(!hovered->custom_collision_dirty() &&
+               !hovered->HasUnsavedChanges());
+    const auto* renamed_room = dungeon->rooms().GetIfLoaded(kRenamedRoom);
+    IM_CHECK(renamed_room != nullptr && !renamed_room->HasUnsavedChanges());
+
+    const auto save_status = manager->SaveProject();
+    ctx->Yield(3);
+    if (!save_status.ok()) {
+      IM_ERRORF("SaveProject failed: %s", save_status.ToString().c_str());
+      return;
+    }
+    IM_CHECK(!overworld->HasPendingProjectDraftChanges());
+    const auto saved = read_file(source_path);
+    IM_CHECK(saved.has_value() && *saved == document->Serialize());
+    // Parsing is verified by the separate fresh-process autoload test below.
+    // Keep full-map snapshots on the heap: the test-engine coroutine has a
+    // smaller stack than the main UI thread that normally loads terrain.
+    auto reopened_project = std::make_unique<project::YazeProject>();
+    IM_CHECK(reopened_project->Open(expected_project.string()).ok());
+    IM_CHECK(fs::canonical(reopened_project->lyra_terrain_file, ec) ==
+                 source_path &&
+             !ec);
+    IM_CHECK(reopened_project->hack_manifest.HasProjectRegistry());
+    IM_CHECK(
+        room_labels::HasCustomRoomLabel(reopened_project.get(), kRenamedRoom));
+    IM_CHECK(room_labels::GetRoomLabel(reopened_project.get(), kRenamedRoom) ==
+             room_rename);
+    IM_CHECK(default_room_label(*reopened_project) == room_default);
+    IM_CHECK(rom->vector() == rom_before && !rom->dirty());
+    IM_CHECK(read_file(rom_path) == rom_disk_before);
+
+    // Directly queued static tests do not receive an RPC execution ID. Emit a
+    // unique receipt only after every native interaction/persistence check.
+    const auto stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
+    const auto receipt_path =
+        project_directory /
+        ("lyra-canvas-native-pass-" + std::to_string(stamp) + ".json");
+
+    // Inactive session controls are hidden. Exercise their public edit guard
+    // with a retained editor, then restore the saved project for the driver.
+    IM_CHECK(!manager->IsCurrentProjectDirty());
+    const size_t project_session_id = manager->GetCurrentSessionId();
+    const size_t project_session_index = manager->GetCurrentSessionIndex();
+    const auto project_labels = current_project->resource_labels;
+    const auto project_saved_bytes = read_file(expected_project);
+    IM_CHECK(project_saved_bytes.has_value());
+    auto second_rom_path = receipt_path;
+    second_rom_path.replace_extension(".session-b.sfc");
+    // The startup guard confines rom_path and the receipt to the explicitly
+    // named disposable directory. copy_file refuses any existing destination.
+    IM_CHECK(
+        fs::copy_file(rom_path, second_rom_path, fs::copy_options::none, ec));
+    IM_CHECK(!ec && read_file(second_rom_path) == rom_disk_before);
+    IM_CHECK(manager->OpenRomOrProject(second_rom_path.string()).ok());
+    ctx->Yield(3);
+    IM_CHECK(manager->GetCurrentSessionId() != project_session_id);
+    auto* second_project = manager->GetCurrentProject();
+    auto* second_rom = manager->GetCurrentRom();
+    IM_CHECK(second_project && second_rom && !second_rom->dirty());
+    IM_CHECK(!manager->IsCurrentProjectDirty());
+    const auto second_labels = second_project->resource_labels;
+    const auto second_global_label = zelda3::GetRoomLabel(kRenamedRoom);
+    const auto refused =
+        dungeon->ApplyRoomLabelEdit(kRenamedRoom, "Wrong Session");
+    IM_CHECK(absl::IsFailedPrecondition(refused));
+    IM_CHECK(refused.message() ==
+             "Activate this dungeon project before renaming rooms");
+    IM_CHECK(second_project->resource_labels == second_labels);
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == second_global_label);
+    IM_CHECK(!manager->IsCurrentProjectDirty() && !second_rom->dirty());
+    manager->SwitchToSession(project_session_index);
+    ctx->Yield(3);
+    IM_CHECK_EQ(manager->GetCurrentSessionId(), project_session_id);
+    current_project = manager->GetCurrentProject();
+    IM_CHECK(current_project &&
+             current_project->resource_labels == project_labels);
+    IM_CHECK(!manager->IsCurrentProjectDirty());
+    IM_CHECK(zelda3::GetRoomLabel(kRenamedRoom) == room_rename);
+    IM_CHECK(manager->GetCurrentRom() == rom && !rom->dirty());
+    IM_CHECK(rom->vector() == rom_before);
+    IM_CHECK(read_file(expected_project) == project_saved_bytes);
+    IM_CHECK(read_file(source_path) == saved);
+    IM_CHECK(read_file(rom_path) == rom_disk_before);
+    IM_CHECK(read_file(second_rom_path) == rom_disk_before);
+
+    const nlohmann::json receipt = {
+        {"test", "lyra_terrain/cross_map_stroke_undo_redo_project_save"},
+        {"result", "PASS"},
+        {"project", expected_project.string()},
+        {"terrain", source_path.string()},
+        {"rom", rom_path.string()},
+        {"paint_x", kX},
+        {"paint_y_start", kStartY},
+        {"paint_y_end", end_y},
+        {"tile16", brush},
+        {"undo_actions_added", 3},
+        {"rectangle_selection_copy_paste", true},
+        {"rectangle_stamp", true},
+        {"pattern_fill", true},
+        {"invalid_brush_refused_atomically", true},
+        {"map_authoring_native", true},
+        {"main_palette", next_palette},
+        {"pattern_width", rectangle.width},
+        {"pattern_height", rectangle.height},
+        {"pattern_tile_ids", rectangle.tile_ids},
+        {"pattern_paste_x", 8},
+        {"pattern_paste_y", paste_y},
+        {"surface", "normal_special_overworld"},
+        {"normal_tile16_selector", true},
+        {"displayed_map_count", overworld->DisplayedMapCount()},
+        {"a0_a8_crossed", true},
+        {"a8_b0_crossed", reaches_b0},
+        {"tile16_selector_filter_preserved", true},
+        {"tile16_legacy_map", kLegacyMap},
+        {"tile16_project_terrain_deep_tile", 0xFFF},
+        {"room_rename_native", true},
+        {"room_label_room", kRenamedRoom},
+        {"room_override_label", room_rename},
+        {"room_default_label", room_default},
+        {"matrix_hover_room", kHoverRoom},
+        {"wrong_session_rename_refused", true},
+        {"terrain_sha256", core::ComputeSourceArtifactSha256(*saved)},
+        {"rom_sha256", core::ComputeSourceArtifactSha256(*rom_disk_before)}};
+    std::ofstream output(receipt_path, std::ios::binary);
+    IM_CHECK(output.is_open());
+    output << receipt.dump(2) << '\n';
+    output.close();
+    IM_CHECK(!output.fail());
+    ctx->LogInfo("Lyra native canvas PASS; receipt: %s",
+                 receipt_path.string().c_str());
+  };
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+}
+
+// A separate process opts into this read-only test using the successful native
+// paint receipt. It must observe automatic loading before any canvas UI action.
+static void RegisterLyraTerrainReopenTest(ImGuiTestEngine* engine) {
+  const char* requested = std::getenv("YAZE_LYRA_TERRAIN_REOPEN_PROJECT");
+  if (!requested || !*requested ||
+      std::getenv("YAZE_LYRA_TERRAIN_ACCEPTANCE_PROJECT"))
+    return;
+  ImGuiTestEngine_GetIO(engine).ConfigLogToTTY = true;
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "lyra_terrain",
+                                     "fresh_process_autoload_saved_terrain");
+  test->TestFunc = [](ImGuiTestContext* ctx) {
+    namespace fs = std::filesystem;
+    const char* requested = std::getenv("YAZE_LYRA_TERRAIN_REOPEN_PROJECT");
+    const char* prior_receipt = std::getenv("YAZE_LYRA_TERRAIN_REOPEN_RECEIPT");
+    IM_CHECK(requested && *requested && prior_receipt && *prior_receipt);
+    IM_CHECK(fs::path(requested).is_absolute());
+    IM_CHECK(fs::path(prior_receipt).is_absolute());
+    std::error_code ec;
+    const auto expected_project = fs::canonical(requested, ec);
+    IM_CHECK(!ec);
+    const auto project_directory = expected_project.parent_path();
+    const auto receipt_path = fs::canonical(prior_receipt, ec);
+    IM_CHECK(!ec && receipt_path.parent_path() == project_directory);
+    const auto read_file =
+        [](const fs::path& path) -> std::optional<std::string> {
+      std::ifstream file(path, std::ios::binary);
+      if (!file)
+        return std::nullopt;
+      std::string bytes{std::istreambuf_iterator<char>(file), {}};
+      return file.bad() ? std::nullopt
+                        : std::optional<std::string>(std::move(bytes));
+    };
+    const auto prior_bytes = read_file(receipt_path);
+    IM_CHECK(prior_bytes.has_value());
+    const auto prior = nlohmann::json::parse(*prior_bytes, nullptr, false);
+    IM_CHECK(prior.is_object());
+    IM_CHECK(prior.value("result", "") == "PASS");
+    IM_CHECK(prior.value("test", "") ==
+             "lyra_terrain/cross_map_stroke_undo_redo_project_save");
+    IM_CHECK(prior.value("project", "") == expected_project.string());
+    const auto project_before = read_file(expected_project);
+    IM_CHECK(project_before.has_value());
+
+    editor::EditorManager* manager = nullptr;
+    project::YazeProject* current_project = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* controller = Application::Instance().GetController();
+      manager = controller ? controller->editor_manager() : nullptr;
+      current_project = manager ? manager->GetCurrentProject() : nullptr;
+      if (current_project && current_project->project_opened() &&
+          fs::weakly_canonical(current_project->filepath, ec) ==
+              expected_project &&
+          !ec)
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(manager && current_project && current_project->project_opened());
+    IM_CHECK(fs::canonical(current_project->filepath, ec) == expected_project &&
+             !ec);
+    IM_CHECK(current_project->name.find("[Lyra canvas acceptance]") !=
+             std::string::npos);
+    IM_CHECK(!current_project->lyra_terrain_file.empty());
+    const auto source_path = fs::canonical(
+        current_project->GetAbsolutePath(current_project->lyra_terrain_file),
+        ec);
+    IM_CHECK(!ec && source_path.parent_path() == project_directory);
+    IM_CHECK(source_path.string() == prior.value("terrain", ""));
+    const auto source_before = read_file(source_path);
+    IM_CHECK(source_before.has_value());
+    IM_CHECK(core::ComputeSourceArtifactSha256(*source_before) ==
+             prior.value("terrain_sha256", ""));
+    const auto rom_path = fs::canonical(
+        current_project->GetAbsolutePath(current_project->rom_filename), ec);
+    IM_CHECK(!ec && rom_path.parent_path() == project_directory);
+    IM_CHECK(rom_path.filename() == "main-with-d3.sfc");
+    IM_CHECK(rom_path.string() == prior.value("rom", ""));
+    auto* rom = manager->GetCurrentRom();
+    IM_CHECK(rom && rom->is_loaded() && !rom->dirty());
+    IM_CHECK(fs::canonical(rom->filename(), ec) == rom_path && !ec);
+    const auto rom_disk = read_file(rom_path);
+    IM_CHECK(rom_disk.has_value());
+    IM_CHECK(core::ComputeSourceArtifactSha256(*rom_disk) ==
+             prior.value("rom_sha256", ""));
+    const auto rom_bytes = [&]() {
+      return std::string_view(reinterpret_cast<const char*>(rom->data()),
+                              rom->size());
+    };
+    IM_CHECK(core::ComputeSourceArtifactSha256(rom_bytes()) ==
+             prior.value("rom_sha256", ""));
+
+    manager->OpenEditorAndPanelsFromFlags("Overworld", "overworld.canvas");
+    editor::OverworldEditor* overworld = nullptr;
+    for (int frame = 0; frame < 200; ++frame) {
+      auto* editors = manager->GetCurrentEditorSet();
+      overworld = editors ? editors->GetEditorAs<editor::OverworldEditor>(
+                                editor::EditorType::kOverworld)
+                          : nullptr;
+      if (overworld && overworld->overworld().is_loaded() &&
+          overworld->lyra_canvas_.loaded() && ctx->ItemExists("**/OwMap"))
+        break;
+      ctx->Yield(1);
+    }
+    IM_CHECK(overworld && overworld->overworld().is_loaded());
+    if (!overworld->lyra_canvas_status_.ok()) {
+      IM_ERRORF("Native Lyra autoload failed: %s",
+                overworld->lyra_canvas_status_.ToString().c_str());
+      return;
+    }
+    IM_CHECK(overworld->lyra_canvas_.loaded());
+    IM_CHECK_EQ(overworld->current_world_id(), 2);
+    IM_CHECK_EQ(overworld->current_map_id(), 0xA0);
+    IM_CHECK_EQ(overworld->DisplayedMapCount(), 192);
+    IM_CHECK(!overworld->IsProjectTerrainMap(0x80));
+    IM_CHECK(overworld->IsProjectTerrainMap(0xA0));
+    IM_CHECK(overworld->IsProjectTerrainMap(0xBF));
+    IM_CHECK(prior.value("surface", "") == "normal_special_overworld");
+    IM_CHECK(prior.value("normal_tile16_selector", false));
+    const auto* document = overworld->lyra_canvas_.document();
+    IM_CHECK(document && !document->dirty());
+    IM_CHECK(!overworld->HasPendingProjectDraftChanges());
+    IM_CHECK(document->Serialize() == *source_before);
+    IM_CHECK(core::ComputeSourceArtifactSha256(document->Serialize()) ==
+             prior.value("terrain_sha256", ""));
+    const int x = prior.value("paint_x", -1);
+    const int first_y = prior.value("paint_y_start", -1);
+    const int last_y = prior.value("paint_y_end", -1);
+    const int tile = prior.value("tile16", -1);
+    IM_CHECK(x >= 0 && x < core::LyraTerrainDocument::kWidth);
+    IM_CHECK(first_y >= 0 && first_y <= 31 && last_y >= 32 &&
+             last_y < core::LyraTerrainDocument::kHeight);
+    IM_CHECK(tile >= 0 && tile < document->profile().tile_count);
+    for (int y = first_y; y <= last_y; ++y)
+      IM_CHECK(document->tile(x, y).value() == tile);
+    if (prior.value("rectangle_selection_copy_paste", false)) {
+      const editor::TileBrush rectangle{
+          prior.at("pattern_width").get<int>(),
+          prior.at("pattern_height").get<int>(),
+          prior.at("pattern_tile_ids").get<std::vector<int>>()};
+      IM_CHECK(rectangle.valid());
+      const int px = prior.at("pattern_paste_x").get<int>();
+      const int py = prior.at("pattern_paste_y").get<int>();
+      for (int y = 0; y < rectangle.height; ++y)
+        for (int x = 0; x < rectangle.width; ++x)
+          IM_CHECK(document->tile(px + x, py + y).value() ==
+                   rectangle.at(x, y));
+      for (int y = 0; y < 32; ++y)
+        for (int x = 0; x < 32; ++x)
+          IM_CHECK(document->tile(32 + x, 32 + y).value() ==
+                   rectangle.at(x % rectangle.width, y % rectangle.height));
+    }
+    if (prior.value("map_authoring_native", false)) {
+      IM_CHECK_EQ(document->authoring().maps[0].properties.main_palette,
+                  prior.at("main_palette").get<int>());
+      IM_CHECK_EQ(document->authoring().maps[1].properties.graphics_sheets[0],
+                  0);
+      IM_CHECK_EQ(document->authoring().maps[1].properties.graphics_sheets[1],
+                  255);
+      IM_CHECK(!document->authoring().maps[0].sprites.empty());
+      IM_CHECK_EQ(document->authoring().maps[0].doors.at(0).id, 900001);
+      IM_CHECK(
+          !document->authoring().maps[0].doors.at(0).entrance_id.has_value());
+      IM_CHECK_EQ(document->authoring().maps[0].exits.at(0).room_id, 0x105);
+      IM_CHECK_EQ(document->authoring().flight_points.size(), 2);
+      IM_CHECK_EQ(document->authoring().flight_points.at(0).map_id, 0xA0);
+      IM_CHECK_EQ(document->authoring().flight_points.at(1).map_id, 0x20);
+    }
+    const bool room_rename_native = prior.value("room_rename_native", false);
+    if (room_rename_native) {
+      namespace room_labels = editor::dungeon_project_labels;
+      const int room = prior.at("room_label_room").get<int>();
+      const auto override_label =
+          prior.at("room_override_label").get<std::string>();
+      const auto default_label =
+          prior.at("room_default_label").get<std::string>();
+      IM_CHECK_EQ(room, 0x25);
+      IM_CHECK_EQ(prior.value("matrix_hover_room", -1), 0x12);
+      IM_CHECK(!override_label.empty() && !default_label.empty());
+      IM_CHECK(current_project->hack_manifest.HasProjectRegistry());
+      IM_CHECK(room_labels::HasCustomRoomLabel(current_project, room));
+      IM_CHECK(room_labels::GetRoomLabel(current_project, room) ==
+               override_label);
+      IM_CHECK(zelda3::GetRoomLabel(room) == override_label);
+      const auto labels = current_project->resource_labels.find("room");
+      IM_CHECK(labels != current_project->resource_labels.end());
+      const auto default_it = labels->second.find(std::to_string(room));
+      IM_CHECK(default_it != labels->second.end() &&
+               default_it->second == default_label);
+    }
+    IM_CHECK_EQ(overworld->undo_manager().UndoStackSize(), 0);
+
+    // Fit the one normal SW canvas for the driver's screenshot. Both the
+    // existing map 80 and the project terrain at A0 must be in the same view.
+    const auto terrain = ctx->ItemInfo("**/OwMap");
+    IM_CHECK(terrain.ID != 0 && terrain.Window != nullptr);
+    ctx->SetRef(terrain.Window);
+    ctx->WindowFocus("");
+    overworld->ZoomToFit();
+    ctx->Yield(3);
+    const auto fitted = ctx->ItemInfo("**/OwMap");
+    const auto& canvas = overworld->ow_map_canvas();
+    const auto origin = canvas.zero_point();
+    const auto scroll = canvas.scrolling();
+    const float cell_pixels = 16.0f * canvas.global_scale();
+    const auto map_center = [&](int map_row) {
+      return ImVec2(
+          origin.x + scroll.x + 16.0f * cell_pixels,
+          origin.y + scroll.y + (map_row * 32.0f + 16.0f) * cell_pixels);
+    };
+    IM_CHECK(fitted.RectClipped.Contains(map_center(0)));
+    IM_CHECK(fitted.RectClipped.Contains(map_center(4)));
+    IM_CHECK(!overworld->HasPendingProjectDraftChanges());
+    IM_CHECK(read_file(expected_project) == project_before);
+    IM_CHECK(read_file(source_path) == source_before);
+    IM_CHECK(read_file(rom_path) == rom_disk && !rom->dirty());
+    IM_CHECK(core::ComputeSourceArtifactSha256(rom_bytes()) ==
+             prior.value("rom_sha256", ""));
+
+    const auto stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
+    const auto output_path =
+        project_directory /
+        ("lyra-canvas-reopen-pass-" + std::to_string(stamp) + ".json");
+    const nlohmann::json receipt = {
+        {"test", "lyra_terrain/fresh_process_autoload_saved_terrain"},
+        {"result", "PASS"},
+        {"project", expected_project.string()},
+        {"terrain", source_path.string()},
+        {"rom", rom_path.string()},
+        {"prior_receipt", receipt_path.string()},
+        {"autoloaded", true},
+        {"surface", "normal_special_overworld"},
+        {"map_80_and_a0_same_canvas", true},
+        {"displayed_map_count", overworld->DisplayedMapCount()},
+        {"document_clean", true},
+        {"saved_cells_exact", true},
+        {"project_unchanged", true},
+        {"room_override_persisted", room_rename_native},
+        {"terrain_sha256", prior.at("terrain_sha256")},
+        {"rom_sha256", prior.at("rom_sha256")}};
+    std::ofstream output(output_path, std::ios::binary);
+    IM_CHECK(output.is_open());
+    output << receipt.dump(2) << '\n';
+    output.close();
+    IM_CHECK(!output.fail());
+    ctx->LogInfo("Lyra native reopen PASS; receipt: %s",
+                 output_path.string().c_str());
+  };
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromCommandLine);
+}
+
 // ============================================================================
 // Public registration entry point
 // ============================================================================
@@ -386,6 +1540,8 @@ void RegisterOverworldUITests(ImGuiTestEngine* engine) {
   RegisterModeRoundTripTests(engine);
   RegisterCanvasNavigationTests(engine);
   RegisterWorldSelectorTests(engine);
+  RegisterLyraTerrainAcceptanceTest(engine);
+  RegisterLyraTerrainReopenTest(engine);
 }
 
 }  // namespace yaze::test

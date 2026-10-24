@@ -16,6 +16,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/tool_call_argument_codec.h"
 #include "cli/service/ai/tool_schema_builder.h"
@@ -67,20 +68,26 @@ namespace cli {
 
 namespace {
 
-absl::StatusOr<nlohmann::json> BuildOpenAIToolPayload(
-    const PromptBuilder& prompt_builder) {
-  auto declarations_or =
-      ToolSchemaBuilder::ResolveFunctionDeclarations(prompt_builder);
-  if (!declarations_or.ok()) {
-    return declarations_or.status();
-  }
-  return ToolSchemaBuilder::BuildOpenAITools(*declarations_or);
+std::vector<ModelInfo> CurrentOpenAiModels() {
+  return {{.name = "gpt-6.1-sol",
+           .display_name = "GPT-6.1 Sol",
+           .provider = kProviderOpenAi,
+           .description = "Suggested balanced text/tool model"},
+          {.name = "gpt-6-luna",
+           .display_name = "GPT-6 Luna",
+           .provider = kProviderOpenAi,
+           .description = "Efficient text/tool model"},
+          {.name = "gpt-6-astra",
+           .display_name = "GPT-6 Astra",
+           .provider = kProviderOpenAi,
+           .description = "Advanced reasoning text/tool model"}};
 }
 
 }  // namespace
 
 OpenAIAIService::OpenAIAIService(const OpenAIConfig& config)
     : function_calling_enabled_(config.use_function_calling), config_(config) {
+  config_.base_url = NormalizeOpenAiBaseUrl(config_.base_url);
   if (config_.verbose) {
     std::cerr << "[DEBUG] Initializing OpenAI service..." << std::endl;
     std::cerr << "[DEBUG] Model: " << config_.model << std::endl;
@@ -148,6 +155,7 @@ void OpenAIAIService::EnableFunctionCalling(bool enable) {
 std::vector<std::string> OpenAIAIService::GetAvailableTools() const {
   return {"resource-list",        "resource-search",
           "dungeon-list-sprites", "dungeon-describe-room",
+          "dungeon-edit-inspect", "dungeon-edit-apply",
           "overworld-find-tile",  "overworld-describe-map",
           "overworld-list-warps"};
 }
@@ -164,28 +172,10 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
 #ifndef YAZE_WITH_JSON
   return absl::UnimplementedError("OpenAI AI service requires JSON support");
 #else
-  const bool is_openai_cloud =
-      absl::StrContains(config_.base_url, "api.openai.com");
+  const bool is_openai_cloud = IsOfficialOpenAiEndpoint(config_.base_url);
   if (config_.api_key.empty() && is_openai_cloud) {
     // Return default known models if API key is missing
-    std::vector<ModelInfo> defaults = {
-        {.name = "gpt-4o",
-         .display_name = "GPT-4o",
-         .provider = kProviderOpenAi,
-         .description = "Most capable GPT-4 model"},
-        {.name = "gpt-4o-mini",
-         .display_name = "GPT-4o Mini",
-         .provider = kProviderOpenAi,
-         .description = "Fast and cost-effective"},
-        {.name = "gpt-4-turbo",
-         .display_name = "GPT-4 Turbo",
-         .provider = kProviderOpenAi,
-         .description = "GPT-4 with larger context"},
-        {.name = "gpt-3.5-turbo",
-         .display_name = "GPT-3.5 Turbo",
-         .provider = kProviderOpenAi,
-         .description = "Fast and efficient"}};
-    return defaults;
+    return CurrentOpenAiModels();
   }
 
   try {
@@ -207,32 +197,14 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
                   << resp_or.status().message() << std::endl;
       }
       // Return defaults on failure so the UI remains usable.
-      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
-                                          .display_name = "GPT-4o Mini",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-4o",
-                                          .display_name = "GPT-4o",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-3.5-turbo",
-                                          .display_name = "GPT-3.5 Turbo",
-                                          .provider = kProviderOpenAi}};
-      return defaults;
+      return ParseModelList("");
     }
     if (resp_or->status_code != 200) {
       if (config_.verbose) {
         std::cerr << "[DEBUG] OpenAI /v1/models HTTP " << resp_or->status_code
                   << std::endl;
       }
-      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
-                                          .display_name = "GPT-4o Mini",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-4o",
-                                          .display_name = "GPT-4o",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-3.5-turbo",
-                                          .display_name = "GPT-3.5 Turbo",
-                                          .provider = kProviderOpenAi}};
-      return defaults;
+      return ParseModelList("");
     }
     response_str = resp_or->body;
 #else
@@ -265,66 +237,78 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
 #endif
 #endif  // YAZE_AI_IOS_URLSESSION
 
-    auto models_json = nlohmann::json::parse(response_str, nullptr, false);
-    if (models_json.is_discarded()) {
-      return absl::InternalError("Failed to parse OpenAI models JSON");
-    }
-
-    if (!models_json.contains("data")) {
-      // Return defaults on error
-      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
-                                          .display_name = "GPT-4o Mini",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-4o",
-                                          .display_name = "GPT-4o",
-                                          .provider = kProviderOpenAi},
-                                         {.name = "gpt-3.5-turbo",
-                                          .display_name = "GPT-3.5 Turbo",
-                                          .provider = kProviderOpenAi}};
-      return defaults;
-    }
-
-    std::vector<ModelInfo> models;
-    for (const auto& m : models_json["data"]) {
-      std::string id = m.value("id", "");
-
-      // Filter for chat models (gpt-4*, gpt-3.5-turbo*, o1*, chatgpt*)
-      // For local servers (LM Studio), we accept all models.
-      bool is_local = !absl::StrContains(config_.base_url, "api.openai.com");
-
-      if (is_local || absl::StartsWith(id, "gpt-4") ||
-          absl::StartsWith(id, "gpt-3.5") || absl::StartsWith(id, "o1") ||
-          absl::StartsWith(id, "chatgpt")) {
-        ModelInfo info;
-        info.name = id;
-        info.display_name = id;
-        info.provider = kProviderOpenAi;
-        info.family = is_local ? "local" : "gpt";
-        info.is_local = is_local;
-
-        // Set display name based on model
-        if (id == "gpt-4o")
-          info.display_name = "GPT-4o";
-        else if (id == "gpt-4o-mini")
-          info.display_name = "GPT-4o Mini";
-        else if (id == "gpt-4-turbo")
-          info.display_name = "GPT-4 Turbo";
-        else if (id == "gpt-3.5-turbo")
-          info.display_name = "GPT-3.5 Turbo";
-        else if (id == "o1-preview")
-          info.display_name = "o1 Preview";
-        else if (id == "o1-mini")
-          info.display_name = "o1 Mini";
-
-        models.push_back(std::move(info));
-      }
-    }
-    return models;
+    return ParseModelList(response_str);
 
   } catch (const std::exception& e) {
     return absl::InternalError(
         absl::StrCat("Failed to list models: ", e.what()));
   }
+#endif
+}
+
+absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ParseModelList(
+    const std::string& body) {
+#ifndef YAZE_WITH_JSON
+  return absl::UnimplementedError("JSON support required");
+#else
+  auto models_json = nlohmann::json::parse(body, nullptr, false);
+  if (models_json.is_discarded()) {
+    if (IsOfficialOpenAiEndpoint(config_.base_url))
+      return CurrentOpenAiModels();
+    return absl::InternalError("Failed to parse OpenAI-compatible models JSON");
+  }
+
+  if (!models_json.contains("data") || !models_json["data"].is_array()) {
+    if (IsOfficialOpenAiEndpoint(config_.base_url))
+      return CurrentOpenAiModels();
+    return absl::UnavailableError(
+        "OpenAI-compatible endpoint did not return a model list");
+  }
+
+  std::vector<ModelInfo> models;
+  for (const auto& m : models_json["data"]) {
+    std::string id = m.value("id", "");
+
+    // Keep custom endpoints open to their own model names. Cloud discovery
+    // excludes specialized models that cannot perform native dungeon tools.
+    bool is_local = !IsOfficialOpenAiEndpoint(config_.base_url);
+    const bool chat = absl::StartsWith(id, "gpt-") ||
+                      absl::StartsWith(id, "chatgpt") ||
+                      absl::StartsWith(id, "o1") ||
+                      absl::StartsWith(id, "o3") || absl::StartsWith(id, "o4");
+    bool specialized = false;
+    for (const std::string marker :
+         {"embedding", "tts", "transcribe", "realtime", "audio", "image",
+          "moderation", "search"}) {
+      specialized = specialized || absl::StrContains(id, marker);
+    }
+    if (is_local || (chat && !specialized)) {
+      ModelInfo info;
+      info.name = id;
+      info.display_name = id;
+      info.provider = kProviderOpenAi;
+      info.family = is_local ? "local" : "gpt";
+      info.is_local = is_local;
+
+      // Set display name based on model
+      if (id == "gpt-4o")
+        info.display_name = "GPT-4o";
+      else if (id == "gpt-4o-mini")
+        info.display_name = "GPT-4o Mini";
+      else if (id == "gpt-4-turbo")
+        info.display_name = "GPT-4 Turbo";
+      else if (id == "gpt-3.5-turbo")
+        info.display_name = "GPT-3.5 Turbo";
+      else if (id == "o1-preview")
+        info.display_name = "o1 Preview";
+      else if (id == "o1-mini")
+        info.display_name = "o1 Mini";
+
+      models.push_back(std::move(info));
+    }
+  }
+  return models;
+
 #endif
 }
 
@@ -336,7 +320,7 @@ absl::Status OpenAIAIService::CheckAvailability() {
 #else
   try {
     // LMStudio and other local servers don't require API keys
-    bool is_local_server = config_.base_url != "https://api.openai.com";
+    bool is_local_server = !IsOfficialOpenAiEndpoint(config_.base_url);
     if (config_.api_key.empty() && !is_local_server) {
       return absl::FailedPreconditionError(
           "❌ OpenAI API key not configured\n"
@@ -410,6 +394,115 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
       {{{agent::ChatMessage::Sender::kUser, prompt, absl::Now()}}});
 }
 
+bool OpenAIAIService::UsesResponsesApi() const {
+  if (!IsOfficialOpenAiEndpoint(config_.base_url))
+    return false;
+  // These native tool-capable model families require Responses. Explicit older
+  // models and all OpenAI-compatible endpoints retain Chat Completions.
+  for (const std::string family :
+       {"gpt-6.1-sol", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna"}) {
+    if (config_.model == family ||
+        absl::StartsWith(config_.model, family + "-"))
+      return true;
+  }
+  return false;
+}
+
+absl::StatusOr<std::string> OpenAIAIService::BuildRequestBody(
+    const std::vector<agent::ChatMessage>& history) {
+#ifndef YAZE_WITH_JSON
+  return absl::UnimplementedError("JSON support required");
+#else
+  const bool responses = UsesResponsesApi();
+  const std::string api = responses ? "responses" : "chat.completions";
+  nlohmann::json messages = nlohmann::json::array();
+  if (!responses)
+    messages.push_back(
+        {{"role", "system"}, {"content", config_.system_instruction}});
+  const size_t start = agent::CompleteTurnHistoryStart(history, 10);
+  for (size_t i = start; i < history.size(); ++i) {
+    const auto& msg = history[i];
+    if (function_calling_enabled_ && msg.native_content &&
+        msg.native_content->provider == kProviderOpenAi &&
+        msg.native_content->model == config_.model &&
+        msg.native_content->api == api) {
+      auto content = nlohmann::json::parse(msg.native_content->content_json,
+                                           nullptr, false);
+      if (responses) {
+        if (!content.is_array())
+          return absl::InvalidArgumentError("Invalid OpenAI Responses history");
+        for (const auto& item : content)
+          messages.push_back(item);
+      } else {
+        if (!content.is_object())
+          return absl::InvalidArgumentError("Invalid OpenAI assistant history");
+        messages.push_back(std::move(content));
+      }
+      continue;
+    }
+    if (function_calling_enabled_ && msg.native_tool_result &&
+        msg.native_tool_result->provider == kProviderOpenAi &&
+        msg.native_tool_result->model == config_.model &&
+        msg.native_tool_result->api == api) {
+      const auto& result = *msg.native_tool_result;
+      if (responses) {
+        messages.push_back({{"type", "function_call_output"},
+                            {"call_id", result.call_id},
+                            {"output", result.output}});
+      } else {
+        messages.push_back({{"role", "tool"},
+                            {"tool_call_id", result.call_id},
+                            {"content", result.output}});
+      }
+      continue;
+    }
+    if (msg.message.empty())
+      continue;
+    messages.push_back({{"role", msg.sender == agent::ChatMessage::Sender::kUser
+                                     ? "user"
+                                     : "assistant"},
+                        {"content", msg.message}});
+  }
+  nlohmann::json request_body = {{"model", config_.model}};
+  if (responses) {
+    request_body["input"] = messages;
+    request_body["instructions"] = config_.system_instruction;
+    request_body["max_output_tokens"] = config_.max_output_tokens;
+    request_body["reasoning"] = {{"effort", "low"}};
+    request_body["store"] = false;
+    request_body["include"] = {"reasoning.encrypted_content"};
+  } else {
+    request_body["messages"] = messages;
+    request_body["temperature"] = config_.temperature;
+    request_body["max_tokens"] = config_.max_output_tokens;
+  }
+  if (function_calling_enabled_) {
+    auto declarations_or =
+        ToolSchemaBuilder::ResolveFunctionDeclarations(prompt_builder_);
+    if (!declarations_or.ok())
+      return declarations_or.status();
+    if (responses) {
+      nlohmann::json tools = nlohmann::json::array();
+      for (auto function : *declarations_or) {
+        function["type"] = "function";
+        // Existing catalogue parameters include optional fields; do not silently
+        // make them required through the Responses default strict mode.
+        function["strict"] = false;
+        tools.push_back(std::move(function));
+      }
+      if (!tools.empty()) {
+        request_body["tools"] = std::move(tools);
+        request_body["parallel_tool_calls"] = false;
+      }
+    } else if (!declarations_or->empty()) {
+      request_body["tools"] =
+          ToolSchemaBuilder::BuildOpenAITools(*declarations_or);
+    }
+  }
+  return request_body.dump();
+#endif
+}
+
 absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     const std::vector<agent::ChatMessage>& history) {
 #ifndef YAZE_WITH_JSON
@@ -421,8 +514,7 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     return absl::InvalidArgumentError("History cannot be empty.");
   }
 
-  const bool is_openai_cloud =
-      absl::StrContains(config_.base_url, "api.openai.com");
+  const bool is_openai_cloud = IsOfficialOpenAiEndpoint(config_.base_url);
   if (config_.api_key.empty() && is_openai_cloud) {
     return absl::FailedPreconditionError("OpenAI API key not configured");
   }
@@ -436,54 +528,14 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
                 << " messages in history" << std::endl;
     }
 
-    // Build messages array for OpenAI format
-    nlohmann::json messages = nlohmann::json::array();
+    auto request_or = BuildRequestBody(history);
+    if (!request_or.ok())
+      return request_or.status();
+    const std::string& request_body = *request_or;
 
-    // Add system message
-    messages.push_back(
-        {{"role", "system"}, {"content", config_.system_instruction}});
-
-    // Add conversation history (up to last 10 messages for context window)
-    int start_idx = std::max(0, static_cast<int>(history.size()) - 10);
-    for (size_t i = start_idx; i < history.size(); ++i) {
-      const auto& msg = history[i];
-      std::string role = (msg.sender == agent::ChatMessage::Sender::kUser)
-                             ? "user"
-                             : "assistant";
-
-      messages.push_back({{"role", role}, {"content", msg.message}});
-    }
-
-    // Build request body
-    nlohmann::json request_body = {{"model", config_.model},
-                                   {"messages", messages},
-                                   {"temperature", config_.temperature},
-                                   {"max_tokens", config_.max_output_tokens}};
-
-    // Add function calling tools if enabled
-    if (function_calling_enabled_) {
-      auto tools_or = BuildOpenAIToolPayload(prompt_builder_);
-      if (!tools_or.ok()) {
-        if (config_.verbose) {
-          std::cerr << "[DEBUG] Function calling schemas unavailable: "
-                    << tools_or.status().message() << std::endl;
-        }
-      } else if (!tools_or->empty()) {
-        if (config_.verbose) {
-          std::string tools_str = tools_or->dump();
-          std::cerr << "[DEBUG] Function calling schemas: "
-                    << tools_str.substr(0, 200) << "..." << std::endl;
-        }
-
-        request_body["tools"] = *tools_or;
-      }
-    }
-
-    if (config_.verbose) {
-      std::cerr << "[DEBUG] Sending " << messages.size()
-                << " messages to OpenAI" << std::endl;
-    }
-
+    const std::string endpoint =
+        config_.base_url +
+        (UsesResponsesApi() ? "/v1/responses" : "/v1/chat/completions");
     std::string response_str;
 #if defined(YAZE_AI_IOS_URLSESSION)
     std::map<std::string, std::string> headers;
@@ -491,9 +543,8 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     if (!config_.api_key.empty()) {
       headers.emplace("Authorization", "Bearer " + config_.api_key);
     }
-    auto resp_or = ios::UrlSessionHttpRequest(
-        "POST", config_.base_url + "/v1/chat/completions", headers,
-        request_body.dump(), 60000);
+    auto resp_or = ios::UrlSessionHttpRequest("POST", endpoint, headers,
+                                              request_body, 60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
@@ -512,7 +563,7 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     // Write request body to temp file
     std::string temp_file = "/tmp/openai_request.json";
     std::ofstream out(temp_file);
-    out << request_body.dump();
+    out << request_body;
     out.close();
 
     // Use curl to make the request
@@ -520,8 +571,8 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
         config_.api_key.empty()
             ? ""
             : "-H 'Authorization: Bearer " + config_.api_key + "' ";
-    std::string curl_cmd = "curl -s -X POST '" + config_.base_url +
-                           "/v1/chat/completions' "
+    std::string curl_cmd = "curl -s -X POST '" + endpoint +
+                           "' "
                            "-H 'Content-Type: application/json' " +
                            auth_header + "-d @" + temp_file + " 2>&1";
 
@@ -585,8 +636,14 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     agent_response.latency_seconds =
         absl::ToDoubleSeconds(absl::Now() - request_start);
     agent_response.parameters["prompt_version"] = config_.prompt_version;
-    agent_response.parameters["temperature"] =
-        absl::StrFormat("%.2f", config_.temperature);
+    agent_response.parameters["api"] =
+        UsesResponsesApi() ? "responses" : "chat.completions";
+    if (!UsesResponsesApi()) {
+      agent_response.parameters["temperature"] =
+          absl::StrFormat("%.2f", config_.temperature);
+    } else {
+      agent_response.parameters["reasoning_effort"] = "low";
+    }
     agent_response.parameters["max_output_tokens"] =
         absl::StrFormat("%d", config_.max_output_tokens);
     agent_response.parameters["function_calling"] =
@@ -624,6 +681,54 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
         absl::StrCat("❌ OpenAI API error: ", error_msg));
   }
 
+  if (response_json.contains("output") && response_json["output"].is_array()) {
+    nlohmann::json calls = nlohmann::json::array();
+    std::string text;
+    for (const auto& item : response_json["output"]) {
+      const std::string type = item.value("type", "");
+      if (type == "function_call") {
+        calls.push_back({{"id", item.value("call_id", "")},
+                         {"type", "function"},
+                         {"function",
+                          {{"name", item.value("name", "")},
+                           {"arguments", item.value("arguments", "{}")}}}});
+      } else if (type == "message" && item.contains("content")) {
+        for (const auto& part : item["content"]) {
+          if (part.value("type", "") == "output_text")
+            text += part.value("text", "");
+          else if (part.value("type", "") == "refusal")
+            text += part.value("refusal", "");
+        }
+      }
+    }
+    if (response_json.value("status", "") == "incomplete" && text.empty() &&
+        calls.empty()) {
+      return absl::ResourceExhaustedError(
+          "OpenAI response incomplete before text or tool calls; check "
+          "max_output_tokens");
+    }
+    auto parsed = ParseOpenAIResponse(nlohmann::json{
+        {"choices",
+         {{{"message",
+            {{"role", "assistant"},
+             {"content", text},
+             {"tool_calls", calls}}}}}}}.dump());
+    if (!parsed.ok())
+      return parsed.status();
+    if (function_calling_enabled_) {
+      parsed->native_content =
+          NativeAIContent{kProviderOpenAi, config_.model, "responses",
+                          response_json["output"].dump()};
+    }
+    if (response_json.value("status", "") == "incomplete") {
+      parsed->warnings.push_back(
+          "OpenAI response incomplete: " +
+          response_json.value("incomplete_details", nlohmann::json::object())
+              .dump());
+    }
+    return parsed;
+  }
+
   // Navigate OpenAI's response structure
   if (!response_json.contains("choices") || response_json["choices"].empty()) {
     return absl::InternalError("❌ No choices in OpenAI response");
@@ -635,6 +740,13 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
   }
 
   const auto& message = choice["message"];
+  if (function_calling_enabled_) {
+    agent_response.native_content = NativeAIContent{
+        kProviderOpenAi, config_.model, "chat.completions", message.dump()};
+  }
+  if (choice.value("finish_reason", "") == "length") {
+    agent_response.warnings.push_back("OpenAI finish_reason: length");
+  }
 
   // Extract text content
   if (message.contains("content") && !message["content"].is_null()) {
@@ -693,7 +805,7 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
       }
 
       // Extract tool_calls from parsed JSON
-      if (parsed_text.contains("tool_calls") &&
+      if (!function_calling_enabled_ && parsed_text.contains("tool_calls") &&
           parsed_text["tool_calls"].is_array()) {
         for (const auto& call : parsed_text["tool_calls"]) {
           if (call.contains("tool_name") && call["tool_name"].is_string()) {
@@ -719,6 +831,11 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
         const auto& func = call["function"];
         ToolCall tool_call;
         tool_call.tool_name = func.value("name", "");
+        tool_call.id = call.value("id", "");
+        if (function_calling_enabled_ && tool_call.id.empty()) {
+          return absl::InvalidArgumentError(
+              "OpenAI native tool call is missing its call ID");
+        }
 
         if (func.contains("arguments") && func["arguments"].is_string()) {
           auto args_json = nlohmann::json::parse(

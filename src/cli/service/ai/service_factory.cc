@@ -266,7 +266,7 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
       std::cout << "   Found OpenAI API key, using OpenAI\n";
       effective_config.provider = kProviderOpenAi;
       if (effective_config.model.empty()) {
-        effective_config.model = "gpt-4o-mini";
+        effective_config.model = "gpt-6.1-sol";
       }
     } else if (HasOllamaHint(effective_config)) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
@@ -313,6 +313,9 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
 
   if (provider == kProviderOllama) {
     OllamaConfig ollama_config;
+    if (effective_config.max_output_tokens.has_value()) {
+      ollama_config.max_tokens = *effective_config.max_output_tokens;
+    }
     ollama_config.base_url = effective_config.ollama_host;
     if (!effective_config.model.empty()) {
       ollama_config.model = effective_config.model;
@@ -342,6 +345,9 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
           "GEMINI_API_KEY.");
     }
     GeminiConfig gemini_config(effective_config.gemini_api_key);
+    if (effective_config.max_output_tokens.has_value()) {
+      gemini_config.max_output_tokens = *effective_config.max_output_tokens;
+    }
     if (!effective_config.model.empty()) {
       gemini_config.model = effective_config.model;
     }
@@ -350,7 +356,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     }
     gemini_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
     gemini_config.use_function_calling =
-        absl::GetFlag(FLAGS_use_function_calling);
+        effective_config.use_function_calling.value_or(
+            absl::GetFlag(FLAGS_use_function_calling));
     gemini_config.verbose = effective_config.verbose;
     return FinalizeService(std::make_unique<GeminiAIService>(gemini_config),
                            effective_config);
@@ -362,6 +369,9 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
           "ANTHROPIC_API_KEY.");
     }
     AnthropicConfig anthropic_config(effective_config.anthropic_api_key);
+    if (effective_config.max_output_tokens.has_value()) {
+      anthropic_config.max_output_tokens = *effective_config.max_output_tokens;
+    }
     if (!effective_config.model.empty()) {
       anthropic_config.model = effective_config.model;
     }
@@ -370,7 +380,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     }
     anthropic_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
     anthropic_config.use_function_calling =
-        absl::GetFlag(FLAGS_use_function_calling);
+        effective_config.use_function_calling.value_or(
+            absl::GetFlag(FLAGS_use_function_calling));
     anthropic_config.verbose = effective_config.verbose;
     return FinalizeService(
         std::make_unique<AnthropicAIService>(anthropic_config),
@@ -385,7 +396,15 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
           "For LMStudio, use --openai_base_url=http://localhost:1234");
     }
     OpenAIConfig openai_config(effective_config.openai_api_key);
+    if (effective_config.max_output_tokens.has_value()) {
+      openai_config.max_output_tokens = *effective_config.max_output_tokens;
+    }
     openai_config.base_url = effective_config.openai_base_url;
+    if (effective_config.model.empty() &&
+        !IsOfficialOpenAiEndpoint(openai_config.base_url)) {
+      openai_config.model =
+          "gpt-4o-mini";  // Preserve compatible endpoint fallback.
+    }
     if (!effective_config.model.empty()) {
       openai_config.model = effective_config.model;
     }
@@ -394,7 +413,8 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     }
     openai_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
     openai_config.use_function_calling =
-        absl::GetFlag(FLAGS_use_function_calling);
+        effective_config.use_function_calling.value_or(
+            absl::GetFlag(FLAGS_use_function_calling));
     openai_config.verbose = effective_config.verbose;
     return FinalizeService(std::make_unique<OpenAIAIService>(openai_config),
                            effective_config);

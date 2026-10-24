@@ -116,6 +116,7 @@ void AnthropicAIService::EnableFunctionCalling(bool enable) {
 std::vector<std::string> AnthropicAIService::GetAvailableTools() const {
   return {"resource-list",        "resource-search",
           "dungeon-list-sprites", "dungeon-describe-room",
+          "dungeon-edit-inspect", "dungeon-edit-apply",
           "overworld-find-tile",  "overworld-describe-map",
           "overworld-list-warps"};
 }
@@ -130,22 +131,77 @@ void AnthropicAIService::SetRomContext(Rom* rom) {
 
 absl::StatusOr<std::vector<ModelInfo>>
 AnthropicAIService::ListAvailableModels() {
-  // Anthropic doesn't have a simple public "list models" endpoint like OpenAI/Gemini
-  // We'll return a hardcoded list of supported models
-  std::vector<ModelInfo> defaults = {
-      {.name = "claude-3-5-sonnet-20241022",
-       .display_name = "Claude 3.5 Sonnet",
+  const std::vector<ModelInfo> suggestions = {
+      {.name = "claude-sonnet-5-5",
+       .display_name = "Claude Sonnet 5.5",
        .provider = kProviderAnthropic,
-       .description = "Most intelligent model"},
-      {.name = "claude-3-5-haiku-20241022",
-       .display_name = "Claude 3.5 Haiku",
+       .description = "Suggested balanced text/tool model"},
+      {.name = "claude-haiku-5-5",
+       .display_name = "Claude Haiku 5.5",
        .provider = kProviderAnthropic,
-       .description = "Fastest and most cost-effective"},
-      {.name = "claude-3-opus-20240229",
-       .display_name = "Claude 3 Opus",
+       .description = "Efficient text/tool model"},
+      {.name = "claude-opus-5-5",
+       .display_name = "Claude Opus 5.5",
        .provider = kProviderAnthropic,
-       .description = "Strong reasoning model"}};
-  return defaults;
+       .description = "Advanced reasoning text/tool model"}};
+#ifdef YAZE_WITH_JSON
+  if (!config_.api_key.empty()) {
+    // The existing native transport uses curl through a shell. Reject header
+    // delimiters before constructing this new discovery command, without ever
+    // echoing a supplied credential into diagnostics.
+    if (config_.api_key.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij"
+                                          "klmnopqrstuvwxyz0123456789-_./+=") !=
+        std::string::npos) {
+      return absl::InvalidArgumentError(
+          "Anthropic API key contains unsupported characters");
+    }
+    std::string response;
+#if defined(YAZE_AI_IOS_URLSESSION)
+    auto result = ios::UrlSessionHttpRequest(
+        "GET", "https://api.anthropic.com/v1/models?limit=1000",
+        {{"x-api-key", config_.api_key}, {"anthropic-version", "2023-06-01"}},
+        "", 8000);
+    if (result.ok() && result->status_code == 200)
+      response = result->body;
+#else
+    const std::string command =
+        "curl -s --max-time 8 'https://api.anthropic.com/v1/models?limit=1000' "
+        "-H 'anthropic-version: 2023-06-01' -H 'x-api-key: " +
+        config_.api_key + "'";
+#ifdef _WIN32
+    FILE* pipe = _popen(command.c_str(), "r");
+#else
+    FILE* pipe = popen(command.c_str(), "r");
+#endif
+    if (pipe) {
+      char buffer[4096];
+      while (fgets(buffer, sizeof(buffer), pipe))
+        response += buffer;
+#ifdef _WIN32
+      _pclose(pipe);
+#else
+      pclose(pipe);
+#endif
+    }
+#endif
+    const auto json = nlohmann::json::parse(response, nullptr, false);
+    if (json.is_object() && json.contains("data") && json["data"].is_array()) {
+      std::vector<ModelInfo> models;
+      for (const auto& item : json["data"]) {
+        const std::string id = item.value("id", "");
+        if (!absl::StartsWith(id, "claude-"))
+          continue;
+        models.push_back({.name = id,
+                          .display_name = item.value("display_name", id),
+                          .provider = kProviderAnthropic,
+                          .family = "claude"});
+      }
+      if (!models.empty())
+        return models;
+    }
+  }
+#endif
+  return suggestions;
 }
 
 absl::Status AnthropicAIService::CheckAvailability() {
@@ -168,6 +224,72 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
     const std::string& prompt) {
   return GenerateResponse(
       {{{agent::ChatMessage::Sender::kUser, prompt, absl::Now()}}});
+}
+
+absl::StatusOr<std::string> AnthropicAIService::BuildRequestBody(
+    const std::vector<agent::ChatMessage>& history) {
+#ifndef YAZE_WITH_JSON
+  return absl::UnimplementedError("JSON support required");
+#else
+  nlohmann::json messages = nlohmann::json::array();
+  const size_t start = agent::CompleteTurnHistoryStart(history, 10);
+  for (size_t i = start; i < history.size(); ++i) {
+    const auto& msg = history[i];
+    if (function_calling_enabled_ && msg.native_content &&
+        msg.native_content->provider == kProviderAnthropic &&
+        msg.native_content->model == config_.model &&
+        msg.native_content->api == "messages") {
+      auto content = nlohmann::json::parse(msg.native_content->content_json,
+                                           nullptr, false);
+      if (!content.is_array())
+        return absl::InvalidArgumentError(
+            "Invalid Anthropic assistant history");
+      messages.push_back({{"role", "assistant"}, {"content", content}});
+      continue;
+    }
+    if (function_calling_enabled_ && msg.native_tool_result &&
+        msg.native_tool_result->provider == kProviderAnthropic &&
+        msg.native_tool_result->model == config_.model &&
+        msg.native_tool_result->api == "messages") {
+      const auto& result = *msg.native_tool_result;
+      nlohmann::json block = {{"type", "tool_result"},
+                              {"tool_use_id", result.call_id},
+                              {"content", result.output},
+                              {"is_error", result.is_error}};
+      if (!messages.empty() && messages.back().value("role", "") == "user" &&
+          messages.back()["content"].is_array() &&
+          messages.back()["content"][0].value("type", "") == "tool_result") {
+        messages.back()["content"].push_back(std::move(block));
+      } else {
+        messages.push_back({{"role", "user"}, {"content", {block}}});
+      }
+      continue;
+    }
+    if (msg.message.empty())
+      continue;
+    messages.push_back({{"role", msg.sender == agent::ChatMessage::Sender::kUser
+                                     ? "user"
+                                     : "assistant"},
+                        {"content", msg.message}});
+  }
+  nlohmann::json request_body = {{"model", config_.model},
+                                 {"max_tokens", config_.max_output_tokens},
+                                 {"system", config_.system_instruction},
+                                 {"messages", messages}};
+  if (config_.model == "claude-sonnet-5-5" ||
+      config_.model == "claude-opus-5-5" ||
+      config_.model == "claude-haiku-5-5") {
+    request_body["output_config"] = {{"effort", "medium"}};
+  }
+  if (function_calling_enabled_) {
+    auto tools_or = BuildAnthropicToolPayload(prompt_builder_);
+    if (!tools_or.ok())
+      return tools_or.status();
+    if (!tools_or->empty())
+      request_body["tools"] = *tools_or;
+  }
+  return request_body.dump();
+#endif
 }
 
 absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
@@ -193,49 +315,10 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
                 << std::endl;
     }
 
-    // Build messages array
-    nlohmann::json messages = nlohmann::json::array();
-
-    // Add conversation history
-    int start_idx = std::max(0, static_cast<int>(history.size()) - 10);
-    for (size_t i = start_idx; i < history.size(); ++i) {
-      const auto& msg = history[i];
-      std::string role = (msg.sender == agent::ChatMessage::Sender::kUser)
-                             ? "user"
-                             : "assistant";
-
-      messages.push_back({{"role", role}, {"content", msg.message}});
-    }
-
-    // Build request body
-    nlohmann::json request_body = {{"model", config_.model},
-                                   {"max_tokens", config_.max_output_tokens},
-                                   {"system", config_.system_instruction},
-                                   {"messages", messages}};
-
-    // Add function calling tools if enabled
-    if (function_calling_enabled_) {
-      auto tools_or = BuildAnthropicToolPayload(prompt_builder_);
-      if (!tools_or.ok()) {
-        if (config_.verbose) {
-          std::cerr << "[DEBUG] Function calling schemas unavailable: "
-                    << tools_or.status().message() << std::endl;
-        }
-      } else if (!tools_or->empty()) {
-        if (config_.verbose) {
-          std::string tools_str = tools_or->dump();
-          std::cerr << "[DEBUG] Function calling schemas: "
-                    << tools_str.substr(0, 200) << "..." << std::endl;
-        }
-
-        request_body["tools"] = *tools_or;
-      }
-    }
-
-    if (config_.verbose) {
-      std::cerr << "[DEBUG] Sending " << messages.size()
-                << " messages to Anthropic" << std::endl;
-    }
+    auto request_or = BuildRequestBody(history);
+    if (!request_or.ok())
+      return request_or.status();
+    const std::string& request_body = *request_or;
 
     std::string response_str;
 #if defined(YAZE_AI_IOS_URLSESSION)
@@ -244,8 +327,8 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
     headers.emplace("anthropic-version", "2023-06-01");
     headers.emplace("content-type", "application/json");
     auto resp_or = ios::UrlSessionHttpRequest(
-        "POST", "https://api.anthropic.com/v1/messages", headers,
-        request_body.dump(), 60000);
+        "POST", "https://api.anthropic.com/v1/messages", headers, request_body,
+        60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
@@ -258,7 +341,7 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
     // Write request body to temp file
     std::string temp_file = "/tmp/anthropic_request.json";
     std::ofstream out(temp_file);
-    out << request_body.dump();
+    out << request_body;
     out.close();
 
     // Use curl to make the request
@@ -332,8 +415,6 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
     agent_response.latency_seconds =
         absl::ToDoubleSeconds(absl::Now() - request_start);
     agent_response.parameters["prompt_version"] = config_.prompt_version;
-    agent_response.parameters["temperature"] =
-        absl::StrFormat("%.2f", config_.temperature);
     agent_response.parameters["max_output_tokens"] =
         absl::StrFormat("%d", config_.max_output_tokens);
     agent_response.parameters["function_calling"] =
@@ -377,6 +458,15 @@ absl::StatusOr<AgentResponse> AnthropicAIService::ParseAnthropicResponse(
     return absl::InternalError("❌ No content in Anthropic response");
   }
 
+  if (function_calling_enabled_) {
+    agent_response.native_content =
+        NativeAIContent{kProviderAnthropic, config_.model, "messages",
+                        response_json["content"].dump()};
+  }
+  const std::string stop = response_json.value("stop_reason", "");
+  if (!stop.empty() && stop != "end_turn" && stop != "tool_use") {
+    agent_response.warnings.push_back("Anthropic stop_reason: " + stop);
+  }
   for (const auto& block : response_json["content"]) {
     std::string type = block.value("type", "");
 
@@ -440,6 +530,11 @@ absl::StatusOr<AgentResponse> AnthropicAIService::ParseAnthropicResponse(
     } else if (type == "tool_use") {
       ToolCall tool_call;
       tool_call.tool_name = block.value("name", "");
+      tool_call.id = block.value("id", "");
+      if (function_calling_enabled_ && tool_call.id.empty()) {
+        return absl::InvalidArgumentError(
+            "Anthropic native tool call is missing its ID");
+      }
 
       if (block.contains("input") && block["input"].is_object()) {
         tool_call.args = ai::DecodeToolCallArguments(block["input"]);

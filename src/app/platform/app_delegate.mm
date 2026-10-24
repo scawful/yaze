@@ -10,11 +10,14 @@
 #import "app/application.h"
 #import "app/editor/shell/coordinator/ui_coordinator.h"
 #import "app/editor/shell/feedback/popup_manager.h"
+#import "app/editor/shell/feedback/toast_manager.h"
+#include "absl/strings/str_format.h"
 #import "app/editor/system/commands/shortcut_manager.h"
 #import "app/editor/system/workspace/workspace_window_manager.h"
 #import "app/platform/native_menu_bridge.h"
 #import "core/project.h"
 #import "util/file_util.h"
+#include "util/log.h"
 #import "app/editor/editor.h"
 #import "rom/rom.h"
 #include <chrono>
@@ -35,6 +38,10 @@
 #elif TARGET_OS_MAC == 1
 /* macOS */
 #import <Cocoa/Cocoa.h>
+
+#if defined(YAZE_HTTP_API_ENABLED)
+#include "app/service/editor_http_server.h"
+#endif
 
 #ifndef YAZE_USE_SDL3
 #include <SDL.h>
@@ -148,14 +155,24 @@ class EditorManagerMenuHost final : public nm::NativeMenuHost {
         case nm::MenuAction::kOpenProject:
           (void)m->OpenProject();
           break;
-        case nm::MenuAction::kSave:
-          (void)m->SaveRom();
-          break;
-        case nm::MenuAction::kSaveAs:
-          if (auto* popups = m->popup_manager()) {
-            popups->Show(yaze::editor::PopupID::kSaveAs);
+        case nm::MenuAction::kSave: {
+          const auto status = m->SaveCurrentSession();
+          if (!status.ok() && !absl::IsCancelled(status)) {
+            m->toast_manager()->Show(
+                absl::StrFormat("Failed to save: %s", status.message()),
+                yaze::editor::ToastType::kError);
           }
           break;
+        }
+        case nm::MenuAction::kSaveAs: {
+          const auto status = m->SaveCurrentSessionAs();
+          if (!status.ok() && !absl::IsCancelled(status)) {
+            m->toast_manager()->Show(
+                absl::StrFormat("Failed to save a copy: %s", status.message()),
+                yaze::editor::ToastType::kError);
+          }
+          break;
+        }
         case nm::MenuAction::kCloseRom:
           m->CloseCurrentSession();
           break;
@@ -786,6 +803,14 @@ extern "C" int yaze_run_cocoa_app_delegate(const yaze::AppConfig& config) {
   // SDL's event polling works fine with Cocoa in this setup.
 
   auto& app = yaze::Application::Instance();
+#if defined(YAZE_HTTP_API_ENABLED)
+  // Native macOS returns through this loop before main's desktop setup.
+  auto api_server = yaze::app::SetupEditorHttpServer(config);
+#else
+  if (config.enable_api) {
+    LOG_WARN("App", "HTTP API requested but unavailable in this build");
+  }
+#endif
 
   if (app.IsReady()) {
     @autoreleasepool {
@@ -807,6 +832,9 @@ extern "C" int yaze_run_cocoa_app_delegate(const yaze::AppConfig& config) {
     }
   }
 
+#if defined(YAZE_HTTP_API_ENABLED)
+  if (api_server) api_server->Stop();
+#endif
   app.Shutdown();
   return EXIT_SUCCESS;
 }

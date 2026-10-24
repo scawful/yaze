@@ -460,6 +460,12 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadLegacyWaterGateZones(
           "Legacy water gate data pointer out of range");
     }
     const uint8_t count = data[pc];
+    // Patched-ROM symbols can point at empty space in an editable base ROM.
+    // A zero-count legacy record has no fill tiles to migrate; importing only
+    // its SRAM mask would create a pending room edit on project open.
+    if (count == 0) {
+      return std::optional<WaterFillZoneEntry>{};
+    }
     const size_t needed = 1u + static_cast<size_t>(count) * 2u;
     if (pc + needed > data.size()) {
       return absl::OutOfRangeError("Legacy water gate data exceeds ROM");

@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_entrance_camera.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_render_context.h"
 #include "app/editor/dungeon/workspace/room_matrix_census.h"
 #include "app/editor/dungeon/workspace/room_matrix_content.h"
@@ -8,6 +9,9 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 #include <future>
 #include <string>
@@ -15,10 +19,12 @@
 #include <utility>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
+#include "unique_temp_path.h"
 #include "unit/zelda3/dungeon/room_census_test_rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_spawn_point.h"
@@ -711,6 +717,89 @@ TEST(DungeonRenderContextTest, ProjectMembershipWorksWithoutManifestOrCensus) {
                                                   candidates, {}, &dungeon);
   EXPECT_EQ(manual.entrance_slot, 7);
   EXPECT_EQ(manual.effective_blockset(), 3);
+}
+
+TEST(DungeonRenderContextTest, ProjectEntranceLabelsFollowLiveTargetRoom) {
+  const auto folder = test::UniqueTempPath("entrance_project_labels");
+  const auto planning = folder / "Docs/Dev/Planning";
+  std::filesystem::create_directories(planning);
+  absl::Cleanup cleanup = [&] {
+    std::error_code ec;
+    std::filesystem::remove_all(folder, ec);
+  };
+  std::ofstream(planning / "dungeons.json") << R"({"dungeons":[{
+    "id":"D3","name":"Kalyxo Castle","rooms":[{"id":"0x55"}]}]})";
+  project::YazeProject project;
+  project.name = "Oracle fixture";
+  project.filepath = (folder / "fixture.yaze").string();
+  ASSERT_TRUE(project.hack_manifest.LoadProjectRegistry(folder.string()).ok());
+  EXPECT_EQ(dungeon_project_labels::GetEntranceLabel(&project, 0x32, 0x55),
+            "D3 Kalyxo Castle");
+  // A changed entrance target follows the loaded room, never a vanilla name
+  // attached to its numeric entrance ID. The unowned Sanctuary stays vanilla.
+  EXPECT_EQ(dungeon_project_labels::GetEntranceLabel(&project, 0x02, 0x55),
+            "D3 Kalyxo Castle");
+  EXPECT_EQ(dungeon_project_labels::GetEntranceLabel(&project, 0x02, 0x12),
+            "Sanctuary");
+  project.resource_labels["entrance"]["2"] = "Project-specific entrance";
+  EXPECT_EQ(dungeon_project_labels::GetEntranceLabel(&project, 0x02, 0x12),
+            "Project-specific entrance");
+  project::YazeProject vanilla;
+  EXPECT_EQ(dungeon_project_labels::GetEntranceLabel(&vanilla, 0x02, 0x12),
+            "Sanctuary");
+}
+
+TEST(DungeonRenderContextTest, KalyxoCastleAutoExcludesUnrelatedSanctuary) {
+  core::DungeonEntry dungeon;
+  dungeon.id = "D3";
+  dungeon.name = "Kalyxo Castle";
+  dungeon.rooms = {{.id = 0x54}, {.id = 0x55}, {.id = 0x56}, {.id = 0x58},
+                   {.id = 0x59}, {.id = 0x64}, {.id = 0x65}, {.id = 0x68}};
+  constexpr int offset = zelda3::kNumDungeonSpawnPoints;
+  const std::array candidates = {
+      DungeonRenderEntranceCandidate{offset + 0x02, 0x12, 3},
+      DungeonRenderEntranceCandidate{offset + 0x0A, 0x68, 2},
+      DungeonRenderEntranceCandidate{offset + 0x28, 0x56, 2},
+      DungeonRenderEntranceCandidate{offset + 0x2A, 0x58, 2},
+      DungeonRenderEntranceCandidate{offset + 0x2B, 0x59, 2},
+      DungeonRenderEntranceCandidate{offset + 0x32, 0x55, 2}};
+  for (const int room : {0x54, 0x55, 0x64, 0x65}) {
+    const auto context = ResolveDungeonRenderContext(
+        room, -1, 1, nullptr, candidates,
+        {.entrance_id = 2,
+         .main_blockset = 3,
+         .source = zelda3::RoomEntranceSource::kDungeonMap},
+        &dungeon);
+    EXPECT_EQ(context.owner_id, "D3");
+    EXPECT_EQ(context.owner_name, "Kalyxo Castle");
+    EXPECT_EQ(context.effective_blockset(), 2);
+    EXPECT_EQ(context.entrance_slot, offset + (room == 0x55 ? 0x32 : 0x0A));
+    EXPECT_EQ(DungeonEntrancePreviewLabel(context.entrance_slot),
+              room == 0x55 ? "Entrance 32" : "Entrance 0A");
+  }
+}
+
+TEST(DungeonRenderContextTest, OracleExpandedEntranceTargetsMatchAssociation) {
+  const char* fixture = std::getenv("YAZE_TEST_ROM_OOS");
+  if (!fixture || !*fixture)
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_OOS to the Oracle main candidate";
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(fixture).ok());
+  const auto layout = zelda3::ResolveEntranceLayout(rom.vector());
+  ASSERT_TRUE(layout.ok()) << layout.status();
+  ASSERT_EQ(layout->kind, zelda3::EntranceLayoutKind::kZscreamExpanded);
+  for (const auto& [id, target] :
+       std::array<std::pair<int, int>, 5>{{{0x0A, 0x68},
+                                           {0x28, 0x56},
+                                           {0x2A, 0x58},
+                                           {0x2B, 0x59},
+                                           {0x32, 0x55}}}) {
+    zelda3::RoomEntrance entrance(&rom, id);
+    ASSERT_TRUE(entrance.load_status().ok());
+    EXPECT_EQ(entrance.room_, target);
+    EXPECT_EQ(entrance.blockset_, 2);
+    EXPECT_EQ(entrance.dungeon_id_, 0x10);
+  }
 }
 
 TEST(DungeonRenderContextTest, ConflictingDirectEntrancesStayAmbiguous) {

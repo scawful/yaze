@@ -1,0 +1,83 @@
+{
+  "binding": {
+    "adapter_id": "synthetic-v1",
+    "definition_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "game_id": "synthetic",
+    "profile_fingerprint": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "rom_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tile_count": 8
+  },
+  "protected": [
+    [
+      0,
+      0
+    ]
+  ],
+  "rows": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "schema_version": 1,
+  "tile32_inventory": {
+    "capacity": 4,
+    "complete": true,
+    "entries": [
+      {
+        "id": 0,
+        "tiles16": [
+          1,
+          1,
+          1,
+          1
+        ]
+      }
+    ]
+  },
+  "units": "tile16"
+}

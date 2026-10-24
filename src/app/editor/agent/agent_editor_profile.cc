@@ -170,21 +170,7 @@ absl::Status AgentEditor::LoadBotProfile(const std::string& name) {
   current_profile_ = *profile_or;
   MarkProfileUiDirty();
 
-  current_config_.provider = current_profile_.provider;
-  current_config_.model = current_profile_.model;
-  current_config_.ollama_host = current_profile_.ollama_host;
-  current_config_.gemini_api_key = current_profile_.gemini_api_key;
-  current_config_.openai_api_key = current_profile_.openai_api_key;
-  current_config_.openai_base_url = current_profile_.openai_base_url;
-  current_config_.verbose = current_profile_.verbose;
-  current_config_.show_reasoning = current_profile_.show_reasoning;
-  current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
-  current_config_.max_retry_attempts = current_profile_.max_retry_attempts;
-  current_config_.temperature = current_profile_.temperature;
-  current_config_.top_p = current_profile_.top_p;
-  current_config_.max_output_tokens = current_profile_.max_output_tokens;
-  current_config_.stream_responses = current_profile_.stream_responses;
-
+  SyncConfigFromProfile();
   ApplyConfig(current_config_);
   SyncContextFromProfile();
   return absl::OkStatus();
@@ -211,21 +197,7 @@ std::vector<AgentEditor::BotProfile> AgentEditor::GetAllProfiles() const {
 
 void AgentEditor::SetCurrentProfile(const BotProfile& profile) {
   current_profile_ = profile;
-  // Sync to legacy config
-  current_config_.provider = profile.provider;
-  current_config_.model = profile.model;
-  current_config_.ollama_host = profile.ollama_host;
-  current_config_.gemini_api_key = profile.gemini_api_key;
-  current_config_.openai_api_key = profile.openai_api_key;
-  current_config_.openai_base_url = profile.openai_base_url;
-  current_config_.verbose = profile.verbose;
-  current_config_.show_reasoning = profile.show_reasoning;
-  current_config_.max_tool_iterations = profile.max_tool_iterations;
-  current_config_.max_retry_attempts = profile.max_retry_attempts;
-  current_config_.temperature = profile.temperature;
-  current_config_.top_p = profile.top_p;
-  current_config_.max_output_tokens = profile.max_output_tokens;
-  current_config_.stream_responses = profile.stream_responses;
+  SyncConfigFromProfile();
   ApplyConfig(current_config_);
   MarkProfileUiDirty();
   SyncContextFromProfile();
@@ -314,6 +286,7 @@ std::string AgentEditor::ProfileToJson(const BotProfile& profile) const {
   json["openai_api_key"] = profile.openai_api_key;
   json["openai_base_url"] = profile.openai_base_url;
   json["system_prompt"] = profile.system_prompt;
+  json["allow_mutating_tools"] = profile.allow_mutating_tools;
   json["verbose"] = profile.verbose;
   json["show_reasoning"] = profile.show_reasoning;
   json["max_tool_iterations"] = profile.max_tool_iterations;
@@ -354,13 +327,15 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
     profile.openai_base_url =
         json.value("openai_base_url", "https://api.openai.com");
     profile.system_prompt = json.value("system_prompt", "");
+    profile.allow_mutating_tools = json.value("allow_mutating_tools", false);
     profile.verbose = json.value("verbose", false);
     profile.show_reasoning = json.value("show_reasoning", true);
     profile.max_tool_iterations = json.value("max_tool_iterations", 4);
     profile.max_retry_attempts = json.value("max_retry_attempts", 3);
     profile.temperature = json.value("temperature", 0.25f);
     profile.top_p = json.value("top_p", 0.95f);
-    profile.max_output_tokens = json.value("max_output_tokens", 2048);
+    profile.max_output_tokens =
+        json.value("max_output_tokens", kDefaultAgentMaxOutputTokens);
     profile.stream_responses = json.value("stream_responses", false);
 
     if (json.contains("tags") && json["tags"].is_array()) {
@@ -445,6 +420,8 @@ void AgentEditor::SyncContextFromProfile() {
   ctx_config.top_p = current_profile_.top_p;
   ctx_config.max_output_tokens = current_profile_.max_output_tokens;
   ctx_config.stream_responses = current_profile_.stream_responses;
+  ctx_config.tool_config.allow_mutating_tools =
+      current_profile_.allow_mutating_tools;
 
   internal::CopyStringToBuffer(ctx_config.ai_provider,
                                ctx_config.provider_buffer);
@@ -461,6 +438,7 @@ void AgentEditor::SyncContextFromProfile() {
                                ctx_config.openai_base_url_buffer);
 
   SyncConfigFromProfile();
+  ApplyToolPreferencesFromContext();
 
   context_->NotifyChanged();
 }
@@ -542,26 +520,15 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   current_profile_.top_p = ctx_config.top_p;
   current_profile_.max_output_tokens = ctx_config.max_output_tokens;
   current_profile_.stream_responses = ctx_config.stream_responses;
+  current_profile_.allow_mutating_tools =
+      ctx_config.tool_config.allow_mutating_tools;
   current_profile_.modified_at = absl::Now();
 
   MarkProfileUiDirty();
 
-  current_config_.provider = ctx_config.ai_provider;
-  current_config_.model = ctx_config.ai_model;
-  current_config_.ollama_host = ctx_config.ollama_host;
-  current_config_.gemini_api_key = ctx_config.gemini_api_key;
-  current_config_.openai_api_key = ctx_config.openai_api_key;
-  current_config_.openai_base_url = ctx_config.openai_base_url;
-  current_config_.verbose = ctx_config.verbose;
-  current_config_.show_reasoning = ctx_config.show_reasoning;
-  current_config_.max_tool_iterations = ctx_config.max_tool_iterations;
-  current_config_.max_retry_attempts = ctx_config.max_retry_attempts;
-  current_config_.temperature = ctx_config.temperature;
-  current_config_.top_p = ctx_config.top_p;
-  current_config_.max_output_tokens = ctx_config.max_output_tokens;
-  current_config_.stream_responses = ctx_config.stream_responses;
-
+  SyncConfigFromProfile();
   ApplyConfig(current_config_);
+  ApplyToolPreferencesFromContext();
   context_->NotifyChanged();
 }
 
@@ -575,7 +542,10 @@ void AgentEditor::ApplyToolPreferencesFromContext() {
   }
 
   const auto& tool_config = context_->agent_config().tool_config;
+  current_profile_.allow_mutating_tools = tool_config.allow_mutating_tools;
+  MarkProfileUiDirty();
   cli::agent::ToolDispatcher::ToolPreferences prefs;
+  prefs.allow_mutating_tools = tool_config.allow_mutating_tools;
   prefs.resources = tool_config.resources;
   prefs.dungeon = tool_config.dungeon;
   prefs.overworld = tool_config.overworld;

@@ -54,6 +54,28 @@ TEST_F(OverworldMapMetadataTest, ProjectMapLabelOverridesDefaultName) {
   EXPECT_NE(metadata.map_title.find("Custom Meadow"), std::string::npos);
 }
 
+TEST_F(OverworldMapMetadataTest, ProjectTerrainKeepsSpecialWorldMapIdentity) {
+  project::YazeProject project;
+  project.lyra_terrain_file = "terrain.json";
+  project.resource_labels["overworld_map"]["191"] = "Lyra southeast";
+  const zelda3::Overworld overworld(nullptr);
+  for (int map_id : {0xA0, 0xBF}) {
+    const auto metadata =
+        BuildOverworldMapMetadata(overworld, nullptr, &project, map_id, 0);
+    EXPECT_EQ(metadata.map_id, map_id);
+    EXPECT_EQ(metadata.world, 2);
+    EXPECT_EQ(metadata.world_label, "Special World");
+    EXPECT_EQ(metadata.area_size_label, "Small 1x1");
+    EXPECT_EQ(metadata.map_name,
+              map_id == 0xBF ? "Lyra southeast" : "Lyra Sea");
+    EXPECT_EQ(overworld.overworld_map(map_id), nullptr);
+  }
+  project.lyra_terrain_file.clear();
+  EXPECT_EQ(
+      BuildOverworldMapMetadata(overworld, nullptr, &project, 0xA0, 0).map_id,
+      0x9F);
+}
+
 TEST_F(OverworldMapMetadataTest,
        RenameResourceLabelNormalizesAndClearsAliases) {
   project::YazeProject project;

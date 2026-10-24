@@ -12,6 +12,7 @@
 #include "core/project.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace cli {
@@ -92,6 +93,7 @@ class CommandContext {
   emu::debug::SymbolProvider symbol_provider_;
   std::optional<project::YazeProject> loaded_project_;
   std::optional<core::FeatureFlags::Flags> previous_feature_flags_;
+  std::optional<zelda3::ResourceLabelProvider::State> previous_label_state_;
   std::optional<zelda3::CustomObjectManager::State>
       previous_custom_object_state_;
   bool project_runtime_applied_ = false;

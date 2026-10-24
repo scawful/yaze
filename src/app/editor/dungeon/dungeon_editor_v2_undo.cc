@@ -5,19 +5,23 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <cstdio>
 #include <exception>
 #include <iterator>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/types/span.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
@@ -62,11 +66,14 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_dimensions.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object_batch.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 #include "zelda3/gfx_sheet_storage.h"
 #include "zelda3/resource_labels.h"
@@ -422,6 +429,10 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
           ToastType::kWarning, 4.0f);
     }
   });
+  viewer->object_interaction().SetCollisionBatchImportCallback(
+      [this](const std::vector<zelda3::CustomCollisionRoomEntry>& entries) {
+        return ApplyCustomCollisionImportBatch(entries);
+      });
   // The interaction context is the mutation source of truth. A retained viewer
   // can change rooms, so do not capture the room ID from its creation time.
   viewer->object_interaction().SetMutationCallback([this, viewer]() {
@@ -750,6 +761,168 @@ absl::Status DungeonEditorV2::RestoreRoomObjects(
   return absl::OkStatus();
 }
 
+void DungeonEditorV2::InvalidateConnectedRoomGraphs() {
+  // A transport can target any open graph. Clear existing viewers only;
+  // refreshing derived connections must not create viewers or navigate.
+  room_viewers_.ForEach([](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+    if (viewer) {
+      viewer->InvalidateConnectedRoomGraph();
+    }
+  });
+  for (auto* viewer :
+       {workbench_viewer_.get(), workbench_compare_viewer_.get()}) {
+    if (viewer) {
+      viewer->InvalidateConnectedRoomGraph();
+    }
+  }
+}
+
+absl::StatusOr<zelda3::RoomObjectBatchResult>
+DungeonEditorV2::ApplyRoomObjectBatch(const zelda3::RoomObjectBatch& batch) {
+  if (!IsRomLoaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (!IsValidRoomId(batch.room_id)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid room id %d", batch.room_id));
+  }
+  zelda3::Room* room = rooms_.GetIfLoaded(batch.room_id);
+  if (room == nullptr) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Room %03X is not loaded in the dungeon editor", batch.room_id));
+  }
+  if (room->rom() != rom_) {
+    return absl::FailedPreconditionError(
+        "Room objects belong to a different ROM");
+  }
+  if (has_pending_undo_ || HasPendingUndoSnapshot()) {
+    return absl::FailedPreconditionError(
+        "A dungeon edit is still in progress; finish it before applying a "
+        "batch");
+  }
+
+  const std::vector<zelda3::RoomObject>& objects = room->GetTileObjects();
+  const std::vector<zelda3::RoomObjectGuard> current =
+      zelda3::CaptureRoomObjectGuards(objects);
+  if (batch.expected_objects.size() != current.size()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Room %03X has %zu objects but the batch guards %zu", batch.room_id,
+        current.size(), batch.expected_objects.size()));
+  }
+  for (size_t index = 0; index < current.size(); ++index) {
+    const zelda3::RoomObjectGuard& expected = batch.expected_objects[index];
+    if (expected.object_index != index) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Guard %zu names object_index %zu; guards must list every object in "
+          "source order",
+          index, expected.object_index));
+    }
+    const zelda3::RoomObjectGuard& actual = current[index];
+    if (expected.object_id != actual.object_id ||
+        expected.x_tile != actual.x_tile || expected.y_tile != actual.y_tile ||
+        expected.size != actual.size ||
+        expected.stored_list != actual.stored_list) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room %03X object %zu changed since the batch guards were captured",
+          batch.room_id, index));
+    }
+  }
+
+  std::vector<bool> moved(objects.size(), false);
+  for (const zelda3::RoomObjectMove& move : batch.moves) {
+    if (move.object_index >= objects.size()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Move names object_index %zu; room %03X has %zu "
+                          "objects",
+                          move.object_index, batch.room_id, objects.size()));
+    }
+    if (moved[move.object_index]) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Object %zu is moved more than once", move.object_index));
+    }
+    moved[move.object_index] = true;
+    if (move.x_tile < 0 || move.x_tile >= dungeon_coords::kRoomTileWidth ||
+        move.y_tile < 0 || move.y_tile >= dungeon_coords::kRoomTileHeight) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Object %zu target (%d, %d) is outside tiles 0..63",
+                          move.object_index, move.x_tile, move.y_tile));
+    }
+    zelda3::RoomObject candidate = objects[move.object_index];
+    candidate.set_x(static_cast<uint8_t>(move.x_tile));
+    candidate.set_y(static_cast<uint8_t>(move.y_tile));
+    int64_t x_px = move.x_tile * 8;
+    int64_t y_px = move.y_tile * 8;
+    int64_t width_px = 0;
+    int64_t height_px = 0;
+    const auto options = candidate.options();
+    if ((options & zelda3::ObjectOption::Block) !=
+            zelda3::ObjectOption::Nothing ||
+        (options & zelda3::ObjectOption::Torch) !=
+            zelda3::ObjectOption::Nothing) {
+      // The special-table pass always draws these as 2x2, regardless of ID,
+      // size, custom mappings, or the dimension table's initialization state.
+      width_px = height_px = 16;
+    } else if (zelda3::HasActiveCustomObjectOverride(candidate)) {
+      // ObjectDrawer checks project overrides before builtin routines. Follow
+      // that same object-ID/subtype dispatch when validating the footprint.
+      const auto custom_or =
+          zelda3::CustomObjectManager::Get().GetObjectInternal(
+              candidate.id_, candidate.size_ & 0x1F);
+      if (!custom_or.ok()) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Custom object 0x%03X changed during batch validation",
+            candidate.id_));
+      }
+      const auto& custom = custom_or.value();
+      if (custom && !custom->IsEmpty()) {
+        const auto bounds = custom->GetBoundingBox();
+        x_px += static_cast<int64_t>(bounds.min_x) * 8;
+        y_px += static_cast<int64_t>(bounds.min_y) * 8;
+        width_px = static_cast<int64_t>(bounds.width()) * 8;
+        height_px = static_cast<int64_t>(bounds.height()) * 8;
+      }
+    } else {
+      std::tie(x_px, y_px, width_px, height_px) =
+          zelda3::DimensionService::Get().GetSelectionBoundsPixels(candidate);
+    }
+    if (x_px < 0 || y_px < 0 || width_px < 0 || height_px < 0 ||
+        x_px + width_px > dungeon_coords::kRoomPixelWidth ||
+        y_px + height_px > dungeon_coords::kRoomPixelHeight) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Object %zu (id 0x%03X) footprint %dx%d px at (%d, %d) does not fit "
+          "the 512x512 px room",
+          move.object_index, candidate.id_, width_px, height_px, x_px, y_px));
+    }
+  }
+
+  std::vector<zelda3::RoomObject> updated = objects;
+  size_t changed_object_count = 0;
+  for (const zelda3::RoomObjectMove& move : batch.moves) {
+    zelda3::RoomObject& object = updated[move.object_index];
+    if (object.x() == move.x_tile && object.y() == move.y_tile) {
+      continue;
+    }
+    object.set_x(static_cast<uint8_t>(move.x_tile));
+    object.set_y(static_cast<uint8_t>(move.y_tile));
+    ++changed_object_count;
+  }
+  if (changed_object_count == 0) {
+    return zelda3::RoomObjectBatchResult{0};
+  }
+
+  BeginUndoSnapshot(batch.room_id);
+  const std::vector<size_t> selection = pending_undo_.before_selection;
+  const auto restore_status = RestoreRoomObjects(
+      batch.room_id, updated, selection, pending_undo_.before_chests);
+  if (!restore_status.ok()) {
+    pending_undo_ = {};
+    has_pending_undo_ = false;
+    return restore_status;
+  }
+  FinalizeUndoAction(batch.room_id);
+  return zelda3::RoomObjectBatchResult{changed_object_count};
+}
+
 void DungeonEditorV2::BeginCollisionUndoSnapshot(int room_id) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
     return;
@@ -783,6 +956,7 @@ void DungeonEditorV2::FinalizeCollisionUndoAction(int room_id) {
         RestoreRoomCustomCollision(rid, map);
       });
   undo_manager_.Push(std::move(action));
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
@@ -799,6 +973,7 @@ void DungeonEditorV2::RestoreRoomCustomCollision(
   auto& room = rooms_[room_id];
   room.custom_collision() = map;
   room.MarkCustomCollisionDirty();
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
@@ -884,6 +1059,7 @@ absl::Status DungeonEditorV2::ApplyMinecartCollisionStamp(
         absl::StrFormat("Could not record rail undo: %s", error.what()));
   }
   rollback.Commit();
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_)
     minecart_track_editor_panel_->InvalidateRoomAudit();
   return absl::OkStatus();
@@ -982,6 +1158,103 @@ absl::Status DungeonEditorV2::ApplyMinecartCollisionBatch(
         "Could not record minecart collision undo: %s", error.what()));
   }
   rollback.Commit();
+  InvalidateConnectedRoomGraphs();
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  }
+
+  for (const auto& snapshot : after) {
+    if (auto* viewer = GetViewerForRoom(snapshot.room_id)) {
+      viewer->TriggerChangePing();
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorV2::ApplyCustomCollisionImportBatch(
+    const std::vector<zelda3::CustomCollisionRoomEntry>& entries) {
+  if (!rom_ || !rom_->is_loaded() ||
+      !zelda3::HasCustomCollisionWriteSupport(rom_->vector().size())) {
+    return absl::FailedPreconditionError(
+        "Load a room with expanded collision support");
+  }
+  FinalizePendingUndoActions();
+
+  std::unordered_set<int> seen_room_ids;
+  for (const auto& entry : entries) {
+    if (!IsValidRoomId(entry.room_id)) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Collision import room 0x%03X is out of range", entry.room_id));
+    }
+    if (!seen_room_ids.insert(entry.room_id).second) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Collision import contains duplicate room 0x%03X", entry.room_id));
+    }
+  }
+
+  std::vector<DungeonCustomCollisionSnapshot> before;
+  std::vector<DungeonCustomCollisionSnapshot> after;
+  std::vector<CollisionRollbackEntry> rollback_entries;
+  before.reserve(entries.size());
+  after.reserve(entries.size());
+  rollback_entries.reserve(entries.size());
+
+  for (const auto& entry : entries) {
+    const int room_id = entry.room_id;
+    zelda3::Room& room = rooms_[room_id];
+    if (!room.IsLoaded() && !room.custom_collision_dirty() &&
+        !room.has_custom_collision()) {
+      auto map_or = zelda3::LoadCustomCollisionMap(rom_, room_id);
+      if (!map_or.ok()) {
+        return absl::Status(map_or.status().code(),
+                            absl::StrFormat("Room 0x%03X: %s", room_id,
+                                            map_or.status().message()));
+      }
+      room.custom_collision() = std::move(*map_or);
+    }
+
+    zelda3::CustomCollisionMap imported_map;
+    for (const auto& tile : entry.tiles) {
+      if (tile.offset >= imported_map.tiles.size()) {
+        continue;
+      }
+      imported_map.SetOverride(tile.offset, tile.value);
+    }
+
+    if (CollisionMapsEqual(room.custom_collision(), imported_map)) {
+      continue;
+    }
+
+    before.push_back({room_id, room.custom_collision()});
+    after.push_back({room_id, imported_map});
+    rollback_entries.push_back(
+        {&room, room.custom_collision(), room.custom_collision_dirty()});
+  }
+
+  if (after.empty()) {
+    return absl::OkStatus();
+  }
+
+  auto action = std::make_unique<DungeonCustomCollisionBatchAction>(
+      before, after,
+      [this](const std::vector<DungeonCustomCollisionSnapshot>& snapshots) {
+        return RestoreRoomCustomCollisionBatch(snapshots);
+      });
+
+  CollisionBatchRollback rollback(std::move(rollback_entries));
+  for (const auto& snapshot : after) {
+    auto& room = rooms_[snapshot.room_id];
+    room.custom_collision() = snapshot.map;
+    room.MarkCustomCollisionDirty();
+  }
+  try {
+    undo_manager_.Push(std::move(action));
+  } catch (const std::exception& error) {
+    return absl::InternalError(absl::StrFormat(
+        "Could not record collision import undo: %s", error.what()));
+  }
+  rollback.Commit();
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
@@ -1020,6 +1293,7 @@ absl::Status DungeonEditorV2::RestoreRoomCustomCollisionBatch(
       undo_restore_triggered_ping_ = true;
     }
   }
+  InvalidateConnectedRoomGraphs();
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }

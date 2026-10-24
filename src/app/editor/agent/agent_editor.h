@@ -123,13 +123,14 @@ class AgentEditor : public Editor {
     std::string openai_api_key;
     std::string openai_base_url = "https://api.openai.com";
     std::string system_prompt;
+    bool allow_mutating_tools = false;
     bool verbose = false;
     bool show_reasoning = true;
     int max_tool_iterations = 4;
     int max_retry_attempts = 3;
     float temperature = 0.25f;
     float top_p = 0.95f;
-    int max_output_tokens = 2048;
+    int max_output_tokens = kDefaultAgentMaxOutputTokens;
     bool stream_responses = false;
     std::vector<std::string> tags;
     absl::Time created_at = absl::Now();
@@ -155,7 +156,7 @@ class AgentEditor : public Editor {
     int max_retry_attempts = 3;
     float temperature = 0.25f;
     float top_p = 0.95f;
-    int max_output_tokens = 2048;
+    int max_output_tokens = kDefaultAgentMaxOutputTokens;
     bool stream_responses = false;
   };
 
