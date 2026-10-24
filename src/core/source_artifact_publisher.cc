@@ -819,13 +819,15 @@ absl::Status SyncParentDirectory(const fs::path& target) {
 }
 
 absl::Status ReplaceFromTemp(const fs::path& temp, const fs::path& target,
-                             bool* replaced = nullptr) {
+                             bool* replaced = nullptr,
+                             bool replace_existing = true) {
   if (replaced != nullptr) {
     *replaced = false;
   }
 #if defined(_WIN32)
-  if (!MoveFileExW(temp.wstring().c_str(), target.wstring().c_str(),
-                   MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+  const DWORD flags = MOVEFILE_WRITE_THROUGH |
+                      (replace_existing ? MOVEFILE_REPLACE_EXISTING : 0);
+  if (!MoveFileExW(temp.wstring().c_str(), target.wstring().c_str(), flags)) {
     const DWORD error = GetLastError();
     return absl::InternalError(absl::StrFormat(
         "Failed to publish %s: %s", target.string(),
@@ -837,13 +839,25 @@ absl::Status ReplaceFromTemp(const fs::path& temp, const fs::path& target,
   }
 #else
   std::error_code rename_ec;
-  fs::rename(temp, target, rename_ec);
+  if (replace_existing) {
+    fs::rename(temp, target, rename_ec);
+  } else {
+    fs::create_hard_link(temp, target, rename_ec);
+  }
   if (rename_ec) {
     return absl::InternalError(absl::StrFormat(
         "Failed to publish %s: %s", target.string(), rename_ec.message()));
   }
   if (replaced != nullptr) {
     *replaced = true;
+  }
+  if (!replace_existing) {
+    fs::remove(temp, rename_ec);
+    if (rename_ec) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to remove published temporary file %s: %s",
+                          temp.string(), rename_ec.message()));
+    }
   }
 #endif
   return SyncParentDirectory(target);
@@ -975,6 +989,20 @@ absl::Status ReturnFailureAfterCleanup(
 }
 
 absl::Status RestoreArtifact(const PublicationArtifact& artifact) {
+  std::error_code status_ec;
+  const auto status = fs::symlink_status(artifact.target, status_ec);
+  if (status_ec || !fs::is_regular_file(status)) {
+    return absl::AbortedError(
+        absl::StrFormat("Published file changed before rollback; preserving %s",
+                        artifact.target.string()));
+  }
+  ASSIGN_OR_RETURN(auto current,
+                   ReadTextFile(artifact.target, "published file"));
+  if (current != artifact.content) {
+    return absl::AbortedError(
+        absl::StrFormat("Published file changed before rollback; preserving %s",
+                        artifact.target.string()));
+  }
   if (artifact.original_content.has_value()) {
     fs::path restore_temp;
     ASSIGN_OR_RETURN(
@@ -1112,7 +1140,8 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
     }
     bool replaced = false;
     const absl::Status replace_status =
-        ReplaceFromTemp(artifact.temp, artifact.target, &replaced);
+        ReplaceFromTemp(artifact.temp, artifact.target, &replaced,
+                        artifact.original_content.has_value());
     artifact.published = replaced;
     if (!replace_status.ok()) {
       return RollBackPublication(artifacts, replace_status, labels);
