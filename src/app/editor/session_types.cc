@@ -357,6 +357,9 @@ void EditorSet::InvalidateScreenRomBackedState() {
 bool EditorSet::HasPendingProjectDraftChanges() const {
   if (HasPendingSpriteChanges())
     return true;
+  if (HasPendingPlanningProjectDraftChanges()) {
+    return true;
+  }
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     if (editor->HasPendingProjectDraftChanges())
@@ -367,6 +370,12 @@ bool EditorSet::HasPendingProjectDraftChanges() const {
     return editor->HasPendingProjectDraftChanges();
   }
   return false;
+}
+
+bool EditorSet::HasPendingPlanningProjectDraftChanges() const {
+  auto* editor =
+      static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning));
+  return editor && editor->HasPendingProjectDraftChanges();
 }
 
 absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
@@ -383,6 +392,10 @@ absl::Status EditorSet::PrepareProjectSave(bool publish_lyra) {
       RETURN_IF_ERROR(editor->PrepareProjectSave());
     }
   }
+  if (auto* editor =
+          static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning))) {
+    RETURN_IF_ERROR(editor->Save());
+  }
   return absl::OkStatus();
 }
 
@@ -393,6 +406,13 @@ void EditorSet::ProjectSaveCommitted() {
   if (auto* editor =
           static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {
     editor->ProjectSaveCommitted();
+  }
+}
+
+void EditorSet::DiscardPlanningProjectDraft() {
+  if (auto* editor =
+          static_cast<PlanningEditor*>(FindEditor(EditorType::kPlanning))) {
+    editor->DiscardProjectDraftChanges();
   }
 }
 

@@ -99,6 +99,8 @@ absl::StatusOr<std::string> ComputeSourceArtifactFileSha256(
 // rollback never overwrites an input changed by another writer. This is not crash-atomic across the
 // complete multi-file set: a process or system crash can interrupt the set
 // between target replacements.
+// A missing secondary target is created without replacing a file that appears
+// after preflight.
 absl::Status PublishSourceArtifacts(
     const SourceArtifactPublicationLock& lock,
     std::vector<SourceArtifactUpdate> updates,

@@ -105,8 +105,10 @@ class EditorSet {
   // exists. ROM replacement must not materialize an otherwise-unused editor.
   void InvalidateScreenRomBackedState();
   bool HasPendingProjectDraftChanges() const;
+  bool HasPendingPlanningProjectDraftChanges() const;
   absl::Status PrepareProjectSave(bool publish_lyra = true);
   void ProjectSaveCommitted();
+  void DiscardPlanningProjectDraft();
   zelda3::Overworld* GetOverworldData() const;
 
   // Deprecated named accessors (legacy compatibility)
