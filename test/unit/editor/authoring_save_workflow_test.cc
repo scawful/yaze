@@ -808,7 +808,15 @@ TEST_F(AuthoringSaveWorkflowTest, OracleProjectLoadsCanonicalMessagesOnOpen) {
   const auto include_before = ReadFile(fixture.root / include_relative);
   const auto rom_before = ReadFile(fixture.rom);
   const auto source = nlohmann::json::parse(bundle_before);
-  ASSERT_EQ(source.at("messages").size(), 119u);
+  const auto& canonical_messages = source.at("messages");
+  ASSERT_TRUE(canonical_messages.is_array());
+  ASSERT_FALSE(canonical_messages.empty());
+  constexpr int kMissingMessageId = 0xFFFF;
+  ASSERT_TRUE(std::none_of(canonical_messages.begin(), canonical_messages.end(),
+                           [](const auto& message) {
+                             return message.at("id").template get<int>() ==
+                                    kMissingMessageId;
+                           }));
 
   for (const auto mode : {AssetLoadMode::kLazy, AssetLoadMode::kFull}) {
     SCOPED_TRACE(mode == AssetLoadMode::kLazy ? "lazy open" : "preloaded open");
@@ -821,14 +829,15 @@ TEST_F(AuthoringSaveWorkflowTest, OracleProjectLoadsCanonicalMessagesOnOpen) {
     ASSERT_NE(messages, nullptr);
     const auto& expanded =
         AuthoringSaveWorkflowTestPeer::ExpandedMessages(*messages);
-    ASSERT_EQ(expanded.size(), 119u);
+    ASSERT_EQ(expanded.size(), canonical_messages.size());
     for (size_t i = 0; i < expanded.size(); ++i) {
-      EXPECT_EQ(expanded[i].ID, source.at("messages")[i].at("id"));
+      const int id = canonical_messages[i].at("id").get<int>();
+      EXPECT_EQ(expanded[i].ID, id);
       EXPECT_EQ(expanded[i].RawString,
-                source.at("messages")[i].at("text").get<std::string>());
-      EXPECT_TRUE(messages->OpenMessageById(0x18D + static_cast<int>(i)));
+                canonical_messages[i].at("text").get<std::string>());
+      EXPECT_TRUE(messages->OpenMessageById(id));
     }
-    EXPECT_FALSE(messages->OpenMessageById(0x204));
+    EXPECT_FALSE(messages->OpenMessageById(kMissingMessageId));
     EXPECT_FALSE(messages->CanUndo());
     EXPECT_EQ(manager_->GetCurrentRom()->vector(), rom_before);
     EXPECT_FALSE(manager_->GetCurrentRom()->dirty());
@@ -1098,6 +1107,31 @@ TEST_F(AuthoringSaveWorkflowTest,
   constexpr int kChild = 0x31;
   const auto* parent = editor->overworld().overworld_map(kParent);
   ASSERT_EQ(editor->overworld().overworld_map(kChild)->parent(), kParent);
+  const auto stored_size = static_cast<zelda3::AreaSizeEnum>(
+      original.at(zelda3::kOverworldScreenSize + kParent));
+  ASSERT_EQ(parent->area_size(), stored_size);
+  std::vector<int> palette_maps{kParent};
+  switch (stored_size) {
+    case zelda3::AreaSizeEnum::SmallArea:
+      break;
+    case zelda3::AreaSizeEnum::LargeArea:
+      palette_maps.insert(palette_maps.end(),
+                          {kParent + 1, kParent + 8, kParent + 9});
+      break;
+    case zelda3::AreaSizeEnum::WideArea:
+      palette_maps.push_back(kParent + 1);
+      break;
+    case zelda3::AreaSizeEnum::TallArea:
+      palette_maps.push_back(kParent + 8);
+      break;
+    default:
+      FAIL() << "Unexpected fixture area size: "
+             << static_cast<int>(stored_size);
+  }
+  for (const int map : palette_maps) {
+    ASSERT_EQ(original.at(zelda3::GetOverworldMapParentIdExpanded() + map),
+              kParent);
+  }
   const int old_background = parent->area_specific_bg_color();
   const int new_background = old_background ^ 0x0421;
   const int old_message = parent->message_id();
@@ -1149,7 +1183,7 @@ TEST_F(AuthoringSaveWorkflowTest,
   write_word(zelda3::OverworldCustomAreaSpecificBGPalette + 2 * kParent,
              new_background);
   write_word(zelda3::GetOverworldMessagesExpanded() + 2 * kParent, new_message);
-  for (const int map : {0x30, 0x31, 0x38, 0x39}) {
+  for (const int map : palette_maps) {
     expected.at(zelda3::kOverworldPalettesScreenToSetNew + map) = new_palette;
   }
   const auto pending = manager_->GetCurrentRom()->vector();
