@@ -35,6 +35,9 @@ runs:
     - name: Protocol audit
       shell: bash
       run: bash scripts/agents/protocol-audit.sh
+    - name: Protocol audit self-test
+      shell: bash
+      run: python3 scripts/agents/tests/test_protocol_audit.py
     - name: Universe coordination tests
       shell: bash
       run: bash scripts/agents/test-universe-coord.sh
