@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 
+#include "app/editor/agent/agent_ui_controller.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
@@ -166,6 +167,7 @@ void EditorManager::RestoreProjectEditingStateForSession(RomSession* session) {
 
 void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
                                           bool transient) {
+  agent_ui_->SetRomContext(session ? &session->rom : nullptr);
   // Confirmation consent and Save As targets belong to the ROM that started
   // the request. Never carry them across a user session switch. Frame-level
   // context switches are temporary and must not consume the active request.

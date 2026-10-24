@@ -161,6 +161,21 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     message.message = item.value("message", "");
     message.timestamp = ParseTimestamp(item["timestamp"]);
     message.is_internal = item.value("is_internal", false);
+    if (item.contains("native_content") && item["native_content"].is_object()) {
+      const auto& state = item["native_content"];
+      message.native_content = cli::NativeAIContent{
+          state.value("provider", ""), state.value("model", ""),
+          state.value("api", ""), state.value("content_json", "")};
+    }
+    if (item.contains("native_tool_result") &&
+        item["native_tool_result"].is_object()) {
+      const auto& result = item["native_tool_result"];
+      message.native_tool_result = cli::NativeToolResult{
+          result.value("provider", ""),   result.value("model", ""),
+          result.value("api", ""),        result.value("call_id", ""),
+          result.value("tool_name", ""),  result.value("output", ""),
+          result.value("is_error", false)};
+    }
 
     if (item.contains("json_pretty") && item["json_pretty"].is_string()) {
       message.json_pretty = item["json_pretty"].get<std::string>();
@@ -336,6 +351,8 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     }
     if (config_json.contains("tools") && config_json["tools"].is_object()) {
       const auto& tools_json = config_json["tools"];
+      config.tools.allow_mutating_tools =
+          tools_json.value("allow_mutating_tools", false);
       config.tools.resources = tools_json.value("resources", true);
       config.tools.dungeon = tools_json.value("dungeon", true);
       config.tools.overworld = tools_json.value("overworld", true);
@@ -345,7 +362,8 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
       config.tools.music = tools_json.value("music", true);
       config.tools.sprite = tools_json.value("sprite", true);
       config.tools.emulator = tools_json.value("emulator", true);
-      config.tools.memory_inspector = tools_json.value("memory_inspector", true);
+      config.tools.memory_inspector =
+          tools_json.value("memory_inspector", true);
     }
     config.persona_notes = config_json.value("persona_notes", "");
     snapshot.agent_config = config;
@@ -375,6 +393,23 @@ absl::Status AgentChatHistoryCodec::Save(const std::filesystem::path& path,
     entry["timestamp"] = absl::FormatTime(absl::RFC3339_full, message.timestamp,
                                           absl::UTCTimeZone());
     entry["is_internal"] = message.is_internal;
+    if (message.native_content) {
+      const auto& state = *message.native_content;
+      entry["native_content"] = {{"provider", state.provider},
+                                 {"model", state.model},
+                                 {"api", state.api},
+                                 {"content_json", state.content_json}};
+    }
+    if (message.native_tool_result) {
+      const auto& result = *message.native_tool_result;
+      entry["native_tool_result"] = {{"provider", result.provider},
+                                     {"model", result.model},
+                                     {"api", result.api},
+                                     {"call_id", result.call_id},
+                                     {"tool_name", result.tool_name},
+                                     {"output", result.output},
+                                     {"is_error", result.is_error}};
+    }
 
     if (message.json_pretty.has_value()) {
       entry["json_pretty"] = *message.json_pretty;
@@ -453,9 +488,6 @@ absl::Status AgentChatHistoryCodec::Save(const std::filesystem::path& path,
     config_json["provider"] = config.provider;
     config_json["model"] = config.model;
     config_json["ollama_host"] = config.ollama_host;
-    config_json["gemini_api_key"] = config.gemini_api_key;
-    config_json["anthropic_api_key"] = config.anthropic_api_key;
-    config_json["openai_api_key"] = config.openai_api_key;
     config_json["openai_base_url"] = config.openai_base_url;
     config_json["host_id"] = config.host_id;
     config_json["verbose"] = config.verbose;
@@ -473,6 +505,7 @@ absl::Status AgentChatHistoryCodec::Save(const std::filesystem::path& path,
     config_json["goals"] = config.goals;
 
     Json tools_json;
+    tools_json["allow_mutating_tools"] = config.tools.allow_mutating_tools;
     tools_json["resources"] = config.tools.resources;
     tools_json["dungeon"] = config.tools.dungeon;
     tools_json["overworld"] = config.tools.overworld;

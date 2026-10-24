@@ -272,9 +272,9 @@ if(YAZE_BUILD_TESTS)
       string(REPLACE ";" "\\\\;" _suite_labels "${label}")
     endif()
     # Avoid duplicate CTest names across multiple suites that compile the same
-    # gtest sources (e.g. quick vs stable). Only the quick suites need a prefix.
+    # gtest sources (e.g. focused vs stable). Focused suites need a prefix.
     set(_test_prefix "")
-    if(label MATCHES "(^|;)quick(;|$)")
+    if(label MATCHES "(^|;)(quick|native_batch)(;|$)")
       set(_test_prefix "${suite_name}::")
     endif()
     if(WIN32)
@@ -339,6 +339,7 @@ if(YAZE_BUILD_TESTS)
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
+    unit/editor/dungeon_agent_batch_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_activator_test.cc
     unit/editor/story_event_graph_navigation_test.cc
@@ -655,6 +656,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/object_draw_code_test.cc
     unit/zelda3/dungeon/game_parity_gate_test.cc
     unit/zelda3/dungeon/custom_object_room_render_test.cc
+    unit/zelda3/dungeon/room_animated_graphics_test.cc
     unit/zelda3/dungeon/room_object_rom_parity_test.cc
     unit/dungeon_object_drawer_test.cc
     unit/object_selection_test.cc
@@ -729,6 +731,8 @@ if(YAZE_BUILD_TESTS)
       unit/cli/ai_service_factory_test.cc
       unit/cli/model_registry_test.cc
       unit/cli/tool_dispatcher_test.cc
+      unit/cli/dungeon_editor_tool_dispatch_test.cc
+      unit/editor/dungeon_agent_tools_test.cc
       unit/cli/tool_schema_builder_test.cc
       unit/cli/http_api_handlers_test.cc
       unit/cli/api_handlers_test.cc
@@ -818,6 +822,14 @@ if(YAZE_BUILD_TESTS)
   list(APPEND STABLE_INTEGRATION_TEST_SOURCES ${QUICK_INTEGRATION_TEST_SOURCES})
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  if(YAZE_ENABLE_AGENT_CLI AND YAZE_ENABLE_JSON)
+    yaze_add_test_suite(yaze_test_native_batch "native_batch;unit" OFF
+      unit/cli/dungeon_editor_tool_dispatch_test.cc
+      unit/editor/dungeon_agent_batch_test.cc
+      unit/editor/dungeon_agent_tools_test.cc
+      unit/cli/tool_schema_builder_test.cc
+      unit/zelda3/dungeon/room_animated_graphics_test.cc)
+  endif()
   target_compile_definitions(yaze_test_unit PRIVATE
     YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
   )

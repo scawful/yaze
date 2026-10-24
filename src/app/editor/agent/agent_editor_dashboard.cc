@@ -61,13 +61,16 @@ void AgentEditor::DrawConfigurationPanel() {
     return;
   }
 
-  const auto& theme = AgentUI::GetTheme();
-
+  if (agent_chat_) {
+    const auto& applied = agent_chat_->GetAgentService()->provider_config();
+    ImGui::TextWrapped(
+        "Applied connection: %s / %s", applied.provider.c_str(),
+        applied.model.empty() ? "Default model" : applied.model.c_str());
+  }
   if (dependencies_.user_settings) {
     const auto& prefs = dependencies_.user_settings->prefs();
-    if (!prefs.ai_hosts.empty()) {
-      AgentUI::RenderSectionHeader(ICON_MD_STORAGE, "Host Presets",
-                                   theme.accent_color);
+    if (!prefs.ai_hosts.empty() &&
+        ImGui::CollapsingHeader(ICON_MD_STORAGE " Saved host presets")) {
       const auto& hosts = prefs.ai_hosts;
       std::string active_id = current_profile_.host_id.empty()
                                   ? prefs.active_ai_host_id
@@ -99,7 +102,8 @@ void AgentEditor::DrawConfigurationPanel() {
       }
       if (active_index >= 0) {
         const auto& host = hosts[active_index];
-        ImGui::TextDisabled("Active host: %s", host.label.c_str());
+        ImGui::TextDisabled("Selected preset: %s", host.label.c_str());
+        ImGui::TextDisabled("Loads the form. Apply connection to use it.");
         ImGui::TextDisabled("Endpoint: %s", host.base_url.c_str());
         ImGui::TextDisabled("API type: %s", host.api_type.empty()
                                                 ? cli::kProviderOpenAi
@@ -213,7 +217,9 @@ void AgentEditor::DrawStatusPanel() {
         latencies.erase(latencies.begin(),
                         latencies.end() - static_cast<long>(30));
       }
-      if (!latencies.empty()) {
+      // The optional chart must not assume another panel initialized ImPlot.
+      // Keep text metrics available without taking ownership of its context.
+      if (!latencies.empty() && ImPlot::GetCurrentContext() != nullptr) {
         std::vector<double> xs(latencies.size());
         for (size_t i = 0; i < xs.size(); ++i) {
           xs[i] = static_cast<double>(i);
@@ -841,37 +847,40 @@ void AgentEditor::DrawAgentBuilderPanel() {
   ImGui::BulletText("E2E readiness gates automation handoff");
 
   ImGui::Spacing();
-  gui::StyleColorGuard apply_guard(ImGuiCol_Button, theme.accent_color);
-  if (ImGui::Button(ICON_MD_LINK " Apply to Chat", ImVec2(-1, 0))) {
-    auto* service = agent_chat_->GetAgentService();
-    if (service) {
-      cli::agent::ToolDispatcher::ToolPreferences prefs;
-      prefs.resources = builder_state_.tools.resources;
-      prefs.dungeon = builder_state_.tools.dungeon;
-      prefs.overworld = builder_state_.tools.overworld;
-      prefs.dialogue = builder_state_.tools.dialogue;
-      prefs.gui = builder_state_.tools.gui;
-      prefs.music = builder_state_.tools.music;
-      prefs.sprite = builder_state_.tools.sprite;
-#ifdef YAZE_WITH_GRPC
-      prefs.emulator = builder_state_.tools.emulator;
-#endif
-      prefs.memory_inspector = builder_state_.tools.memory_inspector;
-      service->SetToolPreferences(prefs);
+  {
+    gui::StyleColorGuard apply_guard(ImGuiCol_Button, theme.accent_color);
+    if (ImGui::Button(ICON_MD_LINK " Apply to Chat", ImVec2(-1, 0))) {
+      auto* service = agent_chat_->GetAgentService();
+      if (service) {
+        if (context_) {
+          auto& tools = context_->agent_config().tool_config;
+          tools.resources = builder_state_.tools.resources;
+          tools.dungeon = builder_state_.tools.dungeon;
+          tools.overworld = builder_state_.tools.overworld;
+          tools.dialogue = builder_state_.tools.dialogue;
+          tools.gui = builder_state_.tools.gui;
+          tools.music = builder_state_.tools.music;
+          tools.sprite = builder_state_.tools.sprite;
+          tools.emulator = builder_state_.tools.emulator;
+          tools.memory_inspector = builder_state_.tools.memory_inspector;
+          ApplyToolPreferencesFromContext();
+          context_->NotifyChanged();
+        }
 
-      auto agent_cfg = service->GetConfig();
-      agent_cfg.max_tool_iterations = current_profile_.max_tool_iterations;
-      agent_cfg.max_retry_attempts = current_profile_.max_retry_attempts;
-      agent_cfg.verbose = current_profile_.verbose;
-      agent_cfg.show_reasoning = current_profile_.show_reasoning;
-      service->SetConfig(agent_cfg);
-    }
+        auto agent_cfg = service->GetConfig();
+        agent_cfg.max_tool_iterations = current_profile_.max_tool_iterations;
+        agent_cfg.max_retry_attempts = current_profile_.max_retry_attempts;
+        agent_cfg.verbose = current_profile_.verbose;
+        agent_cfg.show_reasoning = current_profile_.show_reasoning;
+        service->SetConfig(agent_cfg);
+      }
 
-    agent_chat_->SetLastPlanSummary(builder_state_.persona_notes);
+      agent_chat_->SetLastPlanSummary(builder_state_.persona_notes);
 
-    if (toast_manager_) {
-      toast_manager_->Show("Builder tool plan synced to chat",
-                           ToastType::kSuccess, 2.0f);
+      if (toast_manager_) {
+        toast_manager_->Show("Builder tool plan synced to chat",
+                             ToastType::kSuccess, 2.0f);
+      }
     }
   }
 

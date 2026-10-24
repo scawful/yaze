@@ -117,6 +117,7 @@ void EditorManager::UpdateEditorState() {
   }
 
   // Update agent editor dashboard
+  agent_ui_->SetRomContext(GetCurrentRom());
   status_ = agent_ui_->Update();
 
   // Ensure TestManager always has the current ROM
@@ -166,7 +167,6 @@ void EditorManager::UpdateEditorState() {
 
   // Update ROM context for agent UI
   if (current_rom && current_rom->is_loaded()) {
-    agent_ui_->SetRomContext(current_rom);
     agent_ui_->SetProjectContext(&current_project_);
     if (auto* editor_set = GetCurrentEditorSet()) {
       agent_ui_->SetAsarWrapperContext(editor_set->GetAsarWrapper());
@@ -385,6 +385,8 @@ void EditorManager::DrawInterface() {
 
   // Draw right panel
   if (right_drawer_manager_) {
+    // Session tabs may have changed while drawing the editor this frame.
+    agent_ui_->SetRomContext(GetCurrentRom());
     right_drawer_manager_->SetRom(GetCurrentRom());
     right_drawer_manager_->Draw();
   }

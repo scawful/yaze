@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/controller.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/menu/right_drawer_manager.h"
@@ -15,6 +16,13 @@
 #include "app/gui/core/icons.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "test_utils.h"
+
+#ifdef YAZE_BUILD_AGENT_UI
+#include "app/editor/agent/agent_chat.h"
+#include "app/editor/agent/agent_ui_controller.h"
+#include "imgui/imgui_internal.h"
+#include "implot.h"
+#endif
 
 namespace {
 
@@ -337,6 +345,116 @@ void E2ETest_RightDrawerSmokeTest(ImGuiTestContext* ctx) {
            nullptr);
 }
 
+#ifdef YAZE_BUILD_AGENT_UI
+void E2ETest_AgentBuilderSmokeTest(ImGuiTestContext* ctx) {
+  auto* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  auto* window_manager = GetWindowManager(controller);
+  IM_CHECK(window_manager != nullptr);
+  auto* ui = controller->editor_manager()->ui_coordinator();
+  IM_CHECK(ui != nullptr);
+
+  const size_t session_id = GetSessionId(controller);
+  const auto visible_before = window_manager->GetVisibleWindowIds(session_id);
+  const std::string category_before = window_manager->GetActiveCategory();
+  const bool welcome_closed_before = ui->IsWelcomeScreenManuallyClosed();
+  const absl::Cleanup restore_visibility = [&] {
+    window_manager->SetVisibleWindows(session_id, visible_before);
+    window_manager->SetActiveCategory(category_before, /*notify=*/false);
+    ui->SetWelcomeScreenManuallyClosed(welcome_closed_before);
+  };
+
+  // Reach the real panel draw without loading a ROM or opening other agents.
+  ui->SetWelcomeScreenManuallyClosed(true);
+  window_manager->SetActiveCategory("Agent", /*notify=*/false);
+  window_manager->SetVisibleWindows(session_id, {});
+  IM_CHECK(OpenWindow(ctx, controller, "agent.builder"));
+  ctx->Yield(5);
+
+  const auto* descriptor = GetWindowDescriptor(controller, "agent.builder");
+  IM_CHECK(descriptor != nullptr);
+  // PanelWindow appends the session-resolved ID to its display label.
+  const std::string title =
+      GetWindowTitle(descriptor) + "##" + descriptor->card_id;
+  IM_CHECK(ctx->WindowInfo(title.c_str(), ImGuiTestOpFlags_NoError).Window !=
+           nullptr);
+  ctx->WindowCollapse(title.c_str(), false);
+  ctx->Yield(5);
+  ctx->SetRef(title.c_str());
+  const auto details = ctx->WindowInfo("AgentBuilderPanel/BuilderDetails");
+  IM_CHECK(details.Window != nullptr);
+  ctx->SetRef(details.Window);
+  constexpr const char* kApplyButton = ICON_MD_LINK " Apply to Chat";
+  // Wildcard label searches do not scroll nested children. Resolve this ID
+  // in its owning window, then expose it through that child's scrollbar.
+  IM_CHECK(ctx->ItemExists(kApplyButton));
+  ctx->ScrollToItemY(kApplyButton);
+  ctx->Yield(5);
+  IM_CHECK(ctx->ItemExists(kApplyButton));
+  IM_CHECK((ctx->ItemInfo(kApplyButton).StatusFlags &
+            ImGuiItemStatusFlags_Visible) != 0);
+}
+
+void E2ETest_AgentStatusWithoutPlotContext(ImGuiTestContext* ctx) {
+  auto* controller = GetController(ctx);
+  IM_CHECK(controller != nullptr);
+  auto* manager = controller->editor_manager();
+  auto* window_manager = GetWindowManager(controller);
+  IM_CHECK(window_manager != nullptr);
+  auto* ui = manager->ui_coordinator();
+  IM_CHECK(ui != nullptr);
+  auto* agent_editor = manager->GetAgentUiController()->GetAgentEditor();
+  IM_CHECK(agent_editor != nullptr);
+  auto* chat = agent_editor->GetAgentChat();
+  IM_CHECK(chat != nullptr);
+  auto* service = chat->GetAgentService();
+
+  const size_t session_id = GetSessionId(controller);
+  const auto visible_before = window_manager->GetVisibleWindowIds(session_id);
+  const std::string category_before = window_manager->GetActiveCategory();
+  const bool welcome_closed_before = ui->IsWelcomeScreenManuallyClosed();
+  const auto history_before = service->GetHistory();
+  auto* plot_context_before = ImPlot::GetCurrentContext();
+  const absl::Cleanup restore_state = [&] {
+    ImPlot::SetCurrentContext(plot_context_before);
+    service->ReplaceHistory(history_before);
+    window_manager->SetVisibleWindows(session_id, visible_before);
+    window_manager->SetActiveCategory(category_before, /*notify=*/false);
+    ui->SetWelcomeScreenManuallyClosed(welcome_closed_before);
+  };
+
+  // Restored latency history reaches the exact chart branch from the abort.
+  yaze::cli::agent::ChatMessage message;
+  message.sender = yaze::cli::agent::ChatMessage::Sender::kAgent;
+  message.message = "Metrics fixture";
+  message.timestamp = absl::UnixEpoch();
+  message.model_metadata.emplace();
+  message.model_metadata->latency_seconds = 0.25;
+  service->ReplaceHistory({message});
+
+  ui->SetWelcomeScreenManuallyClosed(true);
+  window_manager->SetActiveCategory("Agent", /*notify=*/false);
+  window_manager->SetVisibleWindows(session_id, {});
+  ImPlot::SetCurrentContext(nullptr);
+  IM_CHECK(OpenWindow(ctx, controller, "agent.status"));
+  ctx->Yield(5);
+
+  const auto* descriptor = GetWindowDescriptor(controller, "agent.status");
+  IM_CHECK(descriptor != nullptr);
+  const std::string title =
+      GetWindowTitle(descriptor) + "##" + descriptor->card_id;
+  ctx->WindowCollapse(title.c_str(), false);
+  ctx->WindowResize(title.c_str(), ImVec2(640, 520));
+  ctx->Yield(5);
+  ctx->SetRef(title.c_str());
+  const auto metrics = ctx->WindowInfo("AgentMetricsCard");
+  IM_CHECK(metrics.Window != nullptr);
+  IM_CHECK(!metrics.Window->SkipItems);
+  IM_CHECK(ImPlot::GetCurrentContext() == nullptr);
+  IM_CHECK(service->GetHistory().size() == 1);
+}
+#endif
+
 void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx) {
   auto* controller = GetController(ctx);
   if (!EnsureRomLoaded(ctx, controller)) {
@@ -460,6 +578,20 @@ void RegisterEditorSmokeTests(ImGuiTestEngine* engine, Controller* controller) {
     test->TestFunc = E2ETest_RightDrawerSmokeTest;
     test->UserData = controller;
   }
+
+#ifdef YAZE_BUILD_AGENT_UI
+  {
+    ImGuiTest* test = IM_REGISTER_TEST(engine, "EditorSmoke", "AgentBuilder");
+    test->TestFunc = E2ETest_AgentBuilderSmokeTest;
+    test->UserData = controller;
+  }
+  {
+    ImGuiTest* test = IM_REGISTER_TEST(engine, "EditorSmoke",
+                                       "AgentStatusWithoutPlotContext");
+    test->TestFunc = E2ETest_AgentStatusWithoutPlotContext;
+    test->UserData = controller;
+  }
+#endif
 
   {
     ImGuiTest* test =

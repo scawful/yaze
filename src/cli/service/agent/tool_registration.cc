@@ -113,6 +113,28 @@ class MetaToolsSearchHandler : public resources::CommandHandler {
   }
 };
 
+// Placeholder for native dungeon editor tools; the dispatcher routes them to
+// the host callback and never creates this handler.
+class NativeDungeonEditorToolHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-edit-native"; }
+  std::string GetUsage() const override {
+    return "dungeon-edit-inspect --room=<id> | dungeon-edit-apply --room=<id> "
+           "--batch=<json>";
+  }
+  bool RequiresRom() const override { return true; }
+
+ protected:
+  absl::Status ValidateArgs(const resources::ArgumentParser&) override {
+    return absl::OkStatus();
+  }
+  absl::Status Execute(Rom*, const resources::ArgumentParser&,
+                       resources::OutputFormatter&) override {
+    return absl::FailedPreconditionError(
+        "Handled by the native yaze dungeon editor host callback");
+  }
+};
+
 void RegisterBuiltinAgentTools(ToolRegistry& registry) {
   // Meta-tools (handled specially but registered for discovery)
   REGISTER_BUILTIN_AGENT_TOOL("tools-list", "meta", "List all available tools",
@@ -248,6 +270,39 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
        ToolAccess::kMutating,
        {},
        {"write"}});
+  RegisterBuiltinTool<NativeDungeonEditorToolHandler>(
+      registry,
+      {"dungeon-edit-inspect",
+       "dungeon",
+       "Inspect the room loaded in the running native yaze dungeon editor: "
+       "returns the editor session_id and the current unsaved object guards "
+       "(object_index, object_id, x_tile, y_tile, size, stored_list). Only "
+       "available inside the yaze app; reads no ROM file",
+       "dungeon-edit-inspect --room=<id>",
+       {},
+       true,
+       false,
+       ToolAccess::kReadOnly,
+       {"room"},
+       {}});
+  RegisterBuiltinTool<NativeDungeonEditorToolHandler>(
+      registry,
+      {"dungeon-edit-apply",
+       "dungeon",
+       "Move objects in the room loaded in the running native yaze dungeon "
+       "editor as one Undo action. --batch is JSON {session_id, "
+       "expected_objects, moves} built from dungeon-edit-inspect output; "
+       "stale guards reject the whole batch. Renders in the editor and never "
+       "saves the ROM",
+       "dungeon-edit-apply --room=<id> --batch=<json>",
+       {"dungeon-edit-apply --room=<id> --batch='{\"session_id\":\"...\","
+        "\"expected_objects\":[...],\"moves\":[{\"object_index\":0,"
+        "\"x_tile\":10,\"y_tile\":12}]}'"},
+       true,
+       false,
+       ToolAccess::kMutating,
+       {"room", "batch"},
+       {}});
 
   // Overworld commands
   REGISTER_BUILTIN_AGENT_TOOL(

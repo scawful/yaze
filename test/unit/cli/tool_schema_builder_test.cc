@@ -13,6 +13,52 @@ namespace {
 
 #if defined(YAZE_AI_RUNTIME_AVAILABLE) && defined(YAZE_WITH_JSON)
 
+void ExpectNativeDungeonEditorSchemas(const nlohmann::json& declarations) {
+  for (const std::string name :
+       {"dungeon-edit-inspect", "dungeon-edit-apply"}) {
+    SCOPED_TRACE(name);
+    const nlohmann::json* function = nullptr;
+    size_t matches = 0;
+    for (const auto& declaration : declarations) {
+      if (declaration.value("name", "") == name) {
+        function = &declaration;
+        ++matches;
+      }
+    }
+    ASSERT_EQ(matches, 1u);
+    ASSERT_NE(function, nullptr);
+    const std::string description =
+        function->at("description").get<std::string>();
+    EXPECT_NE(description.find("loaded native Yaze editor"), std::string::npos);
+    EXPECT_NE(description.find("dungeon-edit-inspect"), std::string::npos);
+    EXPECT_NE(description.find("never save"), std::string::npos);
+    EXPECT_NE(description.find("no CLI fallback"), std::string::npos);
+    const auto& parameters = function->at("parameters");
+    EXPECT_EQ(parameters.at("type"), "object");
+    const auto& properties = parameters.at("properties");
+    const std::set<std::string> expected =
+        name == "dungeon-edit-apply" ? std::set<std::string>{"room", "batch"}
+                                     : std::set<std::string>{"room"};
+    std::set<std::string> required;
+    for (const auto& argument : parameters.at("required")) {
+      required.insert(argument.get<std::string>());
+    }
+    EXPECT_EQ(required, expected);
+    EXPECT_EQ(properties.size(), expected.size());
+    for (const auto& argument : expected) {
+      ASSERT_TRUE(properties.contains(argument));
+      EXPECT_EQ(properties.at(argument).at("type"), "string");
+    }
+    if (name == "dungeon-edit-apply") {
+      EXPECT_NE(description.find("session_id"), std::string::npos);
+      EXPECT_NE(description.find("expected_objects"), std::string::npos);
+      EXPECT_NE(description.find("JSON integers"), std::string::npos);
+      EXPECT_NE(description.find("0..63"), std::string::npos);
+      EXPECT_NE(description.find("Undo"), std::string::npos);
+    }
+  }
+}
+
 TEST(ToolSchemaBuilderTest,
      BuildFunctionDeclarationsProducesBareFunctionDeclarations) {
   ToolSpecification spec;
@@ -166,6 +212,19 @@ TEST(ToolSchemaBuilderTest,
 }
 
 TEST(ToolSchemaBuilderTest,
+     ActiveCataloguesExposeNativeDungeonEditorToolsToProviders) {
+  for (const std::string catalogue : {"", "agent/prompt_catalogue_v2.yaml"}) {
+    SCOPED_TRACE(catalogue.empty() ? "default" : catalogue);
+    PromptBuilder prompt_builder;
+    ASSERT_TRUE(prompt_builder.LoadResourceCatalogue(catalogue).ok());
+    auto declarations_or =
+        ToolSchemaBuilder::ResolveFunctionDeclarations(prompt_builder);
+    ASSERT_TRUE(declarations_or.ok()) << declarations_or.status();
+    ExpectNativeDungeonEditorSchemas(*declarations_or);
+  }
+}
+
+TEST(ToolSchemaBuilderTest,
      ProviderToolArgumentCodecPreservesDungeonPaletteIntegersAndWriteFlag) {
   const nlohmann::json provider_arguments = {
       {"room", "0xA8"},
@@ -194,6 +253,7 @@ TEST(ToolSchemaBuilderTest,
   ASSERT_FALSE(declarations_or->empty());
   EXPECT_TRUE((*declarations_or)[0].contains("name"));
   EXPECT_FALSE((*declarations_or)[0].contains("function"));
+  ExpectNativeDungeonEditorSchemas(*declarations_or);
 }
 
 #endif

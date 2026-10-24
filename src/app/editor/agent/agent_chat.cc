@@ -83,7 +83,7 @@ std::string BuildConversationTitle(
     const std::vector<cli::agent::ChatMessage>& history) {
   for (const auto& msg : history) {
     if (msg.sender == cli::agent::ChatMessage::Sender::kUser &&
-        !msg.message.empty()) {
+        !msg.is_internal && !msg.message.empty()) {
       std::string title = TrimTitle(msg.message);
       if (!title.empty()) {
         return title;
@@ -114,6 +114,7 @@ void AgentChat::Initialize(ToastManager* toast_manager,
 
 void AgentChat::SetRomContext(Rom* rom) {
   rom_ = rom;
+  agent_service_.SetRomContext(rom);
 }
 
 void AgentChat::SetContext(AgentUIContext* context) {
@@ -130,6 +131,8 @@ void AgentChat::ScrollToBottom() {
 
 void AgentChat::ClearHistory() {
   agent_service_.ResetConversation();
+  last_error_summary_.clear();
+  last_error_details_.clear();
   if (toast_manager_) {
     toast_manager_->Show("Chat history cleared", ToastType::kInfo);
   }
@@ -140,6 +143,8 @@ void AgentChat::SendMessage(const std::string& message) {
     return;
 
   waiting_for_response_ = true;
+  last_error_summary_.clear();
+  last_error_details_.clear();
   thinking_animation_ = 0.0f;
   ScrollToBottom();
 
@@ -152,16 +157,111 @@ void AgentChat::HandleAgentResponse(
     const absl::StatusOr<cli::agent::ChatMessage>& response) {
   waiting_for_response_ = false;
   if (!response.ok()) {
+    last_error_summary_ = SummarizeError(response.status());
+    last_error_details_ = response.status().ToString();
     if (toast_manager_) {
-      toast_manager_->Show(
-          "Agent Error: " + std::string(response.status().message()),
-          ToastType::kError);
+      toast_manager_->Show(last_error_summary_, ToastType::kError);
     }
     LOG_ERROR("AgentChat", "Agent Error: %s",
               response.status().ToString().c_str());
   } else {
     ScrollToBottom();
   }
+}
+
+std::string AgentChat::SummarizeError(const absl::Status& status) {
+  std::string text(status.message());
+  // Provider errors may append a whole response, including opaque signatures.
+  // Keep the actionable first line visible and retain the exact status in Details.
+  size_t end = text.find('\n');
+  for (const char* marker : {"Raw response:", "Response body:"}) {
+    end = std::min(end, text.find(marker));
+  }
+  end = std::min(end, text.find('{'));
+  text = std::string(absl::StripAsciiWhitespace(text.substr(0, end)));
+  constexpr size_t kMaxSummary = 240;
+  if (text.size() > kMaxSummary) {
+    text.resize(kMaxSummary);
+    text += "...";
+  }
+  return text.empty() ? "Agent request failed. Open Details for the error."
+                      : text;
+}
+
+std::optional<AgentChat::ToolResultPresentation> AgentChat::DescribeToolResult(
+    const cli::agent::ChatMessage& message) {
+  if (!message.is_internal) {
+    return std::nullopt;
+  }
+  ToolResultPresentation result;
+  if (message.native_tool_result) {
+    const auto& receipt = *message.native_tool_result;
+    result.tool_name = receipt.tool_name;
+    result.details = receipt.output;
+    result.summary =
+        receipt.is_error
+            ? "Tool failed: " +
+                  SummarizeError(absl::InternalError(receipt.output))
+            : "Result received";
+    if (receipt.is_error) {
+      return result;
+    }
+  } else {
+    // Legacy saved conversations retain the marked text protocol.
+    constexpr char kPrefix[] = "[TOOL RESULT for ";
+    if (message.sender != cli::agent::ChatMessage::Sender::kUser ||
+        message.native_content || !absl::StartsWith(message.message, kPrefix)) {
+      return std::nullopt;
+    }
+    const size_t name_end = message.message.find(']', sizeof(kPrefix) - 1);
+    if (name_end == std::string::npos) {
+      return std::nullopt;
+    }
+    result.tool_name = message.message.substr(sizeof(kPrefix) - 1,
+                                              name_end - sizeof(kPrefix) + 1);
+    result.summary = "Result received";
+    constexpr char kDataPrefix[] = "The tool returned the following data:\n";
+    size_t data_start = message.message.find(kDataPrefix, name_end);
+    data_start = data_start == std::string::npos
+                     ? name_end + 1
+                     : data_start + sizeof(kDataPrefix) - 1;
+    const size_t data_end =
+        message.message.find("\n\nPlease provide a text_response", data_start);
+    result.details = std::string(absl::StripAsciiWhitespace(
+        message.message.substr(data_start, data_end == std::string::npos
+                                               ? std::string::npos
+                                               : data_end - data_start)));
+  }
+#ifdef YAZE_WITH_JSON
+  const auto data = nlohmann::json::parse(result.details, nullptr, false);
+  if (data.is_object()) {
+    result.details = data.dump(2);
+    // These statements come only from a native receipt. A model's JSON-shaped
+    // prose must never be presented as proof that an edit or save happened.
+    if (result.tool_name == "dungeon-edit-apply" &&
+        data.contains("changed_object_count") &&
+        data["changed_object_count"].is_number_unsigned()) {
+      const auto count = data["changed_object_count"].get<uint64_t>();
+      result.summary = absl::StrFormat("%d objects changed", count);
+      if (data.contains("undo_recorded") &&
+          data["undo_recorded"].is_boolean()) {
+        result.summary += data["undo_recorded"].get<bool>()
+                              ? " | Undo recorded"
+                              : " | No Undo action";
+      }
+      if (data.contains("rom_saved") && data["rom_saved"].is_boolean()) {
+        result.summary += data["rom_saved"].get<bool>()
+                              ? " | Save performed by this tool"
+                              : " | No save performed by this tool";
+      }
+    } else if (result.tool_name == "dungeon-edit-inspect" &&
+               data.contains("objects") && data["objects"].is_array()) {
+      result.summary =
+          absl::StrFormat("%d room objects inspected", data["objects"].size());
+    }
+  }
+#endif
+  return result;
 }
 
 void AgentChat::RefreshConversationList(bool force) {
@@ -224,7 +324,9 @@ void AgentChat::RefreshConversationList(bool force) {
     auto snapshot_or = AgentChatHistoryCodec::Load(path);
     if (snapshot_or.ok()) {
       const auto& snapshot = snapshot_or.value();
-      entry.message_count = static_cast<int>(snapshot.history.size());
+      entry.message_count = static_cast<int>(std::count_if(
+          snapshot.history.begin(), snapshot.history.end(),
+          [](const auto& message) { return !message.is_internal; }));
       entry.title = BuildConversationTitle(path, snapshot.history);
       if (!snapshot.history.empty()) {
         entry.last_updated = snapshot.history.back().timestamp;
@@ -284,14 +386,18 @@ void AgentChat::Draw(float available_height) {
 
   const float content_width = ImGui::GetContentRegionAvail().x;
   const bool wide_layout = content_width >= 680.0f;
+  const float initial_height =
+      available_height > 0
+          ? std::min(available_height, ImGui::GetContentRegionAvail().y)
+          : ImGui::GetContentRegionAvail().y;
+  const float toolbar_start = ImGui::GetCursorPosY();
 
   // 0. Toolbar at top
   RenderToolbar(!wide_layout);
   ImGui::Separator();
 
-  float content_height = available_height > 0
-                             ? available_height
-                             : ImGui::GetContentRegionAvail().y;
+  const float content_height =
+      std::max(1.0f, initial_height - (ImGui::GetCursorPosY() - toolbar_start));
 
   if (wide_layout) {
     const float sidebar_width =
@@ -311,7 +417,7 @@ void AgentChat::Draw(float available_height) {
     const float input_height =
         ImGui::GetTextLineHeightWithSpacing() * 3.5f + 24.0f;
     const float history_height =
-        std::max(140.0f, ImGui::GetContentRegionAvail().y - input_height);
+        std::max(1.0f, ImGui::GetContentRegionAvail().y - input_height);
 
     if (ImGui::BeginChild("##ChatHistory", ImVec2(0, history_height), true,
                           ImGuiWindowFlags_NoScrollbar)) {
@@ -330,62 +436,97 @@ void AgentChat::Draw(float available_height) {
 }
 
 void AgentChat::RenderToolbar(bool compact) {
-  const auto& theme = AgentUI::GetTheme();
-
-  {
-    gui::StyleColorGuard btn_guard(ImGuiCol_Button, theme.status_success);
-    if (ImGui::Button(ICON_MD_ADD_COMMENT " New Chat")) {
-      ClearHistory();
-      active_history_path_ = ResolveAgentChatHistoryPath();
-      RefreshConversationList(true);
-    }
+  const auto& applied = agent_service_.provider_config();
+  const auto& draft = context_->agent_config();
+  ImGui::TextWrapped(
+      "%s  %s", applied.provider.c_str(),
+      applied.model.empty() ? "Default model" : applied.model.c_str());
+  if (draft.ai_provider != applied.provider ||
+      draft.ai_model != applied.model ||
+      (draft.ai_provider == cli::kProviderOllama &&
+       draft.ollama_host != applied.ollama_host) ||
+      (draft.ai_provider == cli::kProviderOpenAi &&
+       draft.openai_base_url != applied.openai_base_url)) {
+    ImGui::TextDisabled("Connection changes need Apply in Settings.");
   }
-  ImGui::SameLine();
+  if (applied.provider == cli::kProviderMock) {
+    ImGui::TextDisabled(
+        "Mock provider: configure a connection to use a model.");
+  }
 
-  if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear")) {
+  if (ImGui::SmallButton(ICON_MD_ADD_COMMENT " New Chat")) {
     ClearHistory();
-  }
-  ImGui::SameLine();
-
-  const bool history_available = AgentChatHistoryCodec::Available();
-  ImGui::BeginDisabled(!history_available);
-  if (ImGui::Button(ICON_MD_SAVE " Save")) {
-    const std::string filepath = active_history_path_.empty()
-                                     ? ResolveAgentChatHistoryPath()
-                                     : active_history_path_.string();
-    if (auto status = SaveHistory(filepath); !status.ok()) {
-      if (toast_manager_) {
-        toast_manager_->Show(
-            "Failed to save history: " + std::string(status.message()),
-            ToastType::kError);
-      }
-    } else if (toast_manager_) {
-      toast_manager_->Show("Chat history saved", ToastType::kSuccess);
-    }
+    active_history_path_ = ResolveAgentChatHistoryPath();
     RefreshConversationList(true);
   }
+  if (panel_opener_) {
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_SETTINGS " Settings")) {
+      panel_opener_("agent.configuration");
+    }
+  }
   ImGui::SameLine();
-
-  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load")) {
+  if (ImGui::SmallButton(ICON_MD_MORE_HORIZ " More")) {
+    ImGui::OpenPopup("ChatOptions");
+  }
+  if (ImGui::BeginPopup("ChatOptions")) {
+    if (panel_opener_ && ImGui::MenuItem("Agent Builder")) {
+      panel_opener_("agent.builder");
+    }
+    if (ImGui::MenuItem("Clear chat")) {
+      ClearHistory();
+    }
+    const bool history_available = AgentChatHistoryCodec::Available();
+    ImGui::BeginDisabled(!history_available);
     const std::string filepath = active_history_path_.empty()
                                      ? ResolveAgentChatHistoryPath()
                                      : active_history_path_.string();
-    if (auto status = LoadHistory(filepath); !status.ok()) {
-      if (toast_manager_) {
-        toast_manager_->Show(
-            "Failed to load history: " + std::string(status.message()),
-            ToastType::kError);
+    if (ImGui::MenuItem("Save chat history")) {
+      if (auto status = SaveHistory(filepath); !status.ok()) {
+        last_error_summary_ = SummarizeError(status);
+        last_error_details_ = status.ToString();
+      } else if (toast_manager_) {
+        toast_manager_->Show("Chat history saved", ToastType::kSuccess);
       }
-    } else if (toast_manager_) {
-      toast_manager_->Show("Chat history loaded", ToastType::kSuccess);
+      RefreshConversationList(true);
+    }
+    if (ImGui::MenuItem("Load chat history")) {
+      if (auto status = LoadHistory(filepath); !status.ok()) {
+        last_error_summary_ = SummarizeError(status);
+        last_error_details_ = status.ToString();
+      }
+    }
+    ImGui::EndDisabled();
+    ImGui::Separator();
+    ImGui::Checkbox("Auto-scroll", &auto_scroll_);
+    ImGui::Checkbox("Timestamps", &show_timestamps_);
+    ImGui::Checkbox("Reasoning", &show_reasoning_);
+    ImGui::EndPopup();
+  }
+
+  ImGui::BeginDisabled(!tool_preferences_changed_);
+  if (ImGui::Checkbox(
+          "Allow editing",
+          &context_->agent_config().tool_config.allow_mutating_tools)) {
+    if (tool_preferences_changed_) {
+      tool_preferences_changed_();
     }
   }
   ImGui::EndDisabled();
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        "Allows enabled tool categories to change editor data or application "
+        "state. "
+        "Dungeon batch edits have Undo and do not save the ROM.");
+  }
+  ImGui::SameLine();
+  ImGui::TextDisabled(context_->agent_config().tool_config.allow_mutating_tools
+                          ? "Editing enabled"
+                          : "Read only");
 
   if (compact && !conversations_.empty()) {
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(220.0f);
-    const char* current_label = "Current Session";
+    ImGui::SetNextItemWidth(-1);
+    const char* current_label = "Current chat";
     for (const auto& entry : conversations_) {
       if (entry.is_active) {
         current_label = entry.title.c_str();
@@ -394,7 +535,7 @@ void AgentChat::RenderToolbar(bool compact) {
     }
     if (ImGui::BeginCombo("##conversation_combo", current_label)) {
       for (const auto& entry : conversations_) {
-        bool selected = entry.is_active;
+        const bool selected = entry.is_active;
         if (ImGui::Selectable(entry.title.c_str(), selected)) {
           SelectConversation(entry.path);
         }
@@ -405,17 +546,6 @@ void AgentChat::RenderToolbar(bool compact) {
       ImGui::EndCombo();
     }
   }
-
-  ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_TUNE)) {
-    ImGui::OpenPopup("ChatOptions");
-  }
-  if (ImGui::BeginPopup("ChatOptions")) {
-    ImGui::Checkbox("Auto-scroll", &auto_scroll_);
-    ImGui::Checkbox("Timestamps", &show_timestamps_);
-    ImGui::Checkbox("Reasoning", &show_reasoning_);
-    ImGui::EndPopup();
-  }
 }
 
 void AgentChat::RenderConversationSidebar(float height) {
@@ -425,29 +555,6 @@ void AgentChat::RenderConversationSidebar(float height) {
     ImGui::TextDisabled("Chat history persistence unavailable.");
     ImGui::TextDisabled("Build with JSON support to enable sessions.");
     return;
-  }
-
-  if (context_) {
-    const auto& config = context_->agent_config();
-    ImGui::TextColored(theme.text_secondary_color, "Agent");
-    if (panel_opener_) {
-      if (ImGui::SmallButton(ICON_MD_SETTINGS " Config")) {
-        panel_opener_("agent.configuration");
-      }
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_AUTO_FIX_HIGH " Builder")) {
-        panel_opener_("agent.builder");
-      }
-    }
-    ImGui::TextDisabled("Provider: %s", config.ai_provider.empty()
-                                            ? "mock"
-                                            : config.ai_provider.c_str());
-    ImGui::TextDisabled("Model: %s", config.ai_model.empty()
-                                         ? "not set"
-                                         : config.ai_model.c_str());
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
   }
 
   ImGui::TextColored(theme.text_secondary_color, "Conversations");
@@ -511,10 +618,19 @@ void AgentChat::RenderHistory() {
   const auto& history = agent_service_.GetHistory();
 
   if (history.empty()) {
-    ImGui::TextDisabled("Start a conversation with the agent...");
+    ImGui::TextWrapped(
+        "Ask about the open ROM, or give a dungeon room number "
+        "to inspect its objects.");
+    ImGui::TextDisabled("Enable Allow editing to change the open room.");
   }
 
   for (size_t i = 0; i < history.size(); ++i) {
+    if (history[i].is_internal) {
+      if (auto result = DescribeToolResult(history[i])) {
+        RenderToolResult(*result, static_cast<int>(i));
+      }
+      continue;
+    }
     RenderMessage(history[i], static_cast<int>(i));
     if (message_spacing_ > 0) {
       ImGui::Dummy(ImVec2(0, message_spacing_));
@@ -524,6 +640,27 @@ void AgentChat::RenderHistory() {
   if (waiting_for_response_) {
     RenderThinkingIndicator();
   }
+  if (!last_error_summary_.empty()) {
+    ImGui::TextColored(AgentUI::GetTheme().status_error, "Request failed");
+    ImGui::TextWrapped("%s", last_error_summary_.c_str());
+    if (ImGui::TreeNode("Error details")) {
+      ImGui::TextWrapped("%s", last_error_details_.c_str());
+      ImGui::TreePop();
+    }
+  }
+}
+
+void AgentChat::RenderToolResult(const ToolResultPresentation& result,
+                                 int index) {
+  ImGui::PushID(index);
+  ImGui::TextDisabled("%s %s", ICON_MD_BUILD_CIRCLE, result.tool_name.c_str());
+  ImGui::TextWrapped("%s", result.summary.c_str());
+  if (ImGui::TreeNode("Tool result details")) {
+    ImGui::TextWrapped("%s", result.details.c_str());
+    ImGui::TreePop();
+  }
+  ImGui::Spacing();
+  ImGui::PopID();
 }
 
 void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
@@ -561,15 +698,21 @@ void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
     gui::StyleVarGuard rounding_guard(ImGuiStyleVar_ChildRounding, 8.0f);
 
     std::string content_id = "msg_content_" + std::to_string(index);
-    if (ImGui::BeginChild(
-            content_id.c_str(), ImVec2(wrap_width, 0),
-            ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding,
-            0)) {
+    if (ImGui::BeginChild(content_id.c_str(), ImVec2(wrap_width, 0),
+                          ImGuiChildFlags_Borders |
+                              ImGuiChildFlags_AlwaysUseWindowPadding |
+                              ImGuiChildFlags_AutoResizeY,
+                          0)) {
       // Check if we have table data to render
-      if (!is_user && msg.table_data.has_value()) {
-        RenderTableData(msg.table_data.value());
-      } else if (!is_user && msg.json_pretty.has_value()) {
-        ImGui::TextWrapped("%s", msg.json_pretty.value().c_str());
+      if (!is_user && msg.json_pretty.has_value()) {
+        ImGui::TextDisabled("Structured response");
+        if (ImGui::TreeNode("Response details")) {
+          if (msg.table_data.has_value()) {
+            RenderTableData(msg.table_data.value());
+          }
+          ImGui::TextWrapped("%s", msg.json_pretty.value().c_str());
+          ImGui::TreePop();
+        }
       } else {
         // Parse message for code blocks
         auto blocks = ParseMessageContent(msg.message);
@@ -820,7 +963,7 @@ void AgentChat::RenderToolTimeline(const cli::agent::ChatMessage& msg) {
 
   std::string header =
       absl::StrFormat("%s Tools (%d calls, %.2fs)", ICON_MD_BUILD_CIRCLE,
-                      meta.tool_iterations, meta.latency_seconds);
+                      meta.tool_names.size(), meta.latency_seconds);
 
   if (ImGui::TreeNode("##ToolTimeline", "%s", header.c_str())) {
     // List tool names
@@ -850,6 +993,8 @@ absl::Status AgentChat::LoadHistory(const std::string& filepath) {
   }
   const auto& snapshot = snapshot_or.value();
   agent_service_.ReplaceHistory(snapshot.history);
+  last_error_summary_.clear();
+  last_error_details_.clear();
   history_loaded_ = true;
   scroll_to_bottom_ = true;
   return absl::OkStatus();

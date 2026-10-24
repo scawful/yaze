@@ -1,6 +1,7 @@
 #ifndef YAZE_SRC_CLI_SERVICE_AGENT_TOOL_DISPATCHER_H_
 #define YAZE_SRC_CLI_SERVICE_AGENT_TOOL_DISPATCHER_H_
 
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -133,12 +134,21 @@ class ToolDispatcher {
   }
   const ToolPreferences& preferences() const { return preferences_; }
 
+  // Host callback for dungeon-edit-inspect / dungeon-edit-apply. These tools
+  // operate on the native dungeon editor session only; without a callback
+  // they fail instead of falling back to CLI handlers or ROM saves.
+  using DungeonEditorToolCallback = std::function<absl::StatusOr<std::string>(
+      const ::yaze::cli::ToolCall&, Rom*)>;
+  void SetDungeonEditorToolCallback(DungeonEditorToolCallback callback);
+
  private:
   // Check if a tool is enabled based on preferences and its category
   bool IsToolEnabled(const ToolDefinition& def) const;
   absl::Status ValidateCall(const ToolDefinition& def,
                             const ToolCall& call) const;
   absl::StatusOr<std::string> DispatchMetaTool(const ToolCall& call) const;
+  absl::StatusOr<std::string> DispatchDungeonEditorTool(
+      const ToolDefinition& def, const ToolCall& call) const;
 
   Rom* rom_context_ = nullptr;
   project::YazeProject* project_context_ = nullptr;  // New: Project context
@@ -149,6 +159,7 @@ class ToolDispatcher {
   // symbol-table pointer was supplied. See Dispatch().
   std::map<std::string, core::AsarSymbol> asar_symbols_cache_;
   ToolPreferences preferences_;
+  DungeonEditorToolCallback dungeon_editor_tool_callback_;
 };
 
 }  // namespace agent

@@ -374,9 +374,9 @@ void ConversationalAgentService::TrimHistoryIfNeeded() {
     return;
   }
 
-  while (history_.size() > config_.max_history_messages) {
-    history_.erase(history_.begin());
-  }
+  const size_t start =
+      CompleteTurnHistoryStart(history_, config_.max_history_messages);
+  history_.erase(history_.begin(), history_.begin() + start);
 }
 
 ChatMessage::SessionMetrics ConversationalAgentService::BuildMetricsSnapshot()
@@ -656,6 +656,13 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     }
 
     if (!agent_response.tool_calls.empty()) {
+      if (agent_response.native_content.has_value()) {
+        auto call_message = CreateMessage(ChatMessage::Sender::kAgent,
+                                          agent_response.text_response);
+        call_message.is_internal = true;
+        call_message.native_content = agent_response.native_content;
+        history_.push_back(std::move(call_message));
+      }
       // Check if we were waiting for a text response but got more tool calls
       // instead
       if (waiting_for_text_response) {
@@ -677,16 +684,24 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
         util::PrintToolCall(tool_call.tool_name, args_str);
 
         auto tool_result_or = tool_dispatcher_.Dispatch(tool_call);
-        if (!tool_result_or.ok()) {
+        if (!tool_result_or.ok() &&
+            !agent_response.native_content.has_value()) {
           util::PrintError(absl::StrCat("Tool execution failed: ",
                                         tool_result_or.status().message()));
           return absl::InternalError(absl::StrCat(
               "Tool execution failed: ", tool_result_or.status().message()));
         }
 
-        const std::string& tool_output = tool_result_or.value();
-        if (!tool_output.empty()) {
-          util::PrintSuccess("Tool executed successfully");
+        const std::string tool_output =
+            tool_result_or.ok()
+                ? tool_result_or.value()
+                : absl::StrCat("Error: ", tool_result_or.status().message());
+        if (!tool_output.empty() || agent_response.native_content.has_value()) {
+          if (tool_result_or.ok()) {
+            util::PrintSuccess("Tool executed successfully");
+          } else {
+            util::PrintError(tool_output);
+          }
           ++metrics_.tool_calls;
 
           if (config_.verbose) {
@@ -705,13 +720,26 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
           // Format as plain text to avoid confusing the LLM with nested JSON
           std::string marked_output = absl::StrCat(
               "[TOOL RESULT for ", tool_call.tool_name, "]\n",
-              "The tool returned the following data:\n", tool_output, "\n\n",
-              "Please provide a text_response field in your JSON to summarize "
-              "this information for the user.");
+              "The tool returned the following data:\n", tool_output);
+          if (!agent_response.native_content) {
+            marked_output +=
+                "\n\nPlease provide a text_response field in your JSON to "
+                "summarize this information for the user.";
+          }
           auto tool_result_msg =
               CreateMessage(ChatMessage::Sender::kUser, marked_output);
           tool_result_msg.is_internal =
               true;  // Don't show this to the human user
+          if (agent_response.native_content.has_value()) {
+            tool_result_msg.native_tool_result =
+                NativeToolResult{agent_response.native_content->provider,
+                                 agent_response.native_content->model,
+                                 agent_response.native_content->api,
+                                 tool_call.id,
+                                 tool_call.tool_name,
+                                 tool_output,
+                                 !tool_result_or.ok()};
+          }
           history_.push_back(tool_result_msg);
         }
         executed_tool = true;
@@ -824,6 +852,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     }
     ChatMessage chat_response =
         CreateMessage(ChatMessage::Sender::kAgent, response_text);
+    chat_response.native_content = agent_response.native_content;
     if (proposal_result.has_value()) {
       ChatMessage::ProposalSummary summary;
       summary.id = proposal_result->metadata.id;

@@ -23,6 +23,14 @@ class Rom;
 
 namespace editor {
 
+// Native guarded room batches need space for the object preconditions and
+// mutations in one response. Keep browser defaults until its adapters qualify.
+#ifdef __EMSCRIPTEN__
+inline constexpr int kDefaultAgentMaxOutputTokens = 2048;
+#else
+inline constexpr int kDefaultAgentMaxOutputTokens = 8192;
+#endif
+
 // ============================================================================
 // Collaboration State
 // ============================================================================
@@ -155,6 +163,7 @@ struct ModelPreset {
  * @brief Tool enablement configuration
  */
 struct ToolConfig {
+  bool allow_mutating_tools = false;
   bool resources = true;
   bool dungeon = true;
   bool overworld = true;
@@ -211,7 +220,7 @@ struct AgentConfigState {
   int max_retry_attempts = 3;
   float temperature = 0.25f;
   float top_p = 0.95f;
-  int max_output_tokens = 2048;
+  int max_output_tokens = kDefaultAgentMaxOutputTokens;
   bool stream_responses = false;
   std::vector<std::string> favorite_models;
   std::vector<std::string> model_chain;
