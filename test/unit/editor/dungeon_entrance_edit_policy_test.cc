@@ -281,6 +281,8 @@ class DungeonEntrancePropertiesUiTest
         [this]() -> const std::deque<int>& { return recent_; }, [](int) {},
         [](bool) {});
     content_->SetNavigationPanels(nullptr, panel_.get());
+    content_->SetRoomInspectorSubTab(
+        DungeonWorkbenchContent::RoomInspectorSubTab::Warps);
 
     auto& flags = core::FeatureFlags::get().dungeon;
     flags.kSaveObjects = false;

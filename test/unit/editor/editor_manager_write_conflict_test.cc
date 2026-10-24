@@ -162,6 +162,7 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldExits = false;
   o.kSaveOverworldItems = false;
   o.kSaveOverworldProperties = false;
+  o.kSaveOverworldSprites = false;
 }
 
 std::filesystem::path CreateMinimalRomFile(const std::string& basename,

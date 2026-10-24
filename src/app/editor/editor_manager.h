@@ -13,7 +13,6 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "app/editor/agent/agent_ui_controller.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/core/editor_context.h"
@@ -67,6 +66,7 @@ class CanvasAutomationServiceImpl;
 
 namespace yaze::editor {
 class AgentEditor;
+class AgentUiController;
 namespace workflow {
 class HackWorkflowBackend;
 }  // namespace workflow
@@ -430,8 +430,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 #ifdef YAZE_BUILD_AGENT_UI
   void ShowAIAgent();
   void ShowChatHistory();
-  AgentEditor* GetAgentEditor() { return agent_ui_.GetAgentEditor(); }
-  AgentUiController* GetAgentUiController() { return &agent_ui_; }
+  AgentEditor* GetAgentEditor();
+  AgentUiController* GetAgentUiController() { return agent_ui_.get(); }
 #else
   AgentEditor* GetAgentEditor() { return nullptr; }
   AgentUiController* GetAgentUiController() { return nullptr; }
@@ -442,10 +442,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   // ROM and Project operations (public for MenuOrchestrator)
   absl::Status LoadRom();
+  // Normal Save includes project drafts. Explicit ROM writes remain SaveRom.
+  absl::Status SaveCurrentSession();
+  absl::Status SaveCurrentSessionAs();
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);
   absl::Status ResumePendingRomSave();
   absl::Status OpenRomOrProject(const std::string& filename);
+  // Main-thread semantic automation; returns JSON including actual identity.
+  std::string ExecuteEditorControl(const std::string& request);
   absl::Status CreateNewProject(
       const std::string& template_name = "Basic ROM Hack");
   absl::Status CreateNewProjectFromRom(
@@ -456,6 +461,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       const std::string& project_name,
       const std::string& project_path = std::string());
   absl::Status OpenProject();
+  absl::Status CreateLyraTerrain();
+  absl::Status OpenLyraTerrain();
+  absl::Status OpenLyraTerrainFromPath(const std::string& path);
   absl::Status SaveProject();
   absl::Status SaveProjectAs();
   absl::Status SaveProjectAs(const std::string& filepath);
@@ -479,8 +487,10 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status RepairCurrentProject();
 
   // Project management
-  absl::Status LoadProjectWithRom();
-  absl::Status SwapProjectRom(const std::string& rom_path);
+  absl::Status LoadProjectWithRom(bool allow_dialogs = true);
+  absl::Status SwapProjectRom(
+      const std::string& rom_path,
+      const std::optional<std::string>& expected_sha256 = std::nullopt);
   absl::Status ReloadProjectRom();
   project::YazeProject* GetCurrentProject() { return &current_project_; }
   const project::YazeProject* GetCurrentProject() const {
@@ -496,6 +506,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   }
   void MarkCurrentProjectDirty();
   bool IsCurrentProjectDirty() const;
+  // Rebuilds the process-wide label provider from the current project; call
+  // after mutating current_project_.resource_labels in place.
+  void RefreshResourceLabelProvider();
   core::VersionManager* GetVersionManager() { return version_manager_; }
 
   // Show project management panel in right sidebar
@@ -569,7 +582,6 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void RefreshHackWorkflowBackend();
 
   void HandleSessionRomLoaded(size_t index, Rom* rom);
-  void RefreshResourceLabelProvider();
 
   // UI action event handler (EventBus subscriber for UIActionRequestEvent)
   void HandleUIActionRequest(UIActionRequestEvent::Action action);
@@ -591,8 +603,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   ProposalDrawer proposal_drawer_;
   bool show_proposal_drawer_ = false;
 
-  // Agent UI (chat + editor), no-op when agent UI is disabled
-  AgentUiController agent_ui_;
+  // Agent UI (chat + editor), no-op when agent UI is disabled. Never null:
+  // allocated in the constructor and never reset.
+  std::unique_ptr<AgentUiController> agent_ui_;
 
   // Project file editor
   ProjectFileEditor project_file_editor_;
@@ -688,7 +701,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void CaptureRuntimeFeatureFlags();
   void CaptureActiveProjectEditingState();
   void CaptureActiveProjectContext();
-  absl::Status PrepareActiveProjectEditorDraftsForSave();
+  absl::Status PrepareActiveProjectEditorDraftsForSave(
+      bool publish_lyra = true);
   void DetachActiveProjectContext();
   void BindProjectContextToSession(RomSession* session,
                                    const project::YazeProject& project);
@@ -732,8 +746,11 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status StartPendingRomSave(
       const std::optional<std::string>& save_as_filename);
   absl::Status LoadRomInternal();
-  absl::Status OpenRomOrProjectInternal(const std::string& filename);
+  bool ActivateExistingSessionForOpen(const std::string& filename);
+  absl::Status OpenRomOrProjectInternal(const std::string& filename,
+                                        bool allow_dialogs = true);
   absl::Status OpenProjectInternal();
+  absl::Status ValidateLyraTerrainProjectContext() const;
   absl::Status ValidateProjectRomSelection(const std::string& rom_path);
 
   struct PendingUnsavedSessionAction {

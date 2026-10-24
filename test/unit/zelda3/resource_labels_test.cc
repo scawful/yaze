@@ -1,10 +1,15 @@
 #include "zelda3/resource_labels.h"
 
+#include <filesystem>
+#include <fstream>
 #include <string>
 
+#include "absl/cleanup/cleanup.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/sprite/sprite.h"
 #include "zelda3/zelda3_labels.h"
 
 namespace yaze::zelda3 {
@@ -29,6 +34,35 @@ class ResourceLabelsTest : public ::testing::Test {
     provider.SetProjectLabels(nullptr);
   }
 };
+
+TEST_F(ResourceLabelsTest, ResolveLabelReportsProjectRenameAndDefault) {
+  auto& provider = GetResourceLabels();
+  const std::string default_name =
+      provider.GetDefaultLabel(ResourceType::kSprite, 0x52);
+  ASSERT_FALSE(default_name.empty());
+
+  auto vanilla = provider.ResolveLabel(ResourceType::kSprite, 0x52);
+  EXPECT_FALSE(vanilla.from_project);
+  EXPECT_EQ(vanilla.name, default_name);
+  EXPECT_EQ(vanilla.Display(), default_name);
+
+  // Oracle reuses slot $52 for its Collectible sprite (hex key form).
+  project_labels_["sprite"]["0x52"] = "Collectible";
+  auto renamed = ResolveSpriteLabel(0x52);
+  EXPECT_TRUE(renamed.from_project);
+  EXPECT_EQ(renamed.name, "Collectible");
+  EXPECT_EQ(renamed.default_name, default_name);
+  EXPECT_EQ(renamed.Display(), "Collectible (vanilla: " + default_name + ")");
+  EXPECT_EQ(ResolveSpriteName(0x52), std::string("Collectible"));
+}
+
+TEST_F(ResourceLabelsTest, EmbeddedVanillaLabelsAreNotRenames) {
+  auto& provider = GetResourceLabels();
+  // Projects saved with embedded labels repeat vanilla names verbatim.
+  project_labels_["sprite"]["0"] =
+      provider.GetVanillaLabel(ResourceType::kSprite, 0x00);
+  EXPECT_FALSE(provider.ResolveLabel(ResourceType::kSprite, 0x00).from_project);
+}
 
 TEST_F(ResourceLabelsTest, ResolvesVanillaLabelsByDefault) {
   // Sprite 0 is "Raven" in vanilla ALTTP (US)
@@ -100,6 +134,54 @@ TEST_F(ResourceLabelsTest, PrefersDecimalLabelsOverHexFallback) {
 
   EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x33),
             "Decimal Room Label");
+}
+
+TEST_F(ResourceLabelsTest, RoomOverrideOutranksRegistryAndLegacyRoomLabels) {
+  const auto folder = test::UniqueTempPath("room_override_registry");
+  absl::Cleanup cleanup = [&] {
+    std::error_code ec;
+    std::filesystem::remove_all(folder, ec);
+  };
+  const auto planning = folder / "Docs" / "Dev" / "Planning";
+  std::filesystem::create_directories(planning);
+  std::ofstream(planning / "dungeons.json") << R"json({"dungeons":[{
+    "id":"D4","name":"Zora Temple","rooms":[{"id":"0x25","name":"Water Grate"}]
+  }]})json";
+  ASSERT_TRUE(manifest_.LoadProjectRegistry(folder.string()).ok());
+  GetResourceLabels().SetHackManifest(&manifest_);
+  project_labels_["room"]["37"] = "Legacy Room Label";
+  project_labels_["room"]["38"] = "Legacy Only Room";
+
+  // Registry still outranks legacy "room" labels without an override.
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25),
+            "Water Grate");
+
+  project_labels_[kRoomOverrideLabelType]["37"] = "Lyra Native Rename";
+  project_labels_[kRoomOverrideLabelType]["38"] = "Renamed Legacy Room";
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25),
+            "Lyra Native Rename");
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x26),
+            "Renamed Legacy Room");
+  EXPECT_EQ(GetRoomLabel(0x25), "Lyra Native Rename");
+
+  // Resetting the override falls back to the registry, then legacy labels.
+  project_labels_.erase(kRoomOverrideLabelType);
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25),
+            "Water Grate");
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x26),
+            "Legacy Only Room");
+}
+
+TEST_F(ResourceLabelsTest, RoomOverrideOutranksVanillaAndEmptyFallsBack) {
+  const std::string vanilla =
+      GetResourceLabels().GetVanillaLabel(ResourceType::kRoom, 0x25);
+  project_labels_[kRoomOverrideLabelType]["37"] = "Flooded Hall";
+
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25),
+            "Flooded Hall");
+
+  project_labels_[kRoomOverrideLabelType]["37"] = "";
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x25), vanilla);
 }
 
 TEST_F(ResourceLabelsTest, ConvenienceFunctionsWork) {

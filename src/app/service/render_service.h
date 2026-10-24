@@ -13,6 +13,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
+#include "zelda3/overworld/graphics_preview.h"
 
 namespace yaze {
 namespace app {
@@ -53,6 +54,9 @@ struct OverworldRenderRequest {
   // way the game layers it: background overlays show through backdrop pixels,
   // foreground overlays blend on top.
   bool area_overlay = true;
+  // Raw runtime graphics (a project's [files] overworld_graphics_preview),
+  // keyed by parent map. Applied to the area before drawing; empty = none.
+  zelda3::OverworldGraphicsPreview graphics_preview;
 };
 
 // One overlay marker drawn on an overworld render, in area-local pixels.
@@ -71,8 +75,9 @@ struct OverworldRenderResult {
   int height = 0;
   int requested_screen = 0;
   int parent_screen = 0;
-  std::string area_size;       // small, large, wide, tall
-  int subscreen_overlay = -1;  // overlay screen composited, -1 = none
+  std::string area_size;          // small, large, wide, tall
+  int subscreen_overlay = -1;     // overlay screen composited, -1 = none
+  bool graphics_preview = false;  // request's preview covered this area
   std::vector<int> screens;
   std::vector<OverworldRenderMarker> markers;
 };

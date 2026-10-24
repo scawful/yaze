@@ -169,8 +169,17 @@ std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
   // 1. Room names in the project registry are canonical for Oracle project
   // files. Prefer them over merged resource labels so stale legacy
   // oracle_room_labels.json / manually imported labels cannot mask the current
-  // dungeons.json room names.
+  // dungeons.json room names. Explicit user renames outrank the registry.
   if (type == ResourceType::kRoom) {
+    if (project_labels_) {
+      if (auto it = project_labels_->find(kRoomOverrideLabelType);
+          it != project_labels_->end()) {
+        if (std::string override_label = LookupProjectLabel(it->second, id);
+            !override_label.empty()) {
+          return override_label;
+        }
+      }
+    }
     if (std::string registry_label =
             LookupProjectRegistryRoomLabel(hack_manifest_, id);
         !registry_label.empty()) {
@@ -202,16 +211,38 @@ std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
     // Future: Add message label lookup if we add GetMessageLabel to HackManifest
   }
 
-  // 4. For sprites, check Hyrule Magic names if preferred
+  // 4-5. Hyrule Magic (sprites, when preferred), then vanilla.
+  return GetDefaultLabel(type, id);
+}
+
+std::string ResourceLabelProvider::GetDefaultLabel(ResourceType type,
+                                                   int id) const {
   if (type == ResourceType::kSprite && prefer_hmagic_) {
     std::string hmagic = GetHMagicLabel(type, id);
     if (!hmagic.empty()) {
       return hmagic;
     }
   }
-
-  // 5. Fall back to vanilla labels
   return GetVanillaLabel(type, id);
+}
+
+ResolvedLabel ResourceLabelProvider::ResolveLabel(ResourceType type,
+                                                  int id) const {
+  ResolvedLabel resolved;
+  resolved.name = GetLabel(type, id);
+  resolved.default_name = GetDefaultLabel(type, id);
+  // Projects saved with embedded labels repeat vanilla names; those are not
+  // renames even when Hyrule Magic names are the default.
+  resolved.from_project = resolved.name != resolved.default_name &&
+                          resolved.name != GetVanillaLabel(type, id);
+  return resolved;
+}
+
+std::string ResolvedLabel::Display() const {
+  if (!from_project) {
+    return name;
+  }
+  return absl::StrFormat("%s (vanilla: %s)", name, default_name);
 }
 
 std::string ResourceLabelProvider::GetLabel(const std::string& type_str,

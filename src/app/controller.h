@@ -13,6 +13,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/platform/iwindow.h"
+#include "app/service/editor_control_queue.h"
 #include "app/service/screenshot_utils.h"
 #include "rom/rom.h"
 
@@ -51,6 +52,9 @@ class Controller {
 
   // Defer a screenshot capture to the next render frame (thread-safe)
   void RequestScreenshot(const ScreenshotRequest& request);
+
+  // HTTP worker entry point; all editor work runs on the main frame thread.
+  absl::StatusOr<std::string> RequestEditorControl(const std::string& request);
 
   // Set startup editor and cards from command-line flags
   void SetStartupEditor(const std::string& editor_name,
@@ -118,6 +122,8 @@ class Controller {
   // Thread-safe screenshot queue
   mutable std::mutex screenshot_mutex_;
   mutable std::queue<ScreenshotRequest> screenshot_requests_;
+
+  app::EditorControlQueue editor_control_queue_;
 
   void ProcessScreenshotRequests() const;
 };

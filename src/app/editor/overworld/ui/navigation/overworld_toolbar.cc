@@ -172,7 +172,10 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   if (!overworld || !overworld->is_loaded() || !window_manager || !rom) {
     return;
   }
-  if (!overworld->overworld_map(current_map)) {
+  const bool project_terrain = !overworld->is_lyra_preview() && project &&
+                               !project->lyra_terrain_file.empty() &&
+                               current_map >= 0xA0 && current_map < 0xC0;
+  if (!project_terrain && !overworld->overworld_map(current_map)) {
     return;
   }
 
@@ -199,6 +202,9 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
         on_world_changed) {
       on_world_changed(world_index);
     }
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        absl::StrFormat("OverworldToolbar/world:%d", world_index), "button",
+        ImGui::GetItemID());
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
           "%s", WithHint(kWorldNames[world_index], kWorldShortcuts[world_index])
@@ -239,6 +245,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
 
   // Keep frequent map properties visible even when secondary tools overflow.
+  ImGui::BeginDisabled(project_terrain);
   ImGui::SameLine(0, 4);
   const std::string story_label = absl::StrFormat("Story %d", game_state);
   ImGui::SetNextItemWidth(ImGui::CalcTextSize("Story 0").x +
@@ -270,6 +277,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     ImGui::SameLine(0, 4);
     draw_appearance();
   }
+  ImGui::EndDisabled();
 
   const char* entity_label = "Entities";
   for (const auto& button : kEntityModeButtons) {
@@ -354,6 +362,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                  current_mode == EditingMode::FILL_TILE, "Fill")) {
     set_mode(EditingMode::FILL_TILE);
   }
+  ImGui::BeginDisabled(project_terrain);
   ImGui::SameLine(0, 2);
   if (ToolButton(ICON_MD_GRASS " Insert Item",
                  "Pick an item from the list, then click the map to place it",
@@ -398,6 +407,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     }
     ImGui::EndPopup();
   }
+  ImGui::EndDisabled();
 
   // Secondary display controls stay in a named menu, leaving space for tools.
   GroupSeparator();

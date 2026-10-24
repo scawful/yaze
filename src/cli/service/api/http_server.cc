@@ -17,7 +17,7 @@ HttpServer::~HttpServer() {
   Stop();
 }
 
-absl::Status HttpServer::Start(int port) {
+absl::Status HttpServer::Start(int port, bool loopback_only) {
   if (is_running_) {
     return absl::AlreadyExistsError("Server is already running");
   }
@@ -26,13 +26,19 @@ absl::Status HttpServer::Start(int port) {
     return absl::InternalError("HttpServer is not valid");
   }
 
+  editor_control_only_ = loopback_only && static_cast<bool>(editor_control_);
   RegisterRoutes();
+
+  const char* address = loopback_only ? "127.0.0.1" : "0.0.0.0";
+  if (!server_->bind_to_port(address, port)) {
+    return absl::UnavailableError("HTTP API port is already in use");
+  }
 
   port_ = port;
   is_running_ = true;
   server_thread_ = std::make_unique<std::thread>([this, port]() {
     LOG_INFO("HttpServer", "Starting API server on port %d", port);
-    bool ret = server_->listen("0.0.0.0", port);
+    bool ret = server_->listen_after_bind();
     if (!ret) {
       LOG_ERROR("HttpServer", "Failed to listen on port %d", port);
     }
@@ -40,7 +46,9 @@ absl::Status HttpServer::Start(int port) {
   });
 
   // Publish Bonjour service for LAN discovery by iOS clients.
-  bonjour_.Publish(port);
+  if (!loopback_only) {
+    bonjour_.Publish(port);
+  }
   if (bonjour_.IsAvailable()) {
     if (bonjour_.IsPublished()) {
       LOG_INFO("HttpServer", "Bonjour discovery published on port %d", port);
@@ -57,16 +65,12 @@ absl::Status HttpServer::Start(int port) {
 }
 
 void HttpServer::Stop() {
-  if (is_running_) {
-    LOG_INFO("HttpServer", "Stopping API server...");
-    bonjour_.Unpublish();
-    server_->stop();
-    if (server_thread_ && server_thread_->joinable()) {
-      server_thread_->join();
-    }
-    is_running_ = false;
-    LOG_INFO("HttpServer", "API server stopped");
+  bonjour_.Unpublish();
+  server_->stop();
+  if (server_thread_ && server_thread_->joinable()) {
+    server_thread_->join();
   }
+  is_running_ = false;
 }
 
 bool HttpServer::IsRunning() const {
@@ -74,6 +78,22 @@ bool HttpServer::IsRunning() const {
 }
 
 void HttpServer::RegisterRoutes() {
+  if (editor_control_) {
+    server_->Post("/api/v1/editor/control",
+                  [this](const httplib::Request& req, httplib::Response& res) {
+                    HandleEditorControl(req, res, editor_control_);
+                  });
+  }
+  if (editor_control_only_) {
+    // Do not expose the offline CLI/ROM handlers in a live editor session.
+    // They are not marshalled to the UI thread and may retain stale ROM data.
+    server_->Get("/api/v1/health", [](const httplib::Request&,
+                                      httplib::Response& res) {
+      res.set_content(R"({"status":"ok","service":"yaze-editor-control/v1"})",
+                      "application/json");
+    });
+    return;
+  }
   server_->set_error_handler(
       [](const httplib::Request& req, httplib::Response& res) {
         (void)req;

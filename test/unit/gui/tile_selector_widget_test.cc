@@ -191,6 +191,62 @@ TEST_F(TileSelectorWidgetTest,
   EXPECT_EQ(widget.TileOrigin(25), ImVec2(50.0f, 288.0f));
 }
 
+TEST_F(TileSelectorWidgetTest, FitScaleKeepsDeepRowsOnAtlasTileEdges) {
+  config_.total_tiles = 4096;
+  gui::TileSelectorWidget widget("fit_drift", config_);
+  widget.SetDisplayScale(1.37f);
+
+  EXPECT_FLOAT_EQ(widget.TileCellSize(), 21.0f);
+  EXPECT_FLOAT_EQ(widget.display_scale(), 21.0f / 16.0f);
+
+  // The atlas image is stretched by display_scale, so the last row's tiles
+  // start at row * 16 * display_scale in the scrolled content.
+  const float atlas_row_height = 16.0f * widget.display_scale();
+  const int last_row_tile = 511 * config_.tiles_per_row + 3;
+  EXPECT_FLOAT_EQ(widget.TileOrigin(last_row_tile).y, 511 * atlas_row_height);
+  EXPECT_FLOAT_EQ(widget.TileOrigin(last_row_tile).x,
+                  config_.draw_offset.x + 3 * atlas_row_height);
+  EXPECT_FLOAT_EQ(widget.GetGridContentSize().y, 512 * atlas_row_height);
+
+  // Panels size themselves from the unsnapped config before the widget exists.
+  auto unsnapped = config_;
+  unsnapped.display_scale = 1.37f;
+  EXPECT_FLOAT_EQ(
+      gui::TileSelectorWidget::PreferredViewportWidth(unsnapped, 0.0f),
+      widget.GetGridContentSize().x);
+}
+
+TEST_F(TileSelectorWidgetTest, DisplayOrderMapsCellsToTiles) {
+  gui::TileSelectorWidget widget("display_order", config_);
+  const float cell = widget.TileCellSize();
+
+  // Invalid and duplicate IDs are dropped; unlisted tiles are hidden.
+  widget.SetDisplayOrder({42, 7, 99, 7, -1, 3});
+  ASSERT_TRUE(widget.has_display_order());
+  EXPECT_EQ(widget.display_order(), (std::vector<int>{42, 7, 3}));
+  EXPECT_EQ(widget.TileAtCell(0), 42);
+  EXPECT_EQ(widget.TileAtCell(2), 3);
+  EXPECT_EQ(widget.TileAtCell(3), -1);
+  EXPECT_EQ(widget.CellOfTile(7), 1);
+  EXPECT_EQ(widget.CellOfTile(0), -1);
+
+  // Geometry follows cells, so the highlight sits where the tile is drawn.
+  EXPECT_FLOAT_EQ(widget.TileOrigin(42).x, config_.draw_offset.x);
+  EXPECT_FLOAT_EQ(widget.TileOrigin(3).x, config_.draw_offset.x + 2 * cell);
+  EXPECT_FLOAT_EQ(widget.TileOrigin(0).x, -1.0f);
+  EXPECT_FLOAT_EQ(widget.GetGridContentSize().y, cell);
+
+  // Shrinking the tile set re-filters the order.
+  widget.SetTileCount(10);
+  EXPECT_EQ(widget.display_order(), (std::vector<int>{7, 3}));
+
+  widget.ClearDisplayOrder();
+  EXPECT_FALSE(widget.has_display_order());
+  EXPECT_EQ(widget.TileAtCell(5), 5);
+  EXPECT_EQ(widget.CellOfTile(9), 9);
+  EXPECT_FLOAT_EQ(widget.GetGridContentSize().y, 2 * cell);
+}
+
 // Test tile count setting
 TEST_F(TileSelectorWidgetTest, SetTileCount) {
   gui::TileSelectorWidget widget("test_widget", config_);

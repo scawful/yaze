@@ -14,6 +14,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_entrance_camera.h"
 #include "app/editor/dungeon/dungeon_entrance_edit_policy.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_render_context.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/automation/widget_auto_register.h"
@@ -101,6 +102,8 @@ class DungeonEntrancesPanel : public WindowContent {
     select_preview_ = std::move(select);
   }
 
+  void SetProject(const project::YazeProject* project) { project_ = project; }
+
   // Shared preview selector: regular IDs are not the combined list slots,
   // whose first entries are dedicated spawn points.
   void DrawGraphicsContext(float width = -1.0f) {
@@ -121,8 +124,7 @@ class DungeonEntrancesPanel : public WindowContent {
       const std::string name =
           automatic && !context.owner_name.empty() ? context.owner_name
           : context.entrance_slot >= zelda3::kNumDungeonSpawnPoints
-              ? zelda3::GetEntranceLabel(context.entrance_slot -
-                                         zelda3::kNumDungeonSpawnPoints)
+              ? EntranceLabel(context.entrance_slot)
               : DungeonEntrancePreviewLabel(context.entrance_slot);
       preview =
           context.uses_entrance()
@@ -158,12 +160,9 @@ class DungeonEntrancesPanel : public WindowContent {
       }
       for (int slot = 0; slot < static_cast<int>(entrances_->size()); ++slot) {
         const std::string entry = DungeonEntrancePreviewLabel(slot);
-        const std::string label =
-            slot >= zelda3::kNumDungeonSpawnPoints
-                ? entry + " - " +
-                      zelda3::GetEntranceLabel(slot -
-                                               zelda3::kNumDungeonSpawnPoints)
-                : entry;
+        const std::string label = slot >= zelda3::kNumDungeonSpawnPoints
+                                      ? entry + " - " + EntranceLabel(slot)
+                                      : entry;
         if (ImGui::Selectable(label.c_str(), !automatic && slot == selected)) {
           if (select_preview_) {
             select_preview_(slot);
@@ -176,9 +175,7 @@ class DungeonEntrancesPanel : public WindowContent {
         }
         gui::AutoRegisterLastItem("selectable", entry);
         if (ImGui::IsItemHovered() && slot >= zelda3::kNumDungeonSpawnPoints)
-          ImGui::SetTooltip("%s", zelda3::GetEntranceLabel(
-                                      slot - zelda3::kNumDungeonSpawnPoints)
-                                      .c_str());
+          ImGui::SetTooltip("%s", EntranceLabel(slot).c_str());
         if (slot == selected) {
           ImGui::SetItemDefaultFocus();
           if (select_preview_ && ImGui::IsWindowAppearing())
@@ -251,6 +248,15 @@ class DungeonEntrancesPanel : public WindowContent {
   }
 
  private:
+  std::string EntranceLabel(int slot) const {
+    const int entrance_id = slot - zelda3::kNumDungeonSpawnPoints;
+    if (!entrances_ || entrance_id < 0 ||
+        slot >= static_cast<int>(entrances_->size()))
+      return DungeonEntrancePreviewLabel(slot);
+    return dungeon_project_labels::GetEntranceLabel(project_, entrance_id,
+                                                    (*entrances_)[slot].room_);
+  }
+
   void DrawCameraRepairPreview() {
     if (!camera_repair_preview_.has_value()) {
       return;
@@ -462,15 +468,17 @@ class DungeonEntrancesPanel : public WindowContent {
         } else {
           const int entrance_id = i - kNumSpawnPoints;
           entrance_name = entrance_id < kNumEntrances
-                              ? zelda3::GetEntranceLabel(entrance_id)
+                              ? EntranceLabel(i)
                               : absl::StrFormat("Unknown %d", i);
         }
 
         const int room_id = i < kNumSpawnPoints ? (*spawn_points_)[i].room_id
                                                 : (*entrances_)[i].room_;
-        const std::string room_name = zelda3::GetRoomLabel(room_id);
+        const std::string room_name =
+            dungeon_project_labels::GetRoomLabel(project_, room_id);
         const std::string label = absl::StrFormat(
-            "[%02X] %s -> %s (%03X)", i, entrance_name, room_name, room_id);
+            "%s - %s -> %s (%03X)", DungeonEntrancePreviewLabel(i),
+            entrance_name, room_name, room_id);
         if (!entrance_filter_.PassFilter(label.c_str())) {
           continue;
         }
@@ -679,6 +687,7 @@ class DungeonEntrancesPanel : public WindowContent {
   std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>*
       spawn_points_ = nullptr;
   int* current_entrance_id_ = nullptr;
+  const project::YazeProject* project_ = nullptr;
   std::function<void(int)> on_entrance_selected_;
   std::function<DungeonRenderContext()> preview_context_;
   std::function<bool()> preview_automatic_;

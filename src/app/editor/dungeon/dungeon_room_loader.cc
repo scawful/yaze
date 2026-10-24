@@ -4,7 +4,9 @@
 #include <future>
 #include <map>
 #include <mutex>
+#include <optional>
 #include <thread>
+#include <utility>
 
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_loading_manager.h"
@@ -26,8 +28,20 @@ absl::Status DungeonRoomLoader::LoadRoom(int room_id, zelda3::Room& room) {
     return absl::InvalidArgumentError("Invalid room ID");
   }
 
+  // Imports can materialize a room without loading its objects. Preserve the
+  // entire pending map (including explicit 0x00 presence and an empty Clear)
+  // across replacement by the fully loaded room.
+  std::optional<zelda3::CustomCollisionMap> pending_collision;
+  if (room.id() == room_id && room.custom_collision_dirty()) {
+    pending_collision = room.custom_collision();
+  }
+
   room = zelda3::LoadRoomFromRom(rom_, room_id);
   room.SetGameData(game_data_);  // Ensure room has access to GameData
+  if (pending_collision.has_value()) {
+    room.custom_collision() = std::move(*pending_collision);
+    room.MarkCustomCollisionDirty();
+  }
 
   return absl::OkStatus();
 }

@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -35,6 +36,7 @@
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
+#include "zelda3/dungeon/room_links.h"
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
 
@@ -77,8 +79,8 @@ enum class DungeonStaircaseIssueKind : uint8_t {
   // Header destination is non-zero but no placed interroom-stair object
   // consumes that slot. Runtime never traverses the link.
   UnusedHeader,
-  // Placed interroom-stair object exists but the matched header slot is 0
-  // (unset) or out of range — the runtime would jump to an invalid room.
+  // Placed interroom-stair object exists but its resolved destination is out
+  // of range. A consumed zero byte is valid room $000 or $100.
   MissingDestination,
   // Placed interroom-stair object beyond the 4 header slots. The runtime
   // can only consume four; extras can never be reached.
@@ -151,7 +153,9 @@ inline DungeonIssueCategory GetDefaultSelectionIssueCategory(
 
 std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
     int room_id, const zelda3::Room& room,
-    const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door);
+    const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door,
+    const zelda3::RoomLinkFacts* link_facts = nullptr,
+    const std::set<uint8_t>& warp_tag_ids = {});
 
 // Returns the same set of links as CollectDungeonConnectedRoomLinks plus any
 // stale staircase header slots — i.e. header destinations with no placed
@@ -159,7 +163,9 @@ std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
 // link are populated for tooltip/issue-report surfacing.
 DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
     int room_id, const zelda3::Room& room,
-    const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door);
+    const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door,
+    const zelda3::RoomLinkFacts* link_facts = nullptr,
+    const std::set<uint8_t>& warp_tag_ids = {});
 
 // Renders a single connectivity link as a one-line human-readable description
 // for tooltips and issue reports. Caller decides separator/heading.
@@ -911,6 +917,7 @@ class DungeonCanvasViewer {
     std::array<std::string, zelda3::kNumberOfRooms> room_floor_labels{};
     std::vector<std::string> floor_order;
     std::vector<DungeonConnectedRoomLink> links;
+    std::map<int, DungeonConnectedRoomLinkDiagnostics> room_diagnostics;
     // Staircase configuration anomalies aggregated across the whole
     // connected component. Order is "first-encountered during BFS".
     std::vector<DungeonStaircaseIssue> staircase_issues;
@@ -1172,12 +1179,14 @@ class DungeonCanvasViewer {
   // Room graphics revisions are globally unique. Retain indexed pixels across
   // connected-room draws; presentation (palette, position, zoom) stays live.
   using SpritePreviewKey = std::tuple<uint64_t, uint8_t, int, bool>;
+  using ItemPreviewKey = std::pair<uint64_t, uint8_t>;
   struct CachedSpritePreview {
     std::vector<uint8_t> pixels;
     SDL_Rect bounds{};
   };
   util::LruCache<SpritePreviewKey, CachedSpritePreview> sprite_preview_cache_{
       128};
+  util::LruCache<ItemPreviewKey, CachedSpritePreview> item_preview_cache_{64};
 
   bool show_track_collision_overlay_ = false;
   bool show_track_collision_legend_ = true;

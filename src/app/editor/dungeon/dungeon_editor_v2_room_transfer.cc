@@ -4,10 +4,8 @@
 #include <memory>
 #include <utility>
 
-#include "absl/strings/cord.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "core/features.h"
-#include "rom/snes.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
@@ -107,51 +105,6 @@ absl::Status ValidateTransferTorchSource(const Rom& rom, int room_id) {
     if (!terminated) {
       return absl::FailedPreconditionError(absl::StrFormat(
           "Torch segment for room %03X has no end marker", segment_room));
-    }
-  }
-  return absl::OkStatus();
-}
-
-// Fixed room headers have no copy-on-write allocator. Refuse a replacement
-// when its in-place header write would also change another room's header.
-absl::Status ValidateTransferHeaderOwnership(const Rom& rom, int room_id) {
-  ASSIGN_OR_RETURN(const auto table_snes,
-                   rom.ReadLong(zelda3::kRoomHeaderPointer));
-  ASSIGN_OR_RETURN(const auto bank,
-                   rom.ReadByte(zelda3::kRoomHeaderPointerBank));
-  const auto table_bank = (table_snes >> 16) & 0xFF;
-  if ((table_snes & 0xFFFF) < 0x8000 || table_bank == 0x7E ||
-      table_bank == 0x7F || table_bank == 0xFE || table_bank == 0xFF ||
-      bank == 0x7E || bank == 0x7F || bank == 0xFE || bank == 0xFF) {
-    return absl::FailedPreconditionError("Invalid room header pointer table");
-  }
-  const auto table_pc = SnesToPc(table_snes);
-  if (static_cast<uint64_t>(table_pc) + zelda3::kNumberOfRooms * 2 >
-      rom.size()) {
-    return absl::FailedPreconditionError(
-        "Room header pointer table is truncated");
-  }
-  ASSIGN_OR_RETURN(const auto header, rom.ReadWord(table_pc + room_id * 2));
-  const auto header_pc = SnesToPc((bank << 16) | header);
-  if (header < 0x8000 || static_cast<uint64_t>(header_pc) + 14 > rom.size()) {
-    return absl::FailedPreconditionError("Replacement room header is invalid");
-  }
-  for (int other_id = 0; other_id < zelda3::kNumberOfRooms; ++other_id) {
-    if (other_id == room_id)
-      continue;
-    ASSIGN_OR_RETURN(const auto other_header,
-                     rom.ReadWord(table_pc + other_id * 2));
-    const auto other_pc = SnesToPc((bank << 16) | other_header);
-    if (other_header < 0x8000 ||
-        static_cast<uint64_t>(other_pc) + 14 > rom.size())
-      continue;
-    if (header_pc < other_pc + 14 && other_pc < header_pc + 14) {
-      auto status = absl::FailedPreconditionError(absl::StrFormat(
-          "Room %03X header overlaps room %03X; exclude room properties or "
-          "give the destination independent header storage before replacing it",
-          room_id, other_id));
-      status.SetPayload(kRoomTransferSharedHeaderPayload, absl::Cord("1"));
-      return status;
     }
   }
   return absl::OkStatus();
@@ -385,8 +338,7 @@ absl::Status DungeonEditorV2::PreflightRoomTransfer(
   target.RestoreSaveDirtySnapshot(combined);
   if (core::FeatureFlags::get().dungeon.kSaveRoomHeaders &&
       target.header_dirty()) {
-    RETURN_IF_ERROR(
-        ValidateTransferHeaderOwnership(scratch, plan.target_room_id));
+    RETURN_IF_ERROR(ValidateRoomHeaderOwnership(scratch, plan.target_room_id));
   }
   RETURN_IF_ERROR(shadow->SaveRoomImpl(plan.target_room_id, true));
   if (changed_dirty.water_fill &&

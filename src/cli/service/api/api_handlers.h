@@ -4,6 +4,8 @@
 #include <functional>
 #include <string>
 
+#include "absl/status/statusor.h"
+
 // Forward declarations to avoid exposing httplib headers everywhere
 namespace httplib {
 struct Request;
@@ -58,6 +60,12 @@ void HandleWindowShow(const httplib::Request& req, httplib::Response& res,
                       const std::function<bool()>& action);
 void HandleWindowHide(const httplib::Request& req, httplib::Response& res,
                       const std::function<bool()>& action);
+
+// Local semantic editor commands. This endpoint never enables browser CORS.
+void HandleEditorControl(
+    const httplib::Request& req, httplib::Response& res,
+    const std::function<absl::StatusOr<std::string>(const std::string&)>&
+        action);
 
 // Apply common CORS headers to a response.
 void ApplyCorsHeaders(httplib::Response& res);

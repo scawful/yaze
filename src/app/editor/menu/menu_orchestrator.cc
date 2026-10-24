@@ -186,7 +186,7 @@ void MenuOrchestrator::AddFileMenuItems() {
   AddRecentFilesSubmenu();
   menu_builder_
       .Item(
-          "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); },
+          "Save", ICON_MD_SAVE, [this]() { OnSaveRom(); },
           GetShortcutForAction("Save").c_str(),
           [this]() { return CanSaveRom(); })
       .Item(
@@ -237,6 +237,23 @@ void MenuOrchestrator::AddFileMenuItems() {
           "Edit Project File...", ICON_MD_DESCRIPTION,
           [this]() { OnShowProjectFileEditor(); }, nullptr,
           [this]() { return HasProjectFile(); })
+      .Item(
+          "Edit Lyra", ICON_MD_MAP, [this]() { OnCreateLyraTerrain(); },
+          nullptr,
+          [this]() {
+            const auto* project = editor_manager_
+                                      ? editor_manager_->GetCurrentProject()
+                                      : nullptr;
+            return CanSaveProject() && HasActiveRom() && project &&
+                   (project->IsOracleCompatible() ||
+                    !project->lyra_terrain_file.empty());
+          })
+      .BeginSubMenu("Advanced Lyra", ICON_MD_MORE_HORIZ)
+      .Item(
+          "Import Lyra Terrain...", ICON_MD_FOLDER_OPEN,
+          [this]() { OnOpenLyraTerrain(); }, nullptr,
+          [this]() { return CanSaveProject() && HasActiveRom(); })
+      .EndMenu()
       .Separator();
 
   // Settings and Quit (ROM analysis / backup / BPS live under Tools).
@@ -1167,22 +1184,29 @@ void MenuOrchestrator::OnOpenRom() {
 }
 
 void MenuOrchestrator::OnSaveRom() {
-  // Delegate to EditorManager's SaveRom which handles editor data saving
+  // Normal Save includes the project's editor drafts as well as ROM work.
   if (editor_manager_) {
-    auto status = editor_manager_->SaveRom();
+    auto status = editor_manager_->SaveCurrentSession();
     if (!status.ok()) {
       if (absl::IsCancelled(status)) {
         return;
       }
       toast_manager_.Show(
-          absl::StrFormat("Failed to save ROM: %s", status.message()),
+          absl::StrFormat("Failed to save: %s", status.message()),
           ToastType::kError);
     }
   }
 }
 
 void MenuOrchestrator::OnSaveRomAs() {
-  popup_manager_.Show(PopupID::kSaveAs);
+  if (editor_manager_) {
+    auto status = editor_manager_->SaveCurrentSessionAs();
+    if (!status.ok() && !absl::IsCancelled(status)) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to save a copy: %s", status.message()),
+          ToastType::kError);
+    }
+  }
 }
 
 void MenuOrchestrator::OnCreateProject() {
@@ -1204,6 +1228,28 @@ void MenuOrchestrator::OnOpenProject() {
     if (!status.ok()) {
       toast_manager_.Show(
           absl::StrFormat("Failed to open project: %s", status.message()),
+          ToastType::kError);
+    }
+  }
+}
+
+void MenuOrchestrator::OnCreateLyraTerrain() {
+  if (editor_manager_) {
+    auto status = editor_manager_->CreateLyraTerrain();
+    if (!status.ok()) {
+      toast_manager_.Show(absl::StrFormat("Failed to create Lyra terrain: %s",
+                                          status.message()),
+                          ToastType::kError);
+    }
+  }
+}
+
+void MenuOrchestrator::OnOpenLyraTerrain() {
+  if (editor_manager_) {
+    auto status = editor_manager_->OpenLyraTerrain();
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to open Lyra terrain: %s", status.message()),
           ToastType::kError);
     }
   }

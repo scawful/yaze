@@ -48,15 +48,43 @@ constexpr int kPersistedCustomSubtypeSlots = 16;
 constexpr const char* kObjectGridDensityLabels[] = {"Compact", "Medium",
                                                     "Large"};
 
+struct BrowserNameStrip {
+  ImVec2 position;
+  ImVec2 size;
+};
+
+BrowserNameStrip ReserveBrowserNameStrip() {
+  const BrowserNameStrip strip{
+      ImGui::GetCursorScreenPos(),
+      ImVec2(std::max(1.0f, ImGui::GetContentRegionAvail().x),
+             ImGui::GetTextLineHeight())};
+  ImGui::Dummy(strip.size);
+  return strip;
+}
+
+void DrawBrowserNameStrip(const BrowserNameStrip& strip,
+                          const std::string& label) {
+  // Paint after the grid has resolved hover, into space reserved before it.
+  // Long names stay on one line and never move the cards under the pointer.
+  auto* draw_list = ImGui::GetWindowDrawList();
+  const ImVec2 end(strip.position.x + strip.size.x,
+                   strip.position.y + strip.size.y);
+  draw_list->PushClipRect(strip.position, end, true);
+  draw_list->AddText(strip.position,
+                     ImGui::GetColorU32(AgentUI::GetTheme().text_primary),
+                     label.c_str());
+  draw_list->PopClipRect();
+}
+
 float GetObjectGridItemSize(int density) {
   switch (density) {
     case 0:
-      return 54.0f;
+      return 64.0f;
     case 2:
-      return 76.0f;
+      return 112.0f;
     case 1:
     default:
-      return 60.0f;
+      return 84.0f;
   }
 }
 
@@ -183,10 +211,9 @@ std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
       "Floor track any direction",      "Sword House wall object",
       "Pit track any direction",        "Small statue",
   };
-  static constexpr std::array<const char*, 3> kObject32Names = {
-      "Ice furnace",
-      "Firewood",
-      "Ice chair",
+  static constexpr std::array<const char*, 5> kObject32Names = {
+      "Ice furnace",  "Firewood",         "Ice chair",
+      "Minish stump", "Minish wall hole",
   };
   static constexpr std::array<const char*, 2> kObject54Names = {
       "Kydreeok body",
@@ -437,29 +464,60 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
 
     const float toolbar_width =
         std::max(ImGui::GetContentRegionAvail().x, 1.0f);
-    ImGui::SetNextItemWidth(toolbar_width);
+    const float button_h = ImGui::GetFrameHeight();
+    const bool has_search = object_search_buffer_[0] != '\0';
+    const float size_btn_w = button_h;
+    const float more_btn_w = button_h;
+    const float clear_btn_w = has_search ? button_h : 0.0f;
+    const float search_w =
+        std::max(60.0f, toolbar_width - size_btn_w - more_btn_w - clear_btn_w -
+                            control_spacing * (has_search ? 3.0f : 2.0f));
+
+    ImGui::SetNextItemWidth(search_w);
     ImGui::InputTextWithHint("##ObjectSearch", "Search by name or hex ID...",
                              object_search_buffer_,
                              sizeof(object_search_buffer_));
+    if (has_search) {
+      ImGui::SameLine(0.0f, control_spacing);
+      if (ImGui::Button(ICON_MD_CLOSE "##ClearSearch",
+                        ImVec2(clear_btn_w, 0.0f))) {
+        object_search_buffer_[0] = '\0';
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(tr("Clear search"));
+      }
+    }
+    ImGui::SameLine(0.0f, control_spacing);
+    const char* size_icon = object_grid_density_ == 0
+                                ? "S"
+                                : (object_grid_density_ == 2 ? "L" : "M");
+    if (ImGui::Button(size_icon, ImVec2(size_btn_w, 0.0f))) {
+      object_grid_density_ = (object_grid_density_ + 1) % 3;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(tr("Card size: %s (click to cycle)"),
+                        kObjectGridDensityLabels[object_grid_density_]);
+    }
+    ImGui::SameLine(0.0f, control_spacing);
+    if (ImGui::Button(ICON_MD_TUNE "##ObjectSelectorMore",
+                      ImVec2(more_btn_w, 0.0f))) {
+      ImGui::OpenPopup("##ObjectSelectorOptionsPopup");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(tr("Object selector options"));
+    }
 
     static const char* kFilterLabels[] = {
         "All categories", "Walls", "Floors", "Chests",
         "Doorways",       "Decor", "Stairs"};
     static const char* kStreamLabels[] = {"All streams", "Type 1", "Type 2",
                                           "Type 3"};
-    constexpr const char* kMoreLabel = "More##ObjectSelectorMore";
-    const float more_width = ImGui::CalcTextSize(kMoreLabel, nullptr, true).x +
-                             style.FramePadding.x * 2.0f;
-    const bool stack_filters = toolbar_width < 230.0f;
-    const float filter_row_width =
-        std::max(1.0f, toolbar_width - more_width - control_spacing);
+
     const float used_width = ImGui::GetFrameHeight() +
                              ImGui::CalcTextSize("Used here").x +
                              style.ItemInnerSpacing.x;
     const float category_width =
-        stack_filters
-            ? toolbar_width
-            : std::max(1.0f, filter_row_width - used_width - control_spacing);
+        std::max(1.0f, toolbar_width - used_width - control_spacing);
 
     ImGui::SetNextItemWidth(category_width);
     ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
@@ -469,14 +527,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
           tr("Doorways are tile objects. Use the Door Editor "
              "to place or change room doors."));
     }
-    if (!stack_filters) {
-      ImGui::SameLine(0.0f, control_spacing);
-    }
-    ImGui::Checkbox("Used here", &used_here_only_);
     ImGui::SameLine(0.0f, control_spacing);
-    if (ImGui::Button(kMoreLabel, ImVec2(more_width, 0.0f))) {
-      ImGui::OpenPopup("##ObjectSelectorOptionsPopup");
-    }
+    ImGui::Checkbox("Used here", &used_here_only_);
     if (ImGui::BeginPopup("##ObjectSelectorOptionsPopup")) {
       const bool has_filters = object_search_buffer_[0] != '\0' ||
                                object_type_filter_ != 0 ||
@@ -510,6 +562,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
       ImGui::EndPopup();
     }
   }
+
+  const auto name_strip = ReserveBrowserNameStrip();
+  std::string browser_name =
+      selected_object_id_ >= 0
+          ? absl::StrFormat("0x%03X  %s", selected_object_id_,
+                            zelda3::GetObjectName(selected_object_id_))
+          : tr("Point to an object; right-click for details");
 
   // The grid is the selector's sole scroll owner. Calculate its geometry only
   // after entering the child so themed padding and the scrollbar are included.
@@ -675,107 +734,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
                              id_text.c_str());
         }
 
-        // Enhanced tooltip
         if (item_hovered) {
-          gui::StyleColorGuard tooltip_guard(
-              {{ImGuiCol_PopupBg, theme.panel_bg_color},
-               {ImGuiCol_Border, theme.panel_border_color}});
-
-          if (ImGui::BeginTooltip()) {
-            ImGui::TextColored(theme.selection_primary, tr("Object 0x%03X"),
-                               obj_id);
-            ImGui::Text("%s", full_name.c_str());
-            int subtype = zelda3::GetObjectSubtype(obj_id);
-            ImGui::TextColored(theme.text_secondary_gray, tr("Subtype %d"),
-                               subtype);
-            ImGui::TextColored(
-                rendered ? theme.status_success : theme.status_warning,
-                tr("Preview: %s"),
-                rendered ? "rendered tile layout"
-                         : (enable_object_previews_ ? "fallback symbol"
-                                                    : "thumbnails off"));
-            ImGui::Separator();
-
-            const uint8_t preview_size =
-                zelda3::DefaultRoomObjectSizeForPlacement(obj_id);
-            const bool can_capture_layout =
-                rom_ && rooms_ && current_room_id_ >= 0 &&
-                current_room_id_ < zelda3::kNumberOfRooms;
-            const zelda3::Room* layout_room =
-                can_capture_layout ? &(*rooms_)[current_room_id_] : nullptr;
-            const uint32_t layout_key =
-                MakeLayoutCacheKey(obj_id, preview_size, layout_room);
-            if (can_capture_layout &&
-                layout_cache_.find(layout_key) == layout_cache_.end()) {
-              zelda3::ObjectTileEditor editor(rom_);
-              auto& room_ref = *layout_room;
-              auto layout_or = editor.CaptureObjectLayout(
-                  obj_id, room_ref, current_palette_group_, preview_size);
-              if (layout_or.ok()) {
-                layout_cache_[layout_key] = layout_or.value();
-              }
-            }
-
-            if (layout_cache_.count(layout_key)) {
-              const auto& layout = layout_cache_[layout_key];
-              ImGui::TextColored(theme.status_success, tr("Tiles: %zu"),
-                                 layout.cells.size());
-
-              if (can_capture_layout) {
-                auto& room_ref = (*rooms_)[current_room_id_];
-                zelda3::ObjectDrawer drawer(rom_, current_room_id_,
-                                            room_ref.get_gfx_buffer().data());
-                int rid = drawer.GetDrawRoutineId(obj_id);
-                ImGui::TextColored(theme.status_active, tr("Draw Routine: %d"),
-                                   rid);
-              }
-
-              ImGui::Text(tr("Layout:"));
-              ImDrawList* tooltip_draw_list = ImGui::GetWindowDrawList();
-              ImVec2 grid_start = ImGui::GetCursorScreenPos();
-              float cell_size = 4.0f;
-              for (const auto& cell : layout.cells) {
-                ImVec2 p1(grid_start.x + cell.rel_x * cell_size,
-                          grid_start.y + cell.rel_y * cell_size);
-                ImVec2 p2(p1.x + cell_size, p1.y + cell_size);
-                tooltip_draw_list->AddRectFilled(
-                    p1, p2, ThemeColor(theme.dungeon_grid_cell_highlight));
-                tooltip_draw_list->AddRect(
-                    p1, p2, ThemeColor(theme.panel_border_color));
-              }
-              ImGui::Dummy(ImVec2(layout.bounds_width * cell_size,
-                                  layout.bounds_height * cell_size));
-            }
-
-            // Routine symbology context — built here (hover-only) so no
-            // strings are allocated for off-screen or non-hovered items.
-            // sym was computed when the card became visible; accessing it
-            // inside the tooltip block is always safe.
-            if (!sym.family.empty()) {
-              ImGui::Separator();
-              // Named specials (Chest, BigKeyLock, etc.) use item_color so
-              // they stand out; directional families use secondary text.
-              const bool is_named_special =
-                  (sym.badge == "C" || sym.badge == "K" || sym.badge == "B" ||
-                   sym.badge == "P");
-              if (is_named_special) {
-                ImGui::TextColored(theme.item_color, tr("Routine: %s"),
-                                   sym.family.c_str());
-              } else {
-                ImGui::TextColored(theme.text_secondary_gray, tr("Routine: %s"),
-                                   sym.family.c_str());
-              }
-              if (sym.dual_layer) {
-                ImGui::TextColored(theme.dungeon_object_wall,
-                                   tr("  BothBG: writes to BG1 and BG2"));
-              }
-            }
-
-            ImGui::Separator();
-            ImGui::TextColored(theme.text_secondary_gray,
-                               tr("Click to select for placement"));
-            ImGui::EndTooltip();
-          }
+          browser_name = absl::StrFormat("0x%03X  %s", obj_id, full_name);
         }
 
         ImGui::PopID();
@@ -786,6 +746,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
   }
 
   ImGui::EndChild();
+  DrawBrowserNameStrip(name_strip, browser_name);
 }
 
 void DungeonObjectSelector::DrawObjectContextMenu(int object_id, int subtype) {
@@ -815,7 +776,91 @@ void DungeonObjectSelector::DrawObjectContextMenu(int object_id, int subtype) {
         "fixed 2x2 objects and custom assets. This layout is not supported "
         "yet.");
   }
+  ImGui::Separator();
+  if (ImGui::BeginMenu("Details")) {
+    DrawObjectDetails(object_id, subtype);
+    ImGui::EndMenu();
+  }
   ImGui::EndPopup();
+}
+
+void DungeonObjectSelector::DrawObjectDetails(int object_id, int subtype) {
+  const auto& theme = AgentUI::GetTheme();
+  ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 260.0f);
+  if (subtype >= 0) {
+    auto& manager = zelda3::CustomObjectManager::Get();
+    const auto binding = manager.ResolveSlotBinding(object_id, subtype);
+    ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X", object_id,
+                       subtype);
+    ImGui::TextWrapped(
+        "%s", GetDungeonCustomObjectSlotName(object_id, subtype).c_str());
+    ImGui::Separator();
+    ImGui::TextWrapped("File: %s", binding.ok() && !binding->filename.empty()
+                                       ? binding->filename.c_str()
+                                       : "(unmapped)");
+    if (binding.ok()) {
+      ImGui::TextWrapped("Mapping: %s",
+                         CustomObjectMappingOriginLabel(binding->origin));
+    }
+    const auto status = GetCustomObjectAssetStatus(object_id, subtype);
+    ImGui::TextColored(status.ok() ? theme.status_success : theme.status_error,
+                       "%s",
+                       status.ok() ? "Asset decoded and ready"
+                                   : std::string(status.message()).c_str());
+  } else {
+    ImGui::TextColored(theme.selection_primary, "Object 0x%03X", object_id);
+    ImGui::TextWrapped("%s", zelda3::GetObjectName(object_id).c_str());
+    const auto sym =
+        zelda3::GetSymbologyForObject(static_cast<int16_t>(object_id));
+    ImGui::Text("Subtype %d", zelda3::GetObjectSubtype(object_id));
+    if (!sym.family.empty()) {
+      ImGui::TextWrapped("Routine: %s", sym.family.c_str());
+    }
+    if (sym.dual_layer) {
+      ImGui::TextColored(theme.dungeon_object_wall,
+                         "BothBG: writes to BG1 and BG2");
+    }
+    const auto* room = rooms_ ? rooms_->GetIfLoaded(current_room_id_) : nullptr;
+    if (rom_ && room) {
+      const uint8_t size = zelda3::DefaultRoomObjectSizeForPlacement(object_id);
+      const uint32_t key = MakeLayoutCacheKey(object_id, size, room);
+      auto layout = layout_cache_.find(key);
+      if (layout == layout_cache_.end()) {
+        zelda3::ObjectTileEditor editor(rom_);
+        auto captured = editor.CaptureObjectLayout(
+            object_id, *room, current_palette_group_, size);
+        if (captured.ok()) {
+          layout = layout_cache_.emplace(key, std::move(*captured)).first;
+        }
+      }
+      if (layout != layout_cache_.end()) {
+        const auto& value = layout->second;
+        ImGui::Text("Tiles: %zu", value.cells.size());
+        if (value.bounds_width > 0 && value.bounds_height > 0) {
+          // Large floor/wall objects must not expand the details past the menu.
+          const float scale = std::min({4.0f, 160.0f / value.bounds_width,
+                                        120.0f / value.bounds_height});
+          const ImVec2 origin = ImGui::GetCursorScreenPos();
+          const ImVec2 size(value.bounds_width * scale,
+                            value.bounds_height * scale);
+          auto* draw = ImGui::GetWindowDrawList();
+          draw->PushClipRect(
+              origin, ImVec2(origin.x + size.x, origin.y + size.y), true);
+          for (const auto& cell : value.cells) {
+            const ImVec2 start(origin.x + cell.rel_x * scale,
+                               origin.y + cell.rel_y * scale);
+            const ImVec2 end(start.x + scale, start.y + scale);
+            draw->AddRectFilled(start, end,
+                                ThemeColor(theme.dungeon_grid_cell_highlight));
+            draw->AddRect(start, end, ThemeColor(theme.panel_border_color));
+          }
+          draw->PopClipRect();
+          ImGui::Dummy(size);
+        }
+      }
+    }
+  }
+  ImGui::PopTextWrapPos();
 }
 
 bool DungeonObjectSelector::MatchesRoomUsage(int obj_id) const {
@@ -1325,7 +1370,8 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
       {0x31, "Tracks + Props (16)",
        "Minecart tile layouts, the Sword House wall object, and a small "
        "statue"},
-      {0x32, "Ice Props (3)", "Furnace, firewood, and chair assets"},
+      {0x32, "Ice + Minish Props (5)",
+       "Furnace, firewood, chair, Minish stump, and Minish wall hole assets"},
       {0x54, "Boss Bodies (2)", "Kydreeok and Manhandla body tilemaps"},
   }};
   const CustomAssetFamily* selected_family = &kFamilies.front();
@@ -1356,6 +1402,11 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
   ImGui::TextDisabled("%s", tr(selected_family->description));
   ImGui::PopTextWrapPos();
 
+  const auto name_strip = ReserveBrowserNameStrip();
+  std::string browser_name = absl::StrFormat(
+      "0x%02X:%02X  %s", custom_asset_family_id_, custom_asset_subtype_,
+      GetDungeonCustomObjectSlotName(custom_asset_family_id_,
+                                     custom_asset_subtype_));
   {
     const ImGuiStyle& style = ImGui::GetStyle();
     const float item_spacing = std::max(2.0f, style.ItemSpacing.x * 0.5f);
@@ -1466,51 +1517,8 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
         }
 
         if (item_hovered) {
-          gui::StyleColorGuard tooltip_guard(
-              {{ImGuiCol_PopupBg, theme.panel_bg_color},
-               {ImGuiCol_Border, theme.panel_border_color}});
-          if (ImGui::BeginTooltip()) {
-            const auto binding_or =
-                obj_manager.ResolveSlotBinding(obj_id, subtype);
-            const std::string filename =
-                binding_or.ok() ? binding_or->filename : "";
-
-            ImGui::TextColored(theme.selection_primary,
-                               tr("Custom 0x%02X:%02X"), obj_id, subtype);
-            ImGui::Text("%s", subtype_name.c_str());
-            ImGui::TextColored(
-                rendered ? theme.status_success : theme.status_warning,
-                tr("Preview: %s"),
-                rendered ? "rendered custom layout"
-                         : (enable_object_previews_ ? "fallback subtype"
-                                                    : "thumbnails off"));
-            ImGui::Separator();
-            ImGui::Text(tr("File: %s"),
-                        filename.empty() ? "(unmapped)" : filename.c_str());
-            if (binding_or.ok()) {
-              const ImVec4 mapping_color =
-                  binding_or->origin ==
-                          zelda3::CustomObjectMappingOrigin::kConfiguredFilename
-                      ? theme.status_active
-                      : (binding_or->origin ==
-                                 zelda3::CustomObjectMappingOrigin::
-                                     kConfiguredSlotUnmapped
-                             ? theme.status_error
-                             : theme.text_secondary_gray);
-              ImGui::TextColored(
-                  mapping_color, tr("Mapping: %s"),
-                  tr(CustomObjectMappingOriginLabel(binding_or->origin)));
-            }
-            if (asset_ready) {
-              ImGui::TextColored(theme.status_success,
-                                 tr("Asset decoded and ready"));
-            } else {
-              ImGui::TextColored(theme.status_error, "%s",
-                                 asset_status.message().data());
-            }
-
-            ImGui::EndTooltip();
-          }
+          browser_name =
+              absl::StrFormat("0x%02X:%02X  %s", obj_id, subtype, subtype_name);
         }
 
         ImGui::PopID();
@@ -1518,6 +1526,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
       }
     }
   }
+  DrawBrowserNameStrip(name_strip, browser_name);
   ImGui::Separator();
   const std::string selected_name = GetDungeonCustomObjectSlotName(
       custom_asset_family_id_, custom_asset_subtype_);

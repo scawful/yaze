@@ -2,11 +2,15 @@
 #define YAZE_APP_EDITOR_DUNGEON_INSPECTORS_DUNGEON_ENTITY_INSPECTOR_H_
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 
 namespace yaze::editor {
 
 class DungeonCanvasViewer;
+
+inline constexpr size_t kDungeonPotItemCount = 28;
+const char* GetDungeonPotItemName(uint8_t item_id);
 
 // Contextual reminder for both the pot-item library and selection inspector.
 // Disabled saving does not prevent draft edits or change the project's scope.

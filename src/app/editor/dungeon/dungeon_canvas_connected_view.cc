@@ -17,7 +17,10 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "core/features.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/room_census.h"
 
 namespace yaze::editor {
 
@@ -146,19 +149,11 @@ std::pair<int, int> FindConnectedTransportPlacement(
 
 // Dedup key for the connected-mode graph.
 //
-// Door / Holewarp links are undirected — emitting from either side produces
-// the same logical edge — so we order the room pair (minmax) and treat both
-// emissions as one. There can only be one of either type per room pair.
-//
-// Staircase links carry per-instance provenance (slot_index + object_id) and
-// are *directed*: a stair object lives in exactly one room and points to
-// another. Two stair objects in the same source room targeting the same
-// destination, or two reciprocal stairs (A->B at slot 0 + B->A at slot 1),
-// are distinct edges that must each be visible in the matrix. Including
-// from_room/slot_index/object_id in the key preserves them.
+// Door links are undirected. Transport links are directed and keep their
+// slot provenance, including project warp-tag quadrants targeting one room.
 std::tuple<int, int, DungeonConnectedLinkType, int, int16_t>
 MakeConnectedLinkKey(const DungeonConnectedRoomLink& link) {
-  if (link.type == DungeonConnectedLinkType::Staircase) {
+  if (link.type != DungeonConnectedLinkType::Door) {
     return std::make_tuple(link.from_room_id, link.to_room_id, link.type,
                            link.slot_index, link.object_id);
   }
@@ -171,8 +166,9 @@ MakeConnectedLinkKey(const DungeonConnectedRoomLink& link) {
 
 DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
     int room_id, const zelda3::Room& room,
-    const std::function<bool(int, zelda3::DoorDirection)>&
-        has_reciprocal_door) {
+    const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door,
+    const zelda3::RoomLinkFacts* link_facts,
+    const std::set<uint8_t>& warp_tag_ids) {
   DungeonConnectedRoomLinkDiagnostics result;
 
   const auto& doors = room.GetDoors();
@@ -254,7 +250,9 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
         issue.object_id = slot_object_id[slot];
         result.staircase_issues.push_back(issue);
       }
-    } else if (header_valid && room.staircase_room(slot) != 0) {
+    } else if (header_valid && room.staircase_room(slot) != 0 &&
+               !warp_tag_ids.contains(static_cast<uint8_t>(room.tag1())) &&
+               !warp_tag_ids.contains(static_cast<uint8_t>(room.tag2()))) {
       DungeonStaircaseIssue issue;
       issue.from_room_id = room_id;
       issue.kind = DungeonStaircaseIssueKind::UnusedHeader;
@@ -264,13 +262,26 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
     }
   }
 
-  const int holewarp_room = room.holewarp_destination_room();
-  if (room.holewarp() != 0 && holewarp_room < zelda3::kNumberOfRooms) {
+  // A header byte alone is not a traversable edge. Reuse the census rules
+  // so damaging pits, redefined tags and a consumed zero destination agree.
+  const auto loaded_facts = zelda3::CollectLoadedRoomLinkFacts(
+      room, room.game_data() ? &room.game_data()->pit_damage_table : nullptr);
+  const auto& facts = link_facts ? *link_facts : loaded_facts;
+  const auto shared_links = zelda3::CollectRoomLinks(
+      room_id, [&](int id) { return id == room_id ? &facts : nullptr; },
+      warp_tag_ids);
+  for (const auto& shared : shared_links) {
+    if (!shared.strong || shared.to < 0 ||
+        (shared.kind != zelda3::RoomReferenceKind::kHolewarp &&
+         shared.kind != zelda3::RoomReferenceKind::kWarpTag)) {
+      continue;
+    }
     DungeonConnectedRoomLink link;
     link.from_room_id = room_id;
-    link.to_room_id = holewarp_room;
+    link.to_room_id = shared.to;
     link.type = DungeonConnectedLinkType::Holewarp;
     link.direction = zelda3::DoorDirection::North;
+    link.slot_index = shared.slot;
     result.links.push_back(link);
   }
 
@@ -279,10 +290,11 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
 
 std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
     int room_id, const zelda3::Room& room,
-    const std::function<bool(int, zelda3::DoorDirection)>&
-        has_reciprocal_door) {
-  return CollectDungeonConnectedRoomLinkDiagnostics(room_id, room,
-                                                    has_reciprocal_door)
+    const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door,
+    const zelda3::RoomLinkFacts* link_facts,
+    const std::set<uint8_t>& warp_tag_ids) {
+  return CollectDungeonConnectedRoomLinkDiagnostics(
+             room_id, room, has_reciprocal_door, link_facts, warp_tag_ids)
       .links;
 }
 
@@ -328,6 +340,10 @@ std::string FormatDungeonConnectedLinkDescription(
                              static_cast<unsigned>(link.to_room_id));
     }
     case DungeonConnectedLinkType::Holewarp:
+      if (link.slot_index >= 0) {
+        return absl::StrFormat("Warp tag quadrant %d -> [%03X]",
+                               link.slot_index + 1, link.to_room_id);
+      }
       return absl::StrFormat("Holewarp -> [%03X]",
                              static_cast<unsigned>(link.to_room_id));
   }
@@ -447,6 +463,36 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
     }
   }
 
+  const auto custom_objects =
+      zelda3::CustomObjectManager::Get().CaptureRenderSnapshot(
+          core::FeatureFlags::get().kEnableCustomObjects);
+  const std::set<uint8_t> warp_tags =
+      project_ ? zelda3::RoomCensusWarpTagsFromManifest(project_->hack_manifest)
+               : std::set<uint8_t>{};
+  zelda3::PitDamageTable rom_pit_table;
+  const zelda3::PitDamageTable* pit_table =
+      game_data_ ? &game_data_->pit_damage_table : nullptr;
+  if (!pit_table &&
+      zelda3::PitDamageTable::LoadFromRom(rom_, &rom_pit_table).ok()) {
+    pit_table = &rom_pit_table;
+  }
+  auto collect_diagnostics = [&](int room_id, zelda3::Room& room) {
+    if (room.GetSprites().empty()) {
+      room.EnsureSpritesLoaded();
+    }
+    auto facts =
+        zelda3::CollectRoomLinkFacts(rom_, room, pit_table, &custom_objects);
+    // Incomplete/synthetic ROMs can still establish placed object links.
+    const auto loaded_facts =
+        zelda3::CollectLoadedRoomLinkFacts(room, pit_table);
+    return CollectDungeonConnectedRoomLinkDiagnostics(
+        room_id, room,
+        [this](int neighbor_room_id, zelda3::DoorDirection dir) {
+          return RoomHasNonExitDoorInDirection(neighbor_room_id, dir);
+        },
+        facts.ok() ? &*facts : &loaded_facts, warp_tags);
+  };
+
   std::map<std::pair<int, int>, int> occupied_slots;
   std::queue<int> to_visit;
   std::set<std::tuple<int, int, DungeonConnectedLinkType, int, int16_t>>
@@ -529,12 +575,8 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
       continue;
     }
 
-    const auto outgoing_diagnostics =
-        CollectDungeonConnectedRoomLinkDiagnostics(
-            room_id, *room,
-            [this](int neighbor_room_id, zelda3::DoorDirection dir) {
-              return RoomHasNonExitDoorInDirection(neighbor_room_id, dir);
-            });
+    const auto outgoing_diagnostics = collect_diagnostics(room_id, *room);
+    graph.room_diagnostics[room_id] = outgoing_diagnostics;
     for (const auto& issue : outgoing_diagnostics.staircase_issues) {
       graph.staircase_issues.push_back(issue);
     }
@@ -596,9 +638,11 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
       // Project registry entries can name rooms that have never been opened.
       // Materialize their ROM data before placing them in the preview graph;
       // otherwise the renderer sees a default Room with ID zero.
-      if (!EnsureRoomLoadedForConnectedView(room_id)) {
+      auto* room = EnsureRoomLoadedForConnectedView(room_id);
+      if (!room) {
         continue;
       }
+      graph.room_diagnostics[room_id] = collect_diagnostics(room_id, *room);
       const std::pair<int, int> placement =
           registry_placement_for(room_id).value_or(
               FindConnectedTransportPlacement(
