@@ -13,6 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "cli/util/hex_util.h"
+#include "cli/util/sprite_label_fields.h"
 #include "core/dungeon_stream_layout_adapter.h"
 #include "core/hack_manifest.h"
 #include "rom/rom.h"
@@ -346,7 +347,7 @@ absl::Status DungeonListSpritesCommandHandler::Execute(
   for (const auto& sprite : sprites) {
     formatter.BeginObject();
     formatter.AddHexField("sprite_id", sprite.id(), 2);
-    formatter.AddField("name", zelda3::ResolveSpriteName(sprite.id()));
+    util::AddSpriteNameFields(formatter, sprite.id());
     formatter.AddField("x", sprite.x());
     formatter.AddField("y", sprite.y());
     formatter.AddField("subtype", sprite.subtype());
@@ -387,6 +388,7 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
 
   formatter.AddField("status", "success");
   formatter.AddField("name", absl::StrFormat("Room %d", room.id()));
+  formatter.AddField("room_name", zelda3::GetRoomLabel(room.id()));
   formatter.AddField("room_id", room.id());
   formatter.AddField("room_type", "Dungeon Room");
 
@@ -437,6 +439,21 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
     }
     formatter.EndArray();
   }
+
+  // Export Sprites (project names when --project-context renames the slot)
+  room.LoadSprites();
+  formatter.BeginArray("sprites");
+  for (const auto& sprite : room.GetSprites()) {
+    formatter.BeginObject();
+    formatter.AddHexField("sprite_id", sprite.id(), 2);
+    util::AddSpriteNameFields(formatter, sprite.id());
+    formatter.AddField("x", sprite.x());
+    formatter.AddField("y", sprite.y());
+    formatter.AddField("subtype", sprite.subtype());
+    formatter.AddField("layer", sprite.layer());
+    formatter.EndObject();
+  }
+  formatter.EndArray();
 
   // Export Doors
   formatter.BeginArray("doors");

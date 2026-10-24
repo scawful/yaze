@@ -4,6 +4,7 @@
 #include <tuple>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/editor/dungeon/dungeon_selection_edit.h"
 #include "app/gfx/resource/arena.h"
 #include "core/features.h"
@@ -11,6 +12,7 @@
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "rom/snes.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -228,6 +230,64 @@ class DungeonSelectionEditsLifecycleTest
   ImGuiContext* previous_context_ = nullptr;
   ImGuiContext* context_ = nullptr;
 };
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       DoorTrimUsesOneUndoReusesExistingAndSurvivesSaveReopen) {
+  ASSERT_TRUE(room_->SaveObjects().ok());
+  room_->MarkSpritesDirty();
+  ASSERT_TRUE(room_->SaveSprites().ok());
+  room_->MarkPotItemsDirty();
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  room_->ClearSaveDirtyState();
+  coordinator().SelectEntity(EntityType::Door, 0);
+  const auto before = CaptureDungeonSelectionEditState(*room_);
+  const auto bytes = rom_.vector();
+  ASSERT_TRUE(coordinator().CompleteDoorTrim(0).ok());
+  ASSERT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(room_->GetTileObjects().size(), before.objects.size() + 2);
+  EXPECT_EQ(interaction().GetSelectedObjectIndices(),
+            (std::vector<size_t>{2, 3}));
+  EXPECT_EQ(coordinator().SelectedEntitiesForEdit(),
+            (std::vector<SelectedEntity>{{EntityType::Door, 0}}));
+  EXPECT_EQ(rom_.vector(), bytes);
+  const auto completed = CaptureDungeonSelectionEditState(*room_);
+  ASSERT_TRUE(coordinator().CompleteDoorTrim(0).ok());
+  EXPECT_EQ(UndoDepth(), 1u);
+  ExpectRoomData(*room_, completed);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ExpectRoomData(*room_, before);
+  ASSERT_TRUE(editor_->Redo().ok());
+  ExpectRoomData(*room_, completed);
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  const auto path = yaze::test::UniqueTempPath("door-trim", ".sfc");
+  absl::Cleanup remove_file = [&] {
+    std::error_code error;
+    std::filesystem::remove(path, error);
+  };
+  const auto disk_save = rom_.SaveToFile({.filename = path.string()});
+  ASSERT_TRUE(disk_save.ok()) << disk_save;
+  Rom reopened;
+  const auto disk_load = reopened.LoadFromFile(path.string());
+  ASSERT_TRUE(disk_load.ok()) << disk_load;
+  EXPECT_EQ(reopened.vector(), rom_.vector());
+  auto saved = zelda3::LoadRoomHeaderFromRom(&reopened, 0);
+  saved.LoadObjects();
+  saved.LoadSprites();
+  saved.LoadPotItems();
+  ExpectRoomData(saved, completed);
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       DoorTrimStorageFailureKeepsRoomSelectionAndHistory) {
+  const int boundary = kObjectPc + 2 + room_->EncodeObjects().size();
+  WritePointer(rom_, 0x0F8000 + 3, boundary);
+  ASSERT_TRUE(rom_.WriteVector(boundary, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0,
+                                          0xFF, 0xFF, 0xFF})
+                  .ok());
+  coordinator().SelectEntity(EntityType::Door, 0);
+  ExpectRejectedWithoutChanges(
+      [&] { return coordinator().CompleteDoorTrim(0); });
+}
 
 TEST_P(DungeonSelectionEditsLifecycleTest,
        DeleteEveryDomainAndChestRecordIsOneUndoableCommand) {

@@ -1,4 +1,4 @@
-// Persistence (ROM save) implementation for DungeonEditorV2. Split out of
+// Persistence (ROM and project save) implementation for DungeonEditorV2. Split out of
 // dungeon_editor_v2.cc to keep that translation unit within the editor
 // source-size guardrail. Class declaration lives in dungeon_editor_v2.h.
 
@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 #include "absl/status/status.h"
+#include "absl/strings/cord.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -20,7 +21,9 @@
 #include "absl/types/span.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/dungeon_room_transfer.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
@@ -450,6 +453,40 @@ absl::Status ValidateCustomCollisionManifestConflicts(
 
 }  // namespace
 
+absl::Status DungeonEditorV2::ApplyRoomLabelEdit(
+    int room_id, std::optional<std::string> label) {
+  // Save Project serializes EditorManager's project and then replaces the
+  // session snapshot (dependencies_.project) from it, so the edit must land
+  // in the authoritative project first.
+  auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (editor_manager == nullptr ||
+      !editor_manager->IsCurrentProjectContextOwnedBySession(
+          dependencies_.session_id)) {
+    return absl::FailedPreconditionError(
+        "Activate this dungeon project before renaming rooms");
+  }
+  project::YazeProject* authoritative = editor_manager->GetCurrentProject();
+  if (authoritative == nullptr || !authoritative->project_opened()) {
+    return absl::FailedPreconditionError("Room names require an open project");
+  }
+
+  const auto apply = [&](project::YazeProject* project) {
+    if (label.has_value()) {
+      dungeon_project_labels::SetRoomLabel(project, room_id, *label);
+    } else {
+      dungeon_project_labels::ClearRoomLabel(project, room_id);
+    }
+  };
+  apply(authoritative);
+  if (dependencies_.project != nullptr &&
+      dependencies_.project != authoritative) {
+    apply(dependencies_.project);
+  }
+  editor_manager->MarkCurrentProjectDirty();
+  editor_manager->RefreshResourceLabelProvider();
+  return absl::OkStatus();
+}
+
 absl::Status DungeonEditorV2::PreflightPotItemPlacement(
     int room_id, const std::vector<zelda3::PotItem>& items) {
   const auto* room = rooms_.GetIfLoaded(room_id);
@@ -653,8 +690,79 @@ absl::Status DungeonEditorV2::ValidateSaveScope(int only_room,
                     "scope is disabled. Undo these edits or restore the "
                     "project's Water Fill save setting before saving.");
   }
-  return message.empty() ? absl::OkStatus()
-                         : absl::FailedPreconditionError(message);
+  if (!message.empty()) {
+    return absl::FailedPreconditionError(message);
+  }
+  if (!flags.kSaveRoomHeaders) {
+    return absl::OkStatus();
+  }
+  // Check every header this operation writes before palettes or any earlier
+  // room in the save loop can change ROM bytes.
+  absl::Status ownership;
+  rooms_.ForEachLoaded([&](int id, const zelda3::Room& room) {
+    if (!ownership.ok() || !room.header_dirty() ||
+        (only_room >= 0 && only_room != id)) {
+      return;
+    }
+    if (!rom_ || !rom_->is_loaded()) {
+      ownership = absl::FailedPreconditionError("ROM not loaded");
+    } else if (room.rom() != rom_) {
+      ownership = absl::FailedPreconditionError(
+          absl::StrFormat("Room 0x%03X belongs to another ROM", id));
+    } else {
+      ownership = ValidateRoomHeaderOwnership(*rom_, room.id());
+    }
+  });
+  return ownership;
+}
+
+absl::Status DungeonEditorV2::ValidateRoomHeaderOwnership(const Rom& rom,
+                                                          int room_id) {
+  if (!IsValidRoomId(room_id)) {
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+  ASSIGN_OR_RETURN(const auto table_snes,
+                   rom.ReadLong(zelda3::kRoomHeaderPointer));
+  ASSIGN_OR_RETURN(const auto bank,
+                   rom.ReadByte(zelda3::kRoomHeaderPointerBank));
+  const auto table_bank = (table_snes >> 16) & 0xFF;
+  if ((table_snes & 0xFFFF) < 0x8000 || table_bank == 0x7E ||
+      table_bank == 0x7F || table_bank == 0xFE || table_bank == 0xFF ||
+      bank == 0x7E || bank == 0x7F || bank == 0xFE || bank == 0xFF) {
+    return absl::FailedPreconditionError("Invalid room header pointer table");
+  }
+  const auto table_pc = SnesToPc(table_snes);
+  if (static_cast<uint64_t>(table_pc) + zelda3::kNumberOfRooms * 2 >
+      rom.size()) {
+    return absl::FailedPreconditionError(
+        "Room header pointer table is truncated");
+  }
+  ASSIGN_OR_RETURN(const auto header, rom.ReadWord(table_pc + room_id * 2));
+  const auto header_pc = SnesToPc((bank << 16) | header);
+  if (header < 0x8000 || static_cast<uint64_t>(header_pc) + 14 > rom.size()) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Room %03X header pointer is invalid", room_id));
+  }
+  for (int other_id = 0; other_id < zelda3::kNumberOfRooms; ++other_id) {
+    if (other_id == room_id)
+      continue;
+    ASSIGN_OR_RETURN(const auto other_header,
+                     rom.ReadWord(table_pc + other_id * 2));
+    const auto other_pc = SnesToPc((bank << 16) | other_header);
+    if (other_header < 0x8000 ||
+        static_cast<uint64_t>(other_pc) + 14 > rom.size())
+      continue;
+    if (header_pc < other_pc + 14 && other_pc < header_pc + 14) {
+      auto status = absl::FailedPreconditionError(absl::StrFormat(
+          "Room %03X header overlaps room %03X; writing its room properties "
+          "would also change that room. Undo or exclude the room property "
+          "edits and retry.",
+          room_id, other_id));
+      status.SetPayload(kRoomTransferSharedHeaderPayload, absl::Cord("1"));
+      return status;
+    }
+  }
+  return absl::OkStatus();
 }
 
 absl::Status DungeonEditorV2::Save() {

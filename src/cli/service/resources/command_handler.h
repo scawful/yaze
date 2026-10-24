@@ -130,7 +130,7 @@ class CommandHandler {
 
   /**
    * @brief Set the YazeProject context.
-   * Default implementation does nothing, override if tool needs project info.
+   * Binds the loaded project for inspection metadata and write policy checks.
    */
   virtual void SetProjectContext(project::YazeProject* project) {
     project_ = project;

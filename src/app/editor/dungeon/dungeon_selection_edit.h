@@ -47,7 +47,13 @@ struct DungeonSelectionClipboard {
   }
 };
 
-enum class DungeonSelectionEditKind { kDelete, kDuplicate, kMove, kPaste };
+enum class DungeonSelectionEditKind {
+  kDelete,
+  kDuplicate,
+  kMove,
+  kPaste,
+  kDoorTrim
+};
 
 struct DungeonSelectionEditRequest {
   DungeonSelectionEditKind kind = DungeonSelectionEditKind::kDelete;
@@ -79,6 +85,12 @@ uint8_t ChangedDungeonSelectionDomains(const DungeonSelectionEditState& before,
 // existing persistence boundary; this planner does not write ROM bytes.
 absl::StatusOr<DungeonSelectionEditPlan> PlanDungeonSelectionEdit(
     const zelda3::Room& room, const DungeonSelectionEditRequest& request);
+
+// Complete the currently supported normal-door stone surround. Reuses exact
+// native trim records and returns the door + trim selection even for a no-op.
+// Profile opt-in and persistence preflight belong to the caller.
+absl::StatusOr<DungeonSelectionEditPlan> PlanDungeonDoorTrim(
+    const zelda3::Room& room, size_t door_index);
 
 absl::StatusOr<DungeonSelectionClipboard> CopyDungeonSelection(
     const zelda3::Room& room, const std::vector<size_t>& objects,

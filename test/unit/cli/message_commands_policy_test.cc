@@ -324,6 +324,27 @@ TEST(MessageCommandsPolicyTest, MixedApplyLateFailureLeavesRomUnchanged) {
   EXPECT_EQ(ReadBinaryFile(rom_path), before);
 }
 
+TEST(MessageCommandsPolicyTest, ReadOnlyProjectRejectsConflictFreeMutation) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeMessageRomData());
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "read_only", true);
+  Rom rom = LoadRom(rom_path);
+  const auto before = rom.vector();
+  handlers::MessageWriteCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--id=0", "--text=B", "--project=" + project_path.string(),
+                   "--format=json"},
+                  &rom, &output);
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_THAT(std::string(status.message()), HasSubstr("read-only"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(ReadBinaryFile(rom_path), before);
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+}
+
 TEST(MessageCommandsPolicyTest, PermittedNonOracleProjectCanWriteExpanded) {
   ScopedTempDir temp;
   const fs::path rom_path = temp.path() / "active.sfc";

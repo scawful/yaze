@@ -251,6 +251,12 @@ absl::Status RomLifecycleManager::CheckRomWritePolicy(
   }
 
   const auto policy = project_->rom_metadata.write_policy;
+  // Read-only is unconditional, unlike conflict policies. Check it before
+  // editable-source, matching-hash, Save As and confirmation exemptions.
+  if (policy == project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "ROM writes are disabled by the project's read-only policy");
+  }
   const std::string target_path =
       target_filename.has_value()
           ? *target_filename

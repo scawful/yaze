@@ -217,6 +217,7 @@ if(YAZE_PLATFORM_IOS)
 	    yaze_app_core_lib
 	    yaze_agent
 	    yaze_cli_core
+	    yaze_cli_editor_shared
 	    yaze_editor
 	    yaze_editor_system_panels
 	    yaze_editor_system_session

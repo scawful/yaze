@@ -165,6 +165,11 @@ set(
   app/editor/overworld/maps/overworld_map_metadata.cc
   app/editor/overworld/maps/overworld_property_edit.cc
   app/editor/overworld/overworld_editor.cc
+  app/editor/overworld/lyra_terrain_canvas.cc
+  app/editor/overworld/lyra_map_authoring_ui.cc
+  app/editor/dungeon/ui/window/custom_collision_panel.cc
+  app/editor/dungeon/ui/window/item_editor_panel.cc
+  app/editor/dungeon/ui/window/water_fill_panel.cc
   app/editor/overworld/painting/tile_painting_manager.cc
   app/editor/overworld/panels/area_graphics_panel.cc
   app/editor/overworld/panels/debug_window_panel.cc
@@ -375,7 +380,7 @@ target_link_libraries(yaze_editor PUBLIC
   yaze_editor_system_session
   yaze_editor_system_shortcuts
   yaze_app_core_lib
-  yaze_cli_core
+  yaze_cli_editor_shared
   yaze_rom
   yaze_gfx
   yaze_gui

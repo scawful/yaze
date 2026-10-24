@@ -286,6 +286,15 @@ class Tile16EditSession {
   const std::array<uint8_t, 0x200>& all_tiles_types() const {
     return all_tiles_types_;
   }
+  void SetCollisionTypes(const std::array<uint8_t, 0x200>& types) {
+    all_tiles_types_ = types;
+    collision_types_valid_ = true;
+  }
+  void ClearCollisionTypes() {
+    all_tiles_types_.fill(0);
+    collision_types_valid_ = false;
+  }
+  bool collision_types_valid() const { return collision_types_valid_; }
 
   absl::Status RebuildTile8UsageCache();
   const zelda3::Tile8UsageIndex& tile8_usage_cache() const {
@@ -396,6 +405,7 @@ class Tile16EditSession {
   bool has_rom_write_history_ = false;
   bool scroll_to_current_ = false;
   std::array<uint8_t, 0x200> all_tiles_types_{};
+  bool collision_types_valid_ = false;
 };
 
 }  // namespace editor

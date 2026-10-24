@@ -5,12 +5,17 @@
 #include <optional>
 #include <string>
 #include <system_error>
+#include <unordered_set>
 #include <vector>
 
 #include "absl/strings/str_format.h"
 #include "core/source_artifact_publisher.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_collision.h"
+
+#if defined(YAZE_WITH_JSON)
+#include "nlohmann/json.hpp"
+#endif
 
 namespace yaze::editor {
 namespace {
@@ -47,6 +52,53 @@ absl::StatusOr<std::string> CollisionSourceOfRomBytes(
   return zelda3::DumpCustomCollisionSourceFromRom(&disk_rom);
 }
 
+// Ignore presentation differences only. The import parser accepts aliases,
+// skips some invalid entries, and coalesces duplicate offsets, so it is not a
+// suitable source-binding guard. Comparing parsed documents retains every
+// array entry (including explicit floor zero), field, and numeric type.
+absl::StatusOr<bool> CollisionSourcesMatch(const std::string& source,
+                                           const std::string& generated,
+                                           const fs::path& source_path) {
+#if !defined(YAZE_WITH_JSON)
+  return absl::UnimplementedError("JSON support not enabled");
+#else
+  using json = nlohmann::json;
+  if (source.find('\0') != std::string::npos) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Invalid collision source %s: embedded NUL byte",
+                        source_path.string()));
+  }
+  bool duplicate_key = false;
+  std::vector<std::unordered_set<std::string>> object_keys;
+  try {
+    auto parsed =
+        json::parse(source, [&](int, json::parse_event_t event, json& value) {
+          if (event == json::parse_event_t::object_start) {
+            object_keys.emplace_back();
+          } else if (event == json::parse_event_t::object_end) {
+            object_keys.pop_back();
+          } else if (event == json::parse_event_t::key) {
+            if (!object_keys.back().insert(value.get<std::string>()).second) {
+              duplicate_key = true;
+            }
+          }
+          return true;
+        });
+    if (duplicate_key) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Invalid collision source %s: duplicate JSON object key",
+          source_path.string()));
+    }
+    // JSON equality coerces 1.0 to integer 1. Canonical serialization preserves
+    // that distinction, while normalizing whitespace and object-key ordering.
+    return parsed.dump() == json::parse(generated).dump();
+  } catch (const json::exception& error) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Invalid collision source %s: %s", source_path.string(), error.what()));
+  }
+#endif
+}
+
 }  // namespace
 
 absl::Status ValidateRomCollisionSourceBinding(Rom* replacement_rom,
@@ -63,7 +115,10 @@ absl::Status ValidateRomCollisionSourceBinding(Rom* replacement_rom,
   }
   ASSIGN_OR_RETURN(const std::string replacement_source,
                    zelda3::DumpCustomCollisionSourceFromRom(replacement_rom));
-  if (*source != replacement_source) {
+  ASSIGN_OR_RETURN(
+      const bool source_matches,
+      CollisionSourcesMatch(*source, replacement_source, json_path));
+  if (!source_matches) {
     return absl::FailedPreconditionError(absl::StrFormat(
         "Replacement ROM %s does not match configured collision source %s. "
         "Swap ROM does not publish collision changes. Select a ROM matching "
@@ -85,10 +140,14 @@ absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
                    zelda3::DumpCustomCollisionSourceFromRom(rom));
   ASSIGN_OR_RETURN(const auto disk_json, ReadOptionalFile(json_path));
 
-  // A byte-identical source needs no second file: save the ROM as usual.
-  if (disk_json.has_value() && *disk_json == new_json) {
-    Rom::SaveSettings settings;
-    return rom->SaveToFile(settings);
+  // Preserve the user's formatting when collision data did not change.
+  if (disk_json.has_value()) {
+    ASSIGN_OR_RETURN(const bool source_matches,
+                     CollisionSourcesMatch(*disk_json, new_json, json_path));
+    if (source_matches) {
+      Rom::SaveSettings settings;
+      return rom->SaveToFile(settings);
+    }
   }
 
   const core::SourceArtifactPublisherLabels labels{
@@ -114,7 +173,10 @@ absl::Status SaveRomWithCollisionSource(Rom* rom, const fs::path& json_path) {
   if (locked_json.has_value()) {
     ASSIGN_OR_RETURN(const std::string disk_source,
                      CollisionSourceOfRomBytes(*disk_rom));
-    if (*locked_json != disk_source) {
+    ASSIGN_OR_RETURN(
+        const bool source_matches,
+        CollisionSourcesMatch(*locked_json, disk_source, json_path));
+    if (!source_matches) {
       return absl::FailedPreconditionError(absl::StrFormat(
           "%s does not match the custom collision in %s. It was changed "
           "outside yaze, or the two were already out of step. Nothing was "

@@ -34,7 +34,11 @@ enum class ProposalShapeType {
   kPath,    // polyline through tile centers: tiles = [[x, y], ...]
   kMarker,  // labeled point: tile = [x, y]
   kRemove,  // "removed here" cross: tile = [x, y]
+  kActor,   // abstract 16px actor at tile origin + pixel offset, with facing
+  kObject,  // suggested object footprint; annotation only, never a ROM edit
 };
+
+enum class ProposalFacing { kNorth, kEast, kSouth, kWest };
 
 struct ProposalShape {
   ProposalShapeType type = ProposalShapeType::kMarker;
@@ -42,6 +46,12 @@ struct ProposalShape {
   std::vector<ProposalTile> tiles;  // rect: 2 corners; path: >=2; point: 1
   std::string label;                // short text drawn on the canvas
   std::string detail;               // hover text
+  ProposalTile pixel_offset;        // actor only: 0..7 pixels within tile
+  ProposalFacing facing = ProposalFacing::kSouth;
+  int object_id = 0;
+  int object_size = 0;
+  int object_list = 0;     // serialized object list, not a BG number
+  ProposalTile footprint;  // object width/height in 8px tiles
 };
 
 struct ProposalLayer {
@@ -57,12 +67,20 @@ struct ProposalRoom {
   std::string label;
 };
 
+struct ProposalStep {
+  std::string id;
+  std::string label;
+  std::string detail;
+  std::vector<std::string> layer_ids;
+};
+
 struct DungeonProposalOverlay {
   std::string title;
   std::string status;
   std::vector<std::string> notes;
   std::vector<ProposalRoom> rooms;  // display order, left to right
   std::vector<ProposalLayer> layers;
+  std::vector<ProposalStep> steps;  // optional ordered cutscene/route preview
 };
 
 // Parses and validates overlay JSON. Rejects unknown formats/versions,
@@ -86,6 +104,15 @@ ProposalPixelRect ProposalTileRectToPixels(ProposalTile a, ProposalTile b);
 
 // Center of a tile, in room-local pixels.
 void ProposalTileCenter(ProposalTile tile, float* x, float* y);
+
+// Actor/object anchors are tile origins, unlike path/marker tile centers.
+// The actor's 16px outline is an authoring marker, not its collision box.
+ProposalPixelRect ProposalFootprintToPixels(const ProposalShape& shape);
+
+// Negative step selects all layers; a selected step shows its referenced
+// layers. The caller must also honor each layer's visibility checkbox.
+bool ProposalLayerInStep(const DungeonProposalOverlay& overlay,
+                         std::string_view layer_id, int step);
 
 // Left edge of room `index` when rooms are laid out left to right.
 float ProposalRoomOriginX(int index, float gap_pixels);
