@@ -8,6 +8,7 @@
 #include "absl/strings/str_format.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/room.h"
@@ -135,6 +136,16 @@ absl::Status DungeonTileTypesCommandHandler::Execute(
   formatter.AddField("blockset", static_cast<int>(room.blockset()));
   formatter.AddField("layout_id", static_cast<int>(room.layout_id()));
   formatter.AddField("model", "Underworld_LoadAttributeTable replay");
+  // Slot 5-6 types (chars 0x140-0x1BF) follow the blockset's group, read from
+  // the table the $0E:942A routine (or its JSL hook) uses.
+  const zelda3::CustomTileTypeTable custom_types =
+      zelda3::ResolveCustomTileTypeTable(*rom);
+  formatter.AddField("custom_tile_types",
+                     zelda3::CustomTileTypeSourceName(custom_types.source));
+  formatter.AddHexField("custom_tile_type_offsets",
+                        PcToSnes(custom_types.offsets_pc), 6);
+  formatter.AddHexField("custom_tile_type_data", PcToSnes(custom_types.data_pc),
+                        6);
   formatter.AddField("load_state",
                      "new file: no room flags, pegs not swapped, shutters "
                      "closed");

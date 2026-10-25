@@ -88,14 +88,40 @@ struct UnderworldRoomLoadState {
   bool crystal_pegs_swapped = false;
 };
 
+// Where Underworld_LoadCustomTileTypes (#_0E942A) reads the per-blockset
+// types for TILEATTR 0x140-0x1BF (VRAM chars of sheet slots 5-6).
+enum class CustomTileTypeSource : uint8_t {
+  kVanilla,           // the routine at $0E:942A (or vanilla addresses)
+  kHook,              // $0E:942A is a JSL to a copy of the routine with its
+                      // own tables (Oracle of Secrets: 24 groups in bank $2C)
+  kUnrecognizedHook,  // $0E:942A is a JSL yaze cannot decode; vanilla tables
+};
+
+const char* CustomTileTypeSourceName(CustomTileTypeSource source);
+
+struct CustomTileTypeTable {
+  CustomTileTypeSource source = CustomTileTypeSource::kVanilla;
+  int offsets_pc = 0x071000;  // CustomTileTypesOffset, one word per blockset
+  int data_pc = 0x07102A;     // CustomUnderworldTileTypes; offsets add to it
+  uint32_t hook_target = 0;   // SNES address of the JSL target, if any
+};
+
+// Decodes the routine at $0E:942A, following a JSL there, and returns the two
+// table operands it reads. Falls back to the vanilla addresses when the code
+// does not match the routine's shape.
+CustomTileTypeTable ResolveCustomTileTypeTable(const Rom& rom);
+
 // TILEATTR ($7EFE00, 512 bytes): LoadDefaultTileTypes (#_0E97D9) copies
 // UnderworldTileTypes ($0E:9659) entries 0x000-0x13F to 0x000 and
 // 0x140-0x17F to 0x1C0; Underworld_LoadCustomTileTypes (#_0E942A) copies 0x80
 // bytes from CustomUnderworldTileTypes ($0E:902A) +
-// CustomTileTypesOffset[blockset] ($0E:9000) to 0x140. `blockset` is room
-// header byte 2 (Room::blockset()).
+// CustomTileTypesOffset[blockset] ($0E:9000) to 0x140, or from the tables of
+// a hooked copy (ResolveCustomTileTypeTable). `blockset` is room header byte 2
+// (Room::blockset()); vanilla has 21 entries, Oracle of Secrets 24.
 std::array<uint8_t, kTileAttributeTableSize> LoadUnderworldTileAttributeTable(
     const Rom& rom, uint8_t blockset);
+std::array<uint8_t, kTileAttributeTableSize> LoadUnderworldTileAttributeTable(
+    const Rom& rom, uint8_t blockset, const CustomTileTypeTable& custom);
 
 // Pass 1 only: the attribute of each tile word in `tilemaps`.
 RoomCollisionMaps ComputeBasicCollisionMaps(
