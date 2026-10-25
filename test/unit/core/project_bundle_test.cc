@@ -3,6 +3,8 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -38,16 +40,16 @@ class ScopedTempDir {
 void WriteTextFile(const std::filesystem::path& path, const std::string& data) {
   std::filesystem::create_directories(path.parent_path());
   std::ofstream file(path, std::ios::out | std::ios::trunc);
-  ASSERT_TRUE(file.is_open()) << "Failed to open file for writing: "
-                              << path.string();
+  ASSERT_TRUE(file.is_open())
+      << "Failed to open file for writing: " << path.string();
   file << data;
   file.close();
 }
 
 std::string ReadTextFile(const std::filesystem::path& path) {
   std::ifstream file(path);
-  EXPECT_TRUE(file.is_open()) << "Failed to open file for reading: "
-                              << path.string();
+  EXPECT_TRUE(file.is_open())
+      << "Failed to open file for reading: " << path.string();
   std::string content((std::istreambuf_iterator<char>(file)),
                       std::istreambuf_iterator<char>());
   file.close();
@@ -88,7 +90,19 @@ TEST(ProjectBundleTest, OpenCreatesProjectFileWhenMissing) {
   EXPECT_EQ(project.rom_filename, (bundle_root / "rom").string());
   EXPECT_EQ(project.code_folder, (bundle_root / "project").string());
 
+  EXPECT_EQ(project.metadata.created_date, project.metadata.last_modified);
+  EXPECT_EQ(project.metadata.last_modified.size(), 19U);
+  std::tm parsed_timestamp{};
+  std::istringstream timestamp_stream(project.metadata.last_modified);
+  EXPECT_FALSE((timestamp_stream >>
+                std::get_time(&parsed_timestamp, "%Y-%m-%d %H:%M:%S"))
+                   .fail());
+
   const auto saved = ReadTextFile(expected_project_file);
+  EXPECT_NE(saved.find("created_date=" + project.metadata.created_date),
+            std::string::npos);
+  EXPECT_NE(saved.find("last_modified=" + project.metadata.last_modified),
+            std::string::npos);
   EXPECT_NE(saved.find("rom_filename=rom"), std::string::npos);
   EXPECT_NE(saved.find("code_folder=project"), std::string::npos);
 }
@@ -99,9 +113,9 @@ TEST(ProjectBundleTest, ProjectManagerFindsBundleDirectories) {
   const auto bundle_root = temp.path() / "FoundMe.yazeproj";
   std::filesystem::create_directories(bundle_root);
 
-  const auto found = ProjectManager::FindProjectsInDirectory(temp.path().string());
+  const auto found =
+      ProjectManager::FindProjectsInDirectory(temp.path().string());
   EXPECT_TRUE(ContainsPath(found, bundle_root));
 }
 
 }  // namespace yaze::project
-

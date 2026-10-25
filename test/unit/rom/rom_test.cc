@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <regex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -627,6 +628,12 @@ TEST_F(RomTest, BestEffortBackupSameTargetCreatesBackup) {
   const auto backups = FindFilesWithPrefix(temp.path(), "target.sfc_backup_");
   ASSERT_EQ(backups.size(), 1);
   EXPECT_EQ(ReadFileBytes(backups.front()), target_before);
+  static const std::regex kCtimeBackupSuffix(
+      "target\\.sfc_backup_[A-Za-z]{3}_[A-Za-z]{3}_(_[1-9]|[12][0-9]|3[01])_"
+      "[0-9]{2}-[0-9]{2}-"
+      "[0-9]{2}_[0-9]{4}");
+  EXPECT_TRUE(std::regex_match(backups.front().filename().string(),
+                               kCtimeBackupSuffix));
 }
 
 TEST_F(RomTest, BestEffortBackupSaveNewSkipsUnreplacedBaseTarget) {

@@ -79,6 +79,22 @@ std::pair<std::string, std::string> ParseKeyValue(const std::string& line) {
   return {key, value};
 }
 
+absl::StatusOr<std::string> FormatProjectLocalTime(std::time_t time,
+                                                   const char* format) {
+  std::tm local_time{};
+#if defined(_WIN32)
+  const bool converted = localtime_s(&local_time, &time) == 0;
+#else
+  const bool converted = localtime_r(&time, &local_time) != nullptr;
+#endif
+  if (!converted) {
+    return absl::InternalError("Could not convert project timestamp");
+  }
+  std::stringstream ss;
+  ss << std::put_time(&local_time, format);
+  return ss.str();
+}
+
 bool ParseBool(const std::string& value) {
   return value == "true" || value == "1" || value == "yes";
 }
@@ -497,11 +513,11 @@ absl::Status YazeProject::Create(const std::string& project_name,
   // Initialize metadata
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
-  std::stringstream ss;
-  ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
+  ASSIGN_OR_RETURN(const std::string timestamp,
+                   FormatProjectLocalTime(time_t, "%Y-%m-%d %H:%M:%S"));
 
-  metadata.created_date = ss.str();
-  metadata.last_modified = ss.str();
+  metadata.created_date = timestamp;
+  metadata.last_modified = timestamp;
   metadata.yaze_version = YAZE_VERSION_STRING;
   metadata.version = "2.0";
   metadata.created_by = "YAZE";
@@ -629,12 +645,12 @@ absl::Status YazeProject::Open(const std::string& project_path) {
       // Initialize metadata timestamps (Create() normally does this).
       auto now = std::chrono::system_clock::now();
       auto time_t = std::chrono::system_clock::to_time_t(now);
-      std::stringstream ss;
-      ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
+      ASSIGN_OR_RETURN(const std::string timestamp,
+                       FormatProjectLocalTime(time_t, "%Y-%m-%d %H:%M:%S"));
       if (metadata.created_date.empty()) {
-        metadata.created_date = ss.str();
+        metadata.created_date = timestamp;
       }
-      metadata.last_modified = ss.str();
+      metadata.last_modified = timestamp;
       if (metadata.yaze_version.empty()) {
         metadata.yaze_version = YAZE_VERSION_STRING;
       }
@@ -865,18 +881,8 @@ absl::Status YazeProject::SaveAsWithLyraTerrain(
   }
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  std::tm local_time{};
-#if defined(_WIN32)
-  const bool converted = localtime_s(&local_time, &now) == 0;
-#else
-  const bool converted = localtime_r(&now, &local_time) != nullptr;
-#endif
-  if (!converted) {
-    return absl::InternalError("Could not convert project timestamp");
-  }
-  std::stringstream timestamp;
-  timestamp << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S");
-  candidate.metadata.last_modified = timestamp.str();
+  ASSIGN_OR_RETURN(candidate.metadata.last_modified,
+                   FormatProjectLocalTime(now, "%Y-%m-%d %H:%M:%S"));
   if (candidate.music_persistence.storage_key.empty()) {
     candidate.music_persistence.storage_key = candidate.MakeStorageKey("music");
   }
@@ -1991,9 +1997,8 @@ absl::Status YazeProject::SaveToYazeFormat(bool replace_existing) {
   // Update last modified timestamp
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
-  std::stringstream ss;
-  ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
-  metadata.last_modified = ss.str();
+  ASSIGN_OR_RETURN(metadata.last_modified,
+                   FormatProjectLocalTime(time_t, "%Y-%m-%d %H:%M:%S"));
   if (music_persistence.storage_key.empty()) {
     music_persistence.storage_key = MakeStorageKey("music");
   }
@@ -2954,10 +2959,11 @@ absl::Status ProjectManager::BackupProject(const YazeProject& project) {
 
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
-  std::stringstream ss;
-  ss << std::put_time(std::localtime(&time_t), "%Y%m%d_%H%M%S");
+  ASSIGN_OR_RETURN(const std::string backup_stamp,
+                   FormatProjectLocalTime(time_t, "%Y%m%d_%H%M%S"));
 
-  std::string backup_filename = project.name + "_backup_" + ss.str() + ".yaze";
+  std::string backup_filename =
+      project.name + "_backup_" + backup_stamp + ".yaze";
   std::filesystem::path backup_path = backup_dir / backup_filename;
 
   try {

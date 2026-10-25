@@ -85,8 +85,18 @@ void MaybeStripCopierHeader(std::vector<uint8_t>& rom_data,
            CopierHeaderReasonName(reason), rom_data.size());
 }
 
-std::string MakeSafeTimestamp(std::time_t now_c) {
-  std::string timestamp = std::ctime(&now_c);
+absl::StatusOr<std::string> MakeSafeTimestamp(std::time_t now_c) {
+  char buffer[26];
+#if defined(_WIN32)
+  if (ctime_s(buffer, sizeof(buffer), &now_c) != 0) {
+    return absl::InternalError("Could not convert project timestamp");
+  }
+#else
+  if (ctime_r(&now_c, buffer) == nullptr) {
+    return absl::InternalError("Could not convert project timestamp");
+  }
+#endif
+  std::string timestamp(buffer);
   timestamp.erase(std::remove(timestamp.begin(), timestamp.end(), '\n'),
                   timestamp.end());
   std::replace(timestamp.begin(), timestamp.end(), ' ', '_');
@@ -733,8 +743,8 @@ absl::Status Rom::SaveToFileUnchecked(const SaveSettings& settings) {
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     auto filename_no_ext = filename.substr(0, filename.find_last_of("."));
-    filename =
-        absl::StrCat(filename_no_ext, "_", MakeSafeTimestamp(now_c), ".sfc");
+    ASSIGN_OR_RETURN(const std::string timestamp, MakeSafeTimestamp(now_c));
+    filename = absl::StrCat(filename_no_ext, "_", timestamp, ".sfc");
   }
 
   if (settings.require_backup) {
@@ -752,8 +762,10 @@ absl::Status Rom::SaveToFileUnchecked(const SaveSettings& settings) {
     if (target_exists) {
       auto now = std::chrono::system_clock::now();
       auto now_c = std::chrono::system_clock::to_time_t(now);
+      ASSIGN_OR_RETURN(const std::string backup_stamp,
+                       MakeSafeTimestamp(now_c));
       std::string backup_filename =
-          absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
+          absl::StrCat(filename, "_backup_", backup_stamp);
       RETURN_IF_ERROR(CreateRequiredBackup(target_path, backup_filename));
     }
   } else if (settings.backup) {
@@ -764,11 +776,17 @@ absl::Status Rom::SaveToFileUnchecked(const SaveSettings& settings) {
       if (std::filesystem::exists(target_path)) {
         auto now = std::chrono::system_clock::now();
         auto now_c = std::chrono::system_clock::to_time_t(now);
-        std::string backup_filename =
-            absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
-        std::filesystem::copy(
-            target_path, backup_filename,
-            std::filesystem::copy_options::overwrite_existing);
+        auto backup_stamp = MakeSafeTimestamp(now_c);
+        if (!backup_stamp.ok()) {
+          LOG_WARN("Rom", "Could not create backup: %s",
+                   backup_stamp.status().message());
+        } else {
+          std::string backup_filename =
+              absl::StrCat(filename, "_backup_", *backup_stamp);
+          std::filesystem::copy(
+              target_path, backup_filename,
+              std::filesystem::copy_options::overwrite_existing);
+        }
       }
     } catch (const std::filesystem::filesystem_error& e) {
       LOG_WARN("Rom", "Could not create backup: %s", e.what());
