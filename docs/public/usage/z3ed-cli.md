@@ -231,8 +231,8 @@ echo "Describe room 1" | z3ed agent simple-chat --rom=zelda3.sfc --stdout
 | **Use sandbox mode** | `--sandbox` flag creates a copy for safe testing |
 | **Log sessions** | `--log-file agent.log` captures transcripts |
 | **Structured output** | `--format json` or `--format text` for scripting |
+| **Discover arguments** | `z3ed --export-schemas` lists every command with a JSON Schema `parameters` object |
 | **Run tests after patches** | `./build/bin/yaze_test --unit` |
-| **TUI command palette** | Press `:` in TUI mode to search commands |
 
 ---
 

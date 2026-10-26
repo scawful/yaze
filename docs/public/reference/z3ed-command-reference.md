@@ -653,14 +653,14 @@ These options work with all commands:
 - `--format <json|text>` - Output format
 - `--data-format <hex|ascii|both>` - Byte view for read commands
 - `--tui` / `--interactive` - Removed (use `z3ed help` and command-scoped `--help`)
-- `--list-commands` - List all available commands
+- `--list-commands` / `--list` - List all available commands
 - `--export-schemas` - Export command schemas as JSON; each command includes a
   JSON Schema `parameters` object derived from its usage string, keyed by flag
-  name
-- `--version` - Show version information
+  name, and a `positional_arguments` list when its usage takes bare arguments
+- `--version` / `-v` - Show version information
 - `--self-test` - Run CLI self-test
 - `--verbose` - Enable verbose output
-- `--quiet` - Suppress non-error output
+- `--quiet` / `-q` - Suppress non-error output
 - `--ai_provider <name>` - AI provider (auto, ollama, gemini, openai, anthropic, mock)
 - `--ai_model <name>` - Provider-specific model override
 - `--gemini_api_key <key>` - Gemini API key
@@ -680,7 +680,14 @@ Environment variable shortcuts for AI providers:
 `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
 `OPENAI_BASE_URL`/`OPENAI_API_BASE`, `OLLAMA_HOST`, `OLLAMA_MODEL`.
 
+## Help Output
+
+`z3ed help <command|category>` and `z3ed <command> --help` print the same help.
+Help and status output use ANSI color only when the stream is a terminal;
+setting `NO_COLOR` or `TERM=dumb` turns it off. Output captured by scripts,
+pipes, the HTTP API, and agent tool calls is plain text.
+
 ## Exit Codes
 
 - `0` - Success
-- `1` - Error (invalid args, missing ROM, failed command)
+- `1` - Error (invalid args, missing ROM, failed command, unknown help topic)
