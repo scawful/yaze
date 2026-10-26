@@ -11,6 +11,7 @@
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/handlers/game/overworld_sprite_edit_commands.h"
 #include "cli/util/hex_util.h"
+#include "cli/util/sprite_label_fields.h"
 #include "rom/rom.h"
 #include "rom/transaction.h"
 #include "util/macro.h"
@@ -709,9 +710,7 @@ absl::Status OverworldListSpritesCommandHandler::Execute(
     formatter.AddField(
         "tile", absl::StrFormat("(%d,%d)", sprite.local_x, sprite.local_y));
 
-    if (sprite.sprite_name.has_value()) {
-      formatter.AddField("name", sprite.sprite_name.value());
-    }
+    util::AddSpriteNameFields(formatter, sprite.sprite_id);
 
     formatter.EndObject();
   }
