@@ -367,27 +367,62 @@ absl::Status WriteProjectFileAtomicallyImpl(
   }
 #endif
   const std::filesystem::path temp_path = MakeProjectSaveTempPath(target_path);
-  std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
-  if (!file.is_open()) {
+#if defined(_WIN32)
+  HANDLE file = CreateFileW(temp_path.c_str(), GENERIC_WRITE, 0, nullptr,
+                            CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+  if (file == INVALID_HANDLE_VALUE) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Cannot create temporary project file: %s", temp_path.string()));
   }
 
-  file.write(contents.data(), static_cast<std::streamsize>(contents.size()));
-  file.flush();
-  if (!file.good()) {
-    file.close();
+  size_t written_total = 0;
+  while (written_total < contents.size()) {
+    const DWORD chunk = static_cast<DWORD>(
+        std::min<size_t>(contents.size() - written_total, 1024 * 1024));
+    DWORD written = 0;
+    if (!WriteFile(file, contents.data() + written_total, chunk, &written,
+                   nullptr) ||
+        written == 0) {
+      CloseHandle(file);
+      RemoveProjectSaveTempFile(temp_path);
+      return absl::InternalError(absl::StrFormat(
+          "Failed to write temporary project file: %s", temp_path.string()));
+    }
+    written_total += written;
+  }
+  if (!FlushFileBuffers(file)) {
+    CloseHandle(file);
     RemoveProjectSaveTempFile(temp_path);
     return absl::InternalError(absl::StrFormat(
         "Failed to write temporary project file: %s", temp_path.string()));
   }
-
-  file.close();
-  if (file.fail()) {
+  if (!CloseHandle(file)) {
     RemoveProjectSaveTempFile(temp_path);
     return absl::InternalError(absl::StrFormat(
         "Failed to close temporary project file: %s", temp_path.string()));
   }
+#else
+  // Exclusive creation establishes ownership; never reopen the staging path.
+  FILE* file = std::fopen(temp_path.c_str(), "wbx");
+  if (file == nullptr) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Cannot create temporary project file: %s", temp_path.string()));
+  }
+  const bool written =
+      std::fwrite(contents.data(), 1, contents.size(), file) == contents.size();
+  const bool flushed = std::fflush(file) == 0;
+  const bool closed = std::fclose(file) == 0;
+  if (!written || !flushed) {
+    RemoveProjectSaveTempFile(temp_path);
+    return absl::InternalError(absl::StrFormat(
+        "Failed to write temporary project file: %s", temp_path.string()));
+  }
+  if (!closed) {
+    RemoveProjectSaveTempFile(temp_path);
+    return absl::InternalError(absl::StrFormat(
+        "Failed to close temporary project file: %s", temp_path.string()));
+  }
+#endif
 
   std::error_code rename_error;
 #if defined(_WIN32)

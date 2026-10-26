@@ -226,7 +226,7 @@ TEST_F(Tile16DocumentHistoryTest, ManualPropertiesPasteAndScratchAreUndoable) {
   ExpectDefinition(overworld_.tiles16()[0], initial_);
 }
 TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
-  for (int size : {1, 2, 4}) {
+  for (int size : {1, 2, 3, 4}) {
     for (int flips = 0; flips < 4; ++flips) {
       SCOPED_TRACE(size);
       SCOPED_TRACE(flips);
@@ -241,7 +241,15 @@ TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
       const bool dirty = rom_.dirty();
       gfx::Bitmap preview;
       ASSERT_TRUE(session_.BuildStampPreview({8, 8}, &preview).ok());
-      EXPECT_EQ(preview.width(), size == 4 ? 32 : 16);
+      const bool single_tile_stamp = size == 1 || size == 2;
+      const int expected_extent = single_tile_stamp ? 16 : 32;
+      EXPECT_EQ(preview.width(), expected_extent);
+      EXPECT_EQ(preview.height(), expected_extent);
+      if (size == 3) {
+        ASSERT_EQ(preview.width(), 32);
+        ASSERT_EQ(preview.height(), 32);
+        ASSERT_EQ(preview.vector().size(), 1024u);
+      }
       EXPECT_EQ(history_.UndoStackSize(), history_size);
       EXPECT_EQ(boundaries_, boundaries);
       EXPECT_EQ(rom_.dirty(), dirty);
@@ -249,7 +257,7 @@ TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
         ExpectDefinition(overworld_.tiles16()[id], before[id]);
       }
       ASSERT_TRUE(session_.DrawToCurrentTile16({8, 8}).ok());
-      const int columns = size == 4 ? 2 : 1;
+      const int columns = single_tile_stamp ? 1 : 2;
       for (int y = 0; y < columns; ++y) {
         for (int x = 0; x < columns; ++x) {
           gfx::Bitmap committed;
