@@ -90,6 +90,10 @@ class TilePaintingManager {
   /// Paste a validated pattern at the current canvas cursor, using the same
   /// clipping, per-map refresh, and undo path as rectangle painting.
   absl::Status PasteBrush(const TileBrush& brush);
+  absl::Status PlaceBrushAt(const TileBrush& brush, int x, int y) {
+    FinalizePendingPaint();
+    return PaintPattern(brush, {x, y}, brush.width, brush.height);
+  }
 
   /// @brief Update bitmap pixels after a single tile paint.
   void RenderUpdatedMapBitmap(const ImVec2& click_position,

@@ -526,6 +526,13 @@ absl::Status EditorManager::SaveRomInternal(
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
+  if (auto* overworld = static_cast<OverworldEditor*>(
+          current_editor_set->GetExistingEditor(EditorType::kOverworld));
+      overworld && overworld->HasUnpublishedProjectGraphics()) {
+    return absl::FailedPreconditionError(
+        "Publish project graphics before Save ROM (Edit / Import Project "
+        "Graphics)");
+  }
   if (current_project_.rom_metadata.write_policy ==
       project::RomWritePolicy::kReadOnly) {
     RETURN_IF_ERROR(CheckRomWritePolicy(save_as_filename));

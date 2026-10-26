@@ -6,11 +6,14 @@
 #include <chrono>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/tile16/tile16_edit_types.h"
 #include "app/gfx/core/bitmap.h"
@@ -55,6 +58,17 @@ class Tile16EditSession {
   }
   bool has_shared_history() const { return history_ != &undo_manager_; }
   absl::Status ReplaceCurrentTile(const gfx::Tile16& data);
+
+  // Prepare an unapplied action for an owning command. Validates the complete
+  // batch without changing definitions, pending edits, dirty state or history.
+  // Empty/no-op imports return nullptr. The session must outlive the action.
+  absl::StatusOr<std::unique_ptr<UndoAction>> PrepareDefinitionImport(
+      const std::vector<Tile16Commit>& definitions,
+      std::string description = "Import Tile16 definitions");
+  // Standalone import: apply the prepared batch and push one shared Undo step.
+  absl::Status ImportDefinitions(
+      const std::vector<Tile16Commit>& definitions,
+      std::string description = "Import Tile16 definitions");
 
   absl::Status LoadTile8();
   absl::Status SetCurrentTile(int id);
@@ -325,6 +339,8 @@ class Tile16EditSession {
  private:
   absl::Status RunEdit(const std::function<absl::Status()>& operation);
   absl::Status ApplyDefinitions(const std::vector<Tile16Commit>& definitions);
+  absl::Status ValidateDefinitionImport(
+      const std::vector<Tile16Commit>& definitions) const;
   absl::StatusOr<gfx::Tile16> ReadDocumentTile(int id) const;
   absl::Status PasteTile16FromClipboardImpl();
   absl::Status LoadTile16FromScratchSpaceImpl(int slot);
