@@ -14,6 +14,7 @@
 #include "cli/util/hex_util.h"
 #include "core/project.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/zelda3_labels.h"
 
 using yaze::cli::util::ParseHexString;
@@ -237,6 +238,10 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
       zelda3::CustomObjectManager::Get().SnapshotState();
 
   auto& active_project = loaded_project_.value();
+  // Open() bound the label provider to the moved-from local above.
+  zelda3::GetResourceLabels().SetHackManifest(
+      active_project.hack_manifest.loaded() ? &active_project.hack_manifest
+                                            : nullptr);
   core::FeatureFlags::get() = active_project.feature_flags;
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 

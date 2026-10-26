@@ -122,6 +122,8 @@ ImVec4 GetEditorAccentColor(EditorType type, const gui::Theme& theme) {
       return gui::ConvertColorToImVec4(theme.info);
     case EditorType::kAgent:
       return gui::ConvertColorToImVec4(theme.accent);
+    case EditorType::kPlanning:
+      return gui::ConvertColorToImVec4(theme.warning);
     case EditorType::kSettings:
     case EditorType::kUnknown:
     default:
@@ -182,6 +184,10 @@ EditorSelectionDialog::EditorSelectionDialog() {
       {EditorType::kAgent, "AI Agent", ICON_MD_SMART_TOY,
        "Configure AI agent, collaboration, and automation",
        absl::StrFormat("%s+Shift+A", ctrl), false, false},
+
+      {EditorType::kPlanning, "Planning", ICON_MD_ROUTE,
+       "Plan goals, milestones, the play route and open decisions", "", false,
+       false},
   };
 
   LoadRecentEditors();
@@ -593,8 +599,8 @@ void EditorSelectionDialog::LoadRecentEditors() {
       while (std::getline(ss, line) &&
              recent_editors_.size() < kMaxRecentEditors) {
         int type_int = std::stoi(line);
-        if (type_int >= 0 &&
-            type_int < static_cast<int>(EditorType::kSettings)) {
+        if (type_int >= 0 && type_int <= static_cast<int>(kLastEditorType) &&
+            type_int != static_cast<int>(EditorType::kSettings)) {
           recent_editors_.push_back(static_cast<EditorType>(type_int));
         }
       }

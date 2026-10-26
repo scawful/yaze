@@ -157,6 +157,26 @@ struct AtlasSettings {
 };
 
 /**
+ * @brief Planning editor sidecar (`[planning]`).
+ *
+ * `file` names a yaze.plan/1 JSON file (core/project_plan.h), absolute or
+ * relative to the project file; use YazeProject::PlanningFilePath() to
+ * resolve it. The plan may live outside the repository (for example in a
+ * shared notes folder) so several checkouts can share one plan.
+ */
+struct PlanningSettings {
+  std::string file;
+  // The loaded file had a [planning] section; save writes it back even when
+  // `file` is empty.
+  bool section_present = false;
+
+  bool IsDefault() const { return file.empty(); }
+  bool operator==(const PlanningSettings& other) const {
+    return file == other.file;
+  }
+};
+
+/**
  * @brief Lines of a `.yaze` file that this build does not model.
  *
  * ParseFromString records them and SerializeToString writes them back, so a
@@ -265,6 +285,16 @@ absl::Status WriteProjectFileAtomically(absl::string_view target_path,
  * @brief Modern project structure with comprehensive settings consolidation
  */
 struct YazeProject {
+  YazeProject() = default;
+  YazeProject(const YazeProject&) = default;
+  YazeProject(YazeProject&&) = default;
+  YazeProject& operator=(const YazeProject&) = default;
+  YazeProject& operator=(YazeProject&&) = default;
+  // Open() and InitializeResourceLabelProvider() point the process-wide
+  // zelda3::GetResourceLabels() at this project's members; the destructor
+  // releases any binding that still refers to them.
+  ~YazeProject();
+
   // Basic project info
   ProjectMetadata metadata;
   std::string name;
@@ -317,6 +347,7 @@ struct YazeProject {
   DungeonOverlaySettings dungeon_overlay;
   GraphicsSheetSettings graphics_sheets;
   AtlasSettings atlas;
+  PlanningSettings planning;
   core::RomAddressOverrides rom_address_overrides;
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       resource_labels;
@@ -465,6 +496,8 @@ struct YazeProject {
   // [atlas] annotations / symbols resolved against the project file.
   std::vector<std::string> AtlasAnnotationPaths() const;
   std::string AtlasSymbolsPath() const;
+  // [planning] file resolved against the project file; empty when unset.
+  std::string PlanningFilePath() const;
   bool IsEmpty() const;
   std::string MakeStorageKey(absl::string_view suffix) const;
 

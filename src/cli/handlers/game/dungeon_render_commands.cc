@@ -41,6 +41,8 @@ uint32_t ParseOverlays(const std::string& s) {
       flags |= app::service::RenderOverlay::kCameraQuads;
     else if (tok == "grid")
       flags |= app::service::RenderOverlay::kGrid;
+    else if (tok == "tiletype")
+      flags |= app::service::RenderOverlay::kTileTypes;
     else if (tok == "all")
       flags = app::service::RenderOverlay::kAll;
   }

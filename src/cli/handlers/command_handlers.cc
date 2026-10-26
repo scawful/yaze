@@ -13,6 +13,7 @@
 #include "cli/handlers/game/dungeon_map_commands.h"
 #include "cli/handlers/game/dungeon_render_commands.h"
 #include "cli/handlers/game/dungeon_stream_plan_commands.h"
+#include "cli/handlers/game/dungeon_tile_type_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
@@ -145,6 +146,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(
       std::make_unique<DungeonImportWaterFillJsonCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonTileTypesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomHeaderCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGraphCommandHandler>());
