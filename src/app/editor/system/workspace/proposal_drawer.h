@@ -33,8 +33,11 @@ class ProposalDrawer {
   ProposalDrawer();
   ~ProposalDrawer() = default;
 
-  // Set the ROM instance to merge proposals into
-  void SetRom(Rom* rom) { rom_ = rom; }
+  // Cancel pending review actions when the active ROM changes.
+  void SetRom(Rom* rom);
+
+  // Also invalidate review state when the current ROM is replaced in place.
+  void InvalidateRomContext();
 
   // Render the proposal drawer UI (creates own window)
   void Draw();
@@ -50,11 +53,15 @@ class ProposalDrawer {
   void FocusProposal(const std::string& proposal_id);
 
  private:
+  friend class ProposalDrawerTestPeer;
+
   void DrawProposalList();
   void DrawProposalDetail();
   void DrawPolicyStatus();  // NEW: Display policy evaluation results
   void DrawStatusFilter();
   void DrawActionButtons();
+  void DrawConfirmationDialog();
+  void CancelPendingAction();
 
   absl::Status AcceptProposal(const std::string& proposal_id);
   absl::Status RejectProposal(const std::string& proposal_id);
@@ -83,11 +90,12 @@ class ProposalDrawer {
   // UI state
   float drawer_width_ = 400.0f;
   bool show_confirm_dialog_ = false;
-  bool show_override_dialog_ = false;  // NEW: Policy override confirmation
   std::string confirm_action_;
   std::string confirm_proposal_id_;
+  absl::Status action_status_;
+  std::string action_feedback_;
 
-  // ROM reference for merging
+  // Current review context. Applying a proposal requires a normal editor edit.
   Rom* rom_ = nullptr;
 };
 
