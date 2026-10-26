@@ -10,7 +10,11 @@ if(EMSCRIPTEN)
 endif()
 
 set(YAZE_CLI_CORE_SOURCES
+  cli/cli.cc
   cli/flags.cc
+  cli/global_flags.cc
+  cli/subcommand_routes.cc
+  cli/util/ansi_style.cc
   cli/service/command_registry.cc
   cli/service/resources/command_context.cc
   cli/service/resources/command_handler.cc

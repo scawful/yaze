@@ -2,19 +2,18 @@
  * @file wasm_terminal_bridge.cc
  * @brief C++ bridge for web terminal integration in WASM builds
  *
- * This file provides the C++ side of the web terminal integration,
- * exposing functions that can be called from JavaScript to process
- * z3ed commands and provide terminal functionality in the browser.
+ * Exposes z3ed command processing, completion and ROM queries to the browser
+ * terminal. Every exported function that returns `const char*` returns a
+ * pointer into bridge-owned storage that stays valid until the next call.
  */
 
 #ifdef __EMSCRIPTEN__
 
-#include <algorithm>
-#include <cstring>
+#include <cstdint>
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <set>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -22,8 +21,14 @@
 #include <emscripten/bind.h>
 
 #include "absl/status/status.h"
+#include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
+#include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/string_view.h"
+#include "absl/types/span.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
 #include "app/net/wasm/emscripten_http_client.h"
@@ -31,6 +36,8 @@
 #include "cli/handlers/command_handlers.h"
 #include "cli/service/ai/browser_ai_service.h"
 #include "cli/service/command_registry.h"
+#include "cli/subcommand_routes.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 
 namespace yaze::app {
@@ -38,6 +45,8 @@ extern editor::EditorManager* GetGlobalEditorManager();
 }
 
 namespace {
+
+constexpr char kTerminalUploadPath[] = "/.yaze/roms/terminal_upload.sfc";
 
 struct BridgeState {
   std::unique_ptr<yaze::cli::BrowserAIService> ai_service;
@@ -50,7 +59,6 @@ struct BridgeState {
 
   void Initialize() {
     if (!initialized) {
-      // Ensure command registry is initialized
       yaze::cli::CommandRegistry::Instance();
       initialized = true;
     }
@@ -88,22 +96,30 @@ struct BridgeState {
     SetupAIService();
   }
 
-  // Helper to get the REAL active ROM from the application controller
-  yaze::Rom* GetActiveRom() {
+  // The ROM open in the editor, which the terminal operates on.
+  yaze::Rom* GetActiveRom() const {
     auto* manager = yaze::app::GetGlobalEditorManager();
-    if (manager)
-      return manager->GetCurrentRom();
-    return nullptr;
+    return manager ? manager->GetCurrentRom() : nullptr;
+  }
+
+  yaze::Rom* GetLoadedRom() const {
+    yaze::Rom* rom = GetActiveRom();
+    return rom && rom->is_loaded() ? rom : nullptr;
+  }
+
+  const char* Return(std::string output) {
+    last_output = std::move(output);
+    return last_output.c_str();
   }
 };
 
-static BridgeState g_bridge;
+BridgeState g_bridge;
 
 }  // namespace
 
-// Global accessor for command handlers
 namespace yaze {
 namespace cli {
+
 BrowserAIService* GetGlobalBrowserAIService() {
   return g_bridge.ai_service.get();
 }
@@ -117,7 +133,8 @@ yaze::Rom* GetGlobalRom() {
 
 namespace {
 
-// JavaScript function to print to terminal
+using Args = std::vector<std::string>;
+
 EM_JS(void, z3ed_print_to_terminal, (const char* text), {
   if (window.z3edTerminal) {
     window.z3edTerminal.print(UTF8ToString(text));
@@ -126,7 +143,6 @@ EM_JS(void, z3ed_print_to_terminal, (const char* text), {
   }
 });
 
-// JavaScript function to print error to terminal
 EM_JS(void, z3ed_error_to_terminal, (const char* text), {
   if (window.z3edTerminal) {
     window.z3edTerminal.printError(UTF8ToString(text));
@@ -135,255 +151,252 @@ EM_JS(void, z3ed_error_to_terminal, (const char* text), {
   }
 });
 
-// Parse command string into arguments
-std::vector<std::string> ParseCommand(const std::string& command) {
-  // Simple tokenization - could be enhanced for quoted strings
-  return absl::StrSplit(command, ' ', absl::SkipEmpty());
+// Whitespace tokenization; quoted arguments are not supported.
+Args ParseCommand(absl::string_view command) {
+  return absl::StrSplit(command, absl::ByAnyChar(" \t"), absl::SkipEmpty());
 }
 
-// Process command and return output
-std::string ProcessCommandInternal(const std::string& command_str) {
-  auto args = ParseCommand(command_str);
+std::string ErrorJson(absl::string_view message) {
+  return nlohmann::json{{"error", message}}.dump();
+}
+
+std::optional<int> ParseHexId(absl::string_view text) {
+  int value = 0;
+  if (!absl::SimpleHexAtoi(text, &value)) {
+    return std::nullopt;
+  }
+  return value;
+}
+
+std::string ExecuteRegistryCommand(const std::string& name, const Args& args) {
+  std::string output;
+  absl::Status status = yaze::cli::CommandRegistry::Instance().Execute(
+      name, args, g_bridge.GetActiveRom(), &output);
+  if (!status.ok()) {
+    return absl::StrCat("Command failed: ", status.message());
+  }
+  return output.empty() ? "Command executed successfully" : output;
+}
+
+std::string HandleHelp(const Args& args) {
+  auto& registry = yaze::cli::CommandRegistry::Instance();
+  if (args.size() < 2) {
+    return registry.GenerateCompleteHelp();
+  }
+  if (registry.HasCommand(args[1])) {
+    return registry.GenerateHelp(args[1]);
+  }
+  return registry.GenerateCategoryHelp(args[1]);
+}
+
+std::string HandleRom(const Args& args) {
+  if (args.size() < 2) {
+    return absl::StrCat("Usage: rom load <path> | rom info\n",
+                        yaze::cli::RomSubcommandUsage());
+  }
+  const std::string& subcommand = args[1];
+  if (subcommand == "load") {
+    if (args.size() < 3) {
+      return "Usage: rom load <path>";
+    }
+    yaze::app::wasm::TriggerRomLoad(args[2]);
+    return absl::StrCat("Requesting load for: ", args[2],
+                        ". Check application log.");
+  }
+  if (subcommand == "info") {
+    yaze::Rom* rom = g_bridge.GetLoadedRom();
+    if (rom == nullptr) {
+      return "No ROM loaded.";
+    }
+    return absl::StrCat("ROM Info:\n  Size: ", rom->size(),
+                        " bytes\n  Title: ", rom->title(), "\n");
+  }
+
+  auto invocation =
+      yaze::cli::ResolveRomSubcommand(absl::MakeConstSpan(args).subspan(1));
+  if (!invocation.ok()) {
+    return std::string(invocation.status().message());
+  }
+  return ExecuteRegistryCommand(invocation->command, invocation->args);
+}
+
+std::string HandleAi(const Args& args) {
+  if (!g_bridge.ai_service) {
+    g_bridge.SetupAIService();
+  }
+  if (!g_bridge.ai_service) {
+    return "AI service unavailable";
+  }
+  if (args.size() < 2) {
+    return "AI command requires a prompt. Usage: ai <prompt>";
+  }
+
+  const std::string prompt = absl::StrJoin(args.begin() + 1, args.end(), " ");
+  auto response = g_bridge.ai_service->GenerateResponse(prompt);
+  if (!response.ok()) {
+    return absl::StrCat("AI error: ", response.status().message());
+  }
+  return response->text_response;
+}
+
+std::string HandleEditor(const Args& args) {
+  auto* editor_manager = yaze::app::GetGlobalEditorManager();
+  if (!editor_manager) {
+    return "Error: Editor manager not available";
+  }
+
+  if (args.size() > 2 && args[1] == "switch") {
+    const std::string target = absl::AsciiStrToLower(args[2]);
+    for (size_t i = 0; i < yaze::editor::kEditorNames.size(); ++i) {
+      const std::string name =
+          absl::AsciiStrToLower(yaze::editor::kEditorNames[i]);
+      if (name == target) {
+        editor_manager->SwitchToEditor(
+            static_cast<yaze::editor::EditorType>(i));
+        return absl::StrCat("Switched to ", yaze::editor::kEditorNames[i]);
+      }
+    }
+    return absl::StrCat("Unknown editor: ", args[2]);
+  }
+
+  if (args.size() > 3 && args[1] == "card") {
+    auto* current_editor = editor_manager->GetCurrentEditor();
+    if (current_editor &&
+        current_editor->type() == yaze::editor::EditorType::kDungeon) {
+      return "Panel visibility is now controlled via Layout Designer. Use "
+             "'editor layout' commands.";
+    }
+    return "Panel control not supported for current editor";
+  }
+
+  if (args.size() > 2 && args[1] == "debug" && args[2] == "toggle") {
+    return "Debug controls are now accessed via the Layout Designer. "
+           "Use the canvas debug panel or layout commands.";
+  }
+
+  return "Usage: editor switch <name>";
+}
+
+std::string HandleDungeon(const Args& args) {
+  auto* editor_manager = yaze::app::GetGlobalEditorManager();
+  if (!editor_manager) {
+    return "Error: Editor manager not available";
+  }
+
+  auto* current_editor = editor_manager->GetCurrentEditor();
+  if (!current_editor ||
+      current_editor->type() != yaze::editor::EditorType::kDungeon) {
+    return "Error: Dungeon editor is not active. Use 'editor switch dungeon' "
+           "first.";
+  }
+  auto* dungeon_editor =
+      static_cast<yaze::editor::DungeonEditorV2*>(current_editor);
+
+  if (args.size() > 2 && args[1] == "room") {
+    std::optional<int> room_id = ParseHexId(args[2]);
+    if (!room_id) {
+      return "Invalid room ID (hex required)";
+    }
+    dungeon_editor->FocusRoom(*room_id);
+    return absl::StrCat("Focused room ", args[2]);
+  }
+
+  if (args.size() > 2 && args[1] == "select_object") {
+    std::optional<int> object_id = ParseHexId(args[2]);
+    if (!object_id) {
+      return "Invalid object ID (hex required)";
+    }
+    dungeon_editor->SelectObject(*object_id);
+    return absl::StrCat("Selected object ", args[2]);
+  }
+
+  if (args.size() > 2 && args[1] == "agent_mode") {
+    const bool enabled = args[2] == "on" || args[2] == "true";
+    dungeon_editor->SetAgentMode(enabled);
+    return absl::StrCat("Agent mode ", enabled ? "enabled" : "disabled");
+  }
+
+  return "Usage: dungeon room <hex> | select_object <hex> | agent_mode "
+         "<on|off>";
+}
+
+using BuiltinHandler = std::string (*)(const Args&);
+
+struct BuiltinCommand {
+  absl::string_view name;
+  BuiltinHandler handler;
+};
+
+// Commands handled by the bridge itself rather than the command registry.
+constexpr BuiltinCommand kBuiltinCommands[] = {
+    {"help", &HandleHelp},     {"rom", &HandleRom},         {"ai", &HandleAi},
+    {"editor", &HandleEditor}, {"dungeon", &HandleDungeon},
+};
+
+std::string ProcessCommandInternal(absl::string_view command_str) {
+  const Args args = ParseCommand(command_str);
   if (args.empty()) {
     return "No command provided";
   }
 
-  std::ostringstream output;
-
-  // Handle special commands
-  if (args[0] == "help") {
-    if (args.size() > 1) {
-      auto& registry = yaze::cli::CommandRegistry::Instance();
-      return registry.GenerateCategoryHelp(args[1]);
-    } else {
-      return yaze::cli::CommandRegistry::Instance().GenerateCompleteHelp();
+  for (const BuiltinCommand& builtin : kBuiltinCommands) {
+    if (args[0] == builtin.name) {
+      return builtin.handler(args);
     }
   }
 
-  // Handle ROM commands
-  if (args[0] == "rom" && args.size() > 1) {
-    if (args[1] == "load" && args.size() > 2) {
-      // Trigger full application load via bootstrap
-      yaze::app::wasm::TriggerRomLoad(args[2]);
-      return "Requesting load for: " + args[2] + ". Check application log.";
-    }
-    yaze::Rom* rom = g_bridge.GetActiveRom();
-    if (args[1] == "info") {
-      if (rom && rom->is_loaded()) {
-        output << "ROM Info:\n";
-        output << "  Size: " << rom->size() << " bytes\n";
-        output << "  Title: " << rom->title() << "\n";
-        return output.str();
-      } else {
-        return "No ROM loaded.";
-      }
-    }
-  }
-
-  // Handle AI commands if service is available
-  if (args[0] == "ai") {
-    if (!g_bridge.ai_service) {
-      g_bridge.SetupAIService();
-    }
-    if (!g_bridge.ai_service) {
-      return "AI service unavailable";
-    }
-    if (args.size() < 2) {
-      return "AI command requires a prompt. Usage: ai <prompt>";
-    }
-
-    // Reconstruct prompt from remaining args
-    std::vector<std::string> prompt_parts(args.begin() + 1, args.end());
-    std::string prompt = absl::StrJoin(prompt_parts, " ");
-
-    // Generate response using AI service
-    auto response = g_bridge.ai_service->GenerateResponse(prompt);
-    if (response.ok()) {
-      return response->text_response;
-    } else {
-      return "AI error: " + std::string(response.status().message());
-    }
-  }
-
-  // Handle editor commands
-  if (args[0] == "editor") {
-    auto* editor_manager = yaze::app::GetGlobalEditorManager();
-    if (!editor_manager)
-      return "Error: Editor manager not available";
-
-    if (args.size() > 2 && args[1] == "switch") {
-      std::string target = args[2];
-      for (size_t i = 0; i < yaze::editor::kEditorNames.size(); ++i) {
-        std::string name = yaze::editor::kEditorNames[i];
-        std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-        std::transform(target.begin(), target.end(), target.begin(), ::tolower);
-        if (name == target) {
-          editor_manager->SwitchToEditor(
-              static_cast<yaze::editor::EditorType>(i));
-          return "Switched to " + std::string(yaze::editor::kEditorNames[i]);
-        }
-      }
-      return "Unknown editor: " + args[2];
-    }
-
-    if (args.size() > 3 && args[1] == "card") {
-      // "editor card <name> <show/hide>"
-      // Name might be multi-word if parsed poorly, but let's assume simple args or quotes handled by caller (currently not)
-      // For simple support: "editor card object show"
-      std::string card_key = args[2];
-      std::string state = args[3];
-      bool visible = (state == "show" || state == "on" || state == "true");
-
-      auto* current_editor = editor_manager->GetCurrentEditor();
-      if (current_editor &&
-          current_editor->type() == yaze::editor::EditorType::kDungeon) {
-        // Panel visibility is now controlled via the Layout Designer
-        // These legacy panel toggles are no longer directly accessible
-        if (card_key == "object" || card_key == "objects" ||
-            card_key == "room" || card_key == "selector" ||
-            card_key == "graphics" || card_key == "debug") {
-          return "Panel visibility is now controlled via Layout Designer. Use "
-                 "'editor layout' commands.";
-        }
-        return "Unknown card key for Dungeon Editor: " + card_key;
-      }
-      return "Panel control not supported for current editor";
-    }
-
-    if (args.size() > 2 && args[1] == "debug" && args[2] == "toggle") {
-      // Legacy command - debug controls are now accessed via Layout Designer
-      return "Debug controls are now accessed via the Layout Designer. "
-             "Use the canvas debug panel or layout commands.";
-    }
-  }
-
-  // Handle dungeon commands
-  if (args[0] == "dungeon") {
-    auto* editor_manager = yaze::app::GetGlobalEditorManager();
-    if (!editor_manager)
-      return "Error: Editor manager not available";
-
-    auto* current_editor = editor_manager->GetCurrentEditor();
-    if (!current_editor ||
-        current_editor->type() != yaze::editor::EditorType::kDungeon) {
-      // Auto-switch if possible? Or just fail.
-      return "Error: Dungeon editor is not active. Use 'editor switch dungeon' "
-             "first.";
-    }
-    auto* dungeon_editor =
-        static_cast<yaze::editor::DungeonEditorV2*>(current_editor);
-
-    if (args.size() > 2 && args[1] == "room") {
-      try {
-        int room_id = std::stoi(args[2], nullptr, 16);
-        dungeon_editor->FocusRoom(room_id);
-        return "Focused room " + args[2];
-      } catch (...) {
-        return "Invalid room ID (hex required)";
-      }
-    }
-
-    if (args.size() > 2 && args[1] == "select_object") {
-      try {
-        int obj_id = std::stoi(args[2], nullptr, 16);
-        dungeon_editor->SelectObject(obj_id);
-        return "Selected object " + args[2];
-      } catch (...) {
-        return "Invalid object ID (hex required)";
-      }
-    }
-
-    if (args.size() > 2 && args[1] == "agent_mode") {
-      bool enabled = (args[2] == "on" || args[2] == "true");
-      dungeon_editor->SetAgentMode(enabled);
-      return "Agent mode " + std::string(enabled ? "enabled" : "disabled");
-    }
-  }
-
-  // Try command registry
   auto& registry = yaze::cli::CommandRegistry::Instance();
   if (registry.HasCommand(args[0])) {
-    std::vector<std::string> cmd_args(args.begin() + 1, args.end());
-    // Use the REAL active ROM
-    std::string cmd_output;
-    auto status = registry.Execute(args[0], cmd_args, g_bridge.GetActiveRom(),
-                                   &cmd_output);
-    if (status.ok()) {
-      return cmd_output.empty() ? "Command executed successfully" : cmd_output;
-    } else {
-      return "Command failed: " + std::string(status.message());
-    }
+    return ExecuteRegistryCommand(args[0], Args(args.begin() + 1, args.end()));
+  }
+  if (!registry.GetCommandsInCategory(args[0]).empty()) {
+    return registry.GenerateCategoryHelp(args[0]);
   }
 
-  return "Unknown command: " + args[0] + "\nType 'help' for available commands";
+  return absl::StrCat("Unknown command: ", args[0],
+                      "\nType 'help' for available commands");
 }
 
-// Get command completions for autocomplete
-std::vector<std::string> GetCompletionsInternal(const std::string& partial) {
-  std::vector<std::string> completions;
+std::vector<std::string> GetCompletionsInternal(absl::string_view partial) {
+  const Args words = ParseCommand(partial);
+  const bool completing_first_word =
+      words.empty() || (words.size() == 1 && !absl::EndsWith(partial, " "));
 
-  // Parse the partial command to understand context
-  auto parts = absl::StrSplit(partial, ' ', absl::SkipEmpty());
-  std::vector<std::string> cmd_parts(parts.begin(), parts.end());
-
-  // If empty or single word, show top-level commands
-  if (cmd_parts.empty() ||
-      (cmd_parts.size() == 1 && !partial.empty() && partial.back() != ' ')) {
-    std::string prefix = cmd_parts.empty() ? "" : cmd_parts[0];
-
-    // Get all available commands from registry
+  std::set<std::string> completions;
+  if (completing_first_word) {
+    const absl::string_view prefix =
+        words.empty() ? absl::string_view() : words[0];
+    auto add = [&](absl::string_view candidate) {
+      if (absl::StartsWith(candidate, prefix)) {
+        completions.emplace(candidate);
+      }
+    };
     auto& registry = yaze::cli::CommandRegistry::Instance();
-    auto categories = registry.GetCategories();
-
-    std::set<std::string> unique_commands;  // Use set to avoid duplicates
-
-    for (const auto& category : categories) {
-      auto commands = registry.GetCommandsInCategory(category);
-      for (const auto& cmd : commands) {
-        if (prefix.empty() || cmd.find(prefix) == 0) {
-          unique_commands.insert(cmd);
-        }
+    for (const BuiltinCommand& builtin : kBuiltinCommands) {
+      add(builtin.name);
+    }
+    for (const std::string& category : registry.GetCategories()) {
+      add(category);
+      for (const std::string& command :
+           registry.GetCommandsInCategory(category)) {
+        add(command);
       }
     }
-
-    // Add special/built-in commands
-    std::vector<std::string> special = {
-        "help",     "rom",      "ai",      "clear",     "version",
-        "hex",      "palette",  "sprite",  "music",     "dialogue",
-        "message",  "resource", "dungeon", "overworld", "gui",
-        "emulator", "query",    "analyze", "catalog"};
-
-    for (const auto& cmd : special) {
-      if (prefix.empty() || cmd.find(prefix) == 0) {
-        unique_commands.insert(cmd);
+  } else if (words[0] == "rom") {
+    const absl::string_view prefix =
+        words.size() > 1 ? absl::string_view(words[1]) : absl::string_view();
+    std::vector<absl::string_view> subcommands = {"load", "info"};
+    for (absl::string_view name : yaze::cli::RomSubcommandNames()) {
+      subcommands.push_back(name);
+    }
+    for (absl::string_view subcommand : subcommands) {
+      if (absl::StartsWith(subcommand, prefix)) {
+        completions.insert(absl::StrCat("rom ", subcommand));
       }
     }
-
-    // Convert set to vector
-    completions.assign(unique_commands.begin(), unique_commands.end());
-
-  } else if (cmd_parts.size() >= 1) {
-    // Context-specific completions based on the command
-    const std::string& command = cmd_parts[0];
-
-    if (command == "rom") {
-      // ROM subcommands
-      std::vector<std::string> rom_cmds = {"load", "info", "save", "stats",
-                                           "verify"};
-      std::string prefix = cmd_parts.size() > 1 ? cmd_parts[1] : "";
-      for (const auto& subcmd : rom_cmds) {
-        if (prefix.empty() || subcmd.find(prefix) == 0) {
-          completions.push_back("rom " + subcmd);
-        }
-      }
-    }
-    // ... (other completions logic can be kept or expanded via registry in future)
   }
 
-  // Sort completions alphabetically
-  std::sort(completions.begin(), completions.end());
-
-  return completions;
+  return {completions.begin(), completions.end()};
 }
 
 }  // namespace
@@ -400,17 +413,12 @@ const char* Z3edProcessCommand(const char* command) {
   g_bridge.Initialize();
 
   if (!command) {
-    g_bridge.last_output = "Invalid command";
-    return g_bridge.last_output.c_str();
+    return g_bridge.Return("Invalid command");
   }
 
-  std::string command_str(command);
-  g_bridge.last_output = ProcessCommandInternal(command_str);
-
-  // Also print to terminal for visual feedback
-  z3ed_print_to_terminal(g_bridge.last_output.c_str());
-
-  return g_bridge.last_output.c_str();
+  const char* output = g_bridge.Return(ProcessCommandInternal(command));
+  z3ed_print_to_terminal(output);
+  return output;
 }
 
 /**
@@ -423,24 +431,10 @@ const char* Z3edGetCompletions(const char* partial) {
   g_bridge.Initialize();
 
   if (!partial) {
-    g_bridge.last_output = "[]";
-    return g_bridge.last_output.c_str();
+    return g_bridge.Return("[]");
   }
-
-  auto completions = GetCompletionsInternal(std::string(partial));
-
-  // Convert to JSON array
-  std::ostringstream json;
-  json << "[";
-  for (size_t i = 0; i < completions.size(); ++i) {
-    if (i > 0)
-      json << ",";
-    json << "\"" << completions[i] << "\"";
-  }
-  json << "]";
-
-  g_bridge.last_output = json.str();
-  return g_bridge.last_output.c_str();
+  return g_bridge.Return(
+      nlohmann::json(GetCompletionsInternal(partial)).dump());
 }
 
 /**
@@ -474,9 +468,7 @@ void Z3edConfigureAI(const char* provider, const char* model,
  */
 EMSCRIPTEN_KEEPALIVE
 int Z3edIsReady() {
-  if (!g_bridge.initialized) {
-    g_bridge.Initialize();
-  }
+  g_bridge.Initialize();
   return g_bridge.initialized ? 1 : 0;
 }
 
@@ -493,18 +485,16 @@ int Z3edLoadRomData(const uint8_t* data, size_t size) {
     return 0;
   }
 
-  // Write to a temporary file
-  std::string temp_path = "/.yaze/roms/terminal_upload.sfc";
-  std::ofstream file(temp_path, std::ios::binary);
-  if (!file) {
-    z3ed_error_to_terminal("Failed to write to VFS");
-    return 0;
+  {
+    std::ofstream file(kTerminalUploadPath, std::ios::binary);
+    if (!file || !file.write(reinterpret_cast<const char*>(data),
+                             static_cast<std::streamsize>(size))) {
+      z3ed_error_to_terminal("Failed to write to VFS");
+      return 0;
+    }
   }
-  file.write(reinterpret_cast<const char*>(data), size);
-  file.close();
 
-  // Trigger load via bootstrap (which calls Application::LoadRom)
-  yaze::app::wasm::TriggerRomLoad(temp_path);
+  yaze::app::wasm::TriggerRomLoad(kTerminalUploadPath);
 
   z3ed_print_to_terminal("ROM uploaded to VFS. Loading...");
   return 1;
@@ -516,22 +506,17 @@ int Z3edLoadRomData(const uint8_t* data, size_t size) {
  */
 EMSCRIPTEN_KEEPALIVE
 const char* Z3edGetRomInfo() {
-  yaze::Rom* rom = g_bridge.GetActiveRom();
-
-  if (!rom || !rom->is_loaded()) {
-    g_bridge.last_output = "{\"error\": \"No ROM loaded\"}";
-    return g_bridge.last_output.c_str();
+  yaze::Rom* rom = g_bridge.GetLoadedRom();
+  if (rom == nullptr) {
+    return g_bridge.Return(ErrorJson("No ROM loaded"));
   }
 
-  std::ostringstream json;
-  json << "{"
-       << "\"loaded\": true,"
-       << "\"size\": " << rom->size() << ","
-       << "\"title\": \"" << rom->title() << "\""
-       << "}";
-
-  g_bridge.last_output = json.str();
-  return g_bridge.last_output.c_str();
+  return g_bridge.Return(nlohmann::json{
+      {"loaded", true},
+      {"size", rom->size()},
+      {"title", rom->title()},
+  }
+                             .dump());
 }
 
 /**
@@ -544,47 +529,39 @@ const char* Z3edQueryResource(const char* query) {
   g_bridge.Initialize();
 
   if (!query) {
-    g_bridge.last_output = "{\"error\": \"Invalid query\"}";
-    return g_bridge.last_output.c_str();
+    return g_bridge.Return(ErrorJson("Invalid query"));
   }
 
-  yaze::Rom* rom = g_bridge.GetActiveRom();
-
-  if (!rom || !rom->is_loaded()) {
-    g_bridge.last_output = "{\"error\": \"No ROM loaded\"}";
-    return g_bridge.last_output.c_str();
+  yaze::Rom* rom = g_bridge.GetLoadedRom();
+  if (rom == nullptr) {
+    return g_bridge.Return(ErrorJson("No ROM loaded"));
   }
 
-  // Process resource query using command registry
-  // Map to 'resource-search' which is the actual registered command
-  std::string cmd_name = "resource-search";
+  constexpr char kResourceSearchCommand[] = "resource-search";
   auto& registry = yaze::cli::CommandRegistry::Instance();
-
-  if (registry.HasCommand(cmd_name)) {
-    // Construct args: resource-search --query <query> --format json
-    std::vector<std::string> cmd_args = {"--query", query, "--format", "json"};
-
-    std::string cmd_output;
-    auto status = registry.Execute(cmd_name, cmd_args, rom, &cmd_output);
-    if (status.ok()) {
-      // If output captured, return it directly
-      if (!cmd_output.empty()) {
-        // We might want to update last_output too as a side effect if the bridge uses it
-        g_bridge.last_output = cmd_output;
-        return g_bridge.last_output.c_str();
-      }
-      return "{\"status\":\"success\", \"message\":\"Query executed but no "
-             "output returned.\"}";
-    }
+  if (!registry.HasCommand(kResourceSearchCommand)) {
+    return g_bridge.Return(ErrorJson("Resource query failed"));
   }
 
-  g_bridge.last_output = "{\"error\": \"Resource query failed\"}";
-  return g_bridge.last_output.c_str();
+  const Args args = {"--query", query, "--format", "json"};
+  std::string output;
+  absl::Status status =
+      registry.Execute(kResourceSearchCommand, args, rom, &output);
+  if (!status.ok()) {
+    return g_bridge.Return(ErrorJson("Resource query failed"));
+  }
+  if (output.empty()) {
+    return g_bridge.Return(nlohmann::json{
+        {"status", "success"},
+        {"message", "Query executed but no output returned."},
+    }
+                               .dump());
+  }
+  return g_bridge.Return(std::move(output));
 }
 
 }  // extern "C"
 
-// Emscripten module initialization
 EMSCRIPTEN_BINDINGS(z3ed_terminal) {
   emscripten::function("processCommand", &Z3edProcessCommand,
                        emscripten::allow_raw_pointers());

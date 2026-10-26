@@ -495,6 +495,9 @@ if(YAZE_BUILD_TESTS)
     unit/cli/resource_catalog_test.cc
     unit/cli/tile16_proposal_generator_test.cc
     unit/cli/command_registry_test.cc
+    unit/cli/cli_test.cc
+    unit/cli/global_flags_test.cc
+    unit/cli/subcommand_routes_test.cc
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/overworld_doctor_tile16_test.cc
     unit/cli/overworld_allocation_commands_test.cc

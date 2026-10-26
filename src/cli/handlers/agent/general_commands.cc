@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -18,7 +19,6 @@
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "cli/cli.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/service/agent/learned_knowledge_service.h"
 #include "cli/service/agent/proposal_executor.h"
@@ -32,6 +32,7 @@
 #include "cli/service/resources/resource_context_builder.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 #include "core/project.h"
+#include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/zelda3_labels.h"
