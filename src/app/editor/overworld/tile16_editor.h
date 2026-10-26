@@ -118,6 +118,10 @@ class Tile16Editor : public gfx::GfxContext {
   }
   absl::Status Undo() { return session_.Undo(); }
   absl::Status Redo() { return session_.Redo(); }
+  absl::StatusOr<std::unique_ptr<UndoAction>> PrepareDefinitionImport(
+      const std::vector<Tile16Commit>& definitions) {
+    return session_.PrepareDefinitionImport(definitions);
+  }
 
   void EnableLivePreview(bool enable) { session_.EnableLivePreview(enable); }
   absl::Status UpdateLivePreview() { return session_.UpdateLivePreview(); }

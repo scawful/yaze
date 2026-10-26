@@ -98,6 +98,10 @@ class TilePaintingManager {
   /// Paste a validated pattern at the current canvas cursor, using the same
   /// clipping, per-map refresh, and undo path as rectangle painting.
   absl::Status PasteBrush(const TileBrush& brush);
+  absl::Status PlaceBrushAt(const TileBrush& brush, int x, int y) {
+    FinalizePendingPaint();
+    return PaintPattern(brush, {x, y}, brush.width, brush.height);
+  }
 
   /// Write every cell of one ROM map in the displayed world as a single undo
   /// step, or none of them: any cell whose live Tile16 differs from

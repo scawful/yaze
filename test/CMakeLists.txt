@@ -420,6 +420,11 @@ if(YAZE_BUILD_TESTS)
     unit/editor/project_manager_validator_test.cc
     unit/editor/tile_painting_manager_test.cc
     unit/zelda3/overworld_graphics_preview_test.cc
+    unit/editor/project_graphics_source_test.cc
+    unit/editor/project_graphics_import_test.cc
+    unit/editor/project_graphics_import_command_test.cc
+    unit/editor/project_graphics_import_save_test.cc
+    unit/editor/project_graphics_import_workflow_test.cc
     unit/editor/overworld_undo_actions_test.cc
     unit/editor/tile16_document_history_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc
@@ -897,6 +902,15 @@ if(YAZE_BUILD_TESTS)
     yaze_add_test_executable(${target_name} OFF ${_sources})
     set_target_properties(${target_name} PROPERTIES EXCLUDE_FROM_ALL TRUE)
   endfunction()
+
+  yaze_add_focused_test_target(yaze_test_focus_project_graphics
+    unit/editor/project_graphics_source_test.cc
+    unit/editor/project_graphics_import_test.cc
+    unit/editor/project_graphics_import_command_test.cc
+    unit/editor/project_graphics_import_save_test.cc
+    unit/editor/project_graphics_import_workflow_test.cc
+    unit/editor/tile16_document_history_test.cc
+    unit/zelda3/overworld_graphics_preview_test.cc)
 
   # Lyra terrain documents and canvas, project file paths, and project
   # Create/Open/reopen lifecycle through EditorManager.
