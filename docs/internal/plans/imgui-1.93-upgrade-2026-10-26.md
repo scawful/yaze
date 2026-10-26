@@ -325,11 +325,13 @@ The table records Claude's producer runs from 2026-10-26; they predate the
 integration corrections and are not final integrated-head acceptance.
 Codex's reviewed donor build of `yaze` and `yaze_test_unit` passed, followed
 by 127/127 focused tests across 16 suites with no skips. The run used a
-disposable working directory and `YAZE_APP_DATA_DIR`; its sentinel
-`imgui.ini` was unchanged. Integration also restores extended hex inputs'
-popup blocking, rejects inline queue work after shutdown, and disables ini
-persistence in the new frame fixtures. Current-master composition and
-exact-head platform/CI results belong in the integration PR.
+disposable working directory and `YAZE_APP_DATA_DIR`. Older property and
+deferred-input fixtures rewrote that directory's sentinel `imgui.ini`;
+this run does not establish suite-wide ini isolation. Integration restores
+extended hex inputs' popup blocking, rejects inline queue work after
+shutdown, and disables ini persistence in the new frame fixtures. Their
+separate isolation check, current-master composition, and exact-head
+platform/CI results belong in the integration PR.
 
 | Check | Result | Command or log |
 |---|---|---|

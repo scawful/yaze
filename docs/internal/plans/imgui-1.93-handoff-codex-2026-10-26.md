@@ -16,8 +16,9 @@ The detailed migration report is [imgui-1.93-upgrade-2026-10-26.md](imgui-1.93-u
    composition.
 2. Review corrected popup-blocked extended hex wheel edits, released canvas
    selection bounds, fractional floating-paste pixel coverage, and the UI
-   queue's post-shutdown inline path. New frame fixtures no longer persist
-   `imgui.ini`; a sentinel remained unchanged during the focused run.
+   queue's post-shutdown inline path. New frame fixtures disable ini
+   persistence. Older property/deferred-input fixtures rewrote the full
+   focused run's disposable sentinel; suite-wide ini isolation is not proved.
 3. Preserve current master's shared HTTP lifecycle, extracted screenshot
    implementation, editor-control queue, and CLI/editor library separation
    when integrating. Keep general UI work before `NewFrame` and maintained
