@@ -357,10 +357,11 @@ absl::Status ValidatePaletteManifestConflicts(
     const gfx::PaletteManager& palette_manager,
     const zelda3::GameData* game_data, absl::string_view save_scope,
     ToastManager* toast_manager) {
+  ASSIGN_OR_RETURN(const auto ranges,
+                   palette_manager.GetModifiedColorWriteRanges(game_data));
   if (project == nullptr || !project->hack_manifest.loaded()) {
     return absl::OkStatus();
   }
-  const auto ranges = palette_manager.GetModifiedColorWriteRanges(game_data);
   if (ranges.empty()) {
     return absl::OkStatus();
   }
@@ -975,7 +976,16 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
   if (flags.kSavePalettes) {
     auto palette_ranges =
         palette_manager.GetModifiedColorWriteRanges(game_data_);
-    ranges.insert(ranges.end(), palette_ranges.begin(), palette_ranges.end());
+    if (palette_ranges.ok()) {
+      ranges.insert(ranges.end(), palette_ranges->begin(),
+                    palette_ranges->end());
+    } else {
+      LOG_ERROR("DungeonEditorV2", "Cannot predict palette write ranges: %s",
+                palette_ranges.status().message().data());
+    }
+    // This legacy prediction API cannot return a status. Both actual save
+    // paths reject resolution errors in ValidatePaletteManifestConflicts
+    // before any palette writer, including when no manifest is loaded.
   }
 
   if (flags.kSaveEntrances) {

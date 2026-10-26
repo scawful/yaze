@@ -4,11 +4,13 @@
 #include <chrono>
 #include <map>
 #include <set>
+#include <stdexcept>
 #include <tuple>
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_palette_layout.h"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
@@ -480,12 +482,58 @@ size_t PaletteManager::GetModifiedColorCount(
   return count;
 }
 
-std::vector<std::pair<uint32_t, uint32_t>>
+absl::StatusOr<uint32_t> PaletteManager::ResolveColorAddress(
+    const zelda3::GameData* game_data, const std::string& group_name,
+    int palette_index, int color_index) const {
+  if (!game_data || !game_data->rom()) {
+    return absl::FailedPreconditionError("No ROM session for palette address");
+  }
+  const PaletteGroup* group = nullptr;
+  try {
+    group = game_data->palette_groups.get_group(group_name);
+  } catch (const std::out_of_range& e) {
+    return absl::InvalidArgumentError(e.what());
+  }
+  if (!group || palette_index < 0 || palette_index >= group->size()) {
+    return absl::OutOfRangeError("Modified palette no longer exists");
+  }
+  if (color_index < 0 ||
+      color_index >= group->palette_ref(palette_index).size()) {
+    return absl::OutOfRangeError("Modified palette color no longer exists");
+  }
+
+  const size_t rom_size = game_data->rom()->vector().size();
+  if (group_name == "ow_main" || group_name == "ow_aux") {
+    using palette_group_internal::OverworldPaletteKind;
+    const auto kind = group_name == "ow_main"
+                          ? OverworldPaletteKind::kMain
+                          : OverworldPaletteKind::kAuxiliary;
+    ASSIGN_OR_RETURN(
+        const auto record,
+        palette_group_internal::OverworldPaletteLayout::Legacy().Resolve(
+            kind, palette_index, rom_size));
+    return record.ColorAddress(color_index);
+  }
+
+  // Other groups retain their existing address layout.
+  uint32_t address;
+  try {
+    address = GetPaletteAddress(group_name, palette_index, color_index);
+  } catch (const std::out_of_range& e) {
+    return absl::InvalidArgumentError(e.what());
+  }
+  if (address > rom_size || rom_size - address < 2) {
+    return absl::OutOfRangeError("Modified palette color exceeds ROM bounds");
+  }
+  return address;
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
 PaletteManager::GetModifiedColorWriteRanges() const {
   return GetModifiedColorWriteRanges(game_data_);
 }
 
-std::vector<std::pair<uint32_t, uint32_t>>
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
 PaletteManager::GetModifiedColorWriteRanges(
     const zelda3::GameData* game_data) const {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
@@ -498,8 +546,9 @@ PaletteManager::GetModifiedColorWriteRanges(
   for (const auto& [group_name, palette_map] : state->modified_colors) {
     for (const auto& [palette_index, color_indices] : palette_map) {
       for (int color_index : color_indices) {
-        const uint32_t begin =
-            GetPaletteAddress(group_name, palette_index, color_index);
+        ASSIGN_OR_RETURN(const auto begin,
+                         ResolveColorAddress(game_data, group_name,
+                                             palette_index, color_index));
         ranges.emplace_back(begin, begin + 2u);
       }
     }
@@ -508,7 +557,7 @@ PaletteManager::GetModifiedColorWriteRanges(
   return CoalescePaletteWriteRanges(std::move(ranges));
 }
 
-std::vector<std::pair<uint32_t, uint32_t>>
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
 PaletteManager::GetModifiedGroupColorWriteRanges(
     const std::string& group_name) const {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
@@ -520,8 +569,9 @@ PaletteManager::GetModifiedGroupColorWriteRanges(
 
   for (const auto& [palette_index, color_indices] : group_it->second) {
     for (int color_index : color_indices) {
-      const uint32_t begin =
-          GetPaletteAddress(group_name, palette_index, color_index);
+      ASSIGN_OR_RETURN(const auto begin,
+                       ResolveColorAddress(game_data_, group_name,
+                                           palette_index, color_index));
       ranges.emplace_back(begin, begin + 2u);
     }
   }
@@ -531,7 +581,6 @@ PaletteManager::GetModifiedGroupColorWriteRanges(
 // ========== Persistence ==========
 
 absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
-  CommitColorEdit();
   if (!IsInitialized()) {
     return absl::FailedPreconditionError("PaletteManager not initialized");
   }
@@ -555,26 +604,31 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
   if (pal_it == CurrentState()->modified_palettes.end() ||
       pal_it->second.empty()) {
     // No changes to save
+    CommitColorEdit();
     return absl::OkStatus();
   }
 
-  // Write each modified palette
+  // Resolve every modified color before writing or committing edit metadata.
+  std::vector<std::pair<uint32_t, uint16_t>> writes;
   for (int palette_idx : pal_it->second) {
-    auto* palette = group->mutable_palette(palette_idx);
-
-    // Get modified colors for this palette
-    auto color_it =
-        CurrentState()->modified_colors[group_name].find(palette_idx);
-    if (color_it != CurrentState()->modified_colors[group_name].end()) {
+    const auto group_it = CurrentState()->modified_colors.find(group_name);
+    if (group_it == CurrentState()->modified_colors.end()) {
+      continue;
+    }
+    const auto color_it = group_it->second.find(palette_idx);
+    if (color_it != group_it->second.end()) {
       for (int color_idx : color_it->second) {
-        // Calculate ROM address using the helper function
-        uint32_t address =
-            GetPaletteAddress(group_name, palette_idx, color_idx);
-
-        // Write color to ROM - write the 16-bit SNES color value
-        RETURN_IF_ERROR(rom->WriteShort(address, (*palette)[color_idx].snes()));
+        ASSIGN_OR_RETURN(const auto address,
+                         ResolveColorAddress(game_data_, group_name,
+                                             palette_idx, color_idx));
+        writes.emplace_back(address,
+                            group->palette_ref(palette_idx)[color_idx].snes());
       }
     }
+  }
+  CommitColorEdit();
+  for (const auto& [address, color] : writes) {
+    RETURN_IF_ERROR(rom->WriteShort(address, color));
   }
 
   // Update original snapshots
@@ -604,6 +658,10 @@ absl::Status PaletteManager::SaveAllToRom() {
   if (!IsInitialized()) {
     return absl::FailedPreconditionError("PaletteManager not initialized");
   }
+
+  // A bad later group must not leave earlier groups saved or marked clean.
+  const auto ranges = GetModifiedColorWriteRanges();
+  RETURN_IF_ERROR(ranges.status());
 
   // Save all modified groups
   for (const auto& group_name : GetModifiedGroups()) {
