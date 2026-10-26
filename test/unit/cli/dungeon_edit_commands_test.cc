@@ -1840,6 +1840,19 @@ TEST(DungeonEditCommandsTest,
     ASSERT_EQ(readback.at("tiles").size(), 4096u);
     EXPECT_TRUE(readback.at("tiles")[5 * 64 + 10].at("override_present"));
     EXPECT_FALSE(readback.at("tiles")[5 * 64 + 12].at("override_present"));
+
+    output.clear();
+    ASSERT_TRUE(
+        list.Run({"--room=0x00", "--format=json"}, &reopened, &output).ok());
+    const auto default_readback =
+        nlohmann::json::parse(output).at("Dungeon Custom Collision");
+    EXPECT_EQ(default_readback.at("filter_mode"), "overrides");
+    EXPECT_EQ(default_readback.at("match_count"), mixed ? 2 : 1);
+    ASSERT_EQ(default_readback.at("tiles").size(), mixed ? 2u : 1u);
+    EXPECT_EQ(default_readback.at("tiles")[0].at("x"), 10);
+    EXPECT_EQ(default_readback.at("tiles")[0].at("y"), 5);
+    EXPECT_EQ(default_readback.at("tiles")[0].at("tile"), "0x00");
+    EXPECT_TRUE(default_readback.at("tiles")[0].at("override_present"));
   }
 }
 

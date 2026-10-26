@@ -25,6 +25,7 @@
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_sprite_io.h"
 #include "zelda3/overworld/overworld_version_helper.h"
+#include "zelda3/overworld/zscream_custom_layout.h"
 #include "zelda3/sprite/sprite.h"
 
 // =============================================================================
@@ -270,8 +271,15 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
 constexpr int kNumMapsPerWorld = 0x40;
 
 struct OverworldRomProfile {
-  enum class LayoutKind { kLegacy, kOlderTailEa, kLyraOffline };
+  enum class LayoutKind {
+    kLegacy,
+    kOlderTailEa,
+    kLyraOffline,
+    kZScreamPerSheet,
+    kUnknownCustom,
+  };
   LayoutKind layout_kind = LayoutKind::kLegacy;
+  zscream::LayoutDialect zscream_layout = zscream::LayoutDialect::kUnmarked;
   rom::LyraLayoutInspection lyra_layout;
   uint8_t asm_version = 0xFF;
   OverworldVersion version = OverworldVersion::kVanilla;
@@ -309,12 +317,14 @@ inline uint8_t ReadRomByteOr(const Rom& rom, int address, uint8_t fallback) {
 }
 
 inline bool IsSpecialTailMapExpansionEnabled(const Rom& rom) {
-  return ReadRomByteOr(rom, GetExpandedPtrTableMarker(), 0x00) ==
-         GetExpandedPtrTableMagic();
+  return zscream::CanUseTailExpansion(rom) &&
+         ReadRomByteOr(rom, GetExpandedPtrTableMarker(), 0x00) ==
+             GetExpandedPtrTableMagic();
 }
 
 inline OverworldRomProfile DetectOverworldRomProfile(const Rom& rom) {
   OverworldRomProfile profile;
+  profile.zscream_layout = zscream::DetectLayout(rom);
   profile.lyra_layout = rom.InspectLyraLayout();
   profile.asm_version = OverworldVersionHelper::GetAsmVersion(rom);
   profile.version = OverworldVersionHelper::GetVersion(rom);
@@ -346,6 +356,10 @@ inline OverworldRomProfile DetectOverworldRomProfile(const Rom& rom) {
     profile.has_tail_map_expansion = false;
   } else if (profile.has_tail_map_expansion) {
     profile.layout_kind = OverworldRomProfile::LayoutKind::kOlderTailEa;
+  } else if (profile.zscream_layout == zscream::LayoutDialect::kZScreamV5) {
+    profile.layout_kind = OverworldRomProfile::LayoutKind::kZScreamPerSheet;
+  } else if (profile.zscream_layout == zscream::LayoutDialect::kUnknown) {
+    profile.layout_kind = OverworldRomProfile::LayoutKind::kUnknownCustom;
   }
   profile.editable_map_count =
       profile.has_tail_map_expansion ? kExpandedMapCount : kNumOverworldMaps;
@@ -434,12 +448,23 @@ class Overworld {
     return is_lyra_preview() ? descriptor_layout_.capacity : kNumOverworldMaps;
   }
   bool descriptor_sprite_display_available() const { return false; }
+  bool lyra_a0_terrain_writable() const {
+    return is_lyra_preview() && descriptor_layout_.a0_terrain_write_supported;
+  }
+  const std::array<uint16_t, 256>& lyra_a0_tiles() const {
+    return lyra_a0_tiles_;
+  }
+  absl::Status SetLyraA0Tile32(int x, int y, uint16_t tile);
 
   /// @brief Load overworld map tile data
   absl::Status LoadOverworldMaps();
 
   /// @brief Load tile type collision data
   void LoadTileTypes();
+  // Resolve collision metadata for the selected map. Custom per-sheet data is
+  // read-only until a matching writer has been qualified with the team editor.
+  absl::StatusOr<std::array<uint8_t, kNumTileTypes>> GetTile8CollisionTypes(
+      int map_id) const;
 
   /// @brief Load sprite data for all game states
   absl::Status LoadSprites();
@@ -680,7 +705,8 @@ class Overworld {
    */
   bool HasExpandedPointerTables() const {
     const int marker_addr = GetExpandedPtrTableMarker();
-    if (!rom_ || marker_addr >= rom_->size()) {
+    if (!rom_ || !zscream::CanUseTailExpansion(*rom_) ||
+        marker_addr >= rom_->size()) {
       return false;
     }
     return rom_->data()[marker_addr] == GetExpandedPtrTableMagic();
@@ -885,6 +911,7 @@ class Overworld {
 
   OverworldMapTiles map_tiles_;
   rom::LyraLayoutInspection descriptor_layout_;
+  std::array<uint16_t, 256> lyra_a0_tiles_{};
   // Grids last published by a committed save, or captured at load. Recompressing
   // maps rewrites pointer tables that overlap Oracle overworld ASM hooks, and
   // resaving tile32 reorders expanded definitions. An unchanged grid leaves

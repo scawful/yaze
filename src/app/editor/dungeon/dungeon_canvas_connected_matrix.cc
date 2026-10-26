@@ -1353,13 +1353,10 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
             &tooltip,
             "\nUnlinked: no resolved ROM path from the current room.");
       }
-      if (zelda3::Room* hovered_room =
-              EnsureRoomLoadedForConnectedView(hovered_room_id)) {
-        const auto diagnostics = CollectDungeonConnectedRoomLinkDiagnostics(
-            hovered_room_id, *hovered_room,
-            [this](int neighbor_room_id, zelda3::DoorDirection dir) {
-              return RoomHasNonExitDoorInDirection(neighbor_room_id, dir);
-            });
+      if (const auto it =
+              connected_graph.room_diagnostics.find(hovered_room_id);
+          it != connected_graph.room_diagnostics.end()) {
+        const auto& diagnostics = it->second;
         if (!diagnostics.links.empty()) {
           absl::StrAppend(&tooltip, "\nConnections:");
           for (const auto& link : diagnostics.links) {

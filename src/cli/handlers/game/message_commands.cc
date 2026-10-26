@@ -190,6 +190,11 @@ absl::StatusOr<ProjectMutationContext> LoadProjectMutationContext(
                         absl::StrFormat("Cannot load project '%s': %s",
                                         *project_path, open_status.message()));
   }
+  if (context.project.rom_metadata.write_policy ==
+      project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "Message mutation is disabled by the project's read-only policy");
+  }
   if (absl::Status manifest_status =
           EnsureConfiguredHackManifestLoaded(&context.project, *project_path);
       !manifest_status.ok()) {

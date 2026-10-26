@@ -310,6 +310,8 @@ void DungeonEditorV2::PushSelectionUndoAction(DungeonSelectionEditPlan plan) {
         return "Move";
       case DungeonSelectionEditKind::kPaste:
         return "Paste";
+      case DungeonSelectionEditKind::kDoorTrim:
+        return "Complete stone surround for";
     }
     return "Edit";
   }();

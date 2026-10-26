@@ -511,9 +511,11 @@ const std::vector<std::string> CustomObjectManager::kSubtype1Filenames = {
 };
 
 const std::vector<std::string> CustomObjectManager::kSubtype2Filenames = {
-    "furnace.bin",    // 00
-    "firewood.bin",   // 01
-    "ice_chair.bin",  // 02
+    "furnace.bin",           // 00
+    "firewood.bin",          // 01
+    "ice_chair.bin",         // 02
+    "minish_stump.bin",      // 03
+    "minish_wall_hole.bin",  // 04
 };
 
 const std::vector<std::string> CustomObjectManager::kSubtype54Filenames = {

@@ -170,7 +170,13 @@ OverworldMapMetadata BuildOverworldMapMetadata(
     const zelda3::Overworld& overworld, const Rom* rom,
     const project::YazeProject* project, int map_id, int game_state) {
   OverworldMapMetadata metadata;
-  metadata.map_id = std::clamp(map_id, 0, overworld.inspected_map_count() - 1);
+  const bool project_terrain = !overworld.is_lyra_preview() && project &&
+                               !project->lyra_terrain_file.empty() &&
+                               map_id >= 0xA0 && map_id < 0xC0;
+  metadata.map_id =
+      project_terrain
+          ? map_id
+          : std::clamp(map_id, 0, overworld.inspected_map_count() - 1);
   metadata.world = std::clamp(metadata.map_id / 0x40, 0, 2);
   metadata.world_label = WorldLabelForMap(metadata.map_id);
   metadata.map_id_label = absl::StrFormat("0x%02X", metadata.map_id);
@@ -179,8 +185,10 @@ OverworldMapMetadata BuildOverworldMapMetadata(
           ? "Lyra OW rev1: 192 stored / 160 active / read-only"
           : VersionLabelForRom(rom);
 
-  metadata.map_name = zelda3::GetResourceLabels().GetLabel(
-      zelda3::ResourceType::kOverworldMap, metadata.map_id);
+  metadata.map_name = project_terrain ? "Lyra Sea"
+                                      : zelda3::GetResourceLabels().GetLabel(
+                                            zelda3::ResourceType::kOverworldMap,
+                                            metadata.map_id);
   if (std::string project_label =
           GetProjectResourceLabel(project, "overworld_map", metadata.map_id);
       !project_label.empty()) {
@@ -195,6 +203,12 @@ OverworldMapMetadata BuildOverworldMapMetadata(
   }
 
   const zelda3::OverworldMap* map = overworld.overworld_map(metadata.map_id);
+  if (project_terrain) {
+    metadata.area_size_label = "Small 1x1";
+    metadata.parent_label = absl::StrFormat("Parent 0x%02X", metadata.map_id);
+    metadata.area_gfx_label = "Loom Beach";
+    return metadata;
+  }
   if (!map) {
     metadata.area_size_label = "Unknown size";
     metadata.parent_label = "Parent --";

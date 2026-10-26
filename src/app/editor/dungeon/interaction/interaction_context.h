@@ -121,6 +121,12 @@ struct InteractionContext {
                      int target_tile_y)>
       on_door_pair_navigation;
 
+  // Called to apply a single-room or multi-room custom collision import as an
+  // atomic editor undo action.
+  std::function<absl::Status(
+      const std::vector<zelda3::CustomCollisionRoomEntry>&)>
+      on_collision_batch_import;
+
   // Last mutation/invalidation domain (best-effort). Set by Notify* helpers so
   // the editor can route undo capture and expensive rerenders appropriately.
   mutable MutationDomain last_mutation_domain = MutationDomain::kUnknown;

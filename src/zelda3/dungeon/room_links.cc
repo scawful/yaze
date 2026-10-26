@@ -360,13 +360,8 @@ bool IsWarpTileAttribute(uint8_t attribute) {
   return attribute == 0x4B;
 }
 
-absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
-    Rom* rom, const Room& room, const PitDamageTable* pit_table,
-    const CustomObjectRenderSnapshot* custom_objects,
-    util::StopToken stop_token) {
-  if (stop_token.stop_requested()) {
-    return absl::CancelledError("Room link scan cancelled");
-  }
+RoomLinkFacts CollectLoadedRoomLinkFacts(const Room& room,
+                                         const PitDamageTable* pit_table) {
   RoomLinkFacts facts;
   facts.room_id = room.id();
   facts.blockset = room.blockset();
@@ -381,22 +376,12 @@ absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
       pit_table->Contains(static_cast<uint16_t>(room.id()));
   facts.has_hole_tag = IsHoleRoomTag(facts.tag1) || IsHoleRoomTag(facts.tag2);
 
-  RoomLayout layout(rom);
-  RETURN_IF_ERROR(layout.LoadLayout(room.layout_id(), stop_token));
-  const auto& layout_objects = layout.GetObjects();
-
-  bool has_stairs = false;
-  for (const auto& object : layout_objects) {
-    facts.has_pits |= IsPitObjectId(object.id_);
-    facts.has_warp_tiles |= IsWarpTileObjectId(object.id_);
-  }
   for (const auto& object : room.GetTileObjects()) {
     if (!IsEncodedStreamObject(object)) {
       continue;
     }
     facts.has_pits |= IsPitObjectId(object.id_);
     facts.has_warp_tiles |= IsWarpTileObjectId(object.id_);
-    has_stairs |= IsHeaderStairObject(object.id_);
   }
   if (room.has_custom_collision()) {
     for (uint8_t tile : room.custom_collision().tiles) {
@@ -404,17 +389,6 @@ absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
       facts.has_warp_tiles |= IsWarpTileAttribute(tile);
     }
   }
-  if (rom != nullptr && rom->is_loaded()) {
-    ASSIGN_OR_RETURN(
-        const DrawnTiles drawn,
-        ScanDrawnTiles(rom, room, layout_objects, custom_objects, stop_token));
-    if (drawn.pit && !facts.has_pits) {
-      facts.pits_only_in_braziers = !drawn.pit_outside_braziers;
-    }
-    facts.has_pits |= drawn.pit;
-    facts.has_warp_tiles |= drawn.warp;
-  }
-
   for (const auto& sprite : room.GetSprites()) {
     if (sprite.IsOverlord()) {
       if (const char* name = HoleOverlordName(sprite.id())) {
@@ -425,6 +399,64 @@ absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
       facts.hole_sprite = "Ganon's falling floor (sprite 0xD6)";
       break;
     }
+  }
+
+  for (const auto& door : room.GetDoors()) {
+    RoomLinkFacts::Door fact;
+    fact.direction = static_cast<int>(door.direction);
+    const auto [tile_x, tile_y] = door.GetTileCoords();
+    fact.tile_x = tile_x;
+    fact.tile_y = tile_y;
+    fact.along = (fact.direction <= 1) ? tile_x : tile_y;
+    fact.outer = IsOuterDoorPosition(fact.direction, door.position);
+    fact.type = static_cast<uint8_t>(door.type);
+    if (IsExitDoorType(door.type)) {
+      fact.role = RoomDoorRole::kExit;
+    } else if (!IsRoomConnectionDoorType(door.type)) {
+      continue;  // Layer and dungeon swap markers.
+    } else if (IsKeyStairDoor(door.type)) {
+      fact.role = RoomDoorRole::kKeyStairs;
+    } else if (fact.type == kTeleportDoorType &&
+               (fact.direction == kDirectionWest ||
+                fact.direction == kDirectionEast)) {
+      fact.role = RoomDoorRole::kTeleport;
+    }
+    facts.doors.push_back(fact);
+  }
+  return facts;
+}
+
+absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
+    Rom* rom, const Room& room, const PitDamageTable* pit_table,
+    const CustomObjectRenderSnapshot* custom_objects,
+    util::StopToken stop_token) {
+  if (stop_token.stop_requested()) {
+    return absl::CancelledError("Room link scan cancelled");
+  }
+  RoomLinkFacts facts = CollectLoadedRoomLinkFacts(room, pit_table);
+
+  RoomLayout layout(rom);
+  RETURN_IF_ERROR(layout.LoadLayout(room.layout_id(), stop_token));
+  const auto& layout_objects = layout.GetObjects();
+
+  bool has_stairs = false;
+  for (const auto& object : layout_objects) {
+    facts.has_pits |= IsPitObjectId(object.id_);
+    facts.has_warp_tiles |= IsWarpTileObjectId(object.id_);
+  }
+  for (const auto& object : room.GetTileObjects()) {
+    has_stairs |=
+        IsEncodedStreamObject(object) && IsHeaderStairObject(object.id_);
+  }
+  if (rom != nullptr && rom->is_loaded()) {
+    ASSIGN_OR_RETURN(
+        const DrawnTiles drawn,
+        ScanDrawnTiles(rom, room, layout_objects, custom_objects, stop_token));
+    if (drawn.pit && !facts.has_pits) {
+      facts.pits_only_in_braziers = !drawn.pit_outside_braziers;
+    }
+    facts.has_pits |= drawn.pit;
+    facts.has_warp_tiles |= drawn.warp;
   }
 
   // Stair objects -> header slots, same replay as
@@ -456,28 +488,6 @@ absl::StatusOr<RoomLinkFacts> CollectRoomLinkFacts(
     }
   }
 
-  for (const auto& door : room.GetDoors()) {
-    RoomLinkFacts::Door fact;
-    fact.direction = static_cast<int>(door.direction);
-    const auto [tile_x, tile_y] = door.GetTileCoords();
-    fact.tile_x = tile_x;
-    fact.tile_y = tile_y;
-    fact.along = (fact.direction <= 1) ? tile_x : tile_y;
-    fact.outer = IsOuterDoorPosition(fact.direction, door.position);
-    fact.type = static_cast<uint8_t>(door.type);
-    if (IsExitDoorType(door.type)) {
-      fact.role = RoomDoorRole::kExit;
-    } else if (!IsRoomConnectionDoorType(door.type)) {
-      continue;  // Layer and dungeon swap markers.
-    } else if (IsKeyStairDoor(door.type)) {
-      fact.role = RoomDoorRole::kKeyStairs;
-    } else if (fact.type == kTeleportDoorType &&
-               (fact.direction == kDirectionWest ||
-                fact.direction == kDirectionEast)) {
-      fact.role = RoomDoorRole::kTeleport;
-    }
-    facts.doors.push_back(fact);
-  }
   if (stop_token.stop_requested()) {
     return absl::CancelledError("Room link scan cancelled");
   }

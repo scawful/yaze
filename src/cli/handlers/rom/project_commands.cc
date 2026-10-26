@@ -48,6 +48,10 @@ absl::Status ProjectBuildCommandHandler::Execute(
   if (!status.ok()) {
     return status;
   }
+  if (project.rom_metadata.write_policy == project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "Project builds are disabled by the project's read-only policy");
+  }
 
   Rom build_rom;
   status = build_rom.LoadFromFile(project.rom_filename);

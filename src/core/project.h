@@ -19,6 +19,9 @@
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
+namespace core {
+class LyraTerrainDocument;
+}
 namespace project {
 
 /**
@@ -217,7 +220,8 @@ struct ProjectFilePassthrough {
 };
 
 enum class RomRole { kBase, kDev, kPatched, kRelease };
-enum class RomWritePolicy { kAllow, kWarn, kBlock };
+// kBlock rejects identity/protected-range conflicts; kReadOnly forbids ROM writes.
+enum class RomWritePolicy { kAllow, kWarn, kBlock, kReadOnly };
 
 struct RomMetadata {
   RomRole role = RomRole::kDev;
@@ -335,6 +339,9 @@ struct YazeProject {
   // Optional game-independent terrain labels, stored outside the ROM.
   std::string terrain_catalog_file;
 
+  // Optional editable Lyra terrain document, independent of ROM map storage.
+  std::string lyra_terrain_file;
+
   // Optional read-only palette names, contextual sprite uses and provenance.
   std::string palette_catalog_file;
 
@@ -445,6 +452,11 @@ struct YazeProject {
   // caller's preflight check.
   absl::Status SaveNew();
   absl::Status SaveAs(const std::string& new_path);
+  // Saves an independent project-owned terrain copy without modifying the
+  // original terrain. Both destination files roll back together on failure.
+  absl::Status SaveAsWithLyraTerrain(
+      const std::string& new_path, const core::LyraTerrainDocument& terrain,
+      const std::optional<std::string>& expected_source_bytes);
   absl::Status ImportZScreamProject(const std::string& zscream_project_path);
   absl::Status ExportForZScream(const std::string& target_path);
 
@@ -503,6 +515,8 @@ struct YazeProject {
 
   // Project state
   bool project_opened() const { return !name.empty() && !filepath.empty(); }
+  // Manifest identity, independent of the project filename or display name.
+  bool IsOracleCompatible() const;
 
   // Hack manifest (ASM integration) reload hook (safe no-op if unset).
   void ReloadHackManifest();

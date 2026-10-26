@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_workbench_state.h"
 #include "app/editor/system/editor_panel.h"
@@ -131,6 +132,14 @@ class DungeonWorkbenchContent : public WindowContent {
   void SetRoomRenderContextCallback(std::function<void(int)> callback) {
     prepare_room_render_context_ = std::move(callback);
   }
+  // Rename (label set) or reset (nullopt) a room's project name. The owner
+  // writes the authoritative project and marks it dirty; without a callback
+  // the rename control is hidden.
+  using RoomLabelEditCallback =
+      std::function<absl::Status(int, std::optional<std::string>)>;
+  void SetRoomLabelEditCallback(RoomLabelEditCallback callback) {
+    room_label_edit_callback_ = std::move(callback);
+  }
   void SetStandaloneToolCallbacks(
       std::function<bool(const std::string&)> is_window_open,
       std::function<bool(const std::string&)> open_and_focus_window) {
@@ -141,8 +150,10 @@ class DungeonWorkbenchContent : public WindowContent {
     open_keyboard_shortcuts_ = std::move(callback);
   }
   void SetPitDamageTableProvider(
-      std::function<zelda3::PitDamageTable*()> provider) {
+      std::function<zelda3::PitDamageTable*()> provider,
+      std::function<void()> on_change = {}) {
     get_pit_damage_table_ = std::move(provider);
+    on_pit_damage_changed_ = std::move(on_change);
   }
   void FocusRoomInspector();
   void FocusSelectionInspector();
@@ -154,6 +165,9 @@ class DungeonWorkbenchContent : public WindowContent {
   void RequestProposalPreview();
   // Loads an overlay file; returns false and records the error on failure.
   bool LoadProposalOverlay(const std::string& path);
+  const std::string& loaded_proposal_path() const {
+    return loaded_proposal_path_;
+  }
   const std::optional<DungeonProposalOverlay>& proposal_overlay() const {
     return proposal_overlay_;
   }
@@ -185,6 +199,14 @@ class DungeonWorkbenchContent : public WindowContent {
   void SetPrimaryCanvasDrawnCallback(
       std::function<void(DungeonCanvasViewer&)> cb) {
     on_primary_canvas_drawn_ = std::move(cb);
+  }
+
+  enum class RoomInspectorSubTab : uint8_t { Mechanics, Warps, TagsAndChests };
+  void SetRoomInspectorSubTab(RoomInspectorSubTab tab) {
+    room_inspector_sub_tab_ = tab;
+  }
+  RoomInspectorSubTab room_inspector_sub_tab() const {
+    return room_inspector_sub_tab_;
   }
 
   // Lightweight state probes for unit tests; production rendering remains
@@ -306,12 +328,20 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<void(bool)> on_inspector_side_changed_;
   std::function<void(DungeonCanvasViewer&)> on_primary_canvas_drawn_;
   std::function<void(int)> prepare_room_render_context_;
+  RoomLabelEditCallback room_label_edit_callback_;
+  char room_rename_buffer_[128] = {};
+  std::string room_rename_error_;
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
+  std::function<void()> on_pit_damage_changed_;
   Rom* rom_ = nullptr;
 
   enum class SidebarMode : uint8_t { Objects, Sprites, Doors, Items };
   SidebarMode sidebar_mode_ = SidebarMode::Objects;
   float navigator_tools_fraction_ = 0.40f;
+  bool show_room_matrix_ = true;
+
+  RoomInspectorSubTab room_inspector_sub_tab_ = RoomInspectorSubTab::Mechanics;
+
   enum class InspectorMode : uint8_t { Inspect, Tools };
   InspectorMode inspector_mode_ = InspectorMode::Inspect;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
@@ -338,6 +368,7 @@ class DungeonWorkbenchContent : public WindowContent {
   char proposal_path_[1024] = {};
   std::optional<DungeonProposalOverlay> proposal_overlay_;
   std::string proposal_error_;
+  std::string loaded_proposal_path_;
   std::vector<char> proposal_layer_visible_;
   bool proposal_show_overlay_ = true;
   float proposal_scale_ = 1.0f;

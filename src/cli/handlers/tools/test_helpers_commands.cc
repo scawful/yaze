@@ -100,11 +100,14 @@ absl::Status ToolsHarnessStateCommandHandler::GenerateHarnessState(
   // Write WRAM state
   out_file << "constexpr std::array<uint8_t, 0x20000> kInitialWRAMState = {{\n";
   for (int i = 0; i < 0x20000; ++i) {
-    if (i % 16 == 0) out_file << "    ";
+    if (i % 16 == 0)
+      out_file << "    ";
     out_file << "0x" << std::hex << std::setw(2) << std::setfill('0')
              << static_cast<int>(snes.Read(0x7E0000 + i));
-    if (i < 0x1FFFF) out_file << ", ";
-    if (i % 16 == 15) out_file << "\n";
+    if (i < 0x1FFFF)
+      out_file << ", ";
+    if (i % 16 == 15)
+      out_file << "\n";
   }
   out_file << "}};\n\n";
 
@@ -171,21 +174,24 @@ absl::Status ToolsExtractValuesCommandHandler::Execute(
     for (int i = 0; i < 10; i++) {
       output << "\"0x" << std::hex << std::setw(2) << std::setfill('0')
              << static_cast<int>((*rom)[kAreaGfxIdPtr + i]) << "\"";
-      if (i < 9) output << ", ";
+      if (i < 9)
+        output << ", ";
     }
     output << "],\n";
     output << "  \"area_palettes\": [";
     for (int i = 0; i < 10; i++) {
       output << "\"0x" << std::hex << std::setw(2) << std::setfill('0')
              << static_cast<int>((*rom)[kOverworldMapPaletteIds + i]) << "\"";
-      if (i < 9) output << ", ";
+      if (i < 9)
+        output << ", ";
     }
     output << "],\n";
     output << "  \"screen_sizes\": [";
     for (int i = 0; i < 10; i++) {
       output << "\"0x" << std::hex << std::setw(2) << std::setfill('0')
              << static_cast<int>((*rom)[kOverworldScreenSize + i]) << "\"";
-      if (i < 9) output << ", ";
+      if (i < 9)
+        output << ", ";
     }
     output << "]\n";
     output << "}\n";
@@ -273,8 +279,8 @@ absl::Status ToolsExtractGoldenCommandHandler::Execute(
   return absl::OkStatus();
 }
 
-void ToolsExtractGoldenCommandHandler::WriteHeader(std::ofstream& out,
-                                                   const std::string& rom_path) {
+void ToolsExtractGoldenCommandHandler::WriteHeader(
+    std::ofstream& out, const std::string& rom_path) {
   out << "// =============================================="
          "===========================\n";
   out << "// YAZE Overworld Golden Data - Generated from: " << rom_path << "\n";
@@ -313,8 +319,9 @@ void ToolsExtractGoldenCommandHandler::WriteASMVersionInfo(std::ofstream& out,
 
   auto asm_version = rom.ReadByte(0x140145);
   if (asm_version.ok()) {
-    out << "constexpr uint8_t kGoldenASMVersion = 0x" << std::hex << std::setw(2)
-        << std::setfill('0') << static_cast<int>(*asm_version) << ";\n";
+    out << "constexpr uint8_t kGoldenASMVersion = 0x" << std::hex
+        << std::setw(2) << std::setfill('0') << static_cast<int>(*asm_version)
+        << ";\n";
 
     if (*asm_version == 0xFF) {
       out << "constexpr bool kGoldenIsVanillaROM = true;\n";
@@ -322,8 +329,8 @@ void ToolsExtractGoldenCommandHandler::WriteASMVersionInfo(std::ofstream& out,
     } else {
       out << "constexpr bool kGoldenIsVanillaROM = false;\n";
       out << "constexpr bool kGoldenHasZSCustomOverworld = true;\n";
-      out << "constexpr uint8_t kGoldenZSCustomOverworldVersion = "
-          << std::dec << static_cast<int>(*asm_version) << ";\n";
+      out << "constexpr uint8_t kGoldenZSCustomOverworldVersion = " << std::dec
+          << static_cast<int>(*asm_version) << ";\n";
     }
     out << "\n";
   }
@@ -346,7 +353,8 @@ void ToolsExtractGoldenCommandHandler::WriteOverworldMapsData(
   for (int i = 0; i < std::min(20, static_cast<int>(maps.size())); i++) {
     out << "    0x" << std::hex << std::setw(2) << std::setfill('0')
         << static_cast<int>(maps[i].area_graphics());
-    if (i < 19) out << ",";
+    if (i < 19)
+      out << ",";
     out << "  // Map " << std::dec << i << "\n";
   }
   out << "}};\n\n";
@@ -374,8 +382,8 @@ void ToolsExtractGoldenCommandHandler::WriteTileData(std::ofstream& out,
       << ";\n\n";
 }
 
-void ToolsExtractGoldenCommandHandler::WriteEntranceData(
-    std::ofstream& out, Overworld& overworld) {
+void ToolsExtractGoldenCommandHandler::WriteEntranceData(std::ofstream& out,
+                                                         Overworld& overworld) {
   out << "// =============================================="
          "===========================\n";
   out << "// Entrance Data\n";
@@ -391,7 +399,8 @@ void ToolsExtractGoldenCommandHandler::WriteEntranceData(
   for (int i = 0; i < std::min(10, static_cast<int>(entrances.size())); i++) {
     out << "    0x" << std::hex << std::setw(4) << std::setfill('0')
         << entrances[i].map_pos_;
-    if (i < 9) out << ",";
+    if (i < 9)
+      out << ",";
     out << "  // Entrance " << std::dec << i << "\n";
   }
   out << "}};\n\n";
@@ -410,6 +419,12 @@ void ToolsExtractGoldenCommandHandler::WriteFooter(std::ofstream& out) {
 absl::Status ToolsPatchV3CommandHandler::Execute(
     Rom* /*rom*/, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  // This utility loads an independent ROM rather than the guarded active one.
+  if (project_ != nullptr && project_->rom_metadata.write_policy ==
+                                 project::RomWritePolicy::kReadOnly) {
+    return absl::PermissionDeniedError(
+        "ROM patching is disabled by the project's read-only policy");
+  }
   std::string input_path = parser.GetString("rom").value_or("");
   std::string output_path = parser.GetString("output").value_or("");
 
@@ -495,10 +510,12 @@ absl::Status ToolsListCommandHandler::Execute(
     Rom* /*rom*/, const resources::ArgumentParser& /*parser*/,
     resources::OutputFormatter& formatter) {
   std::cout << "Available Test Helper Tools:\n\n";
-  std::cout << "  tools-harness-state   Generate WRAM state for test harnesses\n";
+  std::cout
+      << "  tools-harness-state   Generate WRAM state for test harnesses\n";
   std::cout << "  tools-extract-values  Extract vanilla ROM values\n";
   std::cout << "  tools-extract-golden  Extract comprehensive golden data\n";
-  std::cout << "  tools-patch-v3        Create v3 ZSCustomOverworld patched ROM\n";
+  std::cout
+      << "  tools-patch-v3        Create v3 ZSCustomOverworld patched ROM\n";
   std::cout << "\nUsage: z3ed <tool-name> --help\n";
 
   formatter.AddField("status", "success");
@@ -508,4 +525,3 @@ absl::Status ToolsListCommandHandler::Execute(
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze
-

@@ -5,6 +5,7 @@
 #include <cctype>
 #include <cmath>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -324,36 +325,35 @@ class RoomMatrixContent : public WindowContent {
             }
 
             if (rooms_) {
-              auto* loaded_room = rooms_->GetIfLoaded(room_id);
-              if (loaded_room != nullptr) {
-                // Show palette info
-                ImGui::TextDisabled(tr("Palette: %d | Blockset: %d"),
-                                    loaded_room->palette(),
-                                    loaded_room->blockset());
+              zelda3::Room* room = rooms_->GetIfLoaded(room_id);
+              if (room == nullptr) {
+                room = HoverPreviewRoom(room_id);
+              }
+              if (room != nullptr) {
+                ImGui::TextDisabled(
+                    "Palette: 0x%02X | Blockset: 0x%02X | Spriteset: 0x%02X",
+                    room->palette(), room->blockset(), room->spriteset());
+                ImGui::TextDisabled(
+                    "Objects: %zu | Sprites: %zu | Doors: %zu | Chests: %zu",
+                    room->GetTileObjects().size(), room->GetSprites().size(),
+                    room->GetDoors().size(), room->GetChests().size());
 
-                // Show thumbnail preview of the room
                 if (prepare_render_context_)
                   prepare_render_context_(room_id);
                 auto& preview_bitmap = PrepareCanonicalRoomComposite(
-                    *loaded_room, tooltip_composite_output_);
+                    *room, tooltip_composite_output_);
                 gfx::EnsureCompositeBitmapTextureQueued(preview_bitmap);
                 gfx::Arena::Get().ProcessTextureQueue(nullptr);
                 if (preview_bitmap.is_active() &&
                     preview_bitmap.texture() != 0) {
                   ImGui::Separator();
-                  // Render at thumbnail size (80x80 from 512x512)
-                  constexpr float kThumbnailSize = 80.0f;
+                  constexpr float kThumbnailSize = 144.0f;
                   ImGui::Image((ImTextureID)(intptr_t)preview_bitmap.texture(),
                                ImVec2(kThumbnailSize, kThumbnailSize));
                 }
               }
             }
 
-            ImGui::Separator();
-            ImGui::TextDisabled(tr("Click to %s"),
-                                (is_open || is_current) ? "focus" : "open");
-            ImGui::TextDisabled(tr("Double-click to open as panel"));
-            ImGui::TextDisabled(tr("Right-click for actions"));
             ImGui::EndTooltip();
           }
         } else {
@@ -378,11 +378,29 @@ class RoomMatrixContent : public WindowContent {
       rooms_ = rooms;
       census_.Invalidate();
       tooltip_composite_output_.Retire();
+      hover_preview_room_.reset();
     }
   }
 
  private:
+  // Unopened rooms preview from a tooltip-owned copy. Replacing the shared
+  // room would drop pending imported collision and mark the room as open.
+  zelda3::Room* HoverPreviewRoom(int room_id) {
+    Rom* rom = rooms_ ? rooms_->rom() : nullptr;
+    if (rom == nullptr || !rom->is_loaded()) {
+      return nullptr;
+    }
+    if (!hover_preview_room_ || hover_preview_room_->id() != room_id) {
+      tooltip_composite_output_.Retire();
+      hover_preview_room_ =
+          std::make_unique<zelda3::Room>(zelda3::LoadRoomFromRom(rom, room_id));
+      hover_preview_room_->SetGameData(rooms_->game_data());
+    }
+    return hover_preview_room_.get();
+  }
+
   std::function<void(int)> prepare_render_context_;
+  std::unique_ptr<zelda3::Room> hover_preview_room_;
   void DrawMatrixHeader(Rom* rom) {
     const float button_width = ImGui::GetFrameHeight();
     const float spacing = ImGui::GetStyle().ItemSpacing.x;

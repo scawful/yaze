@@ -337,6 +337,22 @@ void PopupManager::DrawRomInfoPopup() {
              zelda3::OverworldRomProfile::LayoutKind::kOlderTailEa) {
     Separator();
     TextUnformatted("Overworld Format: older $EA tail-map expansion");
+  } else if (profile.layout_kind ==
+             zelda3::OverworldRomProfile::LayoutKind::kZScreamPerSheet) {
+    Separator();
+    Text("Overworld Format: %s",
+         zelda3::zscream::LayoutName(profile.zscream_layout));
+    TextUnformatted("Collision metadata: per-sheet, read-only");
+    TextUnformatted("Preview: static full-load sheets");
+    TextUnformatted("Tail-map expansion: unavailable");
+  } else if (profile.layout_kind ==
+             zelda3::OverworldRomProfile::LayoutKind::kUnknownCustom) {
+    Separator();
+    Text("Overworld Format: %s (raw marker $%02X)",
+         zelda3::zscream::LayoutName(profile.zscream_layout),
+         static_cast<unsigned>(profile.asm_version));
+    TextUnformatted("Write Support: unqualified for this custom layout");
+    TextUnformatted("Compatibility: unqualified");
   }
 
   auto* project = editor_manager_->GetCurrentProject();
@@ -505,6 +521,8 @@ void PopupManager::DrawSaveScopePopup() {
              &core::FeatureFlags::get().overworld.kSaveOverworldExits);
     Checkbox(tr("Save Overworld Items"),
              &core::FeatureFlags::get().overworld.kSaveOverworldItems);
+    Checkbox(tr("Save Overworld Sprites"),
+             &core::FeatureFlags::get().overworld.kSaveOverworldSprites);
     Checkbox(tr("Save Overworld Properties"),
              &core::FeatureFlags::get().overworld.kSaveOverworldProperties);
   }

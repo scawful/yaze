@@ -16,6 +16,7 @@
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/entity/overworld_entity_renderer.h"
+#include "app/editor/overworld/lyra_terrain_canvas.h"
 #include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/maps/map_refresh_coordinator.h"
 #include "app/editor/overworld/maps/map_texture_coordinator.h"
@@ -194,6 +195,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RollbackSaveTransaction() override;
   void CommitSaveTransaction() override;
   absl::Status Clear() override;
+  bool HasPendingProjectDraftChanges() const { return lyra_canvas_.dirty(); }
+  void SetProjectContextProvider(
+      std::function<project::YazeProject*()> provider) {
+    project_context_provider_ = std::move(provider);
+  }
+  absl::Status PrepareProjectSave();
+  void ProjectSaveCommitted() { lyra_canvas_.ProjectSaveCommitted(); }
   void ContributeStatus(StatusBar* status_bar) override;
   EditorContextSnapshot BuildContextSnapshot() const override;
 
@@ -221,7 +229,28 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
 
   Rom* rom() const { return rom_; }
+  absl::Status EditProjectMapAuthoring(core::LyraAuthoringState after) {
+    return lyra_canvas_.EditAuthoring(std::move(after), overworld_,
+                                      undo_manager_);
+  }
+  // Project ownership is resolved through the session provider. The manager
+  // loads native assets before invoking either explicit lifecycle action.
+  absl::Status CreateLyraTerrain();
+  absl::Status OpenLyraTerrain(const std::string& path);
+  absl::Status SaveProjectTerrainAs(project::YazeProject* project,
+                                    const std::string& project_path);
+  LyraTerrainCanvas lyra_canvas_;
+  absl::Status lyra_canvas_status_;
+  // Project terrain occupies the lower Special World rows without expanding
+  // the ROM model or materializing legacy maps for those IDs.
+  int DisplayedMapCount() const;
+  bool IsProjectTerrainMap(int map_id) const;
   bool is_lyra_preview() const { return overworld_.is_lyra_preview(); }
+  bool lyra_a0_terrain_writable() const {
+    return overworld_.lyra_a0_terrain_writable();
+  }
+  absl::Status PaintLyraA0Terrain(int map_id, int x, int y, uint16_t tile);
+  absl::Status SaveLyraA0TerrainAs(const std::string& filename);
   // A Lyra preview retains pointers and caches derived from one ROM image.
   // Session replacement must be checked before the manager mutates the ROM.
   absl::Status CheckRomReplacement(const Rom& replacement) const;
@@ -229,13 +258,15 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Clamp a possibly stale world/map selection back into a valid
   /// overworld range.
-  static bool NormalizeMapSelection(int& current_world, int& current_map);
+  static bool NormalizeMapSelection(int& current_world, int& current_map,
+                                    int map_count = zelda3::kNumOverworldMaps);
 
   /// @brief Set the current map for editing (also updates world)
   void set_current_map(int map_id) {
-    if (map_id >= 0 && map_id < overworld_.inspected_map_count()) {
+    if (map_id >= 0 && map_id < DisplayedMapCount()) {
       // Finalize any pending paint operation before switching maps
       FinalizePaintOperation();
+      lyra_canvas_.FinishStroke(undo_manager_);
       current_map_ = map_id;
       current_world_ =
           map_id / 0x40;  // Calculate which world the map belongs to
@@ -244,8 +275,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       } else {
         current_parent_ = current_map_;
       }
-      overworld_.set_current_map(current_map_);
-      overworld_.set_current_world(current_world_);
+      if (!IsProjectTerrainMap(map_id)) {
+        overworld_.set_current_map(current_map_);
+        overworld_.set_current_world(current_world_);
+      }
     }
   }
   void SetCurrentMap(int map_id) { set_current_map(map_id); }
@@ -423,9 +456,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// edits get the unsaved dialog; defers until `Load()` completes otherwise.
   void RequestTile16Selection(int tile_id);
 
-  bool PickTile16FromHoveredCanvas() {
-    return tile_painting_ && tile_painting_->PickTile16FromHoveredCanvas();
-  }
+  bool PickTile16FromHoveredCanvas();
 
   // ===========================================================================
   // WindowContent View Hooks
@@ -512,11 +543,18 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawOverworldCanvas();
 
  private:
+  void FocusLyraTerrain();
+  project::YazeProject* TerrainProject() const {
+    return project_context_provider_ ? project_context_provider_()
+                                     : dependencies_.project;
+  }
+  std::function<project::YazeProject*()> project_context_provider_;
   friend class AuthoringSaveWorkflowTestPeer;
 
   // Identifies the exact descriptor image bound to this model. The session
   // reload path may restore those bytes after a refused ROM replacement.
   std::string lyra_loaded_rom_sha1_;
+  int lyra_terrain_brush_ = 0x2103;
   std::string graphics_preview_config_path_;
   // ===========================================================================
   // Entity Interaction System
@@ -539,47 +577,52 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Convenience delegation methods for internal use
   void RefreshChildMap(int map_index) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->RefreshChildMap(map_index);
   }
   void RefreshOverworldMap() {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(current_map_))
       map_refresh_->RefreshOverworldMap();
   }
   void RefreshOverworldMapOnDemand(int map_index) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->RefreshOverworldMapOnDemand(map_index);
   }
   void RefreshChildMapOnDemand(int map_index) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->RefreshChildMapOnDemand(map_index);
   }
   absl::Status RefreshMapPalette(int map_id = -1) {
+    if (IsProjectTerrainMap(map_id < 0 ? current_map_ : map_id))
+      return absl::OkStatus();
     if (map_refresh_)
       return map_refresh_->RefreshMapPalette(map_id);
     return absl::FailedPreconditionError(
         "MapRefreshCoordinator not initialized");
   }
   void RefreshMapProperties(int map_id = -1) {
-    if (map_refresh_)
+    if (map_refresh_ &&
+        !IsProjectTerrainMap(map_id < 0 ? current_map_ : map_id))
       map_refresh_->RefreshMapProperties(map_id);
   }
   absl::Status RefreshTile16Blockset() {
+    if (IsProjectTerrainMap(current_map_))
+      return absl::OkStatus();
     if (map_refresh_)
       return map_refresh_->RefreshTile16Blockset();
     return absl::FailedPreconditionError(
         "MapRefreshCoordinator not initialized");
   }
   void UpdateBlocksetWithPendingTileChanges() {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(current_map_))
       map_refresh_->UpdateBlocksetWithPendingTileChanges();
   }
   void ForceRefreshGraphics(int map_index) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->ForceRefreshGraphics(map_index);
   }
   void RefreshSiblingMapGraphics(int map_index, bool include_self = false) {
-    if (map_refresh_)
+    if (map_refresh_ && !IsProjectTerrainMap(map_index))
       map_refresh_->RefreshSiblingMapGraphics(map_index, include_self);
   }
 

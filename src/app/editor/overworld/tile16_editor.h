@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_TILE16EDITOR_H
 #define YAZE_APP_EDITOR_TILE16EDITOR_H
 
+#include <array>
 #include <functional>
 #include <string>
 #include <utility>
@@ -216,6 +217,9 @@ class Tile16Editor : public gfx::GfxContext {
   }
 
   int current_palette() const { return session_.current_palette(); }
+  // Updates display-only map collision labels; never changes the ROM/table.
+  void SetCollisionTypes(const std::array<uint8_t, 0x200>& types);
+  void ClearCollisionTypes();
   void set_current_palette(int palette) {
     session_.set_current_palette(palette);
   }
@@ -242,6 +246,9 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status LoadLayoutFromScratch(int slot);
 
  private:
+  // Canvas uses ImVector<string> (byte copies); labels borrow this stable
+  // backing storage rather than temporary strings created during refresh.
+  std::array<std::string, 0x200> collision_label_storage_{};
   void DrawTile8UsageOverlay();
   void HandleKeyboardShortcuts();
   absl::Status DrawTile16NavigationHeader(int total_tiles);

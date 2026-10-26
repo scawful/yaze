@@ -160,8 +160,20 @@ absl::Status RomInfoCommandHandler::Execute(
   } else if (profile.layout_kind ==
              zelda3::OverworldRomProfile::LayoutKind::kLyraOffline) {
     format_name = "lyra_descriptor";
+  } else if (profile.layout_kind ==
+             zelda3::OverworldRomProfile::LayoutKind::kZScreamPerSheet) {
+    format_name = "zscream_per_sheet";
+  } else if (profile.layout_kind ==
+             zelda3::OverworldRomProfile::LayoutKind::kUnknownCustom) {
+    format_name = "unknown_custom";
   }
   formatter.AddField("overworld_format", format_name);
+  formatter.AddField("zscream_layout",
+                     zelda3::zscream::LayoutName(profile.zscream_layout));
+  formatter.AddField("zscream_raw_marker",
+                     static_cast<int>(profile.asm_version));
+  formatter.AddField("tail_expansion_layout_compatible",
+                     zelda3::zscream::CanUseTailExpansion(*rom));
   formatter.AddField(
       "overworld_format_valid",
       layout.presence != yaze::rom::LyraLayoutPresence::kInvalid);

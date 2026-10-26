@@ -1,8 +1,10 @@
 #include "cli/service/api/api_handlers.h"
 
 #include <cstdlib>
+#include <future>
 #include <memory>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -11,6 +13,7 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "app/emu/debug/symbol_provider.h"
+#include "app/service/editor_control_queue.h"
 #include "app/service/render_service.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/model_registry.h"
@@ -618,6 +621,94 @@ TEST(HttpApiHandlersTest, DungeonRenderValidScalePreservesUnavailableRomError) {
     EXPECT_EQ(res.status, 503);
     EXPECT_EQ(json::parse(res.body)["error"], "ROM not loaded");
   }
+}
+
+TEST(EditorControlHttpTest, RejectsNonlocalBrowserAndMissingClientHeader) {
+  int calls = 0;
+  auto action = [&](const std::string&) -> absl::StatusOr<std::string> {
+    ++calls;
+    return std::string(R"({"status":"ok"})");
+  };
+  for (int variant = 0; variant < 3; ++variant) {
+    httplib::Request req;
+    req.remote_addr = variant == 0 ? "192.168.1.50" : "127.0.0.1";
+    if (variant != 2)
+      req.headers.emplace("X-Yaze-Control", "1");
+    if (variant == 1)
+      req.headers.emplace("Origin", "https://example.test");
+    httplib::Response res;
+    HandleEditorControl(req, res, action);
+    EXPECT_EQ(res.status, 403);
+    EXPECT_FALSE(res.has_header("Access-Control-Allow-Origin"));
+  }
+  EXPECT_EQ(calls, 0);
+}
+
+TEST(EditorControlHttpTest, ReturnsCompletedGuardFailureWithActualState) {
+  httplib::Request req;
+  req.remote_addr = "127.0.0.1";
+  req.headers.emplace("X-Yaze-Control", "1");
+  req.body = R"({"command":"project.open","path":"/new.yaze"})";
+  httplib::Response res;
+  HandleEditorControl(
+      req, res, [](const std::string&) -> absl::StatusOr<std::string> {
+        return std::string(
+            R"({"status":"error","http_status":409,"state":{"project_path":"/old.yaze","unsaved":true}})");
+      });
+  EXPECT_EQ(res.status, 409);
+  EXPECT_EQ(json::parse(res.body)["state"]["project_path"], "/old.yaze");
+  EXPECT_FALSE(res.has_header("Access-Control-Allow-Origin"));
+}
+
+TEST(EditorControlHttpTest, RejectsOversizeBeforeDispatch) {
+  httplib::Request req;
+  req.remote_addr = "127.0.0.1";
+  req.headers.emplace("X-Yaze-Control", "1");
+  req.body.assign(16385, 'x');
+  httplib::Response res;
+  bool called = false;
+  HandleEditorControl(req, res,
+                      [&](const std::string&) -> absl::StatusOr<std::string> {
+                        called = true;
+                        return std::string("{}");
+                      });
+  EXPECT_EQ(res.status, 413);
+  EXPECT_FALSE(called);
+}
+
+TEST(EditorControlQueueTest, CancelledCommandNeverRunsOnLaterFrame) {
+  app::EditorControlQueue queue;
+  auto result = queue.Submit("project.open", std::chrono::milliseconds(0));
+  ASSERT_FALSE(result.ok());
+  EXPECT_TRUE(absl::IsDeadlineExceeded(result.status()));
+  bool called = false;
+  queue.ProcessOne([&](const std::string&) {
+    called = true;
+    return "done";
+  });
+  EXPECT_FALSE(called);
+  EXPECT_FALSE(queue.pending());
+}
+
+TEST(EditorControlQueueTest, WorkerGetsCompletedMainThreadResult) {
+  app::EditorControlQueue queue;
+  auto result =
+      std::async(std::launch::async, [&] { return queue.Submit("status"); });
+  const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(1);
+  while (!queue.pending() && std::chrono::steady_clock::now() < deadline) {
+    std::this_thread::yield();
+  }
+  ASSERT_TRUE(queue.pending());
+  const auto caller = std::this_thread::get_id();
+  queue.ProcessOne([&](const std::string& request) {
+    EXPECT_EQ(std::this_thread::get_id(), caller);
+    EXPECT_EQ(request, "status");
+    return "loaded identity";
+  });
+  const auto response = result.get();
+  ASSERT_TRUE(response.ok());
+  EXPECT_EQ(*response, "loaded identity");
 }
 
 }  // namespace
