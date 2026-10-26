@@ -5,6 +5,7 @@
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 
@@ -43,7 +44,7 @@ std::string ReadWord(absl::string_view usage, size_t& pos) {
       if (end == absl::string_view::npos) {
         end = usage.size() - 1;
       }
-      word.append(usage.substr(pos, end - pos + 1));
+      absl::StrAppend(&word, usage.substr(pos, end - pos + 1));
       pos = end + 1;
       continue;
     }
