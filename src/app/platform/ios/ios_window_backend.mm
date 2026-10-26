@@ -16,6 +16,7 @@
 #include <string>
 
 #include "app/gfx/backend/metal_renderer.h"
+#include "app/gui/core/imgui_diagnostics.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/platform/font_loader.h"
@@ -322,6 +323,7 @@ absl::Status IOSWindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
   ImGui::CreateContext();
 
   ImGuiIO& io = ImGui::GetIO();
+  gui::ConfigureImGuiDiagnostics(io);
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;

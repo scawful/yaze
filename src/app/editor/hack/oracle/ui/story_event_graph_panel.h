@@ -278,7 +278,7 @@ class StoryEventGraphPanel : public WindowContent {
                                               : IM_COL32(60, 60, 60, 255));
 
       draw_list->AddRectFilled(node_min, node_max, fill_color, 8.0f * zoom_);
-      draw_list->AddRect(node_min, node_max, border_color, 8.0f * zoom_, 0,
+      draw_list->AddRect(node_min, node_max, border_color, 8.0f * zoom_,
                          2.0f * zoom_);
 
       // Node text

@@ -307,7 +307,7 @@ void DoorEditorContent::DrawContent(bool show_room_doors) {
       ImVec2 min = ImGui::GetItemRectMin();
       ImVec2 max = ImGui::GetItemRectMax();
       ImGui::GetWindowDrawList()->AddRect(min, max, IM_COL32(255, 255, 0, 255),
-                                          0.0f, 0, 2.0f);
+                                          0.0f, 2.0f);
     }
 
     ImGui::PopID();

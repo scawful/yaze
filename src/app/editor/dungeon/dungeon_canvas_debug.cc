@@ -365,7 +365,7 @@ void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
       const ImVec2 p1(p0.x + box_w, p0.y + box_h);
 
       draw_list->AddRectFilled(p0, p1, fill_color, 2.0f);
-      draw_list->AddRect(p0, p1, border_color, 2.0f, 0, 1.5f);
+      draw_list->AddRect(p0, p1, border_color, 2.0f, 1.5f);
 
       char label[32];
       std::snprintf(label, sizeof(label), "0x%02X s%d",
@@ -458,7 +458,7 @@ void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
                         room_origin.y + player_y * scale);
     draw_list->PushClipRect(room_origin, room_max, true);
     draw_list->AddRectFilled(camera_min, camera_max, camera_fill);
-    draw_list->AddRect(camera_min, camera_max, camera_border, 0.0f, 0,
+    draw_list->AddRect(camera_min, camera_max, camera_border, 0.0f,
                        std::max(1.0f, 2.0f * scale));
     const float marker_radius = std::max(4.0f, 6.0f * scale);
     draw_list->AddCircleFilled(player, marker_radius, marker_color);

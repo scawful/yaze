@@ -127,8 +127,8 @@ void ItemInteractionHandler::DrawGhostPreview() {
 
   canvas->draw_list()->AddRectFilled(rect_min, rect_max,
                                      ImGui::GetColorU32(fill_color));
-  canvas->draw_list()->AddRect(
-      rect_min, rect_max, ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
+  canvas->draw_list()->AddRect(rect_min, rect_max,
+                               ImGui::GetColorU32(outline_color), 0.0f, 2.0f);
 
   // Draw item ID label
   std::string label = absl::StrFormat("%02X", preview_item_id_);
@@ -180,7 +180,7 @@ void ItemInteractionHandler::DrawSelectionHighlight() {
   draw_list->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y),
                            fill_color);
   draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f,
-                     0, 2.0f);
+                     2.0f);
 
   // Draw label
   ImVec2 text_pos(pos.x, pos.y - 14 * scale);

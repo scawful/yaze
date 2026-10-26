@@ -251,7 +251,7 @@ void UsagePreviewView::DrawBitmapFit(gfx::Bitmap& bitmap,
     draw_list->AddRect(
         ImVec2(origin.x + r.x * scale, origin.y + r.y * scale),
         ImVec2(origin.x + (r.x + r.w) * scale, origin.y + (r.y + r.h) * scale),
-        color, 0.0f, 0, 1.5f);
+        color, 0.0f, 1.5f);
   }
 }
 

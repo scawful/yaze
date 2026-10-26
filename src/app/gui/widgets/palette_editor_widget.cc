@@ -84,7 +84,7 @@ const char* RomPaletteGroupNameGetter(void* user_data, int idx) {
 void DrawColorDropTargetOutline(ImVec2 min, ImVec2 max) {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
   ImGui::GetForegroundDrawList()->AddRect(
-      min, max, ImGui::GetColorU32(ConvertColorToImVec4(theme.accent)), 0.0f, 0,
+      min, max, ImGui::GetColorU32(ConvertColorToImVec4(theme.accent)), 0.0f,
       2.0f);
 }
 
@@ -672,7 +672,7 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
     plotting::PlotGuard plot(plot_cfg);
     if (plot && !x.empty()) {
       ImPlot::PlotBars("Usage", x.data(), y.data(), static_cast<int>(x.size()),
-                       0.67, 0.0, ImPlotBarsFlags_None);
+                       0.67, plot_style.item_spec());
     }
   }
   ImGui::End();
@@ -955,7 +955,7 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
     plotting::PlotGuard plot(plot_cfg);
     if (plot && !x.empty()) {
       ImPlot::PlotBars("Count", x.data(), y.data(), static_cast<int>(x.size()),
-                       0.5, 0.0, ImPlotBarsFlags_None);
+                       0.5, plot_style.item_spec());
     }
   }
 

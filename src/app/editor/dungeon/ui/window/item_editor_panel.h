@@ -264,7 +264,7 @@ class ItemEditorPanel : public WindowContent {
         ImVec2 max = ImGui::GetItemRectMax();
         ImU32 sel_color =
             ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary);
-        ImGui::GetWindowDrawList()->AddRect(min, max, sel_color, 0.0f, 0, 2.0f);
+        ImGui::GetWindowDrawList()->AddRect(min, max, sel_color, 0.0f, 2.0f);
       }
 
       ImGui::PopID();

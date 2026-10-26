@@ -39,12 +39,17 @@ IMGUI_API bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
 /**
  * @brief Draw a scalar editor that commits the model value atomically.
  *
- * ImGui::InputScalar writes through its data pointer for every intermediate
- * text edit. This helper instead keeps the in-progress value per ImGuiID and
- * writes @p data only when the item is deactivated after an edit. Pressing
- * Enter remains compatible with ImGui Test Engine's ItemInputValue because the
- * standard input deactivates on Enter; EnterReturnsTrue is intentionally
- * removed from @p flags.
+ * Runs ImGui::InputScalar on a candidate value kept per ImGuiID and copies the
+ * candidate to @p data only when the item is deactivated after an edit (Enter,
+ * Tab, or focus loss). Escape discards the candidate. Returns true only when
+ * that copy changed @p data. EnterReturnsTrue is removed from @p flags; ImGui
+ * Test Engine's ItemInputValue still commits because Enter deactivates the
+ * input.
+ *
+ * ImGui 1.93 InputScalar also waits for Enter, Tab, or focus loss by default
+ * (ImGuiItemFlags_LiveEditOnInputScalar is off). The separate candidate lets
+ * this helper refuse a commit when the model or @p target_identity changed
+ * while the edit was active.
  *
  * Pending state is discarded if the widget disappears for a frame, its data
  * type changes, the backing model changes, or @p target_identity changes while
@@ -119,9 +124,9 @@ using ItemLabelFlags = enum ItemLabelFlag {
   Default = Left,
 };
 
-IMGUI_API void ItemLabel(absl::string_view title, ItemLabelFlags flags);
+void ItemLabel(absl::string_view title, ItemLabelFlags flags);
 
-IMGUI_API ImGuiID GetID(const std::string& id);
+ImGuiID GetID(const std::string& id);
 
 ImGuiKey MapKeyToImGuiKey(char key);
 

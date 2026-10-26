@@ -110,11 +110,9 @@ void RenderDockTree(const DockTree& tree, const DockTreeLayout& layout,
 
     const ImRect& a_rect = layout.node_rects.at(node->child_a.get());
     if (IsHorizontalSplit(node->split_direction)) {
-      dl->AddLine(ImVec2(a_rect.Max.x, rect.Min.y),
-                  ImVec2(a_rect.Max.x, rect.Max.y), split_gutter);
+      dl->AddLineV(a_rect.Max.x, rect.Min.y, rect.Max.y, split_gutter);
     } else {
-      dl->AddLine(ImVec2(rect.Min.x, a_rect.Max.y),
-                  ImVec2(rect.Max.x, a_rect.Max.y), split_gutter);
+      dl->AddLineH(rect.Min.x, rect.Max.x, a_rect.Max.y, split_gutter);
     }
     draw(node->child_a.get());
     draw(node->child_b.get());
@@ -125,7 +123,7 @@ void RenderDockTree(const DockTree& tree, const DockTreeLayout& layout,
   if (selected != nullptr) {
     const auto it = layout.node_rects.find(selected);
     if (it != layout.node_rects.end()) {
-      dl->AddRect(it->second.Min, it->second.Max, selection, 0.0f, 0, 2.5f);
+      dl->AddRect(it->second.Min, it->second.Max, selection, 0.0f, 2.5f);
     }
   }
 }

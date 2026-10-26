@@ -628,7 +628,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
           draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
+              border_color, 2.0f, is_selected ? 2.0f : 1.0f);
         }
 
         // Compact routine symbology badge — top-right corner overlay, drawn
@@ -1446,7 +1446,7 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
           draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
+              border_color, 2.0f, is_selected ? 2.0f : 1.0f);
         }
 
         if (item_visible && show_id) {

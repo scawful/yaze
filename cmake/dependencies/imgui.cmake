@@ -37,6 +37,9 @@ add_library(ImGui STATIC
   ${IMGUI_DIR}/imgui_widgets.cpp
   # SDL backend (version-dependent)
   ${IMGUI_BACKEND_SOURCES}
+  # Null platform + renderer backend for NullWindowBackend (headless) on
+  # every platform
+  ${IMGUI_DIR}/backends/imgui_impl_null.cpp
   # C++ stdlib helpers (for std::string support)
   ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
 )
@@ -44,6 +47,14 @@ add_library(ImGui STATIC
 target_include_directories(ImGui PUBLIC
   ${IMGUI_DIR}
   ${IMGUI_DIR}/backends
+)
+
+# yaze-wide ImGui options (math operators, ...). PUBLIC so ImGui and every
+# consumer compile imgui.h with the same configuration. The absolute path keeps
+# it independent of include directories. Read the header before adding options.
+set(YAZE_IMGUI_USER_CONFIG ${CMAKE_SOURCE_DIR}/src/app/gui/core/yaze_imconfig.h)
+target_compile_definitions(ImGui PUBLIC
+  "IMGUI_USER_CONFIG=\"${YAZE_IMGUI_USER_CONFIG}\""
 )
 
 # Set C++ standard requirement (ImGui 1.90+ requires C++11, we use C++17 for consistency)

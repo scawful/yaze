@@ -33,6 +33,7 @@
 #include "util/flag.h"
 #include "util/log.h"
 #include "util/platform_paths.h"
+#include "util/ui_thread_queue.h"
 #include "yaze.h"
 
 // ============================================================================
@@ -414,16 +415,34 @@ std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(
         return nullptr;
       });
 
-  // Window control endpoints (service mode)
+  // Window control endpoints (service mode). These run on the HTTP server
+  // thread, but SDL window calls must run on the UI thread, so marshal them
+  // through the UI task queue. A false return becomes HTTP 500: no
+  // controller, the UI thread shut down, or no frame within the timeout.
+  auto run_window_action = [](void (yaze::Controller::*action)()) -> bool {
+    absl::Status status = yaze::util::UiThreadQueue::Get().RunOnUiThread(
+        [action]() -> absl::Status {
+          auto* controller = yaze::Application::Instance().GetController();
+          if (controller == nullptr) {
+            return absl::FailedPreconditionError("No controller");
+          }
+          (controller->*action)();
+          return absl::OkStatus();
+        });
+    if (!status.ok()) {
+      LOG_WARN("Main", "HTTP window action failed: %s",
+               std::string(status.message()).c_str());
+    }
+    return status.ok();
+  };
   api_server->SetWindowActions(
-      []() -> bool {
-        auto* controller = yaze::Application::Instance().GetController();
-        return controller ? (controller->ShowWindow(), true) : false;
+      [run_window_action]() {
+        return run_window_action(&yaze::Controller::ShowWindow);
       },
-      []() -> bool {
-        auto* controller = yaze::Application::Instance().GetController();
-        return controller ? (controller->HideWindow(), false)
-                          : false;  // HideWindow returns void usually
+      // Hide used to return false after hiding, so every successful hide
+      // was reported as HTTP 500.
+      [run_window_action]() {
+        return run_window_action(&yaze::Controller::HideWindow);
       });
 
   auto status = api_server->Start(config.api_port);

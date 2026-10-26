@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "app/gui/core/draw_sampling.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -281,6 +282,7 @@ TilePaintEvent HandleTilePaintWithPreview(const CanvasGeometry& geometry,
   if (bitmap.is_active() && draw_list) {
     const ImVec2 origin(geometry.canvas_p0.x + geometry.scrolling.x,
                         geometry.canvas_p0.y + geometry.scrolling.y);
+    ScopedNearestSampling nearest_sampling(draw_list);
     draw_list->AddImage(
         reinterpret_cast<ImTextureID>(bitmap.texture()),
         ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),

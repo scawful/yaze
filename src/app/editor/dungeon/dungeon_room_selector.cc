@@ -110,7 +110,8 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
     ImGui::Separator();
   }
 
-  room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  room_filter_.DrawWithHint("Filter", tr("room name"));
 
   // View mode + entity-type filter row
   {
@@ -428,7 +429,8 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
     ImGui::Separator();
   }
 
-  entrance_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  entrance_filter_.DrawWithHint("Filter", tr("entrance name or room ID"));
 
   // Rebuild cache if filter changed
   std::string current_filter(entrance_filter_.InputBuf);

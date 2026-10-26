@@ -992,6 +992,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
           std::chrono::system_clock::now().time_since_epoch().count()));
 
   ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
+  // The engine stores the name pointer; test_name dies when this returns.
+  test->SetOwnedName(test_name.c_str());
   test->TestFunc = RunDynamicTest;
   test->UserData = test_data.get();
 
@@ -1176,6 +1178,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
           std::chrono::system_clock::now().time_since_epoch().count()));
 
   ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
+  // The engine stores the name pointer; test_name dies when this returns.
+  test->SetOwnedName(test_name.c_str());
   test->TestFunc = RunDynamicTest;
   test->UserData = test_data.get();
 
@@ -1406,6 +1410,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
           std::chrono::system_clock::now().time_since_epoch().count()));
 
   ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
+  // The engine stores the name pointer; test_name dies when this returns.
+  test->SetOwnedName(test_name.c_str());
   test->TestFunc = RunDynamicTest;
   test->UserData = test_data.get();
 
@@ -1694,6 +1700,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
           std::chrono::system_clock::now().time_since_epoch().count()));
 
   ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
+  // The engine stores the name pointer; test_name dies when this returns.
+  test->SetOwnedName(test_name.c_str());
   test->TestFunc = RunDynamicTest;
   test->UserData = test_data.get();
 

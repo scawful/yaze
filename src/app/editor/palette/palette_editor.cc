@@ -78,7 +78,7 @@ void DrawColorDropTargetOutline(ImVec2 min, ImVec2 max) {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   ImGui::GetForegroundDrawList()->AddRect(
       min, max, ImGui::GetColorU32(gui::ConvertColorToImVec4(theme.accent)),
-      0.0f, 0, 2.0f);
+      0.0f, 2.0f);
 }
 
 bool AcceptImGuiColorDrop(SnesColor* color, ImVec2 min, ImVec2 max) {

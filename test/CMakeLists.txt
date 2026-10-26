@@ -424,6 +424,8 @@ if(YAZE_BUILD_TESTS)
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
+    unit/gui/style_guard_scopes_test.cc
+    unit/gui/draw_sampling_test.cc
     unit/editor/layout/dock_tree_test.cc
     unit/editor/layout/dock_tree_json_test.cc
     unit/editor/layout/dock_tree_renderer_test.cc
@@ -491,6 +493,7 @@ if(YAZE_BUILD_TESTS)
     unit/util/i18n_test.cc
     unit/util/hex_test.cc
     unit/util/log_test.cc
+    unit/util/ui_thread_queue_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/tile16_proposal_generator_test.cc
@@ -536,12 +539,15 @@ if(YAZE_BUILD_TESTS)
     unit/palette_json_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
+    unit/gui/widget_registry_test.cc
     unit/gui/canvas_automation_api_test.cc
     unit/gui/canvas_coordinate_sync_test.cc
     unit/gui/canvas_zoom_anchor_test.cc
     unit/gui/window_clamp_test.cc
+    unit/gui/table_helpers_test.cc
     unit/gui/panel_window_test.cc
     unit/gui/animator_test.cc
+    unit/gui/imgui_diagnostics_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/oracle_validation_view_model_test.cc

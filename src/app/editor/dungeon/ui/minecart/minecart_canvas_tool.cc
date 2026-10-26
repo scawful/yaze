@@ -178,7 +178,7 @@ bool MinecartCanvasTool::Draw(const gui::CanvasRuntime& rt,
           a, b,
           ImGui::GetColorU32(validity.ok() ? theme.status_success
                                            : theme.status_error),
-          0, 0, 3);
+          0.0f, 3.0f);
       rt.draw_list->PopClipRect();
     }
     if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {

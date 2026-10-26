@@ -267,11 +267,10 @@ void RenderNavBar(Emulator* emu) {
     ImVec4 state_color = input_config.ignore_imgui_text_input
                              ? ConvertColorToImVec4(theme.accent)
                              : ConvertColorToImVec4(theme.success);
-    ImGui::TextColored(
-        state_color,
-        input_config.ignore_imgui_text_input
-            ? ICON_MD_SPORTS_ESPORTS " Game (Forced)"
-            : ICON_MD_SPORTS_ESPORTS " Game");
+    ImGui::TextColored(state_color, input_config.ignore_imgui_text_input
+                                        ? ICON_MD_SPORTS_ESPORTS
+                                        " Game (Forced)"
+                                        : ICON_MD_SPORTS_ESPORTS " Game");
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
           input_config.ignore_imgui_text_input
@@ -312,7 +311,6 @@ void RenderNavBar(Emulator* emu) {
         "Prevents Tab from cycling through UI elements.\n"
         "Enable this if Tab isn't working for turbo mode.");
   }
-
 }
 
 void RenderSnesPpu(Emulator* emu) {
@@ -362,7 +360,7 @@ void RenderSnesPpu(Emulator* emu) {
       draw_list->AddRect(
           screen_pos, screen_size,
           ImGui::ColorConvertFloat4ToU32(ConvertColorToImVec4(theme.accent)),
-          0.0f, 0, 2.0f);
+          0.0f, 2.0f);
     }
   } else {
     // Not initialized - show helpful placeholder
@@ -379,7 +377,6 @@ void RenderSnesPpu(Emulator* emu) {
     ImGui::TextColored(ConvertColorToImVec4(theme.text_disabled),
                        "512x480 SNES output");
   }
-
 }
 
 void RenderPerformanceMonitor(Emulator* emu) {
@@ -412,21 +409,21 @@ void RenderPerformanceMonitor(Emulator* emu) {
     auto fps_history = emu->FpsHistory();
     if (!frame_ms.empty()) {
       plotting::PlotStyleScope plot_style(theme);
-      plotting::PlotConfig config{
-          .id = "Frame Times",
-          .y_label = "ms",
-          .flags = ImPlotFlags_NoLegend,
-          .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
-                          ImPlotAxisFlags_NoGridLines |
-                          ImPlotAxisFlags_NoTickMarks,
-          .y_axis_flags = ImPlotAxisFlags_AutoFit};
+      plotting::PlotConfig config{.id = "Frame Times",
+                                  .y_label = "ms",
+                                  .flags = ImPlotFlags_NoLegend,
+                                  .x_axis_flags = ImPlotAxisFlags_NoTickLabels |
+                                                  ImPlotAxisFlags_NoGridLines |
+                                                  ImPlotAxisFlags_NoTickMarks,
+                                  .y_axis_flags = ImPlotAxisFlags_AutoFit};
       plotting::PlotGuard plot(config);
       if (plot) {
         ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, target_ms * 2.5f,
                                 ImGuiCond_Always);
         ImPlot::PlotLine("Frame ms", frame_ms.data(),
-                         static_cast<int>(frame_ms.size()));
-        ImPlot::PlotInfLines("Target", &target_ms, 1);
+                         static_cast<int>(frame_ms.size()), 1.0, 0.0,
+                         plot_style.item_spec());
+        ImPlot::PlotInfLines("Target", &target_ms, 1, plot_style.item_spec());
       }
     }
 
@@ -444,10 +441,11 @@ void RenderPerformanceMonitor(Emulator* emu) {
       if (plot) {
         ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, 75.0f, ImGuiCond_Always);
         ImPlot::PlotLine("FPS", fps_history.data(),
-                         static_cast<int>(fps_history.size()));
-        const float target_fps = emu->snes().memory().pal_timing() ? 50.0f
-                                                                   : 60.0f;
-        ImPlot::PlotInfLines("Target", &target_fps, 1);
+                         static_cast<int>(fps_history.size()), 1.0, 0.0,
+                         plot_style.item_spec());
+        const float target_fps =
+            emu->snes().memory().pal_timing() ? 50.0f : 60.0f;
+        ImPlot::PlotInfLines("Target", &target_fps, 1, plot_style.item_spec());
       }
     }
   }
@@ -471,12 +469,12 @@ void RenderPerformanceMonitor(Emulator* emu) {
         // Calculate max_val before any plotting to avoid locking setup
         float max_val = 512.0f;
         if (!dma_hist.empty()) {
-          max_val = std::max(max_val,
-                             *std::max_element(dma_hist.begin(), dma_hist.end()));
+          max_val = std::max(
+              max_val, *std::max_element(dma_hist.begin(), dma_hist.end()));
         }
         if (!vram_hist.empty()) {
-          max_val = std::max(max_val, *std::max_element(vram_hist.begin(),
-                                                        vram_hist.end()));
+          max_val = std::max(
+              max_val, *std::max_element(vram_hist.begin(), vram_hist.end()));
         }
         // Setup must be called before any PlotX functions
         ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, max_val * 1.2f,
@@ -484,11 +482,13 @@ void RenderPerformanceMonitor(Emulator* emu) {
         // Now do the plotting
         if (!dma_hist.empty()) {
           ImPlot::PlotLine("DMA", dma_hist.data(),
-                           static_cast<int>(dma_hist.size()));
+                           static_cast<int>(dma_hist.size()), 1.0, 0.0,
+                           plot_style.item_spec());
         }
         if (!vram_hist.empty()) {
           ImPlot::PlotLine("VRAM", vram_hist.data(),
-                           static_cast<int>(vram_hist.size()));
+                           static_cast<int>(vram_hist.size()), 1.0, 0.0,
+                           plot_style.item_spec());
         }
       }
     } else {
@@ -516,8 +516,8 @@ void RenderPerformanceMonitor(Emulator* emu) {
           y[i] = static_cast<double>(free_bytes[i]);
         }
         ImPlot::PlotBars("Free", x.data(), y.data(),
-                         static_cast<int>(free_bytes.size()), 0.67, 0.0,
-                         ImPlotBarsFlags_None);
+                         static_cast<int>(free_bytes.size()), 0.67,
+                         plot_style.item_spec());
       }
     } else {
       ImGui::TextDisabled("Load a ROM to analyze free space.");
@@ -554,14 +554,15 @@ void RenderPerformanceMonitor(Emulator* emu) {
             .y_axis_flags = ImPlotAxisFlags_AutoFit};
         plotting::PlotGuard plot(audio_config);
         if (plot) {
-          ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f,
-                                  std::max(512.0f,
-                                           *std::max_element(audio_history.begin(),
-                                                             audio_history.end()) *
-                                               1.2f),
-                                  ImGuiCond_Always);
+          ImPlot::SetupAxisLimits(
+              ImAxis_Y1, 0.0f,
+              std::max(512.0f, *std::max_element(audio_history.begin(),
+                                                 audio_history.end()) *
+                                   1.2f),
+              ImGuiCond_Always);
           ImPlot::PlotLine("Queued", audio_history.data(),
-                           static_cast<int>(audio_history.size()));
+                           static_cast<int>(audio_history.size()), 1.0, 0.0,
+                           plot_style.item_spec());
         }
       }
 
@@ -582,11 +583,13 @@ void RenderPerformanceMonitor(Emulator* emu) {
           ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0f, 1.0f, ImGuiCond_Always);
           if (!audio_l.empty()) {
             ImPlot::PlotLine("L", audio_l.data(),
-                             static_cast<int>(audio_l.size()));
+                             static_cast<int>(audio_l.size()), 1.0, 0.0,
+                             plot_style.item_spec());
           }
           if (!audio_r.empty()) {
             ImPlot::PlotLine("R", audio_r.data(),
-                             static_cast<int>(audio_r.size()));
+                             static_cast<int>(audio_r.size()), 1.0, 0.0,
+                             plot_style.item_spec());
           }
         }
       }
@@ -594,7 +597,6 @@ void RenderPerformanceMonitor(Emulator* emu) {
       ImGui::TextColored(ConvertColorToImVec4(theme.error), "No audio backend");
     }
   }
-
 }
 
 void RenderKeyboardShortcuts(bool* show) {
@@ -762,7 +764,7 @@ void RenderVirtualController(Emulator* emu) {
 
   // Helper lambda for controller buttons - press on mouse down, release on up
   auto ControllerButton = [&](const char* label, input::SnesButton button,
-                               ImVec2 size = ImVec2(50, 40)) {
+                              ImVec2 size = ImVec2(50, 40)) {
     ImGui::PushID(static_cast<int>(button));
 
     uint16_t button_mask = 1 << static_cast<uint8_t>(button);
@@ -865,18 +867,30 @@ void RenderVirtualController(Emulator* emu) {
   // Show which buttons are detected
   if (input_state != 0) {
     ImGui::Text("Buttons:");
-    if (input_state & 0x0001) ImGui::SameLine(), ImGui::Text("B");
-    if (input_state & 0x0002) ImGui::SameLine(), ImGui::Text("Y");
-    if (input_state & 0x0004) ImGui::SameLine(), ImGui::Text("Sel");
-    if (input_state & 0x0008) ImGui::SameLine(), ImGui::Text("Sta");
-    if (input_state & 0x0010) ImGui::SameLine(), ImGui::Text("Up");
-    if (input_state & 0x0020) ImGui::SameLine(), ImGui::Text("Dn");
-    if (input_state & 0x0040) ImGui::SameLine(), ImGui::Text("Lt");
-    if (input_state & 0x0080) ImGui::SameLine(), ImGui::Text("Rt");
-    if (input_state & 0x0100) ImGui::SameLine(), ImGui::Text("A");
-    if (input_state & 0x0200) ImGui::SameLine(), ImGui::Text("X");
-    if (input_state & 0x0400) ImGui::SameLine(), ImGui::Text("L");
-    if (input_state & 0x0800) ImGui::SameLine(), ImGui::Text("R");
+    if (input_state & 0x0001)
+      ImGui::SameLine(), ImGui::Text("B");
+    if (input_state & 0x0002)
+      ImGui::SameLine(), ImGui::Text("Y");
+    if (input_state & 0x0004)
+      ImGui::SameLine(), ImGui::Text("Sel");
+    if (input_state & 0x0008)
+      ImGui::SameLine(), ImGui::Text("Sta");
+    if (input_state & 0x0010)
+      ImGui::SameLine(), ImGui::Text("Up");
+    if (input_state & 0x0020)
+      ImGui::SameLine(), ImGui::Text("Dn");
+    if (input_state & 0x0040)
+      ImGui::SameLine(), ImGui::Text("Lt");
+    if (input_state & 0x0080)
+      ImGui::SameLine(), ImGui::Text("Rt");
+    if (input_state & 0x0100)
+      ImGui::SameLine(), ImGui::Text("A");
+    if (input_state & 0x0200)
+      ImGui::SameLine(), ImGui::Text("X");
+    if (input_state & 0x0400)
+      ImGui::SameLine(), ImGui::Text("L");
+    if (input_state & 0x0800)
+      ImGui::SameLine(), ImGui::Text("R");
   }
 
   ImGui::Spacing();
@@ -888,14 +902,13 @@ void RenderVirtualController(Emulator* emu) {
   ImGui::Text("auto_joy_read: %s", snes.IsAutoJoyReadEnabled() ? "ON" : "OFF");
 
   // Show $4218/$4219 values (what game reads)
-  uint8_t reg_4218 = port_read & 0xFF;        // Low byte
-  uint8_t reg_4219 = (port_read >> 8) & 0xFF; // High byte
+  uint8_t reg_4218 = port_read & 0xFF;         // Low byte
+  uint8_t reg_4219 = (port_read >> 8) & 0xFF;  // High byte
   ImGui::Text("$4218: 0x%02X  $4219: 0x%02X", reg_4218, reg_4219);
 
   // Decode $4218 (A, X, L, R in bits 7-4, unused 3-0)
-  ImGui::Text("$4218 bits: A=%d X=%d L=%d R=%d",
-              (reg_4218 >> 7) & 1, (reg_4218 >> 6) & 1,
-              (reg_4218 >> 5) & 1, (reg_4218 >> 4) & 1);
+  ImGui::Text("$4218 bits: A=%d X=%d L=%d R=%d", (reg_4218 >> 7) & 1,
+              (reg_4218 >> 6) & 1, (reg_4218 >> 5) & 1, (reg_4218 >> 4) & 1);
 
   // Edge detection debug - track state changes
   static uint16_t last_port_read = 0;
@@ -928,7 +941,6 @@ void RenderVirtualController(Emulator* emu) {
   if (detected_edge) {
     ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ">>> EDGE DETECTED <<<");
   }
-
 }
 
 }  // namespace ui

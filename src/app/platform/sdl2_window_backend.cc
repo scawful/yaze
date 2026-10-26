@@ -9,6 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/core/imgui_diagnostics.h"
 #include "app/gui/core/style.h"
 #include "app/platform/font_loader.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
@@ -28,6 +29,25 @@ namespace platform {
 
 // Alias to core's resize flag for compatibility
 #define g_window_is_resizing yaze::core::g_window_is_resizing
+
+namespace {
+// Marks wake events ("YAZE" in ASCII) so other SDL_USEREVENT users, such as
+// SDL timers or future code, are not mistaken for wakes.
+constexpr Sint32 kWakeEventCode = 0x59415A45;
+}  // namespace
+
+bool PushWakeEvent() {
+  SDL_Event event;
+  SDL_zero(event);
+  event.type = SDL_USEREVENT;
+  event.user.code = kWakeEventCode;
+  // SDL_PushEvent is thread-safe and returns 1 when the event was queued.
+  return SDL_PushEvent(&event) == 1;
+}
+
+bool IsWakeEvent(const SDL_Event& event) {
+  return event.type == SDL_USEREVENT && event.user.code == kWakeEventCode;
+}
 
 SDL2WindowBackend::~SDL2WindowBackend() {
   if (initialized_) {
@@ -401,6 +421,7 @@ absl::Status SDL2WindowBackend::InitializeImGui(gfx::IRenderer* renderer) {
   ImGui::CreateContext();
 
   ImGuiIO& io = ImGui::GetIO();
+  gui::ConfigureImGuiDiagnostics(io);
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   // Note: ViewportsEnable is intentionally NOT set for SDL2 + SDL_Renderer

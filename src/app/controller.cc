@@ -29,6 +29,7 @@
 #include "app/service/screenshot_utils.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "util/ui_thread_queue.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "app/testing/test_manager.h"
 #include "imgui_test_engine/imgui_te_engine.h"
@@ -229,6 +230,9 @@ absl::Status Controller::OnEntry(std::string filename) {
   renderer_type = gfx::RendererBackendType::Metal;
 #endif
 
+  // A second OnEntry() replaces the backend. Drop the waker first so no
+  // service thread can wake the backend that is about to be destroyed.
+  util::UiThreadQueue::Get().SetWaker({});
   window_backend_ = platform::WindowBackendFactory::Create(backend_type);
   if (!window_backend_) {
     return absl::InternalError("Failed to create window backend");
@@ -246,6 +250,15 @@ absl::Status Controller::OnEntry(std::string filename) {
   }
 
   RETURN_IF_ERROR(window_backend_->Initialize(config));
+
+  // From here on, service threads hand editor work to this thread through
+  // the queue instead of running it on their own threads. Binding before the
+  // rest of OnEntry means an early RPC waits for the first frame rather than
+  // racing initialization. The waker lets a posted task cut the idle wait.
+  auto& ui_queue = util::UiThreadQueue::Get();
+  ui_queue.BindToCurrentThread();
+  ui_queue.SetWaker(
+      [backend = window_backend_.get()]() { backend->WakeEventLoop(); });
 
   // Create renderer via factory (auto-selects SDL2 or SDL3)
   renderer_ = gfx::RendererFactory::Create(renderer_type);
@@ -301,12 +314,13 @@ void Controller::OnInput() {
 
   // Idle pacing. With nothing to animate and no input for a while, wait for
   // the next event instead of drawing at the display rate: 10 fps after
-  // kIdleAfter of quiet, 4 fps while the window is hidden or minimized. Any
+  // util::kMainLoopIdleAfter of quiet, 4 fps while the window is hidden or
+  // minimized (see util::MainLoopEventWaitMs). Any
   // event (mouse move, key, window change) wakes the loop at once, and work
   // that needs frames (emulator, music, texture uploads, UI tests,
-  // screenshots) keeps full rate.
+  // screenshots) keeps full rate. Queued UI-thread tasks also skip the wait;
+  // tasks posted during the wait end it through WakeEventLoop().
   {
-    constexpr auto kIdleAfter = std::chrono::milliseconds(1500);
     bool busy = editor_manager_.WantsContinuousFrames();
     {
       std::lock_guard<std::mutex> lock(screenshot_mutex_);
@@ -321,16 +335,19 @@ void Controller::OnInput() {
       busy = busy || !ImGuiTestEngine_IsTestQueueEmpty(engine);
     }
 #endif
-    if (!busy) {
+    util::MainLoopIdleState idle;
+    idle.busy = busy;
+    idle.ui_tasks_pending = util::UiThreadQueue::Get().HasPendingTasks();
+    idle.window_hidden = window_hidden_;
+    idle.quiet_for = std::chrono::steady_clock::now() - last_event_time_;
+    const int wait_ms = util::MainLoopEventWaitMs(idle);
+    if (!idle.busy && !idle.ui_tasks_pending) {
       // Write batched log lines before going quiet, so they are on disk if
       // the app then crashes or is killed.
       util::LogManager::instance().Flush();
-      const auto quiet = std::chrono::steady_clock::now() - last_event_time_;
-      if (window_hidden_) {
-        window_backend_->WaitForEvent(250);
-      } else if (quiet >= kIdleAfter) {
-        window_backend_->WaitForEvent(100);
-      }
+    }
+    if (wait_ms > 0) {
+      window_backend_->WaitForEvent(wait_ms);
     }
   }
 
@@ -349,6 +366,12 @@ void Controller::OnInput() {
 
   platform::WindowEvent event;
   while (window_backend_->PollEvent(event)) {
+    // A wake event only ends the idle wait so OnLoad() drains the UI task
+    // queue. It is not user activity: do not reset the idle timer or pass
+    // it to the emulator.
+    if (event.has_native_event && platform::IsWakeEvent(event.native_event)) {
+      continue;
+    }
 #ifndef YAZE_USE_SDL3
     if (event.has_native_event) {
       InputDebugLogSdlEvent(event.native_event);
@@ -403,8 +426,17 @@ absl::Status Controller::OnLoad() {
 
   if (editor_manager_.quit() || !window_backend_->IsActive()) {
     active_ = false;
+    // No more frames will drain the queue. Cancel waiting service calls now,
+    // before Application::Shutdown() stops the gRPC server, which waits for
+    // in-flight RPCs to return.
+    util::UiThreadQueue::Get().Shutdown();
     return absl::OkStatus();
   }
+
+  // Run work posted by gRPC and HTTP threads before the frame starts, so
+  // the frame draws the state those tasks produced. Tasks must not call
+  // ImGui frame functions: no frame is open yet.
+  util::UiThreadQueue::Get().Drain();
 
   // Start new ImGui frame via backend (handles SDL2/SDL3 automatically)
   window_backend_->NewImGuiFrame();
@@ -611,6 +643,14 @@ void Controller::OnExit() {
     gfx::Arena::Get().Initialize(nullptr);
     renderer_->Shutdown();
   }
+  // Backstop for exits that skip the quit path in OnLoad(). Clearing the
+  // waker waits for any wake in progress, so no service thread is inside
+  // WakeEventLoop() when the backend shuts down.
+  {
+    auto& ui_queue = util::UiThreadQueue::Get();
+    ui_queue.Shutdown();
+    ui_queue.SetWaker({});
+  }
   if (window_backend_) {
     window_backend_->Shutdown();
   }
@@ -636,8 +676,15 @@ absl::Status Controller::LoadRomForTesting(const std::string& rom_path) {
 }
 
 void Controller::RequestScreenshot(const ScreenshotRequest& request) {
-  std::lock_guard<std::mutex> lock(screenshot_mutex_);
-  screenshot_requests_.push(request);
+  {
+    std::lock_guard<std::mutex> lock(screenshot_mutex_);
+    screenshot_requests_.push(request);
+  }
+  // Callers are usually gRPC or HTTP threads. Without a wake, an idle loop
+  // would hold the capture for up to the idle wait (100-250 ms). An empty
+  // task reuses the queue's waker, which is guarded against the backend
+  // being shut down; calling window_backend_ here directly would not be.
+  util::UiThreadQueue::Get().Post([]() {});
 }
 
 void Controller::ProcessScreenshotRequests() const {

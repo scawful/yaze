@@ -42,7 +42,7 @@ void DrawRoomRenderFallback(const gui::CanvasRuntime& canvas_rt) {
       ImGui::GetColorU32(WithAlpha(theme.editor_background, 0.92f)));
   canvas_rt.draw_list->AddRect(room_min, room_max,
                                ImGui::GetColorU32(theme.panel_border_color),
-                               0.0f, 0, 1.5f);
+                               0.0f, 1.5f);
   canvas_rt.draw_list->AddText(ImVec2(room_min.x + 12.0f, room_min.y + 12.0f),
                                ImGui::GetColorU32(theme.text_secondary_gray),
                                "Room image pending");

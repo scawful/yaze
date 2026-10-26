@@ -1394,6 +1394,45 @@ TEST_F(GraphicsWorkspaceLayoutTest,
 }
 
 TEST_F(GraphicsWorkspaceLayoutTest,
+       FloatingPasteKeepsAdjacentPixelsHardEdgedAtFractionalZoom) {
+  state_.open_sheets.insert(0);
+  state_.SetZoom(1.5f);
+  state_.selection.x = 1;
+  state_.selection.y = 1;
+  state_.selection.width = 2;
+  state_.selection.height = 1;
+  state_.selection.pixel_data = {1, 2};
+  state_.selection.is_active = true;
+  state_.selection.is_floating = true;
+  PixelEditorPanel pixel(&state_, nullptr);
+  const auto frame = [&] {
+    Frame([&] { EXPECT_TRUE(pixel.Update().ok()); });
+  };
+  frame();
+  frame();
+
+  const auto origin = SheetOrigin();
+  ASSERT_TRUE(origin);
+  auto* canvas = ActiveChild("##CanvasArea");
+  ASSERT_NE(canvas, nullptr);
+  const ImU32 paste_color = IM_COL32(255, 255, 255, 230);
+  std::vector<ImVec2> paste_vertices;
+  for (const auto& vertex : canvas->DrawList->VtxBuffer) {
+    if (vertex.col == paste_color) {
+      paste_vertices.push_back(vertex.pos);
+    }
+  }
+  ASSERT_EQ(paste_vertices.size(), 8u);
+  const ImVec2 offsets[] = {{1.5f, 1.5f}, {3.0f, 1.5f}, {3.0f, 3.0f},
+                            {1.5f, 3.0f}, {3.0f, 1.5f}, {4.5f, 1.5f},
+                            {4.5f, 3.0f}, {3.0f, 3.0f}};
+  for (size_t i = 0; i < paste_vertices.size(); ++i) {
+    EXPECT_FLOAT_EQ(paste_vertices[i].x, origin->x + offsets[i].x);
+    EXPECT_FLOAT_EQ(paste_vertices[i].y, origin->y + offsets[i].y);
+  }
+}
+
+TEST_F(GraphicsWorkspaceLayoutTest,
        InlineAndComparisonShareSourceRefreshThroughPixelsPaletteAndErrors) {
   auto& palettes = gfx::PaletteManager::Get();
   palettes.ResetForTesting();

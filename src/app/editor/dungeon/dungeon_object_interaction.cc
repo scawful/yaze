@@ -563,7 +563,7 @@ void DungeonObjectInteraction::DrawHoverHighlight(
 
   // Draw dashed-style border (simulated with thinner line)
   draw_list->AddRect(obj_start, obj_end, ImGui::GetColorU32(hover_border), 0.0f,
-                     0, 1.5f);
+                     1.5f);
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
