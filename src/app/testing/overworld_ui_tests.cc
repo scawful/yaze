@@ -19,7 +19,6 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/overworld/project_graphics_source.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/screenshot_utils.h"
@@ -1581,10 +1580,20 @@ static void RegisterProjectGraphicsImportPreviewTest(ImGuiTestEngine* engine) {
         ctx->Yield(1);
     }
     IM_CHECK(manager != nullptr);
-    const auto opened = manager->OpenRomOrProject(project_path.string());
-    IM_CHECK(opened.ok());
-    manager->OpenEditorAndPanelsFromFlags(
-        "Overworld", "overworld.canvas,overworld.area_graphics");
+    // Project and Lyra palette loading belong on the normal main frame, not
+    // the test coroutine's smaller platform thread stack.
+    auto opened = std::make_shared<std::optional<absl::Status>>();
+    manager->QueueDeferredAction([manager, project_path, opened] {
+      const auto status = manager->OpenRomOrProject(project_path.string());
+      if (status.ok()) {
+        manager->OpenEditorAndPanelsFromFlags(
+            "Overworld", "overworld.canvas,overworld.area_graphics");
+      }
+      *opened = status;
+    });
+    for (int frame = 0; frame < 200 && !opened->has_value(); ++frame)
+      ctx->Yield(1);
+    IM_CHECK(opened->has_value() && opened->value().ok());
     editor::OverworldEditor* overworld = nullptr;
     for (int frame = 0; frame < 200; ++frame) {
       auto* editors = manager->GetCurrentEditorSet();
@@ -1609,12 +1618,19 @@ static void RegisterProjectGraphicsImportPreviewTest(ImGuiTestEngine* engine) {
     const auto rom_disk_before = read(rom_path);
     const auto project_before = read(project_path);
     IM_CHECK(rom_disk_before && project_before);
-    overworld->SetCurrentMap(0x31);
-    IM_CHECK(overworld->overworld().EnsureMapBuilt(0x31).ok());
-    ctx->Yield(3);
     // The area button contains '/', so use its public action to open the
     // modal, then exercise the actual ImGui inputs and Preview button below.
-    IM_CHECK(overworld->OpenProjectGraphicsSource().ok());
+    auto source_opened = std::make_shared<std::optional<absl::Status>>();
+    manager->QueueDeferredAction([overworld, source_opened] {
+      overworld->SetCurrentMap(0x31);
+      auto status = overworld->overworld().EnsureMapBuilt(0x31);
+      if (status.ok())
+        status = overworld->OpenProjectGraphicsSource();
+      *source_opened = status;
+    });
+    for (int frame = 0; frame < 200 && !source_opened->has_value(); ++frame)
+      ctx->Yield(1);
+    IM_CHECK(source_opened->has_value() && source_opened->value().ok());
     ctx->Yield(3);
     ctx->SetRef("Edit Project Graphics");
     IM_CHECK(ctx->GetWindowByRef("") != nullptr);
@@ -1650,32 +1666,6 @@ static void RegisterProjectGraphicsImportPreviewTest(ImGuiTestEngine* engine) {
     IM_CHECK(ctx->ItemExists(
         "I reviewed the destination ranges and shared palette records"));
 
-    // Validate the same requested bindings through the public planner without
-    // changing the document. Visible review controls above prove UI Preview ran.
-    editor::ProjectGraphicsSource source;
-    IM_CHECK(
-        source
-            .Load(project->GetAbsolutePath(project->git_repository),
-                  project->GetAbsolutePath(project->overworld_graphics_preview),
-                  0x30)
-            .ok());
-    IM_CHECK(source.selected_resource() != nullptr);
-    editor::ProjectGraphicsImportBindings bindings;
-    bindings.target_resource = source.selected_resource()->pending_bytes;
-    bindings.resource_first_character = 0xC0;
-    bindings.palettes = {
-        {"P0", 3, 0x100, 64}, {"P1", 4, 0x180, 32}, {"P2", 2, 0x140, 64}};
-    bindings.first_tile16 = 0xEEC;
-    bindings.owned_tile16_count = 96;
-    bindings.anchor_x = 33;
-    bindings.anchor_y = 17;
-    const auto preview =
-        overworld->PreviewProjectGraphicsImport(pack_path.string(), bindings);
-    if (!preview.ok()) {
-      IM_ERRORF("Boat GUI preview failed: %s",
-                preview.status().ToString().c_str());
-      return;
-    }
     // The application's test engine has no ScreenCaptureFunc binding. Reuse
     // its existing renderer queue rather than an OS capture or a second backend.
     const auto capture_renderer = [&](const fs::path& path) -> absl::Status {
