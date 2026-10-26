@@ -36,6 +36,7 @@ constexpr absl::string_view kGlobalFlagNames[] = {
     "use_function_calling",
     "http_port",
     "http_host",
+    "http_allow_commands",
 };
 
 struct ActionFlag {

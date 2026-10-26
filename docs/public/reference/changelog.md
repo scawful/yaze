@@ -140,6 +140,14 @@ or project will notice it.
   the top level, and `entrance-info --spawn` drops `room_id_full`.
   `dungeon-group` now scans only those 7 spawn-point records (0.7.2 scanned
   `0x14` entrance records as spawns), so its room-to-dungeon mapping can differ.
+- **The z3ed HTTP API listens on localhost and refuses commands by default.**
+  `z3ed --http-port` now binds `--http-host`, which defaults to `localhost`, so
+  other machines can no longer connect; pass `--http-host=0.0.0.0` (or another
+  address) to restore network access. `POST /api/v1/command/execute` returns
+  `403` unless z3ed is started with `--http-allow-commands`. 0.7.2 listened on
+  every interface, served that endpoint unconditionally, and used
+  `--http-host` only in printed URLs. The desktop app's API server is
+  unchanged.
 - **`palette-set-color --write` is disabled.** With `--write` it fails argument
   validation; without it the command only previews and reports `status:
   dry_run`. Use `dungeon-set-palette-color` for dungeon palettes. Other palette

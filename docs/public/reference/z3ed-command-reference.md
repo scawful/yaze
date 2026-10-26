@@ -673,7 +673,8 @@ These options work with all commands:
 - `--mesen-socket <path>` - Override Mesen2 socket path
 - `--help` - Show help for command
 - `--http-port <port>` - HTTP API port (if enabled in build)
-- `--http-host <host>` - HTTP API display host (printed URLs only)
+- `--http-host <host>` - HTTP API bind address (default `localhost`; this machine only)
+- `--http-allow-commands` - Serve `POST /api/v1/command/execute`, which runs any command (off by default)
 
 Environment variable shortcuts for AI providers:
 `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,

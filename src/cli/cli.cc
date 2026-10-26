@@ -60,8 +60,10 @@ constexpr absl::string_view kCommonFlagsText =
 
 constexpr absl::string_view kHttpFlagsText =
     "  --http-port=<port>     HTTP API server port (0=disabled)\n"
-    "  --http-host=<host>     HTTP API display host (printed URLs)\n"
-    "                         (no command keeps server alive until Ctrl+C)\n";
+    "                         (no command keeps server alive until Ctrl+C)\n"
+    "  --http-host=<host>     HTTP API bind address (default localhost)\n"
+    "  --http-allow-commands  Serve /api/v1/command/execute (runs any "
+    "command)\n";
 
 constexpr absl::string_view kExamplesText =
     "  z3ed rom-info --rom=zelda3.sfc\n"

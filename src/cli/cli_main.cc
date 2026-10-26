@@ -12,6 +12,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "cli/cli.h"
 #include "cli/global_flags.h"
 #include "cli/service/command_registry.h"
@@ -43,7 +44,11 @@ ABSL_DECLARE_FLAG(std::string, rom);
 #ifdef YAZE_HTTP_API_ENABLED
 ABSL_FLAG(int, http_port, 0, "HTTP API server port (0 = disabled)");
 ABSL_FLAG(std::string, http_host, "localhost",
-          "Host shown in printed HTTP API URLs");
+          "Address the HTTP API binds; localhost or 127.0.0.1 accepts "
+          "connections from this machine only");
+ABSL_FLAG(bool, http_allow_commands, false,
+          "Serve POST /api/v1/command/execute, which runs any z3ed command, "
+          "including commands that write files");
 #endif
 
 namespace {
@@ -195,20 +200,32 @@ void WaitForShutdownSignal() {
   }
 }
 
+bool IsLoopbackHost(absl::string_view host) {
+  return host == "localhost" || host == "127.0.0.1";
+}
+
 // Owns the HTTP API server and the ROM-backed services its endpoints read.
 class HttpApiSession {
  public:
-  absl::Status Start(int port) {
+  absl::Status Start(int port, const std::string& host, bool allow_commands) {
     if (port <= 0 || port > 65535) {
       return absl::InvalidArgumentError(
           absl::StrFormat("--http-port must be 1-65535, got %d", port));
+    }
+    if (host.empty()) {
+      return absl::InvalidArgumentError("--http-host must not be empty");
     }
     server_ = std::make_unique<yaze::cli::api::HttpServer>();
     if (render_service_) {
       server_->SetRenderServiceSource(
           [service = render_service_.get()] { return service; });
     }
-    absl::Status status = server_->Start(port);
+    server_->SetCommandExecutionEnabled(allow_commands);
+    const bool loopback = IsLoopbackHost(host);
+    if (!loopback) {
+      server_->SetBindAddress(host);
+    }
+    absl::Status status = server_->Start(port, loopback);
     if (!status.ok()) {
       server_.reset();
     }
@@ -298,21 +315,34 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    absl::Status status = http_api.Start(port);
+    const std::string host = absl::GetFlag(FLAGS_http_host);
+    const bool allow_commands = absl::GetFlag(FLAGS_http_allow_commands);
+    absl::Status status = http_api.Start(port, host, allow_commands);
     if (!status.ok()) {
       std::cerr << "\n"
                 << err_style.Failure() << "Warning:" << err_style.Reset()
                 << " Failed to start HTTP API server: " << status.message()
                 << "\nContinuing without HTTP API...\n\n";
-    } else if (!quiet) {
-      const std::string host = absl::GetFlag(FLAGS_http_host);
-      std::cout << out_style.Success() << "✓" << out_style.Reset()
-                << " HTTP API server started on " << host << ":" << port
-                << "\n";
-      std::cout << "  Health check: http://" << host << ":" << port
-                << "/api/v1/health\n";
-      std::cout << "  Models list:  http://" << host << ":" << port
-                << "/api/v1/models\n\n";
+    } else {
+      if (!IsLoopbackHost(host)) {
+        std::cerr << err_style.Highlight() << "Warning:" << err_style.Reset()
+                  << " HTTP API bound to " << host
+                  << "; other machines can reach it.\n";
+      }
+      if (!quiet) {
+        std::cout << out_style.Success() << "✓" << out_style.Reset()
+                  << " HTTP API server started on " << host << ":" << port
+                  << "\n";
+        std::cout << "  Health check: http://" << host << ":" << port
+                  << "/api/v1/health\n";
+        std::cout << "  Models list:  http://" << host << ":" << port
+                  << "/api/v1/models\n";
+        std::cout << "  Command execution: "
+                  << (allow_commands
+                          ? "enabled"
+                          : "disabled (pass --http-allow-commands to enable)")
+                  << "\n\n";
+      }
     }
 
     if (options.positional.empty() && http_api.IsRunning()) {

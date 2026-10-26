@@ -89,6 +89,11 @@ void HandleCorsPreflight(const httplib::Request& req, httplib::Response& res);
 void HandleCommandExecute(const httplib::Request& req, httplib::Response& res,
                           yaze::Rom* rom);
 
+// Responds 403 to POST /api/v1/command/execute on a server that has command
+// execution turned off.
+void HandleCommandExecuteDisabled(const httplib::Request& req,
+                                  httplib::Response& res);
+
 // List all registered z3ed commands.
 // GET /api/v1/command/list
 void HandleCommandList(const httplib::Request& req, httplib::Response& res);
