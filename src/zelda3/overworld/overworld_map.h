@@ -460,6 +460,22 @@ class OverworldMap : public gfx::GfxContext {
     area_size_ = AreaSizeEnum::LargeArea;
   }
 
+  // Wide areas use quadrants 0 (left) and 1 (right); tall areas use 0 (top)
+  // and 2 (bottom). The transition savers read these values.
+  void SetAsWideMap(int parent_index, int quadrant) {
+    parent_ = parent_index;
+    large_index_ = quadrant;
+    large_map_ = false;
+    area_size_ = AreaSizeEnum::WideArea;
+  }
+
+  void SetAsTallMap(int parent_index, int quadrant) {
+    parent_ = parent_index;
+    large_index_ = quadrant;
+    large_map_ = false;
+    area_size_ = AreaSizeEnum::TallArea;
+  }
+
   void SetAsSmallMap(int index = -1) {
     if (index != -1)
       parent_ = index;

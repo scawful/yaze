@@ -18,7 +18,7 @@ std::string EscapeJson(const std::string& input) {
   escaped.reserve(input.size());
   for (char c : input) {
     switch (c) {
-      case '\\\\':
+      case '\\':
         escaped.append("\\\\");
         break;
       case '\"':
@@ -34,7 +34,12 @@ std::string EscapeJson(const std::string& input) {
         escaped.append("\\t");
         break;
       default:
-        escaped.push_back(c);
+        if (static_cast<unsigned char>(c) < 0x20) {
+          absl::StrAppendFormat(&escaped, "\\u%04x",
+                                static_cast<unsigned char>(c));
+        } else {
+          escaped.push_back(c);
+        }
     }
   }
   return escaped;

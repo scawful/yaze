@@ -1149,7 +1149,8 @@ TEST_F(AuthoringSaveWorkflowTest,
   write_word(zelda3::OverworldCustomAreaSpecificBGPalette + 2 * kParent,
              new_background);
   write_word(zelda3::GetOverworldMessagesExpanded() + 2 * kParent, new_message);
-  for (const int map : {0x30, 0x31, 0x38, 0x39}) {
+  // Oracle's docks are the wide area $30/$31; $38/$39 is a separate wide area.
+  for (const int map : {0x30, 0x31}) {
     expected.at(zelda3::kOverworldPalettesScreenToSetNew + map) = new_palette;
   }
   const auto pending = manager_->GetCurrentRom()->vector();
