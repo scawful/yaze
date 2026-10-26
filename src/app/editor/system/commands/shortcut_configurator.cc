@@ -526,6 +526,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   register_editor_command(EditorType::kScreen, "Screen");
   register_editor_command(EditorType::kAssembly, "Assembly");
   register_editor_command(EditorType::kSettings, "Settings");
+  register_editor_command(EditorType::kPlanning, "Planning");
 
   // Editor-scoped Music shortcuts (toggle playback, speed controls)
   if (editor_manager) {

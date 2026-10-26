@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "core/project.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
@@ -265,6 +266,27 @@ TEST_F(ResourceLabelsTest, ResourceExportIncludesRoomObjectLabels) {
   ASSERT_TRUE(labels.contains("room_object_type2"));
   EXPECT_EQ(labels.at("room_object_type2").at(std::to_string(0x35)),
             "Water-hop stairs A");
+}
+
+TEST_F(ResourceLabelsTest, DestroyedProjectReleasesItsLabelBindings) {
+  {
+    project::YazeProject project;
+    GetResourceLabels().SetHackManifest(&project.hack_manifest);
+    GetResourceLabels().SetProjectLabels(&project.resource_labels);
+  }
+
+  EXPECT_EQ(GetResourceLabels().hack_manifest(), nullptr);
+  EXPECT_EQ(GetResourceLabels().GetAllProjectLabels(), nullptr);
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x00),
+            "Nothing");
+}
+
+TEST_F(ResourceLabelsTest, DestroyedProjectKeepsOtherLabelBindings) {
+  GetResourceLabels().SetHackManifest(&manifest_);
+  { project::YazeProject unrelated; }
+
+  EXPECT_EQ(GetResourceLabels().hack_manifest(), &manifest_);
+  EXPECT_EQ(GetResourceLabels().GetAllProjectLabels(), &project_labels_);
 }
 
 }  // namespace yaze::zelda3

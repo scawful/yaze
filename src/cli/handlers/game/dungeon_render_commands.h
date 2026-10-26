@@ -11,7 +11,8 @@ namespace handlers {
 //
 // Usage:
 //   dungeon-render --room=<id> --output=<path.png>
-//           [--overlays=collision,track,sprites,objects,grid,camera,all]
+//           [--overlays=collision,track,sprites,objects,grid,camera,tiletype,
+//                       all]
 //           [--scale=<float>]
 //
 // Writes a PNG file to --output. Exits non-zero on failure.
@@ -21,7 +22,8 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
   std::string GetName() const override { return "dungeon-render"; }
   std::string GetUsage() const override {
     return "dungeon-render --room=<id> --output=<path.png> "
-           "[--overlays=collision,track,sprites,objects,grid,camera,all] "
+           "[--overlays=collision,track,sprites,objects,grid,camera,tiletype,"
+           "all] "
            "[--scale=<float>]";
   }
 

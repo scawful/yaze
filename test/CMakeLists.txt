@@ -234,7 +234,7 @@ if(YAZE_BUILD_TESTS)
         add_test(NAME "${_test}" COMMAND $<TARGET_FILE:${suite_name}>
           "--gtest_filter=${_test}")
         set_tests_properties("${_test}" PROPERTIES
-          LABELS "oracle_source_acceptance;oracle_source_${_phase}"
+          LABELS "oracle_source_acceptance;oracle_source_${_phase};rom_dependent"
           WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
       endforeach()
     endif()
@@ -484,6 +484,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/oracle_rom_fixture_test.cc
     unit/core/project_file_passthrough_test.cc
     unit/core/project_atlas_settings_test.cc
+    unit/core/project_plan_test.cc
     unit/util/lru_cache_test.cc
     unit/util/bps_test.cc
     unit/util/indexed_png_test.cc

@@ -13,7 +13,9 @@
 #include "app/platform/sdl_compat.h"
 #include "app/service/headless_overlay_renderer.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_collision.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
@@ -616,6 +618,25 @@ void RenderService::ApplyOverlays(std::vector<uint8_t>& rgba, int width,
                               static_cast<float>(ty * 8), 8.0f, 8.0f, c.r, c.g,
                               c.b, c.a);
         }
+      }
+    }
+  }
+
+  // Vanilla tile types — pit cells (type 0x20) from the room's attribute
+  // maps: red where the upper map (COLMAPA, BG1) has a pit, orange where only
+  // the lower map (COLMAPB, BG2) does. See dungeon-tile-types.
+  if ((flags & RenderOverlay::kTileTypes) && rom_ != nullptr) {
+    const auto maps = zelda3::ComputeRoomCollisionMaps(
+        *rom_, zelda3::MakeRoomCollisionInput(room));
+    for (int ty = 0; ty < 64; ++ty) {
+      for (int tx = 0; tx < 64; ++tx) {
+        const bool upper = maps.upper(tx, ty) == 0x20;
+        const bool lower = maps.lower(tx, ty) == 0x20;
+        if (!upper && !lower)
+          continue;
+        draw.DrawFilledRect(static_cast<float>(tx * 8),
+                            static_cast<float>(ty * 8), 8.0f, 8.0f, 255,
+                            upper ? 0 : 140, 0, 150);
       }
     }
   }

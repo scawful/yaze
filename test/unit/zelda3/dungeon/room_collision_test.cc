@@ -1,6 +1,8 @@
 #include "zelda3/dungeon/room_collision.h"
 
+#include <algorithm>
 #include <cstdint>
+#include <iterator>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -12,6 +14,7 @@ namespace yaze::zelda3 {
 namespace {
 
 // PC offsets of the vanilla tables room_collision.cc reads.
+constexpr int kLoadCustomTileTypes = 0x07142A;  // $0E:942A
 constexpr int kUnderworldTileTypes = 0x071659;
 constexpr int kCustomTileTypesOffset = 0x071000;
 constexpr int kCustomUnderworldTileTypes = 0x07102A;
@@ -22,6 +25,21 @@ constexpr int kDoorwayTileProperties = 0x001A52;
 void PutWord(std::vector<uint8_t>& data, int pc, uint16_t value) {
   data[pc] = static_cast<uint8_t>(value & 0xFF);
   data[pc + 1] = static_cast<uint8_t>(value >> 8);
+}
+
+// Underworld_LoadCustomTileTypes as assembled, with its two table operands
+// (16-bit addresses in the routine's bank).
+void PutLoadCustomTileTypes(std::vector<uint8_t>& data, int pc,
+                            uint16_t offsets, uint16_t types) {
+  const uint8_t code[] = {
+      0x8B, 0x4B, 0xAB, 0xC2, 0x30, 0xAD, 0xA2, 0x0A, 0x29, 0xFF, 0x00, 0x0A,
+      0xAA, 0xBD, 0x00, 0x00, 0xA8, 0xA2, 0x00, 0x00, 0xB9, 0x00, 0x00, 0x9F,
+      0x40, 0xFF, 0x7E, 0xB9, 0x00, 0x00, 0x9F, 0x80, 0xFF, 0x7E, 0xC8, 0xC8,
+      0xE8, 0xE8, 0xE0, 0x40, 0x00, 0xD0, 0xE9, 0xE2, 0x30, 0xAB, 0x6B};
+  std::copy(std::begin(code), std::end(code), data.begin() + pc);
+  PutWord(data, pc + 14, offsets);
+  PutWord(data, pc + 21, types);
+  PutWord(data, pc + 28, static_cast<uint16_t>(types + 0x40));
 }
 
 // A zero-filled ROM with just enough of the tables for these tests.
@@ -75,6 +93,68 @@ TEST_F(RoomCollisionTest, AttributeTableCombinesDefaultAndCustomTypes) {
   EXPECT_EQ(table[0x140], 0x55);  // CustomUnderworldTileTypes + 0
   EXPECT_EQ(table[0x1C0], 0x44);  // UnderworldTileTypes[0x140]
   EXPECT_EQ(LoadUnderworldTileAttributeTable(rom_, 3)[0x140], 0x66);
+}
+
+TEST_F(RoomCollisionTest, VanillaRoutineResolvesToVanillaTables) {
+  EXPECT_EQ(ResolveCustomTileTypeTable(rom_).source,
+            CustomTileTypeSource::kVanilla);  // zero bytes: default addresses
+  std::vector<uint8_t> data(rom_.vector());
+  PutLoadCustomTileTypes(data, kLoadCustomTileTypes, 0x9000, 0x902A);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  const CustomTileTypeTable table = ResolveCustomTileTypeTable(rom);
+  EXPECT_EQ(table.source, CustomTileTypeSource::kVanilla);
+  EXPECT_EQ(table.offsets_pc, kCustomTileTypesOffset);
+  EXPECT_EQ(table.data_pc, kCustomUnderworldTileTypes);
+  EXPECT_EQ(LoadUnderworldTileAttributeTable(rom, 3)[0x140], 0x66);
+}
+
+// Oracle of Secrets: $0E:942A is JSL to a copy of the routine whose tables
+// hold 24 groups (blocksets 0-23) in another bank.
+TEST_F(RoomCollisionTest, HookedRoutineReadsItsOwnTablesForBlocksets0To23) {
+  constexpr int kHookPc = 0x0F0000;     // $1E:8000
+  constexpr int kOffsetsPc = 0x0F1000;  // $1E:9000, 24 words
+  constexpr int kTypesPc = 0x0F1030;    // $1E:9030
+  std::vector<uint8_t> data(rom_.vector());
+  const uint8_t jsl[] = {0x22, 0x00, 0x80, 0x1E, 0x6B};
+  std::copy(std::begin(jsl), std::end(jsl),
+            data.begin() + kLoadCustomTileTypes);
+  PutLoadCustomTileTypes(data, kHookPc, 0x9000, 0x9030);
+  PutWord(data, kOffsetsPc + 4 * 2, 0x0200);
+  PutWord(data, kOffsetsPc + 23 * 2, 0x0B80);
+  data[kTypesPc + 0x200 + 0x71] = 0xB1;  // blockset 4 -> [0x1B1]
+  data[kTypesPc + 0xB80 + 0x00] = 0x5A;  // blockset 23 -> [0x140]
+  data[kTypesPc + 0xB80 + 0x7F] = 0x5B;  // blockset 23 -> [0x1BF]
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+
+  const CustomTileTypeTable table = ResolveCustomTileTypeTable(rom);
+  EXPECT_EQ(table.source, CustomTileTypeSource::kHook);
+  EXPECT_EQ(table.hook_target, 0x1E8000u);
+  EXPECT_EQ(table.offsets_pc, kOffsetsPc);
+  EXPECT_EQ(table.data_pc, kTypesPc);
+
+  const auto blockset4 = LoadUnderworldTileAttributeTable(rom, 4);
+  EXPECT_EQ(blockset4[0x1B1], 0xB1);
+  EXPECT_EQ(blockset4[0x140], 0x00);  // not the vanilla 0x55
+  EXPECT_EQ(blockset4[0x005], 0x10);  // shared types still vanilla
+  EXPECT_EQ(blockset4[0x1C0], 0x44);
+  const auto blockset23 = LoadUnderworldTileAttributeTable(rom, 23);
+  EXPECT_EQ(blockset23[0x140], 0x5A);
+  EXPECT_EQ(blockset23[0x1BF], 0x5B);
+}
+
+TEST_F(RoomCollisionTest, UndecodableHookFallsBackToVanillaTables) {
+  std::vector<uint8_t> data(rom_.vector());
+  const uint8_t jsl[] = {0x22, 0x00, 0x80, 0x1E, 0x6B};  // to zero bytes
+  std::copy(std::begin(jsl), std::end(jsl),
+            data.begin() + kLoadCustomTileTypes);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  const CustomTileTypeTable table = ResolveCustomTileTypeTable(rom);
+  EXPECT_EQ(table.source, CustomTileTypeSource::kUnrecognizedHook);
+  EXPECT_EQ(table.offsets_pc, kCustomTileTypesOffset);
+  EXPECT_EQ(LoadUnderworldTileAttributeTable(rom, 3)[0x140], 0x66);
 }
 
 TEST_F(RoomCollisionTest, BasicPassAddsFlipBitsOnlyToTypes10To1B) {

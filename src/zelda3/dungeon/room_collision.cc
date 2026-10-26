@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
@@ -15,6 +17,7 @@ namespace {
 
 // ROM tables (PC offsets, vanilla addresses from usdasm).
 constexpr int kUnderworldTileTypes = 0x071659;        // $0E:9659, 0x180 bytes
+constexpr int kLoadCustomTileTypes = 0x07142A;        // $0E:942A
 constexpr int kCustomTileTypesOffset = 0x071000;      // $0E:9000, 21 words
 constexpr int kCustomUnderworldTileTypes = 0x07102A;  // $0E:902A
 constexpr int kDungeonMask = 0x0018C0;                // $00:98C0, 16 words
@@ -1300,8 +1303,93 @@ const char* CollisionSourceName(CollisionSource source) {
   return "?";
 }
 
+namespace {
+
+// Underworld_LoadCustomTileTypes as assembled (vanilla and the Oracle of
+// Secrets copy are byte-identical apart from the two table operands):
+//   PHB : PHK : PLB : REP #$30
+//   LDA.w $0AA2 : AND.w #$00FF : ASL A : TAX
+//   LDA.w <offsets>,X : TAY : LDX.w #$0000
+//   LDA.w <data>+$00,Y : STA.l $7EFF40,X
+//   LDA.w <data>+$40,Y : STA.l $7EFF80,X
+// Returns the operands' PC offsets in the routine's own bank (PHK : PLB).
+std::optional<CustomTileTypeTable> DecodeLoadCustomTileTypes(const Rom& rom,
+                                                             uint32_t snes) {
+  constexpr int kPatternSize = 33;
+  // -1 marks an operand byte.
+  constexpr int kPattern[kPatternSize] = {
+      0x8B, 0x4B, 0xAB, 0xC2, 0x30, 0xAD, 0xA2, 0x0A, 0x29, 0xFF, 0x00,
+      0x0A, 0xAA, 0xBD, -1,   -1,   0xA8, 0xA2, 0x00, 0x00, 0xB9, -1,
+      -1,   0x9F, 0x40, 0xFF, 0x7E, 0xB9, -1,   -1,   0x9F, 0x80, 0xFF};
+  const int pc = static_cast<int>(SnesToPc(snes));
+  if (pc < 0 || static_cast<size_t>(pc) + kPatternSize > rom.size()) {
+    return std::nullopt;
+  }
+  for (int i = 0; i < kPatternSize; ++i) {
+    if (kPattern[i] >= 0 && RomByte(rom, pc + i) != kPattern[i]) {
+      return std::nullopt;
+    }
+  }
+  const uint16_t offsets = RomWord(rom, pc + 14);
+  const uint16_t data = RomWord(rom, pc + 21);
+  if (RomWord(rom, pc + 28) != static_cast<uint16_t>(data + 0x40) ||
+      offsets < 0x8000 || data < 0x8000) {
+    return std::nullopt;
+  }
+  const uint32_t bank = snes & 0xFF0000;
+  CustomTileTypeTable table;
+  table.offsets_pc = static_cast<int>(SnesToPc(bank | offsets));
+  table.data_pc = static_cast<int>(SnesToPc(bank | data));
+  return table;
+}
+
+}  // namespace
+
+const char* CustomTileTypeSourceName(CustomTileTypeSource source) {
+  switch (source) {
+    case CustomTileTypeSource::kVanilla:
+      return "vanilla";
+    case CustomTileTypeSource::kHook:
+      return "hook";
+    case CustomTileTypeSource::kUnrecognizedHook:
+      return "unrecognized hook (vanilla table)";
+  }
+  return "?";
+}
+
+CustomTileTypeTable ResolveCustomTileTypeTable(const Rom& rom) {
+  CustomTileTypeTable vanilla;
+  vanilla.offsets_pc = kCustomTileTypesOffset;
+  vanilla.data_pc = kCustomUnderworldTileTypes;
+  constexpr uint32_t kEntry = 0x0E942A;
+  if (RomByte(rom, kLoadCustomTileTypes) == 0x22) {  // JSL
+    const uint32_t target =
+        static_cast<uint32_t>(RomByte(rom, kLoadCustomTileTypes + 1)) |
+        static_cast<uint32_t>(RomByte(rom, kLoadCustomTileTypes + 2)) << 8 |
+        static_cast<uint32_t>(RomByte(rom, kLoadCustomTileTypes + 3)) << 16;
+    if (auto table = DecodeLoadCustomTileTypes(rom, target)) {
+      table->source = CustomTileTypeSource::kHook;
+      table->hook_target = target;
+      return *table;
+    }
+    vanilla.source = CustomTileTypeSource::kUnrecognizedHook;
+    vanilla.hook_target = target;
+    return vanilla;
+  }
+  if (auto table = DecodeLoadCustomTileTypes(rom, kEntry)) {
+    return *table;
+  }
+  return vanilla;
+}
+
 std::array<uint8_t, kTileAttributeTableSize> LoadUnderworldTileAttributeTable(
     const Rom& rom, uint8_t blockset) {
+  return LoadUnderworldTileAttributeTable(rom, blockset,
+                                          ResolveCustomTileTypeTable(rom));
+}
+
+std::array<uint8_t, kTileAttributeTableSize> LoadUnderworldTileAttributeTable(
+    const Rom& rom, uint8_t blockset, const CustomTileTypeTable& custom) {
   std::array<uint8_t, kTileAttributeTableSize> table{};
   // LoadDefaultTileTypes (#_0E97D9).
   for (int i = 0; i < 0x140; ++i) {
@@ -1311,9 +1399,9 @@ std::array<uint8_t, kTileAttributeTableSize> LoadUnderworldTileAttributeTable(
     table[0x1C0 + i] = RomByte(rom, kUnderworldTileTypes + 0x140 + i);
   }
   // Underworld_LoadCustomTileTypes (#_0E942A).
-  const uint16_t offset = RomWord(rom, kCustomTileTypesOffset + blockset * 2);
+  const uint16_t offset = RomWord(rom, custom.offsets_pc + blockset * 2);
   for (int i = 0; i < 0x80; ++i) {
-    table[0x140 + i] = RomByte(rom, kCustomUnderworldTileTypes + offset + i);
+    table[0x140 + i] = RomByte(rom, custom.data_pc + offset + i);
   }
   return table;
 }

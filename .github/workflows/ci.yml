@@ -29,12 +29,15 @@ on:
       - 'test/**'
       - 'cmake/**'
       - 'CMakeLists.txt'
+      - 'CMakePresets.json'
       - 'VERSION'
       - 'docs/CHANGELOG.md'
       - 'docs/public/reference/changelog.md'
       - 'docs/public/release-notes.md'
       - '.github/workflows/**'
+      - '.github/actions/**'
       - 'scripts/dev/release-version-check.sh'
+      - 'scripts/dev/test_oracle_smoke_workflow_contract.py'
       - 'scripts/release/**'
       - 'scripts/agents/**'
       - 'scripts/audit_test_registration.py'
@@ -48,12 +51,15 @@ on:
       - 'test/**'
       - 'cmake/**'
       - 'CMakeLists.txt'
+      - 'CMakePresets.json'
       - 'VERSION'
       - 'docs/CHANGELOG.md'
       - 'docs/public/reference/changelog.md'
       - 'docs/public/release-notes.md'
       - '.github/workflows/**'
+      - '.github/actions/**'
       - 'scripts/dev/release-version-check.sh'
+      - 'scripts/dev/test_oracle_smoke_workflow_contract.py'
       - 'scripts/release/**'
       - 'scripts/agents/**'
       - 'scripts/audit_test_registration.py'
@@ -497,6 +503,7 @@ jobs:
     env:
       ORACLE_ROM_URL: ${{ secrets.ORACLE_ROM_URL }}
       ORACLE_ROM_PATH: /tmp/oracle_smoke_rom.sfc
+      Z3ED_BIN: ./build/presets/ci-macos/bin/RelWithDebInfo/z3ed
       SMOKE_ARTIFACT_DIR: /tmp/oracle-smoke-artifacts
 
     steps:
@@ -544,6 +551,10 @@ jobs:
         if: steps.rom-check.outputs.available == 'true'
         run: cmake --build --preset ci-macos --config RelWithDebInfo --target z3ed --parallel
 
+      - name: Verify Oracle smoke executable
+        if: steps.rom-check.outputs.available == 'true'
+        run: test -x "$Z3ED_BIN"
+
       - name: Create artifact directory
         if: steps.rom-check.outputs.available == 'true'
         run: mkdir -p "$SMOKE_ARTIFACT_DIR"
@@ -555,7 +566,7 @@ jobs:
       - name: Oracle Smoke Check — Structural (blocking)
         if: steps.rom-check.outputs.available == 'true'
         run: |
-          Z3ED_BIN=./build/bin/RelWithDebInfo/z3ed ./scripts/z3ed \
+          ./scripts/z3ed \
             oracle-smoke-check \
             --rom "$ORACLE_ROM_PATH" \
             --min-d6-track-rooms=4 \
@@ -569,7 +580,7 @@ jobs:
         if: steps.rom-check.outputs.available == 'true'
         continue-on-error: true
         run: |
-          Z3ED_BIN=./build/bin/RelWithDebInfo/z3ed ./scripts/z3ed \
+          ./scripts/z3ed \
             oracle-smoke-check \
             --rom "$ORACLE_ROM_PATH" \
             --strict-readiness \

@@ -14,6 +14,7 @@
 #include "cli/util/hex_util.h"
 #include "core/project.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/resource_labels.h"
 #include "zelda3/zelda3_labels.h"
 
 using yaze::cli::util::ParseHexString;
@@ -242,7 +243,8 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
 
   auto& active_project = loaded_project_.value();
   // Project names (e.g. Oracle sprite slots) replace vanilla names in output.
-  // Re-point the provider at the stored copy; the local project moved above.
+  // Open() bound the label provider (project labels and hack manifest) to the
+  // moved-from local above; re-point it at the stored copy.
   previous_label_state_ = label_state;
   active_project.InitializeResourceLabelProvider();
   core::FeatureFlags::get() = active_project.feature_flags;

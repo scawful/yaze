@@ -77,6 +77,12 @@ const std::vector<PanelAdmissionEntry> kFirstClassAllowlist = {
      "Current default: registered visible. Its Open Folder and Save buttons "
      "are the only quick actions when no project code folder is set."},
 
+    // Planning
+    {"planning.overview",
+     "Primary planning surface: goal, milestones, route strip and decisions."},
+    {"planning.route",
+     "Route step and item editor; the Overview's route strip selects into it."},
+
     // Shell
     {"dashboard.main", "Editor picker shown at startup and on Ctrl+E."},
 
@@ -204,6 +210,7 @@ std::vector<std::string> CollectDefaultVisibleWindowIds(
       EditorType::kPalette,   EditorType::kSprite,  EditorType::kScreen,
       EditorType::kMusic,     EditorType::kMessage, EditorType::kAssembly,
       EditorType::kEmulator,  EditorType::kHex,     EditorType::kAgent,
+      EditorType::kPlanning,
   };
   for (EditorType type : kPresetEditors) {
     for (const auto& window_id : LayoutPresets::GetDefaultPanels(type)) {

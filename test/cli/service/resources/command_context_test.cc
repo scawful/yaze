@@ -318,6 +318,32 @@ TEST_F(CommandContextTest, InvalidProjectContextRestoresLabelProvider) {
   EXPECT_EQ(labels.SnapshotState().hack_manifest, before.hack_manifest);
 }
 
+TEST_F(CommandContextTest, ProjectContextBindsLabelsToTheLoadedProject) {
+  project::YazeProject project;
+  ASSERT_TRUE(project.Create("labels", temp_root_.string()).ok());
+  {
+    std::ofstream out(std::filesystem::path(project.filepath).parent_path() /
+                      "hack_manifest.json");
+    out << R"json({"manifest_version":2,"room_tags":{"tags":[
+      {"tag_id":"0x39","address":"0x000000","name":"Context_Tag"}]}})json";
+  }
+  auto& labels = zelda3::GetResourceLabels();
+  {
+    CommandContext::Config config;
+    config.use_mock_rom = true;
+    config.project_context_path = project.filepath;
+    CommandContext context(config);
+    ASSERT_TRUE(context.GetRom().ok());
+    project::YazeProject* loaded = context.GetProjectContext();
+    ASSERT_NE(loaded, nullptr);
+    ASSERT_TRUE(loaded->hack_manifest.loaded());
+    EXPECT_EQ(labels.hack_manifest(), &loaded->hack_manifest);
+    EXPECT_EQ(labels.GetLabel(zelda3::ResourceType::kRoomTag, 0x39),
+              "Context_Tag");
+  }
+  EXPECT_EQ(labels.hack_manifest(), nullptr);
+}
+
 TEST_F(CommandContextTest, InvalidProjectContextFailsInitialization) {
   CommandContext::Config config;
   config.use_mock_rom = true;

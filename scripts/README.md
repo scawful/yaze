@@ -228,6 +228,7 @@ paths, and its Goron Mines data already lives in
 | `package/` | Packaging entry point (`release.sh`) |
 | `profiles/` | ROM profile definitions consumed by `location_mapper.py` and `discover_rooms.py` |
 | `release/` | Release validation: DMG/archive/package smoke checks, release-note extraction |
+| `remote/` | `mm-test.sh`: build and unit-test a branch (local-only is fine) on the Windows build box over SSH — see [remote/README.md](remote/README.md) |
 
 ## Conventions
 
