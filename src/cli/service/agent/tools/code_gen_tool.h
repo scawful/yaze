@@ -81,16 +81,19 @@ struct CodeGenerationResult {
   std::map<std::string, uint32_t> symbols;  // Label -> address
 
   void AddInfo(const std::string& message, uint32_t address = 0) {
-    diagnostics.push_back({CodeGenerationDiagnostic::Severity::kInfo, message, address});
+    diagnostics.push_back(
+        {CodeGenerationDiagnostic::Severity::kInfo, message, address});
   }
 
   void AddWarning(const std::string& message, uint32_t address = 0) {
-    diagnostics.push_back({CodeGenerationDiagnostic::Severity::kWarning, message, address});
+    diagnostics.push_back(
+        {CodeGenerationDiagnostic::Severity::kWarning, message, address});
   }
 
   void AddError(const std::string& message, uint32_t address = 0) {
     success = false;
-    diagnostics.push_back({CodeGenerationDiagnostic::Severity::kError, message, address});
+    diagnostics.push_back(
+        {CodeGenerationDiagnostic::Severity::kError, message, address});
   }
 };
 
@@ -113,7 +116,8 @@ class CodeGenToolBase : public resources::CommandHandler {
   /**
    * @brief Detect available free space regions in ROM
    */
-  std::vector<FreeSpaceRegion> DetectFreeSpace(Rom* rom, size_t min_size = 0x100) const;
+  std::vector<FreeSpaceRegion> DetectFreeSpace(Rom* rom,
+                                               size_t min_size = 0x100) const;
 
   /**
    * @brief Substitute placeholders in template with parameter values
@@ -179,7 +183,8 @@ class CodeGenAsmHookTool : public CodeGenToolBase {
   }
 
   std::string GetUsage() const override {
-    return "codegen-asm-hook --address=0x008040 --label=MyHook [--nop-fill=N] [--format=<json|text>]";
+    return "codegen-asm-hook --address=0x008040 --label=MyHook [--nop-fill=N] "
+           "[--format=<json|text>]";
   }
 
  protected:
@@ -199,7 +204,7 @@ class CodeGenAsmHookTool : public CodeGenToolBase {
  * Analyzes ROM for available freespace and generates a patch that
  * allocates code in the best available region.
  *
- * Usage: codegen-freespace-patch --label=MyCode --size=0x100 [--prefer-bank=N] [--format=<json|text>]
+ * Usage: codegen-freespace-patch --label=MyCode [--size=0x100] [--prefer-bank=N] [--format=<json|text>]
  */
 class CodeGenFreespacePatchTool : public CodeGenToolBase {
  public:
@@ -210,7 +215,8 @@ class CodeGenFreespacePatchTool : public CodeGenToolBase {
   }
 
   std::string GetUsage() const override {
-    return "codegen-freespace-patch --label=MyCode --size=0x100 [--prefer-bank=N] [--format=<json|text>]";
+    return "codegen-freespace-patch --label=MyCode [--size=0x100] "
+           "[--prefer-bank=N] [--format=<json|text>]";
   }
 
  protected:
@@ -241,7 +247,8 @@ class CodeGenSpriteTemplateTool : public CodeGenToolBase {
   }
 
   std::string GetUsage() const override {
-    return "codegen-sprite-template --name=MySprite [--init-code=\"...\"] [--main-code=\"...\"] [--format=<json|text>]";
+    return "codegen-sprite-template --name=MySprite [--init-code=\"...\"] "
+           "[--main-code=\"...\"] [--format=<json|text>]";
   }
 
  protected:
@@ -267,12 +274,11 @@ class CodeGenEventHandlerTool : public CodeGenToolBase {
  public:
   std::string GetName() const override { return "codegen-event-handler"; }
 
-  std::string GetDescription() const {
-    return "Generate event handler code";
-  }
+  std::string GetDescription() const { return "Generate event handler code"; }
 
   std::string GetUsage() const override {
-    return "codegen-event-handler --type=<nmi|irq|reset> --label=MyHandler [--custom-code=\"...\"] [--format=<json|text>]";
+    return "codegen-event-handler --type=<nmi|irq|reset> --label=MyHandler "
+           "[--custom-code=\"...\"] [--format=<json|text>]";
   }
 
  protected:

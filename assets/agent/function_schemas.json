@@ -35,48 +35,11 @@
       }
     },
     {
-      "name": "emulator-press-buttons",
-      "description": "Presses and immediately releases one or more buttons on the SNES controller.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "buttons": {
-            "type": "string",
-            "description": "A comma-separated list of buttons to press (e.g., 'A,Right,Start')."
-          }
-        },
-        "required": ["buttons"]
-      }
-    },
-    {
-      "name": "emulator-hold-buttons",
-      "description": "Holds down one or more buttons for a specified duration.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "buttons": {
-            "type": "string",
-            "description": "A comma-separated list of buttons to hold."
-          },
-          "duration": {
-            "type": "integer",
-            "description": "The duration in milliseconds to hold the buttons."
-          }
-        },
-        "required": ["buttons", "duration"]
-      }
-    },
-    {
       "name": "emulator-get-state",
       "description": "Retrieves the current state of the game from the emulator.",
       "parameters": {
         "type": "object",
-        "properties": {
-          "screenshot": {
-            "type": "boolean",
-            "description": "Whether to include a screenshot of the current frame."
-          }
-        }
+        "properties": {}
       }
     },
     {
@@ -116,107 +79,8 @@
       }
     },
     {
-      "name": "emulator-set-breakpoint",
-      "description": "Set a breakpoint in the emulator to pause execution at a specific address or when specific memory is accessed. Essential for debugging game logic, input handling, and timing issues.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "address": {
-            "type": "string",
-            "description": "Memory address in hex format (e.g., '0x0083D7' for ALTTP's NMI_ReadJoypads routine)"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["execute", "read", "write", "access"],
-            "description": "Breakpoint type: 'execute' breaks when PC reaches address, 'read'/'write'/'access' break on memory access"
-          },
-          "description": {
-            "type": "string",
-            "description": "Human-readable label for this breakpoint (e.g., 'NMI handler entry')"
-          }
-        },
-        "required": ["address"]
-      }
-    },
-    {
-      "name": "emulator-clear-breakpoint",
-      "description": "Remove a breakpoint by ID",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Breakpoint ID to remove (from list-breakpoints output)"
-          }
-        },
-        "required": ["id"]
-      }
-    },
-    {
-      "name": "emulator-list-breakpoints",
-      "description": "List all active breakpoints with their addresses, types, hit counts, and states",
-      "parameters": {
-        "type": "object",
-        "properties": {}
-      }
-    },
-    {
-      "name": "emulator-step",
-      "description": "Step the emulator forward by one or more CPU instructions and return the new CPU state",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "count": {
-            "type": "integer",
-            "description": "Number of instructions to execute (default: 1)"
-          }
-        }
-      }
-    },
-    {
-      "name": "emulator-run",
-      "description": "Run the emulator until a breakpoint is hit or for a specified number of frames",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "until_break": {
-            "type": "boolean",
-            "description": "Run until breakpoint is hit (default: false)"
-          },
-          "frames": {
-            "type": "integer",
-            "description": "Number of frames to run (if not until_break)"
-          }
-        }
-      }
-    },
-    {
-      "name": "emulator-pause",
-      "description": "Pause emulator execution for inspection",
-      "parameters": {
-        "type": "object",
-        "properties": {}
-      }
-    },
-    {
       "name": "emulator-reset",
       "description": "Reset the emulator to initial state (hard reset)",
-      "parameters": {
-        "type": "object",
-        "properties": {}
-      }
-    },
-    {
-      "name": "emulator-get-registers",
-      "description": "Get current CPU register values (A, X, Y, PC, PB, DB, SP, flags) for debugging",
-      "parameters": {
-        "type": "object",
-        "properties": {}
-      }
-    },
-    {
-      "name": "emulator-get-metrics",
-      "description": "Get emulator performance metrics including FPS, cycle count, audio queue status",
       "parameters": {
         "type": "object",
         "properties": {}
@@ -228,11 +92,7 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "dungeon": {
-            "type": "string",
-            "description": "Dungeon name (e.g., 'hyrule_castle', 'eastern_palace') or leave empty for all"
-          },
-          "room_id": {
+          "room": {
             "type": "string",
             "description": "Specific room ID to query (optional)"
           }
@@ -245,17 +105,12 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "room_id": {
+          "room": {
             "type": "string",
             "description": "Room ID to describe (0-296)"
-          },
-          "include_sprites": {
-            "type": "string",
-            "enum": ["true", "false"],
-            "description": "Include sprite information (default: true)"
           }
         },
-        "required": ["room_id"]
+        "required": ["room"]
       }
     },
     {
@@ -264,16 +119,16 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "tile_id": {
+          "tile": {
             "type": "string",
             "description": "Tile16 ID to search for (hex format like '0x42' or decimal)"
           },
-          "map_id": {
+          "map": {
             "type": "string",
             "description": "Specific overworld map to search (0-63, optional)"
           }
         },
-        "required": ["tile_id"]
+        "required": ["tile"]
       }
     },
     {
@@ -282,17 +137,12 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "map_id": {
+          "screen": {
             "type": "string",
-            "description": "Overworld map ID (0-63 for light/dark world)"
-          },
-          "include_tiles": {
-            "type": "string",
-            "enum": ["true", "false"],
-            "description": "Include tile distribution statistics"
+            "description": "Overworld screen ID (hex, e.g. 0x00)"
           }
         },
-        "required": ["map_id"]
+        "required": ["screen"]
       }
     },
     {
@@ -301,12 +151,11 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "map_id": {
+          "screen": {
             "type": "string",
-            "description": "Overworld map ID (0-63)"
+            "description": "Optional overworld screen ID filter (hex, e.g. 0x00)"
           }
-        },
-        "required": ["map_id"]
+        }
       }
     },
     {
@@ -315,12 +164,11 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "map_id": {
+          "screen": {
             "type": "string",
-            "description": "Overworld map ID (0-63)"
+            "description": "Optional overworld screen ID filter (hex, e.g. 0x00)"
           }
-        },
-        "required": ["map_id"]
+        }
       }
     },
     {
@@ -329,12 +177,12 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "entrance_id": {
+          "entrance": {
             "type": "string",
             "description": "Entrance ID to query"
           }
         },
-        "required": ["entrance_id"]
+        "required": ["entrance"]
       }
     },
     {
@@ -360,92 +208,6 @@
             "description": "Number of tile_counts entries to list (default 32, 0 = all)"
           }
         }
-      }
-    },
-    {
-      "name": "hex-read",
-      "description": "Read bytes from ROM at a specific address in hexadecimal",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "address": {
-            "type": "string",
-            "description": "ROM address in hex format (e.g., '0x1C800')"
-          },
-          "length": {
-            "type": "integer",
-            "description": "Number of bytes to read (default: 16)"
-          },
-          "format": {
-            "type": "string",
-            "enum": ["hex", "ascii", "both"],
-            "description": "Output format (default: both)"
-          }
-        },
-        "required": ["address"]
-      }
-    },
-    {
-      "name": "hex-write",
-      "description": "Write bytes to ROM at a specific address (creates a proposal)",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "address": {
-            "type": "string",
-            "description": "ROM address in hex format (e.g., '0x1C800')"
-          },
-          "data": {
-            "type": "string",
-            "description": "Hex data to write (space-separated bytes like 'FF 00 12 34')"
-          }
-        },
-        "required": ["address", "data"]
-      }
-    },
-    {
-      "name": "hex-search",
-      "description": "Search for a byte pattern in ROM",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "pattern": {
-            "type": "string",
-            "description": "Hex pattern to search (e.g., 'FF 00 ?? 12' where ?? is wildcard)"
-          },
-          "start_address": {
-            "type": "string",
-            "description": "Start address (default: 0x00000)"
-          },
-          "end_address": {
-            "type": "string",
-            "description": "End address (default: ROM size)"
-          }
-        },
-        "required": ["pattern"]
-      }
-    },
-    {
-      "name": "palette-get-colors",
-      "description": "Preview colors from a named generic palette group; this command is read-only",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "group": {
-            "type": "string",
-            "description": "Palette group name such as ow_main or dungeon_main"
-          },
-          "index": {
-            "type": "integer",
-            "description": "Optional palette index within the named group"
-          },
-          "format": {
-            "type": "string",
-            "enum": ["json", "text"],
-            "description": "Output format"
-          }
-        },
-        "required": ["group"]
       }
     },
     {
@@ -512,92 +274,6 @@
           }
         },
         "required": ["room", "index", "expect-palette-set", "expect-palette-index", "expect-color", "color", "manifest"]
-      }
-    },
-    {
-      "name": "palette-analyze",
-      "description": "Analyze color usage and statistics for a palette or bitmap",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "target_type": {
-            "type": "string",
-            "enum": ["palette", "bitmap", "graphics_sheet"],
-            "description": "What to analyze"
-          },
-          "target_id": {
-            "type": "string",
-            "description": "ID or index of target"
-          }
-        },
-        "required": ["target_type", "target_id"]
-      }
-    },
-    {
-      "name": "todo-create",
-      "description": "Create a new TODO task for complex operations",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "type": "string",
-            "description": "Task description"
-          },
-          "category": {
-            "type": "string",
-            "description": "Task category (e.g., 'rom_edit', 'ai_task', 'build')"
-          },
-          "priority": {
-            "type": "integer",
-            "description": "Priority level (0-10, higher = more important)"
-          }
-        },
-        "required": ["description"]
-      }
-    },
-    {
-      "name": "todo-list",
-      "description": "List all TODO tasks or filter by status/category",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["pending", "in_progress", "completed", "blocked", "cancelled"],
-            "description": "Filter by status"
-          },
-          "category": {
-            "type": "string",
-            "description": "Filter by category"
-          }
-        }
-      }
-    },
-    {
-      "name": "todo-update-status",
-      "description": "Update the status of a TODO task",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "TODO ID"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["pending", "in_progress", "completed", "blocked", "cancelled"],
-            "description": "New status"
-          }
-        },
-        "required": ["id", "status"]
-      }
-    },
-    {
-      "name": "todo-next",
-      "description": "Get the next actionable TODO task (respecting dependencies and priority)",
-      "parameters": {
-        "type": "object",
-        "properties": {}
       }
     }
   ]

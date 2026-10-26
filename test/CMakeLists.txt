@@ -725,6 +725,7 @@ if(YAZE_BUILD_TESTS)
       unit/cli/model_registry_test.cc
       unit/cli/tool_dispatcher_test.cc
       unit/cli/tool_schema_builder_test.cc
+      unit/cli/agent_tool_schema_consistency_test.cc
       unit/cli/http_api_handlers_test.cc
       unit/cli/api_handlers_test.cc
       unit/cli/vision_action_refiner_test.cc
