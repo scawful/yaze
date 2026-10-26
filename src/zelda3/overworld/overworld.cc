@@ -173,6 +173,17 @@ absl::Status Overworld::Load(Rom* rom) {
     return absl::FailedPreconditionError(
         "Lyra descriptor canvas loading is not yet supported");
   }
+  // Reload replaces ROM-derived state. In particular, CreateTile32Tilemap()
+  // may have reordered the in-memory definitions during an unchanged save;
+  // appending the ROM definitions would retain that stale index prefix.
+  // Destroy preserves the bound GameData, selection and graphics preview.
+  Destroy();
+  tiles32_list_.clear();
+  map_tiles_ = {};
+  loaded_map_tiles_ = {};
+  RollbackSavedMapTiles();
+  expanded_tile16_ = false;
+  expanded_tile32_ = false;
   descriptor_layout_ = {};
   rom_ = rom;
 

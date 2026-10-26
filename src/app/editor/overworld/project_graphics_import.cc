@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "core/overworld_graphics_preview.h"
 #include "core/source_artifact_publisher.h"
 #include "nlohmann/json.hpp"
@@ -682,10 +683,18 @@ absl::StatusOr<ProjectGraphicsImportPlan> PlanProjectGraphicsImport(
         return rendered.status();
       const auto& wanted =
           inside ? expected[sy * asset.width + sx] : backgrounds.at(old);
-      if (*rendered != wanted)
-        return absl::FailedPreconditionError(
-            "Import changes an existing graphics/palette consumer or cannot "
-            "preserve the exact alpha background");
+      if (*rendered != wanted) {
+        const auto mismatch =
+            std::mismatch(rendered->begin(), rendered->end(), wanted.begin());
+        const int pixel = static_cast<int>(mismatch.first - rendered->begin());
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Import pixel mismatch %s: area tile=(%d,%d), Tile16=0x%03X "
+            "(previous=0x%03X), pixel=(%d,%d), wanted BGR555=0x%04X, "
+            "rendered BGR555=0x%04X",
+            inside ? "inside import stamp" : "outside existing consumer", x, y,
+            id, old, pixel % 16, pixel / 16, *mismatch.second,
+            *mismatch.first));
+      }
     }
   }
   for (int i = 0; i < resource_count; ++i) {

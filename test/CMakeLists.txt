@@ -909,6 +909,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/project_graphics_import_command_test.cc
     unit/editor/project_graphics_import_save_test.cc
     unit/editor/project_graphics_import_workflow_test.cc
+    unit/zelda3/overworld_build_rom_test.cc
     unit/editor/tile16_document_history_test.cc
     unit/zelda3/overworld_graphics_preview_test.cc)
 
