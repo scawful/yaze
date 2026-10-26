@@ -511,72 +511,111 @@ const std::vector<std::string>& Zelda3Labels::GetRoomTagNames() {
   return tag_names;
 }
 
-// Tile type names
+// Tile type names: the 256 vanilla TILEATTR meanings from TileTypeNames
+// (common.cc) without their "$XX " prefix, so index == tile type value.
 const std::vector<std::string>& Zelda3Labels::GetTileTypeNames() {
-  static const std::vector<std::string> tile_names = {
-      "Nothing (standard floor)",
-      "Nothing (unused?)",
-      "Collision",
-      "Collision (unknown types)",
-      "Collision",
-      "Collision (unused?)",
-      "Collision",
-      "Collision",
-      "Deep water",
-      "Shallow water",
-      "Unknown (near water/pit edges)",
-      "Collision (water/pit edges)",
-      "Overlay mask",
-      "Spike floor",
-      "GT ice",
-      "Ice palace ice",
-      "Slope ◤",
-      "Slope ◥",
-      "Slope ◣",
-      "Slope ◢",
-      "Nothing (unused?)",
-      "Nothing (unused?)",
-      "Nothing (unused?)",
-      "Slope ◤",
-      "Slope ◥",
-      "Slope ◣",
-      "Slope ◢",
-      "Layer swap",
-      "Pit",
-      "Manual stairs",
-      "Pot switch",
-      "Pressure switch",
-      "Blocks switch (chest, PoD, walls)",
-      "Layer toggle",
-      "Layer 2 overlay",
-      "North single-layer auto stairs",
-      "North layer swap auto stairs",
-      "South single-layer auto stairs",
-      "South layer swap auto stairs",
-      "North/south layer swap auto stairs",
-      "North/south single-layer auto stairs",
-      "West single-layer auto stairs",
-      "West layer swap auto stairs",
-      "East single-layer auto stairs",
-      "East layer swap auto stairs",
-      "East/west layer swap auto stairs",
-      "East/west single-layer auto stairs",
-      "Nothing (stairs edge)",
-      "Straight inter-room stairs south/up",
-      "Straight inter-room stairs north/down",
-      "Straight inter-room stairs south/down 2",
-      "Straight inter-room stairs north/up 2",
-      "Star tile (inactive on GBA)",
-      "Collision (near stairs)",
-      "Warp tile",
-      "Square corners ⌜⌝⌞⌟",
-      "Thick corner ⌜",
-      "Thick corner ⌝",
-      "Thick corner ⌞",
-      "Thick corner ⌟",
-      "Roof/grass tiles?",
-      "Spike floor"};
+  static const std::vector<std::string> tile_names = [] {
+    std::vector<std::string> names;
+    names.reserve(256);
+    for (const std::string& name : TileTypeNames) {
+      names.push_back(name.size() > 4 && name[0] == '$' && name[3] == ' '
+                          ? name.substr(4)
+                          : name);
+    }
+    return names;
+  }();
   return tile_names;
+}
+
+// Oracle of Secrets tile types, allocated 2026-10-25 (Oracle handoff
+// tile_type_slot_map_2026-10-25, CUSTOM_TILE_TYPE_CANDIDATES.md section 4).
+// Minecart names follow Sprites/Objects/minecart.asm and switch_track.asm and
+// the TrackTileType enum in zelda3/dungeon/track_collision_generator.h.
+const char* Zelda3Labels::GetOracleTileTypeName(uint8_t value) {
+  switch (value) {
+    case 0x0E:
+      return "Ice rod frozen floor";
+    case 0x64:
+      return "Minish portal";
+    case 0x65:
+      return "Minish tile";
+    case 0xB0:
+      return "Minecart track LR";
+    case 0xB1:
+      return "Minecart track UD";
+    case 0xB2:
+      return "Minecart track corner TL";
+    case 0xB3:
+      return "Minecart track corner BL";
+    case 0xB4:
+      return "Minecart track corner TR";
+    case 0xB5:
+      return "Minecart track corner BR";
+    case 0xB6:
+      return "Minecart track intersection";
+    // Stop tiles: the cart starts moving in the named direction.
+    case 0xB7:
+      return "Minecart stop S";
+    case 0xB8:
+      return "Minecart stop N";
+    case 0xB9:
+      return "Minecart stop E";
+    case 0xBA:
+      return "Minecart stop W";
+    case 0xBB:
+      return "Minecart T-junction N";
+    case 0xBC:
+      return "Minecart T-junction S";
+    case 0xBD:
+      return "Minecart T-junction E";
+    case 0xBE:
+      return "Minecart T-junction W";
+    case 0xD0:
+      return "Minecart track switch TL";
+    case 0xD1:
+      return "Minecart track switch BL";
+    case 0xD2:
+      return "Minecart track switch TR";
+    case 0xD3:
+      return "Minecart track switch BR";
+    case 0xD4:
+      return "Wind N";
+    case 0xD5:
+      return "Wind S";
+    case 0xD6:
+      return "Wind E";
+    case 0xD7:
+      return "Wind W";
+    case 0xDD:
+      return "Weight plate";
+    case 0xDE:
+      return "Hot floor";
+    case 0xE8:
+    case 0xE9:
+      return "Quicksand";
+    case 0xEC:
+      return "Climbable vines";
+    default:
+      return nullptr;
+  }
+}
+
+const std::vector<std::string>& Zelda3Labels::GetTileTypeNames(
+    TileTypeNameSet set) {
+  if (set == TileTypeNameSet::kVanilla) {
+    return GetTileTypeNames();
+  }
+  static const std::vector<std::string> oracle_names = [] {
+    std::vector<std::string> names = GetTileTypeNames();
+    for (size_t value = 0; value < names.size(); ++value) {
+      if (const char* name =
+              GetOracleTileTypeName(static_cast<uint8_t>(value))) {
+        names[value] = name;
+      }
+    }
+    return names;
+  }();
+  return oracle_names;
 }
 
 // Convert all labels to structured map for project embedding

@@ -1,6 +1,8 @@
 #include "zelda3/resource_labels.h"
 
+#include <cstdint>
 #include <string>
+#include <utility>
 
 #include "core/project.h"
 #include "gtest/gtest.h"
@@ -257,6 +259,76 @@ TEST_F(ResourceLabelsTest, DestroyedProjectKeepsOtherLabelBindings) {
 
   EXPECT_EQ(GetResourceLabels().hack_manifest(), &manifest_);
   EXPECT_EQ(GetResourceLabels().GetAllProjectLabels(), &project_labels_);
+}
+
+TEST(TileTypeNamesTest, VanillaTableHasAll256TypesIndexedByValue) {
+  const auto& names = Zelda3Labels::GetTileTypeNames();
+  ASSERT_EQ(names.size(), 256u);
+  EXPECT_EQ(names[0x00], "Nothing (standard floor)");
+  EXPECT_EQ(names[0x0D], "Spike floor");
+  EXPECT_EQ(names[0x0E], "GT ice");
+  EXPECT_EQ(names[0x20], "Pit");
+  EXPECT_EQ(names[0xB0], "Somaria ─");
+  EXPECT_EQ(names[0xFF], "Door X top? (unused?)");
+  EXPECT_EQ(&Zelda3Labels::GetTileTypeNames(TileTypeNameSet::kVanilla), &names);
+}
+
+TEST(TileTypeNamesTest, OracleNamesReplaceOnlyOracleAllocations) {
+  const auto& vanilla = Zelda3Labels::GetTileTypeNames();
+  const auto& oracle =
+      Zelda3Labels::GetTileTypeNames(TileTypeNameSet::kOracleOfSecrets);
+  ASSERT_EQ(oracle.size(), 256u);
+
+  const std::pair<uint8_t, const char*> kExpected[] = {
+      {0x0E, "Ice rod frozen floor"},
+      {0x64, "Minish portal"},
+      {0x65, "Minish tile"},
+      {0xB0, "Minecart track LR"},
+      {0xB1, "Minecart track UD"},
+      {0xB2, "Minecart track corner TL"},
+      {0xB3, "Minecart track corner BL"},
+      {0xB4, "Minecart track corner TR"},
+      {0xB5, "Minecart track corner BR"},
+      {0xB6, "Minecart track intersection"},
+      {0xB7, "Minecart stop S"},
+      {0xB8, "Minecart stop N"},
+      {0xB9, "Minecart stop E"},
+      {0xBA, "Minecart stop W"},
+      {0xBB, "Minecart T-junction N"},
+      {0xBC, "Minecart T-junction S"},
+      {0xBD, "Minecart T-junction E"},
+      {0xBE, "Minecart T-junction W"},
+      {0xD0, "Minecart track switch TL"},
+      {0xD3, "Minecart track switch BR"},
+      {0xD4, "Wind N"},
+      {0xD5, "Wind S"},
+      {0xD6, "Wind E"},
+      {0xD7, "Wind W"},
+      {0xDD, "Weight plate"},
+      {0xDE, "Hot floor"},
+      {0xE8, "Quicksand"},
+      {0xE9, "Quicksand"},
+      {0xEC, "Climbable vines"},
+  };
+  int oracle_count = 0;
+  for (int value = 0; value < 256; ++value) {
+    const char* name =
+        Zelda3Labels::GetOracleTileTypeName(static_cast<uint8_t>(value));
+    if (name == nullptr) {
+      EXPECT_EQ(oracle[value], vanilla[value]) << "type " << value;
+    } else {
+      EXPECT_EQ(oracle[value], name) << "type " << value;
+      ++oracle_count;
+    }
+  }
+  EXPECT_EQ(oracle_count, 31);  // 0E, 64-65, B0-BE, D0-D7, DD-DE, E8-E9, EC
+  for (const auto& [value, name] : kExpected) {
+    EXPECT_EQ(oracle[value], name) << "type " << static_cast<int>(value);
+  }
+  // Unallocated values keep their vanilla names.
+  EXPECT_EQ(oracle[0x20], "Pit");
+  EXPECT_EQ(oracle[0xD8], vanilla[0xD8]);
+  EXPECT_EQ(oracle[0xEA], vanilla[0xEA]);
 }
 
 }  // namespace yaze::zelda3

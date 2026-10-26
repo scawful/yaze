@@ -10,6 +10,7 @@
 #include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze {
 
@@ -110,6 +111,11 @@ struct CustomTileTypeTable {
 // table operands it reads. Falls back to the vanilla addresses when the code
 // does not match the routine's shape.
 CustomTileTypeTable ResolveCustomTileTypeTable(const Rom& rom);
+
+// Tile type names for `rom`: Oracle of Secrets names when $0E:942A is the
+// decodable JSL hook Oracle installs (CustomTileTypeSource::kHook), vanilla
+// names otherwise.
+TileTypeNameSet DetectTileTypeNameSet(const Rom& rom);
 
 // TILEATTR ($7EFE00, 512 bytes): LoadDefaultTileTypes (#_0E97D9) copies
 // UnderworldTileTypes ($0E:9659) entries 0x000-0x13F to 0x000 and

@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_ZELDA3_LABELS_H
 #define YAZE_APP_ZELDA3_ZELDA3_LABELS_H
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -8,6 +9,13 @@
 
 namespace yaze {
 namespace zelda3 {
+
+// Which names to show for tile types (TILEATTR values, $7EFE00). Oracle of
+// Secrets gives some vanilla and unused values its own meaning.
+enum class TileTypeNameSet : uint8_t {
+  kVanilla,
+  kOracleOfSecrets,
+};
 
 /**
  * @struct Zelda3Labels
@@ -60,6 +68,12 @@ struct Zelda3Labels {
 
   // Tile type names
   static const std::vector<std::string>& GetTileTypeNames();
+  // The 256 tile type names for `set`: Oracle names where Oracle defines the
+  // value, vanilla names elsewhere.
+  static const std::vector<std::string>& GetTileTypeNames(TileTypeNameSet set);
+  // Oracle of Secrets name for `value`, or nullptr when Oracle uses the
+  // vanilla meaning.
+  static const char* GetOracleTileTypeName(uint8_t value);
 
   /**
    * @brief Convert all labels to a structured map for project embedding

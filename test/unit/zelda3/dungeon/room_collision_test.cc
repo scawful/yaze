@@ -157,6 +157,24 @@ TEST_F(RoomCollisionTest, UndecodableHookFallsBackToVanillaTables) {
   EXPECT_EQ(LoadUnderworldTileAttributeTable(rom, 3)[0x140], 0x66);
 }
 
+// Oracle tile type names follow the same $0E:942A hook signal.
+TEST_F(RoomCollisionTest, TileTypeNameSetIsOracleOnlyForDecodedHook) {
+  EXPECT_EQ(DetectTileTypeNameSet(rom_), TileTypeNameSet::kVanilla);
+
+  std::vector<uint8_t> data(rom_.vector());
+  const uint8_t jsl[] = {0x22, 0x00, 0x80, 0x1E, 0x6B};
+  std::copy(std::begin(jsl), std::end(jsl),
+            data.begin() + kLoadCustomTileTypes);
+  Rom unrecognized;
+  ASSERT_TRUE(unrecognized.LoadFromData(data).ok());
+  EXPECT_EQ(DetectTileTypeNameSet(unrecognized), TileTypeNameSet::kVanilla);
+
+  PutLoadCustomTileTypes(data, 0x0F0000, 0x9000, 0x9030);  // $1E:8000
+  Rom hooked;
+  ASSERT_TRUE(hooked.LoadFromData(data).ok());
+  EXPECT_EQ(DetectTileTypeNameSet(hooked), TileTypeNameSet::kOracleOfSecrets);
+}
+
 TEST_F(RoomCollisionTest, BasicPassAddsFlipBitsOnlyToTypes10To1B) {
   auto input = EmptyRoom();
   input.tilemaps.bg1[0] = 0x0005;                // no flip

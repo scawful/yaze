@@ -17,6 +17,7 @@
 #include "util/file_util.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room_collision.h"
 #include "zelda3/zelda3_labels.h"
 
 #include <algorithm>
@@ -219,7 +220,9 @@ class CustomCollisionPanel : public WindowContent {
         ImGui::TextDisabled(tr("%dx%d"), (brush_radius * 2) + 1,
                             (brush_radius * 2) + 1);
 
-        const auto& tile_types = zelda3::Zelda3Labels::GetTileTypeNames();
+        // Oracle of Secrets ROMs (hooked $0E:942A) name Oracle's own types.
+        const auto& tile_types = zelda3::Zelda3Labels::GetTileTypeNames(
+            zelda3::DetectTileTypeNameSet(*viewer_->rom()));
 
         if (ImGui::BeginCombo(tr("Collision Type"),
                               absl::StrFormat("%02X: %s", current_val,
@@ -252,9 +255,9 @@ class CustomCollisionPanel : public WindowContent {
         quick_button("D.Water (08)", 0x08);
         quick_button("S.Water (09)", 0x09);
         ImGui::SameLine();
-        quick_button("Pit (1B)", 0x1B);
+        quick_button("Pit (20)", 0x20);
         ImGui::SameLine();
-        quick_button("Spikes (0E)", 0x0E);
+        quick_button("Spikes (0D)", 0x0D);
       }
 
       ImGui::Separator();

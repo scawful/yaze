@@ -14,6 +14,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_collision.h"
 #include "zelda3/game_data.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze {
 namespace cli {
@@ -23,10 +24,32 @@ namespace {
 
 constexpr uint8_t kPitType = 0x20;
 
+// "Minecart stop S" -> "minecart_stop_s".
+std::string SnakeCaseName(const char* label) {
+  std::string out;
+  for (const char* c = label; *c != '\0'; ++c) {
+    if (absl::ascii_isalnum(static_cast<unsigned char>(*c))) {
+      out.push_back(absl::ascii_tolower(static_cast<unsigned char>(*c)));
+    } else if (!out.empty() && out.back() != '_') {
+      out.push_back('_');
+    }
+  }
+  while (!out.empty() && out.back() == '_') {
+    out.pop_back();
+  }
+  return out;
+}
+
 // Names for the attribute values the editor and agents ask about most. The
-// groups follow the object and door passes in room_collision.h; anything else
-// prints as its hex value.
-std::string TileTypeName(uint8_t value) {
+// groups follow the object and door passes in room_collision.h; Oracle of
+// Secrets ROMs name Oracle's own types; anything else prints as its hex value.
+std::string TileTypeName(uint8_t value, zelda3::TileTypeNameSet names) {
+  if (names == zelda3::TileTypeNameSet::kOracleOfSecrets) {
+    if (const char* oracle =
+            zelda3::Zelda3Labels::GetOracleTileTypeName(value)) {
+      return SnakeCaseName(oracle);
+    }
+  }
   switch (value) {
     case 0x00:
       return "floor";
@@ -142,6 +165,11 @@ absl::Status DungeonTileTypesCommandHandler::Execute(
       zelda3::ResolveCustomTileTypeTable(*rom);
   formatter.AddField("custom_tile_types",
                      zelda3::CustomTileTypeSourceName(custom_types.source));
+  const zelda3::TileTypeNameSet names = zelda3::DetectTileTypeNameSet(*rom);
+  formatter.AddField("tile_type_names",
+                     names == zelda3::TileTypeNameSet::kOracleOfSecrets
+                         ? "oracle_of_secrets"
+                         : "vanilla");
   formatter.AddHexField("custom_tile_type_offsets",
                         PcToSnes(custom_types.offsets_pc), 6);
   formatter.AddHexField("custom_tile_type_data", PcToSnes(custom_types.data_pc),
@@ -153,7 +181,7 @@ absl::Status DungeonTileTypesCommandHandler::Execute(
   formatter.AddField("custom_collision_cells", custom_cells);
   formatter.AddHexField("match_type", static_cast<uint64_t>(match_type), 2);
   formatter.AddField("match_type_name",
-                     TileTypeName(static_cast<uint8_t>(match_type)));
+                     TileTypeName(static_cast<uint8_t>(match_type), names));
 
   const LayerView kLayers[] = {
       {"upper", "COLMAPA $7F2000", "BG1", 0, &tilemaps.bg1},
@@ -186,7 +214,9 @@ absl::Status DungeonTileTypesCommandHandler::Execute(
     for (const auto& [value, count] : counts) {
       formatter.BeginObject();
       formatter.AddHexField("type", value, 2);
-      formatter.AddField("name", TileTypeName(value));
+      formatter.AddField("name", TileTypeName(value, names));
+      formatter.AddField("label",
+                         zelda3::Zelda3Labels::GetTileTypeNames(names)[value]);
       formatter.AddField("cells", count);
       formatter.EndObject();
     }

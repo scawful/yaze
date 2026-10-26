@@ -1382,6 +1382,12 @@ CustomTileTypeTable ResolveCustomTileTypeTable(const Rom& rom) {
   return vanilla;
 }
 
+TileTypeNameSet DetectTileTypeNameSet(const Rom& rom) {
+  return ResolveCustomTileTypeTable(rom).source == CustomTileTypeSource::kHook
+             ? TileTypeNameSet::kOracleOfSecrets
+             : TileTypeNameSet::kVanilla;
+}
+
 std::array<uint8_t, kTileAttributeTableSize> LoadUnderworldTileAttributeTable(
     const Rom& rom, uint8_t blockset) {
   return LoadUnderworldTileAttributeTable(rom, blockset,
