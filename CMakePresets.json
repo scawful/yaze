@@ -264,6 +264,13 @@
     "name": "mac-dev",
     "configurePreset": "mac-dev"
   },
+  {
+    "displayName": "macOS Lean Editor Build",
+    "configuration": "Debug",
+    "jobs": 4,
+    "name": "mac-editor",
+    "configurePreset": "mac-editor"
+  },
     {
       "displayName": "Mac AI Dev",
       "configuration": "Debug",
@@ -1518,6 +1525,32 @@
         "lhs": "${hostSystemName}"
       },
       "description": "Development build with ROM tests"
+    },
+    {
+      "inherits": "mac-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "YAZE_BUILD_CLI": "OFF",
+        "YAZE_BUILD_Z3ED": "OFF",
+        "YAZE_BUILD_TESTS": "OFF",
+        "YAZE_ENABLE_AI": "OFF",
+        "YAZE_ENABLE_AI_RUNTIME": "OFF",
+        "YAZE_ENABLE_GRPC": "OFF",
+        "YAZE_ENABLE_REMOTE_AUTOMATION": "OFF",
+        "YAZE_BUILD_AGENT_UI": "OFF",
+        "YAZE_ENABLE_AGENT_CLI": "OFF",
+        "YAZE_ENABLE_HTTP_API": "OFF",
+        "YAZE_ENABLE_JSON": "ON"
+      },
+      "displayName": "macOS Lean Editor",
+      "name": "mac-editor",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
+      "condition": {
+        "type": "equals",
+        "rhs": "Darwin",
+        "lhs": "${hostSystemName}"
+      },
+      "description": "Debug GUI editor without agent UI, AI, gRPC, z3ed, or tests; mac-ai keeps the full feature set"
     },
     {
       "inherits": "mac-base",

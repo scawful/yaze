@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/statusor.h"
+
 namespace yaze::rom {
 
 // This is the proposed overworld ROM format, not the separate SRAM event format.
@@ -31,6 +33,10 @@ struct LyraLayoutInspection {
   uint16_t capacity = 0;
   uint16_t active_count = 0;
   bool write_supported = true;
+  // A revision-2 capability permits only the dedicated A0 terrain Save As.
+  // Generic ROM writes remain refused for every Lyra revision.
+  bool a0_terrain_write_supported = false;
+  bool offline_only = true;
   std::string error;
   std::vector<LyraLayoutEntry> entries;
 };
@@ -50,6 +56,16 @@ std::optional<std::span<const uint8_t>> LyraLayoutRecord(
 std::optional<std::array<uint16_t, 256>> LyraMapTile32(
     const LyraLayoutInspection& layout, const uint8_t* image, size_t size,
     size_t map_index);
+
+inline constexpr uint32_t kLyraA0HighStreamPc = 0x132000;
+inline constexpr uint32_t kLyraA0LowStreamPc = 0x132200;
+inline constexpr size_t kLyraA0StreamSlotSize = 512;
+
+// Stages a complete image without mutating the caller. Revision 1, malformed
+// descriptors and every unowned byte remain protected. No checksum is changed.
+absl::StatusOr<std::vector<uint8_t>> SerializeLyraA0Terrain(
+    const std::vector<uint8_t>& baseline,
+    const std::array<uint16_t, 256>& tiles);
 
 }  // namespace yaze::rom
 

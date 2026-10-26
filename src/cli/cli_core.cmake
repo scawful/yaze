@@ -9,17 +9,52 @@ if(EMSCRIPTEN)
   )
 endif()
 
+# The CLI sources yaze_editor calls directly. yaze_editor links only this
+# library, so a GUI build with the agent stack disabled does not compile every
+# z3ed command. Keep this list closed over its own cli/ includes.
+set(YAZE_CLI_EDITOR_SHARED_SOURCES
+  cli/flags.cc
+  cli/handlers/game/minecart_commands.cc
+  cli/handlers/game/oracle_menu_commands.cc
+  cli/handlers/game/oracle_smoke_check_commands.cc
+  cli/handlers/rom/mock_rom.cc
+  cli/service/agent/tools/project_graph_tool.cc
+  cli/service/resources/command_context.cc
+  cli/service/resources/command_handler.cc
+  cli/service/rom/rom_sandbox_manager.cc
+)
+
+add_library(yaze_cli_editor_shared STATIC ${YAZE_CLI_EDITOR_SHARED_SOURCES})
+
+set_target_properties(yaze_cli_editor_shared PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(yaze_cli_editor_shared PUBLIC
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/inc
+  ${CMAKE_BINARY_DIR}/gens
+)
+
+target_link_libraries(yaze_cli_editor_shared PUBLIC
+  yaze_common
+  yaze_util
+  yaze_core_lib
+  yaze_rom
+  yaze_zelda3
+  yaze_emulator
+  ${ABSL_TARGETS}
+)
+
+if(YAZE_ENABLE_JSON)
+  target_link_libraries(yaze_cli_editor_shared PUBLIC nlohmann_json::nlohmann_json)
+endif()
+
 set(YAZE_CLI_CORE_SOURCES
   cli/cli.cc
-  cli/flags.cc
   cli/global_flags.cc
   cli/subcommand_routes.cc
   cli/util/ansi_style.cc
   cli/service/command_registry.cc
   cli/service/usage_schema.cc
-  cli/service/resources/command_context.cc
-  cli/service/resources/command_handler.cc
-  cli/service/agent/tools/project_graph_tool.cc
   cli/service/resources/resource_catalog.cc
   cli/service/resources/resource_context_builder.cc
   cli/handlers/mesen_handlers.cc
@@ -49,10 +84,7 @@ set(YAZE_CLI_CORE_SOURCES
   app/service/headless_overlay_renderer.cc
   app/service/render_service.cc
   cli/handlers/game/message_commands.cc
-  cli/handlers/game/minecart_commands.cc
   cli/handlers/game/music_commands.cc
-  cli/handlers/game/oracle_menu_commands.cc
-  cli/handlers/game/oracle_smoke_check_commands.cc
   cli/handlers/game/overworld_commands.cc
   cli/handlers/game/terrain_catalog_commands.cc
   cli/handlers/game/overworld_graph_commands.cc
@@ -62,7 +94,6 @@ set(YAZE_CLI_CORE_SOURCES
 
   cli/handlers/net/net_commands.cc
 
-  cli/handlers/rom/mock_rom.cc
   cli/handlers/rom/project_bundle_archive_commands.cc
   cli/handlers/rom/project_bundle_verify_commands.cc
   cli/handlers/rom/project_commands.cc
@@ -91,7 +122,6 @@ set(YAZE_CLI_CORE_SOURCES
   cli/service/gui/canvas_automation_client.cc
   cli/service/gui/gui_automation_client.cc
   cli/service/net/z3ed_network_client.cc
-  cli/service/rom/rom_sandbox_manager.cc
   cli/service/testing/test_suite_loader.cc
   cli/service/testing/test_suite_reporter.cc
   cli/service/testing/test_suite_writer.cc
@@ -118,6 +148,12 @@ add_library(yaze_cli_core STATIC ${YAZE_CLI_CORE_SOURCES})
 
 set_target_properties(yaze_cli_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+# The GUI alone reaches the CLI only through yaze_cli_editor_shared.
+if(NOT (YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS OR YAZE_BUILD_CLI OR
+        YAZE_BUILD_AGENT_UI OR YAZE_ENABLE_AGENT_CLI OR YAZE_ENABLE_GRPC))
+  set_target_properties(yaze_cli_core PROPERTIES EXCLUDE_FROM_ALL TRUE)
+endif()
+
 target_include_directories(yaze_cli_core PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/inc
@@ -126,6 +162,7 @@ target_include_directories(yaze_cli_core PUBLIC
 )
 
 target_link_libraries(yaze_cli_core PUBLIC
+  yaze_cli_editor_shared
   yaze_common
   yaze_util
   yaze_core_lib

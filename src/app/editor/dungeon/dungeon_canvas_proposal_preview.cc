@@ -45,6 +45,71 @@ void DrawOutlinedText(ImDrawList* draw_list, ImVec2 pos, ImU32 color,
   draw_list->AddText(pos, color, text.c_str());
 }
 
+void DrawArrow(ImDrawList* draw_list, ImVec2 a, ImVec2 b, ImU32 color,
+               float scale) {
+  const float dx = b.x - a.x;
+  const float dy = b.y - a.y;
+  const float len = std::sqrt(dx * dx + dy * dy);
+  if (len < 0.001f)
+    return;
+  const float ux = dx / len;
+  const float uy = dy / len;
+  const float head = std::max(5.0f, 6.0f * scale);
+  draw_list->AddLine(a, b, color, std::max(2.0f, 2.0f * scale));
+  draw_list->AddTriangleFilled(b,
+                               ImVec2(b.x - ux * head - uy * head * 0.6f,
+                                      b.y - uy * head + ux * head * 0.6f),
+                               ImVec2(b.x - ux * head + uy * head * 0.6f,
+                                      b.y - uy * head - ux * head * 0.6f),
+                               color);
+}
+
+// UI-only selection, scoped to the preview window and proposal title. Loading
+// an older proposal with no steps continues to show its complete overlay.
+int DrawProposalStepSelector(const DungeonProposalOverlay& overlay) {
+  if (overlay.steps.empty())
+    return -1;
+  ImGui::PushID(overlay.title.c_str());
+  const ImGuiID key = ImGui::GetID("ProposalSelectedStep");
+  ImGuiStorage* storage = ImGui::GetStateStorage();
+  int selected = storage->GetInt(key, -1);
+  if (selected < -1 || static_cast<size_t>(selected) >= overlay.steps.size())
+    selected = -1;
+  ImGui::SetNextItemWidth(260.0f);
+  const char* label =
+      selected < 0 ? tr("All steps") : overlay.steps[selected].label.c_str();
+  if (ImGui::BeginCombo(tr("Preview step"), label)) {
+    if (ImGui::Selectable(tr("All steps"), selected < 0))
+      selected = -1;
+    for (size_t i = 0; i < overlay.steps.size(); ++i) {
+      const auto& step = overlay.steps[i];
+      ImGui::PushID(step.id.c_str());
+      if (ImGui::Selectable(step.label.c_str(),
+                            selected == static_cast<int>(i)))
+        selected = static_cast<int>(i);
+      ImGui::PopID();
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(selected <= 0);
+  if (ImGui::Button(tr("Previous")))
+    --selected;
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  ImGui::BeginDisabled(selected + 1 >= static_cast<int>(overlay.steps.size()));
+  if (ImGui::Button(tr("Next")))
+    ++selected;
+  ImGui::EndDisabled();
+  storage->SetInt(key, selected);
+  if (selected >= 0 && !overlay.steps[selected].detail.empty())
+    ImGui::TextWrapped("%s", overlay.steps[selected].detail.c_str());
+  ImGui::TextDisabled("%s", tr("Preview only. Actor markers and object "
+                               "footprints do not change the room."));
+  ImGui::PopID();
+  return selected;
+}
+
 void DrawProposalShape(ImDrawList* draw_list, const ProposalShape& shape,
                        const ProposalLayer& layer, ImVec2 room_origin,
                        float scale) {
@@ -55,6 +120,61 @@ void DrawProposalShape(ImDrawList* draw_list, const ProposalShape& shape,
     return ImVec2(room_origin.x + x * scale, room_origin.y + y * scale);
   };
   switch (shape.type) {
+    case ProposalShapeType::kActor: {
+      const auto r = ProposalFootprintToPixels(shape);
+      const ImVec2 p0 = to_screen(r.x0, r.y0);
+      const ImVec2 p1 = to_screen(r.x1, r.y1);
+      const ImVec2 center =
+          to_screen((r.x0 + r.x1) * 0.5f, (r.y0 + r.y1) * 0.5f);
+      // Deliberately abstract: do not imply loaded NPC art or collision bounds.
+      draw_list->AddRectFilled(p0, p1, fill, 3.0f * scale);
+      draw_list->AddRect(p0, p1, stroke, 3.0f * scale, 0, 2.0f);
+      ImVec2 direction(0, 0);
+      switch (shape.facing) {
+        case ProposalFacing::kNorth:
+          direction.y = -1;
+          break;
+        case ProposalFacing::kEast:
+          direction.x = 1;
+          break;
+        case ProposalFacing::kSouth:
+          direction.y = 1;
+          break;
+        case ProposalFacing::kWest:
+          direction.x = -1;
+          break;
+      }
+      DrawArrow(draw_list, center,
+                ImVec2(center.x + direction.x * 14 * scale,
+                       center.y + direction.y * 14 * scale),
+                stroke, scale);
+      DrawOutlinedText(draw_list, ImVec2(p1.x + 5, p0.y), text, shape.label);
+      break;
+    }
+    case ProposalShapeType::kObject: {
+      const auto r = ProposalFootprintToPixels(shape);
+      const ImVec2 p0 = to_screen(r.x0, r.y0);
+      const ImVec2 p1 = to_screen(r.x1, r.y1);
+      draw_list->AddRectFilled(p0, p1, ToImColor(layer.color_rgba, 0.12f));
+      // Corner brackets keep the underlying room legible and distinguish a
+      // proposed footprint from an already rendered object.
+      const float tick =
+          std::min(8.0f * scale, std::min(p1.x - p0.x, p1.y - p0.y) * 0.4f);
+      for (int corner = 0; corner < 4; ++corner) {
+        const bool right = (corner & 1) != 0;
+        const bool bottom = (corner & 2) != 0;
+        const ImVec2 p(right ? p1.x : p0.x, bottom ? p1.y : p0.y);
+        draw_list->AddLine(p, ImVec2(p.x + (right ? -tick : tick), p.y), stroke,
+                           2);
+        draw_list->AddLine(p, ImVec2(p.x, p.y + (bottom ? -tick : tick)),
+                           stroke, 2);
+      }
+      const std::string label =
+          absl::StrFormat("$%03X%s%s", shape.object_id,
+                          shape.label.empty() ? "" : " ", shape.label);
+      DrawOutlinedText(draw_list, ImVec2(p0.x + 3, p0.y + 2), text, label);
+      break;
+    }
     case ProposalShapeType::kRect: {
       const auto r = ProposalTileRectToPixels(shape.tiles[0], shape.tiles[1]);
       const ImVec2 p0 = to_screen(r.x0, r.y0);
@@ -79,18 +199,7 @@ void DrawProposalShape(ImDrawList* draw_list, const ProposalShape& shape,
       // Arrowhead on the last segment shows travel direction.
       const ImVec2 a = points[points.size() - 2];
       const ImVec2 b = points.back();
-      const float dx = b.x - a.x;
-      const float dy = b.y - a.y;
-      const float len = std::max(0.001f, std::sqrt(dx * dx + dy * dy));
-      const float ux = dx / len;
-      const float uy = dy / len;
-      const float head = std::max(7.0f, 7.0f * scale);
-      draw_list->AddTriangleFilled(b,
-                                   ImVec2(b.x - ux * head - uy * head * 0.6f,
-                                          b.y - uy * head + ux * head * 0.6f),
-                                   ImVec2(b.x - ux * head + uy * head * 0.6f,
-                                          b.y - uy * head - ux * head * 0.6f),
-                                   stroke);
+      DrawArrow(draw_list, a, b, stroke, scale);
       if (!shape.label.empty()) {
         const ImVec2 mid((a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f);
         DrawOutlinedText(draw_list, ImVec2(mid.x + 4, mid.y + 4), text,
@@ -151,6 +260,7 @@ void DungeonCanvasViewer::DrawProposalPreview(
   if (overlay.rooms.empty()) {
     return;
   }
+  const int selected_step = DrawProposalStepSelector(overlay);
 
   // Prepare every room composite first, then upload textures once so a newly
   // opened preview draws in the same frame.
@@ -168,7 +278,8 @@ void DungeonCanvasViewer::DrawProposalPreview(
   const ImVec2 origin = ImGui::GetCursorScreenPos();
   const ImVec2 content = GetProposalPreviewContentSize(overlay, scale);
   ImGui::InvisibleButton("##DungeonProposalPreviewSurface", content);
-  const bool surface_hovered = ImGui::IsItemHovered();
+  const bool surface_hovered =
+      ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal);
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   const ImVec2 mouse = ImGui::GetMousePos();
   const float room_size = kDungeonRoomPixelSize * scale;
@@ -215,6 +326,8 @@ void DungeonCanvasViewer::DrawProposalPreview(
         continue;
       }
       const auto& layer = overlay.layers[li];
+      if (!ProposalLayerInStep(overlay, layer.id, selected_step))
+        continue;
       for (const auto& shape : layer.shapes) {
         if (shape.room_id != room.room_id) {
           continue;
@@ -228,6 +341,16 @@ void DungeonCanvasViewer::DrawProposalPreview(
           }
           if (!shape.detail.empty()) {
             line += " - " + shape.detail;
+          }
+          if (shape.type == ProposalShapeType::kActor) {
+            const auto r = ProposalFootprintToPixels(shape);
+            line +=
+                absl::StrFormat(" (actor anchor %d,%d px; preview only)",
+                                static_cast<int>(r.x0), static_cast<int>(r.y0));
+          } else if (shape.type == ProposalShapeType::kObject) {
+            line += absl::StrFormat(
+                " ($%03X, size %d, list %d; suggested footprint only)",
+                shape.object_id, shape.object_size, shape.object_list);
           }
           hover_lines.push_back(std::move(line));
         }
@@ -245,10 +368,16 @@ void DungeonCanvasViewer::DrawProposalPreview(
   }
 
   if (!hover_lines.empty()) {
+    const float wrap_width = std::max(
+        1.0f,
+        std::min(360.0f, ImGui::GetWindowViewport()->WorkSize.x -
+                             2.0f * ImGui::GetStyle().WindowPadding.x - 16.0f));
     ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + wrap_width);
     for (const auto& line : hover_lines) {
       ImGui::TextUnformatted(line.c_str());
     }
+    ImGui::PopTextWrapPos();
     ImGui::EndTooltip();
   }
 }

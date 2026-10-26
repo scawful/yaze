@@ -1,0 +1,49 @@
+{
+  "anchor": [
+    0,
+    0
+  ],
+  "binding": {
+    "adapter_id": "synthetic-v1",
+    "definition_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "game_id": "synthetic",
+    "profile_fingerprint": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "rom_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tile_count": 8
+  },
+  "clearance": [],
+  "content_id": "5cc876752987679d180b199ba58a29ab24042b7e3cce58303aa3e69f26cedbe8",
+  "overlap_policy": "reject",
+  "ports": [
+    {
+      "allowed_tile16": [
+        1
+      ],
+      "at": [
+        2,
+        0
+      ],
+      "name": "east"
+    }
+  ],
+  "provenance": {
+    "kind": "original synthetic example; no engine semantics"
+  },
+  "review_state": "reviewed",
+  "rows": [
+    [
+      2,
+      null
+    ],
+    [
+      0,
+      3
+    ]
+  ],
+  "schema_version": 1,
+  "semantic_id": "example.original-inlay",
+  "units": "tile16",
+  "unresolved_behavior": [
+    "Synthetic tile values have no engine behavior."
+  ]
+}

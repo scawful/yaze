@@ -26,8 +26,23 @@ namespace yaze::editor {
 
 namespace {
 
-std::optional<int> MapFromCanvasPosition(const CanvasNavigationContext& ctx,
-                                         ImVec2 scaled_position) {
+int DisplayedMapCount(const CanvasNavigationContext& ctx,
+                      const CanvasNavigationCallbacks& callbacks) {
+  return callbacks.displayed_map_count
+             ? callbacks.displayed_map_count()
+             : (ctx.overworld ? ctx.overworld->inspected_map_count()
+                              : zelda3::kNumOverworldMaps);
+}
+
+bool IsProjectTerrainMap(const CanvasNavigationCallbacks& callbacks,
+                         int map_id) {
+  return callbacks.is_project_terrain_map &&
+         callbacks.is_project_terrain_map(map_id);
+}
+
+std::optional<int> MapFromCanvasPosition(
+    const CanvasNavigationContext& ctx,
+    const CanvasNavigationCallbacks& callbacks, ImVec2 scaled_position) {
   if (!ctx.ow_map_canvas || !ctx.overworld || !ctx.current_world) {
     return std::nullopt;
   }
@@ -35,8 +50,9 @@ std::optional<int> MapFromCanvasPosition(const CanvasNavigationContext& ctx,
   // truncation previously mapped small negative positions onto screen zero.
   const auto target = ResolveOverworldContextTarget(
       *ctx.current_world, 0, scaled_position, ImVec2(0, 0), ImVec2(0, 0),
-      ctx.ow_map_canvas->global_scale(), ctx.overworld->inspected_map_count());
-  if (!target || !ctx.overworld->overworld_map(target->map_id)) {
+      ctx.ow_map_canvas->global_scale(), DisplayedMapCount(ctx, callbacks));
+  if (!target || (!IsProjectTerrainMap(callbacks, target->map_id) &&
+                  !ctx.overworld->overworld_map(target->map_id))) {
     return std::nullopt;
   }
   return target->map_id;
@@ -48,7 +64,8 @@ void SetHoveredMap(const CanvasNavigationContext& ctx, int map_id) {
   }
 }
 
-void SelectMapFallback(const CanvasNavigationContext& ctx, int map_id,
+void SelectMapFallback(const CanvasNavigationContext& ctx,
+                       const CanvasNavigationCallbacks& callbacks, int map_id,
                        bool respect_pin) {
   if (!ctx.current_map || !ctx.current_world || !ctx.current_parent ||
       !ctx.current_map_lock || !ctx.overworld) {
@@ -57,16 +74,20 @@ void SelectMapFallback(const CanvasNavigationContext& ctx, int map_id,
   if (respect_pin && *ctx.current_map_lock) {
     return;
   }
-  if (map_id < 0 || map_id >= ctx.overworld->inspected_map_count()) {
+  if (map_id < 0 || map_id >= DisplayedMapCount(ctx, callbacks)) {
     return;
   }
   const auto* map = ctx.overworld->overworld_map(map_id);
-  if (!map) {
+  const bool project_terrain = IsProjectTerrainMap(callbacks, map_id);
+  if (!project_terrain && !map) {
     return;
   }
   *ctx.current_map = map_id;
   *ctx.current_world = std::clamp(map_id / 0x40, 0, 2);
-  *ctx.current_parent = map->parent();
+  *ctx.current_parent = project_terrain ? map_id : map->parent();
+  if (project_terrain) {
+    return;
+  }
   ctx.overworld->set_current_map(map_id);
   ctx.overworld->set_current_world(*ctx.current_world);
 }
@@ -78,7 +99,7 @@ void SelectMapForEditing(const CanvasNavigationContext& ctx,
     callbacks.select_map_for_editing(map_id, respect_pin);
     return;
   }
-  SelectMapFallback(ctx, map_id, respect_pin);
+  SelectMapFallback(ctx, callbacks, map_id, respect_pin);
 }
 
 }  // namespace
@@ -100,7 +121,8 @@ void CanvasNavigationManager::Initialize(
 
 std::optional<int> CanvasNavigationManager::TrackMapAtCanvasPosition(
     ImVec2 scaled_position) {
-  const auto hovered_map = MapFromCanvasPosition(ctx_, scaled_position);
+  const auto hovered_map =
+      MapFromCanvasPosition(ctx_, callbacks_, scaled_position);
   SetHoveredMap(ctx_, hovered_map.value_or(-1));
   if (hover_follow_suspended_at_) {
     const ImVec2 mouse =
@@ -153,11 +175,14 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
   }
 
   // Unpinned selection follows the cursor in every editing mode.
+  const bool hovered_project_terrain =
+      IsProjectTerrainMap(callbacks_, *hovered_map);
+  const auto* hovered_model = ctx_.overworld->overworld_map(*hovered_map);
   bool should_build = false;
   if (*hovered_map != last_hovered_map_) {
     last_hovered_map_ = *hovered_map;
     hover_time_ = 0.0f;
-    should_build = ctx_.overworld->overworld_map(*hovered_map)->is_built();
+    should_build = hovered_model && hovered_model->is_built();
   } else {
     hover_time_ += ImGui::GetIO().DeltaTime;
     should_build = (hover_time_ >= kHoverBuildDelay) ||
@@ -165,11 +190,12 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
                    ImGui::IsMouseClicked(ImGuiMouseButton_Right);
   }
 
-  if (should_build) {
+  if (!hovered_project_terrain && hovered_model && should_build) {
     RETURN_IF_ERROR(ctx_.overworld->EnsureMapBuilt(*hovered_map));
   }
 
-  if (hover_time_ >= kPreloadStartDelay && preload_queue_.empty()) {
+  if (!hovered_project_terrain && hover_time_ >= kPreloadStartDelay &&
+      preload_queue_.empty()) {
     QueueAdjacentMapsForPreload(*hovered_map);
   }
 
@@ -177,8 +203,20 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
 
   const int current_highlighted_map = *ctx_.current_map;
   if (current_highlighted_map < 0 ||
-      current_highlighted_map >= ctx_.overworld->inspected_map_count() ||
-      ctx_.overworld->overworld_map(current_highlighted_map) == nullptr) {
+      current_highlighted_map >= DisplayedMapCount(ctx_, callbacks_)) {
+    return absl::OkStatus();
+  }
+  if (IsProjectTerrainMap(callbacks_, current_highlighted_map)) {
+    const int local_map = current_highlighted_map % 0x40;
+    ctx_.ow_map_canvas->DrawOutline((local_map % 8) * kOverworldMapSize,
+                                    (local_map / 8) * kOverworldMapSize,
+                                    kOverworldMapSize, kOverworldMapSize);
+    if (!hovered_project_terrain && callbacks_.ensure_map_texture) {
+      callbacks_.ensure_map_texture(*hovered_map);
+    }
+    return absl::OkStatus();
+  }
+  if (!ctx_.overworld->overworld_map(current_highlighted_map)) {
     return absl::OkStatus();
   }
 
@@ -280,7 +318,7 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
   // Ensure current map has texture created for rendering
   if (callbacks_.ensure_map_texture) {
     callbacks_.ensure_map_texture(*ctx_.current_map);
-    if (*hovered_map != *ctx_.current_map) {
+    if (!hovered_project_terrain && *hovered_map != *ctx_.current_map) {
       callbacks_.ensure_map_texture(*hovered_map);
     }
   }
@@ -329,10 +367,14 @@ std::optional<int> CanvasNavigationManager::MapUnderCursor() const {
   if (!ctx_.ow_map_canvas) {
     return std::nullopt;
   }
-  if (ctx_.hovered_map && *ctx_.hovered_map >= 0) {
+  if (ctx_.hovered_map && *ctx_.hovered_map >= 0 &&
+      *ctx_.hovered_map < DisplayedMapCount(ctx_, callbacks_) &&
+      (IsProjectTerrainMap(callbacks_, *ctx_.hovered_map) ||
+       (ctx_.overworld && ctx_.overworld->overworld_map(*ctx_.hovered_map)))) {
     return *ctx_.hovered_map;
   }
-  return MapFromCanvasPosition(ctx_, ctx_.ow_map_canvas->hover_mouse_pos());
+  return MapFromCanvasPosition(ctx_, callbacks_,
+                               ctx_.ow_map_canvas->hover_mouse_pos());
 }
 
 bool CanvasNavigationManager::SelectMapUnderCursor() {
@@ -635,11 +677,10 @@ void CanvasNavigationManager::ZoomToFit() {
     return;
   }
   constexpr float kWorldSize = kOverworldMapSize * 8.0f;
-  // The special world only allocates four rows of screens.
-  const bool special_world =
-      ctx_.current_world && *ctx_.current_world == 2 &&
-      (!ctx_.overworld || !ctx_.overworld->is_lyra_preview());
-  const float world_height = special_world ? kWorldSize * 0.5f : kWorldSize;
+  const int world = ctx_.current_world ? *ctx_.current_world : 0;
+  const int world_maps =
+      std::clamp(DisplayedMapCount(ctx_, callbacks_) - world * 0x40, 1, 64);
+  const float world_height = ((world_maps + 7) / 8) * kOverworldMapSize;
   const float scale =
       std::min(viewport_size_.x / kWorldSize, viewport_size_.y / world_height);
   ctx_.ow_map_canvas->set_global_scale(
@@ -662,8 +703,7 @@ void CanvasNavigationManager::CenterOverworldView() {
 }
 
 void CanvasNavigationManager::CenterOnMap(int map_id) {
-  const int map_count = ctx_.overworld ? ctx_.overworld->inspected_map_count()
-                                       : zelda3::kNumOverworldMaps;
+  const int map_count = DisplayedMapCount(ctx_, callbacks_);
   if (!ctx_.ow_map_canvas || map_id < 0 || map_id >= map_count) {
     return;
   }
@@ -702,7 +742,8 @@ void CanvasNavigationManager::CenterOnWorldTile(int world_x, int world_y) {
 // =============================================================================
 
 void CanvasNavigationManager::ScrollBlocksetCanvasToCurrentTile() {
-  if (*ctx_.blockset_selector) {
+  if (ctx_.blockset_selector && *ctx_.blockset_selector &&
+      ctx_.current_tile16) {
     (*ctx_.blockset_selector)->ScrollToTile(*ctx_.current_tile16);
     return;
   }
@@ -719,7 +760,8 @@ void CanvasNavigationManager::ScrollBlocksetCanvasToCurrentTile() {
 }
 
 void CanvasNavigationManager::UpdateBlocksetSelectorState() {
-  if (!*ctx_.blockset_selector) {
+  if (!ctx_.blockset_selector || !*ctx_.blockset_selector ||
+      !ctx_.current_tile16) {
     return;
   }
 
@@ -739,7 +781,8 @@ void CanvasNavigationManager::QueueAdjacentMapsForPreload(int center_map) {
 #endif
 
   if (!ctx_.overworld || center_map < 0 ||
-      center_map >= ctx_.overworld->inspected_map_count()) {
+      center_map >= ctx_.overworld->inspected_map_count() ||
+      IsProjectTerrainMap(callbacks_, center_map)) {
     return;
   }
 
@@ -769,6 +812,8 @@ void CanvasNavigationManager::QueueAdjacentMapsForPreload(int center_map) {
       // Only queue if not already built
       if (neighbor_index >= 0 &&
           neighbor_index < ctx_.overworld->inspected_map_count() &&
+          !IsProjectTerrainMap(callbacks_, neighbor_index) &&
+          ctx_.overworld->overworld_map(neighbor_index) &&
           !ctx_.overworld->overworld_map(neighbor_index)->is_built()) {
         preload_queue_.push_back(neighbor_index);
       }
@@ -784,13 +829,17 @@ void CanvasNavigationManager::ProcessPreloadQueue() {
   return;
 #endif
 
-  if (preload_queue_.empty()) {
+  if (!ctx_.overworld || preload_queue_.empty()) {
     return;
   }
 
   // Process one map per frame to avoid blocking (native only)
   int map_to_preload = preload_queue_.back();
   preload_queue_.pop_back();
+  if (IsProjectTerrainMap(callbacks_, map_to_preload) ||
+      !ctx_.overworld->overworld_map(map_to_preload)) {
+    return;
+  }
 
   // Silent build - don't update UI state
   auto status = ctx_.overworld->EnsureMapBuilt(map_to_preload);

@@ -1,6 +1,7 @@
 #include "app/editor/dungeon/dungeon_selection_edit.h"
 
 #include <climits>
+#include <tuple>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -480,6 +481,161 @@ TEST_F(DungeonSelectionEditTest, RejectsOverflowingClipboardSpritePosition) {
   request.kind = DungeonSelectionEditKind::kPaste;
   request.clipboard = &clipboard;
   EXPECT_FALSE(PlanDungeonSelectionEdit(room_, request).ok());
+}
+
+TEST_F(DungeonSelectionEditTest, DoorTrimPlansAcceptedD3NorthSurrounds) {
+  for (const auto [position, x, y] :
+       {std::tuple{0, 13, 3}, std::tuple{2, 45, 3}, std::tuple{7, 29, 35}}) {
+    room_.GetDoors() = {Door(position)};
+    const auto before = CaptureDungeonSelectionEditState(room_);
+    const auto plan = PlanDungeonDoorTrim(room_, 0);
+    ASSERT_TRUE(plan.ok()) << plan.status();
+    EXPECT_EQ(plan->kind, DungeonSelectionEditKind::kDoorTrim);
+    EXPECT_EQ(plan->domains, kSelectionObjects);
+    ASSERT_EQ(plan->after.objects.size(), before.objects.size() + 2);
+    for (int side = 0; side < 2; ++side) {
+      const auto& trim = plan->after.objects[before.objects.size() + side];
+      EXPECT_EQ(trim.id_, 0x005);
+      EXPECT_EQ(trim.x_, x + side * 4);
+      EXPECT_EQ(trim.y_, y);
+      EXPECT_EQ(trim.size_, 0);
+      EXPECT_EQ(trim.GetLayerValue(), 2);
+    }
+    EXPECT_EQ(plan->after.selected_objects, (std::vector<size_t>{2, 3}));
+    EXPECT_EQ(plan->after.selected_entities,
+              (std::vector<SelectedEntity>{{EntityType::Door, 0}}));
+    auto without_trim = plan->after;
+    without_trim.objects.erase(
+        without_trim.objects.begin() + before.objects.size(),
+        without_trim.objects.end());
+    EXPECT_EQ(ChangedDungeonSelectionDomains(before, without_trim), 0);
+    EXPECT_EQ(ChangedDungeonSelectionDomains(
+                  before, CaptureDungeonSelectionEditState(room_)),
+              0);
+    EXPECT_FALSE(room_.object_stream_dirty());
+  }
+}
+
+TEST_F(DungeonSelectionEditTest, DoorTrimReusesPartialAndCompleteSurround) {
+  room_.SetTileObjects({Object(0x005, 17, 3, 2)});
+  const auto partial = PlanDungeonDoorTrim(room_, 0);
+  ASSERT_TRUE(partial.ok()) << partial.status();
+  ASSERT_EQ(partial->after.objects.size(), 2);
+  EXPECT_EQ(partial->after.selected_objects, (std::vector<size_t>{1, 0}));
+  EXPECT_EQ(partial->after.objects[0].x_, 17);
+  EXPECT_EQ(partial->after.objects[1].x_, 13);
+  ApplyDungeonSelectionEditState(room_, partial->after, partial->domains);
+  room_.ClearSaveDirtyState();
+  const auto complete = PlanDungeonDoorTrim(room_, 0);
+  ASSERT_TRUE(complete.ok()) << complete.status();
+  EXPECT_FALSE(complete->changed());
+  EXPECT_EQ(complete->after.objects.size(), 2);
+  EXPECT_EQ(complete->after.selected_objects, (std::vector<size_t>{1, 0}));
+  EXPECT_EQ(complete->after.selected_entities,
+            (std::vector<SelectedEntity>{{EntityType::Door, 0}}));
+  EXPECT_FALSE(room_.object_stream_dirty());
+}
+
+TEST_F(DungeonSelectionEditTest, DoorTrimRejectsConflictsWithoutMutation) {
+  const std::vector<zelda3::RoomObject> conflicts = {
+      Object(0x006, 13, 3, 2), Object(0x065, 13, 3, 2),
+      Object(0x066, 13, 3, 2), zelda3::RoomObject(0x005, 13, 3, 1, 2),
+      Object(0x005, 13, 3, 1), Object(0x005, 12, 3, 2)};
+  for (const auto& conflict : conflicts) {
+    room_.SetTileObjects({conflict});
+    const auto before = CaptureDungeonSelectionEditState(room_);
+    const auto plan = PlanDungeonDoorTrim(room_, 0);
+    ASSERT_FALSE(plan.ok());
+    EXPECT_EQ(plan.status().code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_EQ(ChangedDungeonSelectionDomains(
+                  before, CaptureDungeonSelectionEditState(room_)),
+              0);
+  }
+  room_.SetTileObjects({Object(0x005, 13, 3, 2), Object(0x005, 13, 3, 2)});
+  EXPECT_FALSE(PlanDungeonDoorTrim(room_, 0).ok());
+}
+
+TEST_F(DungeonSelectionEditTest, DoorTrimRejectsUnsupportedAndInvalidDoors) {
+  EXPECT_FALSE(PlanDungeonDoorTrim(room_, 1).ok());
+  EXPECT_FALSE(PlanDungeonDoorTrim(room_, static_cast<size_t>(-1)).ok());
+  for (auto type :
+       {zelda3::DoorType::NormalDoorLower, zelda3::DoorType::BigKeyDoor}) {
+    room_.GetDoors()[0].type = type;
+    EXPECT_FALSE(PlanDungeonDoorTrim(room_, 0).ok());
+  }
+  room_.GetDoors()[0] = Door();
+  room_.GetDoors()[0].direction = static_cast<zelda3::DoorDirection>(255);
+  EXPECT_FALSE(PlanDungeonDoorTrim(room_, 0).ok());
+  room_.GetDoors()[0] = Door();
+  for (int position : {12, 63, 255}) {
+    room_.GetDoors()[0].position = position;
+    EXPECT_FALSE(PlanDungeonDoorTrim(room_, 0).ok());
+  }
+}
+
+TEST_F(DungeonSelectionEditTest, DoorTrimSupportsAllFourNativeOrientations) {
+  struct Example {
+    zelda3::DoorDirection direction;
+    int id, x1, y1, x2, y2;
+  };
+  const Example examples[] = {
+      {zelda3::DoorDirection::North, 0x005, 13, 3, 17, 3},
+      {zelda3::DoorDirection::South, 0x006, 13, 27, 17, 27},
+      {zelda3::DoorDirection::West, 0x065, 1, 14, 1, 18},
+      {zelda3::DoorDirection::East, 0x066, 27, 14, 27, 18},
+  };
+  for (const auto& example : examples) {
+    room_.SetTileObjects({});
+    auto door = Door();
+    door.direction = example.direction;
+    room_.GetDoors() = {door};
+    const auto plan = PlanDungeonDoorTrim(room_, 0);
+    ASSERT_TRUE(plan.ok()) << plan.status();
+    ASSERT_EQ(plan->after.objects.size(), 2);
+    EXPECT_EQ(plan->after.objects[0].id_, example.id);
+    EXPECT_EQ(plan->after.objects[0].x_, example.x1);
+    EXPECT_EQ(plan->after.objects[0].y_, example.y1);
+    EXPECT_EQ(plan->after.objects[1].id_, example.id);
+    EXPECT_EQ(plan->after.objects[1].x_, example.x2);
+    EXPECT_EQ(plan->after.objects[1].y_, example.y2);
+    ApplyDungeonSelectionEditState(room_, plan->after, plan->domains);
+    const auto again = PlanDungeonDoorTrim(room_, 0);
+    ASSERT_TRUE(again.ok()) << again.status();
+    EXPECT_FALSE(again->changed());
+    EXPECT_EQ(again->after.selected_objects, (std::vector<size_t>{0, 1}));
+  }
+}
+
+TEST_F(DungeonSelectionEditTest, DoorTrimRespectsObjectCapacity) {
+  room_.SetTileObjects(std::vector<zelda3::RoomObject>(
+      zelda3::kMaxTileObjects - 1, Object(0x21)));
+  const auto plan = PlanDungeonDoorTrim(room_, 0);
+  ASSERT_FALSE(plan.ok());
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(room_.GetTileObjects().size(), zelda3::kMaxTileObjects - 1);
+}
+
+TEST_F(DungeonSelectionEditTest, DoorTrimPreservesNearbyPillarGaps) {
+  // A size-1 pillar writes at x=9..10 and x=15..16, leaving space for
+  // the requested pieces at x=13..14 and x=17..18.
+  room_.SetTileObjects({zelda3::RoomObject(0x005, 9, 3, 1, 2)});
+  const auto plan = PlanDungeonDoorTrim(room_, 0);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->after.objects.size(), 3);
+  EXPECT_EQ(plan->after.objects[0].x_, 9);
+}
+
+TEST_F(DungeonSelectionEditTest, DoorTrimRejectsRepeatedPillarOverlap) {
+  // The second piece starts at x=13, six tiles after the first, and
+  // overlaps the requested left trim even though the first piece is clear.
+  room_.SetTileObjects({zelda3::RoomObject(0x005, 7, 3, 1, 2)});
+  const auto before = CaptureDungeonSelectionEditState(room_);
+  const auto plan = PlanDungeonDoorTrim(room_, 0);
+  ASSERT_FALSE(plan.ok());
+  EXPECT_EQ(plan.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ChangedDungeonSelectionDomains(
+                before, CaptureDungeonSelectionEditState(room_)),
+            0);
 }
 
 }  // namespace

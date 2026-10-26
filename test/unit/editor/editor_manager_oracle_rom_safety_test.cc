@@ -103,6 +103,7 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldExits = false;
   o.kSaveOverworldItems = false;
   o.kSaveOverworldProperties = false;
+  o.kSaveOverworldSprites = false;
 }
 
 TEST(EditorManagerOracleRomSafetyTest,

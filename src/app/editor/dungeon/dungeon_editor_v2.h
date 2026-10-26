@@ -174,6 +174,7 @@ class DungeonEditorV2 : public Editor {
   absl::Status Save() override;
   // Reject excluded model edits before any writer runs. Apply Room narrows
   // room-local streams; shared tables still include all pending room records.
+  // Dirty fixed headers in scope must not share storage with another room.
   absl::Status ValidateSaveScope(int only_room = -1,
                                  bool room_data_only = false) const;
   absl::Status BeginSaveTransaction() override;
@@ -217,6 +218,9 @@ class DungeonEditorV2 : public Editor {
   bool HasUnpublishedMinecartTrackChanges() const;
   bool HasPendingProjectDraftChanges() const;
   absl::Status PrepareProjectSave();
+  // Rename (label) or reset (nullopt) a room's name in the active project.
+  absl::Status ApplyRoomLabelEdit(int room_id,
+                                  std::optional<std::string> label);
   bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
@@ -256,6 +260,8 @@ class DungeonEditorV2 : public Editor {
   // Room management
   void add_room(int room_id);
   void FocusRoom(int room_id);
+  absl::Status LoadProposalForReview(const std::string& path);
+  std::string proposal_review_path() const;
 
   // Agent/Automation controls
   void SelectObject(int obj_id);
@@ -472,6 +478,9 @@ class DungeonEditorV2 : public Editor {
 
   absl::Status SaveRoomData(int room_id);
   absl::Status SaveRoomImpl(int room_id, bool room_data_only);
+  // Fixed 14-byte room headers have no copy-on-write allocator. Refuse an
+  // in-place header write that would also change another room's header.
+  static absl::Status ValidateRoomHeaderOwnership(const Rom& rom, int room_id);
   absl::Status RunWithSaveTransaction(
       const std::function<absl::Status()>& operation);
 
@@ -735,6 +744,7 @@ class DungeonEditorV2 : public Editor {
   absl::Status RestoreRoomEntities(int room_id, MutationDomain domain,
                                    const DungeonEntitySnapshot& snapshot);
 
+  void InvalidateConnectedRoomGraphs();
   void BeginCollisionUndoSnapshot(int room_id);
   void FinalizeCollisionUndoAction(int room_id);
   void RestoreRoomCustomCollision(int room_id,
@@ -745,6 +755,8 @@ class DungeonEditorV2 : public Editor {
   absl::Status ApplyMinecartCollisionBatch(
       const std::vector<zelda3::TrackCollisionResult>& preview,
       const zelda3::GeneratorOptions& options);
+  absl::Status ApplyCustomCollisionImportBatch(
+      const std::vector<zelda3::CustomCollisionRoomEntry>& entries);
   absl::Status RestoreRoomCustomCollisionBatch(
       const std::vector<DungeonCustomCollisionSnapshot>& snapshots);
 

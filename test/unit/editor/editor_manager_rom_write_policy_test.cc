@@ -29,6 +29,7 @@
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/graphics/sheet_png_transfer.h"
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/session/rom_lifecycle_manager.h"
@@ -782,6 +783,7 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldExits = false;
   o.kSaveOverworldItems = false;
   o.kSaveOverworldProperties = false;
+  o.kSaveOverworldSprites = false;
 }
 
 class RomLifecycleRebindPolicyTest : public ::testing::Test {
@@ -826,6 +828,27 @@ class RomLifecycleRebindPolicyTest : public ::testing::Test {
   Rom rom_;
   RomLifecycleManager lifecycle_;
 };
+
+TEST_F(RomLifecycleRebindPolicyTest, ReadOnlyBlocksEditableSourceAndSaveAs) {
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
+  for (bool with_manifest : {false, true}) {
+    if (with_manifest)
+      LoadManifest();
+    // A configured editable source is normally exempt from hash checks.
+    for (const std::string expected :
+         {std::string(), std::string("deadbeef")}) {
+      project_.rom_metadata.expected_hash = expected;
+      lifecycle_.ConfirmRomWrite();
+      EXPECT_EQ(lifecycle_.CheckRomWritePolicy(&rom_).code(),
+                absl::StatusCode::kPermissionDenied);
+      EXPECT_EQ(
+          lifecycle_.CheckRomWritePolicy(&rom_, alternate_.string()).code(),
+          absl::StatusCode::kPermissionDenied);
+      EXPECT_EQ(lifecycle_.CheckRomWritePolicy(&rom_, output_.string()).code(),
+                absl::StatusCode::kPermissionDenied);
+    }
+  }
+}
 
 TEST_F(RomLifecycleRebindPolicyTest, NoFixedManifestRetainsGenericRebind) {
   rom_.set_filename(alternate_.string());
@@ -941,7 +964,7 @@ TEST_F(RomLifecycleRebindPolicyTest,
 }
 
 TEST(EditorManagerBackingFileIdentityTest,
-     RawRomOpenRejectsLexicalAliasOfActiveBackingFile) {
+     RawRomOpenActivatesLexicalAliasOfActiveBackingFile) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -958,19 +981,22 @@ TEST(EditorManagerBackingFileIdentityTest,
   ASSERT_TRUE(std::filesystem::create_directory(alias_dir));
 
   ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* const active_rom = manager->GetCurrentRom();
+  ASSERT_OK(active_rom->WriteByte(0x100, 0xA5));
   const auto alias_path = alias_dir / ".." / rom_path.filename();
   const auto status = manager->OpenRomOrProject(alias_path.string());
 
-  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists) << status;
-  EXPECT_NE(std::string(status.message()).find("already open"),
-            std::string::npos);
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
   EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
-  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  ASSERT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(active_rom->vector()[0x100], 0xA5);
+  EXPECT_TRUE(active_rom->dirty());
   EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_path.string());
 }
 
 TEST(EditorManagerBackingFileIdentityTest,
-     RawRomOpenRejectsEquivalentHardLinkOfActiveBackingFile) {
+     RawRomOpenActivatesEquivalentHardLinkOfActiveBackingFile) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -992,9 +1018,11 @@ TEST(EditorManagerBackingFileIdentityTest,
   }
 
   ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* const active_rom = manager->GetCurrentRom();
   const auto status = manager->OpenRomOrProject(hard_link_path.string());
 
-  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists) << status;
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
 }
 
@@ -1875,6 +1903,40 @@ TEST(EditorManagerBackupRestoreTest,
 }
 
 TEST(EditorManagerRomWritePolicyTest,
+     ReadOnlyBlocksSaveAndSaveAsForConfiguredEditableSource) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  const auto path = MakeTempFilePath("yaze_readonly_project.sfc");
+  const auto out = MakeTempFilePath("yaze_readonly_refused.sfc");
+  ScopedFileCleanup cleanup{path};
+  ScopedFileCleanup out_cleanup{out};
+  WriteTestRom(path);
+  const auto size_before = std::filesystem::file_size(path);
+  const auto byte_before = ReadByteAt(path, 0x1234);
+  ASSERT_OK(manager->OpenRomOrProject(path.string()));
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "ReadOnlyReference";
+  project->filepath = (path.parent_path() / "readonly.yaze").string();
+  project->rom_filename = path.string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kReadOnly;
+  project->rom_metadata.expected_hash.clear();
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, byte_before ^ 0xFF));
+  EXPECT_EQ(manager->SaveRom().code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(manager->SaveRomAs(out.string()).code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_FALSE(std::filesystem::exists(out));
+  EXPECT_EQ(ReadByteAt(path, 0x1234), byte_before);
+  EXPECT_EQ(std::filesystem::file_size(path), size_before);
+  EXPECT_FALSE(manager->IsRomWriteConfirmPending());
+}
+
+TEST(EditorManagerRomWritePolicyTest,
      SaveRomBlocksOnHashMismatchWhenPolicyBlock) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
@@ -2373,7 +2435,7 @@ TEST(GraphicsSaveStoplossTest,
 }
 
 TEST(EditorManagerRomWritePolicyTest,
-     CleanSaveDoesNotMaterializeUnopenedOverworldEditor) {
+     CleanSavePreservesContextBoundUnloadedOverworldEditor) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -2396,7 +2458,13 @@ TEST(EditorManagerRomWritePolicyTest,
   ASSERT_NE(dungeon_editor, nullptr);
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kDungeon),
             dungeon_editor);
-  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld), nullptr);
+  // Project context binding may create the editor without loading its assets.
+  auto* const overworld_editor = static_cast<OverworldEditor*>(
+      editor_set->GetExistingEditor(EditorType::kOverworld));
+  ASSERT_NE(overworld_editor, nullptr);
+  EXPECT_FALSE(overworld_editor->overworld().is_loaded());
+  const auto original_bytes = manager->GetCurrentRom()->vector();
+  const auto original_hash = util::ComputeFileSha1Hex(rom_path.string());
 
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
@@ -2406,7 +2474,56 @@ TEST(EditorManagerRomWritePolicyTest,
   ASSERT_OK(manager->SaveRom());
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kDungeon),
             dungeon_editor);
-  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld), nullptr);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld),
+            overworld_editor);
+  EXPECT_FALSE(overworld_editor->overworld().is_loaded());
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), original_bytes);
+  EXPECT_EQ(util::ComputeFileSha1Hex(rom_path.string()), original_hash);
+}
+
+TEST(EditorManagerRomWritePolicyTest,
+     UnrelatedRomSaveAsSkipsContextBoundUnloadedOverworld) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  InitializeWithIsolatedSettings(*manager, renderer.get());
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+  const auto source = MakeTempFilePath("yaze_unrelated_lazy_save_source.sfc");
+  const auto destination =
+      MakeTempFilePath("yaze_unrelated_lazy_save_copy.sfc");
+  ScopedFileCleanup source_cleanup{source};
+  ScopedFileCleanup destination_cleanup{destination};
+  WriteTestRom(source, "UNRELATED LAZY SAVE");
+  const auto source_hash = util::ComputeFileSha1Hex(source.string());
+  ASSERT_OK(manager->OpenRomOrProject(source.string()));
+  DisableRomWritesForTest();
+  // Keep this unrelated save scope enabled. A context-only editor has no
+  // loaded item model to publish, and must not try to read or write it.
+  core::FeatureFlags::get().overworld.kSaveOverworldItems = true;
+  auto* const editors = manager->GetCurrentEditorSet();
+  ASSERT_NE(editors, nullptr);
+  auto* const overworld = static_cast<OverworldEditor*>(
+      editors->GetExistingEditor(EditorType::kOverworld));
+  ASSERT_NE(overworld, nullptr);
+  ASSERT_FALSE(overworld->overworld().is_loaded());
+  auto* const rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x120, 0xA5));
+  const auto edited = rom->vector();
+
+  ASSERT_OK(manager->SaveRomAs(destination.string()));
+
+  EXPECT_EQ(editors->GetExistingEditor(EditorType::kOverworld), overworld);
+  EXPECT_FALSE(overworld->overworld().is_loaded());
+  EXPECT_TRUE(core::FeatureFlags::get().overworld.kSaveOverworldItems);
+  EXPECT_EQ(rom->vector(), edited);
+  EXPECT_FALSE(rom->dirty());
+  Rom reopened;
+  ASSERT_OK(reopened.LoadFromFile(destination.string()));
+  EXPECT_EQ(reopened.vector(), edited);
+  EXPECT_EQ(util::ComputeFileSha1Hex(source.string()), source_hash);
 }
 
 TEST(GraphicsSaveStoplossTest,

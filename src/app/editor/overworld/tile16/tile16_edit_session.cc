@@ -99,7 +99,7 @@ absl::Status Tile16EditSession::InitializeBitmaps(
   edited_tile_bitmaps_.clear();
   undo_manager_.Clear();
   tile8_usage_cache_dirty_ = true;
-  all_tiles_types_ = all_tiles_types;
+  SetCollisionTypes(all_tiles_types);
   tile16_blockset_bmp_ = &tile16_blockset_bmp;
   current_gfx_bmp_ = &current_gfx_bmp;
 

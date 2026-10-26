@@ -254,7 +254,9 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
   RefreshResourceLabelProvider();
 
   const std::string category = window_manager_.GetActiveCategory();
-  if (session != nullptr && !category.empty() &&
+  // Per-frame visits must keep the live visibility flags. Replaying saved
+  // preferences here resurrects windows immediately after an ImGui close.
+  if (!transient && session != nullptr && !category.empty() &&
       category != WorkspaceWindowManager::kDashboardCategory) {
     auto it = user_settings_.prefs().panel_visibility_state.find(category);
     if (it != user_settings_.prefs().panel_visibility_state.end()) {

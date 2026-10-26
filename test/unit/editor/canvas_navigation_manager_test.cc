@@ -192,6 +192,151 @@ TEST_F(CanvasMapTrackingTest, UnallocatedSpecialWorldRowsDoNotSelectAMap) {
   EXPECT_EQ(hovered_map_, -1);
 }
 
+TEST_F(CanvasMapTrackingTest, ProjectTerrainTracksWithoutChangingRomSelection) {
+  callbacks_.displayed_map_count = [] {
+    return 192;
+  };
+  callbacks_.is_project_terrain_map = [](int id) {
+    return id >= 0xA0 && id < 0xC0;
+  };
+  manager_.Initialize(ctx_, callbacks_);
+  current_world_ = 2;
+  overworld_->set_current_map(0x80);
+  overworld_->set_current_world(2);
+  canvas_.set_global_scale(0.5f);
+
+  for (int map : {0xA0, 0xA1, 0xA8, 0xBF}) {
+    const int local = map - 0x80;
+    EXPECT_EQ(manager_.TrackMapAtCanvasPosition(
+                  ImVec2((local % 8) * 256 + 4, (local / 8) * 256 + 4)),
+              map);
+    EXPECT_EQ(current_map_, map);
+    EXPECT_EQ(current_parent_, map);
+    EXPECT_EQ(hovered_map_, map);
+    EXPECT_EQ(overworld_->current_map_id(), 0x80);
+    EXPECT_EQ(overworld_->overworld_map(map), nullptr);
+  }
+  current_map_lock_ = true;
+  manager_.TrackMapAtCanvasPosition(ImVec2(4, 1028));
+  EXPECT_EQ(current_map_, 0xBF);
+  EXPECT_EQ(hovered_map_, 0xA0);
+  EXPECT_TRUE(manager_.SelectMapUnderCursor());
+  EXPECT_EQ(current_map_, 0xA0);
+  EXPECT_EQ(overworld_->current_map_id(), 0x80);
+
+  current_map_lock_ = false;
+  manager_.TrackMapAtCanvasPosition(ImVec2(260, 4));
+  EXPECT_EQ(current_map_, 0x81);
+  EXPECT_EQ(overworld_->current_map_id(), 0x81);
+  EXPECT_EQ(overworld_->inspected_map_count(), 160);
+}
+
+TEST_F(CanvasMapTrackingTest, DisplayCountAloneCannotSelectMissingRomMaps) {
+  callbacks_.displayed_map_count = [] {
+    return 192;
+  };
+  manager_.Initialize(ctx_, callbacks_);
+  current_world_ = 2;
+  EXPECT_FALSE(manager_.TrackMapAtCanvasPosition(ImVec2(8, 2048)));
+  EXPECT_EQ(hovered_map_, -1);
+  EXPECT_EQ(current_map_, 0);
+}
+
+TEST_F(CanvasMapTrackingTest, ProjectTerrainHoverSkipsRomBuildAndTextures) {
+  ImGuiContext* context = ImGui::CreateContext();
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(800, 700);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  auto bitmaps =
+      std::make_unique<std::array<gfx::Bitmap, zelda3::kExpandedMapCount>>();
+  ctx_.maps_bmp = bitmaps.get();
+  ctx_.rom = &rom_;
+  callbacks_.displayed_map_count = [] {
+    return 192;
+  };
+  callbacks_.is_project_terrain_map = [](int id) {
+    return id >= 0xA0 && id < 0xC0;
+  };
+  int texture_requests = 0;
+  callbacks_.ensure_map_texture = [&](int) {
+    ++texture_requests;
+  };
+  manager_.Initialize(ctx_, callbacks_);
+  current_world_ = 2;
+  overworld_->set_current_map(0x80);
+  canvas_.set_global_scale(0.125f);
+  // A0 is visible below the legacy four rows at this zoom. Exercise the
+  // rendering path as well as tracking: it formerly dereferenced a null map.
+  for (int frame = 0; frame < 3; ++frame) {
+    io.MousePos = ImVec2(40, 300);
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(700, 650));
+    ImGui::Begin("Project terrain hover");
+    canvas_.DrawBackground(ImVec2(4096, 4096));
+    EXPECT_TRUE(manager_.CheckForCurrentMap().ok());
+    if (frame == 2) {
+      EXPECT_TRUE(canvas_.IsMouseHovering());
+      EXPECT_EQ(current_map_, 0xA0);
+      EXPECT_EQ(current_parent_, 0xA0);
+    }
+    ImGui::End();
+    ImGui::Render();
+  }
+  EXPECT_EQ(texture_requests, 0);
+  EXPECT_EQ(overworld_->current_map_id(), 0x80);
+  EXPECT_EQ(overworld_->overworld_maps().size(), 160u);
+  for (const auto& map : overworld_->overworld_maps()) {
+    EXPECT_FALSE(map.is_built());
+  }
+  ImGui::DestroyContext(context);
+}
+
+TEST_F(CanvasNavigationManagerTest, ProjectTerrainCenterAndFitUseEightRows) {
+  ImGuiContext* context = ImGui::CreateContext();
+  auto& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DisplaySize = ImVec2(1400, 1000);
+  io.DeltaTime = 1.0f / 60.0f;
+  unsigned char* pixels = nullptr;
+  int width = 0, height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  callbacks_.displayed_map_count = [] {
+    return 192;
+  };
+  manager_.Initialize(ctx_, callbacks_);
+  current_world_ = 2;
+  manager_.CenterOnMap(0xBF);
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(1300, 900));
+    ImGui::Begin("Project terrain navigation");
+    manager_.BeginCanvasViewport();
+    ImGui::BeginChild("Map viewport", ImVec2(1100, 700), false,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    manager_.EndCanvasViewport(false);
+    ImGui::Dummy(ImVec2(4096, 4096));
+    if (frame == 2) {
+      const auto* window = ImGui::GetCurrentWindow();
+      // BF reaches the bottom edge; centering clamps to the content bounds.
+      EXPECT_NEAR(window->Scroll.y + window->InnerRect.GetHeight(), 4096.0f,
+                  1.0f);
+      manager_.ZoomToFit();
+      EXPECT_NEAR(canvas_.global_scale(),
+                  window->InnerRect.GetHeight() / 4096.0f, 0.001f);
+    }
+    ImGui::EndChild();
+    ImGui::End();
+    ImGui::Render();
+  }
+  ImGui::DestroyContext(context);
+}
+
 // ===========================================================================
 // ZoomIn / ZoomOut
 // ===========================================================================
