@@ -207,9 +207,13 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
     return absl::InvalidArgumentError("--project-context cannot be empty");
   }
 
+  // Open() points the global label provider at this local project, so save the
+  // caller's wiring first and put it back if the open fails.
+  const auto label_state = zelda3::GetResourceLabels().SnapshotState();
   project::YazeProject project;
   auto open_status = project.Open(*config_.project_context_path);
   if (!open_status.ok()) {
+    zelda3::GetResourceLabels().RestoreState(label_state);
     return absl::FailedPreconditionError(
         absl::StrFormat("Failed to open project context '%s': %s",
                         *config_.project_context_path, open_status.message()));
@@ -238,10 +242,10 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
       zelda3::CustomObjectManager::Get().SnapshotState();
 
   auto& active_project = loaded_project_.value();
-  // Open() bound the label provider to the moved-from local above.
-  zelda3::GetResourceLabels().SetHackManifest(
-      active_project.hack_manifest.loaded() ? &active_project.hack_manifest
-                                            : nullptr);
+  // Project names (e.g. Oracle sprite slots) replace vanilla names in output.
+  // Re-point the provider at the stored copy; the local project moved above.
+  previous_label_state_ = label_state;
+  active_project.InitializeResourceLabelProvider();
   core::FeatureFlags::get() = active_project.feature_flags;
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
@@ -291,8 +295,13 @@ void CommandContext::RestoreProjectRuntimeContext() {
     zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 
+  if (previous_label_state_.has_value()) {
+    zelda3::GetResourceLabels().RestoreState(*previous_label_state_);
+  }
+
   previous_custom_object_state_.reset();
   previous_feature_flags_.reset();
+  previous_label_state_.reset();
   loaded_project_.reset();
   project_runtime_applied_ = false;
 }

@@ -90,6 +90,9 @@ struct CanvasNavigationContext {
 
 /// @brief Callbacks for operations that remain in the OverworldEditor.
 struct CanvasNavigationCallbacks {
+  // Display-only project maps have no OverworldMap in the ROM model.
+  std::function<int()> displayed_map_count;
+  std::function<bool(int)> is_project_terrain_map;
   std::function<void()> refresh_overworld_map;
   std::function<absl::Status()> refresh_tile16_blockset;
   std::function<void(int)> ensure_map_texture;

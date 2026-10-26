@@ -84,7 +84,8 @@ endif()
 # Add gRPC dependencies if test harness is enabled
 if(YAZE_WITH_GRPC)
   target_compile_definitions(yaze_test_support PRIVATE YAZE_WITH_JSON)
-  target_link_libraries(yaze_test_support PUBLIC yaze_grpc_support)
+  # z3ed_test_suite.cc drives cli::GuiAutomationClient from yaze_cli_core.
+  target_link_libraries(yaze_test_support PUBLIC yaze_grpc_support yaze_cli_core)
   message(STATUS "  - gRPC test harness service enabled in yaze_test_support")
 endif()
 

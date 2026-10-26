@@ -191,6 +191,7 @@ class DungeonObjectSelector {
   std::function<absl::Status(int, const zelda3::RoomObject&)>
       edit_object_tiles_callback_;
   void DrawObjectContextMenu(int object_id, int subtype = -1);
+  void DrawObjectDetails(int object_id, int subtype);
   ObjectTileEditorPanel* tile_editor_panel_ = nullptr;
   std::function<bool()> open_tile_editor_window_callback_;
   std::function<bool()> open_minecart_editor_window_callback_;

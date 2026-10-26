@@ -486,9 +486,11 @@ class OverworldMap : public gfx::GfxContext {
     area_size_ = AreaSizeEnum::SmallArea;
   }
 
-  void SetAreaSize(AreaSizeEnum size) {
+  // Rectangular areas retain the 2x2 quadrant numbering: right=1, bottom=2.
+  void SetAreaSize(AreaSizeEnum size, int quadrant = 0) {
     area_size_ = size;
     large_map_ = (size == AreaSizeEnum::LargeArea);
+    large_index_ = quadrant;
   }
 
   void SetParent(int parent_index) { parent_ = parent_index; }

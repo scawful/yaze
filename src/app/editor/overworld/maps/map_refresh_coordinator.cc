@@ -721,6 +721,13 @@ void MapRefreshCoordinator::RefreshMapProperties(int map_id) {
 
 absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
   LOG_DEBUG("MapRefreshCoordinator", "RefreshTile16Blockset called");
+  if (!ctx_.tile16_editor || !ctx_.overworld || !ctx_.current_map) {
+    return absl::FailedPreconditionError(
+        "Tile16 refresh context is incomplete");
+  }
+  // Do not leave the preceding map's labels visible if a later build or
+  // collision-layout read fails while switching maps.
+  ctx_.tile16_editor->ClearCollisionTypes();
   if (!ctx_.overworld->overworld_map(*ctx_.current_map)) {
     return absl::FailedPreconditionError("Current overworld map not loaded");
   }
@@ -728,6 +735,14 @@ absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
   auto* current_map = ctx_.overworld->mutable_overworld_map(*ctx_.current_map);
   if (!current_map) {
     return absl::FailedPreconditionError("Current overworld map not loaded");
+  }
+  const auto collision_types =
+      ctx_.overworld->GetTile8CollisionTypes(*ctx_.current_map);
+  if (collision_types.ok()) {
+    ctx_.tile16_editor->SetCollisionTypes(*collision_types);
+  } else {
+    LOG_WARN("MapRefreshCoordinator", "Collision labels unavailable: %s",
+             collision_types.status().ToString().c_str());
   }
   // Area graphics ids are reused across worlds; refresh even when the id
   // matches so DW/SW base sheets and palettes do not inherit LW state.

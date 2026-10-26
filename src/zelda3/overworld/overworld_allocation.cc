@@ -13,6 +13,7 @@
 #include "nlohmann/json.hpp"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
+#include "zelda3/overworld/zscream_custom_layout.h"
 
 namespace yaze::zelda3 {
 
@@ -599,8 +600,9 @@ absl::StatusOr<OverworldAllocationReport> BuildOverworldAllocationReport(
   report.tables = OverworldAreaTableCatalogue(report.asm_version);
   const TailMapExpansionPlan plan;
   const uint32_t marker_pc = LoRomSnesToPc(plan.marker_snes);
-  report.tail_marker_present =
-      marker_pc < rom->size() && rom->data()[marker_pc] == plan.marker_value;
+  report.tail_marker_present = zscream::CanUseTailExpansion(*rom) &&
+                               marker_pc < rom->size() &&
+                               rom->data()[marker_pc] == plan.marker_value;
 
   report.areas.resize(kAllocationAreaCount);
   for (int id = 0; id < kAllocationAreaCount; ++id) {
@@ -918,8 +920,9 @@ TailMapExpansionCheck CheckTailMapExpansion(
   if (marker_pc < rom.size()) {
     check.marker_value = rom.data()[marker_pc];
   }
-  check.marker_present =
-      marker_pc < rom.size() && check.marker_value == plan.marker_value;
+  check.marker_present = zscream::CanUseTailExpansion(rom) &&
+                         marker_pc < rom.size() &&
+                         check.marker_value == plan.marker_value;
   const int table_bytes = plan.table_entries * 3;
 
   check.regions.push_back(MakeRegion(rom, annotator, "marker",
@@ -992,6 +995,13 @@ TailMapExpansionCheck CheckTailMapExpansion(
   };
 
   // ROM findings.
+  if (!zscream::CanUseTailExpansion(rom)) {
+    add(TailCheckScope::kRom, "custom_layout_conflict",
+        absl::StrCat(zscream::LayoutName(zscream::DetectLayout(rom)),
+                     " is incompatible with the old tail-map table layout; "
+                     "the $EA marker cannot identify expansion in this format"),
+        true);
+  }
   if (!IsZsV3(check.asm_version)) {
     add(TailCheckScope::kRom, "zscustom_v3_required",
         absl::StrFormat("ZSCustomOverworld v3 is required; this ROM reports "

@@ -16,8 +16,10 @@ constexpr size_t kDescriptorPc = 0x147000;
 constexpr size_t kDescriptorSize = 1024;
 constexpr size_t kHeaderSize = 32;
 constexpr size_t kEntrySize = 16;
-constexpr size_t kEntryCount = 35;
-constexpr size_t kUsedSize = kHeaderSize + kEntryCount * kEntrySize;
+constexpr size_t kRevision1EntryCount = 35;
+constexpr size_t kEntryCount = 36;
+constexpr size_t kRevision1UsedSize =
+    kHeaderSize + kRevision1EntryCount * kEntrySize;
 constexpr char kMagic[] = "OOSOW192";
 
 struct EntrySpec {
@@ -41,7 +43,7 @@ constexpr std::array<EntrySpec, kEntryCount> kSpecs = {{
     {25, 1, 64, 1},     {26, 1, 192, 1},    {27, 1, 64, 1},
     {28, 1, 128, 1},    {29, 1, 192, 1},    {30, 1, 192, 1},
     {31, 1, 192, 1},    {100, 2, 16384, 1}, {200, 3, 32368, 1},
-    {201, 3, 16671, 1}, {202, 3, 32768, 1},
+    {201, 3, 16671, 1}, {202, 3, 32768, 1}, {203, 4, 2, 512},
 }};
 
 constexpr std::array<std::pair<uint32_t, uint32_t>, 3> kStreamWindows = {{
@@ -111,7 +113,8 @@ bool StreamPointerPc(size_t size, uint32_t snes, uint32_t* pc) {
 }
 
 bool DecodeStream(const uint8_t* image, size_t size, uint32_t start,
-                  std::array<uint8_t, 256>* decoded) {
+                  std::array<uint8_t, 256>* decoded,
+                  size_t* consumed_end = nullptr) {
   size_t limit = std::min<size_t>(size, ((start / 0x8000) + 1) * 0x8000);
   for (const auto& [begin, end] : kStreamWindows) {
     if (start >= begin && start < end) {
@@ -131,8 +134,11 @@ bool DecodeStream(const uint8_t* image, size_t size, uint32_t start,
     uint8_t command = 0;
     if (!take(&command))
       return false;
-    if (command == 0xFF)
+    if (command == 0xFF) {
+      if (consumed_end != nullptr)
+        *consumed_end = p;
       return used == decoded->size();
+    }
     unsigned kind = 0;
     unsigned count = 0;
     if (command >= 0xE0) {
@@ -219,9 +225,9 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   // A damaged magic still belongs to this format when its independent header
   // and directory fingerprint survive. Nonblank bytes alone mean nothing.
   const bool directory_fingerprint =
-      available >= kUsedSize && U16(d + 0x0A) == kHeaderSize &&
-      U16(d + 0x0C) == kUsedSize && U16(d + 0x0E) == 192 &&
-      U16(d + 0x10) == 160 && U16(d + 0x12) == kEntryCount &&
+      available >= kRevision1UsedSize && U16(d + 0x0A) == kHeaderSize &&
+      U16(d + 0x0E) == 192 && (U16(d + 0x10) == 160 || U16(d + 0x10) == 161) &&
+      (U16(d + 0x12) == kRevision1EntryCount || U16(d + 0x12) == kEntryCount) &&
       U16(d + kHeaderSize) == 1 && U16(d + kHeaderSize + 2) == 1;
   if (!signature_prefix && !directory_fingerprint) {
     return absent;
@@ -239,16 +245,24 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   auto bad = [&](std::string error) {
     return Invalid(std::move(error), revision, capacity, active);
   };
-  if (revision != 1)
+  if (revision != 1 && revision != 2)
     return bad("Unsupported Lyra ROM-format revision");
-  if (U16(d + 0x0A) != kHeaderSize || U16(d + 0x0C) != kUsedSize ||
-      U16(d + 0x12) != kEntryCount) {
+  const size_t entry_count = revision == 1 ? kRevision1EntryCount : kEntryCount;
+  const size_t used_size = kHeaderSize + entry_count * kEntrySize;
+  if (U16(d + 0x0A) != kHeaderSize || U16(d + 0x0C) != used_size ||
+      U16(d + 0x12) != entry_count) {
     return bad("Invalid Lyra descriptor length or directory count");
   }
-  if (capacity != 192 || active != 160) {
+  const bool offline_only = d[0x15] & 1;
+  const bool supported_revision2 =
+      revision == 2 &&
+      ((d[0x15] == 3 && active == 160) || (d[0x15] == 2 && active == 161));
+  if (capacity != 192 ||
+      (revision == 1 ? active != 160 : !supported_revision2)) {
     return bad("Invalid Lyra capacity or active count");
   }
-  if (d[0x14] != 0x3C || d[0x15] != 1 || U16(d + 0x16) != 384) {
+  if (d[0x14] != 0x3C || (revision == 1 && d[0x15] != 1) ||
+      U16(d + 0x16) != 384) {
     return bad("Unsupported Lyra sprite bank, flags or phase stride");
   }
   if (U32(d + 0x18) != size) {
@@ -263,7 +277,7 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   if (Crc32(checked.data(), checked.size()) != U32(d + 0x1C)) {
     return bad("Lyra descriptor CRC mismatch");
   }
-  if (std::any_of(d + kUsedSize, d + kDescriptorSize,
+  if (std::any_of(d + used_size, d + kDescriptorSize,
                   [](uint8_t b) { return b != 0; })) {
     return bad("Nonzero Lyra descriptor padding");
   }
@@ -274,8 +288,10 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
   result.capacity = capacity;
   result.active_count = active;
   result.write_supported = false;
-  result.entries.reserve(kEntryCount);
-  for (size_t i = 0; i < kEntryCount; ++i) {
+  result.a0_terrain_write_supported = supported_revision2 && offline_only;
+  result.offline_only = offline_only;
+  result.entries.reserve(entry_count);
+  for (size_t i = 0; i < entry_count; ++i) {
     const uint8_t* p = d + kHeaderSize + i * kEntrySize;
     const auto& spec = kSpecs[i];
     LyraLayoutEntry e{U16(p),     U16(p + 2),  U32(p + 4), 0,
@@ -318,13 +334,21 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
       if (e.pc_address != 0x1E4000) {
         return bad("Lyra sprite list region changed");
       }
-    } else if (e.pc_address != kStreamWindows[i - 32].first) {
+    } else if (i < 35 && e.pc_address != kStreamWindows[i - 32].first) {
       return bad("Lyra stream region changed");
+    } else if (i == 35 && e.pc_address != kLyraA0HighStreamPc) {
+      return bad("Lyra A0 stream reservation changed");
     }
     for (const auto& prior : result.entries) {
       const uint32_t prior_end = prior.pc_address + prior.count * prior.stride;
       if (e.pc_address < prior_end &&
           prior.pc_address < e.pc_address + length) {
+        // Entry 203 subdivides region 202. No other directory overlap is legal.
+        if (e.id == 203 && prior.id == 202 &&
+            e.pc_address >= prior.pc_address &&
+            e.pc_address + length <= prior_end) {
+          continue;
+        }
         return bad("Lyra directory overlap");
       }
     }
@@ -350,8 +374,24 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
                            &stream_pc)) {
         return bad("Lyra map pointer outside owned stream regions");
       }
-      if (!DecodeStream(image, size, stream_pc, table == 19 ? &high : &low)) {
+      size_t consumed_end = 0;
+      if (!DecodeStream(image, size, stream_pc, table == 19 ? &high : &low,
+                        &consumed_end)) {
         return bad("Lyra compressed map stream invalid");
+      }
+      if (supported_revision2) {
+        const uint32_t slot_begin =
+            table == 19 ? kLyraA0HighStreamPc : kLyraA0LowStreamPc;
+        const uint32_t owned_end = kLyraA0LowStreamPc + kLyraA0StreamSlotSize;
+        if (map == 0xA0) {
+          if (stream_pc != slot_begin ||
+              consumed_end > slot_begin + kLyraA0StreamSlotSize) {
+            return bad("Lyra A0 stream exceeds its dedicated slot");
+          }
+        } else if (stream_pc < owned_end &&
+                   consumed_end > kLyraA0HighStreamPc) {
+          return bad("Lyra A0 stream reservation overlaps another map");
+        }
       }
     }
     for (size_t tile = 0; tile < high.size(); ++tile) {
@@ -377,6 +417,13 @@ LyraLayoutInspection InspectLyraLayout(const uint8_t* image, size_t size) {
           image[area_size.pc_address + map] != 0) {
         return bad("Lyra inactive tail role or parent is invalid");
       }
+    }
+    if (supported_revision2 && map == 0xA0 &&
+        (image[result.entries[6].pc_address + map] != map ||
+         image[result.entries[28].pc_address + map] != (offline_only ? 3 : 0) ||
+         U16(image + result.entries[4].pc_address + map * 2) != 0x00FF ||
+         image[result.entries[29].pc_address + map] != 0)) {
+      return bad("Lyra A0 terrain role, parent, overlay or size is invalid");
     }
   }
   return result;
@@ -431,6 +478,76 @@ std::optional<std::array<uint16_t, 256>> LyraMapTile32(
     }
   }
   return tiles;
+}
+
+absl::StatusOr<std::vector<uint8_t>> SerializeLyraA0Terrain(
+    const std::vector<uint8_t>& baseline,
+    const std::array<uint16_t, 256>& tiles) {
+  const auto layout = InspectLyraLayout(baseline.data(), baseline.size());
+  if (layout.presence != LyraLayoutPresence::kValid ||
+      !layout.a0_terrain_write_supported) {
+    return absl::FailedPreconditionError(
+        "Revision-2 A0 terrain capability required for Save As");
+  }
+  if (std::any_of(tiles.begin(), tiles.end(), [](uint16_t tile) {
+        return tile != 0x2103 && tile != 0x20B2;
+      })) {
+    return absl::InvalidArgumentError(
+        "Lyra pilot terrain supports only existing Tile32 2103 and 20B2");
+  }
+  for (size_t y : {7U, 8U}) {
+    for (size_t x : {7U, 8U}) {
+      if (tiles[y * 16 + x] != 0x2103) {
+        return absl::FailedPreconditionError(
+            "Lyra A0 entry and return anchors must remain walkable");
+      }
+    }
+  }
+  auto staged = baseline;
+  // A literal block has bounded size: two-byte command + 256 bytes + FF.
+  // Preserve all unused slot bytes; never repack shared map-stream storage.
+  for (int plane = 0; plane < 2; ++plane) {
+    const size_t pc = plane == 0 ? kLyraA0HighStreamPc : kLyraA0LowStreamPc;
+    staged[pc] = 0xE0;
+    staged[pc + 1] = 0xFF;
+    for (size_t tile = 0; tile < tiles.size(); ++tile) {
+      staged[pc + 2 + tile] =
+          static_cast<uint8_t>(plane == 0 ? tiles[tile] >> 8 : tiles[tile]);
+    }
+    staged[pc + 258] = 0xFF;
+  }
+  auto put32 = [&](size_t pc, uint32_t value) {
+    for (size_t i = 0; i < 4; ++i)
+      staged[pc + i] = static_cast<uint8_t>(value >> (8 * i));
+  };
+  for (size_t index : {34U, 35U}) {
+    const auto& e = layout.entries[index];
+    put32(kDescriptorPc + kHeaderSize + index * kEntrySize + 12,
+          Crc32(staged.data() + e.pc_address, e.count * e.stride));
+  }
+  put32(kDescriptorPc + 28, 0);
+  put32(kDescriptorPc + 28,
+        Crc32(staged.data() + kDescriptorPc, kDescriptorSize));
+  for (size_t pc = 0; pc < baseline.size(); ++pc) {
+    const bool allowed =
+        (pc >= kLyraA0HighStreamPc && pc < kLyraA0HighStreamPc + 259) ||
+        (pc >= kLyraA0LowStreamPc && pc < kLyraA0LowStreamPc + 259) ||
+        (pc >= kDescriptorPc + 28 && pc < kDescriptorPc + 32) ||
+        (pc >= kDescriptorPc + 32 + 34 * 16 + 12 &&
+         pc < kDescriptorPc + 32 + 34 * 16 + 16) ||
+        (pc >= kDescriptorPc + 32 + 35 * 16 + 12 &&
+         pc < kDescriptorPc + 32 + 35 * 16 + 16);
+    if (!allowed && staged[pc] != baseline[pc]) {
+      return absl::InternalError(
+          "Lyra terrain staging changed an unowned byte");
+    }
+  }
+  const auto checked = InspectLyraLayout(staged.data(), staged.size());
+  if (checked.presence != LyraLayoutPresence::kValid ||
+      LyraMapTile32(checked, staged.data(), staged.size(), 0xA0) != tiles) {
+    return absl::InternalError("Lyra terrain staged image failed readback");
+  }
+  return staged;
 }
 
 }  // namespace yaze::rom

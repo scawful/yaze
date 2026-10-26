@@ -8,6 +8,7 @@
 #include "rom/snes.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_upgrade_system.h"
 #include "zelda3/overworld/terrain_graphics.h"
 
 namespace yaze::zelda3 {
@@ -220,6 +221,50 @@ TEST(OverworldRomProfileTest, V3ForcesExpandedTilesAndRequiresTailMarker) {
   profile = DetectOverworldRomProfile(rom);
   EXPECT_TRUE(profile.has_tail_map_expansion);
   EXPECT_EQ(profile.editable_map_count, kExpandedMapCount);
+}
+
+TEST(OverworldRomProfileTest, V5CollisionByteCannotMasqueradeAsTailMarker) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x05);
+  rom[GetExpandedPtrTableMarker()] = GetExpandedPtrTableMagic();
+  const auto before = rom.vector();
+  const auto profile = DetectOverworldRomProfile(rom);
+  EXPECT_EQ(profile.layout_kind,
+            OverworldRomProfile::LayoutKind::kZScreamPerSheet);
+  EXPECT_EQ(profile.zscream_layout, zscream::LayoutDialect::kZScreamV5);
+  EXPECT_FALSE(profile.has_tail_map_expansion);
+  EXPECT_EQ(profile.editable_map_count, kNumOverworldMaps);
+  EXPECT_FALSE(IsSpecialTailMapExpansionEnabled(rom));
+  Overworld overworld(&rom);
+  EXPECT_FALSE(overworld.HasExpandedPointerTables());
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(OverworldRomProfileTest, UnknownCustomMarkersCannotEnableTailExpansion) {
+  for (uint8_t marker : {0x04, 0x06, 0xFE}) {
+    Rom rom;
+    InitOverworldTestRom(rom, marker);
+    rom[GetExpandedPtrTableMarker()] = GetExpandedPtrTableMagic();
+    const auto profile = DetectOverworldRomProfile(rom);
+    EXPECT_EQ(profile.layout_kind,
+              OverworldRomProfile::LayoutKind::kUnknownCustom);
+    EXPECT_FALSE(profile.has_tail_map_expansion);
+    EXPECT_FALSE(Overworld(&rom).HasExpandedPointerTables());
+  }
+}
+
+TEST(OverworldRomProfileTest, CustomLayoutsRejectBundledAsmBeforeMutation) {
+  for (uint8_t marker : {0x04, 0x05, 0x06, 0xFE}) {
+    Rom rom;
+    InitOverworldTestRom(rom, marker);
+    rom.set_dirty(false);
+    const auto before = rom.vector();
+    OverworldUpgradeSystem upgrade(rom);
+    EXPECT_EQ(upgrade.ApplyZSCustomOverworldASM(3).code(),
+              absl::StatusCode::kFailedPrecondition);
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
 }
 
 TEST(OverworldMap32StorageTest, CapacityTracksDetectedRomProfile) {

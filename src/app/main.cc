@@ -26,7 +26,7 @@
 #include "app/emu/debug/symbol_provider.h"
 #include "app/startup_flags.h"
 #if !defined(__EMSCRIPTEN__) && defined(YAZE_HTTP_API_ENABLED)
-#include "cli/service/api/http_server.h"
+#include "app/service/editor_http_server.h"
 #endif
 #include "core/features.h"
 #include "util/crash_handler.h"
@@ -75,6 +75,8 @@ DEFINE_FLAG(int, map, -1, "Open Overworld Editor at specific map ID (0-159).");
 
 // AI Agent API flags
 DEFINE_FLAG(bool, enable_api, false, "Enable the AI Agent API server.");
+DEFINE_FLAG(bool, editor_control, false,
+            "Enable guarded editor commands on the loopback HTTP API.");
 DEFINE_FLAG(int, api_port, 8080, "Port for the AI Agent API server.");
 
 DEFINE_FLAG(bool, headless, false,
@@ -288,7 +290,9 @@ yaze::AppConfig BuildAppConfig(yaze::util::LogLevel log_level,
 
   config.headless = FLAGS_headless->Get() || (server_mode && !service_mode);
   config.service_mode = service_mode;
-  config.enable_api = FLAGS_enable_api->Get() || server_mode || service_mode;
+  config.editor_control = FLAGS_editor_control->Get();
+  config.enable_api = FLAGS_enable_api->Get() || server_mode || service_mode ||
+                      config.editor_control;
 
 #ifdef YAZE_WITH_GRPC
   config.enable_test_harness =
@@ -395,49 +399,6 @@ bool RunSymbolExportFastPath() {
   return false;
 }
 
-#if !defined(__EMSCRIPTEN__) && defined(YAZE_HTTP_API_ENABLED)
-std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(
-    const yaze::AppConfig& config) {
-  if (!config.enable_api) {
-    return nullptr;
-  }
-
-  auto api_server = std::make_unique<yaze::cli::api::HttpServer>();
-
-  // Wire up symbol provider source
-  api_server->SetSymbolProviderSource(
-      []() -> yaze::emu::debug::SymbolProvider* {
-        auto* manager = yaze::app::GetGlobalEditorManager();
-        if (manager) {
-          return &manager->emulator().symbol_provider();
-        }
-        return nullptr;
-      });
-
-  // Window control endpoints (service mode)
-  api_server->SetWindowActions(
-      []() -> bool {
-        auto* controller = yaze::Application::Instance().GetController();
-        return controller ? (controller->ShowWindow(), true) : false;
-      },
-      []() -> bool {
-        auto* controller = yaze::Application::Instance().GetController();
-        return controller ? (controller->HideWindow(), false)
-                          : false;  // HideWindow returns void usually
-      });
-
-  auto status = api_server->Start(config.api_port);
-  if (!status.ok()) {
-    LOG_ERROR("Main", "Failed to start API server: %s",
-              std::string(status.message()).c_str());
-    return nullptr;
-  }
-
-  LOG_INFO("Main", "API Server started on port %d", config.api_port);
-  return api_server;
-}
-#endif
-
 // Main Entry Point
 
 int main(int argc, char** argv) {
@@ -527,9 +488,7 @@ int main(int argc, char** argv) {
 #if defined(YAZE_HTTP_API_ENABLED)
   std::unique_ptr<yaze::cli::api::HttpServer> api_server;
 #endif
-#if defined(YAZE_HTTP_API_ENABLED)
-  api_server = SetupApiServer(config);
-#else
+#if !defined(YAZE_HTTP_API_ENABLED)
   if (config.enable_api) {
     LOG_WARN("Main",
              "HTTP API requested but not enabled at build time "
@@ -538,6 +497,10 @@ int main(int argc, char** argv) {
 #endif
 
   yaze::Application::Instance().Initialize(config);
+
+#if defined(YAZE_HTTP_API_ENABLED)
+  api_server = yaze::app::SetupEditorHttpServer(config);
+#endif
 
   // Handle symbol loading if requested
   auto* ctrl = yaze::Application::Instance().GetController();
@@ -606,6 +569,10 @@ int main(int argc, char** argv) {
       }
     }
 
+#if defined(YAZE_HTTP_API_ENABLED)
+    if (api_server)
+      api_server->Stop();
+#endif
     yaze::Application::Instance().Shutdown();
     return EXIT_SUCCESS;
   }
@@ -629,13 +596,13 @@ int main(int argc, char** argv) {
     }
   }
 
-  yaze::Application::Instance().Shutdown();
-
 #if defined(YAZE_HTTP_API_ENABLED)
   if (api_server) {
     api_server->Stop();
   }
 #endif
+
+  yaze::Application::Instance().Shutdown();
 
 #endif  // __EMSCRIPTEN__
 

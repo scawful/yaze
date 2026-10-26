@@ -15,6 +15,7 @@ namespace yaze {
 namespace editor {
 
 struct DungeonSelectionEditRequest;
+struct DungeonSelectionEditPlan;
 
 /**
  * @brief Coordinates interaction mode switching and dispatches to handlers
@@ -104,6 +105,7 @@ class InteractionCoordinator {
   bool NudgeSelected(int delta_x, int delta_y);
   absl::Status CommitSelectionEdit(const DungeonSelectionEditRequest& request,
                                    bool continuous = false);
+  absl::Status CompleteDoorTrim(size_t door_index);
   std::vector<SelectedEntity> SelectedEntitiesForEdit() const;
   int SelectionMoveStepPixels() const;
   void FinishSelectionGesture();
@@ -185,6 +187,8 @@ class InteractionCoordinator {
   Mode GetSelectedEntityType() const;
 
  private:
+  absl::Status CommitPlannedSelectionEdit(const DungeonSelectionEditPlan& plan,
+                                          bool continuous);
   absl::Status selection_edit_status_;
   Mode current_mode_ = Mode::Select;
   InteractionContext* ctx_ = nullptr;

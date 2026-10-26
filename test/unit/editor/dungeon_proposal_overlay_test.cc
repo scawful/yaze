@@ -118,6 +118,100 @@ TEST(DungeonProposalOverlayTest, ParsesColors) {
   EXPECT_FALSE(ParseProposalColor("#GG0000").ok());
 }
 
+TEST(DungeonProposalOverlayTest, PreviewsActorObjectAndOrderedRouteSteps) {
+  const char* text = R"json({
+    "format":"yaze-dungeon-proposal-overlay", "version":1, "rooms":["$65"],
+    "layers":[
+      {"id":"prisoners", "shapes":[
+        {"room":"$65", "type":"actor", "tile":[42,43], "offset":[2,1],
+         "facing":"west", "label":"Thief", "detail":"Proposed script anchor"}]},
+      {"id":"escape", "shapes":[
+        {"room":"$65", "type":"object", "tile":[25,36],
+         "object_id":"$FE7", "size":0, "list":1, "footprint":[4,3]},
+        {"room":"$65", "type":"path", "tiles":[[26,42],[26,34],[12,34]]}]}
+    ],
+    "steps":[
+      {"id":"wake", "label":"Wake in cell", "detail":"Talk to the thief.",
+       "layers":["prisoners"]},
+      {"id":"leave", "layers":["prisoners","escape"]}
+    ]
+  })json";
+  auto overlay = ParseDungeonProposalOverlay(text);
+  ASSERT_TRUE(overlay.ok()) << overlay.status();
+  const auto& actor = overlay->layers[0].shapes[0];
+  EXPECT_EQ(actor.type, ProposalShapeType::kActor);
+  EXPECT_EQ(actor.facing, ProposalFacing::kWest);
+  // Script anchors use tile origins plus pixels, not marker tile centers.
+  EXPECT_EQ(ProposalFootprintToPixels(actor),
+            (ProposalPixelRect{338, 345, 354, 361}));
+  EXPECT_TRUE(ProposalShapeHitTest(actor, 338, 345, 0));
+  EXPECT_FALSE(ProposalShapeHitTest(actor, 337, 345, 0));
+  EXPECT_FALSE(ProposalShapeHitTest(actor, 354, 361, 0));
+  const auto& object = overlay->layers[1].shapes[0];
+  EXPECT_EQ(object.type, ProposalShapeType::kObject);
+  EXPECT_EQ(object.object_id, 0xFE7);
+  EXPECT_EQ(object.object_list, 1);
+  EXPECT_EQ(ProposalFootprintToPixels(object),
+            (ProposalPixelRect{200, 288, 232, 312}));
+  EXPECT_TRUE(ProposalShapeHitTest(object, 231, 311, 0));
+  EXPECT_FALSE(ProposalShapeHitTest(object, 232, 312, 0));
+  ASSERT_EQ(overlay->steps.size(), 2u);
+  EXPECT_EQ(overlay->steps[1].label, "leave");
+  EXPECT_EQ(overlay->steps[0].detail, "Talk to the thief.");
+  EXPECT_TRUE(ProposalLayerInStep(*overlay, "escape", -1));
+  EXPECT_FALSE(ProposalLayerInStep(*overlay, "escape", 0));
+  EXPECT_TRUE(ProposalLayerInStep(*overlay, "prisoners", 0));
+  EXPECT_TRUE(ProposalLayerInStep(*overlay, "escape", 1));
+  EXPECT_FALSE(ProposalLayerInStep(*overlay, "escape", 2));
+  EXPECT_TRUE(ParseDungeonProposalOverlay(kValidOverlay)->steps.empty());
+}
+
+TEST(DungeonProposalOverlayTest,
+     RequiresExplicitActorFacingAndValidFootprints) {
+  const std::string cases[] = {
+      R"({"room":119,"type":"actor","tile":[1,1]})",
+      R"({"room":119,"type":"actor","tile":[1,1],"facing":"up"})",
+      R"({"room":119,"type":"actor","tile":[1,1],"facing":"west","offset":[8,0]})",
+      R"({"room":119,"type":"object","tile":[1,1],"object_id":128,"footprint":[0,3]})",
+      R"({"room":119,"type":"object","tile":[63,63],"object_id":128,"footprint":[2,1]})",
+      R"({"room":119,"type":"object","tile":[1,1],"object_id":"$140","footprint":[2,1]})",
+      R"({"room":119,"type":"object","tile":[1,1],"object_id":"$FE7"})",
+      R"({"room":119,"type":"object","tile":[1,1],"object_id":"$FE7","list":3,"footprint":[2,1]})",
+      R"({"room":119,"type":"object","tile":[1,1],"object_id":"$FE7","size":256,"footprint":[2,1]})",
+      R"({"room":119,"type":"object","tile":[1,1],"object_id":4294967424,"footprint":[2,1]})",
+      R"({"room":119,"type":"actor","tile":[4294967297,1],"facing":"south"})",
+  };
+  for (const auto& shape : cases)
+    EXPECT_FALSE(ParseDungeonProposalOverlay(WithShape(shape)).ok()) << shape;
+
+  for (const char* facing : {"north", "east", "south", "west"}) {
+    auto overlay = ParseDungeonProposalOverlay(WithShape(
+        std::string(R"({"room":119,"type":"actor","tile":[0,0],"facing":")") +
+        facing + "\"}"));
+    ASSERT_TRUE(overlay.ok()) << overlay.status();
+    EXPECT_EQ(overlay->layers[0].shapes[0].pixel_offset, (ProposalTile{0, 0}));
+  }
+}
+
+TEST(DungeonProposalOverlayTest, RejectsMissingAndAmbiguousStepReferences) {
+  const std::string cases[] = {
+      "{}",
+      R"([{"id":"a","layers":["missing"]}])",
+      R"([{"id":"a","layers":[]}])",
+      R"([{"id":"a","layers":[1]}])",
+      R"([{"id":"a","layers":["l","l"]}])",
+      R"([{"layers":["l"]}])",
+      R"([{"id":"a","layers":["l"]},{"id":"a","layers":["l"]}])",
+  };
+  for (const auto& steps : cases) {
+    const std::string text =
+        R"({"format":"yaze-dungeon-proposal-overlay","version":1,
+            "rooms":[119],"layers":[{"id":"l","shapes":[]}],"steps":)" +
+        steps + "}";
+    EXPECT_FALSE(ParseDungeonProposalOverlay(text).ok()) << steps;
+  }
+}
+
 TEST(DungeonProposalOverlayTest, ConvertsInclusiveTileRectsToPixels) {
   EXPECT_EQ(ProposalTileRectToPixels({40, 16}, {48, 23}),
             (ProposalPixelRect{320, 128, 392, 192}));

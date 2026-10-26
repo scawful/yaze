@@ -885,8 +885,7 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
   ASSIGN_OR_RETURN(auto filter_tiles, ParseTileFilter(parser));
 
   const bool list_all = parser.HasFlag("all");
-  const bool list_nonzero =
-      parser.HasFlag("nonzero") || (!list_all && filter_tiles.empty());
+  const bool list_nonzero = parser.HasFlag("nonzero");
 
   formatter.BeginObject("Dungeon Custom Collision");
   formatter.AddField("room_id", room_id);
@@ -895,7 +894,7 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
       "filter_mode",
       !filter_tiles.empty()
           ? "tiles"
-          : (list_all ? "all" : (list_nonzero ? "nonzero" : "all")));
+          : (list_all ? "all" : (list_nonzero ? "nonzero" : "overrides")));
 
   auto map_or = zelda3::LoadCustomCollisionMap(rom, room_id);
   if (!map_or.ok()) {
@@ -928,7 +927,8 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
   if (map.has_data) {
     for (int y = 0; y < 64; ++y) {
       for (int x = 0; x < 64; ++x) {
-        uint8_t tile = map.tiles[static_cast<size_t>(y * 64 + x)];
+        const size_t offset = static_cast<size_t>(y * 64 + x);
+        uint8_t tile = map.tiles[offset];
 
         if (!filter_tiles.empty()) {
           if (filter_tiles.find(static_cast<int>(tile)) == filter_tiles.end()) {
@@ -939,8 +939,8 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
             continue;
           }
         } else if (!list_all) {
-          // Default behavior if neither filter nor flags are set is nonzero.
-          if (tile == 0) {
+          // Default behavior lists all explicit overrides (including 0x00 floor).
+          if (!map.HasOverride(offset) && tile == 0) {
             continue;
           }
         }

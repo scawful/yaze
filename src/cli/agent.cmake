@@ -31,8 +31,8 @@ if(EMSCRIPTEN)
     cli/service/agent/proposal_executor.cc
 
     # Additional tools required by ToolDispatcher. ProjectGraphTool lives in
-    # yaze_cli_core because app/editor/code/assembly_editor.cc references it
-    # directly.
+    # yaze_cli_editor_shared because app/editor/code/assembly_editor.cc
+    # references it directly.
     cli/service/agent/tools/filesystem_tool.cc
     cli/service/agent/tools/memory_inspector_tool.cc
     cli/service/agent/tools/visual_analysis_tool.cc

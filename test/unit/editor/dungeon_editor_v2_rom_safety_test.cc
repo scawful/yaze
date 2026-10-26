@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_room_transfer.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/resource/arena.h"
 #include "core/features.h"
@@ -242,6 +243,18 @@ void SetupHeaderPointers(Rom& rom) {
   rom.mutable_data()[kHeaderTablePc + 3] = (room1_ptr >> 8) & 0xFF;
   rom.mutable_data()[kHeaderTablePc + 4] = room2_ptr & 0xFF;
   rom.mutable_data()[kHeaderTablePc + 5] = (room2_ptr >> 8) & 0xFF;
+}
+
+void SetHeaderPointer(Rom& rom, int room_id, int header_pc) {
+  const auto pointer = static_cast<uint16_t>(PcToSnes(header_pc));
+  ASSERT_TRUE(rom.WriteWord(kHeaderTablePc + room_id * 2, pointer).ok());
+}
+
+void ConfigureHeaderOnlySave() {
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveRoomHeaders = true;
 }
 
 void SeedHeaderBytes(Rom& rom, int header_pc,
@@ -2097,6 +2110,116 @@ TEST(DungeonEditorV2RomSafetyTest, SaveRejectsDirtyRoomHeadersWhenDisabled) {
   EXPECT_EQ(reloaded_room.palette(), 0x03);
   EXPECT_EQ(reloaded_room.blockset(), 0x04);
   EXPECT_EQ(reloaded_room.message_id(), 0x1111);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveAndApplyRoomRefuseSharedFixedHeaderBeforeAnyWriter) {
+  DungeonSaveFlagsGuard guard;
+  ConfigureHeaderOnlySave();
+  for (const int overlap : {0, 7}) {
+    for (const bool apply_room : {false, true}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "overlap=" << overlap << " apply_room=" << apply_room);
+      Rom rom;
+      ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+      SetupHeaderPointers(rom);
+      SetHeaderPointer(rom, 2, kRoom1HeaderPc + overlap);
+      auto editor = std::make_unique<DungeonEditorV2>(&rom);
+      // Room 0 owns its header and is written first by an all-room Save.
+      auto& unique = editor->rooms()[0];
+      auto& shared = editor->rooms()[2];
+      for (auto* room : {&unique, &shared}) {
+        room->SetLoaded(true);
+        room->SetPalette(0x2A);
+      }
+      const auto before = rom.vector();
+
+      const auto status = apply_room ? editor->SaveRoom(2) : editor->Save();
+
+      EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+      EXPECT_NE(status.message().find("Room 002 header overlaps room 001"),
+                absl::string_view::npos)
+          << status;
+      EXPECT_TRUE(
+          status.GetPayload(kRoomTransferSharedHeaderPayload).has_value());
+      EXPECT_EQ(rom.vector(), before);
+      EXPECT_TRUE(unique.header_dirty());
+      EXPECT_TRUE(shared.header_dirty());
+    }
+  }
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     ApplyRoomIgnoresUnrelatedSharedHeaderAndUniqueHeadersSave) {
+  DungeonSaveFlagsGuard guard;
+  ConfigureHeaderOnlySave();
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupHeaderPointers(rom);
+  SetHeaderPointer(rom, 2, kRoom1HeaderPc);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& unique = editor->rooms()[0];
+  auto& shared = editor->rooms()[2];
+  unique.SetLoaded(true);
+  unique.SetPalette(0x2A);
+  shared.SetLoaded(true);
+  shared.SetPalette(0x2B);
+  const std::vector<uint8_t> peer_header(rom.data() + kRoom1HeaderPc,
+                                         rom.data() + kRoom1HeaderPc + 14);
+
+  const auto applied = editor->SaveRoom(0);
+  ASSERT_TRUE(applied.ok()) << applied;
+  EXPECT_EQ(rom.data()[kRoom0HeaderPc + 1], 0x2A);
+  EXPECT_FALSE(unique.header_dirty());
+  EXPECT_TRUE(shared.header_dirty());
+  EXPECT_TRUE(std::equal(peer_header.begin(), peer_header.end(),
+                         rom.data() + kRoom1HeaderPc));
+
+  SetHeaderPointer(rom, 2, kRoom2HeaderPc);
+  const auto saved = editor->Save();
+  ASSERT_TRUE(saved.ok()) << saved;
+  EXPECT_EQ(rom.data()[kRoom2HeaderPc + 1], 0x2B);
+  EXPECT_FALSE(shared.header_dirty());
+  EXPECT_TRUE(std::equal(peer_header.begin(), peer_header.end(),
+                         rom.data() + kRoom1HeaderPc));
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     HeaderOwnershipFollowsScopeErrorsAndOnlyOverlapsOfferSharedRecovery) {
+  DungeonSaveFlagsGuard guard;
+  ConfigureHeaderOnlySave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupHeaderPointers(rom);
+  SetHeaderPointer(rom, 2, kRoom1HeaderPc);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& shared = editor->rooms()[2];
+  shared.SetLoaded(true);
+  shared.SetPalette(0x2A);
+  const auto expect_refused = [&](absl::string_view expected,
+                                  bool shared_header_payload) {
+    const auto before = rom.vector();
+    for (const bool apply_room : {false, true}) {
+      SCOPED_TRACE(::testing::Message()
+                   << expected << " apply_room=" << apply_room);
+      const auto status = apply_room ? editor->SaveRoom(2) : editor->Save();
+      EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+      EXPECT_NE(status.message().find(expected), absl::string_view::npos)
+          << status;
+      EXPECT_EQ(status.GetPayload(kRoomTransferSharedHeaderPayload).has_value(),
+                shared_header_payload);
+      EXPECT_EQ(rom.vector(), before);
+      EXPECT_TRUE(shared.header_dirty());
+    }
+  };
+
+  flags.kSaveRoomHeaders = false;
+  expect_refused("Save Room Headers", false);
+  flags.kSaveRoomHeaders = true;
+  expect_refused("header overlaps", true);
+  rom.mutable_data()[zelda3::kRoomHeaderPointer + 1] = 0x00;
+  expect_refused("Invalid room header pointer table", false);
 }
 
 TEST(DungeonEditorV2RomSafetyTest,

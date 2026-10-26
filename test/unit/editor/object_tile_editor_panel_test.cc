@@ -226,6 +226,10 @@ struct ObjectTileEditorPanelTestAccess {
     panel.atlas_dirty_ = dirty;
   }
 
+  static void SetPreviewDirty(ObjectTileEditorPanel& panel, bool dirty) {
+    panel.preview_dirty_ = dirty;
+  }
+
   static void SyncSourceSelectionFromSelectedCell(
       ObjectTileEditorPanel& panel) {
     panel.SyncSourceSelectionFromSelectedCell();
@@ -293,6 +297,16 @@ struct ObjectTileEditorPanelTestAccess {
   static absl::Status AddFirstTileToEmptyCustomLayout(
       ObjectTileEditorPanel& panel) {
     return panel.AddFirstTileToEmptyCustomLayout();
+  }
+
+  static absl::Status AddCustomTileAt(ObjectTileEditorPanel& panel, int rel_x,
+                                      int rel_y) {
+    return panel.AddCustomTileAt(rel_x, rel_y);
+  }
+
+  static absl::Status MoveSelectedCustomTileTo(ObjectTileEditorPanel& panel,
+                                               int rel_x, int rel_y) {
+    return panel.MoveSelectedCustomTileTo(rel_x, rel_y);
   }
 
   static void RevertCurrentLayout(ObjectTileEditorPanel& panel) {
@@ -3282,6 +3296,877 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_EQ(decoded_or->tiles.front().rel_x, 0);
   EXPECT_EQ(decoded_or->tiles.front().rel_y, 0);
   EXPECT_NE(decoded_or->tiles.front().tile_data, 0);
+}
+
+struct CustomCellState {
+  int rel_x = 0;
+  int rel_y = 0;
+  uint16_t word = 0;
+  uint16_t original_word = 0;
+  bool modified = false;
+
+  bool operator==(const CustomCellState&) const = default;
+};
+
+std::vector<CustomCellState> CustomCellStates(
+    const ObjectTileEditorPanel& panel) {
+  std::vector<CustomCellState> states;
+  for (const auto& cell :
+       ObjectTileEditorPanelTestAccess::Layout(panel).cells) {
+    states.push_back({cell.rel_x, cell.rel_y,
+                      gfx::TileInfoToWord(cell.tile_info), cell.original_word,
+                      cell.modified});
+  }
+  return states;
+}
+
+void OpenCustomSlot31(ObjectTileEditorPanel& panel, DungeonRoomStore& rooms) {
+  rooms[0].SetLoaded(true);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     AddTileExtendsCustomPatternWithSelectedSourceTileAndAttributes) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_add_tile_extend"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path,
+      zelda3::CustomObject{.tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto original_bytes = ReadBinaryFile(asset_path);
+
+  // Source the H-flipped, priority tile, then pick a different palette.
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 5);
+  ObjectTileEditorPanelTestAccess::SetAtlasDirty(panel, false);
+
+  const absl::Status status =
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 3, 2);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(CustomCellStates(panel),
+            (std::vector<CustomCellState>{{0, 0, 0x2810, 0x2810, false},
+                                          {1, 0, 0x6820, 0x6820, false},
+                                          {3, 2, 0x7420, 0, true}}));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 4);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 3);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x20);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 5);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+
+  // A second addition inside the existing bounds keeps them unchanged.
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 0, 1).ok());
+  ASSERT_EQ(CustomCellStates(panel).size(), 4u);
+  EXPECT_EQ(CustomCellStates(panel).back(),
+            (CustomCellState{0, 1, 0x7420, 0, true}));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 4);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 3);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 3);
+  EXPECT_EQ(ReadBinaryFile(asset_path), original_bytes);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     AddTileAtOccupiedCoordinateSelectsExistingCellWithoutMutation) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_add_tile_occupied"));
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      custom_state.dir / "track_LR.bin",
+      zelda3::CustomObject{.tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto cells_before = CustomCellStates(panel);
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+
+  const absl::Status status =
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 1, 0);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(CustomCellStates(panel), cells_before);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x20);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     AddTileRejectsCoordinatesOutsideBufferAndAcceptsBufferEdges) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_add_tile_bounds"));
+  ASSERT_NO_FATAL_FAILURE(
+      WriteCustomObjectAsset(custom_state.dir / "track_LR.bin",
+                             zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto cells_before = CustomCellStates(panel);
+
+  for (const auto [rel_x, rel_y] :
+       {std::pair{-1, 0}, std::pair{0, -1}, std::pair{64, 0}, std::pair{0, 64},
+        std::pair{64, 64}}) {
+    SCOPED_TRACE(absl::StrFormat("(%d, %d)", rel_x, rel_y));
+    const absl::Status status =
+        ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, rel_x, rel_y);
+    EXPECT_TRUE(absl::IsOutOfRange(status)) << status;
+    EXPECT_NE(status.message().find("64x64"), absl::string_view::npos);
+    EXPECT_EQ(CustomCellStates(panel), cells_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 1);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+    EXPECT_FALSE(panel.HasUnappliedChanges());
+  }
+
+  for (const auto [rel_x, rel_y] :
+       {std::pair{63, 0}, std::pair{0, 63}, std::pair{63, 63}}) {
+    SCOPED_TRACE(absl::StrFormat("(%d, %d)", rel_x, rel_y));
+    const absl::Status status =
+        ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, rel_x, rel_y);
+    ASSERT_TRUE(status.ok()) << status;
+  }
+  EXPECT_EQ(CustomCellStates(panel).size(), 4u);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 64);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 64);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     AddTileRejectedByCustomCodecLeavesSessionUntouched) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/2, /*height=*/1, /*object_id=*/0x31,
+      /*room_id=*/0, /*rooms=*/nullptr, /*modified=*/false);
+  // An already-overlapping draft cannot be encoded, whatever is added to it.
+  auto layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+  layout.cells[1].rel_x = 0;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 6);
+  const auto cells_before = CustomCellStates(panel);
+
+  const absl::Status status =
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 5, 5);
+
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_EQ(CustomCellStates(panel), cells_before);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 6);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+}
+
+TEST(ObjectTileEditorPanelTest, AddedZeroWordTileCountsAsUnappliedChange) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/1, /*height=*/1, /*object_id=*/0x31,
+      /*room_id=*/0, /*rooms=*/nullptr, /*modified=*/false);
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 0);
+  ASSERT_FALSE(panel.HasUnappliedChanges());
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 1, 0).ok());
+
+  ASSERT_EQ(CustomCellStates(panel).size(), 2u);
+  EXPECT_EQ(CustomCellStates(panel).back(),
+            (CustomCellState{1, 0, 0x0000, 0, true}));
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     RevertAfterMultipleAdditionsRestoresExactOpenedCustomLayout) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_add_tile_revert"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path,
+      zelda3::CustomObject{.tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto opened_cells = CustomCellStates(panel);
+  const auto opened_source_bytes =
+      ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes;
+
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0x24, 3);
+  auto layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+  layout.cells[1].tile_info.horizontal_mirror_ = false;
+  layout.cells[1].tile_info.over_ = false;
+  layout.cells[1].modified = true;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 2, 0).ok());
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 4, 3).ok());
+  ASSERT_EQ(CustomCellStates(panel).size(), 4u);
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 3);
+
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+
+  EXPECT_EQ(CustomCellStates(panel), opened_cells);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes,
+            opened_source_bytes);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x10);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 2);
+  EXPECT_EQ(ReadBinaryFile(asset_path), opened_source_bytes);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SuccessfulApplyPublishesAddedTilesAndAdvancesRevertBaseline) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_add_tile_apply"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto opened_source_bytes =
+      ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes;
+
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 4);
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 1, 0).ok());
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 2, 1).ok());
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+
+  ASSERT_FALSE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel))
+      << ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  const std::vector<CustomCellState> published_cells{
+      {0, 0, 0x2810, 0x2810, false},
+      {1, 0, 0x3010, 0x3010, false},
+      {2, 1, 0x3010, 0x3010, false}};
+  EXPECT_EQ(CustomCellStates(panel), published_cells);
+  const auto published_bytes = ReadBinaryFile(asset_path);
+  EXPECT_NE(published_bytes, opened_source_bytes);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes,
+            published_bytes);
+  auto decoded_or = zelda3::DecodeCustomObjectBinary(published_bytes);
+  ASSERT_TRUE(decoded_or.ok()) << decoded_or.status();
+  EXPECT_EQ(decoded_or->tiles,
+            (std::vector<zelda3::CustomObject::TileMapEntry>{
+                {0, 0, 0x2810}, {1, 0, 0x3010}, {2, 1, 0x3010}}));
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 3, 1).ok());
+  ASSERT_TRUE(panel.HasUnappliedChanges());
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+
+  EXPECT_EQ(CustomCellStates(panel), published_cells);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 3);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 2);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_EQ(ReadBinaryFile(asset_path), published_bytes);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     FailedPublishKeepsAddedTilesAndPreviousRevertBaseline) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_add_tile_conflict"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto opened_cells = CustomCellStates(panel);
+  const auto opened_source_bytes =
+      ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes;
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 1, 0).ok());
+  const auto draft_cells = CustomCellStates(panel);
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2850}}}));
+  const auto external_bytes = ReadBinaryFile(asset_path);
+  ASSERT_NE(external_bytes, opened_source_bytes);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "source changed after it was opened"),
+            std::string::npos);
+  EXPECT_EQ(CustomCellStates(panel), draft_cells);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 1);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes,
+            opened_source_bytes);
+  EXPECT_EQ(ReadBinaryFile(asset_path), external_bytes);
+
+  // Revert returns to the opened layout, not the externally changed file.
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+
+  EXPECT_EQ(CustomCellStates(panel), opened_cells);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes,
+            opened_source_bytes);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_EQ(ReadBinaryFile(asset_path), external_bytes);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     AddTileClearsPendingSharedConfirmationOnlyAfterSuccessfulInsertion) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_add_tile_shared_confirm"));
+  const auto asset_path = custom_state.dir / "shared.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"shared.bin", "shared.bin"}}});
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto original_bytes = ReadBinaryFile(asset_path);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0x24, 2);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+
+  // Selecting an occupied cell or rejecting a coordinate changes no draft
+  // geometry, so the pending confirmation stays.
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 0, 0).ok());
+  EXPECT_TRUE(absl::IsOutOfRange(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 64, 0)));
+  EXPECT_EQ(CustomCellStates(panel).size(), 1u);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 1, 0).ok());
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
+
+  // Accepting the earlier prompt must re-prompt for the changed draft.
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Source impact changed"),
+            std::string::npos);
+  EXPECT_EQ(ReadBinaryFile(asset_path), original_bytes);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  auto decoded_or =
+      zelda3::DecodeCustomObjectBinary(ReadBinaryFile(asset_path));
+  ASSERT_TRUE(decoded_or.ok()) << decoded_or.status();
+  EXPECT_EQ(decoded_or->tiles, (std::vector<zelda3::CustomObject::TileMapEntry>{
+                                   {0, 0, 0x2824}, {1, 0, 0x2824}}));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     CustomRevertClearsPendingSharedConfirmationForLaterPublish) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_revert_shared_confirm"));
+  const auto asset_path = custom_state.dir / "shared.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"shared.bin", "shared.bin"}}});
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto original_bytes = ReadBinaryFile(asset_path);
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, 1, 0).ok());
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+
+  // A later non-structural edit must not reuse the reverted draft's consent.
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0x24, 2);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_EQ(ReadBinaryFile(asset_path), original_bytes);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+}
+
+TEST(ObjectTileEditorPanelTest, StandardObjectSessionRefusesAddTile) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  const auto cells_before = CustomCellStates(panel);
+  const int width_before =
+      ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width;
+  const int height_before =
+      ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height;
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  const auto occupied =
+      std::pair{cells_before.back().rel_x, cells_before.back().rel_y};
+
+  for (const auto [rel_x, rel_y] : {std::pair{width_before, 0}, occupied}) {
+    SCOPED_TRACE(absl::StrFormat("(%d, %d)", rel_x, rel_y));
+    const absl::Status status =
+        ObjectTileEditorPanelTestAccess::AddCustomTileAt(panel, rel_x, rel_y);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_EQ(CustomCellStates(panel), cells_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width,
+              width_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height,
+              height_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+    EXPECT_FALSE(panel.HasUnappliedChanges());
+  }
+}
+
+TEST(ObjectTileEditorPanelTest,
+     MoveTileRecomputesSparseBoundsInwardAndOutwardWithoutMovingNeighbors) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_move_tile_bounds"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path,
+      zelda3::CustomObject{
+          .tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}, {2, 1, 0x2C30}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto opened_bytes = ReadBinaryFile(asset_path);
+  const auto opened_source_bytes =
+      ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes;
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 3);
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 2);
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 2);
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  // A geometry edit must not reset a separately chosen source brush palette.
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 6);
+  ObjectTileEditorPanelTestAccess::SetAtlasDirty(panel, false);
+  ObjectTileEditorPanelTestAccess::SetPreviewDirty(panel, false);
+  const auto opened_cells = CustomCellStates(panel);
+
+  // The current position is a successful no-op that leaves the session clean.
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 2, 1)
+          .ok());
+  EXPECT_EQ(CustomCellStates(panel), opened_cells);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 2);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 0, 1)
+          .ok());
+  EXPECT_EQ(CustomCellStates(panel),
+            (std::vector<CustomCellState>{{0, 0, 0x2810, 0x2810, false},
+                                          {1, 0, 0x6820, 0x6820, false},
+                                          {0, 1, 0x2C30, 0x2C30, true}}));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).cells[2].write_index,
+            2);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::Layout(panel)
+                   .cells[2]
+                   .source_ref.has_value());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x30);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 6);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 5, 3)
+          .ok());
+  EXPECT_EQ(CustomCellStates(panel),
+            (std::vector<CustomCellState>{{0, 0, 0x2810, 0x2810, false},
+                                          {1, 0, 0x6820, 0x6820, false},
+                                          {5, 3, 0x2C30, 0x2C30, true}}));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 6);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 4);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 6);
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 63, 63)
+          .ok());
+  EXPECT_EQ(CustomCellStates(panel).back(),
+            (CustomCellState{63, 63, 0x2C30, 0x2C30, true}));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 64);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 64);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes,
+            opened_source_bytes);
+  EXPECT_EQ(ReadBinaryFile(asset_path), opened_bytes);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     MoveTileRefusalsAndNoOpKeepPendingSharedConfirmationUntilRealMove) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_move_tile_shared_confirm"));
+  const auto asset_path = custom_state.dir / "shared.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path,
+      zelda3::CustomObject{.tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}}}));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"shared.bin", "shared.bin"}}});
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto original_bytes = ReadBinaryFile(asset_path);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0x24, 2);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  ObjectTileEditorPanelTestAccess::SetPreviewDirty(panel, false);
+  const auto cells_before = CustomCellStates(panel);
+  const std::string status_before =
+      ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel);
+  const int source_tile_before =
+      ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel);
+  const int source_palette_before =
+      ObjectTileEditorPanelTestAccess::SourcePalette(panel);
+
+  const auto expect_untouched = [&](int selected_index) {
+    EXPECT_EQ(CustomCellStates(panel), cells_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 2);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel),
+              selected_index);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel),
+              source_tile_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel),
+              source_palette_before);
+    EXPECT_FALSE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+    EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+    EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel),
+              status_before);
+  };
+
+  // An occupied target is refused; the tiles are never swapped or overwritten
+  // and the occupant is not selected.
+  EXPECT_TRUE(absl::IsAlreadyExists(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 0, 0)));
+  expect_untouched(/*selected_index=*/1);
+
+  for (const auto [rel_x, rel_y] :
+       {std::pair{-1, 0}, std::pair{0, -1}, std::pair{64, 0}, std::pair{0, 64},
+        std::pair{64, 64}}) {
+    SCOPED_TRACE(absl::StrFormat("(%d, %d)", rel_x, rel_y));
+    const absl::Status status =
+        ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, rel_x,
+                                                                  rel_y);
+    EXPECT_TRUE(absl::IsOutOfRange(status)) << status;
+    EXPECT_NE(status.message().find("64x64"), absl::string_view::npos);
+    expect_untouched(/*selected_index=*/1);
+  }
+
+  for (const int invalid_index : {-1, 2}) {
+    SCOPED_TRACE(absl::StrFormat("selected index %d", invalid_index));
+    ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, invalid_index);
+    EXPECT_TRUE(absl::IsFailedPrecondition(
+        ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 2,
+                                                                  0)));
+    expect_untouched(invalid_index);
+  }
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+
+  ObjectTileEditorPanelTestAccess::SetOpen(panel, false);
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 2, 0)));
+  ObjectTileEditorPanelTestAccess::SetOpen(panel, true);
+  expect_untouched(/*selected_index=*/1);
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 1, 0)
+          .ok());
+  expect_untouched(/*selected_index=*/1);
+  EXPECT_EQ(ReadBinaryFile(asset_path), original_bytes);
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 2, 0)
+          .ok());
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsNone(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 3);
+
+  // Accepting the earlier prompt must re-prompt for the moved draft.
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Source impact changed"),
+            std::string::npos);
+  EXPECT_EQ(ReadBinaryFile(asset_path), original_bytes);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+  ASSERT_FALSE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel))
+      << ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_EQ(CustomCellStates(panel),
+            (std::vector<CustomCellState>{{0, 0, 0x2824, 0x2824, false},
+                                          {2, 0, 0x6820, 0x6820, false}}));
+  auto decoded_or =
+      zelda3::DecodeCustomObjectBinary(ReadBinaryFile(asset_path));
+  ASSERT_TRUE(decoded_or.ok()) << decoded_or.status();
+  EXPECT_EQ(decoded_or->tiles, (std::vector<zelda3::CustomObject::TileMapEntry>{
+                                   {0, 0, 0x2824}, {2, 0, 0x6820}}));
+
+  // The successfully published geometry is now the Revert baseline.
+  const auto published_cells = CustomCellStates(panel);
+  const auto published_bytes = ReadBinaryFile(asset_path);
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 3, 0)
+          .ok());
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+  EXPECT_EQ(CustomCellStates(panel), published_cells);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 3);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes,
+            published_bytes);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_EQ(ReadBinaryFile(asset_path), published_bytes);
+}
+
+TEST(ObjectTileEditorPanelTest, MoveTileCodecFailureLeavesDraftUntouched) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/3, /*height=*/1, /*object_id=*/0x31,
+      /*room_id=*/0, /*rooms=*/nullptr, /*modified=*/false);
+  auto layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+  // Two unselected cells overlap; moving the third must validate the full draft.
+  layout.cells[1].rel_x = 0;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 2);
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 6);
+  ObjectTileEditorPanelTestAccess::SetPreviewDirty(panel, false);
+  const auto cells_before = CustomCellStates(panel);
+
+  const auto status =
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 5, 5);
+
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_EQ(CustomCellStates(panel), cells_before);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 3);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 6);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+}
+
+TEST(ObjectTileEditorPanelTest, MovedZeroWordTileCountsAsUnappliedChange) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/2, /*height=*/1, /*object_id=*/0x31,
+      /*room_id=*/0, /*rooms=*/nullptr, /*modified=*/false);
+  auto layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+  layout.cells[1].tile_info = gfx::TileInfo(0, 0, false, false, false);
+  layout.cells[1].original_word = 0;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+  ASSERT_FALSE(panel.HasUnappliedChanges());
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 3, 0)
+          .ok());
+
+  ASSERT_EQ(CustomCellStates(panel).size(), 2u);
+  EXPECT_EQ(CustomCellStates(panel).back(),
+            (CustomCellState{3, 0, 0x0000, 0, true}));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 4);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 1);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     RevertAfterMoveRestoresExactOpenedCustomLayout) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_move_tile_revert"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path,
+      zelda3::CustomObject{.tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto opened_cells = CustomCellStates(panel);
+  const auto opened_source_bytes =
+      ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes;
+
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 4, 3)
+          .ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0x24, 3);
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 5);
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 4);
+
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+
+  EXPECT_EQ(CustomCellStates(panel), opened_cells);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes,
+            opened_source_bytes);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x20);
+  EXPECT_EQ(ReadBinaryFile(asset_path), opened_source_bytes);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     FailedPublishKeepsMovedTileAndPreviousRevertBaseline) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_move_tile_conflict"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path,
+      zelda3::CustomObject{.tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}}}));
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_NO_FATAL_FAILURE(OpenCustomSlot31(panel, rooms));
+  const auto opened_cells = CustomCellStates(panel);
+  const auto opened_source_bytes =
+      ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes;
+
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, 2, 1)
+          .ok());
+  const auto draft_cells = CustomCellStates(panel);
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2850}}}));
+  const auto external_bytes = ReadBinaryFile(asset_path);
+  ASSERT_NE(external_bytes, opened_source_bytes);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "source changed after it was opened"),
+            std::string::npos);
+  EXPECT_EQ(CustomCellStates(panel), draft_cells);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 3);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 1);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_source_bytes,
+            opened_source_bytes);
+  EXPECT_EQ(ReadBinaryFile(asset_path), external_bytes);
+
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+
+  EXPECT_EQ(CustomCellStates(panel), opened_cells);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width, 2);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height, 1);
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_EQ(ReadBinaryFile(asset_path), external_bytes);
+}
+
+TEST(ObjectTileEditorPanelTest, StandardObjectSessionRefusesMoveTile) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  const auto cells_before = CustomCellStates(panel);
+  const int width_before =
+      ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width;
+  const int height_before =
+      ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height;
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  const auto current =
+      std::pair{cells_before.front().rel_x, cells_before.front().rel_y};
+  const auto occupied =
+      std::pair{cells_before.back().rel_x, cells_before.back().rel_y};
+
+  for (const auto [rel_x, rel_y] :
+       {std::pair{width_before, 0}, current, occupied}) {
+    SCOPED_TRACE(absl::StrFormat("(%d, %d)", rel_x, rel_y));
+    const absl::Status status =
+        ObjectTileEditorPanelTestAccess::MoveSelectedCustomTileTo(panel, rel_x,
+                                                                  rel_y);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_EQ(CustomCellStates(panel), cells_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_width,
+              width_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).bounds_height,
+              height_before);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+    EXPECT_FALSE(panel.HasUnappliedChanges());
+  }
 }
 
 }  // namespace

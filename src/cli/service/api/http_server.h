@@ -8,6 +8,7 @@
 #include <thread>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "cli/service/api/bonjour_publisher.h"
 
 namespace httplib {
@@ -41,12 +42,17 @@ class HttpServer {
   using RomSource = std::function<Rom*()>;
   using ProjectPathSource = std::function<std::string()>;
   using WindowAction = std::function<bool()>;
+  using EditorControl =
+      std::function<absl::StatusOr<std::string>(const std::string&)>;
+  void SetEditorControl(EditorControl control) {
+    editor_control_ = std::move(control);
+  }
 
   HttpServer();
   ~HttpServer();
 
   // Start the server on the specified port in a background thread.
-  absl::Status Start(int port);
+  absl::Status Start(int port, bool loopback_only = false);
 
   // Stop the server.
   void Stop();
@@ -95,6 +101,7 @@ class HttpServer {
   std::unique_ptr<std::thread> server_thread_;
   std::atomic<bool> is_running_{false};
   int port_ = 0;
+  bool editor_control_only_ = false;
   BonjourPublisher bonjour_;
   SymbolProviderSource symbol_source_;
   RenderServiceSource render_source_;
@@ -102,6 +109,7 @@ class HttpServer {
   ProjectPathSource project_path_source_;
   WindowAction window_show_;
   WindowAction window_hide_;
+  EditorControl editor_control_;
 };
 
 }  // namespace api

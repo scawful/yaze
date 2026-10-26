@@ -188,6 +188,13 @@ bool IsHoleRoomTag(uint8_t tag);
 bool IsPitTileAttribute(uint8_t attribute);
 bool IsWarpTileAttribute(uint8_t attribute);
 
+// Facts available directly from the current editable room: header, placed
+// objects, sprites, custom collision and door roles. Does not read the ROM or
+// resolve staircase slots. Useful for immediate editor feedback; use the full
+// collector below to include layout/drawn tiles and staircase replay.
+RoomLinkFacts CollectLoadedRoomLinkFacts(const Room& room,
+                                         const PitDamageTable* pit_table);
+
 // Reads the link facts of `room`, which must be loaded with its objects and
 // sprites (LoadRoomFromRom + LoadSprites). Draws the room's layout and
 // objects without graphics to find pit and warp tiles. `pit_table` may be

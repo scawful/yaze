@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "kind": "yaze-dungeon-inventory-source-contract",
+  "source_commit": "9a0316176ed5668d12c5135be757f3adc83578c2",
+  "source_files": [
+    {
+      "path": "src/zelda3/dungeon/custom_object.cc",
+      "sha256": "b323e04c391ca104c07d23f373464d1159fde59ecea5a0972b1b6a530461fb44"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/corner_routines.cc",
+      "sha256": "02378333f55670d6231d23eae79980ec3503eceac1f4461cf0780f2f782915c4"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/diagonal_routines.cc",
+      "sha256": "54cac622c8f3e2b480fa30f309b722ffb84f0740be7c1599b1480791bf732c1d"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/downwards_routines.cc",
+      "sha256": "92b4736d21ec92113b088d4145b10c34c723eb3307a0dd31bd9f02ace7da5a80"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_registry.cc",
+      "sha256": "b017197f538ddf1c5463ab6c3f13ae9c0c55b5dacc6ac532b337947694559f4d"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_registry.h",
+      "sha256": "d1359790779f5a21a2e509e29fad28602638367d68922961da0151ae53eb1856"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_types.cc",
+      "sha256": "3aa21f4e48b43cfc4ba0f53fab31b06ef066b53aa3501a673ea9efa73ee4c3d9"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_types.h",
+      "sha256": "1cb43622ef59e7843619f786b7bce890649c187a3231906ee2699fb1548e2ac5"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/rightwards_routines.cc",
+      "sha256": "a75059008fd13546dbed21c4fc9db5452cb9467d06a79b4d880a8ba0c1328661"
+    },
+    {
+      "path": "src/zelda3/dungeon/draw_routines/special_routines.cc",
+      "sha256": "45892da961ce82b11d8a95ac505b2ae7e2b42bc41a681d91900d907d0bffa8fa"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_drawer.cc",
+      "sha256": "b5425c48aad3a91eef20332ac231218b42bb866595e390590a7eab35ce5ccccb"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_layer_semantics.h",
+      "sha256": "1527ee134a84164898edfc1078af874c675987e3bf0ade57e75185ee5a1b7147"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_parser.cc",
+      "sha256": "e1177b409e1c9ce9e2e4b75a472d29930e53da90cb309e129d487381596c5b5d"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_render_routing.h",
+      "sha256": "ea437ac7a9d19c50e288d14b31ca1d13d2ca811956976753a9d55cffac7cdb06"
+    },
+    {
+      "path": "src/zelda3/dungeon/object_tile_editor.cc",
+      "sha256": "cb099ba7ffeead192a18ac0b6e840f820629c9e0c2533b6c738692671d794c2d"
+    },
+    {
+      "path": "src/zelda3/dungeon/room.cc",
+      "sha256": "87e8a08eb577e7298a0054e671635d31030a3498a882b92cf72f425c0139495f"
+    },
+    {
+      "path": "src/zelda3/dungeon/room_layer_registers.h",
+      "sha256": "2950596f966f5dccbfa5acc2e5cdbfc7e6f981a576a61a70fdfe4b819b21860f"
+    },
+    {
+      "path": "src/zelda3/dungeon/room_object.cc",
+      "sha256": "3cc91e7d0bd4e4e768822b5900b4ba56ee6f9543805679096c3a84d8d6834253"
+    },
+    {
+      "path": "src/zelda3/dungeon/room_object.h",
+      "sha256": "ca763020e105257e1413a606148e4292dd865e4a7218662cbf146febc47e2d29"
+    }
+  ],
+  "expected_counts": {
+    "mapped_registry_objects": 448,
+    "room_stream_representable_objects": 440,
+    "registry_only_aliases": 8,
+    "name_array_counts": {
+      "1": 248,
+      "2": 64,
+      "3": 128
+    },
+    "registered_routines": 135,
+    "default_mapping_routines_used": 132,
+    "custom_enabled_mapping_routines_used": 133,
+    "unregistered_mapped_routine_ids": [],
+    "registered_not_used_by_default_mapping": [
+      19,
+      34,
+      130
+    ],
+    "mapped_to_nothing_default": 52,
+    "canonical_stream_unmapped_ids": [],
+    "unmapped_metadata_range_within_12bit": {
+      "first": "0x140",
+      "last": "0xF7F",
+      "count": 3648
+    },
+    "custom_runtime_families": 3,
+    "custom_default_subtype_slots": 23
+  },
+  "registry_ranges": [
+    [
+      0,
+      255
+    ],
+    [
+      256,
+      319
+    ],
+    [
+      3968,
+      4095
+    ]
+  ],
+  "serializable_ranges": [
+    [
+      0,
+      247
+    ],
+    [
+      256,
+      319
+    ],
+    [
+      3968,
+      4095
+    ]
+  ],
+  "routine_range": [
+    0,
+    134
+  ],
+  "custom_family_ids": [
+    49,
+    50,
+    84
+  ],
+  "optional_usdasm_source": {
+    "path": "bank_01.asm",
+    "repository": "usdasm",
+    "repository_relative_path": "bank_01.asm",
+    "source_commit": "d53311a54acd34f5e9ff3d92a03b213292f1db10",
+    "sha256": "18fdd57a300718819b3ec613b1782ad113921999c5e353aef629afaa897c98f8",
+    "meaning": "Vanilla source reference only; target Oracle ROM tables/hooks may differ."
+  },
+  "annotations": {
+    "scope": {
+      "runtime_character_usage_measured": false,
+      "rom_read": false,
+      "cpp_build_run": false,
+      "repository_modified": false,
+      "native_run": false,
+      "complete_dungeon_coverage_requires": [
+        "separate floor/layout passes",
+        "all three ordered object stream lists",
+        "doors and door state",
+        "global blocks/torches",
+        "custom assets and project tile-pattern overrides",
+        "room graphics/palette/header/context/state",
+        "post-object priority/mask effects"
+      ]
+    },
+    "trace_contract": {
+      "required": "ordered full-room replay into disposable BG/layout buffers with raw traces and trace_only=false",
+      "preserve_fields": [
+        "write order",
+        "object_id",
+        "size",
+        "layer",
+        "x_tile",
+        "y_tile",
+        "tile_id",
+        "flags (H/V/priority/palette)"
+      ],
+      "do_not_use_as_complete_coverage": [
+        "isolated object IDs alone",
+        "ObjectTileLayout::FromTraces coalesced cells",
+        "trace_only=true for stateful ExistingTileMatchesAny reads"
+      ],
+      "sources": [
+        {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 147
+        },
+        {
+          "path": "src/zelda3/dungeon/object_tile_editor.cc",
+          "line": 184
+        },
+        {
+          "path": "src/zelda3/dungeon/draw_routines/draw_routine_types.cc",
+          "line": 30
+        }
+      ]
+    },
+    "encoding_source": {
+      "path": "src/zelda3/dungeon/room_object.cc",
+      "line": 440
+    },
+    "routine_id_lookup_source": {
+      "path": "src/zelda3/dungeon/draw_routines/draw_routine_registry.cc",
+      "line": 82
+    },
+    "dispatch_exceptions": [
+      {
+        "key": "custom_asset_override",
+        "ids": [
+          49,
+          50,
+          84
+        ],
+        "condition": "CustomObjects flag plus successful size-selected asset lookup; configured overrides may also preempt other IDs",
+        "effect": "External binary geometry/tile words precede built-in routine lookup",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 306
+        }
+      },
+      {
+        "key": "full_layer_mask",
+        "ids": [
+          4083
+        ],
+        "effect": "DrawLayerMaskFull bypasses Nothing registry metadata",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 331
+        }
+      },
+      {
+        "key": "lamp_cones",
+        "ids": [
+          4010
+        ],
+        "effect": "DrawLampCones on Yaze BG2 instead of general4x4 registry path",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 336
+        }
+      },
+      {
+        "key": "agahnim_windows",
+        "ids": [
+          4014
+        ],
+        "effect": "DrawAgahnimsWindows with both object/layout buffers",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 339
+        }
+      },
+      {
+        "key": "vitreous_goo",
+        "ids": [
+          4066
+        ],
+        "effect": "DrawVitreousGoo on Yaze BG2",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 342
+        }
+      },
+      {
+        "key": "boss_shell_state",
+        "ids": [
+          3989,
+          4082
+        ],
+        "effect": "State may suppress shell; otherwise DrawBigDecor10x8 uses fixed or per-object ROM source instead of registry4x4",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 345
+        }
+      },
+      {
+        "key": "room_floor_source",
+        "ids": [
+          196,
+          219
+        ],
+        "effect": "Payload is decoded from room floor1/floor2 graphics selector when available",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 389
+        }
+      },
+      {
+        "key": "big_chest_dispatch",
+        "ids": [
+          4017
+        ],
+        "effect": "Routine114 calls stateful DrawBigChest forFB1; open/closed12-word states and ordered shared chest/event counters apply; fixed-openFB2 bypasses wrapper",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 2735
+        }
+      },
+      {
+        "key": "big_key_lock_dispatch",
+        "ids": [
+          3992
+        ],
+        "effect": "Routine92 calls stateful DrawBigKeyLock; shared chest/lock index advances and an open lock emits no tiles",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 2757
+        }
+      },
+      {
+        "key": "special_layer_routing",
+        "ids": [
+          216,
+          218,
+          304,
+          305,
+          306,
+          307,
+          311,
+          316,
+          3995,
+          3996,
+          3997,
+          3998,
+          3999,
+          4000,
+          4001,
+          4006,
+          4007,
+          4008,
+          4009,
+          4013,
+          4019,
+          4052
+        ],
+        "effect": "Dispatcher supplies fixed or secondary BG owners for facade/stairs/water/dam routines; BothBG metadata alone is incomplete; see companion wall/layer contract",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 487
+        }
+      },
+      {
+        "key": "small_chest_dispatch",
+        "ids": [
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          3993,
+          3994
+        ],
+        "effect": "ObjectDrawer dispatches stateful DrawChest; fixed-open alias and dungeon chest state matter",
+        "source": {
+          "path": "src/zelda3/dungeon/object_drawer.cc",
+          "line": 945
+        }
+      }
+    ],
+    "field_semantics": {
+      "routine_id_default": "Yaze editor registry index, not a nativeCPU address.",
+      "vanilla_disassembly": "Independent vanillaUSDASM pointer-table cross-reference; not targetOracleROM values.",
+      "parser_payload_word_count": "Number of TileInfo/tilemap words loaded from parser metadata; not output tiles or unique character IDs.",
+      "base_width_chars/base_height_chars": "Registered base dimensions in8x8character cells; not complete size-dependent output bounds.",
+      "room_stream_representable": "ID is in strict serializer permitted ranges; position/size/control-prefix guards still apply.",
+      "actual_character_usage": "NOT_MEASURED; no runtime/ROM character coverage claimed."
+    },
+    "unknowns": [
+      "Oracle native object-hook/asset parity is not verified by this Yaze-source inventory.",
+      "No character-ID/sheet/palette allocation coverage has been measured.",
+      "Room-dependent source reads and dungeon-state branches need ordered room replay.",
+      "Project custom-file maps can override other objects before registry lookup; their actual configured files were not loaded.",
+      "Names and bounds are metadata, not native-game or pixel-parity acceptance.",
+      "Registered objects0x0F8..0x0FF are metadata aliases, not representable room-stream objects."
+    ]
+  }
+}

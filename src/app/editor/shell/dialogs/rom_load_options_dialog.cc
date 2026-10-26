@@ -32,6 +32,7 @@ RomLoadOptionsDialog::RomLoadOptionsDialog() {
   options_.save_overworld_entrances = true;
   options_.save_overworld_exits = true;
   options_.save_overworld_items = true;
+  options_.save_overworld_sprites = true;
 }
 
 void RomLoadOptionsDialog::Open(Rom* rom) {
@@ -69,6 +70,7 @@ void RomLoadOptionsDialog::Open(Rom* rom, const std::string& rom_filename,
   options_.save_overworld_entrances = true;
   options_.save_overworld_exits = true;
   options_.save_overworld_items = true;
+  options_.save_overworld_sprites = true;
   options_.create_project = suggest_project_creation;
 
   // Detect ROM version
@@ -313,6 +315,7 @@ void RomLoadOptionsDialog::DrawFeatureFlagDetails() {
     ImGui::Checkbox(tr("Save entrances"), &options_.save_overworld_entrances);
     ImGui::Checkbox(tr("Save exits"), &options_.save_overworld_exits);
     ImGui::Checkbox(tr("Save items"), &options_.save_overworld_items);
+    ImGui::Checkbox(tr("Save sprites"), &options_.save_overworld_sprites);
     ImGui::TreePop();
   }
 
@@ -413,6 +416,7 @@ void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
     options_.save_overworld_entrances = true;
     options_.save_overworld_exits = true;
     options_.save_overworld_items = true;
+    options_.save_overworld_sprites = true;
     options_.save_dungeon_maps = false;
     options_.save_all_palettes = false;
     options_.save_gfx_groups = false;
@@ -425,6 +429,7 @@ void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
     options_.save_overworld_entrances = true;
     options_.save_overworld_exits = true;
     options_.save_overworld_items = true;
+    options_.save_overworld_sprites = true;
     options_.save_dungeon_maps = true;
     options_.save_all_palettes = true;
     options_.save_gfx_groups = true;
@@ -437,6 +442,7 @@ void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
     options_.save_overworld_entrances = true;
     options_.save_overworld_exits = true;
     options_.save_overworld_items = true;
+    options_.save_overworld_sprites = true;
     options_.save_dungeon_maps = true;
     options_.save_all_palettes = true;
     options_.save_gfx_groups = true;
@@ -447,6 +453,7 @@ void RomLoadOptionsDialog::ApplyPreset(const std::string& preset_name) {
     options_.save_overworld_entrances = false;
     options_.save_overworld_exits = false;
     options_.save_overworld_items = false;
+    options_.save_overworld_sprites = false;
     options_.save_dungeon_maps = false;
     options_.save_all_palettes = false;
     options_.save_gfx_groups = false;
@@ -460,6 +467,7 @@ void RomLoadOptionsDialog::ApplyOptionsToFeatureFlags() {
   flags.overworld.kSaveOverworldEntrances = options_.save_overworld_entrances;
   flags.overworld.kSaveOverworldExits = options_.save_overworld_exits;
   flags.overworld.kSaveOverworldItems = options_.save_overworld_items;
+  flags.overworld.kSaveOverworldSprites = options_.save_overworld_sprites;
   flags.overworld.kLoadCustomOverworld = options_.enable_custom_overworld;
   flags.overworld.kEnableSpecialWorldExpansion = options_.enable_tail_expansion;
   flags.kSaveDungeonMaps = options_.save_dungeon_maps;

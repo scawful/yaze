@@ -537,7 +537,7 @@ void SettingsPanel::DrawProjectSettings() {
     project_->Save();
   }
 
-  const char* policies[] = {"allow", "warn", "block"};
+  const char* policies[] = {"allow", "warn", "block", "read_only"};
   int policy_index = static_cast<int>(project_->rom_metadata.write_policy);
   if (ImGui::Combo(tr("Write Policy"), &policy_index, policies,
                    IM_ARRAYSIZE(policies))) {

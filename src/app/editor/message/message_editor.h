@@ -82,6 +82,7 @@ class MessageEditor : public Editor {
   absl::Status SaveExpandedMessages();
   absl::Status LoadExpandedMessagesFromRom();
   absl::Status LoadCanonicalExpandedSource();
+  bool HasUnpublishedMessageSourceChanges() const;
   int CalculateExpandedBankUsage() const;
 
   absl::Status Cut() override;

@@ -107,6 +107,7 @@ struct ModeState {
   int paint_last_tile_x = -1;
   int paint_last_tile_y = -1;
   uint8_t paint_collision_value = 0;
+  bool paint_collision_erase = false;
   bool is_painting = false;
   bool paint_mutation_started = false;
 
@@ -136,6 +137,7 @@ struct ModeState {
     paint_last_tile_x = -1;
     paint_last_tile_y = -1;
     paint_collision_value = 0;
+    paint_collision_erase = false;
     is_painting = false;
     paint_mutation_started = false;
   }
