@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/palette/palette_editor.h"
@@ -62,6 +63,14 @@ void SeedPaletteGroup(PaletteGroup* group, int palette_count, int color_count,
     }
     group->AddPalette(palette);
   }
+}
+
+using PaletteWriteRanges = std::vector<std::pair<uint32_t, uint32_t>>;
+
+void ExpectPaletteWriteRanges(const absl::StatusOr<PaletteWriteRanges>& actual,
+                              const PaletteWriteRanges& expected) {
+  ASSERT_TRUE(actual.ok()) << actual.status();
+  EXPECT_EQ(*actual, expected);
 }
 
 std::string ManifestProtectingPcRange(uint32_t begin, uint32_t end) {
@@ -558,6 +567,216 @@ TEST_F(PaletteManagerTest, SaveAllWithoutInitializationFails) {
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
 }
 
+TEST_F(PaletteManagerTest, LegacyOverworldRangesAndSavesUseExactNativeBytes) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_main"), 6, 35,
+                   0x0100);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_aux"), 20, 21,
+                   0x0200);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(manager.SetColor("ow_main", 5, 34, SnesColor(0x3456)).ok());
+  ASSERT_TRUE(manager.SetColor("ow_aux", 19, 20, SnesColor(0x5678)).ok());
+  constexpr uint32_t kMainColor = 0xDE6C8 + 5 * 70 + 34 * 2;
+  constexpr uint32_t kAuxColor = 0xDE86C + 19 * 42 + 20 * 2;
+  ExpectPaletteWriteRanges(manager.GetModifiedGroupColorWriteRanges("ow_main"),
+                           {{kMainColor, kMainColor + 2}});
+  ExpectPaletteWriteRanges(manager.GetModifiedGroupColorWriteRanges("ow_aux"),
+                           {{kAuxColor, kAuxColor + 2}});
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedColorWriteRanges(&game_data),
+      {{kMainColor, kMainColor + 2}, {kAuxColor, kAuxColor + 2}});
+
+  auto expected = rom.vector();
+  expected[kMainColor] = 0x56;
+  expected[kMainColor + 1] = 0x34;
+  ASSERT_TRUE(manager.SaveGroup("ow_main").ok());
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_FALSE(manager.IsGroupModified("ow_main"));
+  EXPECT_TRUE(manager.IsColorModified("ow_aux", 19, 20));
+  EXPECT_TRUE(rom.dirty());
+  expected[kAuxColor] = 0x78;
+  expected[kAuxColor + 1] = 0x56;
+  ASSERT_TRUE(manager.SaveAllToRom().ok());
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_FALSE(manager.HasUnsavedChanges());
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(), {});
+}
+
+TEST_F(PaletteManagerTest, UnboundOverworldRecordsPreserveSaveRetryState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_main"), 7, 35,
+                   0x0100);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_aux"), 22, 21,
+                   0x0200);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(manager.SetColor("ow_main", 6, 0, SnesColor(0x1111)).ok());
+  ASSERT_TRUE(manager.SetColor("ow_aux", 20, 0, SnesColor(0x2222)).ok());
+  ASSERT_TRUE(manager.SetColor("ow_aux", 21, 0, SnesColor(0x3333)).ok());
+  const auto before = rom.vector();
+  const bool dirty = rom.dirty();
+  const auto undo_size = manager.GetUndoStackSize();
+  const auto redo_size = manager.GetRedoStackSize();
+  EXPECT_FALSE(manager.GetModifiedColorWriteRanges().ok());
+  EXPECT_FALSE(manager.GetModifiedColorWriteRanges(&game_data).ok());
+  for (const std::string group : {"ow_main", "ow_aux"}) {
+    EXPECT_FALSE(manager.GetModifiedGroupColorWriteRanges(group).ok());
+    EXPECT_FALSE(manager.SaveGroup(group).ok());
+  }
+  EXPECT_FALSE(manager.SaveAllToRom().ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty);
+  EXPECT_TRUE(manager.IsGroupModified("ow_main"));
+  EXPECT_TRUE(manager.IsGroupModified("ow_aux"));
+  EXPECT_TRUE(manager.IsColorModified("ow_main", 6, 0));
+  EXPECT_TRUE(manager.IsColorModified("ow_aux", 20, 0));
+  EXPECT_TRUE(manager.IsColorModified("ow_aux", 21, 0));
+  EXPECT_EQ(manager.GetModifiedColorCount(), 3u);
+  EXPECT_EQ(manager.GetUndoStackSize(), undo_size);
+  EXPECT_EQ(manager.GetRedoStackSize(), redo_size);
+  EXPECT_EQ(manager.GetColor("ow_main", 6, 0).snes(), 0x1111);
+  EXPECT_EQ(manager.GetColor("ow_aux", 20, 0).snes(), 0x2222);
+  EXPECT_EQ(manager.GetColor("ow_aux", 21, 0).snes(), 0x3333);
+}
+
+TEST_F(PaletteManagerTest, InvalidNativeColorPreservesSaveRetryState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_main"), 6, 36,
+                   0x0100);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(manager.BeginColorEdit("ow_main", 5, 35).ok());
+  ASSERT_TRUE(manager.SetColor("ow_main", 5, 35, SnesColor(0x3456)).ok());
+  const auto before = rom.vector();
+  const bool dirty = rom.dirty();
+  const auto undo_size = manager.GetUndoStackSize();
+  const auto redo_size = manager.GetRedoStackSize();
+  EXPECT_FALSE(manager.GetModifiedGroupColorWriteRanges("ow_main").ok());
+  EXPECT_FALSE(manager.GetModifiedColorWriteRanges().ok());
+  EXPECT_FALSE(manager.SaveGroup("ow_main").ok());
+  EXPECT_FALSE(manager.SaveAllToRom().ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty);
+  EXPECT_TRUE(manager.IsGroupModified("ow_main"));
+  EXPECT_TRUE(manager.IsColorModified("ow_main", 5, 35));
+  EXPECT_EQ(manager.GetModifiedColorCount(), 1u);
+  EXPECT_EQ(manager.GetUndoStackSize(), undo_size);
+  EXPECT_EQ(manager.GetRedoStackSize(), redo_size);
+  EXPECT_TRUE(manager.HasColorEdit());
+  EXPECT_EQ(manager.GetColor("ow_main", 5, 35).snes(), 0x3456);
+}
+
+TEST_F(PaletteManagerTest, TruncatedNativeRecordRefusesEvenAnInBoundsColor) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0xDE6C8 + 70 - 1, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_main"), 1, 35,
+                   0x0100);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(manager.SetColor("ow_main", 0, 0, SnesColor(0x1234)).ok());
+  const auto before = rom.vector();
+  const bool dirty = rom.dirty();
+  const auto undo_size = manager.GetUndoStackSize();
+  EXPECT_FALSE(manager.GetModifiedGroupColorWriteRanges("ow_main").ok());
+  EXPECT_FALSE(manager.GetModifiedColorWriteRanges().ok());
+  EXPECT_FALSE(manager.SaveGroup("ow_main").ok());
+  EXPECT_FALSE(manager.SaveAllToRom().ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty);
+  EXPECT_TRUE(manager.IsGroupModified("ow_main"));
+  EXPECT_TRUE(manager.IsColorModified("ow_main", 0, 0));
+  EXPECT_EQ(manager.GetModifiedColorCount(), 1u);
+  EXPECT_EQ(manager.GetUndoStackSize(), undo_size);
+  EXPECT_EQ(manager.GetColor("ow_main", 0, 0).snes(), 0x1234);
+}
+
+TEST_F(PaletteManagerTest,
+       SaveAllPreflightsValidAndUnboundGroupsBeforeWriting) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_main"), 6, 35,
+                   0x0100);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_aux"), 21, 21,
+                   0x0200);
+  SeedPaletteGroup(game_data.palette_groups.get_group("hud"), 1, 32, 0x0300);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(manager.SetColor("ow_main", 0, 0, SnesColor(0x1111)).ok());
+  ASSERT_TRUE(manager.SetColor("hud", 0, 4, SnesColor(0x2222)).ok());
+  ASSERT_TRUE(manager.SetColor("ow_aux", 20, 0, SnesColor(0x3333)).ok());
+  ExpectPaletteWriteRanges(manager.GetModifiedGroupColorWriteRanges("ow_main"),
+                           {{0xDE6C8, 0xDE6CA}});
+  const auto before = rom.vector();
+  const bool dirty = rom.dirty();
+  const auto undo_size = manager.GetUndoStackSize();
+  const auto redo_size = manager.GetRedoStackSize();
+  EXPECT_FALSE(manager.SaveAllToRom().ok());
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty);
+  EXPECT_TRUE(manager.IsGroupModified("ow_main"));
+  EXPECT_TRUE(manager.IsGroupModified("hud"));
+  EXPECT_TRUE(manager.IsGroupModified("ow_aux"));
+  EXPECT_TRUE(manager.IsColorModified("ow_main", 0, 0));
+  EXPECT_TRUE(manager.IsColorModified("hud", 0, 4));
+  EXPECT_TRUE(manager.IsColorModified("ow_aux", 20, 0));
+  EXPECT_EQ(manager.GetModifiedColorCount(), 3u);
+  EXPECT_EQ(manager.GetUndoStackSize(), undo_size);
+  EXPECT_EQ(manager.GetRedoStackSize(), redo_size);
+}
+
+TEST_F(PaletteManagerTest,
+       PaletteSaveCallersPropagateRangeFailureBeforeManifest) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("ow_main"), 7, 35,
+                   0x0100);
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(manager.SetColor("ow_main", 6, 0, SnesColor(0x1234)).ok());
+  const auto ranges = manager.GetModifiedColorWriteRanges(&game_data);
+  ASSERT_FALSE(ranges.ok());
+  project::YazeProject project;
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(ManifestProtectingPcRange(0xD8000, 0xE0000))
+                  .ok());
+  editor::PaletteEditor palette_editor(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.game_data = &game_data;
+  dependencies.project = &project;
+  palette_editor.SetDependencies(dependencies);
+  palette_editor.SetGameData(&game_data);
+  editor::OverworldMainPalettePanel panel(&rom, &game_data);
+  panel.SetProject(&project);
+  const auto before = rom.vector();
+  const bool dirty = rom.dirty();
+  const auto undo_size = manager.GetUndoStackSize();
+  const auto editor_status = palette_editor.Save();
+  const auto panel_status = panel.SaveToRom();
+  EXPECT_EQ(editor_status.code(), ranges.status().code());
+  EXPECT_EQ(panel_status.code(), ranges.status().code());
+  EXPECT_NE(editor_status.code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_NE(panel_status.code(), absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty);
+  EXPECT_TRUE(manager.IsGroupModified("ow_main"));
+  EXPECT_TRUE(manager.IsColorModified("ow_main", 6, 0));
+  EXPECT_EQ(manager.GetModifiedColorCount(), 1u);
+  EXPECT_EQ(manager.GetUndoStackSize(), undo_size);
+  EXPECT_EQ(manager.GetColor("ow_main", 6, 0).snes(), 0x1234);
+}
+
 TEST_F(PaletteManagerTest, SaveTransactionRollbackRestoresRetryState) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
@@ -714,8 +933,9 @@ TEST_F(PaletteManagerTest,
       {later_dungeon_color, later_dungeon_color + 2}};
   std::sort(expected.begin(), expected.end());
 
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(), expected);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), expected);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(), expected);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(&game_data),
+                           expected);
 
   DungeonSaveFlagsGuard flags_guard;
   ConfigurePaletteOnlyDungeonSave();
@@ -765,11 +985,12 @@ TEST_F(PaletteManagerTest,
                             SnesColor(0x2222))
                   .ok());
 
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(), second_expected);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&first_game_data),
-            first_expected);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&second_game_data),
-            second_expected);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(),
+                           second_expected);
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedColorWriteRanges(&first_game_data), first_expected);
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedColorWriteRanges(&second_game_data), second_expected);
 
   DungeonSaveFlagsGuard flags_guard;
   ConfigurePaletteOnlyDungeonSave();
@@ -781,16 +1002,18 @@ TEST_F(PaletteManagerTest,
   EXPECT_EQ(second_editor.CollectWriteRanges(), second_expected);
 
   manager.ActivateSession(&first_game_data);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(), first_expected);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&second_game_data),
-            second_expected);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(),
+                           first_expected);
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedColorWriteRanges(&second_game_data), second_expected);
   EXPECT_EQ(first_editor.CollectWriteRanges(), first_expected);
   EXPECT_EQ(second_editor.CollectWriteRanges(), second_expected);
 
   manager.ActivateSession(&second_game_data);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(), second_expected);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&first_game_data),
-            first_expected);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(),
+                           second_expected);
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedColorWriteRanges(&first_game_data), first_expected);
 }
 
 TEST_F(PaletteManagerTest,
@@ -804,7 +1027,9 @@ TEST_F(PaletteManagerTest,
   auto& manager = PaletteManager::Get();
   manager.Initialize(&game_data);
   ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 10, SnesColor(0x7C00)).ok());
-  ASSERT_FALSE(manager.GetModifiedColorWriteRanges().empty());
+  const auto ranges = manager.GetModifiedColorWriteRanges();
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  ASSERT_FALSE(ranges->empty());
 
   DungeonSaveFlagsGuard flags_guard;
   ConfigurePaletteOnlyDungeonSave();
@@ -828,7 +1053,9 @@ TEST_F(PaletteManagerTest,
   auto& manager = PaletteManager::Get();
   manager.Initialize(&second_game_data);
   ASSERT_TRUE(manager.SetColor("dungeon_main", 0, 10, SnesColor(0x7C00)).ok());
-  ASSERT_FALSE(manager.GetModifiedColorWriteRanges().empty());
+  const auto ranges = manager.GetModifiedColorWriteRanges();
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  ASSERT_FALSE(ranges->empty());
 
   DungeonSaveFlagsGuard flags_guard;
   ConfigurePaletteOnlyDungeonSave();
@@ -846,7 +1073,7 @@ TEST_F(PaletteManagerTest, DungeonWriteRangesAreEmptyWithoutDirtyColors) {
 
   auto& manager = PaletteManager::Get();
   manager.Initialize(&game_data);
-  EXPECT_TRUE(manager.GetModifiedColorWriteRanges().empty());
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(), {});
 
   DungeonSaveFlagsGuard flags_guard;
   ConfigurePaletteOnlyDungeonSave();
@@ -1005,7 +1232,8 @@ TEST_F(PaletteManagerTest,
   EXPECT_TRUE(
       manager.IsColorModified("dungeon_main", kPaletteIndex, kColorIndex));
   EXPECT_EQ(manager.GetModifiedColorCount(&game_data), 1u);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), expected_ranges);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(&game_data),
+                           expected_ranges);
 }
 
 TEST_F(PaletteManagerTest,
@@ -1064,7 +1292,8 @@ TEST_F(PaletteManagerTest,
   EXPECT_TRUE(
       manager.IsColorModified("dungeon_main", kPaletteIndex, kColorIndex));
   EXPECT_EQ(manager.GetModifiedColorCount(&game_data), 1u);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), expected_ranges);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(&game_data),
+                           expected_ranges);
 }
 
 TEST_F(PaletteManagerTest,
@@ -1118,9 +1347,11 @@ TEST_F(PaletteManagerTest,
   EXPECT_TRUE(
       manager.IsColorModified("dungeon_main", kPaletteIndex, kColorIndex));
   EXPECT_EQ(manager.GetModifiedColorCount(&game_data), 1u);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), expected_ranges);
-  EXPECT_EQ(manager.GetModifiedGroupColorWriteRanges("dungeon_main"),
-            expected_ranges);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(&game_data),
+                           expected_ranges);
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedGroupColorWriteRanges("dungeon_main"),
+      expected_ranges);
 }
 
 TEST_F(PaletteManagerTest,
@@ -1187,9 +1418,11 @@ TEST_F(PaletteManagerTest,
   EXPECT_TRUE(
       manager.IsColorModified("dungeon_main", kPaletteIndex, kColorIndex));
   EXPECT_EQ(manager.GetModifiedColorCount(&game_data), 1u);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), expected_ranges);
-  EXPECT_EQ(manager.GetModifiedGroupColorWriteRanges("dungeon_main"),
-            expected_ranges);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(&game_data),
+                           expected_ranges);
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedGroupColorWriteRanges("dungeon_main"),
+      expected_ranges);
 }
 
 TEST_F(PaletteManagerTest, SafeGroupSaveIgnoresProtectedDirtyDungeonPalette) {
@@ -1226,10 +1459,10 @@ TEST_F(PaletteManagerTest, SafeGroupSaveIgnoresProtectedDirtyDungeonPalette) {
                   .SetColor("dungeon_main", kDungeonPaletteIndex,
                             kDungeonColorIndex, dungeon_color)
                   .ok());
-  EXPECT_EQ(manager.GetModifiedGroupColorWriteRanges("ow_main"),
-            overworld_ranges);
-  EXPECT_EQ(manager.GetModifiedGroupColorWriteRanges("dungeon_main"),
-            dungeon_ranges);
+  ExpectPaletteWriteRanges(manager.GetModifiedGroupColorWriteRanges("ow_main"),
+                           overworld_ranges);
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedGroupColorWriteRanges("dungeon_main"), dungeon_ranges);
 
   project::YazeProject project;
   project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
@@ -1258,10 +1491,12 @@ TEST_F(PaletteManagerTest, SafeGroupSaveIgnoresProtectedDirtyDungeonPalette) {
   EXPECT_TRUE(manager.IsColorModified("dungeon_main", kDungeonPaletteIndex,
                                       kDungeonColorIndex));
   EXPECT_EQ(manager.GetModifiedColorCount(&game_data), 1u);
-  EXPECT_TRUE(manager.GetModifiedGroupColorWriteRanges("ow_main").empty());
-  EXPECT_EQ(manager.GetModifiedGroupColorWriteRanges("dungeon_main"),
-            dungeon_ranges);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), dungeon_ranges);
+  ExpectPaletteWriteRanges(manager.GetModifiedGroupColorWriteRanges("ow_main"),
+                           {});
+  ExpectPaletteWriteRanges(
+      manager.GetModifiedGroupColorWriteRanges("dungeon_main"), dungeon_ranges);
+  ExpectPaletteWriteRanges(manager.GetModifiedColorWriteRanges(&game_data),
+                           dungeon_ranges);
 }
 
 TEST_F(PaletteManagerTest,

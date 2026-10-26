@@ -5996,10 +5996,11 @@ TEST_F(PaletteWorkspaceTest,
   ASSERT_EQ(pm.GetColor("dungeon_main", 0, 3).snes(), 0x1234);
   auto before = manager->GetCurrentRom()->vector();
   const auto ranges = pm.GetModifiedColorWriteRanges();
-  ASSERT_EQ(ranges.size(), 1);
-  ASSERT_EQ(ranges[0].second - ranges[0].first, 2);
-  before[ranges[0].first] = 0x34;
-  before[ranges[0].first + 1] = 0x12;
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  ASSERT_EQ(ranges->size(), 1);
+  ASSERT_EQ((*ranges)[0].second - (*ranges)[0].first, 2);
+  before[(*ranges)[0].first] = 0x34;
+  before[(*ranges)[0].first + 1] = 0x12;
   core::FeatureFlags::get().kSaveAllPalettes = true;
   manager->GetCurrentProject()->feature_flags = core::FeatureFlags::get();
   const auto save_toast_begin = manager->toast_manager()->pending_count();
