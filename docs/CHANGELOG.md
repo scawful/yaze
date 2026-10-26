@@ -112,6 +112,16 @@ High-level release summary. For detailed notes, see
   - Added `dungeon-remove-object` with exact index, ID, position, size, and
     layer guards, and made `project-bundle-verify --check-rom-hash` accept the
     iOS `romChecksum` manifest field.
+  - `--export-schemas` now gives every command a JSON Schema `parameters`
+    object (flag names, required flags, booleans, and `<a|b>` choices) and a
+    `positional_arguments` list, parsed from its usage string.
+  - Help and status output use color only on a terminal and honor `NO_COLOR`
+    and `TERM=dumb`; help captured by the HTTP API or agent tools is plain
+    text. `z3ed help <topic>` matches `--help`, and an unknown help topic exits
+    1.
+  - `debug` with no topic no longer reads past its arguments, `rom` subcommand
+    errors print once, `--quiet=maybe` is rejected, and the HTTP API server
+    stops before the ROM it serves is freed.
 - **Appearance and Editor Shell**:
   - Added five editor themes (Blood Moon, Catppuccin Mocha, Dracula, Rosé Pine,
     Temple of Time), with upstream MIT notices for Catppuccin, Dracula, and Rosé
