@@ -433,6 +433,106 @@ TEST_F(OverworldRegressionTest,
 }
 
 // =============================================================================
+// Wide/tall child quadrants. The transition savers read large_index() to tell
+// the right half of a wide area (1) and the bottom half of a tall area (2)
+// from the parent (0). Oracle of Secrets' docks are wide area $30/$31.
+// =============================================================================
+
+// The fixture fills the screen size table with 0x01, which v3 reads as large.
+// v3 stores 0 small, 1 large, 2 wide, 3 tall; start every map small.
+namespace {
+void UseV3SmallScreenSizes(Rom& rom) {
+  rom[OverworldCustomASMHasBeenApplied] = 0x03;
+  for (int i = 0; i < kSpecialWorldMapIdStart + 0x20; i++) {
+    rom[kOverworldScreenSize + i] = 0x00;
+  }
+}
+}  // namespace
+
+TEST_F(OverworldRegressionTest, AssignMapSizes_WideAndTallChildrenGetQuadrant) {
+  UseV3SmallScreenSizes(*rom_);
+  (*rom_)[kOverworldScreenSize + 0x30] =
+      static_cast<uint8_t>(AreaSizeEnum::WideArea);
+  (*rom_)[kOverworldScreenSize + 0x31] =
+      static_cast<uint8_t>(AreaSizeEnum::WideArea);
+  (*rom_)[kOverworldScreenSize + 0x05] =
+      static_cast<uint8_t>(AreaSizeEnum::TallArea);
+  (*rom_)[kOverworldScreenSize + 0x0D] =
+      static_cast<uint8_t>(AreaSizeEnum::TallArea);
+  PopulateOverworldMaps();
+  auto& maps =
+      const_cast<std::vector<OverworldMap>&>(overworld_->overworld_maps());
+
+  overworld_->AssignMapSizes(maps);
+
+  EXPECT_EQ(maps[0x30].area_size(), AreaSizeEnum::WideArea);
+  EXPECT_EQ(maps[0x30].parent(), 0x30);
+  EXPECT_EQ(maps[0x30].large_index(), 0);
+  EXPECT_EQ(maps[0x31].area_size(), AreaSizeEnum::WideArea);
+  EXPECT_EQ(maps[0x31].parent(), 0x30);
+  EXPECT_EQ(maps[0x31].large_index(), 1);
+  EXPECT_FALSE(maps[0x31].is_large_map());
+
+  EXPECT_EQ(maps[0x05].area_size(), AreaSizeEnum::TallArea);
+  EXPECT_EQ(maps[0x05].large_index(), 0);
+  EXPECT_EQ(maps[0x0D].area_size(), AreaSizeEnum::TallArea);
+  EXPECT_EQ(maps[0x0D].parent(), 0x05);
+  EXPECT_EQ(maps[0x0D].large_index(), 2);
+  EXPECT_FALSE(maps[0x0D].is_large_map());
+}
+
+TEST_F(OverworldRegressionTest,
+       SaveLargeMapsExpanded_SmallMapsBesideWideRightHalfKeepOffsets) {
+  UseV3SmallScreenSizes(*rom_);
+  (*rom_)[kOverworldScreenSize + 0x30] =
+      static_cast<uint8_t>(AreaSizeEnum::WideArea);
+  (*rom_)[kOverworldScreenSize + 0x31] =
+      static_cast<uint8_t>(AreaSizeEnum::WideArea);
+  PopulateOverworldMaps();
+  overworld_->AssignMapSizes(
+      const_cast<std::vector<OverworldMap>&>(overworld_->overworld_maps()));
+
+  ASSERT_TRUE(overworld_->SaveLargeMapsExpanded().ok());
+
+  auto read_word = [&](int address) {
+    return static_cast<uint16_t>((*rom_)[address] |
+                                 ((*rom_)[address + 1] << 8));
+  };
+  // ByScreen4 (transitioning up): $29 sits above the right half $31.
+  const int by_screen4 = GetOverworldScreenChange4Expanded();
+  EXPECT_EQ(read_word(by_screen4 + 0x29 * 2), 0x0FC0);
+  EXPECT_EQ(read_word(by_screen4 + 0x28 * 2), 0x1000);
+  // ByScreen3 (transitioning down): $39 sits below the right half $31.
+  const int by_screen3 = GetOverworldScreenChange3Expanded();
+  EXPECT_EQ(read_word(by_screen3 + 0x39 * 2), 0x17C0);
+  EXPECT_EQ(read_word(by_screen3 + 0x38 * 2), 0x1800);
+}
+
+TEST_F(OverworldRegressionTest,
+       ConfigureMultiAreaMap_WideAndTallChildrenGetQuadrant) {
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+  PopulateOverworldMaps();
+  // SaveDiggableTiles() caches the ROM version that ConfigureMultiAreaMap
+  // checks; on v3 it writes nothing.
+  ASSERT_TRUE(overworld_->SaveDiggableTiles().ok());
+
+  ASSERT_TRUE(
+      overworld_->ConfigureMultiAreaMap(0x30, AreaSizeEnum::WideArea).ok());
+  EXPECT_EQ(overworld_->overworld_map(0x30)->large_index(), 0);
+  EXPECT_EQ(overworld_->overworld_map(0x31)->large_index(), 1);
+  EXPECT_EQ(overworld_->overworld_map(0x31)->parent(), 0x30);
+
+  ASSERT_TRUE(
+      overworld_->ConfigureMultiAreaMap(0x30, AreaSizeEnum::TallArea).ok());
+  EXPECT_EQ(overworld_->overworld_map(0x30)->large_index(), 0);
+  EXPECT_EQ(overworld_->overworld_map(0x38)->large_index(), 2);
+  EXPECT_EQ(overworld_->overworld_map(0x38)->parent(), 0x30);
+  EXPECT_EQ(overworld_->overworld_map(0x31)->area_size(),
+            AreaSizeEnum::SmallArea);
+  EXPECT_EQ(overworld_->overworld_map(0x31)->large_index(), 0);
+}
+
+// =============================================================================
 // P1-02: Deleted OverworldItem must not persist after save
 // =============================================================================
 
