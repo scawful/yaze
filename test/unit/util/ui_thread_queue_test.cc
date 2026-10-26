@@ -199,11 +199,13 @@ TEST(UiThreadQueueTest, TaskStartedBeforeTimeoutIsAwaited) {
   queue.BindToCurrentThread();
 
   absl::StatusOr<int> result = absl::UnknownError("not set");
+  std::atomic<bool> task_started{false};
   std::chrono::steady_clock::time_point call_start;
   std::thread worker([&]() {
     call_start = std::chrono::steady_clock::now();
     result = queue.RunOnUiThread(
-        []() -> absl::StatusOr<int> {
+        [&task_started]() -> absl::StatusOr<int> {
+          task_started.store(true);
           // Runs past the caller's timeout. The caller must wait instead of
           // returning while this task can still write its result.
           std::this_thread::sleep_for(kAwaitTaskRuntime);
@@ -213,15 +215,14 @@ TEST(UiThreadQueueTest, TaskStartedBeforeTimeoutIsAwaited) {
   });
 
   ASSERT_TRUE(WaitUntil([&]() { return queue.HasPendingTasks(); }));
+  const auto drain_start = std::chrono::steady_clock::now();
   queue.Drain();
-  const auto drain_end = std::chrono::steady_clock::now();
   worker.join();
 
-  // The caller abandons the task only if Drain() claimed it after the
-  // caller's deadline, which needs this thread to stall for the whole
-  // timeout. Any other DeadlineExceeded is a real failure.
+  // Skip only if the caller abandoned an unstarted task before Drain began.
+  // Once the task starts, any DeadlineExceeded is a real failure.
   if (result.status().code() == absl::StatusCode::kDeadlineExceeded &&
-      drain_end - call_start > kAwaitTimeout) {
+      !task_started.load() && drain_start - call_start >= kAwaitTimeout) {
     GTEST_SKIP() << "Drain() ran after the caller's timeout; scheduler stall";
   }
   ASSERT_TRUE(result.ok()) << result.status();

@@ -148,8 +148,9 @@ Handlers still not on the UI thread (follow-up to F-02):
 2. RomService mutating RPCs other than `WriteBytes`.
 3. Emulator, render, visual, and widget-discovery services.
 4. The `OpenRomOrProject` ROM loader path and the other HTTP handlers.
-5. Shutdown ordering in `application.cc`: services should stop before the queue
-   shuts down, so a late call gets a clean error instead of a timeout.
+5. Additional service teardown must preserve the queue's cancellation contract:
+   cancel pending UI work before waiting for service shutdown, and clear the
+   guarded backend waker before destroying its window backend.
 
 Found and not fixed:
 
@@ -338,7 +339,7 @@ platform/CI results belong in the integration PR.
 | Full build, macOS arm64 | exit 0, 0 errors, 0 compiler warnings (only the known duplicate-library `ld` warnings) | `cmake --build --preset mac-ai -j 4` |
 | Focused unit tests | 105/105 pass across 13 suites: `UiThreadQueueTest` (10), `MainLoopEventWaitMsTest` (3), `WidgetIdRegistryTest` (4), `WidgetStateCaptureTest` (1), `ColumnLabelTest` (2), `TableHelpersFrameTest` (6), `ImGuiDiagnosticsTest` (5), `ThemeStyleSnapshotTest` (31), `PropertyInspectorTest` (14), `DeferredScalarInputTest` (5), `HexInputTest` (4), `StyleGuardScopesTest` (12), `DrawSamplingTest` (8) | `yaze_test_unit --gtest_filter=...` with an empty `HOME` |
 | Queue stress | `UiThreadQueueTest.*` 10/10 repeats pass, no skips | `--gtest_repeat=10` |
-| GUI tests | 4/4 pass: `headless_gui_suite` (0.94 s), `gui_dead_click_smoke` (5.04 s), `gui_settings_drawer_smoke` (166.26 s), `gui_menu_tilemap_editor_smoke` (5.06 s) | `ctest -R ...` with a copy of the vanilla ROM |
+| GUI command results reported by producer | Four commands exited successfully. Review reproduced `headless_gui_suite` selecting zero GoogleTests; that command was not GUI acceptance. Its registration now selects the two existing null-backend controller-close tests and rejects an empty selection. The other three native runs remain historical producer evidence. | `ctest -R ...` with a copy of the vanilla ROM; Codex empty-selection control exited 0 with 0 tests |
 | Windows full stable suite | Build ok (379 s). 8 failures: 7 sprite preview tests (a branch regression; reproduced on macOS and fixed by the hard-edged sprite art row, 15/15 pass on macOS after the fix) and the Windows-only WaterFill test (found-and-not-fixed item 6). The snapshot predates the sprite and queue test fixes; Windows was not rerun after them | `scripts/remote/mm-test.sh 92b9d7825 --full` (dangling snapshot commit) |
 | Adversarial review | 4 finders (concurrency, ImGui API, drawing, build and platform) and 1 verifier. 1 finding kept as PLAUSIBLE, 0 refuted: `TaskStartedBeforeTimeoutIsAwaited` failed if `Drain()` started after the 500 ms caller timeout. Fixed: the test now skips only when the measured delay proves a scheduler stall | `test/unit/util/ui_thread_queue_test.cc` |
 
@@ -346,10 +347,22 @@ The first focused run failed `ImGuiDiagnosticsTest.NullBackendRunsHeadlessFrames
 the font atlas stayed in `WantUpdates` (status 3). That led to the Headless
 textures fix above.
 
+Codex's Windows check of integrated product commit `7f1ae855` passed all
+13 stable CTest entries: 5,798 GoogleTest cases passed and 459 were skipped.
+The qualified command included `--target z3ed` and used `MM_REMOTE_ROOT=ym`.
+The default runner job path reproduced two unchanged artifact-path failures;
+the same executable passed those cases with a shorter temporary root, and a
+padded-root control reproduced the collision-source failure. No assertions
+or production writers were changed to obtain the qualified result. Final
+commit CI remains authoritative for the later test-integrity corrections.
+
+Review also corrected the new queue timeout test's skip condition: a task
+that actually started can no longer be mistaken for a scheduling stall.
+
 ## Gaps
 
-1. Windows was built and tested on medical-mechanica from a snapshot that
-   predates the last two fixes. Linux, iOS, and WASM were not built from this
+1. The integrated product source was built and tested on medical-mechanica
+   as qualified above. Linux, iOS, and WASM were not locally built from this
    branch. CI covers Windows and Linux; iOS builds `main.mm` without
    `IMGUI_USER_CONFIG`, which is safe only while `yaze_imconfig.h` stays
    layout-neutral.

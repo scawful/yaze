@@ -1073,13 +1073,17 @@ if(YAZE_BUILD_TESTS)
       "-Wl,--no-whole-archive")
   endif()
 
-  # Add a single test entry to run the entire GUI suite headlessly
+  # Run the two native-close routing cases through the null window backend.
   add_test(
       NAME headless_gui_suite
-      COMMAND $<TARGET_FILE:yaze_test_gui> -nogui --fast WindowBrowser,WindowSidebarToggle,RightDrawer,WorkflowActivityWidgets
+      COMMAND $<TARGET_FILE:yaze_test_gui>
+              --gtest_filter=NativeCloseEvents/ControllerWindowCloseTest.RoutesNativeCloseThroughEditorQuit/*
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
-  set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")
+  set_tests_properties(headless_gui_suite PROPERTIES
+    LABELS "headless_gui;experimental"
+    FAIL_REGULAR_EXPRESSION "Running 0 tests"
+  )
 
   # Mouse-release regressions (menu item, overworld right-click popup, panel
   # close X) driven through ImGuiTestEngine against the full Controller UI.

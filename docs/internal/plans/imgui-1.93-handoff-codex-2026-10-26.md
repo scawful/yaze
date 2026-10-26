@@ -19,13 +19,18 @@ The detailed migration report is [imgui-1.93-upgrade-2026-10-26.md](imgui-1.93-u
    queue's post-shutdown inline path. New frame fixtures disable ini
    persistence. Older property/deferred-input fixtures rewrote the full
    focused run's disposable sentinel; suite-wide ini isolation is not proved.
+   Review also tightened the queue timeout test's skip condition and replaced
+   the zero-case headless command with two real controller-close cases.
 3. Preserve current master's shared HTTP lifecycle, extracted screenshot
    implementation, editor-control queue, and CLI/editor library separation
    when integrating. Keep general UI work before `NewFrame` and maintained
    editor-control work after it.
 4. Normal hooks and exact-head Windows/CI checks still apply. The producer's
-   Windows snapshot `92b9d7825` predates the final sprite/queue repairs; its
-   failure counts are historical, not an expected-pass exception. Native
+   Windows snapshot `92b9d7825` predates the final sprite/queue repairs.
+   Product commit `7f1ae855` passed 13 stable CTest entries with a shorter
+   isolated job root and explicit `--target z3ed`; 5,798 cases passed and
+   459 were skipped. The default long runner path's two unchanged fixture
+   failures remain documented. Native
    renderer parity, iOS, and WASM have no new acceptance evidence.
 5. The report's architecture and UX ideas are proposals. Ctrl+S error
    reporting, overworld exit serialization, and a combined save/build/run
