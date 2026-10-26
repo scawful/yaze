@@ -75,14 +75,17 @@ Json ProfileJson(const LyraTerrainProfile& profile) {
 }
 
 Json PropertiesJson(const LyraMapProperties& p) {
-  return {{"graphics_sheets", p.graphics_sheets},
-          {"main_palette", p.main_palette},
-          {"palette_set", p.palette_set},
-          {"animated_sheet", p.animated_sheet},
-          {"sprite_graphics", p.sprite_graphics},
-          {"sprite_palettes", p.sprite_palettes},
-          {"music", p.music},
-          {"message_id", p.message_id}};
+  Json result = {{"graphics_sheets", p.graphics_sheets},
+                 {"main_palette", p.main_palette},
+                 {"palette_set", p.palette_set},
+                 {"animated_sheet", p.animated_sheet},
+                 {"sprite_graphics", p.sprite_graphics},
+                 {"sprite_palettes", p.sprite_palettes},
+                 {"music", p.music},
+                 {"message_id", p.message_id}};
+  if (p.background_palette)
+    result["background_palette"] = *p.background_palette;
+  return result;
 }
 
 Json SpriteJson(const LyraSpritePlacement& s) {
@@ -177,6 +180,13 @@ absl::Status ValidateAuthoringState(const LyraAuthoringState& state) {
     const auto& props = map_auth.properties;
 
     // Validate properties
+    if (props.background_palette) {
+      for (const auto color : *props.background_palette) {
+        if (color > 0x7FFF)
+          return absl::InvalidArgumentError(
+              "Lyra background palette colors require BGR555 values 0..32767");
+      }
+    }
     for (uint8_t sheet : props.graphics_sheets) {
       (void)sheet;  // uint8_t is 0..255
     }
@@ -468,12 +478,13 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
         return absl::InvalidArgumentError(
             "Malformed Lyra schema 2 header keys");
       }
-    } else if (version == 3) {
+    } else if (version == 3 || version == 4) {
       if (!HasKeys(json, {"schema", "schema_version", "columns", "rows",
                           "map_width", "map_height", "tile_pixels", "profile",
                           "maps", "flight_points", "edge_connections"})) {
         return absl::InvalidArgumentError(
-            "Malformed Lyra schema 3 header keys");
+            version == 3 ? "Malformed Lyra schema 3 header keys"
+                         : "Malformed Lyra schema 4 header keys");
       }
     } else {
       return absl::InvalidArgumentError("Unsupported Lyra schema version");
@@ -515,6 +526,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
       return absl::InvalidArgumentError("Lyra terrain requires all 32 maps");
     }
     auto& document = *created;
+    bool has_background_palette = false;
     std::array<bool, kMapCount> seen{};
     for (const auto& map : json["maps"]) {
       if (version == 1) {
@@ -559,9 +571,18 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
         }
         // properties
         const auto& props = auth["properties"];
-        if (!HasKeys(props, {"graphics_sheets", "main_palette", "palette_set",
+        const bool has_override = props.contains("background_palette");
+        if ((has_override && version != 4) ||
+            !(has_override
+                  ? HasKeys(
+                        props,
+                        {"graphics_sheets", "main_palette", "palette_set",
+                         "animated_sheet", "sprite_graphics", "sprite_palettes",
+                         "music", "message_id", "background_palette"})
+                  : HasKeys(props,
+                            {"graphics_sheets", "main_palette", "palette_set",
                              "animated_sheet", "sprite_graphics",
-                             "sprite_palettes", "music", "message_id"})) {
+                             "sprite_palettes", "music", "message_id"}))) {
           return absl::InvalidArgumentError("Malformed map properties keys");
         }
         if (!props["graphics_sheets"].is_array() ||
@@ -578,6 +599,21 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
           return absl::InvalidArgumentError("Malformed map properties values");
         }
         LyraMapProperties map_properties;
+        if (has_override) {
+          const auto& colors = props["background_palette"];
+          if (!colors.is_array() || colors.size() != 128)
+            return absl::InvalidArgumentError(
+                "Lyra background palette requires exactly 128 BGR555 colors");
+          std::array<uint16_t, 128> palette;
+          for (size_t i = 0; i < palette.size(); ++i) {
+            if (!IntegerIn(colors[i], 0, 0x7FFF))
+              return absl::InvalidArgumentError(
+                  "Lyra background palette colors require integers 0..32767");
+            palette[i] = colors[i].get<uint16_t>();
+          }
+          map_properties.background_palette = palette;
+          has_background_palette = true;
+        }
         for (int i = 0; i < 8; ++i) {
           if (!IntegerIn(props["graphics_sheets"][i], 0, 255)) {
             return absl::InvalidArgumentError(
@@ -709,7 +745,7 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
       }
     }
 
-    if (version == 3) {
+    if (version >= 3) {
       const auto& edges = json["edge_connections"];
       if (!edges.is_array()) {
         return absl::InvalidArgumentError("edge_connections must be an array");
@@ -742,6 +778,9 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
       }
     }
 
+    if (version == 4 && !has_background_palette)
+      return absl::InvalidArgumentError(
+          "Lyra schema 4 requires a map background palette override");
     auto auth_status = ValidateAuthoringState(document.authoring_);
     if (!auth_status.ok()) {
       return auth_status;
@@ -756,8 +795,11 @@ absl::StatusOr<LyraTerrainDocument> LyraTerrainDocument::Parse(
 }
 
 std::string LyraTerrainDocument::Serialize() const {
+  bool has_background_palette = false;
+  for (const auto& map : authoring_.maps)
+    has_background_palette |= map.properties.background_palette.has_value();
   Json json = {{"schema", "yaze.lyra-terrain"},
-               {"schema_version", kSchemaVersion},
+               {"schema_version", has_background_palette ? 4 : 3},
                {"columns", kColumns},
                {"rows", kRows},
                {"map_width", kMapSize},

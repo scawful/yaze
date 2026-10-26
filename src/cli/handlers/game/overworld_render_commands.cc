@@ -17,6 +17,7 @@
 #include "core/overworld_graphics_preview.h"
 #include "core/rom_settings.h"
 #include "core/source_artifact_publisher.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/game_data.h"
@@ -136,6 +137,9 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
   ASSIGN_OR_RETURN(auto document,
                    core::LyraTerrainDocument::Parse(text, profile));
   std::unordered_map<std::string, std::string> native_bindings;
+  std::unordered_map<std::string, std::array<uint16_t, 256>> resolved_palettes;
+  auto inspected = nlohmann::json::array();
+  int mismatches = 0;
   std::array<std::array<std::string, 3>, core::LyraTerrainDocument::kMapCount>
       verified_bindings;
   for (int i = 0; i < core::LyraTerrainDocument::kMapCount; ++i) {
@@ -146,13 +150,33 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
       if (found == native_bindings.end()) {
         ASSIGN_OR_RETURN(auto assets, zelda3::ResolveLyraMapAssets(
                                           overworld, map.properties, state));
+        if (InspectAssets()) {
+          std::array<uint16_t, 256> palette;
+          for (size_t color = 0; color < palette.size(); ++color)
+            palette[color] = assets.source.current_palette()[color].snes();
+          resolved_palettes.emplace(key, palette);
+        }
         found = native_bindings.emplace(key, std::move(assets.binding)).first;
       }
       const auto& expected = map.asset_bindings[state];
-      if (!expected.empty() && expected != found->second)
-        return absl::FailedPreconditionError(absl::StrFormat(
-            "Lyra map $%02X state %d native asset binding changed",
-            core::LyraTerrainDocument::kFirstMap + i, state));
+      const bool changed = !expected.empty() && expected != found->second;
+      if (changed) {
+        ++mismatches;
+        if (!InspectAssets())
+          return absl::FailedPreconditionError(absl::StrFormat(
+              "Lyra map $%02X state %d native asset binding changed",
+              core::LyraTerrainDocument::kFirstMap + i, state));
+      }
+      if (InspectAssets()) {
+        inspected.push_back({
+            {"map_id", core::LyraTerrainDocument::kFirstMap + i},
+            {"state", state},
+            {"stored_binding", expected},
+            {"current_binding", found->second},
+            {"binding_changed", changed},
+            {"palette_words", resolved_palettes.at(key)},
+        });
+      }
       // Default properties bind through the verified shared profile. Preserve
       // their empty representation for the compiler's existing input contract.
       verified_bindings[i][state] = expected.empty() ? "" : found->second;
@@ -188,6 +212,13 @@ absl::Status LyraVerifyProjectCommandHandler::Execute(
   formatter.AddField("palette_fingerprint", profile.palette_fingerprint);
   formatter.AddField("animation_fingerprint", profile.animation_fingerprint);
   formatter.EndObject();
+
+  if (InspectAssets()) {
+    formatter.AddField("inspection_only", true);
+    formatter.AddField("asset_binding_mismatches", mismatches);
+    formatter.AddRawJsonField("map_assets", inspected.dump());
+    return absl::OkStatus();
+  }
 
   auto native_99 = *overworld.mutable_overworld_map(0x99);
   native_99.set_game_state(0);

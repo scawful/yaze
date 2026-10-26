@@ -357,6 +357,156 @@ TEST(LyraTerrainDocumentTest, PropertyOnlyDirtySavedUndoViaSetAuthoring) {
   EXPECT_FALSE(doc->dirty());
 }
 
+TEST(LyraTerrainDocumentTest, BackgroundPaletteUsesSchema4OnlyWhenPresent) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  const auto original = nlohmann::json::parse(doc->Serialize());
+  EXPECT_EQ(original["schema_version"], 3);
+  for (const auto& map : original["maps"]) {
+    EXPECT_FALSE(map["authoring"]["properties"].contains("background_palette"));
+  }
+
+  auto state = doc->authoring();
+  std::array<uint16_t, 128> palette{};
+  for (size_t i = 0; i < palette.size(); ++i) {
+    palette[i] = static_cast<uint16_t>(i * 17);
+  }
+  palette.back() = 0x7FFF;
+  state.maps[0].properties.background_palette = palette;
+  state.maps[0].asset_bindings = {"definitions:0", "graphics:0", "palette:0"};
+  state.maps[31].properties.message_id = 42;
+  state.maps[31].asset_bindings = {"definitions:31", "graphics:31",
+                                   "palette:31"};
+  ASSERT_TRUE(doc->SetAuthoring(doc->authoring(), state).ok());
+
+  const auto serialized = doc->Serialize();
+  const auto json = nlohmann::json::parse(serialized);
+  EXPECT_EQ(json["schema_version"], 4);
+  EXPECT_EQ(json["maps"][0]["authoring"]["properties"]["background_palette"],
+            nlohmann::json(palette));
+  EXPECT_FALSE(json["maps"][1]["authoring"]["properties"].contains(
+      "background_palette"));
+  EXPECT_FALSE(json["maps"][31]["authoring"]["properties"].contains(
+      "background_palette"));
+  auto schema4_without_override = json;
+  schema4_without_override["maps"][0]["authoring"]["properties"].erase(
+      "background_palette");
+  EXPECT_FALSE(
+      LyraTerrainDocument::Parse(schema4_without_override.dump(), Profile())
+          .ok());
+  auto reopened = LyraTerrainDocument::Parse(serialized, Profile());
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->authoring(), state);
+  EXPECT_EQ(reopened->Serialize(), serialized);
+  EXPECT_FALSE(reopened->dirty());
+
+  auto native = state;
+  native.maps[0].properties.background_palette.reset();
+  ASSERT_TRUE(doc->SetAuthoring(state, native).ok());
+  EXPECT_EQ(nlohmann::json::parse(doc->Serialize())["schema_version"], 3);
+}
+
+TEST(LyraTerrainDocumentTest,
+     BackgroundPaletteRequiresExactBoundedIntegerArray) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  auto state = doc->authoring();
+  state.maps[0].asset_bindings = {"definitions:0", "graphics:0", "palette:0"};
+  state.maps[0].properties.background_palette = std::array<uint16_t, 128>{};
+  ASSERT_TRUE(doc->SetAuthoring(doc->authoring(), state).ok());
+  const auto original = nlohmann::json::parse(doc->Serialize());
+  ASSERT_TRUE(LyraTerrainDocument::Parse(original.dump(), Profile()).ok());
+  using Json = nlohmann::json;
+  using Mutation = std::function<void(Json&)>;
+  const std::vector<Mutation> mutations = {
+      [](Json& p) { p = nullptr; },
+      [](Json& p) { p = Json::object(); },
+      [](Json& p) { p = "native"; },
+      [](Json& p) { p.erase(0); },
+      [](Json& p) { p.push_back(0); },
+      [](Json& p) { p[0] = -1; },
+      [](Json& p) { p[127] = 0x8000; },
+      [](Json& p) { p[0] = 0.0; },
+      [](Json& p) { p[0] = true; },
+      [](Json& p) { p[0] = uint64_t{18446744073709551615ULL}; },
+  };
+  for (size_t i = 0; i < mutations.size(); ++i) {
+    SCOPED_TRACE(i);
+    auto malformed = original;
+    mutations[i](
+        malformed["maps"][0]["authoring"]["properties"]["background_palette"]);
+    EXPECT_FALSE(LyraTerrainDocument::Parse(malformed.dump(), Profile()).ok());
+  }
+
+  auto invalid = state;
+  invalid.maps[0].properties.background_palette->back() = 0x8000;
+  doc->MarkSaved();
+  EXPECT_FALSE(doc->SetAuthoring(state, invalid).ok());
+  EXPECT_EQ(doc->authoring(), state);
+  EXPECT_FALSE(doc->dirty());
+}
+
+TEST(LyraTerrainDocumentTest, LegacySchemasRefuseBackgroundPaletteOverrides) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  const auto original = nlohmann::json::parse(doc->Serialize());
+  for (const int version : {2, 3}) {
+    SCOPED_TRACE(version);
+    auto legacy = version == 2 ? AsSchema2(original) : original;
+    ASSERT_TRUE(LyraTerrainDocument::Parse(legacy.dump(), Profile()).ok());
+    legacy["maps"][0]["authoring"]["properties"]["background_palette"] =
+        std::array<uint16_t, 128>{};
+    legacy["maps"][0]["authoring"]["asset_bindings"] =
+        std::array<std::string, 3>{"definitions:0", "graphics:0", "palette:0"};
+    EXPECT_FALSE(LyraTerrainDocument::Parse(legacy.dump(), Profile()).ok());
+  }
+
+  auto schema1 = AsSchema2(original);
+  schema1["schema_version"] = 1;
+  schema1.erase("flight_points");
+  for (auto& map : schema1["maps"])
+    map.erase("authoring");
+  ASSERT_TRUE(LyraTerrainDocument::Parse(schema1.dump(), Profile()).ok());
+  schema1["maps"][0]["authoring"] = original["maps"][0]["authoring"];
+  schema1["maps"][0]["authoring"]["properties"]["background_palette"] =
+      std::array<uint16_t, 128>{};
+  EXPECT_FALSE(LyraTerrainDocument::Parse(schema1.dump(), Profile()).ok());
+}
+
+TEST(LyraTerrainDocumentTest,
+     BackgroundPaletteUndoAndNativeResetTrackDirtyState) {
+  auto doc = LyraTerrainDocument::Create(Profile());
+  ASSERT_TRUE(doc.ok());
+  const auto baseline = doc->authoring();
+  auto override_state = baseline;
+  override_state.maps[4].asset_bindings = {"defs:4", "gfx:4", "palette:4"};
+  std::array<uint16_t, 128> palette{};
+  palette[0] = 0x001F;
+  palette[127] = 0x7C00;
+  override_state.maps[4].properties.background_palette = palette;
+  ASSERT_TRUE(doc->SetAuthoring(baseline, override_state).ok());
+  EXPECT_TRUE(doc->dirty());
+  EXPECT_FALSE(
+      doc->authoring().maps[3].properties.background_palette.has_value());
+  doc->MarkSaved();
+  EXPECT_FALSE(doc->dirty());
+
+  ASSERT_TRUE(doc->SetAuthoring(override_state, baseline).ok());
+  EXPECT_TRUE(doc->dirty());
+  EXPECT_FALSE(
+      doc->authoring().maps[4].properties.background_palette.has_value());
+  ASSERT_TRUE(doc->SetAuthoring(baseline, override_state).ok());
+  EXPECT_FALSE(doc->dirty());
+
+  auto native = override_state;
+  native.maps[4].properties.background_palette.reset();
+  ASSERT_TRUE(doc->SetAuthoring(override_state, native).ok());
+  EXPECT_TRUE(doc->dirty());
+  ASSERT_TRUE(doc->SetAuthoring(native, override_state).ok());
+  EXPECT_FALSE(doc->dirty());
+  EXPECT_EQ(doc->authoring().maps[4].properties.background_palette, palette);
+}
+
 TEST(LyraTerrainDocumentTest,
      RefusesDuplicateIdsPositionsFloatsAndInvalidAuthoring) {
   auto doc = LyraTerrainDocument::Create(Profile(), 0);

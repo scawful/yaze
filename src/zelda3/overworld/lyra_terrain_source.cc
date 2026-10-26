@@ -123,7 +123,35 @@ std::string LyraMapAssetKey(const core::LyraMapProperties& p, int state) {
   for (auto id : p.sprite_palettes)
     AddWord(key, id + 1);
   key.push_back(state);
+  // Preserve legacy keys exactly when no project override is present.
+  if (p.background_palette) {
+    key.append("BG");
+    for (const auto color : *p.background_palette)
+      AddWord(key, color);
+  }
   return key;
+}
+
+absl::Status ApplyLyraBackgroundPaletteOverride(
+    const core::LyraMapProperties& properties, gfx::SnesPalette& palette) {
+  if (!properties.background_palette)
+    return absl::OkStatus();
+  if (palette.size() != 256)
+    return absl::FailedPreconditionError("Lyra resolved palette is incomplete");
+  // Validate the complete override before changing even the palette copy.
+  for (const auto color : *properties.background_palette) {
+    if (color > 0x7FFF)
+      return absl::InvalidArgumentError(
+          "Lyra background palette colors require BGR555 values 0..32767");
+  }
+  for (size_t i = 0; i < properties.background_palette->size(); ++i) {
+    gfx::SnesColor color((*properties.background_palette)[i]);
+    // These are display colors; retain native transparency and edit metadata.
+    color.set_transparent(palette[i].is_transparent());
+    color.set_modified(palette[i].is_modified());
+    palette[i] = color;
+  }
+  return absl::OkStatus();
 }
 
 absl::StatusOr<LyraNativeMapAssets> ResolveLyraMapAssets(
@@ -194,6 +222,9 @@ absl::StatusOr<LyraNativeMapAssets> ResolveLyraMapAssets(
   RETURN_IF_ERROR(source.LoadPalette());
   if (source.current_palette().size() != 256)
     return absl::FailedPreconditionError("Lyra resolved palette is incomplete");
+  if (p.background_palette)
+    RETURN_IF_ERROR(ApplyLyraBackgroundPaletteOverride(
+        p, *source.mutable_current_palette()));
   const auto& pixels = source.current_graphics();
   std::string binding = LyraMapAssetKey(p, state);
   binding.append(reinterpret_cast<const char*>(pixels.data()), pixels.size());

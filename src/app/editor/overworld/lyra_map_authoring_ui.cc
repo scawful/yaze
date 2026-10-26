@@ -210,6 +210,20 @@ void LyraTerrainCanvas::DrawProperties(int map_id, int& state,
       draft.palette_set = static_cast<uint8_t>(std::clamp(area_pal, 0, 255));
     }
 
+    if (draft.background_palette) {
+      ImGui::TextUnformatted(
+          "Background colors: project override (128 colors)");
+      ImGui::TextWrapped(
+          "This map uses project colors. Native palettes and sprite colors "
+          "stay unchanged.");
+      if (ImGui::Button("Use native palette")) {
+        draft.background_palette.reset();
+        status_ = ApplyPropertyDraft(map_index, overworld, history);
+      }
+    } else {
+      ImGui::TextUnformatted("Background colors: native palette");
+    }
+
     // Animated GFX (uint8_t hex)
     int anim_sheet = draft.animated_sheet;
     if (ImGui::InputScalar("Animated GFX", ImGuiDataType_S32, &anim_sheet,

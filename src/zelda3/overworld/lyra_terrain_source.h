@@ -8,7 +8,8 @@
 
 namespace yaze::gfx {
 class Bitmap;
-}
+class SnesPalette;
+}  // namespace yaze::gfx
 namespace yaze::zelda3 {
 class Overworld;
 
@@ -22,6 +23,10 @@ absl::Status BindLyraTerrainSource(Overworld& overworld,
 // editor previews and build verification. This path creates no GPU textures.
 std::string LyraMapAssetKey(const core::LyraMapProperties& properties,
                             int state);
+// Apply project-owned BG colors to an already resolved palette copy. Never
+// changes native groups, ROM storage, or the upper 128 OBJ colors.
+absl::Status ApplyLyraBackgroundPaletteOverride(
+    const core::LyraMapProperties& properties, gfx::SnesPalette& palette);
 struct LyraNativeMapAssets {
   OverworldMap source;
   std::string binding;

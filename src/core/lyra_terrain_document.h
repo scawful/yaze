@@ -20,6 +20,8 @@ struct LyraMapProperties {
                                             0x47, 0x48, 0x3E, 0x5B};
   uint8_t main_palette = 0;
   uint8_t palette_set = 1;
+  // Project-owned BG colors only; native ROM palettes and OBJ colors are unchanged.
+  std::optional<std::array<uint16_t, 128>> background_palette;
   uint8_t animated_sheet = 0x5B;
   std::array<int, 3> sprite_graphics = {-1, -1, -1};
   std::array<int, 3> sprite_palettes = {-1, -1, -1};
@@ -146,7 +148,7 @@ struct LyraTerrainStroke {
 
 class LyraTerrainDocument {
  public:
-  static constexpr int kSchemaVersion = 3;
+  static constexpr int kSchemaVersion = 4;
   static constexpr int kMaxEdgeConnections = 64;
   static constexpr int kFirstMap = 0xA0;
   static constexpr int kMapCount = 32;
